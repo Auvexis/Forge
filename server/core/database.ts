@@ -41,8 +41,10 @@ db.prepare(
   CREATE TABLE IF NOT EXISTS plugins (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    config TEXT,
-    enabled INTEGER DEFAULT 0
+    enabled INTEGER DEFAULT 0,
+    version TEXT NOT NULL,
+    author TEXT NOT NULL,
+    config TEXT
   )
 `,
 ).run();

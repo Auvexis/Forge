@@ -46,9 +46,17 @@ export default async function ollamaRoutes(fastify: FastifyInstance) {
 
       const optionsString = body.options ? JSON.stringify(body.options) : null;
 
+      /**
+       * Delete existing config
+       */
+      db.prepare(`DELETE FROM ollama_config`).run();
+
+      /**
+       * Insert new config
+       */
       db.prepare(
         `
-        INSERT OR REPLACE INTO ollama_config (model, host, options)
+        INSERT INTO ollama_config (model, host, options)
         VALUES (?, ?, ?)
       `,
       ).run(body.model, body.host, optionsString);
