@@ -1,7 +1,7 @@
-import { FastifyInstance } from "fastify";
-import { ApiResponse } from "../shared/models/api-response.model";
-import { OllamaConfigModel } from "../shared/models/ollama-config.model";
-import { db } from "../database";
+import type { FastifyInstance } from "fastify";
+import type { ApiResponse } from "../shared/models/api-response.model.ts";
+import type { OllamaConfigModel } from "../shared/models/ollama-config.model.ts";
+import { db } from "../database.ts";
 
 export default async function ollamaRoutes(fastify: FastifyInstance) {
   /**

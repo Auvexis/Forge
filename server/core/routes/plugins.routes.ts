@@ -1,7 +1,7 @@
-import { FastifyInstance } from "fastify";
-import { db } from "../database";
-import { ApiResponse } from "../shared/models/api-response.model";
-import { PluginModel } from "../shared/models/plugin.model";
+import type { FastifyInstance } from "fastify";
+import { db } from "../database.ts";
+import type { ApiResponse } from "../shared/models/api-response.model.ts";
+import type { PluginModel } from "../shared/models/plugin.model.ts";
 
 export default async function pluginsRoutes(fastify: FastifyInstance) {
   /**

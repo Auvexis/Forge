@@ -5,7 +5,7 @@
   "main": "core/server.ts",
   "type": "module",
   "scripts": {
-    "dev": "nodemon core/server.ts",
+    "dev": "npx ts-node ./core/server.ts",
     "build": "tsc",
     "start": "node dist/server.js"
   },

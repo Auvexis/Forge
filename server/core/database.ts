@@ -4,12 +4,15 @@ import path from "path";
 /**
  * Path to the database file
  */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const dbPath = path.join(__dirname, "../../config/data/forge.db");
 
 /**
  * Creates the directory if it doesn't exist
  */
 import fs from "fs";
+import { fileURLToPath } from "url";
 const dataDir = path.join(__dirname, "../../config/data");
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
