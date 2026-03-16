@@ -40,11 +40,38 @@ db.prepare(
   `
   CREATE TABLE IF NOT EXISTS plugins (
     id TEXT PRIMARY KEY,
+    icon TEXT,
     name TEXT NOT NULL,
-    enabled INTEGER DEFAULT 0,
+    description TEXT,
     version TEXT NOT NULL,
     author TEXT NOT NULL,
+    repository TEXT,
+    enabled INTEGER DEFAULT 0,
     config TEXT
+  )
+`,
+).run();
+
+/**
+ * Plugins OAuth Table
+ */
+db.prepare(
+  `
+  CREATE TABLE IF NOT EXISTS plugin_connections (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plugin_id TEXT NOT NULL,
+    provider TEXT NOT NULL,
+
+    access_token TEXT,
+    refresh_token TEXT,
+    expires_at INTEGER,
+
+    metadata TEXT,
+    created_at INTEGER DEFAULT (strftime('%s','now')),
+
+    FOREIGN KEY (plugin_id)
+    REFERENCES plugins(id)
+    ON DELETE CASCADE
   )
 `,
 ).run();

@@ -1,15 +1,19 @@
 import type { FastifyInstance } from "fastify";
 import { db } from "../database.ts";
 import type { ApiResponse } from "../shared/models/api-response.model.ts";
-import type { PluginModel } from "../shared/models/plugin.model.ts";
+import type {
+  PluginDBRow,
+  PluginModel,
+} from "../shared/models/plugin.model.ts";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath, pathToFileURL } from "url";
-import { executePluginMethod } from "../plugins/executor.ts";
+import { PluginManager } from "../plugins/manager.ts";
+import { PluginExecutor } from "../plugins/executor.ts";
 
 export default async function pluginsRoutes(fastify: FastifyInstance) {
   /**
-   * Plugins
+   * Load Plugins Routes
    */
   await loadPluginsRoutes(fastify);
 
@@ -21,16 +25,25 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     async (req, res): Promise<ApiResponse<PluginModel[]>> => {
       const plugins = db
         .prepare("SELECT * FROM plugins")
-        .all() as PluginModel[];
+        .all() as PluginDBRow[];
 
-      const cleanPlugins: PluginModel[] = plugins.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        enabled: Boolean(p.enabled),
-        version: p.version,
-        author: p.author,
-        config: p.config ? JSON.parse(p.config) : {},
-      }));
+      const cleanPlugins: PluginModel[] = plugins.map((p: PluginDBRow) => {
+        const registeredPlugin = PluginManager.getPlugin(p.id);
+
+        return {
+          id: p.id,
+          name: p.name,
+          version: p.version,
+          author: p.author,
+          repository: p.repository || "",
+          enabled: Boolean(p.enabled),
+          config: p.config ? JSON.parse(p.config) : {},
+          icon: p.icon || "",
+          description: p.description || "",
+          methods: registeredPlugin?.methods || {},
+          manifest: registeredPlugin?.manifest || {},
+        };
+      });
 
       return {
         status_code: 200,
@@ -42,7 +55,39 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
   );
 
   /**
+   * Get plugin by id
+   * @param pluginId - The id of the plugin to get
+   */
+  fastify.get(
+    "/plugins/:pluginId",
+    async (req, res): Promise<ApiResponse<PluginModel>> => {
+      const { pluginId } = req.params as { pluginId: string };
+
+      try {
+        const plugin = PluginManager.getPlugin(pluginId);
+
+        return {
+          status_code: 200,
+          message: "Plugin fetched successfully",
+          error: null,
+          data: plugin,
+        };
+      } catch (error: any) {
+        return {
+          status_code: 404,
+          message: "Plugin not found",
+          error: error.message,
+          data: null,
+        };
+      }
+    },
+  );
+
+  /**
    * Execute plugin method
+   * @param pluginId - The id of the plugin to execute
+   * @param method - The method to execute
+   * @param params - The parameters to pass to the method
    */
   fastify.post(
     "/plugins/:pluginId/execute",
@@ -51,7 +96,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
       const { method, params } = req.body as { method: string; params: any[] };
 
       try {
-        const result = await executePluginMethod(pluginId, method, params);
+        const result = await PluginExecutor.execute(pluginId, method, params);
 
         return {
           status_code: 200,
@@ -63,6 +108,55 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         return {
           status_code: 500,
           message: "Failed to execute plugin method",
+          error: error.message,
+          data: null,
+        };
+      }
+    },
+  );
+
+  /**
+   * Update plugin config
+   * @param pluginId - The id of the plugin to update
+   * @param config - The new config to set
+   */
+  fastify.put(
+    "/plugins/:pluginId/config",
+    async (req, res): Promise<ApiResponse<any>> => {
+      const { pluginId } = req.params as { pluginId: string };
+      const { config } = req.body as { config: Record<string, any> };
+
+      try {
+        const plugin = PluginManager.getPlugin(pluginId);
+
+        if (!plugin) {
+          return {
+            status_code: 404,
+            message: "Plugin not found",
+            error: null,
+            data: null,
+          };
+        }
+
+        const currentConfig = plugin.config;
+
+        const newConfig = {
+          ...currentConfig,
+          ...config,
+        };
+
+        PluginManager.updatePluginConfig(pluginId, newConfig);
+
+        return {
+          status_code: 200,
+          message: "Plugin config updated successfully",
+          error: null,
+          data: newConfig,
+        };
+      } catch (error: any) {
+        return {
+          status_code: 500,
+          message: "Failed to update plugin config",
           error: error.message,
           data: null,
         };

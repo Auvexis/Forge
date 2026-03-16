@@ -1,21 +1,19 @@
-import { getPlugin } from "./registry.ts";
+import { PluginManager } from "./manager.ts";
 
-export async function executePluginMethod(
-  pluginId: string,
-  methodName: string,
-  params: any,
-) {
-  const plugin = getPlugin(pluginId);
+export const PluginExecutor = {
+  execute: async (pluginId: string, methodName: string, params: any) => {
+    const plugin = PluginManager.getPlugin(pluginId);
 
-  if (!plugin) {
-    throw new Error(`Plugin ${pluginId} not found`);
-  }
+    if (!plugin) {
+      throw new Error(`Plugin ${pluginId} not found`);
+    }
 
-  const method = plugin.methods[methodName];
+    const method = plugin.methods[methodName];
 
-  if (!method) {
-    throw new Error(`Method ${methodName} not found in plugin ${pluginId}`);
-  }
+    if (!method) {
+      throw new Error(`Method ${methodName} not found in plugin ${pluginId}`);
+    }
 
-  return await method(params);
-}
+    return await method(params);
+  },
+};
