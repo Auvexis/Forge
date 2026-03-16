@@ -1,11 +1,11 @@
-import { PluginRegistry } from "./registry.ts";
+import { getPlugin } from "./registry.ts";
 
 export async function executePluginMethod(
   pluginId: string,
   methodName: string,
   params: any,
 ) {
-  const plugin = PluginRegistry[pluginId];
+  const plugin = getPlugin(pluginId);
 
   if (!plugin) {
     throw new Error(`Plugin ${pluginId} not found`);

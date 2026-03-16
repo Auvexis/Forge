@@ -1,0 +1,70 @@
+{
+  "name": "Google Drive",
+  "id": "google-drive",
+  "version": "1.0.0",
+  "description": "Allows the AI to interact with Google Drive to manage files and folders.",
+  "methods": {
+    "listFiles": {
+      "description": "List files in a folder or root directory.",
+      "parameters": {
+        "folderId": { "type": "string", "required": false },
+        "pageSize": { "type": "number", "required": false },
+        "query": { "type": "string", "required": false }
+      }
+    },
+    "searchFiles": {
+      "description": "Search files by name or metadata.",
+      "parameters": {
+        "query": { "type": "string", "required": true }
+      }
+    },
+    "getFileMetadata": {
+      "description": "Get metadata of a file.",
+      "parameters": {
+        "fileId": { "type": "string", "required": true }
+      }
+    },
+
+    "uploadFile": {
+      "description": "Upload a new file to Google Drive.",
+      "parameters": {
+        "name": { "type": "string", "required": true },
+        "content": { "type": "string", "required": true },
+        "folderId": { "type": "string", "required": false },
+        "mimeType": { "type": "string", "required": false }
+      }
+    },
+    "downloadFile": {
+      "description": "Download a file from Google Drive.",
+      "parameters": {
+        "fileId": { "type": "string", "required": true }
+      }
+    },
+    "deleteFile": {
+      "description": "Delete a file from Google Drive.",
+      "parameters": {
+        "fileId": { "type": "string", "required": true }
+      }
+    },
+
+    "createFolder": {
+      "description": "Create a new folder.",
+      "parameters": {
+        "name": { "type": "string", "required": true },
+        "parentId": { "type": "string", "required": false }
+      }
+    },
+    "deleteFolder": {
+      "description": "Delete a folder.",
+      "parameters": {
+        "folderId": { "type": "string", "required": true }
+      }
+    },
+    "downloadFolder": {
+      "description": "Download a folder as an archive.",
+      "parameters": {
+        "folderId": { "type": "string", "required": true }
+      }
+    }
+  }
+}
