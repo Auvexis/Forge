@@ -4,7 +4,7 @@ import {
   type PluginDBRow,
   type PluginModel,
 } from "../shared/models/plugin.model.ts";
-import { GoogleDrivePlugin } from "./google-drive/index.ts";
+import { GoogleDrivePlugin } from "./google/google-drive/index.ts";
 
 const plugins = new Map<string, PluginModel>();
 

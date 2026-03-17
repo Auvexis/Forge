@@ -1,7 +1,7 @@
-import { db } from "../../database.ts";
-import type { PluginModel, PluginDBRow } from "../../shared/models/plugin.model.ts";
 import manifest from "./manifest.json" with { type: "json" };
 import { GoogleDriveMethods } from "./methods.ts";
+import { db } from "../../../database.ts";
+import type { PluginDBRow, PluginModel } from "../../../shared/models/plugin.model.ts";
 
 const plugin = db
   .prepare(`SELECT * FROM plugins WHERE id = ?`)

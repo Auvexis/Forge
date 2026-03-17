@@ -169,28 +169,32 @@ async function loadPluginsRoutes(fastify: FastifyInstance) {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const pluginsDir = path.join(__dirname, "../plugins");
 
-  for (const dir of fs.readdirSync(pluginsDir)) {
-    const pluginPath = path.join(pluginsDir, dir);
+  async function loadRoutesRecursively(dir: string) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
 
-    if (!fs.statSync(pluginPath).isDirectory()) {
-      continue;
-    }
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
 
-    const routesPath = path.join(pluginPath, "routes.ts");
-
-    if (!fs.existsSync(routesPath)) {
-      continue;
-    }
-
-    try {
-      const routes = await import(pathToFileURL(routesPath).href);
-
-      if (routes.default) {
-        fastify.register(routes.default);
-        console.log(`[FORGE | PLUGINS]: Loaded routes for plugin ${dir}`);
+      if (entry.isDirectory()) {
+        await loadRoutesRecursively(fullPath);
+      } else if (entry.isFile() && entry.name === "routes.ts") {
+        try {
+          const routes = await import(pathToFileURL(fullPath).href);
+          if (routes.default) {
+            fastify.register(routes.default);
+            console.log(
+              `[FORGE | PLUGINS]: Loaded routes from ${dir.split("\\")[dir.split("\\").length - 1]}`,
+            );
+          }
+        } catch (error) {
+          console.error(
+            `[FORGE | PLUGINS]: Failed to load routes from ${dir.split("\\")[dir.split("\\").length - 1]}`,
+            error,
+          );
+        }
       }
-    } catch (error) {
-      console.error(`[FORGE | PLUGINS]: Failed to load ${dir}`, error);
     }
   }
+
+  await loadRoutesRecursively(pluginsDir);
 }
