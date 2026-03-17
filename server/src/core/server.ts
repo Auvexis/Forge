@@ -3,6 +3,7 @@ import rootRoutes from "./routes/index.ts";
 import ollamaRoutes from "./routes/ollama.routes.ts";
 import pluginsRoutes from "./routes/plugins.routes.ts";
 import aiRoutes from "./routes/ai.routes.ts";
+import { loadPlugins } from "./plugins/loader.ts";
 
 const fastify = Fastify({
   logger: {
@@ -15,6 +16,8 @@ const fastify = Fastify({
     },
   },
 });
+
+await loadPlugins();
 
 fastify.register(rootRoutes);
 fastify.register(ollamaRoutes);

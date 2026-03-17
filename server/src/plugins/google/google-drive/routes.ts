@@ -1,14 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import type { ApiResponse } from "../../../shared/models/api-response.model.ts";
-import { GoogleDrivePlugin } from "./index.ts";
-import { db } from "../../../database.ts";
-import type {
-  PluginDBRow,
-  PluginModel,
-} from "../../../shared/models/plugin.model.ts";
-import { parsePluginDBRow } from "../../../shared/models/plugin.model.ts";
+import GoogleDrivePlugin from "./index.ts";
 import { google } from "googleapis";
-import { PluginManager } from "../../manager.ts";
+import { driveDB } from "./database.ts";
+import type {
+  GoogleDriveModel,
+  GoogleDriveOAuthModel,
+} from "./models/plugin.model.ts";
 
 export default async function googleDrivePluginRoutes(
   fastify: FastifyInstance,
@@ -18,25 +16,46 @@ export default async function googleDrivePluginRoutes(
    */
   fastify.get(
     "/plugins/google-drive/status",
-    async (req, res): Promise<ApiResponse<PluginModel>> => {
-      const plugin = db
-        .prepare("SELECT * FROM plugins WHERE id = ?")
-        .get(GoogleDrivePlugin.id);
-
-      if (!plugin) {
-        return {
-          status_code: 404,
-          message: "Plugin not found",
-          error: null,
-          data: null,
-        };
-      }
+    async (req, res): Promise<ApiResponse<GoogleDriveModel>> => {
+      const plugin = GoogleDrivePlugin;
 
       return {
         status_code: 200,
         message: "Google Drive plugin loaded",
         error: null,
-        data: parsePluginDBRow(plugin as PluginDBRow),
+        data: plugin,
+      };
+    },
+  );
+
+  /**
+   * Update plugin config
+   */
+  fastify.put(
+    "/plugins/google-drive/config",
+    async (req, res): Promise<ApiResponse<GoogleDriveModel>> => {
+      const { client_id, client_secret } = req.body as {
+        client_id: string;
+        client_secret: string;
+      };
+
+      const plugin = GoogleDrivePlugin;
+
+      // DELETE OLD OAuth2 tokens
+      driveDB.prepare("DELETE FROM oauth WHERE plugin_id = ?").run(plugin.id);
+
+      // INSERT NEW OAuth2 tokens
+      driveDB
+        .prepare(
+          "INSERT INTO oauth (plugin_id, client_id, client_secret) VALUES (?, ?, ?)",
+        )
+        .run(plugin.id, client_id, client_secret);
+
+      return {
+        status_code: 200,
+        message: "Google Drive plugin configuration updated",
+        error: null,
+        data: plugin,
       };
     },
   );
@@ -47,22 +66,21 @@ export default async function googleDrivePluginRoutes(
   fastify.post(
     "/plugins/google-drive/oauth2/connect",
     async (req, res): Promise<ApiResponse<{ url: string }>> => {
-      const pluginId = GoogleDrivePlugin.id;
-      const row = db
-        .prepare("SELECT * FROM plugins WHERE id = ?")
-        .get(pluginId);
+      const plugin = GoogleDrivePlugin;
+      const pluginOAuthConfig = driveDB
+        .prepare("SELECT * FROM oauth WHERE plugin_id = ?")
+        .get(plugin.id) as GoogleDriveOAuthModel | undefined;
 
-      if (!row) {
+      if (!pluginOAuthConfig) {
         return {
           status_code: 404,
-          message: "Plugin not found",
+          message: "Plugin OAuth not configured",
           error: null,
           data: null,
         };
       }
 
-      const { client_id, client_secret } = parsePluginDBRow(row as PluginDBRow)
-        .config.oauth;
+      const { client_id, client_secret } = pluginOAuthConfig;
 
       if (!client_id || !client_secret) {
         return {
@@ -116,26 +134,22 @@ export default async function googleDrivePluginRoutes(
         };
       }
 
-      const pluginId = GoogleDrivePlugin.id;
-      const plugin = db
-        .prepare("SELECT * FROM plugins WHERE id = ?")
-        .get(pluginId);
+      const pluginOAuth2Config = driveDB
+        .prepare("SELECT * FROM oauth WHERE plugin_id = ?")
+        .get(GoogleDrivePlugin.id) as GoogleDriveOAuthModel | undefined;
 
-      if (!plugin) {
+      if (!pluginOAuth2Config) {
         return {
           status_code: 404,
-          message: "Plugin not found",
+          message: "Plugin OAuth not configured",
           error: null,
           data: null,
         };
       }
 
-      const parsedPlugin = parsePluginDBRow(plugin as PluginDBRow);
+      const { client_id, client_secret } = pluginOAuth2Config;
 
-      if (
-        !parsedPlugin.config.oauth.client_id ||
-        !parsedPlugin.config.oauth.client_secret
-      ) {
+      if (!client_id || !client_secret) {
         return {
           status_code: 400,
           message: "Plugin OAuth not configured",
@@ -144,7 +158,6 @@ export default async function googleDrivePluginRoutes(
         };
       }
 
-      const { client_id, client_secret } = parsedPlugin.config.oauth;
       const redirectUri =
         "http://localhost:8032/plugins/google-drive/oauth2/callback";
 
@@ -157,13 +170,26 @@ export default async function googleDrivePluginRoutes(
       try {
         const { tokens } = await oauth2Client.getToken(query.code);
 
-        parsedPlugin.config.oauth = { ...parsedPlugin.config.oauth, ...tokens };
-        db.prepare("UPDATE plugins SET config = ? WHERE id = ?").run(
-          JSON.stringify(parsedPlugin.config),
-          pluginId,
-        );
+        console.log(tokens);
 
-        PluginManager.updatePluginConfig(pluginId, parsedPlugin.config);
+        const mergedRow = {
+          ...pluginOAuth2Config,
+          ...tokens,
+        };
+
+        driveDB
+          .prepare(
+            "UPDATE oauth SET access_token = ?, refresh_token = ?, scope = ?, token_type = ?, refresh_token_expires_in = ?, expiry_date = ? WHERE plugin_id = ?",
+          )
+          .run(
+            mergedRow.access_token,
+            mergedRow.refresh_token,
+            mergedRow.scope,
+            mergedRow.token_type,
+            mergedRow.refresh_token_expires_in,
+            mergedRow.expiry_date,
+            GoogleDrivePlugin.id,
+          );
 
         return {
           status_code: 200,

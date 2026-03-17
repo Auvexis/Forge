@@ -1,10 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import { db } from "../database.ts";
-import type { ApiResponse } from "../shared/models/api-response.model.ts";
+import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import type {
   PluginDBRow,
   PluginModel,
-} from "../shared/models/plugin.model.ts";
+} from "../../shared/models/plugin.model.ts";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath, pathToFileURL } from "url";
@@ -114,60 +114,11 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
       }
     },
   );
-
-  /**
-   * Update plugin config
-   * @param pluginId - The id of the plugin to update
-   * @param config - The new config to set
-   */
-  fastify.put(
-    "/plugins/:pluginId/config",
-    async (req, res): Promise<ApiResponse<any>> => {
-      const { pluginId } = req.params as { pluginId: string };
-      const { config } = req.body as { config: Record<string, any> };
-
-      try {
-        const plugin = PluginManager.getPlugin(pluginId);
-
-        if (!plugin) {
-          return {
-            status_code: 404,
-            message: "Plugin not found",
-            error: null,
-            data: null,
-          };
-        }
-
-        const currentConfig = plugin.config;
-
-        const newConfig = {
-          ...currentConfig,
-          ...config,
-        };
-
-        PluginManager.updatePluginConfig(pluginId, newConfig);
-
-        return {
-          status_code: 200,
-          message: "Plugin config updated successfully",
-          error: null,
-          data: newConfig,
-        };
-      } catch (error: any) {
-        return {
-          status_code: 500,
-          message: "Failed to update plugin config",
-          error: error.message,
-          data: null,
-        };
-      }
-    },
-  );
 }
 
 async function loadPluginsRoutes(fastify: FastifyInstance) {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const pluginsDir = path.join(__dirname, "../plugins");
+  const pluginsDir = path.join(__dirname, "../../plugins");
 
   async function loadRoutesRecursively(dir: string) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });

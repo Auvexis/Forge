@@ -1,7 +1,6 @@
 {
   "name": "Google Drive",
   "id": "google-drive",
-  "version": "1.0.0",
   "description": "Allows the AI to interact with Google Drive to manage files and folders.",
   "methods": {
     "listFiles": {

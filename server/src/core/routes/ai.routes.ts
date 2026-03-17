@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import type { ApiResponse } from "../shared/models/api-response.model.ts";
+import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { ollamaChat } from "../ai/ollama.ts";
 
 export default async function aiRoutes(fastify: FastifyInstance) {

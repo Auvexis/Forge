@@ -1,5 +1,5 @@
 import { db } from "../database.ts";
-import type { OllamaConfigModel } from "../shared/models/ollama-config.model.ts";
+import type { OllamaConfigModel } from "../../shared/models/ollama-config.model.ts";
 
 export async function ollamaChat(messages: any[]) {
   const config = db
