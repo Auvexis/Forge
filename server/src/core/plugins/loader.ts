@@ -2,6 +2,7 @@ import { fileURLToPath, pathToFileURL } from "url";
 import path, { dirname } from "path";
 import fs from "fs";
 import { PluginManager } from "./manager.ts";
+import type { PluginModel } from "../../shared/models/plugin.model.ts";
 
 export async function loadPlugins() {
   const __filename = fileURLToPath(import.meta.url);
@@ -21,9 +22,15 @@ export async function loadPlugins() {
         try {
           const module = await import(pathToFileURL(fullPath).href);
 
-          const plugin = module.default || module[Object.keys(module)[0]];
+          const plugin: PluginModel =
+            module.default || module[Object.keys(module)[0]];
 
           if (!plugin.id) throw new Error("Missing plugin id");
+          if (!plugin.name) throw new Error("Missing plugin name");
+          if (!plugin.author) throw new Error("Missing plugin author");
+          if (!plugin.category) throw new Error("Missing plugin category");
+          if (!plugin.version) throw new Error("Missing plugin version");
+          if (!plugin.repository) throw new Error("Missing plugin repository");
           if (!plugin.methods) throw new Error("Missing methods");
           if (!plugin.manifest) throw new Error("Missing manifest");
 

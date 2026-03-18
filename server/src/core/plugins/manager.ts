@@ -1,11 +1,13 @@
-const plugins = new Map<string, any>();
+import type { PluginModel } from "../../shared/models/plugin.model.ts";
+
+const plugins = new Map<string, PluginModel>();
 
 export const PluginManager = {
-  getPlugins: () => {
+  getPlugins: (): PluginModel[] => {
     return Array.from(plugins.values());
   },
 
-  getPlugin: (id: string) => {
+  getPlugin: (id: string): PluginModel => {
     const plugin = plugins.get(id);
 
     if (!plugin) {
@@ -15,7 +17,7 @@ export const PluginManager = {
     return plugin;
   },
 
-  registerPlugin: (plugin: any) => {
+  registerPlugin: (plugin: PluginModel) => {
     plugins.set(plugin.id, plugin);
     console.log(`[FORGE | PLUGINS]: Registered plugin ${plugin.id}`);
   },

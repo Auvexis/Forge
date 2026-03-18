@@ -27,8 +27,6 @@ export async function ollamaChat(messages: any[]) {
 
   if (!response.ok) {
     const text = await response.text();
-    console.error("[FORGE | OLLAMA]: Ollama request failed:", text);
-
     throw new Error(`Ollama request failed: ${text}`);
   }
 

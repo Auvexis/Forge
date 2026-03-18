@@ -6,7 +6,6 @@
     "listFiles": {
       "description": "List files in a folder or root directory.",
       "parameters": {
-        "folderId": { "type": "string", "required": false },
         "pageSize": { "type": "number", "required": false },
         "query": { "type": "string", "required": false }
       }

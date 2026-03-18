@@ -5,11 +5,11 @@ import { driveDB } from "./database.ts";
 
 export const GoogleDrivePluginMethods = {
   /**
-   * DRIVE API
+   * DRIVE API CLIENT
    */
   getDriveClient: async () => {
     const pluginOAuthConfig = driveDB
-      .prepare("SELECT * FROM plugin_google_drive_oauth WHERE plugin_id = ?")
+      .prepare("SELECT * FROM oauth WHERE plugin_id = ?")
       .get(GoogleDrivePlugin.id) as GoogleDriveOAuthModel | undefined;
 
     if (!pluginOAuthConfig) throw new Error("Plugin not authorized");
@@ -29,7 +29,7 @@ export const GoogleDrivePluginMethods = {
         driveDB
           .prepare(
             `
-          UPDATE plugin_google_drive_oauth 
+          UPDATE oauth 
           SET access_token = ?, expiry_date = ?
           WHERE plugin_id = ?
         `,
@@ -41,7 +41,7 @@ export const GoogleDrivePluginMethods = {
         driveDB
           .prepare(
             `
-          UPDATE plugin_google_drive_oauth 
+          UPDATE oauth 
           SET refresh_token = ?
           WHERE plugin_id = ?
         `,
@@ -56,11 +56,17 @@ export const GoogleDrivePluginMethods = {
   /**
    * Get methods
    */
-  listFiles: async (params: {
-    folderId?: string;
-    pageSize?: number;
-    query?: string;
-  }) => {},
+  listFiles: async (params: { pageSize?: number; query?: string }) => {
+    const driveClient = await GoogleDrivePluginMethods.getDriveClient();
+
+    const response = await driveClient.files.list({
+      fields: "files(id, name, mimeType, size, modifiedTime)",
+      pageSize: params.pageSize || 10,
+      q: params.query,
+    });
+
+    return response.data.files;
+  },
   searchFiles: async (params: { query: string }) => {},
   getFileMetadata: async (params: { fileId: string }) => {},
 
