@@ -4,22 +4,172 @@
   "description": "Allows the AI to interact with Google Drive to manage files and folders.",
   "methods": {
     "listFiles": {
-      "description": "List files in a folder or root directory.",
+      "description": "List files/folders in a folder or root directory.",
       "parameters": {
         "pageSize": { "type": "number", "required": false },
         "query": { "type": "string", "required": false }
-      }
-    },
-    "searchFiles": {
-      "description": "Search files by name or metadata.",
-      "parameters": {
-        "query": { "type": "string", "required": true }
+      },
+      "queryGuide": {
+        "description": "Guide for building Google Drive queries.",
+        "operators": ["=", "!=", "contains", "not", "and", "or", ">", "<"],
+        "fields": [
+          "name",
+          "mimeType",
+          "fullText",
+          "modifiedTime",
+          "starred",
+          "trashed",
+          "parents",
+          "owners",
+          "writers",
+          "sharedWithMe",
+          "properties",
+          "appProperties",
+          "visibility"
+        ]
+      },
+      "queryExamples": [
+        {
+          "description": "Files with exact name",
+          "query": "name = 'hello'"
+        },
+        {
+          "description": "Files containing words",
+          "query": "name contains 'hello' and name contains 'goodbye'"
+        },
+        {
+          "description": "Exclude word in name",
+          "query": "not name contains 'hello'"
+        },
+        {
+          "description": "Search in file content",
+          "query": "fullText contains 'important'"
+        },
+        {
+          "description": "Exact phrase",
+          "query": "fullText contains '\"hello world\"'"
+        },
+        {
+          "description": "Folders only",
+          "query": "mimeType = 'application/vnd.google-apps.folder'"
+        },
+        {
+          "description": "Not folders",
+          "query": "mimeType != 'application/vnd.google-apps.folder'"
+        },
+        {
+          "description": "PDF files only (excluding folders)",
+          "query": "mimeType!='application/vnd.google-apps.folder' and name contains '.pdf'"
+        },
+        {
+          "description": "Modified after date",
+          "query": "modifiedTime > '2012-06-04T12:00:00'"
+        },
+        {
+          "description": "Images or videos after date",
+          "query": "modifiedTime > '2012-06-04T12:00:00' and (mimeType contains 'image/' or mimeType contains 'video/')"
+        },
+        {
+          "description": "Starred files",
+          "query": "starred = true"
+        },
+        {
+          "description": "Inside folder",
+          "query": "'1234567' in parents"
+        },
+        {
+          "description": "Owned by user",
+          "query": "'test@example.org' in owners"
+        },
+        {
+          "description": "Shared with me and filtered",
+          "query": "sharedWithMe and name contains 'hello'"
+        },
+        {
+          "description": "Custom public property",
+          "query": "properties has { key='mass' and value='1.3kg' }"
+        },
+        {
+          "description": "Custom app property",
+          "query": "appProperties has { key='additionalID' and value='8e8aceg2af2ge72e78' }"
+        },
+        {
+          "description": "Private files only",
+          "query": "visibility = 'limited'"
+        }
+      ],
+      "responseExample": {
+        "data": [
+          {
+            "parents": ["11INSeUlIgOKmNhX9nu3K3AJpPJDnqrvE"],
+            "id": "1BfBaUiezI88H7nk9TB6Ymk2fdrK8Nz8I",
+            "name": "cv.pdf",
+            "mimeType": "application/pdf",
+            "trashed": true,
+            "modifiedTime": "2026-03-01T14:39:07.000Z",
+            "size": "114009"
+          },
+          {
+            "parents": ["1z5VVWLRvv3rShptNRjXlu3ARWRWPrane"],
+            "id": "1AlyWKxw6mCcUKrus7J1yKe0DqnfztpyZ",
+            "name": "projects",
+            "mimeType": "application/vnd.google-apps.folder",
+            "trashed": false,
+            "modifiedTime": "2026-03-01T14:38:39.000Z",
+            "size": "115830"
+          }
+        ]
       }
     },
     "getFileMetadata": {
-      "description": "Get metadata of a file.",
+      "description": "Get metadata of a file/folder.",
       "parameters": {
         "fileId": { "type": "string", "required": true }
+      },
+      "responseExample": {
+        "data": {
+          "id": "1tCWeodnJGZo1O1UhmCrKoZJ8qVijNSfi",
+          "name": "Projects",
+          "mimeType": "application/vnd.google-apps.folder",
+          "trashed": false,
+          "parents": ["0ADyH5WUuiNP8Uk9PVA"],
+          "modifiedTime": "2025-12-31T15:37:16.483Z"
+        }
+      }
+    },
+    "listFolderChildren": {
+      "description": "List files/folders inside a folder.",
+      "parameters": {
+        "folderId": { "type": "string", "required": true }
+      },
+      "responseExample": {
+        "data": [
+          {
+            "parents": ["1tCWeodnJGZo1O1UhmCrKoZJ8qVijNSfi"],
+            "id": "1c-kYT9b5BxcrdNqMbRYxQx7Q5dC-OgNL",
+            "name": "uploadFile-test.js",
+            "mimeType": "application/javascript",
+            "trashed": false,
+            "modifiedTime": "2026-03-18T12:56:09.584Z",
+            "size": "102"
+          },
+          {
+            "parents": ["1tCWeodnJGZo1O1UhmCrKoZJ8qVijNSfi"],
+            "id": "1z5VVWLRvv3rShptNRjXlu3ARWRWPrane",
+            "name": "react-app",
+            "mimeType": "application/vnd.google-apps.folder",
+            "trashed": false,
+            "modifiedTime": "2026-01-27T04:09:55.011Z"
+          },
+          {
+            "parents": ["1tCWeodnJGZo1O1UhmCrKoZJ8qVijNSfi"],
+            "id": "134gzxHrTBft9CEx9aRzvbAboMGOBz_wz",
+            "name": "personal-folder",
+            "mimeType": "application/vnd.google-apps.folder",
+            "trashed": false,
+            "modifiedTime": "2026-01-05T22:23:15.215Z"
+          }
+        ]
       }
     },
 
@@ -27,21 +177,101 @@
       "description": "Upload a new file to Google Drive.",
       "parameters": {
         "name": { "type": "string", "required": true },
-        "content": { "type": "string", "required": true },
-        "folderId": { "type": "string", "required": false },
+        "contentBase64": { "type": "string", "required": true },
+        "parentId": { "type": "string", "required": false },
         "mimeType": { "type": "string", "required": false }
+      },
+      "responseExample": {
+        "data": {
+          "id": "1SwX-u4JSMNcefKCRWAYYCIFyTo-Y-2QF",
+          "name": "uploadFile-test.js",
+          "mimeType": "application/javascript",
+          "parents": ["0ADyH5WUuiNP8Uk9PVA"],
+          "size": "102"
+        }
       }
     },
     "downloadFile": {
       "description": "Download a file from Google Drive.",
       "parameters": {
         "fileId": { "type": "string", "required": true }
+      },
+      "responseExample": {
+        "data": {
+          "name": "uploadFile-test.js",
+          "mimeType": "application/javascript",
+          "base64": "Y29uc3QgcmVzdWx0ID0gKG5hbWUpID0+IHsNCiAgcmV0dXJuIGB1cGxvYWRGaWxlcyBtZXRob2Qgd29ya2luZyEgOilgOw0KfTsNCg0KY29uc29sZS5sb2cocmVzdWx0KCkpOw0K"
+        }
       }
     },
     "deleteFile": {
       "description": "Delete a file from Google Drive.",
       "parameters": {
         "fileId": { "type": "string", "required": true }
+      },
+      "responseExample": {
+        "data": {
+          "id": "11yIZEQfmVKuUqqaCcrC33X_gvBaVI-a2",
+          "name": "file.pdf",
+          "mimeType": "application/pdf",
+          "trashed": true,
+          "parents": ["11INSeUlIgOKmNhX9nu3K3AJpPJDnqrvE"],
+          "modifiedTime": "2026-03-01T14:36:39.000Z",
+          "size": "113151"
+        }
+      }
+    },
+    "restoreFile": {
+      "description": "Restore a deleted file from Google Drive.",
+      "parameters": {
+        "fileId": { "type": "string", "required": true }
+      },
+      "responseExample": {
+        "data": {
+          "id": "11yIZEQfmVKuUqqaCcrC33X_gvBaVI-a2",
+          "name": "file.pdf",
+          "mimeType": "application/pdf",
+          "trashed": false,
+          "parents": ["11INSeUlIgOKmNhX9nu3K3AJpPJDnqrvE"],
+          "modifiedTime": "2026-03-01T14:36:39.000Z",
+          "size": "113151"
+        }
+      }
+    },
+    "moveFile": {
+      "description": "Move a file to a different folder.",
+      "parameters": {
+        "fileId": { "type": "string", "required": true },
+        "parentId": { "type": "string", "required": true }
+      },
+      "responseExample": {
+        "data": {
+          "id": "11yIZEQfmVKuUqqaCcrC33X_gvBaVI-a2",
+          "name": "file.pdf",
+          "mimeType": "application/pdf",
+          "trashed": false,
+          "parents": ["1riMKBb4mweG3aplLqF1IC_TH7-ADO296"],
+          "modifiedTime": "2026-03-01T14:36:39.000Z",
+          "size": "113151"
+        }
+      }
+    },
+    "copyFile": {
+      "description": "Copy a file to a different folder.",
+      "parameters": {
+        "fileId": { "type": "string", "required": true },
+        "parentId": { "type": "string", "required": true }
+      },
+      "responseExample": {
+        "data": {
+          "id": "15QVDgE939BzIR_WRSftiYJOQs-thPxvR",
+          "name": "file.pdf",
+          "mimeType": "application/pdf",
+          "trashed": false,
+          "parents": ["1Gy28UEnULW0rFJ3IHTbMB_VRzL9kAh-g"],
+          "modifiedTime": "2026-03-01T14:36:16.000Z",
+          "size": "113926"
+        }
       }
     },
 
@@ -50,18 +280,30 @@
       "parameters": {
         "name": { "type": "string", "required": true },
         "parentId": { "type": "string", "required": false }
+      },
+      "responseExample": {
+        "data": {
+          "id": "1R0MPTABm8zrgM7UjFD9KndTPUs2KlZdh",
+          "name": "forge-folder-test",
+          "mimeType": "application/vnd.google-apps.folder",
+          "parents": ["1tCWeodnJGZo1O1UhmCrKoZJ8qVijNSfi"]
+        }
       }
     },
     "deleteFolder": {
       "description": "Delete a folder.",
       "parameters": {
         "folderId": { "type": "string", "required": true }
-      }
-    },
-    "downloadFolder": {
-      "description": "Download a folder as an archive.",
-      "parameters": {
-        "folderId": { "type": "string", "required": true }
+      },
+      "responseExample": {
+        "data": {
+          "id": "1R0MPTABm8zrgM7UjFD9KndTPUs2KlZdh",
+          "name": "forge-folder-test",
+          "mimeType": "application/vnd.google-apps.folder",
+          "trashed": true,
+          "parents": ["1tCWeodnJGZo1O1UhmCrKoZJ8qVijNSfi"],
+          "modifiedTime": "2026-03-19T13:15:02.679Z"
+        }
       }
     }
   }

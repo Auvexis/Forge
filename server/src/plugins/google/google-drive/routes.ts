@@ -3,10 +3,8 @@ import type { ApiResponse } from "../../../shared/models/api-response.model.ts";
 import GoogleDrivePlugin from "./index.ts";
 import { google } from "googleapis";
 import { driveDB } from "./database.ts";
-import type {
-  GoogleDriveModel,
-  GoogleDriveOAuthModel,
-} from "./models/plugin.model.ts";
+import type { GoogleDriveOAuthModel } from "./models/plugin.model.ts";
+import type { PluginModel } from "../../../shared/models/plugin.model.ts";
 
 export default async function googleDrivePluginRoutes(
   fastify: FastifyInstance,
@@ -16,7 +14,7 @@ export default async function googleDrivePluginRoutes(
    */
   fastify.get(
     "/plugins/google-drive/status",
-    async (req, res): Promise<ApiResponse<GoogleDriveModel>> => {
+    async (req, res): Promise<ApiResponse<PluginModel>> => {
       const plugin = GoogleDrivePlugin;
 
       return {
@@ -33,7 +31,7 @@ export default async function googleDrivePluginRoutes(
    */
   fastify.put(
     "/plugins/google-drive/config",
-    async (req, res): Promise<ApiResponse<GoogleDriveModel>> => {
+    async (req, res): Promise<ApiResponse<PluginModel>> => {
       const { client_id, client_secret } = req.body as {
         client_id: string;
         client_secret: string;
@@ -100,10 +98,7 @@ export default async function googleDrivePluginRoutes(
         redirectUri,
       });
 
-      const scopes = [
-        "https://www.googleapis.com/auth/drive.file",
-        "https://www.googleapis.com/auth/drive.metadata.readonly",
-      ];
+      const scopes = ["https://www.googleapis.com/auth/drive"];
 
       const authUrl = oauth2Client.generateAuthUrl({
         access_type: "offline",
