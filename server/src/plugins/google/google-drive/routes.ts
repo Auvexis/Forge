@@ -17,6 +17,24 @@ export default async function googleDrivePluginRoutes(
     async (req, res): Promise<ApiResponse<PluginModel>> => {
       const plugin = GoogleDrivePlugin;
 
+      const pluginOAuthConfig = driveDB
+        .prepare("SELECT * FROM oauth WHERE plugin_id = ?")
+        .get(plugin.id) as GoogleDriveOAuthModel | undefined;
+
+      if (
+        !pluginOAuthConfig ||
+        !pluginOAuthConfig.client_id ||
+        !pluginOAuthConfig.client_secret
+      ) {
+        return {
+          status_code: 500,
+          message:
+            "OAuth2 not configured. Please configure Google Drive OAuth2 before using it.",
+          error: null,
+          data: null,
+        };
+      }
+
       return {
         status_code: 200,
         message: "Google Drive plugin loaded",
@@ -31,7 +49,7 @@ export default async function googleDrivePluginRoutes(
    */
   fastify.put(
     "/plugins/google-drive/config",
-    async (req, res): Promise<ApiResponse<PluginModel>> => {
+    async (req, res): Promise<ApiResponse<null>> => {
       const { client_id, client_secret } = req.body as {
         client_id: string;
         client_secret: string;
@@ -53,7 +71,7 @@ export default async function googleDrivePluginRoutes(
         status_code: 200,
         message: "Google Drive plugin configuration updated",
         error: null,
-        data: plugin,
+        data: null,
       };
     },
   );
