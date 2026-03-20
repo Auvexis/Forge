@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { ollamaChat } from "../ai/ollama.ts";
+import { db } from "../database.ts";
 
 export default async function aiRoutes(fastify: FastifyInstance) {
   /**
@@ -10,6 +11,16 @@ export default async function aiRoutes(fastify: FastifyInstance) {
    */
   fastify.post("/ai/chat", async (req, res): Promise<ApiResponse<any>> => {
     const { prompt } = req.body as { prompt: string };
+
+    const ollamaConfig = db.prepare("SELECT * FROM ollama_config").get();
+    if (!ollamaConfig)
+      return {
+        status_code: 500,
+        message:
+          "Ollama not configured. Please configure Ollama before using AI.",
+        error: null,
+        data: null,
+      };
 
     try {
       const result = await ollamaChat([
