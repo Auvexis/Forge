@@ -10,12 +10,14 @@ export default async function ollamaRoutes(fastify: FastifyInstance) {
   fastify.get(
     "/ollama/config",
     async (req, res): Promise<ApiResponse<OllamaConfigModel>> => {
-      const row = db.prepare("SELECT * FROM ollama_config").get();
+      const row = db
+        .prepare("SELECT * FROM ollama_config")
+        .get() as OllamaConfigModel;
       if (!row)
         return {
           status_code: 404,
-          message: "Ollama config not found",
-          error: null,
+          message: "Please configure Ollama first",
+          error: "Missing Ollama configuration",
           data: null,
         };
 
@@ -23,7 +25,11 @@ export default async function ollamaRoutes(fastify: FastifyInstance) {
         status_code: 200,
         message: "Ollama config fetched successfully",
         error: null,
-        data: row as OllamaConfigModel,
+        data: {
+          host: row.host,
+          model: row.model,
+          options: row.options ? JSON.parse(row.options) : null,
+        },
       };
     },
   );

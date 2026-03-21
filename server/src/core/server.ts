@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import cors from "@fastify/cors";
 import rootRoutes from "./routes/index.ts";
 import ollamaRoutes from "./routes/ollama.routes.ts";
 import pluginsRoutes from "./routes/plugins.routes.ts";
@@ -14,7 +15,14 @@ const fastify = Fastify({
         ignore: "pid,hostname",
       },
     },
+    enabled: false,
   },
+});
+
+await fastify.register(cors, {
+  origin: ["http://localhost:8033"],
+  methods: ["*"],
+  credentials: true,
 });
 
 await loadPlugins();
@@ -30,4 +38,6 @@ fastify.listen({ port: 8032 }, function (err, address) {
     fastify.log.error(err);
     process.exit(1);
   }
+
+  console.log("[FORGE | SERVER]: Server running at http://localhost:8032");
 });
