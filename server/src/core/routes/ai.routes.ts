@@ -2,6 +2,10 @@ import type { FastifyInstance } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { ollamaChat } from "../ai/ollama.ts";
 import { db } from "../database.ts";
+import {
+  SYSTEM_PROMPT,
+  type ChatBotMessage,
+} from "../../shared/models/chatbot-message.model.ts";
 
 export default async function aiRoutes(fastify: FastifyInstance) {
   /**
@@ -10,7 +14,10 @@ export default async function aiRoutes(fastify: FastifyInstance) {
    * @returns The AI response
    */
   fastify.post("/ai/chat", async (req, res): Promise<ApiResponse<any>> => {
-    const { prompt } = req.body as { prompt: string };
+    const { previousMessages, newMessage } = req.body as {
+      previousMessages?: ChatBotMessage[];
+      newMessage: ChatBotMessage;
+    };
 
     const ollamaConfig = db.prepare("SELECT * FROM ollama_config").get();
     if (!ollamaConfig)
@@ -25,8 +32,16 @@ export default async function aiRoutes(fastify: FastifyInstance) {
     try {
       const result = await ollamaChat([
         {
+          role: "system",
+          content: SYSTEM_PROMPT,
+        },
+        ...(previousMessages ?? []).map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+        {
           role: "user",
-          content: prompt,
+          content: newMessage.content,
         },
       ]);
 

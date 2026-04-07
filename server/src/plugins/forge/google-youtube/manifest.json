@@ -1,0 +1,1108 @@
+{
+  "metadata": {
+    "id": "google-youtube",
+    "name": "Google YouTube",
+    "description": "Allows the AI to interact with YouTube to search, upload, and manage videos, channels, comments, playlists, and subscriptions.",
+    "icon": "https://static.vecteezy.com/system/resources/previews/023/986/704/non_2x/youtube-logo-youtube-logo-transparent-youtube-icon-transparent-free-free-png.png",
+    "category": "Google",
+    "author": "Forge",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/forge"
+  },
+
+  "methods": {
+    "searchVideos": {
+      "metadata": {
+        "label": "Search videos",
+        "description": "Search for videos on YouTube."
+      },
+      "parameters": {
+        "query": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        },
+        "maxResults": {
+          "type": "number",
+          "inputType": "number",
+          "required": false,
+          "isBase64": false
+        },
+        "pageToken": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "order": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-type": "text",
+        "items": {
+          "type": "object",
+          "properties": {
+            "videoId": { "type": "string", "label": "Video ID" },
+            "title": { "type": "string", "label": "Title" },
+            "description": { "type": "string", "label": "Description" },
+            "channelId": { "type": "string", "label": "Channel ID" },
+            "channelTitle": { "type": "string", "label": "Channel" },
+            "publishedAt": { "type": "string", "label": "Published At" },
+            "thumbnailUrl": { "type": "string", "label": "Thumbnail" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Dislike",
+            "action": "dislikeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Subscribe",
+            "action": "subscribeToChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          },
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          }
+        ]
+      }
+    },
+
+    "getVideoDetails": {
+      "metadata": {
+        "label": "Get video details",
+        "description": "Get detailed information about a specific video."
+      },
+      "parameters": {
+        "videoId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "videoId": { "type": "string", "label": "Video ID" },
+          "title": { "type": "string", "label": "Title" },
+          "description": { "type": "string", "label": "Description" },
+          "channelId": { "type": "string", "label": "Channel ID" },
+          "channelTitle": { "type": "string", "label": "Channel" },
+          "publishedAt": { "type": "string", "label": "Published At" },
+          "thumbnailUrl": { "type": "string", "label": "Thumbnail" },
+          "duration": { "type": "string", "label": "Duration" },
+          "viewCount": { "type": "string", "label": "Views" },
+          "likeCount": { "type": "string", "label": "Likes" },
+          "commentCount": { "type": "string", "label": "Comments" },
+          "tags": { "type": "array", "label": "Tags" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Dislike",
+            "action": "dislikeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Subscribe",
+            "action": "subscribeToChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          },
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          }
+        ]
+      }
+    },
+
+    "getTrendingVideos": {
+      "metadata": {
+        "label": "Get trending videos",
+        "description": "Get currently trending videos."
+      },
+      "parameters": {
+        "regionCode": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "maxResults": {
+          "type": "number",
+          "inputType": "number",
+          "required": false,
+          "isBase64": false
+        },
+        "categoryId": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-type": "text",
+        "items": {
+          "type": "object",
+          "properties": {
+            "videoId": { "type": "string", "label": "Video ID" },
+            "title": { "type": "string", "label": "Title" },
+            "description": { "type": "string", "label": "Description" },
+            "channelId": { "type": "string", "label": "Channel ID" },
+            "channelTitle": { "type": "string", "label": "Channel" },
+            "publishedAt": { "type": "string", "label": "Published At" },
+            "thumbnailUrl": { "type": "string", "label": "Thumbnail" },
+            "viewCount": { "type": "string", "label": "Views" },
+            "likeCount": { "type": "string", "label": "Likes" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Dislike",
+            "action": "dislikeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Subscribe",
+            "action": "subscribeToChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          },
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          }
+        ]
+      }
+    },
+
+    "getChannelDetails": {
+      "metadata": {
+        "label": "Get channel details",
+        "description": "Get detailed information about a YouTube channel."
+      },
+      "parameters": {
+        "channelId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "channelId": { "type": "string", "label": "Channel ID" },
+          "title": { "type": "string", "label": "Title" },
+          "description": { "type": "string", "label": "Description" },
+          "customUrl": { "type": "string", "label": "Custom URL" },
+          "publishedAt": { "type": "string", "label": "Created At" },
+          "thumbnailUrl": { "type": "string", "label": "Thumbnail" },
+          "subscriberCount": { "type": "string", "label": "Subscribers" },
+          "videoCount": { "type": "string", "label": "Videos" },
+          "viewCount": { "type": "string", "label": "Views" },
+          "uploadsPlaylistId": { "type": "string", "label": "Uploads Playlist" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Subscribe",
+            "action": "subscribeToChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          },
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          }
+        ]
+      }
+    },
+
+    "getMyChannel": {
+      "metadata": {
+        "label": "Get my channel",
+        "description": "Get details of the authenticated user's YouTube channel."
+      },
+      "parameters": {},
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "channelId": { "type": "string", "label": "Channel ID" },
+          "title": { "type": "string", "label": "Title" },
+          "description": { "type": "string", "label": "Description" },
+          "customUrl": { "type": "string", "label": "Custom URL" },
+          "publishedAt": { "type": "string", "label": "Created At" },
+          "thumbnailUrl": { "type": "string", "label": "Thumbnail" },
+          "subscriberCount": { "type": "string", "label": "Subscribers" },
+          "videoCount": { "type": "string", "label": "Videos" },
+          "viewCount": { "type": "string", "label": "Views" },
+          "uploadsPlaylistId": { "type": "string", "label": "Uploads Playlist" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+
+    "listComments": {
+      "metadata": {
+        "label": "List comments",
+        "description": "List comments on a video."
+      },
+      "parameters": {
+        "videoId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        },
+        "maxResults": {
+          "type": "number",
+          "inputType": "number",
+          "required": false,
+          "isBase64": false
+        },
+        "pageToken": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-type": "text",
+        "items": {
+          "type": "object",
+          "properties": {
+            "commentId": { "type": "string", "label": "Comment ID" },
+            "authorName": { "type": "string", "label": "Author" },
+            "authorProfileUrl": {
+              "type": "string",
+              "label": "Author Avatar"
+            },
+            "text": { "type": "string", "label": "Comment" },
+            "likeCount": { "type": "number", "label": "Likes" },
+            "publishedAt": { "type": "string", "label": "Published At" },
+            "totalReplyCount": { "type": "number", "label": "Replies" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table",
+        "actions": [
+          {
+            "label": "Reply",
+            "action": "replyToComment",
+            "parameters": { "parentId": "{{commentId}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteComment",
+            "parameters": { "commentId": "{{commentId}}" }
+          }
+        ]
+      }
+    },
+
+    "createComment": {
+      "metadata": {
+        "label": "Create comment",
+        "description": "Post a new comment on a video."
+      },
+      "parameters": {
+        "videoId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        },
+        "text": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "commentId": { "type": "string", "label": "Comment ID" },
+          "authorName": { "type": "string", "label": "Author" },
+          "text": { "type": "string", "label": "Comment" },
+          "publishedAt": { "type": "string", "label": "Published At" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+
+    "replyToComment": {
+      "metadata": {
+        "label": "Reply to comment",
+        "description": "Reply to an existing comment."
+      },
+      "parameters": {
+        "parentId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        },
+        "text": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "commentId": { "type": "string", "label": "Comment ID" },
+          "authorName": { "type": "string", "label": "Author" },
+          "text": { "type": "string", "label": "Reply" },
+          "publishedAt": { "type": "string", "label": "Published At" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+
+    "deleteComment": {
+      "metadata": {
+        "label": "Delete comment",
+        "description": "Delete a comment."
+      },
+      "parameters": {
+        "commentId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "deleted": { "type": "boolean", "label": "Deleted" },
+          "commentId": { "type": "string", "label": "Comment ID" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+
+    "likeVideo": {
+      "metadata": {
+        "label": "Like video",
+        "description": "Like a video."
+      },
+      "parameters": {
+        "videoId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "success": { "type": "boolean", "label": "Success" },
+          "videoId": { "type": "string", "label": "Video ID" },
+          "rating": { "type": "string", "label": "Rating" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+
+    "dislikeVideo": {
+      "metadata": {
+        "label": "Dislike video",
+        "description": "Dislike a video."
+      },
+      "parameters": {
+        "videoId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "success": { "type": "boolean", "label": "Success" },
+          "videoId": { "type": "string", "label": "Video ID" },
+          "rating": { "type": "string", "label": "Rating" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+
+    "removeLike": {
+      "metadata": {
+        "label": "Remove like",
+        "description": "Remove like/dislike rating from a video."
+      },
+      "parameters": {
+        "videoId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "success": { "type": "boolean", "label": "Success" },
+          "videoId": { "type": "string", "label": "Video ID" },
+          "rating": { "type": "string", "label": "Rating" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+
+    "subscribeToChannel": {
+      "metadata": {
+        "label": "Subscribe to channel",
+        "description": "Subscribe to a YouTube channel."
+      },
+      "parameters": {
+        "channelId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "subscriptionId": { "type": "string", "label": "Subscription ID" },
+          "channelId": { "type": "string", "label": "Channel ID" },
+          "channelTitle": { "type": "string", "label": "Channel" },
+          "subscribedAt": { "type": "string", "label": "Subscribed At" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "subscriptionId": "{{subscriptionId}}" }
+          }
+        ]
+      }
+    },
+
+    "unsubscribeFromChannel": {
+      "metadata": {
+        "label": "Unsubscribe from channel",
+        "description": "Unsubscribe from a YouTube channel."
+      },
+      "parameters": {
+        "subscriptionId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "deleted": { "type": "boolean", "label": "Deleted" },
+          "subscriptionId": { "type": "string", "label": "Subscription ID" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+
+    "listSubscriptions": {
+      "metadata": {
+        "label": "List subscriptions",
+        "description": "List your YouTube subscriptions."
+      },
+      "parameters": {
+        "maxResults": {
+          "type": "number",
+          "inputType": "number",
+          "required": false,
+          "isBase64": false
+        },
+        "pageToken": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-type": "text",
+        "items": {
+          "type": "object",
+          "properties": {
+            "subscriptionId": {
+              "type": "string",
+              "label": "Subscription ID"
+            },
+            "channelId": { "type": "string", "label": "Channel ID" },
+            "channelTitle": { "type": "string", "label": "Channel" },
+            "description": { "type": "string", "label": "Description" },
+            "thumbnailUrl": { "type": "string", "label": "Thumbnail" },
+            "subscribedAt": { "type": "string", "label": "Subscribed At" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table",
+        "actions": [
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "subscriptionId": "{{subscriptionId}}" }
+          }
+        ]
+      }
+    },
+
+    "uploadVideo": {
+      "metadata": {
+        "label": "Upload video",
+        "description": "Upload a new video to YouTube."
+      },
+      "parameters": {
+        "title": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        },
+        "description": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "tags": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "privacyStatus": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "contentBase64": {
+          "type": "string",
+          "inputType": "file",
+          "required": true,
+          "isBase64": true
+        },
+        "mimeType": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "categoryId": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "videoId": { "type": "string", "label": "Video ID" },
+          "title": { "type": "string", "label": "Title" },
+          "description": { "type": "string", "label": "Description" },
+          "publishedAt": { "type": "string", "label": "Published At" },
+          "privacyStatus": { "type": "string", "label": "Privacy" },
+          "thumbnailUrl": { "type": "string", "label": "Thumbnail" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Dislike",
+            "action": "dislikeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          }
+        ]
+      }
+    },
+
+    "updateVideo": {
+      "metadata": {
+        "label": "Update video",
+        "description": "Update a video's metadata (title, description, tags, privacy)."
+      },
+      "parameters": {
+        "videoId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        },
+        "title": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "description": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "tags": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "privacyStatus": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "categoryId": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "videoId": { "type": "string", "label": "Video ID" },
+          "title": { "type": "string", "label": "Title" },
+          "description": { "type": "string", "label": "Description" },
+          "privacyStatus": { "type": "string", "label": "Privacy" },
+          "tags": { "type": "array", "label": "Tags" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Dislike",
+            "action": "dislikeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          }
+        ]
+      }
+    },
+
+    "deleteVideo": {
+      "metadata": {
+        "label": "Delete video",
+        "description": "Delete a video from YouTube."
+      },
+      "parameters": {
+        "videoId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "deleted": { "type": "boolean", "label": "Deleted" },
+          "videoId": { "type": "string", "label": "Video ID" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+
+    "createPlaylist": {
+      "metadata": {
+        "label": "Create playlist",
+        "description": "Create a new YouTube playlist."
+      },
+      "parameters": {
+        "title": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        },
+        "description": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "privacyStatus": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "playlistId": { "type": "string", "label": "Playlist ID" },
+          "title": { "type": "string", "label": "Title" },
+          "description": { "type": "string", "label": "Description" },
+          "privacyStatus": { "type": "string", "label": "Privacy" },
+          "publishedAt": { "type": "string", "label": "Created At" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Delete",
+            "action": "deletePlaylist",
+            "parameters": { "playlistId": "{{playlistId}}" }
+          }
+        ]
+      }
+    },
+
+    "deletePlaylist": {
+      "metadata": {
+        "label": "Delete playlist",
+        "description": "Delete a YouTube playlist."
+      },
+      "parameters": {
+        "playlistId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "deleted": { "type": "boolean", "label": "Deleted" },
+          "playlistId": { "type": "string", "label": "Playlist ID" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+
+    "listPlaylists": {
+      "metadata": {
+        "label": "List playlists",
+        "description": "List playlists for a channel or your own."
+      },
+      "parameters": {
+        "channelId": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        },
+        "maxResults": {
+          "type": "number",
+          "inputType": "number",
+          "required": false,
+          "isBase64": false
+        },
+        "pageToken": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-type": "text",
+        "items": {
+          "type": "object",
+          "properties": {
+            "playlistId": { "type": "string", "label": "Playlist ID" },
+            "title": { "type": "string", "label": "Title" },
+            "description": { "type": "string", "label": "Description" },
+            "channelId": { "type": "string", "label": "Channel ID" },
+            "channelTitle": { "type": "string", "label": "Channel" },
+            "publishedAt": { "type": "string", "label": "Created At" },
+            "thumbnailUrl": { "type": "string", "label": "Thumbnail" },
+            "itemCount": { "type": "number", "label": "Videos" },
+            "privacyStatus": { "type": "string", "label": "Privacy" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table",
+        "actions": [
+          {
+            "label": "Delete",
+            "action": "deletePlaylist",
+            "parameters": { "playlistId": "{{playlistId}}" }
+          }
+        ]
+      }
+    },
+
+    "addVideoToPlaylist": {
+      "metadata": {
+        "label": "Add video to playlist",
+        "description": "Add a video to a YouTube playlist."
+      },
+      "parameters": {
+        "playlistId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        },
+        "videoId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        },
+        "position": {
+          "type": "number",
+          "inputType": "number",
+          "required": false,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "playlistItemId": { "type": "string", "label": "Playlist Item ID" },
+          "playlistId": { "type": "string", "label": "Playlist ID" },
+          "videoId": { "type": "string", "label": "Video ID" },
+          "title": { "type": "string", "label": "Title" },
+          "position": { "type": "number", "label": "Position" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Remove",
+            "action": "removeVideoFromPlaylist",
+            "parameters": { "playlistItemId": "{{playlistItemId}}" }
+          }
+        ]
+      }
+    },
+
+    "removeVideoFromPlaylist": {
+      "metadata": {
+        "label": "Remove video from playlist",
+        "description": "Remove a video from a YouTube playlist."
+      },
+      "parameters": {
+        "playlistItemId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "deleted": { "type": "boolean", "label": "Deleted" },
+          "playlistItemId": { "type": "string", "label": "Playlist Item ID" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+
+    "getVideoStats": {
+      "metadata": {
+        "label": "Get video stats",
+        "description": "Get statistics for a specific video."
+      },
+      "parameters": {
+        "videoId": {
+          "type": "string",
+          "inputType": "text",
+          "required": true,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "videoId": { "type": "string", "label": "Video ID" },
+          "title": { "type": "string", "label": "Title" },
+          "viewCount": { "type": "string", "label": "Views" },
+          "likeCount": { "type": "string", "label": "Likes" },
+          "commentCount": { "type": "string", "label": "Comments" },
+          "favoriteCount": { "type": "string", "label": "Favorites" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Dislike",
+            "action": "dislikeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          }
+        ]
+      }
+    },
+
+    "getChannelStats": {
+      "metadata": {
+        "label": "Get channel stats",
+        "description": "Get statistics for a channel (yours if no channelId provided)."
+      },
+      "parameters": {
+        "channelId": {
+          "type": "string",
+          "inputType": "text",
+          "required": false,
+          "isBase64": false
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-type": "text",
+        "properties": {
+          "channelId": { "type": "string", "label": "Channel ID" },
+          "title": { "type": "string", "label": "Title" },
+          "subscriberCount": { "type": "string", "label": "Subscribers" },
+          "videoCount": { "type": "string", "label": "Videos" },
+          "viewCount": { "type": "string", "label": "Views" },
+          "hiddenSubscriberCount": {
+            "type": "boolean",
+            "label": "Hidden Subscriber Count"
+          }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    }
+  }
+}

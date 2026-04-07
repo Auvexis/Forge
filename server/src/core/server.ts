@@ -7,6 +7,7 @@ import aiRoutes from "./routes/ai.routes.ts";
 import { loadPlugins } from "./plugins/loader.ts";
 
 const fastify = Fastify({
+  bodyLimit: 1048576000, // 1GB (Note: Base64 JSON payloads will hit Node.js max string size around 500MB-1GB)
   logger: {
     transport: {
       target: "pino-pretty",
@@ -15,7 +16,7 @@ const fastify = Fastify({
         ignore: "pid,hostname",
       },
     },
-    enabled: false,
+    enabled: true,
   },
 });
 
