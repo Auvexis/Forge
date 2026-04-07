@@ -3,3 +3,6 @@
 **/.env
 **/.vscode/
 **/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.db-journal
