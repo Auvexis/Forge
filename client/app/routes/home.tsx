@@ -1,11 +1,14 @@
 import type { Route } from "./+types/home";
-import { GlobalViewProvider } from "~/components/GlobalView";
+import { GlobalViewProvider } from "~/components/forge/GlobalView";
 import { ForgeProvider } from "~/providers/ForgeProvider";
 
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Forge — Plugin Orchestration Platform" },
-    { name: "description", content: "Orchestrate and manage plugins in a modular ecosystem." },
+    {
+      name: "description",
+      content: "Orchestrate and manage plugins in a modular ecosystem.",
+    },
   ];
 }
 

@@ -7,41 +7,23 @@ import {
   Workflow,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import { useForge, GlobalViews } from "~/providers/ForgeProvider";
 
 const exampleItems = [
   {
-    id: "1",
+    id: GlobalViews.EXPLORER,
     name: "Explorer",
     icon: <LayoutDashboard />,
   },
   {
-    id: "2",
-    name: "Workflows",
+    id: GlobalViews.WORKSPACES,
+    name: "Workspaces",
     icon: <Workflow />,
-  },
-  {
-    id: "3",
-    name: "Agents",
-    icon: <Bot />,
-  },
-  {
-    id: "4",
-    name: "Dom AI",
-    icon: <Sparkle />,
-  },
-  {
-    id: "5",
-    name: "Plugins Marketplace",
-    icon: <ShelvingUnit />,
-  },
-  {
-    id: "6",
-    name: "Workflows Marketplace",
-    icon: <SquareLibrary />,
   },
 ];
 
 export const ForgeSidebar = () => {
+  const { view, setView } = useForge();
   const [collapsed, setCollapsed] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -87,12 +69,20 @@ export const ForgeSidebar = () => {
           {exampleItems.map((item) => (
             <div
               key={item.id}
-              className="
+              className={`
                 flex items-center justify-start gap-3
                 px-4 py-3
                 hover:bg-sidebar-accent cursor-pointer
                 transition-colors
-              "
+                ${view === item.id ? "bg-sidebar-accent" : ""}
+              `}
+              onClick={() => {
+                if (
+                  Object.values(GlobalViews).includes(item.id as GlobalViews)
+                ) {
+                  setView(item.id as GlobalViews);
+                }
+              }}
             >
               <div
                 className={`
