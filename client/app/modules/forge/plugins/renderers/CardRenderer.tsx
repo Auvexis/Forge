@@ -121,7 +121,7 @@ export const CardRenderer = ({ pluginId, ui, schema, data }: Props) => {
                           return;
                         }
 
-                        if (result !== undefined || result !== null) {
+                        if (result !== undefined && result !== null) {
                           setCardData(result);
                         }
                       } finally {
@@ -185,7 +185,7 @@ export const CardRenderer = ({ pluginId, ui, schema, data }: Props) => {
                         return;
                       }
 
-                      if (result !== undefined || result !== null) {
+                      if (result !== undefined && result !== null) {
                         setCardData(result);
                       }
                     }}
@@ -250,7 +250,7 @@ export const CardRenderer = ({ pluginId, ui, schema, data }: Props) => {
                           return;
                         }
 
-                        if (result !== undefined || result !== null) {
+                        if (result !== undefined && result !== null) {
                           setCardData(result);
                         }
                       } finally {

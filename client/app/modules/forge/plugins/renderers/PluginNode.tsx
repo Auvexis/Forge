@@ -22,7 +22,7 @@ export const PluginNode = ({ data }: any) => {
 
         <Button
           variant="outline"
-          className="w-10 h-10 rounded-[5px]! flex items-center justify-center p-1"
+          className="w-10 h-10 rounded-[5px]! bg-card! hover:opacity-80 flex items-center justify-center p-1"
           onClick={() => setPluginMenuOpen(true)}
         >
           <img

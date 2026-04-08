@@ -3,3 +3,11 @@
 **/.env
 **/.vscode/
 **/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.db-journal
+**/client/node_modules/
+**/client/dist/
+**/server/node_modules/
+**/server/dist/
+AGENTS.md

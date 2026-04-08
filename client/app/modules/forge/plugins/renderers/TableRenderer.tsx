@@ -92,7 +92,7 @@ export const TableRenderer = ({ pluginId, ui, schema, data }: Props) => {
                               return;
                             }
 
-                            if (result !== undefined || result !== null) {
+                            if (result !== undefined && result !== null) {
                               setTableData(result);
                             }
                           }}

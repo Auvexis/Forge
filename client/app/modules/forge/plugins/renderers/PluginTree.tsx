@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { useGetPlugins } from "../hooks/useGetPlugins";
+import { useForge } from "~/providers/ForgeProvider";
 import { buildGraph } from "../utils/buildGraph";
 import { applyLayout } from "../utils/applyGraphLayout";
-import { ReactFlow, ReactFlowProvider, addEdge } from "@xyflow/react";
+import {
+  Background,
+  BackgroundVariant,
+  ReactFlow,
+  ReactFlowProvider,
+  addEdge,
+} from "@xyflow/react";
 import { nodeTypes } from "./PluginNode";
 import { FloatingEdge } from "./FloatingEdge";
 
 export const PluginTree = () => {
-  const { plugins, getPlugins } = useGetPlugins();
+  const { plugins, getPlugins } = useForge();
 
   const [edges, setEdges] = useState<any[]>([]);
 
@@ -57,6 +63,13 @@ export const PluginTree = () => {
           proOptions={{
             hideAttribution: true,
           }}
+        />
+        <Background
+          variant={BackgroundVariant.Cross}
+          color="var(--sidebar-border)"
+          bgColor="var(--background)"
+          gap={10}
+          size={1}
         />
       </ReactFlowProvider>
     </div>

@@ -20,4 +20,4 @@ RUN npx tsc
 EXPOSE 8032
 
 # Start the application
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/core/server.js"]

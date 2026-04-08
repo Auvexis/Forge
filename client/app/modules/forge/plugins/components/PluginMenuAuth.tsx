@@ -1,25 +1,22 @@
 import { useEffect, useState } from "react";
-import { useGetPluginStatus } from "../hooks/useGetPluginConfig";
-import { useGetPlugin } from "../hooks/useGetPlugin";
-import { Settings, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { API_BASE_URL } from "~/shared/constants";
-import { handleApi } from "~/shared/helpers/apiHandler";
+import { useForge } from "~/providers/ForgeProvider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { handleApi } from "~/shared/helpers/apiHandler";
+import { API_BASE_URL } from "~/shared/constants";
+import { Loader2, CheckCircle2, AlertCircle, LogOut, Settings } from "lucide-react";
 
 export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
-  const { plugin, getPlugin } = useGetPlugin();
-  const { pluginStatus, loading, getPluginStatus } = useGetPluginStatus();
-  const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const { 
+    activePluginStatus: pluginStatus, 
+    refreshActivePluginStatus: updateStatus,
+    startOAuthFlow,
+    authLoading
+  } = useForge();
+  
+  const [formValues, setFormValues] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
-  const [connecting, setConnecting] = useState(false);
 
-  useEffect(() => {
-    getPlugin(pluginId);
-    getPluginStatus(pluginId);
-  }, []);
-
-  // Pre-fill form with existing credentials
   useEffect(() => {
     if (pluginStatus?.credentials) {
       setFormValues(pluginStatus.credentials);
@@ -35,14 +32,13 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
         { method: "POST" },
         formValues,
       );
-      await getPluginStatus(pluginId);
+      await updateStatus(pluginId);
     } finally {
       setSaving(false);
     }
   };
 
   const handleConnect = async () => {
-    setConnecting(true);
     try {
       const data = await handleApi<{ url?: string }>(
         `${API_BASE_URL}/plugins/${pluginId}/auth/connect`,
@@ -50,56 +46,29 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
       );
 
       if (data?.url) {
-        // Open OAuth popup
-        const popup = window.open(
-          data.url,
-          "_blank",
-          "width=600,height=700",
-        );
-
-        // Listen for OAuth callback message
-        const handler = (event: MessageEvent) => {
-          if (
-            event.data?.type === "oauth-success" &&
-            event.data?.plugin === pluginId
-          ) {
-            window.removeEventListener("message", handler);
-            getPluginStatus(pluginId);
-            setConnecting(false);
-          } else if (
-            event.data?.type === "oauth-error" &&
-            event.data?.plugin === pluginId
-          ) {
-            window.removeEventListener("message", handler);
-            setConnecting(false);
-          }
-        };
-        window.addEventListener("message", handler);
+        await startOAuthFlow(pluginId, data.url);
       }
-    } catch {
-      setConnecting(false);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const handleDisconnect = async () => {
-    await handleApi(
-      `${API_BASE_URL}/plugins/${pluginId}/auth/disconnect`,
-      { method: "POST" },
-    );
-    await getPluginStatus(pluginId);
+    try {
+      await handleApi(
+        `${API_BASE_URL}/plugins/${pluginId}/auth/disconnect`,
+        { method: "POST" },
+      );
+      await updateStatus(pluginId);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  if (loading || !pluginStatus) {
-    return (
-      <main className="w-full h-full flex items-center justify-center mt-5">
-        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-      </main>
-    );
-  }
+  if (!pluginStatus) return null;
 
   return (
     <main className="w-full h-full flex flex-col mt-2 gap-3">
-      {/* Header */}
       <header className="flex flex-row items-center gap-3">
         <div className="w-10 h-10 bg-accent/50 p-2.5 flex justify-center items-center rounded-xl">
           <Settings className="w-full h-full text-accent-foreground/70" />
@@ -129,20 +98,13 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
         </div>
       </header>
 
-      {/* Credential Form (rendered from credential_schema) */}
       {pluginStatus.credential_schema && (
         <section>
-          <form
-            onSubmit={handleSaveCredentials}
-            className="flex flex-col gap-3"
-          >
-            {Object.entries(pluginStatus.credential_schema).map(
+          <form onSubmit={handleSaveCredentials} className="flex flex-col gap-3">
+            {(Object.entries(pluginStatus.credential_schema) as [string, any][]).map(
               ([key, field]) => (
                 <div key={key} className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor={key}
-                    className="text-sm font-medium text-foreground"
-                  >
+                  <label htmlFor={key} className="text-sm font-medium">
                     {field.label}
                     {field.required && (
                       <span className="text-red-500 ml-0.5">*</span>
@@ -155,60 +117,38 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
                   )}
                   <Input
                     id={key}
-                    name={key}
                     type={field.inputType}
                     required={field.required}
                     placeholder={field.placeholder}
-                    value={formValues[key] ?? ""}
+                    value={formValues[key] || ""}
                     onChange={(e) =>
-                      setFormValues((prev) => ({
-                        ...prev,
-                        [key]: e.target.value,
-                      }))
+                      setFormValues({ ...formValues, [key]: e.target.value })
                     }
                   />
                 </div>
               ),
             )}
 
-            <Button
-              type="submit"
-              disabled={saving}
-              variant={"outline"}
-              className="inline-flex items-center justify-center text-sm font-medium h-9 px-4 py-2 disabled:opacity-50 mt-2"
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : null}
+            <Button type="submit" disabled={saving} variant="outline" className="mt-2">
+              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Credentials
             </Button>
           </form>
         </section>
       )}
 
-      {/* OAuth2 Connect/Disconnect */}
       {pluginStatus.auth_type === "oauth2" && (
         <section className="flex flex-col gap-2">
           {pluginStatus.status === "configured" && (
-            <Button
-              onClick={handleConnect}
-              disabled={connecting}
-              variant={"default"}
-              className="inline-flex items-center justify-center text-sm font-medium h-9 px-4 py-2 disabled:opacity-50"
-            >
-              {connecting ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : null}
+            <Button onClick={handleConnect} disabled={authLoading} className="w-full">
+              {authLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Connect with OAuth2
             </Button>
           )}
 
           {pluginStatus.status === "connected" && (
-            <Button
-              onClick={handleDisconnect}
-              variant={"destructive"}
-              className="inline-flex items-center justify-center text-sm font-medium h-9 px-4 py-2"
-            >
+            <Button onClick={handleDisconnect} variant="destructive" className="w-full">
+              <LogOut className="w-4 h-4 mr-2" />
               Disconnect
             </Button>
           )}

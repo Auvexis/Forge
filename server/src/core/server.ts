@@ -1,4 +1,6 @@
+import "dotenv/config";
 import Fastify from "fastify";
+import multipart from "@fastify/multipart";
 import cors from "@fastify/cors";
 import rootRoutes from "./routes/index.ts";
 import ollamaRoutes from "./routes/ollama.routes.ts";
@@ -6,8 +8,11 @@ import pluginsRoutes from "./routes/plugins.routes.ts";
 import aiRoutes from "./routes/ai.routes.ts";
 import { loadPlugins } from "./plugins/loader.ts";
 
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8032;
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:8033";
+
 const fastify = Fastify({
-  bodyLimit: 1048576000, // 1GB (Note: Base64 JSON payloads will hit Node.js max string size around 500MB-1GB)
+  bodyLimit: 10485760, // 10MB limit for JSON (multipart handles larger files)
   logger: {
     transport: {
       target: "pino-pretty",
@@ -20,8 +25,18 @@ const fastify = Fastify({
   },
 });
 
+await fastify.register(multipart, {
+  limits: {
+    fieldNameSize: 100, // Max field name size in bytes
+    fieldSize: 1000000, // Max field value size in bytes (1MB)
+    fields: 10,         // Max number of non-file fields
+    fileSize: 10737418240, // Max file size (10GB)
+    files: 1,           // Max number of file fields
+  },
+});
+
 await fastify.register(cors, {
-  origin: ["http://localhost:8033"],
+  origin: [CLIENT_ORIGIN],
   methods: ["*"],
   credentials: true,
 });
@@ -34,11 +49,11 @@ fastify.register(pluginsRoutes);
 fastify.register(aiRoutes);
 
 // Run the server!
-fastify.listen({ port: 8032 }, function (err, address) {
+fastify.listen({ port: PORT, host: "0.0.0.0" }, function (err, address) {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
   }
 
-  console.log("[FORGE | SERVER]: Server running at http://localhost:8032");
+  console.log(`[FORGE | SERVER]: Server running at ${address}`);
 });

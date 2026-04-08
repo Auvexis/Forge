@@ -1,5 +1,7 @@
 import Database from "better-sqlite3";
 import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 
 /**
  * Path to the database file
@@ -11,8 +13,6 @@ const dbPath = path.join(__dirname, "../../../config/data/forge.db");
 /**
  * Creates the directory if it doesn't exist
  */
-import fs from "fs";
-import { fileURLToPath } from "url";
 const dataDir = path.join(__dirname, "../../../config/data");
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });

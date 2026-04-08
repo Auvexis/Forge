@@ -14,10 +14,29 @@ export const useExecutePlugin = <T = any>() => {
   ): Promise<T> => {
     setLoading(true);
 
+    const hasFile = Object.values(params).some((v) => v instanceof File);
+    let body: any;
+
+    if (hasFile) {
+      body = new FormData();
+      body.append("method", method);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value instanceof File) {
+          body.append(key, value);
+        } else if (typeof value === "object") {
+          body.append(key, JSON.stringify(value));
+        } else {
+          body.append(key, String(value));
+        }
+      });
+    } else {
+      body = { method, params };
+    }
+
     const data = await handleApi<T>(
       `${API_BASE_URL}/plugins/${id}/execute`,
       { method: "POST" },
-      { method, params }
+      body
     );
 
     if ((data as any)?.download) {

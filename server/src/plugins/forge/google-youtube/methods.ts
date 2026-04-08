@@ -427,7 +427,7 @@ export function createGoogleYoutubeMethods() {
         description?: string;
         tags?: string;
         privacyStatus?: string;
-        contentBase64: string;
+        content: string | Buffer;
         mimeType?: string;
         categoryId?: string;
       },
@@ -436,9 +436,16 @@ export function createGoogleYoutubeMethods() {
       const yt = getYoutubeClient(context!);
 
       try {
-        const cleanBase64 = params.contentBase64.replace(/\s/g, "");
-        const buffer = Buffer.from(cleanBase64, "base64");
-        const stream = Readable.from(buffer);
+        let stream: Readable;
+        if (params.content instanceof Buffer) {
+          stream = Readable.from(params.content);
+        } else if (typeof params.content === "string") {
+          const cleanBase64 = params.content.replace(/\s/g, "");
+          const buffer = Buffer.from(cleanBase64, "base64");
+          stream = Readable.from(buffer);
+        } else {
+          throw new Error("Invalid content type for upload");
+        }
 
         const parsedTags = params.tags
           ? params.tags.split(",").map((t) => t.trim())

@@ -199,11 +199,11 @@
           "required": true,
           "isBase64": false
         },
-        "contentBase64": {
+        "content": {
           "type": "string",
           "inputType": "file",
           "required": true,
-          "isBase64": true
+          "isBase64": false
         },
         "parentId": {
           "type": "string",
