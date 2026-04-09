@@ -252,17 +252,22 @@
         "type": "object",
         "x-type": "file",
         "properties": {
-          "name": { "type": "string", "label": "File Name" },
-          "mimeType": { "type": "string", "label": "Mime Type" },
-          "base64": { "type": "string", "label": "Base64" }
+          "download": {
+            "type": "object",
+            "properties": {
+              "fileName": { "type": "string", "label": "File Name" },
+              "mimeType": { "type": "string", "label": "Mime Type" },
+              "content": { "type": "string", "label": "Content (Binary)" }
+            }
+          }
         }
       },
       "ui": {
         "component": "card",
         "download": {
-          "field": "base64",
-          "fileName": "{{name}}",
-          "mimeType": "{{mimeType}}"
+          "field": "download.content",
+          "fileName": "{{download.fileName}}",
+          "mimeType": "{{download.mimeType}}"
         }
       }
     },

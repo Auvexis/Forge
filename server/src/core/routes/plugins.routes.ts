@@ -1,8 +1,8 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
-import { PluginManager } from "../plugins/manager.ts";
-import { PluginExecutor } from "../plugins/executor.ts";
-import { CredentialStore } from "../plugins/credential-store.ts";
+import { PluginManager } from "../modules/plugins/manager.ts";
+import { PluginExecutor } from "../modules/plugins/executor.ts";
+import { CredentialStore } from "../modules/plugins/credential-store.ts";
 import { z } from "zod";
 import type {
   CredentialSchema,

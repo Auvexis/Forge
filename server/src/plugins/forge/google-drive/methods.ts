@@ -147,21 +147,14 @@ export function createGoogleDriveMethods() {
           { responseType: "stream" },
         );
 
-        const chunks: Buffer[] = [];
-
-        for await (const chunk of response.data) {
-          chunks.push(chunk);
-        }
-
-        const buffer = Buffer.concat(chunks);
-
         return {
           download: {
             fileName: metadata.data.name,
             mimeType: metadata.data.mimeType,
-            base64: buffer.toString("base64"),
+            content: response.data,
           },
         };
+
       } catch (error) {
         throw error;
       }

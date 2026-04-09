@@ -2,7 +2,7 @@ import type {
   ForgePlugin,
   OAuth2Provider,
   PluginContext,
-} from "../../shared/models/plugin-types.ts";
+} from "../../../shared/models/plugin-types.ts";
 import { PluginManager } from "./manager.ts";
 import { CredentialStore } from "./credential-store.ts";
 

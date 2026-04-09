@@ -2,13 +2,13 @@ import { fileURLToPath, pathToFileURL } from "url";
 import path, { dirname } from "path";
 import fs from "fs";
 import { PluginManager } from "./manager.ts";
-import type { ForgePlugin } from "../../shared/models/plugin-types.ts";
+import type { ForgePlugin } from "../../../shared/models/plugin-types.ts";
 
 export async function loadPlugins() {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
 
-  const pluginsDir = path.join(__dirname, "../../plugins");
+  const pluginsDir = path.join(__dirname, "../../../plugins");
 
   async function loadRecursively(dir: string) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });

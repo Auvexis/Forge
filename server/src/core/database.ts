@@ -21,14 +21,33 @@ if (!fs.existsSync(dataDir)) {
 export const db = new Database(dbPath);
 
 /**
- * Ollama Config Table
+ * Workflows Tables
  */
 db.prepare(
   `
-  CREATE TABLE IF NOT EXISTS ollama_config (
-    model TEXT NOT NULL,
-    host TEXT NOT NULL,
-    options TEXT
+  CREATE TABLE IF NOT EXISTS workflows (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    version TEXT NOT NULL,
+    is_active INTEGER DEFAULT 1,
+    is_public INTEGER DEFAULT 0,
+    created_at TEXT NOT NULL,
+    definition JSON NOT NULL
   )
-`,
+`
+).run();
+
+db.prepare(
+  `
+  CREATE TABLE IF NOT EXISTS workflow_executions (
+    id TEXT PRIMARY KEY,
+    workflow_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    start_time INTEGER NOT NULL,
+    end_time INTEGER,
+    context_state JSON,
+    FOREIGN KEY(workflow_id) REFERENCES workflows(id)
+  )
+`
 ).run();

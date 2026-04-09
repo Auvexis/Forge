@@ -1,9 +1,5 @@
 import {
-  Bot,
   LayoutDashboard,
-  ShelvingUnit,
-  Sparkle,
-  SquareLibrary,
   Workflow,
 } from "lucide-react";
 import { useRef, useState } from "react";

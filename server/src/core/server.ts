@@ -3,10 +3,9 @@ import Fastify from "fastify";
 import multipart from "@fastify/multipart";
 import cors from "@fastify/cors";
 import rootRoutes from "./routes/index.ts";
-import ollamaRoutes from "./routes/ollama.routes.ts";
 import pluginsRoutes from "./routes/plugins.routes.ts";
-import aiRoutes from "./routes/ai.routes.ts";
-import { loadPlugins } from "./plugins/loader.ts";
+import workflowsRoutes from "./routes/workflows.routes.ts";
+import { loadPlugins } from "./modules/plugins/loader.ts";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8032;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:8033";
@@ -21,7 +20,7 @@ const fastify = Fastify({
         ignore: "pid,hostname",
       },
     },
-    enabled: true,
+    enabled: false,
   },
 });
 
@@ -29,9 +28,9 @@ await fastify.register(multipart, {
   limits: {
     fieldNameSize: 100, // Max field name size in bytes
     fieldSize: 1000000, // Max field value size in bytes (1MB)
-    fields: 10,         // Max number of non-file fields
+    fields: 10, // Max number of non-file fields
     fileSize: 10737418240, // Max file size (10GB)
-    files: 1,           // Max number of file fields
+    files: 1, // Max number of file fields
   },
 });
 
@@ -44,9 +43,8 @@ await fastify.register(cors, {
 await loadPlugins();
 
 fastify.register(rootRoutes);
-fastify.register(ollamaRoutes);
 fastify.register(pluginsRoutes);
-fastify.register(aiRoutes);
+fastify.register(workflowsRoutes);
 
 // Run the server!
 fastify.listen({ port: PORT, host: "0.0.0.0" }, function (err, address) {

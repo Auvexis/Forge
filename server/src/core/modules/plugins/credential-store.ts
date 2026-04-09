@@ -6,14 +6,14 @@ import type {
   OAuth2Tokens,
   PluginAuthType,
   PluginStatus,
-} from "../../shared/models/plugin-types.ts";
+} from "../../../shared/models/plugin-types.ts";
 
 // ─── Database Setup ──────────────────────────────────────
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.join(__dirname, "../../../../config/data/credentials.db");
+const dbPath = path.join(__dirname, "../../../../../config/data/credentials.db");
 const dir = path.dirname(dbPath);
 
 if (!fs.existsSync(dir)) {

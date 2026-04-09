@@ -1,4 +1,4 @@
-import type { ForgePlugin } from "../../shared/models/plugin-types.ts";
+import type { ForgePlugin } from "../../../shared/models/plugin-types.ts";
 
 const plugins = new Map<string, ForgePlugin>();
 
