@@ -1,5 +1,4 @@
 import type { ForgePlugin } from "../../shared/models/plugin-types.ts";
-import type { PluginManifest } from "../../shared/models/plugin-types.ts";
 import manifest from "./manifest.json" with { type: "json" };
 import { createMethods } from "./methods.ts";
 

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useForge } from "~/providers/ForgeProvider";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
+import { Switch } from "~/components/ui/switch";
 import { handleApi } from "~/shared/helpers/apiHandler";
 import { API_BASE_URL } from "~/shared/constants";
 import {
@@ -136,8 +138,33 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
                 {isLocked ? (
                   <div className="flex items-center gap-2 px-3 h-10 rounded-md border border-border/50 bg-accent/10 text-muted-foreground text-sm">
                     <Lock className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-xs">Configured via environment variable</span>
+                    <span className="text-xs">
+                      Configured via environment variable
+                    </span>
                   </div>
+                ) : field.inputType === "toggle" ? (
+                  <div className="flex items-center gap-2 h-10">
+                    <Switch
+                      id={key}
+                      checked={!!formValues[key]}
+                      onCheckedChange={(val) =>
+                        setFormValues({ ...formValues, [key]: val })
+                      }
+                    />
+                    <span className="text-xs text-muted-foreground italic">
+                      {formValues[key] ? "Enabled" : "Disabled"}
+                    </span>
+                  </div>
+                ) : field.inputType === "textarea" ? (
+                  <Textarea
+                    id={key}
+                    required={field.required}
+                    placeholder={field.placeholder}
+                    value={formValues[key] || ""}
+                    onChange={(e) =>
+                      setFormValues({ ...formValues, [key]: e.target.value })
+                    }
+                  />
                 ) : (
                   <Input
                     id={key}
@@ -161,7 +188,7 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
               className="mt-2"
             >
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Save Credentials
+              {pluginStatus.auth_type === "none" ? "Save Settings" : "Save Credentials"}
             </Button>
           </form>
         </section>

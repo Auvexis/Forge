@@ -9,6 +9,7 @@ import { loadPlugins } from "./modules/plugins/loader.ts";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8032;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:8033";
+const LOGS_ENABLED = process.env.LOGS_ENABLED || "false";
 
 const fastify = Fastify({
   bodyLimit: 10485760, // 10MB limit for JSON (multipart handles larger files)
@@ -20,7 +21,7 @@ const fastify = Fastify({
         ignore: "pid,hostname",
       },
     },
-    enabled: true,
+    enabled: LOGS_ENABLED === "true",
   },
 });
 

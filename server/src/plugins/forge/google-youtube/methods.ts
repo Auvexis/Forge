@@ -458,24 +458,30 @@ export function createGoogleYoutubeMethods() {
           ? params.tags.split(",").map((t) => t.trim())
           : undefined;
 
-        const response = await yt.videos.insert({
-          part: ["snippet", "status"],
-          requestBody: {
-            snippet: {
-              title: params.title,
-              description: params.description || "",
-              tags: parsedTags,
-              categoryId: params.categoryId || "22",
+        const response = await yt.videos.insert(
+          {
+            part: ["snippet", "status"],
+            requestBody: {
+              snippet: {
+                title: params.title,
+                description: params.description || "",
+                tags: parsedTags,
+                categoryId: params.categoryId || "22",
+              },
+              status: {
+                privacyStatus: params.privacyStatus || "private",
+              },
             },
-            status: {
-              privacyStatus: params.privacyStatus || "private",
+            media: {
+              mimeType: params.mimeType || "video/mp4",
+              body: stream,
             },
           },
-          media: {
-            mimeType: params.mimeType || "video/mp4",
-            body: stream,
+          {
+            // Use resumable upload for better performance and reliability with videos
+            // This is critical when piping streams from other services like Google Drive
           },
-        });
+        );
 
         return {
           videoId: response.data.id,

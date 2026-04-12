@@ -16,6 +16,8 @@ import {
 } from "~/components/ui/collapsible";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
+import { Switch } from "~/components/ui/switch";
 import { Separator } from "~/components/ui/separator";
 import { TableRenderer } from "../renderers/TableRenderer";
 import { useExecutePlugin } from "../hooks/useExecutePlugin";
@@ -140,7 +142,35 @@ export const PluginMenuMethods = ({ pluginId }: { pluginId: string }) => {
                               )}
                             </span>
 
-                            {inputType !== "file" ? (
+                            {(inputType as any) === "toggle" ? (
+                              <div className="flex items-center gap-2 h-10">
+                                <Switch
+                                  checked={!!formValues[methodKey]?.[paramKey]}
+                                  onCheckedChange={(val) =>
+                                    updateFormValue(methodKey, paramKey, val)
+                                  }
+                                />
+                                <span className="text-xs text-muted-foreground italic">
+                                  {formValues[methodKey]?.[paramKey]
+                                    ? "Enabled"
+                                    : "Disabled"}
+                                </span>
+                              </div>
+                            ) : inputType === "textarea" ? (
+                              <Textarea
+                                name={paramKey}
+                                placeholder={paramValue.description}
+                                required={isRequired}
+                                value={formValues[methodKey]?.[paramKey] || ""}
+                                onChange={(e) =>
+                                  updateFormValue(
+                                    methodKey,
+                                    paramKey,
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            ) : inputType !== "file" ? (
                               <Input
                                 name={paramKey}
                                 type={inputType}

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
+import { Switch } from "~/components/ui/switch";
 import { Check, Search } from "lucide-react";
 import type { PluginNode } from "../../types/workflow-types";
 import type { NodeEditorProps } from "./types";
@@ -306,7 +308,9 @@ export function PluginEditor({
                     >
                       <ComboboxInput
                         className="w-full h-10 font-bold text-sm bg-background border-border/50 pointer-events-auto"
-                        placeholder={`Select ${(paramVal as any)["x-label"] || paramKey}...`}
+                        placeholder={`Select ${
+                          (paramVal as any)["x-label"] || paramKey
+                        }...`}
                       />
                       <ComboboxContent className="z-[100] pointer-events-auto">
                         <ComboboxList>
@@ -322,6 +326,42 @@ export function PluginEditor({
                         </ComboboxList>
                       </ComboboxContent>
                     </Combobox>
+                  ) : (paramVal as any)["x-input-type"] === "toggle" ||
+                    (paramVal as any).type === "boolean" ? (
+                    <div className="flex items-center gap-2 h-10">
+                      <Switch
+                        checked={!!data.params?.[paramKey]}
+                        onCheckedChange={(val) =>
+                          updateNodeData({
+                            params: {
+                              ...(data.params || {}),
+                              [paramKey]: val,
+                            },
+                          })
+                        }
+                      />
+                      <span className="text-xs text-muted-foreground italic font-medium">
+                        {data.params?.[paramKey] ? "Enabled" : "Disabled"}
+                      </span>
+                    </div>
+                  ) : (paramVal as any)["x-input-type"] === "textarea" ? (
+                    <Textarea
+                      className="font-bold text-sm bg-background border-border/50 min-h-24"
+                      value={data.params?.[paramKey] || ""}
+                      onChange={(e) =>
+                        updateNodeData({
+                          params: {
+                            ...(data.params || {}),
+                            [paramKey]: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder={
+                        (paramVal as any).description
+                          ? `e.g. ${(paramVal as any).default ?? ""}`
+                          : `Enter value for ${paramKey}`
+                      }
+                    />
                   ) : (
                     <Input
                       className="font-bold text-sm bg-background border-border/50 h-10"

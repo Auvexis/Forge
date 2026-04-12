@@ -4,7 +4,7 @@ export type PluginAuthType = "oauth2" | "api_key" | "none";
 
 export interface CredentialField {
   type: "string" | "number" | "boolean";
-  inputType: "text" | "password" | "number" | "url" | "email";
+  inputType: "text" | "password" | "number" | "textarea" | "url" | "email";
   label: string;
   description?: string;
   required: boolean;
@@ -66,6 +66,7 @@ export interface ApiKeyProvider {
 
 export interface NoAuthProvider {
   type: "none";
+  credentialSchema?: CredentialSchema;
 }
 
 export type CredentialProvider =
@@ -95,11 +96,18 @@ export interface PluginMetadata {
  */
 export interface JSONSchemaProperty {
   // Core JSON Schema
-  type?: "string" | "number" | "integer" | "boolean" | "object" | "array" | "null";
+  type?:
+    | "string"
+    | "number"
+    | "integer"
+    | "boolean"
+    | "object"
+    | "array"
+    | "null";
   description?: string;
   default?: any;
   enum?: any[];
-  format?: string;          // e.g. "binary", "base64", "uri", "date-time"
+  format?: string; // e.g. "binary", "base64", "uri", "date-time"
   minimum?: number;
   maximum?: number;
   minLength?: number;
@@ -117,10 +125,17 @@ export interface JSONSchemaProperty {
   maxItems?: number;
 
   // Forge-specific extensions
-  "x-input-type"?: "text" | "password" | "number" | "url" | "email" | "file" | "textarea";
-  "x-label"?: string;         // Human-readable label for UI display
+  "x-input-type"?:
+    | "text"
+    | "password"
+    | "number"
+    | "url"
+    | "email"
+    | "file"
+    | "textarea";
+  "x-label"?: string; // Human-readable label for UI display
   "x-forge-display"?: "file" | "folder" | "media" | "text" | "generic";
-  "x-forge-icon"?: string;    // Optional lucide icon name hint
+  "x-forge-icon"?: string; // Optional lucide icon name hint
 }
 
 /**
@@ -130,7 +145,7 @@ export interface JSONSchemaProperty {
 export interface JSONSchemaObject {
   type: "object";
   properties?: Record<string, JSONSchemaProperty>;
-  required?: string[];  // List of required property keys
+  required?: string[]; // List of required property keys
   additionalProperties?: boolean;
 }
 

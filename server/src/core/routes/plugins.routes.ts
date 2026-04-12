@@ -28,7 +28,11 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     const data = plugins.map((plugin) => ({
       id: plugin.id,
       manifest: plugin.manifest,
-      status: CredentialStore.getPluginStatus(plugin.id, plugin.auth.type),
+      status: CredentialStore.getPluginStatus(
+        plugin.id,
+        plugin.auth.type,
+        (plugin.auth as any).credentialSchema,
+      ),
       auth_type: plugin.auth.type,
     }));
 
@@ -56,7 +60,11 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         data: {
           id: plugin.id,
           manifest: plugin.manifest,
-          status: CredentialStore.getPluginStatus(plugin.id, plugin.auth.type),
+          status: CredentialStore.getPluginStatus(
+            plugin.id,
+            plugin.auth.type,
+            (plugin.auth as any).credentialSchema,
+          ),
           auth_type: plugin.auth.type,
         },
       });
@@ -78,18 +86,17 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
 
     try {
       const plugin = PluginManager.getPlugin(pluginId);
+      // Get credential schema from provider (if exists)
+      const credentialSchema = (plugin.auth as any).credentialSchema as
+        | CredentialSchema
+        | undefined;
+
       const status = CredentialStore.getPluginStatus(
         pluginId,
         plugin.auth.type,
+        credentialSchema,
       );
       const credentials = CredentialStore.getCredentials(pluginId);
-
-      // Get credential schema from provider
-      let credentialSchema: CredentialSchema | null = null;
-      if (plugin.auth.type !== "none") {
-        credentialSchema = (plugin.auth as OAuth2Provider | ApiKeyProvider)
-          .credentialSchema;
-      }
 
       // Identify ENV-locked fields
       const lockedFields = credentialSchema
@@ -140,11 +147,8 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     try {
       // Determine which fields, if any, are ENV-locked
       const plugin = PluginManager.getPlugin(pluginId);
-      let lockedFields = new Set<string>();
-      if (plugin.auth.type !== "none") {
-        const schema = (plugin.auth as OAuth2Provider | ApiKeyProvider).credentialSchema;
-        lockedFields = Vault.getLockedFields(pluginId, schema);
-      }
+      const schema = (plugin.auth as any).credentialSchema as CredentialSchema | undefined;
+      const lockedFields = schema ? Vault.getLockedFields(pluginId, schema) : new Set<string>();
 
       // Filter out ENV-locked fields — they cannot be overridden via the UI
       const filtered: Record<string, string> = {};

@@ -32,9 +32,10 @@ export const PluginExecutor = {
     let tokens = CredentialStore.getTokens(pluginId) ?? undefined;
 
     // Merge ENV secrets with stored credentials (ENV takes precedence)
+    const schema = (plugin.auth as any).credentialSchema;
     const credentials: Record<string, string> =
-      plugin.auth.type !== "none" && (plugin.auth as any).credentialSchema
-        ? Vault.mergeWithStored(pluginId, (plugin.auth as any).credentialSchema, storedCredentials)
+      schema
+        ? Vault.mergeWithStored(pluginId, schema, storedCredentials)
         : storedCredentials;
 
     // Auto-refresh expired OAuth2 tokens before execution

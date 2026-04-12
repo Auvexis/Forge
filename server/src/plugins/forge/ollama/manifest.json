@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "id": "forge-ollama",
+    "name": "Ollama",
+    "description": "Manage and use local LLMs with Ollama Plugin.",
+    "icon": "https://mintcdn.com/ollama-9269c548/XefrxzvUktkk84RL/images/logo-dark.png?fit=max&auto=format&n=XefrxzvUktkk84RL&q=85&s=c214b467f5623414c31d4e05c66110fb",
+    "category": "AI",
+    "author": "Forge",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/forge"
+  },
+
+  "methods": {
+    "generate": {
+      "metadata": {
+        "label": "Generate",
+        "description": "Generate content using Ollama."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "The prompt to use for generation.",
+            "placeholder": "Hello, how are you?",
+            "x-input-type": "textarea"
+          },
+          "system": {
+            "type": "string",
+            "description": "Override the default system instructions.",
+            "placeholder": "You are a helpful assistant.",
+            "x-input-type": "textarea"
+          },
+          "jsonMode": {
+            "type": "boolean",
+            "description": "Return the response in JSON format.",
+            "default": false,
+            "x-input-type": "toggle"
+          }
+        },
+        "required": ["prompt"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-forge-display": "text",
+        "properties": {
+          "model": { "type": "string", "x-label": "Model" },
+          "message": {
+            "type": "object",
+            "properties": {
+              "role": { "type": "string", "x-label": "Role" },
+              "content": { "type": "string", "x-label": "Content" }
+            }
+          },
+          "created_at": { "type": "string", "x-label": "Created At" },
+          "done": { "type": "boolean", "x-label": "Done" },
+          "done_reason": { "type": "string", "x-label": "Done Reason" },
+          "total_duration": { "type": "number", "x-label": "Total Duration" },
+          "load_duration": { "type": "number", "x-label": "Load Duration" },
+          "prompt_eval_count": {
+            "type": "number",
+            "x-label": "Prompt Eval Count"
+          },
+          "prompt_eval_duration": {
+            "type": "number",
+            "x-label": "Prompt Eval Duration"
+          },
+          "eval_count": { "type": "number", "x-label": "Eval Count" },
+          "eval_duration": { "type": "number", "x-label": "Eval Duration" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    }
+  }
+}

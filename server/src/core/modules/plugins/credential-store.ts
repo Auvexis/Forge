@@ -3,6 +3,7 @@ import path from "path";
 import Database from "better-sqlite3";
 import fs from "fs";
 import type {
+  CredentialSchema,
   OAuth2Tokens,
   PluginAuthType,
   PluginStatus,
@@ -128,11 +129,22 @@ export const CredentialStore = {
 
   // ── Status ──
 
-  getPluginStatus(pluginId: string, authType: PluginAuthType): PluginStatus {
-    if (authType === "none") return "connected";
-
+  getPluginStatus(
+    pluginId: string,
+    authType: PluginAuthType,
+    schema?: CredentialSchema,
+  ): PluginStatus {
     const credentials = this.getCredentials(pluginId);
-    if (!credentials || Object.keys(credentials).length === 0) {
+
+    // Check if configuration exists
+    const hasConfig = credentials && Object.keys(credentials).length > 0;
+
+    if (authType === "none") {
+      if (!schema) return "connected";
+      return hasConfig ? "connected" : "not_configured";
+    }
+
+    if (!hasConfig) {
       return "not_configured";
     }
 
