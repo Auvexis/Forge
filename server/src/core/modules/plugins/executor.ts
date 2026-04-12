@@ -63,7 +63,10 @@ export const PluginExecutor = {
       tokens,
     };
 
-    // Generic parameter "cooking" based on JSON Schema manifest
+    // ──────────── Parameter cooking (JSON Schema-driven) ────────────
+    // The executor normalises raw params before passing them to the plugin method.
+    // Rules are declared in the manifest under each property's x-input-type and format
+    // fields — no plugin-specific magic lives here.
     const cookedParams: Record<string, any> = { ...params };
     const methodManifest = plugin.manifest.methods[methodName];
     const schemaProperties = methodManifest?.parameters?.properties ?? {};
@@ -72,9 +75,9 @@ export const PluginExecutor = {
       const value = cookedParams[key];
       if (value === undefined || value === null) continue;
 
-      // File object passed from a workflow step: extract the binary content
-      // This happens when a previous step (e.g. downloadFile) returns { content: Buffer, mimeType }
-      // and the user maps it directly to a file parameter.
+      // If a previous workflow step returned a file-object ({ content: Buffer, mimeType })
+      // and the user mapped it to a parameter declared as x-input-type: "file",
+      // unwrap the buffer so the plugin receives raw binary content directly.
       if (
         paramSchema["x-input-type"] === "file" &&
         typeof value === "object" &&
@@ -84,17 +87,19 @@ export const PluginExecutor = {
       ) {
         const fileObj = value as any;
         cookedParams[key] = fileObj.content;
-        // Auto-propagate mimeType if not already set
+        // Auto-propagate mimeType if the plugin hasn't received it via another param
         if (fileObj.mimeType && !cookedParams.mimeType) {
           cookedParams.mimeType = fileObj.mimeType;
         }
       }
 
-      // Legacy base64 conversion: plugin declares format: "base64" to receive Buffer as base64 string
+      // If a plugin declares format: "base64" for a parameter, convert
+      // any raw Buffer value to a base64 string before calling the method.
       if (cookedParams[key] instanceof Buffer && paramSchema.format === "base64") {
         cookedParams[key] = (cookedParams[key] as Buffer).toString("base64");
       }
     }
+
 
     const result = await method(cookedParams, context);
 
