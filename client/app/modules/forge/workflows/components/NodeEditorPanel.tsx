@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { type Node, type Edge } from "@xyflow/react";
 import { useForge } from "~/providers/ForgeProvider";
 import { Button } from "~/components/ui/button";
@@ -29,6 +29,9 @@ interface Props {
  *
  * To support a new node type, add an entry to node-editors/index.ts.
  * No changes to this file are needed.
+ *
+ * IMPORTANT: ALL hooks must be declared before any conditional early return
+ * to comply with the Rules of Hooks.
  */
 export const NodeEditorPanel = ({
   nodeId,
@@ -40,22 +43,30 @@ export const NodeEditorPanel = ({
   onClose,
 }: Props) => {
   const { plugins, refreshActivePluginStatus } = useForge();
-  const [activeTab, setActiveTab] = useState<"settings" | "auth">("settings");
 
-  // Reset to settings tab whenever the edited node changes
+  // ── ALL STATE AND EFFECTS MUST COME BEFORE ANY EARLY RETURN ──
+
+  const [activeTab, setActiveTab] = useState<"settings" | "auth">("settings");
+  // Local state for ID edit (avoids re-render lag while typing)
+  const [localId, setLocalId] = useState(nodeId);
+
+  // Reset tabs and localId whenever the target node changes
   useEffect(() => {
     setActiveTab("settings");
   }, [nodeId]);
 
+  useEffect(() => {
+    setLocalId(nodeId);
+  }, [nodeId]);
+
+  // Resolve node — done before derived values but AFTER all hooks
   const node = nodes.find((n) => n.id === nodeId);
-  if (!node) return null;
 
-  // ──────────── Node type resolution ────────────
-
-  const dataType = (node.data as any).type as string | undefined;
-  const pluginId = (node.data as any).pluginId as string | undefined;
+  // Derive node type metadata (safe even if node is undefined, checked below)
+  const dataType = (node?.data as any)?.type as string | undefined;
+  const pluginId = (node?.data as any)?.pluginId as string | undefined;
   const isPluginNode =
-    node.type === "action" && (!dataType || dataType === "plugin") && !!pluginId;
+    node?.type === "action" && (!dataType || dataType === "plugin") && !!pluginId;
 
   // Refresh auth status when entering auth tab for plugin nodes
   useEffect(() => {
@@ -66,72 +77,81 @@ export const NodeEditorPanel = ({
 
   // ──────────── Shared helpers ────────────
 
-  const updateNodeData = (newData: Record<string, any>) => {
-    setNodes((nds) =>
-      nds.map((n) =>
-        n.id === nodeId
-          ? { ...n, data: { ...n.data, ...newData } as any }
-          : n,
-      ),
-    );
-  };
+  const updateNodeData = useCallback(
+    (newData: Record<string, any>) => {
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === nodeId
+            ? { ...n, data: { ...n.data, ...newData } as any }
+            : n,
+        ),
+      );
+    },
+    [nodeId, setNodes],
+  );
 
-  const injectVariable = (paramKey: string, variable: string) => {
-    if (node.type !== "action") return;
-    const currentParams = (node.data as any).params || {};
-    const currentValue = currentParams[paramKey] || "";
-    updateNodeData({
-      params: {
-        ...currentParams,
-        [paramKey]: `${currentValue}{{ ${variable} }}`,
-      },
-    });
-  };
+  const injectVariable = useCallback(
+    (paramKey: string, variable: string) => {
+      if (!node || node.type !== "action") return;
+      const currentParams = (node.data as any).params || {};
+      const currentValue = currentParams[paramKey] || "";
+      updateNodeData({
+        params: {
+          ...currentParams,
+          [paramKey]: `${currentValue}{{ ${variable} }}`,
+        },
+      });
+    },
+    [node, updateNodeData],
+  );
 
-  // Local state for ID edit (avoids re-render lag while typing)
-  const [localId, setLocalId] = useState(nodeId);
-  useEffect(() => {
-    setLocalId(nodeId);
-  }, [nodeId]);
-
-  const handleIdChange = (newId: string) => {
-    if (!newId || newId === nodeId) return;
-    if (nodes.some((n) => n.id === newId)) {
-      alert("A node with this ID already exists.");
-      return;
-    }
-    setNodes((nds) => nds.map((n) => (n.id === nodeId ? { ...n, id: newId } : n)));
-    setEdges((eds) =>
-      eds.map((e) => {
-        if (e.source === nodeId) return { ...e, source: newId };
-        if (e.target === nodeId) return { ...e, target: newId };
-        return e;
-      }),
-    );
-    onNodeIdChange(newId);
-  };
+  const handleIdChange = useCallback(
+    (newId: string) => {
+      if (!newId || newId === nodeId) return;
+      if (nodes.some((n) => n.id === newId)) {
+        alert("A node with this ID already exists.");
+        return;
+      }
+      setNodes((nds) =>
+        nds.map((n) => (n.id === nodeId ? { ...n, id: newId } : n)),
+      );
+      setEdges((eds) =>
+        eds.map((e) => {
+          if (e.source === nodeId) return { ...e, source: newId };
+          if (e.target === nodeId) return { ...e, target: newId };
+          return e;
+        }),
+      );
+      onNodeIdChange(newId);
+    },
+    [nodeId, nodes, setNodes, setEdges, onNodeIdChange],
+  );
 
   // ──────────── Upstream traversal ────────────
 
-  const getUpstreamNodes = (
-    currentId: string,
-    visited = new Set<string>(),
-  ): Node[] => {
-    if (visited.has(currentId)) return [];
-    visited.add(currentId);
+  const getUpstreamNodes = useCallback(
+    (currentId: string, visited = new Set<string>()): Node[] => {
+      if (visited.has(currentId)) return [];
+      visited.add(currentId);
 
-    const directEdges = edges.filter((e) => e.target === currentId);
-    let upstream: Node[] = [];
+      const directEdges = edges.filter((e) => e.target === currentId);
+      let upstream: Node[] = [];
 
-    for (const edge of directEdges) {
-      const parentNode = nodes.find((n) => n.id === edge.source);
-      if (parentNode) {
-        upstream.push(parentNode);
-        upstream = upstream.concat(getUpstreamNodes(parentNode.id, visited));
+      for (const edge of directEdges) {
+        const parentNode = nodes.find((n) => n.id === edge.source);
+        if (parentNode) {
+          upstream.push(parentNode);
+          upstream = upstream.concat(getUpstreamNodes(parentNode.id, visited));
+        }
       }
-    }
-    return upstream;
-  };
+      return upstream;
+    },
+    [edges, nodes],
+  );
+
+  // ── ALL HOOKS DECLARED — safe to early-return now ──
+
+  if (!node) return null;
 
   const upstreamNodes = getUpstreamNodes(nodeId);
 

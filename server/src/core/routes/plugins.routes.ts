@@ -273,8 +273,16 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const credentials = CredentialStore.getCredentials(pluginId);
-      if (!credentials) {
+      // Merge stored credentials with ENV vault (ENV takes precedence)
+      const provider = plugin.auth as OAuth2Provider;
+      const storedCredentials = CredentialStore.getCredentials(pluginId) ?? {};
+      const credentials = Vault.mergeWithStored(
+        pluginId,
+        provider.credentialSchema,
+        storedCredentials,
+      );
+
+      if (!credentials || Object.keys(credentials).length === 0) {
         return sendResponse(reply, {
           status_code: 400,
           message:
@@ -284,7 +292,6 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const provider = plugin.auth as OAuth2Provider;
       const redirectUri = PluginManager.getRedirectUri(pluginId);
       const url = await provider.getAuthUrl(credentials, redirectUri);
 
@@ -387,8 +394,16 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
           );
       }
 
-      const credentials = CredentialStore.getCredentials(pluginId);
-      if (!credentials) {
+      // Merge stored credentials with ENV vault (ENV takes precedence)
+      const provider = plugin.auth as OAuth2Provider;
+      const storedCredentials = CredentialStore.getCredentials(pluginId) ?? {};
+      const credentials = Vault.mergeWithStored(
+        pluginId,
+        provider.credentialSchema,
+        storedCredentials,
+      );
+
+      if (!credentials || Object.keys(credentials).length === 0) {
         return reply
           .code(200)
           .type("text/html")
@@ -401,7 +416,6 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
           );
       }
 
-      const provider = plugin.auth as OAuth2Provider;
       const redirectUri = PluginManager.getRedirectUri(pluginId);
       const tokens = await provider.exchangeCode(
         query.code,

@@ -6,6 +6,3 @@
 **/*.db-shm
 **/*.db-wal
 **/*.db-journal
-AGENTS.md
-.ai/
-implementation.md

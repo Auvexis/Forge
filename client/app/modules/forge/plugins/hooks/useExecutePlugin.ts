@@ -53,7 +53,7 @@ export const useExecutePlugin = <T = any>() => {
 
     setLoading(false);
 
-    return data;
+    return data as T;
   };
 
   return { executePlugin, loading };

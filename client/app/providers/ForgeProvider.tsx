@@ -14,6 +14,7 @@ import type {
 } from "../modules/forge/plugins/types/plugin";
 import { API_BASE_URL } from "../shared/constants";
 import { handleApi } from "../shared/helpers/apiHandler";
+import { toast } from "../shared/helpers/toast";
 
 export enum GlobalViews {
   EXPLORER = "explorer",
@@ -128,6 +129,10 @@ export const ForgeProvider = ({ children }: { children: ReactNode }) => {
       const apiOrigin = new URL(API_BASE_URL).origin;
 
       return new Promise<void>((resolve, reject) => {
+        // Track whether a postMessage arrived so the popup-closed fallback
+        // knows not to interfere (avoids the interval racing the message).
+        let messageReceived = false;
+
         const cleanup = () => {
           window.removeEventListener("message", messageListener);
           clearInterval(checkPopup);
@@ -135,14 +140,20 @@ export const ForgeProvider = ({ children }: { children: ReactNode }) => {
         };
 
         const messageListener = async (event: MessageEvent) => {
+          // Accept messages from the server (the callback page origin)
           if (event.origin !== apiOrigin) return;
 
           if (
             event.data?.type === "oauth-success" &&
             event.data?.plugin === pluginId
           ) {
-            await refreshActivePluginStatus(pluginId);
+            messageReceived = true;
             cleanup();
+            // Refresh status AFTER cleanup so we don't call it twice
+            await refreshActivePluginStatus(pluginId);
+            toast.success("Account connected", {
+              description: `OAuth2 authentication completed successfully.`,
+            });
             resolve();
           }
 
@@ -150,17 +161,37 @@ export const ForgeProvider = ({ children }: { children: ReactNode }) => {
             event.data?.type === "oauth-error" &&
             event.data?.plugin === pluginId
           ) {
+            messageReceived = true;
             cleanup();
-            reject(new Error(event.data.error || "OAuth failed"));
+            const errMsg = event.data.error || "OAuth failed";
+            toast.error("OAuth Connection Failed", {
+              description: errMsg,
+            });
+            reject(new Error(errMsg));
           }
         };
 
+        // Poll for popup closure. When the popup closes:
+        //   - If we already got a message → already resolved/rejected, do nothing.
+        //   - If no message yet → wait briefly for a late postMessage, then
+        //     refresh status and resolve (user may have completed or cancelled).
         const checkPopup = setInterval(() => {
-          if (popup?.closed) {
+          if (!popup?.closed) return;
+
+          clearInterval(checkPopup);
+
+          if (messageReceived) return; // Already handled
+
+          // Give the callback page 600ms to fire its postMessage before we
+          // give up and treat the closure as a manual cancel.
+          setTimeout(async () => {
             cleanup();
-            resolve(); // Resolve anyway when closed, status refresh will handle the rest
-          }
-        }, 1000);
+            // Best-effort status refresh (handles the case where token was
+            // saved but the postMessage was missed)
+            await refreshActivePluginStatus(pluginId).catch(() => {});
+            resolve();
+          }, 600);
+        }, 500);
 
         window.addEventListener("message", messageListener);
       });
