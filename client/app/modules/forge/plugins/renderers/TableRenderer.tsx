@@ -19,7 +19,7 @@ import { executeAction } from "../utils/executeAction";
 import { useEffect, useState } from "react";
 import { useExecutePlugin } from "../hooks/useExecutePlugin";
 import { downloadFile } from "~/shared/utils/downloadFile";
-import { getSchemaProperties } from "../utils/getSchemaProperties";
+import { getSchemaProperties, getPropertyLabel } from "../utils/getSchemaProperties";
 
 type Props = {
   pluginId: string;
@@ -47,8 +47,8 @@ export const TableRenderer = ({ pluginId, ui, schema, data }: Props) => {
       <TableHeader>
         <TableRow>
           {ui.actions !== null && <TableHead>Actions</TableHead>}
-          {entries?.map(([key, prop]: any) => (
-            <TableHead key={key}>{prop.label}</TableHead>
+          {entries?.map(([key, prop]) => (
+            <TableHead key={key}>{getPropertyLabel(key, prop)}</TableHead>
           ))}
         </TableRow>
       </TableHeader>

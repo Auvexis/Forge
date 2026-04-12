@@ -2,6 +2,7 @@ import { google } from "googleapis";
 import type {
   ForgePlugin,
   OAuth2Provider,
+  PluginManifest,
 } from "../../../shared/models/plugin-types.ts";
 import manifest from "./manifest.json" with { type: "json" };
 import { createGoogleYoutubeMethods } from "./methods.ts";
@@ -94,7 +95,7 @@ const auth: OAuth2Provider = {
 const GoogleYoutubePlugin: ForgePlugin = {
   id: "google-youtube",
   auth,
-  manifest,
+  manifest: manifest as PluginManifest,
   methods: createGoogleYoutubeMethods(),
 };
 

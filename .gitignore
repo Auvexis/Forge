@@ -8,3 +8,4 @@
 **/*.db-journal
 AGENTS.md
 .ai/
+implementation.md

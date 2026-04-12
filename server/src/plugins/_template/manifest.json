@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "id": "my-plugin",
+    "name": "My Plugin",
+    "description": "Short description of what this plugin does.",
+    "icon": "https://example.com/icon.png",
+    "category": "Productivity",
+    "author": "Your Name or Org",
+    "version": "1.0.0",
+    "repository": "https://github.com/yourusername/my-plugin"
+  },
+
+  "methods": {
+    "listItems": {
+      "metadata": {
+        "label": "List items",
+        "description": "Fetches a list of items."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query string.",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of results to return.",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100,
+            "x-input-type": "number"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-forge-display": "generic",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "x-label": "ID" },
+            "name": { "type": "string", "x-label": "Name" },
+            "createdAt": { "type": "string", "x-label": "Created At" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table",
+        "actions": [
+          {
+            "label": "Get Details",
+            "action": "getItem",
+            "parameters": { "id": "{{id}}" }
+          }
+        ]
+      }
+    },
+
+    "getItem": {
+      "metadata": {
+        "label": "Get item",
+        "description": "Gets a single item by ID."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The unique ID of the item.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["id"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-forge-display": "generic",
+        "properties": {
+          "id": { "type": "string", "x-label": "ID" },
+          "name": { "type": "string", "x-label": "Name" },
+          "description": { "type": "string", "x-label": "Description" },
+          "createdAt": { "type": "string", "x-label": "Created At" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    }
+  }
+}

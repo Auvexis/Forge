@@ -13,7 +13,7 @@ import type {
   PluginManifestResponseSchema,
   PluginMethodUI,
 } from "../types/plugin";
-import { getSchemaProperties } from "../utils/getSchemaProperties";
+import { getSchemaProperties, getPropertyLabel, getDisplayType } from "../utils/getSchemaProperties";
 import { Separator } from "~/components/ui/separator";
 import { Button } from "~/components/ui/button";
 import { executeAction } from "../utils/executeAction";
@@ -32,6 +32,7 @@ export const CardRenderer = ({ pluginId, ui, schema, data }: Props) => {
   const { executePlugin } = useExecutePlugin();
 
   const entries = getSchemaProperties(schema);
+  const displayType = getDisplayType(schema);
 
   // States
   const [cardData, setCardData] = useState(data);
@@ -70,7 +71,7 @@ export const CardRenderer = ({ pluginId, ui, schema, data }: Props) => {
 
   return (
     <div className="w-full h-full flex">
-      {schema["x-type"] === "file" && (
+      {(displayType === "file") && (
         <div className="w-full h-full flex gap-5">
           <div className="w-[25%] flex rounded-lg justify-center items-center bg-accent/50 p-8">
             {renderFileIcon()}
@@ -81,7 +82,7 @@ export const CardRenderer = ({ pluginId, ui, schema, data }: Props) => {
               {entries?.map(([key, value]) => {
                 return (
                   <div key={key} className="flex gap-2">
-                    <h1 className="text-md font-medium">{value.label}: </h1>
+                    <h1 className="text-md font-medium">{getPropertyLabel(key, value)}: </h1>
                     <p className="max-h-14 text-ellipsis overflow-hidden">
                       {(cardData[key] as string) || "-"}
                     </p>
@@ -141,7 +142,7 @@ export const CardRenderer = ({ pluginId, ui, schema, data }: Props) => {
         </div>
       )}
 
-      {schema["x-type"] === "folder" && (
+      {(displayType === "folder") && (
         <div className="w-full h-full flex gap-5">
           <div className="w-[25%] flex rounded-lg justify-center items-center bg-accent/50 p-8">
             <FolderClosed className="w-full h-full opacity-80" />
@@ -152,7 +153,7 @@ export const CardRenderer = ({ pluginId, ui, schema, data }: Props) => {
               {entries?.map(([key, value]) => {
                 return (
                   <div key={key} className="flex gap-2">
-                    <h1 className="text-md font-medium">{value.label}: </h1>
+                    <h1 className="text-md font-medium">{getPropertyLabel(key, value)}: </h1>
                     <p className="">{(cardData[key] as string) || "-"}</p>
                   </div>
                 );
@@ -199,7 +200,7 @@ export const CardRenderer = ({ pluginId, ui, schema, data }: Props) => {
         </div>
       )}
 
-      {schema["x-type"] === "text" && (
+      {(displayType === "text" || displayType === "generic" || (displayType !== "file" && displayType !== "folder")) && (
         <div className="w-full h-full flex gap-5">
           <div className="w-[25%] flex rounded-lg justify-center items-center bg-accent/50 p-8">
             <Film className="w-[70%] h-[70%] opacity-80" />
@@ -210,7 +211,7 @@ export const CardRenderer = ({ pluginId, ui, schema, data }: Props) => {
               {entries?.map(([key, value]) => {
                 return (
                   <div key={key} className="flex gap-2">
-                    <h1 className="text-md font-medium">{value.label}: </h1>
+                    <h1 className="text-md font-medium">{getPropertyLabel(key, value)}: </h1>
                     <p className="max-h-14 text-ellipsis overflow-hidden">
                       {(cardData[key] as string) || "-"}
                     </p>

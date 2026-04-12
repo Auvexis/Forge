@@ -26,11 +26,63 @@ export interface PluginStatusResponse {
   auth_type: PluginAuthType;
   credential_schema: CredentialSchema | null;
   credentials: Record<string, string> | null;
+  locked_fields?: string[];   // Fields provided via ENV — cannot be overridden via UI
   error?: string;
 }
 
+// ─── JSON Schema Types (mirrors server JSONSchemaProperty/Object) ──
+
+export interface JSONSchemaProperty {
+  type?: "string" | "number" | "integer" | "boolean" | "object" | "array" | "null";
+  description?: string;
+  default?: any;
+  enum?: any[];
+  format?: string;
+  minimum?: number;
+  maximum?: number;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  properties?: Record<string, JSONSchemaProperty>;
+  required?: string[];
+  items?: JSONSchemaProperty;
+  minItems?: number;
+  maxItems?: number;
+  // Forge extensions
+  "x-input-type"?: "text" | "password" | "number" | "url" | "email" | "file" | "textarea";
+  "x-label"?: string;
+  "x-forge-display"?: "file" | "folder" | "media" | "text" | "generic";
+  "x-forge-icon"?: string;
+}
+
+export interface JSONSchemaObject {
+  type: "object";
+  properties?: Record<string, JSONSchemaProperty>;
+  required?: string[];
+  additionalProperties?: boolean;
+}
+
+// ─── Response Schema ───────────────────────────────────────
+
+export interface PluginManifestResponseSchema {
+  type: "object" | "array";
+  "x-forge-display"?: "file" | "folder" | "media" | "text" | "generic";
+  /** @deprecated use x-forge-display */
+  "x-type"?: string;
+
+  properties?: Record<string, JSONSchemaProperty>;
+  required?: string[];
+
+  items?: JSONSchemaProperty & {
+    type?: string;
+    properties?: Record<string, JSONSchemaProperty>;
+  };
+}
+
+// ─── UI Hints ─────────────────────────────────────────────
+
 export interface PluginMethodUI {
-  component: "table" | "card" | "text";
+  component: "table" | "card" | "text" | "generic";
   download?: {
     field: string;
     fileName: string;
@@ -39,36 +91,12 @@ export interface PluginMethodUI {
   actions?: {
     label: string;
     action: string;
-    parameters: {
-      [key: string]: string;
-    };
+    parameters: Record<string, string>;
     visibleIf?: {
       field: string;
       equals: any;
     };
   }[];
-}
-
-export interface PluginManifestResponseSchema {
-  type: "object" | "array";
-  "x-type": "file" | "folder" | "text";
-
-  properties?: {
-    [key: string]: {
-      type: string;
-      label: string;
-    };
-  };
-
-  items?: {
-    type: "object" | "array";
-    properties?: {
-      [key: string]: {
-        type: string;
-        label: string;
-      };
-    };
-  };
 }
 
 // ─── Plugin Manifest ─────────────────────────────────────
@@ -92,14 +120,7 @@ export type PluginManifest = {
         description: string;
       };
 
-      parameters: {
-        [key: string]: {
-          type: string;
-          inputType: string;
-          required: boolean;
-          isBase64?: boolean;
-        };
-      };
+      parameters: JSONSchemaObject;
 
       responseSchema: PluginManifestResponseSchema;
 

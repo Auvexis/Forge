@@ -1,6 +1,7 @@
 import type {
   ForgePlugin,
   OAuth2Provider,
+  PluginManifest,
 } from "../../../shared/models/plugin-types.ts";
 import { google } from "googleapis";
 import manifest from "./manifest.json" with { type: "json" };
@@ -91,7 +92,7 @@ const auth: OAuth2Provider = {
 
 const GoogleDrivePlugin: ForgePlugin = {
   id: "google-drive",
-  manifest: manifest,
+  manifest: manifest as PluginManifest,
   auth,
   methods: createGoogleDriveMethods(),
 };

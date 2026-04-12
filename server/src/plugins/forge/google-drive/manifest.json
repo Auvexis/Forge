@@ -14,65 +14,48 @@
     "listFiles": {
       "metadata": {
         "label": "List files",
-        "description": "List files/folders."
+        "description": "List files/folders in Google Drive."
       },
-
       "parameters": {
-        "pageSize": {
-          "type": "number",
-          "inputType": "number",
-          "required": false,
-          "isBase64": false
-        },
-        "query": {
-          "type": "string",
-          "inputType": "text",
-          "required": false,
-          "isBase64": false
+        "type": "object",
+        "properties": {
+          "pageSize": {
+            "type": "integer",
+            "description": "Number of files to return per page.",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 1000,
+            "x-input-type": "number"
+          },
+          "query": {
+            "type": "string",
+            "description": "Drive API query string (e.g. 'name contains \"report\"').",
+            "x-input-type": "text"
+          }
         }
       },
-
       "responseSchema": {
         "type": "array",
-        "x-type": "file",
+        "x-forge-display": "file",
         "items": {
           "type": "object",
           "properties": {
-            "parents": { "type": "array", "label": "Parents" },
-            "id": { "type": "string", "label": "ID" },
-            "name": { "type": "string", "label": "File Name" },
-            "mimeType": { "type": "string", "label": "Mime Type" },
-            "trashed": { "type": "boolean", "label": "Trashed" },
-            "modifiedTime": { "type": "string", "label": "Last Modified" },
-            "size": { "type": "string", "label": "File Size" }
+            "parents": { "type": "array", "x-label": "Parents" },
+            "id": { "type": "string", "x-label": "ID" },
+            "name": { "type": "string", "x-label": "File Name" },
+            "mimeType": { "type": "string", "x-label": "Mime Type" },
+            "trashed": { "type": "boolean", "x-label": "Trashed" },
+            "modifiedTime": { "type": "string", "x-label": "Last Modified" },
+            "size": { "type": "string", "x-label": "File Size" }
           }
         }
       },
-
       "ui": {
         "component": "table",
         "actions": [
-          {
-            "label": "Download",
-            "action": "downloadFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          },
-          {
-            "label": "Delete",
-            "action": "deleteFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          },
-          {
-            "label": "Restore",
-            "action": "restoreFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          }
+          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
+          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } },
+          { "label": "Restore", "action": "restoreFile", "parameters": { "fileId": "{{id}}" } }
         ]
       }
     },
@@ -80,52 +63,37 @@
     "getFileMetadata": {
       "metadata": {
         "label": "Get file metadata",
-        "description": "Get metadata of a file/folder."
+        "description": "Get metadata of a file or folder."
       },
       "parameters": {
-        "fileId": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
-        }
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to retrieve.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["fileId"]
       },
       "responseSchema": {
         "type": "object",
-        "x-type": "file",
+        "x-forge-display": "file",
         "properties": {
-          "id": { "type": "string", "label": "ID" },
-          "name": { "type": "string", "label": "File Name" },
-          "mimeType": { "type": "string", "label": "Mime Type" },
-          "trashed": { "type": "boolean", "label": "Trashed" },
-          "parents": { "type": "array", "label": "Parents" },
-          "modifiedTime": { "type": "string", "label": "Last Modified" }
+          "id": { "type": "string", "x-label": "ID" },
+          "name": { "type": "string", "x-label": "File Name" },
+          "mimeType": { "type": "string", "x-label": "Mime Type" },
+          "trashed": { "type": "boolean", "x-label": "Trashed" },
+          "parents": { "type": "array", "x-label": "Parents" },
+          "modifiedTime": { "type": "string", "x-label": "Last Modified" }
         }
       },
       "ui": {
         "component": "card",
         "actions": [
-          {
-            "label": "Download",
-            "action": "downloadFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          },
-          {
-            "label": "Delete",
-            "action": "deleteFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          },
-          {
-            "label": "Restore",
-            "action": "restoreFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          }
+          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
+          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } },
+          { "label": "Restore", "action": "restoreFile", "parameters": { "fileId": "{{id}}" } }
         ]
       }
     },
@@ -133,56 +101,41 @@
     "listFolderChildren": {
       "metadata": {
         "label": "List folder children",
-        "description": "List files/folders inside a folder."
+        "description": "List files/folders inside a specific folder."
       },
       "parameters": {
-        "folderId": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
-        }
+        "type": "object",
+        "properties": {
+          "folderId": {
+            "type": "string",
+            "description": "The ID of the folder to list.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["folderId"]
       },
       "responseSchema": {
         "type": "array",
-        "x-type": "file",
+        "x-forge-display": "file",
         "items": {
           "type": "object",
           "properties": {
-            "parents": { "type": "array", "label": "Parents" },
-            "id": { "type": "string", "label": "ID" },
-            "name": { "type": "string", "label": "File Name" },
-            "mimeType": { "type": "string", "label": "Mime Type" },
-            "trashed": { "type": "boolean", "label": "Trashed" },
-            "modifiedTime": { "type": "string", "label": "Last Modified" },
-            "size": { "type": "string", "label": "File Size" }
+            "parents": { "type": "array", "x-label": "Parents" },
+            "id": { "type": "string", "x-label": "ID" },
+            "name": { "type": "string", "x-label": "File Name" },
+            "mimeType": { "type": "string", "x-label": "Mime Type" },
+            "trashed": { "type": "boolean", "x-label": "Trashed" },
+            "modifiedTime": { "type": "string", "x-label": "Last Modified" },
+            "size": { "type": "string", "x-label": "File Size" }
           }
         }
       },
       "ui": {
         "component": "table",
         "actions": [
-          {
-            "label": "Download",
-            "action": "downloadFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          },
-          {
-            "label": "Delete",
-            "action": "deleteFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          },
-          {
-            "label": "Restore",
-            "action": "restoreFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          }
+          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
+          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } },
+          { "label": "Restore", "action": "restoreFile", "parameters": { "fileId": "{{id}}" } }
         ]
       }
     },
@@ -193,41 +146,42 @@
         "description": "Upload a new file to Google Drive."
       },
       "parameters": {
-        "name": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name for the uploaded file.",
+            "x-input-type": "text"
+          },
+          "content": {
+            "type": "string",
+            "format": "binary",
+            "description": "The file content to upload.",
+            "x-input-type": "file"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "The ID of the parent folder (optional).",
+            "x-input-type": "text"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type of the file (optional, auto-detected if not provided).",
+            "x-input-type": "text"
+          }
         },
-        "content": {
-          "type": "string",
-          "inputType": "file",
-          "required": true,
-          "isBase64": false
-        },
-        "parentId": {
-          "type": "string",
-          "inputType": "text",
-          "required": false,
-          "isBase64": false
-        },
-        "mimeType": {
-          "type": "string",
-          "inputType": "text",
-          "required": false,
-          "isBase64": false
-        }
+        "required": ["name", "content"]
       },
       "responseSchema": {
         "type": "object",
-        "x-type": "file",
+        "x-forge-display": "file",
         "properties": {
-          "id": { "type": "string", "label": "ID" },
-          "name": { "type": "string", "label": "File Name" },
-          "mimeType": { "type": "string", "label": "Mime Type" },
-          "parents": { "type": "array", "label": "Parents" },
-          "modifiedTime": { "type": "string", "label": "Last Modified" },
-          "size": { "type": "string", "label": "File Size" }
+          "id": { "type": "string", "x-label": "ID" },
+          "name": { "type": "string", "x-label": "File Name" },
+          "mimeType": { "type": "string", "x-label": "Mime Type" },
+          "parents": { "type": "array", "x-label": "Parents" },
+          "modifiedTime": { "type": "string", "x-label": "Last Modified" },
+          "size": { "type": "string", "x-label": "File Size" }
         }
       },
       "ui": {
@@ -241,23 +195,27 @@
         "description": "Download a file from Google Drive."
       },
       "parameters": {
-        "fileId": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
-        }
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to download.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["fileId"]
       },
       "responseSchema": {
         "type": "object",
-        "x-type": "file",
+        "x-forge-display": "file",
         "properties": {
           "download": {
             "type": "object",
+            "x-label": "Download",
             "properties": {
-              "fileName": { "type": "string", "label": "File Name" },
-              "mimeType": { "type": "string", "label": "Mime Type" },
-              "content": { "type": "string", "label": "Content (Binary)" }
+              "fileName": { "type": "string", "x-label": "File Name" },
+              "mimeType": { "type": "string", "x-label": "Mime Type" },
+              "content": { "type": "string", "x-label": "Content (Binary)" }
             }
           }
         }
@@ -275,46 +233,37 @@
     "deleteFile": {
       "metadata": {
         "label": "Delete file",
-        "description": "Delete a file from Google Drive."
+        "description": "Move a file to trash in Google Drive."
       },
       "parameters": {
-        "fileId": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
-        }
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to delete.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["fileId"]
       },
       "responseSchema": {
         "type": "object",
-        "x-type": "file",
+        "x-forge-display": "file",
         "properties": {
-          "id": { "type": "string", "label": "ID" },
-          "name": { "type": "string", "label": "File Name" },
-          "mimeType": { "type": "string", "label": "Mime Type" },
-          "trashed": { "type": "boolean", "label": "Trashed" },
-          "parents": { "type": "array", "label": "Parents" },
-          "modifiedTime": { "type": "string", "label": "Last Modified" },
-          "size": { "type": "string", "label": "File Size" }
+          "id": { "type": "string", "x-label": "ID" },
+          "name": { "type": "string", "x-label": "File Name" },
+          "mimeType": { "type": "string", "x-label": "Mime Type" },
+          "trashed": { "type": "boolean", "x-label": "Trashed" },
+          "parents": { "type": "array", "x-label": "Parents" },
+          "modifiedTime": { "type": "string", "x-label": "Last Modified" },
+          "size": { "type": "string", "x-label": "File Size" }
         }
       },
       "ui": {
         "component": "card",
         "actions": [
-          {
-            "label": "Download",
-            "action": "downloadFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          },
-          {
-            "label": "Restore",
-            "action": "restoreFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          }
+          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
+          { "label": "Restore", "action": "restoreFile", "parameters": { "fileId": "{{id}}" } }
         ]
       }
     },
@@ -322,39 +271,36 @@
     "restoreFile": {
       "metadata": {
         "label": "Restore file",
-        "description": "Restore a deleted file."
+        "description": "Restore a trashed file from Google Drive."
       },
       "parameters": {
-        "fileId": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
-        }
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to restore.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["fileId"]
       },
       "responseSchema": {
         "type": "object",
-        "x-type": "file",
+        "x-forge-display": "file",
         "properties": {
-          "id": { "type": "string", "label": "ID" },
-          "name": { "type": "string", "label": "File Name" },
-          "mimeType": { "type": "string", "label": "Mime Type" },
-          "trashed": { "type": "boolean", "label": "Trashed" },
-          "parents": { "type": "array", "label": "Parents" },
-          "modifiedTime": { "type": "string", "label": "Last Modified" },
-          "size": { "type": "string", "label": "File Size" }
+          "id": { "type": "string", "x-label": "ID" },
+          "name": { "type": "string", "x-label": "File Name" },
+          "mimeType": { "type": "string", "x-label": "Mime Type" },
+          "trashed": { "type": "boolean", "x-label": "Trashed" },
+          "parents": { "type": "array", "x-label": "Parents" },
+          "modifiedTime": { "type": "string", "x-label": "Last Modified" },
+          "size": { "type": "string", "x-label": "File Size" }
         }
       },
       "ui": {
         "component": "card",
         "actions": [
-          {
-            "label": "Download",
-            "action": "downloadFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          }
+          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } }
         ]
       }
     },
@@ -365,49 +311,39 @@
         "description": "Move a file to a different folder."
       },
       "parameters": {
-        "fileId": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to move.",
+            "x-input-type": "text"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "The ID of the destination folder.",
+            "x-input-type": "text"
+          }
         },
-        "parentId": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
-        }
+        "required": ["fileId", "parentId"]
       },
       "responseSchema": {
         "type": "object",
-        "x-type": "file",
+        "x-forge-display": "file",
         "properties": {
-          "id": { "type": "string", "label": "ID" },
-          "name": { "type": "string", "label": "File Name" },
-          "mimeType": { "type": "string", "label": "Mime Type" },
-          "trashed": { "type": "boolean", "label": "Trashed" },
-          "parents": { "type": "array", "label": "Parents" },
-          "modifiedTime": { "type": "string", "label": "Last Modified" },
-          "size": { "type": "string", "label": "File Size" }
+          "id": { "type": "string", "x-label": "ID" },
+          "name": { "type": "string", "x-label": "File Name" },
+          "mimeType": { "type": "string", "x-label": "Mime Type" },
+          "trashed": { "type": "boolean", "x-label": "Trashed" },
+          "parents": { "type": "array", "x-label": "Parents" },
+          "modifiedTime": { "type": "string", "x-label": "Last Modified" },
+          "size": { "type": "string", "x-label": "File Size" }
         }
       },
       "ui": {
         "component": "card",
         "actions": [
-          {
-            "label": "Download",
-            "action": "downloadFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          },
-          {
-            "label": "Delete",
-            "action": "deleteFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          }
+          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
+          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } }
         ]
       }
     },
@@ -418,49 +354,39 @@
         "description": "Copy a file to a different folder."
       },
       "parameters": {
-        "fileId": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to copy.",
+            "x-input-type": "text"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "The ID of the destination folder.",
+            "x-input-type": "text"
+          }
         },
-        "parentId": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
-        }
+        "required": ["fileId", "parentId"]
       },
       "responseSchema": {
         "type": "object",
-        "x-type": "file",
+        "x-forge-display": "file",
         "properties": {
-          "id": { "type": "string", "label": "ID" },
-          "name": { "type": "string", "label": "File Name" },
-          "mimeType": { "type": "string", "label": "Mime Type" },
-          "trashed": { "type": "boolean", "label": "Trashed" },
-          "parents": { "type": "array", "label": "Parents" },
-          "modifiedTime": { "type": "string", "label": "Last Modified" },
-          "size": { "type": "string", "label": "File Size" }
+          "id": { "type": "string", "x-label": "ID" },
+          "name": { "type": "string", "x-label": "File Name" },
+          "mimeType": { "type": "string", "x-label": "Mime Type" },
+          "trashed": { "type": "boolean", "x-label": "Trashed" },
+          "parents": { "type": "array", "x-label": "Parents" },
+          "modifiedTime": { "type": "string", "x-label": "Last Modified" },
+          "size": { "type": "string", "x-label": "File Size" }
         }
       },
       "ui": {
         "component": "card",
         "actions": [
-          {
-            "label": "Download",
-            "action": "downloadFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          },
-          {
-            "label": "Delete",
-            "action": "deleteFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          }
+          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
+          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } }
         ]
       }
     },
@@ -468,42 +394,38 @@
     "createFolder": {
       "metadata": {
         "label": "Create folder",
-        "description": "Create a new folder."
+        "description": "Create a new folder in Google Drive."
       },
       "parameters": {
-        "name": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name for the new folder.",
+            "x-input-type": "text"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "The ID of the parent folder (optional).",
+            "x-input-type": "text"
+          }
         },
-        "parentId": {
-          "type": "string",
-          "inputType": "text",
-          "required": false,
-          "isBase64": false
-        }
+        "required": ["name"]
       },
       "responseSchema": {
         "type": "object",
-        "x-type": "folder",
+        "x-forge-display": "folder",
         "properties": {
-          "id": { "type": "string", "label": "ID" },
-          "name": { "type": "string", "label": "Folder Name" },
-          "mimeType": { "type": "string", "label": "Mime Type" },
-          "parents": { "type": "array", "label": "Parents" }
+          "id": { "type": "string", "x-label": "ID" },
+          "name": { "type": "string", "x-label": "Folder Name" },
+          "mimeType": { "type": "string", "x-label": "Mime Type" },
+          "parents": { "type": "array", "x-label": "Parents" }
         }
       },
       "ui": {
         "component": "card",
         "actions": [
-          {
-            "label": "Download",
-            "action": "downloadFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          }
+          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } }
         ]
       }
     },
@@ -511,26 +433,29 @@
     "deleteFolder": {
       "metadata": {
         "label": "Delete folder",
-        "description": "Delete a folder."
+        "description": "Move a folder to trash in Google Drive."
       },
       "parameters": {
-        "folderId": {
-          "type": "string",
-          "inputType": "text",
-          "required": true,
-          "isBase64": false
-        }
+        "type": "object",
+        "properties": {
+          "folderId": {
+            "type": "string",
+            "description": "The ID of the folder to delete.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["folderId"]
       },
       "responseSchema": {
         "type": "object",
-        "x-type": "folder",
+        "x-forge-display": "folder",
         "properties": {
-          "id": { "type": "string", "label": "ID" },
-          "name": { "type": "string", "label": "Folder Name" },
-          "mimeType": { "type": "string", "label": "Mime Type" },
-          "trashed": { "type": "boolean", "label": "Trashed" },
-          "parents": { "type": "array", "label": "Parents" },
-          "modifiedTime": { "type": "string", "label": "Last Modified" }
+          "id": { "type": "string", "x-label": "ID" },
+          "name": { "type": "string", "x-label": "Folder Name" },
+          "mimeType": { "type": "string", "x-label": "Mime Type" },
+          "trashed": { "type": "boolean", "x-label": "Trashed" },
+          "parents": { "type": "array", "x-label": "Parents" },
+          "modifiedTime": { "type": "string", "x-label": "Last Modified" }
         }
       },
       "ui": {
@@ -539,21 +464,10 @@
           {
             "label": "Restore",
             "action": "restoreFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            },
-            "visibleIf": {
-              "field": "trashed",
-              "equals": true
-            }
+            "parameters": { "fileId": "{{id}}" },
+            "visibleIf": { "field": "trashed", "equals": true }
           },
-          {
-            "label": "Download",
-            "action": "downloadFile",
-            "parameters": {
-              "fileId": "{{id}}"
-            }
-          }
+          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } }
         ]
       }
     }

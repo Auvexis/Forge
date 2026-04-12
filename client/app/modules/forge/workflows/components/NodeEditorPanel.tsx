@@ -473,11 +473,13 @@ export const NodeEditorPanel = ({
             </div>
 
             {(
-              Object.entries(selectedAction.parameters || {}) as [
+              Object.entries(selectedAction.parameters?.properties || {}) as [
                 string,
                 any,
               ][]
-            ).map(([paramKey, paramVal]) => (
+            ).map(([paramKey, paramVal]) => {
+              const isRequired = (selectedAction.parameters?.required ?? []).includes(paramKey);
+              return (
               <div
                 key={paramKey}
                 className="flex flex-col gap-3 p-4 rounded-xl bg-accent/5 border border-border/50"
@@ -485,9 +487,14 @@ export const NodeEditorPanel = ({
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                      {paramKey}
+                      {paramVal["x-label"] || paramKey}
                     </span>
-                    {paramVal.required && (
+                    {paramVal.description && (
+                      <span className="text-[9px] text-muted-foreground leading-none mt-0.5">
+                        {paramVal.description}
+                      </span>
+                    )}
+                    {isRequired && (
                       <span className="text-[9px] font-black uppercase text-destructive/80 leading-none mt-0.5">
                         Required field
                       </span>
@@ -509,7 +516,7 @@ export const NodeEditorPanel = ({
                       },
                     })
                   }
-                  placeholder={`Enter value for ${paramKey}`}
+                  placeholder={paramVal.description ? `e.g. ${paramVal.default ?? ''}` : `Enter value for ${paramKey}`}
                 />
 
                 {upstreamNodes.length > 0 && (
@@ -620,7 +627,7 @@ export const NodeEditorPanel = ({
                                   {upData.name || upNode.id}
                                 </span>
                                 <Check className="w-2.5 h-2.5 inline mx-1 opacity-40" />
-                                {propVal.label || propKey}
+                                {propVal["x-label"] || propVal.label || propKey}
                               </button>
                             ),
                           );
@@ -645,7 +652,8 @@ export const NodeEditorPanel = ({
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -10,6 +10,7 @@ import {
   AlertCircle,
   LogOut,
   Settings,
+  Lock,
 } from "lucide-react";
 
 export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
@@ -111,12 +112,20 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
           >
             {(
               Object.entries(pluginStatus.credential_schema) as [string, any][]
-            ).map(([key, field]) => (
+            ).map(([key, field]) => {
+              const isLocked = (pluginStatus.locked_fields ?? []).includes(key);
+              return (
               <div key={key} className="flex flex-col gap-1.5">
-                <label htmlFor={key} className="text-sm font-medium">
+                <label htmlFor={key} className="text-sm font-medium flex items-center gap-1.5">
                   {field.label}
-                  {field.required && (
+                  {field.required && !isLocked && (
                     <span className="text-red-500 ml-0.5">*</span>
+                  )}
+                  {isLocked && (
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full ml-auto">
+                      <Lock className="w-2.5 h-2.5" />
+                      ENV
+                    </span>
                   )}
                 </label>
                 {field.description && (
@@ -124,18 +133,26 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
                     {field.description}
                   </p>
                 )}
-                <Input
-                  id={key}
-                  type={field.inputType}
-                  required={field.required}
-                  placeholder={field.placeholder}
-                  value={formValues[key] || ""}
-                  onChange={(e) =>
-                    setFormValues({ ...formValues, [key]: e.target.value })
-                  }
-                />
+                {isLocked ? (
+                  <div className="flex items-center gap-2 px-3 h-10 rounded-md border border-border/50 bg-accent/10 text-muted-foreground text-sm">
+                    <Lock className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-xs">Configured via environment variable</span>
+                  </div>
+                ) : (
+                  <Input
+                    id={key}
+                    type={field.inputType}
+                    required={field.required}
+                    placeholder={field.placeholder}
+                    value={formValues[key] || ""}
+                    onChange={(e) =>
+                      setFormValues({ ...formValues, [key]: e.target.value })
+                    }
+                  />
+                )}
               </div>
-            ))}
+              );
+            })}
 
             <Button
               type="submit"

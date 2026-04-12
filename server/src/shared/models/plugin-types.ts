@@ -86,11 +86,71 @@ export interface PluginMetadata {
   repository: string;
 }
 
-export interface PluginMethodParam {
-  type: string;
-  inputType: string;
-  required: boolean;
-  isBase64?: boolean;
+// ──────────── JSON Schema Types (for method parameters & response) ────────────
+
+/**
+ * A single JSON Schema property definition.
+ * Standard fields follow JSON Schema Draft 7.
+ * Fields prefixed with `x-` are Forge-specific extensions.
+ */
+export interface JSONSchemaProperty {
+  // Core JSON Schema
+  type?: "string" | "number" | "integer" | "boolean" | "object" | "array" | "null";
+  description?: string;
+  default?: any;
+  enum?: any[];
+  format?: string;          // e.g. "binary", "base64", "uri", "date-time"
+  minimum?: number;
+  maximum?: number;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+
+  // For type: "object"
+  properties?: Record<string, JSONSchemaProperty>;
+  required?: string[];
+  additionalProperties?: boolean | JSONSchemaProperty;
+
+  // For type: "array"
+  items?: JSONSchemaProperty;
+  minItems?: number;
+  maxItems?: number;
+
+  // Forge-specific extensions
+  "x-input-type"?: "text" | "password" | "number" | "url" | "email" | "file" | "textarea";
+  "x-label"?: string;         // Human-readable label for UI display
+  "x-forge-display"?: "file" | "folder" | "media" | "text" | "generic";
+  "x-forge-icon"?: string;    // Optional lucide icon name hint
+}
+
+/**
+ * JSON Schema object used to declare a method's parameter set.
+ * Top-level type is always "object"; properties are the named params.
+ */
+export interface JSONSchemaObject {
+  type: "object";
+  properties?: Record<string, JSONSchemaProperty>;
+  required?: string[];  // List of required property keys
+  additionalProperties?: boolean;
+}
+
+/**
+ * JSON Schema for method response data.
+ * May be an object or array at the top level.
+ */
+export interface JSONSchemaResponse {
+  type: "object" | "array";
+  "x-forge-display"?: "file" | "folder" | "media" | "text" | "generic";
+
+  // For type: "object"
+  properties?: Record<string, JSONSchemaProperty>;
+  required?: string[];
+
+  // For type: "array"
+  items?: JSONSchemaProperty & {
+    type?: string;
+    properties?: Record<string, JSONSchemaProperty>;
+  };
 }
 
 export interface PluginMethodManifest {
@@ -98,8 +158,8 @@ export interface PluginMethodManifest {
     label: string;
     description: string;
   };
-  parameters: Record<string, PluginMethodParam>;
-  responseSchema: any;
+  parameters: JSONSchemaObject;
+  responseSchema: JSONSchemaResponse;
   ui: any;
 }
 

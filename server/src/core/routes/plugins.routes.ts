@@ -3,6 +3,7 @@ import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { PluginManager } from "../modules/plugins/manager.ts";
 import { PluginExecutor } from "../modules/plugins/executor.ts";
 import { CredentialStore } from "../modules/plugins/credential-store.ts";
+import { Vault } from "../modules/plugins/vault.ts";
 import { z } from "zod";
 import type {
   CredentialSchema,
@@ -90,6 +91,11 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
           .credentialSchema;
       }
 
+      // Identify ENV-locked fields
+      const lockedFields = credentialSchema
+        ? Array.from(Vault.getLockedFields(pluginId, credentialSchema))
+        : [];
+
       // Mask sensitive fields for frontend
       let maskedCredentials: Record<string, string> | null = null;
       if (credentials && credentialSchema) {
@@ -111,6 +117,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
           auth_type: plugin.auth.type,
           credential_schema: credentialSchema,
           credentials: maskedCredentials,
+          locked_fields: lockedFields,
         },
       });
     } catch (error: any) {
@@ -128,16 +135,34 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
    */
   fastify.post("/plugins/:pluginId/credentials", async (req, reply) => {
     const { pluginId } = req.params as { pluginId: string };
-    const credentials = req.body as Record<string, string>;
+    const submitted = req.body as Record<string, string>;
 
     try {
-      CredentialStore.saveCredentials(pluginId, credentials);
+      // Determine which fields, if any, are ENV-locked
+      const plugin = PluginManager.getPlugin(pluginId);
+      let lockedFields = new Set<string>();
+      if (plugin.auth.type !== "none") {
+        const schema = (plugin.auth as OAuth2Provider | ApiKeyProvider).credentialSchema;
+        lockedFields = Vault.getLockedFields(pluginId, schema);
+      }
+
+      // Filter out ENV-locked fields — they cannot be overridden via the UI
+      const filtered: Record<string, string> = {};
+      for (const [key, value] of Object.entries(submitted)) {
+        if (!lockedFields.has(key)) {
+          filtered[key] = value;
+        }
+      }
+
+      CredentialStore.saveCredentials(pluginId, filtered);
 
       return sendResponse(reply, {
         status_code: 200,
         message: "Credentials saved successfully",
         error: null,
-        data: null,
+        data: lockedFields.size > 0
+          ? { ignored_locked_fields: Array.from(lockedFields) }
+          : null,
       });
     } catch (error: any) {
       return sendResponse(reply, {
