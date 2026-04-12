@@ -2,7 +2,7 @@ import { useState } from "react";
 
 export enum GlobalViews {
   EXPLORER = "explorer",
-  WORKSPACES = "workspaces",
+  WORKFLOWS = "workflows",
 }
 
 export const useGlobalView = () => {

@@ -437,8 +437,12 @@ export function createGoogleYoutubeMethods() {
 
       try {
         let stream: Readable;
-        if (params.content instanceof Readable) {
-          stream = params.content;
+        if (
+          params.content &&
+          typeof (params.content as any).pipe === "function" &&
+          typeof (params.content as any).on === "function"
+        ) {
+          stream = params.content as unknown as Readable;
         } else if (params.content instanceof Buffer) {
           stream = Readable.from(params.content);
         } else if (typeof params.content === "string") {

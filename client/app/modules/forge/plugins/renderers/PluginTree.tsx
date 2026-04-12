@@ -6,13 +6,16 @@ import {
   Background,
   BackgroundVariant,
   ReactFlow,
-  ReactFlowProvider,
   addEdge,
 } from "@xyflow/react";
 import { nodeTypes } from "./PluginNode";
 import { FloatingEdge } from "./FloatingEdge";
 
-export const PluginTree = () => {
+interface Props {
+  searchQuery?: string;
+}
+
+export const PluginTree = ({ searchQuery = "" }: Props) => {
   const { plugins, getPlugins } = useForge();
 
   const [edges, setEdges] = useState<any[]>([]);
@@ -26,11 +29,25 @@ export const PluginTree = () => {
     [plugins],
   );
 
-  const layoutedNodes = useMemo(() => {
-    if (!nodes.length) return [];
-    return applyLayout(nodes, initialEdges);
-  }, [nodes, initialEdges]);
+  const filteredNodes = useMemo(() => {
+    if (!searchQuery) return nodes;
+    const query = searchQuery.toLowerCase();
+    return nodes.filter(n => 
+      n.data.label.toLowerCase().includes(query) ||
+      n.id.toLowerCase().includes(query)
+    );
+  }, [nodes, searchQuery]);
 
+  const filteredEdges = useMemo(() => {
+    const nodeIds = new Set(filteredNodes.map(n => n.id));
+    return initialEdges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
+  }, [filteredNodes, initialEdges]);
+
+  const layoutedNodes = useMemo(() => {
+    if (!filteredNodes.length) return [];
+    return applyLayout(filteredNodes, filteredEdges);
+  }, [filteredNodes, filteredEdges]);
+  
   const edgeTypes = { floating: FloatingEdge };
 
   useEffect(() => {
@@ -47,31 +64,30 @@ export const PluginTree = () => {
   }, []);
 
   return (
-    <div className="w-full h-full">
-      <ReactFlowProvider>
-        <ReactFlow
-          nodes={layoutedNodes}
-          edges={edges}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          fitView
-          defaultEdgeOptions={{
-            type: "floating",
-            style: { stroke: "var(--muted)", strokeWidth: 1 },
-          }}
-          proOptions={{
-            hideAttribution: true,
-          }}
-        />
+    <div className="w-full h-full relative group/graph">
+      <ReactFlow
+        nodes={layoutedNodes}
+        edges={filteredEdges}
+        onConnect={onConnect}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        fitView
+        defaultEdgeOptions={{
+          type: "floating",
+          style: { stroke: "var(--border)", strokeWidth: 1 },
+        }}
+        proOptions={{
+          hideAttribution: true,
+        }}
+      >
         <Background
-          variant={BackgroundVariant.Cross}
-          color="var(--sidebar-border)"
-          bgColor="var(--background)"
-          gap={10}
+          variant={BackgroundVariant.Dots}
+          color="var(--chart-5)"
+          bgColor="transparent"
+          gap={20}
           size={1}
         />
-      </ReactFlowProvider>
+      </ReactFlow>
     </div>
   );
 };

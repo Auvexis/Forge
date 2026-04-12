@@ -32,11 +32,21 @@ db.prepare(
     version TEXT NOT NULL,
     is_active INTEGER DEFAULT 1,
     is_public INTEGER DEFAULT 0,
+    is_draft INTEGER DEFAULT 0,
     created_at TEXT NOT NULL,
     definition JSON NOT NULL
   )
 `
 ).run();
+
+/**
+ * Migration: add is_draft column to existing workflows table
+ */
+try {
+  db.prepare(`ALTER TABLE workflows ADD COLUMN is_draft INTEGER DEFAULT 0`).run();
+} catch {
+  // Column already exists — safe to ignore
+}
 
 db.prepare(
   `

@@ -4,16 +4,22 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { handleApi } from "~/shared/helpers/apiHandler";
 import { API_BASE_URL } from "~/shared/constants";
-import { Loader2, CheckCircle2, AlertCircle, LogOut, Settings } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  LogOut,
+  Settings,
+} from "lucide-react";
 
 export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
-  const { 
-    activePluginStatus: pluginStatus, 
+  const {
+    activePluginStatus: pluginStatus,
     refreshActivePluginStatus: updateStatus,
     startOAuthFlow,
-    authLoading
+    authLoading,
   } = useForge();
-  
+
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
 
@@ -55,10 +61,9 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
 
   const handleDisconnect = async () => {
     try {
-      await handleApi(
-        `${API_BASE_URL}/plugins/${pluginId}/auth/disconnect`,
-        { method: "POST" },
-      );
+      await handleApi(`${API_BASE_URL}/plugins/${pluginId}/auth/disconnect`, {
+        method: "POST",
+      });
       await updateStatus(pluginId);
     } catch (err) {
       console.error(err);
@@ -68,9 +73,9 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
   if (!pluginStatus) return null;
 
   return (
-    <main className="w-full h-full flex flex-col mt-2 gap-3">
+    <main className="w-full h-full flex flex-col p-1! gap-3">
       <header className="flex flex-row items-center gap-3">
-        <div className="w-10 h-10 bg-accent/50 p-2.5 flex justify-center items-center rounded-xl">
+        <div className="w-10 h-10 border border-border p-2.5 flex justify-center items-center rounded-xl">
           <Settings className="w-full h-full text-accent-foreground/70" />
         </div>
         <div>
@@ -100,36 +105,44 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
 
       {pluginStatus.credential_schema && (
         <section>
-          <form onSubmit={handleSaveCredentials} className="flex flex-col gap-3">
-            {(Object.entries(pluginStatus.credential_schema) as [string, any][]).map(
-              ([key, field]) => (
-                <div key={key} className="flex flex-col gap-1.5">
-                  <label htmlFor={key} className="text-sm font-medium">
-                    {field.label}
-                    {field.required && (
-                      <span className="text-red-500 ml-0.5">*</span>
-                    )}
-                  </label>
-                  {field.description && (
-                    <p className="text-xs text-muted-foreground">
-                      {field.description}
-                    </p>
+          <form
+            onSubmit={handleSaveCredentials}
+            className="flex flex-col gap-3"
+          >
+            {(
+              Object.entries(pluginStatus.credential_schema) as [string, any][]
+            ).map(([key, field]) => (
+              <div key={key} className="flex flex-col gap-1.5">
+                <label htmlFor={key} className="text-sm font-medium">
+                  {field.label}
+                  {field.required && (
+                    <span className="text-red-500 ml-0.5">*</span>
                   )}
-                  <Input
-                    id={key}
-                    type={field.inputType}
-                    required={field.required}
-                    placeholder={field.placeholder}
-                    value={formValues[key] || ""}
-                    onChange={(e) =>
-                      setFormValues({ ...formValues, [key]: e.target.value })
-                    }
-                  />
-                </div>
-              ),
-            )}
+                </label>
+                {field.description && (
+                  <p className="text-xs text-muted-foreground">
+                    {field.description}
+                  </p>
+                )}
+                <Input
+                  id={key}
+                  type={field.inputType}
+                  required={field.required}
+                  placeholder={field.placeholder}
+                  value={formValues[key] || ""}
+                  onChange={(e) =>
+                    setFormValues({ ...formValues, [key]: e.target.value })
+                  }
+                />
+              </div>
+            ))}
 
-            <Button type="submit" disabled={saving} variant="outline" className="mt-2">
+            <Button
+              type="submit"
+              disabled={saving}
+              variant="outline"
+              className="mt-2"
+            >
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Credentials
             </Button>
@@ -140,14 +153,22 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
       {pluginStatus.auth_type === "oauth2" && (
         <section className="flex flex-col gap-2">
           {pluginStatus.status === "configured" && (
-            <Button onClick={handleConnect} disabled={authLoading} className="w-full">
+            <Button
+              onClick={handleConnect}
+              disabled={authLoading}
+              className="w-full"
+            >
               {authLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Connect with OAuth2
             </Button>
           )}
 
           {pluginStatus.status === "connected" && (
-            <Button onClick={handleDisconnect} variant="destructive" className="w-full">
+            <Button
+              onClick={handleDisconnect}
+              variant="destructive"
+              className="w-full"
+            >
               <LogOut className="w-4 h-4 mr-2" />
               Disconnect
             </Button>

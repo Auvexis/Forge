@@ -65,13 +65,28 @@ export const PluginExecutor = {
       for (const [key, paramConfig] of Object.entries(methodManifest.parameters) as [string, any][]) {
         const value = params[key];
 
-        if (value instanceof Buffer) {
+        // Magic extraction for "Download/File Objects"
+        if (
+          value &&
+          typeof value === "object" &&
+          !Buffer.isBuffer(value) &&
+          typeof (value as any).pipe !== "function"
+        ) {
+          if ("content" in (value as any)) {
+            const fileObj = value as any;
+            cookedParams[key] = fileObj.content;
+
+            // Auto-propagate mimeType if it's missing in original params
+            if (fileObj.mimeType && !params.mimeType) {
+              cookedParams.mimeType = fileObj.mimeType;
+            }
+          }
+        }
+
+        if (cookedParams[key] instanceof Buffer) {
           if (paramConfig.isBase64) {
             // Legacy support: convert Buffer to base64 if plugin expects it
-            cookedParams[key] = value.toString("base64");
-          } else {
-            // Modern support: pass Buffer directly
-            cookedParams[key] = value;
+            cookedParams[key] = cookedParams[key].toString("base64");
           }
         }
       }

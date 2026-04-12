@@ -1,18 +1,17 @@
 import { useForge, GlobalViews } from "~/providers/ForgeProvider";
 import { ExplorerView } from "~/components/views/ExplorerView";
-import { WorkspacesView } from "~/components/views/WorkspacesView";
 import { ForgeSidebar } from "./ForgeSidebar";
+import { WorkflowsView } from "../views/WorkspacesView";
 
 export const GlobalViewProvider = () => {
   const { view } = useForge();
 
   return (
     <div className="w-full h-full flex justify-center items-center">
-      <ForgeSidebar/>
-
+      <ForgeSidebar />
 
       {view === GlobalViews.EXPLORER && <ExplorerView />}
-      {view === GlobalViews.WORKSPACES && <WorkspacesView />}
+      {view === GlobalViews.WORKFLOWS && <WorkflowsView />}
     </div>
   );
 };

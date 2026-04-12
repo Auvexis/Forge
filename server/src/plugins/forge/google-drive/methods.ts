@@ -97,6 +97,12 @@ export function createGoogleDriveMethods() {
         let stream: Readable;
         if (params.content instanceof Buffer) {
           stream = Readable.from(params.content);
+        } else if (
+          params.content &&
+          typeof (params.content as any).pipe === "function" &&
+          typeof (params.content as any).on === "function"
+        ) {
+          stream = params.content as unknown as Readable;
         } else if (typeof params.content === "string") {
           // Fallback if still received as base64 string
           const cleanBase64 = params.content.replace(/\s/g, "");
@@ -154,7 +160,6 @@ export function createGoogleDriveMethods() {
             content: response.data,
           },
         };
-
       } catch (error) {
         throw error;
       }

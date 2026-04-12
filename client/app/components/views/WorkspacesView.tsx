@@ -1,11 +1,15 @@
-import { Layout } from "lucide-react";
+import { WorkflowsList } from "~/modules/forge/workflows/components/WorkflowsList";
 
-export const WorkspacesView = () => {
+export const WorkflowsView = () => {
   return (
-    <div className="flex flex-col items-center justify-center gap-4 text-muted-foreground animate-in fade-in duration-500">
-      <Layout size={64} strokeWidth={1} />
-      <h2 className="text-2xl font-light tracking-wider">Workspaces</h2>
-      <p className="text-sm opacity-50 italic">Project management and organization coming soon...</p>
+    <div
+      className={`
+        w-full h-full relative
+        flex flex-col justify-center items-center
+        animate-in fade-in duration-500
+      `}
+    >
+      <WorkflowsList />
     </div>
   );
 };

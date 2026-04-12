@@ -57,15 +57,15 @@ export interface CodeNode extends WorkflowNodeBase {
 
 export interface IfNode extends WorkflowNodeBase {
   type: "if";
-  condition: string; // JS expression evaluated against context, e.g. "steps.step1.output.status === 200"
+  condition: string;
 }
 
 // ──────────── Loop Node (iterate over collection) ────────────
 
 export interface LoopNode extends WorkflowNodeBase {
   type: "loop";
-  collection: string; // Template expression pointing to an array, e.g. "{{ steps.fetch.output.items }}"
-  maxIterations: number; // Safety limit to prevent infinite loops
+  collection: string;
+  maxIterations: number;
 }
 
 // ──────────── Sub-Workflow Node (recursive execution) ────────────
@@ -73,10 +73,10 @@ export interface LoopNode extends WorkflowNodeBase {
 export interface SubWorkflowNode extends WorkflowNodeBase {
   type: "subworkflow";
   workflowId: string;
-  inputMapping: Record<string, string>; // Maps parent context paths to child trigger payload keys
+  inputMapping: Record<string, string>;
 }
 
-// ──────────── Trigger Node (entry point — stored for UI metadata only) ────────────
+// ──────────── Trigger Node (entry point) ────────────
 
 export interface TriggerNode extends WorkflowNodeBase {
   type: "trigger";
@@ -98,9 +98,9 @@ export interface WorkflowEdge {
   id: string;
   source: string;
   target: string;
-  sourceHandle?: string; // "then" | "else" for IfNode, "loop-body" | "loop-done" for LoopNode
+  sourceHandle?: string;
   targetHandle?: string;
-  condition?: string; // Optional expression (legacy support)
+  condition?: string;
 }
 
 // ──────────── Workflow Variables ────────────

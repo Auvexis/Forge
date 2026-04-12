@@ -12,13 +12,12 @@ import type {
   Plugin,
   PluginStatusResponse,
 } from "../modules/forge/plugins/types/plugin";
-import type { OllamaConfig } from "../modules/forge/ollama/types/ollamaConfig";
 import { API_BASE_URL } from "../shared/constants";
 import { handleApi } from "../shared/helpers/apiHandler";
 
 export enum GlobalViews {
   EXPLORER = "explorer",
-  WORKSPACES = "workspaces",
+  WORKFLOWS = "workflows",
 }
 
 interface ForgeContextType {
@@ -41,11 +40,6 @@ interface ForgeContextType {
   // OAuth Flow
   authLoading: boolean;
   startOAuthFlow: (pluginId: string, authUrl: string) => Promise<void>;
-
-  // Ollama Config
-  ollamaConfig: OllamaConfig | null;
-  getOllamaConfig: () => Promise<void>;
-  updateOllamaConfig: (config: OllamaConfig, options?: any) => Promise<void>;
 }
 
 const ForgeContext = createContext<ForgeContextType | undefined>(undefined);
@@ -82,9 +76,6 @@ export const ForgeProvider = ({ children }: { children: ReactNode }) => {
   const [activePluginLoading, setActivePluginLoading] = useState(false);
 
   const [authLoading, setAuthLoading] = useState(false);
-
-  const [ollamaConfig, setOllamaConfig] = useState<OllamaConfig | null>(null);
-
 
   const getPlugins = useCallback(async () => {
     setPluginsLoading(true);
@@ -177,25 +168,6 @@ export const ForgeProvider = ({ children }: { children: ReactNode }) => {
     [refreshActivePluginStatus],
   );
 
-  const getOllamaConfig = useCallback(async () => {
-    const data = await handleApi<OllamaConfig | null>(
-      `${API_BASE_URL}/ollama/config`,
-    );
-    setOllamaConfig(data);
-  }, []);
-
-  const updateOllamaConfig = useCallback(
-    async (config: OllamaConfig, options?: any) => {
-      const data = await handleApi<OllamaConfig | null>(
-        `${API_BASE_URL}/ollama/config`,
-        { method: "POST" },
-        { ...config, options: { ...config.options, ...options } },
-      );
-      setOllamaConfig(data);
-    },
-    [],
-  );
-
   return (
     <ForgeContext.Provider
       value={{
@@ -211,9 +183,6 @@ export const ForgeProvider = ({ children }: { children: ReactNode }) => {
         activePluginLoading,
         authLoading,
         startOAuthFlow,
-        ollamaConfig,
-        getOllamaConfig,
-        updateOllamaConfig,
       }}
     >
       {children}

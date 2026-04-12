@@ -20,7 +20,7 @@ const fastify = Fastify({
         ignore: "pid,hostname",
       },
     },
-    enabled: false,
+    enabled: true,
   },
 });
 
