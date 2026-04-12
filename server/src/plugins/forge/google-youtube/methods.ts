@@ -480,6 +480,7 @@ export function createGoogleYoutubeMethods() {
           {
             // Use resumable upload for better performance and reliability with videos
             // This is critical when piping streams from other services like Google Drive
+            onUploadProgress: () => {},
           },
         );
 
