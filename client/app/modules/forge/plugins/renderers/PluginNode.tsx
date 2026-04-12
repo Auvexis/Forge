@@ -47,7 +47,7 @@ export const PluginNode = ({ data }: any) => {
 
           {/* Label Tooltip (Optional, but helps UX) */}
           <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 -translate-y-2 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
-            <div className="px-2 py-1 flex justify-center items-center bg-sidebar border border-sidebar-accent/50 rounded-full whitespace-nowrap">
+            <div className="px-1.5 py-1 flex justify-center items-center bg-sidebar border border-sidebar-accent/50 rounded-full whitespace-nowrap">
               <span className="text-[0.45rem] font-semibold text-foreground">
                 {data.label}
               </span>

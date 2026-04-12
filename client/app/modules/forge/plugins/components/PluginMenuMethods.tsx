@@ -19,8 +19,11 @@ import { Input } from "~/components/ui/input";
 import { Separator } from "~/components/ui/separator";
 import { TableRenderer } from "../renderers/TableRenderer";
 import { useExecutePlugin } from "../hooks/useExecutePlugin";
-import { fileToBase64 } from "../../../../shared/utils/fileToBase64";
 import { CardRenderer } from "../renderers/CardRenderer";
+import {
+  getPropertyLabel,
+  getSchemaProperties,
+} from "../utils/getSchemaProperties";
 
 export const PluginMenuMethods = ({ pluginId }: { pluginId: string }) => {
   const { activePlugin: plugin } = useForge();
@@ -109,75 +112,87 @@ export const PluginMenuMethods = ({ pluginId }: { pluginId: string }) => {
                       }
                     }}
                   >
-                    {(
-                      Object.entries(methodValue.parameters) as [string, any][]
-                    ).map(([paramKey, paramValue]) => (
-                      <div
-                        key={paramKey}
-                        className="flex flex-col items-start gap-2"
-                      >
-                        <span className="font-medium flex gap-2">
-                          {paramKey}
-                          <Separator orientation="vertical" />
-                          <span className="text-muted-foreground text-xs">
-                            {paramValue.type}
-                          </span>
-                          {paramValue.required && (
-                            <span className="text-red-500">*</span>
-                          )}
-                        </span>
+                    {(getSchemaProperties(methodValue.parameters) || []).map(
+                      ([paramKey, paramValue]) => {
+                        const isRequired =
+                          methodValue.parameters.required?.includes(paramKey);
+                        const label = getPropertyLabel(paramKey, paramValue);
+                        const inputType =
+                          paramValue["x-input-type"] ||
+                          (paramValue.type === "integer" ||
+                          paramValue.type === "number"
+                            ? "number"
+                            : "text");
 
-                        {paramValue.inputType !== "file" ? (
-                          <Input
-                            name={paramKey}
-                            type={paramValue.inputType}
-                            required={paramValue.required}
-                            value={formValues[methodKey]?.[paramKey] || ""}
-                            onChange={(e) =>
-                              updateFormValue(
-                                methodKey,
-                                paramKey,
-                                e.target.value,
-                              )
-                            }
-                          />
-                        ) : (
-                          <Input
-                            name={paramKey}
-                            type="file"
-                            required={paramValue.required}
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
+                        return (
+                          <div
+                            key={paramKey}
+                            className="flex flex-col items-start gap-2"
+                          >
+                            <span className="font-medium flex gap-2">
+                              {label}
+                              <Separator orientation="vertical" />
+                              <span className="text-muted-foreground text-xs font-normal lowercase">
+                                {paramValue.type}
+                              </span>
+                              {isRequired && (
+                                <span className="text-red-500">*</span>
+                              )}
+                            </span>
 
-                              // Auto-populate 'name' and 'mimeType' helpers
-                              setFormValues((prev) => {
-                                const currentParams = prev[methodKey] || {};
-                                const nextParams = {
-                                  ...currentParams,
-                                  [paramKey]: file,
-                                };
-
-                                if (
-                                  methodValue.parameters["name"] &&
-                                  !currentParams["name"]
-                                ) {
-                                  nextParams["name"] = file.name;
+                            {inputType !== "file" ? (
+                              <Input
+                                name={paramKey}
+                                type={inputType}
+                                placeholder={paramValue.description}
+                                required={isRequired}
+                                value={formValues[methodKey]?.[paramKey] || ""}
+                                onChange={(e) =>
+                                  updateFormValue(
+                                    methodKey,
+                                    paramKey,
+                                    e.target.value,
+                                  )
                                 }
-                                if (
-                                  methodValue.parameters["mimeType"] &&
-                                  !currentParams["mimeType"]
-                                ) {
-                                  nextParams["mimeType"] = file.type;
-                                }
+                              />
+                            ) : (
+                              <Input
+                                name={paramKey}
+                                type="file"
+                                required={isRequired}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
 
-                                return { ...prev, [methodKey]: nextParams };
-                              });
-                            }}
-                          />
-                        )}
-                      </div>
-                    ))}
+                                  // Auto-populate 'name' and 'mimeType' helpers
+                                  setFormValues((prev) => {
+                                    const currentParams = prev[methodKey] || {};
+                                    const nextParams = {
+                                      ...currentParams,
+                                      [paramKey]: file,
+                                    };
+
+                                    // Check if 'name' and 'mimeType' properties exist in schema
+                                    const props =
+                                      methodValue.parameters.properties || {};
+
+                                    if (props["name"] && !currentParams["name"])
+                                      nextParams["name"] = file.name;
+                                    if (
+                                      props["mimeType"] &&
+                                      !currentParams["mimeType"]
+                                    )
+                                      nextParams["mimeType"] = file.type;
+
+                                    return { ...prev, [methodKey]: nextParams };
+                                  });
+                                }}
+                              />
+                            )}
+                          </div>
+                        );
+                      },
+                    )}
 
                     <Button
                       type="submit"
