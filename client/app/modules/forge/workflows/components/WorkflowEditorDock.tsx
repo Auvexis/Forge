@@ -101,7 +101,7 @@ export const WorkflowEditorDock = ({
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
-              a.download = `${workflowName.replace(/\s+/g, '_').toLowerCase()}.json`;
+              a.download = `${workflowName.replace(/\s+/g, '_').toLowerCase()}_v${workflow.metadata?.version ?? '1.0'}.json`;
               a.click();
               URL.revokeObjectURL(url);
             }}
@@ -127,7 +127,7 @@ export const WorkflowEditorDock = ({
             disabled={isSaving || !isDirty}
             className={`h-9 px-5 rounded-full font-black uppercase text-[9px] tracking-[0.15em] gap-2 transition-all duration-300 ${
               isDirty 
-              ? 'bg-violet-600 text-white hover:bg-violet-500 shadow-[0_5px_20px_rgba(139,92,246,0.15)] active:scale-95' 
+              ? 'bg-violet-600 text-white hover:bg-violet-500 shadow-[0_5px_20px_rgba(139,92,246,0.15)]' 
               : 'bg-sidebar-accent/10 text-muted-foreground opacity-50'
             }`}
           >

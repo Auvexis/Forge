@@ -258,7 +258,7 @@ export const WorkflowsList = () => {
       />
 
       <main className={`mx-auto px-8 pt-36 pb-10 overflow-y-auto h-full custom-scrollbar transition-all duration-500 ${viewMode === 'list' ? 'max-w-4xl' : 'max-w-6xl'}`}>
-        <div className={`grid gap-6 pb-20 transition-all duration-500 ${viewMode === 'list' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+        <div className={`grid gap-6 pb-20 fade-in animate-in slide-in-from-bottom-4 duration-1000 ${viewMode === 'list' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
           {filteredItems.map((workflow) => (
             <WorkflowModuleCard
               key={workflow.metadata.id}

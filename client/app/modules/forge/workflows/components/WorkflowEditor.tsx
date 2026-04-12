@@ -36,6 +36,7 @@ import { WorkflowEditorDock } from "./WorkflowEditorDock";
 import { WorkflowSettingsPanel } from "./WorkflowSettingsPanel";
 import { RunWorkflowPanel } from "./RunWorkflowPanel";
 import { WorkflowLogsPanel } from "./WorkflowLogsPanel";
+import { toast } from "~/shared/helpers/toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -309,10 +310,12 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
     try {
       const result = await executeWorkflow(workflow.metadata.id, inputParams);
       console.log("Workflow Execution Result:", result);
-      alert("Workflow executed successfully!");
+      toast.success("Execution Complete", {
+        description: `Workflow "${metadata.name}" ran successfully.`,
+      });
     } catch (e: any) {
       console.error("Workflow Execution Failed Error:", e);
-      alert(`Execution Failed: ${e.message || "Unknown error"}`);
+      // toast.error is already fired by handleApi — no duplicate needed
     }
   };
 
@@ -322,7 +325,24 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
   };
 
   // ──────────── Save ────────────
+
+  /** Increments the last numeric segment of a semver-like version string.
+   *  "1.0.0" → "1.0.1" | "1.0" → "1.0.1" | "2" → "2.0.1"
+   */
+  const bumpPatchVersion = (version: string): string => {
+    const parts = version.split(".");
+    // Ensure at least 3 segments
+    while (parts.length < 3) parts.push("0");
+    const patch = parseInt(parts[2] ?? "0", 10);
+    parts[2] = String(isNaN(patch) ? 1 : patch + 1);
+    return parts.join(".");
+  };
+
   const handleSave = async (forceClose = true) => {
+    // 0. Bump patch version before saving
+    const nextVersion = bumpPatchVersion(metadata.version ?? "1.0.0");
+    const bumpedMetadata = { ...metadata, version: nextVersion };
+
     // 1. Trigger — save position into the trigger data
     const triggerReactNode = nodes.find((n) => n.id === "trigger");
     const updatedTrigger = triggerReactNode
@@ -368,9 +388,9 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
       condition: edge.label as string | undefined,
     }));
 
-    // 4. Build full payload — include variables
+    // 4. Build full payload with bumped version
     const updatedWorkflow: WorkflowItem = {
-      metadata: metadata,
+      metadata: bumpedMetadata,
       trigger: updatedTrigger,
       nodes: actionNodeMappings,
       edges: newEdges,
@@ -384,13 +404,17 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
     await updateWorkflow(updatedWorkflow);
 
     if (idChanged) {
-      // If ID changed, we need to delete the old version from DB
-      // since the repository use INSERT OR REPLACE which would leave the old one behind
       await deleteWorkflow(oldId);
       currentWorkflowIdRef.current = newId;
     }
 
+    // Sync bumped version back into local state so the dock shows it immediately
+    setMetadata(bumpedMetadata);
+
     setIsDirty(false);
+    toast.success("Workflow saved", {
+      description: `"${bumpedMetadata.name}" saved as v${nextVersion}.`,
+    });
     if (forceClose) onClose();
   };
 
