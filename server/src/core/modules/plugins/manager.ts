@@ -2,7 +2,7 @@ import type { ForgePlugin } from "../../../shared/models/plugin-types.ts";
 
 const plugins = new Map<string, ForgePlugin>();
 
-const SERVER_PORT = 8032;
+const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
 
 export const PluginManager = {
   getPlugins: (): ForgePlugin[] => {

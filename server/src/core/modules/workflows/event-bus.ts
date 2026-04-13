@@ -11,7 +11,8 @@ export interface WorkflowEvent {
     | "node:failed"
     | "workflow:start"
     | "workflow:success"
-    | "workflow:failed";
+    | "workflow:failed"
+    | "workflow:cancelled";
   nodeId?: string;
   timestamp: number;
   /** Sanitized output data for node:success events */

@@ -6,6 +6,7 @@ import { WorkflowRepository } from "../modules/workflows/repository.ts";
 import { WorkflowEngine, sanitizeContextForLogging } from "../modules/workflows/executor.ts";
 import { workflowEventBus } from "../modules/workflows/event-bus.ts";
 import { InternalEventBus, type InternalEvent } from "../modules/events/internal-event-bus.ts";
+import { CancellationRegistry } from "../modules/workflows/cancellation-registry.ts";
 import { Scheduler } from "../modules/scheduler/scheduler.ts";
 import { PluginManager } from "../modules/plugins/manager.ts";
 
@@ -231,7 +232,8 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
           if (
             event.type === "workflow:success" ||
-            event.type === "workflow:failed"
+            event.type === "workflow:failed"  ||
+            event.type === "workflow:cancelled"
           ) {
             // Small delay to ensure client receives the final event
             setTimeout(() => reply.raw.end(), 500);
@@ -248,6 +250,33 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       req.raw.on("close", () => {
         unsubscribe();
         clearInterval(heartbeat);
+      });
+    },
+  );
+
+  // ──────────── Cancel workflow execution ────────────
+
+  fastify.post(
+    "/workflows/executions/:executionId/cancel",
+    async (req, reply) => {
+      const { executionId } = req.params as { executionId: string };
+
+      if (!executionId || typeof executionId !== "string") {
+        return sendResponse(reply, {
+          status_code: 400,
+          message: "Invalid executionId",
+          error: "Parameter required",
+          data: null,
+        });
+      }
+
+      CancellationRegistry.cancel(executionId);
+
+      return sendResponse(reply, {
+        status_code: 202,
+        message: "Cancellation requested",
+        error: null,
+        data: { executionId },
       });
     },
   );

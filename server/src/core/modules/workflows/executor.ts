@@ -4,6 +4,7 @@ import { WorkflowRepository } from "./repository.ts";
 import { runCode } from "./code-runner.ts";
 import { workflowEventBus } from "./event-bus.ts";
 import { InternalEventBus } from "../events/internal-event-bus.ts";
+import { CancellationRegistry } from "./cancellation-registry.ts";
 import type {
   WorkflowItem,
   WorkflowNode,
@@ -424,6 +425,29 @@ export const WorkflowEngine = {
         const nodeId = queue.shift()!;
 
         if (executed.has(nodeId)) continue;
+
+        // ─── Cancellation checkpoint ───
+        if (CancellationRegistry.consume(execId)) {
+          status = "CANCELLED";
+          workflowEventBus.emitWorkflowEvent({
+            executionId: execId,
+            workflowId: workflow.metadata.id,
+            type: "workflow:cancelled",
+            timestamp: Date.now(),
+          });
+          // Save final log and return — skip remaining nodes cleanly
+          WorkflowRepository.saveExecutionLog(
+            execId,
+            workflow.metadata.id,
+            status,
+            startTime,
+            Date.now(),
+            sanitizeContextForLogging(context),
+          );
+          return { executionId: execId, status, context };
+        }
+        // ───────────────────────────────
+
         executed.add(nodeId);
 
         const node = workflow.nodes[nodeId];
@@ -471,21 +495,29 @@ export const WorkflowEngine = {
                 output: codeResult.output,
                 logs: codeResult.logs,
               };
+              // Emit sanitized code output (already structured with output+logs)
+              workflowEventBus.emitWorkflowEvent({
+                executionId: execId,
+                workflowId: workflow.metadata.id,
+                type: "node:success",
+                nodeId,
+                timestamp: Date.now(),
+                data: sanitizeContextForLogging(codeResult.output),
+              });
             } else {
               context.steps[nodeId] = { status: "SUCCESS", output: result };
+              // Emit sanitized raw result — this is what NodeOutputPanel shows
+              workflowEventBus.emitWorkflowEvent({
+                executionId: execId,
+                workflowId: workflow.metadata.id,
+                type: "node:success",
+                nodeId,
+                timestamp: Date.now(),
+                data: sanitizeContextForLogging(result),
+              });
             }
 
             success = true;
-
-            // Emit node:success with sanitized output
-            workflowEventBus.emitWorkflowEvent({
-              executionId: execId,
-              workflowId: workflow.metadata.id,
-              type: "node:success",
-              nodeId,
-              timestamp: Date.now(),
-              data: sanitizeContextForLogging(context.steps[nodeId]?.output),
-            });
           } catch (err: any) {
             attempts++;
             lastError = err;

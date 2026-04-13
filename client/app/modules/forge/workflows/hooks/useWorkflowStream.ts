@@ -15,20 +15,28 @@ export interface NodeStatusInfo {
 
 export type NodeStatusMap = Record<string, NodeStatusInfo>;
 
+export type WorkflowExecutionStatus =
+  | "idle"
+  | "running"
+  | "success"
+  | "failed"
+  | "cancelled";
+
 // ──────────── Hook ────────────
 
 export function useWorkflowStream() {
   const [nodeStatuses, setNodeStatuses] = useState<NodeStatusMap>({});
-  const [workflowStatus, setWorkflowStatus] = useState<
-    "idle" | "running" | "success" | "failed"
-  >("idle");
+  const [workflowStatus, setWorkflowStatus] =
+    useState<WorkflowExecutionStatus>("idle");
   const [isStreaming, setIsStreaming] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const activeExecutionIdRef = useRef<string | null>(null);
 
   const startStream = useCallback((executionId: string) => {
     // Close any existing connection first
     eventSourceRef.current?.close();
 
+    activeExecutionIdRef.current = executionId;
     setIsStreaming(true);
     setWorkflowStatus("running");
     setNodeStatuses({});
@@ -83,12 +91,31 @@ export function useWorkflowStream() {
         case "workflow:success":
           setWorkflowStatus("success");
           setIsStreaming(false);
+          activeExecutionIdRef.current = null;
           es.close();
           break;
 
         case "workflow:failed":
           setWorkflowStatus("failed");
           setIsStreaming(false);
+          activeExecutionIdRef.current = null;
+          es.close();
+          break;
+
+        case "workflow:cancelled":
+          setWorkflowStatus("cancelled");
+          setIsStreaming(false);
+          activeExecutionIdRef.current = null;
+          // Mark all still-running nodes as idle (they were skipped)
+          setNodeStatuses((prev) => {
+            const next = { ...prev };
+            for (const [id, info] of Object.entries(next)) {
+              if (info.status === "running") {
+                next[id] = { ...info, status: "idle" };
+              }
+            }
+            return next;
+          });
           es.close();
           break;
       }
@@ -100,14 +127,33 @@ export function useWorkflowStream() {
     };
   }, []);
 
+  /**
+   * Send a cancellation request to the backend.
+   * The executor will stop at its next node checkpoint.
+   */
+  const cancelStream = useCallback(async () => {
+    const id = activeExecutionIdRef.current;
+    if (!id) return;
+
+    try {
+      await fetch(`${API_BASE_URL}/workflows/executions/${id}/cancel`, {
+        method: "POST",
+      });
+    } catch {
+      // Best-effort — the SSE event will confirm cancellation
+    }
+  }, []);
+
   const stopStream = useCallback(() => {
     eventSourceRef.current?.close();
     setIsStreaming(false);
+    activeExecutionIdRef.current = null;
   }, []);
 
   const resetStream = useCallback(() => {
     eventSourceRef.current?.close();
     setIsStreaming(false);
+    activeExecutionIdRef.current = null;
     setWorkflowStatus("idle");
     setNodeStatuses({});
   }, []);
@@ -118,6 +164,7 @@ export function useWorkflowStream() {
     isStreaming,
     startStream,
     stopStream,
+    cancelStream,
     resetStream,
   };
 }

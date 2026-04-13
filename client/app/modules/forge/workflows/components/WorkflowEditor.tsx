@@ -71,7 +71,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
   const { updateWorkflow, loading: saving } = useUpdateWorkflow();
   const { deleteWorkflow } = useDeleteWorkflow();
   const { executeWorkflow, loading: executing } = useExecuteWorkflow();
-  const { nodeStatuses, isStreaming, startStream, resetStream } = useWorkflowStream();
+  const { nodeStatuses, isStreaming, startStream, cancelStream, resetStream } = useWorkflowStream();
 
   const currentWorkflowIdRef = useRef(workflow.metadata.id);
 
@@ -498,6 +498,9 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
                 setIsLogsOpen(false);
                 handleRunRequest();
               }}
+              onStop={() => {
+                cancelStream();
+              }}
               onAddNode={() => {
                 setSelectedNodeId(null);
                 setIsEditingSettings(false);
@@ -523,6 +526,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
               onClose={handleRequestClose}
               isSaving={saving}
               isExecuting={executing}
+              isStreaming={isStreaming}
               isLogsOpen={isLogsOpen}
               isDirty={isDirty}
             />
