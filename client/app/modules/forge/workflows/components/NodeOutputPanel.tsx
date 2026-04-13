@@ -38,10 +38,10 @@ export function NodeOutputPanel({ nodeId, statusInfo }: Props) {
 
   return (
     <div
-      className={`rounded-xl border overflow-hidden mb-4 ${
+      className={`rounded-xl border overflow-hidden mb-4 flex-shrink-0 ${
         status === "success"
-          ? "border-emerald-500/30 bg-emerald-500/5"
-          : "border-red-500/30 bg-red-500/5"
+          ? "border-emerald-500/30 bg-emerald-500/5 shadow-[0_4px_12px_rgba(16,185,129,0.05)]"
+          : "border-red-500/30 bg-red-500/5 shadow-[0_4px_12px_rgba(239,68,68,0.05)]"
       }`}
     >
       {/* Header */}
@@ -100,13 +100,13 @@ export function NodeOutputPanel({ nodeId, statusInfo }: Props) {
 
       {/* Body */}
       {isExpanded && (
-        <div className="p-3 max-h-[300px] overflow-y-auto custom-scrollbar">
+        <div className="p-3 max-h-[350px] min-h-[40px] overflow-y-auto custom-scrollbar bg-black/20">
           {status === "failed" ? (
             <p className="text-xs text-red-400 font-mono whitespace-pre-wrap break-words">
               {error ?? "Unknown error"}
             </p>
           ) : (
-            <pre className="text-[10px] font-mono text-emerald-300/90 whitespace-pre-wrap break-words leading-relaxed">
+            <pre className="text-[11px] font-mono text-emerald-400 whitespace-pre-wrap break-all leading-relaxed antialiased">
               {formattedOutput}
             </pre>
           )}

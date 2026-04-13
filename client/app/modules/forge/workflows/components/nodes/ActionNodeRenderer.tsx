@@ -3,7 +3,7 @@ import { type NodeProps, type Node } from "@xyflow/react";
 import { useForge } from "~/providers/ForgeProvider";
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2, Check, X } from "lucide-react";
 import type {
   WorkflowNode,
   WorkflowNodeType,
@@ -74,8 +74,10 @@ const NODE_STYLE: Record<
 // ──────────── Execution status ring classes ────────────
 const STATUS_RING: Record<ExecutionStatus, string> = {
   idle: "",
-  running: "ring-2 ring-blue-500/60 shadow-[0_0_16px_2px_rgba(59,130,246,0.25)] animate-pulse",
-  success: "ring-2 ring-emerald-500/60 shadow-[0_0_12px_2px_rgba(16,185,129,0.2)]",
+  running:
+    "ring-2 ring-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.3)] scale-[1.02]",
+  success:
+    "ring-2 ring-emerald-500/60 shadow-[0_0_12px_2px_rgba(16,185,129,0.2)]",
   failed: "ring-2 ring-red-500/60 shadow-[0_0_12px_2px_rgba(239,68,68,0.2)]",
 };
 
@@ -152,14 +154,6 @@ const IfBody = ({ data }: { data: IfNode }) => (
       <code className="text-[10px] font-mono bg-violet-500/5 text-violet-400 px-2 py-1 rounded border border-violet-500/10 truncate block">
         {data.condition || "—"}
       </code>
-    </div>
-    <div className="mt-1.5 flex gap-2">
-      <span className="text-[9px] px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 rounded border border-emerald-500/20 font-bold">
-        THEN →
-      </span>
-      <span className="text-[9px] px-1.5 py-0.5 bg-red-500/10 text-red-500 rounded border border-red-500/20 font-bold">
-        ELSE →
-      </span>
     </div>
   </>
 );
@@ -244,6 +238,44 @@ const EventBody = ({ data }: { data: EventNode }) => (
   </>
 );
 
+const StatusIndicator = ({ status }: { status: ExecutionStatus }) => {
+  if (status === "idle") return null;
+
+  return (
+    <div
+      className={`flex items-center justify-center w-5 h-5 rounded-full shrink-0 ml-auto border-2 border-background shadow-sm ${
+        status === "running"
+          ? "bg-orange-500"
+          : status === "success"
+            ? "bg-emerald-500"
+            : "bg-red-500"
+      }`}
+    >
+      {status === "running" ? (
+        <Loader2 className="w-3 h-3 text-white animate-spin" />
+      ) : status === "success" ? (
+        <Check className="w-3 h-3 text-white stroke-[3]" />
+      ) : (
+        <X className="w-3 h-3 text-white stroke-[3]" />
+      )}
+    </div>
+  );
+};
+
+const RunningOverlay = () => (
+  <div className="absolute inset-0 z-30 flex items-center justify-center bg-card/60 rounded-lg animate-in fade-in duration-300">
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative">
+        <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full animate-pulse" />
+        <Loader2 className="w-8 h-8 text-orange-500 animate-spin relative z-10" />
+      </div>
+      <span className="text-[10px] font-black uppercase tracking-widest text-orange-500 drop-shadow-md">
+        Running...
+      </span>
+    </div>
+  </div>
+);
+
 // ──────────── Main Renderer ────────────
 
 export const ActionNodeRenderer = ({ id, data }: NodeProps<ActionNodeType>) => {
@@ -251,7 +283,8 @@ export const ActionNodeRenderer = ({ id, data }: NodeProps<ActionNodeType>) => {
   const { deleteElements } = useReactFlow();
 
   // Execution status injected by WorkflowEditor via nodeStatuses
-  const executionStatus = ((data as any)._executionStatus ?? "idle") as ExecutionStatus;
+  const executionStatus = ((data as any)._executionStatus ??
+    "idle") as ExecutionStatus;
 
   // Determine node type with robust fallbacks for older workflow versions
   const dataAsAny = data as any;
@@ -330,10 +363,14 @@ export const ActionNodeRenderer = ({ id, data }: NodeProps<ActionNodeType>) => {
         </div>
       </div>
 
-      <Card className={`w-[300px] shadow-sm border-border bg-card transition-all duration-300 ${STATUS_RING[executionStatus]}`}>
-        <CardContent className="flex flex-col p-0 overflow-hidden rounded-lg">
+      <Card
+        className={`w-[300px] shadow-sm border-border bg-card transition-all duration-300 ${STATUS_RING[executionStatus]}`}
+      >
+        <CardContent className="flex flex-col p-0 overflow-hidden rounded-lg relative">
           {/* Header */}
-          <div className="flex items-center gap-3 p-3 bg-accent/30 border-b border-border/50">
+          <div
+            className={`flex items-center gap-3 p-3 bg-accent/30 border-b border-border/50 transition-all ${executionStatus === "running" ? "blur-[1px] opacity-50" : ""}`}
+          >
             <div
               className={`flex items-center justify-center w-10 h-10 p-2 rounded-md border border-border shrink-0 ${style.bg}`}
             >
@@ -357,10 +394,8 @@ export const ActionNodeRenderer = ({ id, data }: NodeProps<ActionNodeType>) => {
                     {style.badge}
                   </span>
                 )}
-                {/* Execution status dot */}
-                {executionStatus !== "idle" && (
-                  <div className={`w-2 h-2 rounded-full shrink-0 ml-auto ${STATUS_DOT[executionStatus]}`} />
-                )}
+                {/* Execution status indicator */}
+                <StatusIndicator status={executionStatus} />
               </div>
               <span className="text-xs truncate text-muted-foreground">
                 {subtitle}
@@ -368,8 +403,13 @@ export const ActionNodeRenderer = ({ id, data }: NodeProps<ActionNodeType>) => {
             </div>
           </div>
 
+          {/* Running Overlay */}
+          {executionStatus === "running" && <RunningOverlay />}
+
           {/* Body — per-type content */}
-          <div className="flex flex-col p-3 gap-1 bg-background">
+          <div
+            className={`flex flex-col p-3 gap-1 bg-background transition-all ${executionStatus === "running" ? "blur-[1px] opacity-50" : ""}`}
+          >
             {nodeType === "plugin" && pluginData && (
               <PluginBody
                 data={pluginData}
