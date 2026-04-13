@@ -39,7 +39,7 @@ export const PluginMenu = ({
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent 
         style={{ backfaceVisibility: "hidden" }}
-        className="max-w-[55vw] w-[55vw] min-h-[80vh] h-[80vh] bg-sidebar/65 backdrop-blur-2xl p-0! rounded-[2.5rem] border border-sidebar-accent/30 overflow-hidden flex flex-col animate-in zoom-in-95 duration-500 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] transform-gpu will-change-transform antialiased"
+        className="max-w-[55vw]! w-[55vw]! min-h-[80vh]! h-[80vh]! bg-sidebar/65 backdrop-blur-2xl p-0! rounded-[2.5rem]! border border-sidebar-accent/30 overflow-hidden flex flex-col animate-in zoom-in-95 duration-500 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] transform-gpu will-change-transform antialiased"
       >
         {loading ? (
           <div className="flex h-80 flex-col items-center justify-center gap-6">

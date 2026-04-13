@@ -85,14 +85,8 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
   useEffect(() => {
     const savedTriggerUI = (workflow.trigger as any)?.ui;
     const triggerPos = {
-      x:
-        savedTriggerUI?.positionX ??
-        save.triggerPositionRef.current?.x ??
-        50,
-      y:
-        savedTriggerUI?.positionY ??
-        save.triggerPositionRef.current?.y ??
-        200,
+      x: savedTriggerUI?.positionX ?? save.triggerPositionRef.current?.x ?? 50,
+      y: savedTriggerUI?.positionY ?? save.triggerPositionRef.current?.y ?? 200,
     };
 
     const triggerNode: Node = {
@@ -241,10 +235,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
     async (inputParams: Record<string, any>) => {
       try {
         resetNodeStatuses();
-        const result = await executeWorkflow(
-          workflow.metadata.id,
-          inputParams,
-        );
+        const result = await executeWorkflow(workflow.metadata.id, inputParams);
         const executionId = (result as any)?.executionId;
         if (executionId) {
           startStream(executionId);
@@ -256,7 +247,13 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
         console.error("Workflow Execution Failed Error:", e);
       }
     },
-    [resetNodeStatuses, executeWorkflow, workflow.metadata.id, startStream, save.metadata.name],
+    [
+      resetNodeStatuses,
+      executeWorkflow,
+      workflow.metadata.id,
+      startStream,
+      save.metadata.name,
+    ],
   );
 
   const handleRequestClose = useCallback(async () => {
@@ -285,7 +282,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
       <Dialog open={true} onOpenChange={handleRequestClose}>
         <DialogContent
           style={{ backfaceVisibility: "hidden" }}
-          className="flex flex-col w-[94vw] h-[94vh] bg-background border border-border max-w-[94vw] overflow-hidden p-0 rounded-[2.5rem] animate-in zoom-in-95 duration-500 transform-gpu will-change-transform antialiased"
+          className="flex flex-col w-[94vw]! h-[94vh]! max-w-[94vw]! bg-background border border-border overflow-hidden p-0! rounded-[2.5rem]! animate-in zoom-in-95 duration-500 transform-gpu will-change-transform antialiased"
         >
           <main className="w-full flex-1 overflow-hidden flex relative bg-background">
             <WorkflowEditorDock
@@ -298,10 +295,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
                   workflow.trigger,
                 nodes: nodes
                   .filter((n) => n.id !== "trigger")
-                  .reduce(
-                    (acc, n) => ({ ...acc, [n.id]: n.data }),
-                    {},
-                  ),
+                  .reduce((acc, n) => ({ ...acc, [n.id]: n.data }), {}),
                 edges: edges.map((e) => ({
                   id: e.id,
                   source: e.source,
@@ -401,7 +395,6 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
           </main>
         </DialogContent>
       </Dialog>
-
     </ReactFlowProvider>
   );
 };

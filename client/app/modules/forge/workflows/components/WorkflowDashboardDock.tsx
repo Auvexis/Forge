@@ -122,12 +122,12 @@ export const WorkflowDashboardDock = ({
     <Button
       onClick={onCreate}
       disabled={isCreating}
-      className="h-9 px-5 rounded-full font-black uppercase text-micro tracking-[0.15em] gap-2 bg-rose-600 text-white hover:bg-rose-500 shadow-[0_5px_20px_rgba(244,63,94,0.15)] active:scale-95 transition-all"
+      className="h-9 px-5 rounded-full font-black uppercase text-micro tracking-[0.15em] gap-2 bg-rose-600 text-white hover:bg-rose-500 shadow-[0_5px_20px_rgba(244,63,94,0.15)] transition-all"
     >
       {isCreating ? (
-        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        <Loader2 className="w-3 h-3 animate-spin" />
       ) : (
-        <Plus className="w-3.5 h-3.5 stroke-[3px]" />
+        <Plus className="w-3 h-3" />
       )}
       New Workflow
     </Button>
@@ -137,7 +137,7 @@ export const WorkflowDashboardDock = ({
     <ForgeDock
       icon={Workflow}
       title="Workflows"
-      subtitle={`${moduleCount} Modules Active`}
+      subtitle={`${moduleCount} ${moduleCount === 1 ? "Workflow" : "Workflows"} Active`}
       accent="rose"
       sections={sections}
       trailing={trailing}

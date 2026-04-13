@@ -62,20 +62,20 @@ body {
   --radius-4xl: calc(var(--radius) * 2.6);
 
   /* ── Forge Typography Scale ── */
-  --font-size-micro: var(--text-micro);
-  --font-size-mini: var(--text-mini);
-  --font-size-tiny: var(--text-tiny);
-  --font-size-small: var(--text-small);
+  --font-size-micro: 0.5625rem;   /* 9px  — text-micro */
+  --font-size-mini: 0.625rem;     /* 10px — text-mini  */
+  --font-size-tiny: 0.6875rem;    /* 11px — text-tiny  */
+  --font-size-small: 0.8125rem;   /* 13px — text-small */
 
   /* ── Forge Execution Status Colors ── */
-  --color-status-running: var(--status-running);
-  --color-status-success: var(--status-success);
-  --color-status-failed: var(--status-failed);
+  --color-status-running: oklch(0.705 0.213 47.604);
+  --color-status-success: oklch(0.696 0.17 162.48);
+  --color-status-failed: oklch(0.577 0.245 27.325);
 
   /* ── Forge Layout Tokens ── */
-  --width-node: var(--node-width);
-  --width-panel-editor: var(--panel-editor-width);
-  --width-panel-logs: var(--panel-logs-width);
+  --width-node: 300px;
+  --width-panel-editor: 400px;
+  --width-panel-logs: 450px;
 }
 
 :root {
