@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef } from "react";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import type { WorkflowItem } from "../types/workflow-types";
-import { Save, Loader2 } from "lucide-react";
+import { Save } from "lucide-react";
 import {
   Background,
   BackgroundVariant,
@@ -30,22 +30,12 @@ import { WorkflowSettingsPanel } from "./WorkflowSettingsPanel";
 import { RunWorkflowPanel } from "./RunWorkflowPanel";
 import { WorkflowLogsPanel } from "./WorkflowLogsPanel";
 import { toast } from "~/shared/helpers/toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "~/components/ui/alert-dialog";
+import { useConfirm } from "~/providers/ConfirmProvider";
 
 // Extracted hooks
 import { useWorkflowPanelState } from "../hooks/useWorkflowPanelState";
 import { useWorkflowNodeFactory } from "../hooks/useWorkflowNodeFactory";
 import { useWorkflowSave } from "../hooks/useWorkflowSave";
-import { useState } from "react";
 
 const nodeTypes: NodeTypes = {
   action: ActionNodeRenderer,
@@ -82,7 +72,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
     panels.setSelectedNodeId,
   );
 
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const confirm = useConfirm();
   const initialLoadDone = useRef(false);
 
   useEffect(() => {
@@ -269,13 +259,26 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
     [resetNodeStatuses, executeWorkflow, workflow.metadata.id, startStream, save.metadata.name],
   );
 
-  const handleRequestClose = useCallback(() => {
+  const handleRequestClose = useCallback(async () => {
     if (save.isDirty) {
-      setShowExitConfirm(true);
+      const shouldSave = await confirm({
+        title: "Unsaved Changes",
+        description:
+          "You have modified this workflow. Do you want to save your changes before leaving?",
+        confirmLabel: "Save and Exit",
+        confirmIcon: Save,
+        cancelLabel: "Discard Changes",
+        variant: "default",
+      });
+      if (shouldSave) {
+        await save.handleSave(true);
+      } else {
+        onClose();
+      }
     } else {
       onClose();
     }
-  }, [save.isDirty, onClose]);
+  }, [save, confirm, onClose]);
 
   return (
     <ReactFlowProvider>
@@ -399,37 +402,6 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
-            <AlertDialogDescription>
-              You have modified this workflow. Do you want to save your changes
-              before leaving?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel
-              onClick={onClose}
-              className="rounded-full font-bold px-6"
-            >
-              Discard Changes
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => save.handleSave(true)}
-              disabled={save.saving}
-              className="bg-primary hover:bg-primary/90 rounded-full font-bold px-6"
-            >
-              {save.saving ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
-              Save and Exit
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </ReactFlowProvider>
   );
 };

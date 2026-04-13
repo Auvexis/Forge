@@ -17,6 +17,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { useGetWorkflowExecutions } from "../hooks/useGetWorkflowExecutions";
 import { useClearWorkflowExecutions } from "../hooks/useClearWorkflowExecutions";
+import { useConfirm } from "~/providers/ConfirmProvider";
 
 interface Props {
   workflowId: string;
@@ -27,13 +28,21 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
   const { getExecutions, executions, loading } = useGetWorkflowExecutions();
   const { clearExecutions, loading: clearing } = useClearWorkflowExecutions();
   const [selectedExec, setSelectedExec] = useState<any | null>(null);
+  const confirm = useConfirm();
 
   useEffect(() => {
     getExecutions(workflowId);
   }, [workflowId, getExecutions]);
 
   const handleClear = async () => {
-    if (confirm("Are you sure you want to clear all execution logs?")) {
+    const ok = await confirm({
+      title: "Clear Execution Logs",
+      description: "Are you sure you want to clear all execution logs for this workflow? This action cannot be undone.",
+      confirmLabel: "Clear All",
+      confirmIcon: Trash2,
+      variant: "destructive",
+    });
+    if (ok) {
       await clearExecutions(workflowId);
       getExecutions(workflowId);
     }

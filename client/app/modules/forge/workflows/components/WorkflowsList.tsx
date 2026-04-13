@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useGetWorkflows } from "../hooks/useGetWorkflows";
 import { useDeleteWorkflow } from "../hooks/useDeleteWorkflow";
 import { useExecuteWorkflow } from "../hooks/useExecuteWorkflow";
-import { Layers } from "lucide-react";
+import { Layers, Trash2 } from "lucide-react";
 import { WorkflowDashboardDock } from "./WorkflowDashboardDock";
 import { WorkflowEditor } from "./WorkflowEditor";
 import { WorkflowModuleCard } from "./WorkflowModuleCard";
@@ -12,12 +12,15 @@ import { RunWorkflowPanel } from "./RunWorkflowPanel";
 import { WorkflowLogsPanel } from "./WorkflowLogsPanel";
 import { useCreateWorkflow } from "../hooks/useCreateWorkflow";
 import { LoadingSpinner } from "~/shared/components/LoadingSpinner";
+import { useConfirm } from "~/providers/ConfirmProvider";
 
 export const WorkflowsList = () => {
   const { workflows, loading, getWorkflows } = useGetWorkflows();
   const { createWorkflow, loading: creating } = useCreateWorkflow();
   const { deleteWorkflow } = useDeleteWorkflow();
   const { executeWorkflow } = useExecuteWorkflow();
+
+  const confirm = useConfirm();
 
   const [selectedWorkflow, setSelectedWorkflow] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,7 +61,14 @@ export const WorkflowsList = () => {
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Permanently delete this workflow and all its data?")) {
+    const ok = await confirm({
+      title: "Delete Workflow",
+      description: "Permanently delete this workflow and all its data? This action cannot be undone.",
+      confirmLabel: "Delete",
+      confirmIcon: Trash2,
+      variant: "destructive",
+    });
+    if (ok) {
       await deleteWorkflow(id);
       if (selectedWorkflow === id) setSelectedWorkflow(null);
       getWorkflows();
