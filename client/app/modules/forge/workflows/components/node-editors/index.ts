@@ -17,6 +17,8 @@ import { CodeEditor } from "./CodeEditor";
 import { IfEditor } from "./IfEditor";
 import { LoopEditor } from "./LoopEditor";
 import { SubWorkflowEditor } from "./SubWorkflowEditor";
+import { HttpEditor } from "./HttpEditor";
+import { EmitEventEditor } from "./EmitEventEditor";
 
 // ──────────── Registry ────────────
 // Key: ReactFlow node `type` value or `data.type` discriminator.
@@ -32,6 +34,8 @@ export const NODE_EDITOR_REGISTRY: Record<
   if: IfEditor,
   loop: LoopEditor,
   subworkflow: SubWorkflowEditor,
+  http: HttpEditor,
+  event: EmitEventEditor,
 };
 
 export type { NodeEditorProps };

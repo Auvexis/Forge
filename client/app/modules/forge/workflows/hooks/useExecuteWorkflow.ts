@@ -1,7 +1,10 @@
 import { useState } from "react";
-import type { WorkflowItem } from "../types/workflow-types";
 import { handleApi } from "~/shared/helpers/apiHandler";
 import { API_BASE_URL } from "~/shared/constants";
+
+export interface ExecuteWorkflowResult {
+  executionId: string;
+}
 
 export const useExecuteWorkflow = () => {
   const [loading, setLoading] = useState(false);
@@ -9,7 +12,7 @@ export const useExecuteWorkflow = () => {
   const executeWorkflow = async (
     id: string,
     payload: Record<string, unknown>,
-  ) => {
+  ): Promise<ExecuteWorkflowResult | null> => {
     setLoading(true);
     try {
       const formData = new FormData();
@@ -25,12 +28,13 @@ export const useExecuteWorkflow = () => {
               formData.append(key, String(item));
             }
           });
-        } else {
+        } else if (value !== null && value !== undefined) {
           formData.append(key, String(value));
         }
       }
 
-      const data = await handleApi<WorkflowItem>(
+      // Backend returns 202 Accepted with { executionId }
+      const data = await handleApi<ExecuteWorkflowResult>(
         `${API_BASE_URL}/workflows/${id}/execute`,
         { method: "POST" },
         formData,

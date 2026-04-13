@@ -29,6 +29,7 @@ import { DeletableEdge } from "./edges/DeletableEdge";
 import { useUpdateWorkflow } from "../hooks/useUpdateWorkflow";
 import { useDeleteWorkflow } from "../hooks/useDeleteWorkflow";
 import { useExecuteWorkflow } from "../hooks/useExecuteWorkflow";
+import { useWorkflowStream } from "../hooks/useWorkflowStream";
 import { NodeEditorPanel } from "./NodeEditorPanel";
 import { AddNodeOverlay } from "./nodes/AddNodeOverlay";
 import { useForge } from "~/providers/ForgeProvider";
@@ -70,6 +71,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
   const { updateWorkflow, loading: saving } = useUpdateWorkflow();
   const { deleteWorkflow } = useDeleteWorkflow();
   const { executeWorkflow, loading: executing } = useExecuteWorkflow();
+  const { nodeStatuses, isStreaming, startStream, resetStream } = useWorkflowStream();
 
   const currentWorkflowIdRef = useRef(workflow.metadata.id);
 
@@ -141,6 +143,35 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
       initialLoadDone.current = true;
     }, 500);
   }, [workflow, setNodes, setEdges]);
+
+  // ──────────── Sync SSE node statuses to ReactFlow node data ────────────
+  useEffect(() => {
+    if (Object.keys(nodeStatuses).length === 0) return;
+    setNodes((nds) =>
+      nds.map((n) => {
+        const info = nodeStatuses[n.id];
+        if (!info) return n;
+        return {
+          ...n,
+          data: {
+            ...n.data,
+            _executionStatus: info.status,
+          },
+        };
+      }),
+    );
+  }, [nodeStatuses, setNodes]);
+
+  // Reset node execution statuses on new run
+  const resetNodeStatuses = useCallback(() => {
+    setNodes((nds) =>
+      nds.map((n) => ({
+        ...n,
+        data: { ...n.data, _executionStatus: "idle" },
+      })),
+    );
+    resetStream();
+  }, [setNodes, resetStream]);
 
   // Dirty State Tracking
   const onNodesChange = useCallback(
@@ -285,6 +316,19 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
         baseData.inputMapping = {};
         baseData.name = "Sub-Workflow";
         break;
+      case "http":
+        baseData.method = "GET";
+        baseData.url = "";
+        baseData.headers = {};
+        baseData.body = "";
+        baseData.bodyType = "json";
+        baseData.name = "HTTP Request";
+        break;
+      case "event":
+        baseData.eventName = "";
+        baseData.payloadMapping = {};
+        baseData.name = "Emit Event";
+        break;
     }
 
     const newNode: Node = {
@@ -308,14 +352,18 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
 
   const handleExecute = async (inputParams: Record<string, any>) => {
     try {
+      resetNodeStatuses();
       const result = await executeWorkflow(workflow.metadata.id, inputParams);
-      console.log("Workflow Execution Result:", result);
-      toast.success("Execution Complete", {
-        description: `Workflow "${metadata.name}" ran successfully.`,
-      });
+      // Backend returns 202 Accepted with { executionId }
+      const executionId = (result as any)?.executionId;
+      if (executionId) {
+        startStream(executionId);
+        toast.success("Workflow started", {
+          description: `Streaming execution of "${metadata.name}"...`,
+        });
+      }
     } catch (e: any) {
       console.error("Workflow Execution Failed Error:", e);
-      // toast.error is already fired by handleApi — no duplicate needed
     }
   };
 
@@ -524,6 +572,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
                   setEdges={handleSetEdges}
                   onNodeIdChange={setSelectedNodeId}
                   onClose={() => setSelectedNodeId(null)}
+                  nodeStatuses={nodeStatuses}
                 />
               )}
 

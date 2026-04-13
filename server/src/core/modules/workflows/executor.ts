@@ -2,6 +2,8 @@ import { PluginExecutor } from "../plugins/executor.ts";
 import { WorkflowParser, resolvePath } from "./parser.ts";
 import { WorkflowRepository } from "./repository.ts";
 import { runCode } from "./code-runner.ts";
+import { workflowEventBus } from "./event-bus.ts";
+import { InternalEventBus } from "../events/internal-event-bus.ts";
 import type {
   WorkflowItem,
   WorkflowNode,
@@ -12,6 +14,8 @@ import type {
   IfNode,
   LoopNode,
   SubWorkflowNode,
+  HttpNode,
+  EventNode,
 } from "../../../shared/models/workflow-types.ts";
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -82,7 +86,6 @@ function initializeVariables(
     if (v.defaultValue !== undefined) {
       vars[v.name] = v.defaultValue;
     } else {
-      // Sensible defaults per type
       switch (v.type) {
         case "string":
           vars[v.name] = "";
@@ -120,13 +123,8 @@ function executeCodeNode(
   context: any,
 ): any {
   const result = runCode(node.script, context, context.variables);
-
-  // Merge variable mutations back into the main context
   Object.assign(context.variables, result.variables);
-
-  // Return exactly what the user returned. 
-  // We'll store logs in a side-channel or separate step property.
-  return result; 
+  return result;
 }
 
 function executeIfNode(
@@ -143,7 +141,6 @@ async function executeLoopNode(
   workflow: WorkflowItem,
   edges: WorkflowEdge[],
 ): Promise<{ iterations: number; results: any[] }> {
-  // Resolve the collection via template expression
   const collectionExpr = node.collection.trim();
   const templateMatch = /^{{\s*([a-zA-Z0-9_.\[\]]+)\s*}}$/.exec(collectionExpr);
 
@@ -151,7 +148,6 @@ async function executeLoopNode(
   if (templateMatch) {
     collection = resolvePath(context, templateMatch[1]);
   } else {
-    // Try evaluating as a direct context path
     collection = resolvePath(context, collectionExpr);
   }
 
@@ -165,18 +161,17 @@ async function executeLoopNode(
   const iterations = Math.min(collection.length, maxIter);
   const results: any[] = [];
 
-  // Find "loop-body" edges — nodes to execute per iteration
   const bodyEdges = edges.filter(
-    (e) => e.source === getNodeIdFromWorkflow(workflow, node) && e.sourceHandle === "loop-body",
+    (e) =>
+      e.source === getNodeIdFromWorkflow(workflow, node) &&
+      e.sourceHandle === "loop-body",
   );
 
   for (let i = 0; i < iterations; i++) {
-    // Inject loop metadata into context
     context.variables["$item"] = collection[i];
     context.variables["$index"] = i;
     context.variables["$total"] = collection.length;
 
-    // Execute body nodes sequentially for each iteration
     for (const edge of bodyEdges) {
       const bodyNode = workflow.nodes[edge.target];
       if (bodyNode) {
@@ -192,7 +187,6 @@ async function executeLoopNode(
     }
   }
 
-  // Clean up loop variables
   delete context.variables["$item"];
   delete context.variables["$index"];
   delete context.variables["$total"];
@@ -205,20 +199,121 @@ async function executeSubWorkflowNode(
   context: any,
 ): Promise<any> {
   const childWorkflow = WorkflowRepository.getWorkflowById(node.workflowId);
-
   if (!childWorkflow) {
     throw new Error(`Sub-workflow ${node.workflowId} not found`);
   }
 
-  // Build the trigger payload for the child from parent context
   const childTrigger: Record<string, any> = {};
   for (const [childKey, parentPath] of Object.entries(node.inputMapping)) {
     childTrigger[childKey] = resolvePath(context, parentPath);
   }
 
-  // Recursive execution
-  const result = await WorkflowEngine.executeWorkflow(childWorkflow, childTrigger);
+  const childExecutionId = `exec_sub_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  const result = await WorkflowEngine.executeWorkflow(childWorkflow, childTrigger, childExecutionId);
   return result.context;
+}
+
+async function executeHttpNode(
+  node: HttpNode,
+  context: any,
+): Promise<any> {
+  // 1. Resolve template expressions in URL, headers, and body
+  const resolvedUrl = WorkflowParser.evalParams({ url: node.url }, context).url as string;
+
+  const resolvedHeaders: Record<string, string> = {};
+  if (node.headers) {
+    const cooked = WorkflowParser.evalParams(node.headers, context);
+    for (const [k, v] of Object.entries(cooked)) {
+      resolvedHeaders[k] = String(v);
+    }
+  }
+
+  let bodyPayload: string | undefined;
+  if (node.body && node.method !== "GET" && node.method !== "DELETE") {
+    const cooked = WorkflowParser.evalParams({ body: node.body }, context);
+    const bodyStr = String(cooked.body ?? "");
+
+    if (node.bodyType === "json" || !node.bodyType) {
+      resolvedHeaders["Content-Type"] =
+        resolvedHeaders["Content-Type"] ?? "application/json";
+      // Validate & re-serialize JSON  so templates that resolve to objects are handled
+      try {
+        const parsed = JSON.parse(bodyStr);
+        bodyPayload = JSON.stringify(parsed);
+      } catch {
+        bodyPayload = bodyStr;
+      }
+    } else if (node.bodyType === "form") {
+      resolvedHeaders["Content-Type"] =
+        resolvedHeaders["Content-Type"] ?? "application/x-www-form-urlencoded";
+      bodyPayload = bodyStr;
+    } else {
+      bodyPayload = bodyStr;
+    }
+  }
+
+  // 2. Execute the HTTP request using native fetch (available in Node.js 22+)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(
+    () => controller.abort(),
+    node.timeout ?? 30000,
+  );
+
+  try {
+    const response = await fetch(resolvedUrl, {
+      method: node.method,
+      headers: resolvedHeaders,
+      body: bodyPayload,
+      redirect: node.followRedirects !== false ? "follow" : "manual",
+      signal: controller.signal,
+    });
+
+    // 3. Parse response
+    let responseData: any;
+    const contentType = response.headers.get("content-type") ?? "";
+
+    if (node.responseType === "text") {
+      responseData = await response.text();
+    } else if (contentType.includes("application/json")) {
+      responseData = await response.json();
+    } else {
+      responseData = await response.text();
+    }
+
+    return {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      headers: Object.fromEntries(response.headers.entries()),
+      data: responseData,
+    };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function executeEventNode(
+  node: EventNode,
+  context: any,
+): Promise<any> {
+  // Resolve payload mappings via template expressions
+  const resolvedPayload = WorkflowParser.evalParams(
+    node.payloadMapping ?? {},
+    context,
+  );
+
+  const result = await InternalEventBus.emit({
+    name: node.eventName,
+    payload: resolvedPayload,
+    emittedBy: context._workflowId as string | undefined,
+    timestamp: Date.now(),
+  });
+
+  return {
+    eventName: node.eventName,
+    payload: resolvedPayload,
+    triggeredWorkflows: result.triggered,
+  };
 }
 
 // ──────────── Unified Node Dispatcher ────────────
@@ -241,8 +336,11 @@ async function executeNode(
       return executeLoopNode(node, context, workflow, edges);
     case "subworkflow":
       return executeSubWorkflowNode(node, context);
+    case "http":
+      return executeHttpNode(node, context);
+    case "event":
+      return executeEventNode(node, context);
     case "trigger":
-      // Trigger nodes are entry points — no execution logic
       return { type: "trigger" };
     default:
       throw new Error(`Unknown node type: ${(node as any).type}`);
@@ -267,12 +365,14 @@ export const WorkflowEngine = {
   executeWorkflow: async (
     workflow: WorkflowItem,
     triggerPayload: any,
+    executionId?: string,
   ): Promise<any> => {
-    const executionId = `exec_${Date.now()}_${Math.random()
-      .toString(36)
-      .substring(2, 9)}`;
+    const execId =
+      executionId ??
+      `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     const context = {
+      _workflowId: workflow.metadata.id,
       trigger: triggerPayload,
       steps: {} as Record<string, any>,
       variables: initializeVariables(workflow.variables),
@@ -281,8 +381,16 @@ export const WorkflowEngine = {
     let status = "RUNNING";
     const startTime = Date.now();
 
+    // Emit workflow start
+    workflowEventBus.emitWorkflowEvent({
+      executionId: execId,
+      workflowId: workflow.metadata.id,
+      type: "workflow:start",
+      timestamp: Date.now(),
+    });
+
     WorkflowRepository.saveExecutionLog(
-      executionId,
+      execId,
       workflow.metadata.id,
       status,
       startTime,
@@ -293,7 +401,7 @@ export const WorkflowEngine = {
     try {
       const nodeIds = ["trigger", ...Object.keys(workflow.nodes)];
 
-      // Build in‑degree map & adjacency list from edges
+      // Build in-degree map & adjacency list from edges
       const inDegree: Record<string, number> = {};
       const adjList: Record<string, WorkflowEdge[]> = {};
 
@@ -331,6 +439,15 @@ export const WorkflowEngine = {
           continue;
         }
 
+        // Emit node:start
+        workflowEventBus.emitWorkflowEvent({
+          executionId: execId,
+          workflowId: workflow.metadata.id,
+          type: "node:start",
+          nodeId,
+          timestamp: Date.now(),
+        });
+
         // Retry logic
         let attempts = 0;
         const maxRetries = node.retryPolicy?.maxRetries ?? 0;
@@ -348,16 +465,27 @@ export const WorkflowEngine = {
             );
 
             if (node.type === "code") {
-               const codeResult = result as any;
-               context.steps[nodeId] = { 
-                 status: "SUCCESS", 
-                 output: codeResult.output,
-                 logs: codeResult.logs 
-               };
+              const codeResult = result as any;
+              context.steps[nodeId] = {
+                status: "SUCCESS",
+                output: codeResult.output,
+                logs: codeResult.logs,
+              };
             } else {
-               context.steps[nodeId] = { status: "SUCCESS", output: result };
+              context.steps[nodeId] = { status: "SUCCESS", output: result };
             }
+
             success = true;
+
+            // Emit node:success with sanitized output
+            workflowEventBus.emitWorkflowEvent({
+              executionId: execId,
+              workflowId: workflow.metadata.id,
+              type: "node:success",
+              nodeId,
+              timestamp: Date.now(),
+              data: sanitizeContextForLogging(context.steps[nodeId]?.output),
+            });
           } catch (err: any) {
             attempts++;
             lastError = err;
@@ -375,8 +503,18 @@ export const WorkflowEngine = {
         }
 
         if (!success) {
+          // Emit node:failed
+          workflowEventBus.emitWorkflowEvent({
+            executionId: execId,
+            workflowId: workflow.metadata.id,
+            type: "node:failed",
+            nodeId,
+            timestamp: Date.now(),
+            error: lastError?.message,
+          });
+
           throw new Error(
-            `Node ${nodeId} failed after ${attempts} attempts. Last error: ${lastError?.message}`,
+            `Node ${nodeId} failed after ${attempts} attempt(s). Last error: ${lastError?.message}`,
           );
         }
 
@@ -384,12 +522,10 @@ export const WorkflowEngine = {
         const outEdges = adjList[nodeId] || [];
 
         if (node.type === "if") {
-          // Only follow the branch that matches the evaluation result
           const branch = (context.steps[nodeId]?.output as { branch: string })
             ?.branch;
 
           for (const edge of outEdges) {
-            // Follow edges matching the branch, or edges with no handle (fallback)
             if (
               edge.sourceHandle === branch ||
               (!edge.sourceHandle && branch === "then")
@@ -399,15 +535,10 @@ export const WorkflowEngine = {
                 queue.push(edge.target);
               }
             }
-            // Edges for the other branch are NOT released — those nodes stay blocked
           }
         } else if (node.type === "loop") {
-          // Loop body nodes were already executed inline; release "loop-done" edges
           for (const edge of outEdges) {
-            if (
-              edge.sourceHandle === "loop-done" ||
-              !edge.sourceHandle
-            ) {
+            if (edge.sourceHandle === "loop-done" || !edge.sourceHandle) {
               inDegree[edge.target]--;
               if (inDegree[edge.target] === 0) {
                 queue.push(edge.target);
@@ -415,7 +546,6 @@ export const WorkflowEngine = {
             }
           }
         } else {
-          // Standard: release all downstream edges
           for (const edge of outEdges) {
             inDegree[edge.target]--;
             if (inDegree[edge.target] === 0) {
@@ -430,8 +560,16 @@ export const WorkflowEngine = {
       status = "FAILED";
       context.steps["error"] = err.message;
     } finally {
+      // Emit workflow terminal event
+      workflowEventBus.emitWorkflowEvent({
+        executionId: execId,
+        workflowId: workflow.metadata.id,
+        type: status === "SUCCESS" ? "workflow:success" : "workflow:failed",
+        timestamp: Date.now(),
+      });
+
       WorkflowRepository.saveExecutionLog(
-        executionId,
+        execId,
         workflow.metadata.id,
         status,
         startTime,
@@ -440,6 +578,6 @@ export const WorkflowEngine = {
       );
     }
 
-    return { executionId, status, context };
+    return { executionId: execId, status, context };
   },
 };

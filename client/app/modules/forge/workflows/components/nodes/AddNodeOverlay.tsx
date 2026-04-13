@@ -12,6 +12,8 @@ import {
   GitBranch,
   Repeat,
   Layers,
+  Globe,
+  Zap,
 } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { LucideIconRenderer } from "../../../../../components/LucideIconRenderer";
@@ -60,6 +62,22 @@ const LOGIC_NODES: LogicNodeDef[] = [
     icon: Layers,
     color: "text-rose-500",
     bg: "bg-rose-500/10",
+  },
+  {
+    type: "http",
+    label: "HTTP Request",
+    description: "Make an HTTP request to any external API",
+    icon: Globe,
+    color: "text-orange-500",
+    bg: "bg-orange-500/10",
+  },
+  {
+    type: "event",
+    label: "Emit Event",
+    description: "Publish an internal event to trigger other workflows",
+    icon: Zap,
+    color: "text-yellow-500",
+    bg: "bg-yellow-500/10",
   },
 ];
 

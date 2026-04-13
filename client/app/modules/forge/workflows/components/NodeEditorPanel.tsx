@@ -6,6 +6,8 @@ import { X, Settings, ShieldCheck } from "lucide-react";
 import { PluginMenuAuth } from "../../plugins/components/PluginMenuAuth";
 import { NODE_EDITOR_REGISTRY } from "./node-editors/index";
 import type { NodeEditorProps } from "./node-editors/types";
+import { NodeOutputPanel } from "./NodeOutputPanel";
+import type { NodeStatusMap } from "../hooks/useWorkflowStream";
 
 interface Props {
   nodeId: string;
@@ -15,6 +17,8 @@ interface Props {
   setEdges: (edges: Edge[] | ((eds: Edge[]) => Edge[])) => void;
   onNodeIdChange: (id: string) => void;
   onClose: () => void;
+  /** Live execution statuses from useWorkflowStream */
+  nodeStatuses?: NodeStatusMap;
 }
 
 /**
@@ -41,6 +45,7 @@ export const NodeEditorPanel = ({
   setEdges,
   onNodeIdChange,
   onClose,
+  nodeStatuses,
 }: Props) => {
   const { plugins, refreshActivePluginStatus } = useForge();
 
@@ -254,6 +259,13 @@ export const NodeEditorPanel = ({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-5 custom-scrollbar flex flex-col gap-2">
+        {/* Live execution output — shown when this node completed during an SSE stream */}
+        {nodeStatuses?.[nodeId] &&
+          (nodeStatuses[nodeId].status === "success" ||
+            nodeStatuses[nodeId].status === "failed") && (
+            <NodeOutputPanel nodeId={nodeId} statusInfo={nodeStatuses[nodeId]} />
+          )}
+
         {activeTab === "auth" && isPluginNode ? (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <PluginMenuAuth pluginId={pluginId!} />

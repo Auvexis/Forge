@@ -6,9 +6,10 @@ import rootRoutes from "./routes/index.ts";
 import pluginsRoutes from "./routes/plugins.routes.ts";
 import workflowsRoutes from "./routes/workflows.routes.ts";
 import { loadPlugins } from "./modules/plugins/loader.ts";
+import { Scheduler } from "./modules/scheduler/scheduler.ts";
 
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8032;
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:8033";
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
 const LOGS_ENABLED = process.env.LOGS_ENABLED || "false";
 
 const fastify = Fastify({
@@ -42,6 +43,7 @@ await fastify.register(cors, {
 });
 
 await loadPlugins();
+Scheduler.initialize();
 
 fastify.register(rootRoutes);
 fastify.register(pluginsRoutes);

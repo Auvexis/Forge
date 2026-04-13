@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Copy, Check, RefreshCw } from "lucide-react";
 import type { WorkflowTrigger } from "../../types/workflow-types";
 import type { NodeEditorProps } from "./types";
 import {
@@ -10,6 +11,7 @@ import {
   ComboboxList,
   ComboboxItem,
 } from "~/components/ui/combobox";
+import { API_BASE_URL } from "~/shared/constants";
 
 const TRIGGER_OPTIONS = [
   { value: "manual", label: "Manual" },
@@ -18,11 +20,89 @@ const TRIGGER_OPTIONS = [
   { value: "event", label: "Event" },
 ];
 
+const CRON_PRESETS = [
+  { label: "Every minute", value: "* * * * *" },
+  { label: "Every hour", value: "0 * * * *" },
+  { label: "Every day at midnight", value: "0 0 * * *" },
+  { label: "Every day at 9 AM", value: "0 9 * * *" },
+  { label: "Every Mon–Fri at 9 AM", value: "0 9 * * 1-5" },
+  { label: "Every Sunday at noon", value: "0 12 * * 0" },
+];
+
+const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE"] as const;
+
+function humanizeCron(expression: string): string {
+  if (!expression) return "";
+  try {
+    const parts = expression.trim().split(/\s+/);
+    if (parts.length !== 5) return "Invalid expression";
+    const [min, hour, dom, month, dow] = parts;
+    if (
+      min === "*" &&
+      hour === "*" &&
+      dom === "*" &&
+      month === "*" &&
+      dow === "*"
+    )
+      return "Every minute";
+    if (
+      min === "0" &&
+      hour === "*" &&
+      dom === "*" &&
+      month === "*" &&
+      dow === "*"
+    )
+      return "Every hour at minute 0";
+    if (
+      min === "0" &&
+      hour === "0" &&
+      dom === "*" &&
+      month === "*" &&
+      dow === "*"
+    )
+      return "Every day at midnight";
+    if (dom === "*" && month === "*" && dow === "*")
+      return `Every day at ${hour.padStart(2, "0")}:${min.padStart(2, "0")}`;
+    if (dom === "*" && month === "*" && dow !== "*")
+      return `On day(s) ${dow} at ${hour.padStart(2, "0")}:${min.padStart(2, "0")}`;
+    return expression;
+  } catch {
+    return "";
+  }
+}
+
 export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
   const data = node.data as unknown as WorkflowTrigger;
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [copiedSecret, setCopiedSecret] = useState(false);
+
+  const webhookPath = data.webhookPath || "";
+  const webhookUrl = webhookPath
+    ? `${API_BASE_URL}/webhooks/${webhookPath}`
+    : `${API_BASE_URL}/webhooks/<auto-assigned-on-save>`;
+  
+  const allowedMethods: string[] = data.webhookMethods ?? ["POST"];
+
+  const toggleMethod = (method: string) => {
+    if (allowedMethods.includes(method)) {
+      const next = allowedMethods.filter((m) => m !== method);
+      updateNodeData({ webhookMethods: next.length ? next : ["POST"] });
+    } else {
+      updateNodeData({ webhookMethods: [...allowedMethods, method] });
+    }
+  };
+
+  const copyToClipboard = async (text: string, cb: (v: boolean) => void) => {
+    await navigator.clipboard.writeText(text);
+    cb(true);
+    setTimeout(() => cb(false), 2000);
+  };
+
+  const humanCron = humanizeCron(data.cronExpression ?? "");
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Trigger Type */}
       <div className="flex flex-col gap-2">
         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
           Trigger Type
@@ -51,7 +131,7 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
         </Combobox>
       </div>
 
-      {/* Manual inputs schema builder */}
+      {/* ─────────── MANUAL ─────────── */}
       {data.type === "manual" && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
@@ -169,34 +249,102 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
         </div>
       )}
 
-      {/* Webhook URL display */}
+      {/* ─────────── WEBHOOK ─────────── */}
       {data.type === "webhook" && (
         <div className="flex flex-col gap-4">
+          {/* URL display */}
           <div className="flex flex-col gap-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
               Webhook URL
             </label>
-            <div className="p-3 bg-accent/10 border border-border/50 rounded-xl font-mono text-[10px] break-all select-all">
-              {import.meta.env.VITE_API_URL || "http://localhost:3000"}/wf/
-              {node.id}/webhook
+            <div className="flex gap-2">
+              <div className="flex-1 p-3 bg-accent/10 border border-border/50 rounded-xl font-mono text-[10px] break-all select-all text-muted-foreground">
+                {webhookUrl}
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 shrink-0 rounded-xl"
+                onClick={() => copyToClipboard(webhookUrl, setCopiedUrl)}
+              >
+                {copiedUrl ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+              </Button>
             </div>
             <p className="text-[10px] text-muted-foreground italic ml-1">
-              The URL where external services should send data.
+              Save the workflow to auto-generate a unique webhook path.
             </p>
           </div>
+
+          {/* HTTP Methods */}
           <div className="flex flex-col gap-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-              Security (Secret)
+              Allowed HTTP Methods
             </label>
-            <Input
-              placeholder="Optional Webhook SecretToken"
-              className="h-10 font-bold bg-accent/5 border-border/50"
-            />
+            <div className="flex gap-2 flex-wrap">
+              {HTTP_METHODS.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => toggleMethod(m)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border transition-all ${
+                    allowedMethods.includes(m)
+                      ? "bg-primary/20 border-primary/50 text-primary"
+                      : "bg-accent/10 border-border/50 text-muted-foreground"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Secret */}
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+              HMAC Secret{" "}
+              <span className="text-[9px] opacity-50 normal-case font-normal">
+                (recommended)
+              </span>
+            </label>
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                value={data.webhookSecret ?? ""}
+                onChange={(e) =>
+                  updateNodeData({ webhookSecret: e.target.value })
+                }
+                placeholder="my-secret-key"
+                className="h-10 font-mono bg-accent/5 border-border/50 flex-1"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 shrink-0 rounded-xl"
+                title="Generate random secret"
+                onClick={() => {
+                  const arr = new Uint8Array(16);
+                  crypto.getRandomValues(arr);
+                  const secret = Array.from(arr)
+                    .map((b) => b.toString(16).padStart(2, "0"))
+                    .join("");
+                  updateNodeData({ webhookSecret: secret });
+                }}
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+            <p className="text-[10px] text-muted-foreground italic ml-1">
+              Validate requests using{" "}
+              <code className="font-mono">X-Forge-Signature: sha256=…</code>
+            </p>
           </div>
         </div>
       )}
 
-      {/* Cron expression */}
+      {/* ─────────── CRON ─────────── */}
       {data.type === "cron" && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
@@ -205,20 +353,55 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
             </label>
             <Input
               value={data.cronExpression || ""}
-              onChange={(e) => updateNodeData({ cronExpression: e.target.value })}
+              onChange={(e) =>
+                updateNodeData({ cronExpression: e.target.value })
+              }
               placeholder="* * * * *"
               className="h-10 font-mono bg-accent/5 border-border/50"
             />
-            <div className="p-2 bg-blue-500/5 border border-blue-500/10 rounded-lg text-[10px] text-blue-500">
-              Format: <code>minute hour day month day-of-week</code>
+            {humanCron && (
+              <p className="text-[10px] text-primary/80 ml-1 font-bold">
+                ↳ {humanCron}
+              </p>
+            )}
+            <div className="p-2 bg-blue-500/5 border border-blue-500/10 rounded-lg text-[10px] text-blue-400">
+              Format:{" "}
+              <code className="font-mono">minute hour day month weekday</code>
               <br />
-              Example: <code>0 9 * * 1-5</code> (Mon-Fri at 9:00 AM)
+              Example:{" "}
+              <code className="font-mono">0 9 * * 1-5</code> (Mon–Fri at 9:00
+              AM)
+            </div>
+          </div>
+
+          {/* Presets */}
+          <div className="flex flex-col gap-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+              Presets
+            </label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {CRON_PRESETS.map((p) => (
+                <button
+                  key={p.value}
+                  onClick={() => updateNodeData({ cronExpression: p.value })}
+                  className={`flex flex-col p-2.5 rounded-xl border text-left transition-all hover:border-primary/40 ${
+                    data.cronExpression === p.value
+                      ? "bg-primary/10 border-primary/40 text-primary"
+                      : "bg-accent/5 border-border/40 text-muted-foreground"
+                  }`}
+                >
+                  <span className="text-[10px] font-bold">{p.label}</span>
+                  <code className="text-[9px] font-mono opacity-70">
+                    {p.value}
+                  </code>
+                </button>
+              ))}
             </div>
           </div>
         </div>
       )}
 
-      {/* Event name */}
+      {/* ─────────── EVENT ─────────── */}
       {data.type === "event" && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
@@ -228,11 +411,28 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
             <Input
               value={data.eventName || ""}
               onChange={(e) => updateNodeData({ eventName: e.target.value })}
-              placeholder="order.created"
-              className="h-10 font-bold bg-accent/5 border-border/50"
+              placeholder="video.uploaded"
+              className="h-10 font-bold font-mono bg-accent/5 border-border/50 text-yellow-500"
             />
             <p className="text-[10px] text-muted-foreground italic ml-1">
-              Listen for events emitted by other workflows or plugins.
+              This workflow will run whenever an{" "}
+              <strong>Emit Event</strong> node or the{" "}
+              <code className="font-mono">/events/emit</code> API emits this
+              event name.
+            </p>
+          </div>
+
+          <div className="p-3 bg-yellow-500/5 border border-yellow-500/20 rounded-xl">
+            <p className="text-[10px] font-black uppercase tracking-widest text-yellow-500 mb-1">
+              How it works
+            </p>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              Use an <strong>Emit Event</strong> node in another workflow to
+              trigger this one. The emitted payload will be available in{" "}
+              <code className="font-mono text-yellow-400">
+                {"{{ trigger.payload }}"}
+              </code>
+              .
             </p>
           </div>
         </div>

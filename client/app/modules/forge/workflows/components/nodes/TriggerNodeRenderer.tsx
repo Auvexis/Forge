@@ -7,43 +7,57 @@ import { Play, Webhook, Clock, Zap, Target } from "lucide-react";
 export type TriggerNodeData = WorkflowTrigger & Record<string, unknown>;
 export type TriggerNodeType = Node<TriggerNodeData, "trigger">;
 
+type ExecutionStatus = "idle" | "running" | "success" | "failed";
+
+const STATUS_RING: Record<ExecutionStatus, string> = {
+  idle: "",
+  running:
+    "ring-2 ring-blue-500/60 shadow-[0_0_16px_2px_rgba(59,130,246,0.25)] animate-pulse",
+  success:
+    "ring-2 ring-emerald-500/60 shadow-[0_0_12px_2px_rgba(16,185,129,0.2)]",
+  failed:
+    "ring-2 ring-red-500/60 shadow-[0_0_12px_2px_rgba(239,68,68,0.2)]",
+};
+
 export const TriggerNodeRenderer = ({ id, data }: NodeProps<TriggerNodeType>) => {
+  const executionStatus = ((data as any)._executionStatus ?? "idle") as ExecutionStatus;
+
   const getTriggerDetails = () => {
     switch (data.type) {
       case "manual":
-        return { 
-          icon: Play, 
-          title: "Manual Trigger", 
+        return {
+          icon: Play,
+          title: "Manual Trigger",
           color: "text-blue-500",
-          bg: "bg-blue-500/10"
+          bg: "bg-blue-500/10",
         };
       case "webhook":
-        return { 
-          icon: Webhook, 
-          title: "Webhook", 
+        return {
+          icon: Webhook,
+          title: "Webhook",
           color: "text-emerald-500",
-          bg: "bg-emerald-500/10"
+          bg: "bg-emerald-500/10",
         };
       case "cron":
-        return { 
-          icon: Clock, 
-          title: "Schedule / Cron", 
+        return {
+          icon: Clock,
+          title: "Schedule / Cron",
           color: "text-amber-500",
-          bg: "bg-amber-500/10"
+          bg: "bg-amber-500/10",
         };
       case "event":
-        return { 
-          icon: Zap, 
-          title: "Event", 
-          color: "text-purple-500", 
-          bg: "bg-purple-500/10"
+        return {
+          icon: Zap,
+          title: "Event Trigger",
+          color: "text-purple-500",
+          bg: "bg-purple-500/10",
         };
       default:
-        return { 
-          icon: Target, 
-          title: "Trigger", 
+        return {
+          icon: Target,
+          title: "Trigger",
           color: "text-foreground",
-          bg: "bg-accent"
+          bg: "bg-accent",
         };
     }
   };
@@ -59,11 +73,15 @@ export const TriggerNodeRenderer = ({ id, data }: NodeProps<TriggerNodeType>) =>
         </div>
       </div>
 
-      <Card className="w-[300px] shadow-sm border-border bg-card transition-all hover:shadow-md hover:border-primary/30">
+      <Card
+        className={`w-[300px] shadow-sm border-border bg-card transition-all duration-300 ${STATUS_RING[executionStatus]}`}
+      >
         <CardContent className="flex flex-col p-0 overflow-hidden rounded-lg">
           {/* Header */}
           <div className="flex items-center gap-3 p-3 bg-accent/30 border-b border-border/50">
-            <div className={`flex items-center justify-center w-10 h-10 p-2 rounded-lg border border-border shrink-0 ${bg}`}>
+            <div
+              className={`flex items-center justify-center w-10 h-10 p-2 rounded-lg border border-border shrink-0 ${bg}`}
+            >
               <Icon className={`w-5 h-5 ${color}`} />
             </div>
             <div className="flex flex-col flex-1 min-w-0">
@@ -71,35 +89,54 @@ export const TriggerNodeRenderer = ({ id, data }: NodeProps<TriggerNodeType>) =>
                 {title}
               </span>
               <span className="text-[10px] uppercase font-medium tracking-tight text-muted-foreground">
-                Workflow Entry point
+                Workflow Entry Point
               </span>
             </div>
           </div>
 
           {/* Body */}
           <div className="flex flex-col p-3 bg-background/50">
-            {data.type === "manual" && data.schema && Object.keys(data.schema).length > 0 ? (
+            {data.type === "webhook" && data.webhookPath ? (
+              <code className="text-[9px] font-mono text-emerald-400/80 truncate">
+                /webhooks/{data.webhookPath}
+              </code>
+            ) : data.type === "cron" && data.cronExpression ? (
+              <code className="text-[9px] font-mono text-amber-400/80">
+                {data.cronExpression}
+              </code>
+            ) : data.type === "event" && data.eventName ? (
+              <code className="text-[9px] font-mono text-purple-400/80">
+                {data.eventName}
+              </code>
+            ) : data.type === "manual" &&
+              data.schema &&
+              Object.keys(data.schema).length > 0 ? (
               <div className="flex flex-col gap-1">
-                 <span className="text-[10px] text-muted-foreground font-medium mb-1">EXPECTED INPUTS:</span>
-                 <div className="flex flex-wrap gap-1">
-                    {Object.keys(data.schema).map(key => (
-                      <span key={key} className="text-[9px] px-1.5 py-0.5 bg-muted rounded border border-border/50">
-                        {key}
-                      </span>
-                    ))}
-                 </div>
+                <span className="text-[10px] text-muted-foreground font-medium mb-1">
+                  EXPECTED INPUTS:
+                </span>
+                <div className="flex flex-wrap gap-1">
+                  {Object.keys(data.schema).map((key) => (
+                    <span
+                      key={key}
+                      className="text-[9px] px-1.5 py-0.5 bg-muted rounded border border-border/50"
+                    >
+                      {key}
+                    </span>
+                  ))}
+                </div>
               </div>
             ) : (
               <span className="text-[11px] text-muted-foreground leading-relaxed italic">
-                {data.type === "manual" 
-                  ? "Standard manual execution." 
+                {data.type === "manual"
+                  ? "Standard manual execution."
                   : `Waiting for ${data.type} signal...`}
               </span>
             )}
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Triggers only have source handles (outputs), no target handles (inputs) */}
       <Handle
         type="source"

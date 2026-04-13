@@ -6,7 +6,9 @@ export type WorkflowNodeType =
   | "if"
   | "loop"
   | "subworkflow"
-  | "trigger";
+  | "trigger"
+  | "http"
+  | "event";
 
 // ──────────── Retry Policy ────────────
 
@@ -76,6 +78,29 @@ export interface SubWorkflowNode extends WorkflowNodeBase {
   inputMapping: Record<string, string>; // Maps parent context paths to child trigger payload keys
 }
 
+// ──────────── HTTP Request Node ────────────
+
+export interface HttpNode extends WorkflowNodeBase {
+  type: "http";
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  url: string; // Supports template expressions: "https://api.example.com/{{ steps.prev.output.id }}"
+  headers?: Record<string, string>; // Key-value pairs, values support templates
+  body?: string; // Raw body string, supports templates
+  bodyType?: "json" | "form" | "raw"; // How to encode the body
+  timeout?: number; // Request timeout in ms (default: 30000)
+  followRedirects?: boolean; // Follow 3xx redirects (default: true)
+  responseType?: "json" | "text"; // How to parse the response body
+}
+
+// ──────────── Emit Event Node ────────────
+
+export interface EventNode extends WorkflowNodeBase {
+  type: "event";
+  eventName: string; // The internal event name to emit (e.g. "video.processed")
+  payloadMapping: Record<string, string>; // Maps event payload keys to template expressions
+  // Example: { "videoId": "{{ steps.upload.output.videoId }}" }
+}
+
 // ──────────── Trigger Node (entry point — stored for UI metadata only) ────────────
 
 export interface TriggerNode extends WorkflowNodeBase {
@@ -90,7 +115,9 @@ export type WorkflowNode =
   | IfNode
   | LoopNode
   | SubWorkflowNode
-  | TriggerNode;
+  | TriggerNode
+  | HttpNode
+  | EventNode;
 
 // ──────────── Edges ────────────
 
@@ -118,10 +145,13 @@ export interface WorkflowTrigger {
   type: "manual" | "webhook" | "cron" | "event";
   schema?: Record<string, any>;
   ui?: WorkflowNodeUI;
-  // Config for specific types
-  webhookUrl?: string;
+  // Webhook config
+  webhookPath?: string; // Auto-generated unique path segment
   webhookMethods?: ("GET" | "POST" | "PUT" | "DELETE")[];
+  webhookSecret?: string; // HMAC-SHA256 secret for signature verification
+  // Cron config
   cronExpression?: string;
+  // Event config
   eventName?: string;
 }
 

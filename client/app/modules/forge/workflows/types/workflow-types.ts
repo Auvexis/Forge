@@ -6,7 +6,9 @@ export type WorkflowNodeType =
   | "if"
   | "loop"
   | "subworkflow"
-  | "trigger";
+  | "trigger"
+  | "http"
+  | "event";
 
 // ──────────── Retry Policy ────────────
 
@@ -36,7 +38,7 @@ interface WorkflowNodeBase {
   ui?: WorkflowNodeUI;
 }
 
-// ──────────── Plugin Node (existing behavior) ────────────
+// ──────────── Plugin Node ────────────
 
 export interface PluginNode extends WorkflowNodeBase {
   type: "plugin";
@@ -45,7 +47,7 @@ export interface PluginNode extends WorkflowNodeBase {
   params: Record<string, any>;
 }
 
-// ──────────── Code Node (sandbox script) ────────────
+// ──────────── Code Node ────────────
 
 export interface CodeNode extends WorkflowNodeBase {
   type: "code";
@@ -53,14 +55,14 @@ export interface CodeNode extends WorkflowNodeBase {
   script: string;
 }
 
-// ──────────── If/Else Node (conditional branching) ────────────
+// ──────────── If/Else Node ────────────
 
 export interface IfNode extends WorkflowNodeBase {
   type: "if";
   condition: string;
 }
 
-// ──────────── Loop Node (iterate over collection) ────────────
+// ──────────── Loop Node ────────────
 
 export interface LoopNode extends WorkflowNodeBase {
   type: "loop";
@@ -68,7 +70,7 @@ export interface LoopNode extends WorkflowNodeBase {
   maxIterations: number;
 }
 
-// ──────────── Sub-Workflow Node (recursive execution) ────────────
+// ──────────── Sub-Workflow Node ────────────
 
 export interface SubWorkflowNode extends WorkflowNodeBase {
   type: "subworkflow";
@@ -76,7 +78,29 @@ export interface SubWorkflowNode extends WorkflowNodeBase {
   inputMapping: Record<string, string>;
 }
 
-// ──────────── Trigger Node (entry point) ────────────
+// ──────────── HTTP Request Node ────────────
+
+export interface HttpNode extends WorkflowNodeBase {
+  type: "http";
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  url: string;
+  headers?: Record<string, string>;
+  body?: string;
+  bodyType?: "json" | "form" | "raw";
+  timeout?: number;
+  followRedirects?: boolean;
+  responseType?: "json" | "text";
+}
+
+// ──────────── Emit Event Node ────────────
+
+export interface EventNode extends WorkflowNodeBase {
+  type: "event";
+  eventName: string;
+  payloadMapping: Record<string, string>;
+}
+
+// ──────────── Trigger Node ────────────
 
 export interface TriggerNode extends WorkflowNodeBase {
   type: "trigger";
@@ -90,7 +114,9 @@ export type WorkflowNode =
   | IfNode
   | LoopNode
   | SubWorkflowNode
-  | TriggerNode;
+  | TriggerNode
+  | HttpNode
+  | EventNode;
 
 // ──────────── Edges ────────────
 
@@ -118,10 +144,13 @@ export interface WorkflowTrigger {
   type: "manual" | "webhook" | "cron" | "event";
   schema?: Record<string, any>;
   ui?: WorkflowNodeUI;
-  // Config for specific types
-  webhookUrl?: string;
+  // Webhook
+  webhookPath?: string;
   webhookMethods?: ("GET" | "POST" | "PUT" | "DELETE")[];
+  webhookSecret?: string;
+  // Cron
   cronExpression?: string;
+  // Event
   eventName?: string;
 }
 

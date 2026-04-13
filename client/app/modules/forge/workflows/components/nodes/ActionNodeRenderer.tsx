@@ -12,11 +12,15 @@ import type {
   IfNode,
   LoopNode,
   SubWorkflowNode,
+  HttpNode,
+  EventNode,
 } from "../../types/workflow-types";
 import { LucideIconRenderer } from "../../../../../components/LucideIconRenderer";
 
 export type ActionNodeData = WorkflowNode & Record<string, unknown>;
 export type ActionNodeType = Node<ActionNodeData, "action">;
+
+type ExecutionStatus = "idle" | "running" | "success" | "failed";
 
 // ──────────── Style map per node type ────────────
 const NODE_STYLE: Record<
@@ -53,6 +57,33 @@ const NODE_STYLE: Record<
     bg: "bg-rose-500/10",
     badge: "SUB-WORKFLOW",
   },
+  http: {
+    icon: "globe",
+    color: "text-orange-500",
+    bg: "bg-orange-500/10",
+    badge: "HTTP",
+  },
+  event: {
+    icon: "zap",
+    color: "text-yellow-500",
+    bg: "bg-yellow-500/10",
+    badge: "EVENT",
+  },
+};
+
+// ──────────── Execution status ring classes ────────────
+const STATUS_RING: Record<ExecutionStatus, string> = {
+  idle: "",
+  running: "ring-2 ring-blue-500/60 shadow-[0_0_16px_2px_rgba(59,130,246,0.25)] animate-pulse",
+  success: "ring-2 ring-emerald-500/60 shadow-[0_0_12px_2px_rgba(16,185,129,0.2)]",
+  failed: "ring-2 ring-red-500/60 shadow-[0_0_12px_2px_rgba(239,68,68,0.2)]",
+};
+
+const STATUS_DOT: Record<ExecutionStatus, string> = {
+  idle: "",
+  running: "bg-blue-500 animate-pulse",
+  success: "bg-emerald-500",
+  failed: "bg-red-500",
 };
 
 // ──────────── Per‑type body renderers ────────────
@@ -184,11 +215,43 @@ const SubWorkflowBody = ({ data }: { data: SubWorkflowNode }) => (
   </>
 );
 
+const HttpBody = ({ data }: { data: HttpNode }) => (
+  <>
+    <span className="text-xs font-medium text-foreground truncate">
+      {data.name || "HTTP Request"}
+    </span>
+    <div className="mt-1 flex items-center gap-2">
+      <span className="text-[10px] font-black px-1.5 py-0.5 bg-orange-500/10 text-orange-500 rounded border border-orange-500/20 shrink-0">
+        {data.method || "GET"}
+      </span>
+      <code className="text-[10px] font-mono text-muted-foreground truncate">
+        {data.url || "https://..."}
+      </code>
+    </div>
+  </>
+);
+
+const EventBody = ({ data }: { data: EventNode }) => (
+  <>
+    <span className="text-xs font-medium text-foreground truncate">
+      {data.name || "Emit Event"}
+    </span>
+    <div className="mt-1">
+      <code className="text-[10px] font-mono bg-yellow-500/5 text-yellow-400 px-2 py-1 rounded border border-yellow-500/10 block truncate">
+        {data.eventName || "event.name"}
+      </code>
+    </div>
+  </>
+);
+
 // ──────────── Main Renderer ────────────
 
 export const ActionNodeRenderer = ({ id, data }: NodeProps<ActionNodeType>) => {
   const { plugins } = useForge();
   const { deleteElements } = useReactFlow();
+
+  // Execution status injected by WorkflowEditor via nodeStatuses
+  const executionStatus = ((data as any)._executionStatus ?? "idle") as ExecutionStatus;
 
   // Determine node type with robust fallbacks for older workflow versions
   const dataAsAny = data as any;
@@ -222,6 +285,10 @@ export const ActionNodeRenderer = ({ id, data }: NodeProps<ActionNodeType>) => {
         return "Loop / ForEach";
       case "subworkflow":
         return "Sub-Workflow";
+      case "http":
+        return "HTTP Request";
+      case "event":
+        return "Emit Event";
       default:
         return pluginData?.action || "Action";
     }
@@ -263,7 +330,7 @@ export const ActionNodeRenderer = ({ id, data }: NodeProps<ActionNodeType>) => {
         </div>
       </div>
 
-      <Card className="w-[300px] shadow-sm border-border bg-card transition-shadow hover:shadow-md">
+      <Card className={`w-[300px] shadow-sm border-border bg-card transition-all duration-300 ${STATUS_RING[executionStatus]}`}>
         <CardContent className="flex flex-col p-0 overflow-hidden rounded-lg">
           {/* Header */}
           <div className="flex items-center gap-3 p-3 bg-accent/30 border-b border-border/50">
@@ -290,6 +357,10 @@ export const ActionNodeRenderer = ({ id, data }: NodeProps<ActionNodeType>) => {
                     {style.badge}
                   </span>
                 )}
+                {/* Execution status dot */}
+                {executionStatus !== "idle" && (
+                  <div className={`w-2 h-2 rounded-full shrink-0 ml-auto ${STATUS_DOT[executionStatus]}`} />
+                )}
               </div>
               <span className="text-xs truncate text-muted-foreground">
                 {subtitle}
@@ -311,6 +382,8 @@ export const ActionNodeRenderer = ({ id, data }: NodeProps<ActionNodeType>) => {
             {nodeType === "subworkflow" && (
               <SubWorkflowBody data={data as SubWorkflowNode} />
             )}
+            {nodeType === "http" && <HttpBody data={data as HttpNode} />}
+            {nodeType === "event" && <EventBody data={data as EventNode} />}
           </div>
         </CardContent>
       </Card>
