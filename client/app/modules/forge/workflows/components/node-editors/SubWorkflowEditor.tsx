@@ -10,7 +10,7 @@ export function SubWorkflowEditor({ node, updateNodeData }: NodeEditorProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
           Step Name
         </label>
         <Input
@@ -24,7 +24,7 @@ export function SubWorkflowEditor({ node, updateNodeData }: NodeEditorProps) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 mb-1">
           <Layers className="w-3.5 h-3.5 text-rose-500" />
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          <label className="text-mini font-black uppercase tracking-widest text-muted-foreground">
             Target Workflow ID
           </label>
         </div>
@@ -38,13 +38,13 @@ export function SubWorkflowEditor({ node, updateNodeData }: NodeEditorProps) {
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+          <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
             Input Mapping
           </label>
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 text-[9px] font-black uppercase px-2"
+            className="h-6 text-micro font-black uppercase px-2"
             onClick={() => {
               const current = data.inputMapping || {};
               const num = Object.keys(current).length;
@@ -56,7 +56,7 @@ export function SubWorkflowEditor({ node, updateNodeData }: NodeEditorProps) {
             <Plus className="w-3 h-3 mr-1" /> Add
           </Button>
         </div>
-        <p className="text-[10px] text-muted-foreground ml-1 opacity-70 italic">
+        <p className="text-mini text-muted-foreground ml-1 opacity-70 italic">
           Map parent context paths to child trigger payload keys.
         </p>
 
@@ -76,7 +76,7 @@ export function SubWorkflowEditor({ node, updateNodeData }: NodeEditorProps) {
                   updateNodeData({ inputMapping: newMapping });
                 }}
               />
-              <span className="text-[10px] text-muted-foreground font-bold">←</span>
+              <span className="text-mini text-muted-foreground font-bold">←</span>
               <Input
                 value={value as string}
                 className="h-8 text-xs font-mono flex-1 bg-background border-border/50"

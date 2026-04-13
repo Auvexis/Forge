@@ -24,7 +24,7 @@ export const ImportWorkflowDialog: FC<Props> = ({ onClose, onImported }) => {
               <h2 className="text-xl font-black text-foreground tracking-tight leading-none mb-1">
                 Import Module
               </h2>
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest opacity-60">
+              <p className="text-mini text-muted-foreground uppercase font-black tracking-widest opacity-60">
                 Upload your workflow .json file
               </p>
             </div>
@@ -72,7 +72,7 @@ export const ImportWorkflowDialog: FC<Props> = ({ onClose, onImported }) => {
               <span className="text-xs font-black uppercase tracking-widest text-foreground/70">
                 Drag & Drop or Click
               </span>
-              <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
+              <span className="text-mini font-bold text-muted-foreground/40 uppercase tracking-widest">
                 Maximum payload: 50MB
               </span>
             </div>
@@ -82,7 +82,7 @@ export const ImportWorkflowDialog: FC<Props> = ({ onClose, onImported }) => {
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            className="flex-1 h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest text-muted-foreground hover:bg-sidebar-accent/10"
+            className="flex-1 h-12 rounded-2xl font-black uppercase text-mini tracking-widest text-muted-foreground hover:bg-sidebar-accent/10"
             onClick={onClose}
           >
             Cancel

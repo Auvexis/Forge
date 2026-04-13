@@ -36,7 +36,7 @@ export const ForgeSidebar = () => {
             />
 
             {/* Micro Tooltip */}
-            <div className="absolute left-[120%] bg-sidebar border border-sidebar-accent/40 px-2 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl">
+            <div className="absolute left-[120%] bg-sidebar border border-sidebar-accent/40 px-2 py-1.5 rounded-xl text-micro font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl">
               Explorer
             </div>
 
@@ -60,7 +60,7 @@ export const ForgeSidebar = () => {
               className={`w-5 h-5`}
             />
 
-            <div className="absolute left-[120%] bg-sidebar border border-sidebar-accent/40 px-2 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl">
+            <div className="absolute left-[120%] bg-sidebar border border-sidebar-accent/40 px-2 py-1.5 rounded-xl text-micro font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl">
               Workflows
             </div>
 
@@ -78,7 +78,7 @@ export const ForgeSidebar = () => {
             className="w-10 h-10 rounded-2xl text-muted-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all group relative"
           >
             <Settings className="w-5 h-5" />
-            <div className="absolute left-[120%] bg-sidebar border border-sidebar-accent/40 px-2 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl">
+            <div className="absolute left-[120%] bg-sidebar border border-sidebar-accent/40 px-2 py-1.5 rounded-xl text-micro font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl">
               Settings
             </div>
           </Button>

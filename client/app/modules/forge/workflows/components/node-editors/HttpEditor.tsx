@@ -25,7 +25,7 @@ const RESPONSE_TYPES = [
 ];
 
 const LABEL_CLASS =
-  "text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1";
+  "text-mini font-black uppercase tracking-widest text-muted-foreground ml-1";
 
 export function HttpEditor({ node, updateNodeData }: NodeEditorProps) {
   const data = node.data as unknown as HttpNode;
@@ -106,7 +106,7 @@ export function HttpEditor({ node, updateNodeData }: NodeEditorProps) {
             className="h-10 font-mono text-xs bg-accent/5 border-border/50 flex-1"
           />
         </div>
-        <p className="text-[10px] text-muted-foreground italic ml-1">
+        <p className="text-mini text-muted-foreground italic ml-1">
           Supports {"{{ template }}"} expressions from previous steps.
         </p>
       </div>
@@ -146,7 +146,7 @@ export function HttpEditor({ node, updateNodeData }: NodeEditorProps) {
         <Button
           variant="outline"
           size="sm"
-          className="mt-1 rounded-xl border-dashed h-8 font-black text-[10px] uppercase tracking-widest"
+          className="mt-1 rounded-xl border-dashed h-8 font-black text-mini uppercase tracking-widest"
           onClick={addHeader}
         >
           <Plus className="w-3 h-3 mr-1" /> Add Header
@@ -163,7 +163,7 @@ export function HttpEditor({ node, updateNodeData }: NodeEditorProps) {
               onValueChange={(val) => updateNodeData({ bodyType: val as any })}
             >
               <ComboboxInput
-                className="w-[130px] h-7 text-[10px] font-black bg-accent/10 border-border/50 pointer-events-auto"
+                className="w-[130px] h-7 text-mini font-black bg-accent/10 border-border/50 pointer-events-auto"
                 placeholder="JSON"
               />
               <ComboboxContent className="z-[100] pointer-events-auto">
@@ -193,7 +193,7 @@ export function HttpEditor({ node, updateNodeData }: NodeEditorProps) {
       {/* Advanced Settings */}
       <div className="flex flex-col gap-2">
         <button
-          className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-2 text-mini font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
           onClick={() => setAdvancedOpen((v) => !v)}
         >
           {advancedOpen ? (
@@ -260,7 +260,7 @@ export function HttpEditor({ node, updateNodeData }: NodeEditorProps) {
               />
               <div className="flex flex-col">
                 <span className="text-xs font-bold">Follow Redirects</span>
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-mini text-muted-foreground">
                   Automatically follow 3xx HTTP redirects
                 </span>
               </div>

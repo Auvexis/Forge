@@ -116,7 +116,7 @@ function VariableTree({
       <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-border/50 bg-background">
         <Search className="w-3 h-3 text-muted-foreground shrink-0" />
         <input
-          className="flex-1 bg-transparent text-[10px] outline-none placeholder:text-muted-foreground/50"
+          className="flex-1 bg-transparent text-mini outline-none placeholder:text-muted-foreground/50"
           placeholder="Search variables..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -126,14 +126,14 @@ function VariableTree({
       {/* Grouped chips */}
       {Array.from(grouped.entries()).map(([groupName, paths]) => (
         <div key={groupName} className="flex flex-col gap-1">
-          <span className="text-[9px] uppercase font-black tracking-widest text-muted-foreground/60 ml-0.5">
+          <span className="text-micro uppercase font-black tracking-widest text-muted-foreground/60 ml-0.5">
             {groupName}
           </span>
           <div className="flex flex-wrap gap-1.5">
             {paths.map((p) => (
               <button
                 key={p.path}
-                className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 text-[10px] px-2.5 py-1.5 rounded-lg border border-emerald-500/20 transition-all active:scale-95 font-bold flex items-center gap-1 max-w-full"
+                className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 text-mini px-2.5 py-1.5 rounded-lg border border-emerald-500/20 transition-all active:scale-95 font-bold flex items-center gap-1 max-w-full"
                 title={p.path}
                 onClick={() => onInject(paramKey, p.path)}
               >
@@ -147,7 +147,7 @@ function VariableTree({
       ))}
 
       {filtered.length === 0 && (
-        <p className="text-[10px] text-muted-foreground/50 italic px-1">
+        <p className="text-mini text-muted-foreground/50 italic px-1">
           No variables match "{search}"
         </p>
       )}
@@ -174,7 +174,7 @@ export function PluginEditor({
     <div className="flex flex-col gap-6">
       {/* Step name */}
       <div className="flex flex-col gap-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
           Step Name
         </label>
         <Input
@@ -187,7 +187,7 @@ export function PluginEditor({
 
       {/* Plugin selector */}
       <div className="flex flex-col gap-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
           Integration (Plugin)
         </label>
         <Combobox
@@ -220,7 +220,7 @@ export function PluginEditor({
       {/* Action selector */}
       {selectedPlugin && (
         <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+          <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
             Action
           </label>
           <Combobox
@@ -258,7 +258,7 @@ export function PluginEditor({
         <div className="flex flex-col gap-5 mt-2">
           <div className="flex items-center gap-2 border-b border-border/50 pb-2">
             <div className="w-1.5 h-4 bg-primary rounded-full" />
-            <h3 className="text-[11px] font-black text-foreground/70 uppercase tracking-widest">
+            <h3 className="text-tiny font-black text-foreground/70 uppercase tracking-widest">
               Parameters
             </h3>
           </div>
@@ -277,21 +277,21 @@ export function PluginEditor({
                   {/* Param header */}
                   <div className="flex justify-between items-start">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                      <span className="text-mini font-black uppercase tracking-widest text-foreground">
                         {(paramVal as any)["x-label"] || paramKey}
                       </span>
                       {(paramVal as any).description && (
-                        <span className="text-[9px] text-muted-foreground leading-none mt-0.5">
+                        <span className="text-micro text-muted-foreground leading-none mt-0.5">
                           {(paramVal as any).description}
                         </span>
                       )}
                       {isRequired && (
-                        <span className="text-[9px] font-black uppercase text-destructive/80 leading-none mt-0.5">
+                        <span className="text-micro font-black uppercase text-destructive/80 leading-none mt-0.5">
                           Required field
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] bg-accent/20 px-1.5 py-0.5 rounded text-muted-foreground uppercase font-black tracking-tighter border border-border/30">
+                    <span className="text-mini bg-accent/20 px-1.5 py-0.5 rounded text-muted-foreground uppercase font-black tracking-tighter border border-border/30">
                       {(paramVal as any).type}
                     </span>
                   </div>
@@ -385,7 +385,7 @@ export function PluginEditor({
                   {/* Variable tree — only shown when there are upstream nodes */}
                   {upstreamNodes.length > 0 && (
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground flex items-center gap-1.5 opacity-60">
+                      <span className="text-mini uppercase font-black tracking-widest text-muted-foreground flex items-center gap-1.5 opacity-60">
                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                         Map variables
                       </span>

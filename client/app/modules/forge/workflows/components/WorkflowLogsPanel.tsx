@@ -60,7 +60,7 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
               <ChevronLeft className="w-4 h-4" />
            </Button>
            <div className="flex flex-col">
-              <span className="text-[10px] font-mono text-muted-foreground">EX-ID: {selectedExec.id}</span>
+              <span className="text-mini font-mono text-muted-foreground">EX-ID: {selectedExec.id}</span>
               <span className="text-xs font-bold leading-none mt-0.5">Execution Details</span>
            </div>
         </div>
@@ -91,7 +91,7 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
              </div>
              <div className="flex flex-col">
                 <span className="text-xs font-black uppercase tracking-wider">{selectedExec.status}</span>
-                <span className="text-[10px] text-muted-foreground font-medium">
+                <span className="text-mini text-muted-foreground font-medium">
                   {selectedExec.status === "SUCCESS" 
                     ? "Workflow finished successfully" 
                     : selectedExec.status === "RUNNING"
@@ -103,18 +103,18 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
 
           {/* Trigger Data */}
           <div className="flex flex-col gap-2">
-             <div className="flex items-center gap-2 text-muted-foreground uppercase tracking-widest text-[9px] font-black ml-1">
+             <div className="flex items-center gap-2 text-muted-foreground uppercase tracking-widest text-micro font-black ml-1">
                 <Database className="w-3 h-3" />
                 Trigger Payload
              </div>
-             <div className="bg-background/50 border border-border/50 rounded-xl p-3 font-mono text-[10px] whitespace-pre-wrap break-all leading-relaxed">
+             <div className="bg-background/50 border border-border/50 rounded-xl p-3 font-mono text-mini whitespace-pre-wrap break-all leading-relaxed">
                 {JSON.stringify(context.trigger, null, 2)}
              </div>
           </div>
 
           {/* Steps Trace */}
           <div className="flex flex-col gap-3">
-             <div className="flex items-center gap-2 text-muted-foreground uppercase tracking-widest text-[9px] font-black ml-1">
+             <div className="flex items-center gap-2 text-muted-foreground uppercase tracking-widest text-micro font-black ml-1">
                 <ArrowRight className="w-3 h-3" />
                 Steps Execution Trace
              </div>
@@ -124,7 +124,7 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
                      <div className="flex items-center justify-between p-3 border-b border-border/10">
                         <div className="flex items-center gap-2.5">
                            <div className={`w-2 h-2 rounded-full ${val.status === 'SUCCESS' ? 'bg-emerald-500' : 'bg-destructive'}`} />
-                           <span className="text-[11px] font-bold font-mono">{key}</span>
+                           <span className="text-tiny font-bold font-mono">{key}</span>
                         </div>
                         <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
                            val.status === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-destructive/10 text-destructive'
@@ -135,7 +135,7 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
                      {val.error && (
                         <div className="p-3 bg-destructive/5 flex items-start gap-2.5 border-t border-destructive/10">
                            <AlertTriangle className="w-3.5 h-3.5 text-destructive mt-0.5 shrink-0" />
-                           <p className="text-[10px] text-destructive leading-relaxed font-semibold">
+                           <p className="text-mini text-destructive leading-relaxed font-semibold">
                               {val.error}
                            </p>
                         </div>
@@ -148,7 +148,7 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
                    <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl flex items-start gap-3 mt-2">
                       <XCircle className="w-5 h-5 text-destructive mt-0.5 shrink-0" />
                       <div className="flex flex-col gap-1">
-                         <span className="text-[10px] font-black uppercase text-destructive tracking-widest">Global Error</span>
+                         <span className="text-mini font-black uppercase text-destructive tracking-widest">Global Error</span>
                          <p className="text-xs text-destructive font-medium leading-relaxed">
                             {steps.error}
                          </p>
@@ -175,7 +175,7 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
     <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[450px] z-[60] bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 origin-top h-[600px]">
       <div className="flex items-center justify-between p-4 border-b border-border bg-accent/20 shrink-0">
         <div className="flex flex-col">
-          <h3 className="font-black text-[9px] uppercase tracking-widest text-foreground/50">History & Monitoring</h3>
+          <h3 className="font-black text-micro uppercase tracking-widest text-foreground/50">History & Monitoring</h3>
           <span className="text-sm font-bold">Execution Logs</span>
         </div>
         {!selectedExec && (
@@ -185,7 +185,7 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
               size="sm" 
               onClick={handleClear}
               disabled={clearing || executions.length === 0}
-              className="h-7 text-[10px] font-black uppercase text-destructive hover:bg-destructive/10 rounded-lg gap-1.5"
+              className="h-7 text-mini font-black uppercase text-destructive hover:bg-destructive/10 rounded-lg gap-1.5"
             >
               {clearing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
               Clear All
@@ -217,7 +217,7 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
                 <div className="w-12 h-12 rounded-full border-2 border-dashed border-current flex items-center justify-center mb-1">
                    <Clock className="w-6 h-6" />
                 </div>
-                <span className="text-[11px] font-black uppercase tracking-wider">No executions yet</span>
+                <span className="text-tiny font-black uppercase tracking-wider">No executions yet</span>
               </div>
             ) : (
               <div className="divide-y divide-border/50">
@@ -246,15 +246,15 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
                       <div className="flex flex-col">
                          <div className="flex items-center gap-2">
                             <span className="text-xs font-bold leading-none">{exec.status}</span>
-                            <span className="text-[10px] text-muted-foreground font-mono opacity-50">#{exec.id.split('_').pop()}</span>
+                            <span className="text-mini text-muted-foreground font-mono opacity-50">#{exec.id.split('_').pop()}</span>
                          </div>
                          <div className="flex items-center gap-3 mt-1.5 grayscale group-hover:grayscale-0 transition-all">
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                            <div className="flex items-center gap-1 text-mini text-muted-foreground font-medium">
                               <Calendar className="w-3 h-3" />
                               {formatTime(exec.start_time)}
                             </div>
                             {exec.end_time && (
-                              <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                              <div className="flex items-center gap-1 text-mini text-muted-foreground font-medium">
                                  <Clock className="w-3 h-3" />
                                  {Math.max(1, Math.round((exec.end_time - exec.start_time) / 1000))}s
                               </div>
@@ -273,7 +273,7 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
 
       {!selectedExec && (
         <div className="p-4 bg-accent/10 border-t border-border flex justify-center shrink-0">
-           <p className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground/60">
+           <p className="text-micro font-black uppercase tracking-[0.1em] text-muted-foreground/60">
              Last {executions.length} executions tracked natively
            </p>
         </div>

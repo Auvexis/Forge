@@ -93,7 +93,7 @@ const PluginBody = ({
           .map(([key, value]) => (
             <div
               key={key}
-              className="flex items-center justify-between text-[10px] text-muted-foreground"
+              className="flex items-center justify-between text-mini text-muted-foreground"
             >
               <span className="truncate max-w-[100px]">{key}:</span>
               <span className="truncate max-w-[150px] font-mono bg-muted/50 px-1 rounded">
@@ -102,7 +102,7 @@ const PluginBody = ({
             </div>
           ))}
         {Object.keys(data.params).length > 3 && (
-          <span className="text-[10px] text-muted-foreground/70 italic mt-1">
+          <span className="text-mini text-muted-foreground/70 italic mt-1">
             +{Object.keys(data.params).length - 3} more
           </span>
         )}
@@ -117,7 +117,7 @@ const CodeBody = ({ data }: { data: CodeNode }) => (
       {data.name || "Code Block"}
     </span>
     <div className="mt-1 p-2 bg-muted/30 rounded-md border border-border/30 max-h-[60px] overflow-hidden">
-      <pre className="text-[9px] font-mono text-muted-foreground leading-tight whitespace-pre-wrap break-all">
+      <pre className="text-micro font-mono text-muted-foreground leading-tight whitespace-pre-wrap break-all">
         {data.script
           ? data.script.substring(0, 120) +
             (data.script.length > 120 ? "..." : "")
@@ -133,10 +133,10 @@ const IfBody = ({ data }: { data: IfNode }) => (
       {data.name || "Conditional"}
     </span>
     <div className="mt-1 flex flex-col gap-1">
-      <span className="text-[10px] text-muted-foreground font-medium">
+      <span className="text-mini text-muted-foreground font-medium">
         CONDITION:
       </span>
-      <code className="text-[10px] font-mono bg-violet-500/5 text-violet-400 px-2 py-1 rounded border border-violet-500/10 truncate block">
+      <code className="text-mini font-mono bg-violet-500/5 text-violet-400 px-2 py-1 rounded border border-violet-500/10 truncate block">
         {data.condition || "—"}
       </code>
     </div>
@@ -149,15 +149,15 @@ const LoopBody = ({ data }: { data: LoopNode }) => (
       {data.name || "Loop / ForEach"}
     </span>
     <div className="mt-1 flex flex-col gap-1">
-      <span className="text-[10px] text-muted-foreground font-medium">
+      <span className="text-mini text-muted-foreground font-medium">
         COLLECTION:
       </span>
-      <code className="text-[10px] font-mono bg-cyan-500/5 text-cyan-400 px-2 py-1 rounded border border-cyan-500/10 truncate block">
+      <code className="text-mini font-mono bg-cyan-500/5 text-cyan-400 px-2 py-1 rounded border border-cyan-500/10 truncate block">
         {data.collection || "—"}
       </code>
     </div>
     <div className="mt-1 flex items-center gap-2">
-      <span className="text-[9px] text-muted-foreground">
+      <span className="text-micro text-muted-foreground">
         Max: <strong>{data.maxIterations || 1000}</strong> iterations
       </span>
     </div>
@@ -170,10 +170,10 @@ const SubWorkflowBody = ({ data }: { data: SubWorkflowNode }) => (
       {data.name || "Sub-Workflow"}
     </span>
     <div className="mt-1 flex flex-col gap-1">
-      <span className="text-[10px] text-muted-foreground font-medium">
+      <span className="text-mini text-muted-foreground font-medium">
         TARGET WORKFLOW:
       </span>
-      <code className="text-[10px] font-mono bg-rose-500/5 text-rose-400 px-2 py-1 rounded border border-rose-500/10 truncate block">
+      <code className="text-mini font-mono bg-rose-500/5 text-rose-400 px-2 py-1 rounded border border-rose-500/10 truncate block">
         {data.workflowId || "not configured"}
       </code>
     </div>
@@ -184,7 +184,7 @@ const SubWorkflowBody = ({ data }: { data: SubWorkflowNode }) => (
           .map(([key, value]) => (
             <span
               key={key}
-              className="text-[9px] text-muted-foreground truncate"
+              className="text-micro text-muted-foreground truncate"
             >
               {key} ← {value}
             </span>
@@ -200,10 +200,10 @@ const HttpBody = ({ data }: { data: HttpNode }) => (
       {data.name || "HTTP Request"}
     </span>
     <div className="mt-1 flex items-center gap-2">
-      <span className="text-[10px] font-black px-1.5 py-0.5 bg-orange-500/10 text-orange-500 rounded border border-orange-500/20 shrink-0">
+      <span className="text-mini font-black px-1.5 py-0.5 bg-orange-500/10 text-orange-500 rounded border border-orange-500/20 shrink-0">
         {data.method || "GET"}
       </span>
-      <code className="text-[10px] font-mono text-muted-foreground truncate">
+      <code className="text-mini font-mono text-muted-foreground truncate">
         {data.url || "https://..."}
       </code>
     </div>
@@ -216,7 +216,7 @@ const EventBody = ({ data }: { data: EventNode }) => (
       {data.name || "Emit Event"}
     </span>
     <div className="mt-1">
-      <code className="text-[10px] font-mono bg-yellow-500/5 text-yellow-400 px-2 py-1 rounded border border-yellow-500/10 block truncate">
+      <code className="text-mini font-mono bg-yellow-500/5 text-yellow-400 px-2 py-1 rounded border border-yellow-500/10 block truncate">
         {data.eventName || "event.name"}
       </code>
     </div>

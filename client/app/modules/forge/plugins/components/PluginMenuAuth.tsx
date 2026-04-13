@@ -124,7 +124,7 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
                     <span className="text-red-500 ml-0.5">*</span>
                   )}
                   {isLocked && (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full ml-auto">
+                    <span className="flex items-center gap-1 text-mini font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full ml-auto">
                       <Lock className="w-2.5 h-2.5" />
                       ENV
                     </span>

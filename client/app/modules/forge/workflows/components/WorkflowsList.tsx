@@ -143,7 +143,7 @@ export const WorkflowsList = () => {
                 <p className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
                   No modules detected
                 </p>
-                <p className="text-[10px] text-muted-foreground/20 font-bold uppercase tracking-widest mt-1">
+                <p className="text-mini text-muted-foreground/20 font-bold uppercase tracking-widest mt-1">
                   Try adjusting your search filters
                 </p>
               </div>

@@ -38,7 +38,7 @@ export const WorkflowDashboardDock = ({
             </h1>
             <div className="flex items-center gap-1.5">
                <div className="w-1 h-1 rounded-full bg-rose-500 animate-pulse shadow-[0_0_5px_#f43f5e]" />
-               <span className="text-[9px] text-muted-foreground uppercase font-semibold tracking-wider leading-none opacity-40">
+               <span className="text-micro text-muted-foreground uppercase font-semibold tracking-wider leading-none opacity-40">
                  {moduleCount} Modules Active
                </span>
             </div>
@@ -77,7 +77,7 @@ export const WorkflowDashboardDock = ({
               placeholder="Query modules..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-8 w-[140px] bg-sidebar-accent/5 hover:bg-sidebar-accent/10 border-transparent focus:outline-none focus:border-sidebar-accent/20 rounded-full font-bold text-[10px] transition-all placeholder:text-muted-foreground/20 uppercase tracking-tight text-foreground"
+              className="pl-9 h-8 w-[140px] bg-sidebar-accent/5 hover:bg-sidebar-accent/10 border-transparent focus:outline-none focus:border-sidebar-accent/20 rounded-full font-bold text-mini transition-all placeholder:text-muted-foreground/20 uppercase tracking-tight text-foreground"
             />
           </div>
         </div>
@@ -108,7 +108,7 @@ export const WorkflowDashboardDock = ({
           <Button
             onClick={onCreate}
             disabled={isCreating}
-            className="h-9 px-5 rounded-full font-black uppercase text-[9px] tracking-[0.15em] gap-2 bg-rose-600 text-white hover:bg-rose-500 shadow-[0_5px_20px_rgba(244,63,94,0.15)] active:scale-95 transition-all"
+            className="h-9 px-5 rounded-full font-black uppercase text-micro tracking-[0.15em] gap-2 bg-rose-600 text-white hover:bg-rose-500 shadow-[0_5px_20px_rgba(244,63,94,0.15)] active:scale-95 transition-all"
           >
             {isCreating ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />

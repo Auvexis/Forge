@@ -147,7 +147,7 @@ export const AddNodeOverlay = ({
             </Button>
           )}
           <div className="flex flex-col">
-            <h3 className="font-black text-[9px] uppercase tracking-widest text-foreground/50">
+            <h3 className="font-black text-micro uppercase tracking-widest text-foreground/50">
               Add component
             </h3>
             <span className="text-sm font-bold truncate max-w-[280px]">
@@ -188,7 +188,7 @@ export const AddNodeOverlay = ({
         {pluginsLoading ? (
           <div className="flex flex-col items-center justify-center h-full gap-2 py-10">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">
+            <p className="text-mini font-black uppercase tracking-widest text-muted-foreground italic">
               Syncing Forge...
             </p>
           </div>
@@ -199,7 +199,7 @@ export const AddNodeOverlay = ({
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2 px-1 mb-1">
                 <div className="w-1 h-3.5 bg-violet-500 rounded-full" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                <span className="text-mini font-black uppercase tracking-widest text-muted-foreground">
                   Logic & Control
                 </span>
               </div>
@@ -224,7 +224,7 @@ export const AddNodeOverlay = ({
                       <span className="font-bold text-xs truncate uppercase tracking-tight">
                         {def.label}
                       </span>
-                      <span className="text-[10px] text-muted-foreground line-clamp-1 opacity-70">
+                      <span className="text-mini text-muted-foreground line-clamp-1 opacity-70">
                         {def.description}
                       </span>
                     </div>
@@ -237,7 +237,7 @@ export const AddNodeOverlay = ({
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2 px-1 mb-1">
                 <div className="w-1 h-3.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                <span className="text-mini font-black uppercase tracking-widest text-muted-foreground">
                   Integrations
                 </span>
               </div>
@@ -264,7 +264,7 @@ export const AddNodeOverlay = ({
                       <span className="font-bold text-xs truncate uppercase tracking-tight">
                         {p.manifest.metadata.name}
                       </span>
-                      <span className="text-[10px] text-muted-foreground line-clamp-1 opacity-70">
+                      <span className="text-mini text-muted-foreground line-clamp-1 opacity-70">
                         {p.manifest.metadata.description}
                       </span>
                     </div>
@@ -298,7 +298,7 @@ export const AddNodeOverlay = ({
                     <span className="font-bold text-xs truncate uppercase tracking-tight">
                       {p.manifest.metadata.name}
                     </span>
-                    <span className="text-[10px] text-muted-foreground line-clamp-1 opacity-70">
+                    <span className="text-mini text-muted-foreground line-clamp-1 opacity-70">
                       {p.manifest.metadata.description}
                     </span>
                   </div>
@@ -333,7 +333,7 @@ export const AddNodeOverlay = ({
                     <span className="font-bold text-xs uppercase tracking-tight">
                       {methodVal.metadata.label || methodKey}
                     </span>
-                    <span className="text-[10px] text-muted-foreground line-clamp-1 opacity-70">
+                    <span className="text-mini text-muted-foreground line-clamp-1 opacity-70">
                       {methodVal.metadata.description}
                     </span>
                   </div>
@@ -345,7 +345,7 @@ export const AddNodeOverlay = ({
         {!pluginsLoading && view === "categories" && plugins.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 gap-3">
             <Blocks className="w-10 h-10 text-muted-foreground/20" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <p className="text-mini font-black uppercase tracking-widest text-muted-foreground">
               No modules found.
             </p>
           </div>

@@ -9,7 +9,7 @@ export function IfEditor({ node, updateNodeData }: NodeEditorProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
           Step Name
         </label>
         <Input
@@ -23,16 +23,16 @@ export function IfEditor({ node, updateNodeData }: NodeEditorProps) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 mb-1">
           <GitBranch className="w-3.5 h-3.5 text-violet-500" />
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          <label className="text-mini font-black uppercase tracking-widest text-muted-foreground">
             Condition Expression
           </label>
         </div>
-        <div className="flex items-center gap-2 p-2 text-[10px] bg-violet-500/5 border border-violet-500/10 rounded-lg text-violet-500">
+        <div className="flex items-center gap-2 p-2 text-mini bg-violet-500/5 border border-violet-500/10 rounded-lg text-violet-500">
           <span className="font-bold">
             JS expression evaluated against{" "}
-            <code className="text-[9px]">trigger</code>,{" "}
-            <code className="text-[9px]">steps</code>,{" "}
-            <code className="text-[9px]">variables</code>
+            <code className="text-micro">trigger</code>,{" "}
+            <code className="text-micro">steps</code>,{" "}
+            <code className="text-micro">variables</code>
           </span>
         </div>
         <textarea
@@ -45,7 +45,7 @@ export function IfEditor({ node, updateNodeData }: NodeEditorProps) {
       </div>
 
       <div className="flex flex-col gap-2 p-3 rounded-xl bg-accent/5 border border-border/50">
-        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+        <span className="text-mini font-black uppercase tracking-widest text-muted-foreground">
           Output Branches
         </span>
         <div className="flex gap-3 mt-1">
@@ -58,7 +58,7 @@ export function IfEditor({ node, updateNodeData }: NodeEditorProps) {
             <span className="text-xs font-bold text-red-500">Else (false)</span>
           </div>
         </div>
-        <p className="text-[10px] text-muted-foreground italic leading-relaxed mt-1">
+        <p className="text-mini text-muted-foreground italic leading-relaxed mt-1">
           Connect the green handle (top) for the "true" path and the red handle
           (bottom) for the "false" path.
         </p>

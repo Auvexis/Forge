@@ -1,4 +1,4 @@
-import type { FC } from "react";
+import { memo, type FC } from "react";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -27,7 +27,7 @@ interface Props {
   onDelete: (e: React.MouseEvent) => void;
 }
 
-export const WorkflowModuleCard: FC<Props> = ({
+export const WorkflowModuleCard: FC<Props> = memo(({
   workflow,
   isExecuting,
   onEdit,
@@ -48,11 +48,11 @@ export const WorkflowModuleCard: FC<Props> = ({
           <div
             className={`w-1.5 h-1.5 rounded-full ${workflow.metadata.isActive ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" : "bg-muted-foreground/50"}`}
           />
-          <span className="text-[9px] font-black uppercase tracking-widest leading-none">
+          <span className="text-micro font-black uppercase tracking-widest leading-none">
             {workflow.metadata.isActive ? "Live" : "Draft"}
           </span>
         </div>
-        <span className="text-[11px] font-mono font-bold text-muted-foreground opacity-40 uppercase tracking-tighter">
+        <span className="text-tiny font-mono font-bold text-muted-foreground opacity-40 uppercase tracking-tighter">
           #{workflow.metadata.id.slice(-6)}
         </span>
       </div>
@@ -71,7 +71,7 @@ export const WorkflowModuleCard: FC<Props> = ({
           <h3 className="text-[15px] font-black text-foreground truncate mb-1">
             {workflow.metadata.name}
           </h3>
-          <p className="text-[11px] font-medium text-muted-foreground line-clamp-2 leading-relaxed opacity-70">
+          <p className="text-tiny font-medium text-muted-foreground line-clamp-2 leading-relaxed opacity-70">
             {workflow.metadata.description || "No description provided."}
           </p>
         </div>
@@ -87,7 +87,7 @@ export const WorkflowModuleCard: FC<Props> = ({
               e.stopPropagation();
               onLogs();
             }}
-            className="h-8 px-3 rounded-xl bg-accent/30 text-[9px] font-black uppercase tracking-widest gap-2 hover:bg-primary/10 hover:text-primary transition-all"
+            className="h-8 px-3 rounded-xl bg-accent/30 text-micro font-black uppercase tracking-widest gap-2 hover:bg-primary/10 hover:text-primary transition-all"
           >
             <Calendar className="w-3 h-3" />
             Logs
@@ -100,7 +100,7 @@ export const WorkflowModuleCard: FC<Props> = ({
               e.stopPropagation();
               onRun();
             }}
-            className={`h-8 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2 transition-all ${
+            className={`h-8 px-3 rounded-xl text-micro font-black uppercase tracking-widest gap-2 transition-all ${
               isExecuting
                 ? "bg-amber-500/10 text-amber-500"
                 : "bg-primary/10 text-primary hover:bg-primary/20"
@@ -137,7 +137,7 @@ export const WorkflowModuleCard: FC<Props> = ({
                 onClick={() => onEdit()}
               >
                 <Edit2 className="w-4 h-4 text-primary" />
-                <span className="text-[11px] font-bold">Configure Logic</span>
+                <span className="text-tiny font-bold">Configure Logic</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="gap-3 py-2.5 px-3 focus:bg-accent rounded-xl mb-1 cursor-pointer"
@@ -156,7 +156,7 @@ export const WorkflowModuleCard: FC<Props> = ({
                 }}
               >
                 <Download className="w-4 h-4 text-primary" />
-                <span className="text-[11px] font-bold">Export Module</span>
+                <span className="text-tiny font-bold">Export Module</span>
               </DropdownMenuItem>
               <div className="h-px bg-border/40 my-1 mx-2" />
               <DropdownMenuItem
@@ -164,7 +164,7 @@ export const WorkflowModuleCard: FC<Props> = ({
                 className="text-destructive focus:bg-destructive/10 gap-3 py-2.5 px-3 rounded-xl cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
-                <span className="text-[11px] font-bold">Purge Module</span>
+                <span className="text-tiny font-bold">Purge Module</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -172,4 +172,4 @@ export const WorkflowModuleCard: FC<Props> = ({
       </div>
     </div>
   );
-};
+});

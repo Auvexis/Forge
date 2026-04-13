@@ -1,4 +1,4 @@
-import type { FC } from "react";
+import { memo, type FC } from "react";
 import { Loader2, Check, X } from "lucide-react";
 
 type ExecutionStatus = "idle" | "running" | "success" | "failed";
@@ -7,7 +7,7 @@ interface StatusIndicatorProps {
   status: ExecutionStatus;
 }
 
-export const StatusIndicator: FC<StatusIndicatorProps> = ({ status }) => {
+export const StatusIndicator: FC<StatusIndicatorProps> = memo(({ status }) => {
   if (status === "idle") return null;
 
   return (
@@ -29,4 +29,4 @@ export const StatusIndicator: FC<StatusIndicatorProps> = ({ status }) => {
       )}
     </div>
   );
-};
+});

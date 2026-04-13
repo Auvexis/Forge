@@ -204,17 +204,17 @@ export const NodeEditorPanel = ({
       <div className="flex items-center justify-between p-4 border-b border-border bg-accent/20 shrink-0">
         <div className="flex flex-col gap-1 flex-1">
           <div className="flex items-center justify-between">
-            <h3 className="font-black text-[9px] uppercase tracking-widest text-foreground/50">
+            <h3 className="font-black text-micro uppercase tracking-widest text-foreground/50">
               Component Config
             </h3>
             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-background/50 border border-border/50">
-              <span className="text-[10px] font-mono text-muted-foreground uppercase">ID:</span>
+              <span className="text-mini font-mono text-muted-foreground uppercase">ID:</span>
               <input
                 value={localId}
                 onChange={(e) => setLocalId(e.target.value)}
                 onBlur={() => handleIdChange(localId)}
                 onKeyDown={(e) => e.key === "Enter" && handleIdChange(localId)}
-                className="bg-transparent border-none outline-none text-[10px] font-mono font-black text-primary w-24"
+                className="bg-transparent border-none outline-none text-mini font-mono font-black text-primary w-24"
                 spellCheck={false}
               />
             </div>

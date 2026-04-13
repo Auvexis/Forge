@@ -48,10 +48,10 @@ export const PluginMenu = ({
               <div className="absolute inset-0 blur-xl bg-primary/20 animate-pulse" />
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60">
+              <span className="text-mini font-black uppercase tracking-[0.2em] text-primary/60">
                 Synchronizing Runtime
               </span>
-              <span className="text-[9px] text-muted-foreground/40 font-bold uppercase tracking-widest mt-1">
+              <span className="text-micro text-muted-foreground/40 font-bold uppercase tracking-widest mt-1">
                 Initializing Secure Connection...
               </span>
             </div>
@@ -80,25 +80,25 @@ export const PluginMenu = ({
                           {plugin?.manifest.metadata.name}
                         </h2>
                       </div>
-                      <p className="text-[13px] text-muted-foreground font-medium mt-1.5 opacity-80 leading-relaxed max-w-md">
+                      <p className="text-small text-muted-foreground font-medium mt-1.5 opacity-80 leading-relaxed max-w-md">
                         {plugin?.manifest.metadata.description}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-3 mt-1">
                       <div className="flex items-center gap-2 px-2 py-0.5 rounded-lg bg-sidebar-accent/30 border border-sidebar-accent/50">
-                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-60">
+                        <span className="text-micro font-black text-muted-foreground uppercase tracking-widest opacity-60">
                           ID
                         </span>
-                        <span className="text-[10px] font-mono font-bold text-primary/80">
+                        <span className="text-mini font-mono font-bold text-primary/80">
                           {pluginId.toUpperCase()}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 px-2 py-0.5 rounded-lg bg-sidebar-accent/30 border border-sidebar-accent/50">
-                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-60">
+                        <span className="text-micro font-black text-muted-foreground uppercase tracking-widest opacity-60">
                           Ver
                         </span>
-                        <span className="text-[10px] font-mono font-bold text-muted-foreground">
+                        <span className="text-mini font-mono font-bold text-muted-foreground">
                           {plugin?.manifest.metadata.version}
                         </span>
                       </div>
@@ -129,11 +129,11 @@ export const PluginMenu = ({
                   </div>
                   <div className="flex flex-col items-start">
                     <span
-                      className={`text-[10px] font-black uppercase tracking-widest leading-none ${view === PluginMenuView.METHODS ? "text-foreground" : "text-muted-foreground"}`}
+                      className={`text-mini font-black uppercase tracking-widest leading-none ${view === PluginMenuView.METHODS ? "text-foreground" : "text-muted-foreground"}`}
                     >
                       Methods
                     </span>
-                    <span className="text-[9px] font-bold text-muted-foreground opacity-40 uppercase tracking-tighter">
+                    <span className="text-micro font-bold text-muted-foreground opacity-40 uppercase tracking-tighter">
                       System Logic
                     </span>
                   </div>
@@ -153,11 +153,11 @@ export const PluginMenu = ({
                   </div>
                   <div className="flex flex-col items-start">
                     <span
-                      className={`text-[10px] font-black uppercase tracking-widest leading-none ${view === PluginMenuView.AUTH ? "text-foreground" : "text-muted-foreground"}`}
+                      className={`text-mini font-black uppercase tracking-widest leading-none ${view === PluginMenuView.AUTH ? "text-foreground" : "text-muted-foreground"}`}
                     >
                       Authorization
                     </span>
-                    <span className="text-[9px] font-bold text-muted-foreground opacity-40 uppercase tracking-tighter">
+                    <span className="text-micro font-bold text-muted-foreground opacity-40 uppercase tracking-tighter">
                       Secure Access
                     </span>
                   </div>
@@ -182,11 +182,11 @@ export const PluginMenu = ({
             <footer className="px-8 py-5 border-t border-sidebar-accent/20 bg-sidebar/50 backdrop-blur-md flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 italic">
+                <span className="text-mini font-black uppercase tracking-widest text-muted-foreground opacity-60 italic">
                   Runtime Synchronized
                 </span>
               </div>
-              <p className="text-[11px] font-mono font-bold text-muted-foreground/30 uppercase">
+              <p className="text-tiny font-mono font-bold text-muted-foreground/30 uppercase">
                 Forge.Node.Engine::v1.0.4-LTS
               </p>
             </footer>

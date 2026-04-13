@@ -5,7 +5,7 @@ import type { NodeEditorProps } from "./types";
 import type { EventNode } from "../../types/workflow-types";
 
 const LABEL_CLASS =
-  "text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1";
+  "text-mini font-black uppercase tracking-widest text-muted-foreground ml-1";
 
 export function EmitEventEditor({ node, updateNodeData }: NodeEditorProps) {
   const data = node.data as unknown as EventNode;
@@ -60,7 +60,7 @@ export function EmitEventEditor({ node, updateNodeData }: NodeEditorProps) {
             className="h-10 font-mono pl-9 bg-accent/5 border-border/50 text-yellow-500 font-bold"
           />
         </div>
-        <p className="text-[10px] text-muted-foreground italic ml-1">
+        <p className="text-mini text-muted-foreground italic ml-1">
           All active workflows with an Event trigger listening for this name
           will be executed.
         </p>
@@ -70,7 +70,7 @@ export function EmitEventEditor({ node, updateNodeData }: NodeEditorProps) {
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-1">
           <label className={LABEL_CLASS}>Payload</label>
-          <p className="text-[10px] text-muted-foreground ml-1 opacity-70 italic">
+          <p className="text-mini text-muted-foreground ml-1 opacity-70 italic">
             Map context values to event payload fields. Values support{"  "}
             {"{{ template }}"} expressions.
           </p>
@@ -83,7 +83,7 @@ export function EmitEventEditor({ node, updateNodeData }: NodeEditorProps) {
               className="flex flex-col gap-1.5 p-3 border border-border/50 rounded-xl bg-accent/5"
             >
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider flex-1">
+                <span className="text-mini font-black text-muted-foreground uppercase tracking-wider flex-1">
                   Payload Key
                 </span>
                 <Button
@@ -116,7 +116,7 @@ export function EmitEventEditor({ node, updateNodeData }: NodeEditorProps) {
         <Button
           variant="outline"
           size="sm"
-          className="mt-1 rounded-xl border-dashed h-9 font-black text-[10px] uppercase tracking-widest"
+          className="mt-1 rounded-xl border-dashed h-9 font-black text-mini uppercase tracking-widest"
           onClick={addEntry}
         >
           <Plus className="w-3.5 h-3.5 mr-1" /> Add Payload Field
@@ -126,10 +126,10 @@ export function EmitEventEditor({ node, updateNodeData }: NodeEditorProps) {
       {/* Preview */}
       {data.eventName && (
         <div className="p-3 bg-yellow-500/5 border border-yellow-500/20 rounded-xl">
-          <p className="text-[10px] font-black uppercase tracking-widest text-yellow-500 mb-1.5">
+          <p className="text-mini font-black uppercase tracking-widest text-yellow-500 mb-1.5">
             Preview
           </p>
-          <pre className="text-[10px] font-mono text-yellow-400/80 whitespace-pre-wrap">
+          <pre className="text-mini font-mono text-yellow-400/80 whitespace-pre-wrap">
             {JSON.stringify(
               {
                 event: data.eventName,

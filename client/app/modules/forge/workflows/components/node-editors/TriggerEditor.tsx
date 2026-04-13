@@ -104,7 +104,7 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
     <div className="flex flex-col gap-6">
       {/* Trigger Type */}
       <div className="flex flex-col gap-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
           Trigger Type
         </label>
         <Combobox
@@ -135,10 +135,10 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
       {data.type === "manual" && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+            <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
               Expected Manual Inputs
             </label>
-            <p className="text-[10px] text-muted-foreground ml-1 opacity-70 italic">
+            <p className="text-mini text-muted-foreground ml-1 opacity-70 italic">
               Fields user must fill when running manually.
             </p>
           </div>
@@ -206,7 +206,7 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
                       </ComboboxList>
                     </ComboboxContent>
                   </Combobox>
-                  <label className="flex items-center gap-2 text-[10px] font-bold bg-background border border-border rounded-lg px-3 uppercase tracking-tighter">
+                  <label className="flex items-center gap-2 text-mini font-bold bg-background border border-border rounded-lg px-3 uppercase tracking-tighter">
                     <input
                       type="checkbox"
                       checked={(field as any).required}
@@ -233,7 +233,7 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
           <Button
             variant="outline"
             size="sm"
-            className="mt-1 rounded-xl border-dashed h-9 font-black text-[10px] uppercase tracking-widest"
+            className="mt-1 rounded-xl border-dashed h-9 font-black text-mini uppercase tracking-widest"
             onClick={() => {
               const num = Object.keys(data.schema || {}).length;
               updateNodeData({
@@ -254,11 +254,11 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
         <div className="flex flex-col gap-4">
           {/* URL display */}
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+            <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
               Webhook URL
             </label>
             <div className="flex gap-2">
-              <div className="flex-1 p-3 bg-accent/10 border border-border/50 rounded-xl font-mono text-[10px] break-all select-all text-muted-foreground">
+              <div className="flex-1 p-3 bg-accent/10 border border-border/50 rounded-xl font-mono text-mini break-all select-all text-muted-foreground">
                 {webhookUrl}
               </div>
               <Button
@@ -274,14 +274,14 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
                 )}
               </Button>
             </div>
-            <p className="text-[10px] text-muted-foreground italic ml-1">
+            <p className="text-mini text-muted-foreground italic ml-1">
               Save the workflow to auto-generate a unique webhook path.
             </p>
           </div>
 
           {/* HTTP Methods */}
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+            <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
               Allowed HTTP Methods
             </label>
             <div className="flex gap-2 flex-wrap">
@@ -289,7 +289,7 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
                 <button
                   key={m}
                   onClick={() => toggleMethod(m)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-mini font-black uppercase tracking-wider border transition-all ${
                     allowedMethods.includes(m)
                       ? "bg-primary/20 border-primary/50 text-primary"
                       : "bg-accent/10 border-border/50 text-muted-foreground"
@@ -303,9 +303,9 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
 
           {/* Secret */}
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+            <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
               HMAC Secret{" "}
-              <span className="text-[9px] opacity-50 normal-case font-normal">
+              <span className="text-micro opacity-50 normal-case font-normal">
                 (recommended)
               </span>
             </label>
@@ -336,7 +336,7 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
                 <RefreshCw className="w-3.5 h-3.5" />
               </Button>
             </div>
-            <p className="text-[10px] text-muted-foreground italic ml-1">
+            <p className="text-mini text-muted-foreground italic ml-1">
               Validate requests using{" "}
               <code className="font-mono">X-Forge-Signature: sha256=…</code>
             </p>
@@ -348,7 +348,7 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
       {data.type === "cron" && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+            <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
               Cron Expression
             </label>
             <Input
@@ -360,11 +360,11 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
               className="h-10 font-mono bg-accent/5 border-border/50"
             />
             {humanCron && (
-              <p className="text-[10px] text-primary/80 ml-1 font-bold">
+              <p className="text-mini text-primary/80 ml-1 font-bold">
                 ↳ {humanCron}
               </p>
             )}
-            <div className="p-2 bg-blue-500/5 border border-blue-500/10 rounded-lg text-[10px] text-blue-400">
+            <div className="p-2 bg-blue-500/5 border border-blue-500/10 rounded-lg text-mini text-blue-400">
               Format:{" "}
               <code className="font-mono">minute hour day month weekday</code>
               <br />
@@ -376,7 +376,7 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
 
           {/* Presets */}
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+            <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
               Presets
             </label>
             <div className="grid grid-cols-2 gap-1.5">
@@ -390,8 +390,8 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
                       : "bg-accent/5 border-border/40 text-muted-foreground"
                   }`}
                 >
-                  <span className="text-[10px] font-bold">{p.label}</span>
-                  <code className="text-[9px] font-mono opacity-70">
+                  <span className="text-mini font-bold">{p.label}</span>
+                  <code className="text-micro font-mono opacity-70">
                     {p.value}
                   </code>
                 </button>
@@ -405,7 +405,7 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
       {data.type === "event" && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+            <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
               Internal Event Name
             </label>
             <Input
@@ -414,7 +414,7 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
               placeholder="video.uploaded"
               className="h-10 font-bold font-mono bg-accent/5 border-border/50 text-yellow-500"
             />
-            <p className="text-[10px] text-muted-foreground italic ml-1">
+            <p className="text-mini text-muted-foreground italic ml-1">
               This workflow will run whenever an{" "}
               <strong>Emit Event</strong> node or the{" "}
               <code className="font-mono">/events/emit</code> API emits this
@@ -423,10 +423,10 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
           </div>
 
           <div className="p-3 bg-yellow-500/5 border border-yellow-500/20 rounded-xl">
-            <p className="text-[10px] font-black uppercase tracking-widest text-yellow-500 mb-1">
+            <p className="text-mini font-black uppercase tracking-widest text-yellow-500 mb-1">
               How it works
             </p>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
+            <p className="text-mini text-muted-foreground leading-relaxed">
               Use an <strong>Emit Event</strong> node in another workflow to
               trigger this one. The emitted payload will be available in{" "}
               <code className="font-mono text-yellow-400">

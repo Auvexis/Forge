@@ -60,14 +60,14 @@ export function NodeOutputPanel({ nodeId, statusInfo }: Props) {
             <XCircle className="w-3.5 h-3.5 text-red-500" />
           )}
           <span
-            className={`text-[10px] font-black uppercase tracking-widest ${
+            className={`text-mini font-black uppercase tracking-widest ${
               status === "success" ? "text-emerald-500" : "text-red-500"
             }`}
           >
             {status === "success" ? "Output" : "Error"}
           </span>
           {duration && (
-            <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+            <div className="flex items-center gap-1 text-micro text-muted-foreground">
               <Clock className="w-2.5 h-2.5" />
               <span>{duration}s</span>
             </div>
@@ -106,7 +106,7 @@ export function NodeOutputPanel({ nodeId, statusInfo }: Props) {
               {error ?? "Unknown error"}
             </p>
           ) : (
-            <pre className="text-[11px] font-mono text-emerald-400 whitespace-pre-wrap break-all leading-relaxed antialiased">
+            <pre className="text-tiny font-mono text-emerald-400 whitespace-pre-wrap break-all leading-relaxed antialiased">
               {formattedOutput}
             </pre>
           )}

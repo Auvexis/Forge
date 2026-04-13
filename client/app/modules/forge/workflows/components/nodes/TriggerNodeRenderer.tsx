@@ -80,7 +80,7 @@ export const TriggerNodeRenderer = ({ id, data }: NodeProps<TriggerNodeType>) =>
               <span className="text-sm font-bold truncate text-foreground">
                 {title}
               </span>
-              <span className="text-[10px] uppercase font-medium tracking-tight text-muted-foreground">
+              <span className="text-mini uppercase font-medium tracking-tight text-muted-foreground">
                 Workflow Entry Point
               </span>
             </div>
@@ -94,29 +94,29 @@ export const TriggerNodeRenderer = ({ id, data }: NodeProps<TriggerNodeType>) =>
           {/* Body */}
           <div className={`flex flex-col p-3 bg-background/50 transition-all ${executionStatus === 'running' ? 'blur-[1px] opacity-50' : ''}`}>
             {data.type === "webhook" && data.webhookPath ? (
-              <code className="text-[9px] font-mono text-emerald-400/80 truncate">
+              <code className="text-micro font-mono text-emerald-400/80 truncate">
                 /webhooks/{data.webhookPath}
               </code>
             ) : data.type === "cron" && data.cronExpression ? (
-              <code className="text-[9px] font-mono text-amber-400/80">
+              <code className="text-micro font-mono text-amber-400/80">
                 {data.cronExpression}
               </code>
             ) : data.type === "event" && data.eventName ? (
-              <code className="text-[9px] font-mono text-purple-400/80">
+              <code className="text-micro font-mono text-purple-400/80">
                 {data.eventName}
               </code>
             ) : data.type === "manual" &&
               data.schema &&
               Object.keys(data.schema).length > 0 ? (
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-muted-foreground font-medium mb-1">
+                <span className="text-mini text-muted-foreground font-medium mb-1">
                   EXPECTED INPUTS:
                 </span>
                 <div className="flex flex-wrap gap-1">
                   {Object.keys(data.schema).map((key) => (
                     <span
                       key={key}
-                      className="text-[9px] px-1.5 py-0.5 bg-muted rounded border border-border/50"
+                      className="text-micro px-1.5 py-0.5 bg-muted rounded border border-border/50"
                     >
                       {key}
                     </span>
@@ -124,7 +124,7 @@ export const TriggerNodeRenderer = ({ id, data }: NodeProps<TriggerNodeType>) =>
                 </div>
               </div>
             ) : (
-              <span className="text-[11px] text-muted-foreground leading-relaxed italic">
+              <span className="text-tiny text-muted-foreground leading-relaxed italic">
                 {data.type === "manual"
                   ? "Standard manual execution."
                   : `Waiting for ${data.type} signal...`}

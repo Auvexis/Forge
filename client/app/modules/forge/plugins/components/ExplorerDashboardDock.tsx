@@ -45,7 +45,7 @@ export const ExplorerDashboardDock = ({
             </h1>
             <div className="flex items-center gap-1.5">
               <div className="w-1 h-1 rounded-full bg-blue-500 animate-pulse shadow-[0_0_5px_#3b82f6]" />
-              <span className="text-[9px] text-muted-foreground uppercase font-semibold tracking-wider leading-none opacity-40">
+              <span className="text-micro text-muted-foreground uppercase font-semibold tracking-wider leading-none opacity-40">
                 {nodeCount} Plugins Loaded
               </span>
             </div>
@@ -89,7 +89,7 @@ export const ExplorerDashboardDock = ({
               placeholder="Find entity..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-8 w-[140px] bg-sidebar-accent/5 hover:bg-sidebar-accent/10 border-transparent focus:outline-none focus:border-sidebar-accent/20 rounded-full font-bold text-[10px] transition-all placeholder:text-muted-foreground/20 uppercase tracking-tight text-foreground"
+              className="pl-9 h-8 w-[140px] bg-sidebar-accent/5 hover:bg-sidebar-accent/10 border-transparent focus:outline-none focus:border-sidebar-accent/20 rounded-full font-bold text-mini transition-all placeholder:text-muted-foreground/20 uppercase tracking-tight text-foreground"
             />
           </div>
         </div>

@@ -41,24 +41,24 @@ export const WorkflowSettingsPanel = ({ workflow, onUpdate, onClose }: Props) =>
 
       <div className="p-5 flex flex-col gap-5 overflow-y-auto">
         <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Unique Identifier (ID)</label>
+          <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">Unique Identifier (ID)</label>
           <div className="relative group/id">
             <Input 
               value={formData.id}
               onChange={(e) => setFormData(prev => ({ ...prev, id: e.target.value }))}
               onBlur={() => setFormData(prev => ({ ...prev, id: formatId(prev.id) }))}
-              className="bg-accent/10 border-border/50 h-10 font-mono text-[11px] font-bold pr-20"
+              className="bg-accent/10 border-border/50 h-10 font-mono text-tiny font-bold pr-20"
               placeholder="workflow_unique_id"
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-focus-within/id:opacity-100 transition-opacity">
-               <span className="text-[9px] font-mono text-primary font-black px-1.5 py-0.5 rounded bg-primary/10">ID SAFE</span>
+               <span className="text-micro font-mono text-primary font-black px-1.5 py-0.5 rounded bg-primary/10">ID SAFE</span>
             </div>
           </div>
-          <p className="text-[9px] text-muted-foreground/60 italic ml-1">Lower case, no spaces. Used in technical references.</p>
+          <p className="text-micro text-muted-foreground/60 italic ml-1">Lower case, no spaces. Used in technical references.</p>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Workflow Name</label>
+          <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">Workflow Name</label>
           <Input 
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
@@ -67,7 +67,7 @@ export const WorkflowSettingsPanel = ({ workflow, onUpdate, onClose }: Props) =>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Description</label>
+          <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">Description</label>
           <textarea 
             className="flex min-h-[100px] w-full rounded-md border border-border/50 bg-accent/10 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             value={formData.description}
@@ -78,7 +78,7 @@ export const WorkflowSettingsPanel = ({ workflow, onUpdate, onClose }: Props) =>
 
         <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 mt-2">
            <AlertCircle className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-           <p className="text-[11px] text-blue-500 leading-relaxed font-medium">
+           <p className="text-tiny text-blue-500 leading-relaxed font-medium">
              Changing the ID will create a new workflow record in the database. Existing execution logs will remain tied to the old ID.
            </p>
         </div>

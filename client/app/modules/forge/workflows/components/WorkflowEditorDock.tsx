@@ -59,7 +59,7 @@ export const WorkflowEditorDock = ({
                      ? 'bg-amber-500 text-amber-500 animate-pulse'
                      : 'bg-violet-500 text-violet-500'
                }`} />
-               <span className="text-[9px] text-muted-foreground uppercase font-semibold tracking-wider leading-none opacity-40">
+               <span className="text-micro text-muted-foreground uppercase font-semibold tracking-wider leading-none opacity-40">
                  {isStreaming ? 'Running...' : isDirty ? 'Unsaved Changes' : `ID: ${workflowId.slice(0, 8)}...`}
                </span>
             </div>
@@ -77,7 +77,7 @@ export const WorkflowEditorDock = ({
               className="h-8 rounded-full hover:bg-red-500/10 text-red-400 hover:text-red-500 gap-1.5 px-3 transition-all group/stop animate-in fade-in duration-300"
             >
               <Square className="w-3 h-3 fill-current group-hover/stop:scale-110 transition-transform" />
-              <span className="text-[10px] font-black uppercase tracking-widest">Stop</span>
+              <span className="text-mini font-black uppercase tracking-widest">Stop</span>
             </Button>
           ) : (
             /* ── Execute Button (default) ── */
@@ -93,7 +93,7 @@ export const WorkflowEditorDock = ({
                ) : (
                  <Play className="w-3 h-3 fill-current group-hover/run:scale-110 transition-transform" />
                )}
-               <span className="text-[10px] font-black uppercase tracking-widest">Execute</span>
+               <span className="text-mini font-black uppercase tracking-widest">Execute</span>
             </Button>
           )}
           <Button 
@@ -103,7 +103,7 @@ export const WorkflowEditorDock = ({
             className={`h-8 rounded-full gap-1.5 px-3 transition-all ${isLogsOpen ? 'bg-violet-500/10 text-violet-500' : 'text-muted-foreground hover:bg-sidebar-accent/10 hover:text-violet-500'}`}
           >
              <Activity className={`w-3.5 h-3.5 ${isLogsOpen ? 'animate-pulse' : ''}`} />
-             <span className="text-[10px] font-black uppercase tracking-widest">Logs</span>
+             <span className="text-mini font-black uppercase tracking-widest">Logs</span>
           </Button>
         </div>
 
@@ -117,7 +117,7 @@ export const WorkflowEditorDock = ({
             className="h-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-foreground gap-1.5 px-3 transition-all disabled:opacity-40"
           >
              <Plus className="w-3.5 h-3.5" />
-             <span className="text-[10px] font-black uppercase tracking-widest">Add Node</span>
+             <span className="text-mini font-black uppercase tracking-widest">Add Node</span>
           </Button>
           <div className="w-px h-4 bg-sidebar-accent/10 mx-1" />
           <Button 
@@ -152,7 +152,7 @@ export const WorkflowEditorDock = ({
           <Button
             onClick={onSave}
             disabled={isSaving || !isDirty || isBusy}
-            className={`h-9 px-5 rounded-full font-black uppercase text-[9px] tracking-[0.15em] gap-2 transition-all duration-300 ${
+            className={`h-9 px-5 rounded-full font-black uppercase text-micro tracking-[0.15em] gap-2 transition-all duration-300 ${
               isDirty && !isBusy
               ? 'bg-violet-600 text-white hover:bg-violet-500 shadow-[0_5px_20px_rgba(139,92,246,0.15)]' 
               : 'bg-sidebar-accent/10 text-muted-foreground opacity-50'
