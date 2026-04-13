@@ -2,57 +2,14 @@ import { Handle, Position } from "@xyflow/react";
 import { type NodeProps, type Node } from "@xyflow/react";
 import { Card, CardContent } from "~/components/ui/card";
 import type { WorkflowTrigger } from "../../types/workflow-types";
-import { Play, Webhook, Clock, Zap, Target, Loader2, Check, X } from "lucide-react";
+import { Play, Webhook, Clock, Zap, Target } from "lucide-react";
+import { StatusIndicator } from "./shared/StatusIndicator";
+import { RunningOverlay } from "./shared/RunningOverlay";
+import { STATUS_RING, type ExecutionStatus } from "./shared/execution-styles";
 
 export type TriggerNodeData = WorkflowTrigger & Record<string, unknown>;
 export type TriggerNodeType = Node<TriggerNodeData, "trigger">;
 
-type ExecutionStatus = "idle" | "running" | "success" | "failed";
-
-const STATUS_RING: Record<ExecutionStatus, string> = {
-  idle: "",
-  running: "ring-2 ring-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.3)] scale-[1.02]",
-  success: "ring-2 ring-emerald-500/60 shadow-[0_0_12px_2px_rgba(16,185,129,0.2)]",
-  failed: "ring-2 ring-red-500/60 shadow-[0_0_12px_2px_rgba(239,68,68,0.2)]",
-};
-
-const StatusIndicator = ({ status }: { status: ExecutionStatus }) => {
-  if (status === "idle") return null;
-
-  return (
-    <div
-      className={`flex items-center justify-center w-5 h-5 rounded-full shrink-0 ml-auto border-2 border-background shadow-sm ${
-        status === "running"
-          ? "bg-orange-500"
-          : status === "success"
-            ? "bg-emerald-500"
-            : "bg-red-500"
-      }`}
-    >
-      {status === "running" ? (
-        <Loader2 className="w-3 h-3 text-white animate-spin" />
-      ) : status === "success" ? (
-        <Check className="w-3 h-3 text-white stroke-[3]" />
-      ) : (
-        <X className="w-3 h-3 text-white stroke-[3]" />
-      )}
-    </div>
-  );
-};
-
-const RunningOverlay = () => (
-  <div className="absolute inset-0 z-30 flex items-center justify-center bg-card/60 rounded-lg animate-in fade-in duration-300">
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative">
-        <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full animate-pulse" />
-        <Loader2 className="w-8 h-8 text-orange-500 animate-spin relative z-10" />
-      </div>
-      <span className="text-[10px] font-black uppercase tracking-widest text-orange-500 drop-shadow-md">
-        Running...
-      </span>
-    </div>
-  </div>
-);
 
 export const TriggerNodeRenderer = ({ id, data }: NodeProps<TriggerNodeType>) => {
   const executionStatus = ((data as any)._executionStatus ?? "idle") as ExecutionStatus;

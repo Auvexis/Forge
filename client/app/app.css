@@ -60,6 +60,22 @@ body {
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* ── Forge Typography Scale ── */
+  --font-size-micro: var(--text-micro);
+  --font-size-mini: var(--text-mini);
+  --font-size-tiny: var(--text-tiny);
+  --font-size-small: var(--text-small);
+
+  /* ── Forge Execution Status Colors ── */
+  --color-status-running: var(--status-running);
+  --color-status-success: var(--status-success);
+  --color-status-failed: var(--status-failed);
+
+  /* ── Forge Layout Tokens ── */
+  --width-node: var(--node-width);
+  --width-panel-editor: var(--panel-editor-width);
+  --width-panel-logs: var(--panel-logs-width);
 }
 
 :root {
@@ -95,6 +111,28 @@ body {
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+
+  /* ── Forge Typography Scale ── */
+  --text-micro: 0.5625rem;     /* 9px */
+  --text-mini: 0.625rem;       /* 10px */
+  --text-tiny: 0.6875rem;      /* 11px */
+  --text-small: 0.8125rem;     /* 13px */
+
+  /* ── Forge Execution Status ── */
+  --status-running: oklch(0.705 0.213 47.604);
+  --status-success: oklch(0.696 0.17 162.48);
+  --status-failed: oklch(0.577 0.245 27.325);
+
+  /* ── Forge Shadows ── */
+  --glow-running: 0 0 20px oklch(0.705 0.213 47.604 / 0.3);
+  --glow-success: 0 0 12px 2px oklch(0.696 0.17 162.48 / 0.2);
+  --glow-failed: 0 0 12px 2px oklch(0.577 0.245 27.325 / 0.2);
+  --shadow-premium: 0 8px 32px -6px oklch(0 0 0 / 0.25);
+
+  /* ── Forge Layout ── */
+  --node-width: 300px;
+  --panel-editor-width: 400px;
+  --panel-logs-width: 450px;
 }
 
 .dark {

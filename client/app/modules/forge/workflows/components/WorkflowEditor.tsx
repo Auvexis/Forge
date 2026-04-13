@@ -1,13 +1,7 @@
-import { useEffect, useCallback, useState, useRef } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { Dialog, DialogContent } from "~/components/ui/dialog";
-import type {
-  WorkflowItem,
-  WorkflowNode,
-  WorkflowTrigger,
-  WorkflowNodeType,
-} from "../types/workflow-types";
-import { Button } from "~/components/ui/button";
-import { X, Plus, Save, Loader2, Play } from "lucide-react";
+import type { WorkflowItem } from "../types/workflow-types";
+import { Save, Loader2 } from "lucide-react";
 import {
   Background,
   BackgroundVariant,
@@ -26,8 +20,6 @@ import {
 import { ActionNodeRenderer } from "./nodes/ActionNodeRenderer";
 import { TriggerNodeRenderer } from "./nodes/TriggerNodeRenderer";
 import { DeletableEdge } from "./edges/DeletableEdge";
-import { useUpdateWorkflow } from "../hooks/useUpdateWorkflow";
-import { useDeleteWorkflow } from "../hooks/useDeleteWorkflow";
 import { useExecuteWorkflow } from "../hooks/useExecuteWorkflow";
 import { useWorkflowStream } from "../hooks/useWorkflowStream";
 import { NodeEditorPanel } from "./NodeEditorPanel";
@@ -49,6 +41,12 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 
+// Extracted hooks
+import { useWorkflowPanelState } from "../hooks/useWorkflowPanelState";
+import { useWorkflowNodeFactory } from "../hooks/useWorkflowNodeFactory";
+import { useWorkflowSave } from "../hooks/useWorkflowSave";
+import { useState } from "react";
+
 const nodeTypes: NodeTypes = {
   action: ActionNodeRenderer,
   trigger: TriggerNodeRenderer,
@@ -67,24 +65,24 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
   const { plugins, getPlugins } = useForge();
   const [nodes, setNodes, onNodesChangeDefault] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChangeDefault] = useEdgesState<Edge>([]);
-  const [metadata, setMetadata] = useState(workflow.metadata);
-  const { updateWorkflow, loading: saving } = useUpdateWorkflow();
-  const { deleteWorkflow } = useDeleteWorkflow();
   const { executeWorkflow, loading: executing } = useExecuteWorkflow();
-  const { nodeStatuses, isStreaming, startStream, cancelStream, resetStream } = useWorkflowStream();
+  const { nodeStatuses, isStreaming, startStream, cancelStream, resetStream } =
+    useWorkflowStream();
 
-  const currentWorkflowIdRef = useRef(workflow.metadata.id);
+  // Panel state (mutually exclusive)
+  const panels = useWorkflowPanelState();
 
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [isAddingNode, setIsAddingNode] = useState(false);
-  const [isEditingSettings, setIsEditingSettings] = useState(false);
-  const [isRunningWorkflow, setIsRunningWorkflow] = useState(false);
-  const [isLogsOpen, setIsLogsOpen] = useState(false);
+  // Save logic
+  const save = useWorkflowSave(workflow, nodes, edges, onClose);
+
+  // Node factory
+  const factory = useWorkflowNodeFactory(
+    setNodes,
+    panels.setIsAddingNode,
+    panels.setSelectedNodeId,
+  );
+
   const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
-
-  // Persist trigger position across save/load
-  const triggerPositionRef = useRef<{ x: number; y: number } | null>(null);
   const initialLoadDone = useRef(false);
 
   useEffect(() => {
@@ -95,11 +93,16 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
 
   // ──────────── Initial Data Mapping ────────────
   useEffect(() => {
-    // Trigger node: read position from saved data or use default
     const savedTriggerUI = (workflow.trigger as any)?.ui;
     const triggerPos = {
-      x: savedTriggerUI?.positionX ?? triggerPositionRef.current?.x ?? 50,
-      y: savedTriggerUI?.positionY ?? triggerPositionRef.current?.y ?? 200,
+      x:
+        savedTriggerUI?.positionX ??
+        save.triggerPositionRef.current?.x ??
+        50,
+      y:
+        savedTriggerUI?.positionY ??
+        save.triggerPositionRef.current?.y ??
+        200,
     };
 
     const triggerNode: Node = {
@@ -109,7 +112,6 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
       data: workflow.trigger as any,
     };
 
-    // Action nodes: read position from saved ui data
     const actionNodes: Node[] = Object.entries(workflow.nodes).map(
       ([id, nodeData]) => ({
         id,
@@ -137,32 +139,24 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
 
     setEdges(reactFlowEdges);
 
-    // Set flag to start tracking dirtiness after initial layout
     initialLoadDone.current = false;
     setTimeout(() => {
       initialLoadDone.current = true;
     }, 500);
-  }, [workflow, setNodes, setEdges]);
+  }, [workflow, setNodes, setEdges, save.triggerPositionRef]);
 
-  // ──────────── Sync SSE node statuses to ReactFlow node data ────────────
+  // ── Sync SSE node statuses ──
   useEffect(() => {
     if (Object.keys(nodeStatuses).length === 0) return;
     setNodes((nds) =>
       nds.map((n) => {
         const info = nodeStatuses[n.id];
         if (!info) return n;
-        return {
-          ...n,
-          data: {
-            ...n.data,
-            _executionStatus: info.status,
-          },
-        };
+        return { ...n, data: { ...n.data, _executionStatus: info.status } };
       }),
     );
   }, [nodeStatuses, setNodes]);
 
-  // Reset node execution statuses on new run
   const resetNodeStatuses = useCallback(() => {
     setNodes((nds) =>
       nds.map((n) => ({
@@ -173,11 +167,10 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
     resetStream();
   }, [setNodes, resetStream]);
 
-  // Dirty State Tracking
+  // ── Dirty tracking wrappers ──
   const onNodesChange = useCallback(
     (changes: any) => {
       onNodesChangeDefault(changes);
-      // Only set dirty if it's a meaningful change (position or removal)
       const isMeaningful = changes.some(
         (c: any) =>
           c.type === "position" ||
@@ -185,11 +178,9 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
           c.type === "add" ||
           c.type === "reset",
       );
-      if (isMeaningful && initialLoadDone.current) {
-        setIsDirty(true);
-      }
+      if (isMeaningful && initialLoadDone.current) save.setIsDirty(true);
     },
-    [onNodesChangeDefault],
+    [onNodesChangeDefault, save],
   );
 
   const onEdgesChange = useCallback(
@@ -199,11 +190,9 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
         (c: any) =>
           c.type === "remove" || c.type === "add" || c.type === "reset",
       );
-      if (isMeaningful && initialLoadDone.current) {
-        setIsDirty(true);
-      }
+      if (isMeaningful && initialLoadDone.current) save.setIsDirty(true);
     },
-    [onEdgesChangeDefault],
+    [onEdgesChangeDefault, save],
   );
 
   const onConnect = useCallback(
@@ -212,370 +201,170 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
         addEdge(
           {
             ...params,
-            type: "deletable", // Use our custom edge type
+            type: "deletable",
             animated: true,
             style: { stroke: "var(--foreground)" },
           },
           eds,
         ),
       );
-      setIsDirty(true);
+      save.setIsDirty(true);
     },
-    [setEdges],
+    [setEdges, save],
   );
 
-  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
-    setIsAddingNode(false);
-    setIsEditingSettings(false);
-    setIsRunningWorkflow(false);
-    setSelectedNodeId(node.id);
-  }, []);
+  const onNodeClick = useCallback(
+    (_: React.MouseEvent, node: Node) => {
+      panels.openNodeEditor(node.id);
+    },
+    [panels],
+  );
 
   const handleSetNodes = useCallback(
     (nds: Node[] | ((nds: Node[]) => Node[])) => {
       setNodes(nds);
-      if (initialLoadDone.current) setIsDirty(true);
+      if (initialLoadDone.current) save.setIsDirty(true);
     },
-    [setNodes],
+    [setNodes, save],
   );
 
   const handleSetEdges = useCallback(
     (eds: Edge[] | ((eds: Edge[]) => Edge[])) => {
       setEdges(eds);
-      if (initialLoadDone.current) setIsDirty(true);
+      if (initialLoadDone.current) save.setIsDirty(true);
     },
-    [setEdges],
+    [setEdges, save],
   );
 
   const onSelectionChange = useCallback(
     ({ nodes: selectedNodes }: OnSelectionChangeParams) => {
       if (selectedNodes.length === 1) {
-        setIsAddingNode(false);
-        setIsEditingSettings(false);
-        setIsRunningWorkflow(false);
-        setSelectedNodeId(selectedNodes[0].id);
+        panels.openNodeEditor(selectedNodes[0].id);
       } else if (selectedNodes.length === 0) {
-        setSelectedNodeId(null);
+        panels.setSelectedNodeId(null);
       }
     },
-    [],
+    [panels],
   );
 
-  // ──────────── Add Plugin Node ────────────
-  const handleCreateNode = (
-    pluginId: string,
-    action: string,
-    actionName: string,
-  ) => {
-    const newNodeId = `node_${Date.now()}`;
-    const newNode: Node = {
-      id: newNodeId,
-      type: "action",
-      position: { x: 400, y: 200 },
-      data: {
-        type: "plugin" as const,
-        pluginId,
-        action,
-        name: actionName,
-        params: {},
-        ui: { positionX: 400, positionY: 200 },
-      },
-    };
-    setNodes((nds) => nds.concat(newNode));
-    setIsAddingNode(false);
-    setTimeout(() => setSelectedNodeId(newNodeId), 50);
-  };
-
-  // ──────────── Add Logic Node ────────────
-  const handleCreateLogicNode = (type: WorkflowNodeType) => {
-    const newNodeId = `node_${Date.now()}`;
-
-    const baseData: Record<string, any> = {
-      type,
-      name: "",
-      ui: { positionX: 400, positionY: 200 },
-    };
-
-    switch (type) {
-      case "code":
-        baseData.language = "javascript";
-        baseData.script = "";
-        baseData.name = "Code Block";
-        break;
-      case "if":
-        baseData.condition = "";
-        baseData.name = "Condition";
-        break;
-      case "loop":
-        baseData.collection = "";
-        baseData.maxIterations = 1000;
-        baseData.name = "Loop";
-        break;
-      case "subworkflow":
-        baseData.workflowId = "";
-        baseData.inputMapping = {};
-        baseData.name = "Sub-Workflow";
-        break;
-      case "http":
-        baseData.method = "GET";
-        baseData.url = "";
-        baseData.headers = {};
-        baseData.body = "";
-        baseData.bodyType = "json";
-        baseData.name = "HTTP Request";
-        break;
-      case "event":
-        baseData.eventName = "";
-        baseData.payloadMapping = {};
-        baseData.name = "Emit Event";
-        break;
-    }
-
-    const newNode: Node = {
-      id: newNodeId,
-      type: "action",
-      position: { x: 400, y: 200 },
-      data: baseData,
-    };
-
-    setNodes((nds) => nds.concat(newNode));
-    setIsAddingNode(false);
-    setTimeout(() => setSelectedNodeId(newNodeId), 50);
-  };
-
-  const handleRunRequest = () => {
-    setSelectedNodeId(null);
-    setIsAddingNode(false);
-    setIsEditingSettings(false);
-    setIsRunningWorkflow(true);
-  };
-
-  const handleExecute = async (inputParams: Record<string, any>) => {
-    try {
-      resetNodeStatuses();
-      const result = await executeWorkflow(workflow.metadata.id, inputParams);
-      // Backend returns 202 Accepted with { executionId }
-      const executionId = (result as any)?.executionId;
-      if (executionId) {
-        startStream(executionId);
-        toast.success("Workflow started", {
-          description: `Streaming execution of "${metadata.name}"...`,
-        });
-      }
-    } catch (e: any) {
-      console.error("Workflow Execution Failed Error:", e);
-    }
-  };
-
-  const handleUpdateMetadata = (newMeta: Partial<typeof workflow.metadata>) => {
-    setMetadata((prev) => ({ ...prev, ...newMeta }));
-    setIsDirty(true);
-  };
-
-  // ──────────── Save ────────────
-
-  /** Increments the last numeric segment of a semver-like version string.
-   *  "1.0.0" → "1.0.1" | "1.0" → "1.0.1" | "2" → "2.0.1"
-   */
-  const bumpPatchVersion = (version: string): string => {
-    const parts = version.split(".");
-    // Ensure at least 3 segments
-    while (parts.length < 3) parts.push("0");
-    const patch = parseInt(parts[2] ?? "0", 10);
-    parts[2] = String(isNaN(patch) ? 1 : patch + 1);
-    return parts.join(".");
-  };
-
-  const handleSave = async (forceClose = true) => {
-    // 0. Bump patch version before saving
-    const nextVersion = bumpPatchVersion(metadata.version ?? "1.0.0");
-    const bumpedMetadata = { ...metadata, version: nextVersion };
-
-    // 1. Trigger — save position into the trigger data
-    const triggerReactNode = nodes.find((n) => n.id === "trigger");
-    const updatedTrigger = triggerReactNode
-      ? {
-          ...(triggerReactNode.data as unknown as WorkflowTrigger),
-          ui: {
-            positionX: triggerReactNode.position.x,
-            positionY: triggerReactNode.position.y,
-          },
+  const handleExecute = useCallback(
+    async (inputParams: Record<string, any>) => {
+      try {
+        resetNodeStatuses();
+        const result = await executeWorkflow(
+          workflow.metadata.id,
+          inputParams,
+        );
+        const executionId = (result as any)?.executionId;
+        if (executionId) {
+          startStream(executionId);
+          toast.success("Workflow started", {
+            description: `Streaming execution of "${save.metadata.name}"...`,
+          });
         }
-      : workflow.trigger;
+      } catch (e: any) {
+        console.error("Workflow Execution Failed Error:", e);
+      }
+    },
+    [resetNodeStatuses, executeWorkflow, workflow.metadata.id, startStream, save.metadata.name],
+  );
 
-    // Cache trigger position for immediate re-renders
-    if (triggerReactNode) {
-      triggerPositionRef.current = {
-        x: triggerReactNode.position.x,
-        y: triggerReactNode.position.y,
-      };
-    }
-
-    // 2. Action nodes — write ReactFlow position into each node's ui field
-    const actionNodeMappings: Record<string, WorkflowNode> = {};
-    nodes
-      .filter((n) => n.id !== "trigger")
-      .forEach((n) => {
-        actionNodeMappings[n.id] = {
-          ...(n.data as unknown as WorkflowNode),
-          ui: {
-            ...((n.data as any).ui || {}),
-            positionX: n.position.x,
-            positionY: n.position.y,
-          },
-        };
-      });
-
-    // 3. Edges — preserve handles for branching
-    const newEdges = edges.map((edge) => ({
-      id: edge.id,
-      source: edge.source,
-      target: edge.target,
-      sourceHandle: edge.sourceHandle as string | undefined,
-      targetHandle: edge.targetHandle as string | undefined,
-      condition: edge.label as string | undefined,
-    }));
-
-    // 4. Build full payload with bumped version
-    const updatedWorkflow: WorkflowItem = {
-      metadata: bumpedMetadata,
-      trigger: updatedTrigger,
-      nodes: actionNodeMappings,
-      edges: newEdges,
-      variables: workflow.variables || [],
-    };
-
-    const oldId = currentWorkflowIdRef.current;
-    const newId = updatedWorkflow.metadata.id;
-    const idChanged = oldId !== newId;
-
-    await updateWorkflow(updatedWorkflow);
-
-    if (idChanged) {
-      await deleteWorkflow(oldId);
-      currentWorkflowIdRef.current = newId;
-    }
-
-    // Sync bumped version back into local state so the dock shows it immediately
-    setMetadata(bumpedMetadata);
-
-    setIsDirty(false);
-    toast.success("Workflow saved", {
-      description: `"${bumpedMetadata.name}" saved as v${nextVersion}.`,
-    });
-    if (forceClose) onClose();
-  };
-
-  const handleRequestClose = () => {
-    if (isDirty) {
+  const handleRequestClose = useCallback(() => {
+    if (save.isDirty) {
       setShowExitConfirm(true);
     } else {
       onClose();
     }
-  };
+  }, [save.isDirty, onClose]);
 
   return (
     <ReactFlowProvider>
       <Dialog open={true} onOpenChange={handleRequestClose}>
-        <DialogContent 
-          style={{ backfaceVisibility: 'hidden' }}
+        <DialogContent
+          style={{ backfaceVisibility: "hidden" }}
           className="flex flex-col w-[94vw] h-[94vh] bg-background border border-border max-w-[94vw] overflow-hidden p-0 rounded-[2.5rem] animate-in zoom-in-95 duration-500 transform-gpu will-change-transform antialiased"
         >
           <main className="w-full flex-1 overflow-hidden flex relative bg-background">
             <WorkflowEditorDock
-              workflowName={metadata.name}
-              workflowId={metadata.id}
+              workflowName={save.metadata.name}
+              workflowId={save.metadata.id}
               workflow={{
-                metadata,
-                trigger: nodes.find(n => n.id === 'trigger')?.data || workflow.trigger,
-                nodes: nodes.filter(n => n.id !== 'trigger').reduce((acc, n) => ({ ...acc, [n.id]: n.data }), {}),
-                edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target, condition: e.label })),
+                metadata: save.metadata,
+                trigger:
+                  nodes.find((n) => n.id === "trigger")?.data ||
+                  workflow.trigger,
+                nodes: nodes
+                  .filter((n) => n.id !== "trigger")
+                  .reduce(
+                    (acc, n) => ({ ...acc, [n.id]: n.data }),
+                    {},
+                  ),
+                edges: edges.map((e) => ({
+                  id: e.id,
+                  source: e.source,
+                  target: e.target,
+                  condition: e.label,
+                })),
               }}
-              onRun={() => {
-                setSelectedNodeId(null);
-                setIsAddingNode(false);
-                setIsEditingSettings(false);
-                setIsLogsOpen(false);
-                handleRunRequest();
-              }}
-              onStop={() => {
-                cancelStream();
-              }}
-              onAddNode={() => {
-                setSelectedNodeId(null);
-                setIsEditingSettings(false);
-                setIsRunningWorkflow(false);
-                setIsLogsOpen(false);
-                setIsAddingNode(true);
-              }}
-              onSave={() => handleSave(false)}
-              onSettings={() => {
-                setSelectedNodeId(null);
-                setIsAddingNode(false);
-                setIsRunningWorkflow(false);
-                setIsLogsOpen(false);
-                setIsEditingSettings(true);
-              }}
-              onLogs={() => {
-                setSelectedNodeId(null);
-                setIsAddingNode(false);
-                setIsRunningWorkflow(false);
-                setIsEditingSettings(false);
-                setIsLogsOpen(!isLogsOpen);
-              }}
+              onRun={panels.openRun}
+              onStop={cancelStream}
+              onAddNode={panels.openAddNode}
+              onSave={() => save.handleSave(false)}
+              onSettings={panels.openSettings}
+              onLogs={panels.toggleLogs}
               onClose={handleRequestClose}
-              isSaving={saving}
+              isSaving={save.saving}
               isExecuting={executing}
               isStreaming={isStreaming}
-              isLogsOpen={isLogsOpen}
-              isDirty={isDirty}
+              isLogsOpen={panels.isLogsOpen}
+              isDirty={save.isDirty}
             />
 
             {/* Side Panels */}
-            {isEditingSettings && (
+            {panels.isEditingSettings && (
               <WorkflowSettingsPanel
-                workflow={{ ...workflow, metadata }}
-                onUpdate={handleUpdateMetadata}
-                onClose={() => setIsEditingSettings(false)}
+                workflow={{ ...workflow, metadata: save.metadata }}
+                onUpdate={save.handleUpdateMetadata}
+                onClose={() => panels.setIsEditingSettings(false)}
               />
             )}
 
-            {isAddingNode && (
+            {panels.isAddingNode && (
               <AddNodeOverlay
-                onAddNode={handleCreateNode}
-                onAddLogicNode={handleCreateLogicNode}
-                onClose={() => setIsAddingNode(false)}
+                onAddNode={factory.handleCreateNode}
+                onAddLogicNode={factory.handleCreateLogicNode}
+                onClose={() => panels.setIsAddingNode(false)}
               />
             )}
 
-            {isRunningWorkflow && (
+            {panels.isRunningWorkflow && (
               <RunWorkflowPanel
-                workflow={{ ...workflow, metadata }}
+                workflow={{ ...workflow, metadata: save.metadata }}
                 onExecute={handleExecute}
-                onClose={() => setIsRunningWorkflow(false)}
+                onClose={() => panels.setIsRunningWorkflow(false)}
                 loading={executing}
               />
             )}
 
-            {isLogsOpen && (
+            {panels.isLogsOpen && (
               <WorkflowLogsPanel
                 workflowId={workflow.metadata.id}
-                onClose={() => setIsLogsOpen(false)}
+                onClose={() => panels.setIsLogsOpen(false)}
               />
             )}
 
-            {selectedNodeId &&
-              !isAddingNode &&
-              !isEditingSettings &&
-              !isRunningWorkflow && (
+            {panels.selectedNodeId &&
+              !panels.isAddingNode &&
+              !panels.isEditingSettings &&
+              !panels.isRunningWorkflow && (
                 <NodeEditorPanel
-                  nodeId={selectedNodeId}
+                  nodeId={panels.selectedNodeId}
                   nodes={nodes}
                   edges={edges}
                   setNodes={handleSetNodes}
                   setEdges={handleSetEdges}
-                  onNodeIdChange={setSelectedNodeId}
-                  onClose={() => setSelectedNodeId(null)}
+                  onNodeIdChange={panels.setSelectedNodeId}
+                  onClose={() => panels.setSelectedNodeId(null)}
                   nodeStatuses={nodeStatuses}
                 />
               )}
@@ -627,11 +416,11 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
               Discard Changes
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => handleSave(true)}
-              disabled={saving}
+              onClick={() => save.handleSave(true)}
+              disabled={save.saving}
               className="bg-primary hover:bg-primary/90 rounded-full font-bold px-6"
             >
-              {saving ? (
+              {save.saving ? (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
               ) : (
                 <Save className="w-4 h-4 mr-2" />
