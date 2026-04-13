@@ -47,77 +47,81 @@ export function useWorkflowStream() {
     eventSourceRef.current = es;
 
     es.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      try {
+        const data = JSON.parse(event.data);
 
-      switch (data.type) {
-        case "workflow:start":
-          setWorkflowStatus("running");
-          break;
+        switch (data.type) {
+          case "workflow:start":
+            setWorkflowStatus("running");
+            break;
 
-        case "node:start":
-          setNodeStatuses((prev) => ({
-            ...prev,
-            [data.nodeId]: {
-              status: "running",
-              startedAt: data.timestamp,
-            },
-          }));
-          break;
+          case "node:start":
+            setNodeStatuses((prev) => ({
+              ...prev,
+              [data.nodeId]: {
+                status: "running",
+                startedAt: data.timestamp,
+              },
+            }));
+            break;
 
-        case "node:success":
-          setNodeStatuses((prev) => ({
-            ...prev,
-            [data.nodeId]: {
-              status: "success",
-              output: data.data,
-              startedAt: prev[data.nodeId]?.startedAt,
-              completedAt: data.timestamp,
-            },
-          }));
-          break;
+          case "node:success":
+            setNodeStatuses((prev) => ({
+              ...prev,
+              [data.nodeId]: {
+                status: "success",
+                output: data.data,
+                startedAt: prev[data.nodeId]?.startedAt,
+                completedAt: data.timestamp,
+              },
+            }));
+            break;
 
-        case "node:failed":
-          setNodeStatuses((prev) => ({
-            ...prev,
-            [data.nodeId]: {
-              status: "failed",
-              error: data.error,
-              startedAt: prev[data.nodeId]?.startedAt,
-              completedAt: data.timestamp,
-            },
-          }));
-          break;
+          case "node:failed":
+            setNodeStatuses((prev) => ({
+              ...prev,
+              [data.nodeId]: {
+                status: "failed",
+                error: data.error,
+                startedAt: prev[data.nodeId]?.startedAt,
+                completedAt: data.timestamp,
+              },
+            }));
+            break;
 
-        case "workflow:success":
-          setWorkflowStatus("success");
-          setIsStreaming(false);
-          activeExecutionIdRef.current = null;
-          es.close();
-          break;
+          case "workflow:success":
+            setWorkflowStatus("success");
+            setIsStreaming(false);
+            activeExecutionIdRef.current = null;
+            es.close();
+            break;
 
-        case "workflow:failed":
-          setWorkflowStatus("failed");
-          setIsStreaming(false);
-          activeExecutionIdRef.current = null;
-          es.close();
-          break;
+          case "workflow:failed":
+            setWorkflowStatus("failed");
+            setIsStreaming(false);
+            activeExecutionIdRef.current = null;
+            es.close();
+            break;
 
-        case "workflow:cancelled":
-          setWorkflowStatus("cancelled");
-          setIsStreaming(false);
-          activeExecutionIdRef.current = null;
-          // Mark all still-running nodes as idle (they were skipped)
-          setNodeStatuses((prev) => {
-            const next = { ...prev };
-            for (const [id, info] of Object.entries(next)) {
-              if (info.status === "running") {
-                next[id] = { ...info, status: "idle" };
+          case "workflow:cancelled":
+            setWorkflowStatus("cancelled");
+            setIsStreaming(false);
+            activeExecutionIdRef.current = null;
+            // Mark all still-running nodes as idle (they were skipped)
+            setNodeStatuses((prev) => {
+              const next = { ...prev };
+              for (const [id, info] of Object.entries(next)) {
+                if (info.status === "running") {
+                  next[id] = { ...info, status: "idle" };
+                }
               }
-            }
-            return next;
-          });
-          es.close();
-          break;
+              return next;
+            });
+            es.close();
+            break;
+        }
+      } catch (err) {
+        console.warn("[useWorkflowStream] Failed to parse SSE event:", err);
       }
     };
 

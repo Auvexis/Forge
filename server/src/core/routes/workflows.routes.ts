@@ -12,6 +12,24 @@ import { PluginManager } from "../modules/plugins/manager.ts";
 
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
 
+// ──────────── Safe SSE serializer ────────────
+// Handles circular references and non-JSON-safe values so a bad plugin
+// output never silently drops an SSE event.
+function safeSerialize(value: unknown): string {
+  const seen = new WeakSet();
+  return JSON.stringify(value, (_key, val) => {
+    if (typeof val === "object" && val !== null) {
+      if (seen.has(val)) return "[Circular]";
+      seen.add(val);
+    }
+    // Strip functions, Symbols, Buffers already handled by sanitizeContextForLogging
+    if (typeof val === "function") return undefined;
+    if (typeof val === "symbol") return val.toString();
+    if (typeof val === "bigint") return val.toString();
+    return val;
+  });
+}
+
 // ──────────── Allowed node types ────────────
 const VALID_NODE_TYPES = new Set([
   "plugin",
@@ -228,7 +246,17 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       const unsubscribe = workflowEventBus.onExecution(
         executionId,
         (event) => {
-          reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
+          try {
+            reply.raw.write(`data: ${safeSerialize(event)}\n\n`);
+          } catch {
+            // Fallback: strip the data field so the node still advances in the UI
+            const fallback = { ...event, data: "[unserializable output]" };
+            try {
+              reply.raw.write(`data: ${JSON.stringify(fallback)}\n\n`);
+            } catch {
+              // If even the fallback fails, skip this event silently
+            }
+          }
 
           if (
             event.type === "workflow:success" ||
