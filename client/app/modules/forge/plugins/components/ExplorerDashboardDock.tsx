@@ -4,15 +4,12 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize2,
-  Terminal,
+  Network,
   Sparkles,
   Settings2,
-  Plus,
-  Loader2,
-  Network,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
+import { ForgeDock, type DockSection } from "~/shared/components/ForgeDock";
 
 interface Props {
   searchQuery: string;
@@ -31,29 +28,11 @@ export const ExplorerDashboardDock = ({
   onFitView,
   nodeCount,
 }: Props) => {
-  return (
-    <div className="absolute top-8 left-1/2 -translate-x-1/2 z-[50]">
-      <div className="flex items-center gap-1.5 p-1.5 bg-sidebar/85 backdrop-blur-3xl border border-sidebar-accent/30 rounded-full shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)] animate-in fade-in slide-in-from-top-8 zoom-in-95 duration-1000 fill-mode-forwards antialiased">
-        {/* Section 1: Compass & Status */}
-        <div className="flex items-center gap-3 pl-4 pr-3 border-r border-sidebar-accent/20 h-10 group/brand cursor-default">
-          <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)] group-hover/brand:border-blue-500/40 transition-colors">
-            <Compass className="w-4 h-4 text-blue-500" />
-          </div>
-          <div className="flex flex-col gap-1">
-            <h1 className="text-[12px] font-black text-foreground tracking-wide leading-none mb-0.5">
-              EXPLORER
-            </h1>
-            <div className="flex items-center gap-1.5">
-              <div className="w-1 h-1 rounded-full bg-blue-500 animate-pulse shadow-[0_0_5px_#3b82f6]" />
-              <span className="text-micro text-muted-foreground uppercase font-semibold tracking-wider leading-none opacity-40">
-                {nodeCount} Plugins Loaded
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Section 2: Navigation Tools */}
-        <div className="flex items-center gap-1 px-2 border-r border-sidebar-accent/20 h-10">
+  const sections: DockSection[] = [
+    {
+      id: "navigation",
+      content: (
+        <>
           <Button
             variant="ghost"
             size="icon"
@@ -79,23 +58,28 @@ export const ExplorerDashboardDock = ({
           >
             <Maximize2 className="w-3.5 h-3.5" />
           </Button>
+        </>
+      ),
+    },
+    {
+      id: "search",
+      content: (
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/30 group-focus-within:text-blue-500 transition-colors" />
+          <input
+            placeholder="Find entity..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-8 w-[140px] bg-sidebar-accent/5 hover:bg-sidebar-accent/10 border-transparent focus:outline-none focus:border-sidebar-accent/20 rounded-full font-bold text-mini transition-all placeholder:text-muted-foreground/20 uppercase tracking-tight text-foreground"
+          />
         </div>
-
-        {/* Section 3: Universal Search */}
-        <div className="flex items-center px-2 border-r border-sidebar-accent/20 h-10">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/30 group-focus-within:text-blue-500 transition-colors" />
-            <input
-              placeholder="Find entity..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-8 w-[140px] bg-sidebar-accent/5 hover:bg-sidebar-accent/10 border-transparent focus:outline-none focus:border-sidebar-accent/20 rounded-full font-bold text-mini transition-all placeholder:text-muted-foreground/20 uppercase tracking-tight text-foreground"
-            />
-          </div>
-        </div>
-
-        {/* Section 4: Network Systems */}
-        <div className="flex items-center gap-1 px-2 border-sidebar-accent/20 h-10">
+      ),
+    },
+    {
+      id: "tools",
+      border: false,
+      content: (
+        <>
           <Button
             variant="ghost"
             size="icon"
@@ -124,8 +108,18 @@ export const ExplorerDashboardDock = ({
           >
             <Settings2 className="w-3.5 h-3.5" />
           </Button>
-        </div>
-      </div>
-    </div>
+        </>
+      ),
+    },
+  ];
+
+  return (
+    <ForgeDock
+      icon={Compass}
+      title="Explorer"
+      subtitle={`${nodeCount} Plugins Loaded`}
+      accent="blue"
+      sections={sections}
+    />
   );
 };
