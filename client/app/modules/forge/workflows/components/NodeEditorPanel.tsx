@@ -199,7 +199,10 @@ export const NodeEditorPanel = ({
   // ──────────── Render ────────────
 
   return (
-    <div className="absolute top-20 right-4 w-[400px] z-[60] bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl flex flex-col overflow-hidden animate-in slide-in-from-right-10 duration-300 max-h-[calc(100%-110px)]">
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="absolute top-20 right-4 w-[400px] z-[60] isolate bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl flex flex-col overflow-hidden animate-in slide-in-from-right-10 duration-300 max-h-[calc(100%-110px)]"
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-accent/20 shrink-0">
         <div className="flex flex-col gap-1 flex-1">
@@ -227,7 +230,10 @@ export const NodeEditorPanel = ({
           variant="ghost"
           size="icon"
           className="h-8 w-8 rounded-full ml-2"
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
         >
           <X className="w-4 h-4" />
         </Button>
@@ -284,7 +290,10 @@ export const NodeEditorPanel = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           className="rounded-full text-xs font-bold px-4"
         >
           Cancel
@@ -292,7 +301,10 @@ export const NodeEditorPanel = ({
         <Button
           variant="default"
           size="sm"
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           className="rounded-full text-xs font-bold px-6 h-8"
         >
           Confirm

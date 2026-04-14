@@ -89,8 +89,8 @@ export const ForgeDock: FC<ForgeDockProps> = memo(
     const dotGlow = colors.dotGlow;
 
     return (
-      <div className="absolute top-8 left-1/2 -translate-x-1/2 z-[50]">
-        <div className="flex items-center gap-1.5 p-1.5 bg-sidebar/85 backdrop-blur-3xl border border-sidebar-accent/30 rounded-full shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)] animate-in fade-in slide-in-from-top-8 zoom-in-95 duration-1000 fill-mode-forwards antialiased">
+      <div className="absolute top-8 inset-x-0 mx-auto w-fit z-[50]">
+        <div className="flex items-center gap-1.5 p-1.5 bg-sidebar/95 backdrop-blur-2xl border border-sidebar-accent/30 rounded-full shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)] animate-in fade-in slide-in-from-top-8 zoom-in-95 duration-1000 fill-mode-forwards antialiased transform-gpu">
           {/* ── Brand Badge ── */}
           <div className="flex items-center gap-3 pl-4 pr-3 border-r border-sidebar-accent/20 h-10 group/brand cursor-default">
             <div
@@ -99,7 +99,7 @@ export const ForgeDock: FC<ForgeDockProps> = memo(
               <Icon className={`w-4 h-4 ${colors.text}`} />
             </div>
             <div className="flex flex-col gap-1">
-              <h1 className="text-[12px] font-black text-foreground tracking-wide leading-none mb-0.5 max-w-[150px] truncate uppercase">
+              <h1 className="text-tiny font-black text-foreground tracking-wide leading-none mb-0.5 max-w-[150px] truncate uppercase">
                 {title}
               </h1>
               <div className="flex items-center gap-1.5">

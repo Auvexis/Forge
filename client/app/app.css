@@ -6,7 +6,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
+@theme inline {
   --font-sans:
     "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -62,77 +62,63 @@ body {
   --radius-4xl: calc(var(--radius) * 2.6);
 
   /* ── Forge Typography Scale ── */
-  --font-size-micro: 0.5625rem;   /* 9px  — text-micro */
-  --font-size-mini: 0.625rem;     /* 10px — text-mini  */
-  --font-size-tiny: 0.6875rem;    /* 11px — text-tiny  */
-  --font-size-small: 0.8125rem;   /* 13px — text-small */
+  --text-nano: 0.5rem; /* 8px  — text-nano  */
+  --text-micro: 0.5625rem; /* 9px  — text-micro */
+  --text-mini: 0.625rem; /* 10px — text-mini  */
+  --text-tiny: 0.6875rem; /* 11px — text-tiny  */
+  --text-small: 0.8125rem; /* 13px — text-small */
 
   /* ── Forge Execution Status Colors ── */
-  --color-status-running: oklch(0.705 0.213 47.604);
-  --color-status-success: oklch(0.696 0.17 162.48);
-  --color-status-failed: oklch(0.577 0.245 27.325);
-
-  /* ── Forge Layout Tokens ── */
-  --width-node: 300px;
-  --width-panel-editor: 400px;
-  --width-panel-logs: 450px;
-}
-
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.508 0.118 165.612);
-  --primary-foreground: oklch(0.979 0.021 166.113);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
-  --chart-1: oklch(0.871 0.006 286.286);
-  --chart-2: oklch(0.552 0.016 285.938);
-  --chart-3: oklch(0.442 0.017 285.786);
-  --chart-4: oklch(0.37 0.013 285.805);
-  --chart-5: oklch(0.274 0.006 286.033);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.596 0.145 163.225);
-  --sidebar-primary-foreground: oklch(0.979 0.021 166.113);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.705 0.015 286.067);
-
-  /* ── Forge Typography Scale ── */
-  --text-micro: 0.5625rem;     /* 9px */
-  --text-mini: 0.625rem;       /* 10px */
-  --text-tiny: 0.6875rem;      /* 11px */
-  --text-small: 0.8125rem;     /* 13px */
-
-  /* ── Forge Execution Status ── */
   --status-running: oklch(0.705 0.213 47.604);
   --status-success: oklch(0.696 0.17 162.48);
   --status-failed: oklch(0.577 0.245 27.325);
 
   /* ── Forge Shadows ── */
-  --glow-running: 0 0 20px oklch(0.705 0.213 47.604 / 0.3);
-  --glow-success: 0 0 12px 2px oklch(0.696 0.17 162.48 / 0.2);
-  --glow-failed: 0 0 12px 2px oklch(0.577 0.245 27.325 / 0.2);
+  --shadow-glow-running: 0 0 20px oklch(0.705 0.213 47.604 / 0.3);
+  --shadow-glow-success: 0 0 12px 2px oklch(0.696 0.17 162.48 / 0.2);
+  --shadow-glow-failed: 0 0 12px 2px oklch(0.577 0.245 27.325 / 0.2);
   --shadow-premium: 0 8px 32px -6px oklch(0 0 0 / 0.25);
 
-  /* ── Forge Layout ── */
-  --node-width: 300px;
-  --panel-editor-width: 400px;
-  --panel-logs-width: 450px;
+  /* ── Forge Layout Tokens ── */
+  --spacing-node-width: 300px;
+  --spacing-panel-editor-width: 400px;
+  --spacing-panel-logs-width: 450px;
+}
+
+:root {
+  --radius: 0.625rem;
+
+  --background: oklch(0.141 0.005 285.823);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(15.999% 0.0042 285.86);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(15.999% 0.0042 285.86);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(89.257% 0.00709 248.234);
+  --primary-foreground: oklch(24.354% 0.00003 271.152);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(23.201% 0.00574 285.885);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: oklch(22.771% 0.00577 285.875);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(100% 0.00011 271.152 / 0.055);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.552 0.016 285.938);
+  --chart-1: oklch(0.871 0.006 286.286);
+  --chart-2: oklch(0.552 0.016 285.938);
+  --chart-3: oklch(0.442 0.017 285.786);
+  --chart-4: oklch(0.37 0.013 285.805);
+  --chart-5: oklch(0.274 0.006 286.033);
+  --sidebar: oklch(15.999% 0.0042 285.86);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(89.257% 0.00709 248.234);
+  --sidebar-primary-foreground: oklch(24.354% 0.00003 271.152);
+  --sidebar-accent: oklch(22.771% 0.00577 285.875);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(100% 0.00011 271.152 / 0.055);
+  --sidebar-ring: oklch(0.552 0.016 285.938);
 }
 
 .dark {
@@ -148,7 +134,7 @@ body {
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(23.201% 0.00574 285.885);
   --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(22.771% 0.00577 285.875);
+  --accent: oklch(30.635% 0.00536 285.991);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(100% 0.00011 271.152 / 0.055);
@@ -196,11 +182,6 @@ body {
   scrollbar-color: var(--muted) transparent;
 }
 
-.react-flow__controls {
-  background-color: var(--card) !important;
-  border-color: var(--border) !important;
-}
-
 .react-flow__controls-button {
   background-color: var(--card) !important;
   border-color: var(--border) !important;
@@ -223,4 +204,31 @@ body {
   html {
     @apply font-sans;
   }
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.react-flow__connection-path {
+  stroke: var(--accent) !important;
+  stroke-width: 2;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--foreground) / 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--foreground) / 0.2);
 }

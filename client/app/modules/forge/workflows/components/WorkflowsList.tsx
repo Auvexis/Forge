@@ -93,6 +93,22 @@ export const WorkflowsList = () => {
       w.metadata.id.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  // ── Full-screen editor — replaces the list entirely ──
+  if (selectedWorkflow) {
+    const workflowToEdit = workflows.find((w) => w.metadata.id === selectedWorkflow);
+    if (workflowToEdit) {
+      return (
+        <WorkflowEditor
+          workflow={workflowToEdit}
+          onClose={() => {
+            setSelectedWorkflow(null);
+            getWorkflows();
+          }}
+        />
+      );
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background/30">
@@ -173,20 +189,6 @@ export const WorkflowsList = () => {
         />
       )}
 
-      {selectedWorkflow && (
-        <WorkflowEditor
-          workflow={
-            workflows.find(
-              (w) => w.metadata.id === selectedWorkflow,
-            ) as WorkflowItem
-          }
-          onClose={() => {
-            setSelectedWorkflow(null);
-            getWorkflows();
-          }}
-        />
-      )}
-
       {/* Import Dialog */}
       {isImportOpen && (
         <ImportWorkflowDialog
@@ -197,3 +199,4 @@ export const WorkflowsList = () => {
     </div>
   );
 };
+

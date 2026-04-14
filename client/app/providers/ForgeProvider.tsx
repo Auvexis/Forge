@@ -38,6 +38,12 @@ interface ForgeContextType {
   refreshActivePluginStatus: (pluginId: string) => Promise<void>;
   activePluginLoading: boolean;
 
+  // Workflows
+  selectedWorkflowId: string | null;
+  setSelectedWorkflowId: (id: string | null) => void;
+  activeSubSidebar: string | null;
+  setActiveSubSidebar: (id: string | null) => void;
+
   // OAuth Flow
   authLoading: boolean;
   startOAuthFlow: (pluginId: string, authUrl: string) => Promise<void>;
@@ -199,6 +205,9 @@ export const ForgeProvider = ({ children }: { children: ReactNode }) => {
     [refreshActivePluginStatus],
   );
 
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
+  const [activeSubSidebar, setActiveSubSidebar] = useState<string | null>(null);
+
   return (
     <ForgeContext.Provider
       value={{
@@ -214,6 +223,10 @@ export const ForgeProvider = ({ children }: { children: ReactNode }) => {
         activePluginLoading,
         authLoading,
         startOAuthFlow,
+        selectedWorkflowId,
+        setSelectedWorkflowId,
+        activeSubSidebar,
+        setActiveSubSidebar,
       }}
     >
       {children}

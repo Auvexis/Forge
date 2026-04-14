@@ -148,7 +148,7 @@ export const WorkflowEditorDock = ({
             className="h-8 w-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-blue-500 transition-all group/tool relative"
           >
             <Download className="w-3.5 h-3.5" />
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-sidebar border border-sidebar-accent/40 px-2 py-1 rounded text-[8px] font-black uppercase opacity-0 group-hover/tool:opacity-100 transition-opacity pointer-events-none">
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-sidebar border border-sidebar-accent/40 px-2 py-1 rounded text-nano font-black uppercase opacity-0 group-hover/tool:opacity-100 transition-opacity pointer-events-none">
               Export
             </div>
           </Button>
@@ -170,7 +170,7 @@ export const WorkflowEditorDock = ({
       <Button
         onClick={onSave}
         disabled={isSaving || !isDirty || isBusy}
-        className={`h-9 px-5 rounded-full font-black uppercase text-micro tracking-[0.15em] gap-2 transition-all duration-300 ${
+        className={`px-3 rounded-full font-black uppercase text-tiny! tracking-[0.15em] gap-2 transition-all duration-300 ${
           isDirty && !isBusy
             ? "bg-violet-600 text-white hover:bg-violet-500 shadow-[0_5px_20px_rgba(139,92,246,0.15)]"
             : "bg-sidebar-accent/10 text-muted-foreground opacity-50"

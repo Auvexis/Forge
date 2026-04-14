@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { Node } from "@xyflow/react";
+import type { Node, ReactFlowInstance } from "@xyflow/react";
 import type { WorkflowNodeType } from "../types/workflow-types";
 
 /**
@@ -10,38 +10,52 @@ export const useWorkflowNodeFactory = (
   setNodes: (updater: (nds: Node[]) => Node[]) => void,
   setIsAddingNode: (v: boolean) => void,
   setSelectedNodeId: (id: string) => void,
+  reactFlowInstance: ReactFlowInstance | null,
 ) => {
+  const getCenterPosition = useCallback(() => {
+    if (reactFlowInstance) {
+      const { innerWidth, innerHeight } = window;
+      return reactFlowInstance.screenToFlowPosition({
+        x: innerWidth / 2,
+        y: innerHeight / 2,
+      });
+    }
+    return { x: 400, y: 200 };
+  }, [reactFlowInstance]);
+
   const handleCreateNode = useCallback(
     (pluginId: string, action: string, actionName: string) => {
       const newNodeId = `node_${Date.now()}`;
+      const position = getCenterPosition();
       const newNode: Node = {
         id: newNodeId,
         type: "action",
-        position: { x: 400, y: 200 },
+        position,
         data: {
           type: "plugin" as const,
           pluginId,
           action,
           name: actionName,
           params: {},
-          ui: { positionX: 400, positionY: 200 },
+          ui: { positionX: position.x, positionY: position.y },
         },
       };
       setNodes((nds) => nds.concat(newNode));
       setIsAddingNode(false);
       setTimeout(() => setSelectedNodeId(newNodeId), 50);
     },
-    [setNodes, setIsAddingNode, setSelectedNodeId],
+    [setNodes, setIsAddingNode, setSelectedNodeId, getCenterPosition],
   );
 
   const handleCreateLogicNode = useCallback(
     (type: WorkflowNodeType) => {
       const newNodeId = `node_${Date.now()}`;
+      const position = getCenterPosition();
 
       const baseData: Record<string, any> = {
         type,
         name: "",
-        ui: { positionX: 400, positionY: 200 },
+        ui: { positionX: position.x, positionY: position.y },
       };
 
       switch (type) {
@@ -82,7 +96,7 @@ export const useWorkflowNodeFactory = (
       const newNode: Node = {
         id: newNodeId,
         type: "action",
-        position: { x: 400, y: 200 },
+        position,
         data: baseData,
       };
 
@@ -90,7 +104,7 @@ export const useWorkflowNodeFactory = (
       setIsAddingNode(false);
       setTimeout(() => setSelectedNodeId(newNodeId), 50);
     },
-    [setNodes, setIsAddingNode, setSelectedNodeId],
+    [setNodes, setIsAddingNode, setSelectedNodeId, getCenterPosition],
   );
 
   return { handleCreateNode, handleCreateLogicNode };

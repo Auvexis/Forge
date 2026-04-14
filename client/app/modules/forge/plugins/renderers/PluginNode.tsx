@@ -12,12 +12,14 @@ export const PluginNode = ({ data }: any) => {
         <Handle
           type="source"
           position={Position.Top}
-          className="opacity-0! pointer-events-none!"
+          className="bg-sidebar-accent hidden! border-none pointer-events-auto"
+          style={{ top: -10, width: 14, height: 14 }}
         />
         <Handle
           type="target"
           position={Position.Top}
-          className="opacity-0! pointer-events-none!"
+          className="bg-sidebar-accent hidden! border-none pointer-events-auto"
+          style={{ top: -10, width: 14, height: 14 }}
         />
 
         <div className="relative">

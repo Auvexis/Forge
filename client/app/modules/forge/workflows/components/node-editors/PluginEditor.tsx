@@ -139,7 +139,7 @@ function VariableTree({
               >
                 <Check className="w-2.5 h-2.5 opacity-50 shrink-0" />
                 <span className="truncate">{p.label}</span>
-                <span className="opacity-40 text-[8px] shrink-0">{p.type}</span>
+                <span className="opacity-40 text-nano shrink-0">{p.type}</span>
               </button>
             ))}
           </div>

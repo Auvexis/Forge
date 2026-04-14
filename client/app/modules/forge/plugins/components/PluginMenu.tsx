@@ -1,4 +1,12 @@
-import { KeyRound, Play, Loader2, X, Cog, ShieldCheck, Command } from "lucide-react";
+import {
+  KeyRound,
+  Play,
+  Loader2,
+  X,
+  Cog,
+  ShieldCheck,
+  Command,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Dialog,
@@ -37,9 +45,9 @@ export const PluginMenu = ({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent 
-        style={{ backfaceVisibility: "hidden" }}
-        className="max-w-[55vw]! w-[55vw]! min-h-[80vh]! h-[80vh]! bg-sidebar/65 backdrop-blur-2xl p-0! rounded-[2.5rem]! border border-sidebar-accent/30 overflow-hidden flex flex-col animate-in zoom-in-95 duration-500 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] transform-gpu will-change-transform antialiased"
+      <DialogContent
+        showCloseButton={false}
+        className="fixed inset-0! m-auto! max-w-[55vw]! w-[55vw]! min-h-[80vh]! h-[80vh]! bg-sidebar/65 backdrop-blur-2xl p-0! rounded-[2.5rem] border border-sidebar-accent/30 overflow-hidden flex flex-col animate-in zoom-in-95 duration-500 shadow-[0_0_80px_-20px_rgba(0,0,0,0.6)] antialiased translate-x-0! translate-y-0! top-0! left-0!"
       >
         {loading ? (
           <div className="flex h-80 flex-col items-center justify-center gap-6">

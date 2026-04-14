@@ -126,7 +126,7 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
                            <div className={`w-2 h-2 rounded-full ${val.status === 'SUCCESS' ? 'bg-emerald-500' : 'bg-destructive'}`} />
                            <span className="text-tiny font-bold font-mono">{key}</span>
                         </div>
-                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${
+                        <span className={`text-nano font-black uppercase px-1.5 py-0.5 rounded ${
                            val.status === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-destructive/10 text-destructive'
                         }`}>
                            {val.status}
@@ -185,7 +185,7 @@ export const WorkflowLogsPanel = ({ workflowId, onClose }: Props) => {
               size="sm" 
               onClick={handleClear}
               disabled={clearing || executions.length === 0}
-              className="h-7 text-mini font-black uppercase text-destructive hover:bg-destructive/10 rounded-lg gap-1.5"
+              className="h-7 text-mini! font-black uppercase text-destructive hover:bg-destructive/10 rounded-lg gap-1.5"
             >
               {clearing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
               Clear All

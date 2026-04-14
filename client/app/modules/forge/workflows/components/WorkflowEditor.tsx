@@ -1,11 +1,9 @@
-import { useEffect, useCallback, useRef } from "react";
-import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { useEffect, useCallback, useRef, useState } from "react";
 import type { WorkflowItem } from "../types/workflow-types";
 import { Save } from "lucide-react";
 import {
   Background,
   BackgroundVariant,
-  Controls,
   ReactFlow,
   useEdgesState,
   useNodesState,
@@ -16,10 +14,12 @@ import {
   type Connection,
   type OnSelectionChangeParams,
   ReactFlowProvider,
+  MarkerType,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 import { ActionNodeRenderer } from "./nodes/ActionNodeRenderer";
 import { TriggerNodeRenderer } from "./nodes/TriggerNodeRenderer";
-import { DeletableEdge } from "./edges/DeletableEdge";
+import { WorkflowEdge } from "./edges/WorkflowEdge";
 import { useExecuteWorkflow } from "../hooks/useExecuteWorkflow";
 import { useWorkflowStream } from "../hooks/useWorkflowStream";
 import { NodeEditorPanel } from "./NodeEditorPanel";
@@ -29,6 +29,7 @@ import { WorkflowEditorDock } from "./WorkflowEditorDock";
 import { WorkflowSettingsPanel } from "./WorkflowSettingsPanel";
 import { RunWorkflowPanel } from "./RunWorkflowPanel";
 import { WorkflowLogsPanel } from "./WorkflowLogsPanel";
+import { ZoomSlider } from "~/components/zoom-slider";
 import { toast } from "~/shared/helpers/toast";
 import { useConfirm } from "~/providers/ConfirmProvider";
 
@@ -37,13 +38,26 @@ import { useWorkflowPanelState } from "../hooks/useWorkflowPanelState";
 import { useWorkflowNodeFactory } from "../hooks/useWorkflowNodeFactory";
 import { useWorkflowSave } from "../hooks/useWorkflowSave";
 
+// Defined outside component to avoid re-creation on every render
 const nodeTypes: NodeTypes = {
   action: ActionNodeRenderer,
   trigger: TriggerNodeRenderer,
 };
 
 const edgeTypes = {
-  deletable: DeletableEdge,
+  workflow: WorkflowEdge,
+};
+
+const defaultEdgeOptions = {
+  type: "workflow",
+  animated: false,
+  style: { stroke: "var(--accent)", strokeWidth: 2 },
+  markerEnd: {
+    type: MarkerType.ArrowClosed,
+    width: 20,
+    height: 20,
+    color: "var(--accent)",
+  },
 };
 
 interface Props {
@@ -53,6 +67,7 @@ interface Props {
 
 export const WorkflowEditor = ({ workflow, onClose }: Props) => {
   const { plugins, getPlugins } = useForge();
+  const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const [nodes, setNodes, onNodesChangeDefault] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChangeDefault] = useEdgesState<Edge>([]);
   const { executeWorkflow, loading: executing } = useExecuteWorkflow();
@@ -70,6 +85,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
     setNodes,
     panels.setIsAddingNode,
     panels.setSelectedNodeId,
+    rfInstance
   );
 
   const confirm = useConfirm();
@@ -85,7 +101,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
   useEffect(() => {
     const savedTriggerUI = (workflow.trigger as any)?.ui;
     const triggerPos = {
-      x: savedTriggerUI?.positionX ?? save.triggerPositionRef.current?.x ?? 50,
+      x: savedTriggerUI?.positionX ?? save.triggerPositionRef.current?.x ?? 80,
       y: savedTriggerUI?.positionY ?? save.triggerPositionRef.current?.y ?? 200,
     };
 
@@ -101,7 +117,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
         id,
         type: "action",
         position: {
-          x: nodeData.ui?.positionX ?? 400,
+          x: nodeData.ui?.positionX ?? 450,
           y: nodeData.ui?.positionY ?? 200,
         },
         data: nodeData as any,
@@ -117,8 +133,15 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
       sourceHandle: edge.sourceHandle || undefined,
       targetHandle: edge.targetHandle || undefined,
       label: edge.condition,
-      animated: true,
-      style: { stroke: "var(--foreground)" },
+      type: "workflow",
+      animated: false,
+      style: { stroke: "var(--accent)", strokeWidth: 2 },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        width: 20,
+        height: 20,
+        color: "var(--accent)",
+      },
     }));
 
     setEdges(reactFlowEdges);
@@ -185,9 +208,18 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
         addEdge(
           {
             ...params,
-            type: "deletable",
-            animated: true,
-            style: { stroke: "var(--foreground)" },
+            type: "workflow",
+            animated: false,
+            style: {
+              stroke: "var(--accent)",
+              strokeWidth: 2,
+            },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              width: 20,
+              height: 20,
+              color: "var(--accent)",
+            },
           },
           eds,
         ),
@@ -224,7 +256,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
     ({ nodes: selectedNodes }: OnSelectionChangeParams) => {
       if (selectedNodes.length === 1) {
         panels.openNodeEditor(selectedNodes[0].id);
-      } else if (selectedNodes.length === 0) {
+      } else {
         panels.setSelectedNodeId(null);
       }
     },
@@ -279,122 +311,124 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
 
   return (
     <ReactFlowProvider>
-      <Dialog open={true} onOpenChange={handleRequestClose}>
-        <DialogContent
-          style={{ backfaceVisibility: "hidden" }}
-          className="flex flex-col w-[94vw]! h-[94vh]! max-w-[94vw]! bg-background border border-border overflow-hidden p-0! rounded-[2.5rem]! animate-in zoom-in-95 duration-500 transform-gpu will-change-transform antialiased"
-        >
-          <main className="w-full flex-1 overflow-hidden flex relative bg-background">
-            <WorkflowEditorDock
-              workflowName={save.metadata.name}
-              workflowId={save.metadata.id}
-              workflow={{
-                metadata: save.metadata,
-                trigger:
-                  nodes.find((n) => n.id === "trigger")?.data ||
-                  workflow.trigger,
-                nodes: nodes
-                  .filter((n) => n.id !== "trigger")
-                  .reduce((acc, n) => ({ ...acc, [n.id]: n.data }), {}),
-                edges: edges.map((e) => ({
-                  id: e.id,
-                  source: e.source,
-                  target: e.target,
-                  condition: e.label,
-                })),
-              }}
-              onRun={panels.openRun}
-              onStop={cancelStream}
-              onAddNode={panels.openAddNode}
-              onSave={() => save.handleSave(false)}
-              onSettings={panels.openSettings}
-              onLogs={panels.toggleLogs}
-              onClose={handleRequestClose}
-              isSaving={save.saving}
-              isExecuting={executing}
-              isStreaming={isStreaming}
-              isLogsOpen={panels.isLogsOpen}
-              isDirty={save.isDirty}
+      {/* Full-screen editor — no Dialog wrapper, fills the parent container */}
+      <div className="w-full h-full relative flex flex-col bg-background overflow-hidden animate-in fade-in zoom-in-[0.98] duration-300">
+        <div className="w-full flex-1 overflow-hidden flex relative">
+          <WorkflowEditorDock
+            workflowName={save.metadata.name}
+            workflowId={save.metadata.id}
+            workflow={{
+              metadata: save.metadata,
+              trigger:
+                nodes.find((n) => n.id === "trigger")?.data || workflow.trigger,
+              nodes: nodes
+                .filter((n) => n.id !== "trigger")
+                .reduce((acc, n) => ({ ...acc, [n.id]: n.data }), {}),
+              edges: edges.map((e) => ({
+                id: e.id,
+                source: e.source,
+                target: e.target,
+                condition: e.label,
+              })),
+            }}
+            onRun={panels.openRun}
+            onStop={cancelStream}
+            onAddNode={panels.openAddNode}
+            onSave={() => save.handleSave(false)}
+            onSettings={panels.openSettings}
+            onLogs={panels.toggleLogs}
+            onClose={handleRequestClose}
+            isSaving={save.saving}
+            isExecuting={executing}
+            isStreaming={isStreaming}
+            isLogsOpen={panels.isLogsOpen}
+            isDirty={save.isDirty}
+          />
+
+          {/* Side Panels */}
+          {panels.isEditingSettings && (
+            <WorkflowSettingsPanel
+              workflow={{ ...workflow, metadata: save.metadata }}
+              onUpdate={save.handleUpdateMetadata}
+              onClose={() => panels.setIsEditingSettings(false)}
             />
+          )}
 
-            {/* Side Panels */}
-            {panels.isEditingSettings && (
-              <WorkflowSettingsPanel
-                workflow={{ ...workflow, metadata: save.metadata }}
-                onUpdate={save.handleUpdateMetadata}
-                onClose={() => panels.setIsEditingSettings(false)}
+          {panels.isAddingNode && (
+            <AddNodeOverlay
+              onAddNode={factory.handleCreateNode}
+              onAddLogicNode={factory.handleCreateLogicNode}
+              onClose={() => panels.setIsAddingNode(false)}
+            />
+          )}
+
+          {panels.isRunningWorkflow && (
+            <RunWorkflowPanel
+              workflow={{ ...workflow, metadata: save.metadata }}
+              onExecute={handleExecute}
+              onClose={() => panels.setIsRunningWorkflow(false)}
+              loading={executing}
+            />
+          )}
+
+          {panels.isLogsOpen && (
+            <WorkflowLogsPanel
+              workflowId={workflow.metadata.id}
+              onClose={() => panels.setIsLogsOpen(false)}
+            />
+          )}
+
+          {panels.selectedNodeId &&
+            !panels.isAddingNode &&
+            !panels.isEditingSettings &&
+            !panels.isRunningWorkflow && (
+              <NodeEditorPanel
+                nodeId={panels.selectedNodeId}
+                nodes={nodes}
+                edges={edges}
+                setNodes={handleSetNodes}
+                setEdges={handleSetEdges}
+                onNodeIdChange={panels.setSelectedNodeId}
+                onClose={() => {
+                  panels.setSelectedNodeId(null);
+                  setNodes((nds) =>
+                    nds.map((n) => ({ ...n, selected: false })),
+                  );
+                }}
+                nodeStatuses={nodeStatuses}
               />
             )}
 
-            {panels.isAddingNode && (
-              <AddNodeOverlay
-                onAddNode={factory.handleCreateNode}
-                onAddLogicNode={factory.handleCreateLogicNode}
-                onClose={() => panels.setIsAddingNode(false)}
-              />
-            )}
-
-            {panels.isRunningWorkflow && (
-              <RunWorkflowPanel
-                workflow={{ ...workflow, metadata: save.metadata }}
-                onExecute={handleExecute}
-                onClose={() => panels.setIsRunningWorkflow(false)}
-                loading={executing}
-              />
-            )}
-
-            {panels.isLogsOpen && (
-              <WorkflowLogsPanel
-                workflowId={workflow.metadata.id}
-                onClose={() => panels.setIsLogsOpen(false)}
-              />
-            )}
-
-            {panels.selectedNodeId &&
-              !panels.isAddingNode &&
-              !panels.isEditingSettings &&
-              !panels.isRunningWorkflow && (
-                <NodeEditorPanel
-                  nodeId={panels.selectedNodeId}
-                  nodes={nodes}
-                  edges={edges}
-                  setNodes={handleSetNodes}
-                  setEdges={handleSetEdges}
-                  onNodeIdChange={panels.setSelectedNodeId}
-                  onClose={() => panels.setSelectedNodeId(null)}
-                  nodeStatuses={nodeStatuses}
-                />
-              )}
-
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onSelectionChange={onSelectionChange}
-              onNodeClick={onNodeClick}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              defaultEdgeOptions={{ type: "deletable" }}
-              fitView
-              fitViewOptions={{ padding: 0.5, maxZoom: 1 }}
-              minZoom={0.2}
-              proOptions={{ hideAttribution: true }}
-              className="flex-1 bg-transparent"
-            >
-              <Controls className="rounded-xl! overflow-hidden! mb-5! ml-5! border border-border p-1" />
-              <Background
-                variant={BackgroundVariant.Dots}
-                color="var(--chart-5)"
-                bgColor="var(--background)"
-                gap={25}
-                size={2}
-              />
-            </ReactFlow>
-          </main>
-        </DialogContent>
-      </Dialog>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onInit={setRfInstance}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onSelectionChange={onSelectionChange}
+            onNodeClick={onNodeClick}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            defaultEdgeOptions={defaultEdgeOptions}
+            fitView
+            fitViewOptions={{ padding: 0.4, maxZoom: 1.2 }}
+            minZoom={0.1}
+            maxZoom={2}
+            proOptions={{ hideAttribution: true }}
+            className="flex-1 bg-transparent"
+          >
+            <ZoomSlider position="bottom-center" className="mb-5! mr-5! border border-border shadow-xl bg-card/80 backdrop-blur-md p-2 rounded-2xl" />
+            <Background
+              variant={BackgroundVariant.Dots}
+              color="var(--chart-5)"
+              bgColor="var(--background)"
+              gap={25}
+              size={2}
+            />
+          </ReactFlow>
+        </div>
+      </div>
     </ReactFlowProvider>
   );
 };

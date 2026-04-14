@@ -3,7 +3,7 @@ import { useForge, GlobalViews } from "~/providers/ForgeProvider";
 import { Button } from "~/components/ui/button";
 
 export const ForgeSidebar = () => {
-  const { view, setView } = useForge();
+  const { view, setView, activeSubSidebar, setActiveSubSidebar } = useForge();
 
   return (
     <div className="fixed left-6 top-1/2 -translate-y-1/2 z-50 h-fit pointer-events-none group/dock">
@@ -55,6 +55,8 @@ export const ForgeSidebar = () => {
                 ? "bg-foreground/10 text-foreground shadow-[0_0_15px_rgba(255,255,255,0.05)]"
                 : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
             }`}
+            onMouseEnter={() => setActiveSubSidebar("workflows")}
+            onMouseLeave={() => setActiveSubSidebar(null)}
           >
             <Workflow
               className={`w-5 h-5`}
@@ -66,6 +68,11 @@ export const ForgeSidebar = () => {
 
             {view === GlobalViews.WORKFLOWS && (
               <div className="absolute -left-1.5 w-1 h-4 bg-foreground rounded-full animate-in fade-in zoom-in duration-300" />
+            )}
+
+            {/* Submenu Indicator Arrow */}
+            {(view === GlobalViews.WORKFLOWS || activeSubSidebar === "workflows") && (
+              <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-sidebar-accent/80 border-t border-r border-sidebar-accent border-r-foreground/20 border-t-foreground/20 rotate-45 animate-in fade-in slide-in-from-left-2 duration-500" />
             )}
           </Button>
         </div>
