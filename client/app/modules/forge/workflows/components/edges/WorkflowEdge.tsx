@@ -21,7 +21,9 @@ export const WorkflowEdge = memo((props: EdgeProps) => {
       {...props}
       style={{
         ...props.style,
-        stroke: props.selected ? "var(--accent)" : "var(--muted)",
+        stroke: props.selected
+          ? "var(--forge-rf-edge-stroke-selected)"
+          : "var(--forge-rf-edge-stroke)",
         strokeWidth: 2,
       }}
     >

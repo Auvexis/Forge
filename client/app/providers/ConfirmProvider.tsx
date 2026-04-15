@@ -111,7 +111,7 @@ export const ConfirmProvider: FC<{ children: ReactNode }> = ({ children }) => {
       {children}
 
       <AlertDialog open={open} onOpenChange={(v) => !v && handleCancel()}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-none!">
           <AlertDialogHeader>
             <AlertDialogTitle>{options.title}</AlertDialogTitle>
             <AlertDialogDescription>

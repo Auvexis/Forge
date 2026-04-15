@@ -58,10 +58,10 @@ export const PluginMenuMethods = ({ pluginId }: { pluginId: string }) => {
   if (!plugin) return null;
 
   return (
-    <main className="w-full h-full overflow-y-auto flex flex-col p-1 pr-3 gap-3">
+    <main className="w-full h-full overflow-y-auto flex flex-col p-1 gap-3">
       {(Object.entries(plugin.manifest.methods || {}) as [string, any][]).map(
         ([methodKey, methodValue]) => (
-          <Card key={methodKey} className="w-full p-2 px-0 shrink-0">
+          <Card key={methodKey} className="w-full p-2 px-0 shrink-0 rounded-sm!">
             <CardContent className="px-2">
               <Collapsible>
                 <CollapsibleTrigger className="w-full flex group justify-between items-center">

@@ -9,7 +9,7 @@ export function IfEditor({ node, updateNodeData }: NodeEditorProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
+        <label className="text-mini! font-black uppercase tracking-widest text-muted-foreground ml-1">
           Step Name
         </label>
         <Input

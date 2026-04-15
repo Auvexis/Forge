@@ -3,10 +3,7 @@ import {
   Workflow,
   LayoutGrid,
   Layers,
-  SlidersHorizontal,
   Share2,
-  Sparkles,
-  Settings2,
   Plus,
   Loader2,
 } from "lucide-react";
@@ -43,7 +40,12 @@ export const WorkflowDashboardDock = ({
             variant="ghost"
             size="icon"
             onClick={() => setViewMode("list")}
-            className={`h-8 w-8 rounded-full transition-all ${viewMode === "list" ? "bg-emerald-500/10 text-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]" : "text-muted-foreground hover:bg-sidebar-accent/20 hover:text-emerald-500"}`}
+            title="List view"
+            className={`h-7 w-7 rounded-md transition-colors ${
+              viewMode === "list"
+                ? "bg-accent text-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            }`}
           >
             <Layers className="w-3.5 h-3.5" />
           </Button>
@@ -51,17 +53,14 @@ export const WorkflowDashboardDock = ({
             variant="ghost"
             size="icon"
             onClick={() => setViewMode("grid")}
-            className={`h-8 w-8 rounded-full transition-all ${viewMode === "grid" ? "bg-emerald-500/10 text-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]" : "text-muted-foreground hover:bg-sidebar-accent/20 hover:text-emerald-500"}`}
+            title="Grid view"
+            className={`h-7 w-7 rounded-md transition-colors ${
+              viewMode === "grid"
+                ? "bg-accent text-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            }`}
           >
             <LayoutGrid className="w-3.5 h-3.5" />
-          </Button>
-          <div className="w-px h-4 bg-sidebar-accent/10 mx-1" />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-emerald-500 transition-all"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
           </Button>
         </>
       ),
@@ -69,51 +68,30 @@ export const WorkflowDashboardDock = ({
     {
       id: "search",
       content: (
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/30 group-focus-within:text-emerald-500 transition-colors" />
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
           <input
-            placeholder="Find Workflows..."
+            placeholder="Search workflows..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-8 w-[140px] bg-sidebar-accent/5 hover:bg-sidebar-accent/10 border-transparent focus:outline-none focus:border-sidebar-accent/20 rounded-full font-bold text-mini transition-all placeholder:text-muted-foreground/20 uppercase tracking-tight text-foreground"
+            className="pl-8 h-7 w-[160px] bg-accent border border-border rounded-md text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-ring transition-colors"
           />
         </div>
       ),
     },
     {
       id: "tools",
+      border: false,
       content: (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onImport}
-            className="h-8 w-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-blue-500 transition-all group/tool relative"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-sidebar border border-sidebar-accent/40 px-2 py-1 rounded text-nano font-black uppercase opacity-0 group-hover/tool:opacity-100 transition-opacity pointer-events-none">
-              Import
-            </div>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="group/ai h-8 w-8 rounded-full hover:bg-violet-500/10 text-muted-foreground hover:text-violet-500 transition-all relative"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-violet-500 rounded-full border-2 border-sidebar animate-ping" />
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-sidebar border border-sidebar-accent/40 px-2 py-1 rounded text-nano font-black uppercase opacity-0 group-hover/ai:opacity-100 transition-opacity pointer-events-none">
-              Synthesis
-            </div>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-foreground transition-all"
-          >
-            <Settings2 className="w-3.5 h-3.5" />
-          </Button>
-        </>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onImport}
+          title="Import workflow"
+          className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+        >
+          <Share2 className="w-3.5 h-3.5" />
+        </Button>
       ),
     },
   ];
@@ -122,7 +100,8 @@ export const WorkflowDashboardDock = ({
     <Button
       onClick={onCreate}
       disabled={isCreating}
-      className="h-9 px-5 rounded-full font-black uppercase text-mini! tracking-[0.15em] gap-2 bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_5px_20px_rgba(16,185,129,0.15)] transition-all"
+      size="sm"
+      className="h-7 px-3 text-xs font-medium gap-1.5 rounded-md"
     >
       {isCreating ? (
         <Loader2 className="w-3 h-3 animate-spin" />
@@ -137,8 +116,10 @@ export const WorkflowDashboardDock = ({
     <ForgeDock
       icon={Workflow}
       title="Workflows"
-      subtitle={`${moduleCount} ${moduleCount === 1 ? "Workflow" : "Workflows"} Active`}
-      accent="emerald"
+      subtitle={`${moduleCount} ${moduleCount === 1 ? "workflow" : "workflows"}`}
+      accent="primary"
+      variant="workflows"
+      statusDot={{ color: "bg-forge-dock-status-dot-primary", animate: false }}
       sections={sections}
       trailing={trailing}
     />

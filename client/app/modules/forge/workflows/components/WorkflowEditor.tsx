@@ -37,6 +37,7 @@ import { useConfirm } from "~/providers/ConfirmProvider";
 import { useWorkflowPanelState } from "../hooks/useWorkflowPanelState";
 import { useWorkflowNodeFactory } from "../hooks/useWorkflowNodeFactory";
 import { useWorkflowSave } from "../hooks/useWorkflowSave";
+import { sanitizeNodeData } from "../utils/workflow-utils";
 
 // Defined outside component to avoid re-creation on every render
 const nodeTypes: NodeTypes = {
@@ -51,28 +52,42 @@ const edgeTypes = {
 const defaultEdgeOptions = {
   type: "workflow",
   animated: false,
-  style: { stroke: "var(--accent)", strokeWidth: 2 },
+  style: { stroke: "var(--forge-rf-edge-stroke)", strokeWidth: 1.5 },
   markerEnd: {
     type: MarkerType.ArrowClosed,
-    width: 20,
-    height: 20,
-    color: "var(--accent)",
+    width: 16,
+    height: 16,
+    color: "var(--forge-rf-edge-stroke)",
   },
 };
 
 interface Props {
   workflow: WorkflowItem;
   onClose: () => void;
+  /** All workflows — for the switcher dropdown */
+  workflows?: WorkflowItem[];
+  /** Called after every successful save so the parent can refresh its list */
+  onSaved?: () => void;
 }
 
-export const WorkflowEditor = ({ workflow, onClose }: Props) => {
-  const { plugins, getPlugins } = useForge();
+export const WorkflowEditor = ({
+  workflow,
+  onClose,
+  workflows = [],
+  onSaved,
+}: Props) => {
+  const { plugins, getPlugins, setSelectedWorkflowId } = useForge();
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const [nodes, setNodes, onNodesChangeDefault] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChangeDefault] = useEdgesState<Edge>([]);
   const { executeWorkflow, loading: executing } = useExecuteWorkflow();
-  const { nodeStatuses, isStreaming, startStream, cancelStream, resetStream } =
-    useWorkflowStream();
+  const {
+    nodeStatuses,
+    isStreaming,
+    startStream,
+    cancelStream,
+    resetStream,
+  } = useWorkflowStream();
 
   // Panel state (mutually exclusive)
   const panels = useWorkflowPanelState();
@@ -85,7 +100,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
     setNodes,
     panels.setIsAddingNode,
     panels.setSelectedNodeId,
-    rfInstance
+    rfInstance,
   );
 
   const confirm = useConfirm();
@@ -109,7 +124,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
       id: "trigger",
       type: "trigger",
       position: triggerPos,
-      data: workflow.trigger as any,
+      data: sanitizeNodeData(workflow.trigger as any),
     };
 
     const actionNodes: Node[] = Object.entries(workflow.nodes).map(
@@ -120,7 +135,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
           x: nodeData.ui?.positionX ?? 450,
           y: nodeData.ui?.positionY ?? 200,
         },
-        data: nodeData as any,
+        data: sanitizeNodeData(nodeData as any),
       }),
     );
 
@@ -135,12 +150,12 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
       label: edge.condition,
       type: "workflow",
       animated: false,
-      style: { stroke: "var(--accent)", strokeWidth: 2 },
+      style: { stroke: "var(--forge-rf-edge-stroke)", strokeWidth: 1.5 },
       markerEnd: {
         type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-        color: "var(--accent)",
+        width: 16,
+        height: 16,
+        color: "var(--forge-rf-edge-stroke)",
       },
     }));
 
@@ -150,7 +165,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
     setTimeout(() => {
       initialLoadDone.current = true;
     }, 500);
-  }, [workflow, setNodes, setEdges, save.triggerPositionRef]);
+  }, [workflow.metadata.id, setNodes, setEdges]); // Only reset when we actually switch workflows
 
   // ── Sync SSE node statuses ──
   useEffect(() => {
@@ -210,15 +225,12 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
             ...params,
             type: "workflow",
             animated: false,
-            style: {
-              stroke: "var(--accent)",
-              strokeWidth: 2,
-            },
+            style: { stroke: "var(--forge-rf-edge-stroke)", strokeWidth: 1.5 },
             markerEnd: {
               type: MarkerType.ArrowClosed,
-              width: 20,
-              height: 20,
-              color: "var(--accent)",
+              width: 16,
+              height: 16,
+              color: "var(--forge-rf-edge-stroke)",
             },
           },
           eds,
@@ -263,20 +275,39 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
     [panels],
   );
 
+  // Wrap save to also notify parent for list refresh
+  const handleSave = useCallback(
+    async (andClose: boolean) => {
+      await save.handleSave(andClose);
+      onSaved?.();
+    },
+    [save, onSaved],
+  );
+
   const handleExecute = useCallback(
     async (inputParams: Record<string, any>) => {
       try {
         resetNodeStatuses();
-        const result = await executeWorkflow(workflow.metadata.id, inputParams);
-        const executionId = (result as any)?.executionId;
-        if (executionId) {
-          startStream(executionId);
-          toast.success("Workflow started", {
-            description: `Streaming execution of "${save.metadata.name}"...`,
-          });
+        const executionId = `exec_${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(2, 9)}`;
+        // Open SSE before multipart upload — otherwise events are emitted while fetch is still in flight.
+        startStream(executionId);
+        toast.success("Workflow started", {
+          description: `Streaming execution of "${save.metadata.name}"...`,
+        });
+        const result = await executeWorkflow(
+          workflow.metadata.id,
+          inputParams,
+          executionId,
+        );
+        const serverId = (result as { executionId?: string } | null)?.executionId;
+        if (serverId && serverId !== executionId) {
+          startStream(serverId);
         }
       } catch (e: any) {
         console.error("Workflow Execution Failed Error:", e);
+        resetStream();
       }
     },
     [
@@ -284,6 +315,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
       executeWorkflow,
       workflow.metadata.id,
       startStream,
+      resetStream,
       save.metadata.name,
     ],
   );
@@ -300,7 +332,7 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
         variant: "default",
       });
       if (shouldSave) {
-        await save.handleSave(true);
+        await handleSave(true);
       } else {
         onClose();
       }
@@ -311,41 +343,82 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
 
   return (
     <ReactFlowProvider>
-      {/* Full-screen editor — no Dialog wrapper, fills the parent container */}
-      <div className="w-full h-full relative flex flex-col bg-background overflow-hidden animate-in fade-in zoom-in-[0.98] duration-300">
-        <div className="w-full flex-1 overflow-hidden flex relative">
-          <WorkflowEditorDock
-            workflowName={save.metadata.name}
-            workflowId={save.metadata.id}
-            workflow={{
-              metadata: save.metadata,
-              trigger:
-                nodes.find((n) => n.id === "trigger")?.data || workflow.trigger,
-              nodes: nodes
-                .filter((n) => n.id !== "trigger")
-                .reduce((acc, n) => ({ ...acc, [n.id]: n.data }), {}),
-              edges: edges.map((e) => ({
-                id: e.id,
-                source: e.source,
-                target: e.target,
-                condition: e.label,
-              })),
-            }}
-            onRun={panels.openRun}
-            onStop={cancelStream}
-            onAddNode={panels.openAddNode}
-            onSave={() => save.handleSave(false)}
-            onSettings={panels.openSettings}
-            onLogs={panels.toggleLogs}
-            onClose={handleRequestClose}
-            isSaving={save.saving}
-            isExecuting={executing}
-            isStreaming={isStreaming}
-            isLogsOpen={panels.isLogsOpen}
-            isDirty={save.isDirty}
-          />
+      <div className="w-full h-full flex flex-col bg-background overflow-hidden">
+        {/* Top Toolbar */}
+        <WorkflowEditorDock
+          workflowName={save.metadata.name}
+          workflowId={save.metadata.id}
+          workflow={{
+            metadata: save.metadata,
+            trigger: sanitizeNodeData(
+              nodes.find((n) => n.id === "trigger")?.data || workflow.trigger,
+            ),
+            nodes: nodes
+              .filter((n) => n.id !== "trigger")
+              .reduce(
+                (acc, n) => ({ ...acc, [n.id]: sanitizeNodeData(n.data) }),
+                {},
+              ),
+            edges: edges.map((e) => ({
+              id: e.id,
+              source: e.source,
+              target: e.target,
+              condition: e.label,
+            })),
+          }}
+          onRun={panels.openRun}
+          onStop={cancelStream}
+          onAddNode={panels.openAddNode}
+          onSave={() => handleSave(false)}
+          onSettings={panels.openSettings}
+          onLogs={panels.toggleLogs}
+          onClose={handleRequestClose}
+          isSaving={save.saving}
+          isExecuting={executing}
+          isStreaming={isStreaming}
+          isLogsOpen={panels.isLogsOpen}
+          isDirty={save.isDirty}
+          workflows={workflows}
+          onSwitchWorkflow={(id) => setSelectedWorkflowId(id)}
+        />
 
-          {/* Side Panels */}
+        {/* Canvas + Panels */}
+        <div className="flex-1 relative overflow-hidden">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onInit={setRfInstance}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onSelectionChange={onSelectionChange}
+            onNodeClick={onNodeClick}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            defaultEdgeOptions={defaultEdgeOptions}
+            fitView
+            fitViewOptions={{ padding: 0.4, maxZoom: 1.2 }}
+            minZoom={0.1}
+            maxZoom={2}
+            proOptions={{ hideAttribution: true }}
+            className="w-full h-full"
+            // snapToGrid={true}
+            // snapGrid={[15, 15]}
+          >
+            <ZoomSlider
+              position="bottom-center"
+              className="bg-forge-rf-zoom-bg border border-b-0 -bottom-3! border-forge-rf-zoom-border rounded-none p-1"
+            />
+            <Background
+              variant={BackgroundVariant.Dots}
+              color="var(--forge-rf-canvas-dots)"
+              bgColor="var(--forge-rf-canvas-bg)"
+              gap={20}
+              size={1}
+            />
+          </ReactFlow>
+
+          {/* Edge-docked panels (right side) */}
           {panels.isEditingSettings && (
             <WorkflowSettingsPanel
               workflow={{ ...workflow, metadata: save.metadata }}
@@ -364,17 +437,17 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
 
           {panels.isRunningWorkflow && (
             <RunWorkflowPanel
-              workflow={{ ...workflow, metadata: save.metadata }}
+              workflow={{
+                ...workflow,
+                metadata: save.metadata,
+                // Use the LIVE trigger from the canvas, not the stale server snapshot
+                trigger:
+                  (nodes.find((n) => n.id === "trigger")?.data as any) ??
+                  workflow.trigger,
+              }}
               onExecute={handleExecute}
               onClose={() => panels.setIsRunningWorkflow(false)}
               loading={executing}
-            />
-          )}
-
-          {panels.isLogsOpen && (
-            <WorkflowLogsPanel
-              workflowId={workflow.metadata.id}
-              onClose={() => panels.setIsLogsOpen(false)}
             />
           )}
 
@@ -399,34 +472,13 @@ export const WorkflowEditor = ({ workflow, onClose }: Props) => {
               />
             )}
 
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onInit={setRfInstance}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onSelectionChange={onSelectionChange}
-            onNodeClick={onNodeClick}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            defaultEdgeOptions={defaultEdgeOptions}
-            fitView
-            fitViewOptions={{ padding: 0.4, maxZoom: 1.2 }}
-            minZoom={0.1}
-            maxZoom={2}
-            proOptions={{ hideAttribution: true }}
-            className="flex-1 bg-transparent"
-          >
-            <ZoomSlider position="bottom-center" className="mb-5! mr-5! border border-border shadow-xl bg-card/80 backdrop-blur-md p-2 rounded-2xl" />
-            <Background
-              variant={BackgroundVariant.Dots}
-              color="var(--chart-5)"
-              bgColor="var(--background)"
-              gap={25}
-              size={2}
+          {/* Centered floating overlay panel */}
+          {panels.isLogsOpen && (
+            <WorkflowLogsPanel
+              workflowId={workflow.metadata.id}
+              onClose={() => panels.setIsLogsOpen(false)}
             />
-          </ReactFlow>
+          )}
         </div>
       </div>
     </ReactFlowProvider>

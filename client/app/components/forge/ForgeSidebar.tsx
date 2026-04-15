@@ -1,95 +1,94 @@
-import { Workflow, Anvil, Compass, LayoutGrid, Settings } from "lucide-react";
+import { Workflow, Anvil, Compass, Settings, Frame } from "lucide-react";
 import { useForge, GlobalViews } from "~/providers/ForgeProvider";
-import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
+
+interface NavItem {
+  id: GlobalViews | string;
+  icon: React.ElementType;
+  label: string;
+  view?: GlobalViews;
+  subSidebar?: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    id: GlobalViews.EXPLORER,
+    icon: Compass,
+    label: "Explorer",
+    view: GlobalViews.EXPLORER,
+  },
+  {
+    id: GlobalViews.WORKFLOWS,
+    icon: Workflow,
+    label: "Workflows",
+    view: GlobalViews.WORKFLOWS,
+    subSidebar: "workflows",
+  },
+];
 
 export const ForgeSidebar = () => {
   const { view, setView, activeSubSidebar, setActiveSubSidebar } = useForge();
 
+  const handleNavClick = (item: NavItem) => {
+    if (item.view) setView(item.view);
+
+    if (item.subSidebar) {
+      // Toggle sub-sidebar on click
+      if (activeSubSidebar === item.subSidebar) {
+        setActiveSubSidebar(null);
+      } else {
+        setActiveSubSidebar(item.subSidebar);
+      }
+    } else {
+      setActiveSubSidebar(null);
+    }
+  };
+
   return (
-    <div className="fixed left-6 top-1/2 -translate-y-1/2 z-50 h-fit pointer-events-none group/dock">
-      {/* Tactical Ether Glow (Neutral) */}
-      <div className="absolute -inset-10 bg-white/5 blur-[30px] rounded-full opacity-40 group-hover/dock:opacity-60 transition-opacity duration-1000" />
-      <div className="absolute inset-4 bg-white/10 blur-[20px] rounded-full opacity-20 pointer-events-none" />
+    <div className="flex-none w-12 h-full flex flex-col bg-forge-sidebar-rail-bg border-r border-forge-sidebar-rail-border">
+      {/* Branding */}
+      <div className="h-12 flex items-center justify-center border-b border-forge-sidebar-rail-header-border shrink-0">
+        <Frame className="w-4 h-4 text-forge-sidebar-rail-brand-icon" />
+      </div>
 
-      <div className="flex flex-col items-center gap-1.5 p-1.5 bg-sidebar/65 backdrop-blur-3xl border border-sidebar-accent/60 rounded-[2.5rem] shadow-[20px_0_60px_-15px_rgba(0,0,0,0.4)] animate-in fade-in slide-in-from-left-10 duration-1000 pointer-events-auto relative z-10 antialiased">
-        {/* Section 1: Branding Capsule */}
-        <div className="flex flex-col items-center gap-1 pb-2 border-b border-sidebar-accent/20 w-11 mt-1">
-          <div className="w-10 h-10 rounded-2xl bg-foreground/5 flex items-center justify-center border border-foreground/10 shadow-inner group/logo cursor-pointer transition-all active:scale-95">
-            <Anvil className="w-5 h-5 text-foreground/70 group-hover:text-foreground transition-colors" />
-          </div>
-        </div>
+      {/* Navigation */}
+      <nav className="flex flex-col items-center py-2 gap-0.5 flex-1">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const isActive =
+            item.view === view ||
+            (item.subSidebar && activeSubSidebar === item.subSidebar);
 
-        {/* Section 2: Tactical Navigation */}
-        <div className="flex flex-col items-center gap-1.5 py-1 border-b border-sidebar-accent/20 w-11">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setView(GlobalViews.EXPLORER)}
-            className={`w-10 h-10 rounded-2xl transition-all relative group ${
-              view === GlobalViews.EXPLORER
-                ? "bg-foreground/10 text-foreground shadow-[0_0_15px_rgba(255,255,255,0.05)]"
-                : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-            }`}
-          >
-            <Compass
-              className={`w-5 h-5`}
-            />
+          return (
+            <button
+              key={item.id}
+              title={item.label}
+              onClick={() => handleNavClick(item)}
+              className={cn(
+                "relative w-10 h-9 flex items-center justify-center rounded-md transition-colors",
+                isActive
+                  ? "bg-forge-sidebar-rail-item-active-bg text-forge-sidebar-rail-item-active-text"
+                  : "text-forge-sidebar-rail-item-inactive-text hover:bg-forge-sidebar-rail-item-hover-bg hover:text-forge-sidebar-rail-item-hover-text",
+              )}
+            >
+              {/* Active left border */}
+              {isActive && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-forge-sidebar-rail-active-indicator rounded-r-full" />
+              )}
+              <Icon className="w-4 h-4" />
+            </button>
+          );
+        })}
+      </nav>
 
-            {/* Micro Tooltip */}
-            <div className="absolute left-[120%] bg-sidebar border border-sidebar-accent/40 px-2 py-1.5 rounded-xl text-micro font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl">
-              Explorer
-            </div>
-
-            {/* Connection Port */}
-            {view === GlobalViews.EXPLORER && (
-              <div className="absolute -left-1.5 w-1 h-4 bg-foreground rounded-full animate-in fade-in zoom-in duration-300" />
-            )}
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setView(GlobalViews.WORKFLOWS)}
-            className={`w-10 h-10 rounded-2xl transition-all relative group ${
-              view === GlobalViews.WORKFLOWS
-                ? "bg-foreground/10 text-foreground shadow-[0_0_15px_rgba(255,255,255,0.05)]"
-                : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-            }`}
-            onMouseEnter={() => setActiveSubSidebar("workflows")}
-            onMouseLeave={() => setActiveSubSidebar(null)}
-          >
-            <Workflow
-              className={`w-5 h-5`}
-            />
-
-            <div className="absolute left-[120%] bg-sidebar border border-sidebar-accent/40 px-2 py-1.5 rounded-xl text-micro font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl">
-              Workflows
-            </div>
-
-            {view === GlobalViews.WORKFLOWS && (
-              <div className="absolute -left-1.5 w-1 h-4 bg-foreground rounded-full animate-in fade-in zoom-in duration-300" />
-            )}
-
-            {/* Submenu Indicator Arrow */}
-            {(view === GlobalViews.WORKFLOWS || activeSubSidebar === "workflows") && (
-              <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-sidebar-accent/80 border-t border-r border-sidebar-accent border-r-foreground/20 border-t-foreground/20 rotate-45 animate-in fade-in slide-in-from-left-2 duration-500" />
-            )}
-          </Button>
-        </div>
-
-        {/* Section 3: System Utilities */}
-        <div className="flex flex-col items-center gap-1.5 pt-1 w-11 pb-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-10 h-10 rounded-2xl text-muted-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all group relative"
-          >
-            <Settings className="w-5 h-5" />
-            <div className="absolute left-[120%] bg-sidebar border border-sidebar-accent/40 px-2 py-1.5 rounded-xl text-micro font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl">
-              Settings
-            </div>
-          </Button>
-        </div>
+      {/* Settings pinned to bottom */}
+      <div className="flex flex-col items-center py-2 border-t border-forge-sidebar-rail-footer-border shrink-0">
+        <button
+          title="Settings"
+          className="w-10 h-9 flex items-center justify-center rounded-md text-forge-sidebar-rail-item-inactive-text hover:bg-forge-sidebar-rail-item-hover-bg hover:text-forge-sidebar-rail-item-hover-text transition-colors"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

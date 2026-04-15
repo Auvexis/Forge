@@ -600,13 +600,15 @@ export const WorkflowEngine = {
         timestamp: Date.now(),
       });
 
+      const sanitized = sanitizeContextForLogging(context);
+
       WorkflowRepository.saveExecutionLog(
         execId,
         workflow.metadata.id,
         status,
         startTime,
         Date.now(),
-        sanitizeContextForLogging(context),
+        sanitized,
       );
     }
 

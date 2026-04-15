@@ -1,4 +1,4 @@
-const OFFSET = -2.5;
+const OFFSET = 0;
 
 export const getNodeIntersection = (sourceNode: any, targetNode: any) => {
   const sourcePos = sourceNode.internals.positionAbsolute;

@@ -12,10 +12,10 @@ export function BaseHandle({
     <Handle
       {...props}
       className={cn(
-        "!h-5 opacity-100! border-0! bg-muted! transition-colors duration-200 hover:!bg-primary/80",
-        props.type === "target" 
-          ? "!rounded-l-full !w-1 !left-[-2.5px]" 
-          : "!rounded-r-full !w-1 !right-[-2px]",
+        "!h-5 opacity-100! border-0! !bg-forge-rf-handle-bg transition-colors duration-200 hover:!bg-forge-rf-handle-bg-hover",
+        props.type === "target"
+          ? "!rounded-full !w-1.5 -left-[5.5px]!"
+          : "!rounded-full !w-1.5 -right-[7px]! -z-10",
         className,
       )}
     />

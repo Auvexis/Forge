@@ -101,7 +101,6 @@ export const PluginExecutor = {
       }
     }
 
-
     const result = await method(cookedParams, context);
 
     return result;

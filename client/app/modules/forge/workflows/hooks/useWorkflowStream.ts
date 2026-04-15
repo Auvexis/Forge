@@ -31,12 +31,15 @@ export function useWorkflowStream() {
   const [isStreaming, setIsStreaming] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
   const activeExecutionIdRef = useRef<string | null>(null);
+  /** Fallback when node:start was missed (SSE connected late). */
+  const workflowRunStartedAtRef = useRef<number | null>(null);
 
   const startStream = useCallback((executionId: string) => {
     // Close any existing connection first
     eventSourceRef.current?.close();
 
     activeExecutionIdRef.current = executionId;
+    workflowRunStartedAtRef.current = null;
     setIsStreaming(true);
     setWorkflowStatus("running");
     setNodeStatuses({});
@@ -52,10 +55,14 @@ export function useWorkflowStream() {
 
         switch (data.type) {
           case "workflow:start":
+            workflowRunStartedAtRef.current = data.timestamp;
             setWorkflowStatus("running");
             break;
 
           case "node:start":
+            if (workflowRunStartedAtRef.current == null) {
+              workflowRunStartedAtRef.current = data.timestamp;
+            }
             setNodeStatuses((prev) => ({
               ...prev,
               [data.nodeId]: {
@@ -71,7 +78,10 @@ export function useWorkflowStream() {
               [data.nodeId]: {
                 status: "success",
                 output: data.data,
-                startedAt: prev[data.nodeId]?.startedAt,
+                startedAt:
+                  prev[data.nodeId]?.startedAt ??
+                  workflowRunStartedAtRef.current ??
+                  data.timestamp,
                 completedAt: data.timestamp,
               },
             }));
@@ -83,7 +93,10 @@ export function useWorkflowStream() {
               [data.nodeId]: {
                 status: "failed",
                 error: data.error,
-                startedAt: prev[data.nodeId]?.startedAt,
+                startedAt:
+                  prev[data.nodeId]?.startedAt ??
+                  workflowRunStartedAtRef.current ??
+                  data.timestamp,
                 completedAt: data.timestamp,
               },
             }));
@@ -152,12 +165,14 @@ export function useWorkflowStream() {
     eventSourceRef.current?.close();
     setIsStreaming(false);
     activeExecutionIdRef.current = null;
+    workflowRunStartedAtRef.current = null;
   }, []);
 
   const resetStream = useCallback(() => {
     eventSourceRef.current?.close();
     setIsStreaming(false);
     activeExecutionIdRef.current = null;
+    workflowRunStartedAtRef.current = null;
     setWorkflowStatus("idle");
     setNodeStatuses({});
   }, []);

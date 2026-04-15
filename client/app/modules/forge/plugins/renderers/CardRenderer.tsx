@@ -113,7 +113,7 @@ function ActionBar({
   return (
     <>
       <Separator orientation="horizontal" />
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 pb-3">
         {actions.map((action) => (
           <Button
             key={action.label}

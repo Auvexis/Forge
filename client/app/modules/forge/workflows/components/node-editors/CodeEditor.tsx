@@ -9,7 +9,7 @@ export function CodeEditor({ node, updateNodeData }: NodeEditorProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <label className="text-mini font-black uppercase tracking-widest text-muted-foreground ml-1">
+        <label className="text-mini! font-black uppercase tracking-widest text-muted-foreground ml-1">
           Step Name
         </label>
         <Input
@@ -23,15 +23,15 @@ export function CodeEditor({ node, updateNodeData }: NodeEditorProps) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 mb-1">
           <Code2 className="w-3.5 h-3.5 text-amber-500" />
-          <label className="text-mini font-black uppercase tracking-widest text-muted-foreground">
+          <label className="text-mini! font-black uppercase tracking-widest text-muted-foreground">
             JavaScript Code
           </label>
         </div>
-        <div className="flex items-center gap-2 p-2 text-mini bg-amber-500/5 border border-amber-500/10 rounded-lg text-amber-500">
+        <div className="flex items-center gap-2 p-2 text-mini! bg-amber-500/5 border border-amber-500/10 rounded-lg text-amber-500">
           <span className="font-bold">
-            Available: <code className="text-micro">context.trigger</code>,{" "}
-            <code className="text-micro">context.steps</code>,{" "}
-            <code className="text-micro">variables</code>
+            Available: <code className="text-micro!">context.trigger</code>,{" "}
+            <code className="text-micro!">context.steps</code>,{" "}
+            <code className="text-micro!">variables</code>
           </span>
         </div>
         <textarea

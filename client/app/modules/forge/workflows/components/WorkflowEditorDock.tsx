@@ -9,9 +9,46 @@ import {
   Download,
   Cpu,
   Square,
+  ChevronDown,
+  Workflow,
+  Clock,
+  Layers,
+  Zap,
+  WorkflowIcon,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { ForgeDock, type DockSection } from "~/shared/components/ForgeDock";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { cn } from "~/lib/utils";
+import type { WorkflowItem } from "../types/workflow-types";
+import type { DockSection } from "~/shared/components/ForgeDock";
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+function getRelativeTime(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  const h = Math.floor(m / 60);
+  const d = Math.floor(h / 24);
+  if (d > 0) return `${d}d ago`;
+  if (h > 0) return `${h}h ago`;
+  if (m > 0) return `${m}m ago`;
+  return "Just now";
+}
+
+const TRIGGER_ICON: Record<string, React.ElementType> = {
+  manual: Play,
+  webhook: Zap,
+  cron: Clock,
+  event: Activity,
+};
+
+// ── types ────────────────────────────────────────────────────────────────────
 
 interface Props {
   workflowName: string;
@@ -28,7 +65,11 @@ interface Props {
   isStreaming: boolean;
   isLogsOpen: boolean;
   isDirty: boolean;
-  workflow: any; // Full object for export
+  workflow: any;
+  /** All available workflows — for the switcher dropdown */
+  workflows?: WorkflowItem[];
+  /** Called when user switches to another workflow from the dropdown */
+  onSwitchWorkflow?: (id: string) => void;
 }
 
 export const WorkflowEditorDock = ({
@@ -47,21 +88,147 @@ export const WorkflowEditorDock = ({
   isLogsOpen,
   isDirty,
   workflow,
+  workflows = [],
+  onSwitchWorkflow,
 }: Props) => {
   const isBusy = isExecuting || isStreaming;
 
-  // Dynamic status dot
   const statusDot = isStreaming
-    ? { color: "bg-emerald-400", animate: true }
+    ? { color: "bg-forge-editor-dock-status-streaming", animate: true }
     : isDirty
-      ? { color: "bg-amber-500", animate: true }
-      : { color: "bg-violet-500", animate: false };
+      ? { color: "bg-forge-editor-dock-status-dirty", animate: false }
+      : { color: "bg-forge-editor-dock-status-idle", animate: false };
 
-  const statusText = isStreaming
-    ? "Running..."
-    : isDirty
-      ? "Unsaved Changes"
-      : `ID: ${workflowId.slice(0, 8)}...`;
+  // ── Brand badge with workflow switcher ──
+  const brandBadge = (
+    <div className="flex items-center gap-2.5 pr-3 border-r border-forge-dock-section-border h-full">
+      <div className="w-7 h-7 flex items-center justify-center rounded-md bg-forge-dock-badge-bg shrink-0">
+        <WorkflowIcon className="w-3.5 h-3.5 text-forge-dock-badge-icon" />
+      </div>
+
+      {/* Workflow name → dropdown to switch */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex flex-col justify-center group outline-none">
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-semibold text-forge-sidebar-rail-item-active-text group-hover:text-forge-sidebar-rail-item-inactive-text transition-colors duration-200 leading-none">
+                {workflowName}
+              </span>
+              <ChevronDown className="w-3 h-3 text-forge-sidebar-rail-item-active-text group-hover:text-forge-sidebar-rail-item-inactive-text transition-colors shrink-0" />
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span
+                className={cn(
+                  "w-1.5 h-1.5 rounded-full",
+                  statusDot.color,
+                  statusDot.animate && "animate-pulse",
+                )}
+              />
+              <span className="text-xs text-forge-sidebar-rail-item-inactive-text leading-none">
+                {isStreaming
+                  ? "Running"
+                  : isDirty
+                    ? "Unsaved changes"
+                    : workflowId.slice(0, 14)}
+              </span>
+            </div>
+          </button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent
+          align="start"
+          className="min-w-[320px] bg-card! rounded-none mt-[4px]! p-1.5"
+          sideOffset={6}
+        >
+          <div className="flex flex-col gap-0.5">
+            {workflows.map((wf) => {
+              const TriggerIcon = TRIGGER_ICON[wf.trigger?.type] ?? Zap;
+              const nodeCount = Object.keys(wf.nodes || {}).length;
+              const modified = wf.metadata.updatedAt || wf.metadata.createdAt;
+              const isCurrent = wf.metadata.id === workflowId;
+
+              return (
+                <DropdownMenuItem
+                  key={wf.metadata.id}
+                  className="group flex items-start gap-3 px-3 py-2.5 rounded-md cursor-pointer focus:bg-forge-sidebar-rail-item-hover-bg"
+                  onClick={() => onSwitchWorkflow?.(wf.metadata.id)}
+                >
+                  <div
+                    className={cn(
+                      "w-8 h-8 rounded-md border flex items-center justify-center shrink-0 mt-0.5",
+                      isCurrent
+                        ? "bg-forge-sidebar-rail-item-active-bg border-forge-sidebar-rail-item-active-bg"
+                        : "bg-forge-sidebar-rail-item-bg border-forge-sidebar-rail-item-bg",
+                    )}
+                  >
+                    <TriggerIcon
+                      className={cn(
+                        "w-3.5 h-3.5",
+                        isCurrent ? "text-forge-sidebar-rail-item-active-text" : "text-forge-sidebar-rail-item-inactive-text",
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "text-sm font-medium truncate",
+                          isCurrent ? "text-forge-dock-title-text" : "text-forge-dock-subtitle-text",
+                        )}
+                      >
+                        {wf.metadata.name}
+                      </span>
+                      <span
+                        className={cn(
+                          "text-xs px-1.5 py-px rounded border shrink-0",
+                          wf.metadata.isActive
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
+                            : "bg-amber-500/10 border-amber-500/20 text-amber-500",
+                        )}
+                      >
+                        {wf.metadata.isActive ? "Active" : "Draft"}
+                      </span>
+                      {isCurrent && (
+                        <span className="text-xs px-1.5 py-px rounded border bg-primary/10 border-primary/20 text-primary shrink-0">
+                          Open
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Layers className="w-3 h-3" />
+                        {nodeCount} node{nodeCount !== 1 ? "s" : ""}
+                      </span>
+                      {modified && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {getRelativeTime(modified)}
+                        </span>
+                      )}
+                      <span className="font-mono opacity-50 truncate max-w-[100px]">
+                        {wf.metadata.id.slice(0, 12)}
+                      </span>
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              );
+            })}
+          </div>
+
+          {workflows.length > 0 && <DropdownMenuSeparator className="my-1" />}
+
+          <DropdownMenuItem
+            className="gap-2 text-sm focus:bg-forge-sidebar-rail-item-hover-bg rounded-md cursor-pointer font-medium px-3 py-2 text-forge-sidebar-rail-item-inactive-text hover:text-forge-sidebar-rail-item-active-text"
+            onClick={onClose}
+          >
+            <X className="w-4 h-4" />
+            Close workflow
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
 
   const sections: DockSection[] = [
     {
@@ -73,12 +240,10 @@ export const WorkflowEditorDock = ({
               variant="ghost"
               size="sm"
               onClick={onStop}
-              className="h-8 rounded-full hover:bg-red-500/10 text-red-400 hover:text-red-500 gap-1.5 px-3 transition-all group/stop animate-in fade-in duration-300"
+              className="h-7 px-2.5 rounded-md text-red-400 hover:text-red-500 hover:bg-red-500/10 gap-1.5 text-xs transition-colors"
             >
-              <Square className="w-3 h-3 fill-current group-hover/stop:scale-110 transition-transform" />
-              <span className="text-mini font-black uppercase tracking-widest">
-                Stop
-              </span>
+              <Square className="w-3 h-3 fill-current" />
+              Stop
             </Button>
           ) : (
             <Button
@@ -86,30 +251,28 @@ export const WorkflowEditorDock = ({
               size="sm"
               onClick={onRun}
               disabled={isExecuting}
-              className="h-8 rounded-full hover:bg-emerald-500/10 text-muted-foreground hover:text-emerald-500 gap-1.5 px-3 transition-all group/run"
+              className="h-7 px-2.5 rounded-md text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 gap-1.5 text-xs transition-colors"
             >
               {isExecuting ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3 h-3 animate-spin" />
               ) : (
-                <Play className="w-3 h-3 fill-current group-hover/run:scale-110 transition-transform" />
+                <Play className="w-3 h-3 fill-current" />
               )}
-              <span className="text-mini font-black uppercase tracking-widest">
-                Execute
-              </span>
+              Run
             </Button>
           )}
           <Button
             variant="ghost"
             size="sm"
             onClick={onLogs}
-            className={`h-8 rounded-full gap-1.5 px-3 transition-all ${isLogsOpen ? "bg-violet-500/10 text-violet-500" : "text-muted-foreground hover:bg-sidebar-accent/10 hover:text-violet-500"}`}
+            className={`h-7 px-2.5 rounded-md gap-1.5 text-xs transition-colors ${
+              isLogsOpen
+                ? "bg-accent text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+            }`}
           >
-            <Activity
-              className={`w-3.5 h-3.5 ${isLogsOpen ? "animate-pulse" : ""}`}
-            />
-            <span className="text-mini font-black uppercase tracking-widest">
-              Logs
-            </span>
+            <Activity className="w-3 h-3" />
+            Logs
           </Button>
         </>
       ),
@@ -123,17 +286,15 @@ export const WorkflowEditorDock = ({
             size="sm"
             onClick={onAddNode}
             disabled={isBusy}
-            className="h-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-foreground gap-1.5 px-3 transition-all disabled:opacity-40"
+            className="h-7 px-2.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent gap-1.5 text-xs transition-colors disabled:opacity-40"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="text-mini font-black uppercase tracking-widest">
-              Add Node
-            </span>
+            <Plus className="w-3 h-3" />
+            Add Node
           </Button>
-          <div className="w-px h-4 bg-sidebar-accent/10 mx-1" />
           <Button
             variant="ghost"
             size="icon"
+            title="Export JSON"
             onClick={() => {
               const blob = new Blob([JSON.stringify(workflow, null, 2)], {
                 type: "application/json",
@@ -145,18 +306,16 @@ export const WorkflowEditorDock = ({
               a.click();
               URL.revokeObjectURL(url);
             }}
-            className="h-8 w-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-blue-500 transition-all group/tool relative"
+            className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-sidebar border border-sidebar-accent/40 px-2 py-1 rounded text-nano font-black uppercase opacity-0 group-hover/tool:opacity-100 transition-opacity pointer-events-none">
-              Export
-            </div>
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={onSettings}
-            className="h-8 w-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-foreground transition-all"
+            title="Workflow settings"
+            className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
             <Settings className="w-3.5 h-3.5" />
           </Button>
@@ -170,40 +329,47 @@ export const WorkflowEditorDock = ({
       <Button
         onClick={onSave}
         disabled={isSaving || !isDirty || isBusy}
-        className={`px-3 rounded-full font-black uppercase text-tiny! tracking-[0.15em] gap-2 transition-all duration-300 ${
-          isDirty && !isBusy
-            ? "bg-violet-600 text-white hover:bg-violet-500 shadow-[0_5px_20px_rgba(139,92,246,0.15)]"
-            : "bg-sidebar-accent/10 text-muted-foreground opacity-50"
-        }`}
+        size="sm"
+        variant={isDirty && !isBusy ? "default" : "ghost"}
+        className="h-7 mr-5 px-3 text-xs font-medium gap-1.5 rounded-md disabled:opacity-40 transition-colors"
       >
         {isSaving ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          <Loader2 className="w-3 h-3 animate-spin" />
         ) : (
-          <Save className="w-3.5 h-3.5" />
+          <Save className="w-3 h-3" />
         )}
-        {isSaving ? "Compiling" : "Save"}
+        {isSaving ? "Saving" : "Save"}
       </Button>
-      <div className="w-px h-4 bg-sidebar-accent/10 mx-1" />
       <Button
         variant="ghost"
-        size="icon"
+        size="icon-lg"
         onClick={onClose}
-        className="h-9 w-9 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-all group/close"
+        title="Close editor"
+        className="h-7 w-7 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
       >
-        <X className="w-4 h-4 group-hover/close:scale-110 transition-transform" />
+        <X className="w-3.5 h-3.5" />
       </Button>
     </>
   );
 
+  // Render a customized dock — we override the brand badge area entirely
   return (
-    <ForgeDock
-      icon={Cpu}
-      title="Editor"
-      subtitle={statusText}
-      accent="violet"
-      statusDot={statusDot}
-      sections={sections}
-      trailing={trailing}
-    />
+    <div className="forge-dock forge-dock--editor h-12 w-full flex items-center bg-forge-dock-bg border-b border-forge-dock-border shrink-0 px-3 gap-2">
+      {brandBadge}
+
+      {sections.map((section) => (
+        <div
+          key={section.id}
+          className={`flex items-center gap-1 h-full px-2 ${
+            section.border !== false ? "border-r border-forge-dock-section-border" : ""
+          }`}
+        >
+          {section.content}
+        </div>
+      ))}
+
+      <div className="flex-1" />
+      <div className="flex items-center gap-2">{trailing}</div>
+    </div>
   );
 };

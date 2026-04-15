@@ -3,11 +3,13 @@ import { type Node, type Edge } from "@xyflow/react";
 import { useForge } from "~/providers/ForgeProvider";
 import { Button } from "~/components/ui/button";
 import { X, Settings, ShieldCheck } from "lucide-react";
+import { toast } from "~/shared/helpers/toast";
 import { PluginMenuAuth } from "../../plugins/components/PluginMenuAuth";
 import { NODE_EDITOR_REGISTRY } from "./node-editors/index";
 import type { NodeEditorProps } from "./node-editors/types";
 import { NodeOutputPanel } from "./NodeOutputPanel";
 import type { NodeStatusMap } from "../hooks/useWorkflowStream";
+import { cn } from "~/lib/utils";
 
 interface Props {
   nodeId: string;
@@ -17,26 +19,9 @@ interface Props {
   setEdges: (edges: Edge[] | ((eds: Edge[]) => Edge[])) => void;
   onNodeIdChange: (id: string) => void;
   onClose: () => void;
-  /** Live execution statuses from useWorkflowStream */
   nodeStatuses?: NodeStatusMap;
 }
 
-/**
- * NodeEditorPanel — thin shell
- *
- * Responsibilities:
- *  - Locate the target node
- *  - Resolve upstream nodes (DAG traversal)
- *  - Provide shared helpers (updateNodeData, injectVariable, handleIdChange)
- *  - Render tabs (Settings / Auth) for plugin nodes
- *  - Delegate content rendering to the NODE_EDITOR_REGISTRY
- *
- * To support a new node type, add an entry to node-editors/index.ts.
- * No changes to this file are needed.
- *
- * IMPORTANT: ALL hooks must be declared before any conditional early return
- * to comply with the Rules of Hooks.
- */
 export const NodeEditorPanel = ({
   nodeId,
   nodes,
@@ -49,46 +34,29 @@ export const NodeEditorPanel = ({
 }: Props) => {
   const { plugins, refreshActivePluginStatus } = useForge();
 
-  // ── ALL STATE AND EFFECTS MUST COME BEFORE ANY EARLY RETURN ──
-
   const [activeTab, setActiveTab] = useState<"settings" | "auth">("settings");
-  // Local state for ID edit (avoids re-render lag while typing)
   const [localId, setLocalId] = useState(nodeId);
 
-  // Reset tabs and localId whenever the target node changes
-  useEffect(() => {
-    setActiveTab("settings");
-  }, [nodeId]);
+  useEffect(() => { setActiveTab("settings"); }, [nodeId]);
+  useEffect(() => { setLocalId(nodeId); }, [nodeId]);
 
-  useEffect(() => {
-    setLocalId(nodeId);
-  }, [nodeId]);
-
-  // Resolve node — done before derived values but AFTER all hooks
   const node = nodes.find((n) => n.id === nodeId);
 
-  // Derive node type metadata (safe even if node is undefined, checked below)
-  const dataType = (node?.data as any)?.type as string | undefined;
-  const pluginId = (node?.data as any)?.pluginId as string | undefined;
-  const isPluginNode =
-    node?.type === "action" && (!dataType || dataType === "plugin") && !!pluginId;
+  const dataType  = (node?.data as any)?.type as string | undefined;
+  const pluginId  = (node?.data as any)?.pluginId as string | undefined;
+  const isPluginNode = node?.type === "action" && (!dataType || dataType === "plugin") && !!pluginId;
 
-  // Refresh auth status when entering auth tab for plugin nodes
   useEffect(() => {
     if (activeTab === "auth" && isPluginNode && pluginId) {
       refreshActivePluginStatus(pluginId).catch(console.error);
     }
   }, [activeTab, isPluginNode, pluginId, refreshActivePluginStatus]);
 
-  // ──────────── Shared helpers ────────────
-
   const updateNodeData = useCallback(
     (newData: Record<string, any>) => {
       setNodes((nds) =>
         nds.map((n) =>
-          n.id === nodeId
-            ? { ...n, data: { ...n.data, ...newData } as any }
-            : n,
+          n.id === nodeId ? { ...n, data: { ...n.data, ...newData } as any } : n,
         ),
       );
     },
@@ -101,10 +69,7 @@ export const NodeEditorPanel = ({
       const currentParams = (node.data as any).params || {};
       const currentValue = currentParams[paramKey] || "";
       updateNodeData({
-        params: {
-          ...currentParams,
-          [paramKey]: `${currentValue}{{ ${variable} }}`,
-        },
+        params: { ...currentParams, [paramKey]: `${currentValue}{{ ${variable} }}` },
       });
     },
     [node, updateNodeData],
@@ -114,12 +79,11 @@ export const NodeEditorPanel = ({
     (newId: string) => {
       if (!newId || newId === nodeId) return;
       if (nodes.some((n) => n.id === newId)) {
-        alert("A node with this ID already exists.");
+        toast.error("ID Conflict", { description: "A node with this ID already exists." });
+        setLocalId(nodeId);
         return;
       }
-      setNodes((nds) =>
-        nds.map((n) => (n.id === nodeId ? { ...n, id: newId } : n)),
-      );
+      setNodes((nds) => nds.map((n) => (n.id === nodeId ? { ...n, id: newId } : n)));
       setEdges((eds) =>
         eds.map((e) => {
           if (e.source === nodeId) return { ...e, source: newId };
@@ -132,16 +96,12 @@ export const NodeEditorPanel = ({
     [nodeId, nodes, setNodes, setEdges, onNodeIdChange],
   );
 
-  // ──────────── Upstream traversal ────────────
-
   const getUpstreamNodes = useCallback(
     (currentId: string, visited = new Set<string>()): Node[] => {
       if (visited.has(currentId)) return [];
       visited.add(currentId);
-
       const directEdges = edges.filter((e) => e.target === currentId);
       let upstream: Node[] = [];
-
       for (const edge of directEdges) {
         const parentNode = nodes.find((n) => n.id === edge.source);
         if (parentNode) {
@@ -149,36 +109,26 @@ export const NodeEditorPanel = ({
           upstream = upstream.concat(getUpstreamNodes(parentNode.id, visited));
         }
       }
-      return upstream;
+      // Diamond merges (same ancestor via two branches) would duplicate node ids
+      // and React keys like `steps.extract_file_id.output` in the variable tree.
+      const byId = new Map<string, Node>();
+      for (const n of upstream) {
+        if (!byId.has(n.id)) byId.set(n.id, n);
+      }
+      return Array.from(byId.values());
     },
     [edges, nodes],
   );
 
-  // ── ALL HOOKS DECLARED — safe to early-return now ──
-
   if (!node) return null;
 
-  const upstreamNodes = getUpstreamNodes(nodeId);
-
-  // ──────────── Editor resolution ────────────
-
-  // For trigger nodes use the "trigger" key; for action nodes use dataType or
-  // fall back to "plugin" (default for any pluginId-bearing node).
-  const editorKey =
-    node.type === "trigger" ? "trigger" : (dataType ?? "plugin");
-
+  const upstreamNodes  = getUpstreamNodes(nodeId);
+  const editorKey      = node.type === "trigger" ? "trigger" : (dataType ?? "plugin");
   const EditorComponent = NODE_EDITOR_REGISTRY[editorKey];
 
   const editorProps: NodeEditorProps = {
-    node,
-    nodes,
-    edges,
-    updateNodeData,
-    injectVariable,
-    upstreamNodes,
+    node, nodes, edges, updateNodeData, injectVariable, upstreamNodes,
   };
-
-  // ──────────── Header label ────────────
 
   const headerLabel = (() => {
     if (node.type === "trigger") return "Trigger Configuration";
@@ -188,94 +138,73 @@ export const NodeEditorPanel = ({
       case "loop":        return "Loop / ForEach";
       case "subworkflow": return "Sub-Workflow";
       default: {
-        const pluginName = plugins.find(
-          (p) => p.id === (node.data as any).pluginId,
-        )?.manifest.metadata.name;
+        const pluginName = plugins.find((p) => p.id === (node.data as any).pluginId)?.manifest.metadata.name;
         return pluginName || "Action Settings";
       }
     }
   })();
 
-  // ──────────── Render ────────────
-
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="absolute top-20 right-4 w-[400px] z-[60] isolate bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl flex flex-col overflow-hidden animate-in slide-in-from-right-10 duration-300 max-h-[calc(100%-110px)]"
+      className="absolute top-0 right-0 w-[360px] h-full bg-card border-l border-border flex flex-col overflow-hidden shadow-lg"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-accent/20 shrink-0">
-        <div className="flex flex-col gap-1 flex-1">
-          <div className="flex items-center justify-between">
-            <h3 className="font-black text-micro uppercase tracking-widest text-foreground/50">
-              Component Config
-            </h3>
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-background/50 border border-border/50">
-              <span className="text-mini font-mono text-muted-foreground uppercase">ID:</span>
-              <input
-                value={localId}
-                onChange={(e) => setLocalId(e.target.value)}
-                onBlur={() => handleIdChange(localId)}
-                onKeyDown={(e) => e.key === "Enter" && handleIdChange(localId)}
-                className="bg-transparent border-none outline-none text-mini font-mono font-black text-primary w-24"
-                spellCheck={false}
-              />
-            </div>
+      <div className="h-12 flex items-center justify-between px-4 border-b border-border shrink-0">
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold text-foreground">{headerLabel}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">ID:</span>
+            <input
+              value={localId}
+              onChange={(e) => setLocalId(e.target.value)}
+              onBlur={() => handleIdChange(localId)}
+              onKeyDown={(e) => e.key === "Enter" && handleIdChange(localId)}
+              className="bg-transparent border-none outline-none text-xs font-mono text-forge-sidebar-rail-item-inactive-text w-28"
+              spellCheck={false}
+            />
           </div>
-          <span className="text-sm font-bold truncate max-w-[280px]">
-            {headerLabel}
-          </span>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-full ml-2"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
+          className="h-7 w-7 rounded-md"
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
         >
           <X className="w-4 h-4" />
         </Button>
       </div>
 
-      {/* Tabs (plugin nodes only) */}
+      {/* Tabs — plugin nodes only */}
       {isPluginNode && (
-        <div className="flex bg-accent/30 p-1.5 items-center justify-around border-b border-border transition-all">
-          <Button
-            onClick={() => setActiveTab("settings")}
-            variant={activeTab === "settings" ? "default" : "ghost"}
-            size="sm"
-            className="rounded-full text-xs font-bold px-4"
-          >
-            <Settings size={12} />
-            Parameters
-          </Button>
-          <Button
-            onClick={() => setActiveTab("auth")}
-            variant={activeTab === "auth" ? "default" : "ghost"}
-            size="sm"
-            className="rounded-full text-xs font-bold px-4"
-          >
-            <ShieldCheck size={12} />
-            Authorization
-          </Button>
+        <div className="flex border-b border-border shrink-0">
+          {(["settings", "auth"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium border-b-2 transition-colors",
+                activeTab === tab
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {tab === "settings" ? <Settings className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+              {tab === "settings" ? "Parameters" : "Authorization"}
+            </button>
+          ))}
         </div>
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-5 custom-scrollbar flex flex-col gap-2">
-        {/* Live execution output — shown when this node completed during an SSE stream */}
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
         {nodeStatuses?.[nodeId] &&
-          (nodeStatuses[nodeId].status === "success" ||
-            nodeStatuses[nodeId].status === "failed") && (
+          (nodeStatuses[nodeId].status === "success" || nodeStatuses[nodeId].status === "failed") && (
             <NodeOutputPanel nodeId={nodeId} statusInfo={nodeStatuses[nodeId]} />
           )}
 
         {activeTab === "auth" && isPluginNode ? (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <PluginMenuAuth pluginId={pluginId!} />
-          </div>
+          <PluginMenuAuth pluginId={pluginId!} />
         ) : EditorComponent ? (
           <EditorComponent {...editorProps} />
         ) : (
@@ -286,26 +215,20 @@ export const NodeEditorPanel = ({
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border bg-accent/10 flex justify-end gap-2 shrink-0">
+      <div className="px-4 py-3 border-t border-border flex justify-end gap-2 shrink-0">
         <Button
           variant="ghost"
           size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="rounded-full text-xs font-bold px-4"
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          className="h-7 px-3 text-xs rounded-md"
         >
           Cancel
         </Button>
         <Button
           variant="default"
           size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="rounded-full text-xs font-bold px-6 h-8"
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          className="h-7 px-4 text-xs rounded-md"
         >
           Confirm
         </Button>

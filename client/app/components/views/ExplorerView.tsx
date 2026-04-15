@@ -10,8 +10,8 @@ const ExplorerContent = () => {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   return (
-    <div className="relative w-full h-full flex flex-col animate-in fade-in duration-500 overflow-hidden">
-      <ExplorerDashboardDock 
+    <div className="relative w-full h-full flex flex-col overflow-hidden">
+      <ExplorerDashboardDock
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         onZoomIn={() => zoomIn()}
@@ -19,8 +19,8 @@ const ExplorerContent = () => {
         onFitView={() => fitView()}
         nodeCount={plugins.length}
       />
-      <div className="flex-1 w-full h-full">
-         <PluginTree searchQuery={searchQuery} />
+      <div className="flex-1 w-full overflow-hidden">
+        <PluginTree searchQuery={searchQuery} />
       </div>
     </div>
   );

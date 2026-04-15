@@ -9,14 +9,16 @@ export const useCreateWorkflow = () => {
   const createWorkflow = async (workflow: WorkflowItem) => {
     setLoading(true);
 
-    const data = await handleApi<WorkflowItem>(
-      `${API_BASE_URL}/workflows`,
-      { method: "POST" },
-      workflow,
-    );
-
-    setLoading(false);
-    return data;
+    try {
+      const data = await handleApi<WorkflowItem>(
+        `${API_BASE_URL}/workflows`,
+        { method: "POST" },
+        workflow,
+      );
+      return data;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {

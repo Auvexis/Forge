@@ -72,6 +72,7 @@ export const PluginTree = ({ searchQuery = "" }: Props) => {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
+        fitViewOptions={{ padding: 2.5, maxZoom: 3 }}
         defaultEdgeOptions={{
           type: "floating",
           style: { stroke: "var(--border)", strokeWidth: 1 },
@@ -82,7 +83,7 @@ export const PluginTree = ({ searchQuery = "" }: Props) => {
       >
         <Background
           variant={BackgroundVariant.Dots}
-          color="var(--chart-5)"
+          color="var(--chart-4)"
           bgColor="transparent"
           gap={20}
           size={1}

@@ -1,13 +1,4 @@
-import {
-  Search,
-  Compass,
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  Network,
-  Sparkles,
-  Settings2,
-} from "lucide-react";
+import { Search, Compass, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { ForgeDock, type DockSection } from "~/shared/components/ForgeDock";
 
@@ -30,14 +21,30 @@ export const ExplorerDashboardDock = ({
 }: Props) => {
   const sections: DockSection[] = [
     {
+      id: "search",
+      border: false,
+      content: (
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+          <input
+            placeholder="Search plugins..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8 h-7 w-[160px] bg-accent border border-border rounded-md text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-ring transition-colors"
+          />
+        </div>
+      ),
+    },
+    {
       id: "navigation",
       content: (
-        <>
+        <div className="flex w-full h-full items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={onZoomIn}
-            className="h-8 w-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-foreground transition-all"
+            title="Zoom in"
+            className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </Button>
@@ -45,70 +52,21 @@ export const ExplorerDashboardDock = ({
             variant="ghost"
             size="icon"
             onClick={onZoomOut}
-            className="h-8 w-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-foreground transition-all"
+            title="Zoom out"
+            className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </Button>
-          <div className="w-px h-4 bg-sidebar-accent/10 mx-1" />
           <Button
             variant="ghost"
             size="icon"
             onClick={onFitView}
-            className="h-8 w-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-emerald-500 transition-all"
+            title="Fit view"
+            className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
             <Maximize2 className="w-3.5 h-3.5" />
           </Button>
-        </>
-      ),
-    },
-    {
-      id: "search",
-      content: (
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/30 group-focus-within:text-blue-500 transition-colors" />
-          <input
-            placeholder="Find Plugins..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-8 w-[140px] bg-sidebar-accent/5 hover:bg-sidebar-accent/10 border-transparent focus:outline-none focus:border-sidebar-accent/20 rounded-full font-bold text-mini transition-all placeholder:text-muted-foreground/20 uppercase tracking-tight text-foreground"
-          />
         </div>
-      ),
-    },
-    {
-      id: "tools",
-      border: false,
-      content: (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-blue-500 transition-all group/tool relative"
-          >
-            <Network className="w-3.5 h-3.5" />
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-sidebar border border-sidebar-accent/40 px-2 py-1 rounded text-nano font-black uppercase opacity-0 group-hover/tool:opacity-100 transition-opacity pointer-events-none">
-              Topology
-            </div>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="group/ai h-8 w-8 rounded-full hover:bg-violet-500/10 text-muted-foreground hover:text-violet-500 transition-all relative"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-violet-500 rounded-full border-2 border-sidebar animate-ping" />
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-sidebar border border-sidebar-accent/40 px-2 py-1 rounded text-nano font-black uppercase opacity-0 group-hover/ai:opacity-100 transition-opacity pointer-events-none">
-              Auto-Layout
-            </div>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full hover:bg-sidebar-accent/20 text-muted-foreground hover:text-foreground transition-all"
-          >
-            <Settings2 className="w-3.5 h-3.5" />
-          </Button>
-        </>
       ),
     },
   ];
@@ -117,8 +75,10 @@ export const ExplorerDashboardDock = ({
     <ForgeDock
       icon={Compass}
       title="Explorer"
-      subtitle={`${nodeCount} Plugins Loaded`}
-      accent="blue"
+      subtitle={`${nodeCount} ${nodeCount === 1 ? "Plugin" : "Plugins"}`}
+      accent="primary"
+      variant="explorer"
+      statusDot={{ color: "bg-forge-dock-status-dot-primary", animate: false }}
       sections={sections}
     />
   );

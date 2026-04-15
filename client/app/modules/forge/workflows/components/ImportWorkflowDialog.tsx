@@ -1,8 +1,8 @@
 import type { FC } from "react";
 import { Button } from "~/components/ui/button";
 import { X, Upload, FileJson } from "lucide-react";
+import { toast } from "~/shared/helpers/toast";
 import { useCreateWorkflow } from "../hooks/useCreateWorkflow";
-import type { WorkflowItem } from "../types/workflow-types";
 
 interface Props {
   onClose: () => void;
@@ -13,33 +13,36 @@ export const ImportWorkflowDialog: FC<Props> = ({ onClose, onImported }) => {
   const { createWorkflow } = useCreateWorkflow();
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/40 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-lg bg-sidebar/90 backdrop-blur-3xl border border-sidebar-accent/30 rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-500">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
-              <Upload className="w-6 h-6 text-primary" />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div className="w-full max-w-md bg-card border border-border rounded-sm p-6 shadow-xl">
+        
+        {/* Header */}
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+              <Upload className="w-5 h-5 text-primary" />
             </div>
             <div className="flex flex-col">
-              <h2 className="text-xl font-black text-foreground tracking-tight leading-none mb-1">
-                Import Module
+              <h2 className="text-lg font-semibold text-foreground leading-none mb-1.5">
+                Import Workflow
               </h2>
-              <p className="text-mini text-muted-foreground uppercase font-black tracking-widest opacity-60">
-                Upload your workflow .json file
+              <p className="text-sm text-muted-foreground leading-none">
+                Upload a workflow .json file
               </p>
             </div>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full h-10 w-10 hover:bg-destructive/10 hover:text-destructive"
+            className="rounded-md h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive shrink-0 -mt-1 -mr-1"
             onClick={onClose}
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </Button>
         </div>
 
-        <div className="relative group mb-8">
+        {/* Dropzone */}
+        <div className="relative group mb-6">
           <input
             type="file"
             accept=".json"
@@ -59,35 +62,42 @@ export const ImportWorkflowDialog: FC<Props> = ({ onClose, onImported }) => {
                   onImported();
                   onClose();
                 }
-              } catch {
-                alert("Invalid workflow file structure.");
+              } catch (err: any) {
+                // To avoid duplicate toasts if it came from handleApi
+                if (err.message && !err.message.includes("status") && !err.message.includes("Invalid")) {
+                   toast.error("Import Failed", { description: err.message });
+                } else if (!err.message) {
+                   toast.error("Import Failed", { description: "Invalid workflow file structure." });
+                }
               }
             }}
           />
-          <div className="h-48 rounded-[2rem] border-2 border-dashed border-sidebar-accent/30 bg-sidebar-accent/5 flex flex-col items-center justify-center gap-4 group-hover:bg-primary/5 group-hover:border-primary/20 transition-all duration-500">
-            <div className="w-14 h-14 rounded-full bg-sidebar-accent/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/10 transition-all duration-500">
-              <FileJson className="w-7 h-7 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+          <div className="h-40 rounded-lg border-2 border-dashed border-border bg-accent/30 flex flex-col items-center justify-center gap-3 group-hover:bg-accent group-hover:border-primary/40">
+            <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center shadow-sm border border-border">
+              <FileJson className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-xs font-black uppercase tracking-widest text-foreground/70">
-                Drag & Drop or Click
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="text-sm font-medium text-foreground">
+                Click or drag file here
               </span>
-              <span className="text-mini font-bold text-muted-foreground/40 uppercase tracking-widest">
+              <span className="text-xs text-muted-foreground">
                 Maximum payload: 50MB
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Footer */}
+        <div className="flex justify-end gap-2">
           <Button
             variant="ghost"
-            className="flex-1 h-12 rounded-2xl font-black uppercase text-mini tracking-widest text-muted-foreground hover:bg-sidebar-accent/10"
+            className="h-9 px-4 rounded-md text-sm font-medium"
             onClick={onClose}
           >
             Cancel
           </Button>
         </div>
+
       </div>
     </div>
   );

@@ -431,6 +431,14 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
       let triggerPayload: Record<string, any> = {};
 
+      const headerExecRaw = req.headers["x-forge-execution-id"];
+      const headerExecutionId =
+        typeof headerExecRaw === "string" &&
+        headerExecRaw.length < 96 &&
+        /^exec_\d+_[a-z0-9]+$/i.test(headerExecRaw)
+          ? headerExecRaw
+          : null;
+
       if (req.isMultipart()) {
         const parts = req.parts();
         for await (const part of parts) {
@@ -448,29 +456,37 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         triggerPayload = (req.body as Record<string, any>) || {};
       }
 
-      // Generate executionId first, then fire-and-forget
-      const executionId = `exec_${Date.now()}_${Math.random()
-        .toString(36)
-        .substring(2, 9)}`;
+      const executionId =
+        headerExecutionId ??
+        `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-      // Run in background — client subscribes via SSE for status updates
-      WorkflowEngine.executeWorkflow(
-        workflow,
-        triggerPayload,
-        executionId,
-      ).catch((err: Error) =>
-        console.error(
-          `[FORGE | WORKFLOW]: Background execution ${executionId} failed: ${err.message}`,
-        ),
-      );
-
-      return sendResponse(reply, {
+      const responseBody = {
         status_code: 202,
         message: "Workflow execution started",
         error: null,
         data: { executionId },
+      } as const;
+
+      // Defer engine start until after the 202 is sent so the client can open the
+      // SSE stream first — otherwise early node:start events are dropped and the
+      // first action node never shows "running" or a duration.
+      await reply.code(202).send(responseBody);
+
+      setImmediate(() => {
+        WorkflowEngine.executeWorkflow(
+          workflow,
+          triggerPayload,
+          executionId,
+        ).catch((err: Error) =>
+          console.error(
+            `[FORGE | WORKFLOW]: Background execution ${executionId} failed: ${err.message}`,
+          ),
+        );
       });
+
+      return;
     } catch (error: any) {
+      if (reply.sent) return;
       return sendResponse(reply, {
         status_code: 500,
         message: `Workflow execution failed: ${error.message}`,

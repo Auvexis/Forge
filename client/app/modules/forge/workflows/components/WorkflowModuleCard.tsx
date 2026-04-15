@@ -24,6 +24,7 @@ import {
   Lock,
 } from "lucide-react";
 import type { WorkflowItem } from "../types/workflow-types";
+import { cn } from "~/lib/utils";
 
 function getRelativeTime(date: Date) {
   const diff = Date.now() - date.getTime();
@@ -31,7 +32,6 @@ function getRelativeTime(date: Date) {
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-
   if (days > 0) return `${days}d ago`;
   if (hours > 0) return `${hours}h ago`;
   if (minutes > 0) return `${minutes}m ago`;
@@ -47,6 +47,20 @@ interface Props {
   onDelete: (e: React.MouseEvent) => void;
 }
 
+const TRIGGER_ICON = {
+  manual:  Play,
+  webhook: Zap,
+  cron:    Clock,
+  event:   Activity,
+} as const;
+
+const TRIGGER_LABEL = {
+  manual:  "Manual",
+  webhook: "Webhook",
+  cron:    "Scheduled",
+  event:   "Event",
+} as const;
+
 export const WorkflowModuleCard: FC<Props> = memo(({
   workflow,
   isExecuting,
@@ -55,140 +69,118 @@ export const WorkflowModuleCard: FC<Props> = memo(({
   onLogs,
   onDelete,
 }) => {
-  const nodeCount = Object.keys(workflow.nodes || {}).length;
+  const nodeCount     = Object.keys(workflow.nodes || {}).length;
   const variableCount = workflow.variables?.length || 0;
-  const edgeCount = workflow.edges?.length || 0;
+  const edgeCount     = workflow.edges?.length || 0;
 
-  // Trigger metadata
-  const TriggerIcon = {
-    manual: Play,
-    webhook: Zap,
-    cron: Clock,
-    event: Activity,
-  }[workflow.trigger?.type] || Zap;
-
-  const triggerLabel = {
-    manual: "Manual Execute",
-    webhook: "HTTP Webhook",
-    cron: "Scheduled (Cron)",
-    event: "Event Driven",
-  }[workflow.trigger?.type] || "Custom Trigger";
+  const triggerType = workflow.trigger?.type as keyof typeof TRIGGER_ICON;
+  const TriggerIcon  = TRIGGER_ICON[triggerType] || Zap;
+  const triggerLabel = TRIGGER_LABEL[triggerType] || "Trigger";
 
   return (
     <div
       onClick={onEdit}
-      className="group relative flex flex-col bg-card/40 backdrop-blur-xl border border-border/50 rounded-[2.5rem] p-7 cursor-pointer hover:bg-card/70 transition-all duration-500 hover:border-primary/40 shadow-sm hover:shadow-2xl hover:shadow-primary/2 group/card transform-gpu hover:-translate-y-0.5"
+      className="group flex flex-col bg-card border border-border rounded-lg p-4 cursor-pointer hover:border-border/80 hover:bg-card/80 transition-colors"
     >
-      {/* ── Top Meta ── */}
-      <div className="flex items-center justify-between mb-6">
+      {/* Top meta row */}
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all ${
-              workflow.metadata.isActive 
-                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" 
-                : "bg-amber-500/10 border-amber-500/20 text-amber-500"
-            }`}
+          {/* Status */}
+          <span
+            className={cn(
+              "flex items-center gap-1.5 text-xs px-2 py-0.5 rounded border",
+              workflow.metadata.isActive
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
+                : "bg-amber-500/10 border-amber-500/20 text-amber-500",
+            )}
           >
-            <div
-              className={`w-1.5 h-1.5 rounded-full ${
-                workflow.metadata.isActive 
-                  ? "bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" 
-                  : "bg-amber-500"
-              }`}
+            <span
+              className={cn(
+                "w-1.5 h-1.5 rounded-full",
+                workflow.metadata.isActive ? "bg-emerald-500" : "bg-amber-500",
+              )}
             />
-            <span className="text-nano font-black uppercase tracking-widest leading-none">
-              {workflow.metadata.isActive ? "Live" : "Draft"}
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-border/40 bg-muted/5 text-muted-foreground/60">
-            {workflow.metadata.public ? <Globe className="w-2.5 h-2.5" /> : <Lock className="w-2.5 h-2.5" />}
-            <span className="text-nano font-black uppercase tracking-widest leading-none">
-              {workflow.metadata.public ? "Public" : "Private"}
-            </span>
-          </div>
+            {workflow.metadata.isActive ? "Active" : "Draft"}
+          </span>
+
+          {/* Visibility */}
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            {workflow.metadata.public ? (
+              <Globe className="w-3 h-3" />
+            ) : (
+              <Lock className="w-3 h-3" />
+            )}
+            {workflow.metadata.public ? "Public" : "Private"}
+          </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-nano font-mono font-bold text-muted-foreground/30 uppercase tracking-tighter group-hover/card:text-muted-foreground/60 transition-colors">
-            v{workflow.metadata.version}
-          </span>
-          <span className="text-nano font-mono font-bold text-primary/40 uppercase tracking-tighter">
-            #{workflow.metadata.id.slice(0, 8)}
-          </span>
-        </div>
+        <span className="text-xs font-mono text-muted-foreground/50">
+          #{workflow.metadata.id.slice(0, 8)}
+        </span>
       </div>
 
-      {/* ── Main Content ── */}
-      <div className="flex items-start gap-5 mb-8">
+      {/* Title + description */}
+      <div className="flex items-start gap-3 mb-4">
         <div
-          className={`w-14 h-14 rounded-3xl bg-primary/5 flex items-center justify-center shrink-0 border border-border/50 transition-all duration-500 group-hover/card:border-primary/30 group-hover/card:bg-primary/10 ${
-            isExecuting ? "animate-pulse border-amber-500/50 bg-amber-500/5" : ""
-          }`}
+          className={cn(
+            "w-10 h-10 rounded-lg border border-border flex items-center justify-center shrink-0 bg-accent",
+            isExecuting && "border-amber-500/40",
+          )}
         >
           <TriggerIcon
-            className={`w-6 h-6 transition-all duration-500 ${
-              isExecuting ? "text-amber-500 scale-110" : "text-primary opacity-80 group-hover/card:opacity-100 group-hover/card:scale-110"
-            }`}
+            className={cn(
+              "w-4 h-4",
+              isExecuting ? "text-amber-400" : "text-muted-foreground",
+            )}
           />
         </div>
         <div className="flex flex-col min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-base font-black text-foreground truncate group-hover/card:text-primary transition-colors">
-              {workflow.metadata.name}
-            </h3>
-          </div>
-          <p className="text-tiny font-medium text-muted-foreground/60 line-clamp-2 leading-relaxed group-hover/card:text-muted-foreground/80 transition-colors">
-            {workflow.metadata.description || "Synthesizing automated intelligence with modular logic blocks."}
+          <h3 className="text-sm font-semibold text-foreground truncate">
+            {workflow.metadata.name}
+          </h3>
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mt-0.5">
+            {workflow.metadata.description || "No description."}
           </p>
         </div>
       </div>
 
-      {/* ── Stats Grid ── */}
-      <div className="grid grid-cols-3 gap-2 mb-8">
-        <div className="flex flex-col gap-1 p-3 rounded-2xl bg-muted/5 border border-border/20 group-hover/card:bg-muted/10 transition-colors">
-          <div className="flex items-center gap-1.5 text-muted-foreground/40 mb-1">
-            <Layers className="w-3 h-3" />
-            <span className="text-nano font-black uppercase tracking-tighter">Nodes</span>
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        {[
+          { icon: Layers,   label: "Nodes", value: nodeCount     },
+          { icon: Variable, label: "Vars",  value: variableCount },
+          { icon: Hash,     label: "Edges", value: edgeCount     },
+        ].map(({ icon: Icon, label, value }) => (
+          <div
+            key={label}
+            className="flex flex-col gap-0.5 p-2 rounded-md bg-accent border border-border/50"
+          >
+            <div className="flex items-center gap-1 text-muted-foreground/60">
+              <Icon className="w-3 h-3" />
+              <span className="text-xs">{label}</span>
+            </div>
+            <span className="text-sm font-semibold text-foreground">{value}</span>
           </div>
-          <span className="text-mini font-black text-foreground">{nodeCount}</span>
-        </div>
-        <div className="flex flex-col gap-1 p-3 rounded-2xl bg-muted/5 border border-border/20 group-hover/card:bg-muted/10 transition-colors">
-          <div className="flex items-center gap-1.5 text-muted-foreground/40 mb-1">
-            <Variable className="w-3 h-3" />
-            <span className="text-nano font-black uppercase tracking-tighter">Vars</span>
-          </div>
-          <span className="text-mini font-black text-foreground">{variableCount}</span>
-        </div>
-        <div className="flex flex-col gap-1 p-3 rounded-2xl bg-muted/5 border border-border/20 group-hover/card:bg-muted/10 transition-colors">
-          <div className="flex items-center gap-1.5 text-muted-foreground/40 mb-1">
-            <Hash className="w-3 h-3" />
-            <span className="text-nano font-black uppercase tracking-tighter">Edges</span>
-          </div>
-          <span className="text-mini font-black text-foreground">{edgeCount}</span>
-        </div>
+        ))}
       </div>
 
-      {/* ── Footer ── */}
-      <div className="mt-auto pt-6 border-t border-border/20 flex items-center justify-between">
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-3 border-t border-border/50">
         <div className="flex flex-col gap-0.5">
-          <span className="text-nano font-black uppercase tracking-widest text-muted-foreground/30">Last Modified</span>
-          <span className="text-nano font-bold text-muted-foreground/60">
-            {workflow.metadata.updatedAt 
+          <span className="text-xs text-muted-foreground/50">Last modified</span>
+          <span className="text-xs text-muted-foreground">
+            {workflow.metadata.updatedAt
               ? getRelativeTime(new Date(workflow.metadata.updatedAt))
               : getRelativeTime(new Date(workflow.metadata.createdAt))}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <Button
             variant="ghost"
             size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onLogs();
-            }}
-            className="h-8 px-4 rounded-full bg-primary/5 text-micro font-black uppercase tracking-widest gap-2 hover:bg-primary/20 hover:text-primary transition-all border border-transparent hover:border-primary/20"
+            onClick={(e) => { e.stopPropagation(); onLogs(); }}
+            className="h-7 px-2.5 rounded-md text-xs text-muted-foreground hover:text-foreground gap-1.5"
           >
             <Calendar className="w-3 h-3" />
             Logs
@@ -198,22 +190,20 @@ export const WorkflowModuleCard: FC<Props> = memo(({
             variant="ghost"
             size="sm"
             disabled={isExecuting}
-            onClick={(e) => {
-              e.stopPropagation();
-              onRun();
-            }}
-            className={`h-8 px-4 rounded-full text-micro! font-black uppercase tracking-widest gap-2 transition-all border ${
+            onClick={(e) => { e.stopPropagation(); onRun(); }}
+            className={cn(
+              "h-7 px-2.5 rounded-md text-xs gap-1.5",
               isExecuting
-                ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                : "bg-primary/10 text-primary border-primary/10 hover:bg-primary/20 hover:border-primary/30"
-            }`}
+                ? "text-amber-400"
+                : "text-muted-foreground hover:text-foreground",
+            )}
           >
             {isExecuting ? (
               <Loader2 className="w-3 h-3 animate-spin" />
             ) : (
               <Play className="w-3 h-3 fill-current" />
             )}
-            {isExecuting ? "Executing" : "Run"}
+            {isExecuting ? "Running" : "Run"}
           </Button>
 
           <DropdownMenu>
@@ -221,7 +211,7 @@ export const WorkflowModuleCard: FC<Props> = memo(({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full hover:bg-accent text-muted-foreground/60 transition-colors"
+                className="h-7 w-7 rounded-md text-muted-foreground/60 hover:text-foreground"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="w-4 h-4" />
@@ -229,27 +219,23 @@ export const WorkflowModuleCard: FC<Props> = memo(({
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="glass rounded-2xl border-border/50 min-w-[200px] p-2 shadow-2xl animate-in zoom-in-95 duration-200"
+              className="min-w-[180px] rounded-lg p-1"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="px-3 py-2 mb-1 border-b border-border/20">
-                <span className="text-nano font-black uppercase tracking-widest text-muted-foreground/40">General Actions</span>
-              </div>
               <DropdownMenuItem
-                className="gap-3 py-2.5 px-3 focus:bg-accent rounded-xl mb-1 cursor-pointer transition-colors"
-                onClick={() => onEdit()}
+                className="gap-2 text-sm rounded-md cursor-pointer"
+                onClick={onEdit}
               >
-                <Edit2 className="w-4 h-4 text-primary" />
-                <span className="text-tiny font-bold">Configure Engine</span>
+                <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="gap-3 py-2.5 px-3 focus:bg-accent rounded-xl mb-1 cursor-pointer transition-colors"
+                className="gap-2 text-sm rounded-md cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  const blob = new Blob(
-                    [JSON.stringify(workflow, null, 2)],
-                    { type: "application/json" },
-                  );
+                  const blob = new Blob([JSON.stringify(workflow, null, 2)], {
+                    type: "application/json",
+                  });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement("a");
                   a.href = url;
@@ -258,16 +244,16 @@ export const WorkflowModuleCard: FC<Props> = memo(({
                   URL.revokeObjectURL(url);
                 }}
               >
-                <Download className="w-4 h-4 text-primary" />
-                <span className="text-tiny font-bold">Export Blueprint</span>
+                <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                Export JSON
               </DropdownMenuItem>
-              <div className="h-px bg-border/20 my-1 mx-2" />
+              <div className="h-px bg-border my-1 mx-1" />
               <DropdownMenuItem
                 onClick={onDelete}
-                className="text-destructive focus:bg-destructive/10 gap-3 py-2.5 px-3 rounded-xl cursor-pointer transition-colors"
+                className="gap-2 text-sm rounded-md cursor-pointer text-destructive focus:bg-destructive/10"
               >
-                <Trash2 className="w-4 h-4" />
-                <span className="text-tiny font-bold">Purge Identity</span>
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete Workflow
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -276,3 +262,5 @@ export const WorkflowModuleCard: FC<Props> = memo(({
     </div>
   );
 });
+
+WorkflowModuleCard.displayName = "WorkflowModuleCard";

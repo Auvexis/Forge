@@ -12,6 +12,8 @@ export const useExecuteWorkflow = () => {
   const executeWorkflow = async (
     id: string,
     payload: Record<string, unknown>,
+    /** When set, server uses this id so the client can open SSE before the multipart body finishes uploading. */
+    clientExecutionId?: string,
   ): Promise<ExecuteWorkflowResult | null> => {
     setLoading(true);
     try {
@@ -36,7 +38,12 @@ export const useExecuteWorkflow = () => {
       // Backend returns 202 Accepted with { executionId }
       const data = await handleApi<ExecuteWorkflowResult>(
         `${API_BASE_URL}/workflows/${id}/execute`,
-        { method: "POST" },
+        {
+          method: "POST",
+          ...(clientExecutionId
+            ? { headers: { "X-Forge-Execution-Id": clientExecutionId } }
+            : {}),
+        },
         formData,
       );
       return data;

@@ -1,5 +1,6 @@
 import { memo, type FC, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
+import { cn } from "~/lib/utils";
 
 // ── Types ──
 
@@ -12,129 +13,103 @@ export interface DockSection {
   border?: boolean;
 }
 
+export type ForgeDockVariant = "default" | "workflows" | "explorer" | "editor";
+
 export interface ForgeDockProps {
   /** Lucide icon component for the brand badge */
   icon: LucideIcon;
-  /** Page/module title (uppercase) */
+  /** Page/module title */
   title: string;
-  /** Small status line below the title */
+  /** Small status line */
   subtitle: string;
-  /** Accent color name — maps to Tailwind's color palette (e.g. "blue", "rose", "violet") */
+  /**
+   * Icon tint inside the badge — maps to `app.css` `.forge-dock[data-accent=…]`
+   * presets (`blue`, `rose`, …) or keeps `primary` (default dock token).
+   */
   accent: string;
-  /** Status dot override — defaults to the accent color */
+  /** Which dock preset to use — colors live in `app.css` under `--forge-dock-{variant}-*` */
+  variant?: ForgeDockVariant;
+  /** Optional status dot override */
   statusDot?: {
     color: string;
     animate?: boolean;
   };
   /** Sections to render between the brand badge and the trailing content */
   sections: DockSection[];
-  /** Trailing content (typically the primary CTA) — rendered after the last section */
+  /** Trailing content (typically the primary CTA) */
   trailing?: ReactNode;
 }
-
-// ── Accent color resolver ──
-
-const ACCENT_MAP: Record<string, { bg: string; border: string; hoverBorder: string; text: string; glow: string; dotGlow: string }> = {
-  blue: {
-    bg: "bg-blue-500/10",
-    border: "border-blue-500/20",
-    hoverBorder: "group-hover/brand:border-blue-500/40",
-    text: "text-blue-500",
-    glow: "shadow-[0_0_15px_rgba(59,130,246,0.1)]",
-    dotGlow: "shadow-[0_0_5px_#3b82f6]",
-  },
-  rose: {
-    bg: "bg-rose-500/10",
-    border: "border-rose-500/20",
-    hoverBorder: "group-hover/brand:border-rose-500/40",
-    text: "text-rose-500",
-    glow: "shadow-[0_0_15px_rgba(244,63,94,0.1)]",
-    dotGlow: "shadow-[0_0_5px_#f43f5e]",
-  },
-  violet: {
-    bg: "bg-violet-500/10",
-    border: "border-violet-500/20",
-    hoverBorder: "group-hover/brand:border-violet-500/40",
-    text: "text-violet-500",
-    glow: "shadow-[0_0_15px_rgba(139,92,246,0.1)]",
-    dotGlow: "shadow-[0_0_5px_#8b5cf6]",
-  },
-  emerald: {
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/20",
-    hoverBorder: "group-hover/brand:border-emerald-500/40",
-    text: "text-emerald-500",
-    glow: "shadow-[0_0_15px_rgba(16,185,129,0.1)]",
-    dotGlow: "shadow-[0_0_5px_#10b981]",
-  },
-  amber: {
-    bg: "bg-amber-500/10",
-    border: "border-amber-500/20",
-    hoverBorder: "group-hover/brand:border-amber-500/40",
-    text: "text-amber-500",
-    glow: "shadow-[0_0_15px_rgba(245,158,11,0.1)]",
-    dotGlow: "shadow-[0_0_5px_#f59e0b]",
-  },
-};
-
-const DEFAULT_ACCENT = ACCENT_MAP.blue;
 
 // ── Component ──
 
 export const ForgeDock: FC<ForgeDockProps> = memo(
-  ({ icon: Icon, title, subtitle, accent, statusDot, sections, trailing }) => {
-    const colors = ACCENT_MAP[accent] ?? DEFAULT_ACCENT;
-    const dotColor = statusDot?.color ?? `bg-${accent}-500`;
-    const dotAnimate = statusDot?.animate ?? true;
-    const dotGlow = colors.dotGlow;
+  ({
+    icon: Icon,
+    title,
+    subtitle,
+    accent,
+    variant = "default",
+    statusDot,
+    sections,
+    trailing,
+  }) => {
+    const dotColor = statusDot?.color ?? "bg-forge-dock-status-dot";
+    const dotAnimate = statusDot?.animate ?? false;
 
     return (
-      <div className="absolute top-8 inset-x-0 mx-auto w-fit z-[50]">
-        <div className="flex items-center gap-1.5 p-1.5 bg-sidebar/95 backdrop-blur-2xl border border-sidebar-accent/30 rounded-full shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)] animate-in fade-in slide-in-from-top-8 zoom-in-95 duration-1000 fill-mode-forwards antialiased transform-gpu">
-          {/* ── Brand Badge ── */}
-          <div className="flex items-center gap-3 pl-4 pr-3 border-r border-sidebar-accent/20 h-10 group/brand cursor-default">
-            <div
-              className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-colors ${colors.bg} ${colors.border} ${colors.glow} ${colors.hoverBorder}`}
-            >
-              <Icon className={`w-4 h-4 ${colors.text}`} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <h1 className="text-tiny font-black text-foreground tracking-wide leading-none mb-0.5 max-w-[150px] truncate uppercase">
-                {title}
-              </h1>
-              <div className="flex items-center gap-1.5">
-                <div
-                  className={`w-1 h-1 rounded-full ${dotColor} ${dotAnimate ? "animate-pulse" : ""} ${dotGlow}`}
-                />
-                <span className="text-micro text-muted-foreground uppercase font-semibold tracking-wider leading-none opacity-40">
-                  {subtitle}
-                </span>
-              </div>
+      <div
+        data-accent={accent}
+        className={cn(
+          "forge-dock h-12 w-full flex items-center shrink-0 px-3 gap-2",
+          "bg-forge-dock-bg border-b border-forge-dock-border",
+          variant !== "default" && `forge-dock--${variant}`,
+        )}
+      >
+        {/* Brand Badge */}
+        <div className="flex items-center gap-2.5 pr-3 border-r border-forge-dock-section-border h-full">
+          <div className="w-7 h-7 flex items-center justify-center rounded-md bg-forge-dock-badge-bg shrink-0">
+            <Icon className="w-3.5 h-3.5 text-forge-dock-badge-icon" />
+          </div>
+          <div className="flex flex-col justify-center">
+            <span className="text-sm font-semibold text-forge-dock-title-text leading-none">
+              {title}
+            </span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${dotColor} ${dotAnimate ? "animate-pulse" : ""}`}
+              />
+              <span className="text-xs text-forge-dock-subtitle-text leading-none">
+                {subtitle}
+              </span>
             </div>
           </div>
-
-          {/* ── Dynamic Sections ── */}
-          {sections.map((section) => (
-            <div
-              key={section.id}
-              className={`flex items-center gap-1 px-2 h-10 ${
-                section.border !== false
-                  ? "border-r border-sidebar-accent/20"
-                  : ""
-              }`}
-            >
-              {section.content}
-            </div>
-          ))}
-
-          {/* ── Trailing CTA ── */}
-          {trailing && (
-            <div className="flex items-center gap-2 pl-2 pr-1">
-              {trailing}
-            </div>
-          )}
         </div>
+
+        {/* Dynamic Sections */}
+        {sections.map((section) => (
+          <div
+            key={section.id}
+            className={cn(
+              "flex items-center gap-1 h-full px-2",
+              section.border !== false && "border-r border-forge-dock-section-border",
+            )}
+          >
+            {section.content}
+          </div>
+        ))}
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Trailing CTA */}
+        {trailing && (
+          <div className="flex items-center gap-2">
+            {trailing}
+          </div>
+        )}
       </div>
     );
   },
 );
+
+ForgeDock.displayName = "ForgeDock";

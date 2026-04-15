@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Switch } from "~/components/ui/switch";
-import { Check, Search } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { Button } from "~/components/ui/button";
 import type { PluginNode } from "../../types/workflow-types";
 import type { NodeEditorProps } from "./types";
 import { useForge } from "~/providers/ForgeProvider";
@@ -19,6 +20,19 @@ import {
   resolveTriggerPaths,
   type SchemaPath,
 } from "../../utils/schemaResolver";
+
+function getVariableDisplayLabel(path: string, fallbackLabel: string): string {
+  if (path.startsWith("steps.")) {
+    const parts = path.split(".");
+    if (parts.length >= 3) {
+      const [, nodeId, ...rest] = parts;
+      if (nodeId && rest.length > 0) {
+        return `${nodeId}.${rest.join(".")}`;
+      }
+    }
+  }
+  return fallbackLabel;
+}
 
 // ──────────── Variable Tree ────────────
 
@@ -91,16 +105,24 @@ function VariableTree({
     }
   }
 
+  const dedupedPaths: SchemaPath[] = [];
+  const pathSeen = new Set<string>();
+  for (const p of allPaths) {
+    if (pathSeen.has(p.path)) continue;
+    pathSeen.add(p.path);
+    dedupedPaths.push(p);
+  }
+
   const filtered = search
-    ? allPaths.filter(
+    ? dedupedPaths.filter(
         (p) =>
           p.path.toLowerCase().includes(search.toLowerCase()) ||
           p.label.toLowerCase().includes(search.toLowerCase()) ||
           p.sourceNodeName.toLowerCase().includes(search.toLowerCase()),
       )
-    : allPaths;
+    : dedupedPaths;
 
-  if (allPaths.length === 0) return null;
+  if (dedupedPaths.length === 0) return null;
 
   // Group by sourceNodeName
   const grouped = new Map<string, SchemaPath[]>();
@@ -130,15 +152,17 @@ function VariableTree({
             {groupName}
           </span>
           <div className="flex flex-wrap gap-1.5">
-            {paths.map((p) => (
+            {paths.map((p, chipIdx) => (
               <button
-                key={p.path}
+                key={`${p.path}:${chipIdx}`}
                 className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 text-mini px-2.5 py-1.5 rounded-lg border border-emerald-500/20 transition-all active:scale-95 font-bold flex items-center gap-1 max-w-full"
                 title={p.path}
                 onClick={() => onInject(paramKey, p.path)}
               >
                 <Check className="w-2.5 h-2.5 opacity-50 shrink-0" />
-                <span className="truncate">{p.label}</span>
+                <span className="truncate">
+                  {getVariableDisplayLabel(p.path, p.label)}
+                </span>
                 <span className="opacity-40 text-nano shrink-0">{p.type}</span>
               </button>
             ))}
@@ -169,6 +193,17 @@ export function PluginEditor({
   const data = node.data as unknown as PluginNode;
   const selectedPlugin = plugins.find((p) => p.id === data.pluginId);
   const selectedAction = selectedPlugin?.manifest.methods[data.action];
+  const [mapVariablesOpen, setMapVariablesOpen] = useState<Record<string, boolean>>({});
+
+  const isMapVariablesOpen = (paramKey: string) =>
+    mapVariablesOpen[paramKey] ?? false;
+
+  const toggleMapVariables = (paramKey: string) => {
+    setMapVariablesOpen((prev) => ({
+      ...prev,
+      [paramKey]: !(prev[paramKey] ?? false),
+    }));
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -385,16 +420,31 @@ export function PluginEditor({
                   {/* Variable tree — only shown when there are upstream nodes */}
                   {upstreamNodes.length > 0 && (
                     <div className="flex flex-col gap-1">
-                      <span className="text-mini uppercase font-black tracking-widest text-muted-foreground flex items-center gap-1.5 opacity-60">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                        Map variables
-                      </span>
-                      <VariableTree
-                        paramKey={paramKey}
-                        upstreamNodes={upstreamNodes}
-                        nodes={nodes}
-                        onInject={injectVariable}
-                      />
+                      <div className="w-full flex justify-center items-center gap-2">
+                        <div className="flex-1 h-px bg-border/60"></div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2"
+                          onClick={() => toggleMapVariables(paramKey)}
+                        >
+                          {isMapVariablesOpen(paramKey) ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                          <span className="ml-1 text-xs">Map variables</span>
+                        </Button>
+                        <div className="flex-1 h-px bg-border/60"></div>
+                      </div>
+                      {isMapVariablesOpen(paramKey) && (
+                        <VariableTree
+                          paramKey={paramKey}
+                          upstreamNodes={upstreamNodes}
+                          nodes={nodes}
+                          onInject={injectVariable}
+                        />
+                      )}
                     </div>
                   )}
                 </div>

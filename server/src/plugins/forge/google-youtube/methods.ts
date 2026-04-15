@@ -23,6 +23,15 @@ function getYoutubeClient(context: PluginContext) {
   return google.youtube({ version: "v3", auth: oauth2Client });
 }
 
+/** Full read — avoids Gaxios/resumable hangs with some upstream streams (e.g. multipart). */
+async function readableToBuffer(stream: Readable): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as Uint8Array));
+  }
+  return Buffer.concat(chunks);
+}
+
 export function createGoogleYoutubeMethods() {
   return {
     // ──────────── Videos ────────────
@@ -442,7 +451,9 @@ export function createGoogleYoutubeMethods() {
           typeof (params.content as any).pipe === "function" &&
           typeof (params.content as any).on === "function"
         ) {
-          stream = params.content as unknown as Readable;
+          const raw = params.content as unknown as Readable;
+          const buffered = await readableToBuffer(raw);
+          stream = Readable.from(buffered);
         } else if (params.content instanceof Buffer) {
           stream = Readable.from(params.content);
         } else if (typeof params.content === "string") {
@@ -478,8 +489,6 @@ export function createGoogleYoutubeMethods() {
             },
           },
           {
-            // Use resumable upload for better performance and reliability with videos
-            // This is critical when piping streams from other services like Google Drive
             onUploadProgress: () => {},
           },
         );

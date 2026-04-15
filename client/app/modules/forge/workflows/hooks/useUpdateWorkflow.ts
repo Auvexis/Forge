@@ -9,14 +9,16 @@ export const useUpdateWorkflow = () => {
   const updateWorkflow = async (workflow: WorkflowItem) => {
     setLoading(true);
 
-    const data = await handleApi<WorkflowItem>(
-      `${API_BASE_URL}/workflows/${workflow.metadata.id}`,
-      { method: "PUT" },
-      workflow,
-    );
-
-    setLoading(false);
-    return data;
+    try {
+      const data = await handleApi<WorkflowItem>(
+        `${API_BASE_URL}/workflows/${workflow.metadata.id}`,
+        { method: "PUT" },
+        workflow,
+      );
+      return data;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
