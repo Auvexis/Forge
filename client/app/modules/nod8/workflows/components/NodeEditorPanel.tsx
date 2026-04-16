@@ -7,7 +7,6 @@ import { toast } from "~/shared/helpers/toast";
 import { PluginMenuAuth } from "../../plugins/components/PluginMenuAuth";
 import { NODE_EDITOR_REGISTRY } from "./node-editors/index";
 import type { NodeEditorProps } from "./node-editors/types";
-import { NodeOutputPanel } from "./NodeOutputPanel";
 import type { NodeStatusMap } from "../hooks/useWorkflowStream";
 import { cn } from "~/lib/utils";
 
@@ -236,15 +235,6 @@ export const NodeEditorPanel = ({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-        {nodeStatuses?.[nodeId] &&
-          (nodeStatuses[nodeId].status === "success" ||
-            nodeStatuses[nodeId].status === "failed") && (
-            <NodeOutputPanel
-              nodeId={nodeId}
-              statusInfo={nodeStatuses[nodeId]}
-            />
-          )}
-
         {activeTab === "auth" && isPluginNode ? (
           <PluginMenuAuth pluginId={pluginId!} />
         ) : EditorComponent ? (

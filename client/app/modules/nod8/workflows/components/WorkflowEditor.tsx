@@ -167,14 +167,24 @@ export const WorkflowEditor = ({
     }, 500);
   }, [workflow.metadata.id, setNodes, setEdges]); // Only reset when we actually switch workflows
 
-  // ── Sync SSE node statuses ──
+  // ── Sync SSE node statuses → node data (status + output + error + timing) ──
   useEffect(() => {
     if (Object.keys(nodeStatuses).length === 0) return;
     setNodes((nds) =>
       nds.map((n) => {
         const info = nodeStatuses[n.id];
         if (!info) return n;
-        return { ...n, data: { ...n.data, _executionStatus: info.status } };
+        return {
+          ...n,
+          data: {
+            ...n.data,
+            _executionStatus: info.status,
+            _nodeOutput: info.output,
+            _nodeError: info.error,
+            _startedAt: info.startedAt,
+            _completedAt: info.completedAt,
+          },
+        };
       }),
     );
   }, [nodeStatuses, setNodes]);

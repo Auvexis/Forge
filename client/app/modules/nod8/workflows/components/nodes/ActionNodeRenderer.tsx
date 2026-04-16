@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 import {
   type NodeProps,
   type Node,
@@ -6,10 +6,26 @@ import {
   Position,
   useReactFlow,
 } from "@xyflow/react";
-import { Trash2 } from "lucide-react";
+import {
+  Trash2,
+  Eye,
+  EyeOff,
+  CopyPlus,
+  Copy,
+  Check,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useNod8 } from "~/providers/Nod8Provider";
 import { Button } from "~/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import { BaseNode } from "~/components/base-node";
 import { BaseHandle } from "~/components/base-handle";
 import { LucideIconRenderer } from "~/components/LucideIconRenderer";
@@ -279,21 +295,168 @@ export const ActionNodeRenderer = memo(
       deleteElements({ nodes: [{ id }] });
     }, [id, deleteElements]);
 
+    // ── Duplicate ───────────────────────────────────────────────────────────────
+    const { getNode, addNodes } = useReactFlow();
+    const handleDuplicate = useCallback(() => {
+      const original = getNode(id);
+      if (!original) return;
+      const newId = `${id}_copy_${Date.now()}`;
+      addNodes([
+        {
+          ...original,
+          id: newId,
+          position: {
+            x: original.position.x + 40,
+            y: original.position.y + 60,
+          },
+          selected: false,
+          data: { ...original.data, _executionStatus: "idle", _nodeOutput: undefined, _nodeError: undefined },
+        },
+      ]);
+    }, [id, getNode, addNodes]);
+
+    // ── Output Popover ─────────────────────────────────────────────────────────
+    const [outputOpen, setOutputOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const nodeOutput = (data as any)._nodeOutput;
+    const nodeError  = (data as any)._nodeError;
+    const startedAt  = (data as any)._startedAt as number | undefined;
+    const completedAt = (data as any)._completedAt as number | undefined;
+    const hasResult  = executionStatus === "success" || executionStatus === "failed";
+
+    const formattedOutput = (() => {
+      if (!hasResult || executionStatus === "failed") return null;
+      if (nodeOutput === undefined || nodeOutput === null) return "null";
+      try { return JSON.stringify(nodeOutput, null, 2); }
+      catch { return String(nodeOutput); }
+    })();
+
+    const duration =
+      startedAt && completedAt
+        ? ((completedAt - startedAt) / 1000).toFixed(2)
+        : null;
+
+    const handleCopy = async () => {
+      const text = executionStatus === "failed" ? nodeError ?? "" : formattedOutput ?? "";
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    };
+
     const isIf = nodeType === "if";
     const isLoop = nodeType === "loop";
 
     return (
       <div className="relative">
-        {/* Delete toolbar */}
+        {/* Expanded toolbar: Output | Duplicate | Delete */}
         <NodeToolbar
           position={Position.Bottom}
           offset={10}
           className="flex gap-1"
         >
+          {/* Output Popover button — only shown when the node has a result */}
+          {hasResult && (
+            <Popover open={outputOpen} onOpenChange={setOutputOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={cn(
+                    "nodrag h-7 w-7 rounded-md shadow-sm",
+                    executionStatus === "success"
+                      ? "border-emerald-500/40 text-emerald-500 hover:bg-emerald-500/10"
+                      : "border-red-500/40 text-red-500 hover:bg-red-500/10",
+                  )}
+                  aria-label="View node output"
+                >
+                  {executionStatus === "success" ? (
+                    <Eye className="w-3.5 h-3.5" />
+                  ) : (
+                    <AlertCircle className="w-3.5 h-3.5" />
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                side="top"
+                className="w-[420px] p-0 overflow-hidden nodrag nopan"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Popover header */}
+                <div
+                  className={cn(
+                    "flex items-center justify-between px-3 py-2 border-b",
+                    executionStatus === "success"
+                      ? "bg-emerald-500/10 border-emerald-500/20"
+                      : "bg-red-500/10 border-red-500/20",
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    {executionStatus === "success" ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    ) : (
+                      <XCircle className="w-3.5 h-3.5 text-red-500" />
+                    )}
+                    <span
+                      className={cn(
+                        "text-xs font-semibold",
+                        executionStatus === "success" ? "text-emerald-500" : "text-red-500",
+                      )}
+                    >
+                      {executionStatus === "success" ? `Output — ${id}` : `Error — ${id}`}
+                    </span>
+                    {duration && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        {duration}s
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 rounded"
+                    onClick={handleCopy}
+                  >
+                    {copied ? (
+                      <Check className="w-3 h-3 text-emerald-500" />
+                    ) : (
+                      <Copy className="w-3 h-3 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+                {/* Popover body */}
+                <div className="p-3 max-h-[320px] overflow-y-auto bg-black/40">
+                  {executionStatus === "failed" ? (
+                    <p className="text-xs text-red-400 font-mono whitespace-pre-wrap break-words">
+                      {nodeError ?? "Unknown error"}
+                    </p>
+                  ) : (
+                    <pre className="text-xs font-mono text-emerald-400 whitespace-pre-wrap break-all leading-relaxed">
+                      {formattedOutput}
+                    </pre>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+
+          {/* Duplicate */}
           <Button
             variant="outline"
             size="icon"
-            className="nodrag h-7 w-7 rounded-md shadow-sm"
+            className="nodrag h-7 w-7 rounded-md shadow-sm text-muted-foreground hover:text-foreground"
+            onClick={handleDuplicate}
+            aria-label="Duplicate node"
+          >
+            <CopyPlus className="w-3.5 h-3.5" />
+          </Button>
+
+          {/* Delete */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="nodrag h-7 w-7 rounded-md shadow-sm text-muted-foreground hover:text-destructive hover:border-destructive/50"
             onClick={handleDelete}
             aria-label="Delete node"
           >
