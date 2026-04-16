@@ -381,6 +381,13 @@ export const WorkflowEditor = ({
           isDirty={save.isDirty}
           workflows={workflows}
           onSwitchWorkflow={(id) => setSelectedWorkflowId(id)}
+          onIdChange={(newId) => {
+            // Update metadata.id in local state then save immediately so the
+            // backend receives the rename (save hook handles delete-old + create-new)
+            save.handleUpdateMetadata({ id: newId });
+            // Use a small timeout so the state update flushes before saving
+            setTimeout(() => handleSave(false), 50);
+          }}
         />
 
         {/* Canvas + Panels */}

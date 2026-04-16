@@ -14,6 +14,7 @@ import {
   Layers,
   Zap,
   WorkflowIcon,
+  Pencil,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
@@ -25,7 +26,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { cn } from "~/lib/utils";
 import type { WorkflowItem } from "../types/workflow-types";
-import type { DockSection } from "~/shared/components/Nod8Dock";
+import { useState, useRef, useCallback } from "react";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,8 @@ interface Props {
   onSettings: () => void;
   onLogs: () => void;
   onClose: () => void;
+  /** Called when user double-clicks the ID badge and commits a new ID */
+  onIdChange?: (newId: string) => void;
   isSaving: boolean;
   isExecuting: boolean;
   isStreaming: boolean;
@@ -81,6 +84,7 @@ export const WorkflowEditorDock = ({
   onSettings,
   onLogs,
   onClose,
+  onIdChange,
   isSaving,
   isExecuting,
   isStreaming,
@@ -91,6 +95,32 @@ export const WorkflowEditorDock = ({
   onSwitchWorkflow,
 }: Props) => {
   const isBusy = isExecuting || isStreaming;
+
+  // ── Inline ID editing ─────────────────────────────────────────────────────
+  const [isEditingId, setIsEditingId] = useState(false);
+  const [editableId, setEditableId] = useState(workflowId);
+  const idInputRef = useRef<HTMLInputElement>(null);
+
+  const startEditingId = useCallback(() => {
+    if (isStreaming) return; // block while running
+    setEditableId(workflowId);
+    setIsEditingId(true);
+    // Focus happens after next paint
+    requestAnimationFrame(() => idInputRef.current?.select());
+  }, [isStreaming, workflowId]);
+
+  const commitIdChange = useCallback(() => {
+    setIsEditingId(false);
+    const trimmed = editableId.trim();
+    if (trimmed && trimmed !== workflowId) {
+      onIdChange?.(trimmed);
+    }
+  }, [editableId, workflowId, onIdChange]);
+
+  const cancelIdEdit = useCallback(() => {
+    setIsEditingId(false);
+    setEditableId(workflowId);
+  }, [workflowId]);
 
   const statusDot = isStreaming
     ? { color: "bg-nod8-editor-dock-status-streaming", animate: true }
@@ -118,6 +148,8 @@ export const WorkflowEditorDock = ({
               </span>
               <ChevronDown className="w-3 h-3 text-nod8-workflow-picker-trigger-title group-hover:text-nod8-workflow-picker-trigger-title-hover transition-colors shrink-0" />
             </div>
+
+            {/* ID row — double-click to edit inline */}
             <div className="flex items-center gap-1.5 mt-0.5">
               <span
                 className={cn(
@@ -126,13 +158,47 @@ export const WorkflowEditorDock = ({
                   statusDot.animate && "animate-pulse",
                 )}
               />
-              <span className="text-xs text-nod8-workflow-picker-trigger-meta leading-none">
-                {isStreaming
-                  ? "Running"
-                  : isDirty
-                    ? "Unsaved changes"
-                    : workflowId.slice(0, 14)}
-              </span>
+              {isEditingId ? (
+                <input
+                  ref={idInputRef}
+                  value={editableId}
+                  onChange={(e) => setEditableId(e.target.value)}
+                  onBlur={commitIdChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commitIdChange();
+                    if (e.key === "Escape") cancelIdEdit();
+                    e.stopPropagation(); // don't bubble to ReactFlow
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-xs font-mono bg-background border border-primary/50 rounded px-1 py-0.5 outline-none w-[140px] text-foreground"
+                  placeholder="workflow-id"
+                  spellCheck={false}
+                />
+              ) : (
+                <span
+                  className={cn(
+                    "text-xs text-nod8-workflow-picker-trigger-meta leading-none",
+                    !isStreaming && "cursor-text hover:text-foreground transition-colors group/id",
+                  )}
+                  title={isStreaming ? undefined : "Double-click to rename ID"}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    startEditingId();
+                  }}
+                >
+                  {isStreaming
+                    ? "Running"
+                    : isDirty
+                      ? "Unsaved changes"
+                      : (
+                        <span className="flex items-center gap-1">
+                          <span className="font-mono">{workflowId.slice(0, 14)}</span>
+                          <Pencil className="w-2.5 h-2.5 opacity-0 group-hover/id:opacity-60 transition-opacity" />
+                        </span>
+                      )}
+                </span>
+              )}
             </div>
           </Button>
         </DropdownMenuTrigger>
