@@ -7,7 +7,7 @@ import React, {
   useMemo,
   type ReactNode,
 } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import type {
   Plugin,
   PluginStatusResponse,
@@ -52,18 +52,16 @@ interface Nod8ContextType {
 const Nod8Context = createContext<Nod8ContextType | undefined>(undefined);
 
 export const Nod8Provider = ({ children }: { children: ReactNode }) => {
-  const { view: urlView } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
 
   const view = useMemo(() => {
-    if (
-      urlView &&
-      Object.values(GlobalViews).includes(urlView as GlobalViews)
-    ) {
-      return urlView as GlobalViews;
+    const segment = location.pathname.replace(/^\//, "").split("/")[0];
+    if (Object.values(GlobalViews).includes(segment as GlobalViews)) {
+      return segment as GlobalViews;
     }
     return GlobalViews.EXPLORER;
-  }, [urlView]);
+  }, [location.pathname]);
 
   const setView = useCallback(
     (newView: GlobalViews) => {
