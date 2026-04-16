@@ -92,7 +92,7 @@ export interface PluginMetadata {
 /**
  * A single JSON Schema property definition.
  * Standard fields follow JSON Schema Draft 7.
- * Fields prefixed with `x-` are Forge-specific extensions.
+ * Fields prefixed with `x-` are Nod8-specific extensions.
  */
 export interface JSONSchemaProperty {
   // Core JSON Schema
@@ -124,7 +124,7 @@ export interface JSONSchemaProperty {
   minItems?: number;
   maxItems?: number;
 
-  // Forge-specific extensions
+  // Nod8-specific extensions
   "x-input-type"?:
     | "text"
     | "password"
@@ -134,8 +134,8 @@ export interface JSONSchemaProperty {
     | "file"
     | "textarea";
   "x-label"?: string; // Human-readable label for UI display
-  "x-forge-display"?: "file" | "folder" | "media" | "text" | "generic";
-  "x-forge-icon"?: string; // Optional lucide icon name hint
+  "x-nod8-display"?: "file" | "folder" | "media" | "text" | "generic";
+  "x-nod8-icon"?: string; // Optional lucide icon name hint
 }
 
 /**
@@ -155,7 +155,7 @@ export interface JSONSchemaObject {
  */
 export interface JSONSchemaResponse {
   type: "object" | "array";
-  "x-forge-display"?: "file" | "folder" | "media" | "text" | "generic";
+  "x-nod8-display"?: "file" | "folder" | "media" | "text" | "generic";
 
   // For type: "object"
   properties?: Record<string, JSONSchemaProperty>;
@@ -190,9 +190,9 @@ export interface PluginContext {
   tokens?: OAuth2Tokens;
 }
 
-// ──────────── ForgePlugin (the contract every plugin implements) ────────────
+// ──────────── Nod8Plugin (the contract every plugin implements) ────────────
 
-export interface ForgePlugin {
+export interface Nod8Plugin {
   id: string;
   manifest: PluginManifest;
   auth: CredentialProvider;

@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
  */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbPath = path.join(__dirname, "../../../config/data/forge.db");
+const dbPath = path.join(__dirname, "../../../config/data/nod8.db");
 
 /**
  * Creates the directory if it doesn't exist

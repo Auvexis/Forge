@@ -1,0 +1,1137 @@
+{
+  "metadata": {
+    "id": "google-youtube",
+    "name": "Google YouTube",
+    "description": "Allows the AI to interact with YouTube to search, upload, and manage videos, channels, comments, playlists, and subscriptions.",
+    "icon": "https://static.vecteezy.com/system/resources/previews/023/986/704/non_2x/youtube-logo-youtube-logo-transparent-youtube-icon-transparent-free-free-png.png",
+    "category": "Google",
+    "author": "Nod8",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/nod8"
+  },
+
+  "methods": {
+    "searchVideos": {
+      "metadata": {
+        "label": "Search videos",
+        "description": "Search for videos on YouTube."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query string.",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of results.",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 50,
+            "x-input-type": "number"
+          },
+          "pageToken": {
+            "type": "string",
+            "description": "Pagination token for next page.",
+            "x-input-type": "text"
+          },
+          "order": {
+            "type": "string",
+            "description": "Order of results.",
+            "enum": ["relevance", "date", "rating", "viewCount", "title"],
+            "default": "relevance",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["query"]
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-nod8-display": "text",
+        "items": {
+          "type": "object",
+          "properties": {
+            "videoId": { "type": "string", "x-label": "Video ID" },
+            "title": { "type": "string", "x-label": "Title" },
+            "description": { "type": "string", "x-label": "Description" },
+            "channelId": { "type": "string", "x-label": "Channel ID" },
+            "channelTitle": { "type": "string", "x-label": "Channel" },
+            "publishedAt": { "type": "string", "x-label": "Published At" },
+            "thumbnailUrl": { "type": "string", "x-label": "Thumbnail" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Dislike",
+            "action": "dislikeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Subscribe",
+            "action": "subscribeToChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          },
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          }
+        ]
+      }
+    },
+
+    "getVideoDetails": {
+      "metadata": {
+        "label": "Get video details",
+        "description": "Get detailed information about a specific video."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "description": "The ID of the video.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["videoId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "videoId": { "type": "string", "x-label": "Video ID" },
+          "title": { "type": "string", "x-label": "Title" },
+          "description": { "type": "string", "x-label": "Description" },
+          "channelId": { "type": "string", "x-label": "Channel ID" },
+          "channelTitle": { "type": "string", "x-label": "Channel" },
+          "publishedAt": { "type": "string", "x-label": "Published At" },
+          "thumbnailUrl": { "type": "string", "x-label": "Thumbnail" },
+          "duration": { "type": "string", "x-label": "Duration" },
+          "viewCount": { "type": "string", "x-label": "Views" },
+          "likeCount": { "type": "string", "x-label": "Likes" },
+          "commentCount": { "type": "string", "x-label": "Comments" },
+          "tags": { "type": "array", "x-label": "Tags" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Dislike",
+            "action": "dislikeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Subscribe",
+            "action": "subscribeToChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          },
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          }
+        ]
+      }
+    },
+
+    "getTrendingVideos": {
+      "metadata": {
+        "label": "Get trending videos",
+        "description": "Get currently trending videos."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "regionCode": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 region code (e.g. 'US').",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of results.",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 50,
+            "x-input-type": "number"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "YouTube video category ID.",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-nod8-display": "text",
+        "items": {
+          "type": "object",
+          "properties": {
+            "videoId": { "type": "string", "x-label": "Video ID" },
+            "title": { "type": "string", "x-label": "Title" },
+            "description": { "type": "string", "x-label": "Description" },
+            "channelId": { "type": "string", "x-label": "Channel ID" },
+            "channelTitle": { "type": "string", "x-label": "Channel" },
+            "publishedAt": { "type": "string", "x-label": "Published At" },
+            "thumbnailUrl": { "type": "string", "x-label": "Thumbnail" },
+            "viewCount": { "type": "string", "x-label": "Views" },
+            "likeCount": { "type": "string", "x-label": "Likes" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Dislike",
+            "action": "dislikeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Subscribe",
+            "action": "subscribeToChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          },
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          }
+        ]
+      }
+    },
+
+    "getChannelDetails": {
+      "metadata": {
+        "label": "Get channel details",
+        "description": "Get detailed information about a YouTube channel."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "The YouTube channel ID.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["channelId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "channelId": { "type": "string", "x-label": "Channel ID" },
+          "title": { "type": "string", "x-label": "Title" },
+          "description": { "type": "string", "x-label": "Description" },
+          "customUrl": { "type": "string", "x-label": "Custom URL" },
+          "publishedAt": { "type": "string", "x-label": "Created At" },
+          "thumbnailUrl": { "type": "string", "x-label": "Thumbnail" },
+          "subscriberCount": { "type": "string", "x-label": "Subscribers" },
+          "videoCount": { "type": "string", "x-label": "Videos" },
+          "viewCount": { "type": "string", "x-label": "Views" },
+          "uploadsPlaylistId": {
+            "type": "string",
+            "x-label": "Uploads Playlist"
+          }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Subscribe",
+            "action": "subscribeToChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          },
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "channelId": "{{channelId}}" }
+          }
+        ]
+      }
+    },
+
+    "getMyChannel": {
+      "metadata": {
+        "label": "Get my channel",
+        "description": "Get details of the authenticated user's YouTube channel."
+      },
+      "parameters": { "type": "object", "properties": {} },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "channelId": { "type": "string", "x-label": "Channel ID" },
+          "title": { "type": "string", "x-label": "Title" },
+          "description": { "type": "string", "x-label": "Description" },
+          "customUrl": { "type": "string", "x-label": "Custom URL" },
+          "publishedAt": { "type": "string", "x-label": "Created At" },
+          "thumbnailUrl": { "type": "string", "x-label": "Thumbnail" },
+          "subscriberCount": { "type": "string", "x-label": "Subscribers" },
+          "videoCount": { "type": "string", "x-label": "Videos" },
+          "viewCount": { "type": "string", "x-label": "Views" },
+          "uploadsPlaylistId": {
+            "type": "string",
+            "x-label": "Uploads Playlist"
+          }
+        }
+      },
+      "ui": { "component": "card" }
+    },
+
+    "listComments": {
+      "metadata": {
+        "label": "List comments",
+        "description": "List comments on a video."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "description": "The ID of the video.",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of results.",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100,
+            "x-input-type": "number"
+          },
+          "pageToken": {
+            "type": "string",
+            "description": "Pagination token for next page.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["videoId"]
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-nod8-display": "text",
+        "items": {
+          "type": "object",
+          "properties": {
+            "commentId": { "type": "string", "x-label": "Comment ID" },
+            "authorName": { "type": "string", "x-label": "Author" },
+            "authorProfileUrl": {
+              "type": "string",
+              "x-label": "Author Avatar"
+            },
+            "text": { "type": "string", "x-label": "Comment" },
+            "likeCount": { "type": "number", "x-label": "Likes" },
+            "publishedAt": { "type": "string", "x-label": "Published At" },
+            "totalReplyCount": { "type": "number", "x-label": "Replies" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table",
+        "actions": [
+          {
+            "label": "Reply",
+            "action": "replyToComment",
+            "parameters": { "parentId": "{{commentId}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteComment",
+            "parameters": { "commentId": "{{commentId}}" }
+          }
+        ]
+      }
+    },
+
+    "createComment": {
+      "metadata": {
+        "label": "Create comment",
+        "description": "Post a new comment on a video."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "description": "The ID of the video to comment on.",
+            "x-input-type": "text"
+          },
+          "text": {
+            "type": "string",
+            "description": "The comment text.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["videoId", "text"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "commentId": { "type": "string", "x-label": "Comment ID" },
+          "authorName": { "type": "string", "x-label": "Author" },
+          "text": { "type": "string", "x-label": "Comment" },
+          "publishedAt": { "type": "string", "x-label": "Published At" }
+        }
+      },
+      "ui": { "component": "card" }
+    },
+
+    "replyToComment": {
+      "metadata": {
+        "label": "Reply to comment",
+        "description": "Reply to an existing comment."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "parentId": {
+            "type": "string",
+            "description": "The ID of the parent comment.",
+            "x-input-type": "text"
+          },
+          "text": {
+            "type": "string",
+            "description": "The reply text.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["parentId", "text"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "commentId": { "type": "string", "x-label": "Comment ID" },
+          "authorName": { "type": "string", "x-label": "Author" },
+          "text": { "type": "string", "x-label": "Reply" },
+          "publishedAt": { "type": "string", "x-label": "Published At" }
+        }
+      },
+      "ui": { "component": "card" }
+    },
+
+    "deleteComment": {
+      "metadata": {
+        "label": "Delete comment",
+        "description": "Delete a comment."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "commentId": {
+            "type": "string",
+            "description": "The ID of the comment to delete.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["commentId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "deleted": { "type": "boolean", "x-label": "Deleted" },
+          "commentId": { "type": "string", "x-label": "Comment ID" }
+        }
+      },
+      "ui": { "component": "card" }
+    },
+
+    "likeVideo": {
+      "metadata": { "label": "Like video", "description": "Like a video." },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "description": "The ID of the video to like.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["videoId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "success": { "type": "boolean", "x-label": "Success" },
+          "videoId": { "type": "string", "x-label": "Video ID" },
+          "rating": { "type": "string", "x-label": "Rating" }
+        }
+      },
+      "ui": { "component": "card" }
+    },
+
+    "dislikeVideo": {
+      "metadata": {
+        "label": "Dislike video",
+        "description": "Dislike a video."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "description": "The ID of the video to dislike.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["videoId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "success": { "type": "boolean", "x-label": "Success" },
+          "videoId": { "type": "string", "x-label": "Video ID" },
+          "rating": { "type": "string", "x-label": "Rating" }
+        }
+      },
+      "ui": { "component": "card" }
+    },
+
+    "removeLike": {
+      "metadata": {
+        "label": "Remove like",
+        "description": "Remove like/dislike rating from a video."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "description": "The ID of the video.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["videoId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "success": { "type": "boolean", "x-label": "Success" },
+          "videoId": { "type": "string", "x-label": "Video ID" },
+          "rating": { "type": "string", "x-label": "Rating" }
+        }
+      },
+      "ui": { "component": "card" }
+    },
+
+    "subscribeToChannel": {
+      "metadata": {
+        "label": "Subscribe to channel",
+        "description": "Subscribe to a YouTube channel."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "The ID of the channel to subscribe to.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["channelId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "subscriptionId": { "type": "string", "x-label": "Subscription ID" },
+          "channelId": { "type": "string", "x-label": "Channel ID" },
+          "channelTitle": { "type": "string", "x-label": "Channel" },
+          "subscribedAt": { "type": "string", "x-label": "Subscribed At" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "subscriptionId": "{{subscriptionId}}" }
+          }
+        ]
+      }
+    },
+
+    "unsubscribeFromChannel": {
+      "metadata": {
+        "label": "Unsubscribe from channel",
+        "description": "Unsubscribe from a YouTube channel."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "subscriptionId": {
+            "type": "string",
+            "description": "The subscription ID to remove.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["subscriptionId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "deleted": { "type": "boolean", "x-label": "Deleted" },
+          "subscriptionId": { "type": "string", "x-label": "Subscription ID" }
+        }
+      },
+      "ui": { "component": "card" }
+    },
+
+    "listSubscriptions": {
+      "metadata": {
+        "label": "List subscriptions",
+        "description": "List your YouTube subscriptions."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of results.",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 50,
+            "x-input-type": "number"
+          },
+          "pageToken": {
+            "type": "string",
+            "description": "Pagination token for next page.",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-nod8-display": "text",
+        "items": {
+          "type": "object",
+          "properties": {
+            "subscriptionId": {
+              "type": "string",
+              "x-label": "Subscription ID"
+            },
+            "channelId": { "type": "string", "x-label": "Channel ID" },
+            "channelTitle": { "type": "string", "x-label": "Channel" },
+            "description": { "type": "string", "x-label": "Description" },
+            "thumbnailUrl": { "type": "string", "x-label": "Thumbnail" },
+            "subscribedAt": { "type": "string", "x-label": "Subscribed At" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table",
+        "actions": [
+          {
+            "label": "Unsubscribe",
+            "action": "unsubscribeFromChannel",
+            "parameters": { "subscriptionId": "{{subscriptionId}}" }
+          }
+        ]
+      }
+    },
+
+    "uploadVideo": {
+      "metadata": {
+        "label": "Upload video",
+        "description": "Upload a new video to YouTube."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the video.",
+            "x-input-type": "text"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the video.",
+            "x-input-type": "text"
+          },
+          "tags": {
+            "type": "string",
+            "description": "Comma-separated tags.",
+            "x-input-type": "text"
+          },
+          "privacyStatus": {
+            "type": "string",
+            "description": "Privacy setting.",
+            "enum": ["public", "unlisted", "private"],
+            "default": "private",
+            "x-input-type": "text"
+          },
+          "content": {
+            "type": "string",
+            "format": "binary",
+            "description": "The video file to upload.",
+            "x-input-type": "file"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type of the video.",
+            "x-input-type": "text"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "YouTube category ID.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["title", "content"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "videoId": { "type": "string", "x-label": "Video ID" },
+          "title": { "type": "string", "x-label": "Title" },
+          "description": { "type": "string", "x-label": "Description" },
+          "publishedAt": { "type": "string", "x-label": "Published At" },
+          "privacyStatus": { "type": "string", "x-label": "Privacy" },
+          "thumbnailUrl": { "type": "string", "x-label": "Thumbnail" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          }
+        ]
+      }
+    },
+
+    "updateVideo": {
+      "metadata": {
+        "label": "Update video",
+        "description": "Update a video's metadata."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "description": "The ID of the video to update.",
+            "x-input-type": "text"
+          },
+          "title": {
+            "type": "string",
+            "description": "New title.",
+            "x-input-type": "text"
+          },
+          "description": {
+            "type": "string",
+            "description": "New description.",
+            "x-input-type": "text"
+          },
+          "tags": {
+            "type": "string",
+            "description": "Comma-separated tags.",
+            "x-input-type": "text"
+          },
+          "privacyStatus": {
+            "type": "string",
+            "description": "Privacy setting.",
+            "enum": ["public", "unlisted", "private"],
+            "x-input-type": "text"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "YouTube category ID.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["videoId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "videoId": { "type": "string", "x-label": "Video ID" },
+          "title": { "type": "string", "x-label": "Title" },
+          "description": { "type": "string", "x-label": "Description" },
+          "privacyStatus": { "type": "string", "x-label": "Privacy" },
+          "tags": { "type": "array", "x-label": "Tags" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          }
+        ]
+      }
+    },
+
+    "deleteVideo": {
+      "metadata": {
+        "label": "Delete video",
+        "description": "Delete a video from YouTube."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "description": "The ID of the video to delete.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["videoId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "deleted": { "type": "boolean", "x-label": "Deleted" },
+          "videoId": { "type": "string", "x-label": "Video ID" }
+        }
+      },
+      "ui": { "component": "card" }
+    },
+
+    "createPlaylist": {
+      "metadata": {
+        "label": "Create playlist",
+        "description": "Create a new YouTube playlist."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "The playlist title.",
+            "x-input-type": "text"
+          },
+          "description": {
+            "type": "string",
+            "description": "The playlist description.",
+            "x-input-type": "text"
+          },
+          "privacyStatus": {
+            "type": "string",
+            "description": "Privacy setting.",
+            "enum": ["public", "unlisted", "private"],
+            "default": "private",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["title"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "playlistId": { "type": "string", "x-label": "Playlist ID" },
+          "title": { "type": "string", "x-label": "Title" },
+          "description": { "type": "string", "x-label": "Description" },
+          "privacyStatus": { "type": "string", "x-label": "Privacy" },
+          "publishedAt": { "type": "string", "x-label": "Created At" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Delete",
+            "action": "deletePlaylist",
+            "parameters": { "playlistId": "{{playlistId}}" }
+          }
+        ]
+      }
+    },
+
+    "deletePlaylist": {
+      "metadata": {
+        "label": "Delete playlist",
+        "description": "Delete a YouTube playlist."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "playlistId": {
+            "type": "string",
+            "description": "The ID of the playlist to delete.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["playlistId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "deleted": { "type": "boolean", "x-label": "Deleted" },
+          "playlistId": { "type": "string", "x-label": "Playlist ID" }
+        }
+      },
+      "ui": { "component": "card" }
+    },
+
+    "listPlaylists": {
+      "metadata": {
+        "label": "List playlists",
+        "description": "List playlists for a channel or your own."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Channel ID (omit for your own playlists).",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of results.",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 50,
+            "x-input-type": "number"
+          },
+          "pageToken": {
+            "type": "string",
+            "description": "Pagination token.",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-nod8-display": "text",
+        "items": {
+          "type": "object",
+          "properties": {
+            "playlistId": { "type": "string", "x-label": "Playlist ID" },
+            "title": { "type": "string", "x-label": "Title" },
+            "description": { "type": "string", "x-label": "Description" },
+            "channelId": { "type": "string", "x-label": "Channel ID" },
+            "channelTitle": { "type": "string", "x-label": "Channel" },
+            "publishedAt": { "type": "string", "x-label": "Created At" },
+            "thumbnailUrl": { "type": "string", "x-label": "Thumbnail" },
+            "itemCount": { "type": "number", "x-label": "Videos" },
+            "privacyStatus": { "type": "string", "x-label": "Privacy" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table",
+        "actions": [
+          {
+            "label": "Delete",
+            "action": "deletePlaylist",
+            "parameters": { "playlistId": "{{playlistId}}" }
+          }
+        ]
+      }
+    },
+
+    "addVideoToPlaylist": {
+      "metadata": {
+        "label": "Add video to playlist",
+        "description": "Add a video to a YouTube playlist."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "playlistId": {
+            "type": "string",
+            "description": "The playlist ID.",
+            "x-input-type": "text"
+          },
+          "videoId": {
+            "type": "string",
+            "description": "The video ID to add.",
+            "x-input-type": "text"
+          },
+          "position": {
+            "type": "integer",
+            "description": "Position in the playlist (0-indexed).",
+            "minimum": 0,
+            "x-input-type": "number"
+          }
+        },
+        "required": ["playlistId", "videoId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "playlistItemId": { "type": "string", "x-label": "Playlist Item ID" },
+          "playlistId": { "type": "string", "x-label": "Playlist ID" },
+          "videoId": { "type": "string", "x-label": "Video ID" },
+          "title": { "type": "string", "x-label": "Title" },
+          "position": { "type": "number", "x-label": "Position" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Remove",
+            "action": "removeVideoFromPlaylist",
+            "parameters": { "playlistItemId": "{{playlistItemId}}" }
+          }
+        ]
+      }
+    },
+
+    "removeVideoFromPlaylist": {
+      "metadata": {
+        "label": "Remove video from playlist",
+        "description": "Remove a video from a YouTube playlist."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "playlistItemId": {
+            "type": "string",
+            "description": "The playlist item ID to remove.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["playlistItemId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "deleted": { "type": "boolean", "x-label": "Deleted" },
+          "playlistItemId": { "type": "string", "x-label": "Playlist Item ID" }
+        }
+      },
+      "ui": { "component": "card" }
+    },
+
+    "getVideoStats": {
+      "metadata": {
+        "label": "Get video stats",
+        "description": "Get statistics for a specific video."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "videoId": {
+            "type": "string",
+            "description": "The ID of the video.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["videoId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "videoId": { "type": "string", "x-label": "Video ID" },
+          "title": { "type": "string", "x-label": "Title" },
+          "viewCount": { "type": "string", "x-label": "Views" },
+          "likeCount": { "type": "string", "x-label": "Likes" },
+          "commentCount": { "type": "string", "x-label": "Comments" },
+          "favoriteCount": { "type": "string", "x-label": "Favorites" }
+        }
+      },
+      "ui": {
+        "component": "card",
+        "actions": [
+          {
+            "label": "Like",
+            "action": "likeVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteVideo",
+            "parameters": { "videoId": "{{videoId}}" }
+          }
+        ]
+      }
+    },
+
+    "getChannelStats": {
+      "metadata": {
+        "label": "Get channel stats",
+        "description": "Get statistics for a channel (yours if no channelId provided)."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Channel ID (omit for your own channel).",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "text",
+        "properties": {
+          "channelId": { "type": "string", "x-label": "Channel ID" },
+          "title": { "type": "string", "x-label": "Title" },
+          "subscriberCount": { "type": "string", "x-label": "Subscribers" },
+          "videoCount": { "type": "string", "x-label": "Videos" },
+          "viewCount": { "type": "string", "x-label": "Views" },
+          "hiddenSubscriberCount": {
+            "type": "boolean",
+            "x-label": "Hidden Subscriber Count"
+          }
+        }
+      },
+      "ui": { "component": "card" }
+    }
+  }
+}

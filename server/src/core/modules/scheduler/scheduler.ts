@@ -32,7 +32,7 @@ export const Scheduler = {
       }
     }
 
-    console.log(`[FORGE | SCHEDULER]: Initialized ${count} cron job(s)`);
+    console.log(`[NOD8 | SCHEDULER]: Initialized ${count} cron job(s)`);
   },
 
   /**
@@ -42,7 +42,7 @@ export const Scheduler = {
   scheduleWorkflow(workflowId: string, cronExpression: string): void {
     if (!cron.validate(cronExpression)) {
       console.error(
-        `[FORGE | SCHEDULER]: Invalid cron expression for workflow ${workflowId}: "${cronExpression}"`,
+        `[NOD8 | SCHEDULER]: Invalid cron expression for workflow ${workflowId}: "${cronExpression}"`,
       );
       return;
     }
@@ -51,12 +51,12 @@ export const Scheduler = {
     this.unscheduleWorkflow(workflowId);
 
     const task = cron.schedule(cronExpression, async () => {
-      console.log(`[FORGE | SCHEDULER]: Triggering workflow ${workflowId} (cron: ${cronExpression})`);
+      console.log(`[NOD8 | SCHEDULER]: Triggering workflow ${workflowId} (cron: ${cronExpression})`);
 
       const workflow = WorkflowRepository.getWorkflowById(workflowId);
       if (!workflow) {
         console.error(
-          `[FORGE | SCHEDULER]: Workflow ${workflowId} not found — removing job`,
+          `[NOD8 | SCHEDULER]: Workflow ${workflowId} not found — removing job`,
         );
         this.unscheduleWorkflow(workflowId);
         return;
@@ -74,17 +74,17 @@ export const Scheduler = {
 
       try {
         await WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId);
-        console.log(`[FORGE | SCHEDULER]: Workflow ${workflowId} completed`);
+        console.log(`[NOD8 | SCHEDULER]: Workflow ${workflowId} completed`);
       } catch (err: any) {
         console.error(
-          `[FORGE | SCHEDULER]: Workflow ${workflowId} failed: ${err.message}`,
+          `[NOD8 | SCHEDULER]: Workflow ${workflowId} failed: ${err.message}`,
         );
       }
     });
 
     activeJobs.set(workflowId, { workflowId, cronExpression, task });
     console.log(
-      `[FORGE | SCHEDULER]: Scheduled workflow ${workflowId} (${cronExpression})`,
+      `[NOD8 | SCHEDULER]: Scheduled workflow ${workflowId} (${cronExpression})`,
     );
   },
 

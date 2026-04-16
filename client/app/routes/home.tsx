@@ -1,6 +1,6 @@
 import type { Route } from "./+types/home";
-import { GlobalViewProvider } from "~/components/forge/GlobalView";
-import { ForgeProvider } from "~/providers/ForgeProvider";
+import { GlobalViewProvider } from "~/components/nod8/GlobalView";
+import { Nod8Provider } from "~/providers/Nod8Provider";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -16,9 +16,9 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   return (
     <main className="w-screen h-screen">
-      <ForgeProvider>
+      <Nod8Provider>
         <GlobalViewProvider />
-      </ForgeProvider>
+      </Nod8Provider>
     </main>
   );
 }

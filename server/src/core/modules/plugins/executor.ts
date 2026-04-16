@@ -1,5 +1,5 @@
 import type {
-  ForgePlugin,
+  Nod8Plugin,
   OAuth2Provider,
   PluginContext,
 } from "../../../shared/models/plugin-types.ts";
@@ -16,7 +16,7 @@ export const PluginExecutor = {
     methodName: string,
     params: Record<string, any>,
   ) => {
-    const plugin: ForgePlugin = PluginManager.getPlugin(pluginId);
+    const plugin: Nod8Plugin = PluginManager.getPlugin(pluginId);
 
     if (!plugin) {
       throw new Error(`Plugin ${pluginId} not found`);

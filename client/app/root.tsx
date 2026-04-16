@@ -9,7 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import { ForgeToaster } from "~/components/forge/ForgeToaster";
+import { Nod8Toaster } from "~/components/nod8/Nod8Toaster";
 import { ConfirmProvider } from "~/providers/ConfirmProvider";
 
 export const links: Route.LinksFunction = () => [];
@@ -26,7 +26,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="dark">
         <ConfirmProvider>{children}</ConfirmProvider>
-        <ForgeToaster />
+        <Nod8Toaster />
         <ScrollRestoration />
         <Scripts />
       </body>

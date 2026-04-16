@@ -5,7 +5,7 @@ export default async function rootRoutes(fastify: FastifyInstance) {
   fastify.get("/", async (req, res): Promise<ApiResponse<null>> => {
     return {
       status_code: 200,
-      message: "Forge API is running",
+      message: "Nod8 API is running",
       error: null,
       data: null,
     };

@@ -13,7 +13,7 @@ export interface InternalEvent {
 // ──────────── Internal Event Bus ────────────
 
 /**
- * Pub/Sub bus for internal Forge events.
+ * Pub/Sub bus for internal nod8 events.
  *
  * A workflow with trigger.type === "event" and trigger.eventName === X
  * will be executed whenever InternalEventBus.emit({ name: X, ... }) is called.
@@ -55,7 +55,7 @@ export const InternalEventBus = {
         WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(
           (err: Error) =>
             console.error(
-              `[FORGE | EVENTS]: Workflow ${workflow.metadata.id} triggered by "${event.name}" failed: ${err.message}`,
+              `[NOD8 | EVENTS]: Workflow ${workflow.metadata.id} triggered by "${event.name}" failed: ${err.message}`,
             ),
         );
 
@@ -65,7 +65,7 @@ export const InternalEventBus = {
 
     if (triggered.length > 0) {
       console.log(
-        `[FORGE | EVENTS]: Event "${event.name}" triggered ${triggered.length} workflow(s): ${triggered.join(", ")}`,
+        `[NOD8 | EVENTS]: Event "${event.name}" triggered ${triggered.length} workflow(s): ${triggered.join(", ")}`,
       );
     }
 

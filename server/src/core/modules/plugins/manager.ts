@@ -1,15 +1,15 @@
-import type { ForgePlugin } from "../../../shared/models/plugin-types.ts";
+import type { Nod8Plugin } from "../../../shared/models/plugin-types.ts";
 
-const plugins = new Map<string, ForgePlugin>();
+const plugins = new Map<string, Nod8Plugin>();
 
 const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
 
 export const PluginManager = {
-  getPlugins: (): ForgePlugin[] => {
+  getPlugins: (): Nod8Plugin[] => {
     return Array.from(plugins.values());
   },
 
-  getPlugin: (id: string): ForgePlugin => {
+  getPlugin: (id: string): Nod8Plugin => {
     const plugin = plugins.get(id);
 
     if (!plugin) {
@@ -19,9 +19,9 @@ export const PluginManager = {
     return plugin;
   },
 
-  registerPlugin: (plugin: ForgePlugin) => {
+  registerPlugin: (plugin: Nod8Plugin) => {
     plugins.set(plugin.id, plugin);
-    console.log(`[FORGE | PLUGINS]: Registered plugin ${plugin.id}`);
+    console.log(`[NOD8 | PLUGINS]: Registered plugin ${plugin.id}`);
   },
 
   getRedirectUri: (pluginId: string): string => {

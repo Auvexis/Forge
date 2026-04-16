@@ -12,7 +12,7 @@ export interface HandleApiOptions {
 /**
  * Centralized API helper.
  *
- * - Automatically shows a Forge-styled toast.error() for every backend error.
+ * - Automatically shows a Nod8-styled toast.error() for every backend error.
  * - Pass `{ silent: true }` in options to suppress the toast for a specific call.
  * - Still throws the error so callers can do their own handling if needed.
  */
@@ -72,12 +72,12 @@ export const handleApi = async <T>(
         error?.message &&
         (error.message.includes("Request failed") ||
           // The error came from our own throw above — already toasted
-          error.__forgeToasted);
+          error.__nod8Toasted);
 
       if (!isAlreadyToasted && error?.name === "TypeError") {
         // Network error (server unreachable)
         toast.error("Connection Error", {
-          description: "Cannot reach the Forge server. Is it running?",
+          description: "Cannot reach the Nod8 server. Is it running?",
           duration: 8000,
         });
       }

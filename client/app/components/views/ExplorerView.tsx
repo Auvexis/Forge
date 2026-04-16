@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
-import { useForge } from "~/providers/ForgeProvider";
-import { PluginTree } from "~/modules/forge/plugins/renderers/PluginTree";
-import { ExplorerDashboardDock } from "../../modules/forge/plugins/components/ExplorerDashboardDock";
+import { useNod8 } from "~/providers/Nod8Provider";
+import { PluginTree } from "~/modules/nod8/plugins/renderers/PluginTree";
+import { ExplorerDashboardDock } from "../../modules/nod8/plugins/components/ExplorerDashboardDock";
 
 const ExplorerContent = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { plugins } = useForge();
+  const { plugins } = useNod8();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   return (

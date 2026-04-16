@@ -1,5 +1,5 @@
 {
-  "name": "forge",
+  "name": "nod8",
   "version": "1.0.0",
   "description": "",
   "main": "src/core/server.ts",

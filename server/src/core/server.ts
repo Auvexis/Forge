@@ -56,5 +56,5 @@ fastify.listen({ port: PORT, host: "0.0.0.0" }, function (err, address) {
     process.exit(1);
   }
 
-  console.log(`[FORGE | SERVER]: Server running at ${address}`);
+  console.log(`[NOD8 | SERVER]: Server running at ${address}`);
 });

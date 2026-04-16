@@ -177,11 +177,11 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
     // HMAC signature validation when a secret is configured
     if (workflow.trigger.webhookSecret) {
-      const signature = req.headers["x-forge-signature"] as string | undefined;
+      const signature = req.headers["x-nod8-signature"] as string | undefined;
       if (!signature) {
         return reply
           .code(401)
-          .send({ error: "Missing X-Forge-Signature header" });
+          .send({ error: "Missing X-Nod8-Signature header" });
       }
 
       const rawBody = JSON.stringify(req.body ?? {});
@@ -196,7 +196,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       }
     } else {
       console.warn(
-        `[FORGE | WEBHOOK]: Webhook "${webhookPath}" has no secret configured — consider adding one`,
+        `[NOD8 | WEBHOOK]: Webhook "${webhookPath}" has no secret configured — consider adding one`,
       );
     }
 
@@ -216,7 +216,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(
       (err: Error) =>
         console.error(
-          `[FORGE | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
+          `[NOD8 | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
         ),
     );
 
@@ -431,7 +431,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
       let triggerPayload: Record<string, any> = {};
 
-      const headerExecRaw = req.headers["x-forge-execution-id"];
+      const headerExecRaw = req.headers["x-nod8-execution-id"];
       const headerExecutionId =
         typeof headerExecRaw === "string" &&
         headerExecRaw.length < 96 &&
@@ -479,7 +479,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
           executionId,
         ).catch((err: Error) =>
           console.error(
-            `[FORGE | WORKFLOW]: Background execution ${executionId} failed: ${err.message}`,
+            `[NOD8 | WORKFLOW]: Background execution ${executionId} failed: ${err.message}`,
           ),
         );
       });

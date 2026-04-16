@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  forge-server:
+  nod8-server:
     build: 
       context: ./server
       dockerfile: Dockerfile
-    container_name: forge-server
+    container_name: nod8-server
     ports:
       - "23801:23801"
     volumes:
@@ -17,16 +17,16 @@ services:
       retries: 5
     restart: always
 
-  forge-client:
+  nod8-client:
     build: 
       context: ./client
       dockerfile: Dockerfile
-    container_name: forge-client
+    container_name: nod8-client
     ports:
       - "23802:23802"
     environment:
       - VITE_API_BASE_URL=http://localhost:23801
     depends_on:
-      forge-server:
+      nod8-server:
         condition: service_healthy
     restart: always

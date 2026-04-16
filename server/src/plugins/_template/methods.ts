@@ -5,7 +5,7 @@ import type { PluginContext } from "../../shared/models/plugin-types.ts";
  *
  * Each method must match a key declared in manifest.json `methods`.
  * The `params` object will have the keys defined in your method's
- * `parameters.properties` — already type-coerced and validated by Forge.
+ * `parameters.properties` — already type-coerced and validated by Nod8.
  *
  * The `context` object provides:
  *   - context.credentials — The plugin's stored/ENV credentials

@@ -1,15 +1,15 @@
 import type { CredentialSchema } from "../../../shared/models/plugin-types.ts";
 
 /**
- * ENV-based credential vault for Forge plugins.
+ * ENV-based credential vault for Nod8 plugins.
  *
  * Convention:
- *   FORGE_PLUGIN_{PLUGIN_ID}_{FIELD_KEY}
+ *   NOD8_PLUGIN_{PLUGIN_ID}_{FIELD_KEY}
  *
  * Examples:
- *   FORGE_PLUGIN_GOOGLE_DRIVE_CLIENT_ID=xxx
- *   FORGE_PLUGIN_GOOGLE_DRIVE_CLIENT_SECRET=yyy
- *   FORGE_PLUGIN_GOOGLE_YOUTUBE_CLIENT_ID=xxx
+ *   NOD8_PLUGIN_GOOGLE_DRIVE_CLIENT_ID=xxx
+ *   NOD8_PLUGIN_GOOGLE_DRIVE_CLIENT_SECRET=yyy
+ *   NOD8_PLUGIN_GOOGLE_YOUTUBE_CLIENT_ID=xxx
  *
  * Plugin IDs with hyphens are converted to underscores.
  * Keys are uppercased.
@@ -25,7 +25,7 @@ export const Vault = {
   envKey(pluginId: string, fieldKey: string): string {
     const normalizedId = pluginId.toUpperCase().replace(/-/g, "_");
     const normalizedKey = fieldKey.toUpperCase().replace(/-/g, "_");
-    return `FORGE_PLUGIN_${normalizedId}_${normalizedKey}`;
+    return `NOD8_PLUGIN_${normalizedId}_${normalizedKey}`;
   },
 
   /**

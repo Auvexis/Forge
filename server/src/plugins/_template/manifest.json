@@ -36,7 +36,7 @@
       },
       "responseSchema": {
         "type": "array",
-        "x-forge-display": "generic",
+        "x-nod8-display": "generic",
         "items": {
           "type": "object",
           "properties": {
@@ -76,7 +76,7 @@
       },
       "responseSchema": {
         "type": "object",
-        "x-forge-display": "generic",
+        "x-nod8-display": "generic",
         "properties": {
           "id": { "type": "string", "x-label": "ID" },
           "name": { "type": "string", "x-label": "Name" },
