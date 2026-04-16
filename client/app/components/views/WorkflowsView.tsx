@@ -1,11 +1,5 @@
 import { useEffect, useCallback, useState } from "react";
 import {
-  ReactFlowProvider,
-  ReactFlow,
-  Background,
-  BackgroundVariant,
-} from "@xyflow/react";
-import {
   Plus,
   Loader2,
   Workflow,
@@ -16,8 +10,6 @@ import {
   Zap,
   Play,
   Activity,
-  Upload,
-  RefreshCw,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
@@ -33,6 +25,7 @@ import { useCreateWorkflow } from "~/modules/nod8/workflows/hooks/useCreateWorkf
 import { useDeleteWorkflow } from "~/modules/nod8/workflows/hooks/useDeleteWorkflow";
 import { WorkflowEditor } from "~/modules/nod8/workflows/components/WorkflowEditor";
 import { ImportWorkflowDialog } from "~/modules/nod8/workflows/components/ImportWorkflowDialog";
+import { WorkflowDashboardDock } from "~/modules/nod8/workflows/components/WorkflowDashboardDock";
 import { cn } from "~/lib/utils";
 import type { WorkflowItem } from "~/modules/nod8/workflows/types/workflow-types";
 import { useConfirm } from "~/providers/ConfirmProvider";
@@ -176,37 +169,28 @@ const EmptyCanvas = ({
 }) => {
   const { setSelectedWorkflowId } = useNod8();
   const [showingImportDialog, setShowingImportDialog] = useState(false);
+  const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
 
   return (
     <div className="w-full h-full flex flex-col">
-      {/* Dock */}
-      <div
-        data-accent="primary"
-        className="nod8-dock nod8-dock--workflows h-12 w-full flex items-center gap-2 px-3 bg-nod8-dock-bg border-b border-nod8-dock-border shrink-0"
-      >
-        {/* Brand badge */}
-        <div className="flex items-center gap-2.5 pr-3 border-r border-nod8-dock-section-border h-full shrink-0">
-          <div className="w-7 h-7 flex items-center justify-center rounded-md bg-nod8-dock-badge-bg shrink-0">
-            <Workflow className="w-3.5 h-3.5 text-nod8-dock-badge-icon" />
-          </div>
-          <div className="flex flex-col justify-center">
-            <span className="text-sm font-semibold text-foreground leading-none">
-              Workflows
-            </span>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-nod8-dock-status-dot-primary" />
-              <span className="text-xs text-muted-foreground leading-none">
-                {loading
-                  ? "Loading..."
-                  : `${workflows.length} Workflow${workflows.length !== 1 ? "s" : ""}`}
-              </span>
-            </div>
-          </div>
-        </div>
+      {/* Dock — now uses the reorganized WorkflowDashboardDock */}
+      <WorkflowDashboardDock
+        searchQuery={search}
+        setSearchQuery={setSearch}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        onImport={() => setShowingImportDialog(true)}
+        onCreate={onCreate}
+        onRefresh={onRefresh}
+        moduleCount={workflows.length}
+        isCreating={creating}
+      />
 
-        {/* Workflow Picker */}
+      {/* Workflow Picker row (open / switch) */}
+      <div className="border-b border-border px-3 py-1.5 shrink-0 flex items-center gap-2">
         <DropdownMenu>
-          <DropdownMenuTrigger asChild className="ml-2">
+          <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               className="flex flex-col justify-center group h-auto py-1 px-2 rounded-md"
@@ -266,51 +250,6 @@ const EmptyCanvas = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        <div className="flex-1" />
-
-        <div className="flex items-center gap-2">
-          {/* Refresh Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2 text-muted-foreground hover:text-foreground"
-            title="Refresh workflows"
-            // Note: Since getting workflows is managed globally in WorkflowsView, we can just trigger a simple re-fetch if we wire it up, but for now we'll do a simple reload or nothing since it's just visual completeness.
-            onClick={() => window.location.reload()}
-          >
-            <RefreshCw className="w-4 h-4" />
-          </Button>
-
-          <div className="h-4 w-px bg-border mx-1" />
-
-          {/* Import Workflow */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-2 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            onClick={() => setShowingImportDialog(true)}
-          >
-            <Upload className="w-3 h-3" />
-            Import
-          </Button>
-
-          {/* Create Workflow */}
-          <Button
-            variant="default"
-            size="sm"
-            className="h-8 gap-2 text-sm font-medium rounded-md"
-            onClick={onCreate}
-            disabled={creating}
-          >
-            {creating ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
-            ) : (
-              <Plus className="w-3 h-3" />
-            )}
-            New Workflow
-          </Button>
-        </div>
       </div>
 
       {/* Empty ReactFlow canvas */}

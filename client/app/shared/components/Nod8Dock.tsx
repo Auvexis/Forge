@@ -36,6 +36,11 @@ export interface Nod8DockProps {
   };
   /** Sections to render between the brand badge and the trailing content */
   sections: DockSection[];
+  /**
+   * Optional content to render centred in the dock (e.g. a search bar).
+   * When provided it takes the remaining flex space after sections and before trailing.
+   */
+  centerContent?: ReactNode;
   /** Trailing content (typically the primary CTA) */
   trailing?: ReactNode;
 }
@@ -51,6 +56,7 @@ export const Nod8Dock: FC<Nod8DockProps> = memo(
     variant = "default",
     statusDot,
     sections,
+    centerContent,
     trailing,
   }) => {
     const dotColor = statusDot?.color ?? "bg-nod8-dock-status-dot";
@@ -98,8 +104,14 @@ export const Nod8Dock: FC<Nod8DockProps> = memo(
           </div>
         ))}
 
-        {/* Spacer */}
-        <div className="flex-1" />
+        {/* Center Content (e.g. search bar) — takes remaining space */}
+        {centerContent ? (
+          <div className="flex-1 flex items-center justify-center px-4">
+            {centerContent}
+          </div>
+        ) : (
+          <div className="flex-1" />
+        )}
 
         {/* Trailing CTA */}
         {trailing && (

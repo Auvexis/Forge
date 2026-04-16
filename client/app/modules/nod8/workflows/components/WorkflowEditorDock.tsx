@@ -236,108 +236,101 @@ export const WorkflowEditorDock = ({
     </div>
   );
 
-  const sections: DockSection[] = [
-    {
-      id: "runtime",
-      content: (
-        <>
-          {isStreaming ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onStop}
-              className="h-7 px-2.5 rounded-md text-red-400 hover:text-red-500 hover:bg-red-500/10 gap-1.5 text-xs transition-colors"
-            >
-              <Square className="w-3 h-3 fill-current" />
-              Stop
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onRun}
-              disabled={isExecuting}
-              className="h-7 px-2.5 rounded-md text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 gap-1.5 text-xs transition-colors"
-            >
-              {isExecuting ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : (
-                <Play className="w-3 h-3 fill-current" />
-              )}
-              Run
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onLogs}
-            className={`h-7 px-2.5 rounded-md gap-1.5 text-xs transition-colors ${
-              isLogsOpen
-                ? "bg-accent text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent"
-            }`}
-          >
-            <Activity className="w-3 h-3" />
-            Logs
-          </Button>
-        </>
-      ),
-    },
-    {
-      id: "architect",
-      content: (
-        <>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onAddNode}
-            disabled={isBusy}
-            className="h-7 px-2.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent gap-1.5 text-xs transition-colors disabled:opacity-40"
-          >
-            <Plus className="w-3 h-3" />
-            Add Node
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            title="Export JSON"
-            onClick={() => {
-              const blob = new Blob([JSON.stringify(workflow, null, 2)], {
-                type: "application/json",
-              });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `${workflowName.replace(/\s+/g, "_").toLowerCase()}_v${workflow.metadata?.version ?? "1.0"}.json`;
-              a.click();
-              URL.revokeObjectURL(url);
-            }}
-            className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-          >
-            <Download className="w-3.5 h-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onSettings}
-            title="Workflow settings"
-            className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-          >
-            <Settings className="w-3.5 h-3.5" />
-          </Button>
-        </>
-      ),
-    },
-  ];
-
+  // ── All action controls live on the right ────────────────────────────────
   const trailing = (
-    <>
+    <div className="flex items-center gap-1">
+      {/* Architect tools */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onAddNode}
+        disabled={isBusy}
+        className="h-7 px-2.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent gap-1.5 text-xs transition-colors disabled:opacity-40"
+      >
+        <Plus className="w-3 h-3" />
+        Add Node
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Export JSON"
+        onClick={() => {
+          const blob = new Blob([JSON.stringify(workflow, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${workflowName.replace(/\s+/g, "_").toLowerCase()}_v${workflow.metadata?.version ?? "1.0"}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }}
+        className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+      >
+        <Download className="w-3.5 h-3.5" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onSettings}
+        title="Workflow settings"
+        className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+      >
+        <Settings className="w-3.5 h-3.5" />
+      </Button>
+
+      <div className="h-4 w-px bg-nod8-dock-section-border mx-1" />
+
+      {/* Runtime controls */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onLogs}
+        className={`h-7 px-2.5 rounded-md gap-1.5 text-xs transition-colors ${
+          isLogsOpen
+            ? "bg-accent text-foreground"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent"
+        }`}
+      >
+        <Activity className="w-3 h-3" />
+        Logs
+      </Button>
+      {isStreaming ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onStop}
+          className="h-7 px-2.5 rounded-md text-red-400 hover:text-red-500 hover:bg-red-500/10 gap-1.5 text-xs transition-colors"
+        >
+          <Square className="w-3 h-3 fill-current" />
+          Stop
+        </Button>
+      ) : (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onRun}
+          disabled={isExecuting}
+          className="h-7 px-2.5 rounded-md text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 gap-1.5 text-xs transition-colors"
+        >
+          {isExecuting ? (
+            <Loader2 className="w-3 h-3 animate-spin" />
+          ) : (
+            <Play className="w-3 h-3 fill-current" />
+          )}
+          Run
+        </Button>
+      )}
+
+      <div className="h-4 w-px bg-nod8-dock-section-border mx-1" />
+
+      {/* Save CTA */}
       <Button
         onClick={onSave}
         disabled={isSaving || !isDirty || isBusy}
         size="sm"
         variant={isDirty && !isBusy ? "emphasis" : "ghost"}
-        className="h-7 mr-5 px-3 text-xs font-medium gap-1.5 rounded-md disabled:opacity-40 transition-colors"
+        className="h-7 px-3 text-xs font-medium gap-1.5 rounded-md disabled:opacity-40 transition-colors"
       >
         {isSaving ? (
           <Loader2 className="w-3 h-3 animate-spin" />
@@ -346,6 +339,10 @@ export const WorkflowEditorDock = ({
         )}
         {isSaving ? "Saving" : "Save"}
       </Button>
+
+      <div className="h-4 w-px bg-nod8-dock-section-border mx-1" />
+
+      {/* Close */}
       <Button
         variant="ghost"
         size="icon-lg"
@@ -355,29 +352,16 @@ export const WorkflowEditorDock = ({
       >
         <X className="w-3.5 h-3.5" />
       </Button>
-    </>
+    </div>
   );
 
-  // Render a customized dock — we override the brand badge area entirely
+  // Render a customized dock — brand badge on the left, all actions on the right
   return (
     <div className="nod8-dock nod8-dock--editor h-12 w-full flex items-center bg-nod8-dock-bg border-b border-nod8-dock-border shrink-0 px-3 gap-2">
       {brandBadge}
-
-      {sections.map((section) => (
-        <div
-          key={section.id}
-          className={`flex items-center gap-1 h-full px-2 ${
-            section.border !== false
-              ? "border-r border-nod8-dock-section-border"
-              : ""
-          }`}
-        >
-          {section.content}
-        </div>
-      ))}
-
       <div className="flex-1" />
-      <div className="flex items-center gap-2">{trailing}</div>
+      <div className="flex items-center">{trailing}</div>
     </div>
   );
 };
+
