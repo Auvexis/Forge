@@ -59,7 +59,7 @@ export const InternalEventBus = {
             ),
         );
 
-        triggered.push(workflow.metadata.id);
+        triggered.push(executionId);
       }
     }
 

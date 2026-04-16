@@ -415,7 +415,7 @@ async function executeEventNode(
   return {
     eventName: node.eventName,
     payload: resolvedPayload,
-    triggeredWorkflows: result.triggered,
+    triggered: result.triggered,
   };
 }
 

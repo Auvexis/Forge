@@ -11,7 +11,7 @@ export function Nod8Toaster() {
     <Toaster
       position="top-right"
       gap={8}
-      duration={5000}
+      duration={3000}
       visibleToasts={5}
       expand={false}
       toastOptions={{
@@ -21,12 +21,12 @@ export function Nod8Toaster() {
             "group flex items-center mt-10! gap-1.5 p-1.5 w-[380px]",
             "bg-nod8-toast-bg",
             "border border-nod8-toast-border",
-            "rounded-sm shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)]",
+            "rounded-full shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)]",
             "relative transition-all duration-300 ease-out will-change-transform antialiased select-none",
           ].join(" "),
 
           icon: [
-            "flex items-center justify-center w-10 h-10 rounded-xs shrink-0 border transition-colors",
+            "flex items-center justify-center w-10 h-10 rounded-full shrink-0 border transition-colors",
             "group-data-[type=success]:bg-nod8-toast-icon-success-bg group-data-[type=success]:border-nod8-toast-icon-success-border group-data-[type=success]:text-nod8-toast-icon-success-text",
             "group-data-[type=error]:bg-nod8-toast-icon-error-bg group-data-[type=error]:border-nod8-toast-icon-error-border group-data-[type=error]:text-nod8-toast-icon-error-text",
             "group-data-[type=warning]:bg-nod8-toast-icon-warning-bg group-data-[type=warning]:border-nod8-toast-icon-warning-border group-data-[type=warning]:text-nod8-toast-icon-warning-text",
