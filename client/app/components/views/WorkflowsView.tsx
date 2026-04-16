@@ -172,6 +172,79 @@ const EmptyCanvas = ({
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
 
+  const brandBadgeOverride = (
+    <div className="flex items-center gap-2.5 pr-3 border-r border-nod8-dock-section-border h-full">
+      <div className="w-7 h-7 flex items-center justify-center rounded-md bg-nod8-dock-badge-bg shrink-0">
+        <Workflow className="w-3.5 h-3.5 text-nod8-dock-badge-icon" />
+      </div>
+
+      <div className="flex flex-col justify-center items-start">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="flex h-auto py-0.5 px-1.5 -ml-1.5 gap-1! rounded-md group"
+            >
+              <span className="text-sm font-semibold text-nod8-workflow-picker-trigger-title group-hover:text-nod8-workflow-picker-trigger-title-hover transition-colors duration-200 leading-none">
+                Workflows
+              </span>
+              <ChevronDown className="w-3 h-3 text-nod8-workflow-picker-trigger-title group-hover:text-nod8-workflow-picker-trigger-title-hover transition-colors shrink-0" />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            align="start"
+            className="min-w-[320px] bg-nod8-workflow-picker-menu-bg! rounded-none mt-[15px]!"
+            sideOffset={4}
+          >
+            {workflows.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 px-3 py-6 text-nod8-workflow-picker-trigger-meta">
+                <Workflow className="w-8 h-8 opacity-20" />
+                <p className="text-xs text-center">
+                  No workflows yet. Create one to get started.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-0.5 w-full p-1.5">
+                {workflows.map((wf) => (
+                  <WorkflowDropdownItem
+                    key={wf.metadata.id}
+                    wf={wf}
+                    onSelect={() => setSelectedWorkflowId(wf.metadata.id)}
+                    onDelete={(e) => onDelete(wf.metadata.id, e)}
+                  />
+                ))}
+              </div>
+            )}
+
+            <DropdownMenuSeparator className="m-0" />
+
+            <div className="p-1.5">
+              <DropdownMenuItem
+                className="gap-2 text-sm focus:bg-nod8-workflow-picker-menu-item-hover-bg rounded-md cursor-pointer font-medium px-3 py-2 text-nod8-workflow-picker-menu-item-text hover:text-nod8-workflow-picker-menu-item-text-hover"
+                onClick={onCreate}
+              >
+                {creating ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Plus className="w-3.5 h-3.5" />
+                )}
+                New Workflow
+              </DropdownMenuItem>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div className="flex items-center gap-1.5 mt-0.5 px-0.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-nod8-dock-status-dot-primary" />
+          <span className="text-[10px] text-nod8-dock-subtitle-text leading-none font-medium">
+            {workflows.length} {workflows.length === 1 ? "workflow" : "workflows"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full h-full flex flex-col">
       {/* Dock — now uses the reorganized WorkflowDashboardDock */}
@@ -185,72 +258,8 @@ const EmptyCanvas = ({
         onRefresh={onRefresh}
         moduleCount={workflows.length}
         isCreating={creating}
+        brandBadgeOverride={brandBadgeOverride}
       />
-
-      {/* Workflow Picker row (open / switch) */}
-      <div className="border-b border-border px-3 py-1.5 shrink-0 flex items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="flex flex-col justify-center group h-auto py-1 px-2 rounded-md"
-            >
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-semibold text-nod8-workflow-picker-trigger-title group-hover:text-nod8-workflow-picker-trigger-title-hover transition-colors leading-none">
-                  Open workflow...
-                </span>
-                <ChevronDown className="w-3 h-3 text-nod8-workflow-picker-trigger-title group-hover:text-nod8-workflow-picker-trigger-title-hover transition-colors shrink-0" />
-              </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-nod8-dock-status-dot-primary" />
-                <span className="text-xs text-nod8-workflow-picker-trigger-meta leading-none">
-                  {loading ? "Loading..." : "None selected"}
-                </span>
-              </div>
-            </Button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent
-            align="start"
-            className="min-w-[320px] bg-nod8-workflow-picker-menu-bg rounded-none mt-[5px]! p-1.5"
-            sideOffset={6}
-          >
-            {workflows.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 px-3 py-6 text-nod8-workflow-picker-trigger-meta">
-                <Workflow className="w-8 h-8 opacity-20" />
-                <p className="text-xs text-center">
-                  No workflows yet. Create one to get started.
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-0.5 w-full">
-                {workflows.map((wf) => (
-                  <WorkflowDropdownItem
-                    key={wf.metadata.id}
-                    wf={wf}
-                    onSelect={() => setSelectedWorkflowId(wf.metadata.id)}
-                    onDelete={(e) => onDelete(wf.metadata.id, e)}
-                  />
-                ))}
-              </div>
-            )}
-
-            <DropdownMenuSeparator className="my-1" />
-
-            <DropdownMenuItem
-              className="gap-2 text-sm focus:bg-nod8-workflow-picker-menu-item-hover-bg rounded-md cursor-pointer font-medium px-3 py-2 text-nod8-workflow-picker-menu-item-text hover:text-nod8-workflow-picker-menu-item-text-hover"
-              onClick={onCreate}
-            >
-              {creating ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Plus className="w-3.5 h-3.5" />
-              )}
-              New Workflow
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
 
       {/* Empty ReactFlow canvas */}
       <div className="flex-1 relative overflow-hidden">

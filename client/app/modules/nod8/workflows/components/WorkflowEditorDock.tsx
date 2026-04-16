@@ -152,7 +152,7 @@ export const WorkflowEditorDock = ({
           
           <DropdownMenuContent
             align="start"
-            className="min-w-[320px] bg-nod8-workflow-picker-menu-bg! rounded-none mt-[4px]! p-1.5"
+            className="min-w-[320px] bg-nod8-workflow-picker-menu-bg! rounded-none mt-[15px]! p-1.5"
             sideOffset={6}
           >
           <div className="flex flex-col gap-0.5">

@@ -43,6 +43,8 @@ export interface Nod8DockProps {
   centerContent?: ReactNode;
   /** Trailing content (typically the primary CTA) */
   trailing?: ReactNode;
+  /** Custom Brand Badge (fully overrides the default static one) */
+  brandBadgeOverride?: ReactNode;
 }
 
 // ── Component ──
@@ -58,6 +60,7 @@ export const Nod8Dock: FC<Nod8DockProps> = memo(
     sections,
     centerContent,
     trailing,
+    brandBadgeOverride,
   }) => {
     const dotColor = statusDot?.color ?? "bg-nod8-dock-status-dot";
     const dotAnimate = statusDot?.animate ?? false;
@@ -72,24 +75,28 @@ export const Nod8Dock: FC<Nod8DockProps> = memo(
         )}
       >
         {/* Brand Badge */}
-        <div className="flex items-center gap-2.5 pr-3 border-r border-nod8-dock-section-border h-full">
-          <div className="w-7 h-7 flex items-center justify-center rounded-md bg-nod8-dock-badge-bg shrink-0">
-            <Icon className="w-3.5 h-3.5 text-nod8-dock-badge-icon" />
-          </div>
-          <div className="flex flex-col justify-center">
-            <span className="text-sm font-semibold text-nod8-dock-title-text leading-none">
-              {title}
-            </span>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${dotColor} ${dotAnimate ? "animate-pulse" : ""}`}
-              />
-              <span className="text-xs text-nod8-dock-subtitle-text leading-none">
-                {subtitle}
+        {brandBadgeOverride ? (
+          brandBadgeOverride
+        ) : (
+          <div className="flex items-center gap-2.5 pr-3 border-r border-nod8-dock-section-border h-full">
+            <div className="w-7 h-7 flex items-center justify-center rounded-md bg-nod8-dock-badge-bg shrink-0">
+              <Icon className="w-3.5 h-3.5 text-nod8-dock-badge-icon" />
+            </div>
+            <div className="flex flex-col justify-center">
+              <span className="text-sm font-semibold text-nod8-dock-title-text leading-none">
+                {title}
               </span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${dotColor} ${dotAnimate ? "animate-pulse" : ""}`}
+                />
+                <span className="text-xs text-nod8-dock-subtitle-text leading-none">
+                  {subtitle}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Dynamic Sections */}
         {sections.map((section) => (

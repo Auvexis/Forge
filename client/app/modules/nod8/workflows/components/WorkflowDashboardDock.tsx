@@ -71,6 +71,8 @@ interface Props {
   isCreating: boolean;
   /** Currently selected workflow id — used to fetch last run info */
   selectedWorkflowId?: string | null;
+  /** Custom Brand Badge (fully overrides the default static one) */
+  brandBadgeOverride?: React.ReactNode;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -86,6 +88,7 @@ export const WorkflowDashboardDock = ({
   moduleCount,
   isCreating,
   selectedWorkflowId,
+  brandBadgeOverride,
 }: Props) => {
   const lastRun = useLastRun(selectedWorkflowId ?? null);
 
@@ -221,6 +224,7 @@ export const WorkflowDashboardDock = ({
       sections={sections}
       centerContent={centerContent}
       trailing={trailing}
+      brandBadgeOverride={brandBadgeOverride}
     />
   );
 };
