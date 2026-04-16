@@ -19,6 +19,7 @@ import { LoopEditor } from "./LoopEditor";
 import { SubWorkflowEditor } from "./SubWorkflowEditor";
 import { HttpEditor } from "./HttpEditor";
 import { EmitEventEditor } from "./EmitEventEditor";
+import { EventListenerEditor } from "./EventListenerEditor";
 
 // ──────────── Registry ────────────
 // Key: ReactFlow node `type` value or `data.type` discriminator.
@@ -36,6 +37,7 @@ export const NODE_EDITOR_REGISTRY: Record<
   subworkflow: SubWorkflowEditor,
   http: HttpEditor,
   event: EmitEventEditor,
+  "event-listener": EventListenerEditor,
 };
 
 export type { NodeEditorProps };

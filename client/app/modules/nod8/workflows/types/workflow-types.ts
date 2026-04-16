@@ -8,7 +8,8 @@ export type WorkflowNodeType =
   | "subworkflow"
   | "trigger"
   | "http"
-  | "event";
+  | "event"
+  | "event-listener";
 
 // ──────────── Retry Policy ────────────
 
@@ -100,6 +101,13 @@ export interface EventNode extends WorkflowNodeBase {
   payloadMapping: Record<string, string>;
 }
 
+// ──────────── Event Listener Node ────────────
+
+export interface EventListenerNode extends WorkflowNodeBase {
+  type: "event-listener";
+  eventName: string;
+}
+
 // ──────────── Trigger Node ────────────
 
 export interface TriggerNode extends WorkflowNodeBase {
@@ -116,7 +124,8 @@ export type WorkflowNode =
   | SubWorkflowNode
   | TriggerNode
   | HttpNode
-  | EventNode;
+  | EventNode
+  | EventListenerNode;
 
 // ──────────── Edges ────────────
 

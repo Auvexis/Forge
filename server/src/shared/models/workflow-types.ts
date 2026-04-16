@@ -8,7 +8,8 @@ export type WorkflowNodeType =
   | "subworkflow"
   | "trigger"
   | "http"
-  | "event";
+  | "event"
+  | "event-listener";
 
 // ──────────── Retry Policy ────────────
 
@@ -101,6 +102,13 @@ export interface EventNode extends WorkflowNodeBase {
   // Example: { "videoId": "{{ steps.upload.output.videoId }}" }
 }
 
+// ──────────── Event Listener Node (Sub-Trigger) ────────────
+
+export interface EventListenerNode extends WorkflowNodeBase {
+  type: "event-listener";
+  eventName: string; // The internal event name to listen for
+}
+
 // ──────────── Trigger Node (entry point — stored for UI metadata only) ────────────
 
 export interface TriggerNode extends WorkflowNodeBase {
@@ -117,7 +125,8 @@ export type WorkflowNode =
   | SubWorkflowNode
   | TriggerNode
   | HttpNode
-  | EventNode;
+  | EventNode
+  | EventListenerNode;
 
 // ──────────── Edges ────────────
 

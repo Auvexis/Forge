@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef, useState } from "react";
 import type { WorkflowItem } from "../types/workflow-types";
-import { Save } from "lucide-react";
+import { Save, Play } from "lucide-react";
 import {
   Background,
   BackgroundVariant,
@@ -352,6 +352,35 @@ export const WorkflowEditor = ({
     }
   }, [save, confirm, onClose]);
 
+  const handleSmartRun = useCallback(async () => {
+    if (save.isDirty) {
+      const shouldSave = await confirm({
+        title: "Unsaved Changes",
+        description: "You have unsaved changes. Would you like to save them before running the workflow?",
+        confirmLabel: "Save and Run",
+        confirmIcon: Play,
+        cancelLabel: "Cancel",
+        variant: "default",
+      });
+      if (shouldSave) {
+        await handleSave(false);
+      } else {
+        return; // User canceled run
+      }
+    }
+
+    const triggerData = (nodes.find((n) => n.id === "trigger")?.data as any) || workflow.trigger;
+    const schema = triggerData.schema || {};
+    const hasParams = Object.keys(schema).length > 0;
+
+    if (hasParams) {
+      panels.openRun();
+    } else {
+      panels.setIsLogsOpen(true);
+      handleExecute({});
+    }
+  }, [save, confirm, handleSave, nodes, workflow.trigger, panels, handleExecute]);
+
   return (
     <ReactFlowProvider>
       <div className="w-full h-full flex flex-col bg-background overflow-hidden">
@@ -377,7 +406,7 @@ export const WorkflowEditor = ({
               condition: e.label,
             })),
           }}
-          onRun={panels.openRun}
+          onRun={handleSmartRun}
           onStop={cancelStream}
           onAddNode={panels.openAddNode}
           onSave={() => handleSave(false)}
@@ -425,7 +454,7 @@ export const WorkflowEditor = ({
             // snapGrid={[15, 15]}
           >
             <WFEditorFloatingDock
-              onRun={panels.openRun}
+              onRun={handleSmartRun}
               onStop={cancelStream}
               onAddNode={panels.openAddNode}
               onImport={() => setShowImportDialog(true)}

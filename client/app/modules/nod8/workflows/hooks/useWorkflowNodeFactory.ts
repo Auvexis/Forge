@@ -91,6 +91,10 @@ export const useWorkflowNodeFactory = (
           baseData.payloadMapping = {};
           baseData.name = "Emit Event";
           break;
+        case "event-listener":
+          baseData.eventName = "";
+          baseData.name = "Event Listener";
+          break;
       }
 
       const newNode: Node = {

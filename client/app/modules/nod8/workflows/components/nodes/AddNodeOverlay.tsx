@@ -14,6 +14,7 @@ import {
   Layers,
   Globe,
   Zap,
+  Target,
 } from "lucide-react";
 import { LucideIconRenderer } from "../../../../../components/LucideIconRenderer";
 import type { WorkflowNodeType } from "../../types/workflow-types";
@@ -76,6 +77,14 @@ const LOGIC_NODES: LogicNodeDef[] = [
     color: "text-yellow-400",
     bg: "bg-yellow-500/10",
   },
+  {
+    type: "event-listener",
+    label: "Event Listener",
+    description: "Wait for an event to trigger a sub-flow",
+    icon: Target,
+    color: "text-ping-400 text-pink-400",
+    bg: "bg-pink-500/10",
+  },
 ];
 
 type ViewMode = "categories" | "plugins" | "actions";
@@ -123,10 +132,12 @@ export const AddNodeOverlay = ({
         : "Search actions...";
 
   return (
-    <div
-      className="absolute top-0 right-0 w-[360px] h-full z-[60] bg-nod8-add-node-overlay-bg border-l border-nod8-add-node-overlay-border flex flex-col overflow-hidden shadow-lg"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <>
+      <div className="fixed inset-0 z-[50]" onClick={onClose} />
+      <div
+        className="absolute top-0 right-0 w-[360px] h-full z-[60] bg-nod8-add-node-overlay-bg border-l border-nod8-add-node-overlay-border flex flex-col overflow-hidden shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
       {/* Header */}
       <div className="h-12 flex items-center justify-between px-4 border-b border-nod8-add-node-overlay-header-border shrink-0">
         <div className="flex items-center gap-2">
@@ -339,5 +350,6 @@ export const AddNodeOverlay = ({
         )}
       </div>
     </div>
+    </>
   );
 };

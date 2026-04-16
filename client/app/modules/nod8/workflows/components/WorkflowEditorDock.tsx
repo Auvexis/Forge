@@ -135,79 +135,26 @@ export const WorkflowEditorDock = ({
         <WorkflowIcon className="w-3.5 h-3.5 text-nod8-dock-badge-icon" />
       </div>
 
-      {/* Workflow name → dropdown to switch */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="flex flex-col justify-center items-start group h-auto py-1 px-2 gap-0.5! rounded-md"
-          >
-            <div className="flex items-center gap-1">
+      {/* Header and Workflow Switcher */}
+      <div className="flex flex-col justify-center items-start gap-0.5">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="flex h-auto py-0.5 px-1.5 -ml-1.5 gap-1! rounded-md group"
+            >
               <span className="text-sm font-semibold text-nod8-workflow-picker-trigger-title group-hover:text-nod8-workflow-picker-trigger-title-hover transition-colors duration-200 leading-none">
                 {workflowName}
               </span>
               <ChevronDown className="w-3 h-3 text-nod8-workflow-picker-trigger-title group-hover:text-nod8-workflow-picker-trigger-title-hover transition-colors shrink-0" />
-            </div>
-
-            {/* ID row — double-click to edit inline */}
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span
-                className={cn(
-                  "w-1.5 h-1.5 rounded-full",
-                  statusDot.color,
-                  statusDot.animate && "animate-pulse",
-                )}
-              />
-              {isEditingId ? (
-                <input
-                  ref={idInputRef}
-                  value={editableId}
-                  onChange={(e) => setEditableId(e.target.value)}
-                  onBlur={commitIdChange}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") commitIdChange();
-                    if (e.key === "Escape") cancelIdEdit();
-                    e.stopPropagation(); // don't bubble to ReactFlow
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-xs font-mono bg-background border border-primary/50 rounded px-1 py-0.5 outline-none w-[140px] text-foreground"
-                  placeholder="workflow-id"
-                  spellCheck={false}
-                />
-              ) : (
-                <span
-                  className={cn(
-                    "text-xs text-nod8-workflow-picker-trigger-meta leading-none",
-                    !isStreaming && "cursor-text hover:text-foreground transition-colors group/id",
-                  )}
-                  title={isStreaming ? undefined : "Double-click to rename ID"}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    startEditingId();
-                  }}
-                >
-                  {isStreaming
-                    ? "Running"
-                    : isDirty
-                      ? "Unsaved changes"
-                      : (
-                        <span className="flex items-center gap-1">
-                          <span className="font-mono">{workflowId.slice(0, 14)}</span>
-                          <Pencil className="w-2.5 h-2.5 opacity-0 group-hover/id:opacity-60 transition-opacity" />
-                        </span>
-                      )}
-                </span>
-              )}
-            </div>
-          </Button>
-        </DropdownMenuTrigger>
-
-        <DropdownMenuContent
-          align="start"
-          className="min-w-[320px] bg-nod8-workflow-picker-menu-bg! rounded-none mt-[4px]! p-1.5"
-          sideOffset={6}
-        >
+            </Button>
+          </DropdownMenuTrigger>
+          
+          <DropdownMenuContent
+            align="start"
+            className="min-w-[320px] bg-nod8-workflow-picker-menu-bg! rounded-none mt-[4px]! p-1.5"
+            sideOffset={6}
+          >
           <div className="flex flex-col gap-0.5">
             {workflows.map((wf) => {
               const TriggerIcon = TRIGGER_ICON[wf.trigger?.type] ?? Zap;
@@ -298,7 +245,60 @@ export const WorkflowEditorDock = ({
             Close workflow
           </DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+        </DropdownMenu>
+
+        {/* ID row — double-click to edit inline */}
+        <div className="flex items-center gap-1.5 mt-0.5 px-1.5">
+          <span
+            className={cn(
+              "w-1.5 h-1.5 rounded-full",
+              statusDot.color,
+              statusDot.animate && "animate-pulse",
+            )}
+          />
+          {isEditingId ? (
+            <input
+              ref={idInputRef}
+              value={editableId}
+              onChange={(e) => setEditableId(e.target.value)}
+              onBlur={commitIdChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitIdChange();
+                if (e.key === "Escape") cancelIdEdit();
+                e.stopPropagation(); // don't bubble to ReactFlow
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="text-xs font-mono bg-background border border-primary/50 rounded px-1 py-0.5 outline-none w-[140px] text-foreground"
+              placeholder="workflow-id"
+              spellCheck={false}
+            />
+          ) : (
+            <span
+              className={cn(
+                "text-xs text-nod8-workflow-picker-trigger-meta leading-none",
+                !isStreaming && "cursor-text hover:text-foreground transition-colors group/id",
+              )}
+              title={isStreaming ? undefined : "Double-click to rename ID"}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                startEditingId();
+              }}
+            >
+              {isStreaming
+                ? "Running"
+                : isDirty
+                  ? "Unsaved changes"
+                  : (
+                    <span className="flex items-center gap-1">
+                      <span className="font-mono">{workflowId.slice(0, 14)}</span>
+                      <Pencil className="w-2.5 h-2.5 opacity-0 group-hover/id:opacity-60 transition-opacity" />
+                    </span>
+                  )}
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 

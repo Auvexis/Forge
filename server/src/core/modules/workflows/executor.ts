@@ -17,6 +17,7 @@ import type {
   SubWorkflowNode,
   HttpNode,
   EventNode,
+  EventListenerNode,
 } from "../../../shared/models/workflow-types.ts";
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -418,6 +419,14 @@ async function executeEventNode(
   };
 }
 
+async function executeEventListenerNode(
+  node: EventListenerNode,
+  context: any,
+): Promise<any> {
+  const payloads = context._event_payloads || {};
+  return payloads[node.eventName] ?? {};
+}
+
 // ──────────── Unified Node Dispatcher ────────────
 
 async function executeNode(
@@ -443,6 +452,8 @@ async function executeNode(
       return executeHttpNode(node, context);
     case "event":
       return executeEventNode(node, context);
+    case "event-listener":
+      return executeEventListenerNode(node as EventListenerNode, context);
     case "trigger":
       return { type: "trigger" };
     default:
@@ -520,7 +531,9 @@ export const WorkflowEngine = {
         }
       });
 
-      const queue: string[] = nodeIds.filter((n) => inDegree[n] === 0);
+      const queue: string[] = nodeIds.filter(
+        (n) => inDegree[n] === 0 && workflow.nodes[n]?.type !== "event-listener"
+      );
       const executed = new Set<string>();
 
       while (queue.length > 0) {
@@ -652,6 +665,24 @@ export const WorkflowEngine = {
             `Node ${nodeId} failed after ${attempts} attempt(s). Last error: ${lastError?.message}`,
           );
         }
+
+        // --- Event Listener Sub-Trigger Enqueue ---
+        if (node.type === "event") {
+          const emittedName = (context.steps[nodeId]?.output as any)?.eventName;
+          const payload = (context.steps[nodeId]?.output as any)?.payload;
+
+          context._event_payloads = context._event_payloads || {};
+          context._event_payloads[emittedName] = payload;
+
+          for (const [lId, lNode] of Object.entries(workflow.nodes)) {
+            if (lNode.type === "event-listener" && (lNode as EventListenerNode).eventName === emittedName) {
+              if (!executed.has(lId) && !queue.includes(lId)) {
+                queue.push(lId);
+              }
+            }
+          }
+        }
+        // ------------------------------------------
 
         // Release dependent nodes — with conditional edge filtering
         const outEdges = adjList[nodeId] || [];

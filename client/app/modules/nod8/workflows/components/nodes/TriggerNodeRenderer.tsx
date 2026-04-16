@@ -1,5 +1,5 @@
-import { memo } from "react";
-import { type NodeProps, type Node, Position } from "@xyflow/react";
+import { memo, useState, useCallback } from "react";
+import { type NodeProps, type Node, Position, useReactFlow } from "@xyflow/react";
 import { Play, Webhook, Clock, Zap, Target } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { BaseNode } from "~/components/base-node";
@@ -77,6 +77,28 @@ export const TriggerNodeRenderer = memo(
     const executionStatus = ((data as any)._executionStatus ??
       "idle") as ExecutionStatus;
 
+    const { setNodes, setEdges } = useReactFlow();
+    const [isEditingId, setIsEditingId] = useState(false);
+    const [editableId, setEditableId] = useState(id);
+
+    const commitIdEdit = useCallback(() => {
+      setIsEditingId(false);
+      const newIdRaw = editableId.trim();
+      const newId = newIdRaw.replace(/[^a-zA-Z0-9_-]/g, "_");
+      if (!newId || newId === id) {
+        setEditableId(id);
+        return;
+      }
+      setNodes((nds) => nds.map((n) => (n.id === id ? { ...n, id: newId } : n)));
+      setEdges((eds) =>
+        eds.map((e) => ({
+          ...e,
+          source: e.source === id ? newId : e.source,
+          target: e.target === id ? newId : e.target,
+        }))
+      );
+    }, [id, editableId, setNodes, setEdges]);
+
     const {
       icon: Icon,
       title,
@@ -86,12 +108,37 @@ export const TriggerNodeRenderer = memo(
     DEFAULT_TRIGGER;
 
     return (
-      <div className="relative">
+      <div className="relative group/node">
         {/* ID Badge */}
-        <div className="absolute -top-[21.55px] left-3 z-10">
-          <span className="bg-nod8-rf-node-header-bg border border-b-0! border-border text-muted-foreground text-xs font-mono px-1.5 py-0.5 rounded-sm! rounded-b-none!">
-            {id}
-          </span>
+        <div className="absolute -top-[21.55px] left-3 z-10 flex border-b-0!">
+          {isEditingId ? (
+            <input
+              value={editableId}
+              onChange={(e) => setEditableId(e.target.value)}
+              onBlur={commitIdEdit}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitIdEdit();
+                if (e.key === "Escape") {
+                  setIsEditingId(false);
+                  setEditableId(id);
+                }
+                e.stopPropagation();
+              }}
+              autoFocus
+              className="bg-background border border-primary/50 text-foreground text-xs font-mono px-1.5 py-0.5 rounded-t-sm outline-none w-[120px]"
+            />
+          ) : (
+            <span
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setIsEditingId(true);
+              }}
+              className="bg-nod8-rf-node-header-bg border border-b-0! border-border text-muted-foreground text-xs font-mono px-1.5 py-0.5 rounded-sm! rounded-b-none! cursor-text hover:text-foreground transition-colors"
+              title="Double-click to rename"
+            >
+              {id}
+            </span>
+          )}
         </div>
 
         {/* Node card */}
