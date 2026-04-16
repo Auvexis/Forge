@@ -20,13 +20,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="logo_icon_transparent.svg" />
         <Meta />
         <Links />
       </head>
       <body className="dark">
-        <ConfirmProvider>
-          {children}
-        </ConfirmProvider>
+        <ConfirmProvider>{children}</ConfirmProvider>
         <ForgeToaster />
         <ScrollRestoration />
         <Scripts />

@@ -38,15 +38,15 @@ export const ForgeSubSidebarTemplate = ({
   if (!isVisible) return null;
 
   return (
-    <div className="flex-none w-[240px] h-full flex flex-col bg-forge-subsidebar-bg border-r border-forge-subsidebar-border">
+    <div className="flex-none w-[240px] h-full flex flex-col bg-nod8-subsidebar-bg border-r border-nod8-subsidebar-border">
       {/* Header */}
-      <div className="h-12 flex items-center justify-between px-3 border-b border-forge-subsidebar-header-border shrink-0">
+      <div className="h-12 flex items-center justify-between px-3 border-b border-nod8-subsidebar-header-border shrink-0">
         <span className="text-sm font-semibold text-foreground">{title}</span>
         {addButton}
       </div>
 
       {/* Search */}
-      <div className="px-3 py-2 border-b border-forge-subsidebar-search-row-border shrink-0">
+      <div className="px-3 py-2 border-b border-nod8-subsidebar-search-row-border shrink-0">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
           <input
@@ -54,7 +54,7 @@ export const ForgeSubSidebarTemplate = ({
             placeholder={searchPlaceholder}
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full bg-forge-subsidebar-search-bg border border-forge-subsidebar-search-border rounded-md pl-8 pr-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-ring transition-colors"
+            className="w-full bg-nod8-subsidebar-search-bg border border-nod8-subsidebar-search-border rounded-md pl-8 pr-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-ring transition-colors"
           />
         </div>
       </div>
@@ -66,7 +66,7 @@ export const ForgeSubSidebarTemplate = ({
 
       {/* Footer */}
       {footerInfo && (
-        <div className="px-3 py-2 border-t border-forge-subsidebar-footer-border shrink-0">
+        <div className="px-3 py-2 border-t border-nod8-subsidebar-footer-border shrink-0">
           {footerInfo}
         </div>
       )}
@@ -218,13 +218,15 @@ export const WorkflowsSubSidebar = () => {
             </div>
 
             {/* Delete on hover */}
-            <button
-              className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 h-7 w-7 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
               onClick={(e) => handleDelete(wf.metadata.id, e)}
               title="Delete workflow"
             >
               <Trash2 className="w-3 h-3" />
-            </button>
+            </Button>
           </div>
         ))
       )}

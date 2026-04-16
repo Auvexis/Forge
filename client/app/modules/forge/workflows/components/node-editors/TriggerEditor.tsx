@@ -286,17 +286,20 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
             </label>
             <div className="flex gap-2 flex-wrap">
               {HTTP_METHODS.map((m) => (
-                <button
+                <Button
                   key={m}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => toggleMethod(m)}
-                  className={`px-3 py-1.5 rounded-lg text-mini font-black uppercase tracking-wider border transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-mini font-black uppercase tracking-wider border shadow-none h-auto ${
                     allowedMethods.includes(m)
-                      ? "bg-primary/20 border-primary/50 text-primary"
-                      : "bg-accent/10 border-border/50 text-muted-foreground"
+                      ? "bg-primary/20 border-primary/50 text-primary hover:bg-primary/25 hover:text-primary"
+                      : "bg-accent/10 border-border/50 text-muted-foreground hover:bg-accent/15 hover:text-muted-foreground"
                   }`}
                 >
                   {m}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -381,20 +384,22 @@ export function TriggerEditor({ node, updateNodeData }: NodeEditorProps) {
             </label>
             <div className="grid grid-cols-2 gap-1.5">
               {CRON_PRESETS.map((p) => (
-                <button
+                <Button
                   key={p.value}
+                  type="button"
+                  variant="ghost"
                   onClick={() => updateNodeData({ cronExpression: p.value })}
-                  className={`flex flex-col p-2.5 rounded-xl border text-left transition-all hover:border-primary/40 ${
+                  className={`flex h-auto w-full flex-col items-stretch p-2.5 rounded-xl border text-left font-normal shadow-none transition-all hover:border-primary/40 ${
                     data.cronExpression === p.value
-                      ? "bg-primary/10 border-primary/40 text-primary"
-                      : "bg-accent/5 border-border/40 text-muted-foreground"
+                      ? "bg-primary/10 border-primary/40 text-primary hover:bg-primary/15 hover:text-primary"
+                      : "bg-accent/5 border-border/40 text-muted-foreground hover:bg-accent/10 hover:text-muted-foreground"
                   }`}
                 >
                   <span className="text-mini font-bold">{p.label}</span>
                   <code className="text-micro font-mono opacity-70">
                     {p.value}
                   </code>
-                </button>
+                </Button>
               ))}
             </div>
           </div>

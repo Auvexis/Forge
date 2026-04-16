@@ -27,7 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-export const ForgeSidebar = () => {
+export const Nod8Sidebar = () => {
   const { view, setView, activeSubSidebar, setActiveSubSidebar } = useForge();
 
   const handleNavClick = (item: NavItem) => {

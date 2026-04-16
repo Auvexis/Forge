@@ -32,22 +32,25 @@ export const PluginTree = ({ searchQuery = "" }: Props) => {
   const filteredNodes = useMemo(() => {
     if (!searchQuery) return nodes;
     const query = searchQuery.toLowerCase();
-    return nodes.filter(n => 
-      n.data.label.toLowerCase().includes(query) ||
-      n.id.toLowerCase().includes(query)
+    return nodes.filter(
+      (n) =>
+        n.data.label.toLowerCase().includes(query) ||
+        n.id.toLowerCase().includes(query),
     );
   }, [nodes, searchQuery]);
 
   const filteredEdges = useMemo(() => {
-    const nodeIds = new Set(filteredNodes.map(n => n.id));
-    return initialEdges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
+    const nodeIds = new Set(filteredNodes.map((n) => n.id));
+    return initialEdges.filter(
+      (e) => nodeIds.has(e.source) && nodeIds.has(e.target),
+    );
   }, [filteredNodes, initialEdges]);
 
   const layoutedNodes = useMemo(() => {
     if (!filteredNodes.length) return [];
     return applyLayout(filteredNodes, filteredEdges);
   }, [filteredNodes, filteredEdges]);
-  
+
   const edgeTypes = { floating: FloatingEdge };
 
   useEffect(() => {
@@ -83,8 +86,8 @@ export const PluginTree = ({ searchQuery = "" }: Props) => {
       >
         <Background
           variant={BackgroundVariant.Dots}
-          color="var(--chart-4)"
-          bgColor="transparent"
+          color="var(--nod8-rf-canvas-dots)"
+          bgColor="var(--nod8-rf-canvas-bg)"
           gap={20}
           size={1}
         />

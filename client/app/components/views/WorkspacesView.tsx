@@ -76,7 +76,7 @@ const WorkflowDropdownItem = ({
 
   return (
     <DropdownMenuItem
-      className="group flex items-start gap-3 px-3 py-2.5 rounded-md cursor-pointer focus:bg-forge-sidebar-rail-item-hover-bg"
+      className="group flex items-start gap-3 px-3 py-2.5 rounded-md cursor-pointer focus:bg-nod8-workflow-picker-row-hover-bg"
       onClick={onSelect}
     >
       {/* Trigger type icon */}
@@ -84,14 +84,16 @@ const WorkflowDropdownItem = ({
         className={cn(
           "w-8 h-8 rounded-md border flex items-center justify-center shrink-0 mt-0.5",
           isCurrent
-            ? "bg-forge-sidebar-rail-item-active-bg border-forge-sidebar-rail-item-active-bg"
-            : "bg-forge-sidebar-rail-item-bg border-forge-sidebar-rail-item-border",
+            ? "bg-nod8-workflow-picker-icon-tile-active-bg border-nod8-workflow-picker-icon-tile-active-border"
+            : "bg-nod8-workflow-picker-icon-tile-bg border-nod8-workflow-picker-icon-tile-border",
         )}
       >
         <TriggerIcon
           className={cn(
             "w-3.5 h-3.5",
-            isCurrent ? "text-forge-sidebar-rail-item-active-text" : "text-forge-sidebar-rail-item-inactive-text",
+            isCurrent
+              ? "text-nod8-workflow-picker-row-icon-active-text"
+              : "text-nod8-workflow-picker-row-icon-inactive-text",
           )}
         />
       </div>
@@ -102,7 +104,9 @@ const WorkflowDropdownItem = ({
           <span
             className={cn(
               "text-sm font-medium truncate",
-              isCurrent ? "text-forge-sidebar-rail-item-active-text" : "text-forge-sidebar-rail-item-inactive-text",
+              isCurrent
+                ? "text-nod8-workflow-picker-row-title"
+                : "text-nod8-workflow-picker-row-subtitle",
             )}
           >
             {wf.metadata.name}
@@ -118,7 +122,7 @@ const WorkflowDropdownItem = ({
             {wf.metadata.isActive ? "Active" : "Draft"}
           </span>
           {isCurrent && (
-            <span className="text-xs px-1.5 py-px rounded border bg-forge-sidebar-rail-item-active-bg border-forge-sidebar-rail-item-active-bg text-forge-sidebar-rail-item-active-text shrink-0">
+            <span className="text-xs px-1.5 py-px rounded border bg-nod8-workflow-picker-badge-bg border-nod8-workflow-picker-badge-border text-nod8-workflow-picker-badge-text shrink-0">
               Open
             </span>
           )}
@@ -178,19 +182,19 @@ const EmptyCanvas = ({
       {/* Dock */}
       <div
         data-accent="primary"
-        className="forge-dock forge-dock--workflows h-12 w-full flex items-center gap-2 px-3 bg-forge-dock-bg border-b border-forge-dock-border shrink-0"
+        className="nod8-dock nod8-dock--workflows h-12 w-full flex items-center gap-2 px-3 bg-nod8-dock-bg border-b border-nod8-dock-border shrink-0"
       >
         {/* Brand badge */}
-        <div className="flex items-center gap-2.5 pr-3 border-r border-forge-dock-section-border h-full shrink-0">
-          <div className="w-7 h-7 flex items-center justify-center rounded-md bg-forge-dock-badge-bg shrink-0">
-            <Workflow className="w-3.5 h-3.5 text-forge-dock-badge-icon" />
+        <div className="flex items-center gap-2.5 pr-3 border-r border-nod8-dock-section-border h-full shrink-0">
+          <div className="w-7 h-7 flex items-center justify-center rounded-md bg-nod8-dock-badge-bg shrink-0">
+            <Workflow className="w-3.5 h-3.5 text-nod8-dock-badge-icon" />
           </div>
           <div className="flex flex-col justify-center">
             <span className="text-sm font-semibold text-foreground leading-none">
               Workflows
             </span>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-forge-dock-status-dot-primary" />
+              <span className="w-1.5 h-1.5 rounded-full bg-nod8-dock-status-dot-primary" />
               <span className="text-xs text-muted-foreground leading-none">
                 {loading
                   ? "Loading..."
@@ -203,29 +207,32 @@ const EmptyCanvas = ({
         {/* Workflow Picker */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild className="ml-2">
-            <button className="flex flex-col justify-center group outline-none">
+            <Button
+              variant="ghost"
+              className="flex flex-col justify-center group h-auto py-1 px-2 rounded-md"
+            >
               <div className="flex items-center gap-1">
-                <span className="text-sm font-semibold text-forge-sidebar-rail-item-active-text group-hover:text-forge-sidebar-rail-item-inactive-text transition-colors leading-none">
+                <span className="text-sm font-semibold text-nod8-workflow-picker-trigger-title group-hover:text-nod8-workflow-picker-trigger-title-hover transition-colors leading-none">
                   Open workflow...
                 </span>
-                <ChevronDown className="w-3 h-3 text-forge-sidebar-rail-item-active-text group-hover:text-forge-sidebar-rail-item-inactive-text transition-colors shrink-0" />
+                <ChevronDown className="w-3 h-3 text-nod8-workflow-picker-trigger-title group-hover:text-nod8-workflow-picker-trigger-title-hover transition-colors shrink-0" />
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-forge-dock-status-dot-primary" />
-                <span className="text-xs text-forge-sidebar-rail-item-inactive-text leading-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-nod8-dock-status-dot-primary" />
+                <span className="text-xs text-nod8-workflow-picker-trigger-meta leading-none">
                   {loading ? "Loading..." : "None selected"}
                 </span>
               </div>
-            </button>
+            </Button>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent
             align="start"
-            className="min-w-[320px] bg-forge-sidebar-rail-bg rounded-none mt-[5px]! p-1.5"
+            className="min-w-[320px] bg-nod8-workflow-picker-menu-bg rounded-none mt-[5px]! p-1.5"
             sideOffset={6}
           >
             {workflows.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 px-3 py-6 text-forge-sidebar-rail-item-inactive-text">
+              <div className="flex flex-col items-center gap-2 px-3 py-6 text-nod8-workflow-picker-trigger-meta">
                 <Workflow className="w-8 h-8 opacity-20" />
                 <p className="text-xs text-center">
                   No workflows yet. Create one to get started.
@@ -247,7 +254,7 @@ const EmptyCanvas = ({
             <DropdownMenuSeparator className="my-1" />
 
             <DropdownMenuItem
-              className="gap-2 text-sm focus:bg-forge-sidebar-rail-item-hover-bg rounded-md cursor-pointer font-medium px-3 py-2 text-forge-sidebar-rail-item-inactive-text hover:text-forge-sidebar-rail-item-active-text"
+              className="gap-2 text-sm focus:bg-nod8-workflow-picker-menu-item-hover-bg rounded-md cursor-pointer font-medium px-3 py-2 text-nod8-workflow-picker-menu-item-text hover:text-nod8-workflow-picker-menu-item-text-hover"
               onClick={onCreate}
             >
               {creating ? (

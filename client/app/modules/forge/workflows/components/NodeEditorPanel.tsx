@@ -160,7 +160,7 @@ export const NodeEditorPanel = ({
               onChange={(e) => setLocalId(e.target.value)}
               onBlur={() => handleIdChange(localId)}
               onKeyDown={(e) => e.key === "Enter" && handleIdChange(localId)}
-              className="bg-transparent border-none outline-none text-xs font-mono text-forge-sidebar-rail-item-inactive-text w-28"
+              className="bg-transparent border-none outline-none text-xs font-mono text-nod8-node-editor-panel-header-id-text w-28"
               spellCheck={false}
             />
           </div>
@@ -179,19 +179,20 @@ export const NodeEditorPanel = ({
       {isPluginNode && (
         <div className="flex border-b border-border shrink-0">
           {(["settings", "auth"] as const).map((tab) => (
-            <button
+            <Button
               key={tab}
+              variant="ghost"
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium border-b-2 transition-colors",
+                "flex-1 rounded-none flex items-center justify-center gap-1.5 py-2 text-xs font-medium border-0! border-b-2! h-auto shadow-none hover:bg-transparent",
                 activeTab === tab
-                  ? "border-primary text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground",
+                ? "border-nod8-node-editor-panel-tab-border-active text-nod8-node-editor-panel-tab-text-active"
+                : "border-transparent text-nod8-node-editor-panel-tab-text hover:text-nod8-node-editor-panel-tab-text-active",
               )}
             >
               {tab === "settings" ? <Settings className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
               {tab === "settings" ? "Parameters" : "Authorization"}
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -225,7 +226,7 @@ export const NodeEditorPanel = ({
           Cancel
         </Button>
         <Button
-          variant="default"
+          variant="emphasis"
           size="sm"
           onClick={(e) => { e.stopPropagation(); onClose(); }}
           className="h-7 px-4 text-xs rounded-md"

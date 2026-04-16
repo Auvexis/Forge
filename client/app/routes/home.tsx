@@ -4,10 +4,11 @@ import { ForgeProvider } from "~/providers/ForgeProvider";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Forge — Plugin Orchestration Platform" },
+    { title: "Editor - nod8" },
     {
       name: "description",
-      content: "Orchestrate and manage plugins in a modular ecosystem.",
+      content:
+        "Design and automate workflows with a flexible node-based system.",
     },
   ];
 }

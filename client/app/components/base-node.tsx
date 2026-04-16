@@ -6,14 +6,13 @@ export function BaseNode({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "bg-card text-card-foreground relative rounded-md border",
+        "bg-card text-card-foreground relative rounded-md border border-border transition-all duration-300",
         // React Flow displays node elements inside of a `NodeWrapper`
         // component, which compiles down to a div with the class
         // `react-flow__node`. When a node is selected, the class `selected` is
         // added to the `react-flow__node` element. This allows us to style the
         // node when it is selected.
-        "in-[.selected]:border-muted-foreground",
-        "in-[.selected]:shadow-lg",
+        "in-[.selected]:border-nod8-node-editor-panel-tab-border-active/50",
         className,
       )}
       tabIndex={0}

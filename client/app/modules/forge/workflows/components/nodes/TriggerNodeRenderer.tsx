@@ -15,17 +15,17 @@ type ExecutionStatus = "idle" | "running" | "success" | "failed";
 // Status ring — no glow
 const STATUS_RING: Record<ExecutionStatus, string> = {
   idle: "",
-  running: "ring-2 ring-forge-workflow-node-status-running-ring",
-  success: "ring-2 ring-forge-workflow-node-status-success-ring",
-  failed: "ring-2 ring-forge-workflow-node-status-failed-ring",
+  running: "ring-2 ring-nod8-workflow-node-status-running-ring",
+  success: "ring-2 ring-nod8-workflow-node-status-success-ring",
+  failed: "ring-2 ring-nod8-workflow-node-status-failed-ring",
 };
 
 const StatusDot = ({ status }: { status: ExecutionStatus }) => {
   if (status === "idle") return null;
   const color = {
-    running: "bg-forge-workflow-node-status-running-dot",
-    success: "bg-forge-workflow-node-status-success-dot",
-    failed: "bg-forge-workflow-node-status-failed-dot",
+    running: "bg-nod8-workflow-node-status-running-dot",
+    success: "bg-nod8-workflow-node-status-success-dot",
+    failed: "bg-nod8-workflow-node-status-failed-dot",
   }[status];
   return (
     <span
@@ -89,7 +89,7 @@ export const TriggerNodeRenderer = memo(
       <div className="relative">
         {/* ID Badge */}
         <div className="absolute -top-[21.55px] left-3 z-10">
-          <span className="bg-accent border border-b-0! border-border text-muted-foreground text-xs font-mono px-1.5 py-0.5 rounded-sm! rounded-b-none!">
+          <span className="bg-nod8-rf-node-header-bg border border-b-0! border-border text-muted-foreground text-xs font-mono px-1.5 py-0.5 rounded-sm! rounded-b-none!">
             {id}
           </span>
         </div>
@@ -105,7 +105,7 @@ export const TriggerNodeRenderer = memo(
           {executionStatus === "running" && <NodeRunningShimmer />}
 
           {/* Header */}
-          <div className="flex items-center gap-3 p-3 bg-accent border-b border-border">
+          <div className="flex items-center gap-3 p-3 bg-nod8-rf-node-header-bg border-b border-border">
             {/* Icon */}
             <div
               className={cn(

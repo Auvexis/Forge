@@ -7,7 +7,6 @@ import {
   Loader2,
   Activity,
   Download,
-  Cpu,
   Square,
   ChevronDown,
   Workflow,
@@ -94,27 +93,30 @@ export const WorkflowEditorDock = ({
   const isBusy = isExecuting || isStreaming;
 
   const statusDot = isStreaming
-    ? { color: "bg-forge-editor-dock-status-streaming", animate: true }
+    ? { color: "bg-nod8-editor-dock-status-streaming", animate: true }
     : isDirty
-      ? { color: "bg-forge-editor-dock-status-dirty", animate: false }
-      : { color: "bg-forge-editor-dock-status-idle", animate: false };
+      ? { color: "bg-nod8-editor-dock-status-dirty", animate: false }
+      : { color: "bg-nod8-editor-dock-status-idle", animate: false };
 
   // ── Brand badge with workflow switcher ──
   const brandBadge = (
-    <div className="flex items-center gap-2.5 pr-3 border-r border-forge-dock-section-border h-full">
-      <div className="w-7 h-7 flex items-center justify-center rounded-md bg-forge-dock-badge-bg shrink-0">
-        <WorkflowIcon className="w-3.5 h-3.5 text-forge-dock-badge-icon" />
+    <div className="flex items-center gap-2.5 pr-3 border-r border-nod8-dock-section-border h-full">
+      <div className="w-7 h-7 flex items-center justify-center rounded-md bg-nod8-dock-badge-bg shrink-0">
+        <WorkflowIcon className="w-3.5 h-3.5 text-nod8-dock-badge-icon" />
       </div>
 
       {/* Workflow name → dropdown to switch */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex flex-col justify-center group outline-none">
+          <Button
+            variant="ghost"
+            className="flex flex-col justify-center items-start group h-auto py-1 px-2 gap-0.5! rounded-md"
+          >
             <div className="flex items-center gap-1">
-              <span className="text-sm font-semibold text-forge-sidebar-rail-item-active-text group-hover:text-forge-sidebar-rail-item-inactive-text transition-colors duration-200 leading-none">
+              <span className="text-sm font-semibold text-nod8-workflow-picker-trigger-title group-hover:text-nod8-workflow-picker-trigger-title-hover transition-colors duration-200 leading-none">
                 {workflowName}
               </span>
-              <ChevronDown className="w-3 h-3 text-forge-sidebar-rail-item-active-text group-hover:text-forge-sidebar-rail-item-inactive-text transition-colors shrink-0" />
+              <ChevronDown className="w-3 h-3 text-nod8-workflow-picker-trigger-title group-hover:text-nod8-workflow-picker-trigger-title-hover transition-colors shrink-0" />
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span
@@ -124,7 +126,7 @@ export const WorkflowEditorDock = ({
                   statusDot.animate && "animate-pulse",
                 )}
               />
-              <span className="text-xs text-forge-sidebar-rail-item-inactive-text leading-none">
+              <span className="text-xs text-nod8-workflow-picker-trigger-meta leading-none">
                 {isStreaming
                   ? "Running"
                   : isDirty
@@ -132,12 +134,12 @@ export const WorkflowEditorDock = ({
                     : workflowId.slice(0, 14)}
               </span>
             </div>
-          </button>
+          </Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
           align="start"
-          className="min-w-[320px] bg-card! rounded-none mt-[4px]! p-1.5"
+          className="min-w-[320px] bg-nod8-workflow-picker-menu-bg! rounded-none mt-[4px]! p-1.5"
           sideOffset={6}
         >
           <div className="flex flex-col gap-0.5">
@@ -150,21 +152,23 @@ export const WorkflowEditorDock = ({
               return (
                 <DropdownMenuItem
                   key={wf.metadata.id}
-                  className="group flex items-start gap-3 px-3 py-2.5 rounded-md cursor-pointer focus:bg-forge-sidebar-rail-item-hover-bg"
+                  className="group flex items-start gap-3 px-3 py-2.5 rounded-md cursor-pointer focus:bg-nod8-workflow-picker-row-hover-bg"
                   onClick={() => onSwitchWorkflow?.(wf.metadata.id)}
                 >
                   <div
                     className={cn(
                       "w-8 h-8 rounded-md border flex items-center justify-center shrink-0 mt-0.5",
                       isCurrent
-                        ? "bg-forge-sidebar-rail-item-active-bg border-forge-sidebar-rail-item-active-bg"
-                        : "bg-forge-sidebar-rail-item-bg border-forge-sidebar-rail-item-bg",
+                        ? "bg-nod8-workflow-picker-icon-tile-active-bg border-nod8-workflow-picker-icon-tile-active-border"
+                        : "bg-nod8-workflow-picker-icon-tile-bg border-nod8-workflow-picker-icon-tile-border",
                     )}
                   >
                     <TriggerIcon
                       className={cn(
                         "w-3.5 h-3.5",
-                        isCurrent ? "text-forge-sidebar-rail-item-active-text" : "text-forge-sidebar-rail-item-inactive-text",
+                        isCurrent
+                          ? "text-nod8-workflow-picker-row-icon-active-text"
+                          : "text-nod8-workflow-picker-row-icon-inactive-text",
                       )}
                     />
                   </div>
@@ -174,7 +178,9 @@ export const WorkflowEditorDock = ({
                       <span
                         className={cn(
                           "text-sm font-medium truncate",
-                          isCurrent ? "text-forge-dock-title-text" : "text-forge-dock-subtitle-text",
+                          isCurrent
+                            ? "text-nod8-workflow-picker-row-title"
+                            : "text-nod8-workflow-picker-row-subtitle",
                         )}
                       >
                         {wf.metadata.name}
@@ -219,7 +225,7 @@ export const WorkflowEditorDock = ({
           {workflows.length > 0 && <DropdownMenuSeparator className="my-1" />}
 
           <DropdownMenuItem
-            className="gap-2 text-sm focus:bg-forge-sidebar-rail-item-hover-bg rounded-md cursor-pointer font-medium px-3 py-2 text-forge-sidebar-rail-item-inactive-text hover:text-forge-sidebar-rail-item-active-text"
+            className="gap-2 text-sm focus:bg-nod8-workflow-picker-menu-item-hover-bg rounded-md cursor-pointer font-medium px-3 py-2 text-nod8-workflow-picker-menu-item-text hover:text-nod8-workflow-picker-menu-item-text-hover"
             onClick={onClose}
           >
             <X className="w-4 h-4" />
@@ -330,7 +336,7 @@ export const WorkflowEditorDock = ({
         onClick={onSave}
         disabled={isSaving || !isDirty || isBusy}
         size="sm"
-        variant={isDirty && !isBusy ? "default" : "ghost"}
+        variant={isDirty && !isBusy ? "emphasis" : "ghost"}
         className="h-7 mr-5 px-3 text-xs font-medium gap-1.5 rounded-md disabled:opacity-40 transition-colors"
       >
         {isSaving ? (
@@ -354,14 +360,14 @@ export const WorkflowEditorDock = ({
 
   // Render a customized dock — we override the brand badge area entirely
   return (
-    <div className="forge-dock forge-dock--editor h-12 w-full flex items-center bg-forge-dock-bg border-b border-forge-dock-border shrink-0 px-3 gap-2">
+    <div className="nod8-dock nod8-dock--editor h-12 w-full flex items-center bg-nod8-dock-bg border-b border-nod8-dock-border shrink-0 px-3 gap-2">
       {brandBadge}
 
       {sections.map((section) => (
         <div
           key={section.id}
           className={`flex items-center gap-1 h-full px-2 ${
-            section.border !== false ? "border-r border-forge-dock-section-border" : ""
+            section.border !== false ? "border-r border-nod8-dock-section-border" : ""
           }`}
         >
           {section.content}

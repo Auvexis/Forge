@@ -13,14 +13,12 @@ export interface DockSection {
   border?: boolean;
 }
 
-export type ForgeDockVariant = "default" | "workflows" | "explorer" | "editor";
+export type Nod8DockVariant = "default" | "workflows" | "explorer" | "editor";
 
-export interface ForgeDockProps {
+export interface Nod8DockProps {
   /** Lucide icon component for the brand badge */
   icon: LucideIcon;
   /** Page/module title */
-  title: string;
-  /** Small status line */
   subtitle: string;
   /**
    * Icon tint inside the badge — maps to `app.css` `.nod8-dock[data-accent=…]`
@@ -28,29 +26,31 @@ export interface ForgeDockProps {
    */
   accent: string;
   /** Which dock preset to use — colors live in `app.css` under `--nod8-dock-{variant}-*` */
-  variant?: ForgeDockVariant;
+  variant?: Nod8DockVariant;
   /** Optional status dot override */
   statusDot?: {
     color: string;
     animate?: boolean;
   };
   /** Sections to render between the brand badge and the trailing content */
-  sections: DockSection[];
-  /** Trailing content (typically the primary CTA) */
+  sections?: DockSection[];
+  /** Center content (typically search bar) — centered in the dock */
+  centerContent?: ReactNode;
+  /** Trailing content (typically action buttons) */
   trailing?: ReactNode;
 }
 
 // ── Component ──
 
-export const ForgeDock: FC<ForgeDockProps> = memo(
+export const Nod8Dock: FC<Nod8DockProps> = memo(
   ({
     icon: Icon,
-    title,
     subtitle,
     accent,
     variant = "default",
     statusDot,
-    sections,
+    sections = [],
+    centerContent,
     trailing,
   }) => {
     const dotColor = statusDot?.color ?? "bg-nod8-dock-status-dot";
@@ -66,14 +66,11 @@ export const ForgeDock: FC<ForgeDockProps> = memo(
         )}
       >
         {/* Brand Badge */}
-        <div className="flex items-center gap-2.5 pr-3 border-r border-nod8-dock-section-border h-full">
+        <div className="flex items-center gap-2.5 pr-3 border-r border-nod8-dock-section-border h-full shrink-0">
           <div className="w-7 h-7 flex items-center justify-center rounded-md bg-nod8-dock-badge-bg shrink-0">
             <Icon className="w-3.5 h-3.5 text-nod8-dock-badge-icon" />
           </div>
           <div className="flex flex-col justify-center">
-            <span className="text-sm font-semibold text-nod8-dock-title-text leading-none">
-              {title}
-            </span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span
                 className={`w-1.5 h-1.5 rounded-full ${dotColor} ${dotAnimate ? "animate-pulse" : ""}`}
@@ -90,7 +87,7 @@ export const ForgeDock: FC<ForgeDockProps> = memo(
           <div
             key={section.id}
             className={cn(
-              "flex items-center gap-1 h-full px-2",
+              "flex items-center gap-1 h-full px-2 shrink-0",
               section.border !== false && "border-r border-nod8-dock-section-border",
             )}
           >
@@ -101,9 +98,19 @@ export const ForgeDock: FC<ForgeDockProps> = memo(
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Trailing CTA */}
+        {/* Center Content (search bar) */}
+        {centerContent && (
+          <div className="flex items-center justify-center shrink-0">
+            {centerContent}
+          </div>
+        )}
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Trailing Buttons */}
         {trailing && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {trailing}
           </div>
         )}
@@ -112,4 +119,4 @@ export const ForgeDock: FC<ForgeDockProps> = memo(
   },
 );
 
-ForgeDock.displayName = "ForgeDock";
+Nod8Dock.displayName = "Nod8Dock";

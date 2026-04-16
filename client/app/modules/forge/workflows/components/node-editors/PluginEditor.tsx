@@ -153,9 +153,11 @@ function VariableTree({
           </span>
           <div className="flex flex-wrap gap-1.5">
             {paths.map((p, chipIdx) => (
-              <button
+              <Button
                 key={`${p.path}:${chipIdx}`}
-                className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 text-mini px-2.5 py-1.5 rounded-lg border border-emerald-500/20 transition-all active:scale-95 font-bold flex items-center gap-1 max-w-full"
+                type="button"
+                variant="ghost"
+                className="h-auto max-w-full bg-emerald-500/10 px-2.5 py-1.5 text-mini! font-bold text-emerald-500 shadow-none flex items-center gap-1 rounded-lg border border-emerald-500/20 transition-all hover:bg-emerald-500/20 hover:text-emerald-500 active:scale-95"
                 title={p.path}
                 onClick={() => onInject(paramKey, p.path)}
               >
@@ -164,7 +166,7 @@ function VariableTree({
                   {getVariableDisplayLabel(p.path, p.label)}
                 </span>
                 <span className="opacity-40 text-nano shrink-0">{p.type}</span>
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -292,7 +294,7 @@ export function PluginEditor({
       {selectedAction && (
         <div className="flex flex-col gap-5 mt-2">
           <div className="flex items-center gap-2 border-b border-border/50 pb-2">
-            <div className="w-1.5 h-4 bg-primary rounded-full" />
+            <div className="w-1 h-4 bg-primary rounded-full" />
             <h3 className="text-tiny font-black text-foreground/70 uppercase tracking-widest">
               Parameters
             </h3>

@@ -137,7 +137,7 @@ function ActionBar({
 /**
  * Generic card renderer driven entirely by the responseSchema.
  *
- * Display strategy is selected via `x-forge-display` (or legacy `x-type`):
+ * Display strategy is selected via `x-nod8-display` (or legacy `x-type`):
  *   - "file"    → file icon resolved from mimeType
  *   - "folder"  → folder icon
  *   - "media"   → clapperboard icon

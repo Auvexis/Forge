@@ -125,7 +125,7 @@ export const ConfirmProvider: FC<{ children: ReactNode }> = ({ children }) => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirm}
-              variant={isDestructive ? "destructive" : "default"}
+              variant={isDestructive ? "destructive" : "emphasis"}
             >
               {ConfirmIcon && <ConfirmIcon className="w-4 h-4 mr-2" />}
               {options.confirmLabel || "Confirm"}

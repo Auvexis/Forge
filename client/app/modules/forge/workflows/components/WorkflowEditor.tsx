@@ -52,12 +52,12 @@ const edgeTypes = {
 const defaultEdgeOptions = {
   type: "workflow",
   animated: false,
-  style: { stroke: "var(--forge-rf-edge-stroke)", strokeWidth: 1.5 },
+  style: { stroke: "var(--nod8-rf-edge-stroke)", strokeWidth: 1.5 },
   markerEnd: {
     type: MarkerType.ArrowClosed,
     width: 16,
     height: 16,
-    color: "var(--forge-rf-edge-stroke)",
+    color: "var(--nod8-rf-edge-stroke)",
   },
 };
 
@@ -150,12 +150,12 @@ export const WorkflowEditor = ({
       label: edge.condition,
       type: "workflow",
       animated: false,
-      style: { stroke: "var(--forge-rf-edge-stroke)", strokeWidth: 1.5 },
+      style: { stroke: "var(--nod8-rf-edge-stroke)", strokeWidth: 1.5 },
       markerEnd: {
         type: MarkerType.ArrowClosed,
         width: 16,
         height: 16,
-        color: "var(--forge-rf-edge-stroke)",
+        color: "var(--nod8-rf-edge-stroke)",
       },
     }));
 
@@ -225,12 +225,12 @@ export const WorkflowEditor = ({
             ...params,
             type: "workflow",
             animated: false,
-            style: { stroke: "var(--forge-rf-edge-stroke)", strokeWidth: 1.5 },
+            style: { stroke: "var(--nod8-rf-edge-stroke)", strokeWidth: 1.5 },
             markerEnd: {
               type: MarkerType.ArrowClosed,
               width: 16,
               height: 16,
-              color: "var(--forge-rf-edge-stroke)",
+              color: "var(--nod8-rf-edge-stroke)",
             },
           },
           eds,
@@ -385,6 +385,7 @@ export const WorkflowEditor = ({
         {/* Canvas + Panels */}
         <div className="flex-1 relative overflow-hidden">
           <ReactFlow
+            id="workflow-editor-flow"
             nodes={nodes}
             edges={edges}
             onInit={setRfInstance}
@@ -407,12 +408,13 @@ export const WorkflowEditor = ({
           >
             <ZoomSlider
               position="bottom-center"
-              className="bg-forge-rf-zoom-bg border border-b-0 -bottom-3! border-forge-rf-zoom-border rounded-none p-1"
+              className="bg-nod8-rf-zoom-bg border border-b-0 -bottom-3! border-nod8-rf-zoom-border rounded-none p-1"
             />
             <Background
+              id="workflow-editor-bg"
               variant={BackgroundVariant.Dots}
-              color="var(--forge-rf-canvas-dots)"
-              bgColor="var(--forge-rf-canvas-bg)"
+              color="var(--nod8-rf-canvas-dots)"
+              bgColor="var(--nod8-rf-canvas-bg)"
               gap={20}
               size={1}
             />

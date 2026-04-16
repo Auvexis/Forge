@@ -21,8 +21,8 @@ export const getPropertyLabel = (key: string, prop: JSONSchemaProperty & { label
 
 /**
  * Returns the display strategy for a response schema.
- * Prefers x-forge-display (new), falls back to x-type (legacy).
+ * Prefers x-nod8-display (new), falls back to x-type (legacy).
  */
 export const getDisplayType = (schema: PluginManifestResponseSchema): string => {
-  return schema["x-forge-display"] ?? (schema as any)["x-type"] ?? "generic";
+  return schema["x-nod8-display"] ?? (schema as any)["x-type"] ?? "generic";
 };

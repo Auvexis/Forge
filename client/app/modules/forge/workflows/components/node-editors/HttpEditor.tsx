@@ -192,8 +192,10 @@ export function HttpEditor({ node, updateNodeData }: NodeEditorProps) {
 
       {/* Advanced Settings */}
       <div className="flex flex-col gap-2">
-        <button
-          className="flex items-center gap-2 text-mini font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+        <Button
+          type="button"
+          variant="ghost"
+          className="flex h-auto items-center gap-2 px-0 py-1 text-mini font-black uppercase tracking-widest text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground"
           onClick={() => setAdvancedOpen((v) => !v)}
         >
           {advancedOpen ? (
@@ -202,7 +204,7 @@ export function HttpEditor({ node, updateNodeData }: NodeEditorProps) {
             <ChevronDown className="w-3 h-3" />
           )}
           Advanced Settings
-        </button>
+        </Button>
 
         {advancedOpen && (
           <div className="flex flex-col gap-4 p-4 bg-accent/5 rounded-xl border border-border/50 animate-in slide-in-from-top-2 duration-200">

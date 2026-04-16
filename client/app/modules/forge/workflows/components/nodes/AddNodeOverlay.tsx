@@ -56,11 +56,11 @@ export const AddNodeOverlay = ({ onAddNode, onAddLogicNode, onClose }: Props) =>
 
   return (
     <div
-      className="absolute top-0 right-0 w-[360px] h-full z-[60] bg-forge-dock-bg border-l border-forge-dock-border flex flex-col overflow-hidden shadow-lg"
+      className="absolute top-0 right-0 w-[360px] h-full z-[60] bg-nod8-add-node-overlay-bg border-l border-nod8-add-node-overlay-border flex flex-col overflow-hidden shadow-lg"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}
-      <div className="h-12 flex items-center justify-between px-4 border-b border-forge-dock-border shrink-0">
+      <div className="h-12 flex items-center justify-between px-4 border-b border-nod8-add-node-overlay-header-border shrink-0">
         <div className="flex items-center gap-2">
           {view !== "categories" && (
             <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md" onClick={goBack}>
@@ -76,7 +76,7 @@ export const AddNodeOverlay = ({ onAddNode, onAddLogicNode, onClose }: Props) =>
                   : "Add Node"}
             </span>
             {view === "actions" && selectedPlugin && (
-              <span className="text-xs text-forge-sidebar-rail-item-inactive-text">Select an action</span>
+              <span className="text-xs text-nod8-add-node-overlay-muted-text">Select an action</span>
             )}
           </div>
         </div>
@@ -86,12 +86,12 @@ export const AddNodeOverlay = ({ onAddNode, onAddLogicNode, onClose }: Props) =>
       </div>
 
       {/* Search */}
-      <div className="px-4 py-2.5 border-b border-forge-dock-border shrink-0">
+      <div className="px-4 py-2.5 border-b border-nod8-add-node-overlay-header-border shrink-0">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-forge-sidebar-rail-item-inactive-text" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-nod8-add-node-overlay-search-icon" />
           <input
             placeholder={searchPlaceholder}
-            className="w-full bg-forge-sidebar-rail-item-active-bg border border-forge-dock-border rounded-md pl-8 pr-3 py-1.5 text-sm placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-ring transition-colors"
+            className="w-full bg-nod8-add-node-overlay-input-bg border border-nod8-add-node-overlay-input-border rounded-md pl-8 pr-3 py-1.5 text-sm placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-ring transition-colors"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             autoFocus
@@ -102,7 +102,7 @@ export const AddNodeOverlay = ({ onAddNode, onAddLogicNode, onClose }: Props) =>
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-3">
         {pluginsLoading ? (
-          <div className="flex flex-col items-center justify-center h-24 gap-2 text-forge-sidebar-rail-item-inactive-text">
+          <div className="flex flex-col items-center justify-center h-24 gap-2 text-nod8-add-node-overlay-empty-text">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span className="text-xs">Loading plugins...</span>
           </div>
@@ -110,7 +110,7 @@ export const AddNodeOverlay = ({ onAddNode, onAddLogicNode, onClose }: Props) =>
           <div className="flex flex-col gap-4">
             {/* Logic nodes */}
             <div>
-              <p className="text-xs font-medium text-forge-sidebar-rail-item-inactive-text uppercase tracking-wide px-1 mb-1.5">
+              <p className="text-xs font-medium text-nod8-add-node-overlay-section-label uppercase tracking-wide px-1 mb-1.5">
                 Logic &amp; Control
               </p>
               <div className="flex flex-col gap-0.5">
@@ -119,19 +119,20 @@ export const AddNodeOverlay = ({ onAddNode, onAddLogicNode, onClose }: Props) =>
                 ).map((def) => {
                   const Icon = def.icon;
                   return (
-                    <button
+                    <Button
                       key={def.type}
-                      className="flex items-center gap-3 px-2 py-2 text-left hover:bg-forge-sidebar-rail-item-active-bg rounded-md transition-colors"
+                      variant="ghost"
+                      className="flex h-auto w-full items-center justify-start gap-3 px-2 py-2 text-left font-normal hover:bg-nod8-add-node-overlay-item-hover-bg rounded-md transition-colors"
                       onClick={() => onAddLogicNode(def.type)}
                     >
-                      <div className={`w-8 h-8 flex items-center justify-center rounded-md border border-forge-dock-border shrink-0 ${def.bg}`}>
+                      <div className={`w-8 h-8 flex items-center justify-center rounded-md border border-nod8-add-node-overlay-item-icon-well-border shrink-0 ${def.bg}`}>
                         <Icon className={`w-4 h-4 ${def.color}`} />
                       </div>
                       <div className="flex flex-col flex-1 min-w-0">
                         <span className="text-sm font-medium">{def.label}</span>
-                        <span className="text-xs text-forge-sidebar-rail-item-inactive-text truncate">{def.description}</span>
+                        <span className="text-xs text-nod8-add-node-overlay-item-description-text truncate">{def.description}</span>
                       </div>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -139,7 +140,7 @@ export const AddNodeOverlay = ({ onAddNode, onAddLogicNode, onClose }: Props) =>
 
             {/* Integrations */}
             <div>
-              <p className="text-xs font-medium text-forge-sidebar-rail-item-inactive-text uppercase tracking-wide px-1 mb-1.5">
+              <p className="text-xs font-medium text-nod8-add-node-overlay-section-label uppercase tracking-wide px-1 mb-1.5">
                 Integrations
               </p>
               <div className="flex flex-col gap-0.5">
@@ -148,19 +149,20 @@ export const AddNodeOverlay = ({ onAddNode, onAddLogicNode, onClose }: Props) =>
                     p.manifest.metadata.name.toLowerCase().includes(search.toLowerCase()),
                   )
                   .map((p) => (
-                    <button
+                    <Button
                       key={p.id}
-                      className="flex items-center gap-3 px-2 py-2 text-left hover:bg-forge-sidebar-rail-item-active-bg rounded-md transition-colors"
+                      variant="ghost"
+                      className="flex h-auto w-full items-center justify-start gap-3 px-2 py-2 text-left font-normal hover:bg-nod8-add-node-overlay-item-hover-bg rounded-md transition-colors"
                       onClick={() => selectPlugin(p.id)}
                     >
-                      <div className="w-8 h-8 flex items-center justify-center rounded-md border border-forge-dock-border bg-forge-dock-bg shrink-0">
-                        <LucideIconRenderer name={p.manifest.metadata.icon || "box"} className="text-forge-sidebar-rail-item-inactive-text" size={16} />
+                      <div className="w-8 h-8 flex items-center justify-center rounded-md border border-nod8-add-node-overlay-item-icon-well-border bg-nod8-add-node-overlay-item-icon-well-bg shrink-0">
+                        <LucideIconRenderer name={p.manifest.metadata.icon || "box"} className="text-nod8-add-node-overlay-item-description-text" size={16} />
                       </div>
                       <div className="flex flex-col flex-1 min-w-0">
                         <span className="text-sm font-medium">{p.manifest.metadata.name}</span>
-                        <span className="text-xs text-forge-sidebar-rail-item-inactive-text truncate">{p.manifest.metadata.description}</span>
+                        <span className="text-xs text-nod8-add-node-overlay-item-description-text truncate">{p.manifest.metadata.description}</span>
                       </div>
-                    </button>
+                    </Button>
                   ))}
               </div>
             </div>
@@ -170,19 +172,20 @@ export const AddNodeOverlay = ({ onAddNode, onAddLogicNode, onClose }: Props) =>
             {plugins
               .filter((p) => p.manifest.metadata.name.toLowerCase().includes(search.toLowerCase()))
               .map((p) => (
-                <button
+                <Button
                   key={p.id}
-                  className="flex items-center gap-3 px-2 py-2 text-left hover:bg-forge-sidebar-rail-item-active-bg rounded-md transition-colors"
+                  variant="ghost"
+                  className="flex h-auto w-full items-center justify-start gap-3 px-2 py-2 text-left font-normal hover:bg-nod8-add-node-overlay-item-hover-bg rounded-md transition-colors"
                   onClick={() => selectPlugin(p.id)}
                 >
-                  <div className="w-8 h-8 flex items-center justify-center rounded-md border border-forge-dock-border bg-forge-dock-bg shrink-0">
-                    <LucideIconRenderer name={p.manifest.metadata.icon || "box"} className="text-forge-sidebar-rail-item-inactive-text" size={16} />
+                  <div className="w-8 h-8 flex items-center justify-center rounded-md border border-nod8-add-node-overlay-item-icon-well-border bg-nod8-add-node-overlay-item-icon-well-bg shrink-0">
+                    <LucideIconRenderer name={p.manifest.metadata.icon || "box"} className="text-nod8-add-node-overlay-item-description-text" size={16} />
                   </div>
                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="text-sm font-medium">{p.manifest.metadata.name}</span>
-                    <span className="text-xs text-forge-sidebar-rail-item-inactive-text truncate">{p.manifest.metadata.description}</span>
+                    <span className="text-xs text-nod8-add-node-overlay-item-description-text truncate">{p.manifest.metadata.description}</span>
                   </div>
-                </button>
+                </Button>
               ))}
           </div>
         ) : (
@@ -192,25 +195,26 @@ export const AddNodeOverlay = ({ onAddNode, onAddLogicNode, onClose }: Props) =>
                 (methodVal.metadata.label || methodKey).toLowerCase().includes(search.toLowerCase()),
               )
               .map(([methodKey, methodVal]) => (
-                <button
+                <Button
                   key={methodKey}
-                  className="flex items-center gap-3 px-2 py-2 text-left hover:bg-forge-sidebar-rail-item-active-bg rounded-md transition-colors"
+                  variant="ghost"
+                  className="flex h-auto w-full items-center justify-start gap-3 px-2 py-2 text-left font-normal hover:bg-nod8-add-node-overlay-item-hover-bg rounded-md transition-colors"
                   onClick={() => onAddNode(selectedPluginId!, methodKey, methodVal.metadata.label || methodKey)}
                 >
-                  <div className="w-8 h-8 flex items-center justify-center rounded-md border border-forge-dock-border bg-forge-dock-bg shrink-0">
-                    <Workflow className="w-4 h-4 text-forge-sidebar-rail-item-inactive-text" />
+                  <div className="w-8 h-8 flex items-center justify-center rounded-md border border-nod8-add-node-overlay-item-icon-well-border bg-nod8-add-node-overlay-item-icon-well-bg shrink-0">
+                    <Workflow className="w-4 h-4 text-nod8-add-node-overlay-item-description-text" />
                   </div>
                   <div className="flex flex-col flex-1">
                     <span className="text-sm font-medium">{methodVal.metadata.label || methodKey}</span>
-                    <span className="text-xs text-forge-sidebar-rail-item-inactive-text truncate">{methodVal.metadata.description}</span>
+                    <span className="text-xs text-nod8-add-node-overlay-item-description-text truncate">{methodVal.metadata.description}</span>
                   </div>
-                </button>
+                </Button>
               ))}
           </div>
         )}
 
         {!pluginsLoading && view === "categories" && plugins.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-10 gap-2 text-forge-sidebar-rail-item-inactive-text">
+          <div className="flex flex-col items-center justify-center py-10 gap-2 text-nod8-add-node-overlay-empty-text">
             <Blocks className="w-8 h-8 opacity-20" />
             <p className="text-sm">No plugins installed.</p>
           </div>

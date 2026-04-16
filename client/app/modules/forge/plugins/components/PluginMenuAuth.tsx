@@ -184,7 +184,7 @@ export const PluginMenuAuth = ({ pluginId }: { pluginId: string }) => {
             <Button
               type="submit"
               disabled={saving}
-              variant="outline"
+              variant="default"
               className="mt-2"
             >
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

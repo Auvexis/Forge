@@ -119,7 +119,7 @@ export const WorkflowDashboardDock = ({
       subtitle={`${moduleCount} ${moduleCount === 1 ? "workflow" : "workflows"}`}
       accent="primary"
       variant="workflows"
-      statusDot={{ color: "bg-forge-dock-status-dot-primary", animate: false }}
+      statusDot={{ color: "bg-nod8-dock-status-dot-primary", animate: false }}
       sections={sections}
       trailing={trailing}
     />

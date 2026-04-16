@@ -83,14 +83,15 @@ export const PluginMenu = ({
             {/* Tabs */}
             <div className="flex border-b border-border">
               {(["methods", "auth"] as Tab[]).map((t) => (
-                <button
+                <Button
                   key={t}
+                  variant="ghost"
                   onClick={() => setTab(t)}
                   className={cn(
-                    "flex items-center gap-2 px-5 py-2.5 text-sm font-medium border-b-2 transition-colors",
+                    "rounded-none flex items-center border-0! border-b-2! justify-center gap-2 px-5 py-2.5 text-sm font-medium h-auto shadow-none hover:bg-transparent",
                     tab === t
-                      ? "border-primary text-foreground"
-                      : "border-transparent text-muted-foreground hover:text-foreground",
+                      ? "border-nod8-node-editor-panel-tab-border-active text-nod8-node-editor-panel-tab-text-active"
+                      : "border-transparent text-nod8-node-editor-panel-tab-text hover:text-nod8-node-editor-panel-tab-text-active",
                   )}
                 >
                   {t === "methods" ? (
@@ -99,7 +100,7 @@ export const PluginMenu = ({
                     <ShieldCheck className="w-3.5 h-3.5" />
                   )}
                   {t === "methods" ? "Methods" : "Authorization"}
-                </button>
+                </Button>
               ))}
             </div>
 

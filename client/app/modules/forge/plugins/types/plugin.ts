@@ -51,8 +51,8 @@ export interface JSONSchemaProperty {
   // Forge extensions
   "x-input-type"?: "text" | "password" | "number" | "url" | "email" | "file" | "textarea";
   "x-label"?: string;
-  "x-forge-display"?: "file" | "folder" | "media" | "text" | "generic";
-  "x-forge-icon"?: string;
+  "x-nod8-display"?: "file" | "folder" | "media" | "text" | "generic";
+  "x-nod8-icon"?: string;
 }
 
 export interface JSONSchemaObject {
@@ -66,8 +66,8 @@ export interface JSONSchemaObject {
 
 export interface PluginManifestResponseSchema {
   type: "object" | "array";
-  "x-forge-display"?: "file" | "folder" | "media" | "text" | "generic";
-  /** @deprecated use x-forge-display */
+  "x-nod8-display"?: "file" | "folder" | "media" | "text" | "generic";
+  /** @deprecated use x-nod8-display */
   "x-type"?: string;
 
   properties?: Record<string, JSONSchemaProperty>;

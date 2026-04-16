@@ -96,7 +96,7 @@ export const WorkflowSettingsPanel = ({ workflow, onUpdate, onClose }: Props) =>
         <Button variant="ghost" size="sm" onClick={onClose} className="h-7 px-3 text-xs rounded-md">
           Cancel
         </Button>
-        <Button variant="default" size="sm" onClick={handleSave} className="h-7 px-4 text-xs rounded-md gap-1.5">
+        <Button variant="emphasis" size="sm" onClick={handleSave} className="h-7 px-4 text-xs rounded-md gap-1.5">
           <Save className="w-3.5 h-3.5" />
           Save
         </Button>

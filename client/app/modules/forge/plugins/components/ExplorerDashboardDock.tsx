@@ -78,7 +78,7 @@ export const ExplorerDashboardDock = ({
       subtitle={`${nodeCount} ${nodeCount === 1 ? "Plugin" : "Plugins"}`}
       accent="primary"
       variant="explorer"
-      statusDot={{ color: "bg-forge-dock-status-dot-primary", animate: false }}
+      statusDot={{ color: "bg-nod8-dock-status-dot-primary", animate: false }}
       sections={sections}
     />
   );

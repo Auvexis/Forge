@@ -2,6 +2,7 @@ import { useForge, GlobalViews } from "~/providers/ForgeProvider";
 import { ExplorerView } from "~/components/views/ExplorerView";
 import { ForgeSidebar } from "./ForgeSidebar";
 import { WorkflowsView } from "../views/WorkflowsView";
+import { Nod8ColorsHeader } from "./Nod8ColorsHeader";
 
 export const GlobalViewProvider = () => {
   const { view } = useForge();
@@ -9,22 +10,26 @@ export const GlobalViewProvider = () => {
   const isWorkflows = view === GlobalViews.WORKFLOWS;
 
   return (
-    <div className="w-full h-full flex">
-      <ForgeSidebar />
+    <div className="w-full h-full flex flex-col">
+      <Nod8ColorsHeader />
 
-      <div className="flex-1 h-full overflow-hidden">
-        {/* Keep both views mounted to avoid expensive remount/fetch delay when toggling tabs */}
-        <div
-          className={isExplorer ? "h-full" : "hidden h-full"}
-          aria-hidden={!isExplorer}
-        >
-          <ExplorerView />
-        </div>
-        <div
-          className={isWorkflows ? "h-full" : "hidden h-full"}
-          aria-hidden={!isWorkflows}
-        >
-          <WorkflowsView />
+      <div className="w-full h-full flex">
+        <ForgeSidebar />
+
+        <div className="flex-1 h-full overflow-hidden">
+          {/* Keep both views mounted to avoid expensive remount/fetch delay when toggling tabs */}
+          <div
+            className={isExplorer ? "h-full" : "hidden h-full"}
+            aria-hidden={!isExplorer}
+          >
+            <ExplorerView />
+          </div>
+          <div
+            className={isWorkflows ? "h-full" : "hidden h-full"}
+            aria-hidden={!isWorkflows}
+          >
+            <WorkflowsView />
+          </div>
         </div>
       </div>
     </div>

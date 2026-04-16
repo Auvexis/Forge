@@ -49,14 +49,22 @@
   --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* ── Forge Typography Scale ── */
+  /* ── Nod8 Typography Scale ── */
   --text-nano: 0.5rem; /* 8px  — text-nano  */
   --text-micro: 0.5625rem; /* 9px  — text-micro */
   --text-mini: 0.625rem; /* 10px — text-mini  */
   --text-tiny: 0.6875rem; /* 11px — text-tiny  */
   --text-small: 0.8125rem; /* 13px — text-small */
 
-  /* ── Forge Layout Tokens ── */
+  --color-nod8-1: var(--color-nod8-1);
+  --color-nod8-2: var(--color-nod8-2);
+  --color-nod8-3: var(--color-nod8-3);
+  --color-nod8-4: var(--color-nod8-4);
+  --color-nod8-5: var(--color-nod8-5);
+  --color-nod8-6: var(--color-nod8-6);
+  --color-nod8-7: var(--color-nod8-7);
+
+  /* ── Nod8 Layout Tokens ── */
   --spacing-node-width: 280px;
   --spacing-panel-editor-width: 360px;
   --spacing-panel-logs-width: 380px;
@@ -66,121 +74,231 @@
   --status-success: oklch(0.696 0.17 162);
   --status-failed: oklch(0.577 0.22 27);
 
-  /* ── Forge: map design tokens → Tailwind utilities (bg-*, text-*, border-*) ── */
+  /* ── Nod8: map design tokens → Tailwind utilities (bg-*, text-*, border-*) ── */
   --color-card-border: var(--card-border);
 
-  /* Main sidebar rail (ForgeSidebar) */
-  --color-forge-sidebar-rail-bg: var(--forge-sidebar-rail-bg);
-  --color-forge-sidebar-rail-border: var(--forge-sidebar-rail-border);
-  --color-forge-sidebar-rail-header-border: var(
-    --forge-sidebar-rail-header-border
+  /* Main sidebar rail (Nod8Sidebar) */
+  --color-nod8-sidebar-rail-bg: var(--nod8-sidebar-rail-bg);
+  --color-nod8-sidebar-rail-border: var(--nod8-sidebar-rail-border);
+  --color-nod8-sidebar-rail-header-border: var(
+    --nod8-sidebar-rail-header-border
   );
-  --color-forge-sidebar-rail-footer-border: var(
-    --forge-sidebar-rail-footer-border
+  --color-nod8-sidebar-rail-footer-border: var(
+    --nod8-sidebar-rail-footer-border
   );
-  --color-forge-sidebar-rail-brand-icon: var(--forge-sidebar-rail-brand-icon);
-  --color-forge-sidebar-rail-item-active-bg: var(
-    --forge-sidebar-rail-item-active-bg
+  --color-nod8-sidebar-rail-brand-icon: var(--nod8-sidebar-rail-brand-icon);
+  --color-nod8-sidebar-rail-item-active-bg: var(
+    --nod8-sidebar-rail-item-active-bg
   );
-  --color-forge-sidebar-rail-item-active-text: var(
-    --forge-sidebar-rail-item-active-text
+  --color-nod8-sidebar-rail-item-active-text: var(
+    --nod8-sidebar-rail-item-active-text
   );
-  --color-forge-sidebar-rail-item-inactive-text: var(
-    --forge-sidebar-rail-item-inactive-text
+  --color-nod8-sidebar-rail-item-inactive-text: var(
+    --nod8-sidebar-rail-item-inactive-text
   );
-  --color-forge-sidebar-rail-item-hover-bg: var(
-    --forge-sidebar-rail-item-hover-bg
+  --color-nod8-sidebar-rail-item-hover-bg: var(
+    --nod8-sidebar-rail-item-hover-bg
   );
-  --color-forge-sidebar-rail-item-hover-text: var(
-    --forge-sidebar-rail-item-hover-text
+  --color-nod8-sidebar-rail-item-hover-text: var(
+    --nod8-sidebar-rail-item-hover-text
   );
-  --color-forge-sidebar-rail-active-indicator: var(
-    --forge-sidebar-rail-active-indicator
+  --color-nod8-sidebar-rail-active-indicator: var(
+    --nod8-sidebar-rail-active-indicator
   );
 
-  /* Sub-sidebar (ForgeSubSidebar) */
-  --color-forge-subsidebar-bg: var(--forge-subsidebar-bg);
-  --color-forge-subsidebar-border: var(--forge-subsidebar-border);
-  --color-forge-subsidebar-header-border: var(--forge-subsidebar-header-border);
-  --color-forge-subsidebar-search-row-border: var(
-    --forge-subsidebar-search-row-border
+  /* Sub-sidebar (Nod8SubSidebar) */
+  --color-nod8-subsidebar-bg: var(--nod8-subsidebar-bg);
+  --color-nod8-subsidebar-border: var(--nod8-subsidebar-border);
+  --color-nod8-subsidebar-header-border: var(--nod8-subsidebar-header-border);
+  --color-nod8-subsidebar-search-row-border: var(
+    --nod8-subsidebar-search-row-border
   );
-  --color-forge-subsidebar-search-bg: var(--forge-subsidebar-search-bg);
-  --color-forge-subsidebar-search-border: var(--forge-subsidebar-search-border);
-  --color-forge-subsidebar-footer-border: var(--forge-subsidebar-footer-border);
+  --color-nod8-subsidebar-search-bg: var(--nod8-subsidebar-search-bg);
+  --color-nod8-subsidebar-search-border: var(--nod8-subsidebar-search-border);
+  --color-nod8-subsidebar-footer-border: var(--nod8-subsidebar-footer-border);
 
-  /* Dock chrome (ForgeDock, editor chrome, empty-state bars) */
-  --color-forge-dock-bg: var(--forge-dock-bg);
-  --color-forge-dock-border: var(--forge-dock-border);
-  --color-forge-dock-section-border: var(--forge-dock-section-border);
-  --color-forge-dock-badge-bg: var(--forge-dock-badge-bg);
-  --color-forge-dock-badge-icon: var(--forge-dock-badge-icon);
-  --color-forge-dock-title-text: var(--forge-dock-title-text);
-  --color-forge-dock-subtitle-text: var(--forge-dock-subtitle-text);
-  --color-forge-dock-status-dot: var(--forge-dock-status-dot);
-  --color-forge-dock-status-dot-primary: var(--forge-dock-status-dot-primary);
+  /* Dock chrome (Nod8Dock, editor chrome, empty-state bars) */
+  --color-nod8-dock-bg: var(--nod8-dock-bg);
+  --color-nod8-dock-border: var(--nod8-dock-border);
+  --color-nod8-dock-section-border: var(--nod8-dock-section-border);
+  --color-nod8-dock-badge-bg: var(--nod8-dock-badge-bg);
+  --color-nod8-dock-badge-icon: var(--nod8-dock-badge-icon);
+  --color-nod8-dock-title-text: var(--nod8-dock-title-text);
+  --color-nod8-dock-subtitle-text: var(--nod8-dock-subtitle-text);
+  --color-nod8-dock-status-dot: var(--nod8-dock-status-dot);
+  --color-nod8-dock-status-dot-primary: var(--nod8-dock-status-dot-primary);
 
   /* React Flow handles, edges, canvas (WorkflowEditor, Explorer) */
-  --color-forge-rf-handle-bg: var(--forge-rf-handle-bg);
-  --color-forge-rf-handle-bg-hover: var(--forge-rf-handle-bg-hover);
-  --color-forge-rf-edge-stroke: var(--forge-rf-edge-stroke);
-  --color-forge-rf-canvas-dots: var(--forge-rf-canvas-dots);
-  --color-forge-rf-canvas-bg: var(--forge-rf-canvas-bg);
-  --color-forge-rf-zoom-bg: var(--forge-rf-zoom-bg);
-  --color-forge-rf-zoom-border: var(--forge-rf-zoom-border);
+  --color-nod8-rf-handle-bg: var(--nod8-rf-handle-bg);
+  --color-nod8-rf-handle-bg-hover: var(--nod8-rf-handle-bg-hover);
+  --color-nod8-rf-edge-stroke: var(--nod8-rf-edge-stroke);
+  --color-nod8-rf-canvas-dots: var(--nod8-rf-canvas-dots);
+  --color-nod8-rf-canvas-bg: var(--nod8-rf-canvas-bg);
+  --color-nod8-rf-zoom-bg: var(--nod8-rf-zoom-bg);
+  --color-nod8-rf-zoom-border: var(--nod8-rf-zoom-border);
+  --color-nod8-rf-node-header-bg: var(--nod8-rf-node-header-bg);
 
   /* Toasts */
-  --color-forge-toast-bg: var(--forge-toast-bg);
-  --color-forge-toast-border: var(--forge-toast-border);
-  --color-forge-toast-content-divider: var(--forge-toast-content-divider);
-  --color-forge-toast-icon-success-bg: var(--forge-toast-icon-success-bg);
-  --color-forge-toast-icon-success-border: var(
-    --forge-toast-icon-success-border
+  --color-nod8-toast-bg: var(--nod8-toast-bg);
+  --color-nod8-toast-border: var(--nod8-toast-border);
+  --color-nod8-toast-content-divider: var(--nod8-toast-content-divider);
+  --color-nod8-toast-icon-success-bg: var(--nod8-toast-icon-success-bg);
+  --color-nod8-toast-icon-success-border: var(
+    --nod8-toast-icon-success-border
   );
-  --color-forge-toast-icon-success-text: var(--forge-toast-icon-success-text);
-  --color-forge-toast-icon-error-bg: var(--forge-toast-icon-error-bg);
-  --color-forge-toast-icon-error-border: var(--forge-toast-icon-error-border);
-  --color-forge-toast-icon-error-text: var(--forge-toast-icon-error-text);
-  --color-forge-toast-icon-warning-bg: var(--forge-toast-icon-warning-bg);
-  --color-forge-toast-icon-warning-border: var(
-    --forge-toast-icon-warning-border
+  --color-nod8-toast-icon-success-text: var(--nod8-toast-icon-success-text);
+  --color-nod8-toast-icon-error-bg: var(--nod8-toast-icon-error-bg);
+  --color-nod8-toast-icon-error-border: var(--nod8-toast-icon-error-border);
+  --color-nod8-toast-icon-error-text: var(--nod8-toast-icon-error-text);
+  --color-nod8-toast-icon-warning-bg: var(--nod8-toast-icon-warning-bg);
+  --color-nod8-toast-icon-warning-border: var(
+    --nod8-toast-icon-warning-border
   );
-  --color-forge-toast-icon-warning-text: var(--forge-toast-icon-warning-text);
-  --color-forge-toast-icon-default-bg: var(--forge-toast-icon-default-bg);
-  --color-forge-toast-icon-default-border: var(
-    --forge-toast-icon-default-border
+  --color-nod8-toast-icon-warning-text: var(--nod8-toast-icon-warning-text);
+  --color-nod8-toast-icon-default-bg: var(--nod8-toast-icon-default-bg);
+  --color-nod8-toast-icon-default-border: var(
+    --nod8-toast-icon-default-border
   );
-  --color-forge-toast-icon-default-text: var(--forge-toast-icon-default-text);
-  --color-forge-toast-title-error: var(--forge-toast-title-error);
-  --color-forge-toast-title-success: var(--forge-toast-title-success);
-  --color-forge-toast-title-warning: var(--forge-toast-title-warning);
+  --color-nod8-toast-icon-default-text: var(--nod8-toast-icon-default-text);
+  --color-nod8-toast-title-error: var(--nod8-toast-title-error);
+  --color-nod8-toast-title-success: var(--nod8-toast-title-success);
+  --color-nod8-toast-title-warning: var(--nod8-toast-title-warning);
 
   /* Workflow node execution chrome */
-  --color-forge-workflow-node-status-running-ring: var(
-    --forge-workflow-node-status-running-ring
+  --color-nod8-workflow-node-status-running-ring: var(
+    --nod8-workflow-node-status-running-ring
   );
-  --color-forge-workflow-node-status-success-ring: var(
-    --forge-workflow-node-status-success-ring
+  --color-nod8-workflow-node-status-success-ring: var(
+    --nod8-workflow-node-status-success-ring
   );
-  --color-forge-workflow-node-status-failed-ring: var(
-    --forge-workflow-node-status-failed-ring
+  --color-nod8-workflow-node-status-failed-ring: var(
+    --nod8-workflow-node-status-failed-ring
   );
-  --color-forge-workflow-node-status-running-dot: var(
-    --forge-workflow-node-status-running-dot
+  --color-nod8-workflow-node-status-running-dot: var(
+    --nod8-workflow-node-status-running-dot
   );
-  --color-forge-workflow-node-status-success-dot: var(
-    --forge-workflow-node-status-success-dot
+  --color-nod8-workflow-node-status-success-dot: var(
+    --nod8-workflow-node-status-success-dot
   );
-  --color-forge-workflow-node-status-failed-dot: var(
-    --forge-workflow-node-status-failed-dot
+  --color-nod8-workflow-node-status-failed-dot: var(
+    --nod8-workflow-node-status-failed-dot
   );
 
   /* Editor dock status dots (streaming / dirty / idle) */
-  --color-forge-editor-dock-status-streaming: var(
-    --forge-editor-dock-status-streaming
+  --color-nod8-editor-dock-status-streaming: var(
+    --nod8-editor-dock-status-streaming
   );
-  --color-forge-editor-dock-status-dirty: var(--forge-editor-dock-status-dirty);
-  --color-forge-editor-dock-status-idle: var(--forge-editor-dock-status-idle);
+  --color-nod8-editor-dock-status-dirty: var(--nod8-editor-dock-status-dirty);
+  --color-nod8-editor-dock-status-idle: var(--nod8-editor-dock-status-idle);
+
+  /* Workflow picker — WorkspacesView + WorkflowEditorDock switcher */
+  --color-nod8-workflow-picker-menu-bg: var(--nod8-workflow-picker-menu-bg);
+  --color-nod8-workflow-picker-row-hover-bg: var(
+    --nod8-workflow-picker-row-hover-bg
+  );
+  --color-nod8-workflow-picker-icon-tile-bg: var(
+    --nod8-workflow-picker-icon-tile-bg
+  );
+  --color-nod8-workflow-picker-icon-tile-border: var(
+    --nod8-workflow-picker-icon-tile-border
+  );
+  --color-nod8-workflow-picker-icon-tile-active-bg: var(
+    --nod8-workflow-picker-icon-tile-active-bg
+  );
+  --color-nod8-workflow-picker-icon-tile-active-border: var(
+    --nod8-workflow-picker-icon-tile-active-border
+  );
+  --color-nod8-workflow-picker-trigger-title: var(
+    --nod8-workflow-picker-trigger-title
+  );
+  --color-nod8-workflow-picker-trigger-title-hover: var(
+    --nod8-workflow-picker-trigger-title-hover
+  );
+  --color-nod8-workflow-picker-trigger-meta: var(
+    --nod8-workflow-picker-trigger-meta
+  );
+  --color-nod8-workflow-picker-row-icon-active-text: var(
+    --nod8-workflow-picker-row-icon-active-text
+  );
+  --color-nod8-workflow-picker-row-icon-inactive-text: var(
+    --nod8-workflow-picker-row-icon-inactive-text
+  );
+  --color-nod8-workflow-picker-row-title: var(--nod8-workflow-picker-row-title);
+  --color-nod8-workflow-picker-row-subtitle: var(
+    --nod8-workflow-picker-row-subtitle
+  );
+  --color-nod8-workflow-picker-menu-item-text: var(
+    --nod8-workflow-picker-menu-item-text
+  );
+  --color-nod8-workflow-picker-menu-item-text-hover: var(
+    --nod8-workflow-picker-menu-item-text-hover
+  );
+  --color-nod8-workflow-picker-menu-item-hover-bg: var(
+    --nod8-workflow-picker-menu-item-hover-bg
+  );
+  --color-nod8-workflow-picker-badge-bg: var(--nod8-workflow-picker-badge-bg);
+  --color-nod8-workflow-picker-badge-border: var(
+    --nod8-workflow-picker-badge-border
+  );
+  --color-nod8-workflow-picker-badge-text: var(
+    --nod8-workflow-picker-badge-text
+  );
+
+  /* Add-node overlay — AddNodeOverlay */
+  --color-nod8-add-node-overlay-bg: var(--nod8-add-node-overlay-bg);
+  --color-nod8-add-node-overlay-border: var(--nod8-add-node-overlay-border);
+  --color-nod8-add-node-overlay-header-border: var(
+    --nod8-add-node-overlay-header-border
+  );
+  --color-nod8-add-node-overlay-muted-text: var(
+    --nod8-add-node-overlay-muted-text
+  );
+  --color-nod8-add-node-overlay-section-label: var(
+    --nod8-add-node-overlay-section-label
+  );
+  --color-nod8-add-node-overlay-search-icon: var(
+    --nod8-add-node-overlay-search-icon
+  );
+  --color-nod8-add-node-overlay-input-bg: var(
+    --nod8-add-node-overlay-input-bg
+  );
+  --color-nod8-add-node-overlay-input-border: var(
+    --nod8-add-node-overlay-input-border
+  );
+  --color-nod8-add-node-overlay-item-hover-bg: var(
+    --nod8-add-node-overlay-item-hover-bg
+  );
+  --color-nod8-add-node-overlay-item-icon-well-bg: var(
+    --nod8-add-node-overlay-item-icon-well-bg
+  );
+  --color-nod8-add-node-overlay-item-icon-well-border: var(
+    --nod8-add-node-overlay-item-icon-well-border
+  );
+  --color-nod8-add-node-overlay-item-description-text: var(
+    --nod8-add-node-overlay-item-description-text
+  );
+  --color-nod8-add-node-overlay-empty-text: var(
+    --nod8-add-node-overlay-empty-text
+  );
+
+  /* Node editor panel — NodeEditorPanel (+ PluginMenu tab pattern) */
+  --color-nod8-node-editor-panel-header-id-text: var(
+    --nod8-node-editor-panel-header-id-text
+  );
+  --color-nod8-node-editor-panel-tab-text: var(
+    --nod8-node-editor-panel-tab-text
+  );
+  --color-nod8-node-editor-panel-tab-text-active: var(
+    --nod8-node-editor-panel-tab-text-active
+  );
+  --color-nod8-node-editor-panel-tab-border-active: var(
+    --nod8-node-editor-panel-tab-border-active
+  );
+
+  /* Emphasis button (maps to same values as --nod8-button-emphasis-* for utilities) */
+  --color-nod8-button-emphasis-bg: var(--nod8-button-emphasis-bg);
+  --color-nod8-button-emphasis-bg-hover: var(--nod8-button-emphasis-bg-hover);
+  --color-nod8-button-emphasis-fg: var(--nod8-button-emphasis-fg);
 }
 
 :root {
@@ -195,6 +313,14 @@
   --popover: oklch(0.19 0.004 285);
   --popover-foreground: oklch(0.92 0.005 270);
 
+  --color-nod8-1: #f9b643;
+  --color-nod8-2: #fb923c;
+  --color-nod8-3: #f87171;
+  --color-nod8-4: #e879f9;
+  --color-nod8-5: #c084fc;
+  --color-nod8-6: #818cf8;
+  --color-nod8-7: #60a5fa;
+
   /* ── Primary (functional blue) ── */
   --primary: oklch(92.209% 0.01492 286.007);
   --primary-foreground: oklch(23.585% 0.00381 286.008);
@@ -208,7 +334,7 @@
   --muted-foreground: oklch(0.55 0.008 270);
 
   /* ── Accent (hover backgrounds) ── */
-  --accent: oklch(18.762% 0.00404 285.935);
+  --accent: oklch(24.477% 0.00566 285.91);
   --accent-foreground: oklch(0.92 0.005 270);
 
   /* ── Destructive ── */
@@ -217,7 +343,7 @@
   /* ── Borders / Input / Ring ── */
   --border: oklch(1 0 0 / 0.09);
   --input: oklch(1 0 0 / 0.09);
-  --ring: oklch(0.145 0.004 285);
+  --ring: oklch(22.686% 0.00193 286.053);
 
   /* ── Charts ── */
   --chart-1: oklch(0.87 0.006 286);
@@ -240,173 +366,267 @@
   --card-border: var(--border);
 
   /*
-   * ── Forge component tokens (customize the whole UI from here) ───────────────
+   * ── Nod8 component tokens (customize the whole UI from here) ───────────────
    * Each block maps to specific components. Values default to shadcn/core tokens
    * so the look stays the same until you override.
    */
 
-  /* ── Main sidebar rail — ForgeSidebar ── */
-  --forge-sidebar-rail-bg: oklch(18.264% 0.00204 286.052);
-  --forge-sidebar-rail-border: oklch(28.254% 0.00729 285.868);
-  --forge-sidebar-rail-header-border: oklch(28.254% 0.00729 285.868);
-  --forge-sidebar-rail-footer-border: oklch(28.254% 0.00729 285.868);
-  --forge-sidebar-rail-brand-icon: oklch(58.763% 0.0138 296.043);
-  --forge-sidebar-rail-item-active-bg: oklch(22.728% 0.00385 285.998);
-  --forge-sidebar-rail-item-active-text: oklch(87.507% 0.02335 285.853);
-  --forge-sidebar-rail-item-inactive-text: oklch(58.763% 0.0138 296.043);
-  --forge-sidebar-rail-item-hover-bg: oklch(22.728% 0.00385 285.998);
-  --forge-sidebar-rail-item-hover-text: oklch(87.507% 0.02335 285.853);
-  --forge-sidebar-rail-active-indicator: oklch(87.507% 0.02335 285.853);
+  /* ── Main sidebar rail — Nod8Sidebar ── */
+  --nod8-sidebar-rail-bg: oklch(18.264% 0.00204 286.052);
+  --nod8-sidebar-rail-border: oklch(28.254% 0.00729 285.868);
+  --nod8-sidebar-rail-header-border: oklch(28.254% 0.00729 285.868);
+  --nod8-sidebar-rail-footer-border: oklch(28.254% 0.00729 285.868);
+  --nod8-sidebar-rail-brand-icon: oklch(58.763% 0.0138 296.043);
+  --nod8-sidebar-rail-item-active-bg: oklch(22.728% 0.00385 285.998);
+  --nod8-sidebar-rail-item-active-text: oklch(87.507% 0.02335 285.853);
+  --nod8-sidebar-rail-item-inactive-text: oklch(58.763% 0.0138 296.043);
+  --nod8-sidebar-rail-item-hover-bg: oklch(22.728% 0.00385 285.998);
+  --nod8-sidebar-rail-item-hover-text: oklch(87.507% 0.02335 285.853);
+  --nod8-sidebar-rail-active-indicator: oklch(87.507% 0.02335 285.853);
 
-  /* ── Sub-sidebar — ForgeSubSidebarTemplate ── */
-  --forge-subsidebar-bg: oklch(18.264% 0.00204 286.052);
-  --forge-subsidebar-border: oklch(28.254% 0.00729 285.868);
-  --forge-subsidebar-header-border: oklch(28.254% 0.00729 285.868);
-  --forge-subsidebar-search-row-border: oklch(28.254% 0.00729 285.868);
-  --forge-subsidebar-search-bg: oklch(22.728% 0.00385 285.998);
-  --forge-subsidebar-search-border: oklch(28.254% 0.00729 285.868);
-  --forge-subsidebar-footer-border: oklch(28.254% 0.00729 285.868);
+  /* ── Sub-sidebar — Nod8SubSidebarTemplate ── */
+  --nod8-subsidebar-bg: oklch(18.264% 0.00204 286.052);
+  --nod8-subsidebar-border: oklch(28.254% 0.00729 285.868);
+  --nod8-subsidebar-header-border: oklch(28.254% 0.00729 285.868);
+  --nod8-subsidebar-search-row-border: oklch(28.254% 0.00729 285.868);
+  --nod8-subsidebar-search-bg: oklch(22.728% 0.00385 285.998);
+  --nod8-subsidebar-search-border: oklch(28.254% 0.00729 285.868);
+  --nod8-subsidebar-footer-border: oklch(28.254% 0.00729 285.868);
 
-  /* ── Dock — shared shell (ForgeDock, WorkflowEditorDock, Workflows empty bar) ── */
-  --forge-dock-bg: oklch(18.264% 0.00204 286.052);
-  --forge-dock-border: oklch(28.254% 0.00729 285.868);
-  --forge-dock-section-border: oklch(28.254% 0.00729 285.868);
-  --forge-dock-badge-bg: oklch(24.521% 0.00755 285.784);
-  --forge-dock-badge-icon: oklch(28.254% 0.00729 285.868);
-  --forge-dock-title-text: oklch(87.507% 0.02335 285.853);
-  --forge-dock-subtitle-text: oklch(58.763% 0.0138 296.043);
-  --forge-dock-status-dot: oklch(87.507% 0.02335 285.853);
-  --forge-dock-status-dot-primary: oklch(87.507% 0.02335 285.853);
+  /* ── Dock — shared shell (Nod8Dock, WorkflowEditorDock, Workflows empty bar) ── */
+  --nod8-dock-bg: oklch(18.264% 0.00204 286.052);
+  --nod8-dock-border: oklch(28.254% 0.00729 285.868);
+  --nod8-dock-section-border: oklch(28.254% 0.00729 285.868);
+  --nod8-dock-badge-bg: oklch(24.521% 0.00755 285.784);
+  --nod8-dock-badge-icon: oklch(28.254% 0.00729 285.868);
+  --nod8-dock-title-text: oklch(87.507% 0.02335 285.853);
+  --nod8-dock-subtitle-text: oklch(58.763% 0.0138 296.043);
+  --nod8-dock-status-dot: oklch(87.507% 0.02335 285.853);
+  --nod8-dock-status-dot-primary: oklch(87.507% 0.02335 285.853);
 
-  /* Per-dock overrides (toggle class .forge-dock--workflows | --explorer | --editor on root) */
-  --forge-dock-workflows-bg: oklch(18.264% 0.00204 286.052);
-  --forge-dock-workflows-border: oklch(28.254% 0.00729 285.868);
-  --forge-dock-workflows-badge-icon: oklch(87.507% 0.02335 285.853);
-  --forge-dock-explorer-bg: oklch(18.264% 0.00204 286.052);
-  --forge-dock-explorer-border: oklch(28.254% 0.00729 285.868);
-  --forge-dock-explorer-badge-icon: oklch(87.507% 0.02335 285.853);
-  --forge-dock-editor-bg: oklch(18.264% 0.00204 286.052);
-  --forge-dock-editor-border: oklch(28.254% 0.00729 285.868);
-  --forge-dock-editor-badge-icon: oklch(87.507% 0.02335 285.853);
+  /* Per-dock overrides (toggle class .nod8-dock--workflows | --explorer | --editor on root) */
+  --nod8-dock-workflows-bg: oklch(18.264% 0.00204 286.052);
+  --nod8-dock-workflows-border: oklch(28.254% 0.00729 285.868);
+  --nod8-dock-workflows-badge-icon: oklch(87.507% 0.02335 285.853);
+  --nod8-dock-explorer-bg: oklch(18.264% 0.00204 286.052);
+  --nod8-dock-explorer-border: oklch(28.254% 0.00729 285.868);
+  --nod8-dock-explorer-badge-icon: oklch(87.507% 0.02335 285.853);
+  --nod8-dock-editor-bg: oklch(18.264% 0.00204 286.052);
+  --nod8-dock-editor-border: oklch(28.254% 0.00729 285.868);
+  --nod8-dock-editor-badge-icon: oklch(87.507% 0.02335 285.853);
 
-  /* Optional: icon presets when data-accent on .forge-dock is not "primary" */
-  --forge-dock-accent-blue-icon: oklch(0.7 0.14 250);
-  --forge-dock-accent-rose-icon: oklch(0.7 0.17 15);
-  --forge-dock-accent-violet-icon: oklch(0.72 0.16 290);
-  --forge-dock-accent-emerald-icon: oklch(0.72 0.14 165);
-  --forge-dock-accent-amber-icon: oklch(0.78 0.14 85);
+  /* Optional: icon presets when data-accent on .nod8-dock is not "primary" */
+  --nod8-dock-accent-blue-icon: oklch(0.7 0.14 250);
+  --nod8-dock-accent-rose-icon: oklch(0.7 0.17 15);
+  --nod8-dock-accent-violet-icon: oklch(0.72 0.16 290);
+  --nod8-dock-accent-emerald-icon: oklch(0.72 0.14 165);
+  --nod8-dock-accent-amber-icon: oklch(0.78 0.14 85);
 
   /* ── React Flow — BaseHandle, edges, canvas, zoom shell ── */
-  --forge-rf-handle-bg: oklch(22.771% 0.00577 285.875);
-  --forge-rf-handle-bg-hover: oklch(41.206% 0.01327 285.76);
-  --forge-rf-edge-stroke: oklch(22.771% 0.00577 285.875);
-  --forge-rf-edge-stroke-selected: oklch(41.206% 0.01327 285.76);
-  --forge-rf-connection-path: oklch(41.206% 0.01327 285.76);
-  --forge-rf-canvas-dots: oklch(57.297% 0.0168 285.809);
-  --forge-rf-canvas-bg: var(--background);
-  --forge-rf-zoom-bg: oklch(18.264% 0.00204 286.052);
-  --forge-rf-zoom-border: oklch(28.254% 0.00729 285.868);
+  --nod8-rf-handle-bg: oklch(22.771% 0.00577 285.875);
+  --nod8-rf-handle-bg-hover: oklch(41.206% 0.01327 285.76);
+  --nod8-rf-edge-stroke: oklch(22.771% 0.00577 285.875);
+  --nod8-rf-edge-stroke-selected: oklch(41.206% 0.01327 285.76);
+  --nod8-rf-connection-path: oklch(41.206% 0.01327 285.76);
+  --nod8-rf-canvas-dots: oklch(57.297% 0.0168 285.809);
+  --nod8-rf-canvas-bg: var(--background);
+  --nod8-rf-zoom-bg: oklch(18.264% 0.00204 286.052);
+  --nod8-rf-zoom-border: oklch(28.254% 0.00729 285.868);
+  --nod8-rf-node-header-bg: oklch(19.212% 0.00401 285.944);
 
-  /* ── Toasts — ForgeToaster ── */
-  --forge-toast-bg: oklch(18.264% 0.00204 286.052);
-  --forge-toast-border: oklch(28.254% 0.00729 285.868);
-  --forge-toast-content-divider: oklch(28.254% 0.00729 285.868);
-  --forge-toast-icon-success-bg: color-mix(
+  /* ── Toasts — Nod8Toaster ── */
+  --nod8-toast-bg: oklch(18.264% 0.00204 286.052);
+  --nod8-toast-border: oklch(28.254% 0.00729 285.868);
+  --nod8-toast-content-divider: oklch(28.254% 0.00729 285.868);
+  --nod8-toast-icon-success-bg: color-mix(
     in oklch,
     var(--status-success) 18%,
     transparent
   );
-  --forge-toast-icon-success-border: color-mix(
+  --nod8-toast-icon-success-border: color-mix(
     in oklch,
     var(--status-success) 28%,
     transparent
   );
-  --forge-toast-icon-success-text: var(--status-success);
-  --forge-toast-icon-error-bg: color-mix(
+  --nod8-toast-icon-success-text: var(--status-success);
+  --nod8-toast-icon-error-bg: color-mix(
     in oklch,
     var(--destructive) 18%,
     transparent
   );
-  --forge-toast-icon-error-border: color-mix(
+  --nod8-toast-icon-error-border: color-mix(
     in oklch,
     var(--destructive) 28%,
     transparent
   );
-  --forge-toast-icon-error-text: var(--destructive);
-  --forge-toast-icon-warning-bg: color-mix(
+  --nod8-toast-icon-error-text: var(--destructive);
+  --nod8-toast-icon-warning-bg: color-mix(
     in oklch,
     var(--status-running) 18%,
     transparent
   );
-  --forge-toast-icon-warning-border: color-mix(
+  --nod8-toast-icon-warning-border: color-mix(
     in oklch,
     var(--status-running) 28%,
     transparent
   );
-  --forge-toast-icon-warning-text: var(--status-running);
-  --forge-toast-icon-default-bg: color-mix(
+  --nod8-toast-icon-warning-text: var(--status-running);
+  --nod8-toast-icon-default-bg: color-mix(
     in oklch,
     var(--primary) 18%,
     transparent
   );
-  --forge-toast-icon-default-border: color-mix(
+  --nod8-toast-icon-default-border: color-mix(
     in oklch,
     var(--primary) 28%,
     transparent
   );
-  --forge-toast-icon-default-text: var(--primary);
-  --forge-toast-title-error: oklch(0.72 0.17 25);
-  --forge-toast-title-success: oklch(0.78 0.14 165);
-  --forge-toast-title-warning: oklch(0.82 0.14 85);
+  --nod8-toast-icon-default-text: var(--primary);
+  --nod8-toast-title-error: oklch(0.72 0.17 25);
+  --nod8-toast-title-success: oklch(0.78 0.14 165);
+  --nod8-toast-title-warning: oklch(0.82 0.14 85);
 
   /* ── Workflow nodes — status ring + dot (Trigger + Action renderers) ── */
-  --forge-workflow-node-status-running-ring: oklch(0.75 0.15 85);
-  --forge-workflow-node-status-success-ring: oklch(0.62 0.14 165 / 0.7);
-  --forge-workflow-node-status-failed-ring: oklch(0.58 0.2 25 / 0.7);
-  --forge-workflow-node-status-running-dot: oklch(0.82 0.14 85);
-  --forge-workflow-node-status-success-dot: oklch(0.78 0.14 165);
-  --forge-workflow-node-status-failed-dot: oklch(0.72 0.17 25);
+  --nod8-workflow-node-status-running-ring: oklch(0.75 0.15 85);
+  --nod8-workflow-node-status-success-ring: oklch(0.62 0.14 165 / 0.7);
+  --nod8-workflow-node-status-failed-ring: oklch(0.58 0.2 25 / 0.7);
+  --nod8-workflow-node-status-running-dot: oklch(0.82 0.14 85);
+  --nod8-workflow-node-status-success-dot: oklch(0.78 0.14 165);
+  --nod8-workflow-node-status-failed-dot: oklch(0.72 0.17 25);
 
   /* ── Workflow editor dock — subtitle status dot ── */
-  --forge-editor-dock-status-streaming: oklch(0.72 0.17 165);
-  --forge-editor-dock-status-dirty: oklch(0.78 0.14 85);
-  --forge-editor-dock-status-idle: var(--muted-foreground);
+  --nod8-editor-dock-status-streaming: oklch(0.72 0.17 165);
+  --nod8-editor-dock-status-dirty: oklch(0.78 0.14 85);
+  --nod8-editor-dock-status-idle: var(--muted-foreground);
+
+  /* ── Nod8 brand gradient (header strip + emphasis button border) ── */
+  --nod8-nod8-gradient: linear-gradient(
+    to right,
+    var(--color-nod8-1),
+    var(--color-nod8-2),
+    var(--color-nod8-3),
+    var(--color-nod8-4),
+    var(--color-nod8-5),
+    var(--color-nod8-6),
+    var(--color-nod8-7)
+  );
+
+  /* ── Primary CTA / emphasis button (dark fill + Nod8 gradient border) ── */
+  --nod8-button-emphasis-bg: oklch(0.22 0.006 285);
+  --nod8-button-emphasis-bg-hover: oklch(0.28 0.008 285);
+  --nod8-button-emphasis-fg: oklch(0.95 0.01 285);
+
+  /* ── Workflow picker — WorkspacesView + WorkflowEditorDock switcher ── */
+  --nod8-workflow-picker-menu-bg: var(--nod8-sidebar-rail-bg);
+  --nod8-workflow-picker-row-hover-bg: var(--nod8-sidebar-rail-item-hover-bg);
+  --nod8-workflow-picker-icon-tile-bg: oklch(22.728% 0.00385 285.998);
+  --nod8-workflow-picker-icon-tile-border: oklch(28.254% 0.00729 285.868);
+  --nod8-workflow-picker-icon-tile-active-bg: var(
+    --nod8-sidebar-rail-item-active-bg
+  );
+  --nod8-workflow-picker-icon-tile-active-border: var(
+    --nod8-sidebar-rail-item-active-bg
+  );
+  --nod8-workflow-picker-trigger-title: var(
+    --nod8-sidebar-rail-item-active-text
+  );
+  --nod8-workflow-picker-trigger-title-hover: var(
+    --nod8-sidebar-rail-item-inactive-text
+  );
+  --nod8-workflow-picker-trigger-meta: var(
+    --nod8-sidebar-rail-item-inactive-text
+  );
+  --nod8-workflow-picker-row-icon-active-text: var(
+    --nod8-sidebar-rail-item-active-text
+  );
+  --nod8-workflow-picker-row-icon-inactive-text: var(
+    --nod8-sidebar-rail-item-inactive-text
+  );
+  --nod8-workflow-picker-row-title: var(--nod8-dock-title-text);
+  --nod8-workflow-picker-row-subtitle: var(--nod8-dock-subtitle-text);
+  --nod8-workflow-picker-menu-item-text: var(
+    --nod8-sidebar-rail-item-inactive-text
+  );
+  --nod8-workflow-picker-menu-item-text-hover: var(
+    --nod8-sidebar-rail-item-active-text
+  );
+  --nod8-workflow-picker-menu-item-hover-bg: var(
+    --nod8-sidebar-rail-item-hover-bg
+  );
+  --nod8-workflow-picker-badge-bg: var(--nod8-sidebar-rail-item-active-bg);
+  --nod8-workflow-picker-badge-border: var(--nod8-sidebar-rail-item-active-bg);
+  --nod8-workflow-picker-badge-text: var(--nod8-sidebar-rail-item-active-text);
+
+  /* ── Add-node overlay — AddNodeOverlay ── */
+  --nod8-add-node-overlay-bg: var(--nod8-dock-bg);
+  --nod8-add-node-overlay-border: var(--nod8-dock-border);
+  --nod8-add-node-overlay-header-border: var(--nod8-dock-border);
+  --nod8-add-node-overlay-muted-text: var(
+    --nod8-sidebar-rail-item-inactive-text
+  );
+  --nod8-add-node-overlay-section-label: var(
+    --nod8-sidebar-rail-item-inactive-text
+  );
+  --nod8-add-node-overlay-search-icon: var(
+    --nod8-sidebar-rail-item-inactive-text
+  );
+  --nod8-add-node-overlay-input-bg: var(--nod8-sidebar-rail-item-active-bg);
+  --nod8-add-node-overlay-input-border: var(--nod8-dock-border);
+  --nod8-add-node-overlay-item-hover-bg: var(
+    --nod8-sidebar-rail-item-active-bg
+  );
+  --nod8-add-node-overlay-item-icon-well-bg: var(--nod8-dock-bg);
+  --nod8-add-node-overlay-item-icon-well-border: var(--nod8-dock-border);
+  --nod8-add-node-overlay-item-description-text: var(
+    --nod8-sidebar-rail-item-inactive-text
+  );
+  --nod8-add-node-overlay-empty-text: var(
+    --nod8-sidebar-rail-item-inactive-text
+  );
+
+  /* ── Node editor panel — NodeEditorPanel / PluginMenu tabs ── */
+  --nod8-node-editor-panel-header-id-text: var(
+    --nod8-sidebar-rail-item-inactive-text
+  );
+  --nod8-node-editor-panel-tab-text: var(--muted-foreground);
+  --nod8-node-editor-panel-tab-text-active: var(--foreground);
+  --nod8-node-editor-panel-tab-border-active: var(--primary);
 }
 
-/* ── Forge dock variants — swap entire chrome per screen ── */
-.forge-dock--workflows {
-  --forge-dock-bg: var(--forge-dock-workflows-bg);
-  --forge-dock-border: var(--forge-dock-workflows-border);
-  --forge-dock-badge-icon: var(--forge-dock-workflows-badge-icon);
+/* ── Nod8 dock variants — swap entire chrome per screen ── */
+.nod8-dock--workflows {
+  --nod8-dock-bg: var(--nod8-dock-workflows-bg);
+  --nod8-dock-border: var(--nod8-dock-workflows-border);
+  --nod8-dock-badge-icon: var(--nod8-dock-workflows-badge-icon);
 }
 
-.forge-dock--explorer {
-  --forge-dock-bg: var(--forge-dock-explorer-bg);
-  --forge-dock-border: var(--forge-dock-explorer-border);
-  --forge-dock-badge-icon: var(--forge-dock-explorer-badge-icon);
+.nod8-dock--explorer {
+  --nod8-dock-bg: var(--nod8-dock-explorer-bg);
+  --nod8-dock-border: var(--nod8-dock-explorer-border);
+  --nod8-dock-badge-icon: var(--nod8-dock-explorer-badge-icon);
 }
 
-.forge-dock--editor {
-  --forge-dock-bg: var(--forge-dock-editor-bg);
-  --forge-dock-border: var(--forge-dock-editor-border);
-  --forge-dock-badge-icon: var(--forge-dock-editor-badge-icon);
+.nod8-dock--editor {
+  --nod8-dock-bg: var(--nod8-dock-editor-bg);
+  --nod8-dock-border: var(--nod8-dock-editor-border);
+  --nod8-dock-badge-icon: var(--nod8-dock-editor-badge-icon);
 }
 
-/* Badge icon tint when using accent="blue" | "rose" | … on ForgeDock */
-.forge-dock[data-accent="blue"] {
-  --forge-dock-badge-icon: var(--forge-dock-accent-blue-icon);
+/* Badge icon tint when using accent="blue" | "rose" | … on Nod8Dock */
+.nod8-dock[data-accent="blue"] {
+  --nod8-dock-badge-icon: var(--nod8-dock-accent-blue-icon);
 }
-.forge-dock[data-accent="rose"] {
-  --forge-dock-badge-icon: var(--forge-dock-accent-rose-icon);
+.nod8-dock[data-accent="rose"] {
+  --nod8-dock-badge-icon: var(--nod8-dock-accent-rose-icon);
 }
-.forge-dock[data-accent="violet"] {
-  --forge-dock-badge-icon: var(--forge-dock-accent-violet-icon);
+.nod8-dock[data-accent="violet"] {
+  --nod8-dock-badge-icon: var(--nod8-dock-accent-violet-icon);
 }
-.forge-dock[data-accent="emerald"] {
-  --forge-dock-badge-icon: var(--forge-dock-accent-emerald-icon);
+.nod8-dock[data-accent="emerald"] {
+  --nod8-dock-badge-icon: var(--nod8-dock-accent-emerald-icon);
 }
-.forge-dock[data-accent="amber"] {
-  --forge-dock-badge-icon: var(--forge-dock-accent-amber-icon);
+.nod8-dock[data-accent="amber"] {
+  --nod8-dock-badge-icon: var(--nod8-dock-accent-amber-icon);
 }
 
 html,
@@ -458,8 +678,54 @@ body {
   }
 }
 
-/* ── React Flow (global XYFlow hooks — tune with --forge-rf-* in :root) ── */
+/* ── React Flow (global XYFlow hooks — tune with --nod8-rf-* in :root) ── */
 .react-flow__connection-path {
-  stroke: var(--forge-rf-connection-path);
+  stroke: var(--nod8-rf-connection-path);
   stroke-width: 1.5;
+}
+
+/* ── Emphasis CTA: dark fill + Nod8 gradient border (use with Button variant emphasis) ── */
+@utility nod8-btn-emphasis {
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent;
+  color: var(--nod8-button-emphasis-fg);
+  /* Must win over base `bg-clip-padding` on Button (single clip hides the gradient border layer). */
+  background-color: transparent;
+  background-image:
+    linear-gradient(
+      var(--nod8-button-emphasis-bg),
+      var(--nod8-button-emphasis-bg)
+    ),
+    var(--nod8-nod8-gradient);
+  background-origin: border-box !important;
+  background-clip: padding-box, border-box !important;
+
+  &:hover:not(:disabled):not([data-disabled]) {
+    background-image:
+      linear-gradient(
+        var(--nod8-button-emphasis-bg-hover),
+        var(--nod8-button-emphasis-bg-hover)
+      ),
+      var(--nod8-nod8-gradient);
+    background-clip: padding-box, border-box !important;
+  }
+
+  &:focus-visible {
+    border-color: transparent;
+    outline: none;
+  }
+}
+
+@utility nod8-gradient-border {
+  border-color: transparent;
+  background-image:
+    linear-gradient(var(--card), var(--card)),
+    var(--nod8-nod8-gradient);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+@utility bg-nod8-gradient {
+  background-image: var(--nod8-nod8-gradient);
 }
