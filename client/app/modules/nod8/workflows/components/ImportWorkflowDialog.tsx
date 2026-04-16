@@ -52,22 +52,44 @@ export const ImportWorkflowDialog: FC<Props> = ({ onClose, onImported }) => {
               if (!file) return;
               try {
                 const text = await file.text();
-                const data = JSON.parse(text);
-                if (data.metadata) {
-                  data.metadata.id = `wf_imported_${Date.now()}`;
-                  data.metadata.isDraft = true;
+                let parsed = JSON.parse(text);
+
+                // Unwrap ApiResponse envelope ({ status_code, message, data: WorkflowItem })
+                // This happens when the user downloads the raw server response JSON.
+                if (
+                  parsed &&
+                  typeof parsed === "object" &&
+                  "data" in parsed &&
+                  parsed.data &&
+                  typeof parsed.data === "object" &&
+                  "metadata" in parsed.data
+                ) {
+                  parsed = parsed.data;
                 }
-                const created = await createWorkflow(data);
+
+                // Validate that the parsed object is a WorkflowItem
+                if (!parsed || typeof parsed !== "object" || !parsed.metadata) {
+                  toast.error("Import Failed", {
+                    description:
+                      "Invalid workflow file: missing 'metadata' field. Make sure you are importing a valid nod8 workflow JSON.",
+                  });
+                  return;
+                }
+
+                // Assign a fresh ID and mark as draft so it never collides
+                parsed.metadata.id = `wf_imported_${Date.now()}`;
+                parsed.metadata.isDraft = true;
+
+                const created = await createWorkflow(parsed);
                 if (created) {
                   onImported();
                   onClose();
                 }
               } catch (err: any) {
-                // To avoid duplicate toasts if it came from handleApi
-                if (err.message && !err.message.includes("status") && !err.message.includes("Invalid")) {
-                   toast.error("Import Failed", { description: err.message });
-                } else if (!err.message) {
-                   toast.error("Import Failed", { description: "Invalid workflow file structure." });
+                if (err instanceof SyntaxError) {
+                  toast.error("Import Failed", { description: "The file is not valid JSON." });
+                } else if (err.message && !err.message.includes("status")) {
+                  toast.error("Import Failed", { description: err.message });
                 }
               }
             }}
