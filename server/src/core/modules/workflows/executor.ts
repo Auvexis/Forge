@@ -490,6 +490,7 @@ export const WorkflowEngine = {
       trigger: triggerPayload,
       steps: {} as Record<string, any>,
       variables: initializeVariables(workflow.variables),
+      _event_payloads: {} as Record<string, any>,
     };
 
     let status = "RUNNING";
