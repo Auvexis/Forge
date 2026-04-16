@@ -29,6 +29,8 @@ import { WorkflowEditorDock } from "./WorkflowEditorDock";
 import { WorkflowSettingsPanel } from "./WorkflowSettingsPanel";
 import { RunWorkflowPanel } from "./RunWorkflowPanel";
 import { WorkflowLogsPanel } from "./WorkflowLogsPanel";
+import { ImportWorkflowDialog } from "./ImportWorkflowDialog";
+import { WFEditorFloatingDock } from "./WFEditorFloatingDock";
 import { ZoomSlider } from "~/components/zoom-slider";
 import { toast } from "~/shared/helpers/toast";
 import { useConfirm } from "~/providers/ConfirmProvider";
@@ -86,6 +88,9 @@ export const WorkflowEditor = ({
 
   // Panel state (mutually exclusive)
   const panels = useWorkflowPanelState();
+
+  // Import dialog (can be triggered from the floating dock)
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   // Save logic
   const save = useWorkflowSave(workflow, nodes, edges, onClose);
@@ -406,6 +411,17 @@ export const WorkflowEditor = ({
               position="bottom-center"
               className="bg-nod8-rf-zoom-bg border border-b-0 -bottom-3! border-nod8-rf-zoom-border rounded-none p-1"
             />
+            <WFEditorFloatingDock
+              onRun={panels.openRun}
+              onStop={cancelStream}
+              onAddNode={panels.openAddNode}
+              onImport={() => setShowImportDialog(true)}
+              onSave={() => handleSave(false)}
+              isSaving={save.saving}
+              isDirty={save.isDirty}
+              isExecuting={executing}
+              isStreaming={isStreaming}
+            />
             <Background
               id="workflow-editor-bg"
               variant={BackgroundVariant.Dots}
@@ -478,6 +494,17 @@ export const WorkflowEditor = ({
             />
           )}
         </div>
+
+        {/* Import dialog triggered from the floating dock */}
+        {showImportDialog && (
+          <ImportWorkflowDialog
+            onClose={() => setShowImportDialog(false)}
+            onImported={() => {
+              setShowImportDialog(false);
+              onSaved?.();
+            }}
+          />
+        )}
       </div>
     </ReactFlowProvider>
   );
