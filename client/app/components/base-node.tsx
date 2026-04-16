@@ -12,7 +12,7 @@ export function BaseNode({ className, ...props }: ComponentProps<"div">) {
         // `react-flow__node`. When a node is selected, the class `selected` is
         // added to the `react-flow__node` element. This allows us to style the
         // node when it is selected.
-        "in-[.selected]:border-nod8-node-editor-panel-tab-border-active/50",
+        // "in-[.selected]:border-nod8-node-editor-panel-tab-border-active/10",
         className,
       )}
       tabIndex={0}

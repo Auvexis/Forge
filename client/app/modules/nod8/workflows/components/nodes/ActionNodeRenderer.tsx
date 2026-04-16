@@ -39,6 +39,7 @@ import type {
   SubWorkflowNode,
   EventNode,
   EventListenerNode,
+  HttpNode,
 } from "../../types/workflow-types";
 import { NodeRunningShimmer } from "./NodeRunningShimmer";
 

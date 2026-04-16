@@ -40,6 +40,7 @@ const VALID_NODE_TYPES = new Set([
   "trigger",
   "http",
   "event",
+  "event-listener",
 ]);
 
 // ──────────── Validation helper ────────────
@@ -106,6 +107,11 @@ function validateWorkflowDefinition(
       case "event":
         if (!node.eventName || typeof node.eventName !== "string") {
           return `Event node "${nodeId}" must have an eventName string`;
+        }
+        break;
+      case "event-listener":
+        if (!node.eventName || typeof node.eventName !== "string") {
+          return `Event Listener node "${nodeId}" must have an eventName string`;
         }
         break;
     }
