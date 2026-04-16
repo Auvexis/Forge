@@ -31,7 +31,7 @@ export function EventListenerEditor({ node, updateNodeData }: NodeEditorProps) {
             value={data.eventName ?? ""}
             onChange={(e) => updateNodeData({ eventName: e.target.value })}
             placeholder="video.uploaded"
-            className="h-10 font-mono pl-9 bg-accent/5 border-border/50 text-pink-500 font-bold"
+            className="h-10 font-mono pl-9 bg-accent/5 border-border/50 text-foreground font-bold"
           />
         </div>
         <p className="text-mini text-muted-foreground italic ml-1">

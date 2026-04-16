@@ -37,8 +37,8 @@ import type {
   IfNode,
   LoopNode,
   SubWorkflowNode,
-  HttpNode,
   EventNode,
+  EventListenerNode,
 } from "../../types/workflow-types";
 import { NodeRunningShimmer } from "./NodeRunningShimmer";
 
@@ -119,6 +119,12 @@ const NODE_STYLE: Record<
     color: "text-yellow-400",
     bg: "bg-yellow-500/10",
     badge: "EVENT",
+  },
+  "event-listener": {
+    icon: "target",
+    color: "text-pink-400",
+    bg: "bg-pink-500/10",
+    badge: "LISTENER",
   },
 };
 
@@ -244,6 +250,18 @@ const EventBody = memo(({ data }: { data: EventNode }) => (
 ));
 EventBody.displayName = "EventBody";
 
+const EventListenerBody = memo(({ data }: { data: EventListenerNode }) => (
+  <>
+    <span className="text-xs font-medium text-foreground truncate block mb-1">
+      {data.name || "Event Listener"}
+    </span>
+    <code className="text-xs font-mono bg-pink-500/5 text-pink-400 px-2 py-1 rounded border border-pink-500/10 block truncate">
+      {data.eventName || "waitForEvent"}
+    </code>
+  </>
+));
+EventListenerBody.displayName = "EventListenerBody";
+
 // Main Renderer
 export const ActionNodeRenderer = memo(
   ({ id, data }: NodeProps<ActionNodeType>) => {
@@ -307,6 +325,8 @@ export const ActionNodeRenderer = memo(
           return "HTTP Request";
         case "event":
           return "Emit Event";
+        case "event-listener":
+          return "Wait for Event";
         default:
           return pluginData?.action || "Action";
       }
@@ -591,6 +611,7 @@ export const ActionNodeRenderer = memo(
             )}
             {nodeType === "http" && <HttpBody data={data as HttpNode} />}
             {nodeType === "event" && <EventBody data={data as EventNode} />}
+            {nodeType === "event-listener" && <EventListenerBody data={data as EventListenerNode} />}
           </div>
         </BaseNode>
 
