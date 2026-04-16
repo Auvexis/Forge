@@ -29,13 +29,19 @@ function useLastRun(workflowId: string | null) {
   const [lastRun, setLastRun] = useState<LastRun | null>(null);
 
   useEffect(() => {
-    if (!workflowId) { setLastRun(null); return; }
+    if (!workflowId) {
+      setLastRun(null);
+      return;
+    }
     fetch(`${API_BASE_URL}/workflows/${workflowId}/executions`)
       .then((r) => r.json())
       .then((res) => {
         const executions = res?.data;
         if (Array.isArray(executions) && executions.length > 0) {
-          setLastRun({ status: executions[0].status, start_time: executions[0].start_time });
+          setLastRun({
+            status: executions[0].status,
+            start_time: executions[0].start_time,
+          });
         } else {
           setLastRun(null);
         }
@@ -92,57 +98,6 @@ export const WorkflowDashboardDock = ({
 }: Props) => {
   const lastRun = useLastRun(selectedWorkflowId ?? null);
 
-  // View-toggle buttons (left sections)
-  const sections: DockSection[] = [
-    {
-      id: "view",
-      content: (
-        <>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setViewMode("list")}
-            title="List view"
-            className={`h-7 w-7 rounded-md transition-colors ${
-              viewMode === "list"
-                ? "bg-accent text-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-foreground"
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setViewMode("grid")}
-            title="Grid view"
-            className={`h-7 w-7 rounded-md transition-colors ${
-              viewMode === "grid"
-                ? "bg-accent text-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-foreground"
-            }`}
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-          </Button>
-        </>
-      ),
-    },
-  ];
-
-  // Centered search bar
-  const centerContent = (
-    <div className="relative w-[220px]">
-      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-      <input
-        placeholder="Search workflows..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="pl-8 h-7 w-full bg-accent border border-border rounded-md text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-ring transition-colors"
-      />
-    </div>
-  );
-
-  // Right-side trailing — log badge + refresh + import + new
   const trailing = (
     <div className="flex items-center gap-2">
       {/* Last run badge */}
@@ -221,8 +176,7 @@ export const WorkflowDashboardDock = ({
       accent="primary"
       variant="workflows"
       statusDot={{ color: "bg-nod8-dock-status-dot-primary", animate: false }}
-      sections={sections}
-      centerContent={centerContent}
+      sections={[]}
       trailing={trailing}
       brandBadgeOverride={brandBadgeOverride}
     />

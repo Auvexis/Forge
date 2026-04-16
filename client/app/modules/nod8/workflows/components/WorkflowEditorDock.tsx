@@ -136,7 +136,7 @@ export const WorkflowEditorDock = ({
       </div>
 
       {/* Header and Workflow Switcher */}
-      <div className="flex flex-col justify-center items-start gap-0.5">
+      <div className="flex flex-col justify-center items-start">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
