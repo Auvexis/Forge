@@ -141,6 +141,7 @@ async function executeLoopNode(
   context: any,
   workflow: WorkflowItem,
   edges: WorkflowEdge[],
+  execId: string,
 ): Promise<{ iterations: number; results: any[] }> {
   const collectionExpr = node.collection.trim();
   const templateMatch = /^{{\s*([a-zA-Z0-9_.\[\]]+)\s*}}$/.exec(collectionExpr);
@@ -162,28 +163,128 @@ async function executeLoopNode(
   const iterations = Math.min(collection.length, maxIter);
   const results: any[] = [];
 
-  const bodyEdges = edges.filter(
-    (e) =>
-      e.source === getNodeIdFromWorkflow(workflow, node) &&
-      e.sourceHandle === "loop-body",
+  const loopNodeId = getNodeIdFromWorkflow(workflow, node);
+
+  // ── 1. BFS to collect the full body sub-graph ──────────────────────────────
+  // Start from every node directly attached to the `loop-body` handle and
+  // follow edges forward, stopping at the loop node itself or any node that
+  // is NOT part of the workflow (safety guard).
+  const bodyNodeIds = new Set<string>();
+  const bfsQueue: string[] = edges
+    .filter((e) => e.source === loopNodeId && e.sourceHandle === "loop-body")
+    .map((e) => e.target);
+
+  while (bfsQueue.length > 0) {
+    const nId = bfsQueue.shift()!;
+    // Stop if we've seen this node, if it's the loop itself, or it doesn't
+    // exist in the workflow (edge points to loop-done side or external node).
+    if (bodyNodeIds.has(nId) || nId === loopNodeId || !workflow.nodes[nId]) continue;
+    bodyNodeIds.add(nId);
+    // Enqueue all successors that haven't been visited yet.
+    for (const e of edges) {
+      if (e.source === nId && !bodyNodeIds.has(e.target)) {
+        bfsQueue.push(e.target);
+      }
+    }
+  }
+
+  // ── 2. Collect internal edges (source AND target both inside the body) ──────
+  const internalEdges = edges.filter(
+    (e) => bodyNodeIds.has(e.source) && bodyNodeIds.has(e.target),
   );
 
+  // ── 3. Per-iteration topological execution of the body sub-graph ───────────
   for (let i = 0; i < iterations; i++) {
     context.variables["$item"] = collection[i];
     context.variables["$index"] = i;
     context.variables["$total"] = collection.length;
 
-    for (const edge of bodyEdges) {
-      const bodyNode = workflow.nodes[edge.target];
-      if (bodyNode) {
-        const result = await executeNode(
-          edge.target,
-          bodyNode,
-          context,
-          workflow,
-          edges,
-        );
+    // Build local in-degree map for this iteration.
+    const localInDegree: Record<string, number> = {};
+    bodyNodeIds.forEach((n) => { localInDegree[n] = 0; });
+    internalEdges.forEach((e) => { localInDegree[e.target]++; });
+
+    // Entry nodes are those with no in-body predecessors.
+    // Also include every node pointed to by a `loop-body` edge from the loop
+    // itself (they have external predecessors that we treat as already resolved).
+    const loopBodyTargets = new Set(
+      edges
+        .filter((e) => e.source === loopNodeId && e.sourceHandle === "loop-body")
+        .map((e) => e.target),
+    );
+    const localQueue: string[] = [...bodyNodeIds].filter(
+      (n) => localInDegree[n] === 0 || loopBodyTargets.has(n),
+    );
+    const localExecuted = new Set<string>();
+
+    while (localQueue.length > 0) {
+      const nId = localQueue.shift()!;
+      if (localExecuted.has(nId)) continue;
+      localExecuted.add(nId);
+
+      const bodyNode = workflow.nodes[nId];
+      if (!bodyNode) continue;
+
+      // Emit node:start for visibility in the frontend.
+      workflowEventBus.emitWorkflowEvent({
+        executionId: execId,
+        workflowId: workflow.metadata.id,
+        type: "node:start",
+        nodeId: nId,
+        timestamp: Date.now(),
+      });
+
+      try {
+        const result = await executeNode(nId, bodyNode, context, workflow, edges, execId);
+
+        if (bodyNode.type === "code") {
+          const codeResult = result as any;
+          context.steps[nId] = {
+            status: "SUCCESS",
+            output: codeResult.output,
+            logs: codeResult.logs,
+          };
+          workflowEventBus.emitWorkflowEvent({
+            executionId: execId,
+            workflowId: workflow.metadata.id,
+            type: "node:success",
+            nodeId: nId,
+            timestamp: Date.now(),
+            data: sanitizeContextForLogging(codeResult.output),
+          });
+        } else {
+          context.steps[nId] = { status: "SUCCESS", output: result };
+          workflowEventBus.emitWorkflowEvent({
+            executionId: execId,
+            workflowId: workflow.metadata.id,
+            type: "node:success",
+            nodeId: nId,
+            timestamp: Date.now(),
+            data: sanitizeContextForLogging(result),
+          });
+        }
+
         results.push(result);
+      } catch (err: any) {
+        context.steps[nId] = { status: "FAILED", error: err.message };
+        workflowEventBus.emitWorkflowEvent({
+          executionId: execId,
+          workflowId: workflow.metadata.id,
+          type: "node:failed",
+          nodeId: nId,
+          timestamp: Date.now(),
+          error: err.message,
+        });
+        // Propagate to the outer executor so the whole workflow fails cleanly.
+        throw err;
+      }
+
+      // Release successor nodes inside the body.
+      for (const e of internalEdges) {
+        if (e.source === nId) {
+          localInDegree[e.target]--;
+          if (localInDegree[e.target] === 0) localQueue.push(e.target);
+        }
       }
     }
   }
@@ -325,6 +426,7 @@ async function executeNode(
   context: any,
   workflow: WorkflowItem,
   edges: WorkflowEdge[],
+  execId: string,
 ): Promise<any> {
   switch (node.type) {
     case "plugin":
@@ -334,7 +436,7 @@ async function executeNode(
     case "if":
       return executeIfNode(node, context);
     case "loop":
-      return executeLoopNode(node, context, workflow, edges);
+      return executeLoopNode(node, context, workflow, edges, execId);
     case "subworkflow":
       return executeSubWorkflowNode(node, context);
     case "http":
@@ -486,6 +588,7 @@ export const WorkflowEngine = {
               context,
               workflow,
               workflow.edges,
+              execId,
             );
 
             if (node.type === "code") {
