@@ -7,3 +7,6 @@
 **/*.db-wal
 **/*.db-journal
 PROJECT.md
+PROMPT.md
+IMPLEMENTATION.md
+tasks.md

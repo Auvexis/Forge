@@ -51,7 +51,7 @@ export function ZoomSlider({
         </Button>
         <Slider
           className={cn(
-            orientation === "horizontal" ? "w-[140px]" : "h-[140px]",
+            orientation === "horizontal" ? "w-[100px]" : "h-[100px]",
           )}
           orientation={orientation}
           value={[zoom]}
@@ -68,11 +68,12 @@ export function ZoomSlider({
           <Plus className="h-4 w-4" />
         </Button>
       </div>
+
       <Button
         className={cn(
           "tabular-nums",
           orientation === "horizontal"
-            ? "w-[140px] min-w-10"
+            ? "w-[50px]"
             : "h-[40px] w-[40px]",
         )}
         variant="ghost"
@@ -80,6 +81,7 @@ export function ZoomSlider({
       >
         {(100 * zoom).toFixed(0)}%
       </Button>
+
       <Button
         variant="ghost"
         size="icon"

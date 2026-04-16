@@ -3,6 +3,7 @@ import { Panel } from "@xyflow/react";
 import { Play, Plus, Download, Save, Loader2, Square } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
+import { ZoomSlider } from "~/components/zoom-slider";
 
 interface WFEditorFloatingDockProps {
   /** Called when the user clicks Run */
@@ -50,15 +51,15 @@ export const WFEditorFloatingDock = memo(
         // mb-14 keeps us below the ReactFlow ZoomSlider (~h-8 + gap)
         className="mb-14"
       >
-        <div className="flex items-center gap-1.5 bg-card/90 backdrop-blur-md border border-border rounded-lg px-3 py-2 shadow-2xl">
+        <div className="flex items-center gap-3 bg-card border border-border rounded-full px-3 py-1.5 shadow-2xl">
           {/* ── Run / Stop ── */}
           {isStreaming ? (
             <Button
               size="sm"
+              variant={"destructive"}
               onClick={onStop}
               className={cn(
                 "h-7 px-3 gap-1.5 text-xs font-semibold rounded-md",
-                "bg-red-600 hover:bg-red-500 text-white border-0",
               )}
             >
               <Square className="w-3 h-3 fill-current" />
@@ -68,10 +69,11 @@ export const WFEditorFloatingDock = memo(
             <Button
               size="sm"
               onClick={onRun}
+              variant={"ghost"}
               disabled={isExecuting}
               className={cn(
                 "h-7 px-3 gap-1.5 text-xs font-semibold rounded-md",
-                "bg-emerald-600 hover:bg-emerald-500 text-white border-0",
+                "text-foreground",
                 isExecuting && "opacity-60 cursor-not-allowed",
               )}
             >
@@ -84,16 +86,15 @@ export const WFEditorFloatingDock = memo(
             </Button>
           )}
 
-          <div className="h-4 w-px bg-border" />
-
           {/* ── Add Node ── */}
           <Button
             size="sm"
+            variant={"ghost"}
             onClick={onAddNode}
             disabled={isStreaming}
             className={cn(
               "h-7 px-3 gap-1.5 text-xs font-semibold rounded-md",
-              "bg-blue-600 hover:bg-blue-500 text-white border-0",
+              "text-foreground",
               isStreaming && "opacity-60 cursor-not-allowed",
             )}
           >
@@ -104,11 +105,12 @@ export const WFEditorFloatingDock = memo(
           {/* ── Import ── */}
           <Button
             size="sm"
+            variant={"ghost"}
             onClick={onImport}
             disabled={isStreaming}
             className={cn(
               "h-7 px-3 gap-1.5 text-xs font-semibold rounded-md",
-              "bg-amber-600 hover:bg-amber-500 text-white border-0",
+              "text-foreground",
               isStreaming && "opacity-60 cursor-not-allowed",
             )}
           >
@@ -116,16 +118,15 @@ export const WFEditorFloatingDock = memo(
             Import
           </Button>
 
-          <div className="h-4 w-px bg-border" />
-
           {/* ── Save ── */}
           <Button
             size="sm"
+            variant={"ghost"}
             onClick={onSave}
             disabled={isSaving || !isDirty || isStreaming}
             className={cn(
               "h-7 px-3 gap-1.5 text-xs font-semibold rounded-md",
-              "bg-violet-600 hover:bg-violet-500 text-white border-0",
+              "text-foreground",
               (isSaving || !isDirty || isStreaming) &&
                 "opacity-60 cursor-not-allowed",
             )}
@@ -137,6 +138,10 @@ export const WFEditorFloatingDock = memo(
             )}
             {isSaving ? "Saving…" : "Save"}
           </Button>
+
+          <div className="h-6 w-px bg-border" />
+
+          <ZoomSlider className="relative! m-0! p-0! bg-transparent!" />
         </div>
       </Panel>
     );

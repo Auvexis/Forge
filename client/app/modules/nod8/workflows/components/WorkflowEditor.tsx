@@ -424,10 +424,6 @@ export const WorkflowEditor = ({
             // snapToGrid={true}
             // snapGrid={[15, 15]}
           >
-            <ZoomSlider
-              position="bottom-center"
-              className="bg-nod8-rf-zoom-bg border border-b-0 -bottom-3! border-nod8-rf-zoom-border rounded-none p-1"
-            />
             <WFEditorFloatingDock
               onRun={panels.openRun}
               onStop={cancelStream}
