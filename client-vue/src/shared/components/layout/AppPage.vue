@@ -8,9 +8,16 @@
     <!-- The actual scrollable content of the page -->
     <div class="app-page__content">
       <slot></slot>
+      
+      <!-- Global Page Panel anchors to the relative content boundaries -->
+      <GlobalAppPanel />
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import GlobalAppPanel from './GlobalAppPanel.vue'
+</script>
 
 <style scoped>
 .app-page {
@@ -25,7 +32,7 @@
   flex-shrink: 0;
   /* You can add padding here, or let the AppDock handle its own height/paddings */
   padding: var(--nod8-space-3);
-  padding: 0; 
+  padding: 0;
 }
 
 .app-page__content {

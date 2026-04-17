@@ -9,7 +9,7 @@ const props = defineProps<{
 </script>
 
 <template>
-  <Handle 
+  <Handle
     :id="props.id"
     :type="props.type"
     :position="props.position"

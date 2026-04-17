@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import LucideIcon from '@/shared/icons/LucideIcon.vue';
-
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 </script>
 
 <template>
@@ -11,8 +10,12 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue';
 
     <div class="flex-center flex-col gap-2">
       <p class="text-base text-primary">This page doesn't exist</p>
-      <p class="text-sm text-muted font-mono" :style="{ 'max-width': '450px', 'text-align': 'center' }">
-        The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+      <p
+        class="text-sm text-muted font-mono"
+        :style="{ 'max-width': '450px', 'text-align': 'center' }"
+      >
+        The page you are looking for might have been removed, had its name changed, or is
+        temporarily unavailable.
       </p>
     </div>
   </div>

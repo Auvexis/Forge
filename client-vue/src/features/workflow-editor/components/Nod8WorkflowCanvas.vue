@@ -14,9 +14,14 @@ import SubWorkflowNode from './nodes/SubWorkflowNode.vue'
 import BaseNode from './BaseNode.vue'
 import BaseEdge from './BaseEdge.vue'
 import { Background } from '@vue-flow/background'
+import type { NodeMouseEvent } from '@vue-flow/core'
+
+import { useAppPanelStore } from '@/shared/stores/app-panel.store'
+import NodeEditorDrawer from './settings/NodeEditorDrawer.vue'
 
 // Stores
 const workflowStore = useWorkflowStore()
+const panelStore = useAppPanelStore()
 
 // Mapeamentos para o VueFlow
 const flowNodes = computed(() => {
@@ -58,6 +63,17 @@ const flowEdges = computed(() => {
     type: 'workflow-edge', // Chama o slot #edge-workflow-edge super poderoso cheio de toolbar!
   }))
 })
+
+// Abre a gaveta lateral ao clicar em qualquer Node
+const onNodeClick = (event: NodeMouseEvent) => {
+  panelStore.openPanel({
+    title: 'Configurações',
+    component: NodeEditorDrawer,
+    props: { node: event.node },
+    position: 'left',
+    width: 'md'
+  })
+}
 </script>
 
 <template>
@@ -72,14 +88,31 @@ const flowEdges = computed(() => {
       fit-view-on-init
       :snap-to-grid="true"
       :snap-grid="[10, 10]"
+      @node-click="onNodeClick"
     >
       <!-- MARCADORES SVG CUSTOMIZADOS ATRELADOS ÀS VARIÁVEIS CSS (GLOBAL DOM) -->
-      <svg style="position: absolute; width: 0; height: 0;" aria-hidden="true">
+      <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
         <defs>
-          <marker id="nod8-arrow-normal" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="6" markerHeight="6" orient="auto">
+          <marker
+            id="nod8-arrow-normal"
+            viewBox="0 0 12 12"
+            refX="11"
+            refY="6"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
             <path d="M 0 0 L 12 6 L 0 12 z" fill="var(--nod8-rf-arrow-stroke)" />
           </marker>
-          <marker id="nod8-arrow-selected" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="6" markerHeight="6" orient="auto">
+          <marker
+            id="nod8-arrow-selected"
+            viewBox="0 0 12 12"
+            refX="11"
+            refY="6"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
             <path d="M 0 0 L 12 6 L 0 12 z" fill="var(--nod8-rf-arrow-stroke-selected)" />
           </marker>
         </defs>
@@ -133,7 +166,7 @@ const flowEdges = computed(() => {
       <template #node-event-listener="nodeProps">
         <EventListenerNode v-bind="nodeProps" />
       </template>
-      
+
       <!-- SUBWORKFLOW Node -->
       <template #node-subworkflow="nodeProps">
         <SubWorkflowNode v-bind="nodeProps" />

@@ -4,7 +4,7 @@
       :src="name"
       alt="icon"
       :class="className"
-      style="max-width: 100%; max-height: 100%; object-fit: contain;"
+      style="max-width: 100%; max-height: 100%; object-fit: contain"
     />
   </div>
   <component
@@ -39,10 +39,12 @@ const props = withDefaults(
 
 const isUrl = computed(() => {
   const n = String(props.name).toLowerCase()
-  return n.startsWith("http") || 
-         n.startsWith("/") || 
-         n.startsWith("data:image/") ||
-         /\.(png|jpg|jpeg|svg|webp|gif|avif)$/.test(n)
+  return (
+    n.startsWith('http') ||
+    n.startsWith('/') ||
+    n.startsWith('data:image/') ||
+    /\.(png|jpg|jpeg|svg|webp|gif|avif)$/.test(n)
+  )
 })
 
 const icon = computed(() => {

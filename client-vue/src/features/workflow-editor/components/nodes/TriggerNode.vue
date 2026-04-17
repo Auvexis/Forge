@@ -8,7 +8,9 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { Position } from '@vue-flow/core'
 import { useWorkflowStore } from '../../stores/workflow.store'
 
-const props = defineProps<NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }>()
+const props = defineProps<
+  NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+>()
 
 const store = useWorkflowStore()
 
@@ -18,12 +20,32 @@ const triggerData = computed(() => store.activeWorkflow?.trigger)
 // Mapa de configuração igual ao REACT para dinamicamente alterar as cores/ícones
 const triggerConfig = computed(() => {
   const type = triggerData.value?.type || 'manual'
-  
+
   const configMap = {
-    manual:  { icon: 'play', title: 'Manual Trigger', color: 'var(--nod8-node-trigger-icon)', bg: 'var(--nod8-node-trigger-bg)' },
-    webhook: { icon: 'webhook', title: 'Webhook', color: 'var(--nod8-node-trigger-webhook-icon)', bg: 'var(--nod8-node-trigger-webhook-bg)' },
-    cron:    { icon: 'clock', title: 'Schedule / Cron', color: 'var(--nod8-node-trigger-cron-icon)', bg: 'var(--nod8-node-trigger-cron-bg)' },
-    event:   { icon: 'zap', title: 'Event Trigger', color: 'var(--nod8-node-trigger-event-icon)', bg: 'var(--nod8-node-trigger-event-bg)' }
+    manual: {
+      icon: 'play',
+      title: 'Manual Trigger',
+      color: 'var(--nod8-node-trigger-icon)',
+      bg: 'var(--nod8-node-trigger-bg)',
+    },
+    webhook: {
+      icon: 'webhook',
+      title: 'Webhook',
+      color: 'var(--nod8-node-trigger-webhook-icon)',
+      bg: 'var(--nod8-node-trigger-webhook-bg)',
+    },
+    cron: {
+      icon: 'clock',
+      title: 'Schedule / Cron',
+      color: 'var(--nod8-node-trigger-cron-icon)',
+      bg: 'var(--nod8-node-trigger-cron-bg)',
+    },
+    event: {
+      icon: 'zap',
+      title: 'Event Trigger',
+      color: 'var(--nod8-node-trigger-event-icon)',
+      bg: 'var(--nod8-node-trigger-event-bg)',
+    },
   }
 
   return configMap[type as keyof typeof configMap] ?? configMap.manual
@@ -32,9 +54,8 @@ const triggerConfig = computed(() => {
 
 <template>
   <BaseNode :id="props.id" :selected="props.selected" :status="props.status" class="trigger-node">
-    
     <template #header>
-      <div 
+      <div
         class="trigger-icon"
         :style="{ color: triggerConfig.color, backgroundColor: triggerConfig.bg }"
       >
@@ -49,19 +70,34 @@ const triggerConfig = computed(() => {
 
     <div class="trigger-body">
       <!-- Exibição Condicional Baseada no Tipo de Trigger -->
-      <code v-if="triggerData?.type === 'webhook' && triggerData.webhookPath" class="trigger-code webhook-code">
+      <code
+        v-if="triggerData?.type === 'webhook' && triggerData.webhookPath"
+        class="trigger-code webhook-code"
+      >
         /webhooks/{{ triggerData.webhookPath }}
       </code>
 
-      <code v-else-if="triggerData?.type === 'cron' && triggerData.cronExpression" class="trigger-code cron-code">
+      <code
+        v-else-if="triggerData?.type === 'cron' && triggerData.cronExpression"
+        class="trigger-code cron-code"
+      >
         {{ triggerData.cronExpression }}
       </code>
-      
-      <code v-else-if="triggerData?.type === 'event' && triggerData.eventName" class="trigger-code event-code">
+
+      <code
+        v-else-if="triggerData?.type === 'event' && triggerData.eventName"
+        class="trigger-code event-code"
+      >
         {{ triggerData.eventName }}
       </code>
 
-      <template v-else-if="triggerData?.type === 'manual' && triggerData.schema && Object.keys(triggerData.schema).length > 0">
+      <template
+        v-else-if="
+          triggerData?.type === 'manual' &&
+          triggerData.schema &&
+          Object.keys(triggerData.schema).length > 0
+        "
+      >
         <span class="trigger-subtitle input-title">Expected inputs:</span>
         <div class="schema-tags">
           <span v-for="key in Object.keys(triggerData.schema)" :key="key" class="schema-tag">
@@ -71,13 +107,16 @@ const triggerConfig = computed(() => {
       </template>
 
       <span v-else class="trigger-subtitle italic">
-        {{ triggerData?.type === 'manual' ? 'Standard manual execution.' : `Waiting for ${triggerData?.type} signal...` }}
+        {{
+          triggerData?.type === 'manual'
+            ? 'Standard manual execution.'
+            : `Waiting for ${triggerData?.type} signal...`
+        }}
       </span>
     </div>
 
     <!-- O ponto de saída nativo do VueFlow: Obrigatoriamente com id="source" para o Edge achar! -->
     <BaseHandle id="source" type="source" :position="Position.Right" />
-    
   </BaseNode>
 </template>
 
@@ -166,7 +205,16 @@ const triggerConfig = computed(() => {
   display: block;
 }
 
-.webhook-code { color: var(--nod8-success); opacity: 0.8; }
-.cron-code { color: var(--nod8-warning); opacity: 0.8; }
-.event-code { color: var(--nod8-color-5); opacity: 0.8; }
+.webhook-code {
+  color: var(--nod8-success);
+  opacity: 0.8;
+}
+.cron-code {
+  color: var(--nod8-warning);
+  opacity: 0.8;
+}
+.event-code {
+  color: var(--nod8-color-5);
+  opacity: 0.8;
+}
 </style>

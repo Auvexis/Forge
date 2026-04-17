@@ -12,25 +12,25 @@ const router = createRouter({
       path: '/workflows',
       name: 'workflows',
       component: () => import('@/app/pages/WorkflowsPage.vue'),
-      meta: { title: 'Workflows' }
+      meta: { title: 'Workflows' },
     },
     {
       path: '/workflows/:id',
       name: 'workflow-editor',
       component: () => import('@/app/pages/WorkflowEditorPage.vue'),
-      meta: { title: 'Editor' }
+      meta: { title: 'Editor' },
     },
     {
       path: '/plugins',
       name: 'plugins',
       component: () => import('@/app/pages/PluginsPage.vue'),
-      meta: { title: 'Plugins' }
+      meta: { title: 'Plugins' },
     },
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/app/pages/NotFoundPage.vue'),
-      meta: { title: '404 Não Encontrado' }
+      meta: { title: '404 Não Encontrado' },
     },
   ],
 })

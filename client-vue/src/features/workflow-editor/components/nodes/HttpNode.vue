@@ -4,11 +4,12 @@ import type { HttpNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import { computed } from 'vue'
 
-const props = defineProps<NodeProps<HttpNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }>()
+const props = defineProps<
+  NodeProps<HttpNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+>()
 
 const method = computed(() => props.data?.method || 'GET')
 const url = computed(() => props.data?.url || 'https://...')
-
 </script>
 
 <template>

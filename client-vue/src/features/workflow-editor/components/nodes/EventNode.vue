@@ -4,10 +4,11 @@ import type { EventNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import { computed } from 'vue'
 
-const props = defineProps<NodeProps<EventNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }>()
+const props = defineProps<
+  NodeProps<EventNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+>()
 
 const eventName = computed(() => props.data?.eventName || 'event.name')
-
 </script>
 
 <template>

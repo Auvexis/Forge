@@ -6,7 +6,9 @@ import { computed, onMounted, ref } from 'vue'
 import { apiRequest } from '@/core/api/client'
 import { ENDPOINTS } from '@/core/api/endpoints'
 
-const props = defineProps<NodeProps<PluginNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }>()
+const props = defineProps<
+  NodeProps<PluginNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+>()
 
 const pluginName = computed(() => props.data?.name || props.data?.action || 'Plugin Action')
 const subtitle = computed(() => props.data?.pluginId || 'plugin_action')
@@ -36,7 +38,6 @@ const paramEntries = computed(() => {
 
 const visibleParams = computed(() => paramEntries.value.slice(0, 3))
 const remainingParams = computed(() => Math.max(0, paramEntries.value.length - 3))
-
 </script>
 
 <template>
@@ -55,15 +56,11 @@ const remainingParams = computed(() => Math.max(0, paramEntries.value.length - 3
   >
     <div class="nod8-plugin-body">
       <div v-if="visibleParams.length > 0" class="nod8-plugin-params">
-        <div 
-          v-for="([key, value]) in visibleParams" 
-          :key="key" 
-          class="nod8-plugin-param-row"
-        >
+        <div v-for="[key, value] in visibleParams" :key="key" class="nod8-plugin-param-row">
           <span class="nod8-plugin-param-key" :title="key">{{ key }}:</span>
           <span class="nod8-plugin-param-val" :title="String(value)">{{ String(value) }}</span>
         </div>
-        
+
         <span v-if="remainingParams > 0" class="nod8-plugin-param-more">
           +{{ remainingParams }} more
         </span>

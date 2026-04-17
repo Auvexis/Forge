@@ -4,10 +4,11 @@ import type { SubWorkflowNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import { computed } from 'vue'
 
-const props = defineProps<NodeProps<SubWorkflowNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }>()
+const props = defineProps<
+  NodeProps<SubWorkflowNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+>()
 
 const workflowId = computed(() => props.data?.workflowId || 'not configured')
-
 </script>
 
 <template>

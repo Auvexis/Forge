@@ -6,11 +6,12 @@ import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
 import { computed } from 'vue'
 
-const props = defineProps<NodeProps<LoopNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }>()
+const props = defineProps<
+  NodeProps<LoopNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+>()
 
 const collection = computed(() => props.data?.collection || '—')
 const maxIterations = computed(() => props.data?.maxIterations || 1000)
-
 </script>
 
 <template>
@@ -39,11 +40,10 @@ const maxIterations = computed(() => props.data?.maxIterations || 1000)
 
     <!-- O Loop não tem o "source" nativo do BaseNode, ele tem DOIS handles específicos -->
     <BaseHandle id="loop-body" type="source" :position="Position.Right" style="top: 35%" />
-    <span class="loop-handle-label" style="top: 35%; right: -28px;">Body</span>
+    <span class="loop-handle-label" style="top: 35%; right: -28px">Body</span>
 
     <BaseHandle id="loop-done" type="source" :position="Position.Right" style="top: 65%" />
-    <span class="loop-handle-label" style="top: 65%; right: -28px;">Done</span>
-
+    <span class="loop-handle-label" style="top: 65%; right: -28px">Done</span>
   </BaseNode>
 </template>
 

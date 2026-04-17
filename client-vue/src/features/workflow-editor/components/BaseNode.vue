@@ -6,7 +6,7 @@ import BaseHandle from './BaseHandle.vue'
 
 const props = defineProps<{
   id?: string // O ID real do Node na malha
-  
+
   // Customização Visual Opcional
   title?: string
   subtitle?: string
@@ -14,11 +14,11 @@ const props = defineProps<{
   color?: string
   bg?: string
   badgeText?: string
-  
+
   // Controle Rápido de Handles (Orelhas de conexão)
   hasTarget?: boolean
   hasSource?: boolean
-  
+
   selected?: boolean
   status?: 'idle' | 'running' | 'success' | 'failed'
 }>()
@@ -32,10 +32,7 @@ const statusClasses = computed(() => {
 
 <template>
   <!-- O Card Pai (Envolve tudo) -->
-  <div 
-    class="nod8-base-node"
-    :class="[{ 'is-selected': selected }, statusClasses]"
-  >
+  <div class="nod8-base-node" :class="[{ 'is-selected': selected }, statusClasses]">
     <!-- ID flutuante acima do nó reproduzindo o React -->
     <div v-if="props.id || $slots.badge" class="nod8-base-node__id-badge">
       <slot name="badge">
@@ -47,9 +44,8 @@ const statusClasses = computed(() => {
     <template v-if="props.title || $slots.header">
       <div class="nod8-base-node__header">
         <slot name="header">
-          
           <!-- Box do Ícone -->
-          <div 
+          <div
             v-if="props.icon"
             class="nod8-base-node__icon-box"
             :style="{ color: props.color, backgroundColor: props.bg }"
@@ -61,9 +57,9 @@ const statusClasses = computed(() => {
           <div class="nod8-base-node__title-box">
             <div class="nod8-base-node__title-row">
               <span class="nod8-base-node__title" :title="props.title">{{ props.title }}</span>
-              
+
               <!-- Badge Tag tipo "HTTP", "CODE" -->
-              <span 
+              <span
                 v-if="props.badgeText"
                 class="nod8-base-node__tag"
                 :style="{ color: props.color, backgroundColor: props.bg }"
@@ -72,12 +68,15 @@ const statusClasses = computed(() => {
               </span>
 
               <!-- Status Dot (Bolinha pulsante no rodando) -->
-              <span v-if="props.status && props.status !== 'idle'" class="nod8-base-node__status-dot" :class="`is-${props.status}`"></span>
+              <span
+                v-if="props.status && props.status !== 'idle'"
+                class="nod8-base-node__status-dot"
+                :class="`is-${props.status}`"
+              ></span>
             </div>
-            
+
             <span v-if="props.subtitle" class="nod8-base-node__subtitle">{{ props.subtitle }}</span>
           </div>
-
         </slot>
       </div>
     </template>
@@ -88,19 +87,8 @@ const statusClasses = computed(() => {
     </div>
 
     <!-- HANDLES AUTOMÁTICOS -->
-    <BaseHandle 
-      v-if="props.hasTarget" 
-      id="target" 
-      type="target" 
-      :position="Position.Left" 
-    />
-    <BaseHandle 
-      v-if="props.hasSource" 
-      id="source" 
-      type="source" 
-      :position="Position.Right" 
-    />
-    
+    <BaseHandle v-if="props.hasTarget" id="target" type="target" :position="Position.Left" />
+    <BaseHandle v-if="props.hasSource" id="source" type="source" :position="Position.Right" />
   </div>
 </template>
 
@@ -127,9 +115,15 @@ const statusClasses = computed(() => {
   border-color: var(--nod8-node-selected);
 }
 
-.nod8-base-node.is-running { border-color: var(--nod8-warning); }
-.nod8-base-node.is-success { border-color: var(--nod8-success); }
-.nod8-base-node.is-failed { border-color: var(--nod8-error); }
+.nod8-base-node.is-running {
+  border-color: var(--nod8-warning);
+}
+.nod8-base-node.is-success {
+  border-color: var(--nod8-success);
+}
+.nod8-base-node.is-failed {
+  border-color: var(--nod8-error);
+}
 
 /* ─────────────────────────────────────────────────────────────
    ID BADGE FLUTUANTE
@@ -227,13 +221,25 @@ const statusClasses = computed(() => {
   height: 8px;
   border-radius: 50%;
 }
-.nod8-base-node__status-dot.is-running { background-color: var(--nod8-warning); animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-.nod8-base-node__status-dot.is-success { background-color: var(--nod8-success); }
-.nod8-base-node__status-dot.is-failed { background-color: var(--nod8-error); }
+.nod8-base-node__status-dot.is-running {
+  background-color: var(--nod8-warning);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.nod8-base-node__status-dot.is-success {
+  background-color: var(--nod8-success);
+}
+.nod8-base-node__status-dot.is-failed {
+  background-color: var(--nod8-error);
+}
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────

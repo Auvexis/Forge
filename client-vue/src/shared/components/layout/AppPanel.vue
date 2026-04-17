@@ -78,8 +78,6 @@ useKeyboard(
   display: flex;
   flex-direction: column;
   background-color: var(--nod8-bg-surface);
-  /* The shadow helps separate it from the canvas underneath */
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
 }
 
 /* ── Positioning ───────────────────────────────── */
@@ -87,15 +85,20 @@ useKeyboard(
   top: 0;
   right: 0;
   bottom: 0;
-  border-left: 1px solid var(--nod8-border-strong);
+  border-top: 0;
+  border-left: 1px solid var(--nod8-border);
+  border-right: 0;
+  border-bottom: 0;
 }
 
 .app-panel--left {
   top: 0;
   left: 0;
   bottom: 0;
-  border-right: 1px solid var(--nod8-border-strong);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+  border-right: 1px solid var(--nod8-border);
+  border-top: 0;
+  border-left: 0;
+  border-bottom: 0;
 }
 
 .app-panel--bottom {
@@ -103,8 +106,10 @@ useKeyboard(
   right: 0;
   bottom: 0;
   height: 300px;
-  border-top: 1px solid var(--nod8-border-strong);
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+  border-top: 1px solid var(--nod8-border);
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
 }
 
 /* ── Widths (for left/right) ───────────────────── */

@@ -4,10 +4,11 @@ import type { EventListenerNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import { computed } from 'vue'
 
-const props = defineProps<NodeProps<EventListenerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }>()
+const props = defineProps<
+  NodeProps<EventListenerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+>()
 
 const eventName = computed(() => props.data?.eventName || 'custom.signal')
-
 </script>
 
 <template>
