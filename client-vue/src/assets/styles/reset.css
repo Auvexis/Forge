@@ -1,0 +1,125 @@
+/* =========================================================
+   NOD8 — CSS Reset
+   A minimal, opinionated reset for consistent rendering.
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 2;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--nod8-font-sans);
+  font-size: var(--nod8-text-base);
+  font-weight: var(--nod8-font-normal);
+  line-height: var(--nod8-leading-normal);
+  color: var(--nod8-text-primary);
+  background-color: var(--nod8-bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--nod8-font-semibold);
+  line-height: var(--nod8-leading-tight);
+  color: var(--nod8-text-primary);
+}
+
+a {
+  color: var(--nod8-text-brand);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+p,
+li {
+  line-height: var(--nod8-leading-normal);
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--nod8-font-mono);
+}
+
+/* Scrollbar styling (webkit) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--nod8-bg-muted);
+  border-radius: var(--nod8-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--nod8-bg-subtle);
+}
+
+/* Focus ring — accessible, not obtrusive */
+:focus-visible {
+  outline: 2px solid var(--nod8-accent);
+  outline-offset: 2px;
+  border-radius: var(--nod8-radius-sm);
+}
+
+/* Selection */
+::selection {
+  background: var(--nod8-accent-subtle);
+  color: var(--nod8-text-primary);
+}

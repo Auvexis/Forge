@@ -1,0 +1,156 @@
+/* =========================================================
+   NOD8 — Main CSS Entry
+   Import order matters: tokens → reset → typography → transitions
+   ========================================================= */
+
+@import './tokens.css';
+@import './reset.css';
+@import './typography.css';
+@import './transitions.css';
+
+/* ── Layout Utilities ─────────────────────────────────────── */
+.nod8-fill {
+  width: 100%;
+  height: 100%;
+}
+.nod8-fill-viewport {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.flex {
+  display: flex;
+}
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.items-center {
+  align-items: center;
+}
+.justify-center {
+  justify-content: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.flex-1 {
+  flex: 1 1 0%;
+}
+.flex-none {
+  flex: none;
+}
+.min-w-0 {
+  min-width: 0;
+}
+.gap-1 {
+  gap: var(--nod8-space-1);
+}
+.gap-2 {
+  gap: var(--nod8-space-2);
+}
+.gap-3 {
+  gap: var(--nod8-space-3);
+}
+.gap-4 {
+  gap: var(--nod8-space-4);
+}
+.gap-6 {
+  gap: var(--nod8-space-6);
+}
+
+.relative {
+  position: relative;
+}
+.absolute {
+  position: absolute;
+}
+.inset-0 {
+  inset: 0;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+.overflow-auto {
+  overflow: auto;
+}
+.overflow-y-auto {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.rounded-sm {
+  border-radius: var(--nod8-radius-sm);
+}
+.rounded-md {
+  border-radius: var(--nod8-radius-md);
+}
+.rounded-lg {
+  border-radius: var(--nod8-radius-lg);
+}
+.rounded-xl {
+  border-radius: var(--nod8-radius-xl);
+}
+
+/* ── Glassmorphism Surfaces ──────────────────────────────── */
+.surface {
+  background: var(--nod8-bg-surface);
+  border: 1px solid var(--nod8-border);
+}
+
+.surface-elevated {
+  background: var(--nod8-bg-elevated);
+  border: 1px solid var(--nod8-border-strong);
+  box-shadow: var(--nod8-shadow-md);
+}
+
+.glass {
+  background: rgba(17, 22, 34, 0.75);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  border: 1px solid var(--nod8-border);
+}
+
+/* ── Divider ─────────────────────────────────────────────── */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--nod8-border);
+}
+
+.divider--vertical {
+  width: 1px;
+  height: 100%;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.4;
+}
+
+.icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background-color: var(--nod8-bg-elevated);
+  border: 1px solid var(--nod8-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

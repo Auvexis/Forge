@@ -1,0 +1,271 @@
+/* =========================================================
+   NOD8 — Design Tokens
+   All CSS custom properties that define the design language.
+   Import this file first before any other styles.
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ── Color Palette ──────────────────────────────────────── */
+
+  /* Neutral (dark-first) */
+  --nod8-gray-50: #f6f6f6;
+  --nod8-gray-100: #ededed;
+  --nod8-gray-200: #dddddd;
+  --nod8-gray-300: #c4c4c4;
+  --nod8-gray-400: #9a9a9a;
+  --nod8-gray-500: #6e6e6e;
+  --nod8-gray-600: #4c4c4c;
+  --nod8-gray-700: #333333;
+  --nod8-gray-800: #222222;
+  --nod8-gray-850: #1a1a1a;
+  --nod8-gray-900: #141414;
+  --nod8-gray-950: #0e0e0e;
+
+  /* Brand — Electric Violet */
+  --nod8-brand-50: #f3efff;
+  --nod8-brand-100: #e5d9ff;
+  --nod8-brand-200: #ccb5ff;
+  --nod8-brand-300: #ab84ff;
+  --nod8-brand-400: #8a52ff;
+  --nod8-brand-500: #7c3aed;
+  --nod8-brand-600: #6d28d9;
+  --nod8-brand-700: #5b21b6;
+  --nod8-brand-800: #4c1d95;
+  --nod8-brand-900: #3b1278;
+
+  /* Semantic — Success */
+  --nod8-green-400: #34d399;
+  --nod8-green-500: #10b981;
+  --nod8-green-600: #059669;
+  --nod8-green-900: #064e3b;
+
+  /* Semantic — Warning */
+  --nod8-amber-400: #fbbf24;
+  --nod8-amber-500: #f59e0b;
+  --nod8-amber-900: #78350f;
+
+  /* Semantic — Error */
+  --nod8-red-400: #f87171;
+  --nod8-red-500: #ef4444;
+  --nod8-red-600: #dc2626;
+  --nod8-red-900: #7f1d1d;
+
+  /* Semantic — Info */
+  --nod8-blue-400: #60a5fa;
+  --nod8-blue-500: #3b82f6;
+  --nod8-blue-900: #1e3a5f;
+
+  /* Node type colors */
+  --nod8-node-trigger: #f59e0b;
+  --nod8-node-plugin: #7c3aed;
+  --nod8-node-code: #6366f1;
+  --nod8-node-logic: #0ea5e9;
+  --nod8-node-flow: #14b8a6;
+  --nod8-node-http: #f97316;
+  --nod8-node-integration: #ec4899;
+
+  /* Nod8 colors */
+  --nod8-color-1: #f9b643;
+  --nod8-color-2: #fb923c;
+  --nod8-color-3: #f87171;
+  --nod8-color-4: #e879f9;
+  --nod8-color-5: #c084fc;
+  --nod8-color-6: #818cf8;
+  --nod8-color-7: #60a5fa;
+
+  /* ── Nod8 brand gradient (header strip + emphasis button border) ── */
+  --nod8-brand-gradient: linear-gradient(
+    to right,
+    var(--nod8-color-1),
+    var(--nod8-color-2),
+    var(--nod8-color-3),
+    var(--nod8-color-4),
+    var(--nod8-color-5),
+    var(--nod8-color-6),
+    var(--nod8-color-7)
+  );
+
+  /* ── Semantic UI References ─────────────────────────────── */
+
+  /* Backgrounds */
+  --nod8-bg-base: var(--nod8-gray-950);
+  --nod8-bg-surface: var(--nod8-gray-900);
+  --nod8-bg-elevated: var(--nod8-gray-850);
+  --nod8-bg-overlay: var(--nod8-gray-800);
+  --nod8-bg-muted: var(--nod8-gray-700);
+  --nod8-bg-subtle: var(--nod8-gray-600);
+
+  /* Borders */
+  --nod8-border: rgba(255, 255, 255, 0.07);
+  --nod8-border-muted: rgba(255, 255, 255, 0.04);
+  --nod8-border-strong: rgba(255, 255, 255, 0.14);
+  --nod8-border-brand: rgba(124, 58, 237, 0.6);
+
+  /* Text */
+  --nod8-text-primary: #f2f2f2;
+  --nod8-text-secondary: #a3a3a3;
+  --nod8-text-muted: #737373;
+  --nod8-text-disabled: #525252;
+  --nod8-text-inverse: #0e0e0e;
+  --nod8-text-brand: var(--nod8-brand-300);
+  --nod8-text-success: var(--nod8-green-400);
+  --nod8-text-warning: var(--nod8-amber-400);
+  --nod8-text-error: var(--nod8-red-400);
+
+  /* Brand accent */
+  --nod8-accent: var(--nod8-brand-50);
+  --nod8-accent-hover: var(--nod8-brand-400);
+  --nod8-accent-subtle: rgba(171, 171, 171, 0.15);
+  --nod8-accent-glow: rgba(57, 57, 57, 0.3);
+
+  /* ── Spacing ─────────────────────────────────────────────── */
+  --nod8-space-1: 4px;
+  --nod8-space-2: 8px;
+  --nod8-space-3: 12px;
+  --nod8-space-4: 16px;
+  --nod8-space-5: 20px;
+  --nod8-space-6: 24px;
+  --nod8-space-8: 32px;
+  --nod8-space-10: 40px;
+  --nod8-space-12: 48px;
+  --nod8-space-16: 64px;
+
+  /* ── Border Radius ───────────────────────────────────────── */
+  --nod8-radius-sm: 6px;
+  --nod8-radius-md: 10px;
+  --nod8-radius-lg: 14px;
+  --nod8-radius-xl: 20px;
+  --nod8-radius-full: 9999px;
+
+  /* ── Typography ──────────────────────────────────────────── */
+  --nod8-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --nod8-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  --nod8-text-xs: 11px;
+  --nod8-text-sm: 13px;
+  --nod8-text-base: 15px;
+  --nod8-text-lg: 17px;
+  --nod8-text-xl: 20px;
+  --nod8-text-2xl: 24px;
+  --nod8-text-3xl: 30px;
+
+  --nod8-font-normal: 400;
+  --nod8-font-medium: 500;
+  --nod8-font-semibold: 600;
+  --nod8-font-bold: 700;
+
+  --nod8-leading-tight: 1.25;
+  --nod8-leading-snug: 1.375;
+  --nod8-leading-normal: 1.5;
+  --nod8-leading-loose: 1.75;
+
+  /* ── Shadows ─────────────────────────────────────────────── */
+  --nod8-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --nod8-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --nod8-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --nod8-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6), 0 8px 20px rgba(0, 0, 0, 0.4);
+  --nod8-shadow-brand: 0 0 24px rgba(124, 58, 237, 0.25);
+  --nod8-shadow-glow-green: 0 0 16px rgba(52, 211, 153, 0.3);
+  --nod8-shadow-glow-red: 0 0 16px rgba(248, 113, 113, 0.3);
+  --nod8-shadow-glow-amber: 0 0 16px rgba(251, 191, 36, 0.3);
+
+  /* ── Z-index Scale ───────────────────────────────────────── */
+  --nod8-z-base: 0;
+  --nod8-z-raised: 10;
+  --nod8-z-overlay: 100;
+  --nod8-z-modal: 200;
+  --nod8-z-toast: 300;
+  --nod8-z-tooltip: 400;
+
+  /* ── Transitions ─────────────────────────────────────────── */
+  --nod8-duration-fast: 100ms;
+  --nod8-duration-base: 180ms;
+  --nod8-duration-slow: 300ms;
+  --nod8-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --nod8-ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --nod8-ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ── Layout ─────────────────────────────────────────────── */
+  --nod8-sidebar-width: 48px;
+  --nod8-sidebar-expanded: 240px;
+  --nod8-panel-width: 360px;
+  --nod8-panel-width-wide: 480px;
+  --nod8-dock-height: 48px;
+
+  /* ── React Flow ─────────────────────────────────────────── */
+
+  /* ── Canvas ─────────────────────────────────────────── */
+  --nod8-canvas-bg: #0c0c0c;
+  --nod8-canvas-grid: rgba(255, 255, 255, 0.025);
+
+  /* ── Node Colors ─────────────────────────────────────────── */
+  --nod8-node-header: #161617;
+  --nod8-node-body: #101012;
+  --nod8-node-selected: #4e4e51;
+  --nod8-node-border: #262627;
+
+  /* ── Handle Colors ─────────────────────────────────────────── */
+  --nod8-handle-bg: #101012;
+  --nod8-handle-border: #262627;
+  --nod8-handle-bg-hover: #4e4e51;
+  --nod8-handle-border-hover: #4e4e51;
+
+  /* ── Edge Colors ─────────────────────────────────────────── */
+  --nod8-rf-edge-stroke: #262627;
+  --nod8-rf-edge-stroke-hover: #4e4e51;
+  --nod8-rf-edge-stroke-selected: #4e4e51;
+  --nod8-rf-edge-stroke-error: #4e4e51;
+
+  /* ── Arrow Colors ─────────────────────────────────────────── */
+  --nod8-rf-arrow-stroke: #262627;
+  --nod8-rf-arrow-stroke-selected: #4e4e51;
+
+  /* Nodes */
+  /* Trigger Manual */
+  --nod8-node-trigger-bg: hsla(237, 29%, 73%, 0.095);
+  --nod8-node-trigger-icon: #0e93ffbc;
+  --nod8-node-trigger-webhook-bg: #f59e0b;
+  --nod8-node-trigger-webhook-icon: #f59e0b;
+  --nod8-node-trigger-cron-bg: #f59e0b;
+  --nod8-node-trigger-cron-icon: #f59e0b;
+  --nod8-node-trigger-event-bg: #f59e0b;
+  --nod8-node-trigger-event-icon: #f59e0b;
+
+  /* Plugin */
+  --nod8-node-plugin-bg: #7c3aed;
+  --nod8-node-plugin-icon: #7c3aed;
+
+  /* Code */
+  --nod8-node-code-bg: #6366f1;
+  --nod8-node-code-icon: #6366f1;
+
+  /* Logic */
+  --nod8-node-logic-bg: #0ea5e9;
+  --nod8-node-logic-icon: #0ea5e9;
+
+  /* Flow */
+  --nod8-node-flow-bg: #14b8a6;
+  --nod8-node-flow-icon: #14b8a6;
+
+  /* HTTP */
+  --nod8-node-http-bg: #f97316;
+  --nod8-node-http-icon: #f97316;
+
+  /* Integration */
+  --nod8-node-integration-bg: #ec4899;
+  --nod8-node-integration-icon: #ec4899;
+
+  /* Event */
+  --nod8-node-event-bg: #f59e0b;
+  --nod8-node-event-icon: #f59e0b;
+
+  /* Event Listener */
+  --nod8-node-event-listener-bg: #f59e0b;
+  --nod8-node-event-listener-icon: #f59e0b;
+
+  /* Loop */
+  --nod8-node-loop-bg: #f59e0b;
+  --nod8-node-loop-icon: #f59e0b;
+}

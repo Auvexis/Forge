@@ -1,0 +1,190 @@
+// ─────────────────────────────────────────────────────────────
+//  Workflow Types — mirrors server/src/shared/models/workflow-types.ts
+//  Frontend-owned copy; aligned to the backend contract.
+// ─────────────────────────────────────────────────────────────
+
+// ── Node Types ───────────────────────────────────────────────
+
+export type WorkflowNodeType =
+  | 'plugin'
+  | 'code'
+  | 'if'
+  | 'loop'
+  | 'subworkflow'
+  | 'trigger'
+  | 'http'
+  | 'event'
+  | 'event-listener'
+
+// ── Retry Policy ─────────────────────────────────────────────
+
+export interface RetryPolicy {
+  maxRetries: number
+  backoffStrategy: 'fixed' | 'linear' | 'exponential'
+  intervalSeconds: number
+}
+
+// ── UI Metadata ──────────────────────────────────────────────
+
+export interface WorkflowNodeUI {
+  positionX: number
+  positionY: number
+  icon?: string
+  collapsed?: boolean
+  width?: number
+  height?: number
+}
+
+// ── Base Node ────────────────────────────────────────────────
+
+interface WorkflowNodeBase {
+  type: WorkflowNodeType
+  name: string
+  retryPolicy?: RetryPolicy
+  ui?: WorkflowNodeUI
+}
+
+// ── Plugin Node ──────────────────────────────────────────────
+
+export interface PluginNode extends WorkflowNodeBase {
+  type: 'plugin'
+  pluginId: string
+  action: string
+  params: Record<string, unknown>
+}
+
+// ── Code Node ────────────────────────────────────────────────
+
+export interface CodeNode extends WorkflowNodeBase {
+  type: 'code'
+  language: 'javascript'
+  script: string
+}
+
+// ── If Node ──────────────────────────────────────────────────
+
+export interface IfNode extends WorkflowNodeBase {
+  type: 'if'
+  condition: string
+}
+
+// ── Loop Node ────────────────────────────────────────────────
+
+export interface LoopNode extends WorkflowNodeBase {
+  type: 'loop'
+  collection: string
+  maxIterations: number
+}
+
+// ── SubWorkflow Node ─────────────────────────────────────────
+
+export interface SubWorkflowNode extends WorkflowNodeBase {
+  type: 'subworkflow'
+  workflowId: string
+  inputMapping: Record<string, string>
+}
+
+// ── HTTP Node ────────────────────────────────────────────────
+
+export interface HttpNode extends WorkflowNodeBase {
+  type: 'http'
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  url: string
+  headers?: Record<string, string>
+  body?: string
+  bodyType?: 'json' | 'form' | 'raw'
+  timeout?: number
+  followRedirects?: boolean
+  responseType?: 'json' | 'text'
+}
+
+// ── Event Node ───────────────────────────────────────────────
+
+export interface EventNode extends WorkflowNodeBase {
+  type: 'event'
+  eventName: string
+  payloadMapping: Record<string, string>
+}
+
+// ── Event Listener Node ──────────────────────────────────────
+
+export interface EventListenerNode extends WorkflowNodeBase {
+  type: 'event-listener'
+  eventName: string
+}
+
+// ── Trigger Node ─────────────────────────────────────────────
+
+export interface TriggerNode extends WorkflowNodeBase {
+  type: 'trigger'
+}
+
+// ── Discriminated Union ──────────────────────────────────────
+
+export type WorkflowNode =
+  | PluginNode
+  | CodeNode
+  | IfNode
+  | LoopNode
+  | SubWorkflowNode
+  | TriggerNode
+  | HttpNode
+  | EventNode
+  | EventListenerNode
+
+// ── Edges ────────────────────────────────────────────────────
+
+export interface WorkflowEdge {
+  id: string
+  source: string
+  target: string
+  sourceHandle?: string
+  targetHandle?: string
+  condition?: string
+}
+
+// ── Variables ────────────────────────────────────────────────
+
+export interface WorkflowVariable {
+  name: string
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array'
+  defaultValue?: unknown
+  description?: string
+}
+
+// ── Trigger ──────────────────────────────────────────────────
+
+export interface WorkflowTrigger {
+  type: 'manual' | 'webhook' | 'cron' | 'event'
+  schema?: Record<string, unknown>
+  ui?: WorkflowNodeUI
+  webhookPath?: string
+  webhookMethods?: ('GET' | 'POST' | 'PUT' | 'DELETE')[]
+  webhookSecret?: string
+  cronExpression?: string
+  eventName?: string
+}
+
+// ── Metadata ─────────────────────────────────────────────────
+
+export interface WorkflowMetadata {
+  id: string
+  name: string
+  description?: string
+  version: string
+  isActive: boolean
+  isDraft: boolean
+  public: boolean
+  createdAt: string
+  updatedAt?: string
+}
+
+// ── Root Payload ─────────────────────────────────────────────
+
+export interface WorkflowItem {
+  metadata: WorkflowMetadata
+  trigger: WorkflowTrigger
+  nodes: Record<string, WorkflowNode>
+  edges: WorkflowEdge[]
+  variables?: WorkflowVariable[]
+}

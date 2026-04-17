@@ -1,0 +1,90 @@
+/* =========================================================
+   NOD8 — Shared Transition Classes
+   Used with Vue's <Transition> component.
+   ========================================================= */
+
+/* ── Fade ──────────────────────────────────────────────── */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--nod8-duration-base) var(--nod8-ease-standard);
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* ── Slide Up (panel/modal content) ─────────────────────── */
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition:
+    opacity var(--nod8-duration-slow) var(--nod8-ease-decelerate),
+    transform var(--nod8-duration-slow) var(--nod8-ease-decelerate);
+}
+.slide-up-enter-from,
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+/* ── Slide Right (side panels) ───────────────────────────── */
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition:
+    opacity var(--nod8-duration-base) var(--nod8-ease-standard),
+    transform var(--nod8-duration-base) var(--nod8-ease-standard);
+}
+.slide-right-enter-from,
+.slide-right-leave-to {
+  opacity: 0;
+  transform: translateX(16px);
+}
+
+/* ── Slide Left (reversed) ───────────────────────────────── */
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition:
+    opacity var(--nod8-duration-base) var(--nod8-ease-standard),
+    transform var(--nod8-duration-base) var(--nod8-ease-standard);
+}
+.slide-left-enter-from,
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-16px);
+}
+
+/* ── Scale (popovers, dropdowns) ─────────────────────────── */
+.scale-enter-active,
+.scale-leave-active {
+  transition:
+    opacity var(--nod8-duration-fast) var(--nod8-ease-standard),
+    transform var(--nod8-duration-fast) var(--nod8-ease-standard);
+  transform-origin: top left;
+}
+.scale-enter-from,
+.scale-leave-to {
+  opacity: 0;
+  transform: scale(0.94);
+}
+
+/* ── Toast ───────────────────────────────────────────────── */
+.toast-enter-active {
+  transition:
+    opacity var(--nod8-duration-base) var(--nod8-ease-decelerate),
+    transform var(--nod8-duration-base) var(--nod8-ease-decelerate);
+}
+.toast-leave-active {
+  transition:
+    opacity var(--nod8-duration-base) var(--nod8-ease-accelerate),
+    transform var(--nod8-duration-base) var(--nod8-ease-accelerate);
+}
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(100%);
+}
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+.toast-move {
+  transition: transform var(--nod8-duration-slow) var(--nod8-ease-standard);
+}

@@ -1,0 +1,106 @@
+/* =========================================================
+   NOD8 — Typography Utilities
+   ========================================================= */
+
+.text-xs {
+  font-size: var(--nod8-text-xs);
+  line-height: 1.4;
+}
+.text-sm {
+  font-size: var(--nod8-text-sm);
+  line-height: 1.45;
+}
+.text-base {
+  font-size: var(--nod8-text-base);
+}
+.text-lg {
+  font-size: var(--nod8-text-lg);
+}
+.text-xl {
+  font-size: var(--nod8-text-xl);
+}
+.text-2xl {
+  font-size: var(--nod8-text-2xl);
+}
+.text-3xl {
+  font-size: var(--nod8-text-3xl);
+}
+
+.font-normal {
+  font-weight: var(--nod8-font-normal);
+}
+.font-medium {
+  font-weight: var(--nod8-font-medium);
+}
+.font-semibold {
+  font-weight: var(--nod8-font-semibold);
+}
+.font-bold {
+  font-weight: var(--nod8-font-bold);
+}
+
+.text-primary {
+  color: var(--nod8-text-primary);
+}
+.text-secondary {
+  color: var(--nod8-text-secondary);
+}
+.text-muted {
+  color: var(--nod8-text-muted);
+}
+.text-brand {
+  color: var(--nod8-text-brand);
+}
+.text-success {
+  color: var(--nod8-text-success);
+}
+.text-warning {
+  color: var(--nod8-text-warning);
+}
+.text-error {
+  color: var(--nod8-text-error);
+}
+
+.font-mono {
+  font-family: var(--nod8-font-mono);
+}
+.font-sans {
+  font-family: var(--nod8-font-sans);
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leading-tight {
+  line-height: var(--nod8-leading-tight);
+}
+.leading-normal {
+  line-height: var(--nod8-leading-normal);
+}
+.leading-loose {
+  line-height: var(--nod8-leading-loose);
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+.lowercase {
+  text-transform: lowercase;
+}
+.capitalize {
+  text-transform: capitalize;
+}
+
+.tracking-tight {
+  letter-spacing: -0.02em;
+}
+
+.tracking-wide {
+  letter-spacing: 0.04em;
+}
+.tracking-widest {
+  letter-spacing: 0.1em;
+}
