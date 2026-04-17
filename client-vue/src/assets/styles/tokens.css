@@ -224,8 +224,8 @@
 
   /* Nodes */
   /* Trigger Manual */
-  --nod8-node-trigger-bg: hsla(237, 29%, 73%, 0.095);
-  --nod8-node-trigger-icon: #0e93ffbc;
+  --nod8-node-trigger-bg: rgba(8, 127, 224, 0.05);
+  --nod8-node-trigger-icon: rgb(8, 127, 224);
   --nod8-node-trigger-webhook-bg: #f59e0b;
   --nod8-node-trigger-webhook-icon: #f59e0b;
   --nod8-node-trigger-cron-bg: #f59e0b;
@@ -234,38 +234,59 @@
   --nod8-node-trigger-event-icon: #f59e0b;
 
   /* Plugin */
-  --nod8-node-plugin-bg: #7c3aed;
-  --nod8-node-plugin-icon: #7c3aed;
+  --nod8-node-plugin-bg: rgba(255, 255, 255, 0.05);
+  --nod8-node-plugin-icon: rgb(253, 253, 253);
 
-  /* Code */
-  --nod8-node-code-bg: #6366f1;
-  --nod8-node-code-icon: #6366f1;
-
-  /* Logic */
-  --nod8-node-logic-bg: #0ea5e9;
-  --nod8-node-logic-icon: #0ea5e9;
-
-  /* Flow */
-  --nod8-node-flow-bg: #14b8a6;
-  --nod8-node-flow-icon: #14b8a6;
+  /* Code Block */
+  --nod8-node-codeblock-bg: rgba(129, 219, 13, 0.05);
+  --nod8-node-codeblock-icon: rgb(129, 219, 13);
 
   /* HTTP */
-  --nod8-node-http-bg: #f97316;
-  --nod8-node-http-icon: #f97316;
+  --nod8-node-http-bg: rgba(251, 146, 60, 0.05);
+  --nod8-node-http-icon: rgb(251, 146, 60);
 
-  /* Integration */
-  --nod8-node-integration-bg: #ec4899;
-  --nod8-node-integration-icon: #ec4899;
+  /* Sub Workflow */
+  --nod8-node-subworkflow-bg: rgba(251, 113, 133, 0.05);
+  --nod8-node-subworkflow-icon: rgb(251, 113, 133);
 
   /* Event */
-  --nod8-node-event-bg: #f59e0b;
-  --nod8-node-event-icon: #f59e0b;
+  --nod8-node-event-bg: rgba(250, 204, 21, 0.05);
+  --nod8-node-event-icon: rgb(250, 204, 21);
 
   /* Event Listener */
-  --nod8-node-event-listener-bg: #f59e0b;
-  --nod8-node-event-listener-icon: #f59e0b;
+  --nod8-node-event-listener-bg: rgba(244, 114, 182, 0.05);
+  --nod8-node-event-listener-icon: rgb(244, 114, 182);
 
   /* Loop */
-  --nod8-node-loop-bg: #f59e0b;
-  --nod8-node-loop-icon: #f59e0b;
+  --nod8-node-loop-bg: rgba(34, 211, 238, 0.05);
+  --nod8-node-loop-icon: rgb(34, 211, 238);
+  
+  /* Selections */
+  --nod8-node-if-bg: rgba(167, 139, 250, 0.05);
+  --nod8-node-if-icon: rgb(167, 139, 250);
+
+  /* ── Extra: Node Body Tags (React Equivalents) ── */
+  --nod8-node-http-tag-bg: rgba(251, 146, 60, 0.05);
+  --nod8-node-http-tag-text: rgb(251, 146, 60);
+  --nod8-node-http-tag-border: rgba(251, 146, 60, 0.1);
+
+  --nod8-node-loop-tag-bg: rgba(34, 211, 238, 0.05);
+  --nod8-node-loop-tag-text: rgb(34, 211, 238);
+  --nod8-node-loop-tag-border: rgba(34, 211, 238, 0.1);
+
+  --nod8-node-if-tag-bg: rgba(167, 139, 250, 0.05);
+  --nod8-node-if-tag-text: rgb(167, 139, 250);
+  --nod8-node-if-tag-border: rgba(167, 139, 250, 0.1);
+
+  --nod8-node-subworkflow-tag-bg: rgba(251, 113, 133, 0.05);
+  --nod8-node-subworkflow-tag-text: rgb(251, 113, 133);
+  --nod8-node-subworkflow-tag-border: rgba(251, 113, 133, 0.1);
+
+  --nod8-node-event-tag-bg: rgba(250, 204, 21, 0.05);
+  --nod8-node-event-tag-text: rgb(250, 204, 21);
+  --nod8-node-event-tag-border: rgba(250, 204, 21, 0.1);
+
+  --nod8-node-listener-tag-bg: rgba(244, 114, 182, 0.05);
+  --nod8-node-listener-tag-text: rgb(244, 114, 182);
+  --nod8-node-listener-tag-border: rgba(244, 114, 182, 0.1);
 }

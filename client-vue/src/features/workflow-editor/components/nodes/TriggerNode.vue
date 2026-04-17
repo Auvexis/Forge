@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { WorkflowNode } from '@/core/types/workflow.types'
+import type { NodeProps } from '@vue-flow/core'
+import type { TriggerNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { Position } from '@vue-flow/core'
 import { useWorkflowStore } from '../../stores/workflow.store'
 
-const props = defineProps<{
-  node: WorkflowNode
-  selected?: boolean
-  status?: 'idle' | 'running' | 'success' | 'failed'
-}>()
+const props = defineProps<NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }>()
 
 const store = useWorkflowStore()
 
@@ -34,7 +31,7 @@ const triggerConfig = computed(() => {
 </script>
 
 <template>
-  <BaseNode :selected="selected" :status="status" class="trigger-node">
+  <BaseNode :id="props.id" :selected="props.selected" :status="props.status" class="trigger-node">
     
     <template #header>
       <div 

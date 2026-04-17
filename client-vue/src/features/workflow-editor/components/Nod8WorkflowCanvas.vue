@@ -3,8 +3,15 @@ import { computed } from 'vue'
 import { VueFlow, Handle, Position, MarkerType } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
 import TriggerNode from './nodes/TriggerNode.vue'
+import HttpNode from './nodes/HttpNode.vue'
+import CodeNode from './nodes/CodeNode.vue'
+import LoopNode from './nodes/LoopNode.vue'
+import EventNode from './nodes/EventNode.vue'
+import EventListenerNode from './nodes/EventListenerNode.vue'
+import PluginNode from './nodes/PluginNode.vue'
+import IfNode from './nodes/IfNode.vue'
+import SubWorkflowNode from './nodes/SubWorkflowNode.vue'
 import BaseNode from './BaseNode.vue'
-import BaseHandle from './BaseHandle.vue'
 import BaseEdge from './BaseEdge.vue'
 import { Background } from '@vue-flow/background'
 
@@ -94,129 +101,47 @@ const flowEdges = computed(() => {
 
       <!-- Trigger Node -->
       <template #node-trigger="nodeProps">
-        <TriggerNode :node="nodeProps.data" :selected="nodeProps.selected" />
+        <TriggerNode v-bind="nodeProps" />
       </template>
 
       <!-- HTTP Node -->
       <template #node-http="nodeProps">
-        <BaseNode
-          :id="nodeProps.id"
-          :selected="nodeProps.selected"
-          has-target
-          has-source
-          title="HTTP Request"
-          subtitle="GET https://..."
-          icon="globe"
-          color="var(--nod8-node-http-icon)"
-          bg="var(--nod8-node-http-bg)"
-          badge-text="HTTP"
-        >
-          <div class="text-xs text-muted-foreground p-2">HTTP Body / Settings ficarão aqui</div>
-        </BaseNode>
+        <HttpNode v-bind="nodeProps" />
       </template>
 
       <!-- CODE Node -->
       <template #node-code="nodeProps">
-        <BaseNode
-          :id="nodeProps.id"
-          :selected="nodeProps.selected"
-          has-target
-          has-source
-          title="Code Block"
-          subtitle="JavaScript"
-          icon="code-2"
-          color="var(--nod8-node-code-icon)"
-          bg="var(--nod8-node-code-bg)"
-          badge-text="CODE"
-        >
-          <div class="text-xs font-mono text-muted-foreground p-2 bg-black/20 rounded">
-            return data;
-          </div>
-        </BaseNode>
+        <CodeNode v-bind="nodeProps" />
       </template>
 
       <!-- LOOP Node -->
       <template #node-loop="nodeProps">
-        <BaseNode
-          :id="nodeProps.id"
-          :selected="nodeProps.selected"
-          has-target
-          title="Loop / ForEach"
-          subtitle="Iterate Array"
-          icon="repeat"
-          color="var(--nod8-node-loop-icon)"
-          bg="var(--nod8-node-loop-bg)"
-          badge-text="LOOP"
-        >
-          <div class="text-xs text-muted-foreground p-2">Collection: body.data</div>
-          <!-- Handles Customizados de Saída -->
-          <BaseHandle
-            id="loop-body"
-            type="source"
-            style="top: 35%"
-            :position="Position.Right"
-          />
-          <BaseHandle
-            id="loop-done"
-            type="source"
-            style="top: 65%"
-            :position="Position.Right"
-          />
-        </BaseNode>
+        <LoopNode v-bind="nodeProps" />
       </template>
 
       <!-- EVENT Node -->
       <template #node-event="nodeProps">
-        <BaseNode
-          :id="nodeProps.id"
-          :selected="nodeProps.selected"
-          has-target
-          has-source
-          title="Emit Event"
-          subtitle="Trigger signal"
-          icon="zap"
-          color="var(--nod8-node-event-icon)"
-          bg="var(--nod8-node-event-bg)"
-          badge-text="EVENT"
-        >
-          <div class="text-xs text-muted-foreground p-2">Event: custom.signal</div>
-        </BaseNode>
+        <EventNode v-bind="nodeProps" />
       </template>
 
       <!-- PLUGIN Node -->
       <template #node-plugin="nodeProps">
-        <BaseNode
-          :id="nodeProps.id"
-          :selected="nodeProps.selected"
-          has-target
-          has-source
-          title="Plugin Action"
-          subtitle="plugin_action"
-          icon="box"
-          color="var(--nod8-node-plugin-icon)"
-          bg="var(--nod8-node-plugin-bg)"
-          badge-text="PLUGIN"
-        >
-          <div class="text-xs text-muted-foreground p-2">Google Drive / Upload</div>
-        </BaseNode>
+        <PluginNode v-bind="nodeProps" />
       </template>
 
       <!-- EVENT LISTENER Node -->
       <template #node-event-listener="nodeProps">
-        <BaseNode
-          :id="nodeProps.id"
-          :selected="nodeProps.selected"
-          has-target
-          has-source
-          title="Wait for Event"
-          subtitle="Listener"
-          icon="target"
-          color="var(--nod8-node-event-listener-icon)"
-          bg="var(--nod8-node-event-listener-bg)"
-          badge-text="LISTENER"
-        >
-          <div class="text-xs text-muted-foreground p-2">Wait for: custom.signal</div>
-        </BaseNode>
+        <EventListenerNode v-bind="nodeProps" />
+      </template>
+      
+      <!-- SUBWORKFLOW Node -->
+      <template #node-subworkflow="nodeProps">
+        <SubWorkflowNode v-bind="nodeProps" />
+      </template>
+
+      <!-- IF Node -->
+      <template #node-if="nodeProps">
+        <IfNode v-bind="nodeProps" />
       </template>
     </VueFlow>
   </div>
