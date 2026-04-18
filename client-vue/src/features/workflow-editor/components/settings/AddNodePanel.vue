@@ -1,0 +1,484 @@
+<template>
+  <div class="add-node-panel" style="padding: 0 !important">
+    <!-- Back header (shown when inside a plugin's actions) -->
+    <div v-if="view === 'actions' && selectedPlugin" class="add-node-back-header">
+      <button class="add-node-back-btn" @click="goBack">
+        <LucideIcon name="chevron-left" :size="16" />
+        <span>{{ selectedPlugin.manifest.metadata.name }}</span>
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="add-node-search-wrapper">
+      <div class="add-node-search-inner">
+        <LucideIcon name="search" :size="14" class="add-node-search-icon" />
+        <input
+          ref="searchInput"
+          v-model="search"
+          class="add-node-search-input"
+          :placeholder="searchPlaceholder"
+          autofocus
+        />
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="add-node-content">
+      <!-- Loading -->
+      <div v-if="pluginsLoading" class="add-node-loading">
+        <LucideIcon name="loader-2" :size="20" class="add-node-spinner" />
+        <span>Carregando plugins...</span>
+      </div>
+
+      <!-- View: Categories (default) -->
+      <template v-else-if="view === 'categories'">
+        <!-- Logic & Control -->
+        <div class="add-node-section">
+          <p class="add-node-section-label">Lógica e Controle</p>
+          <div class="add-node-list">
+            <button
+              v-for="def in filteredLogicNodes"
+              :key="def.type"
+              class="add-node-item"
+              @click="onAddLogicNode?.(def.type)"
+            >
+              <div class="add-node-item-icon-well" :style="{ backgroundColor: def.bgColor }">
+                <LucideIcon :name="def.icon" :size="16" :color="def.color" />
+              </div>
+              <div class="add-node-item-info">
+                <span class="add-node-item-label">{{ def.label }}</span>
+                <span class="add-node-item-desc">{{ def.description }}</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Integrations / Plugins -->
+        <div class="add-node-section">
+          <p class="add-node-section-label">Integrações</p>
+          <div v-if="filteredPlugins.length === 0" class="add-node-empty">
+            <LucideIcon name="blocks" :size="32" class="add-node-empty-icon" />
+            <p>Nenhum plugin instalado.</p>
+          </div>
+          <div v-else class="add-node-list">
+            <button
+              v-for="plugin in filteredPlugins"
+              :key="plugin.id"
+              class="add-node-item"
+              @click="selectPlugin(plugin.id)"
+            >
+              <div class="add-node-item-icon-well add-node-item-icon-well--plugin">
+                <img
+                  v-if="isUrl(plugin.manifest.metadata.icon)"
+                  :src="plugin.manifest.metadata.icon"
+                  class="add-node-plugin-img"
+                  alt=""
+                />
+                <LucideIcon v-else :name="plugin.manifest.metadata.icon || 'box'" :size="16" />
+              </div>
+              <div class="add-node-item-info">
+                <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
+                <span class="add-node-item-desc">{{ plugin.manifest.metadata.description }}</span>
+              </div>
+              <LucideIcon name="chevron-right" :size="14" class="add-node-item-chevron" />
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <!-- View: Actions (plugin selected) -->
+      <template v-else-if="view === 'actions' && selectedPlugin">
+        <div class="add-node-list">
+          <button
+            v-for="[methodKey, methodVal] in filteredMethods"
+            :key="methodKey"
+            class="add-node-item"
+            @click="
+              onAddPluginNode?.(selectedPluginId!, methodKey, methodVal.metadata.label || methodKey)
+            "
+          >
+            <div class="add-node-item-icon-well add-node-item-icon-well--plugin">
+              <LucideIcon name="workflow" :size="16" />
+            </div>
+            <div class="add-node-item-info">
+              <span class="add-node-item-label">{{ methodVal.metadata.label || methodKey }}</span>
+              <span class="add-node-item-desc">{{ methodVal.metadata.description }}</span>
+            </div>
+          </button>
+          <div v-if="filteredMethods.length === 0" class="add-node-empty">
+            <p>Nenhuma ação encontrada.</p>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useApi } from '@/shared/composables/useApi'
+import { pluginsApi } from '@/core/api/plugins.api'
+import type { WorkflowNodeType } from '@/core/types/workflow.types'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
+
+defineProps<{
+  onAddLogicNode?: (type: WorkflowNodeType) => void
+  onAddPluginNode?: (pluginId: string, action: string, actionName: string) => void
+}>()
+
+// ── State ────────────────────────────────────────────────────────────────────
+
+type ViewMode = 'categories' | 'actions'
+const view = ref<ViewMode>('categories')
+const selectedPluginId = ref<string | null>(null)
+const search = ref('')
+const searchInput = ref<HTMLInputElement>()
+
+// ── Data ─────────────────────────────────────────────────────────────────────
+
+const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
+
+onMounted(() => {
+  loadPlugins()
+  searchInput.value?.focus()
+})
+
+const selectedPlugin = computed(
+  () => plugins.value?.find((p) => p.id === selectedPluginId.value) ?? null,
+)
+
+// ── Logic Nodes Definitions ───────────────────────────────────────────────────
+
+const LOGIC_NODES = [
+  {
+    type: 'code' as WorkflowNodeType,
+    label: 'Code Block',
+    description: 'Execute JavaScript personalizado em sandbox',
+    icon: 'code-2',
+    color: 'rgb(251, 191, 36)',
+    bgColor: 'rgba(245, 158, 11, 0.1)',
+  },
+  {
+    type: 'if' as WorkflowNodeType,
+    label: 'If / Else',
+    description: 'Desvio de fluxo baseado em condição',
+    icon: 'git-branch',
+    color: 'rgb(167, 139, 250)',
+    bgColor: 'rgba(139, 92, 246, 0.1)',
+  },
+  {
+    type: 'loop' as WorkflowNodeType,
+    label: 'Loop / ForEach',
+    description: 'Iterar sobre uma coleção item a item',
+    icon: 'repeat',
+    color: 'rgb(34, 211, 238)',
+    bgColor: 'rgba(6, 182, 212, 0.1)',
+  },
+  {
+    type: 'subworkflow' as WorkflowNodeType,
+    label: 'Sub-Workflow',
+    description: 'Chamar outro workflow como subpasso',
+    icon: 'layers',
+    color: 'rgb(251, 113, 133)',
+    bgColor: 'rgba(244, 63, 94, 0.1)',
+  },
+  {
+    type: 'http' as WorkflowNodeType,
+    label: 'HTTP Request',
+    description: 'Fazer requisição HTTP para uma API externa',
+    icon: 'globe',
+    color: 'rgb(251, 146, 60)',
+    bgColor: 'rgba(249, 115, 22, 0.1)',
+  },
+  {
+    type: 'event' as WorkflowNodeType,
+    label: 'Event Emitter',
+    description: 'Publicar evento para disparar outros fluxos',
+    icon: 'zap',
+    color: 'rgb(250, 204, 21)',
+    bgColor: 'rgba(234, 179, 8, 0.1)',
+  },
+  {
+    type: 'event-listener' as WorkflowNodeType,
+    label: 'Event Listener',
+    description: 'Aguardar um evento para acionar sub-fluxo',
+    icon: 'target',
+    color: 'rgb(244, 114, 182)',
+    bgColor: 'rgba(236, 72, 153, 0.1)',
+  },
+]
+
+// ── Computed ─────────────────────────────────────────────────────────────────
+
+const searchPlaceholder = computed(() => {
+  if (view.value === 'actions') return 'Buscar ações...'
+  return 'Buscar componentes...'
+})
+
+const filteredLogicNodes = computed(() =>
+  LOGIC_NODES.filter((n) => n.label.toLowerCase().includes(search.value.toLowerCase())),
+)
+
+const filteredPlugins = computed(() =>
+  (plugins.value ?? []).filter((p) =>
+    p.manifest.metadata.name.toLowerCase().includes(search.value.toLowerCase()),
+  ),
+)
+
+const filteredMethods = computed(() => {
+  if (!selectedPlugin.value) return []
+  return Object.entries(selectedPlugin.value.manifest.methods).filter(([key, val]) =>
+    (val.metadata.label || key).toLowerCase().includes(search.value.toLowerCase()),
+  )
+})
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+
+const selectPlugin = (id: string) => {
+  selectedPluginId.value = id
+  view.value = 'actions'
+  search.value = ''
+}
+
+const goBack = () => {
+  view.value = 'categories'
+  selectedPluginId.value = null
+  search.value = ''
+}
+
+// Used by parent (AppPanel header back button is not available) — exposed via provide/inject pattern
+// Instead we emit nothing: the back button sits on the panel header via slot
+
+// Simple URL detect for plugin icons
+const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
+</script>
+
+<style scoped>
+.add-node-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Back header ── */
+.add-node-back-header {
+  padding: var(--nod8-space-2) var(--nod8-space-3);
+  border-bottom: 1px solid var(--nod8-border);
+  flex-shrink: 0;
+}
+
+.add-node-back-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--nod8-space-1);
+  background: transparent;
+  border: none;
+  border-radius: var(--nod8-radius-sm);
+  padding: var(--nod8-space-1) var(--nod8-space-2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--nod8-text-sm);
+  font-weight: 500;
+  color: var(--nod8-text-muted);
+  transition: all var(--nod8-duration-fast);
+  margin-left: -4px;
+}
+
+.add-node-back-btn:hover {
+  color: var(--nod8-text-primary);
+  background-color: var(--nod8-bg-overlay);
+}
+
+/* ── Search ── */
+.add-node-search-wrapper {
+  padding: var(--nod8-space-3) var(--nod8-space-4);
+  border-bottom: 1px solid var(--nod8-border);
+  flex-shrink: 0;
+}
+
+.add-node-search-inner {
+  position: relative;
+}
+
+.add-node-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--nod8-text-muted);
+  pointer-events: none;
+}
+
+.add-node-search-input {
+  width: 100%;
+  background-color: var(--nod8-bg-surface);
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-md);
+  padding: 6px 12px 6px 32px;
+  font-size: var(--nod8-text-sm);
+  font-family: inherit;
+  color: var(--nod8-text-primary);
+  outline: none;
+  transition: border-color var(--nod8-duration-fast);
+  box-sizing: border-box;
+}
+
+.add-node-search-input::placeholder {
+  color: var(--nod8-text-muted);
+}
+
+.add-node-search-input:focus {
+  border-color: var(--nod8-accent);
+}
+
+/* ── Content scroll area ── */
+.add-node-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--nod8-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nod8-space-4);
+}
+
+/* ── Section ── */
+.add-node-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nod8-space-2);
+}
+
+.add-node-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--nod8-text-muted);
+  padding: 0 var(--nod8-space-1);
+}
+
+/* ── List ── */
+.add-node-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ── Item ── */
+.add-node-item {
+  display: flex;
+  align-items: center;
+  gap: var(--nod8-space-3);
+  width: 100%;
+  padding: var(--nod8-space-2) var(--nod8-space-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--nod8-radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--nod8-duration-fast);
+  font-family: inherit;
+  color: var(--nod8-text-primary);
+}
+
+.add-node-item:hover {
+  background-color: var(--nod8-bg-overlay);
+}
+
+.add-node-item:active {
+  background-color: var(--nod8-bg-muted);
+}
+
+/* ── Icon Well ── */
+.add-node-item-icon-well {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--nod8-radius-sm);
+  border: 1px solid var(--nod8-border);
+  flex-shrink: 0;
+}
+
+.add-node-item-icon-well--plugin {
+  background-color: var(--nod8-bg-surface);
+  color: var(--nod8-text-muted);
+}
+
+.add-node-plugin-img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  border-radius: 2px;
+}
+
+/* ── Item Info ── */
+.add-node-item-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.add-node-item-label {
+  font-size: var(--nod8-text-sm);
+  font-weight: 500;
+  color: var(--nod8-text-primary);
+  line-height: 1.3;
+}
+
+.add-node-item-desc {
+  font-size: var(--nod8-text-xs);
+  color: var(--nod8-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+  margin-top: 1px;
+}
+
+.add-node-item-chevron {
+  color: var(--nod8-text-muted);
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+/* ── States ── */
+.add-node-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nod8-space-2);
+  padding: var(--nod8-space-8) 0;
+  color: var(--nod8-text-muted);
+  font-size: var(--nod8-text-xs);
+}
+
+.add-node-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.add-node-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nod8-space-2);
+  padding: var(--nod8-space-8) 0;
+  color: var(--nod8-text-muted);
+  font-size: var(--nod8-text-sm);
+}
+
+.add-node-empty-icon {
+  opacity: 0.2;
+}
+</style>

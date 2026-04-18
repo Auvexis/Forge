@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { VueFlow } from '@vue-flow/core'
+import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
 import TriggerNode from './nodes/TriggerNode.vue'
@@ -17,11 +17,14 @@ import { Background } from '@vue-flow/background'
 
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import NodeEditorDrawer from './settings/NodeEditorDrawer.vue'
+import AddNodePanel from './settings/AddNodePanel.vue'
 import EditorControlsDock from './ui/EditorControlsDock.vue'
+import type { WorkflowNodeType } from '@/core/types/workflow.types'
 
 // Stores
 const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
+const { project, viewport } = useVueFlow()
 
 //
 // ── Inicialização única dos nodes/edges ────────────────────────────────────
@@ -89,6 +92,84 @@ const onNodeClick = (event: NodeMouseEvent) => {
   })
 }
 
+// ── Add Node ─────────────────────────────────────────────────────────────────
+
+/**
+ * Retorna a posição no mundo (canvas coords) do centro atual da viewport.
+ * Usamos isso para adicionar novo node sempre visível na tela.
+ */
+function getCenterPosition(): { x: number; y: number } {
+  const el = document.querySelector('.vue-flow__viewport') as HTMLElement
+  const width = el?.offsetWidth ?? 600
+  const height = el?.offsetHeight ?? 400
+  // project() converte coordenadas da tela pra coordenadas do canvas
+  return project({ x: width / 2, y: height / 2 })
+}
+
+const openAddNodePanel = () => {
+  panelStore.openPanel({
+    title: 'Adicionar Node',
+    component: AddNodePanel,
+    props: {
+      onAddLogicNode: addLogicNode,
+      onAddPluginNode: addPluginNode,
+    },
+    position: 'right',
+    width: 'md',
+  })
+}
+
+const addLogicNode = (type: WorkflowNodeType) => {
+  if (!workflowStore.activeWorkflow) return
+
+  const id = `${type}_${Date.now()}`
+  const pos = getCenterPosition()
+
+  // Adicionar no store
+  workflowStore.activeWorkflow.nodes[id] = {
+    type,
+    name: id,
+    ui: { positionX: pos.x, positionY: pos.y },
+  } as any
+
+  // Adicionar no VueFlow
+  vueFlowNodes.value.push({
+    id,
+    type,
+    position: pos,
+    data: workflowStore.activeWorkflow.nodes[id],
+  })
+
+  workflowStore.markDirty()
+  panelStore.closePanel()
+}
+
+const addPluginNode = (pluginId: string, action: string, actionName: string) => {
+  if (!workflowStore.activeWorkflow) return
+
+  const id = `${action}_${Date.now()}`
+  const pos = getCenterPosition()
+
+  workflowStore.activeWorkflow.nodes[id] = {
+    type: 'plugin',
+    name: actionName,
+    pluginId,
+    action,
+    params: {},
+    ui: { positionX: pos.x, positionY: pos.y },
+  } as any
+
+  vueFlowNodes.value.push({
+    id,
+    type: 'plugin',
+    position: pos,
+    data: workflowStore.activeWorkflow.nodes[id],
+  })
+
+  workflowStore.markDirty()
+  panelStore.closePanel()
+}
+
 /**
  * Sincroniza a nova posição de volta pro store quando o drag termina.
  * Isso garante que o save envie as coordenadas corretas pro backend.
@@ -109,6 +190,7 @@ const onNodeDragStop = (event: NodeDragEvent) => {
  */
 const onConnect = (connection: Connection) => {
   if (!workflowStore.activeWorkflow) return
+
   const newEdge = {
     id: `e-${connection.source}-${connection.target}-${Date.now()}`,
     source: connection.source!,
@@ -116,7 +198,14 @@ const onConnect = (connection: Connection) => {
     sourceHandle: connection.sourceHandle ?? undefined,
     targetHandle: connection.targetHandle ?? undefined,
   }
+
+  // 1. Persiste no store (pra save funcionar)
   workflowStore.activeWorkflow.edges.push(newEdge)
+
+  // 2. Adiciona no ref do VueFlow (pra aparecer na tela imediatamente)
+  //    Com v-model:edges, o VueFlow NÃO adiciona automaticamente ao @connect.
+  vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
+
   workflowStore.markDirty()
 }
 
@@ -153,6 +242,7 @@ const onEdgesChange = (changes: EdgeChange[]) => {
       <EditorControlsDock
         :is-saving="workflowStore.isSaving"
         @save="workflowStore.saveActiveWorkflow()"
+        @add-node="openAddNodePanel"
       />
 
       <!-- MARCADORES SVG CUSTOMIZADOS ATRELADOS ÀS VARIÁVEIS CSS (GLOBAL DOM) -->

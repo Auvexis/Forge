@@ -167,7 +167,6 @@ useKeyboard(
 
 .app-panel__body {
   flex: 1;
-  padding: var(--nod8-space-4);
   overflow-y: auto;
 }
 
