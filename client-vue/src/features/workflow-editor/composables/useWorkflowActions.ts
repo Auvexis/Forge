@@ -16,5 +16,9 @@ export function useWorkflowActions() {
     router.push('/workflows')
   }
 
-  return { openWorkflow, closeWorkflow }
+  function saveWorkflow() {
+    workflowStore.saveActiveWorkflow()
+  }
+
+  return { openWorkflow, closeWorkflow, saveWorkflow }
 }

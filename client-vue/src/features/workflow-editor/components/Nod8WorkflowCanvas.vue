@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { VueFlow, Handle, Position, MarkerType } from '@vue-flow/core'
+import { ref, watch } from 'vue'
+import { VueFlow } from '@vue-flow/core'
+import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
 import TriggerNode from './nodes/TriggerNode.vue'
 import HttpNode from './nodes/HttpNode.vue'
@@ -11,68 +12,124 @@ import EventListenerNode from './nodes/EventListenerNode.vue'
 import PluginNode from './nodes/PluginNode.vue'
 import IfNode from './nodes/IfNode.vue'
 import SubWorkflowNode from './nodes/SubWorkflowNode.vue'
-import BaseNode from './BaseNode.vue'
 import BaseEdge from './BaseEdge.vue'
 import { Background } from '@vue-flow/background'
-import type { NodeMouseEvent } from '@vue-flow/core'
 
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import NodeEditorDrawer from './settings/NodeEditorDrawer.vue'
+import EditorControlsDock from './ui/EditorControlsDock.vue'
 
 // Stores
 const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
 
-// Mapeamentos para o VueFlow
-const flowNodes = computed(() => {
+//
+// ── Inicialização única dos nodes/edges ────────────────────────────────────
+//
+// Usamos refs locais em vez de computed para que o VueFlow seja o "dono"
+// das posições internamente. Se usássemos computed, cada chamada a
+// updateNodeData() (ex: ao arrastar) recalcularia posições de TODOS os nodes
+// via Pinia, o que faz o VueFlow reposicionar os outros nodes com um skip.
+//
+const vueFlowNodes = ref<Node[]>([])
+const vueFlowEdges = ref<Edge[]>([])
+
+function buildNodes() {
   if (!workflowStore.activeWorkflow) return []
 
-  // O backend manda os Nodes como um objeto: Record<string, Node>
-  // O VueFlow exige um array no formato específico: { id, position, data }
-  const normalNodes = Object.entries(workflowStore.activeWorkflow.nodes).map(
+  const normalNodes: Node[] = Object.entries(workflowStore.activeWorkflow.nodes).map(
     ([nodeId, nodeData]) => ({
       id: nodeId,
       type: nodeData.type,
-      // Pegamos do metadata visual salvo no bd:
-      position: { x: nodeData.ui?.positionX || 0, y: nodeData.ui?.positionY || 0 },
-      // Ejetamos todo o conteúdo cru lá do banco pra dentro do 'data' pra usarmos depois
+      position: { x: nodeData.ui?.positionX ?? 0, y: nodeData.ui?.positionY ?? 0 },
       data: nodeData,
     }),
   )
 
-  // O Nod8 Backend isola o "Trigger" FORA da array de "nodes", ele fica na raiz do workflow.
-  // Mas para o VueFlow conseguir pintar ele e conectar os fios, precisamos "injetar" ele de mentira como um nó:
-  const triggerRootNode = {
+  const triggerNode: Node = {
     id: 'trigger',
-    type: 'trigger', // Faz chamar o slot #node-trigger
+    type: 'trigger',
     position: {
-      x: workflowStore.activeWorkflow.trigger.ui?.positionX || 0,
-      y: workflowStore.activeWorkflow.trigger.ui?.positionY || 0,
+      x: workflowStore.activeWorkflow.trigger.ui?.positionX ?? 0,
+      y: workflowStore.activeWorkflow.trigger.ui?.positionY ?? 0,
     },
     data: { type: 'trigger' },
   }
 
-  return [triggerRootNode, ...normalNodes]
-})
+  return [triggerNode, ...normalNodes]
+}
 
-const flowEdges = computed(() => {
+function buildEdges() {
   if (!workflowStore.activeWorkflow) return []
-
   return workflowStore.activeWorkflow.edges.map((edge) => ({
     ...edge,
-    type: 'workflow-edge', // Chama o slot #edge-workflow-edge super poderoso cheio de toolbar!
+    type: 'workflow-edge',
   }))
-})
+}
 
-// Abre a gaveta lateral ao clicar em qualquer Node
+// Reinicializa o VueFlow apenas quando muda o workflow (não a cada edição de campo)
+watch(
+  () => workflowStore.activeWorkflow?.metadata?.id,
+  () => {
+    vueFlowNodes.value = buildNodes()
+    vueFlowEdges.value = buildEdges()
+  },
+  { immediate: true },
+)
+
+// ── Eventos ─────────────────────────────────────────────────────────────────
+
 const onNodeClick = (event: NodeMouseEvent) => {
   panelStore.openPanel({
     title: 'Configurações',
     component: NodeEditorDrawer,
     props: { node: event.node },
-    position: 'left',
-    width: 'md'
+    position: 'right',
+    width: 'lg',
   })
+}
+
+/**
+ * Sincroniza a nova posição de volta pro store quando o drag termina.
+ * Isso garante que o save envie as coordenadas corretas pro backend.
+ */
+const onNodeDragStop = (event: NodeDragEvent) => {
+  const { node } = event
+  workflowStore.updateNodeData(node.id, {
+    ui: {
+      ...(node.data?.ui ?? {}),
+      positionX: node.position.x,
+      positionY: node.position.y,
+    },
+  })
+}
+
+/**
+ * Quando uma nova conexão é criada, sincroniza pro store.
+ */
+const onConnect = (connection: Connection) => {
+  if (!workflowStore.activeWorkflow) return
+  const newEdge = {
+    id: `e-${connection.source}-${connection.target}-${Date.now()}`,
+    source: connection.source!,
+    target: connection.target!,
+    sourceHandle: connection.sourceHandle ?? undefined,
+    targetHandle: connection.targetHandle ?? undefined,
+  }
+  workflowStore.activeWorkflow.edges.push(newEdge)
+  workflowStore.markDirty()
+}
+
+type EdgeChange = { type: string; id?: string }
+const onEdgesChange = (changes: EdgeChange[]) => {
+  const removals = changes.filter((c) => c.type === 'remove')
+  if (removals.length && workflowStore.activeWorkflow) {
+    const removedIds = new Set(removals.map((c) => c.id))
+    workflowStore.activeWorkflow.edges = workflowStore.activeWorkflow.edges.filter(
+      (e) => !removedIds.has(e.id),
+    )
+    workflowStore.markDirty()
+  }
 }
 </script>
 
@@ -80,8 +137,8 @@ const onNodeClick = (event: NodeMouseEvent) => {
   <!-- O contêiner pai deve sempre ter uma altura/largura definida para o VueFlow renderizar -->
   <div class="nod8-workflow-canvas nod8-fill">
     <VueFlow
-      :nodes="flowNodes"
-      :edges="flowEdges"
+      v-model:nodes="vueFlowNodes"
+      v-model:edges="vueFlowEdges"
       :default-zoom="1.5"
       :min-zoom="0.2"
       :max-zoom="4"
@@ -89,7 +146,15 @@ const onNodeClick = (event: NodeMouseEvent) => {
       :snap-to-grid="true"
       :snap-grid="[10, 10]"
       @node-click="onNodeClick"
+      @node-drag-stop="onNodeDragStop"
+      @connect="onConnect"
+      @edges-change="onEdgesChange"
     >
+      <EditorControlsDock
+        :is-saving="workflowStore.isSaving"
+        @save="workflowStore.saveActiveWorkflow()"
+      />
+
       <!-- MARCADORES SVG CUSTOMIZADOS ATRELADOS ÀS VARIÁVEIS CSS (GLOBAL DOM) -->
       <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
         <defs>

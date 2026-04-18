@@ -3,15 +3,18 @@
     <div v-if="node" class="node-editor__content">
       <div class="node-editor__info surface-elevated-pressed">
         <LucideIcon :name="iconName" :size="24" :color="nodeColor" class="mb-2" />
-        <h4 class="node-title">{{ node.data?.name || node.data?.action || node.type?.toUpperCase() }}</h4>
+        <h4 class="node-title">
+          {{ node.data?.name || node.data?.action || node.type?.toUpperCase() }}
+        </h4>
         <div class="node-id-badge">{{ node.id }}</div>
       </div>
 
       <div class="node-editor__form">
         <p class="text-sm text-muted-foreground mt-4">
-          Configurações para o node do tipo <strong class="text-primary">{{ node.type }}</strong> em breve.
+          Configurações para o node do tipo <strong class="text-primary">{{ node.type }}</strong> em
+          breve.
         </p>
-        
+
         <!-- Placeholder Form -->
         <div class="field-dev mt-4">
           <label>Node ID</label>
@@ -19,7 +22,7 @@
         </div>
       </div>
     </div>
-    
+
     <div v-else class="node-editor__empty">
       <p>Nenhum Node selecionado</p>
     </div>
