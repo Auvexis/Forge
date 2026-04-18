@@ -3,11 +3,13 @@ import { computed } from 'vue'
 import { Position } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseHandle from './BaseHandle.vue'
+import NodeShimmer from './nodes/NodeShimmer.vue'
+import NodeToolbar from './nodes/NodeToolbar.vue'
+import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
 
 const props = defineProps<{
-  id?: string // O ID real do Node na malha
+  id?: string
 
-  // Customização Visual Opcional
   title?: string
   subtitle?: string
   icon?: string
@@ -15,7 +17,6 @@ const props = defineProps<{
   bg?: string
   badgeText?: string
 
-  // Controle Rápido de Handles (Orelhas de conexão)
   hasTarget?: boolean
   hasSource?: boolean
 
@@ -23,28 +24,52 @@ const props = defineProps<{
   status?: 'idle' | 'running' | 'success' | 'failed'
 }>()
 
-// Classes computadas baseadas no status de execução
-const statusClasses = computed(() => {
-  if (!props.status || props.status === 'idle') return ''
-  return `is-${props.status}`
+const executionStore = useExecutionStore()
+
+// Execution store status takes priority over the prop so every node reflects
+// live SSE status automatically without changes in individual node components.
+const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() => {
+  if (props.id) {
+    const storeStatus = executionStore.nodeStatuses[props.id]?.status
+    if (storeStatus && storeStatus !== 'idle') return storeStatus
+  }
+  return props.status ?? 'idle'
 })
+
+const statusClasses = computed(() => {
+  if (effectiveStatus.value === 'idle') return ''
+  return `is-${effectiveStatus.value}`
+})
+
+// Toolbar is always visible when the node is selected (JS-driven).
+// Hover-based visibility is handled purely via CSS :hover so the browser's
+// native hover detection covers the node, the gap bridge AND the toolbar
+// itself — no JavaScript timers or event-listener races needed.
+const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!props.selected)
 </script>
 
 <template>
-  <!-- O Card Pai (Envolve tudo) -->
   <div class="nod8-base-node" :class="[{ 'is-selected': selected }, statusClasses]">
-    <!-- ID flutuante acima do nó reproduzindo o React -->
+    <!-- Shimmer overlay while running -->
+    <NodeShimmer v-if="effectiveStatus === 'running'" />
+
+    <!-- Floating ID badge above the node -->
     <div v-if="props.id || $slots.badge" class="nod8-base-node__id-badge">
       <slot name="badge">
+        <!-- Status dot: only rendered when an execution result is available -->
+        <span
+          v-if="effectiveStatus !== 'idle'"
+          class="nod8-base-node__id-dot"
+          :class="`is-${effectiveStatus}`"
+        />
         {{ props.id }}
       </slot>
     </div>
 
-    <!-- HEADER: Se passarmos o Title, ele monta o Header padronizado. Senão, libera o slot manual. -->
+    <!-- HEADER -->
     <template v-if="props.title || $slots.header">
       <div class="nod8-base-node__header">
         <slot name="header">
-          <!-- Box do Ícone -->
           <div
             v-if="props.icon"
             class="nod8-base-node__icon-box"
@@ -53,12 +78,10 @@ const statusClasses = computed(() => {
             <LucideIcon :name="props.icon" :size="16" />
           </div>
 
-          <!-- Textos: Título, Badge Menor, Status Dot e Subtítulo -->
           <div class="nod8-base-node__title-box">
             <div class="nod8-base-node__title-row">
               <span class="nod8-base-node__title" :title="props.title">{{ props.title }}</span>
 
-              <!-- Badge Tag tipo "HTTP", "CODE" -->
               <span
                 v-if="props.badgeText"
                 class="nod8-base-node__tag"
@@ -67,11 +90,11 @@ const statusClasses = computed(() => {
                 {{ props.badgeText }}
               </span>
 
-              <!-- Status Dot (Bolinha pulsante no rodando) -->
+              <!-- Pulsing dot in the header row -->
               <span
-                v-if="props.status && props.status !== 'idle'"
+                v-if="effectiveStatus !== 'idle'"
                 class="nod8-base-node__status-dot"
-                :class="`is-${props.status}`"
+                :class="`is-${effectiveStatus}`"
               ></span>
             </div>
 
@@ -81,53 +104,78 @@ const statusClasses = computed(() => {
       </div>
     </template>
 
-    <!-- CONTEÚDO (BODY) -->
+    <!-- BODY -->
     <div class="nod8-base-node__content">
       <slot></slot>
     </div>
 
-    <!-- HANDLES AUTOMÁTICOS -->
+    <!-- AUTO HANDLES -->
     <BaseHandle v-if="props.hasTarget" id="target" type="target" :position="Position.Left" />
     <BaseHandle v-if="props.hasSource" id="source" type="source" :position="Position.Right" />
+
+    <!-- Toolbar: JS-visible when selected; CSS-visible on :hover (see styles below) -->
+    <NodeToolbar
+      v-if="props.id && props.id !== 'trigger'"
+      :node-id="props.id"
+      :visible="showToolbar"
+    />
+
+    <!--
+      Invisible bridge that fills the gap between the node's bottom border
+      and the toolbar positioned 40 px below.  Because this div IS a DOM
+      descendant, the browser keeps .nod8-base-node:hover true while the
+      cursor traverses the gap — so the CSS :hover rule below never drops
+      out, eliminating the flicker without any JS timers.
+    -->
+    <div
+      v-if="props.id && props.id !== 'trigger'"
+      class="nod8-base-node__toolbar-bridge"
+      aria-hidden="true"
+    />
   </div>
 </template>
 
 <style scoped>
+/* ─── Shell ──────────────────────────────────────────────────── */
 .nod8-base-node {
   position: relative;
   min-width: 240px;
   max-width: 340px;
   background-color: var(--nod8-node-body);
   border: 1px solid var(--nod8-node-border);
-  transition: all 0.15s ease;
-  overflow: visible; /* Vital para o badge e para os Handles vazarem */
-
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  overflow: visible;
   border-radius: var(--nod8-radius-md);
   display: flex;
   flex-direction: column;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   ESTADOS (SELEÇÃO E EXECUÇÃO)
-   ───────────────────────────────────────────────────────────── */
-
+/* ─── Selection & execution status borders ───────────────────── */
 .nod8-base-node.is-selected {
   border-color: var(--nod8-node-selected);
 }
 
+/* Running — amber */
 .nod8-base-node.is-running {
-  border-color: var(--nod8-warning);
-}
-.nod8-base-node.is-success {
-  border-color: var(--nod8-success);
-}
-.nod8-base-node.is-failed {
-  border-color: var(--nod8-error);
+  border-color: var(--nod8-amber-400);
+  box-shadow: 0 0 0 1px var(--nod8-amber-400);
 }
 
-/* ─────────────────────────────────────────────────────────────
-   ID BADGE FLUTUANTE
-   ───────────────────────────────────────────────────────────── */
+/* Success — green */
+.nod8-base-node.is-success {
+  border-color: var(--nod8-green-400);
+  box-shadow: 0 0 0 1px var(--nod8-green-400);
+}
+
+/* Failed — red */
+.nod8-base-node.is-failed {
+  border-color: var(--nod8-red-400);
+  box-shadow: 0 0 0 1px var(--nod8-red-400);
+}
+
+/* ─── ID badge ───────────────────────────────────────────────── */
 .nod8-base-node__id-badge {
   position: absolute;
   top: -21.5px;
@@ -143,15 +191,48 @@ const statusClasses = computed(() => {
   z-index: 10;
   cursor: text;
   transition: color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .nod8-base-node__id-badge:hover {
   color: var(--nod8-text-primary);
 }
 
-/* ─────────────────────────────────────────────────────────────
-   HEADER UNIFICADO (TÍtulo, Ícone)
-   ───────────────────────────────────────────────────────────── */
+/* Status dot inside the ID badge */
+.nod8-base-node__id-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nod8-base-node__id-dot.is-running {
+  background-color: var(--nod8-amber-400);
+  animation: badge-pulse 1.5s ease-in-out infinite;
+}
+
+.nod8-base-node__id-dot.is-success {
+  background-color: var(--nod8-green-400);
+}
+
+.nod8-base-node__id-dot.is-failed {
+  background-color: var(--nod8-red-400);
+}
+
+@keyframes badge-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ─── Header ─────────────────────────────────────────────────── */
 .nod8-base-node__header {
   display: flex;
   align-items: center;
@@ -211,9 +292,7 @@ const statusClasses = computed(() => {
   text-overflow: ellipsis;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   STATUS DOT (Bolinha de acompanhamento)
-   ───────────────────────────────────────────────────────────── */
+/* ─── Status dot (header row) ────────────────────────────────── */
 .nod8-base-node__status-dot {
   display: block;
   flex-shrink: 0;
@@ -221,15 +300,18 @@ const statusClasses = computed(() => {
   height: 8px;
   border-radius: 50%;
 }
+
 .nod8-base-node__status-dot.is-running {
-  background-color: var(--nod8-warning);
+  background-color: var(--nod8-amber-400);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
 .nod8-base-node__status-dot.is-success {
-  background-color: var(--nod8-success);
+  background-color: var(--nod8-green-400);
 }
+
 .nod8-base-node__status-dot.is-failed {
-  background-color: var(--nod8-error);
+  background-color: var(--nod8-red-400);
 }
 
 @keyframes pulse {
@@ -242,13 +324,44 @@ const statusClasses = computed(() => {
   }
 }
 
-/* ─────────────────────────────────────────────────────────────
-   CONTEÚDO E RODAPÉ
-   ───────────────────────────────────────────────────────────── */
+/* ─── Body ───────────────────────────────────────────────────── */
 .nod8-base-node__content {
   display: flex;
   flex-direction: column;
   padding: var(--nod8-space-3);
   gap: var(--nod8-space-2);
+}
+
+/* ─── Toolbar hover via CSS ──────────────────────────────────── */
+/*
+  Using CSS :hover instead of JS mouseleave/mouseenter because:
+
+  - The browser keeps an element :hover when the cursor is over ANY
+    descendant (even absolutely-positioned ones).
+  - The bridge div below this node fills the gap between the node's
+    bottom edge and the toolbar, so :hover stays true while the cursor
+    traverses that gap.
+  - The toolbar itself is also a descendant, so hovering over its
+    buttons keeps :hover true — no JS timers, no pointer-events races.
+
+  The :deep() combinator pierces the component boundary so we can
+  style .nt-toolbar inside NodeToolbar from here.
+*/
+.nod8-base-node:hover :deep(.nt-toolbar) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ─── Toolbar gap bridge ─────────────────────────────────────── */
+/*
+  Transparent child that fills the visual gap so :hover never drops
+  while the cursor moves from the node card down to the toolbar.
+*/
+.nod8-base-node__toolbar-bridge {
+  position: absolute;
+  bottom: -40px; /* matches .nt-toolbar bottom value */
+  left: 0;
+  right: 0;
+  height: 40px;
 }
 </style>

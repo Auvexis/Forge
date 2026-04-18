@@ -56,6 +56,18 @@
         {{ isSaving ? 'Saving…' : 'Save' }}
       </BaseButton>
 
+      <!-- ── Logs ── -->
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        icon-left="scroll-text"
+        class="dock-btn"
+        :class="{ 'dock-btn--active': isLogsOpen }"
+        @click="$emit('toggle-logs')"
+      >
+        Logs
+      </BaseButton>
+
       <div :style="{ height: '24px', width: '1.5px', backgroundColor: 'var(--nod8-border)' }"></div>
 
       <!-- ── Custom Zoom Slider ── -->
@@ -119,6 +131,7 @@ defineProps<{
   isSaving?: boolean
   isExecuting?: boolean
   isStreaming?: boolean
+  isLogsOpen?: boolean
 }>()
 
 defineEmits<{
@@ -127,6 +140,7 @@ defineEmits<{
   (e: 'add-node'): void
   (e: 'import'): void
   (e: 'save'): void
+  (e: 'toggle-logs'): void
 }>()
 
 const workflowStore = useWorkflowStore()
@@ -148,6 +162,11 @@ const onSliderChange = (event: Event) => {
   justify-content: center;
   padding: var(--nod8-space-2);
   border-radius: var(--nod8-radius-sm);
+}
+
+.dock-btn--active {
+  background-color: var(--nod8-accent-subtle) !important;
+  color: var(--nod8-text-primary) !important;
 }
 
 .text-primary {

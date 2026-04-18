@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, markRaw } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
+import { useExecutionStore } from '../stores/execution.store'
 import TriggerNode from './nodes/TriggerNode.vue'
 import HttpNode from './nodes/HttpNode.vue'
 import CodeNode from './nodes/CodeNode.vue'
@@ -19,12 +20,18 @@ import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import NodeEditorDrawer from './settings/NodeEditorDrawer.vue'
 import AddNodePanel from './settings/AddNodePanel.vue'
 import EditorControlsDock from './ui/EditorControlsDock.vue'
+import RunWorkflowPanel from './execution/RunWorkflowPanel.vue'
+import ExecutionLogsPanel from './execution/ExecutionLogsPanel.vue'
 import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
 
 // Stores
 const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
+const executionStore = useExecutionStore()
 const { project } = useVueFlow()
+
+// ── Execution / Logs UI state ──────────────────────────────────────────────
+const showLogs = ref(false)
 
 //
 // ── Inicialização única dos nodes/edges ────────────────────────────────────
@@ -117,6 +124,42 @@ const openAddNodePanel = () => {
     position: 'right',
     width: 'md',
   })
+}
+
+// ── Run / Stop ────────────────────────────────────────────────────────────
+
+/**
+ * Smart run: if the trigger has manual input fields, opens RunWorkflowPanel
+ * so the user can fill them in. Otherwise executes immediately.
+ */
+async function handleRun() {
+  if (!workflowStore.activeWorkflow) return
+
+  const schema = workflowStore.activeWorkflow.trigger.schema ?? {}
+
+  if (Object.keys(schema).length > 0) {
+    panelStore.openPanel({
+      title: 'Run Workflow',
+      component: markRaw(RunWorkflowPanel),
+      props: {
+        workflowId: workflowStore.activeWorkflow.metadata.id,
+        schema,
+        triggerType: workflowStore.activeWorkflow.trigger.type,
+      },
+      position: 'right',
+      width: 'md',
+    })
+  } else {
+    await executionStore.execute(workflowStore.activeWorkflow.metadata.id)
+  }
+}
+
+async function handleStop() {
+  await executionStore.cancel()
+}
+
+function handleToggleLogs() {
+  showLogs.value = !showLogs.value
 }
 
 const addLogicNode = (type: WorkflowNodeType) => {
@@ -241,9 +284,23 @@ const onEdgesChange = (changes: EdgeChange[]) => {
     >
       <EditorControlsDock
         :is-saving="workflowStore.isSaving"
+        :is-executing="executionStore.isExecuting"
+        :is-streaming="executionStore.isStreaming"
+        :is-logs-open="showLogs"
         @save="workflowStore.saveActiveWorkflow()"
         @add-node="openAddNodePanel"
+        @run="handleRun"
+        @stop="handleStop"
+        @toggle-logs="handleToggleLogs"
       />
+
+      <!-- Execution Logs floating panel — centered above the canvas -->
+      <div v-if="showLogs && workflowStore.activeWorkflow" class="canvas-logs-overlay">
+        <ExecutionLogsPanel
+          :workflow-id="workflowStore.activeWorkflow.metadata.id"
+          @close="showLogs = false"
+        />
+      </div>
 
       <!-- MARCADORES SVG CUSTOMIZADOS ATRELADOS ÀS VARIÁVEIS CSS (GLOBAL DOM) -->
       <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
@@ -339,5 +396,14 @@ const onEdgesChange = (changes: EdgeChange[]) => {
 .nod8-workflow-canvas {
   width: 100%;
   height: 100%;
+}
+/* Execution logs overlay — floats centered at the top of the canvas */
+.canvas-logs-overlay {
+  position: absolute;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  pointer-events: auto;
 }
 </style>

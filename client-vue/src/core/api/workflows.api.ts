@@ -5,8 +5,41 @@
 import { apiRequest } from './client'
 import { ENDPOINTS } from './endpoints'
 import { API_BASE_URL } from '../constants/app'
-import type { WorkflowItem, WorkflowMetadata } from '../types/workflow.types'
-import type { ExecutionLog } from '../types/execution.types'
+import type { WorkflowItem } from '../types/workflow.types'
+import type { ExecutionLog, WorkflowExecutionStatus } from '../types/execution.types'
+
+// ── Server response shape (snake_case from SQLite row) ────────
+
+/**
+ * Raw execution log as returned by the server before field mapping.
+ * The backend stores and returns snake_case column names directly.
+ */
+interface ServerExecutionLog {
+  id: string
+  workflow_id: string
+  status: string
+  start_time: number
+  end_time: number | null
+  context_state: {
+    trigger?: unknown
+    steps?: Record<string, { status: string; output?: unknown; error?: string }>
+    variables?: Record<string, unknown>
+  }
+}
+
+/** Maps a raw server execution log to the camelCase ExecutionLog type. */
+function mapExecutionLog(raw: ServerExecutionLog): ExecutionLog {
+  return {
+    id: raw.id,
+    workflowId: raw.workflow_id,
+    status: raw.status as WorkflowExecutionStatus,
+    startedAt: raw.start_time,
+    endedAt: raw.end_time,
+    context: raw.context_state,
+  }
+}
+
+// ── API ───────────────────────────────────────────────────────
 
 export const workflowsApi = {
   /** Get all workflows */
@@ -16,7 +49,7 @@ export const workflowsApi = {
   getById: (id: string) => apiRequest<WorkflowItem>(ENDPOINTS.WORKFLOW_BY_ID(id)),
 
   /** Get a workflow schema (includes resolved plugin definitions) */
-  getSchema: (id: string) => apiRequest<any>(ENDPOINTS.WORKFLOW_SCHEMA(id)),
+  getSchema: (id: string) => apiRequest<unknown>(ENDPOINTS.WORKFLOW_SCHEMA(id)),
 
   /** Create a new workflow */
   create: (workflow: WorkflowItem) =>
@@ -46,8 +79,18 @@ export const workflowsApi = {
 
   // ── Executions ──────────────────────────────────────────────
 
-  /** Get execution history for a workflow */
-  getExecutions: (id: string) => apiRequest<ExecutionLog[]>(ENDPOINTS.EXECUTIONS_BY_WORKFLOW(id)),
+  /**
+   * Get execution history for a workflow.
+   *
+   * The server stores and returns executions with snake_case column names
+   * (start_time, end_time, workflow_id, context_state). This method maps
+   * those to the camelCase ExecutionLog shape expected by the frontend so
+   * that callers never have to deal with the raw server format.
+   */
+  getExecutions: async (id: string): Promise<ExecutionLog[]> => {
+    const raw = await apiRequest<ServerExecutionLog[]>(ENDPOINTS.EXECUTIONS_BY_WORKFLOW(id))
+    return raw.map(mapExecutionLog)
+  },
 
   /** Clear execution history for a workflow */
   clearExecutions: (id: string) =>
@@ -64,7 +107,7 @@ export const workflowsApi = {
 
     return apiRequest<{ executionId: string }>(ENDPOINTS.EXECUTE_WORKFLOW(id), {
       method: 'POST',
-      body: payload || {},
+      body: payload ?? {},
       headers,
     })
   },
@@ -77,7 +120,11 @@ export const workflowsApi = {
 
   /**
    * Create an EventSource for streaming execution status.
-   * Note: The execution must have been triggered first to exist.
+   *
+   * NOTE: The server writes all events as bare `data:` lines with no
+   * `event:` name. Consumers must use `eventSource.onmessage` and dispatch
+   * on the `type` field inside the parsed payload — not named addEventListener
+   * calls like addEventListener('node:start', ...).
    */
   createExecutionStream: (executionId: string): EventSource => {
     return new EventSource(`${API_BASE_URL}${ENDPOINTS.STREAM_EXECUTION(executionId)}`)

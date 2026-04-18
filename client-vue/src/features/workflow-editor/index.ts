@@ -1,4 +1,5 @@
 export { useWorkflowStore } from './stores/workflow.store'
+export { useExecutionStore } from './stores/execution.store'
 export { useWorkflowActions } from './composables/useWorkflowActions'
 
 // Components
