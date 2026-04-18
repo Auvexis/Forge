@@ -3,11 +3,7 @@
     <!-- Search bar -->
     <div class="vt-search">
       <LucideIcon name="search" size="12" class="vt-search-icon" />
-      <input
-        class="vt-search-input"
-        placeholder="Buscar variáveis..."
-        v-model="search"
-      />
+      <input class="vt-search-input" placeholder="Buscar variáveis..." v-model="search" />
     </div>
 
     <!-- Grouped chips -->
@@ -41,12 +37,18 @@ import type { GraphNode } from '@vue-flow/core'
 import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { resolveSchemaTree, resolveTriggerPaths, type SchemaPath } from '@/core/utils/schemaResolver'
+import {
+  resolveSchemaTree,
+  resolveTriggerPaths,
+  type SchemaPath,
+} from '@/core/utils/schemaResolver'
+import type { WorkflowTrigger, WorkflowNode, PluginNode } from '@/core/types/workflow.types'
+import type { NodeData } from './types'
 
 const props = defineProps<{
   paramKey: string
-  upstreamNodes: GraphNode<any>[]
-  nodes: GraphNode<any>[]
+  upstreamNodes: GraphNode<NodeData>[]
+  nodes: GraphNode<NodeData>[]
 }>()
 
 const emit = defineEmits<{
@@ -73,10 +75,10 @@ const getVariableDisplayLabel = (path: string, fallbackLabel: string): string =>
 
 const allPaths = computed(() => {
   const paths: SchemaPath[] = []
-  
+
   for (const upNode of props.upstreamNodes) {
     if (upNode.id === 'trigger') {
-      const triggerData = upNode.data as any
+      const triggerData = upNode.data as WorkflowTrigger
       if (triggerData?.schema) {
         paths.push(...resolveTriggerPaths(triggerData.schema))
       }
@@ -85,28 +87,29 @@ const allPaths = computed(() => {
           path: 'trigger',
           label: 'trigger.payload',
           type: 'object',
-          sourceNodeName: 'Trigger'
+          sourceNodeName: 'Trigger',
         })
       }
       continue
     }
 
-    const upData = upNode.data as any
+    const upData = upNode.data as unknown as WorkflowNode
     const nodeName: string = upData.name || upNode.id
 
-    if (!upData.pluginId) {
+    if (!('pluginId' in upData)) {
       paths.push({
         path: `steps.${upNode.id}.output`,
         label: 'output',
         type: 'any',
-        sourceNodeName: nodeName
+        sourceNodeName: nodeName,
       })
       continue
     }
 
-    const upPlugin = plugins.value?.find((p) => p.id === upData.pluginId)
-    const upMethod = upPlugin?.manifest.methods[upData.action]
-    
+    const pluginNodeData = upData as PluginNode
+    const upPlugin = plugins.value?.find((p) => p.id === pluginNodeData.pluginId)
+    const upMethod = upPlugin?.manifest.methods[pluginNodeData.action]
+
     if (upMethod?.responseSchema) {
       paths.push(...resolveSchemaTree(upNode.id, nodeName, upMethod.responseSchema))
     } else {
@@ -114,7 +117,7 @@ const allPaths = computed(() => {
         path: `steps.${upNode.id}.output`,
         label: 'output',
         type: 'any',
-        sourceNodeName: nodeName
+        sourceNodeName: nodeName,
       })
     }
   }
@@ -127,7 +130,7 @@ const allPaths = computed(() => {
     seen.add(p.path)
     deduped.push(p)
   }
-  
+
   return deduped
 })
 
@@ -138,7 +141,7 @@ const filteredPaths = computed(() => {
     (p) =>
       p.path.toLowerCase().includes(lowerSearch) ||
       p.label.toLowerCase().includes(lowerSearch) ||
-      p.sourceNodeName.toLowerCase().includes(lowerSearch)
+      p.sourceNodeName.toLowerCase().includes(lowerSearch),
   )
 })
 

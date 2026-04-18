@@ -152,11 +152,18 @@ export interface WorkflowVariable {
   description?: string
 }
 
+// ── Trigger Schema Field ─────────────────────────────────────
+
+export interface WorkflowSchemaField {
+  type: 'string' | 'number' | 'file'
+  required: boolean
+}
+
 // ── Trigger ──────────────────────────────────────────────────
 
 export interface WorkflowTrigger {
   type: 'manual' | 'webhook' | 'cron' | 'event'
-  schema?: Record<string, unknown>
+  schema?: Record<string, WorkflowSchemaField>
   ui?: WorkflowNodeUI
   webhookPath?: string
   webhookMethods?: ('GET' | 'POST' | 'PUT' | 'DELETE')[]

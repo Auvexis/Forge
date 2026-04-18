@@ -19,12 +19,12 @@ import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import NodeEditorDrawer from './settings/NodeEditorDrawer.vue'
 import AddNodePanel from './settings/AddNodePanel.vue'
 import EditorControlsDock from './ui/EditorControlsDock.vue'
-import type { WorkflowNodeType } from '@/core/types/workflow.types'
+import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
 
 // Stores
 const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
-const { project, viewport } = useVueFlow()
+const { project } = useVueFlow()
 
 //
 // ── Inicialização única dos nodes/edges ────────────────────────────────────
@@ -56,7 +56,7 @@ function buildNodes() {
       x: workflowStore.activeWorkflow.trigger.ui?.positionX ?? 0,
       y: workflowStore.activeWorkflow.trigger.ui?.positionY ?? 0,
     },
-    data: { type: 'trigger' },
+    data: { ...workflowStore.activeWorkflow.trigger },
   }
 
   return [triggerNode, ...normalNodes]
@@ -130,7 +130,7 @@ const addLogicNode = (type: WorkflowNodeType) => {
     type,
     name: id,
     ui: { positionX: pos.x, positionY: pos.y },
-  } as any
+  } as WorkflowNode
 
   // Adicionar no VueFlow
   vueFlowNodes.value.push({
@@ -157,7 +157,7 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
     action,
     params: {},
     ui: { positionX: pos.x, positionY: pos.y },
-  } as any
+  } as WorkflowNode
 
   vueFlowNodes.value.push({
     id,

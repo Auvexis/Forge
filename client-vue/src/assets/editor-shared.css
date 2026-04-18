@@ -205,8 +205,9 @@
   gap: var(--nod8-space-1);
   background: transparent;
   border: 1px dashed var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
+  border-radius: var(--nod8-radius-xl);
   padding: 5px 10px;
+  height: 36px;
   font-size: var(--nod8-text-xs);
   font-family: inherit;
   color: var(--nod8-text-muted);
@@ -228,4 +229,380 @@
   border: 1px solid var(--nod8-border);
   padding: 0 4px;
   border-radius: 4px;
+}
+
+/* ── Typography micro-utilities ─────────────────────────── */
+
+.text-mini {
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.text-micro {
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+.font-black {
+  font-weight: 900;
+}
+
+/* ── Trigger Editor ─────────────────────────────────────── */
+
+/* Layout */
+.te-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.te-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.te-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Labels / hints */
+.te-label {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--nod8-text-muted);
+  margin-left: 4px;
+  display: block;
+}
+
+.te-label-sub {
+  font-size: 9px;
+  opacity: 0.5;
+  text-transform: none;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.te-hint {
+  font-size: 10px;
+  color: var(--nod8-text-muted);
+  margin-left: 4px;
+  font-style: italic;
+  opacity: 0.7;
+  line-height: 1.5;
+}
+
+/* ── Schema card (manual inputs list item) ── */
+.te-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--nod8-radius-xl);
+  background-color: rgba(255, 255, 255, 0.025);
+}
+
+.te-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.05);
+  margin: -12px -12px 4px;
+  padding: 12px;
+  border-radius: calc(var(--nod8-radius-xl) - 1px) calc(var(--nod8-radius-xl) - 1px) 0 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.te-key-input {
+  width: 180px;
+  height: 32px;
+  background-color: var(--nod8-bg-overlay);
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-sm);
+  padding: 0 8px;
+  font-size: var(--nod8-text-xs);
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--nod8-text-primary);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--nod8-duration-fast);
+}
+.te-key-input:focus {
+  border-color: var(--nod8-accent);
+}
+.te-key-input::placeholder {
+  color: var(--nod8-text-muted);
+  opacity: 0.5;
+}
+
+.te-remove-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: rgba(248, 113, 113, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--nod8-duration-fast);
+}
+.te-remove-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.te-card-row {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+  align-items: center;
+}
+
+/* Field-type select inside card row (smaller than default editor-select) */
+.te-type-select {
+  flex: 1;
+  height: 32px;
+  background-color: var(--nod8-bg-surface);
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-md);
+  padding: 0 26px 0 8px;
+  font-size: var(--nod8-text-xs);
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--nod8-text-primary);
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: border-color var(--nod8-duration-fast);
+}
+.te-type-select:focus {
+  border-color: var(--nod8-accent);
+}
+
+.te-req-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  background-color: var(--nod8-bg-surface);
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-sm);
+  padding: 0 12px;
+  height: 32px;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  color: var(--nod8-text-muted);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.te-req-label input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  accent-color: var(--nod8-brand-400);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ── Webhook section ── */
+
+.te-url-box {
+  flex: 1;
+  padding: 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--nod8-radius-xl);
+  font-family: var(--nod8-font-mono);
+  font-size: 10px;
+  word-break: break-all;
+  color: var(--nod8-text-muted);
+  user-select: all;
+  line-height: 1.5;
+}
+
+.te-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.te-icon-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--nod8-radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--nod8-text-muted);
+  transition: background-color var(--nod8-duration-fast);
+}
+.te-icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.te-methods {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.te-method-btn {
+  padding: 6px 12px;
+  border-radius: var(--nod8-radius-sm);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--nod8-text-muted);
+  cursor: pointer;
+  transition: all var(--nod8-duration-fast);
+  font-family: inherit;
+}
+.te-method-btn:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: var(--nod8-text-secondary);
+}
+.te-method-btn--active {
+  background-color: rgba(138, 82, 255, 0.15);
+  border-color: rgba(138, 82, 255, 0.4);
+  color: var(--nod8-brand-300);
+}
+.te-method-btn--active:hover {
+  background-color: rgba(138, 82, 255, 0.2);
+  color: var(--nod8-brand-300);
+}
+
+/* Password input inside te-input-row */
+.te-password-input {
+  flex: 1;
+  height: 40px;
+  font-family: var(--nod8-font-mono);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* ── Cron section ── */
+
+.te-cron-input {
+  height: 40px;
+  font-family: var(--nod8-font-mono);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.te-human-cron {
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 4px;
+  color: rgba(171, 132, 255, 0.8);
+}
+
+.te-info-blue {
+  padding: 8px;
+  background-color: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: var(--nod8-radius-sm);
+  font-size: 10px;
+  color: var(--nod8-blue-400);
+  line-height: 1.6;
+}
+
+.te-presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.te-preset-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 10px;
+  border-radius: var(--nod8-radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background-color: rgba(255, 255, 255, 0.02);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--nod8-duration-fast);
+  gap: 3px;
+  font-family: inherit;
+  color: var(--nod8-text-muted);
+}
+.te-preset-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(138, 82, 255, 0.3);
+}
+.te-preset-btn--active {
+  background-color: rgba(138, 82, 255, 0.1);
+  border-color: rgba(138, 82, 255, 0.4);
+  color: var(--nod8-brand-300);
+}
+.te-preset-btn--active:hover {
+  background-color: rgba(138, 82, 255, 0.15);
+}
+
+.te-preset-label {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: inherit;
+}
+
+.te-preset-value {
+  font-size: 9px;
+  font-family: var(--nod8-font-mono);
+  opacity: 0.7;
+  color: inherit;
+}
+
+/* ── Event section ── */
+
+.te-event-input {
+  height: 40px;
+  font-weight: 700;
+  font-family: var(--nod8-font-mono);
+  background-color: rgba(255, 255, 255, 0.02);
+  color: #eab308;
+}
+
+.te-info-yellow {
+  padding: 12px;
+  background-color: rgba(234, 179, 8, 0.05);
+  border: 1px solid rgba(234, 179, 8, 0.2);
+  border-radius: var(--nod8-radius-xl);
+}
+
+.te-info-yellow__title {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #eab308;
+  margin-bottom: 4px;
+}
+
+.te-info-yellow__body {
+  font-size: 10px;
+  color: var(--nod8-text-muted);
+  line-height: 1.6;
 }

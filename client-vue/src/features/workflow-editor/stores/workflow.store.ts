@@ -1,4 +1,4 @@
-import type { WorkflowItem } from '@/core/types/workflow.types'
+import type { WorkflowItem, WorkflowNode } from '@/core/types/workflow.types'
 import { useApi } from '@/shared/composables/useApi'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { defineStore } from 'pinia'
@@ -27,19 +27,19 @@ export const useWorkflowStore = defineStore('workflow', () => {
    * Atualiza campos específicos do dado de um node pelo ID.
    * O payload é mesclado (shallow merge) — só os campos enviados são alterados.
    */
-  function updateNodeData(nodeId: string, payload: Record<string, any>) {
+  function updateNodeData(nodeId: string, payload: Record<string, unknown>) {
     if (!activeWorkflow.value) return
 
     if (nodeId === 'trigger') {
       activeWorkflow.value.trigger = {
         ...activeWorkflow.value.trigger,
         ...payload,
-      }
+      } as typeof activeWorkflow.value.trigger
     } else if (activeWorkflow.value.nodes[nodeId]) {
       activeWorkflow.value.nodes[nodeId] = {
         ...activeWorkflow.value.nodes[nodeId],
         ...payload,
-      } as any
+      } as WorkflowNode
     }
 
     isDirty.value = true
@@ -50,18 +50,15 @@ export const useWorkflowStore = defineStore('workflow', () => {
     if (!activeWorkflow.value) return
 
     try {
-      // Fazemos a chamada PUT para salvar no backend o workflow atual
       const savedWorkflow = await saveApi.execute(
         activeWorkflow.value.metadata.id,
         activeWorkflow.value,
       )
 
-      // Atualizamos o estado local com a resposta do backend
       activeWorkflow.value = savedWorkflow
       isDirty.value = false
     } catch (error) {
       console.error('Failed to save workflow:', error)
-      // O useApi já lida com o saveApi.error
     }
   }
 

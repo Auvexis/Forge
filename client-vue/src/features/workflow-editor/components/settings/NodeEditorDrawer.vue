@@ -46,7 +46,7 @@
       <component
         v-else-if="EditorComponent"
         :is="EditorComponent"
-        :node="node!"
+        :node="enrichedNode"
         :nodes="nodes"
         :edges="edges"
         :updateNodeData="updateNodeData"
@@ -69,8 +69,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, shallowRef } from 'vue'
-import { useVueFlow, type GraphNode, type Edge } from '@vue-flow/core'
+import { ref, computed, watch } from 'vue'
+import { type GraphNode } from '@vue-flow/core'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import { useApi } from '@/shared/composables/useApi'
@@ -78,14 +78,14 @@ import { pluginsApi } from '@/core/api/plugins.api'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { NODE_EDITOR_REGISTRY } from './editors'
 import PluginMenuAuth from './editors/PluginMenuAuth.vue'
+import type { NodeData } from './editors/types'
 
 const props = defineProps<{
-  node: GraphNode<any> | undefined
+  node: GraphNode<NodeData> | undefined
 }>()
 
 const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
-const { getNodes, getEdges, updateNode } = useVueFlow()
 const { data: plugins, execute: fetchPlugins } = useApi(pluginsApi.getAll, [])
 fetchPlugins()
 
@@ -101,11 +101,47 @@ watch(
   { immediate: true },
 )
 
-const nodes = computed(() => getNodes.value)
-const edges = computed(() => getEdges.value)
+// Build the node catalogue and edge list directly from the Pinia store.
+//
+// NodeEditorDrawer is rendered via GlobalAppPanel, which is a DOM sibling
+// of Nod8WorkflowCanvas (not a descendant). Because Vue Flow's useVueFlow()
+// relies on provide/inject, calling it here would find no ancestor <VueFlow>
+// and return empty arrays for getNodes / getEdges — making upstreamNodes
+// always empty and hiding the "Map Variables" panel entirely.
+//
+// Reading from workflowStore instead gives us:
+//   • correct data regardless of component-tree position
+//   • always-fresh values (same reactive source used by all editors)
+//   • full trigger schema (including manual input fields)
+const nodes = computed((): GraphNode<NodeData>[] => {
+  const wf = workflowStore.activeWorkflow
+  if (!wf) return []
 
-const dataType = computed(() => props.node?.data?.type as string | undefined)
-const pluginId = computed(() => props.node?.data?.pluginId as string | undefined)
+  const result: GraphNode<NodeData>[] = [
+    {
+      id: 'trigger',
+      type: 'trigger',
+      data: wf.trigger as NodeData,
+      position: { x: 0, y: 0 },
+    } as GraphNode<NodeData>,
+  ]
+
+  for (const [id, nodeData] of Object.entries(wf.nodes)) {
+    result.push({
+      id,
+      type: nodeData.type,
+      data: nodeData as NodeData,
+      position: { x: 0, y: 0 },
+    } as GraphNode<NodeData>)
+  }
+
+  return result
+})
+
+const edges = computed(() => workflowStore.activeWorkflow?.edges ?? [])
+
+const dataType = computed(() => props.node?.data?.['type'] as string | undefined)
+const pluginId = computed(() => props.node?.data?.['pluginId'] as string | undefined)
 const isPluginNode = computed(
   () =>
     props.node?.type === 'plugin' &&
@@ -113,23 +149,29 @@ const isPluginNode = computed(
     !!pluginId.value,
 )
 
-// Traversal for Variables Tree
-const getUpstreamNodes = (currentId: string, visited = new Set<string>()): GraphNode<any>[] => {
+// Traverse the store edge graph to collect all topological ancestors of a
+// node. The result is passed to editors as `upstreamNodes` and drives the
+// "Map Variables" variable-picker panel inside PluginEditor.
+const getUpstreamNodes = (
+  currentId: string,
+  visited = new Set<string>(),
+): GraphNode<NodeData>[] => {
   if (visited.has(currentId)) return []
   visited.add(currentId)
 
-  const directEdges = edges.value.filter((e) => e.target === currentId)
-  let upstream: GraphNode<any>[] = []
+  const storeEdges = workflowStore.activeWorkflow?.edges ?? []
+  const directEdges = storeEdges.filter((e) => e.target === currentId)
+  let upstream: GraphNode<NodeData>[] = []
 
   for (const edge of directEdges) {
     const parentNode = nodes.value.find((n) => n.id === edge.source)
     if (parentNode) {
       upstream.push(parentNode)
-      upstream = upstream.concat(getUpstreamNodes(parentNode.id, visited))
+      upstream = upstream.concat(getUpstreamNodes(edge.source, visited))
     }
   }
 
-  const byId = new Map<string, GraphNode<any>>()
+  const byId = new Map<string, GraphNode<NodeData>>()
   for (const n of upstream) {
     if (!byId.has(n.id)) byId.set(n.id, n)
   }
@@ -151,14 +193,44 @@ const EditorComponent = computed(() => {
   return NODE_EDITOR_REGISTRY[editorKey.value as keyof typeof NODE_EDITOR_REGISTRY] || null
 })
 
+/**
+ * Node object whose `.data` is sourced directly from the Pinia store.
+ *
+ * VueFlow initialises each node's `data` field once from `vueFlowNodes` and
+ * does NOT reactively reflect subsequent store mutations. Every editor reads
+ * `props.node.data`, so without this computed they would always see stale
+ * data — causing the trigger type select to show nothing (its `data.type`
+ * was the VueFlow node-type string "trigger", not "manual"/"webhook"/…) and
+ * making "Add Expected Input" appear broken (schema reads from the old
+ * snapshot instead of the updated store object).
+ */
+const enrichedNode = computed(() => {
+  if (!props.node) return undefined
+
+  const id = props.node.id
+  const storeData: NodeData | undefined =
+    id === 'trigger'
+      ? (workflowStore.activeWorkflow?.trigger as NodeData | undefined)
+      : (workflowStore.activeWorkflow?.nodes[id] as NodeData | undefined)
+
+  return {
+    ...props.node,
+    data: storeData ?? props.node.data,
+  }
+})
+
 const headerLabel = computed(() => {
   if (!props.node) return ''
   if (props.node.type === 'trigger') return 'Trigger Configuration'
   switch (dataType.value) {
-    case 'code': return 'Code Block'
-    case 'if': return 'Conditional Branch'
-    case 'loop': return 'Loop / ForEach'
-    case 'subworkflow': return 'Sub-Workflow'
+    case 'code':
+      return 'Code Block'
+    case 'if':
+      return 'Conditional Branch'
+    case 'loop':
+      return 'Loop / ForEach'
+    case 'subworkflow':
+      return 'Sub-Workflow'
     default: {
       const pName = plugins.value?.find((p) => p.id === pluginId.value)?.manifest.metadata.name
       return pName || 'Action Settings'
@@ -167,15 +239,15 @@ const headerLabel = computed(() => {
 })
 
 // Passed to components
-const updateNodeData = (newData: Record<string, any>) => {
+const updateNodeData = (newData: Record<string, unknown>) => {
   if (!props.node) return
   workflowStore.updateNodeData(props.node.id, newData)
 }
 
 const injectVariable = (paramKey: string, variable: string) => {
   if (!props.node) return
-  const currentParams = props.node.data.params || {}
-  const currentValue = currentParams[paramKey] || ''
+  const currentParams = (enrichedNode.value?.data?.['params'] as Record<string, unknown>) || {}
+  const currentValue = (currentParams[paramKey] as string) || ''
   updateNodeData({
     params: {
       ...currentParams,
@@ -186,7 +258,7 @@ const injectVariable = (paramKey: string, variable: string) => {
 
 const handleIdChange = (newId: string) => {
   if (!newId || newId === props.node?.id || !props.node) return
-  
+
   if (nodes.value.some((n) => n.id === newId)) {
     alert('ID Conflict: A node with this ID already exists.')
     localId.value = props.node.id
