@@ -1,7 +1,15 @@
 <template>
-  <div class="elp-panel" @click.stop @mousedown.stop>
-    <!-- Header -->
-    <div class="elp-header">
+  <div
+    class="elp-panel"
+    :style="panelStyle"
+    @click.stop
+    @mousedown.stop
+  >
+    <!-- Header — drag handle -->
+    <div
+      class="elp-header elp-header--draggable"
+      @pointerdown.stop="startDrag"
+    >
       <div class="elp-header-left">
         <button v-if="detailExecution" class="elp-back-btn" @click="detailExecution = null">
           <LucideIcon name="chevron-left" :size="16" />
@@ -93,7 +101,16 @@
 
         <!-- Trigger payload -->
         <div v-if="detailExecution.context.trigger" class="elp-section">
-          <p class="elp-section-title">Trigger Payload</p>
+          <div class="elp-section-title-row">
+            <p class="elp-section-title">Trigger Payload</p>
+            <button
+              class="elp-copy-btn"
+              :title="triggerCopied ? 'Copied!' : 'Copy payload'"
+              @click.stop="copyTriggerPayload"
+            >
+              <LucideIcon :name="triggerCopied ? 'check' : 'copy'" :size="12" />
+            </button>
+          </div>
           <pre class="elp-code">{{ formatJson(detailExecution.context.trigger) }}</pre>
         </div>
 
@@ -122,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { useApi } from '@/shared/composables/useApi'
@@ -200,8 +217,70 @@ function formatJson(data: unknown): string {
   }
 }
 
+const triggerCopied = ref(false)
+
+async function copyTriggerPayload() {
+  if (!detailExecution.value?.context.trigger) return
+  try {
+    await navigator.clipboard.writeText(formatJson(detailExecution.value.context.trigger))
+    triggerCopied.value = true
+    setTimeout(() => (triggerCopied.value = false), 1500)
+  } catch {
+    toastError('Failed to copy to clipboard')
+  }
+}
+
 watch(() => props.workflowId, refresh)
 onMounted(refresh)
+
+// ── Draggable panel ──────────────────────────────────────────────────────────
+
+const dragOffset = ref({ x: 0, y: 0 })
+let dragging = false
+let startX = 0
+let startY = 0
+let originX = 0
+let originY = 0
+
+const panelStyle = computed(() => ({
+  transform: `translate(${dragOffset.value.x}px, ${dragOffset.value.y}px)`,
+}))
+
+function startDrag(event: PointerEvent) {
+  // Only drag with primary button; ignore clicks on inner buttons
+  if (event.button !== 0) return
+  const target = event.target as HTMLElement
+  // Don't initiate drag when clicking an interactive element inside the header
+  if (target.closest('button')) return
+
+  dragging = true
+  startX = event.clientX
+  startY = event.clientY
+  originX = dragOffset.value.x
+  originY = dragOffset.value.y
+
+  ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
+  window.addEventListener('pointermove', onDrag)
+  window.addEventListener('pointerup', stopDrag, { once: true })
+}
+
+function onDrag(event: PointerEvent) {
+  if (!dragging) return
+  dragOffset.value = {
+    x: originX + event.clientX - startX,
+    y: originY + event.clientY - startY,
+  }
+}
+
+function stopDrag() {
+  dragging = false
+  window.removeEventListener('pointermove', onDrag)
+}
+
+onBeforeUnmount(() => {
+  window.removeEventListener('pointermove', onDrag)
+  window.removeEventListener('pointerup', stopDrag)
+})
 </script>
 
 <style scoped>
@@ -210,11 +289,13 @@ onMounted(refresh)
   max-height: 580px;
   background-color: var(--nod8-bg-surface);
   border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-md);
-  box-shadow: var(--nod8-shadow-xl);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  user-select: none;
+  /* Re-enable events: the wrapper has pointer-events:none to avoid ghost
+     bounding-box blocking the canvas after dragging the panel away. */
+  pointer-events: auto;
 }
 
 /* ── Header ───────────────────────────────────────────────────── */
@@ -226,6 +307,15 @@ onMounted(refresh)
   padding: var(--nod8-space-3) var(--nod8-space-4);
   border-bottom: 1px solid var(--nod8-border);
   flex-shrink: 0;
+}
+
+.elp-header--draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.elp-header--draggable:active {
+  cursor: grabbing;
 }
 
 .elp-header-left {
@@ -501,6 +591,12 @@ onMounted(refresh)
   gap: var(--nod8-space-2);
 }
 
+.elp-section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .elp-section-title {
   font-size: var(--nod8-text-xs);
   font-weight: 700;
@@ -508,6 +604,26 @@ onMounted(refresh)
   letter-spacing: 0.06em;
   color: var(--nod8-text-muted);
   margin: 0;
+}
+
+.elp-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--nod8-radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--nod8-text-muted);
+  cursor: pointer;
+  transition: all var(--nod8-duration-fast);
+  flex-shrink: 0;
+}
+
+.elp-copy-btn:hover {
+  background: var(--nod8-bg-elevated);
+  color: var(--nod8-text-primary);
 }
 
 .elp-code {

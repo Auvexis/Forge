@@ -87,6 +87,43 @@ watch(
   { immediate: true },
 )
 
+/**
+ * Sincroniza as mutações do store de volta para o data interno do VueFlow.
+ *
+ * VueFlow inicializa o `data` de cada node a partir de `vueFlowNodes` uma única
+ * vez. Chamadas subsequentes a `updateNodeData()` atualizam o store mas NÃO
+ * propagam automaticamente para os objetos internos do VueFlow — então o body
+ * do node no canvas fica desatualizado.
+ *
+ * Estratégia: observamos `nodes` e `trigger` com `deep: true` e, a cada
+ * mudança, percorremos `vueFlowNodes` atualizando SOMENTE o campo `.data` de
+ * cada node pelo seu ID.  Não recriamos o array inteiro, preservando o estado
+ * interno do VueFlow (posições, seleção, etc.).
+ */
+watch(
+  () => ({
+    nodes: workflowStore.activeWorkflow?.nodes,
+    trigger: workflowStore.activeWorkflow?.trigger,
+  }),
+  ({ nodes, trigger }) => {
+    if (!nodes && !trigger) return
+
+    for (const vfNode of vueFlowNodes.value) {
+      if (vfNode.id === 'trigger') {
+        if (trigger && vfNode.data !== trigger) {
+          vfNode.data = { ...trigger }
+        }
+      } else if (nodes) {
+        const storeData = nodes[vfNode.id]
+        if (storeData && vfNode.data !== storeData) {
+          vfNode.data = { ...storeData }
+        }
+      }
+    }
+  },
+  { deep: true },
+)
+
 // ── Eventos ─────────────────────────────────────────────────────────────────
 
 const onNodeClick = (event: NodeMouseEvent) => {
@@ -397,13 +434,20 @@ const onEdgesChange = (changes: EdgeChange[]) => {
   width: 100%;
   height: 100%;
 }
-/* Execution logs overlay — floats centered at the top of the canvas */
+/*
+  Execution logs overlay — floats centered at the top of the canvas.
+  pointer-events: none on the wrapper is intentional: the wrapper div stays
+  at its original DOM position even after the panel is dragged via transform.
+  With pointer-events: auto the ghost bounding-box would block clicks in the
+  area the panel moved away from. The .elp-panel itself has @click.stop and
+  @mousedown.stop, so it captures its own events correctly without the wrapper.
+*/
 .canvas-logs-overlay {
   position: absolute;
   top: 48px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 60;
-  pointer-events: auto;
+  pointer-events: none;
 }
 </style>
