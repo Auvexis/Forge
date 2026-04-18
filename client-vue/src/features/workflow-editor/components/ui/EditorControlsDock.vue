@@ -40,19 +40,6 @@
         Node
       </BaseButton>
 
-      <!-- ── Import ── -->
-      <BaseButton
-        size="sm"
-        variant="ghost"
-        :disabled="isStreaming"
-        icon-left="download"
-        class="dock-btn"
-        :class="{ 'opacity-60 cursor-not-allowed': isStreaming }"
-        @click="$emit('import')"
-      >
-        Import
-      </BaseButton>
-
       <!-- ── Save ── -->
       <BaseButton
         size="sm"
@@ -72,7 +59,11 @@
       <div :style="{ height: '24px', width: '1.5px', backgroundColor: 'var(--nod8-border)' }"></div>
 
       <!-- ── Custom Zoom Slider ── -->
-      <div v-if="viewport" class="flex flex-center gap-2" :style="{ padding: '0 var(--nod8-space-1)' }">
+      <div
+        v-if="viewport"
+        class="flex flex-center gap-2"
+        :style="{ padding: '0 var(--nod8-space-1)' }"
+      >
         <BaseButton
           size="sm"
           variant="ghost"

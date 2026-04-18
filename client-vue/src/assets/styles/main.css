@@ -7,6 +7,7 @@
 @import './reset.css';
 @import './typography.css';
 @import './transitions.css';
+@import '../editor-shared.css';
 
 /* ── Layout Utilities ─────────────────────────────────────── */
 .nod8-fill {

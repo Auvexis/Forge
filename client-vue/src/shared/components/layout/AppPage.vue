@@ -8,7 +8,7 @@
     <!-- The actual scrollable content of the page -->
     <div class="app-page__content">
       <slot></slot>
-      
+
       <!-- Global Page Panel anchors to the relative content boundaries -->
       <GlobalAppPanel />
     </div>

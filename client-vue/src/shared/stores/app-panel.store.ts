@@ -23,7 +23,7 @@ export const useAppPanelStore = defineStore('app-panel', () => {
   const title = ref('')
   const position = ref<'left' | 'right' | 'bottom'>('right')
   const width = ref<'md' | 'lg' | 'xl'>('md')
-  
+
   // Utilizar shallowRef é a melhor prática no Vue para armazenar componentes
   // pois não tenta tornar a árvore interna do componente inteira reativa.
   const panelComponent = shallowRef<Component | null>(null)
@@ -36,11 +36,11 @@ export const useAppPanelStore = defineStore('app-panel', () => {
     title.value = config.title
     position.value = config.position || 'right'
     width.value = config.width || 'md'
-    
+
     // Uso do markRaw pra garantir que não vamos atar reatividade no objeto descritor do comp
     panelComponent.value = markRaw(config.component)
     componentProps.value = config.props || {}
-    
+
     isOpen.value = true
   }
 
@@ -49,7 +49,7 @@ export const useAppPanelStore = defineStore('app-panel', () => {
    */
   const closePanel = () => {
     isOpen.value = false
-    
+
     // Limpamos o lixo depois que a animação for fechada pra não causar flicker
     setTimeout(() => {
       if (!isOpen.value) {
@@ -67,6 +67,6 @@ export const useAppPanelStore = defineStore('app-panel', () => {
     panelComponent,
     componentProps,
     openPanel,
-    closePanel
+    closePanel,
   }
 })

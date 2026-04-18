@@ -1,8 +1,5 @@
 <template>
-  <AppPanel
-    v-bind="panelAttrs"
-    @close="panelStore.closePanel"
-  >
+  <AppPanel v-bind="panelAttrs" @close="panelStore.closePanel">
     <component
       :is="panelStore.panelComponent"
       v-if="panelStore.panelComponent"
@@ -23,6 +20,6 @@ const panelAttrs = computed(() => ({
   isOpen: panelStore.isOpen,
   title: panelStore.title,
   position: panelStore.position,
-  width: panelStore.width
+  width: panelStore.width,
 }))
 </script>
