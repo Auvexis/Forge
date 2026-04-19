@@ -203,7 +203,7 @@ import type { PluginNode } from '@/core/types/workflow.types'
 
 const props = defineProps<NodeEditorProps>()
 
-const data = computed(() => props.node.data as PluginNode)
+const data = computed(() => props.node.data as unknown as PluginNode)
 
 const { data: plugins, execute: executePlugins } = useApi(pluginsApi.getAll, [])
 executePlugins()
@@ -238,7 +238,7 @@ const toggleMapVariables = (key: string) => {
   display: flex;
   align-items: center;
   gap: var(--nod8-space-2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--nod8-border);
   padding-bottom: var(--nod8-space-2);
 }
 
@@ -265,8 +265,7 @@ const toggleMapVariables = (key: string) => {
   gap: var(--nod8-space-3);
   padding: var(--nod8-space-4);
   border-radius: var(--nod8-radius-lg);
-  background-color: rgba(124, 58, 237, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--nod8-border);
 }
 
 .pe-param-head {
@@ -307,14 +306,13 @@ const toggleMapVariables = (key: string) => {
 
 .pe-param-type {
   font-size: 11px;
-  background-color: rgba(124, 58, 237, 0.2);
   padding: 2px 6px;
   border-radius: 4px;
   color: var(--nod8-text-muted);
   text-transform: uppercase;
   font-weight: 900;
   letter-spacing: -0.05em;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--nod8-border);
 }
 
 .pe-param-toggle {
@@ -350,7 +348,7 @@ const toggleMapVariables = (key: string) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--nod8-border);
+  background-color: var(--nod8-gray-800);
   transition: 0.4s;
 }
 .slider:before {
@@ -360,14 +358,15 @@ const toggleMapVariables = (key: string) => {
   width: 14px;
   left: 3px;
   bottom: 3px;
-  background-color: white;
+  background-color: var(--nod8-gray-300);
   transition: 0.4s;
 }
 input:checked + .slider {
-  background-color: var(--nod8-accent);
+  background-color: var(--nod8-gray-100);
 }
 input:checked + .slider:before {
   transform: translateX(16px);
+  background-color: var(--nod8-gray-800);
 }
 .slider.round {
   border-radius: 20px;
@@ -393,7 +392,7 @@ input:checked + .slider:before {
 .pe-var-line {
   flex: 1;
   height: 1px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--nod8-border);
 }
 
 .pe-var-btn {

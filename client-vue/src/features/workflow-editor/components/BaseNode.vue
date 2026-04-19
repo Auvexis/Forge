@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { Position } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseHandle from './BaseHandle.vue'
 import NodeShimmer from './nodes/NodeShimmer.vue'
 import NodeToolbar from './nodes/NodeToolbar.vue'
 import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
+import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
+import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 
 const props = defineProps<{
   id?: string
@@ -25,6 +27,45 @@ const props = defineProps<{
 }>()
 
 const executionStore = useExecutionStore()
+const workflowStore = useWorkflowStore()
+const panelStore = useAppPanelStore()
+
+const isEditingId = ref(false)
+const editedId = ref('')
+const idInputRef = ref<HTMLInputElement | null>(null)
+
+const startEditingId = async () => {
+  if (!props.id || props.id === 'trigger') return
+  isEditingId.value = true
+  editedId.value = props.id
+  await nextTick()
+  idInputRef.value?.focus()
+  idInputRef.value?.select()
+}
+
+const commitIdChange = () => {
+  if (!isEditingId.value) return
+
+  const newId = editedId.value.trim()
+  if (!newId || newId === props.id) {
+    isEditingId.value = false
+    return
+  }
+
+  if (workflowStore.activeWorkflow?.nodes[newId] || newId === 'trigger') {
+    alert('ID Conflict: A node with this ID already exists.')
+    idInputRef.value?.focus()
+    return
+  }
+
+  isEditingId.value = false
+  workflowStore.renameNode(props.id!, newId)
+  panelStore.closePanel()
+}
+
+const cancelIdChange = () => {
+  isEditingId.value = false
+}
 
 // Execution store status takes priority over the prop so every node reflects
 // live SSE status automatically without changes in individual node components.
@@ -54,15 +95,35 @@ const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!pro
     <NodeShimmer v-if="effectiveStatus === 'running'" />
 
     <!-- Floating ID badge above the node -->
-    <div v-if="props.id || $slots.badge" class="nod8-base-node__id-badge">
+    <div 
+      v-if="props.id || $slots.badge" 
+      class="nod8-base-node__id-badge"
+      @click.stop
+    >
       <slot name="badge">
-        <!-- Status dot: only rendered when an execution result is available -->
         <span
-          v-if="effectiveStatus !== 'idle'"
+          v-if="effectiveStatus !== 'idle' && !isEditingId"
           class="nod8-base-node__id-dot"
           :class="`is-${effectiveStatus}`"
         />
-        {{ props.id }}
+
+        <input
+          v-if="isEditingId"
+          ref="idInputRef"
+          v-model="editedId"
+          class="nod8-base-node__id-input"
+          @blur="commitIdChange"
+          @keydown.enter="commitIdChange"
+          @keydown.esc="cancelIdChange"
+        />
+        <span
+          v-else
+          class="nod8-base-node__id-text"
+          title="Duplo clique para editar o ID"
+          @dblclick.stop="startEditingId"
+        >
+          {{ props.id }}
+        </span>
       </slot>
     </div>
 
@@ -198,6 +259,22 @@ const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!pro
 
 .nod8-base-node__id-badge:hover {
   color: var(--nod8-text-primary);
+}
+
+.nod8-base-node__id-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--nod8-text-primary);
+  width: 90px;
+  padding: 0;
+  margin: 0;
+}
+
+.nod8-base-node__id-text {
+  cursor: text;
 }
 
 /* Status dot inside the ID badge */

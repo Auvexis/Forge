@@ -76,7 +76,7 @@
   width: 100%;
   background-color: var(--nod8-bg-surface);
   border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-md);
+  border-radius: var(--nod8-radius-sm);
   padding: 8px 12px;
   font-size: var(--nod8-text-sm);
   font-family: inherit;
@@ -302,26 +302,26 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: var(--nod8-radius-xl);
-  background-color: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-sm);
+  background-color: var(--nod8-bg-base);
+  overflow: hidden;
 }
 
 .te-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--nod8-bg-surface);
   margin: -12px -12px 4px;
   padding: 12px;
-  border-radius: calc(var(--nod8-radius-xl) - 1px) calc(var(--nod8-radius-xl) - 1px) 0 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--nod8-border);
 }
 
 .te-key-input {
   width: 180px;
   height: 32px;
-  background-color: var(--nod8-bg-overlay);
+  background-color: var(--nod8-bg-surface);
   border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-sm);
   padding: 0 8px;
@@ -334,7 +334,7 @@
   transition: border-color var(--nod8-duration-fast);
 }
 .te-key-input:focus {
-  border-color: var(--nod8-accent);
+  border-color: var(--nod8-gray-600);
 }
 .te-key-input::placeholder {
   color: var(--nod8-text-muted);
@@ -343,9 +343,9 @@
 
 .te-remove-btn {
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  border-radius: 9999px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--nod8-radius-sm);
   border: none;
   background: transparent;
   color: rgba(248, 113, 113, 0.65);
@@ -373,7 +373,7 @@
   height: 32px;
   background-color: var(--nod8-bg-surface);
   border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-md);
+  border-radius: var(--nod8-radius-sm);
   padding: 0 26px 0 8px;
   font-size: var(--nod8-text-xs);
   font-weight: 700;
@@ -415,7 +415,6 @@
   width: 14px;
   height: 14px;
   border-radius: 3px;
-  accent-color: var(--nod8-brand-400);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -425,9 +424,9 @@
 .te-url-box {
   flex: 1;
   padding: 12px;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: var(--nod8-radius-xl);
+  background-color: var(--nod8-bg-surface);
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-sm);
   font-family: var(--nod8-font-mono);
   font-size: 10px;
   word-break: break-all;
@@ -446,8 +445,8 @@
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border-radius: var(--nod8-radius-xl);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--nod8-radius-sm);
+  border: 1px solid var(--nod8-border);
   background: transparent;
   display: flex;
   align-items: center;
@@ -457,7 +456,7 @@
   transition: background-color var(--nod8-duration-fast);
 }
 .te-icon-btn:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--nod8-bg-elevated);
 }
 
 .te-methods {
@@ -473,24 +472,24 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--nod8-border);
+  background-color: var(--nod8-bg-surface);
   color: var(--nod8-text-muted);
   cursor: pointer;
   transition: all var(--nod8-duration-fast);
   font-family: inherit;
 }
 .te-method-btn:hover {
-  background-color: rgba(255, 255, 255, 0.07);
+  background-color: var(--nod8-bg-elevated);
   color: var(--nod8-text-secondary);
 }
 .te-method-btn--active {
-  background-color: rgba(138, 82, 255, 0.15);
-  border-color: rgba(138, 82, 255, 0.4);
+  background-color: var(--nod8-bg-elevated);
+  border-color: var(--nod8-border);
   color: var(--nod8-brand-300);
 }
 .te-method-btn--active:hover {
-  background-color: rgba(138, 82, 255, 0.2);
+  background-color: var(--nod8-bg-elevated);
   color: var(--nod8-brand-300);
 }
 
@@ -499,7 +498,7 @@
   flex: 1;
   height: 40px;
   font-family: var(--nod8-font-mono);
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--nod8-bg-surface);
 }
 
 /* ── Cron section ── */
@@ -507,7 +506,7 @@
 .te-cron-input {
   height: 40px;
   font-family: var(--nod8-font-mono);
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--nod8-bg-surface);
 }
 
 .te-human-cron {
@@ -538,9 +537,9 @@
   flex-direction: column;
   align-items: stretch;
   padding: 10px;
-  border-radius: var(--nod8-radius-xl);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  background-color: rgba(255, 255, 255, 0.02);
+  border-radius: var(--nod8-radius-sm);
+  border: 1px solid var(--nod8-border);
+  background-color: var(--nod8-bg-surface);
   text-align: left;
   cursor: pointer;
   transition: all var(--nod8-duration-fast);
@@ -549,16 +548,16 @@
   color: var(--nod8-text-muted);
 }
 .te-preset-btn:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  border-color: rgba(138, 82, 255, 0.3);
+  background-color: var(--nod8-bg-elevated);
+  border-color: var(--nod8-border);
 }
 .te-preset-btn--active {
-  background-color: rgba(138, 82, 255, 0.1);
-  border-color: rgba(138, 82, 255, 0.4);
+  background-color: var(--nod8-bg-elevated);
+  border-color: var(--nod8-border);
   color: var(--nod8-brand-300);
 }
 .te-preset-btn--active:hover {
-  background-color: rgba(138, 82, 255, 0.15);
+  background-color: var(--nod8-bg-elevated);
 }
 
 .te-preset-label {
@@ -579,17 +578,18 @@
 
 .te-event-input {
   height: 40px;
-  font-weight: 700;
+  font-weight: 500;
   font-family: var(--nod8-font-mono);
-  background-color: rgba(255, 255, 255, 0.02);
-  color: #eab308;
+  background-color: var(--nod8-bg-surface);
+  color: var(--nod8-text-secondary);
+  border-radius: var(--nod8-radius-sm);
 }
 
 .te-info-yellow {
   padding: 12px;
   background-color: rgba(234, 179, 8, 0.05);
   border: 1px solid rgba(234, 179, 8, 0.2);
-  border-radius: var(--nod8-radius-xl);
+  border-radius: var(--nod8-radius-sm);
 }
 
 .te-info-yellow__title {
@@ -597,7 +597,7 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #eab308;
+  color: var(--nod8-amber-400);
   margin-bottom: 4px;
 }
 

@@ -121,7 +121,7 @@ const nodes = computed((): GraphNode<NodeData>[] => {
     {
       id: 'trigger',
       type: 'trigger',
-      data: wf.trigger as NodeData,
+      data: wf.trigger as unknown as NodeData,
       position: { x: 0, y: 0 },
     } as GraphNode<NodeData>,
   ]
@@ -130,7 +130,7 @@ const nodes = computed((): GraphNode<NodeData>[] => {
     result.push({
       id,
       type: nodeData.type,
-      data: nodeData as NodeData,
+      data: nodeData as unknown as NodeData,
       position: { x: 0, y: 0 },
     } as GraphNode<NodeData>)
   }
@@ -265,11 +265,12 @@ const handleIdChange = (newId: string) => {
     return
   }
 
-  // Changing ID in a graph is tricky; for now we just change it in the store
-  // To rename an ID completely is typically destructive if links exist.
-  // We recommend using workflowStore actions to handle ID replacement.
-  alert('ID renaming is currently read-only in this beta.')
-  localId.value = props.node.id
+  const success = workflowStore.renameNode(props.node.id, newId)
+  if (success) {
+    panelStore.closePanel()
+  } else {
+    localId.value = props.node.id
+  }
 }
 
 const closePanel = () => {

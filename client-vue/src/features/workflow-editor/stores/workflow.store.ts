@@ -7,6 +7,7 @@ import { ref } from 'vue'
 export const useWorkflowStore = defineStore('workflow', () => {
   const activeWorkflow = ref<WorkflowItem | null>(null)
   const isDirty = ref(false)
+  const graphUpdateTrigger = ref(0)
 
   function setActiveWorkflow(workflow: WorkflowItem) {
     activeWorkflow.value = workflow
@@ -43,6 +44,31 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
 
     isDirty.value = true
+  }
+
+  /**
+   * Renomeia o ID de um node. Atualiza edges apontando para ele e forca o canvas a remontar.
+   */
+  function renameNode(oldId: string, newId: string) {
+    if (!activeWorkflow.value) return false
+    if (oldId === 'trigger' || newId === 'trigger') return false
+    if (activeWorkflow.value.nodes[newId]) return false // Conflict
+
+    const nodeData = activeWorkflow.value.nodes[oldId]
+    if (!nodeData) return false
+
+    activeWorkflow.value.nodes[newId] = nodeData
+    delete activeWorkflow.value.nodes[oldId]
+
+    // Update edges
+    activeWorkflow.value.edges.forEach((edge) => {
+      if (edge.source === oldId) edge.source = newId
+      if (edge.target === oldId) edge.target = newId
+    })
+
+    isDirty.value = true
+    graphUpdateTrigger.value++
+    return true
   }
 
   /**
@@ -120,11 +146,13 @@ export const useWorkflowStore = defineStore('workflow', () => {
   return {
     activeWorkflow,
     isDirty,
+    graphUpdateTrigger,
     isSaving: saveApi.loading,
     setActiveWorkflow,
     clearWorkflow,
     markDirty,
     updateNodeData,
+    renameNode,
     saveActiveWorkflow,
     deleteActiveWorkflow,
     deleteWorkflow,

@@ -258,15 +258,15 @@
   --nod8-rf-arrow-stroke-selected: #4e4e51;
 
   /* Nodes */
-  /* Trigger Manual */
+  /* Triggers */
   --nod8-node-trigger-bg: rgba(8, 127, 224, 0.05);
   --nod8-node-trigger-icon: rgb(8, 127, 224);
-  --nod8-node-trigger-webhook-bg: #f59e0b;
-  --nod8-node-trigger-webhook-icon: #f59e0b;
-  --nod8-node-trigger-cron-bg: #f59e0b;
-  --nod8-node-trigger-cron-icon: #f59e0b;
-  --nod8-node-trigger-event-bg: #f59e0b;
-  --nod8-node-trigger-event-icon: #f59e0b;
+  --nod8-node-trigger-webhook-bg: rgba(16, 185, 129, 0.05);
+  --nod8-node-trigger-webhook-icon: rgb(16, 185, 129);
+  --nod8-node-trigger-cron-bg: rgba(138, 82, 255, 0.05);
+  --nod8-node-trigger-cron-icon: rgb(138, 82, 255);
+  --nod8-node-trigger-event-bg: rgba(245, 158, 11, 0.05);
+  --nod8-node-trigger-event-icon: rgb(245, 158, 11);
 
   /* Plugin */
   --nod8-node-plugin-bg: rgba(255, 255, 255, 0.05);

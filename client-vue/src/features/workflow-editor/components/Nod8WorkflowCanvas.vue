@@ -96,6 +96,14 @@ watch(
   { immediate: true },
 )
 
+watch(
+  () => workflowStore.graphUpdateTrigger,
+  () => {
+    vueFlowNodes.value = buildNodes()
+    vueFlowEdges.value = buildEdges()
+  }
+)
+
 /**
  * Sincroniza as mutações do store de volta para o data interno do VueFlow.
  *
@@ -326,6 +334,7 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       fit-view-on-init
       :snap-to-grid="true"
       :snap-grid="[10, 10]"
+      :delete-key-code="null"
       @node-click="onNodeClick"
       @node-drag-stop="onNodeDragStop"
       @connect="onConnect"
