@@ -1,15 +1,7 @@
 <template>
-  <div
-    class="elp-panel"
-    :style="panelStyle"
-    @click.stop
-    @mousedown.stop
-  >
+  <div class="elp-panel" :style="panelStyle" @click.stop @mousedown.stop>
     <!-- Header — drag handle -->
-    <div
-      class="elp-header elp-header--draggable"
-      @pointerdown.stop="startDrag"
-    >
+    <div class="elp-header elp-header--draggable" @pointerdown.stop="startDrag">
       <div class="elp-header-left">
         <button v-if="detailExecution" class="elp-back-btn" @click="detailExecution = null">
           <LucideIcon name="chevron-left" :size="16" />
@@ -258,7 +250,6 @@ function startDrag(event: PointerEvent) {
   startY = event.clientY
   originX = dragOffset.value.x
   originY = dragOffset.value.y
-
   ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
   window.addEventListener('pointermove', onDrag)
   window.addEventListener('pointerup', stopDrag, { once: true })

@@ -114,11 +114,46 @@
   --nod8-text-warning: var(--nod8-amber-400);
   --nod8-text-error: var(--nod8-red-400);
 
-  /* Brand accent */
-  --nod8-accent: var(--nod8-brand-50);
-  --nod8-accent-hover: var(--nod8-brand-400);
-  --nod8-accent-subtle: rgba(171, 171, 171, 0.15);
-  --nod8-accent-glow: rgba(57, 57, 57, 0.3);
+  /* ── Buttons ─────────────────────────────────────────────── */
+  /* Primary */
+  --nod8-button-primary-bg: var(--nod8-gray-200);
+  --nod8-button-primary-text: var(--nod8-text-inverse);
+  --nod8-button-primary-border: var(--nod8-gray-300);
+  --nod8-button-primary-hover: var(--nod8-gray-300);
+  --nod8-button-primary-active: var(--nod8-gray-300);
+  --nod8-button-primary-active-text: var(--nod8-text-inverse);
+
+  /* Secondary */
+  --nod8-button-secondary-bg: var(--nod8-gray-850);
+  --nod8-button-secondary-text: var(--nod8-text-primary);
+  --nod8-button-secondary-border: var(--nod8-gray-700);
+  --nod8-button-secondary-hover: var(--nod8-gray-700);
+  --nod8-button-secondary-active: var(--nod8-gray-700);
+  --nod8-button-secondary-active-text: var(--nod8-text-primary);
+
+  /* Outline */
+  --nod8-button-outline-bg: transparent;
+  --nod8-button-outline-text: var(--nod8-text-primary);
+  --nod8-button-outline-border: var(--nod8-gray-700);
+  --nod8-button-outline-hover: var(--nod8-gray-800);
+  --nod8-button-outline-active: var(--nod8-gray-700);
+  --nod8-button-outline-active-text: var(--nod8-text-primary);
+
+  /* Ghost */
+  --nod8-button-ghost-bg: transparent;
+  --nod8-button-ghost-text: var(--nod8-text-primary);
+  --nod8-button-ghost-border: transparent;
+  --nod8-button-ghost-hover: var(--nod8-gray-800);
+  --nod8-button-ghost-active: var(--nod8-gray-700);
+  --nod8-button-ghost-active-text: var(--nod8-text-primary);
+
+  /* Danger */
+  --nod8-button-danger-bg: transparent;
+  --nod8-button-danger-text: rgba(216, 77, 77, 0.949);
+  --nod8-button-danger-border: transparent;
+  --nod8-button-danger-hover: rgba(255, 1, 1, 0.107);
+  --nod8-button-danger-active: rgba(255, 1, 1, 0.107);
+  --nod8-button-danger-active-text: rgb(255, 41, 41);
 
   /* ── Spacing ─────────────────────────────────────────────── */
   --nod8-space-1: 4px;

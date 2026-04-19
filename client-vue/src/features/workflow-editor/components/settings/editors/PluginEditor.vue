@@ -15,7 +15,13 @@
       <select
         class="editor-select"
         :value="data.pluginId || ''"
-        @change="updateNodeData({ pluginId: ($event.target as HTMLSelectElement).value, action: '', params: {} })"
+        @change="
+          updateNodeData({
+            pluginId: ($event.target as HTMLSelectElement).value,
+            action: '',
+            params: {},
+          })
+        "
       >
         <option value="" disabled>Select Integration...</option>
         <option v-for="p in plugins" :key="p.id" :value="p.id">
@@ -32,7 +38,11 @@
         @change="updateNodeData({ action: ($event.target as HTMLSelectElement).value, params: {} })"
       >
         <option value="" disabled>Select Action...</option>
-        <option v-for="(method, key) in (selectedPlugin.manifest.methods || {})" :key="key" :value="key">
+        <option
+          v-for="(method, key) in selectedPlugin.manifest.methods || {}"
+          :key="key"
+          :value="key"
+        >
           {{ method.metadata.label || key }}
         </option>
       </select>
@@ -46,7 +56,7 @@
       </div>
 
       <div
-        v-for="(paramVal, paramKey) in (selectedAction.parameters?.properties || {})"
+        v-for="(paramVal, paramKey) in selectedAction.parameters?.properties || {}"
         :key="paramKey"
         class="pe-param-card"
       >
@@ -54,7 +64,9 @@
         <div class="pe-param-head">
           <div class="pe-param-info">
             <span class="pe-param-label">{{ paramVal['x-label'] || paramKey }}</span>
-            <span v-if="paramVal.description" class="pe-param-desc">{{ paramVal.description }}</span>
+            <span v-if="paramVal.description" class="pe-param-desc">{{
+              paramVal.description
+            }}</span>
             <span v-if="isRequired(paramKey.toString())" class="pe-param-req">Required field</span>
           </div>
           <span class="pe-param-type">{{ paramVal.type || 'any' }}</span>
@@ -66,25 +78,47 @@
           <select
             class="editor-select"
             :value="(data.params as any)?.[paramKey] || ''"
-            @change="updateNodeData({ params: { ...(data.params || {}), [paramKey]: ($event.target as HTMLSelectElement).value } })"
+            @change="
+              updateNodeData({
+                params: {
+                  ...(data.params || {}),
+                  [paramKey]: ($event.target as HTMLSelectElement).value,
+                },
+              })
+            "
           >
-            <option value="" disabled>Select {{ (paramVal as any)['x-label'] || paramKey }}...</option>
+            <option value="" disabled>
+              Select {{ (paramVal as any)['x-label'] || paramKey }}...
+            </option>
             <option v-for="val in (paramVal as any).enum" :key="val" :value="val">{{ val }}</option>
           </select>
         </template>
 
         <!-- Boolean / Toggle -->
-        <template v-else-if="(paramVal as any)['x-input-type'] === 'toggle' || (paramVal as any).type === 'boolean'">
+        <template
+          v-else-if="
+            (paramVal as any)['x-input-type'] === 'toggle' || (paramVal as any).type === 'boolean'
+          "
+        >
           <div class="pe-param-toggle">
             <label class="switch">
               <input
                 type="checkbox"
                 :checked="!!data.params?.[paramKey]"
-                @change="updateNodeData({ params: { ...(data.params || {}), [paramKey]: ($event.target as HTMLInputElement).checked } })"
+                @change="
+                  updateNodeData({
+                    params: {
+                      ...(data.params || {}),
+                      [paramKey]: ($event.target as HTMLInputElement).checked,
+                    },
+                  })
+                "
               />
               <span class="slider round"></span>
             </label>
-            <span class="pe-param-toggle-text">{{ data.params?.[paramKey] ? 'Enabled' : 'Disabled' }}</span>
+            <span class="pe-param-toggle-text">{{
+              data.params?.[paramKey] ? 'Enabled' : 'Disabled'
+            }}</span>
           </div>
         </template>
 
@@ -93,8 +127,19 @@
           <textarea
             class="editor-textarea"
             :value="(data.params as any)?.[paramKey] || ''"
-            @input="updateNodeData({ params: { ...(data.params || {}), [paramKey]: ($event.target as HTMLTextAreaElement).value } })"
-            :placeholder="(paramVal as any).description ? `e.g. ${(paramVal as any).default ?? ''}` : `Enter value for ${paramKey}`"
+            @input="
+              updateNodeData({
+                params: {
+                  ...(data.params || {}),
+                  [paramKey]: ($event.target as HTMLTextAreaElement).value,
+                },
+              })
+            "
+            :placeholder="
+              (paramVal as any).description
+                ? `e.g. ${(paramVal as any).default ?? ''}`
+                : `Enter value for ${paramKey}`
+            "
           />
         </template>
 
@@ -103,8 +148,19 @@
           <input
             class="editor-input editor-input--bold"
             :value="(data.params as any)?.[paramKey] || ''"
-            @input="updateNodeData({ params: { ...(data.params || {}), [paramKey]: ($event.target as HTMLInputElement).value } })"
-            :placeholder="(paramVal as any).description ? `e.g. ${(paramVal as any).default ?? ''}` : `Enter value for ${paramKey}`"
+            @input="
+              updateNodeData({
+                params: {
+                  ...(data.params || {}),
+                  [paramKey]: ($event.target as HTMLInputElement).value,
+                },
+              })
+            "
+            :placeholder="
+              (paramVal as any).description
+                ? `e.g. ${(paramVal as any).default ?? ''}`
+                : `Enter value for ${paramKey}`
+            "
           />
         </template>
 
@@ -113,12 +169,15 @@
           <div class="pe-var-divider">
             <div class="pe-var-line"></div>
             <button class="pe-var-btn" @click="toggleMapVariables(paramKey.toString())">
-              <LucideIcon :name="isMapVariablesOpen(paramKey.toString()) ? 'chevron-up' : 'chevron-down'" size="12" />
+              <LucideIcon
+                :name="isMapVariablesOpen(paramKey.toString()) ? 'chevron-up' : 'chevron-down'"
+                size="12"
+              />
               <span>Map variables</span>
             </button>
             <div class="pe-var-line"></div>
           </div>
-          
+
           <VariableTree
             v-if="isMapVariablesOpen(paramKey.toString())"
             :param-key="paramKey.toString()"
@@ -171,9 +230,9 @@ const toggleMapVariables = (key: string) => {
 </script>
 
 <style scoped>
-
-
-.mt-2 { margin-top: var(--nod8-space-2); }
+.mt-2 {
+  margin-top: var(--nod8-space-2);
+}
 
 .pe-params-header {
   display: flex;
@@ -273,14 +332,49 @@ const toggleMapVariables = (key: string) => {
 }
 
 /* Switch */
-.switch { position: relative; display: inline-block; width: 36px; height: 20px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--nod8-border); transition: .4s; }
-.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
-input:checked + .slider { background-color: var(--nod8-accent); }
-input:checked + .slider:before { transform: translateX(16px); }
-.slider.round { border-radius: 20px; }
-.slider.round:before { border-radius: 50%; }
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--nod8-border);
+  transition: 0.4s;
+}
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+}
+input:checked + .slider {
+  background-color: var(--nod8-accent);
+}
+input:checked + .slider:before {
+  transform: translateX(16px);
+}
+.slider.round {
+  border-radius: 20px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
 
 .pe-var-container {
   display: flex;

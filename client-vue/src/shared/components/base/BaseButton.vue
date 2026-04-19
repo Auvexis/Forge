@@ -115,59 +115,77 @@ defineOptions({ inheritAttrs: false })
 /* ── Variants ──────────────────────────────────── */
 /* Primary */
 .base-button--primary {
-  background-color: var(--nod8-accent);
-  color: #fff;
-  border: 1px solid transparent;
+  background-color: var(--nod8-button-primary-bg);
+  color: var(--nod8-button-primary-text);
+  border: 1px solid var(--nod8-button-primary-border);
 }
 .base-button--primary:hover {
-  background-color: var(--nod8-accent-hover);
+  background-color: var(--nod8-button-primary-hover);
+  color: var(--nod8-button-primary-text);
 }
 .base-button--primary:active {
-  background-color: var(--nod8-brand-600);
+  background-color: var(--nod8-button-primary-active);
+  color: var(--nod8-button-primary-active-text);
 }
 
 /* Secondary */
 .base-button--secondary {
-  background-color: var(--nod8-bg-overlay);
-  color: var(--nod8-text-primary);
-  border: 1px solid var(--nod8-border-strong);
+  background-color: var(--nod8-button-secondary-bg);
+  color: var(--nod8-button-secondary-text);
+  border: 1px solid var(--nod8-button-secondary-border);
 }
 .base-button--secondary:hover {
-  background-color: var(--nod8-bg-muted);
+  background-color: var(--nod8-button-secondary-hover);
+  color: var(--nod8-button-secondary-text);
 }
 .base-button--secondary:active {
-  background-color: var(--nod8-bg-surface);
+  background-color: var(--nod8-button-secondary-active);
+  color: var(--nod8-button-secondary-active-text);
 }
 
 /* Outline */
 .base-button--outline {
-  background-color: transparent;
-  color: var(--nod8-text-primary);
-  border: 1px solid var(--nod8-border-strong);
+  background-color: var(--nod8-button-outline-bg);
+  color: var(--nod8-button-outline-text);
+  border: 1px solid var(--nod8-button-outline-border);
 }
 .base-button--outline:hover {
-  background-color: var(--nod8-bg-overlay);
+  background-color: var(--nod8-button-outline-hover);
+  color: var(--nod8-button-outline-text);
+}
+.base-button--outline:active {
+  background-color: var(--nod8-button-outline-active);
+  color: var(--nod8-button-outline-active-text);
 }
 
 /* Ghost */
 .base-button--ghost {
-  background-color: transparent;
-  color: var(--nod8-text-secondary);
-  border: 1px solid transparent;
+  background-color: var(--nod8-button-ghost-bg);
+  color: var(--nod8-button-ghost-text);
+  border: 1px solid var(--nod8-button-ghost-border);
 }
 .base-button--ghost:hover {
-  background-color: var(--nod8-bg-overlay);
-  color: var(--nod8-text-primary);
+  background-color: var(--nod8-button-ghost-hover);
+  color: var(--nod8-button-ghost-text);
+}
+.base-button--ghost:active {
+  background-color: var(--nod8-button-ghost-active);
+  color: var(--nod8-button-ghost-active-text);
 }
 
 /* Danger */
 .base-button--danger {
-  background-color: var(--nod8-red-600);
-  color: #fff;
-  border: 1px solid transparent;
+  background-color: var(--nod8-button-danger-bg);
+  color: var(--nod8-button-danger-text);
+  border: 1px solid var(--nod8-button-danger-border);
 }
 .base-button--danger:hover {
-  background-color: var(--nod8-red-500);
+  background-color: var(--nod8-button-danger-hover);
+  color: var(--nod8-button-danger-active-text);
+}
+.base-button--danger:active {
+  background-color: var(--nod8-button-danger-active);
+  color: var(--nod8-button-danger-active-text);
 }
 
 .spin {

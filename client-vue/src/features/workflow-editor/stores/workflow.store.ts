@@ -45,20 +45,75 @@ export const useWorkflowStore = defineStore('workflow', () => {
     isDirty.value = true
   }
 
+  /**
+   * Bumps the patch segment of a "MAJOR.MINOR.PATCH" version string.
+   * Rolls over: ...9 → next minor; minor 9 → next major.
+   * Falls back gracefully if the version is not in semver format.
+   */
+  function bumpVersion(version: string): string {
+    const parts = String(version).split('.').map(Number)
+    if (parts.length !== 3 || parts.some(isNaN)) {
+      // Not a valid semver — start fresh
+      return '1.0.0'
+    }
+    let [major, minor, patch] = parts
+    patch! += 1
+    if (patch! >= 10) {
+      patch = 0
+      minor! += 1
+    }
+    if (minor! >= 10) {
+      minor = 0
+      major! += 1
+    }
+    return `${major}.${minor}.${patch}`
+  }
+
   const saveApi = useApi(workflowsApi.update)
   async function saveActiveWorkflow() {
     if (!activeWorkflow.value) return
 
     try {
-      const savedWorkflow = await saveApi.execute(
-        activeWorkflow.value.metadata.id,
-        activeWorkflow.value,
-      )
+      const workflow = activeWorkflow.value
+      const updatedVersion = bumpVersion(workflow.metadata.version)
+      const updatedDate = new Date().toISOString()
+
+      const updatedWorkflow = {
+        ...workflow,
+        metadata: {
+          ...workflow.metadata,
+          version: updatedVersion,
+          updatedAt: updatedDate,
+        },
+      }
+
+      const savedWorkflow = await saveApi.execute(activeWorkflow.value.metadata.id, updatedWorkflow)
 
       activeWorkflow.value = savedWorkflow
       isDirty.value = false
     } catch (error) {
       console.error('Failed to save workflow:', error)
+    }
+  }
+
+  const deleteApi = useApi(workflowsApi.delete)
+  function deleteActiveWorkflow() {
+    if (!activeWorkflow.value) return
+
+    try {
+      deleteApi.execute(activeWorkflow.value.metadata.id)
+      clearWorkflow()
+    } catch (error) {
+      console.error('Failed to delete workflow:', error)
+    }
+  }
+
+  function deleteWorkflow(id: string) {
+    try {
+      deleteApi.execute(id)
+      clearWorkflow()
+    } catch (error) {
+      console.error('Failed to delete workflow:', error)
     }
   }
 
@@ -71,5 +126,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     markDirty,
     updateNodeData,
     saveActiveWorkflow,
+    deleteActiveWorkflow,
+    deleteWorkflow,
   }
 })

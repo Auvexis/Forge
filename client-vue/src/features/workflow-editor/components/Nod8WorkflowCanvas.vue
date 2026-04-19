@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, markRaw } from 'vue'
+import { ref, watch, markRaw, computed } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
@@ -30,8 +30,17 @@ const panelStore = useAppPanelStore()
 const executionStore = useExecutionStore()
 const { project } = useVueFlow()
 
-// ── Execution / Logs UI state ──────────────────────────────────────────────
-const showLogs = ref(false)
+// ── Props / emits (for v-model:show-logs from parent page) ──────────────────
+const props = defineProps<{
+  showLogs?: boolean
+}>()
+
+const emit = defineEmits<{
+  (e: 'update:show-logs', value: boolean): void
+}>()
+
+// ── Local alias so internal logic can still read the value ────────────────
+const showLogsLocal = computed(() => props.showLogs ?? false)
 
 //
 // ── Inicialização única dos nodes/edges ────────────────────────────────────
@@ -196,7 +205,7 @@ async function handleStop() {
 }
 
 function handleToggleLogs() {
-  showLogs.value = !showLogs.value
+  emit('update:show-logs', !props.showLogs)
 }
 
 const addLogicNode = (type: WorkflowNodeType) => {
@@ -300,6 +309,9 @@ const onEdgesChange = (changes: EdgeChange[]) => {
     workflowStore.markDirty()
   }
 }
+
+// ── Expose public API so WorkflowEditorPage can call these ────────────────
+defineExpose({ handleRun, handleStop, openAddNodePanel })
 </script>
 
 <template>
@@ -308,9 +320,9 @@ const onEdgesChange = (changes: EdgeChange[]) => {
     <VueFlow
       v-model:nodes="vueFlowNodes"
       v-model:edges="vueFlowEdges"
-      :default-zoom="1.5"
-      :min-zoom="0.2"
-      :max-zoom="4"
+      :default-zoom="1"
+      :min-zoom="0.5"
+      :max-zoom="1.5"
       fit-view-on-init
       :snap-to-grid="true"
       :snap-grid="[10, 10]"
@@ -319,11 +331,12 @@ const onEdgesChange = (changes: EdgeChange[]) => {
       @connect="onConnect"
       @edges-change="onEdgesChange"
     >
+      <!-- Bottom zoom controls dock (no run/stop/save — those are in the top AppDock) -->
       <EditorControlsDock
         :is-saving="workflowStore.isSaving"
         :is-executing="executionStore.isExecuting"
         :is-streaming="executionStore.isStreaming"
-        :is-logs-open="showLogs"
+        :is-logs-open="showLogsLocal"
         @save="workflowStore.saveActiveWorkflow()"
         @add-node="openAddNodePanel"
         @run="handleRun"
@@ -332,10 +345,10 @@ const onEdgesChange = (changes: EdgeChange[]) => {
       />
 
       <!-- Execution Logs floating panel — centered above the canvas -->
-      <div v-if="showLogs && workflowStore.activeWorkflow" class="canvas-logs-overlay">
+      <div v-if="showLogsLocal && workflowStore.activeWorkflow" class="canvas-logs-overlay">
         <ExecutionLogsPanel
           :workflow-id="workflowStore.activeWorkflow.metadata.id"
-          @close="showLogs = false"
+          @close="emit('update:show-logs', false)"
         />
       </div>
 

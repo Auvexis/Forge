@@ -37,6 +37,4 @@ import EditorField from './EditorField.vue'
 defineProps<NodeEditorProps>()
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

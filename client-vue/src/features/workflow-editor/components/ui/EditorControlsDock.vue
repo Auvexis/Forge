@@ -68,7 +68,14 @@
         Logs
       </BaseButton>
 
-      <div :style="{ height: '24px', width: '1.5px', backgroundColor: 'var(--nod8-border)' }"></div>
+      <div
+        :style="{
+          height: '24px',
+          width: '1.5px',
+          marginLeft: 'var(--nod8-space-1)',
+          backgroundColor: 'var(--nod8-border)',
+        }"
+      ></div>
 
       <!-- ── Custom Zoom Slider ── -->
       <div

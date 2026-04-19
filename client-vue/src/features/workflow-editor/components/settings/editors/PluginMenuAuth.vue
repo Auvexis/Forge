@@ -193,8 +193,6 @@ const handleDisconnect = async () => {
 </script>
 
 <style scoped>
-
-
 .plugin-auth {
   display: flex;
   flex-direction: column;

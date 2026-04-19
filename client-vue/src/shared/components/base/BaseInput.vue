@@ -105,16 +105,11 @@ defineOptions({ inheritAttrs: false })
   display: flex;
   align-items: center;
   position: relative;
-  background-color: var(--nod8-bg-overlay);
-  border: 1px solid var(--nod8-border-strong);
+  background-color: var(--nod8-gray-900);
+  border: 1px solid var(--nod8-border-muted);
   border-radius: var(--nod8-radius-sm);
   transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
   width: 100%;
-}
-
-.base-input-container:focus-within {
-  border-color: var(--nod8-accent);
-  box-shadow: 0 0 0 1px var(--nod8-accent);
 }
 
 .base-input-container--error {

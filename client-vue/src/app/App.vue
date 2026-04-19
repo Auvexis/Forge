@@ -41,6 +41,7 @@
     <!-- Global Overlays -->
     <template #overlay>
       <AppToaster />
+      <AppConfirmPanel />
     </template>
   </AppShell>
 </template>
@@ -49,6 +50,7 @@
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
+import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 </script>
 

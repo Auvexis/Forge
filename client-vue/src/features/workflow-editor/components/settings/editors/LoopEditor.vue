@@ -34,8 +34,6 @@ defineProps<NodeEditorProps>()
 </script>
 
 <style scoped>
-
-
 .text-xs {
   font-size: var(--nod8-text-xs);
 }

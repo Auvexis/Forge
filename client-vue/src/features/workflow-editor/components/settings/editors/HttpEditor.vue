@@ -62,7 +62,7 @@
       <div v-if="advancedOpen" class="editor-stack mt-2">
         <EditorField label="Headers">
           <div class="editor-header-list">
-            <div v-for="(val, key) in (node.data.headers || {})" :key="key" class="editor-header-row">
+            <div v-for="(val, key) in node.data.headers || {}" :key="key" class="editor-header-row">
               <input
                 class="editor-input editor-input--mono"
                 :value="key"
@@ -150,6 +150,4 @@ const removeHeader = (key: string) => {
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

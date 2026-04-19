@@ -40,8 +40,8 @@
           </div>
         </div>
         <p class="editor-hint-text">
-          Connect the green handle (top) for the "true" path and the red handle
-          (bottom) for the "false" path.
+          Connect the green handle (top) for the "true" path and the red handle (bottom) for the
+          "false" path.
         </p>
       </div>
     </EditorField>
@@ -56,8 +56,6 @@ defineProps<NodeEditorProps>()
 </script>
 
 <style scoped>
-
-
 .editor-branches {
   padding: var(--nod8-space-3);
   border-radius: var(--nod8-radius-lg);
