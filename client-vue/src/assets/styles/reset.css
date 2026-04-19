@@ -117,9 +117,3 @@ samp {
   outline-offset: 2px;
   border-radius: var(--nod8-radius-sm);
 }
-
-/* Selection */
-::selection {
-  background: var(--nod8-accent-subtle);
-  color: var(--nod8-text-primary);
-}
