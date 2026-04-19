@@ -8,7 +8,8 @@ const props = defineProps<
   NodeProps<SubWorkflowNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
 >()
 
-const workflowId = computed(() => props.data?.workflowId || 'not configured')
+const workflowId = computed(() => (props.data as any)?.targetWorkflowId || 'not configured')
+const stepTitle = computed(() => (props.data as any)?.name || 'Sub-Workflow')
 </script>
 
 <template>
@@ -18,7 +19,7 @@ const workflowId = computed(() => props.data?.workflowId || 'not configured')
     :status="props.status"
     has-target
     has-source
-    title="Sub-Workflow"
+    :title="stepTitle"
     subtitle="Trigger external flow"
     icon="workflow"
     color="var(--nod8-node-subworkflow-icon)"

@@ -95,11 +95,7 @@ const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!pro
     <NodeShimmer v-if="effectiveStatus === 'running'" />
 
     <!-- Floating ID badge above the node -->
-    <div 
-      v-if="props.id || $slots.badge" 
-      class="nod8-base-node__id-badge"
-      @click.stop
-    >
+    <div v-if="props.id || $slots.badge" class="nod8-base-node__id-badge" @click.stop>
       <slot name="badge">
         <span
           v-if="effectiveStatus !== 'idle' && !isEditingId"
@@ -211,6 +207,15 @@ const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!pro
   border-radius: var(--nod8-radius-md);
   display: flex;
   flex-direction: column;
+  box-shadow: none;
+}
+
+.nod8-base-node:hover {
+  border-color: var(--nod8-node-selected);
+}
+
+.nod8-base-node:hover .nod8-base-node__id-badge {
+  border-color: var(--nod8-node-selected);
 }
 
 /* ─── Selection & execution status borders ───────────────────── */
@@ -218,31 +223,44 @@ const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!pro
   border-color: var(--nod8-node-selected);
 }
 
+.nod8-base-node.is-selected .nod8-base-node__id-badge {
+  border-color: var(--nod8-node-selected);
+}
+
 /* Running — amber */
 .nod8-base-node.is-running {
   border-color: var(--nod8-amber-400);
-  box-shadow: 0 0 0 1px var(--nod8-amber-400);
+}
+
+.nod8-base-node.is-running .nod8-base-node__id-badge {
+  border-color: var(--nod8-amber-400);
 }
 
 /* Success — green */
 .nod8-base-node.is-success {
   border-color: var(--nod8-green-400);
-  box-shadow: 0 0 0 1px var(--nod8-green-400);
+}
+
+.nod8-base-node.is-success .nod8-base-node__id-badge {
+  border-color: var(--nod8-green-400);
 }
 
 /* Failed — red */
 .nod8-base-node.is-failed {
   border-color: var(--nod8-red-400);
-  box-shadow: 0 0 0 1px var(--nod8-red-400);
+}
+
+.nod8-base-node.is-failed .nod8-base-node__id-badge {
+  border-color: var(--nod8-red-400);
 }
 
 /* ─── ID badge ───────────────────────────────────────────────── */
 .nod8-base-node__id-badge {
   position: absolute;
-  top: -21.5px;
+  top: -22.5px;
   left: 12px;
   background-color: var(--nod8-node-header);
-  border: 1px solid var(--nod8-border);
+  border: 1px solid var(--nod8-node-border);
   border-bottom: none !important;
   border-radius: 4px 4px 0 0;
   padding: 2px 6px;
@@ -255,6 +273,7 @@ const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!pro
   display: flex;
   align-items: center;
   gap: 4px;
+  box-shadow: none;
 }
 
 .nod8-base-node__id-badge:hover {

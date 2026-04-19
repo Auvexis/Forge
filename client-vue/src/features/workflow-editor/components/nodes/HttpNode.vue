@@ -10,6 +10,7 @@ const props = defineProps<
 
 const method = computed(() => props.data?.method || 'GET')
 const url = computed(() => props.data?.url || 'https://...')
+const stepTitle = computed(() => (props.data as any)?.name || 'HTTP Request')
 </script>
 
 <template>
@@ -19,7 +20,7 @@ const url = computed(() => props.data?.url || 'https://...')
     :status="props.status"
     has-target
     has-source
-    title="HTTP Request"
+    :title="stepTitle"
     :subtitle="`${method} request`"
     icon="globe"
     color="var(--nod8-node-http-icon)"

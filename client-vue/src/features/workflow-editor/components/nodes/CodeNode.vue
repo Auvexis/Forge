@@ -9,6 +9,7 @@ const props = defineProps<
 >()
 
 const snippet = computed(() => props.data?.script || '// empty script')
+const stepTitle = computed(() => (props.data as any)?.name || 'Code Block')
 </script>
 
 <template>
@@ -18,7 +19,7 @@ const snippet = computed(() => props.data?.script || '// empty script')
     :status="props.status"
     has-target
     has-source
-    title="Code Block"
+    :title="stepTitle"
     subtitle="JavaScript Engine"
     icon="code-2"
     color="var(--nod8-node-codeblock-icon)"
@@ -36,9 +37,9 @@ const snippet = computed(() => props.data?.script || '// empty script')
 <style scoped>
 .nod8-code-body {
   padding: var(--nod8-space-2);
-  background-color: rgba(115, 115, 115, 0.15); /* bg-muted/30 appx */
+  background-color: var(--nod8-bg-surface);
   border-radius: var(--nod8-radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--nod8-border);
   max-height: 60px;
   overflow: hidden;
   width: 100%;

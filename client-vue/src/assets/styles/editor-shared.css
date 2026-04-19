@@ -52,7 +52,7 @@
   border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-md);
   padding: 10px 12px;
-  font-size: var(--nod8-text-xs);
+  font-size: var(--nod8-text-sm);
   font-family: var(--nod8-font-mono);
   color: var(--nod8-text-primary);
   outline: none;
@@ -124,6 +124,12 @@
   background-color: rgba(139, 92, 246, 0.05);
   border: 1px solid rgba(139, 92, 246, 0.1);
   color: rgb(139, 92, 246);
+}
+
+.editor-hint--green {
+  background-color: rgba(133, 246, 92, 0.053);
+  border: 1px solid rgba(133, 246, 92, 0.1);
+  color: rgb(159, 253, 125);
 }
 
 /* ── Inline row (e.g. method + url) ── */

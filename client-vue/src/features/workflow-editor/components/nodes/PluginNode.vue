@@ -101,10 +101,10 @@ const remainingParams = computed(() => Math.max(0, paramEntries.value.length - 3
 
 .nod8-plugin-param-val {
   font-family: var(--nod8-font-mono);
-  background-color: rgba(255, 255, 255, 0.05); /* bg-muted/50 appx */
+  background-color: var(--nod8-bg-surface);
   padding: 2px 4px;
   border-radius: var(--nod8-radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--nod8-border);
   max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -216,6 +216,18 @@ function handleToggleLogs() {
   emit('update:show-logs', !props.showLogs)
 }
 
+// Friendly default name per node type (shown in the node header before the user renames it)
+const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
+  code: 'Code Block',
+  if: 'Conditional',
+  loop: 'Loop / ForEach',
+  subworkflow: 'Sub-Workflow',
+  http: 'HTTP Request',
+  event: 'Emit Event',
+  'event-listener': 'Wait for Event',
+  plugin: 'Plugin Action',
+}
+
 const addLogicNode = (type: WorkflowNodeType) => {
   if (!workflowStore.activeWorkflow) return
 
@@ -225,7 +237,7 @@ const addLogicNode = (type: WorkflowNodeType) => {
   // Adicionar no store
   workflowStore.activeWorkflow.nodes[id] = {
     type,
-    name: id,
+    name: NODE_DEFAULT_NAMES[type] ?? id,
     ui: { positionX: pos.x, positionY: pos.y },
   } as WorkflowNode
 
@@ -367,24 +379,36 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
           <marker
             id="nod8-arrow-normal"
             viewBox="0 0 12 12"
-            refX="11"
+            refX="10"
             refY="6"
             markerWidth="6"
             markerHeight="6"
             orient="auto"
           >
-            <path d="M 0 0 L 12 6 L 0 12 z" fill="var(--nod8-rf-arrow-stroke)" />
+            <path
+              d="M 2 2 L 10 6 L 2 10 z"
+              fill="var(--nod8-rf-arrow-stroke)"
+              stroke="var(--nod8-rf-arrow-stroke)"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
           </marker>
           <marker
             id="nod8-arrow-selected"
             viewBox="0 0 12 12"
-            refX="11"
+            refX="10"
             refY="6"
             markerWidth="6"
             markerHeight="6"
             orient="auto"
           >
-            <path d="M 0 0 L 12 6 L 0 12 z" fill="var(--nod8-rf-arrow-stroke-selected)" />
+            <path
+              d="M 2 2 L 10 6 L 2 10 z"
+              fill="var(--nod8-rf-arrow-stroke-selected)"
+              stroke="var(--nod8-rf-arrow-stroke-selected)"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
           </marker>
         </defs>
       </svg>

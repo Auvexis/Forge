@@ -188,9 +188,10 @@ const triggerConfig = computed(() => {
 
 .schema-tag {
   font-size: 11px;
+  font-family: var(--nod8-font-mono);
   padding: 2px 6px;
-  background-color: var(--nod8-bg-muted);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--nod8-bg-surface);
+  border: 1px solid var(--nod8-border);
   border-radius: 4px;
   color: var(--nod8-text-secondary);
 }

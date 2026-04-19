@@ -131,8 +131,8 @@
 <script setup lang="ts">
 import { Panel, useVueFlow } from '@vue-flow/core'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
-import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 defineProps<{
   isSaving?: boolean
@@ -169,6 +169,12 @@ const onSliderChange = (event: Event) => {
   justify-content: center;
   padding: var(--nod8-space-2);
   border-radius: var(--nod8-radius-sm);
+  flex-wrap: nowrap;
+  min-width: max-content;
+}
+
+.dock-btn {
+  flex-shrink: 0;
 }
 
 .dock-btn--active {

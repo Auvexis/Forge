@@ -10,8 +10,9 @@ const props = defineProps<
   NodeProps<LoopNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
 >()
 
-const collection = computed(() => props.data?.collection || '—')
+const collection = computed(() => (props.data as any)?.collectionPath || '—')
 const maxIterations = computed(() => props.data?.maxIterations || 1000)
+const stepTitle = computed(() => (props.data as any)?.name || 'Loop / ForEach')
 </script>
 
 <template>
@@ -20,7 +21,7 @@ const maxIterations = computed(() => props.data?.maxIterations || 1000)
     :selected="props.selected"
     :status="props.status"
     has-target
-    title="Loop / ForEach"
+    :title="stepTitle"
     subtitle="Iterate Array"
     icon="repeat"
     color="var(--nod8-node-loop-icon)"

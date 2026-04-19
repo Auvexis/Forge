@@ -8,7 +8,8 @@ const props = defineProps<
   NodeProps<EventNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
 >()
 
-const eventName = computed(() => props.data?.eventName || 'event.name')
+const eventName = computed(() => (props.data as any)?.eventTopic || 'event.topic')
+const stepTitle = computed(() => (props.data as any)?.name || 'Emit Event')
 </script>
 
 <template>
@@ -18,7 +19,7 @@ const eventName = computed(() => props.data?.eventName || 'event.name')
     :status="props.status"
     has-target
     has-source
-    title="Emit Event"
+    :title="stepTitle"
     subtitle="Trigger signal"
     icon="zap"
     color="var(--nod8-node-event-icon)"

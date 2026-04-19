@@ -10,7 +10,7 @@
     </EditorField>
 
     <EditorField label="JavaScript Code" icon="code-2">
-      <div class="editor-hint editor-hint--amber">
+      <div class="editor-hint editor-hint--green">
         Available:
         <span class="editor-code-snippet">context.trigger</span>,
         <span class="editor-code-snippet">context.steps</span>,
@@ -18,9 +18,9 @@
       </div>
       <textarea
         class="editor-textarea"
-        :value="node.data.script || ''"
+        :value="(node.data.script as string) || ''"
         @input="updateNodeData({ script: ($event.target as HTMLTextAreaElement).value })"
-        placeholder="// Access context and variables\nconst items = context.steps.prevStep.output;\nconst result = items.filter(i => i.active);\nreturn result;"
+        :placeholder="`// Access context and variables\nconst items = context.steps.prevStep.output;\nconst result = items.filter(i => i.active);\nreturn result;`"
         spellcheck="false"
       />
     </EditorField>

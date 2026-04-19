@@ -8,7 +8,8 @@ const props = defineProps<
   NodeProps<EventListenerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
 >()
 
-const eventName = computed(() => props.data?.eventName || 'custom.signal')
+const eventName = computed(() => (props.data as any)?.eventTopic || 'custom.signal')
+const stepTitle = computed(() => (props.data as any)?.name || 'Wait for Event')
 </script>
 
 <template>
@@ -18,7 +19,7 @@ const eventName = computed(() => props.data?.eventName || 'custom.signal')
     :status="props.status"
     has-target
     has-source
-    title="Wait for Event"
+    :title="stepTitle"
     subtitle="Listener"
     icon="target"
     color="var(--nod8-node-event-listener-icon)"

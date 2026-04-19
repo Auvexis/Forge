@@ -238,24 +238,22 @@
   /* ── Node Colors ─────────────────────────────────────────── */
   --nod8-node-header: #161617;
   --nod8-node-body: #101012;
-  --nod8-node-selected: #4e4e51;
-  --nod8-node-border: #262627;
+  --nod8-node-border: rgb(37, 37, 37);
+  --nod8-node-selected: rgb(60, 60, 60);
 
   /* ── Handle Colors ─────────────────────────────────────────── */
-  --nod8-handle-bg: #101012;
-  --nod8-handle-border: #262627;
-  --nod8-handle-bg-hover: #4e4e51;
-  --nod8-handle-border-hover: #4e4e51;
+  --nod8-node-handle: var(--nod8-node-border);
+  --nod8-node-handle-hover: var(--nod8-node-selected);
 
   /* ── Edge Colors ─────────────────────────────────────────── */
-  --nod8-rf-edge-stroke: #262627;
-  --nod8-rf-edge-stroke-hover: #4e4e51;
-  --nod8-rf-edge-stroke-selected: #4e4e51;
-  --nod8-rf-edge-stroke-error: #4e4e51;
+  --nod8-rf-edge-stroke: var(--nod8-node-border);
+  --nod8-rf-edge-stroke-hover: var(--nod8-node-selected);
+  --nod8-rf-edge-stroke-selected: var(--nod8-node-selected);
+  --nod8-rf-edge-stroke-error: var(--nod8-node-selected);
 
   /* ── Arrow Colors ─────────────────────────────────────────── */
-  --nod8-rf-arrow-stroke: #262627;
-  --nod8-rf-arrow-stroke-selected: #4e4e51;
+  --nod8-rf-arrow-stroke: var(--nod8-node-border);
+  --nod8-rf-arrow-stroke-selected: var(--nod8-node-selected);
 
   /* Nodes */
   /* Triggers */

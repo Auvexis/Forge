@@ -188,6 +188,15 @@ defineOptions({ inheritAttrs: false })
   color: var(--nod8-button-danger-active-text);
 }
 
+.base-button__icon-left,
+.base-button__icon-right {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
 .spin {
   animation: spin 1s linear infinite;
 }
