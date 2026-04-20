@@ -35,7 +35,10 @@ function mapExecutionLog(raw: ServerExecutionLog): ExecutionLog {
     status: raw.status as WorkflowExecutionStatus,
     startedAt: raw.start_time,
     endedAt: raw.end_time,
-    context: raw.context_state,
+    // context_state can be null when the workflow fails before the engine
+    // initialises (e.g. invalid content type). Default to an empty object so
+    // the detail view can always safely access context.trigger / context.steps.
+    context: raw.context_state ?? {},
   }
 }
 
@@ -105,9 +108,29 @@ export const workflowsApi = {
       headers['x-nod8-execution-id'] = clientExecId
     }
 
+    // If the payload contains any File objects, send as multipart/form-data so
+    // the binary data is preserved. JSON.stringify() silently converts Files to
+    // `{}`, which causes "Invalid content type" errors in upload plugins.
+    const hasFiles = payload && Object.values(payload).some((v) => v instanceof File)
+
+    let body: FormData | Record<string, unknown>
+    if (hasFiles && payload) {
+      const form = new FormData()
+      for (const [key, value] of Object.entries(payload)) {
+        if (value instanceof File) {
+          form.append(key, value, value.name)
+        } else if (value !== undefined && value !== null) {
+          form.append(key, typeof value === 'string' ? value : JSON.stringify(value))
+        }
+      }
+      body = form
+    } else {
+      body = payload ?? {}
+    }
+
     return apiRequest<{ executionId: string }>(ENDPOINTS.EXECUTE_WORKFLOW(id), {
       method: 'POST',
-      body: payload ?? {},
+      body,
       headers,
     })
   },

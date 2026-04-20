@@ -92,7 +92,7 @@
         </div>
 
         <!-- Trigger payload -->
-        <div v-if="detailExecution.context.trigger" class="elp-section">
+        <div v-if="detailExecution.context?.trigger" class="elp-section">
           <div class="elp-section-title-row">
             <p class="elp-section-title">Trigger Payload</p>
             <button
@@ -107,23 +107,30 @@
         </div>
 
         <!-- Steps -->
-        <div v-if="detailExecution.context.steps" class="elp-section">
+        <div v-if="detailExecution.context?.steps" class="elp-section">
           <p class="elp-section-title">Steps</p>
           <div class="elp-steps">
             <div
               v-for="(step, nodeId) in detailExecution.context.steps"
               :key="nodeId"
               class="elp-step"
-              :class="step ? `elp-step--${step.status.toLowerCase()}` : ''"
+              :class="step?.status ? `elp-step--${step.status.toLowerCase()}` : ''"
             >
               <div class="elp-step-header">
                 <LucideIcon :name="stepStatusIcon(step?.status ?? '')" :size="12" />
                 <span class="elp-step-id">{{ nodeId }}</span>
-                <span class="elp-step-status">{{ step?.status }}</span>
+                <span class="elp-step-status">{{ step?.status ?? '—' }}</span>
               </div>
-              <pre v-if="step?.error" class="elp-step-error">{{ step.error }}</pre>
+              <pre v-if="step?.error" class="elp-step-error">{{ typeof step.error === 'string' ? step.error : JSON.stringify(step.error, null, 2) }}</pre>
             </div>
           </div>
+        </div>
+
+        <!-- No context at all (e.g. failed before engine started) -->
+        <div v-if="!detailExecution.context?.trigger && !detailExecution.context?.steps" class="elp-empty" style="padding: var(--nod8-space-6) var(--nod8-space-4)">
+          <LucideIcon name="alert-circle" :size="20" class="elp-empty-icon" style="color: var(--nod8-red-400); opacity: 1" />
+          <p style="font-size: var(--nod8-text-sm); color: var(--nod8-text-muted); margin: 0">No execution context available</p>
+          <p class="elp-empty-sub">The workflow failed before generating any output.</p>
         </div>
       </div>
     </template>
@@ -644,16 +651,15 @@ onBeforeUnmount(() => {
 .elp-step {
   padding: var(--nod8-space-2) var(--nod8-space-3);
   border-radius: var(--nod8-radius-sm);
-  border: 1px solid var(--nod8-border-muted);
+  border: 1px solid var(--nod8-border);
   background: var(--nod8-bg-elevated);
 }
 
 .elp-step--failed {
-  border-color: rgba(248, 113, 113, 0.2);
-  background: rgba(248, 113, 113, 0.04);
+  border-color: var(--nod8-border);
 }
 .elp-step--success {
-  border-color: rgba(52, 211, 153, 0.15);
+  border-color: var(--nod8-border);
 }
 
 .elp-step-header {
