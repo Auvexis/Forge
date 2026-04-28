@@ -34,16 +34,6 @@
             </span>
           </div>
 
-          <!-- Unpublish button -->
-          <button
-            class="pm-unpublish-btn"
-            :disabled="unpublishing === item.id"
-            @click="handleUnpublish(item)"
-            title="Remove from production"
-          >
-            <LoaderIcon v-if="unpublishing === item.id" :size="12" class="pm-spin" />
-            <PowerOffIcon v-else :size="12" />
-          </button>
         </div>
 
         <!-- Last execution -->
@@ -77,14 +67,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { RefreshCwIcon, ActivityIcon, PowerOffIcon, LoaderIcon } from 'lucide-vue-next'
+import { RefreshCwIcon, ActivityIcon, LoaderIcon } from 'lucide-vue-next'
 import { workflowsApi, type ProductionWorkflowStatus } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
 
 const toast = useToast()
 const items = ref<ProductionWorkflowStatus[]>([])
 const loading = ref(false)
-const unpublishing = ref<string | null>(null)
 
 let pollInterval: ReturnType<typeof setInterval> | null = null
 
@@ -99,18 +88,7 @@ async function refresh() {
   }
 }
 
-async function handleUnpublish(item: ProductionWorkflowStatus) {
-  unpublishing.value = item.id
-  try {
-    await workflowsApi.unpublish(item.id)
-    toast.success(`"${item.name}" removed from production`)
-    await refresh()
-  } catch (err: any) {
-    toast.error(err?.message ?? 'Failed to unpublish')
-  } finally {
-    unpublishing.value = null
-  }
-}
+
 
 function triggerLabel(type: ProductionWorkflowStatus['triggerType']): string {
   const map: Record<string, string> = {
@@ -285,32 +263,7 @@ onUnmounted(() => {
   color: var(--nod8-text-secondary);
 }
 
-/* ── Unpublish button ────────────────────────────────────────── */
-.pm-unpublish-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-text-muted);
-  flex-shrink: 0;
-  transition: all var(--nod8-duration-fast);
-}
 
-.pm-unpublish-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, #ef4444 15%, transparent);
-  color: #ef4444;
-}
-
-.pm-unpublish-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pm-spin {
-  animation: spin 0.8s linear infinite;
-}
 
 /* ── Execution status ────────────────────────────────────────── */
 .pm-card__exec {
