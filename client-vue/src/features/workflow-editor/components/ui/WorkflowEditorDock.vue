@@ -128,6 +128,13 @@
 
       <div class="wed-divider-v" />
 
+      <!-- Publish/Unpublish -->
+      <WorkflowPublishButton
+        v-if="workflow"
+        :workflow="workflow"
+        @updated="$emit('workflow-updated', $event)"
+      />
+
       <!-- Close -->
       <BaseButton
         size="sm"
@@ -148,12 +155,15 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
+import WorkflowPublishButton from './WorkflowPublishButton.vue'
+import type { WorkflowItem } from '@/core/types/workflow.types'
 
 // ── Props ─────────────────────────────────────────────────────────────────
 
 const props = defineProps<{
   workflowName: string
   workflowId: string
+  workflow?: WorkflowItem
   isSaving?: boolean
   isExecuting?: boolean
   isStreaming?: boolean
@@ -172,7 +182,9 @@ defineEmits<{
   (e: 'toggle-logs'): void
   (e: 'close'): void
   (e: 'export-workflow'): void
+  (e: 'workflow-updated', workflow: WorkflowItem): void
 }>()
+
 
 // ── Derived ───────────────────────────────────────────────────────────────
 

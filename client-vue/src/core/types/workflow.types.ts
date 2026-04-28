@@ -159,20 +159,30 @@ export interface WorkflowSchemaField {
   required: boolean
 }
 
-// ── Trigger ──────────────────────────────────────────────────
+// ── Webhook Body Field ────────────────────────────────
+
+export interface WebhookBodyField {
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array'
+  required?: boolean
+  description?: string
+}
+
+// ── Trigger ───────────────────────────────────────
 
 export interface WorkflowTrigger {
   type: 'manual' | 'webhook' | 'cron' | 'event'
   schema?: Record<string, WorkflowSchemaField>
   ui?: WorkflowNodeUI
   webhookPath?: string
+  webhookSlug?: string
   webhookMethods?: ('GET' | 'POST' | 'PUT' | 'DELETE')[]
   webhookSecret?: string
+  webhookBodySchema?: Record<string, WebhookBodyField>
   cronExpression?: string
   eventName?: string
 }
 
-// ── Metadata ─────────────────────────────────────────────────
+// ── Metadata ───────────────────────────────────────
 
 export interface WorkflowMetadata {
   id: string
@@ -184,6 +194,7 @@ export interface WorkflowMetadata {
   public: boolean
   createdAt: string
   updatedAt?: string
+  publishedAt?: string
 }
 
 // ── Root Payload ─────────────────────────────────────────────

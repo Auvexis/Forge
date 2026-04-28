@@ -103,6 +103,7 @@ watch(
       <WorkflowEditorDock
         :workflow-name="workflowStore.activeWorkflow?.metadata.name ?? 'Workflow'"
         :workflow-id="workflowStore.activeWorkflow?.metadata.id ?? ''"
+        :workflow="workflowStore.activeWorkflow ?? undefined"
         :is-saving="workflowStore.isSaving"
         :is-executing="executionStore.isExecuting"
         :is-streaming="executionStore.isStreaming"
@@ -116,6 +117,7 @@ watch(
         @toggle-logs="showLogs = !showLogs"
         @settings="showSettings = !showSettings"
         @close="handleClose()"
+        @workflow-updated="workflowStore.setActiveWorkflow($event)"
       />
     </template>
 

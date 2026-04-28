@@ -8,6 +8,21 @@ import { API_BASE_URL } from '../constants/app'
 import type { WorkflowItem } from '../types/workflow.types'
 import type { ExecutionLog, WorkflowExecutionStatus } from '../types/execution.types'
 
+// ── Production Status Shape ───────────────────────────────
+
+export interface ProductionWorkflowStatus {
+  id: string
+  name: string
+  triggerType: 'manual' | 'webhook' | 'cron' | 'event'
+  publishedAt: string | null
+  lastExecution: {
+    id: string
+    status: string
+    startTime: number
+    endTime: number | null
+  } | null
+}
+
 // ── Server response shape (snake_case from SQLite row) ────────
 
 /**
@@ -68,11 +83,17 @@ export const workflowsApi = {
       body: workflow,
     }),
 
-  /** Publish a draft workflow to active status */
+  /** Publish a workflow to active/production status */
   publish: (id: string) =>
-    apiRequest<WorkflowItem>(ENDPOINTS.WORKFLOW_PUBLISH(id), {
-      method: 'POST',
-    }),
+    apiRequest<WorkflowItem>(ENDPOINTS.WORKFLOW_PUBLISH(id), { method: 'POST' }),
+
+  /** Unpublish a workflow — removes it from production */
+  unpublish: (id: string) =>
+    apiRequest<WorkflowItem>(ENDPOINTS.WORKFLOW_UNPUBLISH(id), { method: 'POST' }),
+
+  /** Get all published workflows with their last execution status */
+  getProductionStatus: () =>
+    apiRequest<ProductionWorkflowStatus[]>(ENDPOINTS.WORKFLOW_PRODUCTION_STATUS),
 
   /** Delete a workflow */
   delete: (id: string) =>

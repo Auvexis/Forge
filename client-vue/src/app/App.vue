@@ -17,6 +17,16 @@
           <LucideIcon name="puzzle" :size="16" />
         </router-link>
 
+        <!-- Production Monitor -->
+        <button
+          class="nav-link"
+          :class="{ 'nav-link--active': isMonitorOpen }"
+          title="Production Monitor"
+          @click="toggleMonitor"
+        >
+          <LucideIcon name="activity" :size="16" />
+        </button>
+
         <!-- Sidebar footer -->
         <template #footer>
           <div class="sidebar-footer-links">
@@ -42,16 +52,39 @@
     <template #overlay>
       <AppToaster />
       <AppConfirmPanel />
+      <GlobalAppPanel />
     </template>
   </AppShell>
 </template>
 
 <script setup lang="ts">
+import { ref, markRaw } from 'vue'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
 import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
+import GlobalAppPanel from '@/shared/components/layout/GlobalAppPanel.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { useAppPanelStore } from '@/shared/stores/app-panel.store'
+import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/ProductionMonitorPanel.vue'
+
+const panelStore = useAppPanelStore()
+const isMonitorOpen = ref(false)
+
+function toggleMonitor() {
+  if (isMonitorOpen.value) {
+    panelStore.closePanel()
+    isMonitorOpen.value = false
+  } else {
+    panelStore.openPanel({
+      title: 'Production Monitor',
+      component: markRaw(ProductionMonitorPanel),
+      position: 'left',
+      width: 'md',
+    })
+    isMonitorOpen.value = true
+  }
+}
 </script>
 
 <style scoped>

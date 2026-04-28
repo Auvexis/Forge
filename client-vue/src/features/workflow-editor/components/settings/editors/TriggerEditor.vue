@@ -73,17 +73,45 @@
     <!-- ── WEBHOOK ── -->
     <template v-if="node.data.type === 'webhook'">
       <div class="te-section">
-        <!-- URL display -->
+
+        <!-- Endpoint Slug -->
         <div class="te-field">
-          <span class="te-label">Webhook URL</span>
-          <div class="te-input-row">
-            <div class="te-url-box">{{ webhookUrl }}</div>
-            <button class="te-icon-btn" @click="copyUrl">
-              <CheckIcon v-if="copiedUrl" :size="14" style="color: var(--nod8-green-400)" />
-              <CopyIcon v-else :size="14" />
-            </button>
+          <span class="te-label">
+            Endpoint Slug
+            <span class="te-label-sub">(optional, readable name)</span>
+          </span>
+          <input
+            type="text"
+            :value="(node.data as WorkflowTrigger).webhookSlug || ''"
+            @input="updateNodeData({ webhookSlug: ($event.target as HTMLInputElement).value || undefined })"
+            placeholder="nova-venda"
+            class="editor-input"
+          />
+          <p class="te-hint">kebab-case only — replaces the auto-generated path.</p>
+        </div>
+
+        <!-- URL display — test vs. production -->
+        <div class="te-field">
+          <span class="te-label">Webhook URLs</span>
+          <div class="te-url-group">
+            <div class="te-url-row">
+              <span class="te-url-badge te-url-badge--test">TEST</span>
+              <div class="te-url-box">{{ testWebhookUrl }}</div>
+              <button class="te-icon-btn" @click="copyUrl(testWebhookUrl, 'test')">
+                <CheckIcon v-if="copied === 'test'" :size="14" style="color: var(--nod8-green-400)" />
+                <CopyIcon v-else :size="14" />
+              </button>
+            </div>
+            <div class="te-url-row">
+              <span class="te-url-badge te-url-badge--prod">PROD</span>
+              <div class="te-url-box">{{ prodWebhookUrl }}</div>
+              <button class="te-icon-btn" @click="copyUrl(prodWebhookUrl, 'prod')">
+                <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--nod8-green-400)" />
+                <CopyIcon v-else :size="14" />
+              </button>
+            </div>
           </div>
-          <p class="te-hint">Save the workflow to auto-generate a unique webhook path.</p>
+          <p class="te-hint">Test URL works for any workflow. Prod URL requires publishing.</p>
         </div>
 
         <!-- HTTP Methods -->
@@ -112,7 +140,7 @@
           <div class="te-input-row">
             <input
               type="password"
-              :value="node.data.webhookSecret || ''"
+              :value="(node.data as WorkflowTrigger).webhookSecret || ''"
               @input="updateNodeData({ webhookSecret: ($event.target as HTMLInputElement).value })"
               placeholder="my-secret-key"
               class="editor-input te-password-input"
@@ -126,6 +154,60 @@
             <code class="editor-code-snippet">X-Nod8-Signature: sha256=…</code>
           </p>
         </div>
+
+        <!-- Expected Body Schema -->
+        <div class="te-section">
+          <div class="te-intro">
+            <span class="te-label">Expected Body</span>
+            <p class="te-hint">Document the fields this webhook expects to receive.</p>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <div
+              v-for="(field, key, index) in (node.data as WorkflowTrigger).webhookBodySchema || {}"
+              :key="index"
+              class="te-card"
+            >
+              <div class="te-card-header">
+                <input
+                  :value="key"
+                  class="te-key-input"
+                  @blur="updateBodySchemaKey(String(key), ($event.target as HTMLInputElement).value)"
+                  placeholder="Field name"
+                />
+                <button class="te-remove-btn" @click="removeBodySchemaField(String(key))">
+                  <XIcon :size="12" />
+                </button>
+              </div>
+              <div class="te-card-row">
+                <select
+                  :value="(field as any).type"
+                  @change="updateBodySchemaField(String(key), { type: ($event.target as HTMLSelectElement).value as any })"
+                  class="te-type-select"
+                >
+                  <option value="string">String</option>
+                  <option value="number">Number</option>
+                  <option value="boolean">Boolean</option>
+                  <option value="object">Object</option>
+                  <option value="array">Array</option>
+                </select>
+                <label class="te-req-label">
+                  <input
+                    type="checkbox"
+                    :checked="(field as any).required"
+                    @change="updateBodySchemaField(String(key), { required: ($event.target as HTMLInputElement).checked })"
+                  />
+                  Req
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <button class="editor-add-btn" @click="addBodySchemaField">
+            <PlusIcon :size="14" /> Add Body Field
+          </button>
+        </div>
+
       </div>
     </template>
 
@@ -135,7 +217,7 @@
         <div class="te-field">
           <span class="te-label">Cron Expression</span>
           <input
-            :value="node.data.cronExpression || ''"
+            :value="(node.data as WorkflowTrigger).cronExpression || ''"
             @input="updateNodeData({ cronExpression: ($event.target as HTMLInputElement).value })"
             placeholder="* * * * *"
             class="editor-input te-cron-input"
@@ -156,7 +238,7 @@
               type="button"
               @click="updateNodeData({ cronExpression: p.value })"
               class="te-preset-btn"
-              :class="{ 'te-preset-btn--active': node.data.cronExpression === p.value }"
+              :class="{ 'te-preset-btn--active': (node.data as WorkflowTrigger).cronExpression === p.value }"
             >
               <span class="te-preset-label">{{ p.label }}</span>
               <code class="te-preset-value">{{ p.value }}</code>
@@ -172,7 +254,7 @@
         <div class="te-field">
           <span class="te-label">Internal Event Name</span>
           <input
-            :value="node.data.eventName || ''"
+            :value="(node.data as WorkflowTrigger).eventName || ''"
             @input="updateNodeData({ eventName: ($event.target as HTMLInputElement).value })"
             placeholder="video.uploaded"
             class="editor-input te-event-input"
@@ -201,7 +283,7 @@
 import { computed, ref } from 'vue'
 import { XIcon, PlusIcon, CopyIcon, CheckIcon, RefreshCwIcon } from 'lucide-vue-next'
 import type { NodeEditorProps } from './types'
-import type { WorkflowTrigger, WorkflowSchemaField } from '@/core/types/workflow.types'
+import type { WorkflowTrigger, WorkflowSchemaField, WebhookBodyField } from '@/core/types/workflow.types'
 import EditorField from './EditorField.vue'
 import { API_BASE_URL } from '@/core/constants/app'
 
@@ -247,14 +329,15 @@ function humanizeCron(expression: string | undefined): string {
   }
 }
 
-const copiedUrl = ref(false)
+const copied = ref<'test' | 'prod' | null>(null)
 
-const webhookUrl = computed(() => {
-  const path = (props.node.data as WorkflowTrigger).webhookPath || ''
-  return path
-    ? `${API_BASE_URL}/webhooks/${path}`
-    : `${API_BASE_URL}/webhooks/<auto-assigned-on-save>`
-})
+function resolvedPath(): string {
+  const trigger = props.node.data as WorkflowTrigger
+  return trigger.webhookSlug || trigger.webhookPath || '<auto-assigned-on-save>'
+}
+
+const testWebhookUrl = computed(() => `${API_BASE_URL}/webhook-test/${resolvedPath()}`)
+const prodWebhookUrl = computed(() => `${API_BASE_URL}/webhook/${resolvedPath()}`)
 
 const allowedMethods = computed<string[]>(() => {
   return (props.node.data as WorkflowTrigger).webhookMethods ?? ['POST']
@@ -272,24 +355,21 @@ function toggleMethod(method: string) {
   }
 }
 
-async function copyUrl() {
-  await navigator.clipboard.writeText(webhookUrl.value)
-  copiedUrl.value = true
-  setTimeout(() => {
-    copiedUrl.value = false
-  }, 2000)
+async function copyUrl(url: string, which: 'test' | 'prod') {
+  await navigator.clipboard.writeText(url)
+  copied.value = which
+  setTimeout(() => { copied.value = null }, 2000)
 }
 
 function generateSecret() {
   const arr = new Uint8Array(16)
   crypto.getRandomValues(arr)
-  const secret = Array.from(arr)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
+  const secret = Array.from(arr).map((b) => b.toString(16).padStart(2, '0')).join('')
   props.updateNodeData({ webhookSecret: secret })
 }
 
-// Manual schema helpers
+// ── Manual schema helpers ──────────────────────────────────
+
 function updateSchemaKey(oldKey: string, newKey: string) {
   if (oldKey === newKey) return
   const currentSchema = (props.node.data as WorkflowTrigger).schema || {}
@@ -310,10 +390,7 @@ function removeSchemaField(key: string) {
 function updateSchemaField(key: string, updates: Partial<WorkflowSchemaField>) {
   const currentSchema = (props.node.data as WorkflowTrigger).schema || {}
   props.updateNodeData({
-    schema: {
-      ...currentSchema,
-      [key]: { ...currentSchema[key], ...updates },
-    },
+    schema: { ...currentSchema, [key]: { ...currentSchema[key], ...updates } },
   })
 }
 
@@ -321,10 +398,75 @@ function addSchemaField() {
   const currentSchema = (props.node.data as WorkflowTrigger).schema || {}
   const num = Object.keys(currentSchema).length
   props.updateNodeData({
-    schema: {
-      ...currentSchema,
-      [`field${num}`]: { type: 'string', required: false },
-    },
+    schema: { ...currentSchema, [`field${num}`]: { type: 'string', required: false } },
+  })
+}
+
+// ── Webhook body schema helpers ────────────────────────────
+
+function updateBodySchemaKey(oldKey: string, newKey: string) {
+  if (oldKey === newKey) return
+  const schema = (props.node.data as WorkflowTrigger).webhookBodySchema || {}
+  const next = { ...schema }
+  const val = next[oldKey]
+  delete next[oldKey]
+  next[newKey] = val
+  props.updateNodeData({ webhookBodySchema: next })
+}
+
+function removeBodySchemaField(key: string) {
+  const schema = (props.node.data as WorkflowTrigger).webhookBodySchema || {}
+  const next = { ...schema }
+  delete next[key]
+  props.updateNodeData({ webhookBodySchema: next })
+}
+
+function updateBodySchemaField(key: string, updates: Partial<WebhookBodyField>) {
+  const schema = (props.node.data as WorkflowTrigger).webhookBodySchema || {}
+  props.updateNodeData({
+    webhookBodySchema: { ...schema, [key]: { ...schema[key], ...updates } },
+  })
+}
+
+function addBodySchemaField() {
+  const schema = (props.node.data as WorkflowTrigger).webhookBodySchema || {}
+  const num = Object.keys(schema).length
+  props.updateNodeData({
+    webhookBodySchema: { ...schema, [`field${num}`]: { type: 'string', required: false } },
   })
 }
 </script>
+
+<style scoped>
+/* ── URL group (test + prod stacked) ───────── */
+.te-url-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.te-url-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.te-url-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: var(--nod8-radius-sm);
+  flex-shrink: 0;
+}
+
+.te-url-badge--test {
+  background: var(--nod8-bg-muted);
+  color: var(--nod8-text-secondary);
+}
+
+.te-url-badge--prod {
+  background: color-mix(in srgb, var(--nod8-green-400) 15%, transparent);
+  color: var(--nod8-green-400);
+}
+</style>

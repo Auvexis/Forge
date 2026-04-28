@@ -8,6 +8,8 @@ export const ENDPOINTS = {
   WORKFLOW_BY_ID: (id: string) => `/workflows/${id}`,
   WORKFLOW_SCHEMA: (id: string) => `/workflows/${id}/schema`,
   WORKFLOW_PUBLISH: (id: string) => `/workflows/${id}/publish`,
+  WORKFLOW_UNPUBLISH: (id: string) => `/workflows/${id}/unpublish`,
+  WORKFLOW_PRODUCTION_STATUS: '/workflows/production-status',
 
   // Executions
   EXECUTIONS_BY_WORKFLOW: (id: string) => `/workflows/${id}/executions`,
