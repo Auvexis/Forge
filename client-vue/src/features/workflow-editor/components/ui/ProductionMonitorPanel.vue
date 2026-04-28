@@ -1,12 +1,16 @@
 <template>
   <div class="pm-panel">
-
     <!-- ── Header actions ── -->
     <div class="pm-toolbar">
       <span class="pm-count">
         {{ items.length }} workflow{{ items.length !== 1 ? 's' : '' }} in production
       </span>
-      <button class="pm-refresh-btn" :class="{ 'pm-refresh-btn--spinning': loading }" @click="refresh" title="Refresh">
+      <button
+        class="pm-refresh-btn"
+        :class="{ 'pm-refresh-btn--spinning': loading }"
+        @click="refresh"
+        title="Refresh"
+      >
         <RefreshCwIcon :size="14" />
       </button>
     </div>
@@ -21,7 +25,6 @@
     <!-- ── Workflow cards ── -->
     <div v-else class="pm-list">
       <div v-for="item in items" :key="item.id" class="pm-card">
-
         <!-- Card header -->
         <div class="pm-card__header">
           <div class="pm-card__title-row">
@@ -48,9 +51,10 @@
           <span
             class="pm-exec-dot"
             :class="{
-              'pm-exec-dot--success': item.lastExecution.status === 'success',
-              'pm-exec-dot--error': item.lastExecution.status === 'error' || item.lastExecution.status === 'failed',
-              'pm-exec-dot--running': item.lastExecution.status === 'running',
+              'pm-exec-dot--success': item.lastExecution.status === 'SUCCESS',
+              'pm-exec-dot--error':
+                item.lastExecution.status === 'ERROR' || item.lastExecution.status === 'FAILED',
+              'pm-exec-dot--running': item.lastExecution.status === 'RUNNING',
             }"
           />
           <span class="pm-exec-label">
@@ -141,7 +145,7 @@ function relativeTime(ms: number): string {
 
 onMounted(() => {
   refresh()
-  pollInterval = setInterval(refresh, 5_000)
+  pollInterval = setInterval(refresh, 1_000)
 })
 
 onUnmounted(() => {
@@ -195,8 +199,12 @@ onUnmounted(() => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── List ────────────────────────────────────────────────────── */
@@ -323,16 +331,25 @@ onUnmounted(() => {
   background: var(--nod8-text-muted);
 }
 
-.pm-exec-dot--success { background: var(--nod8-green-500); }
-.pm-exec-dot--error   { background: var(--nod8-red-500); }
+.pm-exec-dot--success {
+  background: var(--nod8-green-500);
+}
+.pm-exec-dot--error {
+  background: var(--nod8-red-500);
+}
 .pm-exec-dot--running {
   background: var(--nod8-amber-500);
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .pm-exec-label {
@@ -383,7 +400,11 @@ onUnmounted(() => {
 }
 
 @keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 </style>
