@@ -39,6 +39,7 @@
           </div>
         </template>
       </AppSidebar>
+      <SidebarGlobalPanel />
     </template>
 
     <!-- Main Content Area -->
@@ -63,23 +64,19 @@ import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
 import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { useAppPanelStore } from '@/shared/stores/app-panel.store'
+import SidebarGlobalPanel from '@/shared/components/layout/SidebarGlobalPanel.vue'
+import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
 import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/ProductionMonitorPanel.vue'
 
-const panelStore = useAppPanelStore()
-const isMonitorOpen = computed(() => panelStore.isOpen && panelStore.title === 'Production Monitor')
+const sidebarStore = useSidebarPanelStore()
+const isMonitorOpen = computed(() => sidebarStore.isOpen && sidebarStore.title === 'Production Monitor')
 
 function toggleMonitor() {
-  if (isMonitorOpen.value) {
-    panelStore.closePanel()
-  } else {
-    panelStore.openPanel({
-      title: 'Production Monitor',
-      component: markRaw(ProductionMonitorPanel),
-      position: 'left',
-      width: 'md',
-    })
-  }
+  sidebarStore.togglePanel({
+    title: 'Production Monitor',
+    component: ProductionMonitorPanel,
+    width: 'md',
+  })
 }
 </script>
 
@@ -100,11 +97,8 @@ function toggleMonitor() {
 }
 
 .nav-link:hover {
-  /* No background or color change on hover */
-}
-
-.nav-link--active {
-  /* No background or color change on active */
+  background-color: var(--nod8-bg-muted);
+  color: var(--nod8-text-primary);
 }
 
 /* The active indicator bar on the left */
@@ -116,7 +110,7 @@ function toggleMonitor() {
   transform: translateY(-50%);
   width: 2px;
   height: 16px;
-  background-color: var(--nod8-accent);
+  background-color: var(--nod8-gray-200);
   border-radius: 0 9999px 9999px 0; /* rounded-r-full */
 }
 
