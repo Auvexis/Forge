@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="sidebar-panel surface"
+    class="sidebar-panel"
     :class="[
       { 'sidebar-panel--open': panelStore.isOpen },
       `sidebar-panel--${panelStore.width}`
@@ -36,15 +36,17 @@ const panelStore = useSidebarPanelStore()
   flex-direction: column;
   position: relative;
   height: 100vh;
-  background-color: var(--nod8-bg-elevated);
-  border-right: 1px solid var(--nod8-border);
+  background-color: var(--nod8-bg-surface);
+  border-right: 0 solid var(--nod8-border);
   z-index: var(--nod8-z-raised);
   flex-shrink: 0;
   width: 0;
-  opacity: 0;
   overflow: hidden;
-  transition: width var(--nod8-duration-normal) var(--nod8-ease-standard),
-              opacity var(--nod8-duration-normal) var(--nod8-ease-standard);
+  transition: width var(--nod8-duration-normal) var(--nod8-ease-standard);
+}
+
+.sidebar-panel--open {
+  border-right-width: 1px;
 }
 
 .sidebar-panel--open.sidebar-panel--sm {
