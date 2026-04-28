@@ -5,6 +5,7 @@ import cors from "@fastify/cors";
 import rootRoutes from "./routes/index.ts";
 import pluginsRoutes from "./routes/plugins.routes.ts";
 import workflowsRoutes from "./routes/workflows.routes.ts";
+import { initializeDatabases } from "./database/index.ts";
 import { loadPlugins } from "./modules/plugins/loader.ts";
 import { Scheduler } from "./modules/scheduler/scheduler.ts";
 
@@ -42,6 +43,7 @@ await fastify.register(cors, {
   credentials: true,
 });
 
+await initializeDatabases();
 await loadPlugins();
 Scheduler.initialize();
 

@@ -2,6 +2,7 @@ import { fileURLToPath, pathToFileURL } from "url";
 import path, { dirname } from "path";
 import fs from "fs";
 import { PluginManager } from "./manager.ts";
+import { DatabaseManager } from "../../database/index.ts";
 import type { Nod8Plugin } from "../../../shared/models/plugin-types.ts";
 
 // ──────────── Manifest Validation ────────────
@@ -58,6 +59,48 @@ function validateManifest(manifest: any, pluginPath: string): string[] {
   return errors;
 }
 
+// ──────────── Plugin Registry ────────────
+
+const pluginsDb = DatabaseManager.plugins;
+
+/**
+ * Upserts a plugin record in the `registered_plugins` table.
+ * On first registration, is_enabled defaults to 1 (enabled).
+ * On subsequent boots, we only update the version, preserving the
+ * user's enabled/disabled choice.
+ */
+function syncPluginRegistry(id: string, version: string): void {
+  const existing = pluginsDb
+    .prepare("SELECT id, is_enabled FROM registered_plugins WHERE id = ?")
+    .get(id) as { id: string; is_enabled: number } | undefined;
+
+  if (existing) {
+    pluginsDb
+      .prepare(
+        "UPDATE registered_plugins SET version = ?, updated_at = datetime('now') WHERE id = ?",
+      )
+      .run(version, id);
+  } else {
+    pluginsDb
+      .prepare(
+        "INSERT INTO registered_plugins (id, version) VALUES (?, ?)",
+      )
+      .run(id, version);
+  }
+}
+
+/**
+ * Returns true if the plugin is enabled in the DB registry.
+ * Unknown plugins (not yet registered) are treated as enabled by default.
+ */
+function isPluginEnabled(id: string): boolean {
+  const row = pluginsDb
+    .prepare("SELECT is_enabled FROM registered_plugins WHERE id = ?")
+    .get(id) as { is_enabled: number } | undefined;
+
+  return row ? row.is_enabled === 1 : true;
+}
+
 // ──────────── Loader ────────────
 
 export async function loadPlugins() {
@@ -94,6 +137,16 @@ export async function loadPlugins() {
             throw new Error(
               `Manifest validation failed:\n${validationErrors.map((e) => `  - ${e}`).join("\n")}`
             );
+          }
+
+          // Sync with plugins.db registry
+          const version = plugin.manifest.metadata.version as string;
+          syncPluginRegistry(plugin.id, version);
+
+          // Skip loading if disabled by the user in the registry
+          if (!isPluginEnabled(plugin.id)) {
+            console.log(`[NOD8 | PLUGINS]: Skipping disabled plugin ${plugin.id}`);
+            continue;
           }
 
           PluginManager.registerPlugin(plugin);

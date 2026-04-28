@@ -1,7 +1,4 @@
-import { fileURLToPath } from "url";
-import path from "path";
-import Database from "better-sqlite3";
-import fs from "fs";
+import { DatabaseManager } from "../../database/index.ts";
 import type {
   CredentialSchema,
   OAuth2Tokens,
@@ -9,44 +6,9 @@ import type {
   PluginStatus,
 } from "../../../shared/models/plugin-types.ts";
 
-// ─── Database Setup ──────────────────────────────────────
+// ─── Database Connection ──────────────────────────────────────────────────────
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const dbPath = path.join(__dirname, "../../../../../config/data/credentials.db");
-const dir = path.dirname(dbPath);
-
-if (!fs.existsSync(dir)) {
-  fs.mkdirSync(dir, { recursive: true });
-}
-
-const db = new Database(dbPath);
-
-db.pragma("journal_mode = WAL");
-
-db.prepare(
-  `
-  CREATE TABLE IF NOT EXISTS plugin_credentials (
-    plugin_id TEXT PRIMARY KEY,
-    fields TEXT NOT NULL DEFAULT '{}',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-  )
-`,
-).run();
-
-db.prepare(
-  `
-  CREATE TABLE IF NOT EXISTS plugin_tokens (
-    plugin_id TEXT PRIMARY KEY,
-    tokens TEXT NOT NULL DEFAULT '{}',
-    expires_at INTEGER,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-  )
-`,
-).run();
+const db = DatabaseManager.credentials;
 
 // ──────────── Credential Store ────────────
 

@@ -1,5 +1,7 @@
-import { db } from "../../database.ts";
+import { DatabaseManager } from "../../database/index.ts";
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
+
+const db = DatabaseManager.workflows;
 
 export const WorkflowRepository = {
   saveWorkflow: (workflow: WorkflowItem) => {
