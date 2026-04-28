@@ -148,6 +148,18 @@ export interface WorkflowVariable {
   description?: string;
 }
 
+// ──────────── Webhook Body Schema ────────────
+
+/**
+ * Describes a single field in the expected webhook request body.
+ * Used for documentation and optional strict validation.
+ */
+export interface WebhookBodyField {
+  type: "string" | "number" | "boolean" | "object" | "array";
+  required?: boolean;
+  description?: string;
+}
+
 // ──────────── Trigger ────────────
 
 export interface WorkflowTrigger {
@@ -155,9 +167,11 @@ export interface WorkflowTrigger {
   schema?: Record<string, any>;
   ui?: WorkflowNodeUI;
   // Webhook config
-  webhookPath?: string; // Auto-generated unique path segment
+  webhookPath?: string;   // Auto-generated unique path segment (fallback)
+  webhookSlug?: string;   // User-defined readable slug, e.g. 'nova-venda' → /webhook/nova-venda
   webhookMethods?: ("GET" | "POST" | "PUT" | "DELETE")[];
   webhookSecret?: string; // HMAC-SHA256 secret for signature verification
+  webhookBodySchema?: Record<string, WebhookBodyField>; // Expected body shape (docs + optional validation)
   // Cron config
   cronExpression?: string;
   // Event config
@@ -176,6 +190,7 @@ export interface WorkflowMetadata {
   public: boolean;
   createdAt: string;
   updatedAt?: string;
+  publishedAt?: string; // ISO timestamp of last intentional publish action
 }
 
 // ──────────── Root Payload ────────────

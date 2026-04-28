@@ -6,8 +6,8 @@ const db = DatabaseManager.workflows;
 export const WorkflowRepository = {
   saveWorkflow: (workflow: WorkflowItem) => {
     const stmt = db.prepare(
-      `INSERT OR REPLACE INTO workflows (id, name, description, version, is_active, is_public, is_draft, created_at, definition)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT OR REPLACE INTO workflows (id, name, description, version, is_active, is_public, is_draft, created_at, published_at, definition)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
     stmt.run(
       workflow.metadata.id,
@@ -18,6 +18,7 @@ export const WorkflowRepository = {
       workflow.metadata.public ? 1 : 0,
       workflow.metadata.isDraft ? 1 : 0,
       workflow.metadata.createdAt,
+      workflow.metadata.publishedAt || null,
       JSON.stringify(workflow)
     );
     return workflow;
@@ -63,16 +64,120 @@ export const WorkflowRepository = {
   },
 
   /**
-   * Publish a draft: set isDraft=false and update the persisted definition
+   * Publish: sets is_active=1, is_draft=0, published_at=now.
+   * Returns the updated workflow or null if not found.
    */
-  publishDraft: (id: string): WorkflowItem | null => {
+  publishWorkflow: (id: string): WorkflowItem | null => {
+    const now = new Date().toISOString();
+    db.prepare(
+      `UPDATE workflows SET is_active=1, is_draft=0, published_at=? WHERE id=?`
+    ).run(now, id);
+
     const workflow = WorkflowRepository.getWorkflowById(id);
     if (!workflow) return null;
 
+    workflow.metadata.isActive = true;
     workflow.metadata.isDraft = false;
-    workflow.metadata.updatedAt = new Date().toISOString();
-    WorkflowRepository.saveWorkflow(workflow);
+    workflow.metadata.publishedAt = now;
+    workflow.metadata.updatedAt = now;
+
+    // Persist the updated definition blob
+    db.prepare(`UPDATE workflows SET definition=? WHERE id=?`).run(
+      JSON.stringify(workflow),
+      id
+    );
+
     return workflow;
+  },
+
+  /**
+   * Unpublish: sets is_active=0. Cron/webhook will stop responding.
+   * Returns the updated workflow or null if not found.
+   */
+  unpublishWorkflow: (id: string): WorkflowItem | null => {
+    const now = new Date().toISOString();
+    db.prepare(`UPDATE workflows SET is_active=0 WHERE id=?`).run(id);
+
+    const workflow = WorkflowRepository.getWorkflowById(id);
+    if (!workflow) return null;
+
+    workflow.metadata.isActive = false;
+    workflow.metadata.updatedAt = now;
+
+    db.prepare(`UPDATE workflows SET definition=? WHERE id=?`).run(
+      JSON.stringify(workflow),
+      id
+    );
+
+    return workflow;
+  },
+
+  /**
+   * Returns all published (is_active=1, is_draft=0) workflows with their
+   * last execution row attached (if any). Used by the Production Monitor.
+   */
+  getProductionStatus: () => {
+    const rows = db.prepare(`
+      SELECT
+        w.id,
+        w.name,
+        w.definition,
+        w.published_at,
+        e.id          AS exec_id,
+        e.status      AS exec_status,
+        e.start_time  AS exec_start,
+        e.end_time    AS exec_end
+      FROM workflows w
+      LEFT JOIN (
+        SELECT workflow_id, id, status, start_time, end_time
+        FROM workflow_executions
+        WHERE (workflow_id, start_time) IN (
+          SELECT workflow_id, MAX(start_time)
+          FROM workflow_executions
+          GROUP BY workflow_id
+        )
+      ) e ON e.workflow_id = w.id
+      WHERE w.is_active = 1 AND w.is_draft = 0
+      ORDER BY w.name ASC
+    `).all() as any[];
+
+    return rows.map((row) => {
+      const def = JSON.parse(row.definition) as WorkflowItem;
+      return {
+        id: row.id as string,
+        name: row.name as string,
+        triggerType: def.trigger.type,
+        publishedAt: row.published_at as string | null,
+        lastExecution: row.exec_id
+          ? {
+              id: row.exec_id as string,
+              status: row.exec_status as string,
+              startTime: row.exec_start as number,
+              endTime: row.exec_end as number | null,
+            }
+          : null,
+      };
+    });
+  },
+
+  /**
+   * Validates a webhookSlug: kebab-case format and not already used by another workflow.
+   * Returns null if valid, or an error string if invalid.
+   */
+  validateWebhookSlug: (slug: string, excludeWorkflowId?: string): string | null => {
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
+      return `webhookSlug must be kebab-case (e.g. 'nova-venda'). Got: '${slug}'`;
+    }
+
+    const existing = db.prepare(
+      `SELECT id FROM workflows WHERE json_extract(definition, '$.trigger.webhookSlug') = ?`
+    ).get(slug) as { id: string } | undefined;
+
+    if (existing && existing.id !== excludeWorkflowId) {
+      return `webhookSlug '${slug}' is already used by another workflow`;
+    }
+
+    return null;
   },
 
   saveExecutionLog: (
@@ -109,39 +214,26 @@ export const WorkflowRepository = {
   },
 };
 
-// ──────────── Migration ────────────
+// ──────────── Runtime migration ────────────
 
 /**
  * Migrates legacy workflows (pre-discriminated-union) to the new format.
- * Legacy nodes have no `type` field — they are implicitly "plugin" nodes.
- * Also ensures `isDraft` exists on metadata.
  */
 function migrateWorkflow(workflow: any): WorkflowItem {
-  // Ensure metadata has isDraft
   if (workflow.metadata && workflow.metadata.isDraft === undefined) {
     workflow.metadata.isDraft = false;
   }
-
-  // Ensure metadata has updatedAt
   if (workflow.metadata && !workflow.metadata.updatedAt) {
     workflow.metadata.updatedAt = workflow.metadata.createdAt;
   }
-
-  // Migrate nodes: add type="plugin" if missing
   if (workflow.nodes) {
     for (const [_id, node] of Object.entries(workflow.nodes)) {
       const n = node as any;
-      if (!n.type) {
-        n.type = "plugin";
-      }
+      if (!n.type) n.type = "plugin";
     }
   }
-
-  // Ensure edges have sourceHandle/targetHandle (default undefined is fine)
-  // Ensure variables array exists
   if (!workflow.variables) {
     workflow.variables = [];
   }
-
   return workflow as WorkflowItem;
 }
