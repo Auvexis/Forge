@@ -16,7 +16,7 @@
     </div>
 
     <!-- ── Empty state ── -->
-    <div v-if="!loading && items.length === 0" class="pm-empty">
+    <div v-if="items.length === 0" class="pm-empty">
       <ActivityIcon :size="32" class="pm-empty__icon" />
       <p class="pm-empty__title">No workflows in production</p>
       <p class="pm-empty__hint">Publish a workflow from the editor to see it here.</p>

@@ -44,9 +44,9 @@ const panelStore = useSidebarPanelStore()
   opacity: 0;
   transform: translateX(-16px);
   overflow: hidden;
-  transition: width var(--nod8-duration-normal) var(--nod8-ease-standard),
-              opacity var(--nod8-duration-normal) var(--nod8-ease-standard),
-              transform var(--nod8-duration-normal) var(--nod8-ease-standard);
+  transition: width var(--nod8-duration-base) var(--nod8-ease-standard),
+              opacity var(--nod8-duration-base) var(--nod8-ease-standard),
+              transform var(--nod8-duration-base) var(--nod8-ease-standard);
 }
 
 .sidebar-panel--open {
@@ -80,10 +80,8 @@ const panelStore = useSidebarPanelStore()
 }
 
 .sidebar-panel__title {
-  font-size: var(--nod8-text-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: var(--nod8-text-sm);
+  font-weight: 500;
   color: var(--nod8-text-secondary);
   margin: 0;
 }
