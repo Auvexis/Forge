@@ -11,13 +11,8 @@
       </button>
     </div>
 
-    <!-- ── Loading skeleton ── -->
-    <div v-if="loading && items.length === 0" class="pm-list">
-      <div v-for="n in 3" :key="n" class="pm-skeleton" />
-    </div>
-
     <!-- ── Empty state ── -->
-    <div v-else-if="!loading && items.length === 0" class="pm-empty">
+    <div v-if="!loading && items.length === 0" class="pm-empty">
       <ActivityIcon :size="32" class="pm-empty__icon" />
       <p class="pm-empty__title">No workflows in production</p>
       <p class="pm-empty__hint">Publish a workflow from the editor to see it here.</p>
@@ -146,7 +141,7 @@ function relativeTime(ms: number): string {
 
 onMounted(() => {
   refresh()
-  pollInterval = setInterval(refresh, 10_000)
+  pollInterval = setInterval(refresh, 5_000)
 })
 
 onUnmounted(() => {
@@ -328,10 +323,10 @@ onUnmounted(() => {
   background: var(--nod8-text-muted);
 }
 
-.pm-exec-dot--success { background: var(--nod8-green-400); }
-.pm-exec-dot--error   { background: #ef4444; }
+.pm-exec-dot--success { background: var(--nod8-green-500); }
+.pm-exec-dot--error   { background: var(--nod8-red-500); }
 .pm-exec-dot--running {
-  background: var(--nod8-accent);
+  background: var(--nod8-amber-500);
   animation: pulse-dot 1.5s ease-in-out infinite;
 }
 
@@ -385,20 +380,6 @@ onUnmounted(() => {
   color: var(--nod8-text-muted);
   max-width: 200px;
   line-height: 1.5;
-}
-
-/* ── Skeleton loading ────────────────────────────────────────── */
-.pm-skeleton {
-  height: 80px;
-  border-radius: var(--nod8-radius-md);
-  background: linear-gradient(
-    90deg,
-    var(--nod8-bg-elevated) 25%,
-    var(--nod8-bg-muted) 50%,
-    var(--nod8-bg-elevated) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease-in-out infinite;
 }
 
 @keyframes shimmer {

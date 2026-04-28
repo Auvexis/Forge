@@ -4,6 +4,10 @@
     <template #sidebar>
       <AppSidebar>
         <!-- Navigation Links -->
+        <router-link to="/plugins" class="nav-link" active-class="nav-link--active" title="Plugins">
+          <LucideIcon name="blocks" :size="16" />
+        </router-link>
+
         <router-link
           to="/workflows"
           class="nav-link"
@@ -11,10 +15,6 @@
           title="Workflows"
         >
           <LucideIcon name="workflow" :size="16" />
-        </router-link>
-
-        <router-link to="/plugins" class="nav-link" active-class="nav-link--active" title="Plugins">
-          <LucideIcon name="puzzle" :size="16" />
         </router-link>
 
         <!-- Production Monitor -->
@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, markRaw } from 'vue'
+import { markRaw, computed } from 'vue'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
@@ -67,12 +67,11 @@ import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/ProductionMonitorPanel.vue'
 
 const panelStore = useAppPanelStore()
-const isMonitorOpen = ref(false)
+const isMonitorOpen = computed(() => panelStore.isOpen && panelStore.title === 'Production Monitor')
 
 function toggleMonitor() {
   if (isMonitorOpen.value) {
     panelStore.closePanel()
-    isMonitorOpen.value = false
   } else {
     panelStore.openPanel({
       title: 'Production Monitor',
@@ -80,7 +79,6 @@ function toggleMonitor() {
       position: 'left',
       width: 'md',
     })
-    isMonitorOpen.value = true
   }
 }
 </script>

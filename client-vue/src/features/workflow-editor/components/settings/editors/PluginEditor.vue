@@ -101,21 +101,17 @@
           "
         >
           <div class="pe-param-toggle">
-            <label class="switch">
-              <input
-                type="checkbox"
-                :checked="!!data.params?.[paramKey]"
-                @change="
-                  updateNodeData({
-                    params: {
-                      ...(data.params || {}),
-                      [paramKey]: ($event.target as HTMLInputElement).checked,
-                    },
-                  })
-                "
-              />
-              <span class="slider round"></span>
-            </label>
+            <BaseSwitch
+              :model-value="!!data.params?.[paramKey]"
+              @update:model-value="
+                (val) => updateNodeData({
+                  params: {
+                    ...(data.params || {}),
+                    [paramKey]: val,
+                  },
+                })
+              "
+            />
             <span class="pe-param-toggle-text">{{
               data.params?.[paramKey] ? 'Enabled' : 'Disabled'
             }}</span>
@@ -198,6 +194,7 @@ import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import EditorField from './EditorField.vue'
 import VariableTree from './VariableTree.vue'
+import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PluginNode } from '@/core/types/workflow.types'
 
@@ -329,51 +326,6 @@ const toggleMapVariables = (key: string) => {
   font-weight: 500;
 }
 
-/* Switch */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 36px;
-  height: 20px;
-}
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--nod8-gray-800);
-  transition: 0.4s;
-}
-.slider:before {
-  position: absolute;
-  content: '';
-  height: 14px;
-  width: 14px;
-  left: 3px;
-  bottom: 3px;
-  background-color: var(--nod8-gray-300);
-  transition: 0.4s;
-}
-input:checked + .slider {
-  background-color: var(--nod8-gray-100);
-}
-input:checked + .slider:before {
-  transform: translateX(16px);
-  background-color: var(--nod8-gray-800);
-}
-.slider.round {
-  border-radius: 20px;
-}
-.slider.round:before {
-  border-radius: 50%;
-}
 
 .pe-var-container {
   display: flex;

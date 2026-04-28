@@ -13,8 +13,10 @@
     <span v-if="loading" class="base-button__icon-left">
       <LucideIcon name="loader-2" class="spin" :size="iconSize" />
     </span>
-    <span v-else-if="iconLeft" class="base-button__icon-left">
-      <LucideIcon :name="iconLeft" :size="iconSize" />
+    <span v-else-if="iconLeft || $slots.left" class="base-button__icon-left">
+      <slot name="left">
+        <LucideIcon v-if="iconLeft" :name="iconLeft" :size="iconSize" />
+      </slot>
     </span>
 
     <!-- Label -->
@@ -23,8 +25,10 @@
     </span>
 
     <!-- Right Icon -->
-    <span v-if="iconRight && !loading" class="base-button__icon-right">
-      <LucideIcon :name="iconRight" :size="iconSize" />
+    <span v-if="(iconRight || $slots.right) && !loading" class="base-button__icon-right">
+      <slot name="right">
+        <LucideIcon v-if="iconRight" :name="iconRight" :size="iconSize" />
+      </slot>
     </span>
   </button>
 </template>

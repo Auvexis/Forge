@@ -97,6 +97,10 @@
   --nod8-bg-muted: var(--nod8-gray-700);
   --nod8-bg-subtle: var(--nod8-gray-600);
 
+  /* Accents */
+  --nod8-accent: var(--nod8-brand-500);
+  --nod8-accent-subtle: rgba(124, 58, 237, 0.15);
+
   /* Borders */
   --nod8-border: rgba(255, 255, 255, 0.07);
   --nod8-border-muted: rgba(255, 255, 255, 0.04);
@@ -154,6 +158,20 @@
   --nod8-button-danger-hover: rgba(255, 1, 1, 0.107);
   --nod8-button-danger-active: rgba(255, 1, 1, 0.107);
   --nod8-button-danger-active-text: rgb(255, 41, 41);
+
+  /* Publish (Custom Workflow Button) */
+  --nod8-button-publish-draft-bg: var(--nod8-accent);
+  --nod8-button-publish-draft-text: #ffffff;
+  --nod8-button-publish-live-bg: color-mix(in srgb, var(--nod8-green-400) 15%, transparent);
+  --nod8-button-publish-live-text: var(--nod8-green-400);
+  --nod8-button-publish-live-border: color-mix(in srgb, var(--nod8-green-400) 30%, transparent);
+  --nod8-button-publish-live-hover-bg: color-mix(in srgb, #ef4444 15%, transparent);
+  --nod8-button-publish-live-hover-text: #ef4444;
+  --nod8-button-publish-live-hover-border: color-mix(in srgb, #ef4444 30%, transparent);
+  --nod8-button-publish-unpub-bg: color-mix(in srgb, #f97316 15%, transparent);
+  --nod8-button-publish-unpub-text: #f97316;
+  --nod8-button-publish-unpub-border: color-mix(in srgb, #f97316 30%, transparent);
+  --nod8-button-publish-unpub-hover-bg: color-mix(in srgb, #f97316 25%, transparent);
 
   /* ── Spacing ─────────────────────────────────────────────── */
   --nod8-space-1: 4px;

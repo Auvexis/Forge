@@ -1,43 +1,52 @@
 <template>
   <div class="publish-btn-wrapper">
     <!-- Published state → Unpublish -->
-    <button
+    <BaseButton
       v-if="isPublished"
       id="workflow-unpublish-btn"
       class="publish-btn publish-btn--published"
-      :class="{ 'publish-btn--loading': loading }"
-      :disabled="loading"
+      size="sm"
+      variant="ghost"
+      :loading="loading"
       @click="handleUnpublish"
       title="Running in production — click to unpublish"
     >
-      <span class="publish-btn__dot" />
+      <template #left>
+        <span class="publish-btn__dot" />
+      </template>
       <span class="publish-btn__label">{{ loading ? 'Unpublishing…' : 'Published' }}</span>
-      <ChevronDownIcon :size="12" class="publish-btn__chevron" />
-    </button>
+      <template #right>
+        <ChevronDownIcon :size="12" class="publish-btn__chevron" />
+      </template>
+    </BaseButton>
 
     <!-- Draft / Unpublished state → Publish -->
-    <button
+    <BaseButton
       v-else
       id="workflow-publish-btn"
       class="publish-btn"
       :class="{
         'publish-btn--draft': isDraft,
         'publish-btn--unpublished': !isDraft,
-        'publish-btn--loading': loading,
       }"
-      :disabled="loading"
+      size="sm"
+      variant="ghost"
+      :loading="loading"
       @click="handlePublish"
       :title="isDraft ? 'Publish this draft to production' : 'Re-publish to production'"
     >
-      <RocketIcon :size="13" />
+      <template #left>
+        <RocketIcon :size="13" />
+      </template>
       <span class="publish-btn__label">{{ loading ? 'Publishing…' : isDraft ? 'Publish' : 'Re-publish' }}</span>
-    </button>
+    </BaseButton>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RocketIcon, ChevronDownIcon } from 'lucide-vue-next'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
 import type { WorkflowItem } from '@/core/types/workflow.types'
@@ -90,23 +99,14 @@ async function handleUnpublish() {
 }
 
 .publish-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px;
-  border-radius: var(--nod8-radius-md);
-  font-size: var(--nod8-text-sm);
-  font-weight: var(--nod8-font-semibold);
-  cursor: pointer;
-  transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
-  white-space: nowrap;
+  /* Using base button, overriding colors */
+  border: 1px solid transparent;
 }
 
 /* Draft state — neutral/accent */
 .publish-btn--draft {
-  background: var(--nod8-accent);
-  color: #fff;
+  background-color: var(--nod8-button-publish-draft-bg) !important;
+  color: var(--nod8-button-publish-draft-text) !important;
 }
 
 .publish-btn--draft:hover:not(:disabled) {
@@ -115,37 +115,30 @@ async function handleUnpublish() {
 
 /* Unpublished (was published before) — orange */
 .publish-btn--unpublished {
-  background: color-mix(in srgb, #f97316 15%, transparent);
-  color: #f97316;
-  border: 1px solid color-mix(in srgb, #f97316 30%, transparent);
+  background-color: var(--nod8-button-publish-unpub-bg) !important;
+  color: var(--nod8-button-publish-unpub-text) !important;
+  border-color: var(--nod8-button-publish-unpub-border) !important;
 }
 
 .publish-btn--unpublished:hover:not(:disabled) {
-  background: color-mix(in srgb, #f97316 25%, transparent);
+  background-color: var(--nod8-button-publish-unpub-hover-bg) !important;
 }
 
 /* Published state — green pill with live dot */
 .publish-btn--published {
-  background: color-mix(in srgb, var(--nod8-green-400) 15%, transparent);
-  color: var(--nod8-green-400);
-  border: 1px solid color-mix(in srgb, var(--nod8-green-400) 30%, transparent);
-  padding-right: 8px;
+  background-color: var(--nod8-button-publish-live-bg) !important;
+  color: var(--nod8-button-publish-live-text) !important;
+  border-color: var(--nod8-button-publish-live-border) !important;
 }
 
 .publish-btn--published:hover:not(:disabled) {
-  background: color-mix(in srgb, #ef4444 15%, transparent);
-  color: #ef4444;
-  border-color: color-mix(in srgb, #ef4444 30%, transparent);
+  background-color: var(--nod8-button-publish-live-hover-bg) !important;
+  color: var(--nod8-button-publish-live-hover-text) !important;
+  border-color: var(--nod8-button-publish-live-hover-border) !important;
 }
 
 .publish-btn--published:hover:not(:disabled) .publish-btn__dot {
-  background: #ef4444;
-}
-
-/* Loading state */
-.publish-btn--loading {
-  opacity: 0.6;
-  cursor: not-allowed;
+  background: var(--nod8-button-publish-live-hover-text);
 }
 
 /* Live dot */
