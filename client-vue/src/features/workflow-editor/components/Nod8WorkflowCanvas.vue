@@ -306,11 +306,29 @@ const addLogicNode = (type: WorkflowNodeType) => {
   const id = `${type}_${Date.now()}`
   const pos = getNewNodePosition(backupSourceId)
 
+  // Default properties required by backend validation
+  const defaultData: Record<string, any> = {}
+  if (type === 'http') {
+    defaultData.url = 'https://api.example.com'
+    defaultData.method = 'GET'
+  } else if (type === 'code') {
+    defaultData.script = 'return { status: "ok" };'
+  } else if (type === 'if') {
+    defaultData.condition = 'true'
+  } else if (type === 'loop') {
+    defaultData.collection = '[]'
+  } else if (type === 'subworkflow') {
+    defaultData.workflowId = 'placeholder'
+  } else if (type === 'event' || type === 'event-listener') {
+    defaultData.eventName = 'my-event'
+  }
+
   // Adicionar no store
   const newNode: any = {
     type,
     name: NODE_DEFAULT_NAMES[type] ?? id,
     ui: { positionX: pos.x, positionY: pos.y },
+    ...defaultData,
   }
   workflowStore.activeWorkflow.nodes[id] = newNode
 
