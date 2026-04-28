@@ -52,7 +52,6 @@
     <template #overlay>
       <AppToaster />
       <AppConfirmPanel />
-      <GlobalAppPanel />
     </template>
   </AppShell>
 </template>
@@ -63,7 +62,6 @@ import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
 import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
-import GlobalAppPanel from '@/shared/components/layout/GlobalAppPanel.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/ProductionMonitorPanel.vue'
