@@ -1,11 +1,10 @@
 <template>
-  <aside
-    class="sidebar-panel"
-    :class="[
-      { 'sidebar-panel--open': panelStore.isOpen },
-      `sidebar-panel--${panelStore.width}`
-    ]"
-  >
+  <Transition name="slide-left">
+    <aside
+      v-if="panelStore.isOpen"
+      class="sidebar-panel"
+      :class="[`sidebar-panel--${panelStore.width}`]"
+    >
     <header class="sidebar-panel__header">
       <h2 class="sidebar-panel__title">{{ panelStore.title }}</h2>
       <button class="sidebar-panel__close" @click="panelStore.closePanel" title="Close Panel">
@@ -21,6 +20,7 @@
       />
     </div>
   </aside>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -34,39 +34,26 @@ const panelStore = useSidebarPanelStore()
 .sidebar-panel {
   display: flex;
   flex-direction: column;
-  position: relative;
-  height: 100vh;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--nod8-sidebar-width);
   background-color: var(--nod8-bg-surface);
-  border-right: 0 solid var(--nod8-border);
+  border-right: 1px solid var(--nod8-border);
   z-index: var(--nod8-z-raised);
-  flex-shrink: 0;
-  width: 0;
-  opacity: 0;
-  transform: translateX(-16px);
   overflow: hidden;
-  transition: width var(--nod8-duration-base) var(--nod8-ease-standard),
-              opacity var(--nod8-duration-base) var(--nod8-ease-standard),
-              transform var(--nod8-duration-base) var(--nod8-ease-standard);
 }
 
-.sidebar-panel--open {
-  border-right-width: 1px;
-  transform: translateX(0);
-}
-
-.sidebar-panel--open.sidebar-panel--sm {
+.sidebar-panel--sm {
   width: 280px;
-  opacity: 1;
 }
 
-.sidebar-panel--open.sidebar-panel--md {
+.sidebar-panel--md {
   width: 320px;
-  opacity: 1;
 }
 
-.sidebar-panel--open.sidebar-panel--lg {
+.sidebar-panel--lg {
   width: 400px;
-  opacity: 1;
 }
 
 .sidebar-panel__header {

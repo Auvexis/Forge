@@ -22,6 +22,7 @@
 <style scoped>
 .app-shell {
   display: flex;
+  position: relative;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
