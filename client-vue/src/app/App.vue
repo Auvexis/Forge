@@ -105,7 +105,6 @@ function toggleMonitor() {
 }
 
 .nav-link--active {
-  background-color: var(--nod8-accent-subtle);
   color: var(--nod8-accent); /* Brighter icon color */
 }
 
