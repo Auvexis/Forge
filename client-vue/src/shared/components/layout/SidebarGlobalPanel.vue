@@ -41,12 +41,17 @@ const panelStore = useSidebarPanelStore()
   z-index: var(--nod8-z-raised);
   flex-shrink: 0;
   width: 0;
+  opacity: 0;
+  transform: translateX(-16px);
   overflow: hidden;
-  transition: width var(--nod8-duration-normal) var(--nod8-ease-standard);
+  transition: width var(--nod8-duration-normal) var(--nod8-ease-standard),
+              opacity var(--nod8-duration-normal) var(--nod8-ease-standard),
+              transform var(--nod8-duration-normal) var(--nod8-ease-standard);
 }
 
 .sidebar-panel--open {
   border-right-width: 1px;
+  transform: translateX(0);
 }
 
 .sidebar-panel--open.sidebar-panel--sm {
