@@ -67,7 +67,7 @@ function viewOutput() {
     component: markRaw(NodeOutputPanel),
     props: { nodeId: props.nodeId },
     position: 'right',
-    width: 'md',
+    width: 'lg',
   })
 }
 

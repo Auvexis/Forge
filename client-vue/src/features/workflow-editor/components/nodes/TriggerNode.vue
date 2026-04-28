@@ -53,7 +53,7 @@ const triggerConfig = computed(() => {
 </script>
 
 <template>
-  <BaseNode :id="props.id" :selected="props.selected" :status="props.status" class="trigger-node">
+  <BaseNode :id="props.id" :selected="props.selected" :status="props.status" class="trigger-node" has-source>
     <template #header>
       <div
         class="trigger-icon"

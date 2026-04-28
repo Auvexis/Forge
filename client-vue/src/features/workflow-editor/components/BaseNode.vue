@@ -8,6 +8,7 @@ import NodeToolbar from './nodes/NodeToolbar.vue'
 import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
+import { useEventBus } from '@/shared/composables/useEventBus'
 
 const props = defineProps<{
   id?: string
@@ -29,6 +30,7 @@ const props = defineProps<{
 const executionStore = useExecutionStore()
 const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
+const quickAddBus = useEventBus('node:quick-add')
 
 const isEditingId = ref(false)
 const editedId = ref('')
@@ -87,6 +89,18 @@ const statusClasses = computed(() => {
 // native hover detection covers the node, the gap bridge AND the toolbar
 // itself — no JavaScript timers or event-listener races needed.
 const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!props.selected)
+
+const hasOutgoingConnection = computed(() => {
+  if (!props.id) return false
+  if (!workflowStore.activeWorkflow) return false
+  return workflowStore.activeWorkflow.edges.some((e) => e.source === props.id)
+})
+
+const onQuickAdd = () => {
+  if (props.id) {
+    quickAddBus.emit({ sourceId: props.id })
+  }
+}
 </script>
 
 <template>
@@ -169,6 +183,19 @@ const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!pro
     <!-- AUTO HANDLES -->
     <BaseHandle v-if="props.hasTarget" id="target" type="target" :position="Position.Left" />
     <BaseHandle v-if="props.hasSource" id="source" type="source" :position="Position.Right" />
+
+    <!-- Quick Add Cable (n8n style) -->
+    <div
+      v-if="props.hasSource && !hasOutgoingConnection && props.id"
+      class="nod8-base-node__quick-add"
+      title="Adicionar node conectado"
+      @click.stop="onQuickAdd"
+    >
+      <div class="nod8-base-node__quick-add-cable"></div>
+      <button class="nod8-base-node__quick-add-btn">
+        <LucideIcon name="plus" :size="11" />
+      </button>
+    </div>
 
     <!-- Toolbar: JS-visible when selected; CSS-visible on :hover (see styles below) -->
     <NodeToolbar
@@ -266,6 +293,10 @@ const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!pro
   padding: 2px 6px;
   font-family: var(--nod8-font-mono);
   font-size: 11px;
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--nod8-text-muted);
   z-index: 10;
   cursor: text;
@@ -459,5 +490,41 @@ const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!pro
   left: 0;
   right: 0;
   height: 40px;
+}
+
+/* ─── Quick Add Node (n8n style) ─────────────────────────────── */
+.nod8-base-node__quick-add {
+  position: absolute;
+  top: 50%;
+  right: -82px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  z-index: 5;
+}
+
+.nod8-base-node__quick-add-cable {
+  width: 60px;
+  height: 2px;
+  background-color: var(--nod8-node-handle);
+  transition: background-color 0.2s;
+}
+
+.nod8-base-node__quick-add-btn {
+  border-radius: var(--nod8-radius-full);
+  background-color: var(--nod8-node-handle);
+  border: none;
+  color: var(--nod8-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 2px;
+  transition: all 0.2s ease;
+}
+
+.nod8-base-node__quick-add:hover .nod8-base-node__quick-add-cable,
+.nod8-base-node__quick-add:hover .nod8-base-node__quick-add-btn {
+  background-color: var(--nod8-node-handle-hover);
 }
 </style>

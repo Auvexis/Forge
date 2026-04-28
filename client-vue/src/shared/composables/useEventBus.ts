@@ -40,6 +40,11 @@ const bus = new EventBus()
  * A typed global event bus for fire-and-forget cross-feature communication.
  * E.g., 'oauth:success' -> { pluginId: string }
  */
+export function useEventBus(): EventBus
+export function useEventBus<T = any>(event: string): {
+  emit: (payload?: T) => void
+  on: (handler: EventHandler<T>) => () => void
+}
 export function useEventBus<T = any>(event?: string) {
   if (event) {
     return {

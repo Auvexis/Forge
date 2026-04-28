@@ -23,12 +23,13 @@ import EditorControlsDock from './ui/EditorControlsDock.vue'
 import RunWorkflowPanel from './execution/RunWorkflowPanel.vue'
 import ExecutionLogsPanel from './execution/ExecutionLogsPanel.vue'
 import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
+import { useEventBus } from '@/shared/composables/useEventBus'
 
 // Stores
 const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
 const executionStore = useExecutionStore()
-const { project } = useVueFlow()
+const { project, findNode, updateNode } = useVueFlow()
 
 // ── Props / emits (for v-model:show-logs from parent page) ──────────────────
 const props = defineProps<{
@@ -101,7 +102,7 @@ watch(
   () => {
     vueFlowNodes.value = buildNodes()
     vueFlowEdges.value = buildEdges()
-  }
+  },
 )
 
 /**
@@ -167,7 +168,16 @@ function getCenterPosition(): { x: number; y: number } {
   return project({ x: width / 2, y: height / 2 })
 }
 
-const openAddNodePanel = () => {
+let quickAddSourceId: string | null = null
+
+const quickAddBus = useEventBus('node:quick-add')
+quickAddBus.on((payload: { sourceId: string }) => {
+  openAddNodePanel(payload.sourceId)
+})
+
+const openAddNodePanel = (sourceId?: string | null) => {
+  quickAddSourceId = sourceId || null
+
   panelStore.openPanel({
     title: 'Adicionar Node',
     component: AddNodePanel,
@@ -228,26 +238,94 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   plugin: 'Plugin Action',
 }
 
+function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
+  if (sourceId) {
+    const nodes = vueFlowNodes.value as any[]
+    const sourceNode = nodes.find((n) => n.id === sourceId)
+    if (sourceNode) {
+      // Posição x: 350px para a direita. O Y vamos apenas herdar e o alignNodeCenters corrige depois
+      return { x: sourceNode.position.x + 350, y: sourceNode.position.y }
+    }
+  }
+  return getCenterPosition()
+}
+
+function alignNodeCenters(sourceId: string, targetId: string) {
+  const checkAndAlign = (attempts = 0) => {
+    const sNode = findNode(sourceId)
+    const tNode = findNode(targetId)
+
+    const sHeight = sNode?.dimensions?.height || 0
+    const tHeight = tNode?.dimensions?.height || 0
+
+    if (sHeight > 0 && tHeight > 0) {
+      const centerY = sNode!.position.y + sHeight / 2
+      const newY = centerY - tHeight / 2
+
+      // Atualiza o Y via VueFlow state
+      updateNode(targetId, { position: { x: tNode!.position.x, y: newY } })
+      
+      // Atualiza a prop reativa do VueFlow (array model)
+      const vNode = (vueFlowNodes.value as any[]).find(n => n.id === targetId)
+      if (vNode) vNode.position.y = newY
+
+      // Atualiza a store
+      if (workflowStore.activeWorkflow?.nodes[targetId]) {
+        workflowStore.activeWorkflow.nodes[targetId].ui!.positionY = newY
+        workflowStore.updateNodeData(targetId, { ui: { ...workflowStore.activeWorkflow.nodes[targetId].ui, positionY: newY }})
+      }
+    } else if (attempts < 30) {
+      setTimeout(() => checkAndAlign(attempts + 1), 30)
+    }
+  }
+
+  checkAndAlign()
+}
+
+function autoConnectToSource(sourceId: string, targetId: string) {
+  if (!workflowStore.activeWorkflow) return
+
+  const newEdge = {
+    id: `e-${sourceId}-${targetId}-${Date.now()}`,
+    source: sourceId,
+    target: targetId,
+    sourceHandle: 'source',
+    targetHandle: 'target',
+  }
+
+  workflowStore.activeWorkflow.edges.push(newEdge)
+  vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
+}
+
 const addLogicNode = (type: WorkflowNodeType) => {
   if (!workflowStore.activeWorkflow) return
 
+  const backupSourceId = quickAddSourceId
+  quickAddSourceId = null // reset immediately
+  
   const id = `${type}_${Date.now()}`
-  const pos = getCenterPosition()
+  const pos = getNewNodePosition(backupSourceId)
 
   // Adicionar no store
-  workflowStore.activeWorkflow.nodes[id] = {
+  const newNode: any = {
     type,
     name: NODE_DEFAULT_NAMES[type] ?? id,
     ui: { positionX: pos.x, positionY: pos.y },
-  } as WorkflowNode
+  }
+  workflowStore.activeWorkflow.nodes[id] = newNode
 
   // Adicionar no VueFlow
   vueFlowNodes.value.push({
     id,
     type,
     position: pos,
-    data: workflowStore.activeWorkflow.nodes[id],
+    data: newNode,
   })
+
+  if (backupSourceId) {
+    autoConnectToSource(backupSourceId, id)
+    alignNodeCenters(backupSourceId, id)
+  }
 
   workflowStore.markDirty()
   panelStore.closePanel()
@@ -256,24 +334,33 @@ const addLogicNode = (type: WorkflowNodeType) => {
 const addPluginNode = (pluginId: string, action: string, actionName: string) => {
   if (!workflowStore.activeWorkflow) return
 
-  const id = `${action}_${Date.now()}`
-  const pos = getCenterPosition()
+  const backupSourceId = quickAddSourceId
+  quickAddSourceId = null // reset immediately
 
-  workflowStore.activeWorkflow.nodes[id] = {
+  const id = `${action}_${Date.now()}`
+  const pos = getNewNodePosition(backupSourceId)
+
+  const newPluginNode: any = {
     type: 'plugin',
     name: actionName,
     pluginId,
     action,
     params: {},
     ui: { positionX: pos.x, positionY: pos.y },
-  } as WorkflowNode
+  }
+  workflowStore.activeWorkflow.nodes[id] = newPluginNode
 
   vueFlowNodes.value.push({
     id,
     type: 'plugin',
     position: pos,
-    data: workflowStore.activeWorkflow.nodes[id],
+    data: newPluginNode,
   })
+
+  if (backupSourceId) {
+    autoConnectToSource(backupSourceId, id)
+    alignNodeCenters(backupSourceId, id)
+  }
 
   workflowStore.markDirty()
   panelStore.closePanel()
@@ -359,7 +446,7 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
         :is-streaming="executionStore.isStreaming"
         :is-logs-open="showLogsLocal"
         @save="workflowStore.saveActiveWorkflow()"
-        @add-node="openAddNodePanel"
+        @add-node="() => openAddNodePanel(null)"
         @run="handleRun"
         @stop="handleStop"
         @toggle-logs="handleToggleLogs"
@@ -495,5 +582,18 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
   transform: translateX(-50%);
   z-index: 60;
   pointer-events: none;
+}
+
+/* 
+  Estilo da caixa de seleção (Shift + Drag).
+  Como removemos o theme-default.css no main.ts para evitar bordas brancas indesejadas
+  nos nodes, precisamos re-declarar o estilo nativo da marquee de seleção aqui, com a cor da marca.
+*/
+:deep(.vue-flow__selectionpane),
+:deep(.vue-flow__selection) {
+  background-color: rgba(124, 58, 237, 0.1) !important;
+  border: 1px solid var(--nod8-brand-500) !important;
+  border-radius: var(--nod8-radius-sm);
+  z-index: 1000;
 }
 </style>
