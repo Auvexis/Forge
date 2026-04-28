@@ -95,17 +95,26 @@ export function createMigrationEngine(
     context: db,
     storage: new SQLiteStorage(db),
     logger: {
-      info: (msg) =>
-        console.log(
-          `[NOD8 | MIGRATIONS | ${dbName.toUpperCase()}]: ${JSON.stringify(msg)}`,
-        ),
+      info: (msg) => {
+        const tag = `[NOD8 | DB | ${dbName.toUpperCase()}]`;
+        if (msg["event"] === "migrating") {
+          console.log(`${tag}: Running migration "${msg["name"]}"`);
+        } else if (msg["event"] === "migrated") {
+          console.log(`${tag}: Applied "${msg["name"]}" (${msg["durationSeconds"]}s)`);
+        } else if (msg["event"] === "up") {
+          // Umzug emits this when there are no pending migrations
+          console.log(`${tag}: No pending migrations.`);
+        } else {
+          console.log(`${tag}: ${JSON.stringify(msg)}`);
+        }
+      },
       warn: (msg) =>
         console.warn(
-          `[NOD8 | MIGRATIONS | ${dbName.toUpperCase()}]: ${JSON.stringify(msg)}`,
+          `[NOD8 | DB | ${dbName.toUpperCase()}]: ${JSON.stringify(msg)}`,
         ),
       error: (msg) =>
         console.error(
-          `[NOD8 | MIGRATIONS | ${dbName.toUpperCase()}]: ${JSON.stringify(msg)}`,
+          `[NOD8 | DB | ${dbName.toUpperCase()}]: ${JSON.stringify(msg)}`,
         ),
       debug: () => {}, // suppress debug noise
     },
