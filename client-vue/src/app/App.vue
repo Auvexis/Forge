@@ -100,12 +100,11 @@ function toggleMonitor() {
 }
 
 .nav-link:hover {
-  background-color: var(--nod8-bg-muted);
-  color: var(--nod8-text-primary);
+  /* No background or color change on hover */
 }
 
 .nav-link--active {
-  color: var(--nod8-accent); /* Brighter icon color */
+  /* No background or color change on active */
 }
 
 /* The active indicator bar on the left */
