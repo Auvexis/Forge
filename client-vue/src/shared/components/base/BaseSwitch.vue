@@ -86,13 +86,14 @@ defineOptions({ inheritAttrs: false })
 
 .base-switch__thumb {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 50%;
+  left: 3px;
   width: 14px;
   height: 14px;
   border-radius: 50%;
   background-color: #ffffff;
   transition: transform var(--nod8-duration-fast) var(--nod8-ease-standard);
+  transform: translateY(-50%);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
@@ -103,7 +104,7 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-switch--checked .base-switch__thumb {
-  transform: translateX(16px);
+  transform: translate(16px, -50%);
 }
 
 /* Focus State */
