@@ -229,18 +229,34 @@ function handleOpenWorkflow(workflow: WorkflowItem) {
                 >
                   <template #element>
                     <div class="dropdown-item-container">
-                      <span class="text-xs text-muted font-mono tracking-tight text-truncate">
-                        {{ workflow.metadata.id }}
-                      </span>
-
-                      <span class="text-xs text-muted font-mono tracking-tight">
-                        {{
-                          (() => {
-                            const nodes = Object.keys(workflow.nodes).length
-                            return nodes === 1 ? `${nodes} Node` : `${nodes} Nodes`
-                          })()
-                        }}
-                      </span>
+                      <div class="dic-row">
+                        <span class="text-xs text-muted font-mono tracking-tight text-truncate">
+                          {{ workflow.metadata.id.slice(0, 13) }}…
+                        </span>
+                        <span class="text-xs text-muted font-mono tracking-tight">
+                          {{
+                            (() => {
+                              const nodes = Object.keys(workflow.nodes).length
+                              return nodes === 1 ? `${nodes} Node` : `${nodes} Nodes`
+                            })()
+                          }}
+                        </span>
+                      </div>
+                      <div class="dic-row" style="margin-top: 4px;">
+                        <span
+                          class="workflow-badge"
+                          :class="{
+                            'workflow-badge--draft': workflow.metadata.isDraft,
+                            'workflow-badge--published': !workflow.metadata.isDraft && workflow.metadata.isActive,
+                            'workflow-badge--inactive': !workflow.metadata.isDraft && !workflow.metadata.isActive,
+                          }"
+                        >
+                          {{ workflow.metadata.isDraft ? 'Draft' : workflow.metadata.isActive ? 'Published' : 'Inactive' }}
+                        </span>
+                        <span v-if="workflow.metadata.publishedAt" class="text-xs text-muted" style="font-size: 10px;">
+                          {{ getRelativeTime(new Date(workflow.metadata.publishedAt).getTime()) }}
+                        </span>
+                      </div>
                     </div>
                   </template>
                 </AppDropdownItem>
@@ -585,7 +601,41 @@ function handleOpenWorkflow(workflow: WorkflowItem) {
 
 .dropdown-item-container {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   width: 100%;
+}
+
+.dic-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* ── Status badges ─────────────────────────────────────────────────────────── */
+
+.workflow-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: var(--nod8-radius-sm);
+  line-height: 1;
+}
+
+.workflow-badge--draft {
+  background: var(--nod8-bg-muted);
+  color: var(--nod8-text-secondary);
+}
+
+.workflow-badge--published {
+  background: color-mix(in srgb, var(--nod8-green-400) 15%, transparent);
+  color: var(--nod8-green-400);
+}
+
+.workflow-badge--inactive {
+  background: color-mix(in srgb, #f97316 15%, transparent);
+  color: #f97316;
 }
 </style>
