@@ -148,15 +148,32 @@
               class="pe-file-input-group"
             >
               <div class="pe-file-input-wrapper">
-                <input
-                  v-if="typeof item !== 'object'"
-                  type="file"
-                  class="editor-input editor-input--file"
-                  @change="handleFileUpload(paramKey.toString(), index, $event)"
-                />
-                <div v-else class="pe-file-display editor-input">
+                <div v-if="typeof item === 'object'" class="pe-file-display editor-input">
                   <LucideIcon name="file" size="14" />
                   <span class="pe-file-name">{{ item.filename }}</span>
+                </div>
+                
+                <div v-else class="pe-file-text-mode">
+                  <input
+                    class="editor-input editor-input--bold"
+                    style="flex: 1;"
+                    :value="item"
+                    @input="updateFileArray(paramKey.toString(), index, ($event.target as HTMLInputElement).value)"
+                    placeholder="e.g. {{ trigger.file }}"
+                  />
+                  <input
+                    type="file"
+                    style="display: none"
+                    @change="handleFileUpload(paramKey.toString(), index, $event)"
+                    :ref="(el) => setFileInputRef(paramKey.toString() + index, el)"
+                  />
+                  <button 
+                    class="pe-file-btn pe-file-btn--upload"
+                    @click="triggerFileInput(paramKey.toString() + index)"
+                    title="Upload static file"
+                  >
+                    <LucideIcon name="upload" size="14" />
+                  </button>
                 </div>
               </div>
               <button 
@@ -258,6 +275,20 @@ const isMapVariablesOpen = (key: string) => mapVariablesOpen.value[key] ?? false
 
 const toggleMapVariables = (key: string) => {
   mapVariablesOpen.value[key] = !mapVariablesOpen.value[key]
+}
+
+const fileInputRefs = ref<Record<string, HTMLInputElement>>({})
+
+const setFileInputRef = (id: string, el: any) => {
+  if (el) {
+    fileInputRefs.value[id] = el as HTMLInputElement
+  }
+}
+
+const triggerFileInput = (id: string) => {
+  if (fileInputRefs.value[id]) {
+    fileInputRefs.value[id].click()
+  }
 }
 
 const updateFileArray = (key: string, index: number, value: string) => {
@@ -495,8 +526,11 @@ const removeFileFromArray = (key: string, index: number) => {
   flex: 1;
 }
 
-.editor-input--file {
-  padding: 6px;
+.pe-file-text-mode {
+  display: flex;
+  gap: var(--nod8-space-2);
+  align-items: center;
+  width: 100%;
 }
 
 .pe-file-display {
@@ -530,6 +564,17 @@ const removeFileFromArray = (key: string, index: number) => {
 .pe-file-btn:hover {
   color: var(--nod8-text-primary);
   background: var(--nod8-bg-surface-hover);
+}
+
+.pe-file-btn--upload {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.pe-file-btn--upload:hover {
+  color: var(--nod8-text-primary);
+  border-color: var(--nod8-text-primary);
 }
 
 .pe-file-btn--remove {
