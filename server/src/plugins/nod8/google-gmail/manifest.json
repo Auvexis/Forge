@@ -265,6 +265,105 @@
       "ui": {
         "component": "generic"
       }
+    },
+    "trashMessage": {
+      "metadata": {
+        "label": "Trash Message",
+        "description": "Moves a message to the trash."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message to trash.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["messageId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "generic",
+        "properties": {
+          "id": { "type": "string" },
+          "threadId": { "type": "string" },
+          "labelIds": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "ui": { "component": "generic" }
+    },
+    "listThreads": {
+      "metadata": {
+        "label": "List Threads",
+        "description": "Lists threads in the user's mailbox."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query.",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Max results.",
+            "default": 100,
+            "x-input-type": "number",
+            "x-label": "Max Results"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-nod8-display": "generic",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "snippet": { "type": "string" },
+            "historyId": { "type": "string" }
+          }
+        }
+      },
+      "ui": { "component": "table" }
+    },
+    "getAttachment": {
+      "metadata": {
+        "label": "Get Attachment",
+        "description": "Gets the specified message attachment."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "attachmentId": {
+            "type": "string",
+            "description": "The ID of the attachment.",
+            "x-label": "Attachment ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["messageId", "attachmentId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "media",
+        "properties": {
+          "attachmentId": { "type": "string" },
+          "size": { "type": "number" },
+          "data": { "type": "string" }
+        }
+      },
+      "ui": { "component": "generic" }
     }
   }
 }

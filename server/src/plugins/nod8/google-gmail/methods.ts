@@ -202,5 +202,57 @@ export function createGoogleGmailMethods() {
         throw error;
       }
     },
+
+    trashMessage: async (
+      params: { messageId: string },
+      context?: PluginContext,
+    ) => {
+      const gmail = getGmailClient(context!);
+      try {
+        const response = await gmail.users.messages.trash({
+          userId: "me",
+          id: params.messageId,
+        });
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    listThreads: async (
+      params: { query?: string; maxResults?: number },
+      context?: PluginContext,
+    ) => {
+      const gmail = getGmailClient(context!);
+      const requestParams: any = {
+        userId: "me",
+        maxResults: params.maxResults || 100,
+      };
+      if (params.query) requestParams.q = params.query;
+
+      try {
+        const response = await gmail.users.threads.list(requestParams);
+        return response.data.threads || [];
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    getAttachment: async (
+      params: { messageId: string; attachmentId: string },
+      context?: PluginContext,
+    ) => {
+      const gmail = getGmailClient(context!);
+      try {
+        const response = await gmail.users.messages.attachments.get({
+          userId: "me",
+          messageId: params.messageId,
+          id: params.attachmentId,
+        });
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
   };
 }
