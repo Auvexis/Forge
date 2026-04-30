@@ -117,6 +117,28 @@
             "description": "Email body (text or HTML).",
             "x-label": "Body",
             "x-input-type": "textarea"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Optional list of attachments.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "filename": {
+                  "type": "string",
+                  "description": "Name of the file."
+                },
+                "mimeType": {
+                  "type": "string",
+                  "description": "MIME type of the file."
+                },
+                "contentBase64": {
+                  "type": "string",
+                  "description": "Base64 encoded content of the file."
+                }
+              },
+              "required": ["filename", "mimeType", "contentBase64"]
+            }
           }
         },
         "required": ["to", "subject", "body"]
@@ -250,6 +272,28 @@
             "description": "Email body (text or HTML).",
             "x-label": "Body",
             "x-input-type": "textarea"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Optional list of attachments.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "filename": {
+                  "type": "string",
+                  "description": "Name of the file."
+                },
+                "mimeType": {
+                  "type": "string",
+                  "description": "MIME type of the file."
+                },
+                "contentBase64": {
+                  "type": "string",
+                  "description": "Base64 encoded content of the file."
+                }
+              },
+              "required": ["filename", "mimeType", "contentBase64"]
+            }
           }
         },
         "required": ["to", "subject", "body"]

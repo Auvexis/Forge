@@ -70,23 +70,60 @@ export function createGoogleGmailMethods() {
     },
 
     sendMessage: async (
-      params: { to: string; subject: string; body: string },
+      params: { 
+        to: string; 
+        subject: string; 
+        body: string; 
+        attachments?: { filename: string; mimeType: string; contentBase64: string }[] 
+      },
       context?: PluginContext,
     ) => {
       const gmail = getGmailClient(context!);
 
       try {
-        // Construct standard RFC 2822 email
         const utf8Subject = `=?utf-8?B?${Buffer.from(params.subject).toString("base64")}?=`;
-        const messageParts = [
-          `To: ${params.to}`,
-          "Content-Type: text/html; charset=utf-8",
-          "MIME-Version: 1.0",
-          `Subject: ${utf8Subject}`,
-          "",
-          params.body,
-        ];
-        const message = messageParts.join("\n");
+        
+        let messageParts: string[] = [];
+
+        if (params.attachments && params.attachments.length > 0) {
+          const boundary = `----=_NextPart_${Date.now()}`;
+          messageParts = [
+            `To: ${params.to}`,
+            `Subject: ${utf8Subject}`,
+            "MIME-Version: 1.0",
+            `Content-Type: multipart/mixed; boundary="${boundary}"`,
+            "",
+            `--${boundary}`,
+            "Content-Type: text/html; charset=utf-8",
+            "",
+            params.body,
+            "",
+          ];
+
+          for (const att of params.attachments) {
+            messageParts.push(
+              `--${boundary}`,
+              `Content-Type: ${att.mimeType}; name="${att.filename}"`,
+              `Content-Disposition: attachment; filename="${att.filename}"`,
+              "Content-Transfer-Encoding: base64",
+              "",
+              att.contentBase64,
+              ""
+            );
+          }
+          messageParts.push(`--${boundary}--`);
+        } else {
+          messageParts = [
+            `To: ${params.to}`,
+            "Content-Type: text/html; charset=utf-8",
+            "MIME-Version: 1.0",
+            `Subject: ${utf8Subject}`,
+            "",
+            params.body,
+          ];
+        }
+
+        const message = messageParts.join("\r\n");
 
         // Base64url encode the message
         const encodedMessage = Buffer.from(message)
@@ -165,22 +202,60 @@ export function createGoogleGmailMethods() {
     },
 
     createDraft: async (
-      params: { to: string; subject: string; body: string },
+      params: { 
+        to: string; 
+        subject: string; 
+        body: string; 
+        attachments?: { filename: string; mimeType: string; contentBase64: string }[] 
+      },
       context?: PluginContext,
     ) => {
       const gmail = getGmailClient(context!);
 
       try {
         const utf8Subject = `=?utf-8?B?${Buffer.from(params.subject).toString("base64")}?=`;
-        const messageParts = [
-          `To: ${params.to}`,
-          "Content-Type: text/html; charset=utf-8",
-          "MIME-Version: 1.0",
-          `Subject: ${utf8Subject}`,
-          "",
-          params.body,
-        ];
-        const message = messageParts.join("\n");
+        
+        let messageParts: string[] = [];
+
+        if (params.attachments && params.attachments.length > 0) {
+          const boundary = `----=_NextPart_${Date.now()}`;
+          messageParts = [
+            `To: ${params.to}`,
+            `Subject: ${utf8Subject}`,
+            "MIME-Version: 1.0",
+            `Content-Type: multipart/mixed; boundary="${boundary}"`,
+            "",
+            `--${boundary}`,
+            "Content-Type: text/html; charset=utf-8",
+            "",
+            params.body,
+            "",
+          ];
+
+          for (const att of params.attachments) {
+            messageParts.push(
+              `--${boundary}`,
+              `Content-Type: ${att.mimeType}; name="${att.filename}"`,
+              `Content-Disposition: attachment; filename="${att.filename}"`,
+              "Content-Transfer-Encoding: base64",
+              "",
+              att.contentBase64,
+              ""
+            );
+          }
+          messageParts.push(`--${boundary}--`);
+        } else {
+          messageParts = [
+            `To: ${params.to}`,
+            "Content-Type: text/html; charset=utf-8",
+            "MIME-Version: 1.0",
+            `Subject: ${utf8Subject}`,
+            "",
+            params.body,
+          ];
+        }
+
+        const message = messageParts.join("\r\n");
 
         const encodedMessage = Buffer.from(message)
           .toString("base64")
