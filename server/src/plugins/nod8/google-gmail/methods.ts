@@ -71,6 +71,7 @@ export function createGoogleGmailMethods() {
 
     sendMessage: async (
       params: { 
+        from?: string;
         to: string; 
         subject: string; 
         body: string; 
@@ -89,6 +90,7 @@ export function createGoogleGmailMethods() {
           const boundary = `----=_NextPart_${Date.now()}`;
           messageParts = [
             `To: ${params.to}`,
+            ...(params.from ? [`From: ${params.from}`] : []),
             `Subject: ${utf8Subject}`,
             "MIME-Version: 1.0",
             `Content-Type: multipart/mixed; boundary="${boundary}"`,
@@ -115,6 +117,7 @@ export function createGoogleGmailMethods() {
         } else {
           messageParts = [
             `To: ${params.to}`,
+            ...(params.from ? [`From: ${params.from}`] : []),
             "Content-Type: text/html; charset=utf-8",
             "MIME-Version: 1.0",
             `Subject: ${utf8Subject}`,
@@ -203,6 +206,7 @@ export function createGoogleGmailMethods() {
 
     createDraft: async (
       params: { 
+        from?: string;
         to: string; 
         subject: string; 
         body: string; 
@@ -221,6 +225,7 @@ export function createGoogleGmailMethods() {
           const boundary = `----=_NextPart_${Date.now()}`;
           messageParts = [
             `To: ${params.to}`,
+            ...(params.from ? [`From: ${params.from}`] : []),
             `Subject: ${utf8Subject}`,
             "MIME-Version: 1.0",
             `Content-Type: multipart/mixed; boundary="${boundary}"`,
@@ -247,6 +252,7 @@ export function createGoogleGmailMethods() {
         } else {
           messageParts = [
             `To: ${params.to}`,
+            ...(params.from ? [`From: ${params.from}`] : []),
             "Content-Type: text/html; charset=utf-8",
             "MIME-Version: 1.0",
             `Subject: ${utf8Subject}`,
