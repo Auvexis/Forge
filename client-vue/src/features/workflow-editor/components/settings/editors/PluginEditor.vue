@@ -139,6 +139,35 @@
           />
         </template>
 
+        <!-- Files Array Input -->
+        <template v-else-if="(paramVal as any)['x-input-type'] === 'files'">
+          <div class="pe-files-container">
+            <div 
+              v-for="(item, index) in (Array.isArray((data.params as any)?.[paramKey]) ? (data.params as any)?.[paramKey] : ((data.params as any)?.[paramKey] ? [(data.params as any)?.[paramKey]] : ['']))" 
+              :key="index"
+              class="pe-file-input-group"
+            >
+              <input
+                class="editor-input editor-input--bold"
+                :value="item"
+                @input="updateFileArray(paramKey.toString(), index, ($event.target as HTMLInputElement).value)"
+                placeholder="e.g. {{ trigger.file }}"
+              />
+              <button 
+                class="pe-file-btn pe-file-btn--remove" 
+                @click="removeFileFromArray(paramKey.toString(), index)"
+                title="Remove file"
+              >
+                <LucideIcon name="trash" size="14" />
+              </button>
+            </div>
+            <button class="pe-file-btn pe-file-btn--add" @click="addFileToArray(paramKey.toString())">
+              <LucideIcon name="plus" size="14" />
+              <span>Add File</span>
+            </button>
+          </div>
+        </template>
+
         <!-- Default Input -->
         <template v-else>
           <input
@@ -223,6 +252,55 @@ const isMapVariablesOpen = (key: string) => mapVariablesOpen.value[key] ?? false
 
 const toggleMapVariables = (key: string) => {
   mapVariablesOpen.value[key] = !mapVariablesOpen.value[key]
+}
+
+const updateFileArray = (key: string, index: number, value: string) => {
+  let currentArray = Array.isArray((data.value.params as any)?.[key]) 
+    ? [...(data.value.params as any)[key]] 
+    : ((data.value.params as any)?.[key] ? [(data.value.params as any)[key]] : [''])
+  
+  currentArray[index] = value
+  
+  updateNodeData({
+    params: {
+      ...(data.value.params || {}),
+      [key]: currentArray,
+    },
+  })
+}
+
+const addFileToArray = (key: string) => {
+  let currentArray = Array.isArray((data.value.params as any)?.[key]) 
+    ? [...(data.value.params as any)[key]] 
+    : ((data.value.params as any)?.[key] ? [(data.value.params as any)[key]] : [''])
+    
+  currentArray.push('')
+  
+  updateNodeData({
+    params: {
+      ...(data.value.params || {}),
+      [key]: currentArray,
+    },
+  })
+}
+
+const removeFileFromArray = (key: string, index: number) => {
+  let currentArray = Array.isArray((data.value.params as any)?.[key]) 
+    ? [...(data.value.params as any)[key]] 
+    : ((data.value.params as any)?.[key] ? [(data.value.params as any)[key]] : [''])
+    
+  currentArray.splice(index, 1)
+  
+  if (currentArray.length === 0) {
+    currentArray.push('')
+  }
+  
+  updateNodeData({
+    params: {
+      ...(data.value.params || {}),
+      [key]: currentArray,
+    },
+  })
 }
 </script>
 
@@ -363,5 +441,54 @@ const toggleMapVariables = (key: string) => {
 .pe-var-btn:hover {
   background-color: var(--nod8-bg-surface);
   color: var(--nod8-text-primary);
+}
+
+.pe-files-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nod8-space-2);
+}
+
+.pe-file-input-group {
+  display: flex;
+  gap: var(--nod8-space-2);
+  align-items: center;
+}
+
+.pe-file-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nod8-bg-surface);
+  border: 1px solid var(--nod8-border);
+  color: var(--nod8-text-muted);
+  cursor: pointer;
+  border-radius: var(--nod8-radius-sm);
+  transition: all 0.2s ease;
+}
+
+.pe-file-btn:hover {
+  color: var(--nod8-text-primary);
+  background: var(--nod8-bg-surface-hover);
+}
+
+.pe-file-btn--remove {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.pe-file-btn--remove:hover {
+  color: rgba(239, 68, 68, 1);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.pe-file-btn--add {
+  gap: 6px;
+  padding: 8px 12px;
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 </style>
