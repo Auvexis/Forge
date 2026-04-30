@@ -133,6 +133,138 @@
       "ui": {
         "component": "generic"
       }
+    },
+    "listLabels": {
+      "metadata": {
+        "label": "List Labels",
+        "description": "Lists all labels in the mailbox."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-nod8-display": "generic",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "type": { "type": "string" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table"
+      }
+    },
+    "modifyMessageLabels": {
+      "metadata": {
+        "label": "Modify Message Labels",
+        "description": "Adds or removes labels from a message."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message to modify.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "addLabelIds": {
+            "type": "string",
+            "description": "Comma-separated list of label IDs to add.",
+            "x-label": "Add Label IDs",
+            "x-input-type": "text"
+          },
+          "removeLabelIds": {
+            "type": "string",
+            "description": "Comma-separated list of label IDs to remove.",
+            "x-label": "Remove Label IDs",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["messageId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "generic",
+        "properties": {
+          "id": { "type": "string" },
+          "threadId": { "type": "string" },
+          "labelIds": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "ui": {
+        "component": "generic"
+      }
+    },
+    "listDrafts": {
+      "metadata": {
+        "label": "List Drafts",
+        "description": "Lists drafts in the user's mailbox."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-nod8-display": "generic",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "message": { "type": "object" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table"
+      }
+    },
+    "createDraft": {
+      "metadata": {
+        "label": "Create Draft",
+        "description": "Creates a new draft message."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "description": "Recipient email address.",
+            "x-label": "To",
+            "x-input-type": "text"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Email subject.",
+            "x-label": "Subject",
+            "x-input-type": "text"
+          },
+          "body": {
+            "type": "string",
+            "description": "Email body (text or HTML).",
+            "x-label": "Body",
+            "x-input-type": "textarea"
+          }
+        },
+        "required": ["to", "subject", "body"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "generic",
+        "properties": {
+          "id": { "type": "string" },
+          "message": { "type": "object" }
+        }
+      },
+      "ui": {
+        "component": "generic"
+      }
     }
   }
 }

@@ -107,5 +107,100 @@ export function createGoogleGmailMethods() {
         throw error;
       }
     },
+
+    listLabels: async (
+      params: any,
+      context?: PluginContext,
+    ) => {
+      const gmail = getGmailClient(context!);
+
+      try {
+        const response = await gmail.users.labels.list({
+          userId: "me",
+        });
+        return response.data.labels || [];
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    modifyMessageLabels: async (
+      params: { messageId: string; addLabelIds?: string; removeLabelIds?: string },
+      context?: PluginContext,
+    ) => {
+      const gmail = getGmailClient(context!);
+
+      const addLabels = params.addLabelIds ? params.addLabelIds.split(",").map((l) => l.trim()) : [];
+      const removeLabels = params.removeLabelIds ? params.removeLabelIds.split(",").map((l) => l.trim()) : [];
+
+      try {
+        const response = await gmail.users.messages.modify({
+          userId: "me",
+          id: params.messageId,
+          requestBody: {
+            addLabelIds: addLabels,
+            removeLabelIds: removeLabels,
+          },
+        });
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    listDrafts: async (
+      params: any,
+      context?: PluginContext,
+    ) => {
+      const gmail = getGmailClient(context!);
+
+      try {
+        const response = await gmail.users.drafts.list({
+          userId: "me",
+        });
+        return response.data.drafts || [];
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    createDraft: async (
+      params: { to: string; subject: string; body: string },
+      context?: PluginContext,
+    ) => {
+      const gmail = getGmailClient(context!);
+
+      try {
+        const utf8Subject = `=?utf-8?B?${Buffer.from(params.subject).toString("base64")}?=`;
+        const messageParts = [
+          `To: ${params.to}`,
+          "Content-Type: text/html; charset=utf-8",
+          "MIME-Version: 1.0",
+          `Subject: ${utf8Subject}`,
+          "",
+          params.body,
+        ];
+        const message = messageParts.join("\n");
+
+        const encodedMessage = Buffer.from(message)
+          .toString("base64")
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "");
+
+        const response = await gmail.users.drafts.create({
+          userId: "me",
+          requestBody: {
+            message: {
+              raw: encodedMessage,
+            },
+          },
+        });
+
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
   };
 }
