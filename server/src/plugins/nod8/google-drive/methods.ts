@@ -97,22 +97,11 @@ export function createGoogleDriveMethods() {
 
       try {
         const uploadPromises = params.files.map(async (fileObj) => {
-          let stream: Readable;
-          if (fileObj.contentBase64 instanceof Buffer) {
-            stream = Readable.from(fileObj.contentBase64);
-          } else if (
-            fileObj.contentBase64 &&
-            typeof (fileObj.contentBase64 as any).pipe === "function" &&
-            typeof (fileObj.contentBase64 as any).on === "function"
-          ) {
-            stream = fileObj.contentBase64 as unknown as Readable;
-          } else if (typeof fileObj.contentBase64 === "string") {
-            const cleanBase64 = fileObj.contentBase64.replace(/\s/g, "");
-            const buffer = Buffer.from(cleanBase64, "base64");
-            stream = Readable.from(buffer);
-          } else {
-            throw new Error(`Invalid content type for upload in file: ${fileObj.filename}`);
-          }
+          const buffer = Buffer.isBuffer(fileObj.contentBase64)
+            ? fileObj.contentBase64
+            : Buffer.from((fileObj.contentBase64 as string).replace(/\s/g, ""), "base64");
+            
+          const stream = Readable.from(buffer);
 
           const response = await driveClient.files.create({
             requestBody: {

@@ -53,9 +53,21 @@
       "ui": {
         "component": "table",
         "actions": [
-          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
-          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } },
-          { "label": "Restore", "action": "restoreFile", "parameters": { "fileId": "{{id}}" } }
+          {
+            "label": "Download",
+            "action": "downloadFile",
+            "parameters": { "fileId": "{{id}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteFile",
+            "parameters": { "fileId": "{{id}}" }
+          },
+          {
+            "label": "Restore",
+            "action": "restoreFile",
+            "parameters": { "fileId": "{{id}}" }
+          }
         ]
       }
     },
@@ -91,9 +103,21 @@
       "ui": {
         "component": "card",
         "actions": [
-          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
-          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } },
-          { "label": "Restore", "action": "restoreFile", "parameters": { "fileId": "{{id}}" } }
+          {
+            "label": "Download",
+            "action": "downloadFile",
+            "parameters": { "fileId": "{{id}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteFile",
+            "parameters": { "fileId": "{{id}}" }
+          },
+          {
+            "label": "Restore",
+            "action": "restoreFile",
+            "parameters": { "fileId": "{{id}}" }
+          }
         ]
       }
     },
@@ -133,9 +157,21 @@
       "ui": {
         "component": "table",
         "actions": [
-          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
-          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } },
-          { "label": "Restore", "action": "restoreFile", "parameters": { "fileId": "{{id}}" } }
+          {
+            "label": "Download",
+            "action": "downloadFile",
+            "parameters": { "fileId": "{{id}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteFile",
+            "parameters": { "fileId": "{{id}}" }
+          },
+          {
+            "label": "Restore",
+            "action": "restoreFile",
+            "parameters": { "fileId": "{{id}}" }
+          }
         ]
       }
     },
@@ -188,8 +224,16 @@
       "ui": {
         "component": "table",
         "actions": [
-          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
-          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } }
+          {
+            "label": "Download",
+            "action": "downloadFile",
+            "parameters": { "fileId": "{{id}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteFile",
+            "parameters": { "fileId": "{{id}}" }
+          }
         ]
       }
     },
@@ -267,8 +311,16 @@
       "ui": {
         "component": "card",
         "actions": [
-          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
-          { "label": "Restore", "action": "restoreFile", "parameters": { "fileId": "{{id}}" } }
+          {
+            "label": "Download",
+            "action": "downloadFile",
+            "parameters": { "fileId": "{{id}}" }
+          },
+          {
+            "label": "Restore",
+            "action": "restoreFile",
+            "parameters": { "fileId": "{{id}}" }
+          }
         ]
       }
     },
@@ -305,7 +357,11 @@
       "ui": {
         "component": "card",
         "actions": [
-          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } }
+          {
+            "label": "Download",
+            "action": "downloadFile",
+            "parameters": { "fileId": "{{id}}" }
+          }
         ]
       }
     },
@@ -347,8 +403,16 @@
       "ui": {
         "component": "card",
         "actions": [
-          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
-          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } }
+          {
+            "label": "Download",
+            "action": "downloadFile",
+            "parameters": { "fileId": "{{id}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteFile",
+            "parameters": { "fileId": "{{id}}" }
+          }
         ]
       }
     },
@@ -390,8 +454,16 @@
       "ui": {
         "component": "card",
         "actions": [
-          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
-          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } }
+          {
+            "label": "Download",
+            "action": "downloadFile",
+            "parameters": { "fileId": "{{id}}" }
+          },
+          {
+            "label": "Delete",
+            "action": "deleteFile",
+            "parameters": { "fileId": "{{id}}" }
+          }
         ]
       }
     },
@@ -430,7 +502,11 @@
       "ui": {
         "component": "card",
         "actions": [
-          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } }
+          {
+            "label": "Download",
+            "action": "downloadFile",
+            "parameters": { "fileId": "{{id}}" }
+          }
         ]
       }
     },
@@ -472,7 +548,11 @@
             "parameters": { "fileId": "{{id}}" },
             "visibleIf": { "field": "trashed", "equals": true }
           },
-          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } }
+          {
+            "label": "Download",
+            "action": "downloadFile",
+            "parameters": { "fileId": "{{id}}" }
+          }
         ]
       }
     }
