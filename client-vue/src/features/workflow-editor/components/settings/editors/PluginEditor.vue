@@ -147,12 +147,18 @@
               :key="index"
               class="pe-file-input-group"
             >
-              <input
-                class="editor-input editor-input--bold"
-                :value="item"
-                @input="updateFileArray(paramKey.toString(), index, ($event.target as HTMLInputElement).value)"
-                placeholder="e.g. {{ trigger.file }}"
-              />
+              <div class="pe-file-input-wrapper">
+                <input
+                  v-if="typeof item !== 'object'"
+                  type="file"
+                  class="editor-input editor-input--file"
+                  @change="handleFileUpload(paramKey.toString(), index, $event)"
+                />
+                <div v-else class="pe-file-display editor-input">
+                  <LucideIcon name="file" size="14" />
+                  <span class="pe-file-name">{{ item.filename }}</span>
+                </div>
+              </div>
               <button 
                 class="pe-file-btn pe-file-btn--remove" 
                 @click="removeFileFromArray(paramKey.toString(), index)"
@@ -261,12 +267,42 @@ const updateFileArray = (key: string, index: number, value: string) => {
   
   currentArray[index] = value
   
-  updateNodeData({
+  props.updateNodeData({
     params: {
       ...(data.value.params || {}),
       [key]: currentArray,
     },
   })
+}
+
+const handleFileUpload = async (key: string, index: number, event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (!target.files || target.files.length === 0) return
+  const file = target.files[0]
+  
+  const reader = new FileReader()
+  reader.onload = () => {
+    const base64 = (reader.result as string).split(',')[1]
+    const fileObj = {
+      filename: file.name,
+      mimeType: file.type || 'application/octet-stream',
+      contentBase64: base64
+    }
+    
+    let currentArray = Array.isArray((data.value.params as any)?.[key]) 
+      ? [...(data.value.params as any)[key]] 
+      : ((data.value.params as any)?.[key] ? [(data.value.params as any)[key]] : [''])
+      
+    currentArray[index] = fileObj
+    
+    props.updateNodeData({
+      params: {
+        ...(data.value.params || {}),
+        [key]: currentArray,
+      },
+    })
+  }
+  reader.readAsDataURL(file)
 }
 
 const addFileToArray = (key: string) => {
@@ -276,7 +312,7 @@ const addFileToArray = (key: string) => {
     
   currentArray.push('')
   
-  updateNodeData({
+  props.updateNodeData({
     params: {
       ...(data.value.params || {}),
       [key]: currentArray,
@@ -295,7 +331,7 @@ const removeFileFromArray = (key: string, index: number) => {
     currentArray.push('')
   }
   
-  updateNodeData({
+  props.updateNodeData({
     params: {
       ...(data.value.params || {}),
       [key]: currentArray,
@@ -453,6 +489,30 @@ const removeFileFromArray = (key: string, index: number) => {
   display: flex;
   gap: var(--nod8-space-2);
   align-items: center;
+}
+
+.pe-file-input-wrapper {
+  flex: 1;
+}
+
+.editor-input--file {
+  padding: 6px;
+}
+
+.pe-file-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--nod8-bg-surface);
+}
+
+.pe-file-name {
+  font-size: 12px;
+  color: var(--nod8-text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pe-file-btn {
