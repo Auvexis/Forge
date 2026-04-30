@@ -1,0 +1,58 @@
+{
+  "metadata": {
+    "id": "google-gmail",
+    "name": "Google Gmail",
+    "description": "Integration with Google Gmail API to manage emails, threads, drafts, and labels.",
+    "icon": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg",
+    "category": "Communication",
+    "author": "Nod8",
+    "version": "1.0.0",
+    "repository": "https://github.com/nod8/google-gmail"
+  },
+  "methods": {
+    "listMessages": {
+      "metadata": {
+        "label": "List Messages",
+        "description": "Lists messages in the user's mailbox."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Only return messages matching the specified query. Supports the same query format as the Gmail search box.",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of messages to return. Default is 100.",
+            "default": 100,
+            "x-input-type": "number",
+            "x-label": "Max Results"
+          },
+          "labelIds": {
+            "type": "string",
+            "description": "Comma-separated list of label IDs. Only return messages with these labels.",
+            "x-label": "Label IDs",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-nod8-display": "generic",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "x-label": "Message ID" },
+            "threadId": { "type": "string", "x-label": "Thread ID" }
+          }
+        }
+      },
+      "ui": {
+        "component": "table"
+      }
+    }
+  }
+}
