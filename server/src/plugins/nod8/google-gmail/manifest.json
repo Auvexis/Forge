@@ -100,16 +100,16 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "from": {
-            "type": "string",
-            "description": "Optional sender alias or display name (e.g. 'My Name <email@gmail.com>').",
-            "x-label": "From",
-            "x-input-type": "text"
-          },
           "to": {
             "type": "string",
             "description": "Recipient email address.",
             "x-label": "To",
+            "x-input-type": "text"
+          },
+          "from": {
+            "type": "string",
+            "description": "Optional sender alias or display name (e.g. 'My Name <email@gmail.com>').",
+            "x-label": "From",
             "x-input-type": "text"
           },
           "subject": {
@@ -262,16 +262,16 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "from": {
-            "type": "string",
-            "description": "Optional sender alias or display name (e.g. 'My Name <email@gmail.com>').",
-            "x-label": "From",
-            "x-input-type": "text"
-          },
           "to": {
             "type": "string",
             "description": "Recipient email address.",
             "x-label": "To",
+            "x-input-type": "text"
+          },
+          "from": {
+            "type": "string",
+            "description": "Optional sender alias or display name (e.g. 'My Name <email@gmail.com>').",
+            "x-label": "From",
             "x-input-type": "text"
           },
           "subject": {

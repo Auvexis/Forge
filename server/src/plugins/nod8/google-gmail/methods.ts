@@ -83,14 +83,16 @@ export function createGoogleGmailMethods() {
 
       try {
         const utf8Subject = `=?utf-8?B?${Buffer.from(params.subject).toString("base64")}?=`;
+        const cleanTo = params.to ? params.to.replace(/[\r\n]+/g, " ").trim() : "";
+        const cleanFrom = params.from ? params.from.replace(/[\r\n]+/g, " ").trim() : "";
         
         let messageParts: string[] = [];
 
         if (params.attachments && params.attachments.length > 0) {
           const boundary = `----=_NextPart_${Date.now()}`;
           messageParts = [
-            `To: ${params.to}`,
-            ...(params.from ? [`From: ${params.from}`] : []),
+            `To: ${cleanTo}`,
+            ...(cleanFrom ? [`From: ${cleanFrom}`] : []),
             `Subject: ${utf8Subject}`,
             "MIME-Version: 1.0",
             `Content-Type: multipart/mixed; boundary="${boundary}"`,
@@ -116,8 +118,8 @@ export function createGoogleGmailMethods() {
           messageParts.push(`--${boundary}--`);
         } else {
           messageParts = [
-            `To: ${params.to}`,
-            ...(params.from ? [`From: ${params.from}`] : []),
+            `To: ${cleanTo}`,
+            ...(cleanFrom ? [`From: ${cleanFrom}`] : []),
             "Content-Type: text/html; charset=utf-8",
             "MIME-Version: 1.0",
             `Subject: ${utf8Subject}`,
@@ -218,14 +220,16 @@ export function createGoogleGmailMethods() {
 
       try {
         const utf8Subject = `=?utf-8?B?${Buffer.from(params.subject).toString("base64")}?=`;
+        const cleanTo = params.to ? params.to.replace(/[\r\n]+/g, " ").trim() : "";
+        const cleanFrom = params.from ? params.from.replace(/[\r\n]+/g, " ").trim() : "";
         
         let messageParts: string[] = [];
 
         if (params.attachments && params.attachments.length > 0) {
           const boundary = `----=_NextPart_${Date.now()}`;
           messageParts = [
-            `To: ${params.to}`,
-            ...(params.from ? [`From: ${params.from}`] : []),
+            `To: ${cleanTo}`,
+            ...(cleanFrom ? [`From: ${cleanFrom}`] : []),
             `Subject: ${utf8Subject}`,
             "MIME-Version: 1.0",
             `Content-Type: multipart/mixed; boundary="${boundary}"`,
@@ -251,8 +255,8 @@ export function createGoogleGmailMethods() {
           messageParts.push(`--${boundary}--`);
         } else {
           messageParts = [
-            `To: ${params.to}`,
-            ...(params.from ? [`From: ${params.from}`] : []),
+            `To: ${cleanTo}`,
+            ...(cleanFrom ? [`From: ${cleanFrom}`] : []),
             "Content-Type: text/html; charset=utf-8",
             "MIME-Version: 1.0",
             `Subject: ${utf8Subject}`,
