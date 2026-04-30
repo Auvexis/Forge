@@ -148,44 +148,49 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "The name for the uploaded file.",
-            "x-input-type": "text"
-          },
-          "content": {
-            "type": "string",
-            "format": "binary",
-            "description": "The file content to upload.",
-            "x-input-type": "file"
+          "files": {
+            "type": "array",
+            "description": "List of files to upload.",
+            "x-input-type": "files",
+            "items": {
+              "type": "object",
+              "properties": {
+                "filename": { "type": "string" },
+                "mimeType": { "type": "string" },
+                "contentBase64": { "type": "string" }
+              },
+              "required": ["filename", "mimeType", "contentBase64"]
+            }
           },
           "parentId": {
             "type": "string",
             "description": "The ID of the parent folder (optional).",
             "x-input-type": "text"
-          },
-          "mimeType": {
-            "type": "string",
-            "description": "MIME type of the file (optional, auto-detected if not provided).",
-            "x-input-type": "text"
           }
         },
-        "required": ["name", "content"]
+        "required": ["files"]
       },
       "responseSchema": {
-        "type": "object",
+        "type": "array",
         "x-nod8-display": "file",
-        "properties": {
-          "id": { "type": "string", "x-label": "ID" },
-          "name": { "type": "string", "x-label": "File Name" },
-          "mimeType": { "type": "string", "x-label": "Mime Type" },
-          "parents": { "type": "array", "x-label": "Parents" },
-          "modifiedTime": { "type": "string", "x-label": "Last Modified" },
-          "size": { "type": "string", "x-label": "File Size" }
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "x-label": "ID" },
+            "name": { "type": "string", "x-label": "File Name" },
+            "mimeType": { "type": "string", "x-label": "Mime Type" },
+            "parents": { "type": "array", "x-label": "Parents" },
+            "modifiedTime": { "type": "string", "x-label": "Last Modified" },
+            "size": { "type": "string", "x-label": "File Size" }
+          }
         }
       },
       "ui": {
-        "component": "card"
+        "component": "table",
+        "actions": [
+          { "label": "Download", "action": "downloadFile", "parameters": { "fileId": "{{id}}" } },
+          { "label": "Delete", "action": "deleteFile", "parameters": { "fileId": "{{id}}" } }
+        ]
       }
     },
 

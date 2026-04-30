@@ -84,50 +84,56 @@ export function createGoogleDriveMethods() {
 
     uploadFile: async (
       params: {
-        name: string;
-        content: string | Buffer;
+        files: Array<{
+          filename: string;
+          mimeType: string;
+          contentBase64: string | Buffer;
+        }>;
         parentId?: string;
-        mimeType?: string;
       },
       context?: PluginContext,
     ) => {
       const driveClient = getDriveClient(context!);
 
       try {
-        let stream: Readable;
-        if (params.content instanceof Buffer) {
-          stream = Readable.from(params.content);
-        } else if (
-          params.content &&
-          typeof (params.content as any).pipe === "function" &&
-          typeof (params.content as any).on === "function"
-        ) {
-          stream = params.content as unknown as Readable;
-        } else if (typeof params.content === "string") {
-          // Fallback if still received as base64 string
-          const cleanBase64 = params.content.replace(/\s/g, "");
-          const buffer = Buffer.from(cleanBase64, "base64");
-          stream = Readable.from(buffer);
-        } else {
-          throw new Error("Invalid content type for upload");
-        }
+        const uploadPromises = params.files.map(async (fileObj) => {
+          let stream: Readable;
+          if (fileObj.contentBase64 instanceof Buffer) {
+            stream = Readable.from(fileObj.contentBase64);
+          } else if (
+            fileObj.contentBase64 &&
+            typeof (fileObj.contentBase64 as any).pipe === "function" &&
+            typeof (fileObj.contentBase64 as any).on === "function"
+          ) {
+            stream = fileObj.contentBase64 as unknown as Readable;
+          } else if (typeof fileObj.contentBase64 === "string") {
+            const cleanBase64 = fileObj.contentBase64.replace(/\s/g, "");
+            const buffer = Buffer.from(cleanBase64, "base64");
+            stream = Readable.from(buffer);
+          } else {
+            throw new Error(`Invalid content type for upload in file: ${fileObj.filename}`);
+          }
 
-        const response = await driveClient.files.create({
-          requestBody: {
-            name: params.name,
-            mimeType: params.mimeType || "application/octet-stream",
-            ...(params.parentId && {
-              parents: [params.parentId],
-            }),
-          },
-          media: {
-            mimeType: params.mimeType || "application/octet-stream",
-            body: stream,
-          },
-          fields: "id, name, mimeType, size, parents, trashed",
+          const response = await driveClient.files.create({
+            requestBody: {
+              name: fileObj.filename,
+              mimeType: fileObj.mimeType || "application/octet-stream",
+              ...(params.parentId && {
+                parents: [params.parentId],
+              }),
+            },
+            media: {
+              mimeType: fileObj.mimeType || "application/octet-stream",
+              body: stream,
+            },
+            fields: "id, name, mimeType, size, parents, trashed",
+          });
+
+          return response.data;
         });
 
-        return response.data;
+        const results = await Promise.all(uploadPromises);
+        return results;
       } catch (error) {
         throw error;
       }
