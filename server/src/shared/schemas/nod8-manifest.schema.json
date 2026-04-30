@@ -131,7 +131,7 @@
         "items": { "$ref": "#/$defs/JSONSchemaProperty" },
         "x-input-type": {
           "type": "string",
-          "enum": ["text", "password", "number", "url", "email", "file", "textarea"]
+          "enum": ["text", "password", "number", "url", "email", "file", "files", "textarea"]
         },
         "x-label": { "type": "string" },
         "x-nod8-display": {

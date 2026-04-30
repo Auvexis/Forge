@@ -121,6 +121,7 @@
           "attachments": {
             "type": "array",
             "description": "Optional list of attachments.",
+            "x-input-type": "files",
             "items": {
               "type": "object",
               "properties": {
@@ -276,6 +277,7 @@
           "attachments": {
             "type": "array",
             "description": "Optional list of attachments.",
+            "x-input-type": "files",
             "items": {
               "type": "object",
               "properties": {
