@@ -50,5 +50,62 @@ export function createGoogleGmailMethods() {
         throw error;
       }
     },
+
+    getMessage: async (
+      params: { messageId: string; format?: "full" | "metadata" | "minimal" | "raw" },
+      context?: PluginContext,
+    ) => {
+      const gmail = getGmailClient(context!);
+
+      try {
+        const response = await gmail.users.messages.get({
+          userId: "me",
+          id: params.messageId,
+          format: params.format || "full",
+        });
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    sendMessage: async (
+      params: { to: string; subject: string; body: string },
+      context?: PluginContext,
+    ) => {
+      const gmail = getGmailClient(context!);
+
+      try {
+        // Construct standard RFC 2822 email
+        const utf8Subject = `=?utf-8?B?${Buffer.from(params.subject).toString("base64")}?=`;
+        const messageParts = [
+          `To: ${params.to}`,
+          "Content-Type: text/html; charset=utf-8",
+          "MIME-Version: 1.0",
+          `Subject: ${utf8Subject}`,
+          "",
+          params.body,
+        ];
+        const message = messageParts.join("\n");
+
+        // Base64url encode the message
+        const encodedMessage = Buffer.from(message)
+          .toString("base64")
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "");
+
+        const response = await gmail.users.messages.send({
+          userId: "me",
+          requestBody: {
+            raw: encodedMessage,
+          },
+        });
+
+        return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
   };
 }

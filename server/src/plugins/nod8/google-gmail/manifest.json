@@ -53,6 +53,86 @@
       "ui": {
         "component": "table"
       }
+    },
+    "getMessage": {
+      "metadata": {
+        "label": "Get Message",
+        "description": "Retrieves a specific message by ID."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message to retrieve.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "format": {
+            "type": "string",
+            "description": "The format to return the message in (e.g., 'full', 'metadata', 'minimal', 'raw'). Default is 'full'.",
+            "default": "full",
+            "x-label": "Format",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["messageId"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "generic",
+        "properties": {
+          "id": { "type": "string" },
+          "threadId": { "type": "string" },
+          "snippet": { "type": "string" },
+          "payload": { "type": "object" }
+        }
+      },
+      "ui": {
+        "component": "card"
+      }
+    },
+    "sendMessage": {
+      "metadata": {
+        "label": "Send Message",
+        "description": "Sends an email message."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "description": "Recipient email address.",
+            "x-label": "To",
+            "x-input-type": "text"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Email subject.",
+            "x-label": "Subject",
+            "x-input-type": "text"
+          },
+          "body": {
+            "type": "string",
+            "description": "Email body (text or HTML).",
+            "x-label": "Body",
+            "x-input-type": "textarea"
+          }
+        },
+        "required": ["to", "subject", "body"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "generic",
+        "properties": {
+          "id": { "type": "string" },
+          "threadId": { "type": "string" },
+          "labelIds": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "ui": {
+        "component": "generic"
+      }
     }
   }
 }
