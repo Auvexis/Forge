@@ -148,7 +148,7 @@ const onNodeClick = (event: NodeMouseEvent) => {
   panelStore.togglePanel({
     id: `node-editor-${event.node.id}`,
     title: 'Configurações',
-    component: NodeEditorDrawer,
+    component: markRaw(NodeEditorDrawer),
     props: { node: event.node },
     position: 'right',
     width: 'lg',
@@ -182,7 +182,7 @@ const openAddNodePanel = (sourceId?: string | null) => {
   panelStore.togglePanel({
     id: 'add-node-panel',
     title: 'Adicionar Node',
-    component: AddNodePanel,
+    component: markRaw(AddNodePanel),
     props: {
       onAddLogicNode: addLogicNode,
       onAddPluginNode: addPluginNode,
