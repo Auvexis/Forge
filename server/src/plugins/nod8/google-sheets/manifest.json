@@ -1,0 +1,127 @@
+{
+  "metadata": {
+    "id": "google-sheets",
+    "name": "Google Sheets",
+    "description": "Read, append, and update rows in Google Sheets.",
+    "icon": "https://upload.wikimedia.org/wikipedia/commons/3/30/Google_Sheets_logo_%282014-2020%29.svg",
+    "category": "Google",
+    "author": "Nod8",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/nod8"
+  },
+  "methods": {
+    "listSpreadsheets": {
+      "metadata": {
+        "label": "List Spreadsheets",
+        "description": "Helper method to list available spreadsheets. Typically used internally for dynamic dropdowns."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-nod8-display": "generic",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string", "x-label": "Spreadsheet ID" },
+            "name": { "type": "string", "x-label": "Name" }
+          }
+        }
+      },
+      "ui": { "component": "table" }
+    },
+    
+    "readRows": {
+      "metadata": {
+        "label": "Read Rows",
+        "description": "Reads data from a specified range in a Google Sheet. Returns an array of objects if headers are included, or an array of arrays otherwise."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "description": "The spreadsheet to read from.",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          },
+          "range": {
+            "type": "string",
+            "description": "The A1 notation of the values to retrieve (e.g. 'Sheet1!A1:D10' or just 'Sheet1').",
+            "x-label": "Range",
+            "x-input-type": "text",
+            "default": "Sheet1"
+          },
+          "includeHeader": {
+            "type": "boolean",
+            "description": "If enabled, the first row of the range is treated as headers, and the output is an array of JSON objects instead of arrays.",
+            "x-label": "First Row as Header",
+            "x-input-type": "toggle",
+            "default": true
+          }
+        },
+        "required": ["spreadsheetId", "range"]
+      },
+      "responseSchema": {
+        "type": "array",
+        "x-nod8-display": "generic",
+        "items": { "type": "object" }
+      },
+      "ui": { "component": "table" }
+    },
+
+    "appendRow": {
+      "metadata": {
+        "label": "Append Row",
+        "description": "Appends a new row of data to a specific sheet."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "description": "The spreadsheet to append to.",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          },
+          "range": {
+            "type": "string",
+            "description": "The A1 notation of a range to search for a logical table of data. Values will be appended after the last row of the table. E.g. 'Sheet1'.",
+            "x-label": "Sheet Name or Range",
+            "x-input-type": "text",
+            "default": "Sheet1"
+          },
+          "values": {
+            "type": "string",
+            "description": "JSON array of values representing the row to append. E.g. [\"John\", \"Doe\", \"john@example.com\"]",
+            "x-label": "Row Values (JSON Array)",
+            "x-input-type": "json"
+          }
+        },
+        "required": ["spreadsheetId", "range", "values"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "x-nod8-display": "generic",
+        "properties": {
+          "updatedRange": { "type": "string", "x-label": "Updated Range" },
+          "updatedRows": { "type": "number", "x-label": "Updated Rows" },
+          "updatedCells": { "type": "number", "x-label": "Updated Cells" }
+        }
+      },
+      "ui": { "component": "generic" }
+    }
+  }
+}
