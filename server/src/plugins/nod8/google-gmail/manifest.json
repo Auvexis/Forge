@@ -6,35 +6,37 @@
     "icon": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg",
     "category": "Communication",
     "author": "Nod8",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "repository": "https://github.com/nod8/google-gmail"
   },
   "methods": {
     "listMessages": {
       "metadata": {
         "label": "List Messages",
-        "description": "Lists messages in the user's mailbox."
+        "description": "Lists messages in the user's mailbox. Returns an array of message IDs."
       },
       "parameters": {
         "type": "object",
         "properties": {
           "query": {
             "type": "string",
-            "description": "Only return messages matching the specified query. Supports the same query format as the Gmail search box.",
+            "description": "Filter messages by a Gmail search query (same syntax as the Gmail search box, e.g. 'from:user@example.com is:unread').",
             "x-label": "Search Query",
             "x-input-type": "text"
           },
           "maxResults": {
             "type": "integer",
-            "description": "Maximum number of messages to return. Default is 100.",
+            "description": "Maximum number of messages to return (1–500). Default is 100.",
             "default": 100,
+            "minimum": 1,
+            "maximum": 500,
             "x-input-type": "number",
             "x-label": "Max Results"
           },
           "labelIds": {
             "type": "string",
-            "description": "Comma-separated list of label IDs. Only return messages with these labels.",
-            "x-label": "Label IDs",
+            "description": "Comma-separated list of label IDs. Only return messages that have all specified labels.",
+            "x-label": "Label IDs (comma-separated)",
             "x-input-type": "text"
           }
         }
@@ -57,7 +59,7 @@
     "getMessage": {
       "metadata": {
         "label": "Get Message",
-        "description": "Retrieves a specific message by ID."
+        "description": "Retrieves a specific message by ID with its full content, headers, and body."
       },
       "parameters": {
         "type": "object",
@@ -70,10 +72,11 @@
           },
           "format": {
             "type": "string",
-            "description": "The format to return the message in (e.g., 'full', 'metadata', 'minimal', 'raw'). Default is 'full'.",
+            "description": "The format to return the message in. 'full' includes all headers and body. 'metadata' returns only headers. 'minimal' returns minimal data. 'raw' returns the raw RFC 2822 message.",
             "default": "full",
+            "enum": ["full", "metadata", "minimal", "raw"],
             "x-label": "Format",
-            "x-input-type": "text"
+            "x-input-type": "select"
           }
         },
         "required": ["messageId"]
@@ -82,10 +85,10 @@
         "type": "object",
         "x-nod8-display": "generic",
         "properties": {
-          "id": { "type": "string" },
-          "threadId": { "type": "string" },
-          "snippet": { "type": "string" },
-          "payload": { "type": "object" }
+          "id": { "type": "string", "x-label": "Message ID" },
+          "threadId": { "type": "string", "x-label": "Thread ID" },
+          "snippet": { "type": "string", "x-label": "Snippet" },
+          "payload": { "type": "object", "x-label": "Payload" }
         }
       },
       "ui": {
@@ -95,38 +98,39 @@
     "sendMessage": {
       "metadata": {
         "label": "Send Message",
-        "description": "Sends an email message."
+        "description": "Sends an email message. Supports plain text, HTML, and attachments."
       },
       "parameters": {
         "type": "object",
         "properties": {
           "to": {
             "type": "string",
-            "description": "Recipient email address.",
+            "description": "Recipient email address. Formats accepted: 'user@example.com' or 'Display Name <user@example.com>'.",
             "x-label": "To",
             "x-input-type": "text"
           },
           "from": {
             "type": "string",
-            "description": "Optional sender alias or display name (e.g. 'My Name <email@gmail.com>').",
-            "x-label": "From",
+            "description": "Optional sender alias or display name (e.g. 'My Name <email@gmail.com>'). Defaults to the authenticated account.",
+            "x-label": "From (optional)",
             "x-input-type": "text"
           },
           "subject": {
             "type": "string",
-            "description": "Email subject.",
+            "description": "Email subject line. Unicode is fully supported.",
             "x-label": "Subject",
             "x-input-type": "text"
           },
           "body": {
             "type": "string",
-            "description": "Email body (text or HTML).",
+            "description": "Email body. Accepts plain text or HTML. The Content-Type is automatically detected.",
             "x-label": "Body",
             "x-input-type": "textarea"
           },
           "attachments": {
             "type": "array",
-            "description": "Optional list of attachments.",
+            "description": "Optional list of file attachments. Each file must be base64-encoded.",
+            "x-label": "Attachments",
             "x-input-type": "files",
             "items": {
               "type": "object",
@@ -137,7 +141,7 @@
                 },
                 "mimeType": {
                   "type": "string",
-                  "description": "MIME type of the file."
+                  "description": "MIME type of the file (e.g. 'application/pdf', 'image/png')."
                 },
                 "contentBase64": {
                   "type": "string",
@@ -154,9 +158,9 @@
         "type": "object",
         "x-nod8-display": "generic",
         "properties": {
-          "id": { "type": "string" },
-          "threadId": { "type": "string" },
-          "labelIds": { "type": "array", "items": { "type": "string" } }
+          "id": { "type": "string", "x-label": "Message ID" },
+          "threadId": { "type": "string", "x-label": "Thread ID" },
+          "labelIds": { "type": "array", "x-label": "Labels", "items": { "type": "string" } }
         }
       },
       "ui": {
@@ -166,7 +170,7 @@
     "listLabels": {
       "metadata": {
         "label": "List Labels",
-        "description": "Lists all labels in the mailbox."
+        "description": "Lists all labels in the user's mailbox (system and user-defined)."
       },
       "parameters": {
         "type": "object",
@@ -178,9 +182,9 @@
         "items": {
           "type": "object",
           "properties": {
-            "id": { "type": "string" },
-            "name": { "type": "string" },
-            "type": { "type": "string" }
+            "id": { "type": "string", "x-label": "Label ID" },
+            "name": { "type": "string", "x-label": "Label Name" },
+            "type": { "type": "string", "x-label": "Type" }
           }
         }
       },
@@ -191,7 +195,7 @@
     "modifyMessageLabels": {
       "metadata": {
         "label": "Modify Message Labels",
-        "description": "Adds or removes labels from a message."
+        "description": "Adds or removes labels from a specific message."
       },
       "parameters": {
         "type": "object",
@@ -204,13 +208,13 @@
           },
           "addLabelIds": {
             "type": "string",
-            "description": "Comma-separated list of label IDs to add.",
+            "description": "Comma-separated list of label IDs to add (e.g. 'STARRED,IMPORTANT').",
             "x-label": "Add Label IDs",
             "x-input-type": "text"
           },
           "removeLabelIds": {
             "type": "string",
-            "description": "Comma-separated list of label IDs to remove.",
+            "description": "Comma-separated list of label IDs to remove (e.g. 'UNREAD').",
             "x-label": "Remove Label IDs",
             "x-input-type": "text"
           }
@@ -221,9 +225,9 @@
         "type": "object",
         "x-nod8-display": "generic",
         "properties": {
-          "id": { "type": "string" },
-          "threadId": { "type": "string" },
-          "labelIds": { "type": "array", "items": { "type": "string" } }
+          "id": { "type": "string", "x-label": "Message ID" },
+          "threadId": { "type": "string", "x-label": "Thread ID" },
+          "labelIds": { "type": "array", "x-label": "Labels", "items": { "type": "string" } }
         }
       },
       "ui": {
@@ -233,7 +237,7 @@
     "listDrafts": {
       "metadata": {
         "label": "List Drafts",
-        "description": "Lists drafts in the user's mailbox."
+        "description": "Lists all drafts in the user's mailbox."
       },
       "parameters": {
         "type": "object",
@@ -245,8 +249,8 @@
         "items": {
           "type": "object",
           "properties": {
-            "id": { "type": "string" },
-            "message": { "type": "object" }
+            "id": { "type": "string", "x-label": "Draft ID" },
+            "message": { "type": "object", "x-label": "Message" }
           }
         }
       },
@@ -257,21 +261,21 @@
     "createDraft": {
       "metadata": {
         "label": "Create Draft",
-        "description": "Creates a new draft message."
+        "description": "Creates a new draft message. The draft is saved but not sent."
       },
       "parameters": {
         "type": "object",
         "properties": {
           "to": {
             "type": "string",
-            "description": "Recipient email address.",
+            "description": "Recipient email address. Formats accepted: 'user@example.com' or 'Display Name <user@example.com>'.",
             "x-label": "To",
             "x-input-type": "text"
           },
           "from": {
             "type": "string",
-            "description": "e.g. 'My Name <email@gmail.com>'.",
-            "x-label": "From",
+            "description": "Optional sender alias (e.g. 'My Name <email@gmail.com>').",
+            "x-label": "From (optional)",
             "x-input-type": "text"
           },
           "subject": {
@@ -282,29 +286,21 @@
           },
           "body": {
             "type": "string",
-            "description": "Email body (text or HTML).",
+            "description": "Email body. Accepts plain text or HTML.",
             "x-label": "Body",
             "x-input-type": "textarea"
           },
           "attachments": {
             "type": "array",
-            "description": "Optional list of attachments.",
+            "description": "Optional list of file attachments.",
+            "x-label": "Attachments",
             "x-input-type": "files",
             "items": {
               "type": "object",
               "properties": {
-                "filename": {
-                  "type": "string",
-                  "description": "Name of the file."
-                },
-                "mimeType": {
-                  "type": "string",
-                  "description": "MIME type of the file."
-                },
-                "contentBase64": {
-                  "type": "string",
-                  "description": "Base64 encoded content of the file."
-                }
+                "filename": { "type": "string", "description": "Name of the file." },
+                "mimeType": { "type": "string", "description": "MIME type of the file." },
+                "contentBase64": { "type": "string", "description": "Base64 encoded content." }
               },
               "required": ["filename", "mimeType", "contentBase64"]
             }
@@ -316,8 +312,8 @@
         "type": "object",
         "x-nod8-display": "generic",
         "properties": {
-          "id": { "type": "string" },
-          "message": { "type": "object" }
+          "id": { "type": "string", "x-label": "Draft ID" },
+          "message": { "type": "object", "x-label": "Message" }
         }
       },
       "ui": {
@@ -327,14 +323,14 @@
     "trashMessage": {
       "metadata": {
         "label": "Trash Message",
-        "description": "Moves a message to the trash."
+        "description": "Moves a message to the trash. The message can be restored within 30 days."
       },
       "parameters": {
         "type": "object",
         "properties": {
           "messageId": {
             "type": "string",
-            "description": "The ID of the message to trash.",
+            "description": "The ID of the message to move to trash.",
             "x-label": "Message ID",
             "x-input-type": "text"
           }
@@ -345,9 +341,9 @@
         "type": "object",
         "x-nod8-display": "generic",
         "properties": {
-          "id": { "type": "string" },
-          "threadId": { "type": "string" },
-          "labelIds": { "type": "array", "items": { "type": "string" } }
+          "id": { "type": "string", "x-label": "Message ID" },
+          "threadId": { "type": "string", "x-label": "Thread ID" },
+          "labelIds": { "type": "array", "x-label": "Labels", "items": { "type": "string" } }
         }
       },
       "ui": { "component": "generic" }
@@ -355,21 +351,23 @@
     "listThreads": {
       "metadata": {
         "label": "List Threads",
-        "description": "Lists threads in the user's mailbox."
+        "description": "Lists email threads in the user's mailbox."
       },
       "parameters": {
         "type": "object",
         "properties": {
           "query": {
             "type": "string",
-            "description": "Search query.",
+            "description": "Gmail search query to filter threads.",
             "x-label": "Search Query",
             "x-input-type": "text"
           },
           "maxResults": {
             "type": "integer",
-            "description": "Max results.",
+            "description": "Maximum number of threads to return (1–500). Default is 100.",
             "default": 100,
+            "minimum": 1,
+            "maximum": 500,
             "x-input-type": "number",
             "x-label": "Max Results"
           }
@@ -381,9 +379,9 @@
         "items": {
           "type": "object",
           "properties": {
-            "id": { "type": "string" },
-            "snippet": { "type": "string" },
-            "historyId": { "type": "string" }
+            "id": { "type": "string", "x-label": "Thread ID" },
+            "snippet": { "type": "string", "x-label": "Snippet" },
+            "historyId": { "type": "string", "x-label": "History ID" }
           }
         }
       },
@@ -392,20 +390,20 @@
     "getAttachment": {
       "metadata": {
         "label": "Get Attachment",
-        "description": "Gets the specified message attachment."
+        "description": "Downloads the binary data of a specific message attachment."
       },
       "parameters": {
         "type": "object",
         "properties": {
           "messageId": {
             "type": "string",
-            "description": "The ID of the message.",
+            "description": "The ID of the message containing the attachment.",
             "x-label": "Message ID",
             "x-input-type": "text"
           },
           "attachmentId": {
             "type": "string",
-            "description": "The ID of the attachment.",
+            "description": "The ID of the attachment to download.",
             "x-label": "Attachment ID",
             "x-input-type": "text"
           }
@@ -416,9 +414,9 @@
         "type": "object",
         "x-nod8-display": "media",
         "properties": {
-          "attachmentId": { "type": "string" },
-          "size": { "type": "number" },
-          "data": { "type": "string" }
+          "attachmentId": { "type": "string", "x-label": "Attachment ID" },
+          "size": { "type": "number", "x-label": "Size (bytes)" },
+          "data": { "type": "string", "x-label": "Data (Base64)" }
         }
       },
       "ui": { "component": "generic" }
