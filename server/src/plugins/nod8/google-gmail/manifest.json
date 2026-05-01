@@ -270,7 +270,7 @@
           },
           "from": {
             "type": "string",
-            "description": "Optional sender alias or display name (e.g. 'My Name <email@gmail.com>').",
+            "description": "e.g. 'My Name <email@gmail.com>'.",
             "x-label": "From",
             "x-input-type": "text"
           },

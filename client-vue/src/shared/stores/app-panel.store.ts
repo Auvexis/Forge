@@ -29,19 +29,34 @@ export const useAppPanelStore = defineStore('app-panel', () => {
   const panelComponent = shallowRef<Component | null>(null)
   const componentProps = ref<Record<string, unknown>>({})
 
+  let transitionTimeout: number | null = null
+
+  const _setPanelData = (config: AppPanelConfig) => {
+    title.value = config.title
+    position.value = config.position || 'right'
+    width.value = config.width || 'md'
+    panelComponent.value = markRaw(config.component)
+    componentProps.value = config.props || {}
+    isOpen.value = true
+  }
+
   /**
    * Abre o painel global e monta o componente especificado no corpo (body)
    */
   const openPanel = (config: AppPanelConfig) => {
-    title.value = config.title
-    position.value = config.position || 'right'
-    width.value = config.width || 'md'
+    if (transitionTimeout) {
+      clearTimeout(transitionTimeout)
+      transitionTimeout = null
+    }
 
-    // Uso do markRaw pra garantir que não vamos atar reatividade no objeto descritor do comp
-    panelComponent.value = markRaw(config.component)
-    componentProps.value = config.props || {}
-
-    isOpen.value = true
+    if (isOpen.value && title.value !== config.title) {
+      isOpen.value = false
+      transitionTimeout = window.setTimeout(() => {
+        _setPanelData(config)
+      }, 300)
+    } else {
+      _setPanelData(config)
+    }
   }
 
   /**
@@ -50,13 +65,26 @@ export const useAppPanelStore = defineStore('app-panel', () => {
   const closePanel = () => {
     isOpen.value = false
 
+    if (transitionTimeout) {
+      clearTimeout(transitionTimeout)
+      transitionTimeout = null
+    }
+
     // Limpamos o lixo depois que a animação for fechada pra não causar flicker
-    setTimeout(() => {
+    transitionTimeout = window.setTimeout(() => {
       if (!isOpen.value) {
         panelComponent.value = null
         componentProps.value = {}
       }
     }, 300)
+  }
+
+  const togglePanel = (config: AppPanelConfig) => {
+    if (isOpen.value && title.value === config.title) {
+      closePanel()
+    } else {
+      openPanel(config)
+    }
   }
 
   return {
@@ -68,5 +96,6 @@ export const useAppPanelStore = defineStore('app-panel', () => {
     componentProps,
     openPanel,
     closePanel,
+    togglePanel,
   }
 })
