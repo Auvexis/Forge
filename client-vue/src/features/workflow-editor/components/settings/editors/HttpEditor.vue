@@ -41,10 +41,13 @@
       </EditorField>
 
       <EditorField label="Request Body">
-        <CodeEditor
-          language="json"
-          :model-value="node.data.body || ''"
-          @update:model-value="updateNodeData({ body: $event })"
+        <textarea
+          class="editor-textarea"
+          style="font-family: monospace; white-space: pre;"
+          :value="node.data.body || ''"
+          @input="updateNodeData({ body: ($event.target as HTMLTextAreaElement).value })"
+          placeholder='{ "key": "value" }'
+          spellcheck="false"
         />
       </EditorField>
     </div>
@@ -102,7 +105,6 @@
 import { ref, computed } from 'vue'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
-import CodeEditor from './CodeEditor.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = defineProps<NodeEditorProps>()
@@ -120,17 +122,17 @@ const RESPONSE_TYPES = [
   { value: 'binary', label: 'Binary File (Buffer)' },
 ]
 
-const hasBody = computed(() => ['POST', 'PUT', 'PATCH', 'DELETE'].includes(props.node.data.method || 'GET'))
+const hasBody = computed(() => ['POST', 'PUT', 'PATCH', 'DELETE'].includes((props.node.data.method as string) || 'GET'))
 
 const addHeader = () => {
-  const currentHeaders = { ...(props.node.data.headers || {}) }
+  const currentHeaders: Record<string, string> = { ...(props.node.data.headers as Record<string, string> || {}) }
   const newKey = `Header_${Object.keys(currentHeaders).length + 1}`
   props.updateNodeData({ headers: { ...currentHeaders, [newKey]: '' } })
 }
 
 const updateHeaderKey = (oldKey: string, newKey: string) => {
   if (!newKey || oldKey === newKey) return
-  const currentHeaders = { ...(props.node.data.headers || {}) }
+  const currentHeaders: Record<string, string> = { ...(props.node.data.headers as Record<string, string> || {}) }
   const val = currentHeaders[oldKey]
   delete currentHeaders[oldKey]
   currentHeaders[newKey] = val
@@ -138,13 +140,13 @@ const updateHeaderKey = (oldKey: string, newKey: string) => {
 }
 
 const updateHeaderValue = (key: string, value: string) => {
-  const currentHeaders = { ...(props.node.data.headers || {}) }
+  const currentHeaders: Record<string, string> = { ...(props.node.data.headers as Record<string, string> || {}) }
   currentHeaders[key] = value
   props.updateNodeData({ headers: currentHeaders })
 }
 
 const removeHeader = (key: string) => {
-  const currentHeaders = { ...(props.node.data.headers || {}) }
+  const currentHeaders: Record<string, string> = { ...(props.node.data.headers as Record<string, string> || {}) }
   delete currentHeaders[key]
   props.updateNodeData({ headers: currentHeaders })
 }
