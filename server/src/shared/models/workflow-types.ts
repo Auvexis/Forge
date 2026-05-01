@@ -90,7 +90,7 @@ export interface HttpNode extends WorkflowNodeBase {
   bodyType?: "json" | "form" | "raw"; // How to encode the body
   timeout?: number; // Request timeout in ms (default: 30000)
   followRedirects?: boolean; // Follow 3xx redirects (default: true)
-  responseType?: "json" | "text"; // How to parse the response body
+  responseType?: "json" | "text" | "binary"; // How to parse the response body
 }
 
 // ──────────── Emit Event Node ────────────

@@ -332,7 +332,8 @@ async function executeHttpNode(
   }
 
   let bodyPayload: string | undefined;
-  if (node.body && node.method !== "GET" && node.method !== "DELETE") {
+  // PATCH and DELETE can now send bodies (common in modern REST)
+  if (node.body && node.method !== "GET") {
     const cooked = WorkflowParser.evalParams({ body: node.body }, context);
     const bodyStr = String(cooked.body ?? "");
 
@@ -349,6 +350,9 @@ async function executeHttpNode(
     } else if (node.bodyType === "form") {
       resolvedHeaders["Content-Type"] =
         resolvedHeaders["Content-Type"] ?? "application/x-www-form-urlencoded";
+      bodyPayload = bodyStr;
+    } else if (node.bodyType === "raw") {
+      // Raw means "send it exactly as is, don't set Content-Type unless explicitly given"
       bodyPayload = bodyStr;
     } else {
       bodyPayload = bodyStr;
@@ -375,7 +379,17 @@ async function executeHttpNode(
     let responseData: any;
     const contentType = response.headers.get("content-type") ?? "";
 
-    if (node.responseType === "text") {
+    if (node.responseType === "binary") {
+      // Convert ArrayBuffer to Node.js Buffer for the pipeline (e.g., x-input-type: file)
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      responseData = {
+        content: buffer,
+        mimeType: contentType || "application/octet-stream",
+        size: buffer.length,
+      };
+    } else if (node.responseType === "text") {
       responseData = await response.text();
     } else if (contentType.includes("application/json")) {
       responseData = await response.json();
