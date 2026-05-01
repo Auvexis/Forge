@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { PluginManager } from "../modules/plugins/manager.ts";
-import { PluginExecutor } from "../modules/plugins/executor.ts";
+import { PluginExecutor, PluginValidationError } from "../modules/plugins/executor.ts";
 import { CredentialStore } from "../modules/plugins/credential-store.ts";
 import { Vault } from "../modules/plugins/vault.ts";
 import { z } from "zod";
@@ -250,6 +250,16 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         data: result,
       });
     } catch (error: any) {
+      // Validation errors (bad input from the user/workflow) → 400 Bad Request
+      if (error instanceof PluginValidationError) {
+        return sendResponse(reply, {
+          status_code: 400,
+          message: "Invalid parameters",
+          error: error.errors.join("; "),
+          data: null,
+        });
+      }
+      // Unexpected execution errors → 500 Internal Server Error
       return sendResponse(reply, {
         status_code: 500,
         message: `Execution failed: ${error.message}`,

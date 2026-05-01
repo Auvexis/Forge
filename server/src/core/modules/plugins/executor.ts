@@ -6,6 +6,9 @@ import type {
 import { PluginManager } from "./manager.ts";
 import { CredentialStore } from "./credential-store.ts";
 import { Vault } from "./vault.ts";
+import { validateParams, PluginValidationError } from "./validator.ts";
+
+export { PluginValidationError };
 
 /** Refresh tokens if they expire within this window (5 minutes) */
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
@@ -64,12 +67,19 @@ export const PluginExecutor = {
       tokens,
     };
 
+    // ──────────── Schema Validation ────────────
+    // Validate incoming params against the method's JSON Schema BEFORE cooking
+    // or executing. This is a security gate: unknown fields are stripped by AJV
+    // (`removeAdditional: true`) and type mismatches throw PluginValidationError,
+    // which the route layer maps to HTTP 400 (not 500).
+    const methodManifest = plugin.manifest.methods[methodName];
+    validateParams(pluginId, methodName, methodManifest.parameters, params);
+
     // ──────────── Parameter cooking (JSON Schema-driven) ────────────
     // The executor normalises raw params before passing them to the plugin method.
     // Rules are declared in the manifest under each property's x-input-type and format
     // fields — no plugin-specific magic lives here.
     const cookedParams: Record<string, any> = { ...params };
-    const methodManifest = plugin.manifest.methods[methodName];
     const schemaProperties = methodManifest?.parameters?.properties ?? {};
 
     for (const [key, paramSchema] of Object.entries(schemaProperties)) {
