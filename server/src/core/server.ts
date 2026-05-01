@@ -5,6 +5,7 @@ import cors from "@fastify/cors";
 import rootRoutes from "./routes/index.ts";
 import pluginsRoutes from "./routes/plugins.routes.ts";
 import workflowsRoutes from "./routes/workflows.routes.ts";
+import webhooksRoutes from "./routes/webhooks.routes.ts";
 import { initializeDatabases } from "./database/index.ts";
 import { loadPlugins } from "./modules/plugins/loader.ts";
 import { Scheduler } from "./modules/scheduler/scheduler.ts";
@@ -50,6 +51,7 @@ Scheduler.initialize();
 fastify.register(rootRoutes);
 fastify.register(pluginsRoutes);
 fastify.register(workflowsRoutes);
+fastify.register(webhooksRoutes);
 
 // Run the server!
 fastify.listen({ port: PORT, host: "0.0.0.0" }, function (err, address) {
