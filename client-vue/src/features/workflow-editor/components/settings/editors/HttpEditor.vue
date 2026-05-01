@@ -41,12 +41,10 @@
       </EditorField>
 
       <EditorField label="Request Body">
-        <textarea
-          class="editor-textarea"
-          :value="node.data.body || ''"
-          @input="updateNodeData({ body: ($event.target as HTMLTextAreaElement).value })"
-          placeholder='{ "key": "value" }'
-          spellcheck="false"
+        <CodeEditor
+          language="json"
+          :model-value="node.data.body || ''"
+          @update:model-value="updateNodeData({ body: $event })"
         />
       </EditorField>
     </div>
@@ -104,6 +102,7 @@
 import { ref, computed } from 'vue'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
+import CodeEditor from './CodeEditor.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = defineProps<NodeEditorProps>()
@@ -118,9 +117,10 @@ const BODY_TYPES = [
 const RESPONSE_TYPES = [
   { value: 'json', label: 'JSON (auto-parse)' },
   { value: 'text', label: 'Plain Text' },
+  { value: 'binary', label: 'Binary File (Buffer)' },
 ]
 
-const hasBody = computed(() => ['POST', 'PUT', 'PATCH'].includes(props.node.data.method || 'GET'))
+const hasBody = computed(() => ['POST', 'PUT', 'PATCH', 'DELETE'].includes(props.node.data.method || 'GET'))
 
 const addHeader = () => {
   const currentHeaders = { ...(props.node.data.headers || {}) }
