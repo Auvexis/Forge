@@ -145,7 +145,8 @@ watch(
 // ── Eventos ─────────────────────────────────────────────────────────────────
 
 const onNodeClick = (event: NodeMouseEvent) => {
-  panelStore.openPanel({
+  panelStore.togglePanel({
+    id: `node-editor-${event.node.id}`,
     title: 'Configurações',
     component: NodeEditorDrawer,
     props: { node: event.node },
@@ -178,7 +179,8 @@ quickAddBus.on((payload: { sourceId: string }) => {
 const openAddNodePanel = (sourceId?: string | null) => {
   quickAddSourceId = sourceId || null
 
-  panelStore.openPanel({
+  panelStore.togglePanel({
+    id: 'add-node-panel',
     title: 'Adicionar Node',
     component: AddNodePanel,
     props: {
@@ -202,7 +204,8 @@ async function handleRun() {
   const schema = workflowStore.activeWorkflow.trigger.schema ?? {}
 
   if (Object.keys(schema).length > 0) {
-    panelStore.openPanel({
+    panelStore.togglePanel({
+      id: 'run-workflow-panel',
       title: 'Run Workflow',
       component: markRaw(RunWorkflowPanel),
       props: {

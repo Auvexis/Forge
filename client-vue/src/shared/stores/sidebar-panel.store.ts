@@ -16,9 +16,7 @@ export const useSidebarPanelStore = defineStore('sidebar-panel', () => {
   const panelComponent = shallowRef<Component | null>(null)
   const componentProps = ref<Record<string, unknown>>({})
 
-  let transitionTimeout: number | null = null
-
-  const _setPanelData = (config: SidebarPanelConfig) => {
+  const openPanel = (config: SidebarPanelConfig) => {
     title.value = config.title
     width.value = config.width || 'md'
     panelComponent.value = markRaw(config.component)
@@ -26,31 +24,9 @@ export const useSidebarPanelStore = defineStore('sidebar-panel', () => {
     isOpen.value = true
   }
 
-  const openPanel = (config: SidebarPanelConfig) => {
-    if (transitionTimeout) {
-      clearTimeout(transitionTimeout)
-      transitionTimeout = null
-    }
-
-    if (isOpen.value && title.value !== config.title) {
-      isOpen.value = false
-      transitionTimeout = window.setTimeout(() => {
-        _setPanelData(config)
-      }, 300)
-    } else {
-      _setPanelData(config)
-    }
-  }
-
   const closePanel = () => {
     isOpen.value = false
-    
-    if (transitionTimeout) {
-      clearTimeout(transitionTimeout)
-      transitionTimeout = null
-    }
-
-    transitionTimeout = window.setTimeout(() => {
+    setTimeout(() => {
       if (!isOpen.value) {
         panelComponent.value = null
         componentProps.value = {}
@@ -59,7 +35,8 @@ export const useSidebarPanelStore = defineStore('sidebar-panel', () => {
   }
 
   const togglePanel = (config: SidebarPanelConfig) => {
-    if (isOpen.value && title.value === config.title) {
+    // Basic check if it's the same component
+    if (isOpen.value && panelComponent.value === markRaw(config.component)) {
       closePanel()
     } else {
       openPanel(config)

@@ -11,6 +11,7 @@ export interface AppPanelState {
 }
 
 export interface AppPanelConfig {
+  id?: string
   title: string
   component: Component
   props?: Record<string, unknown>
@@ -19,6 +20,7 @@ export interface AppPanelConfig {
 }
 
 export const useAppPanelStore = defineStore('app-panel', () => {
+  const panelId = ref('')
   const isOpen = ref(false)
   const title = ref('')
   const position = ref<'left' | 'right' | 'bottom'>('right')
@@ -32,6 +34,7 @@ export const useAppPanelStore = defineStore('app-panel', () => {
   let transitionTimeout: number | null = null
 
   const _setPanelData = (config: AppPanelConfig) => {
+    panelId.value = config.id || ''
     title.value = config.title
     position.value = config.position || 'right'
     width.value = config.width || 'md'
@@ -49,7 +52,9 @@ export const useAppPanelStore = defineStore('app-panel', () => {
       transitionTimeout = null
     }
 
-    if (isOpen.value && title.value !== config.title) {
+    const isSame = config.id ? panelId.value === config.id : title.value === config.title
+
+    if (isOpen.value && !isSame) {
       isOpen.value = false
       transitionTimeout = window.setTimeout(() => {
         _setPanelData(config)
@@ -73,6 +78,7 @@ export const useAppPanelStore = defineStore('app-panel', () => {
     // Limpamos o lixo depois que a animação for fechada pra não causar flicker
     transitionTimeout = window.setTimeout(() => {
       if (!isOpen.value) {
+        panelId.value = ''
         panelComponent.value = null
         componentProps.value = {}
       }
@@ -80,7 +86,8 @@ export const useAppPanelStore = defineStore('app-panel', () => {
   }
 
   const togglePanel = (config: AppPanelConfig) => {
-    if (isOpen.value && title.value === config.title) {
+    const isSame = config.id ? panelId.value === config.id : title.value === config.title
+    if (isOpen.value && isSame) {
       closePanel()
     } else {
       openPanel(config)
@@ -94,6 +101,7 @@ export const useAppPanelStore = defineStore('app-panel', () => {
     width,
     panelComponent,
     componentProps,
+    panelId,
     openPanel,
     closePanel,
     togglePanel,

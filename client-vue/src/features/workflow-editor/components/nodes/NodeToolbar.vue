@@ -62,7 +62,8 @@ const hasResult = computed(
 // ── Actions ────────────────────────────────────────────────────────────────
 
 function viewOutput() {
-  panelStore.openPanel({
+  panelStore.togglePanel({
+    id: `node-output-${props.nodeId}`,
     title: 'Node Output',
     component: markRaw(NodeOutputPanel),
     props: { nodeId: props.nodeId },
