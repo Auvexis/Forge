@@ -160,6 +160,22 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
 
       CredentialStore.saveCredentials(pluginId, filtered);
 
+      // Test connection if provider supports it
+      if (plugin.auth.type === "api_key" && typeof (plugin.auth as any).testConnection === "function") {
+        try {
+          await (plugin.auth as any).testConnection(filtered);
+        } catch (err: any) {
+          // If test fails, we return a 400 so the UI shows the error to the user
+          // The credentials are saved, but the user is immediately warned.
+          return sendResponse(reply, {
+            status_code: 400,
+            message: `Connection test failed: ${err.message}`,
+            error: err.message,
+            data: null,
+          });
+        }
+      }
+
       return sendResponse(reply, {
         status_code: 200,
         message: "Credentials saved successfully",

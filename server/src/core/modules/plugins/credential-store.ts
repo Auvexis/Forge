@@ -111,7 +111,7 @@ export const CredentialStore = {
     }
 
     if (authType === "api_key") {
-      return "configured";
+      return "connected";
     }
 
     // oauth2: check if tokens exist

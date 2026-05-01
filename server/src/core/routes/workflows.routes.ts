@@ -259,6 +259,9 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       timestamp: Date.now(),
     };
 
+    const contentType = (req.headers["content-type"] ?? "").split(";")[0].trim() || "application/json";
+    console.log(`[NOD8 | WEBHOOKS]: Webhook received — identifier: '${webhookPath}', content-type: ${contentType}`);
+
     const executionId = `exec_wh_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(
