@@ -131,14 +131,49 @@
         "items": { "$ref": "#/$defs/JSONSchemaProperty" },
         "x-input-type": {
           "type": "string",
-          "enum": ["text", "password", "number", "url", "email", "file", "files", "textarea"]
+          "enum": [
+            "text", "password", "number", "url", "email",
+            "file", "files", "textarea",
+            "select", "multiselect", "toggle", "datetime", "code", "json"
+          ]
         },
         "x-label": { "type": "string" },
         "x-nod8-display": {
           "type": "string",
           "enum": ["file", "folder", "media", "text", "generic"]
         },
-        "x-nod8-icon": { "type": "string" }
+        "x-nod8-icon": { "type": "string" },
+        "x-dynamic-options": {
+          "type": "object",
+          "description": "Populates a select/multiselect by calling a plugin method at runtime.",
+          "required": ["method", "labelPath", "valuePath"],
+          "additionalProperties": false,
+          "properties": {
+            "method": { "type": "string", "description": "Method name in methods.ts to invoke." },
+            "labelPath": { "type": "string", "description": "Dot-notation path for the display label in each item." },
+            "valuePath": { "type": "string", "description": "Dot-notation path for the submitted value in each item." },
+            "dependsOn": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Sibling field keys that, when changed, trigger a re-fetch of options."
+            }
+          }
+        },
+        "x-visible-if": {
+          "type": "object",
+          "description": "Conditionally renders this field based on another field's value.",
+          "required": ["field", "operator", "value"],
+          "additionalProperties": false,
+          "properties": {
+            "field": { "type": "string", "description": "Key of the sibling parameter to observe." },
+            "operator": {
+              "type": "string",
+              "enum": ["equals", "not_equals", "in", "contains"],
+              "description": "Comparison operator."
+            },
+            "value": { "description": "Value to compare against. Use an array for the 'in' operator." }
+          }
+        }
       }
     },
 

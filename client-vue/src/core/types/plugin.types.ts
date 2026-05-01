@@ -45,6 +45,26 @@ export interface PluginMetadata {
 
 // ── JSON Schema Types ─────────────────────────────────────────
 
+/**
+ * Instructs the Frontend to populate a select/multiselect field by calling
+ * a specific method on the plugin itself. Keeps the frontend 100% generic.
+ */
+export interface DynamicOptionsConfig {
+  method: string
+  labelPath: string
+  valuePath: string
+  dependsOn?: string[]
+}
+
+/**
+ * Conditionally shows or hides a field based on the value of a sibling field.
+ */
+export interface VisibleIfConfig {
+  field: string
+  operator: 'equals' | 'not_equals' | 'in' | 'contains'
+  value: unknown
+}
+
 export interface JSONSchemaProperty {
   type?: 'string' | 'number' | 'integer' | 'boolean' | 'object' | 'array' | 'null'
   description?: string
@@ -62,11 +82,27 @@ export interface JSONSchemaProperty {
   items?: JSONSchemaProperty
   minItems?: number
   maxItems?: number
-  // Nod8-specific extensions
-  'x-input-type'?: 'text' | 'password' | 'number' | 'url' | 'email' | 'file' | 'textarea'
+  // ── Nod8 UI extensions ──────────────────────────────────────
+  'x-input-type'?:
+    | 'text'
+    | 'password'
+    | 'number'
+    | 'url'
+    | 'email'
+    | 'file'
+    | 'files'
+    | 'textarea'
+    | 'select'
+    | 'multiselect'
+    | 'toggle'
+    | 'datetime'
+    | 'code'
+    | 'json'
   'x-label'?: string
   'x-nod8-display'?: 'file' | 'folder' | 'media' | 'text' | 'generic'
   'x-nod8-icon'?: string
+  'x-dynamic-options'?: DynamicOptionsConfig
+  'x-visible-if'?: VisibleIfConfig
 }
 
 export interface JSONSchemaObject {

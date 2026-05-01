@@ -90,12 +90,64 @@ export interface PluginMetadata {
 // ──────────── JSON Schema Types (for method parameters & response) ────────────
 
 /**
+ * Instructs the Frontend to populate a select/multiselect field by calling
+ * a specific method on the plugin itself. This keeps the frontend generic —
+ * it doesn't know anything about Google Drive, Slack, etc.
+ *
+ * @example
+ * "folderId": {
+ *   "type": "string",
+ *   "x-input-type": "select",
+ *   "x-dynamic-options": {
+ *     "method": "listFolders",
+ *     "labelPath": "name",
+ *     "valuePath": "id",
+ *     "dependsOn": ["driveType"]
+ *   }
+ * }
+ */
+export interface DynamicOptionsConfig {
+  /** The method name in `methods.ts` to call to retrieve the list. Must return an array. */
+  method: string;
+  /** Dot-notation path into each item of the returned array to use as the option's display label. */
+  labelPath: string;
+  /** Dot-notation path into each item of the returned array to use as the option's submitted value. */
+  valuePath: string;
+  /**
+   * Optional list of other parameter keys. When any of those fields change,
+   * the options list is automatically re-fetched.
+   */
+  dependsOn?: string[];
+}
+
+/**
+ * Conditionally shows or hides a field in the UI based on the value of another field.
+ * This prevents cluttering the form with irrelevant parameters.
+ *
+ * @example
+ * "spreadsheetId": {
+ *   "type": "string",
+ *   "x-visible-if": { "field": "actionType", "operator": "equals", "value": "update_row" }
+ * }
+ */
+export interface VisibleIfConfig {
+  /** The key of the sibling parameter to observe. */
+  field: string;
+  /** The comparison operator. */
+  operator: "equals" | "not_equals" | "in" | "contains";
+  /** The value to compare against. For `in`, this should be an array. */
+  value: any;
+}
+
+/**
  * A single JSON Schema property definition.
  * Standard fields follow JSON Schema Draft 7.
- * Fields prefixed with `x-` are Nod8-specific extensions.
+ * Fields prefixed with `x-` are Nod8-specific UI rendering extensions.
+ * These extensions are the core of Nod8's "declarative UI" system —
+ * a plugin developer only needs to write JSON to get rich, dynamic UIs.
  */
 export interface JSONSchemaProperty {
-  // Core JSON Schema
+  // ── Core JSON Schema (Draft 7) ────────────────────────────────
   type?:
     | "string"
     | "number"
@@ -124,7 +176,15 @@ export interface JSONSchemaProperty {
   minItems?: number;
   maxItems?: number;
 
-  // Nod8-specific extensions
+  // ── Nod8 UI Extension: Input Rendering ───────────────────────
+  /**
+   * Hints to the Frontend which UI component to render.
+   * - `select`/`multiselect`: renders a dropdown. Use with `enum` (static) or `x-dynamic-options` (dynamic).
+   * - `toggle`: renders a switch. Ideal for boolean fields.
+   * - `datetime`: renders a date/time picker.
+   * - `code`: renders a code editor (Monaco/CodeMirror). Ideal for raw text, JSON bodies, SQL.
+   * - `json`: like `code` but pre-validates the input as JSON.
+   */
   "x-input-type"?:
     | "text"
     | "password"
@@ -132,10 +192,39 @@ export interface JSONSchemaProperty {
     | "url"
     | "email"
     | "file"
-    | "textarea";
-  "x-label"?: string; // Human-readable label for UI display
+    | "files"
+    | "textarea"
+    | "select"
+    | "multiselect"
+    | "toggle"
+    | "datetime"
+    | "code"
+    | "json";
+
+  /** Human-readable label shown in the UI. Falls back to the property key if absent. */
+  "x-label"?: string;
+
+  /** Hints to the result renderer how to display this field's output. */
   "x-nod8-display"?: "file" | "folder" | "media" | "text" | "generic";
-  "x-nod8-icon"?: string; // Optional lucide icon name hint
+
+  /** Optional Lucide icon name to display alongside the field label in the UI. */
+  "x-nod8-icon"?: string;
+
+  // ── Nod8 UI Extension: Dynamic Options ───────────────────────
+  /**
+   * When present, the Frontend calls the specified plugin method at runtime
+   * to populate this field's options. This is what allows plugins to have
+   * rich, API-powered dropdowns without any frontend-specific code.
+   * Only meaningful when `x-input-type` is `select` or `multiselect`.
+   */
+  "x-dynamic-options"?: DynamicOptionsConfig;
+
+  // ── Nod8 UI Extension: Conditional Visibility ────────────────
+  /**
+   * When present, the field is only rendered if the condition evaluates to true.
+   * This keeps the form clean by hiding irrelevant parameters.
+   */
+  "x-visible-if"?: VisibleIfConfig;
 }
 
 /**
