@@ -2,35 +2,59 @@
   "metadata": {
     "id": "google-drive",
     "name": "Google Drive",
-    "description": "Allows the AI to interact with Google Drive to manage files and folders.",
+    "description": "Interact with Google Drive to upload, download, list, move, copy and manage files and folders.",
     "icon": "https://static.vecteezy.com/system/resources/previews/012/871/368/non_2x/google-drive-icon-google-product-illustration-free-png.png",
     "category": "Google",
     "author": "Nod8",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "repository": "https://github.com/Auvexis/nod8"
   },
 
   "methods": {
     "listFiles": {
       "metadata": {
-        "label": "List files",
-        "description": "List files/folders in Google Drive."
+        "label": "List Files",
+        "description": "List files and folders in Google Drive with optional filtering and sorting."
       },
       "parameters": {
         "type": "object",
         "properties": {
           "pageSize": {
             "type": "integer",
-            "description": "Number of files to return per page.",
-            "default": 20,
+            "description": "Number of files to return (1–1000). Default is 30.",
+            "default": 30,
             "minimum": 1,
             "maximum": 1000,
-            "x-input-type": "number"
+            "x-input-type": "number",
+            "x-label": "Page Size"
           },
           "query": {
             "type": "string",
-            "description": "Drive API query string (e.g. 'name contains \"report\"').",
-            "x-input-type": "text"
+            "description": "Drive API query string (e.g. 'name contains \"report\"'). Trashed files are excluded automatically.",
+            "x-input-type": "text",
+            "x-label": "Search Query"
+          },
+          "orderBy": {
+            "type": "string",
+            "description": "Sort order for the results.",
+            "default": "modifiedTime desc",
+            "enum": ["name", "modifiedTime desc", "createdTime desc", "size desc"],
+            "x-input-type": "select",
+            "x-label": "Sort By"
+          },
+          "showMimeFilter": {
+            "type": "boolean",
+            "description": "Enable filtering by MIME type (e.g. show only PDFs or images).",
+            "default": false,
+            "x-input-type": "toggle",
+            "x-label": "Filter by File Type"
+          },
+          "mimeTypeFilter": {
+            "type": "string",
+            "description": "MIME type to filter by (e.g. 'application/pdf', 'image/jpeg', 'application/vnd.google-apps.spreadsheet').",
+            "x-input-type": "text",
+            "x-label": "MIME Type",
+            "x-visible-if": { "field": "showMimeFilter", "operator": "equals", "value": true }
           }
         }
       },
@@ -178,30 +202,32 @@
 
     "uploadFile": {
       "metadata": {
-        "label": "Upload file",
-        "description": "Upload a new file to Google Drive."
+        "label": "Upload File",
+        "description": "Upload one or more files to Google Drive. Accepts files from the UI or binary data piped from a previous workflow step."
       },
       "parameters": {
         "type": "object",
         "properties": {
           "files": {
             "type": "array",
-            "description": "List of files to upload.",
+            "description": "List of files to upload. When connected to a workflow step that outputs a file (e.g. Drive Download, HTTP Request with binary response), the executor automatically provides the Buffer — no manual base64 encoding needed.",
+            "x-label": "Files",
             "x-input-type": "files",
             "items": {
               "type": "object",
               "properties": {
-                "filename": { "type": "string" },
-                "mimeType": { "type": "string" },
-                "contentBase64": { "type": "string" }
+                "filename": { "type": "string", "description": "File name including extension." },
+                "mimeType": { "type": "string", "description": "MIME type (e.g. 'application/pdf'). Use 'application/octet-stream' if unknown." },
+                "contentBase64": { "type": "string", "description": "Base64-encoded file content. Used for manual uploads. Omit when connecting a pipeline Buffer." }
               },
-              "required": ["filename", "mimeType", "contentBase64"]
+              "required": ["filename", "mimeType"]
             }
           },
           "parentId": {
             "type": "string",
-            "description": "The ID of the parent folder (optional).",
-            "x-input-type": "text"
+            "description": "ID of the destination folder. Leave empty to upload to the root of My Drive.",
+            "x-input-type": "text",
+            "x-label": "Parent Folder ID (optional)"
           }
         },
         "required": ["files"]
