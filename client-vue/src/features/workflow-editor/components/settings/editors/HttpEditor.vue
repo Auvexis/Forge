@@ -44,7 +44,7 @@
         <textarea
           class="editor-textarea"
           style="font-family: monospace; white-space: pre;"
-          :value="node.data.body || ''"
+          :value="(node.data.body as string) || ''"
           @input="updateNodeData({ body: ($event.target as HTMLTextAreaElement).value })"
           placeholder='{ "key": "value" }'
           spellcheck="false"
@@ -135,7 +135,7 @@ const updateHeaderKey = (oldKey: string, newKey: string) => {
   const currentHeaders: Record<string, string> = { ...(props.node.data.headers as Record<string, string> || {}) }
   const val = currentHeaders[oldKey]
   delete currentHeaders[oldKey]
-  currentHeaders[newKey] = val
+  currentHeaders[newKey] = val || ''
   props.updateNodeData({ headers: currentHeaders })
 }
 
