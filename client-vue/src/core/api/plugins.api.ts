@@ -30,6 +30,14 @@ export const pluginsApi = {
       body: { method, params },
     }),
 
+  /**
+   * Fetch dynamic options for a field declared with `x-dynamic-options` in the manifest.
+   * Uses a dedicated GET endpoint that runs the method with no user-supplied params.
+   * Returns a flat array guaranteed to be usable by select components.
+   */
+  getDynamicOptions: (pluginId: string, method: string) =>
+    apiRequest<any[]>(ENDPOINTS.PLUGIN_DYNAMIC_OPTIONS(pluginId, method)),
+
   // ── OAuth specific endpoints ─────────────────────────
 
   /** Generate an OAuth connection URL for a plugin */

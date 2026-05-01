@@ -28,6 +28,9 @@ export const ENDPOINTS = {
   PLUGIN_AUTH_CONNECT: (id: string) => `/plugins/${id}/auth/connect`,
   PLUGIN_AUTH_DISCONNECT: (id: string) => `/plugins/${id}/auth/disconnect`,
 
+  // Plugin Dynamic Options (for x-dynamic-options in manifests)
+  PLUGIN_DYNAMIC_OPTIONS: (id: string, method: string) => `/plugins/${id}/dynamic-options/${method}`,
+
   // Events
   EVENTS_EMIT: '/events/emit',
 } as const

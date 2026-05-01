@@ -179,6 +179,57 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
   });
 
   /**
+   * Dynamic Options — Generic endpoint for `x-dynamic-options` fields.
+   *
+   * When a manifest declares `x-dynamic-options: { method: "listSpreadsheets" }`,
+   * the frontend calls this endpoint to populate the dropdown without hardcoding values.
+   *
+   * Design decisions:
+   * - Uses GET so browsers can cache the response (options rarely change).
+   * - Passes empty params — dynamic-option methods must not require params.
+   * - Returns an empty array (not an error) when the plugin is not yet connected,
+   *   so the UI shows a helpful "no options available" state instead of an error toast.
+   * - This route is GENERIC — it works for any plugin that implements `x-dynamic-options`.
+   */
+  fastify.get("/plugins/:pluginId/dynamic-options/:method", async (req, reply) => {
+    const { pluginId, method } = req.params as { pluginId: string; method: string };
+
+    try {
+      const result = await PluginExecutor.execute(pluginId, method, {});
+      const data = Array.isArray(result) ? result : [];
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Dynamic options fetched successfully",
+        error: null,
+        data,
+      });
+    } catch (error: any) {
+      // If the plugin is not configured/connected, return empty array — not an error state.
+      // The UI should show "Connect plugin to load options" rather than a crash.
+      if (
+        error.message?.includes("not authorized") ||
+        error.message?.includes("missing access token") ||
+        error.message?.includes("not configured")
+      ) {
+        return sendResponse(reply, {
+          status_code: 200,
+          message: "Plugin not connected — options unavailable until authorized",
+          error: null,
+          data: [],
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 500,
+        message: `Failed to fetch dynamic options: ${error.message}`,
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
+  /**
    * Execute a plugin method
    */
   const ExecuteSchema = z.object({

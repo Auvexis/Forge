@@ -350,32 +350,28 @@ const isFieldVisible = (key: string, paramSchema: any) => {
 const dynamicOptionsMap = ref<Record<string, { loading: boolean, options: { label: string, value: any }[] }>>({})
 
 const loadDynamicOptions = async (paramKey: string, config: any) => {
-  if (!config) return
-  
+  if (!config || !data.value.pluginId) return
+
   dynamicOptionsMap.value[paramKey] = { loading: true, options: [] }
-  
+
   try {
-    const response = await pluginsApi.executeMethod(
-      data.value.pluginId,
-      config.method,
-      data.value.params || {}
-    )
-    
-    const rawOptions = Array.isArray(response.data) ? response.data : []
-    
-    dynamicOptionsMap.value[paramKey].options = rawOptions.map((item: any) => {
-      const getVal = (obj: any, path: string) => path.split('.').reduce((acc, part) => acc && acc[part], obj)
-      return {
-        label: getVal(item, config.labelPath) ?? JSON.stringify(item),
-        value: getVal(item, config.valuePath) ?? item
-      }
-    })
-  } catch (err) {
-    console.error(`Failed to load dynamic options for ${paramKey}`, err)
-  } finally {
-    if (dynamicOptionsMap.value[paramKey]) {
-      dynamicOptionsMap.value[paramKey].loading = false
+    // Use the dedicated dynamic-options endpoint (GET, no workflow params needed)
+    const rawOptions = await pluginsApi.getDynamicOptions(data.value.pluginId, config.method)
+    const items = Array.isArray(rawOptions) ? rawOptions : []
+
+    const getVal = (obj: any, path: string) =>
+      path.split('.').reduce((acc: any, part: string) => acc?.[part], obj)
+
+    dynamicOptionsMap.value[paramKey] = {
+      loading: false,
+      options: items.map((item: any) => ({
+        label: String(getVal(item, config.labelPath) ?? JSON.stringify(item)),
+        value: getVal(item, config.valuePath) ?? item,
+      })),
     }
+  } catch (err) {
+    console.error(`[PluginEditor] Failed to load dynamic options for '${paramKey}':`, err)
+    dynamicOptionsMap.value[paramKey] = { loading: false, options: [] }
   }
 }
 
