@@ -1,6 +1,7 @@
 import "dotenv/config";
 import Fastify from "fastify";
 import multipart from "@fastify/multipart";
+import formbody from "@fastify/formbody";
 import cors from "@fastify/cors";
 import rootRoutes from "./routes/index.ts";
 import pluginsRoutes from "./routes/plugins.routes.ts";
@@ -37,6 +38,8 @@ await fastify.register(multipart, {
     files: 1, // Max number of file fields
   },
 });
+
+await fastify.register(formbody);
 
 await fastify.register(cors, {
   origin: [CLIENT_ORIGIN],
