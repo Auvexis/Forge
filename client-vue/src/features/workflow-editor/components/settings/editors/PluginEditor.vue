@@ -59,30 +59,38 @@
         v-for="(paramVal, paramKey) in selectedAction.parameters?.properties || {}"
         :key="paramKey"
         class="pe-param-card"
+        v-show="isFieldVisible(paramKey.toString(), paramVal)"
       >
         <!-- Param header -->
         <div class="pe-param-head">
           <div class="pe-param-info">
-            <span class="pe-param-label">{{ paramVal['x-label'] || paramKey }}</span>
-            <span v-if="paramVal.description" class="pe-param-desc">{{
-              paramVal.description
+            <span class="pe-param-label">{{ (paramVal as any)['x-label'] || paramKey }}</span>
+            <span v-if="(paramVal as any).description" class="pe-param-desc">{{
+              (paramVal as any).description
             }}</span>
             <span v-if="isRequired(paramKey.toString())" class="pe-param-req">Required field</span>
           </div>
-          <span class="pe-param-type">{{ paramVal.type || 'any' }}</span>
+          <span class="pe-param-type">{{ (paramVal as any).type || 'any' }}</span>
         </div>
 
         <!-- Inputs mapping -->
-        <!-- Enum -> Select -->
-        <template v-if="(paramVal as any).enum">
+        <!-- Enum or Dynamic -> Select / Multiselect -->
+        <template v-if="(paramVal as any).enum || (paramVal as any)['x-dynamic-options']">
+          <div v-if="(paramVal as any)['x-dynamic-options'] && dynamicOptionsMap[paramKey.toString()]?.loading" class="pe-loading-text">
+            Loading options...
+          </div>
           <select
+            v-else
             class="editor-select"
-            :value="(data.params as any)?.[paramKey] || ''"
+            :multiple="(paramVal as any)['x-input-type'] === 'multiselect'"
+            :value="(data.params as any)?.[paramKey] || ((paramVal as any)['x-input-type'] === 'multiselect' ? [] : '')"
             @change="
               updateNodeData({
                 params: {
                   ...(data.params || {}),
-                  [paramKey]: ($event.target as HTMLSelectElement).value,
+                  [paramKey]: (paramVal as any)['x-input-type'] === 'multiselect' 
+                    ? Array.from(($event.target as HTMLSelectElement).selectedOptions).map(o => o.value)
+                    : ($event.target as HTMLSelectElement).value,
                 },
               })
             "
@@ -90,7 +98,18 @@
             <option value="" disabled>
               Select {{ (paramVal as any)['x-label'] || paramKey }}...
             </option>
-            <option v-for="val in (paramVal as any).enum" :key="val" :value="val">{{ val }}</option>
+            <template v-if="(paramVal as any).enum">
+              <option v-for="val in (paramVal as any).enum" :key="val" :value="val">{{ val }}</option>
+            </template>
+            <template v-else-if="(paramVal as any)['x-dynamic-options']">
+              <option 
+                v-for="opt in (dynamicOptionsMap[paramKey.toString()]?.options || [])" 
+                :key="opt.value" 
+                :value="opt.value"
+              >
+                {{ opt.label }}
+              </option>
+            </template>
           </select>
         </template>
 
@@ -135,6 +154,39 @@
               (paramVal as any).description
                 ? `e.g. ${(paramVal as any).default ?? ''}`
                 : `Enter value for ${paramKey}`
+            "
+          />
+        </template>
+
+        <!-- Code / JSON -->
+        <template v-else-if="(paramVal as any)['x-input-type'] === 'code' || (paramVal as any)['x-input-type'] === 'json'">
+          <CodeEditor
+            :model-value="(data.params as any)?.[paramKey] || ''"
+            :language="(paramVal as any)['x-input-type'] === 'json' ? 'json' : 'javascript'"
+            @update:model-value="
+              (val) => updateNodeData({
+                params: {
+                  ...(data.params || {}),
+                  [paramKey]: val,
+                },
+              })
+            "
+          />
+        </template>
+
+        <!-- Datetime -->
+        <template v-else-if="(paramVal as any)['x-input-type'] === 'datetime'">
+          <input
+            type="datetime-local"
+            class="editor-input editor-input--bold"
+            :value="(data.params as any)?.[paramKey] || ''"
+            @input="
+              updateNodeData({
+                params: {
+                  ...(data.params || {}),
+                  [paramKey]: ($event.target as HTMLInputElement).value,
+                },
+              })
             "
           />
         </template>
@@ -240,12 +292,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { NodeEditorProps } from './types'
 import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import EditorField from './EditorField.vue'
 import VariableTree from './VariableTree.vue'
+import CodeEditor from './CodeEditor.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PluginNode } from '@/core/types/workflow.types'
@@ -268,6 +321,82 @@ const selectedAction = computed(() => {
 const isRequired = (key: string) => {
   return (selectedAction.value?.parameters?.required ?? []).includes(key)
 }
+
+// ── Visibility Logic (x-visible-if) ─────────────────────────
+const isFieldVisible = (key: string, paramSchema: any) => {
+  const visibilityConfig = paramSchema['x-visible-if']
+  if (!visibilityConfig) return true
+
+  const { field, operator, value } = visibilityConfig
+  const siblingValue = data.value.params?.[field]
+
+  switch (operator) {
+    case 'equals': return siblingValue === value
+    case 'not_equals': return siblingValue !== value
+    case 'in': return Array.isArray(value) && value.includes(siblingValue)
+    case 'contains': return Array.isArray(siblingValue) && siblingValue.includes(value)
+    default: return true
+  }
+}
+
+// ── Dynamic Options Logic (x-dynamic-options) ───────────────
+const dynamicOptionsMap = ref<Record<string, { loading: boolean, options: { label: string, value: any }[] }>>({})
+
+const loadDynamicOptions = async (paramKey: string, config: any) => {
+  if (!config) return
+  
+  dynamicOptionsMap.value[paramKey] = { loading: true, options: [] }
+  
+  try {
+    const response = await pluginsApi.executeMethod(
+      data.value.pluginId,
+      config.method,
+      data.value.params || {}
+    )
+    
+    const rawOptions = Array.isArray(response.data) ? response.data : []
+    
+    dynamicOptionsMap.value[paramKey].options = rawOptions.map((item: any) => {
+      const getVal = (obj: any, path: string) => path.split('.').reduce((acc, part) => acc && acc[part], obj)
+      return {
+        label: getVal(item, config.labelPath) ?? JSON.stringify(item),
+        value: getVal(item, config.valuePath) ?? item
+      }
+    })
+  } catch (err) {
+    console.error(`Failed to load dynamic options for ${paramKey}`, err)
+  } finally {
+    if (dynamicOptionsMap.value[paramKey]) {
+      dynamicOptionsMap.value[paramKey].loading = false
+    }
+  }
+}
+
+watch(
+  () => [data.value.action, data.value.params],
+  ([newAction, newParams], [oldAction, oldParams]) => {
+    if (!selectedAction.value?.parameters?.properties) return
+
+    for (const [key, schema] of Object.entries(selectedAction.value.parameters.properties)) {
+      const dynConfig = (schema as any)['x-dynamic-options']
+      if (dynConfig) {
+        const actionChanged = newAction !== oldAction
+        
+        let depsChanged = false
+        if (dynConfig.dependsOn && Array.isArray(dynConfig.dependsOn)) {
+          const oldP = (oldParams || {}) as any
+          const newP = (newParams || {}) as any
+          depsChanged = dynConfig.dependsOn.some((dep: string) => oldP[dep] !== newP[dep])
+        }
+        
+        if (actionChanged || depsChanged || !dynamicOptionsMap.value[key]) {
+          loadDynamicOptions(key, dynConfig)
+        }
+      }
+    }
+  },
+  { deep: true, immediate: true }
+)
 
 const mapVariablesOpen = ref<Record<string, boolean>>({})
 
@@ -374,6 +503,13 @@ const removeFileFromArray = (key: string, index: number) => {
 <style scoped>
 .mt-2 {
   margin-top: var(--nod8-space-2);
+}
+
+.pe-loading-text {
+  font-size: 11px;
+  color: var(--nod8-text-muted);
+  font-style: italic;
+  padding: 4px 0;
 }
 
 .pe-params-header {
