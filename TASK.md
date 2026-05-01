@@ -1,4 +1,4 @@
-﻿# TASK.md — Marco 1.2: O Portfólio de Plugins "Matadores"
+# TASK.md — Marco 1.2: O Portfólio de Plugins "Matadores"
 
 > **Regra de Ouro:** Nenhum código deste Marco deve tocar na engine principal (`executor.ts`, `manager.ts`, `PluginEditor.vue`). Todo código específico vive dentro de `server/src/plugins/nod8/*`.
 
@@ -28,20 +28,20 @@
 
 ### 1.1 Gmail — Refinamento (`google-gmail`)
 
-**Status:** Pendente
+**Status:** Concluído
 
-- [ ] **[GMAIL-1] Sanitização de Headers Reforçada**
+- [x] **[GMAIL-1] Sanitização de Headers Reforçada**
   - Em `methods.ts -> sendMessage` e `createDraft`: sanitizar `to`, `from` e `subject` removendo caracteres de controle, validar formato de email.
   - **Critério:** API do Gmail não deve retornar `400 Bad Request` por headers malformados.
 
-- [ ] **[GMAIL-2] Auditar `x-label` em todos os campos do manifest**
+- [x] **[GMAIL-2] Auditar `x-label` em todos os campos do manifest**
   - Adicionar `x-label` a `to`, `from`, `subject`, `body` em `sendMessage` e `createDraft`.
 
-- [ ] **[GMAIL-3] Refactor MIME builder — extrair helper privado (DRY)**
+- [x] **[GMAIL-3] Refactor MIME builder — extrair helper privado (DRY)**
   - Extrair `buildMimeMessage()` para reutilizar entre `sendMessage` e `createDraft`.
   - Suportar `Content-Type: text/plain` como fallback.
 
-- [ ] **[GMAIL-4] `x-input-type: select` para campo `format` em `getMessage`**
+- [x] **[GMAIL-4] `x-input-type: select` para campo `format` em `getMessage`**
   - `enum: ["full", "metadata", "minimal", "raw"]` — gera dropdown automático.
 
 > **Commit:** `feat(gmail): sanitize headers + MIME refactor + format dropdown`
@@ -50,18 +50,18 @@
 
 ### 1.2 Google Drive — Polimento (`google-drive`)
 
-**Status:** Pendente
+**Status:** Concluído
 
-- [ ] **[DRIVE-1] `listFiles`: Campo `orderBy` com `x-input-type: select`**
+- [x] **[DRIVE-1] `listFiles`: Campo `orderBy` com `x-input-type: select`**
   - `enum: ["name", "modifiedTime", "createdTime", "size"]`.
 
-- [ ] **[DRIVE-2] `listFiles`: Campo `mimeTypeFilter` com `x-visible-if`**
+- [x] **[DRIVE-2] `listFiles`: Campo `mimeTypeFilter` com `x-visible-if`**
   - Toggle `showMimeFilter` + campo condicional `mimeTypeFilter`.
 
-- [ ] **[DRIVE-3] `uploadFile`: Suporte a Buffer do pipeline do workflow**
+- [x] **[DRIVE-3] `uploadFile`: Suporte a Buffer do pipeline do workflow**
   - Aceitar `{ content: Buffer, mimeType }` (vindo de step anterior) além de `{ contentBase64, mimeType }` (upload manual).
 
-- [ ] **[DRIVE-4] Auditar e padronizar `x-label` em todos os campos**
+- [x] **[DRIVE-4] Auditar e padronizar `x-label` em todos os campos**
 
 > **Commit:** `feat(drive): orderBy + mimeType filter + buffer pipeline support`
 
@@ -69,7 +69,7 @@
 
 ### 1.3 Google Sheets — Novo Plugin (`google-sheets`)
 
-**Status:** Pendente
+**Status:** Concluído
 
 **Estrutura:**
 ```
@@ -79,24 +79,24 @@ server/src/plugins/nod8/google-sheets/
   methods.ts     # googleapis sheets v4
 ```
 
-- [ ] **[SHEETS-1] Criar `index.ts` com OAuth2 Provider**
+- [x] **[SHEETS-1] Criar `index.ts` com OAuth2 Provider**
   - Scopes: `spreadsheets` + `drive.readonly`. testConnection via `sheets.spreadsheets.get`.
 
-- [ ] **[SHEETS-2] Método `listSpreadsheets` (helper para `x-dynamic-options`)**
+- [x] **[SHEETS-2] Método `listSpreadsheets` (helper para `x-dynamic-options`)**
   - `drive.files.list` com mimeType filter. Retornar `[{ id, name }]`.
 
-- [ ] **[SHEETS-3] Método `readRows` — Ler linhas**
+- [x] **[SHEETS-3] Método `readRows` — Ler linhas**
   - `spreadsheetId`: `x-input-type: "select"` com `x-dynamic-options: { method: "listSpreadsheets", labelPath: "name", valuePath: "id" }`.
   - `range`: `x-input-type: "text"`. `includeHeader`: toggle.
 
-- [ ] **[SHEETS-4] Método `appendRow` — Adicionar linha**
+- [x] **[SHEETS-4] Método `appendRow` — Adicionar linha**
   - `spreadsheetId`: select com dynamic-options. `values`: `x-input-type: "json"`.
 
-- [ ] **[SHEETS-5] Rota genérica `GET /plugins/:pluginId/dynamic-options/:method` no backend**
+- [x] **[SHEETS-5] Rota genérica `GET /plugins/:pluginId/dynamic-options/:method` no backend**
   - Em `plugins.routes.ts`. Chamar `PluginExecutor.execute(pluginId, method, {})`.
   - **Genérico** — serve para qualquer plugin com `x-dynamic-options`.
 
-- [ ] **[SHEETS-6] Integrar `x-dynamic-options` no frontend (client-vue)**
+- [x] **[SHEETS-6] Integrar `x-dynamic-options` no frontend (client-vue)**
   - Detectar `x-dynamic-options` ao renderizar campo. Buscar opções via API. Re-buscar quando `dependsOn` mudar.
 
 > **Commit:** `feat(sheets): new plugin readRows + appendRow + generic dynamic-options route`
@@ -105,7 +105,7 @@ server/src/plugins/nod8/google-sheets/
 
 ## PARTE 2 — Telegram Bot
 
-**Status:** Pendente
+**Status:** Concluído
 
 **Estrutura:**
 ```
@@ -115,33 +115,33 @@ server/src/plugins/nod8/telegram/
   methods.ts     # fetch nativo para Telegram Bot API v9.6
 ```
 
-- [ ] **[TG-1] Criar `index.ts` com `ApiKeyProvider`**
+- [x] **[TG-1] Criar `index.ts` com `ApiKeyProvider`**
   - `credentialSchema: { bot_token: { inputType: "password", ... } }`.
   - `testConnection`: GET `/getMe` — retornar true se `ok: true`.
 
-- [ ] **[TG-2] Helper `telegramApi()` em `methods.ts`**
+- [x] **[TG-2] Helper `telegramApi()` em `methods.ts`**
   - Extrai `bot_token` de `context.credentials`. Trata erros da API.
 
-- [ ] **[TG-3] Método `sendMessage`**
+- [x] **[TG-3] Método `sendMessage`**
   - `chatId` (text) + `text` (textarea) + `useFormatting` (toggle) + `parseMode` (select, x-visible-if).
   - `disableNotification` (toggle) + `protectContent` (toggle).
   - `useKeyboard` (toggle) + `replyMarkup` (json, x-visible-if).
 
-- [ ] **[TG-4] Método `sendDocument`**
+- [x] **[TG-4] Método `sendDocument`**
   - `chatId` + `file` (`x-input-type: "file"`, integra com Buffer do executor) + `filename` + `caption`.
   - Envio multipart/form-data via FormData + fetch.
 
-- [ ] **[TG-5] Método `sendPhoto`**
+- [x] **[TG-5] Método `sendPhoto`**
   - Similar ao `sendDocument`. Aceitar URL ou Buffer (toggle entre os dois via `x-visible-if`).
 
-- [ ] **[TG-6] Método `sendPoll`**
+- [x] **[TG-6] Método `sendPoll`**
   - `chatId` + `question` + `options` (json) + `isAnonymous` (toggle) + `allowsMultipleAnswers` (toggle).
   - `isQuiz` (toggle) + `correctOptionId` (number, x-visible-if isQuiz).
 
-- [ ] **[TG-7] Método `setWebhook`**
+- [x] **[TG-7] Método `setWebhook`**
   - `webhookPath` (text). POST `/setWebhook` com `url: ${SERVER_BASE_URL}${webhookPath}`.
 
-- [ ] **[TG-8] Rota `POST /webhooks/:identifier` no servidor**
+- [x] **[TG-8] Rota `POST /webhooks/:identifier` no servidor**
   - Criar `webhooks.routes.ts`. Parsear update, identificar tipo (`message`, `callback_query`, `poll_answer`).
   - MVP: logar + retornar `{ ok: true }`. Integração com WorkflowEngine como trigger é fase futura.
   - Registrar em `server.ts`.
@@ -152,30 +152,30 @@ server/src/plugins/nod8/telegram/
 
 ## PARTE 3 — Core HTTP & Webhook
 
-**Status:** Pendente
+**Status:** Concluído
 
 ### 3.1 Nó HTTP Request (refinamento em `workflows/executor.ts`)
 
-- [ ] **[HTTP-1] Suporte a método `PATCH`**
+- [x] **[HTTP-1] Suporte a método `PATCH`**
   - Adicionar `"PATCH"` ao union type `method` em `workflow-types.ts` e no executor.
 
-- [ ] **[HTTP-2] Permitir body em `DELETE`**
+- [x] **[HTTP-2] Permitir body em `DELETE`**
   - Remover `DELETE` da condição que bloqueia body. Alguns endpoints REST exigem body em DELETE.
 
-- [ ] **[HTTP-3] `bodyType: "raw"` — sem auto Content-Type**
+- [x] **[HTTP-3] `bodyType: "raw"` — sem auto Content-Type**
   - Adicionar `"raw"` ao `bodyType`. Não sobrescrever Content-Type, passar body como string pura.
 
-- [ ] **[HTTP-4] `responseType: "binary"` — resposta binária como Buffer**
+- [x] **[HTTP-4] `responseType: "binary"` — resposta binária como Buffer**
   - Ler `response.arrayBuffer()`, converter para Buffer.
   - Retornar `{ content: Buffer, mimeType, size }` — compatível com `x-input-type: "file"` nos steps seguintes.
 
 ### 3.2 Webhook Trigger (refinamento)
 
-- [ ] **[WH-1] Parsing robusto de múltiplos Content-Types**
+- [x] **[WH-1] Parsing robusto de múltiplos Content-Types**
   - Rota `/webhooks/:identifier` deve parsear: `application/json`, `application/x-www-form-urlencoded`, `multipart/form-data`.
   - Payload estruturado: `{ body, headers, query, method, contentType }`.
 
-- [ ] **[WH-2] Headers de segurança preservados**
+- [x] **[WH-2] Headers de segurança preservados**
   - Garantir que `X-Signature`, `X-Hub-Signature-256`, `Authorization` são acessíveis no workflow trigger.
   - Essencial para validação de assinatura em webhooks futuros (GitHub, Stripe, etc).
 
