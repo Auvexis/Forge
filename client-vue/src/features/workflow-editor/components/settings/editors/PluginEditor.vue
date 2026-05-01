@@ -377,7 +377,8 @@ const loadDynamicOptions = async (paramKey: string, config: any) => {
 
 watch(
   () => [data.value.action, data.value.params],
-  ([newAction, newParams], [oldAction, oldParams]) => {
+  ([newAction, newParams], oldValues) => {
+    const [oldAction, oldParams] = (oldValues as any) || []
     if (!selectedAction.value?.parameters?.properties) return
 
     for (const [key, schema] of Object.entries(selectedAction.value.parameters.properties)) {

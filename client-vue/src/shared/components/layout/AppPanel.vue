@@ -1,7 +1,7 @@
 <template>
   <Transition :name="transitionName">
     <aside
-      v-if="isOpen"
+      v-show="isOpen"
       class="app-panel surface-elevated"
       :class="[`app-panel--${position}`, `app-panel--${width}`]"
     >
