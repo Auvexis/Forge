@@ -73,7 +73,7 @@ function buildNodes() {
       x: workflowStore.activeWorkflow.trigger.ui?.positionX ?? 0,
       y: workflowStore.activeWorkflow.trigger.ui?.positionY ?? 0,
     },
-    data: { ...workflowStore.activeWorkflow.trigger },
+    data: workflowStore.activeWorkflow.trigger,
   }
 
   return [triggerNode, ...normalNodes]
@@ -129,12 +129,12 @@ watch(
     for (const vfNode of vueFlowNodes.value) {
       if (vfNode.id === 'trigger') {
         if (trigger && vfNode.data !== trigger) {
-          vfNode.data = { ...trigger }
+          Object.assign(vfNode.data, trigger)
         }
       } else if (nodes) {
         const storeData = nodes[vfNode.id]
         if (storeData && vfNode.data !== storeData) {
-          vfNode.data = { ...storeData }
+          Object.assign(vfNode.data, storeData)
         }
       }
     }

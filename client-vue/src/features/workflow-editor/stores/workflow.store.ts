@@ -32,15 +32,9 @@ export const useWorkflowStore = defineStore('workflow', () => {
     if (!activeWorkflow.value) return
 
     if (nodeId === 'trigger') {
-      activeWorkflow.value.trigger = {
-        ...activeWorkflow.value.trigger,
-        ...payload,
-      } as typeof activeWorkflow.value.trigger
+      Object.assign(activeWorkflow.value.trigger, payload)
     } else if (activeWorkflow.value.nodes[nodeId]) {
-      activeWorkflow.value.nodes[nodeId] = {
-        ...activeWorkflow.value.nodes[nodeId],
-        ...payload,
-      } as WorkflowNode
+      Object.assign(activeWorkflow.value.nodes[nodeId], payload)
     }
 
     isDirty.value = true
