@@ -378,7 +378,7 @@ const loadDynamicOptions = async (paramKey: string, config: any) => {
 }
 
 watch(
-  () => [data.value.action, data.value.params],
+  () => [data.value.action, data.value.params, selectedAction.value],
   ([newAction, newParams], oldValues) => {
     const [oldAction, oldParams] = (oldValues as any) || []
     if (!selectedAction.value?.parameters?.properties) return
