@@ -76,14 +76,11 @@
         <!-- Inputs mapping -->
         <!-- Enum or Dynamic -> Select / Multiselect -->
         <template v-if="(paramVal as any).enum || (paramVal as any)['x-dynamic-options']">
-          <div v-if="(paramVal as any)['x-dynamic-options'] && dynamicOptionsMap[paramKey.toString()]?.loading" class="pe-loading-text">
-            Loading options...
-          </div>
           <select
-            v-else
             class="editor-select"
             :multiple="(paramVal as any)['x-input-type'] === 'multiselect'"
             :value="(data.params as any)?.[paramKey] || ((paramVal as any)['x-input-type'] === 'multiselect' ? [] : '')"
+            :disabled="(paramVal as any)['x-dynamic-options'] && dynamicOptionsMap[paramKey.toString()]?.loading"
             @change="
               updateNodeData({
                 params: {
@@ -95,20 +92,25 @@
               })
             "
           >
-            <option value="" disabled>
-              Select {{ (paramVal as any)['x-label'] || paramKey }}...
-            </option>
-            <template v-if="(paramVal as any).enum">
-              <option v-for="val in (paramVal as any).enum" :key="val" :value="val">{{ val }}</option>
+            <template v-if="(paramVal as any)['x-dynamic-options'] && dynamicOptionsMap[paramKey.toString()]?.loading">
+              <option value="" disabled>Loading options...</option>
             </template>
-            <template v-else-if="(paramVal as any)['x-dynamic-options']">
-              <option 
-                v-for="opt in (dynamicOptionsMap[paramKey.toString()]?.options || [])" 
-                :key="opt.value" 
-                :value="opt.value"
-              >
-                {{ opt.label }}
+            <template v-else>
+              <option value="" disabled>
+                Select {{ (paramVal as any)['x-label'] || paramKey }}...
               </option>
+              <template v-if="(paramVal as any).enum">
+                <option v-for="val in (paramVal as any).enum" :key="val" :value="val">{{ val }}</option>
+              </template>
+              <template v-else-if="(paramVal as any)['x-dynamic-options']">
+                <option 
+                  v-for="opt in (dynamicOptionsMap[paramKey.toString()]?.options || [])" 
+                  :key="opt.value" 
+                  :value="opt.value"
+                >
+                  {{ opt.label }}
+                </option>
+              </template>
             </template>
           </select>
         </template>
