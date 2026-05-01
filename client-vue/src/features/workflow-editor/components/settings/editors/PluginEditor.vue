@@ -160,14 +160,15 @@
 
         <!-- Code / JSON -->
         <template v-else-if="(paramVal as any)['x-input-type'] === 'code' || (paramVal as any)['x-input-type'] === 'json'">
-          <CodeEditor
-            :model-value="(data.params as any)?.[paramKey] || ''"
-            :language="(paramVal as any)['x-input-type'] === 'json' ? 'json' : 'javascript'"
-            @update:model-value="
-              (val) => updateNodeData({
+          <textarea
+            class="editor-textarea"
+            style="font-family: monospace; white-space: pre;"
+            :value="(data.params as any)?.[paramKey] || ''"
+            @input="
+              updateNodeData({
                 params: {
                   ...(data.params || {}),
-                  [paramKey]: val,
+                  [paramKey]: ($event.target as HTMLTextAreaElement).value,
                 },
               })
             "
@@ -195,7 +196,7 @@
         <template v-else-if="(paramVal as any)['x-input-type'] === 'files'">
           <div class="pe-files-container">
             <div 
-              v-for="(item, index) in (Array.isArray((data.params as any)?.[paramKey]) ? (data.params as any)?.[paramKey] : ((data.params as any)?.[paramKey] ? [(data.params as any)?.[paramKey]] : ['']))" 
+              v-for="(item, index) in getArrayFor(paramKey.toString())" 
               :key="index"
               class="pe-file-input-group"
             >
@@ -298,7 +299,6 @@ import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import EditorField from './EditorField.vue'
 import VariableTree from './VariableTree.vue'
-import CodeEditor from './CodeEditor.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PluginNode } from '@/core/types/workflow.types'
@@ -320,6 +320,13 @@ const selectedAction = computed(() => {
 
 const isRequired = (key: string) => {
   return (selectedAction.value?.parameters?.required ?? []).includes(key)
+}
+
+const getArrayFor = (key: string): any[] => {
+  const val = (data.value.params as Record<string, any>)?.[key]
+  if (Array.isArray(val)) return val
+  if (val !== undefined && val !== null && val !== '') return [val]
+  return ['']
 }
 
 // ── Visibility Logic (x-visible-if) ─────────────────────────
@@ -439,6 +446,7 @@ const handleFileUpload = async (key: string, index: number, event: Event) => {
   const target = event.target as HTMLInputElement
   if (!target.files || target.files.length === 0) return
   const file = target.files[0]
+  if (!file) return
   
   const reader = new FileReader()
   reader.onload = () => {
