@@ -8,12 +8,12 @@
 ## 🎯 Phase 1: The Showcase (MVP Launch)
 **Goal:** Deliver a flawless, highly polished automation tool for the end-user. The focus is strictly on stability, user experience, and demonstrating immediate value through highly demanded integrations. At the end of this phase, Nod8 must be a product that users trust to run their daily workflows.
 
-### Milestone 1.1: Architecture & Manifest Refinement
+### ✅ Milestone 1.1: Architecture & Manifest Refinement [DONE]
 *Before building more plugins, we must solidify the contract between Backend and Frontend.*
 * **JSON Schema Expansion:** Map out and implement any missing `x-input-type` variations needed for future plugins (e.g., advanced multi-selects, dynamic dropdowns populated by external API calls, conditional fields).
 * **Validation & Security:** Ensure the execution engine rigorously validates incoming data against the `manifest.json` before executing the `methods.ts` logic.
 
-### Milestone 1.2: The "Killer" Plugins Portfolio
+### ✅ Milestone 1.2: The "Killer" Plugins Portfolio [DONE]
 *A workflow engine is only as good as its integrations. We will focus on the 20% of tools that solve 80% of business problems.*
 * **Google Workspace Expansion:** Finalize and polish Google Drive and Gmail. Implement Google Sheets (Read/Write/Append rows).
 * **Instant Messaging:** Implement Telegram (Bots, send message, receive webhooks) and WhatsApp Cloud API.
