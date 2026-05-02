@@ -8,6 +8,7 @@
 @import './typography.css';
 @import './transitions.css';
 @import './editor-shared.css';
+@import '../features/workflow-editor/styles/inspector.css';
 
 /* ── Layout Utilities ─────────────────────────────────────── */
 .nod8-fill {

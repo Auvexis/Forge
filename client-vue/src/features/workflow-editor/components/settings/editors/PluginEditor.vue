@@ -50,6 +50,8 @@
 
     <!-- Parameters container -->
     <div v-if="selectedAction" class="editor-stack mt-2">
+      <InlineAuthManager :plugin-id="data.pluginId" />
+
       <div class="pe-params-header">
         <div class="pe-params-indicator"></div>
         <h3 class="pe-params-title">Parameters</h3>
@@ -301,6 +303,7 @@ import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import EditorField from './EditorField.vue'
 import VariableTree from './VariableTree.vue'
+import InlineAuthManager from '../shared/InlineAuthManager.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PluginNode } from '@/core/types/workflow.types'

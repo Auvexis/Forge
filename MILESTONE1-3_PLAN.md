@@ -38,6 +38,9 @@ src/features/workflow-editor/components/settings/
 └── shared/
     ├── JsonTreeView.vue           # Componente genérico/recursivo para renderizar JSONs colapsáveis
     └── InlineAuthManager.vue      # Componente embutido para gerenciar credenciais do plugin diretamente no nó
+
+src/features/workflow-editor/styles/
+└── inspector.css                  # Variáveis CSS exclusivas do Modal e classes utilitárias de Grid/Drag&Drop
 ```
 
 ### 2.2. Gerenciamento de Estado (Pinia)

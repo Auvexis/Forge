@@ -1,0 +1,90 @@
+/* =========================================================
+   NODE INSPECTOR MODAL STYLES (Milestone 1.3)
+   ========================================================= */
+
+:root {
+  /* ── Inspector Specific Variables ──────────────────────── */
+  /* Backgrounds */
+  --inspector-bg-backdrop: rgba(10, 12, 16, 0.85);
+  --inspector-bg-modal: var(--nod8-bg-surface);
+  --inspector-bg-pane: var(--nod8-bg-elevated);
+  --inspector-bg-header: var(--nod8-bg-elevated);
+  
+  /* Borders */
+  --inspector-border: var(--nod8-border);
+  --inspector-border-focus: var(--nod8-color-primary);
+
+  /* JSON Tree View Variables */
+  --json-color-string: var(--nod8-color-success);
+  --json-color-number: var(--nod8-color-warning);
+  --json-color-boolean: var(--nod8-color-danger);
+  --json-color-key: var(--nod8-text-primary);
+  --json-color-punctuation: var(--nod8-text-muted);
+
+  /* Drag and Drop */
+  --drag-indicator-bg: rgba(99, 102, 241, 0.1); /* Primary color with opacity */
+  --drag-indicator-border: var(--nod8-color-primary);
+}
+
+/* ── Inspector Layout Utilities ─────────────────────────── */
+
+.inspector-backdrop {
+  background: var(--inspector-bg-backdrop);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.inspector-modal {
+  background: var(--inspector-bg-modal);
+  border: 1px solid var(--inspector-border);
+  box-shadow: var(--nod8-shadow-xl);
+  /* Fallback sizes, will be controlled by Grid */
+  width: 90vw;
+  max-width: 1400px;
+  height: 85vh;
+}
+
+.inspector-grid {
+  display: grid;
+  grid-template-columns: 25% 50% 25%;
+  height: 100%;
+}
+
+.inspector-pane {
+  background: var(--inspector-bg-pane);
+  border-right: 1px solid var(--inspector-border);
+  display: flex;
+  flex-direction: column;
+}
+.inspector-pane:last-child {
+  border-right: none;
+}
+
+.inspector-pane-header {
+  height: 48px;
+  background: var(--inspector-bg-header);
+  border-bottom: 1px solid var(--inspector-border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.inspector-pane-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* ── Drag & Drop Utilities ──────────────────────────────── */
+
+.draggable-item {
+  cursor: grab;
+}
+.draggable-item:active {
+  cursor: grabbing;
+}
+
+.drop-zone-active {
+  background: var(--drag-indicator-bg);
+  border: 1px dashed var(--drag-indicator-border);
+}

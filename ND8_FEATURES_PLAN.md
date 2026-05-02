@@ -22,7 +22,7 @@
 ### Milestone 1.3: Immersive Node UI & Data Pipeline Visualization
 *First impressions dictate retention. The editor must provide ultimate visibility into the data flow.*
 * **The 3-Column Node Modal:** Replace the cramped right-side drawer with a full-screen/large immersive modal when editing a node.
-  * **Left Pane (Input):** Displays the raw JSON and Buffers received from the previous nodes/webhook.
+  * **Left Pane (Input):** Displays the raw JSON as a Tree-view and Buffers received from the previous nodes/webhook.
   * **Center Pane (Config):** The dynamic parameters form, along with the "Run Step" / "Listen for Event" execution buttons.
   * **Right Pane (Output):** Displays the immediate execution result (JSON/Errors) to facilitate rapid debugging and variable mapping.
 * **Canvas Fluidity & Execution Resilience:** Ensure smooth drag-and-drop, stable transitions, and graceful error handling during background executions.
