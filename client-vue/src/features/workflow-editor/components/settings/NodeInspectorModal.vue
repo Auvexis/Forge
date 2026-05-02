@@ -196,6 +196,15 @@ const copyToClipboard = async (path: string) => {
     console.error('Failed to copy to clipboard', err)
   }
 }
+
+const runStep = async () => {
+  if (!inspectorStore.activeNode || !workflowStore.activeWorkflow) return
+  await inspectorStore.testNode(
+    workflowStore.activeWorkflow.metadata.id,
+    inspectorStore.activeNode.id,
+    enrichedNode.value?.data || inspectorStore.activeNode.data
+  )
+}
 </script>
 
 <template>

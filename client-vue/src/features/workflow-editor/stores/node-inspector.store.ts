@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Node } from '@vue-flow/core'
+import { workflowsApi } from '@/core/api/workflows.api'
+import { useToast } from '@/shared/composables/useToast'
 
 export const useNodeInspectorStore = defineStore('node-inspector', () => {
   const isOpen = ref(false)
@@ -28,6 +30,28 @@ export const useNodeInspectorStore = defineStore('node-inspector', () => {
     // activeNode.value = null
   }
 
+  async function testNode(workflowId: string, nodeId: string, nodeConfig: unknown) {
+    const { error } = useToast()
+    isTesting.value = true
+    lastTestOutput.value = null
+    
+    try {
+      const response = await workflowsApi.executeNode(workflowId, nodeId, nodeConfig)
+      lastTestOutput.value = {
+        success: true,
+        data: response.data || response // the route returns data inside the response wrapper
+      }
+    } catch (err: any) {
+      lastTestOutput.value = {
+        success: false,
+        error: err?.message || 'Execution failed'
+      }
+      error('Node execution failed')
+    } finally {
+      isTesting.value = false
+    }
+  }
+
   return {
     isOpen,
     activeNodeId,
@@ -36,6 +60,7 @@ export const useNodeInspectorStore = defineStore('node-inspector', () => {
     lastTestOutput,
     draggedVariablePath,
     openInspector,
-    closeInspector
+    closeInspector,
+    testNode
   }
 })

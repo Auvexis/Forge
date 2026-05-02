@@ -782,6 +782,41 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // ──────────── Execute Single Node (Test Step) ────────────
+
+  fastify.post("/workflows/:workflowId/nodes/:nodeId/execute", async (req, reply) => {
+    const { workflowId, nodeId } = req.params as { workflowId: string; nodeId: string };
+    const nodeConfigOverride = req.body as WorkflowNode;
+
+    try {
+      const workflow = WorkflowRepository.getWorkflow(workflowId);
+      if (!workflow) {
+        return sendResponse(reply, { status_code: 404, message: "Workflow not found", error: "Not Found", data: null });
+      }
+
+      // Check if workflow has the node
+      if (!workflow.nodes[nodeId] && nodeId !== "trigger") {
+        return sendResponse(reply, { status_code: 404, message: "Node not found in workflow", error: "Not Found", data: null });
+      }
+
+      const result = await WorkflowEngine.executeSingleNode(workflow, nodeId, nodeConfigOverride);
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Node executed successfully",
+        error: null,
+        data: result,
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to execute node",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
   // ──────────── Production Status ────────────
 
   fastify.get("/workflows/production-status", async (_req, reply) => {
