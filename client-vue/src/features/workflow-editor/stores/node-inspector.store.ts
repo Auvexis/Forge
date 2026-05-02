@@ -8,7 +8,7 @@ export const useNodeInspectorStore = defineStore('node-inspector', () => {
   const isOpen = ref(false)
   const activeNodeId = ref<string | null>(null)
   const activeNode = ref<Node | null>(null)
-  
+
   const isTesting = ref(false)
   const lastTestOutput = ref<any>(null)
   const draggedVariablePath = ref<string | null>(null)

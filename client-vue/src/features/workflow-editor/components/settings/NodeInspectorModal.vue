@@ -51,12 +51,12 @@ async function runStep() {
   if (!inspectorStore.activeNodeId || !workflowStore.activeWorkflow) return
   inspectorStore.isTesting = true
   inspectorStore.lastTestOutput = null
-  
+
   try {
     const res = await workflowsApi.executeNode(
       workflowStore.activeWorkflow.metadata.id,
       inspectorStore.activeNodeId,
-      inspectorStore.activeNode!.data
+      inspectorStore.activeNode!.data,
     )
     inspectorStore.lastTestOutput = { success: true, data: res }
   } catch (err: any) {
@@ -167,7 +167,7 @@ watch(
     activeTab.value = 'config'
     localId.value = newId || ''
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 const handleIdChange = (newId: string) => {
@@ -196,38 +196,38 @@ const copyToClipboard = async (path: string) => {
     console.error('Failed to copy to clipboard', err)
   }
 }
-
-const runStep = async () => {
-  if (!inspectorStore.activeNode || !workflowStore.activeWorkflow) return
-  await inspectorStore.testNode(
-    workflowStore.activeWorkflow.metadata.id,
-    inspectorStore.activeNode.id,
-    enrichedNode.value?.data || inspectorStore.activeNode.data
-  )
-}
 </script>
 
 <template>
-  <div v-if="inspectorStore.isOpen" class="inspector-backdrop absolute inset-0 z-50 flex items-center justify-center" @click.self="close">
+  <div
+    v-if="inspectorStore.isOpen"
+    class="inspector-backdrop absolute inset-0 z-50 flex items-center justify-center"
+    @click.self="close"
+  >
     <div class="inspector-modal flex flex-col overflow-hidden">
       <!-- 3-Column Grid -->
       <div class="inspector-grid flex-1 min-h-0">
         <!-- Left Pane: Input -->
         <div class="inspector-pane">
-          <div class="inspector-pane-header text-sm text-muted font-semibold flex items-center gap-2">
+          <div
+            class="inspector-pane-header text-sm text-muted font-semibold flex items-center gap-2"
+          >
             <LucideIcon name="download" size="16" />
             INPUT (Past)
           </div>
           <div class="inspector-pane-content overflow-y-auto flex flex-col h-full">
             <div v-if="upstreamNodes.length > 0" class="p-4 flex-1">
-              <VariableTree 
-                param-key="inspector" 
-                :upstream-nodes="upstreamNodes" 
-                :nodes="nodes" 
+              <VariableTree
+                param-key="inspector"
+                :upstream-nodes="upstreamNodes"
+                :nodes="nodes"
                 @inject="(key, path) => copyToClipboard(path)"
               />
             </div>
-            <div v-else class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]">
+            <div
+              v-else
+              class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]"
+            >
               <div class="icon-box mb-3 opacity-70">
                 <LucideIcon name="database" size="24" />
               </div>
@@ -237,28 +237,31 @@ const runStep = async () => {
         </div>
 
         <!-- Center Pane: Config -->
-        <div class="inspector-pane" style="background: var(--nod8-bg-surface);">
-          <div class="inspector-pane-header flex-between w-full" style="background: var(--nod8-bg-surface);">
+        <div class="inspector-pane" style="background: var(--nod8-bg-surface)">
+          <div
+            class="inspector-pane-header flex-between w-full"
+            style="background: var(--nod8-bg-surface)"
+          >
             <div class="text-sm text-muted font-semibold flex items-center gap-2">
               <LucideIcon name="settings" size="16" />
               {{ activeTab === 'settings' ? 'SETTINGS' : 'CONFIGURATION' }}
             </div>
 
-            <BaseButton 
-              variant="ghost" 
-              size="sm" 
-              :icon-left="activeTab === 'config' ? 'settings' : 'x'" 
+            <BaseButton
+              variant="ghost"
+              size="sm"
+              :icon-left="activeTab === 'config' ? 'settings' : 'x'"
               class="text-muted !p-1 !h-auto"
               title="Settings"
-              @click="activeTab = activeTab === 'config' ? 'settings' : 'config'" 
+              @click="activeTab = activeTab === 'config' ? 'settings' : 'config'"
             />
           </div>
           <div class="inspector-pane-content relative overflow-y-auto">
             <template v-if="activeTab === 'config'">
-              <component 
-                :is="activeEditor" 
-                v-if="activeEditor && enrichedNode" 
-                :node="enrichedNode" 
+              <component
+                :is="activeEditor"
+                v-if="activeEditor && enrichedNode"
+                :node="enrichedNode"
                 :nodes="nodes"
                 :edges="edges"
                 :upstream-nodes="upstreamNodes"
@@ -271,7 +274,10 @@ const runStep = async () => {
                 <!-- Node ID Configuration -->
                 <div class="flex flex-col gap-2">
                   <label class="text-sm font-semibold text-primary">Node Identifier (ID)</label>
-                  <p class="text-xs text-muted leading-tight mb-2">Used to reference this node's output in other variables.<br/>Example: <code>&#123;&#123; {{ localId }}.data.email &#125;&#125;</code></p>
+                  <p class="text-xs text-muted leading-tight mb-2">
+                    Used to reference this node's output in other variables.<br />Example:
+                    <code>&#123;&#123; {{ localId }}.data.email &#125;&#125;</code>
+                  </p>
                   <BaseInput
                     v-model="localId"
                     class="font-mono w-full"
@@ -282,15 +288,23 @@ const runStep = async () => {
                 </div>
 
                 <!-- Authorization Configuration (Plugin Only) -->
-                <div v-if="isPluginNode" class="flex flex-col gap-2 pt-4 border-t border-nod8-border">
-                  <label class="text-sm font-semibold text-primary mb-1">Integration Authorization</label>
-                  <PluginMenuAuth 
-                    v-if="inspectorStore.activeNode?.data?.pluginId" 
-                    :plugin-id="(inspectorStore.activeNode.data.pluginId as string)" 
+                <div
+                  v-if="isPluginNode"
+                  class="flex flex-col gap-2 pt-4 border-t border-nod8-border"
+                >
+                  <label class="text-sm font-semibold text-primary mb-1"
+                    >Integration Authorization</label
+                  >
+                  <PluginMenuAuth
+                    v-if="inspectorStore.activeNode?.data?.pluginId"
+                    :plugin-id="inspectorStore.activeNode.data.pluginId as string"
                   />
-                  <div v-else class="text-sm text-muted p-4 flex flex-col items-center justify-center h-full text-center bg-[var(--nod8-bg-elevated)] rounded">
+                  <div
+                    v-else
+                    class="text-sm text-muted p-4 flex flex-col items-center justify-center h-full text-center bg-[var(--nod8-bg-elevated)] rounded"
+                  >
                     <LucideIcon name="shield-alert" size="24" class="mb-2 opacity-50" />
-                    Select an integration first<br/>to configure authorization.
+                    Select an integration first<br />to configure authorization.
                   </div>
                 </div>
               </div>
@@ -305,8 +319,8 @@ const runStep = async () => {
               <LucideIcon name="upload" size="16" />
               OUTPUT (Future)
             </div>
-            <BaseButton 
-              variant="ghost" 
+            <BaseButton
+              variant="ghost"
               size="sm"
               icon-left="play"
               :loading="inspectorStore.isTesting"
@@ -316,22 +330,38 @@ const runStep = async () => {
             </BaseButton>
           </div>
           <div class="inspector-pane-content overflow-y-auto flex flex-col h-full">
-            <div v-if="inspectorStore.isTesting" class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]">
+            <div
+              v-if="inspectorStore.isTesting"
+              class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]"
+            >
               <LucideIcon name="loader-2" size="24" class="spin text-nod8-accent mb-3" />
               <p class="text-sm text-primary font-medium">Executing step...</p>
             </div>
-            
+
             <div v-else-if="inspectorStore.lastTestOutput" class="h-full flex-1">
-              <div v-if="!inspectorStore.lastTestOutput.success" class="p-3 mb-3 rounded-md text-sm" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: rgb(239, 68, 68);">
+              <div
+                v-if="!inspectorStore.lastTestOutput.success"
+                class="p-3 mb-3 rounded-md text-sm"
+                style="
+                  background: rgba(239, 68, 68, 0.1);
+                  border: 1px solid rgba(239, 68, 68, 0.2);
+                  color: rgb(239, 68, 68);
+                "
+              >
                 <div class="font-bold mb-1">Execution Error</div>
-                <div class="font-mono whitespace-pre-wrap">{{ inspectorStore.lastTestOutput.error }}</div>
+                <div class="font-mono whitespace-pre-wrap">
+                  {{ inspectorStore.lastTestOutput.error }}
+                </div>
               </div>
               <div v-else class="h-full">
                 <JsonTreeView :data="inspectorStore.lastTestOutput.data" :is-root="true" />
               </div>
             </div>
 
-            <div v-else class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]">
+            <div
+              v-else
+              class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]"
+            >
               <div class="icon-box mb-3 opacity-70">
                 <LucideIcon name="play" size="24" />
               </div>
@@ -352,7 +382,11 @@ const runStep = async () => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

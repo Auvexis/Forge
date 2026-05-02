@@ -1,11 +1,20 @@
 import crypto from "crypto";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
-import type { WorkflowItem, WorkflowNode } from "../../shared/models/workflow-types.ts";
+import type {
+  WorkflowItem,
+  WorkflowNode,
+} from "../../shared/models/workflow-types.ts";
 import { WorkflowRepository } from "../modules/workflows/repository.ts";
-import { WorkflowEngine, sanitizeContextForLogging } from "../modules/workflows/executor.ts";
+import {
+  WorkflowEngine,
+  sanitizeContextForLogging,
+} from "../modules/workflows/executor.ts";
 import { workflowEventBus } from "../modules/workflows/event-bus.ts";
-import { InternalEventBus, type InternalEvent } from "../modules/events/internal-event-bus.ts";
+import {
+  InternalEventBus,
+  type InternalEvent,
+} from "../modules/events/internal-event-bus.ts";
 import { CancellationRegistry } from "../modules/workflows/cancellation-registry.ts";
 import { Scheduler } from "../modules/scheduler/scheduler.ts";
 import { PluginManager } from "../modules/plugins/manager.ts";
@@ -45,9 +54,7 @@ const VALID_NODE_TYPES = new Set([
 
 // ──────────── Validation helper ────────────
 
-function validateWorkflowDefinition(
-  workflow: WorkflowItem,
-): string | null {
+function validateWorkflowDefinition(workflow: WorkflowItem): string | null {
   if (!workflow.metadata?.id || !workflow.metadata?.name) {
     return "Workflow must have metadata with id and name";
   }
@@ -177,7 +184,9 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
     const allowedMethods = workflow.trigger.webhookMethods ?? ["POST"];
     if (!allowedMethods.includes(req.method as any)) {
-      return reply.code(405).send({ error: `Method ${req.method} not allowed` });
+      return reply
+        .code(405)
+        .send({ error: `Method ${req.method} not allowed` });
     }
 
     const triggerPayload = {
@@ -193,7 +202,11 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
     try {
       // Synchronous — await the result so the caller gets the full context
-      const result = await WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId);
+      const result = await WorkflowEngine.executeWorkflow(
+        workflow,
+        triggerPayload,
+        executionId,
+      );
       return reply.code(200).send({
         status: "completed",
         executionId,
@@ -231,17 +244,27 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     // Method validation
     const allowedMethods = workflow.trigger.webhookMethods ?? ["POST"];
     if (!allowedMethods.includes(req.method as any)) {
-      return reply.code(405).send({ error: `Method ${req.method} not allowed` });
+      return reply
+        .code(405)
+        .send({ error: `Method ${req.method} not allowed` });
     }
 
     // HMAC signature validation when a secret is configured
     if (workflow.trigger.webhookSecret) {
       const signature = req.headers["x-nod8-signature"] as string | undefined;
       if (!signature) {
-        return reply.code(401).send({ error: "Missing X-Nod8-Signature header" });
+        return reply
+          .code(401)
+          .send({ error: "Missing X-Nod8-Signature header" });
       }
       const rawBody = JSON.stringify(req.body ?? {});
-      if (!validateWebhookSignature(rawBody, workflow.trigger.webhookSecret, signature)) {
+      if (
+        !validateWebhookSignature(
+          rawBody,
+          workflow.trigger.webhookSecret,
+          signature,
+        )
+      ) {
         return reply.code(401).send({ error: "Invalid webhook signature" });
       }
     } else {
@@ -259,14 +282,20 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       timestamp: Date.now(),
     };
 
-    const contentType = (req.headers["content-type"] ?? "").split(";")[0].trim() || "application/json";
-    console.log(`[NOD8 | WEBHOOKS]: Webhook received — identifier: '${webhookPath}', content-type: ${contentType}`);
+    const contentType =
+      (req.headers["content-type"] ?? "").split(";")[0].trim() ||
+      "application/json";
+    console.log(
+      `[NOD8 | WEBHOOKS]: Webhook received — identifier: '${webhookPath}', content-type: ${contentType}`,
+    );
 
     const executionId = `exec_wh_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(
       (err: Error) =>
-        console.error(`[NOD8 | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`),
+        console.error(
+          `[NOD8 | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
+        ),
     );
 
     return reply.code(202).send({
@@ -292,31 +321,28 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         "Access-Control-Allow-Credentials": "true",
       });
 
-      const unsubscribe = workflowEventBus.onExecution(
-        executionId,
-        (event) => {
+      const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
+        try {
+          reply.raw.write(`data: ${safeSerialize(event)}\n\n`);
+        } catch {
+          // Fallback: strip the data field so the node still advances in the UI
+          const fallback = { ...event, data: "[unserializable output]" };
           try {
-            reply.raw.write(`data: ${safeSerialize(event)}\n\n`);
+            reply.raw.write(`data: ${JSON.stringify(fallback)}\n\n`);
           } catch {
-            // Fallback: strip the data field so the node still advances in the UI
-            const fallback = { ...event, data: "[unserializable output]" };
-            try {
-              reply.raw.write(`data: ${JSON.stringify(fallback)}\n\n`);
-            } catch {
-              // If even the fallback fails, skip this event silently
-            }
+            // If even the fallback fails, skip this event silently
           }
+        }
 
-          if (
-            event.type === "workflow:success" ||
-            event.type === "workflow:failed"  ||
-            event.type === "workflow:cancelled"
-          ) {
-            // Small delay to ensure client receives the final event
-            setTimeout(() => reply.raw.end(), 500);
-          }
-        },
-      );
+        if (
+          event.type === "workflow:success" ||
+          event.type === "workflow:failed" ||
+          event.type === "workflow:cancelled"
+        ) {
+          // Small delay to ensure client receives the final event
+          setTimeout(() => reply.raw.end(), 500);
+        }
+      });
 
       // Heartbeat to keep connection alive
       const heartbeat = setInterval(() => {
@@ -440,13 +466,17 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
           workflow.metadata.id,
         );
         if (slugError) {
-          return sendResponse(reply, { status_code: 400, message: slugError, error: slugError, data: null });
+          return sendResponse(reply, {
+            status_code: 400,
+            message: slugError,
+            error: slugError,
+            data: null,
+          });
         }
       }
 
       const validationError = validateWorkflowDefinition(workflow);
       if (validationError) {
-
         return sendResponse(reply, {
           status_code: 400,
           message: `Invalid workflow: ${validationError}`,
@@ -559,52 +589,60 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
   // ──────────── Execute a single node (Test Step) ────────────
 
-  fastify.post("/workflows/:workflowId/nodes/:nodeId/execute", async (req, reply) => {
-    const { workflowId, nodeId } = req.params as { workflowId: string; nodeId: string };
-    const overrideNodeConfig = req.body as WorkflowNode;
+  fastify.post(
+    "/workflows/:workflowId/nodes/:nodeId/execute",
+    async (req, reply) => {
+      const { workflowId, nodeId } = req.params as {
+        workflowId: string;
+        nodeId: string;
+      };
+      const overrideNodeConfig = req.body as WorkflowNode;
 
-    try {
-      const workflow = WorkflowRepository.getWorkflowById(workflowId);
-      if (!workflow) {
+      try {
+        const workflow = WorkflowRepository.getWorkflowById(workflowId);
+        if (!workflow) {
+          return sendResponse(reply, {
+            status_code: 404,
+            message: "Workflow not found",
+            error: "Not Found",
+            data: null,
+          });
+        }
+
+        // Try to find the most recent execution context
+        let baseContext = null;
+        const executions = WorkflowRepository.getWorkflowExecutions(workflowId);
+        const lastExecution = executions.find(
+          (e) => e.status === "SUCCESS" || e.status === "FAILED",
+        );
+
+        if (lastExecution && lastExecution.context) {
+          baseContext = JSON.parse(JSON.stringify(lastExecution.context));
+        }
+
+        const result = await WorkflowEngine.executeSingleNode(
+          workflow,
+          nodeId,
+          overrideNodeConfig,
+          baseContext,
+        );
+
         return sendResponse(reply, {
-          status_code: 404,
-          message: "Workflow not found",
-          error: "Not Found",
+          status_code: 200,
+          message: "Node executed successfully",
+          error: null,
+          data: result,
+        });
+      } catch (error: any) {
+        return sendResponse(reply, {
+          status_code: 400,
+          message: `Node execution failed: ${error.message}`,
+          error: error.message,
           data: null,
         });
       }
-
-      // Try to find the most recent execution context
-      let baseContext = null;
-      const executions = WorkflowRepository.getWorkflowExecutions(workflowId);
-      const lastExecution = executions.find(e => e.status === "SUCCESS" || e.status === "FAILED");
-      
-      if (lastExecution && lastExecution.context) {
-        baseContext = JSON.parse(JSON.stringify(lastExecution.context));
-      }
-
-      const result = await WorkflowEngine.executeSingleNode(
-        workflow,
-        nodeId,
-        overrideNodeConfig,
-        baseContext
-      );
-
-      return sendResponse(reply, {
-        status_code: 200,
-        message: "Node executed successfully",
-        error: null,
-        data: result,
-      });
-    } catch (error: any) {
-      return sendResponse(reply, {
-        status_code: 400,
-        message: `Node execution failed: ${error.message}`,
-        error: error.message,
-        data: null,
-      });
-    }
-  });
+    },
+  );
 
   // ──────────── Get workflow executions ────────────
 
@@ -661,7 +699,8 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
               baseSchema.pluginName = plugin.manifest.metadata.name;
               baseSchema.pluginIcon = plugin.manifest.metadata.icon;
               baseSchema.parameters = methodManifest?.parameters ?? {};
-              baseSchema.responseSchema = methodManifest?.responseSchema ?? null;
+              baseSchema.responseSchema =
+                methodManifest?.responseSchema ?? null;
             } catch {
               baseSchema.pluginId = node.pluginId;
               baseSchema.action = node.action;
@@ -738,7 +777,10 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       }
 
       // Auto-generate webhookPath if missing
-      if (workflow.trigger.type === "webhook" && !workflow.trigger.webhookPath) {
+      if (
+        workflow.trigger.type === "webhook" &&
+        !workflow.trigger.webhookPath
+      ) {
         workflow.trigger.webhookPath = `wh_${workflow.metadata.id}_${crypto.randomBytes(4).toString("hex")}`;
       }
 
@@ -749,7 +791,12 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
           workflowId,
         );
         if (slugError) {
-          return sendResponse(reply, { status_code: 400, message: slugError, error: slugError, data: null });
+          return sendResponse(reply, {
+            status_code: 400,
+            message: slugError,
+            error: slugError,
+            data: null,
+          });
         }
       }
 
@@ -782,40 +829,6 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // ──────────── Execute Single Node (Test Step) ────────────
-
-  fastify.post("/workflows/:workflowId/nodes/:nodeId/execute", async (req, reply) => {
-    const { workflowId, nodeId } = req.params as { workflowId: string; nodeId: string };
-    const nodeConfigOverride = req.body as WorkflowNode;
-
-    try {
-      const workflow = WorkflowRepository.getWorkflow(workflowId);
-      if (!workflow) {
-        return sendResponse(reply, { status_code: 404, message: "Workflow not found", error: "Not Found", data: null });
-      }
-
-      // Check if workflow has the node
-      if (!workflow.nodes[nodeId] && nodeId !== "trigger") {
-        return sendResponse(reply, { status_code: 404, message: "Node not found in workflow", error: "Not Found", data: null });
-      }
-
-      const result = await WorkflowEngine.executeSingleNode(workflow, nodeId, nodeConfigOverride);
-
-      return sendResponse(reply, {
-        status_code: 200,
-        message: "Node executed successfully",
-        error: null,
-        data: result,
-      });
-    } catch (error: any) {
-      return sendResponse(reply, {
-        status_code: 500,
-        message: "Failed to execute node",
-        error: error.message,
-        data: null,
-      });
-    }
-  });
 
   // ──────────── Production Status ────────────
 
@@ -845,10 +858,17 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     try {
       const workflow = WorkflowRepository.publishWorkflow(workflowId);
       if (!workflow) {
-        return sendResponse(reply, { status_code: 404, message: "Workflow not found", error: "Not Found", data: null });
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Workflow not found",
+          error: "Not Found",
+          data: null,
+        });
       }
       Scheduler.resync();
-      console.log(`[NOD8 | WORKFLOWS]: Published workflow "${workflow.metadata.name}" (${workflowId})`);
+      console.log(
+        `[NOD8 | WORKFLOWS]: Published workflow "${workflow.metadata.name}" (${workflowId})`,
+      );
       return sendResponse(reply, {
         status_code: 200,
         message: "Workflow published and running in production",
@@ -856,7 +876,12 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         data: workflow,
       });
     } catch (error: any) {
-      return sendResponse(reply, { status_code: 500, message: "Failed to publish workflow", error: error.message, data: null });
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to publish workflow",
+        error: error.message,
+        data: null,
+      });
     }
   });
 
@@ -867,10 +892,17 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     try {
       const workflow = WorkflowRepository.unpublishWorkflow(workflowId);
       if (!workflow) {
-        return sendResponse(reply, { status_code: 404, message: "Workflow not found", error: "Not Found", data: null });
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Workflow not found",
+          error: "Not Found",
+          data: null,
+        });
       }
       Scheduler.resync();
-      console.log(`[NOD8 | WORKFLOWS]: Unpublished workflow "${workflow.metadata.name}" (${workflowId})`);
+      console.log(
+        `[NOD8 | WORKFLOWS]: Unpublished workflow "${workflow.metadata.name}" (${workflowId})`,
+      );
       return sendResponse(reply, {
         status_code: 200,
         message: "Workflow unpublished — removed from production",
@@ -878,7 +910,12 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         data: workflow,
       });
     } catch (error: any) {
-      return sendResponse(reply, { status_code: 500, message: "Failed to unpublish workflow", error: error.message, data: null });
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to unpublish workflow",
+        error: error.message,
+        data: null,
+      });
     }
   });
 

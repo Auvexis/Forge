@@ -59,6 +59,7 @@ fastify.register(webhooksRoutes);
 // Run the server!
 fastify.listen({ port: PORT, host: "0.0.0.0" }, function (err, address) {
   if (err) {
+    console.error("[NOD8 | FATAL ERROR]:", err);
     fastify.log.error(err);
     process.exit(1);
   }
