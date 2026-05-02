@@ -17,7 +17,8 @@ import BaseEdge from './BaseEdge.vue'
 import { Background } from '@vue-flow/background'
 
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
-import NodeEditorDrawer from './settings/NodeEditorDrawer.vue'
+import { useNodeInspectorStore } from '../stores/node-inspector.store'
+import NodeInspectorModal from './settings/NodeInspectorModal.vue'
 import AddNodePanel from './settings/AddNodePanel.vue'
 import EditorControlsDock from './ui/EditorControlsDock.vue'
 import RunWorkflowPanel from './execution/RunWorkflowPanel.vue'
@@ -28,6 +29,7 @@ import { useEventBus } from '@/shared/composables/useEventBus'
 // Stores
 const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
+const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
 const { project, findNode, updateNode } = useVueFlow()
 
@@ -145,14 +147,7 @@ watch(
 // ── Eventos ─────────────────────────────────────────────────────────────────
 
 const onNodeClick = (event: NodeMouseEvent) => {
-  panelStore.togglePanel({
-    id: `node-editor-${event.node.id}`,
-    title: 'Configurações',
-    component: markRaw(NodeEditorDrawer),
-    props: { node: event.node },
-    position: 'right',
-    width: 'lg',
-  })
+  inspectorStore.openInspector(event.node)
 }
 
 // ── Add Node ─────────────────────────────────────────────────────────────────
@@ -480,6 +475,9 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
           @close="emit('update:show-logs', false)"
         />
       </div>
+
+      <!-- Node Inspector Immersive Modal -->
+      <NodeInspectorModal />
 
       <!-- MARCADORES SVG CUSTOMIZADOS ATRELADOS ÀS VARIÁVEIS CSS (GLOBAL DOM) -->
       <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
