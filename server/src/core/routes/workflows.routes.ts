@@ -557,6 +557,55 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // ──────────── Execute a single node (Test Step) ────────────
+
+  fastify.post("/workflows/:workflowId/nodes/:nodeId/execute", async (req, reply) => {
+    const { workflowId, nodeId } = req.params as { workflowId: string; nodeId: string };
+    const overrideNodeConfig = req.body as WorkflowNode;
+
+    try {
+      const workflow = WorkflowRepository.getWorkflowById(workflowId);
+      if (!workflow) {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Workflow not found",
+          error: "Not Found",
+          data: null,
+        });
+      }
+
+      // Try to find the most recent execution context
+      let baseContext = null;
+      const executions = WorkflowRepository.getWorkflowExecutions(workflowId);
+      const lastExecution = executions.find(e => e.status === "SUCCESS" || e.status === "FAILED");
+      
+      if (lastExecution && lastExecution.context) {
+        baseContext = JSON.parse(JSON.stringify(lastExecution.context));
+      }
+
+      const result = await WorkflowEngine.executeSingleNode(
+        workflow,
+        nodeId,
+        overrideNodeConfig,
+        baseContext
+      );
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Node executed successfully",
+        error: null,
+        data: result,
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: `Node execution failed: ${error.message}`,
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
   // ──────────── Get workflow executions ────────────
 
   fastify.get("/workflows/:workflowId/executions", async (req, reply) => {

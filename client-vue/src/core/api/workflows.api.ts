@@ -162,6 +162,13 @@ export const workflowsApi = {
       method: 'POST',
     }),
 
+  /** Execute a single node in isolation (Test Step) */
+  executeNode: (workflowId: string, nodeId: string, nodeConfig: unknown) =>
+    apiRequest<any>(`${ENDPOINTS.WORKFLOW_BY_ID(workflowId)}/nodes/${nodeId}/execute`, {
+      method: 'POST',
+      body: nodeConfig as Record<string, unknown>,
+    }),
+
   /**
    * Create an EventSource for streaming execution status.
    *

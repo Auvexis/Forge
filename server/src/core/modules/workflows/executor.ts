@@ -763,4 +763,40 @@ export const WorkflowEngine = {
 
     return { executionId: execId, status, context };
   },
+
+  executeSingleNode: async (
+    workflow: WorkflowItem,
+    nodeId: string,
+    nodeConfigOverride: WorkflowNode,
+    executionCacheContext?: any,
+  ): Promise<any> => {
+    const context = executionCacheContext || {
+      _workflowId: workflow.metadata.id,
+      trigger: {},
+      steps: {},
+      variables: initializeVariables(workflow.variables),
+      _event_payloads: {},
+    };
+
+    const execId = `exec_test_${Date.now()}`;
+
+    try {
+      const result = await executeNode(
+        nodeId,
+        nodeConfigOverride,
+        context,
+        workflow,
+        workflow.edges,
+        execId,
+      );
+      
+      if (nodeConfigOverride.type === "code") {
+        return (result as any).output;
+      }
+      
+      return result;
+    } catch (err: any) {
+      throw err;
+    }
+  },
 };

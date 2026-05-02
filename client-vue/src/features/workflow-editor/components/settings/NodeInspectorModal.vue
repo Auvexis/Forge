@@ -12,6 +12,8 @@ import EventEditor from './editors/EventEditor.vue'
 import EventListenerEditor from './editors/EventListenerEditor.vue'
 import PluginEditor from './editors/PluginEditor.vue'
 import IfEditor from './editors/IfEditor.vue'
+import JsonTreeView from './shared/JsonTreeView.vue'
+import { workflowsApi } from '@/core/api/workflows.api'
 
 const inspectorStore = useNodeInspectorStore()
 const workflowStore = useWorkflowStore()
@@ -36,6 +38,25 @@ const activeEditor = computed(() => {
 
 function close() {
   inspectorStore.closeInspector()
+}
+
+async function runStep() {
+  if (!inspectorStore.activeNodeId || !workflowStore.activeWorkflow) return
+  inspectorStore.isTesting = true
+  inspectorStore.lastTestOutput = null
+  
+  try {
+    const res = await workflowsApi.executeNode(
+      workflowStore.activeWorkflow.metadata.id,
+      inspectorStore.activeNodeId,
+      inspectorStore.activeNode!.data
+    )
+    inspectorStore.lastTestOutput = { success: true, data: res }
+  } catch (err: any) {
+    inspectorStore.lastTestOutput = { success: false, error: err.message || 'Execution failed' }
+  } finally {
+    inspectorStore.isTesting = false
+  }
 }
 </script>
 
@@ -105,12 +126,32 @@ function close() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
               OUTPUT (Future)
             </div>
-            <button class="btn btn-primary" style="padding: 4px 12px; min-height: unset; height: 28px; border-radius: 4px;" :disabled="inspectorStore.isTesting">
-              Run Step
+            <button 
+              class="btn btn-primary" 
+              style="padding: 4px 12px; min-height: unset; height: 28px; border-radius: 4px;" 
+              :disabled="inspectorStore.isTesting"
+              @click="runStep"
+            >
+              {{ inspectorStore.isTesting ? 'Running...' : 'Run Step' }}
             </button>
           </div>
           <div class="inspector-pane-content">
-            <div class="empty-state mt-8">
+            <div v-if="inspectorStore.isTesting" class="empty-state mt-8">
+              <svg class="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--nod8-color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+              <p class="text-sm mt-2 text-primary">Executing step...</p>
+            </div>
+            
+            <div v-else-if="inspectorStore.lastTestOutput" class="h-full">
+              <div v-if="!inspectorStore.lastTestOutput.success" class="p-3 mb-3 rounded-md text-sm" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: rgb(239, 68, 68);">
+                <div class="font-bold mb-1">Execution Error</div>
+                <div class="font-mono whitespace-pre-wrap">{{ inspectorStore.lastTestOutput.error }}</div>
+              </div>
+              <div v-else class="h-full">
+                <JsonTreeView :data="inspectorStore.lastTestOutput.data" :is-root="true" />
+              </div>
+            </div>
+
+            <div v-else class="empty-state mt-8">
               <div class="icon-box">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
               </div>
