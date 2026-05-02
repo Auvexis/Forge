@@ -55,6 +55,7 @@
   border-right: 1px solid var(--inspector-border);
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 .inspector-pane:last-child {
   border-right: none;
@@ -73,6 +74,7 @@
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  min-height: 0;
 }
 
 /* ── Drag & Drop Utilities ──────────────────────────────── */

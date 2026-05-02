@@ -2,15 +2,11 @@
   <div class="editor-stack">
     <!-- ── Trigger Type ── -->
     <EditorField label="Trigger Type">
-      <select
-        :value="node.data.type || 'manual'"
-        @change="updateNodeData({ type: ($event.target as HTMLSelectElement).value as any })"
-        class="editor-select font-bold"
-      >
-        <option v-for="opt in TRIGGER_OPTIONS" :key="opt.value" :value="opt.value">
-          {{ opt.label }}
-        </option>
-      </select>
+      <BaseSelect
+        :model-value="(node.data.type as string) || 'manual'"
+        :options="TRIGGER_OPTIONS"
+        @update:model-value="updateNodeData({ type: $event as any })"
+      />
     </EditorField>
 
     <!-- ── MANUAL ── -->
@@ -35,19 +31,17 @@
               </button>
             </div>
             <div class="te-card-row">
-              <select
-                :value="(field as any).type"
-                @change="
-                  updateSchemaField(String(key), {
-                    type: ($event.target as HTMLSelectElement).value,
-                  })
-                "
-                class="te-type-select"
-              >
-                <option value="string">String</option>
-                <option value="number">Number</option>
-                <option value="file">File</option>
-              </select>
+              <div style="width: 140px; flex-shrink: 0;">
+                <BaseSelect
+                  :model-value="(field as any).type as string"
+                  :options="MANUAL_FIELD_TYPES"
+                  @update:model-value="
+                    updateSchemaField(String(key), {
+                      type: $event as any,
+                    })
+                  "
+                />
+              </div>
               <label class="te-req-label">
                 <input
                   type="checkbox"
@@ -82,7 +76,7 @@
           </span>
           <input
             type="text"
-            :value="(node.data as WorkflowTrigger).webhookSlug || ''"
+            :value="(node.data as unknown as WorkflowTrigger).webhookSlug || ''"
             @input="updateNodeData({ webhookSlug: ($event.target as HTMLInputElement).value || undefined })"
             placeholder="nova-venda"
             class="editor-input"
@@ -140,7 +134,7 @@
           <div class="te-input-row">
             <input
               type="password"
-              :value="(node.data as WorkflowTrigger).webhookSecret || ''"
+              :value="(node.data as unknown as WorkflowTrigger).webhookSecret || ''"
               @input="updateNodeData({ webhookSecret: ($event.target as HTMLInputElement).value })"
               placeholder="my-secret-key"
               class="editor-input te-password-input"
@@ -164,7 +158,7 @@
 
           <div class="flex flex-col gap-2">
             <div
-              v-for="(field, key, index) in (node.data as WorkflowTrigger).webhookBodySchema || {}"
+              v-for="(field, key, index) in (node.data as unknown as WorkflowTrigger).webhookBodySchema || {}"
               :key="index"
               class="te-card"
             >
@@ -180,17 +174,13 @@
                 </button>
               </div>
               <div class="te-card-row">
-                <select
-                  :value="(field as any).type"
-                  @change="updateBodySchemaField(String(key), { type: ($event.target as HTMLSelectElement).value as any })"
-                  class="te-type-select"
-                >
-                  <option value="string">String</option>
-                  <option value="number">Number</option>
-                  <option value="boolean">Boolean</option>
-                  <option value="object">Object</option>
-                  <option value="array">Array</option>
-                </select>
+                <div style="width: 140px; flex-shrink: 0;">
+                  <BaseSelect
+                    :model-value="(field as any).type as string"
+                    :options="WEBHOOK_FIELD_TYPES"
+                    @update:model-value="updateBodySchemaField(String(key), { type: $event as any })"
+                  />
+                </div>
                 <label class="te-req-label">
                   <input
                     type="checkbox"
@@ -217,7 +207,7 @@
         <div class="te-field">
           <span class="te-label">Cron Expression</span>
           <input
-            :value="(node.data as WorkflowTrigger).cronExpression || ''"
+            :value="(node.data as unknown as WorkflowTrigger).cronExpression || ''"
             @input="updateNodeData({ cronExpression: ($event.target as HTMLInputElement).value })"
             placeholder="* * * * *"
             class="editor-input te-cron-input"
@@ -238,7 +228,7 @@
               type="button"
               @click="updateNodeData({ cronExpression: p.value })"
               class="te-preset-btn"
-              :class="{ 'te-preset-btn--active': (node.data as WorkflowTrigger).cronExpression === p.value }"
+              :class="{ 'te-preset-btn--active': (node.data as unknown as WorkflowTrigger).cronExpression === p.value }"
             >
               <span class="te-preset-label">{{ p.label }}</span>
               <code class="te-preset-value">{{ p.value }}</code>
@@ -254,7 +244,7 @@
         <div class="te-field">
           <span class="te-label">Internal Event Name</span>
           <input
-            :value="(node.data as WorkflowTrigger).eventName || ''"
+            :value="(node.data as unknown as WorkflowTrigger).eventName || ''"
             @input="updateNodeData({ eventName: ($event.target as HTMLInputElement).value })"
             placeholder="video.uploaded"
             class="editor-input te-event-input"
@@ -285,15 +275,30 @@ import { XIcon, PlusIcon, CopyIcon, CheckIcon, RefreshCwIcon } from 'lucide-vue-
 import type { NodeEditorProps } from './types'
 import type { WorkflowTrigger, WorkflowSchemaField, WebhookBodyField } from '@/core/types/workflow.types'
 import EditorField from './EditorField.vue'
+import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import { API_BASE_URL } from '@/core/constants/app'
 
 const props = defineProps<NodeEditorProps>()
 
 const TRIGGER_OPTIONS = [
-  { value: 'manual', label: 'Manual' },
-  { value: 'webhook', label: 'Webhook' },
-  { value: 'cron', label: 'Cron / Schedule' },
-  { value: 'event', label: 'Event' },
+  { value: 'manual', label: 'Manual', icon: 'hand' },
+  { value: 'webhook', label: 'Webhook', icon: 'globe' },
+  { value: 'cron', label: 'Cron / Schedule', icon: 'clock' },
+  { value: 'event', label: 'Event', icon: 'zap' },
+]
+
+const MANUAL_FIELD_TYPES = [
+  { value: 'string', label: 'String', icon: 'type' },
+  { value: 'number', label: 'Number', icon: 'hash' },
+  { value: 'file', label: 'File', icon: 'file' },
+]
+
+const WEBHOOK_FIELD_TYPES = [
+  { value: 'string', label: 'String', icon: 'type' },
+  { value: 'number', label: 'Number', icon: 'hash' },
+  { value: 'boolean', label: 'Boolean', icon: 'toggle-left' },
+  { value: 'object', label: 'Object', icon: 'braces' },
+  { value: 'array', label: 'Array', icon: 'list' },
 ]
 
 const CRON_PRESETS = [
@@ -332,7 +337,7 @@ function humanizeCron(expression: string | undefined): string {
 const copied = ref<'test' | 'prod' | null>(null)
 
 function resolvedPath(): string {
-  const trigger = props.node.data as WorkflowTrigger
+  const trigger = props.node.data as unknown as WorkflowTrigger
   return trigger.webhookSlug || trigger.webhookPath || '<auto-assigned-on-save>'
 }
 
@@ -340,10 +345,10 @@ const testWebhookUrl = computed(() => `${API_BASE_URL}/webhook-test/${resolvedPa
 const prodWebhookUrl = computed(() => `${API_BASE_URL}/webhook/${resolvedPath()}`)
 
 const allowedMethods = computed<string[]>(() => {
-  return (props.node.data as WorkflowTrigger).webhookMethods ?? ['POST']
+  return (props.node.data as unknown as WorkflowTrigger).webhookMethods ?? ['POST']
 })
 
-const humanCron = computed(() => humanizeCron((props.node.data as WorkflowTrigger).cronExpression))
+const humanCron = computed(() => humanizeCron((props.node.data as unknown as WorkflowTrigger).cronExpression))
 
 function toggleMethod(method: string) {
   const current = allowedMethods.value
@@ -372,30 +377,30 @@ function generateSecret() {
 
 function updateSchemaKey(oldKey: string, newKey: string) {
   if (oldKey === newKey) return
-  const currentSchema = (props.node.data as WorkflowTrigger).schema || {}
+  const currentSchema = (props.node.data as unknown as WorkflowTrigger).schema || {}
   const newSchema = { ...currentSchema }
   const val = newSchema[oldKey]
   delete newSchema[oldKey]
-  newSchema[newKey] = val
+  if (val) newSchema[newKey] = val
   props.updateNodeData({ schema: newSchema })
 }
 
 function removeSchemaField(key: string) {
-  const currentSchema = (props.node.data as WorkflowTrigger).schema || {}
+  const currentSchema = (props.node.data as unknown as WorkflowTrigger).schema || {}
   const newSchema = { ...currentSchema }
   delete newSchema[key]
   props.updateNodeData({ schema: newSchema })
 }
 
 function updateSchemaField(key: string, updates: Partial<WorkflowSchemaField>) {
-  const currentSchema = (props.node.data as WorkflowTrigger).schema || {}
+  const currentSchema = (props.node.data as unknown as WorkflowTrigger).schema || {}
   props.updateNodeData({
     schema: { ...currentSchema, [key]: { ...currentSchema[key], ...updates } },
   })
 }
 
 function addSchemaField() {
-  const currentSchema = (props.node.data as WorkflowTrigger).schema || {}
+  const currentSchema = (props.node.data as unknown as WorkflowTrigger).schema || {}
   const num = Object.keys(currentSchema).length
   props.updateNodeData({
     schema: { ...currentSchema, [`field${num}`]: { type: 'string', required: false } },
@@ -406,30 +411,30 @@ function addSchemaField() {
 
 function updateBodySchemaKey(oldKey: string, newKey: string) {
   if (oldKey === newKey) return
-  const schema = (props.node.data as WorkflowTrigger).webhookBodySchema || {}
+  const schema = (props.node.data as unknown as WorkflowTrigger).webhookBodySchema || {}
   const next = { ...schema }
   const val = next[oldKey]
   delete next[oldKey]
-  next[newKey] = val
+  if (val) next[newKey] = val
   props.updateNodeData({ webhookBodySchema: next })
 }
 
 function removeBodySchemaField(key: string) {
-  const schema = (props.node.data as WorkflowTrigger).webhookBodySchema || {}
+  const schema = (props.node.data as unknown as WorkflowTrigger).webhookBodySchema || {}
   const next = { ...schema }
   delete next[key]
   props.updateNodeData({ webhookBodySchema: next })
 }
 
 function updateBodySchemaField(key: string, updates: Partial<WebhookBodyField>) {
-  const schema = (props.node.data as WorkflowTrigger).webhookBodySchema || {}
+  const schema = (props.node.data as unknown as WorkflowTrigger).webhookBodySchema || {}
   props.updateNodeData({
     webhookBodySchema: { ...schema, [key]: { ...schema[key], ...updates } },
   })
 }
 
 function addBodySchemaField() {
-  const schema = (props.node.data as WorkflowTrigger).webhookBodySchema || {}
+  const schema = (props.node.data as unknown as WorkflowTrigger).webhookBodySchema || {}
   const num = Object.keys(schema).length
   props.updateNodeData({
     webhookBodySchema: { ...schema, [`field${num}`]: { type: 'string', required: false } },

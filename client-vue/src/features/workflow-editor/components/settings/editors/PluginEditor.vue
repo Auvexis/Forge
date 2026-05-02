@@ -12,46 +12,26 @@
 
     <!-- Plugin selector -->
     <EditorField label="Integration (Plugin)">
-      <select
-        class="editor-select"
-        :value="data.pluginId || ''"
-        @change="
-          updateNodeData({
-            pluginId: ($event.target as HTMLSelectElement).value,
-            action: '',
-            params: {},
-          })
-        "
-      >
-        <option value="" disabled>Select Integration...</option>
-        <option v-for="p in plugins" :key="p.id" :value="p.id">
-          {{ p.manifest.metadata.name }}
-        </option>
-      </select>
+      <BaseSelect
+        :model-value="data.pluginId || ''"
+        :options="pluginOptions"
+        placeholder="Select Integration..."
+        @update:model-value="(val) => updateNodeData({ pluginId: val, action: '', params: {} })"
+      />
     </EditorField>
 
     <!-- Action selector -->
     <EditorField v-if="selectedPlugin" label="Action">
-      <select
-        class="editor-select"
-        :value="data.action || ''"
-        @change="updateNodeData({ action: ($event.target as HTMLSelectElement).value, params: {} })"
-      >
-        <option value="" disabled>Select Action...</option>
-        <option
-          v-for="(method, key) in selectedPlugin.manifest.methods || {}"
-          :key="key"
-          :value="key"
-        >
-          {{ method.metadata.label || key }}
-        </option>
-      </select>
+      <BaseSelect
+        :model-value="data.action || ''"
+        :options="actionOptions"
+        placeholder="Select Action..."
+        @update:model-value="(val) => updateNodeData({ action: val, params: {} })"
+      />
     </EditorField>
 
     <!-- Parameters container -->
     <div v-if="selectedAction" class="editor-stack mt-2">
-      <InlineAuthManager :plugin-id="data.pluginId" />
-
       <div class="pe-params-header">
         <div class="pe-params-indicator"></div>
         <h3 class="pe-params-title">Parameters</h3>
@@ -75,21 +55,20 @@
           <span class="pe-param-type">{{ (paramVal as any).type || 'any' }}</span>
         </div>
 
-        <!-- Inputs mapping -->
         <!-- Enum or Dynamic -> Select / Multiselect -->
         <template v-if="(paramVal as any).enum || (paramVal as any)['x-dynamic-options']">
+          <!-- Multiselect -->
           <select
+            v-if="(paramVal as any)['x-input-type'] === 'multiselect'"
             class="editor-select"
-            :multiple="(paramVal as any)['x-input-type'] === 'multiselect'"
-            :value="(data.params as any)?.[paramKey] || ((paramVal as any)['x-input-type'] === 'multiselect' ? [] : '')"
+            multiple
+            :value="(data.params as any)?.[paramKey] || []"
             :disabled="(paramVal as any)['x-dynamic-options'] && dynamicOptionsMap[paramKey.toString()]?.loading"
             @change="
               updateNodeData({
                 params: {
                   ...(data.params || {}),
-                  [paramKey]: (paramVal as any)['x-input-type'] === 'multiselect' 
-                    ? Array.from(($event.target as HTMLSelectElement).selectedOptions).map(o => o.value)
-                    : ($event.target as HTMLSelectElement).value,
+                  [paramKey]: Array.from(($event.target as HTMLSelectElement).selectedOptions).map(o => o.value),
                 },
               })
             "
@@ -98,9 +77,6 @@
               <option value="" disabled>Loading options...</option>
             </template>
             <template v-else>
-              <option value="" disabled>
-                Select {{ (paramVal as any)['x-label'] || paramKey }}...
-              </option>
               <template v-if="(paramVal as any).enum">
                 <option v-for="val in (paramVal as any).enum" :key="val" :value="val">{{ val }}</option>
               </template>
@@ -115,6 +91,23 @@
               </template>
             </template>
           </select>
+          
+          <!-- Single Select -->
+          <BaseSelect
+            v-else
+            :model-value="(data.params as any)?.[paramKey] || ''"
+            :options="(paramVal as any)['x-dynamic-options'] ? (dynamicOptionsMap[paramKey.toString()]?.options || []) : ((paramVal as any).enum || []).map((v: string) => ({ label: v, value: v }))"
+            :disabled="(paramVal as any)['x-dynamic-options'] && dynamicOptionsMap[paramKey.toString()]?.loading"
+            :placeholder="(paramVal as any)['x-dynamic-options'] && dynamicOptionsMap[paramKey.toString()]?.loading ? 'Loading options...' : `Select ${(paramVal as any)['x-label'] || paramKey}...`"
+            @update:model-value="
+              (val) => updateNodeData({
+                params: {
+                  ...(data.params || {}),
+                  [paramKey]: val,
+                },
+              })
+            "
+          />
         </template>
 
         <!-- Boolean / Toggle -->
@@ -269,28 +262,6 @@
           />
         </template>
 
-        <!-- Variable map trigger & tree -->
-        <div v-if="upstreamNodes.length > 0" class="pe-var-container">
-          <div class="pe-var-divider">
-            <div class="pe-var-line"></div>
-            <button class="pe-var-btn" @click="toggleMapVariables(paramKey.toString())">
-              <LucideIcon
-                :name="isMapVariablesOpen(paramKey.toString()) ? 'chevron-up' : 'chevron-down'"
-                size="12"
-              />
-              <span>Map variables</span>
-            </button>
-            <div class="pe-var-line"></div>
-          </div>
-
-          <VariableTree
-            v-if="isMapVariablesOpen(paramKey.toString())"
-            :param-key="paramKey.toString()"
-            :upstream-nodes="upstreamNodes"
-            :nodes="nodes"
-            @inject="injectVariable"
-          />
-        </div>
       </div>
     </div>
   </div>
@@ -302,9 +273,8 @@ import type { NodeEditorProps } from './types'
 import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import EditorField from './EditorField.vue'
-import VariableTree from './VariableTree.vue'
-import InlineAuthManager from '../shared/InlineAuthManager.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PluginNode } from '@/core/types/workflow.types'
 
@@ -321,6 +291,28 @@ const selectedPlugin = computed(() => {
 
 const selectedAction = computed(() => {
   return selectedPlugin.value?.manifest.methods[data.value.action]
+})
+
+const pluginOptions = computed(() => {
+  if (!plugins.value) return []
+  return plugins.value.map(p => {
+    const iconStr = p.manifest.metadata.icon
+    const isImage = iconStr && (iconStr.startsWith('http') || iconStr.startsWith('/') || iconStr.startsWith('data:'))
+    return {
+      label: p.manifest.metadata.name,
+      value: p.id,
+      ...(isImage ? { image: iconStr } : { icon: iconStr || 'puzzle' })
+    }
+  })
+})
+
+const actionOptions = computed(() => {
+  if (!selectedPlugin.value?.manifest?.methods) return []
+  return Object.entries(selectedPlugin.value.manifest.methods).map(([key, method]) => ({
+    label: method.metadata.label || key,
+    value: key,
+    icon: 'zap'
+  }))
 })
 
 const isRequired = (key: string) => {
@@ -407,13 +399,6 @@ watch(
   { deep: true, immediate: true }
 )
 
-const mapVariablesOpen = ref<Record<string, boolean>>({})
-
-const isMapVariablesOpen = (key: string) => mapVariablesOpen.value[key] ?? false
-
-const toggleMapVariables = (key: string) => {
-  mapVariablesOpen.value[key] = !mapVariablesOpen.value[key]
-}
 
 const fileInputRefs = ref<Record<string, HTMLInputElement>>({})
 
@@ -618,43 +603,7 @@ const removeFileFromArray = (key: string, index: number) => {
 }
 
 
-.pe-var-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nod8-space-1);
-}
 
-.pe-var-divider {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--nod8-space-2);
-}
-
-.pe-var-line {
-  flex: 1;
-  height: 1px;
-  background-color: var(--nod8-border);
-}
-
-.pe-var-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: var(--nod8-radius-sm);
-  font-size: 11px;
-  color: var(--nod8-text-muted);
-}
-
-.pe-var-btn:hover {
-  background-color: var(--nod8-bg-surface);
-  color: var(--nod8-text-primary);
-}
 
 .pe-files-container {
   display: flex;

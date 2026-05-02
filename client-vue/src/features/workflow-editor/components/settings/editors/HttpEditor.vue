@@ -11,13 +11,13 @@
 
     <EditorField label="Method & URL">
       <div class="editor-row">
-        <select
-          class="editor-select editor-row--method"
-          :value="node.data.method || 'GET'"
-          @change="updateNodeData({ method: ($event.target as HTMLSelectElement).value })"
-        >
-          <option v-for="m in HTTP_METHODS" :key="m" :value="m">{{ m }}</option>
-        </select>
+        <div style="width: 140px; flex-shrink: 0;">
+          <BaseSelect
+            :model-value="(node.data.method as string) || 'GET'"
+            :options="HTTP_METHODS"
+            @update:model-value="updateNodeData({ method: $event as string })"
+          />
+        </div>
         <div class="editor-row--grow">
           <input
             class="editor-input editor-input--mono"
@@ -31,13 +31,11 @@
 
     <div v-show="hasBody" class="editor-stack">
       <EditorField label="Body Content Type">
-        <select
-          class="editor-select"
-          :value="node.data.bodyType || 'json'"
-          @change="updateNodeData({ bodyType: ($event.target as HTMLSelectElement).value })"
-        >
-          <option v-for="t in BODY_TYPES" :key="t.value" :value="t.value">{{ t.label }}</option>
-        </select>
+        <BaseSelect
+          :model-value="(node.data.bodyType as string) || 'json'"
+          :options="BODY_TYPES"
+          @update:model-value="updateNodeData({ bodyType: $event as string })"
+        />
       </EditorField>
 
       <EditorField label="Request Body">
@@ -86,15 +84,11 @@
         </EditorField>
 
         <EditorField label="Response Type">
-          <select
-            class="editor-select"
-            :value="node.data.responseType || 'json'"
-            @change="updateNodeData({ responseType: ($event.target as HTMLSelectElement).value })"
-          >
-            <option v-for="t in RESPONSE_TYPES" :key="t.value" :value="t.value">
-              {{ t.label }}
-            </option>
-          </select>
+          <BaseSelect
+            :model-value="(node.data.responseType as string) || 'json'"
+            :options="RESPONSE_TYPES"
+            @update:model-value="updateNodeData({ responseType: $event as string })"
+          />
         </EditorField>
       </div>
     </div>
@@ -105,16 +99,24 @@
 import { ref, computed } from 'vue'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
+import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = defineProps<NodeEditorProps>()
 const advancedOpen = ref(false)
 
-const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+const HTTP_METHODS = [
+  { value: 'GET', label: 'GET', icon: 'download' },
+  { value: 'POST', label: 'POST', icon: 'send' },
+  { value: 'PUT', label: 'PUT', icon: 'refresh-cw' },
+  { value: 'PATCH', label: 'PATCH', icon: 'file-edit' },
+  { value: 'DELETE', label: 'DELETE', icon: 'trash' },
+]
+
 const BODY_TYPES = [
-  { value: 'json', label: 'JSON' },
-  { value: 'form', label: 'Form Encoded' },
-  { value: 'raw', label: 'Raw' },
+  { value: 'json', label: 'JSON', icon: 'braces' },
+  { value: 'form', label: 'Form Encoded', icon: 'align-justify' },
+  { value: 'raw', label: 'Raw', icon: 'align-left' },
 ]
 const RESPONSE_TYPES = [
   { value: 'json', label: 'JSON (auto-parse)' },

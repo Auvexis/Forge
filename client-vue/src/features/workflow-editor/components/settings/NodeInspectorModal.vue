@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useNodeInspectorStore } from '../../../stores/node-inspector.store'
-import { useWorkflowStore } from '../../../stores/workflow.store'
+import { computed, ref, watch } from 'vue'
+import { type GraphNode } from '@vue-flow/core'
+import { useNodeInspectorStore } from '../../stores/node-inspector.store'
+import { useWorkflowStore } from '../../stores/workflow.store'
+import type { NodeData } from './editors/types'
 
 import TriggerEditor from './editors/TriggerEditor.vue'
 import HttpEditor from './editors/HttpEditor.vue'
@@ -13,6 +15,11 @@ import EventListenerEditor from './editors/EventListenerEditor.vue'
 import PluginEditor from './editors/PluginEditor.vue'
 import IfEditor from './editors/IfEditor.vue'
 import JsonTreeView from './shared/JsonTreeView.vue'
+import VariableTree from './editors/VariableTree.vue'
+import PluginMenuAuth from './editors/PluginMenuAuth.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 
 const inspectorStore = useNodeInspectorStore()
@@ -32,7 +39,7 @@ const editorMap: Record<string, any> = {
 
 const activeEditor = computed(() => {
   const node = inspectorStore.activeNode
-  if (!node) return null
+  if (!node || !node.type) return null
   return editorMap[node.type] || null
 })
 
@@ -58,64 +65,227 @@ async function runStep() {
     inspectorStore.isTesting = false
   }
 }
+
+const nodes = computed((): GraphNode<NodeData>[] => {
+  const wf = workflowStore.activeWorkflow
+  if (!wf) return []
+
+  const result: GraphNode<NodeData>[] = [
+    {
+      id: 'trigger',
+      type: 'trigger',
+      data: wf.trigger as unknown as NodeData,
+      position: { x: 0, y: 0 },
+    } as GraphNode<NodeData>,
+  ]
+
+  for (const [id, nodeData] of Object.entries(wf.nodes)) {
+    result.push({
+      id,
+      type: nodeData.type,
+      data: nodeData as unknown as NodeData,
+      position: { x: 0, y: 0 },
+    } as GraphNode<NodeData>)
+  }
+
+  return result
+})
+
+const edges = computed(() => workflowStore.activeWorkflow?.edges ?? [])
+
+const getUpstreamNodes = (
+  currentId: string,
+  visited = new Set<string>(),
+): GraphNode<NodeData>[] => {
+  if (visited.has(currentId)) return []
+  visited.add(currentId)
+
+  const storeEdges = workflowStore.activeWorkflow?.edges ?? []
+  const directEdges = storeEdges.filter((e) => e.target === currentId)
+  let upstream: GraphNode<NodeData>[] = []
+
+  for (const edge of directEdges) {
+    const parentNode = nodes.value.find((n) => n.id === edge.source)
+    if (parentNode) {
+      upstream.push(parentNode)
+      upstream = upstream.concat(getUpstreamNodes(edge.source, visited))
+    }
+  }
+
+  const byId = new Map<string, GraphNode<NodeData>>()
+  for (const n of upstream) {
+    if (!byId.has(n.id)) byId.set(n.id, n)
+  }
+
+  return Array.from(byId.values())
+}
+
+const upstreamNodes = computed(() => {
+  if (!inspectorStore.activeNode) return []
+  return getUpstreamNodes(inspectorStore.activeNode.id)
+})
+
+const enrichedNode = computed(() => {
+  if (!inspectorStore.activeNode) return undefined
+
+  const id = inspectorStore.activeNode.id
+  const storeData: NodeData | undefined =
+    id === 'trigger'
+      ? (workflowStore.activeWorkflow?.trigger as unknown as NodeData)
+      : (workflowStore.activeWorkflow?.nodes[id] as unknown as NodeData)
+
+  return {
+    ...inspectorStore.activeNode,
+    data: storeData ?? inspectorStore.activeNode.data,
+  }
+})
+
+const updateNodeData = (newData: Record<string, unknown>) => {
+  if (!inspectorStore.activeNode) return
+  workflowStore.updateNodeData(inspectorStore.activeNode.id, newData)
+}
+
+const injectVariable = (paramKey: string, variable: string) => {
+  if (!inspectorStore.activeNode) return
+  const currentParams = (enrichedNode.value?.data?.['params'] as Record<string, unknown>) || {}
+  const currentValue = (currentParams[paramKey] as string) || ''
+  updateNodeData({
+    params: {
+      ...currentParams,
+      [paramKey]: `${currentValue}{{ ${variable} }}`,
+    },
+  })
+}
+
+const isPluginNode = computed(() => inspectorStore.activeNode?.type === 'plugin')
+const activeTab = ref<'config' | 'settings'>('config')
+const localId = ref('')
+
+watch(
+  () => inspectorStore.activeNodeId,
+  (newId) => {
+    activeTab.value = 'config'
+    localId.value = newId || ''
+  },
+  { immediate: true }
+)
+
+const handleIdChange = (newId: string) => {
+  if (!newId || newId === inspectorStore.activeNode?.id || !inspectorStore.activeNode) return
+
+  if (nodes.value.some((n) => n.id === newId)) {
+    alert('ID Conflict: A node with this ID already exists.')
+    localId.value = inspectorStore.activeNode.id
+    return
+  }
+
+  const success = workflowStore.renameNode(inspectorStore.activeNode.id, newId)
+  if (success) {
+    inspectorStore.activeNodeId = newId
+    inspectorStore.activeNode.id = newId
+  } else {
+    localId.value = inspectorStore.activeNode.id
+  }
+}
+
+const copyToClipboard = async (path: string) => {
+  try {
+    await navigator.clipboard.writeText(`{{ ${path} }}`)
+    // Optional: Add a small toast notification here if you have a toast system
+  } catch (err) {
+    console.error('Failed to copy to clipboard', err)
+  }
+}
 </script>
 
 <template>
-  <div v-if="inspectorStore.isOpen" class="inspector-backdrop absolute inset-0 z-50 flex items-center justify-center">
-    <div class="inspector-modal flex flex-col rounded-xl overflow-hidden">
-      <!-- Header -->
-      <div class="inspector-pane-header flex-between border-b border-nod8-border">
-        <div class="flex items-center gap-3">
-          <div class="icon-box" style="width: 32px; height: 32px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            </svg>
-          </div>
-          <h3 class="text-h4 m-0 text-primary">
-            {{ inspectorStore.activeNode?.data?.name || 'Node Inspector' }}
-          </h3>
-          <span class="text-xs text-muted font-mono bg-elevated px-2 py-1 rounded-sm">
-            {{ inspectorStore.activeNode?.id }}
-          </span>
-        </div>
-        <button class="btn btn-ghost" @click="close">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-
+  <div v-if="inspectorStore.isOpen" class="inspector-backdrop absolute inset-0 z-50 flex items-center justify-center" @click.self="close">
+    <div class="inspector-modal flex flex-col overflow-hidden">
       <!-- 3-Column Grid -->
       <div class="inspector-grid flex-1 min-h-0">
         <!-- Left Pane: Input -->
         <div class="inspector-pane">
           <div class="inspector-pane-header text-sm text-muted font-semibold flex items-center gap-2">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <LucideIcon name="download" size="16" />
             INPUT (Past)
           </div>
-          <div class="inspector-pane-content">
-            <div class="empty-state mt-8">
-              <div class="icon-box">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+          <div class="inspector-pane-content overflow-y-auto flex flex-col h-full">
+            <div v-if="upstreamNodes.length > 0" class="p-4 flex-1">
+              <VariableTree 
+                param-key="inspector" 
+                :upstream-nodes="upstreamNodes" 
+                :nodes="nodes" 
+                @inject="(key, path) => copyToClipboard(path)"
+              />
+            </div>
+            <div v-else class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]">
+              <div class="icon-box mb-3 opacity-70">
+                <LucideIcon name="database" size="24" />
               </div>
-              <p class="text-sm mt-2">No input data available yet.</p>
+              <p class="text-sm text-muted">No input data available yet.</p>
             </div>
           </div>
         </div>
 
         <!-- Center Pane: Config -->
         <div class="inspector-pane" style="background: var(--nod8-bg-surface);">
-          <div class="inspector-pane-header text-sm text-muted font-semibold flex items-center gap-2" style="background: var(--nod8-bg-surface);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            CONFIGURATION (Present)
-          </div>
-          <div class="inspector-pane-content relative">
-            <component 
-              :is="activeEditor" 
-              v-if="activeEditor && inspectorStore.activeNode" 
-              :node="inspectorStore.activeNode" 
+          <div class="inspector-pane-header flex-between w-full" style="background: var(--nod8-bg-surface);">
+            <div class="text-sm text-muted font-semibold flex items-center gap-2">
+              <LucideIcon name="settings" size="16" />
+              {{ activeTab === 'settings' ? 'SETTINGS' : 'CONFIGURATION' }}
+            </div>
+
+            <BaseButton 
+              variant="ghost" 
+              size="sm" 
+              :icon-left="activeTab === 'config' ? 'settings' : 'x'" 
+              class="text-muted !p-1 !h-auto"
+              title="Settings"
+              @click="activeTab = activeTab === 'config' ? 'settings' : 'config'" 
             />
+          </div>
+          <div class="inspector-pane-content relative overflow-y-auto">
+            <template v-if="activeTab === 'config'">
+              <component 
+                :is="activeEditor" 
+                v-if="activeEditor && enrichedNode" 
+                :node="enrichedNode" 
+                :nodes="nodes"
+                :edges="edges"
+                :upstream-nodes="upstreamNodes"
+                :update-node-data="updateNodeData"
+                @inject="injectVariable"
+              />
+            </template>
+            <template v-else-if="activeTab === 'settings'">
+              <div class="p-2 flex flex-col gap-6">
+                <!-- Node ID Configuration -->
+                <div class="flex flex-col gap-2">
+                  <label class="text-sm font-semibold text-primary">Node Identifier (ID)</label>
+                  <p class="text-xs text-muted leading-tight mb-2">Used to reference this node's output in other variables.<br/>Example: <code>&#123;&#123; {{ localId }}.data.email &#125;&#125;</code></p>
+                  <BaseInput
+                    v-model="localId"
+                    class="font-mono w-full"
+                    spellcheck="false"
+                    @blur="handleIdChange(localId)"
+                    @keydown.enter="handleIdChange(localId)"
+                  />
+                </div>
+
+                <!-- Authorization Configuration (Plugin Only) -->
+                <div v-if="isPluginNode" class="flex flex-col gap-2 pt-4 border-t border-nod8-border">
+                  <label class="text-sm font-semibold text-primary mb-1">Integration Authorization</label>
+                  <PluginMenuAuth 
+                    v-if="inspectorStore.activeNode?.data?.pluginId" 
+                    :plugin-id="(inspectorStore.activeNode.data.pluginId as string)" 
+                  />
+                  <div v-else class="text-sm text-muted p-4 flex flex-col items-center justify-center h-full text-center bg-[var(--nod8-bg-elevated)] rounded">
+                    <LucideIcon name="shield-alert" size="24" class="mb-2 opacity-50" />
+                    Select an integration first<br/>to configure authorization.
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
 
@@ -123,25 +293,26 @@ async function runStep() {
         <div class="inspector-pane">
           <div class="inspector-pane-header flex-between text-sm text-muted font-semibold">
             <div class="flex items-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <LucideIcon name="upload" size="16" />
               OUTPUT (Future)
             </div>
-            <button 
-              class="btn btn-primary" 
-              style="padding: 4px 12px; min-height: unset; height: 28px; border-radius: 4px;" 
-              :disabled="inspectorStore.isTesting"
+            <BaseButton 
+              variant="ghost" 
+              size="sm"
+              icon-left="play"
+              :loading="inspectorStore.isTesting"
               @click="runStep"
             >
-              {{ inspectorStore.isTesting ? 'Running...' : 'Run Step' }}
-            </button>
+              Run Step
+            </BaseButton>
           </div>
-          <div class="inspector-pane-content">
-            <div v-if="inspectorStore.isTesting" class="empty-state mt-8">
-              <svg class="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--nod8-color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
-              <p class="text-sm mt-2 text-primary">Executing step...</p>
+          <div class="inspector-pane-content overflow-y-auto flex flex-col h-full">
+            <div v-if="inspectorStore.isTesting" class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]">
+              <LucideIcon name="loader-2" size="24" class="spin text-nod8-accent mb-3" />
+              <p class="text-sm text-primary font-medium">Executing step...</p>
             </div>
             
-            <div v-else-if="inspectorStore.lastTestOutput" class="h-full">
+            <div v-else-if="inspectorStore.lastTestOutput" class="h-full flex-1">
               <div v-if="!inspectorStore.lastTestOutput.success" class="p-3 mb-3 rounded-md text-sm" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: rgb(239, 68, 68);">
                 <div class="font-bold mb-1">Execution Error</div>
                 <div class="font-mono whitespace-pre-wrap">{{ inspectorStore.lastTestOutput.error }}</div>
@@ -151,11 +322,11 @@ async function runStep() {
               </div>
             </div>
 
-            <div v-else class="empty-state mt-8">
-              <div class="icon-box">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <div v-else class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]">
+              <div class="icon-box mb-3 opacity-70">
+                <LucideIcon name="play" size="24" />
               </div>
-              <p class="text-sm mt-2">Run the step to generate output.</p>
+              <p class="text-sm text-muted">Run the step to generate output.</p>
             </div>
           </div>
         </div>
@@ -166,4 +337,13 @@ async function runStep() {
 
 <style scoped>
 /* Inherits classes from inspector.css */
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 </style>

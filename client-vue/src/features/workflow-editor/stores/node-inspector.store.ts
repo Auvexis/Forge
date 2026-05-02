@@ -12,12 +12,12 @@ export const useNodeInspectorStore = defineStore('node-inspector', () => {
   const draggedVariablePath = ref<string | null>(null)
 
   function openInspector(node: Node) {
-    activeNodeId.value = node.id
-    activeNode.value = node
-    // Reset test output when opening a new node, unless it's the same node
+    // Reset test output when opening a new node
     if (activeNodeId.value !== node.id) {
       lastTestOutput.value = null
     }
+    activeNodeId.value = node.id
+    activeNode.value = node
     isOpen.value = true
   }
 

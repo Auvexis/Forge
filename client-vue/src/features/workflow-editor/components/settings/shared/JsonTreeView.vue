@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = defineProps<{
   data: any
@@ -7,9 +8,12 @@ const props = defineProps<{
   path?: string
   isRoot?: boolean
   isLast?: boolean
+  icons?: Record<string, string>
 }>()
 
-const isObject = computed(() => props.data !== null && typeof props.data === 'object' && !Array.isArray(props.data))
+const isObject = computed(
+  () => props.data !== null && typeof props.data === 'object' && !Array.isArray(props.data),
+)
 const isArray = computed(() => Array.isArray(props.data))
 const isExpanded = ref(true)
 
@@ -26,40 +30,57 @@ const onDragStart = (event: DragEvent) => {
 </script>
 
 <template>
-  <div class="json-node" :class="{ 'ml-4': !isRoot }">
+  <div class="json-node">
     <div class="json-line flex items-start">
-      <span v-if="isObject || isArray" class="cursor-pointer select-none w-4 text-center mr-1 text-muted hover:text-primary" @click="toggle">
-        {{ isExpanded ? '▾' : '▸' }}
-      </span>
-      <span v-else class="w-4 mr-1"></span>
+      <div v-if="isObject || isArray" class="json-toggle-btn" @click="toggle">
+        <LucideIcon :name="isExpanded ? 'chevron-down' : 'chevron-right'" :size="14" />
+      </div>
+      <div v-else style="width: 20px; height: 20px; margin-right: 4px"></div>
 
-      <!-- Key -->
-      <span 
-        v-if="name" 
-        class="json-key mr-1 font-mono text-sm" 
-        :class="{ 'draggable-item hover:text-primary hover:underline': path }"
+      <span
+        v-if="name"
+        class="json-key font-mono text-sm transition-all"
+        style="display: inline-flex; align-items: center; gap: 6px;"
+        :class="path ? 'json-key-draggable' : 'mr-1'"
         :draggable="!!path"
         @dragstart="onDragStart"
+        :title="path ? 'Arraste para mapear' : ''"
       >
-        "{{ name }}"
+        <template v-if="icons && path && icons[path]">
+          <img v-if="icons[path].startsWith('http') || icons[path].startsWith('/') || icons[path].startsWith('data:')" :src="icons[path]" style="width: 14px; height: 14px; flex-shrink: 0; object-fit: contain; border-radius: 2px;" />
+          <LucideIcon v-else :name="icons[path]" :size="14" style="flex-shrink: 0;" />
+        </template>
+        <LucideIcon v-else-if="path" name="tag" :size="12" style="flex-shrink: 0; opacity: 0.5;" />
+        
+        <span>"{{ name }}"</span>
       </span>
       <span v-if="name" class="json-punctuation text-muted mr-1">:</span>
 
       <!-- Values -->
       <template v-if="isObject">
         <span class="json-punctuation text-muted cursor-pointer" @click="toggle">{</span>
-        <span v-if="!isExpanded" class="json-punctuation text-muted cursor-pointer" @click="toggle"> ... }<span v-if="!isLast">,</span></span>
+        <span v-if="!isExpanded" class="json-punctuation text-muted cursor-pointer" @click="toggle">
+          ... }<span v-if="!isLast">,</span></span
+        >
       </template>
       <template v-else-if="isArray">
         <span class="json-punctuation text-muted cursor-pointer" @click="toggle">[</span>
-        <span v-if="!isExpanded" class="json-punctuation text-muted cursor-pointer" @click="toggle"> ... ]<span v-if="!isLast">,</span></span>
+        <span v-if="!isExpanded" class="json-punctuation text-muted cursor-pointer" @click="toggle">
+          ... ]<span v-if="!isLast">,</span></span
+        >
       </template>
-      
+
       <!-- Primitives -->
       <template v-else>
-        <span v-if="typeof data === 'string'" class="json-string font-mono text-sm">"{{ data }}"</span>
-        <span v-else-if="typeof data === 'number'" class="json-number font-mono text-sm">{{ data }}</span>
-        <span v-else-if="typeof data === 'boolean'" class="json-boolean font-mono text-sm">{{ data }}</span>
+        <span v-if="typeof data === 'string'" class="json-string font-mono text-sm"
+          >"{{ data }}"</span
+        >
+        <span v-else-if="typeof data === 'number'" class="json-number font-mono text-sm">{{
+          data
+        }}</span>
+        <span v-else-if="typeof data === 'boolean'" class="json-boolean font-mono text-sm">{{
+          data
+        }}</span>
         <span v-else-if="data === null" class="json-punctuation font-mono text-sm">null</span>
         <span v-if="!isLast" class="json-punctuation text-muted">,</span>
       </template>
@@ -68,26 +89,28 @@ const onDragStart = (event: DragEvent) => {
     <!-- Children -->
     <div v-if="(isObject || isArray) && isExpanded" class="json-children">
       <template v-if="isObject">
-        <JsonTreeView 
-          v-for="(val, key, index) in data" 
-          :key="key" 
-          :data="val" 
-          :name="String(key)" 
+        <JsonTreeView
+          v-for="(val, key, index) in data"
+          :key="key"
+          :data="val"
+          :name="String(key)"
           :path="path ? `${path}.${String(key)}` : String(key)"
           :is-last="index === Object.keys(data).length - 1"
+          :icons="icons"
         />
       </template>
       <template v-if="isArray">
-        <JsonTreeView 
-          v-for="(val, index) in data" 
-          :key="index" 
+        <JsonTreeView
+          v-for="(val, index) in data"
+          :key="index"
           :data="val"
           :path="path ? `${path}[${index}]` : `[${index}]`"
           :is-last="index === data.length - 1"
+          :icons="icons"
         />
       </template>
     </div>
-    
+
     <div v-if="(isObject || isArray) && isExpanded" class="json-line flex">
       <span class="w-4 mr-1"></span>
       <span class="json-punctuation text-muted">
@@ -99,11 +122,53 @@ const onDragStart = (event: DragEvent) => {
 
 <style scoped>
 .json-node {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
   line-height: 1.5;
+}
+.json-children {
+  margin-left: 12px;
+  padding-left: 8px;
+  border-left: 1px solid var(--nod8-border);
+}
+.json-toggle-btn {
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  margin-right: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nod8-text-muted);
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.json-toggle-btn:hover {
+  color: var(--nod8-accent);
+  background-color: rgba(99, 102, 241, 0.15);
 }
 .json-key {
   color: var(--json-color-key, var(--nod8-text-primary));
+}
+.json-key-draggable {
+  margin-right: 4px;
+  padding: 2px 6px;
+  margin-left: -6px;
+  border-radius: 4px;
+  cursor: grab;
+}
+.json-key-draggable:hover {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: var(--nod8-accent) !important;
+  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.4);
+}
+.json-key-draggable:active {
+  cursor: grabbing;
+  background-color: rgba(99, 102, 241, 0.3);
+  transform: scale(0.97);
 }
 .json-string {
   color: var(--json-color-string, rgb(34, 197, 94));

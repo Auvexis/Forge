@@ -1,5 +1,5 @@
 <template>
-  <div class="base-select-wrapper">
+  <div class="base-select-wrapper" ref="wrapperRef">
     <label v-if="label" :for="id" class="base-input-wrapper__label">
       {{ label }} <span v-if="required" class="required">*</span>
     </label>
@@ -9,32 +9,46 @@
       :class="{
         'base-select-container--error': !!error,
         'base-select-container--disabled': disabled,
+        'base-select-container--open': isOpen
       }"
+      @click="toggleDropdown"
+      tabindex="0"
     >
-      <select
-        :id="id"
-        :value="modelValue"
-        class="base-select"
-        :disabled="disabled"
-        :required="required"
-        @change="onChange"
-        @blur="$emit('blur', $event)"
-        @focus="$emit('focus', $event)"
-        v-bind="$attrs"
-      >
-        <option v-if="placeholder && !modelValue" value="" disabled selected hidden>
-          {{ placeholder }}
-        </option>
-        <slot>
-          <option v-for="option in options" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </slot>
-      </select>
+      <!-- Trigger -->
+      <div class="base-select-trigger">
+        <template v-if="selectedOption">
+          <LucideIcon v-if="selectedOption.icon" :name="selectedOption.icon" :size="16" class="option-icon text-muted" />
+          <img v-else-if="selectedOption.image" :src="selectedOption.image" class="option-image" />
+          <span class="truncate">{{ selectedOption.label }}</span>
+        </template>
+        <span v-else class="placeholder">{{ placeholder || 'Select...' }}</span>
+      </div>
 
-      <span class="base-select__icon">
+      <!-- Arrow -->
+      <span class="base-select__icon" :class="{ 'rotate-180': isOpen }">
         <LucideIcon name="chevron-down" :size="16" />
       </span>
+
+      <!-- Dropdown -->
+      <Transition name="fade-down">
+        <div v-if="isOpen" class="base-select-dropdown">
+          <div 
+            v-for="option in options" 
+            :key="option.value"
+            class="base-select-option"
+            :class="{ 'base-select-option--selected': option.value === modelValue }"
+            @click.stop="selectOption(option)"
+          >
+            <LucideIcon v-if="option.icon" :name="option.icon" :size="16" class="option-icon text-muted" />
+            <img v-else-if="option.image" :src="option.image" class="option-image" />
+            <span class="truncate">{{ option.label }}</span>
+            <LucideIcon v-if="option.value === modelValue" name="check" :size="14" class="ml-auto text-nod8-accent" />
+          </div>
+          <div v-if="!options.length" class="base-select-empty">
+            No options available
+          </div>
+        </div>
+      </Transition>
     </div>
 
     <p v-if="error" class="base-input-wrapper__error">{{ error }}</p>
@@ -43,18 +57,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { generateId } from '@/shared/utils/id'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 export interface SelectOption {
   value: string | number
   label: string
+  icon?: string
+  image?: string
 }
 
 const props = withDefaults(
   defineProps<{
-    modelValue: string | number
+    modelValue: string | number | null
     options?: SelectOption[]
     label?: string
     placeholder?: string
@@ -72,17 +88,47 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: string | number]
   blur: [event: FocusEvent]
   focus: [event: FocusEvent]
 }>()
 
 const id = computed(() => props.id || generateId('select'))
 
-const onChange = (e: Event) => {
-  const target = e.target as HTMLSelectElement
-  emit('update:modelValue', target.value)
+const isOpen = ref(false)
+const wrapperRef = ref<HTMLElement | null>(null)
+
+const selectedOption = computed(() => {
+  return props.options.find((opt) => opt.value === props.modelValue)
+})
+
+const toggleDropdown = () => {
+  if (props.disabled) return
+  isOpen.value = !isOpen.value
 }
+
+const closeDropdown = () => {
+  isOpen.value = false
+}
+
+const selectOption = (option: SelectOption) => {
+  emit('update:modelValue', option.value)
+  closeDropdown()
+}
+
+const handleClickOutside = (e: MouseEvent) => {
+  if (wrapperRef.value && !wrapperRef.value.contains(e.target as Node)) {
+    closeDropdown()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 defineOptions({ inheritAttrs: false })
 </script>
@@ -93,6 +139,7 @@ defineOptions({ inheritAttrs: false })
   flex-direction: column;
   gap: var(--nod8-space-1);
   width: 100%;
+  position: relative;
 }
 
 .base-input-wrapper__label {
@@ -114,17 +161,22 @@ defineOptions({ inheritAttrs: false })
   border-radius: var(--nod8-radius-sm);
   transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
   width: 100%;
+  min-height: 36px;
+  cursor: pointer;
+  user-select: none;
 }
 
-.base-select-container:focus-within {
+.base-select-container:focus,
+.base-select-container--open {
   border-color: var(--nod8-accent);
   box-shadow: 0 0 0 1px var(--nod8-accent);
+  outline: none;
 }
 
 .base-select-container--error {
   border-color: var(--nod8-red-500);
 }
-.base-select-container--error:focus-within {
+.base-select-container--error.base-select-container--open {
   box-shadow: 0 0 0 1px var(--nod8-red-500);
 }
 
@@ -134,23 +186,19 @@ defineOptions({ inheritAttrs: false })
   background-color: var(--nod8-bg-muted);
 }
 
-.base-select {
+.base-select-trigger {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--nod8-space-2);
   width: 100%;
-  height: 36px;
-  background: transparent;
-  border: none;
-  outline: none;
+  padding: 0 var(--nod8-space-8) 0 var(--nod8-space-3);
   color: var(--nod8-text-primary);
   font-size: var(--nod8-text-sm);
-  padding: 0 var(--nod8-space-8) 0 var(--nod8-space-3);
-  appearance: none;
-  cursor: pointer;
 }
 
-.base-select:disabled {
-  cursor: not-allowed;
-  color: var(--nod8-text-disabled);
+.placeholder {
+  color: var(--nod8-text-muted);
 }
 
 .base-select__icon {
@@ -163,6 +211,79 @@ defineOptions({ inheritAttrs: false })
   width: 36px;
   height: 100%;
   pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+.base-select__icon.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.base-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  max-height: 240px;
+  overflow-y: auto;
+  background-color: var(--nod8-bg-elevated);
+  border: 1px solid var(--nod8-border-strong);
+  border-radius: var(--nod8-radius-sm);
+  box-shadow: var(--nod8-shadow-lg);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+}
+
+.base-select-option {
+  display: flex;
+  align-items: center;
+  gap: var(--nod8-space-2);
+  padding: 8px 12px;
+  font-size: var(--nod8-text-sm);
+  color: var(--nod8-text-primary);
+  border-radius: var(--nod8-radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.base-select-option:hover {
+  background-color: var(--nod8-bg-overlay);
+}
+
+.base-select-option--selected {
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+.base-select-empty {
+  padding: 12px;
+  text-align: center;
+  font-size: var(--nod8-text-sm);
+  color: var(--nod8-text-muted);
+}
+
+/* Icons & Images */
+.option-icon {
+  flex-shrink: 0;
+}
+
+.option-image {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Transition */
+.fade-down-enter-active,
+.fade-down-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.fade-down-enter-from,
+.fade-down-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 
 .base-input-wrapper__error {
@@ -175,12 +296,5 @@ defineOptions({ inheritAttrs: false })
   font-size: var(--nod8-text-xs);
   color: var(--nod8-text-muted);
   margin-top: 2px;
-}
-
-/* Base Select Options Styling in some browsers can be limited, 
-but inheriting background provides a better default */
-.base-select option {
-  background-color: var(--nod8-bg-surface);
-  color: var(--nod8-text-primary);
 }
 </style>

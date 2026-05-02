@@ -295,13 +295,29 @@ function autoConnectToSource(sourceId: string, targetId: string) {
   vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
 }
 
+const generateNodeId = (prefix: string) => {
+  if (!workflowStore.activeWorkflow) return `${prefix}_1`
+  
+  const nodes = workflowStore.activeWorkflow.nodes
+  let counter = 1
+  let newId = `${prefix}_${counter}`
+  
+  // Safe check against both store and current VueFlow nodes
+  while (nodes[newId] || vueFlowNodes.value.some(n => n.id === newId)) {
+    counter++
+    newId = `${prefix}_${counter}`
+  }
+  
+  return newId
+}
+
 const addLogicNode = (type: WorkflowNodeType) => {
   if (!workflowStore.activeWorkflow) return
 
   const backupSourceId = quickAddSourceId
   quickAddSourceId = null // reset immediately
   
-  const id = `${type}_${Date.now()}`
+  const id = generateNodeId(type)
   const pos = getNewNodePosition(backupSourceId)
 
   // Default properties required by backend validation
@@ -353,7 +369,7 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
   const backupSourceId = quickAddSourceId
   quickAddSourceId = null // reset immediately
 
-  const id = `${action}_${Date.now()}`
+  const id = generateNodeId(action)
   const pos = getNewNodePosition(backupSourceId)
 
   const newPluginNode: any = {
@@ -476,8 +492,7 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
         />
       </div>
 
-      <!-- Node Inspector Immersive Modal -->
-      <NodeInspectorModal />
+
 
       <!-- MARCADORES SVG CUSTOMIZADOS ATRELADOS ÀS VARIÁVEIS CSS (GLOBAL DOM) -->
       <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
@@ -578,6 +593,9 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
         <IfNode v-bind="nodeProps" />
       </template>
     </VueFlow>
+
+    <!-- Node Inspector Immersive Modal -->
+    <NodeInspectorModal />
   </div>
 </template>
 

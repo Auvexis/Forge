@@ -1,31 +1,19 @@
 <template>
   <div class="variable-tree">
     <!-- Search bar -->
-    <div class="vt-search">
+    <div class="vt-search mb-4">
       <LucideIcon name="search" size="12" class="vt-search-icon" />
       <input class="vt-search-input" placeholder="Buscar variáveis..." v-model="search" />
     </div>
 
-    <!-- Grouped chips -->
-    <div v-for="(paths, groupName) in groupedPaths" :key="groupName" class="vt-group">
-      <span class="vt-group-title">{{ groupName }}</span>
-      <div class="vt-chips">
-        <button
-          v-for="(p, idx) in paths"
-          :key="`${p.path}:${idx}`"
-          type="button"
-          class="vt-chip"
-          :title="p.path"
-          @click="onInject(paramKey, p.path)"
-        >
-          <LucideIcon name="check" size="10" class="vt-chip-icon" />
-          <span class="vt-chip-label">{{ getVariableDisplayLabel(p.path, p.label) }}</span>
-          <span class="vt-chip-type">{{ p.type }}</span>
-        </button>
-      </div>
-    </div>
+    <JsonTreeView 
+      v-if="Object.keys(mockData).length > 0"
+      :data="mockData" 
+      :is-root="true" 
+      :icons="iconsMap"
+    />
 
-    <p v-if="filteredPaths.length === 0" class="vt-empty">
+    <p v-else class="vt-empty">
       Nenhuma variável encontrada para "{{ search }}"
     </p>
   </div>
@@ -37,6 +25,7 @@ import type { GraphNode } from '@vue-flow/core'
 import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import JsonTreeView from '../shared/JsonTreeView.vue'
 import {
   resolveSchemaTree,
   resolveTriggerPaths,
@@ -60,33 +49,22 @@ const search = ref('')
 const { data: plugins, execute: fetchPlugins } = useApi(pluginsApi.getAll, [])
 fetchPlugins()
 
-const getVariableDisplayLabel = (path: string, fallbackLabel: string): string => {
-  if (path.startsWith('steps.')) {
-    const parts = path.split('.')
-    if (parts.length >= 3) {
-      const [, nodeId, ...rest] = parts
-      if (nodeId && rest.length > 0) {
-        return `${nodeId}.${rest.join('.')}`
-      }
-    }
-  }
-  return fallbackLabel
-}
+// ... (removed getVariableDisplayLabel)
 
 const allPaths = computed(() => {
   const paths: SchemaPath[] = []
 
   for (const upNode of props.upstreamNodes) {
     if (upNode.id === 'trigger') {
-      const triggerData = upNode.data as WorkflowTrigger
+      const triggerData = upNode.data as unknown as WorkflowTrigger
       if (triggerData?.schema) {
         paths.push(...resolveTriggerPaths(triggerData.schema))
       }
       if (!triggerData?.schema || Object.keys(triggerData.schema).length === 0) {
         paths.push({
-          path: 'trigger',
+          path: 'trigger.payload',
           label: 'trigger.payload',
-          type: 'object',
+          type: 'any',
           sourceNodeName: 'Trigger',
         })
       }
@@ -145,18 +123,76 @@ const filteredPaths = computed(() => {
   )
 })
 
-const groupedPaths = computed(() => {
-  const grouped: Record<string, SchemaPath[]> = {}
+const mockData = computed(() => {
+  // Pre-seed to guarantee insertion order (trigger first, then steps)
+  const obj: any = { trigger: {}, steps: {} }
+  
   for (const p of filteredPaths.value) {
-    grouped[p.sourceNodeName] = grouped[p.sourceNodeName] || []
-    grouped[p.sourceNodeName]!.push(p)
+    const parts = p.path.split('.')
+    let current = obj
+    
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i] as string
+      if (i === parts.length - 1) {
+        current[part] = p.type || 'any'
+      } else {
+        if (!current[part] || typeof current[part] !== 'object') {
+          current[part] = {}
+        }
+        current = current[part]
+      }
+    }
   }
-  return grouped
+  
+  if (Object.keys(obj.trigger).length === 0) delete obj.trigger
+  if (Object.keys(obj.steps).length === 0) delete obj.steps
+  
+  return obj
 })
 
-const onInject = (paramKey: string, path: string) => {
-  emit('inject', paramKey, path)
-}
+const iconsMap = computed(() => {
+  const map: Record<string, string> = {}
+  
+  // Assign a specific icon for the steps root
+  map['steps'] = 'blocks'
+  
+  const typeIcons: Record<string, string> = {
+    http: 'globe',
+    code: 'code',
+    loop: 'repeat',
+    subworkflow: 'layers',
+    event: 'bell',
+    'event-listener': 'radio',
+    if: 'git-branch',
+  }
+
+  for (const upNode of props.upstreamNodes) {
+    if (upNode.id === 'trigger') {
+      map['trigger'] = 'zap'
+      map['trigger.payload'] = 'package'
+      continue
+    }
+
+    const upData = upNode.data as unknown as WorkflowNode
+    
+    if ('pluginId' in upData) {
+      const pluginNodeData = upData as PluginNode
+      const upPlugin = plugins.value?.find((p) => p.id === pluginNodeData.pluginId)
+      if (upPlugin?.manifest.metadata.icon) {
+        map[`steps.${upNode.id}`] = upPlugin.manifest.metadata.icon
+      } else {
+        map[`steps.${upNode.id}`] = 'puzzle'
+      }
+    } else {
+      map[`steps.${upNode.id}`] = upNode.type ? (typeIcons[upNode.type] || 'settings') : 'settings'
+    }
+
+    // Assign a specific icon for the output root of the node
+    map[`steps.${upNode.id}.output`] = 'file-output'
+  }
+  
+  return map
+})
 </script>
 
 <style scoped>
@@ -196,70 +232,7 @@ const onInject = (paramKey: string, path: string) => {
   opacity: 0.5;
 }
 
-.vt-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nod8-space-1);
-}
 
-.vt-group-title {
-  font-size: 10px;
-  text-transform: uppercase;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: var(--nod8-text-muted);
-  opacity: 0.6;
-  margin-left: 2px;
-}
-
-.vt-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.vt-chip {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background-color: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  padding: 6px 10px;
-  border-radius: var(--nod8-radius-md);
-  cursor: pointer;
-  max-width: 100%;
-  transition: all var(--nod8-duration-fast);
-}
-
-.vt-chip:hover {
-  background-color: rgba(16, 185, 129, 0.2);
-}
-
-.vt-chip:active {
-  transform: scale(0.97);
-}
-
-.vt-chip-icon {
-  color: rgb(16, 185, 129);
-  opacity: 0.5;
-  flex-shrink: 0;
-}
-
-.vt-chip-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: rgb(16, 185, 129);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.vt-chip-type {
-  font-size: 9px;
-  color: rgb(16, 185, 129);
-  opacity: 0.6;
-  flex-shrink: 0;
-}
 
 .vt-empty {
   font-size: 11px;
