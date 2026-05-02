@@ -29,7 +29,7 @@ export const useAppPanelStore = defineStore('app-panel', () => {
   // Utilizar shallowRef é a melhor prática no Vue para armazenar componentes
   // pois não tenta tornar a árvore interna do componente inteira reativa.
   const panelComponent = shallowRef<Component | null>(null)
-  const componentProps = ref<Record<string, unknown>>({})
+  const componentProps = shallowRef<Record<string, unknown>>({})
 
   let transitionTimeout: number | null = null
 

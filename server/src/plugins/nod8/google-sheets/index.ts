@@ -4,8 +4,8 @@ import type {
   PluginManifest,
 } from "../../../shared/models/plugin-types.ts";
 import manifest from "./manifest.json" with { type: "json" };
-import { createGoogleSheetsMethods } from "./methods.ts";
 import { google } from "googleapis";
+import { createGoogleSheetsMethods } from "./methods.ts";
 
 // ──────────── OAuth2 Provider ────────────
 
