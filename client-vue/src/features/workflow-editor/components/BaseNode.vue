@@ -114,26 +114,6 @@ const onQuickAdd = () => {
           <LucideIcon :name="props.icon" :size="48" />
         </div>
       </slot>
-
-      <!-- Success/Error checkmark overlay -->
-      <div
-        v-if="effectiveStatus === 'success'"
-        class="nod8-base-node__status-badge nod8-base-node__status-badge--success"
-      >
-        <LucideIcon name="check" :size="10" />
-      </div>
-      <div
-        v-else-if="effectiveStatus === 'failed'"
-        class="nod8-base-node__status-badge nod8-base-node__status-badge--error"
-      >
-        <LucideIcon name="x" :size="10" />
-      </div>
-      <div
-        v-else-if="effectiveStatus === 'running'"
-        class="nod8-base-node__status-badge nod8-base-node__status-badge--running"
-      >
-        <LucideIcon name="loader-2" :size="10" class="spin" />
-      </div>
     </div>
 
     <!-- Custom slot content (if any) -->
@@ -258,35 +238,6 @@ const onQuickAdd = () => {
   width: 100%;
   height: 100%;
   flex-shrink: 0;
-}
-
-/* ─── Status badge (bottom-left of icon) ────────────────────── */
-.nod8-base-node__status-badge {
-  position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--nod8-node-body);
-}
-
-.nod8-base-node__status-badge--success {
-  background-color: var(--nod8-green-400);
-  color: #000;
-}
-
-.nod8-base-node__status-badge--error {
-  background-color: var(--nod8-red-400);
-  color: #fff;
-}
-
-.nod8-base-node__status-badge--running {
-  background-color: var(--nod8-amber-400);
-  color: #000;
 }
 
 .spin {

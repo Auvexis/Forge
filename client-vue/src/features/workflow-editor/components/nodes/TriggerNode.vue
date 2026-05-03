@@ -111,24 +111,6 @@ const onExecuteWorkflow = async () => {
       <LucideIcon :name="triggerConfig.icon" :size="48" />
     </div>
 
-    <!-- Status badge -->
-    <div
-      v-if="effectiveStatus === 'success'"
-      class="trigger-node__status trigger-node__status--success"
-    >
-      <LucideIcon name="check" :size="10" />
-    </div>
-    <div
-      v-else-if="effectiveStatus === 'failed'"
-      class="trigger-node__status trigger-node__status--error"
-    >
-      <LucideIcon name="x" :size="10" />
-    </div>
-    <div
-      v-else-if="effectiveStatus === 'running'"
-      class="trigger-node__status trigger-node__status--running"
-    >
-      <LucideIcon name="loader-2" :size="10" class="spin" />
     </div>
 
     <!-- Source handle -->
@@ -233,10 +215,9 @@ const onExecuteWorkflow = async () => {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
-  width: 100%;
+  left: -30px;
+  width: 30px;
   height: 100%;
-  z-index: -2;
 }
 
 .trigger-node:hover .trigger-node__execute-btn {
@@ -257,45 +238,6 @@ const onExecuteWorkflow = async () => {
   justify-content: center;
   width: 100%;
   height: 100%;
-}
-
-/* ─── Status badge ──────────────────────────────────────────── */
-.trigger-node__status {
-  position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--nod8-node-body);
-}
-
-.trigger-node__status--success {
-  background-color: var(--nod8-green-400);
-  color: #000;
-}
-
-.trigger-node__status--error {
-  background-color: var(--nod8-red-400);
-  color: #fff;
-}
-
-.trigger-node__status--running {
-  background-color: var(--nod8-amber-400);
-  color: #000;
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 /* ─── Label (outside the card) ──────────────────────────────── */
