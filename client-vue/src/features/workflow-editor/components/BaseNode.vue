@@ -207,8 +207,8 @@ const onQuickAdd = () => {
 
 /* ─── Selection & execution status borders ──────────────────── */
 .nod8-base-node.is-selected {
-  border-color: var(--nod8-green-400);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nod8-green-400) 25%, transparent);
+  border-color: color-mix(in srgb, var(--node-custom-border, var(--nod8-node-border)) 60%, white 40%);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--node-custom-border, var(--nod8-node-border)) 30%, transparent);
 }
 
 .nod8-base-node.is-running {

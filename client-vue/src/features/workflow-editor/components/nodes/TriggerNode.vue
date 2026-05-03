@@ -103,7 +103,7 @@ const onExecuteWorkflow = async () => {
 
     <!-- Lightning bolt accent (top-left corner like n8n) -->
     <div class="trigger-node__lightning">
-      <LucideIcon name="zap" :size="12" />
+      <LucideIcon name="zap" :size="24" />
     </div>
 
     <!-- Icon -->
@@ -154,8 +154,8 @@ const onExecuteWorkflow = async () => {
 }
 
 .trigger-node.is-selected {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nod8-green-400) 25%, transparent);
-  border-color: var(--nod8-green-400);
+  border-color: color-mix(in srgb, var(--trigger-border, #3c3c3c) 60%, white 40%);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--trigger-border, #3c3c3c) 30%, transparent);
 }
 
 .trigger-node.is-running {
@@ -174,7 +174,7 @@ const onExecuteWorkflow = async () => {
 .trigger-node__lightning {
   position: absolute;
   top: 50%;
-  left: -20px;
+  left: -50px;
   transform: translateY(-50%);
   color: var(--nod8-red-400);
   opacity: 0.9;
@@ -193,12 +193,12 @@ const onExecuteWorkflow = async () => {
 .trigger-node__execute-btn {
   position: absolute;
   top: 50%;
-  left: 0;
+  left: -5px;
   transform: translate(-20px, -50%);
   display: flex;
   align-items: center;
   gap: 6px;
-  background-color: var(--nod8-accent);
+  background-color: var(--nod8-red-500);
   color: #fff;
   border: none;
   border-radius: var(--nod8-radius-sm);
@@ -233,7 +233,7 @@ const onExecuteWorkflow = async () => {
 }
 
 .trigger-node__execute-btn:hover {
-  background-color: var(--nod8-brand-600);
+  background-color: var(--nod8-red-400);
 }
 
 /* ─── Main icon ─────────────────────────────────────────────── */
