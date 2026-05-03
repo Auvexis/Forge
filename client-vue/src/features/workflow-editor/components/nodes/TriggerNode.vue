@@ -214,12 +214,11 @@ const onExecuteWorkflow = async () => {
   background-color: var(--nod8-accent);
   color: #fff;
   border: none;
-  border-radius: var(--nod8-radius-full);
-  padding: 6px 12px 6px 10px;
+  border-radius: var(--nod8-radius-sm);
+  padding: 10px 12px 10px 10px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: var(--nod8-shadow-md);
   
   /* Initial state: hidden and slightly to the right (behind the node) */
   opacity: 0;
@@ -230,14 +229,13 @@ const onExecuteWorkflow = async () => {
 }
 
 /* Invisible bridge to prevent hover loss between the node and the button */
-.trigger-node__execute-btn::after {
+.trigger-node::before {
   content: '';
   position: absolute;
-  top: 50%;
-  right: -20px;
-  width: calc(100% + 20px);
-  height: 100px;
-  transform: translateY(-50%);
+  top: 0;
+  left: -30px;
+  width: 30px;
+  height: 100%;
 }
 
 .trigger-node:hover .trigger-node__execute-btn {
