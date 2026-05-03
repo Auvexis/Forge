@@ -146,7 +146,7 @@ watch(
 
 // ── Eventos ─────────────────────────────────────────────────────────────────
 
-const onNodeClick = (event: NodeMouseEvent) => {
+const onNodeDoubleClick = (event: NodeMouseEvent) => {
   inspectorStore.openInspector(event.node)
 }
 
@@ -262,15 +262,17 @@ function alignNodeCenters(sourceId: string, targetId: string) {
 
       // Atualiza o Y via VueFlow state
       updateNode(targetId, { position: { x: tNode!.position.x, y: newY } })
-      
+
       // Atualiza a prop reativa do VueFlow (array model)
-      const vNode = (vueFlowNodes.value as any[]).find(n => n.id === targetId)
+      const vNode = (vueFlowNodes.value as any[]).find((n) => n.id === targetId)
       if (vNode) vNode.position.y = newY
 
       // Atualiza a store
       if (workflowStore.activeWorkflow?.nodes[targetId]) {
         workflowStore.activeWorkflow.nodes[targetId].ui!.positionY = newY
-        workflowStore.updateNodeData(targetId, { ui: { ...workflowStore.activeWorkflow.nodes[targetId].ui, positionY: newY }})
+        workflowStore.updateNodeData(targetId, {
+          ui: { ...workflowStore.activeWorkflow.nodes[targetId].ui, positionY: newY },
+        })
       }
     } else if (attempts < 30) {
       setTimeout(() => checkAndAlign(attempts + 1), 30)
@@ -297,17 +299,17 @@ function autoConnectToSource(sourceId: string, targetId: string) {
 
 const generateNodeId = (prefix: string) => {
   if (!workflowStore.activeWorkflow) return `${prefix}_1`
-  
+
   const nodes = workflowStore.activeWorkflow.nodes
   let counter = 1
   let newId = `${prefix}_${counter}`
-  
+
   // Safe check against both store and current VueFlow nodes
-  while (nodes[newId] || vueFlowNodes.value.some(n => n.id === newId)) {
+  while (nodes[newId] || vueFlowNodes.value.some((n) => n.id === newId)) {
     counter++
     newId = `${prefix}_${counter}`
   }
-  
+
   return newId
 }
 
@@ -316,7 +318,7 @@ const addLogicNode = (type: WorkflowNodeType) => {
 
   const backupSourceId = quickAddSourceId
   quickAddSourceId = null // reset immediately
-  
+
   const id = generateNodeId(type)
   const pos = getNewNodePosition(backupSourceId)
 
@@ -465,8 +467,8 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       fit-view-on-init
       :snap-to-grid="true"
       :snap-grid="[10, 10]"
-      :delete-key-code="null"
-      @node-click="onNodeClick"
+      :delete-key-code="['Delete']"
+      @node-double-click="onNodeDoubleClick"
       @node-drag-stop="onNodeDragStop"
       @connect="onConnect"
       @edges-change="onEdgesChange"
@@ -491,8 +493,6 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
           @close="emit('update:show-logs', false)"
         />
       </div>
-
-
 
       <!-- MARCADORES SVG CUSTOMIZADOS ATRELADOS ÀS VARIÁVEIS CSS (GLOBAL DOM) -->
       <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
