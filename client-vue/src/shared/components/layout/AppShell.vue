@@ -1,6 +1,4 @@
 <template>
-  <div class="app-shell__header-strip"></div>
-
   <div class="app-shell">
     <!-- Sidebar navigation -->
     <slot name="sidebar"></slot>
@@ -28,12 +26,6 @@
   overflow: hidden;
   background-color: var(--nod8-bg-base);
   color: var(--nod8-text-primary);
-}
-
-.app-shell__header-strip {
-  width: 100%;
-  height: 2px;
-  background: var(--nod8-brand-gradient);
 }
 
 .app-shell__main {

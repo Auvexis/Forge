@@ -51,7 +51,7 @@ function close() {
   background: var(--nod8-bg-surface);
   border: 1px solid var(--nod8-border);
   box-shadow: var(--nod8-shadow-xl);
-  border-radius: var(--nod8-radius-md);
+  border-radius: var(--nod8-radius-sm);
 }
 
 /* ── Transition: base-modal-slide-up ── */
