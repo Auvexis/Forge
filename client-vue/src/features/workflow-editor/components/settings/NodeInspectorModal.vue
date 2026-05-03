@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { type GraphNode } from '@vue-flow/core'
 import { useNodeInspectorStore } from '../../stores/node-inspector.store'
 import { useWorkflowStore } from '../../stores/workflow.store'
+import { useExecutionStore } from '../../stores/execution.store'
 import type { NodeData } from './editors/types'
 
 import TriggerEditor from './editors/TriggerEditor.vue'
@@ -24,6 +25,31 @@ import { workflowsApi } from '@/core/api/workflows.api'
 
 const inspectorStore = useNodeInspectorStore()
 const workflowStore = useWorkflowStore()
+const executionStore = useExecutionStore()
+
+const executionState = computed(() => {
+  if (!inspectorStore.activeNodeId) return null
+  return executionStore.nodeStatuses[inspectorStore.activeNodeId]
+})
+
+const displayOutput = computed(() => {
+  if (inspectorStore.lastTestOutput) {
+    return inspectorStore.lastTestOutput
+  }
+  if (executionState.value) {
+    if (executionState.value.status === 'success') {
+      return { success: true, data: executionState.value.output }
+    }
+    if (executionState.value.status === 'failed') {
+      return { success: false, error: executionState.value.error }
+    }
+  }
+  return null
+})
+
+const isExecutingNode = computed(() => {
+  return inspectorStore.isTesting || executionState.value?.status === 'running'
+})
 
 const editorMap: Record<string, any> = {
   trigger: TriggerEditor,
@@ -331,16 +357,16 @@ const copyToClipboard = async (path: string) => {
           </div>
           <div class="inspector-pane-content overflow-y-auto flex flex-col h-full">
             <div
-              v-if="inspectorStore.isTesting"
+              v-if="isExecutingNode"
               class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]"
             >
               <LucideIcon name="loader-2" size="24" class="spin text-nod8-accent mb-3" />
               <p class="text-sm text-primary font-medium">Executing step...</p>
             </div>
 
-            <div v-else-if="inspectorStore.lastTestOutput" class="h-full flex-1">
+            <div v-else-if="displayOutput" class="h-full flex-1">
               <div
-                v-if="!inspectorStore.lastTestOutput.success"
+                v-if="!displayOutput.success"
                 class="p-3 mb-3 rounded-md text-sm"
                 style="
                   background: rgba(239, 68, 68, 0.1);
@@ -350,11 +376,11 @@ const copyToClipboard = async (path: string) => {
               >
                 <div class="font-bold mb-1">Execution Error</div>
                 <div class="font-mono whitespace-pre-wrap">
-                  {{ inspectorStore.lastTestOutput.error }}
+                  {{ displayOutput.error }}
                 </div>
               </div>
               <div v-else class="h-full">
-                <JsonTreeView :data="inspectorStore.lastTestOutput.data" :is-root="true" />
+                <JsonTreeView :data="displayOutput.data" :is-root="true" />
               </div>
             </div>
 

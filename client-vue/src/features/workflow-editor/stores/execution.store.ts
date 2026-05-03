@@ -4,9 +4,6 @@ import { workflowsApi } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
 import type { NodeExecutionState, WorkflowExecutionStatus } from '@/core/types/execution.types'
 import type { WorkflowEvent } from '@/core/types/execution.types'
-import { useAppPanelStore } from '@/shared/stores/app-panel.store'
-import { markRaw } from 'vue'
-import NodeOutputPanel from '@/features/workflow-editor/components/execution/NodeOutputPanel.vue'
 
 export const useExecutionStore = defineStore('execution', () => {
   // ── State ────────────────────────────────────────────────────────────────
@@ -108,15 +105,6 @@ export const useExecutionStore = defineStore('execution', () => {
                 output: ev.data,
                 endedAt: ev.timestamp,
               })
-              const panelStore = useAppPanelStore()
-              panelStore.openPanel({
-                id: `node-output-${ev.nodeId}`,
-                title: 'Node Output',
-                component: markRaw(NodeOutputPanel),
-                props: { nodeId: ev.nodeId },
-                position: 'right',
-                width: 'lg',
-              })
             }
             break
 
@@ -126,15 +114,6 @@ export const useExecutionStore = defineStore('execution', () => {
                 status: 'failed',
                 error: ev.error,
                 endedAt: ev.timestamp,
-              })
-              const panelStore = useAppPanelStore()
-              panelStore.openPanel({
-                id: `node-output-${ev.nodeId}`,
-                title: 'Node Output',
-                component: markRaw(NodeOutputPanel),
-                props: { nodeId: ev.nodeId },
-                position: 'right',
-                width: 'lg',
               })
             }
             break
