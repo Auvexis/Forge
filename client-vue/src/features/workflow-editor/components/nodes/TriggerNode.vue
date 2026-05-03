@@ -110,12 +110,10 @@ const onExecuteWorkflow = async () => {
     <div class="trigger-node__icon" :style="{ color: triggerConfig.color }">
       <LucideIcon :name="triggerConfig.icon" :size="48" />
     </div>
-
-    </div>
-
-    <!-- Source handle -->
-    <BaseHandle id="source" type="source" :position="Position.Right" />
   </div>
+
+  <!-- Source handle -->
+  <BaseHandle id="source" type="source" :position="Position.Right" />
 
   <!-- Label outside -->
   <div class="trigger-node__label-area">
@@ -138,7 +136,7 @@ const onExecuteWorkflow = async () => {
   background-color: var(--nod8-node-body);
   background-image: linear-gradient(var(--node-tint, transparent), var(--node-tint, transparent));
   border: 2px solid var(--trigger-border, #3c3c3c);
-  border-radius: 16px;
+  border-radius: 50px 16px 16px 50px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,13 +173,20 @@ const onExecuteWorkflow = async () => {
 /* ─── Lightning bolt accent ─────────────────────────────────── */
 .trigger-node__lightning {
   position: absolute;
-  top: 6px;
-  left: 8px;
+  top: 50%;
+  left: -20px;
+  transform: translateY(-50%);
   color: var(--nod8-red-400);
   opacity: 0.9;
   display: flex;
   align-items: center;
   line-height: 1;
+  transition: opacity 0.2s var(--nod8-ease-standard);
+}
+
+.trigger-node:hover .trigger-node__lightning {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ─── Execute Button (Slide from left) ──────────────────────── */
