@@ -45,7 +45,6 @@
         </template>
       </AppSidebar>
       <SidebarGlobalPanel />
-      <AppGlobalSettings />
     </template>
 
     <!-- Main Content Area -->
@@ -59,6 +58,7 @@
     <template #overlay>
       <AppToaster />
       <AppConfirmPanel />
+      <AppGlobalSettings />
     </template>
   </AppShell>
 </template>
