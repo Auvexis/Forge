@@ -33,9 +33,14 @@
             <a href="https://docs.nod8.dev" target="_blank" class="nav-link" title="Documentation">
               <LucideIcon name="book" :size="16" />
             </a>
-            <div class="nav-link" title="Settings">
+            <button
+              class="nav-link"
+              :class="{ 'nav-link--active': settingsStore.isOpen }"
+              title="Settings"
+              @click="settingsStore.toggle"
+            >
               <LucideIcon name="settings" :size="16" />
-            </div>
+            </button>
           </div>
         </template>
       </AppSidebar>
@@ -55,20 +60,26 @@
       <AppConfirmPanel />
     </template>
   </AppShell>
+
+  <!-- Global Settings slide-over — independent from AppShell -->
+  <AppGlobalSettings />
 </template>
 
 <script setup lang="ts">
-import { markRaw, computed } from 'vue'
+import { computed } from 'vue'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
 import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import SidebarGlobalPanel from '@/shared/components/layout/SidebarGlobalPanel.vue'
+import AppGlobalSettings from '@/shared/components/layout/AppGlobalSettings.vue'
 import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
+import { useSettingsStore } from '@/shared/stores/settings.store'
 import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/ProductionMonitorPanel.vue'
 
 const sidebarStore = useSidebarPanelStore()
+const settingsStore = useSettingsStore()
 const isMonitorOpen = computed(() => sidebarStore.isOpen && sidebarStore.title === 'Production Monitor')
 
 function toggleMonitor() {

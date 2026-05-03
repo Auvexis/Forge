@@ -10,8 +10,8 @@
 - [x] **API Layer:** Register `app.routes.ts` in `server.ts`
 
 ### Frontend
-- [ ] **Store:** Create `useSettingsStore` (Pinia) — independent state, no dependency on `sidebarStore`
-- [ ] **UI Component:** Build `AppGlobalSettings.vue` — mobile-style slide-over with `slide-right` transition
-- [ ] **Integration:** Mount `<AppGlobalSettings />` in `App.vue` + bind sidebar settings button
-- [ ] **Variables Tab:** Key-value CRUD UI using `BaseInput` + `BaseButton`
-- [ ] **Preferences Tab:** Theme & system settings using `BaseSelect` + `BaseSwitch`
+- [x] **Store:** Create `useSettingsStore` (Pinia) — independent state, no dependency on `sidebarStore`
+- [x] **UI Component:** Build `AppGlobalSettings.vue` — mobile-style slide-over with `slide-right` transition
+- [x] **Integration:** Mount `<AppGlobalSettings />` in `App.vue` + bind sidebar settings button
+- [x] **Variables Tab:** Key-value CRUD UI using `BaseInput` + `BaseButton`
+- [x] **Preferences Tab:** Theme & system settings using `BaseSelect` + `BaseSwitch`
