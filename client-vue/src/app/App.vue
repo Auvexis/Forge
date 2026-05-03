@@ -45,6 +45,7 @@
         </template>
       </AppSidebar>
       <SidebarGlobalPanel />
+      <AppGlobalSettings />
     </template>
 
     <!-- Main Content Area -->
@@ -60,9 +61,6 @@
       <AppConfirmPanel />
     </template>
   </AppShell>
-
-  <!-- Global Settings slide-over — independent from AppShell -->
-  <AppGlobalSettings />
 </template>
 
 <script setup lang="ts">

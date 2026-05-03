@@ -1,157 +1,138 @@
 <template>
-  <Teleport to="body">
-    <!-- Backdrop -->
-    <Transition name="settings-backdrop">
-      <div
-        v-if="store.isOpen"
-        class="settings-backdrop"
-        @click="store.close"
-      />
-    </Transition>
+  <Transition name="settings-slide">
+    <div
+      v-if="store.isOpen"
+      class="global-settings"
+    >
+      <!-- Header -->
+      <header class="global-settings__header">
+        <button class="global-settings__back" @click="store.close" title="Back">
+          <LucideIcon name="arrow-left" :size="16" />
+        </button>
+        <span class="global-settings__title">Settings</span>
+      </header>
 
-    <!-- Slide-over panel -->
-    <Transition name="settings-panel">
-      <div
-        v-if="store.isOpen"
-        class="settings-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Settings"
-      >
-        <!-- Header -->
-        <header class="settings-panel__header">
-          <button class="settings-panel__back" @click="store.close" title="Close Settings">
-            <LucideIcon name="arrow-left" :size="18" />
-          </button>
-          <span class="settings-panel__title">Settings</span>
-        </header>
+      <!-- Tabs -->
+      <nav class="global-settings__tabs">
+        <button
+          v-for="tab in tabs"
+          :key="tab.id"
+          class="global-settings__tab"
+          :class="{ 'global-settings__tab--active': activeTab === tab.id }"
+          @click="activeTab = tab.id"
+        >
+          <LucideIcon :name="tab.icon" :size="13" />
+          {{ tab.label }}
+        </button>
+      </nav>
 
-        <!-- Tabs -->
-        <nav class="settings-tabs">
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            class="settings-tab"
-            :class="{ 'settings-tab--active': activeTab === tab.id }"
-            @click="activeTab = tab.id"
-          >
-            <LucideIcon :name="tab.icon" :size="14" />
-            {{ tab.label }}
-          </button>
-        </nav>
+      <!-- Scrollable content -->
+      <div class="global-settings__content">
 
-        <!-- Content -->
-        <div class="settings-panel__content">
-          <!-- ── Variables Tab ────────────────────────────────────────────── -->
-          <section v-if="activeTab === 'variables'" class="settings-section">
-            <p class="settings-section__description">
-              Global variables accessible in any workflow via
-              <code class="settings-code">{{ '{{env.KEY}}' }}</code>.
-            </p>
+        <!-- ── Variables Tab ───────────────────────────────────────────── -->
+        <section v-if="activeTab === 'variables'" class="gs-section">
+          <p class="gs-section__desc">
+            Use <code class="gs-code">{{ '{{env.KEY}}' }}</code> in any workflow to reference these values.
+          </p>
 
-            <!-- Add Variable Form -->
-            <div class="variable-form">
-              <BaseInput
-                v-model="newVar.key"
-                label="Key"
-                placeholder="MY_VARIABLE"
-                :error="newVar.keyError"
-              />
-              <BaseInput
-                v-model="newVar.value"
-                label="Value"
-                placeholder="my-value"
-              />
-              <BaseInput
-                v-model="newVar.description"
-                label="Description"
-                placeholder="What is this variable for?"
-              />
+          <!-- Add form -->
+          <div class="gs-card">
+            <BaseInput
+              v-model="newVar.key"
+              label="Key"
+              placeholder="MY_VARIABLE"
+              :error="newVar.keyError"
+            />
+            <BaseInput
+              v-model="newVar.value"
+              label="Value"
+              placeholder="my-value"
+            />
+            <BaseInput
+              v-model="newVar.description"
+              label="Description (optional)"
+              placeholder="What is this for?"
+            />
+            <BaseButton
+              variant="primary"
+              icon-left="plus"
+              :loading="isSavingVar"
+              :disabled="!newVar.key.trim()"
+              :full-width="true"
+              @click="handleSaveVariable"
+            >
+              Add Variable
+            </BaseButton>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="store.isLoadingVariables" class="gs-state">
+            <LucideIcon name="loader-2" :size="18" class="gs-spin" />
+          </div>
+
+          <!-- Empty -->
+          <div v-else-if="store.variables.length === 0" class="gs-state">
+            <LucideIcon name="variable" :size="24" />
+            <p>No variables yet</p>
+          </div>
+
+          <!-- List -->
+          <ul v-else class="gs-var-list">
+            <li v-for="v in store.variables" :key="v.key" class="gs-var-item">
+              <div class="gs-var-item__info">
+                <code class="gs-var-item__key">{{ v.key }}</code>
+                <span class="gs-var-item__value">{{ v.value }}</span>
+                <span v-if="v.description" class="gs-var-item__desc">{{ v.description }}</span>
+              </div>
               <BaseButton
-                variant="primary"
-                icon-left="plus"
-                :loading="isSavingVar"
-                :disabled="!newVar.key.trim()"
-                @click="handleSaveVariable"
+                variant="ghost"
+                size="icon"
+                :loading="deletingKey === v.key"
+                @click="handleDeleteVariable(v.key)"
+                title="Delete"
               >
-                Add Variable
+                <template #left>
+                  <LucideIcon name="trash-2" :size="13" />
+                </template>
               </BaseButton>
-            </div>
+            </li>
+          </ul>
+        </section>
 
-            <!-- Variables List -->
-            <div v-if="store.isLoadingVariables" class="settings-loading">
-              <LucideIcon name="loader-2" :size="20" class="spin" />
-            </div>
+        <!-- ── Preferences Tab ─────────────────────────────────────────── -->
+        <section v-if="activeTab === 'preferences'" class="gs-section">
+          <p class="gs-section__desc">System preferences for this Nod8 instance.</p>
 
-            <div v-else-if="store.variables.length === 0" class="settings-empty">
-              <LucideIcon name="variable" :size="28" />
-              <p>No variables defined yet.</p>
-            </div>
-
-            <ul v-else class="variable-list">
-              <li
-                v-for="v in store.variables"
-                :key="v.key"
-                class="variable-item"
-              >
-                <div class="variable-item__info">
-                  <code class="variable-item__key">{{ v.key }}</code>
-                  <span class="variable-item__value">{{ v.value }}</span>
-                  <span v-if="v.description" class="variable-item__desc">{{ v.description }}</span>
-                </div>
-                <BaseButton
-                  variant="ghost"
-                  size="icon"
-                  :loading="deletingKey === v.key"
-                  @click="handleDeleteVariable(v.key)"
-                  title="Delete variable"
-                >
-                  <template #left>
-                    <LucideIcon name="trash-2" :size="14" />
-                  </template>
-                </BaseButton>
-              </li>
-            </ul>
-          </section>
-
-          <!-- ── Preferences Tab ─────────────────────────────────────────── -->
-          <section v-if="activeTab === 'preferences'" class="settings-section">
-            <p class="settings-section__description">
-              System preferences for this Nod8 instance.
-            </p>
-
-            <div class="preferences-list">
-              <!-- Theme preference (cosmetic only — no server persistence needed yet) -->
-              <div class="preference-row">
-                <div class="preference-row__label">
-                  <LucideIcon name="sun-moon" :size="15" />
-                  <span>Theme</span>
-                </div>
-                <BaseSelect
-                  :model-value="themeValue"
-                  :options="themeOptions"
-                  @update:model-value="handleThemeChange"
-                />
+          <div class="gs-pref-list">
+            <div class="gs-pref-row">
+              <div class="gs-pref-row__label">
+                <LucideIcon name="sun-moon" :size="14" />
+                <span>Theme</span>
               </div>
-
-              <!-- Execution logs retention -->
-              <div class="preference-row">
-                <div class="preference-row__label">
-                  <LucideIcon name="database" :size="15" />
-                  <span>Log Retention</span>
-                </div>
-                <BaseSelect
-                  :model-value="logRetentionValue"
-                  :options="logRetentionOptions"
-                  @update:model-value="handleLogRetentionChange"
-                />
-              </div>
+              <BaseSelect
+                :model-value="themeValue"
+                :options="themeOptions"
+                @update:model-value="handleThemeChange"
+              />
             </div>
-          </section>
-        </div>
+
+            <div class="gs-pref-row">
+              <div class="gs-pref-row__label">
+                <LucideIcon name="database" :size="14" />
+                <span>Log Retention</span>
+              </div>
+              <BaseSelect
+                :model-value="logRetentionValue"
+                :options="logRetentionOptions"
+                @update:model-value="handleLogRetentionChange"
+              />
+            </div>
+          </div>
+        </section>
+
       </div>
-    </Transition>
-  </Teleport>
+    </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -176,7 +157,7 @@ const tabs = [
 type TabId = (typeof tabs)[number]['id']
 const activeTab = ref<TabId>('variables')
 
-// ─── Load data on open ────────────────────────────────────────────────────────
+// ─── Load data when opened ────────────────────────────────────────────────────
 
 watch(
   () => store.isOpen,
@@ -200,7 +181,7 @@ async function handleSaveVariable() {
 
   if (!key) return
   if (!/^[A-Z_][A-Z0-9_]*$/.test(key)) {
-    newVar.value.keyError = 'Key must be a valid identifier (letters, digits, underscores)'
+    newVar.value.keyError = 'Must be a valid identifier (letters, digits, underscores)'
     return
   }
 
@@ -251,68 +232,60 @@ async function handleLogRetentionChange(value: string) {
 </script>
 
 <style scoped>
-/* ── Backdrop ─────────────────────────────────────────────────────────────── */
-.settings-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 1000;
-}
-
-/* ── Panel ────────────────────────────────────────────────────────────────── */
-.settings-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 420px;
-  max-width: 100vw;
-  background: var(--nod8-bg-surface);
-  border-left: 1px solid var(--nod8-border);
-  z-index: 1001;
+/* ─── Panel — positioned like SidebarGlobalPanel, anchored to AppShell ──────── */
+.global-settings {
   display: flex;
   flex-direction: column;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--nod8-sidebar-width);
+  width: 360px;
+  background-color: var(--nod8-bg-surface);
+  border-right: 1px solid var(--nod8-border);
+  z-index: var(--nod8-z-raised);
   overflow: hidden;
 }
 
-/* ── Header ───────────────────────────────────────────────────────────────── */
-.settings-panel__header {
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+.global-settings__header {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-3);
-  height: 52px;
-  padding: 0 var(--nod8-space-4);
+  gap: var(--nod8-space-2);
+  height: 48px;
+  padding: 0 var(--nod8-space-3);
   border-bottom: 1px solid var(--nod8-border);
   flex-shrink: 0;
 }
 
-.settings-panel__back {
+.global-settings__back {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: var(--nod8-radius-sm);
   color: var(--nod8-text-secondary);
   background: transparent;
   border: none;
   cursor: pointer;
   transition: background-color var(--nod8-duration-fast), color var(--nod8-duration-fast);
+  flex-shrink: 0;
 }
 
-.settings-panel__back:hover {
+.global-settings__back:hover {
   background: var(--nod8-bg-muted);
   color: var(--nod8-text-primary);
 }
 
-.settings-panel__title {
-  font-size: var(--nod8-text-base);
+.global-settings__title {
+  font-size: var(--nod8-text-sm);
   font-weight: var(--nod8-font-semibold);
   color: var(--nod8-text-primary);
 }
 
-/* ── Tabs ─────────────────────────────────────────────────────────────────── */
-.settings-tabs {
+/* ─── Tabs ───────────────────────────────────────────────────────────────── */
+.global-settings__tabs {
   display: flex;
   gap: 2px;
   padding: var(--nod8-space-2) var(--nod8-space-3);
@@ -320,13 +293,13 @@ async function handleLogRetentionChange(value: string) {
   flex-shrink: 0;
 }
 
-.settings-tab {
+.global-settings__tab {
   display: flex;
   align-items: center;
   gap: var(--nod8-space-2);
-  padding: var(--nod8-space-1) var(--nod8-space-3);
+  padding: 4px var(--nod8-space-3);
   border-radius: var(--nod8-radius-sm);
-  font-size: var(--nod8-text-sm);
+  font-size: var(--nod8-text-xs);
   font-weight: var(--nod8-font-medium);
   color: var(--nod8-text-muted);
   cursor: pointer;
@@ -335,105 +308,120 @@ async function handleLogRetentionChange(value: string) {
   transition: all var(--nod8-duration-fast);
 }
 
-.settings-tab:hover {
+.global-settings__tab:hover {
   background: var(--nod8-bg-muted);
   color: var(--nod8-text-secondary);
 }
 
-.settings-tab--active {
+.global-settings__tab--active {
   background: var(--nod8-bg-muted);
   color: var(--nod8-text-primary);
 }
 
-/* ── Content ──────────────────────────────────────────────────────────────── */
-.settings-panel__content {
+/* ─── Scrollable content ─────────────────────────────────────────────────── */
+.global-settings__content {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--nod8-space-5) var(--nod8-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-4);
+  min-width: 0;
 }
 
-.settings-panel__content::-webkit-scrollbar {
-  width: 4px;
-}
-.settings-panel__content::-webkit-scrollbar-track {
-  background: transparent;
-}
-.settings-panel__content::-webkit-scrollbar-thumb {
+.global-settings__content::-webkit-scrollbar { width: 4px; }
+.global-settings__content::-webkit-scrollbar-track { background: transparent; }
+.global-settings__content::-webkit-scrollbar-thumb {
   background: var(--nod8-border);
   border-radius: 4px;
 }
 
-/* ── Section ──────────────────────────────────────────────────────────────── */
-.settings-section {
+/* ─── Section ────────────────────────────────────────────────────────────── */
+.gs-section {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-4);
+  gap: var(--nod8-space-3);
+  padding: var(--nod8-space-4) var(--nod8-space-3);
 }
 
-.settings-section__description {
-  font-size: var(--nod8-text-sm);
+.gs-section__desc {
+  font-size: var(--nod8-text-xs);
   color: var(--nod8-text-muted);
   line-height: 1.5;
   margin: 0;
 }
 
-.settings-code {
+.gs-code {
   font-family: monospace;
-  font-size: var(--nod8-text-xs);
+  font-size: 11px;
   background: var(--nod8-bg-muted);
   border: 1px solid var(--nod8-border);
-  border-radius: 4px;
-  padding: 1px 5px;
+  border-radius: 3px;
+  padding: 1px 4px;
   color: var(--nod8-text-secondary);
 }
 
-/* ── Variable Form ────────────────────────────────────────────────────────── */
-.variable-form {
+/* ─── Add variable card ──────────────────────────────────────────────────── */
+.gs-card {
   display: flex;
   flex-direction: column;
   gap: var(--nod8-space-3);
-  padding: var(--nod8-space-4);
+  padding: var(--nod8-space-3);
   background: var(--nod8-bg-muted);
   border-radius: var(--nod8-radius-md);
   border: 1px solid var(--nod8-border);
 }
 
-/* ── Variable List ────────────────────────────────────────────────────────── */
-.variable-list {
+/* ─── State (loading / empty) ────────────────────────────────────────────── */
+.gs-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--nod8-space-2);
+  padding: var(--nod8-space-6) 0;
+  color: var(--nod8-text-muted);
+  font-size: var(--nod8-text-xs);
+}
+
+.gs-spin {
+  animation: gs-spin 1s linear infinite;
+}
+
+@keyframes gs-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Variable list ──────────────────────────────────────────────────────── */
+.gs-var-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-2);
+  gap: var(--nod8-space-1);
 }
 
-.variable-item {
+.gs-var-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-3) var(--nod8-space-3);
+  gap: var(--nod8-space-2);
+  padding: var(--nod8-space-2) var(--nod8-space-3);
   background: var(--nod8-bg-muted);
   border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-sm);
 }
 
-.variable-item__info {
+.gs-var-item__info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
   flex: 1;
 }
 
-.variable-item__key {
+.gs-var-item__key {
   font-family: monospace;
-  font-size: var(--nod8-text-xs);
+  font-size: 11px;
   font-weight: var(--nod8-font-semibold);
   color: var(--nod8-accent);
   white-space: nowrap;
@@ -441,90 +429,58 @@ async function handleLogRetentionChange(value: string) {
   text-overflow: ellipsis;
 }
 
-.variable-item__value {
-  font-size: var(--nod8-text-sm);
+.gs-var-item__value {
+  font-size: var(--nod8-text-xs);
   color: var(--nod8-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.variable-item__desc {
-  font-size: var(--nod8-text-xs);
+.gs-var-item__desc {
+  font-size: 11px;
   color: var(--nod8-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ── Loading / Empty ──────────────────────────────────────────────────────── */
-.settings-loading,
-.settings-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-8) 0;
-  color: var(--nod8-text-muted);
-  font-size: var(--nod8-text-sm);
-}
-
-/* ── Preferences ──────────────────────────────────────────────────────────── */
-.preferences-list {
+/* ─── Preferences ────────────────────────────────────────────────────────── */
+.gs-pref-list {
   display: flex;
   flex-direction: column;
   gap: var(--nod8-space-2);
 }
 
-.preference-row {
+.gs-pref-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--nod8-space-4);
-  padding: var(--nod8-space-3) var(--nod8-space-3);
+  gap: var(--nod8-space-3);
+  padding: var(--nod8-space-2) var(--nod8-space-3);
   background: var(--nod8-bg-muted);
   border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-sm);
 }
 
-.preference-row__label {
+.gs-pref-row__label {
   display: flex;
   align-items: center;
   gap: var(--nod8-space-2);
-  font-size: var(--nod8-text-sm);
+  font-size: var(--nod8-text-xs);
   color: var(--nod8-text-secondary);
   flex-shrink: 0;
 }
 
-/* ── Transitions ──────────────────────────────────────────────────────────── */
-
-/* Backdrop fade */
-.settings-backdrop-enter-active,
-.settings-backdrop-leave-active {
-  transition: opacity 0.25s ease;
+/* ─── Slide transition — enters from left (same as SidebarGlobalPanel pattern) */
+.settings-slide-enter-active {
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 }
-.settings-backdrop-enter-from,
-.settings-backdrop-leave-to {
-  opacity: 0;
+.settings-slide-leave-active {
+  transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
 }
-
-/* Panel slides in from the right, slides out to the right */
-.settings-panel-enter-active {
-  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-}
-.settings-panel-leave-active {
-  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
-}
-.settings-panel-enter-from,
-.settings-panel-leave-to {
-  transform: translateX(100%);
-}
-
-/* Loader spin */
-.spin {
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.settings-slide-enter-from,
+.settings-slide-leave-to {
+  transform: translateX(-100%);
 }
 </style>
