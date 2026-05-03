@@ -229,6 +229,17 @@ const onExecuteWorkflow = async () => {
   white-space: nowrap;
 }
 
+/* Invisible bridge to prevent hover loss between the node and the button */
+.trigger-node__execute-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -20px;
+  width: calc(100% + 20px);
+  height: 100px;
+  transform: translateY(-50%);
+}
+
 .trigger-node:hover .trigger-node__execute-btn {
   opacity: 1;
   pointer-events: auto;
