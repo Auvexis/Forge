@@ -4,6 +4,7 @@ import multipart from "@fastify/multipart";
 import formbody from "@fastify/formbody";
 import cors from "@fastify/cors";
 import rootRoutes from "./routes/index.ts";
+import appRoutes from "./routes/app.routes.ts";
 import pluginsRoutes from "./routes/plugins.routes.ts";
 import workflowsRoutes from "./routes/workflows.routes.ts";
 import webhooksRoutes from "./routes/webhooks.routes.ts";
@@ -52,6 +53,7 @@ await loadPlugins();
 Scheduler.initialize();
 
 fastify.register(rootRoutes);
+fastify.register(appRoutes);
 fastify.register(pluginsRoutes);
 fastify.register(workflowsRoutes);
 fastify.register(webhooksRoutes);

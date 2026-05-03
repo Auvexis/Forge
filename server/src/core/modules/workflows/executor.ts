@@ -1,6 +1,7 @@
 import { PluginExecutor } from "../plugins/executor.ts";
 import { WorkflowParser, resolvePath } from "./parser.ts";
 import { WorkflowRepository } from "./repository.ts";
+import { AppRepository } from "../app/app-repository.ts";
 import { runCode } from "./code-runner.ts";
 import { workflowEventBus } from "./event-bus.ts";
 import { InternalEventBus } from "../events/internal-event-bus.ts";
@@ -499,11 +500,15 @@ export const WorkflowEngine = {
       executionId ??
       `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
+    // Load global env variables once per execution — core engine concern, zero plugin awareness
+    const env = AppRepository.getAllGlobalVariablesAsMap();
+
     const context = {
       _workflowId: workflow.metadata.id,
       trigger: triggerPayload,
       steps: {} as Record<string, any>,
       variables: initializeVariables(workflow.variables),
+      env, // Accessible in expressions as {{env.KEY}}
       _event_payloads: {} as Record<string, any>,
     };
 
@@ -770,11 +775,14 @@ export const WorkflowEngine = {
     nodeConfigOverride: WorkflowNode,
     executionCacheContext?: any,
   ): Promise<any> => {
+    const env = AppRepository.getAllGlobalVariablesAsMap();
+
     const context = executionCacheContext || {
       _workflowId: workflow.metadata.id,
       trigger: {},
       steps: {},
       variables: initializeVariables(workflow.variables),
+      env,
       _event_payloads: {},
     };
 

@@ -19,7 +19,7 @@
 * **Instant Messaging:** Implement Telegram (Bots, send message, receive webhooks) and WhatsApp Cloud API.
 * **Standard Webhooks:** Ensure the core HTTP/Webhook nodes are bulletproof for inbound and outbound raw data.
 
-### Milestone 1.3: Immersive Node UI & Data Pipeline Visualization
+### ✅ Milestone 1.3: Immersive Node UI & Data Pipeline Visualization [DONE]
 *First impressions dictate retention. The editor must provide ultimate visibility into the data flow.*
 * **The 3-Column Node Modal:** Replace the cramped right-side drawer with a full-screen/large immersive modal when editing a node.
   * **Left Pane (Input):** Displays the raw JSON as a Tree-view and Buffers received from the previous nodes/webhook.
