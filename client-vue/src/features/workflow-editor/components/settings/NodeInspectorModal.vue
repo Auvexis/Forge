@@ -21,6 +21,7 @@ import PluginMenuAuth from './editors/PluginMenuAuth.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseModal from '@/shared/components/base/BaseModal.vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 
 const inspectorStore = useNodeInspectorStore()
@@ -225,17 +226,16 @@ const copyToClipboard = async (path: string) => {
 </script>
 
 <template>
-  <Transition name="inspector-slide-up">
-    <div
-      v-if="inspectorStore.isOpen"
-      class="inspector-backdrop absolute inset-0 z-50 flex items-center justify-center"
-      @click.self="close"
-    >
-      <div class="inspector-modal flex flex-col overflow-hidden">
-        <!-- 3-Column Grid -->
-        <div class="inspector-grid flex-1 min-h-0">
-          <!-- Left Pane: Input -->
-          <div class="inspector-pane">
+  <BaseModal
+    :is-open="inspectorStore.isOpen"
+    max-width="1600px"
+    height="85vh"
+    @close="close"
+  >
+    <!-- 3-Column Grid -->
+    <div class="inspector-grid flex-1 min-h-0">
+      <!-- Left Pane: Input -->
+      <div class="inspector-pane">
             <div
               class="inspector-pane-header text-sm text-muted font-semibold flex items-center gap-2"
             >
@@ -394,12 +394,10 @@ const copyToClipboard = async (path: string) => {
               </div>
               <p class="text-sm text-muted">Run the step to generate output.</p>
             </div>
-          </div>
         </div>
       </div>
     </div>
-  </div>
-  </Transition>
+  </BaseModal>
 </template>
 
 <style scoped>
@@ -418,27 +416,4 @@ const copyToClipboard = async (path: string) => {
   }
 }
 
-/* ── Transition: inspector-slide-up ── */
-.inspector-slide-up-enter-active,
-.inspector-slide-up-leave-active {
-  transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.inspector-slide-up-enter-from,
-.inspector-slide-up-leave-to {
-  opacity: 0;
-}
-
-.inspector-slide-up-enter-active .inspector-modal {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.inspector-slide-up-leave-active .inspector-modal {
-  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.inspector-slide-up-enter-from .inspector-modal,
-.inspector-slide-up-leave-to .inspector-modal {
-  transform: translateY(100vh);
-}
 </style>

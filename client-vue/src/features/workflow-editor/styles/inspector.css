@@ -28,21 +28,7 @@
 
 /* ── Inspector Layout Utilities ─────────────────────────── */
 
-.inspector-backdrop {
-  background: var(--inspector-bg-backdrop);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-}
 
-.inspector-modal {
-  background: var(--inspector-bg-modal);
-  border: 1px solid var(--inspector-border);
-  box-shadow: var(--nod8-shadow-xl);
-  /* Fallback sizes, will be controlled by Grid */
-  width: 95vw;
-  max-width: 1600px;
-  height: 85vh;
-}
 
 .inspector-grid {
   display: grid;

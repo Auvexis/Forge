@@ -1,9 +1,11 @@
 <template>
-  <Transition name="settings-slide">
-    <div
-      v-if="store.isOpen"
-      class="global-settings"
-    >
+  <BaseModal
+    :is-open="store.isOpen"
+    max-width="1200px"
+    height="80vh"
+    @close="store.close"
+  >
+    <div class="global-settings">
       <!-- Header -->
       <header class="global-settings__header">
         <button class="global-settings__back" @click="store.close" title="Back">
@@ -132,7 +134,7 @@
 
       </div>
     </div>
-  </Transition>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
@@ -142,6 +144,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import BaseModal from '@/shared/components/base/BaseModal.vue'
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
@@ -232,19 +235,14 @@ async function handleLogRetentionChange(value: string | number) {
 </script>
 
 <style scoped>
-/* ─── Panel — positioned like SidebarGlobalPanel, anchored to AppShell ──────── */
+/* ─── Main container ─── */
 .global-settings {
   display: flex;
   flex-direction: column;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: var(--nod8-sidebar-width);
-  right: 0;
-  background-color: var(--nod8-bg-base);
-  border-left: 1px solid var(--nod8-border);
-  z-index: var(--nod8-z-raised);
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  background: var(--nod8-bg-surface);
+  z-index: 50; /* Above regular editor, below toasts */
 }
 
 /* ─── Header ─────────────────────────────────────────────────────────────── */
@@ -475,15 +473,4 @@ async function handleLogRetentionChange(value: string | number) {
   flex-shrink: 0;
 }
 
-/* ─── Slide transition — enters from right */
-.settings-slide-enter-active {
-  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-}
-.settings-slide-leave-active {
-  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
-}
-.settings-slide-enter-from,
-.settings-slide-leave-to {
-  transform: translateX(100%);
-}
 </style>
