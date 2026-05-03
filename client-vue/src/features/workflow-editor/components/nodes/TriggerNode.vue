@@ -84,7 +84,7 @@ const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() =
   <div
     class="trigger-node"
     :class="[{ 'is-selected': props.selected }, effectiveStatus !== 'idle' ? `is-${effectiveStatus}` : '']"
-    :style="{ '--trigger-border': triggerConfig.borderColor }"
+    :style="{ '--trigger-border': triggerConfig.borderColor, '--node-tint': triggerConfig.bg }"
   >
     <!-- Lightning bolt accent (top-left corner like n8n) -->
     <div class="trigger-node__lightning">
@@ -94,9 +94,9 @@ const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() =
     <!-- Icon -->
     <div
       class="trigger-node__icon"
-      :style="{ color: triggerConfig.color, backgroundColor: triggerConfig.bg }"
+      :style="{ color: triggerConfig.color }"
     >
-      <LucideIcon :name="triggerConfig.icon" :size="30" />
+      <LucideIcon :name="triggerConfig.icon" :size="48" />
     </div>
 
     <!-- Status badge -->
@@ -142,6 +142,7 @@ const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() =
   width: 100px;
   height: 100px;
   background-color: var(--nod8-node-body);
+  background-image: linear-gradient(var(--node-tint, transparent), var(--node-tint, transparent));
   border: 2px solid var(--trigger-border, #3c3c3c);
   border-radius: 16px;
   display: flex;
@@ -194,9 +195,8 @@ const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() =
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+  width: 100%;
+  height: 100%;
 }
 
 /* ─── Status badge ──────────────────────────────────────────── */

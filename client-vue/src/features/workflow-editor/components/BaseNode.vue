@@ -98,7 +98,7 @@ const onQuickAdd = () => {
 </script>
 
 <template>
-  <div class="nod8-base-node" :class="[{ 'is-selected': selected }, statusClasses]">
+  <div class="nod8-base-node" :class="[{ 'is-selected': selected }, statusClasses]" :style="{ '--node-tint': props.bg }">
     <!-- Shimmer overlay while running -->
     <NodeShimmer v-if="effectiveStatus === 'running'" />
 
@@ -108,9 +108,9 @@ const onQuickAdd = () => {
         <div
           v-if="props.icon"
           class="nod8-base-node__icon-box"
-          :style="{ color: props.color, backgroundColor: props.bg }"
+          :style="{ color: props.color }"
         >
-          <LucideIcon :name="props.icon" :size="28" />
+          <LucideIcon :name="props.icon" :size="48" />
         </div>
       </slot>
 
@@ -204,6 +204,7 @@ const onQuickAdd = () => {
   width: 100px;
   height: 100px;
   background-color: var(--nod8-node-body);
+  background-image: linear-gradient(var(--node-tint, transparent), var(--node-tint, transparent));
   border: 2px solid var(--nod8-node-border);
   border-radius: 16px;
   display: flex;
@@ -253,9 +254,8 @@ const onQuickAdd = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+  width: 100%;
+  height: 100%;
   flex-shrink: 0;
 }
 
