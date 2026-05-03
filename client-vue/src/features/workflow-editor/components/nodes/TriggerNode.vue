@@ -8,6 +8,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { Position } from '@vue-flow/core'
 import { useWorkflowStore } from '../../stores/workflow.store'
 import { useExecutionStore } from '../../stores/execution.store'
+import { useEventBus } from '@/shared/composables/useEventBus'
 
 const props = defineProps<
   NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
@@ -84,6 +85,17 @@ const onExecuteWorkflow = async () => {
     await executionStore.execute(store.activeWorkflow.metadata.id)
   }
 }
+
+const hasOutgoingConnection = computed(() => {
+  if (!props.id) return false
+  if (!store.activeWorkflow) return false
+  return store.activeWorkflow.edges.some((e) => e.source === props.id)
+})
+
+const onQuickAdd = () => {
+  if (!props.id) return
+  useEventBus('node:quick-add').emit({ sourceId: props.id })
+}
 </script>
 
 <template>
@@ -114,6 +126,19 @@ const onExecuteWorkflow = async () => {
 
   <!-- Source handle -->
   <BaseHandle id="source" type="source" :position="Position.Right" />
+
+  <!-- Quick Add Cable (n8n style) -->
+  <div
+    v-if="!hasOutgoingConnection && props.id"
+    class="trigger-node__quick-add"
+    title="Adicionar node conectado"
+    @click.stop="onQuickAdd"
+  >
+    <div class="trigger-node__quick-add-cable"></div>
+    <button class="trigger-node__quick-add-btn">
+      <LucideIcon name="plus" :size="11" />
+    </button>
+  </div>
 
   <!-- Label outside -->
   <div class="trigger-node__label-area">
@@ -275,5 +300,47 @@ const onExecuteWorkflow = async () => {
   color: var(--nod8-text-muted);
   text-align: center;
   margin-top: 2px;
+}
+
+/* ─── Quick Add Node (n8n style) ─────────────────────────────── */
+.trigger-node__quick-add {
+  position: absolute;
+  top: 50%;
+  right: -82px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  z-index: 5;
+}
+
+.trigger-node__quick-add-cable {
+  width: 60px;
+  height: 2px;
+  background-color: var(--nod8-node-handle);
+  transition: background-color 0.2s;
+}
+
+.trigger-node__quick-add-btn {
+  border-radius: var(--nod8-radius-full);
+  background-color: var(--nod8-node-handle);
+  border: none;
+  color: var(--nod8-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 2px;
+  width: 18px;
+  height: 18px;
+  transition: all 0.2s;
+}
+
+.trigger-node:hover .trigger-node__quick-add-cable,
+.trigger-node:hover .trigger-node__quick-add-btn {
+  background-color: var(--nod8-node-handle-hover);
+}
+
+.trigger-node__quick-add-btn:hover {
+  transform: scale(1.2);
 }
 </style>
