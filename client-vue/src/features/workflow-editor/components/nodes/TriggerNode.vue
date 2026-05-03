@@ -7,215 +7,264 @@ import BaseHandle from '../BaseHandle.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { Position } from '@vue-flow/core'
 import { useWorkflowStore } from '../../stores/workflow.store'
+import { useExecutionStore } from '../../stores/execution.store'
 
 const props = defineProps<
   NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
 >()
 
 const store = useWorkflowStore()
+const executionStore = useExecutionStore()
 
-// No Nod8, os detalhes reais do Trigger (webhook, cron, manual) moram globalmente no fluxo.
 const triggerData = computed(() => store.activeWorkflow?.trigger)
 
-// Mapa de configuração igual ao REACT para dinamicamente alterar as cores/ícones
 const triggerConfig = computed(() => {
   const type = triggerData.value?.type || 'manual'
 
   const configMap = {
     manual: {
-      icon: 'play',
+      icon: 'mouse-pointer-2',
       title: 'Manual Trigger',
-      color: 'var(--nod8-node-trigger-icon)',
-      bg: 'var(--nod8-node-trigger-bg)',
+      subtitle: null,
+      color: '#ffffff',
+      bg: 'rgba(255,255,255,0.07)',
+      borderColor: '#3c3c3c',
     },
     webhook: {
       icon: 'webhook',
       title: 'Webhook',
-      color: 'var(--nod8-node-trigger-webhook-icon)',
-      bg: 'var(--nod8-node-trigger-webhook-bg)',
+      subtitle: null,
+      color: 'rgb(16, 185, 129)',
+      bg: 'rgba(16,185,129,0.12)',
+      borderColor: 'rgba(16,185,129,0.4)',
     },
     cron: {
       icon: 'clock',
-      title: 'Schedule / Cron',
-      color: 'var(--nod8-node-trigger-cron-icon)',
-      bg: 'var(--nod8-node-trigger-cron-bg)',
+      title: 'Schedule',
+      subtitle: null,
+      color: 'rgb(138, 82, 255)',
+      bg: 'rgba(138,82,255,0.12)',
+      borderColor: 'rgba(138,82,255,0.4)',
     },
     event: {
       icon: 'zap',
       title: 'Event Trigger',
-      color: 'var(--nod8-node-trigger-event-icon)',
-      bg: 'var(--nod8-node-trigger-event-bg)',
+      subtitle: null,
+      color: 'rgb(245, 158, 11)',
+      bg: 'rgba(245,158,11,0.12)',
+      borderColor: 'rgba(245,158,11,0.4)',
     },
   }
 
   return configMap[type as keyof typeof configMap] ?? configMap.manual
 })
+
+const nodeTitle = computed(() => {
+  const type = triggerData.value?.type || 'manual'
+  if (type === 'webhook' && triggerData.value?.webhookPath) {
+    return `/${triggerData.value.webhookPath}`
+  }
+  if (type === 'cron' && triggerData.value?.cronExpression) {
+    return triggerData.value.cronExpression
+  }
+  if (type === 'event' && triggerData.value?.eventName) {
+    return triggerData.value.eventName
+  }
+  return triggerConfig.value.title
+})
+
+const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() => {
+  const storeStatus = executionStore.nodeStatuses['trigger']?.status
+  if (storeStatus && storeStatus !== 'idle') return storeStatus
+  return props.status ?? 'idle'
+})
 </script>
 
 <template>
-  <BaseNode :id="props.id" :selected="props.selected" :status="props.status" class="trigger-node" has-source>
-    <template #header>
-      <div
-        class="trigger-icon"
-        :style="{ color: triggerConfig.color, backgroundColor: triggerConfig.bg }"
-      >
-        <LucideIcon :name="triggerConfig.icon" :size="16" />
-      </div>
-
-      <div class="trigger-title-box">
-        <span class="trigger-title">{{ triggerConfig.title }}</span>
-        <span class="trigger-subtitle">Workflow Entry Point</span>
-      </div>
-    </template>
-
-    <div class="trigger-body">
-      <!-- Exibição Condicional Baseada no Tipo de Trigger -->
-      <code
-        v-if="triggerData?.type === 'webhook' && triggerData.webhookPath"
-        class="trigger-code webhook-code"
-      >
-        /webhooks/{{ triggerData.webhookPath }}
-      </code>
-
-      <code
-        v-else-if="triggerData?.type === 'cron' && triggerData.cronExpression"
-        class="trigger-code cron-code"
-      >
-        {{ triggerData.cronExpression }}
-      </code>
-
-      <code
-        v-else-if="triggerData?.type === 'event' && triggerData.eventName"
-        class="trigger-code event-code"
-      >
-        {{ triggerData.eventName }}
-      </code>
-
-      <template
-        v-else-if="
-          triggerData?.type === 'manual' &&
-          triggerData.schema &&
-          Object.keys(triggerData.schema).length > 0
-        "
-      >
-        <span class="trigger-subtitle input-title">Expected inputs:</span>
-        <div class="schema-tags">
-          <span v-for="key in Object.keys(triggerData.schema)" :key="key" class="schema-tag">
-            {{ key }}
-          </span>
-        </div>
-      </template>
-
-      <span v-else class="trigger-subtitle italic">
-        {{
-          triggerData?.type === 'manual'
-            ? 'Standard manual execution.'
-            : `Waiting for ${triggerData?.type} signal...`
-        }}
-      </span>
+  <div
+    class="trigger-node"
+    :class="[{ 'is-selected': props.selected }, effectiveStatus !== 'idle' ? `is-${effectiveStatus}` : '']"
+    :style="{ '--trigger-border': triggerConfig.borderColor }"
+  >
+    <!-- Lightning bolt accent (top-left corner like n8n) -->
+    <div class="trigger-node__lightning">
+      <LucideIcon name="zap" :size="12" />
     </div>
 
-    <!-- O ponto de saída nativo do VueFlow: Obrigatoriamente com id="source" para o Edge achar! -->
+    <!-- Icon -->
+    <div
+      class="trigger-node__icon"
+      :style="{ color: triggerConfig.color, backgroundColor: triggerConfig.bg }"
+    >
+      <LucideIcon :name="triggerConfig.icon" :size="30" />
+    </div>
+
+    <!-- Status badge -->
+    <div
+      v-if="effectiveStatus === 'success'"
+      class="trigger-node__status trigger-node__status--success"
+    >
+      <LucideIcon name="check" :size="10" />
+    </div>
+    <div
+      v-else-if="effectiveStatus === 'failed'"
+      class="trigger-node__status trigger-node__status--error"
+    >
+      <LucideIcon name="x" :size="10" />
+    </div>
+    <div
+      v-else-if="effectiveStatus === 'running'"
+      class="trigger-node__status trigger-node__status--running"
+    >
+      <LucideIcon name="loader-2" :size="10" class="spin" />
+    </div>
+
+    <!-- Source handle -->
     <BaseHandle id="source" type="source" :position="Position.Right" />
-  </BaseNode>
+  </div>
+
+  <!-- Label outside -->
+  <div class="trigger-node__label-area">
+    <span class="trigger-node__label-title">{{ nodeTitle }}</span>
+    <span v-if="triggerData?.type === 'webhook'" class="trigger-node__label-subtitle">
+      /webhooks{{ triggerData.webhookPath ? `/${triggerData.webhookPath}` : '' }}
+    </span>
+    <span v-else-if="triggerData?.type === 'cron'" class="trigger-node__label-subtitle">
+      {{ triggerData.cronExpression }}
+    </span>
+  </div>
 </template>
 
 <style scoped>
-/* Recriando o rounded-l-sm rounded-r-[2rem] do React mas via CSS BEM */
+/* ─── Trigger card — same square shape as n8n, special border accent ── */
 .trigger-node {
-  border-radius: var(--nod8-radius-sm) 2rem 2rem var(--nod8-radius-sm) !important;
-}
-
-/* Redefinição do header superior para acompanhar o arrendondamento assíncrono */
-:deep(.nod8-base-node__header) {
-  border-radius: calc(var(--nod8-radius-sm) - 1px) calc(2rem - 1px) 0 0 !important;
-}
-
-/* Estrutura visual idêntica à antiga */
-.trigger-icon {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  background-color: var(--nod8-node-body);
+  border: 2px solid var(--trigger-border, #3c3c3c);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  border-radius: var(--nod8-radius-sm);
-  border: 1px solid var(--nod8-border);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  overflow: visible;
 }
 
-.trigger-title-box {
+.trigger-node:hover {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  border-color: color-mix(in srgb, var(--trigger-border, #3c3c3c) 150%, white 30%);
+}
+
+.trigger-node.is-selected {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nod8-green-400) 25%, transparent);
+  border-color: var(--nod8-green-400);
+}
+
+.trigger-node.is-running {
+  border-color: var(--nod8-amber-400);
+}
+
+.trigger-node.is-success {
+  border-color: var(--nod8-green-400);
+}
+
+.trigger-node.is-failed {
+  border-color: var(--nod8-red-400);
+}
+
+/* ─── Lightning bolt accent ─────────────────────────────────── */
+.trigger-node__lightning {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  color: var(--nod8-red-400);
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+/* ─── Main icon ─────────────────────────────────────────────── */
+.trigger-node__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+}
+
+/* ─── Status badge ──────────────────────────────────────────── */
+.trigger-node__status {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--nod8-node-body);
+}
+
+.trigger-node__status--success {
+  background-color: var(--nod8-green-400);
+  color: #000;
+}
+
+.trigger-node__status--error {
+  background-color: var(--nod8-red-400);
+  color: #fff;
+}
+
+.trigger-node__status--running {
+  background-color: var(--nod8-amber-400);
+  color: #000;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Label (outside the card) ──────────────────────────────── */
+.trigger-node__label-area {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  flex: 1;
+  align-items: center;
+  text-align: center;
+  pointer-events: none;
 }
 
-.trigger-title {
-  font-size: 14px;
+.trigger-node__label-title {
+  font-size: 13px;
   font-weight: 500;
   color: var(--nod8-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.3;
+  word-break: break-word;
+  white-space: normal;
+  text-align: center;
+  max-width: 140px;
 }
 
-.trigger-subtitle {
-  font-size: 12px;
-  color: var(--nod8-text-muted);
-}
-
-.trigger-body {
-  display: flex;
-  flex-direction: column;
-}
-
-.input-title {
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.italic {
-  font-style: italic;
-  opacity: 0.7;
-}
-
-/* Badges e tags de schema iguais ao do React */
-.schema-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.schema-tag {
+.trigger-node__label-subtitle {
   font-size: 11px;
-  font-family: var(--nod8-font-mono);
-  padding: 2px 6px;
-  background-color: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
-  border-radius: 4px;
-  color: var(--nod8-text-secondary);
-}
-
-/* Códigos exibidos baseados no tipo do gatilho */
-.trigger-code {
-  font-size: 12px;
-  font-family: monospace;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
-}
-
-.webhook-code {
-  color: var(--nod8-success);
-  opacity: 0.8;
-}
-.cron-code {
-  color: var(--nod8-warning);
-  opacity: 0.8;
-}
-.event-code {
-  color: var(--nod8-color-5);
-  opacity: 0.8;
+  color: var(--nod8-text-muted);
+  text-align: center;
+  margin-top: 2px;
 }
 </style>

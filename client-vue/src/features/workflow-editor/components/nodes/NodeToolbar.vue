@@ -93,7 +93,7 @@ function deleteNode() {
 
 .nt-toolbar {
   position: absolute;
-  bottom: -40px;
+  top: -40px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;

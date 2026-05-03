@@ -69,8 +69,6 @@ const cancelIdChange = () => {
   isEditingId.value = false
 }
 
-// Execution store status takes priority over the prop so every node reflects
-// live SSE status automatically without changes in individual node components.
 const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() => {
   if (props.id) {
     const storeStatus = executionStore.nodeStatuses[props.id]?.status
@@ -84,10 +82,6 @@ const statusClasses = computed(() => {
   return `is-${effectiveStatus.value}`
 })
 
-// Toolbar is always visible when the node is selected (JS-driven).
-// Hover-based visibility is handled purely via CSS :hover so the browser's
-// native hover detection covers the node, the gap bridge AND the toolbar
-// itself — no JavaScript timers or event-listener races needed.
 const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!props.selected)
 
 const hasOutgoingConnection = computed(() => {
@@ -108,76 +102,42 @@ const onQuickAdd = () => {
     <!-- Shimmer overlay while running -->
     <NodeShimmer v-if="effectiveStatus === 'running'" />
 
-    <!-- Floating ID badge above the node -->
-    <div v-if="props.id || $slots.badge" class="nod8-base-node__id-badge" @click.stop>
-      <slot name="badge">
-        <span
-          v-if="effectiveStatus !== 'idle' && !isEditingId"
-          class="nod8-base-node__id-dot"
-          :class="`is-${effectiveStatus}`"
-        />
-
-        <input
-          v-if="isEditingId"
-          ref="idInputRef"
-          v-model="editedId"
-          class="nod8-base-node__id-input"
-          @blur="commitIdChange"
-          @keydown.enter="commitIdChange"
-          @keydown.esc="cancelIdChange"
-        />
-        <span
-          v-else
-          class="nod8-base-node__id-text"
-          title="Duplo clique para editar o ID"
-          @dblclick.stop="startEditingId"
+    <!-- Icon area (center of card) -->
+    <div class="nod8-base-node__icon-wrap">
+      <slot name="icon">
+        <div
+          v-if="props.icon"
+          class="nod8-base-node__icon-box"
+          :style="{ color: props.color, backgroundColor: props.bg }"
         >
-          {{ props.id }}
-        </span>
+          <LucideIcon :name="props.icon" :size="28" />
+        </div>
       </slot>
+
+      <!-- Success/Error checkmark overlay -->
+      <div
+        v-if="effectiveStatus === 'success'"
+        class="nod8-base-node__status-badge nod8-base-node__status-badge--success"
+      >
+        <LucideIcon name="check" :size="10" />
+      </div>
+      <div
+        v-else-if="effectiveStatus === 'failed'"
+        class="nod8-base-node__status-badge nod8-base-node__status-badge--error"
+      >
+        <LucideIcon name="x" :size="10" />
+      </div>
+      <div
+        v-else-if="effectiveStatus === 'running'"
+        class="nod8-base-node__status-badge nod8-base-node__status-badge--running"
+      >
+        <LucideIcon name="loader-2" :size="10" class="spin" />
+      </div>
     </div>
 
-    <!-- HEADER -->
-    <template v-if="props.title || $slots.header">
-      <div class="nod8-base-node__header">
-        <slot name="header">
-          <div
-            v-if="props.icon"
-            class="nod8-base-node__icon-box"
-            :style="{ color: props.color, backgroundColor: props.bg }"
-          >
-            <LucideIcon :name="props.icon" :size="16" />
-          </div>
-
-          <div class="nod8-base-node__title-box">
-            <div class="nod8-base-node__title-row">
-              <span class="nod8-base-node__title" :title="props.title">{{ props.title }}</span>
-
-              <span
-                v-if="props.badgeText"
-                class="nod8-base-node__tag"
-                :style="{ color: props.color, backgroundColor: props.bg }"
-              >
-                {{ props.badgeText }}
-              </span>
-
-              <!-- Pulsing dot in the header row -->
-              <span
-                v-if="effectiveStatus !== 'idle'"
-                class="nod8-base-node__status-dot"
-                :class="`is-${effectiveStatus}`"
-              ></span>
-            </div>
-
-            <span v-if="props.subtitle" class="nod8-base-node__subtitle">{{ props.subtitle }}</span>
-          </div>
-        </slot>
-      </div>
-    </template>
-
-    <!-- BODY -->
-    <div class="nod8-base-node__content">
-      <slot></slot>
+    <!-- Custom slot content (if any) -->
+    <div v-if="$slots.default" class="nod8-base-node__body">
+      <slot />
     </div>
 
     <!-- AUTO HANDLES -->
@@ -197,25 +157,43 @@ const onQuickAdd = () => {
       </button>
     </div>
 
-    <!-- Toolbar: JS-visible when selected; CSS-visible on :hover (see styles below) -->
+    <!-- Toolbar: JS-visible when selected; CSS-visible on :hover -->
     <NodeToolbar
       v-if="props.id && props.id !== 'trigger'"
       :node-id="props.id"
       :visible="showToolbar"
     />
 
-    <!--
-      Invisible bridge that fills the gap between the node's bottom border
-      and the toolbar positioned 40 px below.  Because this div IS a DOM
-      descendant, the browser keeps .nod8-base-node:hover true while the
-      cursor traverses the gap — so the CSS :hover rule below never drops
-      out, eliminating the flicker without any JS timers.
-    -->
+    <!-- Gap bridge for CSS hover -->
     <div
       v-if="props.id && props.id !== 'trigger'"
       class="nod8-base-node__toolbar-bridge"
       aria-hidden="true"
     />
+  </div>
+
+  <!-- Label area — outside the card, below it, like n8n -->
+  <div class="nod8-base-node__label-area" @dblclick.stop="startEditingId">
+    <slot name="label">
+      <div v-if="props.title || props.subtitle" class="nod8-base-node__label">
+        <input
+          v-if="isEditingId"
+          ref="idInputRef"
+          v-model="editedId"
+          class="nod8-base-node__label-input"
+          @blur="commitIdChange"
+          @keydown.enter="commitIdChange"
+          @keydown.esc="cancelIdChange"
+          @click.stop
+        />
+        <span v-else class="nod8-base-node__label-title" :title="props.title">
+          {{ props.title }}
+        </span>
+        <span v-if="props.subtitle" class="nod8-base-node__label-subtitle">
+          {{ props.subtitle }}
+        </span>
+      </div>
+    </slot>
   </div>
 </template>
 
@@ -223,270 +201,168 @@ const onQuickAdd = () => {
 /* ─── Shell ──────────────────────────────────────────────────── */
 .nod8-base-node {
   position: relative;
-  min-width: 240px;
-  max-width: 340px;
+  width: 100px;
+  height: 100px;
   background-color: var(--nod8-node-body);
-  border: 1px solid var(--nod8-node-border);
+  border: 2px solid var(--nod8-node-border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
   overflow: visible;
-  border-radius: var(--nod8-radius-md);
-  display: flex;
-  flex-direction: column;
-  box-shadow: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
 }
 
 .nod8-base-node:hover {
   border-color: var(--nod8-node-selected);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
 
-.nod8-base-node:hover .nod8-base-node__id-badge {
-  border-color: var(--nod8-node-selected);
-}
-
-/* ─── Selection & execution status borders ───────────────────── */
+/* ─── Selection & execution status borders ──────────────────── */
 .nod8-base-node.is-selected {
-  border-color: var(--nod8-node-selected);
+  border-color: var(--nod8-green-400);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--nod8-green-400) 25%, transparent);
 }
 
-.nod8-base-node.is-selected .nod8-base-node__id-badge {
-  border-color: var(--nod8-node-selected);
-}
-
-/* Running — amber */
 .nod8-base-node.is-running {
   border-color: var(--nod8-amber-400);
 }
 
-.nod8-base-node.is-running .nod8-base-node__id-badge {
-  border-color: var(--nod8-amber-400);
-}
-
-/* Success — green */
 .nod8-base-node.is-success {
   border-color: var(--nod8-green-400);
 }
 
-.nod8-base-node.is-success .nod8-base-node__id-badge {
-  border-color: var(--nod8-green-400);
-}
-
-/* Failed — red */
 .nod8-base-node.is-failed {
   border-color: var(--nod8-red-400);
 }
 
-.nod8-base-node.is-failed .nod8-base-node__id-badge {
-  border-color: var(--nod8-red-400);
-}
-
-/* ─── ID badge ───────────────────────────────────────────────── */
-.nod8-base-node__id-badge {
-  position: absolute;
-  top: -22.5px;
-  left: 12px;
-  background-color: var(--nod8-node-header);
-  border: 1px solid var(--nod8-node-border);
-  border-bottom: none !important;
-  border-radius: 4px 4px 0 0;
-  padding: 2px 6px;
-  font-family: var(--nod8-font-mono);
-  font-size: 11px;
-  max-width: 100px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--nod8-text-muted);
-  z-index: 10;
-  cursor: text;
-  transition: color 0.15s;
+/* ─── Icon area ─────────────────────────────────────────────── */
+.nod8-base-node__icon-wrap {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 4px;
-  box-shadow: none;
-}
-
-.nod8-base-node__id-badge:hover {
-  color: var(--nod8-text-primary);
-}
-
-.nod8-base-node__id-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  font-family: inherit;
-  font-size: inherit;
-  color: var(--nod8-text-primary);
-  width: 90px;
-  padding: 0;
-  margin: 0;
-}
-
-.nod8-base-node__id-text {
-  cursor: text;
-}
-
-/* Status dot inside the ID badge */
-.nod8-base-node__id-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.nod8-base-node__id-dot.is-running {
-  background-color: var(--nod8-amber-400);
-  animation: badge-pulse 1.5s ease-in-out infinite;
-}
-
-.nod8-base-node__id-dot.is-success {
-  background-color: var(--nod8-green-400);
-}
-
-.nod8-base-node__id-dot.is-failed {
-  background-color: var(--nod8-red-400);
-}
-
-@keyframes badge-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.35;
-  }
-}
-
-/* ─── Header ─────────────────────────────────────────────────── */
-.nod8-base-node__header {
-  display: flex;
-  align-items: center;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-3);
-  background-color: var(--nod8-node-header);
-  border-bottom: 1px solid var(--nod8-border);
-  border-radius: calc(var(--nod8-radius-md) - 1px) calc(var(--nod8-radius-md) - 1px) 0 0;
+  justify-content: center;
 }
 
 .nod8-base-node__icon-box {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--nod8-radius-sm);
-  border: 1px solid var(--nod8-border);
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
-.nod8-base-node__title-box {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-}
-
-.nod8-base-node__title-row {
+/* ─── Status badge (bottom-left of icon) ────────────────────── */
+.nod8-base-node__status-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
+  justify-content: center;
+  border: 2px solid var(--nod8-node-body);
 }
 
-.nod8-base-node__title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--nod8-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.nod8-base-node__tag {
-  font-size: 10px;
-  padding: 1px 4px;
-  border-radius: 4px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.nod8-base-node__subtitle {
-  font-size: 12px;
-  color: var(--nod8-text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ─── Status dot (header row) ────────────────────────────────── */
-.nod8-base-node__status-dot {
-  display: block;
-  flex-shrink: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.nod8-base-node__status-dot.is-running {
-  background-color: var(--nod8-amber-400);
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.nod8-base-node__status-dot.is-success {
+.nod8-base-node__status-badge--success {
   background-color: var(--nod8-green-400);
+  color: #000;
 }
 
-.nod8-base-node__status-dot.is-failed {
+.nod8-base-node__status-badge--error {
   background-color: var(--nod8-red-400);
+  color: #fff;
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+.nod8-base-node__status-badge--running {
+  background-color: var(--nod8-amber-400);
+  color: #000;
 }
 
-/* ─── Body ───────────────────────────────────────────────────── */
-.nod8-base-node__content {
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Extra body slot (e.g. trigger details) ─────────────────── */
+.nod8-base-node__body {
+  width: 100%;
+}
+
+/* ─── Label (below card, outside the node box) ──────────────── */
+.nod8-base-node__label-area {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
   display: flex;
   flex-direction: column;
-  padding: var(--nod8-space-3);
-  gap: var(--nod8-space-2);
+  align-items: center;
+  text-align: center;
+  cursor: text;
+  pointer-events: all;
+}
+
+.nod8-base-node__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.nod8-base-node__label-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nod8-text-primary);
+  line-height: 1.3;
+  word-break: break-word;
+  white-space: normal;
+  text-align: center;
+  max-width: 140px;
+}
+
+.nod8-base-node__label-subtitle {
+  font-size: 11px;
+  color: var(--nod8-text-muted);
+  text-align: center;
+}
+
+.nod8-base-node__label-input {
+  background: var(--nod8-node-body);
+  border: 1px solid var(--nod8-node-selected);
+  border-radius: 4px;
+  outline: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nod8-text-primary);
+  width: 120px;
+  text-align: center;
+  padding: 2px 4px;
 }
 
 /* ─── Toolbar hover via CSS ──────────────────────────────────── */
-/*
-  Using CSS :hover instead of JS mouseleave/mouseenter because:
-
-  - The browser keeps an element :hover when the cursor is over ANY
-    descendant (even absolutely-positioned ones).
-  - The bridge div below this node fills the gap between the node's
-    bottom edge and the toolbar, so :hover stays true while the cursor
-    traverses that gap.
-  - The toolbar itself is also a descendant, so hovering over its
-    buttons keeps :hover true — no JS timers, no pointer-events races.
-
-  The :deep() combinator pierces the component boundary so we can
-  style .nt-toolbar inside NodeToolbar from here.
-*/
 .nod8-base-node:hover :deep(.nt-toolbar) {
   opacity: 1;
   pointer-events: auto;
 }
 
 /* ─── Toolbar gap bridge ─────────────────────────────────────── */
-/*
-  Transparent child that fills the visual gap so :hover never drops
-  while the cursor moves from the node card down to the toolbar.
-*/
 .nod8-base-node__toolbar-bridge {
   position: absolute;
-  bottom: -40px; /* matches .nt-toolbar bottom value */
+  top: -40px;
   left: 0;
   right: 0;
   height: 40px;

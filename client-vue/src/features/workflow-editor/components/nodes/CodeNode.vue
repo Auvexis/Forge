@@ -20,38 +20,9 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Code Block')
     has-target
     has-source
     :title="stepTitle"
-    subtitle="JavaScript Engine"
+    :subtitle="'JavaScript Engine'"
     icon="code-2"
     color="var(--nod8-node-codeblock-icon)"
     bg="var(--nod8-node-codeblock-bg)"
-    badge-text="CODE"
-  >
-    <div class="nod8-code-body">
-      <pre class="nod8-code-pre">{{
-        snippet.length > 120 ? snippet.substring(0, 120) + '…' : snippet
-      }}</pre>
-    </div>
-  </BaseNode>
+  />
 </template>
-
-<style scoped>
-.nod8-code-body {
-  padding: var(--nod8-space-2);
-  background-color: var(--nod8-bg-surface);
-  border-radius: var(--nod8-radius-sm);
-  border: 1px solid var(--nod8-border);
-  max-height: 60px;
-  overflow: hidden;
-  width: 100%;
-}
-
-.nod8-code-pre {
-  font-size: var(--nod8-text-xs);
-  font-family: var(--nod8-font-mono);
-  color: var(--nod8-text-muted);
-  line-height: var(--nod8-leading-tight);
-  white-space: pre-wrap;
-  word-break: break-all;
-  margin: 0;
-}
-</style>
