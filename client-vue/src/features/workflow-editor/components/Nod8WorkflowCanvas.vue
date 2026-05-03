@@ -241,8 +241,8 @@ function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
     const nodes = vueFlowNodes.value as any[]
     const sourceNode = nodes.find((n) => n.id === sourceId)
     if (sourceNode) {
-      // Posição x: 350px para a direita. O Y vamos apenas herdar e o alignNodeCenters corrige depois
-      return { x: sourceNode.position.x + 350, y: sourceNode.position.y }
+      // Posição x: 200px para a direita. O Y vamos apenas herdar e o alignNodeCenters corrige depois
+      return { x: sourceNode.position.x + 200, y: sourceNode.position.y }
     }
   }
   return getCenterPosition()
