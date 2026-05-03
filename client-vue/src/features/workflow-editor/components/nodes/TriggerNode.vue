@@ -89,7 +89,10 @@ const onExecuteWorkflow = async () => {
 <template>
   <div
     class="trigger-node"
-    :class="[{ 'is-selected': props.selected }, effectiveStatus !== 'idle' ? `is-${effectiveStatus}` : '']"
+    :class="[
+      { 'is-selected': props.selected },
+      effectiveStatus !== 'idle' ? `is-${effectiveStatus}` : '',
+    ]"
     :style="{ '--trigger-border': triggerConfig.borderColor, '--node-tint': triggerConfig.bg }"
   >
     <!-- Execute button floating left -->
@@ -104,10 +107,7 @@ const onExecuteWorkflow = async () => {
     </div>
 
     <!-- Icon -->
-    <div
-      class="trigger-node__icon"
-      :style="{ color: triggerConfig.color }"
-    >
+    <div class="trigger-node__icon" :style="{ color: triggerConfig.color }">
       <LucideIcon :name="triggerConfig.icon" :size="48" />
     </div>
 
@@ -219,7 +219,7 @@ const onExecuteWorkflow = async () => {
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  
+
   /* Initial state: hidden and slightly to the right (behind the node) */
   opacity: 0;
   pointer-events: none;
@@ -233,9 +233,10 @@ const onExecuteWorkflow = async () => {
   content: '';
   position: absolute;
   top: 0;
-  left: -30px;
-  width: 30px;
+  left: -100%;
+  width: 100%;
   height: 100%;
+  z-index: -2;
 }
 
 .trigger-node:hover .trigger-node__execute-btn {
@@ -292,7 +293,9 @@ const onExecuteWorkflow = async () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ─── Label (outside the card) ──────────────────────────────── */
