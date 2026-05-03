@@ -1,4 +1,5 @@
 import type { CredentialSchema } from "../../../shared/models/plugin-types.ts";
+import { AppRepository } from "../app/app-repository.ts";
 
 /**
  * ENV-based credential vault for Nod8 plugins.
@@ -79,5 +80,27 @@ export const Vault = {
       ...(storedCredentials ?? {}),
       ...envSecrets, // ENV overrides stored
     };
+  },
+
+  /**
+   * Resolves {{env.KEY}} expressions in a credentials object.
+   * This should be called right before a plugin executes, tests a connection,
+   * or performs an OAuth2 flow.
+   */
+  resolveEnvExpressions(credentials: Record<string, string>): Record<string, string> {
+    const envVars = AppRepository.getAllGlobalVariablesAsMap();
+    const resolved: Record<string, string> = {};
+
+    for (const [key, value] of Object.entries(credentials)) {
+      if (typeof value === "string") {
+        resolved[key] = value.replace(/\{\{\s*env\.([A-Za-z0-9_]+)\s*\}\}/g, (_, envKey) => {
+          return envVars[envKey] !== undefined ? envVars[envKey] : `{{env.${envKey}}}`;
+        });
+      } else {
+        resolved[key] = value;
+      }
+    }
+
+    return resolved;
   },
 };

@@ -163,7 +163,8 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
       // Test connection if provider supports it
       if (plugin.auth.type === "api_key" && typeof (plugin.auth as any).testConnection === "function") {
         try {
-          await (plugin.auth as any).testConnection(filtered);
+          const resolvedTestCreds = Vault.resolveEnvExpressions(filtered);
+          await (plugin.auth as any).testConnection(resolvedTestCreds);
         } catch (err: any) {
           // If test fails, we return a 400 so the UI shows the error to the user
           // The credentials are saved, but the user is immediately warned.
@@ -357,11 +358,14 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
       // Merge stored credentials with ENV vault (ENV takes precedence)
       const provider = plugin.auth as OAuth2Provider;
       const storedCredentials = CredentialStore.getCredentials(pluginId) ?? {};
-      const credentials = Vault.mergeWithStored(
+      let credentials = Vault.mergeWithStored(
         pluginId,
         provider.credentialSchema,
         storedCredentials,
       );
+
+      // Resolve global variables
+      credentials = Vault.resolveEnvExpressions(credentials);
 
       if (!credentials || Object.keys(credentials).length === 0) {
         return sendResponse(reply, {
@@ -478,11 +482,14 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
       // Merge stored credentials with ENV vault (ENV takes precedence)
       const provider = plugin.auth as OAuth2Provider;
       const storedCredentials = CredentialStore.getCredentials(pluginId) ?? {};
-      const credentials = Vault.mergeWithStored(
+      let credentials = Vault.mergeWithStored(
         pluginId,
         provider.credentialSchema,
         storedCredentials,
       );
+
+      // Resolve global variables
+      credentials = Vault.resolveEnvExpressions(credentials);
 
       if (!credentials || Object.keys(credentials).length === 0) {
         return reply

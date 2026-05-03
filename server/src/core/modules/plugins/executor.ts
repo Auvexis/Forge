@@ -7,7 +7,6 @@ import { PluginManager } from "./manager.ts";
 import { CredentialStore } from "./credential-store.ts";
 import { Vault } from "./vault.ts";
 import { validateParams, PluginValidationError } from "./validator.ts";
-import { AppRepository } from "../app/app-repository.ts";
 
 export { PluginValidationError };
 
@@ -37,20 +36,13 @@ export const PluginExecutor = {
 
     // Merge ENV secrets with stored credentials (ENV takes precedence)
     const schema = (plugin.auth as any).credentialSchema;
-    const credentials: Record<string, string> =
+    let credentials: Record<string, string> =
       schema
         ? Vault.mergeWithStored(pluginId, schema, storedCredentials)
         : storedCredentials;
 
     // Resolve {{env.KEY}} expressions inside credentials
-    const envVars = AppRepository.getAllGlobalVariablesAsMap();
-    for (const [key, value] of Object.entries(credentials)) {
-      if (typeof value === "string") {
-        credentials[key] = value.replace(/\{\{\s*env\.([A-Za-z0-9_]+)\s*\}\}/g, (_, envKey) => {
-          return envVars[envKey] !== undefined ? envVars[envKey] : `{{env.${envKey}}}`;
-        });
-      }
-    }
+    credentials = Vault.resolveEnvExpressions(credentials);
 
     // Auto-refresh expired OAuth2 tokens before execution
     if (plugin.auth.type === "oauth2" && tokens?.expires_at) {
