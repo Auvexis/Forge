@@ -18,7 +18,7 @@ function close() {
   <Transition name="base-modal-slide-up">
     <div
       v-if="isOpen"
-      class="base-modal-backdrop absolute inset-0 z-[100] flex items-center justify-center"
+      class="base-modal-backdrop fixed inset-0 z-[100] flex items-center justify-center"
       @click.self="close"
     >
       <div 
