@@ -32,7 +32,7 @@
         <!-- ── Variables Tab ───────────────────────────────────────────── -->
         <section v-if="activeTab === 'variables'" class="gs-section">
           <p class="gs-section__desc">
-            Use <code class="gs-code">{{ '{{env.KEY}}' }}</code> in any workflow to reference these values.
+            Use <code class="gs-code" v-pre>{{env.KEY}}</code> in any workflow to reference these values.
           </p>
 
           <!-- Add form -->
@@ -222,12 +222,12 @@ const logRetentionOptions = [
 const themeValue = computed(() => String(store.settings.theme ?? 'dark'))
 const logRetentionValue = computed(() => String(store.settings.log_retention_days ?? '30'))
 
-async function handleThemeChange(value: string) {
-  await store.saveSetting('theme', value)
+async function handleThemeChange(value: string | number) {
+  await store.saveSetting('theme', String(value))
 }
 
-async function handleLogRetentionChange(value: string) {
-  await store.saveSetting('log_retention_days', value)
+async function handleLogRetentionChange(value: string | number) {
+  await store.saveSetting('log_retention_days', String(value))
 }
 </script>
 
@@ -240,9 +240,9 @@ async function handleLogRetentionChange(value: string) {
   top: 0;
   bottom: 0;
   left: var(--nod8-sidebar-width);
-  width: 360px;
-  background-color: var(--nod8-bg-surface);
-  border-right: 1px solid var(--nod8-border);
+  right: 0;
+  background-color: var(--nod8-bg-base);
+  border-left: 1px solid var(--nod8-border);
   z-index: var(--nod8-z-raised);
   overflow: hidden;
 }
@@ -339,8 +339,11 @@ async function handleLogRetentionChange(value: string) {
 .gs-section {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-4) var(--nod8-space-3);
+  gap: var(--nod8-space-5);
+  padding: var(--nod8-space-8) var(--nod8-space-6);
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .gs-section__desc {
@@ -472,15 +475,15 @@ async function handleLogRetentionChange(value: string) {
   flex-shrink: 0;
 }
 
-/* ─── Slide transition — enters from left (same as SidebarGlobalPanel pattern) */
+/* ─── Slide transition — enters from right */
 .settings-slide-enter-active {
-  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
 .settings-slide-leave-active {
-  transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
 }
 .settings-slide-enter-from,
 .settings-slide-leave-to {
-  transform: translateX(-100%);
+  transform: translateX(100%);
 }
 </style>

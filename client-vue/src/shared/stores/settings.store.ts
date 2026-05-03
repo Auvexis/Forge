@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { apiRequest } from '@/core/api/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -55,10 +56,7 @@ export const useSettingsStore = defineStore('settings', () => {
     isLoadingVariables.value = true
     variablesError.value = null
     try {
-      const res = await fetch('/api/app/variables')
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Failed to load variables')
-      variables.value = json.data ?? []
+      variables.value = await apiRequest<GlobalVariable[]>('/app/variables')
     } catch (err: any) {
       variablesError.value = err.message
     } finally {
@@ -67,24 +65,17 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   async function saveVariable(key: string, value: string, description = '') {
-    const res = await fetch(`/api/app/variables/${encodeURIComponent(key)}`, {
+    await apiRequest(`/app/variables/${encodeURIComponent(key)}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value, description }),
+      body: { value, description },
     })
-    const json = await res.json()
-    if (!res.ok) throw new Error(json.error || json.message || 'Failed to save variable')
     await fetchVariables()
   }
 
   async function deleteVariable(key: string) {
-    const res = await fetch(`/api/app/variables/${encodeURIComponent(key)}`, {
+    await apiRequest(`/app/variables/${encodeURIComponent(key)}`, {
       method: 'DELETE',
     })
-    if (!res.ok) {
-      const json = await res.json()
-      throw new Error(json.error || 'Failed to delete variable')
-    }
     await fetchVariables()
   }
 
@@ -96,24 +87,20 @@ export const useSettingsStore = defineStore('settings', () => {
   async function fetchSettings() {
     isLoadingSettings.value = true
     try {
-      const res = await fetch('/api/app/settings')
-      const json = await res.json()
-      if (res.ok) settings.value = json.data ?? {}
+      const data = await apiRequest<AppSettings>('/app/settings')
+      settings.value = data ?? {}
+    } catch {
+      // ignore
     } finally {
       isLoadingSettings.value = false
     }
   }
 
   async function saveSetting(key: string, value: unknown) {
-    const res = await fetch(`/api/app/settings/${encodeURIComponent(key)}`, {
+    await apiRequest(`/app/settings/${encodeURIComponent(key)}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value }),
+      body: { value },
     })
-    if (!res.ok) {
-      const json = await res.json()
-      throw new Error(json.error || 'Failed to save setting')
-    }
     settings.value[key] = value
   }
 
