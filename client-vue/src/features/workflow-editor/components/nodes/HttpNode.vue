@@ -25,5 +25,6 @@ const stepTitle = computed(() => (props.data as any)?.name || 'HTTP Request')
     icon="globe"
     color="var(--nod8-node-http-icon)"
     bg="var(--nod8-node-http-bg)"
+    border-color="var(--nod8-node-http-border)"
   />
 </template>

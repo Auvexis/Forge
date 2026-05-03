@@ -52,5 +52,6 @@ const remainingParams = computed(() => Math.max(0, paramEntries.value.length - 3
     :icon="pluginIcon"
     color="var(--nod8-node-plugin-icon)"
     bg="var(--nod8-node-plugin-bg)"
+    border-color="var(--nod8-node-plugin-border)"
   />
 </template>

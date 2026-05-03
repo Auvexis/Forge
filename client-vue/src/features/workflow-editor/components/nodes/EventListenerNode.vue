@@ -24,5 +24,6 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Wait for Event')
     icon="target"
     color="var(--nod8-node-event-listener-icon)"
     bg="var(--nod8-node-event-listener-bg)"
+    border-color="var(--nod8-node-event-listener-border)"
   />
 </template>

@@ -285,36 +285,44 @@
   --nod8-node-trigger-event-icon: rgb(245, 158, 11);
 
   /* Plugin */
-  --nod8-node-plugin-bg: rgba(255, 255, 255, 0.05);
+  --nod8-node-plugin-bg: rgba(255, 255, 255, 0.12);
   --nod8-node-plugin-icon: rgb(253, 253, 253);
+  --nod8-node-plugin-border: rgba(255, 255, 255, 0.4);
 
   /* Code Block */
-  --nod8-node-codeblock-bg: rgba(129, 219, 13, 0.05);
+  --nod8-node-codeblock-bg: rgba(129, 219, 13, 0.12);
   --nod8-node-codeblock-icon: rgb(129, 219, 13);
+  --nod8-node-codeblock-border: rgba(129, 219, 13, 0.4);
 
   /* HTTP */
-  --nod8-node-http-bg: rgba(251, 146, 60, 0.05);
+  --nod8-node-http-bg: rgba(251, 146, 60, 0.12);
   --nod8-node-http-icon: rgb(251, 146, 60);
+  --nod8-node-http-border: rgba(251, 146, 60, 0.4);
 
   /* Sub Workflow */
-  --nod8-node-subworkflow-bg: rgba(251, 113, 133, 0.05);
+  --nod8-node-subworkflow-bg: rgba(251, 113, 133, 0.12);
   --nod8-node-subworkflow-icon: rgb(251, 113, 133);
+  --nod8-node-subworkflow-border: rgba(251, 113, 133, 0.4);
 
   /* Event */
-  --nod8-node-event-bg: rgba(250, 204, 21, 0.05);
+  --nod8-node-event-bg: rgba(250, 204, 21, 0.12);
   --nod8-node-event-icon: rgb(250, 204, 21);
+  --nod8-node-event-border: rgba(250, 204, 21, 0.4);
 
   /* Event Listener */
-  --nod8-node-event-listener-bg: rgba(244, 114, 182, 0.05);
+  --nod8-node-event-listener-bg: rgba(244, 114, 182, 0.12);
   --nod8-node-event-listener-icon: rgb(244, 114, 182);
+  --nod8-node-event-listener-border: rgba(244, 114, 182, 0.4);
 
   /* Loop */
-  --nod8-node-loop-bg: rgba(34, 211, 238, 0.05);
+  --nod8-node-loop-bg: rgba(34, 211, 238, 0.12);
   --nod8-node-loop-icon: rgb(34, 211, 238);
+  --nod8-node-loop-border: rgba(34, 211, 238, 0.4);
 
   /* Selections */
-  --nod8-node-if-bg: rgba(167, 139, 250, 0.05);
+  --nod8-node-if-bg: rgba(167, 139, 250, 0.12);
   --nod8-node-if-icon: rgb(167, 139, 250);
+  --nod8-node-if-border: rgba(167, 139, 250, 0.4);
 
   /* ── Extra: Node Body Tags (React Equivalents) ── */
   --nod8-node-http-tag-bg: rgba(251, 146, 60, 0.05);

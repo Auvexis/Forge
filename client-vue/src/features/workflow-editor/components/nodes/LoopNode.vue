@@ -26,6 +26,7 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Loop / ForEach')
     icon="repeat"
     color="var(--nod8-node-loop-icon)"
     bg="var(--nod8-node-loop-bg)"
+    border-color="var(--nod8-node-loop-border)"
   >
     <!-- O Loop não tem o "source" nativo do BaseNode, ele tem DOIS handles específicos -->
     <BaseHandle id="loop-body" type="source" :position="Position.Right" style="top: 35%" />

@@ -78,6 +78,12 @@ const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() =
   if (storeStatus && storeStatus !== 'idle') return storeStatus
   return props.status ?? 'idle'
 })
+
+const onExecuteWorkflow = async () => {
+  if (store.activeWorkflow?.metadata.id) {
+    await executionStore.execute(store.activeWorkflow.metadata.id)
+  }
+}
 </script>
 
 <template>
@@ -86,6 +92,12 @@ const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() =
     :class="[{ 'is-selected': props.selected }, effectiveStatus !== 'idle' ? `is-${effectiveStatus}` : '']"
     :style="{ '--trigger-border': triggerConfig.borderColor, '--node-tint': triggerConfig.bg }"
   >
+    <!-- Execute button floating left -->
+    <button class="trigger-node__execute-btn" @click.stop="onExecuteWorkflow">
+      <LucideIcon name="play" :size="14" />
+      <span>Execute Workflow</span>
+    </button>
+
     <!-- Lightning bolt accent (top-left corner like n8n) -->
     <div class="trigger-node__lightning">
       <LucideIcon name="zap" :size="12" />
@@ -188,6 +200,44 @@ const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() =
   display: flex;
   align-items: center;
   line-height: 1;
+}
+
+/* ─── Execute Button (Slide from left) ──────────────────────── */
+.trigger-node__execute-btn {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(-20px, -50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--nod8-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--nod8-radius-full);
+  padding: 6px 12px 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--nod8-shadow-md);
+  
+  /* Initial state: hidden and slightly to the right (behind the node) */
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.trigger-node:hover .trigger-node__execute-btn {
+  opacity: 1;
+  pointer-events: auto;
+  /* Final state: fully visible, pushed out to the left */
+  transform: translate(calc(-100% - 16px), -50%);
+}
+
+.trigger-node__execute-btn:hover {
+  background-color: var(--nod8-brand-600);
 }
 
 /* ─── Main icon ─────────────────────────────────────────────── */

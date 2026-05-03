@@ -18,6 +18,7 @@ const props = defineProps<{
   icon?: string
   color?: string
   bg?: string
+  borderColor?: string
   badgeText?: string
 
   hasTarget?: boolean
@@ -98,7 +99,7 @@ const onQuickAdd = () => {
 </script>
 
 <template>
-  <div class="nod8-base-node" :class="[{ 'is-selected': selected }, statusClasses]" :style="{ '--node-tint': props.bg }">
+  <div class="nod8-base-node" :class="[{ 'is-selected': selected }, statusClasses]" :style="{ '--node-tint': props.bg, '--node-custom-border': props.borderColor }">
     <!-- Shimmer overlay while running -->
     <NodeShimmer v-if="effectiveStatus === 'running'" />
 
@@ -205,7 +206,7 @@ const onQuickAdd = () => {
   height: 100px;
   background-color: var(--nod8-node-body);
   background-image: linear-gradient(var(--node-tint, transparent), var(--node-tint, transparent));
-  border: 2px solid var(--nod8-node-border);
+  border: 2px solid var(--node-custom-border, var(--nod8-node-border));
   border-radius: 16px;
   display: flex;
   flex-direction: column;
@@ -220,7 +221,7 @@ const onQuickAdd = () => {
 }
 
 .nod8-base-node:hover {
-  border-color: var(--nod8-node-selected);
+  border-color: color-mix(in srgb, var(--node-custom-border, var(--nod8-node-selected)) 150%, white 30%);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
 

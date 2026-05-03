@@ -25,6 +25,7 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Conditional')
     icon="git-branch"
     color="var(--nod8-node-if-icon)"
     bg="var(--nod8-node-if-bg)"
+    border-color="var(--nod8-node-if-border)"
   >
     <!-- True handle (green, top) -->
     <BaseHandle id="if-true" type="source" :position="Position.Right" style="top: 35%" />

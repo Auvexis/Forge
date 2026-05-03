@@ -24,5 +24,6 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Code Block')
     icon="code-2"
     color="var(--nod8-node-codeblock-icon)"
     bg="var(--nod8-node-codeblock-bg)"
+    border-color="var(--nod8-node-codeblock-border)"
   />
 </template>
