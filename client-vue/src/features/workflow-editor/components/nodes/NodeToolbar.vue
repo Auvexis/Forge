@@ -5,20 +5,6 @@
     @mousedown.stop
     @click.stop
   >
-    <!-- View Output -->
-    <button
-      v-if="hasResult"
-      class="nt-btn"
-      :class="{ 'nt-btn--error': nodeState?.status === 'failed' }"
-      title="View last output"
-      @click="viewOutput"
-    >
-      <LucideIcon
-        :name="nodeState?.status === 'failed' ? 'alert-circle' : 'eye'"
-        :size="13"
-      />
-    </button>
-
     <!-- Clone -->
     <button class="nt-btn" title="Duplicate node" @click="cloneNode">
       <LucideIcon name="copy-plus" :size="13" />
@@ -38,7 +24,6 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
-import NodeOutputPanel from '@/features/workflow-editor/components/execution/NodeOutputPanel.vue'
 import type { WorkflowNode } from '@/core/types/workflow.types'
 
 const props = defineProps<{
@@ -55,22 +40,7 @@ const panelStore = useAppPanelStore()
 // lookup can return undefined — the computed value reflects that correctly.
 const nodeState = computed(() => executionStore.nodeStatuses[props.nodeId])
 
-const hasResult = computed(
-  () => !!nodeState.value?.output || !!nodeState.value?.error,
-)
-
 // ── Actions ────────────────────────────────────────────────────────────────
-
-function viewOutput() {
-  panelStore.togglePanel({
-    id: `node-output-${props.nodeId}`,
-    title: 'Node Output',
-    component: markRaw(NodeOutputPanel),
-    props: { nodeId: props.nodeId },
-    position: 'right',
-    width: 'lg',
-  })
-}
 
 function cloneNode() {
   const original = getNodes.value.find((n) => n.id === props.nodeId)
