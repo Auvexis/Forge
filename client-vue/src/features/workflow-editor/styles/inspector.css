@@ -5,7 +5,7 @@
 :root {
   /* ── Inspector Specific Variables ──────────────────────── */
   /* Backgrounds */
-  --inspector-bg-backdrop: rgba(10, 12, 16, 0.85);
+  --inspector-bg-backdrop: rgba(0, 0, 0, 0.046);
   --inspector-bg-modal: var(--nod8-bg-surface);
   --inspector-bg-pane: var(--nod8-bg-elevated);
   --inspector-bg-header: var(--nod8-bg-elevated);
@@ -30,8 +30,8 @@
 
 .inspector-backdrop {
   background: var(--inspector-bg-backdrop);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 
 .inspector-modal {
@@ -39,8 +39,8 @@
   border: 1px solid var(--inspector-border);
   box-shadow: var(--nod8-shadow-xl);
   /* Fallback sizes, will be controlled by Grid */
-  width: 90vw;
-  max-width: 1400px;
+  width: 95vw;
+  max-width: 1600px;
   height: 85vh;
 }
 

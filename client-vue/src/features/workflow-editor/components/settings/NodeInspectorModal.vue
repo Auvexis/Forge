@@ -225,19 +225,20 @@ const copyToClipboard = async (path: string) => {
 </script>
 
 <template>
-  <div
-    v-if="inspectorStore.isOpen"
-    class="inspector-backdrop absolute inset-0 z-50 flex items-center justify-center"
-    @click.self="close"
-  >
-    <div class="inspector-modal flex flex-col overflow-hidden">
-      <!-- 3-Column Grid -->
-      <div class="inspector-grid flex-1 min-h-0">
-        <!-- Left Pane: Input -->
-        <div class="inspector-pane">
-          <div
-            class="inspector-pane-header text-sm text-muted font-semibold flex items-center gap-2"
-          >
+  <Transition name="inspector-slide-up">
+    <div
+      v-if="inspectorStore.isOpen"
+      class="inspector-backdrop absolute inset-0 z-50 flex items-center justify-center"
+      @click.self="close"
+    >
+      <div class="inspector-modal flex flex-col overflow-hidden">
+        <!-- 3-Column Grid -->
+        <div class="inspector-grid flex-1 min-h-0">
+          <!-- Left Pane: Input -->
+          <div class="inspector-pane">
+            <div
+              class="inspector-pane-header text-sm text-muted font-semibold flex items-center gap-2"
+            >
             <LucideIcon name="download" size="16" />
             INPUT (Past)
           </div>
@@ -398,6 +399,7 @@ const copyToClipboard = async (path: string) => {
       </div>
     </div>
   </div>
+  </Transition>
 </template>
 
 <style scoped>
@@ -414,5 +416,29 @@ const copyToClipboard = async (path: string) => {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ── Transition: inspector-slide-up ── */
+.inspector-slide-up-enter-active,
+.inspector-slide-up-leave-active {
+  transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.inspector-slide-up-enter-from,
+.inspector-slide-up-leave-to {
+  opacity: 0;
+}
+
+.inspector-slide-up-enter-active .inspector-modal {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.inspector-slide-up-leave-active .inspector-modal {
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.inspector-slide-up-enter-from .inspector-modal,
+.inspector-slide-up-leave-to .inspector-modal {
+  transform: translateY(100vh);
 }
 </style>
