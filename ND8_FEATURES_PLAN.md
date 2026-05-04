@@ -27,7 +27,7 @@
   * **Right Pane (Output):** Displays the immediate execution result (JSON/Errors) to facilitate rapid debugging and variable mapping.
 * **Canvas Fluidity & Execution Resilience:** Ensure smooth drag-and-drop, stable transitions, and graceful error handling during background executions.
 
-### Milestone 1.4: Global Settings & Configuration Menu
+### ✅ Milestone 1.4: Global Settings & Configuration Menu [DONE]
 *The missing piece of the application shell.*
 * **Global App Panel:** Implement the frontend UI for App Settings.
 * **Features:** Management of Global Variables (Environment variables for workflows), Credential Management (OAuth tokens, API keys centralized view), and basic system preferences.
