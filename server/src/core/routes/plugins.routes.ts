@@ -34,6 +34,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         (plugin.auth as any).credentialSchema,
       ),
       auth_type: plugin.auth.type,
+      credential_schema: (plugin.auth as any).credentialSchema ?? null,
     }));
 
     return sendResponse(reply, {

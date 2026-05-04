@@ -314,13 +314,13 @@ async function loadPlugins() {
 
 const authPlugins = computed(() =>
   plugins.value.filter((p: any) => {
-    const schema = p.manifest?.auth?.credentialSchema
+    const schema = p.credential_schema
     return schema && typeof schema === 'object' && Object.keys(schema).length > 0
   })
 )
 
 function credentialSchema(plugin: any): Record<string, any> {
-  return plugin.manifest?.auth?.credentialSchema ?? {}
+  return plugin.credential_schema ?? {}
 }
 
 function hasCredential(pluginId: string): boolean {
