@@ -32,7 +32,21 @@
 * **Global App Panel:** Implement the frontend UI for App Settings.
 * **Features:** Management of Global Variables (Environment variables for workflows), Credential Management (OAuth tokens, API keys centralized view), and basic system preferences.
 
-### Milestone 1.5: Plugin Triggers & Event-Driven Architecture
+### Milestone 1.5: Advanced Utility Nodes
+*The foundational blocks for complex data routing and mapping.*
+* **Set (Edit Fields):** A node to visually map, edit, and create JSON fields without requiring JavaScript.
+* **Switch:** Advanced branching capable of routing the flow into N different outputs based on value conditions.
+* **Merge:** Re-combines divergent paths (e.g., after an IF or Switch branch) into a single unified flow.
+* **Split In Batches:** Breaks down large arrays into smaller chunks or individual items to prevent API rate limits and facilitate granular processing.
+
+### Milestone 1.6: Frontend Architecture & CSS Refactoring
+*A complete structural cleanup of the Vue.js frontend to ensure long-term maintainability.*
+* **Component Extraction:** Identify duplicated UI patterns across the app and extract them into reusable `Base*` components.
+* **Separation of Concerns:** Strip all visual CSS/styling from `.vue` `<style>` blocks. Vue files should strictly contain logic (`<script>`) and structure (`<template>`).
+* **Centralized Design System:** Establish global CSS variables for colors, typography, borders, and weights.
+* **Module-Scoped CSS:** Create dedicated `.css` files for each feature/module, heavily leveraging Tailwind-style utility classes mapped to our centralized design tokens.
+
+### Milestone 1.7: Plugin Triggers & Event-Driven Architecture
 *Moving beyond generic webhooks to provide a magical, app-specific trigger experience without punishing the plugin developer.*
 * **Schema-less Dynamic Outputs:** Triggers will capture raw JSON directly from the inbound webhook and display it in the new Left Pane UI, acting as the dynamic schema for downstream Variable Mapping.
 * **Opt-in Lifecycle Hooks (DX):** Introduce optional `setup()` and `teardown()` hooks in the plugin's `index.ts`. If implemented, the Nod8 Engine automatically registers/unregisters the webhook URL with the 3rd party API (e.g., Telegram) when the workflow is published.
