@@ -2,7 +2,6 @@ import { PluginExecutor } from "../plugins/executor.ts";
 import { WorkflowParser, resolvePath } from "./parser.ts";
 import { WorkflowRepository } from "./repository.ts";
 import { AppRepository } from "../app/app-repository.ts";
-import { CredentialStore } from "../plugins/credential-store.ts";
 import { runCode } from "./code-runner.ts";
 import { workflowEventBus } from "./event-bus.ts";
 import { InternalEventBus } from "../events/internal-event-bus.ts";
@@ -120,12 +119,8 @@ async function executePluginNode(
 ): Promise<any> {
   const cookedParams = WorkflowParser.evalParams(node.params, context);
 
-  // Sync credentials from CredentialsRepository into CredentialStore so
-  // the PluginExecutor can pick them up via its internal auth pipeline.
-  const creds = CredentialsRepository.getCredentialFieldsMap(node.pluginId);
-  if (Object.keys(creds).length > 0) {
-    CredentialStore.saveCredentials(node.pluginId, creds);
-  }
+  // No explicit credential sync needed — CredentialStore reads directly from
+  // credentials.db and is already used by PluginExecutor internally.
 
   return PluginExecutor.execute(node.pluginId, node.action, cookedParams);
 }
