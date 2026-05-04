@@ -8,6 +8,7 @@ import appRoutes from "./routes/app.routes.ts";
 import pluginsRoutes from "./routes/plugins.routes.ts";
 import workflowsRoutes from "./routes/workflows.routes.ts";
 import webhooksRoutes from "./routes/webhooks.routes.ts";
+import credentialsRoutes from "./routes/credentials.routes.ts";
 import { initializeDatabases } from "./database/index.ts";
 import { loadPlugins } from "./modules/plugins/loader.ts";
 import { Scheduler } from "./modules/scheduler/scheduler.ts";
@@ -57,6 +58,7 @@ fastify.register(appRoutes);
 fastify.register(pluginsRoutes);
 fastify.register(workflowsRoutes);
 fastify.register(webhooksRoutes);
+fastify.register(credentialsRoutes);
 
 // Run the server!
 fastify.listen({ port: PORT, host: "0.0.0.0" }, function (err, address) {

@@ -17,6 +17,11 @@ export interface AppSettings {
   [key: string]: unknown
 }
 
+export interface PluginCredential {
+  plugin_id: string
+  fields: Record<string, string>
+}
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 /**
@@ -104,6 +109,39 @@ export const useSettingsStore = defineStore('settings', () => {
     settings.value[key] = value
   }
 
+  // ── Credentials ───────────────────────────────────────────────────────────
+
+  const credentials = ref<Record<string, PluginCredential>>({})
+  const isLoadingCredential = ref<Record<string, boolean>>({})
+
+  async function fetchCredential(pluginId: string) {
+    isLoadingCredential.value[pluginId] = true
+    try {
+      const data = await apiRequest<PluginCredential>(`/credentials/${encodeURIComponent(pluginId)}`)
+      credentials.value[pluginId] = data
+    } catch {
+      // not found or error — remove from map
+      delete credentials.value[pluginId]
+    } finally {
+      isLoadingCredential.value[pluginId] = false
+    }
+  }
+
+  async function saveCredential(pluginId: string, fields: Record<string, string>) {
+    await apiRequest(`/credentials/${encodeURIComponent(pluginId)}`, {
+      method: 'PUT',
+      body: { fields },
+    })
+    await fetchCredential(pluginId)
+  }
+
+  async function deleteCredential(pluginId: string) {
+    await apiRequest(`/credentials/${encodeURIComponent(pluginId)}`, {
+      method: 'DELETE',
+    })
+    delete credentials.value[pluginId]
+  }
+
   return {
     // Panel state
     isOpen,
@@ -122,5 +160,11 @@ export const useSettingsStore = defineStore('settings', () => {
     isLoadingSettings,
     fetchSettings,
     saveSetting,
+    // Credentials
+    credentials,
+    isLoadingCredential,
+    fetchCredential,
+    saveCredential,
+    deleteCredential,
   }
 })
