@@ -1,55 +1,64 @@
 <template>
   <BaseModal
     :is-open="store.isOpen"
-    max-width="1200px"
-    height="80vh"
+    max-width="960px"
+    height="76vh"
     @close="store.close"
   >
-    <div class="global-settings">
-      <!-- Header -->
-      <header class="global-settings__header">
-        <button class="global-settings__back" @click="store.close" title="Back">
-          <LucideIcon name="arrow-left" :size="16" />
-        </button>
-        <span class="global-settings__title">Settings</span>
-      </header>
+    <div class="gs-shell">
 
-      <!-- Tabs -->
-      <nav class="global-settings__tabs">
-        <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          class="global-settings__tab"
-          :class="{ 'global-settings__tab--active': activeTab === tab.id }"
-          @click="activeTab = tab.id"
-        >
-          <LucideIcon :name="tab.icon" :size="13" />
-          {{ tab.label }}
-        </button>
-      </nav>
+      <!-- ── Left Aside ──────────────────────────────────────────── -->
+      <aside class="gs-aside">
+        <!-- Logo / title -->
+        <div class="gs-aside__header">
+          <button class="gs-aside__close" @click="store.close" title="Close">
+            <LucideIcon name="arrow-left" :size="15" />
+          </button>
+          <span class="gs-aside__title">Settings</span>
+        </div>
 
-      <!-- Scrollable content -->
-      <div class="global-settings__content">
+        <!-- Vertical nav -->
+        <nav class="gs-nav">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            class="gs-nav__item"
+            :class="{ 'gs-nav__item--active': activeTab === tab.id }"
+            @click="activeTab = tab.id"
+          >
+            <LucideIcon :name="tab.icon" :size="15" class="gs-nav__icon" />
+            <span class="gs-nav__label">{{ tab.label }}</span>
+          </button>
+        </nav>
+      </aside>
 
-        <!-- ── Variables Tab ───────────────────────────────────────────── -->
+      <!-- ── Right Content ───────────────────────────────────────── -->
+      <main class="gs-main">
+
+        <!-- ── Variables Tab ──────────────────────────────────────── -->
         <section v-if="activeTab === 'variables'" class="gs-section">
-          <p class="gs-section__desc">
-            Use <code class="gs-code" v-pre>{{env.KEY}}</code> in any workflow to reference these values.
-          </p>
+          <div class="gs-section__head">
+            <h2 class="gs-section__title">Environment Variables</h2>
+            <p class="gs-section__desc">
+              Use <code class="gs-code" v-pre>{{env.KEY}}</code> in any workflow to reference these values.
+            </p>
+          </div>
 
           <!-- Add form -->
           <div class="gs-card">
-            <BaseInput
-              v-model="newVar.key"
-              label="Key"
-              placeholder="MY_VARIABLE"
-              :error="newVar.keyError"
-            />
-            <BaseInput
-              v-model="newVar.value"
-              label="Value"
-              placeholder="my-value"
-            />
+            <div class="gs-card__grid">
+              <BaseInput
+                v-model="newVar.key"
+                label="Key"
+                placeholder="MY_VARIABLE"
+                :error="newVar.keyError"
+              />
+              <BaseInput
+                v-model="newVar.value"
+                label="Value"
+                placeholder="my-value"
+              />
+            </div>
             <BaseInput
               v-model="newVar.description"
               label="Description (optional)"
@@ -60,7 +69,6 @@
               icon-left="plus"
               :loading="isSavingVar"
               :disabled="!newVar.key.trim()"
-              :full-width="true"
               @click="handleSaveVariable"
             >
               Add Variable
@@ -101,12 +109,15 @@
           </ul>
         </section>
 
-        <!-- ── Credentials Tab ────────────────────────────────────────── -->
+        <!-- ── Credentials Tab ────────────────────────────────────── -->
         <section v-if="activeTab === 'credentials'" class="gs-section">
-          <p class="gs-section__desc">
-            Configure API keys and tokens for your installed plugins. These are stored locally and
-            injected automatically when workflows run.
-          </p>
+          <div class="gs-section__head">
+            <h2 class="gs-section__title">Credentials</h2>
+            <p class="gs-section__desc">
+              Configure API keys and tokens for your installed plugins. These are stored locally and
+              injected automatically when workflows run.
+            </p>
+          </div>
 
           <!-- Loading -->
           <div v-if="isLoadingPlugins" class="gs-state">
@@ -178,15 +189,21 @@
           </div>
         </section>
 
-        <!-- ── Preferences Tab ─────────────────────────────────────────── -->
+        <!-- ── Preferences Tab ────────────────────────────────────── -->
         <section v-if="activeTab === 'preferences'" class="gs-section">
-          <p class="gs-section__desc">System preferences for this Nod8 instance.</p>
+          <div class="gs-section__head">
+            <h2 class="gs-section__title">Preferences</h2>
+            <p class="gs-section__desc">System preferences for this Nod8 instance.</p>
+          </div>
 
           <div class="gs-pref-list">
             <div class="gs-pref-row">
               <div class="gs-pref-row__label">
-                <LucideIcon name="sun-moon" :size="14" />
-                <span>Theme</span>
+                <LucideIcon name="sun-moon" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Theme</span>
+                  <span class="gs-pref-row__hint">Controls the app color scheme</span>
+                </div>
               </div>
               <BaseSelect
                 :model-value="themeValue"
@@ -197,8 +214,11 @@
 
             <div class="gs-pref-row">
               <div class="gs-pref-row__label">
-                <LucideIcon name="database" :size="14" />
-                <span>Log Retention</span>
+                <LucideIcon name="database" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Log Retention</span>
+                  <span class="gs-pref-row__hint">How long to keep execution logs</span>
+                </div>
               </div>
               <BaseSelect
                 :model-value="logRetentionValue"
@@ -209,11 +229,10 @@
           </div>
         </section>
 
-      </div>
+      </main>
     </div>
   </BaseModal>
 </template>
-
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useSettingsStore } from '@/shared/stores/settings.store'
@@ -303,7 +322,6 @@ async function loadPlugins() {
     const { pluginsApi } = await import('@/core/api/plugins.api')
     const list = await pluginsApi.getAll()
     plugins.value = list ?? []
-    // Pre-fetch stored credentials for each plugin that requires auth
     for (const p of authPlugins.value) {
       await store.fetchCredential(p.id)
     }
@@ -388,9 +406,7 @@ const logRetentionValue = computed(() => String(store.settings.log_retention_day
 
 async function handleThemeChange(value: string | number) {
   const theme = String(value) as ThemeMode
-  // Apply immediately to the DOM (no reload needed)
   setMode(theme)
-  // Persist to server for cross-session sync
   await store.saveSetting('theme', theme)
 }
 
@@ -398,4 +414,5 @@ async function handleLogRetentionChange(value: string | number) {
   await store.saveSetting('log_retention_days', String(value))
 }
 </script>
+
 

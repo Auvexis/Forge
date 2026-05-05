@@ -1,38 +1,47 @@
 /* =============================================================
    AppGlobalSettings — Module CSS
-   Extracted from AppGlobalSettings.vue <style scoped>.
+   Windows 11-style layout: fixed aside (left) + scrollable main (right).
    All values reference tokens from tokens.css — no magic numbers.
    ============================================================= */
 
-/* ─── Main container ─── */
-.global-settings {
+/* ─── Shell: two-column layout ──────────────────────────────────────────── */
+.gs-shell {
   display: flex;
-  flex-direction: column;
   width: 100%;
   height: 100%;
+  overflow: hidden;
   background: var(--nod8-bg-surface);
-  z-index: var(--nod8-z-modal);
 }
 
-/* ─── Header ─────────────────────────────────────────────────────────────── */
-.global-settings__header {
+/* ─── Left Aside ─────────────────────────────────────────────────────────── */
+.gs-aside {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--nod8-bg-base);
+  border-right: 1px solid var(--nod8-border);
+  overflow: hidden;
+}
+
+/* Aside header: back button + title */
+.gs-aside__header {
   display: flex;
   align-items: center;
   gap: var(--nod8-space-2);
-  height: 48px;
-  padding: 0 var(--nod8-space-3);
+  padding: var(--nod8-space-4) var(--nod8-space-3);
   border-bottom: 1px solid var(--nod8-border);
   flex-shrink: 0;
 }
 
-.global-settings__back {
+.gs-aside__close {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-text-secondary);
+  color: var(--nod8-text-muted);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -40,68 +49,88 @@
   flex-shrink: 0;
 }
 
-.global-settings__back:hover {
+.gs-aside__close:hover {
   background: var(--nod8-bg-muted);
   color: var(--nod8-text-primary);
 }
 
-.global-settings__title {
+.gs-aside__title {
   font-size: var(--nod8-text-sm);
   font-weight: var(--nod8-font-semibold);
   color: var(--nod8-text-primary);
+  letter-spacing: -0.01em;
 }
 
-/* ─── Tabs ───────────────────────────────────────────────────────────────── */
-.global-settings__tabs {
+/* ─── Vertical Nav ───────────────────────────────────────────────────────── */
+.gs-nav {
   display: flex;
+  flex-direction: column;
   gap: 2px;
-  padding: var(--nod8-space-2) var(--nod8-space-3);
-  border-bottom: 1px solid var(--nod8-border);
-  flex-shrink: 0;
+  padding: var(--nod8-space-3) var(--nod8-space-2);
+  flex: 1;
 }
 
-.global-settings__tab {
+.gs-nav__item {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
-  padding: 4px var(--nod8-space-3);
+  gap: var(--nod8-space-3);
+  width: 100%;
+  padding: 8px var(--nod8-space-3);
   border-radius: var(--nod8-radius-sm);
-  font-size: var(--nod8-text-xs);
+  font-size: var(--nod8-text-sm);
   font-weight: var(--nod8-font-medium);
-  color: var(--nod8-text-muted);
+  color: var(--nod8-text-secondary);
   cursor: pointer;
   background: transparent;
   border: none;
-  transition: all var(--nod8-duration-fast);
+  text-align: left;
+  transition:
+    background var(--nod8-duration-fast) var(--nod8-ease-standard),
+    color var(--nod8-duration-fast) var(--nod8-ease-standard);
 }
 
-.global-settings__tab:hover {
-  background: var(--nod8-bg-muted);
-  color: var(--nod8-text-secondary);
-}
-
-.global-settings__tab--active {
+.gs-nav__item:hover {
   background: var(--nod8-bg-muted);
   color: var(--nod8-text-primary);
 }
 
-/* ─── Scrollable content ─────────────────────────────────────────────────── */
-.global-settings__content {
+.gs-nav__item--active {
+  background: var(--nod8-bg-muted);
+  color: var(--nod8-text-primary);
+  font-weight: var(--nod8-font-semibold);
+}
+
+.gs-nav__icon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.gs-nav__item--active .gs-nav__icon {
+  opacity: 1;
+}
+
+.gs-nav__label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Right Main ─────────────────────────────────────────────────────────── */
+.gs-main {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
   min-width: 0;
 }
 
-.global-settings__content::-webkit-scrollbar { width: var(--nod8-scrollbar-width); }
-.global-settings__content::-webkit-scrollbar-track { background: var(--nod8-scrollbar-track); }
-.global-settings__content::-webkit-scrollbar-thumb {
+.gs-main::-webkit-scrollbar { width: var(--nod8-scrollbar-width); }
+.gs-main::-webkit-scrollbar-track { background: var(--nod8-scrollbar-track); }
+.gs-main::-webkit-scrollbar-thumb {
   background: var(--nod8-scrollbar-thumb);
   border-radius: var(--nod8-radius-sm);
 }
-.global-settings__content::-webkit-scrollbar-thumb:hover {
+.gs-main::-webkit-scrollbar-thumb:hover {
   background: var(--nod8-scrollbar-thumb-hover);
 }
 
@@ -109,17 +138,32 @@
 .gs-section {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-5);
-  padding: var(--nod8-space-8) var(--nod8-space-6);
+  gap: var(--nod8-space-6);
+  padding: var(--nod8-space-8) var(--nod8-space-8);
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+}
+
+/* Section heading group (title + desc) */
+.gs-section__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nod8-space-1);
+  padding-bottom: var(--nod8-space-4);
+  border-bottom: 1px solid var(--nod8-border);
+}
+
+.gs-section__title {
+  font-size: var(--nod8-text-base);
+  font-weight: var(--nod8-font-semibold);
+  color: var(--nod8-text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .gs-section__desc {
   font-size: var(--nod8-text-xs);
   color: var(--nod8-text-muted);
-  line-height: 1.5;
+  line-height: 1.6;
   margin: 0;
 }
 
@@ -138,10 +182,17 @@
   display: flex;
   flex-direction: column;
   gap: var(--nod8-space-3);
-  padding: var(--nod8-space-3);
+  padding: var(--nod8-space-4);
   background: var(--nod8-bg-muted);
   border-radius: var(--nod8-radius-md);
   border: 1px solid var(--nod8-border);
+}
+
+/* Two-column grid for key/value inputs */
+.gs-card__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nod8-space-3);
 }
 
 /* ─── State (loading / empty) ────────────────────────────────────────────── */
@@ -150,7 +201,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--nod8-space-2);
-  padding: var(--nod8-space-6) 0;
+  padding: var(--nod8-space-8) 0;
   color: var(--nod8-text-muted);
   font-size: var(--nod8-text-xs);
 }
@@ -182,12 +233,17 @@
   background: var(--nod8-bg-muted);
   border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-sm);
+  transition: border-color var(--nod8-duration-fast);
+}
+
+.gs-var-item:hover {
+  border-color: var(--nod8-border-strong);
 }
 
 .gs-var-item__info {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
   flex: 1;
 }
@@ -222,26 +278,52 @@
 .gs-pref-list {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-2);
+  gap: var(--nod8-space-1);
 }
 
 .gs-pref-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-2) var(--nod8-space-3);
+  gap: var(--nod8-space-4);
+  padding: var(--nod8-space-3) var(--nod8-space-4);
   background: var(--nod8-bg-muted);
   border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-sm);
+  transition: border-color var(--nod8-duration-fast);
+}
+
+.gs-pref-row:hover {
+  border-color: var(--nod8-border-strong);
 }
 
 .gs-pref-row__label {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
-  font-size: var(--nod8-text-xs);
+  gap: var(--nod8-space-3);
+  flex-shrink: 0;
   color: var(--nod8-text-secondary);
+  min-width: 0;
+}
+
+.gs-pref-row__name {
+  display: block;
+  font-size: var(--nod8-text-sm);
+  font-weight: var(--nod8-font-medium);
+  color: var(--nod8-text-primary);
+  line-height: 1.2;
+}
+
+.gs-pref-row__hint {
+  display: block;
+  font-size: var(--nod8-text-xs);
+  color: var(--nod8-text-muted);
+  margin-top: 1px;
+}
+
+/* Constrain the select width on pref rows */
+.gs-pref-row .base-select-wrapper {
+  width: 160px;
   flex-shrink: 0;
 }
 

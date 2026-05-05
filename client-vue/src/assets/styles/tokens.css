@@ -140,7 +140,7 @@
   --nod8-button-outline-text: var(--nod8-text-primary);
   --nod8-button-outline-border: var(--nod8-gray-700);
   --nod8-button-outline-hover: var(--nod8-gray-800);
-  --nod8-button-outline-active: var(--nod8-gray-700);
+  --nod8-button-outline-active: var(--nod8-gray-800);
   --nod8-button-outline-active-text: var(--nod8-text-primary);
 
   /* Ghost */
@@ -148,7 +148,7 @@
   --nod8-button-ghost-text: var(--nod8-text-primary);
   --nod8-button-ghost-border: transparent;
   --nod8-button-ghost-hover: var(--nod8-gray-800);
-  --nod8-button-ghost-active: var(--nod8-gray-700);
+  --nod8-button-ghost-active: var(--nod8-gray-800);
   --nod8-button-ghost-active-text: var(--nod8-text-primary);
 
   /* Danger */
