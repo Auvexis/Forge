@@ -253,7 +253,7 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-select-option--selected {
-  background-color: rgba(99, 102, 241, 0.1);
+  background-color: var(--nod8-accent-subtle);
 }
 
 .base-select-empty {

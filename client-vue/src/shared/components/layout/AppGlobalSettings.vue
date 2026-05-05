@@ -217,6 +217,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useSettingsStore } from '@/shared/stores/settings.store'
+import { useTheme, type ThemeMode } from '@/shared/composables/useTheme'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
@@ -226,6 +227,7 @@ import BaseModal from '@/shared/components/base/BaseModal.vue'
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 const store = useSettingsStore()
+const { setMode } = useTheme()
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
@@ -370,7 +372,8 @@ async function handleDeleteCredential(pluginId: string) {
 
 const themeOptions = [
   { value: 'dark', label: 'Dark' },
-  { value: 'light', label: 'Light (coming soon)' },
+  { value: 'light', label: 'Light' },
+  { value: 'system', label: 'System (auto)' },
 ]
 
 const logRetentionOptions = [
@@ -384,7 +387,11 @@ const themeValue = computed(() => String(store.settings.theme ?? 'dark'))
 const logRetentionValue = computed(() => String(store.settings.log_retention_days ?? '30'))
 
 async function handleThemeChange(value: string | number) {
-  await store.saveSetting('theme', String(value))
+  const theme = String(value) as ThemeMode
+  // Apply immediately to the DOM (no reload needed)
+  setMode(theme)
+  // Persist to server for cross-session sync
+  await store.saveSetting('theme', theme)
 }
 
 async function handleLogRetentionChange(value: string | number) {
@@ -392,308 +399,3 @@ async function handleLogRetentionChange(value: string | number) {
 }
 </script>
 
-<style scoped>
-/* ─── Main container ─── */
-.global-settings {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  background: var(--nod8-bg-surface);
-  z-index: 50; /* Above regular editor, below toasts */
-}
-
-/* ─── Header ─────────────────────────────────────────────────────────────── */
-.global-settings__header {
-  display: flex;
-  align-items: center;
-  gap: var(--nod8-space-2);
-  height: 48px;
-  padding: 0 var(--nod8-space-3);
-  border-bottom: 1px solid var(--nod8-border);
-  flex-shrink: 0;
-}
-
-.global-settings__back {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-text-secondary);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: background-color var(--nod8-duration-fast), color var(--nod8-duration-fast);
-  flex-shrink: 0;
-}
-
-.global-settings__back:hover {
-  background: var(--nod8-bg-muted);
-  color: var(--nod8-text-primary);
-}
-
-.global-settings__title {
-  font-size: var(--nod8-text-sm);
-  font-weight: var(--nod8-font-semibold);
-  color: var(--nod8-text-primary);
-}
-
-/* ─── Tabs ───────────────────────────────────────────────────────────────── */
-.global-settings__tabs {
-  display: flex;
-  gap: 2px;
-  padding: var(--nod8-space-2) var(--nod8-space-3);
-  border-bottom: 1px solid var(--nod8-border);
-  flex-shrink: 0;
-}
-
-.global-settings__tab {
-  display: flex;
-  align-items: center;
-  gap: var(--nod8-space-2);
-  padding: 4px var(--nod8-space-3);
-  border-radius: var(--nod8-radius-sm);
-  font-size: var(--nod8-text-xs);
-  font-weight: var(--nod8-font-medium);
-  color: var(--nod8-text-muted);
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  transition: all var(--nod8-duration-fast);
-}
-
-.global-settings__tab:hover {
-  background: var(--nod8-bg-muted);
-  color: var(--nod8-text-secondary);
-}
-
-.global-settings__tab--active {
-  background: var(--nod8-bg-muted);
-  color: var(--nod8-text-primary);
-}
-
-/* ─── Scrollable content ─────────────────────────────────────────────────── */
-.global-settings__content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.global-settings__content::-webkit-scrollbar { width: 4px; }
-.global-settings__content::-webkit-scrollbar-track { background: transparent; }
-.global-settings__content::-webkit-scrollbar-thumb {
-  background: var(--nod8-border);
-  border-radius: 4px;
-}
-
-/* ─── Section ────────────────────────────────────────────────────────────── */
-.gs-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nod8-space-5);
-  padding: var(--nod8-space-8) var(--nod8-space-6);
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.gs-section__desc {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.gs-code {
-  font-family: monospace;
-  font-size: 11px;
-  background: var(--nod8-bg-muted);
-  border: 1px solid var(--nod8-border);
-  border-radius: 3px;
-  padding: 1px 4px;
-  color: var(--nod8-text-secondary);
-}
-
-/* ─── Add variable card ──────────────────────────────────────────────────── */
-.gs-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-3);
-  background: var(--nod8-bg-muted);
-  border-radius: var(--nod8-radius-md);
-  border: 1px solid var(--nod8-border);
-}
-
-/* ─── State (loading / empty) ────────────────────────────────────────────── */
-.gs-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--nod8-space-2);
-  padding: var(--nod8-space-6) 0;
-  color: var(--nod8-text-muted);
-  font-size: var(--nod8-text-xs);
-}
-
-.gs-spin {
-  animation: gs-spin 1s linear infinite;
-}
-
-@keyframes gs-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ─── Variable list ──────────────────────────────────────────────────────── */
-.gs-var-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--nod8-space-1);
-}
-
-.gs-var-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--nod8-space-2);
-  padding: var(--nod8-space-2) var(--nod8-space-3);
-  background: var(--nod8-bg-muted);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
-}
-
-.gs-var-item__info {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-  flex: 1;
-}
-
-.gs-var-item__key {
-  font-family: monospace;
-  font-size: 11px;
-  font-weight: var(--nod8-font-semibold);
-  color: var(--nod8-accent);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.gs-var-item__value {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.gs-var-item__desc {
-  font-size: 11px;
-  color: var(--nod8-text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ─── Preferences ────────────────────────────────────────────────────────── */
-.gs-pref-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nod8-space-2);
-}
-
-.gs-pref-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-2) var(--nod8-space-3);
-  background: var(--nod8-bg-muted);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
-}
-
-.gs-pref-row__label {
-  display: flex;
-  align-items: center;
-  gap: var(--nod8-space-2);
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-secondary);
-  flex-shrink: 0;
-}
-.gs-cred-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nod8-space-4);
-}
-
-.gs-cred-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-4);
-  background: var(--nod8-bg-muted);
-  border-radius: var(--nod8-radius-md);
-  border: 1px solid var(--nod8-border);
-}
-
-.gs-cred-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--nod8-space-2);
-}
-
-.gs-cred-card__title {
-  display: flex;
-  align-items: center;
-  gap: var(--nod8-space-2);
-  min-width: 0;
-}
-
-.gs-cred-card__name {
-  font-size: var(--nod8-text-sm);
-  font-weight: var(--nod8-font-semibold);
-  color: var(--nod8-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.gs-cred-card__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: var(--nod8-font-semibold);
-  padding: 2px 6px;
-  border-radius: var(--nod8-radius-full);
-  white-space: nowrap;
-}
-
-.gs-cred-card__badge--ok {
-  background: color-mix(in srgb, var(--nod8-green-400) 15%, transparent);
-  color: var(--nod8-green-400);
-}
-
-.gs-cred-card__badge--missing {
-  background: color-mix(in srgb, var(--nod8-text-muted) 10%, transparent);
-  color: var(--nod8-text-muted);
-}
-
-.gs-cred-card__fields {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nod8-space-2);
-}
-
-</style>

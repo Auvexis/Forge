@@ -348,4 +348,117 @@
   --nod8-node-listener-tag-bg: rgba(244, 114, 182, 0.05);
   --nod8-node-listener-tag-text: rgb(244, 114, 182);
   --nod8-node-listener-tag-border: rgba(244, 114, 182, 0.1);
+
+  /* ── Canvas (referenced in editor-shared.css as --nod8-bg-canvas) ── */
+  --nod8-bg-canvas: #0c0c0c;
+
+  /* ── Status semantic tokens ──────────────────────────────────── */
+  /* Used by StatusBadge, last-run badge, workflow-badge, execution states */
+  --nod8-status-success-bg: rgba(52, 211, 153, 0.1);
+  --nod8-status-success-border: rgba(52, 211, 153, 0.25);
+  --nod8-status-success-text: var(--nod8-green-400);
+
+  --nod8-status-running-bg: rgba(251, 191, 36, 0.1);
+  --nod8-status-running-border: rgba(251, 191, 36, 0.25);
+  --nod8-status-running-text: var(--nod8-amber-400);
+
+  --nod8-status-error-bg: rgba(248, 113, 113, 0.1);
+  --nod8-status-error-border: rgba(248, 113, 113, 0.25);
+  --nod8-status-error-text: var(--nod8-red-400);
+
+  --nod8-status-draft-bg: var(--nod8-bg-muted);
+  --nod8-status-draft-text: var(--nod8-text-secondary);
+  --nod8-status-draft-border: transparent;
+
+  --nod8-status-inactive-bg: rgba(249, 115, 22, 0.1);
+  --nod8-status-inactive-border: rgba(249, 115, 22, 0.25);
+  --nod8-status-inactive-text: #f97316;
+
+  /* ── Scrollbar tokens ────────────────────────────────────────── */
+  --nod8-scrollbar-width: 4px;
+  --nod8-scrollbar-track: transparent;
+  --nod8-scrollbar-thumb: var(--nod8-border);
+  --nod8-scrollbar-thumb-hover: var(--nod8-border-strong);
+}
+
+/* =========================================================
+   NOD8 — Light Theme Override
+   Applied via class="light" on <html> element.
+   Only override the semantic reference tokens — palette
+   tokens stay the same (they're the source of truth).
+   ========================================================= */
+:root.light {
+  /* Backgrounds */
+  --nod8-bg-base: var(--nod8-gray-50);
+  --nod8-bg-surface: #ffffff;
+  --nod8-bg-elevated: var(--nod8-gray-100);
+  --nod8-bg-overlay: var(--nod8-gray-200);
+  --nod8-bg-muted: var(--nod8-gray-100);
+  --nod8-bg-subtle: var(--nod8-gray-200);
+  --nod8-bg-canvas: #f0f0f0;
+
+  /* Borders */
+  --nod8-border: rgba(0, 0, 0, 0.08);
+  --nod8-border-muted: rgba(0, 0, 0, 0.04);
+  --nod8-border-strong: rgba(0, 0, 0, 0.14);
+  --nod8-border-brand: rgba(124, 58, 237, 0.4);
+
+  /* Text */
+  --nod8-text-primary: var(--nod8-gray-900);
+  --nod8-text-secondary: var(--nod8-gray-600);
+  --nod8-text-muted: var(--nod8-gray-500);
+  --nod8-text-disabled: var(--nod8-gray-400);
+  --nod8-text-inverse: #ffffff;
+  --nod8-text-brand: var(--nod8-brand-600);
+
+  /* Buttons */
+  --nod8-button-primary-bg: var(--nod8-gray-900);
+  --nod8-button-primary-text: #ffffff;
+  --nod8-button-primary-border: var(--nod8-gray-800);
+  --nod8-button-primary-hover: var(--nod8-gray-800);
+  --nod8-button-primary-active: var(--nod8-gray-800);
+  --nod8-button-primary-active-text: #ffffff;
+
+  --nod8-button-secondary-bg: var(--nod8-gray-100);
+  --nod8-button-secondary-text: var(--nod8-gray-900);
+  --nod8-button-secondary-border: var(--nod8-gray-200);
+  --nod8-button-secondary-hover: var(--nod8-gray-200);
+  --nod8-button-secondary-active: var(--nod8-gray-200);
+  --nod8-button-secondary-active-text: var(--nod8-gray-900);
+
+  --nod8-button-outline-bg: transparent;
+  --nod8-button-outline-text: var(--nod8-gray-800);
+  --nod8-button-outline-border: var(--nod8-gray-300);
+  --nod8-button-outline-hover: var(--nod8-gray-100);
+  --nod8-button-outline-active: var(--nod8-gray-200);
+  --nod8-button-outline-active-text: var(--nod8-gray-800);
+
+  --nod8-button-ghost-bg: transparent;
+  --nod8-button-ghost-text: var(--nod8-gray-700);
+  --nod8-button-ghost-border: transparent;
+  --nod8-button-ghost-hover: var(--nod8-gray-100);
+  --nod8-button-ghost-active: var(--nod8-gray-200);
+  --nod8-button-ghost-active-text: var(--nod8-gray-700);
+
+  /* Shadows */
+  --nod8-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --nod8-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.07);
+  --nod8-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+  --nod8-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.1);
+
+  /* Canvas */
+  --nod8-canvas-bg: #ececec;
+  --nod8-canvas-grid: rgba(0, 0, 0, 0.06);
+
+  /* Node Colors (light) */
+  --nod8-node-header: #f8f8f8;
+  --nod8-node-body: #ffffff;
+  --nod8-node-border: rgb(220, 220, 220);
+  --nod8-node-selected: rgb(180, 180, 180);
+  --nod8-node-handle: var(--nod8-node-border);
+  --nod8-node-handle-hover: var(--nod8-node-selected);
+
+  /* Scrollbar (light) */
+  --nod8-scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --nod8-scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
 }

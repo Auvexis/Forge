@@ -91,10 +91,10 @@ defineOptions({ inheritAttrs: false })
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background-color: #ffffff;
+  background-color: var(--nod8-text-inverse);
   transition: transform var(--nod8-duration-fast) var(--nod8-ease-standard);
   transform: translateY(-50%);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--nod8-shadow-sm);
 }
 
 /* Checked State */

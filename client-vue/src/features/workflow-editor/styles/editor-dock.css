@@ -1,0 +1,116 @@
+/* =============================================================
+   WorkflowEditorDock — Module CSS
+   Extracted from WorkflowEditorDock.vue <style scoped>.
+   ============================================================= */
+
+/* ── Brand area ──────────────────────────────────────────────────────────── */
+.wed-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--nod8-space-2);
+}
+
+.wed-brand__icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--nod8-radius-sm);
+  background-color: var(--nod8-bg-overlay);
+  border: 1px solid var(--nod8-border);
+  color: var(--nod8-text-secondary);
+  flex-shrink: 0;
+}
+
+.wed-brand__meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+/* ── Workflow name trigger ────────────────────────────────────────────────── */
+.wed-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wed-name {
+  font-size: var(--nod8-text-sm);
+  font-weight: var(--nod8-font-semibold);
+  color: var(--nod8-text-primary);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.wed-name__chevron {
+  color: var(--nod8-text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Status row ──────────────────────────────────────────────────────────── */
+.wed-status-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 2px;
+}
+
+.wed-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--nod8-text-muted);
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: background-color var(--nod8-duration-fast) var(--nod8-ease-standard);
+}
+
+.wed-status-dot--streaming {
+  background-color: var(--nod8-green-500);
+  opacity: 1;
+  animation: wed-pulse-dot 1.5s ease-in-out infinite;
+}
+
+.wed-status-dot--dirty {
+  background-color: var(--nod8-amber-500);
+  opacity: 1;
+}
+
+@keyframes wed-pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.wed-status-text {
+  font-size: var(--nod8-text-xs);
+  color: var(--nod8-text-muted);
+  font-family: var(--nod8-font-mono);
+  line-height: 1;
+}
+
+/* ── Vertical divider ────────────────────────────────────────────────────── */
+.wed-divider-v {
+  width: 1px;
+  height: 16px;
+  background-color: var(--nod8-border);
+  flex-shrink: 0;
+}
+
+/* ── Button state modifiers ──────────────────────────────────────────────── */
+.wed-btn--active {
+  background-color: var(--nod8-accent-subtle) !important;
+  color: var(--nod8-text-primary) !important;
+}
+
+.wed-btn--run:hover {
+  color: var(--nod8-green-500) !important;
+  background-color: var(--nod8-status-success-bg) !important;
+}
+
+.wed-btn--close:hover {
+  color: var(--nod8-red-500) !important;
+  background-color: var(--nod8-status-error-bg) !important;
+}

@@ -33,12 +33,14 @@
 * **Features:** Management of Global Variables (Environment variables for workflows), Credential Management (OAuth tokens, API keys centralized view), and basic system preferences.
 
 
-### Milestone 1.5: Frontend Architecture & CSS Refactoring
-*A complete structural cleanup of the Vue.js frontend to ensure long-term maintainability.*
-* **Component Extraction:** Identify duplicated UI patterns across the app and extract them into reusable `Base*` components.
-* **Separation of Concerns:** Strip all visual CSS/styling from `.vue` `<style>` blocks. Vue files should strictly contain logic (`<script>`) and structure (`<template>`).
-* **Centralized Design System:** Establish global CSS variables for colors, typography, borders, and weights.
-* **Module-Scoped CSS:** Create dedicated `.css` files for each feature/module, heavily leveraging Tailwind-style utility classes mapped to our centralized design tokens.
+### Milestone 1.5: Frontend Architecture & Scalable CSS Refactoring
+*A complete structural cleanup of the Vue.js frontend to ensure long-term maintainability, dynamic theming, and UI scalability.*
+* **Component Extraction:** Identify duplicated UI patterns across the app and extract them into reusable `Base*` components to ensure a DRY (Don't Repeat Yourself) UI architecture.
+* **Tailwind & CSS Variable Integration:** Overhaul the `tailwind.config.js` to map semantic utility classes directly to CSS Variables (e.g., mapping `bg-primary` to `var(--color-primary)`). This unlocks dynamic, runtime theming without needing complex class-toggling logic.
+* **Advanced Theme Management (Dark/Light Mode):** Implement a robust, scalable theming engine leveraging the new Tailwind CSS variable architecture. Ensure seamless switching between Light, Dark, and potential future custom themes, with user preferences persisted and applied without UI flashing.
+* **Design Token Standardization:** Establish a strict, single source of truth for all design tokens (colors, spacing, typography scales, z-index hierarchy, borders). Eliminate "magic numbers" and arbitrary values across all Vue components to guarantee visual consistency as the app scales.
+* **Separation of Concerns:** Strip all arbitrary and monolithic visual CSS from `.vue` `<style>` blocks. Vue files must strictly contain logic (`<script>`) and structure (`<template>`), relying entirely on the standardized Tailwind utility classes for styling.
+* **Module-Scoped CSS:** For complex, unavoidable custom animations or third-party overrides, create dedicated `.css` files for each feature/module that strictly inherit from our centralized design tokens.
 
 ### Milestone 1.6: Plugin Triggers & Event-Driven Architecture
 *Moving beyond generic webhooks to provide a magical, app-specific trigger experience without punishing the plugin developer.*

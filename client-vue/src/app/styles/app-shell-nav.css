@@ -1,0 +1,47 @@
+/* =============================================================
+   App Shell Navigation — Module CSS
+   Extracted from App.vue <style scoped>.
+   Styles for the sidebar nav-link elements.
+   ============================================================= */
+
+/* ── Nav link (sidebar icon buttons) ──────────────────────── */
+
+.nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 36px;
+  border-radius: var(--nod8-radius-md);
+  color: var(--nod8-text-secondary);
+  transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  background-color: var(--nod8-bg-muted);
+  color: var(--nod8-text-primary);
+}
+
+/* Active indicator bar on the left edge */
+.nav-link--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 16px;
+  background-color: var(--nod8-gray-200);
+  border-radius: 0 var(--nod8-radius-full) var(--nod8-radius-full) 0;
+}
+
+/* ── Sidebar footer links stack ──────────────────────────── */
+
+.sidebar-footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}

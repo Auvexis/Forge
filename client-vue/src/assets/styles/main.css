@@ -10,6 +10,19 @@
 @import './editor-shared.css';
 @import '../../features/workflow-editor/styles/inspector.css';
 
+/* ── App Module Styles ─────────────────────────────────────── */
+@import '../../app/styles/app-shell-nav.css';
+@import '../../app/styles/workflows-page.css';
+
+/* ── Shared Component Styles ───────────────────────────────── */
+@import '../../shared/components/layout/styles/global-settings.css';
+
+/* ── Workflow Editor UI Styles ─────────────────────────────── */
+@import '../../features/workflow-editor/styles/editor-dock.css';
+@import '../../features/workflow-editor/styles/production-monitor.css';
+@import '../../features/workflow-editor/styles/workflow-settings-panel.css';
+
+
 /* ── Layout Utilities ─────────────────────────────────────── */
 .nod8-fill {
   width: 100%;

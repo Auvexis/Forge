@@ -1,13 +1,30 @@
 <!doctype html>
-<html lang="">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>nd.8</title>
+    <!--
+      Anti-FOUC script: runs synchronously before ANYTHING renders.
+      Reads the stored theme preference and applies .dark or .light
+      to <html> so the browser never paints with the wrong theme.
+      This MUST stay inline and MUST be in <head> before any CSS link.
+    -->
+    <script>
+      ;(function () {
+        var stored = localStorage.getItem('nod8:theme')
+        var resolved = stored === 'light' ? 'light' : 'dark' // default: dark
+        if (stored === 'system') {
+          resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.classList.add(resolved)
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
+

@@ -82,23 +82,23 @@ defineOptions({ inheritAttrs: false })
 
 /* Success */
 .base-badge--success {
-  background-color: rgba(16, 185, 129, 0.15);
-  color: var(--nod8-green-400);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background-color: var(--nod8-status-success-bg);
+  color: var(--nod8-status-success-text);
+  border: 1px solid var(--nod8-status-success-border);
 }
 
 /* Warning */
 .base-badge--warning {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: var(--nod8-amber-400);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background-color: var(--nod8-status-running-bg);
+  color: var(--nod8-status-running-text);
+  border: 1px solid var(--nod8-status-running-border);
 }
 
 /* Error */
 .base-badge--error {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: var(--nod8-red-400);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--nod8-status-error-bg);
+  color: var(--nod8-status-error-text);
+  border: 1px solid var(--nod8-status-error-border);
 }
 
 /* Outline */
