@@ -252,6 +252,12 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
   fastify.all("/webhook/:webhookPath", async (req, reply) => {
     const { webhookPath } = req.params as { webhookPath: string };
 
+    console.log(
+      `[NOD8 | WEBHOOK-IN]: ${req.method} /webhook/${webhookPath} — ` +
+      `listen-active=${TriggerListenerRegistry.has(webhookPath)} ` +
+      `body-keys=${Object.keys((req.body as any) ?? {}).join(",")}`
+    );
+
     // ── Listen for Event intercept ─────────────────────────────────
     if (TriggerListenerRegistry.has(webhookPath)) {
       const payload = {
@@ -941,7 +947,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     });
 
     const isUnpublishedPluginTrigger =
-      workflow.trigger.type === "plugin" && !workflow.metadata.publishedAt;
+      workflow.trigger.type === "plugin" && !workflow.metadata.isActive;
 
     let teardownDone = false;
     const performTeardown = () => {

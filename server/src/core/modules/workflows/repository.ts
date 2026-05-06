@@ -96,12 +96,13 @@ export const WorkflowRepository = {
    */
   unpublishWorkflow: (id: string): WorkflowItem | null => {
     const now = new Date().toISOString();
-    db.prepare(`UPDATE workflows SET is_active=0 WHERE id=?`).run(id);
+    db.prepare(`UPDATE workflows SET is_active=0, published_at=NULL WHERE id=?`).run(id);
 
     const workflow = WorkflowRepository.getWorkflowById(id);
     if (!workflow) return null;
 
     workflow.metadata.isActive = false;
+    workflow.metadata.publishedAt = null;
     workflow.metadata.updatedAt = now;
 
     db.prepare(`UPDATE workflows SET definition=? WHERE id=?`).run(
