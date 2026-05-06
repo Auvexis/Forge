@@ -172,12 +172,33 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
   fastify.all("/webhook-test/:webhookPath", async (req, reply) => {
     const { webhookPath } = req.params as { webhookPath: string };
 
+    // ── Listen for Event intercept ─────────────────────────────────
+    if (TriggerListenerRegistry.has(webhookPath)) {
+      const payload = {
+        body: req.body ?? null,
+        headers: req.headers,
+        query: req.query,
+        method: req.method,
+        contentType: req.headers["content-type"] ?? "",
+        receivedAt: Date.now(),
+        identifier: webhookPath,
+      };
+
+      const { consumed, workflowId } = TriggerListenerRegistry.consume(webhookPath, payload);
+      if (consumed && workflowId) {
+        WorkflowRepository.saveLastTriggerPayload(workflowId, payload);
+      }
+      return reply.code(200).send({ ok: true });
+    }
+    // ──────────────────────────────────────────────────────────────
+
     const workflows = WorkflowRepository.getWorkflows();
     const workflow = workflows.find(
       (wf) =>
-        wf.trigger.type === "webhook" &&
+        (wf.trigger.type === "webhook" || wf.trigger.type === "plugin") &&
         (wf.trigger.webhookSlug === webhookPath ||
-          wf.trigger.webhookPath === webhookPath),
+          wf.trigger.webhookPath === webhookPath ||
+          (wf.trigger.type === "plugin" && wf.metadata.id === webhookPath)),
     );
 
     if (!workflow) {
@@ -231,12 +252,33 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
   fastify.all("/webhook/:webhookPath", async (req, reply) => {
     const { webhookPath } = req.params as { webhookPath: string };
 
+    // ── Listen for Event intercept ─────────────────────────────────
+    if (TriggerListenerRegistry.has(webhookPath)) {
+      const payload = {
+        body: req.body ?? null,
+        headers: req.headers,
+        query: req.query,
+        method: req.method,
+        contentType: req.headers["content-type"] ?? "",
+        receivedAt: Date.now(),
+        identifier: webhookPath,
+      };
+
+      const { consumed, workflowId } = TriggerListenerRegistry.consume(webhookPath, payload);
+      if (consumed && workflowId) {
+        WorkflowRepository.saveLastTriggerPayload(workflowId, payload);
+      }
+      return reply.code(200).send({ ok: true });
+    }
+    // ──────────────────────────────────────────────────────────────
+
     const workflows = WorkflowRepository.getActiveWorkflows();
     const workflow = workflows.find(
       (wf) =>
-        wf.trigger.type === "webhook" &&
+        (wf.trigger.type === "webhook" || wf.trigger.type === "plugin") &&
         (wf.trigger.webhookSlug === webhookPath ||
-          wf.trigger.webhookPath === webhookPath),
+          wf.trigger.webhookPath === webhookPath ||
+          (wf.trigger.type === "plugin" && wf.metadata.id === webhookPath)),
     );
 
     if (!workflow) {
