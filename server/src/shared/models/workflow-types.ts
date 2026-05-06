@@ -163,7 +163,7 @@ export interface WebhookBodyField {
 // ──────────── Trigger ────────────
 
 export interface WorkflowTrigger {
-  type: "manual" | "webhook" | "cron" | "event";
+  type: "manual" | "webhook" | "cron" | "event" | "plugin";
   schema?: Record<string, any>;
   ui?: WorkflowNodeUI;
   // Webhook config
@@ -174,8 +174,14 @@ export interface WorkflowTrigger {
   webhookBodySchema?: Record<string, WebhookBodyField>; // Expected body shape (docs + optional validation)
   // Cron config
   cronExpression?: string;
-  // Event config
+  // Internal event config
   eventName?: string;
+  // Plugin trigger config
+  pluginId?: string;      // ID of the plugin that owns this trigger
+  triggerName?: string;   // Key in plugin.manifest.triggers (e.g. "onMessage")
+  triggerParams?: Record<string, any>; // User-configured params for the trigger
+  // Captured payload from "Listen for Event" UX (persisted so left pane can display it)
+  lastTriggerPayload?: Record<string, any> | null;
 }
 
 // ──────────── Metadata ────────────

@@ -33,6 +33,15 @@ const executionState = computed(() => {
   return executionStore.nodeStatuses[inspectorStore.activeNodeId]
 })
 
+/**
+ * The last webhook payload captured via "Listen for Event".
+ * Reactive: updates immediately when the TriggerEditor's SSE captures a payload
+ * (because it writes directly to workflowStore.activeWorkflow.trigger.lastTriggerPayload).
+ */
+const lastTriggerPayload = computed(() =>
+  workflowStore.activeWorkflow?.trigger.lastTriggerPayload ?? null
+)
+
 const displayOutput = computed(() => {
   if (inspectorStore.lastTestOutput) {
     return inspectorStore.lastTestOutput
@@ -243,23 +252,45 @@ const copyToClipboard = async (path: string) => {
             INPUT (Past)
           </div>
           <div class="inspector-pane-content overflow-y-auto flex flex-col h-full">
-            <div v-if="upstreamNodes.length > 0" class="p-4 flex-1">
-              <VariableTree
-                param-key="inspector"
-                :upstream-nodes="upstreamNodes"
-                :nodes="nodes"
-                @inject="(key, path) => copyToClipboard(path)"
-              />
-            </div>
-            <div
-              v-else
-              class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]"
-            >
-              <div class="icon-box mb-3 opacity-70">
-                <LucideIcon name="database" size="24" />
+            <!-- Special case: Trigger node with captured payload from Listen for Event -->
+            <template v-if="inspectorStore.activeNodeId === 'trigger'">
+              <div v-if="lastTriggerPayload" class="p-4 flex-1">
+                <p class="text-xs text-muted mb-3" style="font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
+                  Last Captured Event
+                </p>
+                <JsonTreeView :data="lastTriggerPayload" :is-root="true" />
               </div>
-              <p class="text-sm text-muted">No input data available yet.</p>
-            </div>
+              <div
+                v-else
+                class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]"
+              >
+                <div class="icon-box mb-3 opacity-70">
+                  <LucideIcon name="radio" size="24" />
+                </div>
+                <p class="text-sm text-muted">No event captured yet.</p>
+                <p class="text-xs text-muted mt-1">Use "Listen for Event" in the trigger settings.</p>
+              </div>
+            </template>
+            <!-- Normal case: variable tree from upstream nodes -->
+            <template v-else>
+              <div v-if="upstreamNodes.length > 0" class="p-4 flex-1">
+                <VariableTree
+                  param-key="inspector"
+                  :upstream-nodes="upstreamNodes"
+                  :nodes="nodes"
+                  @inject="(key, path) => copyToClipboard(path)"
+                />
+              </div>
+              <div
+                v-else
+                class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]"
+              >
+                <div class="icon-box mb-3 opacity-70">
+                  <LucideIcon name="database" size="24" />
+                </div>
+                <p class="text-sm text-muted">No input data available yet.</p>
+              </div>
+            </template>
           </div>
         </div>
 

@@ -170,7 +170,7 @@ export interface WebhookBodyField {
 // ── Trigger ───────────────────────────────────────
 
 export interface WorkflowTrigger {
-  type: 'manual' | 'webhook' | 'cron' | 'event'
+  type: 'manual' | 'webhook' | 'cron' | 'event' | 'plugin'
   schema?: Record<string, WorkflowSchemaField>
   ui?: WorkflowNodeUI
   webhookPath?: string
@@ -180,6 +180,12 @@ export interface WorkflowTrigger {
   webhookBodySchema?: Record<string, WebhookBodyField>
   cronExpression?: string
   eventName?: string
+  // Plugin trigger fields
+  pluginId?: string
+  triggerName?: string
+  triggerParams?: Record<string, any>
+  // Last captured webhook payload from "Listen for Event"
+  lastTriggerPayload?: Record<string, any> | null
 }
 
 // ── Metadata ───────────────────────────────────────

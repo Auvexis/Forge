@@ -33,7 +33,7 @@
 * **Features:** Management of Global Variables (Environment variables for workflows), Credential Management (OAuth tokens, API keys centralized view), and basic system preferences.
 
 
-### Milestone 1.5: Frontend Architecture & Scalable CSS Refactoring
+### ✅ Milestone 1.5: Frontend Architecture & Scalable CSS Refactoring [DONE]
 *A complete structural cleanup of the Vue.js frontend to ensure long-term maintainability, dynamic theming, and UI scalability.*
 * **Component Extraction:** Identify duplicated UI patterns across the app and extract them into reusable `Base*` components to ensure a DRY (Don't Repeat Yourself) UI architecture.
 * **Tailwind & CSS Variable Integration:** Overhaul the `tailwind.config.js` to map semantic utility classes directly to CSS Variables (e.g., mapping `bg-primary` to `var(--color-primary)`). This unlocks dynamic, runtime theming without needing complex class-toggling logic.

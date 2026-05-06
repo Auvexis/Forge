@@ -180,4 +180,22 @@ export const workflowsApi = {
   createExecutionStream: (executionId: string): EventSource => {
     return new EventSource(`${API_BASE_URL}${ENDPOINTS.STREAM_EXECUTION(executionId)}`)
   },
+
+  /**
+   * Opens an SSE connection that waits for the next webhook call on this workflow.
+   * Events emitted:
+   *   { type: 'listening', webhookPath }  — server is ready
+   *   { type: 'captured', payload }       — webhook received, payload captured
+   *   { type: 'timeout' }                 — 120s elapsed with no webhook
+   */
+  listenForTrigger: (workflowId: string): EventSource => {
+    return new EventSource(`${API_BASE_URL}${ENDPOINTS.TRIGGER_LISTEN(workflowId)}`)
+  },
+
+  /**
+   * Fetches the last webhook payload captured during a "Listen for Event" session.
+   * Returns null if no payload has been captured yet.
+   */
+  getLastTriggerPayload: (workflowId: string) =>
+    apiRequest<Record<string, any> | null>(ENDPOINTS.TRIGGER_LAST_PAYLOAD(workflowId)),
 }

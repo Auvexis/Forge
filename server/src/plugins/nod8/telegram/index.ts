@@ -2,6 +2,8 @@ import type {
   Nod8Plugin,
   ApiKeyProvider,
   PluginManifest,
+  PluginTriggerHooks,
+  TriggerRegistrationContext,
 } from "../../../shared/models/plugin-types.ts";
 import manifest from "./manifest.json" with { type: "json" };
 import { createTelegramMethods } from "./methods.ts";
@@ -45,6 +47,63 @@ const auth: ApiKeyProvider = {
   },
 };
 
+// ──────────── Trigger Lifecycle Hooks ────────────
+// The core engine calls setup() on publish and teardown() on unpublish/delete.
+// This plugin is 100% responsible for knowing how to talk to Telegram's API.
+
+const onMessageTrigger: PluginTriggerHooks = {
+  async setup(ctx: TriggerRegistrationContext): Promise<void> {
+    const token = ctx.credentials.bot_token?.trim();
+    if (!token) {
+      throw new Error("Telegram bot token is not configured. Please set credentials before publishing.");
+    }
+
+    // Build allowed_updates array from optional param
+    const allowedTypesRaw = (ctx.params.allowedUpdateTypes as string | undefined)?.trim();
+    const allowedUpdates = allowedTypesRaw
+      ? allowedTypesRaw.split(",").map((t) => t.trim()).filter(Boolean)
+      : [];
+
+    const body: Record<string, any> = { url: ctx.webhookUrl };
+    if (allowedUpdates.length > 0) {
+      body.allowed_updates = allowedUpdates;
+    }
+
+    const response = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json() as { ok: boolean; description?: string };
+
+    if (!data.ok) {
+      throw new Error(`Telegram setWebhook failed: ${data.description ?? "Unknown error"}`);
+    }
+
+    console.log(`[NOD8 | TELEGRAM]: Webhook registered at ${ctx.webhookUrl} for workflow '${ctx.workflowId}'`);
+  },
+
+  async teardown(ctx: TriggerRegistrationContext): Promise<void> {
+    const token = ctx.credentials.bot_token?.trim();
+    if (!token) return; // Nothing to clean up without a token
+
+    const response = await fetch(`https://api.telegram.org/bot${token}/deleteWebhook`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ drop_pending_updates: false }),
+    });
+
+    const data = await response.json() as { ok: boolean; description?: string };
+
+    if (!data.ok) {
+      throw new Error(`Telegram deleteWebhook failed: ${data.description ?? "Unknown error"}`);
+    }
+
+    console.log(`[NOD8 | TELEGRAM]: Webhook unregistered for workflow '${ctx.workflowId}'`);
+  },
+};
+
 // ──────────── Plugin Definition ────────────
 
 const TelegramPlugin: Nod8Plugin = {
@@ -52,6 +111,9 @@ const TelegramPlugin: Nod8Plugin = {
   manifest: manifest as PluginManifest,
   auth,
   methods: createTelegramMethods(),
+  triggers: {
+    onMessage: onMessageTrigger,
+  },
 };
 
 export default TelegramPlugin;

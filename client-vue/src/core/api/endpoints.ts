@@ -17,6 +17,10 @@ export const ENDPOINTS = {
   CANCEL_EXECUTION: (execId: string) => `/workflows/executions/${execId}/cancel`,
   STREAM_EXECUTION: (execId: string) => `/workflows/executions/${execId}/stream`,
 
+  // Trigger
+  TRIGGER_LISTEN: (id: string) => `/workflows/${id}/trigger/listen`,
+  TRIGGER_LAST_PAYLOAD: (id: string) => `/workflows/${id}/trigger/last-payload`,
+
   // Plugins
   PLUGINS: '/plugins',
   PLUGIN_BY_ID: (id: string) => `/plugins/${id}`,

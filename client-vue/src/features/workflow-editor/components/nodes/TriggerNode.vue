@@ -56,6 +56,14 @@ const triggerConfig = computed(() => {
       bg: 'rgba(245,158,11,0.12)',
       borderColor: 'rgba(245,158,11,0.4)',
     },
+    plugin: {
+      icon: 'plug',
+      title: 'Plugin Trigger',
+      subtitle: null,
+      color: 'rgb(99, 179, 237)',
+      bg: 'rgba(99,179,237,0.12)',
+      borderColor: 'rgba(99,179,237,0.4)',
+    },
   }
 
   return configMap[type as keyof typeof configMap] ?? configMap.manual

@@ -212,6 +212,43 @@ export const WorkflowRepository = {
       context_state: JSON.parse(row.context_state),
     }));
   },
+
+  // ──────────── Listen for Event payload storage ────────────
+
+  /**
+   * Persists the raw webhook payload captured during a "Listen for Event" session.
+   * Also updates the workflow definition blob so the trigger.lastTriggerPayload field
+   * survives a server restart and is available to the frontend left pane.
+   */
+  saveLastTriggerPayload: (workflowId: string, payload: Record<string, any>) => {
+    // Update the dedicated column for fast retrieval
+    db.prepare(`UPDATE workflows SET last_trigger_payload = ? WHERE id = ?`)
+      .run(JSON.stringify(payload), workflowId);
+
+    // Also embed it in the definition blob so the WorkflowItem returned by
+    // getWorkflowById() already contains the payload without an extra query.
+    const workflow = WorkflowRepository.getWorkflowById(workflowId);
+    if (workflow) {
+      workflow.trigger.lastTriggerPayload = payload;
+      db.prepare(`UPDATE workflows SET definition = ? WHERE id = ?`)
+        .run(JSON.stringify(workflow), workflowId);
+    }
+  },
+
+  /**
+   * Returns the last captured trigger payload for a workflow, or null.
+   */
+  getLastTriggerPayload: (workflowId: string): Record<string, any> | null => {
+    const row = db.prepare(`SELECT last_trigger_payload FROM workflows WHERE id = ?`)
+      .get(workflowId) as { last_trigger_payload: string | null } | undefined;
+
+    if (!row || !row.last_trigger_payload) return null;
+    try {
+      return JSON.parse(row.last_trigger_payload);
+    } catch {
+      return null;
+    }
+  },
 };
 
 // ──────────── Runtime migration ────────────

@@ -262,26 +262,114 @@
         </div>
       </div>
     </template>
+
+    <!-- ── PLUGIN TRIGGER ── -->
+    <template v-if="(node.data as unknown as WorkflowTrigger).type === 'plugin'">
+      <div class="te-section">
+
+        <!-- Plugin Selector -->
+        <div class="te-field">
+          <span class="te-label">Integration</span>
+          <BaseSelect
+            :model-value="(node.data as unknown as WorkflowTrigger).pluginId || ''"
+            :options="pluginTriggerOptions"
+            @update:model-value="onPluginChange($event as string)"
+          />
+          <p class="te-hint">Only plugins that support triggers are listed.</p>
+        </div>
+
+        <!-- Trigger Name Selector -->
+        <div class="te-field" v-if="selectedPlugin && availableTriggers.length > 0">
+          <span class="te-label">Event / Trigger</span>
+          <BaseSelect
+            :model-value="(node.data as unknown as WorkflowTrigger).triggerName || ''"
+            :options="availableTriggers"
+            @update:model-value="updateNodeData({ triggerName: $event as string })"
+          />
+        </div>
+
+        <!-- Trigger Params -->
+        <template v-if="selectedTriggerManifest?.parameters?.properties">
+          <div class="te-section" style="padding-top:0">
+            <div class="te-intro"><span class="te-label">Trigger Settings</span></div>
+            <div class="flex flex-col gap-2">
+              <div
+                v-for="(propSchema, propKey) in selectedTriggerManifest.parameters.properties"
+                :key="String(propKey)"
+                class="te-field"
+              >
+                <span class="te-label">{{ propSchema['x-label'] || propKey }}</span>
+                <p v-if="propSchema.description" class="te-hint">{{ propSchema.description }}</p>
+                <BaseInput
+                  :model-value="String((node.data as unknown as WorkflowTrigger).triggerParams?.[String(propKey)] ?? '')"
+                  @update:model-value="updateTriggerParam(String(propKey), $event as string)"
+                />
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Listen for Event -->
+        <div class="te-section" v-if="(node.data as unknown as WorkflowTrigger).pluginId">
+          <div class="te-intro">
+            <span class="te-label">Test Trigger</span>
+            <p class="te-hint">
+              Click "Listen", then trigger an event in your app. Nod8 will capture the payload
+              so you can map variables from it in the inspector.
+            </p>
+          </div>
+
+          <button v-if="listenState === 'idle'" class="te-listen-btn" @click="startListening">
+            <RadioIcon :size="14" />
+            Listen for Event
+          </button>
+
+          <div v-else-if="listenState === 'listening'" class="te-listen-status te-listen-status--listening">
+            <div class="te-listen-pulse" />
+            <span>Waiting for event… ({{ listenCountdown }}s)</span>
+            <button class="te-listen-cancel" @click="cancelListening">Cancel</button>
+          </div>
+
+          <div v-else-if="listenState === 'captured'" class="te-listen-status te-listen-status--captured">
+            <CheckCircleIcon :size="14" style="color: var(--nod8-green-400)" />
+            <span>Event captured! Open the inspector left pane to view the payload.</span>
+          </div>
+
+          <div v-else-if="listenState === 'timeout'" class="te-listen-status te-listen-status--timeout">
+            <ClockIcon :size="14" />
+            <span>Timed out after 2 minutes.</span>
+            <button class="te-listen-cancel" @click="listenState = 'idle'">Dismiss</button>
+          </div>
+        </div>
+
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { XIcon, PlusIcon, CopyIcon, CheckIcon, RefreshCwIcon } from 'lucide-vue-next'
+import { computed, ref, onUnmounted } from 'vue'
+import { XIcon, PlusIcon, CopyIcon, CheckIcon, RefreshCwIcon, RadioIcon, CheckCircleIcon, ClockIcon } from 'lucide-vue-next'
 import type { NodeEditorProps } from './types'
 import type { WorkflowTrigger, WorkflowSchemaField, WebhookBodyField } from '@/core/types/workflow.types'
+import type { PluginSummary, PluginTriggerManifest } from '@/core/types/plugin.types'
 import EditorField from './EditorField.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { API_BASE_URL } from '@/core/constants/app'
+import { pluginsApi } from '@/core/api/plugins.api'
+import { workflowsApi } from '@/core/api/workflows.api'
+import { useWorkflowStore } from '../../../stores/workflow.store'
 
 const props = defineProps<NodeEditorProps>()
+const workflowStore = useWorkflowStore()
 
 const TRIGGER_OPTIONS = [
   { value: 'manual', label: 'Manual', icon: 'hand' },
   { value: 'webhook', label: 'Webhook', icon: 'globe' },
   { value: 'cron', label: 'Cron / Schedule', icon: 'clock' },
   { value: 'event', label: 'Event', icon: 'zap' },
+  { value: 'plugin', label: 'Plugin Trigger', icon: 'plug' },
 ]
 
 const MANUAL_FIELD_TYPES = [
@@ -437,6 +525,132 @@ function addBodySchemaField() {
     webhookBodySchema: { ...schema, [`field${num}`]: { type: 'string', required: false } },
   })
 }
+
+// ── Plugin Trigger ──────────────────────────────────────────
+
+const allPlugins = ref<PluginSummary[]>([])
+
+// Fetch plugins lazily when the trigger type is "plugin"
+async function loadPlugins() {
+  if (allPlugins.value.length === 0) {
+    try {
+      allPlugins.value = await pluginsApi.getAll()
+    } catch { /* fail silently */ }
+  }
+}
+loadPlugins()
+
+// Only plugins that expose at least one trigger
+const pluginsWithTriggers = computed(() =>
+  allPlugins.value.filter((p) => p.manifest.triggers && Object.keys(p.manifest.triggers).length > 0)
+)
+
+const pluginTriggerOptions = computed(() =>
+  pluginsWithTriggers.value.map((p) => ({
+    value: p.id,
+    label: p.manifest.metadata.name,
+    icon: 'plug',
+  }))
+)
+
+const selectedPlugin = computed(() =>
+  allPlugins.value.find((p) => p.id === (props.node.data as unknown as WorkflowTrigger).pluginId)
+)
+
+const availableTriggers = computed(() => {
+  const triggers = selectedPlugin.value?.manifest.triggers
+  if (!triggers) return []
+  return Object.entries(triggers).map(([key, t]) => ({
+    value: key,
+    label: t.metadata.label,
+    icon: 'zap',
+  }))
+})
+
+const selectedTriggerManifest = computed((): PluginTriggerManifest | null => {
+  const trigger = props.node.data as unknown as WorkflowTrigger
+  if (!trigger.triggerName || !selectedPlugin.value) return null
+  return selectedPlugin.value.manifest.triggers?.[trigger.triggerName] ?? null
+})
+
+function onPluginChange(pluginId: string) {
+  props.updateNodeData({ pluginId, triggerName: undefined, triggerParams: {} })
+}
+
+function updateTriggerParam(key: string, value: string) {
+  const current = (props.node.data as unknown as WorkflowTrigger).triggerParams ?? {}
+  props.updateNodeData({ triggerParams: { ...current, [key]: value } })
+}
+
+// ── Listen for Event state machine ────────────────────────────
+
+type ListenState = 'idle' | 'listening' | 'captured' | 'timeout'
+const listenState = ref<ListenState>('idle')
+const listenCountdown = ref(120)
+
+let _listenEs: EventSource | null = null
+let _countdownInterval: ReturnType<typeof setInterval> | null = null
+
+function startListening() {
+  const workflowId = workflowStore.activeWorkflow?.metadata.id
+  if (!workflowId) return
+
+  listenState.value = 'listening'
+  listenCountdown.value = 120
+
+  _countdownInterval = setInterval(() => {
+    listenCountdown.value--
+    if (listenCountdown.value <= 0) {
+      clearInterval(_countdownInterval!)
+      _countdownInterval = null
+    }
+  }, 1000)
+
+  _listenEs = workflowsApi.listenForTrigger(workflowId)
+
+  _listenEs.onmessage = (rawEvt: MessageEvent) => {
+    try {
+      const ev = JSON.parse(rawEvt.data as string) as { type: string; payload?: Record<string, any> }
+
+      if (ev.type === 'captured' && ev.payload) {
+        listenState.value = 'captured'
+        // Immediately update the workflow store so the left pane refreshes
+        if (workflowStore.activeWorkflow) {
+          workflowStore.activeWorkflow.trigger.lastTriggerPayload = ev.payload
+        }
+        cleanup()
+      } else if (ev.type === 'timeout') {
+        listenState.value = 'timeout'
+        cleanup()
+      }
+    } catch { /* ignore malformed */ }
+  }
+
+  _listenEs.onerror = () => {
+    if (listenState.value === 'listening') {
+      listenState.value = 'idle'
+    }
+    cleanup()
+  }
+}
+
+function cancelListening() {
+  listenState.value = 'idle'
+  cleanup()
+}
+
+function cleanup() {
+  if (_listenEs) {
+    _listenEs.close()
+    _listenEs = null
+  }
+  if (_countdownInterval) {
+    clearInterval(_countdownInterval)
+    _countdownInterval = null
+  }
+}
+
+onUnmounted(() => cleanup())
 </script>
 
 <style scoped>
@@ -471,4 +685,80 @@ function addBodySchemaField() {
   background: color-mix(in srgb, var(--nod8-green-400) 15%, transparent);
   color: var(--nod8-green-400);
 }
+
+/* ── Listen for Event ───────────────────────── */
+.te-listen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--nod8-radius-md);
+  background: color-mix(in srgb, var(--nod8-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nod8-accent) 35%, transparent);
+  color: var(--nod8-accent);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.te-listen-btn:hover {
+  background: color-mix(in srgb, var(--nod8-accent) 22%, transparent);
+}
+
+.te-listen-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--nod8-radius-md);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.te-listen-status--listening {
+  background: color-mix(in srgb, var(--nod8-amber-400) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nod8-amber-400) 30%, transparent);
+  color: var(--nod8-amber-400);
+}
+
+.te-listen-status--captured {
+  background: color-mix(in srgb, var(--nod8-green-400) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nod8-green-400) 30%, transparent);
+  color: var(--nod8-green-400);
+}
+
+.te-listen-status--timeout {
+  background: color-mix(in srgb, var(--nod8-text-muted) 8%, transparent);
+  border: 1px solid var(--nod8-border-subtle);
+  color: var(--nod8-text-muted);
+}
+
+.te-listen-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--nod8-amber-400);
+  flex-shrink: 0;
+  animation: te-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes te-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+.te-listen-cancel {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: inherit;
+  opacity: 0.7;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--nod8-radius-sm);
+  transition: opacity 0.15s;
+}
+.te-listen-cancel:hover { opacity: 1; }
 </style>

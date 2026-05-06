@@ -18,6 +18,8 @@ import {
 import { CancellationRegistry } from "../modules/workflows/cancellation-registry.ts";
 import { Scheduler } from "../modules/scheduler/scheduler.ts";
 import { PluginManager } from "../modules/plugins/manager.ts";
+import { TriggerListenerRegistry } from "../modules/workflows/trigger-listener-registry.ts";
+import { WorkflowLifecycleManager } from "../modules/workflows/lifecycle.ts";
 
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
 
@@ -851,6 +853,82 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // ──────────── Listen for Event (SSE) ────────────
+  // Opens a temporary SSE connection that waits for the NEXT webhook call on
+  // this workflow's webhook path. Intercepted by the webhook ingress routes.
+  // Automatically times out after 120 seconds.
+
+  fastify.get("/workflows/:workflowId/trigger/listen", async (req, reply) => {
+    const { workflowId } = req.params as { workflowId: string };
+
+    const workflow = WorkflowRepository.getWorkflowById(workflowId);
+    if (!workflow) {
+      return reply.code(404).send({ error: "Workflow not found" });
+    }
+
+    // Determine the webhook path used for this workflow
+    const webhookPath =
+      workflow.trigger.webhookSlug ||
+      workflow.trigger.webhookPath ||
+      (workflow.trigger.type === "plugin" ? workflowId : null);
+
+    if (!webhookPath) {
+      return reply.code(400).send({
+        error: "Workflow trigger has no webhookPath — save the workflow first.",
+      });
+    }
+
+    // SSE headers
+    reply.raw.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "Access-Control-Allow-Origin": CLIENT_ORIGIN,
+      "Access-Control-Allow-Credentials": "true",
+    });
+
+    // Notify the frontend that listening started
+    reply.raw.write(`data: ${JSON.stringify({ type: "listening", webhookPath })}\n\n`);
+
+    const LISTEN_TIMEOUT_MS = 120_000; // 2 minutes
+
+    const timeoutId = setTimeout(() => {
+      TriggerListenerRegistry.remove(webhookPath);
+      try {
+        reply.raw.write(`data: ${JSON.stringify({ type: "timeout" })}\n\n`);
+        reply.raw.end();
+      } catch { /* already closed */ }
+    }, LISTEN_TIMEOUT_MS);
+
+    // Register with SSE sender function
+    TriggerListenerRegistry.register(webhookPath, workflowId, (payload) => {
+      clearTimeout(timeoutId);
+      try {
+        reply.raw.write(`data: ${JSON.stringify({ type: "captured", payload })}\n\n`);
+        reply.raw.end();
+      } catch { /* already closed */ }
+    });
+
+    // Cleanup on client disconnect
+    req.raw.on("close", () => {
+      clearTimeout(timeoutId);
+      TriggerListenerRegistry.remove(webhookPath);
+    });
+  });
+
+  // ──────────── Get last trigger payload ────────────
+
+  fastify.get("/workflows/:workflowId/trigger/last-payload", async (req, reply) => {
+    const { workflowId } = req.params as { workflowId: string };
+    const payload = WorkflowRepository.getLastTriggerPayload(workflowId);
+    return sendResponse(reply, {
+      status_code: 200,
+      message: "Last trigger payload fetched",
+      error: null,
+      data: payload,
+    });
+  });
+
   // ──────────── Publish a workflow ────────────
 
   fastify.post("/workflows/:workflowId/publish", async (req, reply) => {
@@ -866,6 +944,23 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         });
       }
       Scheduler.resync();
+
+      // Trigger lifecycle: call plugin setup() if trigger type is "plugin".
+      // If setup() fails (e.g. invalid token), return 422 so the UI shows the error.
+      try {
+        await WorkflowLifecycleManager.activate(workflow);
+      } catch (lifecycleErr: any) {
+        // Rollback publish so the workflow isn't stuck in a broken active state
+        WorkflowRepository.unpublishWorkflow(workflowId);
+        Scheduler.resync();
+        return sendResponse(reply, {
+          status_code: 422,
+          message: `Workflow published but trigger setup failed: ${lifecycleErr.message}`,
+          error: lifecycleErr.message,
+          data: null,
+        });
+      }
+
       console.log(
         `[NOD8 | WORKFLOWS]: Published workflow "${workflow.metadata.name}" (${workflowId})`,
       );
@@ -890,6 +985,9 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
   fastify.post("/workflows/:workflowId/unpublish", async (req, reply) => {
     const { workflowId } = req.params as { workflowId: string };
     try {
+      // Capture the workflow BEFORE unpublishing so we have trigger data for teardown
+      const workflowBeforeUnpublish = WorkflowRepository.getWorkflowById(workflowId);
+
       const workflow = WorkflowRepository.unpublishWorkflow(workflowId);
       if (!workflow) {
         return sendResponse(reply, {
@@ -900,6 +998,12 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         });
       }
       Scheduler.resync();
+
+      // Lifecycle teardown — non-fatal (errors are logged, not propagated)
+      if (workflowBeforeUnpublish) {
+        await WorkflowLifecycleManager.deactivate(workflowBeforeUnpublish);
+      }
+
       console.log(
         `[NOD8 | WORKFLOWS]: Unpublished workflow "${workflow.metadata.name}" (${workflowId})`,
       );
@@ -924,9 +1028,17 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
   fastify.delete("/workflows/:workflowId", async (req, reply) => {
     const { workflowId } = req.params as { workflowId: string };
     try {
+      // Capture workflow before deletion for lifecycle teardown
+      const workflowBeforeDelete = WorkflowRepository.getWorkflowById(workflowId);
+
       WorkflowRepository.deleteWorkflowExecutions(workflowId);
       WorkflowRepository.deleteWorkflow(workflowId);
       Scheduler.resync();
+
+      // Lifecycle teardown — non-fatal
+      if (workflowBeforeDelete) {
+        await WorkflowLifecycleManager.deactivate(workflowBeforeDelete);
+      }
 
       return sendResponse(reply, {
         status_code: 200,

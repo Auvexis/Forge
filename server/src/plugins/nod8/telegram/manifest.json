@@ -350,5 +350,25 @@
       },
       "ui": { "component": "generic" }
     }
+  },
+
+  "triggers": {
+    "onMessage": {
+      "metadata": {
+        "label": "On New Message",
+        "description": "Triggers the workflow whenever the Telegram Bot receives a new message. Nod8 automatically registers/unregisters the webhook with Telegram when the workflow is published or unpublished."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "allowedUpdateTypes": {
+            "type": "string",
+            "description": "Comma-separated list of update types to receive. Leave empty to receive all types. Example: message,callback_query",
+            "x-label": "Allowed Update Types",
+            "x-input-type": "text"
+          }
+        }
+      }
+    }
   }
 }

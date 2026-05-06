@@ -150,9 +150,21 @@ export interface PluginMethodManifest {
   ui: PluginMethodUI
 }
 
+// ── Plugin Trigger Manifest ────────────────────────────────
+
+export interface PluginTriggerManifest {
+  metadata: {
+    label: string
+    description: string
+  }
+  parameters?: JSONSchemaObject
+}
+
 export interface PluginManifest {
   metadata: PluginMetadata
   methods: Record<string, PluginMethodManifest>
+  /** Optional trigger declarations keyed by trigger name (e.g. "onMessage"). */
+  triggers?: Record<string, PluginTriggerManifest>
 }
 
 // ── Plugin Summary (from GET /plugins) ───────────────────────

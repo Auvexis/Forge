@@ -1,73 +1,65 @@
-# TASK.md — Milestone 1.5: Frontend Architecture & Scalable CSS Refactoring
+# Milestone 1.6 — Task Tracker
 
-> **Staff Engineer Notes (post-analysis):**
-> Após análise completa de `client-vue/` e `server/`, identificou-se o estado real do projeto:
-> - ✅ O projeto usa **CSS Variables puras** (não Tailwind), com `tokens.css` como design system centralizado e robusto.
-> - ✅ A engine do servidor (`executor.ts`) está totalmente desacoplada da lógica dos plugins — o contrato é claro.
-> - ⚠️ O problema principal são **blocos `<style scoped>` monolíticos** em `.vue` files que deveriam estar em arquivos CSS de módulo dedicados.
-> - ⚠️ **Não existe** `useTheme` composable nem script anti-FOUC no `index.html`.
-> - ⚠️ `AppGlobalSettings.vue` (700 linhas, ~300 de CSS), `WorkflowsPage.vue` (642 linhas, ~310 de CSS).
-> - ⚠️ Existem "magic numbers" e cores inline em vários componentes (`rgba(...)` hardcoded sem token).
+## Task 1: Type System Evolution (Backend + Frontend)
+- [x] Adicionar `TriggerRegistrationContext` em `server/src/shared/models/plugin-types.ts`
+- [x] Adicionar `PluginTriggerManifest` e `PluginTriggerHooks` em `plugin-types.ts`
+- [x] Estender `PluginManifest` com `triggers?: Record<string, PluginTriggerManifest>`
+- [x] Estender `Nod8Plugin` com `triggers?: Record<string, PluginTriggerHooks>`
+- [x] Adicionar `"plugin"` ao `WorkflowTrigger.type` em `workflow-types.ts` (backend)
+- [x] Adicionar campos `pluginId`, `triggerName`, `triggerParams` ao `WorkflowTrigger`
+- [x] Adicionar `lastTriggerPayload` ao `WorkflowTrigger` para persistência do payload capturado
+- [x] Espelhar mudanças nos tipos do frontend (`client-vue/src/core/types/`)
 
----
+## Task 2: DB Migration — `last_trigger_payload`
+- [x] Criar migration `003_add_last_trigger_payload.ts` para a coluna na tabela `workflows`
+- [x] Adicionar `saveLastTriggerPayload(workflowId, payload)` no `WorkflowRepository`
+- [x] Adicionar `getLastTriggerPayload(workflowId)` no `WorkflowRepository`
 
-## Fase 1 — Design Token Audit & Hardening
+## Task 3: `TriggerListenerRegistry` (Core — Stateless, In-Memory)
+- [x] Criar `server/src/core/modules/workflows/trigger-listener-registry.ts`
+- [x] Implementar `register(webhookPath, sseSend)`, `consume(webhookPath)`, `has(webhookPath)`
 
-- [x] **1.1** Auditar `tokens.css` e identificar tokens ausentes ou valores inline hardcoded nos componentes Vue
-- [x] **1.2** Adicionar tokens semânticos faltantes: `--nod8-bg-canvas`, `--nod8-status-*`, scrollbar tokens
-- [x] **1.3** Eliminar todos os `rgba(...)` e `#hexcodes` hardcoded nos arquivos CSS globais, substituindo por variáveis de token
+## Task 4: Rota SSE `GET /workflows/:workflowId/trigger/listen`
+- [x] Criar endpoint SSE em `workflows.routes.ts`
+- [x] Registrar workflow no `TriggerListenerRegistry` com timeout de 120s
+- [x] Enviar `{ type: 'listening' }` ao conectar e `{ type: 'timeout' }` ao expirar
 
----
+## Task 5: Webhook Intercept no `webhooks.routes.ts`
+- [x] Checar `TriggerListenerRegistry` antes de executar workflow
+- [x] Se "listening": salvar payload via `WorkflowRepository.saveLastTriggerPayload`, emitir via SSE, retornar 200 fast
+- [x] Se não: seguir fluxo normal de execução
 
-## Fase 2 — Sistema de Temas (Dark/Light Mode)
+## Task 6: `WorkflowLifecycleManager` (Core Module)
+- [x] Criar `server/src/core/modules/workflows/lifecycle.ts`
+- [x] `activate(workflow)`: chamar `plugin.triggers[name].setup(ctx)` se trigger type = "plugin"
+- [x] `deactivate(workflow)`: chamar `plugin.triggers[name].teardown(ctx)` se trigger type = "plugin"
+- [x] Erro no `setup()` deve retornar erro estruturado (não 500 genérico)
 
-- [x] **2.1** Criar `useTheme.ts` composable em `src/shared/composables/` com suporte a `'dark' | 'light' | 'system'`
-- [x] **2.2** Implementar persistência de preferência via `localStorage`
-- [x] **2.3** Adicionar listener de `prefers-color-scheme` para o modo `'system'`
-- [x] **2.4** Injetar script anti-FOUC síncrono no `<head>` do `index.html` (aplica classe `.dark`/`.light` antes do Vue carregar)
-- [x] **2.5** Definir tokens `:root.light {}` em `tokens.css` para o tema claro
-- [x] **2.6** Integrar o `useTheme` ao `handleThemeChange` existente em `AppGlobalSettings.vue`
+## Task 7: Hook do Lifecycle nas Rotas
+- [x] `POST /workflows/:id/publish` → chamar `WorkflowLifecycleManager.activate`
+- [x] `POST /workflows/:id/unpublish` → chamar `WorkflowLifecycleManager.deactivate`
+- [x] `DELETE /workflows/:id` → chamar `WorkflowLifecycleManager.deactivate`
 
----
+## Task 8: Telegram Plugin — Adicionar Trigger
+- [x] Adicionar `triggers.onMessage` em `telegram/index.ts`
+- [x] Implementar `setup()`: chamar `setWebhook` na API do Telegram
+- [x] Implementar `teardown()`: chamar `deleteWebhook` na API do Telegram
+- [x] Adicionar `onMessage` em `telegram/manifest.json` na seção `triggers`
 
-## Fase 3 — Separação de Concerns: CSS para Módulos Dedicados
+## Task 9: Frontend — Tipos e API
+- [x] Atualizar `client-vue/src/core/types/plugin.types.ts` com `PluginTriggerManifest`, `triggers` no `PluginManifest`
+- [x] Atualizar `client-vue/src/core/types/workflow.types.ts` com tipo `"plugin"` e campos novos no trigger
+- [x] Adicionar `listenForTrigger(workflowId)` em `workflows.api.ts` (retorna EventSource SSE)
+- [x] Adicionar `getLastTriggerPayload(workflowId)` em `workflows.api.ts`
 
-- [x] **3.1** Extrair todo o CSS scoped de `WorkflowsPage.vue` → `src/app/styles/workflows-page.css`
-- [x] **3.2** Extrair todo o CSS scoped de `AppGlobalSettings.vue` → `src/shared/components/layout/styles/global-settings.css`
-- [x] **3.3** Extrair todo o CSS scoped de `App.vue` → `src/app/styles/app-shell-nav.css`
-- [x] **3.4** Extrair CSS scoped dos componentes de UI do editor (`WorkflowEditorDock`, `ProductionMonitorPanel`, `WorkflowSettingsPanel`) para `src/features/workflow-editor/styles/`
-- [x] **3.5** Auditar e limpar `<style scoped>` remanescentes em componentes `Base*`
+## Task 10: Frontend — `TriggerEditor.vue` Plugin Trigger Section
+- [x] Adicionar opção "Plugin Trigger" no dropdown de tipo
+- [x] Renderizar seletor de plugin (reusa `pluginsApi.getAll()`)
+- [x] Renderizar seletor de trigger name (da `plugin.manifest.triggers`)
+- [x] Renderizar form de params do trigger (reusa lógica de renderização do `PluginEditor.vue`)
+- [x] Implementar botão "Listen for Event" com estado SSE (idle → listening → captured → timeout)
 
----
-
-## Fase 4 — Component Audit & DRY Enforcement
-
-- [x] **4.1** Auditar todos os `.vue` files e listar padrões de UI duplicados (botões inline, badges de status, dividers, spinners)
-- [x] **4.2** Criar `StatusBadge.vue` em `src/shared/components/data-display/` (unifica `.workflow-badge`, `.last-run`, `.gs-cred-card__badge`)
-- [x] **4.3** Criar `AppDivider.vue` em `src/shared/components/layout/` (unifica `.dock-divider`, `.divider`, `.divider--vertical`)
-- [x] **4.4** Criar `AppSpinner.vue` em `src/shared/components/feedback/` (unifica `.gs-spin`, `.spin`, `.icon-spin`)
-- [x] **4.5** Hardcoded colors em `BaseBadge`, `BaseModal`, `BaseSelect`, `BaseSwitch` substituídas por tokens semânticos
-
----
-
-## Fase 5 — Validação & Commit Final
-
-- [x] **5.1** Verificado: nenhum `Base*` component possui `rgba()` ou `#hex` hardcoded (todos usam tokens)
-- [x] **5.2** Verificado: nenhum componente Vue faz lógica de tema com `:class="isDark ? ... : ..."`
-- [x] **5.3** Anti-FOUC implementado em `index.html` + `useTheme.ts` composable com persistência e listener de sistema
-- [x] **5.4** Commit: `feat(frontend): complete milestone 1.5 - design system, theming, and css architecture`
-
----
-
-## Progresso
-
-| Fase | Status |
-|------|--------|
-| Fase 1 — Token Audit & Hardening | ✅ Concluída |
-| Fase 2 — Sistema de Temas | ✅ Concluída |
-| Fase 3 — CSS para Módulos Dedicados | ✅ Concluída |
-| Fase 4 — Component Audit & DRY | ✅ Concluída |
-| Fase 5 — Validação & Commit Final | ✅ Concluída |
-
-## Milestone 1.5 — ✅ COMPLETA
-
+## Task 11: Frontend — Left Pane com Payload Capturado
+- [x] No `NodeInspectorModal.vue`, para TriggerNode, exibir `lastTriggerPayload` no left pane
+- [x] Atualizar `workflow.store.ts` para carregar e expor `lastTriggerPayload`
+- [x] Quando "Listen" captura evento, atualizar o store imediatamente sem reload

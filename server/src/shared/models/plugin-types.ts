@@ -270,6 +270,8 @@ export interface PluginMethodManifest {
 export interface PluginManifest {
   metadata: PluginMetadata;
   methods: Record<string, PluginMethodManifest>;
+  /** Optional trigger declarations. Each key is a trigger name (e.g. "onMessage"). */
+  triggers?: Record<string, PluginTriggerManifest>;
 }
 
 // ──────────── Plugin Context (injected into method calls) ────────────
@@ -277,6 +279,51 @@ export interface PluginManifest {
 export interface PluginContext {
   credentials: Record<string, string>;
   tokens?: OAuth2Tokens;
+}
+
+// ──────────── Plugin Trigger Types ────────────
+
+/**
+ * Context injected by the core engine into plugin trigger lifecycle hooks.
+ * The core does NOT know the API details — it just provides the necessary
+ * primitives (URL, credentials, user-configured params) for the plugin to
+ * register/unregister itself with a 3rd-party service.
+ */
+export interface TriggerRegistrationContext {
+  /** The public Nod8 webhook URL that the 3rd-party service should call. */
+  webhookUrl: string;
+  /** Resolved credentials for this plugin (API keys, secrets, etc.). */
+  credentials: Record<string, string>;
+  /** OAuth2 tokens if the plugin uses OAuth2 auth. */
+  tokens?: OAuth2Tokens;
+  /** User-configured parameters on the trigger node (e.g. events to listen to). */
+  params: Record<string, any>;
+  /** The workflow ID owning this trigger. */
+  workflowId: string;
+}
+
+/**
+ * Manifest declaration for a plugin trigger.
+ * Analogous to PluginMethodManifest but for entry-point events.
+ */
+export interface PluginTriggerManifest {
+  metadata: {
+    label: string;
+    description: string;
+  };
+  /** Optional JSON Schema for parameters the user configures on the trigger node. */
+  parameters?: JSONSchemaObject;
+}
+
+/**
+ * Lifecycle hooks the plugin implements for a named trigger.
+ * setup() is called when the workflow is published/activated.
+ * teardown() is called when the workflow is unpublished/deleted.
+ * Both are optional at the TypeScript level — the engine checks before calling.
+ */
+export interface PluginTriggerHooks {
+  setup(context: TriggerRegistrationContext): Promise<void>;
+  teardown(context: TriggerRegistrationContext): Promise<void>;
 }
 
 // ──────────── Nod8Plugin (the contract every plugin implements) ────────────
@@ -289,6 +336,12 @@ export interface Nod8Plugin {
     string,
     (params: any, context?: PluginContext) => Promise<any>
   >;
+  /**
+   * Optional trigger lifecycle hooks, keyed by trigger name.
+   * Presence is opt-in — plugins without triggers simply omit this field.
+   * The core engine calls setup/teardown but is unaware of the implementation.
+   */
+  triggers?: Record<string, PluginTriggerHooks>;
 }
 
 // ──────────── Status Response (predictable contract for frontend) ────────────

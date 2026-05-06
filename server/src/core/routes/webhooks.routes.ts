@@ -1,4 +1,6 @@
 import type { FastifyInstance } from "fastify";
+import { TriggerListenerRegistry } from "../modules/workflows/trigger-listener-registry.ts";
+import { WorkflowRepository } from "../modules/workflows/repository.ts";
 
 // ──────────── Generic Webhook Payload ────────────
 
@@ -59,9 +61,18 @@ export default async function webhooksRoutes(fastify: FastifyInstance) {
         `[NOD8 | WEBHOOKS]: Webhook received — identifier: '${identifier}', content-type: ${payload.contentType}`
       );
 
-      // TODO (Phase 2): Trigger active workflows that have trigger.type = "webhook"
-      // and trigger.webhookSlug = identifier.
-      // WorkflowEngine.triggerWebhook(identifier, payload);
+      // ── Listen for Event intercept ─────────────────────────────────
+      // If the frontend is currently waiting for a webhook on this identifier,
+      // capture the payload via SSE and skip workflow execution.
+      if (TriggerListenerRegistry.has(identifier)) {
+        const { consumed, workflowId } = TriggerListenerRegistry.consume(identifier, payload);
+        if (consumed && workflowId) {
+          WorkflowRepository.saveLastTriggerPayload(workflowId, payload);
+          console.log(`[NOD8 | WEBHOOKS]: Captured payload for 'Listen for Event' on '${identifier}'`);
+        }
+        return reply.code(200).send({ ok: true });
+      }
+      // ────────────────────────────────────────────────
 
       return reply.code(200).send({ ok: true });
     } catch (err: any) {
