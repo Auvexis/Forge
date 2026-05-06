@@ -324,7 +324,7 @@ const copyToClipboard = async (path: string) => {
                 :edges="edges"
                 :upstream-nodes="upstreamNodes"
                 :update-node-data="updateNodeData"
-                @inject="injectVariable"
+                :inject-variable="injectVariable"
               />
             </template>
             <template v-else-if="activeTab === 'settings'">

@@ -359,6 +359,11 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         unsubscribe();
         clearInterval(heartbeat);
       });
+
+      // Keep the fastify async handler alive until the connection closes
+      return new Promise((resolve) => {
+        req.raw.on("close", resolve);
+      });
     },
   );
 
@@ -945,6 +950,11 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     req.raw.on("close", () => {
       clearTimeout(timeoutId);
       performTeardown();
+    });
+
+    // Keep the fastify async handler alive until the connection closes
+    return new Promise((resolve) => {
+      req.raw.on("close", resolve);
     });
   });
 
