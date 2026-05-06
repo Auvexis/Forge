@@ -3,6 +3,9 @@
 // ─────────────────────────────────────────────────────────────
 
 export const ENDPOINTS = {
+  // App
+  APP_INFO: '/app/info',
+
   // Workflows
   WORKFLOWS: '/workflows',
   WORKFLOW_BY_ID: (id: string) => `/workflows/${id}`,

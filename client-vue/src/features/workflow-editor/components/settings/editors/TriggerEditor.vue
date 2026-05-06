@@ -398,6 +398,7 @@ import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { API_BASE_URL } from '@/core/constants/app'
 import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowsApi } from '@/core/api/workflows.api'
+import { appApi } from '@/core/api/app.api'
 import { useWorkflowStore } from '../../../stores/workflow.store'
 
 const props = defineProps<NodeEditorProps>()
@@ -460,13 +461,27 @@ function humanizeCron(expression: string | undefined): string {
 
 const copied = ref<'test' | 'prod' | null>(null)
 
+const backendPublicUrl = ref(API_BASE_URL)
+
+async function loadAppInfo() {
+  try {
+    const info = await appApi.getInfo()
+    if (info.publicUrl) {
+      backendPublicUrl.value = info.publicUrl
+    }
+  } catch (err) {
+    // fallback to API_BASE_URL silently
+  }
+}
+loadAppInfo()
+
 function resolvedPath(): string {
   const trigger = props.node.data as unknown as WorkflowTrigger
   return trigger.webhookSlug || trigger.webhookPath || '<auto-assigned-on-save>'
 }
 
 const testWebhookUrl = computed(() => `${API_BASE_URL}/webhook-test/${resolvedPath()}`)
-const prodWebhookUrl = computed(() => `${API_BASE_URL}/webhook/${resolvedPath()}`)
+const prodWebhookUrl = computed(() => `${backendPublicUrl.value}/webhook/${resolvedPath()}`)
 
 const allowedMethods = computed<string[]>(() => {
   return (props.node.data as unknown as WorkflowTrigger).webhookMethods ?? ['POST']
