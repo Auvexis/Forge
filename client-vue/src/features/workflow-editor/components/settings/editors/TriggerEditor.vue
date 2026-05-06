@@ -288,6 +288,45 @@
           />
         </div>
 
+        <!-- Endpoint Slug -->
+        <div class="te-field" v-if="(node.data as unknown as WorkflowTrigger).pluginId">
+          <span class="te-label">
+            Endpoint Slug
+            <span class="te-label-sub">(optional, readable name)</span>
+          </span>
+          <BaseInput
+            type="text"
+            :model-value="(node.data as unknown as WorkflowTrigger).webhookSlug || ''"
+            @update:model-value="updateNodeData({ webhookSlug: $event as string || undefined })"
+            placeholder="nova-venda"
+          />
+          <p class="te-hint">kebab-case only — replaces the auto-generated path.</p>
+        </div>
+
+        <!-- URL display — test vs. production -->
+        <div class="te-field" v-if="(node.data as unknown as WorkflowTrigger).pluginId">
+          <span class="te-label">Webhook URLs</span>
+          <div class="te-url-group">
+            <div class="te-url-row">
+              <span class="te-url-badge te-url-badge--test">TEST</span>
+              <div class="te-url-box">{{ testWebhookUrl }}</div>
+              <button class="te-icon-btn" @click="copyUrl(testWebhookUrl, 'test')">
+                <CheckIcon v-if="copied === 'test'" :size="14" style="color: var(--nod8-green-400)" />
+                <CopyIcon v-else :size="14" />
+              </button>
+            </div>
+            <div class="te-url-row">
+              <span class="te-url-badge te-url-badge--prod">PROD</span>
+              <div class="te-url-box">{{ prodWebhookUrl }}</div>
+              <button class="te-icon-btn" @click="copyUrl(prodWebhookUrl, 'prod')">
+                <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--nod8-green-400)" />
+                <CopyIcon v-else :size="14" />
+              </button>
+            </div>
+          </div>
+          <p class="te-hint">Test URL works for any workflow. Prod URL requires publishing.</p>
+        </div>
+
         <!-- Trigger Params -->
         <template v-if="selectedTriggerManifest?.parameters?.properties">
           <div class="te-section" style="padding-top:0">
