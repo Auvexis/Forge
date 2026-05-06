@@ -64,7 +64,10 @@ const onMessageTrigger: PluginTriggerHooks = {
       ? allowedTypesRaw.split(",").map((t) => t.trim()).filter(Boolean)
       : [];
 
-    const body: Record<string, any> = { url: ctx.webhookUrl };
+    const body: Record<string, any> = {
+      url: ctx.webhookUrl,
+      drop_pending_updates: true, // Discard queued messages so they don't flood the listener
+    };
     if (allowedUpdates.length > 0) {
       body.allowed_updates = allowedUpdates;
     }
