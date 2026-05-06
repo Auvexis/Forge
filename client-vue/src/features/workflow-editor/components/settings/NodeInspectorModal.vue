@@ -305,14 +305,26 @@ const copyToClipboard = async (path: string) => {
               {{ activeTab === 'settings' ? 'SETTINGS' : 'CONFIGURATION' }}
             </div>
 
-            <BaseButton
-              variant="ghost"
-              size="sm"
-              :icon-left="activeTab === 'config' ? 'settings' : 'x'"
-              class="text-muted !p-1 !h-auto"
-              title="Settings"
-              @click="activeTab = activeTab === 'config' ? 'settings' : 'config'"
-            />
+            <div class="flex items-center gap-2">
+              <BaseButton
+                variant="primary"
+                size="sm"
+                icon-left="save"
+                @click="workflowStore.saveWorkflow()"
+                title="Save Workflow"
+              >
+                Save
+              </BaseButton>
+
+              <BaseButton
+                variant="ghost"
+                size="sm"
+                :icon-left="activeTab === 'config' ? 'settings' : 'x'"
+                class="text-muted !p-1 !h-auto"
+                title="Settings"
+                @click="activeTab = activeTab === 'config' ? 'settings' : 'config'"
+              />
+            </div>
           </div>
           <div class="inspector-pane-content relative overflow-y-auto">
             <template v-if="activeTab === 'config'">

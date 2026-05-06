@@ -350,15 +350,15 @@
 
         <!-- Listen for Event Button (Teleported to Output Header) -->
         <Teleport to="#listen-button-container" v-if="isMounted && (node.data as unknown as WorkflowTrigger).pluginId">
-          <BaseButton
+          <button
             v-if="listenState === 'idle'"
-            variant="primary"
-            size="sm"
-            icon-left="radio"
+            class="te-listen-btn"
+            style="padding: 4px 8px; font-size: 11px; width: auto; height: auto; border-radius: var(--nod8-radius-sm);"
             @click="startListening"
           >
+            <RadioIcon :size="12" />
             Listen for Event
-          </BaseButton>
+          </button>
 
           <BaseButton
             v-else-if="listenState === 'listening'"
