@@ -348,38 +348,51 @@
           </div>
         </template>
 
-        <!-- Listen for Event -->
-        <div class="te-section" v-if="(node.data as unknown as WorkflowTrigger).pluginId">
-          <div class="te-intro">
-            <span class="te-label">Test Trigger</span>
-            <p class="te-hint">
-              Click "Listen", then trigger an event in your app. Nod8 will capture the payload
-              so you can map variables from it in the inspector.
-            </p>
-          </div>
-
-          <button v-if="listenState === 'idle'" class="te-listen-btn" @click="startListening">
-            <RadioIcon :size="14" />
+        <!-- Listen for Event Button (Teleported to Output Header) -->
+        <Teleport to="#listen-button-container" v-if="isMounted && (node.data as unknown as WorkflowTrigger).pluginId">
+          <BaseButton
+            v-if="listenState === 'idle'"
+            variant="primary"
+            size="sm"
+            icon-left="radio"
+            @click="startListening"
+          >
             Listen for Event
-          </button>
+          </BaseButton>
 
-          <div v-else-if="listenState === 'listening'" class="te-listen-status te-listen-status--listening">
-            <div class="te-listen-pulse" />
-            <span>Waiting for event… ({{ listenCountdown }}s)</span>
-            <button class="te-listen-cancel" @click="cancelListening">Cancel</button>
-          </div>
+          <BaseButton
+            v-else-if="listenState === 'listening'"
+            variant="secondary"
+            size="sm"
+            class="!text-nod8-accent"
+            loading
+            @click="cancelListening"
+          >
+            Waiting ({{ listenCountdown }}s) - Cancel
+          </BaseButton>
 
-          <div v-else-if="listenState === 'captured'" class="te-listen-status te-listen-status--captured">
-            <CheckCircleIcon :size="14" style="color: var(--nod8-green-400)" />
-            <span>Event captured! Open the inspector left pane to view the payload.</span>
-          </div>
+          <BaseButton
+            v-else-if="listenState === 'captured'"
+            variant="ghost"
+            size="sm"
+            style="color: var(--nod8-green-400)"
+            icon-left="check-circle"
+            @click="listenState = 'idle'"
+          >
+            Captured!
+          </BaseButton>
 
-          <div v-else-if="listenState === 'timeout'" class="te-listen-status te-listen-status--timeout">
-            <ClockIcon :size="14" />
-            <span>Timed out after 2 minutes.</span>
-            <button class="te-listen-cancel" @click="listenState = 'idle'">Dismiss</button>
-          </div>
-        </div>
+          <BaseButton
+            v-else-if="listenState === 'timeout'"
+            variant="ghost"
+            size="sm"
+            class="text-red-500"
+            icon-left="clock"
+            @click="listenState = 'idle'"
+          >
+            Timeout - Dismiss
+          </BaseButton>
+        </Teleport>
 
       </div>
     </template>
@@ -395,16 +408,23 @@ import type { PluginSummary, PluginTriggerManifest } from '@/core/types/plugin.t
 import EditorField from './EditorField.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { API_BASE_URL } from '@/core/constants/app'
 import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { appApi } from '@/core/api/app.api'
 import { useWorkflowStore } from '../../../stores/workflow.store'
 import { useToast } from '@/shared/composables/useToast'
+import { onMounted } from 'vue'
 
 const props = defineProps<NodeEditorProps>()
 const workflowStore = useWorkflowStore()
 const toast = useToast()
+
+const isMounted = ref(false)
+onMounted(() => {
+  isMounted.value = true
+})
 
 const TRIGGER_OPTIONS = [
   { value: 'manual', label: 'Manual', icon: 'hand' },
@@ -602,11 +622,15 @@ const pluginsWithTriggers = computed(() =>
 )
 
 const pluginTriggerOptions = computed(() =>
-  pluginsWithTriggers.value.map((p) => ({
-    value: p.id,
-    label: p.manifest.metadata.name,
-    icon: 'plug',
-  }))
+  pluginsWithTriggers.value.map((p) => {
+    const iconStr = p.manifest.metadata.icon
+    const isImage = iconStr && (iconStr.startsWith('http') || iconStr.startsWith('/') || iconStr.startsWith('data:'))
+    return {
+      value: p.id,
+      label: p.manifest.metadata.name,
+      ...(isImage ? { image: iconStr } : { icon: iconStr || 'plug' })
+    }
+  })
 )
 
 const selectedPlugin = computed(() =>

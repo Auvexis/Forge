@@ -378,6 +378,7 @@ const copyToClipboard = async (path: string) => {
               OUTPUT (Future)
             </div>
             <BaseButton
+              v-if="inspectorStore.activeNodeId !== 'trigger'"
               variant="ghost"
               size="sm"
               icon-left="play"
@@ -386,6 +387,7 @@ const copyToClipboard = async (path: string) => {
             >
               Run Step
             </BaseButton>
+            <div id="listen-button-container" v-if="inspectorStore.activeNodeId === 'trigger'"></div>
           </div>
           <div class="inspector-pane-content overflow-y-auto flex flex-col h-full">
             <div

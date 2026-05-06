@@ -33,6 +33,7 @@ import {
 } from '@/core/utils/schemaResolver'
 import type { WorkflowTrigger, WorkflowNode, PluginNode } from '@/core/types/workflow.types'
 import type { NodeData } from './types'
+import { useWorkflowStore } from '../../../stores/workflow.store'
 
 const props = defineProps<{
   paramKey: string
@@ -57,16 +58,38 @@ const allPaths = computed(() => {
   for (const upNode of props.upstreamNodes) {
     if (upNode.id === 'trigger') {
       const triggerData = upNode.data as unknown as WorkflowTrigger
-      if (triggerData?.schema) {
+      if (triggerData?.schema && Object.keys(triggerData.schema).length > 0) {
         paths.push(...resolveTriggerPaths(triggerData.schema))
-      }
-      if (!triggerData?.schema || Object.keys(triggerData.schema).length === 0) {
-        paths.push({
-          path: 'trigger.payload',
-          label: 'trigger.payload',
-          type: 'any',
-          sourceNodeName: 'Trigger',
-        })
+      } else {
+        const lastPayload = useWorkflowStore().activeWorkflow?.trigger?.lastTriggerPayload
+        if (lastPayload) {
+          // Flatten the payload dynamically
+          const flatten = (obj: any, prefix = 'trigger'): SchemaPath[] => {
+            if (!obj || typeof obj !== 'object') return []
+            let res: SchemaPath[] = []
+            for (const [k, v] of Object.entries(obj)) {
+              const newPath = `${prefix}.${k}`
+              res.push({
+                path: newPath,
+                label: k,
+                type: Array.isArray(v) ? 'array' : typeof v,
+                sourceNodeName: 'Trigger'
+              })
+              if (v && typeof v === 'object' && !Array.isArray(v)) {
+                res.push(...flatten(v, newPath))
+              }
+            }
+            return res
+          }
+          paths.push(...flatten(lastPayload))
+        } else {
+          paths.push({
+            path: 'trigger.payload',
+            label: 'trigger.payload',
+            type: 'any',
+            sourceNodeName: 'Trigger',
+          })
+        }
       }
       continue
     }
