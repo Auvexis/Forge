@@ -196,7 +196,7 @@ export interface WorkflowMetadata {
   public: boolean;
   createdAt: string;
   updatedAt?: string;
-  publishedAt?: string; // ISO timestamp of last intentional publish action
+  publishedAt?: string | null; // ISO timestamp of last intentional publish action; null when unpublished
 }
 
 // ──────────── Root Payload ────────────
