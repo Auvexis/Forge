@@ -887,13 +887,38 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       "Access-Control-Allow-Credentials": "true",
     });
 
+    const isUnpublishedPluginTrigger =
+      workflow.trigger.type === "plugin" && !workflow.metadata.publishedAt;
+
+    let teardownDone = false;
+    const performTeardown = () => {
+      if (teardownDone) return;
+      teardownDone = true;
+      TriggerListenerRegistry.remove(webhookPath);
+      if (isUnpublishedPluginTrigger) {
+        // Teardown in background so we don't block SSE cleanup
+        WorkflowLifecycleManager.deactivate(workflow).catch(console.error);
+      }
+    };
+
+    if (isUnpublishedPluginTrigger) {
+      try {
+        await WorkflowLifecycleManager.activate(workflow);
+      } catch (err: any) {
+        console.error(`[NOD8 | LISTEN]: Failed to temporarily activate plugin trigger:`, err.message);
+        reply.raw.write(`data: ${JSON.stringify({ type: "error", message: err.message })}\n\n`);
+        reply.raw.end();
+        return;
+      }
+    }
+
     // Notify the frontend that listening started
     reply.raw.write(`data: ${JSON.stringify({ type: "listening", webhookPath })}\n\n`);
 
     const LISTEN_TIMEOUT_MS = 120_000; // 2 minutes
 
     const timeoutId = setTimeout(() => {
-      TriggerListenerRegistry.remove(webhookPath);
+      performTeardown();
       try {
         reply.raw.write(`data: ${JSON.stringify({ type: "timeout" })}\n\n`);
         reply.raw.end();
@@ -903,6 +928,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     // Register with SSE sender function
     TriggerListenerRegistry.register(webhookPath, workflowId, (payload) => {
       clearTimeout(timeoutId);
+      performTeardown();
       try {
         reply.raw.write(`data: ${JSON.stringify({ type: "captured", payload })}\n\n`);
         reply.raw.end();
@@ -912,7 +938,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     // Cleanup on client disconnect
     req.raw.on("close", () => {
       clearTimeout(timeoutId);
-      TriggerListenerRegistry.remove(webhookPath);
+      performTeardown();
     });
   });
 

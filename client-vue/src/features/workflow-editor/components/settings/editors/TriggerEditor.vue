@@ -400,9 +400,11 @@ import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { appApi } from '@/core/api/app.api'
 import { useWorkflowStore } from '../../../stores/workflow.store'
+import { useToast } from '@/shared/composables/useToast'
 
 const props = defineProps<NodeEditorProps>()
 const workflowStore = useWorkflowStore()
+const toast = useToast()
 
 const TRIGGER_OPTIONS = [
   { value: 'manual', label: 'Manual', icon: 'hand' },
@@ -664,9 +666,13 @@ function startListening() {
 
   _listenEs.onmessage = (rawEvt: MessageEvent) => {
     try {
-      const ev = JSON.parse(rawEvt.data as string) as { type: string; payload?: Record<string, any> }
+      const ev = JSON.parse(rawEvt.data as string) as { type: string; payload?: Record<string, any>; message?: string }
 
-      if (ev.type === 'captured' && ev.payload) {
+      if (ev.type === 'error') {
+        toast.error(`Plugin setup failed: ${ev.message}`)
+        listenState.value = 'idle'
+        cleanup()
+      } else if (ev.type === 'captured' && ev.payload) {
         listenState.value = 'captured'
         // Immediately update the workflow store so the left pane refreshes
         if (workflowStore.activeWorkflow) {
