@@ -314,6 +314,9 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     async (req, reply) => {
       const { executionId } = req.params as { executionId: string };
 
+      // Hijack the request to prevent Fastify from auto-closing the SSE connection
+      reply.hijack();
+
       // SSE headers
       reply.raw.writeHead(200, {
         "Content-Type": "text/event-stream",
@@ -877,6 +880,9 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         error: "Workflow trigger has no webhookPath — save the workflow first.",
       });
     }
+
+    // Hijack the request so Fastify doesn't automatically close the connection
+    reply.hijack();
 
     // SSE headers
     reply.raw.writeHead(200, {
