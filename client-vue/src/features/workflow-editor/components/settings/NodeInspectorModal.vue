@@ -307,10 +307,11 @@ const copyToClipboard = async (path: string) => {
 
             <div class="flex items-center gap-2">
               <BaseButton
-                variant="primary"
+                :variant="workflowStore.isDirty ? 'primary' : 'ghost'"
                 size="sm"
                 icon-left="save"
                 :loading="workflowStore.isSaving"
+                :disabled="!workflowStore.isDirty"
                 @click="workflowStore.saveActiveWorkflow()"
                 title="Save Workflow"
               >
