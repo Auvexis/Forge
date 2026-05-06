@@ -310,7 +310,8 @@ const copyToClipboard = async (path: string) => {
                 variant="primary"
                 size="sm"
                 icon-left="save"
-                @click="workflowStore.saveWorkflow()"
+                :loading="workflowStore.isSaving"
+                @click="workflowStore.saveActiveWorkflow()"
                 title="Save Workflow"
               >
                 Save
