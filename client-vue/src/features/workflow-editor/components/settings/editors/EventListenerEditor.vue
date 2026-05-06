@@ -1,20 +1,19 @@
 <template>
   <div class="editor-stack">
     <EditorField label="Step Name">
-      <input
-        class="editor-input editor-input--bold"
-        :value="node.data.name || ''"
-        @input="updateNodeData({ name: ($event.target as HTMLInputElement).value })"
+      <BaseInput
+        :model-value="(node.data.name as string) || ''"
+        @update:model-value="updateNodeData({ name: $event as string })"
         placeholder="Wait for event"
       />
     </EditorField>
 
     <EditorField label="Event Topic" icon="target">
-      <input
-        class="editor-input editor-input--mono"
-        :value="node.data.eventTopic || ''"
-        @input="updateNodeData({ eventTopic: ($event.target as HTMLInputElement).value })"
+      <BaseInput
+        :model-value="(node.data.eventTopic as string) || ''"
+        @update:model-value="updateNodeData({ eventTopic: $event as string })"
         placeholder="user.created"
+        style="font-family: var(--nod8-font-mono)"
       />
     </EditorField>
 
@@ -27,13 +26,12 @@
 <script setup lang="ts">
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 
 defineProps<NodeEditorProps>()
 </script>
 
 <style scoped>
-
-
 .mt-2 {
   margin-top: var(--nod8-space-2);
 }

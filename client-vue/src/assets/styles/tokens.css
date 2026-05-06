@@ -159,9 +159,18 @@
   --nod8-button-danger-active: rgba(255, 1, 1, 0.107);
   --nod8-button-danger-active-text: rgb(255, 41, 41);
 
+  /* ── Inputs ──────────────────────────────────────────────── */
+  --nod8-input-bg: var(--nod8-gray-900);
+  --nod8-input-border: var(--nod8-border);
+  --nod8-input-border-focus: var(--nod8-text-secondary);
+  --nod8-input-text: var(--nod8-text-primary);
+  --nod8-input-placeholder: var(--nod8-text-disabled);
+  --nod8-input-error-border: var(--nod8-red-500);
+  --nod8-input-disabled-bg: var(--nod8-bg-muted);
+
   /* Publish (Custom Workflow Button) */
-  --nod8-button-publish-draft-bg: var(--nod8-accent);
-  --nod8-button-publish-draft-text: #ffffff;
+  --nod8-button-publish-draft-bg: var(--nod8-button-primary-bg);
+  --nod8-button-publish-draft-text: var(--nod8-button-primary-text);
   --nod8-button-publish-live-bg: color-mix(in srgb, var(--nod8-green-400) 15%, transparent);
   --nod8-button-publish-live-text: var(--nod8-green-400);
   --nod8-button-publish-live-border: color-mix(in srgb, var(--nod8-green-400) 30%, transparent);
@@ -250,14 +259,14 @@
   /* ── React Flow ─────────────────────────────────────────── */
 
   /* ── Canvas ─────────────────────────────────────────── */
-  --nod8-canvas-bg: #0c0c0c;
-  --nod8-canvas-grid: rgba(255, 255, 255, 0.025);
+  --nod8-canvas-bg: #141414;
+  --nod8-canvas-grid: rgb(125, 125, 125);
 
   /* ── Node Colors ─────────────────────────────────────────── */
   --nod8-node-header: #161617;
-  --nod8-node-body: #101012;
-  --nod8-node-border: rgb(37, 37, 37);
-  --nod8-node-selected: rgb(60, 60, 60);
+  --nod8-node-body: #191919;
+  --nod8-node-border: rgb(54, 54, 54);
+  --nod8-node-selected: rgb(77, 77, 77);
 
   /* ── Handle Colors ─────────────────────────────────────────── */
   --nod8-node-handle: var(--nod8-node-border);
@@ -285,9 +294,9 @@
   --nod8-node-trigger-event-icon: rgb(245, 158, 11);
 
   /* Plugin */
-  --nod8-node-plugin-bg: rgba(255, 255, 255, 0.12);
+  --nod8-node-plugin-bg: transparent;
   --nod8-node-plugin-icon: rgb(253, 253, 253);
-  --nod8-node-plugin-border: rgba(255, 255, 255, 0.4);
+  --nod8-node-plugin-border: var(--nod8-node-border);
 
   /* Code Block */
   --nod8-node-codeblock-bg: rgba(129, 219, 13, 0.12);
@@ -392,7 +401,7 @@
   --nod8-bg-base: var(--nod8-gray-50);
   --nod8-bg-surface: #ffffff;
   --nod8-bg-elevated: var(--nod8-gray-100);
-  --nod8-bg-overlay: var(--nod8-gray-200);
+  --nod8-bg-overlay: var(--nod8-gray-100);
   --nod8-bg-muted: var(--nod8-gray-100);
   --nod8-bg-subtle: var(--nod8-gray-200);
   --nod8-bg-canvas: #f0f0f0;
@@ -436,9 +445,18 @@
   --nod8-button-ghost-bg: transparent;
   --nod8-button-ghost-text: var(--nod8-gray-700);
   --nod8-button-ghost-border: transparent;
-  --nod8-button-ghost-hover: var(--nod8-gray-100);
+  --nod8-button-ghost-hover: var(--nod8-gray-200);
   --nod8-button-ghost-active: var(--nod8-gray-200);
   --nod8-button-ghost-active-text: var(--nod8-gray-700);
+
+  /* Inputs */
+  --nod8-input-bg: #ffffff;
+  --nod8-input-border: var(--nod8-gray-300);
+  --nod8-input-border-focus: var(--nod8-gray-600);
+  --nod8-input-text: var(--nod8-gray-900);
+  --nod8-input-placeholder: var(--nod8-gray-400);
+  --nod8-input-error-border: var(--nod8-red-500);
+  --nod8-input-disabled-bg: var(--nod8-gray-100);
 
   /* Shadows */
   --nod8-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -447,14 +465,14 @@
   --nod8-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.1);
 
   /* Canvas */
-  --nod8-canvas-bg: #ececec;
-  --nod8-canvas-grid: rgba(0, 0, 0, 0.06);
+  --nod8-canvas-bg: #f5f5f5;
+  --nod8-canvas-grid: rgb(0, 0, 0);
 
   /* Node Colors (light) */
   --nod8-node-header: #f8f8f8;
   --nod8-node-body: #ffffff;
-  --nod8-node-border: rgb(220, 220, 220);
-  --nod8-node-selected: rgb(180, 180, 180);
+  --nod8-node-border: rgb(194, 194, 194);
+  --nod8-node-selected: rgb(0, 0, 0);
   --nod8-node-handle: var(--nod8-node-border);
   --nod8-node-handle-hover: var(--nod8-node-selected);
 

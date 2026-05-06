@@ -20,9 +20,8 @@
         <div class="flex flex-col gap-2">
           <div v-for="(field, key, index) in node.data.schema || {}" :key="index" class="te-card">
             <div class="te-card-header">
-              <input
-                :value="key"
-                class="te-key-input"
+              <BaseInput
+                :model-value="String(key)"
                 @blur="updateSchemaKey(String(key), ($event.target as HTMLInputElement).value)"
                 placeholder="Field name"
               />
@@ -74,12 +73,11 @@
             Endpoint Slug
             <span class="te-label-sub">(optional, readable name)</span>
           </span>
-          <input
+          <BaseInput
             type="text"
-            :value="(node.data as unknown as WorkflowTrigger).webhookSlug || ''"
-            @input="updateNodeData({ webhookSlug: ($event.target as HTMLInputElement).value || undefined })"
+            :model-value="(node.data as unknown as WorkflowTrigger).webhookSlug || ''"
+            @update:model-value="updateNodeData({ webhookSlug: $event as string || undefined })"
             placeholder="nova-venda"
-            class="editor-input"
           />
           <p class="te-hint">kebab-case only — replaces the auto-generated path.</p>
         </div>
@@ -132,12 +130,11 @@
             <span class="te-label-sub">(recommended)</span>
           </span>
           <div class="te-input-row">
-            <input
+            <BaseInput
               type="password"
-              :value="(node.data as unknown as WorkflowTrigger).webhookSecret || ''"
-              @input="updateNodeData({ webhookSecret: ($event.target as HTMLInputElement).value })"
+              :model-value="(node.data as unknown as WorkflowTrigger).webhookSecret || ''"
+              @update:model-value="updateNodeData({ webhookSecret: $event as string })"
               placeholder="my-secret-key"
-              class="editor-input te-password-input"
             />
             <button class="te-icon-btn" title="Generate random secret" @click="generateSecret">
               <RefreshCwIcon :size="14" />
@@ -163,9 +160,8 @@
               class="te-card"
             >
               <div class="te-card-header">
-                <input
-                  :value="key"
-                  class="te-key-input"
+                <BaseInput
+                  :model-value="String(key)"
                   @blur="updateBodySchemaKey(String(key), ($event.target as HTMLInputElement).value)"
                   placeholder="Field name"
                 />
@@ -206,11 +202,11 @@
       <div class="te-section">
         <div class="te-field">
           <span class="te-label">Cron Expression</span>
-          <input
-            :value="(node.data as unknown as WorkflowTrigger).cronExpression || ''"
-            @input="updateNodeData({ cronExpression: ($event.target as HTMLInputElement).value })"
+          <BaseInput
+            :model-value="(node.data as unknown as WorkflowTrigger).cronExpression || ''"
+            @update:model-value="updateNodeData({ cronExpression: $event as string })"
             placeholder="* * * * *"
-            class="editor-input te-cron-input"
+            style="font-family: var(--nod8-font-mono)"
           />
           <p v-if="humanCron" class="te-human-cron">↳ {{ humanCron }}</p>
           <div class="te-info-blue">
@@ -243,11 +239,11 @@
       <div class="te-section">
         <div class="te-field">
           <span class="te-label">Internal Event Name</span>
-          <input
-            :value="(node.data as unknown as WorkflowTrigger).eventName || ''"
-            @input="updateNodeData({ eventName: ($event.target as HTMLInputElement).value })"
+          <BaseInput
+            :model-value="(node.data as unknown as WorkflowTrigger).eventName || ''"
+            @update:model-value="updateNodeData({ eventName: $event as string })"
             placeholder="video.uploaded"
-            class="editor-input te-event-input"
+            style="font-family: var(--nod8-font-mono)"
           />
           <p class="te-hint">
             This workflow will run whenever an <strong>Emit Event</strong> node or the
@@ -276,6 +272,7 @@ import type { NodeEditorProps } from './types'
 import type { WorkflowTrigger, WorkflowSchemaField, WebhookBodyField } from '@/core/types/workflow.types'
 import EditorField from './EditorField.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { API_BASE_URL } from '@/core/constants/app'
 
 const props = defineProps<NodeEditorProps>()

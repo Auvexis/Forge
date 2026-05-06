@@ -7,7 +7,7 @@
   >
     <template v-if="!$slots.element">
       <div v-if="icon" class="app-dropdown-item__icon">
-        <LucideIcon :name="icon" :size="16" />
+        <LucideIcon :name="icon" :size="14" />
       </div>
 
       <div class="app-dropdown-item__content">
@@ -23,25 +23,20 @@
     </template>
 
     <template v-else>
-      <div class="flex flex-col gap-1">
-        <div class="flex gap-2">
-          <div v-if="icon" class="app-dropdown-item__icon">
-            <LucideIcon :name="icon" :size="16" />
-          </div>
+      <div v-if="icon" class="app-dropdown-item__icon">
+        <LucideIcon :name="icon" :size="14" />
+      </div>
 
-          <div class="app-dropdown-item__content">
-            <span class="app-dropdown-item__label">
-              <slot>{{ label }}</slot>
-            </span>
-            <span v-if="hint" class="app-dropdown-item__hint">{{ hint }}</span>
-          </div>
-
-          <div v-if="shortcut" class="app-dropdown-item__shortcut">
-            {{ shortcut }}
-          </div>
-        </div>
-
+      <div class="app-dropdown-item__content">
+        <span class="app-dropdown-item__label">
+          <slot>{{ label }}</slot>
+        </span>
+        <span v-if="hint" class="app-dropdown-item__hint">{{ hint }}</span>
         <slot name="element"></slot>
+      </div>
+
+      <div v-if="shortcut" class="app-dropdown-item__shortcut">
+        {{ shortcut }}
       </div>
     </template>
   </button>
@@ -79,9 +74,12 @@ const handleClick = (e: MouseEvent) => {
 
 <style scoped>
 .app-dropdown-item {
+  position: relative;
+  z-index: 1;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: var(--nod8-space-3);
+  gap: var(--nod8-space-2);
   width: 100%;
   padding: var(--nod8-space-2) var(--nod8-space-3);
   border-radius: var(--nod8-radius-sm);
@@ -90,25 +88,19 @@ const handleClick = (e: MouseEvent) => {
   text-align: left;
   border: none;
   cursor: pointer;
-  transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
+  transition: color var(--nod8-duration-fast) var(--nod8-ease-standard);
   user-select: none;
-}
-
-.app-dropdown-item:hover:not(:disabled) {
-  background-color: var(--nod8-bg-muted);
-}
-
-.app-dropdown-item--danger {
-  color: var(--nod8-text-error);
-}
-
-.app-dropdown-item--danger:hover:not(:disabled) {
-  background-color: rgba(248, 113, 113, 0.1); /* light red */
+  font-size: var(--nod8-text-sm);
+  font-family: inherit;
 }
 
 .app-dropdown-item:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.app-dropdown-item--danger {
+  color: var(--nod8-text-error);
 }
 
 .app-dropdown-item__icon {

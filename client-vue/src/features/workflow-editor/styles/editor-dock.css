@@ -101,7 +101,7 @@
 
 /* ── Button state modifiers ──────────────────────────────────────────────── */
 .wed-btn--active {
-  background-color: var(--nod8-accent-subtle) !important;
+  background-color: var(--nod8-button-ghost-hover) !important;
   color: var(--nod8-text-primary) !important;
 }
 

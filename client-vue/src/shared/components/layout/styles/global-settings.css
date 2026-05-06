@@ -50,8 +50,8 @@
 }
 
 .gs-aside__close:hover {
-  background: var(--nod8-bg-muted);
-  color: var(--nod8-text-primary);
+  background: var(--nod8-button-ghost-hover);
+  color: var(--nod8-button-ghost-hover-text);
 }
 
 .gs-aside__title {
@@ -65,7 +65,7 @@
 .gs-nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   padding: var(--nod8-space-3) var(--nod8-space-2);
   flex: 1;
 }
@@ -90,14 +90,13 @@
 }
 
 .gs-nav__item:hover {
-  background: var(--nod8-bg-muted);
-  color: var(--nod8-text-primary);
+  background: var(--nod8-button-ghost-hover);
+  color: var(--nod8-button-ghost-hover-text);
 }
 
 .gs-nav__item--active {
-  background: var(--nod8-bg-muted);
-  color: var(--nod8-text-primary);
-  font-weight: var(--nod8-font-semibold);
+  background: var(--nod8-button-ghost-active);
+  color: var(--nod8-button-ghost-active-text);
 }
 
 .gs-nav__icon {
@@ -146,7 +145,7 @@
 /* Section heading group (title + desc) */
 .gs-section__head {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: var(--nod8-space-1);
   padding-bottom: var(--nod8-space-4);
   border-bottom: 1px solid var(--nod8-border);
@@ -170,10 +169,10 @@
 .gs-code {
   font-family: var(--nod8-font-mono);
   font-size: 11px;
-  background: var(--nod8-bg-muted);
+  background: var(--nod8-button-ghost-hover);
   border: 1px solid var(--nod8-border);
   border-radius: 3px;
-  padding: 1px 4px;
+  padding: 2px 4px;
   color: var(--nod8-text-secondary);
 }
 
@@ -278,7 +277,7 @@
 .gs-pref-list {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-1);
+  gap: var(--nod8-space-2);
 }
 
 .gs-pref-row {
@@ -286,15 +285,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--nod8-space-4);
-  padding: var(--nod8-space-3) var(--nod8-space-4);
-  background: var(--nod8-bg-muted);
-  border: 1px solid var(--nod8-border);
+  padding: var(--nod8-space-2) var(--nod8-space-4);
   border-radius: var(--nod8-radius-sm);
-  transition: border-color var(--nod8-duration-fast);
-}
-
-.gs-pref-row:hover {
-  border-color: var(--nod8-border-strong);
 }
 
 .gs-pref-row__label {

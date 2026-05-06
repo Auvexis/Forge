@@ -90,6 +90,7 @@ const iconName = computed(() => {
   max-width: 420px;
   background: var(--nod8-bg-surface);
   border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-sm);
   padding: var(--nod8-space-5);
   box-shadow:
     0 24px 48px rgba(0, 0, 0, 0.4),

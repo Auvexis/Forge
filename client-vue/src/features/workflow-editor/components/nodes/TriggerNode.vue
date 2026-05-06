@@ -9,6 +9,7 @@ import { Position } from '@vue-flow/core'
 import { useWorkflowStore } from '../../stores/workflow.store'
 import { useExecutionStore } from '../../stores/execution.store'
 import { useEventBus } from '@/shared/composables/useEventBus'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 const props = defineProps<
   NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
@@ -27,9 +28,9 @@ const triggerConfig = computed(() => {
       icon: 'mouse-pointer-2',
       title: 'Manual Trigger',
       subtitle: null,
-      color: '#ffffff',
-      bg: 'rgba(255,255,255,0.07)',
-      borderColor: '#3c3c3c',
+      color: 'var(--nod8-text-primary)',
+      bg: 'var(--nod8-node-body)',
+      borderColor: 'var(--nod8-node-border)',
     },
     webhook: {
       icon: 'webhook',
@@ -108,10 +109,15 @@ const onQuickAdd = () => {
     :style="{ '--trigger-border': triggerConfig.borderColor, '--node-tint': triggerConfig.bg }"
   >
     <!-- Execute button floating left -->
-    <button class="trigger-node__execute-btn" @click.stop="onExecuteWorkflow">
-      <LucideIcon name="play" :size="14" />
-      <span>Execute Workflow</span>
-    </button>
+    <BaseButton
+      variant="primary"
+      size="md"
+      class="trigger-node__execute-btn"
+      icon-left="play"
+      @click.stop="onExecuteWorkflow"
+    >
+      Execute Workflow
+    </BaseButton>
 
     <!-- Lightning bolt accent (top-left corner like n8n) -->
     <div class="trigger-node__lightning">
@@ -175,12 +181,22 @@ const onQuickAdd = () => {
 
 .trigger-node:hover {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-  border-color: color-mix(in srgb, var(--trigger-border, #3c3c3c) 150%, white 30%);
+  border-color: color-mix(
+    in srgb,
+    var(--trigger-border, #3c3c3c) 80%,
+    var(--nod8-text-primary) 20%
+  );
 }
 
 .trigger-node.is-selected {
-  border-color: color-mix(in srgb, var(--trigger-border, #3c3c3c) 60%, white 40%);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--trigger-border, #3c3c3c) 30%, transparent);
+  border-color: color-mix(
+    in srgb,
+    var(--trigger-border, #3c3c3c) 80%,
+    var(--nod8-text-primary) 20%
+  );
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    0 0 0 3px color-mix(in srgb, var(--trigger-border, #3c3c3c) 50%, transparent);
 }
 
 .trigger-node.is-running {
@@ -201,7 +217,7 @@ const onQuickAdd = () => {
   top: 50%;
   left: -50px;
   transform: translateY(-50%);
-  color: var(--nod8-red-400);
+  color: var(--nod8-text-primary);
   opacity: 0.9;
   display: flex;
   align-items: center;
@@ -222,15 +238,6 @@ const onQuickAdd = () => {
   transform: translate(-20px, -50%);
   display: flex;
   align-items: center;
-  gap: 6px;
-  background-color: var(--nod8-red-500);
-  color: #fff;
-  border: none;
-  border-radius: var(--nod8-radius-sm);
-  padding: 10px 12px 10px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
 
   /* Initial state: hidden and slightly to the right (behind the node) */
   opacity: 0;
@@ -255,10 +262,6 @@ const onQuickAdd = () => {
   pointer-events: auto;
   /* Final state: fully visible, pushed out to the left */
   transform: translate(calc(-100% - 16px), -50%);
-}
-
-.trigger-node__execute-btn:hover {
-  background-color: var(--nod8-red-400);
 }
 
 /* ─── Main icon ─────────────────────────────────────────────── */
@@ -321,26 +324,16 @@ const onQuickAdd = () => {
 }
 
 .trigger-node__quick-add-btn {
-  border-radius: var(--nod8-radius-full);
-  background-color: var(--nod8-node-handle);
-  border: none;
-  color: var(--nod8-text-muted);
+  border-radius: var(--nod8-radius-sm);
+  background-color: var(--nod8-node-border);
+  border: 2px solid var(--nod8-border-strong);
+  color: var(--nod8-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 2px;
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
   transition: all 0.2s;
-}
-
-.trigger-node:hover .trigger-node__quick-add-cable,
-.trigger-node:hover .trigger-node__quick-add-btn {
-  background-color: var(--nod8-node-handle-hover);
-}
-
-.trigger-node__quick-add-btn:hover {
-  transform: scale(1.2);
 }
 </style>

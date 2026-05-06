@@ -53,24 +53,23 @@
           </div>
 
           <!-- Textarea -->
-          <textarea
+          <BaseTextarea
             v-else-if="field.inputType === 'textarea'"
             :id="key.toString()"
-            class="editor-textarea"
             :placeholder="field.placeholder"
             :required="field.required"
             v-model="formValues[key]"
-          ></textarea>
+          />
 
           <!-- Default Input -->
-          <input
+          <BaseInput
             v-else
             :id="key.toString()"
             :type="field.inputType"
-            class="editor-input"
             :placeholder="field.placeholder"
             :required="field.required"
-            v-model="formValues[key]"
+            :model-value="formValues[key] as string"
+            @update:model-value="formValues[key] = $event"
           />
         </div>
 
@@ -109,35 +108,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { pluginsApi } from '@/core/api/plugins.api'
+import { onMounted, watch } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import type { PluginStatusResponse } from '@/core/types/plugin.types'
+import { usePluginAuth } from '@/shared/composables/usePluginAuth'
+import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 
 const props = defineProps<{
   pluginId: string
 }>()
 
-const pluginStatus = ref<PluginStatusResponse | null>(null)
-const formValues = ref<Record<string, any>>({})
-const saving = ref(false)
-const authLoading = ref(false)
-
-const loadStatus = async () => {
-  try {
-    const data = await pluginsApi.getStatus(props.pluginId)
-    pluginStatus.value = data
-    if (data?.credentials) {
-      formValues.value = { ...data.credentials }
-    }
-  } catch (error) {
-    console.error('Failed to load plugin status', error)
-  }
-}
-
-const isLocked = (key: string) => {
-  return (pluginStatus.value?.locked_fields ?? []).includes(key)
-}
+const {
+  pluginStatus,
+  formValues,
+  saving,
+  authLoading,
+  loadStatus,
+  isLocked,
+  handleSaveCredentials,
+  handleConnect,
+  handleDisconnect
+} = usePluginAuth(() => props.pluginId)
 
 onMounted(() => {
   loadStatus()
@@ -150,43 +141,6 @@ watch(
     loadStatus()
   },
 )
-
-const handleSaveCredentials = async () => {
-  saving.value = true
-  try {
-    await pluginsApi.saveCredentials(props.pluginId, formValues.value)
-    await loadStatus()
-  } catch (err) {
-    console.error(err)
-  } finally {
-    saving.value = false
-  }
-}
-
-const handleConnect = async () => {
-  authLoading.value = true
-  try {
-    const data = await pluginsApi.getAuthUrl(props.pluginId)
-    if (data?.url) {
-      window.open(data.url, '_blank', 'width=600,height=700')
-      // Simple mockup to reload status after the window opens
-      setTimeout(() => loadStatus(), 3000)
-    }
-  } catch (err) {
-    console.error(err)
-  } finally {
-    authLoading.value = false
-  }
-}
-
-const handleDisconnect = async () => {
-  try {
-    await pluginsApi.disconnectAuth(props.pluginId)
-    await loadStatus()
-  } catch (err) {
-    console.error(err)
-  }
-}
 </script>
 
 <style scoped>

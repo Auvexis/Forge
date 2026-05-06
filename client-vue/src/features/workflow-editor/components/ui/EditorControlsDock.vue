@@ -1,7 +1,11 @@
 <template>
   <Panel position="bottom-center" class="mb-6 z-50">
     <div class="dock-container">
-      <!-- ── Run / Stop ── -->
+      <BaseWoobyMenu 
+        tag="div" 
+        class="dock-actions-group flex items-center" 
+      >
+        <!-- ── Run / Stop ── -->
       <BaseButton
         v-if="isStreaming"
         size="sm"
@@ -62,11 +66,12 @@
         variant="ghost"
         icon-left="scroll-text"
         class="dock-btn"
-        :class="{ 'dock-btn--active': isLogsOpen }"
+        :class="{ 'dock-btn--toggled': isLogsOpen }"
         @click="$emit('toggle-logs')"
       >
         Logs
       </BaseButton>
+      </BaseWoobyMenu>
 
       <div
         :style="{
@@ -133,6 +138,7 @@ import { Panel, useVueFlow } from '@vue-flow/core'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 
 defineProps<{
   isSaving?: boolean
@@ -175,10 +181,21 @@ const onSliderChange = (event: Event) => {
 
 .dock-btn {
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
-.dock-btn--active {
-  background-color: var(--nod8-accent-subtle) !important;
+:deep(.dock-btn:hover) {
+  background: transparent !important;
+}
+
+:deep(.dock-btn--active) {
+  background: transparent !important;
+  color: var(--nod8-text-primary) !important;
+}
+
+:deep(.dock-btn--toggled) {
+  background: transparent !important;
   color: var(--nod8-text-primary) !important;
 }
 

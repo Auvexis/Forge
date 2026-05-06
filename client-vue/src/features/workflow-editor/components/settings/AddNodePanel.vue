@@ -35,11 +35,12 @@
         <!-- Logic & Control -->
         <div class="add-node-section">
           <p class="add-node-section-label">Lógica e Controle</p>
-          <div class="add-node-list">
+          <BaseWoobyMenu tag="div" class="add-node-list">
             <button
               v-for="def in filteredLogicNodes"
               :key="def.type"
               class="add-node-item"
+              style="position: relative; z-index: 1"
               @click="onAddLogicNode?.(def.type)"
             >
               <div class="add-node-item-icon-well" :style="{ backgroundColor: def.bgColor }">
@@ -50,7 +51,7 @@
                 <span class="add-node-item-desc">{{ def.description }}</span>
               </div>
             </button>
-          </div>
+          </BaseWoobyMenu>
         </div>
 
         <!-- Integrations / Plugins -->
@@ -60,11 +61,12 @@
             <LucideIcon name="blocks" :size="32" class="add-node-empty-icon" />
             <p>Nenhum plugin instalado.</p>
           </div>
-          <div v-else class="add-node-list">
+          <BaseWoobyMenu v-else tag="div" class="add-node-list">
             <button
               v-for="plugin in filteredPlugins"
               :key="plugin.id"
               class="add-node-item"
+              style="position: relative; z-index: 1"
               @click="selectPlugin(plugin.id)"
             >
               <div class="add-node-item-icon-well add-node-item-icon-well--plugin">
@@ -82,17 +84,18 @@
               </div>
               <LucideIcon name="chevron-right" :size="14" class="add-node-item-chevron" />
             </button>
-          </div>
+          </BaseWoobyMenu>
         </div>
       </template>
 
       <!-- View: Actions (plugin selected) -->
       <template v-else-if="view === 'actions' && selectedPlugin">
-        <div class="add-node-list">
+        <BaseWoobyMenu tag="div" class="add-node-list">
           <button
             v-for="[methodKey, methodVal] in filteredMethods"
             :key="methodKey"
             class="add-node-item"
+            style="position: relative; z-index: 1"
             @click="
               onAddPluginNode?.(selectedPluginId!, methodKey, methodVal.metadata.label || methodKey)
             "
@@ -105,10 +108,10 @@
               <span class="add-node-item-desc">{{ methodVal.metadata.description }}</span>
             </div>
           </button>
-          <div v-if="filteredMethods.length === 0" class="add-node-empty">
+          <div v-if="filteredMethods.length === 0" class="add-node-empty" style="position: relative; z-index: 1">
             <p>Nenhuma ação encontrada.</p>
           </div>
-        </div>
+        </BaseWoobyMenu>
       </template>
     </div>
   </div>
@@ -120,6 +123,7 @@ import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 
 defineProps<{
   onAddLogicNode?: (type: WorkflowNodeType) => void
@@ -377,13 +381,8 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
   border-radius: var(--nod8-radius-md);
   cursor: pointer;
   text-align: left;
-  transition: background-color var(--nod8-duration-fast);
   font-family: inherit;
   color: var(--nod8-text-primary);
-}
-
-.add-node-item:hover {
-  background-color: var(--nod8-bg-overlay);
 }
 
 .add-node-item:active {

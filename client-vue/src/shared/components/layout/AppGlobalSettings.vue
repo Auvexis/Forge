@@ -1,12 +1,6 @@
 <template>
-  <BaseModal
-    :is-open="store.isOpen"
-    max-width="960px"
-    height="76vh"
-    @close="store.close"
-  >
+  <BaseModal :is-open="store.isOpen" max-width="960px" height="76vh" @close="store.close">
     <div class="gs-shell">
-
       <!-- ── Left Aside ──────────────────────────────────────────── -->
       <aside class="gs-aside">
         <!-- Logo / title -->
@@ -18,185 +12,429 @@
         </div>
 
         <!-- Vertical nav -->
-        <nav class="gs-nav">
-          <button
-            v-for="tab in tabs"
+        <BaseWoobyMenu
+          tag="nav"
+          class="gs-nav"
+          style="position: relative"
+          active-selector=".gs-nav__item--active"
+        >
+          <BaseButton
+            v-for="(tab, index) in tabs"
             :key="tab.id"
+            variant="ghost"
             class="gs-nav__item"
             :class="{ 'gs-nav__item--active': activeTab === tab.id }"
+            style="
+              position: relative;
+              z-index: 1;
+              background: transparent;
+              justify-content: flex-start;
+              width: 100%;
+            "
             @click="activeTab = tab.id"
           >
-            <LucideIcon :name="tab.icon" :size="15" class="gs-nav__icon" />
+            <template #left>
+              <LucideIcon :name="tab.icon" :size="15" class="gs-nav__icon" />
+            </template>
             <span class="gs-nav__label">{{ tab.label }}</span>
-          </button>
-        </nav>
+          </BaseButton>
+        </BaseWoobyMenu>
       </aside>
 
       <!-- ── Right Content ───────────────────────────────────────── -->
-      <main class="gs-main">
-
-        <!-- ── Variables Tab ──────────────────────────────────────── -->
-        <section v-if="activeTab === 'variables'" class="gs-section">
-          <div class="gs-section__head">
-            <h2 class="gs-section__title">Environment Variables</h2>
-            <p class="gs-section__desc">
-              Use <code class="gs-code" v-pre>{{env.KEY}}</code> in any workflow to reference these values.
-            </p>
-          </div>
-
-          <!-- Add form -->
-          <div class="gs-card">
-            <div class="gs-card__grid">
-              <BaseInput
-                v-model="newVar.key"
-                label="Key"
-                placeholder="MY_VARIABLE"
-                :error="newVar.keyError"
-              />
-              <BaseInput
-                v-model="newVar.value"
-                label="Value"
-                placeholder="my-value"
-              />
+      <main class="gs-main gs-section">
+        <!-- ── Headers (Fade) ──────────────────────────────────────── -->
+        <transition name="fade" mode="out-in">
+          <div v-if="activeTab === 'variables'" key="head-var" class="gs-section__head">
+            <div style="display: flex; flex-direction: column; gap: var(--nod8-space-1)">
+              <h2 class="gs-section__title">Environment Variables</h2>
+              <p class="gs-section__desc">
+                Use <code class="gs-code" v-pre>{{ env.KEY }}</code> in any workflow to reference
+                these values.
+              </p>
             </div>
-            <BaseInput
-              v-model="newVar.description"
-              label="Description (optional)"
-              placeholder="What is this for?"
-            />
-            <BaseButton
-              variant="primary"
-              icon-left="plus"
-              :loading="isSavingVar"
-              :disabled="!newVar.key.trim()"
-              @click="handleSaveVariable"
-            >
-              Add Variable
-            </BaseButton>
           </div>
-
-          <!-- Loading -->
-          <div v-if="store.isLoadingVariables" class="gs-state">
-            <LucideIcon name="loader-2" :size="18" class="gs-spin" />
-          </div>
-
-          <!-- Empty -->
-          <div v-else-if="store.variables.length === 0" class="gs-state">
-            <LucideIcon name="variable" :size="24" />
-            <p>No variables yet</p>
-          </div>
-
-          <!-- List -->
-          <ul v-else class="gs-var-list">
-            <li v-for="v in store.variables" :key="v.key" class="gs-var-item">
-              <div class="gs-var-item__info">
-                <code class="gs-var-item__key">{{ v.key }}</code>
-                <span class="gs-var-item__value">{{ v.value }}</span>
-                <span v-if="v.description" class="gs-var-item__desc">{{ v.description }}</span>
+          <div
+            v-else-if="activeTab === 'credentials'"
+            key="head-cred"
+            class="gs-section__head"
+            style="
+              display: flex;
+              align-items: flex-start;
+              justify-content: space-between;
+              gap: 1rem;
+            "
+          >
+            <div>
+              <div style="display: flex; flex-direction: column; gap: var(--nod8-space-1)">
+                <h2 class="gs-section__title">Credentials</h2>
+                <p class="gs-section__desc">
+                  Configure API keys and tokens for your installed plugins.
+                </p>
               </div>
-              <BaseButton
-                variant="ghost"
-                size="icon"
-                :loading="deletingKey === v.key"
-                @click="handleDeleteVariable(v.key)"
-                title="Delete"
-              >
-                <template #left>
-                  <LucideIcon name="trash-2" :size="13" />
-                </template>
-              </BaseButton>
-            </li>
-          </ul>
-        </section>
-
-        <!-- ── Credentials Tab ────────────────────────────────────── -->
-        <section v-if="activeTab === 'credentials'" class="gs-section">
-          <div class="gs-section__head">
-            <h2 class="gs-section__title">Credentials</h2>
-            <p class="gs-section__desc">
-              Configure API keys and tokens for your installed plugins. These are stored locally and
-              injected automatically when workflows run.
-            </p>
+            </div>
+            <div style="width: 240px; flex-shrink: 0">
+              <BaseInput v-model="credSearch" placeholder="Search plugins..." />
+            </div>
           </div>
-
-          <!-- Loading -->
-          <div v-if="isLoadingPlugins" class="gs-state">
-            <LucideIcon name="loader-2" :size="18" class="gs-spin" />
+          <div v-else-if="activeTab === 'preferences'" key="head-pref" class="gs-section__head">
+            <div style="display: flex; flex-direction: column; gap: var(--nod8-space-1)">
+              <h2 class="gs-section__title">Preferences</h2>
+              <p class="gs-section__desc">System preferences for this Nod8 instance.</p>
+            </div>
           </div>
+        </transition>
 
-          <!-- Empty -->
-          <div v-else-if="authPlugins.length === 0" class="gs-state">
-            <LucideIcon name="key-round" :size="24" />
-            <p>No plugins requiring credentials installed.</p>
-          </div>
-
-          <!-- Plugin credential list -->
-          <div v-else class="gs-cred-list">
+        <!-- ── Bodies (Slide Up) ────────────────────────────────────── -->
+        <transition name="slide-up" mode="out-in">
+          <!-- Variables Body -->
+          <div v-if="activeTab === 'variables'" key="body-var" class="gs-pref-list">
+            <!-- Add form -->
             <div
-              v-for="plugin in authPlugins"
-              :key="plugin.id"
-              class="gs-cred-card"
+              class="gs-pref-row"
+              style="
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+                border-bottom: 1px solid var(--border-color);
+                padding-bottom: 1.5rem;
+                margin-bottom: 0.5rem;
+              "
             >
-              <!-- Card Header -->
-              <div class="gs-cred-card__header">
-                <div class="gs-cred-card__title">
-                  <span class="gs-cred-card__name">{{ plugin.manifest?.name ?? plugin.id }}</span>
-                  <span
-                    class="gs-cred-card__badge"
-                    :class="hasCredential(plugin.id) ? 'gs-cred-card__badge--ok' : 'gs-cred-card__badge--missing'"
+              <div class="gs-pref-row__label">
+                <LucideIcon name="plus" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Add Variable</span>
+                  <span class="gs-pref-row__hint">Create a new environment variable</span>
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.75rem; align-items: flex-start">
+                <div style="flex: 1">
+                  <BaseInput v-model="newVar.key" placeholder="KEY_NAME" :error="newVar.keyError" />
+                </div>
+                <div style="flex: 1; display: flex; align-items: center; gap: 0.25rem">
+                  <BaseInput
+                    v-model="newVar.value"
+                    placeholder="Value"
+                    :type="showNewVarValue ? 'text' : 'password'"
+                    style="flex: 1"
+                  />
+                  <BaseButton
+                    variant="ghost"
+                    size="icon"
+                    :title="showNewVarValue ? 'Hide value' : 'Show value'"
+                    @click="showNewVarValue = !showNewVarValue"
                   >
-                    <LucideIcon :name="hasCredential(plugin.id) ? 'check' : 'circle-alert'" :size="10" />
-                    {{ hasCredential(plugin.id) ? 'Configured' : 'Not configured' }}
-                  </span>
+                    <template #left>
+                      <LucideIcon :name="showNewVarValue ? 'eye-off' : 'eye'" :size="15" />
+                    </template>
+                  </BaseButton>
+                </div>
+                <div style="flex: 1.5">
+                  <BaseInput v-model="newVar.description" placeholder="Description (optional)" />
                 </div>
                 <BaseButton
-                  v-if="hasCredential(plugin.id)"
-                  variant="ghost"
-                  size="icon"
-                  :loading="isDeletingCred === plugin.id"
-                  title="Remove credential"
-                  @click="handleDeleteCredential(plugin.id)"
+                  variant="primary"
+                  :loading="isSavingVar"
+                  :disabled="!newVar.key.trim()"
+                  @click="handleSaveVariable"
                 >
-                  <template #left><LucideIcon name="trash-2" :size="13" /></template>
+                  Add
                 </BaseButton>
               </div>
+            </div>
 
-              <!-- Fields -->
-              <div class="gs-cred-card__fields">
-                <template v-for="(schema, fieldKey) in credentialSchema(plugin)" :key="fieldKey">
-                  <BaseInput
-                    :model-value="getCredField(plugin.id, String(fieldKey))"
-                    :label="(schema as any).title ?? String(fieldKey)"
-                    :placeholder="(schema as any).description ?? ''"
-                    :type="(schema as any).format === 'password' ? 'password' : 'text'"
-                    @update:model-value="setCredField(plugin.id, String(fieldKey), String($event))"
+            <!-- Loading -->
+            <div v-if="store.isLoadingVariables" class="gs-state" style="padding: 2rem">
+              <LucideIcon name="loader-2" :size="18" class="gs-spin" />
+            </div>
+
+            <!-- Empty -->
+            <div v-else-if="store.variables.length === 0" class="gs-state" style="padding: 2rem">
+              <LucideIcon name="key-round" :size="24" />
+              <p>No variables yet</p>
+            </div>
+
+            <!-- List -->
+            <template v-else>
+              <div v-for="v in store.variables" :key="v.key" class="gs-pref-row">
+                <div class="gs-pref-row__label">
+                  <LucideIcon name="key-round" :size="16" />
+                  <div>
+                    <span
+                      class="gs-pref-row__name"
+                      style="font-family: monospace; font-size: 0.9em"
+                      >{{ v.key }}</span
+                    >
+                    <span class="gs-pref-row__hint">{{ v.description || 'No description' }}</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.5rem">
+                  <code
+                    class="gs-code"
+                    style="
+                      max-width: 200px;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      white-space: nowrap;
+                    "
+                    :title="revealedVars[v.key] ? v.value : 'Click eye to reveal'"
+                  >
+                    {{ revealedVars[v.key] ? v.value : '••••••••••••••••' }}
+                  </code>
+                  <BaseButton
+                    variant="ghost"
+                    size="icon"
+                    :title="revealedVars[v.key] ? 'Hide value' : 'Show value'"
+                    @click="toggleVarVisibility(v.key)"
+                  >
+                    <template #left>
+                      <LucideIcon :name="revealedVars[v.key] ? 'eye-off' : 'eye'" :size="13" />
+                    </template>
+                  </BaseButton>
+                  <BaseButton
+                    variant="ghost"
+                    size="icon"
+                    :loading="deletingKey === v.key"
+                    @click="handleDeleteVariable(v.key)"
+                    title="Delete"
+                  >
+                    <template #left>
+                      <LucideIcon name="trash-2" :size="13" />
+                    </template>
+                  </BaseButton>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Credentials Body -->
+          <div v-else-if="activeTab === 'credentials'" key="body-cred" class="gs-pref-list">
+            <!-- Loading -->
+            <div v-if="isLoadingPlugins" class="gs-state" style="padding: 2rem">
+              <LucideIcon name="loader-2" :size="18" class="gs-spin" />
+            </div>
+
+            <!-- Empty -->
+            <div v-else-if="authPlugins.length === 0" class="gs-state" style="padding: 2rem">
+              <LucideIcon name="key-round" :size="24" />
+              <p>
+                {{
+                  credSearch.trim()
+                    ? 'No plugins found matching search.'
+                    : 'No plugins requiring credentials installed.'
+                }}
+              </p>
+            </div>
+
+            <!-- Plugin credential list -->
+            <div
+              v-else
+              style="
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                gap: 0.75rem;
+              "
+            >
+              <div
+                v-for="plugin in authPlugins"
+                :key="plugin.id"
+                class="gs-cred-grid-item"
+                :class="{ 'gs-cred-grid-item--active': selectedPluginForMenu?.id === plugin.id }"
+                @click="openPluginMenu(plugin)"
+              >
+                <img
+                  v-if="isUrl(plugin.manifest?.metadata?.icon)"
+                  :src="plugin.manifest?.metadata?.icon"
+                  alt=""
+                  style="
+                    width: 40px;
+                    height: 40px;
+                    object-fit: contain;
+                    border-radius: 8px;
+                    margin-bottom: 0.75rem;
+                  "
+                />
+                <div
+                  v-else
+                  style="
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: var(--nod8-bg-surface);
+                    border: 1px solid var(--nod8-border);
+                    border-radius: 8px;
+                    margin-bottom: 0.75rem;
+                  "
+                >
+                  <LucideIcon
+                    :name="plugin.manifest?.metadata?.icon || 'puzzle'"
+                    :size="20"
+                    style="opacity: 0.7"
                   />
+                </div>
+
+                <span
+                  style="
+                    font-size: 0.95em;
+                    font-weight: 500;
+                    color: var(--nod8-text-primary);
+                    margin-bottom: 0.25rem;
+                    text-align: center;
+                  "
+                >
+                  {{ plugin.manifest?.metadata?.name ?? plugin.id }}
+                </span>
+
+                <span
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.35rem;
+                    font-size: 0.75em;
+                  "
+                  :style="
+                    hasCredential(plugin.id)
+                      ? 'color: var(--nod8-text-success);'
+                      : 'color: var(--nod8-text-warning);'
+                  "
+                >
+                  <LucideIcon
+                    :name="hasCredential(plugin.id) ? 'check' : 'circle-alert'"
+                    :size="12"
+                  />
+                  {{ hasCredential(plugin.id) ? 'Configured' : 'Not configured' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- BaseMiniMenu for Plugin Credentials -->
+            <BaseMiniMenu
+              :is-open="!!selectedPluginForMenu"
+              :title="
+                'Configure ' +
+                (selectedPluginForMenu?.manifest?.metadata?.name ?? selectedPluginForMenu?.id)
+              "
+              :logo="selectedPluginForMenu?.manifest?.metadata?.icon"
+              :icon="selectedPluginForMenu?.manifest?.metadata?.icon || 'puzzle'"
+              max-width="520px"
+              @close="closePluginMenu"
+            >
+              <div
+                style="display: flex; flex-direction: column; gap: 1.25rem"
+                v-if="selectedPluginForMenu"
+              >
+                <template
+                  v-for="(schema, fieldKey) in credentialSchema(selectedPluginForMenu)"
+                  :key="fieldKey"
+                >
+                  <div style="display: flex; flex-direction: column; gap: 0.35rem">
+                    <span style="font-size: 0.9em; font-weight: 500">{{
+                      (schema as any).title ?? String(fieldKey)
+                    }}</span>
+                    <p
+                      v-if="(schema as any).description"
+                      style="margin: 0; font-size: 0.85em; color: var(--text-color-muted)"
+                    >
+                      {{ (schema as any).description }}
+                    </p>
+
+                    <div
+                      style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem"
+                    >
+                      <BaseInput
+                        style="flex: 1"
+                        :model-value="getCredField(selectedPluginForMenu.id, String(fieldKey))"
+                        placeholder="Enter value"
+                        :type="
+                          (schema as any).format === 'password' &&
+                          !showCredValues[`${selectedPluginForMenu.id}_${fieldKey}`]
+                            ? 'password'
+                            : 'text'
+                        "
+                        @update:model-value="
+                          setCredField(selectedPluginForMenu.id, String(fieldKey), String($event))
+                        "
+                      />
+                      <BaseButton
+                        v-if="(schema as any).format === 'password'"
+                        variant="ghost"
+                        size="icon"
+                        :title="
+                          showCredValues[`${selectedPluginForMenu.id}_${fieldKey}`]
+                            ? 'Hide'
+                            : 'Show'
+                        "
+                        @click="toggleCredVisibility(selectedPluginForMenu.id, String(fieldKey))"
+                      >
+                        <template #left>
+                          <LucideIcon
+                            :name="
+                              showCredValues[`${selectedPluginForMenu.id}_${fieldKey}`]
+                                ? 'eye-off'
+                                : 'eye'
+                            "
+                            :size="15"
+                          />
+                        </template>
+                      </BaseButton>
+                    </div>
+                  </div>
                 </template>
               </div>
 
-              <!-- Save button -->
-              <BaseButton
-                variant="primary"
-                icon-left="save"
-                :full-width="true"
-                :loading="isSavingCred === plugin.id"
-                :disabled="!hasPendingCredFields(plugin.id)"
-                @click="handleSaveCredential(plugin.id)"
-              >
-                Save Credentials
-              </BaseButton>
-            </div>
-          </div>
-        </section>
+              <template #footer>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    width: 100%;
+                  "
+                >
+                  <!-- Left actions: Oauth2 and Disconnect -->
+                  <div style="display: flex; gap: 0.5rem">
+                    <BaseButton
+                      variant="secondary"
+                      title="Authenticate via OAuth2"
+                      @click="handleOAuth2(selectedPluginForMenu.id)"
+                    >
+                      <template #left><LucideIcon name="external-link" :size="14" /></template>
+                      OAuth2
+                    </BaseButton>
 
-        <!-- ── Preferences Tab ────────────────────────────────────── -->
-        <section v-if="activeTab === 'preferences'" class="gs-section">
-          <div class="gs-section__head">
-            <h2 class="gs-section__title">Preferences</h2>
-            <p class="gs-section__desc">System preferences for this Nod8 instance.</p>
+                    <BaseButton
+                      v-if="hasCredential(selectedPluginForMenu?.id)"
+                      variant="ghost"
+                      style="color: var(--color-danger, #ef4444)"
+                      :loading="isDeletingCred === selectedPluginForMenu?.id"
+                      @click="handleDeleteCredentialAndClose(selectedPluginForMenu.id)"
+                    >
+                      <template #left><LucideIcon name="log-out" :size="14" /></template>
+                      Disconnect
+                    </BaseButton>
+                  </div>
+
+                  <!-- Right actions: Save -->
+                  <BaseButton
+                    variant="primary"
+                    :disabled="!hasPendingCredFields(selectedPluginForMenu?.id)"
+                    :loading="isSavingCred === selectedPluginForMenu?.id"
+                    @click="handleSaveCredentialAndClose(selectedPluginForMenu.id)"
+                  >
+                    Save
+                  </BaseButton>
+                </div>
+              </template>
+            </BaseMiniMenu>
           </div>
 
-          <div class="gs-pref-list">
+          <!-- Preferences Body -->
+          <div v-else-if="activeTab === 'preferences'" key="body-pref" class="gs-pref-list">
             <div class="gs-pref-row">
               <div class="gs-pref-row__label">
                 <LucideIcon name="sun-moon" :size="16" />
@@ -227,14 +465,13 @@
               />
             </div>
           </div>
-        </section>
-
+        </transition>
       </main>
     </div>
   </BaseModal>
 </template>
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useTheme, type ThemeMode } from '@/shared/composables/useTheme'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
@@ -242,6 +479,9 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
+import BaseMiniMenu from '@/shared/components/base/BaseMiniMenu.vue'
+import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
+import { usePluginAuth } from '@/shared/composables/usePluginAuth'
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
@@ -251,9 +491,9 @@ const { setMode } = useTheme()
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
 const tabs = [
-  { id: 'variables', label: 'Variables', icon: 'variable' },
-  { id: 'credentials', label: 'Credentials', icon: 'key-round' },
   { id: 'preferences', label: 'Preferences', icon: 'sliders-horizontal' },
+  { id: 'credentials', label: 'Credentials', icon: 'lock-keyhole' },
+  { id: 'variables', label: 'Variables', icon: 'key-round' },
 ] as const
 
 type TabId = (typeof tabs)[number]['id']
@@ -277,6 +517,13 @@ watch(
 const newVar = ref({ key: '', value: '', description: '', keyError: '' })
 const isSavingVar = ref(false)
 const deletingKey = ref<string | null>(null)
+
+const showNewVarValue = ref(false)
+const revealedVars = ref<Record<string, boolean>>({})
+
+function toggleVarVisibility(key: string) {
+  revealedVars.value[key] = !revealedVars.value[key]
+}
 
 async function handleSaveVariable() {
   newVar.value.keyError = ''
@@ -316,6 +563,31 @@ const pendingCredFields = ref<Record<string, Record<string, string>>>({})
 const isSavingCred = ref<string | null>(null)
 const isDeletingCred = ref<string | null>(null)
 
+const showCredValues = ref<Record<string, boolean>>({})
+const selectedPluginForMenu = ref<any>(null)
+const credSearch = ref('')
+
+function toggleCredVisibility(pluginId: string, fieldKey: string) {
+  const key = `${pluginId}_${fieldKey}`
+  showCredValues.value[key] = !showCredValues.value[key]
+}
+
+function openPluginMenu(plugin: any) {
+  selectedPluginForMenu.value = plugin
+}
+
+function closePluginMenu() {
+  selectedPluginForMenu.value = null
+}
+
+const {
+  handleConnect: startOAuth2,
+  handleDisconnect: disconnectOAuth2,
+  authLoading: isAuthLoading,
+} = usePluginAuth(() => selectedPluginForMenu.value?.id ?? null)
+
+const isUrl = (str?: string) => str?.startsWith('http') || str?.startsWith('/')
+
 async function loadPlugins() {
   isLoadingPlugins.value = true
   try {
@@ -335,8 +607,15 @@ async function loadPlugins() {
 const authPlugins = computed(() =>
   plugins.value.filter((p: any) => {
     const schema = p.credential_schema
-    return schema && typeof schema === 'object' && Object.keys(schema).length > 0
-  })
+    const hasSchema = schema && typeof schema === 'object' && Object.keys(schema).length > 0
+    if (!hasSchema) return false
+
+    if (credSearch.value.trim()) {
+      const name = (p.manifest?.metadata?.name || p.id).toLowerCase()
+      return name.includes(credSearch.value.trim().toLowerCase())
+    }
+    return true
+  }),
 )
 
 function credentialSchema(plugin: any): Record<string, any> {
@@ -349,9 +628,11 @@ function hasCredential(pluginId: string): boolean {
 }
 
 function getCredField(pluginId: string, fieldKey: string): string {
-  return pendingCredFields.value[pluginId]?.[fieldKey]
-    ?? store.credentials[pluginId]?.fields?.[fieldKey]
-    ?? ''
+  return (
+    pendingCredFields.value[pluginId]?.[fieldKey] ??
+    store.credentials[pluginId]?.fields?.[fieldKey] ??
+    ''
+  )
 }
 
 function setCredField(pluginId: string, fieldKey: string, value: string | number) {
@@ -386,6 +667,24 @@ async function handleDeleteCredential(pluginId: string) {
   }
 }
 
+async function handleSaveCredentialAndClose(pluginId: string) {
+  await handleSaveCredential(pluginId)
+  closePluginMenu()
+}
+
+async function handleDeleteCredentialAndClose(pluginId: string) {
+  if (selectedPluginForMenu.value?.manifest?.auth_type === 'oauth2') {
+    await disconnectOAuth2()
+  } else {
+    await handleDeleteCredential(pluginId)
+  }
+  closePluginMenu()
+}
+
+function handleOAuth2(pluginId: string) {
+  startOAuth2()
+}
+
 // ─── Preferences ──────────────────────────────────────────────────────────────
 
 const themeOptions = [
@@ -415,4 +714,26 @@ async function handleLogRetentionChange(value: string | number) {
 }
 </script>
 
+<style scoped>
+.gs-cred-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0.5rem;
+  border-radius: var(--nod8-radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
 
+.gs-cred-grid-item:hover {
+  background: var(--nod8-button-ghost-hover);
+  border-color: var(--nod8-border-muted);
+}
+.gs-cred-grid-item--active {
+  background: var(--nod8-bg-surface);
+  border-color: var(--nod8-border);
+}
+</style>

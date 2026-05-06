@@ -37,7 +37,7 @@
 import { computed } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dashed'
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 
 const props = withDefaults(
@@ -190,6 +190,21 @@ defineOptions({ inheritAttrs: false })
 .base-button--danger:active {
   background-color: var(--nod8-button-danger-active);
   color: var(--nod8-button-danger-active-text);
+}
+
+/* Dashed */
+.base-button--dashed {
+  background-color: var(--nod8-button-outline-bg);
+  color: var(--nod8-button-outline-text);
+  border: 1px dashed var(--nod8-button-outline-border);
+}
+.base-button--dashed:hover {
+  background-color: var(--nod8-button-outline-hover);
+  color: var(--nod8-button-outline-text);
+}
+.base-button--dashed:active {
+  background-color: var(--nod8-button-outline-active);
+  color: var(--nod8-button-outline-active-text);
 }
 
 .base-button__icon-left,

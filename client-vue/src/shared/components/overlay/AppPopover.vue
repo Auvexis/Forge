@@ -165,7 +165,7 @@ defineExpose({ open, close, toggle, isOpen })
 }
 
 .app-popover-trigger:hover {
-  background-color: var(--nod8-bg-elevated);
+  background-color: var(--nod8-button-ghost-hover);
 }
 
 .app-popover-content {

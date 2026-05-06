@@ -201,14 +201,14 @@ const onQuickAdd = () => {
 }
 
 .nod8-base-node:hover {
-  border-color: color-mix(in srgb, var(--node-custom-border, var(--nod8-node-selected)) 150%, white 30%);
+  border-color: color-mix(in srgb, var(--node-custom-border, var(--nod8-node-selected)) 80%, var(--nod8-text-primary) 20%);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
 
 /* ─── Selection & execution status borders ──────────────────── */
 .nod8-base-node.is-selected {
-  border-color: color-mix(in srgb, var(--node-custom-border, var(--nod8-node-border)) 60%, white 40%);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--node-custom-border, var(--nod8-node-border)) 30%, transparent);
+  border-color: color-mix(in srgb, var(--node-custom-border, var(--nod8-node-border)) 80%, var(--nod8-text-primary) 20%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 3px color-mix(in srgb, var(--node-custom-border, var(--nod8-node-border)) 50%, transparent);
 }
 
 .nod8-base-node.is-running {
@@ -339,20 +339,16 @@ const onQuickAdd = () => {
 }
 
 .nod8-base-node__quick-add-btn {
-  border-radius: var(--nod8-radius-full);
-  background-color: var(--nod8-node-handle);
-  border: none;
-  color: var(--nod8-text-muted);
+  border-radius: var(--nod8-radius-sm);
+  background-color: var(--nod8-node-border);
+  border: 2px solid var(--nod8-border-strong);
+  color: var(--nod8-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 2px;
-  transition: all 0.2s ease;
-}
-
-.nod8-base-node__quick-add:hover .nod8-base-node__quick-add-cable,
-.nod8-base-node__quick-add:hover .nod8-base-node__quick-add-btn {
-  background-color: var(--nod8-node-handle-hover);
+  width: 19px;
+  height: 19px;
+  transition: all 0.2s;
 }
 </style>

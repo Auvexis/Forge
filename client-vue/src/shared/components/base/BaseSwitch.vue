@@ -99,7 +99,7 @@ defineOptions({ inheritAttrs: false })
 
 /* Checked State */
 .base-switch--checked .base-switch__track {
-  background-color: var(--nod8-accent);
+  background-color: var(--nod8-button-primary-bg);
   border-color: transparent;
 }
 
@@ -109,7 +109,7 @@ defineOptions({ inheritAttrs: false })
 
 /* Focus State */
 .base-switch__input:focus-visible + .base-switch__track {
-  outline: 2px solid var(--nod8-accent);
+  outline: 2px solid var(--nod8-border-strong);
   outline-offset: 2px;
 }
 

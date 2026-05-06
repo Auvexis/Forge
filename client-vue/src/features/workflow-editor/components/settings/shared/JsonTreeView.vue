@@ -47,8 +47,8 @@ const onDragStart = (event: DragEvent) => {
         :title="path ? 'Arraste para mapear' : ''"
       >
         <template v-if="icons && path && icons[path]">
-          <img v-if="icons[path].startsWith('http') || icons[path].startsWith('/') || icons[path].startsWith('data:')" :src="icons[path]" style="width: 14px; height: 14px; flex-shrink: 0; object-fit: contain; border-radius: 2px;" />
-          <LucideIcon v-else :name="icons[path]" :size="14" style="flex-shrink: 0;" />
+          <img v-if="icons[path]!.startsWith('http') || icons[path]!.startsWith('/') || icons[path]!.startsWith('data:')" :src="icons[path]" style="width: 14px; height: 14px; flex-shrink: 0; object-fit: contain; border-radius: 2px;" />
+          <LucideIcon v-else :name="icons[path]!" :size="14" style="flex-shrink: 0;" />
         </template>
         <LucideIcon v-else-if="path" name="tag" :size="12" style="flex-shrink: 0; opacity: 0.5;" />
         
@@ -147,8 +147,8 @@ const onDragStart = (event: DragEvent) => {
   user-select: none;
 }
 .json-toggle-btn:hover {
-  color: var(--nod8-accent);
-  background-color: rgba(99, 102, 241, 0.15);
+  color: var(--nod8-button-ghost-hover-text);
+  background-color: var(--nod8-button-ghost-hover);
 }
 .json-key {
   color: var(--json-color-key, var(--nod8-text-primary));
@@ -161,13 +161,11 @@ const onDragStart = (event: DragEvent) => {
   cursor: grab;
 }
 .json-key-draggable:hover {
-  background-color: rgba(99, 102, 241, 0.2);
-  color: var(--nod8-accent) !important;
-  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.4);
+  color: var(--nod8-button-ghost-hover-text);
+  background-color: var(--nod8-button-ghost-hover);
 }
 .json-key-draggable:active {
   cursor: grabbing;
-  background-color: rgba(99, 102, 241, 0.3);
   transform: scale(0.97);
 }
 .json-string {

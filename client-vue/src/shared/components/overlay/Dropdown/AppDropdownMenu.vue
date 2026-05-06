@@ -10,7 +10,9 @@
       </div>
 
       <div class="app-dropdown-menu__items">
-        <slot></slot>
+        <BaseWoobyMenu>
+          <slot></slot>
+        </BaseWoobyMenu>
       </div>
     </div>
   </AppPopover>
@@ -19,6 +21,7 @@
 <script setup lang="ts">
 import { ref, provide } from 'vue'
 import AppPopover from '../AppPopover.vue'
+import BaseWoobyMenu from '../../base/BaseWoobyMenu.vue'
 
 withDefaults(
   defineProps<{

@@ -92,15 +92,14 @@ defineOptions({ inheritAttrs: false })
   display: flex;
   position: relative;
   background-color: var(--nod8-bg-overlay);
-  border: 1px solid var(--nod8-border-strong);
+  border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-sm);
   transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
   width: 100%;
 }
 
 .base-textarea-container:focus-within {
-  border-color: var(--nod8-accent);
-  box-shadow: 0 0 0 1px var(--nod8-accent);
+  border-color: var(--nod8-border-strong);
 }
 
 .base-textarea-container--error {

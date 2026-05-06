@@ -1,17 +1,17 @@
 <template>
   <div class="editor-stack">
     <EditorField label="Step Name">
-      <input
-        class="editor-input editor-input--bold"
-        :value="node.data.name || ''"
-        @input="updateNodeData({ name: ($event.target as HTMLInputElement).value })"
+      <BaseInput
+        :model-value="(node.data.name as string) || ''"
+        @update:model-value="updateNodeData({ name: $event as string })"
         placeholder="HTTP Request"
+        style="font-weight: 500"
       />
     </EditorField>
 
     <EditorField label="Method & URL">
       <div class="editor-row">
-        <div style="width: 140px; flex-shrink: 0;">
+        <div style="width: 140px; flex-shrink: 0">
           <BaseSelect
             :model-value="(node.data.method as string) || 'GET'"
             :options="HTTP_METHODS"
@@ -19,11 +19,11 @@
           />
         </div>
         <div class="editor-row--grow">
-          <input
-            class="editor-input editor-input--mono"
-            :value="node.data.url || ''"
-            @input="updateNodeData({ url: ($event.target as HTMLInputElement).value })"
+          <BaseInput
+            :model-value="(node.data.url as string) || ''"
+            @update:model-value="updateNodeData({ url: $event as string })"
             placeholder="https://api.example.com/v1/resource"
+            style="font-family: var(--nod8-font-mono)"
           />
         </div>
       </div>
@@ -39,11 +39,9 @@
       </EditorField>
 
       <EditorField label="Request Body">
-        <textarea
-          class="editor-textarea"
-          style="font-family: monospace; white-space: pre;"
-          :value="(node.data.body as string) || ''"
-          @input="updateNodeData({ body: ($event.target as HTMLTextAreaElement).value })"
+        <BaseTextarea
+          :model-value="(node.data.body as string) || ''"
+          @update:model-value="updateNodeData({ body: $event as string })"
           placeholder='{ "key": "value" }'
           spellcheck="false"
         />
@@ -52,34 +50,53 @@
 
     <div class="editor-stack">
       <div class="flex items-center justify-between">
-        <button class="editor-collapsible-trigger" @click="advancedOpen = !advancedOpen">
-          <LucideIcon :name="advancedOpen ? 'chevron-up' : 'chevron-down'" :size="12" />
+        <BaseButton
+          variant="ghost"
+          size="sm"
+          :icon-left="advancedOpen ? 'chevron-up' : 'chevron-down'"
+          @click="advancedOpen = !advancedOpen"
+        >
           Headers & Advanced
-        </button>
+        </BaseButton>
       </div>
 
       <div v-if="advancedOpen" class="editor-stack mt-2">
         <EditorField label="Headers">
           <div class="editor-header-list">
-            <div v-for="(val, key) in node.data.headers || {}" :key="key" class="editor-header-row">
-              <input
-                class="editor-input editor-input--mono"
-                :value="key"
+            <div
+              v-for="(val, key) in node.data.headers || {}"
+              :key="key"
+              class="editor-header-row"
+              style="display: flex; gap: 8px; margin-bottom: 8px"
+            >
+              <BaseInput
+                :model-value="key"
                 @blur="updateHeaderKey(key as string, ($event.target as HTMLInputElement).value)"
+                style="font-family: var(--nod8-font-mono); flex: 1"
               />
-              <input
-                class="editor-input editor-input--mono"
-                :value="val"
-                @input="updateHeaderValue(key as string, ($event.target as HTMLInputElement).value)"
+              <BaseInput
+                :model-value="val"
+                @update:model-value="updateHeaderValue(key as string, $event as string)"
+                style="font-family: var(--nod8-font-mono); flex: 1"
               />
-              <button class="editor-header-remove" @click="removeHeader(key as string)">
-                <LucideIcon name="x" :size="14" />
-              </button>
+              <BaseButton
+                variant="ghost"
+                size="icon"
+                icon-left="x"
+                style="padding: 15px; border-radius: var(--nod8-radius-md)"
+                @click="removeHeader(key as string)"
+              />
             </div>
-            <button class="editor-add-btn" @click="addHeader">
-              <LucideIcon name="plus" :size="14" />
+            <BaseButton
+              variant="dashed"
+              size="md"
+              icon-left="plus"
+              full-width
+              @click="addHeader"
+              style="border-radius: var(--nod8-radius-full)"
+            >
               Add Header
-            </button>
+            </BaseButton>
           </div>
         </EditorField>
 
@@ -100,7 +117,10 @@ import { ref, computed } from 'vue'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 
 const props = defineProps<NodeEditorProps>()
 const advancedOpen = ref(false)
@@ -124,17 +144,23 @@ const RESPONSE_TYPES = [
   { value: 'binary', label: 'Binary File (Buffer)' },
 ]
 
-const hasBody = computed(() => ['POST', 'PUT', 'PATCH', 'DELETE'].includes((props.node.data.method as string) || 'GET'))
+const hasBody = computed(() =>
+  ['POST', 'PUT', 'PATCH', 'DELETE'].includes((props.node.data.method as string) || 'GET'),
+)
 
 const addHeader = () => {
-  const currentHeaders: Record<string, string> = { ...(props.node.data.headers as Record<string, string> || {}) }
+  const currentHeaders: Record<string, string> = {
+    ...((props.node.data.headers as Record<string, string>) || {}),
+  }
   const newKey = `Header_${Object.keys(currentHeaders).length + 1}`
   props.updateNodeData({ headers: { ...currentHeaders, [newKey]: '' } })
 }
 
 const updateHeaderKey = (oldKey: string, newKey: string) => {
   if (!newKey || oldKey === newKey) return
-  const currentHeaders: Record<string, string> = { ...(props.node.data.headers as Record<string, string> || {}) }
+  const currentHeaders: Record<string, string> = {
+    ...((props.node.data.headers as Record<string, string>) || {}),
+  }
   const val = currentHeaders[oldKey]
   delete currentHeaders[oldKey]
   currentHeaders[newKey] = val || ''
@@ -142,13 +168,17 @@ const updateHeaderKey = (oldKey: string, newKey: string) => {
 }
 
 const updateHeaderValue = (key: string, value: string) => {
-  const currentHeaders: Record<string, string> = { ...(props.node.data.headers as Record<string, string> || {}) }
+  const currentHeaders: Record<string, string> = {
+    ...((props.node.data.headers as Record<string, string>) || {}),
+  }
   currentHeaders[key] = value
   props.updateNodeData({ headers: currentHeaders })
 }
 
 const removeHeader = (key: string) => {
-  const currentHeaders: Record<string, string> = { ...(props.node.data.headers as Record<string, string> || {}) }
+  const currentHeaders: Record<string, string> = {
+    ...((props.node.data.headers as Record<string, string>) || {}),
+  }
   delete currentHeaders[key]
   props.updateNodeData({ headers: currentHeaders })
 }

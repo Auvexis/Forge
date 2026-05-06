@@ -16,16 +16,6 @@
   background: transparent;
   color: var(--nod8-text-secondary);
   cursor: pointer;
-  transition:
-    background var(--nod8-duration-fast) var(--nod8-ease-standard),
-    border-color var(--nod8-duration-fast) var(--nod8-ease-standard),
-    color var(--nod8-duration-fast) var(--nod8-ease-standard);
-}
-
-.brand-badge:hover {
-  background: var(--nod8-bg-muted);
-  border-color: var(--nod8-border);
-  color: var(--nod8-text-primary);
 }
 
 .brand-badge__icon {

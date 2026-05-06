@@ -21,7 +21,6 @@
 }
 
 .nav-link:hover {
-  background-color: var(--nod8-bg-muted);
   color: var(--nod8-text-primary);
 }
 

@@ -110,7 +110,7 @@ async function handleDeleteClick() {
     <template #actions>
       <BaseButton
         size="sm"
-        variant="primary"
+        variant="ghost"
         icon-left="save"
         :loading="isSaving"
         @click="handleSave"

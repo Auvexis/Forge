@@ -487,12 +487,14 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       />
 
       <!-- Execution Logs floating panel — centered above the canvas -->
-      <div v-if="showLogsLocal && workflowStore.activeWorkflow" class="canvas-logs-overlay">
-        <ExecutionLogsPanel
-          :workflow-id="workflowStore.activeWorkflow.metadata.id"
-          @close="emit('update:show-logs', false)"
-        />
-      </div>
+      <Transition name="slide-up">
+        <div v-if="showLogsLocal && workflowStore.activeWorkflow" class="canvas-logs-overlay">
+          <ExecutionLogsPanel
+            :workflow-id="workflowStore.activeWorkflow.metadata.id"
+            @close="emit('update:show-logs', false)"
+          />
+        </div>
+      </Transition>
 
       <!-- MARCADORES SVG CUSTOMIZADOS ATRELADOS ÀS VARIÁVEIS CSS (GLOBAL DOM) -->
       <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
@@ -539,7 +541,7 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
         :gap="20"
         :size="1"
         :variant="'dots'"
-        :stroke="'var(--nod8-canvas-grid)'"
+        :color="'var(--nod8-canvas-grid)'"
         :style="{ 'background-color': 'var(--nod8-canvas-bg)' }"
       />
 
@@ -615,8 +617,10 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
 .canvas-logs-overlay {
   position: absolute;
   top: 48px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
   z-index: 60;
   pointer-events: none;
 }

@@ -29,18 +29,16 @@
               </label>
               <span class="rwp-field-type">{{ field.type }}</span>
             </div>
-            <input
+            <BaseInput
               v-if="field.type !== 'file'"
-              :value="stringParam(key)"
-              @input="params[key] = ($event.target as HTMLInputElement).value"
-              class="rwp-input"
+              :model-value="stringParam(key)"
+              @update:model-value="params[key] = $event as string"
               :placeholder="`Enter ${key}...`"
             />
-            <input
+            <BaseInput
               v-else
               type="file"
               @change="onFileChange(key, $event)"
-              class="rwp-input rwp-input--file"
             />
           </div>
         </div>
@@ -70,6 +68,7 @@ import { useExecutionStore } from '@/features/workflow-editor/stores/execution.s
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import type { WorkflowSchemaField } from '@/core/types/workflow.types'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 
 const props = defineProps<{
   workflowId: string

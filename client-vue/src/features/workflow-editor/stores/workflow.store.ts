@@ -2,27 +2,36 @@ import type { WorkflowItem, WorkflowNode } from '@/core/types/workflow.types'
 import { useApi } from '@/shared/composables/useApi'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+
+/** Serializa o workflow para comparação, ignorando campos voláteis como updatedAt */
+function serializeForDiff(workflow: WorkflowItem): string {
+  const { metadata: { updatedAt, version, ...restMeta }, ...rest } = workflow
+  return JSON.stringify({ ...rest, metadata: restMeta })
+}
 
 export const useWorkflowStore = defineStore('workflow', () => {
   const activeWorkflow = ref<WorkflowItem | null>(null)
-  const isDirty = ref(false)
+  const _savedSnapshot = ref<string | null>(null)
   const graphUpdateTrigger = ref(0)
+
+  const isDirty = computed(() => {
+    if (!activeWorkflow.value || _savedSnapshot.value === null) return false
+    return serializeForDiff(activeWorkflow.value) !== _savedSnapshot.value
+  })
 
   function setActiveWorkflow(workflow: WorkflowItem) {
     activeWorkflow.value = workflow
-    isDirty.value = false
+    _savedSnapshot.value = serializeForDiff(workflow)
   }
 
   function clearWorkflow() {
     activeWorkflow.value = null
-    isDirty.value = false
+    _savedSnapshot.value = null
   }
 
-  /** Chamado pelo VueFlow quando nodes são movidos, adicionados ou removidos */
-  function markDirty() {
-    isDirty.value = true
-  }
+  /** @deprecated isDirty agora é computed automaticamente — mantido por compatibilidade */
+  function markDirty() {}
 
   /**
    * Atualiza campos específicos do dado de um node pelo ID.
@@ -36,8 +45,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     } else if (activeWorkflow.value.nodes[nodeId]) {
       Object.assign(activeWorkflow.value.nodes[nodeId], payload)
     }
-
-    isDirty.value = true
   }
 
   /**
@@ -60,7 +67,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
       if (edge.target === oldId) edge.target = newId
     })
 
-    isDirty.value = true
+    isDirty // note: no longer settable here, just trigger graph update
     graphUpdateTrigger.value++
     return true
   }
@@ -110,7 +117,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
       const savedWorkflow = await saveApi.execute(activeWorkflow.value.metadata.id, updatedWorkflow)
 
       activeWorkflow.value = savedWorkflow
-      isDirty.value = false
+      _savedSnapshot.value = serializeForDiff(savedWorkflow)
     } catch (error) {
       console.error('Failed to save workflow:', error)
     }

@@ -2,10 +2,9 @@
   <div class="editor-stack">
     <!-- Step name -->
     <EditorField label="Step Name">
-      <input
-        class="editor-input editor-input--bold"
-        :value="data.name || ''"
-        @input="updateNodeData({ name: ($event.target as HTMLInputElement).value })"
+      <BaseInput
+        :model-value="(data.name as string) || ''"
+        @update:model-value="updateNodeData({ name: $event as string })"
         placeholder="What does this step do?"
       />
     </EditorField>
@@ -136,14 +135,13 @@
 
         <!-- Textarea -->
         <template v-else-if="(paramVal as any)['x-input-type'] === 'textarea'">
-          <textarea
-            class="editor-textarea"
-            :value="(data.params as any)?.[paramKey] || ''"
-            @input="
-              updateNodeData({
+          <BaseTextarea
+            :model-value="(data.params as any)?.[paramKey] || ''"
+            @update:model-value="
+              (val) => updateNodeData({
                 params: {
                   ...(data.params || {}),
-                  [paramKey]: ($event.target as HTMLTextAreaElement).value,
+                  [paramKey]: val,
                 },
               })
             "
@@ -157,15 +155,13 @@
 
         <!-- Code / JSON -->
         <template v-else-if="(paramVal as any)['x-input-type'] === 'code' || (paramVal as any)['x-input-type'] === 'json'">
-          <textarea
-            class="editor-textarea"
-            style="font-family: monospace; white-space: pre;"
-            :value="(data.params as any)?.[paramKey] || ''"
-            @input="
-              updateNodeData({
+          <BaseTextarea
+            :model-value="(data.params as any)?.[paramKey] || ''"
+            @update:model-value="
+              (val) => updateNodeData({
                 params: {
                   ...(data.params || {}),
-                  [paramKey]: ($event.target as HTMLTextAreaElement).value,
+                  [paramKey]: val,
                 },
               })
             "
@@ -174,15 +170,14 @@
 
         <!-- Datetime -->
         <template v-else-if="(paramVal as any)['x-input-type'] === 'datetime'">
-          <input
+          <BaseInput
             type="datetime-local"
-            class="editor-input editor-input--bold"
-            :value="(data.params as any)?.[paramKey] || ''"
-            @input="
-              updateNodeData({
+            :model-value="(data.params as any)?.[paramKey] || ''"
+            @update:model-value="
+              (val) => updateNodeData({
                 params: {
                   ...(data.params || {}),
-                  [paramKey]: ($event.target as HTMLInputElement).value,
+                  [paramKey]: val,
                 },
               })
             "
@@ -204,11 +199,10 @@
                 </div>
                 
                 <div v-else class="pe-file-text-mode">
-                  <input
-                    class="editor-input editor-input--bold"
-                    style="flex: 1;"
-                    :value="item"
-                    @input="updateFileArray(paramKey.toString(), index, ($event.target as HTMLInputElement).value)"
+                  <BaseInput
+                    style="flex: 1"
+                    :model-value="item"
+                    @update:model-value="updateFileArray(paramKey.toString(), index, $event as string)"
                     placeholder="e.g. {{ trigger.file }}"
                   />
                   <input
@@ -243,14 +237,13 @@
 
         <!-- Default Input -->
         <template v-else>
-          <input
-            class="editor-input editor-input--bold"
-            :value="(data.params as any)?.[paramKey] || ''"
-            @input="
-              updateNodeData({
+          <BaseInput
+            :model-value="(data.params as any)?.[paramKey] || ''"
+            @update:model-value="
+              (val) => updateNodeData({
                 params: {
                   ...(data.params || {}),
-                  [paramKey]: ($event.target as HTMLInputElement).value,
+                  [paramKey]: val,
                 },
               })
             "
@@ -275,8 +268,10 @@ import { pluginsApi } from '@/core/api/plugins.api'
 import EditorField from './EditorField.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PluginNode } from '@/core/types/workflow.types'
+import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 
 const props = defineProps<NodeEditorProps>()
 

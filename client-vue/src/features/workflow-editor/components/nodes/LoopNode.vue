@@ -4,6 +4,7 @@ import type { NodeProps } from '@vue-flow/core'
 import type { LoopNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
+import BaseBadge from '@/shared/components/base/BaseBadge.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
@@ -30,20 +31,17 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Loop / ForEach')
   >
     <!-- O Loop não tem o "source" nativo do BaseNode, ele tem DOIS handles específicos -->
     <BaseHandle id="loop-body" type="source" :position="Position.Right" style="top: 35%" />
-    <span class="loop-handle-label" style="top: 35%; right: -28px">Body</span>
+    <BaseBadge variant="default" size="sm" class="loop-handle-badge" style="top: 35%; right: -60px">Body</BaseBadge>
 
     <BaseHandle id="loop-done" type="source" :position="Position.Right" style="top: 65%" />
-    <span class="loop-handle-label" style="top: 65%; right: -28px">Done</span>
+    <BaseBadge variant="default" size="sm" class="loop-handle-badge" style="top: 65%; right: -61px">Done</BaseBadge>
   </BaseNode>
 </template>
 
 <style scoped>
-.loop-handle-label {
+.loop-handle-badge {
   position: absolute;
-  font-size: 9px;
-  color: var(--nod8-text-muted);
   transform: translateY(-50%);
   pointer-events: none;
-  font-family: var(--nod8-font-mono);
 }
 </style>

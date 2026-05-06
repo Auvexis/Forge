@@ -1,25 +1,23 @@
 <template>
   <div class="editor-stack">
     <EditorField label="Step Name">
-      <input
-        class="editor-input editor-input--bold"
-        :value="node.data.name || ''"
-        @input="updateNodeData({ name: ($event.target as HTMLInputElement).value })"
+      <BaseInput
+        :model-value="(node.data.name as string) || ''"
+        @update:model-value="updateNodeData({ name: $event as string })"
         placeholder="Name this code block"
       />
     </EditorField>
 
     <EditorField label="JavaScript Code" icon="code-2">
       <div class="editor-hint editor-hint--green">
-        Available:
-        <span class="editor-code-snippet">context.trigger</span>,
-        <span class="editor-code-snippet">context.steps</span>,
-        <span class="editor-code-snippet">variables</span>
+        <span style="color: var(--nod8-text-primary)">Available:</span>
+        <BaseBadge variant="default" size="sm" text="context.trigger" />
+        <BaseBadge variant="default" size="sm" text="context.steps" />
+        <BaseBadge variant="default" size="sm" text="variables" />
       </div>
-      <textarea
-        class="editor-textarea"
-        :value="(node.data.script as string) || ''"
-        @input="updateNodeData({ script: ($event.target as HTMLTextAreaElement).value })"
+      <BaseTextarea
+        :model-value="(node.data.script as string) || ''"
+        @update:model-value="updateNodeData({ script: $event })"
         :placeholder="`// Access context and variables\nconst items = context.steps.prevStep.output;\nconst result = items.filter(i => i.active);\nreturn result;`"
         spellcheck="false"
       />
@@ -30,6 +28,8 @@
 <script setup lang="ts">
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
+import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import BaseBadge from '@/shared/components/base/BaseBadge.vue'
 
 defineProps<NodeEditorProps>()
 </script>

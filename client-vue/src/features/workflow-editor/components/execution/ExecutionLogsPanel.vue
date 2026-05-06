@@ -34,20 +34,22 @@
       </div>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading && !executions" class="elp-loading">
-      <LucideIcon name="loader-2" :size="20" class="elp-spin" />
-      <span>Loading...</span>
-    </div>
+    <!-- Views with Transitions -->
+    <Transition name="fade" mode="out-in">
+      <!-- Loading -->
+      <div v-if="loading && !executions" key="loading" class="elp-loading">
+        <LucideIcon name="loader-2" :size="20" class="elp-spin" />
+        <span>Loading...</span>
+      </div>
 
-    <!-- LIST VIEW -->
-    <template v-else-if="!detailExecution">
-      <div v-if="!executions?.length" class="elp-empty">
+      <!-- Empty List View -->
+      <div v-else-if="!detailExecution && !executions?.length" key="empty" class="elp-empty">
         <LucideIcon name="database" :size="24" class="elp-empty-icon" />
         <p>No executions yet</p>
         <p class="elp-empty-sub">Run the workflow to see logs here.</p>
       </div>
-      <div v-else class="elp-list">
+      <!-- List View -->
+      <div v-else-if="!detailExecution" key="list" class="elp-list">
         <button
           v-for="exec in executions"
           :key="exec.id"
@@ -73,11 +75,9 @@
           <LucideIcon name="chevron-right" :size="14" class="elp-row-arrow" />
         </button>
       </div>
-    </template>
 
-    <!-- DETAIL VIEW -->
-    <template v-else>
-      <div class="elp-detail">
+      <!-- Detail View -->
+      <div v-else-if="detailExecution" key="detail" class="elp-detail">
         <!-- Status banner -->
         <div
           class="elp-detail-banner"
@@ -133,7 +133,7 @@
           <p class="elp-empty-sub">The workflow failed before generating any output.</p>
         </div>
       </div>
-    </template>
+    </Transition>
   </div>
 </template>
 

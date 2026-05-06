@@ -6,9 +6,13 @@
     </div>
 
     <!-- Navigation Items -->
-    <nav class="app-sidebar__nav">
-      <slot></slot>
-    </nav>
+    <BaseWoobyMenu
+      tag="nav"
+      class="app-sidebar__nav"
+      active-selector=".nav-link--active"
+    >
+      <slot />
+    </BaseWoobyMenu>
 
     <!-- Footer Area (Settings, user profile) -->
     <div class="app-sidebar__footer">
@@ -17,7 +21,9 @@
   </aside>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
+</script>
 
 <style scoped>
 .app-sidebar {

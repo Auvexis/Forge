@@ -113,7 +113,7 @@ samp {
 
 /* Focus ring — accessible, not obtrusive */
 :focus-visible {
-  outline: 2px solid var(--nod8-accent);
+  outline: 2px solid var(--nod8-border-strong);
   outline-offset: 2px;
   border-radius: var(--nod8-radius-sm);
 }

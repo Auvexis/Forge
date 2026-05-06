@@ -11,11 +11,29 @@
         <!-- Name + status row -->
         <div class="wed-brand__meta">
           <!-- Workflow name → opens dropdown -->
-          <AppDropdownMenu position="bottom-start" :offset="17">
+          <AppDropdownMenu position="bottom-start" :offset="3">
             <template #trigger>
-              <div class="wed-name-wrap">
-                <span class="wed-name">{{ workflowName }}</span>
-                <LucideIcon name="chevron-down" :size="12" class="wed-name__chevron" />
+              <div class="flex flex-col gap-1">
+                <div class="wed-name-wrap">
+                  <span class="wed-name">{{ workflowName }}</span>
+                  <LucideIcon name="chevron-down" :size="12" class="wed-name__chevron" />
+                </div>
+
+                <!-- Status / ID sub-row -->
+                <div class="wed-status-row">
+                  <span
+                    class="wed-status-dot"
+                    :class="{
+                      'wed-status-dot--streaming': isStreaming,
+                      'wed-status-dot--dirty': isDirty && !isStreaming,
+                    }"
+                  />
+                  <span class="wed-status-text">
+                    <template v-if="isStreaming">Running</template>
+                    <template v-else-if="isDirty">Unsaved Changes</template>
+                    <template v-else>{{ workflowId?.slice(0, 14) }}</template>
+                  </span>
+                </div>
               </div>
             </template>
 
@@ -28,22 +46,6 @@
               Close workflow
             </AppDropdownItem>
           </AppDropdownMenu>
-
-          <!-- Status / ID sub-row -->
-          <div class="wed-status-row">
-            <span
-              class="wed-status-dot"
-              :class="{
-                'wed-status-dot--streaming': isStreaming,
-                'wed-status-dot--dirty': isDirty && !isStreaming,
-              }"
-            />
-            <span class="wed-status-text">
-              <template v-if="isStreaming">Running</template>
-              <template v-else-if="isDirty">Unsaved changes</template>
-              <template v-else>{{ workflowId?.slice(0, 14) }}</template>
-            </span>
-          </div>
         </div>
       </div>
 
@@ -184,7 +186,6 @@ defineEmits<{
   (e: 'export-workflow'): void
   (e: 'workflow-updated', workflow: WorkflowItem): void
 }>()
-
 
 // ── Derived ───────────────────────────────────────────────────────────────
 

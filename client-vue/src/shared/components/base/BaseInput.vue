@@ -18,16 +18,17 @@
       <input
         :id="id"
         :type="type"
-        :value="modelValue"
+        v-bind="$attrs"
         class="base-input"
         :class="{ 'has-left-icon': !!iconLeft, 'has-right-icon': !!iconRight }"
+        :value="type !== 'file' ? modelValue : undefined"
         :placeholder="placeholder"
         :disabled="disabled"
         :required="required"
-        @input="onInput"
+        @input="type !== 'file' ? onInput($event) : undefined"
+        @change="type === 'file' ? $emit('change', $event) : undefined"
         @blur="$emit('blur', $event)"
         @focus="$emit('focus', $event)"
-        v-bind="$attrs"
       />
 
       <span v-if="iconRight" class="base-input__icon base-input__icon--right">
@@ -47,7 +48,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = withDefaults(
   defineProps<{
-    modelValue: string | number
+    modelValue?: string | number
     type?: string
     label?: string
     placeholder?: string
@@ -69,6 +70,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
+  change: [event: Event]
   blur: [event: FocusEvent]
   focus: [event: FocusEvent]
 }>()
@@ -105,24 +107,28 @@ defineOptions({ inheritAttrs: false })
   display: flex;
   align-items: center;
   position: relative;
-  background-color: var(--nod8-gray-900);
-  border: 1px solid var(--nod8-border-muted);
-  border-radius: var(--nod8-radius-sm);
+  background-color: var(--nod8-input-bg);
+  border: 1px solid var(--nod8-input-border);
+  border-radius: var(--nod8-radius-sm, 6px);
   transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
   width: 100%;
 }
 
+.base-input-container:focus-within {
+  border-color: var(--nod8-input-border-focus);
+}
+
 .base-input-container--error {
-  border-color: var(--nod8-red-500);
+  border-color: var(--nod8-input-error-border);
 }
 .base-input-container--error:focus-within {
-  box-shadow: 0 0 0 1px var(--nod8-red-500);
+  box-shadow: 0 0 0 1px var(--nod8-input-error-border);
 }
 
 .base-input-container--disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: var(--nod8-bg-muted);
+  background-color: var(--nod8-input-disabled-bg);
 }
 
 .base-input {
@@ -132,13 +138,13 @@ defineOptions({ inheritAttrs: false })
   background: transparent;
   border: none;
   outline: none;
-  color: var(--nod8-text-primary);
+  color: var(--nod8-input-text);
   font-size: var(--nod8-text-sm);
   padding: 0 var(--nod8-space-3);
 }
 
 .base-input::placeholder {
-  color: var(--nod8-text-disabled);
+  color: var(--nod8-input-placeholder);
 }
 
 .base-input.has-left-icon {

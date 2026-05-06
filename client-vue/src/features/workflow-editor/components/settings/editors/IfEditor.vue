@@ -1,10 +1,9 @@
 <template>
   <div class="editor-stack">
     <EditorField label="Step Name">
-      <input
-        class="editor-input editor-input--bold"
-        :value="node.data.name || ''"
-        @input="updateNodeData({ name: ($event.target as HTMLInputElement).value })"
+      <BaseInput
+        :model-value="(node.data.name as string) || ''"
+        @update:model-value="updateNodeData({ name: $event as string })"
         placeholder="Name this condition"
       />
     </EditorField>
@@ -16,11 +15,9 @@
         <span class="editor-code-snippet">steps</span>,
         <span class="editor-code-snippet">variables</span>
       </div>
-      <textarea
-        class="editor-textarea"
-        style="min-height: 80px"
-        :value="node.data.condition || ''"
-        @input="updateNodeData({ condition: ($event.target as HTMLTextAreaElement).value })"
+      <BaseTextarea
+        :model-value="(node.data.condition as string) || ''"
+        @update:model-value="updateNodeData({ condition: $event })"
         placeholder="steps.prevStep.output.status === 200"
         spellcheck="false"
       />
@@ -51,6 +48,8 @@
 <script setup lang="ts">
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
+import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 
 defineProps<NodeEditorProps>()
 </script>

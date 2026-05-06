@@ -127,9 +127,9 @@
 }
 
 .editor-hint--green {
-  background-color: rgba(133, 246, 92, 0.053);
-  border: 1px solid rgba(133, 246, 92, 0.1);
-  color: rgb(159, 253, 125);
+  background-color: rgba(133, 246, 92, 0.202);
+  border: 1px solid rgba(55, 155, 19, 0.42);
+  color: rgb(50, 50, 50);
 }
 
 /* ── Inline row (e.g. method + url) ── */

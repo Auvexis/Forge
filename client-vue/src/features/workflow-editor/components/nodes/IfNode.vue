@@ -4,6 +4,7 @@ import type { NodeProps } from '@vue-flow/core'
 import type { IfNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
+import BaseBadge from '@/shared/components/base/BaseBadge.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
@@ -29,30 +30,19 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Conditional')
   >
     <!-- True handle (green, top) -->
     <BaseHandle id="if-true" type="source" :position="Position.Right" style="top: 35%" />
-    <span class="if-handle-label if-handle-label--true" style="top: 35%; right: -32px">True</span>
+    <BaseBadge variant="default" size="sm" class="if-handle-badge" style="top: 35%; right: -60px">True</BaseBadge>
 
     <!-- False handle (red, bottom) -->
     <BaseHandle id="if-false" type="source" :position="Position.Right" style="top: 65%" />
-    <span class="if-handle-label if-handle-label--false" style="top: 65%; right: -34px">False</span>
+    <BaseBadge variant="default" size="sm" class="if-handle-badge" style="top: 65%; right: -64px">False</BaseBadge>
   </BaseNode>
 </template>
 
 <style scoped>
 /* Handle labels (True / False) */
-.if-handle-label {
+.if-handle-badge {
   position: absolute;
-  font-size: 9px;
-  font-weight: 700;
   transform: translateY(-50%);
   pointer-events: none;
-  font-family: var(--nod8-font-mono);
-}
-
-.if-handle-label--true {
-  color: rgb(16, 185, 129);
-}
-
-.if-handle-label--false {
-  color: rgb(239, 68, 68);
 }
 </style>

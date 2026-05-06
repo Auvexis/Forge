@@ -31,12 +31,13 @@
 
       <!-- Dropdown -->
       <Transition name="fade-down">
-        <div v-if="isOpen" class="base-select-dropdown">
+        <BaseWoobyMenu v-if="isOpen" tag="div" position="absolute" class="base-select-dropdown" active-selector=".base-select-option--selected">
           <div 
             v-for="option in options" 
             :key="option.value"
             class="base-select-option"
             :class="{ 'base-select-option--selected': option.value === modelValue }"
+            style="position: relative; z-index: 1; background: transparent;"
             @click.stop="selectOption(option)"
           >
             <LucideIcon v-if="option.icon" :name="option.icon" :size="16" class="option-icon text-muted" />
@@ -44,10 +45,10 @@
             <span class="truncate">{{ option.label }}</span>
             <LucideIcon v-if="option.value === modelValue" name="check" :size="14" class="ml-auto text-nod8-accent" />
           </div>
-          <div v-if="!options.length" class="base-select-empty">
+          <div v-if="!options.length" class="base-select-empty" style="position: relative; z-index: 1;">
             No options available
           </div>
-        </div>
+        </BaseWoobyMenu>
       </Transition>
     </div>
 
@@ -60,6 +61,7 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { generateId } from '@/shared/utils/id'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 
 export interface SelectOption {
   value: string | number
@@ -157,20 +159,13 @@ defineOptions({ inheritAttrs: false })
   align-items: center;
   position: relative;
   background-color: var(--nod8-bg-overlay);
-  border: 1px solid var(--nod8-border-strong);
+  border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-sm);
   transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
   width: 100%;
   min-height: 36px;
   cursor: pointer;
   user-select: none;
-}
-
-.base-select-container:focus,
-.base-select-container--open {
-  border-color: var(--nod8-accent);
-  box-shadow: 0 0 0 1px var(--nod8-accent);
-  outline: none;
 }
 
 .base-select-container--error {
@@ -221,7 +216,7 @@ defineOptions({ inheritAttrs: false })
 /* Dropdown Menu */
 .base-select-dropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 5px);
   left: 0;
   width: 100%;
   max-height: 240px;
@@ -230,6 +225,7 @@ defineOptions({ inheritAttrs: false })
   border: 1px solid var(--nod8-border-strong);
   border-radius: var(--nod8-radius-sm);
   box-shadow: var(--nod8-shadow-lg);
+  gap: var(--nod8-space-1);
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -245,15 +241,6 @@ defineOptions({ inheritAttrs: false })
   color: var(--nod8-text-primary);
   border-radius: var(--nod8-radius-sm);
   cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.base-select-option:hover {
-  background-color: var(--nod8-bg-overlay);
-}
-
-.base-select-option--selected {
-  background-color: var(--nod8-accent-subtle);
 }
 
 .base-select-empty {

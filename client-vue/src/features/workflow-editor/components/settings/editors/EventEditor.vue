@@ -1,28 +1,26 @@
 <template>
   <div class="editor-stack">
     <EditorField label="Step Name">
-      <input
-        class="editor-input editor-input--bold"
-        :value="node.data.name || ''"
-        @input="updateNodeData({ name: ($event.target as HTMLInputElement).value })"
+      <BaseInput
+        :model-value="(node.data.name as string) || ''"
+        @update:model-value="updateNodeData({ name: $event as string })"
         placeholder="Emit event"
       />
     </EditorField>
 
     <EditorField label="Event Topic" icon="zap">
-      <input
-        class="editor-input editor-input--mono"
-        :value="node.data.eventTopic || ''"
-        @input="updateNodeData({ eventTopic: ($event.target as HTMLInputElement).value })"
+      <BaseInput
+        :model-value="(node.data.eventTopic as string) || ''"
+        @update:model-value="updateNodeData({ eventTopic: $event as string })"
         placeholder="user.created"
+        style="font-family: var(--nod8-font-mono)"
       />
     </EditorField>
 
     <EditorField label="Event Payload">
-      <textarea
-        class="editor-textarea"
-        :value="node.data.payload || ''"
-        @input="updateNodeData({ payload: ($event.target as HTMLTextAreaElement).value })"
+      <BaseTextarea
+        :model-value="(node.data.payload as string) || ''"
+        @update:model-value="updateNodeData({ payload: $event })"
         placeholder='{ "userId": "{{ steps.create_user.output.id }}" }'
         spellcheck="false"
       />
@@ -33,6 +31,8 @@
 <script setup lang="ts">
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
+import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 
 defineProps<NodeEditorProps>()
 </script>
