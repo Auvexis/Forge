@@ -71,6 +71,33 @@ function validateWorkflowDefinition(workflow: WorkflowItem): string | null {
     return "Workflow must have a trigger with type";
   }
 
+  // Validate Form trigger configuration
+  if (workflow.trigger.type === "form") {
+    if (!Array.isArray(workflow.trigger.formFields)) {
+      return "Form trigger must have a formFields array";
+    }
+    const seenNames = new Set<string>();
+    for (const [i, field] of workflow.trigger.formFields.entries()) {
+      if (!field || typeof field !== "object") {
+        return `Form field at index ${i} must be an object`;
+      }
+      if (
+        !field.name ||
+        typeof field.name !== "string" ||
+        !FORM_FIELD_NAME_REGEX.test(field.name)
+      ) {
+        return `Form field at index ${i} has invalid name "${field.name}". Use letters, numbers, underscore or dash.`;
+      }
+      if (seenNames.has(field.name)) {
+        return `Form field name "${field.name}" is duplicated`;
+      }
+      seenNames.add(field.name);
+      if (!VALID_FORM_FIELD_TYPES.has(field.type)) {
+        return `Form field "${field.name}" has invalid type "${field.type}". Valid: ${[...VALID_FORM_FIELD_TYPES].join(", ")}`;
+      }
+    }
+  }
+
   if (!workflow.nodes || typeof workflow.nodes !== "object") {
     return "Workflow must have a nodes map";
   }
@@ -181,6 +208,154 @@ function validateWorkflowDefinition(workflow: WorkflowItem): string | null {
   }
 
   return null; // Valid
+}
+
+// ──────────── Form Trigger helpers ────────────
+
+const VALID_FORM_FIELD_TYPES = new Set(["text", "email", "number", "textarea"]);
+const FORM_FIELD_NAME_REGEX = /^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/i;
+const FORM_FIELD_MAX_BYTES = 8 * 1024;
+const FORM_RATE_LIMIT_WINDOW_MS = 60_000;
+const FORM_RATE_LIMIT_MAX = 30;
+
+interface FormRateBucket { count: number; resetAt: number }
+const formRateLimit = new Map<string, FormRateBucket>();
+
+function isFormRateLimited(key: string): boolean {
+  const now = Date.now();
+  const bucket = formRateLimit.get(key);
+  if (!bucket || bucket.resetAt < now) {
+    formRateLimit.set(key, { count: 1, resetAt: now + FORM_RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  bucket.count += 1;
+  return bucket.count > FORM_RATE_LIMIT_MAX;
+}
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function escapeAttr(value: unknown): string {
+  return escapeHtml(value);
+}
+
+interface NormalizedFormField {
+  name: string;
+  label: string;
+  type: "text" | "email" | "number" | "textarea";
+  required: boolean;
+  placeholder: string;
+}
+
+function normalizeFormFields(raw: unknown): NormalizedFormField[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((f): f is Record<string, unknown> => !!f && typeof f === "object")
+    .map((f) => ({
+      name: String(f.name ?? "").trim(),
+      label: String(f.label ?? f.name ?? "").trim(),
+      type: VALID_FORM_FIELD_TYPES.has(String(f.type))
+        ? (f.type as NormalizedFormField["type"])
+        : "text",
+      required: Boolean(f.required),
+      placeholder: String(f.placeholder ?? ""),
+    }))
+    .filter((f) => f.name.length > 0);
+}
+
+function renderFormPage(
+  workflow: WorkflowItem,
+  fields: NormalizedFormField[],
+  opts: { error?: string } = {},
+): string {
+  const trigger = workflow.trigger;
+  const title = trigger.formTitle?.trim() || workflow.metadata.name;
+  const description = trigger.formDescription?.trim() || "";
+
+  const fieldsHtml = fields
+    .map((f) => {
+      const labelHtml =
+        `<label for="f-${escapeAttr(f.name)}">${escapeHtml(f.label)}` +
+        (f.required ? ' <span class="req">*</span>' : "") +
+        `</label>`;
+      const common =
+        `id="f-${escapeAttr(f.name)}" name="${escapeAttr(f.name)}"` +
+        (f.required ? " required" : "") +
+        (f.placeholder ? ` placeholder="${escapeAttr(f.placeholder)}"` : "");
+      const control = f.type === "textarea"
+        ? `<textarea ${common} rows="4"></textarea>`
+        : `<input type="${escapeAttr(f.type)}" ${common} />`;
+      return `<div class="field">${labelHtml}${control}</div>`;
+    })
+    .join("\n");
+
+  const errorBlock = opts.error
+    ? `<div class="error">${escapeHtml(opts.error)}</div>`
+    : "";
+
+  const submitUrl = `/forms/${escapeAttr(workflow.metadata.id)}/submit`;
+
+  return `<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${escapeHtml(title)}</title>
+<style>
+  *,*::before,*::after { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 16px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:#0b0d12; color:#e7e9ee; min-height: 100vh; }
+  .card { max-width: 540px; margin: 0 auto; background:#141821; border:1px solid #1f2430; border-radius: 12px; padding: 28px 28px 22px; }
+  h1 { font-size: 20px; margin: 0 0 6px; color:#f5f6f9; }
+  p.desc { color:#9ba3b3; margin: 0 0 22px; font-size: 14px; line-height: 1.55; }
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  label { font-size: 12px; font-weight: 600; color:#c5cad6; }
+  .req { color:#ff6b6b; }
+  input, textarea { background:#0b0d12; border:1px solid #2a3142; border-radius: 8px; color:#e7e9ee; font: inherit; padding: 10px 12px; width: 100%; outline: none; transition: border-color .15s; }
+  input:focus, textarea:focus { border-color:#7c3aed; }
+  textarea { resize: vertical; min-height: 92px; }
+  button { background:#7c3aed; border:0; color:#fff; padding:12px 18px; border-radius:8px; font-weight:600; cursor:pointer; width:100%; font-size: 14px; }
+  button:hover { background:#6d28d9; }
+  .error { background: rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+  .footer { color:#6b7180; font-size: 11px; text-align:center; margin-top:18px; }
+</style>
+</head><body>
+<form class="card" method="POST" action="${escapeAttr(submitUrl)}" enctype="application/x-www-form-urlencoded">
+  <h1>${escapeHtml(title)}</h1>
+  ${description ? `<p class="desc">${escapeHtml(description)}</p>` : ""}
+  ${errorBlock}
+  ${fieldsHtml}
+  <button type="submit">Submit</button>
+  <div class="footer">Powered by Nod8</div>
+</form>
+</body></html>`;
+}
+
+function renderFormConfirmationPage(workflow: WorkflowItem): string {
+  const title = workflow.trigger.formTitle?.trim() || workflow.metadata.name;
+  return `<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${escapeHtml(title)} — Submitted</title>
+<style>
+  body { margin:0; padding: 64px 16px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:#0b0d12; color:#e7e9ee; }
+  .card { max-width: 480px; margin: 0 auto; background:#141821; border:1px solid #1f2430; border-radius: 12px; padding: 32px; text-align:center; }
+  .check { width:48px; height:48px; border-radius: 50%; background: rgba(34,197,94,0.12); display:flex; align-items:center; justify-content:center; margin: 0 auto 16px; color:#4ade80; font-size: 28px; }
+  h1 { font-size: 18px; margin: 0 0 8px; }
+  p { color:#9ba3b3; margin: 0; font-size: 14px; line-height: 1.55; }
+</style>
+</head><body>
+<div class="card">
+  <div class="check">&#10003;</div>
+  <h1>Submitted successfully</h1>
+  <p>Your form has been received. You may close this page.</p>
+</div>
+</body></html>`;
 }
 
 // ──────────── Webhook signature validation ────────────
@@ -438,6 +613,134 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       executionId,
       message: `Workflow "${workflow.metadata.name}" triggered via webhook`,
     });
+  });
+
+  // ──────────── Form Trigger ─ Public Form Page ────────────
+  // Renders an HTML form for workflows with `trigger.type === "form"`.
+  // The page is fully self-contained (inline CSS, no external assets).
+
+  fastify.get("/forms/:workflowId", async (req, reply) => {
+    const { workflowId } = req.params as { workflowId: string };
+
+    const workflow = WorkflowRepository.getWorkflowById(workflowId);
+    if (
+      !workflow ||
+      workflow.trigger.type !== "form" ||
+      !workflow.metadata.isActive
+    ) {
+      return reply.code(404).type("text/html; charset=utf-8").send(
+        `<!DOCTYPE html><html><body style="font-family: sans-serif; padding: 40px; background:#0b0d12; color:#e7e9ee;">
+          <h1>Form not available</h1>
+          <p>This form is either inactive or does not exist.</p>
+        </body></html>`
+      );
+    }
+
+    const fields = normalizeFormFields(workflow.trigger.formFields);
+    return reply
+      .code(200)
+      .type("text/html; charset=utf-8")
+      .send(renderFormPage(workflow, fields));
+  });
+
+  // ──────────── Form Trigger ─ Submission Handler ────────────
+  // Validates required fields, dispatches the workflow asynchronously, and
+  // returns a confirmation page. Per-IP+workflow rate limit prevents spam.
+
+  fastify.post("/forms/:workflowId/submit", async (req, reply) => {
+    const { workflowId } = req.params as { workflowId: string };
+
+    const workflow = WorkflowRepository.getWorkflowById(workflowId);
+    if (
+      !workflow ||
+      workflow.trigger.type !== "form" ||
+      !workflow.metadata.isActive
+    ) {
+      return reply.code(404).type("text/html; charset=utf-8").send(
+        `<!DOCTYPE html><html><body><h1>Form not available</h1></body></html>`
+      );
+    }
+
+    // Rate limit: per-IP + per-workflow
+    const rateKey = `${req.ip}:${workflowId}`;
+    if (isFormRateLimited(rateKey)) {
+      return reply.code(429).type("text/html; charset=utf-8").send(
+        `<!DOCTYPE html><html><body style="font-family: sans-serif; padding: 40px; background:#0b0d12; color:#e7e9ee;">
+          <h1>Too many submissions</h1>
+          <p>Please wait a minute and try again.</p>
+        </body></html>`
+      );
+    }
+
+    const fields = normalizeFormFields(workflow.trigger.formFields);
+    const rawBody = (req.body as Record<string, unknown>) ?? {};
+
+    // Validate + sanitize each declared field
+    const fieldData: Record<string, string | number> = {};
+    for (const field of fields) {
+      const raw = rawBody[field.name];
+      const asString = raw == null ? "" : String(raw);
+
+      if (asString.length > FORM_FIELD_MAX_BYTES) {
+        return reply
+          .code(400)
+          .type("text/html; charset=utf-8")
+          .send(renderFormPage(workflow, fields, {
+            error: `Field "${field.label}" exceeds the ${FORM_FIELD_MAX_BYTES} byte limit.`,
+          }));
+      }
+
+      if (field.required && asString.trim() === "") {
+        return reply
+          .code(400)
+          .type("text/html; charset=utf-8")
+          .send(renderFormPage(workflow, fields, {
+            error: `Field "${field.label}" is required.`,
+          }));
+      }
+
+      if (field.type === "number") {
+        if (asString === "") {
+          fieldData[field.name] = 0;
+        } else {
+          const num = Number(asString);
+          if (Number.isNaN(num)) {
+            return reply
+              .code(400)
+              .type("text/html; charset=utf-8")
+              .send(renderFormPage(workflow, fields, {
+                error: `Field "${field.label}" must be a number.`,
+              }));
+          }
+          fieldData[field.name] = num;
+        }
+      } else {
+        fieldData[field.name] = asString;
+      }
+    }
+
+    const triggerPayload = {
+      fields: fieldData,
+      submittedAt: Date.now(),
+      ip: req.ip,
+      userAgent: req.headers["user-agent"] ?? "",
+    };
+
+    const executionId = `exec_form_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    // Fire-and-forget execution; the user gets the confirmation page immediately
+    WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(
+      (err: any) => {
+        console.error(
+          `[NOD8 | FORM-TRIGGER]: Execution failed for "${workflowId}": ${err.message}`,
+        );
+      },
+    );
+
+    return reply
+      .code(200)
+      .type("text/html; charset=utf-8")
+      .send(renderFormConfirmationPage(workflow));
   });
 
   // ──────────── SSE Stream Endpoint ────────────

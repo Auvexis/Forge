@@ -228,10 +228,26 @@ export interface WebhookBodyField {
   description?: string;
 }
 
+// ──────────── Form Trigger Field ────────────
+
+/**
+ * Describes a single field rendered on the public Form Trigger page.
+ * The Nod8 server hosts a minimal HTML page at GET /forms/:workflowId
+ * built from this list. Submitting the form posts to /forms/:workflowId/submit
+ * and that POST handler kicks off the workflow as the trigger payload.
+ */
+export interface FormTriggerField {
+  name: string;        // Field key sent in the trigger payload (snake_case or kebab-case)
+  label: string;       // Human-readable label rendered in the form
+  type: "text" | "email" | "number" | "textarea";
+  required?: boolean;
+  placeholder?: string;
+}
+
 // ──────────── Trigger ────────────
 
 export interface WorkflowTrigger {
-  type: "manual" | "webhook" | "cron" | "event" | "plugin";
+  type: "manual" | "webhook" | "cron" | "event" | "plugin" | "form";
   schema?: Record<string, any>;
   ui?: WorkflowNodeUI;
   // Webhook config
@@ -248,6 +264,10 @@ export interface WorkflowTrigger {
   pluginId?: string;      // ID of the plugin that owns this trigger
   triggerName?: string;   // Key in plugin.manifest.triggers (e.g. "onMessage")
   triggerParams?: Record<string, any>; // User-configured params for the trigger
+  // Form trigger config
+  formTitle?: string;       // Title rendered at the top of the public form page
+  formDescription?: string; // Optional description shown below the title
+  formFields?: FormTriggerField[];
   // Captured payload from "Listen for Event" UX (persisted so left pane can display it)
   lastTriggerPayload?: Record<string, any> | null;
 }

@@ -228,10 +228,20 @@ export interface WebhookBodyField {
   description?: string
 }
 
+// ── Form Trigger Field ────────────────────────────────
+
+export interface FormTriggerField {
+  name: string
+  label: string
+  type: 'text' | 'email' | 'number' | 'textarea'
+  required?: boolean
+  placeholder?: string
+}
+
 // ── Trigger ───────────────────────────────────────
 
 export interface WorkflowTrigger {
-  type: 'manual' | 'webhook' | 'cron' | 'event' | 'plugin'
+  type: 'manual' | 'webhook' | 'cron' | 'event' | 'plugin' | 'form'
   schema?: Record<string, WorkflowSchemaField>
   ui?: WorkflowNodeUI
   webhookPath?: string
@@ -245,6 +255,10 @@ export interface WorkflowTrigger {
   pluginId?: string
   triggerName?: string
   triggerParams?: Record<string, any>
+  // Form trigger fields
+  formTitle?: string
+  formDescription?: string
+  formFields?: FormTriggerField[]
   // Last captured webhook payload from "Listen for Event"
   lastTriggerPayload?: Record<string, any> | null
 }

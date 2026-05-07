@@ -211,6 +211,135 @@
       </div>
     </template>
 
+    <!-- ── FORM ── -->
+    <template v-if="node.data.type === 'form'">
+      <div class="te-section">
+
+        <!-- Public form URL -->
+        <div class="te-field">
+          <span class="te-label">Public Form URL</span>
+          <div class="te-url-group">
+            <div class="te-url-row">
+              <span
+                class="te-url-badge"
+                :class="formIsPublished ? 'te-url-badge--prod' : 'te-url-badge--test'"
+              >{{ formIsPublished ? 'LIVE' : 'DRAFT' }}</span>
+              <div class="te-url-box">{{ formPublicUrl || '<save-workflow-first>' }}</div>
+              <button
+                class="te-icon-btn"
+                title="Copy URL"
+                :disabled="!formPublicUrl"
+                @click="copyUrl(formPublicUrl, 'prod')"
+              >
+                <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--nod8-green-400)" />
+                <CopyIcon v-else :size="14" />
+              </button>
+              <a
+                v-if="formPublicUrl && formIsPublished"
+                :href="formPublicUrl"
+                target="_blank"
+                rel="noopener"
+                class="te-icon-btn"
+                title="Open in new tab"
+              >
+                <RadioIcon :size="14" />
+              </a>
+            </div>
+          </div>
+          <p class="te-hint">
+            The form is only reachable when the workflow is published (active). Submissions
+            kick off the workflow with <code class="editor-code-snippet" v-pre>{{ trigger.fields }}</code>.
+          </p>
+        </div>
+
+        <!-- Form Title / Description -->
+        <div class="te-field">
+          <span class="te-label">Form Title</span>
+          <BaseInput
+            :model-value="(node.data as unknown as WorkflowTrigger).formTitle || ''"
+            @update:model-value="updateNodeData({ formTitle: $event as string })"
+            placeholder="Contact us"
+          />
+        </div>
+
+        <div class="te-field">
+          <span class="te-label">
+            Description
+            <span class="te-label-sub">(optional)</span>
+          </span>
+          <BaseInput
+            :model-value="(node.data as unknown as WorkflowTrigger).formDescription || ''"
+            @update:model-value="updateNodeData({ formDescription: $event as string })"
+            placeholder="We'll get back within 24h"
+          />
+        </div>
+
+        <!-- Fields list -->
+        <div class="te-section">
+          <div class="te-intro">
+            <span class="te-label">Form Fields</span>
+            <p class="te-hint">Each field is delivered to the workflow as <code class="editor-code-snippet" v-pre>{{ trigger.fields.&lt;name&gt; }}</code>.</p>
+          </div>
+
+          <div class="flex flex-col gap-2 mt-2">
+            <div
+              v-for="(field, i) in formFields"
+              :key="i"
+              class="flex items-center gap-2"
+            >
+              <BaseInput
+                :model-value="field.name"
+                @update:model-value="updateFormField(i, { name: $event as string })"
+                placeholder="field_name"
+                style="font-family: var(--nod8-font-mono); flex: 1"
+              />
+              <BaseInput
+                :model-value="field.label"
+                @update:model-value="updateFormField(i, { label: $event as string })"
+                placeholder="Label"
+                style="flex: 1"
+              />
+              <div style="width: 130px; flex-shrink: 0;">
+                <BaseSelect
+                  :model-value="field.type"
+                  :options="FORM_FIELD_TYPES"
+                  @update:model-value="updateFormField(i, { type: $event as FormTriggerField['type'] })"
+                />
+              </div>
+              <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--nod8-text-secondary)] cursor-pointer whitespace-nowrap px-1">
+                <input
+                  type="checkbox"
+                  class="accent-[var(--nod8-accent)] cursor-pointer w-3.5 h-3.5"
+                  :checked="field.required"
+                  @change="updateFormField(i, { required: ($event.target as HTMLInputElement).checked })"
+                />
+                Req
+              </label>
+              <BaseButton
+                variant="ghost"
+                size="icon"
+                icon-left="x"
+                class="!text-[var(--nod8-text-muted)] hover:!text-[var(--nod8-text-primary)] !p-2"
+                @click="removeFormField(i)"
+              />
+            </div>
+
+            <BaseButton
+              variant="dashed"
+              size="md"
+              icon-left="plus"
+              full-width
+              class="!rounded-full mt-1"
+              @click="addFormField"
+            >
+              Add Form Field
+            </BaseButton>
+          </div>
+        </div>
+
+      </div>
+    </template>
+
     <!-- ── CRON ── -->
     <template v-if="node.data.type === 'cron'">
       <div class="te-section">
@@ -417,7 +546,7 @@
 import { computed, ref, onUnmounted } from 'vue'
 import { XIcon, PlusIcon, CopyIcon, CheckIcon, RefreshCwIcon, RadioIcon, CheckCircleIcon, ClockIcon } from 'lucide-vue-next'
 import type { NodeEditorProps } from './types'
-import type { WorkflowTrigger, WorkflowSchemaField, WebhookBodyField } from '@/core/types/workflow.types'
+import type { WorkflowTrigger, WorkflowSchemaField, WebhookBodyField, FormTriggerField } from '@/core/types/workflow.types'
 import type { PluginSummary, PluginTriggerManifest } from '@/core/types/plugin.types'
 import EditorField from './EditorField.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
@@ -443,9 +572,17 @@ onMounted(() => {
 const TRIGGER_OPTIONS = [
   { value: 'manual', label: 'Manual', icon: 'hand' },
   { value: 'webhook', label: 'Webhook', icon: 'globe' },
+  { value: 'form', label: 'Form', icon: 'file-text' },
   { value: 'cron', label: 'Cron / Schedule', icon: 'clock' },
   { value: 'event', label: 'Event', icon: 'zap' },
   { value: 'plugin', label: 'Plugin Trigger', icon: 'plug' },
+]
+
+const FORM_FIELD_TYPES = [
+  { value: 'text', label: 'Text', icon: 'type' },
+  { value: 'email', label: 'Email', icon: 'mail' },
+  { value: 'number', label: 'Number', icon: 'hash' },
+  { value: 'textarea', label: 'Textarea', icon: 'align-left' },
 ]
 
 const MANUAL_FIELD_TYPES = [
@@ -614,6 +751,42 @@ function addBodySchemaField() {
   props.updateNodeData({
     webhookBodySchema: { ...schema, [`field${num}`]: { type: 'string', required: false } },
   })
+}
+
+// ── Form Trigger helpers ───────────────────────────────────
+
+const formFields = computed<FormTriggerField[]>(
+  () => (props.node.data as unknown as WorkflowTrigger).formFields ?? [],
+)
+
+const formPublicUrl = computed(() => {
+  const id = workflowStore.activeWorkflow?.metadata.id
+  return id ? `${backendPublicUrl.value}/forms/${id}` : ''
+})
+
+const formIsPublished = computed(
+  () => workflowStore.activeWorkflow?.metadata.isActive ?? false,
+)
+
+function saveFormFields(next: FormTriggerField[]) {
+  props.updateNodeData({ formFields: next })
+}
+
+function addFormField() {
+  const idx = formFields.value.length
+  saveFormFields([
+    ...formFields.value,
+    { name: `field_${idx + 1}`, label: `Field ${idx + 1}`, type: 'text', required: false },
+  ])
+}
+
+function updateFormField(i: number, updates: Partial<FormTriggerField>) {
+  const next = formFields.value.map((f, idx) => (idx === i ? { ...f, ...updates } : f))
+  saveFormFields(next)
+}
+
+function removeFormField(i: number) {
+  saveFormFields(formFields.value.filter((_, idx) => idx !== i))
 }
 
 // ── Plugin Trigger ──────────────────────────────────────────
