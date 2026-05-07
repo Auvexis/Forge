@@ -17,6 +17,7 @@ export type WorkflowNodeType =
   | 'event-listener'
   | 'set'
   | 'switch'
+  | 'merge'
 
 // ── Retry Policy ─────────────────────────────────────────────
 
@@ -147,6 +148,13 @@ export interface SwitchNode extends WorkflowNodeBase {
   fallbackHandleId?: string
 }
 
+// ── Merge Node ─────────────────────────────────────────────────
+
+export interface MergeNode extends WorkflowNodeBase {
+  type: 'merge'
+  mode: 'wait-any' | 'wait-all'
+}
+
 // ── Discriminated Union ──────────────────────────────────────
 
 export type WorkflowNode =
@@ -161,6 +169,7 @@ export type WorkflowNode =
   | EventListenerNode
   | SetNode
   | SwitchNode
+  | MergeNode
 
 // ── Edges ────────────────────────────────────────────────────
 

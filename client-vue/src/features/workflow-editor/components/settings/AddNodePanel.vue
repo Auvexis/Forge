@@ -226,6 +226,14 @@ const LOGIC_NODES = [
     color: 'var(--nod8-node-switch-icon)',
     bgColor: 'var(--nod8-node-switch-bg)',
   },
+  {
+    type: 'merge' as WorkflowNodeType,
+    label: 'Merge',
+    description: 'Convergir fluxos paralelos em um único caminho',
+    icon: 'merge',
+    color: 'var(--nod8-node-merge-icon)',
+    bgColor: 'var(--nod8-node-merge-bg)',
+  },
 ]
 
 // ── Computed ─────────────────────────────────────────────────────────────────

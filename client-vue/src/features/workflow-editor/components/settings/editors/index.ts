@@ -17,6 +17,7 @@ import PluginEditor from './PluginEditor.vue'
 import TriggerEditor from './TriggerEditor.vue'
 import SetEditor from './SetEditor.vue'
 import SwitchEditor from './SwitchEditor.vue'
+import MergeEditor from './MergeEditor.vue'
 
 export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', Component>> = {
   plugin: PluginEditor,
@@ -30,6 +31,7 @@ export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', 
   trigger: TriggerEditor,
   set: SetEditor,
   switch: SwitchEditor,
+  merge: MergeEditor,
 }
 
 export type { NodeEditorProps } from './types'

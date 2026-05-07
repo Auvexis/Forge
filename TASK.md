@@ -105,25 +105,25 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 > **Pré-requisito**: Fase 1 concluída.
 > **Critério de conclusão**: Fluxos paralelos convergem no Merge sem execução duplicada.
 
-- [ ] **2.1** — `workflow-types.ts` (server + client): Adicionar `MergeNode`
+- [x] **2.1** — `workflow-types.ts` (server + client): Adicionar `MergeNode`
   - `{ type: "merge"; mode: "wait-any" | "wait-all" }` 
   - `wait-any`: executa assim que qualquer branch chegar (comportamento padrão do BFS atual, com ajuste)
   - `wait-all`: aguarda todos os branches chegarem antes de liberar (requer contagem de in-degree resolvidos)
 
-- [ ] **2.2** — `executor.ts`: Adicionar `executeMergeNode()` — nó passivo que apenas passa adiante o contexto do último step resolvido. A lógica de espera é tratada no BFS principal.
+- [x] **2.2** — `executor.ts`: Adicionar `executeMergeNode()` — nó passivo que apenas passa adiante o contexto do último step resolvido. A lógica de espera é tratada no BFS principal.
 
-- [ ] **2.3** — `executor.ts` BFS principal: Implementar lógica de `wait-all` para `MergeNode`
+- [x] **2.3** — `executor.ts` BFS principal: Implementar lógica de `wait-all` para `MergeNode`
   - Adicionar um mapa `mergeArrivalCount: Record<nodeId, number>` no contexto de execução local
   - Ao processar um Merge com `mode: "wait-all"`, só enfileira para execução quando `mergeArrivalCount[mergeNodeId] >= inDegree[mergeNodeId]`
   - Prevenir execução duplicada com `executed` Set já existente
 
-- [ ] **2.4** — `workflows.routes.ts`: Adicionar `"merge"` ao `VALID_NODE_TYPES` e validação (`mode` deve ser `"wait-any" | "wait-all"`)
+- [x] **2.4** — `workflows.routes.ts`: Adicionar `"merge"` ao `VALID_NODE_TYPES` e validação (`mode` deve ser `"wait-any" | "wait-all"`)
 
-- [ ] **2.5** — Frontend: `MergeNode.vue` — visual com ícone `merge`, handles N entradas + 1 saída, CSS tokens `--nod8-node-merge-*`
+- [x] **2.5** — Frontend: `MergeNode.vue` — visual com ícone `merge`, handles N entradas + 1 saída, CSS tokens `--nod8-node-merge-*`
 
-- [ ] **2.6** — Frontend: `MergeEditor.vue` — seletor de `mode` (wait-any / wait-all) com descrição clara de cada opção
+- [x] **2.6** — Frontend: `MergeEditor.vue` — seletor de `mode` (wait-any / wait-all) com descrição clara de cada opção
 
-- [ ] **2.7** — Registrar em Canvas, AddNodePanel e editor registry
+- [x] **2.7** — Registrar em Canvas, AddNodePanel e editor registry
 
 - [ ] **2.8** — ✅ **TESTE & COMMIT**: Criar workflow com Switch (2 branches) → ambos chegam no Merge → próximo nó executa uma única vez. Testar `wait-any` e `wait-all`. Commitar.
 
@@ -281,7 +281,7 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 | Fase | Descrição | Status |
 |------|-----------|--------|
 | Fase 1 | Set + Switch (Estruturais) | ✅ Implementado (aguardando teste) |
-| Fase 2 | Merge (Estrutural) | ⏳ Pendente |
+| Fase 2 | Merge (Estrutural) | ✅ Implementado (aguardando teste) |
 | Fase 3 | Split In Batches (Estrutural) | ⏳ Pendente |
 | Fase 4 | Date/Time + Crypto + Compare (Plugins) | ⏳ Pendente |
 | Fase 5 | Wait / Sleep (Plugin) | ⏳ Pendente |

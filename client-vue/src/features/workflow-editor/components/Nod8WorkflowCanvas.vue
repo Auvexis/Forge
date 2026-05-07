@@ -15,6 +15,7 @@ import IfNode from './nodes/IfNode.vue'
 import SubWorkflowNode from './nodes/SubWorkflowNode.vue'
 import SetNode from './nodes/SetNode.vue'
 import SwitchNode from './nodes/SwitchNode.vue'
+import MergeNode from './nodes/MergeNode.vue'
 import BaseEdge from './BaseEdge.vue'
 import { Background } from '@vue-flow/background'
 
@@ -238,6 +239,7 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   plugin: 'Plugin Action',
   set: 'Set Fields',
   switch: 'Switch',
+  merge: 'Merge',
 }
 
 function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
@@ -349,6 +351,8 @@ const addLogicNode = (type: WorkflowNodeType) => {
       { value: '200', handleId: 'case_0' },
       { value: '404', handleId: 'case_1' },
     ]
+  } else if (type === 'merge') {
+    defaultData.mode = 'wait-any'
   }
 
   // Adicionar no store
@@ -615,6 +619,11 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       <!-- SWITCH Node -->
       <template #node-switch="nodeProps">
         <SwitchNode v-bind="nodeProps" />
+      </template>
+
+      <!-- MERGE Node -->
+      <template #node-merge="nodeProps">
+        <MergeNode v-bind="nodeProps" />
       </template>
     </VueFlow>
 

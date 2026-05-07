@@ -11,7 +11,8 @@ export type WorkflowNodeType =
   | "event"
   | "event-listener"
   | "set"
-  | "switch";
+  | "switch"
+  | "merge";
 
 // ──────────── Retry Policy ────────────
 
@@ -143,6 +144,17 @@ export interface SwitchNode extends WorkflowNodeBase {
   fallbackHandleId?: string;     // Handle activated when no case matches
 }
 
+// ──────────── Merge Node (converge parallel branches) ────────────
+
+export interface MergeNode extends WorkflowNodeBase {
+  type: "merge";
+  /**
+   * wait-any: execute as soon as the first branch arrives (default BFS behavior)
+   * wait-all: block until ALL in-degree predecessors have delivered output
+   */
+  mode: "wait-any" | "wait-all";
+}
+
 // ──────────── Discriminated Union ────────────
 
 export type WorkflowNode =
@@ -156,7 +168,8 @@ export type WorkflowNode =
   | EventNode
   | EventListenerNode
   | SetNode
-  | SwitchNode;
+  | SwitchNode
+  | MergeNode;
 
 // ──────────── Edges ────────────
 

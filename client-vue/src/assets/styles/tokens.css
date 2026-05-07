@@ -343,6 +343,11 @@
   --nod8-node-switch-icon: rgb(245, 158, 11);
   --nod8-node-switch-border: rgba(245, 158, 11, 0.4);
 
+  /* Merge (converge branches) — rose-indigo */
+  --nod8-node-merge-bg: rgba(99, 102, 241, 0.12);
+  --nod8-node-merge-icon: rgb(129, 140, 248);
+  --nod8-node-merge-border: rgba(129, 140, 248, 0.4);
+
   /* ── Extra: Node Body Tags (React Equivalents) ── */
   --nod8-node-http-tag-bg: rgba(251, 146, 60, 0.05);
   --nod8-node-http-tag-text: rgb(251, 146, 60);

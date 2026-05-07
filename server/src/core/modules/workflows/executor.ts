@@ -21,6 +21,7 @@ import type {
   EventListenerNode,
   SetNode,
   SwitchNode,
+  MergeNode,
 } from "../../../shared/models/workflow-types.ts";
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -485,6 +486,15 @@ function executeSwitchNode(
   return { activeHandle: node.fallbackHandleId ?? "" };
 }
 
+/**
+ * Merge node is purely passive — it passes through the context of the last
+ * branch that arrived. The wait-all / wait-any coordination is handled in the
+ * BFS loop, NOT here, so the executor stays unaware of scheduling details.
+ */
+function executeMergeNode(_node: MergeNode, _context: any): Record<string, never> {
+  return {};
+}
+
 // ──────────── Unified Node Dispatcher ────────────
 
 async function executeNode(
@@ -518,6 +528,8 @@ async function executeNode(
       return executeSetNode(node as SetNode, context);
     case "switch":
       return executeSwitchNode(node as SwitchNode, context);
+    case "merge":
+      return executeMergeNode(node as MergeNode, context);
     default:
       throw new Error(`Unknown node type: ${(node as any).type}`);
   }
@@ -603,6 +615,18 @@ export const WorkflowEngine = {
       );
       const executed = new Set<string>();
 
+      // Track how many branches have actually arrived at each merge node
+      // Key: nodeId  Value: number of branches that have delivered so far
+      const mergeArrivalCount: Record<string, number> = {};
+      // Snapshot the original inDegree for merge nodes so we know the threshold
+      const mergeThreshold: Record<string, number> = {};
+      nodeIds.forEach((n) => {
+        if (workflow.nodes[n]?.type === "merge") {
+          mergeThreshold[n] = inDegree[n];
+          mergeArrivalCount[n] = 0;
+        }
+      });
+
       while (queue.length > 0) {
         const nodeId = queue.shift()!;
 
@@ -629,6 +653,22 @@ export const WorkflowEngine = {
           return { executionId: execId, status, context };
         }
         // ───────────────────────────────
+
+        // ─── Merge wait-all guard ────────────────────────────────────
+        // For wait-all merges: count how many branches have arrived.
+        // Only proceed when every predecessor has delivered output.
+        if (workflow.nodes[nodeId]?.type === "merge") {
+          const mergeNode = workflow.nodes[nodeId] as MergeNode;
+          if (mergeNode.mode === "wait-all") {
+            mergeArrivalCount[nodeId] = (mergeArrivalCount[nodeId] ?? 0) + 1;
+            if (mergeArrivalCount[nodeId] < (mergeThreshold[nodeId] ?? 1)) {
+              // Not all branches arrived yet — skip execution but keep the node
+              // in a reachable state (it was already not in executed).
+              continue;
+            }
+          }
+        }
+        // ─────────────────────────────────────────────────────────────
 
         executed.add(nodeId);
 

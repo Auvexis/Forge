@@ -54,6 +54,7 @@ const VALID_NODE_TYPES = new Set([
   "event-listener",
   "set",
   "switch",
+  "merge",
 ]);
 
 // ──────────── Validation helper ────────────
@@ -136,6 +137,11 @@ function validateWorkflowDefinition(workflow: WorkflowItem): string | null {
         }
         if (!Array.isArray((node as any).cases) || (node as any).cases.length === 0) {
           return `Switch node "${nodeId}" must have a non-empty cases array`;
+        }
+        break;
+      case "merge":
+        if (!((node as any).mode === "wait-any" || (node as any).mode === "wait-all")) {
+          return `Merge node "${nodeId}" must have mode "wait-any" or "wait-all"`;
         }
         break;
     }
