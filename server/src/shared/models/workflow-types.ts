@@ -13,7 +13,8 @@ export type WorkflowNodeType =
   | "set"
   | "switch"
   | "merge"
-  | "split-in-batches";
+  | "split-in-batches"
+  | "respond-webhook";
 
 // ──────────── Retry Policy ────────────
 
@@ -160,12 +161,21 @@ export interface MergeNode extends WorkflowNodeBase {
 
 export interface SplitInBatchesNode extends WorkflowNodeBase {
   type: "split-in-batches";
-  /** JS expression resolving to an array in context (e.g. "trigger.body.items") */
   collection: string;
-  /** Items per batch. Must be > 0. */
   batchSize: number;
-  /** Safety cap: max number of batches to process. Defaults to 100. */
   maxBatches?: number;
+}
+
+// ──────────── Respond To Webhook Node ────────────
+
+export interface RespondToWebhookNode extends WorkflowNodeBase {
+  type: "respond-webhook";
+  /** HTTP status code to return (default 200) */
+  statusCode: number;
+  /** Response body — supports {{ template }} expressions */
+  body: string;
+  /** Optional response headers as key-value pairs */
+  headers?: Record<string, string>;
 }
 
 // ──────────── Discriminated Union ────────────
@@ -183,7 +193,8 @@ export type WorkflowNode =
   | SetNode
   | SwitchNode
   | MergeNode
-  | SplitInBatchesNode;
+  | SplitInBatchesNode
+  | RespondToWebhookNode;
 
 // ──────────── Edges ────────────
 

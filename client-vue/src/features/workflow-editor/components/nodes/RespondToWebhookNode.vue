@@ -1,0 +1,33 @@
+<script setup lang="ts">
+import { Position } from '@vue-flow/core'
+import type { NodeProps } from '@vue-flow/core'
+import type { RespondToWebhookNode } from '@/core/types/workflow.types'
+import BaseNode from '../BaseNode.vue'
+import BaseHandle from '../BaseHandle.vue'
+import { computed } from 'vue'
+
+const props = defineProps<
+  NodeProps<RespondToWebhookNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+>()
+
+const stepTitle = computed(() => (props.data as any)?.name || 'Respond to Webhook')
+const statusCode = computed(() => props.data?.statusCode ?? 200)
+const subtitle = computed(() => `HTTP ${statusCode.value}`)
+</script>
+
+<template>
+  <BaseNode
+    :id="props.id"
+    :selected="props.selected"
+    :status="props.status"
+    has-target
+    :title="stepTitle"
+    :subtitle="subtitle"
+    icon="send"
+    color="var(--nod8-node-respond-webhook-icon)"
+    bg="var(--nod8-node-respond-webhook-bg)"
+    border-color="var(--nod8-node-respond-webhook-border)"
+  >
+    <!-- Terminal node — no source output handle -->
+  </BaseNode>
+</template>

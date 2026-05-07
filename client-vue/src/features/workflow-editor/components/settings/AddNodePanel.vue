@@ -242,6 +242,14 @@ const LOGIC_NODES = [
     color: 'var(--nod8-node-split-icon)',
     bgColor: 'var(--nod8-node-split-bg)',
   },
+  {
+    type: 'respond-webhook' as WorkflowNodeType,
+    label: 'Respond to Webhook',
+    description: 'Responder ao chamador HTTP com status e body customizados',
+    icon: 'send',
+    color: 'var(--nod8-node-respond-webhook-icon)',
+    bgColor: 'var(--nod8-node-respond-webhook-bg)',
+  },
 ]
 
 // ── Computed ─────────────────────────────────────────────────────────────────

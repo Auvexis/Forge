@@ -6,6 +6,7 @@ import { runCode } from "./code-runner.ts";
 import { workflowEventBus } from "./event-bus.ts";
 import { InternalEventBus } from "../events/internal-event-bus.ts";
 import { CancellationRegistry } from "./cancellation-registry.ts";
+import { PendingWebhookResponseRegistry } from "./pending-webhook-registry.ts";
 import type {
   WorkflowItem,
   WorkflowNode,
@@ -23,6 +24,7 @@ import type {
   SwitchNode,
   MergeNode,
   SplitInBatchesNode,
+  RespondToWebhookNode,
 } from "../../../shared/models/workflow-types.ts";
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -579,6 +581,43 @@ async function executeSplitInBatchesNode(
   return { batches: chunks.length, totalItems: collection.length };
 }
 
+/**
+ * Respond To Webhook Node — resolves the pending webhook response.
+ * The Fastify reply stays entirely in the route handler; only correlationId flows here.
+ */
+function executeRespondToWebhookNode(
+  node: RespondToWebhookNode,
+  context: any,
+): { statusCode: number; body: unknown; resolved: boolean } {
+  const correlationId = context._webhookCorrelationId as string | undefined;
+
+  // Evaluate body template expressions
+  const resolvedParams = WorkflowParser.evalParams({ body: node.body }, context);
+  let responseBody: unknown = resolvedParams.body;
+
+  // Attempt to parse as JSON for structured responses
+  if (typeof responseBody === "string") {
+    try { responseBody = JSON.parse(responseBody); } catch { /* keep as string */ }
+  }
+
+  const resolved = correlationId
+    ? PendingWebhookResponseRegistry.resolve(correlationId, {
+        statusCode: node.statusCode ?? 200,
+        body: responseBody,
+        headers: node.headers,
+      })
+    : false;
+
+  if (!resolved && correlationId) {
+    console.warn(
+      `[NOD8 | RESPOND-WEBHOOK]: correlationId "${correlationId}" not found — ` +
+      "webhook caller may have already timed out.",
+    );
+  }
+
+  return { statusCode: node.statusCode ?? 200, body: responseBody, resolved };
+}
+
 // ──────────── Unified Node Dispatcher ────────────
 
 async function executeNode(
@@ -616,6 +655,8 @@ async function executeNode(
       return executeMergeNode(node as MergeNode, context);
     case "split-in-batches":
       return executeSplitInBatchesNode(node as SplitInBatchesNode, context, workflow, edges, execId);
+    case "respond-webhook":
+      return executeRespondToWebhookNode(node as RespondToWebhookNode, context);
     default:
       throw new Error(`Unknown node type: ${(node as any).type}`);
   }

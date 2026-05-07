@@ -17,6 +17,7 @@ import SetNode from './nodes/SetNode.vue'
 import SwitchNode from './nodes/SwitchNode.vue'
 import MergeNode from './nodes/MergeNode.vue'
 import SplitInBatchesNode from './nodes/SplitInBatchesNode.vue'
+import RespondToWebhookNode from './nodes/RespondToWebhookNode.vue'
 import BaseEdge from './BaseEdge.vue'
 import { Background } from '@vue-flow/background'
 
@@ -242,6 +243,7 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   switch: 'Switch',
   merge: 'Merge',
   'split-in-batches': 'Split In Batches',
+  'respond-webhook': 'Respond to Webhook',
 }
 
 function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
@@ -358,6 +360,10 @@ const addLogicNode = (type: WorkflowNodeType) => {
   } else if (type === 'split-in-batches') {
     defaultData.collection = 'trigger.body.items'
     defaultData.batchSize = 10
+  } else if (type === 'respond-webhook') {
+    defaultData.statusCode = 200
+    defaultData.body = '{ "ok": true }'
+    defaultData.headers = { 'Content-Type': 'application/json' }
   }
 
   // Adicionar no store
@@ -634,6 +640,11 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       <!-- SPLIT IN BATCHES Node -->
       <template #node-split-in-batches="nodeProps">
         <SplitInBatchesNode v-bind="nodeProps" />
+      </template>
+
+      <!-- RESPOND TO WEBHOOK Node -->
+      <template #node-respond-webhook="nodeProps">
+        <RespondToWebhookNode v-bind="nodeProps" />
       </template>
     </VueFlow>
 

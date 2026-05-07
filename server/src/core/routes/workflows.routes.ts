@@ -16,6 +16,7 @@ import {
   type InternalEvent,
 } from "../modules/events/internal-event-bus.ts";
 import { CancellationRegistry } from "../modules/workflows/cancellation-registry.ts";
+import { PendingWebhookResponseRegistry } from "../modules/workflows/pending-webhook-registry.ts";
 import { Scheduler } from "../modules/scheduler/scheduler.ts";
 import { PluginManager } from "../modules/plugins/manager.ts";
 import { TriggerListenerRegistry } from "../modules/workflows/trigger-listener-registry.ts";
@@ -56,6 +57,7 @@ const VALID_NODE_TYPES = new Set([
   "switch",
   "merge",
   "split-in-batches",
+  "respond-webhook",
 ]);
 
 // ──────────── Validation helper ────────────
@@ -154,6 +156,14 @@ function validateWorkflowDefinition(workflow: WorkflowItem): string | null {
           (node as any).batchSize < 1
         ) {
           return `Split In Batches node "${nodeId}" must have batchSize >= 1`;
+        }
+        break;
+      case "respond-webhook":
+        if (typeof (node as any).statusCode !== "number") {
+          return `Respond To Webhook node "${nodeId}" must have a numeric statusCode`;
+        }
+        if (typeof (node as any).body !== "string") {
+          return `Respond To Webhook node "${nodeId}" must have a body string`;
         }
         break;
     }
@@ -374,6 +384,48 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
     const executionId = `exec_wh_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
+    // Check if this workflow has a RespondToWebhookNode — if so, await the response
+    const hasRespondNode = Object.values(workflow.nodes).some(
+      (n: any) => n.type === "respond-webhook",
+    );
+
+    if (hasRespondNode) {
+      // Inject correlationId into trigger payload for the executor to pick up
+      const correlationId = `wh_${executionId}`;
+      const enrichedPayload = {
+        ...triggerPayload,
+        _webhookCorrelationId: correlationId,
+      };
+
+      // Start execution (fire — don't await)
+      WorkflowEngine.executeWorkflow(workflow, enrichedPayload, executionId).catch(
+        (err: Error) =>
+          console.error(
+            `[NOD8 | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
+          ),
+      );
+
+      // Wait for RespondToWebhookNode to resolve (or 30s timeout → 504)
+      try {
+        const webhookResponse = await PendingWebhookResponseRegistry.waitForResponse(
+          correlationId,
+          30_000,
+        );
+
+        // Apply custom headers
+        if (webhookResponse.headers) {
+          for (const [k, v] of Object.entries(webhookResponse.headers)) {
+            reply.header(k, v);
+          }
+        }
+
+        return reply.code(webhookResponse.statusCode).send(webhookResponse.body);
+      } catch {
+        return reply.code(504).send({ error: "Gateway Timeout — workflow did not respond in time" });
+      }
+    }
+
+    // Default: fire-and-forget (no RespondToWebhookNode)
     WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(
       (err: Error) =>
         console.error(

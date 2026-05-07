@@ -353,6 +353,11 @@
   --nod8-node-split-icon: rgb(249, 115, 22);
   --nod8-node-split-border: rgba(249, 115, 22, 0.4);
 
+  /* Respond to Webhook — rose/pink */
+  --nod8-node-respond-webhook-bg: rgba(244, 63, 94, 0.10);
+  --nod8-node-respond-webhook-icon: rgb(251, 113, 133);
+  --nod8-node-respond-webhook-border: rgba(251, 113, 133, 0.4);
+
   /* ── Extra: Node Body Tags (React Equivalents) ── */
   --nod8-node-http-tag-bg: rgba(251, 146, 60, 0.05);
   --nod8-node-http-tag-text: rgb(251, 146, 60);

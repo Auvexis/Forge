@@ -19,6 +19,7 @@ export type WorkflowNodeType =
   | 'switch'
   | 'merge'
   | 'split-in-batches'
+  | 'respond-webhook'
 
 // ── Retry Policy ─────────────────────────────────────────────
 
@@ -165,6 +166,15 @@ export interface SplitInBatchesNode extends WorkflowNodeBase {
   maxBatches?: number
 }
 
+// ── Respond To Webhook Node ───────────────────────────────
+
+export interface RespondToWebhookNode extends WorkflowNodeBase {
+  type: 'respond-webhook'
+  statusCode: number
+  body: string
+  headers?: Record<string, string>
+}
+
 // ── Discriminated Union ──────────────────────────────────────
 
 export type WorkflowNode =
@@ -181,6 +191,7 @@ export type WorkflowNode =
   | SwitchNode
   | MergeNode
   | SplitInBatchesNode
+  | RespondToWebhookNode
 
 // ── Edges ────────────────────────────────────────────────────
 

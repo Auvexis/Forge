@@ -219,33 +219,29 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 
 > ⚠️ **Decisão Arquitetural Crítica**: O HTTP Response Object do Fastify **nunca** entra no executor. Usamos o `PendingWebhookResponseRegistry` (singleton Map) como mediador desacoplado.
 
-- [ ] **7.1** — Criar `server/src/core/modules/workflows/pending-webhook-registry.ts`:
-  ```ts
-  // Map<requestCorrelationId, { resolve: (response) => void; timer: NodeJS.Timeout }>
-  // Timeout de 30s — se o workflow não responder, retorna 504 automaticamente
-  ```
+- [x] **7.1** — Criar `server/src/core/modules/workflows/pending-webhook-registry.ts`
 
-- [ ] **7.2** — `workflow-types.ts` (server + client): Adicionar `RespondToWebhookNode`
+- [x] **7.2** — `workflow-types.ts` (server + client): Adicionar `RespondToWebhookNode`
   - `{ type: "respond-webhook"; statusCode: number; body: string; headers?: Record<string, string> }`
 
-- [ ] **7.3** — `executor.ts`: Implementar `executeRespondToWebhookNode()`:
+- [x] **7.3** — `executor.ts`: Implementar `executeRespondToWebhookNode()`:
   - Lê `context._webhookCorrelationId` (injetado pelo trigger)
   - Chama `PendingWebhookResponseRegistry.resolve(correlationId, { statusCode, body, headers })`
   - Retorna `{ statusCode, body }` como output do step para o log
 
-- [ ] **7.4** — `workflows.routes.ts` webhook handler (modo produção):
+- [x] **7.4** — `workflows.routes.ts` webhook handler (modo produção):
   - Ao receber webhook: gerar `correlationId`, registrar no `PendingWebhookResponseRegistry`, injetar no `triggerPayload._webhookCorrelationId`
   - Aguardar `registry.waitForResponse(correlationId, timeoutMs: 30000)`
   - Se resolve antes do timeout → enviar response customizada
   - Se timeout → enviar `504 Gateway Timeout`
 
-- [ ] **7.5** — Adicionar ao `VALID_NODE_TYPES` e validação de rota
+- [x] **7.5** — Adicionar ao `VALID_NODE_TYPES` e validação de rota
 
-- [ ] **7.6** — Frontend: `RespondToWebhookNode.vue` com ícone `send`, CSS tokens `--nod8-node-respond-webhook-*`
+- [x] **7.6** — Frontend: `RespondToWebhookNode.vue` com ícone `send`, CSS tokens `--nod8-node-respond-webhook-*`
 
-- [ ] **7.7** — Frontend: `RespondToWebhookEditor.vue` com campos `statusCode` (number), `body` (textarea com template support), `headers` (key-value pairs)
+- [x] **7.7** — Frontend: `RespondToWebhookEditor.vue` com campos `statusCode` (number), `body` (textarea com template support), `headers` (key-value pairs)
 
-- [ ] **7.8** — Registrar em Canvas, AddNodePanel e editor registry
+- [x] **7.8** — Registrar em Canvas, AddNodePanel e editor registry
 
 - [ ] **7.9** — ✅ **TESTE & COMMIT**: Webhook → algum nó → Respond to Webhook com `status: 201, body: { ok: true }`. Usar `curl` para verificar que a resposta recebida é exatamente essa. Commitar.
 
@@ -286,7 +282,7 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 | Fase 4 | Date/Time + Crypto + Compare (Plugins) | ✅ Implementado (aguardando teste) |
 | Fase 5 | Wait / Sleep (Plugin) | ✅ Implementado (aguardando teste) |
 | Fase 6 | Read / Write File (Plugin) | ✅ Implementado (aguardando teste) |
-| Fase 7 | Respond to Webhook (Estrutural) | ⏳ Pendente |
+| Fase 7 | Respond to Webhook (Estrutural) | ✅ Implementado (aguardando teste) |
 | Fase 8 | Form Trigger | ⏳ Pendente |
 
 ---
