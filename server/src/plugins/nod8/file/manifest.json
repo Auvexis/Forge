@@ -1,0 +1,98 @@
+{
+  "metadata": {
+    "id": "nod8-file",
+    "name": "Read / Write File",
+    "description": "Read and write files in a sandboxed workspace directory. Path traversal is blocked.",
+    "icon": "file-text",
+    "category": "Utilities",
+    "author": "Nod8",
+    "version": "1.0.0"
+  },
+
+  "methods": {
+    "readText": {
+      "metadata": { "label": "Read Text File", "description": "Read a file as a UTF-8 string." },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": { "type": "string", "description": "File name (relative to workflow sandbox).", "x-input-type": "text" },
+          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
+        },
+        "required": ["filename", "workflowId"]
+      },
+      "responseSchema": { "type": "object", "x-nod8-display": "generic" },
+      "ui": { "component": "card" }
+    },
+
+    "writeText": {
+      "metadata": { "label": "Write Text File", "description": "Write a UTF-8 string to a file, creating it if needed." },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": { "type": "string", "description": "File name.", "x-input-type": "text" },
+          "content": { "type": "string", "description": "Text content to write.", "x-input-type": "text" },
+          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
+        },
+        "required": ["filename", "content", "workflowId"]
+      },
+      "responseSchema": { "type": "object", "x-nod8-display": "generic" },
+      "ui": { "component": "card" }
+    },
+
+    "readJson": {
+      "metadata": { "label": "Read JSON File", "description": "Read a file and parse it as JSON." },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": { "type": "string", "description": "File name.", "x-input-type": "text" },
+          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
+        },
+        "required": ["filename", "workflowId"]
+      },
+      "responseSchema": { "type": "object", "x-nod8-display": "generic" },
+      "ui": { "component": "card" }
+    },
+
+    "writeJson": {
+      "metadata": { "label": "Write JSON File", "description": "Serialize a value to JSON and write it to a file." },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": { "type": "string", "description": "File name.", "x-input-type": "text" },
+          "content": { "type": "object", "description": "Value to serialize.", "x-input-type": "text" },
+          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
+        },
+        "required": ["filename", "content", "workflowId"]
+      },
+      "responseSchema": { "type": "object", "x-nod8-display": "generic" },
+      "ui": { "component": "card" }
+    },
+
+    "deleteFile": {
+      "metadata": { "label": "Delete File", "description": "Delete a file from the workflow sandbox." },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": { "type": "string", "description": "File name.", "x-input-type": "text" },
+          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
+        },
+        "required": ["filename", "workflowId"]
+      },
+      "responseSchema": { "type": "object", "x-nod8-display": "generic" },
+      "ui": { "component": "card" }
+    },
+
+    "listFiles": {
+      "metadata": { "label": "List Files", "description": "List files in the workflow sandbox directory." },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
+        },
+        "required": ["workflowId"]
+      },
+      "responseSchema": { "type": "object", "x-nod8-display": "generic" },
+      "ui": { "component": "card" }
+    }
+  }
+}

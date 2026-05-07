@@ -161,17 +161,17 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 
 > ⚠️ **Regra**: Esses plugins vivem em `server/src/plugins/nod8/` e seguem **exatamente** o contrato do `_template`. O executor.ts não tem nenhum conhecimento especial deles.
 
-- [ ] **4.1** — `server/src/plugins/nod8/date-time/manifest.json` + `methods.ts` + `index.ts`:
+- [x] **4.1** — `server/src/plugins/nod8/date-time/manifest.json` + `methods.ts` + `index.ts`:
   - **Actions**: `format` (timestamp → string formatada), `parse` (string → timestamp), `add` (adicionar N unidades), `subtract`, `diff` (diferença entre datas), `now` (retorna data atual)
   - **Dependência**: `dayjs` — instalar no `server/package.json`
   - `index.ts`: `auth: { type: "none" }` — sem credenciais
 
-- [ ] **4.2** — `server/src/plugins/nod8/crypto/manifest.json` + `methods.ts` + `index.ts`:
+- [x] **4.2** — `server/src/plugins/nod8/crypto/manifest.json` + `methods.ts` + `index.ts`:
   - **Actions**: `hash` (SHA-256, MD5, SHA-512), `hmac` (HMAC-SHA256), `base64Encode`, `base64Decode`, `generateUUID`, `generateRandomString`
   - **Dependência**: módulo nativo `node:crypto` — sem instalação extra
   - `index.ts`: `auth: { type: "none" }`
 
-- [ ] **4.3** — `server/src/plugins/nod8/compare-datasets/manifest.json` + `methods.ts` + `index.ts`:
+- [x] **4.3** — `server/src/plugins/nod8/compare-datasets/manifest.json` + `methods.ts` + `index.ts`:
   - **Actions**: `intersect` (comum nas duas listas), `difference` (exclusivo de A), `union` (todas únicas), `symmetricDifference` (exclusivo de cada uma)
   - **Parâmetros**: `listA: array`, `listB: array`, `matchKey: string` (campo usado para comparação)
   - Sem dependências externas — JavaScript puro
@@ -185,7 +185,7 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 > **Pré-requisito**: Fase 4 concluída.
 > **Critério de conclusão**: Nó pausa execução por N segundos/milissegundos sem bloquear o Event Loop.
 
-- [ ] **5.1** — `server/src/plugins/nod8/wait/manifest.json` + `methods.ts` + `index.ts`:
+- [x] **5.1** — `server/src/plugins/nod8/wait/manifest.json` + `methods.ts` + `index.ts`:
   - **Action única**: `sleep`
   - **Parâmetros**: `duration: number`, `unit: "milliseconds" | "seconds" | "minutes"`
   - **Implementação**: `await new Promise(resolve => setTimeout(resolve, durationMs))` dentro do método
@@ -201,9 +201,9 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 > **Pré-requisito**: Fase 4 concluída.
 > **Critério de conclusão**: Nó lê e escreve arquivos em diretório sandboxed. Path traversal retorna erro 400.
 
-- [ ] **6.1** — Criar diretório seguro `server/workspace/` (gitignore'd) como root do sandbox
+- [x] **6.1** — Criar diretório seguro `server/workspace/` (gitignore'd) como root do sandbox
 
-- [ ] **6.2** — `server/src/plugins/nod8/file/manifest.json` + `methods.ts` + `index.ts`:
+- [x] **6.2** — `server/src/plugins/nod8/file/manifest.json` + `methods.ts` + `index.ts`:
   - **Actions**: `readText` (lê arquivo como string), `writeText` (escreve string), `readJson` (lê + parse JSON), `writeJson` (stringify + escreve), `deleteFile`, `listFiles` (lista arquivos no diretório do workflow)
   - **Segurança sandbox**: no início de cada método, usar `path.resolve(WORKSPACE_ROOT, workflowId, userFilename)` e verificar que o caminho resolvido começa com `WORKSPACE_ROOT` — se não, lançar `Error("Path traversal detected")`
   - `WORKSPACE_ROOT` definido via env var `ND8_WORKSPACE_PATH` com fallback para `./workspace`
@@ -283,9 +283,9 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 | Fase 1 | Set + Switch (Estruturais) | ✅ Implementado (aguardando teste) |
 | Fase 2 | Merge (Estrutural) | ✅ Implementado (aguardando teste) |
 | Fase 3 | Split In Batches (Estrutural) | ⏳ Pendente |
-| Fase 4 | Date/Time + Crypto + Compare (Plugins) | ⏳ Pendente |
-| Fase 5 | Wait / Sleep (Plugin) | ⏳ Pendente |
-| Fase 6 | Read / Write File (Plugin) | ⏳ Pendente |
+| Fase 4 | Date/Time + Crypto + Compare (Plugins) | ✅ Implementado (aguardando teste) |
+| Fase 5 | Wait / Sleep (Plugin) | ✅ Implementado (aguardando teste) |
+| Fase 6 | Read / Write File (Plugin) | ✅ Implementado (aguardando teste) |
 | Fase 7 | Respond to Webhook (Estrutural) | ⏳ Pendente |
 | Fase 8 | Form Trigger | ⏳ Pendente |
 
