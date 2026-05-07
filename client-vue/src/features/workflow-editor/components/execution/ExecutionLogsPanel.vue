@@ -116,12 +116,29 @@
               class="elp-step"
               :class="step?.status ? `elp-step--${step.status.toLowerCase()}` : ''"
             >
-              <div class="elp-step-header">
+              <div class="elp-step-header" @click="toggleStep(nodeId as string)" style="cursor: pointer; user-select: none;">
+                <LucideIcon :name="expandedSteps.has(nodeId as string) ? 'chevron-down' : 'chevron-right'" :size="12" style="margin-right: 4px; opacity: 0.5" />
                 <LucideIcon :name="stepStatusIcon(step?.status ?? '')" :size="12" />
                 <span class="elp-step-id">{{ nodeId }}</span>
                 <span class="elp-step-status">{{ step?.status ?? '—' }}</span>
               </div>
-              <pre v-if="step?.error" class="elp-step-error">{{ typeof step.error === 'string' ? step.error : JSON.stringify(step.error, null, 2) }}</pre>
+              <div v-if="expandedSteps.has(nodeId as string)" class="elp-step-details">
+                <pre v-if="step?.error" class="elp-step-error">{{ typeof step.error === 'string' ? step.error : JSON.stringify(step.error, null, 2) }}</pre>
+                <div v-else-if="step?.output" class="elp-step-output-wrap">
+                  <div class="elp-section-title-row" style="margin-top: 8px;">
+                    <span style="font-size: 10px; font-weight: 600; color: var(--nod8-text-muted); text-transform: uppercase;">Output Data</span>
+                    <button
+                      class="elp-copy-btn"
+                      :title="copiedStepId === nodeId ? 'Copied!' : 'Copy output'"
+                      @click.stop="copyStepOutput(nodeId as string, step.output)"
+                    >
+                      <LucideIcon :name="copiedStepId === nodeId ? 'check' : 'copy'" :size="10" />
+                    </button>
+                  </div>
+                  <pre class="elp-code">{{ formatJson(step.output) }}</pre>
+                </div>
+                <div v-else class="elp-step-empty">No output data available for this step.</div>
+              </div>
             </div>
           </div>
         </div>
@@ -152,6 +169,27 @@ const { data: executions, loading, execute: fetchExecutions } = useApi(workflows
 const clearLoading = ref(false)
 const detailExecution = ref<ExecutionLog | null>(null)
 const { error: toastError, success: toastSuccess } = useToast()
+
+const expandedSteps = ref(new Set<string>())
+const copiedStepId = ref<string | null>(null)
+
+function toggleStep(nodeId: string) {
+  if (expandedSteps.value.has(nodeId)) {
+    expandedSteps.value.delete(nodeId)
+  } else {
+    expandedSteps.value.add(nodeId)
+  }
+}
+
+async function copyStepOutput(nodeId: string, output: any) {
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(output, null, 2))
+    copiedStepId.value = nodeId
+    setTimeout(() => { copiedStepId.value = null }, 2000)
+  } catch (err) {
+    toastError('Failed to copy output')
+  }
+}
 
 async function refresh() {
   await fetchExecutions(props.workflowId)
@@ -228,6 +266,11 @@ async function copyTriggerPayload() {
     toastError('Failed to copy to clipboard')
   }
 }
+
+// Ensure expanded steps reset when changing execution details
+watch(detailExecution, () => {
+  expandedSteps.value.clear()
+})
 
 watch(() => props.workflowId, refresh)
 onMounted(refresh)
@@ -627,12 +670,12 @@ onBeforeUnmount(() => {
 .elp-code {
   margin: 0;
   padding: var(--nod8-space-3);
-  background: var(--nod8-bg-canvas);
+  background: var(--nod8-bg-base);
   border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-sm);
   font-family: var(--nod8-font-mono);
   font-size: var(--nod8-text-xs);
-  color: var(--nod8-green-400);
+  color: var(--nod8-text-secondary);
   overflow: auto;
   max-height: 150px;
   white-space: pre-wrap;
@@ -652,7 +695,7 @@ onBeforeUnmount(() => {
   padding: var(--nod8-space-2) var(--nod8-space-3);
   border-radius: var(--nod8-radius-sm);
   border: 1px solid var(--nod8-border);
-  background: var(--nod8-bg-elevated);
+  background: var(--nod8-bg-base);
 }
 
 .elp-step--failed {

@@ -17,49 +17,54 @@
           <p class="te-hint">Fields user must fill when running manually.</p>
         </div>
 
-        <div class="flex flex-col gap-2">
-          <div v-for="(field, key, index) in node.data.schema || {}" :key="index" class="te-card">
-            <div class="te-card-header">
-              <BaseInput
-                :model-value="String(key)"
-                @blur="updateSchemaKey(String(key), ($event.target as HTMLInputElement).value)"
-                placeholder="Field name"
+        <div class="flex flex-col gap-2 mt-2">
+          <div
+            v-for="(field, key, index) in node.data.schema || {}"
+            :key="index"
+            class="flex items-center gap-2"
+          >
+            <BaseInput
+              :model-value="String(key)"
+              @blur="updateSchemaKey(String(key), ($event.target as HTMLInputElement).value)"
+              placeholder="Field name"
+              style="font-family: var(--nod8-font-mono); flex: 1"
+            />
+            <div style="width: 130px; flex-shrink: 0;">
+              <BaseSelect
+                :model-value="(field as any).type as string"
+                :options="MANUAL_FIELD_TYPES"
+                @update:model-value="updateSchemaField(String(key), { type: $event as any })"
               />
-              <button class="te-remove-btn" @click="removeSchemaField(String(key))">
-                <XIcon :size="12" />
-              </button>
             </div>
-            <div class="te-card-row">
-              <div style="width: 140px; flex-shrink: 0;">
-                <BaseSelect
-                  :model-value="(field as any).type as string"
-                  :options="MANUAL_FIELD_TYPES"
-                  @update:model-value="
-                    updateSchemaField(String(key), {
-                      type: $event as any,
-                    })
-                  "
-                />
-              </div>
-              <label class="te-req-label">
-                <input
-                  type="checkbox"
-                  :checked="(field as any).required"
-                  @change="
-                    updateSchemaField(String(key), {
-                      required: ($event.target as HTMLInputElement).checked,
-                    })
-                  "
-                />
-                Req
-              </label>
-            </div>
+            <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--nod8-text-secondary)] cursor-pointer whitespace-nowrap px-1">
+              <input
+                type="checkbox"
+                class="accent-[var(--nod8-accent)] cursor-pointer w-3.5 h-3.5"
+                :checked="(field as any).required"
+                @change="updateSchemaField(String(key), { required: ($event.target as HTMLInputElement).checked })"
+              />
+              Req
+            </label>
+            <BaseButton
+              variant="ghost"
+              size="icon"
+              icon-left="x"
+              class="!text-[var(--nod8-text-muted)] hover:!text-[var(--nod8-text-primary)] !p-2"
+              @click="removeSchemaField(String(key))"
+            />
           </div>
-        </div>
 
-        <button class="editor-add-btn" @click="addSchemaField">
-          <PlusIcon :size="14" /> Add Expected Input
-        </button>
+          <BaseButton
+            variant="dashed"
+            size="md"
+            icon-left="plus"
+            full-width
+            class="!rounded-full mt-1"
+            @click="addSchemaField"
+          >
+            Add Expected Input
+          </BaseButton>
+        </div>
       </div>
     </template>
 
@@ -153,45 +158,54 @@
             <p class="te-hint">Document the fields this webhook expects to receive.</p>
           </div>
 
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-2 mt-2">
             <div
               v-for="(field, key, index) in (node.data as unknown as WorkflowTrigger).webhookBodySchema || {}"
               :key="index"
-              class="te-card"
+              class="flex items-center gap-2"
             >
-              <div class="te-card-header">
-                <BaseInput
-                  :model-value="String(key)"
-                  @blur="updateBodySchemaKey(String(key), ($event.target as HTMLInputElement).value)"
-                  placeholder="Field name"
+              <BaseInput
+                :model-value="String(key)"
+                @blur="updateBodySchemaKey(String(key), ($event.target as HTMLInputElement).value)"
+                placeholder="Field name"
+                style="font-family: var(--nod8-font-mono); flex: 1"
+              />
+              <div style="width: 130px; flex-shrink: 0;">
+                <BaseSelect
+                  :model-value="(field as any).type as string"
+                  :options="WEBHOOK_FIELD_TYPES"
+                  @update:model-value="updateBodySchemaField(String(key), { type: $event as any })"
                 />
-                <button class="te-remove-btn" @click="removeBodySchemaField(String(key))">
-                  <XIcon :size="12" />
-                </button>
               </div>
-              <div class="te-card-row">
-                <div style="width: 140px; flex-shrink: 0;">
-                  <BaseSelect
-                    :model-value="(field as any).type as string"
-                    :options="WEBHOOK_FIELD_TYPES"
-                    @update:model-value="updateBodySchemaField(String(key), { type: $event as any })"
-                  />
-                </div>
-                <label class="te-req-label">
-                  <input
-                    type="checkbox"
-                    :checked="(field as any).required"
-                    @change="updateBodySchemaField(String(key), { required: ($event.target as HTMLInputElement).checked })"
-                  />
-                  Req
-                </label>
-              </div>
+              <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--nod8-text-secondary)] cursor-pointer whitespace-nowrap px-1">
+                <input
+                  type="checkbox"
+                  class="accent-[var(--nod8-accent)] cursor-pointer w-3.5 h-3.5"
+                  :checked="(field as any).required"
+                  @change="updateBodySchemaField(String(key), { required: ($event.target as HTMLInputElement).checked })"
+                />
+                Req
+              </label>
+              <BaseButton
+                variant="ghost"
+                size="icon"
+                icon-left="x"
+                class="!text-[var(--nod8-text-muted)] hover:!text-[var(--nod8-text-primary)] !p-2"
+                @click="removeBodySchemaField(String(key))"
+              />
             </div>
-          </div>
 
-          <button class="editor-add-btn" @click="addBodySchemaField">
-            <PlusIcon :size="14" /> Add Body Field
-          </button>
+            <BaseButton
+              variant="dashed"
+              size="md"
+              icon-left="plus"
+              full-width
+              class="!rounded-full mt-1"
+              @click="addBodySchemaField"
+            >
+              Add Body Field
+            </BaseButton>
+          </div>
         </div>
 
       </div>

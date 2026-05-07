@@ -189,8 +189,8 @@ export function createTelegramMethods() {
       const formData = new FormData();
       formData.append("chat_id", params.chatId.trim());
 
-      // Convert Buffer to Blob for FormData — Node.js 18+ supports Blob natively
-      const blob = new Blob([params.file]);
+      // Convert Buffer to Blob for FormData — cast buffer to ArrayBuffer to satisfy TS strict types
+      const blob = new Blob([params.file.buffer as ArrayBuffer]);
       formData.append("document", blob, params.filename?.trim() || "file");
 
       if (params.caption?.trim()) {
@@ -239,7 +239,7 @@ export function createTelegramMethods() {
 
       const formData = new FormData();
       formData.append("chat_id", params.chatId.trim());
-      formData.append("photo", new Blob([params.file]), params.filename?.trim() || "photo.jpg");
+      formData.append("photo", new Blob([params.file.buffer as ArrayBuffer]), params.filename?.trim() || "photo.jpg");
 
       if (params.caption?.trim()) {
         formData.append("caption", params.caption.trim());
@@ -303,76 +303,6 @@ export function createTelegramMethods() {
       }
 
       return telegramApi(context!, "sendPoll", body);
-    },
-
-    /**
-     * Registers a webhook URL with Telegram. After calling this, Telegram will
-     * POST all incoming bot updates to the specified URL.
-     */
-    setWebhook: async (
-      params: {
-        webhookPath: string;
-      },
-      context?: PluginContext,
-    ) => {
-      if (!params.webhookPath?.trim()) {
-        throw new Error("'webhookPath' is required (e.g. '/webhooks/my-telegram-bot').");
-      }
-
-      const serverBaseUrl = process.env.SERVER_BASE_URL?.trim();
-      if (!serverBaseUrl) {
-        throw new Error(
-          "SERVER_BASE_URL is not set in the server environment. " +
-          "This must be the public HTTPS URL of your Nod8 server (e.g. https://myserver.com)."
-        );
-      }
-
-      // Ensure the base URL doesn't end with slash and path starts with slash
-      const base = serverBaseUrl.replace(/\/$/, "");
-      const path = params.webhookPath.trim().startsWith("/")
-        ? params.webhookPath.trim()
-        : `/${params.webhookPath.trim()}`;
-
-      const webhookUrl = `${base}${path}`;
-
-      // Validate it's HTTPS — Telegram requires HTTPS for webhooks
-      if (!webhookUrl.startsWith("https://")) {
-        throw new Error(
-          `Webhook URL must use HTTPS. Got: ${webhookUrl}. ` +
-          "Telegram requires HTTPS for webhook endpoints."
-        );
-      }
-
-      return telegramApi(context!, "setWebhook", { url: webhookUrl });
-    },
-
-    /**
-     * Retrieves information about the current webhook configuration.
-     */
-    getWebhookInfo: async (
-      _params: Record<string, never>,
-      context?: PluginContext,
-    ) => {
-      const token = context?.credentials?.bot_token?.trim();
-      if (!token) throw new Error("Telegram bot token is not configured.");
-
-      const url = `${TELEGRAM_API_BASE}/bot${token}/getWebhookInfo`;
-      const response = await fetch(url);
-      const data = await response.json() as { ok: boolean; result?: any; description?: string };
-
-      if (!data.ok) throw new Error(`Telegram API error: ${data.description}`);
-      return data.result;
-    },
-
-    /**
-     * Removes the currently configured webhook from Telegram.
-     * After this, updates will be available via getUpdates (polling mode).
-     */
-    deleteWebhook: async (
-      _params: Record<string, never>,
-      context?: PluginContext,
-    ) => {
-      return telegramApi(context!, "deleteWebhook", {});
-    },
+    }
   };
 }

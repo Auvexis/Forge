@@ -29,11 +29,11 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Conditional')
     border-color="var(--nod8-node-if-border)"
   >
     <!-- True handle (green, top) -->
-    <BaseHandle id="if-true" type="source" :position="Position.Right" style="top: 35%" />
+    <BaseHandle id="then" type="source" :position="Position.Right" style="top: 35%" />
     <BaseBadge variant="default" size="sm" class="if-handle-badge" style="top: 35%; right: -60px">True</BaseBadge>
 
     <!-- False handle (red, bottom) -->
-    <BaseHandle id="if-false" type="source" :position="Position.Right" style="top: 65%" />
+    <BaseHandle id="else" type="source" :position="Position.Right" style="top: 65%" />
     <BaseBadge variant="default" size="sm" class="if-handle-badge" style="top: 65%; right: -64px">False</BaseBadge>
   </BaseNode>
 </template>

@@ -2,7 +2,7 @@
   <aside class="app-sidebar surface">
     <!-- Brand/Logo Area -->
     <div class="app-sidebar__brand">
-      <img src="/icon.svg" alt="nod8 Logo" class="brand-logo" />
+      <img src="/favicon.svg" alt="nd8" class="brand-logo" />
     </div>
 
     <!-- Navigation Items -->
