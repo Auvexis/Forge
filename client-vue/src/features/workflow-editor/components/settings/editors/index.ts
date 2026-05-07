@@ -15,6 +15,8 @@ import EventEditor from './EventEditor.vue'
 import EventListenerEditor from './EventListenerEditor.vue'
 import PluginEditor from './PluginEditor.vue'
 import TriggerEditor from './TriggerEditor.vue'
+import SetEditor from './SetEditor.vue'
+import SwitchEditor from './SwitchEditor.vue'
 
 export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', Component>> = {
   plugin: PluginEditor,
@@ -26,6 +28,8 @@ export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', 
   event: EventEditor,
   'event-listener': EventListenerEditor,
   trigger: TriggerEditor,
+  set: SetEditor,
+  switch: SwitchEditor,
 }
 
 export type { NodeEditorProps } from './types'

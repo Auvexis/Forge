@@ -52,6 +52,8 @@ const VALID_NODE_TYPES = new Set([
   "http",
   "event",
   "event-listener",
+  "set",
+  "switch",
 ]);
 
 // ──────────── Validation helper ────────────
@@ -121,6 +123,19 @@ function validateWorkflowDefinition(workflow: WorkflowItem): string | null {
       case "event-listener":
         if (!node.eventName || typeof node.eventName !== "string") {
           return `Event Listener node "${nodeId}" must have an eventName string`;
+        }
+        break;
+      case "set":
+        if (!Array.isArray((node as any).assignments) || (node as any).assignments.length === 0) {
+          return `Set node "${nodeId}" must have a non-empty assignments array`;
+        }
+        break;
+      case "switch":
+        if (!(node as any).inputExpression || typeof (node as any).inputExpression !== "string") {
+          return `Switch node "${nodeId}" must have an inputExpression string`;
+        }
+        if (!Array.isArray((node as any).cases) || (node as any).cases.length === 0) {
+          return `Switch node "${nodeId}" must have a non-empty cases array`;
         }
         break;
     }

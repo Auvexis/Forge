@@ -15,6 +15,8 @@ export type WorkflowNodeType =
   | 'http'
   | 'event'
   | 'event-listener'
+  | 'set'
+  | 'switch'
 
 // ── Retry Policy ─────────────────────────────────────────────
 
@@ -119,6 +121,32 @@ export interface TriggerNode extends WorkflowNodeBase {
   type: 'trigger'
 }
 
+// ── Set Node ─────────────────────────────────────────────────
+
+export interface SetNodeAssignment {
+  key: string
+  value: string
+}
+
+export interface SetNode extends WorkflowNodeBase {
+  type: 'set'
+  assignments: SetNodeAssignment[]
+}
+
+// ── Switch Node ───────────────────────────────────────────────
+
+export interface SwitchNodeCase {
+  value: string
+  handleId: string
+}
+
+export interface SwitchNode extends WorkflowNodeBase {
+  type: 'switch'
+  inputExpression: string
+  cases: SwitchNodeCase[]
+  fallbackHandleId?: string
+}
+
 // ── Discriminated Union ──────────────────────────────────────
 
 export type WorkflowNode =
@@ -131,6 +159,8 @@ export type WorkflowNode =
   | HttpNode
   | EventNode
   | EventListenerNode
+  | SetNode
+  | SwitchNode
 
 // ── Edges ────────────────────────────────────────────────────
 

@@ -210,6 +210,22 @@ const LOGIC_NODES = [
     color: 'var(--nod8-node-event-listener-icon)',
     bgColor: 'var(--nod8-node-event-listener-bg)',
   },
+  {
+    type: 'set' as WorkflowNodeType,
+    label: 'Set Fields',
+    description: 'Definir ou renomear campos sem JavaScript',
+    icon: 'sliders-horizontal',
+    color: 'var(--nod8-node-set-icon)',
+    bgColor: 'var(--nod8-node-set-bg)',
+  },
+  {
+    type: 'switch' as WorkflowNodeType,
+    label: 'Switch',
+    description: 'Rotear para N caminhos baseado em valor',
+    icon: 'git-branch-plus',
+    color: 'var(--nod8-node-switch-icon)',
+    bgColor: 'var(--nod8-node-switch-bg)',
+  },
 ]
 
 // ── Computed ─────────────────────────────────────────────────────────────────

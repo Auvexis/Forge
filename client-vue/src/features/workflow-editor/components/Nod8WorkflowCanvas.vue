@@ -13,6 +13,8 @@ import EventListenerNode from './nodes/EventListenerNode.vue'
 import PluginNode from './nodes/PluginNode.vue'
 import IfNode from './nodes/IfNode.vue'
 import SubWorkflowNode from './nodes/SubWorkflowNode.vue'
+import SetNode from './nodes/SetNode.vue'
+import SwitchNode from './nodes/SwitchNode.vue'
 import BaseEdge from './BaseEdge.vue'
 import { Background } from '@vue-flow/background'
 
@@ -234,6 +236,8 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   event: 'Emit Event',
   'event-listener': 'Wait for Event',
   plugin: 'Plugin Action',
+  set: 'Set Fields',
+  switch: 'Switch',
 }
 
 function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
@@ -337,6 +341,14 @@ const addLogicNode = (type: WorkflowNodeType) => {
     defaultData.workflowId = 'placeholder'
   } else if (type === 'event' || type === 'event-listener') {
     defaultData.eventName = 'my-event'
+  } else if (type === 'set') {
+    defaultData.assignments = [{ key: 'field', value: '' }]
+  } else if (type === 'switch') {
+    defaultData.inputExpression = 'steps.prev.output.status'
+    defaultData.cases = [
+      { value: '200', handleId: 'case_0' },
+      { value: '404', handleId: 'case_1' },
+    ]
   }
 
   // Adicionar no store
@@ -593,6 +605,16 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       <!-- IF Node -->
       <template #node-if="nodeProps">
         <IfNode v-bind="nodeProps" />
+      </template>
+
+      <!-- SET Node -->
+      <template #node-set="nodeProps">
+        <SetNode v-bind="nodeProps" />
+      </template>
+
+      <!-- SWITCH Node -->
+      <template #node-switch="nodeProps">
+        <SwitchNode v-bind="nodeProps" />
       </template>
     </VueFlow>
 

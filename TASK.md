@@ -52,50 +52,50 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 > **Pré-requisito**: Nenhum. Começamos aqui.
 > **Critério de conclusão**: Workflows com Set e Switch salvam, executam e roteiam corretamente.
 
-- [ ] **1.1** — `server/src/shared/models/workflow-types.ts`: Adicionar `SetNode` e `SwitchNode` à union `WorkflowNode` e ao tipo `WorkflowNodeType`
+- [x] **1.1** — `server/src/shared/models/workflow-types.ts`: Adicionar `SetNode` e `SwitchNode` à union `WorkflowNode` e ao tipo `WorkflowNodeType`
   - `SetNode`: `{ type: "set"; assignments: Array<{ key: string; value: string }> }`
   - `SwitchNode`: `{ type: "switch"; inputExpression: string; cases: Array<{ value: string; handleId: string }>; fallbackHandleId?: string }`
 
-- [ ] **1.2** — `client-vue/src/core/types/workflow.types.ts`: Sincronizar os mesmos tipos com o server (espelho manual)
+- [x] **1.2** — `client-vue/src/core/types/workflow.types.ts`: Sincronizar os mesmos tipos com o server (espelho manual)
 
-- [ ] **1.3** — `server/src/core/modules/workflows/executor.ts`:
+- [x] **1.3** — `server/src/core/modules/workflows/executor.ts`:
   - Adicionar `executeSetNode()`: itera `assignments`, avalia cada `value` via `WorkflowParser.evalParams`, injeta no contexto `context.steps[nodeId].output`
   - Adicionar `executeSwitchNode()`: avalia `inputExpression` contra o contexto, faz match no array `cases`, retorna `{ activeHandle: string }` 
   - Adicionar ambos no dispatcher `executeNode()` switch-case
   - Adicionar lógica de release de edges no BFS principal para o Switch (similar ao `if`): apenas o handle correspondente a `activeHandle` libera seus nós destino
 
-- [ ] **1.4** — `server/src/core/routes/workflows.routes.ts`:
+- [x] **1.4** — `server/src/core/routes/workflows.routes.ts`:
   - Adicionar `"set"` e `"switch"` ao `VALID_NODE_TYPES` Set
   - Adicionar casos de validação em `validateWorkflowDefinition()`:
     - `set`: requer `assignments` como array não-vazio
     - `switch`: requer `inputExpression` string e `cases` array não-vazio
 
-- [ ] **1.5** — Frontend — Novo Vue component `SetNode.vue` em `components/nodes/`:
+- [x] **1.5** — Frontend — Novo Vue component `SetNode.vue` em `components/nodes/`:
   - Visual similar ao `IfNode.vue` com ícone `sliders-horizontal`, usando CSS tokens `--nod8-node-set-*`
   - Handle único de saída `source` (output padrão)
 
-- [ ] **1.6** — Frontend — Novo Vue component `SwitchNode.vue` em `components/nodes/`:
+- [x] **1.6** — Frontend — Novo Vue component `SwitchNode.vue` em `components/nodes/`:
   - Renderiza N handles de saída dinamicamente baseado em `data.cases`
   - Handle de fallback opcional
   - Visual com ícone `git-branch-plus`, CSS tokens `--nod8-node-switch-*`
 
-- [ ] **1.7** — Frontend — Novo editor `SetEditor.vue` em `components/settings/editors/`:
+- [x] **1.7** — Frontend — Novo editor `SetEditor.vue` em `components/settings/editors/`:
   - Lista de pares `key: value` com add/remove dinâmico
   - Suporte a `{{ template }}` nos valores (textarea por campo)
   - Integra com `injectVariable` prop para Variable Tree
 
-- [ ] **1.8** — Frontend — Novo editor `SwitchEditor.vue` em `components/settings/editors/`:
+- [x] **1.8** — Frontend — Novo editor `SwitchEditor.vue` em `components/settings/editors/`:
   - Campo `inputExpression` (o valor a ser avaliado)
   - Lista dinâmica de `cases`: valor esperado + identificador do handle (ex: `case_0`, `case_1`)
   - Campo `fallbackHandleId` opcional
 
-- [ ] **1.9** — `Nod8WorkflowCanvas.vue`: Registrar `SetNode` e `SwitchNode` nos templates `#node-set` e `#node-switch`; adicionar ao `NODE_DEFAULT_NAMES` e ao `addLogicNode()` defaults
+- [x] **1.9** — `Nod8WorkflowCanvas.vue`: Registrar `SetNode` e `SwitchNode` nos templates `#node-set` e `#node-switch`; adicionar ao `NODE_DEFAULT_NAMES` e ao `addLogicNode()` defaults
 
-- [ ] **1.10** — `AddNodePanel.vue`: Adicionar Set e Switch ao array `LOGIC_NODES`
+- [x] **1.10** — `AddNodePanel.vue`: Adicionar Set e Switch ao array `LOGIC_NODES`
 
-- [ ] **1.11** — `editors/index.ts`: Mapear `set → SetEditor` e `switch → SwitchEditor` no `NODE_EDITOR_REGISTRY`
+- [x] **1.11** — `editors/index.ts`: Mapear `set → SetEditor` e `switch → SwitchEditor` no `NODE_EDITOR_REGISTRY`
 
-- [ ] **1.12** — CSS tokens: Adicionar `--nod8-node-set-*` e `--nod8-node-switch-*` no arquivo de variáveis global
+- [x] **1.12** — CSS tokens: Adicionar `--nod8-node-set-*` e `--nod8-node-switch-*` no arquivo de variáveis global
 
 - [ ] **1.13** — ✅ **TESTE & COMMIT**: Criar workflow com Set → Switch → múltiplos destinos. Validar que apenas o handle correto executa. Commitar.
 
@@ -280,7 +280,7 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 
 | Fase | Descrição | Status |
 |------|-----------|--------|
-| Fase 1 | Set + Switch (Estruturais) | ⏳ Pendente |
+| Fase 1 | Set + Switch (Estruturais) | ✅ Implementado (aguardando teste) |
 | Fase 2 | Merge (Estrutural) | ⏳ Pendente |
 | Fase 3 | Split In Batches (Estrutural) | ⏳ Pendente |
 | Fase 4 | Date/Time + Crypto + Compare (Plugins) | ⏳ Pendente |

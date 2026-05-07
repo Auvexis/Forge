@@ -9,7 +9,9 @@ export type WorkflowNodeType =
   | "trigger"
   | "http"
   | "event"
-  | "event-listener";
+  | "event-listener"
+  | "set"
+  | "switch";
 
 // ──────────── Retry Policy ────────────
 
@@ -115,6 +117,32 @@ export interface TriggerNode extends WorkflowNodeBase {
   type: "trigger";
 }
 
+// ──────────── Set Node (rename / inject fields without JS) ────────────
+
+export interface SetNodeAssignment {
+  key: string;    // Target key to write in context output
+  value: string;  // Template expression or literal value
+}
+
+export interface SetNode extends WorkflowNodeBase {
+  type: "set";
+  assignments: SetNodeAssignment[];
+}
+
+// ──────────── Switch Node (N-way routing based on expression) ────────────
+
+export interface SwitchNodeCase {
+  value: string;    // Expected value to match against inputExpression result
+  handleId: string; // Source handle id that this case activates (e.g. "case_0")
+}
+
+export interface SwitchNode extends WorkflowNodeBase {
+  type: "switch";
+  inputExpression: string;       // JS expression evaluated against context
+  cases: SwitchNodeCase[];       // Ordered list of match cases
+  fallbackHandleId?: string;     // Handle activated when no case matches
+}
+
 // ──────────── Discriminated Union ────────────
 
 export type WorkflowNode =
@@ -126,7 +154,9 @@ export type WorkflowNode =
   | TriggerNode
   | HttpNode
   | EventNode
-  | EventListenerNode;
+  | EventListenerNode
+  | SetNode
+  | SwitchNode;
 
 // ──────────── Edges ────────────
 

@@ -19,6 +19,8 @@ import type {
   HttpNode,
   EventNode,
   EventListenerNode,
+  SetNode,
+  SwitchNode,
 } from "../../../shared/models/workflow-types.ts";
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -446,6 +448,43 @@ async function executeEventListenerNode(
   return payloads[node.eventName] ?? {};
 }
 
+function executeSetNode(
+  node: SetNode,
+  context: any,
+): Record<string, any> {
+  const output: Record<string, any> = {};
+  for (const assignment of node.assignments) {
+    // evalParams resolves {{ template }} expressions; wrap in object for the helper
+    const resolved = WorkflowParser.evalParams({ _v: assignment.value }, context);
+    output[assignment.key] = resolved._v;
+  }
+  return output;
+}
+
+function executeSwitchNode(
+  node: SwitchNode,
+  context: any,
+): { activeHandle: string } {
+  // Evaluate the switch expression against context — identical sandbox to evaluateCondition
+  const fn = new Function(
+    "trigger",
+    "steps",
+    "variables",
+    `"use strict"; return (${node.inputExpression});`,
+  );
+  const value = String(fn(context.trigger, context.steps, context.variables));
+
+  // First matching case wins
+  for (const c of node.cases) {
+    if (String(c.value) === value) {
+      return { activeHandle: c.handleId };
+    }
+  }
+
+  // Fall back to fallbackHandleId if set, otherwise no edge is activated
+  return { activeHandle: node.fallbackHandleId ?? "" };
+}
+
 // ──────────── Unified Node Dispatcher ────────────
 
 async function executeNode(
@@ -475,6 +514,10 @@ async function executeNode(
       return executeEventListenerNode(node as EventListenerNode, context);
     case "trigger":
       return { type: "trigger" };
+    case "set":
+      return executeSetNode(node as SetNode, context);
+    case "switch":
+      return executeSwitchNode(node as SwitchNode, context);
     default:
       throw new Error(`Unknown node type: ${(node as any).type}`);
   }
@@ -726,6 +769,21 @@ export const WorkflowEngine = {
               }
             }
           }
+        } else if (node.type === "switch") {
+          const activeHandle = (context.steps[nodeId]?.output as { activeHandle: string })
+            ?.activeHandle;
+
+          if (activeHandle) {
+            for (const edge of outEdges) {
+              if (edge.sourceHandle === activeHandle) {
+                inDegree[edge.target]--;
+                if (inDegree[edge.target] === 0) {
+                  queue.push(edge.target);
+                }
+              }
+            }
+          }
+          // If activeHandle is empty (no match, no fallback) — no edges released. Dead end.
         } else if (node.type === "loop") {
           for (const edge of outEdges) {
             if (edge.sourceHandle === "loop-done" || !edge.sourceHandle) {

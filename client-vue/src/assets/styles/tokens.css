@@ -333,6 +333,16 @@
   --nod8-node-if-icon: rgb(167, 139, 250);
   --nod8-node-if-border: rgba(167, 139, 250, 0.4);
 
+  /* Set (Edit Fields) — teal-green */
+  --nod8-node-set-bg: rgba(20, 184, 166, 0.12);
+  --nod8-node-set-icon: rgb(20, 184, 166);
+  --nod8-node-set-border: rgba(20, 184, 166, 0.4);
+
+  /* Switch (N-way routing) — amber */
+  --nod8-node-switch-bg: rgba(245, 158, 11, 0.12);
+  --nod8-node-switch-icon: rgb(245, 158, 11);
+  --nod8-node-switch-border: rgba(245, 158, 11, 0.4);
+
   /* ── Extra: Node Body Tags (React Equivalents) ── */
   --nod8-node-http-tag-bg: rgba(251, 146, 60, 0.05);
   --nod8-node-http-tag-text: rgb(251, 146, 60);
