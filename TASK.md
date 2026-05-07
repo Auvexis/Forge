@@ -253,20 +253,21 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 
 > ⚠️ **Nota**: Form Trigger é um `trigger.type = "form"` novo, não um nó adicional.
 
-- [ ] **8.1** — `workflow-types.ts` (server + client): Adicionar `"form"` ao union de `WorkflowTrigger.type`; adicionar campo `formFields: Array<{ name: string; label: string; type: "text"|"email"|"number"|"textarea"; required?: boolean }>`
+- [x] **8.1** — `workflow-types.ts` (server + client): Adicionar `"form"` ao union de `WorkflowTrigger.type`; adicionar campo `formFields: Array<{ name: string; label: string; type: "text"|"email"|"number"|"textarea"; required?: boolean }>` (`formTitle` e `formDescription` adicionados como opcionais)
 
-- [ ] **8.2** — `server/src/core/routes/workflows.routes.ts`: Registrar rota `GET /forms/:workflowId` que:
+- [x] **8.2** — `server/src/core/routes/workflows.routes.ts`: Registrar rota `GET /forms/:workflowId` que:
   - Busca o workflow pelo ID e verifica `trigger.type === "form"` e `metadata.isActive`
   - Gera e serve HTML estático minimalista com o formulário renderizado a partir de `formFields`
   - HTML deve ser auto-suficiente (inline CSS, sem dependências externas)
 
-- [ ] **8.3** — Rota `POST /forms/:workflowId/submit`:
+- [x] **8.3** — Rota `POST /forms/:workflowId/submit`:
   - Valida campos obrigatórios
   - Constrói `triggerPayload` a partir dos dados do form
   - Dispara `WorkflowEngine.executeWorkflow()` assincronamente
-  - Retorna página HTML de confirmação ("Formulário enviado com sucesso!")
+  - Retorna página HTML de confirmação ("Submitted successfully")
+  - Cap de 8 KB por campo + rate limit em memória de 30 submissões/minuto/IP
 
-- [ ] **8.4** — Frontend: Adicionar `"form"` ao `TriggerEditor.vue` — nova seção para configurar `formFields` com lista dinâmica de campos
+- [x] **8.4** — Frontend: Adicionar `"form"` ao `TriggerEditor.vue` — nova seção para configurar `formFields` com lista dinâmica de campos, URL pública copiável e botão de abrir formulário em nova aba
 
 - [ ] **8.5** — ✅ **TESTE & COMMIT**: Publicar workflow com Form Trigger. Acessar `/forms/:id`. Preencher e submeter. Verificar execution log no dashboard. Commitar.
 
@@ -283,7 +284,7 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 | Fase 5 | Wait / Sleep (Plugin) | ✅ Implementado (aguardando teste) |
 | Fase 6 | Read / Write File (Plugin) | ✅ Implementado (aguardando teste) |
 | Fase 7 | Respond to Webhook (Estrutural) | ✅ Implementado (aguardando teste) |
-| Fase 8 | Form Trigger | ⏳ Pendente |
+| Fase 8 | Form Trigger | ✅ Implementado (aguardando teste) |
 
 ---
 
@@ -295,5 +296,7 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 - [ ] `VALID_NODE_TYPES` no `workflows.routes.ts` foi atualizado para nós estruturais novos
 - [ ] `validateWorkflowDefinition()` tem case de validação para cada novo nó estrutural
 - [ ] `NODE_EDITOR_REGISTRY` tem o editor mapeado para cada novo tipo
+- [ ] `NodeInspectorModal.vue` consome `NODE_EDITOR_REGISTRY` central — não duplica mapeamento de editor
 - [ ] `AddNodePanel.vue` tem o nó na lista `LOGIC_NODES` (nós estruturais) ou não precisa (plugins aparecem via API)
 - [ ] CSS tokens `--nod8-node-<type>-*` adicionados para cada novo nó visual
+- [ ] `VariableTree.typeIcons` recebeu o ícone do novo tipo
