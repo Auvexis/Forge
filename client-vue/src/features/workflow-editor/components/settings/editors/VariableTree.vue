@@ -187,6 +187,11 @@ const iconsMap = computed(() => {
     event: 'bell',
     'event-listener': 'radio',
     if: 'git-branch',
+    set: 'sliders-horizontal',
+    switch: 'git-branch-plus',
+    merge: 'merge',
+    'split-in-batches': 'layers',
+    'respond-webhook': 'send',
   }
 
   for (const upNode of props.upstreamNodes) {

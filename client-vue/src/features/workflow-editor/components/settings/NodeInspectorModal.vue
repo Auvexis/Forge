@@ -5,16 +5,9 @@ import { useNodeInspectorStore } from '../../stores/node-inspector.store'
 import { useWorkflowStore } from '../../stores/workflow.store'
 import { useExecutionStore } from '../../stores/execution.store'
 import type { NodeData } from './editors/types'
+import type { WorkflowNodeType } from '@/core/types/workflow.types'
 
-import TriggerEditor from './editors/TriggerEditor.vue'
-import HttpEditor from './editors/HttpEditor.vue'
-import CodeEditor from './editors/CodeEditor.vue'
-import LoopEditor from './editors/LoopEditor.vue'
-import SubWorkflowEditor from './editors/SubWorkflowEditor.vue'
-import EventEditor from './editors/EventEditor.vue'
-import EventListenerEditor from './editors/EventListenerEditor.vue'
-import PluginEditor from './editors/PluginEditor.vue'
-import IfEditor from './editors/IfEditor.vue'
+import { NODE_EDITOR_REGISTRY } from './editors'
 import JsonTreeView from './shared/JsonTreeView.vue'
 import VariableTree from './editors/VariableTree.vue'
 import PluginMenuAuth from './editors/PluginMenuAuth.vue'
@@ -61,22 +54,10 @@ const isExecutingNode = computed(() => {
   return inspectorStore.isTesting || executionState.value?.status === 'running'
 })
 
-const editorMap: Record<string, any> = {
-  trigger: TriggerEditor,
-  http: HttpEditor,
-  code: CodeEditor,
-  loop: LoopEditor,
-  subworkflow: SubWorkflowEditor,
-  event: EventEditor,
-  'event-listener': EventListenerEditor,
-  plugin: PluginEditor,
-  if: IfEditor,
-}
-
 const activeEditor = computed(() => {
   const node = inspectorStore.activeNode
   if (!node || !node.type) return null
-  return editorMap[node.type] || null
+  return NODE_EDITOR_REGISTRY[node.type as WorkflowNodeType | 'trigger'] ?? null
 })
 
 function close() {
