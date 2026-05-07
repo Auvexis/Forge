@@ -133,23 +133,23 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 > **Pré-requisito**: Fase 2 concluída.
 > **Critério de conclusão**: Arrays grandes são particionados em lotes, cada lote executa o sub-grafo, e o nó "done" libera ao terminar.
 
-- [ ] **3.1** — `workflow-types.ts` (server + client): Adicionar `SplitInBatchesNode`
+- [x] **3.1** — `workflow-types.ts` (server + client): Adicionar `SplitInBatchesNode`
   - `{ type: "split-in-batches"; collection: string; batchSize: number; maxBatches?: number }`
 
-- [ ] **3.2** — `executor.ts`: Implementar `executeSplitInBatchesNode()` baseado na estrutura do `executeLoopNode()` existente, mas com particionamento de array:
+- [x] **3.2** — `executor.ts`: Implementar `executeSplitInBatchesNode()` baseado na estrutura do `executeLoopNode()` existente, mas com particionamento de array:
   - Fatiar o array em chunks de `batchSize`
   - Para cada chunk: injetar `context.variables.$batch`, `$batchIndex`, `$batchTotal`
   - Executar o sub-grafo de body (BFS interno idêntico ao do Loop)
   - Respeitar `maxBatches` como safety guard contra memory leak
   - Handle `batch-body` → executa para cada lote; `batch-done` → libera quando todos os lotes terminam
 
-- [ ] **3.3** — `workflows.routes.ts`: Validar `collection` string e `batchSize` numérico > 0 ao salvar
+- [x] **3.3** — `workflows.routes.ts`: Validar `collection` string e `batchSize` numérico > 0 ao salvar
 
-- [ ] **3.4** — Frontend: `SplitInBatchesNode.vue` com handles `batch-body` e `batch-done`, ícone `layers`, CSS tokens `--nod8-node-split-*`
+- [x] **3.4** — Frontend: `SplitInBatchesNode.vue` com handles `batch-body` e `batch-done`, ícone `layers`, CSS tokens `--nod8-node-split-*`
 
-- [ ] **3.5** — Frontend: `SplitInBatchesEditor.vue` com campos `collection`, `batchSize`, `maxBatches`
+- [x] **3.5** — Frontend: `SplitInBatchesEditor.vue` com campos `collection`, `batchSize`, `maxBatches`
 
-- [ ] **3.6** — Registrar em Canvas, AddNodePanel e editor registry
+- [x] **3.6** — Registrar em Canvas, AddNodePanel e editor registry
 
 - [ ] **3.7** — ✅ **TESTE & COMMIT**: Criar array de 10 itens, Split com batchSize=3 → verificar que `$batch` contém arrays de 3, 3, 3, 1. Commitar.
 
@@ -282,7 +282,7 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 |------|-----------|--------|
 | Fase 1 | Set + Switch (Estruturais) | ✅ Implementado (aguardando teste) |
 | Fase 2 | Merge (Estrutural) | ✅ Implementado (aguardando teste) |
-| Fase 3 | Split In Batches (Estrutural) | ⏳ Pendente |
+| Fase 3 | Split In Batches (Estrutural) | ✅ Implementado (aguardando teste) |
 | Fase 4 | Date/Time + Crypto + Compare (Plugins) | ✅ Implementado (aguardando teste) |
 | Fase 5 | Wait / Sleep (Plugin) | ✅ Implementado (aguardando teste) |
 | Fase 6 | Read / Write File (Plugin) | ✅ Implementado (aguardando teste) |

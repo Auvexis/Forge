@@ -234,6 +234,14 @@ const LOGIC_NODES = [
     color: 'var(--nod8-node-merge-icon)',
     bgColor: 'var(--nod8-node-merge-bg)',
   },
+  {
+    type: 'split-in-batches' as WorkflowNodeType,
+    label: 'Split In Batches',
+    description: 'Fatiar array em lotes e processar cada um',
+    icon: 'layers',
+    color: 'var(--nod8-node-split-icon)',
+    bgColor: 'var(--nod8-node-split-bg)',
+  },
 ]
 
 // ── Computed ─────────────────────────────────────────────────────────────────

@@ -348,6 +348,11 @@
   --nod8-node-merge-icon: rgb(129, 140, 248);
   --nod8-node-merge-border: rgba(129, 140, 248, 0.4);
 
+  /* Split In Batches — deep orange */
+  --nod8-node-split-bg: rgba(249, 115, 22, 0.12);
+  --nod8-node-split-icon: rgb(249, 115, 22);
+  --nod8-node-split-border: rgba(249, 115, 22, 0.4);
+
   /* ── Extra: Node Body Tags (React Equivalents) ── */
   --nod8-node-http-tag-bg: rgba(251, 146, 60, 0.05);
   --nod8-node-http-tag-text: rgb(251, 146, 60);

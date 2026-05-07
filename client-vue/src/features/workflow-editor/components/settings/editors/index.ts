@@ -18,6 +18,7 @@ import TriggerEditor from './TriggerEditor.vue'
 import SetEditor from './SetEditor.vue'
 import SwitchEditor from './SwitchEditor.vue'
 import MergeEditor from './MergeEditor.vue'
+import SplitInBatchesEditor from './SplitInBatchesEditor.vue'
 
 export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', Component>> = {
   plugin: PluginEditor,
@@ -32,6 +33,7 @@ export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', 
   set: SetEditor,
   switch: SwitchEditor,
   merge: MergeEditor,
+  'split-in-batches': SplitInBatchesEditor,
 }
 
 export type { NodeEditorProps } from './types'

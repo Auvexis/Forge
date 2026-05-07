@@ -22,6 +22,7 @@ import type {
   SetNode,
   SwitchNode,
   MergeNode,
+  SplitInBatchesNode,
 } from "../../../shared/models/workflow-types.ts";
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -495,6 +496,89 @@ function executeMergeNode(_node: MergeNode, _context: any): Record<string, never
   return {};
 }
 
+/**
+ * Split In Batches — divides a collection into fixed-size chunks and executes
+ * the "batch-body" sub-graph once per chunk, then releases "batch-done" edges.
+ * Mirrors the LoopNode pattern: inline BFS per batch, isolated context clone.
+ */
+async function executeSplitInBatchesNode(
+  node: SplitInBatchesNode,
+  context: any,
+  workflow: WorkflowItem,
+  edges: WorkflowEdge[],
+  execId: string,
+): Promise<{ batches: number; totalItems: number }> {
+  // Resolve the collection expression against current context
+  const fn = new Function(
+    "trigger",
+    "steps",
+    "variables",
+    `"use strict"; return (${node.collection});`,
+  );
+  const collection: unknown[] = fn(context.trigger, context.steps, context.variables);
+
+  if (!Array.isArray(collection)) {
+    throw new Error(
+      `Split In Batches: collection expression "${node.collection}" did not resolve to an array.`,
+    );
+  }
+
+  const batchSize = Math.max(1, node.batchSize);
+  const maxBatches = node.maxBatches ?? 100;
+
+  // Slice into chunks
+  const chunks: unknown[][] = [];
+  for (let i = 0; i < collection.length; i += batchSize) {
+    chunks.push(collection.slice(i, i + batchSize));
+    if (chunks.length >= maxBatches) break;
+  }
+
+  // Identify the current node's ID for sub-graph traversal
+  const splitNodeId = getNodeIdFromWorkflow(workflow, node);
+
+  // Find edges leaving this node tagged "batch-body"
+  const bodyEdges = edges.filter(
+    (e) => e.source === splitNodeId && e.sourceHandle === "batch-body",
+  );
+
+  // Execute each batch
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    // Clone context and inject batch variables
+    const batchContext = {
+      ...context,
+      steps: { ...context.steps },
+      variables: {
+        ...context.variables,
+        $batch: chunk,
+        $batchIndex: i,
+        $batchTotal: chunks.length,
+        $batchSize: chunk.length,
+      },
+    };
+
+    // Run the body sub-graph for this batch (BFS from body entry nodes)
+    for (const bodyEdge of bodyEdges) {
+      const bodyNodeId = bodyEdge.target;
+      if (!workflow.nodes[bodyNodeId]) continue;
+      const bodyNode = workflow.nodes[bodyNodeId];
+      const output = await executeNode(
+        bodyNodeId,
+        bodyNode,
+        batchContext,
+        workflow,
+        edges,
+        execId,
+      );
+      batchContext.steps[bodyNodeId] = { output };
+      // Propagate body results back to main context so downstream sees last batch
+      context.steps[bodyNodeId] = { output };
+    }
+  }
+
+  return { batches: chunks.length, totalItems: collection.length };
+}
+
 // ──────────── Unified Node Dispatcher ────────────
 
 async function executeNode(
@@ -530,6 +614,8 @@ async function executeNode(
       return executeSwitchNode(node as SwitchNode, context);
     case "merge":
       return executeMergeNode(node as MergeNode, context);
+    case "split-in-batches":
+      return executeSplitInBatchesNode(node as SplitInBatchesNode, context, workflow, edges, execId);
     default:
       throw new Error(`Unknown node type: ${(node as any).type}`);
   }

@@ -55,6 +55,7 @@ const VALID_NODE_TYPES = new Set([
   "set",
   "switch",
   "merge",
+  "split-in-batches",
 ]);
 
 // ──────────── Validation helper ────────────
@@ -142,6 +143,17 @@ function validateWorkflowDefinition(workflow: WorkflowItem): string | null {
       case "merge":
         if (!((node as any).mode === "wait-any" || (node as any).mode === "wait-all")) {
           return `Merge node "${nodeId}" must have mode "wait-any" or "wait-all"`;
+        }
+        break;
+      case "split-in-batches":
+        if (!(node as any).collection || typeof (node as any).collection !== "string") {
+          return `Split In Batches node "${nodeId}" must have a collection expression string`;
+        }
+        if (
+          typeof (node as any).batchSize !== "number" ||
+          (node as any).batchSize < 1
+        ) {
+          return `Split In Batches node "${nodeId}" must have batchSize >= 1`;
         }
         break;
     }

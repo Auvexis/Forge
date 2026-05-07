@@ -18,6 +18,7 @@ export type WorkflowNodeType =
   | 'set'
   | 'switch'
   | 'merge'
+  | 'split-in-batches'
 
 // ── Retry Policy ─────────────────────────────────────────────
 
@@ -155,6 +156,15 @@ export interface MergeNode extends WorkflowNodeBase {
   mode: 'wait-any' | 'wait-all'
 }
 
+// ── Split In Batches Node ──────────────────────────────────
+
+export interface SplitInBatchesNode extends WorkflowNodeBase {
+  type: 'split-in-batches'
+  collection: string
+  batchSize: number
+  maxBatches?: number
+}
+
 // ── Discriminated Union ──────────────────────────────────────
 
 export type WorkflowNode =
@@ -170,6 +180,7 @@ export type WorkflowNode =
   | SetNode
   | SwitchNode
   | MergeNode
+  | SplitInBatchesNode
 
 // ── Edges ────────────────────────────────────────────────────
 

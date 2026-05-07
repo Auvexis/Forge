@@ -16,6 +16,7 @@ import SubWorkflowNode from './nodes/SubWorkflowNode.vue'
 import SetNode from './nodes/SetNode.vue'
 import SwitchNode from './nodes/SwitchNode.vue'
 import MergeNode from './nodes/MergeNode.vue'
+import SplitInBatchesNode from './nodes/SplitInBatchesNode.vue'
 import BaseEdge from './BaseEdge.vue'
 import { Background } from '@vue-flow/background'
 
@@ -240,6 +241,7 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   set: 'Set Fields',
   switch: 'Switch',
   merge: 'Merge',
+  'split-in-batches': 'Split In Batches',
 }
 
 function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
@@ -353,6 +355,9 @@ const addLogicNode = (type: WorkflowNodeType) => {
     ]
   } else if (type === 'merge') {
     defaultData.mode = 'wait-any'
+  } else if (type === 'split-in-batches') {
+    defaultData.collection = 'trigger.body.items'
+    defaultData.batchSize = 10
   }
 
   // Adicionar no store
@@ -624,6 +629,11 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       <!-- MERGE Node -->
       <template #node-merge="nodeProps">
         <MergeNode v-bind="nodeProps" />
+      </template>
+
+      <!-- SPLIT IN BATCHES Node -->
+      <template #node-split-in-batches="nodeProps">
+        <SplitInBatchesNode v-bind="nodeProps" />
       </template>
     </VueFlow>
 

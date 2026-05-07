@@ -12,7 +12,8 @@ export type WorkflowNodeType =
   | "event-listener"
   | "set"
   | "switch"
-  | "merge";
+  | "merge"
+  | "split-in-batches";
 
 // ──────────── Retry Policy ────────────
 
@@ -155,6 +156,18 @@ export interface MergeNode extends WorkflowNodeBase {
   mode: "wait-any" | "wait-all";
 }
 
+// ──────────── Split In Batches Node ────────────
+
+export interface SplitInBatchesNode extends WorkflowNodeBase {
+  type: "split-in-batches";
+  /** JS expression resolving to an array in context (e.g. "trigger.body.items") */
+  collection: string;
+  /** Items per batch. Must be > 0. */
+  batchSize: number;
+  /** Safety cap: max number of batches to process. Defaults to 100. */
+  maxBatches?: number;
+}
+
 // ──────────── Discriminated Union ────────────
 
 export type WorkflowNode =
@@ -169,7 +182,8 @@ export type WorkflowNode =
   | EventListenerNode
   | SetNode
   | SwitchNode
-  | MergeNode;
+  | MergeNode
+  | SplitInBatchesNode;
 
 // ──────────── Edges ────────────
 
