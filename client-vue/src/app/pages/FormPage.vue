@@ -8,6 +8,11 @@
           <span class="form-badge">{{ mode === 'test' ? 'Test Form' : 'Form' }}</span>
           <h1>{{ definition.title }}</h1>
           <p v-if="definition.description">{{ definition.description }}</p>
+          <!-- Editor watching indicator -->
+          <div v-if="execId" class="form-watching-badge">
+            <span class="form-watching-dot"></span>
+            Editor is watching — submit to trigger the workflow
+          </div>
         </header>
 
         <div v-if="submitError" class="form-error">{{ submitError }}</div>
@@ -75,6 +80,8 @@ import BaseInput from '@/shared/components/base/BaseInput.vue'
 const route = useRoute()
 const mode = computed<'test' | 'prod'>(() => route.name === 'form-test' ? 'test' : 'prod')
 const formId = computed(() => String(route.params.formId ?? ''))
+// execId is set by the workflow editor when launching the form via "Run"
+const execId = computed(() => String(route.query.execId ?? ''))
 
 const definition = ref<FormDefinition | null>(null)
 const values = reactive<Record<string, unknown>>({})
@@ -116,7 +123,12 @@ async function handleSubmit() {
   submitError.value = ''
   isSubmitting.value = true
   try {
-    await workflowsApi.submitForm(formId.value, mode.value, { ...values })
+    await workflowsApi.submitForm(
+      formId.value,
+      mode.value,
+      { ...values },
+      execId.value || undefined,
+    )
     submitted.value = true
   } catch (err: any) {
     submitError.value = err?.message ?? 'Failed to submit form'
@@ -240,5 +252,32 @@ textarea:focus {
   border: 1px solid rgba(52, 211, 153, 0.35);
   background: rgba(52, 211, 153, 0.1);
   color: var(--nod8-green-400);
+}
+.form-watching-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--nod8-radius-sm);
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  color: #a78bfa;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.form-watching-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a78bfa;
+  flex-shrink: 0;
+  animation: form-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes form-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.65); }
 }
 </style>

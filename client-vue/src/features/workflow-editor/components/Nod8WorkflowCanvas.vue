@@ -205,20 +205,18 @@ async function handleRun() {
   const trigger = workflowStore.activeWorkflow.trigger
 
   if (trigger.type === 'form') {
-    panelStore.togglePanel({
-      id: 'run-workflow-panel',
-      title: 'Run Form Trigger',
-      component: markRaw(RunWorkflowPanel),
-      props: {
-        workflowId: workflowStore.activeWorkflow.metadata.id,
-        formId: trigger.formSlug || workflowStore.activeWorkflow.metadata.id,
-        formFields: trigger.formFields ?? [],
-        schema: {},
-        triggerType: trigger.type,
-      },
-      position: 'right',
-      width: 'md',
-    })
+    // Generate a client-side executionId, start streaming, then open the form
+    // in a new tab. The form page reads ?execId from the URL and forwards it
+    // as X-Nod8-Execution-Id so the server ties that submission to this stream.
+    const formPublicId = trigger.formSlug?.trim() || workflowStore.activeWorkflow.metadata.id
+    const clientExecId = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+
+    executionStore.resetNodeStatuses()
+    executionStore.startStream(clientExecId)
+
+    const formUrl = `${window.location.origin}/forms-test/${formPublicId}?execId=${clientExecId}`
+    window.open(formUrl, '_blank', 'noopener')
+    return
   } else if (Object.keys(schema).length > 0) {
     panelStore.togglePanel({
       id: 'run-workflow-panel',

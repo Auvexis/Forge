@@ -21,18 +21,16 @@ _(nenhuma tarefa pendente no momento)_
 
 ### ✅ [BUG-001] Form Trigger — fields não apareciam no Input dos nós downstream
 - **Commit:** `fix(ui): resolve form trigger fields in VariableTree`
-- **Arquivo corrigido:** `client-vue/src/features/workflow-editor/components/settings/editors/VariableTree.vue`
-- **Root Cause:**
-  O `VariableTree.vue` resolvia variáveis do Trigger verificando apenas `triggerData.schema`
-  (propriedade exclusiva do trigger `manual`) e `lastTriggerPayload` (captura via SSE em runtime).
-  O trigger do tipo `form` guarda seus campos em `triggerData.formFields[]` — estrutura completamente
-  diferente. O código nunca tratava esse caso, então sempre caía no fallback genérico `trigger.payload`.
+- **Arquivo:** `client-vue/.../VariableTree.vue`
+- **Fix:** Branch para `type === 'form'` em `allPaths` mapeia `formFields[]` → `trigger.fields.<name>`.
 
-- **Solução aplicada:**
-  1. Adicionado branch prioritário em `allPaths` para `triggerData.type === 'form'`:
-     itera sobre `formFields[]` e gera paths `trigger.fields.<name>` — exatamente como o servidor
-     expõe os dados no contexto de execução (`triggerPayload = { fields: fieldData, ... }`).
-  2. Atualizado `iconsMap` para usar ícone `file-text` no trigger form e `list` em `trigger.fields`.
-  3. Nenhuma lógica de plugin vazou para o core — a fix é 100% no layer de UI do workflow editor.
-
-- **Path correto no servidor:** `trigger.fields.<nome_do_campo>` (confirmado em `workflows.routes.ts` linha 813-815)
+### ✅ [FEAT-001] Form Trigger "Run" — abre form em nova aba e monitora execução
+- **Commit:** `feat(ui): open form in new tab on Run for form triggers`
+- **Arquivos:** `Nod8WorkflowCanvas.vue`, `FormPage.vue`
+- **Como funciona:**
+  1. Ao clicar em **Run** com trigger do tipo `form`, o editor gera um `clientExecId`
+  2. Abre `window.open(/forms-test/:formId?execId=XXXX, '_blank')`
+  3. O `executionStore.startStream(clientExecId)` começa a escutar SSE imediatamente
+  4. O `FormPage.vue` lê `?execId` da URL e o passa como `X-Nod8-Execution-Id` ao submeter
+  5. O servidor associa a submissão ao `executionId` e os eventos chegam via SSE para o editor
+  6. O form exibe um badge "Editor is watching" pulsando enquanto o execId está presente
