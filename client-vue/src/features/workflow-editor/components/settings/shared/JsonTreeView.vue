@@ -30,7 +30,7 @@ const onDragStart = (event: DragEvent) => {
 </script>
 
 <template>
-  <div class="json-node">
+  <div class="json-node" :class="{ 'json-node--root': isRoot }">
     <div class="json-line flex items-start">
       <div v-if="isObject || isArray" class="json-toggle-btn" @click="toggle">
         <LucideIcon :name="isExpanded ? 'chevron-down' : 'chevron-right'" :size="14" />
@@ -52,7 +52,7 @@ const onDragStart = (event: DragEvent) => {
         </template>
         <LucideIcon v-else-if="path" name="tag" :size="12" style="flex-shrink: 0; opacity: 0.5;" />
         
-        <span>"{{ name }}"</span>
+        <span class="json-key-text">"{{ name }}"</span>
       </span>
       <span v-if="name" class="json-punctuation text-muted mr-1">:</span>
 
@@ -126,6 +126,16 @@ const onDragStart = (event: DragEvent) => {
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;
   line-height: 1.5;
+  min-width: 0;
+}
+.json-node--root {
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.json-line {
+  min-width: 0;
+  max-width: 100%;
 }
 .json-children {
   margin-left: 12px;
@@ -152,6 +162,11 @@ const onDragStart = (event: DragEvent) => {
 }
 .json-key {
   color: var(--json-color-key, var(--nod8-text-primary));
+  min-width: 0;
+}
+.json-key-text {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .json-key-draggable {
   margin-right: 4px;
@@ -170,6 +185,10 @@ const onDragStart = (event: DragEvent) => {
 }
 .json-string {
   color: var(--json-color-string, rgb(34, 197, 94));
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .json-number {
   color: var(--json-color-number, rgb(234, 179, 8));
