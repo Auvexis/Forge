@@ -1,12 +1,14 @@
-import { ref, watch, type Ref, toValue } from 'vue'
+import { ref, watch, type Ref, toValue, onMounted, onUnmounted } from 'vue'
 import { pluginsApi } from '@/core/api/plugins.api'
 import type { PluginStatusResponse } from '@/core/types/plugin.types'
+import { useToast } from '@/shared/composables/useToast'
 
 export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => string | null) | string | null) {
   const pluginStatus = ref<PluginStatusResponse | null>(null)
   const formValues = ref<Record<string, any>>({})
   const saving = ref(false)
   const authLoading = ref(false)
+  const toast = useToast()
 
   const getPluginId = () => {
     return toValue(pluginIdOrGetter)
@@ -56,9 +58,13 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
     try {
       const data = await pluginsApi.getAuthUrl(id)
       if (data?.url) {
-        window.open(data.url, '_blank', 'width=600,height=700')
-        // Simple mockup to reload status after the window opens
-        setTimeout(() => loadStatus(), 3000)
+        const win = window.open(data.url, '_blank', 'width=600,height=700')
+        const timer = setInterval(() => {
+          if (win?.closed) {
+            clearInterval(timer)
+            loadStatus()
+          }
+        }, 1000)
       }
     } catch (err) {
       console.error(err)
@@ -77,6 +83,26 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
       console.error(err)
     }
   }
+
+  const handleMessage = (event: MessageEvent) => {
+    if (!event.data || typeof event.data !== 'object') return
+    
+    if (event.data.type === 'oauth-success' && event.data.plugin === getPluginId()) {
+      toast.success('OAuth connection successful!', 'Success')
+      loadStatus()
+    } else if (event.data.type === 'oauth-error' && event.data.plugin === getPluginId()) {
+      toast.error(`OAuth connection failed: ${event.data.error}`, 'Error')
+      loadStatus()
+    }
+  }
+
+  onMounted(() => {
+    window.addEventListener('message', handleMessage)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('message', handleMessage)
+  })
 
   return {
     pluginStatus,
