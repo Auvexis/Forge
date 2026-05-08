@@ -30,6 +30,7 @@
           <div class="pm-card__title-row">
             <span class="pm-card__name">{{ item.name }}</span>
             <span class="pm-badge" :class="`pm-badge--${item.triggerType}`">
+              <LucideIcon :name="triggerIcon(item.triggerType)" :size="10" />
               {{ triggerLabel(item.triggerType) }}
             </span>
           </div>
@@ -129,6 +130,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RefreshCwIcon, ActivityIcon, LoaderIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-vue-next'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { workflowsApi, type ProductionWorkflowStatus } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
 
@@ -230,18 +232,34 @@ async function autoRefresh() {
   await refresh()
 }
 
+function triggerIcon(type: ProductionWorkflowStatus['triggerType']): string {
+  const map: Record<string, string> = {
+    webhook:          'webhook',
+    cron:             'clock',
+    schedule:         'clock',
+    event:            'radio',
+    'event-listener': 'radio',
+    manual:           'play',
+    plugin:           'plug',
+    form:             'clipboard-list',
+    'webhook-form':   'clipboard-list',
+    subworkflow:      'arrow-up-right',
+  }
+  return map[type] ?? 'zap'
+}
+
 function triggerLabel(type: ProductionWorkflowStatus['triggerType']): string {
   const map: Record<string, string> = {
-    webhook:         '⚡ Webhook',
-    cron:            '⏰ Cron',
-    schedule:        '⏰ Schedule',
-    event:           '📡 Event',
-    'event-listener': '📡 Event Listener',
-    manual:          '▶ Manual',
-    plugin:          '🔌 Plugin',
-    form:            '📋 Form',
-    'webhook-form':  '📋 Webhook Form',
-    subworkflow:     '↗ Sub-Workflow',
+    webhook:          'Webhook',
+    cron:             'Cron',
+    schedule:         'Schedule',
+    event:            'Event',
+    'event-listener': 'Event Listener',
+    manual:           'Manual',
+    plugin:           'Plugin',
+    form:             'Form',
+    'webhook-form':   'Webhook Form',
+    subworkflow:      'Sub-Workflow',
   }
   return map[type] ?? type
 }
