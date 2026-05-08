@@ -119,5 +119,30 @@ export function createMethods() {
         format: to
       };
     },
+
+    async setFileMetadata(params: { file: Buffer | string; filename: string; mimeType?: string }) {
+      if (!params.file) {
+        throw new Error("'file' parameter is required.");
+      }
+      if (!params.filename) {
+        throw new Error("'filename' parameter is required.");
+      }
+
+      let contentBuf: Buffer;
+      if (Buffer.isBuffer(params.file)) {
+        contentBuf = params.file;
+      } else if (typeof params.file === "string") {
+        // If it's a string, we assume it's base64 because that's the standard intermediate format
+        contentBuf = Buffer.from(params.file, "base64");
+      } else {
+        throw new Error("'file' must be a Buffer or a base64 string.");
+      }
+
+      return {
+        content: contentBuf,
+        filename: params.filename.trim(),
+        mimeType: params.mimeType?.trim() || "application/octet-stream"
+      };
+    }
   };
 }

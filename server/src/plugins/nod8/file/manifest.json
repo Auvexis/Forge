@@ -83,6 +83,21 @@
       },
       "responseSchema": { "type": "object", "x-nod8-display": "generic" },
       "ui": { "component": "card" }
+    },
+
+    "setFileMetadata": {
+      "metadata": { "label": "Set File Metadata", "description": "Wraps a raw Buffer or Base64 string into the Nod8 standard file object ({ content, filename, mimeType }) so it can be safely sent via email or APIs." },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "file": { "type": ["string", "object"], "description": "The raw file data (Buffer or Base64).", "x-label": "File Input", "x-input-type": "file", "format": "binary" },
+          "filename": { "type": "string", "description": "The filename to assign (e.g. 'report.pdf').", "x-label": "Filename", "x-input-type": "text" },
+          "mimeType": { "type": "string", "description": "The MIME type (e.g. 'application/pdf'). Defaults to 'application/octet-stream'.", "x-label": "MIME Type", "x-input-type": "text" }
+        },
+        "required": ["file", "filename"]
+      },
+      "responseSchema": { "type": "object", "x-nod8-display": "generic" },
+      "ui": { "component": "card" }
     }
   }
 }
