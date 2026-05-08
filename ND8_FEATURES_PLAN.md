@@ -9,7 +9,7 @@
 **Goal:** Deliver a flawless, highly polished automation tool for the end-user. The focus is strictly on stability, user experience, and demonstrating immediate value through highly demanded integrations. At the end of this phase, Nod8 must be a product that users trust to run their daily workflows.
 
 ### ✅ Milestone 1.1: Architecture & Manifest Refinement [DONE]
-*Before building more plugins, we must solidify the contract between Backend and Frontend.*
+*Before building more plugins, we must solidify the cbontract between Backend and Frontend.*
 * **JSON Schema Expansion:** Map out and implement any missing `x-input-type` variations needed for future plugins (e.g., advanced multi-selects, dynamic dropdowns populated by external API calls, conditional fields).
 * **Validation & Security:** Ensure the execution engine rigorously validates incoming data against the `manifest.json` before executing the `methods.ts` logic.
 

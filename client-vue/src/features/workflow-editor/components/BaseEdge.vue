@@ -3,10 +3,12 @@ import { computed } from 'vue'
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, useVueFlow } from '@vue-flow/core'
 import type { EdgeProps } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { useExecutionStore } from '../stores/execution.store'
 
 const props = defineProps<EdgeProps>()
 
 const { removeEdges } = useVueFlow()
+const executionStore = useExecutionStore()
 
 // Calcula o formato "SmoothStep" nativo que usamos e extrae a posição central (X, Y)
 const pathData = computed(() =>
@@ -20,11 +22,62 @@ const pathData = computed(() =>
   }),
 )
 
+const edgeStatus = computed(() => {
+  const sStatus = props.source === 'trigger' 
+    ? (executionStore.hasActiveExecution || executionStore.workflowStatus ? 'success' : 'idle')
+    : (executionStore.nodeStatuses[props.source]?.status || 'idle')
+
+  const tNodeState = executionStore.nodeStatuses[props.target]
+  const tStatus = tNodeState?.status || 'idle'
+
+  // Se o source não começou, a linha tá morta
+  if (sStatus === 'idle') return 'idle'
+
+  // Verifica roteamento condicional para Switch e If
+  // Assim garantimos que o caminho ignorado fique cinza
+  if (sStatus === 'success') {
+    const sOutput = executionStore.nodeStatuses[props.source]?.output as any
+    if (sOutput && typeof sOutput === 'object') {
+      if ('branch' in sOutput) {
+        const actualHandle = props.sourceHandleId || 'then'
+        if (sOutput.branch !== actualHandle) return 'idle'
+      } else if ('activeHandle' in sOutput) {
+        if (sOutput.activeHandle !== props.sourceHandleId) return 'idle'
+      }
+    }
+  }
+
+  // A partir daqui sabemos que a linha FOI/ESTÁ sendo atravessada
+  // A cor dela reflete o estado do Node de DESTINO
+  if (tStatus !== 'idle') {
+    return tStatus
+  }
+
+  // Se o destino ainda não rodou mas a origem já foi, a energia tá parada na linha aguardando (ex: Merge Node)
+  if (sStatus === 'success') {
+    return 'success'
+  }
+
+  return 'idle'
+})
+
+const strokeColor = computed(() => {
+  if (props.selected) return 'var(--nod8-rf-edge-stroke-selected)'
+  
+  switch (edgeStatus.value) {
+    case 'success': return 'var(--nod8-green-500, #22c55e)'
+    case 'failed': return 'var(--nod8-red-500, #ef4444)'
+    case 'running': return 'var(--nod8-amber-500, #f59e0b)'
+    default: return 'var(--nod8-rf-edge-stroke)'
+  }
+})
+
 // Aplica as cores via Tokens Globais que herdamos do React
 const computedStyle = computed(() => ({
   ...props.style,
-  stroke: props.selected ? 'var(--nod8-rf-edge-stroke-selected)' : 'var(--nod8-rf-edge-stroke)',
-  strokeWidth: 2,
+  stroke: strokeColor.value,
+  strokeWidth: edgeStatus.value !== 'idle' ? 3 : 2,
+  transition: 'stroke 0.3s ease, stroke-width 0.3s ease',
 }))
 
 // Ação de Lixeira
@@ -39,7 +92,7 @@ const onDelete = () => {
     :id="id"
     :style="computedStyle"
     :path="pathData[0]"
-    :marker-end="props.selected ? 'url(#nod8-arrow-selected)' : 'url(#nod8-arrow-normal)'"
+    :marker-end="props.selected ? 'url(#nod8-arrow-selected)' : `url(#nod8-arrow-${edgeStatus})`"
   />
 
   <!-- A Toolbar Flutuante HtmlRender (Só aparece se o Fio estiver Selecionado) -->

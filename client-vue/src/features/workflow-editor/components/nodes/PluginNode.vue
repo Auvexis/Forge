@@ -13,16 +13,26 @@ const props = defineProps<
 const pluginName = computed(() => props.data?.name || props.data?.action || 'Plugin Action')
 const subtitle = computed(() => props.data?.pluginId || 'plugin_action')
 
-// Buscamos o plugin real do backend para usar o ícone original em URL do manifest
 const pluginIcon = ref<string>('box')
+const customBg = ref<string | undefined>(undefined)
+const customBorder = ref<string | undefined>(undefined)
+const customIconColor = ref<string | undefined>(undefined)
 
 onMounted(async () => {
   const pid = props.data?.pluginId
   if (pid) {
     try {
       const plugin = await apiRequest<any>(ENDPOINTS.PLUGIN_BY_ID(pid))
-      if (plugin?.manifest?.metadata?.icon) {
-        pluginIcon.value = plugin.manifest.metadata.icon
+      if (plugin?.manifest?.metadata) {
+        const style = plugin.manifest.metadata.style
+        if (style) {
+          customBg.value = style.bgColor
+          customBorder.value = style.borderColor
+          customIconColor.value = style.iconColor
+          pluginIcon.value = style.icon || plugin.manifest.metadata.icon || 'box'
+        } else {
+          pluginIcon.value = plugin.manifest.metadata.icon || 'box'
+        }
       }
     } catch (err) {
       console.warn(`Failed to load plugin icon for ${pid}`, err)
@@ -50,8 +60,8 @@ const remainingParams = computed(() => Math.max(0, paramEntries.value.length - 3
     :title="pluginName"
     :subtitle="subtitle"
     :icon="pluginIcon"
-    color="var(--nod8-node-plugin-icon)"
-    bg="var(--nod8-node-plugin-bg)"
-    border-color="var(--nod8-node-plugin-border)"
+    :color="customIconColor || 'var(--nod8-node-plugin-icon)'"
+    :bg="customBg || 'var(--nod8-node-plugin-bg)'"
+    :border-color="customBorder || 'var(--nod8-node-plugin-border)'"
   />
 </template>

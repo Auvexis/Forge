@@ -31,6 +31,19 @@
         Run
       </BaseButton>
 
+      <!-- ── Clear ── -->
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        icon-left="eraser"
+        class="dock-btn"
+        :disabled="isStreaming || isExecuting || Object.keys(executionStore.nodeStatuses).length === 0"
+        :class="{ 'opacity-60 cursor-not-allowed': isStreaming || isExecuting || Object.keys(executionStore.nodeStatuses).length === 0 }"
+        @click="executionStore.resetNodeStatuses()"
+      >
+        Clear
+      </BaseButton>
+
       <!-- ── Add Node ── -->
       <BaseButton
         size="sm"
@@ -136,6 +149,7 @@
 <script setup lang="ts">
 import { Panel, useVueFlow } from '@vue-flow/core'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
+import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
@@ -157,6 +171,7 @@ defineEmits<{
 }>()
 
 const workflowStore = useWorkflowStore()
+const executionStore = useExecutionStore()
 const { zoomIn, zoomOut, zoomTo, fitView, viewport, minZoom, maxZoom } = useVueFlow()
 
 const onSliderChange = (event: Event) => {

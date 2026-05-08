@@ -131,11 +131,29 @@ async function executePluginNode(
   return PluginExecutor.execute(node.pluginId, node.action, cookedParams);
 }
 
-function executeCodeNode(
+async function executeCodeNode(
   node: CodeNode,
   context: any,
-): any {
+): Promise<any> {
   const result = runCode(node.script, context, context.variables);
+  if (result.output && typeof result.output.then === 'function') {
+    result.output = await result.output;
+  }
+  
+  // Strip out node:vm prototype pollution so objects serialize correctly
+  if (result.output !== null && typeof result.output === 'object') {
+     try {
+       result.output = JSON.parse(JSON.stringify(result.output));
+     } catch (err) {}
+  }
+
+  // Same for variables mutated inside the sandbox
+  if (result.variables !== null && typeof result.variables === 'object') {
+     try {
+       result.variables = JSON.parse(JSON.stringify(result.variables));
+     } catch (err) {}
+  }
+
   Object.assign(context.variables, result.variables);
   return result;
 }
@@ -538,9 +556,26 @@ async function executeSplitInBatchesNode(
   // Identify the current node's ID for sub-graph traversal
   const splitNodeId = getNodeIdFromWorkflow(workflow, node);
 
-  // Find edges leaving this node tagged "batch-body"
-  const bodyEdges = edges.filter(
-    (e) => e.source === splitNodeId && e.sourceHandle === "batch-body",
+  // ── 1. BFS to collect the full body sub-graph ──────────────────────────────
+  const bodyNodeIds = new Set<string>();
+  const bfsQueue: string[] = edges
+    .filter((e) => e.source === splitNodeId && e.sourceHandle === "batch-body")
+    .map((e) => e.target);
+
+  while (bfsQueue.length > 0) {
+    const nId = bfsQueue.shift()!;
+    if (bodyNodeIds.has(nId) || nId === splitNodeId || !workflow.nodes[nId]) continue;
+    bodyNodeIds.add(nId);
+    for (const e of edges) {
+      if (e.source === nId && !bodyNodeIds.has(e.target)) {
+        bfsQueue.push(e.target);
+      }
+    }
+  }
+
+  // ── 2. Collect internal edges ──────────────────────────────────────────────
+  const internalEdges = edges.filter(
+    (e) => bodyNodeIds.has(e.source) && bodyNodeIds.has(e.target),
   );
 
   // Execute each batch
@@ -559,24 +594,96 @@ async function executeSplitInBatchesNode(
       },
     };
 
-    // Run the body sub-graph for this batch (BFS from body entry nodes)
-    for (const bodyEdge of bodyEdges) {
-      const bodyNodeId = bodyEdge.target;
-      if (!workflow.nodes[bodyNodeId]) continue;
-      const bodyNode = workflow.nodes[bodyNodeId];
-      const output = await executeNode(
-        bodyNodeId,
-        bodyNode,
-        batchContext,
-        workflow,
-        edges,
-        execId,
-      );
-      batchContext.steps[bodyNodeId] = { output };
-      // Propagate body results back to main context so downstream sees last batch
-      context.steps[bodyNodeId] = { output };
+    // ── 3. Per-batch topological execution of the body sub-graph ─────────────
+    const localInDegree: Record<string, number> = {};
+    bodyNodeIds.forEach((n) => { localInDegree[n] = 0; });
+    internalEdges.forEach((e) => { localInDegree[e.target]++; });
+
+    const batchBodyTargets = new Set(
+      edges
+        .filter((e) => e.source === splitNodeId && e.sourceHandle === "batch-body")
+        .map((e) => e.target),
+    );
+    const localQueue: string[] = [...bodyNodeIds].filter(
+      (n) => localInDegree[n] === 0 || batchBodyTargets.has(n),
+    );
+    const localExecuted = new Set<string>();
+
+    while (localQueue.length > 0) {
+      const nId = localQueue.shift()!;
+      if (localExecuted.has(nId)) continue;
+      localExecuted.add(nId);
+
+      const bodyNode = workflow.nodes[nId];
+      if (!bodyNode) continue;
+
+      workflowEventBus.emitWorkflowEvent({
+        executionId: execId,
+        workflowId: workflow.metadata.id,
+        type: "node:start",
+        nodeId: nId,
+        timestamp: Date.now(),
+      });
+
+      try {
+        const result = await executeNode(nId, bodyNode, batchContext, workflow, edges, execId);
+
+        if (bodyNode.type === "code") {
+          const codeResult = result as any;
+          batchContext.steps[nId] = {
+            status: "SUCCESS",
+            output: codeResult.output,
+            logs: codeResult.logs,
+          };
+          workflowEventBus.emitWorkflowEvent({
+            executionId: execId,
+            workflowId: workflow.metadata.id,
+            type: "node:success",
+            nodeId: nId,
+            timestamp: Date.now(),
+            data: sanitizeContextForLogging(codeResult.output),
+          });
+        } else {
+          batchContext.steps[nId] = { status: "SUCCESS", output: result };
+          workflowEventBus.emitWorkflowEvent({
+            executionId: execId,
+            workflowId: workflow.metadata.id,
+            type: "node:success",
+            nodeId: nId,
+            timestamp: Date.now(),
+            data: sanitizeContextForLogging(result),
+          });
+        }
+
+        // Propagate body results back to main context so downstream sees last batch
+        context.steps[nId] = batchContext.steps[nId];
+
+      } catch (err: any) {
+        batchContext.steps[nId] = { status: "FAILED", error: err.message };
+        workflowEventBus.emitWorkflowEvent({
+          executionId: execId,
+          workflowId: workflow.metadata.id,
+          type: "node:failed",
+          nodeId: nId,
+          timestamp: Date.now(),
+          error: err.message,
+        });
+        throw err;
+      }
+
+      for (const e of internalEdges) {
+        if (e.source === nId) {
+          localInDegree[e.target]--;
+          if (localInDegree[e.target] === 0) localQueue.push(e.target);
+        }
+      }
     }
   }
+
+  delete context.variables["$batch"];
+  delete context.variables["$batchIndex"];
+  delete context.variables["$batchTotal"];
+  delete context.variables["$batchSize"];
 
   return { batches: chunks.length, totalItems: collection.length };
 }
@@ -781,21 +888,24 @@ export const WorkflowEngine = {
         }
         // ───────────────────────────────
 
-        // ─── Merge wait-all guard ────────────────────────────────────
-        // For wait-all merges: count how many branches have arrived.
-        // Only proceed when every predecessor has delivered output.
-        if (workflow.nodes[nodeId]?.type === "merge") {
-          const mergeNode = workflow.nodes[nodeId] as MergeNode;
-          if (mergeNode.mode === "wait-all") {
-            mergeArrivalCount[nodeId] = (mergeArrivalCount[nodeId] ?? 0) + 1;
-            if (mergeArrivalCount[nodeId] < (mergeThreshold[nodeId] ?? 1)) {
-              // Not all branches arrived yet — skip execution but keep the node
-              // in a reachable state (it was already not in executed).
-              continue;
+        // Helper to handle queueing dependent nodes correctly
+        const enqueueTarget = (targetId: string) => {
+          inDegree[targetId]--;
+          const targetNode = workflow.nodes[targetId];
+          const isWaitAny = targetNode?.type === "merge" && (targetNode as MergeNode).mode === "wait-any";
+          
+          if (isWaitAny) {
+            // For wait-any merge, enqueue immediately if it hasn't been executed or queued yet
+            if (!executed.has(targetId) && !queue.includes(targetId)) {
+              queue.push(targetId);
+            }
+          } else {
+            // Default BFS behavior (implicit wait-all): wait for all incoming edges
+            if (inDegree[targetId] === 0) {
+              queue.push(targetId);
             }
           }
-        }
-        // ─────────────────────────────────────────────────────────────
+        };
 
         executed.add(nodeId);
 
@@ -804,10 +914,7 @@ export const WorkflowEngine = {
         // Handle the virtual "trigger" entry point
         if (nodeId === "trigger") {
           adjList[nodeId].forEach((edge) => {
-            inDegree[edge.target]--;
-            if (inDegree[edge.target] === 0) {
-              queue.push(edge.target);
-            }
+            enqueueTarget(edge.target);
           });
           continue;
         }
@@ -930,10 +1037,7 @@ export const WorkflowEngine = {
               edge.sourceHandle === branch ||
               (!edge.sourceHandle && branch === "then")
             ) {
-              inDegree[edge.target]--;
-              if (inDegree[edge.target] === 0) {
-                queue.push(edge.target);
-              }
+              enqueueTarget(edge.target);
             }
           }
         } else if (node.type === "switch") {
@@ -943,10 +1047,7 @@ export const WorkflowEngine = {
           if (activeHandle) {
             for (const edge of outEdges) {
               if (edge.sourceHandle === activeHandle) {
-                inDegree[edge.target]--;
-                if (inDegree[edge.target] === 0) {
-                  queue.push(edge.target);
-                }
+                enqueueTarget(edge.target);
               }
             }
           }
@@ -954,18 +1055,18 @@ export const WorkflowEngine = {
         } else if (node.type === "loop") {
           for (const edge of outEdges) {
             if (edge.sourceHandle === "loop-done" || !edge.sourceHandle) {
-              inDegree[edge.target]--;
-              if (inDegree[edge.target] === 0) {
-                queue.push(edge.target);
-              }
+              enqueueTarget(edge.target);
+            }
+          }
+        } else if (node.type === "split-in-batches") {
+          for (const edge of outEdges) {
+            if (edge.sourceHandle === "batch-done" || !edge.sourceHandle) {
+              enqueueTarget(edge.target);
             }
           }
         } else {
           for (const edge of outEdges) {
-            inDegree[edge.target]--;
-            if (inDegree[edge.target] === 0) {
-              queue.push(edge.target);
-            }
+            enqueueTarget(edge.target);
           }
         }
       }

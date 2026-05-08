@@ -34,12 +34,15 @@ import {
 import type { WorkflowTrigger, WorkflowNode, PluginNode } from '@/core/types/workflow.types'
 import type { NodeData } from './types'
 import { useWorkflowStore } from '../../../stores/workflow.store'
+import { useExecutionStore } from '../../../stores/execution.store'
 
 const props = defineProps<{
   paramKey: string
   upstreamNodes: GraphNode<NodeData>[]
   nodes: GraphNode<NodeData>[]
 }>()
+
+const executionStore = useExecutionStore()
 
 const emit = defineEmits<{
   (e: 'inject', paramKey: string, path: string): void
@@ -96,14 +99,93 @@ const allPaths = computed(() => {
 
     const upData = upNode.data as unknown as WorkflowNode
     const nodeName: string = upData.name || upNode.id
+    const liveOutput = executionStore.nodeStatuses[upNode.id]?.output
 
+    // Flatten helper for dynamic live output inference
+    const flattenLive = (obj: any, prefix: string): SchemaPath[] => {
+      if (obj === null || obj === undefined) return []
+      let res: SchemaPath[] = []
+      for (const [k, v] of Object.entries(obj)) {
+        const newPath = `${prefix}.${k}`
+        const vType = Array.isArray(v) ? 'array' : typeof v
+        res.push({
+          path: newPath,
+          label: k,
+          type: vType,
+          sourceNodeName: nodeName
+        })
+        if (v && typeof v === 'object' && !Array.isArray(v)) {
+          res.push(...flattenLive(v, newPath))
+        }
+      }
+      return res
+    }
+
+    // 1. Dynamic Inference: If the node has run, we use its EXACT real-time output
+    if (liveOutput !== undefined && liveOutput !== null) {
+      if (typeof liveOutput === 'object' && !Array.isArray(liveOutput)) {
+        paths.push({
+          path: `steps.${upNode.id}.output`,
+          label: 'output',
+          type: 'object',
+          sourceNodeName: nodeName,
+        })
+        paths.push(...flattenLive(liveOutput, `steps.${upNode.id}.output`))
+      } else {
+        paths.push({
+          path: `steps.${upNode.id}.output`,
+          label: 'output',
+          type: Array.isArray(liveOutput) ? 'array' : typeof liveOutput,
+          sourceNodeName: nodeName,
+        })
+      }
+      continue
+    }
+
+    // 2. Static Inference: Fallback when the node hasn't run yet
     if (!('pluginId' in upData)) {
-      paths.push({
-        path: `steps.${upNode.id}.output`,
-        label: 'output',
-        type: 'any',
-        sourceNodeName: nodeName,
-      })
+      if (upData.type === 'set') {
+        const assignments = (upData as any).assignments || [];
+        if (assignments.length > 0) {
+          for (const assignment of assignments) {
+            if (assignment.key) {
+              let inferredType = 'any'
+              if (assignment.value !== undefined && assignment.value !== null) {
+                const strVal = String(assignment.value).trim()
+                const match = strVal.match(/^{{\s*(.*?)\s*}}$/)
+                if (match) {
+                  const refPath = match[1]
+                  const foundPath = paths.find(p => p.path === refPath)
+                  if (foundPath) inferredType = foundPath.type
+                } else if (!isNaN(Number(strVal)) && strVal !== '') {
+                  inferredType = 'number'
+                } else if (strVal === 'true' || strVal === 'false') {
+                  inferredType = 'boolean'
+                } else {
+                  inferredType = 'string'
+                }
+              }
+              paths.push({
+                path: `steps.${upNode.id}.output.${assignment.key}`,
+                label: assignment.key,
+                type: inferredType,
+                sourceNodeName: nodeName,
+              })
+            }
+          }
+        } else {
+          paths.push({ path: `steps.${upNode.id}.output`, label: 'output', type: 'any', sourceNodeName: nodeName })
+        }
+      } else if (upData.type === 'switch') {
+        paths.push({ path: `steps.${upNode.id}.output.activeHandle`, label: 'activeHandle', type: 'string', sourceNodeName: nodeName })
+      } else if (upData.type === 'if') {
+        paths.push({ path: `steps.${upNode.id}.output.branch`, label: 'branch', type: 'string', sourceNodeName: nodeName })
+      } else if (upData.type === 'merge') {
+        // Merge Node passivo não tem dados de output, ele apenas repassa. 
+        // Os usuários devem buscar os dados nos nós anteriores.
+      } else {
+        paths.push({ path: `steps.${upNode.id}.output`, label: 'output', type: 'any', sourceNodeName: nodeName })
+      }
       continue
     }
 
@@ -114,12 +196,7 @@ const allPaths = computed(() => {
     if (upMethod?.responseSchema) {
       paths.push(...resolveSchemaTree(upNode.id, nodeName, upMethod.responseSchema))
     } else {
-      paths.push({
-        path: `steps.${upNode.id}.output`,
-        label: 'output',
-        type: 'any',
-        sourceNodeName: nodeName,
-      })
+      paths.push({ path: `steps.${upNode.id}.output`, label: 'output', type: 'any', sourceNodeName: nodeName })
     }
   }
 

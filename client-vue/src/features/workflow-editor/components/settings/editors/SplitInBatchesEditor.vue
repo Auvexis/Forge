@@ -47,16 +47,14 @@
         <span class="editor-field__label">Output Handles</span>
         <div class="split-handles mt-2">
           <div class="split-handle-item">
-            <div class="split-dot split-dot--batch"></div>
             <div class="split-handle-text">
-              <span class="split-handle-name">batch-body</span>
+              <span class="split-handle-name">batch</span>
               <span class="split-handle-desc">Executes once per batch. Use <code>variables.$batch</code>, <code>$batchIndex</code>, <code>$batchTotal</code></span>
             </div>
           </div>
           <div class="split-handle-item">
-            <div class="split-dot split-dot--done"></div>
             <div class="split-handle-text">
-              <span class="split-handle-name">batch-done</span>
+              <span class="split-handle-name">done</span>
               <span class="split-handle-desc">Fires once after all batches complete</span>
             </div>
           </div>
@@ -113,20 +111,21 @@ defineProps<NodeEditorProps>()
 }
 
 .split-handle-name {
-  font-size: var(--nod8-text-xs);
-  font-weight: 700;
+  font-size: var(--nod8-text-sm);
+  font-weight: 500;
   font-family: var(--nod8-font-mono);
+  color: var(--nod8-accent);
 }
 
 .split-handle-desc {
   font-size: 11px;
   color: var(--nod8-text-muted);
-  font-style: italic;
 }
 
 code {
   font-family: var(--nod8-font-mono);
   font-size: 10px;
+  font-weight: 500;
   color: var(--nod8-accent);
 }
 </style>

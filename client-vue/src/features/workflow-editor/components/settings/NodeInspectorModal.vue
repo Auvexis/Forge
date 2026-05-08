@@ -179,12 +179,21 @@ const activeTab = ref<'config' | 'settings'>('config')
 const localId = ref('')
 
 watch(
+  () => inspectorStore.isOpen,
+  (isOpen) => {
+    if (isOpen) {
+      activeTab.value = 'config'
+      localId.value = inspectorStore.activeNodeId || ''
+    }
+  },
+  { immediate: true }
+)
+
+watch(
   () => inspectorStore.activeNodeId,
   (newId) => {
-    activeTab.value = 'config'
     localId.value = newId || ''
-  },
-  { immediate: true },
+  }
 )
 
 const handleIdChange = (newId: string) => {

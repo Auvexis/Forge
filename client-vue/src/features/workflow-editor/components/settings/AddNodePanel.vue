@@ -32,10 +32,11 @@
 
       <!-- View: Categories (default) -->
       <template v-else-if="view === 'categories'">
-        <!-- Logic & Control -->
+        <!-- Lógica e Utilitários -->
         <div class="add-node-section">
-          <p class="add-node-section-label">Lógica e Controle</p>
+          <p class="add-node-section-label">Lógica e Utilitários</p>
           <BaseWoobyMenu tag="div" class="add-node-list">
+            <!-- Nós Core (Lógica/Controle) -->
             <button
               v-for="def in filteredLogicNodes"
               :key="def.type"
@@ -43,7 +44,7 @@
               style="position: relative; z-index: 1"
               @click="onAddLogicNode?.(def.type)"
             >
-              <div class="add-node-item-icon-well" :style="{ backgroundColor: def.bgColor }">
+              <div class="add-node-item-icon-well" :style="{ backgroundColor: def.bgColor, borderColor: def.borderColor || 'transparent' }">
                 <LucideIcon :name="def.icon" :size="16" :color="def.color" />
               </div>
               <div class="add-node-item-info">
@@ -51,19 +52,37 @@
                 <span class="add-node-item-desc">{{ def.description }}</span>
               </div>
             </button>
+
+            <!-- Plugins Utilitários -->
+            <button
+              v-for="plugin in filteredUtilityPlugins"
+              :key="plugin.id"
+              class="add-node-item"
+              style="position: relative; z-index: 1"
+              @click="selectPlugin(plugin.id)"
+            >
+              <div class="add-node-item-icon-well" :style="{ backgroundColor: plugin.manifest.metadata.style?.bgColor || 'var(--nod8-bg-surface)', borderColor: plugin.manifest.metadata.style?.borderColor || 'var(--nod8-border)' }">
+                <LucideIcon :name="plugin.manifest.metadata.style?.icon || plugin.manifest.metadata.icon || 'box'" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--nod8-text-muted)'" />
+              </div>
+              <div class="add-node-item-info">
+                <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
+                <span class="add-node-item-desc">{{ plugin.manifest.metadata.description }}</span>
+              </div>
+              <LucideIcon name="chevron-right" :size="14" class="add-node-item-chevron" />
+            </button>
           </BaseWoobyMenu>
         </div>
 
         <!-- Integrations / Plugins -->
         <div class="add-node-section">
           <p class="add-node-section-label">Integrações</p>
-          <div v-if="filteredPlugins.length === 0" class="add-node-empty">
+          <div v-if="filteredIntegrationPlugins.length === 0" class="add-node-empty">
             <LucideIcon name="blocks" :size="32" class="add-node-empty-icon" />
-            <p>Nenhum plugin instalado.</p>
+            <p>Nenhuma integração encontrada.</p>
           </div>
           <BaseWoobyMenu v-else tag="div" class="add-node-list">
             <button
-              v-for="plugin in filteredPlugins"
+              v-for="plugin in filteredIntegrationPlugins"
               :key="plugin.id"
               class="add-node-item"
               style="position: relative; z-index: 1"
@@ -161,6 +180,7 @@ const LOGIC_NODES = [
     icon: 'code-2',
     color: 'var(--nod8-node-codeblock-icon)',
     bgColor: 'var(--nod8-node-codeblock-bg)',
+    borderColor: 'var(--nod8-node-codeblock-border)',
   },
   {
     type: 'if' as WorkflowNodeType,
@@ -169,6 +189,7 @@ const LOGIC_NODES = [
     icon: 'git-branch',
     color: 'var(--nod8-node-if-icon)',
     bgColor: 'var(--nod8-node-if-bg)',
+    borderColor: 'var(--nod8-node-if-border)',
   },
   {
     type: 'loop' as WorkflowNodeType,
@@ -177,6 +198,7 @@ const LOGIC_NODES = [
     icon: 'repeat',
     color: 'var(--nod8-node-loop-icon)',
     bgColor: 'var(--nod8-node-loop-bg)',
+    borderColor: 'var(--nod8-node-loop-border)',
   },
   {
     type: 'subworkflow' as WorkflowNodeType,
@@ -185,6 +207,7 @@ const LOGIC_NODES = [
     icon: 'layers',
     color: 'var(--nod8-node-subworkflow-icon)',
     bgColor: 'var(--nod8-node-subworkflow-bg)',
+    borderColor: 'var(--nod8-node-subworkflow-border)',
   },
   {
     type: 'http' as WorkflowNodeType,
@@ -193,6 +216,7 @@ const LOGIC_NODES = [
     icon: 'globe',
     color: 'var(--nod8-node-http-icon)',
     bgColor: 'var(--nod8-node-http-bg)',
+    borderColor: 'var(--nod8-node-http-border)',
   },
   {
     type: 'event' as WorkflowNodeType,
@@ -201,6 +225,7 @@ const LOGIC_NODES = [
     icon: 'zap',
     color: 'var(--nod8-node-event-icon)',
     bgColor: 'var(--nod8-node-event-bg)',
+    borderColor: 'var(--nod8-node-event-border)',
   },
   {
     type: 'event-listener' as WorkflowNodeType,
@@ -209,6 +234,7 @@ const LOGIC_NODES = [
     icon: 'target',
     color: 'var(--nod8-node-event-listener-icon)',
     bgColor: 'var(--nod8-node-event-listener-bg)',
+    borderColor: 'var(--nod8-node-event-listener-border)',
   },
   {
     type: 'set' as WorkflowNodeType,
@@ -217,6 +243,7 @@ const LOGIC_NODES = [
     icon: 'sliders-horizontal',
     color: 'var(--nod8-node-set-icon)',
     bgColor: 'var(--nod8-node-set-bg)',
+    borderColor: 'var(--nod8-node-set-border)',
   },
   {
     type: 'switch' as WorkflowNodeType,
@@ -225,6 +252,7 @@ const LOGIC_NODES = [
     icon: 'git-branch-plus',
     color: 'var(--nod8-node-switch-icon)',
     bgColor: 'var(--nod8-node-switch-bg)',
+    borderColor: 'var(--nod8-node-switch-border)',
   },
   {
     type: 'merge' as WorkflowNodeType,
@@ -233,6 +261,7 @@ const LOGIC_NODES = [
     icon: 'merge',
     color: 'var(--nod8-node-merge-icon)',
     bgColor: 'var(--nod8-node-merge-bg)',
+    borderColor: 'var(--nod8-node-merge-border)',
   },
   {
     type: 'split-in-batches' as WorkflowNodeType,
@@ -241,6 +270,7 @@ const LOGIC_NODES = [
     icon: 'layers',
     color: 'var(--nod8-node-split-icon)',
     bgColor: 'var(--nod8-node-split-bg)',
+    borderColor: 'var(--nod8-node-split-border)',
   },
   {
     type: 'respond-webhook' as WorkflowNodeType,
@@ -249,6 +279,7 @@ const LOGIC_NODES = [
     icon: 'send',
     color: 'var(--nod8-node-respond-webhook-icon)',
     bgColor: 'var(--nod8-node-respond-webhook-bg)',
+    borderColor: 'var(--nod8-node-respond-webhook-border)',
   },
 ]
 
@@ -267,6 +298,14 @@ const filteredPlugins = computed(() =>
   (plugins.value ?? []).filter((p) =>
     p.manifest.metadata.name.toLowerCase().includes(search.value.toLowerCase()),
   ),
+)
+
+const filteredUtilityPlugins = computed(() =>
+  filteredPlugins.value.filter((p) => p.manifest.metadata.utility === true)
+)
+
+const filteredIntegrationPlugins = computed(() =>
+  filteredPlugins.value.filter((p) => p.manifest.metadata.utility !== true)
 )
 
 const filteredMethods = computed(() => {

@@ -29,7 +29,18 @@
           "description": "Semantic version string.",
           "pattern": "^\\d+\\.\\d+\\.\\d+$"
         },
-        "repository": { "type": "string", "description": "URL to the plugin's source repository." }
+        "repository": { "type": "string", "description": "URL to the plugin's source repository." },
+        "utility": { "type": "boolean", "description": "Whether this plugin is a utility node." },
+        "style": {
+          "type": "object",
+          "properties": {
+            "icon": { "type": "string" },
+            "iconColor": { "type": "string" },
+            "bgColor": { "type": "string" },
+            "borderColor": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
       }
     },
 

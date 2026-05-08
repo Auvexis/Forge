@@ -478,6 +478,21 @@ const onEdgesChange = (changes: EdgeChange[]) => {
   }
 }
 
+type NodeChange = { type: string; id?: string }
+const onNodesChange = (changes: NodeChange[]) => {
+  const removals = changes.filter((c) => c.type === 'remove')
+  if (removals.length && workflowStore.activeWorkflow) {
+    let changed = false
+    for (const c of removals) {
+      if (c.id && workflowStore.activeWorkflow.nodes[c.id]) {
+        delete workflowStore.activeWorkflow.nodes[c.id]
+        changed = true
+      }
+    }
+    if (changed) workflowStore.markDirty()
+  }
+}
+
 // ── Expose public API so WorkflowEditorPage can call these ────────────────
 defineExpose({ handleRun, handleStop, openAddNodePanel })
 </script>
@@ -499,6 +514,7 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       @node-drag-stop="onNodeDragStop"
       @connect="onConnect"
       @edges-change="onEdgesChange"
+      @nodes-change="onNodesChange"
     >
       <!-- Bottom zoom controls dock (no run/stop/save — those are in the top AppDock) -->
       <EditorControlsDock
@@ -527,7 +543,7 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
         <defs>
           <marker
-            id="nod8-arrow-normal"
+            id="nod8-arrow-idle"
             viewBox="0 0 12 12"
             refX="10"
             refY="6"
@@ -539,6 +555,57 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
               d="M 2 2 L 10 6 L 2 10 z"
               fill="var(--nod8-rf-arrow-stroke)"
               stroke="var(--nod8-rf-arrow-stroke)"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+          </marker>
+          <marker
+            id="nod8-arrow-success"
+            viewBox="0 0 12 12"
+            refX="10"
+            refY="6"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
+            <path
+              d="M 2 2 L 10 6 L 2 10 z"
+              fill="var(--nod8-green-500, #22c55e)"
+              stroke="var(--nod8-green-500, #22c55e)"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+          </marker>
+          <marker
+            id="nod8-arrow-failed"
+            viewBox="0 0 12 12"
+            refX="10"
+            refY="6"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
+            <path
+              d="M 2 2 L 10 6 L 2 10 z"
+              fill="var(--nod8-red-500, #ef4444)"
+              stroke="var(--nod8-red-500, #ef4444)"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+          </marker>
+          <marker
+            id="nod8-arrow-running"
+            viewBox="0 0 12 12"
+            refX="10"
+            refY="6"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
+            <path
+              d="M 2 2 L 10 6 L 2 10 z"
+              fill="var(--nod8-amber-500, #f59e0b)"
+              stroke="var(--nod8-amber-500, #f59e0b)"
               stroke-width="2"
               stroke-linejoin="round"
             />

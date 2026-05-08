@@ -26,6 +26,9 @@ const props = defineProps<{
 
   selected?: boolean
   status?: 'idle' | 'running' | 'success' | 'failed'
+
+  height?: number | string
+  width?: number | string
 }>()
 
 const executionStore = useExecutionStore()
@@ -99,7 +102,16 @@ const onQuickAdd = () => {
 </script>
 
 <template>
-  <div class="nod8-base-node" :class="[{ 'is-selected': selected }, statusClasses]" :style="{ '--node-tint': props.bg, '--node-custom-border': props.borderColor }">
+  <div 
+    class="nod8-base-node" 
+    :class="[{ 'is-selected': selected }, statusClasses]" 
+    :style="{ 
+      '--node-tint': props.bg, 
+      '--node-custom-border': props.borderColor,
+      height: props.height ? (typeof props.height === 'number' ? `${props.height}px` : props.height) : undefined,
+      width: props.width ? (typeof props.width === 'number' ? `${props.width}px` : props.width) : undefined
+    }"
+  >
     <!-- Shimmer overlay while running -->
     <NodeShimmer v-if="effectiveStatus === 'running'" />
 

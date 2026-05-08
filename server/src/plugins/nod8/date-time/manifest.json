@@ -6,7 +6,14 @@
     "icon": "calendar-clock",
     "category": "Utilities",
     "author": "Nod8",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "utility": true,
+    "style": {
+      "icon": "calendar-clock",
+      "iconColor": "rgb(245, 158, 11)",
+      "bgColor": "rgba(245, 158, 11, 0.12)",
+      "borderColor": "rgba(245, 158, 11, 0.4)"
+    }
   },
 
   "methods": {

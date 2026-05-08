@@ -6,7 +6,14 @@
     "icon": "diff",
     "category": "Utilities",
     "author": "Nod8",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "utility": true,
+    "style": {
+      "icon": "diff",
+      "iconColor": "rgb(99, 102, 241)",
+      "bgColor": "rgba(99, 102, 241, 0.12)",
+      "borderColor": "rgba(99, 102, 241, 0.4)"
+    }
   },
 
   "methods": {

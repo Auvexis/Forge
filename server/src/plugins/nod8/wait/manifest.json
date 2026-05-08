@@ -6,7 +6,14 @@
     "icon": "timer",
     "category": "Utilities",
     "author": "Nod8",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "utility": true,
+    "style": {
+      "icon": "timer",
+      "iconColor": "rgb(20, 184, 166)",
+      "bgColor": "rgba(20, 184, 166, 0.12)",
+      "borderColor": "rgba(20, 184, 166, 0.4)"
+    }
   },
 
   "methods": {

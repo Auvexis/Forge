@@ -97,7 +97,7 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 
 - [x] **1.12** — CSS tokens: Adicionar `--nod8-node-set-*` e `--nod8-node-switch-*` no arquivo de variáveis global
 
-- [ ] **1.13** — ✅ **TESTE & COMMIT**: Criar workflow com Set → Switch → múltiplos destinos. Validar que apenas o handle correto executa. Commitar.
+- [x] **1.13** — ✅ **TESTE & COMMIT**: Criar workflow com Set → Switch → múltiplos destinos. Validar que apenas o handle correto executa. Commitar.
 
 ---
 
@@ -125,7 +125,7 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 
 - [x] **2.7** — Registrar em Canvas, AddNodePanel e editor registry
 
-- [ ] **2.8** — ✅ **TESTE & COMMIT**: Criar workflow com Switch (2 branches) → ambos chegam no Merge → próximo nó executa uma única vez. Testar `wait-any` e `wait-all`. Commitar.
+- [x] **2.8** — ✅ **TESTE & COMMIT**: Criar workflow com Switch (2 branches) → ambos chegam no Merge → próximo nó executa uma única vez. Testar `wait-any` e `wait-all`. Commitar.
 
 ---
 
@@ -151,7 +151,7 @@ Nó altera o FLUXO DE EXECUÇÃO (quais próximos nós rodam)?
 
 - [x] **3.6** — Registrar em Canvas, AddNodePanel e editor registry
 
-- [ ] **3.7** — ✅ **TESTE & COMMIT**: Criar array de 10 itens, Split com batchSize=3 → verificar que `$batch` contém arrays de 3, 3, 3, 1. Commitar.
+- [x] **3.7** — ✅ **TESTE & COMMIT**: Criar array de 10 itens, Split com batchSize=3 → verificar que `$batch` contém arrays de 3, 3, 3, 1. Commitar.
 
 ---
 

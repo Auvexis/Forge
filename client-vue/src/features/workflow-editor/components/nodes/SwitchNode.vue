@@ -15,21 +15,29 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Switch')
 const cases = computed(() => props.data?.cases ?? [])
 const hasFallback = computed(() => !!props.data?.fallbackHandleId)
 
-/**
- * Distribute N handles + optional fallback evenly between 20% and 80% of node height.
- * Mirrors the same pattern used by IfNode for "then/else".
- */
+const nodeHeight = computed(() => {
+  const total = cases.value.length + (hasFallback.value ? 1 : 0)
+  return Math.max(100, 40 + total * 30) // base 40px + 30px per case
+})
+
 const handlePositions = computed(() => {
   const total = cases.value.length + (hasFallback.value ? 1 : 0)
   return cases.value.map((_, i) => {
-    const pct = total === 1 ? 50 : 20 + (60 / (total - 1)) * i
-    return pct
+    if (total === 1) return nodeHeight.value / 2
+    const startY = 30
+    const endY = nodeHeight.value - 30
+    const step = (endY - startY) / (total - 1)
+    return startY + step * i
   })
 })
 
 const fallbackPosition = computed(() => {
   const total = cases.value.length + 1
-  return 20 + (60 / (total - 1)) * cases.value.length
+  if (total === 1) return nodeHeight.value / 2
+  const startY = 30
+  const endY = nodeHeight.value - 30
+  const step = (endY - startY) / (total - 1)
+  return startY + step * cases.value.length
 })
 </script>
 
@@ -38,6 +46,7 @@ const fallbackPosition = computed(() => {
     :id="props.id"
     :selected="props.selected"
     :status="props.status"
+    :height="nodeHeight"
     has-target
     :title="stepTitle"
     subtitle="N-way routing"
@@ -52,13 +61,13 @@ const fallbackPosition = computed(() => {
         :id="c.handleId"
         type="source"
         :position="Position.Right"
-        :style="`top: ${handlePositions[i]}%`"
+        :style="`top: ${handlePositions[i]}px`"
       />
       <BaseBadge
         variant="default"
         size="sm"
         class="switch-handle-badge"
-        :style="`top: ${handlePositions[i]}%; right: -52px`"
+        :style="`top: ${handlePositions[i]}px;`"
       >
         {{ c.value || `case ${i}` }}
       </BaseBadge>
@@ -70,13 +79,13 @@ const fallbackPosition = computed(() => {
         :id="props.data.fallbackHandleId"
         type="source"
         :position="Position.Right"
-        :style="`top: ${fallbackPosition}%`"
+        :style="`top: ${fallbackPosition}px`"
       />
       <BaseBadge
         variant="default"
         size="sm"
         class="switch-handle-badge"
-        :style="`top: ${fallbackPosition}%; right: -60px`"
+        :style="`top: ${fallbackPosition}px;`"
       >
         default
       </BaseBadge>
@@ -87,10 +96,19 @@ const fallbackPosition = computed(() => {
 <style scoped>
 .switch-handle-badge {
   position: absolute;
+  left: 100%;
   transform: translateY(-50%);
+  margin-left: 16px;
+  padding: 0 6px;
   pointer-events: none;
   font-size: 10px;
-  max-width: 56px;
+  max-width: 100px;
+  
+  /* Fix text truncation over padding */
+  display: block !important;
+  box-sizing: border-box;
+  line-height: 18px;
+  
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

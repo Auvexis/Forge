@@ -85,6 +85,13 @@ export interface PluginMetadata {
   author: string;
   version: string;
   repository: string;
+  utility?: boolean;
+  style?: {
+    icon?: string;
+    iconColor?: string;
+    bgColor?: string;
+    borderColor?: string;
+  };
 }
 
 // ──────────── JSON Schema Types (for method parameters & response) ────────────

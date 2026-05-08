@@ -6,7 +6,14 @@
     "icon": "file-text",
     "category": "Utilities",
     "author": "Nod8",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "utility": true,
+    "style": {
+      "icon": "file-text",
+      "iconColor": "rgb(59, 130, 246)",
+      "bgColor": "rgba(59, 130, 246, 0.12)",
+      "borderColor": "rgba(59, 130, 246, 0.4)"
+    }
   },
 
   "methods": {
