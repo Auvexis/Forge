@@ -29,7 +29,11 @@
 
         <!-- Sidebar footer -->
         <template #footer>
-          <div class="sidebar-footer-links">
+          <BaseWoobyMenu
+            tag="div"
+            class="sidebar-footer-links"
+            active-selector=".nav-link--active"
+          >
             <a href="https://docs.nod8.dev" target="_blank" class="nav-link" title="Documentation">
               <LucideIcon name="book" :size="16" />
             </a>
@@ -41,7 +45,7 @@
             >
               <LucideIcon name="settings" :size="16" />
             </button>
-          </div>
+          </BaseWoobyMenu>
         </template>
       </AppSidebar>
       <SidebarGlobalPanel />
@@ -72,6 +76,7 @@ import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import SidebarGlobalPanel from '@/shared/components/layout/SidebarGlobalPanel.vue'
 import AppGlobalSettings from '@/shared/components/layout/AppGlobalSettings.vue'
+import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/ProductionMonitorPanel.vue'
@@ -88,5 +93,4 @@ function toggleMonitor() {
   })
 }
 </script>
-
 
