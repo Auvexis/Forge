@@ -47,6 +47,10 @@ export const useExecutionStore = defineStore('execution', () => {
     nodeStatuses[nodeId] = prev ? { ...prev, ...patch } : { status: 'idle' as const, ...patch }
   }
 
+  function patchNodeStatus(nodeId: string, patch: Partial<NodeExecutionState>) {
+    _patchNode(nodeId, patch)
+  }
+
   // ── Actions ──────────────────────────────────────────────────────────────
 
   /** Clears all node execution state and resets the workflow status. */
@@ -218,5 +222,6 @@ export const useExecutionStore = defineStore('execution', () => {
     startStream,
     stopStream,
     resetNodeStatuses,
+    patchNodeStatus,
   }
 })

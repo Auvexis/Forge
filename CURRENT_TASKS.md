@@ -13,7 +13,7 @@
 ## Tasks
 
 - [x] 1. Fix Output `JsonTreeView` wrapping and horizontal overflow for very large results.
-- [ ] 2. When a single node runs via Run Step, show its result in Output and make it available as input for downstream nodes.
+- [x] 2. When a single node runs via Run Step, show its result in Output and make it available as input for downstream nodes.
 - [ ] 3. Remove the Output error box from `NodeInspectorModal` and send all errors/messages/alerts to the global toast.
 - [ ] 4. Replace raw `<input>` elements in Vue files with `BaseInput.vue`.
 - [ ] 5. Add the Wooby effect to the bottom navbar area of the main sidebar where Settings lives.

@@ -66,18 +66,35 @@ function close() {
 
 async function runStep() {
   if (!inspectorStore.activeNodeId || !workflowStore.activeWorkflow) return
+  const nodeId = inspectorStore.activeNodeId
+  const startedAt = Date.now()
   inspectorStore.isTesting = true
   inspectorStore.lastTestOutput = null
+  executionStore.patchNodeStatus(nodeId, { status: 'running', startedAt, endedAt: undefined })
 
   try {
     const res = await workflowsApi.executeNode(
       workflowStore.activeWorkflow.metadata.id,
-      inspectorStore.activeNodeId,
+      nodeId,
       inspectorStore.activeNode!.data,
     )
     inspectorStore.lastTestOutput = { success: true, data: res }
+    executionStore.patchNodeStatus(nodeId, {
+      status: 'success',
+      output: res,
+      error: undefined,
+      startedAt,
+      endedAt: Date.now(),
+    })
   } catch (err: any) {
-    inspectorStore.lastTestOutput = { success: false, error: err.message || 'Execution failed' }
+    const message = err.message || 'Execution failed'
+    inspectorStore.lastTestOutput = { success: false, error: message }
+    executionStore.patchNodeStatus(nodeId, {
+      status: 'failed',
+      error: message,
+      startedAt,
+      endedAt: Date.now(),
+    })
   } finally {
     inspectorStore.isTesting = false
   }
