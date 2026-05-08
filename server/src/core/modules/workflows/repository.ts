@@ -181,6 +181,26 @@ export const WorkflowRepository = {
     return null;
   },
 
+  /**
+   * Validates a Form trigger public ID. It shares the same URL-safe shape as
+   * webhook slugs, but lives in the form trigger namespace.
+   */
+  validateFormSlug: (slug: string, excludeWorkflowId?: string): string | null => {
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
+      return `formSlug must be kebab-case (e.g. 'contact-us'). Got: '${slug}'`;
+    }
+
+    const existing = db.prepare(
+      `SELECT id FROM workflows WHERE json_extract(definition, '$.trigger.formSlug') = ?`
+    ).get(slug) as { id: string } | undefined;
+
+    if (existing && existing.id !== excludeWorkflowId) {
+      return `formSlug '${slug}' is already used by another workflow`;
+    }
+
+    return null;
+  },
+
   saveExecutionLog: (
     executionId: string,
     workflowId: string,

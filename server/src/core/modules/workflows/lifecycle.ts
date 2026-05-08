@@ -3,6 +3,7 @@ import type { TriggerRegistrationContext } from "../../../shared/models/plugin-t
 import { PluginManager } from "../plugins/manager.ts";
 import { CredentialStore } from "../plugins/credential-store.ts";
 import { Vault } from "../plugins/vault.ts";
+import { AppRepository } from "../app/app-repository.ts";
 
 // ──────────── WorkflowLifecycleManager ────────────
 //
@@ -14,14 +15,21 @@ import { Vault } from "../plugins/vault.ts";
 // Call deactivate() when a workflow becomes inactive (unpublish / delete).
 
 const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
-const PUBLIC_URL = process.env.PUBLIC_URL || `http://localhost:${SERVER_PORT}`;
+
+function resolvePublicUrl(): string {
+  const configuredPublicUrl = AppRepository.getSetting("public_url");
+  if (typeof configuredPublicUrl === "string" && configuredPublicUrl.trim()) {
+    return configuredPublicUrl.trim();
+  }
+  return process.env.PUBLIC_URL || `http://localhost:${SERVER_PORT}`;
+}
 
 /**
  * Builds the webhook URL for the given webhook path.
  * In production this would be the publicly accessible URL.
  */
 function buildWebhookUrl(webhookPath: string): string {
-  return `${PUBLIC_URL}/webhook/${webhookPath}`;
+  return `${resolvePublicUrl()}/webhook/${webhookPath}`;
 }
 
 /**

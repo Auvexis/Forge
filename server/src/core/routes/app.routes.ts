@@ -17,7 +17,11 @@ export default async function appRoutes(fastify: FastifyInstance) {
    */
   fastify.get("/app/info", async (_req, reply) => {
     const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
-    const PUBLIC_URL = process.env.PUBLIC_URL || `http://localhost:${SERVER_PORT}`;
+    const configuredPublicUrl = AppRepository.getSetting("public_url");
+    const PUBLIC_URL =
+      (typeof configuredPublicUrl === "string" && configuredPublicUrl.trim())
+        ? configuredPublicUrl.trim()
+        : process.env.PUBLIC_URL || `http://localhost:${SERVER_PORT}`;
     return sendResponse(reply, {
       status_code: 200,
       message: "App info fetched successfully",

@@ -22,6 +22,13 @@
 - [x] 8. Support manifest parameter input type `code` with Monaco Editor instead of a plain input/textarea.
 - [x] 9. Convert the interface copy to EN-US.
 
+## Form Trigger Tasks
+
+- [x] 10. Add a configurable Form ID for Form trigger URLs without leaking plugin behavior into the core engine.
+- [x] 11. Split Form trigger URLs into TEST and PROD modes, with draft/test forms available before publishing.
+- [x] 12. Fix the Form Fields editor layout with a grid and add date, password, and file field types.
+- [x] 13. Add a dynamic `public_url` app setting and use it for production forms and plugin webhook registration.
+
 ## Verification
 
 - [ ] Client type-check/build passes. `npm run build` generates the Vite bundle, but fails during `vue-tsc` on existing type errors in `WorkflowEditorPage.vue`, `node-types.ts`, `RespondToWebhookEditor.vue`, and `SetEditor.vue`.

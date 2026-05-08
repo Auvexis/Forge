@@ -233,7 +233,7 @@ export interface WebhookBodyField {
 export interface FormTriggerField {
   name: string
   label: string
-  type: 'text' | 'email' | 'number' | 'textarea'
+  type: 'text' | 'email' | 'number' | 'textarea' | 'date' | 'password' | 'file'
   required?: boolean
   placeholder?: string
 }
@@ -256,6 +256,7 @@ export interface WorkflowTrigger {
   triggerName?: string
   triggerParams?: Record<string, any>
   // Form trigger fields
+  formSlug?: string
   formTitle?: string
   formDescription?: string
   formFields?: FormTriggerField[]

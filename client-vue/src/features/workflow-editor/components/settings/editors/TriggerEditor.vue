@@ -215,28 +215,63 @@
     <template v-if="node.data.type === 'form'">
       <div class="te-section">
 
-        <!-- Public form URL -->
+        <!-- Form ID -->
         <div class="te-field">
-          <span class="te-label">Public Form URL</span>
+          <span class="te-label">
+            Form ID
+            <span class="te-label-sub">(optional, readable URL)</span>
+          </span>
+          <BaseInput
+            type="text"
+            :model-value="(node.data as unknown as WorkflowTrigger).formSlug || ''"
+            @update:model-value="updateNodeData({ formSlug: $event as string || undefined })"
+            placeholder="contact-us"
+          />
+          <p class="te-hint">kebab-case only. Leave empty to use the workflow UUID.</p>
+        </div>
+
+        <!-- Form URLs -->
+        <div class="te-field">
+          <span class="te-label">Form URLs</span>
           <div class="te-url-group">
             <div class="te-url-row">
-              <span
-                class="te-url-badge"
-                :class="formIsPublished ? 'te-url-badge--prod' : 'te-url-badge--test'"
-              >{{ formIsPublished ? 'LIVE' : 'DRAFT' }}</span>
-              <div class="te-url-box">{{ formPublicUrl || '<save-workflow-first>' }}</div>
+              <span class="te-url-badge te-url-badge--test">TEST</span>
+              <div class="te-url-box">{{ formTestUrl || '<save-workflow-first>' }}</div>
               <button
                 class="te-icon-btn"
                 title="Copy URL"
-                :disabled="!formPublicUrl"
-                @click="copyUrl(formPublicUrl, 'prod')"
+                :disabled="!formTestUrl"
+                @click="copyUrl(formTestUrl, 'form-test')"
               >
-                <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--nod8-green-400)" />
+                <CheckIcon v-if="copied === 'form-test'" :size="14" style="color: var(--nod8-green-400)" />
                 <CopyIcon v-else :size="14" />
               </button>
               <a
-                v-if="formPublicUrl && formIsPublished"
-                :href="formPublicUrl"
+                v-if="formTestUrl"
+                :href="formTestUrl"
+                target="_blank"
+                rel="noopener"
+                class="te-icon-btn"
+                title="Open in new tab"
+              >
+                <RadioIcon :size="14" />
+              </a>
+            </div>
+            <div class="te-url-row">
+              <span class="te-url-badge te-url-badge--prod">PROD</span>
+              <div class="te-url-box">{{ formProdUrl || '<save-workflow-first>' }}</div>
+              <button
+                class="te-icon-btn"
+                title="Copy URL"
+                :disabled="!formProdUrl"
+                @click="copyUrl(formProdUrl, 'form-prod')"
+              >
+                <CheckIcon v-if="copied === 'form-prod'" :size="14" style="color: var(--nod8-green-400)" />
+                <CopyIcon v-else :size="14" />
+              </button>
+              <a
+                v-if="formProdUrl && formIsPublished"
+                :href="formProdUrl"
                 target="_blank"
                 rel="noopener"
                 class="te-icon-btn"
@@ -247,8 +282,7 @@
             </div>
           </div>
           <p class="te-hint">
-            The form is only reachable when the workflow is published (active). Submissions
-            kick off the workflow with <code class="editor-code-snippet" v-pre>{{ trigger.fields }}</code>.
+            Test URL works for drafts through localhost. Prod URL requires publishing and uses the configured Public URL.
           </p>
         </div>
 
@@ -285,21 +319,20 @@
             <div
               v-for="(field, i) in formFields"
               :key="i"
-              class="flex items-center gap-2"
+              class="te-form-field-grid"
             >
               <BaseInput
                 :model-value="field.name"
                 @update:model-value="updateFormField(i, { name: $event as string })"
                 placeholder="field_name"
-                style="font-family: var(--nod8-font-mono); flex: 1"
+                style="font-family: var(--nod8-font-mono)"
               />
               <BaseInput
                 :model-value="field.label"
                 @update:model-value="updateFormField(i, { label: $event as string })"
                 placeholder="Label"
-                style="flex: 1"
               />
-              <div style="width: 130px; flex-shrink: 0;">
+              <div>
                 <BaseSelect
                   :model-value="field.type"
                   :options="FORM_FIELD_TYPES"
@@ -583,6 +616,9 @@ const FORM_FIELD_TYPES = [
   { value: 'email', label: 'Email', icon: 'mail' },
   { value: 'number', label: 'Number', icon: 'hash' },
   { value: 'textarea', label: 'Textarea', icon: 'align-left' },
+  { value: 'date', label: 'Date Picker', icon: 'calendar' },
+  { value: 'password', label: 'Password', icon: 'lock-keyhole' },
+  { value: 'file', label: 'File', icon: 'file' },
 ]
 
 const MANUAL_FIELD_TYPES = [
@@ -632,7 +668,7 @@ function humanizeCron(expression: string | undefined): string {
   }
 }
 
-const copied = ref<'test' | 'prod' | null>(null)
+const copied = ref<'test' | 'prod' | 'form-test' | 'form-prod' | null>(null)
 
 const backendPublicUrl = ref(API_BASE_URL)
 
@@ -672,7 +708,7 @@ function toggleMethod(method: string) {
   }
 }
 
-async function copyUrl(url: string, which: 'test' | 'prod') {
+async function copyUrl(url: string, which: 'test' | 'prod' | 'form-test' | 'form-prod') {
   await navigator.clipboard.writeText(url)
   copied.value = which
   setTimeout(() => { copied.value = null }, 2000)
@@ -759,10 +795,14 @@ const formFields = computed<FormTriggerField[]>(
   () => (props.node.data as unknown as WorkflowTrigger).formFields ?? [],
 )
 
-const formPublicUrl = computed(() => {
+const formPublicId = computed(() => {
   const id = workflowStore.activeWorkflow?.metadata.id
-  return id ? `${backendPublicUrl.value}/forms/${id}` : ''
+  const slug = (props.node.data as unknown as WorkflowTrigger).formSlug?.trim()
+  return slug || id || ''
 })
+
+const formTestUrl = computed(() => formPublicId.value ? `${API_BASE_URL}/forms-test/${formPublicId.value}` : '')
+const formProdUrl = computed(() => formPublicId.value ? `${backendPublicUrl.value}/forms/${formPublicId.value}` : '')
 
 const formIsPublished = computed(
   () => workflowStore.activeWorkflow?.metadata.isActive ?? false,
@@ -925,6 +965,20 @@ onUnmounted(() => cleanup())
 </script>
 
 <style scoped>
+.te-form-field-grid {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(150px, 0.8fr) auto 32px;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .te-form-field-grid {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+}
+
 .te-checkbox {
   width: 14px;
   flex: 0 0 14px;

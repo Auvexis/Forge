@@ -464,6 +464,30 @@
                 @update:model-value="handleLogRetentionChange"
               />
             </div>
+
+            <div class="gs-pref-row">
+              <div class="gs-pref-row__label">
+                <LucideIcon name="globe" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Public URL</span>
+                  <span class="gs-pref-row__hint">Base URL used by production webhooks and forms</span>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 320px">
+                <BaseInput
+                  v-model="publicUrlDraft"
+                  placeholder="https://example.ngrok-free.app"
+                  style="flex: 1"
+                />
+                <BaseButton
+                  variant="primary"
+                  :loading="isSavingPublicUrl"
+                  @click="handlePublicUrlSave"
+                >
+                  Save
+                </BaseButton>
+              </div>
+            </div>
           </div>
         </transition>
       </main>
@@ -702,6 +726,16 @@ const logRetentionOptions = [
 
 const themeValue = computed(() => String(store.settings.theme ?? 'dark'))
 const logRetentionValue = computed(() => String(store.settings.log_retention_days ?? '30'))
+const publicUrlDraft = ref('')
+const isSavingPublicUrl = ref(false)
+
+watch(
+  () => store.settings.public_url,
+  (value) => {
+    publicUrlDraft.value = typeof value === 'string' ? value : ''
+  },
+  { immediate: true },
+)
 
 async function handleThemeChange(value: string | number) {
   const theme = String(value) as ThemeMode
@@ -711,6 +745,15 @@ async function handleThemeChange(value: string | number) {
 
 async function handleLogRetentionChange(value: string | number) {
   await store.saveSetting('log_retention_days', String(value))
+}
+
+async function handlePublicUrlSave() {
+  isSavingPublicUrl.value = true
+  try {
+    await store.saveSetting('public_url', publicUrlDraft.value.trim())
+  } finally {
+    isSavingPublicUrl.value = false
+  }
 }
 </script>
 

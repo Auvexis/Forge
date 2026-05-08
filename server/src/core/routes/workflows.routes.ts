@@ -73,6 +73,12 @@ function validateWorkflowDefinition(workflow: WorkflowItem): string | null {
 
   // Validate Form trigger configuration
   if (workflow.trigger.type === "form") {
+    if (
+      workflow.trigger.formSlug &&
+      !FORM_SLUG_REGEX.test(workflow.trigger.formSlug)
+    ) {
+      return `Form ID must be kebab-case (e.g. 'contact-us'). Got: '${workflow.trigger.formSlug}'`;
+    }
     if (!Array.isArray(workflow.trigger.formFields)) {
       return "Form trigger must have a formFields array";
     }
@@ -212,8 +218,17 @@ function validateWorkflowDefinition(workflow: WorkflowItem): string | null {
 
 // ──────────── Form Trigger helpers ────────────
 
-const VALID_FORM_FIELD_TYPES = new Set(["text", "email", "number", "textarea"]);
+const VALID_FORM_FIELD_TYPES = new Set([
+  "text",
+  "email",
+  "number",
+  "textarea",
+  "date",
+  "password",
+  "file",
+]);
 const FORM_FIELD_NAME_REGEX = /^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/i;
+const FORM_SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const FORM_FIELD_MAX_BYTES = 8 * 1024;
 const FORM_RATE_LIMIT_WINDOW_MS = 60_000;
 const FORM_RATE_LIMIT_MAX = 30;
@@ -248,9 +263,22 @@ function escapeAttr(value: unknown): string {
 interface NormalizedFormField {
   name: string;
   label: string;
-  type: "text" | "email" | "number" | "textarea";
+  type: "text" | "email" | "number" | "textarea" | "date" | "password" | "file";
   required: boolean;
   placeholder: string;
+}
+
+function formPublicId(workflow: WorkflowItem): string {
+  return workflow.trigger.formSlug?.trim() || workflow.metadata.id;
+}
+
+function resolveFormWorkflow(formId: string, opts: { requireActive: boolean }): WorkflowItem | null {
+  const workflows = WorkflowRepository.getWorkflows();
+  return workflows.find((workflow) => {
+    if (workflow.trigger.type !== "form") return false;
+    if (opts.requireActive && !workflow.metadata.isActive) return false;
+    return workflow.metadata.id === formId || workflow.trigger.formSlug === formId;
+  }) ?? null;
 }
 
 function normalizeFormFields(raw: unknown): NormalizedFormField[] {
@@ -272,7 +300,7 @@ function normalizeFormFields(raw: unknown): NormalizedFormField[] {
 function renderFormPage(
   workflow: WorkflowItem,
   fields: NormalizedFormField[],
-  opts: { error?: string } = {},
+  opts: { error?: string; mode?: "test" | "prod" } = {},
 ): string {
   const trigger = workflow.trigger;
   const title = trigger.formTitle?.trim() || workflow.metadata.name;
@@ -299,7 +327,9 @@ function renderFormPage(
     ? `<div class="error">${escapeHtml(opts.error)}</div>`
     : "";
 
-  const submitUrl = `/forms/${escapeAttr(workflow.metadata.id)}/submit`;
+  const mode = opts.mode ?? "prod";
+  const basePath = mode === "test" ? "/forms-test" : "/forms";
+  const submitUrl = `${basePath}/${escapeAttr(formPublicId(workflow))}/submit`;
 
   return `<!DOCTYPE html>
 <html lang="en"><head>
@@ -619,15 +649,31 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
   // Renders an HTML form for workflows with `trigger.type === "form"`.
   // The page is fully self-contained (inline CSS, no external assets).
 
-  fastify.get("/forms/:workflowId", async (req, reply) => {
-    const { workflowId } = req.params as { workflowId: string };
+  fastify.get("/forms-test/:formId", async (req, reply) => {
+    const { formId } = req.params as { formId: string };
 
-    const workflow = WorkflowRepository.getWorkflowById(workflowId);
-    if (
-      !workflow ||
-      workflow.trigger.type !== "form" ||
-      !workflow.metadata.isActive
-    ) {
+    const workflow = resolveFormWorkflow(formId, { requireActive: false });
+    if (!workflow) {
+      return reply.code(404).type("text/html; charset=utf-8").send(
+        `<!DOCTYPE html><html><body style="font-family: sans-serif; padding: 40px; background:#0b0d12; color:#e7e9ee;">
+          <h1>Form not available</h1>
+          <p>This draft form does not exist.</p>
+        </body></html>`
+      );
+    }
+
+    const fields = normalizeFormFields(workflow.trigger.formFields);
+    return reply
+      .code(200)
+      .type("text/html; charset=utf-8")
+      .send(renderFormPage(workflow, fields, { mode: "test" }));
+  });
+
+  fastify.get("/forms/:formId", async (req, reply) => {
+    const { formId } = req.params as { formId: string };
+
+    const workflow = resolveFormWorkflow(formId, { requireActive: true });
+    if (!workflow) {
       return reply.code(404).type("text/html; charset=utf-8").send(
         `<!DOCTYPE html><html><body style="font-family: sans-serif; padding: 40px; background:#0b0d12; color:#e7e9ee;">
           <h1>Form not available</h1>
@@ -647,22 +693,21 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
   // Validates required fields, dispatches the workflow asynchronously, and
   // returns a confirmation page. Per-IP+workflow rate limit prevents spam.
 
-  fastify.post("/forms/:workflowId/submit", async (req, reply) => {
-    const { workflowId } = req.params as { workflowId: string };
-
-    const workflow = WorkflowRepository.getWorkflowById(workflowId);
-    if (
-      !workflow ||
-      workflow.trigger.type !== "form" ||
-      !workflow.metadata.isActive
-    ) {
+  async function handleFormSubmission(
+    formId: string,
+    opts: { requireActive: boolean; mode: "test" | "prod" },
+    req: any,
+    reply: FastifyReply,
+  ) {
+    const workflow = resolveFormWorkflow(formId, { requireActive: opts.requireActive });
+    if (!workflow) {
       return reply.code(404).type("text/html; charset=utf-8").send(
         `<!DOCTYPE html><html><body><h1>Form not available</h1></body></html>`
       );
     }
 
     // Rate limit: per-IP + per-workflow
-    const rateKey = `${req.ip}:${workflowId}`;
+    const rateKey = `${req.ip}:${workflow.metadata.id}`;
     if (isFormRateLimited(rateKey)) {
       return reply.code(429).type("text/html; charset=utf-8").send(
         `<!DOCTYPE html><html><body style="font-family: sans-serif; padding: 40px; background:#0b0d12; color:#e7e9ee;">
@@ -687,6 +732,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
           .type("text/html; charset=utf-8")
           .send(renderFormPage(workflow, fields, {
             error: `Field "${field.label}" exceeds the ${FORM_FIELD_MAX_BYTES} byte limit.`,
+            mode: opts.mode,
           }));
       }
 
@@ -696,6 +742,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
           .type("text/html; charset=utf-8")
           .send(renderFormPage(workflow, fields, {
             error: `Field "${field.label}" is required.`,
+            mode: opts.mode,
           }));
       }
 
@@ -710,6 +757,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
               .type("text/html; charset=utf-8")
               .send(renderFormPage(workflow, fields, {
                 error: `Field "${field.label}" must be a number.`,
+                mode: opts.mode,
               }));
           }
           fieldData[field.name] = num;
@@ -732,7 +780,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(
       (err: any) => {
         console.error(
-          `[NOD8 | FORM-TRIGGER]: Execution failed for "${workflowId}": ${err.message}`,
+          `[NOD8 | FORM-TRIGGER]: Execution failed for "${workflow.metadata.id}": ${err.message}`,
         );
       },
     );
@@ -741,6 +789,16 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       .code(200)
       .type("text/html; charset=utf-8")
       .send(renderFormConfirmationPage(workflow));
+  }
+
+  fastify.post("/forms-test/:formId/submit", async (req, reply) => {
+    const { formId } = req.params as { formId: string };
+    return handleFormSubmission(formId, { requireActive: false, mode: "test" }, req, reply);
+  });
+
+  fastify.post("/forms/:formId/submit", async (req, reply) => {
+    const { formId } = req.params as { formId: string };
+    return handleFormSubmission(formId, { requireActive: true, mode: "prod" }, req, reply);
   });
 
   // ──────────── SSE Stream Endpoint ────────────
@@ -909,6 +967,21 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       if (workflow.trigger.type === "webhook" && workflow.trigger.webhookSlug) {
         const slugError = WorkflowRepository.validateWebhookSlug(
           workflow.trigger.webhookSlug,
+          workflow.metadata.id,
+        );
+        if (slugError) {
+          return sendResponse(reply, {
+            status_code: 400,
+            message: slugError,
+            error: slugError,
+            data: null,
+          });
+        }
+      }
+
+      if (workflow.trigger.type === "form" && workflow.trigger.formSlug) {
+        const slugError = WorkflowRepository.validateFormSlug(
+          workflow.trigger.formSlug,
           workflow.metadata.id,
         );
         if (slugError) {
@@ -1234,6 +1307,21 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       if (workflow.trigger.type === "webhook" && workflow.trigger.webhookSlug) {
         const slugError = WorkflowRepository.validateWebhookSlug(
           workflow.trigger.webhookSlug,
+          workflowId,
+        );
+        if (slugError) {
+          return sendResponse(reply, {
+            status_code: 400,
+            message: slugError,
+            error: slugError,
+            data: null,
+          });
+        }
+      }
+
+      if (workflow.trigger.type === "form" && workflow.trigger.formSlug) {
+        const slugError = WorkflowRepository.validateFormSlug(
+          workflow.trigger.formSlug,
           workflowId,
         );
         if (slugError) {

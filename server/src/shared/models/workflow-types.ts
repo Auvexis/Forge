@@ -239,7 +239,7 @@ export interface WebhookBodyField {
 export interface FormTriggerField {
   name: string;        // Field key sent in the trigger payload (snake_case or kebab-case)
   label: string;       // Human-readable label rendered in the form
-  type: "text" | "email" | "number" | "textarea";
+  type: "text" | "email" | "number" | "textarea" | "date" | "password" | "file";
   required?: boolean;
   placeholder?: string;
 }
@@ -265,6 +265,7 @@ export interface WorkflowTrigger {
   triggerName?: string;   // Key in plugin.manifest.triggers (e.g. "onMessage")
   triggerParams?: Record<string, any>; // User-configured params for the trigger
   // Form trigger config
+  formSlug?: string;        // Optional readable public ID, e.g. 'contact-us' -> /forms/contact-us
   formTitle?: string;       // Title rendered at the top of the public form page
   formDescription?: string; // Optional description shown below the title
   formFields?: FormTriggerField[];

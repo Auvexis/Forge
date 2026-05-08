@@ -14,6 +14,7 @@ export interface GlobalVariable {
 
 export interface AppSettings {
   theme?: string
+  public_url?: string
   [key: string]: unknown
 }
 
