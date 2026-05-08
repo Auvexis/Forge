@@ -44,7 +44,7 @@ const onDragStart = (event: DragEvent) => {
         :class="path ? 'json-key-draggable' : 'mr-1'"
         :draggable="!!path"
         @dragstart="onDragStart"
-        :title="path ? 'Arraste para mapear' : ''"
+        :title="path ? 'Drag to map' : ''"
       >
         <template v-if="icons && path && icons[path]">
           <img v-if="icons[path]!.startsWith('http') || icons[path]!.startsWith('/') || icons[path]!.startsWith('data:')" :src="icons[path]" style="width: 14px; height: 14px; flex-shrink: 0; object-fit: contain; border-radius: 2px;" />

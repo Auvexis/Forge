@@ -13,7 +13,7 @@
     />
 
     <p v-else class="vt-empty">
-      Nenhuma variável encontrada para "{{ search }}"
+      No variables found for "{{ search }}"
     </p>
   </div>
 </template>

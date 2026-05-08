@@ -145,7 +145,7 @@ const onQuickAdd = () => {
   <div
     v-if="!hasOutgoingConnection && props.id"
     class="trigger-node__quick-add"
-    title="Adicionar node conectado"
+    title="Add connected node"
     @click.stop="onQuickAdd"
   >
     <div class="trigger-node__quick-add-cable"></div>

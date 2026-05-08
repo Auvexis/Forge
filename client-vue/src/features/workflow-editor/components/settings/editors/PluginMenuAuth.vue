@@ -5,7 +5,7 @@
         <LucideIcon name="settings" class="plugin-auth__icon" size="24" />
       </div>
       <div class="plugin-auth__title-area">
-        <h1 class="plugin-auth__title">Configurações Base</h1>
+        <h1 class="plugin-auth__title">Base Settings</h1>
         <div class="plugin-auth__status">
           <template v-if="pluginStatus?.status === 'connected'">
             <LucideIcon name="check-circle-2" class="status-icon status-icon--success" size="14" />
@@ -13,7 +13,7 @@
           </template>
           <template v-else-if="pluginStatus?.status === 'configured'">
             <LucideIcon name="alert-circle" class="status-icon status-icon--warning" size="14" />
-            <span>Credenciais salvas — conecte para autenticar</span>
+            <span>Credentials saved. Connect to authenticate.</span>
           </template>
           <template v-else-if="pluginStatus?.status === 'not_configured'">
             <LucideIcon name="alert-circle" class="status-icon status-icon--error" size="14" />
@@ -41,7 +41,7 @@
           <!-- Locked Input -->
           <div v-if="isLocked(key.toString())" class="auth-field__locked-input">
             <LucideIcon name="lock" size="14" class="text-emerald" />
-            <span class="text-xs">Configurado via variável de ambiente</span>
+            <span class="text-xs">Configured through an environment variable</span>
           </div>
 
           <!-- Toggle Input -->
@@ -75,7 +75,7 @@
 
         <button type="submit" class="auth-btn auth-btn--primary auth-btn--mt" :disabled="saving">
           <LucideIcon v-if="saving" name="loader-2" size="16" class="animate-spin mr-2" />
-          {{ pluginStatus?.auth_type === 'none' ? 'Salvar Configurações' : 'Salvar Credenciais' }}
+          {{ pluginStatus?.auth_type === 'none' ? 'Save Settings' : 'Save Credentials' }}
         </button>
       </form>
     </section>

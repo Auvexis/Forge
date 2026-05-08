@@ -20,7 +20,7 @@
 - [x] 6. Add the missing `BaseInput.vue` Step Name field to the Code Block node/editor.
 - [x] 7. Install and add Monaco Editor with a custom Nod8 theme for code authoring.
 - [x] 8. Support manifest parameter input type `code` with Monaco Editor instead of a plain input/textarea.
-- [ ] 9. Convert the interface copy to EN-US.
+- [x] 9. Convert the interface copy to EN-US.
 
 ## Verification
 

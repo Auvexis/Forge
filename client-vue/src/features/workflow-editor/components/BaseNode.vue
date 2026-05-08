@@ -144,7 +144,7 @@ const onQuickAdd = () => {
     <div
       v-if="props.hasSource && !hasOutgoingConnection && props.id"
       class="nod8-base-node__quick-add"
-      title="Adicionar node conectado"
+      title="Add connected node"
       @click.stop="onQuickAdd"
     >
       <div class="nod8-base-node__quick-add-cable"></div>

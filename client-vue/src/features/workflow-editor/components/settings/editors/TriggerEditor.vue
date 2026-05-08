@@ -82,7 +82,7 @@
             type="text"
             :model-value="(node.data as unknown as WorkflowTrigger).webhookSlug || ''"
             @update:model-value="updateNodeData({ webhookSlug: $event as string || undefined })"
-            placeholder="nova-venda"
+            placeholder="new-sale"
           />
           <p class="te-hint">kebab-case only — replaces the auto-generated path.</p>
         </div>
@@ -441,7 +441,7 @@
             type="text"
             :model-value="(node.data as unknown as WorkflowTrigger).webhookSlug || ''"
             @update:model-value="updateNodeData({ webhookSlug: $event as string || undefined })"
-            placeholder="nova-venda"
+            placeholder="new-sale"
           />
           <p class="te-hint">kebab-case only — replaces the auto-generated path.</p>
         </div>

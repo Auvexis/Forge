@@ -24,16 +24,16 @@
       <!-- Loading -->
       <div v-if="pluginsLoading" class="add-node-loading">
         <LucideIcon name="loader-2" :size="20" class="add-node-spinner" />
-        <span>Carregando plugins...</span>
+        <span>Loading plugins...</span>
       </div>
 
       <!-- View: Categories (default) -->
       <template v-else-if="view === 'categories'">
-        <!-- Lógica e Utilitários -->
+        <!-- Logic and utilities -->
         <div class="add-node-section">
-          <p class="add-node-section-label">Lógica e Utilitários</p>
+          <p class="add-node-section-label">Logic and Utilities</p>
           <BaseWoobyMenu tag="div" class="add-node-list">
-            <!-- Nós Core (Lógica/Controle) -->
+            <!-- Core flow nodes -->
             <button
               v-for="def in filteredLogicNodes"
               :key="def.type"
@@ -50,7 +50,7 @@
               </div>
             </button>
 
-            <!-- Plugins Utilitários -->
+            <!-- Utility plugins -->
             <button
               v-for="plugin in filteredUtilityPlugins"
               :key="plugin.id"
@@ -72,10 +72,10 @@
 
         <!-- Integrations / Plugins -->
         <div class="add-node-section">
-          <p class="add-node-section-label">Integrações</p>
+          <p class="add-node-section-label">Integrations</p>
           <div v-if="filteredIntegrationPlugins.length === 0" class="add-node-empty">
             <LucideIcon name="blocks" :size="32" class="add-node-empty-icon" />
-            <p>Nenhuma integração encontrada.</p>
+            <p>No integrations found.</p>
           </div>
           <BaseWoobyMenu v-else tag="div" class="add-node-list">
             <button
@@ -125,7 +125,7 @@
             </div>
           </button>
           <div v-if="filteredMethods.length === 0" class="add-node-empty" style="position: relative; z-index: 1">
-            <p>Nenhuma ação encontrada.</p>
+            <p>No actions found.</p>
           </div>
         </BaseWoobyMenu>
       </template>
@@ -174,7 +174,7 @@ const LOGIC_NODES = [
   {
     type: 'code' as WorkflowNodeType,
     label: 'Code Block',
-    description: 'Execute JavaScript personalizado em sandbox',
+    description: 'Run custom JavaScript in a sandbox',
     icon: 'code-2',
     color: 'var(--nod8-node-codeblock-icon)',
     bgColor: 'var(--nod8-node-codeblock-bg)',
@@ -183,7 +183,7 @@ const LOGIC_NODES = [
   {
     type: 'if' as WorkflowNodeType,
     label: 'If / Else',
-    description: 'Desvio de fluxo baseado em condição',
+    description: 'Branch the flow based on a condition',
     icon: 'git-branch',
     color: 'var(--nod8-node-if-icon)',
     bgColor: 'var(--nod8-node-if-bg)',
@@ -192,7 +192,7 @@ const LOGIC_NODES = [
   {
     type: 'loop' as WorkflowNodeType,
     label: 'Loop / ForEach',
-    description: 'Iterar sobre uma coleção item a item',
+    description: 'Iterate over a collection item by item',
     icon: 'repeat',
     color: 'var(--nod8-node-loop-icon)',
     bgColor: 'var(--nod8-node-loop-bg)',
@@ -201,7 +201,7 @@ const LOGIC_NODES = [
   {
     type: 'subworkflow' as WorkflowNodeType,
     label: 'Sub-Workflow',
-    description: 'Chamar outro workflow como subpasso',
+    description: 'Call another workflow as a sub-step',
     icon: 'layers',
     color: 'var(--nod8-node-subworkflow-icon)',
     bgColor: 'var(--nod8-node-subworkflow-bg)',
@@ -210,7 +210,7 @@ const LOGIC_NODES = [
   {
     type: 'http' as WorkflowNodeType,
     label: 'HTTP Request',
-    description: 'Fazer requisição HTTP para uma API externa',
+    description: 'Send an HTTP request to an external API',
     icon: 'globe',
     color: 'var(--nod8-node-http-icon)',
     bgColor: 'var(--nod8-node-http-bg)',
@@ -219,7 +219,7 @@ const LOGIC_NODES = [
   {
     type: 'event' as WorkflowNodeType,
     label: 'Event Emitter',
-    description: 'Publicar evento para disparar outros fluxos',
+    description: 'Publish an event to trigger other flows',
     icon: 'zap',
     color: 'var(--nod8-node-event-icon)',
     bgColor: 'var(--nod8-node-event-bg)',
@@ -228,7 +228,7 @@ const LOGIC_NODES = [
   {
     type: 'event-listener' as WorkflowNodeType,
     label: 'Event Listener',
-    description: 'Aguardar um evento para acionar sub-fluxo',
+    description: 'Wait for an event to trigger a sub-flow',
     icon: 'target',
     color: 'var(--nod8-node-event-listener-icon)',
     bgColor: 'var(--nod8-node-event-listener-bg)',
@@ -237,7 +237,7 @@ const LOGIC_NODES = [
   {
     type: 'set' as WorkflowNodeType,
     label: 'Set Fields',
-    description: 'Definir ou renomear campos sem JavaScript',
+    description: 'Set or rename fields without JavaScript',
     icon: 'sliders-horizontal',
     color: 'var(--nod8-node-set-icon)',
     bgColor: 'var(--nod8-node-set-bg)',
@@ -246,7 +246,7 @@ const LOGIC_NODES = [
   {
     type: 'switch' as WorkflowNodeType,
     label: 'Switch',
-    description: 'Rotear para N caminhos baseado em valor',
+    description: 'Route to multiple paths based on a value',
     icon: 'git-branch-plus',
     color: 'var(--nod8-node-switch-icon)',
     bgColor: 'var(--nod8-node-switch-bg)',
@@ -255,7 +255,7 @@ const LOGIC_NODES = [
   {
     type: 'merge' as WorkflowNodeType,
     label: 'Merge',
-    description: 'Convergir fluxos paralelos em um único caminho',
+    description: 'Merge parallel flows into a single path',
     icon: 'merge',
     color: 'var(--nod8-node-merge-icon)',
     bgColor: 'var(--nod8-node-merge-bg)',
@@ -264,7 +264,7 @@ const LOGIC_NODES = [
   {
     type: 'split-in-batches' as WorkflowNodeType,
     label: 'Split In Batches',
-    description: 'Fatiar array em lotes e processar cada um',
+    description: 'Split an array into batches and process each one',
     icon: 'layers',
     color: 'var(--nod8-node-split-icon)',
     bgColor: 'var(--nod8-node-split-bg)',
@@ -273,7 +273,7 @@ const LOGIC_NODES = [
   {
     type: 'respond-webhook' as WorkflowNodeType,
     label: 'Respond to Webhook',
-    description: 'Responder ao chamador HTTP com status e body customizados',
+    description: 'Respond to the HTTP caller with a custom status and body',
     icon: 'send',
     color: 'var(--nod8-node-respond-webhook-icon)',
     bgColor: 'var(--nod8-node-respond-webhook-bg)',
@@ -284,8 +284,8 @@ const LOGIC_NODES = [
 // ── Computed ─────────────────────────────────────────────────────────────────
 
 const searchPlaceholder = computed(() => {
-  if (view.value === 'actions') return 'Buscar ações...'
-  return 'Buscar componentes...'
+  if (view.value === 'actions') return 'Search actions...'
+  return 'Search components...'
 })
 
 const filteredLogicNodes = computed(() =>

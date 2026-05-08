@@ -181,7 +181,7 @@ const openAddNodePanel = (sourceId?: string | null) => {
 
   panelStore.togglePanel({
     id: 'add-node-panel',
-    title: 'Adicionar Node',
+    title: 'Add Node',
     component: markRaw(AddNodePanel),
     props: {
       onAddLogicNode: addLogicNode,
