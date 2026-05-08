@@ -36,7 +36,8 @@
         "type": "object",
         "properties": {
           "date": { "type": "string", "description": "ISO date string or Unix timestamp (ms).", "x-input-type": "text" },
-          "format": { "type": "string", "description": "Output format (e.g. 'YYYY-MM-DD HH:mm:ss').", "x-input-type": "text" }
+          "format": { "type": "string", "description": "Output format (e.g. 'YYYY-MM-DD HH:mm:ss').", "x-input-type": "text" },
+          "timezone": { "type": "string", "description": "IANA timezone (e.g. 'UTC' or 'America/Sao_Paulo').", "x-input-type": "text" }
         },
         "required": ["date", "format"]
       },

@@ -7,6 +7,7 @@ import { workflowEventBus } from "./event-bus.ts";
 import { InternalEventBus } from "../events/internal-event-bus.ts";
 import { CancellationRegistry } from "./cancellation-registry.ts";
 import { PendingWebhookResponseRegistry } from "./pending-webhook-registry.ts";
+import { PluginManager } from "../plugins/manager.ts";
 import type {
   WorkflowItem,
   WorkflowNode,
@@ -124,6 +125,9 @@ async function executePluginNode(
   context: any,
 ): Promise<any> {
   const cookedParams = WorkflowParser.evalParams(node.params, context);
+  
+  // Inject internal execution context for plugins that need it (e.g. file system sandbox)
+  cookedParams.executionId = context._executionId;
 
   // No explicit credential sync needed — CredentialStore reads directly from
   // credentials.db and is already used by PluginExecutor internally.
@@ -798,6 +802,7 @@ export const WorkflowEngine = {
 
     const context = {
       _workflowId: workflow.metadata.id,
+      _executionId: execId,
       trigger: triggerPayload,
       steps: {} as Record<string, any>,
       variables: initializeVariables(workflow.variables),
@@ -1094,7 +1099,26 @@ export const WorkflowEngine = {
         Date.now(),
         sanitized,
       );
+
+      // ── Notify plugins: execution lifecycle hook ──────────────────────────
+      // The core pushes the terminal event into plugins that declare it.
+      // This is the correct IoC pattern: plugins never import the event bus.
+      const terminalStatus =
+        status === "SUCCESS" ? "success" : status === "CANCELLED" ? "cancelled" : "failed";
+
+      for (const plugin of PluginManager.getPlugins()) {
+        if (plugin.executionLifecycle?.onExecutionEnd) {
+          plugin.executionLifecycle.onExecutionEnd(execId, terminalStatus).catch((err) => {
+            console.error(
+              `[NOD8 | PLUGINS]: executionLifecycle.onExecutionEnd failed for plugin '${plugin.id}':`,
+              err,
+            );
+          });
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────────
     }
+
 
     return { executionId: execId, status, context };
   },
@@ -1107,16 +1131,17 @@ export const WorkflowEngine = {
   ): Promise<any> => {
     const env = AppRepository.getAllGlobalVariablesAsMap();
 
+    const execId = `exec_test_${Date.now()}`;
+
     const context = executionCacheContext || {
       _workflowId: workflow.metadata.id,
+      _executionId: execId,
       trigger: {},
       steps: {},
       variables: initializeVariables(workflow.variables),
       env,
       _event_payloads: {},
     };
-
-    const execId = `exec_test_${Date.now()}`;
 
     try {
       const result = await executeNode(

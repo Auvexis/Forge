@@ -60,6 +60,22 @@ const allPaths = computed(() => {
   for (const upNode of props.upstreamNodes) {
     if (upNode.id === 'trigger') {
       const triggerData = upNode.data as unknown as WorkflowTrigger
+
+      // ── Form Trigger: campos ficam em trigger.fields.<name> ──
+      if (triggerData?.type === 'form' && triggerData.formFields && triggerData.formFields.length > 0) {
+        for (const field of triggerData.formFields) {
+          if (!field.name) continue
+          paths.push({
+            path: `trigger.fields.${field.name}`,
+            label: field.label || field.name,
+            type: field.type === 'number' ? 'number' : 'string',
+            sourceNodeName: 'Trigger (Form)',
+          })
+        }
+        continue
+      }
+
+      // ── Manual Trigger: campos ficam em trigger.<name> via schema ──
       if (triggerData?.schema && Object.keys(triggerData.schema).length > 0) {
         paths.push(...resolveTriggerPaths(triggerData.schema))
       } else {
@@ -272,8 +288,14 @@ const iconsMap = computed(() => {
 
   for (const upNode of props.upstreamNodes) {
     if (upNode.id === 'trigger') {
-      map['trigger'] = 'zap'
-      map['trigger.payload'] = 'package'
+      const triggerData = upNode.data as unknown as WorkflowTrigger
+      if (triggerData?.type === 'form') {
+        map['trigger'] = 'file-text'
+        map['trigger.fields'] = 'list'
+      } else {
+        map['trigger'] = 'zap'
+        map['trigger.payload'] = 'package'
+      }
       continue
     }
 

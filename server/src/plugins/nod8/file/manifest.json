@@ -17,59 +17,30 @@
   },
 
   "methods": {
-    "readText": {
-      "metadata": { "label": "Read Text File", "description": "Read a file as a UTF-8 string." },
+    "readFile": {
+      "metadata": { "label": "Read File", "description": "Read a file from the sandbox as text or base64." },
       "parameters": {
         "type": "object",
         "properties": {
           "filename": { "type": "string", "description": "File name (relative to workflow sandbox).", "x-input-type": "text" },
-          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
+          "encoding": { "type": "string", "description": "utf8 | base64 | hex. Default: utf8", "x-input-type": "text" }
         },
-        "required": ["filename", "workflowId"]
+        "required": ["filename"]
       },
       "responseSchema": { "type": "object", "x-nod8-display": "generic" },
       "ui": { "component": "card" }
     },
 
-    "writeText": {
-      "metadata": { "label": "Write Text File", "description": "Write a UTF-8 string to a file, creating it if needed." },
+    "writeFile": {
+      "metadata": { "label": "Write File", "description": "Write data (text or base64) to a file in the sandbox." },
       "parameters": {
         "type": "object",
         "properties": {
           "filename": { "type": "string", "description": "File name.", "x-input-type": "text" },
-          "content": { "type": "string", "description": "Text content to write.", "x-input-type": "text" },
-          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
+          "content": { "type": "string", "description": "Content to write (string or base64).", "x-input-type": "text" },
+          "encoding": { "type": "string", "description": "utf8 | base64 | hex. Default: utf8", "x-input-type": "text" }
         },
-        "required": ["filename", "content", "workflowId"]
-      },
-      "responseSchema": { "type": "object", "x-nod8-display": "generic" },
-      "ui": { "component": "card" }
-    },
-
-    "readJson": {
-      "metadata": { "label": "Read JSON File", "description": "Read a file and parse it as JSON." },
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "filename": { "type": "string", "description": "File name.", "x-input-type": "text" },
-          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
-        },
-        "required": ["filename", "workflowId"]
-      },
-      "responseSchema": { "type": "object", "x-nod8-display": "generic" },
-      "ui": { "component": "card" }
-    },
-
-    "writeJson": {
-      "metadata": { "label": "Write JSON File", "description": "Serialize a value to JSON and write it to a file." },
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "filename": { "type": "string", "description": "File name.", "x-input-type": "text" },
-          "content": { "type": "object", "description": "Value to serialize.", "x-input-type": "text" },
-          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
-        },
-        "required": ["filename", "content", "workflowId"]
+        "required": ["filename", "content"]
       },
       "responseSchema": { "type": "object", "x-nod8-display": "generic" },
       "ui": { "component": "card" }
@@ -80,10 +51,9 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "filename": { "type": "string", "description": "File name.", "x-input-type": "text" },
-          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
+          "filename": { "type": "string", "description": "File name.", "x-input-type": "text" }
         },
-        "required": ["filename", "workflowId"]
+        "required": ["filename"]
       },
       "responseSchema": { "type": "object", "x-nod8-display": "generic" },
       "ui": { "component": "card" }
@@ -93,10 +63,8 @@
       "metadata": { "label": "List Files", "description": "List files in the workflow sandbox directory." },
       "parameters": {
         "type": "object",
-        "properties": {
-          "workflowId": { "type": "string", "description": "Workflow ID (sandbox scope).", "x-input-type": "text" }
-        },
-        "required": ["workflowId"]
+        "properties": {},
+        "required": []
       },
       "responseSchema": { "type": "object", "x-nod8-display": "generic" },
       "ui": { "component": "card" }

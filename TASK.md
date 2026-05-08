@@ -1,21 +1,38 @@
-# TASK
+# TASK.md — Forge Project Bug & Feature Tracker
 
-## Guardrails
+> Mantido por: Staff Engineer  
+> Última atualização: 2026-05-08
 
-- Plugin-specific behavior must not leak into the core workflow engine.
-- Keep Form Trigger behavior generic and owned by the form trigger/editor surfaces.
-- Mark each important task complete after implementation, verification, and commit.
+---
 
-## Tasks
+## Bugs Ativos
 
-- [x] 1. Give Form Trigger its own icon, icon color, background color, and border color on the trigger node.
-- [x] 2. Make manual Run wait for Form Trigger submission before continuing execution.
-- [x] 3. Render the public/test Form page from the frontend instead of server-generated HTML.
-- [x] 4. Make `BaseSelect` dropdown escape parent `overflow: hidden` and render above clipped containers.
-- [x] 5. Fix all client and server typecheck bugs.
+_(nenhum bug ativo no momento)_
 
-## Verification
+---
 
-- [x] `client-vue` typecheck passes.
-- [x] `server` build/typecheck passes.
-- [x] Relevant Form Trigger and Select UI flows are manually checked.
+## Tarefas Pendentes
+
+_(nenhuma tarefa pendente no momento)_
+
+---
+
+## Concluído
+
+### ✅ [BUG-001] Form Trigger — fields não apareciam no Input dos nós downstream
+- **Commit:** `fix(ui): resolve form trigger fields in VariableTree`
+- **Arquivo corrigido:** `client-vue/src/features/workflow-editor/components/settings/editors/VariableTree.vue`
+- **Root Cause:**
+  O `VariableTree.vue` resolvia variáveis do Trigger verificando apenas `triggerData.schema`
+  (propriedade exclusiva do trigger `manual`) e `lastTriggerPayload` (captura via SSE em runtime).
+  O trigger do tipo `form` guarda seus campos em `triggerData.formFields[]` — estrutura completamente
+  diferente. O código nunca tratava esse caso, então sempre caía no fallback genérico `trigger.payload`.
+
+- **Solução aplicada:**
+  1. Adicionado branch prioritário em `allPaths` para `triggerData.type === 'form'`:
+     itera sobre `formFields[]` e gera paths `trigger.fields.<name>` — exatamente como o servidor
+     expõe os dados no contexto de execução (`triggerPayload = { fields: fieldData, ... }`).
+  2. Atualizado `iconsMap` para usar ícone `file-text` no trigger form e `list` em `trigger.fields`.
+  3. Nenhuma lógica de plugin vazou para o core — a fix é 100% no layer de UI do workflow editor.
+
+- **Path correto no servidor:** `trigger.fields.<nome_do_campo>` (confirmado em `workflows.routes.ts` linha 813-815)

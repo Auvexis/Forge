@@ -24,13 +24,19 @@ export function createMethods() {
       };
     },
 
-    async format(params: { date: string; format: string }) {
-      const d = dayjs(params.date);
+    async format(params: { date: string | number; format: string; timezone?: string }) {
+      const isNumericString = typeof params.date === "string" && /^\d+$/.test(params.date);
+      const parsedDate = isNumericString ? Number(params.date) : params.date;
+      
+      const tz = params.timezone;
+      const d = tz ? dayjs(parsedDate).tz(tz) : dayjs(parsedDate);
+      
       if (!d.isValid()) throw new Error(`Invalid date: "${params.date}"`);
       return {
         formatted: d.format(params.format),
         iso: d.toISOString(),
         timestamp: d.valueOf(),
+        utcOffset: d.utcOffset(),
       };
     },
 

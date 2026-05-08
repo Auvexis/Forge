@@ -333,6 +333,30 @@ export interface PluginTriggerHooks {
   teardown(context: TriggerRegistrationContext): Promise<void>;
 }
 
+// ──────────── Plugin Execution Lifecycle ────────────
+
+/**
+ * Optional hooks called by the core engine at the end of every workflow
+ * execution. Plugins declare what they need — the core iterates all registered
+ * plugins and invokes the relevant hooks.
+ *
+ * This keeps plugins completely decoupled from the internal event bus:
+ * the plugin does NOT subscribe to anything; the core pushes events to it.
+ */
+export interface PluginExecutionLifecycle {
+  /**
+   * Called once a workflow execution reaches a terminal state
+   * (success, failed, or cancelled).
+   *
+   * @param executionId - The unique execution identifier.
+   * @param status      - The terminal status of the execution.
+   */
+  onExecutionEnd?(
+    executionId: string,
+    status: "success" | "failed" | "cancelled",
+  ): Promise<void>;
+}
+
 // ──────────── Nod8Plugin (the contract every plugin implements) ────────────
 
 export interface Nod8Plugin {
@@ -349,6 +373,13 @@ export interface Nod8Plugin {
    * The core engine calls setup/teardown but is unaware of the implementation.
    */
   triggers?: Record<string, PluginTriggerHooks>;
+  /**
+   * Optional execution lifecycle hooks.
+   * The core engine calls these at the end of every execution.
+   * This is the correct inversion-of-control pattern for resource cleanup:
+   * the core pushes the event in, instead of the plugin subscribing to the bus.
+   */
+  executionLifecycle?: PluginExecutionLifecycle;
 }
 
 // ──────────── Status Response (predictable contract for frontend) ────────────
