@@ -37,33 +37,35 @@
               </div>
             </template>
 
-            <!-- Search -->
-            <div class="dock-search" :style="{ padding: 0 }">
-              <BaseInput
-                v-model="searchQuery"
-                icon-left="search"
-                placeholder="Search workflows…"
-                @click.stop
-              />
-            </div>
+            <template #fixed>
+              <!-- Search -->
+              <div class="dock-search" :style="{ padding: 0 }">
+                <BaseInput
+                  v-model="searchQuery"
+                  icon-left="search"
+                  placeholder="Search workflows…"
+                  @click.stop
+                />
+              </div>
 
-            <AppDropdownDivider />
-
-            <AppDropdownItem icon="cloud-upload" label="Import from JSON" @click="handleImport" />
-            <AppDropdownItem
-              icon="plus-circle"
-              label="Create Workflow"
-              :disabled="isCreating"
-              @click="handleCreate"
-            />
-            
-            <AppDropdownItem icon="download" :danger="false" @click="$emit('export-workflow')">
-              Export workflow
-            </AppDropdownItem>
-
-            <template v-if="filteredWorkflows.length > 0">
               <AppDropdownDivider />
 
+              <AppDropdownItem icon="cloud-upload" label="Import from JSON" @click="handleImport" />
+              <AppDropdownItem
+                icon="plus-circle"
+                label="Create Workflow"
+                :disabled="isCreating"
+                @click="handleCreate"
+              />
+              
+              <AppDropdownItem icon="download" :danger="false" @click="$emit('export-workflow')">
+                Export workflow
+              </AppDropdownItem>
+
+              <AppDropdownDivider />
+            </template>
+
+            <template v-if="filteredWorkflows.length > 0">
               <template v-for="w in filteredWorkflows" :key="w.metadata.id">
                 <AppDropdownItem
                   icon="workflow"

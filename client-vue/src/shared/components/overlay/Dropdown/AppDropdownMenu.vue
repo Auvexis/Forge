@@ -9,6 +9,12 @@
         <span class="app-dropdown-menu__title">{{ title }}</span>
       </div>
 
+      <div v-if="$slots.fixed" class="app-dropdown-menu__items" style="padding-bottom: 0;">
+        <BaseWoobyMenu>
+          <slot name="fixed"></slot>
+        </BaseWoobyMenu>
+      </div>
+
       <div 
         class="app-dropdown-menu__items custom-scrollbar" 
         :style="maxHeight ? { maxHeight, overflowY: 'auto', overflowX: 'hidden' } : {}"
