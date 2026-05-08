@@ -12,6 +12,7 @@ import { useEventBus } from '@/shared/composables/useEventBus'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import RunWorkflowPanel from '../execution/RunWorkflowPanel.vue'
+import NodeShimmer from './NodeShimmer.vue'
 
 const props = defineProps<
   NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
@@ -159,6 +160,11 @@ const onQuickAdd = () => {
       Execute Workflow
     </BaseButton>
 
+    <!-- Shimmer clip wrapper — needs overflow:hidden + border-radius match -->
+    <div v-if="effectiveStatus === 'running'" class="trigger-node__shimmer-clip">
+      <NodeShimmer />
+    </div>
+
     <!-- Lightning bolt accent (top-left corner like n8n) -->
     <div class="trigger-node__lightning">
       <LucideIcon name="zap" :size="24" />
@@ -252,6 +258,16 @@ const onQuickAdd = () => {
 
 .trigger-node.is-failed {
   border-color: var(--nod8-red-400);
+}
+
+/* ─── Shimmer clip (isolates overflow without breaking the execute-btn) ─── */
+.trigger-node__shimmer-clip {
+  position: absolute;
+  inset: 0;
+  border-radius: 50px 16px 16px 50px; /* same as .trigger-node */
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
 }
 
 /* ─── Lightning bolt accent ─────────────────────────────────── */

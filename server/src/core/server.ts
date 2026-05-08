@@ -33,11 +33,11 @@ const fastify = Fastify({
 
 await fastify.register(multipart, {
   limits: {
-    fieldNameSize: 100, // Max field name size in bytes
-    fieldSize: 1000000, // Max field value size in bytes (1MB)
-    fields: 10, // Max number of non-file fields
-    fileSize: 10737418240, // Max file size (10GB)
-    files: 1, // Max number of file fields
+    fieldNameSize: 100,    // Max field name size in bytes
+    fieldSize: 1000000,    // Max field value size in bytes (1MB)
+    fields: 20,            // Max number of non-file fields
+    fileSize: 10737418240, // Max file size per file (10GB)
+    files: 20,             // Max number of file fields per request
   },
 });
 
