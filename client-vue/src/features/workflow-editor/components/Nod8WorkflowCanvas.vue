@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, markRaw, computed } from 'vue'
+import { ref, watch, markRaw, computed, onBeforeUnmount } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
@@ -94,14 +94,16 @@ function buildEdges() {
   }))
 }
 
+// Limpa o estado global do VueFlow ao sair do editor para evitar "fantasmas"
+onBeforeUnmount(() => {
+  if (nodes.value.length > 0) removeNodes(nodes.value)
+  if (edges.value.length > 0) removeEdges(edges.value)
+})
+
 // Reinicializa o VueFlow apenas quando muda o workflow (não a cada edição de campo)
 watch(
   () => workflowStore.activeWorkflow?.metadata?.id,
   () => {
-    // Clear VueFlow internal state completely to avoid ghostly merged nodes from previous workflows
-    if (nodes.value.length > 0) removeNodes(nodes.value)
-    if (edges.value.length > 0) removeEdges(edges.value)
-
     vueFlowNodes.value = buildNodes()
     vueFlowEdges.value = buildEdges()
   },
