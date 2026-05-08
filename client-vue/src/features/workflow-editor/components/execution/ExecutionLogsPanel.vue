@@ -735,11 +735,12 @@ onBeforeUnmount(() => {
 .elp-step-error {
   margin: var(--nod8-space-2) 0 0;
   font-family: var(--nod8-font-mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--nod8-red-400);
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.4;
+  user-select: text;
 }
 
 /* ── Spin animation ───────────────────────────────────────────── */

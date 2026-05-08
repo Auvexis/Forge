@@ -79,8 +79,9 @@ const currentMode = computed(() => (props.node.data.mode as string) ?? 'wait-any
 }
 
 .merge-mode-btn:hover {
-  border-color: var(--nod8-border-strong);
+  border-color: var(--nod8-node-merge-icon, #a78bfa);
   color: var(--nod8-text-primary);
+  background: color-mix(in srgb, var(--nod8-node-merge-bg, rgba(167,139,250,0.12)) 60%, transparent);
 }
 
 .merge-mode-btn--active {

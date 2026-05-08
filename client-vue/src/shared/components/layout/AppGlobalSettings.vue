@@ -521,7 +521,7 @@ const tabs = [
 ] as const
 
 type TabId = (typeof tabs)[number]['id']
-const activeTab = ref<TabId>('variables')
+const activeTab = ref<TabId>('preferences')
 
 // ─── Load data when opened ────────────────────────────────────────────────────
 

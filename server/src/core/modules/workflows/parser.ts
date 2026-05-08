@@ -29,9 +29,21 @@ export const WorkflowParser = {
       } else if (typeof value === "object" && value !== null) {
          // recursively eval inner objects/arrays
          if (Array.isArray(value)) {
-           cooked[key] = value.map(item => 
-             typeof item === "object" && item !== null ? WorkflowParser.evalParams(item, context) : item
-           );
+           cooked[key] = value.map(item => {
+             if (typeof item === "string") {
+               const exactMatch = /^{{\s*([a-zA-Z0-9_.\[\]]+)\s*}}$/.exec(item.trim());
+               if (exactMatch) {
+                 return resolvePath(context, exactMatch[1]);
+               }
+               return item.replace(/{{\s*([a-zA-Z0-9_.\[\]]+)\s*}}/g, (match, path) => {
+                 const resolved = resolvePath(context, path);
+                 return resolved !== undefined && resolved !== null ? String(resolved) : match;
+               });
+             } else if (typeof item === "object" && item !== null) {
+               return WorkflowParser.evalParams(item, context);
+             }
+             return item;
+           });
          } else {
            cooked[key] = WorkflowParser.evalParams(value, context);
          }

@@ -232,11 +232,20 @@ export function createGoogleGmailMethods() {
         if (Buffer.isBuffer(att)) {
           return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att.toString("base64") };
         }
-        if (att.buffer && Buffer.isBuffer(att.buffer)) {
-          return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: att.buffer.toString("base64") };
+        if (att.type === "Buffer" && Array.isArray(att.data)) {
+          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: Buffer.from(att.data).toString("base64") };
         }
-        if (att.content && Buffer.isBuffer(att.content)) {
-          return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: att.content.toString("base64") };
+        if (att.buffer) {
+          const buf = Buffer.isBuffer(att.buffer) ? att.buffer : (att.buffer.type === "Buffer" && Array.isArray(att.buffer.data) ? Buffer.from(att.buffer.data) : null);
+          if (buf) {
+            return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: buf.toString("base64") };
+          }
+        }
+        if (att.content) {
+          const buf = Buffer.isBuffer(att.content) ? att.content : (att.content.type === "Buffer" && Array.isArray(att.content.data) ? Buffer.from(att.content.data) : null);
+          if (buf) {
+            return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: buf.toString("base64") };
+          }
         }
         if (typeof att === "string") {
           return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att };
@@ -329,11 +338,20 @@ export function createGoogleGmailMethods() {
         if (Buffer.isBuffer(att)) {
           return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att.toString("base64") };
         }
-        if (att.buffer && Buffer.isBuffer(att.buffer)) {
-          return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: att.buffer.toString("base64") };
+        if (att.type === "Buffer" && Array.isArray(att.data)) {
+          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: Buffer.from(att.data).toString("base64") };
         }
-        if (att.content && Buffer.isBuffer(att.content)) {
-          return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: att.content.toString("base64") };
+        if (att.buffer) {
+          const buf = Buffer.isBuffer(att.buffer) ? att.buffer : (att.buffer.type === "Buffer" && Array.isArray(att.buffer.data) ? Buffer.from(att.buffer.data) : null);
+          if (buf) {
+            return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: buf.toString("base64") };
+          }
+        }
+        if (att.content) {
+          const buf = Buffer.isBuffer(att.content) ? att.content : (att.content.type === "Buffer" && Array.isArray(att.content.data) ? Buffer.from(att.content.data) : null);
+          if (buf) {
+            return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: buf.toString("base64") };
+          }
         }
         if (typeof att === "string") {
           return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att };

@@ -125,7 +125,8 @@
           "parseMode": {
             "type": "string",
             "description": "Formatting mode for the caption.",
-            "enum": ["", "MarkdownV2", "HTML"],
+            "enum": ["MarkdownV2", "HTML"],
+            "default": "HTML",
             "x-label": "Caption Format",
             "x-input-type": "select"
           }
