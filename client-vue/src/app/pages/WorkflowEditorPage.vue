@@ -11,7 +11,7 @@ import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/Work
 import AppPage from '@/shared/components/layout/AppPage.vue'
 import { useApi } from '@/shared/composables/useApi'
 import { useConfirm } from '@/shared/composables/useConfirm'
-import { onMounted, watch, ref } from 'vue'
+import { onMounted, onBeforeUnmount, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 
@@ -103,6 +103,11 @@ async function initWorkflow() {
 
 onMounted(() => {
   initWorkflow()
+})
+
+// Limpa o store ao sair da página para que o canvas arranque sem dados obsoletos
+onBeforeUnmount(() => {
+  workflowStore.clearWorkflow()
 })
 
 watch(() => route.params.id, () => {
