@@ -35,12 +35,12 @@ export function useWorkflowActions() {
     URL.revokeObjectURL(url)
   }
 
-  function deleteWorkflow(id: string) {
-    workflowStore.deleteWorkflow(id)
+  async function deleteWorkflow(id: string) {
+    await workflowStore.deleteWorkflow(id)
   }
 
-  function deleteActiveWorkflow() {
-    workflowStore.deleteActiveWorkflow()
+  async function deleteActiveWorkflow() {
+    await workflowStore.deleteActiveWorkflow()
     router.push('/workflows')
   }
 

@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { watch, computed, ref } from 'vue'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
@@ -97,7 +97,7 @@ async function handleDeleteClick() {
   })
 
   if (ok) {
-    deleteActiveWorkflow()
+    await deleteActiveWorkflow()
     emit('close')
   }
 }
