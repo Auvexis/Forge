@@ -99,7 +99,7 @@
                       'pm-step__dot--error': step?.status === 'FAILED',
                     }"
                   />
-                  <span class="pm-step__id">{{ nodeId }}</span>
+                  <span class="pm-step__id" :title="nodeId as string">{{ formatStepId(nodeId as string, item.triggerType) }}</span>
                   <span class="pm-step__status">{{ step?.status ?? '—' }}</span>
                 </button>
 
@@ -185,6 +185,29 @@ async function toggleExpand(id: string) {
 // ── Helpers ───────────────────────────────────────────────────
 function formatJson(data: any): string {
   try { return JSON.stringify(data, null, 2) } catch { return String(data) }
+}
+
+/**
+ * Returns a human-readable display name for a step node ID.
+ * Webhook triggers store the full URL as the step key, so we shorten it.
+ */
+function formatStepId(nodeId: string, triggerType?: string): string {
+  if (nodeId === 'trigger') return 'Trigger'
+  // Webhook trigger step IDs are the full URL path like "POST /webhook/abc123"
+  if (
+    nodeId.startsWith('http://') ||
+    nodeId.startsWith('https://') ||
+    nodeId.startsWith('GET ') ||
+    nodeId.startsWith('POST ') ||
+    nodeId.startsWith('PUT ') ||
+    nodeId.startsWith('PATCH ') ||
+    nodeId.startsWith('DELETE ') ||
+    nodeId.startsWith('/webhook')
+  ) {
+    if (triggerType === 'form' || triggerType === 'webhook-form') return 'Form'
+    return 'Webhook'
+  }
+  return nodeId
 }
 
 let pollInterval: ReturnType<typeof setInterval> | null = null
