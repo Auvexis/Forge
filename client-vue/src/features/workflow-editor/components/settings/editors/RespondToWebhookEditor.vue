@@ -19,7 +19,7 @@
 
     <EditorField label="Response Body" icon="code">
       <div class="editor-hint editor-hint--violet">
-        Supports <span class="editor-code-snippet">{{ template }}</span> expressions.
+        Supports <span class="editor-code-snippet" v-pre>{{ template }}</span> expressions.
         JSON strings are auto-parsed.
       </div>
       <BaseTextarea

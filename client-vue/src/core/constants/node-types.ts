@@ -14,6 +14,11 @@ export const VALID_NODE_TYPES = new Set<WorkflowNodeType>([
   'http',
   'event',
   'event-listener',
+  'set',
+  'switch',
+  'merge',
+  'split-in-batches',
+  'respond-webhook',
 ])
 
 // Node type visual metadata — color and category hints.
@@ -66,5 +71,30 @@ export const NODE_TYPE_META: Record<
     label: 'Event Listener',
     color: 'var(--nod8-node-integration)',
     category: 'trigger',
+  },
+  set: {
+    label: 'Set Fields',
+    color: 'var(--nod8-node-set-icon)',
+    category: 'data',
+  },
+  switch: {
+    label: 'Switch',
+    color: 'var(--nod8-node-switch-icon)',
+    category: 'logic',
+  },
+  merge: {
+    label: 'Merge',
+    color: 'var(--nod8-node-merge-icon)',
+    category: 'flow',
+  },
+  'split-in-batches': {
+    label: 'Split In Batches',
+    color: 'var(--nod8-node-split-icon)',
+    category: 'flow',
+  },
+  'respond-webhook': {
+    label: 'Respond to Webhook',
+    color: 'var(--nod8-node-respond-webhook-icon)',
+    category: 'output',
   },
 }

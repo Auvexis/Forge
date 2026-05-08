@@ -12,10 +12,10 @@
 - [x] 2. Make manual Run wait for Form Trigger submission before continuing execution.
 - [x] 3. Render the public/test Form page from the frontend instead of server-generated HTML.
 - [x] 4. Make `BaseSelect` dropdown escape parent `overflow: hidden` and render above clipped containers.
-- [ ] 5. Fix all client and server typecheck bugs.
+- [x] 5. Fix all client and server typecheck bugs.
 
 ## Verification
 
-- [ ] `client-vue` typecheck passes.
-- [ ] `server` build/typecheck passes.
+- [x] `client-vue` typecheck passes.
+- [x] `server` build/typecheck passes.
 - [ ] Relevant Form Trigger and Select UI flows are manually checked.

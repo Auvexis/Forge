@@ -11,7 +11,7 @@
     <EditorField label="Field Assignments" icon="sliders-horizontal">
       <div class="editor-hint editor-hint--violet">
         Define fields to set in the output. Values support
-        <span class="editor-code-snippet">{{ template }}</span> expressions.
+        <span class="editor-code-snippet" v-pre>{{ template }}</span> expressions.
       </div>
 
       <div class="set-assignments">

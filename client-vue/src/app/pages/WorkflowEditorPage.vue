@@ -90,7 +90,7 @@ watch(
     // Se houve alguma alteração profunda (mutação) mas a reatividade aponta para
     // o mesmo objeto na memória, significa que o usuário mexeu no fluxo atual!
     if (newWorkflow === oldWorkflow) {
-      workflowStore.isDirty = true
+      workflowStore.markDirty()
     }
   },
   { deep: true }, // O deep: true é obrigatório para o Vue notar mudanças dentro de nós ou propriedades

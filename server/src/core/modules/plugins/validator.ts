@@ -1,12 +1,16 @@
-import Ajv from "ajv";
-import addFormats from "ajv-formats";
+import AjvModule from "ajv";
+import addFormatsModule from "ajv-formats";
+import type { ErrorObject, ValidateFunction } from "ajv";
 import type { JSONSchemaObject } from "../../../shared/models/plugin-types.ts";
 
 // ──────────── AJV Singleton ────────────
 // A single AJV instance is created once and reused.
 // We configure it to be strict about types but allow
 // unknown `x-` extension keywords without failing.
-const ajv = new Ajv({
+const AjvCtor = AjvModule as unknown as { new(options?: Record<string, unknown>): InstanceType<any> };
+const addFormats = addFormatsModule as unknown as (ajv: InstanceType<any>) => void;
+
+const ajv = new AjvCtor({
   // Coerce strings to the declared type when possible (e.g. "42" → 42).
   // This is important because multipart form data arrives as strings.
   coerceTypes: true,
@@ -25,7 +29,7 @@ addFormats(ajv);
 // ──────────── Schema Cache ────────────
 // Compiled validators are cached per plugin+method key to avoid
 // recompiling on every execution, which would be expensive.
-const validatorCache = new Map<string, ReturnType<typeof ajv.compile>>();
+const validatorCache = new Map<string, ValidateFunction>();
 
 function getCacheKey(pluginId: string, methodName: string): string {
   return `${pluginId}::${methodName}`;
@@ -98,7 +102,7 @@ export function validateParams(
   const valid = validate(params);
 
   if (!valid && validate.errors) {
-    const messages = validate.errors.map((err) => {
+    const messages = validate.errors.map((err: ErrorObject) => {
       const field = err.instancePath ? err.instancePath.replace(/^\//, "") : "root";
       return `'${field}' ${err.message}`;
     });
