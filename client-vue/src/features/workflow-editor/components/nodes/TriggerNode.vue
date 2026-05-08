@@ -84,8 +84,8 @@ const triggerConfig = computed(() => {
 const nodeTitle = computed(() => {
   const type = triggerData.value?.type || 'manual'
   if (type === 'webhook') {
-    const path = triggerData.value?.webhookPath
-    return path ? path : 'Webhook'
+    // webhookSlug is human-readable; webhookPath is the auto-generated UUID — never show the UUID
+    return triggerData.value?.webhookSlug ?? 'Webhook'
   }
   if (type === 'cron' && triggerData.value?.cronExpression) {
     return triggerData.value.cronExpression
@@ -93,8 +93,8 @@ const nodeTitle = computed(() => {
   if (type === 'event' && triggerData.value?.eventName) {
     return triggerData.value.eventName
   }
-  if (type === 'form' && triggerData.value?.formSlug) {
-    return triggerData.value.formSlug
+  if (type === 'form') {
+    return triggerData.value?.formSlug ?? 'Form'
   }
   return triggerConfig.value.title
 })
@@ -208,7 +208,7 @@ const onQuickAdd = () => {
   <div class="trigger-node__label-area">
     <span class="trigger-node__label-title" :title="nodeTitle">{{ nodeTitle }}</span>
     <span v-if="triggerData?.type === 'webhook'" class="trigger-node__label-subtitle">
-      /webhooks{{ triggerData.webhookPath ? `/${triggerData.webhookPath}` : '' }}
+      /webhooks/{{ triggerData.webhookSlug ?? '…' }}
     </span>
     <span v-else-if="triggerData?.type === 'cron'" class="trigger-node__label-subtitle">
       {{ triggerData.cronExpression }}
