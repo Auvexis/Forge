@@ -18,4 +18,4 @@
 
 - [x] `client-vue` typecheck passes.
 - [x] `server` build/typecheck passes.
-- [ ] Relevant Form Trigger and Select UI flows are manually checked.
+- [x] Relevant Form Trigger and Select UI flows are manually checked.
