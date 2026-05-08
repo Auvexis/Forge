@@ -120,6 +120,12 @@ async function handleSaveWorkflow() {
 watch(
   () => workflowStore.activeWorkflow,
   (newWorkflow, oldWorkflow) => {
+    // If the workflow was cleared (deleted or closed) and we are on the base route, regenerate a draft
+    if (!newWorkflow && !route.params.id) {
+      initWorkflow()
+      return
+    }
+
     // Ignora quando estamos carregando o fluxo pela primeira vez (saindo de null para o objeto)
     if (oldWorkflow === null) return
 

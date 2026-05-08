@@ -7,6 +7,7 @@
       class="publish-btn publish-btn--published"
       size="sm"
       variant="ghost"
+      :disabled="disabled || loading"
       :loading="loading"
       @click="handleUnpublish"
       title="Running in production — click to unpublish"
@@ -31,6 +32,7 @@
       }"
       size="sm"
       variant="ghost"
+      :disabled="disabled || loading"
       :loading="loading"
       @click="handlePublish"
       :title="isDraft ? 'Publish this draft to production' : 'Re-publish to production'"
@@ -53,6 +55,7 @@ import type { WorkflowItem } from '@/core/types/workflow.types'
 
 const props = defineProps<{
   workflow: WorkflowItem
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{

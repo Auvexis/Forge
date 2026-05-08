@@ -54,7 +54,7 @@
               <AppDropdownItem
                 icon="plus-circle"
                 label="Create Workflow"
-                :disabled="isCreating"
+                :disabled="isCreating || isUnsavedDraft"
                 @click="handleCreate"
               />
               
@@ -201,6 +201,7 @@
       <WorkflowPublishButton
         v-if="workflow"
         :workflow="workflow"
+        :disabled="isUnsavedDraft"
         @updated="$emit('workflow-updated', $event)"
       />
 
@@ -211,6 +212,7 @@
         icon-left="x"
         title="Close editor"
         class="wed-btn--close"
+        :disabled="isUnsavedDraft"
         @click="$emit('close')"
       />
     </template>
@@ -219,6 +221,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import AppDock from '@/shared/components/layout/AppDock.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
@@ -248,16 +251,19 @@ const props = defineProps<{
 // ── Emits ─────────────────────────────────────────────────────────────────
 
 defineEmits<{
+  (e: 'save'): void
+  (e: 'add-node'): void
   (e: 'run'): void
   (e: 'stop'): void
-  (e: 'add-node'): void
-  (e: 'save'): void
-  (e: 'settings'): void
-  (e: 'toggle-logs'): void
-  (e: 'close'): void
   (e: 'export-workflow'): void
-  (e: 'workflow-updated', workflow: WorkflowItem): void
+  (e: 'toggle-logs'): void
+  (e: 'settings'): void
+  (e: 'close'): void
+  (e: 'workflow-updated', w: WorkflowItem): void
 }>()
+
+const route = useRoute()
+const isUnsavedDraft = computed(() => !route.params.id)
 
 // ── Derived ───────────────────────────────────────────────────────────────
 

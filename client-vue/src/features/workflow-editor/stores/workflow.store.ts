@@ -133,7 +133,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
     if (!activeWorkflow.value) return
 
     try {
-      deleteApi.execute(activeWorkflow.value.metadata.id)
+      // Se for um draft em memória (_savedSnapshot === ''), não precisamos bater na API para deletar
+      if (_savedSnapshot.value !== '') {
+        deleteApi.execute(activeWorkflow.value.metadata.id).catch((e) => {
+          console.error('Failed to delete workflow on backend', e)
+        })
+      }
       clearWorkflow()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to delete workflow')

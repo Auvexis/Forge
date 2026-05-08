@@ -42,13 +42,13 @@
 * **Separation of Concerns:** Strip all arbitrary and monolithic visual CSS from `.vue` `<style>` blocks. Vue files must strictly contain logic (`<script>`) and structure (`<template>`), relying entirely on the standardized Tailwind utility classes for styling.
 * **Module-Scoped CSS:** For complex, unavoidable custom animations or third-party overrides, create dedicated `.css` files for each feature/module that strictly inherit from our centralized design tokens.
 
-### Milestone 1.6: Plugin Triggers & Event-Driven Architecture
+### ✅ Milestone 1.6: Plugin Triggers & Event-Driven Architecture [DONE]
 *Moving beyond generic webhooks to provide a magical, app-specific trigger experience without punishing the plugin developer.*
 * **Schema-less Dynamic Outputs:** Triggers will capture raw JSON directly from the inbound webhook and display it in the new Left Pane UI, acting as the dynamic schema for downstream Variable Mapping.
 * **Opt-in Lifecycle Hooks (DX):** Introduce optional `setup()` and `teardown()` hooks in the plugin's `index.ts`. If implemented, the Nod8 Engine automatically registers/unregisters the webhook URL with the 3rd party API (e.g., Telegram) when the workflow is published.
 * **Listen for Event (UX):** A button in the Trigger UI that opens a temporary WebSocket/SSE connection to capture the next webhook payload live, instantly populating the output pane for easy mapping.
 
-### Milestone 1.7: Advanced Utility Nodes
+### ✅ Milestone 1.7: Advanced Utility Nodes [DONE]
 *The foundational blocks for complex data routing and mapping.*
 * **Set (Edit Fields):** A node to visually map, edit, and create JSON fields without requiring JavaScript.
 * **Switch:** Advanced branching capable of routing the flow into N different outputs based on value conditions.
