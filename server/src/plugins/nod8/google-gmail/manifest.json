@@ -133,22 +133,7 @@
             "x-label": "Attachments",
             "x-input-type": "files",
             "items": {
-              "type": "object",
-              "properties": {
-                "filename": {
-                  "type": "string",
-                  "description": "Name of the file."
-                },
-                "mimeType": {
-                  "type": "string",
-                  "description": "MIME type of the file (e.g. 'application/pdf', 'image/png')."
-                },
-                "contentBase64": {
-                  "type": "string",
-                  "description": "Base64 encoded content of the file."
-                }
-              },
-              "required": ["filename", "mimeType", "contentBase64"]
+              "type": ["string", "object"]
             }
           }
         },
@@ -296,13 +281,7 @@
             "x-label": "Attachments",
             "x-input-type": "files",
             "items": {
-              "type": "object",
-              "properties": {
-                "filename": { "type": "string", "description": "Name of the file." },
-                "mimeType": { "type": "string", "description": "MIME type of the file." },
-                "contentBase64": { "type": "string", "description": "Base64 encoded content." }
-              },
-              "required": ["filename", "mimeType", "contentBase64"]
+              "type": ["string", "object"]
             }
           }
         },

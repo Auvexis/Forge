@@ -108,16 +108,27 @@ const onExecuteWorkflow = async () => {
   const workflow = store.activeWorkflow
   if (!workflow?.metadata.id) return
 
+  const schema = workflow.trigger.schema ?? {}
+
   if (workflow.trigger.type === 'form') {
+    const formPublicId = workflow.trigger.formSlug?.trim() || workflow.metadata.id
+    const clientExecId = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+
+    executionStore.resetNodeStatuses()
+    executionStore.startStream(clientExecId)
+    executionStore.setTriggerRunning()
+
+    const formUrl = `${window.location.origin}/forms-test/${formPublicId}?execId=${clientExecId}`
+    window.open(formUrl, '_blank', 'noopener')
+    return
+  } else if (Object.keys(schema).length > 0) {
     panelStore.togglePanel({
       id: 'run-workflow-panel',
-      title: 'Run Form Trigger',
+      title: 'Run Workflow',
       component: markRaw(RunWorkflowPanel),
       props: {
         workflowId: workflow.metadata.id,
-        formId: workflow.trigger.formSlug || workflow.metadata.id,
-        formFields: workflow.trigger.formFields ?? [],
-        schema: {},
+        schema,
         triggerType: workflow.trigger.type,
       },
       position: 'right',

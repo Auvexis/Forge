@@ -221,18 +221,36 @@ export function createGoogleGmailMethods() {
         to: string;
         subject: string;
         body: string;
-        attachments?: { filename: string; mimeType: string; contentBase64: string }[];
+        attachments?: any[];
       },
       context?: PluginContext,
     ) => {
       const gmail = getGmailClient(context!);
+
+      const normalizedAttachments = params.attachments?.map((att: any) => {
+        if (!att) return null;
+        if (Buffer.isBuffer(att)) {
+          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att.toString("base64") };
+        }
+        if (att.buffer && Buffer.isBuffer(att.buffer)) {
+          return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: att.buffer.toString("base64") };
+        }
+        if (typeof att === "string") {
+          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att };
+        }
+        return {
+          filename: att.filename || "attachment.bin",
+          mimeType: att.mimetype || att.mimeType || "application/octet-stream",
+          contentBase64: att.contentBase64 || ""
+        };
+      }).filter(Boolean) as { filename: string; mimeType: string; contentBase64: string }[];
 
       const message = buildMimeMessage({
         to: params.to,
         from: params.from,
         subject: params.subject,
         body: params.body,
-        attachments: params.attachments,
+        attachments: normalizedAttachments,
       });
 
       const response = await gmail.users.messages.send({
@@ -297,18 +315,36 @@ export function createGoogleGmailMethods() {
         to: string;
         subject: string;
         body: string;
-        attachments?: { filename: string; mimeType: string; contentBase64: string }[];
+        attachments?: any[];
       },
       context?: PluginContext,
     ) => {
       const gmail = getGmailClient(context!);
+
+      const normalizedAttachments = params.attachments?.map((att: any) => {
+        if (!att) return null;
+        if (Buffer.isBuffer(att)) {
+          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att.toString("base64") };
+        }
+        if (att.buffer && Buffer.isBuffer(att.buffer)) {
+          return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: att.buffer.toString("base64") };
+        }
+        if (typeof att === "string") {
+          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att };
+        }
+        return {
+          filename: att.filename || "attachment.bin",
+          mimeType: att.mimetype || att.mimeType || "application/octet-stream",
+          contentBase64: att.contentBase64 || ""
+        };
+      }).filter(Boolean) as { filename: string; mimeType: string; contentBase64: string }[];
 
       const message = buildMimeMessage({
         to: params.to,
         from: params.from,
         subject: params.subject,
         body: params.body,
-        attachments: params.attachments,
+        attachments: normalizedAttachments,
       });
 
       const response = await gmail.users.drafts.create({
