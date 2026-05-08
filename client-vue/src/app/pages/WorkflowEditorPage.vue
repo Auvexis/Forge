@@ -63,7 +63,29 @@ const { data: workflows, execute: fetchWorkflow } = useApi(workflowsApi.getAll)
 
 onMounted(async () => {
   if (!workflowId) {
-    closeWorkflow()
+    // Auto-create a new workflow like n8n if no ID is provided
+    const newWorkflow: WorkflowItem = {
+      metadata: {
+        id: crypto.randomUUID(),
+        name: 'New Workflow',
+        version: '1',
+        isActive: false,
+        isDraft: true,
+        public: false,
+        createdAt: new Date().toISOString(),
+      },
+      trigger: { type: 'manual' },
+      nodes: {},
+      edges: [],
+    }
+    
+    try {
+      const created = await workflowsApi.create(newWorkflow)
+      // We use window.location/router replace to avoid pushing into history
+      window.location.replace(`/workflows/${created.metadata.id}`)
+    } catch (e) {
+      console.error('Failed to auto-create workflow', e)
+    }
     return
   }
 

@@ -31,19 +31,86 @@
                   <span class="wed-status-text">
                     <template v-if="isStreaming">Running</template>
                     <template v-else-if="isDirty">Unsaved Changes</template>
-                    <template v-else>{{ workflowId?.slice(0, 14) }}</template>
+                    <template v-else>{{ workflowId?.slice(0, 14) || 'New Workflow' }}</template>
                   </span>
                 </div>
               </div>
             </template>
 
+            <!-- Search -->
+            <div class="dock-search" :style="{ padding: 0 }">
+              <BaseInput
+                v-model="searchQuery"
+                icon-left="search"
+                placeholder="Search workflows…"
+                @click.stop
+              />
+            </div>
+
+            <AppDropdownDivider />
+
+            <AppDropdownItem icon="cloud-upload" label="Import from JSON" @click="handleImport" />
+            <AppDropdownItem
+              icon="plus-circle"
+              label="Create Workflow"
+              :disabled="isCreating"
+              @click="handleCreate"
+            />
+
+            <template v-if="filteredWorkflows.length > 0">
+              <AppDropdownDivider />
+
+              <template v-for="w in filteredWorkflows" :key="w.metadata.id">
+                <AppDropdownItem
+                  icon="workflow"
+                  :label="w.metadata.name"
+                  @click="handleOpenWorkflow(w)"
+                >
+                  <template #element>
+                    <div class="dropdown-item-container">
+                      <div class="dic-row">
+                        <span class="text-xs text-muted font-mono tracking-tight text-truncate">
+                          {{ w.metadata.id.slice(0, 13) }}…
+                        </span>
+                        <span class="text-xs text-muted font-mono tracking-tight">
+                          {{
+                            (() => {
+                              const nodes = Object.keys(w.nodes).length
+                              return nodes === 1 ? `${nodes} Node` : `${nodes} Nodes`
+                            })()
+                          }}
+                        </span>
+                      </div>
+                      <div class="dic-row" style="margin-top: 4px;">
+                        <span
+                          class="workflow-badge"
+                          :class="{
+                            'workflow-badge--draft': w.metadata.isDraft,
+                            'workflow-badge--published': !w.metadata.isDraft && w.metadata.isActive,
+                            'workflow-badge--inactive': !w.metadata.isDraft && !w.metadata.isActive,
+                          }"
+                        >
+                          {{ w.metadata.isDraft ? 'Draft' : w.metadata.isActive ? 'Published' : 'Inactive' }}
+                        </span>
+                        <span v-if="w.metadata.publishedAt" class="text-xs text-muted" style="font-size: 10px;">
+                          {{ getRelativeTime(new Date(w.metadata.publishedAt).getTime()) }}
+                        </span>
+                      </div>
+                    </div>
+                  </template>
+                </AppDropdownItem>
+              </template>
+            </template>
+
+            <template v-else-if="searchQuery">
+              <AppDropdownDivider />
+              <div class="dock-empty">No workflows match "{{ searchQuery }}"</div>
+            </template>
+            
+            <AppDropdownDivider />
+
             <AppDropdownItem icon="download" :danger="false" @click="$emit('export-workflow')">
               Export workflow
-            </AppDropdownItem>
-
-            <!-- "Close workflow" action -->
-            <AppDropdownItem icon="x" :danger="false" @click="$emit('close')">
-              Close workflow
             </AppDropdownItem>
           </AppDropdownMenu>
         </div>
@@ -151,14 +218,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import AppDock from '@/shared/components/layout/AppDock.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
+import AppDropdownDivider from '@/shared/components/overlay/Dropdown/AppDropdownDivider.vue'
 import WorkflowPublishButton from './WorkflowPublishButton.vue'
 import type { WorkflowItem } from '@/core/types/workflow.types'
+import { workflowsApi } from '@/core/api/workflows.api'
+import { useApi } from '@/shared/composables/useApi'
+import { useWorkflowActions } from '@/features/workflow-editor/composables/useWorkflowActions'
 
 // ── Props ─────────────────────────────────────────────────────────────────
 
@@ -190,4 +262,91 @@ defineEmits<{
 // ── Derived ───────────────────────────────────────────────────────────────
 
 const isBusy = computed(() => props.isExecuting || props.isStreaming)
+
+// ── Dropdown Logic ────────────────────────────────────────────────────────
+
+const { openWorkflow } = useWorkflowActions()
+
+const {
+  data: workflowsList,
+  execute: fetchWorkflows,
+} = useApi(workflowsApi.getAll, [])
+
+onMounted(() => {
+  fetchWorkflows().catch(console.error)
+})
+
+const searchQuery = ref('')
+
+const filteredWorkflows = computed(() => {
+  const list = workflowsList.value ?? []
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return list
+  return list.filter((w) => w.metadata.name.toLowerCase().includes(q))
+})
+
+const { execute: createWorkflowApi, loading: isCreating } = useApi(workflowsApi.create)
+
+async function handleCreate() {
+  const newWorkflow: WorkflowItem = {
+    metadata: {
+      id: crypto.randomUUID(),
+      name: 'New Workflow',
+      version: '1',
+      isActive: false,
+      isDraft: true,
+      public: false,
+      createdAt: new Date().toISOString(),
+    },
+    trigger: { type: 'manual' },
+    nodes: {},
+    edges: [],
+  }
+
+  try {
+    const created = await createWorkflowApi(newWorkflow)
+    await fetchWorkflows()
+    openWorkflow(created)
+  } catch (e) {
+    console.error('Failed to create workflow', e)
+  }
+}
+
+function handleImport() {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.json,application/json'
+  input.onchange = async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (!file) return
+    try {
+      const text = await file.text()
+      const workflow: WorkflowItem = JSON.parse(text)
+      workflow.metadata.id = crypto.randomUUID()
+      workflow.metadata.createdAt = new Date().toISOString()
+      workflow.metadata.isDraft = true
+      const created = await createWorkflowApi(workflow)
+      await fetchWorkflows()
+      openWorkflow(created)
+    } catch (e) {
+      console.error('Failed to import workflow', e)
+    }
+  }
+  input.click()
+}
+
+function handleOpenWorkflow(w: WorkflowItem) {
+  openWorkflow(w)
+}
+
+function getRelativeTime(ms: number): string {
+  const diff = Date.now() - ms
+  const m = Math.floor(diff / 60_000)
+  const h = Math.floor(m / 60)
+  const d = Math.floor(h / 24)
+  if (d > 0) return `${d}d ago`
+  if (h > 0) return `${h}h ago`
+  if (m > 0) return `${m}m ago`
+  return 'Just now'
+}
 </script>

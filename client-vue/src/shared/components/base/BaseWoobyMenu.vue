@@ -3,7 +3,7 @@
     :is="tag"
     ref="containerRef"
     class="base-floating-nav"
-    :style="{ position: position }"
+    :style="{ position: position, overflowX: 'hidden' }"
     @mouseleave="hoveredEl = null"
     @mousemove="handleMouseMove"
   >
