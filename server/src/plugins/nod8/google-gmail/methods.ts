@@ -235,6 +235,9 @@ export function createGoogleGmailMethods() {
         if (att.buffer && Buffer.isBuffer(att.buffer)) {
           return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: att.buffer.toString("base64") };
         }
+        if (att.content && Buffer.isBuffer(att.content)) {
+          return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: att.content.toString("base64") };
+        }
         if (typeof att === "string") {
           return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att };
         }
@@ -328,6 +331,9 @@ export function createGoogleGmailMethods() {
         }
         if (att.buffer && Buffer.isBuffer(att.buffer)) {
           return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: att.buffer.toString("base64") };
+        }
+        if (att.content && Buffer.isBuffer(att.content)) {
+          return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: att.content.toString("base64") };
         }
         if (typeof att === "string") {
           return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att };

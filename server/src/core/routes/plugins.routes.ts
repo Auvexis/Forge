@@ -268,8 +268,12 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         const parts = req.parts();
         for await (const part of parts) {
           if (part.type === "file") {
-            // Convert file to absolute data for the plugin (Buffer)
-            params[part.fieldname] = await part.toBuffer();
+            // Store file as a rich object rather than just the buffer
+            params[part.fieldname] = {
+              content: await part.toBuffer(),
+              filename: part.filename,
+              mimeType: part.mimetype
+            };
           } else {
             // Fields
             if (part.fieldname === "method") {

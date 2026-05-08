@@ -1209,7 +1209,11 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         const parts = req.parts();
         for await (const part of parts) {
           if (part.type === "file") {
-            triggerPayload[part.fieldname] = await part.toBuffer();
+            triggerPayload[part.fieldname] = {
+              content: await part.toBuffer(),
+              filename: part.filename,
+              mimeType: part.mimetype
+            };
           } else {
             try {
               triggerPayload[part.fieldname] = JSON.parse(part.value as string);
