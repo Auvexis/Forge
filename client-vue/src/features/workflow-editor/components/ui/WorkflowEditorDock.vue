@@ -56,12 +56,17 @@
               :disabled="isCreating"
               @click="handleCreate"
             />
+            
+            <AppDropdownItem icon="download" :danger="false" @click="$emit('export-workflow')">
+              Export workflow
+            </AppDropdownItem>
 
             <template v-if="filteredWorkflows.length > 0">
               <AppDropdownDivider />
 
-              <template v-for="w in filteredWorkflows" :key="w.metadata.id">
-                <AppDropdownItem
+              <div style="max-height: 350px; overflow-y: auto;">
+                <template v-for="w in filteredWorkflows" :key="w.metadata.id">
+                  <AppDropdownItem
                   icon="workflow"
                   :label="w.metadata.name"
                   @click="handleOpenWorkflow(w)"
@@ -99,19 +104,14 @@
                     </div>
                   </template>
                 </AppDropdownItem>
-              </template>
+                </template>
+              </div>
             </template>
 
             <template v-else-if="searchQuery">
               <AppDropdownDivider />
               <div class="dock-empty">No workflows match "{{ searchQuery }}"</div>
             </template>
-            
-            <AppDropdownDivider />
-
-            <AppDropdownItem icon="download" :danger="false" @click="$emit('export-workflow')">
-              Export workflow
-            </AppDropdownItem>
           </AppDropdownMenu>
         </div>
       </div>
