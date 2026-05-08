@@ -21,6 +21,14 @@ function toggle() {
   isExpanded.value = !isExpanded.value
 }
 
+const isStringExpanded = ref(false)
+const stringData = computed(() => {
+  if (typeof props.data !== 'string') return ''
+  if (props.data.length <= 150 || isStringExpanded.value) return props.data
+  return props.data.substring(0, 150) + '...'
+})
+
+
 // Para Drag & Drop
 const onDragStart = (event: DragEvent) => {
   if (props.path) {
@@ -74,7 +82,11 @@ const onDragStart = (event: DragEvent) => {
       <template v-else>
         <span class="json-value-wrap">
           <span v-if="typeof data === 'string'" class="json-string font-mono text-sm"
-            >"{{ data }}"</span
+            >"{{ stringData }}"<button 
+              v-if="data.length > 150" 
+              @click.stop="isStringExpanded = !isStringExpanded" 
+              class="json-more-btn ml-2"
+            >{{ isStringExpanded ? 'less' : 'more' }}</button></span
           >
           <span v-else-if="typeof data === 'number'" class="json-number font-mono text-sm">{{ data }}</span>
           <span v-else-if="typeof data === 'boolean'" class="json-boolean font-mono text-sm">{{ data }}</span>
@@ -214,5 +226,24 @@ const onDragStart = (event: DragEvent) => {
 }
 .draggable-item:active {
   cursor: grabbing;
+}
+.json-more-btn {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: var(--nod8-bg-muted);
+  color: var(--nod8-text-muted);
+  border: 1px solid var(--nod8-border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  vertical-align: middle;
+}
+.json-more-btn:hover {
+  background-color: var(--nod8-border);
+  color: var(--nod8-text-primary);
 }
 </style>

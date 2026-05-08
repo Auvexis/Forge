@@ -57,7 +57,7 @@ fetchPlugins()
 const allPaths = computed(() => {
   const paths: SchemaPath[] = []
 
-  for (const upNode of props.upstreamNodes) {
+  for (const upNode of [...props.upstreamNodes].reverse()) {
     if (upNode.id === 'trigger') {
       const triggerData = upNode.data as unknown as WorkflowTrigger
 
@@ -332,11 +332,6 @@ const iconsMap = computed(() => {
 .vt-search {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-1);
-  padding: 6px 8px;
-  border-radius: var(--nod8-radius-md);
-  border: 1px solid var(--nod8-border);
-  background-color: var(--nod8-bg-canvas);
 }
 
 .vt-search-icon {
