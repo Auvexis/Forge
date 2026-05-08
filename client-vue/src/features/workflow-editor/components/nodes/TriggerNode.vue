@@ -56,6 +56,14 @@ const triggerConfig = computed(() => {
       bg: 'rgba(245,158,11,0.12)',
       borderColor: 'rgba(245,158,11,0.4)',
     },
+    form: {
+      icon: 'clipboard-list',
+      title: 'Form Trigger',
+      subtitle: null,
+      color: 'rgb(236, 72, 153)',
+      bg: 'rgba(236,72,153,0.12)',
+      borderColor: 'rgba(236,72,153,0.45)',
+    },
     plugin: {
       icon: 'plug',
       title: 'Plugin Trigger',
@@ -79,6 +87,9 @@ const nodeTitle = computed(() => {
   }
   if (type === 'event' && triggerData.value?.eventName) {
     return triggerData.value.eventName
+  }
+  if (type === 'form' && triggerData.value?.formSlug) {
+    return `/${triggerData.value.formSlug}`
   }
   return triggerConfig.value.title
 })
@@ -162,6 +173,9 @@ const onQuickAdd = () => {
     </span>
     <span v-else-if="triggerData?.type === 'cron'" class="trigger-node__label-subtitle">
       {{ triggerData.cronExpression }}
+    </span>
+    <span v-else-if="triggerData?.type === 'form'" class="trigger-node__label-subtitle">
+      Form submission
     </span>
   </div>
 </template>
