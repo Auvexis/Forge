@@ -186,6 +186,49 @@
           />
         </template>
 
+        <!-- File (Singular) Input -->
+        <template v-else-if="(paramVal as any)['x-input-type'] === 'file'">
+          <div class="pe-files-container">
+            <div class="pe-file-input-group">
+              <div class="pe-file-input-wrapper">
+                <div v-if="typeof (data.params as any)?.[paramKey] === 'object' && (data.params as any)?.[paramKey] !== null" class="pe-file-display editor-input">
+                  <LucideIcon name="file" size="14" />
+                  <span class="pe-file-name">{{ (data.params as any)?.[paramKey].filename || 'Uploaded File' }}</span>
+                </div>
+                
+                <div v-else class="pe-file-text-mode">
+                  <BaseInput
+                    style="flex: 1"
+                    :model-value="(data.params as any)?.[paramKey] || ''"
+                    @update:model-value="updateSingleFile(paramKey.toString(), $event as string)"
+                    placeholder="e.g. {{ steps.download.output }}"
+                  />
+                  <BaseInput
+                    type="file"
+                    style="display: none"
+                    @change="handleSingleFileUpload(paramKey.toString(), $event)"
+                    :ref="(el) => setFileInputRef(paramKey.toString() + '-single', el)"
+                  />
+                  <button 
+                    class="pe-file-btn pe-file-btn--upload"
+                    @click="triggerFileInput(paramKey.toString() + '-single')"
+                    title="Upload static file"
+                  >
+                    <LucideIcon name="upload" size="14" />
+                  </button>
+                </div>
+              </div>
+              <button 
+                class="pe-file-btn pe-file-btn--remove" 
+                @click="updateSingleFile(paramKey.toString(), '')"
+                title="Clear file"
+              >
+                <LucideIcon name="trash" size="14" />
+              </button>
+            </div>
+          </div>
+        </template>
+
         <!-- Files Array Input -->
         <template v-else-if="(paramVal as any)['x-input-type'] === 'files'">
           <div class="pe-files-container">
@@ -425,6 +468,34 @@ const updateFileArray = (key: string, index: number, value: string) => {
       [key]: currentArray,
     },
   })
+}
+
+const updateSingleFile = (key: string, value: any) => {
+  props.updateNodeData({
+    params: {
+      ...(data.value.params || {}),
+      [key]: value,
+    },
+  })
+}
+
+const handleSingleFileUpload = async (key: string, event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (!target.files || target.files.length === 0) return
+  const file = target.files[0]
+  if (!file) return
+  
+  const reader = new FileReader()
+  reader.onload = () => {
+    const base64 = (reader.result as string).split(',')[1]
+    const fileObj = {
+      filename: file.name,
+      mimeType: file.type || 'application/octet-stream',
+      contentBase64: base64
+    }
+    updateSingleFile(key, fileObj)
+  }
+  reader.readAsDataURL(file)
 }
 
 const handleFileUpload = async (key: string, index: number, event: Event) => {
