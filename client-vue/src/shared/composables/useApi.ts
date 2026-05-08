@@ -1,4 +1,5 @@
 import { ref, type Ref, type ShallowRef, shallowRef } from 'vue'
+import { useToast } from './useToast'
 
 export interface UseApiReturn<T, Args extends any[]> {
   data: ShallowRef<T | null>
@@ -30,7 +31,9 @@ export function useApi<T, Args extends any[]>(
       data.value = result
       return result
     } catch (e: any) {
-      error.value = e?.message || 'An unexpected error occurred'
+      const message = e?.message || 'An unexpected error occurred'
+      error.value = message
+      useToast().error(message)
       throw e
     } finally {
       loading.value = false

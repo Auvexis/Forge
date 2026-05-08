@@ -119,6 +119,7 @@ export const useExecutionStore = defineStore('execution', () => {
                 error: ev.error,
                 endedAt: ev.timestamp,
               })
+              toastError(ev.error ?? `Node "${ev.nodeId}" failed`, 'Node execution failed')
             }
             break
 
@@ -133,7 +134,7 @@ export const useExecutionStore = defineStore('execution', () => {
             workflowStatus.value = 'FAILED'
             isStreaming.value = false
             stopStream()
-            toastError('Workflow execution failed')
+            toastError('Workflow execution failed', 'Workflow failed')
             break
 
           case 'workflow:cancelled':
@@ -146,6 +147,7 @@ export const useExecutionStore = defineStore('execution', () => {
             }
             isStreaming.value = false
             stopStream()
+            useToast().warning('Workflow execution cancelled')
             break
 
           default:
@@ -161,6 +163,7 @@ export const useExecutionStore = defineStore('execution', () => {
       if (isStreaming.value) {
         isStreaming.value = false
         stopStream()
+        useToast().error('Execution stream disconnected')
       }
     }
   }

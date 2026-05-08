@@ -3,6 +3,7 @@ import { useApi } from '@/shared/composables/useApi'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useToast } from '@/shared/composables/useToast'
 
 /** Serializa o workflow para comparação, ignorando campos voláteis como updatedAt */
 function serializeForDiff(workflow: WorkflowItem): string {
@@ -11,6 +12,7 @@ function serializeForDiff(workflow: WorkflowItem): string {
 }
 
 export const useWorkflowStore = defineStore('workflow', () => {
+  const toast = useToast()
   const activeWorkflow = ref<WorkflowItem | null>(null)
   const _savedSnapshot = ref<string | null>(null)
   const graphUpdateTrigger = ref(0)
@@ -118,8 +120,9 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
       activeWorkflow.value = savedWorkflow
       _savedSnapshot.value = serializeForDiff(savedWorkflow)
+      toast.success('Workflow saved')
     } catch (error) {
-      console.error('Failed to save workflow:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to save workflow')
     }
   }
 
@@ -131,7 +134,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
       deleteApi.execute(activeWorkflow.value.metadata.id)
       clearWorkflow()
     } catch (error) {
-      console.error('Failed to delete workflow:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to delete workflow')
     }
   }
 
@@ -140,7 +143,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
       deleteApi.execute(id)
       clearWorkflow()
     } catch (error) {
-      console.error('Failed to delete workflow:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to delete workflow')
     }
   }
 

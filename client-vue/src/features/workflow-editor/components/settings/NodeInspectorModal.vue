@@ -16,10 +16,12 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import { workflowsApi } from '@/core/api/workflows.api'
+import { useToast } from '@/shared/composables/useToast'
 
 const inspectorStore = useNodeInspectorStore()
 const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
+const toast = useToast()
 
 const executionState = computed(() => {
   if (!inspectorStore.activeNodeId) return null
@@ -86,6 +88,7 @@ async function runStep() {
       startedAt,
       endedAt: Date.now(),
     })
+    toast.success('Step executed successfully')
   } catch (err: any) {
     const message = err.message || 'Execution failed'
     inspectorStore.lastTestOutput = { success: false, error: message }
@@ -95,6 +98,7 @@ async function runStep() {
       startedAt,
       endedAt: Date.now(),
     })
+    toast.error(message, 'Step execution failed')
   } finally {
     inspectorStore.isTesting = false
   }
@@ -217,7 +221,7 @@ const handleIdChange = (newId: string) => {
   if (!newId || newId === inspectorStore.activeNode?.id || !inspectorStore.activeNode) return
 
   if (nodes.value.some((n) => n.id === newId)) {
-    alert('ID Conflict: A node with this ID already exists.')
+    toast.error('A node with this ID already exists.', 'ID conflict')
     localId.value = inspectorStore.activeNode.id
     return
   }
@@ -234,9 +238,9 @@ const handleIdChange = (newId: string) => {
 const copyToClipboard = async (path: string) => {
   try {
     await navigator.clipboard.writeText(`{{ ${path} }}`)
-    // Optional: Add a small toast notification here if you have a toast system
+    toast.success('Variable path copied')
   } catch (err) {
-    console.error('Failed to copy to clipboard', err)
+    toast.error('Failed to copy variable path')
   }
 }
 </script>
@@ -419,22 +423,8 @@ const copyToClipboard = async (path: string) => {
               <p class="text-sm text-primary font-medium">Executing step...</p>
             </div>
 
-            <div v-else-if="displayOutput" class="h-full flex-1">
-              <div
-                v-if="!displayOutput.success"
-                class="p-3 mb-3 rounded-md text-sm"
-                style="
-                  background: rgba(239, 68, 68, 0.1);
-                  border: 1px solid rgba(239, 68, 68, 0.2);
-                  color: rgb(239, 68, 68);
-                "
-              >
-                <div class="font-bold mb-1">Execution Error</div>
-                <div class="font-mono whitespace-pre-wrap">
-                  {{ displayOutput.error }}
-                </div>
-              </div>
-              <div v-else class="h-full">
+            <div v-else-if="displayOutput?.success" class="h-full flex-1">
+              <div class="h-full">
                 <JsonTreeView :data="displayOutput.data" :is-root="true" />
               </div>
             </div>

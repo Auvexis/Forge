@@ -9,6 +9,7 @@ import { useExecutionStore } from '@/features/workflow-editor/stores/execution.s
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import { useEventBus } from '@/shared/composables/useEventBus'
+import { useToast } from '@/shared/composables/useToast'
 
 const props = defineProps<{
   id?: string
@@ -35,6 +36,7 @@ const executionStore = useExecutionStore()
 const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
 const quickAddBus = useEventBus('node:quick-add')
+const toast = useToast()
 
 const isEditingId = ref(false)
 const editedId = ref('')
@@ -59,7 +61,7 @@ const commitIdChange = () => {
   }
 
   if (workflowStore.activeWorkflow?.nodes[newId] || newId === 'trigger') {
-    alert('ID Conflict: A node with this ID already exists.')
+    toast.error('A node with this ID already exists.', 'ID conflict')
     idInputRef.value?.focus()
     return
   }

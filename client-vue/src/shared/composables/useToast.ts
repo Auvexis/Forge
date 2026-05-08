@@ -17,6 +17,14 @@ const toasts = ref<Toast[]>([])
 
 export function useToast() {
   const addToast = (toast: Omit<Toast, 'id'>) => {
+    const duplicate = toasts.value.find(
+      (item) =>
+        item.variant === toast.variant &&
+        item.title === toast.title &&
+        item.message === toast.message,
+    )
+    if (duplicate) return duplicate.id
+
     const id = generateId('toast')
     const newToast: Toast = {
       ...toast,
