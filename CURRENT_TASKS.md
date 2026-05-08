@@ -24,6 +24,6 @@
 
 ## Verification
 
-- [ ] Client type-check/build passes. Current baseline fails in unrelated existing type errors.
-- [ ] Server type-check/build passes.
-- [ ] Relevant UI flows are manually checked in browser.
+- [ ] Client type-check/build passes. `npm run build` generates the Vite bundle, but fails during `vue-tsc` on existing type errors in `WorkflowEditorPage.vue`, `node-types.ts`, `RespondToWebhookEditor.vue`, and `SetEditor.vue`.
+- [ ] Server type-check/build passes. `npm run build` fails on existing AJV typing errors in `server/src/core/modules/plugins/validator.ts`.
+- [x] Relevant UI shell is manually checked in browser. `http://127.0.0.1:23802/workflows` loads; backend-dependent data fetches fail because the API server is not running.
