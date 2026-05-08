@@ -388,6 +388,39 @@ function renderFormConfirmationPage(workflow: WorkflowItem): string {
 </body></html>`;
 }
 
+async function parseFormRequestBody(req: any): Promise<Record<string, unknown>> {
+  if (typeof req.isMultipart === "function" && req.isMultipart()) {
+    const body: Record<string, unknown> = {};
+    for await (const part of req.parts()) {
+      if (part.type === "file") {
+        const buffer = await part.toBuffer();
+        body[part.fieldname] = {
+          filename: part.filename,
+          mimetype: part.mimetype,
+          size: buffer.length,
+          buffer,
+        };
+      } else {
+        body[part.fieldname] = part.value;
+      }
+    }
+    return body;
+  }
+
+  return (req.body as Record<string, unknown>) ?? {};
+}
+
+function formDefinition(workflow: WorkflowItem, mode: "test" | "prod") {
+  return {
+    id: formPublicId(workflow),
+    workflowId: workflow.metadata.id,
+    mode,
+    title: workflow.trigger.formTitle?.trim() || workflow.metadata.name,
+    description: workflow.trigger.formDescription?.trim() || "",
+    fields: normalizeFormFields(workflow.trigger.formFields),
+  };
+}
+
 // ──────────── Webhook signature validation ────────────
 
 function validateWebhookSignature(
@@ -662,11 +695,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       );
     }
 
-    const fields = normalizeFormFields(workflow.trigger.formFields);
-    return reply
-      .code(200)
-      .type("text/html; charset=utf-8")
-      .send(renderFormPage(workflow, fields, { mode: "test" }));
+    return reply.redirect(`${CLIENT_ORIGIN}/forms-test/${encodeURIComponent(formPublicId(workflow))}`);
   });
 
   fastify.get("/forms/:formId", async (req, reply) => {
@@ -682,68 +711,82 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       );
     }
 
-    const fields = normalizeFormFields(workflow.trigger.formFields);
-    return reply
-      .code(200)
-      .type("text/html; charset=utf-8")
-      .send(renderFormPage(workflow, fields));
+    return reply.redirect(`${CLIENT_ORIGIN}/forms/${encodeURIComponent(formPublicId(workflow))}`);
+  });
+
+  fastify.get("/forms-api/:formId", async (req, reply) => {
+    const { formId } = req.params as { formId: string };
+    const { mode } = req.query as { mode?: string };
+    const formMode = mode === "prod" ? "prod" : "test";
+    const workflow = resolveFormWorkflow(formId, { requireActive: formMode === "prod" });
+
+    if (!workflow) {
+      return sendResponse(reply, {
+        status_code: 404,
+        message: "Form not found or unavailable",
+        error: "Not Found",
+        data: null,
+      });
+    }
+
+    return sendResponse(reply, {
+      status_code: 200,
+      message: "Form definition fetched",
+      error: null,
+      data: formDefinition(workflow, formMode),
+    });
   });
 
   // ──────────── Form Trigger ─ Submission Handler ────────────
   // Validates required fields, dispatches the workflow asynchronously, and
   // returns a confirmation page. Per-IP+workflow rate limit prevents spam.
 
-  async function handleFormSubmission(
+  async function processFormSubmission(
     formId: string,
     opts: { requireActive: boolean; mode: "test" | "prod" },
     req: any,
-    reply: FastifyReply,
-  ) {
+  ): Promise<
+    | { ok: true; workflow: WorkflowItem; executionId: string }
+    | { ok: false; statusCode: number; message: string; workflow?: WorkflowItem; fields?: NormalizedFormField[] }
+  > {
     const workflow = resolveFormWorkflow(formId, { requireActive: opts.requireActive });
     if (!workflow) {
-      return reply.code(404).type("text/html; charset=utf-8").send(
-        `<!DOCTYPE html><html><body><h1>Form not available</h1></body></html>`
-      );
+      return { ok: false, statusCode: 404, message: "Form not available" };
     }
 
     // Rate limit: per-IP + per-workflow
     const rateKey = `${req.ip}:${workflow.metadata.id}`;
     if (isFormRateLimited(rateKey)) {
-      return reply.code(429).type("text/html; charset=utf-8").send(
-        `<!DOCTYPE html><html><body style="font-family: sans-serif; padding: 40px; background:#0b0d12; color:#e7e9ee;">
-          <h1>Too many submissions</h1>
-          <p>Please wait a minute and try again.</p>
-        </body></html>`
-      );
+      return { ok: false, statusCode: 429, message: "Too many submissions", workflow };
     }
 
     const fields = normalizeFormFields(workflow.trigger.formFields);
-    const rawBody = (req.body as Record<string, unknown>) ?? {};
+    const rawBody = await parseFormRequestBody(req);
 
     // Validate + sanitize each declared field
-    const fieldData: Record<string, string | number> = {};
+    const fieldData: Record<string, unknown> = {};
     for (const field of fields) {
       const raw = rawBody[field.name];
       const asString = raw == null ? "" : String(raw);
 
       if (asString.length > FORM_FIELD_MAX_BYTES) {
-        return reply
-          .code(400)
-          .type("text/html; charset=utf-8")
-          .send(renderFormPage(workflow, fields, {
-            error: `Field "${field.label}" exceeds the ${FORM_FIELD_MAX_BYTES} byte limit.`,
-            mode: opts.mode,
-          }));
+        return {
+          ok: false,
+          statusCode: 400,
+          message: `Field "${field.label}" exceeds the ${FORM_FIELD_MAX_BYTES} byte limit.`,
+          workflow,
+          fields,
+        };
       }
 
       if (field.required && asString.trim() === "") {
-        return reply
-          .code(400)
-          .type("text/html; charset=utf-8")
-          .send(renderFormPage(workflow, fields, {
-            error: `Field "${field.label}" is required.`,
-            mode: opts.mode,
-          }));
+        return {
+          ok: false,
+          statusCode: 400,
+          message: `Field "${field.label}" is required.`,
+          workflow,
+          fields,
+        };
       }
 
       if (field.type === "number") {
@@ -752,13 +795,13 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         } else {
           const num = Number(asString);
           if (Number.isNaN(num)) {
-            return reply
-              .code(400)
-              .type("text/html; charset=utf-8")
-              .send(renderFormPage(workflow, fields, {
-                error: `Field "${field.label}" must be a number.`,
-                mode: opts.mode,
-              }));
+            return {
+              ok: false,
+              statusCode: 400,
+              message: `Field "${field.label}" must be a number.`,
+              workflow,
+              fields,
+            };
           }
           fieldData[field.name] = num;
         }
@@ -774,7 +817,13 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       userAgent: req.headers["user-agent"] ?? "",
     };
 
-    const executionId = `exec_form_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const headerExecRaw = req.headers["x-nod8-execution-id"];
+    const executionId =
+      typeof headerExecRaw === "string" &&
+      headerExecRaw.length < 96 &&
+      /^exec_\d+_[a-z0-9]+$/i.test(headerExecRaw)
+        ? headerExecRaw
+        : `exec_form_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     // Fire-and-forget execution; the user gets the confirmation page immediately
     WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(
@@ -785,11 +834,64 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       },
     );
 
+    return { ok: true, workflow, executionId };
+  }
+
+  async function handleFormSubmission(
+    formId: string,
+    opts: { requireActive: boolean; mode: "test" | "prod" },
+    req: any,
+    reply: FastifyReply,
+  ) {
+    const result = await processFormSubmission(formId, opts, req);
+
+    if (!result.ok) {
+      if (!result.workflow || !result.fields) {
+        return reply.code(result.statusCode).type("text/html; charset=utf-8").send(
+          `<!DOCTYPE html><html><body><h1>${escapeHtml(result.message)}</h1></body></html>`,
+        );
+      }
+      return reply
+        .code(result.statusCode)
+        .type("text/html; charset=utf-8")
+        .send(renderFormPage(result.workflow, result.fields, {
+          error: result.message,
+          mode: opts.mode,
+        }));
+    }
+
     return reply
       .code(200)
       .type("text/html; charset=utf-8")
-      .send(renderFormConfirmationPage(workflow));
+      .send(renderFormConfirmationPage(result.workflow));
   }
+
+  fastify.post("/forms-api/:formId/submit", async (req, reply) => {
+    const { formId } = req.params as { formId: string };
+    const { mode } = req.query as { mode?: string };
+    const formMode = mode === "prod" ? "prod" : "test";
+    const result = await processFormSubmission(
+      formId,
+      { requireActive: formMode === "prod", mode: formMode },
+      req,
+    );
+
+    if (!result.ok) {
+      return sendResponse(reply, {
+        status_code: result.statusCode,
+        message: result.message,
+        error: result.message,
+        data: null,
+      });
+    }
+
+    return sendResponse(reply, {
+      status_code: 202,
+      message: "Form submitted and workflow execution started",
+      error: null,
+      data: { executionId: result.executionId },
+    });
+  });
 
   fastify.post("/forms-test/:formId/submit", async (req, reply) => {
     const { formId } = req.params as { formId: string };

@@ -202,8 +202,24 @@ async function handleRun() {
   if (!workflowStore.activeWorkflow) return
 
   const schema = workflowStore.activeWorkflow.trigger.schema ?? {}
+  const trigger = workflowStore.activeWorkflow.trigger
 
-  if (Object.keys(schema).length > 0) {
+  if (trigger.type === 'form') {
+    panelStore.togglePanel({
+      id: 'run-workflow-panel',
+      title: 'Run Form Trigger',
+      component: markRaw(RunWorkflowPanel),
+      props: {
+        workflowId: workflowStore.activeWorkflow.metadata.id,
+        formId: trigger.formSlug || workflowStore.activeWorkflow.metadata.id,
+        formFields: trigger.formFields ?? [],
+        schema: {},
+        triggerType: trigger.type,
+      },
+      position: 'right',
+      width: 'md',
+    })
+  } else if (Object.keys(schema).length > 0) {
     panelStore.togglePanel({
       id: 'run-workflow-panel',
       title: 'Run Workflow',
@@ -211,7 +227,7 @@ async function handleRun() {
       props: {
         workflowId: workflowStore.activeWorkflow.metadata.id,
         schema,
-        triggerType: workflowStore.activeWorkflow.trigger.type,
+        triggerType: trigger.type,
       },
       position: 'right',
       width: 'md',

@@ -21,6 +21,18 @@ const router = createRouter({
       meta: { title: 'Editor' },
     },
     {
+      path: '/forms-test/:formId',
+      name: 'form-test',
+      component: () => import('@/app/pages/FormPage.vue'),
+      meta: { title: 'Test Form', public: true },
+    },
+    {
+      path: '/forms/:formId',
+      name: 'form-prod',
+      component: () => import('@/app/pages/FormPage.vue'),
+      meta: { title: 'Form', public: true },
+    },
+    {
       path: '/plugins',
       name: 'plugins',
       component: () => import('@/app/pages/PluginsPage.vue'),

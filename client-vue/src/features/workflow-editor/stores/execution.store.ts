@@ -202,6 +202,34 @@ export const useExecutionStore = defineStore('execution', () => {
     }
   }
 
+  async function executeFormSubmission(
+    formId: string,
+    mode: 'test' | 'prod',
+    payload: Record<string, unknown> = {},
+  ) {
+    const { error: toastError } = useToast()
+
+    resetNodeStatuses()
+
+    const clientExecId = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+    startStream(clientExecId)
+
+    isExecuting.value = true
+    try {
+      const result = await workflowsApi.submitForm(formId, mode, payload, clientExecId)
+      if (result.executionId && result.executionId !== clientExecId) {
+        startStream(result.executionId)
+      }
+    } catch {
+      isStreaming.value = false
+      stopStream()
+      toastError('Failed to submit form trigger')
+      throw new Error('Form submission failed')
+    } finally {
+      isExecuting.value = false
+    }
+  }
+
   /** Sends a cancel request for the active execution (fire-and-forget UX). */
   async function cancel() {
     if (!activeExecutionId.value) return
@@ -221,6 +249,7 @@ export const useExecutionStore = defineStore('execution', () => {
     workflowStatus,
     hasActiveExecution,
     execute,
+    executeFormSubmission,
     cancel,
     startStream,
     stopStream,

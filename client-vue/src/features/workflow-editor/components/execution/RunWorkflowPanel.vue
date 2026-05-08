@@ -14,11 +14,47 @@
         {{
           hasSchema
             ? 'Fill in the required inputs below to start execution.'
-            : 'No inputs required for this workflow. Click Run to execute.'
+            : isFormTrigger
+              ? 'Fill out the form below. Execution starts after submission.'
+              : 'No inputs required for this workflow. Click Run to execute.'
         }}
       </div>
 
-      <template v-if="hasSchema">
+      <template v-if="isFormTrigger">
+        <p class="rwp-fields-label">Form Fields</p>
+        <div class="rwp-fields">
+          <div v-for="field in formFields" :key="field.name" class="rwp-field">
+            <div class="rwp-field-header">
+              <label class="rwp-field-label">
+                {{ field.label || field.name }}
+                <span v-if="field.required" class="rwp-required">*</span>
+              </label>
+              <span class="rwp-field-type">{{ field.type }}</span>
+            </div>
+            <textarea
+              v-if="field.type === 'textarea'"
+              class="rwp-textarea"
+              :value="stringParam(field.name)"
+              :placeholder="field.placeholder || `Enter ${field.label || field.name}...`"
+              @input="params[field.name] = ($event.target as HTMLTextAreaElement).value"
+            ></textarea>
+            <BaseInput
+              v-else-if="field.type !== 'file'"
+              :type="field.type === 'date' || field.type === 'password' || field.type === 'number' || field.type === 'email' ? field.type : 'text'"
+              :model-value="stringParam(field.name)"
+              :placeholder="field.placeholder || `Enter ${field.label || field.name}...`"
+              @update:model-value="params[field.name] = $event as string"
+            />
+            <BaseInput
+              v-else
+              type="file"
+              @change="onFileChange(field.name, $event)"
+            />
+          </div>
+        </div>
+      </template>
+
+      <template v-else-if="hasSchema">
         <p class="rwp-fields-label">Required Inputs</p>
         <div class="rwp-fields">
           <div v-for="(field, key) in schema" :key="key" class="rwp-field">
@@ -56,7 +92,7 @@
         icon-left="play"
         @click="handleRun"
       >
-        {{ executionStore.isExecuting ? 'Executing...' : 'Run Workflow' }}
+        {{ executionStore.isExecuting ? 'Executing...' : isFormTrigger ? 'Submit Form & Run' : 'Run Workflow' }}
       </BaseButton>
     </div>
   </div>
@@ -67,13 +103,15 @@ import { reactive, computed } from 'vue'
 import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
-import type { WorkflowSchemaField } from '@/core/types/workflow.types'
+import type { FormTriggerField, WorkflowSchemaField } from '@/core/types/workflow.types'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 
 const props = defineProps<{
   workflowId: string
   schema: Record<string, WorkflowSchemaField>
   triggerType: string
+  formId?: string
+  formFields?: FormTriggerField[]
 }>()
 
 const executionStore = useExecutionStore()
@@ -81,6 +119,8 @@ const panelStore = useAppPanelStore()
 
 const params = reactive<Record<string, unknown>>({})
 const hasSchema = computed(() => Object.keys(props.schema).length > 0)
+const formFields = computed(() => props.formFields ?? [])
+const isFormTrigger = computed(() => props.triggerType === 'form')
 
 /** Safely read a string-typed param value for text/number inputs. */
 function stringParam(key: string): string {
@@ -96,7 +136,11 @@ function onFileChange(key: string, event: Event) {
 
 async function handleRun() {
   try {
-    await executionStore.execute(props.workflowId, { ...params })
+    if (isFormTrigger.value) {
+      await executionStore.executeFormSubmission(props.formId ?? props.workflowId, 'test', { ...params })
+    } else {
+      await executionStore.execute(props.workflowId, { ...params })
+    }
     panelStore.closePanel()
   } catch {
     // error toast is handled inside execute()
@@ -243,6 +287,23 @@ async function handleRun() {
   height: auto;
   cursor: pointer;
   color: var(--nod8-text-muted);
+}
+
+.rwp-textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  background-color: var(--nod8-bg-overlay);
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-sm);
+  padding: 10px 12px;
+  color: var(--nod8-text-primary);
+  font: inherit;
+  outline: none;
+}
+
+.rwp-textarea:focus {
+  border-color: var(--nod8-accent);
 }
 
 /* ── Footer ───────────────────────────────────────────────── */

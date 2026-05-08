@@ -671,6 +671,7 @@ function humanizeCron(expression: string | undefined): string {
 const copied = ref<'test' | 'prod' | 'form-test' | 'form-prod' | null>(null)
 
 const backendPublicUrl = ref(API_BASE_URL)
+const frontendOrigin = window.location.origin
 
 async function loadAppInfo() {
   try {
@@ -801,7 +802,7 @@ const formPublicId = computed(() => {
   return slug || id || ''
 })
 
-const formTestUrl = computed(() => formPublicId.value ? `${API_BASE_URL}/forms-test/${formPublicId.value}` : '')
+const formTestUrl = computed(() => formPublicId.value ? `${frontendOrigin}/forms-test/${formPublicId.value}` : '')
 const formProdUrl = computed(() => formPublicId.value ? `${backendPublicUrl.value}/forms/${formPublicId.value}` : '')
 
 const formIsPublished = computed(

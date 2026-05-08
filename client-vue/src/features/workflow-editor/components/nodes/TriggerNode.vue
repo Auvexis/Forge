@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, markRaw } from 'vue'
 import type { NodeProps } from '@vue-flow/core'
 import type { TriggerNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
@@ -10,6 +10,8 @@ import { useWorkflowStore } from '../../stores/workflow.store'
 import { useExecutionStore } from '../../stores/execution.store'
 import { useEventBus } from '@/shared/composables/useEventBus'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import { useAppPanelStore } from '@/shared/stores/app-panel.store'
+import RunWorkflowPanel from '../execution/RunWorkflowPanel.vue'
 
 const props = defineProps<
   NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
@@ -17,6 +19,7 @@ const props = defineProps<
 
 const store = useWorkflowStore()
 const executionStore = useExecutionStore()
+const panelStore = useAppPanelStore()
 
 const triggerData = computed(() => store.activeWorkflow?.trigger)
 
@@ -101,8 +104,26 @@ const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() =
 })
 
 const onExecuteWorkflow = async () => {
-  if (store.activeWorkflow?.metadata.id) {
-    await executionStore.execute(store.activeWorkflow.metadata.id)
+  const workflow = store.activeWorkflow
+  if (!workflow?.metadata.id) return
+
+  if (workflow.trigger.type === 'form') {
+    panelStore.togglePanel({
+      id: 'run-workflow-panel',
+      title: 'Run Form Trigger',
+      component: markRaw(RunWorkflowPanel),
+      props: {
+        workflowId: workflow.metadata.id,
+        formId: workflow.trigger.formSlug || workflow.metadata.id,
+        formFields: workflow.trigger.formFields ?? [],
+        schema: {},
+        triggerType: workflow.trigger.type,
+      },
+      position: 'right',
+      width: 'md',
+    })
+  } else {
+    await executionStore.execute(workflow.metadata.id)
   }
 }
 

@@ -5,7 +5,7 @@
 import { apiRequest } from './client'
 import { ENDPOINTS } from './endpoints'
 import { API_BASE_URL } from '../constants/app'
-import type { WorkflowItem } from '../types/workflow.types'
+import type { FormTriggerField, WorkflowItem } from '../types/workflow.types'
 import type { ExecutionLog, WorkflowExecutionStatus } from '../types/execution.types'
 
 // ── Production Status Shape ───────────────────────────────
@@ -21,6 +21,15 @@ export interface ProductionWorkflowStatus {
     startTime: number
     endTime: number | null
   } | null
+}
+
+export interface FormDefinition {
+  id: string
+  workflowId: string
+  mode: 'test' | 'prod'
+  title: string
+  description: string
+  fields: FormTriggerField[]
 }
 
 // ── Server response shape (snake_case from SQLite row) ────────
@@ -198,4 +207,41 @@ export const workflowsApi = {
    */
   getLastTriggerPayload: (workflowId: string) =>
     apiRequest<Record<string, any> | null>(ENDPOINTS.TRIGGER_LAST_PAYLOAD(workflowId)),
+
+  getFormDefinition: (formId: string, mode: 'test' | 'prod') =>
+    apiRequest<FormDefinition>(ENDPOINTS.FORM_DEFINITION(formId), {
+      params: { mode },
+    }),
+
+  submitForm: (
+    formId: string,
+    mode: 'test' | 'prod',
+    payload: Record<string, unknown>,
+    clientExecId?: string,
+  ) => {
+    const headers: Record<string, string> = {}
+    if (clientExecId) headers['x-nod8-execution-id'] = clientExecId
+
+    const hasFiles = Object.values(payload).some((value) => value instanceof File)
+    let body: Record<string, unknown> | FormData = payload
+
+    if (hasFiles) {
+      const form = new FormData()
+      for (const [key, value] of Object.entries(payload)) {
+        if (value instanceof File) {
+          form.append(key, value, value.name)
+        } else if (value !== undefined && value !== null) {
+          form.append(key, typeof value === 'string' ? value : JSON.stringify(value))
+        }
+      }
+      body = form
+    }
+
+    return apiRequest<{ executionId: string }>(ENDPOINTS.FORM_SUBMIT(formId), {
+      method: 'POST',
+      params: { mode },
+      body,
+      headers,
+    })
+  },
 }

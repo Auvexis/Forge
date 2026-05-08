@@ -24,6 +24,10 @@ export const ENDPOINTS = {
   TRIGGER_LISTEN: (id: string) => `/workflows/${id}/trigger/listen`,
   TRIGGER_LAST_PAYLOAD: (id: string) => `/workflows/${id}/trigger/last-payload`,
 
+  // Forms
+  FORM_DEFINITION: (id: string) => `/forms-api/${id}`,
+  FORM_SUBMIT: (id: string) => `/forms-api/${id}/submit`,
+
   // Plugins
   PLUGINS: '/plugins',
   PLUGIN_BY_ID: (id: string) => `/plugins/${id}`,

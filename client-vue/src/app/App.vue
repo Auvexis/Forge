@@ -1,5 +1,10 @@
 <template>
-  <AppShell>
+  <router-view v-if="isPublicRoute" v-slot="{ Component }">
+    <component :is="Component" />
+    <AppToaster />
+  </router-view>
+
+  <AppShell v-else>
     <!-- Use the AppSidebar in the sidebar slot -->
     <template #sidebar>
       <AppSidebar>
@@ -69,6 +74,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
@@ -83,7 +89,9 @@ import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/Pro
 
 const sidebarStore = useSidebarPanelStore()
 const settingsStore = useSettingsStore()
+const route = useRoute()
 const isMonitorOpen = computed(() => sidebarStore.isOpen && sidebarStore.title === 'Production Monitor')
+const isPublicRoute = computed(() => route.meta.public === true)
 
 function toggleMonitor() {
   sidebarStore.togglePanel({
@@ -93,4 +101,3 @@ function toggleMonitor() {
   })
 }
 </script>
-
