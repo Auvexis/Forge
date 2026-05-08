@@ -36,7 +36,7 @@ const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
 const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
-const { project, findNode, updateNode } = useVueFlow()
+const { project, findNode, updateNode, removeNodes, removeEdges, nodes, edges } = useVueFlow()
 
 // ── Props / emits (for v-model:show-logs from parent page) ──────────────────
 const props = defineProps<{
@@ -98,6 +98,10 @@ function buildEdges() {
 watch(
   () => workflowStore.activeWorkflow?.metadata?.id,
   () => {
+    // Clear VueFlow internal state completely to avoid ghostly merged nodes from previous workflows
+    if (nodes.value.length > 0) removeNodes(nodes.value)
+    if (edges.value.length > 0) removeEdges(edges.value)
+
     vueFlowNodes.value = buildNodes()
     vueFlowEdges.value = buildEdges()
   },
@@ -107,6 +111,10 @@ watch(
 watch(
   () => workflowStore.graphUpdateTrigger,
   () => {
+    // We also clear it here on graph rename or massive updates
+    if (nodes.value.length > 0) removeNodes(nodes.value)
+    if (edges.value.length > 0) removeEdges(edges.value)
+
     vueFlowNodes.value = buildNodes()
     vueFlowEdges.value = buildEdges()
   },
@@ -516,6 +524,7 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
   <!-- O contêiner pai deve sempre ter uma altura/largura definida para o VueFlow renderizar -->
   <div class="nod8-workflow-canvas nod8-fill">
     <VueFlow
+      :id="workflowStore.activeWorkflow?.metadata.id ?? 'default'"
       v-model:nodes="vueFlowNodes"
       v-model:edges="vueFlowEdges"
       :default-zoom="1"
