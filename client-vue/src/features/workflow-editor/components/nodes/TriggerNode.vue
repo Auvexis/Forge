@@ -83,8 +83,9 @@ const triggerConfig = computed(() => {
 
 const nodeTitle = computed(() => {
   const type = triggerData.value?.type || 'manual'
-  if (type === 'webhook' && triggerData.value?.webhookPath) {
-    return `/${triggerData.value.webhookPath}`
+  if (type === 'webhook') {
+    const path = triggerData.value?.webhookPath
+    return path ? path : 'Webhook'
   }
   if (type === 'cron' && triggerData.value?.cronExpression) {
     return triggerData.value.cronExpression
@@ -93,7 +94,7 @@ const nodeTitle = computed(() => {
     return triggerData.value.eventName
   }
   if (type === 'form' && triggerData.value?.formSlug) {
-    return `/${triggerData.value.formSlug}`
+    return triggerData.value.formSlug
   }
   return triggerConfig.value.title
 })
@@ -205,7 +206,7 @@ const onQuickAdd = () => {
 
   <!-- Label outside -->
   <div class="trigger-node__label-area">
-    <span class="trigger-node__label-title">{{ nodeTitle }}</span>
+    <span class="trigger-node__label-title" :title="nodeTitle">{{ nodeTitle }}</span>
     <span v-if="triggerData?.type === 'webhook'" class="trigger-node__label-subtitle">
       /webhooks{{ triggerData.webhookPath ? `/${triggerData.webhookPath}` : '' }}
     </span>
@@ -362,10 +363,11 @@ const onQuickAdd = () => {
   font-weight: 500;
   color: var(--nod8-text-primary);
   line-height: 1.3;
-  word-break: break-word;
-  white-space: normal;
-  text-align: center;
   max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
 }
 
 .trigger-node__label-subtitle {
@@ -373,6 +375,10 @@ const onQuickAdd = () => {
   color: var(--nod8-text-muted);
   text-align: center;
   margin-top: 2px;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ─── Quick Add Node (n8n style) ─────────────────────────────── */
