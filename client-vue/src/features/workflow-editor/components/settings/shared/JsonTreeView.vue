@@ -40,7 +40,7 @@ const onDragStart = (event: DragEvent) => {
       <span
         v-if="name"
         class="json-key font-mono text-sm transition-all"
-        style="display: inline-flex; align-items: center; gap: 6px;"
+        style="display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;"
         :class="path ? 'json-key-draggable' : 'mr-1'"
         :draggable="!!path"
         @dragstart="onDragStart"
@@ -72,17 +72,15 @@ const onDragStart = (event: DragEvent) => {
 
       <!-- Primitives -->
       <template v-else>
-        <span v-if="typeof data === 'string'" class="json-string font-mono text-sm"
-          >"{{ data }}"</span
-        >
-        <span v-else-if="typeof data === 'number'" class="json-number font-mono text-sm">{{
-          data
-        }}</span>
-        <span v-else-if="typeof data === 'boolean'" class="json-boolean font-mono text-sm">{{
-          data
-        }}</span>
-        <span v-else-if="data === null" class="json-punctuation font-mono text-sm">null</span>
-        <span v-if="!isLast" class="json-punctuation text-muted">,</span>
+        <span class="json-value-wrap">
+          <span v-if="typeof data === 'string'" class="json-string font-mono text-sm"
+            >"{{ data }}"</span
+          >
+          <span v-else-if="typeof data === 'number'" class="json-number font-mono text-sm">{{ data }}</span>
+          <span v-else-if="typeof data === 'boolean'" class="json-boolean font-mono text-sm">{{ data }}</span>
+          <span v-else-if="data === null" class="json-punctuation font-mono text-sm">null</span>
+          <span v-if="!isLast" class="json-punctuation text-muted">,</span>
+        </span>
       </template>
     </div>
 
@@ -136,6 +134,13 @@ const onDragStart = (event: DragEvent) => {
 .json-line {
   min-width: 0;
   max-width: 100%;
+  flex-wrap: nowrap;
+}
+.json-value-wrap {
+  /* Takes remaining space after the key, allows long values to wrap here only */
+  flex: 1;
+  min-width: 0;
+  display: inline;
 }
 .json-children {
   margin-left: 12px;
@@ -163,10 +168,13 @@ const onDragStart = (event: DragEvent) => {
 .json-key {
   color: var(--json-color-key, var(--nod8-text-primary));
   min-width: 0;
+  flex-shrink: 0;
 }
 .json-key-text {
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  /* Key label never wraps — white-space:nowrap inherited from parent span */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }
 .json-key-draggable {
   margin-right: 4px;
