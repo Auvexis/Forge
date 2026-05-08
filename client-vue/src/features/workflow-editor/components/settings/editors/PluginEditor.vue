@@ -203,7 +203,7 @@
                     @update:model-value="updateSingleFile(paramKey.toString(), $event as string)"
                     placeholder="e.g. {{ steps.download.output }}"
                   />
-                  <BaseInput
+                  <input
                     type="file"
                     style="display: none"
                     @change="handleSingleFileUpload(paramKey.toString(), $event)"
@@ -250,7 +250,7 @@
                     @update:model-value="updateFileArray(paramKey.toString(), index, $event as string)"
                     placeholder="e.g. {{ trigger.file }}"
                   />
-                  <BaseInput
+                  <input
                     type="file"
                     style="display: none"
                     @change="handleFileUpload(paramKey.toString(), index, $event)"
@@ -441,17 +441,24 @@ watch(
 )
 
 
-const fileInputRefs = ref<Record<string, InstanceType<typeof BaseInput>>>({})
+const fileInputRefs = ref<Record<string, any>>({})
 
 const setFileInputRef = (id: string, el: any) => {
   if (el) {
-    fileInputRefs.value[id] = el as InstanceType<typeof BaseInput>
+    fileInputRefs.value[id] = el
   }
 }
 
 const triggerFileInput = (id: string) => {
-  if (fileInputRefs.value[id]) {
-    fileInputRefs.value[id].click()
+  const el = fileInputRefs.value[id]
+  if (el) {
+    if (el.$el) {
+      const input = el.$el.querySelector('input[type="file"]')
+      if (input) input.click()
+      else el.$el.click()
+    } else if (typeof el.click === 'function') {
+      el.click()
+    }
   }
 }
 
