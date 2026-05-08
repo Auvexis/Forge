@@ -11,7 +11,7 @@
         <!-- Name + status row -->
         <div class="wed-brand__meta">
           <!-- Workflow name → opens dropdown -->
-          <AppDropdownMenu position="bottom-start" :offset="3">
+          <AppDropdownMenu position="bottom-start" :offset="3" max-height="350px">
             <template #trigger>
               <div class="flex flex-col gap-1">
                 <div class="wed-name-wrap">
@@ -64,9 +64,8 @@
             <template v-if="filteredWorkflows.length > 0">
               <AppDropdownDivider />
 
-              <div style="max-height: 350px; overflow-y: auto;">
-                <template v-for="w in filteredWorkflows" :key="w.metadata.id">
-                  <AppDropdownItem
+              <template v-for="w in filteredWorkflows" :key="w.metadata.id">
+                <AppDropdownItem
                   icon="workflow"
                   :label="w.metadata.name"
                   @click="handleOpenWorkflow(w)"
@@ -104,8 +103,7 @@
                     </div>
                   </template>
                 </AppDropdownItem>
-                </template>
-              </div>
+              </template>
             </template>
 
             <template v-else-if="searchQuery">

@@ -9,7 +9,10 @@
         <span class="app-dropdown-menu__title">{{ title }}</span>
       </div>
 
-      <div class="app-dropdown-menu__items">
+      <div 
+        class="app-dropdown-menu__items custom-scrollbar" 
+        :style="maxHeight ? { maxHeight, overflowY: 'auto', overflowX: 'hidden' } : {}"
+      >
         <BaseWoobyMenu>
           <slot></slot>
         </BaseWoobyMenu>
@@ -28,6 +31,7 @@ withDefaults(
     title?: string
     position?: 'bottom-start' | 'bottom-end' | 'bottom-center'
     offset?: number
+    maxHeight?: string
   }>(),
   {
     position: 'bottom-start',
