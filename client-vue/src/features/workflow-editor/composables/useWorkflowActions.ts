@@ -16,8 +16,11 @@ export function useWorkflowActions() {
     router.push('/workflows')
   }
 
-  function saveWorkflow() {
-    workflowStore.saveActiveWorkflow()
+  async function saveWorkflow() {
+    await workflowStore.saveActiveWorkflow()
+    if (router.currentRoute.value.path === '/workflows' && workflowStore.activeWorkflow) {
+      router.replace(`/workflows/${workflowStore.activeWorkflow.metadata.id}`)
+    }
   }
 
   function exportWorkflow() {

@@ -151,7 +151,7 @@ watch(
         :is-streaming="executionStore.isStreaming"
         :is-logs-open="showLogs"
         :is-dirty="workflowStore.isDirty"
-        @save="workflowStore.saveActiveWorkflow()"
+        @save="handleSaveWorkflow()"
         @add-node="canvasRef?.openAddNodePanel()"
         @run="canvasRef?.handleRun()"
         @stop="canvasRef?.handleStop()"

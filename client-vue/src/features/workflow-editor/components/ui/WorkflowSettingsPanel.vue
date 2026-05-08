@@ -23,7 +23,7 @@ const emit = defineEmits<{
 // ── Store ────────────────────────────────────────────────────────────────────
 
 const workflowStore = useWorkflowStore()
-const { deleteActiveWorkflow } = useWorkflowActions()
+const { deleteActiveWorkflow, saveWorkflow } = useWorkflowActions()
 const { confirm } = useConfirm()
 
 // ── Local draft (copy of metadata to edit) ───────────────────────────────────
@@ -73,7 +73,7 @@ const version = computed(() => workflowStore.activeWorkflow?.metadata.version ??
 
 const isSaving = computed(() => workflowStore.isSaving)
 
-function handleSave() {
+async function handleSave() {
   if (!workflowStore.activeWorkflow) return
 
   workflowStore.activeWorkflow.metadata = {
@@ -82,7 +82,7 @@ function handleSave() {
   }
 
   workflowStore.markDirty()
-  workflowStore.saveActiveWorkflow()
+  await saveWorkflow()
 }
 
 // ── Delete confirmation ───────────────────────────────────────────────────────
