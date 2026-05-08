@@ -133,7 +133,35 @@ Extracted from ProductionMonitorPanel.vue <style scoped>.
   color: var(--nod8-text-secondary);
 }
 
+.pm-badge--form {
+  background: color-mix(in srgb, #f472b6 15%, transparent);
+  color: #f472b6;
+}
 
+.pm-badge--plugin {
+  background: color-mix(in srgb, #fb923c 15%, transparent);
+  color: #fb923c;
+}
+
+.pm-badge--schedule {
+  background: color-mix(in srgb, #a78bfa 15%, transparent);
+  color: #a78bfa;
+}
+
+.pm-badge--webhook-form {
+  background: color-mix(in srgb, #34d399 15%, transparent);
+  color: #34d399;
+}
+
+.pm-badge--event-listener {
+  background: color-mix(in srgb, #38bdf8 15%, transparent);
+  color: #38bdf8;
+}
+
+.pm-badge--subworkflow {
+  background: color-mix(in srgb, #c084fc 15%, transparent);
+  color: #c084fc;
+}
 
 /* ── Execution status ────────────────────────────────────────── */
 .pm-card__exec {

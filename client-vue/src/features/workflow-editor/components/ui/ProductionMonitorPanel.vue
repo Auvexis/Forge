@@ -207,11 +207,16 @@ async function autoRefresh() {
 
 function triggerLabel(type: ProductionWorkflowStatus['triggerType']): string {
   const map: Record<string, string> = {
-    webhook: '⚡ Webhook',
-    cron: '⏰ Cron',
-    event: '📡 Event',
-    manual: '▶ Manual',
-    plugin: '🔌 Plugin',
+    webhook:         '⚡ Webhook',
+    cron:            '⏰ Cron',
+    schedule:        '⏰ Schedule',
+    event:           '📡 Event',
+    'event-listener': '📡 Event Listener',
+    manual:          '▶ Manual',
+    plugin:          '🔌 Plugin',
+    form:            '📋 Form',
+    'webhook-form':  '📋 Webhook Form',
+    subworkflow:     '↗ Sub-Workflow',
   }
   return map[type] ?? type
 }
