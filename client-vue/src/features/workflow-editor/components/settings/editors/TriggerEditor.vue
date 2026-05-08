@@ -37,11 +37,11 @@
               />
             </div>
             <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--nod8-text-secondary)] cursor-pointer whitespace-nowrap px-1">
-              <input
+              <BaseInput
                 type="checkbox"
-                class="accent-[var(--nod8-accent)] cursor-pointer w-3.5 h-3.5"
-                :checked="(field as any).required"
-                @change="updateSchemaField(String(key), { required: ($event.target as HTMLInputElement).checked })"
+                class="te-checkbox"
+                :model-value="Boolean((field as any).required)"
+                @update:model-value="updateSchemaField(String(key), { required: Boolean($event) })"
               />
               Req
             </label>
@@ -178,11 +178,11 @@
                 />
               </div>
               <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--nod8-text-secondary)] cursor-pointer whitespace-nowrap px-1">
-                <input
+                <BaseInput
                   type="checkbox"
-                  class="accent-[var(--nod8-accent)] cursor-pointer w-3.5 h-3.5"
-                  :checked="(field as any).required"
-                  @change="updateBodySchemaField(String(key), { required: ($event.target as HTMLInputElement).checked })"
+                  class="te-checkbox"
+                  :model-value="Boolean((field as any).required)"
+                  @update:model-value="updateBodySchemaField(String(key), { required: Boolean($event) })"
                 />
                 Req
               </label>
@@ -307,11 +307,11 @@
                 />
               </div>
               <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--nod8-text-secondary)] cursor-pointer whitespace-nowrap px-1">
-                <input
+                <BaseInput
                   type="checkbox"
-                  class="accent-[var(--nod8-accent)] cursor-pointer w-3.5 h-3.5"
-                  :checked="field.required"
-                  @change="updateFormField(i, { required: ($event.target as HTMLInputElement).checked })"
+                  class="te-checkbox"
+                  :model-value="Boolean(field.required)"
+                  @update:model-value="updateFormField(i, { required: Boolean($event) })"
                 />
                 Req
               </label>
@@ -925,6 +925,26 @@ onUnmounted(() => cleanup())
 </script>
 
 <style scoped>
+.te-checkbox {
+  width: 14px;
+  flex: 0 0 14px;
+}
+
+.te-checkbox :deep(.base-input-container) {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  background: transparent;
+}
+
+.te-checkbox :deep(.base-input) {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  accent-color: var(--nod8-accent);
+  cursor: pointer;
+}
+
 /* ── URL group (test + prod stacked) ───────── */
 .te-url-group {
   display: flex;

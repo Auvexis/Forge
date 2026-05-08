@@ -205,7 +205,7 @@
                     @update:model-value="updateFileArray(paramKey.toString(), index, $event as string)"
                     placeholder="e.g. {{ trigger.file }}"
                   />
-                  <input
+                  <BaseInput
                     type="file"
                     style="display: none"
                     @change="handleFileUpload(paramKey.toString(), index, $event)"
@@ -395,11 +395,11 @@ watch(
 )
 
 
-const fileInputRefs = ref<Record<string, HTMLInputElement>>({})
+const fileInputRefs = ref<Record<string, InstanceType<typeof BaseInput>>>({})
 
 const setFileInputRef = (id: string, el: any) => {
   if (el) {
-    fileInputRefs.value[id] = el as HTMLInputElement
+    fileInputRefs.value[id] = el as InstanceType<typeof BaseInput>
   }
 }
 

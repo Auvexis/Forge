@@ -16,12 +16,14 @@
       </span>
 
       <input
+        ref="inputRef"
         :id="id"
         :type="type"
         v-bind="$attrs"
         class="base-input"
         :class="{ 'has-left-icon': !!iconLeft, 'has-right-icon': !!iconRight }"
-        :value="type !== 'file' ? modelValue : undefined"
+        :value="type !== 'file' && type !== 'checkbox' ? modelValue : undefined"
+        :checked="type === 'checkbox' ? Boolean(modelValue) : undefined"
         :placeholder="placeholder"
         :disabled="disabled"
         :required="required"
@@ -42,13 +44,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { generateId } from '@/shared/utils/id'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = withDefaults(
   defineProps<{
-    modelValue?: string | number
+    modelValue?: string | number | boolean
     type?: string
     label?: string
     placeholder?: string
@@ -69,18 +71,25 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: string | boolean]
   change: [event: Event]
   blur: [event: FocusEvent]
   focus: [event: FocusEvent]
 }>()
 
 const id = computed(() => props.id || generateId('input'))
+const inputRef = ref<HTMLInputElement | null>(null)
 
 const onInput = (e: Event) => {
   const target = e.target as HTMLInputElement
-  emit('update:modelValue', target.value)
+  emit('update:modelValue', props.type === 'checkbox' ? target.checked : target.value)
 }
+
+defineExpose({
+  focus: () => inputRef.value?.focus(),
+  select: () => inputRef.value?.select(),
+  click: () => inputRef.value?.click(),
+})
 
 defineOptions({ inheritAttrs: false })
 </script>

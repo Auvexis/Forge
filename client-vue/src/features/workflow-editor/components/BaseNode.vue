@@ -5,6 +5,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseHandle from './BaseHandle.vue'
 import NodeShimmer from './nodes/NodeShimmer.vue'
 import NodeToolbar from './nodes/NodeToolbar.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
@@ -40,7 +41,7 @@ const toast = useToast()
 
 const isEditingId = ref(false)
 const editedId = ref('')
-const idInputRef = ref<HTMLInputElement | null>(null)
+const idInputRef = ref<InstanceType<typeof BaseInput> | null>(null)
 
 const startEditingId = async () => {
   if (!props.id || props.id === 'trigger') return
@@ -171,7 +172,7 @@ const onQuickAdd = () => {
   <div class="nod8-base-node__label-area" @dblclick.stop="startEditingId">
     <slot name="label">
       <div v-if="props.title || props.subtitle" class="nod8-base-node__label">
-        <input
+        <BaseInput
           v-if="isEditingId"
           ref="idInputRef"
           v-model="editedId"
@@ -307,14 +308,18 @@ const onQuickAdd = () => {
 }
 
 .nod8-base-node__label-input {
+  width: 120px;
+}
+
+.nod8-base-node__label-input :deep(.base-input-container) {
   background: var(--nod8-node-body);
-  border: 1px solid var(--nod8-node-selected);
-  border-radius: 4px;
-  outline: none;
+  border-color: var(--nod8-node-selected);
+}
+
+.nod8-base-node__label-input :deep(.base-input) {
+  height: 24px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--nod8-text-primary);
-  width: 120px;
   text-align: center;
   padding: 2px 4px;
 }

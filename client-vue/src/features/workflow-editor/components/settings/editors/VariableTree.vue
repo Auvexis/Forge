@@ -2,8 +2,7 @@
   <div class="variable-tree">
     <!-- Search bar -->
     <div class="vt-search mb-4">
-      <LucideIcon name="search" size="12" class="vt-search-icon" />
-      <input class="vt-search-input" placeholder="Buscar variáveis..." v-model="search" />
+      <BaseInput v-model="search" icon-left="search" placeholder="Search variables..." />
     </div>
 
     <JsonTreeView 
@@ -24,8 +23,8 @@ import { ref, computed } from 'vue'
 import type { GraphNode } from '@vue-flow/core'
 import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import JsonTreeView from '../shared/JsonTreeView.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 import {
   resolveSchemaTree,
   resolveTriggerPaths,

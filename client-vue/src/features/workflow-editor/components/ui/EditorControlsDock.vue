@@ -110,14 +110,14 @@
           <LucideIcon name="minus" :size="14" />
         </BaseButton>
 
-        <input
+        <BaseInput
           type="range"
           class="zoom-slider-input"
           :min="minZoom"
           :max="maxZoom"
           step="0.01"
-          :value="viewport.zoom"
-          @input="onSliderChange"
+          :model-value="viewport.zoom"
+          @update:model-value="onSliderChange"
         />
 
         <BaseButton size="sm" variant="ghost" @click="zoomIn({ duration: 300 })">
@@ -153,6 +153,7 @@ import { useExecutionStore } from '@/features/workflow-editor/stores/execution.s
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 
 defineProps<{
   isSaving?: boolean
@@ -174,9 +175,8 @@ const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const { zoomIn, zoomOut, zoomTo, fitView, viewport, minZoom, maxZoom } = useVueFlow()
 
-const onSliderChange = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  zoomTo(Number(target.value))
+const onSliderChange = (value: string | boolean) => {
+  zoomTo(Number(value))
 }
 </script>
 
@@ -225,24 +225,33 @@ const onSliderChange = (event: Event) => {
 /* Customizações do Input Type Range (Zoom Slider) */
 .zoom-slider-input {
   width: 100px;
+}
+
+.zoom-slider-input :deep(.base-input-container) {
+  border: 0;
+  background: transparent;
+}
+
+.zoom-slider-input :deep(.base-input) {
+  padding: 0;
   -webkit-appearance: none;
   appearance: none;
   background: transparent;
   cursor: pointer;
 }
 
-.zoom-slider-input:focus {
+.zoom-slider-input :deep(.base-input:focus) {
   outline: none;
 }
 
 /* Chrome / Safari / Edge */
-.zoom-slider-input::-webkit-slider-runnable-track {
+.zoom-slider-input :deep(.base-input::-webkit-slider-runnable-track) {
   height: 4px;
   background: var(--nod8-border);
   border-radius: var(--nod8-radius-full);
 }
 
-.zoom-slider-input::-webkit-slider-thumb {
+.zoom-slider-input :deep(.base-input::-webkit-slider-thumb) {
   -webkit-appearance: none;
   appearance: none;
   height: 12px;
@@ -254,18 +263,18 @@ const onSliderChange = (event: Event) => {
   transition: transform 0.1s;
 }
 
-.zoom-slider-input::-webkit-slider-thumb:hover {
+.zoom-slider-input :deep(.base-input::-webkit-slider-thumb:hover) {
   transform: scale(1.2);
 }
 
 /* Firefox */
-.zoom-slider-input::-moz-range-track {
+.zoom-slider-input :deep(.base-input::-moz-range-track) {
   height: 4px;
   background: var(--nod8-border);
   border-radius: var(--nod8-radius-full);
 }
 
-.zoom-slider-input::-moz-range-thumb {
+.zoom-slider-input :deep(.base-input::-moz-range-thumb) {
   border: none;
   height: 12px;
   width: 12px;
@@ -275,7 +284,7 @@ const onSliderChange = (event: Event) => {
   transition: transform 0.1s;
 }
 
-.zoom-slider-input::-moz-range-thumb:hover {
+.zoom-slider-input :deep(.base-input::-moz-range-thumb:hover) {
   transform: scale(1.2);
 }
 </style>

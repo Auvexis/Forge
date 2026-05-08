@@ -10,16 +10,13 @@
 
     <!-- Search -->
     <div class="add-node-search-wrapper">
-      <div class="add-node-search-inner">
-        <LucideIcon name="search" :size="14" class="add-node-search-icon" />
-        <input
-          ref="searchInput"
-          v-model="search"
-          class="add-node-search-input"
-          :placeholder="searchPlaceholder"
-          autofocus
-        />
-      </div>
+      <BaseInput
+        ref="searchInput"
+        v-model="search"
+        icon-left="search"
+        :placeholder="searchPlaceholder"
+        autofocus
+      />
     </div>
 
     <!-- Content -->
@@ -143,6 +140,7 @@ import { pluginsApi } from '@/core/api/plugins.api'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 
 defineProps<{
   onAddLogicNode?: (type: WorkflowNodeType) => void
@@ -155,7 +153,7 @@ type ViewMode = 'categories' | 'actions'
 const view = ref<ViewMode>('categories')
 const selectedPluginId = ref<string | null>(null)
 const search = ref('')
-const searchInput = ref<HTMLInputElement>()
+const searchInput = ref<InstanceType<typeof BaseInput>>()
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
