@@ -767,6 +767,38 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     const fieldData: Record<string, unknown> = {};
     for (const field of fields) {
       const raw = rawBody[field.name];
+
+      // ── File field ──────────────────────────────────────────────────────
+      // parseFormRequestBody returns { filename, mimetype, size, buffer }
+      // for uploaded files. We store only the serializable metadata so that
+      // downstream nodes can read e.g. trigger.fields.foto_perfil.filename.
+      if (
+        field.type === "file" &&
+        raw != null &&
+        typeof raw === "object" &&
+        "filename" in (raw as object)
+      ) {
+        const fileRaw = raw as { filename: string; mimetype: string; size: number; buffer: Buffer };
+        if (field.required && !fileRaw.filename) {
+          return {
+            ok: false,
+            statusCode: 400,
+            message: `Field "${field.label}" is required.`,
+            workflow,
+            fields,
+          };
+        }
+        fieldData[field.name] = {
+          filename: fileRaw.filename,
+          mimetype: fileRaw.mimetype,
+          size: fileRaw.size,
+          // Keep the buffer so downstream nodes (e.g. Google Drive upload) can use it
+          buffer: fileRaw.buffer,
+        };
+        continue;
+      }
+
+      // ── Text / number fields ─────────────────────────────────────────────
       const asString = raw == null ? "" : String(raw);
 
       if (asString.length > FORM_FIELD_MAX_BYTES) {
@@ -824,6 +856,28 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       /^exec_\d+_[a-z0-9]+$/i.test(headerExecRaw)
         ? headerExecRaw
         : `exec_form_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    // Emit trigger output immediately so the editor can show it in the Output tab.
+    // We strip buffers here since they are not JSON-serializable via SSE.
+    const serializableTriggerPayload = {
+      fields: Object.fromEntries(
+        Object.entries(fieldData).map(([k, v]) => [
+          k,
+          v && typeof v === "object" && "buffer" in (v as object)
+            ? { filename: (v as any).filename, mimetype: (v as any).mimetype, size: (v as any).size }
+            : v,
+        ])
+      ),
+      submittedAt: triggerPayload.submittedAt,
+      ip: triggerPayload.ip,
+      userAgent: triggerPayload.userAgent,
+    };
+    workflowEventBus.emit(executionId, {
+      type: "trigger:data",
+      nodeId: "trigger",
+      data: serializableTriggerPayload,
+      timestamp: Date.now(),
+    });
 
     // Fire-and-forget execution; the user gets the confirmation page immediately
     WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(

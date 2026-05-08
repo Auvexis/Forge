@@ -101,6 +101,17 @@ export const useExecutionStore = defineStore('execution', () => {
         const ev = JSON.parse(rawEvt.data as string) as WorkflowEvent
 
         switch (ev.type) {
+          case 'trigger:data':
+            // Emitted by the server right after form submission with the full
+            // serializable trigger payload — populates the Output tab of the
+            // Trigger node in the NodeInspectorModal.
+            _patchNode('trigger', {
+              status: 'success',
+              output: ev.data,
+              endedAt: ev.timestamp,
+            })
+            break
+
           case 'node:start':
             if (ev.nodeId) {
               // When the first real node starts, the trigger has already fired — mark it success
