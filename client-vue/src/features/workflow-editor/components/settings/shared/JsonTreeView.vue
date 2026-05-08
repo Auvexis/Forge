@@ -40,7 +40,7 @@ const onDragStart = (event: DragEvent) => {
       <span
         v-if="name"
         class="json-key font-mono text-sm transition-all"
-        style="display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;"
+        style="display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; max-width: 150px;"
         :class="path ? 'json-key-draggable' : 'mr-1'"
         :draggable="!!path"
         @dragstart="onDragStart"
@@ -169,12 +169,14 @@ const onDragStart = (event: DragEvent) => {
   color: var(--json-color-key, var(--nod8-text-primary));
   min-width: 0;
   flex-shrink: 0;
+  height: 22px; /* Force small vertical height so it never looks 'gigante' */
+  white-space: nowrap;
 }
 .json-key-text {
-  /* Key label never wraps — white-space:nowrap inherited from parent span */
+  /* Key label never wraps */
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  max-width: 120px;
 }
 .json-key-draggable {
   margin-right: 4px;

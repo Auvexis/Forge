@@ -51,7 +51,7 @@ const getIcon = (variant: ToastVariant) => {
   position: fixed;
   bottom: var(--nod8-space-6);
   right: var(--nod8-space-6);
-  z-index: var(--nod8-z-toast);
+  z-index: 99999 !important;
   display: flex;
   flex-direction: column;
   gap: var(--nod8-space-3);
