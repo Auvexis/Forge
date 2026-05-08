@@ -155,7 +155,7 @@
 
         <!-- Code / JSON -->
         <template v-else-if="(paramVal as any)['x-input-type'] === 'code' || (paramVal as any)['x-input-type'] === 'json'">
-          <BaseTextarea
+          <BaseCodeEditor
             :model-value="(data.params as any)?.[paramKey] || ''"
             @update:model-value="
               (val) => updateNodeData({
@@ -165,6 +165,8 @@
                 },
               })
             "
+            :language="(paramVal as any)['x-input-type'] === 'json' ? 'json' : 'javascript'"
+            height="280px"
           />
         </template>
 
@@ -272,6 +274,7 @@ import BaseInput from '@/shared/components/base/BaseInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PluginNode } from '@/core/types/workflow.types'
 import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 
 const props = defineProps<NodeEditorProps>()
 

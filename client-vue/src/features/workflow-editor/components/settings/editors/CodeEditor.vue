@@ -15,11 +15,11 @@
         <BaseBadge variant="default" size="sm" text="context.steps" />
         <BaseBadge variant="default" size="sm" text="variables" />
       </div>
-      <BaseTextarea
+      <BaseCodeEditor
         :model-value="(node.data.script as string) || ''"
         @update:model-value="updateNodeData({ script: $event })"
-        :placeholder="`// Access context and variables\nconst items = context.steps.prevStep.output;\nconst result = items.filter(i => i.active);\nreturn result;`"
-        spellcheck="false"
+        language="javascript"
+        height="360px"
       />
     </EditorField>
   </div>
@@ -28,8 +28,9 @@
 <script setup lang="ts">
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import BaseBadge from '@/shared/components/base/BaseBadge.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 
 defineProps<NodeEditorProps>()
 </script>
