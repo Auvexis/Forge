@@ -16,7 +16,7 @@
         <router-link
           to="/workflows"
           class="nav-link"
-          active-class="nav-link--active"
+          :class="{ 'nav-link--active': route.path.startsWith('/workflows') }"
           title="Workflows"
         >
           <LucideIcon name="workflow" :size="16" />

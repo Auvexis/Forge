@@ -32,8 +32,10 @@ export const useWorkflowStore = defineStore('workflow', () => {
     _savedSnapshot.value = null
   }
 
-  /** @deprecated isDirty agora é computed automaticamente — mantido por compatibilidade */
-  function markDirty() {}
+  /** Force the workflow to be considered dirty */
+  function markDirty() {
+    _savedSnapshot.value = ''
+  }
 
   /**
    * Atualiza campos específicos do dado de um node pelo ID.

@@ -218,7 +218,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import AppDock from '@/shared/components/layout/AppDock.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
@@ -274,6 +274,14 @@ const {
 
 onMounted(() => {
   fetchWorkflows().catch(console.error)
+})
+
+watch(() => props.workflowId, () => {
+  fetchWorkflows().catch(console.error)
+})
+
+watch(() => props.isSaving, (isSaving) => {
+  if (!isSaving) fetchWorkflows().catch(console.error)
 })
 
 const searchQuery = ref('')

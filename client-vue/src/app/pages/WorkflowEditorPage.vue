@@ -12,10 +12,11 @@ import AppPage from '@/shared/components/layout/AppPage.vue'
 import { useApi } from '@/shared/composables/useApi'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { onMounted, watch, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 
 const route = useRoute()
+const router = useRouter()
 const workflowId = route.params.id as string
 
 // Stores
@@ -61,9 +62,11 @@ const showSettings = ref(false)
 let workflow: WorkflowItem | null = null
 const { data: workflows, execute: fetchWorkflow } = useApi(workflowsApi.getAll)
 
-onMounted(async () => {
-  if (!workflowId) {
-    // Auto-create a new workflow like n8n if no ID is provided
+async function initWorkflow() {
+  const currentId = route.params.id as string | undefined
+
+  if (!currentId) {
+    // In-memory workflow creation (no API call until saved)
     const newWorkflow: WorkflowItem = {
       metadata: {
         id: crypto.randomUUID(),
@@ -78,14 +81,9 @@ onMounted(async () => {
       nodes: {},
       edges: [],
     }
-    
-    try {
-      const created = await workflowsApi.create(newWorkflow)
-      // We use window.location/router replace to avoid pushing into history
-      window.location.replace(`/workflows/${created.metadata.id}`)
-    } catch (e) {
-      console.error('Failed to auto-create workflow', e)
-    }
+    useWorkflowStore().setActiveWorkflow(newWorkflow)
+    // Clear out the saved snapshot so it immediately appears dirty and allows saving
+    useWorkflowStore().markDirty()
     return
   }
 
@@ -93,7 +91,7 @@ onMounted(async () => {
 
   if (!workflows.value) return
 
-  workflow = workflows.value.find((w) => w.metadata.id === workflowId) ?? null
+  workflow = workflows.value.find((w) => w.metadata.id === currentId) ?? null
 
   if (!workflow) {
     closeWorkflow()
@@ -101,7 +99,23 @@ onMounted(async () => {
   }
 
   useWorkflowStore().setActiveWorkflow(workflow)
+}
+
+onMounted(() => {
+  initWorkflow()
 })
+
+watch(() => route.params.id, () => {
+  initWorkflow()
+})
+
+async function handleSaveWorkflow() {
+  await workflowStore.saveActiveWorkflow()
+  // If we are on the root /workflows path (in-memory draft), update the URL to the new ID
+  if (route.path === '/workflows' && workflowStore.activeWorkflow) {
+    router.replace(`/workflows/${workflowStore.activeWorkflow.metadata.id}`)
+  }
+}
 
 watch(
   () => workflowStore.activeWorkflow,
