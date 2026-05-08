@@ -29,9 +29,20 @@
         <LucideIcon name="chevron-down" :size="16" />
       </span>
 
-      <!-- Dropdown -->
+    </div>
+
+    <Teleport to="body">
       <Transition name="fade-down">
-        <BaseWoobyMenu v-if="isOpen" tag="div" position="absolute" class="base-select-dropdown" active-selector=".base-select-option--selected">
+        <BaseWoobyMenu
+          v-if="isOpen"
+          ref="dropdownRef"
+          tag="div"
+          position="absolute"
+          class="base-select-dropdown"
+          active-selector=".base-select-option--selected"
+          :style="dropdownStyle"
+          @click.stop
+        >
           <div 
             v-for="option in options" 
             :key="option.value"
@@ -50,7 +61,7 @@
           </div>
         </BaseWoobyMenu>
       </Transition>
-    </div>
+    </Teleport>
 
     <p v-if="error" class="base-input-wrapper__error">{{ error }}</p>
     <p v-else-if="hint" class="base-input-wrapper__hint">{{ hint }}</p>
@@ -58,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue'
 import { generateId } from '@/shared/utils/id'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
@@ -99,14 +110,43 @@ const id = computed(() => props.id || generateId('select'))
 
 const isOpen = ref(false)
 const wrapperRef = ref<HTMLElement | null>(null)
+const dropdownRef = ref<InstanceType<typeof BaseWoobyMenu> | null>(null)
+const dropdownStyle = ref<Record<string, string>>({})
 
 const selectedOption = computed(() => {
   return props.options.find((opt) => opt.value === props.modelValue)
 })
 
-const toggleDropdown = () => {
+function updateDropdownPosition() {
+  const wrapper = wrapperRef.value
+  if (!wrapper) return
+
+  const rect = wrapper.getBoundingClientRect()
+  const viewportGap = 8
+  const maxHeight = Math.min(240, window.innerHeight - rect.bottom - viewportGap)
+  const openUp = maxHeight < 120 && rect.top > window.innerHeight - rect.bottom
+  const availableHeight = openUp
+    ? Math.max(120, rect.top - viewportGap)
+    : Math.max(120, window.innerHeight - rect.bottom - viewportGap)
+
+  dropdownStyle.value = {
+    position: 'fixed',
+    top: openUp ? 'auto' : `${rect.bottom + 5}px`,
+    bottom: openUp ? `${window.innerHeight - rect.top + 5}px` : 'auto',
+    left: `${rect.left}px`,
+    width: `${rect.width}px`,
+    maxHeight: `${Math.min(240, availableHeight)}px`,
+    zIndex: '10000',
+  }
+}
+
+const toggleDropdown = async () => {
   if (props.disabled) return
   isOpen.value = !isOpen.value
+  if (isOpen.value) {
+    await nextTick()
+    updateDropdownPosition()
+  }
 }
 
 const closeDropdown = () => {
@@ -119,17 +159,27 @@ const selectOption = (option: SelectOption) => {
 }
 
 const handleClickOutside = (e: MouseEvent) => {
-  if (wrapperRef.value && !wrapperRef.value.contains(e.target as Node)) {
+  const target = e.target as Node
+  const dropdownEl = dropdownRef.value?.$el as HTMLElement | undefined
+  if (
+    wrapperRef.value &&
+    !wrapperRef.value.contains(target) &&
+    !dropdownEl?.contains(target)
+  ) {
     closeDropdown()
   }
 }
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  window.addEventListener('resize', updateDropdownPosition)
+  window.addEventListener('scroll', updateDropdownPosition, true)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('resize', updateDropdownPosition)
+  window.removeEventListener('scroll', updateDropdownPosition, true)
 })
 
 defineOptions({ inheritAttrs: false })
@@ -215,10 +265,6 @@ defineOptions({ inheritAttrs: false })
 
 /* Dropdown Menu */
 .base-select-dropdown {
-  position: absolute;
-  top: calc(100% + 5px);
-  left: 0;
-  width: 100%;
   max-height: 240px;
   overflow-y: auto;
   background-color: var(--nod8-bg-elevated);
