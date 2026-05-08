@@ -106,7 +106,7 @@
           "file": {
             "type": "string",
             "format": "binary",
-            "description": "The file to send. Map this to the output of a step that returns a file/binary (e.g. Drive downloadFile → download.content).",
+            "description": "The file to send. Map this to the output of a step that returns a file/binary (e.g. Drive Download or Form Trigger). You can provide a Buffer, a Base64 string, or an object with { buffer, filename }. Use the 'Convert File / Data' method from the File plugin if you need to convert formats.",
             "x-label": "File",
             "x-input-type": "file"
           },

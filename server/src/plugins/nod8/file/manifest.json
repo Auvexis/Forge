@@ -68,6 +68,21 @@
       },
       "responseSchema": { "type": "object", "x-nod8-display": "generic" },
       "ui": { "component": "card" }
+    },
+
+    "convertFile": {
+      "metadata": { "label": "Convert File / Data", "description": "Convert data between Buffer, Base64, Hex, or UTF-8 formats. Useful for formatting files from triggers or preparing them for API requests (like Telegram)." },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "input": { "type": "string", "description": "The data to convert. Can be mapped from a previous step.", "x-input-type": "textarea" },
+          "fromFormat": { "type": "string", "description": "Input format. Default: utf8", "x-input-type": "select", "enum": ["utf8", "base64", "hex", "buffer"] },
+          "toFormat": { "type": "string", "description": "Output format. Default: base64", "x-input-type": "select", "enum": ["utf8", "base64", "hex", "buffer"] }
+        },
+        "required": ["input", "toFormat"]
+      },
+      "responseSchema": { "type": "object", "x-nod8-display": "generic" },
+      "ui": { "component": "card" }
     }
   }
 }

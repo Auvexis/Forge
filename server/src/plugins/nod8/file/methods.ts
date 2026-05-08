@@ -86,5 +86,38 @@ export function createMethods() {
         });
       return { files, count: files.length };
     },
+
+    async convertFile(params: { input: any; fromFormat?: string; toFormat: string }) {
+      const from = params.fromFormat || "utf8";
+      const to = params.toFormat || "base64";
+
+      let buf: Buffer;
+      if (from === "buffer" && Buffer.isBuffer(params.input)) {
+        buf = params.input;
+      } else if (from === "buffer" && params.input && params.input.type === "Buffer" && Array.isArray(params.input.data)) {
+        // Handle JSON serialized buffers
+        buf = Buffer.from(params.input.data);
+      } else if (from === "buffer" && params.input && params.input.buffer && Buffer.isBuffer(params.input.buffer)) {
+        // Handle trigger object format from forms
+        buf = params.input.buffer;
+      } else if (typeof params.input === "string") {
+        buf = Buffer.from(params.input, from as BufferEncoding);
+      } else {
+        throw new Error("Invalid input or format. Input must be a string or Buffer.");
+      }
+
+      let result: any;
+      if (to === "buffer") {
+        result = buf;
+      } else {
+        result = buf.toString(to as BufferEncoding);
+      }
+
+      return {
+        result,
+        sizeBytes: buf.length,
+        format: to
+      };
+    },
   };
 }
