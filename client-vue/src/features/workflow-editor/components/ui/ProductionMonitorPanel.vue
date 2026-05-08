@@ -193,8 +193,7 @@ function formatJson(data: any): string {
  */
 function formatStepId(nodeId: string, triggerType?: string): string {
   if (nodeId === 'trigger') return 'Trigger'
-  // Webhook trigger step IDs are the full URL path like "POST /webhook/abc123"
-  if (
+  const isUrlLike =
     nodeId.startsWith('http://') ||
     nodeId.startsWith('https://') ||
     nodeId.startsWith('GET ') ||
@@ -203,11 +202,14 @@ function formatStepId(nodeId: string, triggerType?: string): string {
     nodeId.startsWith('PATCH ') ||
     nodeId.startsWith('DELETE ') ||
     nodeId.startsWith('/webhook')
-  ) {
-    if (triggerType === 'form' || triggerType === 'webhook-form') return 'Form'
-    return 'Webhook'
-  }
-  return nodeId
+  if (!isUrlLike) return nodeId
+
+  // Try to extract the slug from paths like "POST /webhook/my-slug" or "https://…/webhook/my-slug"
+  const match = nodeId.match(/\/webhook\/([^/?#\s]+)/)
+  const slug = match?.[1] ?? null
+
+  if (triggerType === 'form' || triggerType === 'webhook-form') return slug ?? 'Form'
+  return slug ?? 'Webhook'
 }
 
 let pollInterval: ReturnType<typeof setInterval> | null = null
