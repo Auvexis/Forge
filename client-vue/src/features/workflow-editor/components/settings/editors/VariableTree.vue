@@ -63,6 +63,7 @@ const allPaths = computed(() => {
 
       // ── Form Trigger: campos ficam em trigger.fields.<name> ──
       if (triggerData?.type === 'form' && triggerData.formFields && triggerData.formFields.length > 0) {
+        const triggerOutput = executionStore.nodeStatuses['trigger']?.output as any
         for (const field of triggerData.formFields) {
           if (!field.name) continue
           paths.push({
@@ -70,6 +71,7 @@ const allPaths = computed(() => {
             label: field.label || field.name,
             type: field.type === 'number' ? 'number' : 'string',
             sourceNodeName: 'Trigger (Form)',
+            value: triggerOutput?.fields?.[field.name]
           })
         }
         continue
@@ -91,7 +93,8 @@ const allPaths = computed(() => {
                 path: newPath,
                 label: k,
                 type: Array.isArray(v) ? 'array' : typeof v,
-                sourceNodeName: 'Trigger'
+                sourceNodeName: 'Trigger',
+                value: v
               })
               if (v && typeof v === 'object' && !Array.isArray(v)) {
                 res.push(...flatten(v, newPath))
@@ -127,7 +130,8 @@ const allPaths = computed(() => {
           path: newPath,
           label: k,
           type: vType,
-          sourceNodeName: nodeName
+          sourceNodeName: nodeName,
+          value: v
         })
         if (v && typeof v === 'object' && !Array.isArray(v)) {
           res.push(...flattenLive(v, newPath))
@@ -144,6 +148,7 @@ const allPaths = computed(() => {
           label: 'output',
           type: 'object',
           sourceNodeName: nodeName,
+          value: liveOutput
         })
         paths.push(...flattenLive(liveOutput, `steps.${upNode.id}.output`))
       } else {
@@ -152,6 +157,7 @@ const allPaths = computed(() => {
           label: 'output',
           type: Array.isArray(liveOutput) ? 'array' : typeof liveOutput,
           sourceNodeName: nodeName,
+          value: liveOutput
         })
       }
       continue
@@ -249,7 +255,15 @@ const mockData = computed(() => {
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i] as string
       if (i === parts.length - 1) {
-        current[part] = p.type || 'any'
+        if (p.value !== undefined) {
+          try {
+            current[part] = JSON.parse(JSON.stringify(p.value))
+          } catch {
+            current[part] = String(p.value)
+          }
+        } else {
+          current[part] = p.type || 'any'
+        }
       } else {
         if (!current[part] || typeof current[part] !== 'object') {
           current[part] = {}

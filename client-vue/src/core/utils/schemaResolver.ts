@@ -20,6 +20,8 @@ export interface SchemaPath {
   type: string
   /** Display name of the node that produces this value */
   sourceNodeName: string
+  /** The actual live value if the node has already executed */
+  value?: any
 }
 
 /**
