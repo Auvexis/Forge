@@ -104,7 +104,7 @@
             "x-input-type": "text"
           },
           "file": {
-            "type": "string",
+            "type": ["string", "object"],
             "format": "binary",
             "description": "The file to send. Map this to the output of a step that returns a file/binary (e.g. Drive Download or Form Trigger). You can provide a Buffer, a Base64 string, or an object with { buffer, filename }. Use the 'Convert File / Data' method from the File plugin if you need to convert formats.",
             "x-label": "File",
@@ -173,7 +173,7 @@
             "x-visible-if": { "field": "useUrl", "operator": "equals", "value": true }
           },
           "file": {
-            "type": "string",
+            "type": ["string", "object"],
             "format": "binary",
             "description": "Binary image file from a previous workflow step.",
             "x-label": "Image File",

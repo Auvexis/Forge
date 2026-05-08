@@ -75,7 +75,7 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "input": { "type": "string", "description": "The data to convert. Can be mapped from a previous step.", "x-input-type": "textarea" },
+          "input": { "type": ["string", "object"], "description": "The data to convert. Can be mapped from a previous step.", "x-input-type": "textarea" },
           "fromFormat": { "type": "string", "description": "Input format. Default: utf8", "x-input-type": "select", "enum": ["utf8", "base64", "hex", "buffer"] },
           "toFormat": { "type": "string", "description": "Output format. Default: base64", "x-input-type": "select", "enum": ["utf8", "base64", "hex", "buffer"] }
         },

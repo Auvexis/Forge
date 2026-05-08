@@ -699,7 +699,7 @@
             "x-input-type": "text"
           },
           "content": {
-            "type": "string",
+            "type": ["string", "object"],
             "format": "binary",
             "description": "The video file to upload.",
             "x-input-type": "file"
