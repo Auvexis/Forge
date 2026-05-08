@@ -19,6 +19,17 @@ _(nenhuma tarefa pendente no momento)_
 
 ## Concluído
 
+### ✅ [BUG-002] Trigger node sem shimmer laranja ao iniciar execução
+- **Commit:** `fix(ui): trigger node shimmer + edge status for form/all triggers`
+- **Root Cause:** O servidor nunca emite `node:start` para o nó trigger. `BaseNode.effectiveStatus` ficava `idle` → sem `NodeShimmer`.
+- **Fix:** `setTriggerRunning()` no `execution.store.ts`, chamado em `execute()` e no fluxo do Form Trigger no Canvas.
+
+### ✅ [BUG-003] Edges ficam verdes imediatamente ao iniciar qualquer execução
+- **Commit:** `fix(ui): trigger node shimmer + edge status for form/all triggers`
+- **Root Cause:** `BaseEdge.edgeStatus` usava `hasActiveExecution || workflowStatus` para determinar o status do trigger — tornando-o `'success'` assim que `isStreaming = true`, antes de qualquer nó rodar.
+- **Fix:** `edgeStatus` agora lê `nodeStatuses['trigger']?.status` real. Só faz fallback para `'success'` quando `workflowStatus === 'SUCCESS'` (workflow de fato concluiu). O primeiro `node:start` recebido via SSE auto-transiciona o trigger para `'success'`.
+
+
 ### ✅ [BUG-001] Form Trigger — fields não apareciam no Input dos nós downstream
 - **Commit:** `fix(ui): resolve form trigger fields in VariableTree`
 - **Arquivo:** `client-vue/.../VariableTree.vue`

@@ -213,6 +213,7 @@ async function handleRun() {
 
     executionStore.resetNodeStatuses()
     executionStore.startStream(clientExecId)
+    executionStore.setTriggerRunning()   // shimmer laranja no trigger enquanto aguarda o form
 
     const formUrl = `${window.location.origin}/forms-test/${formPublicId}?execId=${clientExecId}`
     window.open(formUrl, '_blank', 'noopener')

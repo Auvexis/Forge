@@ -23,9 +23,22 @@ const pathData = computed(() =>
 )
 
 const edgeStatus = computed(() => {
-  const sStatus = props.source === 'trigger' 
-    ? (executionStore.hasActiveExecution || executionStore.workflowStatus ? 'success' : 'idle')
-    : (executionStore.nodeStatuses[props.source]?.status || 'idle')
+  let sStatus: string
+
+  if (props.source === 'trigger') {
+    // Use the real trigger node status if available.
+    // Only fall back to 'success' when the workflow has actually finished.
+    const triggerNodeStatus = executionStore.nodeStatuses['trigger']?.status
+    if (triggerNodeStatus && triggerNodeStatus !== 'idle') {
+      sStatus = triggerNodeStatus
+    } else if (executionStore.workflowStatus === 'SUCCESS') {
+      sStatus = 'success'
+    } else {
+      sStatus = 'idle'
+    }
+  } else {
+    sStatus = executionStore.nodeStatuses[props.source]?.status || 'idle'
+  }
 
   const tNodeState = executionStore.nodeStatuses[props.target]
   const tStatus = tNodeState?.status || 'idle'

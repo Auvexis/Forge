@@ -62,6 +62,11 @@ export const useExecutionStore = defineStore('execution', () => {
     workflowStatus.value = null
   }
 
+  /** Marks the trigger node as 'running' (e.g. waiting for a form submission). */
+  function setTriggerRunning() {
+    _patchNode('trigger', { status: 'running', startedAt: Date.now() })
+  }
+
   /** Closes any open EventSource connection. */
   function stopStream() {
     if (_es) {
@@ -98,6 +103,10 @@ export const useExecutionStore = defineStore('execution', () => {
         switch (ev.type) {
           case 'node:start':
             if (ev.nodeId) {
+              // When the first real node starts, the trigger has already fired — mark it success
+              if (!nodeStatuses['trigger'] || nodeStatuses['trigger'].status === 'idle' || nodeStatuses['trigger'].status === 'running') {
+                _patchNode('trigger', { status: 'success', endedAt: ev.timestamp })
+              }
               _patchNode(ev.nodeId, { status: 'running', startedAt: ev.timestamp })
             }
             break
@@ -183,6 +192,7 @@ export const useExecutionStore = defineStore('execution', () => {
 
     const clientExecId = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
     startStream(clientExecId)
+    setTriggerRunning()   // shimmer laranja no trigger enquanto a execução inicia
 
     isExecuting.value = true
     try {
@@ -254,6 +264,7 @@ export const useExecutionStore = defineStore('execution', () => {
     startStream,
     stopStream,
     resetNodeStatuses,
+    setTriggerRunning,
     patchNodeStatus,
   }
 })
