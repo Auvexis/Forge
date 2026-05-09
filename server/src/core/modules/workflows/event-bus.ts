@@ -6,6 +6,7 @@ export interface WorkflowEvent {
   executionId: string;
   workflowId: string;
   type:
+    | "trigger:data"
     | "node:start"
     | "node:success"
     | "node:failed"

@@ -17,11 +17,12 @@ const props = defineProps<{
 }>()
 
 const presetDefaults: Record<NonNullable<FormTheme['preset']>, FormTheme> = {
-  'default-floating': {
+  'social-media': {
     layout: 'floating',
     background: {
       type: 'gradient',
-      gradient: 'radial-gradient(circle at 20% 0%, rgba(236, 72, 153, 0.16), transparent 28%), linear-gradient(135deg, #0b0d12 0%, #111827 100%)',
+      gradient:
+        'radial-gradient(circle at 20% 0%, rgba(236, 72, 153, 0.16), transparent 28%), linear-gradient(135deg, #0b0d12 0%, #111827 100%)',
     },
     container: {
       backgroundColor: 'var(--nod8-bg-surface)',
@@ -146,7 +147,7 @@ const presetDefaults: Record<NonNullable<FormTheme['preset']>, FormTheme> = {
 }
 
 function mergeTheme(theme?: FormTheme): FormTheme {
-  const preset = theme?.preset ?? 'default-floating'
+  const preset = theme?.preset ?? 'social-media'
   const defaults = presetDefaults[preset]
   return {
     ...defaults,
@@ -195,18 +196,16 @@ const themeVars = computed<CSSProperties>(() => {
     '--form-container-max-width': `${theme.container?.maxWidth ?? 560}px`,
     '--form-container-padding': `${theme.container?.padding ?? 28}px`,
     '--form-button-width': theme.button?.width === 'full' ? '100%' : 'fit-content',
-    '--form-button-radius': theme.button?.shape === 'pill'
-      ? '999px'
-      : theme.button?.shape === 'square'
-        ? '0px'
-        : '8px',
+    '--form-button-radius':
+      theme.button?.shape === 'pill' ? '999px' : theme.button?.shape === 'square' ? '0px' : '8px',
     '--form-button-background': theme.button?.backgroundColor,
     '--form-button-color': theme.button?.textColor,
     '--form-button-border-color': theme.button?.borderColor,
     '--form-button-hover-background': theme.button?.hoverBackgroundColor,
     '--form-font-family': theme.typography?.fontFamily,
     '--form-title-font-family': theme.typography?.titleFontFamily ?? theme.typography?.fontFamily,
-    '--form-subtitle-font-family': theme.typography?.subtitleFontFamily ?? theme.typography?.fontFamily,
+    '--form-subtitle-font-family':
+      theme.typography?.subtitleFontFamily ?? theme.typography?.fontFamily,
     '--form-button-font-family': theme.typography?.buttonFontFamily ?? theme.typography?.fontFamily,
     '--form-input-font-family': theme.typography?.inputFontFamily ?? theme.typography?.fontFamily,
     '--form-base-size': `${theme.typography?.baseSize ?? 14}px`,
@@ -217,11 +216,12 @@ const themeVars = computed<CSSProperties>(() => {
     '--form-field-color': theme.fields?.textColor,
     '--form-field-border-color': theme.fields?.borderColor,
     '--form-field-focus-color': theme.fields?.focusColor,
-    '--form-field-radius': theme.fields?.shape === 'pill'
-      ? '999px'
-      : theme.fields?.shape === 'square'
-        ? '0px'
-        : `${theme.fields?.radius ?? 8}px`,
+    '--form-field-radius':
+      theme.fields?.shape === 'pill'
+        ? '999px'
+        : theme.fields?.shape === 'square'
+          ? '0px'
+          : `${theme.fields?.radius ?? 8}px`,
     '--form-field-spacing': `${theme.fields?.spacing ?? 16}px`,
   } as CSSProperties
 })

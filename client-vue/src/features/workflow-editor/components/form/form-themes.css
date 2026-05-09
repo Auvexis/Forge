@@ -1,7 +1,9 @@
 .form-theme-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
   padding: 32px 16px;
   background: var(--form-page-background);
   color: var(--form-field-color, var(--nod8-text-primary));
@@ -9,41 +11,66 @@
   font-size: var(--form-base-size, 14px);
 }
 
-.form-theme-page--flat {
-  place-items: start center;
-  padding-top: 0;
-}
-
-.form-theme-page--full-width {
-  place-items: stretch;
-  padding: 0;
-}
-
-.form-theme-page--centered {
-  align-content: start;
-  padding-top: 48px;
-}
-
-.form-theme-page--floating {
-  place-items: center;
-}
-
 .form-theme-container {
-  width: min(100%, var(--form-container-max-width));
+  width: 100%;
+  max-width: var(--form-container-max-width);
   padding: var(--form-container-padding);
   border: var(--form-container-border-width) solid var(--form-container-border-color);
   border-radius: var(--form-container-radius);
   background: var(--form-container-background);
   box-shadow: var(--form-container-shadow);
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
+/* 1. FLOATING: Centers perfectly horizontally and vertically using safe flex padding */
+.form-theme-page--floating::before,
+.form-theme-page--floating::after {
+  content: "";
+  flex: 1;
+}
+.form-theme-page--floating .form-theme-container {
+  flex: 0 0 auto;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+/* 2. CENTERED: Sits near the top, centered horizontally */
+.form-theme-page--centered {
+  padding-top: 48px;
+  padding-bottom: 64px;
+}
+.form-theme-page--centered .form-theme-container {
+  margin-top: 0;
+  margin-bottom: auto;
+}
+
+/* 3. FLAT: Minimal, no shadow, clean spacing from the top */
+.form-theme-page--flat {
+  padding-top: 64px;
+  padding-bottom: 64px;
+}
+.form-theme-page--flat .form-theme-container {
+  margin-top: 0;
+  margin-bottom: auto;
+}
+
+/* 4. FULL-WIDTH: Edge to edge, fills entire height with bottom padding for last element */
+.form-theme-page--full-width {
+  padding: 0;
+}
 .form-theme-page--full-width .form-theme-container {
+  max-width: 100%;
   width: 100%;
-  max-width: none;
+  flex: 1 0 auto;
   min-height: 100vh;
   border-radius: 0;
-  border-left: 0;
-  border-right: 0;
+  border: none;
+  margin: 0;
+  padding-bottom: 64px;
 }
 
 .form-renderer-header {

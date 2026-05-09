@@ -2,10 +2,10 @@ import crypto from "crypto";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import type {
-  FormTheme,
   WorkflowItem,
   WorkflowNode,
 } from "../../shared/models/workflow-types.ts";
+import { registerFormRoutes } from "../modules/forms/form-routes.ts";
 import { WorkflowRepository } from "../modules/workflows/repository.ts";
 import {
   WorkflowEngine,
@@ -45,369 +45,6 @@ function safeSerialize(value: unknown): string {
   });
 }
 
-
-// ──────────── Form Trigger helpers ────────────
-
-const VALID_FORM_FIELD_TYPES = new Set([
-  "text",
-  "email",
-  "number",
-  "textarea",
-  "date",
-  "password",
-  "file",
-  "select",
-  "multiselect",
-  "checkbox",
-  "checkbox-group",
-  "radio",
-  "quiz",
-  "tel",
-  "url",
-]);
-const FORM_FIELD_NAME_REGEX = /^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/i;
-const FORM_SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const FORM_FIELD_MAX_BYTES = 8 * 1024;
-const FORM_RATE_LIMIT_WINDOW_MS = 60_000;
-const FORM_RATE_LIMIT_MAX = 30;
-const FORM_THEME_TEXT_MAX = 256;
-const FORM_THEME_IMAGE_URL_MAX = 2048;
-const FORM_THEME_GRADIENT_MAX = 512;
-
-const FORM_THEME_PRESETS = new Set(["default-floating", "minimal-flat", "google-forms"]);
-const FORM_THEME_LAYOUTS = new Set(["floating", "flat", "full-width", "centered"]);
-const FORM_THEME_BACKGROUND_TYPES = new Set(["solid", "gradient", "image"]);
-const FORM_THEME_SHADOWS = new Set(["none", "sm", "md", "lg"]);
-const FORM_THEME_BUTTON_WIDTHS = new Set(["auto", "full"]);
-const FORM_THEME_BUTTON_SHAPES = new Set(["square", "medium", "pill"]);
-const FORM_THEME_FIELD_SHAPES = new Set(["square", "medium", "pill"]);
-
-interface FormRateBucket { count: number; resetAt: number }
-const formRateLimit = new Map<string, FormRateBucket>();
-
-function isFormRateLimited(key: string): boolean {
-  const now = Date.now();
-  const bucket = formRateLimit.get(key);
-  if (!bucket || bucket.resetAt < now) {
-    formRateLimit.set(key, { count: 1, resetAt: now + FORM_RATE_LIMIT_WINDOW_MS });
-    return false;
-  }
-  bucket.count += 1;
-  return bucket.count > FORM_RATE_LIMIT_MAX;
-}
-
-function escapeHtml(value: unknown): string {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function escapeAttr(value: unknown): string {
-  return escapeHtml(value);
-}
-
-interface NormalizedFormField {
-  name: string;
-  label: string;
-  type: "text" | "email" | "number" | "textarea" | "date" | "password" | "file" | "select" | "multiselect" | "checkbox" | "checkbox-group" | "radio" | "quiz" | "tel" | "url";
-  required: boolean;
-  placeholder: string;
-  description: string;
-  options: Array<{ label: string; value: string }>;
-}
-
-function formPublicId(workflow: WorkflowItem): string {
-  return workflow.trigger.formSlug?.trim() || workflow.metadata.id;
-}
-
-function resolveFormWorkflow(formId: string, opts: { requireActive: boolean }): WorkflowItem | null {
-  const workflows = WorkflowRepository.getWorkflows();
-  return workflows.find((workflow) => {
-    if (workflow.trigger.type !== "form") return false;
-    if (opts.requireActive && !workflow.metadata.isActive) return false;
-    return workflow.metadata.id === formId || workflow.trigger.formSlug === formId;
-  }) ?? null;
-}
-
-function normalizeFormFields(raw: unknown): NormalizedFormField[] {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .filter((f): f is Record<string, unknown> => !!f && typeof f === "object")
-    .map((f) => {
-      const options = Array.isArray(f.options)
-        ? f.options
-          .filter((option): option is Record<string, unknown> => !!option && typeof option === "object")
-          .map((option) => ({
-            label: String(option.label ?? option.value ?? "").trim(),
-            value: String(option.value ?? option.label ?? "").trim(),
-          }))
-          .filter((option) => option.label.length > 0 && option.value.length > 0)
-        : [];
-
-      return {
-        name: String(f.name ?? "").trim(),
-        label: String(f.label ?? f.name ?? "").trim(),
-        type: VALID_FORM_FIELD_TYPES.has(String(f.type))
-          ? (f.type as NormalizedFormField["type"])
-          : "text",
-        required: Boolean(f.required),
-        placeholder: String(f.placeholder ?? ""),
-        description: String(f.description ?? "").trim(),
-        options,
-      };
-    })
-    .filter((f) => f.name.length > 0);
-}
-
-function boundedString(value: unknown, max = FORM_THEME_TEXT_MAX): string | undefined {
-  if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  return trimmed.slice(0, max);
-}
-
-function boundedNumber(value: unknown, min: number, max: number): number | undefined {
-  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
-  return Math.min(max, Math.max(min, Math.round(value)));
-}
-
-function enumValue(value: unknown, allowed: Set<string>): string | undefined {
-  return typeof value === "string" && allowed.has(value) ? value : undefined;
-}
-
-function compactObject<T extends object>(value: T): Partial<T> {
-  return Object.fromEntries(
-    Object.entries(value).filter(([, entry]) => entry !== undefined),
-  ) as Partial<T>;
-}
-
-function normalizeFormTheme(raw: unknown): FormTheme {
-  const source = raw && typeof raw === "object" ? raw as FormTheme : {};
-
-  return compactObject<FormTheme>({
-    preset: enumValue(source.preset, FORM_THEME_PRESETS) as FormTheme["preset"],
-    layout: enumValue(source.layout, FORM_THEME_LAYOUTS) as FormTheme["layout"],
-    background: compactObject<NonNullable<FormTheme["background"]>>({
-      type: enumValue(
-        source.background?.type,
-        FORM_THEME_BACKGROUND_TYPES,
-      ) as NonNullable<FormTheme["background"]>["type"],
-      color: boundedString(source.background?.color),
-      gradient: boundedString(source.background?.gradient, FORM_THEME_GRADIENT_MAX),
-      imageUrl: boundedString(source.background?.imageUrl, FORM_THEME_IMAGE_URL_MAX),
-    }),
-    container: compactObject<NonNullable<FormTheme["container"]>>({
-      backgroundColor: boundedString(source.container?.backgroundColor),
-      borderColor: boundedString(source.container?.borderColor),
-      borderWidth: boundedNumber(source.container?.borderWidth, 0, 12),
-      radius: boundedNumber(source.container?.radius, 0, 48),
-      shadow: enumValue(
-        source.container?.shadow,
-        FORM_THEME_SHADOWS,
-      ) as NonNullable<FormTheme["container"]>["shadow"],
-      maxWidth: boundedNumber(source.container?.maxWidth, 320, 1200),
-      padding: boundedNumber(source.container?.padding, 0, 80),
-    }),
-    button: compactObject<NonNullable<FormTheme["button"]>>({
-      width: enumValue(
-        source.button?.width,
-        FORM_THEME_BUTTON_WIDTHS,
-      ) as NonNullable<FormTheme["button"]>["width"],
-      shape: enumValue(
-        source.button?.shape,
-        FORM_THEME_BUTTON_SHAPES,
-      ) as NonNullable<FormTheme["button"]>["shape"],
-      backgroundColor: boundedString(source.button?.backgroundColor),
-      textColor: boundedString(source.button?.textColor),
-      borderColor: boundedString(source.button?.borderColor),
-      hoverBackgroundColor: boundedString(source.button?.hoverBackgroundColor),
-    }),
-    typography: compactObject<NonNullable<FormTheme["typography"]>>({
-      fontFamily: boundedString(source.typography?.fontFamily),
-      titleFontFamily: boundedString(source.typography?.titleFontFamily),
-      subtitleFontFamily: boundedString(source.typography?.subtitleFontFamily),
-      buttonFontFamily: boundedString(source.typography?.buttonFontFamily),
-      inputFontFamily: boundedString(source.typography?.inputFontFamily),
-      baseSize: boundedNumber(source.typography?.baseSize, 12, 22),
-      weight: boundedNumber(source.typography?.weight, 300, 800),
-      titleColor: boundedString(source.typography?.titleColor),
-      subtitleColor: boundedString(source.typography?.subtitleColor),
-    }),
-    fields: compactObject<NonNullable<FormTheme["fields"]>>({
-      backgroundColor: boundedString(source.fields?.backgroundColor),
-      textColor: boundedString(source.fields?.textColor),
-      borderColor: boundedString(source.fields?.borderColor),
-      focusColor: boundedString(source.fields?.focusColor),
-      radius: boundedNumber(source.fields?.radius, 0, 32),
-      shape: enumValue(
-        source.fields?.shape,
-        FORM_THEME_FIELD_SHAPES,
-      ) as NonNullable<FormTheme["fields"]>["shape"],
-      spacing: boundedNumber(source.fields?.spacing, 8, 32),
-    }),
-  });
-}
-
-function renderFormPage(
-  workflow: WorkflowItem,
-  fields: NormalizedFormField[],
-  opts: { error?: string; mode?: "test" | "prod" } = {},
-): string {
-  const trigger = workflow.trigger;
-  const title = trigger.formTitle?.trim() || workflow.metadata.name;
-  const description = trigger.formDescription?.trim() || "";
-
-  const fieldsHtml = fields
-    .map((f) => {
-      const labelHtml =
-        `<label for="f-${escapeAttr(f.name)}">${escapeHtml(f.label)}` +
-        (f.required ? ' <span class="req">*</span>' : "") +
-        `</label>`;
-      const descriptionHtml = f.description
-        ? `<div class="field-desc">${escapeHtml(f.description)}</div>`
-        : "";
-      const common =
-        `id="f-${escapeAttr(f.name)}" name="${escapeAttr(f.name)}"` +
-        (f.required ? " required" : "") +
-        (f.placeholder ? ` placeholder="${escapeAttr(f.placeholder)}"` : "");
-      const optionsHtml = f.options
-        .map((option) => `<option value="${escapeAttr(option.value)}">${escapeHtml(option.label)}</option>`)
-        .join("");
-      const choiceHtml = f.options
-        .map((option) => {
-          const type = f.type === "checkbox-group" ? "checkbox" : "radio";
-          return `<label class="choice"><input type="${type}" name="${escapeAttr(f.name)}" value="${escapeAttr(option.value)}" /> ${escapeHtml(option.label)}</label>`;
-        })
-        .join("");
-      const control = f.type === "textarea"
-        ? `<textarea ${common} rows="4"></textarea>`
-        : f.type === "select"
-          ? `<select ${common}><option value="">${escapeHtml(f.placeholder || "Select...")}</option>${optionsHtml}</select>`
-          : f.type === "multiselect"
-            ? `<select ${common} multiple>${optionsHtml}</select>`
-            : f.type === "checkbox"
-              ? `<label class="choice"><input type="checkbox" name="${escapeAttr(f.name)}" value="true" /> ${escapeHtml(f.placeholder || "Yes")}</label>`
-              : f.type === "checkbox-group" || f.type === "radio" || f.type === "quiz"
-                ? `<div class="choice-group">${choiceHtml}</div>`
-                : `<input type="${escapeAttr(f.type)}" ${common} />`;
-      return `<div class="field">${labelHtml}${descriptionHtml}${control}</div>`;
-    })
-    .join("\n");
-
-  const errorBlock = opts.error
-    ? `<div class="error">${escapeHtml(opts.error)}</div>`
-    : "";
-
-  const mode = opts.mode ?? "prod";
-  const basePath = mode === "test" ? "/forms-test" : "/forms";
-  const submitUrl = `${basePath}/${escapeAttr(formPublicId(workflow))}/submit`;
-
-  return `<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${escapeHtml(title)}</title>
-<style>
-  *,*::before,*::after { box-sizing: border-box; }
-  body { margin: 0; padding: 32px 16px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:#0b0d12; color:#e7e9ee; min-height: 100vh; }
-  .card { max-width: 540px; margin: 0 auto; background:#141821; border:1px solid #1f2430; border-radius: 12px; padding: 28px 28px 22px; }
-  h1 { font-size: 20px; margin: 0 0 6px; color:#f5f6f9; }
-  p.desc { color:#9ba3b3; margin: 0 0 22px; font-size: 14px; line-height: 1.55; }
-  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
-  label { font-size: 12px; font-weight: 600; color:#c5cad6; }
-  .field-desc { color:#7f8797; font-size: 12px; line-height:1.45; margin-top:-2px; }
-  .req { color:#ff6b6b; }
-  input, textarea, select { background:#0b0d12; border:1px solid #2a3142; border-radius: 8px; color:#e7e9ee; font: inherit; padding: 10px 12px; width: 100%; outline: none; transition: border-color .15s; }
-  input:focus, textarea:focus, select:focus { border-color:#7c3aed; }
-  textarea { resize: vertical; min-height: 92px; }
-  .choice, .choice-group { display:flex; flex-direction:column; gap:8px; color:#c5cad6; font-size: 13px; }
-  .choice input { width:auto; margin-right: 8px; }
-  button { background:#7c3aed; border:0; color:#fff; padding:12px 18px; border-radius:8px; font-weight:600; cursor:pointer; width:100%; font-size: 14px; }
-  button:hover { background:#6d28d9; }
-  .error { background: rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
-  .footer { color:#6b7180; font-size: 11px; text-align:center; margin-top:18px; }
-</style>
-</head><body>
-<form class="card" method="POST" action="${escapeAttr(submitUrl)}" enctype="application/x-www-form-urlencoded">
-  <h1>${escapeHtml(title)}</h1>
-  ${description ? `<p class="desc">${escapeHtml(description)}</p>` : ""}
-  ${errorBlock}
-  ${fieldsHtml}
-  <button type="submit">Submit</button>
-  <div class="footer">Powered by Nod8</div>
-</form>
-</body></html>`;
-}
-
-function renderFormConfirmationPage(workflow: WorkflowItem): string {
-  const title = workflow.trigger.formTitle?.trim() || workflow.metadata.name;
-  return `<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${escapeHtml(title)} — Submitted</title>
-<style>
-  body { margin:0; padding: 64px 16px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:#0b0d12; color:#e7e9ee; }
-  .card { max-width: 480px; margin: 0 auto; background:#141821; border:1px solid #1f2430; border-radius: 12px; padding: 32px; text-align:center; }
-  .check { width:48px; height:48px; border-radius: 50%; background: rgba(34,197,94,0.12); display:flex; align-items:center; justify-content:center; margin: 0 auto 16px; color:#4ade80; font-size: 28px; }
-  h1 { font-size: 18px; margin: 0 0 8px; }
-  p { color:#9ba3b3; margin: 0; font-size: 14px; line-height: 1.55; }
-</style>
-</head><body>
-<div class="card">
-  <div class="check">&#10003;</div>
-  <h1>Submitted successfully</h1>
-  <p>Your form has been received. You may close this page.</p>
-</div>
-</body></html>`;
-}
-
-async function parseFormRequestBody(req: any): Promise<Record<string, unknown>> {
-  if (typeof req.isMultipart === "function" && req.isMultipart()) {
-    const body: Record<string, unknown> = {};
-    const appendValue = (key: string, value: unknown) => {
-      const existing = body[key];
-      if (existing === undefined) {
-        body[key] = value;
-      } else if (Array.isArray(existing)) {
-        existing.push(value);
-      } else {
-        body[key] = [existing, value];
-      }
-    };
-    for await (const part of req.parts()) {
-      if (part.type === "file") {
-        const buffer = await part.toBuffer();
-        appendValue(part.fieldname, {
-          filename: part.filename,
-          mimetype: part.mimetype,
-          size: buffer.length,
-          buffer,
-        });
-      } else {
-        appendValue(part.fieldname, part.value);
-      }
-    }
-    return body;
-  }
-
-  return (req.body as Record<string, unknown>) ?? {};
-}
-
-function formDefinition(workflow: WorkflowItem, mode: "test" | "prod") {
-  return {
-    id: formPublicId(workflow),
-    workflowId: workflow.metadata.id,
-    mode,
-    title: workflow.trigger.formTitle?.trim() || workflow.metadata.name,
-    description: workflow.trigger.formDescription?.trim() || "",
-    fields: normalizeFormFields(workflow.trigger.formFields),
-    theme: normalizeFormTheme(workflow.trigger.formTheme),
-  };
-}
 
 // ──────────── Webhook signature validation ────────────
 
@@ -453,7 +90,10 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         identifier: webhookPath,
       };
 
-      const { consumed, workflowId } = TriggerListenerRegistry.consume(webhookPath, payload);
+      const { consumed, workflowId } = TriggerListenerRegistry.consume(
+        webhookPath,
+        payload,
+      );
       if (consumed && workflowId) {
         WorkflowRepository.saveLastTriggerPayload(workflowId, payload);
       }
@@ -523,8 +163,8 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
     console.log(
       `[NOD8 | WEBHOOK-IN]: ${req.method} /webhook/${webhookPath} — ` +
-      `listen-active=${TriggerListenerRegistry.has(webhookPath)} ` +
-      `body-keys=${Object.keys((req.body as any) ?? {}).join(",")}`
+        `listen-active=${TriggerListenerRegistry.has(webhookPath)} ` +
+        `body-keys=${Object.keys((req.body as any) ?? {}).join(",")}`,
     );
 
     // ── Listen for Event intercept ─────────────────────────────────
@@ -539,7 +179,10 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         identifier: webhookPath,
       };
 
-      const { consumed, workflowId } = TriggerListenerRegistry.consume(webhookPath, payload);
+      const { consumed, workflowId } = TriggerListenerRegistry.consume(
+        webhookPath,
+        payload,
+      );
       if (consumed && workflowId) {
         WorkflowRepository.saveLastTriggerPayload(workflowId, payload);
       }
@@ -624,19 +267,23 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       };
 
       // Start execution (fire — don't await)
-      WorkflowEngine.executeWorkflow(workflow, enrichedPayload, executionId).catch(
-        (err: Error) =>
-          console.error(
-            `[NOD8 | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
-          ),
+      WorkflowEngine.executeWorkflow(
+        workflow,
+        enrichedPayload,
+        executionId,
+      ).catch((err: Error) =>
+        console.error(
+          `[NOD8 | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
+        ),
       );
 
       // Wait for RespondToWebhookNode to resolve (or 30s timeout → 504)
       try {
-        const webhookResponse = await PendingWebhookResponseRegistry.waitForResponse(
-          correlationId,
-          30_000,
-        );
+        const webhookResponse =
+          await PendingWebhookResponseRegistry.waitForResponse(
+            correlationId,
+            30_000,
+          );
 
         // Apply custom headers
         if (webhookResponse.headers) {
@@ -645,9 +292,15 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
           }
         }
 
-        return reply.code(webhookResponse.statusCode).send(webhookResponse.body);
+        return reply
+          .code(webhookResponse.statusCode)
+          .send(webhookResponse.body);
       } catch {
-        return reply.code(504).send({ error: "Gateway Timeout — workflow did not respond in time" });
+        return reply
+          .code(504)
+          .send({
+            error: "Gateway Timeout — workflow did not respond in time",
+          });
       }
     }
 
@@ -666,327 +319,10 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     });
   });
 
-  // ──────────── Form Trigger ─ Public Form Page ────────────
-  // Renders an HTML form for workflows with `trigger.type === "form"`.
-  // The page is fully self-contained (inline CSS, no external assets).
-
-  fastify.get("/forms-test/:formId", async (req, reply) => {
-    const { formId } = req.params as { formId: string };
-
-    const workflow = resolveFormWorkflow(formId, { requireActive: false });
-    if (!workflow) {
-      return reply.code(404).type("text/html; charset=utf-8").send(
-        `<!DOCTYPE html><html><body style="font-family: sans-serif; padding: 40px; background:#0b0d12; color:#e7e9ee;">
-          <h1>Form not available</h1>
-          <p>This draft form does not exist.</p>
-        </body></html>`
-      );
-    }
-
-    return reply.redirect(`${CLIENT_ORIGIN}/forms-test/${encodeURIComponent(formPublicId(workflow))}`);
-  });
-
-  fastify.get("/forms/:formId", async (req, reply) => {
-    const { formId } = req.params as { formId: string };
-
-    const workflow = resolveFormWorkflow(formId, { requireActive: true });
-    if (!workflow) {
-      return reply.code(404).type("text/html; charset=utf-8").send(
-        `<!DOCTYPE html><html><body style="font-family: sans-serif; padding: 40px; background:#0b0d12; color:#e7e9ee;">
-          <h1>Form not available</h1>
-          <p>This form is either inactive or does not exist.</p>
-        </body></html>`
-      );
-    }
-
-    return reply.redirect(`${CLIENT_ORIGIN}/forms/${encodeURIComponent(formPublicId(workflow))}`);
-  });
-
-  fastify.get("/forms-api/:formId", async (req, reply) => {
-    const { formId } = req.params as { formId: string };
-    const { mode } = req.query as { mode?: string };
-    const formMode = mode === "prod" ? "prod" : "test";
-    const workflow = resolveFormWorkflow(formId, { requireActive: formMode === "prod" });
-
-    if (!workflow) {
-      return sendResponse(reply, {
-        status_code: 404,
-        message: "Form not found or unavailable",
-        error: "Not Found",
-        data: null,
-      });
-    }
-
-    return sendResponse(reply, {
-      status_code: 200,
-      message: "Form definition fetched",
-      error: null,
-      data: formDefinition(workflow, formMode),
-    });
-  });
-
-  // ──────────── Form Trigger ─ Submission Handler ────────────
-  // Validates required fields, dispatches the workflow asynchronously, and
-  // returns a confirmation page. Per-IP+workflow rate limit prevents spam.
-
-  async function processFormSubmission(
-    formId: string,
-    opts: { requireActive: boolean; mode: "test" | "prod" },
-    req: any,
-  ): Promise<
-    | { ok: true; workflow: WorkflowItem; executionId: string }
-    | { ok: false; statusCode: number; message: string; workflow?: WorkflowItem; fields?: NormalizedFormField[] }
-  > {
-    const workflow = resolveFormWorkflow(formId, { requireActive: opts.requireActive });
-    if (!workflow) {
-      return { ok: false, statusCode: 404, message: "Form not available" };
-    }
-
-    // Rate limit: per-IP + per-workflow
-    const rateKey = `${req.ip}:${workflow.metadata.id}`;
-    if (isFormRateLimited(rateKey)) {
-      return { ok: false, statusCode: 429, message: "Too many submissions", workflow };
-    }
-
-    const fields = normalizeFormFields(workflow.trigger.formFields);
-    const rawBody = await parseFormRequestBody(req);
-
-    // Validate + sanitize each declared field
-    const fieldData: Record<string, unknown> = {};
-    for (const field of fields) {
-      const raw = rawBody[field.name];
-
-      // ── File field ──────────────────────────────────────────────────────
-      // parseFormRequestBody returns { filename, mimetype, size, buffer }
-      // for uploaded files. We store only the serializable metadata so that
-      // downstream nodes can read e.g. trigger.fields.foto_perfil.filename.
-      if (
-        field.type === "file" &&
-        raw != null &&
-        typeof raw === "object" &&
-        "filename" in (raw as object)
-      ) {
-        const fileRaw = raw as { filename: string; mimetype: string; size: number; buffer: Buffer };
-        if (field.required && !fileRaw.filename) {
-          return {
-            ok: false,
-            statusCode: 400,
-            message: `Field "${field.label}" is required.`,
-            workflow,
-            fields,
-          };
-        }
-        fieldData[field.name] = {
-          filename: fileRaw.filename,
-          mimetype: fileRaw.mimetype,
-          size: fileRaw.size,
-          // Keep the buffer so downstream nodes (e.g. Google Drive upload) can use it
-          buffer: fileRaw.buffer,
-        };
-        continue;
-      }
-
-      // ── Text / number fields ─────────────────────────────────────────────
-      if (field.type === "checkbox") {
-        const checked = raw === true || raw === "true" || raw === "on" || raw === "1";
-        if (field.required && !checked) {
-          return {
-            ok: false,
-            statusCode: 400,
-            message: `Field "${field.label}" is required.`,
-            workflow,
-            fields,
-          };
-        }
-        fieldData[field.name] = checked;
-        continue;
-      }
-
-      if (field.type === "multiselect" || field.type === "checkbox-group") {
-        const values = (Array.isArray(raw) ? raw : raw == null || raw === "" ? [] : [raw]).map(String);
-        if (field.required && values.length === 0) {
-          return {
-            ok: false,
-            statusCode: 400,
-            message: `Field "${field.label}" is required.`,
-            workflow,
-            fields,
-          };
-        }
-        const validOptions = new Set(field.options.map((option) => option.value));
-        fieldData[field.name] = values.filter((value) => validOptions.size === 0 || validOptions.has(value));
-        continue;
-      }
-
-      const asString = raw == null ? "" : String(raw);
-
-      if (asString.length > FORM_FIELD_MAX_BYTES) {
-        return {
-          ok: false,
-          statusCode: 400,
-          message: `Field "${field.label}" exceeds the ${FORM_FIELD_MAX_BYTES} byte limit.`,
-          workflow,
-          fields,
-        };
-      }
-
-      if (field.required && asString.trim() === "") {
-        return {
-          ok: false,
-          statusCode: 400,
-          message: `Field "${field.label}" is required.`,
-          workflow,
-          fields,
-        };
-      }
-
-      if (["select", "radio", "quiz"].includes(field.type) && asString) {
-        const validOptions = new Set(field.options.map((option) => option.value));
-        if (validOptions.size > 0 && !validOptions.has(asString)) {
-          return {
-            ok: false,
-            statusCode: 400,
-            message: `Field "${field.label}" has an invalid option.`,
-            workflow,
-            fields,
-          };
-        }
-      }
-
-      if (field.type === "number") {
-        if (asString === "") {
-          fieldData[field.name] = 0;
-        } else {
-          const num = Number(asString);
-          if (Number.isNaN(num)) {
-            return {
-              ok: false,
-              statusCode: 400,
-              message: `Field "${field.label}" must be a number.`,
-              workflow,
-              fields,
-            };
-          }
-          fieldData[field.name] = num;
-        }
-      } else {
-        fieldData[field.name] = asString;
-      }
-    }
-
-    const triggerPayload = {
-      fields: fieldData,
-      submittedAt: Date.now(),
-      ip: req.ip,
-      userAgent: req.headers["user-agent"] ?? "",
-    };
-
-    const headerExecRaw = req.headers["x-nod8-execution-id"];
-    const executionId =
-      typeof headerExecRaw === "string" &&
-      headerExecRaw.length < 96 &&
-      /^exec_\d+_[a-z0-9]+$/i.test(headerExecRaw)
-        ? headerExecRaw
-        : `exec_form_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-    // Emit trigger output immediately so the editor can show it in the Output tab.
-    // We strip buffers here since they are not JSON-serializable via SSE.
-    const serializableTriggerPayload = {
-      fields: Object.fromEntries(
-        Object.entries(fieldData).map(([k, v]) => [
-          k,
-          v && typeof v === "object" && "buffer" in (v as object)
-            ? { filename: (v as any).filename, mimetype: (v as any).mimetype, size: (v as any).size }
-            : v,
-        ])
-      ),
-      submittedAt: triggerPayload.submittedAt,
-      ip: triggerPayload.ip,
-      userAgent: triggerPayload.userAgent,
-    };
-    workflowEventBus.emit(executionId, {
-      type: "trigger:data",
-      nodeId: "trigger",
-      data: serializableTriggerPayload,
-      timestamp: Date.now(),
-    });
-
-    // Fire-and-forget execution; the user gets the confirmation page immediately
-    WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(
-      (err: any) => {
-        console.error(
-          `[NOD8 | FORM-TRIGGER]: Execution failed for "${workflow.metadata.id}": ${err.message}`,
-        );
-      },
-    );
-
-    return { ok: true, workflow, executionId };
-  }
-
-  async function handleFormSubmission(
-    formId: string,
-    opts: { requireActive: boolean; mode: "test" | "prod" },
-    req: any,
-    reply: FastifyReply,
-  ) {
-    const result = await processFormSubmission(formId, opts, req);
-
-    if (!result.ok) {
-      if (!result.workflow || !result.fields) {
-        return reply.code(result.statusCode).type("text/html; charset=utf-8").send(
-          `<!DOCTYPE html><html><body><h1>${escapeHtml(result.message)}</h1></body></html>`,
-        );
-      }
-      return reply
-        .code(result.statusCode)
-        .type("text/html; charset=utf-8")
-        .send(renderFormPage(result.workflow, result.fields, {
-          error: result.message,
-          mode: opts.mode,
-        }));
-    }
-
-    return reply
-      .code(200)
-      .type("text/html; charset=utf-8")
-      .send(renderFormConfirmationPage(result.workflow));
-  }
-
-  fastify.post("/forms-api/:formId/submit", async (req, reply) => {
-    const { formId } = req.params as { formId: string };
-    const { mode } = req.query as { mode?: string };
-    const formMode = mode === "prod" ? "prod" : "test";
-    const result = await processFormSubmission(
-      formId,
-      { requireActive: formMode === "prod", mode: formMode },
-      req,
-    );
-
-    if (!result.ok) {
-      return sendResponse(reply, {
-        status_code: result.statusCode,
-        message: result.message,
-        error: result.message,
-        data: null,
-      });
-    }
-
-    return sendResponse(reply, {
-      status_code: 202,
-      message: "Form submitted and workflow execution started",
-      error: null,
-      data: { executionId: result.executionId },
-    });
-  });
-
-  fastify.post("/forms-test/:formId/submit", async (req, reply) => {
-    const { formId } = req.params as { formId: string };
-    return handleFormSubmission(formId, { requireActive: false, mode: "test" }, req, reply);
-  });
-
-  fastify.post("/forms/:formId/submit", async (req, reply) => {
-    const { formId } = req.params as { formId: string };
-    return handleFormSubmission(formId, { requireActive: true, mode: "prod" }, req, reply);
+  // Form Trigger routes are owned by the forms module.
+  registerFormRoutes(fastify, {
+    clientOrigin: CLIENT_ORIGIN,
+    sendResponse,
   });
 
   // ──────────── SSE Stream Endpoint ────────────
@@ -1244,7 +580,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
             triggerPayload[part.fieldname] = {
               content: await part.toBuffer(),
               filename: part.filename,
-              mimeType: part.mimetype
+              mimeType: part.mimetype,
             };
           } else {
             try {
@@ -1494,7 +830,6 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
   });
 
-
   // ──────────── Production Status ────────────
 
   fastify.get("/workflows/production-status", async (_req, reply) => {
@@ -1571,15 +906,22 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       try {
         await WorkflowLifecycleManager.activate(workflow);
       } catch (err: any) {
-        console.error(`[NOD8 | LISTEN]: Failed to temporarily activate plugin trigger:`, err.message);
-        reply.raw.write(`data: ${JSON.stringify({ type: "error", message: err.message })}\n\n`);
+        console.error(
+          `[NOD8 | LISTEN]: Failed to temporarily activate plugin trigger:`,
+          err.message,
+        );
+        reply.raw.write(
+          `data: ${JSON.stringify({ type: "error", message: err.message })}\n\n`,
+        );
         reply.raw.end();
         return;
       }
     }
 
     // Notify the frontend that listening started
-    reply.raw.write(`data: ${JSON.stringify({ type: "listening", webhookPath })}\n\n`);
+    reply.raw.write(
+      `data: ${JSON.stringify({ type: "listening", webhookPath })}\n\n`,
+    );
 
     const LISTEN_TIMEOUT_MS = 120_000; // 2 minutes
 
@@ -1588,7 +930,9 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       try {
         reply.raw.write(`data: ${JSON.stringify({ type: "timeout" })}\n\n`);
         reply.raw.end();
-      } catch { /* already closed */ }
+      } catch {
+        /* already closed */
+      }
     }, LISTEN_TIMEOUT_MS);
 
     // Register with SSE sender function
@@ -1596,9 +940,13 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       clearTimeout(timeoutId);
       performTeardown();
       try {
-        reply.raw.write(`data: ${JSON.stringify({ type: "captured", payload })}\n\n`);
+        reply.raw.write(
+          `data: ${JSON.stringify({ type: "captured", payload })}\n\n`,
+        );
         reply.raw.end();
-      } catch { /* already closed */ }
+      } catch {
+        /* already closed */
+      }
     });
 
     // Cleanup on client disconnect
@@ -1615,16 +963,19 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
   // ──────────── Get last trigger payload ────────────
 
-  fastify.get("/workflows/:workflowId/trigger/last-payload", async (req, reply) => {
-    const { workflowId } = req.params as { workflowId: string };
-    const payload = WorkflowRepository.getLastTriggerPayload(workflowId);
-    return sendResponse(reply, {
-      status_code: 200,
-      message: "Last trigger payload fetched",
-      error: null,
-      data: payload,
-    });
-  });
+  fastify.get(
+    "/workflows/:workflowId/trigger/last-payload",
+    async (req, reply) => {
+      const { workflowId } = req.params as { workflowId: string };
+      const payload = WorkflowRepository.getLastTriggerPayload(workflowId);
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Last trigger payload fetched",
+        error: null,
+        data: payload,
+      });
+    },
+  );
 
   // ──────────── Publish a workflow ────────────
 
@@ -1683,7 +1034,8 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     const { workflowId } = req.params as { workflowId: string };
     try {
       // Capture the workflow BEFORE unpublishing so we have trigger data for teardown
-      const workflowBeforeUnpublish = WorkflowRepository.getWorkflowById(workflowId);
+      const workflowBeforeUnpublish =
+        WorkflowRepository.getWorkflowById(workflowId);
 
       const workflow = WorkflowRepository.unpublishWorkflow(workflowId);
       if (!workflow) {
@@ -1726,7 +1078,8 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     const { workflowId } = req.params as { workflowId: string };
     try {
       // Capture workflow before deletion for lifecycle teardown
-      const workflowBeforeDelete = WorkflowRepository.getWorkflowById(workflowId);
+      const workflowBeforeDelete =
+        WorkflowRepository.getWorkflowById(workflowId);
 
       WorkflowRepository.deleteWorkflowExecutions(workflowId);
       WorkflowRepository.deleteWorkflow(workflowId);

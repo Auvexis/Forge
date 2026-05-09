@@ -81,7 +81,6 @@ async function handleSave() {
     ...draft.value,
   }
 
-  workflowStore.markDirty()
   await saveWorkflow()
 }
 

@@ -123,11 +123,14 @@ function updateDropdownPosition() {
 
   const rect = wrapper.getBoundingClientRect()
   const viewportGap = 8
-  const maxHeight = Math.min(240, window.innerHeight - rect.bottom - viewportGap)
-  const openUp = maxHeight < 120 && rect.top > window.innerHeight - rect.bottom
-  const availableHeight = openUp
-    ? Math.max(120, rect.top - viewportGap)
-    : Math.max(120, window.innerHeight - rect.bottom - viewportGap)
+  const preferredMaxHeight = 240
+  
+  const spaceBelow = window.innerHeight - rect.bottom - viewportGap
+  const spaceAbove = rect.top - viewportGap
+
+  const openUp = spaceBelow < preferredMaxHeight && spaceAbove > spaceBelow
+
+  const availableHeight = openUp ? spaceAbove : spaceBelow
 
   dropdownStyle.value = {
     position: 'fixed',
@@ -135,7 +138,7 @@ function updateDropdownPosition() {
     bottom: openUp ? `${window.innerHeight - rect.top + 5}px` : 'auto',
     left: `${rect.left}px`,
     width: `${rect.width}px`,
-    maxHeight: `${Math.min(240, availableHeight)}px`,
+    maxHeight: `${Math.min(preferredMaxHeight, availableHeight)}px`,
     zIndex: '10000',
   }
 }

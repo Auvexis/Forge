@@ -66,14 +66,74 @@ const allPaths = computed(() => {
         const triggerOutput = executionStore.nodeStatuses['trigger']?.output as any
         for (const field of triggerData.formFields) {
           if (!field.name) continue
-          paths.push({
-            path: `trigger.fields.${field.name}`,
-            label: field.label || field.name,
-            type: field.type === 'number' ? 'number' : 'string',
-            sourceNodeName: 'Trigger (Form)',
-            value: triggerOutput?.fields?.[field.name]
-          })
+          if (field.type === 'file') {
+            paths.push({
+              path: `trigger.fields.${field.name}`,
+              label: field.label || field.name,
+              type: 'object',
+              sourceNodeName: 'Trigger (Form)',
+              value: triggerOutput?.fields?.[field.name]
+            })
+            paths.push({
+              path: `trigger.fields.${field.name}.filename`,
+              label: 'filename',
+              type: 'string',
+              sourceNodeName: 'Trigger (Form)',
+              value: triggerOutput?.fields?.[field.name]?.filename
+            })
+            paths.push({
+              path: `trigger.fields.${field.name}.mimetype`,
+              label: 'mimetype',
+              type: 'string',
+              sourceNodeName: 'Trigger (Form)',
+              value: triggerOutput?.fields?.[field.name]?.mimetype
+            })
+            paths.push({
+              path: `trigger.fields.${field.name}.size`,
+              label: 'size',
+              type: 'number',
+              sourceNodeName: 'Trigger (Form)',
+              value: triggerOutput?.fields?.[field.name]?.size
+            })
+            paths.push({
+              path: `trigger.fields.${field.name}.buffer`,
+              label: 'buffer',
+              type: 'object',
+              sourceNodeName: 'Trigger (Form)',
+              value: triggerOutput?.fields?.[field.name]?.buffer
+            })
+          } else {
+            paths.push({
+              path: `trigger.fields.${field.name}`,
+              label: field.label || field.name,
+              type: field.type === 'number' ? 'number' : field.type === 'checkbox-group' ? 'array' : 'string',
+              sourceNodeName: 'Trigger (Form)',
+              value: triggerOutput?.fields?.[field.name]
+            })
+          }
         }
+        
+        paths.push({
+          path: 'trigger.submittedAt',
+          label: 'submittedAt',
+          type: 'number',
+          sourceNodeName: 'Trigger (Form)',
+          value: triggerOutput?.submittedAt
+        })
+        paths.push({
+          path: 'trigger.ip',
+          label: 'ip',
+          type: 'string',
+          sourceNodeName: 'Trigger (Form)',
+          value: triggerOutput?.ip
+        })
+        paths.push({
+          path: 'trigger.userAgent',
+          label: 'userAgent',
+          type: 'string',
+          sourceNodeName: 'Trigger (Form)',
+          value: triggerOutput?.userAgent
+        })
         continue
       }
 

@@ -43,44 +43,44 @@ Suggested shape:
 
 ```ts
 export interface FormTheme {
-  preset?: 'default-floating' | 'minimal-flat' | 'google-forms'
-  layout?: 'floating' | 'flat' | 'full-width' | 'centered'
+  preset?: "social-media" | "minimal-flat" | "google-forms";
+  layout?: "floating" | "flat" | "full-width" | "centered";
   background?: {
-    type?: 'solid' | 'gradient' | 'image'
-    color?: string
-    gradient?: string
-    imageUrl?: string
-  }
+    type?: "solid" | "gradient" | "image";
+    color?: string;
+    gradient?: string;
+    imageUrl?: string;
+  };
   container?: {
-    backgroundColor?: string
-    borderColor?: string
-    borderWidth?: number
-    radius?: number
-    shadow?: 'none' | 'sm' | 'md' | 'lg'
-    maxWidth?: number
-    padding?: number
-  }
+    backgroundColor?: string;
+    borderColor?: string;
+    borderWidth?: number;
+    radius?: number;
+    shadow?: "none" | "sm" | "md" | "lg";
+    maxWidth?: number;
+    padding?: number;
+  };
   button?: {
-    width?: 'auto' | 'full'
-    shape?: 'square' | 'medium' | 'pill'
-    backgroundColor?: string
-    textColor?: string
-    borderColor?: string
-    hoverBackgroundColor?: string
-  }
+    width?: "auto" | "full";
+    shape?: "square" | "medium" | "pill";
+    backgroundColor?: string;
+    textColor?: string;
+    borderColor?: string;
+    hoverBackgroundColor?: string;
+  };
   typography?: {
-    fontFamily?: string
-    baseSize?: number
-    weight?: number
-  }
+    fontFamily?: string;
+    baseSize?: number;
+    weight?: number;
+  };
   fields?: {
-    backgroundColor?: string
-    textColor?: string
-    borderColor?: string
-    focusColor?: string
-    radius?: number
-    spacing?: number
-  }
+    backgroundColor?: string;
+    textColor?: string;
+    borderColor?: string;
+    focusColor?: string;
+    radius?: number;
+    spacing?: number;
+  };
 }
 ```
 
@@ -143,7 +143,7 @@ The engine should not interpret theme values. Plugins should not receive theme-s
 
 ## Backward Compatibility
 
-If `formTheme` is absent, `FormThemeProvider` applies `default-floating`, matching the current page as closely as possible.
+If `formTheme` is absent, `FormThemeProvider` applies `social-media`, matching the current page as closely as possible.
 
 Existing workflows remain valid.
 

@@ -413,7 +413,6 @@ const addLogicNode = (type: WorkflowNodeType) => {
     alignNodeCenters(backupSourceId, id)
   }
 
-  workflowStore.markDirty()
   panelStore.closePanel()
 }
 
@@ -448,7 +447,6 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
     alignNodeCenters(backupSourceId, id)
   }
 
-  workflowStore.markDirty()
   panelStore.closePanel()
 }
 
@@ -458,11 +456,24 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
  */
 const onNodeDragStop = (event: NodeDragEvent) => {
   const { node } = event
+  const x = Math.round(node.position.x * 10) / 10
+  const y = Math.round(node.position.y * 10) / 10
+
+  // Bail early if the position is identical to what's stored — avoids marking
+  // the workflow dirty when the user drags a node back to its original spot.
+  const existingUi = node.id === 'trigger'
+    ? workflowStore.activeWorkflow?.trigger.ui
+    : workflowStore.activeWorkflow?.nodes[node.id]?.ui
+
+  if (existingUi && Math.round((existingUi.positionX ?? 0) * 10) / 10 === x && Math.round((existingUi.positionY ?? 0) * 10) / 10 === y) {
+    return
+  }
+
   workflowStore.updateNodeData(node.id, {
     ui: {
       ...(node.data?.ui ?? {}),
-      positionX: node.position.x,
-      positionY: node.position.y,
+      positionX: x,
+      positionY: y,
     },
   })
 }
@@ -488,7 +499,6 @@ const onConnect = (connection: Connection) => {
   //    Com v-model:edges, o VueFlow NÃO adiciona automaticamente ao @connect.
   vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
 
-  workflowStore.markDirty()
 }
 
 type EdgeChange = { type: string; id?: string }
@@ -499,7 +509,6 @@ const onEdgesChange = (changes: EdgeChange[]) => {
     workflowStore.activeWorkflow.edges = workflowStore.activeWorkflow.edges.filter(
       (e) => !removedIds.has(e.id),
     )
-    workflowStore.markDirty()
   }
 }
 
@@ -514,7 +523,6 @@ const onNodesChange = (changes: NodeChange[]) => {
         changed = true
       }
     }
-    if (changed) workflowStore.markDirty()
   }
 }
 

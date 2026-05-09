@@ -17,6 +17,7 @@
     <input
       v-else-if="field.type === 'file'"
       type="file"
+      :accept="field.accept"
       :required="field.required"
       @change="onFileChange"
     />
@@ -112,8 +113,18 @@ function emitValue(value: unknown) {
 }
 
 function onFileChange(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0]
-  if (file) emitValue(file)
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  if (props.field.maxSize && file.size > props.field.maxSize * 1024 * 1024) {
+    alert(`File is too large. Maximum size allowed is ${props.field.maxSize}MB.`)
+    input.value = ''
+    emitValue(undefined)
+    return
+  }
+
+  emitValue(file)
 }
 
 function onMultiSelectChange(event: Event) {

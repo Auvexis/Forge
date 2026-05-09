@@ -253,10 +253,21 @@ export interface FormTriggerField {
   placeholder?: string
   description?: string
   options?: Array<{ label: string; value: string }>
+  accept?: string // Allowed mime types or extensions, e.g. "image/*, .pdf"
+  maxSize?: number // Maximum file size in megabytes (MB)
 }
 
 export interface FormTheme {
-  preset?: 'default-floating' | 'minimal-flat' | 'google-forms'
+  preset?:
+    | 'custom'
+    | 'social-media'
+    | 'minimal-flat'
+    | 'google-forms'
+    | 'cyberpunk'
+    | 'ocean-breeze'
+    | 'sunset'
+    | 'forest'
+    | 'glass'
   layout?: 'floating' | 'flat' | 'full-width' | 'centered'
   background?: {
     type?: 'solid' | 'gradient' | 'image'

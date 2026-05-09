@@ -68,8 +68,6 @@ function cloneNode() {
       data: clonedNode as unknown as Record<string, unknown>,
     },
   ])
-
-  workflowStore.markDirty()
 }
 
 function deleteNode() {
@@ -83,7 +81,6 @@ function deleteNode() {
     (e) => e.source !== props.nodeId && e.target !== props.nodeId,
   )
 
-  workflowStore.markDirty()
   panelStore.closePanel()
 }
 </script>

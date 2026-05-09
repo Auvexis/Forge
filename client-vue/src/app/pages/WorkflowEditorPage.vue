@@ -82,8 +82,6 @@ async function initWorkflow() {
       edges: [],
     }
     useWorkflowStore().setActiveWorkflow(newWorkflow)
-    // Clear out the saved snapshot so it immediately appears dirty and allows saving
-    useWorkflowStore().markDirty()
     return
   }
 
@@ -133,12 +131,6 @@ watch(
 
     // Ignora quando estamos carregando o fluxo pela primeira vez (saindo de null para o objeto)
     if (oldWorkflow === null) return
-
-    // Se houve alguma alteração profunda (mutação) mas a reatividade aponta para
-    // o mesmo objeto na memória, significa que o usuário mexeu no fluxo atual!
-    if (newWorkflow === oldWorkflow) {
-      workflowStore.markDirty()
-    }
   },
   { deep: true }, // O deep: true é obrigatório para o Vue notar mudanças dentro de nós ou propriedades
 )

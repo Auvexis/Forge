@@ -230,13 +230,6 @@
           <p class="te-hint">kebab-case only. Leave empty to use the workflow UUID.</p>
         </div>
 
-        <FormThemeMenu
-          :model-value="formTheme"
-          :title="(node.data as unknown as WorkflowTrigger).formTitle || ''"
-          :description="(node.data as unknown as WorkflowTrigger).formDescription || ''"
-          @update:model-value="updateNodeData({ formTheme: $event })"
-        />
-
         <!-- Form URLs -->
         <div class="te-field">
           <span class="te-label">Form URLs</span>
@@ -293,6 +286,14 @@
           </p>
         </div>
 
+        <!-- Form Theme -->
+        <FormThemeMenu
+          :model-value="formTheme"
+          :title="(node.data as unknown as WorkflowTrigger).formTitle || ''"
+          :description="(node.data as unknown as WorkflowTrigger).formDescription || ''"
+          @update:model-value="updateNodeData({ formTheme: $event })"
+        />
+
         <!-- Form Title / Description -->
         <div class="te-field">
           <span class="te-label">Form Title</span>
@@ -340,15 +341,15 @@
                   @update:model-value="updateFormField(i, { label: $event as string })"
                   placeholder="Label"
                 />
-                <BaseSelect
-                  :model-value="field.type"
-                  :options="FORM_FIELD_TYPES"
-                  @update:model-value="updateFormField(i, { type: $event as FormTriggerField['type'] })"
-                />
                 <BaseInput
                   :model-value="field.description || ''"
                   @update:model-value="updateFormField(i, { description: $event as string })"
                   placeholder="Description"
+                />
+                <BaseSelect
+                  :model-value="field.type"
+                  :options="FORM_FIELD_TYPES"
+                  @update:model-value="updateFormField(i, { type: $event as FormTriggerField['type'] })"
                 />
                 <div class="te-form-field-actions">
                   <BaseButton
@@ -369,14 +370,36 @@
                   />
                 </div>
               </div>
+              <BaseInput
+                v-if="!formFieldUsesOptions(field.type) && field.type !== 'file' && field.type !== 'date'"
+                class="te-form-field-options"
+                :model-value="field.placeholder || ''"
+                @update:model-value="updateFormField(i, { placeholder: $event as string })"
+                :placeholder="field.type === 'checkbox' ? 'Checkbox text (e.g. Yes, I agree)' : 'Placeholder text...'"
+              />
               <BaseTextarea
                 v-if="formFieldUsesOptions(field.type)"
                 class="te-form-field-options"
-                :model-value="formatFormFieldOptions(field.options)"
+                :model-value="getFieldOptionsText(field, i)"
                 :rows="3"
                 placeholder="Option A&#10;Option B&#10;Value C | Label C"
-                @update:model-value="updateFormField(i, { options: parseFormFieldOptions($event) })"
+                @update:model-value="updateFieldOptionsText(i, $event)"
               />
+              <div v-if="field.type === 'file'" class="flex gap-2 mt-2 ml-6">
+                <BaseInput
+                  style="flex: 1"
+                  :model-value="field.accept || ''"
+                  @update:model-value="updateFormField(i, { accept: $event as string })"
+                  placeholder="Accept types (e.g. image/*, .pdf)"
+                />
+                <BaseInput
+                  style="flex: 1"
+                  type="number"
+                  :model-value="field.maxSize?.toString() || ''"
+                  @update:model-value="updateFormField(i, { maxSize: $event ? Number($event) : undefined })"
+                  placeholder="Max Size (MB)"
+                />
+              </div>
             </div>
 
             <BaseButton
@@ -644,7 +667,6 @@ const FORM_FIELD_TYPES = [
   { value: 'password', label: 'Password', icon: 'lock-keyhole' },
   { value: 'file', label: 'File', icon: 'file' },
   { value: 'select', label: 'Select', icon: 'list' },
-  { value: 'multiselect', label: 'Multi Select', icon: 'list-checks' },
   { value: 'checkbox', label: 'Checkbox', icon: 'square-check' },
   { value: 'checkbox-group', label: 'Checkbox Group', icon: 'list-todo' },
   { value: 'radio', label: 'Radio Group', icon: 'circle-dot' },
@@ -655,7 +677,6 @@ const FORM_FIELD_TYPES = [
 
 const FORM_FIELD_TYPES_WITH_OPTIONS = new Set<FormTriggerField['type']>([
   'select',
-  'multiselect',
   'checkbox-group',
   'radio',
   'quiz',
@@ -898,6 +919,18 @@ function parseFormFieldOptions(value: string): NonNullable<FormTriggerField['opt
         label: labelPart || valuePart,
       }
     })
+}
+
+const optionsTextMap = ref<Record<number, string>>({})
+
+function getFieldOptionsText(field: FormTriggerField, i: number) {
+  if (optionsTextMap.value[i] !== undefined) return optionsTextMap.value[i]
+  return formatFormFieldOptions(field.options)
+}
+
+function updateFieldOptionsText(i: number, value: string) {
+  optionsTextMap.value[i] = value
+  updateFormField(i, { options: parseFormFieldOptions(value) })
 }
 
 // ── Plugin Trigger ──────────────────────────────────────────

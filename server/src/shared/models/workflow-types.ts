@@ -123,8 +123,8 @@ export interface TriggerNode extends WorkflowNodeBase {
 // ──────────── Set Node (rename / inject fields without JS) ────────────
 
 export interface SetNodeAssignment {
-  key: string;    // Target key to write in context output
-  value: string;  // Template expression or literal value
+  key: string; // Target key to write in context output
+  value: string; // Template expression or literal value
 }
 
 export interface SetNode extends WorkflowNodeBase {
@@ -135,15 +135,15 @@ export interface SetNode extends WorkflowNodeBase {
 // ──────────── Switch Node (N-way routing based on expression) ────────────
 
 export interface SwitchNodeCase {
-  value: string;    // Expected value to match against inputExpression result
+  value: string; // Expected value to match against inputExpression result
   handleId: string; // Source handle id that this case activates (e.g. "case_0")
 }
 
 export interface SwitchNode extends WorkflowNodeBase {
   type: "switch";
-  inputExpression: string;       // JS expression evaluated against context
-  cases: SwitchNodeCase[];       // Ordered list of match cases
-  fallbackHandleId?: string;     // Handle activated when no case matches
+  inputExpression: string; // JS expression evaluated against context
+  cases: SwitchNodeCase[]; // Ordered list of match cases
+  fallbackHandleId?: string; // Handle activated when no case matches
 }
 
 // ──────────── Merge Node (converge parallel branches) ────────────
@@ -237,8 +237,8 @@ export interface WebhookBodyField {
  * and that POST handler kicks off the workflow as the trigger payload.
  */
 export interface FormTriggerField {
-  name: string;        // Field key sent in the trigger payload (snake_case or kebab-case)
-  label: string;       // Human-readable label rendered in the form
+  name: string; // Field key sent in the trigger payload (snake_case or kebab-case)
+  label: string; // Human-readable label rendered in the form
   type:
     | "text"
     | "email"
@@ -259,10 +259,12 @@ export interface FormTriggerField {
   placeholder?: string;
   description?: string;
   options?: Array<{ label: string; value: string }>;
+  accept?: string; // Allowed mime types or extensions, e.g., "image/*, .pdf"
+  maxSize?: number; // Maximum file size in megabytes (MB)
 }
 
 export interface FormTheme {
-  preset?: "default-floating" | "minimal-flat" | "google-forms";
+  preset?: string; // Frontend-owned theme identifier.
   layout?: "floating" | "flat" | "full-width" | "centered";
   background?: {
     type?: "solid" | "gradient" | "image";
@@ -316,8 +318,8 @@ export interface WorkflowTrigger {
   schema?: Record<string, any>;
   ui?: WorkflowNodeUI;
   // Webhook config
-  webhookPath?: string;   // Auto-generated unique path segment (fallback)
-  webhookSlug?: string;   // User-defined readable slug, e.g. 'nova-venda' → /webhook/nova-venda
+  webhookPath?: string; // Auto-generated unique path segment (fallback)
+  webhookSlug?: string; // User-defined readable slug, e.g. 'nova-venda' → /webhook/nova-venda
   webhookMethods?: ("GET" | "POST" | "PUT" | "DELETE")[];
   webhookSecret?: string; // HMAC-SHA256 secret for signature verification
   webhookBodySchema?: Record<string, WebhookBodyField>; // Expected body shape (docs + optional validation)
@@ -326,12 +328,12 @@ export interface WorkflowTrigger {
   // Internal event config
   eventName?: string;
   // Plugin trigger config
-  pluginId?: string;      // ID of the plugin that owns this trigger
-  triggerName?: string;   // Key in plugin.manifest.triggers (e.g. "onMessage")
+  pluginId?: string; // ID of the plugin that owns this trigger
+  triggerName?: string; // Key in plugin.manifest.triggers (e.g. "onMessage")
   triggerParams?: Record<string, any>; // User-configured params for the trigger
   // Form trigger config
-  formSlug?: string;        // Optional readable public ID, e.g. 'contact-us' -> /forms/contact-us
-  formTitle?: string;       // Title rendered at the top of the public form page
+  formSlug?: string; // Optional readable public ID, e.g. 'contact-us' -> /forms/contact-us
+  formTitle?: string; // Title rendered at the top of the public form page
   formDescription?: string; // Optional description shown below the title
   formFields?: FormTriggerField[];
   formTheme?: FormTheme;

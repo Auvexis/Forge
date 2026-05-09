@@ -148,7 +148,11 @@ export const workflowsApi = {
     if (hasFiles && payload) {
       const form = new FormData()
       for (const [key, value] of Object.entries(payload)) {
-        if (value instanceof File) {
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            form.append(key, String(item))
+          }
+        } else if (value instanceof File) {
           form.append(key, value, value.name)
         } else if (value !== undefined && value !== null) {
           form.append(key, typeof value === 'string' ? value : JSON.stringify(value))
@@ -229,7 +233,11 @@ export const workflowsApi = {
     if (hasFiles) {
       const form = new FormData()
       for (const [key, value] of Object.entries(payload)) {
-        if (value instanceof File) {
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            form.append(key, String(item))
+          }
+        } else if (value instanceof File) {
           form.append(key, value, value.name)
         } else if (value !== undefined && value !== null) {
           form.append(key, typeof value === 'string' ? value : JSON.stringify(value))
