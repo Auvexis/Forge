@@ -238,6 +238,47 @@ export interface FormTriggerField {
   placeholder?: string
 }
 
+export interface FormTheme {
+  preset?: 'default-floating' | 'minimal-flat' | 'google-forms'
+  layout?: 'floating' | 'flat' | 'full-width' | 'centered'
+  background?: {
+    type?: 'solid' | 'gradient' | 'image'
+    color?: string
+    gradient?: string
+    imageUrl?: string
+  }
+  container?: {
+    backgroundColor?: string
+    borderColor?: string
+    borderWidth?: number
+    radius?: number
+    shadow?: 'none' | 'sm' | 'md' | 'lg'
+    maxWidth?: number
+    padding?: number
+  }
+  button?: {
+    width?: 'auto' | 'full'
+    shape?: 'square' | 'medium' | 'pill'
+    backgroundColor?: string
+    textColor?: string
+    borderColor?: string
+    hoverBackgroundColor?: string
+  }
+  typography?: {
+    fontFamily?: string
+    baseSize?: number
+    weight?: number
+  }
+  fields?: {
+    backgroundColor?: string
+    textColor?: string
+    borderColor?: string
+    focusColor?: string
+    radius?: number
+    spacing?: number
+  }
+}
+
 // ── Trigger ───────────────────────────────────────
 
 export interface WorkflowTrigger {
@@ -260,6 +301,7 @@ export interface WorkflowTrigger {
   formTitle?: string
   formDescription?: string
   formFields?: FormTriggerField[]
+  formTheme?: FormTheme
   // Last captured webhook payload from "Listen for Event"
   lastTriggerPayload?: Record<string, any> | null
 }

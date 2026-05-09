@@ -5,7 +5,7 @@
 import { apiRequest } from './client'
 import { ENDPOINTS } from './endpoints'
 import { API_BASE_URL } from '../constants/app'
-import type { FormTriggerField, WorkflowItem } from '../types/workflow.types'
+import type { FormTheme, FormTriggerField, WorkflowItem } from '../types/workflow.types'
 import type { ExecutionLog, WorkflowExecutionStatus } from '../types/execution.types'
 
 // ── Production Status Shape ───────────────────────────────
@@ -30,6 +30,7 @@ export interface FormDefinition {
   title: string
   description: string
   fields: FormTriggerField[]
+  theme: FormTheme
 }
 
 // ── Server response shape (snake_case from SQLite row) ────────

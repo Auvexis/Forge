@@ -244,6 +244,47 @@ export interface FormTriggerField {
   placeholder?: string;
 }
 
+export interface FormTheme {
+  preset?: "default-floating" | "minimal-flat" | "google-forms";
+  layout?: "floating" | "flat" | "full-width" | "centered";
+  background?: {
+    type?: "solid" | "gradient" | "image";
+    color?: string;
+    gradient?: string;
+    imageUrl?: string;
+  };
+  container?: {
+    backgroundColor?: string;
+    borderColor?: string;
+    borderWidth?: number;
+    radius?: number;
+    shadow?: "none" | "sm" | "md" | "lg";
+    maxWidth?: number;
+    padding?: number;
+  };
+  button?: {
+    width?: "auto" | "full";
+    shape?: "square" | "medium" | "pill";
+    backgroundColor?: string;
+    textColor?: string;
+    borderColor?: string;
+    hoverBackgroundColor?: string;
+  };
+  typography?: {
+    fontFamily?: string;
+    baseSize?: number;
+    weight?: number;
+  };
+  fields?: {
+    backgroundColor?: string;
+    textColor?: string;
+    borderColor?: string;
+    focusColor?: string;
+    radius?: number;
+    spacing?: number;
+  };
+}
+
 // ──────────── Trigger ────────────
 
 export interface WorkflowTrigger {
@@ -269,6 +310,7 @@ export interface WorkflowTrigger {
   formTitle?: string;       // Title rendered at the top of the public form page
   formDescription?: string; // Optional description shown below the title
   formFields?: FormTriggerField[];
+  formTheme?: FormTheme;
   // Captured payload from "Listen for Event" UX (persisted so left pane can display it)
   lastTriggerPayload?: Record<string, any> | null;
 }
