@@ -202,8 +202,14 @@ function normalizeFormTheme(raw: unknown): FormTheme {
     }),
     typography: compactObject<NonNullable<FormTheme["typography"]>>({
       fontFamily: boundedString(source.typography?.fontFamily),
+      titleFontFamily: boundedString(source.typography?.titleFontFamily),
+      subtitleFontFamily: boundedString(source.typography?.subtitleFontFamily),
+      buttonFontFamily: boundedString(source.typography?.buttonFontFamily),
+      inputFontFamily: boundedString(source.typography?.inputFontFamily),
       baseSize: boundedNumber(source.typography?.baseSize, 12, 22),
       weight: boundedNumber(source.typography?.weight, 300, 800),
+      titleColor: boundedString(source.typography?.titleColor),
+      subtitleColor: boundedString(source.typography?.subtitleColor),
     }),
     fields: compactObject<NonNullable<FormTheme["fields"]>>({
       backgroundColor: boundedString(source.fields?.backgroundColor),

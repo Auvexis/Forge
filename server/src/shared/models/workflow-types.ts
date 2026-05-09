@@ -272,8 +272,14 @@ export interface FormTheme {
   };
   typography?: {
     fontFamily?: string;
+    titleFontFamily?: string;
+    subtitleFontFamily?: string;
+    buttonFontFamily?: string;
+    inputFontFamily?: string;
     baseSize?: number;
     weight?: number;
+    titleColor?: string;
+    subtitleColor?: string;
   };
   fields?: {
     backgroundColor?: string;
