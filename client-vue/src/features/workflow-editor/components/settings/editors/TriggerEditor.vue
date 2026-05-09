@@ -208,6 +208,175 @@
           </div>
         </div>
 
+        <!-- Form Theme -->
+        <div class="te-section">
+          <div class="te-intro">
+            <span class="te-label">Form Theme</span>
+            <p class="te-hint">Structured visual options only. No custom HTML or CSS is executed.</p>
+          </div>
+
+          <div class="te-theme-grid">
+            <div class="te-field">
+              <span class="te-label">Preset</span>
+              <BaseSelect
+                :model-value="formTheme.preset || 'default-floating'"
+                :options="FORM_THEME_PRESETS"
+                @update:model-value="updateFormTheme({ preset: $event as FormTheme['preset'] })"
+              />
+            </div>
+
+            <div class="te-field">
+              <span class="te-label">Layout</span>
+              <BaseSelect
+                :model-value="formTheme.layout || 'floating'"
+                :options="FORM_THEME_LAYOUTS"
+                @update:model-value="updateFormTheme({ layout: $event as FormTheme['layout'] })"
+              />
+            </div>
+
+            <div class="te-field">
+              <span class="te-label">Background Type</span>
+              <BaseSelect
+                :model-value="formTheme.background?.type || 'gradient'"
+                :options="FORM_BACKGROUND_TYPES"
+                @update:model-value="updateFormThemeSection('background', { type: $event as NonNullable<FormTheme['background']>['type'] })"
+              />
+            </div>
+
+            <div class="te-field">
+              <span class="te-label">Background Color</span>
+              <BaseInput
+                type="color"
+                :model-value="formTheme.background?.color || '#0b0d12'"
+                @update:model-value="updateFormThemeSection('background', { color: $event as string })"
+              />
+            </div>
+          </div>
+
+          <div class="te-field">
+            <span class="te-label">Gradient</span>
+            <BaseInput
+              :model-value="formTheme.background?.gradient || ''"
+              @update:model-value="updateFormThemeSection('background', { gradient: $event as string })"
+              placeholder="linear-gradient(135deg, #0b0d12 0%, #111827 100%)"
+            />
+          </div>
+
+          <div class="te-field">
+            <span class="te-label">Background Image URL</span>
+            <BaseInput
+              :model-value="formTheme.background?.imageUrl || ''"
+              @update:model-value="updateFormThemeSection('background', { imageUrl: $event as string })"
+              placeholder="https://example.com/background.jpg"
+            />
+          </div>
+
+          <div class="te-theme-grid">
+            <div class="te-field">
+              <span class="te-label">Container Background</span>
+              <BaseInput
+                type="color"
+                :model-value="formTheme.container?.backgroundColor || '#141821'"
+                @update:model-value="updateFormThemeSection('container', { backgroundColor: $event as string })"
+              />
+            </div>
+            <div class="te-field">
+              <span class="te-label">Container Border</span>
+              <BaseInput
+                type="color"
+                :model-value="formTheme.container?.borderColor || '#1f2430'"
+                @update:model-value="updateFormThemeSection('container', { borderColor: $event as string })"
+              />
+            </div>
+            <div class="te-field">
+              <span class="te-label">Radius</span>
+              <BaseInput
+                type="number"
+                :model-value="String(formTheme.container?.radius ?? 12)"
+                @update:model-value="updateFormThemeNumber('container', 'radius', $event)"
+              />
+            </div>
+            <div class="te-field">
+              <span class="te-label">Max Width</span>
+              <BaseInput
+                type="number"
+                :model-value="String(formTheme.container?.maxWidth ?? 560)"
+                @update:model-value="updateFormThemeNumber('container', 'maxWidth', $event)"
+              />
+            </div>
+          </div>
+
+          <div class="te-theme-grid">
+            <div class="te-field">
+              <span class="te-label">Button Width</span>
+              <BaseSelect
+                :model-value="formTheme.button?.width || 'full'"
+                :options="FORM_BUTTON_WIDTHS"
+                @update:model-value="updateFormThemeSection('button', { width: $event as NonNullable<FormTheme['button']>['width'] })"
+              />
+            </div>
+            <div class="te-field">
+              <span class="te-label">Button Shape</span>
+              <BaseSelect
+                :model-value="formTheme.button?.shape || 'medium'"
+                :options="FORM_BUTTON_SHAPES"
+                @update:model-value="updateFormThemeSection('button', { shape: $event as NonNullable<FormTheme['button']>['shape'] })"
+              />
+            </div>
+            <div class="te-field">
+              <span class="te-label">Button Color</span>
+              <BaseInput
+                type="color"
+                :model-value="formTheme.button?.backgroundColor || '#7c3aed'"
+                @update:model-value="updateFormThemeSection('button', { backgroundColor: $event as string })"
+              />
+            </div>
+            <div class="te-field">
+              <span class="te-label">Button Border</span>
+              <BaseInput
+                type="color"
+                :model-value="formTheme.button?.borderColor || '#7c3aed'"
+                @update:model-value="updateFormThemeSection('button', { borderColor: $event as string })"
+              />
+            </div>
+          </div>
+
+          <div class="te-theme-grid">
+            <div class="te-field">
+              <span class="te-label">Font Family</span>
+              <BaseInput
+                :model-value="formTheme.typography?.fontFamily || ''"
+                @update:model-value="updateFormThemeSection('typography', { fontFamily: $event as string })"
+                placeholder="Inter, system-ui, sans-serif"
+              />
+            </div>
+            <div class="te-field">
+              <span class="te-label">Base Size</span>
+              <BaseInput
+                type="number"
+                :model-value="String(formTheme.typography?.baseSize ?? 14)"
+                @update:model-value="updateFormThemeNumber('typography', 'baseSize', $event)"
+              />
+            </div>
+            <div class="te-field">
+              <span class="te-label">Field Border</span>
+              <BaseInput
+                type="color"
+                :model-value="formTheme.fields?.borderColor || '#2a3142'"
+                @update:model-value="updateFormThemeSection('fields', { borderColor: $event as string })"
+              />
+            </div>
+            <div class="te-field">
+              <span class="te-label">Field Focus</span>
+              <BaseInput
+                type="color"
+                :model-value="formTheme.fields?.focusColor || '#7c3aed'"
+                @update:model-value="updateFormThemeSection('fields', { focusColor: $event as string })"
+              />
+            </div>
+          </div>
+        </div>
+
       </div>
     </template>
 
@@ -579,7 +748,7 @@
 import { computed, ref, onUnmounted } from 'vue'
 import { XIcon, PlusIcon, CopyIcon, CheckIcon, RefreshCwIcon, RadioIcon, CheckCircleIcon, ClockIcon } from 'lucide-vue-next'
 import type { NodeEditorProps } from './types'
-import type { WorkflowTrigger, WorkflowSchemaField, WebhookBodyField, FormTriggerField } from '@/core/types/workflow.types'
+import type { WorkflowTrigger, WorkflowSchemaField, WebhookBodyField, FormTriggerField, FormTheme } from '@/core/types/workflow.types'
 import type { PluginSummary, PluginTriggerManifest } from '@/core/types/plugin.types'
 import EditorField from './EditorField.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
@@ -619,6 +788,36 @@ const FORM_FIELD_TYPES = [
   { value: 'date', label: 'Date Picker', icon: 'calendar' },
   { value: 'password', label: 'Password', icon: 'lock-keyhole' },
   { value: 'file', label: 'File', icon: 'file' },
+]
+
+const FORM_THEME_PRESETS = [
+  { value: 'default-floating', label: 'Default Floating', icon: 'panel-top' },
+  { value: 'minimal-flat', label: 'Minimal Flat', icon: 'square' },
+  { value: 'google-forms', label: 'Google Forms', icon: 'clipboard-list' },
+]
+
+const FORM_THEME_LAYOUTS = [
+  { value: 'floating', label: 'Floating', icon: 'panel-top' },
+  { value: 'flat', label: 'Flat', icon: 'minus' },
+  { value: 'full-width', label: 'Full Width', icon: 'maximize' },
+  { value: 'centered', label: 'Centered', icon: 'align-center' },
+]
+
+const FORM_BACKGROUND_TYPES = [
+  { value: 'solid', label: 'Solid', icon: 'square' },
+  { value: 'gradient', label: 'Gradient', icon: 'palette' },
+  { value: 'image', label: 'Image', icon: 'image' },
+]
+
+const FORM_BUTTON_WIDTHS = [
+  { value: 'auto', label: 'Auto', icon: 'minimize' },
+  { value: 'full', label: 'Full', icon: 'maximize' },
+]
+
+const FORM_BUTTON_SHAPES = [
+  { value: 'square', label: 'Square', icon: 'square' },
+  { value: 'medium', label: 'Medium', icon: 'box' },
+  { value: 'pill', label: 'Pill', icon: 'pill' },
 ]
 
 const MANUAL_FIELD_TYPES = [
@@ -796,6 +995,10 @@ const formFields = computed<FormTriggerField[]>(
   () => (props.node.data as unknown as WorkflowTrigger).formFields ?? [],
 )
 
+const formTheme = computed<FormTheme>(
+  () => (props.node.data as unknown as WorkflowTrigger).formTheme ?? {},
+)
+
 const formPublicId = computed(() => {
   const id = workflowStore.activeWorkflow?.metadata.id
   const slug = (props.node.data as unknown as WorkflowTrigger).formSlug?.trim()
@@ -828,6 +1031,41 @@ function updateFormField(i: number, updates: Partial<FormTriggerField>) {
 
 function removeFormField(i: number) {
   saveFormFields(formFields.value.filter((_, idx) => idx !== i))
+}
+
+function updateFormTheme(updates: Partial<FormTheme>) {
+  props.updateNodeData({
+    formTheme: {
+      ...formTheme.value,
+      ...updates,
+    },
+  })
+}
+
+function updateFormThemeSection<K extends keyof FormTheme>(
+  section: K,
+  updates: Partial<NonNullable<FormTheme[K]>>,
+) {
+  const currentSection = formTheme.value[section]
+  props.updateNodeData({
+    formTheme: {
+      ...formTheme.value,
+      [section]: {
+        ...(typeof currentSection === 'object' && currentSection ? currentSection : {}),
+        ...updates,
+      },
+    },
+  })
+}
+
+function updateFormThemeNumber<K extends 'container' | 'typography' | 'fields'>(
+  section: K,
+  key: keyof NonNullable<FormTheme[K]>,
+  value: unknown,
+) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return
+  updateFormThemeSection(section, { [key]: parsed } as Partial<NonNullable<FormTheme[K]>>)
 }
 
 // ── Plugin Trigger ──────────────────────────────────────────
@@ -1030,6 +1268,18 @@ onUnmounted(() => cleanup())
 .te-url-badge--prod {
   background: color-mix(in srgb, var(--nod8-green-400) 15%, transparent);
   color: var(--nod8-green-400);
+}
+
+.te-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 720px) {
+  .te-theme-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Listen for Event ───────────────────────── */
