@@ -36,6 +36,12 @@ export const loopNodeHandler = createNodeHandler<LoopNode>("loop", async (input)
   delete context.variables.$total;
 
   return { iterations, results };
+}, {
+  description: "Executes a body subgraph once per item in a collection.",
+  execution: "subgraph",
+  sideEffects: ["context-write"],
+  outputs: [{ id: "loop-body", label: "Loop body" }, { id: "loop-done", label: "Done" }],
+  errors: ["Collection did not resolve to an array", "Loop body execution failed"],
 });
 
 function resolveLoopCollection(collectionExpression: string, context: any): unknown {

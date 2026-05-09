@@ -21,6 +21,8 @@ import { Scheduler } from "../modules/scheduler/scheduler.ts";
 import { PluginManager } from "../modules/plugins/manager.ts";
 import { TriggerListenerRegistry } from "../modules/workflows/trigger-listener-registry.ts";
 import { WorkflowLifecycleManager } from "../modules/workflows/lifecycle.ts";
+import { buildWorkflowSchema } from "../modules/workflows/workflow-schema.ts";
+import { validateWorkflowDefinition } from "../modules/workflows/workflow-validation.ts";
 
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
 
@@ -42,179 +44,6 @@ function safeSerialize(value: unknown): string {
   });
 }
 
-// ──────────── Allowed node types ────────────
-const VALID_NODE_TYPES = new Set([
-  "plugin",
-  "code",
-  "if",
-  "loop",
-  "subworkflow",
-  "trigger",
-  "http",
-  "event",
-  "event-listener",
-  "set",
-  "switch",
-  "merge",
-  "split-in-batches",
-  "respond-webhook",
-]);
-
-// ──────────── Validation helper ────────────
-
-function validateWorkflowDefinition(workflow: WorkflowItem): string | null {
-  if (!workflow.metadata?.id || !workflow.metadata?.name) {
-    return "Workflow must have metadata with id and name";
-  }
-
-  if (!workflow.trigger?.type) {
-    return "Workflow must have a trigger with type";
-  }
-
-  // Validate Form trigger configuration
-  if (workflow.trigger.type === "form") {
-    if (
-      workflow.trigger.formSlug &&
-      !FORM_SLUG_REGEX.test(workflow.trigger.formSlug)
-    ) {
-      return `Form ID must be kebab-case (e.g. 'contact-us'). Got: '${workflow.trigger.formSlug}'`;
-    }
-    if (!Array.isArray(workflow.trigger.formFields)) {
-      return "Form trigger must have a formFields array";
-    }
-    const seenNames = new Set<string>();
-    for (const [i, field] of workflow.trigger.formFields.entries()) {
-      if (!field || typeof field !== "object") {
-        return `Form field at index ${i} must be an object`;
-      }
-      if (
-        !field.name ||
-        typeof field.name !== "string" ||
-        !FORM_FIELD_NAME_REGEX.test(field.name)
-      ) {
-        return `Form field at index ${i} has invalid name "${field.name}". Use letters, numbers, underscore or dash.`;
-      }
-      if (seenNames.has(field.name)) {
-        return `Form field name "${field.name}" is duplicated`;
-      }
-      seenNames.add(field.name);
-      if (!VALID_FORM_FIELD_TYPES.has(field.type)) {
-        return `Form field "${field.name}" has invalid type "${field.type}". Valid: ${[...VALID_FORM_FIELD_TYPES].join(", ")}`;
-      }
-    }
-  }
-
-  if (!workflow.nodes || typeof workflow.nodes !== "object") {
-    return "Workflow must have a nodes map";
-  }
-
-  if (!Array.isArray(workflow.edges)) {
-    return "Workflow must have an edges array";
-  }
-
-  // Validate each node has a recognized type
-  for (const [nodeId, node] of Object.entries(workflow.nodes)) {
-    if (!node.type || !VALID_NODE_TYPES.has(node.type)) {
-      return `Node "${nodeId}" has invalid type: "${(node as any).type}". Valid types: ${[...VALID_NODE_TYPES].join(", ")}`;
-    }
-
-    switch (node.type) {
-      case "plugin":
-        if (!node.pluginId || !node.action) {
-          return `Plugin node "${nodeId}" must have pluginId and action`;
-        }
-        break;
-      case "code":
-        if (!node.script || typeof node.script !== "string") {
-          return `Code node "${nodeId}" must have a script string`;
-        }
-        break;
-      case "if":
-        if (!node.condition || typeof node.condition !== "string") {
-          return `If node "${nodeId}" must have a condition string`;
-        }
-        break;
-      case "loop":
-        if (!node.collection || typeof node.collection !== "string") {
-          return `Loop node "${nodeId}" must have a collection expression`;
-        }
-        break;
-      case "subworkflow":
-        if (!node.workflowId) {
-          return `SubWorkflow node "${nodeId}" must have a workflowId`;
-        }
-        break;
-      case "http":
-        if (!node.url || typeof node.url !== "string") {
-          return `HTTP node "${nodeId}" must have a url string`;
-        }
-        if (!node.method) {
-          return `HTTP node "${nodeId}" must have a method (GET, POST, etc.)`;
-        }
-        break;
-      case "event":
-        if (!node.eventName || typeof node.eventName !== "string") {
-          return `Event node "${nodeId}" must have an eventName string`;
-        }
-        break;
-      case "event-listener":
-        if (!node.eventName || typeof node.eventName !== "string") {
-          return `Event Listener node "${nodeId}" must have an eventName string`;
-        }
-        break;
-      case "set":
-        if (!Array.isArray((node as any).assignments) || (node as any).assignments.length === 0) {
-          return `Set node "${nodeId}" must have a non-empty assignments array`;
-        }
-        break;
-      case "switch":
-        if (!(node as any).inputExpression || typeof (node as any).inputExpression !== "string") {
-          return `Switch node "${nodeId}" must have an inputExpression string`;
-        }
-        if (!Array.isArray((node as any).cases) || (node as any).cases.length === 0) {
-          return `Switch node "${nodeId}" must have a non-empty cases array`;
-        }
-        break;
-      case "merge":
-        if (!((node as any).mode === "wait-any" || (node as any).mode === "wait-all")) {
-          return `Merge node "${nodeId}" must have mode "wait-any" or "wait-all"`;
-        }
-        break;
-      case "split-in-batches":
-        if (!(node as any).collection || typeof (node as any).collection !== "string") {
-          return `Split In Batches node "${nodeId}" must have a collection expression string`;
-        }
-        if (
-          typeof (node as any).batchSize !== "number" ||
-          (node as any).batchSize < 1
-        ) {
-          return `Split In Batches node "${nodeId}" must have batchSize >= 1`;
-        }
-        break;
-      case "respond-webhook":
-        if (typeof (node as any).statusCode !== "number") {
-          return `Respond To Webhook node "${nodeId}" must have a numeric statusCode`;
-        }
-        if (typeof (node as any).body !== "string") {
-          return `Respond To Webhook node "${nodeId}" must have a body string`;
-        }
-        break;
-    }
-  }
-
-  // Validate edges reference existing nodes
-  const validNodeIds = new Set(["trigger", ...Object.keys(workflow.nodes)]);
-  for (const edge of workflow.edges) {
-    if (!validNodeIds.has(edge.source)) {
-      return `Edge "${edge.id}" references unknown source node "${edge.source}"`;
-    }
-    if (!validNodeIds.has(edge.target)) {
-      return `Edge "${edge.id}" references unknown target node "${edge.target}"`;
-    }
-  }
-
-  return null; // Valid
-}
 
 // ──────────── Form Trigger helpers ────────────
 
@@ -1361,76 +1190,15 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const nodeSchemas: Record<string, any> = {};
-      for (const [nodeId, node] of Object.entries(workflow.nodes)) {
-        const baseSchema: any = {
-          type: node.type,
-          name: node.name,
-        };
-
-        switch (node.type) {
-          case "plugin": {
-            try {
-              const plugin = PluginManager.getPlugin(node.pluginId);
-              const methodManifest = plugin.manifest.methods[node.action];
-              baseSchema.pluginId = node.pluginId;
-              baseSchema.action = node.action;
-              baseSchema.pluginName = plugin.manifest.metadata.name;
-              baseSchema.pluginIcon = plugin.manifest.metadata.icon;
-              baseSchema.parameters = methodManifest?.parameters ?? {};
-              baseSchema.responseSchema =
-                methodManifest?.responseSchema ?? null;
-            } catch {
-              baseSchema.pluginId = node.pluginId;
-              baseSchema.action = node.action;
-              baseSchema.parameters = {};
-            }
-            break;
-          }
-          case "code":
-            baseSchema.language = node.language;
-            break;
-          case "if":
-            baseSchema.condition = node.condition;
-            baseSchema.handles = ["then", "else"];
-            break;
-          case "loop":
-            baseSchema.collection = node.collection;
-            baseSchema.maxIterations = node.maxIterations;
-            baseSchema.handles = ["loop-body", "loop-done"];
-            break;
-          case "subworkflow":
-            baseSchema.workflowId = node.workflowId;
-            baseSchema.inputMapping = node.inputMapping;
-            break;
-          case "http":
-            baseSchema.method = node.method;
-            baseSchema.url = node.url;
-            break;
-          case "event":
-            baseSchema.eventName = node.eventName;
-            baseSchema.payloadMapping = node.payloadMapping;
-            break;
-        }
-
-        nodeSchemas[nodeId] = baseSchema;
-      }
+      const schema = buildWorkflowSchema(workflow, {
+        getPlugin: (pluginId) => PluginManager.getPlugin(pluginId),
+      });
 
       return sendResponse(reply, {
         status_code: 200,
         message: "Workflow schema retrieved",
         error: null,
-        data: {
-          workflowId: workflow.metadata.id,
-          name: workflow.metadata.name,
-          version: workflow.metadata.version,
-          isDraft: workflow.metadata.isDraft,
-          trigger: workflow.trigger,
-          nodes: nodeSchemas,
-          edges: workflow.edges,
-          variables: workflow.variables || [],
-          availableNodeTypes: [...VALID_NODE_TYPES],
-        },
+        data: schema,
       });
     } catch (error: any) {
       return sendResponse(reply, {

@@ -1,4 +1,5 @@
 import type { HttpNode } from "../../../shared/models/workflow-types.ts";
+import { runExternalIO } from "../../modules/workflows/external-io-runner.ts";
 import { WorkflowParser } from "../../modules/workflows/parser.ts";
 import { createNodeHandler } from "../handler.ts";
 
@@ -34,16 +35,23 @@ export const httpNodeHandler = createNodeHandler<HttpNode>("http", async ({ node
     }
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), node.timeout ?? 30000);
-
-  try {
+  return runExternalIO({
+    label: `HTTP ${node.method} ${resolvedUrl}`,
+    timeoutMs: node.timeout ?? 30000,
+    retryPolicy: node.retryPolicy
+      ? {
+          maxRetries: node.retryPolicy.maxRetries,
+          intervalMs: node.retryPolicy.intervalSeconds * 1000,
+          backoffStrategy: node.retryPolicy.backoffStrategy,
+        }
+      : undefined,
+    operation: async ({ signal }) => {
     const response = await fetch(resolvedUrl, {
       method: node.method,
       headers: resolvedHeaders,
       body: bodyPayload,
       redirect: node.followRedirects !== false ? "follow" : "manual",
-      signal: controller.signal,
+      signal,
     });
 
     const contentType = response.headers.get("content-type") ?? "";
@@ -71,7 +79,13 @@ export const httpNodeHandler = createNodeHandler<HttpNode>("http", async ({ node
       headers: Object.fromEntries(response.headers.entries()),
       data: responseData,
     };
-  } finally {
-    clearTimeout(timeoutId);
-  }
+    },
+  });
+}, {
+  description: "Executes an outbound HTTP request and parses the response.",
+  execution: "external-io",
+  sideEffects: ["network"],
+  outputs: [{ id: "default", label: "Response" }],
+  errors: ["Request timeout", "Network error", "Response parsing error"],
+  usesExternalIO: true,
 });

@@ -6,10 +6,19 @@ import {
   createNodeHandler,
   createUtilityNodeRegistry,
 } from "./registry.ts";
+import type { NodeHandlerMetadata } from "./types.ts";
+
+const metadata: NodeHandlerMetadata = {
+  description: "Test handler",
+  execution: "stateless",
+  sideEffects: ["none"],
+  outputs: [{ id: "default", label: "Default" }],
+  errors: [],
+};
 
 describe("NodeHandlerRegistry", () => {
   it("registers and resolves utility node handlers by node type", () => {
-    const handler = createNodeHandler("set", async () => ({ ok: true }));
+    const handler = createNodeHandler("set", async () => ({ ok: true }), metadata);
     const registry = new NodeHandlerRegistry([handler]);
 
     assert.equal(registry.get("set"), handler);
@@ -17,8 +26,8 @@ describe("NodeHandlerRegistry", () => {
   });
 
   it("rejects duplicate handler registrations", () => {
-    const first = createNodeHandler("if", async () => ({ branch: "then" }));
-    const second = createNodeHandler("if", async () => ({ branch: "else" }));
+    const first = createNodeHandler("if", async () => ({ branch: "then" }), metadata);
+    const second = createNodeHandler("if", async () => ({ branch: "else" }), metadata);
 
     assert.throws(
       () => new NodeHandlerRegistry([first, second]),

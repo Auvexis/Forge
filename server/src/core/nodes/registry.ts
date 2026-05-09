@@ -42,6 +42,10 @@ export class NodeHandlerRegistry {
     }
     return handler;
   }
+
+  list(): NodeHandler[] {
+    return [...this.handlers.values()];
+  }
 }
 
 const utilityNodeTypes: UtilityNodeType[] = [

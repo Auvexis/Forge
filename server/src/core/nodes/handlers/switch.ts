@@ -15,4 +15,11 @@ export const switchNodeHandler = createNodeHandler<SwitchNode>(
 
     return { activeHandle: node.fallbackHandleId ?? "" };
   },
+  {
+    description: "Routes execution to the first matching case handle.",
+    execution: "stateless",
+    sideEffects: ["none"],
+    outputs: [{ id: "dynamic", label: "Matching case" }],
+    errors: ["Invalid switch expression"],
+  },
 );

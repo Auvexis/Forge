@@ -1,35 +1,24 @@
-# Milestone 2.1 - Executor Decomposition & SRP Refactoring
+# Milestone 2.1.1 - Engine Contracts & Hardening
 
-## Contexto Arquitetural
+## Regras de Arquitetura
 
-- O core de workflows deve orquestrar execucoes, traversal do grafo, retry, eventos SSE e persistencia de logs.
-- Handlers de utility nodes devem viver em `server/src/core/nodes/` e serem testaveis de forma isolada.
-- A execucao de plugins deve permanecer no caminho isolado de plugins. Logica de plugin nao deve vazar para o core de utility nodes.
-- O registry deve ser a fronteira explicita entre o executor e os handlers de nos.
+- Code Node continua com acesso total por decisao de produto.
+- Core/engine nao importa logica de plugin.
+- Plugin nao importa core/engine.
+- Utility nodes first-party podem acessar internals do core porque sao mantidos pelo Nod8.
+- Nenhuma feature existente deve quebrar.
 
 ## Tarefas
 
-- [x] Mapear `ND8_FEATURES_PLAN.md`, commits recentes e responsabilidades atuais do `server`.
-- [x] Criar este `TASK.md` no root do projeto.
-- [x] Criar contrato `NodeHandler`, contexto de execucao de nos e helpers compartilhados em `server/src/core/nodes/`.
-- [x] Criar `NodeHandlerRegistry` para resolver utility nodes e manter plugins fora do registry de utility handlers.
-- [x] Escrever testes unitarios para os handlers simples: `if`, `set`, `switch`, `merge`, `event-listener`, `trigger`.
-- [x] Extrair handlers simples para arquivos isolados em `server/src/core/nodes/handlers/`.
-- [x] Escrever testes unitarios para handlers com dependencias: `code`, `http`, `event`, `respond-webhook`, `subworkflow`.
-- [x] Extrair handlers com dependencias mantendo injecao explicita no contexto, sem imports cruzados desnecessarios.
-- [x] Extrair execucao de subgrafos reutilizavel para `loop` e `split-in-batches`.
-- [x] Escrever testes unitarios para `loop` e `split-in-batches` cobrindo colecoes invalidas e variaveis de iteracao/batch.
-- [x] Reduzir `server/src/core/modules/workflows/executor.ts` para orquestracao, retry, eventos, traversal e dispatch.
-- [x] Garantir que dispatch de plugin continue usando `PluginExecutor` por caminho isolado e com parametros avaliados pelo workflow parser.
-- [x] Rodar `npm run build` no `server` (bloqueado por erros preexistentes em manifests de plugins com `type: string[]`).
-- [x] Rodar a suite de testes do server.
-- [x] Revisar `TASK.md`, marcar todas as features concluidas e commitar o checkpoint final.
-
-## Commits Planejados
-
-- `docs: add milestone 2.1 task checklist`
-- `refactor(server): add workflow node handler contracts`
-- `refactor(server): extract simple utility node handlers`
-- `refactor(server): extract dependency-backed node handlers`
-- `refactor(server): extract subgraph utility node handlers`
-- `refactor(server): slim workflow executor orchestration`
+- [x] Recriar `TASK.md` no root para rastrear a mini-milestone.
+- [x] Formalizar o contrato de `NodeHandler` com metadata de execucao, handles, side effects, erros e IO.
+- [x] Criar uma `TemplateEngine` unica para `{{ trigger.xxx }}`, `{{ steps.xxx }}`, objetos, arrays e buffers.
+- [x] Preservar compatibilidade do `WorkflowParser` usando a nova `TemplateEngine`.
+- [x] Adicionar escaping explicito para contextos `text`, `sql`, `json` e `prompt`.
+- [x] Criar um `ExternalIORunner` com timeout, retry, abort signal e erro normalizado.
+- [x] Migrar o HTTP utility node para usar `ExternalIORunner`.
+- [x] Extrair validacao de workflow de `workflows.routes.ts` para modulo dedicado.
+- [x] Extrair montagem de schema de workflow de `workflows.routes.ts` para modulo dedicado.
+- [x] Rodar testes unitarios dos novos contratos/template/IO.
+- [x] Rodar testes existentes dos node handlers.
+- [x] Rodar `npm run build` no server.

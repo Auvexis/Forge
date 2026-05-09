@@ -56,7 +56,32 @@ export interface NodeHandlerServices {
 
 export interface NodeHandler {
   type: WorkflowNodeType;
+  metadata: NodeHandlerMetadata;
   execute: (input: NodeHandlerInput<any>) => Promise<any> | any;
+}
+
+export type NodeExecutionKind = "stateless" | "subgraph" | "external-io" | "long-running";
+export type NodeSideEffect =
+  | "none"
+  | "context-write"
+  | "workflow-dispatch"
+  | "event-emit"
+  | "webhook-response"
+  | "network";
+
+export interface NodeOutputHandle {
+  id: string;
+  label: string;
+}
+
+export interface NodeHandlerMetadata {
+  description: string;
+  execution: NodeExecutionKind;
+  sideEffects: NodeSideEffect[];
+  inputs?: string[];
+  outputs: NodeOutputHandle[];
+  errors: string[];
+  usesExternalIO?: boolean;
 }
 
 export type UtilityNodeType = Exclude<WorkflowNodeType, "plugin">;

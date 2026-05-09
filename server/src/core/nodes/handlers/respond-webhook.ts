@@ -35,4 +35,11 @@ export const respondWebhookNodeHandler = createNodeHandler<RespondToWebhookNode>
 
     return { statusCode, body: responseBody, resolved };
   },
+  {
+    description: "Resolves a pending webhook response for synchronous webhook workflows.",
+    execution: "stateless",
+    sideEffects: ["webhook-response"],
+    outputs: [{ id: "default", label: "Response" }],
+    errors: ["Invalid response body template"],
+  },
 );

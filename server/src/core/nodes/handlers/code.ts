@@ -27,4 +27,10 @@ export const codeNodeHandler = createNodeHandler<CodeNode>("code", async ({ node
 
   Object.assign(context.variables, result.variables);
   return result;
+}, {
+  description: "Runs user-authored JavaScript code with full local access by product choice.",
+  execution: "stateless",
+  sideEffects: ["context-write"],
+  outputs: [{ id: "default", label: "Output" }],
+  errors: ["Script runtime error", "Script timeout"],
 });

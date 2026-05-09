@@ -11,4 +11,10 @@ export const setNodeHandler = createNodeHandler<SetNode>("set", ({ node, context
   }
 
   return output;
+}, {
+  description: "Creates a mapped object from literal values and workflow templates.",
+  execution: "stateless",
+  sideEffects: ["none"],
+  outputs: [{ id: "default", label: "Output" }],
+  errors: ["Invalid template expression"],
 });

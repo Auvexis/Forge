@@ -49,6 +49,13 @@ export const splitInBatchesNodeHandler = createNodeHandler<SplitInBatchesNode>(
 
     return { batches: chunks.length, totalItems: collection.length };
   },
+  {
+    description: "Chunks a collection and executes a body subgraph once per batch.",
+    execution: "subgraph",
+    sideEffects: ["context-write"],
+    outputs: [{ id: "batch-body", label: "Batch body" }, { id: "batch-done", label: "Done" }],
+    errors: ["Collection did not resolve to an array", "Batch body execution failed"],
+  },
 );
 
 function chunkCollection(

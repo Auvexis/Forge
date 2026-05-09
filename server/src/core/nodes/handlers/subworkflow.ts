@@ -21,4 +21,11 @@ export const subWorkflowNodeHandler = createNodeHandler<SubWorkflowNode>(
     const result = await services.executeWorkflow(childWorkflow, childTrigger, childExecutionId);
     return result.context;
   },
+  {
+    description: "Dispatches a child workflow with mapped trigger input.",
+    execution: "long-running",
+    sideEffects: ["workflow-dispatch"],
+    outputs: [{ id: "default", label: "Child context" }],
+    errors: ["Sub-workflow not found", "Sub-workflow execution failed"],
+  },
 );
