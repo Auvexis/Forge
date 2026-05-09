@@ -57,21 +57,64 @@
 
 ---
 
-## 🚀 Phase 2: The Developer Ecosystem (Horizontal Scaling)
+## 🏗️ Phase 2: The Engine Rebuild (Pre-Launch Hardening)
+**Goal:** Before adding powerful new features like the Video Editor and AI Agent, the backend engine must be refactored to support them cleanly. This phase eliminates the monolithic executor, establishes the first-party utility node architecture, and delivers the killer features that will define the launch narrative.
+
+### Milestone 2.1: Executor Decomposition & SRP Refactoring
+*The `executor.ts` at ~1200 lines is a God Object. It must be surgically decomposed before new complex nodes are added.*
+* **Utility Node Registry:** Create a `server/src/core/nodes/` directory. Each utility node (`if`, `loop`, `switch`, `merge`, `set`, `split-in-batches`, `code`, `http`, `respond-webhook`) becomes its own isolated file exporting a `NodeHandler` interface.
+* **Clean Executor Core:** Reduce `executor.ts` to ~300 lines of pure orchestration logic — graph traversal, retry policies, SSE event emission, and plugin dispatch. It calls handlers; it does not contain their logic.
+* **Explicit Sandboxing Boundary:** Plugin execution stays in its own isolated path. The registry enforces a clear rule: utility nodes can import core internals freely; plugins cannot.
+* **Full Test Coverage:** Each utility node handler becomes independently unit-testable without spinning up a full workflow.
+
+### Milestone 2.2: Database Nodes (PostgreSQL, MySQL, SQLite)
+*The most requested category of nodes in every automation tool. Unlocks nd8 for real backend workflows.*
+* **Unified `DatabaseNode` Architecture:** A single node type with a `driver` selector (postgres / mysql / sqlite). Under the hood, uses `pg`, `mysql2`, and `better-sqlite3` — all with identical async APIs.
+* **Visual Query Builder (Alpha):** Simple mode with operation selector (SELECT / INSERT / UPDATE / DELETE) + field inputs. Advanced mode with raw SQL textarea. Both support `{{ steps.xxx }}` variable interpolation.
+* **Connection from Global Credentials:** Database connection strings are stored in the Global Settings credential vault — never hardcoded in the workflow.
+
+### Milestone 2.3: AI Agent Node (with Real Memory)
+*The node that positions nd8 as a modern automation tool, not just a webhook router.*
+* **Core Agent Loop:** Connect any LLM (Ollama, OpenAI, Anthropic) with a set of tools (other nodes in the workflow). The agent decides which tool to call based on the prompt — standard `tool_calls` loop.
+* **Short-Term Memory:** Conversation history passed as context on each call. Maintained in-memory per execution, zero config.
+* **Long-Term Memory via pgvector:** Optional. When a PostgreSQL connection is available, the agent stores and retrieves embeddings from previous runs, giving it genuine persistent memory across workflow executions.
+* **Variable-Aware Prompts:** System and user prompts fully support `{{ trigger.xxx }}` and `{{ steps.xxx }}` interpolation.
+
+### Milestone 2.4: Video Editor Node
+*The killer feature. The one that no competitor has. The one that makes the demo video go viral.*
+* **Exclusive UI Panel:** Not the generic `NodeInspectorModal`. A dedicated full-screen panel inspired by CapCut Web — timeline at the bottom, preview top-right, layer controls top-left.
+* **Layer System (Alpha scope):**
+  * Text layers with font, size, color, position (X/Y), and time range (start/end second)
+  * Static image overlay (watermark, logo) with opacity and position
+  * Trim (cut start/end of video)
+  * Aspect ratio presets (16:9, 9:16, 1:1, 4:5)
+* **`{{ steps.xxx }}` in Text Layers:** The definitive differentiator. Text content in any layer supports full workflow variable interpolation. Every video processed gets dynamically personalized content.
+* **Backend Processing via FFmpeg:** The configured template is serialized as a JSON layer spec and executed server-side by FFmpeg. No client-side video processing.
+* **Preview:** Single-frame static preview at the playhead position, rendered on-demand by the backend. Sufficient for alpha; avoids WebCodecs complexity.
+
+### Milestone 2.5: Plugins Page (3D Galaxy View)
+*The showcase that makes the first impression unforgettable.*
+* **3D Interactive Scene (Three.js):** Plugins rendered as floating cards in a spherical/galactic layout. `OrbitControls` for free camera movement. Plugins grouped by category as constellations.
+* **Plugin Detail Modal:** Clicking a node opens a modal with the plugin's methods listed. Each method has a **"Test"** button — a Swagger-UI-style playground where the user fills in params and sees the real API response. The first time nd8 lets you test a plugin without creating a workflow.
+* **Performance:** `InstancedMesh` for all plugin cards in a single draw call. Textures loaded from plugin logos. Lightweight even at 100+ plugins.
+
+---
+
+## 🚀 Phase 3: The Developer Ecosystem (Horizontal Scaling)
 **Goal:** Open the gates for the community. Shift the burden of building plugins from the core team to solo developers around the world by providing a frictionless, "magical" Developer Experience (DX).
 
-### Milestone 2.1: The `@nod8/sdk` (Node.js Library)
+### Milestone 3.1: The `@nod8/sdk` (Node.js Library)
 *Developers shouldn't need to understand the Nod8 monorepo to build a plugin.*
 * **Decoupling:** Extract the core types (`PluginContext`, `Nod8Manifest`, execution interfaces) from the backend.
 * **Publishing:** Release it as an official NPM package. This allows a solo dev to open an empty folder, run `npm install @nod8/sdk`, and get full TypeScript autocomplete for their plugin development.
 
-### Milestone 2.2: The Nod8 CLI (`npx nd8`)
+### Milestone 3.2: The Nod8 CLI (`npx nd8`)
 *Zero-config boilerplate and compilation.*
 * **Scaffolding (`nd8 create plugin`):** A command that generates a ready-to-use folder structure (based on the `_template` dir) with `manifest.json`, `methods.ts`, and test files.
 * **Build System (`nd8 build`):** A command that validates the `manifest.json` against the SDK schema and transpiles the TypeScript code locally for testing.
 * **Release Manager (`nd8 release -v 1.0.0`):** Automates the packaging. It creates a `release/` folder, bundles the transpiled code, and generates a `plugin-deps.json` containing only the specific NPM packages used by the plugin, preparing it for distribution.
 
-### Milestone 2.3: Decentralized Plugin Installation (The "Homebrew" Model)
+### Milestone 3.3: Decentralized Plugin Installation (The "Homebrew" Model)
 *The absolute Game Changer. No central plugin store required.*
 * **UI Integration:** Add an "Install External Plugin" button in the Nod8 frontend.
 * **Github Integration:** The user pastes a Github Repository URL.
@@ -83,6 +126,6 @@
 
 ---
 
-## 📈 Success Metrics for Phase 2
+## 📈 Success Metrics for Phase 3
 - A solo developer should be able to go from `npx nd8 create` to having a functional, custom plugin running in their local Nod8 instance in **under 15 minutes**.
 - Users should be able to install community plugins with **one click and zero terminal commands**.
