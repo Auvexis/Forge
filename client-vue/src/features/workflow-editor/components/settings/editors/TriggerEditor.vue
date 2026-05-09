@@ -326,47 +326,49 @@
             <div
               v-for="(field, i) in formFields"
               :key="i"
-              class="te-form-field-grid"
+              class="te-form-field-card"
             >
-              <BaseInput
-                :model-value="field.name"
-                @update:model-value="updateFormField(i, { name: $event as string })"
-                placeholder="field_name"
-                style="font-family: var(--nod8-font-mono)"
-              />
-              <BaseInput
-                :model-value="field.label"
-                @update:model-value="updateFormField(i, { label: $event as string })"
-                placeholder="Label"
-              />
-              <div>
+              <div class="te-form-field-grid">
+                <BaseInput
+                  :model-value="field.name"
+                  @update:model-value="updateFormField(i, { name: $event as string })"
+                  placeholder="field_name"
+                  style="font-family: var(--nod8-font-mono)"
+                />
+                <BaseInput
+                  :model-value="field.label"
+                  @update:model-value="updateFormField(i, { label: $event as string })"
+                  placeholder="Label"
+                />
                 <BaseSelect
                   :model-value="field.type"
                   :options="FORM_FIELD_TYPES"
                   @update:model-value="updateFormField(i, { type: $event as FormTriggerField['type'] })"
                 />
-              </div>
-              <BaseInput
-                :model-value="field.description || ''"
-                @update:model-value="updateFormField(i, { description: $event as string })"
-                placeholder="Description"
-              />
-              <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--nod8-text-secondary)] cursor-pointer whitespace-nowrap px-1">
                 <BaseInput
-                  type="checkbox"
-                  class="te-checkbox"
-                  :model-value="Boolean(field.required)"
-                  @update:model-value="updateFormField(i, { required: Boolean($event) })"
+                  :model-value="field.description || ''"
+                  @update:model-value="updateFormField(i, { description: $event as string })"
+                  placeholder="Description"
                 />
-                Req
-              </label>
-              <BaseButton
-                variant="ghost"
-                size="icon"
-                icon-left="x"
-                class="!text-[var(--nod8-text-muted)] hover:!text-[var(--nod8-text-primary)] !p-2"
-                @click="removeFormField(i)"
-              />
+                <div class="te-form-field-actions">
+                  <BaseButton
+                    type="button"
+                    :variant="field.required ? 'primary' : 'outline'"
+                    size="checkbox"
+                    :icon-left="field.required ? 'check' : undefined"
+                    :title="field.required ? 'Required field' : 'Optional field'"
+                    @click="updateFormField(i, { required: !field.required })"
+                  />
+                  <span class="te-form-field-required-label">Req</span>
+                  <BaseButton
+                    variant="ghost"
+                    size="icon"
+                    icon-left="x"
+                    class="!text-[var(--nod8-text-muted)] hover:!text-[var(--nod8-text-primary)] !p-2"
+                    @click="removeFormField(i)"
+                  />
+                </div>
+              </div>
               <BaseTextarea
                 v-if="formFieldUsesOptions(field.type)"
                 class="te-form-field-options"
@@ -1034,15 +1036,44 @@ onUnmounted(() => cleanup())
 </script>
 
 <style scoped>
+.te-form-field-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--nod8-border-subtle);
+  border-radius: var(--nod8-radius-md);
+  background: var(--nod8-bg-surface);
+}
+
 .te-form-field-grid {
   display: grid;
-  grid-template-columns: minmax(110px, 1fr) minmax(110px, 1fr) minmax(140px, 0.8fr) minmax(140px, 1fr) auto 32px;
+  grid-template-columns:
+    minmax(140px, 1fr)
+    minmax(140px, 1fr)
+    minmax(150px, 0.85fr)
+    minmax(160px, 1fr)
+    auto;
   gap: 8px;
   align-items: center;
 }
 
 .te-form-field-options {
-  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.te-form-field-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.te-form-field-required-label {
+  color: var(--nod8-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 @media (max-width: 720px) {

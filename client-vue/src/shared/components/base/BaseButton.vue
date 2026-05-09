@@ -38,7 +38,7 @@ import { computed } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dashed'
-export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon' | 'checkbox'
 
 const props = withDefaults(
   defineProps<{
@@ -62,6 +62,7 @@ const props = withDefaults(
 const iconSize = computed(() => {
   if (props.size === 'sm') return 14
   if (props.size === 'lg') return 20
+  if (props.size === 'checkbox') return 13
   return 16
 })
 
@@ -114,6 +115,14 @@ defineOptions({ inheritAttrs: false })
   width: 36px;
   height: 36px;
   padding: 0;
+}
+
+.base-button--checkbox {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: var(--nod8-radius-sm);
+  font-size: var(--nod8-text-xs);
 }
 
 /* ── Variants ──────────────────────────────────── */
