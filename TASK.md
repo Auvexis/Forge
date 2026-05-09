@@ -3,7 +3,7 @@
 ## Form Theme Renderer
 
 - [x] Task 1: Add structured form theme types to client and server models.
-- [ ] Task 2: Expose normalized form themes from the server form definition endpoint.
+- [x] Task 2: Expose normalized form themes from the server form definition endpoint.
 - [ ] Task 3: Extract the public form page into focused renderer components.
 - [ ] Task 4: Add structured theme controls to the Form Trigger editor.
 - [ ] Task 5: Run final server/client verification.

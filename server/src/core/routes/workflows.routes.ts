@@ -2,6 +2,7 @@ import crypto from "crypto";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import type {
+  FormTheme,
   WorkflowItem,
   WorkflowNode,
 } from "../../shared/models/workflow-types.ts";
@@ -61,6 +62,16 @@ const FORM_SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const FORM_FIELD_MAX_BYTES = 8 * 1024;
 const FORM_RATE_LIMIT_WINDOW_MS = 60_000;
 const FORM_RATE_LIMIT_MAX = 30;
+const FORM_THEME_TEXT_MAX = 256;
+const FORM_THEME_IMAGE_URL_MAX = 2048;
+const FORM_THEME_GRADIENT_MAX = 512;
+
+const FORM_THEME_PRESETS = new Set(["default-floating", "minimal-flat", "google-forms"]);
+const FORM_THEME_LAYOUTS = new Set(["floating", "flat", "full-width", "centered"]);
+const FORM_THEME_BACKGROUND_TYPES = new Set(["solid", "gradient", "image"]);
+const FORM_THEME_SHADOWS = new Set(["none", "sm", "md", "lg"]);
+const FORM_THEME_BUTTON_WIDTHS = new Set(["auto", "full"]);
+const FORM_THEME_BUTTON_SHAPES = new Set(["square", "medium", "pill"]);
 
 interface FormRateBucket { count: number; resetAt: number }
 const formRateLimit = new Map<string, FormRateBucket>();
@@ -124,6 +135,85 @@ function normalizeFormFields(raw: unknown): NormalizedFormField[] {
       placeholder: String(f.placeholder ?? ""),
     }))
     .filter((f) => f.name.length > 0);
+}
+
+function boundedString(value: unknown, max = FORM_THEME_TEXT_MAX): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  return trimmed.slice(0, max);
+}
+
+function boundedNumber(value: unknown, min: number, max: number): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+function enumValue(value: unknown, allowed: Set<string>): string | undefined {
+  return typeof value === "string" && allowed.has(value) ? value : undefined;
+}
+
+function compactObject<T extends object>(value: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined),
+  ) as Partial<T>;
+}
+
+function normalizeFormTheme(raw: unknown): FormTheme {
+  const source = raw && typeof raw === "object" ? raw as FormTheme : {};
+
+  return compactObject<FormTheme>({
+    preset: enumValue(source.preset, FORM_THEME_PRESETS) as FormTheme["preset"],
+    layout: enumValue(source.layout, FORM_THEME_LAYOUTS) as FormTheme["layout"],
+    background: compactObject<NonNullable<FormTheme["background"]>>({
+      type: enumValue(
+        source.background?.type,
+        FORM_THEME_BACKGROUND_TYPES,
+      ) as NonNullable<FormTheme["background"]>["type"],
+      color: boundedString(source.background?.color),
+      gradient: boundedString(source.background?.gradient, FORM_THEME_GRADIENT_MAX),
+      imageUrl: boundedString(source.background?.imageUrl, FORM_THEME_IMAGE_URL_MAX),
+    }),
+    container: compactObject<NonNullable<FormTheme["container"]>>({
+      backgroundColor: boundedString(source.container?.backgroundColor),
+      borderColor: boundedString(source.container?.borderColor),
+      borderWidth: boundedNumber(source.container?.borderWidth, 0, 12),
+      radius: boundedNumber(source.container?.radius, 0, 48),
+      shadow: enumValue(
+        source.container?.shadow,
+        FORM_THEME_SHADOWS,
+      ) as NonNullable<FormTheme["container"]>["shadow"],
+      maxWidth: boundedNumber(source.container?.maxWidth, 320, 1200),
+      padding: boundedNumber(source.container?.padding, 0, 80),
+    }),
+    button: compactObject<NonNullable<FormTheme["button"]>>({
+      width: enumValue(
+        source.button?.width,
+        FORM_THEME_BUTTON_WIDTHS,
+      ) as NonNullable<FormTheme["button"]>["width"],
+      shape: enumValue(
+        source.button?.shape,
+        FORM_THEME_BUTTON_SHAPES,
+      ) as NonNullable<FormTheme["button"]>["shape"],
+      backgroundColor: boundedString(source.button?.backgroundColor),
+      textColor: boundedString(source.button?.textColor),
+      borderColor: boundedString(source.button?.borderColor),
+      hoverBackgroundColor: boundedString(source.button?.hoverBackgroundColor),
+    }),
+    typography: compactObject<NonNullable<FormTheme["typography"]>>({
+      fontFamily: boundedString(source.typography?.fontFamily),
+      baseSize: boundedNumber(source.typography?.baseSize, 12, 22),
+      weight: boundedNumber(source.typography?.weight, 300, 800),
+    }),
+    fields: compactObject<NonNullable<FormTheme["fields"]>>({
+      backgroundColor: boundedString(source.fields?.backgroundColor),
+      textColor: boundedString(source.fields?.textColor),
+      borderColor: boundedString(source.fields?.borderColor),
+      focusColor: boundedString(source.fields?.focusColor),
+      radius: boundedNumber(source.fields?.radius, 0, 32),
+      spacing: boundedNumber(source.fields?.spacing, 8, 32),
+    }),
+  });
 }
 
 function renderFormPage(
@@ -247,6 +337,7 @@ function formDefinition(workflow: WorkflowItem, mode: "test" | "prod") {
     title: workflow.trigger.formTitle?.trim() || workflow.metadata.name,
     description: workflow.trigger.formDescription?.trim() || "",
     fields: normalizeFormFields(workflow.trigger.formFields),
+    theme: normalizeFormTheme(workflow.trigger.formTheme),
   };
 }
 
