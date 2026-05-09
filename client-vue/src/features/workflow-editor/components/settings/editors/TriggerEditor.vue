@@ -316,104 +316,11 @@
           />
         </div>
 
-        <!-- Fields list -->
-        <div class="te-section">
-          <div class="te-intro">
-            <span class="te-label">Form Fields</span>
-            <p class="te-hint">Each field is delivered to the workflow as <code class="editor-code-snippet" v-pre>{{ trigger.fields.&lt;name&gt; }}</code>.</p>
-          </div>
-
-          <div class="flex flex-col gap-2 mt-2">
-            <div
-              v-for="(field, i) in formFields"
-              :key="i"
-              class="te-form-field-card"
-            >
-              <div class="te-form-field-grid">
-                <BaseInput
-                  :model-value="field.name"
-                  @update:model-value="updateFormField(i, { name: $event as string })"
-                  placeholder="field_name"
-                  style="font-family: var(--nod8-font-mono)"
-                />
-                <BaseInput
-                  :model-value="field.label"
-                  @update:model-value="updateFormField(i, { label: $event as string })"
-                  placeholder="Label"
-                />
-                <BaseInput
-                  :model-value="field.description || ''"
-                  @update:model-value="updateFormField(i, { description: $event as string })"
-                  placeholder="Description"
-                />
-                <BaseSelect
-                  :model-value="field.type"
-                  :options="FORM_FIELD_TYPES"
-                  @update:model-value="updateFormField(i, { type: $event as FormTriggerField['type'] })"
-                />
-                <div class="te-form-field-actions">
-                  <BaseButton
-                    type="button"
-                    :variant="field.required ? 'primary' : 'outline'"
-                    size="checkbox"
-                    :icon-left="field.required ? 'check' : undefined"
-                    :title="field.required ? 'Required field' : 'Optional field'"
-                    @click="updateFormField(i, { required: !field.required })"
-                  />
-                  <span class="te-form-field-required-label">Req</span>
-                  <BaseButton
-                    variant="ghost"
-                    size="icon"
-                    icon-left="x"
-                    class="!text-[var(--nod8-text-muted)] hover:!text-[var(--nod8-text-primary)] !p-2"
-                    @click="removeFormField(i)"
-                  />
-                </div>
-              </div>
-              <BaseInput
-                v-if="!formFieldUsesOptions(field.type) && field.type !== 'file' && field.type !== 'date'"
-                class="te-form-field-options"
-                :model-value="field.placeholder || ''"
-                @update:model-value="updateFormField(i, { placeholder: $event as string })"
-                :placeholder="field.type === 'checkbox' ? 'Checkbox text (e.g. Yes, I agree)' : 'Placeholder text...'"
-              />
-              <BaseTextarea
-                v-if="formFieldUsesOptions(field.type)"
-                class="te-form-field-options"
-                :model-value="getFieldOptionsText(field, i)"
-                :rows="3"
-                placeholder="Option A&#10;Option B&#10;Value C | Label C"
-                @update:model-value="updateFieldOptionsText(i, $event)"
-              />
-              <div v-if="field.type === 'file'" class="flex gap-2 mt-2 ml-6">
-                <BaseInput
-                  style="flex: 1"
-                  :model-value="field.accept || ''"
-                  @update:model-value="updateFormField(i, { accept: $event as string })"
-                  placeholder="Accept types (e.g. image/*, .pdf)"
-                />
-                <BaseInput
-                  style="flex: 1"
-                  type="number"
-                  :model-value="field.maxSize?.toString() || ''"
-                  @update:model-value="updateFormField(i, { maxSize: $event ? Number($event) : undefined })"
-                  placeholder="Max Size (MB)"
-                />
-              </div>
-            </div>
-
-            <BaseButton
-              variant="dashed"
-              size="md"
-              icon-left="plus"
-              full-width
-              class="!rounded-full mt-1"
-              @click="addFormField"
-            >
-              Add Form Field
-            </BaseButton>
-          </div>
-        </div>
+        <FormFieldsEditor
+          :model-value="formFields"
+          hint="Each field is delivered to the workflow as <code class='editor-code-snippet'>{{ trigger.fields.&lt;name&gt; }}</code>."
+          @update:model-value="saveFormFields"
+        />
 
       </div>
     </template>
@@ -632,6 +539,7 @@ import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import FormThemeMenu from '../../form/FormThemeMenu.vue'
+import FormFieldsEditor from '../../form/FormFieldsEditor.vue'
 import { API_BASE_URL } from '@/core/constants/app'
 import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowsApi } from '@/core/api/workflows.api'
@@ -657,30 +565,6 @@ const TRIGGER_OPTIONS = [
   { value: 'event', label: 'Event', icon: 'zap' },
   { value: 'plugin', label: 'Plugin Trigger', icon: 'plug' },
 ]
-
-const FORM_FIELD_TYPES = [
-  { value: 'text', label: 'Text', icon: 'type' },
-  { value: 'email', label: 'Email', icon: 'mail' },
-  { value: 'number', label: 'Number', icon: 'hash' },
-  { value: 'textarea', label: 'Textarea', icon: 'align-left' },
-  { value: 'date', label: 'Date Picker', icon: 'calendar' },
-  { value: 'password', label: 'Password', icon: 'lock-keyhole' },
-  { value: 'file', label: 'File', icon: 'file' },
-  { value: 'select', label: 'Select', icon: 'list' },
-  { value: 'checkbox', label: 'Checkbox', icon: 'square-check' },
-  { value: 'checkbox-group', label: 'Checkbox Group', icon: 'list-todo' },
-  { value: 'radio', label: 'Radio Group', icon: 'circle-dot' },
-  { value: 'quiz', label: 'Quiz Choice', icon: 'badge-help' },
-  { value: 'tel', label: 'Phone', icon: 'phone' },
-  { value: 'url', label: 'URL', icon: 'link' },
-]
-
-const FORM_FIELD_TYPES_WITH_OPTIONS = new Set<FormTriggerField['type']>([
-  'select',
-  'checkbox-group',
-  'radio',
-  'quiz',
-])
 
 const MANUAL_FIELD_TYPES = [
   { value: 'string', label: 'String', icon: 'type' },
@@ -876,61 +760,6 @@ const formIsPublished = computed(
 
 function saveFormFields(next: FormTriggerField[]) {
   props.updateNodeData({ formFields: next })
-}
-
-function addFormField() {
-  const idx = formFields.value.length
-  saveFormFields([
-    ...formFields.value,
-    { name: `field_${idx + 1}`, label: `Field ${idx + 1}`, type: 'text', required: false },
-  ])
-}
-
-function updateFormField(i: number, updates: Partial<FormTriggerField>) {
-  const next = formFields.value.map((f, idx) => (idx === i ? { ...f, ...updates } : f))
-  saveFormFields(next)
-}
-
-function removeFormField(i: number) {
-  saveFormFields(formFields.value.filter((_, idx) => idx !== i))
-}
-
-function formFieldUsesOptions(type: FormTriggerField['type']) {
-  return FORM_FIELD_TYPES_WITH_OPTIONS.has(type)
-}
-
-function formatFormFieldOptions(options: FormTriggerField['options'] = []) {
-  return options.map((option) => (
-    option.value === option.label ? option.value : `${option.value} | ${option.label}`
-  )).join('\n')
-}
-
-function parseFormFieldOptions(value: string): NonNullable<FormTriggerField['options']> {
-  return value
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [rawValue = '', rawLabel = ''] = line.split('|')
-      const valuePart = rawValue.trim()
-      const labelPart = rawLabel.trim()
-      return {
-        value: valuePart,
-        label: labelPart || valuePart,
-      }
-    })
-}
-
-const optionsTextMap = ref<Record<number, string>>({})
-
-function getFieldOptionsText(field: FormTriggerField, i: number) {
-  if (optionsTextMap.value[i] !== undefined) return optionsTextMap.value[i]
-  return formatFormFieldOptions(field.options)
-}
-
-function updateFieldOptionsText(i: number, value: string) {
-  optionsTextMap.value[i] = value
-  updateFormField(i, { options: parseFormFieldOptions(value) })
 }
 
 // ── Plugin Trigger ──────────────────────────────────────────

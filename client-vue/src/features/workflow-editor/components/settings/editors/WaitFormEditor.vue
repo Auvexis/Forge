@@ -25,6 +25,18 @@
       />
     </EditorField>
 
+    <EditorField label="URL Prefix" icon="link">
+      <BaseInput
+        :model-value="(node.data.slugPrefix as string) || ''"
+        @update:model-value="updateNodeData({ slugPrefix: $event as string || undefined })"
+        placeholder="vaga-dev"
+      />
+      <div class="editor-hint">
+        The final public URL receives a random suffix, for example
+        <span class="editor-code-snippet">vaga-dev-&lt;uuid&gt;</span>.
+      </div>
+    </EditorField>
+
     <EditorField label="Expiration (seconds)" icon="timer">
       <BaseInput
         type="number"
@@ -35,56 +47,37 @@
       <div class="editor-hint">If the form is not submitted before this, the workflow stops.</div>
     </EditorField>
 
-    <EditorField label="Fields JSON" icon="list">
-      <div class="editor-hint editor-hint--violet">
-        Temporary version: edit fields as JSON. The submitted data becomes
-        <span class="editor-code-snippet">steps.{{ node.id }}.output.fields</span>.
-      </div>
-      <BaseTextarea
-        :model-value="fieldsJson"
-        @update:model-value="updateFields($event as string)"
-        spellcheck="false"
-        :rows="8"
-      />
-      <div v-if="jsonError" class="wait-form-error">{{ jsonError }}</div>
-    </EditorField>
+    <FormThemeMenu
+      :model-value="formTheme"
+      :title="(node.data.title as string) || ''"
+      :description="(node.data.description as string) || ''"
+      @update:model-value="updateNodeData({ theme: $event })"
+    />
+
+    <FormFieldsEditor
+      :model-value="formFields"
+      hint="Submitted fields are available as <code class='editor-code-snippet'>{{ steps.thisNode.output.fields.&lt;name&gt; }}</code>."
+      @update:model-value="updateNodeData({ fields: $event })"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import type { FormTriggerField } from '@/core/types/workflow.types'
+import { computed } from 'vue'
+import type { FormTheme, FormTriggerField } from '@/core/types/workflow.types'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import FormThemeMenu from '../../form/FormThemeMenu.vue'
+import FormFieldsEditor from '../../form/FormFieldsEditor.vue'
 
 const props = defineProps<NodeEditorProps>()
-const jsonError = ref('')
 
-const fieldsJson = computed(() =>
-  JSON.stringify((props.node.data.fields as FormTriggerField[]) ?? [], null, 2),
+const formFields = computed<FormTriggerField[]>(
+  () => (props.node.data.fields as FormTriggerField[]) ?? [],
 )
 
-function updateFields(value: string) {
-  try {
-    const parsed = JSON.parse(value)
-    if (!Array.isArray(parsed)) {
-      jsonError.value = 'Fields must be a JSON array.'
-      return
-    }
-    jsonError.value = ''
-    props.updateNodeData({ fields: parsed })
-  } catch (error) {
-    jsonError.value = error instanceof Error ? error.message : 'Invalid JSON'
-  }
-}
+const formTheme = computed<FormTheme>(
+  () => (props.node.data.theme as FormTheme) ?? {},
+)
 </script>
-
-<style scoped>
-.wait-form-error {
-  color: var(--nod8-danger, #ef4444);
-  font-size: var(--nod8-text-xs);
-  margin-top: var(--nod8-space-2);
-}
-</style>

@@ -204,6 +204,12 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       if (!Array.isArray(node.fields) || node.fields.length === 0) {
         return `Wait Form node "${nodeId}" must have at least one field`;
       }
+      if (
+        node.slugPrefix &&
+        (typeof node.slugPrefix !== "string" || !FORM_SLUG_REGEX.test(node.slugPrefix))
+      ) {
+        return `Wait Form node "${nodeId}" slugPrefix must be kebab-case`;
+      }
       {
         const fieldError = validateFormFields(node.fields, `Wait Form node "${nodeId}"`);
         if (fieldError) return fieldError;

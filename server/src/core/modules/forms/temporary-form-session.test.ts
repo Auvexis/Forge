@@ -29,6 +29,23 @@ describe("temporary form sessions", () => {
     });
   });
 
+  it("uses a readable slug prefix when creating the public form id", () => {
+    resetTemporaryFormSessionsForTests();
+
+    const session = createTemporaryFormSession({
+      workflowId: "workflow-1",
+      executionId: "exec-1",
+      nodeId: "wait-form-1",
+      title: "Apply",
+      fields: [{ name: "email", label: "Email", type: "email" }],
+      slugPrefix: "vaga-dev",
+      expiresInSeconds: 5,
+    });
+
+    assert.match(session.id, /^vaga-dev-[0-9a-f-]+$/);
+    submitTemporaryFormSession(session.id, { email: "ada@example.com" });
+  });
+
   it("rejects when a form session expires", async () => {
     resetTemporaryFormSessionsForTests();
 

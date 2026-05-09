@@ -29,6 +29,7 @@ export const waitFormNodeHandler = createNodeHandler<WaitFormNode>(
       description: node.description,
       fields: node.fields,
       theme: node.theme,
+      slugPrefix: node.slugPrefix,
       expiresInSeconds,
     });
     const formUrl = `${resolvePublicOrigin()}/temporary-forms/${session.id}`;

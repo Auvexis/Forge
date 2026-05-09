@@ -394,7 +394,9 @@ const addLogicNode = (type: WorkflowNodeType) => {
   } else if (type === 'wait-form') {
     defaultData.title = 'Temporary Form'
     defaultData.description = ''
+    defaultData.slugPrefix = 'temporary-form'
     defaultData.expiresInSeconds = 900
+    defaultData.theme = { preset: 'social-media' }
     defaultData.fields = [
       { name: 'email', label: 'Email', type: 'email', required: true },
     ]

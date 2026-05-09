@@ -78,4 +78,30 @@ describe("wait-form utility node", () => {
     assert.deepEqual(result.fields, { email: "ada@example.com" });
     assert.equal(result.formId, formId);
   });
+
+  it("uses slugPrefix in the temporary form URL", async () => {
+    let formId = "";
+    const execution = waitFormNodeHandler.execute(
+      input(
+        {
+          type: "wait-form",
+          name: "Candidate Form",
+          title: "Candidate",
+          slugPrefix: "vaga-dev",
+          fields: [{ name: "email", label: "Email", type: "email" }],
+          expiresInSeconds: 5,
+        },
+        {
+          emitWorkflowEvent: (event) => {
+            formId = event.data?.formId ?? formId;
+          },
+        },
+      ),
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.match(formId, /^vaga-dev-/);
+    submitTemporaryFormSession(formId, { email: "ada@example.com" });
+    await execution;
+  });
 });

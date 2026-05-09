@@ -9,6 +9,7 @@ export interface TemporaryFormSessionInput {
   description?: string;
   fields: FormTriggerField[];
   theme?: FormTheme;
+  slugPrefix?: string;
   expiresInSeconds: number;
 }
 
@@ -47,7 +48,7 @@ export class TemporaryFormExpiredError extends Error {
 export function createTemporaryFormSession(
   input: TemporaryFormSessionInput,
 ): TemporaryFormSession {
-  const id = crypto.randomUUID();
+  const id = buildSessionId(input.slugPrefix);
   const now = Date.now();
   const expiresAt = now + Math.max(1, input.expiresInSeconds * 1000);
 
@@ -75,6 +76,17 @@ export function createTemporaryFormSession(
   });
 
   return { id, result, expiresAt };
+}
+
+function buildSessionId(slugPrefix: string | undefined): string {
+  const uuid = crypto.randomUUID();
+  const cleanPrefix = slugPrefix
+    ?.trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return cleanPrefix ? `${cleanPrefix}-${uuid}` : uuid;
 }
 
 export function getTemporaryFormSession(id: string) {
