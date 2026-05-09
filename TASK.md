@@ -6,7 +6,7 @@
 - [x] Task 2: Expose normalized form themes from the server form definition endpoint.
 - [x] Task 3: Extract the public form page into focused renderer components.
 - [x] Task 4: Add structured theme controls to the Form Trigger editor.
-- [ ] Task 5: Run final server/client verification.
+- [x] Task 5: Run final server/client verification.
 
 ## Future: Temporary Form Wait Node
 
