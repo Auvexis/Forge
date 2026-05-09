@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, markRaw, computed, onBeforeUnmount } from 'vue'
-import { VueFlow, useVueFlow } from '@vue-flow/core'
-import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection } from '@vue-flow/core'
+import { VueFlow } from '@vue-flow/core'
+import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection, VueFlowStore } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
 import { useExecutionStore } from '../stores/execution.store'
 import TriggerNode from './nodes/TriggerNode.vue'
@@ -37,7 +37,7 @@ const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
 const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
-const { project, findNode, updateNode, removeNodes, removeEdges, nodes, edges } = useVueFlow()
+const vueFlowStore = ref<VueFlowStore | null>(null)
 
 // ── Props / emits (for v-model:show-logs from parent page) ──────────────────
 const props = defineProps<{
@@ -61,6 +61,10 @@ const showLogsLocal = computed(() => props.showLogs ?? false)
 //
 const vueFlowNodes = ref<Node[]>([])
 const vueFlowEdges = ref<Edge[]>([])
+
+function onVueFlowInit(instance: VueFlowStore) {
+  vueFlowStore.value = instance
+}
 
 function buildNodes() {
   if (!workflowStore.activeWorkflow) return []
@@ -97,8 +101,11 @@ function buildEdges() {
 
 // Limpa o estado global do VueFlow ao sair do editor para evitar "fantasmas"
 onBeforeUnmount(() => {
-  if (nodes.value.length > 0) removeNodes(nodes.value)
-  if (edges.value.length > 0) removeEdges(edges.value)
+  const instance = vueFlowStore.value
+  if (!instance) return
+
+  if (instance.nodes.length > 0) instance.removeNodes(instance.nodes)
+  if (instance.edges.length > 0) instance.removeEdges(instance.edges)
 })
 
 // Reinicializa o VueFlow apenas quando muda o workflow (não a cada edição de campo)
@@ -115,8 +122,9 @@ watch(
   () => workflowStore.graphUpdateTrigger,
   () => {
     // We also clear it here on graph rename or massive updates
-    if (nodes.value.length > 0) removeNodes(nodes.value)
-    if (edges.value.length > 0) removeEdges(edges.value)
+    const instance = vueFlowStore.value
+    if (instance?.nodes.length) instance.removeNodes(instance.nodes)
+    if (instance?.edges.length) instance.removeEdges(instance.edges)
 
     vueFlowNodes.value = buildNodes()
     vueFlowEdges.value = buildEdges()
@@ -173,11 +181,14 @@ const onNodeDoubleClick = (event: NodeMouseEvent) => {
  * Usamos isso para adicionar novo node sempre visível na tela.
  */
 function getCenterPosition(): { x: number; y: number } {
-  const el = document.querySelector('.vue-flow__viewport') as HTMLElement
-  const width = el?.offsetWidth ?? 600
-  const height = el?.offsetHeight ?? 400
-  // project() converte coordenadas da tela pra coordenadas do canvas
-  return project({ x: width / 2, y: height / 2 })
+  const canvas = document.querySelector('.nod8-workflow-canvas') as HTMLElement | null
+  const bounds = canvas?.getBoundingClientRect()
+  const screenCenter = {
+    x: (bounds?.left ?? 0) + (bounds?.width ?? window.innerWidth) / 2,
+    y: (bounds?.top ?? 0) + (bounds?.height ?? window.innerHeight) / 2,
+  }
+
+  return vueFlowStore.value?.screenToFlowCoordinate(screenCenter) ?? screenCenter
 }
 
 let quickAddSourceId: string | null = null
@@ -287,8 +298,9 @@ function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
 
 function alignNodeCenters(sourceId: string, targetId: string) {
   const checkAndAlign = (attempts = 0) => {
-    const sNode = findNode(sourceId)
-    const tNode = findNode(targetId)
+    const instance = vueFlowStore.value
+    const sNode = instance?.findNode(sourceId)
+    const tNode = instance?.findNode(targetId)
 
     const sHeight = sNode?.dimensions?.height || 0
     const tHeight = tNode?.dimensions?.height || 0
@@ -298,7 +310,7 @@ function alignNodeCenters(sourceId: string, targetId: string) {
       const newY = centerY - tHeight / 2
 
       // Atualiza o Y via VueFlow state
-      updateNode(targetId, { position: { x: tNode!.position.x, y: newY } })
+      instance?.updateNode(targetId, { position: { x: tNode!.position.x, y: newY } })
 
       // Atualiza a prop reativa do VueFlow (array model)
       const vNode = (vueFlowNodes.value as any[]).find((n) => n.id === targetId)
@@ -558,6 +570,7 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       @node-double-click="onNodeDoubleClick"
       @node-drag-stop="onNodeDragStop"
       @connect="onConnect"
+      @init="onVueFlowInit"
       @edges-change="onEdgesChange"
       @nodes-change="onNodesChange"
     >
