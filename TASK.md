@@ -13,8 +13,8 @@
 - [x] Criar este `TASK.md` no root do projeto.
 - [x] Criar contrato `NodeHandler`, contexto de execucao de nos e helpers compartilhados em `server/src/core/nodes/`.
 - [x] Criar `NodeHandlerRegistry` para resolver utility nodes e manter plugins fora do registry de utility handlers.
-- [ ] Escrever testes unitarios para os handlers simples: `if`, `set`, `switch`, `merge`, `event-listener`, `trigger`.
-- [ ] Extrair handlers simples para arquivos isolados em `server/src/core/nodes/handlers/`.
+- [x] Escrever testes unitarios para os handlers simples: `if`, `set`, `switch`, `merge`, `event-listener`, `trigger`.
+- [x] Extrair handlers simples para arquivos isolados em `server/src/core/nodes/handlers/`.
 - [ ] Escrever testes unitarios para handlers com dependencias: `code`, `http`, `event`, `respond-webhook`, `subworkflow`.
 - [ ] Extrair handlers com dependencias mantendo injecao explicita no contexto, sem imports cruzados desnecessarios.
 - [ ] Extrair execucao de subgrafos reutilizavel para `loop` e `split-in-batches`.
