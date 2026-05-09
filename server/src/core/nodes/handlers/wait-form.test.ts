@@ -31,7 +31,7 @@ function input(
     workflow,
     edges: [],
     executionId: "exec-1",
-    context: { trigger: {}, steps: {}, variables: {} },
+    context: { trigger: { uuid: "candidate-123" }, steps: {}, variables: {} },
     services: {
       executeNode: async () => undefined,
       executeWorkflow: async () => undefined,
@@ -79,7 +79,7 @@ describe("wait-form utility node", () => {
     assert.equal(result.formId, formId);
   });
 
-  it("uses slugPrefix in the temporary form URL", async () => {
+  it("uses a templated publicSlug as the temporary form URL id", async () => {
     let formId = "";
     const execution = waitFormNodeHandler.execute(
       input(
@@ -87,7 +87,7 @@ describe("wait-form utility node", () => {
           type: "wait-form",
           name: "Candidate Form",
           title: "Candidate",
-          slugPrefix: "vaga-dev",
+          publicSlug: "vaga-{{ trigger.uuid }}",
           fields: [{ name: "email", label: "Email", type: "email" }],
           expiresInSeconds: 5,
         },
@@ -100,7 +100,7 @@ describe("wait-form utility node", () => {
     );
 
     await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.match(formId, /^vaga-dev-/);
+    assert.equal(formId, "vaga-candidate-123");
     submitTemporaryFormSession(formId, { email: "ada@example.com" });
     await execution;
   });

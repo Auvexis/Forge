@@ -25,15 +25,15 @@
       />
     </EditorField>
 
-    <EditorField label="URL Prefix" icon="link">
+    <EditorField label="Public URL Slug" icon="link">
       <BaseInput
-        :model-value="(node.data.slugPrefix as string) || ''"
-        @update:model-value="updateNodeData({ slugPrefix: $event as string || undefined })"
-        placeholder="vaga-dev"
+        :model-value="(node.data.publicSlug as string) || ''"
+        @update:model-value="updateNodeData({ publicSlug: $event as string || undefined })"
+        placeholder="vaga-{{ steps.uuid.output }}"
       />
       <div class="editor-hint">
-        The final public URL receives a random suffix, for example
-        <span class="editor-code-snippet">vaga-dev-&lt;uuid&gt;</span>.
+        Generate a UUID in an earlier step, send the link in parallel, then use the same slug here.
+        Supports <span class="editor-code-snippet" v-pre>{{ template }}</span> expressions.
       </div>
     </EditorField>
 

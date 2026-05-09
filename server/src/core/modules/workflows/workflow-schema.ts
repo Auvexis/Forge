@@ -75,7 +75,7 @@ export function buildWorkflowSchema(
       case "wait-form":
         baseSchema.title = node.title;
         baseSchema.description = node.description;
-        baseSchema.slugPrefix = node.slugPrefix;
+        baseSchema.publicSlug = node.publicSlug;
         baseSchema.fields = node.fields;
         baseSchema.expiresInSeconds = node.expiresInSeconds;
         break;

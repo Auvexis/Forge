@@ -9,7 +9,7 @@ export interface TemporaryFormSessionInput {
   description?: string;
   fields: FormTriggerField[];
   theme?: FormTheme;
-  slugPrefix?: string;
+  publicSlug?: string;
   expiresInSeconds: number;
 }
 
@@ -45,10 +45,21 @@ export class TemporaryFormExpiredError extends Error {
   }
 }
 
+export class TemporaryFormSessionConflictError extends Error {
+  constructor(formId: string) {
+    super(`Temporary form "${formId}" already exists`);
+    this.name = "TemporaryFormSessionConflictError";
+  }
+}
+
 export function createTemporaryFormSession(
   input: TemporaryFormSessionInput,
 ): TemporaryFormSession {
-  const id = buildSessionId(input.slugPrefix);
+  const id = buildSessionId(input.publicSlug);
+  if (sessions.has(id)) {
+    throw new TemporaryFormSessionConflictError(id);
+  }
+
   const now = Date.now();
   const expiresAt = now + Math.max(1, input.expiresInSeconds * 1000);
 
@@ -78,15 +89,14 @@ export function createTemporaryFormSession(
   return { id, result, expiresAt };
 }
 
-function buildSessionId(slugPrefix: string | undefined): string {
-  const uuid = crypto.randomUUID();
-  const cleanPrefix = slugPrefix
+function buildSessionId(publicSlug: string | undefined): string {
+  const cleanSlug = publicSlug
     ?.trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-  return cleanPrefix ? `${cleanPrefix}-${uuid}` : uuid;
+  return cleanSlug || crypto.randomUUID();
 }
 
 export function getTemporaryFormSession(id: string) {

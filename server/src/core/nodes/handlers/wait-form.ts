@@ -1,5 +1,6 @@
 import type { WaitFormNode } from "../../../shared/models/workflow-types.ts";
 import { createTemporaryFormSession } from "../../modules/forms/temporary-form-session.ts";
+import { WorkflowParser } from "../../modules/workflows/parser.ts";
 import { createNodeHandler } from "../handler.ts";
 
 const DEFAULT_EXPIRATION_SECONDS = 15 * 60;
@@ -15,21 +16,29 @@ function resolvePublicOrigin(): string {
 
 export const waitFormNodeHandler = createNodeHandler<WaitFormNode>(
   "wait-form",
-  async ({ node, workflow, nodeId, executionId, services }) => {
+  async ({ node, workflow, nodeId, executionId, context, services }) => {
     const expiresInSeconds = Math.min(
       MAX_EXPIRATION_SECONDS,
       Math.max(1, node.expiresInSeconds ?? DEFAULT_EXPIRATION_SECONDS),
+    );
+    const resolvedConfig = WorkflowParser.evalParams(
+      {
+        title: node.title,
+        description: node.description ?? "",
+        publicSlug: node.publicSlug ?? "",
+      },
+      context,
     );
 
     const session = createTemporaryFormSession({
       workflowId: workflow.metadata.id,
       executionId,
       nodeId,
-      title: node.title?.trim() || node.name,
-      description: node.description,
+      title: String(resolvedConfig.title || node.name).trim(),
+      description: String(resolvedConfig.description || ""),
       fields: node.fields,
       theme: node.theme,
-      slugPrefix: node.slugPrefix,
+      publicSlug: String(resolvedConfig.publicSlug || ""),
       expiresInSeconds,
     });
     const formUrl = `${resolvePublicOrigin()}/temporary-forms/${session.id}`;

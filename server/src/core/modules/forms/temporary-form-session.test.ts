@@ -29,7 +29,7 @@ describe("temporary form sessions", () => {
     });
   });
 
-  it("uses a readable slug prefix when creating the public form id", () => {
+  it("uses an explicit public slug when creating the public form id", () => {
     resetTemporaryFormSessionsForTests();
 
     const session = createTemporaryFormSession({
@@ -38,11 +38,11 @@ describe("temporary form sessions", () => {
       nodeId: "wait-form-1",
       title: "Apply",
       fields: [{ name: "email", label: "Email", type: "email" }],
-      slugPrefix: "vaga-dev",
+      publicSlug: "vaga-dev-123",
       expiresInSeconds: 5,
     });
 
-    assert.match(session.id, /^vaga-dev-[0-9a-f-]+$/);
+    assert.equal(session.id, "vaga-dev-123");
     submitTemporaryFormSession(session.id, { email: "ada@example.com" });
   });
 

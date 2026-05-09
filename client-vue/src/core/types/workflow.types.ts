@@ -180,7 +180,7 @@ export interface WaitFormNode extends WorkflowNodeBase {
   type: 'wait-form'
   title: string
   description?: string
-  slugPrefix?: string
+  publicSlug?: string
   fields: FormTriggerField[]
   theme?: FormTheme
   expiresInSeconds?: number

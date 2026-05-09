@@ -205,10 +205,10 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
         return `Wait Form node "${nodeId}" must have at least one field`;
       }
       if (
-        node.slugPrefix &&
-        (typeof node.slugPrefix !== "string" || !FORM_SLUG_REGEX.test(node.slugPrefix))
+        node.publicSlug &&
+        typeof node.publicSlug !== "string"
       ) {
-        return `Wait Form node "${nodeId}" slugPrefix must be kebab-case`;
+        return `Wait Form node "${nodeId}" publicSlug must be a string`;
       }
       {
         const fieldError = validateFormFields(node.fields, `Wait Form node "${nodeId}"`);
