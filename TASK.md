@@ -11,8 +11,8 @@
 
 - [x] Mapear `ND8_FEATURES_PLAN.md`, commits recentes e responsabilidades atuais do `server`.
 - [x] Criar este `TASK.md` no root do projeto.
-- [ ] Criar contrato `NodeHandler`, contexto de execucao de nos e helpers compartilhados em `server/src/core/nodes/`.
-- [ ] Criar `NodeHandlerRegistry` para resolver utility nodes e manter plugins fora do registry de utility handlers.
+- [x] Criar contrato `NodeHandler`, contexto de execucao de nos e helpers compartilhados em `server/src/core/nodes/`.
+- [x] Criar `NodeHandlerRegistry` para resolver utility nodes e manter plugins fora do registry de utility handlers.
 - [ ] Escrever testes unitarios para os handlers simples: `if`, `set`, `switch`, `merge`, `event-listener`, `trigger`.
 - [ ] Extrair handlers simples para arquivos isolados em `server/src/core/nodes/handlers/`.
 - [ ] Escrever testes unitarios para handlers com dependencias: `code`, `http`, `event`, `respond-webhook`, `subworkflow`.
