@@ -1,12 +1,19 @@
-import type { WorkflowNode, WorkflowNodeType } from "../../shared/models/workflow-types.ts";
+import type { WorkflowNodeType } from "../../shared/models/workflow-types.ts";
+import { codeNodeHandler } from "./handlers/code.ts";
+import { eventListenerNodeHandler } from "./handlers/event-listener.ts";
+import { eventNodeHandler } from "./handlers/event.ts";
+import { httpNodeHandler } from "./handlers/http.ts";
+import { ifNodeHandler } from "./handlers/if.ts";
+import { loopNodeHandler } from "./handlers/loop.ts";
+import { mergeNodeHandler } from "./handlers/merge.ts";
+import { respondWebhookNodeHandler } from "./handlers/respond-webhook.ts";
+import { setNodeHandler } from "./handlers/set.ts";
+import { splitInBatchesNodeHandler } from "./handlers/split-in-batches.ts";
+import { subWorkflowNodeHandler } from "./handlers/subworkflow.ts";
+import { switchNodeHandler } from "./handlers/switch.ts";
+import { triggerNodeHandler } from "./handlers/trigger.ts";
+export { createNodeHandler } from "./handler.ts";
 import type { NodeHandler, UtilityNodeType } from "./types.ts";
-
-export function createNodeHandler<TNode extends WorkflowNode>(
-  type: TNode["type"],
-  execute: NodeHandler<TNode>["execute"],
-): NodeHandler<TNode> {
-  return { type, execute };
-}
 
 export class NodeHandlerRegistry {
   private readonly handlers = new Map<WorkflowNodeType, NodeHandler>();
@@ -53,7 +60,25 @@ const utilityNodeTypes: UtilityNodeType[] = [
   "respond-webhook",
 ];
 
-export function createUtilityNodeRegistry(handlers: NodeHandler[] = []): NodeHandlerRegistry {
+const defaultUtilityHandlers: NodeHandler[] = [
+  codeNodeHandler,
+  ifNodeHandler,
+  loopNodeHandler,
+  subWorkflowNodeHandler,
+  triggerNodeHandler,
+  httpNodeHandler,
+  eventNodeHandler,
+  eventListenerNodeHandler,
+  setNodeHandler,
+  switchNodeHandler,
+  mergeNodeHandler,
+  splitInBatchesNodeHandler,
+  respondWebhookNodeHandler,
+];
+
+export function createUtilityNodeRegistry(
+  handlers: NodeHandler[] = defaultUtilityHandlers,
+): NodeHandlerRegistry {
   const registry = new NodeHandlerRegistry();
   for (const handler of handlers) {
     if (!utilityNodeTypes.includes(handler.type as UtilityNodeType)) {

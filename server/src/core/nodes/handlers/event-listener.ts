@@ -1,5 +1,5 @@
 import type { EventListenerNode } from "../../../shared/models/workflow-types.ts";
-import { createNodeHandler } from "../registry.ts";
+import { createNodeHandler } from "../handler.ts";
 
 export const eventListenerNodeHandler = createNodeHandler<EventListenerNode>(
   "event-listener",

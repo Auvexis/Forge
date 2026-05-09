@@ -1,6 +1,6 @@
 import type { SplitInBatchesNode } from "../../../shared/models/workflow-types.ts";
 import { evaluateExpression } from "../expression.ts";
-import { createNodeHandler } from "../registry.ts";
+import { createNodeHandler } from "../handler.ts";
 import { executeBodySubgraph } from "../subgraph.ts";
 
 export const splitInBatchesNodeHandler = createNodeHandler<SplitInBatchesNode>(

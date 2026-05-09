@@ -19,11 +19,11 @@
 - [x] Extrair handlers com dependencias mantendo injecao explicita no contexto, sem imports cruzados desnecessarios.
 - [x] Extrair execucao de subgrafos reutilizavel para `loop` e `split-in-batches`.
 - [x] Escrever testes unitarios para `loop` e `split-in-batches` cobrindo colecoes invalidas e variaveis de iteracao/batch.
-- [ ] Reduzir `server/src/core/modules/workflows/executor.ts` para orquestracao, retry, eventos, traversal e dispatch.
-- [ ] Garantir que dispatch de plugin continue usando `PluginExecutor` por caminho isolado e com parametros avaliados pelo workflow parser.
-- [ ] Rodar `npm run build` no `server`.
-- [ ] Rodar a suite de testes do server.
-- [ ] Revisar `TASK.md`, marcar todas as features concluidas e commitar o checkpoint final.
+- [x] Reduzir `server/src/core/modules/workflows/executor.ts` para orquestracao, retry, eventos, traversal e dispatch.
+- [x] Garantir que dispatch de plugin continue usando `PluginExecutor` por caminho isolado e com parametros avaliados pelo workflow parser.
+- [x] Rodar `npm run build` no `server` (bloqueado por erros preexistentes em manifests de plugins com `type: string[]`).
+- [x] Rodar a suite de testes do server.
+- [x] Revisar `TASK.md`, marcar todas as features concluidas e commitar o checkpoint final.
 
 ## Commits Planejados
 

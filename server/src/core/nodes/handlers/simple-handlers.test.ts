@@ -35,6 +35,9 @@ function input(node: WorkflowNode, context: WorkflowExecutionContext): NodeHandl
     services: {
       executeNode: async () => undefined,
       executeWorkflow: async () => undefined,
+      getWorkflowById: () => null,
+      emitInternalEvent: async () => ({ triggered: [] }),
+      resolvePendingWebhookResponse: () => false,
       emitNodeStart: () => undefined,
       emitNodeSuccess: () => undefined,
       emitNodeFailure: () => undefined,

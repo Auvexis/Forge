@@ -32,4 +32,26 @@ describe("NodeHandlerRegistry", () => {
     assert.equal(registry.has("plugin"), false);
     assert.throws(() => registry.get("plugin"), /No node handler registered for type "plugin"/);
   });
+
+  it("creates the default registry with all first-party utility handlers", () => {
+    const registry = createUtilityNodeRegistry();
+
+    for (const nodeType of [
+      "code",
+      "if",
+      "loop",
+      "subworkflow",
+      "trigger",
+      "http",
+      "event",
+      "event-listener",
+      "set",
+      "switch",
+      "merge",
+      "split-in-batches",
+      "respond-webhook",
+    ] as const) {
+      assert.equal(registry.has(nodeType), true, `${nodeType} should be registered`);
+    }
+  });
 });

@@ -1,6 +1,6 @@
 import type { HttpNode } from "../../../shared/models/workflow-types.ts";
 import { WorkflowParser } from "../../modules/workflows/parser.ts";
-import { createNodeHandler } from "../registry.ts";
+import { createNodeHandler } from "../handler.ts";
 
 export const httpNodeHandler = createNodeHandler<HttpNode>("http", async ({ node, context }) => {
   const resolvedUrl = WorkflowParser.evalParams({ url: node.url }, context).url as string;

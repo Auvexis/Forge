@@ -1,6 +1,6 @@
 import type { LoopNode } from "../../../shared/models/workflow-types.ts";
 import { resolvePath } from "../../modules/workflows/parser.ts";
-import { createNodeHandler } from "../registry.ts";
+import { createNodeHandler } from "../handler.ts";
 import { executeBodySubgraph } from "../subgraph.ts";
 
 export const loopNodeHandler = createNodeHandler<LoopNode>("loop", async (input) => {

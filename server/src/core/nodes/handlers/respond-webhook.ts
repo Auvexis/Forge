@@ -1,6 +1,6 @@
 import type { RespondToWebhookNode } from "../../../shared/models/workflow-types.ts";
 import { WorkflowParser } from "../../modules/workflows/parser.ts";
-import { createNodeHandler } from "../registry.ts";
+import { createNodeHandler } from "../handler.ts";
 
 export const respondWebhookNodeHandler = createNodeHandler<RespondToWebhookNode>(
   "respond-webhook",

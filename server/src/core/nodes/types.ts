@@ -54,9 +54,9 @@ export interface NodeHandlerServices {
   emitWorkflowEvent?: (event: WorkflowEvent) => void;
 }
 
-export interface NodeHandler<TNode extends WorkflowNode = WorkflowNode> {
-  type: TNode["type"];
-  execute: (input: NodeHandlerInput<TNode>) => Promise<any> | any;
+export interface NodeHandler {
+  type: WorkflowNodeType;
+  execute: (input: NodeHandlerInput<any>) => Promise<any> | any;
 }
 
 export type UtilityNodeType = Exclude<WorkflowNodeType, "plugin">;

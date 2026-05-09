@@ -1,6 +1,6 @@
 import type { SwitchNode } from "../../../shared/models/workflow-types.ts";
 import { evaluateExpression } from "../expression.ts";
-import { createNodeHandler } from "../registry.ts";
+import { createNodeHandler } from "../handler.ts";
 
 export const switchNodeHandler = createNodeHandler<SwitchNode>(
   "switch",

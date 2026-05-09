@@ -1,6 +1,6 @@
 import type { EventNode } from "../../../shared/models/workflow-types.ts";
 import { WorkflowParser } from "../../modules/workflows/parser.ts";
-import { createNodeHandler } from "../registry.ts";
+import { createNodeHandler } from "../handler.ts";
 
 export const eventNodeHandler = createNodeHandler<EventNode>(
   "event",

@@ -65,8 +65,8 @@ describe("subgraph utility node handlers", () => {
       collection: "{{ trigger.items }}",
       maxIterations: 10,
     } as const;
-    const bodyNode = { type: "set", name: "Body", assignments: [] } as const;
-    const context = { trigger: { items: ["a", "b"] }, steps: {}, variables: {} };
+    const bodyNode: WorkflowNode = { type: "set", name: "Body", assignments: [] };
+    const context: WorkflowExecutionContext = { trigger: { items: ["a", "b"] }, steps: {}, variables: {} };
     const seenItems: unknown[] = [];
 
     const result = await loopNodeHandler.execute(input(
@@ -120,8 +120,8 @@ describe("subgraph utility node handlers", () => {
       batchSize: 2,
       maxBatches: 10,
     } as const;
-    const bodyNode = { type: "set", name: "Body", assignments: [] } as const;
-    const context = { trigger: { items: [1, 2, 3] }, steps: {}, variables: {} };
+    const bodyNode: WorkflowNode = { type: "set", name: "Body", assignments: [] };
+    const context: WorkflowExecutionContext = { trigger: { items: [1, 2, 3] }, steps: {}, variables: {} };
     const seenBatches: unknown[] = [];
 
     const result = await splitInBatchesNodeHandler.execute(input(

@@ -1,6 +1,6 @@
 import type { SubWorkflowNode } from "../../../shared/models/workflow-types.ts";
 import { resolvePath } from "../../modules/workflows/parser.ts";
-import { createNodeHandler } from "../registry.ts";
+import { createNodeHandler } from "../handler.ts";
 
 export const subWorkflowNodeHandler = createNodeHandler<SubWorkflowNode>(
   "subworkflow",

@@ -1,6 +1,6 @@
 import type { CodeNode } from "../../../shared/models/workflow-types.ts";
 import { runCode } from "../../modules/workflows/code-runner.ts";
-import { createNodeHandler } from "../registry.ts";
+import { createNodeHandler } from "../handler.ts";
 
 export const codeNodeHandler = createNodeHandler<CodeNode>("code", async ({ node, context }) => {
   const result = runCode(node.script, context, context.variables);

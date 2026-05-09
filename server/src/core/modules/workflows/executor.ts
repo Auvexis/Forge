@@ -1,791 +1,78 @@
-import { PluginExecutor } from "../plugins/executor.ts";
-import { WorkflowParser, resolvePath } from "./parser.ts";
-import { WorkflowRepository } from "./repository.ts";
-import { AppRepository } from "../app/app-repository.ts";
-import { runCode } from "./code-runner.ts";
-import { workflowEventBus } from "./event-bus.ts";
 import { InternalEventBus } from "../events/internal-event-bus.ts";
-import { CancellationRegistry } from "./cancellation-registry.ts";
+import { PluginExecutor } from "../plugins/executor.ts";
 import { PendingWebhookResponseRegistry } from "./pending-webhook-registry.ts";
-import { PluginManager } from "../plugins/manager.ts";
+import { CancellationRegistry } from "./cancellation-registry.ts";
+import {
+  createExecutionContext,
+  sanitizeContextForLogging,
+} from "./execution-context.ts";
+import {
+  emitNodeFailure,
+  emitNodeStart,
+  emitNodeSuccess,
+  recordSuccessfulStep,
+} from "./execution-events.ts";
+import { createGraph, shouldReleaseEdge } from "./graph.ts";
+import { notifyPluginExecutionEnd } from "./plugin-lifecycle.ts";
+import { WorkflowParser } from "./parser.ts";
+import { WorkflowRepository } from "./repository.ts";
+import { workflowEventBus } from "./event-bus.ts";
+import { createUtilityNodeRegistry } from "../../nodes/registry.ts";
 import type {
+  NodeHandlerInput,
+  NodeHandlerServices,
+  WorkflowExecutionContext,
+} from "../../nodes/types.ts";
+import type {
+  EventListenerNode,
+  MergeNode,
+  PluginNode,
   WorkflowItem,
   WorkflowNode,
-  WorkflowEdge,
-  WorkflowVariable,
-  PluginNode,
-  CodeNode,
-  IfNode,
-  LoopNode,
-  SubWorkflowNode,
-  HttpNode,
-  EventNode,
-  EventListenerNode,
-  SetNode,
-  SwitchNode,
-  MergeNode,
-  SplitInBatchesNode,
-  RespondToWebhookNode,
 } from "../../../shared/models/workflow-types.ts";
 
-const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+export { sanitizeContextForLogging } from "./execution-context.ts";
 
-// ──────────── Context Sanitization ────────────
-
-export function sanitizeContextForLogging(context: any): any {
-  if (context === null || context === undefined) return context;
-
-  if (Buffer.isBuffer(context)) {
-    return `<Buffer size: ${context.length}>`;
-  }
-
-  // Check for Readable Stream (duck typing for robustness)
-  if (
-    typeof context === "object" &&
-    typeof context.pipe === "function" &&
-    typeof context.on === "function"
-  ) {
-    return `<ReadableStream>`;
-  }
-
-  if (Array.isArray(context)) {
-    return context.map(sanitizeContextForLogging);
-  }
-
-  if (typeof context === "object") {
-    const sanitized: Record<string, any> = {};
-    for (const [key, value] of Object.entries(context)) {
-      // Avoid deep-sanitizing everything if it's a suspected internal node object
-      if (key.startsWith("_") && typeof value === "object") continue;
-      sanitized[key] = sanitizeContextForLogging(value);
-    }
-    return sanitized;
-  }
-  return context;
-}
-
-// ──────────── Condition Evaluator ────────────
-
-/**
- * Evaluates a JS expression against the execution context.
- * The expression can reference `trigger`, `steps`, and `variables` directly.
- * e.g. "steps.step1.output.status === 200"
- */
-function evaluateCondition(
-  expression: string,
-  context: { trigger: any; steps: Record<string, any>; variables: Record<string, any> },
-): boolean {
-  const fn = new Function(
-    "trigger",
-    "steps",
-    "variables",
-    `"use strict"; return Boolean(${expression});`,
-  );
-  return fn(context.trigger, context.steps, context.variables);
-}
-
-// ──────────── Variable Initialization ────────────
-
-function initializeVariables(
-  definitions: WorkflowVariable[] | undefined,
-): Record<string, any> {
-  const vars: Record<string, any> = {};
-  if (!definitions) return vars;
-
-  for (const v of definitions) {
-    if (v.defaultValue !== undefined) {
-      vars[v.name] = v.defaultValue;
-    } else {
-      switch (v.type) {
-        case "string":
-          vars[v.name] = "";
-          break;
-        case "number":
-          vars[v.name] = 0;
-          break;
-        case "boolean":
-          vars[v.name] = false;
-          break;
-        case "object":
-          vars[v.name] = {};
-          break;
-        case "array":
-          vars[v.name] = [];
-          break;
-      }
-    }
-  }
-  return vars;
-}
-
-// ──────────── Node Execution Handlers ────────────
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const utilityNodeRegistry = createUtilityNodeRegistry();
 
 async function executePluginNode(
   node: PluginNode,
-  context: any,
+  context: WorkflowExecutionContext,
 ): Promise<any> {
   const cookedParams = WorkflowParser.evalParams(node.params, context);
-  
-  // Inject internal execution context for plugins that need it (e.g. file system sandbox)
   cookedParams.executionId = context._executionId;
-
-  // No explicit credential sync needed — CredentialStore reads directly from
-  // credentials.db and is already used by PluginExecutor internally.
-
   return PluginExecutor.execute(node.pluginId, node.action, cookedParams);
 }
 
-async function executeCodeNode(
-  node: CodeNode,
-  context: any,
-): Promise<any> {
-  const result = runCode(node.script, context, context.variables);
-  if (result.output && typeof result.output.then === 'function') {
-    result.output = await result.output;
-  }
-  
-  // Strip out node:vm prototype pollution so objects serialize correctly
-  if (result.output !== null && typeof result.output === 'object') {
-     try {
-       result.output = JSON.parse(JSON.stringify(result.output));
-     } catch (err) {}
+async function dispatchNode(input: Omit<NodeHandlerInput, "services">): Promise<any> {
+  if (input.node.type === "plugin") {
+    return executePluginNode(input.node, input.context);
   }
 
-  // Same for variables mutated inside the sandbox
-  if (result.variables !== null && typeof result.variables === 'object') {
-     try {
-       result.variables = JSON.parse(JSON.stringify(result.variables));
-     } catch (err) {}
-  }
-
-  Object.assign(context.variables, result.variables);
-  return result;
+  const services = createNodeServices(input.workflow, input.executionId);
+  const handler = utilityNodeRegistry.get(input.node.type);
+  return handler.execute({ ...input, services });
 }
 
-function executeIfNode(
-  node: IfNode,
-  context: any,
-): { branch: "then" | "else" } {
-  const result = evaluateCondition(node.condition, context);
-  return { branch: result ? "then" : "else" };
-}
-
-async function executeLoopNode(
-  node: LoopNode,
-  context: any,
+function createNodeServices(
   workflow: WorkflowItem,
-  edges: WorkflowEdge[],
-  execId: string,
-): Promise<{ iterations: number; results: any[] }> {
-  const collectionExpr = node.collection.trim();
-  const templateMatch = /^{{\s*([a-zA-Z0-9_.\[\]]+)\s*}}$/.exec(collectionExpr);
-
-  let collection: any[];
-  if (templateMatch) {
-    collection = resolvePath(context, templateMatch[1]);
-  } else {
-    collection = resolvePath(context, collectionExpr);
-  }
-
-  if (!Array.isArray(collection)) {
-    throw new Error(
-      `Loop node collection is not an array. Resolved value: ${typeof collection}`,
-    );
-  }
-
-  const maxIter = node.maxIterations || 1000;
-  const iterations = Math.min(collection.length, maxIter);
-  const results: any[] = [];
-
-  const loopNodeId = getNodeIdFromWorkflow(workflow, node);
-
-  // ── 1. BFS to collect the full body sub-graph ──────────────────────────────
-  // Start from every node directly attached to the `loop-body` handle and
-  // follow edges forward, stopping at the loop node itself or any node that
-  // is NOT part of the workflow (safety guard).
-  const bodyNodeIds = new Set<string>();
-  const bfsQueue: string[] = edges
-    .filter((e) => e.source === loopNodeId && e.sourceHandle === "loop-body")
-    .map((e) => e.target);
-
-  while (bfsQueue.length > 0) {
-    const nId = bfsQueue.shift()!;
-    // Stop if we've seen this node, if it's the loop itself, or it doesn't
-    // exist in the workflow (edge points to loop-done side or external node).
-    if (bodyNodeIds.has(nId) || nId === loopNodeId || !workflow.nodes[nId]) continue;
-    bodyNodeIds.add(nId);
-    // Enqueue all successors that haven't been visited yet.
-    for (const e of edges) {
-      if (e.source === nId && !bodyNodeIds.has(e.target)) {
-        bfsQueue.push(e.target);
-      }
-    }
-  }
-
-  // ── 2. Collect internal edges (source AND target both inside the body) ──────
-  const internalEdges = edges.filter(
-    (e) => bodyNodeIds.has(e.source) && bodyNodeIds.has(e.target),
-  );
-
-  // ── 3. Per-iteration topological execution of the body sub-graph ───────────
-  for (let i = 0; i < iterations; i++) {
-    context.variables["$item"] = collection[i];
-    context.variables["$index"] = i;
-    context.variables["$total"] = collection.length;
-
-    // Build local in-degree map for this iteration.
-    const localInDegree: Record<string, number> = {};
-    bodyNodeIds.forEach((n) => { localInDegree[n] = 0; });
-    internalEdges.forEach((e) => { localInDegree[e.target]++; });
-
-    // Entry nodes are those with no in-body predecessors.
-    // Also include every node pointed to by a `loop-body` edge from the loop
-    // itself (they have external predecessors that we treat as already resolved).
-    const loopBodyTargets = new Set(
-      edges
-        .filter((e) => e.source === loopNodeId && e.sourceHandle === "loop-body")
-        .map((e) => e.target),
-    );
-    const localQueue: string[] = [...bodyNodeIds].filter(
-      (n) => localInDegree[n] === 0 || loopBodyTargets.has(n),
-    );
-    const localExecuted = new Set<string>();
-
-    while (localQueue.length > 0) {
-      const nId = localQueue.shift()!;
-      if (localExecuted.has(nId)) continue;
-      localExecuted.add(nId);
-
-      const bodyNode = workflow.nodes[nId];
-      if (!bodyNode) continue;
-
-      // Emit node:start for visibility in the frontend.
-      workflowEventBus.emitWorkflowEvent({
-        executionId: execId,
-        workflowId: workflow.metadata.id,
-        type: "node:start",
-        nodeId: nId,
-        timestamp: Date.now(),
-      });
-
-      try {
-        const result = await executeNode(nId, bodyNode, context, workflow, edges, execId);
-
-        if (bodyNode.type === "code") {
-          const codeResult = result as any;
-          context.steps[nId] = {
-            status: "SUCCESS",
-            output: codeResult.output,
-            logs: codeResult.logs,
-          };
-          workflowEventBus.emitWorkflowEvent({
-            executionId: execId,
-            workflowId: workflow.metadata.id,
-            type: "node:success",
-            nodeId: nId,
-            timestamp: Date.now(),
-            data: sanitizeContextForLogging(codeResult.output),
-          });
-        } else {
-          context.steps[nId] = { status: "SUCCESS", output: result };
-          workflowEventBus.emitWorkflowEvent({
-            executionId: execId,
-            workflowId: workflow.metadata.id,
-            type: "node:success",
-            nodeId: nId,
-            timestamp: Date.now(),
-            data: sanitizeContextForLogging(result),
-          });
-        }
-
-        results.push(result);
-      } catch (err: any) {
-        context.steps[nId] = { status: "FAILED", error: err.message };
-        workflowEventBus.emitWorkflowEvent({
-          executionId: execId,
-          workflowId: workflow.metadata.id,
-          type: "node:failed",
-          nodeId: nId,
-          timestamp: Date.now(),
-          error: err.message,
-        });
-        // Propagate to the outer executor so the whole workflow fails cleanly.
-        throw err;
-      }
-
-      // Release successor nodes inside the body.
-      for (const e of internalEdges) {
-        if (e.source === nId) {
-          localInDegree[e.target]--;
-          if (localInDegree[e.target] === 0) localQueue.push(e.target);
-        }
-      }
-    }
-  }
-
-  delete context.variables["$item"];
-  delete context.variables["$index"];
-  delete context.variables["$total"];
-
-  return { iterations, results };
-}
-
-async function executeSubWorkflowNode(
-  node: SubWorkflowNode,
-  context: any,
-): Promise<any> {
-  const childWorkflow = WorkflowRepository.getWorkflowById(node.workflowId);
-  if (!childWorkflow) {
-    throw new Error(`Sub-workflow ${node.workflowId} not found`);
-  }
-
-  const childTrigger: Record<string, any> = {};
-  for (const [childKey, parentPath] of Object.entries(node.inputMapping)) {
-    childTrigger[childKey] = resolvePath(context, parentPath);
-  }
-
-  const childExecutionId = `exec_sub_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-  const result = await WorkflowEngine.executeWorkflow(childWorkflow, childTrigger, childExecutionId);
-  return result.context;
-}
-
-async function executeHttpNode(
-  node: HttpNode,
-  context: any,
-): Promise<any> {
-  // 1. Resolve template expressions in URL, headers, and body
-  const resolvedUrl = WorkflowParser.evalParams({ url: node.url }, context).url as string;
-
-  const resolvedHeaders: Record<string, string> = {};
-  if (node.headers) {
-    const cooked = WorkflowParser.evalParams(node.headers, context);
-    for (const [k, v] of Object.entries(cooked)) {
-      resolvedHeaders[k] = String(v);
-    }
-  }
-
-  let bodyPayload: string | undefined;
-  // PATCH and DELETE can now send bodies (common in modern REST)
-  if (node.body && node.method !== "GET") {
-    const cooked = WorkflowParser.evalParams({ body: node.body }, context);
-    const bodyStr = String(cooked.body ?? "");
-
-    if (node.bodyType === "json" || !node.bodyType) {
-      resolvedHeaders["Content-Type"] =
-        resolvedHeaders["Content-Type"] ?? "application/json";
-      // Validate & re-serialize JSON  so templates that resolve to objects are handled
-      try {
-        const parsed = JSON.parse(bodyStr);
-        bodyPayload = JSON.stringify(parsed);
-      } catch {
-        bodyPayload = bodyStr;
-      }
-    } else if (node.bodyType === "form") {
-      resolvedHeaders["Content-Type"] =
-        resolvedHeaders["Content-Type"] ?? "application/x-www-form-urlencoded";
-      bodyPayload = bodyStr;
-    } else if (node.bodyType === "raw") {
-      // Raw means "send it exactly as is, don't set Content-Type unless explicitly given"
-      bodyPayload = bodyStr;
-    } else {
-      bodyPayload = bodyStr;
-    }
-  }
-
-  // 2. Execute the HTTP request using native fetch (available in Node.js 22+)
-  const controller = new AbortController();
-  const timeoutId = setTimeout(
-    () => controller.abort(),
-    node.timeout ?? 30000,
-  );
-
-  try {
-    const response = await fetch(resolvedUrl, {
-      method: node.method,
-      headers: resolvedHeaders,
-      body: bodyPayload,
-      redirect: node.followRedirects !== false ? "follow" : "manual",
-      signal: controller.signal,
-    });
-
-    // 3. Parse response
-    let responseData: any;
-    const contentType = response.headers.get("content-type") ?? "";
-
-    if (node.responseType === "binary") {
-      // Convert ArrayBuffer to Node.js Buffer for the pipeline (e.g., x-input-type: file)
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      
-      responseData = {
-        content: buffer,
-        mimeType: contentType || "application/octet-stream",
-        size: buffer.length,
-      };
-    } else if (node.responseType === "text") {
-      responseData = await response.text();
-    } else if (contentType.includes("application/json")) {
-      responseData = await response.json();
-    } else {
-      responseData = await response.text();
-    }
-
-    return {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok,
-      headers: Object.fromEntries(response.headers.entries()),
-      data: responseData,
-    };
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-async function executeEventNode(
-  node: EventNode,
-  context: any,
-): Promise<any> {
-  // Resolve payload mappings via template expressions
-  const resolvedPayload = WorkflowParser.evalParams(
-    node.payloadMapping ?? {},
-    context,
-  );
-
-  const result = await InternalEventBus.emit({
-    name: node.eventName,
-    payload: resolvedPayload,
-    emittedBy: context._workflowId as string | undefined,
-    timestamp: Date.now(),
-  });
-
+  executionId: string,
+): NodeHandlerServices {
   return {
-    eventName: node.eventName,
-    payload: resolvedPayload,
-    triggered: result.triggered,
+    executeNode: dispatchNode,
+    executeWorkflow: WorkflowEngine.executeWorkflow,
+    getWorkflowById: WorkflowRepository.getWorkflowById,
+    emitInternalEvent: InternalEventBus.emit,
+    resolvePendingWebhookResponse: PendingWebhookResponseRegistry.resolve,
+    emitNodeStart: (nodeId) => emitNodeStart(workflow.metadata.id, executionId, nodeId),
+    emitNodeSuccess: (nodeId, result, node) =>
+      emitNodeSuccess(workflow.metadata.id, executionId, nodeId, result, node),
+    emitNodeFailure: (nodeId, error) =>
+      emitNodeFailure(workflow.metadata.id, executionId, nodeId, error),
+    emitWorkflowEvent: (event) => workflowEventBus.emitWorkflowEvent(event),
   };
 }
-
-async function executeEventListenerNode(
-  node: EventListenerNode,
-  context: any,
-): Promise<any> {
-  const payloads = context._event_payloads || {};
-  return payloads[node.eventName] ?? {};
-}
-
-function executeSetNode(
-  node: SetNode,
-  context: any,
-): Record<string, any> {
-  const output: Record<string, any> = {};
-  for (const assignment of node.assignments) {
-    // evalParams resolves {{ template }} expressions; wrap in object for the helper
-    const resolved = WorkflowParser.evalParams({ _v: assignment.value }, context);
-    output[assignment.key] = resolved._v;
-  }
-  return output;
-}
-
-function executeSwitchNode(
-  node: SwitchNode,
-  context: any,
-): { activeHandle: string } {
-  // Evaluate the switch expression against context — identical sandbox to evaluateCondition
-  const fn = new Function(
-    "trigger",
-    "steps",
-    "variables",
-    `"use strict"; return (${node.inputExpression});`,
-  );
-  const value = String(fn(context.trigger, context.steps, context.variables));
-
-  // First matching case wins
-  for (const c of node.cases) {
-    if (String(c.value) === value) {
-      return { activeHandle: c.handleId };
-    }
-  }
-
-  // Fall back to fallbackHandleId if set, otherwise no edge is activated
-  return { activeHandle: node.fallbackHandleId ?? "" };
-}
-
-/**
- * Merge node is purely passive — it passes through the context of the last
- * branch that arrived. The wait-all / wait-any coordination is handled in the
- * BFS loop, NOT here, so the executor stays unaware of scheduling details.
- */
-function executeMergeNode(_node: MergeNode, _context: any): Record<string, never> {
-  return {};
-}
-
-/**
- * Split In Batches — divides a collection into fixed-size chunks and executes
- * the "batch-body" sub-graph once per chunk, then releases "batch-done" edges.
- * Mirrors the LoopNode pattern: inline BFS per batch, isolated context clone.
- */
-async function executeSplitInBatchesNode(
-  node: SplitInBatchesNode,
-  context: any,
-  workflow: WorkflowItem,
-  edges: WorkflowEdge[],
-  execId: string,
-): Promise<{ batches: number; totalItems: number }> {
-  // Resolve the collection expression against current context
-  const fn = new Function(
-    "trigger",
-    "steps",
-    "variables",
-    `"use strict"; return (${node.collection});`,
-  );
-  const collection: unknown[] = fn(context.trigger, context.steps, context.variables);
-
-  if (!Array.isArray(collection)) {
-    throw new Error(
-      `Split In Batches: collection expression "${node.collection}" did not resolve to an array.`,
-    );
-  }
-
-  const batchSize = Math.max(1, node.batchSize);
-  const maxBatches = node.maxBatches ?? 100;
-
-  // Slice into chunks
-  const chunks: unknown[][] = [];
-  for (let i = 0; i < collection.length; i += batchSize) {
-    chunks.push(collection.slice(i, i + batchSize));
-    if (chunks.length >= maxBatches) break;
-  }
-
-  // Identify the current node's ID for sub-graph traversal
-  const splitNodeId = getNodeIdFromWorkflow(workflow, node);
-
-  // ── 1. BFS to collect the full body sub-graph ──────────────────────────────
-  const bodyNodeIds = new Set<string>();
-  const bfsQueue: string[] = edges
-    .filter((e) => e.source === splitNodeId && e.sourceHandle === "batch-body")
-    .map((e) => e.target);
-
-  while (bfsQueue.length > 0) {
-    const nId = bfsQueue.shift()!;
-    if (bodyNodeIds.has(nId) || nId === splitNodeId || !workflow.nodes[nId]) continue;
-    bodyNodeIds.add(nId);
-    for (const e of edges) {
-      if (e.source === nId && !bodyNodeIds.has(e.target)) {
-        bfsQueue.push(e.target);
-      }
-    }
-  }
-
-  // ── 2. Collect internal edges ──────────────────────────────────────────────
-  const internalEdges = edges.filter(
-    (e) => bodyNodeIds.has(e.source) && bodyNodeIds.has(e.target),
-  );
-
-  // Execute each batch
-  for (let i = 0; i < chunks.length; i++) {
-    const chunk = chunks[i];
-    // Clone context and inject batch variables
-    const batchContext = {
-      ...context,
-      steps: { ...context.steps },
-      variables: {
-        ...context.variables,
-        $batch: chunk,
-        $batchIndex: i,
-        $batchTotal: chunks.length,
-        $batchSize: chunk.length,
-      },
-    };
-
-    // ── 3. Per-batch topological execution of the body sub-graph ─────────────
-    const localInDegree: Record<string, number> = {};
-    bodyNodeIds.forEach((n) => { localInDegree[n] = 0; });
-    internalEdges.forEach((e) => { localInDegree[e.target]++; });
-
-    const batchBodyTargets = new Set(
-      edges
-        .filter((e) => e.source === splitNodeId && e.sourceHandle === "batch-body")
-        .map((e) => e.target),
-    );
-    const localQueue: string[] = [...bodyNodeIds].filter(
-      (n) => localInDegree[n] === 0 || batchBodyTargets.has(n),
-    );
-    const localExecuted = new Set<string>();
-
-    while (localQueue.length > 0) {
-      const nId = localQueue.shift()!;
-      if (localExecuted.has(nId)) continue;
-      localExecuted.add(nId);
-
-      const bodyNode = workflow.nodes[nId];
-      if (!bodyNode) continue;
-
-      workflowEventBus.emitWorkflowEvent({
-        executionId: execId,
-        workflowId: workflow.metadata.id,
-        type: "node:start",
-        nodeId: nId,
-        timestamp: Date.now(),
-      });
-
-      try {
-        const result = await executeNode(nId, bodyNode, batchContext, workflow, edges, execId);
-
-        if (bodyNode.type === "code") {
-          const codeResult = result as any;
-          batchContext.steps[nId] = {
-            status: "SUCCESS",
-            output: codeResult.output,
-            logs: codeResult.logs,
-          };
-          workflowEventBus.emitWorkflowEvent({
-            executionId: execId,
-            workflowId: workflow.metadata.id,
-            type: "node:success",
-            nodeId: nId,
-            timestamp: Date.now(),
-            data: sanitizeContextForLogging(codeResult.output),
-          });
-        } else {
-          batchContext.steps[nId] = { status: "SUCCESS", output: result };
-          workflowEventBus.emitWorkflowEvent({
-            executionId: execId,
-            workflowId: workflow.metadata.id,
-            type: "node:success",
-            nodeId: nId,
-            timestamp: Date.now(),
-            data: sanitizeContextForLogging(result),
-          });
-        }
-
-        // Propagate body results back to main context so downstream sees last batch
-        context.steps[nId] = batchContext.steps[nId];
-
-      } catch (err: any) {
-        batchContext.steps[nId] = { status: "FAILED", error: err.message };
-        workflowEventBus.emitWorkflowEvent({
-          executionId: execId,
-          workflowId: workflow.metadata.id,
-          type: "node:failed",
-          nodeId: nId,
-          timestamp: Date.now(),
-          error: err.message,
-        });
-        throw err;
-      }
-
-      for (const e of internalEdges) {
-        if (e.source === nId) {
-          localInDegree[e.target]--;
-          if (localInDegree[e.target] === 0) localQueue.push(e.target);
-        }
-      }
-    }
-  }
-
-  delete context.variables["$batch"];
-  delete context.variables["$batchIndex"];
-  delete context.variables["$batchTotal"];
-  delete context.variables["$batchSize"];
-
-  return { batches: chunks.length, totalItems: collection.length };
-}
-
-/**
- * Respond To Webhook Node — resolves the pending webhook response.
- * The Fastify reply stays entirely in the route handler; only correlationId flows here.
- */
-function executeRespondToWebhookNode(
-  node: RespondToWebhookNode,
-  context: any,
-): { statusCode: number; body: unknown; resolved: boolean } {
-  const correlationId = context._webhookCorrelationId as string | undefined;
-
-  // Evaluate body template expressions
-  const resolvedParams = WorkflowParser.evalParams({ body: node.body }, context);
-  let responseBody: unknown = resolvedParams.body;
-
-  // Attempt to parse as JSON for structured responses
-  if (typeof responseBody === "string") {
-    try { responseBody = JSON.parse(responseBody); } catch { /* keep as string */ }
-  }
-
-  const resolved = correlationId
-    ? PendingWebhookResponseRegistry.resolve(correlationId, {
-        statusCode: node.statusCode ?? 200,
-        body: responseBody,
-        headers: node.headers,
-      })
-    : false;
-
-  if (!resolved && correlationId) {
-    console.warn(
-      `[NOD8 | RESPOND-WEBHOOK]: correlationId "${correlationId}" not found — ` +
-      "webhook caller may have already timed out.",
-    );
-  }
-
-  return { statusCode: node.statusCode ?? 200, body: responseBody, resolved };
-}
-
-// ──────────── Unified Node Dispatcher ────────────
-
-async function executeNode(
-  nodeId: string,
-  node: WorkflowNode,
-  context: any,
-  workflow: WorkflowItem,
-  edges: WorkflowEdge[],
-  execId: string,
-): Promise<any> {
-  switch (node.type) {
-    case "plugin":
-      return executePluginNode(node, context);
-    case "code":
-      return executeCodeNode(node, context);
-    case "if":
-      return executeIfNode(node, context);
-    case "loop":
-      return executeLoopNode(node, context, workflow, edges, execId);
-    case "subworkflow":
-      return executeSubWorkflowNode(node, context);
-    case "http":
-      return executeHttpNode(node, context);
-    case "event":
-      return executeEventNode(node, context);
-    case "event-listener":
-      return executeEventListenerNode(node as EventListenerNode, context);
-    case "trigger":
-      return { type: "trigger" };
-    case "set":
-      return executeSetNode(node as SetNode, context);
-    case "switch":
-      return executeSwitchNode(node as SwitchNode, context);
-    case "merge":
-      return executeMergeNode(node as MergeNode, context);
-    case "split-in-batches":
-      return executeSplitInBatchesNode(node as SplitInBatchesNode, context, workflow, edges, execId);
-    case "respond-webhook":
-      return executeRespondToWebhookNode(node as RespondToWebhookNode, context);
-    default:
-      throw new Error(`Unknown node type: ${(node as any).type}`);
-  }
-}
-
-// ──────────── Helper: Get node ID from workflow ────────────
-
-function getNodeIdFromWorkflow(
-  workflow: WorkflowItem,
-  node: WorkflowNode,
-): string {
-  for (const [id, n] of Object.entries(workflow.nodes)) {
-    if (n === node) return id;
-  }
-  return "";
-}
-
-// ──────────── Main Engine ────────────
 
 export const WorkflowEngine = {
   executeWorkflow: async (
@@ -794,26 +81,11 @@ export const WorkflowEngine = {
     executionId?: string,
   ): Promise<any> => {
     const execId =
-      executionId ??
-      `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-    // Load global env variables once per execution — core engine concern, zero plugin awareness
-    const env = AppRepository.getAllGlobalVariablesAsMap();
-
-    const context = {
-      _workflowId: workflow.metadata.id,
-      _executionId: execId,
-      trigger: triggerPayload,
-      steps: {} as Record<string, any>,
-      variables: initializeVariables(workflow.variables),
-      env, // Accessible in expressions as {{env.KEY}}
-      _event_payloads: {} as Record<string, any>,
-    };
-
-    let status = "RUNNING";
+      executionId ?? `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const context = createExecutionContext(workflow, triggerPayload, execId);
     const startTime = Date.now();
+    let status = "RUNNING";
 
-    // Emit workflow start
     workflowEventBus.emitWorkflowEvent({
       executionId: execId,
       workflowId: workflow.metadata.id,
@@ -831,47 +103,30 @@ export const WorkflowEngine = {
     );
 
     try {
-      const nodeIds = ["trigger", ...Object.keys(workflow.nodes)];
-
-      // Build in-degree map & adjacency list from edges
-      const inDegree: Record<string, number> = {};
-      const adjList: Record<string, WorkflowEdge[]> = {};
-
-      nodeIds.forEach((n) => {
-        inDegree[n] = 0;
-        adjList[n] = [];
-      });
-
-      workflow.edges.forEach((edge: WorkflowEdge) => {
-        if (inDegree[edge.target] !== undefined) {
-          inDegree[edge.target]++;
-          adjList[edge.source]?.push(edge);
-        }
-      });
-
-      const queue: string[] = nodeIds.filter(
-        (n) => inDegree[n] === 0 && workflow.nodes[n]?.type !== "event-listener"
+      const { nodeIds, inDegree, adjList } = createGraph(workflow);
+      const queue = nodeIds.filter(
+        (nodeId) => inDegree[nodeId] === 0 && workflow.nodes[nodeId]?.type !== "event-listener",
       );
       const executed = new Set<string>();
 
-      // Track how many branches have actually arrived at each merge node
-      // Key: nodeId  Value: number of branches that have delivered so far
-      const mergeArrivalCount: Record<string, number> = {};
-      // Snapshot the original inDegree for merge nodes so we know the threshold
-      const mergeThreshold: Record<string, number> = {};
-      nodeIds.forEach((n) => {
-        if (workflow.nodes[n]?.type === "merge") {
-          mergeThreshold[n] = inDegree[n];
-          mergeArrivalCount[n] = 0;
+      const enqueueTarget = (targetId: string) => {
+        inDegree[targetId]--;
+        const targetNode = workflow.nodes[targetId];
+        const isWaitAny =
+          targetNode?.type === "merge" && (targetNode as MergeNode).mode === "wait-any";
+
+        if (isWaitAny) {
+          if (!executed.has(targetId) && !queue.includes(targetId)) queue.push(targetId);
+          return;
         }
-      });
+
+        if (inDegree[targetId] === 0) queue.push(targetId);
+      };
 
       while (queue.length > 0) {
         const nodeId = queue.shift()!;
-
         if (executed.has(nodeId)) continue;
 
-        // ─── Cancellation checkpoint ───
         if (CancellationRegistry.consume(execId)) {
           status = "CANCELLED";
           workflowEventBus.emitWorkflowEvent({
@@ -880,7 +135,6 @@ export const WorkflowEngine = {
             type: "workflow:cancelled",
             timestamp: Date.now(),
           });
-          // Save final log and return — skip remaining nodes cleanly
           WorkflowRepository.saveExecutionLog(
             execId,
             workflow.metadata.id,
@@ -891,205 +145,51 @@ export const WorkflowEngine = {
           );
           return { executionId: execId, status, context };
         }
-        // ───────────────────────────────
-
-        // Helper to handle queueing dependent nodes correctly
-        const enqueueTarget = (targetId: string) => {
-          inDegree[targetId]--;
-          const targetNode = workflow.nodes[targetId];
-          const isWaitAny = targetNode?.type === "merge" && (targetNode as MergeNode).mode === "wait-any";
-          
-          if (isWaitAny) {
-            // For wait-any merge, enqueue immediately if it hasn't been executed or queued yet
-            if (!executed.has(targetId) && !queue.includes(targetId)) {
-              queue.push(targetId);
-            }
-          } else {
-            // Default BFS behavior (implicit wait-all): wait for all incoming edges
-            if (inDegree[targetId] === 0) {
-              queue.push(targetId);
-            }
-          }
-        };
 
         executed.add(nodeId);
 
-        const node = workflow.nodes[nodeId];
-
-        // Handle the virtual "trigger" entry point
         if (nodeId === "trigger") {
-          adjList[nodeId].forEach((edge) => {
-            enqueueTarget(edge.target);
-          });
+          for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
           continue;
         }
 
-        // Emit node:start
-        workflowEventBus.emitWorkflowEvent({
-          executionId: execId,
-          workflowId: workflow.metadata.id,
-          type: "node:start",
+        const node = workflow.nodes[nodeId];
+        emitNodeStart(workflow.metadata.id, execId, nodeId);
+
+        await executeWithRetry({
           nodeId,
-          timestamp: Date.now(),
+          node,
+          context,
+          workflow,
+          executionId: execId,
         });
 
-        // Retry logic
-        let attempts = 0;
-        const maxRetries = node.retryPolicy?.maxRetries ?? 0;
-        let success = false;
-        let lastError: Error | null = null;
-
-        while (attempts <= maxRetries && !success) {
-          try {
-            const result = await executeNode(
-              nodeId,
-              node,
-              context,
-              workflow,
-              workflow.edges,
-              execId,
-            );
-
-            if (node.type === "code") {
-              const codeResult = result as any;
-              context.steps[nodeId] = {
-                status: "SUCCESS",
-                output: codeResult.output,
-                logs: codeResult.logs,
-              };
-              // Emit sanitized code output (already structured with output+logs)
-              workflowEventBus.emitWorkflowEvent({
-                executionId: execId,
-                workflowId: workflow.metadata.id,
-                type: "node:success",
-                nodeId,
-                timestamp: Date.now(),
-                data: sanitizeContextForLogging(codeResult.output),
-              });
-            } else {
-              context.steps[nodeId] = { status: "SUCCESS", output: result };
-              // Emit sanitized raw result — this is what NodeOutputPanel shows
-              workflowEventBus.emitWorkflowEvent({
-                executionId: execId,
-                workflowId: workflow.metadata.id,
-                type: "node:success",
-                nodeId,
-                timestamp: Date.now(),
-                data: sanitizeContextForLogging(result),
-              });
-            }
-
-            success = true;
-          } catch (err: any) {
-            attempts++;
-            lastError = err;
-            context.steps[nodeId] = { status: "FAILED", error: err.message };
-
-            if (attempts <= maxRetries) {
-              const interval = node.retryPolicy?.intervalSeconds ?? 2;
-              const ms =
-                (node.retryPolicy?.backoffStrategy === "exponential"
-                  ? Math.pow(2, attempts) * interval
-                  : interval) * 1000;
-              await delay(ms);
-            }
-          }
-        }
-
-        if (!success) {
-          // Emit node:failed
-          workflowEventBus.emitWorkflowEvent({
-            executionId: execId,
-            workflowId: workflow.metadata.id,
-            type: "node:failed",
-            nodeId,
-            timestamp: Date.now(),
-            error: lastError?.message,
-          });
-
-          throw new Error(
-            `Node ${nodeId} failed after ${attempts} attempt(s). Last error: ${lastError?.message}`,
-          );
-        }
-
-        // --- Event Listener Sub-Trigger Enqueue ---
         if (node.type === "event") {
-          const emittedName = (context.steps[nodeId]?.output as any)?.eventName;
-          const payload = (context.steps[nodeId]?.output as any)?.payload;
-
-          context._event_payloads = context._event_payloads || {};
-          context._event_payloads[emittedName] = payload;
-
-          for (const [lId, lNode] of Object.entries(workflow.nodes)) {
-            if (lNode.type === "event-listener" && (lNode as EventListenerNode).eventName === emittedName) {
-              if (!executed.has(lId) && !queue.includes(lId)) {
-                queue.push(lId);
-              }
-            }
-          }
+          enqueueMatchingEventListeners(workflow, nodeId, context, executed, queue);
         }
-        // ------------------------------------------
 
-        // Release dependent nodes — with conditional edge filtering
-        const outEdges = adjList[nodeId] || [];
-
-        if (node.type === "if") {
-          const branch = (context.steps[nodeId]?.output as { branch: string })
-            ?.branch;
-
-          for (const edge of outEdges) {
-            if (
-              edge.sourceHandle === branch ||
-              (!edge.sourceHandle && branch === "then")
-            ) {
-              enqueueTarget(edge.target);
-            }
-          }
-        } else if (node.type === "switch") {
-          const activeHandle = (context.steps[nodeId]?.output as { activeHandle: string })
-            ?.activeHandle;
-
-          if (activeHandle) {
-            for (const edge of outEdges) {
-              if (edge.sourceHandle === activeHandle) {
-                enqueueTarget(edge.target);
-              }
-            }
-          }
-          // If activeHandle is empty (no match, no fallback) — no edges released. Dead end.
-        } else if (node.type === "loop") {
-          for (const edge of outEdges) {
-            if (edge.sourceHandle === "loop-done" || !edge.sourceHandle) {
-              enqueueTarget(edge.target);
-            }
-          }
-        } else if (node.type === "split-in-batches") {
-          for (const edge of outEdges) {
-            if (edge.sourceHandle === "batch-done" || !edge.sourceHandle) {
-              enqueueTarget(edge.target);
-            }
-          }
-        } else {
-          for (const edge of outEdges) {
-            enqueueTarget(edge.target);
-          }
+        const output = context.steps[nodeId]?.output;
+        for (const edge of adjList[nodeId] || []) {
+          if (shouldReleaseEdge(node, edge, output)) enqueueTarget(edge.target);
         }
       }
 
       status = "SUCCESS";
-    } catch (err: any) {
+    } catch (error: any) {
       status = "FAILED";
-      context.steps["error"] = err.message;
+      context.steps.error = error.message;
     } finally {
-      // Emit workflow terminal event
       workflowEventBus.emitWorkflowEvent({
         executionId: execId,
         workflowId: workflow.metadata.id,
-        type: status === "SUCCESS" ? "workflow:success" : "workflow:failed",
+        type:
+          status === "SUCCESS"
+            ? "workflow:success"
+            : status === "CANCELLED"
+              ? "workflow:cancelled"
+              : "workflow:failed",
         timestamp: Date.now(),
       });
-
-      const sanitized = sanitizeContextForLogging(context);
 
       WorkflowRepository.saveExecutionLog(
         execId,
@@ -1097,28 +197,11 @@ export const WorkflowEngine = {
         status,
         startTime,
         Date.now(),
-        sanitized,
+        sanitizeContextForLogging(context),
       );
 
-      // ── Notify plugins: execution lifecycle hook ──────────────────────────
-      // The core pushes the terminal event into plugins that declare it.
-      // This is the correct IoC pattern: plugins never import the event bus.
-      const terminalStatus =
-        status === "SUCCESS" ? "success" : status === "CANCELLED" ? "cancelled" : "failed";
-
-      for (const plugin of PluginManager.getPlugins()) {
-        if (plugin.executionLifecycle?.onExecutionEnd) {
-          plugin.executionLifecycle.onExecutionEnd(execId, terminalStatus).catch((err) => {
-            console.error(
-              `[NOD8 | PLUGINS]: executionLifecycle.onExecutionEnd failed for plugin '${plugin.id}':`,
-              err,
-            );
-          });
-        }
-      }
-      // ─────────────────────────────────────────────────────────────────────
+      notifyPluginExecutionEnd(execId, status);
     }
-
 
     return { executionId: execId, status, context };
   },
@@ -1127,39 +210,95 @@ export const WorkflowEngine = {
     workflow: WorkflowItem,
     nodeId: string,
     nodeConfigOverride: WorkflowNode,
-    executionCacheContext?: any,
+    executionCacheContext?: WorkflowExecutionContext,
   ): Promise<any> => {
-    const env = AppRepository.getAllGlobalVariablesAsMap();
-
     const execId = `exec_test_${Date.now()}`;
+    const context = executionCacheContext ?? createExecutionContext(workflow, {}, execId);
+    const result = await dispatchNode({
+      nodeId,
+      node: nodeConfigOverride,
+      context,
+      workflow,
+      edges: workflow.edges,
+      executionId: execId,
+    });
 
-    const context = executionCacheContext || {
-      _workflowId: workflow.metadata.id,
-      _executionId: execId,
-      trigger: {},
-      steps: {},
-      variables: initializeVariables(workflow.variables),
-      env,
-      _event_payloads: {},
-    };
-
-    try {
-      const result = await executeNode(
-        nodeId,
-        nodeConfigOverride,
-        context,
-        workflow,
-        workflow.edges,
-        execId,
-      );
-      
-      if (nodeConfigOverride.type === "code") {
-        return (result as any).output;
-      }
-      
-      return result;
-    } catch (err: any) {
-      throw err;
-    }
+    return nodeConfigOverride.type === "code" ? result.output : result;
   },
 };
+
+async function executeWithRetry(input: {
+  nodeId: string;
+  node: WorkflowNode;
+  context: WorkflowExecutionContext;
+  workflow: WorkflowItem;
+  executionId: string;
+}): Promise<void> {
+  const { nodeId, node, context, workflow, executionId } = input;
+  let attempts = 0;
+  const maxRetries = node.retryPolicy?.maxRetries ?? 0;
+  let lastError: Error | null = null;
+
+  while (attempts <= maxRetries) {
+    try {
+      const result = await dispatchNode({
+        nodeId,
+        node,
+        context,
+        workflow,
+        edges: workflow.edges,
+        executionId,
+      });
+      recordSuccessfulStep(context, nodeId, node, result);
+      emitNodeSuccess(workflow.metadata.id, executionId, nodeId, result, node);
+      return;
+    } catch (error: any) {
+      attempts++;
+      lastError = error instanceof Error ? error : new Error(String(error));
+      context.steps[nodeId] = { status: "FAILED", error: lastError.message };
+
+      if (attempts <= maxRetries) {
+        const interval = node.retryPolicy?.intervalSeconds ?? 2;
+        const ms =
+          (node.retryPolicy?.backoffStrategy === "exponential"
+            ? Math.pow(2, attempts) * interval
+            : interval) * 1000;
+        await delay(ms);
+      }
+    }
+  }
+
+  emitNodeFailure(
+    workflow.metadata.id,
+    executionId,
+    nodeId,
+    lastError ?? new Error("Unknown error"),
+  );
+  throw new Error(
+    `Node ${nodeId} failed after ${attempts} attempt(s). Last error: ${lastError?.message}`,
+  );
+}
+
+function enqueueMatchingEventListeners(
+  workflow: WorkflowItem,
+  nodeId: string,
+  context: WorkflowExecutionContext,
+  executed: Set<string>,
+  queue: string[],
+): void {
+  const emittedName = context.steps[nodeId]?.output?.eventName;
+  const payload = context.steps[nodeId]?.output?.payload;
+  context._event_payloads = context._event_payloads || {};
+  context._event_payloads[emittedName] = payload;
+
+  for (const [listenerId, listenerNode] of Object.entries(workflow.nodes)) {
+    if (
+      listenerNode.type === "event-listener" &&
+      (listenerNode as EventListenerNode).eventName === emittedName &&
+      !executed.has(listenerId) &&
+      !queue.includes(listenerId)
+    ) {
+      queue.push(listenerId);
+    }
+  }
+}
