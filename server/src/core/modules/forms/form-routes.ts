@@ -11,6 +11,10 @@ import {
   resolveFormWorkflow,
 } from "./form-service.ts";
 import { processFormSubmission } from "./form-submission.ts";
+import {
+  getTemporaryFormSession,
+  submitTemporaryFormSession,
+} from "./temporary-form-session.ts";
 import type { FormMode } from "./form-types.ts";
 
 type SendResponse = <T>(
@@ -129,6 +133,98 @@ export function registerFormRoutes(
       req,
       reply,
     );
+  });
+
+  fastify.get("/temporary-forms/:formId", async (req, reply) => {
+    const { formId } = req.params as { formId: string };
+    const session = getTemporaryFormSession(formId);
+
+    if (!session) {
+      return renderMissingFormPage(
+        reply,
+        "Form not available",
+        "This temporary form does not exist or has expired.",
+      );
+    }
+
+    return reply
+      .type("text/html; charset=utf-8")
+      .send(
+        renderFormPage(
+          {
+            metadata: {
+              id: session.id,
+              name: session.title,
+              version: "temporary",
+              isActive: true,
+              isDraft: false,
+              public: true,
+              createdAt: new Date(session.createdAt).toISOString(),
+            },
+            trigger: {
+              type: "form",
+              formTitle: session.title,
+              formDescription: session.description,
+              formFields: session.fields,
+              formTheme: session.theme,
+            },
+            nodes: {},
+            edges: [],
+          },
+          session.fields.map((field) => ({
+            name: field.name,
+            label: field.label,
+            type: field.type,
+            required: Boolean(field.required),
+            placeholder: field.placeholder ?? "",
+            description: field.description ?? "",
+            options: field.options ?? [],
+            accept: field.accept,
+            maxSize: field.maxSize,
+          })),
+          { submitPath: `/temporary-forms/${session.id}/submit` },
+        ),
+      );
+  });
+
+  fastify.post("/temporary-forms/:formId/submit", async (req, reply) => {
+    const { formId } = req.params as { formId: string };
+    const session = getTemporaryFormSession(formId);
+    if (!session) {
+      return renderMissingFormPage(
+        reply,
+        "Form not available",
+        "This temporary form does not exist or has expired.",
+      );
+    }
+
+    const fields = ((req.body as Record<string, unknown>) ?? {});
+    const submitted = submitTemporaryFormSession(formId, fields);
+    if (!submitted) {
+      return renderMissingFormPage(
+        reply,
+        "Form not available",
+        "This temporary form does not exist or has expired.",
+      );
+    }
+
+    return reply
+      .code(200)
+      .type("text/html; charset=utf-8")
+      .send(renderFormConfirmationPage({
+        metadata: {
+          id: session.id,
+          name: session.title,
+          version: "temporary",
+          isActive: true,
+          isDraft: false,
+          public: true,
+          createdAt: new Date(session.createdAt).toISOString(),
+        },
+        trigger: { type: "form", formTitle: session.title },
+        nodes: {},
+        edges: [],
+      }));
   });
 }
 

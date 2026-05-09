@@ -12,6 +12,7 @@ import { splitInBatchesNodeHandler } from "./handlers/split-in-batches.ts";
 import { subWorkflowNodeHandler } from "./handlers/subworkflow.ts";
 import { switchNodeHandler } from "./handlers/switch.ts";
 import { triggerNodeHandler } from "./handlers/trigger.ts";
+import { waitFormNodeHandler } from "./handlers/wait-form.ts";
 export { createNodeHandler } from "./handler.ts";
 import type { NodeHandler, UtilityNodeType } from "./types.ts";
 
@@ -62,6 +63,7 @@ const utilityNodeTypes: UtilityNodeType[] = [
   "merge",
   "split-in-batches",
   "respond-webhook",
+  "wait-form",
 ];
 
 const defaultUtilityHandlers: NodeHandler[] = [
@@ -78,6 +80,7 @@ const defaultUtilityHandlers: NodeHandler[] = [
   mergeNodeHandler,
   splitInBatchesNodeHandler,
   respondWebhookNodeHandler,
+  waitFormNodeHandler,
 ];
 
 export function createUtilityNodeRegistry(

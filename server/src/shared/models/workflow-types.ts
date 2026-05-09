@@ -14,7 +14,8 @@ export type WorkflowNodeType =
   | "switch"
   | "merge"
   | "split-in-batches"
-  | "respond-webhook";
+  | "respond-webhook"
+  | "wait-form";
 
 // ──────────── Retry Policy ────────────
 
@@ -178,6 +179,15 @@ export interface RespondToWebhookNode extends WorkflowNodeBase {
   headers?: Record<string, string>;
 }
 
+export interface WaitFormNode extends WorkflowNodeBase {
+  type: "wait-form";
+  title: string;
+  description?: string;
+  fields: FormTriggerField[];
+  theme?: FormTheme;
+  expiresInSeconds?: number;
+}
+
 // ──────────── Discriminated Union ────────────
 
 export type WorkflowNode =
@@ -194,7 +204,8 @@ export type WorkflowNode =
   | SwitchNode
   | MergeNode
   | SplitInBatchesNode
-  | RespondToWebhookNode;
+  | RespondToWebhookNode
+  | WaitFormNode;
 
 // ──────────── Edges ────────────
 

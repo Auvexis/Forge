@@ -19,6 +19,7 @@ export const VALID_NODE_TYPES = new Set<WorkflowNodeType>([
   'merge',
   'split-in-batches',
   'respond-webhook',
+  'wait-form',
 ])
 
 // Node type visual metadata — color and category hints.
@@ -96,5 +97,10 @@ export const NODE_TYPE_META: Record<
     label: 'Respond to Webhook',
     color: 'var(--nod8-node-respond-webhook-icon)',
     category: 'output',
+  },
+  'wait-form': {
+    label: 'Wait for Form',
+    color: '#22c55e',
+    category: 'flow',
   },
 }

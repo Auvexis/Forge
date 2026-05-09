@@ -20,6 +20,7 @@ import SwitchEditor from './SwitchEditor.vue'
 import MergeEditor from './MergeEditor.vue'
 import SplitInBatchesEditor from './SplitInBatchesEditor.vue'
 import RespondToWebhookEditor from './RespondToWebhookEditor.vue'
+import WaitFormEditor from './WaitFormEditor.vue'
 
 export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', Component>> = {
   plugin: PluginEditor,
@@ -36,6 +37,7 @@ export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', 
   merge: MergeEditor,
   'split-in-batches': SplitInBatchesEditor,
   'respond-webhook': RespondToWebhookEditor,
+  'wait-form': WaitFormEditor,
 }
 
 export type { NodeEditorProps } from './types'

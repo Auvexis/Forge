@@ -12,6 +12,7 @@ export type WorkflowEventType =
   | 'workflow:success'
   | 'workflow:failed'
   | 'workflow:cancelled'
+  | 'temporary-form:created'
   | 'trigger:data'   // emitted after form submission with the serializable trigger payload
 
 export interface WorkflowEvent {

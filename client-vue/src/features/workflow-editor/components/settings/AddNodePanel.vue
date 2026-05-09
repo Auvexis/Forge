@@ -279,6 +279,15 @@ const LOGIC_NODES = [
     bgColor: 'var(--nod8-node-respond-webhook-bg)',
     borderColor: 'var(--nod8-node-respond-webhook-border)',
   },
+  {
+    type: 'wait-form' as WorkflowNodeType,
+    label: 'Wait for Form',
+    description: 'Create a temporary form and continue after submission',
+    icon: 'clipboard-list',
+    color: '#22c55e',
+    bgColor: 'rgba(34, 197, 94, 0.12)',
+    borderColor: 'rgba(34, 197, 94, 0.35)',
+  },
 ]
 
 // ── Computed ─────────────────────────────────────────────────────────────────

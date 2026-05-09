@@ -30,6 +30,7 @@ describe("workflow validation", () => {
   it("exports the first-party node type set used by routes and schemas", () => {
     assert.equal(VALID_NODE_TYPES.has("plugin"), true);
     assert.equal(VALID_NODE_TYPES.has("respond-webhook"), true);
+    assert.equal(VALID_NODE_TYPES.has("wait-form"), true);
   });
 
   it("accepts a minimal valid workflow definition", () => {
@@ -49,6 +50,21 @@ describe("workflow validation", () => {
       trigger: {
         type: "form",
         formFields: [{ name: "bad name", label: "Bad", type: "text" }],
+      },
+    }));
+
+    assert.match(error ?? "", /invalid name/);
+  });
+
+  it("rejects invalid wait-form node fields", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        "wait-form-1": {
+          type: "wait-form",
+          name: "Wait Form",
+          title: "Apply",
+          fields: [{ name: "bad name", label: "Bad", type: "text" }],
+        },
       },
     }));
 

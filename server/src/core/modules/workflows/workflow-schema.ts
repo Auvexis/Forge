@@ -72,6 +72,12 @@ export function buildWorkflowSchema(
       case "respond-webhook":
         baseSchema.statusCode = node.statusCode;
         break;
+      case "wait-form":
+        baseSchema.title = node.title;
+        baseSchema.description = node.description;
+        baseSchema.fields = node.fields;
+        baseSchema.expiresInSeconds = node.expiresInSeconds;
+        break;
     }
 
     nodeSchemas[nodeId] = baseSchema;

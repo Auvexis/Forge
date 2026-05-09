@@ -123,6 +123,16 @@ export const useExecutionStore = defineStore('execution', () => {
               }
               break
 
+            case 'temporary-form:created':
+              if (ev.nodeId) {
+                _patchNode(ev.nodeId, {
+                  status: 'running',
+                  output: ev.data,
+                  startedAt: ev.timestamp,
+                })
+              }
+              break
+
             case 'node:success':
               if (ev.nodeId) {
                 _patchNode(ev.nodeId, {

@@ -18,6 +18,7 @@ import SwitchNode from './nodes/SwitchNode.vue'
 import MergeNode from './nodes/MergeNode.vue'
 import SplitInBatchesNode from './nodes/SplitInBatchesNode.vue'
 import RespondToWebhookNode from './nodes/RespondToWebhookNode.vue'
+import WaitFormNode from './nodes/WaitFormNode.vue'
 import BaseEdge from './BaseEdge.vue'
 import { Background } from '@vue-flow/background'
 
@@ -269,6 +270,7 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   merge: 'Merge',
   'split-in-batches': 'Split In Batches',
   'respond-webhook': 'Respond to Webhook',
+  'wait-form': 'Wait for Form',
 }
 
 function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
@@ -389,6 +391,13 @@ const addLogicNode = (type: WorkflowNodeType) => {
     defaultData.statusCode = 200
     defaultData.body = '{ "ok": true }'
     defaultData.headers = { 'Content-Type': 'application/json' }
+  } else if (type === 'wait-form') {
+    defaultData.title = 'Temporary Form'
+    defaultData.description = ''
+    defaultData.expiresInSeconds = 900
+    defaultData.fields = [
+      { name: 'email', label: 'Email', type: 'email', required: true },
+    ]
   }
 
   // Adicionar no store
@@ -746,6 +755,11 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       <!-- RESPOND TO WEBHOOK Node -->
       <template #node-respond-webhook="nodeProps">
         <RespondToWebhookNode v-bind="nodeProps" />
+      </template>
+
+      <!-- WAIT FORM Node -->
+      <template #node-wait-form="nodeProps">
+        <WaitFormNode v-bind="nodeProps" />
       </template>
     </VueFlow>
 

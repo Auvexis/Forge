@@ -13,7 +13,8 @@ export interface WorkflowEvent {
     | "workflow:start"
     | "workflow:success"
     | "workflow:failed"
-    | "workflow:cancelled";
+    | "workflow:cancelled"
+    | "temporary-form:created";
   nodeId?: string;
   timestamp: number;
   /** Sanitized output data for node:success events */

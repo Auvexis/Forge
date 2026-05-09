@@ -16,7 +16,7 @@ const props = defineProps<{
   theme?: FormTheme
 }>()
 
-const presetDefaults: Record<NonNullable<FormTheme['preset']>, FormTheme> = {
+const presetDefaults: Partial<Record<NonNullable<FormTheme['preset']>, FormTheme>> = {
   'social-media': {
     layout: 'floating',
     background: {
@@ -148,7 +148,7 @@ const presetDefaults: Record<NonNullable<FormTheme['preset']>, FormTheme> = {
 
 function mergeTheme(theme?: FormTheme): FormTheme {
   const preset = theme?.preset ?? 'social-media'
-  const defaults = presetDefaults[preset]
+  const defaults = presetDefaults[preset] ?? presetDefaults['social-media']!
   return {
     ...defaults,
     ...theme,

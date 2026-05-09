@@ -18,7 +18,7 @@ export function escapeAttr(value: unknown): string {
 export function renderFormPage(
   workflow: WorkflowItem,
   fields: NormalizedFormField[],
-  opts: { error?: string; mode?: FormMode } = {},
+  opts: { error?: string; mode?: FormMode; submitPath?: string } = {},
 ): string {
   const trigger = workflow.trigger;
   const title = trigger.formTitle?.trim() || workflow.metadata.name;
@@ -75,7 +75,8 @@ export function renderFormPage(
 
   const mode = opts.mode ?? "prod";
   const basePath = mode === "test" ? "/forms-test" : "/forms";
-  const submitUrl = `${basePath}/${escapeAttr(formPublicId(workflow))}/submit`;
+  const submitUrl =
+    opts.submitPath ?? `${basePath}/${escapeAttr(formPublicId(workflow))}/submit`;
 
   return `<!DOCTYPE html>
 <html lang="en"><head>
