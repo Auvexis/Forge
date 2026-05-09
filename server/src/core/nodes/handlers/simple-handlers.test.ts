@@ -102,6 +102,27 @@ describe("simple utility node handlers", () => {
     assert.deepEqual(result, { activeHandle: "case-paid" });
   });
 
+  it("routes switch nodes to the fallback handle when no case matches", async () => {
+    const context = {
+      trigger: { command: "/unknown" },
+      steps: {},
+      variables: {},
+    };
+
+    const result = await switchNodeHandler.execute(input({
+      type: "switch",
+      name: "Command Switch",
+      inputExpression: "trigger.command",
+      cases: [
+        { value: "/vagas", handleId: "case-vagas" },
+        { value: "/cardapio", handleId: "case-cardapio" },
+      ],
+      fallbackHandleId: "fallback",
+    }, context));
+
+    assert.deepEqual(result, { activeHandle: "fallback" });
+  });
+
   it("returns an empty result for passive merge nodes", async () => {
     const result = await mergeNodeHandler.execute(input({
       type: "merge",

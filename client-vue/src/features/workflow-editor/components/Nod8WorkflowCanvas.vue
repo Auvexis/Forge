@@ -394,6 +394,7 @@ const addLogicNode = (type: WorkflowNodeType) => {
       { value: '200', handleId: 'case_0' },
       { value: '404', handleId: 'case_1' },
     ]
+    defaultData.fallbackHandleId = 'fallback'
   } else if (type === 'merge') {
     defaultData.mode = 'wait-any'
   } else if (type === 'split-in-batches') {

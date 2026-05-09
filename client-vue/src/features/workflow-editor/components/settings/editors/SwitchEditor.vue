@@ -62,9 +62,11 @@
       </div>
     </EditorField>
 
-    <EditorField label="Fallback Handle (optional)" icon="corner-down-right">
+    <EditorField label="Default / Fallback Output" icon="corner-down-right">
       <div class="editor-hint">
-        Handle ID activated when no case matches. Leave empty for a dead-end.
+        Output handle activated when no case matches. Keep this as
+        <span class="editor-code-snippet">fallback</span>
+        unless you intentionally want a custom handle id. Empty means dead-end.
       </div>
       <BaseInput
         :model-value="(node.data.fallbackHandleId as string) || ''"
