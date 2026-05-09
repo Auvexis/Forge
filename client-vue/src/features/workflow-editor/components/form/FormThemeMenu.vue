@@ -177,6 +177,14 @@
               @update:model-value="updateSection('fields', { focusColor: $event as string })"
             />
           </div>
+          <div class="ftm-field">
+            <span class="te-label">Input Shape</span>
+            <BaseSelect
+              :model-value="modelValue.fields?.shape || 'medium'"
+              :options="FORM_FIELD_SHAPES"
+              @update:model-value="updateSection('fields', { shape: $event as NonNullable<FormTheme['fields']>['shape'] })"
+            />
+          </div>
         </div>
 
         <div class="ftm-grid">
@@ -308,6 +316,8 @@ const FORM_BUTTON_SHAPES = [
   { value: 'pill', label: 'Pill', icon: 'pill' },
 ]
 
+const FORM_FIELD_SHAPES = FORM_BUTTON_SHAPES
+
 const presetDefaults: Record<NonNullable<FormTheme['preset']>, FormTheme> = {
   'default-floating': {
     preset: 'default-floating',
@@ -340,6 +350,7 @@ const presetDefaults: Record<NonNullable<FormTheme['preset']>, FormTheme> = {
       borderColor: '#2a3142',
       focusColor: '#7c3aed',
       radius: 8,
+      shape: 'medium',
       spacing: 16,
     },
     typography: {
@@ -381,6 +392,7 @@ const presetDefaults: Record<NonNullable<FormTheme['preset']>, FormTheme> = {
       borderColor: '#cbd5e1',
       focusColor: '#2563eb',
       radius: 4,
+      shape: 'square',
       spacing: 18,
     },
     typography: {
@@ -422,6 +434,7 @@ const presetDefaults: Record<NonNullable<FormTheme['preset']>, FormTheme> = {
       borderColor: '#dadce0',
       focusColor: '#673ab7',
       radius: 4,
+      shape: 'medium',
       spacing: 20,
     },
     typography: {
@@ -485,7 +498,11 @@ const previewSubtitleStyle = computed(() => ({
 const previewInputStyle = computed(() => ({
   background: activeTheme.value.fields?.backgroundColor,
   borderColor: activeTheme.value.fields?.borderColor,
-  borderRadius: `${activeTheme.value.fields?.radius ?? 8}px`,
+  borderRadius: activeTheme.value.fields?.shape === 'pill'
+    ? '999px'
+    : activeTheme.value.fields?.shape === 'square'
+      ? '0'
+      : `${activeTheme.value.fields?.radius ?? 8}px`,
   color: activeTheme.value.fields?.textColor,
   fontFamily: activeTheme.value.typography?.inputFontFamily ?? activeTheme.value.typography?.fontFamily,
 }))

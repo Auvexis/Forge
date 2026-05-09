@@ -239,9 +239,26 @@ export interface WebhookBodyField {
 export interface FormTriggerField {
   name: string;        // Field key sent in the trigger payload (snake_case or kebab-case)
   label: string;       // Human-readable label rendered in the form
-  type: "text" | "email" | "number" | "textarea" | "date" | "password" | "file";
+  type:
+    | "text"
+    | "email"
+    | "number"
+    | "textarea"
+    | "date"
+    | "password"
+    | "file"
+    | "select"
+    | "multiselect"
+    | "checkbox"
+    | "checkbox-group"
+    | "radio"
+    | "quiz"
+    | "tel"
+    | "url";
   required?: boolean;
   placeholder?: string;
+  description?: string;
+  options?: Array<{ label: string; value: string }>;
 }
 
 export interface FormTheme {
@@ -287,6 +304,7 @@ export interface FormTheme {
     borderColor?: string;
     focusColor?: string;
     radius?: number;
+    shape?: "square" | "medium" | "pill";
     spacing?: number;
   };
 }

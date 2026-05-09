@@ -57,6 +57,7 @@ const presetDefaults: Record<NonNullable<FormTheme['preset']>, FormTheme> = {
       borderColor: 'var(--nod8-border)',
       focusColor: 'var(--nod8-accent)',
       radius: 8,
+      shape: 'medium',
       spacing: 16,
     },
   },
@@ -97,6 +98,7 @@ const presetDefaults: Record<NonNullable<FormTheme['preset']>, FormTheme> = {
       borderColor: '#cbd5e1',
       focusColor: '#2563eb',
       radius: 4,
+      shape: 'square',
       spacing: 18,
     },
   },
@@ -137,6 +139,7 @@ const presetDefaults: Record<NonNullable<FormTheme['preset']>, FormTheme> = {
       borderColor: '#dadce0',
       focusColor: '#673ab7',
       radius: 4,
+      shape: 'medium',
       spacing: 20,
     },
   },
@@ -214,7 +217,11 @@ const themeVars = computed<CSSProperties>(() => {
     '--form-field-color': theme.fields?.textColor,
     '--form-field-border-color': theme.fields?.borderColor,
     '--form-field-focus-color': theme.fields?.focusColor,
-    '--form-field-radius': `${theme.fields?.radius ?? 8}px`,
+    '--form-field-radius': theme.fields?.shape === 'pill'
+      ? '999px'
+      : theme.fields?.shape === 'square'
+        ? '0px'
+        : `${theme.fields?.radius ?? 8}px`,
     '--form-field-spacing': `${theme.fields?.spacing ?? 16}px`,
   } as CSSProperties
 })

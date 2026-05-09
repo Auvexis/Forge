@@ -56,6 +56,14 @@ const VALID_FORM_FIELD_TYPES = new Set([
   "date",
   "password",
   "file",
+  "select",
+  "multiselect",
+  "checkbox",
+  "checkbox-group",
+  "radio",
+  "quiz",
+  "tel",
+  "url",
 ]);
 const FORM_FIELD_NAME_REGEX = /^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/i;
 const FORM_SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -72,6 +80,7 @@ const FORM_THEME_BACKGROUND_TYPES = new Set(["solid", "gradient", "image"]);
 const FORM_THEME_SHADOWS = new Set(["none", "sm", "md", "lg"]);
 const FORM_THEME_BUTTON_WIDTHS = new Set(["auto", "full"]);
 const FORM_THEME_BUTTON_SHAPES = new Set(["square", "medium", "pill"]);
+const FORM_THEME_FIELD_SHAPES = new Set(["square", "medium", "pill"]);
 
 interface FormRateBucket { count: number; resetAt: number }
 const formRateLimit = new Map<string, FormRateBucket>();
@@ -103,9 +112,11 @@ function escapeAttr(value: unknown): string {
 interface NormalizedFormField {
   name: string;
   label: string;
-  type: "text" | "email" | "number" | "textarea" | "date" | "password" | "file";
+  type: "text" | "email" | "number" | "textarea" | "date" | "password" | "file" | "select" | "multiselect" | "checkbox" | "checkbox-group" | "radio" | "quiz" | "tel" | "url";
   required: boolean;
   placeholder: string;
+  description: string;
+  options: Array<{ label: string; value: string }>;
 }
 
 function formPublicId(workflow: WorkflowItem): string {
@@ -125,15 +136,29 @@ function normalizeFormFields(raw: unknown): NormalizedFormField[] {
   if (!Array.isArray(raw)) return [];
   return raw
     .filter((f): f is Record<string, unknown> => !!f && typeof f === "object")
-    .map((f) => ({
-      name: String(f.name ?? "").trim(),
-      label: String(f.label ?? f.name ?? "").trim(),
-      type: VALID_FORM_FIELD_TYPES.has(String(f.type))
-        ? (f.type as NormalizedFormField["type"])
-        : "text",
-      required: Boolean(f.required),
-      placeholder: String(f.placeholder ?? ""),
-    }))
+    .map((f) => {
+      const options = Array.isArray(f.options)
+        ? f.options
+          .filter((option): option is Record<string, unknown> => !!option && typeof option === "object")
+          .map((option) => ({
+            label: String(option.label ?? option.value ?? "").trim(),
+            value: String(option.value ?? option.label ?? "").trim(),
+          }))
+          .filter((option) => option.label.length > 0 && option.value.length > 0)
+        : [];
+
+      return {
+        name: String(f.name ?? "").trim(),
+        label: String(f.label ?? f.name ?? "").trim(),
+        type: VALID_FORM_FIELD_TYPES.has(String(f.type))
+          ? (f.type as NormalizedFormField["type"])
+          : "text",
+        required: Boolean(f.required),
+        placeholder: String(f.placeholder ?? ""),
+        description: String(f.description ?? "").trim(),
+        options,
+      };
+    })
     .filter((f) => f.name.length > 0);
 }
 
@@ -217,6 +242,10 @@ function normalizeFormTheme(raw: unknown): FormTheme {
       borderColor: boundedString(source.fields?.borderColor),
       focusColor: boundedString(source.fields?.focusColor),
       radius: boundedNumber(source.fields?.radius, 0, 32),
+      shape: enumValue(
+        source.fields?.shape,
+        FORM_THEME_FIELD_SHAPES,
+      ) as NonNullable<FormTheme["fields"]>["shape"],
       spacing: boundedNumber(source.fields?.spacing, 8, 32),
     }),
   });
@@ -237,14 +266,34 @@ function renderFormPage(
         `<label for="f-${escapeAttr(f.name)}">${escapeHtml(f.label)}` +
         (f.required ? ' <span class="req">*</span>' : "") +
         `</label>`;
+      const descriptionHtml = f.description
+        ? `<div class="field-desc">${escapeHtml(f.description)}</div>`
+        : "";
       const common =
         `id="f-${escapeAttr(f.name)}" name="${escapeAttr(f.name)}"` +
         (f.required ? " required" : "") +
         (f.placeholder ? ` placeholder="${escapeAttr(f.placeholder)}"` : "");
+      const optionsHtml = f.options
+        .map((option) => `<option value="${escapeAttr(option.value)}">${escapeHtml(option.label)}</option>`)
+        .join("");
+      const choiceHtml = f.options
+        .map((option) => {
+          const type = f.type === "checkbox-group" ? "checkbox" : "radio";
+          return `<label class="choice"><input type="${type}" name="${escapeAttr(f.name)}" value="${escapeAttr(option.value)}" /> ${escapeHtml(option.label)}</label>`;
+        })
+        .join("");
       const control = f.type === "textarea"
         ? `<textarea ${common} rows="4"></textarea>`
-        : `<input type="${escapeAttr(f.type)}" ${common} />`;
-      return `<div class="field">${labelHtml}${control}</div>`;
+        : f.type === "select"
+          ? `<select ${common}><option value="">${escapeHtml(f.placeholder || "Select...")}</option>${optionsHtml}</select>`
+          : f.type === "multiselect"
+            ? `<select ${common} multiple>${optionsHtml}</select>`
+            : f.type === "checkbox"
+              ? `<label class="choice"><input type="checkbox" name="${escapeAttr(f.name)}" value="true" /> ${escapeHtml(f.placeholder || "Yes")}</label>`
+              : f.type === "checkbox-group" || f.type === "radio" || f.type === "quiz"
+                ? `<div class="choice-group">${choiceHtml}</div>`
+                : `<input type="${escapeAttr(f.type)}" ${common} />`;
+      return `<div class="field">${labelHtml}${descriptionHtml}${control}</div>`;
     })
     .join("\n");
 
@@ -269,10 +318,13 @@ function renderFormPage(
   p.desc { color:#9ba3b3; margin: 0 0 22px; font-size: 14px; line-height: 1.55; }
   .field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
   label { font-size: 12px; font-weight: 600; color:#c5cad6; }
+  .field-desc { color:#7f8797; font-size: 12px; line-height:1.45; margin-top:-2px; }
   .req { color:#ff6b6b; }
-  input, textarea { background:#0b0d12; border:1px solid #2a3142; border-radius: 8px; color:#e7e9ee; font: inherit; padding: 10px 12px; width: 100%; outline: none; transition: border-color .15s; }
-  input:focus, textarea:focus { border-color:#7c3aed; }
+  input, textarea, select { background:#0b0d12; border:1px solid #2a3142; border-radius: 8px; color:#e7e9ee; font: inherit; padding: 10px 12px; width: 100%; outline: none; transition: border-color .15s; }
+  input:focus, textarea:focus, select:focus { border-color:#7c3aed; }
   textarea { resize: vertical; min-height: 92px; }
+  .choice, .choice-group { display:flex; flex-direction:column; gap:8px; color:#c5cad6; font-size: 13px; }
+  .choice input { width:auto; margin-right: 8px; }
   button { background:#7c3aed; border:0; color:#fff; padding:12px 18px; border-radius:8px; font-weight:600; cursor:pointer; width:100%; font-size: 14px; }
   button:hover { background:#6d28d9; }
   .error { background: rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
@@ -316,17 +368,27 @@ function renderFormConfirmationPage(workflow: WorkflowItem): string {
 async function parseFormRequestBody(req: any): Promise<Record<string, unknown>> {
   if (typeof req.isMultipart === "function" && req.isMultipart()) {
     const body: Record<string, unknown> = {};
+    const appendValue = (key: string, value: unknown) => {
+      const existing = body[key];
+      if (existing === undefined) {
+        body[key] = value;
+      } else if (Array.isArray(existing)) {
+        existing.push(value);
+      } else {
+        body[key] = [existing, value];
+      }
+    };
     for await (const part of req.parts()) {
       if (part.type === "file") {
         const buffer = await part.toBuffer();
-        body[part.fieldname] = {
+        appendValue(part.fieldname, {
           filename: part.filename,
           mimetype: part.mimetype,
           size: buffer.length,
           buffer,
-        };
+        });
       } else {
-        body[part.fieldname] = part.value;
+        appendValue(part.fieldname, part.value);
       }
     }
     return body;
@@ -725,6 +787,37 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       }
 
       // ── Text / number fields ─────────────────────────────────────────────
+      if (field.type === "checkbox") {
+        const checked = raw === true || raw === "true" || raw === "on" || raw === "1";
+        if (field.required && !checked) {
+          return {
+            ok: false,
+            statusCode: 400,
+            message: `Field "${field.label}" is required.`,
+            workflow,
+            fields,
+          };
+        }
+        fieldData[field.name] = checked;
+        continue;
+      }
+
+      if (field.type === "multiselect" || field.type === "checkbox-group") {
+        const values = (Array.isArray(raw) ? raw : raw == null || raw === "" ? [] : [raw]).map(String);
+        if (field.required && values.length === 0) {
+          return {
+            ok: false,
+            statusCode: 400,
+            message: `Field "${field.label}" is required.`,
+            workflow,
+            fields,
+          };
+        }
+        const validOptions = new Set(field.options.map((option) => option.value));
+        fieldData[field.name] = values.filter((value) => validOptions.size === 0 || validOptions.has(value));
+        continue;
+      }
+
       const asString = raw == null ? "" : String(raw);
 
       if (asString.length > FORM_FIELD_MAX_BYTES) {
@@ -745,6 +838,19 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
           workflow,
           fields,
         };
+      }
+
+      if (["select", "radio", "quiz"].includes(field.type) && asString) {
+        const validOptions = new Set(field.options.map((option) => option.value));
+        if (validOptions.size > 0 && !validOptions.has(asString)) {
+          return {
+            ok: false,
+            statusCode: 400,
+            message: `Field "${field.label}" has an invalid option.`,
+            workflow,
+            fields,
+          };
+        }
       }
 
       if (field.type === "number") {

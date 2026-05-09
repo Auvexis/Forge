@@ -25,6 +25,14 @@ const VALID_FORM_FIELD_TYPES = new Set([
   "date",
   "password",
   "file",
+  "select",
+  "multiselect",
+  "checkbox",
+  "checkbox-group",
+  "radio",
+  "quiz",
+  "tel",
+  "url",
 ]);
 const FORM_FIELD_NAME_REGEX = /^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/i;
 const FORM_SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -99,6 +107,19 @@ function validateFormTrigger(workflow: WorkflowItem): string | null {
     seenNames.add(field.name);
     if (!VALID_FORM_FIELD_TYPES.has(field.type)) {
       return `Form field "${field.name}" has invalid type "${field.type}". Valid: ${[...VALID_FORM_FIELD_TYPES].join(", ")}`;
+    }
+    if (
+      ["select", "multiselect", "checkbox-group", "radio", "quiz"].includes(field.type) &&
+      (!Array.isArray(field.options) || field.options.length === 0)
+    ) {
+      return `Form field "${field.name}" of type "${field.type}" must define at least one option`;
+    }
+    if (Array.isArray(field.options)) {
+      for (const [optionIndex, option] of field.options.entries()) {
+        if (!option?.value || !option?.label) {
+          return `Form field "${field.name}" option at index ${optionIndex} must have label and value`;
+        }
+      }
     }
   }
 

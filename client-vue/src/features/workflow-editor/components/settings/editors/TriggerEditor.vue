@@ -346,6 +346,11 @@
                   @update:model-value="updateFormField(i, { type: $event as FormTriggerField['type'] })"
                 />
               </div>
+              <BaseInput
+                :model-value="field.description || ''"
+                @update:model-value="updateFormField(i, { description: $event as string })"
+                placeholder="Description"
+              />
               <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--nod8-text-secondary)] cursor-pointer whitespace-nowrap px-1">
                 <BaseInput
                   type="checkbox"
@@ -361,6 +366,14 @@
                 icon-left="x"
                 class="!text-[var(--nod8-text-muted)] hover:!text-[var(--nod8-text-primary)] !p-2"
                 @click="removeFormField(i)"
+              />
+              <BaseTextarea
+                v-if="formFieldUsesOptions(field.type)"
+                class="te-form-field-options"
+                :model-value="formatFormFieldOptions(field.options)"
+                :rows="3"
+                placeholder="Option A&#10;Option B&#10;Value C | Label C"
+                @update:model-value="updateFormField(i, { options: parseFormFieldOptions($event) })"
               />
             </div>
 
@@ -591,6 +604,7 @@ import type { PluginSummary, PluginTriggerManifest } from '@/core/types/plugin.t
 import EditorField from './EditorField.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import FormThemeMenu from '../../form/FormThemeMenu.vue'
 import { API_BASE_URL } from '@/core/constants/app'
@@ -627,7 +641,23 @@ const FORM_FIELD_TYPES = [
   { value: 'date', label: 'Date Picker', icon: 'calendar' },
   { value: 'password', label: 'Password', icon: 'lock-keyhole' },
   { value: 'file', label: 'File', icon: 'file' },
+  { value: 'select', label: 'Select', icon: 'list' },
+  { value: 'multiselect', label: 'Multi Select', icon: 'list-checks' },
+  { value: 'checkbox', label: 'Checkbox', icon: 'square-check' },
+  { value: 'checkbox-group', label: 'Checkbox Group', icon: 'list-todo' },
+  { value: 'radio', label: 'Radio Group', icon: 'circle-dot' },
+  { value: 'quiz', label: 'Quiz Choice', icon: 'badge-help' },
+  { value: 'tel', label: 'Phone', icon: 'phone' },
+  { value: 'url', label: 'URL', icon: 'link' },
 ]
+
+const FORM_FIELD_TYPES_WITH_OPTIONS = new Set<FormTriggerField['type']>([
+  'select',
+  'multiselect',
+  'checkbox-group',
+  'radio',
+  'quiz',
+])
 
 const MANUAL_FIELD_TYPES = [
   { value: 'string', label: 'String', icon: 'type' },
@@ -842,6 +872,32 @@ function removeFormField(i: number) {
   saveFormFields(formFields.value.filter((_, idx) => idx !== i))
 }
 
+function formFieldUsesOptions(type: FormTriggerField['type']) {
+  return FORM_FIELD_TYPES_WITH_OPTIONS.has(type)
+}
+
+function formatFormFieldOptions(options: FormTriggerField['options'] = []) {
+  return options.map((option) => (
+    option.value === option.label ? option.value : `${option.value} | ${option.label}`
+  )).join('\n')
+}
+
+function parseFormFieldOptions(value: string): NonNullable<FormTriggerField['options']> {
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [rawValue = '', rawLabel = ''] = line.split('|')
+      const valuePart = rawValue.trim()
+      const labelPart = rawLabel.trim()
+      return {
+        value: valuePart,
+        label: labelPart || valuePart,
+      }
+    })
+}
+
 // ── Plugin Trigger ──────────────────────────────────────────
 
 const allPlugins = ref<PluginSummary[]>([])
@@ -980,9 +1036,13 @@ onUnmounted(() => cleanup())
 <style scoped>
 .te-form-field-grid {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(150px, 0.8fr) auto 32px;
+  grid-template-columns: minmax(110px, 1fr) minmax(110px, 1fr) minmax(140px, 0.8fr) minmax(140px, 1fr) auto 32px;
   gap: 8px;
   align-items: center;
+}
+
+.te-form-field-options {
+  grid-column: 1 / -1;
 }
 
 @media (max-width: 720px) {
