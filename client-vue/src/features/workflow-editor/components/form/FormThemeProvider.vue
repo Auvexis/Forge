@@ -10,6 +10,7 @@
 import { computed } from 'vue'
 import type { CSSProperties } from 'vue'
 import type { FormTheme } from '@/core/types/workflow.types'
+import './form-themes.css'
 
 const props = defineProps<{
   theme?: FormTheme
@@ -194,48 +195,3 @@ const themeVars = computed<CSSProperties>(() => {
   } as CSSProperties
 })
 </script>
-
-<style scoped>
-.form-theme-page {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 32px 16px;
-  background: var(--form-page-background);
-  color: var(--form-field-color, var(--nod8-text-primary));
-  font-family: var(--form-font-family, var(--nod8-font-sans));
-  font-size: var(--form-base-size, 14px);
-}
-
-.form-theme-page--flat {
-  place-items: start center;
-}
-
-.form-theme-page--full-width {
-  place-items: stretch;
-  padding: 0;
-}
-
-.form-theme-page--centered {
-  align-content: start;
-  padding-top: 48px;
-}
-
-.form-theme-container {
-  width: min(100%, var(--form-container-max-width));
-  padding: var(--form-container-padding);
-  border: var(--form-container-border-width) solid var(--form-container-border-color);
-  border-radius: var(--form-container-radius);
-  background: var(--form-container-background);
-  box-shadow: var(--form-container-shadow);
-}
-
-.form-theme-page--full-width .form-theme-container {
-  width: 100%;
-  max-width: none;
-  min-height: 100vh;
-  border-radius: 0;
-  border-left: 0;
-  border-right: 0;
-}
-</style>
