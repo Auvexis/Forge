@@ -1,9 +1,18 @@
 import type {
+  WorkflowEvent,
+} from "../modules/workflows/event-bus.ts";
+import type {
   WorkflowEdge,
   WorkflowItem,
   WorkflowNode,
   WorkflowNodeType,
 } from "../../shared/models/workflow-types.ts";
+import type {
+  InternalEvent,
+} from "../modules/events/internal-event-bus.ts";
+import type {
+  WebhookPendingResponse,
+} from "../modules/workflows/pending-webhook-registry.ts";
 
 export interface WorkflowExecutionContext {
   _workflowId?: string;
@@ -33,9 +42,16 @@ export interface NodeHandlerServices {
     triggerPayload: any,
     executionId?: string,
   ) => Promise<any>;
+  getWorkflowById: (workflowId: string) => WorkflowItem | null;
+  emitInternalEvent: (event: InternalEvent) => Promise<{ triggered: string[] }>;
+  resolvePendingWebhookResponse: (
+    correlationId: string,
+    response: WebhookPendingResponse,
+  ) => boolean;
   emitNodeStart: (nodeId: string) => void;
   emitNodeSuccess: (nodeId: string, result: any, node?: WorkflowNode) => void;
   emitNodeFailure: (nodeId: string, error: Error) => void;
+  emitWorkflowEvent?: (event: WorkflowEvent) => void;
 }
 
 export interface NodeHandler<TNode extends WorkflowNode = WorkflowNode> {
