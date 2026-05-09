@@ -17,15 +17,27 @@ export interface ExternalIOOptions<T> {
   operation: (context: ExternalIOOperationContext) => Promise<T>;
 }
 
+export type ExternalIOErrorCode =
+  | "EXTERNAL_IO_FAILED"
+  | "EXTERNAL_IO_TIMEOUT"
+  | "EXTERNAL_IO_ABORTED";
+
 export class ExternalIOError extends Error {
+  public readonly code: ExternalIOErrorCode;
+  public readonly attempts: number;
+  public readonly cause?: unknown;
+
   constructor(
     message: string,
-    public readonly code: "EXTERNAL_IO_FAILED" | "EXTERNAL_IO_TIMEOUT" | "EXTERNAL_IO_ABORTED",
-    public readonly attempts: number,
-    public readonly cause?: unknown,
+    code: ExternalIOErrorCode,
+    attempts: number,
+    cause?: unknown,
   ) {
     super(message);
     this.name = "ExternalIOError";
+    this.code = code;
+    this.attempts = attempts;
+    this.cause = cause;
   }
 }
 

@@ -10,9 +10,12 @@ const TEMPLATE_PATTERN = /{{\s*([a-zA-Z0-9_.\[\]]+)\s*}}/g;
 const EXACT_TEMPLATE_PATTERN = /^{{\s*([a-zA-Z0-9_.\[\]]+)\s*}}$/;
 
 export class TemplateMissingPathError extends Error {
-  constructor(public readonly path: string) {
+  public readonly path: string;
+
+  constructor(path: string) {
     super(`Template path "${path}" could not be resolved`);
     this.name = "TemplateMissingPathError";
+    this.path = path;
   }
 }
 
