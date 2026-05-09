@@ -17,8 +17,8 @@
 - [x] Extrair handlers simples para arquivos isolados em `server/src/core/nodes/handlers/`.
 - [x] Escrever testes unitarios para handlers com dependencias: `code`, `http`, `event`, `respond-webhook`, `subworkflow`.
 - [x] Extrair handlers com dependencias mantendo injecao explicita no contexto, sem imports cruzados desnecessarios.
-- [ ] Extrair execucao de subgrafos reutilizavel para `loop` e `split-in-batches`.
-- [ ] Escrever testes unitarios para `loop` e `split-in-batches` cobrindo colecoes invalidas e variaveis de iteracao/batch.
+- [x] Extrair execucao de subgrafos reutilizavel para `loop` e `split-in-batches`.
+- [x] Escrever testes unitarios para `loop` e `split-in-batches` cobrindo colecoes invalidas e variaveis de iteracao/batch.
 - [ ] Reduzir `server/src/core/modules/workflows/executor.ts` para orquestracao, retry, eventos, traversal e dispatch.
 - [ ] Garantir que dispatch de plugin continue usando `PluginExecutor` por caminho isolado e com parametros avaliados pelo workflow parser.
 - [ ] Rodar `npm run build` no `server`.
