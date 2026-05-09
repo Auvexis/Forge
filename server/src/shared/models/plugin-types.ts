@@ -155,14 +155,7 @@ export interface VisibleIfConfig {
  */
 export interface JSONSchemaProperty {
   // ── Core JSON Schema (Draft 7) ────────────────────────────────
-  type?:
-    | "string"
-    | "number"
-    | "integer"
-    | "boolean"
-    | "object"
-    | "array"
-    | "null";
+  type?: string | string[];
   description?: string;
   default?: any;
   enum?: any[];
@@ -259,7 +252,7 @@ export interface JSONSchemaResponse {
 
   // For type: "array"
   items?: JSONSchemaProperty & {
-    type?: string;
+    type?: string | string[];
     properties?: Record<string, JSONSchemaProperty>;
   };
 }
