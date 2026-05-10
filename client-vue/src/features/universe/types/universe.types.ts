@@ -1,7 +1,7 @@
 import type { PluginSummary, PluginStatus } from '@/core/types/plugin.types'
 
 export type UniverseIconKind = 'image' | 'lucide'
-export type UniverseNodeLod = 'card' | 'particle'
+export type UniverseNodeLod = 'artifact' | 'particle'
 
 export interface UniverseVector3 {
   x: number

@@ -5,9 +5,10 @@ import { getUniverseOrbitPosition } from '../utils/orbit'
 interface PluginNodeObject {
   node: UniversePluginNode
   root: THREE.Group
-  card: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>
+  artifact: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial[]>
   particle: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
   texture: THREE.CanvasTexture
+  spin: THREE.Vector3
 }
 
 export interface PluginNodeSystem {
@@ -17,24 +18,19 @@ export interface PluginNodeSystem {
   dispose: () => void
 }
 
-const CARD_WIDTH = 2.15
-const CARD_HEIGHT = 2.55
-const FAR_DISTANCE = 26
+const ARTIFACT_SIZE = 0.92
+const FAR_DISTANCE = 72
 
-function drawRoundedRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) {
-  ctx.beginPath()
-  ctx.roundRect(x, y, width, height, radius)
-  ctx.closePath()
+function colorWithAlpha(colorValue: string, alpha: number): string {
+  try {
+    const color = new THREE.Color(colorValue)
+    return `rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}, ${alpha})`
+  } catch {
+    return `rgba(99, 102, 241, ${alpha})`
+  }
 }
 
-function drawCardTexture(
+function drawArtifactTexture(
   node: UniversePluginNode,
   canvas: HTMLCanvasElement,
   texture: THREE.CanvasTexture,
@@ -44,75 +40,57 @@ function drawCardTexture(
   const color = node.color
 
   ctx.clearRect(0, 0, canvas.width, canvas.height)
-  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
-  gradient.addColorStop(0, 'rgba(255,255,255,0.08)')
-  gradient.addColorStop(1, 'rgba(255,255,255,0.015)')
-  ctx.fillStyle = 'rgba(3, 5, 11, 0.74)'
-  drawRoundedRect(ctx, 28, 28, 456, 584, 34)
-  ctx.fill()
+  const gradient = ctx.createRadialGradient(128, 110, 12, 128, 128, 150)
+  gradient.addColorStop(0, colorWithAlpha(color, 0.93))
+  gradient.addColorStop(0.5, colorWithAlpha(color, 0.26))
+  gradient.addColorStop(1, 'rgba(3, 5, 11, 0)')
   ctx.fillStyle = gradient
-  ctx.fill()
-  ctx.strokeStyle = color
-  ctx.globalAlpha = 0.72
-  ctx.lineWidth = 5
-  ctx.stroke()
-  ctx.globalAlpha = 1
-
-  ctx.fillStyle = color
-  drawRoundedRect(ctx, 146, 88, 220, 220, 38)
-  ctx.globalAlpha = 0.16
-  ctx.fill()
-  ctx.globalAlpha = 1
-  ctx.strokeStyle = color
-  ctx.lineWidth = 3
-  ctx.stroke()
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   if (image) {
     const size = 132
-    ctx.drawImage(image, 256 - size / 2, 198 - size / 2, size, size)
+    ctx.globalAlpha = 0.95
+    ctx.drawImage(image, 128 - size / 2, 128 - size / 2, size, size)
+    ctx.globalAlpha = 1
   } else {
-    const initials = node.label
-      .split(/\s+/)
-      .map((part) => part[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase()
-    ctx.fillStyle = color
-    ctx.font = '700 84px Inter, system-ui, sans-serif'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(initials || 'ND', 256, 198)
+    ctx.fillStyle = colorWithAlpha(color, 0.96)
+    ctx.beginPath()
+    ctx.moveTo(128, 54)
+    ctx.lineTo(194, 128)
+    ctx.lineTo(128, 202)
+    ctx.lineTo(62, 128)
+    ctx.closePath()
+    ctx.fill()
+    ctx.globalCompositeOperation = 'destination-out'
+    ctx.beginPath()
+    ctx.arc(128, 128, 38, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.strokeStyle = colorWithAlpha(color, 0.9)
+    ctx.lineWidth = 8
+    ctx.beginPath()
+    ctx.arc(128, 128, 48, 0, Math.PI * 2)
+    ctx.stroke()
   }
-
-  ctx.fillStyle = '#f7f8ff'
-  ctx.font = '600 42px Inter, system-ui, sans-serif'
-  ctx.textAlign = 'center'
-  const clippedName = node.label.length > 18 ? `${node.label.slice(0, 16)}...` : node.label
-  ctx.fillText(clippedName, 256, 420)
-
-  ctx.fillStyle = 'rgba(247, 248, 255, 0.54)'
-  ctx.font = '500 28px Inter, system-ui, sans-serif'
-  const clippedCategory = node.category.length > 22 ? `${node.category.slice(0, 20)}...` : node.category
-  ctx.fillText(clippedCategory, 256, 468)
 
   texture.needsUpdate = true
 }
 
-function createCardTexture(node: UniversePluginNode): THREE.CanvasTexture {
+function createArtifactTexture(node: UniversePluginNode): THREE.CanvasTexture {
   const canvas = document.createElement('canvas')
-  canvas.width = 512
-  canvas.height = 640
+  canvas.width = 256
+  canvas.height = 256
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
   texture.anisotropy = 4
 
-  drawCardTexture(node, canvas, texture)
+  drawArtifactTexture(node, canvas, texture)
 
   if (node.icon.kind === 'image' && canUseImageInCanvas(node.icon.value)) {
     const image = new Image()
     image.crossOrigin = 'anonymous'
-    image.onload = () => drawCardTexture(node, canvas, texture, image)
-    image.onerror = () => drawCardTexture(node, canvas, texture)
+    image.onload = () => drawArtifactTexture(node, canvas, texture, image)
+    image.onerror = () => drawArtifactTexture(node, canvas, texture)
     image.src = node.icon.value
   }
 
@@ -134,16 +112,30 @@ function createPluginObject(node: UniversePluginNode): PluginNodeObject {
   const root = new THREE.Group()
   root.userData.nodeId = node.id
 
-  const texture = createCardTexture(node)
-  const cardGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT)
-  const cardMaterial = new THREE.MeshBasicMaterial({
+  const texture = createArtifactTexture(node)
+  const artifactGeometry = new THREE.BoxGeometry(ARTIFACT_SIZE, ARTIFACT_SIZE, 0.12)
+  const faceMaterial = new THREE.MeshBasicMaterial({
     map: texture,
     transparent: true,
-    depthWrite: false,
+    opacity: 0.94,
+    depthWrite: true,
   })
-  const card = new THREE.Mesh(cardGeometry, cardMaterial)
-  card.userData.nodeId = node.id
-  root.add(card)
+  const sideMaterial = new THREE.MeshBasicMaterial({
+    color: node.color,
+    transparent: true,
+    opacity: 0.18,
+    blending: THREE.AdditiveBlending,
+  })
+  const artifact = new THREE.Mesh(artifactGeometry, [
+    sideMaterial,
+    sideMaterial,
+    sideMaterial,
+    sideMaterial,
+    faceMaterial,
+    sideMaterial,
+  ])
+  artifact.userData.nodeId = node.id
+  root.add(artifact)
 
   const particleGeometry = new THREE.BufferGeometry()
   particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0], 3))
@@ -163,16 +155,21 @@ function createPluginObject(node: UniversePluginNode): PluginNodeObject {
   return {
     node,
     root,
-    card,
+    artifact,
     particle,
     texture,
+    spin: new THREE.Vector3(
+      0.12 + (node.id.length % 5) * 0.018,
+      0.08 + (node.label.length % 7) * 0.014,
+      0.04 + (node.category.length % 3) * 0.015,
+    ),
   }
 }
 
 export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeSystem {
   const root = new THREE.Group()
   const objects = nodes.map(createPluginObject)
-  const selectableCards = objects.map((object) => object.card)
+  const selectableArtifacts = objects.map((object) => object.artifact)
 
   objects.forEach((object) => root.add(object.root))
 
@@ -184,27 +181,36 @@ export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeS
         const position = getUniverseOrbitPosition(object.node.orbitRadius, angle, object.node.orbitLane)
         object.root.position.set(position.x, position.y, position.z)
         object.node.position = position
-        object.card.lookAt(camera.position)
+        object.artifact.rotation.x += object.spin.x * 0.01
+        object.artifact.rotation.y += object.spin.y * 0.01
+        object.artifact.rotation.z += object.spin.z * 0.01
 
         const distance = camera.position.distanceTo(object.root.position)
         const isFocused = focusedNodeId === object.node.id
-        const showCard = isFocused || distance < FAR_DISTANCE
-        object.card.visible = showCard
-        object.particle.visible = !showCard
-        object.card.material.opacity = isFocused ? 1 : THREE.MathUtils.clamp(1 - (distance - 12) / 22, 0.34, 0.9)
-        object.root.scale.setScalar(isFocused ? 1.18 : 1)
+        const showArtifact = isFocused || distance < FAR_DISTANCE
+        object.artifact.visible = showArtifact
+        object.particle.visible = !showArtifact
+        const faceMaterial = object.artifact.material[4]
+        if (faceMaterial) {
+          faceMaterial.opacity = isFocused
+            ? 1
+            : THREE.MathUtils.clamp(1 - (distance - 22) / 60, 0.38, 0.92)
+        }
+        object.root.scale.setScalar(isFocused ? 1.35 : 1)
       }
     },
     pick: (raycaster) => {
-      const intersections = raycaster.intersectObjects(selectableCards, false)
+      const intersections = raycaster.intersectObjects(selectableArtifacts, false)
       const hit = intersections[0]?.object
       if (!hit?.userData.nodeId) return null
       return objects.find((object) => object.node.id === hit.userData.nodeId)?.node ?? null
     },
     dispose: () => {
       for (const object of objects) {
-        object.card.geometry.dispose()
-        object.card.material.dispose()
+        object.artifact.geometry.dispose()
+        for (const material of object.artifact.material) {
+          material.dispose()
+        }
         object.particle.geometry.dispose()
         object.particle.material.dispose()
         object.texture.dispose()

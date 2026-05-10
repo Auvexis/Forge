@@ -76,3 +76,12 @@
   - Replace the flat core with a volumetric-looking particle/shader core using layered transparency, additive blending, animated uniforms, and rotating glow.
   - Verify the scene has no DOM plugin cards and no app console errors.
   - Commit message: `feat(universe): move plugin nodes into 3d world`
+
+- [x] **Task 10: Make Universe Mode feel less UI-like and more spatial**
+  - Replace 3D plugin cards with small logo artifacts that keep real world-space rotation and never billboard toward the camera.
+  - Remove labels, descriptions, borders, badges, and panel-like card styling from the 3D plugin objects.
+  - Scale the galaxy into a larger explorable field with layered BufferGeometry particles for core dust, spiral arm stars, background stars, and bright sparse particles.
+  - Start the camera inside a spiral arm, increase travel range and movement speed, and keep the camera safely outside the core.
+  - Remove the decorative DOM star layer and hide the intro copy after plugin data loads so the Three.js scene carries the experience.
+  - Verify type-check, production build, runtime console, desktop/mobile screenshots, and screenshot pixel samples.
+  - Commit message: `feat(universe): deepen spatial galaxy immersion`

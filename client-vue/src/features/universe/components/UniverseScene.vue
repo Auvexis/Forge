@@ -57,7 +57,7 @@ function getRightVector() {
 
 function clampCameraAwayFromCore() {
   if (!camera) return
-  const minDistance = 5.8
+  const minDistance = 15
   if (camera.position.length() < minDistance) {
     camera.position.setLength(minDistance)
   }
@@ -83,8 +83,8 @@ function animate() {
   galaxy.root.rotation.z = Math.sin(performance.now() * 0.00012) * 0.035
   galaxy.update(elapsed)
 
-  const moveSpeed = 0.12
-  const panSpeed = 0.075
+  const moveSpeed = 0.42
+  const panSpeed = 0.18
   const forward = getForwardVector()
   const right = getRightVector()
 
@@ -151,7 +151,7 @@ function handlePointerMove(event: PointerEvent) {
 
 function handleWheel(event: WheelEvent) {
   if (!camera) return
-  camera.position.addScaledVector(getForwardVector(), event.deltaY * 0.008)
+  camera.position.addScaledVector(getForwardVector(), event.deltaY * 0.026)
   clampCameraAwayFromCore()
 }
 
@@ -218,10 +218,12 @@ function initScene() {
   if (!containerRef.value) return
 
   scene = new THREE.Scene()
-  scene.fog = new THREE.FogExp2('#03050b', 0.035)
+  scene.fog = new THREE.FogExp2('#03050b', 0.006)
 
-  camera = new THREE.PerspectiveCamera(48, 1, 0.1, 120)
-  camera.position.set(0, 6.4, 18)
+  camera = new THREE.PerspectiveCamera(58, 1, 0.1, 280)
+  camera.position.set(38, 5.5, -24)
+  yaw = -0.82
+  pitch = -0.08
 
   renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -233,7 +235,7 @@ function initScene() {
   containerRef.value.appendChild(renderer.domElement)
 
   galaxy = createGalaxySystem()
-  galaxy.root.rotation.x = -0.16
+  galaxy.root.rotation.x = -0.08
   scene.add(galaxy.root)
   rebuildPluginNodes()
 

@@ -44,7 +44,7 @@ export function mapPluginsToUniverse(plugins: PluginSummary[]): UniversePluginMa
     const metadata = plugin.manifest.metadata
     const seed = hashString(plugin.id)
     const lane = seed % 3
-    const orbitRadius = 7 + (index % 6) * 1.55 + lane * 0.6
+    const orbitRadius = 24 + (index % 8) * 5.8 + lane * 3.4
     const orbitOffset = ((seed % 360) / 180) * Math.PI
     const color = getNodeColor(plugin, index)
     const iconValue = metadata.style?.icon ?? metadata.icon ?? 'blocks'
@@ -62,14 +62,14 @@ export function mapPluginsToUniverse(plugins: PluginSummary[]): UniversePluginMa
       },
       color,
       orbitRadius,
-      orbitSpeed: 0.018 + (seed % 7) * 0.002,
+      orbitSpeed: 0.006 + (seed % 7) * 0.0012,
       orbitOffset,
       orbitLane: lane,
       position: getUniverseOrbitPosition(orbitRadius, orbitOffset, lane),
       lod: {
-        nearDistance: 14,
-        farDistance: 28,
-        mode: 'card',
+        nearDistance: 18,
+        farDistance: 78,
+        mode: 'artifact',
       },
     }
   })

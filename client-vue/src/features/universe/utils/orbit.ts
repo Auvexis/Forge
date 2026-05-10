@@ -4,7 +4,7 @@ export function getUniverseOrbitPosition(
   radius: number,
   angle: number,
   lane: number,
-  spiralTightness = 0.42,
+  spiralTightness = 0.18,
 ): UniverseVector3 {
   const armAngle = angle + radius * spiralTightness
 

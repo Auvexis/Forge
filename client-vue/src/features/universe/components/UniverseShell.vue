@@ -6,13 +6,12 @@
       @ready="sceneReady = true"
       @select-node="selectedNodeId = $event"
     />
-    <div class="universe-shell__stars" aria-hidden="true"></div>
     <div class="universe-shell__brand" :class="{ 'universe-shell__brand--ready': sceneReady }">
       <img src="/favicon.svg" alt="" class="universe-shell__logo" />
       <span class="universe-shell__wordmark">nd.8</span>
     </div>
 
-    <div class="universe-shell__intro">
+    <div v-if="showIntro" class="universe-shell__intro">
       <p class="universe-shell__eyebrow">Universe Mode</p>
       <h1 class="universe-shell__title">{{ heroTitle }}</h1>
       <p class="universe-shell__subtitle">
@@ -60,6 +59,8 @@ const selectedNodeId = ref<string | null>(null)
 const selectedNode = computed(
   () => plugins.value.nodes.find((node) => node.id === selectedNodeId.value) ?? null,
 )
+
+const showIntro = computed(() => isLoading.value || Boolean(error.value) || !hasPlugins.value)
 
 const heroTitle = computed(() => {
   if (isLoading.value) return 'Plugin galaxy initializing'
