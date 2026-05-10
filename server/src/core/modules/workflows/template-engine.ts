@@ -6,8 +6,8 @@ export interface TemplateEngineOptions {
   escape?: TemplateEscapeMode;
 }
 
-const TEMPLATE_PATTERN = /{{\s*([a-zA-Z0-9_.\[\]]+)\s*}}/g;
-const EXACT_TEMPLATE_PATTERN = /^{{\s*([a-zA-Z0-9_.\[\]]+)\s*}}$/;
+const TEMPLATE_PATTERN = /{{\s*([a-zA-Z0-9_.\[\]-]+)\s*}}/g;
+const EXACT_TEMPLATE_PATTERN = /^{{\s*([a-zA-Z0-9_.\[\]-]+)\s*}}$/;
 
 export class TemplateMissingPathError extends Error {
   public readonly path: string;
