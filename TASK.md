@@ -67,3 +67,12 @@
   - Confirm `/workflows` normal UI restores after exiting Universe Mode.
   - Fix layout overlap, blank canvas, console errors, and obvious FPS hazards.
   - Mark this task done and commit with `test(universe): verify mvp experience`.
+
+- [x] **Task 9: Convert plugin exploration to real 3D world space**
+  - Remove viewport-attached plugin orbit cards from the rendered Universe experience.
+  - Render plugin nodes as real Three.js objects positioned inside galaxy spiral arms.
+  - Add world-space orbit motion, perspective depth, camera-distance scaling, and far particle LOD.
+  - Add manual camera rotation, forward/backward movement, and horizontal/vertical pan controls.
+  - Replace the flat core with a volumetric-looking particle/shader core using layered transparency, additive blending, animated uniforms, and rotating glow.
+  - Verify the scene has no DOM plugin cards and no app console errors.
+  - Commit message: `feat(universe): move plugin nodes into 3d world`

@@ -127,90 +127,6 @@
   font-size: var(--nod8-text-sm);
 }
 
-.universe-plugin-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.universe-plugin-node {
-  position: absolute;
-  left: 0;
-  top: 0;
-  display: grid;
-  width: 84px;
-  min-height: 102px;
-  place-items: center;
-  gap: 8px;
-  padding: 10px 8px;
-  --node-color: var(--universe-cyan);
-  color: var(--universe-text);
-  border: 1px solid color-mix(in srgb, var(--node-color) 42%, transparent);
-  border-radius: 8px;
-  background: rgba(3, 5, 11, 0.64);
-  box-shadow:
-    0 0 24px color-mix(in srgb, var(--node-color) 22%, transparent),
-    inset 0 0 28px color-mix(in srgb, var(--node-color) 7%, transparent);
-  cursor: pointer;
-  pointer-events: auto;
-  transition:
-    border-color var(--nod8-duration-base) var(--nod8-ease-standard),
-    box-shadow var(--nod8-duration-base) var(--nod8-ease-standard);
-  will-change: transform, opacity;
-}
-
-.universe-plugin-node:hover,
-.universe-plugin-node--focused {
-  border-color: color-mix(in srgb, var(--node-color) 78%, white 12%);
-  box-shadow:
-    0 0 34px color-mix(in srgb, var(--node-color) 48%, transparent),
-    inset 0 0 32px color-mix(in srgb, var(--node-color) 14%, transparent);
-}
-
-.universe-plugin-node--particle {
-  width: 18px;
-  min-height: 18px;
-  padding: 0;
-  border-radius: var(--nod8-radius-full);
-  background: var(--node-color);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--node-color) 74%, transparent);
-  pointer-events: none;
-}
-
-.universe-plugin-node__icon {
-  display: grid;
-  width: 52px;
-  height: 52px;
-  place-items: center;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--node-color) 14%, transparent);
-  color: var(--node-color);
-}
-
-.universe-plugin-node__icon img {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-}
-
-.universe-plugin-node__label {
-  width: 100%;
-  overflow: hidden;
-  color: var(--universe-muted);
-  font-size: var(--nod8-text-xs);
-  font-weight: var(--nod8-font-medium);
-  line-height: var(--nod8-leading-tight);
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.universe-plugin-node--particle .universe-plugin-node__icon,
-.universe-plugin-node--particle .universe-plugin-node__label {
-  display: none;
-}
-
 .universe-shell__details {
   position: absolute;
   right: 28px;
@@ -375,21 +291,6 @@
     right: auto;
     left: 20px;
     bottom: 20px;
-  }
-
-  .universe-plugin-node {
-    width: 68px;
-    min-height: 84px;
-  }
-
-  .universe-plugin-node__icon {
-    width: 42px;
-    height: 42px;
-  }
-
-  .universe-plugin-node__icon img {
-    width: 26px;
-    height: 26px;
   }
 
   .universe-shell__details {

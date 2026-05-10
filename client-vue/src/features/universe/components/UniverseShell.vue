@@ -1,11 +1,10 @@
 <template>
   <section class="universe-shell" aria-label="ND8 Universe">
-    <UniverseScene :focused-node="selectedNode" @ready="sceneReady = true" />
-    <UniversePluginLayer
-      v-if="hasPlugins"
+    <UniverseScene
       :nodes="plugins.nodes"
-      :focused-node-id="selectedNodeId"
-      @select="selectedNodeId = $event"
+      :focused-node="selectedNode"
+      @ready="sceneReady = true"
+      @select-node="selectedNodeId = $event"
     />
     <div class="universe-shell__stars" aria-hidden="true"></div>
     <div class="universe-shell__brand" :class="{ 'universe-shell__brand--ready': sceneReady }">
@@ -52,7 +51,6 @@
 import { computed, ref } from 'vue'
 import { useUniversePlugins } from '../composables/useUniversePlugins'
 import UniverseScene from './UniverseScene.vue'
-import UniversePluginLayer from './UniversePluginLayer.vue'
 import UniversePluginIcon from './UniversePluginIcon.vue'
 
 const { plugins, isLoading, error, hasPlugins } = useUniversePlugins()

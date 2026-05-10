@@ -24,6 +24,7 @@ export interface UniversePluginNode {
   orbitRadius: number
   orbitSpeed: number
   orbitOffset: number
+  orbitLane: number
   position: UniverseVector3
   lod: {
     nearDistance: number

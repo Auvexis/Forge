@@ -1,5 +1,6 @@
 import type { PluginSummary } from '@/core/types/plugin.types'
-import type { UniversePluginMap, UniversePluginNode, UniverseVector3 } from '../types/universe.types'
+import type { UniversePluginMap, UniversePluginNode } from '../types/universe.types'
+import { getUniverseOrbitPosition } from './orbit'
 
 const NODE_COLORS = [
   '#67e8f9',
@@ -34,14 +35,6 @@ function getNodeColor(plugin: PluginSummary, fallbackIndex: number): string {
   return plugin.manifest.metadata.style?.iconColor ?? NODE_COLORS[fallbackIndex % NODE_COLORS.length]!
 }
 
-function getInitialPosition(radius: number, offset: number, lane: number): UniverseVector3 {
-  return {
-    x: Math.cos(offset) * radius,
-    y: (lane - 1) * 1.2,
-    z: Math.sin(offset) * radius,
-  }
-}
-
 export function mapPluginsToUniverse(plugins: PluginSummary[]): UniversePluginMap {
   const sortedPlugins = [...plugins].sort((a, b) =>
     a.manifest.metadata.name.localeCompare(b.manifest.metadata.name),
@@ -71,7 +64,8 @@ export function mapPluginsToUniverse(plugins: PluginSummary[]): UniversePluginMa
       orbitRadius,
       orbitSpeed: 0.018 + (seed % 7) * 0.002,
       orbitOffset,
-      position: getInitialPosition(orbitRadius, orbitOffset, lane),
+      orbitLane: lane,
+      position: getUniverseOrbitPosition(orbitRadius, orbitOffset, lane),
       lod: {
         nearDistance: 14,
         farDistance: 28,
