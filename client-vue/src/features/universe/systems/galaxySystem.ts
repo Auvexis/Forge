@@ -13,17 +13,23 @@ const GALAXY_RADIUS = 240
 const CORE_RADIUS = 8
 
 // ─── Reference palette ────────────────────────────────────────────────────────
-const C_INSIDE = new THREE.Color(0xaa22ff) // vibrant purple/magenta
-const C_OUTSIDE = new THREE.Color(0x77ddff) // light bright blue/white
-const C_HOT = new THREE.Color(0xffffff) // pure white core
+const C_INSIDE  = new THREE.Color(0xffffff)  // pure white core
+const C_OUTSIDE = new THREE.Color(0xddeeff)  // cool near-white edges
+const C_HOT     = new THREE.Color(0xffffff)  // hot white
+// Black hole accretion palette
+const C_ELEC    = new THREE.Color(0x88bbff)  // electric blue — inner arm heat
+const C_VIOLET  = new THREE.Color(0x9966ff)  // violet mid-arm
+const C_AMBER   = new THREE.Color(0xff8833)  // warm orange at arm tips
 
 // ─── Particle counts ──────────────────────────────────────────────────────────
-const NUM_ARMS = 4
-const ARM_COUNT = 60_000
-const OMNI_COUNT = 20_000
-const INNER_COUNT = 18_000
-const CORE_COUNT = 18_000
-const HALO_COUNT = 8_000
+const NUM_ARMS        = 4
+const ARM_COUNT       = 42_000  // dense arms — main visible structure
+const ARM_INNER_COUNT = 18_000  // tight inner accretion lanes
+const OMNI_COUNT      =  3_000  // very few background stars; most space is BLACK
+const INNER_COUNT     =  6_000
+const CORE_COUNT      = 10_000
+const HALO_COUNT      =  2_000  // barely perceptible outer halo
+const ACCRETION_COUNT =  8_000  // flat bright ring around core
 
 // ─── Circular soft-star texture ───────────────────────────────────────────────
 // Creates a radial gradient canvas so PointsMaterial renders round glowing dots
@@ -107,41 +113,130 @@ function buildOmniField(): THREE.Points {
   const geo = new THREE.BufferGeometry()
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   geo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-  return new THREE.Points(geo, makeMat(0.2, 0.28))
+  return new THREE.Points(geo, makeMat(0.12, 0.06))  // very faint background noise
 }
 
 // ─── Spiral arms ──────────────────────────────────────────────────────────────
-// 4 branches, spinAngle = radius * 1.2 (same formula as reference)
+// Black-hole-pulled look: tight logarithmic winding, hot electric palette,
+// minimal scatter so arms stay razor-defined, brightness peaks at inner half.
 
 function buildSpiralArms(): THREE.Points {
   const positions = new Float32Array(ARM_COUNT * 3)
-  const colors = new Float32Array(ARM_COUNT * 3)
+  const colors    = new Float32Array(ARM_COUNT * 3)
 
   for (let i = 0; i < ARM_COUNT; i++) {
-    const i3 = i * 3
-    const radius = Math.pow(Math.random(), 0.45) * GALAXY_RADIUS
+    const i3  = i * 3
+    // Bias heavily toward inner radii — gravitational pull concentrates mass
+    const radius      = Math.pow(Math.random(), 0.55) * GALAXY_RADIUS
+    const t           = radius / GALAXY_RADIUS               // 0 = core, 1 = edge
     const branchAngle = ((i % NUM_ARMS) / NUM_ARMS) * Math.PI * 2
-    const spinAngle = radius * 0.035
-    // Thicker, cloudier arms by reducing the bias and increasing the scatter radius
-    const scatter = biased(1.8) * Math.pow(radius / GALAXY_RADIUS, 0.7) * 55
-    const angle = branchAngle + spinAngle
+    // Tighter winding (0.048 vs 0.035) — more coiled, black-hole-sucked look
+    const spinAngle   = radius * 0.048
+    // Sharp arms: much less scatter, tightest near core
+    const scatterMax  = Math.pow(t, 0.9) * 22
+    const scatter     = biased(2.8) * scatterMax
+    const angle       = branchAngle + spinAngle
+    const perpX       = Math.cos(angle + Math.PI * 0.5)
+    const perpZ       = Math.sin(angle + Math.PI * 0.5)
 
-    positions[i3] = Math.cos(angle) * radius + Math.cos(angle + Math.PI * 0.5) * scatter * 0.65
-    positions[i3 + 1] = biased(2.2) * (2.5 + (radius / GALAXY_RADIUS) * 14)
-    positions[i3 + 2] = Math.sin(angle) * radius + Math.sin(angle + Math.PI * 0.5) * scatter * 0.65
+    positions[i3]     = Math.cos(angle) * radius + perpX * scatter
+    positions[i3 + 1] = biased(3.0) * (1.8 + t * 10)
+    positions[i3 + 2] = Math.sin(angle) * radius + perpZ * scatter
 
-    const t = radius / GALAXY_RADIUS
-    const col = lerp3(C_INSIDE, C_OUTSIDE, t)
-    if (i % 15 === 0) col.lerp(C_HOT, 0.4)
-    colors[i3] = col.r
+    // Hot electric blue → violet → amber at tips
+    let col: THREE.Color
+    if (t < 0.25) {
+      col = lerp3(C_HOT, C_ELEC, t / 0.25)
+    } else if (t < 0.60) {
+      col = lerp3(C_ELEC, C_VIOLET, (t - 0.25) / 0.35)
+    } else {
+      col = lerp3(C_VIOLET, C_AMBER, (t - 0.60) / 0.40)
+    }
+    // Occasional hot-white flare points
+    if (i % 18 === 0 && t < 0.5) col.lerp(C_HOT, 0.65)
+
+    colors[i3]     = col.r
     colors[i3 + 1] = col.g
     colors[i3 + 2] = col.b
   }
 
   const geo = new THREE.BufferGeometry()
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-  return new THREE.Points(geo, makeMat(0.52, 1.0))
+  geo.setAttribute('color',    new THREE.BufferAttribute(colors, 3))
+  return new THREE.Points(geo, makeMat(0.40, 0.80))
+}
+
+// ─── Inner accretion lanes ────────────────────────────────────────────────────
+// High-density bright inner arm segments that look like matter being torn
+// off the disk and funnelled into the black hole.
+
+function buildAccretionArms(): THREE.Points {
+  const positions = new Float32Array(ARM_INNER_COUNT * 3)
+  const colors    = new Float32Array(ARM_INNER_COUNT * 3)
+
+  for (let i = 0; i < ARM_INNER_COUNT; i++) {
+    const i3          = i * 3
+    const radius      = Math.pow(Math.random(), 1.4) * GALAXY_RADIUS * 0.55
+    const t           = radius / (GALAXY_RADIUS * 0.55)
+    const branchAngle = ((i % NUM_ARMS) / NUM_ARMS) * Math.PI * 2
+    const spinAngle   = radius * 0.055  // even tighter at inner lanes
+    const scatter     = biased(3.5) * radius * 0.06
+    const angle       = branchAngle + spinAngle
+
+    positions[i3]     = Math.cos(angle) * radius + scatter
+    positions[i3 + 1] = biased(3.5) * (0.8 + radius * 0.03)
+    positions[i3 + 2] = Math.sin(angle) * radius + scatter * 0.8
+
+    const col = t < 0.4
+      ? lerp3(C_HOT, C_ELEC, t / 0.4)
+      : lerp3(C_ELEC, C_VIOLET, (t - 0.4) / 0.6)
+    if (i % 10 === 0) col.lerp(C_HOT, 0.8)
+
+    colors[i3]     = col.r
+    colors[i3 + 1] = col.g
+    colors[i3 + 2] = col.b
+  }
+
+  const geo = new THREE.BufferGeometry()
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  geo.setAttribute('color',    new THREE.BufferAttribute(colors, 3))
+  return new THREE.Points(geo, makeMat(0.55, 0.95))
+}
+
+// ─── Accretion disk ring ──────────────────────────────────────────────────────
+// Flat torus of superheated matter just outside the core — the "event horizon"
+// glow ring. Very flat (low Y) and intensely bright.
+
+function buildAccretionDisk(): THREE.Points {
+  const positions = new Float32Array(ACCRETION_COUNT * 3)
+  const colors    = new Float32Array(ACCRETION_COUNT * 3)
+  const DISK_INNER = CORE_RADIUS * 1.2
+  const DISK_OUTER = CORE_RADIUS * 5.5
+
+  for (let i = 0; i < ACCRETION_COUNT; i++) {
+    const i3     = i * 3
+    const radius = DISK_INNER + Math.pow(Math.random(), 1.8) * (DISK_OUTER - DISK_INNER)
+    const theta  = Math.random() * Math.PI * 2
+    const t      = (radius - DISK_INNER) / (DISK_OUTER - DISK_INNER)
+
+    positions[i3]     = Math.cos(theta) * radius
+    positions[i3 + 1] = biased(4.0) * 0.35  // extremely flat
+    positions[i3 + 2] = Math.sin(theta) * radius
+
+    const col = t < 0.35
+      ? lerp3(C_HOT, C_ELEC, t / 0.35)
+      : lerp3(C_ELEC, C_VIOLET, (t - 0.35) / 0.65)
+    if (i % 8 === 0) col.lerp(C_HOT, 0.9)
+
+    colors[i3]     = col.r
+    colors[i3 + 1] = col.g
+    colors[i3 + 2] = col.b
+  }
+
+  const geo = new THREE.BufferGeometry()
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  geo.setAttribute('color',    new THREE.BufferAttribute(colors, 3))
+  return new THREE.Points(geo, makeMat(0.50, 1.0))
 }
 
 // ─── Dense inner disk ─────────────────────────────────────────────────────────
@@ -322,10 +417,12 @@ function buildNuclearBulge(): THREE.Points[] {
 export function createGalaxySystem(): GalaxySystem {
   const root = new THREE.Group()
 
-  const omniField = buildOmniField()
-  const spiralArms = buildSpiralArms()
-  const innerDisk = buildInnerDisk()
-  const halo = buildHalo()
+  const omniField      = buildOmniField()
+  const spiralArms     = buildSpiralArms()
+  const accretionArms  = buildAccretionArms()
+  const accretionDisk  = buildAccretionDisk()
+  const innerDisk      = buildInnerDisk()
+  const halo           = buildHalo()
 
   const { points: corePoints, uniforms: coreUniforms } = buildCoreParticles()
   const bulge = buildNuclearBulge()
@@ -333,8 +430,9 @@ export function createGalaxySystem(): GalaxySystem {
   const core = new THREE.Group()
   core.add(corePoints)
   bulge.forEach((b) => core.add(b))
+  core.add(accretionDisk)
 
-  const particles: THREE.Points[] = [halo, omniField, spiralArms, innerDisk]
+  const particles: THREE.Points[] = [halo, omniField, spiralArms, accretionArms, innerDisk]
   particles.forEach((p) => root.add(p))
   root.add(core)
 
@@ -345,16 +443,20 @@ export function createGalaxySystem(): GalaxySystem {
 
     update: (elapsed) => {
       // Differential rotation — outer rings lag behind inner disk
-      omniField.rotation.y = elapsed * 0.003
-      spiralArms.rotation.y = elapsed * 0.004
-      innerDisk.rotation.y = elapsed * 0.014
-      halo.rotation.y = -elapsed * 0.0006
+      // Very slow to evoke real astronomical scale
+      omniField.rotation.y     = elapsed * 0.0004
+      spiralArms.rotation.y    = elapsed * 0.0006
+      accretionArms.rotation.y = elapsed * 0.0010  // inner lanes faster
+      innerDisk.rotation.y     = elapsed * 0.0018
+      halo.rotation.y          = -elapsed * 0.00008
+      // Accretion disk spins fast — superheated matter close to the event horizon
+      accretionDisk.rotation.y = elapsed * 0.008
 
-      corePoints.rotation.y = elapsed * 0.08
-      corePoints.rotation.z = elapsed * 0.025
+      corePoints.rotation.y = elapsed * 0.012
+      corePoints.rotation.z = elapsed * 0.004
       bulge.forEach((b, bi) => {
-        b.rotation.y = elapsed * (0.1 + bi * 0.015)
-        b.rotation.x = elapsed * (0.03 - bi * 0.006)
+        b.rotation.y = elapsed * (0.015 + bi * 0.002)
+        b.rotation.x = elapsed * (0.005 - bi * 0.001)
       })
 
       coreUniforms.uTime.value = elapsed
@@ -367,6 +469,8 @@ export function createGalaxySystem(): GalaxySystem {
         p.geometry.dispose()
         ;(p.material as THREE.Material).dispose()
       }
+      accretionDisk.geometry.dispose()
+      ;(accretionDisk.material as THREE.Material).dispose()
       corePoints.geometry.dispose()
       ;(corePoints.material as THREE.Material).dispose()
       bulge.forEach((b) => {

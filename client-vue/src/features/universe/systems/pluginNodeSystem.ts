@@ -3,30 +3,47 @@ import type { UniversePluginNode } from '../types/universe.types'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CUBE_SIZE       = 0.45    // world-space size of each cube face
-const VISIBLE_DIST    = 24      // distance at which the cube fades in
-const NEAR_DIST       = 4       // full opacity inside this distance
+const CUBE_SIZE    = 0.45
+const VISIBLE_DIST = 28
+const NEAR_DIST    = 5
 
-const NUM_ARMS    = 4
-const GALAXY_RADIUS = 120
+// Orbit ring — all plugins orbit at this base radius in the XZ plane
+const ORBIT_RADIUS   = 72
+const ORBIT_Y_SPREAD = 4
+
+// Trail: comet-like tail behind each moving plugin
+const TRAIL_LEN  = 40   // number of line segments
+const TRAIL_STEP = 10   // frames of orbit per trail point (longer arc)
+
+// Stagger reveal
+const STAGGER_INTERVAL_MS = 1400
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface PluginNodeObject {
-  node: UniversePluginNode
-  root: THREE.Group
-  cube: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial[]>
-  glow: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>
-  dot:  THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
-  spinVelocity: THREE.Vector3
-  worldPos: THREE.Vector3
-  fadeAlpha: number
+  node:          UniversePluginNode
+  root:          THREE.Group
+  cube:          THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial[]>
+  glow:          THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>
+  dot:           THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
+  hitbox:        THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial>  // invisible large click target
+  trail:         THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>
+  trailPosArr:   Float32Array
+  trailColArr:   Float32Array
+  spinVelocity:  THREE.Vector3
+  worldPos:      THREE.Vector3
+  orbitAngle:    number
+  orbitRadius:   number
+  orbitSpeed:    number
+  orbitY:        number
+  fadeAlpha:     number
+  revealed:      boolean
 }
 
 export interface PluginNodeSystem {
-  root:   THREE.Group
-  update: (elapsed: number, camera: THREE.Camera, focusedNodeId: string | null) => void
-  pick:   (raycaster: THREE.Raycaster) => UniversePluginNode | null
+  root:    THREE.Group
+  update:  (elapsed: number, camera: THREE.Camera, focusedNodeId: string | null) => void
+  pick:    (raycaster: THREE.Raycaster) => UniversePluginNode | null
   dispose: () => void
 }
 
@@ -49,29 +66,25 @@ function seededRandom(seed: number): () => number {
   }
 }
 
-// ─── Spiral position ──────────────────────────────────────────────────────────
-// Y is clamped tightly so nodes stay inside the visible galaxy disk.
-// The disk in galaxySystem uses biased(2.2) * 12 max ≈ ±12 for the omni field,
-// but most particles cluster within ±4. We keep plugins in that same band.
+// ─── Flat Ring Distribution ───────────────────────────────────────────────────
 
-function getSpiralPosition(node: UniversePluginNode): THREE.Vector3 {
-  const rng = seededRandom(hash(node.id))
+function buildRingPositions(count: number): THREE.Vector3[] {
+  const positions: THREE.Vector3[] = []
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5))
 
-  const armIndex  = hash(node.id) % NUM_ARMS
-  const baseAngle = (armIndex / NUM_ARMS) * Math.PI * 2
-  const radius    = 28 + Math.pow(rng(), 0.65) * (GALAXY_RADIUS * 0.72)
+  for (let i = 0; i < count; i++) {
+    const angle  = goldenAngle * i
+    const radius = ORBIT_RADIUS + Math.sin(i * 7.3) * 8
+    const y      = Math.sin(i * 3.7) * ORBIT_Y_SPREAD
 
-  // spinAngle = radius * 1.2 — same formula as galaxy arm particles
-  const angle = baseAngle + radius * 1.2 + (rng() - 0.5) * 0.08 * radius
+    positions.push(new THREE.Vector3(
+      Math.cos(angle) * radius,
+      y,
+      Math.sin(angle) * radius,
+    ))
+  }
 
-  // Keep Y tightly within the galaxy midplane (±2.5 units max)
-  const y = (rng() * 2 - 1) * 2.5
-
-  return new THREE.Vector3(
-    Math.cos(angle) * radius,
-    y,
-    Math.sin(angle) * radius,
-  )
+  return positions
 }
 
 // ─── Logo texture ─────────────────────────────────────────────────────────────
@@ -87,11 +100,9 @@ function buildFaceTexture(node: UniversePluginNode): THREE.CanvasTexture {
   canvas.width = canvas.height = SIZE
   const ctx = canvas.getContext('2d')!
 
-  // Dark background with subtle vignette
   ctx.fillStyle = '#060810'
   ctx.fillRect(0, 0, SIZE, SIZE)
 
-  // Inner glow
   const glow = ctx.createRadialGradient(128, 128, 10, 128, 128, 128)
   glow.addColorStop(0.0, colorToRgba(node.color, 0.55))
   glow.addColorStop(0.5, colorToRgba(node.color, 0.18))
@@ -99,12 +110,10 @@ function buildFaceTexture(node: UniversePluginNode): THREE.CanvasTexture {
   ctx.fillStyle = glow
   ctx.fillRect(0, 0, SIZE, SIZE)
 
-  // Thin colored border
   ctx.strokeStyle = colorToRgba(node.color, 0.9)
   ctx.lineWidth = 6
   ctx.strokeRect(6, 6, SIZE - 12, SIZE - 12)
 
-  // Corner accents
   const CORNER = 18
   ctx.lineWidth = 3
   ;[
@@ -123,35 +132,24 @@ function buildFaceTexture(node: UniversePluginNode): THREE.CanvasTexture {
   texture.colorSpace = THREE.SRGBColorSpace
   texture.anisotropy = 8
 
-  // Async logo overlay
   if (node.icon.kind === 'image') {
     const src = node.icon.value
-    const canLoad =
-      src.startsWith('/') ||
-      src.startsWith('data:') ||
-      src.includes('upload.wikimedia.org')
-
+    const canLoad = src.startsWith('/') || src.startsWith('data:') || src.includes('upload.wikimedia.org')
     if (canLoad) {
       const img = new Image()
       img.crossOrigin = 'anonymous'
       img.onload = () => {
-        // Redraw base
         ctx.fillStyle = '#060810'
         ctx.fillRect(0, 0, SIZE, SIZE)
         ctx.fillStyle = glow
         ctx.fillRect(0, 0, SIZE, SIZE)
-
-        // Logo centered, with slight padding
         const PAD = 56
         ctx.globalAlpha = 0.92
         ctx.drawImage(img, PAD, PAD, SIZE - PAD * 2, SIZE - PAD * 2)
         ctx.globalAlpha = 1
-
-        // Border on top
         ctx.strokeStyle = colorToRgba(node.color, 0.88)
         ctx.lineWidth = 6
         ctx.strokeRect(6, 6, SIZE - 12, SIZE - 12)
-
         texture.needsUpdate = true
       }
       img.src = src
@@ -181,80 +179,111 @@ function buildGlowTexture(node: UniversePluginNode): THREE.CanvasTexture {
 
 // ─── Per-node factory ─────────────────────────────────────────────────────────
 
-function createPluginObject(node: UniversePluginNode): PluginNodeObject {
+function createPluginObject(node: UniversePluginNode, worldPos: THREE.Vector3): PluginNodeObject {
   const rng = seededRandom(hash(node.id) ^ 0xdeadbeef)
 
+  // ── Orbit properties derived from Fibonacci position ────────────────────────
+  const orbitAngle  = Math.atan2(worldPos.z, worldPos.x)
+  const orbitRadius = Math.hypot(worldPos.x, worldPos.z)
+  const orbitY      = worldPos.y
+  // Each plugin orbits at a different seeded speed
+  const orbitSpeed  = 0.0006 + rng() * 0.0010  // 0.0006–0.0016 rad/frame
+
+  // Sync node.position so camera focus knows where to fly to
+  node.position.x = worldPos.x
+  node.position.y = worldPos.y
+  node.position.z = worldPos.z
+
+  // ── Scene group ─────────────────────────────────────────────────────────────
   const root = new THREE.Group()
   root.userData.nodeId = node.id
-
-  const worldPos = getSpiralPosition(node)
   root.position.copy(worldPos)
-
-  // Random initial orientation — NOT facing camera
   root.rotation.x = rng() * Math.PI * 2
   root.rotation.y = rng() * Math.PI * 2
   root.rotation.z = rng() * Math.PI * 2
 
-  // ── Cube ──────────────────────────────────────────────────────────────────
-  const faceTex  = buildFaceTexture(node)
-  const faceMap  = new THREE.MeshBasicMaterial({
-    map: faceTex,
-    transparent: true,
-    opacity: 0,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    side: THREE.FrontSide,
+  // ── Cube ────────────────────────────────────────────────────────────────────
+  const faceTex = buildFaceTexture(node)
+  const faceMap = new THREE.MeshBasicMaterial({
+    map: faceTex, transparent: true, opacity: 0,
+    depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide,
   })
   const sideMat = new THREE.MeshBasicMaterial({
-    color: node.color,
-    transparent: true,
-    opacity: 0,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
+    color: node.color, transparent: true, opacity: 0,
+    depthWrite: false, blending: THREE.AdditiveBlending,
   })
-
   const cubeGeo = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
-  // +x, -x, +y, -y, +z (front), -z (back) — logo on front and back
   const cube = new THREE.Mesh(cubeGeo, [
-    sideMat.clone(), // +x
-    sideMat.clone(), // -x
-    sideMat.clone(), // +y
-    sideMat.clone(), // -y
-    faceMap,         // +z (front face — logo)
-    faceMap.clone(), // -z (back face — logo)
+    sideMat.clone(), sideMat.clone(), sideMat.clone(),
+    sideMat.clone(), faceMap, faceMap.clone(),
   ])
   cube.userData.nodeId = node.id
   root.add(cube)
 
-  // ── Glow halo plane (camera-facing via lookAt in update) ──────────────────
-  const glowTex  = buildGlowTexture(node)
-  const glowSize = CUBE_SIZE * 4.2
-  const glowGeo = new THREE.PlaneGeometry(glowSize, glowSize)
-  const glowMat  = new THREE.MeshBasicMaterial({
-    map: glowTex,
-    transparent: true,
-    opacity: 0,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    side: THREE.DoubleSide,
-  })
-  const glow = new THREE.Mesh(glowGeo, glowMat)
+  // ── Glow halo ───────────────────────────────────────────────────────────────
+  const glowTex = buildGlowTexture(node)
+  const glow = new THREE.Mesh(
+    new THREE.PlaneGeometry(CUBE_SIZE * 4.2, CUBE_SIZE * 4.2),
+    new THREE.MeshBasicMaterial({
+      map: glowTex, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    }),
+  )
   root.add(glow)
 
-  // ── LOD dot (visible from far away) ──────────────────────────────────────
+  // ── LOD dot ─────────────────────────────────────────────────────────────────
   const dotGeo = new THREE.BufferGeometry()
   dotGeo.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0], 3))
-  const dotMat = new THREE.PointsMaterial({
-    color:         node.color,
-    size:          0.14,
-    sizeAttenuation: true,
-    transparent:   true,
-    opacity:       0.78,
-    depthWrite:    false,
-    blending:      THREE.AdditiveBlending,
-  })
-  const dot = new THREE.Points(dotGeo, dotMat)
+  const dot = new THREE.Points(dotGeo, new THREE.PointsMaterial({
+    color: node.color, size: 0.14, sizeAttenuation: true,
+    transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending,
+  }))
   root.add(dot)
+
+  // ── Invisible hitbox sphere — large so it's easy to click from far away ────
+  const hitbox = new THREE.Mesh(
+    new THREE.SphereGeometry(2.5, 6, 4),
+    new THREE.MeshBasicMaterial({ visible: false }),
+  )
+  hitbox.userData.nodeId = node.id
+  root.add(hitbox)
+
+  // ── Trail ───────────────────────────────────────────────────────────────────
+  // Analytical trail: traces the circular orbit behind the plugin.
+  // No ring buffer needed — we compute positions from orbitAngle each frame.
+  const trailPosArr = new Float32Array(TRAIL_LEN * 3)
+  const trailColArr = new Float32Array(TRAIL_LEN * 3)
+  const trailColor  = new THREE.Color(node.color)
+
+  // Pre-fill with current position
+  for (let t = 0; t < TRAIL_LEN; t++) {
+    trailPosArr[t * 3]     = worldPos.x
+    trailPosArr[t * 3 + 1] = worldPos.y
+    trailPosArr[t * 3 + 2] = worldPos.z
+    const fade = Math.max(0, 1 - t / TRAIL_LEN)
+    trailColArr[t * 3]     = trailColor.r * fade
+    trailColArr[t * 3 + 1] = trailColor.g * fade
+    trailColArr[t * 3 + 2] = trailColor.b * fade
+  }
+
+  const trailGeo = new THREE.BufferGeometry()
+  trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPosArr, 3))
+  trailGeo.setAttribute('color',    new THREE.BufferAttribute(trailColArr, 3))
+
+  const trail = new THREE.Line(
+    trailGeo,
+    new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  )
+  // The trail geometry is recomputed analytically every frame so Three.js
+  // never updates its bounding sphere. Without this flag the renderer would
+  // incorrectly cull the trail when the camera reaches certain angles.
+  trail.frustumCulled = false
 
   const spinVelocity = new THREE.Vector3(
     (rng() - 0.5) * 0.30,
@@ -262,180 +291,141 @@ function createPluginObject(node: UniversePluginNode): PluginNodeObject {
     (rng() - 0.5) * 0.14,
   )
 
-  return { node, root, cube, glow, dot, spinVelocity, worldPos, fadeAlpha: 0 }
+  return {
+    node, root, cube, glow, dot, hitbox,
+    trail, trailPosArr, trailColArr,
+    spinVelocity, worldPos,
+    orbitAngle, orbitRadius, orbitSpeed, orbitY,
+    fadeAlpha: 0, revealed: false,
+  }
 }
 
 // ─── Public factory ───────────────────────────────────────────────────────────
 
 export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeSystem {
-  const root    = new THREE.Group()
-  const objects = nodes.map(createPluginObject)
-  const selectableCubes = objects.map((o) => o.cube)
+  const root = new THREE.Group()
 
-  objects.forEach((o) => root.add(o.root))
+  const ringPositions = buildRingPositions(nodes.length)
+  const objects = nodes.map((node, i) => createPluginObject(node, ringPositions[i]!))
+
+  // Add both the plugin cube group AND the trail to the system root
+  objects.forEach((o) => {
+    root.add(o.root)
+    root.add(o.trail)  // trail is world-space so it's NOT a child of root group
+  })
+
+  const mountTime = performance.now()
+  const trailColor = new THREE.Color()
 
   return {
     root,
 
     update: (elapsed, camera, focusedNodeId) => {
       const camPos = camera.position
+      const now    = performance.now()
 
-      const frustum = new THREE.Frustum()
-      const projScreenMatrix = new THREE.Matrix4()
-      projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
-      frustum.setFromProjectionMatrix(projScreenMatrix)
-
-      let visibleCount = 0
-      for (const obj of objects) {
-        if (obj.fadeAlpha > 0.05 || focusedNodeId === obj.node.id) {
-          visibleCount++
+      // Progressive reveal
+      for (let i = 0; i < objects.length; i++) {
+        const obj = objects[i]!
+        if (!obj.revealed && now - mountTime >= i * STAGGER_INTERVAL_MS) {
+          obj.revealed = true
         }
       }
 
-      const now = performance.now()
-      const eligibleForSpawn: typeof objects = []
-
       for (const obj of objects) {
         const isFocused = focusedNodeId === obj.node.id
-        const dist      = camPos.distanceTo(obj.worldPos)
-        
-        const inView = isFocused || frustum.containsPoint(obj.worldPos)
 
-        if (!inView && !isFocused && obj.fadeAlpha < 0.02) {
-          // Banish the object so it doesn't reappear if the user looks back
-          if (obj.worldPos.y > -9000) {
-            obj.worldPos.set(0, -10000, 0)
-            obj.root.position.copy(obj.worldPos)
-            obj.node.position.x = 0
-            obj.node.position.y = -10000
-            obj.node.position.z = 0
-          }
-          eligibleForSpawn.push(obj)
+        // ── Orbit — always active, even when focused ──────────────────────────────
+        // Negate: cos/sin with +angle is CW from above, but rotation.y + is CCW.
+        // Subtracting keeps plugins spinning in the same direction as the galaxy.
+        obj.orbitAngle -= obj.orbitSpeed
+        const cx = Math.cos(obj.orbitAngle) * obj.orbitRadius
+        const cz = Math.sin(obj.orbitAngle) * obj.orbitRadius
+        obj.worldPos.set(cx, obj.orbitY, cz)
+        obj.root.position.set(cx, obj.orbitY, cz)
+        obj.node.position.x = cx
+        obj.node.position.y = obj.orbitY
+        obj.node.position.z = cz
+
+        // ── Trail (analytical) ─────────────────────────────────────────────────
+        // Compute trail points by stepping backwards along the orbit arc
+        trailColor.set(obj.node.color)
+        const posAttr = obj.trail.geometry.attributes.position as THREE.BufferAttribute
+        const colAttr = obj.trail.geometry.attributes.color    as THREE.BufferAttribute
+
+        for (let t = 0; t < TRAIL_LEN; t++) {
+          // Trail steps forward in angle (opposite of orbit direction) to paint the tail
+          const ta      = obj.orbitAngle + t * obj.orbitSpeed * TRAIL_STEP
+          const fade    = Math.max(0, 1 - t / TRAIL_LEN)
+          // Head is hot white, middle is plugin color, tail fades to transparent
+          const hotness = Math.max(0, 1 - (t / TRAIL_LEN) * 3.5)  // hot for first ~28%
+          const r = Math.min(1, trailColor.r * (1 - hotness) + hotness)
+          const g = Math.min(1, trailColor.g * (1 - hotness) + hotness)
+          const b = Math.min(1, trailColor.b * (1 - hotness) + hotness)
+
+          obj.trailPosArr[t * 3]     = Math.cos(ta) * obj.orbitRadius
+          obj.trailPosArr[t * 3 + 1] = obj.orbitY
+          obj.trailPosArr[t * 3 + 2] = Math.sin(ta) * obj.orbitRadius
+
+          obj.trailColArr[t * 3]     = r * fade
+          obj.trailColArr[t * 3 + 1] = g * fade
+          obj.trailColArr[t * 3 + 2] = b * fade
         }
 
-        const targetFade = (isFocused || frustum.containsPoint(obj.worldPos)) ? 1.0 : 0.0
-        const fadeSpeed = targetFade > 0 ? 0.015 : 0.08 // slow fade-in, fast fade-out
-        obj.fadeAlpha += (targetFade - obj.fadeAlpha) * fadeSpeed
+        posAttr.needsUpdate = true
+        colAttr.needsUpdate = true
 
-        // Natural 3D cube rotation — NOT billboarding
+        // Trail always visible (even when focused)
+        obj.trail.material.opacity = obj.fadeAlpha * 0.9
+
+        // ── Fade ───────────────────────────────────────────────────────────────
+        const targetFade = (obj.revealed || isFocused) ? 1.0 : 0.0
+        const fadeSpeed  = targetFade > obj.fadeAlpha ? 0.008 : 0.06
+        obj.fadeAlpha   += (targetFade - obj.fadeAlpha) * fadeSpeed
+
+        // ── Cube spin ──────────────────────────────────────────────────────────
         obj.root.rotation.x += obj.spinVelocity.x * 0.007
         obj.root.rotation.y += obj.spinVelocity.y * 0.007
         obj.root.rotation.z += obj.spinVelocity.z * 0.007
 
-        // Scale: enlarge when focused
+        // ── Scale ──────────────────────────────────────────────────────────────
         const targetScale = isFocused ? 1.6 : 1.0
         const cur = obj.root.scale.x
         obj.root.scale.setScalar(cur + (targetScale - cur) * 0.07)
 
-        // Cube opacity fades in when close
+        // ── Cube face opacity ──────────────────────────────────────────────────
+        const dist      = camPos.distanceTo(obj.worldPos)
         const cubeAlpha = isFocused
           ? 0.95
           : dist < VISIBLE_DIST
-            ? THREE.MathUtils.clamp(
-                (VISIBLE_DIST - dist) / (VISIBLE_DIST - NEAR_DIST),
-                0,
-                0.85,
-              )
+            ? THREE.MathUtils.clamp((VISIBLE_DIST - dist) / (VISIBLE_DIST - NEAR_DIST), 0, 0.85)
             : 0
 
         for (const mat of obj.cube.material) {
           mat.opacity = cubeAlpha * obj.fadeAlpha
         }
 
-        // Glow: always slightly visible, strongest when close / focused
+        // ── Glow ───────────────────────────────────────────────────────────────
         const glowAlpha = isFocused
           ? 0.88
-          : THREE.MathUtils.clamp(1.0 - dist / 80, 0.04, 0.6)
+          : THREE.MathUtils.clamp(1.0 - dist / 80, 0.04, 0.55)
         obj.glow.material.opacity = glowAlpha * obj.fadeAlpha
-
-        // Glow always faces camera (billboard — only the glow, not the cube)
         obj.glow.lookAt(camPos)
 
-        // Dot: far-LOD proxy, fades out when cube is visible
+        // ── LOD dot ────────────────────────────────────────────────────────────
         const dotAlpha = isFocused
           ? 0
           : THREE.MathUtils.clamp(dist / VISIBLE_DIST, 0.10, 0.72)
         obj.dot.material.opacity = dotAlpha * obj.fadeAlpha
 
-        // Focused bob
-        if (isFocused) {
-          obj.root.position.y = obj.worldPos.y + Math.sin(elapsed * 1.6) * 0.3
-        } else {
-          obj.root.position.y = obj.worldPos.y
-        }
-      }
-
-      // Try spawning one of the banished plugins
-      if (visibleCount < 2 && eligibleForSpawn.length > 0) {
-        if (now - (window as any).__lastPluginSpawnTime > 2500 || !(window as any).__lastPluginSpawnTime) {
-          
-          let recent = (window as any).__recentPlugins as string[] || []
-          let available = eligibleForSpawn.filter(o => !recent.includes(o.node.id))
-          
-          if (available.length === 0) {
-            // Fallback if all eligible plugins were recently shown
-            available = eligibleForSpawn
-            recent = []
-          }
-
-          // Pick a random eligible plugin
-          const obj = available[Math.floor(Math.random() * available.length)]!
-
-          const fwd = new THREE.Vector3()
-          camera.getWorldDirection(fwd)
-
-          const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize()
-          const up = new THREE.Vector3().crossVectors(right, fwd).normalize()
-
-          const spawnDist = 18 + Math.random() * 15
-          const offsetRight = (Math.random() - 0.5) * 35
-          const offsetUp = (Math.random() - 0.5) * 18
-
-          const candidatePos = camPos.clone()
-            .add(fwd.multiplyScalar(spawnDist))
-            .add(right.multiplyScalar(offsetRight))
-            .add(up.multiplyScalar(offsetUp))
-
-          const currentRadius = Math.hypot(candidatePos.x, candidatePos.z)
-          
-          const localThickness = 2.0 + (currentRadius / 240.0) * 11.0
-          const inGalaxyThickness = Math.abs(candidatePos.y) <= localThickness
-
-          let tooClose = false
-          for (const other of objects) {
-            if (other !== obj && other.worldPos.y > -9000) {
-              if (other.worldPos.distanceTo(candidatePos) < 18) {
-                tooClose = true
-                break
-              }
-            }
-          }
-
-          if (!tooClose && currentRadius <= 230 && inGalaxyThickness) {
-            obj.worldPos.copy(candidatePos)
-            obj.root.position.copy(obj.worldPos)
-
-            obj.node.position.x = obj.worldPos.x
-            obj.node.position.y = obj.worldPos.y
-            obj.node.position.z = obj.worldPos.z
-
-            ;(window as any).__lastPluginSpawnTime = now
-            visibleCount++
-
-            // Save to recent queue, cap at 10 or (total_objects - 2)
-            recent.push(obj.node.id)
-            const cap = Math.max(0, Math.min(10, objects.length - 2))
-            if (recent.length > cap) recent.shift()
-            ;(window as any).__recentPlugins = recent
-          }
-        }
+        // ── Focused bob removed — plugin keeps orbiting at its Y ───────────────
       }
     },
 
     pick: (raycaster) => {
-      // Only pick cubes that are visibly faded in
-      const visibleCubes = objects.filter(o => o.fadeAlpha > 0.05).map(o => o.cube)
-      const hits = raycaster.intersectObjects(visibleCubes, false)
+      // Use hitbox spheres — large invisible targets, easy to click from far
+      const visibleHitboxes = objects.filter(o => o.fadeAlpha > 0.05).map(o => o.hitbox)
+      const hits = raycaster.intersectObjects(visibleHitboxes, false)
       const hit  = hits[0]?.object
       if (!hit?.userData.nodeId) return null
       return objects.find((o) => o.node.id === hit.userData.nodeId)?.node ?? null
@@ -444,15 +434,16 @@ export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeS
     dispose: () => {
       for (const obj of objects) {
         obj.cube.geometry.dispose()
-        for (const m of obj.cube.material) {
-          m.map?.dispose()
-          m.dispose()
-        }
+        for (const m of obj.cube.material) { m.map?.dispose(); m.dispose() }
         obj.glow.geometry.dispose()
         obj.glow.material.map?.dispose()
         obj.glow.material.dispose()
         obj.dot.geometry.dispose()
         obj.dot.material.dispose()
+        obj.hitbox.geometry.dispose()
+        obj.hitbox.material.dispose()
+        obj.trail.geometry.dispose()
+        obj.trail.material.dispose()
       }
     },
   }

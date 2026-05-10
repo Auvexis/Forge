@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
 import * as THREE from 'three'
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
@@ -52,37 +52,49 @@ let animationFrame = 0
 
 // ─── Camera state ─────────────────────────────────────────────────────────────
 
-// Position above the disk plane, angled down — mirrors reference lookAt(0,0,0)
-const INITIAL_CAM_POS = new THREE.Vector3(0, 28, 55)
-const INITIAL_YAW = Math.PI // facing galactic center
-const INITIAL_PITCH = -0.46 // angled down to see the spiral disk
+// ── God View (default) ───────────────────────────────────────────────────────
+let godOrbitAngle  = Math.PI * 0.8   // start slightly off-front
+let godOrbitRadius = 90              // distance from core
+let godOrbitHeight = 24              // height above disk plane
+const GOD_ORBIT_SPEED = 0.00018      // radians per frame — imperceptibly slow
 
-let yaw = INITIAL_YAW
-let pitch = INITIAL_PITCH
-let targetYaw = INITIAL_YAW
-let targetPitch = INITIAL_PITCH
+// ── Fly Mode ─────────────────────────────────────────────────────────────────
+let yaw   = Math.PI
+let pitch = -0.22
+let targetYaw   = Math.PI
+let targetPitch = -0.22
+
+// ── Shared ────────────────────────────────────────────────────────────────────
 let isDragging = false
-let isPanning = false
-let lastPtrX = 0
-let lastPtrY = 0
+let isPanning  = false
+let lastPtrX   = 0
+let lastPtrY   = 0
 let dragStartX = 0
 let dragStartY = 0
 
-const pressedKeys = new Set<string>()
-const cameraTarget = new THREE.Vector3()
-const cameraVelocity = new THREE.Vector3()
-const isFlyMode = ref(false)
-const desiredPos = new THREE.Vector3()
-const focusPos = new THREE.Vector3()
-const forwardVec = new THREE.Vector3()
-const rightVec = new THREE.Vector3()
-const upVec = new THREE.Vector3(0, 1, 0)
-const focusOrbitOffset = new THREE.Vector3()
-const cameraEuler = new THREE.Euler(0, 0, 0, 'YXZ')
-const raycaster = new THREE.Raycaster()
-const pointer = new THREE.Vector2()
+type CameraMode = 'god' | 'fly' | 'focused'
+const cameraMode = ref<CameraMode>('god')
+const isFlyMode  = computed(() => cameraMode.value === 'fly')
 
-// ─── Camera helpers ───────────────────────────────────────────────────────────
+const pressedKeys      = new Set<string>()
+const cameraTarget     = new THREE.Vector3()
+const cameraVelocity   = new THREE.Vector3()
+const desiredPos       = new THREE.Vector3()
+const focusPos         = new THREE.Vector3()
+const forwardVec       = new THREE.Vector3()
+const rightVec         = new THREE.Vector3()
+const upVec            = new THREE.Vector3(0, 1, 0)
+const cameraEuler      = new THREE.Euler(0, 0, 0, 'YXZ')
+const raycaster        = new THREE.Raycaster()
+const pointer          = new THREE.Vector2()
+
+// ── Focus orbit ── camera orbits around the focused (moving) plugin
+// These are in the plugin's LOCAL frame, so they stay stable as the plugin orbits
+let focusCamLocalAngle = 0.0  // azimuth offset relative to plugin's outward direction
+let focusCamElevation  = 0.35 // elevation angle (radians)
+let focusCamDist       = 10   // distance from plugin
+// Remember what mode was active before entering focus so we can restore it on unfocus
+let preFocusMode: CameraMode = 'god'
 
 function getForward(): THREE.Vector3 {
   cameraEuler.set(targetPitch, targetYaw, 0)
@@ -93,16 +105,9 @@ function getRight(): THREE.Vector3 {
   return rightVec.crossVectors(getForward(), upVec).normalize()
 }
 
-function clampFromCore() {
-  if (!camera) return
-  const minLen = props.focusedNode ? 6 : 14
-  const maxLen = 145
-  const len = camera.position.length()
-  if (len < minLen) {
-    camera.position.setLength(minLen)
-  } else if (len > maxLen) {
-    camera.position.setLength(maxLen)
-  }
+function clampGodRadius() {
+  godOrbitRadius = THREE.MathUtils.clamp(godOrbitRadius, 40, 200)
+  godOrbitHeight = THREE.MathUtils.clamp(godOrbitHeight, 8, 90)
 }
 
 // ─── Resize ───────────────────────────────────────────────────────────────────
@@ -136,22 +141,37 @@ function animate() {
 
   const elapsed = performance.now() * 0.001
 
-  galaxy.root.rotation.y += 0.00045
-  galaxy.root.rotation.z = Math.sin(elapsed * 0.07) * 0.018
+  galaxy.root.rotation.y += 0.000055
+  galaxy.root.rotation.z = Math.sin(elapsed * 0.04) * 0.01
   galaxy.update(elapsed)
 
-  const MOVE_ACCEL = 0.015
-  const PAN_ACCEL = 0.006
-  const DAMPING = 0.9
-  const fwd = getForward()
-  const rgt = getRight()
-
+  // ── ESC always deselects ───────────────────────────────────────────────────
   if (pressedKeys.has('escape')) {
     emit('selectNode', null)
     pressedKeys.delete('escape')
   }
 
-  if (!props.focusedNode) {
+  if (cameraMode.value === 'god' && !props.focusedNode) {
+    // ── God View: auto-orbit the core ─────────────────────────────────────
+    godOrbitAngle += GOD_ORBIT_SPEED
+    const godTarget = new THREE.Vector3(
+      Math.cos(godOrbitAngle) * godOrbitRadius,
+      godOrbitHeight,
+      Math.sin(godOrbitAngle) * godOrbitRadius,
+    )
+    camera.position.lerp(godTarget, 0.03)
+    // Smoothly rotate back to looking at core — no snap
+    cameraTarget.lerp(new THREE.Vector3(0, 0, 0), 0.05)
+    camera.lookAt(cameraTarget)
+
+  } else if (cameraMode.value === 'fly' && !props.focusedNode) {
+    // ── Fly View: FPS free movement ────────────────────────────────────────
+    const MOVE_ACCEL = 0.007
+    const PAN_ACCEL  = 0.003
+    const DAMPING    = 0.88
+    const fwd = getForward()
+    const rgt = getRight()
+
     if (pressedKeys.has('w') || pressedKeys.has('arrowup'))
       cameraVelocity.addScaledVector(fwd, MOVE_ACCEL)
     if (pressedKeys.has('s') || pressedKeys.has('arrowdown'))
@@ -163,49 +183,65 @@ function animate() {
     if (pressedKeys.has('e')) cameraVelocity.y += PAN_ACCEL
     if (pressedKeys.has('q')) cameraVelocity.y -= PAN_ACCEL
 
-    yaw += (targetYaw - yaw) * 0.08
-    pitch += (targetPitch - pitch) * 0.08
+    yaw   += (targetYaw   - yaw)   * 0.055
+    pitch += (targetPitch - pitch) * 0.055
     cameraEuler.set(pitch, yaw, 0)
     camera.quaternion.setFromEuler(cameraEuler)
 
     camera.position.add(cameraVelocity)
     cameraVelocity.multiplyScalar(DAMPING)
-    clampFromCore()
-  } else {
-    cameraVelocity.set(0, 0, 0)
+
+    // Clamp to galaxy bounds
+    const len = camera.position.length()
+    if (len > 220) camera.position.setLength(220)
+    if (len < 8)   camera.position.setLength(8)
+
+    cameraTarget.copy(camera.position).add(getForward())
+    camera.lookAt(cameraTarget)
   }
 
-  // Focus mode
+  // ── Focused Mode: orbits around the (moving) focused plugin ─────────────────
   if (props.focusedNode) {
+    // Plugin moves every frame (it's orbiting the core) — always read latest position
     focusPos.set(
       props.focusedNode.position.x,
       props.focusedNode.position.y,
       props.focusedNode.position.z,
     )
-    desiredPos.copy(focusPos).add(focusOrbitOffset)
-    if (desiredPos.length() < 8) desiredPos.setLength(8)
+
+    // Camera position in plugin-local polar coordinates.
+    // pluginWorldAngle tracks the plugin's direction in XZ as it orbits.
+    // focusCamLocalAngle is user-controlled — dragging left/right changes it.
+    const pluginWorldAngle = Math.atan2(focusPos.z, focusPos.x)
+    const camWorldAngle    = pluginWorldAngle + focusCamLocalAngle
+    const horizDist        = Math.cos(focusCamElevation) * focusCamDist
+
+    desiredPos.set(
+      focusPos.x + Math.cos(camWorldAngle) * horizDist,
+      focusPos.y + Math.sin(focusCamElevation) * focusCamDist,
+      focusPos.z + Math.sin(camWorldAngle) * horizDist,
+    )
 
     const distTarget = cameraTarget.distanceTo(focusPos)
-    const targetLerp = Math.min(0.038, 2.4 / Math.max(distTarget, 1))
+    const targetLerp = Math.min(0.07, 5.0 / Math.max(distTarget, 1))
     cameraTarget.lerp(focusPos, targetLerp)
 
     const distPos = camera.position.distanceTo(desiredPos)
-    const posLerp = Math.min(0.035, 1.4 / Math.max(distPos, 1))
+    const posLerp = Math.min(0.07, 4.0 / Math.max(distPos, 1))
     camera.position.lerp(desiredPos, posLerp)
-  } else {
-    cameraTarget.copy(camera.position).add(fwd)
+
+    camera.lookAt(cameraTarget)
   }
 
-  clampFromCore()
-  camera.lookAt(cameraTarget)
 
-  // ── Update DoF focus distance dynamically ──
-  // When free-flying: focus on galaxy core (distance to origin)
-  // When focused on a node: focus on the node
+
+  // DoF focus distance
   if (bokehPass) {
     const targetFocusDist = props.focusedNode
       ? camera.position.distanceTo(focusPos)
-      : camera.position.length() * 0.55 // focus roughly at 55% depth toward core
+      : cameraMode.value === 'god'
+        ? godOrbitRadius * 0.6
+        : camera.position.length() * 0.55
     const currentFocus = (bokehPass as any).uniforms['focus'].value as number
     ;(bokehPass as any).uniforms['focus'].value =
       currentFocus + (targetFocusDist - currentFocus) * 0.04
@@ -214,53 +250,59 @@ function animate() {
   pluginNodes?.update(elapsed, camera, props.focusedNode?.id ?? null)
 
   if (dustPoints && camera) {
-    ;(dustPoints.material as THREE.ShaderMaterial).uniforms.camPos.value.copy(camera.position)
+    ;(dustPoints.material as THREE.ShaderMaterial).uniforms.camPos!.value.copy(camera.position)
   }
 
-  // Use composer instead of renderer.render — applies bloom then DoF
   composer.render()
 }
 
 // ─── Input handlers ───────────────────────────────────────────────────────────
 
 function handlePointerMove(event: PointerEvent) {
-  if ((!isDragging && !isFlyMode.value) || !camera) return
+  if (!camera) return
+
   const dx = isFlyMode.value ? event.movementX : event.clientX - lastPtrX
   const dy = isFlyMode.value ? event.movementY : event.clientY - lastPtrY
   lastPtrX = event.clientX
   lastPtrY = event.clientY
 
-  if (props.focusedNode) {
-    const euler = new THREE.Euler(0, -dx * 0.006, 0, 'YXZ')
-    focusOrbitOffset.applyEuler(euler)
-
-    const right = new THREE.Vector3().crossVectors(focusOrbitOffset, upVec).normalize()
-    focusOrbitOffset.applyAxisAngle(right, -dy * 0.006)
-
-    const maxH = focusOrbitOffset.length() * 0.98
-    if (focusOrbitOffset.y > maxH) focusOrbitOffset.y = maxH
-    if (focusOrbitOffset.y < -maxH) focusOrbitOffset.y = -maxH
+  // Focused: drag to orbit around the plugin
+  if (props.focusedNode && (isDragging || isFlyMode.value)) {
+    focusCamLocalAngle -= dx * 0.007
+    focusCamElevation   = THREE.MathUtils.clamp(focusCamElevation - dy * 0.005, -1.0, 1.2)
     return
   }
 
-  if (isPanning) {
-    cameraVelocity.addScaledVector(getRight(), -dx * 0.0035)
-    cameraVelocity.y += dy * 0.0035
+  // Fly Mode: free-look
+  if (isFlyMode.value) {
+    targetYaw   -= dx * 0.0035
+    targetPitch  = THREE.MathUtils.clamp(targetPitch - dy * 0.0028, -1.18, 0.75)
     return
   }
-  targetYaw -= dx * 0.0035
-  targetPitch = THREE.MathUtils.clamp(targetPitch - dy * 0.0028, -1.18, 0.75)
+
+  // God View + dragging: adjust orbit angle & height
+  if (cameraMode.value === 'god' && isDragging) {
+    godOrbitAngle  -= dx * 0.005
+    godOrbitHeight -= dy * 0.3
+    clampGodRadius()
+    return
+  }
 }
+
 
 function handleWheel(event: WheelEvent) {
   if (!camera) return
   if (props.focusedNode) {
-    const scale = event.deltaY > 0 ? 1.15 : 0.85
-    focusOrbitOffset.multiplyScalar(scale)
-    if (focusOrbitOffset.length() < 3.5) focusOrbitOffset.setLength(3.5)
-    if (focusOrbitOffset.length() > 40) focusOrbitOffset.setLength(40)
+    const scale = event.deltaY > 0 ? 1.12 : 0.88
+    focusCamDist = THREE.MathUtils.clamp(focusCamDist * scale, 2.5, 35)
     return
   }
+  if (cameraMode.value === 'god') {
+    godOrbitRadius += event.deltaY * 0.08
+    clampGodRadius()
+    return
+  }
+  // fly mode: push forward
   cameraVelocity.addScaledVector(getForward(), -event.deltaY * 0.003)
 }
 
@@ -314,20 +356,34 @@ function handlePointerUp(event: PointerEvent) {
 function handleKeyDown(e: KeyboardEvent) {
   const key = e.key.toLowerCase()
   pressedKeys.add(key)
+
+  // F: toggle Fly Mode on/off
   if (key === 'f') {
-    if (!containerRef.value) return
-    if (document.pointerLockElement === containerRef.value) {
+    if (cameraMode.value === 'fly') {
+      // Exit fly mode — return to god view
       document.exitPointerLock()
-    } else {
+      cameraMode.value = 'god'
+    } else if (!props.focusedNode) {
+      // Enter fly mode from god view
+      if (!containerRef.value) return
+      // Sync fly camera to current god view position before switching
+      yaw   = godOrbitAngle + Math.PI
+      pitch = -0.18
+      targetYaw   = yaw
+      targetPitch = pitch
+      cameraMode.value = 'fly'
       containerRef.value.requestPointerLock()
     }
   }
+
+  // Space: unfocus (any mode) or deselect
   if (key === ' ' || key === 'spacebar') {
-    if (isFlyMode.value) {
+    if (props.focusedNode) {
       emit('selectNode', null)
     }
   }
 }
+
 function handleKeyUp(e: KeyboardEvent) {
   pressedKeys.delete(e.key.toLowerCase())
 }
@@ -352,7 +408,7 @@ function initScene() {
 
   // ── Scene ────────────────────────────────────────────────────────────────
   scene = new THREE.Scene()
-  scene.fog = new THREE.FogExp2('#000008', 0.0016)
+  scene.fog = new THREE.FogExp2('#000000', 0.006)  // pitch black fog, very dense
 
   const cubeTextureLoader = new THREE.CubeTextureLoader()
   scene.background = cubeTextureLoader.load([
@@ -366,9 +422,13 @@ function initScene() {
 
   // ── Camera ───────────────────────────────────────────────────────────────
   camera = new THREE.PerspectiveCamera(72, w / h, 0.08, 600)
-  camera.position.copy(INITIAL_CAM_POS)
-  yaw = INITIAL_YAW
-  pitch = INITIAL_PITCH
+  // Start in God View position
+  camera.position.set(
+    Math.cos(godOrbitAngle) * godOrbitRadius,
+    godOrbitHeight,
+    Math.sin(godOrbitAngle) * godOrbitRadius,
+  )
+  camera.lookAt(0, 0, 0)
 
   // ── Renderer ─────────────────────────────────────────────────────────────
   renderer = new THREE.WebGLRenderer({
@@ -376,7 +436,7 @@ function initScene() {
     alpha: false,
     powerPreference: 'high-performance',
   })
-  renderer.setClearColor(0x000008, 1)
+  renderer.setClearColor(0x000000, 1)  // absolute black background
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8))
   renderer.setSize(w, h, false)
   containerRef.value.appendChild(renderer.domElement)
@@ -391,9 +451,9 @@ function initScene() {
   //    strength: how much bloom; radius: spread; threshold: only bright pixels bloom
   bloomPass = new UnrealBloomPass(
     new THREE.Vector2(w, h),
-    1.15, // strength
-    0.55, // radius
-    0.22, // threshold — bright white core particles trigger bloom
+    0.5,  // very low — only the core glows, space stays dark
+    0.3,
+    0.35, // high threshold — only near-white pixels bloom
   )
   composer.addPass(bloomPass)
 
@@ -401,8 +461,8 @@ function initScene() {
   //    focus: distance to sharp plane; aperture: blur strength; maxblur: cap
   bokehPass = new BokehPass(scene, camera, {
     focus: camera.position.length() * 0.55,
-    aperture: 0.00004, // very subtle — galaxy still readable
-    maxblur: 0.004,
+    aperture: 0.000018, // very subtle — softer bokeh, scene stays sharp
+    maxblur: 0.0015,
   })
   composer.addPass(bokehPass)
 
@@ -478,7 +538,10 @@ onMounted(() => {
 })
 
 function onPointerLockChange() {
-  isFlyMode.value = document.pointerLockElement === containerRef.value
+  const locked = document.pointerLockElement === containerRef.value
+  if (!locked && cameraMode.value === 'fly') {
+    cameraMode.value = 'god'
+  }
 }
 
 watch(
@@ -491,27 +554,55 @@ watch(
   () => props.focusedNode,
   (node) => {
     if (node) {
-      focusPos.set(node.position.x, node.position.y, node.position.z)
-      const outward = focusPos.clone().normalize()
-      focusOrbitOffset.copy(outward).multiplyScalar(5.5)
-      focusOrbitOffset.y += 2.2
-
-      if (camera) {
-        cameraEuler.setFromQuaternion(camera.quaternion, 'YXZ')
-        targetYaw = cameraEuler.y
-        targetPitch = cameraEuler.x
-        yaw = targetYaw
-        pitch = targetPitch
-        const distToNode = camera.position.distanceTo(focusPos)
-        cameraTarget.copy(camera.position).add(getForward().clone().multiplyScalar(distToNode))
+      // Remember current mode so we can return to it when unfocusing
+      if (cameraMode.value !== 'focused') {
+        preFocusMode = cameraMode.value
       }
-    } else if (camera) {
-      // Sync internal yaw/pitch so the camera doesn't snap when unfocused
-      cameraEuler.setFromQuaternion(camera.quaternion, 'YXZ')
-      targetYaw = cameraEuler.y
-      targetPitch = cameraEuler.x
-      yaw = targetYaw
-      pitch = targetPitch
+
+      focusPos.set(node.position.x, node.position.y, node.position.z)
+
+      // Initialize camera local angle from current camera position relative to plugin
+      // so there's no jump when entering focus mode
+      if (camera) {
+        const pluginWorldAngle = Math.atan2(focusPos.z, focusPos.x)
+        const toCam = camera.position.clone().sub(focusPos)
+        const camWorldAngle = Math.atan2(toCam.z, toCam.x)
+        focusCamLocalAngle = camWorldAngle - pluginWorldAngle
+        focusCamElevation  = Math.atan2(toCam.y, Math.hypot(toCam.x, toCam.z))
+        focusCamDist       = THREE.MathUtils.clamp(toCam.length(), 6, 20)
+      } else {
+        focusCamLocalAngle = 0
+        focusCamElevation  = 0.35
+        focusCamDist       = 10
+      }
+
+      cameraVelocity.set(0, 0, 0)
+    } else {
+      if (preFocusMode === 'fly') {
+        // Return to fly mode — keep current camera position & orientation as-is.
+        // Re-sync yaw/pitch from current camera quaternion so there's no snap.
+        if (camera) {
+          cameraEuler.setFromQuaternion(camera.quaternion, 'YXZ')
+          yaw         = cameraEuler.y
+          pitch       = cameraEuler.x
+          targetYaw   = yaw
+          targetPitch = pitch
+        }
+        cameraVelocity.set(0, 0, 0)
+        cameraMode.value = 'fly'
+        // Re-acquire pointer lock if it was lost during focus mode
+        if (containerRef.value && document.pointerLockElement !== containerRef.value) {
+          containerRef.value.requestPointerLock()
+        }
+      } else {
+        // Return to god view — sync orbit state from current camera position
+        if (camera) {
+          godOrbitAngle  = Math.atan2(camera.position.z, camera.position.x)
+          godOrbitRadius = THREE.MathUtils.clamp(Math.hypot(camera.position.x, camera.position.z), 40, 200)
+          godOrbitHeight = THREE.MathUtils.clamp(camera.position.y, 8, 90)
+        }
+        cameraMode.value = 'god'
+      }
     }
   }
 )
