@@ -48,7 +48,7 @@
   - Avoid heavy post-processing and physics.
   - Mark this task done and commit with `feat(universe): render galaxy scene`.
 
-- [ ] **Task 6: Add plugin nodes, LOD, and interactions**
+- [x] **Task 6: Add plugin nodes, LOD, and interactions**
   - Render nearby plugins as square cards with plugin logo/icon and far plugins as lightweight colored particles.
   - Implement distance-based LOD/culling in the Universe feature systems.
   - Add hover glow, focused state, click-to-focus, and a future-ready details panel.

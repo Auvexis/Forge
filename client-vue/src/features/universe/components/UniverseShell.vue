@@ -1,6 +1,12 @@
 <template>
   <section class="universe-shell" aria-label="ND8 Universe">
     <UniverseScene @ready="sceneReady = true" />
+    <UniversePluginLayer
+      v-if="hasPlugins"
+      :nodes="plugins.nodes"
+      :focused-node-id="selectedNodeId"
+      @select="selectedNodeId = $event"
+    />
     <div class="universe-shell__stars" aria-hidden="true"></div>
     <div class="universe-shell__brand" :class="{ 'universe-shell__brand--ready': sceneReady }">
       <img src="/favicon.svg" alt="" class="universe-shell__logo" />
@@ -20,23 +26,17 @@
       {{ statusLabel }}
     </div>
 
-    <aside v-if="plugins.totalPlugins > 0" class="universe-shell__catalog" aria-label="Universe plugins">
-      <button
-        v-for="node in previewNodes"
-        :key="node.id"
-        class="universe-shell__plugin"
-        :style="{ '--node-color': node.color }"
-        type="button"
-      >
-        <span class="universe-shell__plugin-icon">
-          <img v-if="node.icon.kind === 'image'" :src="node.icon.value" alt="" />
-          <LucideIcon v-else :name="node.icon.value" :size="16" />
-        </span>
-        <span class="universe-shell__plugin-copy">
-          <span class="universe-shell__plugin-name">{{ node.label }}</span>
-          <span class="universe-shell__plugin-category">{{ node.category }}</span>
-        </span>
-      </button>
+    <aside v-if="selectedNode" class="universe-shell__details" aria-label="Plugin details">
+      <div class="universe-shell__details-icon" :style="{ '--node-color': selectedNode.color }">
+        <img v-if="selectedNode.icon.kind === 'image'" :src="selectedNode.icon.value" alt="" />
+        <LucideIcon v-else :name="selectedNode.icon.value" :size="24" />
+      </div>
+      <div class="universe-shell__details-copy">
+        <p class="universe-shell__details-kicker">{{ selectedNode.category }}</p>
+        <h2>{{ selectedNode.label }}</h2>
+        <p>{{ selectedNode.description }}</p>
+        <span>{{ selectedNode.status }}</span>
+      </div>
     </aside>
 
     <div v-if="error" class="universe-shell__error" role="alert">
@@ -50,11 +50,15 @@ import { computed, ref } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useUniversePlugins } from '../composables/useUniversePlugins'
 import UniverseScene from './UniverseScene.vue'
+import UniversePluginLayer from './UniversePluginLayer.vue'
 
 const { plugins, isLoading, error, hasPlugins } = useUniversePlugins()
 const sceneReady = ref(false)
+const selectedNodeId = ref<string | null>(null)
 
-const previewNodes = computed(() => plugins.value.nodes.slice(0, 6))
+const selectedNode = computed(
+  () => plugins.value.nodes.find((node) => node.id === selectedNodeId.value) ?? null,
+)
 
 const heroTitle = computed(() => {
   if (isLoading.value) return 'Plugin galaxy initializing'
