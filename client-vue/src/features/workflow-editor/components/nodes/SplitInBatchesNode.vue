@@ -5,6 +5,7 @@ import type { SplitInBatchesNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
 import BaseBadge from '@/shared/components/base/BaseBadge.vue'
+import QuickAddButton from '../QuickAddButton.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
@@ -29,17 +30,15 @@ const subtitle = computed(() => `${batchSize.value} items per batch`)
     bg="var(--nod8-node-split-bg)"
     border-color="var(--nod8-node-split-border)"
   >
-    <!-- batch-body handle (top) — iterates each batch -->
+    <!-- batch handle — fires for each batch -->
     <BaseHandle id="batch-body" type="source" :position="Position.Right" style="top: 35%" />
-    <BaseBadge variant="default" size="sm" class="split-badge" style="top: 35%; right: -56px">
-      batch
-    </BaseBadge>
+    <BaseBadge variant="default" size="sm" class="split-badge" style="top: 35%; right: -56px">batch</BaseBadge>
+    <QuickAddButton :node-id="props.id" handle-id="batch-body" style="top: 35%" />
 
-    <!-- batch-done handle (bottom) — fires once all batches complete -->
+    <!-- done handle — fires once all batches complete -->
     <BaseHandle id="batch-done" type="source" :position="Position.Right" style="top: 65%" />
-    <BaseBadge variant="default" size="sm" class="split-badge" style="top: 65%; right: -52px">
-      done
-    </BaseBadge>
+    <BaseBadge variant="default" size="sm" class="split-badge" style="top: 65%; right: -52px">done</BaseBadge>
+    <QuickAddButton :node-id="props.id" handle-id="batch-done" style="top: 65%" />
   </BaseNode>
 </template>
 

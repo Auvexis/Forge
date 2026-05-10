@@ -238,9 +238,11 @@ function getCenterPosition(): { x: number; y: number } {
 }
 
 let quickAddSourceId: string | null = null
+let quickAddSourceHandle: string | null = null
 
 const quickAddBus = useEventBus('node:quick-add')
-quickAddBus.on((payload: { sourceId: string }) => {
+quickAddBus.on((payload: { sourceId: string; sourceHandle?: string }) => {
+  quickAddSourceHandle = payload.sourceHandle ?? null
   openAddNodePanel(payload.sourceId)
 })
 
@@ -377,14 +379,14 @@ function alignNodeCenters(sourceId: string, targetId: string) {
   checkAndAlign()
 }
 
-function autoConnectToSource(sourceId: string, targetId: string) {
+function autoConnectToSource(sourceId: string, targetId: string, sourceHandle?: string | null) {
   if (!workflowStore.activeWorkflow) return
 
   const newEdge = {
     id: `e-${sourceId}-${targetId}-${Date.now()}`,
     source: sourceId,
     target: targetId,
-    sourceHandle: 'source',
+    sourceHandle: sourceHandle ?? 'source',
     targetHandle: 'target',
   }
 
@@ -412,7 +414,9 @@ const addLogicNode = (type: WorkflowNodeType) => {
   if (!workflowStore.activeWorkflow) return
 
   const backupSourceId = quickAddSourceId
-  quickAddSourceId = null // reset immediately
+  const backupSourceHandle = quickAddSourceHandle
+  quickAddSourceId = null
+  quickAddSourceHandle = null
 
   const id = generateNodeId(type)
   const pos = getNewNodePosition(backupSourceId)
@@ -479,7 +483,7 @@ const addLogicNode = (type: WorkflowNodeType) => {
   })
 
   if (backupSourceId) {
-    autoConnectToSource(backupSourceId, id)
+    autoConnectToSource(backupSourceId, id, backupSourceHandle)
     alignNodeCenters(backupSourceId, id)
   }
 
@@ -490,7 +494,9 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
   if (!workflowStore.activeWorkflow) return
 
   const backupSourceId = quickAddSourceId
-  quickAddSourceId = null // reset immediately
+  const backupSourceHandle = quickAddSourceHandle
+  quickAddSourceId = null
+  quickAddSourceHandle = null
 
   const id = generateNodeId(action)
   const pos = getNewNodePosition(backupSourceId)
@@ -513,7 +519,7 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
   })
 
   if (backupSourceId) {
-    autoConnectToSource(backupSourceId, id)
+    autoConnectToSource(backupSourceId, id, backupSourceHandle)
     alignNodeCenters(backupSourceId, id)
   }
 

@@ -1,16 +1,8 @@
-# TASK
+# Task List — Workflow Editor Feature Batch
 
-## Form Theme Renderer
+## Features
 
-- [x] Task 1: Add structured form theme types to client and server models.
-- [x] Task 2: Expose normalized form themes from the server form definition endpoint.
-- [x] Task 3: Extract the public form page into focused renderer components.
-- [x] Task 4: Add structured theme controls to the Form Trigger editor.
-- [x] Task 5: Run final server/client verification.
-
-## Future: Temporary Form Wait Node
-
-- [x] Design a utility node that creates a temporary form in the middle of a workflow, pauses execution until submission, and expires safely.
-- [x] Implement the simple in-memory temporary form session flow for the MVP.
-- [x] Add expiration handling that stops the waiting workflow when the max time is reached.
-- [x] Keep this feature isolated from plugin logic and avoid leaking form rendering concerns into the workflow engine core.
+- [ ] **1. Switch Node — Vertical layout** — Restore height-growing layout (handles on right), keep key-remount fix for edge anchoring.
+- [ ] **2. Quick Add per handle** — Add Quick Add cable+button to each output handle of: Conditional (True/False), Loop (Body/Done), Split In Batches (batch/done), Switch (each case + default). Update canvas to pass `sourceHandle` when auto-connecting.
+- [ ] **3. Emit Event — Structured payload params** — Replace textarea with key-value assignment rows (like Set Fields). Fix field name from `eventTopic` → `eventName`.
+- [ ] **4. Event Listener — No left handle + expected params** — Remove `has-target` (it's a trigger-start node). Add `outputParams` to define what keys the event payload exposes to downstream nodes.

@@ -109,14 +109,22 @@ export interface HttpNode extends WorkflowNodeBase {
 export interface EventNode extends WorkflowNodeBase {
   type: 'event'
   eventName: string
+  /** Key-value pairs forwarded as the event payload */
   payloadMapping: Record<string, string>
 }
 
 // ── Event Listener Node ──────────────────────────────────────
 
+export interface EventListenerOutputParam {
+  /** Field name exposed to downstream nodes via steps.<id>.output.<key> */
+  key: string
+}
+
 export interface EventListenerNode extends WorkflowNodeBase {
   type: 'event-listener'
   eventName: string
+  /** Declared output fields captured from the incoming event payload */
+  outputParams?: EventListenerOutputParam[]
 }
 
 // ── Trigger Node ─────────────────────────────────────────────

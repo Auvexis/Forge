@@ -5,6 +5,7 @@ import type { LoopNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
 import BaseBadge from '@/shared/components/base/BaseBadge.vue'
+import QuickAddButton from '../QuickAddButton.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
@@ -29,12 +30,15 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Loop / ForEach')
     bg="var(--nod8-node-loop-bg)"
     border-color="var(--nod8-node-loop-border)"
   >
-    <!-- O Loop não tem o "source" nativo do BaseNode, ele tem DOIS handles específicos -->
+    <!-- Body handle — fires for each iteration -->
     <BaseHandle id="loop-body" type="source" :position="Position.Right" style="top: 35%" />
     <BaseBadge variant="default" size="sm" class="loop-handle-badge" style="top: 35%; right: -60px">Body</BaseBadge>
+    <QuickAddButton :node-id="props.id" handle-id="loop-body" style="top: 35%" />
 
+    <!-- Done handle — fires once all iterations complete -->
     <BaseHandle id="loop-done" type="source" :position="Position.Right" style="top: 65%" />
     <BaseBadge variant="default" size="sm" class="loop-handle-badge" style="top: 65%; right: -61px">Done</BaseBadge>
+    <QuickAddButton :node-id="props.id" handle-id="loop-done" style="top: 65%" />
   </BaseNode>
 </template>
 

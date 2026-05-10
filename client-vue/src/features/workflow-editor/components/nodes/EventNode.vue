@@ -8,7 +8,14 @@ const props = defineProps<
   NodeProps<EventNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
 >()
 
-const eventName = computed(() => (props.data as any)?.eventTopic || 'event.topic')
+const paramCount = computed(() => Object.keys(props.data?.payloadMapping ?? {}).length)
+const subtitle = computed(() =>
+  paramCount.value === 0
+    ? 'Trigger signal'
+    : paramCount.value === 1
+      ? '1 payload param'
+      : `${paramCount.value} payload params`,
+)
 const stepTitle = computed(() => (props.data as any)?.name || 'Emit Event')
 </script>
 
@@ -20,7 +27,7 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Emit Event')
     has-target
     has-source
     :title="stepTitle"
-    subtitle="Trigger signal"
+    :subtitle="subtitle"
     icon="zap"
     color="var(--nod8-node-event-icon)"
     bg="var(--nod8-node-event-bg)"
