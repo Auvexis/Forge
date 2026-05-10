@@ -31,8 +31,15 @@
             <input type="text" class="ftm-preview-input" tabindex="0" />
           </div>
           <div class="ftm-preview-field">
-            <label class="ftm-preview-label">Message</label>
-            <textarea class="ftm-preview-input" rows="2" tabindex="0"></textarea>
+            <label class="ftm-preview-label">Experiência <span style="color: #ef4444">*</span></label>
+            <label class="ftm-preview-radio">
+              <input type="radio" name="preview-exp" tabindex="0" checked />
+              <span>2 Anos</span>
+            </label>
+            <label class="ftm-preview-radio">
+              <input type="radio" name="preview-exp" tabindex="0" />
+              <span>4 Anos</span>
+            </label>
           </div>
           <button type="button" class="ftm-preview-button">
             Submit
@@ -1281,6 +1288,35 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   width: 100%;
   box-sizing: border-box;
   margin: 0;
+}
+
+.ftm-preview-radio {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--ftm-input-border);
+  background: var(--ftm-input-bg);
+  color: var(--ftm-input-text);
+  border-radius: var(--ftm-input-radius);
+  font-family: var(--ftm-input-font);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+}
+
+.ftm-preview-radio:last-child {
+  margin-bottom: 0;
+}
+
+.ftm-preview-radio:hover {
+  border-color: var(--ftm-input-focus);
+}
+
+.ftm-preview-radio:focus-within {
+  border-color: var(--ftm-input-focus);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 }
 
 .ftm-preview-input::placeholder {
