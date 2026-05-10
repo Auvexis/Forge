@@ -23,7 +23,7 @@ export const eventNodeHandler = createNodeHandler<EventNode>(
     const localTriggered: string[] = [];
     for (const [id, n] of Object.entries(workflow.nodes)) {
       if (n.type === "event-listener" && (n as EventListenerNode).eventName === node.eventName) {
-        localTriggered.push(`Local Node: ${n.name || id}`);
+        localTriggered.push(id);
       }
     }
 
