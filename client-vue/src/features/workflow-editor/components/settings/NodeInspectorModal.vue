@@ -223,7 +223,7 @@ function inferTypeHint(value: string): string {
   // Template expression — derive a hint from the last path segment
   const match = trimmed.match(/{{\s*(.+?)\s*}}/)
   if (match) {
-    const parts = match[1].split('.')
+    const parts = match[1]!.split('.')
     const lastSegment = parts[parts.length - 1] ?? ''
     if (/price|amount|count|size|age|num/i.test(lastSegment)) return '<number>'
     if (/flag|active|enabled|is[A-Z]/i.test(lastSegment)) return '<boolean>'
@@ -240,9 +240,19 @@ const eventListenerInputPreview = computed(() => {
   const node = inspectorStore.activeNode
   if (node?.type !== 'event-listener') return null
 
+  const nodeId = node.id
+  
   // 1. Live execution output takes priority
-  const live = executionStore.nodeStatuses[node.id]?.output
-  if (live !== undefined && live !== null) return live
+  const live = executionStore.nodeStatuses[nodeId]?.output
+  if (live !== undefined && live !== null) {
+    return {
+      steps: {
+        [nodeId]: {
+          output: live
+        }
+      }
+    }
+  }
 
   // 2. Static preview from matching Emit Event payloadParams
   const eventName = (node.data as any)?.eventName as string
@@ -263,7 +273,15 @@ const eventListenerInputPreview = computed(() => {
     }
   }
 
-  return Object.keys(preview).length > 0 ? preview : null
+  if (Object.keys(preview).length === 0) return null
+
+  return {
+    steps: {
+      [nodeId]: {
+        output: preview
+      }
+    }
+  }
 })
 
 watch(
