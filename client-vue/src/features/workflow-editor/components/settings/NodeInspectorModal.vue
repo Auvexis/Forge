@@ -212,27 +212,6 @@ watch(
 )
 
 /**
- * Converts a template expression or literal value into a human-readable type hint
- * for use in the static Event Listener input preview.
- */
-function inferTypeHint(value: string): string {
-  if (!value) return '<string>'
-  const trimmed = value.trim()
-  if (!isNaN(Number(trimmed)) && trimmed !== '') return '<number>'
-  if (trimmed === 'true' || trimmed === 'false') return '<boolean>'
-  // Template expression — derive a hint from the last path segment
-  const match = trimmed.match(/{{\s*(.+?)\s*}}/)
-  if (match) {
-    const parts = match[1]!.split('.')
-    const lastSegment = parts[parts.length - 1] ?? ''
-    if (/price|amount|count|size|age|num/i.test(lastSegment)) return '<number>'
-    if (/flag|active|enabled|is[A-Z]/i.test(lastSegment)) return '<boolean>'
-    return '<string>'
-  }
-  return '<string>'
-}
-
-/**
  * For event-listener nodes: build a preview of the incoming payload from
  * matching Emit Event nodes. Falls back to live execution output if available.
  */
@@ -240,19 +219,9 @@ const eventListenerInputPreview = computed(() => {
   const node = inspectorStore.activeNode
   if (node?.type !== 'event-listener') return null
 
-  const nodeId = node.id
-  
   // 1. Live execution output takes priority
-  const live = executionStore.nodeStatuses[nodeId]?.output
-  if (live !== undefined && live !== null) {
-    return {
-      steps: {
-        [nodeId]: {
-          output: live
-        }
-      }
-    }
-  }
+  const live = executionStore.nodeStatuses[node.id]?.output
+  if (live !== undefined && live !== null) return live
 
   // 2. Static preview from matching Emit Event payloadParams
   const eventName = (node.data as any)?.eventName as string
@@ -266,22 +235,56 @@ const eventListenerInputPreview = computed(() => {
       const params = (n as any).payloadParams ?? []
       for (const p of params) {
         if (p.key && !(p.key in preview)) {
-          // Show a type hint for static preview (actual value comes from live execution output)
-          preview[p.key] = inferTypeHint(p.value)
+          preview[p.key] = p.value || `<${p.key}>`
         }
       }
     }
   }
 
-  if (Object.keys(preview).length === 0) return null
+  return Object.keys(preview).length > 0 ? preview : null
+})
 
-  return {
-    steps: {
-      [nodeId]: {
-        output: preview
+const eventListenerSearch = ref('')
+
+function filterObject(obj: any, query: string): any {
+  if (!query) return obj
+  if (obj === null || obj === undefined) return null
+
+  if (typeof obj !== 'object') {
+    return String(obj).toLowerCase().includes(query) ? obj : null
+  }
+
+  if (Array.isArray(obj)) {
+    const filtered = obj.map(item => filterObject(item, query)).filter(item => item !== null)
+    return filtered.length > 0 ? filtered : null
+  }
+
+  const result: Record<string, any> = {}
+  let hasMatch = false
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (key.toLowerCase().includes(query)) {
+      result[key] = value
+      hasMatch = true
+    } else {
+      const filteredValue = filterObject(value, query)
+      if (filteredValue !== null) {
+        result[key] = filteredValue
+        hasMatch = true
       }
     }
   }
+
+  return hasMatch ? result : null
+}
+
+const filteredEventListenerInputPreview = computed(() => {
+  const preview = eventListenerInputPreview.value
+  if (!preview) return null
+  const q = eventListenerSearch.value.toLowerCase().trim()
+  if (!q) return preview
+  
+  return filterObject(preview, q) || {}
 })
 
 watch(
@@ -358,11 +361,17 @@ const copyToClipboard = async (path: string) => {
             </template>
             <!-- Special case: event-listener node - show payload preview from Emit Event -->
             <template v-else-if="isEventListenerNode">
-              <div v-if="eventListenerInputPreview" class="p-4 flex-1">
-                <p class="text-xs text-muted mb-3" style="font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
-                  {{ executionStore.nodeStatuses[inspectorStore.activeNodeId!]?.output ? 'Received Payload' : 'Expected Payload (from Emit Event)' }}
-                </p>
-                <JsonTreeView :data="eventListenerInputPreview" :is-root="true" />
+              <div v-if="eventListenerInputPreview" class="flex-1 flex flex-col min-h-0">
+                <div class="p-2 border-b border-nod8-border bg-[var(--nod8-bg-surface)] sticky top-0 z-10">
+                  <BaseInput v-model="eventListenerSearch" icon-left="search" placeholder="Search variables..." />
+                </div>
+                <div class="p-4 flex-1 overflow-y-auto">
+                  <p class="text-xs text-muted mb-3" style="font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
+                    {{ executionStore.nodeStatuses[inspectorStore.activeNodeId!]?.output ? 'Received Payload' : 'Expected Payload (from Emit Event)' }}
+                  </p>
+                  <JsonTreeView v-if="Object.keys(filteredEventListenerInputPreview).length > 0" :data="filteredEventListenerInputPreview" :is-root="true" />
+                  <div v-else class="text-center py-8 text-sm text-muted">No results found</div>
+                </div>
               </div>
               <div
                 v-else
