@@ -26,8 +26,14 @@
           <p :style="previewSubtitleStyle">
             {{ description || 'This is how your public form will feel.' }}
           </p>
-          <input type="email" class="ftm-preview-input" placeholder="Email" tabindex="0" />
-          <textarea class="ftm-preview-input" placeholder="Message" rows="2" tabindex="0"></textarea>
+          <div class="ftm-preview-field">
+            <label class="ftm-preview-label">Full Name <span style="color: #ef4444">*</span></label>
+            <input type="text" class="ftm-preview-input" tabindex="0" />
+          </div>
+          <div class="ftm-preview-field">
+            <label class="ftm-preview-label">Message</label>
+            <textarea class="ftm-preview-input" rows="2" tabindex="0"></textarea>
+          </div>
           <button type="button" class="ftm-preview-button">
             Submit
           </button>
@@ -1017,6 +1023,7 @@ const previewCardStyle = computed(() => {
     margin: '0 auto',
 
     // CSS Variables for children
+    '--ftm-label-color': typo?.subtitleColor ?? fields?.textColor,
     '--ftm-input-bg': fields?.backgroundColor,
     '--ftm-input-border': fields?.borderColor,
     '--ftm-input-text': fields?.textColor,
@@ -1246,6 +1253,21 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   line-height: 1.5;
 }
 
+.ftm-preview-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: var(--ftm-spacing);
+}
+
+.ftm-preview-label {
+  color: var(--ftm-label-color);
+  font-family: var(--ftm-input-font);
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0;
+}
+
 .ftm-preview-input {
   padding: 10px 14px;
   border: 1px solid var(--ftm-input-border);
@@ -1254,11 +1276,11 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   border-radius: var(--ftm-input-radius);
   font-family: var(--ftm-input-font);
   font-size: 14px;
-  margin-bottom: var(--ftm-spacing);
   transition: all 0.2s ease;
   outline: none;
   width: 100%;
   box-sizing: border-box;
+  margin: 0;
 }
 
 .ftm-preview-input::placeholder {
