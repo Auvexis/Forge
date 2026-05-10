@@ -1,7 +1,7 @@
 <template>
   <div class="app-page">
     <!-- Optional dock specific to this page -->
-    <div v-if="$slots.dock" class="app-page__dock">
+    <div v-if="$slots.dock && !appUiStore.isUniverseMode" class="app-page__dock">
       <slot name="dock"></slot>
     </div>
 
@@ -10,13 +10,16 @@
       <slot></slot>
 
       <!-- Global Page Panel anchors to the relative content boundaries -->
-      <GlobalAppPanel />
+      <GlobalAppPanel v-if="!appUiStore.isUniverseMode" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import GlobalAppPanel from './GlobalAppPanel.vue'
+import { useAppUiStore } from '@/shared/stores/app-ui.store'
+
+const appUiStore = useAppUiStore()
 </script>
 
 <style scoped>

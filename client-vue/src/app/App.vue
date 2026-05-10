@@ -6,7 +6,7 @@
 
   <AppShell v-else>
     <!-- Use the AppSidebar in the sidebar slot -->
-    <template #sidebar>
+    <template v-if="!appUiStore.isUniverseMode" #sidebar>
       <AppSidebar>
         <!-- Navigation Links -->
         <router-link to="/plugins" class="nav-link" active-class="nav-link--active" title="Plugins">
@@ -64,7 +64,7 @@
     </router-view>
 
     <!-- Global Overlays -->
-    <template #overlay>
+    <template v-if="!appUiStore.isUniverseMode" #overlay>
       <AppToaster />
       <AppConfirmPanel />
       <AppGlobalSettings />
@@ -85,10 +85,12 @@ import AppGlobalSettings from '@/shared/components/layout/AppGlobalSettings.vue'
 import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
+import { useAppUiStore } from '@/shared/stores/app-ui.store'
 import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/ProductionMonitorPanel.vue'
 
 const sidebarStore = useSidebarPanelStore()
 const settingsStore = useSettingsStore()
+const appUiStore = useAppUiStore()
 const route = useRoute()
 const isMonitorOpen = computed(() => sidebarStore.isOpen && sidebarStore.title === 'Production Monitor')
 const isPublicRoute = computed(() => route.meta.public === true)

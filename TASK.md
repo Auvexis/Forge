@@ -18,7 +18,7 @@
   - Create this root `TASK.md`.
   - Commit message: `docs: plan universe mode mvp`
 
-- [ ] **Task 2: Add global Universe Mode UI state**
+- [x] **Task 2: Add global Universe Mode UI state**
   - Create a Pinia store for app UI mode with `isUniverseMode`, `enterUniverseMode()`, and `quitUniverseMode()`.
   - The store should remember and restore relevant global UI state: sidebar panel, app panel, and settings panel visibility.
   - Keep this store generic to app chrome; do not reference plugin runtime details.
