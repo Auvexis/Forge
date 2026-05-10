@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, markRaw, computed, onBeforeUnmount } from 'vue'
+import { ref, watch, markRaw, computed, onBeforeUnmount, nextTick } from 'vue'
 import { VueFlow } from '@vue-flow/core'
 import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection, VueFlowStore } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
@@ -61,9 +61,13 @@ const showLogsLocal = computed(() => props.showLogs ?? false)
 //
 const vueFlowNodes = ref<Node[]>([])
 const vueFlowEdges = ref<Edge[]>([])
+const switchHandleSignatures = ref<Record<string, string>>({})
+const isApplyingGraphSnapshot = ref(false)
 
-function onVueFlowInit(instance: VueFlowStore) {
+async function onVueFlowInit(instance: VueFlowStore) {
   vueFlowStore.value = instance
+  await nextTick()
+  instance.updateNodeInternals()
 }
 
 function buildNodes() {
@@ -99,8 +103,26 @@ function buildEdges() {
   }))
 }
 
+function getSwitchHandleSignature(nodeData: WorkflowNode): string | null {
+  if (nodeData.type !== 'switch') return null
+  const handles = [
+    ...((nodeData.cases ?? []).map((switchCase) => switchCase.handleId)),
+    nodeData.fallbackHandleId ?? '',
+  ]
+  return handles.join('|')
+}
+
+async function replaceGraphFromStore() {
+  isApplyingGraphSnapshot.value = true
+  vueFlowNodes.value = buildNodes()
+  vueFlowEdges.value = buildEdges()
+  await nextTick()
+  isApplyingGraphSnapshot.value = false
+}
+
 // Limpa o estado global do VueFlow ao sair do editor para evitar "fantasmas"
 onBeforeUnmount(() => {
+  isApplyingGraphSnapshot.value = true
   const instance = vueFlowStore.value
   if (!instance) return
 
@@ -111,22 +133,19 @@ onBeforeUnmount(() => {
 // Reinicializa o VueFlow apenas quando muda o workflow (não a cada edição de campo)
 watch(
   () => workflowStore.activeWorkflow?.metadata?.id,
-  () => {
-    vueFlowNodes.value = buildNodes()
-    vueFlowEdges.value = buildEdges()
-  },
+  () => replaceGraphFromStore(),
   { immediate: true },
 )
 
 watch(
   () => workflowStore.graphUpdateTrigger,
-  () => {
-    // We also clear it here on graph rename or massive updates
-    const instance = vueFlowStore.value
-    if (instance?.nodes.length) instance.removeNodes(instance.nodes)
-    if (instance?.edges.length) instance.removeEdges(instance.edges)
+  () => replaceGraphFromStore(),
+)
 
-    vueFlowNodes.value = buildNodes()
+watch(
+  () => workflowStore.activeWorkflow?.edges.map((edge) => `${edge.id}:${edge.source}:${edge.sourceHandle ?? ''}:${edge.target}:${edge.targetHandle ?? ''}`).join('|'),
+  () => {
+    if (isApplyingGraphSnapshot.value) return
     vueFlowEdges.value = buildEdges()
   },
 )
@@ -166,6 +185,33 @@ watch(
     }
   },
   { deep: true },
+)
+
+watch(
+  () => workflowStore.activeWorkflow?.nodes,
+  async (workflowNodes) => {
+    if (!workflowNodes) return
+
+    const changedSwitchIds: string[] = []
+    const nextSignatures: Record<string, string> = {}
+
+    for (const [nodeId, nodeData] of Object.entries(workflowNodes)) {
+      const signature = getSwitchHandleSignature(nodeData)
+      if (signature === null) continue
+
+      nextSignatures[nodeId] = signature
+      if (switchHandleSignatures.value[nodeId] !== signature) {
+        changedSwitchIds.push(nodeId)
+      }
+    }
+
+    switchHandleSignatures.value = nextSignatures
+    if (changedSwitchIds.length === 0) return
+
+    await nextTick()
+    vueFlowStore.value?.updateNodeInternals(changedSwitchIds)
+  },
+  { deep: true, immediate: true, flush: 'post' },
 )
 
 // ── Eventos ─────────────────────────────────────────────────────────────────
@@ -527,6 +573,8 @@ const onConnect = (connection: Connection) => {
 
 type EdgeChange = { type: string; id?: string }
 const onEdgesChange = (changes: EdgeChange[]) => {
+  if (isApplyingGraphSnapshot.value) return
+
   const removals = changes.filter((c) => c.type === 'remove')
   if (removals.length && workflowStore.activeWorkflow) {
     const removedIds = new Set(removals.map((c) => c.id))
@@ -538,6 +586,8 @@ const onEdgesChange = (changes: EdgeChange[]) => {
 
 type NodeChange = { type: string; id?: string }
 const onNodesChange = (changes: NodeChange[]) => {
+  if (isApplyingGraphSnapshot.value) return
+
   const removals = changes.filter((c) => c.type === 'remove')
   if (removals.length && workflowStore.activeWorkflow) {
     let changed = false

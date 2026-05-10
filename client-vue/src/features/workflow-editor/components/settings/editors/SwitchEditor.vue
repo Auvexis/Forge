@@ -28,7 +28,7 @@
       <div class="switch-cases">
         <div
           v-for="(c, i) in cases"
-          :key="i"
+          :key="c.handleId"
           class="switch-case-row"
         >
           <div class="switch-case-index">{{ i + 1 }}</div>
@@ -82,12 +82,14 @@
 import { computed } from 'vue'
 import type { NodeEditorProps } from './types'
 import type { SwitchNodeCase } from '@/core/types/workflow.types'
+import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = defineProps<NodeEditorProps>()
+const workflowStore = useWorkflowStore()
 
 const cases = computed<SwitchNodeCase[]>(
   () => (props.node.data.cases as SwitchNodeCase[]) ?? [],
@@ -98,16 +100,21 @@ function saveCases(next: SwitchNodeCase[]) {
 }
 
 function addCase() {
-  const idx = cases.value.length
-  saveCases([...cases.value, { value: '', handleId: `case_${idx}` }])
+  const usedIndexes = cases.value
+    .map((c) => /^case_(\d+)$/.exec(c.handleId)?.[1])
+    .filter((value): value is string => value !== undefined)
+    .map(Number)
+  const nextIndex = usedIndexes.length ? Math.max(...usedIndexes) + 1 : 0
+  saveCases([...cases.value, { value: '', handleId: `case_${nextIndex}` }])
 }
 
 function removeCase(i: number) {
-  // Re-generate handleIds after removal to keep them sequential
-  const next = cases.value
-    .filter((_, idx) => idx !== i)
-    .map((c, idx) => ({ ...c, handleId: `case_${idx}` }))
+  const removedHandleId = cases.value[i]?.handleId
+  const next = cases.value.filter((_, idx) => idx !== i)
   saveCases(next)
+  if (removedHandleId) {
+    workflowStore.removeEdgesBySourceHandle(props.node.id, removedHandleId)
+  }
 }
 
 function updateCaseValue(i: number, value: string) {

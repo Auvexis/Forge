@@ -93,6 +93,17 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
+  function removeEdgesBySourceHandle(sourceId: string, sourceHandle: string) {
+    if (!activeWorkflow.value) return 0
+
+    const before = activeWorkflow.value.edges.length
+    activeWorkflow.value.edges = activeWorkflow.value.edges.filter(
+      (edge) => !(edge.source === sourceId && edge.sourceHandle === sourceHandle),
+    )
+    const removed = before - activeWorkflow.value.edges.length
+    return removed
+  }
+
   /**
    * Renomeia o ID de um node. Atualiza edges apontando para ele e forca o canvas a remontar.
    */
@@ -204,6 +215,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     setActiveWorkflow,
     clearWorkflow,
     updateNodeData,
+    removeEdgesBySourceHandle,
     renameNode,
     saveActiveWorkflow,
     deleteActiveWorkflow,
