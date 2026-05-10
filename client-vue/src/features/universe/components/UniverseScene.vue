@@ -17,6 +17,13 @@ import { createGalaxySystem, type GalaxySystem } from '../systems/galaxySystem'
 import { createPluginNodeSystem, type PluginNodeSystem } from '../systems/pluginNodeSystem'
 import type { UniversePluginNode } from '../types/universe.types'
 
+import skyRight from '../skybox/jettelly_space_common_black_RIGHT.png'
+import skyLeft  from '../skybox/jettelly_space_common_black_LEFT.png'
+import skyUp    from '../skybox/jettelly_space_common_black_UP.png'
+import skyDown  from '../skybox/jettelly_space_common_black_DOWN.png'
+import skyFront from '../skybox/jettelly_space_common_black_FRONT.png'
+import skyBack  from '../skybox/jettelly_space_common_black_BACK.png'
+
 // ─── Props / Emits ────────────────────────────────────────────────────────────
 
 const emit = defineEmits<{
@@ -37,6 +44,7 @@ let composer: EffectComposer | null = null
 let bloomPass: UnrealBloomPass | null = null
 let bokehPass: BokehPass | null = null
 let scene: THREE.Scene | null = null
+let dustPoints: THREE.Points | null = null
 let camera: THREE.PerspectiveCamera | null = null
 let galaxy: GalaxySystem | null = null
 let pluginNodes: PluginNodeSystem | null = null
@@ -51,6 +59,8 @@ const INITIAL_PITCH = -0.46 // angled down to see the spiral disk
 
 let yaw = INITIAL_YAW
 let pitch = INITIAL_PITCH
+let targetYaw = INITIAL_YAW
+let targetPitch = INITIAL_PITCH
 let isDragging = false
 let isPanning = false
 let lastPtrX = 0
@@ -75,7 +85,7 @@ const pointer = new THREE.Vector2()
 // ─── Camera helpers ───────────────────────────────────────────────────────────
 
 function getForward(): THREE.Vector3 {
-  cameraEuler.set(pitch, yaw, 0)
+  cameraEuler.set(targetPitch, targetYaw, 0)
   return forwardVec.set(0, 0, -1).applyEuler(cameraEuler).normalize()
 }
 
@@ -153,8 +163,14 @@ function animate() {
     if (pressedKeys.has('e')) cameraVelocity.y += PAN_ACCEL
     if (pressedKeys.has('q')) cameraVelocity.y -= PAN_ACCEL
 
+    yaw += (targetYaw - yaw) * 0.08
+    pitch += (targetPitch - pitch) * 0.08
+    cameraEuler.set(pitch, yaw, 0)
+    camera.quaternion.setFromEuler(cameraEuler)
+
     camera.position.add(cameraVelocity)
     cameraVelocity.multiplyScalar(DAMPING)
+    clampFromCore()
   } else {
     cameraVelocity.set(0, 0, 0)
   }
@@ -197,6 +213,10 @@ function animate() {
 
   pluginNodes?.update(elapsed, camera, props.focusedNode?.id ?? null)
 
+  if (dustPoints && camera) {
+    ;(dustPoints.material as THREE.ShaderMaterial).uniforms.camPos.value.copy(camera.position)
+  }
+
   // Use composer instead of renderer.render — applies bloom then DoF
   composer.render()
 }
@@ -228,8 +248,8 @@ function handlePointerMove(event: PointerEvent) {
     cameraVelocity.y += dy * 0.0035
     return
   }
-  yaw -= dx * 0.0035
-  pitch = THREE.MathUtils.clamp(pitch - dy * 0.0028, -1.18, 0.75)
+  targetYaw -= dx * 0.0035
+  targetPitch = THREE.MathUtils.clamp(targetPitch - dy * 0.0028, -1.18, 0.75)
 }
 
 function handleWheel(event: WheelEvent) {
@@ -334,6 +354,16 @@ function initScene() {
   scene = new THREE.Scene()
   scene.fog = new THREE.FogExp2('#000008', 0.0016)
 
+  const cubeTextureLoader = new THREE.CubeTextureLoader()
+  scene.background = cubeTextureLoader.load([
+    skyRight,
+    skyLeft,
+    skyUp,
+    skyDown,
+    skyFront,
+    skyBack
+  ])
+
   // ── Camera ───────────────────────────────────────────────────────────────
   camera = new THREE.PerspectiveCamera(72, w / h, 0.08, 600)
   camera.position.copy(INITIAL_CAM_POS)
@@ -384,6 +414,50 @@ function initScene() {
   galaxy.root.rotation.x = -0.12
   scene.add(galaxy.root)
 
+  // ── Space Dust ────────────────────────────────────────────────────────────
+  const DUST_COUNT = 1500
+  const dustPositions = new Float32Array(DUST_COUNT * 3)
+  for(let i=0; i<DUST_COUNT*3; i++) dustPositions[i] = (Math.random() - 0.5) * 80
+
+  const dustGeo = new THREE.BufferGeometry()
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3))
+
+  const dustMat = new THREE.ShaderMaterial({
+    uniforms: {
+      camPos: { value: new THREE.Vector3() }
+    },
+    vertexShader: `
+      uniform vec3 camPos;
+      void main() {
+        vec3 pos = position;
+        vec3 diff = pos - camPos;
+        float range = 80.0;
+        float halfRange = 40.0;
+        
+        diff.x = mod(diff.x + halfRange, range) - halfRange;
+        diff.y = mod(diff.y + halfRange, range) - halfRange;
+        diff.z = mod(diff.z + halfRange, range) - halfRange;
+        
+        vec4 mvPosition = viewMatrix * vec4(camPos + diff, 1.0);
+        gl_PointSize = (1.5 / -mvPosition.z) * 12.0;
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `
+      void main() {
+        vec2 xy = gl_PointCoord.xy - vec2(0.5);
+        float ll = length(xy);
+        if(ll > 0.5) discard;
+        gl_FragColor = vec4(1.0, 1.0, 1.0, (0.5 - ll) * 0.35);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending
+  })
+  dustPoints = new THREE.Points(dustGeo, dustMat)
+  scene.add(dustPoints)
+
   rebuildPluginNodes()
   animate()
   emit('ready')
@@ -424,16 +498,20 @@ watch(
 
       if (camera) {
         cameraEuler.setFromQuaternion(camera.quaternion, 'YXZ')
-        yaw = cameraEuler.y
-        pitch = cameraEuler.x
+        targetYaw = cameraEuler.y
+        targetPitch = cameraEuler.x
+        yaw = targetYaw
+        pitch = targetPitch
         const distToNode = camera.position.distanceTo(focusPos)
         cameraTarget.copy(camera.position).add(getForward().clone().multiplyScalar(distToNode))
       }
     } else if (camera) {
       // Sync internal yaw/pitch so the camera doesn't snap when unfocused
       cameraEuler.setFromQuaternion(camera.quaternion, 'YXZ')
-      yaw = cameraEuler.y
-      pitch = cameraEuler.x
+      targetYaw = cameraEuler.y
+      targetPitch = cameraEuler.x
+      yaw = targetYaw
+      pitch = targetPitch
     }
   }
 )
@@ -462,7 +540,7 @@ onBeforeUnmount(() => {
   renderer?.dispose()
   renderer?.domElement.remove()
 
-  galaxy = pluginNodes = renderer = composer = bloomPass = bokehPass = scene = camera = null
+  galaxy = pluginNodes = renderer = composer = bloomPass = bokehPass = scene = camera = dustPoints = null
 })
 </script>
 

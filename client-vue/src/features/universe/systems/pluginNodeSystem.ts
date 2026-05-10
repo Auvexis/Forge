@@ -293,6 +293,7 @@ export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeS
       }
 
       const now = performance.now()
+      const eligibleForSpawn: typeof objects = []
 
       for (const obj of objects) {
         const isFocused = focusedNodeId === obj.node.id
@@ -300,45 +301,21 @@ export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeS
         
         const inView = isFocused || frustum.containsPoint(obj.worldPos)
 
-        if (!inView && dist > 120 && !isFocused && obj.fadeAlpha < 0.02) {
-          if (visibleCount < 2 && (now - (window as any).__lastPluginSpawnTime > 2500 || !(window as any).__lastPluginSpawnTime)) {
-            const fwd = new THREE.Vector3()
-            camera.getWorldDirection(fwd)
-
-            const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize()
-            const up = new THREE.Vector3().crossVectors(right, fwd).normalize()
-
-            const spawnDist = 45 + Math.random() * 25
-            const offsetRight = (Math.random() - 0.5) * 40
-            const offsetUp = (Math.random() - 0.5) * 20
-
-            const candidatePos = camPos.clone()
-              .add(fwd.multiplyScalar(spawnDist))
-              .add(right.multiplyScalar(offsetRight))
-              .add(up.multiplyScalar(offsetUp))
-
-            // Keep within reasonable galaxy thickness
-            candidatePos.y = THREE.MathUtils.clamp(candidatePos.y, -14, 14)
-
-            // Only teleport if the candidate position is inside the galaxy
-            // This prevents plugins getting stuck on the edge if the user looks outward
-            const currentRadius = Math.hypot(candidatePos.x, candidatePos.z)
-            if (currentRadius <= 110) {
-              obj.worldPos.copy(candidatePos)
-              obj.root.position.copy(obj.worldPos)
-
-              obj.node.position.x = obj.worldPos.x
-              obj.node.position.y = obj.worldPos.y
-              obj.node.position.z = obj.worldPos.z
-
-              ;(window as any).__lastPluginSpawnTime = now
-              visibleCount++
-            }
+        if (!inView && !isFocused && obj.fadeAlpha < 0.02) {
+          // Banish the object so it doesn't reappear if the user looks back
+          if (obj.worldPos.y > -9000) {
+            obj.worldPos.set(0, -10000, 0)
+            obj.root.position.copy(obj.worldPos)
+            obj.node.position.x = 0
+            obj.node.position.y = -10000
+            obj.node.position.z = 0
           }
+          eligibleForSpawn.push(obj)
         }
 
         const targetFade = (isFocused || frustum.containsPoint(obj.worldPos)) ? 1.0 : 0.0
-        obj.fadeAlpha += (targetFade - obj.fadeAlpha) * 0.08
+        const fadeSpeed = targetFade > 0 ? 0.015 : 0.08 // slow fade-in, fast fade-out
+        obj.fadeAlpha += (targetFade - obj.fadeAlpha) * fadeSpeed
 
         // Natural 3D cube rotation — NOT billboarding
         obj.root.rotation.x += obj.spinVelocity.x * 0.007
@@ -385,6 +362,72 @@ export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeS
           obj.root.position.y = obj.worldPos.y + Math.sin(elapsed * 1.6) * 0.3
         } else {
           obj.root.position.y = obj.worldPos.y
+        }
+      }
+
+      // Try spawning one of the banished plugins
+      if (visibleCount < 2 && eligibleForSpawn.length > 0) {
+        if (now - (window as any).__lastPluginSpawnTime > 2500 || !(window as any).__lastPluginSpawnTime) {
+          
+          let recent = (window as any).__recentPlugins as string[] || []
+          let available = eligibleForSpawn.filter(o => !recent.includes(o.node.id))
+          
+          if (available.length === 0) {
+            // Fallback if all eligible plugins were recently shown
+            available = eligibleForSpawn
+            recent = []
+          }
+
+          // Pick a random eligible plugin
+          const obj = available[Math.floor(Math.random() * available.length)]!
+
+          const fwd = new THREE.Vector3()
+          camera.getWorldDirection(fwd)
+
+          const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize()
+          const up = new THREE.Vector3().crossVectors(right, fwd).normalize()
+
+          const spawnDist = 18 + Math.random() * 15
+          const offsetRight = (Math.random() - 0.5) * 35
+          const offsetUp = (Math.random() - 0.5) * 18
+
+          const candidatePos = camPos.clone()
+            .add(fwd.multiplyScalar(spawnDist))
+            .add(right.multiplyScalar(offsetRight))
+            .add(up.multiplyScalar(offsetUp))
+
+          const currentRadius = Math.hypot(candidatePos.x, candidatePos.z)
+          
+          const localThickness = 2.0 + (currentRadius / 240.0) * 11.0
+          const inGalaxyThickness = Math.abs(candidatePos.y) <= localThickness
+
+          let tooClose = false
+          for (const other of objects) {
+            if (other !== obj && other.worldPos.y > -9000) {
+              if (other.worldPos.distanceTo(candidatePos) < 18) {
+                tooClose = true
+                break
+              }
+            }
+          }
+
+          if (!tooClose && currentRadius <= 230 && inGalaxyThickness) {
+            obj.worldPos.copy(candidatePos)
+            obj.root.position.copy(obj.worldPos)
+
+            obj.node.position.x = obj.worldPos.x
+            obj.node.position.y = obj.worldPos.y
+            obj.node.position.z = obj.worldPos.z
+
+            ;(window as any).__lastPluginSpawnTime = now
+            visibleCount++
+
+            // Save to recent queue, cap at 10 or (total_objects - 2)
+            recent.push(obj.node.id)
+            const cap = Math.max(0, Math.min(10, objects.length - 2))
+            if (recent.length > cap) recent.shift()
+            ;(window as any).__recentPlugins = recent
+          }
         }
       }
     },
