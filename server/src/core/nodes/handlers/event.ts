@@ -1,10 +1,10 @@
-import type { EventNode } from "../../../shared/models/workflow-types.ts";
+import type { EventListenerNode, EventNode } from "../../../shared/models/workflow-types.ts";
 import { WorkflowParser } from "../../modules/workflows/parser.ts";
 import { createNodeHandler } from "../handler.ts";
 
 export const eventNodeHandler = createNodeHandler<EventNode>(
   "event",
-  async ({ node, context, services }) => {
+  async ({ node, context, services, workflow }) => {
     const mapping: Record<string, string> = {};
     for (const param of node.payloadParams || []) {
       if (param.key) {
@@ -20,10 +20,17 @@ export const eventNodeHandler = createNodeHandler<EventNode>(
       timestamp: Date.now(),
     });
 
+    const localTriggered: string[] = [];
+    for (const [id, n] of Object.entries(workflow.nodes)) {
+      if (n.type === "event-listener" && (n as EventListenerNode).eventName === node.eventName) {
+        localTriggered.push(`Local Node: ${n.name || id}`);
+      }
+    }
+
     return {
       eventName: node.eventName,
       payload,
-      triggered: result.triggered,
+      triggered: [...result.triggered, ...localTriggered],
     };
   },
   {
