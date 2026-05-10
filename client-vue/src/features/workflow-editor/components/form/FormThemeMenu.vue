@@ -141,6 +141,54 @@
               />
             </div>
           </div>
+          <div class="ftm-row">
+            <span class="ftm-row-label">Border Width</span>
+            <div class="ftm-row-control ftm-row-control--right">
+              <BaseInput
+                type="number"
+                style="width: 80px"
+                :model-value="String(modelValue.container?.borderWidth ?? 1)"
+                @update:model-value="updateNumber('container', 'borderWidth', $event)"
+              />
+            </div>
+          </div>
+          <div class="ftm-row">
+            <span class="ftm-row-label">Shadow</span>
+            <div class="ftm-row-control ftm-row-control--right">
+              <BaseSelect
+                style="width: 130px"
+                :model-value="modelValue.container?.shadow || 'md'"
+                :options="FORM_SHADOWS"
+                @update:model-value="
+                  updateSection('container', {
+                    shadow: $event as NonNullable<FormTheme['container']>['shadow'],
+                  })
+                "
+              />
+            </div>
+          </div>
+          <div class="ftm-row">
+            <span class="ftm-row-label">Max Width</span>
+            <div class="ftm-row-control ftm-row-control--right">
+              <BaseInput
+                type="number"
+                style="width: 80px"
+                :model-value="String(modelValue.container?.maxWidth ?? 480)"
+                @update:model-value="updateNumber('container', 'maxWidth', $event)"
+              />
+            </div>
+          </div>
+          <div class="ftm-row">
+            <span class="ftm-row-label">Padding</span>
+            <div class="ftm-row-control ftm-row-control--right">
+              <BaseInput
+                type="number"
+                style="width: 80px"
+                :model-value="String(modelValue.container?.padding ?? 24)"
+                @update:model-value="updateNumber('container', 'padding', $event)"
+              />
+            </div>
+          </div>
         </div>
 
         <!-- Typography -->
@@ -274,6 +322,28 @@
               />
             </div>
           </div>
+          <div class="ftm-row">
+            <span class="ftm-row-label">Corner Radius</span>
+            <div class="ftm-row-control ftm-row-control--right">
+              <BaseInput
+                type="number"
+                style="width: 80px"
+                :model-value="String(modelValue.fields?.radius ?? 8)"
+                @update:model-value="updateNumber('fields', 'radius', $event)"
+              />
+            </div>
+          </div>
+          <div class="ftm-row">
+            <span class="ftm-row-label">Spacing</span>
+            <div class="ftm-row-control ftm-row-control--right">
+              <BaseInput
+                type="number"
+                style="width: 80px"
+                :model-value="String(modelValue.fields?.spacing ?? 16)"
+                @update:model-value="updateNumber('fields', 'spacing', $event)"
+              />
+            </div>
+          </div>
         </div>
 
         <!-- Button -->
@@ -339,6 +409,16 @@
               />
             </div>
           </div>
+          <div class="ftm-row">
+            <span class="ftm-row-label">Hover Background</span>
+            <div class="ftm-row-control ftm-row-control--right">
+              <BaseColorPicker
+                :model-value="modelValue.button?.hoverBackgroundColor || '#6d28d9'"
+                show-value
+                @update:model-value="updateSection('button', { hoverBackgroundColor: $event })"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -373,6 +453,13 @@ const emit = defineEmits<{
 }>()
 
 const isOpen = ref(false)
+
+const FORM_SHADOWS = [
+  { label: 'None', value: 'none' },
+  { label: 'Small', value: 'sm' },
+  { label: 'Medium', value: 'md' },
+  { label: 'Large', value: 'lg' },
+]
 
 const FORM_THEME_PRESET_CARDS = [
   {

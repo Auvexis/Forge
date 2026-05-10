@@ -3,7 +3,7 @@
     :is="tag"
     ref="containerRef"
     class="base-floating-nav"
-    :style="{ position: position, overflowX: 'hidden' }"
+    :style="{ position: position, overflow: 'hidden' }"
     @mouseleave="hoveredEl = null"
     @mousemove="handleMouseMove"
   >
@@ -135,8 +135,6 @@ const pillStyle = computed(() => {
 </script>
 
 <style scoped>
-
-
 .wooby-pill {
   position: absolute;
   top: 0;
