@@ -1,5 +1,8 @@
 <template>
-  <div ref="containerRef" class="universe-scene" aria-hidden="true" @contextmenu.prevent></div>
+  <div class="universe-scene-wrapper">
+    <div ref="containerRef" class="universe-scene" aria-hidden="true" @contextmenu.prevent></div>
+    <div v-if="isFlyMode" class="fly-crosshair"></div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -267,11 +270,18 @@ function handlePointerUp(event: PointerEvent) {
     /* ignored */
   }
 
-  if (dragDist > 4 || !pluginNodes) return
+  if (!isFlyMode.value && dragDist > 4) return
+  if (!pluginNodes) return
 
-  const bounds = containerRef.value.getBoundingClientRect()
-  pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1
-  pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1
+  if (isFlyMode.value) {
+    pointer.x = 0
+    pointer.y = 0
+  } else {
+    const bounds = containerRef.value.getBoundingClientRect()
+    pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1
+    pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1
+  }
+  
   raycaster.setFromCamera(pointer, camera)
   const node = pluginNodes.pick(raycaster)
   if (node) {
@@ -290,6 +300,11 @@ function handleKeyDown(e: KeyboardEvent) {
       document.exitPointerLock()
     } else {
       containerRef.value.requestPointerLock()
+    }
+  }
+  if (key === ' ' || key === 'spacebar') {
+    if (isFlyMode.value) {
+      emit('selectNode', null)
     }
   }
 }
@@ -450,3 +465,28 @@ onBeforeUnmount(() => {
   galaxy = pluginNodes = renderer = composer = bloomPass = bokehPass = scene = camera = null
 })
 </script>
+
+<style scoped>
+.universe-scene-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.universe-scene {
+  width: 100%;
+  height: 100%;
+}
+.fly-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+}
+</style>
