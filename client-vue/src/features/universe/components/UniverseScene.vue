@@ -159,8 +159,13 @@ function animate() {
     desiredPos.copy(focusPos).add(focusOrbitOffset)
     if (desiredPos.length() < 8) desiredPos.setLength(8)
 
-    cameraTarget.lerp(focusPos, 0.05)
-    camera.position.lerp(desiredPos, 0.08)
+    const distTarget = cameraTarget.distanceTo(focusPos)
+    const targetLerp = Math.min(0.038, 2.4 / Math.max(distTarget, 1))
+    cameraTarget.lerp(focusPos, targetLerp)
+
+    const distPos = camera.position.distanceTo(desiredPos)
+    const posLerp = Math.min(0.035, 1.4 / Math.max(distPos, 1))
+    camera.position.lerp(desiredPos, posLerp)
   } else {
     cameraTarget.copy(camera.position).add(fwd)
   }
@@ -380,6 +385,19 @@ watch(
       const outward = focusPos.clone().normalize()
       focusOrbitOffset.copy(outward).multiplyScalar(5.5)
       focusOrbitOffset.y += 2.2
+
+      if (camera) {
+        cameraEuler.setFromQuaternion(camera.quaternion, 'YXZ')
+        yaw = cameraEuler.y
+        pitch = cameraEuler.x
+        const distToNode = camera.position.distanceTo(focusPos)
+        cameraTarget.copy(camera.position).add(getForward().clone().multiplyScalar(distToNode))
+      }
+    } else if (camera) {
+      // Sync internal yaw/pitch so the camera doesn't snap when unfocused
+      cameraEuler.setFromQuaternion(camera.quaternion, 'YXZ')
+      yaw = cameraEuler.y
+      pitch = cameraEuler.x
     }
   }
 )
