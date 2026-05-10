@@ -26,9 +26,9 @@
           <p :style="previewSubtitleStyle">
             {{ description || 'This is how your public form will feel.' }}
           </p>
-          <div class="ftm-preview-input" :style="previewInputStyle">Email</div>
-          <div class="ftm-preview-input" :style="previewInputStyle">Message</div>
-          <button type="button" class="ftm-preview-button" :style="previewButtonStyle">
+          <input type="email" class="ftm-preview-input" placeholder="Email" tabindex="0" />
+          <textarea class="ftm-preview-input" placeholder="Message" rows="2" tabindex="0"></textarea>
+          <button type="button" class="ftm-preview-button">
             Submit
           </button>
         </div>
@@ -984,11 +984,56 @@ const backgroundValue = computed(() => {
 const themeSwatchStyle = computed(() => ({ background: backgroundValue.value }))
 const previewStyle = computed(() => ({ background: backgroundValue.value }))
 const previewClasses = computed(() => [`ftm-preview--${activeTheme.value.layout ?? 'floating'}`])
-const previewCardStyle = computed(() => ({
-  background: activeTheme.value.container?.backgroundColor,
-  borderColor: activeTheme.value.container?.borderColor,
-  borderRadius: `${activeTheme.value.container?.radius ?? 12}px`,
-}))
+const previewCardStyle = computed(() => {
+  const container = activeTheme.value.container
+  const fields = activeTheme.value.fields
+  const btn = activeTheme.value.button
+  const typo = activeTheme.value.typography
+
+  // Calculate borders/shapes
+  const fieldRadius = fields?.shape === 'pill' ? '999px' : fields?.shape === 'square' ? '0' : `${fields?.radius ?? 8}px`
+  const btnRadius = btn?.shape === 'pill' ? '999px' : btn?.shape === 'square' ? '0' : '8px'
+  const btnWidth = btn?.width === 'full' ? '100%' : 'fit-content'
+
+  // Shadow map
+  const shadowMap: Record<string, string> = {
+    none: 'none',
+    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+  }
+  const shadow = shadowMap[container?.shadow || 'md'] || shadowMap['md']
+
+  return {
+    background: container?.backgroundColor,
+    borderColor: container?.borderColor,
+    borderRadius: `${container?.radius ?? 12}px`,
+    borderWidth: `${container?.borderWidth ?? 1}px`,
+    borderStyle: 'solid',
+    padding: `${container?.padding ?? 24}px`,
+    maxWidth: `${container?.maxWidth ?? 480}px`,
+    width: '100%',
+    boxShadow: shadow,
+    margin: '0 auto',
+
+    // CSS Variables for children
+    '--ftm-input-bg': fields?.backgroundColor,
+    '--ftm-input-border': fields?.borderColor,
+    '--ftm-input-text': fields?.textColor,
+    '--ftm-input-focus': fields?.focusColor,
+    '--ftm-input-radius': fieldRadius,
+    '--ftm-input-font': typo?.inputFontFamily ?? typo?.fontFamily,
+    '--ftm-spacing': `${fields?.spacing ?? 16}px`,
+
+    '--ftm-btn-bg': btn?.backgroundColor,
+    '--ftm-btn-border': btn?.borderColor,
+    '--ftm-btn-text': btn?.textColor,
+    '--ftm-btn-hover': btn?.hoverBackgroundColor,
+    '--ftm-btn-radius': btnRadius,
+    '--ftm-btn-width': btnWidth,
+    '--ftm-btn-font': typo?.buttonFontFamily ?? typo?.fontFamily,
+  }
+})
 const previewTitleStyle = computed(() => ({
   color: activeTheme.value.typography?.titleColor,
   fontFamily:
@@ -998,33 +1043,7 @@ const previewSubtitleStyle = computed(() => ({
   color: activeTheme.value.typography?.subtitleColor,
   fontFamily:
     activeTheme.value.typography?.subtitleFontFamily ?? activeTheme.value.typography?.fontFamily,
-}))
-const previewInputStyle = computed(() => ({
-  background: activeTheme.value.fields?.backgroundColor,
-  borderColor: activeTheme.value.fields?.borderColor,
-  borderRadius:
-    activeTheme.value.fields?.shape === 'pill'
-      ? '999px'
-      : activeTheme.value.fields?.shape === 'square'
-        ? '0'
-        : `${activeTheme.value.fields?.radius ?? 8}px`,
-  color: activeTheme.value.fields?.textColor,
-  fontFamily:
-    activeTheme.value.typography?.inputFontFamily ?? activeTheme.value.typography?.fontFamily,
-}))
-const previewButtonStyle = computed(() => ({
-  width: activeTheme.value.button?.width === 'full' ? '100%' : 'fit-content',
-  background: activeTheme.value.button?.backgroundColor,
-  borderColor: activeTheme.value.button?.borderColor,
-  borderRadius:
-    activeTheme.value.button?.shape === 'pill'
-      ? '999px'
-      : activeTheme.value.button?.shape === 'square'
-        ? '0'
-        : '8px',
-  color: activeTheme.value.button?.textColor,
-  fontFamily:
-    activeTheme.value.typography?.buttonFontFamily ?? activeTheme.value.typography?.fontFamily,
+  marginBottom: `${activeTheme.value.fields?.spacing ?? 16}px`,
 }))
 
 const CUSTOM_THEME_KEY = 'nod8_custom_form_theme'
@@ -1197,40 +1216,86 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
 }
 
 .ftm-preview-badge {
-  width: fit-content;
-  padding: 3px 7px;
-  border-radius: var(--nod8-radius-sm);
-  background: rgba(124, 58, 237, 0.12);
-  color: var(--nod8-accent);
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: var(--nod8-accent);
+  color: white;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
 }
 
 .ftm-preview-card h3 {
   margin: 0;
   color: var(--nod8-text-primary);
   font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .ftm-preview-card p {
-  margin: 0;
+  margin: 6px 0 0 0;
   color: var(--nod8-text-secondary);
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .ftm-preview-input {
-  padding: 9px 10px;
-  border: 1px solid;
-  font-size: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--ftm-input-border);
+  background: var(--ftm-input-bg);
+  color: var(--ftm-input-text);
+  border-radius: var(--ftm-input-radius);
+  font-family: var(--ftm-input-font);
+  font-size: 14px;
+  margin-bottom: var(--ftm-spacing);
+  transition: all 0.2s ease;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ftm-preview-input::placeholder {
+  color: var(--ftm-input-text);
+  opacity: 0.5;
+}
+
+.ftm-preview-input:hover {
+  border-color: var(--ftm-input-focus);
+}
+
+.ftm-preview-input:focus {
+  border-color: var(--ftm-input-focus);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
 }
 
 .ftm-preview-button {
-  padding: 10px 14px;
-  border: 1px solid;
-  font-size: 12px;
-  font-weight: 700;
+  padding: 12px 16px;
+  border: 1px solid var(--ftm-btn-border);
+  background: var(--ftm-btn-bg);
+  color: var(--ftm-btn-text);
+  border-radius: var(--ftm-btn-radius);
+  width: var(--ftm-btn-width);
+  font-family: var(--ftm-btn-font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.ftm-preview-button:hover {
+  background: var(--ftm-btn-hover);
+}
+
+.ftm-preview-button:active {
+  transform: translateY(1px);
 }
 
 .ftm-controls {
