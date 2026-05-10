@@ -235,7 +235,8 @@ const eventListenerInputPreview = computed(() => {
       const params = (n as any).payloadParams ?? []
       for (const p of params) {
         if (p.key && !(p.key in preview)) {
-          preview[p.key] = p.value || `<${p.key}>`
+          const val = typeof p.value === 'string' ? p.value : ''
+          preview[p.key] = val.includes('{{') ? 'any' : (val || 'any')
         }
       }
     }
@@ -366,7 +367,7 @@ const copyToClipboard = async (path: string) => {
                   <BaseInput v-model="eventListenerSearch" icon-left="search" placeholder="Search variables..." />
                 </div>
                 <div class="p-4 flex-1 overflow-y-auto">
-                  <p class="text-xs text-muted mb-3" style="font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
+                  <p class="text-xs text-muted" style="font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-top: 10px; margin-bottom: 10px">
                     {{ executionStore.nodeStatuses[inspectorStore.activeNodeId!]?.output ? 'Received Payload' : 'Expected Payload (from Emit Event)' }}
                   </p>
                   <JsonTreeView v-if="Object.keys(filteredEventListenerInputPreview).length > 0" :data="filteredEventListenerInputPreview" :is-root="true" />
