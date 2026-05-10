@@ -11,8 +11,7 @@
       @click="$emit('select', node.id)"
     >
       <span class="universe-plugin-node__icon">
-        <img v-if="node.icon.kind === 'image'" :src="node.icon.value" alt="" />
-        <LucideIcon v-else :name="node.icon.value" :size="22" />
+        <UniversePluginIcon :icon="node.icon" :fallback="node.plugin.manifest.metadata.style?.icon" />
       </span>
       <span class="universe-plugin-node__label">{{ node.label }}</span>
     </button>
@@ -21,8 +20,8 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, watch } from 'vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { UniversePluginNode } from '../types/universe.types'
+import UniversePluginIcon from './UniversePluginIcon.vue'
 
 const props = defineProps<{
   nodes: UniversePluginNode[]

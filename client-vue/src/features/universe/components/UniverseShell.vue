@@ -28,8 +28,11 @@
 
     <aside v-if="selectedNode" class="universe-shell__details" aria-label="Plugin details">
       <div class="universe-shell__details-icon" :style="{ '--node-color': selectedNode.color }">
-        <img v-if="selectedNode.icon.kind === 'image'" :src="selectedNode.icon.value" alt="" />
-        <LucideIcon v-else :name="selectedNode.icon.value" :size="24" />
+        <UniversePluginIcon
+          :icon="selectedNode.icon"
+          :fallback="selectedNode.plugin.manifest.metadata.style?.icon"
+          :size="24"
+        />
       </div>
       <div class="universe-shell__details-copy">
         <p class="universe-shell__details-kicker">{{ selectedNode.category }}</p>
@@ -47,10 +50,10 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useUniversePlugins } from '../composables/useUniversePlugins'
 import UniverseScene from './UniverseScene.vue'
 import UniversePluginLayer from './UniversePluginLayer.vue'
+import UniversePluginIcon from './UniversePluginIcon.vue'
 
 const { plugins, isLoading, error, hasPlugins } = useUniversePlugins()
 const sceneReady = ref(false)

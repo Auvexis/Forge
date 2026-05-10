@@ -81,9 +81,14 @@
 }
 
 .universe-shell__intro {
+  position: absolute;
+  top: 17vh;
+  left: 50%;
   max-width: min(560px, calc(100vw - 48px));
   text-align: center;
+  transform: translateX(-50%);
   animation: universe-fade-in 700ms var(--nod8-ease-decelerate) both;
+  z-index: 3;
 }
 
 .universe-shell__eyebrow {
@@ -97,7 +102,7 @@
 .universe-shell__title {
   margin: 0;
   color: var(--universe-text);
-  font-size: clamp(34px, 7vw, 72px);
+  font-size: clamp(30px, 5vw, 54px);
   font-weight: var(--nod8-font-semibold);
   line-height: 0.96;
   letter-spacing: 0;
@@ -312,12 +317,12 @@
 @keyframes universe-fade-in {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translate(-50%, 8px) scale(0.98);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, 0) scale(1);
   }
 }
 

@@ -61,7 +61,7 @@
   - Ensure entering `/universe` calls `enterUniverseMode()` and leaving the route restores the UI.
   - Mark this task done and commit with `feat(universe): add camera and exit controls`.
 
-- [ ] **Task 8: Polish MVP and verify**
+- [x] **Task 8: Polish MVP and verify**
   - Run client type-check/build and any relevant server checks if touched.
   - Start the local app and visually QA `/universe` at desktop and one mobile viewport.
   - Confirm `/workflows` normal UI restores after exiting Universe Mode.
