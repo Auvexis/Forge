@@ -1,7 +1,8 @@
 <template>
   <section class="universe-shell" aria-label="ND8 Universe">
+    <UniverseScene @ready="sceneReady = true" />
     <div class="universe-shell__stars" aria-hidden="true"></div>
-    <div class="universe-shell__brand">
+    <div class="universe-shell__brand" :class="{ 'universe-shell__brand--ready': sceneReady }">
       <img src="/favicon.svg" alt="" class="universe-shell__logo" />
       <span class="universe-shell__wordmark">nd.8</span>
     </div>
@@ -15,7 +16,7 @@
     </div>
 
     <div class="universe-shell__status" role="status" aria-live="polite">
-      <span class="universe-shell__pulse"></span>
+      <span class="universe-shell__pulse" :class="{ 'universe-shell__pulse--ready': sceneReady }"></span>
       {{ statusLabel }}
     </div>
 
@@ -45,11 +46,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useUniversePlugins } from '../composables/useUniversePlugins'
+import UniverseScene from './UniverseScene.vue'
 
 const { plugins, isLoading, error, hasPlugins } = useUniversePlugins()
+const sceneReady = ref(false)
 
 const previewNodes = computed(() => plugins.value.nodes.slice(0, 6))
 

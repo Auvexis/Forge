@@ -40,7 +40,7 @@
   - Provide loading and error states for the Universe page.
   - Mark this task done and commit with `feat(universe): map plugins to scene nodes`.
 
-- [ ] **Task 5: Add Three.js/TresJS dependencies and base scene**
+- [x] **Task 5: Add Three.js/TresJS dependencies and base scene**
   - Add client dependencies for Three.js/TresJS using the smallest current stable package set.
   - Implement a fullscreen Universe scene component with renderer lifecycle cleanup.
   - Add ND8 logo/loading transition and fade into the scene.
