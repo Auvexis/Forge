@@ -41,6 +41,8 @@ const outputPositions = computed(() => {
   const step = (maxX - minX) / (total - 1)
   return outputs.value.map((_, index) => minX + step * index)
 })
+
+
 </script>
 
 <template>
@@ -48,7 +50,7 @@ const outputPositions = computed(() => {
     :id="props.id"
     :selected="props.selected"
     :status="props.status"
-    :height="104"
+    :height="100"
     :width="nodeWidth"
     has-target
     color="var(--nod8-node-switch-icon)"
@@ -65,7 +67,7 @@ const outputPositions = computed(() => {
       </div>
     </div>
 
-    <template v-for="(output, i) in outputs" :key="output.id">
+    <template v-for="(output, i) in outputs" :key="`${output.id}@${outputs.length}`">
       <BaseHandle
         :id="output.id"
         type="source"
