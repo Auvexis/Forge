@@ -196,6 +196,7 @@ const injectVariable = (paramKey: string, variable: string) => {
 }
 
 const isPluginNode = computed(() => inspectorStore.activeNode?.type === 'plugin')
+const isEventListenerNode = computed(() => inspectorStore.activeNode?.type === 'event-listener')
 const activeTab = ref<'config' | 'settings'>('config')
 const localId = ref('')
 
@@ -209,6 +210,39 @@ watch(
   },
   { immediate: true }
 )
+
+/**
+ * For event-listener nodes: build a preview of the incoming payload from
+ * matching Emit Event nodes. Falls back to live execution output if available.
+ */
+const eventListenerInputPreview = computed(() => {
+  const node = inspectorStore.activeNode
+  if (node?.type !== 'event-listener') return null
+
+  // 1. Live execution output takes priority
+  const live = executionStore.nodeStatuses[node.id]?.output
+  if (live !== undefined && live !== null) return live
+
+  // 2. Static preview from matching Emit Event payloadParams
+  const eventName = (node.data as any)?.eventName as string
+  if (!eventName) return null
+
+  const wfNodes = workflowStore.activeWorkflow?.nodes ?? {}
+  const preview: Record<string, string> = {}
+
+  for (const n of Object.values(wfNodes)) {
+    if (n.type === 'event' && (n as any).eventName === eventName) {
+      const params = (n as any).payloadParams ?? []
+      for (const p of params) {
+        if (p.key && !(p.key in preview)) {
+          preview[p.key] = p.value || `<${p.key}>`
+        }
+      }
+    }
+  }
+
+  return Object.keys(preview).length > 0 ? preview : null
+})
 
 watch(
   () => inspectorStore.activeNodeId,
@@ -280,6 +314,25 @@ const copyToClipboard = async (path: string) => {
                 </div>
                 <p class="text-sm text-muted">No event captured yet.</p>
                 <p class="text-xs text-muted mt-1">Use "Listen for Event" in the trigger settings.</p>
+              </div>
+            </template>
+            <!-- Special case: event-listener node - show payload preview from Emit Event -->
+            <template v-else-if="isEventListenerNode">
+              <div v-if="eventListenerInputPreview" class="p-4 flex-1">
+                <p class="text-xs text-muted mb-3" style="font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
+                  {{ executionStore.nodeStatuses[inspectorStore.activeNodeId!]?.output ? 'Received Payload' : 'Expected Payload (from Emit Event)' }}
+                </p>
+                <JsonTreeView :data="eventListenerInputPreview" :is-root="true" />
+              </div>
+              <div
+                v-else
+                class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]"
+              >
+                <div class="icon-box mb-3 opacity-70">
+                  <LucideIcon name="radio" size="24" />
+                </div>
+                <p class="text-sm text-muted">No Emit Event bound yet.</p>
+                <p class="text-xs text-muted mt-1">Set an event name that matches an Emit Event node.</p>
               </div>
             </template>
             <!-- Normal case: variable tree from upstream nodes -->
