@@ -58,6 +58,7 @@ let dragStartY = 0
 const pressedKeys = new Set<string>()
 const cameraTarget = new THREE.Vector3()
 const cameraVelocity = new THREE.Vector3()
+const isFlyMode = ref(false)
 const desiredPos = new THREE.Vector3()
 const focusPos = new THREE.Vector3()
 const forwardVec = new THREE.Vector3()
@@ -82,7 +83,13 @@ function getRight(): THREE.Vector3 {
 function clampFromCore() {
   if (!camera) return
   const minLen = props.focusedNode ? 6 : 14
-  if (camera.position.length() < minLen) camera.position.setLength(minLen)
+  const maxLen = 145
+  const len = camera.position.length()
+  if (len < minLen) {
+    camera.position.setLength(minLen)
+  } else if (len > maxLen) {
+    camera.position.setLength(maxLen)
+  }
 }
 
 // ─── Resize ───────────────────────────────────────────────────────────────────
@@ -120,8 +127,8 @@ function animate() {
   galaxy.root.rotation.z = Math.sin(elapsed * 0.07) * 0.018
   galaxy.update(elapsed)
 
-  const MOVE_ACCEL = 0.035
-  const PAN_ACCEL = 0.015
+  const MOVE_ACCEL = 0.015
+  const PAN_ACCEL = 0.006
   const DAMPING = 0.9
   const fwd = getForward()
   const rgt = getRight()
@@ -194,9 +201,9 @@ function animate() {
 // ─── Input handlers ───────────────────────────────────────────────────────────
 
 function handlePointerMove(event: PointerEvent) {
-  if (!isDragging || !camera) return
-  const dx = event.clientX - lastPtrX
-  const dy = event.clientY - lastPtrY
+  if ((!isDragging && !isFlyMode.value) || !camera) return
+  const dx = isFlyMode.value ? event.movementX : event.clientX - lastPtrX
+  const dy = isFlyMode.value ? event.movementY : event.clientY - lastPtrY
   lastPtrX = event.clientX
   lastPtrY = event.clientY
 
@@ -275,7 +282,16 @@ function handlePointerUp(event: PointerEvent) {
 }
 
 function handleKeyDown(e: KeyboardEvent) {
-  pressedKeys.add(e.key.toLowerCase())
+  const key = e.key.toLowerCase()
+  pressedKeys.add(key)
+  if (key === 'f') {
+    if (!containerRef.value) return
+    if (document.pointerLockElement === containerRef.value) {
+      document.exitPointerLock()
+    } else {
+      containerRef.value.requestPointerLock()
+    }
+  }
 }
 function handleKeyUp(e: KeyboardEvent) {
   pressedKeys.delete(e.key.toLowerCase())
@@ -363,6 +379,7 @@ function initScene() {
 onMounted(() => {
   initScene()
   window.addEventListener('resize', resize)
+  document.addEventListener('pointerlockchange', onPointerLockChange)
   window.addEventListener('pointermove', handlePointerMove)
   window.addEventListener('pointerdown', handlePointerDown)
   window.addEventListener('pointerup', handlePointerUp)
@@ -370,6 +387,10 @@ onMounted(() => {
   window.addEventListener('keyup', handleKeyUp)
   window.addEventListener('wheel', handleWheel, { passive: true })
 })
+
+function onPointerLockChange() {
+  isFlyMode.value = document.pointerLockElement === containerRef.value
+}
 
 watch(
   () => props.nodes,
@@ -405,6 +426,7 @@ watch(
 onBeforeUnmount(() => {
   window.cancelAnimationFrame(animationFrame)
   window.removeEventListener('resize', resize)
+  document.removeEventListener('pointerlockchange', onPointerLockChange)
   window.removeEventListener('pointermove', handlePointerMove)
   window.removeEventListener('pointerdown', handlePointerDown)
   window.removeEventListener('pointerup', handlePointerUp)

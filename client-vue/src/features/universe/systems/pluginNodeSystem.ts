@@ -3,8 +3,8 @@ import type { UniversePluginNode } from '../types/universe.types'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CUBE_SIZE       = 0.72    // world-space size of each cube face
-const VISIBLE_DIST    = 32      // distance at which the cube fades in
+const CUBE_SIZE       = 0.45    // world-space size of each cube face
+const VISIBLE_DIST    = 24      // distance at which the cube fades in
 const NEAR_DIST       = 4       // full opacity inside this distance
 
 const NUM_ARMS    = 4
@@ -20,6 +20,7 @@ interface PluginNodeObject {
   dot:  THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
   spinVelocity: THREE.Vector3
   worldPos: THREE.Vector3
+  fadeAlpha: number
 }
 
 export interface PluginNodeSystem {
@@ -228,7 +229,7 @@ function createPluginObject(node: UniversePluginNode): PluginNodeObject {
   // ── Glow halo plane (camera-facing via lookAt in update) ──────────────────
   const glowTex  = buildGlowTexture(node)
   const glowSize = CUBE_SIZE * 4.2
-  const glowGeo  = new THREE.PlaneGeometry(glowSize, glowSize)
+  const glowGeo = new THREE.PlaneGeometry(glowSize, glowSize)
   const glowMat  = new THREE.MeshBasicMaterial({
     map: glowTex,
     transparent: true,
@@ -245,7 +246,7 @@ function createPluginObject(node: UniversePluginNode): PluginNodeObject {
   dotGeo.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0], 3))
   const dotMat = new THREE.PointsMaterial({
     color:         node.color,
-    size:          0.22,
+    size:          0.14,
     sizeAttenuation: true,
     transparent:   true,
     opacity:       0.78,
@@ -261,7 +262,7 @@ function createPluginObject(node: UniversePluginNode): PluginNodeObject {
     (rng() - 0.5) * 0.14,
   )
 
-  return { node, root, cube, glow, dot, spinVelocity, worldPos }
+  return { node, root, cube, glow, dot, spinVelocity, worldPos, fadeAlpha: 0 }
 }
 
 // ─── Public factory ───────────────────────────────────────────────────────────
@@ -279,9 +280,65 @@ export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeS
     update: (elapsed, camera, focusedNodeId) => {
       const camPos = camera.position
 
+      const frustum = new THREE.Frustum()
+      const projScreenMatrix = new THREE.Matrix4()
+      projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse)
+      frustum.setFromProjectionMatrix(projScreenMatrix)
+
+      let visibleCount = 0
+      for (const obj of objects) {
+        if (obj.fadeAlpha > 0.05 || focusedNodeId === obj.node.id) {
+          visibleCount++
+        }
+      }
+
+      const now = performance.now()
+
       for (const obj of objects) {
         const isFocused = focusedNodeId === obj.node.id
         const dist      = camPos.distanceTo(obj.worldPos)
+        
+        const inView = isFocused || frustum.containsPoint(obj.worldPos)
+
+        if (!inView && dist > 120 && !isFocused && obj.fadeAlpha < 0.02) {
+          if (visibleCount < 2 && (now - (window as any).__lastPluginSpawnTime > 2500 || !(window as any).__lastPluginSpawnTime)) {
+            const fwd = new THREE.Vector3()
+            camera.getWorldDirection(fwd)
+
+            const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize()
+            const up = new THREE.Vector3().crossVectors(right, fwd).normalize()
+
+            const spawnDist = 45 + Math.random() * 25
+            const offsetRight = (Math.random() - 0.5) * 40
+            const offsetUp = (Math.random() - 0.5) * 20
+
+            const candidatePos = camPos.clone()
+              .add(fwd.multiplyScalar(spawnDist))
+              .add(right.multiplyScalar(offsetRight))
+              .add(up.multiplyScalar(offsetUp))
+
+            // Keep within reasonable galaxy thickness
+            candidatePos.y = THREE.MathUtils.clamp(candidatePos.y, -14, 14)
+
+            // Only teleport if the candidate position is inside the galaxy
+            // This prevents plugins getting stuck on the edge if the user looks outward
+            const currentRadius = Math.hypot(candidatePos.x, candidatePos.z)
+            if (currentRadius <= 110) {
+              obj.worldPos.copy(candidatePos)
+              obj.root.position.copy(obj.worldPos)
+
+              obj.node.position.x = obj.worldPos.x
+              obj.node.position.y = obj.worldPos.y
+              obj.node.position.z = obj.worldPos.z
+
+              ;(window as any).__lastPluginSpawnTime = now
+              visibleCount++
+            }
+          }
+        }
+
+        const targetFade = (isFocused || frustum.containsPoint(obj.worldPos)) ? 1.0 : 0.0
+        obj.fadeAlpha += (targetFade - obj.fadeAlpha) * 0.08
 
         // Natural 3D cube rotation — NOT billboarding
         obj.root.rotation.x += obj.spinVelocity.x * 0.007
@@ -305,22 +362,23 @@ export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeS
             : 0
 
         for (const mat of obj.cube.material) {
-          mat.opacity = cubeAlpha
+          mat.opacity = cubeAlpha * obj.fadeAlpha
         }
 
         // Glow: always slightly visible, strongest when close / focused
         const glowAlpha = isFocused
           ? 0.88
           : THREE.MathUtils.clamp(1.0 - dist / 80, 0.04, 0.6)
-        obj.glow.material.opacity = glowAlpha
+        obj.glow.material.opacity = glowAlpha * obj.fadeAlpha
 
         // Glow always faces camera (billboard — only the glow, not the cube)
         obj.glow.lookAt(camPos)
 
         // Dot: far-LOD proxy, fades out when cube is visible
-        obj.dot.material.opacity = isFocused
+        const dotAlpha = isFocused
           ? 0
           : THREE.MathUtils.clamp(dist / VISIBLE_DIST, 0.10, 0.72)
+        obj.dot.material.opacity = dotAlpha * obj.fadeAlpha
 
         // Focused bob
         if (isFocused) {
@@ -332,7 +390,9 @@ export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeS
     },
 
     pick: (raycaster) => {
-      const hits = raycaster.intersectObjects(selectableCubes, false)
+      // Only pick cubes that are visibly faded in
+      const visibleCubes = objects.filter(o => o.fadeAlpha > 0.05).map(o => o.cube)
+      const hits = raycaster.intersectObjects(visibleCubes, false)
       const hit  = hits[0]?.object
       if (!hit?.userData.nodeId) return null
       return objects.find((o) => o.node.id === hit.userData.nodeId)?.node ?? null
