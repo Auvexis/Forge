@@ -370,10 +370,4 @@ const onQuickAdd = () => {
   height: 19px;
   transition: all 0.2s;
 }
-
-.nod8-base-node__quick-add-btn:hover {
-  background-color: var(--nod8-accent);
-  border-color: var(--nod8-accent);
-  color: #fff;
-}
 </style>

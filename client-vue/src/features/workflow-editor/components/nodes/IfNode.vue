@@ -31,12 +31,12 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Conditional')
   >
     <!-- True handle -->
     <BaseHandle id="then" type="source" :position="Position.Right" style="top: 35%" />
-    <BaseBadge variant="default" size="sm" class="if-handle-badge" style="top: 35%; right: -60px">True</BaseBadge>
+    <BaseBadge variant="default" size="sm" class="if-handle-badge" style="top: 35%; right: -53px">True</BaseBadge>
     <QuickAddButton :node-id="props.id" handle-id="then" style="top: 35%" />
 
     <!-- False handle -->
     <BaseHandle id="else" type="source" :position="Position.Right" style="top: 65%" />
-    <BaseBadge variant="default" size="sm" class="if-handle-badge" style="top: 65%; right: -64px">False</BaseBadge>
+    <BaseBadge variant="default" size="sm" class="if-handle-badge" style="top: 65%; right: -57px">False</BaseBadge>
     <QuickAddButton :node-id="props.id" handle-id="else" style="top: 65%" />
   </BaseNode>
 </template>

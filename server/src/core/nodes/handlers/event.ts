@@ -5,7 +5,13 @@ import { createNodeHandler } from "../handler.ts";
 export const eventNodeHandler = createNodeHandler<EventNode>(
   "event",
   async ({ node, context, services }) => {
-    const payload = WorkflowParser.evalParams(node.payloadMapping ?? {}, context);
+    const mapping: Record<string, string> = {};
+    for (const param of node.payloadParams || []) {
+      if (param.key) {
+        mapping[param.key] = param.value;
+      }
+    }
+    const payload = WorkflowParser.evalParams(mapping, context);
 
     const result = await services.emitInternalEvent({
       name: node.eventName,

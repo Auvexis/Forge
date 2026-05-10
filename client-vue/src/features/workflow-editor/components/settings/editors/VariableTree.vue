@@ -264,6 +264,31 @@ const allPaths = computed(() => {
       } else if (upData.type === 'merge') {
         // Merge Node passivo não tem dados de output, ele apenas repassa. 
         // Os usuários devem buscar os dados nos nós anteriores.
+      } else if (upData.type === 'event-listener') {
+        const eventName = (upData as any).eventName
+        const workflowNodes = useWorkflowStore().activeWorkflow?.nodes || {}
+        let hasParams = false
+        
+        for (const n of Object.values(workflowNodes)) {
+          if (n.type === 'event' && (n as any).eventName === eventName) {
+            const params = (n as any).payloadParams || []
+            for (const param of params) {
+              if (param.key) {
+                paths.push({
+                  path: `steps.${upNode.id}.output.${param.key}`,
+                  label: param.key,
+                  type: 'any',
+                  sourceNodeName: nodeName
+                })
+                hasParams = true
+              }
+            }
+          }
+        }
+        
+        if (!hasParams) {
+          paths.push({ path: `steps.${upNode.id}.output`, label: 'output', type: 'any', sourceNodeName: nodeName })
+        }
       } else {
         paths.push({ path: `steps.${upNode.id}.output`, label: 'output', type: 'any', sourceNodeName: nodeName })
       }

@@ -3,16 +3,33 @@ import type { NodeProps } from '@vue-flow/core'
 import type { EventListenerNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import { computed } from 'vue'
+import { useWorkflowStore } from '../../stores/workflow.store'
 
 const props = defineProps<
   NodeProps<EventListenerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
 >()
 
+const workflowStore = useWorkflowStore()
+
 const eventName = computed(() => (props.data as any)?.eventName || 'custom.signal')
 const stepTitle = computed(() => (props.data as any)?.name || 'Event Listener')
-const paramCount = computed(() => (props.data?.outputParams ?? []).length)
+
+const paramCount = computed(() => {
+  const nodes = workflowStore.activeWorkflow?.nodes || {}
+  const keys = new Set<string>()
+  for (const n of Object.values(nodes)) {
+    if (n.type === 'event' && (n as any).eventName === eventName.value) {
+      const params = (n as any).payloadParams || []
+      for (const p of params) {
+        if (p.key) keys.add(p.key)
+      }
+    }
+  }
+  return keys.size
+})
+
 const subtitle = computed(() =>
-  paramCount.value === 0 ? 'Listener' : `${paramCount.value} output param${paramCount.value === 1 ? '' : 's'}`,
+  paramCount.value === 0 ? 'Listener' : `${paramCount.value} payload param${paramCount.value === 1 ? '' : 's'}`,
 )
 </script>
 

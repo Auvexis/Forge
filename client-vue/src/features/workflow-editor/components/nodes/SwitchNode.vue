@@ -90,7 +90,7 @@ const handlePositions = computed(() => {
   position: absolute;
   left: 100%;
   transform: translateY(-50%);
-  margin-left: 16px;
+  margin-left: 12px;
   padding: 0 6px;
   pointer-events: none;
   font-size: 10px;

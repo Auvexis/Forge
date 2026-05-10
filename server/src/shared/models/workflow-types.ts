@@ -101,18 +101,27 @@ export interface HttpNode extends WorkflowNodeBase {
 
 // ──────────── Emit Event Node ────────────
 
+export interface EventNodeParam {
+  key: string;
+  value: string;
+}
+
 export interface EventNode extends WorkflowNodeBase {
   type: "event";
   eventName: string; // The internal event name to emit (e.g. "video.processed")
-  payloadMapping: Record<string, string>; // Maps event payload keys to template expressions
-  // Example: { "videoId": "{{ steps.upload.output.videoId }}" }
+  payloadParams: EventNodeParam[]; // Structured key-value pairs forwarded as the event payload
 }
 
 // ──────────── Event Listener Node (Sub-Trigger) ────────────
 
+export interface EventListenerOutputParam {
+  key: string; // Field name exposed to downstream nodes via steps.<id>.output.<key>
+}
+
 export interface EventListenerNode extends WorkflowNodeBase {
   type: "event-listener";
   eventName: string; // The internal event name to listen for
+  outputParams?: EventListenerOutputParam[]; // Declared output fields captured from the incoming event payload
 }
 
 // ──────────── Trigger Node (entry point — stored for UI metadata only) ────────────

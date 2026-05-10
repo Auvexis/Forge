@@ -32,12 +32,12 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Loop / ForEach')
   >
     <!-- Body handle — fires for each iteration -->
     <BaseHandle id="loop-body" type="source" :position="Position.Right" style="top: 35%" />
-    <BaseBadge variant="default" size="sm" class="loop-handle-badge" style="top: 35%; right: -60px">Body</BaseBadge>
+    <BaseBadge variant="default" size="sm" class="loop-handle-badge" style="top: 35%; right: -55px">Body</BaseBadge>
     <QuickAddButton :node-id="props.id" handle-id="loop-body" style="top: 35%" />
 
     <!-- Done handle — fires once all iterations complete -->
     <BaseHandle id="loop-done" type="source" :position="Position.Right" style="top: 65%" />
-    <BaseBadge variant="default" size="sm" class="loop-handle-badge" style="top: 65%; right: -61px">Done</BaseBadge>
+    <BaseBadge variant="default" size="sm" class="loop-handle-badge" style="top: 65%; right: -56px">Done</BaseBadge>
     <QuickAddButton :node-id="props.id" handle-id="loop-done" style="top: 65%" />
   </BaseNode>
 </template>

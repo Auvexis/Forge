@@ -32,12 +32,12 @@ const subtitle = computed(() => `${batchSize.value} items per batch`)
   >
     <!-- batch handle — fires for each batch -->
     <BaseHandle id="batch-body" type="source" :position="Position.Right" style="top: 35%" />
-    <BaseBadge variant="default" size="sm" class="split-badge" style="top: 35%; right: -56px">batch</BaseBadge>
+    <BaseBadge variant="default" size="sm" class="split-badge" style="top: 35%; right: -56px">Batch</BaseBadge>
     <QuickAddButton :node-id="props.id" handle-id="batch-body" style="top: 35%" />
 
     <!-- done handle — fires once all batches complete -->
     <BaseHandle id="batch-done" type="source" :position="Position.Right" style="top: 65%" />
-    <BaseBadge variant="default" size="sm" class="split-badge" style="top: 65%; right: -52px">done</BaseBadge>
+    <BaseBadge variant="default" size="sm" class="split-badge" style="top: 65%; right: -52px">Done</BaseBadge>
     <QuickAddButton :node-id="props.id" handle-id="batch-done" style="top: 65%" />
   </BaseNode>
 </template>

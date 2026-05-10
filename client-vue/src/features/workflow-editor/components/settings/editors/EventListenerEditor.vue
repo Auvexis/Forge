@@ -17,37 +17,21 @@
       />
     </EditorField>
 
-    <EditorField label="Output Parameters" icon="arrow-right-from-line">
-      <div class="editor-hint editor-hint--amber">
-        Declare the keys that this event's payload will expose to downstream nodes
-        as <span class="editor-code-snippet">steps.{{ node.id }}.output.&lt;key&gt;</span>.
+    <EditorField label="Inherited Parameters" icon="arrow-right-from-line">
+      <div class="editor-hint editor-hint--amber mb-2">
+        This node automatically captures the payload from <b>Emit Event</b> nodes 
+        sharing the same event name.
       </div>
 
       <div class="params-list">
-        <div
-          v-for="(param, i) in outputParams"
-          :key="i"
-          class="param-row"
-        >
-          <BaseInput
-            :model-value="param.key"
-            @update:model-value="updateParamKey(i, $event as string)"
-            placeholder="param_name"
-            style="font-family: var(--nod8-font-mono, monospace)"
-          />
-          <button class="param-remove" @click="removeParam(i)" title="Remove">
-            <LucideIcon name="x" :size="14" />
-          </button>
+        <div v-for="key in inheritedKeys" :key="key" class="param-row-readonly">
+          <LucideIcon name="check-circle-2" :size="14" class="text-green-500" />
+          <span class="param-key">{{ key }}</span>
         </div>
 
-        <div v-if="outputParams.length === 0" class="params-empty">
-          No params declared — click <strong>Add Param</strong> to define expected keys.
+        <div v-if="inheritedKeys.length === 0" class="params-empty">
+          No 'Emit Event' node found with this event name yet.
         </div>
-
-        <button class="params-add-btn" @click="addParam">
-          <LucideIcon name="plus" :size="14" />
-          Add Param
-        </button>
       </div>
     </EditorField>
   </div>
@@ -56,64 +40,63 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { NodeEditorProps } from './types'
-import type { EventListenerOutputParam } from '@/core/types/workflow.types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { useWorkflowStore } from '../../../stores/workflow.store'
 
 const props = defineProps<NodeEditorProps>()
+const workflowStore = useWorkflowStore()
 
-const outputParams = computed<EventListenerOutputParam[]>(
-  () => (props.node.data.outputParams as EventListenerOutputParam[]) ?? [],
-)
-
-function save(next: EventListenerOutputParam[]) {
-  props.updateNodeData({ outputParams: next })
-}
-
-function addParam() {
-  save([...outputParams.value, { key: '' }])
-}
-
-function removeParam(i: number) {
-  save(outputParams.value.filter((_, idx) => idx !== i))
-}
-
-function updateParamKey(i: number, key: string) {
-  save(outputParams.value.map((p, idx) => (idx === i ? { key } : p)))
-}
+const inheritedKeys = computed<string[]>(() => {
+  const eventName = props.node.data.eventName as string
+  if (!eventName) return []
+  
+  const nodes = workflowStore.activeWorkflow?.nodes || {}
+  const keys = new Set<string>()
+  
+  for (const n of Object.values(nodes)) {
+    if (n.type === 'event' && (n as any).eventName === eventName) {
+      const params = (n as any).payloadParams || []
+      for (const p of params) {
+        if (p.key) keys.add(p.key)
+      }
+    }
+  }
+  
+  return Array.from(keys).sort()
+})
 </script>
 
 <style scoped>
+.mb-2 {
+  margin-bottom: var(--nod8-space-2);
+}
+
 .params-list {
   display: flex;
   flex-direction: column;
   gap: var(--nod8-space-2);
-  margin-top: var(--nod8-space-2);
 }
 
-.param-row {
+.param-row-readonly {
   display: flex;
   align-items: center;
   gap: var(--nod8-space-2);
-}
-
-.param-remove {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--nod8-text-muted);
-  padding: 4px;
+  padding: var(--nod8-space-2) var(--nod8-space-3);
+  background: var(--nod8-bg-subtle);
+  border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: color var(--nod8-duration-fast);
 }
 
-.param-remove:hover {
-  color: var(--nod8-danger, #ef4444);
+.text-green-500 {
+  color: var(--nod8-green-500);
+}
+
+.param-key {
+  font-family: var(--nod8-font-mono, monospace);
+  font-size: var(--nod8-text-xs);
+  color: var(--nod8-text-primary);
 }
 
 .params-empty {
@@ -121,27 +104,5 @@ function updateParamKey(i: number, key: string) {
   color: var(--nod8-text-muted);
   font-style: italic;
   padding: var(--nod8-space-2) 0;
-}
-
-.params-add-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--nod8-space-1);
-  background: transparent;
-  border: 1px dashed var(--nod8-border);
-  border-radius: var(--nod8-radius-md);
-  padding: var(--nod8-space-2) var(--nod8-space-3);
-  font-size: var(--nod8-text-xs);
-  font-family: inherit;
-  color: var(--nod8-text-muted);
-  cursor: pointer;
-  width: 100%;
-  justify-content: center;
-  transition: border-color var(--nod8-duration-fast), color var(--nod8-duration-fast);
-}
-
-.params-add-btn:hover {
-  border-color: var(--nod8-accent);
-  color: var(--nod8-accent);
 }
 </style>
