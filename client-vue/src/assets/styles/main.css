@@ -13,6 +13,7 @@
 /* ── App Module Styles ─────────────────────────────────────── */
 @import '../../app/styles/app-shell-nav.css';
 @import '../../app/styles/workflows-page.css';
+@import '../../features/universe/universe.css';
 
 /* ── Shared Component Styles ───────────────────────────────── */
 @import '../../shared/components/layout/styles/global-settings.css';

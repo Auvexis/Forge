@@ -9,8 +9,8 @@
     <template v-if="!appUiStore.isUniverseMode" #sidebar>
       <AppSidebar>
         <!-- Navigation Links -->
-        <router-link to="/plugins" class="nav-link" active-class="nav-link--active" title="Plugins">
-          <LucideIcon name="blocks" :size="16" />
+        <router-link to="/universe" class="nav-link" active-class="nav-link--active" title="Universe">
+          <LucideIcon name="orbit" :size="16" />
         </router-link>
 
         <router-link

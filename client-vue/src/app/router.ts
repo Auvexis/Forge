@@ -33,10 +33,14 @@ const router = createRouter({
       meta: { title: 'Form', public: true },
     },
     {
+      path: '/universe',
+      name: 'universe',
+      component: () => import('@/app/pages/UniversePage.vue'),
+      meta: { title: 'Universe' },
+    },
+    {
       path: '/plugins',
-      name: 'plugins',
-      component: () => import('@/app/pages/PluginsPage.vue'),
-      meta: { title: 'Plugins' },
+      redirect: '/universe',
     },
     {
       path: '/:pathMatch(.*)*',

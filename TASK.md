@@ -25,7 +25,7 @@
   - Wire `App.vue` and layout chrome so Universe Mode can hide sidebar, docks, panels, and overlays while preserving the routed page.
   - Mark this task done and commit with `feat(ui): add universe mode chrome state`.
 
-- [ ] **Task 3: Replace `/plugins` route with `/universe` shell**
+- [x] **Task 3: Replace `/plugins` route with `/universe` shell**
   - Replace the sidebar navigation target from `/plugins` to `/universe`.
   - Replace the router page entry with a Universe page and title.
   - Keep `/plugins` out of the primary route surface; if a compatibility redirect is needed, redirect `/plugins` to `/universe` without creating a second explorer.
