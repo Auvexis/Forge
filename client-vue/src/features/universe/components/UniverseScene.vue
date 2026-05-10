@@ -5,13 +5,20 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js'
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 import { createGalaxySystem, type GalaxySystem } from '../systems/galaxySystem'
 import { createPluginNodeSystem, type PluginNodeSystem } from '../systems/pluginNodeSystem'
 import type { UniversePluginNode } from '../types/universe.types'
 
+// ─── Props / Emits ────────────────────────────────────────────────────────────
+
 const emit = defineEmits<{
   ready: []
-  selectNode: [nodeId: string]
+  selectNode: [nodeId: string | null]
 }>()
 
 const props = defineProps<{
@@ -19,170 +26,216 @@ const props = defineProps<{
   focusedNode?: UniversePluginNode | null
 }>()
 
+// ─── Three.js state ───────────────────────────────────────────────────────────
+
 const containerRef = ref<HTMLDivElement | null>(null)
 let renderer: THREE.WebGLRenderer | null = null
+let composer: EffectComposer | null = null
+let bloomPass: UnrealBloomPass | null = null
+let bokehPass: BokehPass | null = null
 let scene: THREE.Scene | null = null
 let camera: THREE.PerspectiveCamera | null = null
 let galaxy: GalaxySystem | null = null
 let pluginNodes: PluginNodeSystem | null = null
 let animationFrame = 0
-let pointerX = 0
-let pointerY = 0
-let yaw = 0
-let pitch = -0.28
+
+// ─── Camera state ─────────────────────────────────────────────────────────────
+
+// Position above the disk plane, angled down — mirrors reference lookAt(0,0,0)
+const INITIAL_CAM_POS = new THREE.Vector3(0, 28, 55)
+const INITIAL_YAW = Math.PI // facing galactic center
+const INITIAL_PITCH = -0.46 // angled down to see the spiral disk
+
+let yaw = INITIAL_YAW
+let pitch = INITIAL_PITCH
 let isDragging = false
 let isPanning = false
-let lastPointerX = 0
-let lastPointerY = 0
+let lastPtrX = 0
+let lastPtrY = 0
 let dragStartX = 0
 let dragStartY = 0
+
 const pressedKeys = new Set<string>()
-const cameraTarget = new THREE.Vector3(0, 0, 0)
-const desiredCameraPosition = new THREE.Vector3()
-const focusPosition = new THREE.Vector3()
+const cameraTarget = new THREE.Vector3()
+const cameraVelocity = new THREE.Vector3()
+const desiredPos = new THREE.Vector3()
+const focusPos = new THREE.Vector3()
+const forwardVec = new THREE.Vector3()
+const rightVec = new THREE.Vector3()
+const upVec = new THREE.Vector3(0, 1, 0)
+const cameraEuler = new THREE.Euler(0, 0, 0, 'YXZ')
 const raycaster = new THREE.Raycaster()
 const pointer = new THREE.Vector2()
-const forwardVector = new THREE.Vector3()
-const rightVector = new THREE.Vector3()
-const cameraEuler = new THREE.Euler(0, 0, 0, 'YXZ')
 
-function getForwardVector() {
+// ─── Camera helpers ───────────────────────────────────────────────────────────
+
+function getForward(): THREE.Vector3 {
   cameraEuler.set(pitch, yaw, 0)
-  return forwardVector.set(0, 0, -1).applyEuler(cameraEuler).normalize()
+  return forwardVec.set(0, 0, -1).applyEuler(cameraEuler).normalize()
 }
 
-function getRightVector() {
-  return rightVector.crossVectors(getForwardVector(), camera?.up ?? new THREE.Vector3(0, 1, 0)).normalize()
+function getRight(): THREE.Vector3 {
+  return rightVec.crossVectors(getForward(), upVec).normalize()
 }
 
-function clampCameraAwayFromCore() {
+function clampFromCore() {
   if (!camera) return
-  const minDistance = 15
-  if (camera.position.length() < minDistance) {
-    camera.position.setLength(minDistance)
+  const minLen = props.focusedNode ? 6 : 14
+  if (camera.position.length() < minLen) camera.position.setLength(minLen)
+}
+
+// ─── Resize ───────────────────────────────────────────────────────────────────
+
+function resize() {
+  if (!containerRef.value || !renderer || !camera || !composer) return
+  const { width, height } = containerRef.value.getBoundingClientRect()
+  const w = Math.max(width, 1)
+  const h = Math.max(height, 1)
+
+  camera.aspect = w / h
+  camera.updateProjectionMatrix()
+  renderer.setSize(w, h, false)
+  composer.setSize(w, h)
+
+  // Update bloom resolution
+  bloomPass?.setSize(w, h)
+
+  // Update DoF focus distance based on distance to galaxy center
+  if (bokehPass && camera) {
+    const focusDist = camera.position.length()
+    ;(bokehPass as any).uniforms['focus'].value = focusDist
   }
 }
 
-function resize() {
-  if (!containerRef.value || !renderer || !camera) return
-
-  const { width, height } = containerRef.value.getBoundingClientRect()
-  const safeHeight = Math.max(height, 1)
-
-  camera.aspect = Math.max(width, 1) / safeHeight
-  camera.updateProjectionMatrix()
-  renderer.setSize(width, safeHeight, false)
-}
+// ─── Animation loop ───────────────────────────────────────────────────────────
 
 function animate() {
-  if (!renderer || !scene || !camera || !galaxy) return
+  if (!renderer || !scene || !camera || !galaxy || !composer) return
+  animationFrame = window.requestAnimationFrame(animate)
 
   const elapsed = performance.now() * 0.001
 
-  galaxy.root.rotation.y += 0.0009
-  galaxy.root.rotation.z = Math.sin(performance.now() * 0.00012) * 0.035
+  galaxy.root.rotation.y += 0.00045
+  galaxy.root.rotation.z = Math.sin(elapsed * 0.07) * 0.018
   galaxy.update(elapsed)
 
-  const moveSpeed = 0.42
-  const panSpeed = 0.18
-  const forward = getForwardVector()
-  const right = getRightVector()
+  const MOVE_ACCEL = 0.035
+  const PAN_ACCEL = 0.015
+  const DAMPING = 0.9
+  const fwd = getForward()
+  const rgt = getRight()
 
-  if (pressedKeys.has('w') || pressedKeys.has('arrowup')) camera.position.addScaledVector(forward, moveSpeed)
-  if (pressedKeys.has('s') || pressedKeys.has('arrowdown')) camera.position.addScaledVector(forward, -moveSpeed)
-  if (pressedKeys.has('a') || pressedKeys.has('arrowleft')) camera.position.addScaledVector(right, -panSpeed)
-  if (pressedKeys.has('d') || pressedKeys.has('arrowright')) camera.position.addScaledVector(right, panSpeed)
-  if (pressedKeys.has('e')) camera.position.y += panSpeed
-  if (pressedKeys.has('q')) camera.position.y -= panSpeed
+  if (pressedKeys.has('escape')) {
+    emit('selectNode', null)
+    pressedKeys.delete('escape')
+  }
 
+  if (!props.focusedNode) {
+    if (pressedKeys.has('w') || pressedKeys.has('arrowup'))
+      cameraVelocity.addScaledVector(fwd, MOVE_ACCEL)
+    if (pressedKeys.has('s') || pressedKeys.has('arrowdown'))
+      cameraVelocity.addScaledVector(fwd, -MOVE_ACCEL)
+    if (pressedKeys.has('a') || pressedKeys.has('arrowleft'))
+      cameraVelocity.addScaledVector(rgt, -PAN_ACCEL)
+    if (pressedKeys.has('d') || pressedKeys.has('arrowright'))
+      cameraVelocity.addScaledVector(rgt, PAN_ACCEL)
+    if (pressedKeys.has('e')) cameraVelocity.y += PAN_ACCEL
+    if (pressedKeys.has('q')) cameraVelocity.y -= PAN_ACCEL
+
+    camera.position.add(cameraVelocity)
+    cameraVelocity.multiplyScalar(DAMPING)
+  } else {
+    cameraVelocity.set(0, 0, 0)
+  }
+
+  // Focus mode
   if (props.focusedNode) {
-    focusPosition.set(
+    focusPos.set(
       props.focusedNode.position.x,
       props.focusedNode.position.y,
       props.focusedNode.position.z,
     )
-    const outward = focusPosition.clone().normalize()
-    desiredCameraPosition.copy(focusPosition).add(outward.multiplyScalar(7))
-    desiredCameraPosition.y += 3.2
+    const outward = focusPos.clone().normalize()
+    desiredPos.copy(focusPos).add(outward.multiplyScalar(5.5))
+    desiredPos.y += 2.2
+    if (desiredPos.length() < 8) desiredPos.setLength(8)
 
-    if (desiredCameraPosition.length() < 8) {
-      desiredCameraPosition.setLength(8)
-    }
-
-    cameraTarget.lerp(focusPosition, 0.04)
-    if (!isDragging && pressedKeys.size === 0) {
-      camera.position.lerp(desiredCameraPosition, 0.025)
-    }
+    cameraTarget.lerp(focusPos, 0.05)
+    if (!isDragging && pressedKeys.size === 0) camera.position.lerp(desiredPos, 0.03)
   } else {
-    cameraTarget.copy(camera.position).add(forward)
+    cameraTarget.copy(camera.position).add(fwd)
   }
 
-  clampCameraAwayFromCore()
+  clampFromCore()
   camera.lookAt(cameraTarget)
+
+  // ── Update DoF focus distance dynamically ──
+  // When free-flying: focus on galaxy core (distance to origin)
+  // When focused on a node: focus on the node
+  if (bokehPass) {
+    const targetFocusDist = props.focusedNode
+      ? camera.position.distanceTo(focusPos)
+      : camera.position.length() * 0.55 // focus roughly at 55% depth toward core
+    const currentFocus = (bokehPass as any).uniforms['focus'].value as number
+    ;(bokehPass as any).uniforms['focus'].value =
+      currentFocus + (targetFocusDist - currentFocus) * 0.04
+  }
+
   pluginNodes?.update(elapsed, camera, props.focusedNode?.id ?? null)
 
-  renderer.render(scene, camera)
-  animationFrame = window.requestAnimationFrame(animate)
+  // Use composer instead of renderer.render — applies bloom then DoF
+  composer.render()
 }
 
+// ─── Input handlers ───────────────────────────────────────────────────────────
+
 function handlePointerMove(event: PointerEvent) {
-  if (!containerRef.value) return
-
-  const bounds = containerRef.value.getBoundingClientRect()
-  pointerX = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2
-  pointerY = -((event.clientY - bounds.top) / bounds.height - 0.5) * 2
-
   if (!isDragging || !camera) return
-
-  const deltaX = event.clientX - lastPointerX
-  const deltaY = event.clientY - lastPointerY
-  lastPointerX = event.clientX
-  lastPointerY = event.clientY
-
+  const dx = event.clientX - lastPtrX
+  const dy = event.clientY - lastPtrY
+  lastPtrX = event.clientX
+  lastPtrY = event.clientY
   if (isPanning) {
-    camera.position.addScaledVector(getRightVector(), -deltaX * 0.018)
-    camera.position.y += deltaY * 0.018
+    cameraVelocity.addScaledVector(getRight(), -dx * 0.0035)
+    cameraVelocity.y += dy * 0.0035
     return
   }
-
-  yaw -= deltaX * 0.004
-  pitch = THREE.MathUtils.clamp(pitch - deltaY * 0.003, -1.15, 0.72)
+  yaw -= dx * 0.0035
+  pitch = THREE.MathUtils.clamp(pitch - dy * 0.0028, -1.18, 0.75)
 }
 
 function handleWheel(event: WheelEvent) {
   if (!camera) return
-  camera.position.addScaledVector(getForwardVector(), event.deltaY * 0.026)
-  clampCameraAwayFromCore()
+  cameraVelocity.addScaledVector(getForward(), -event.deltaY * 0.003)
 }
 
 function handlePointerDown(event: PointerEvent) {
   if (!containerRef.value) return
   isDragging = true
   isPanning = event.shiftKey || event.button === 2
-  lastPointerX = event.clientX
-  lastPointerY = event.clientY
+  lastPtrX = event.clientX
+  lastPtrY = event.clientY
   dragStartX = event.clientX
   dragStartY = event.clientY
   try {
     containerRef.value.setPointerCapture(event.pointerId)
   } catch {
-    // Pointer capture can fail when the browser starts the event outside the scene.
+    /* ignored */
   }
 }
 
 function handlePointerUp(event: PointerEvent) {
   if (!containerRef.value || !camera) return
-
-  const dragDistance = Math.abs(event.clientX - dragStartX) + Math.abs(event.clientY - dragStartY)
+  const dragDist = Math.abs(event.clientX - dragStartX) + Math.abs(event.clientY - dragStartY)
   isDragging = false
   isPanning = false
   try {
     containerRef.value.releasePointerCapture(event.pointerId)
   } catch {
-    // Capture may already be released by the browser.
+    /* ignored */
   }
 
-  if (dragDistance > 3 || !pluginNodes) return
+  if (dragDist > 4 || !pluginNodes) return
 
   const bounds = containerRef.value.getBoundingClientRect()
   pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1
@@ -191,58 +244,96 @@ function handlePointerUp(event: PointerEvent) {
   const node = pluginNodes.pick(raycaster)
   if (node) {
     emit('selectNode', node.id)
+  } else {
+    emit('selectNode', null)
   }
 }
 
-function handleKeyDown(event: KeyboardEvent) {
-  pressedKeys.add(event.key.toLowerCase())
+function handleKeyDown(e: KeyboardEvent) {
+  pressedKeys.add(e.key.toLowerCase())
+}
+function handleKeyUp(e: KeyboardEvent) {
+  pressedKeys.delete(e.key.toLowerCase())
 }
 
-function handleKeyUp(event: KeyboardEvent) {
-  pressedKeys.delete(event.key.toLowerCase())
-}
+// ─── Scene init ───────────────────────────────────────────────────────────────
 
 function rebuildPluginNodes() {
   if (!scene) return
-
   if (pluginNodes) {
     scene.remove(pluginNodes.root)
     pluginNodes.dispose()
   }
-
   pluginNodes = createPluginNodeSystem(props.nodes)
   scene.add(pluginNodes.root)
 }
 
 function initScene() {
   if (!containerRef.value) return
+  const { width, height } = containerRef.value.getBoundingClientRect()
+  const w = Math.max(width, 1)
+  const h = Math.max(height, 1)
 
+  // ── Scene ────────────────────────────────────────────────────────────────
   scene = new THREE.Scene()
-  scene.fog = new THREE.FogExp2('#03050b', 0.006)
+  scene.fog = new THREE.FogExp2('#000008', 0.0016)
 
-  camera = new THREE.PerspectiveCamera(58, 1, 0.1, 280)
-  camera.position.set(38, 5.5, -24)
-  yaw = -0.82
-  pitch = -0.08
+  // ── Camera ───────────────────────────────────────────────────────────────
+  camera = new THREE.PerspectiveCamera(72, w / h, 0.08, 600)
+  camera.position.copy(INITIAL_CAM_POS)
+  yaw = INITIAL_YAW
+  pitch = INITIAL_PITCH
 
+  // ── Renderer ─────────────────────────────────────────────────────────────
   renderer = new THREE.WebGLRenderer({
     antialias: true,
-    alpha: true,
+    alpha: false,
     powerPreference: 'high-performance',
   })
-  renderer.setClearColor(0x03050b, 0)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
+  renderer.setClearColor(0x000008, 1)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8))
+  renderer.setSize(w, h, false)
   containerRef.value.appendChild(renderer.domElement)
 
-  galaxy = createGalaxySystem()
-  galaxy.root.rotation.x = -0.08
-  scene.add(galaxy.root)
-  rebuildPluginNodes()
+  // ── Post-processing ───────────────────────────────────────────────────────
+  composer = new EffectComposer(renderer)
 
-  resize()
+  // 1) Base scene render
+  composer.addPass(new RenderPass(scene, camera))
+
+  // 2) Bloom — concentrated on bright core region
+  //    strength: how much bloom; radius: spread; threshold: only bright pixels bloom
+  bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(w, h),
+    1.15, // strength
+    0.55, // radius
+    0.22, // threshold — bright white core particles trigger bloom
+  )
+  composer.addPass(bloomPass)
+
+  // 3) Depth of Field — subtle bokeh blur on out-of-focus areas
+  //    focus: distance to sharp plane; aperture: blur strength; maxblur: cap
+  bokehPass = new BokehPass(scene, camera, {
+    focus: camera.position.length() * 0.55,
+    aperture: 0.00004, // very subtle — galaxy still readable
+    maxblur: 0.004,
+  })
+  composer.addPass(bokehPass)
+
+  // 4) Tone-mapping / output
+  composer.addPass(new OutputPass())
+
+  // ── Galaxy + nodes ────────────────────────────────────────────────────────
+  galaxy = createGalaxySystem()
+  galaxy.root.rotation.x = -0.12
+  scene.add(galaxy.root)
+
+  rebuildPluginNodes()
   animate()
   emit('ready')
 }
+
+// ─── Lifecycle ────────────────────────────────────────────────────────────────
 
 onMounted(() => {
   initScene()
@@ -257,9 +348,7 @@ onMounted(() => {
 
 watch(
   () => props.nodes,
-  () => {
-    rebuildPluginNodes()
-  },
+  () => rebuildPluginNodes(),
   { deep: false },
 )
 
@@ -277,18 +366,15 @@ onBeforeUnmount(() => {
     scene.remove(galaxy.root)
     galaxy.dispose()
   }
-
   if (pluginNodes && scene) {
     scene.remove(pluginNodes.root)
     pluginNodes.dispose()
   }
 
+  composer?.dispose()
   renderer?.dispose()
   renderer?.domElement.remove()
-  galaxy = null
-  pluginNodes = null
-  renderer = null
-  scene = null
-  camera = null
+
+  galaxy = pluginNodes = renderer = composer = bloomPass = bokehPass = scene = camera = null
 })
 </script>
