@@ -41,4 +41,11 @@ const props = defineProps<{
   right: -1px !important;
   border-radius: 100% !important;
 }
+
+.nod8-base-handle.is-position-bottom {
+  width: 12px !important;
+  height: 12px !important;
+  bottom: -1px !important;
+  border-radius: 100% !important;
+}
 </style>
