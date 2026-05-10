@@ -63,6 +63,7 @@ const focusPos = new THREE.Vector3()
 const forwardVec = new THREE.Vector3()
 const rightVec = new THREE.Vector3()
 const upVec = new THREE.Vector3(0, 1, 0)
+const focusOrbitOffset = new THREE.Vector3()
 const cameraEuler = new THREE.Euler(0, 0, 0, 'YXZ')
 const raycaster = new THREE.Raycaster()
 const pointer = new THREE.Vector2()
@@ -155,13 +156,11 @@ function animate() {
       props.focusedNode.position.y,
       props.focusedNode.position.z,
     )
-    const outward = focusPos.clone().normalize()
-    desiredPos.copy(focusPos).add(outward.multiplyScalar(5.5))
-    desiredPos.y += 2.2
+    desiredPos.copy(focusPos).add(focusOrbitOffset)
     if (desiredPos.length() < 8) desiredPos.setLength(8)
 
     cameraTarget.lerp(focusPos, 0.05)
-    if (!isDragging && pressedKeys.size === 0) camera.position.lerp(desiredPos, 0.03)
+    camera.position.lerp(desiredPos, 0.08)
   } else {
     cameraTarget.copy(camera.position).add(fwd)
   }
@@ -195,6 +194,20 @@ function handlePointerMove(event: PointerEvent) {
   const dy = event.clientY - lastPtrY
   lastPtrX = event.clientX
   lastPtrY = event.clientY
+
+  if (props.focusedNode) {
+    const euler = new THREE.Euler(0, -dx * 0.006, 0, 'YXZ')
+    focusOrbitOffset.applyEuler(euler)
+
+    const right = new THREE.Vector3().crossVectors(focusOrbitOffset, upVec).normalize()
+    focusOrbitOffset.applyAxisAngle(right, -dy * 0.006)
+
+    const maxH = focusOrbitOffset.length() * 0.98
+    if (focusOrbitOffset.y > maxH) focusOrbitOffset.y = maxH
+    if (focusOrbitOffset.y < -maxH) focusOrbitOffset.y = -maxH
+    return
+  }
+
   if (isPanning) {
     cameraVelocity.addScaledVector(getRight(), -dx * 0.0035)
     cameraVelocity.y += dy * 0.0035
@@ -206,6 +219,13 @@ function handlePointerMove(event: PointerEvent) {
 
 function handleWheel(event: WheelEvent) {
   if (!camera) return
+  if (props.focusedNode) {
+    const scale = event.deltaY > 0 ? 1.15 : 0.85
+    focusOrbitOffset.multiplyScalar(scale)
+    if (focusOrbitOffset.length() < 3.5) focusOrbitOffset.setLength(3.5)
+    if (focusOrbitOffset.length() > 40) focusOrbitOffset.setLength(40)
+    return
+  }
   cameraVelocity.addScaledVector(getForward(), -event.deltaY * 0.003)
 }
 
@@ -350,6 +370,18 @@ watch(
   () => props.nodes,
   () => rebuildPluginNodes(),
   { deep: false },
+)
+
+watch(
+  () => props.focusedNode,
+  (node) => {
+    if (node) {
+      focusPos.set(node.position.x, node.position.y, node.position.z)
+      const outward = focusPos.clone().normalize()
+      focusOrbitOffset.copy(outward).multiplyScalar(5.5)
+      focusOrbitOffset.y += 2.2
+    }
+  }
 )
 
 onBeforeUnmount(() => {
