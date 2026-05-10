@@ -212,6 +212,27 @@ watch(
 )
 
 /**
+ * Converts a template expression or literal value into a human-readable type hint
+ * for use in the static Event Listener input preview.
+ */
+function inferTypeHint(value: string): string {
+  if (!value) return '<string>'
+  const trimmed = value.trim()
+  if (!isNaN(Number(trimmed)) && trimmed !== '') return '<number>'
+  if (trimmed === 'true' || trimmed === 'false') return '<boolean>'
+  // Template expression — derive a hint from the last path segment
+  const match = trimmed.match(/{{\s*(.+?)\s*}}/)
+  if (match) {
+    const parts = match[1].split('.')
+    const lastSegment = parts[parts.length - 1] ?? ''
+    if (/price|amount|count|size|age|num/i.test(lastSegment)) return '<number>'
+    if (/flag|active|enabled|is[A-Z]/i.test(lastSegment)) return '<boolean>'
+    return '<string>'
+  }
+  return '<string>'
+}
+
+/**
  * For event-listener nodes: build a preview of the incoming payload from
  * matching Emit Event nodes. Falls back to live execution output if available.
  */
@@ -235,7 +256,8 @@ const eventListenerInputPreview = computed(() => {
       const params = (n as any).payloadParams ?? []
       for (const p of params) {
         if (p.key && !(p.key in preview)) {
-          preview[p.key] = p.value || `<${p.key}>`
+          // Show a type hint for static preview (actual value comes from live execution output)
+          preview[p.key] = inferTypeHint(p.value)
         }
       }
     }
