@@ -33,7 +33,7 @@
   - Import the feature CSS through the global CSS entry.
   - Mark this task done and commit with `feat(universe): add immersive route shell`.
 
-- [ ] **Task 4: Build plugin universe data layer**
+- [x] **Task 4: Build plugin universe data layer**
   - Add Universe-specific types that adapt `PluginSummary` into scene nodes without changing the core plugin contract.
   - Fetch plugin summaries with `pluginsApi.getAll()`.
   - Derive stable node positions, colors, labels, icon URLs/Lucide icon names, category grouping, and lightweight LOD metadata in feature-local utilities.
