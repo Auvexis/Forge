@@ -57,7 +57,7 @@ export function buildWorkflowSchema(
         break;
       case "event":
         baseSchema.eventName = node.eventName;
-        baseSchema.payloadMapping = node.payloadMapping;
+        baseSchema.payloadParams = node.payloadParams;
         break;
       case "switch":
         baseSchema.inputExpression = node.inputExpression;

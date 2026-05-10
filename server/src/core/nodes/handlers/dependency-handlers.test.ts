@@ -110,7 +110,7 @@ describe("dependency-backed utility node handlers", () => {
       type: "event",
       name: "Emit",
       eventName: "invoice.created",
-      payloadMapping: { invoiceId: "{{ trigger.id }}" },
+      payloadParams: [{ key: "invoiceId", value: "{{ trigger.id }}" }],
     }, { trigger: { id: "inv_1" }, steps: {}, variables: {}, _workflowId: "workflow-1" }, {
       emitInternalEvent: async (event) => {
         emitted.push(event);
