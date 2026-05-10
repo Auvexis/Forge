@@ -55,7 +55,7 @@
   - Keep marketplace language/data hooks feature-local and presentation-only.
   - Mark this task done and commit with `feat(universe): add plugin orbit nodes`.
 
-- [ ] **Task 7: Add camera controls and exit behavior**
+- [x] **Task 7: Add camera controls and exit behavior**
   - Implement smooth camera damping, simple controlled movement, orbit/focus mode, and cinematic fly-to-plugin transitions.
   - Add ESC handling that calls `quitUniverseMode()` and restores normal UI chrome.
   - Ensure entering `/universe` calls `enterUniverseMode()` and leaving the route restores the UI.

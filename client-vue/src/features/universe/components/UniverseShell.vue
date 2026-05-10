@@ -1,6 +1,6 @@
 <template>
   <section class="universe-shell" aria-label="ND8 Universe">
-    <UniverseScene @ready="sceneReady = true" />
+    <UniverseScene :focused-node="selectedNode" @ready="sceneReady = true" />
     <UniversePluginLayer
       v-if="hasPlugins"
       :nodes="plugins.nodes"

@@ -6,9 +6,14 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import * as THREE from 'three'
 import { createGalaxySystem, type GalaxySystem } from '../systems/galaxySystem'
+import type { UniversePluginNode } from '../types/universe.types'
 
 const emit = defineEmits<{
   ready: []
+}>()
+
+const props = defineProps<{
+  focusedNode?: UniversePluginNode | null
 }>()
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -19,6 +24,11 @@ let galaxy: GalaxySystem | null = null
 let animationFrame = 0
 let pointerX = 0
 let pointerY = 0
+let cameraDistance = 18
+const cameraTarget = new THREE.Vector3(0, 0, 0)
+const overviewTarget = new THREE.Vector3(0, 0, 0)
+const desiredCameraPosition = new THREE.Vector3(0, 6.4, cameraDistance)
+const focusPosition = new THREE.Vector3()
 
 function resize() {
   if (!containerRef.value || !renderer || !camera) return
@@ -37,9 +47,29 @@ function animate() {
   galaxy.root.rotation.y += 0.0009
   galaxy.root.rotation.z = Math.sin(performance.now() * 0.00012) * 0.035
 
-  camera.position.x += (pointerX * 1.8 - camera.position.x) * 0.018
-  camera.position.y += (6.4 + pointerY * 0.9 - camera.position.y) * 0.018
-  camera.lookAt(0, 0, 0)
+  if (props.focusedNode) {
+    focusPosition.set(
+      props.focusedNode.position.x,
+      props.focusedNode.position.y,
+      props.focusedNode.position.z,
+    )
+    const outward = focusPosition.clone().normalize()
+    desiredCameraPosition.copy(focusPosition).add(outward.multiplyScalar(7))
+    desiredCameraPosition.y += 3.2
+
+    if (desiredCameraPosition.length() < 8) {
+      desiredCameraPosition.setLength(8)
+    }
+
+    cameraTarget.lerp(focusPosition, 0.04)
+    camera.position.lerp(desiredCameraPosition, 0.035)
+  } else {
+    desiredCameraPosition.set(pointerX * 1.8, 6.4 + pointerY * 0.9, cameraDistance)
+    cameraTarget.lerp(overviewTarget, 0.035)
+    camera.position.lerp(desiredCameraPosition, 0.024)
+  }
+
+  camera.lookAt(cameraTarget)
 
   renderer.render(scene, camera)
   animationFrame = window.requestAnimationFrame(animate)
@@ -51,6 +81,10 @@ function handlePointerMove(event: PointerEvent) {
   const bounds = containerRef.value.getBoundingClientRect()
   pointerX = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2
   pointerY = -((event.clientY - bounds.top) / bounds.height - 0.5) * 2
+}
+
+function handleWheel(event: WheelEvent) {
+  cameraDistance = THREE.MathUtils.clamp(cameraDistance + event.deltaY * 0.006, 13, 24)
 }
 
 function initScene() {
@@ -84,12 +118,14 @@ onMounted(() => {
   initScene()
   window.addEventListener('resize', resize)
   window.addEventListener('pointermove', handlePointerMove)
+  window.addEventListener('wheel', handleWheel, { passive: true })
 })
 
 onBeforeUnmount(() => {
   window.cancelAnimationFrame(animationFrame)
   window.removeEventListener('resize', resize)
   window.removeEventListener('pointermove', handlePointerMove)
+  window.removeEventListener('wheel', handleWheel)
 
   if (galaxy && scene) {
     scene.remove(galaxy.root)
