@@ -24,34 +24,30 @@
       </div>
 
       <div class="payload-assignments">
-        <div
-          v-for="(entry, i) in payloadEntries"
-          :key="i"
-          class="payload-row"
-        >
+        <div v-for="(param, i) in params" :key="i" class="payload-row">
           <BaseInput
-            :model-value="entry.key"
-            @update:model-value="updateEntryKey(i, $event as string)"
+            :model-value="param.key"
+            @update:model-value="updateKey(i, $event as string)"
             placeholder="param_name"
             class="payload-key"
           />
           <span class="payload-sep">=</span>
           <BaseInput
-            :model-value="entry.value"
-            @update:model-value="updateEntryValue(i, $event as string)"
+            :model-value="param.value"
+            @update:model-value="updateValue(i, $event as string)"
             placeholder="{{ steps.prev.output.field }}"
             class="payload-value"
           />
-          <button class="payload-remove" @click="removeEntry(i)" title="Remove">
+          <button class="payload-remove" @click="removeParam(i)" title="Remove">
             <LucideIcon name="x" :size="14" />
           </button>
         </div>
 
-        <div v-if="payloadEntries.length === 0" class="payload-empty">
+        <div v-if="params.length === 0" class="payload-empty">
           No params yet — click <strong>Add Param</strong> to start.
         </div>
 
-        <button class="payload-add-btn" @click="addEntry">
+        <button class="payload-add-btn" @click="addParam">
           <LucideIcon name="plus" :size="14" />
           Add Param
         </button>
@@ -63,40 +59,36 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { NodeEditorProps } from './types'
+import type { EventNodeParam } from '@/core/types/workflow.types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = defineProps<NodeEditorProps>()
 
-// Work with payloadMapping as an array of {key, value} entries for easy editing
-const payloadEntries = computed<{ key: string; value: string }[]>(() => {
-  const mapping = (props.node.data.payloadMapping as Record<string, string>) ?? {}
-  return Object.entries(mapping).map(([key, value]) => ({ key, value }))
-})
+// Array persisted directly — empty rows stay visible (same as SetEditor assignments)
+const params = computed<EventNodeParam[]>(
+  () => (props.node.data.payloadParams as EventNodeParam[]) ?? [],
+)
 
-function saveEntries(entries: { key: string; value: string }[]) {
-  const mapping: Record<string, string> = {}
-  for (const { key, value } of entries) {
-    if (key) mapping[key] = value
-  }
-  props.updateNodeData({ payloadMapping: mapping })
+function save(next: EventNodeParam[]) {
+  props.updateNodeData({ payloadParams: next })
 }
 
-function addEntry() {
-  saveEntries([...payloadEntries.value, { key: '', value: '' }])
+function addParam() {
+  save([...params.value, { key: '', value: '' }])
 }
 
-function removeEntry(i: number) {
-  saveEntries(payloadEntries.value.filter((_, idx) => idx !== i))
+function removeParam(i: number) {
+  save(params.value.filter((_, idx) => idx !== i))
 }
 
-function updateEntryKey(i: number, key: string) {
-  saveEntries(payloadEntries.value.map((e, idx) => (idx === i ? { ...e, key } : e)))
+function updateKey(i: number, key: string) {
+  save(params.value.map((p, idx) => (idx === i ? { ...p, key } : p)))
 }
 
-function updateEntryValue(i: number, value: string) {
-  saveEntries(payloadEntries.value.map((e, idx) => (idx === i ? { ...e, value } : e)))
+function updateValue(i: number, value: string) {
+  save(params.value.map((p, idx) => (idx === i ? { ...p, value } : p)))
 }
 </script>
 

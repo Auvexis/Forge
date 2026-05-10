@@ -101,5 +101,6 @@ const handlePositions = computed(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  z-index: 6;
 }
 </style>

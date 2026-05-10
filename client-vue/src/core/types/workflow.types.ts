@@ -106,11 +106,16 @@ export interface HttpNode extends WorkflowNodeBase {
 
 // ── Event Node ───────────────────────────────────────────────
 
+export interface EventNodeParam {
+  key: string
+  value: string
+}
+
 export interface EventNode extends WorkflowNodeBase {
   type: 'event'
   eventName: string
-  /** Key-value pairs forwarded as the event payload */
-  payloadMapping: Record<string, string>
+  /** Structured key-value pairs forwarded as the event payload */
+  payloadParams: EventNodeParam[]
 }
 
 // ── Event Listener Node ──────────────────────────────────────

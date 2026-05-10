@@ -48,5 +48,6 @@ const subtitle = computed(() => `${batchSize.value} items per batch`)
   transform: translateY(-50%);
   pointer-events: none;
   font-size: 10px;
+  z-index: 6;
 }
 </style>

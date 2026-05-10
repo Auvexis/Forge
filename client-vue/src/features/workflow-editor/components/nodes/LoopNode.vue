@@ -47,5 +47,6 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Loop / ForEach')
   position: absolute;
   transform: translateY(-50%);
   pointer-events: none;
+  z-index: 6;
 }
 </style>

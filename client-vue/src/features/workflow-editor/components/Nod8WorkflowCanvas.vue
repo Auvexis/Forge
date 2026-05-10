@@ -436,6 +436,7 @@ const addLogicNode = (type: WorkflowNodeType) => {
     defaultData.workflowId = 'placeholder'
   } else if (type === 'event' || type === 'event-listener') {
     defaultData.eventName = 'my-event'
+    if (type === 'event') defaultData.payloadParams = []
   } else if (type === 'set') {
     defaultData.assignments = [{ key: 'field', value: '' }]
   } else if (type === 'switch') {

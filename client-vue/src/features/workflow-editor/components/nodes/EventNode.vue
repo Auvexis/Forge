@@ -8,7 +8,7 @@ const props = defineProps<
   NodeProps<EventNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
 >()
 
-const paramCount = computed(() => Object.keys(props.data?.payloadMapping ?? {}).length)
+const paramCount = computed(() => (props.data?.payloadParams ?? []).length)
 const subtitle = computed(() =>
   paramCount.value === 0
     ? 'Trigger signal'
