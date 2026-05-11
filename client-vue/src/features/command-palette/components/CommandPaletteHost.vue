@@ -91,7 +91,7 @@ watch(
   async (index) => {
     await nextTick()
     const el = document.getElementById(`cp-row-${index}`)
-    el?.scrollIntoView({ block: 'nearest' })
+    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   },
 )
 
