@@ -72,6 +72,7 @@ onMounted(() => {
     })
     observer.observe(containerRef.value, {
       attributes: true,
+      childList: true,
       subtree: true,
       attributeFilter: ['class'],
     })
