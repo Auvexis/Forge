@@ -17,10 +17,10 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="cp-results" role="listbox" aria-label="Command results">
-    <div v-if="error" class="cp-empty cp-empty--error">{{ error }}</div>
-    <div v-else-if="loading" class="cp-empty">Loading commands</div>
-    <div v-else-if="commands.length === 0" class="cp-empty">No commands found</div>
+  <div id="cp-result-listbox" class="cp-results" role="listbox" aria-label="Command results">
+    <div v-if="error" class="cp-empty cp-empty--error" role="alert">{{ error }}</div>
+    <div v-else-if="loading" class="cp-empty" aria-live="polite">Loading commands</div>
+    <div v-else-if="commands.length === 0" class="cp-empty" aria-live="polite">No commands found</div>
     <template v-else>
       <template v-for="(command, index) in commands" :key="command.id">
         <CommandPaletteGroupLabel
@@ -30,6 +30,8 @@ const emit = defineEmits<{
         <CommandPaletteResultRow
           :command="command"
           :active="index === highlightedIndex"
+          :index="index"
+          :total="commands.length"
           @mouseenter="emit('highlight', index)"
           @select="emit('select', command)"
         />

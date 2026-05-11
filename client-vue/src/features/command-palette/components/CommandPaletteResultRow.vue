@@ -5,6 +5,8 @@ import type { CommandDescriptor } from '../types/command-palette.types'
 defineProps<{
   command: CommandDescriptor
   active: boolean
+  index: number
+  total: number
 }>()
 
 const emit = defineEmits<{
@@ -14,11 +16,14 @@ const emit = defineEmits<{
 
 <template>
   <button
+    :id="`cp-row-${index}`"
     class="cp-row"
     :class="{ 'cp-row--active': active, 'cp-row--disabled': !command.availability.enabled }"
     type="button"
     role="option"
     :aria-selected="active"
+    :aria-posinset="index + 1"
+    :aria-setsize="total"
     :disabled="!command.availability.enabled"
     @click="emit('select')"
   >

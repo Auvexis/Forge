@@ -26,6 +26,12 @@ const settingsStore = useSettingsStore()
 const { confirm } = useConfirm()
 const toast = useToast()
 const searchInput = ref<{ focus: () => void } | null>(null)
+const dialogRef = ref<HTMLElement | null>(null)
+
+const activeDescendant = computed(() => {
+  if (palette.visibleCommands.length === 0) return undefined
+  return `cp-row-${palette.highlightedIndex}`
+})
 
 const commandContext = computed<CommandExecutionContext>(() => ({
   routePath: route.path,
@@ -78,6 +84,11 @@ function onDialogKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     event.preventDefault()
     palette.close()
+    return
+  }
+  if (event.key === 'Tab') {
+    // Focus trap: keep focus inside the dialog
+    event.preventDefault()
     return
   }
   if (event.key === 'ArrowDown') {
@@ -184,16 +195,19 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
     <Transition name="cp-fade">
       <div v-if="palette.isOpen" class="cp-backdrop" @mousedown.self="palette.close">
         <section
+          ref="dialogRef"
           class="cp-dialog"
           role="dialog"
           aria-modal="true"
-          aria-label="Command palette"
+          aria-labelledby="cp-dialog-title"
           @keydown="onDialogKeydown"
         >
+          <span id="cp-dialog-title" class="sr-only">Command palette</span>
           <CommandPaletteSearchInput
             ref="searchInput"
             :model-value="palette.query"
             :loading="palette.isLoading"
+            :active-descendant="activeDescendant"
             @update:model-value="palette.setQuery"
           />
           <CommandPaletteResultList

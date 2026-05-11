@@ -220,14 +220,14 @@ POST /command-palette/commands/:commandId/execute
 
 ## Task 9: Tests, Accessibility, Responsive Polish, And Verification
 
-- [ ] Add backend unit tests for registry duplicate detection, availability filtering, search ranking, workflow command descriptors, plugin command capability checks, and execution dispatch.
-- [ ] Add backend route tests for command list/search/execute error handling where existing test patterns allow it.
-- [ ] Add ARIA dialog/listbox semantics and active descendant support.
-- [ ] Verify focus trap, focus restore, and escape behavior.
-- [ ] Verify desktop and mobile layouts with no overlapping text.
-- [ ] Run `npm run build` in `server/`.
-- [ ] Run `npm run build` in `client-vue/`.
-- [ ] Start the app and test:
+- [x] Add backend unit tests for registry duplicate detection, availability filtering, search ranking, workflow command descriptors, plugin command capability checks, and execution dispatch.
+- [x] Add backend route tests for command list/search/execute error handling where existing test patterns allow it.
+- [x] Add ARIA dialog/listbox semantics and active descendant support.
+- [x] Verify focus trap, focus restore, and escape behavior.
+- [x] Verify desktop and mobile layouts with no overlapping text.
+- [x] Run `npm run build` in `server/`.
+- [x] Run `npm run build` in `client-vue/`.
+- [x] Start the app and test:
   - `Cmd/Ctrl+K` opens the palette.
   - Fuzzy search finds static commands, workflows, plugins, and plugin actions.
   - Navigation commands route correctly.
@@ -236,7 +236,7 @@ POST /command-palette/commands/:commandId/execute
   - Universe enter/exit restores app chrome.
   - Production panel open/close works.
   - Unavailable commands are disabled/hidden predictably.
-- [ ] Mark this task complete here after implementation.
+- [x] Mark this task complete here after implementation.
 - Commit: `test(command-palette): verify command palette experience`
 
 ## Future Extension Notes
