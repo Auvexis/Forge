@@ -517,6 +517,9 @@ import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseMiniMenu from '@/shared/components/base/BaseMiniMenu.vue'
 import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import { usePluginAuth } from '@/shared/composables/usePluginAuth'
+import { useToast } from '@/shared/composables/useToast'
+
+const toast = useToast()
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
@@ -731,14 +734,12 @@ function handleOAuth2(pluginId: string) {
 
 async function handleTestConnection(pluginId: string) {
   try {
-    const { toast } = await import('vue-sonner')
     // Re-fetch credentials/status to simulate a test
     await store.fetchCredential(pluginId)
     toast.success('Connection test successful', {
       description: 'The plugin credentials are valid and responding.',
     })
   } catch (e: any) {
-    const { toast } = await import('vue-sonner')
     toast.error('Connection test failed', {
       description: e.message || 'Could not verify credentials.',
     })
