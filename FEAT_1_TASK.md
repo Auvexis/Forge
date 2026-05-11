@@ -163,20 +163,20 @@ POST /command-palette/commands/:commandId/execute
 
 ## Task 6: Backend Execution, Logs, And Utility Commands
 
-- [ ] Create `server/src/core/modules/command-palette/providers/executions.commands.ts`.
-- [ ] Add execution commands through `WorkflowRepository` and `CancellationRegistry`.
-- [ ] Commands:
+- [x] Create `server/src/core/modules/command-palette/providers/executions.commands.ts`.
+- [x] Add execution commands through `WorkflowRepository` and `CancellationRegistry`.
+- [x] Commands:
   - Open Executions/Logs for active workflow by returning a `uiIntent`.
   - Clear Logs for active workflow with confirmation.
   - Stop Running execution when an execution is active.
   - Delete individual execution only if a generic server endpoint exists; otherwise register as unavailable and document the API gap here.
-- [ ] Utility commands:
+- [x] Utility commands:
   - Copy Workflow ID by returning `clipboardText`.
   - Copy Webhook URL by returning `clipboardText`.
   - Copy Form URL by returning `clipboardText`.
   - Toggle Theme through app settings repository, not direct frontend mutation.
-- [ ] Ensure clipboard data is generated server-side when it depends on workflow/settings state.
-- [ ] Mark this task complete here after implementation.
+- [x] Ensure clipboard data is generated server-side when it depends on workflow/settings state.
+- [x] Mark this task complete here after implementation.
 - Commit: `feat(command-palette): add execution utility commands`
 
 ## Task 7: Frontend API Client, Store, And Palette UI

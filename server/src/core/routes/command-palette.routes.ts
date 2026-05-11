@@ -9,6 +9,7 @@ import { CommandExecutor, CommandExecutionError } from "../modules/command-palet
 import { CommandRegistry } from "../modules/command-palette/command-registry.ts";
 import { searchCommands } from "../modules/command-palette/command-search.ts";
 import { appSettingsCommandProvider } from "../modules/command-palette/providers/app-settings.commands.ts";
+import { executionsCommandProvider } from "../modules/command-palette/providers/executions.commands.ts";
 import { navigationCommandProvider } from "../modules/command-palette/providers/navigation.commands.ts";
 import { pluginsCommandProvider } from "../modules/command-palette/providers/plugins.commands.ts";
 import { workflowsCommandProvider } from "../modules/command-palette/providers/workflows.commands.ts";
@@ -24,6 +25,7 @@ defaultRegistry.registerProvider(navigationCommandProvider);
 defaultRegistry.registerProvider(appSettingsCommandProvider);
 defaultRegistry.registerProvider(workflowsCommandProvider);
 defaultRegistry.registerProvider(pluginsCommandProvider);
+defaultRegistry.registerProvider(executionsCommandProvider);
 
 function sendResponse<T>(reply: FastifyReply, response: ApiResponse<T>) {
   return reply.code(response.status_code).send(response);
