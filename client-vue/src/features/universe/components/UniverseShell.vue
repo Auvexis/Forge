@@ -168,8 +168,16 @@ function onKey(e: KeyboardEvent) {
   if (e.key === 'h' || e.key === 'H') uiStore.toggleUI()
 }
 
+function onIntent(e: Event) {
+  const intent = (e as CustomEvent).detail
+  if (intent?.type === 'plugin.open' && intent.target) {
+    handleSearchSelect(intent.target)
+  }
+}
+
 onMounted(() => {
   window.addEventListener('keydown', onKey)
+  window.addEventListener('nod8:command-palette:intent', onIntent)
   loadingStepInterval = window.setInterval(() => {
     loadingStepIndex.value = (loadingStepIndex.value + 1) % loadingSteps.length
   }, 820)
@@ -180,6 +188,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
+  window.removeEventListener('nod8:command-palette:intent', onIntent)
   if (loadingStepInterval) window.clearInterval(loadingStepInterval)
   if (loadingMinimumTimer) window.clearTimeout(loadingMinimumTimer)
 })

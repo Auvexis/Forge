@@ -99,18 +99,40 @@ async function initWorkflow() {
   useWorkflowStore().setActiveWorkflow(workflow)
 }
 
+function handleUiIntent(e: Event) {
+  const intent = (e as CustomEvent).detail
+  if (intent?.type === 'workflow-settings.open') showSettings.value = true
+  if (intent?.type === 'workflow-logs.open') showLogs.value = true
+}
+
 onMounted(() => {
   initWorkflow()
+  window.addEventListener('nod8:command-palette:intent', handleUiIntent)
 })
 
 // Limpa o store ao sair da página para que o canvas arranque sem dados obsoletos
 onBeforeUnmount(() => {
   workflowStore.clearWorkflow()
+  window.removeEventListener('nod8:command-palette:intent', handleUiIntent)
 })
 
 watch(() => route.params.id, () => {
   initWorkflow()
 })
+
+watch(
+  () => route.query.panel,
+  (panel) => {
+    if (panel === 'logs') {
+      showLogs.value = true
+      void router.replace({ query: { ...route.query, panel: undefined } })
+    } else if (panel === 'settings') {
+      showSettings.value = true
+      void router.replace({ query: { ...route.query, panel: undefined } })
+    }
+  },
+  { immediate: true },
+)
 
 async function handleSaveWorkflow() {
   await workflowStore.saveActiveWorkflow()

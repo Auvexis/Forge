@@ -30,7 +30,7 @@
   gap: 12px;
   padding: 12px 18px;
   border-bottom: 1px solid var(--nod8-border);
-  background: var(--nod8-bg-muted);
+  background: var(--nod8-bg-surface);
 }
 
 .cp-breadcrumb__back {
