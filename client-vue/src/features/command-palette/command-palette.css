@@ -144,11 +144,13 @@
   color: var(--nod8-text-primary);
   text-align: left;
   cursor: pointer;
+  position: relative;
+  z-index: 1;
 }
 
 .cp-row--active {
-  background: var(--nod8-bg-muted);
-  border-color: var(--nod8-border);
+  background: transparent;
+  border-color: transparent;
 }
 
 .cp-row--disabled {

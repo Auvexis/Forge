@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import CommandPaletteGroupLabel from './CommandPaletteGroupLabel.vue'
 import CommandPaletteResultRow from './CommandPaletteResultRow.vue'
 import type { CommandDescriptor } from '../types/command-palette.types'
@@ -17,7 +18,16 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div id="cp-result-listbox" class="cp-results" role="listbox" aria-label="Command results">
+  <BaseWoobyMenu
+    tag="div"
+    id="cp-result-listbox"
+    class="cp-results"
+    role="listbox"
+    aria-label="Command results"
+    active-selector=".cp-row--active"
+    hover-background="var(--nod8-bg-surface)"
+    active-background="var(--nod8-bg-muted)"
+  >
     <div v-if="error" class="cp-empty cp-empty--error" role="alert">{{ error }}</div>
     <div v-else-if="loading" class="cp-empty" aria-live="polite">Loading commands</div>
     <div v-else-if="commands.length === 0" class="cp-empty" aria-live="polite">No commands found</div>
@@ -37,5 +47,5 @@ const emit = defineEmits<{
         />
       </template>
     </template>
-  </div>
+  </BaseWoobyMenu>
 </template>
