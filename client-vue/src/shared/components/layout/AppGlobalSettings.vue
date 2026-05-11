@@ -736,13 +736,9 @@ async function handleTestConnection(pluginId: string) {
   try {
     // Re-fetch credentials/status to simulate a test
     await store.fetchCredential(pluginId)
-    toast.success('Connection test successful', {
-      description: 'The plugin credentials are valid and responding.',
-    })
+    toast.success('Connection test successful', 'The plugin credentials are valid and responding.')
   } catch (e: any) {
-    toast.error('Connection test failed', {
-      description: e.message || 'Could not verify credentials.',
-    })
+    toast.error('Connection test failed', e.message || 'Could not verify credentials.')
   }
 }
 
