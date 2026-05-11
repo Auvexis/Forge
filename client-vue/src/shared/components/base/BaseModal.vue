@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue'
+
 const props = defineProps<{
   isOpen: boolean
   maxWidth?: string
@@ -12,6 +14,20 @@ const emit = defineEmits<{
 function close() {
   emit('close')
 }
+
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && props.isOpen) {
+    close()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <template>
