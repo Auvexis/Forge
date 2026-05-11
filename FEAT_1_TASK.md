@@ -61,8 +61,8 @@ POST /command-palette/commands/:commandId/execute
 
 ## Task 1: Backend Command Domain, Registry, And Contracts
 
-- [ ] Create `server/src/core/modules/command-palette/command-types.ts`.
-- [ ] Define stable types:
+- [x] Create `server/src/core/modules/command-palette/command-types.ts`.
+- [x] Define stable types:
   - `CommandId` as string.
   - `CommandGroup` union: `navigation`, `settings`, `workflow`, `universe`, `production`, `plugin`, `execution`, `utility`.
   - `CommandAvailability` with `enabled`, optional `reason`, and optional `hidden`.
@@ -70,12 +70,12 @@ POST /command-palette/commands/:commandId/execute
   - `CommandExecutionContext` with backend repositories/services, current route hint, optional active workflow id, and optional user/session metadata.
   - `CommandHandler` with `describe(context)` and `execute(context, payload)`.
   - `CommandExecutionResult` with `ok`, optional `message`, optional `navigation`, optional `clipboardText`, and optional `refreshHints`.
-- [ ] Create `server/src/core/modules/command-palette/command-registry.ts`.
-- [ ] Create `server/src/core/modules/command-palette/command-context.ts`.
-- [ ] Add duplicate-id detection and deterministic provider ordering.
-- [ ] Add unit-testable pure helpers for command normalization and availability filtering.
-- [ ] Keep the registry provider-agnostic and free of plugin-specific branching.
-- [ ] Mark this task complete here after implementation.
+- [x] Create `server/src/core/modules/command-palette/command-registry.ts`.
+- [x] Create `server/src/core/modules/command-palette/command-context.ts`.
+- [x] Add duplicate-id detection and deterministic provider ordering.
+- [x] Add unit-testable pure helpers for command normalization and availability filtering.
+- [x] Keep the registry provider-agnostic and free of plugin-specific branching.
+- [x] Mark this task complete here after implementation.
 - Commit: `feat(command-palette): add backend command contracts`
 
 ## Task 2: Backend Search And Command Routes
