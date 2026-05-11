@@ -298,16 +298,18 @@
                     font-size: 0.75em;
                   "
                   :style="
-                    hasCredential(plugin.id)
+                    plugin.status === 'connected'
                       ? 'color: var(--nod8-text-success);'
-                      : 'color: var(--nod8-text-warning);'
+                      : plugin.status === 'configured'
+                      ? 'color: var(--nod8-text-warning);'
+                      : 'color: var(--nod8-text-danger);'
                   "
                 >
                   <LucideIcon
-                    :name="hasCredential(plugin.id) ? 'check' : 'circle-alert'"
+                    :name="plugin.status === 'connected' ? 'check' : 'circle-alert'"
                     :size="12"
                   />
-                  {{ hasCredential(plugin.id) ? 'Configured' : 'Not configured' }}
+                  {{ plugin.status === 'connected' ? 'Connected' : plugin.status === 'configured' ? 'Configured' : 'Not configured' }}
                 </span>
               </div>
             </div>
@@ -636,6 +638,13 @@ const {
   handleDisconnect: disconnectOAuth2,
   authLoading: isAuthLoading,
 } = usePluginAuth(() => selectedPluginForMenu.value?.id ?? null)
+
+watch(() => pluginStatus.value?.status, (newStatus) => {
+  if (selectedPluginForMenu.value && newStatus) {
+    const target = plugins.value.find((p: any) => p.id === selectedPluginForMenu.value.id)
+    if (target) target.status = newStatus
+  }
+})
 
 async function openPluginMenu(plugin: any) {
   selectedPluginForMenu.value = plugin
