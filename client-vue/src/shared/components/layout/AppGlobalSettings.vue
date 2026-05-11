@@ -350,19 +350,20 @@
                   v-for="(schema, fieldKey) in credentialSchema(selectedPluginForMenu)"
                   :key="fieldKey"
                 >
-                  <div style="display: flex; flex-direction: column; gap: 0.35rem">
-                    <span style="font-size: 0.9em; font-weight: 500">{{
-                      (schema as any).title ?? String(fieldKey)
-                    }}</span>
+                  <div style="display: flex; flex-direction: column; gap: var(--nod8-space-1)">
+                    <label style="display: flex; align-items: center; gap: var(--nod8-space-1); font-size: var(--nod8-text-sm); font-weight: 500; color: var(--nod8-text-primary);">
+                      {{ (schema as any).label ?? (schema as any).title ?? String(fieldKey) }}
+                      <span v-if="(schema as any).required" style="color: rgb(239, 68, 68);">*</span>
+                    </label>
                     <p
                       v-if="(schema as any).description"
-                      style="margin: 0; font-size: 0.85em; color: var(--text-color-muted)"
+                      style="margin: 0; font-size: var(--nod8-text-xs); color: var(--nod8-text-muted);"
                     >
                       {{ (schema as any).description }}
                     </p>
 
                     <div
-                      style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem"
+                      style="display: flex; align-items: center; gap: 0.5rem; margin-top: var(--nod8-space-1)"
                     >
                       <BaseInput
                         style="flex: 1"
@@ -406,60 +407,53 @@
               </div>
 
               <template #footer>
-                <div
-                  style="
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    width: 100%;
-                  "
-                >
-                  <!-- Left actions: Oauth2 and Disconnect -->
-                  <div style="display: flex; gap: 0.5rem">
-                    <BaseButton
-                      v-if="selectedPluginForMenu?.auth_type === 'oauth2'"
-                      variant="secondary"
-                      :title="selectedPluginForMenu?.status?.oauth_ui?.buttonText || 'Authenticate via OAuth2'"
-                      @click="handleOAuth2(selectedPluginForMenu.id)"
-                    >
-                      <template #left>
-                        <img v-if="selectedPluginForMenu?.status?.oauth_ui?.buttonIcon?.startsWith('http')" :src="selectedPluginForMenu.status.oauth_ui.buttonIcon" style="width: 14px; height: 14px; object-fit: contain;" />
-                        <LucideIcon v-else-if="selectedPluginForMenu?.status?.oauth_ui?.buttonIcon" :name="selectedPluginForMenu.status.oauth_ui.buttonIcon" :size="14" />
-                        <LucideIcon v-else name="external-link" :size="14" />
-                      </template>
-                      {{ selectedPluginForMenu?.status?.oauth_ui?.buttonText || 'OAuth2' }}
-                    </BaseButton>
-
-                    <BaseButton
-                      v-else-if="selectedPluginForMenu?.auth_type !== 'none'"
-                      variant="secondary"
-                      title="Test Connection"
-                      @click="handleTestConnection(selectedPluginForMenu.id)"
-                    >
-                      <template #left><LucideIcon name="plug" :size="14" /></template>
-                      Test Connection
-                    </BaseButton>
-
-                    <BaseButton
-                      v-if="hasCredential(selectedPluginForMenu?.id)"
-                      variant="ghost"
-                      style="color: var(--color-danger, #ef4444)"
-                      :loading="isDeletingCred === selectedPluginForMenu?.id"
-                      @click="handleDeleteCredentialAndClose(selectedPluginForMenu.id)"
-                    >
-                      <template #left><LucideIcon name="log-out" :size="14" /></template>
-                      Disconnect
-                    </BaseButton>
-                  </div>
-
-                  <!-- Right actions: Save -->
+                <div style="display: flex; flex-direction: column; gap: var(--nod8-space-2); width: 100%;">
+                  <!-- Save Button -->
                   <BaseButton
                     variant="primary"
                     :disabled="!hasPendingCredFields(selectedPluginForMenu?.id)"
                     :loading="isSavingCred === selectedPluginForMenu?.id"
                     @click="handleSaveCredentialAndClose(selectedPluginForMenu.id)"
+                    style="width: 100%; justify-content: center; height: 36px; font-weight: 500;"
                   >
-                    Save
+                    Save Credentials
+                  </BaseButton>
+
+                  <!-- OAuth2 / Test Connection -->
+                  <BaseButton
+                    v-if="selectedPluginForMenu?.auth_type === 'oauth2'"
+                    variant="secondary"
+                    :title="selectedPluginForMenu?.status?.oauth_ui?.buttonText || 'Authenticate via OAuth2'"
+                    @click="handleOAuth2(selectedPluginForMenu.id)"
+                    style="width: 100%; justify-content: center; height: 36px; font-weight: 500;"
+                  >
+                    <template #left>
+                      <img v-if="selectedPluginForMenu?.status?.oauth_ui?.buttonIcon?.startsWith('http')" :src="selectedPluginForMenu.status.oauth_ui.buttonIcon" style="width: 16px; height: 16px; object-fit: contain;" />
+                      <LucideIcon v-else-if="selectedPluginForMenu?.status?.oauth_ui?.buttonIcon" :name="selectedPluginForMenu.status.oauth_ui.buttonIcon" :size="16" />
+                      <LucideIcon v-else name="external-link" :size="16" />
+                    </template>
+                    {{ selectedPluginForMenu?.status?.oauth_ui?.buttonText || 'Connect with OAuth2' }}
+                  </BaseButton>
+                  <BaseButton
+                    v-else-if="selectedPluginForMenu?.auth_type !== 'none'"
+                    variant="secondary"
+                    title="Test Connection"
+                    @click="handleTestConnection(selectedPluginForMenu.id)"
+                    style="width: 100%; justify-content: center; height: 36px; font-weight: 500;"
+                  >
+                    <template #left><LucideIcon name="plug" :size="16" /></template>
+                    Test Connection
+                  </BaseButton>
+
+                  <BaseButton
+                    v-if="hasCredential(selectedPluginForMenu?.id)"
+                    variant="ghost"
+                    style="color: rgb(239, 68, 68); background-color: rgba(239, 68, 68, 0.1); width: 100%; justify-content: center; height: 36px; font-weight: 500;"
+                    :loading="isDeletingCred === selectedPluginForMenu?.id"
+                    @click="handleDeleteCredentialAndClose(selectedPluginForMenu.id)"
+                  >
+                    <template #left><LucideIcon name="log-out" :size="16" /></template>
+                    Disconnect
                   </BaseButton>
                 </div>
               </template>
