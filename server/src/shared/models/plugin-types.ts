@@ -31,6 +31,12 @@ export interface OAuth2Provider {
   credentialSchema: CredentialSchema;
   scopes: string[];
 
+  ui?: {
+    oauthCallbackInstructions?: string; // e.g. "In Gmail, use the URL above when prompted to enter an OAuth callback or redirect URL"
+    buttonText?: string;                // e.g. "Sign in with Google"
+    buttonIcon?: string;                // e.g. "https://url-to-google-logo.png" or Lucide icon name
+  };
+
   getAuthUrl(
     credentials: Record<string, string>,
     redirectUri: string,
@@ -388,5 +394,11 @@ export interface PluginStatusResponse {
   auth_type: PluginAuthType;
   credential_schema: CredentialSchema | null;
   credentials: Record<string, string> | null;
+  oauth_ui?: {
+    oauthCallbackInstructions?: string;
+    buttonText?: string;
+    buttonIcon?: string;
+  };
+  oauth_redirect_uri?: string;
   error?: string;
 }

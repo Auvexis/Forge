@@ -116,6 +116,13 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         );
       }
 
+      let oauth_ui = undefined;
+      let oauth_redirect_uri = undefined;
+      if (plugin.auth.type === "oauth2") {
+        oauth_ui = (plugin.auth as OAuth2Provider).ui;
+        oauth_redirect_uri = PluginManager.getRedirectUri(pluginId);
+      }
+
       return sendResponse(reply, {
         status_code: 200,
         message: "Status fetched successfully",
@@ -126,6 +133,8 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
           credential_schema: credentialSchema,
           credentials: maskedCredentials,
           locked_fields: lockedFields,
+          oauth_ui,
+          oauth_redirect_uri,
         },
       });
     } catch (error: any) {

@@ -23,6 +23,23 @@
       </div>
     </header>
 
+    <section v-if="pluginStatus?.auth_type === 'oauth2' && pluginStatus?.oauth_redirect_uri" class="plugin-auth__section plugin-auth__section--oauth-info">
+      <div class="oauth-redirect-block">
+        <label class="auth-field__label">OAuth Redirect URL</label>
+        <BaseInput
+          :model-value="pluginStatus.oauth_redirect_uri"
+          readonly
+          @click="$event.target.select()"
+        />
+        <p
+          v-if="pluginStatus?.oauth_ui?.oauthCallbackInstructions"
+          class="auth-field__desc mt-1"
+        >
+          {{ pluginStatus.oauth_ui.oauthCallbackInstructions }}
+        </p>
+      </div>
+    </section>
+
     <section v-if="pluginStatus?.credential_schema" class="plugin-auth__section">
       <form class="plugin-auth__form" @submit.prevent="handleSaveCredentials">
         <div v-for="(field, key) in pluginStatus.credential_schema" :key="key" class="auth-field">
@@ -92,7 +109,12 @@
         :disabled="authLoading"
       >
         <LucideIcon v-if="authLoading" name="loader-2" size="16" class="animate-spin mr-2" />
-        Connect with OAuth2
+        <template v-else>
+           <img v-if="pluginStatus.oauth_ui?.buttonIcon?.startsWith('http')" :src="pluginStatus.oauth_ui.buttonIcon" class="oauth-icon mr-2" />
+           <LucideIcon v-else-if="pluginStatus.oauth_ui?.buttonIcon" :name="pluginStatus.oauth_ui.buttonIcon" size="16" class="mr-2" />
+           <LucideIcon v-else name="external-link" size="16" class="mr-2" />
+        </template>
+        {{ pluginStatus.oauth_ui?.buttonText || 'Connect with OAuth2' }}
       </button>
 
       <button
@@ -341,5 +363,26 @@ watch(
   100% {
     transform: rotate(360deg);
   }
+}
+
+.oauth-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+.plugin-auth__section--oauth-info {
+  margin-bottom: var(--nod8-space-2);
+  padding: var(--nod8-space-3);
+  background: var(--nod8-bg-surface);
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-md);
+}
+.oauth-redirect-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nod8-space-2);
+}
+.mt-1 {
+  margin-top: var(--nod8-space-1);
 }
 </style>

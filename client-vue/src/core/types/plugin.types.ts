@@ -27,6 +27,12 @@ export interface PluginStatusResponse {
   credential_schema: CredentialSchema | null
   credentials: Record<string, string> | null
   locked_fields?: string[]
+  oauth_ui?: {
+    oauthCallbackInstructions?: string
+    buttonText?: string
+    buttonIcon?: string
+  }
+  oauth_redirect_uri?: string
   error?: string
 }
 

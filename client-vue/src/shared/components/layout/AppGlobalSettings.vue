@@ -328,6 +328,24 @@
                 style="display: flex; flex-direction: column; gap: 1.25rem"
                 v-if="selectedPluginForMenu"
               >
+                <!-- OAuth Redirect URL Block -->
+                <div
+                  v-if="selectedPluginForMenu.auth_type === 'oauth2' && selectedPluginForMenu.status?.oauth_redirect_uri"
+                  style="display: flex; flex-direction: column; gap: 0.35rem; padding: 0.75rem; background: var(--bg-surface); border-radius: var(--radius-md); border: 1px solid var(--border-color);"
+                >
+                  <span style="font-size: 0.9em; font-weight: 500">OAuth Redirect URL</span>
+                  <BaseInput
+                    :model-value="selectedPluginForMenu.status.oauth_redirect_uri"
+                    readonly
+                    @click="$event.target.select()"
+                  />
+                  <p
+                    v-if="selectedPluginForMenu.status?.oauth_ui?.oauthCallbackInstructions"
+                    style="margin: 0; font-size: 0.85em; color: var(--text-color-muted); margin-top: 0.25rem"
+                  >
+                    {{ selectedPluginForMenu.status.oauth_ui.oauthCallbackInstructions }}
+                  </p>
+                </div>
                 <template
                   v-for="(schema, fieldKey) in credentialSchema(selectedPluginForMenu)"
                   :key="fieldKey"
@@ -401,11 +419,15 @@
                     <BaseButton
                       v-if="selectedPluginForMenu?.auth_type === 'oauth2'"
                       variant="secondary"
-                      title="Authenticate via OAuth2"
+                      :title="selectedPluginForMenu?.status?.oauth_ui?.buttonText || 'Authenticate via OAuth2'"
                       @click="handleOAuth2(selectedPluginForMenu.id)"
                     >
-                      <template #left><LucideIcon name="external-link" :size="14" /></template>
-                      OAuth2
+                      <template #left>
+                        <img v-if="selectedPluginForMenu?.status?.oauth_ui?.buttonIcon?.startsWith('http')" :src="selectedPluginForMenu.status.oauth_ui.buttonIcon" style="width: 14px; height: 14px; object-fit: contain;" />
+                        <LucideIcon v-else-if="selectedPluginForMenu?.status?.oauth_ui?.buttonIcon" :name="selectedPluginForMenu.status.oauth_ui.buttonIcon" :size="14" />
+                        <LucideIcon v-else name="external-link" :size="14" />
+                      </template>
+                      {{ selectedPluginForMenu?.status?.oauth_ui?.buttonText || 'OAuth2' }}
                     </BaseButton>
 
                     <BaseButton
