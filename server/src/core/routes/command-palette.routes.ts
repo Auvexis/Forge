@@ -8,6 +8,8 @@ import type {
 import { CommandExecutor, CommandExecutionError } from "../modules/command-palette/command-executor.ts";
 import { CommandRegistry } from "../modules/command-palette/command-registry.ts";
 import { searchCommands } from "../modules/command-palette/command-search.ts";
+import { appSettingsCommandProvider } from "../modules/command-palette/providers/app-settings.commands.ts";
+import { navigationCommandProvider } from "../modules/command-palette/providers/navigation.commands.ts";
 
 interface CommandPaletteRouteOptions {
   registry?: CommandRegistry;
@@ -16,6 +18,8 @@ interface CommandPaletteRouteOptions {
 type PublicCommandDescriptor = Omit<CommandDescriptor, "payloadSchema">;
 
 const defaultRegistry = new CommandRegistry();
+defaultRegistry.registerProvider(navigationCommandProvider);
+defaultRegistry.registerProvider(appSettingsCommandProvider);
 
 function sendResponse<T>(reply: FastifyReply, response: ApiResponse<T>) {
   return reply.code(response.status_code).send(response);

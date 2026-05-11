@@ -97,20 +97,20 @@ POST /command-palette/commands/:commandId/execute
 
 ## Task 3: Backend Navigation, Settings, Universe, And Production Providers
 
-- [ ] Create `server/src/core/modules/command-palette/providers/navigation.commands.ts`.
-- [ ] Create `server/src/core/modules/command-palette/providers/app-settings.commands.ts`.
-- [ ] Register navigation descriptors for Home/Workflows, Universe, Settings, and any current top-level app route.
-- [ ] Register settings commands:
+- [x] Create `server/src/core/modules/command-palette/providers/navigation.commands.ts`.
+- [x] Create `server/src/core/modules/command-palette/providers/app-settings.commands.ts`.
+- [x] Register navigation descriptors for Home/Workflows, Universe, Settings, and any current top-level app route.
+- [x] Register settings commands:
   - Open Settings.
   - Open Settings to a tab only if the frontend exposes a stable tab target that can be represented in `CommandExecutionResult.navigation` or `uiIntent`; otherwise register only the generic command and document the missing tab API in this file.
-- [ ] Register Universe commands:
+- [x] Register Universe commands:
   - Enter Universe returns a navigation/ui intent for `/universe`.
   - Exit Universe returns a navigation/ui intent for `/workflows` when the client reports it is currently in Universe.
-- [ ] Register Production Panel commands:
+- [x] Register Production Panel commands:
   - Open Production Panel returns a `uiIntent` consumed by the frontend.
   - Close Production Panel returns a `uiIntent` consumed by the frontend.
-- [ ] Do not make the backend import frontend components. Use typed UI intents only.
-- [ ] Mark this task complete here after implementation.
+- [x] Do not make the backend import frontend components. Use typed UI intents only.
+- [x] Mark this task complete here after implementation.
 - Commit: `feat(command-palette): add app command providers`
 
 ## Task 4: Backend Workflow Commands
