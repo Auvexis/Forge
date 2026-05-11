@@ -331,9 +331,9 @@
                 <!-- OAuth Redirect URL Block -->
                 <div
                   v-if="selectedPluginForMenu.auth_type === 'oauth2' && selectedPluginForMenu.status?.oauth_redirect_uri"
-                  style="display: flex; flex-direction: column; gap: 0.35rem; padding: 0.75rem; background: var(--bg-surface); border-radius: var(--radius-md); border: 1px solid var(--border-color);"
+                  style="display: flex; flex-direction: column; gap: var(--nod8-space-2); padding: var(--nod8-space-3); background: var(--nod8-bg-surface); border-radius: var(--nod8-radius-md); border: 1px solid var(--nod8-border); margin-bottom: var(--nod8-space-2);"
                 >
-                  <span style="font-size: 0.9em; font-weight: 500">OAuth Redirect URL</span>
+                  <span style="font-size: var(--nod8-text-sm); font-weight: 500; color: var(--nod8-text-primary);">OAuth Redirect URL</span>
                   <BaseInput
                     :model-value="selectedPluginForMenu.status.oauth_redirect_uri"
                     readonly
@@ -341,7 +341,7 @@
                   />
                   <p
                     v-if="selectedPluginForMenu.status?.oauth_ui?.oauthCallbackInstructions"
-                    style="margin: 0; font-size: 0.85em; color: var(--text-color-muted); margin-top: 0.25rem"
+                    style="margin: 0; font-size: var(--nod8-text-xs); color: var(--nod8-text-muted); margin-top: var(--nod8-space-1);"
                   >
                     {{ selectedPluginForMenu.status.oauth_ui.oauthCallbackInstructions }}
                   </p>
