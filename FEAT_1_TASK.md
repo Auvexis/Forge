@@ -80,19 +80,19 @@ POST /command-palette/commands/:commandId/execute
 
 ## Task 2: Backend Search And Command Routes
 
-- [ ] Create `server/src/core/modules/command-palette/command-search.ts` with a deterministic scorer.
-- [ ] Support matching by label, group, keywords, route names, workflow names, plugin names, plugin method labels, and short ids.
-- [ ] Create `server/src/core/modules/command-palette/command-executor.ts`.
-- [ ] Create `server/src/core/routes/command-palette.routes.ts`.
-- [ ] Register the route module in `server/src/core/routes/index.ts` or `server/src/core/server.ts`, matching existing route patterns.
-- [ ] Implement `GET /command-palette/commands` to return available command descriptors.
-- [ ] Implement `GET /command-palette/search?q=...` to return ranked command descriptors.
-- [ ] Implement `POST /command-palette/commands/:commandId/execute` to execute commands through the registry.
-- [ ] Validate payloads with Zod or the existing backend validation approach before dispatching.
-- [ ] Return typed results that tell the frontend whether to navigate, copy to clipboard, show a toast, or refresh command data.
-- [ ] Do not execute plugin methods while indexing. Index manifests only.
-- [ ] Add graceful empty/error states when entity loading fails.
-- [ ] Mark this task complete here after implementation.
+- [x] Create `server/src/core/modules/command-palette/command-search.ts` with a deterministic scorer.
+- [x] Support matching by label, group, keywords, route names, workflow names, plugin names, plugin method labels, and short ids.
+- [x] Create `server/src/core/modules/command-palette/command-executor.ts`.
+- [x] Create `server/src/core/routes/command-palette.routes.ts`.
+- [x] Register the route module in `server/src/core/routes/index.ts` or `server/src/core/server.ts`, matching existing route patterns.
+- [x] Implement `GET /command-palette/commands` to return available command descriptors.
+- [x] Implement `GET /command-palette/search?q=...` to return ranked command descriptors.
+- [x] Implement `POST /command-palette/commands/:commandId/execute` to execute commands through the registry.
+- [x] Validate payloads with Zod or the existing backend validation approach before dispatching.
+- [x] Return typed results that tell the frontend whether to navigate, copy to clipboard, show a toast, or refresh command data.
+- [x] Do not execute plugin methods while indexing. Index manifests only.
+- [x] Add graceful empty/error states when entity loading fails.
+- [x] Mark this task complete here after implementation.
 - Commit: `feat(command-palette): expose backend command api`
 
 ## Task 3: Backend Navigation, Settings, Universe, And Production Providers

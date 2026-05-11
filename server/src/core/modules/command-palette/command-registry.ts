@@ -50,7 +50,24 @@ export class CommandRegistry {
   }
 
   async list(context: CommandExecutionContext): Promise<CommandDescriptor[]> {
+    const entries = await this.listEntries(context);
+    return filterVisibleCommands(entries.map((entry) => entry.descriptor));
+  }
+
+  async find(
+    commandId: string,
+    context: CommandExecutionContext,
+  ): Promise<{ handler: CommandHandler; descriptor: CommandDescriptor } | null> {
+    const id = commandId.trim().toLowerCase();
+    const entries = await this.listEntries(context);
+    return entries.find((entry) => entry.descriptor.id === id) ?? null;
+  }
+
+  private async listEntries(
+    context: CommandExecutionContext,
+  ): Promise<Array<{ handler: CommandHandler; descriptor: CommandDescriptor }>> {
     const commands: CommandDescriptor[] = [];
+    const entries: Array<{ handler: CommandHandler; descriptor: CommandDescriptor }> = [];
     const ids = new Set<string>();
 
     for (const provider of this.orderedProviders()) {
@@ -72,9 +89,10 @@ export class CommandRegistry {
         a.descriptor.label.localeCompare(b.descriptor.label, "en", { sensitivity: "base" }),
       );
       commands.push(...providerCommands.map((entry) => entry.descriptor));
+      entries.push(...providerCommands);
     }
 
-    return filterVisibleCommands(commands);
+    return entries;
   }
 
   private orderedProviders(): CommandProvider[] {
