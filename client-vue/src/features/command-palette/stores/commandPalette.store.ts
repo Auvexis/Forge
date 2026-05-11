@@ -79,6 +79,24 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
     }
   }
 
+  async function execute(command: CommandDescriptor, payload: Record<string, unknown> = {}) {
+    if (isExecuting.value || !command.availability.enabled) return null
+
+    isExecuting.value = true
+    error.value = null
+    try {
+      const result = await commandPaletteApi.execute(command.id, payload, context.value)
+      lastResult.value = result
+      remember(command.id)
+      return result
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to execute command'
+      return null
+    } finally {
+      isExecuting.value = false
+    }
+  }
+
   async function open(nextContext: CommandExecutionContext = context.value) {
     isOpen.value = true
     setContext(nextContext)
@@ -116,6 +134,7 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
     moveHighlight,
     setHighlight,
     remember,
+    execute,
     refresh,
     open,
     close,

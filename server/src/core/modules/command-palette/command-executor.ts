@@ -3,17 +3,21 @@ import type { CommandExecutionContext, CommandExecutionResult } from "./command-
 import { CommandRegistry } from "./command-registry.ts";
 
 export class CommandExecutionError extends Error {
-  constructor(
-    message: string,
-    public readonly statusCode = 400,
-  ) {
+  readonly statusCode: number;
+
+  constructor(message: string, statusCode = 400) {
     super(message);
     this.name = "CommandExecutionError";
+    this.statusCode = statusCode;
   }
 }
 
 export class CommandExecutor {
-  constructor(private readonly registry: CommandRegistry) {}
+  private readonly registry: CommandRegistry;
+
+  constructor(registry: CommandRegistry) {
+    this.registry = registry;
+  }
 
   async execute(
     commandId: string,

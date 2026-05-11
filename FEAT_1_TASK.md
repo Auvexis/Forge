@@ -202,20 +202,20 @@ POST /command-palette/commands/:commandId/execute
 
 ## Task 8: Frontend Dispatch, UI Intents, Feedback, And Failure Safety
 
-- [ ] Execute commands only through `commandPaletteApi.execute(commandId, payload)`.
-- [ ] Render backend-provided disabled/hidden/destructive state.
-- [ ] Use `useConfirm` for commands marked destructive before dispatch.
-- [ ] Apply backend `CommandExecutionResult`:
+- [x] Execute commands only through `commandPaletteApi.execute(commandId, payload)`.
+- [x] Render backend-provided disabled/hidden/destructive state.
+- [x] Use `useConfirm` for commands marked destructive before dispatch.
+- [x] Apply backend `CommandExecutionResult`:
   - Navigate with router when `navigation` is present.
   - Open/close frontend panels when `uiIntent` is present.
   - Copy `clipboardText` with browser clipboard APIs.
   - Show backend-safe success/error messages through toasts.
   - Refresh command list when `refreshHints` request it.
-- [ ] Prevent double execution while a command is running.
-- [ ] Keep the palette open when an action needs correction or fails.
-- [ ] Close the palette after successful navigation or successful non-destructive commands.
-- [ ] Add audit-friendly error messages without leaking secrets, tokens, or raw credential values.
-- [ ] Mark this task complete here after implementation.
+- [x] Prevent double execution while a command is running.
+- [x] Keep the palette open when an action needs correction or fails.
+- [x] Close the palette after successful navigation or successful non-destructive commands.
+- [x] Add audit-friendly error messages without leaking secrets, tokens, or raw credential values.
+- [x] Mark this task complete here after implementation.
 - Commit: `feat(command-palette): wire command dispatch feedback`
 
 ## Task 9: Tests, Accessibility, Responsive Polish, And Verification

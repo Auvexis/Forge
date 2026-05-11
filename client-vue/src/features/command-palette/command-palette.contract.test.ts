@@ -17,6 +17,7 @@ async function contract(command: CommandDescriptor) {
   store.open()
   store.setQuery(command.label)
   store.setCommands(commands)
+  await store.execute(command)
 
   return result.ok
 }

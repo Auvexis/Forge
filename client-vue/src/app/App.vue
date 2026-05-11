@@ -75,12 +75,14 @@
 
     <!-- Global Overlays -->
     <template v-if="!appUiStore.isUniverseMode" #overlay>
-      <AppToaster />
-      <AppConfirmPanel />
       <AppGlobalSettings />
     </template>
   </AppShell>
-  <CommandPaletteHost v-if="!isPublicRoute" />
+  <template v-if="!isPublicRoute">
+    <CommandPaletteHost />
+    <AppToaster />
+    <AppConfirmPanel />
+  </template>
 </template>
 
 <script setup lang="ts">
