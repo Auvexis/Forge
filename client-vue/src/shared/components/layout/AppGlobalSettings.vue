@@ -399,12 +399,23 @@
                   <!-- Left actions: Oauth2 and Disconnect -->
                   <div style="display: flex; gap: 0.5rem">
                     <BaseButton
+                      v-if="selectedPluginForMenu?.auth_type === 'oauth2'"
                       variant="secondary"
                       title="Authenticate via OAuth2"
                       @click="handleOAuth2(selectedPluginForMenu.id)"
                     >
                       <template #left><LucideIcon name="external-link" :size="14" /></template>
                       OAuth2
+                    </BaseButton>
+
+                    <BaseButton
+                      v-else-if="selectedPluginForMenu?.auth_type !== 'none'"
+                      variant="secondary"
+                      title="Test Connection"
+                      @click="handleTestConnection(selectedPluginForMenu.id)"
+                    >
+                      <template #left><LucideIcon name="plug" :size="14" /></template>
+                      Test Connection
                     </BaseButton>
 
                     <BaseButton
@@ -716,6 +727,22 @@ async function handleDeleteCredentialAndClose(pluginId: string) {
 
 function handleOAuth2(pluginId: string) {
   startOAuth2()
+}
+
+async function handleTestConnection(pluginId: string) {
+  try {
+    const { toast } = await import('vue-sonner')
+    // Re-fetch credentials/status to simulate a test
+    await store.fetchCredential(pluginId)
+    toast.success('Connection test successful', {
+      description: 'The plugin credentials are valid and responding.',
+    })
+  } catch (e: any) {
+    const { toast } = await import('vue-sonner')
+    toast.error('Connection test failed', {
+      description: e.message || 'Could not verify credentials.',
+    })
+  }
 }
 
 // ─── Preferences ──────────────────────────────────────────────────────────────

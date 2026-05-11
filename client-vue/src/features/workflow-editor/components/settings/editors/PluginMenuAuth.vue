@@ -9,7 +9,7 @@
         <div class="plugin-auth__status">
           <template v-if="pluginStatus?.status === 'connected'">
             <LucideIcon name="check-circle-2" class="status-icon status-icon--success" size="14" />
-            <span>Conectado</span>
+            <span>Connected</span>
           </template>
           <template v-else-if="pluginStatus?.status === 'configured'">
             <LucideIcon name="alert-circle" class="status-icon status-icon--warning" size="14" />
@@ -17,7 +17,7 @@
           </template>
           <template v-else-if="pluginStatus?.status === 'not_configured'">
             <LucideIcon name="alert-circle" class="status-icon status-icon--error" size="14" />
-            <span>Não configurado</span>
+            <span>Not configured</span>
           </template>
         </div>
       </div>
@@ -48,7 +48,7 @@
           <div v-else-if="(field as any).inputType === 'toggle'" class="auth-field__toggle">
             <BaseSwitch v-model="formValues[key]" />
             <span class="auth-field__toggle-text">{{
-              formValues[key] ? 'Ativado' : 'Desativado'
+              formValues[key] ? 'Enabled' : 'Disabled'
             }}</span>
           </div>
 
@@ -92,7 +92,7 @@
         :disabled="authLoading"
       >
         <LucideIcon v-if="authLoading" name="loader-2" size="16" class="animate-spin mr-2" />
-        Conectar com OAuth2
+        Connect with OAuth2
       </button>
 
       <button
@@ -101,7 +101,7 @@
         @click="handleDisconnect"
       >
         <LucideIcon name="log-out" size="16" class="mr-2" />
-        Desconectar
+        Disconnect
       </button>
     </section>
   </main>
