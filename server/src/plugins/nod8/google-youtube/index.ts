@@ -34,6 +34,12 @@ const auth: OAuth2Provider = {
     "https://www.googleapis.com/auth/youtube.force-ssl",
   ],
 
+  ui: {
+    oauthCallbackInstructions: "In Google Cloud Console, add the URL above as an Authorized redirect URI in your OAuth client credentials.",
+    buttonText: "Sign in with Google",
+    buttonIcon: "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
+  },
+
   getAuthUrl(credentials, redirectUri) {
     const client = new google.auth.OAuth2(
       credentials.client_id,

@@ -32,9 +32,9 @@ export interface OAuth2Provider {
   scopes: string[];
 
   ui?: {
-    oauthCallbackInstructions?: string; // e.g. "In Gmail, use the URL above when prompted to enter an OAuth callback or redirect URL"
-    buttonText?: string;                // e.g. "Sign in with Google"
-    buttonIcon?: string;                // e.g. "https://url-to-google-logo.png" or Lucide icon name
+    oauthCallbackInstructions?: string; // e.g. "In YouTube, use the URL above when prompted to enter an OAuth callback or redirect URL"
+    buttonText?: string; // e.g. "Sign in with Google"
+    buttonIcon?: string; // e.g. "https://url-to-google-logo.png" or Lucide icon name
   };
 
   getAuthUrl(
