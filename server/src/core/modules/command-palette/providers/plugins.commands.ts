@@ -12,6 +12,7 @@ import type {
 } from "../../../../shared/models/plugin-types.ts";
 import type {
   CommandDescriptor,
+  CommandDrilldown,
   CommandExecutionContext,
   CommandHandler,
   CommandProvider,
@@ -87,16 +88,125 @@ async function oauthUrl(plugin: Nod8Plugin, services: PluginCommandServices): Pr
   return provider.getAuthUrl(credentials, services.getRedirectUri(plugin.id));
 }
 
+// ─── Drilldown builder ────────────────────────────────────────────────────────
+
+function pluginDrilldown(plugin: Nod8Plugin, context: CommandExecutionContext): CommandDrilldown {
+  const services = pluginServices(context);
+  const status = pluginStatus(plugin, services);
+  const isOAuth = plugin.auth.type === "oauth2";
+  const isApiKey = plugin.auth.type === "api_key";
+  const isConnected = status === "connected";
+  const methodCount = Object.keys(plugin.manifest.methods).length;
+
+  const subcommands: CommandDescriptor[] = [
+    {
+      id: `plugin.open.${plugin.id}`,
+      group: "plugin",
+      label: "Open in Universe",
+      description: "Focus this plugin in the Universe view",
+      keywords: ["universe", "open"],
+      icon: "globe",
+      availability: { enabled: true },
+    },
+  ];
+
+  if (isOAuth || isApiKey) {
+    subcommands.push({
+      id: `plugin.connect.${plugin.id}`,
+      group: "plugin",
+      label: isConnected ? "Re-authenticate" : "Connect / Authenticate",
+      description: isConnected
+        ? "Start the OAuth connection flow again"
+        : "Authenticate to enable this plugin",
+      keywords: ["connect", "auth", "oauth", "api key"],
+      icon: "link",
+      availability: { enabled: true },
+    });
+  }
+
+  if (isOAuth && isConnected) {
+    subcommands.push({
+      id: `plugin.disconnect.${plugin.id}`,
+      group: "plugin",
+      label: "Disconnect",
+      description: "Remove OAuth tokens for this plugin",
+      keywords: ["disconnect", "revoke"],
+      icon: "unlink",
+      destructive: true,
+      availability: { enabled: true },
+    });
+  }
+
+  if (methodCount > 0) {
+    subcommands.push({
+      id: `plugin.methods.${plugin.id}`,
+      group: "plugin",
+      label: `Methods (${methodCount})`,
+      description: "View available plugin methods",
+      keywords: ["methods", "actions"],
+      icon: "code",
+      availability: {
+        enabled: false,
+        reason: "Plugin actions require a frontend-provided payload before execution",
+      },
+    });
+  }
+
+  subcommands.push({
+    id: `plugin.uninstall.${plugin.id}`,
+    group: "plugin",
+    label: "Uninstall",
+    description: "Disabled until a generic uninstall API exists",
+    keywords: ["uninstall", "remove"],
+    icon: "trash",
+    destructive: true,
+    availability: { enabled: false, reason: "No generic plugin uninstall API exists yet" },
+  });
+
+  return {
+    type: "list",
+    title: plugin.manifest.metadata.name,
+    commands: subcommands,
+  };
+}
+
+// ─── Per-plugin parent entry (shown in main list) ─────────────────────────────
+
+function pluginEntryCommand(plugin: Nod8Plugin): CommandHandler {
+  return {
+    describe: (context): CommandDescriptor => {
+      const services = pluginServices(context);
+      const status = pluginStatus(plugin, services);
+      return {
+        id: `plugin.entry.${plugin.id}`,
+        group: "plugin",
+        label: plugin.manifest.metadata.name,
+        description: `${plugin.manifest.metadata.category} · ${status}`,
+        keywords: pluginKeywords(plugin, ["plugin"]),
+        icon: plugin.manifest.metadata.icon || "plug",
+        availability: { enabled: true },
+      };
+    },
+    execute: (context) => ({
+      ok: true,
+      drilldown: pluginDrilldown(plugin, context),
+    }),
+  };
+}
+
+// ─── Concrete sub-commands executed by drilldown selection ────────────────────
+// These are hidden from the main list (availability.hidden = true) and only
+// reachable via the drilldown mechanism.
+
 function openPluginCommand(plugin: Nod8Plugin): CommandHandler {
   return {
     describe: (): CommandDescriptor => ({
       id: `plugin.open.${plugin.id}`,
       group: "plugin",
-      label: `Open ${plugin.manifest.metadata.name}`,
-      description: "Open plugin in Universe",
+      label: `Open ${plugin.manifest.metadata.name} in Universe`,
       keywords: pluginKeywords(plugin, ["open plugin", "universe"]),
       icon: plugin.manifest.metadata.icon || "plug",
-      availability: { enabled: true },
+      availability: { enabled: true, hidden: true },
     }),
     execute: () => ({
       ok: true,
@@ -119,13 +229,12 @@ function connectPluginCommand(plugin: Nod8Plugin): CommandHandler {
         id: `plugin.connect.${plugin.id}`,
         group: "plugin",
         label: `Connect ${plugin.manifest.metadata.name}`,
-        description: "Connect plugin using its generic auth contract",
         keywords: pluginKeywords(plugin, ["connect", "authorize", plugin.auth.type]),
         icon: "link",
         availability:
           plugin.auth.type === "none"
-            ? { enabled: false, reason: "Plugin does not require authentication" }
-            : { enabled: true, reason: pluginStatus(plugin, services) },
+            ? { enabled: false, reason: "Plugin does not require authentication", hidden: true }
+            : { enabled: true, hidden: true, reason: pluginStatus(plugin, services) },
       };
     },
     execute: async (context) => {
@@ -158,14 +267,13 @@ function disconnectPluginCommand(plugin: Nod8Plugin): CommandHandler {
       id: `plugin.disconnect.${plugin.id}`,
       group: "plugin",
       label: `Disconnect ${plugin.manifest.metadata.name}`,
-      description: "Disconnect OAuth tokens for this plugin",
       keywords: pluginKeywords(plugin, ["disconnect", "revoke", "oauth"]),
       icon: "unlink",
       destructive: true,
       availability:
         plugin.auth.type === "oauth2"
-          ? { enabled: true, reason: pluginStatus(plugin, pluginServices(context)) }
-          : { enabled: false, reason: "Only OAuth plugins can be disconnected generically" },
+          ? { enabled: true, hidden: true, reason: pluginStatus(plugin, pluginServices(context)) }
+          : { enabled: false, reason: "Only OAuth plugins can be disconnected generically", hidden: true },
     }),
     execute: async (context) => {
       const services = pluginServices(context);
@@ -184,70 +292,6 @@ function disconnectPluginCommand(plugin: Nod8Plugin): CommandHandler {
   };
 }
 
-function reauthenticatePluginCommand(plugin: Nod8Plugin): CommandHandler {
-  return {
-    describe: (context): CommandDescriptor => ({
-      id: `plugin.reauth.${plugin.id}`,
-      group: "plugin",
-      label: `Re-authenticate ${plugin.manifest.metadata.name}`,
-      description: "Start the generic OAuth connection flow again",
-      keywords: pluginKeywords(plugin, ["reauthenticate", "reconnect", "oauth"]),
-      icon: "refresh-cw",
-      availability:
-        plugin.auth.type === "oauth2"
-          ? { enabled: true, reason: pluginStatus(plugin, pluginServices(context)) }
-          : { enabled: false, reason: "Only OAuth plugins can be re-authenticated" },
-    }),
-    execute: async (context) => {
-      const services = pluginServices(context);
-      const url = await oauthUrl(plugin, services);
-      return {
-        ok: true,
-        message: "Plugin authorization started",
-        uiIntent: {
-          type: "plugin.oauth.open",
-          target: plugin.id,
-          payload: { url },
-        },
-      };
-    },
-  };
-}
-
-function methodActionCommands(plugin: Nod8Plugin): CommandHandler[] {
-  return Object.entries(plugin.manifest.methods).map(([methodName, method]) => ({
-    describe: (): CommandDescriptor => ({
-      id: `plugin.action.${plugin.id}.${methodName}`,
-      group: "plugin",
-      label: `${plugin.manifest.metadata.name}: ${method.metadata.label}`,
-      description: method.metadata.description,
-      keywords: pluginKeywords(plugin, [methodName, method.metadata.label, method.metadata.description]),
-      icon: plugin.manifest.metadata.icon || "plug",
-      availability: {
-        enabled: false,
-        reason: "Plugin actions require a frontend-provided payload before execution",
-      },
-    }),
-    execute: async (context, payload) => ({
-      ok: true,
-      message: "Plugin action executed",
-      refreshHints: ["plugins"],
-      uiIntent: {
-        type: "plugin.action.executed",
-        target: plugin.id,
-        payload: {
-          methodName,
-          result: await pluginServices(context).executePlugin(
-            plugin.id,
-            methodName,
-            (payload as Record<string, unknown> | undefined) ?? {},
-          ),
-        },
-      },
-    }),
-  }));
-}
-
 function disabledInstallCommand(): CommandHandler {
   return {
     describe: (): CommandDescriptor => ({
@@ -263,30 +307,12 @@ function disabledInstallCommand(): CommandHandler {
   };
 }
 
-function disabledUninstallCommand(plugin: Nod8Plugin): CommandHandler {
-  return {
-    describe: (): CommandDescriptor => ({
-      id: `plugin.uninstall.${plugin.id}`,
-      group: "plugin",
-      label: `Uninstall ${plugin.manifest.metadata.name}`,
-      description: "Plugin uninstall is disabled until a generic registry API exists",
-      keywords: pluginKeywords(plugin, ["uninstall", "remove plugin"]),
-      icon: "trash",
-      destructive: true,
-      availability: { enabled: false, reason: "No generic plugin uninstall API exists yet" },
-    }),
-    execute: () => ({ ok: false, message: "Plugin uninstall is not available" }),
-  };
-}
-
 function pluginCommands(plugin: Nod8Plugin): CommandHandler[] {
   return [
+    pluginEntryCommand(plugin),
     openPluginCommand(plugin),
     connectPluginCommand(plugin),
     disconnectPluginCommand(plugin),
-    reauthenticatePluginCommand(plugin),
-    disabledUninstallCommand(plugin),
-    ...methodActionCommands(plugin),
   ];
 }
 

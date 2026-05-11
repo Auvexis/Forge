@@ -49,6 +49,24 @@ export interface CommandExecutionContext {
   services?: Record<string, unknown>;
 }
 
+/** Drilldown list: palette shows a secondary list of sub-commands. */
+export interface CommandDrilldownList {
+  type: "list";
+  title: string;
+  commands: CommandDescriptor[];
+}
+
+/** Drilldown input: palette shows a text field, then executes targetCommandId with payloadKey=value. */
+export interface CommandDrilldownInput {
+  type: "input";
+  title: string;
+  placeholder: string;
+  targetCommandId: string;
+  payloadKey: string;
+}
+
+export type CommandDrilldown = CommandDrilldownList | CommandDrilldownInput;
+
 export interface CommandExecutionResult {
   ok: boolean;
   message?: string;
@@ -56,6 +74,8 @@ export interface CommandExecutionResult {
   uiIntent?: CommandUiIntent;
   clipboardText?: string;
   refreshHints?: string[];
+  /** When present, palette stays open and renders the drilldown instead of closing. */
+  drilldown?: CommandDrilldown;
 }
 
 export interface CommandHandler {

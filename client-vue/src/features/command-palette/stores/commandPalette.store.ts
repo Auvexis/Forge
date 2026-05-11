@@ -3,6 +3,9 @@ import { defineStore } from 'pinia'
 import { commandPaletteApi } from '@/core/api/command-palette.api'
 import type {
   CommandDescriptor,
+  CommandDrilldown,
+  CommandDrilldownInput,
+  CommandDrilldownList,
   CommandExecutionContext,
   CommandExecutionResult,
 } from '../types/command-palette.types'
@@ -10,6 +13,7 @@ import type {
 const RECENT_LIMIT = 8
 
 export const useCommandPaletteStore = defineStore('command-palette', () => {
+  // ── Root state ──────────────────────────────────────────────────────────────
   const isOpen = ref(false)
   const query = ref('')
   const highlightedIndex = ref(0)
@@ -21,11 +25,34 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
   const lastResult = ref<CommandExecutionResult | null>(null)
   const context = ref<CommandExecutionContext>({})
 
-  const visibleCommands = computed(() =>
-    commands.value.filter((command) => command.availability.hidden !== true),
+  // ── Drilldown state ─────────────────────────────────────────────────────────
+  /** Active drilldown when a command returns one. null = root level. */
+  const drilldown = ref<CommandDrilldown | null>(null)
+  /** Extra payload to merge into the next execute call (used for multi-step rename, etc.) */
+  const drilldownContext = ref<Record<string, unknown>>({})
+
+  // ── Computed ────────────────────────────────────────────────────────────────
+
+  const isInDrilldown = computed(() => drilldown.value !== null)
+
+  const drilldownList = computed(() =>
+    drilldown.value?.type === 'list' ? (drilldown.value as CommandDrilldownList) : null,
   )
 
+  const drilldownInput = computed(() =>
+    drilldown.value?.type === 'input' ? (drilldown.value as CommandDrilldownInput) : null,
+  )
+
+  const visibleCommands = computed(() => {
+    if (drilldownList.value) return drilldownList.value.commands
+    return commands.value.filter((c) => c.availability.hidden !== true)
+  })
+
   const highlightedCommand = computed(() => visibleCommands.value[highlightedIndex.value] ?? null)
+
+  const drilldownTitle = computed(() => drilldown.value?.title ?? null)
+
+  // ── Basic state mutations ───────────────────────────────────────────────────
 
   function setContext(next: CommandExecutionContext) {
     context.value = next
@@ -64,13 +91,35 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
     ].slice(0, RECENT_LIMIT)
   }
 
+  // ── Drilldown management ────────────────────────────────────────────────────
+
+  function enterDrilldown(next: CommandDrilldown, extraCtx: Record<string, unknown> = {}) {
+    drilldown.value = next
+    drilldownContext.value = extraCtx
+    query.value = ''
+    highlightedIndex.value = 0
+    error.value = null
+  }
+
+  function exitDrilldown() {
+    drilldown.value = null
+    drilldownContext.value = {}
+    query.value = ''
+    highlightedIndex.value = 0
+    error.value = null
+  }
+
+  // ── API calls ───────────────────────────────────────────────────────────────
+
   async function refresh() {
     isLoading.value = true
     error.value = null
     try {
-      setCommands(query.value.trim()
-        ? await commandPaletteApi.search(query.value, context.value)
-        : await commandPaletteApi.list(context.value))
+      setCommands(
+        query.value.trim()
+          ? await commandPaletteApi.search(query.value, context.value)
+          : await commandPaletteApi.list(context.value),
+      )
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to load commands'
       commands.value = []
@@ -85,9 +134,25 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
     isExecuting.value = true
     error.value = null
     try {
-      const result = await commandPaletteApi.execute(command.id, payload, context.value)
+      const mergedPayload = { ...drilldownContext.value, ...payload }
+      const result = await commandPaletteApi.execute(command.id, mergedPayload, context.value)
       lastResult.value = result
       remember(command.id)
+
+      // Handle drilldown result — palette stays open
+      if (result.drilldown) {
+        // Extract any _drilldown_ctx hints from refreshHints
+        const extraCtx: Record<string, unknown> = {}
+        for (const hint of result.refreshHints ?? []) {
+          if (hint.startsWith('_drilldown_ctx:')) {
+            const [k, v] = hint.slice('_drilldown_ctx:'.length).split('=')
+            if (k) extraCtx[k] = v
+          }
+        }
+        enterDrilldown(result.drilldown, extraCtx)
+        return result
+      }
+
       return result
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to execute command'
@@ -108,6 +173,8 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
     query.value = ''
     highlightedIndex.value = 0
     error.value = null
+    drilldown.value = null
+    drilldownContext.value = {}
   }
 
   function toggle(nextContext: CommandExecutionContext = context.value) {
@@ -116,6 +183,7 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
   }
 
   return {
+    // state
     isOpen,
     query,
     highlightedIndex,
@@ -128,6 +196,13 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
     recentCommandIds,
     lastResult,
     context,
+    drilldown,
+    drilldownContext,
+    drilldownTitle,
+    isInDrilldown,
+    drilldownList,
+    drilldownInput,
+    // actions
     setContext,
     setCommands,
     setQuery,
@@ -139,5 +214,7 @@ export const useCommandPaletteStore = defineStore('command-palette', () => {
     open,
     close,
     toggle,
+    enterDrilldown,
+    exitDrilldown,
   }
 })

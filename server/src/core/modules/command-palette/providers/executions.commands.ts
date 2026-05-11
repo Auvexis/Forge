@@ -235,22 +235,16 @@ function toggleThemeCommand(): CommandHandler {
       id: "utility.theme.toggle",
       group: "utility",
       label: "Toggle Theme",
-      description: "Toggle the app theme through settings",
-      keywords: ["theme", "dark", "light", "settings"],
+      description: "Toggle between dark and light theme",
+      keywords: ["theme", "dark", "light", "mode"],
       icon: "sun-moon",
       availability: { enabled: true },
     }),
-    execute: (context) => {
-      const services = executionServices(context);
-      const current = services.getSetting("theme");
-      const next = current === "dark" ? "light" : "dark";
-      services.setSetting("theme", next);
-      return {
-        ok: true,
-        message: `Theme set to ${next}`,
-        refreshHints: ["settings"],
-      };
-    },
+    execute: () => ({
+      ok: true,
+      message: "Theme toggled",
+      uiIntent: { type: "theme.toggle" },
+    }),
   };
 }
 

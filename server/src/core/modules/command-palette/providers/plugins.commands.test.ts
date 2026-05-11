@@ -78,7 +78,7 @@ function build(context: CommandExecutionContext) {
 }
 
 describe("plugins command provider", () => {
-  it("indexes installed plugins and manifest methods without provider-specific ids", async () => {
+  it("indexes installed plugins as drilldown entries", async () => {
     const context: CommandExecutionContext = {
       services: {
         plugins: {
@@ -87,22 +87,22 @@ describe("plugins command provider", () => {
         },
       },
     };
-    const { registry } = build(context);
+    const { registry, executor } = build(context);
 
     const commands = await registry.list(context);
 
-    assert.ok(commands.some((command) => command.id === "plugin.open.generic-oauth"));
-    assert.ok(
-      commands.some(
-        (command) =>
-          command.id === "plugin.action.generic-oauth.listitems" &&
-          command.keywords?.includes("list items"),
-      ),
-    );
+    assert.ok(commands.some((command) => command.id === "plugin.entry.generic-oauth"));
     assert.equal(commands.some((command) => command.id.includes("telegram")), false);
+
+    const result = await executor.execute("plugin.entry.generic-oauth", context, {});
+    assert.equal(result.drilldown?.type, "list");
+    if (result.drilldown?.type === "list") {
+      assert.ok(result.drilldown.commands.some(c => c.id === "plugin.open.generic-oauth"));
+      assert.ok(result.drilldown.commands.some(c => c.id === "plugin.methods.generic-oauth"));
+    }
   });
 
-  it("returns OAuth connect URLs through the generic auth contract", async () => {
+  it("returns OAuth connect URLs through the generic auth contract via sub-command", async () => {
     const context: CommandExecutionContext = {
       services: {
         plugins: {
@@ -168,9 +168,12 @@ describe("plugins command provider", () => {
     };
     const { executor, registry } = build(context);
 
-    const command = (await registry.list(context)).find(
-      (descriptor) => descriptor.id === "plugin.disconnect.generic-oauth",
-    );
+    // Get the sub-command from the drilldown list of the entry command
+    const entryResult = await executor.execute("plugin.entry.generic-oauth", context, {});
+    const command = entryResult.drilldown?.type === "list" 
+      ? entryResult.drilldown.commands.find(c => c.id === "plugin.disconnect.generic-oauth")
+      : undefined;
+
     const result = await executor.execute("plugin.disconnect.generic-oauth", context, {});
 
     assert.equal(command?.destructive, true);
@@ -187,14 +190,16 @@ describe("plugins command provider", () => {
         },
       },
     };
-    const { registry } = build(context);
+    const { registry, executor } = build(context);
 
     const commands = await registry.list(context);
-
     assert.equal(commands.find((command) => command.id === "plugin.install")?.availability.enabled, false);
-    assert.equal(
-      commands.find((command) => command.id === "plugin.uninstall.generic-oauth")?.availability.enabled,
-      false,
-    );
+
+    const entryResult = await executor.execute("plugin.entry.generic-oauth", context, {});
+    const uninstallCommand = entryResult.drilldown?.type === "list"
+      ? entryResult.drilldown.commands.find(c => c.id === "plugin.uninstall.generic-oauth")
+      : undefined;
+
+    assert.equal(uninstallCommand?.availability.enabled, false);
   });
 });

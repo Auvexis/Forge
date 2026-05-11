@@ -10,6 +10,7 @@ import { WorkflowRepository } from "../../workflows/repository.ts";
 import { validateWorkflowDefinition } from "../../workflows/workflow-validation.ts";
 import type {
   CommandDescriptor,
+  CommandDrilldown,
   CommandExecutionContext,
   CommandExecutionResult,
   CommandHandler,
@@ -54,6 +55,10 @@ const runPayloadSchema = z.object({
 
 const stopPayloadSchema = z.object({
   executionId: z.string().trim().min(1).optional(),
+});
+
+const workflowPickPayloadSchema = z.object({
+  workflowId: z.string().trim().min(1),
 });
 
 function resolvePublicUrl(): string {
@@ -153,6 +158,30 @@ function buildFormUrl(workflow: WorkflowItem, services: WorkflowCommandServices)
   return `${services.getPublicUrl().replace(/\/$/, "")}/forms/${formId}`;
 }
 
+// ─── Drilldown helpers ──────────────────────────────────────────────────────
+
+function workflowListDrilldown(
+  context: CommandExecutionContext,
+  title: string,
+): CommandDrilldown {
+  const workflows = workflowServices(context).listWorkflows();
+  return {
+    type: "list",
+    title,
+    commands: workflows.map((wf) => ({
+      id: `_pick.${wf.metadata.id}`,
+      group: "workflow" as const,
+      label: wf.metadata.name,
+      description: wf.metadata.id,
+      keywords: [wf.metadata.id, wf.metadata.name],
+      icon: "workflow",
+      availability: { enabled: true },
+    })),
+  };
+}
+
+// ─── Commands ────────────────────────────────────────────────────────────────
+
 function createWorkflowCommand(): CommandHandler {
   return {
     describe: (): CommandDescriptor => ({
@@ -164,9 +193,37 @@ function createWorkflowCommand(): CommandHandler {
       icon: "plus",
       availability: { enabled: true },
     }),
-    execute: (context) => {
+    execute: () => ({
+      ok: true,
+      drilldown: {
+        type: "input",
+        title: "New workflow name",
+        placeholder: "My awesome workflow…",
+        targetCommandId: "workflow.create.named",
+        payloadKey: "name",
+      },
+    }),
+  };
+}
+
+function createNamedWorkflowCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.create.named",
+      group: "workflow",
+      label: "Create Named Workflow",
+      description: "Internal: creates a workflow with a given name",
+      keywords: [],
+      icon: "plus",
+      availability: { enabled: true, hidden: true },
+    }),
+    execute: (context, payload) => {
+      const { name } = renamePayloadSchema.parse(payload);
       const services = workflowServices(context);
-      const workflow = services.saveWorkflow(createDraftWorkflow());
+      const draft = createDraftWorkflow();
+      const workflow = services.saveWorkflow(
+        withUpdatedWorkflow({ ...draft, metadata: { ...draft.metadata, name } }),
+      );
       services.resyncScheduler();
       return workflowResult("Workflow created", {
         navigation: { path: `/workflows/${workflow.metadata.id}` },
@@ -200,29 +257,409 @@ function importWorkflowCommand(): CommandHandler {
   };
 }
 
-function openWorkflowCommands(context: CommandExecutionContext): CommandHandler[] {
-  return workflowServices(context).listWorkflows().map((workflow) => ({
+// ── Open workflow ─────────────────────────────────────────────────────────────
+
+function openWorkflowCommand(): CommandHandler {
+  return {
     describe: (): CommandDescriptor => ({
-      id: `workflow.open.${workflow.metadata.id}`,
+      id: "workflow.open",
       group: "workflow",
-      label: `Open ${workflow.metadata.name}`,
-      description: "Open workflow",
-      keywords: [
-        workflow.metadata.id,
-        workflow.metadata.name,
-        workflow.metadata.description ?? "",
-        "open workflow",
-      ],
+      label: "Open Workflow",
+      description: "Choose a workflow to open",
+      keywords: ["open workflow", "switch workflow", "go to workflow"],
       icon: "workflow",
       availability: { enabled: true },
     }),
-    execute: () => ({
+    execute: (context) => ({
       ok: true,
-      message: "Workflow opened",
-      navigation: { path: `/workflows/${workflow.metadata.id}` },
+      drilldown: workflowListDrilldown(context, "Open Workflow"),
     }),
-  }));
+  };
 }
+
+function openWorkflowPickedCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.open.picked",
+      group: "workflow",
+      label: "Open Selected Workflow",
+      keywords: [],
+      icon: "workflow",
+      availability: { enabled: true, hidden: true },
+    }),
+    execute: (_context, payload) => {
+      const { workflowId } = workflowPickPayloadSchema.parse(payload);
+      return { ok: true, message: "Workflow opened", navigation: { path: `/workflows/${workflowId}` } };
+    },
+  };
+}
+
+// ── Delete workflow ───────────────────────────────────────────────────────────
+
+function deleteWorkflowCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.delete",
+      group: "workflow",
+      label: "Delete Workflow",
+      description: "Choose a workflow to delete",
+      keywords: ["remove workflow", "delete"],
+      icon: "trash",
+      destructive: true,
+      availability: { enabled: true },
+    }),
+    execute: (context) => ({
+      ok: true,
+      drilldown: workflowListDrilldown(context, "Delete Workflow"),
+    }),
+  };
+}
+
+function deleteWorkflowPickedCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.delete.picked",
+      group: "workflow",
+      label: "Delete Selected Workflow",
+      keywords: [],
+      icon: "trash",
+      destructive: true,
+      availability: { enabled: true, hidden: true },
+    }),
+    execute: async (context, payload) => {
+      const { workflowId } = workflowPickPayloadSchema.parse(payload);
+      const services = workflowServices(context);
+      const wf = services.getWorkflowById(workflowId);
+      if (!wf) throw new Error("Workflow not found");
+      services.deleteWorkflowExecutions(workflowId);
+      services.deleteWorkflow(workflowId);
+      services.resyncScheduler();
+      await services.deactivateWorkflow(wf);
+      const isActive = context.activeWorkflowId === workflowId;
+      return workflowResult("Workflow deleted", {
+        navigation: isActive ? { path: "/workflows" } : undefined,
+      });
+    },
+  };
+}
+
+// ── Rename workflow ───────────────────────────────────────────────────────────
+
+function renameWorkflowCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.rename",
+      group: "workflow",
+      label: "Rename Workflow",
+      description: "Choose a workflow to rename",
+      keywords: ["rename workflow", "title"],
+      icon: "pencil",
+      availability: { enabled: true },
+    }),
+    execute: (context) => ({
+      ok: true,
+      drilldown: workflowListDrilldown(context, "Rename Workflow"),
+    }),
+  };
+}
+
+/** Internal: after pick → show input for new name, storing workflowId in title */
+function renameWorkflowPickedCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.rename.picked",
+      group: "workflow",
+      label: "Rename Selected Workflow",
+      keywords: [],
+      icon: "pencil",
+      availability: { enabled: true, hidden: true },
+    }),
+    execute: (_context, payload) => {
+      const { workflowId } = workflowPickPayloadSchema.parse(payload);
+      return {
+        ok: true,
+        drilldown: {
+          type: "input",
+          title: "New name",
+          placeholder: "Workflow name…",
+          targetCommandId: "workflow.rename.commit",
+          payloadKey: "name",
+          // Pass workflowId through as part of payload via title context — stored in store
+          // The host will merge `drilldownContext.workflowId` into the payload.
+          // We embed it in targetCommandId as a query param pattern instead:
+          // The frontend host merges `drilldownContext` (set here in extra payload) into next execute call.
+        } as CommandDrilldown,
+        // Signal host to remember workflowId for the next step
+        refreshHints: [`_drilldown_ctx:workflowId=${workflowId}`],
+      };
+    },
+  };
+}
+
+function renameWorkflowCommitCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.rename.commit",
+      group: "workflow",
+      label: "Commit Workflow Rename",
+      keywords: [],
+      icon: "pencil",
+      availability: { enabled: true, hidden: true },
+    }),
+    execute: (context, payload) => {
+      const { name, workflowId } = (payload ?? {}) as { name?: string; workflowId?: string };
+      if (!name?.trim()) throw new Error("Name is required");
+      const id = workflowId || context.activeWorkflowId;
+      if (!id) throw new Error("No workflow selected");
+      const services = workflowServices(context);
+      const wf = services.getWorkflowById(id);
+      if (!wf) throw new Error("Workflow not found");
+      services.saveWorkflow(withUpdatedWorkflow({ ...wf, metadata: { ...wf.metadata, name: name.trim() } }));
+      return workflowResult("Workflow renamed");
+    },
+  };
+}
+
+// ── Publish / Unpublish ───────────────────────────────────────────────────────
+
+function publishWorkflowCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.publish",
+      group: "workflow",
+      label: "Publish Workflow",
+      description: "Choose a workflow to publish",
+      keywords: ["publish", "activate", "production"],
+      icon: "rocket",
+      availability: { enabled: true },
+    }),
+    execute: (context) => ({
+      ok: true,
+      drilldown: workflowListDrilldown(context, "Publish Workflow"),
+    }),
+  };
+}
+
+function publishWorkflowPickedCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.publish.picked",
+      group: "workflow",
+      label: "Publish Selected Workflow",
+      keywords: [],
+      icon: "rocket",
+      availability: { enabled: true, hidden: true },
+    }),
+    execute: async (context, payload) => {
+      const { workflowId } = workflowPickPayloadSchema.parse(payload);
+      const services = workflowServices(context);
+      const wf = services.publishWorkflow(workflowId);
+      if (!wf) throw new Error("Workflow not found");
+      services.resyncScheduler();
+      await services.activateWorkflow(wf);
+      return workflowResult("Workflow published");
+    },
+  };
+}
+
+function unpublishWorkflowCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.unpublish",
+      group: "workflow",
+      label: "Unpublish Workflow",
+      description: "Choose a workflow to unpublish",
+      keywords: ["unpublish", "deactivate"],
+      icon: "pause",
+      availability: { enabled: true },
+    }),
+    execute: (context) => ({
+      ok: true,
+      drilldown: workflowListDrilldown(context, "Unpublish Workflow"),
+    }),
+  };
+}
+
+function unpublishWorkflowPickedCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.unpublish.picked",
+      group: "workflow",
+      label: "Unpublish Selected Workflow",
+      keywords: [],
+      icon: "pause",
+      availability: { enabled: true, hidden: true },
+    }),
+    execute: async (context, payload) => {
+      const { workflowId } = workflowPickPayloadSchema.parse(payload);
+      const services = workflowServices(context);
+      const before = services.getWorkflowById(workflowId);
+      const wf = services.unpublishWorkflow(workflowId);
+      if (!wf) throw new Error("Workflow not found");
+      services.resyncScheduler();
+      if (before) await services.deactivateWorkflow(before);
+      return workflowResult("Workflow unpublished");
+    },
+  };
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+
+function exportWorkflowCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.export",
+      group: "workflow",
+      label: "Export Workflow",
+      description: "Choose a workflow to export as JSON",
+      keywords: ["export workflow", "json", "download"],
+      icon: "download",
+      availability: { enabled: true },
+    }),
+    execute: (context) => ({
+      ok: true,
+      drilldown: workflowListDrilldown(context, "Export Workflow"),
+    }),
+  };
+}
+
+function exportWorkflowPickedCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.export.picked",
+      group: "workflow",
+      label: "Export Selected Workflow",
+      keywords: [],
+      icon: "download",
+      availability: { enabled: true, hidden: true },
+    }),
+    execute: (context, payload) => {
+      const { workflowId } = workflowPickPayloadSchema.parse(payload);
+      const wf = workflowServices(context).getWorkflowById(workflowId);
+      if (!wf) throw new Error("Workflow not found");
+      return workflowResult("Workflow exported", { clipboardText: JSON.stringify(wf, null, 2) });
+    },
+  };
+}
+
+// ── Logs ──────────────────────────────────────────────────────────────────────
+
+function openWorkflowLogsCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.logs.open",
+      group: "workflow",
+      label: "Open Workflow Logs",
+      description: "Choose a workflow to view its execution logs",
+      keywords: ["workflow logs", "executions", "history"],
+      icon: "scroll-text",
+      availability: { enabled: true },
+    }),
+    execute: (context) => ({
+      ok: true,
+      drilldown: workflowListDrilldown(context, "Open Workflow Logs"),
+    }),
+  };
+}
+
+function openWorkflowLogsPickedCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.logs.open.picked",
+      group: "workflow",
+      label: "Open Logs for Selected Workflow",
+      keywords: [],
+      icon: "scroll-text",
+      availability: { enabled: true, hidden: true },
+    }),
+    execute: (_context, payload) => {
+      const { workflowId } = workflowPickPayloadSchema.parse(payload);
+      return {
+        ok: true,
+        message: "Workflow logs opened",
+        uiIntent: { type: "workflow-logs.open", target: workflowId },
+      };
+    },
+  };
+}
+
+// ── Run / Stop ────────────────────────────────────────────────────────────────
+
+function runWorkflowCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.run",
+      group: "workflow",
+      label: "Run Workflow",
+      description: "Choose a workflow to run",
+      keywords: ["execute workflow", "test", "run", "trigger"],
+      icon: "play",
+      availability: { enabled: true },
+    }),
+    execute: (context) => ({
+      ok: true,
+      drilldown: workflowListDrilldown(context, "Run Workflow"),
+    }),
+  };
+}
+
+function runWorkflowPickedCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "workflow.run.picked",
+      group: "workflow",
+      label: "Run Selected Workflow",
+      keywords: [],
+      icon: "play",
+      payloadSchema: runPayloadSchema.extend({ workflowId: z.string().min(1) }),
+      availability: { enabled: true, hidden: true },
+    }),
+    execute: async (context, payload) => {
+      const { workflowId, triggerPayload, executionId } = (payload ?? {}) as {
+        workflowId: string;
+        triggerPayload?: Record<string, unknown>;
+        executionId?: string;
+      };
+      const services = workflowServices(context);
+      const wf = services.getWorkflowById(workflowId);
+      if (!wf) throw new Error("Workflow not found");
+      const execId = executionId ?? `exec_cmd_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      await services.executeWorkflow(wf, triggerPayload ?? {}, execId);
+      return workflowResult("Workflow run started", {
+        uiIntent: { type: "workflow.execution.open", payload: { executionId: execId } },
+      });
+    },
+  };
+}
+
+function stopWorkflowCommand(): CommandHandler {
+  return {
+    describe: (context): CommandDescriptor => ({
+      id: "workflow.stop",
+      group: "workflow",
+      label: "Stop Running Workflow",
+      description: "Request cancellation for the active execution",
+      keywords: ["cancel execution", "stop workflow"],
+      icon: "square",
+      payloadSchema: stopPayloadSchema,
+      availability:
+        context.activeExecutionId || context.activeWorkflowId
+          ? { enabled: true }
+          : { enabled: false, reason: "No active execution" },
+    }),
+    execute: (context, payload) => {
+      const { executionId } = payload as z.infer<typeof stopPayloadSchema>;
+      const targetExecutionId = executionId || context.activeExecutionId;
+      if (!targetExecutionId) throw new Error("No execution id supplied");
+      workflowServices(context).cancelExecution(targetExecutionId);
+      return workflowResult("Workflow stop requested", {
+        refreshHints: ["executions"],
+      });
+    },
+  };
+}
+
+// ── Active-workflow commands (still useful when already in editor) ─────────────
 
 function activeWorkflowCommands(): CommandHandler[] {
   return [
@@ -250,159 +687,6 @@ function activeWorkflowCommands(): CommandHandler[] {
     },
     {
       describe: (context): CommandDescriptor => ({
-        id: "workflow.rename-active",
-        group: "workflow",
-        label: "Rename Active Workflow",
-        description: "Rename the active workflow",
-        keywords: ["rename workflow", "title"],
-        icon: "pencil",
-        payloadSchema: renamePayloadSchema,
-        availability: activeAvailability(context),
-      }),
-      execute: (context, payload) => {
-        const workflow = activeWorkflow(context);
-        if (!workflow) throw new Error("Active workflow not found");
-        const { name } = payload as z.infer<typeof renamePayloadSchema>;
-        const updated = withUpdatedWorkflow({
-          ...workflow,
-          metadata: { ...workflow.metadata, name },
-        });
-        workflowServices(context).saveWorkflow(updated);
-        return workflowResult("Workflow renamed");
-      },
-    },
-    {
-      describe: (context): CommandDescriptor => ({
-        id: "workflow.delete-active",
-        group: "workflow",
-        label: "Delete Active Workflow",
-        description: "Delete the active workflow and its executions",
-        keywords: ["remove workflow", "delete"],
-        icon: "trash",
-        destructive: true,
-        availability: activeAvailability(context),
-      }),
-      execute: async (context) => {
-        const workflow = activeWorkflow(context);
-        if (!workflow || !context.activeWorkflowId) throw new Error("Active workflow not found");
-        const services = workflowServices(context);
-        services.deleteWorkflowExecutions(context.activeWorkflowId);
-        services.deleteWorkflow(context.activeWorkflowId);
-        services.resyncScheduler();
-        await services.deactivateWorkflow(workflow);
-        return workflowResult("Workflow deleted", {
-          navigation: { path: "/workflows" },
-        });
-      },
-    },
-    {
-      describe: (context): CommandDescriptor => ({
-        id: "workflow.publish-active",
-        group: "workflow",
-        label: "Publish Active Workflow",
-        description: "Publish active workflow to production",
-        keywords: ["production", "publish", "activate"],
-        icon: "rocket",
-        availability: activeAvailability(context),
-      }),
-      execute: async (context) => {
-        if (!context.activeWorkflowId) throw new Error("No active workflow");
-        const services = workflowServices(context);
-        const workflow = services.publishWorkflow(context.activeWorkflowId);
-        if (!workflow) throw new Error("Active workflow not found");
-        services.resyncScheduler();
-        await services.activateWorkflow(workflow);
-        return workflowResult("Workflow published");
-      },
-    },
-    {
-      describe: (context): CommandDescriptor => ({
-        id: "workflow.unpublish-active",
-        group: "workflow",
-        label: "Unpublish Active Workflow",
-        description: "Remove active workflow from production",
-        keywords: ["production", "unpublish", "deactivate"],
-        icon: "pause",
-        availability: activeAvailability(context),
-      }),
-      execute: async (context) => {
-        if (!context.activeWorkflowId) throw new Error("No active workflow");
-        const services = workflowServices(context);
-        const before = services.getWorkflowById(context.activeWorkflowId);
-        const workflow = services.unpublishWorkflow(context.activeWorkflowId);
-        if (!workflow) throw new Error("Active workflow not found");
-        services.resyncScheduler();
-        if (before) await services.deactivateWorkflow(before);
-        return workflowResult("Workflow unpublished");
-      },
-    },
-    {
-      describe: (context): CommandDescriptor => ({
-        id: "workflow.export-active",
-        group: "workflow",
-        label: "Export Active Workflow",
-        description: "Copy serialized active workflow data",
-        keywords: ["export workflow", "json", "download"],
-        icon: "download",
-        availability: activeAvailability(context),
-      }),
-      execute: (context) => {
-        const workflow = activeWorkflow(context);
-        if (!workflow) throw new Error("Active workflow not found");
-        return workflowResult("Workflow exported", {
-          clipboardText: JSON.stringify(workflow, null, 2),
-        });
-      },
-    },
-    {
-      describe: (context): CommandDescriptor => ({
-        id: "workflow.run-active",
-        group: "workflow",
-        label: "Run Active Workflow",
-        description: "Run the active workflow",
-        keywords: ["execute workflow", "test", "run"],
-        icon: "play",
-        payloadSchema: runPayloadSchema,
-        availability: activeAvailability(context),
-      }),
-      execute: async (context, payload) => {
-        const workflow = activeWorkflow(context);
-        if (!workflow) throw new Error("Active workflow not found");
-        const { triggerPayload, executionId } = payload as z.infer<typeof runPayloadSchema>;
-        const execId =
-          executionId ?? `exec_cmd_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-        await workflowServices(context).executeWorkflow(workflow, triggerPayload ?? {}, execId);
-        return workflowResult("Workflow run started", {
-          uiIntent: { type: "workflow.execution.open", payload: { executionId: execId } },
-        });
-      },
-    },
-    {
-      describe: (context): CommandDescriptor => ({
-        id: "workflow.stop-running",
-        group: "workflow",
-        label: "Stop Running Workflow",
-        description: "Request cancellation for the active execution",
-        keywords: ["cancel execution", "stop workflow"],
-        icon: "square",
-        payloadSchema: stopPayloadSchema,
-        availability:
-          context.activeExecutionId || context.activeWorkflowId
-            ? { enabled: true }
-            : { enabled: false, reason: "No active execution" },
-      }),
-      execute: (context, payload) => {
-        const { executionId } = payload as z.infer<typeof stopPayloadSchema>;
-        const targetExecutionId = executionId || context.activeExecutionId;
-        if (!targetExecutionId) throw new Error("No execution id supplied");
-        workflowServices(context).cancelExecution(targetExecutionId);
-        return workflowResult("Workflow stop requested", {
-          refreshHints: ["executions"],
-        });
-      },
-    },
-    {
-      describe: (context): CommandDescriptor => ({
         id: "workflow.settings.open",
         group: "workflow",
         label: "Open Workflow Settings",
@@ -413,20 +697,6 @@ function activeWorkflowCommands(): CommandHandler[] {
       }),
       execute: () => workflowResult("Workflow settings opened", {
         uiIntent: { type: "workflow-settings.open" },
-      }),
-    },
-    {
-      describe: (context): CommandDescriptor => ({
-        id: "workflow.logs.open",
-        group: "workflow",
-        label: "Open Workflow Logs",
-        description: "Open the active workflow logs panel",
-        keywords: ["workflow logs", "executions", "history"],
-        icon: "scroll-text",
-        availability: activeAvailability(context),
-      }),
-      execute: () => workflowResult("Workflow logs opened", {
-        uiIntent: { type: "workflow-logs.open" },
       }),
     },
     {
@@ -483,12 +753,28 @@ function activeWorkflowCommands(): CommandHandler[] {
 export const workflowsCommandProvider: CommandProvider = {
   id: "workflows",
   order: 30,
-  commands: (context: CommandExecutionContext) => {
-    return [
-      createWorkflowCommand(),
-      importWorkflowCommand(),
-      ...activeWorkflowCommands(),
-      ...openWorkflowCommands(context),
-    ];
-  },
+  commands: (_context: CommandExecutionContext) => [
+    createWorkflowCommand(),
+    createNamedWorkflowCommand(),
+    importWorkflowCommand(),
+    openWorkflowCommand(),
+    openWorkflowPickedCommand(),
+    deleteWorkflowCommand(),
+    deleteWorkflowPickedCommand(),
+    renameWorkflowCommand(),
+    renameWorkflowPickedCommand(),
+    renameWorkflowCommitCommand(),
+    publishWorkflowCommand(),
+    publishWorkflowPickedCommand(),
+    unpublishWorkflowCommand(),
+    unpublishWorkflowPickedCommand(),
+    exportWorkflowCommand(),
+    exportWorkflowPickedCommand(),
+    openWorkflowLogsCommand(),
+    openWorkflowLogsPickedCommand(),
+    runWorkflowCommand(),
+    runWorkflowPickedCommand(),
+    stopWorkflowCommand(),
+    ...activeWorkflowCommands(),
+  ],
 };

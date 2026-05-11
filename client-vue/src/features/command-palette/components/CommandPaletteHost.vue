@@ -10,6 +10,7 @@ import { useExecutionStore } from '@/features/workflow-editor/stores/execution.s
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
 import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
+import { useTheme } from '@/shared/composables/useTheme'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { useToast } from '@/shared/composables/useToast'
 import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/ProductionMonitorPanel.vue'
@@ -23,12 +24,16 @@ const executionStore = useExecutionStore()
 const appUiStore = useAppUiStore()
 const sidebarStore = useSidebarPanelStore()
 const settingsStore = useSettingsStore()
+const { toggle: toggleTheme } = useTheme()
 const { confirm } = useConfirm()
 const toast = useToast()
 const searchInput = ref<{ focus: () => void } | null>(null)
+const drilldownInput = ref<HTMLInputElement | null>(null)
 const dialogRef = ref<HTMLElement | null>(null)
+const drilldownInputValue = ref('')
 
 const activeDescendant = computed(() => {
+  if (palette.isInDrilldown && palette.drilldownInput) return undefined
   if (palette.visibleCommands.length === 0) return undefined
   return `cp-row-${palette.highlightedIndex}`
 })
@@ -45,7 +50,7 @@ let queryTimer: number | undefined
 watch(
   () => palette.query,
   () => {
-    if (!palette.isOpen) return
+    if (!palette.isOpen || palette.isInDrilldown) return
     window.clearTimeout(queryTimer)
     queryTimer = window.setTimeout(() => {
       void palette.refresh()
@@ -59,6 +64,27 @@ watch(
     if (!open) return
     await nextTick()
     searchInput.value?.focus()
+  },
+)
+
+// When entering a drilldown input, focus the text field
+watch(
+  () => palette.drilldownInput,
+  async (input) => {
+    if (!input) return
+    drilldownInputValue.value = ''
+    await nextTick()
+    drilldownInput.value?.focus()
+  },
+)
+
+// Scroll active row into view on highlight change
+watch(
+  () => palette.highlightedIndex,
+  async (index) => {
+    await nextTick()
+    const el = document.getElementById(`cp-row-${index}`)
+    el?.scrollIntoView({ block: 'nearest' })
   },
 )
 
@@ -83,7 +109,11 @@ function onGlobalKeydown(event: KeyboardEvent) {
 function onDialogKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     event.preventDefault()
-    palette.close()
+    if (palette.isInDrilldown) {
+      palette.exitDrilldown()
+    } else {
+      palette.close()
+    }
     return
   }
   if (event.key === 'Tab') {
@@ -91,36 +121,60 @@ function onDialogKeydown(event: KeyboardEvent) {
     event.preventDefault()
     return
   }
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
-    palette.moveHighlight(1)
-    return
+
+  // Arrow navigation only in list mode (not in drilldown input)
+  if (!palette.drilldownInput) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      palette.moveHighlight(1)
+      return
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      palette.moveHighlight(-1)
+      return
+    }
+    if (event.key === 'Home') {
+      event.preventDefault()
+      palette.setHighlight(0)
+      return
+    }
+    if (event.key === 'End') {
+      event.preventDefault()
+      palette.setHighlight(palette.visibleCommands.length - 1)
+      return
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      selectCommand(palette.highlightedCommand)
+    }
   }
-  if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    palette.moveHighlight(-1)
-    return
+}
+
+async function commitDrilldownInput() {
+  const input = palette.drilldownInput
+  if (!input || !drilldownInputValue.value.trim()) return
+
+  const payload = { [input.payloadKey]: drilldownInputValue.value.trim() }
+  const fakeCommand: CommandDescriptor = {
+    id: input.targetCommandId,
+    group: 'workflow',
+    label: input.title,
+    availability: { enabled: true },
   }
-  if (event.key === 'Home') {
-    event.preventDefault()
-    palette.setHighlight(0)
-    return
-  }
-  if (event.key === 'End') {
-    event.preventDefault()
-    palette.setHighlight(palette.visibleCommands.length - 1)
-    return
-  }
-  if (event.key === 'Enter') {
-    event.preventDefault()
-    selectCommand(palette.highlightedCommand)
-  }
+  await handleExecuteResult(fakeCommand, payload)
 }
 
 async function selectCommand(command: CommandDescriptor | null) {
   if (!command || !command.availability.enabled) return
   if (palette.isExecuting) return
+  await handleExecuteResult(command, {})
+}
 
+async function handleExecuteResult(
+  command: CommandDescriptor,
+  extraPayload: Record<string, unknown>,
+) {
   if (command.destructive) {
     const ok = await confirm({
       title: command.label,
@@ -131,12 +185,40 @@ async function selectCommand(command: CommandDescriptor | null) {
     if (ok !== true) return
   }
 
-  const result = await palette.execute(command)
+  // When in drilldown list mode, map the picked command id to its parent's ".picked" variant
+  const isPickCommand = palette.isInDrilldown && palette.drilldownList && command.id.startsWith('_pick.')
+  let targetCommand = command
+  let targetPayload = extraPayload
+
+  if (isPickCommand) {
+    const workflowId = command.id.slice('_pick.'.length)
+    // Find the parent command's ".picked" equivalent
+    const parentTitle = palette.drilldownTitle ?? ''
+    const pickedCommandId = resolvePrimaryPickedCommandId(parentTitle)
+    if (!pickedCommandId) {
+      toast.error('Unknown drilldown action')
+      return
+    }
+    targetCommand = {
+      id: pickedCommandId,
+      group: 'workflow',
+      label: command.label,
+      availability: { enabled: true },
+    }
+    targetPayload = { workflowId }
+  }
+
+  const result = await palette.execute(targetCommand, targetPayload)
+
   if (!result) {
     if (palette.error) toast.error(palette.error, 'Command failed')
     return
   }
 
+  // Drilldown result — palette stays open, store already updated
+  if (result.drilldown) return
+
+  // Normal result handling
   if (result.navigation) {
     if (result.navigation.path === '/settings') {
       settingsStore.open()
@@ -161,12 +243,33 @@ async function selectCommand(command: CommandDescriptor | null) {
     toast.success(result.message)
   }
 
-  if (result.refreshHints?.length) await palette.refresh()
+  if (result.refreshHints?.some((h) => !h.startsWith('_drilldown_ctx:'))) {
+    await palette.refresh()
+  }
   palette.close()
+}
+
+/** Maps a drilldown title to the ".picked" command id */
+function resolvePrimaryPickedCommandId(title: string): string | null {
+  const map: Record<string, string> = {
+    'Open Workflow': 'workflow.open.picked',
+    'Delete Workflow': 'workflow.delete.picked',
+    'Rename Workflow': 'workflow.rename.picked',
+    'Publish Workflow': 'workflow.publish.picked',
+    'Unpublish Workflow': 'workflow.unpublish.picked',
+    'Export Workflow': 'workflow.export.picked',
+    'Open Workflow Logs': 'workflow.logs.open.picked',
+    'Run Workflow': 'workflow.run.picked',
+  }
+  return map[title] ?? null
 }
 
 function applyUiIntent(intent: { type: string; target?: string; payload?: Record<string, unknown> }) {
   const { type } = intent
+  if (type === 'theme.toggle') {
+    toggleTheme()
+    return
+  }
   if (type === 'settings.open') settingsStore.open()
   if (type === 'production-panel.open') {
     sidebarStore.openPanel({
@@ -178,7 +281,11 @@ function applyUiIntent(intent: { type: string; target?: string; payload?: Record
   if (type === 'production-panel.close') sidebarStore.closePanel()
   if (type === 'universe.enter') appUiStore.enterUniverseMode()
   if (type === 'universe.exit') appUiStore.quitUniverseMode()
-  if (type === 'plugin.open' || type === 'plugin.oauth.open' || type === 'plugin.credentials.open') {
+  if (type === 'plugin.open') {
+    // Navigate to Universe and dispatch event for the Universe to focus the plugin
+    window.dispatchEvent(new CustomEvent('nod8:command-palette:intent', { detail: intent }))
+  }
+  if (type === 'plugin.oauth.open' || type === 'plugin.credentials.open') {
     window.dispatchEvent(new CustomEvent('nod8:command-palette:intent', { detail: intent }))
   }
   if (type === 'workflow-settings.open' || type === 'workflow-logs.open') {
@@ -203,14 +310,41 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
           @keydown="onDialogKeydown"
         >
           <span id="cp-dialog-title" class="sr-only">Command palette</span>
+
+          <!-- Drilldown breadcrumb header -->
+          <div v-if="palette.isInDrilldown" class="cp-breadcrumb">
+            <button class="cp-breadcrumb__back" type="button" @click="palette.exitDrilldown">
+              ← Back
+            </button>
+            <span class="cp-breadcrumb__title">{{ palette.drilldownTitle }}</span>
+          </div>
+
+          <!-- Drilldown input step -->
+          <div v-if="palette.drilldownInput" class="cp-drilldown-input">
+            <input
+              ref="drilldownInput"
+              class="cp-search__input cp-drilldown-input__field"
+              v-model="drilldownInputValue"
+              type="text"
+              :placeholder="palette.drilldownInput.placeholder"
+              aria-label="Input for command"
+              @keydown.enter.prevent="commitDrilldownInput"
+            />
+          </div>
+
+          <!-- Normal search (hidden in drilldown input step) -->
           <CommandPaletteSearchInput
+            v-else
             ref="searchInput"
             :model-value="palette.query"
             :loading="palette.isLoading"
             :active-descendant="activeDescendant"
             @update:model-value="palette.setQuery"
           />
+
+          <!-- Result list (list drilldown or root commands) -->
           <CommandPaletteResultList
+            v-if="!palette.drilldownInput"
             :commands="palette.visibleCommands"
             :highlighted-index="palette.highlightedIndex"
             :loading="palette.isLoading"
@@ -218,7 +352,8 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
             @highlight="palette.setHighlight"
             @select="selectCommand"
           />
-          <CommandPaletteFooterHints />
+
+          <CommandPaletteFooterHints :in-drilldown-input="!!palette.drilldownInput" />
         </section>
       </div>
     </Transition>

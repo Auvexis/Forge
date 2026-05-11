@@ -38,7 +38,7 @@ function buildExecutor(context: CommandExecutionContext) {
 }
 
 describe("workflows command provider", () => {
-  it("indexes workflow names and ids as open commands", async () => {
+  it("indexes workflow commands and resolves drilldowns for selection", async () => {
     const context: CommandExecutionContext = {
       services: {
         workflows: {
@@ -46,19 +46,23 @@ describe("workflows command provider", () => {
         },
       },
     };
-    const { registry } = buildExecutor(context);
+    const { registry, executor } = buildExecutor(context);
 
     const commands = await registry.list(context);
+    
+    // open workflow command exists
+    assert.ok(commands.some((command) => command.id === "workflow.open"));
 
-    assert.ok(commands.some((command) => command.id === "workflow.open.wf_alpha"));
-    assert.ok(
-      commands
-        .find((command) => command.id === "workflow.open.wf_alpha")
-        ?.keywords?.includes("alpha flow"),
-    );
+    // executing it returns a drilldown list with the workflows
+    const result = await executor.execute("workflow.open", context, {});
+    assert.equal(result.drilldown?.type, "list");
+    assert.equal(result.drilldown?.title, "Open Workflow");
+    if (result.drilldown?.type === "list") {
+      assert.ok(result.drilldown.commands.some((c) => c.id === "_pick.wf_alpha"));
+    }
   });
 
-  it("renames the active workflow from a validated payload", async () => {
+  it("renames the active workflow via commit command from a validated payload", async () => {
     const saved: WorkflowItem[] = [];
     const context: CommandExecutionContext = {
       activeWorkflowId: "wf_alpha",
@@ -74,7 +78,8 @@ describe("workflows command provider", () => {
     };
     const { executor } = buildExecutor(context);
 
-    const result = await executor.execute("workflow.rename-active", context, { name: "Renamed" });
+    // After drilldown selection, the payload holds the target name
+    const result = await executor.execute("workflow.rename.commit", context, { name: "Renamed", workflowId: "wf_alpha" });
 
     assert.equal(result.ok, true);
     assert.equal(saved[0]?.metadata.name, "Renamed");
@@ -93,7 +98,7 @@ describe("workflows command provider", () => {
     const { registry } = buildExecutor(context);
 
     const command = (await registry.list(context)).find(
-      (descriptor) => descriptor.id === "workflow.delete-active",
+      (descriptor) => descriptor.id === "workflow.delete",
     );
 
     assert.equal(command?.destructive, true);
@@ -117,8 +122,8 @@ describe("workflows command provider", () => {
     };
     const { executor } = buildExecutor(context);
 
-    const run = await executor.execute("workflow.run-active", context, {});
-    const stop = await executor.execute("workflow.stop-running", context, {});
+    const run = await executor.execute("workflow.run.picked", context, { workflowId: "wf_alpha" });
+    const stop = await executor.execute("workflow.stop", context, {});
 
     assert.equal(run.ok, true);
     assert.equal(stop.ok, true);
