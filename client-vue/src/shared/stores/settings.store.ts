@@ -143,12 +143,26 @@ export const useSettingsStore = defineStore('settings', () => {
     delete credentials.value[pluginId]
   }
 
+  // ── Navigation ────────────────────────────────────────────────────────────
+
+  const activeTab = ref<string>('preferences')
+  const targetPluginId = ref<string | null>(null)
+
+  function openCredentialsFor(pluginId: string) {
+    activeTab.value = 'credentials'
+    targetPluginId.value = pluginId
+    isOpen.value = true
+  }
+
   return {
     // Panel state
     isOpen,
     open,
     close,
     toggle,
+    activeTab,
+    targetPluginId,
+    openCredentialsFor,
     // Variables
     variables,
     isLoadingVariables,

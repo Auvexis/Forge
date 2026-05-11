@@ -310,6 +310,9 @@ function applyUiIntent(intent: { type: string; target?: string; payload?: Record
     }
   }
   if (type === 'plugin.oauth.open' || type === 'plugin.credentials.open') {
+    if (intent.target) {
+      settingsStore.openCredentialsFor(intent.target)
+    }
     window.dispatchEvent(new CustomEvent('nod8:command-palette:intent', { detail: intent }))
   }
   if (type === 'workflow-settings.open' || type === 'workflow-logs.open') {

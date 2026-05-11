@@ -521,7 +521,10 @@ const tabs = [
 ] as const
 
 type TabId = (typeof tabs)[number]['id']
-const activeTab = ref<TabId>('preferences')
+const activeTab = computed({
+  get: () => store.activeTab as TabId,
+  set: (val) => { store.activeTab = val }
+})
 
 // ─── Load data when opened ────────────────────────────────────────────────────
 
@@ -620,6 +623,12 @@ async function loadPlugins() {
     plugins.value = list ?? []
     for (const p of authPlugins.value) {
       await store.fetchCredential(p.id)
+    }
+    
+    if (store.targetPluginId) {
+      const target = plugins.value.find((p: any) => p.id === store.targetPluginId)
+      if (target) openPluginMenu(target)
+      store.targetPluginId = null
     }
   } catch {
     // ignore
