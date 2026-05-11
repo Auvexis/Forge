@@ -32,16 +32,6 @@ const confirmRef = ref<HTMLElement | null>(null)
 const drilldownInputValue = ref('')
 const confirmingAction = ref<{ command: CommandDescriptor; payload: Record<string, unknown> } | null>(null)
 
-watch(confirmingAction, async (val) => {
-  if (val) {
-    await nextTick()
-    confirmRef.value?.focus()
-  } else if (palette.isOpen && !palette.drilldownInput) {
-    await nextTick()
-    searchInput.value?.focus()
-  }
-})
-
 const activeDescendant = computed(() => {
   if (palette.isInDrilldown && palette.drilldownInput) return undefined
   if (palette.visibleCommands.length === 0) return undefined
@@ -69,25 +59,29 @@ watch(
 )
 
 watch(
-  () => palette.isOpen,
-  async (open) => {
-    if (!open) {
-      confirmingAction.value = null
-      return
-    }
-    await nextTick()
-    searchInput.value?.focus()
+  () => palette.drilldownInput,
+  (input) => {
+    if (input) drilldownInputValue.value = ''
   },
 )
 
-// When entering a drilldown input, focus the text field
 watch(
-  () => palette.drilldownInput,
-  async (input) => {
-    if (!input) return
-    drilldownInputValue.value = ''
+  [() => palette.isOpen, () => palette.drilldownInput, () => confirmingAction.value, () => palette.isInDrilldown],
+  async ([isOpen, isDrilldownInput, isConfirming]) => {
+    if (!isOpen) {
+      confirmingAction.value = null
+      return
+    }
+    
     await nextTick()
-    drilldownInput.value?.focus()
+    
+    if (isConfirming) {
+      confirmRef.value?.focus()
+    } else if (isDrilldownInput) {
+      drilldownInput.value?.focus()
+    } else {
+      searchInput.value?.focus()
+    }
   },
 )
 
