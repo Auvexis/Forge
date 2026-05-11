@@ -4,6 +4,8 @@ import type { UniversePluginNode } from '../types/universe.types'
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CUBE_SIZE    = 0.45
+const ARTIFACT_RADIUS = CUBE_SIZE * 0.72
+const ARTIFACT_DEPTH = CUBE_SIZE * 0.24
 const VISIBLE_DIST = 28
 const NEAR_DIST    = 5
 
@@ -23,7 +25,9 @@ const STAGGER_INTERVAL_MS = 1400
 interface PluginNodeObject {
   node:          UniversePluginNode
   root:          THREE.Group
-  cube:          THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial[]>
+  cube:          THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial[]>
+  logoPlanes:    THREE.Group | null
+  logoMaterial:  THREE.MeshBasicMaterial | null
   glow:          THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>
   dot:           THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
   hitbox:        THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial>  // invisible large click target
@@ -94,67 +98,101 @@ function colorToRgba(hex: string, alpha: number): string {
   return `rgba(${(c.r * 255) | 0},${(c.g * 255) | 0},${(c.b * 255) | 0},${alpha})`
 }
 
+function octagonPath(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number) {
+  ctx.beginPath()
+  for (let i = 0; i < 8; i += 1) {
+    const angle = Math.PI / 8 + (i / 8) * Math.PI * 2
+    const x = cx + Math.cos(angle) * radius
+    const y = cy + Math.sin(angle) * radius
+    if (i === 0) ctx.moveTo(x, y)
+    else ctx.lineTo(x, y)
+  }
+  ctx.closePath()
+}
+
+function getInitials(label: string): string {
+  const parts = label
+    .split(/[\s._-]+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+
+  return (parts.length > 1 ? `${parts[0]![0]}${parts[1]![0]}` : label.slice(0, 2)).toUpperCase()
+}
+
+function drawFallbackLogo(ctx: CanvasRenderingContext2D, node: UniversePluginNode) {
+  ctx.save()
+  ctx.strokeStyle = colorToRgba(node.color, 0.92)
+  ctx.fillStyle = colorToRgba(node.color, 0.16)
+  ctx.lineWidth = 5
+
+  ctx.beginPath()
+  ctx.moveTo(128, 58)
+  ctx.lineTo(188, 128)
+  ctx.lineTo(128, 198)
+  ctx.lineTo(68, 128)
+  ctx.closePath()
+  ctx.fill()
+  ctx.stroke()
+
+  ctx.fillStyle = 'rgba(247, 250, 255, 0.96)'
+  ctx.shadowColor = colorToRgba(node.color, 0.55)
+  ctx.shadowBlur = 18
+  ctx.font = '700 54px Inter, system-ui, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(getInitials(node.label), 128, 130)
+  ctx.restore()
+}
+
 function buildFaceTexture(node: UniversePluginNode): THREE.CanvasTexture {
   const SIZE = 256
   const canvas = document.createElement('canvas')
   canvas.width = canvas.height = SIZE
   const ctx = canvas.getContext('2d')!
 
-  ctx.fillStyle = '#060810'
-  ctx.fillRect(0, 0, SIZE, SIZE)
-
   const glow = ctx.createRadialGradient(128, 128, 10, 128, 128, 128)
-  glow.addColorStop(0.0, colorToRgba(node.color, 0.55))
-  glow.addColorStop(0.5, colorToRgba(node.color, 0.18))
+  glow.addColorStop(0.0, colorToRgba(node.color, 0.28))
+  glow.addColorStop(0.48, colorToRgba(node.color, 0.1))
   glow.addColorStop(1.0, 'rgba(0,0,0,0)')
-  ctx.fillStyle = glow
-  ctx.fillRect(0, 0, SIZE, SIZE)
 
-  ctx.strokeStyle = colorToRgba(node.color, 0.9)
-  ctx.lineWidth = 6
-  ctx.strokeRect(6, 6, SIZE - 12, SIZE - 12)
+  const drawBase = () => {
+    ctx.clearRect(0, 0, SIZE, SIZE)
+    ctx.save()
+    octagonPath(ctx, 128, 128, 118)
+    ctx.clip()
 
-  const CORNER = 18
-  ctx.lineWidth = 3
-  ;[
-    [6, 6],
-    [SIZE - 6, 6],
-    [6, SIZE - 6],
-    [SIZE - 6, SIZE - 6],
-  ].forEach(([cx, cy]) => {
+    ctx.fillStyle = 'rgba(2, 5, 14, 0.98)'
+    ctx.fillRect(0, 0, SIZE, SIZE)
+    ctx.fillStyle = glow
+    ctx.fillRect(0, 0, SIZE, SIZE)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.48)'
     ctx.beginPath()
-    ctx.arc(cx!, cy!, CORNER, 0, Math.PI * 2)
-    ctx.strokeStyle = colorToRgba(node.color, 1)
+    ctx.arc(128, 128, 78, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.restore()
+  }
+
+  const drawFrame = () => {
+    octagonPath(ctx, 128, 128, 118)
+    ctx.strokeStyle = colorToRgba(node.color, 0.78)
+    ctx.lineWidth = 8
     ctx.stroke()
-  })
+
+    octagonPath(ctx, 128, 128, 96)
+    ctx.strokeStyle = colorToRgba(node.color, 0.22)
+    ctx.lineWidth = 3
+    ctx.stroke()
+  }
+
+  drawBase()
+  if (node.icon.kind !== 'image') {
+    drawFallbackLogo(ctx, node)
+  }
+  drawFrame()
 
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
   texture.anisotropy = 8
-
-  if (node.icon.kind === 'image') {
-    const src = node.icon.value
-    const canLoad = src.startsWith('/') || src.startsWith('data:') || src.includes('upload.wikimedia.org')
-    if (canLoad) {
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      img.onload = () => {
-        ctx.fillStyle = '#060810'
-        ctx.fillRect(0, 0, SIZE, SIZE)
-        ctx.fillStyle = glow
-        ctx.fillRect(0, 0, SIZE, SIZE)
-        const PAD = 56
-        ctx.globalAlpha = 0.92
-        ctx.drawImage(img, PAD, PAD, SIZE - PAD * 2, SIZE - PAD * 2)
-        ctx.globalAlpha = 1
-        ctx.strokeStyle = colorToRgba(node.color, 0.88)
-        ctx.lineWidth = 6
-        ctx.strokeRect(6, 6, SIZE - 12, SIZE - 12)
-        texture.needsUpdate = true
-      }
-      img.src = src
-    }
-  }
 
   return texture
 }
@@ -178,6 +216,67 @@ function buildGlowTexture(node: UniversePluginNode): THREE.CanvasTexture {
 }
 
 // ─── Per-node factory ─────────────────────────────────────────────────────────
+
+function createLogoPlanes(
+  node: UniversePluginNode,
+): { group: THREE.Group; material: THREE.MeshBasicMaterial } | null {
+  if (node.icon.kind !== 'image') return null
+
+  const material = new THREE.MeshBasicMaterial({
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    blending: THREE.NormalBlending,
+    side: THREE.DoubleSide,
+  })
+  const geometry = new THREE.PlaneGeometry(CUBE_SIZE * 0.54, CUBE_SIZE * 0.54)
+  const group = new THREE.Group()
+  const front = new THREE.Mesh(geometry, material)
+  const back = new THREE.Mesh(geometry.clone(), material)
+  front.position.z = ARTIFACT_DEPTH / 2 + 0.008
+  back.position.z = -ARTIFACT_DEPTH / 2 - 0.008
+  back.rotation.y = Math.PI
+  front.userData.nodeId = node.id
+  back.userData.nodeId = node.id
+  group.add(front, back)
+
+  const containLogoTexture = (texture: THREE.Texture) => {
+    const image = texture.image as HTMLImageElement | ImageBitmap | undefined
+    const width = image?.width ?? 1
+    const height = image?.height ?? 1
+    const aspect = width / height
+
+    front.scale.set(1, 1, 1)
+    back.scale.set(1, 1, 1)
+    if (aspect > 1) {
+      front.scale.y = 1 / aspect
+      back.scale.y = 1 / aspect
+    } else {
+      front.scale.x = aspect
+      back.scale.x = aspect
+    }
+  }
+
+  const loader = new THREE.TextureLoader()
+  loader.setCrossOrigin('anonymous')
+  loader.load(
+    node.icon.value,
+    (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace
+      texture.anisotropy = 8
+      containLogoTexture(texture)
+      material.map = texture
+      material.opacity = 0.98
+      material.needsUpdate = true
+    },
+    undefined,
+    () => {
+      material.opacity = 0
+    },
+  )
+
+  return { group, material }
+}
 
 function createPluginObject(node: UniversePluginNode, worldPos: THREE.Vector3): PluginNodeObject {
   const rng = seededRandom(hash(node.id) ^ 0xdeadbeef)
@@ -206,19 +305,30 @@ function createPluginObject(node: UniversePluginNode, worldPos: THREE.Vector3): 
   const faceTex = buildFaceTexture(node)
   const faceMap = new THREE.MeshBasicMaterial({
     map: faceTex, transparent: true, opacity: 0,
-    depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide,
+    depthWrite: false, blending: THREE.NormalBlending, side: THREE.FrontSide,
   })
   const sideMat = new THREE.MeshBasicMaterial({
     color: node.color, transparent: true, opacity: 0,
     depthWrite: false, blending: THREE.AdditiveBlending,
   })
-  const cubeGeo = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
+  const cubeGeo = new THREE.CylinderGeometry(
+    ARTIFACT_RADIUS,
+    ARTIFACT_RADIUS,
+    ARTIFACT_DEPTH,
+    8,
+    1,
+    false,
+    Math.PI / 8,
+  )
+  cubeGeo.rotateX(Math.PI / 2)
   const cube = new THREE.Mesh(cubeGeo, [
-    sideMat.clone(), sideMat.clone(), sideMat.clone(),
     sideMat.clone(), faceMap, faceMap.clone(),
   ])
   cube.userData.nodeId = node.id
   root.add(cube)
+
+  const logo = createLogoPlanes(node)
+  if (logo) root.add(logo.group)
 
   // ── Glow halo ───────────────────────────────────────────────────────────────
   const glowTex = buildGlowTexture(node)
@@ -292,7 +402,7 @@ function createPluginObject(node: UniversePluginNode, worldPos: THREE.Vector3): 
   )
 
   return {
-    node, root, cube, glow, dot, hitbox,
+    node, root, cube, logoPlanes: logo?.group ?? null, logoMaterial: logo?.material ?? null, glow, dot, hitbox,
     trail, trailPosArr, trailColArr,
     spinVelocity, worldPos,
     orbitAngle, orbitRadius, orbitSpeed, orbitY,
@@ -404,6 +514,9 @@ export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeS
         for (const mat of obj.cube.material) {
           mat.opacity = cubeAlpha * obj.fadeAlpha
         }
+        if (obj.logoMaterial) {
+          obj.logoMaterial.opacity = cubeAlpha > 0 ? obj.fadeAlpha * 0.98 : 0
+        }
 
         // ── Glow ───────────────────────────────────────────────────────────────
         const glowAlpha = isFocused
@@ -435,6 +548,15 @@ export function createPluginNodeSystem(nodes: UniversePluginNode[]): PluginNodeS
       for (const obj of objects) {
         obj.cube.geometry.dispose()
         for (const m of obj.cube.material) { m.map?.dispose(); m.dispose() }
+        if (obj.logoPlanes && obj.logoMaterial) {
+          for (const child of obj.logoPlanes.children) {
+            if (child instanceof THREE.Mesh) {
+              child.geometry.dispose()
+            }
+          }
+          obj.logoMaterial.map?.dispose()
+          obj.logoMaterial.dispose()
+        }
         obj.glow.geometry.dispose()
         obj.glow.material.map?.dispose()
         obj.glow.material.dispose()

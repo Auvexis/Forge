@@ -6,54 +6,64 @@
 
   <AppShell v-else>
     <!-- Use the AppSidebar in the sidebar slot -->
-    <template v-if="!appUiStore.isUniverseMode" #sidebar>
-      <AppSidebar>
-        <!-- Navigation Links -->
-        <router-link to="/universe" class="nav-link" active-class="nav-link--active" title="Universe">
-          <LucideIcon name="orbit" :size="16" />
-        </router-link>
+    <template #sidebar>
+      <Transition name="app-sidebar-universe">
+        <div v-if="!appUiStore.isUniverseMode" class="app-sidebar-transition-frame">
+          <AppSidebar>
+            <!-- Navigation Links -->
+            <router-link
+              to="/universe"
+              class="nav-link"
+              active-class="nav-link--active"
+              title="Universe"
+              @click="appUiStore.enterUniverseMode()"
+            >
+              <LucideIcon name="orbit" :size="16" />
+            </router-link>
 
-        <router-link
-          to="/workflows"
-          class="nav-link"
-          :class="{ 'nav-link--active': route.path.startsWith('/workflows') }"
-          title="Workflows"
-        >
-          <LucideIcon name="workflow" :size="16" />
-        </router-link>
+            <router-link
+              to="/workflows"
+              class="nav-link"
+              :class="{ 'nav-link--active': route.path.startsWith('/workflows') }"
+              title="Workflows"
+            >
+              <LucideIcon name="workflow" :size="16" />
+            </router-link>
 
-        <!-- Production Monitor -->
-        <button
-          class="nav-link"
-          :class="{ 'nav-link--active': isMonitorOpen }"
-          title="Production Monitor"
-          @click="toggleMonitor"
-        >
-          <LucideIcon name="activity" :size="16" />
-        </button>
-
-        <!-- Sidebar footer -->
-        <template #footer>
-          <BaseWoobyMenu
-            tag="div"
-            class="sidebar-footer-links"
-            active-selector=".nav-link--active"
-          >
-            <a href="https://docs.nod8.dev" target="_blank" class="nav-link" title="Documentation">
-              <LucideIcon name="book" :size="16" />
-            </a>
+            <!-- Production Monitor -->
             <button
               class="nav-link"
-              :class="{ 'nav-link--active': settingsStore.isOpen }"
-              title="Settings"
-              @click="settingsStore.toggle"
+              :class="{ 'nav-link--active': isMonitorOpen }"
+              title="Production Monitor"
+              @click="toggleMonitor"
             >
-              <LucideIcon name="settings" :size="16" />
+              <LucideIcon name="activity" :size="16" />
             </button>
-          </BaseWoobyMenu>
-        </template>
-      </AppSidebar>
-      <SidebarGlobalPanel />
+
+            <!-- Sidebar footer -->
+            <template #footer>
+              <BaseWoobyMenu
+                tag="div"
+                class="sidebar-footer-links"
+                active-selector=".nav-link--active"
+              >
+                <a href="https://docs.nod8.dev" target="_blank" class="nav-link" title="Documentation">
+                  <LucideIcon name="book" :size="16" />
+                </a>
+                <button
+                  class="nav-link"
+                  :class="{ 'nav-link--active': settingsStore.isOpen }"
+                  title="Settings"
+                  @click="settingsStore.toggle"
+                >
+                  <LucideIcon name="settings" :size="16" />
+                </button>
+              </BaseWoobyMenu>
+            </template>
+          </AppSidebar>
+        </div>
+      </Transition>
+      <SidebarGlobalPanel v-if="!appUiStore.isUniverseMode" />
     </template>
 
     <!-- Main Content Area -->
@@ -103,3 +113,25 @@ function toggleMonitor() {
   })
 }
 </script>
+
+<style scoped>
+.app-sidebar-transition-frame {
+  display: flex;
+  height: 100vh;
+  flex-shrink: 0;
+  will-change: transform, opacity;
+}
+
+.app-sidebar-universe-enter-active,
+.app-sidebar-universe-leave-active {
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 260ms ease;
+}
+
+.app-sidebar-universe-enter-from,
+.app-sidebar-universe-leave-to {
+  opacity: 0;
+  transform: translateX(calc(-1 * var(--nod8-sidebar-width)));
+}
+</style>
