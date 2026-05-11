@@ -1,10 +1,14 @@
 <script setup lang="ts">
-defineProps<{ inDrilldownInput?: boolean }>()
+defineProps<{ inDrilldownInput?: boolean; inConfirm?: boolean }>()
 </script>
 
 <template>
   <footer class="cp-footer">
-    <template v-if="inDrilldownInput">
+    <template v-if="inConfirm">
+      <span class="cp-footer__danger"><kbd>Enter</kbd> Confirm Action</span>
+      <span><kbd>Esc</kbd> Cancel</span>
+    </template>
+    <template v-else-if="inDrilldownInput">
       <span><kbd>Enter</kbd> Confirm</span>
       <span><kbd>Esc</kbd> Back</span>
     </template>

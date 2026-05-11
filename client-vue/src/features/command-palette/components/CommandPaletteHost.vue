@@ -11,7 +11,6 @@ import { useAppUiStore } from '@/shared/stores/app-ui.store'
 import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useTheme } from '@/shared/composables/useTheme'
-import { useConfirm } from '@/shared/composables/useConfirm'
 import { useToast } from '@/shared/composables/useToast'
 import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/ProductionMonitorPanel.vue'
 import type { CommandDescriptor, CommandExecutionContext } from '../types/command-palette.types'
@@ -25,12 +24,12 @@ const appUiStore = useAppUiStore()
 const sidebarStore = useSidebarPanelStore()
 const settingsStore = useSettingsStore()
 const { toggle: toggleTheme } = useTheme()
-const { confirm } = useConfirm()
 const toast = useToast()
 const searchInput = ref<{ focus: () => void } | null>(null)
 const drilldownInput = ref<HTMLInputElement | null>(null)
 const dialogRef = ref<HTMLElement | null>(null)
 const drilldownInputValue = ref('')
+const confirmingAction = ref<{ command: CommandDescriptor; payload: Record<string, unknown> } | null>(null)
 
 const activeDescendant = computed(() => {
   if (palette.isInDrilldown && palette.drilldownInput) return undefined
@@ -61,7 +60,10 @@ watch(
 watch(
   () => palette.isOpen,
   async (open) => {
-    if (!open) return
+    if (!open) {
+      confirmingAction.value = null
+      return
+    }
     await nextTick()
     searchInput.value?.focus()
   },
@@ -109,7 +111,9 @@ function onGlobalKeydown(event: KeyboardEvent) {
 function onDialogKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     event.preventDefault()
-    if (palette.isInDrilldown) {
+    if (confirmingAction.value) {
+      confirmingAction.value = null
+    } else if (palette.isInDrilldown) {
       palette.exitDrilldown()
     } else {
       palette.close()
@@ -120,6 +124,16 @@ function onDialogKeydown(event: KeyboardEvent) {
     // Focus trap: keep focus inside the dialog
     event.preventDefault()
     return
+  }
+
+  if (confirmingAction.value) {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      const action = confirmingAction.value
+      confirmingAction.value = null
+      void handleExecuteResult(action.command, action.payload, true)
+    }
+    return // Prevent arrow navigation while confirming
   }
 
   // Arrow navigation only in list mode (not in drilldown input)
@@ -174,16 +188,14 @@ async function selectCommand(command: CommandDescriptor | null) {
 async function handleExecuteResult(
   command: CommandDescriptor,
   extraPayload: Record<string, unknown>,
+  skipConfirm = false,
 ) {
-  if (command.destructive) {
-    const ok = await confirm({
-      title: command.label,
-      message: command.description ?? 'This action needs confirmation.',
-      confirmText: 'Run',
-      variant: 'danger',
-    })
-    if (ok !== true) return
+  if (command.destructive && !skipConfirm) {
+    confirmingAction.value = { command, payload: extraPayload }
+    return
   }
+
+  confirmingAction.value = null
 
   // When in drilldown list mode, map the picked command id to its parent's ".picked" variant
   const isPickCommand = palette.isInDrilldown && palette.drilldownList && command.id.startsWith('_pick.')
@@ -320,7 +332,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
           </div>
 
           <!-- Drilldown input step -->
-          <div v-if="palette.drilldownInput" class="cp-drilldown-input">
+          <div v-else-if="palette.drilldownInput" class="cp-drilldown-input">
             <input
               ref="drilldownInput"
               class="cp-search__input cp-drilldown-input__field"
@@ -342,9 +354,18 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
             @update:model-value="palette.setQuery"
           />
 
+          <!-- Confirm step -->
+          <div v-if="confirmingAction" class="cp-confirm">
+            <div class="cp-confirm__title">Confirm Action</div>
+            <div class="cp-confirm__message">
+              You are about to execute <strong>{{ confirmingAction.command.label }}</strong>.<br />
+              <span class="cp-confirm__description">{{ confirmingAction.command.description ?? 'This action cannot be undone.' }}</span>
+            </div>
+          </div>
+
           <!-- Result list (list drilldown or root commands) -->
           <CommandPaletteResultList
-            v-if="!palette.drilldownInput"
+            v-else-if="!palette.drilldownInput"
             :commands="palette.visibleCommands"
             :highlighted-index="palette.highlightedIndex"
             :loading="palette.isLoading"
@@ -353,7 +374,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
             @select="selectCommand"
           />
 
-          <CommandPaletteFooterHints :in-drilldown-input="!!palette.drilldownInput" />
+          <CommandPaletteFooterHints :in-drilldown-input="!!palette.drilldownInput" :in-confirm="!!confirmingAction" />
         </section>
       </div>
     </Transition>
