@@ -120,11 +120,10 @@ describe("plugins command provider", () => {
 
     assert.deepEqual(result, {
       ok: true,
-      message: "Plugin authorization started",
+      message: "Plugin credentials requested",
       uiIntent: {
-        type: "plugin.oauth.open",
+        type: "plugin.credentials.open",
         target: "generic-oauth",
-        payload: { url: "https://auth.example/connect" },
       },
     });
   });

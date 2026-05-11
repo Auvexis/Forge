@@ -238,24 +238,10 @@ function connectPluginCommand(plugin: Nod8Plugin): CommandHandler {
       };
     },
     execute: async (context) => {
-      if (plugin.auth.type === "api_key") {
-        return {
-          ok: true,
-          message: "Plugin credentials requested",
-          uiIntent: { type: "plugin.credentials.open", target: plugin.id },
-        };
-      }
-
-      const services = pluginServices(context);
-      const url = await oauthUrl(plugin, services);
       return {
         ok: true,
-        message: "Plugin authorization started",
-        uiIntent: {
-          type: "plugin.oauth.open",
-          target: plugin.id,
-          payload: { url },
-        },
+        message: "Plugin credentials requested",
+        uiIntent: { type: "plugin.credentials.open", target: plugin.id },
       };
     },
   };
