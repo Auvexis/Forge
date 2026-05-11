@@ -69,5 +69,7 @@ export interface CommandHandler {
 export interface CommandProvider {
   id: string;
   order: number;
-  commands: CommandHandler[];
+  commands:
+    | CommandHandler[]
+    | ((context: CommandExecutionContext) => CommandHandler[] | Promise<CommandHandler[]>);
 }

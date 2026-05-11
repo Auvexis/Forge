@@ -115,13 +115,13 @@ POST /command-palette/commands/:commandId/execute
 
 ## Task 4: Backend Workflow Commands
 
-- [ ] Create `server/src/core/modules/command-palette/providers/workflows.commands.ts`.
-- [ ] Add workflow provider commands backed by `WorkflowRepository`, `WorkflowEngine`, `WorkflowLifecycleManager`, `CancellationRegistry`, and existing route-safe behavior.
-- [ ] Global workflow commands:
+- [x] Create `server/src/core/modules/command-palette/providers/workflows.commands.ts`.
+- [x] Add workflow provider commands backed by `WorkflowRepository`, `WorkflowEngine`, `WorkflowLifecycleManager`, `CancellationRegistry`, and existing route-safe behavior.
+- [x] Global workflow commands:
   - Create Workflow.
   - Open Workflow by fuzzy-searching workflow names/ids.
   - Import Workflow only if the frontend uploads/provides a parsed workflow payload and the backend validates it.
-- [ ] Active workflow commands:
+- [x] Active workflow commands:
   - Save active workflow.
   - Rename active workflow from a validated payload.
   - Delete active workflow with confirmation.
@@ -132,13 +132,13 @@ POST /command-palette/commands/:commandId/execute
   - Stop running workflow when an active execution id is supplied or can be resolved.
   - Open workflow settings by returning a `uiIntent`.
   - Open logs by returning a `uiIntent`.
-- [ ] URL/copy commands:
+- [x] URL/copy commands:
   - Copy Workflow ID by returning `clipboardText`.
   - Copy Webhook URL when active trigger supports webhook/plugin webhook.
   - Copy Form URL when active trigger supports form.
-- [ ] Preserve dirty workflow guards by requiring frontend to send current workflow revision/snapshot where needed.
-- [ ] Avoid duplicating workflow construction logic by extracting a backend workflow factory/helper if needed.
-- [ ] Mark this task complete here after implementation.
+- [x] Preserve dirty workflow guards by requiring frontend to send current workflow revision/snapshot where needed.
+- [x] Avoid duplicating workflow construction logic by extracting a backend workflow factory/helper if needed.
+- [x] Mark this task complete here after implementation.
 - Commit: `feat(command-palette): add workflow commands`
 
 ## Task 5: Backend Plugin Commands

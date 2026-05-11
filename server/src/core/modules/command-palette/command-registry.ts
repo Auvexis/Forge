@@ -75,8 +75,12 @@ export class CommandRegistry {
         handler: CommandHandler;
         descriptor: CommandDescriptor;
       }> = [];
+      const handlers =
+        typeof provider.commands === "function"
+          ? await provider.commands(context)
+          : provider.commands;
 
-      for (const handler of provider.commands) {
+      for (const handler of handlers) {
         const descriptor = normalizeCommandDescriptor(await handler.describe(context));
         if (ids.has(descriptor.id)) {
           throw new Error(`Duplicate command id "${descriptor.id}"`);
