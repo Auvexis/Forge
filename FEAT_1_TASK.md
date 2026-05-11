@@ -143,22 +143,22 @@ POST /command-palette/commands/:commandId/execute
 
 ## Task 5: Backend Plugin Commands
 
-- [ ] Create `server/src/core/modules/command-palette/providers/plugins.commands.ts`.
-- [ ] Add plugin provider commands based on `PluginManager`, `CredentialStore`, generic auth contracts, plugin manifests, and optional plugin-declared capabilities.
-- [ ] Re-state and enforce the ND8 rule in code comments/tests:
+- [x] Create `server/src/core/modules/command-palette/providers/plugins.commands.ts`.
+- [x] Add plugin provider commands based on `PluginManager`, `CredentialStore`, generic auth contracts, plugin manifests, and optional plugin-declared capabilities.
+- [x] Re-state and enforce the ND8 rule in code comments/tests:
   - Plugins cannot import or call core/engine modules.
   - Core can inspect installed plugin contracts and call generic plugin APIs.
   - Core must not hardcode behavior for a specific plugin id/provider.
-- [ ] Commands:
+- [x] Commands:
   - Open Plugin: return a navigation/ui intent to focus the plugin in Universe if available.
   - Connect Plugin: return OAuth URL for OAuth plugins or a `uiIntent` for API-key credential entry.
   - Disconnect Plugin: call generic disconnect endpoint/service for OAuth plugins after confirmation.
   - Re-authenticate Plugin: same generic OAuth connect flow, guarded by auth type.
-- [ ] Install/Uninstall commands:
+- [x] Install/Uninstall commands:
   - Register as disabled/not-yet-available if no generic install/uninstall API exists.
   - Do not create server endpoints until a generic plugin registry/install design is approved.
-- [ ] Optional future shape: plugin manifests may declare generic `capabilities.paletteActions[]` that map to plugin methods. The core can expose those commands only by validating the capability and calling `PluginExecutor.execute`.
-- [ ] Mark this task complete here after implementation.
+- [x] Optional future shape: plugin manifests may declare generic `capabilities.paletteActions[]` that map to plugin methods. The core can expose those commands only by validating the capability and calling `PluginExecutor.execute`.
+- [x] Mark this task complete here after implementation.
 - Commit: `feat(command-palette): add plugin commands`
 
 ## Task 6: Backend Execution, Logs, And Utility Commands
