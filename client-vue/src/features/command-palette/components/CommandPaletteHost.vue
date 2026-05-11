@@ -331,6 +331,15 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
             <span class="cp-breadcrumb__title">{{ palette.drilldownTitle }}</span>
           </div>
 
+          <!-- Confirm step -->
+          <div v-if="confirmingAction" class="cp-confirm">
+            <div class="cp-confirm__title">Confirm Action</div>
+            <div class="cp-confirm__message">
+              You are about to execute <strong>{{ confirmingAction.command.label }}</strong>.<br />
+              <span class="cp-confirm__description">{{ confirmingAction.command.description ?? 'This action cannot be undone.' }}</span>
+            </div>
+          </div>
+
           <!-- Drilldown input step -->
           <div v-else-if="palette.drilldownInput" class="cp-drilldown-input">
             <input
@@ -344,35 +353,24 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
             />
           </div>
 
-          <!-- Normal search (hidden in drilldown input step) -->
-          <CommandPaletteSearchInput
-            v-else
-            ref="searchInput"
-            :model-value="palette.query"
-            :loading="palette.isLoading"
-            :active-descendant="activeDescendant"
-            @update:model-value="palette.setQuery"
-          />
-
-          <!-- Confirm step -->
-          <div v-if="confirmingAction" class="cp-confirm">
-            <div class="cp-confirm__title">Confirm Action</div>
-            <div class="cp-confirm__message">
-              You are about to execute <strong>{{ confirmingAction.command.label }}</strong>.<br />
-              <span class="cp-confirm__description">{{ confirmingAction.command.description ?? 'This action cannot be undone.' }}</span>
-            </div>
-          </div>
-
-          <!-- Result list (list drilldown or root commands) -->
-          <CommandPaletteResultList
-            v-else-if="!palette.drilldownInput"
-            :commands="palette.visibleCommands"
-            :highlighted-index="palette.highlightedIndex"
-            :loading="palette.isLoading"
-            :error="palette.error"
-            @highlight="palette.setHighlight"
-            @select="selectCommand"
-          />
+          <!-- Normal search and Result list -->
+          <template v-else>
+            <CommandPaletteSearchInput
+              ref="searchInput"
+              :model-value="palette.query"
+              :loading="palette.isLoading"
+              :active-descendant="activeDescendant"
+              @update:model-value="palette.setQuery"
+            />
+            <CommandPaletteResultList
+              :commands="palette.visibleCommands"
+              :highlighted-index="palette.highlightedIndex"
+              :loading="palette.isLoading"
+              :error="palette.error"
+              @highlight="palette.setHighlight"
+              @select="selectCommand"
+            />
+          </template>
 
           <CommandPaletteFooterHints :in-drilldown-input="!!palette.drilldownInput" :in-confirm="!!confirmingAction" />
         </section>
