@@ -12,16 +12,6 @@
           <AppSidebar>
             <!-- Navigation Links -->
             <router-link
-              to="/universe"
-              class="nav-link"
-              active-class="nav-link--active"
-              title="Universe"
-              @click="appUiStore.enterUniverseMode()"
-            >
-              <LucideIcon name="orbit" :size="16" />
-            </router-link>
-
-            <router-link
               to="/workflows"
               class="nav-link"
               :class="{ 'nav-link--active': route.path.startsWith('/workflows') }"
@@ -47,6 +37,15 @@
                 class="sidebar-footer-links"
                 active-selector=".nav-link--active"
               >
+                <router-link
+                  to="/universe"
+                  class="nav-link"
+                  active-class="nav-link--active"
+                  title="Universe Mode"
+                  @click="appUiStore.enterUniverseMode()"
+                >
+                  <LucideIcon name="orbit" :size="16" />
+                </router-link>
                 <a href="https://docs.nod8.dev" target="_blank" class="nav-link" title="Documentation">
                   <LucideIcon name="book" :size="16" />
                 </a>
