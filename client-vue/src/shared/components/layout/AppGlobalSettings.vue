@@ -330,20 +330,20 @@
               >
                 <!-- OAuth Redirect URL Block -->
                 <div
-                  v-if="selectedPluginForMenu.auth_type === 'oauth2' && selectedPluginForMenu.status?.oauth_redirect_uri"
+                  v-if="selectedPluginForMenu.auth_type === 'oauth2' && pluginStatus?.oauth_redirect_uri"
                   style="display: flex; flex-direction: column; gap: var(--nod8-space-2); padding: var(--nod8-space-3); background: var(--nod8-bg-surface); border-radius: var(--nod8-radius-md); border: 1px solid var(--nod8-border); margin-bottom: var(--nod8-space-2);"
                 >
                   <span style="font-size: var(--nod8-text-sm); font-weight: 500; color: var(--nod8-text-primary);">OAuth Redirect URL</span>
                   <BaseInput
-                    :model-value="selectedPluginForMenu.status.oauth_redirect_uri"
+                    :model-value="pluginStatus.oauth_redirect_uri"
                     readonly
                     @click="$event.target.select()"
                   />
                   <p
-                    v-if="selectedPluginForMenu.status?.oauth_ui?.oauthCallbackInstructions"
+                    v-if="pluginStatus?.oauth_ui?.oauthCallbackInstructions"
                     style="margin: 0; font-size: var(--nod8-text-xs); color: var(--nod8-text-muted); margin-top: var(--nod8-space-1);"
                   >
-                    {{ selectedPluginForMenu.status.oauth_ui.oauthCallbackInstructions }}
+                    {{ pluginStatus.oauth_ui.oauthCallbackInstructions }}
                   </p>
                 </div>
                 <template
@@ -421,21 +421,21 @@
 
                   <!-- OAuth2 / Test Connection -->
                   <BaseButton
-                    v-if="selectedPluginForMenu?.auth_type === 'oauth2'"
+                    v-if="selectedPluginForMenu?.auth_type === 'oauth2' && pluginStatus?.status === 'configured'"
                     variant="secondary"
-                    :title="selectedPluginForMenu?.status?.oauth_ui?.buttonText || 'Authenticate via OAuth2'"
+                    :title="pluginStatus?.oauth_ui?.buttonText || 'Authenticate via OAuth2'"
                     @click="handleOAuth2(selectedPluginForMenu.id)"
                     style="width: 100%; justify-content: center; height: 36px; font-weight: 500;"
                   >
                     <template #left>
-                      <img v-if="selectedPluginForMenu?.status?.oauth_ui?.buttonIcon?.startsWith('http')" :src="selectedPluginForMenu.status.oauth_ui.buttonIcon" style="width: 16px; height: 16px; object-fit: contain;" />
-                      <LucideIcon v-else-if="selectedPluginForMenu?.status?.oauth_ui?.buttonIcon" :name="selectedPluginForMenu.status.oauth_ui.buttonIcon" :size="16" />
+                      <img v-if="pluginStatus?.oauth_ui?.buttonIcon?.startsWith('http')" :src="pluginStatus.oauth_ui.buttonIcon" style="width: 16px; height: 16px; object-fit: contain;" />
+                      <LucideIcon v-else-if="pluginStatus?.oauth_ui?.buttonIcon" :name="pluginStatus.oauth_ui.buttonIcon" :size="16" />
                       <LucideIcon v-else name="external-link" :size="16" />
                     </template>
-                    {{ selectedPluginForMenu?.status?.oauth_ui?.buttonText || 'Connect with OAuth2' }}
+                    {{ pluginStatus?.oauth_ui?.buttonText || 'Connect with OAuth2' }}
                   </BaseButton>
                   <BaseButton
-                    v-else-if="selectedPluginForMenu?.auth_type !== 'none'"
+                    v-else-if="selectedPluginForMenu?.auth_type !== 'none' && selectedPluginForMenu?.auth_type !== 'oauth2'"
                     variant="secondary"
                     title="Test Connection"
                     @click="handleTestConnection(selectedPluginForMenu.id)"
@@ -446,7 +446,7 @@
                   </BaseButton>
 
                   <BaseButton
-                    v-if="hasCredential(selectedPluginForMenu?.id)"
+                    v-if="hasCredential(selectedPluginForMenu?.id) && pluginStatus?.status === 'connected'"
                     variant="ghost"
                     style="color: rgb(239, 68, 68); background-color: rgba(239, 68, 68, 0.1); width: 100%; justify-content: center; height: 36px; font-weight: 500;"
                     :loading="isDeletingCred === selectedPluginForMenu?.id"
@@ -629,19 +629,22 @@ function toggleCredVisibility(pluginId: string, fieldKey: string) {
   showCredValues.value[key] = !showCredValues.value[key]
 }
 
-function openPluginMenu(plugin: any) {
+const {
+  pluginStatus,
+  loadStatus,
+  handleConnect: startOAuth2,
+  handleDisconnect: disconnectOAuth2,
+  authLoading: isAuthLoading,
+} = usePluginAuth(() => selectedPluginForMenu.value?.id ?? null)
+
+async function openPluginMenu(plugin: any) {
   selectedPluginForMenu.value = plugin
+  await loadStatus()
 }
 
 function closePluginMenu() {
   selectedPluginForMenu.value = null
 }
-
-const {
-  handleConnect: startOAuth2,
-  handleDisconnect: disconnectOAuth2,
-  authLoading: isAuthLoading,
-} = usePluginAuth(() => selectedPluginForMenu.value?.id ?? null)
 
 const isUrl = (str?: string) => str?.startsWith('http') || str?.startsWith('/')
 
