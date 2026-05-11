@@ -42,6 +42,11 @@ export const ENDPOINTS = {
   // Plugin Dynamic Options (for x-dynamic-options in manifests)
   PLUGIN_DYNAMIC_OPTIONS: (id: string, method: string) => `/plugins/${id}/dynamic-options/${method}`,
 
+  // Command Palette
+  COMMAND_PALETTE_COMMANDS: '/command-palette/commands',
+  COMMAND_PALETTE_SEARCH: '/command-palette/search',
+  COMMAND_PALETTE_EXECUTE: (id: string) => `/command-palette/commands/${id}/execute`,
+
   // Events
   EVENTS_EMIT: '/events/emit',
 } as const

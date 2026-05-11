@@ -181,23 +181,23 @@ POST /command-palette/commands/:commandId/execute
 
 ## Task 7: Frontend API Client, Store, And Palette UI
 
-- [ ] Create `client-vue/src/core/api/command-palette.api.ts`.
-- [ ] Add endpoints to `client-vue/src/core/api/endpoints.ts`.
-- [ ] Create `client-vue/src/features/command-palette/types/command-palette.types.ts` matching the backend response contract.
-- [ ] Create `client-vue/src/features/command-palette/stores/commandPalette.store.ts`.
-- [ ] Store open state, query, highlighted index, loading/error state, command results, and recent commands.
-- [ ] Create `client-vue/src/features/command-palette/components/CommandPaletteHost.vue`.
-- [ ] Create focused components for search input, result list, result row, group label, and footer hints.
-- [ ] Add keyboard shortcuts:
+- [x] Create `client-vue/src/core/api/command-palette.api.ts`.
+- [x] Add endpoints to `client-vue/src/core/api/endpoints.ts`.
+- [x] Create `client-vue/src/features/command-palette/types/command-palette.types.ts` matching the backend response contract.
+- [x] Create `client-vue/src/features/command-palette/stores/commandPalette.store.ts`.
+- [x] Store open state, query, highlighted index, loading/error state, command results, and recent commands.
+- [x] Create `client-vue/src/features/command-palette/components/CommandPaletteHost.vue`.
+- [x] Create focused components for search input, result list, result row, group label, and footer hints.
+- [x] Add keyboard shortcuts:
   - Open/close: `Cmd+K` and `Ctrl+K`.
   - Close: `Escape`.
   - Navigate results: `ArrowUp`, `ArrowDown`, `Home`, `End`.
   - Execute: `Enter`.
-- [ ] Ignore normal text input conflicts, while still allowing palette navigation after it is open.
-- [ ] Mount the host in `client-vue/src/app/App.vue`.
-- [ ] Do not show the host on public routes unless future work explicitly opts in.
-- [ ] Use existing base components/icons where practical.
-- [ ] Mark this task complete here after implementation.
+- [x] Ignore normal text input conflicts, while still allowing palette navigation after it is open.
+- [x] Mount the host in `client-vue/src/app/App.vue`.
+- [x] Do not show the host on public routes unless future work explicitly opts in.
+- [x] Use existing base components/icons where practical.
+- [x] Mark this task complete here after implementation.
 - Commit: `feat(command-palette): add frontend palette shell`
 
 ## Task 8: Frontend Dispatch, UI Intents, Feedback, And Failure Safety

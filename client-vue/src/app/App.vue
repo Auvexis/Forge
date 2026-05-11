@@ -80,6 +80,7 @@
       <AppGlobalSettings />
     </template>
   </AppShell>
+  <CommandPaletteHost v-if="!isPublicRoute" />
 </template>
 
 <script setup lang="ts">
@@ -93,6 +94,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import SidebarGlobalPanel from '@/shared/components/layout/SidebarGlobalPanel.vue'
 import AppGlobalSettings from '@/shared/components/layout/AppGlobalSettings.vue'
 import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
+import CommandPaletteHost from '@/features/command-palette/components/CommandPaletteHost.vue'
 import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'

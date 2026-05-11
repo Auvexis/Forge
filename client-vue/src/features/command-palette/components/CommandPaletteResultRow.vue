@@ -1,0 +1,38 @@
+<script setup lang="ts">
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import type { CommandDescriptor } from '../types/command-palette.types'
+
+defineProps<{
+  command: CommandDescriptor
+  active: boolean
+}>()
+
+const emit = defineEmits<{
+  select: []
+}>()
+</script>
+
+<template>
+  <button
+    class="cp-row"
+    :class="{ 'cp-row--active': active, 'cp-row--disabled': !command.availability.enabled }"
+    type="button"
+    role="option"
+    :aria-selected="active"
+    :disabled="!command.availability.enabled"
+    @click="emit('select')"
+  >
+    <span class="cp-row__icon">
+      <LucideIcon :name="command.icon || 'command'" :size="16" />
+    </span>
+    <span class="cp-row__main">
+      <span class="cp-row__title">
+        {{ command.label }}
+        <span v-if="command.destructive" class="cp-row__badge">Destructive</span>
+      </span>
+      <span class="cp-row__description">
+        {{ command.availability.enabled ? command.description : command.availability.reason }}
+      </span>
+    </span>
+  </button>
+</template>
