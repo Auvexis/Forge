@@ -28,8 +28,19 @@ const toast = useToast()
 const searchInput = ref<{ focus: () => void } | null>(null)
 const drilldownInput = ref<HTMLInputElement | null>(null)
 const dialogRef = ref<HTMLElement | null>(null)
+const confirmRef = ref<HTMLElement | null>(null)
 const drilldownInputValue = ref('')
 const confirmingAction = ref<{ command: CommandDescriptor; payload: Record<string, unknown> } | null>(null)
+
+watch(confirmingAction, async (val) => {
+  if (val) {
+    await nextTick()
+    confirmRef.value?.focus()
+  } else if (palette.isOpen && !palette.drilldownInput) {
+    await nextTick()
+    searchInput.value?.focus()
+  }
+})
 
 const activeDescendant = computed(() => {
   if (palette.isInDrilldown && palette.drilldownInput) return undefined
@@ -332,7 +343,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
           </div>
 
           <!-- Confirm step -->
-          <div v-if="confirmingAction" class="cp-confirm">
+          <div v-if="confirmingAction" ref="confirmRef" class="cp-confirm" tabindex="-1" style="outline: none;">
             <div class="cp-confirm__title">Confirm Action</div>
             <div class="cp-confirm__message">
               You are about to execute <strong>{{ confirmingAction.command.label }}</strong>.<br />
