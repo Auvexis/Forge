@@ -532,27 +532,30 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
  * Isso garante que o save envie as coordenadas corretas pro backend.
  */
 const onNodeDragStop = (event: NodeDragEvent) => {
-  const { node } = event
-  const x = Math.round(node.position.x * 10) / 10
-  const y = Math.round(node.position.y * 10) / 10
+  const draggedNodes = event.nodes && event.nodes.length > 0 ? event.nodes : [event.node]
 
-  // Bail early if the position is identical to what's stored — avoids marking
-  // the workflow dirty when the user drags a node back to its original spot.
-  const existingUi = node.id === 'trigger'
-    ? workflowStore.activeWorkflow?.trigger.ui
-    : workflowStore.activeWorkflow?.nodes[node.id]?.ui
+  for (const node of draggedNodes) {
+    const x = Math.round(node.position.x * 10) / 10
+    const y = Math.round(node.position.y * 10) / 10
 
-  if (existingUi && Math.round((existingUi.positionX ?? 0) * 10) / 10 === x && Math.round((existingUi.positionY ?? 0) * 10) / 10 === y) {
-    return
+    // Bail early if the position is identical to what's stored — avoids marking
+    // the workflow dirty when the user drags a node back to its original spot.
+    const existingUi = node.id === 'trigger'
+      ? workflowStore.activeWorkflow?.trigger.ui
+      : workflowStore.activeWorkflow?.nodes[node.id]?.ui
+
+    if (existingUi && Math.round((existingUi.positionX ?? 0) * 10) / 10 === x && Math.round((existingUi.positionY ?? 0) * 10) / 10 === y) {
+      continue
+    }
+
+    workflowStore.updateNodeData(node.id, {
+      ui: {
+        ...(node.data?.ui ?? {}),
+        positionX: x,
+        positionY: y,
+      },
+    })
   }
-
-  workflowStore.updateNodeData(node.id, {
-    ui: {
-      ...(node.data?.ui ?? {}),
-      positionX: x,
-      positionY: y,
-    },
-  })
 }
 
 /**
