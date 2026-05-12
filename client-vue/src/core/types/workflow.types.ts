@@ -235,7 +235,7 @@ export interface WorkflowEdge {
 
 export interface WorkflowVariable {
   name: string
-  type: 'string' | 'number' | 'boolean' | 'object' | 'array'
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'secret'
   defaultValue?: unknown
   description?: string
 }

@@ -56,6 +56,17 @@ fetchPlugins()
 
 const allPaths = computed(() => {
   const paths: SchemaPath[] = []
+  const workflowVariables = useWorkflowStore().activeWorkflow?.variables ?? []
+
+  for (const variable of workflowVariables) {
+    paths.push({
+      path: `variables.${variable.name}`,
+      label: variable.name,
+      type: variable.type,
+      sourceNodeName: 'Workflow Variables',
+      value: variable.type === 'secret' ? '••••••••••••' : variable.defaultValue,
+    })
+  }
 
   for (const upNode of [...props.upstreamNodes].reverse()) {
     if (upNode.id === 'trigger') {
@@ -331,7 +342,7 @@ const filteredPaths = computed(() => {
 
 const mockData = computed(() => {
   // Pre-seed to guarantee insertion order (trigger first, then steps)
-  const obj: any = { trigger: {}, steps: {} }
+  const obj: any = { variables: {}, trigger: {}, steps: {} }
   
   for (const p of filteredPaths.value) {
     const parts = p.path.split('.')
@@ -360,6 +371,7 @@ const mockData = computed(() => {
   
   if (Object.keys(obj.trigger).length === 0) delete obj.trigger
   if (Object.keys(obj.steps).length === 0) delete obj.steps
+  if (Object.keys(obj.variables).length === 0) delete obj.variables
   
   return obj
 })
@@ -369,6 +381,7 @@ const iconsMap = computed(() => {
   
   // Assign a specific icon for the steps root
   map['steps'] = 'blocks'
+  map['variables'] = 'tags'
   
   const typeIcons: Record<string, string> = {
     http: 'globe',

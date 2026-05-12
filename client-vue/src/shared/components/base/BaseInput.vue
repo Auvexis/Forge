@@ -31,6 +31,8 @@
         @change="type === 'file' ? $emit('change', $event) : undefined"
         @blur="$emit('blur', $event)"
         @focus="$emit('focus', $event)"
+        @dragover.prevent
+        @drop="onDrop"
       />
 
       <span v-if="iconRight" class="base-input__icon base-input__icon--right">
@@ -83,6 +85,17 @@ const inputRef = ref<HTMLInputElement | null>(null)
 const onInput = (e: Event) => {
   const target = e.target as HTMLInputElement
   emit('update:modelValue', props.type === 'checkbox' ? target.checked : target.value)
+}
+
+const onDrop = (e: DragEvent) => {
+  if (props.type === 'file' || props.type === 'checkbox') return
+  const token = e.dataTransfer?.getData('text/plain')
+  if (!token) return
+  const target = e.target as HTMLInputElement
+  const start = target.selectionStart ?? target.value.length
+  const end = target.selectionEnd ?? target.value.length
+  const nextValue = `${target.value.slice(0, start)}${token}${target.value.slice(end)}`
+  emit('update:modelValue', nextValue)
 }
 
 defineExpose({

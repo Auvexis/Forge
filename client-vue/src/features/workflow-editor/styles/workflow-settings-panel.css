@@ -19,6 +19,13 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
   gap: var(--nod8-space-3);
 }
 
+.wsp-section-head {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--nod8-space-3);
+}
+
 .wsp-section--danger {
   padding: var(--nod8-space-4);
   border-radius: var(--nod8-radius-sm);
@@ -45,6 +52,82 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
   display: flex;
   flex-direction: column;
   gap: var(--nod8-space-3);
+}
+
+.wsp-variable-form {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) 120px minmax(120px, 1fr) minmax(120px, 1fr) auto;
+  gap: var(--nod8-space-2);
+  align-items: start;
+}
+
+.wsp-variable-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-sm);
+  overflow: hidden;
+}
+
+.wsp-variable-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(80px, 140px) 28px 28px;
+  align-items: center;
+  gap: var(--nod8-space-2);
+  padding: var(--nod8-space-2) var(--nod8-space-3);
+  background: var(--nod8-bg-overlay);
+  border-bottom: 1px solid var(--nod8-border);
+  cursor: grab;
+}
+
+.wsp-variable-row:last-child {
+  border-bottom: none;
+}
+
+.wsp-variable-main {
+  display: flex;
+  align-items: center;
+  gap: var(--nod8-space-2);
+  min-width: 0;
+}
+
+.wsp-variable-main > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wsp-variable-name,
+.wsp-variable-preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wsp-variable-name {
+  font-family: var(--nod8-font-mono);
+  font-size: var(--nod8-text-xs);
+  color: var(--nod8-text-primary);
+}
+
+.wsp-variable-desc,
+.wsp-variable-empty {
+  font-size: var(--nod8-text-xs);
+  color: var(--nod8-text-muted);
+}
+
+.wsp-variable-preview {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--nod8-bg-base);
+  font-size: 10px;
+  color: var(--nod8-text-muted);
+}
+
+.wsp-variable-empty {
+  padding: var(--nod8-space-3);
+  border: 1px dashed var(--nod8-border);
+  border-radius: var(--nod8-radius-sm);
 }
 
 /* ── Switch row ──────────────────────────────────────────────────────────── */

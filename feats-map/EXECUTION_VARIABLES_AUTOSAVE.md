@@ -11,13 +11,13 @@
 - [x] Commit
 
 ## #9 Workflow variables
-- [ ] Workflow variables model support
-- [ ] Add variable explorer
-- [ ] Secrets preview
-- [ ] Search/filter variables
-- [ ] Drag variables into fields
-- [ ] Tests/type-check
-- [ ] Commit
+- [x] Workflow variables model support
+- [x] Add variable explorer
+- [x] Secrets preview
+- [x] Search/filter variables
+- [x] Drag variables into fields
+- [x] Tests/type-check
+- [x] Commit
 
 ## #10 Autosave
 - [ ] Add autosave system

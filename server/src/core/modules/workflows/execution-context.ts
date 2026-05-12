@@ -63,6 +63,7 @@ function initializeVariables(
 
     switch (definition.type) {
       case "string":
+      case "secret":
         variables[definition.name] = "";
         break;
       case "number":

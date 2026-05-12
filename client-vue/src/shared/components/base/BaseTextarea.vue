@@ -22,6 +22,8 @@
         @input="onInput"
         @blur="$emit('blur', $event)"
         @focus="$emit('focus', $event)"
+        @dragover.prevent
+        @drop="onDrop"
         v-bind="$attrs"
       ></textarea>
     </div>
@@ -65,6 +67,16 @@ const id = computed(() => props.id || generateId('textarea'))
 const onInput = (e: Event) => {
   const target = e.target as HTMLTextAreaElement
   emit('update:modelValue', target.value)
+}
+
+const onDrop = (e: DragEvent) => {
+  const token = e.dataTransfer?.getData('text/plain')
+  if (!token) return
+  const target = e.target as HTMLTextAreaElement
+  const start = target.selectionStart ?? target.value.length
+  const end = target.selectionEnd ?? target.value.length
+  const nextValue = `${target.value.slice(0, start)}${token}${target.value.slice(end)}`
+  emit('update:modelValue', nextValue)
 }
 
 defineOptions({ inheritAttrs: false })

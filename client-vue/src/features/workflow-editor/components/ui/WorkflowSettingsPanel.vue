@@ -4,11 +4,13 @@ import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useWorkflowStore } from '../../stores/workflow.store'
 import { useWorkflowActions } from '../../composables/useWorkflowActions'
 import { useConfirm } from '@/shared/composables/useConfirm'
+import type { WorkflowVariable } from '@/core/types/workflow.types'
 
 // ── Props / Emits ────────────────────────────────────────────────────────────
 
@@ -68,6 +70,39 @@ const updatedAt = computed(() => {
   return new Date(raw).toLocaleString()
 })
 const version = computed(() => workflowStore.activeWorkflow?.metadata.version ?? '—')
+const variableSearch = ref('')
+const revealedSecrets = ref<Record<string, boolean>>({})
+const variableDraft = ref<WorkflowVariable>({
+  name: '',
+  type: 'string',
+  defaultValue: '',
+  description: '',
+})
+const variableTypeOptions = [
+  { value: 'string', label: 'String', icon: 'type' },
+  { value: 'number', label: 'Number', icon: 'hash' },
+  { value: 'boolean', label: 'Boolean', icon: 'toggle-left' },
+  { value: 'object', label: 'Object', icon: 'braces' },
+  { value: 'array', label: 'Array', icon: 'list' },
+  { value: 'secret', label: 'Secret', icon: 'key-round' },
+]
+
+const filteredVariables = computed(() => {
+  const variables = workflowStore.activeWorkflow?.variables ?? []
+  const q = variableSearch.value.trim().toLowerCase()
+  if (!q) return variables
+  return variables.filter((variable) =>
+    [variable.name, variable.type, variable.description ?? ''].some((value) =>
+      String(value).toLowerCase().includes(q),
+    ),
+  )
+})
+const variableDefaultValue = computed({
+  get: () => String(variableDraft.value.defaultValue ?? ''),
+  set: (value: string) => {
+    variableDraft.value.defaultValue = value
+  },
+})
 
 // ── Saving ────────────────────────────────────────────────────────────────────
 
@@ -82,6 +117,61 @@ async function handleSave() {
   }
 
   await saveWorkflow()
+}
+
+function normalizeDefaultValue(variable: WorkflowVariable): unknown {
+  if (variable.type === 'number') return Number(variable.defaultValue ?? 0)
+  if (variable.type === 'boolean') {
+    return variable.defaultValue === true || variable.defaultValue === 'true'
+  }
+  if (variable.type === 'object' || variable.type === 'array') {
+    if (typeof variable.defaultValue !== 'string') return variable.defaultValue
+    try {
+      return JSON.parse(variable.defaultValue)
+    } catch {
+      return variable.type === 'array' ? [] : {}
+    }
+  }
+  return variable.defaultValue ?? ''
+}
+
+function addVariable() {
+  if (!workflowStore.activeWorkflow) return
+  const name = variableDraft.value.name.trim()
+  if (!name) return
+
+  const nextVariable: WorkflowVariable = {
+    ...variableDraft.value,
+    name,
+    defaultValue: normalizeDefaultValue(variableDraft.value),
+  }
+  const variables = workflowStore.activeWorkflow.variables ?? []
+  const existingIndex = variables.findIndex((variable) => variable.name === name)
+  if (existingIndex >= 0) {
+    variables[existingIndex] = nextVariable
+  } else {
+    variables.push(nextVariable)
+  }
+  workflowStore.activeWorkflow.variables = [...variables]
+  variableDraft.value = { name: '', type: 'string', defaultValue: '', description: '' }
+}
+
+function removeVariable(name: string) {
+  if (!workflowStore.activeWorkflow) return
+  workflowStore.activeWorkflow.variables = (workflowStore.activeWorkflow.variables ?? []).filter(
+    (variable) => variable.name !== name,
+  )
+}
+
+function previewVariable(variable: WorkflowVariable): string {
+  if (variable.type === 'secret' && !revealedSecrets.value[variable.name]) return '••••••••••••'
+  if (variable.defaultValue === undefined || variable.defaultValue === '') return 'empty'
+  if (typeof variable.defaultValue === 'object') return JSON.stringify(variable.defaultValue)
+  return String(variable.defaultValue)
+}
+
+function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
+  event.dataTransfer?.setData('text/plain', `{{ variables.${variable.name} }}`)
 }
 
 // ── Delete confirmation ───────────────────────────────────────────────────────
@@ -165,6 +255,73 @@ async function handleDeleteClick() {
             <BaseSwitch v-model="draft.public" />
           </div>
         </div>
+      </section>
+
+      <!-- Section: Variables -->
+      <section class="wsp-section">
+        <div class="wsp-section-head">
+          <h4 class="wsp-section__title">Variables</h4>
+          <BaseInput v-model="variableSearch" icon-left="search" placeholder="Search variables" />
+        </div>
+
+        <div class="wsp-variable-form">
+          <BaseInput v-model="variableDraft.name" placeholder="name" />
+          <BaseSelect
+            v-model="variableDraft.type"
+            :options="variableTypeOptions"
+            placeholder="Type"
+          />
+          <BaseInput
+            v-model="variableDefaultValue"
+            :type="variableDraft.type === 'secret' ? 'password' : 'text'"
+            placeholder="Default value"
+          />
+          <BaseInput v-model="variableDraft.description" placeholder="Description" />
+          <BaseButton size="sm" variant="primary" icon-left="plus" @click="addVariable">
+            Add
+          </BaseButton>
+        </div>
+
+        <div v-if="filteredVariables.length" class="wsp-variable-list">
+          <div
+            v-for="variable in filteredVariables"
+            :key="variable.name"
+            class="wsp-variable-row"
+            draggable="true"
+            @dragstart="onVariableDragStart($event, variable)"
+          >
+            <div class="wsp-variable-main">
+              <LucideIcon :name="variable.type === 'secret' ? 'key-round' : 'tag'" :size="14" />
+              <div>
+                <span class="wsp-variable-name">{{ variable.name }}</span>
+                <span class="wsp-variable-desc">{{ variable.description || variable.type }}</span>
+              </div>
+            </div>
+            <code class="wsp-variable-preview">{{ previewVariable(variable) }}</code>
+            <BaseButton
+              v-if="variable.type === 'secret'"
+              size="icon"
+              variant="ghost"
+              :title="revealedSecrets[variable.name] ? 'Hide secret' : 'Show secret'"
+              @click="revealedSecrets[variable.name] = !revealedSecrets[variable.name]"
+            >
+              <template #left>
+                <LucideIcon :name="revealedSecrets[variable.name] ? 'eye-off' : 'eye'" :size="13" />
+              </template>
+            </BaseButton>
+            <BaseButton
+              size="icon"
+              variant="ghost"
+              title="Delete variable"
+              @click="removeVariable(variable.name)"
+            >
+              <template #left>
+                <LucideIcon name="trash-2" :size="13" />
+              </template>
+            </BaseButton>
+          </div>
+        </div>
+        <div v-else class="wsp-variable-empty">No variables found</div>
       </section>
 
       <!-- Section: Info (read-only) -->
