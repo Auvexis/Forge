@@ -1,27 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { BaseEdge, EdgeLabelRenderer, getBezierPath, useVueFlow } from '@vue-flow/core'
+import { BaseEdge, EdgeLabelRenderer, useVueFlow } from '@vue-flow/core'
 import type { EdgeProps } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useExecutionStore } from '../stores/execution.store'
+import { routedBezierPath } from '../composables/useEdgeRouting'
 
 const props = defineProps<EdgeProps>()
 
-const { removeEdges } = useVueFlow()
+const { removeEdges, getNodes } = useVueFlow()
 const executionStore = useExecutionStore()
 
-// Bezier path — smoother and more premium-looking than SmoothStep
-const pathData = computed(() =>
-  getBezierPath({
-    sourceX: props.sourceX,
-    sourceY: props.sourceY,
-    sourcePosition: props.sourcePosition,
-    targetX: props.targetX,
-    targetY: props.targetY,
-    targetPosition: props.targetPosition,
-    curvature: 0.45,
-  }),
-)
+// Auto-routing bezier: detours around nodes that block the direct path
+const pathData = computed(() => {
+  const [path, lx, ly] = routedBezierPath(
+    props.sourceX, props.sourceY,
+    props.targetX, props.targetY,
+    getNodes.value,
+    [props.source, props.target],
+  )
+  return [path, lx, ly] as [string, number, number]
+})
 
 const edgeStatus = computed(() => {
   let sStatus: string
