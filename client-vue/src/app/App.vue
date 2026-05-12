@@ -11,24 +11,36 @@
         <div v-if="!appUiStore.isUniverseMode" class="app-sidebar-transition-frame">
           <AppSidebar>
             <!-- Navigation Links -->
-            <router-link
-              to="/workflows"
-              class="nav-link"
-              :class="{ 'nav-link--active': route.path.startsWith('/workflows') }"
+            <SidebarHint
               title="Workflows"
+              description="Create, edit, and manage your automated workflows visually."
+              icon="workflow"
             >
-              <LucideIcon name="workflow" :size="16" />
-            </router-link>
+              <router-link
+                to="/workflows"
+                class="nav-link"
+                :class="{ 'nav-link--active': route.path.startsWith('/workflows') }"
+                title="Workflows"
+              >
+                <LucideIcon name="workflow" :size="16" />
+              </router-link>
+            </SidebarHint>
 
             <!-- Production Monitor -->
-            <button
-              class="nav-link"
-              :class="{ 'nav-link--active': isMonitorOpen }"
+            <SidebarHint
               title="Production Monitor"
-              @click="toggleMonitor"
+              description="View real-time workflow executions, monitor active runs, and debug past errors with detailed step-by-step metrics."
+              icon="activity"
             >
-              <LucideIcon name="activity" :size="16" />
-            </button>
+              <button
+                class="nav-link"
+                :class="{ 'nav-link--active': isMonitorOpen }"
+                title="Production Monitor"
+                @click="toggleMonitor"
+              >
+                <LucideIcon name="activity" :size="16" />
+              </button>
+            </SidebarHint>
 
             <!-- Sidebar footer -->
             <template #footer>
@@ -37,26 +49,44 @@
                 class="sidebar-footer-links"
                 active-selector=".nav-link--active"
               >
-                <router-link
-                  to="/universe"
-                  class="nav-link"
-                  active-class="nav-link--active"
+                <SidebarHint
                   title="Universe Mode"
-                  @click="appUiStore.enterUniverseMode()"
+                  description="Explore your node ecosystem in an immersive 3D galaxy view to visualize integrations and dependencies."
+                  icon="orbit"
                 >
-                  <LucideIcon name="orbit" :size="16" />
-                </router-link>
-                <a href="https://docs.nod8.dev" target="_blank" class="nav-link" title="Documentation">
-                  <LucideIcon name="book" :size="16" />
-                </a>
-                <button
-                  class="nav-link"
-                  :class="{ 'nav-link--active': settingsStore.isOpen }"
+                  <router-link
+                    to="/universe"
+                    class="nav-link"
+                    active-class="nav-link--active"
+                    title="Universe Mode"
+                    @click="appUiStore.enterUniverseMode()"
+                  >
+                    <LucideIcon name="orbit" :size="16" />
+                  </router-link>
+                </SidebarHint>
+                <SidebarHint
+                  title="Documentation"
+                  description="Read the official documentation to learn how to build, deploy, and scale your automated workflows."
+                  icon="book"
+                >
+                  <a href="https://docs.nod8.dev" target="_blank" class="nav-link" title="Documentation">
+                    <LucideIcon name="book" :size="16" />
+                  </a>
+                </SidebarHint>
+                <SidebarHint
                   title="Settings"
-                  @click="settingsStore.toggle"
+                  description="Manage your global preferences, authentication, environment variables, and connections."
+                  icon="settings"
                 >
-                  <LucideIcon name="settings" :size="16" />
-                </button>
+                  <button
+                    class="nav-link"
+                    :class="{ 'nav-link--active': settingsStore.isOpen }"
+                    title="Settings"
+                    @click="settingsStore.toggle"
+                  >
+                    <LucideIcon name="settings" :size="16" />
+                  </button>
+                </SidebarHint>
               </BaseWoobyMenu>
             </template>
           </AppSidebar>
@@ -89,6 +119,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
+import SidebarHint from '@/shared/components/layout/SidebarHint.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
 import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'

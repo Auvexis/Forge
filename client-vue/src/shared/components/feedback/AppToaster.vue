@@ -35,13 +35,13 @@ const { toasts, removeToast } = useToast()
 const getIcon = (variant: ToastVariant) => {
   switch (variant) {
     case 'success':
-      return 'check-circle'
+      return 'bell-ring'
     case 'error':
-      return 'alert-circle'
+      return 'bell-ring'
     case 'warning':
-      return 'alert-triangle'
+      return 'bell-ring'
     default:
-      return 'info'
+      return 'bell-ring'
   }
 }
 </script>
@@ -67,18 +67,24 @@ const getIcon = (variant: ToastVariant) => {
   max-width: calc(100vw - var(--nod8-space-8));
   padding: var(--nod8-space-4);
   border-radius: var(--nod8-radius-lg);
+  border-top-left-radius: var(--nod8-radius-sm);
+  border-bottom-left-radius: var(--nod8-radius-sm);
   pointer-events: auto; /* Re-enable clicks on the toast */
   overflow: hidden;
+  background-color: var(--nod8-bg-base);
+  border-color: var(--nod8-border);
 }
 
 /* Adds a subtle left border matching the variant */
 .app-toast::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  left: 5px;
+  top: 6px;
+  bottom: 6px;
   width: 3px;
+  border-radius: var(--nod8-radius-full);
+  height: calc(100% - 12px);
 }
 
 .app-toast--default::before {
@@ -99,16 +105,16 @@ const getIcon = (variant: ToastVariant) => {
   margin-top: 2px;
 }
 .app-toast--default .app-toast__icon {
-  color: var(--nod8-blue-400);
+  color: var(--nod8-text-primary);
 }
 .app-toast--success .app-toast__icon {
-  color: var(--nod8-green-400);
+  color: var(--nod8-text-primary);
 }
 .app-toast--warning .app-toast__icon {
-  color: var(--nod8-amber-400);
+  color: var(--nod8-text-primary);
 }
 .app-toast--error .app-toast__icon {
-  color: var(--nod8-red-400);
+  color: var(--nod8-text-primary);
 }
 
 .app-toast__content {
