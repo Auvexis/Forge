@@ -1,28 +1,28 @@
 # Manual Test Checklist - Execution, Variables, Autosave
 
 ## #8 Execution
-- [ ] Abrir um workflow.
-- [ ] Rodar o workflow.
-- [ ] Clicar em `Logs`.
-- [ ] Ver `Live Timeline` durante a execução.
-- [ ] Abrir uma execução antiga.
-- [ ] Conferir status da execução.
-- [ ] Conferir duração total da execução.
-- [ ] Conferir timeline por step.
-- [ ] Conferir duração de cada step.
-- [ ] Conferir payload do trigger.
-- [ ] Conferir payload/output de cada step.
-- [ ] Forçar erro em um node.
-- [ ] Rodar workflow com erro.
-- [ ] Abrir log da execução com erro.
-- [ ] Conferir step com status `failed`.
-- [ ] Conferir painel `Error Trace`.
-- [ ] Testar botão de copiar erro.
-- [ ] Configurar retry em algum node.
-- [ ] Fazer o node falhar antes de passar.
-- [ ] Conferir tentativas no log.
-- [ ] Conferir delay do retry.
-- [ ] Conferir retry na timeline.
+- [x] Abrir um workflow.
+- [x] Rodar o workflow.
+- [x] Clicar em `Logs`.
+- [x] Ver `Live Timeline` durante a execução.
+- [x] Abrir uma execução antiga.
+- [x] Conferir status da execução.
+- [x] Conferir duração total da execução.
+- [x] Conferir timeline por step.
+- [x] Conferir duração de cada step.
+- [x] Conferir payload do trigger.
+- [x] Conferir payload/output de cada step.
+- [x] Forçar erro em um node.
+- [x] Rodar workflow com erro.
+- [x] Abrir log da execução com erro.
+- [x] Conferir step com status `failed`.
+- [x] Conferir painel `Error Trace`.
+- [x] Testar botão de copiar erro.
+- [x] Configurar retry em algum node.
+- [x] Fazer o node falhar antes de passar.
+- [x] Conferir tentativas no log.
+- [x] Conferir delay do retry.
+- [x] Conferir retry na timeline.
 
 ## #9 Variables
 - [ ] Abrir workflow.
