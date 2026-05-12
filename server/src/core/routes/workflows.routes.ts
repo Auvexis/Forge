@@ -343,6 +343,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         "Access-Control-Allow-Origin": CLIENT_ORIGIN,
         "Access-Control-Allow-Credentials": "true",
       });
+      reply.raw.write(": connected\n\n");
 
       const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
         try {

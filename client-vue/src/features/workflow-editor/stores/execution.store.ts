@@ -127,145 +127,140 @@ export const useExecutionStore = defineStore('execution', () => {
    * as named events. We therefore listen on `_es.onmessage` and dispatch on
    * `event.type` from the parsed payload — NOT via `addEventListener('node:start', ...)`.
    */
-  function startStream(executionId: string): Promise<void> {
-    return new Promise((resolve) => {
-      stopStream()
-      activeExecutionId.value = executionId
-      isStreaming.value = true
+  function startStream(executionId: string): void {
+    stopStream()
+    activeExecutionId.value = executionId
+    isStreaming.value = true
 
-      const { success, error: toastError } = useToast()
+    const { success, error: toastError } = useToast()
 
-      _es = workflowsApi.createExecutionStream(executionId)
+    _es = workflowsApi.createExecutionStream(executionId)
 
-      _es.onopen = () => {
-        resolve()
-      }
+    _es.onopen = () => {}
 
-      _es.onmessage = (rawEvt: MessageEvent) => {
-        try {
-          const ev = JSON.parse(rawEvt.data as string) as WorkflowEvent
-          recordTimelineEvent(ev)
+    _es.onmessage = (rawEvt: MessageEvent) => {
+      try {
+        const ev = JSON.parse(rawEvt.data as string) as WorkflowEvent
+        recordTimelineEvent(ev)
 
-          switch (ev.type) {
-            case 'trigger:data':
-              _patchNode('trigger', {
+        switch (ev.type) {
+          case 'trigger:data':
+            _patchNode('trigger', {
+              status: 'success',
+              output: ev.data,
+              endedAt: ev.timestamp,
+            })
+            break
+
+          case 'node:start':
+            if (ev.nodeId) {
+              if (!nodeStatuses['trigger'] || nodeStatuses['trigger'].status === 'idle' || nodeStatuses['trigger'].status === 'running') {
+                _patchNode('trigger', { status: 'success', endedAt: ev.timestamp })
+              }
+              _patchNode(ev.nodeId, { status: 'running', startedAt: ev.timestamp })
+            }
+            break
+
+          case 'node:retry':
+            if (ev.nodeId) {
+              const data = ev.data as { attempt?: number; delayMs?: number } | undefined
+              const previous = nodeStatuses[ev.nodeId]?.retries ?? []
+              _patchNode(ev.nodeId, {
+                status: 'running',
+                attempts: data?.attempt,
+                error: ev.error,
+                retries: [
+                  ...previous,
+                  {
+                    attempt: data?.attempt ?? previous.length + 2,
+                    delayMs: data?.delayMs ?? 0,
+                    error: ev.error,
+                    at: ev.timestamp,
+                  },
+                ],
+              })
+            }
+            break
+
+          case 'temporary-form:created':
+            if (ev.nodeId) {
+              _patchNode(ev.nodeId, {
+                status: 'running',
+                output: ev.data,
+                startedAt: ev.timestamp,
+              })
+            }
+            break
+
+          case 'node:success':
+            if (ev.nodeId) {
+              _patchNode(ev.nodeId, {
                 status: 'success',
                 output: ev.data,
                 endedAt: ev.timestamp,
+                attempts: nodeStatuses[ev.nodeId]?.attempts ?? 1,
               })
-              break
+            }
+            break
 
-            case 'node:start':
-              if (ev.nodeId) {
-                if (!nodeStatuses['trigger'] || nodeStatuses['trigger'].status === 'idle' || nodeStatuses['trigger'].status === 'running') {
-                  _patchNode('trigger', { status: 'success', endedAt: ev.timestamp })
-                }
-                _patchNode(ev.nodeId, { status: 'running', startedAt: ev.timestamp })
+          case 'node:failed':
+            if (ev.nodeId) {
+              _patchNode(ev.nodeId, {
+                status: 'failed',
+                error: ev.error,
+                endedAt: ev.timestamp,
+                attempts: nodeStatuses[ev.nodeId]?.attempts ?? 1,
+              })
+              toastError(ev.error ?? `Node "${ev.nodeId}" failed`, 'Node execution failed')
+            }
+            break
+
+          case 'workflow:success':
+            workflowStatus.value = 'SUCCESS'
+            if (nodeStatuses['trigger']?.status === 'running') {
+              _patchNode('trigger', { status: 'success', endedAt: ev.timestamp })
+            }
+            isStreaming.value = false
+            stopStream()
+            success('Workflow completed successfully')
+            break
+
+          case 'workflow:failed':
+            workflowStatus.value = 'FAILED'
+            if (nodeStatuses['trigger']?.status === 'running') {
+              _patchNode('trigger', { status: 'success', endedAt: ev.timestamp })
+            }
+            isStreaming.value = false
+            stopStream()
+            toastError('Workflow execution failed', 'Workflow failed')
+            break
+
+          case 'workflow:cancelled':
+            workflowStatus.value = 'CANCELLED'
+            for (const nid of Object.keys(nodeStatuses)) {
+              if (nodeStatuses[nid]?.status === 'running') {
+                nodeStatuses[nid] = { ...nodeStatuses[nid]!, status: 'idle' }
               }
-              break
+            }
+            isStreaming.value = false
+            stopStream()
+            useToast().warning('Workflow execution cancelled')
+            break
 
-            case 'node:retry':
-              if (ev.nodeId) {
-                const data = ev.data as { attempt?: number; delayMs?: number } | undefined
-                const previous = nodeStatuses[ev.nodeId]?.retries ?? []
-                _patchNode(ev.nodeId, {
-                  status: 'running',
-                  attempts: data?.attempt,
-                  error: ev.error,
-                  retries: [
-                    ...previous,
-                    {
-                      attempt: data?.attempt ?? previous.length + 2,
-                      delayMs: data?.delayMs ?? 0,
-                      error: ev.error,
-                      at: ev.timestamp,
-                    },
-                  ],
-                })
-              }
-              break
-
-            case 'temporary-form:created':
-              if (ev.nodeId) {
-                _patchNode(ev.nodeId, {
-                  status: 'running',
-                  output: ev.data,
-                  startedAt: ev.timestamp,
-                })
-              }
-              break
-
-            case 'node:success':
-              if (ev.nodeId) {
-                _patchNode(ev.nodeId, {
-                  status: 'success',
-                  output: ev.data,
-                  endedAt: ev.timestamp,
-                  attempts: nodeStatuses[ev.nodeId]?.attempts ?? 1,
-                })
-              }
-              break
-
-            case 'node:failed':
-              if (ev.nodeId) {
-                _patchNode(ev.nodeId, {
-                  status: 'failed',
-                  error: ev.error,
-                  endedAt: ev.timestamp,
-                  attempts: nodeStatuses[ev.nodeId]?.attempts ?? 1,
-                })
-                toastError(ev.error ?? `Node "${ev.nodeId}" failed`, 'Node execution failed')
-              }
-              break
-
-            case 'workflow:success':
-              workflowStatus.value = 'SUCCESS'
-              if (nodeStatuses['trigger']?.status === 'running') {
-                _patchNode('trigger', { status: 'success', endedAt: ev.timestamp })
-              }
-              isStreaming.value = false
-              stopStream()
-              success('Workflow completed successfully')
-              break
-
-            case 'workflow:failed':
-              workflowStatus.value = 'FAILED'
-              if (nodeStatuses['trigger']?.status === 'running') {
-                _patchNode('trigger', { status: 'success', endedAt: ev.timestamp })
-              }
-              isStreaming.value = false
-              stopStream()
-              toastError('Workflow execution failed', 'Workflow failed')
-              break
-
-            case 'workflow:cancelled':
-              workflowStatus.value = 'CANCELLED'
-              for (const nid of Object.keys(nodeStatuses)) {
-                if (nodeStatuses[nid]?.status === 'running') {
-                  nodeStatuses[nid] = { ...nodeStatuses[nid]!, status: 'idle' }
-                }
-              }
-              isStreaming.value = false
-              stopStream()
-              useToast().warning('Workflow execution cancelled')
-              break
-
-            default:
-              break
-          }
-        } catch {
+          default:
+            break
         }
+      } catch {
       }
+    }
 
-      _es.onerror = () => {
-        resolve() // Ensure we don't hang if it fails immediately
-        if (isStreaming.value) {
-          isStreaming.value = false
-          stopStream()
-          useToast().error('Execution stream disconnected')
-        }
+    _es.onerror = () => {
+      if (isStreaming.value) {
+        isStreaming.value = false
+        stopStream()
+        useToast().error('Execution stream disconnected')
       }
-    })
+    }
   }
 
   /**
@@ -282,7 +277,7 @@ export const useExecutionStore = defineStore('execution', () => {
     resetNodeStatuses()
 
     const clientExecId = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-    await startStream(clientExecId)
+    startStream(clientExecId)
     setTriggerRunning()   // shimmer laranja no trigger enquanto a execução inicia
 
     isExecuting.value = true
@@ -313,7 +308,7 @@ export const useExecutionStore = defineStore('execution', () => {
     resetNodeStatuses()
 
     const clientExecId = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-    await startStream(clientExecId)
+    startStream(clientExecId)
 
     isExecuting.value = true
     try {
