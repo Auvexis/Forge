@@ -12,8 +12,8 @@ import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useTheme } from '@/shared/composables/useTheme'
 import { useToast } from '@/shared/composables/useToast'
-import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/ProductionMonitorPanel.vue'
 import type { CommandDescriptor, CommandExecutionContext } from '../types/command-palette.types'
+import { isMonitorOpen, toggleMonitor } from '@/shared/components/layout/AppProductionMonitor.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -289,13 +289,11 @@ function applyUiIntent(intent: { type: string; target?: string; payload?: Record
   }
   if (type === 'settings.open') settingsStore.open()
   if (type === 'production-panel.open') {
-    sidebarStore.openPanel({
-      title: 'Production Monitor',
-      component: ProductionMonitorPanel,
-      width: 'md',
-    })
+    if (!isMonitorOpen.value) toggleMonitor()
   }
-  if (type === 'production-panel.close') sidebarStore.closePanel()
+  if (type === 'production-panel.close') {
+    if (isMonitorOpen.value) toggleMonitor()
+  }
   if (type === 'universe.enter') appUiStore.enterUniverseMode()
   if (type === 'universe.exit') appUiStore.quitUniverseMode()
   if (type === 'plugin.open') {
