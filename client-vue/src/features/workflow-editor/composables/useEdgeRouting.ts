@@ -1,11 +1,11 @@
-import type { Node } from '@vue-flow/core'
+import type { GraphNode } from '@vue-flow/core'
 
-const MARGIN = 28 // padding around node bounding box
+const MARGIN = 28 // padding around GraphNode bounding box
 
 /**
- * Returns true if a point is inside the padded bounding box of a node.
+ * Returns true if a point is inside the padded bounding box of a GraphNode.
  */
-function pointInNode(px: number, py: number, node: Node): boolean {
+function pointInNode(px: number, py: number, node: GraphNode): boolean {
   const w = (node.dimensions?.width  ?? 200) + MARGIN * 2
   const h = (node.dimensions?.height ?? 80)  + MARGIN * 2
   const nx = node.position.x - MARGIN
@@ -15,16 +15,16 @@ function pointInNode(px: number, py: number, node: Node): boolean {
 
 /**
  * Samples several points along the cubic bezier curve and checks whether any
- * node bbox is hit.
+ * GraphNode bbox is hit.
  */
 function bezierHitsNode(
   sx: number, sy: number,
   cx1: number, cy1: number,
   cx2: number, cy2: number,
   tx: number, ty: number,
-  nodes: Node[],
+  nodes: GraphNode[],
   excludeIds: string[],
-): Node | null {
+): GraphNode | null {
   const SAMPLES = 24
   for (let i = 1; i < SAMPLES - 1; i++) {
     const t = i / (SAMPLES - 1)
@@ -41,16 +41,16 @@ function bezierHitsNode(
 }
 
 /**
- * Builds cubic bezier control points for a left→right flow and checks node
+ * Builds cubic bezier control points for a left→right flow and checks GraphNode
  * collisions. If a collision is detected it adds a vertical detour above or
- * below the blocking node.
+ * below the blocking GraphNode.
  *
  * Returns [svgPath, labelX, labelY].
  */
 export function routedBezierPath(
   sx: number, sy: number,
   tx: number, ty: number,
-  nodes: Node[],
+  nodes: GraphNode[],
   excludeIds: string[],
 ): [string, number, number] {
   const dx = (tx - sx) * 0.45
