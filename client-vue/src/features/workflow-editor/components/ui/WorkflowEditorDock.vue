@@ -30,6 +30,9 @@
                   />
                   <span class="wed-status-text">
                     <template v-if="isStreaming">Running</template>
+                    <template v-else-if="autosaveStatus === 'saving'">Autosaving</template>
+                    <template v-else-if="autosaveStatus === 'saved'">Saved {{ autosaveLabel }}</template>
+                    <template v-else-if="autosaveStatus === 'conflict'">Save Conflict</template>
                     <template v-else-if="isDirty">Unsaved Changes</template>
                     <template v-else>{{ workflowId?.slice(0, 14) || 'New Workflow' }}</template>
                   </span>
@@ -145,6 +148,26 @@
 
       <div class="wed-divider-v" />
 
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        icon-left="undo-2"
+        title="Undo"
+        :disabled="!canUndo || isBusy"
+        @click="$emit('undo')"
+      />
+
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        icon-left="redo-2"
+        title="Redo"
+        :disabled="!canRedo || isBusy"
+        @click="$emit('redo')"
+      />
+
+      <div class="wed-divider-v" />
+
       <!-- Logs -->
       <BaseButton
         size="sm"
@@ -246,6 +269,10 @@ const props = defineProps<{
   isStreaming?: boolean
   isLogsOpen?: boolean
   isDirty?: boolean
+  autosaveStatus?: 'idle' | 'saving' | 'saved' | 'error' | 'conflict'
+  lastAutosavedAt?: number | null
+  canUndo?: boolean
+  canRedo?: boolean
 }>()
 
 // ── Emits ─────────────────────────────────────────────────────────────────
@@ -260,6 +287,8 @@ defineEmits<{
   (e: 'settings'): void
   (e: 'close'): void
   (e: 'workflow-updated', w: WorkflowItem): void
+  (e: 'undo'): void
+  (e: 'redo'): void
 }>()
 
 const route = useRoute()
@@ -268,6 +297,10 @@ const isUnsavedDraft = computed(() => !route.params.id)
 // ── Derived ───────────────────────────────────────────────────────────────
 
 const isBusy = computed(() => props.isExecuting || props.isStreaming)
+const autosaveLabel = computed(() => {
+  if (!props.lastAutosavedAt) return ''
+  return getRelativeTime(props.lastAutosavedAt)
+})
 
 // ── Dropdown Logic ────────────────────────────────────────────────────────
 

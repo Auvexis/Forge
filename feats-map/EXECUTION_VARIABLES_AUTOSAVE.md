@@ -20,11 +20,11 @@
 - [x] Commit
 
 ## #10 Autosave
-- [ ] Add autosave system
-- [ ] Save indicator
-- [ ] Draft recovery
-- [ ] Undo history
-- [ ] Redo history
-- [ ] Conflict handling
-- [ ] Tests/type-check
-- [ ] Commit
+- [x] Add autosave system
+- [x] Save indicator
+- [x] Draft recovery
+- [x] Undo history
+- [x] Redo history
+- [x] Conflict handling
+- [x] Tests/type-check
+- [x] Commit

@@ -82,6 +82,7 @@ async function initWorkflow() {
       edges: [],
     }
     useWorkflowStore().setActiveWorkflow(newWorkflow)
+    useWorkflowStore().recoverDraft(newWorkflow.metadata.id)
     return
   }
 
@@ -97,6 +98,7 @@ async function initWorkflow() {
   }
 
   useWorkflowStore().setActiveWorkflow(workflow)
+  useWorkflowStore().recoverDraft(workflow.metadata.id)
 }
 
 function handleUiIntent(e: Event) {
@@ -170,7 +172,13 @@ watch(
         :is-streaming="executionStore.isStreaming"
         :is-logs-open="showLogs"
         :is-dirty="workflowStore.isDirty"
+        :autosave-status="workflowStore.autosaveStatus"
+        :last-autosaved-at="workflowStore.lastAutosavedAt"
+        :can-undo="workflowStore.canUndo"
+        :can-redo="workflowStore.canRedo"
         @save="handleSaveWorkflow()"
+        @undo="workflowStore.undo()"
+        @redo="workflowStore.redo()"
         @add-node="canvasRef?.openAddNodePanel()"
         @run="canvasRef?.handleRun()"
         @stop="canvasRef?.handleStop()"

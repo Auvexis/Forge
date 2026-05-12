@@ -2,7 +2,7 @@ import type { WorkflowItem, WorkflowNode } from '@/core/types/workflow.types'
 import { useApi } from '@/shared/composables/useApi'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useToast } from '@/shared/composables/useToast'
 
 /** 
@@ -60,21 +60,50 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const toast = useToast()
   const activeWorkflow = ref<WorkflowItem | null>(null)
   const _savedSnapshot = ref<string | null>(null)
+  const _lastHistorySnapshot = ref<string | null>(null)
+  const _serverUpdatedAt = ref<string | undefined>(undefined)
   const graphUpdateTrigger = ref(0)
+  const autosaveStatus = ref<'idle' | 'saving' | 'saved' | 'error' | 'conflict'>('idle')
+  const lastAutosavedAt = ref<number | null>(null)
+  const conflictMessage = ref<string | null>(null)
+  const undoStack = ref<string[]>([])
+  const redoStack = ref<string[]>([])
+  let suppressHistory = false
+  let autosaveTimer: number | null = null
 
   const isDirty = computed(() => {
     if (!activeWorkflow.value || _savedSnapshot.value === null) return false
     return serializeForDiff(activeWorkflow.value) !== _savedSnapshot.value
   })
+  const canUndo = computed(() => undoStack.value.length > 0)
+  const canRedo = computed(() => redoStack.value.length > 0)
+  const draftStorageKey = computed(() =>
+    activeWorkflow.value ? `nod8.workflow-draft.${activeWorkflow.value.metadata.id}` : null,
+  )
 
   function setActiveWorkflow(workflow: WorkflowItem) {
+    const snapshot = serializeForDiff(workflow)
+    suppressHistory = true
     activeWorkflow.value = workflow
-    _savedSnapshot.value = serializeForDiff(workflow)
+    _savedSnapshot.value = snapshot
+    _lastHistorySnapshot.value = JSON.stringify(workflow)
+    _serverUpdatedAt.value = workflow.metadata.updatedAt
+    undoStack.value = []
+    redoStack.value = []
+    autosaveStatus.value = 'idle'
+    conflictMessage.value = null
+    suppressHistory = false
   }
 
   function clearWorkflow() {
     activeWorkflow.value = null
     _savedSnapshot.value = null
+    _lastHistorySnapshot.value = null
+    _serverUpdatedAt.value = undefined
+    undoStack.value = []
+    redoStack.value = []
+    if (autosaveTimer) window.clearTimeout(autosaveTimer)
+    autosaveTimer = null
   }
 
 
@@ -153,11 +182,24 @@ export const useWorkflowStore = defineStore('workflow', () => {
   }
 
   const saveApi = useApi(workflowsApi.update)
-  async function saveActiveWorkflow() {
+  async function saveActiveWorkflow(options: { silent?: boolean; autosave?: boolean } = {}) {
     if (!activeWorkflow.value) return
 
     try {
+      autosaveStatus.value = options.autosave ? 'saving' : autosaveStatus.value
       const workflow = activeWorkflow.value
+      if (_serverUpdatedAt.value && !workflow.metadata.id.startsWith('draft_')) {
+        const serverWorkflow = await workflowsApi.getById(workflow.metadata.id)
+        if (
+          serverWorkflow.metadata.updatedAt &&
+          serverWorkflow.metadata.updatedAt !== _serverUpdatedAt.value
+        ) {
+          autosaveStatus.value = 'conflict'
+          conflictMessage.value = 'Server version changed. Review before saving.'
+          if (!options.silent) toast.error(conflictMessage.value, 'Save conflict')
+          return
+        }
+      }
       const updatedVersion = bumpVersion(workflow.metadata.version)
       const updatedDate = new Date().toISOString()
 
@@ -172,13 +214,100 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
       const savedWorkflow = await saveApi.execute(activeWorkflow.value.metadata.id, updatedWorkflow)
 
+      suppressHistory = true
       activeWorkflow.value = savedWorkflow
-      _savedSnapshot.value = serializeForDiff(savedWorkflow)
-      toast.success('Workflow saved')
+      const savedSnapshot = serializeForDiff(savedWorkflow)
+      _savedSnapshot.value = savedSnapshot
+      _lastHistorySnapshot.value = JSON.stringify(savedWorkflow)
+      _serverUpdatedAt.value = savedWorkflow.metadata.updatedAt
+      suppressHistory = false
+      autosaveStatus.value = options.autosave ? 'saved' : 'idle'
+      if (options.autosave) lastAutosavedAt.value = Date.now()
+      clearDraft()
+      if (!options.silent) toast.success('Workflow saved')
     } catch (error) {
+      autosaveStatus.value = options.autosave ? 'error' : autosaveStatus.value
       toast.error(error instanceof Error ? error.message : 'Failed to save workflow')
     }
   }
+
+  function saveDraft() {
+    if (!activeWorkflow.value || !draftStorageKey.value) return
+    localStorage.setItem(
+      draftStorageKey.value,
+      JSON.stringify({ savedAt: Date.now(), workflow: activeWorkflow.value }),
+    )
+  }
+
+  function clearDraft() {
+    if (!draftStorageKey.value) return
+    localStorage.removeItem(draftStorageKey.value)
+  }
+
+  function recoverDraft(workflowId: string): boolean {
+    const raw = localStorage.getItem(`nod8.workflow-draft.${workflowId}`)
+    if (!raw) return false
+    try {
+      const parsed = JSON.parse(raw) as { workflow?: WorkflowItem }
+      if (!parsed.workflow) return false
+      setActiveWorkflow(parsed.workflow)
+      _savedSnapshot.value = serializeForDiff(parsed.workflow)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  function applySnapshot(snapshot: string) {
+    suppressHistory = true
+    activeWorkflow.value = JSON.parse(snapshot) as WorkflowItem
+    _lastHistorySnapshot.value = serializeForDiff(activeWorkflow.value)
+    graphUpdateTrigger.value++
+    suppressHistory = false
+    saveDraft()
+  }
+
+  function undo() {
+    if (!activeWorkflow.value || undoStack.value.length === 0) return
+    redoStack.value.push(JSON.stringify(activeWorkflow.value))
+    applySnapshot(undoStack.value.pop()!)
+  }
+
+  function redo() {
+    if (!activeWorkflow.value || redoStack.value.length === 0) return
+    undoStack.value.push(JSON.stringify(activeWorkflow.value))
+    applySnapshot(redoStack.value.pop()!)
+  }
+
+  function scheduleAutosave() {
+    if (!activeWorkflow.value) return
+    saveDraft()
+    if (!isDirty.value || autosaveStatus.value === 'conflict') return
+    if (autosaveTimer) window.clearTimeout(autosaveTimer)
+    autosaveTimer = window.setTimeout(() => {
+      void saveActiveWorkflow({ silent: true, autosave: true })
+    }, 1500)
+  }
+
+  watch(
+    activeWorkflow,
+    (workflow) => {
+      if (!workflow || suppressHistory) return
+      const snapshot = JSON.stringify(workflow)
+      const diffSnapshot = serializeForDiff(workflow)
+      const previousDiff = _lastHistorySnapshot.value
+        ? serializeForDiff(JSON.parse(_lastHistorySnapshot.value) as WorkflowItem)
+        : null
+      if (_lastHistorySnapshot.value && previousDiff && diffSnapshot !== previousDiff) {
+        undoStack.value.push(_lastHistorySnapshot.value)
+        if (undoStack.value.length > 50) undoStack.value.shift()
+        redoStack.value = []
+        _lastHistorySnapshot.value = snapshot
+      }
+      scheduleAutosave()
+    },
+    { deep: true },
+  )
 
   const deleteApi = useApi(workflowsApi.delete)
   async function deleteActiveWorkflow() {
@@ -210,6 +339,11 @@ export const useWorkflowStore = defineStore('workflow', () => {
   return {
     activeWorkflow,
     isDirty,
+    autosaveStatus,
+    lastAutosavedAt,
+    conflictMessage,
+    canUndo,
+    canRedo,
     graphUpdateTrigger,
     isSaving: saveApi.loading,
     setActiveWorkflow,
@@ -218,6 +352,9 @@ export const useWorkflowStore = defineStore('workflow', () => {
     removeEdgesBySourceHandle,
     renameNode,
     saveActiveWorkflow,
+    recoverDraft,
+    undo,
+    redo,
     deleteActiveWorkflow,
     deleteWorkflow,
   }
