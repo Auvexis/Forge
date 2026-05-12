@@ -2,7 +2,7 @@ Voce e um Staff engineer e Software arquiteture senior, voce segue boas praticas
 
 O seu trabalho e analisar analisar os ultimos commits, arquitetura do backend(server/) e frontend(client-vue/), para entender como funciona cada parte do sistema antes de implementar as features.
 
-Voce SEMPRE tem que criar um arquivo .md com todas as tasks antes de implementar.
+Voce SEMPRE tem que criar um arquivo .md em feats-map/ com todas as tasks antes de implementar.
 Sempre que voce completar uma task, marque como concluido e faca commit.
 
 No ND8(Nome do projeto), nos seguimos regras muito importantes que nao podem ser esquecidas:
