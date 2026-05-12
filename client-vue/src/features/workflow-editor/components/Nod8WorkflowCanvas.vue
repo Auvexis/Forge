@@ -436,91 +436,83 @@ function insertNodeBetween(
   oldTargetHandle: string | null,
 ) {
   if (!workflowStore.activeWorkflow) return
-
-  // 1. Capture source/target positions BEFORE deleting the edge
   const instance = vueFlowStore.value
-  const sourceNode    = instance?.findNode(oldSourceId)
-  const oldTargetNode = instance?.findNode(oldTargetId)
-  const newNode       = instance?.findNode(newNodeId)
-  if (!instance || !newNode) return
+  if (!instance) return
 
-  const sx  = sourceNode?.position.x    ?? (newNode.position.x - 300)
-  const tx  = oldTargetNode?.position.x ?? (newNode.position.x + 300)
+  // 1. Capture positions NOW (before any mutations) from known nodes
+  const sourceNode    = instance.findNode(oldSourceId)
+  const oldTargetNode = instance.findNode(oldTargetId)
+
+  const sx   = sourceNode?.position.x    ?? 0
+  const sy   = sourceNode?.position.y    ?? 0
+  const tx   = oldTargetNode?.position.x ?? sx + 600
   const midX = Math.round((sx + tx) / 2)
-  const midY = sourceNode?.position.y   ?? newNode.position.y
+  const midY = sy
 
-  // 2. Delete the old edge
+  // 2. Delete the old edge (source → oldTarget)
   const storeEdgeIdx = workflowStore.activeWorkflow.edges.findIndex((e) => e.id === edgeId)
   if (storeEdgeIdx !== -1) workflowStore.activeWorkflow.edges.splice(storeEdgeIdx, 1)
   const vfEdgeIdx = vueFlowEdges.value.findIndex((e) => e.id === edgeId)
   if (vfEdgeIdx !== -1) vueFlowEdges.value.splice(vfEdgeIdx, 1)
 
-  // 3. Add edge: newNode → oldTarget
+  // 3. Add edge: newNode → oldTarget (always use 'target' handle to match the standard)
   const newEdge2 = {
     id: `e-${newNodeId}-${oldTargetId}-${Date.now()}`,
     source: newNodeId,
     target: oldTargetId,
     sourceHandle: 'source',
-    targetHandle: oldTargetHandle ?? undefined,
+    targetHandle: 'target',
   }
   workflowStore.activeWorkflow.edges.push(newEdge2)
   vueFlowEdges.value.push({ ...newEdge2, type: 'workflow-edge' })
 
-  // 4. Place new node exactly at the midpoint
-  instance.updateNode(newNodeId, { position: { x: midX, y: midY } })
-  if (workflowStore.activeWorkflow.nodes[newNodeId]) {
-    workflowStore.activeWorkflow.nodes[newNodeId].ui = {
-      ...workflowStore.activeWorkflow.nodes[newNodeId].ui,
-      positionX: midX,
-      positionY: midY,
+  // 4. Defer position updates — new node isn't in VueFlow's internal store yet
+  const MIN_GAP = 240
+
+  setTimeout(() => {
+    if (!workflowStore.activeWorkflow) return
+
+    // Place new node at midpoint
+    instance.updateNode(newNodeId, { position: { x: midX, y: midY } })
+    const storeNewNode = workflowStore.activeWorkflow.nodes[newNodeId]
+    if (storeNewNode) {
+      storeNewNode.ui = { ...(storeNewNode.ui ?? { positionX: midX, positionY: midY }), positionX: midX, positionY: midY }
     }
-  }
 
-  const MIN_GAP = 240 // minimum distance from new node to each neighbour
-
-  // 5. Push source (and everything to its left) leftward to ensure MIN_GAP
-  const currentLeftGap = midX - sx
-  if (currentLeftGap < MIN_GAP) {
-    const pushLeft = MIN_GAP - currentLeftGap
-    const allNodes = instance.getNodes
-    for (const n of allNodes) {
-      if (n.id === newNodeId) continue
-      if (n.position.x <= sx + 1) {
-        const nx = n.position.x - pushLeft
-        instance.updateNode(n.id, { position: { x: nx, y: n.position.y } })
-        if (workflowStore.activeWorkflow.nodes[n.id]) {
-          workflowStore.activeWorkflow.nodes[n.id].ui = {
-            ...workflowStore.activeWorkflow.nodes[n.id].ui,
-            positionX: nx,
-          }
+    // Push source (and everything to its left) leftward
+    const leftGap = midX - sx
+    if (leftGap < MIN_GAP) {
+      const pushLeft = MIN_GAP - leftGap
+      for (const n of instance.getNodes) {
+        if (n.id === newNodeId) continue
+        if (n.position.x <= sx + 1) {
+          const nx = n.position.x - pushLeft
+          instance.updateNode(n.id, { position: { x: nx, y: n.position.y } })
+          const sn = workflowStore.activeWorkflow?.nodes[n.id]
+          if (sn) sn.ui = { positionX: nx, positionY: sn.ui?.positionY ?? n.position.y }
         }
       }
     }
-  }
 
-  // 6. Push oldTarget (and everything to its right) rightward to ensure MIN_GAP
-  const currentRightGap = tx - midX
-  if (currentRightGap < MIN_GAP) {
-    const pushRight = MIN_GAP - currentRightGap
-    const allNodes = instance.getNodes
-    for (const n of allNodes) {
-      if (n.id === newNodeId) continue
-      if (n.position.x >= tx - 1) {
-        const nx = n.position.x + pushRight
-        instance.updateNode(n.id, { position: { x: nx, y: n.position.y } })
-        if (workflowStore.activeWorkflow.nodes[n.id]) {
-          workflowStore.activeWorkflow.nodes[n.id].ui = {
-            ...workflowStore.activeWorkflow.nodes[n.id].ui,
-            positionX: nx,
-          }
+    // Push oldTarget (and everything to its right) rightward
+    const rightGap = tx - midX
+    if (rightGap < MIN_GAP) {
+      const pushRight = MIN_GAP - rightGap
+      for (const n of instance.getNodes) {
+        if (n.id === newNodeId) continue
+        if (n.position.x >= tx - 1) {
+          const nx = n.position.x + pushRight
+          instance.updateNode(n.id, { position: { x: nx, y: n.position.y } })
+          const sn = workflowStore.activeWorkflow?.nodes[n.id]
+          if (sn) sn.ui = { positionX: nx, positionY: sn.ui?.positionY ?? n.position.y }
         }
       }
     }
-  }
 
-  // 7. Align new node vertically with source
-  alignNodeCenters(oldSourceId, newNodeId)
-  alignNodeCenters(newNodeId, oldTargetId)
+    // Align new node vertically with source
+    alignNodeCenters(oldSourceId, newNodeId)
+    alignNodeCenters(newNodeId, oldTargetId)
+  }, 50)
 }
 
 const generateNodeId = (prefix: string) => {
