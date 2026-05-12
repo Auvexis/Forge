@@ -37,7 +37,7 @@
 import { computed } from 'vue'
 import { EdgeLabelRenderer, useVueFlow } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { useWorkflowStore } from '../../stores/workflow.store'
+import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 
 const { getSelectedNodes, removeNodes } = useVueFlow()
 const workflowStore = useWorkflowStore()
@@ -111,7 +111,7 @@ function deleteAll() {
 
   // Remove edges referencing any of these nodes
   workflowStore.activeWorkflow.edges = workflowStore.activeWorkflow.edges.filter(
-    (e) => !ids.includes(e.source) && !ids.includes(e.target),
+    (e: { source: string; target: string }) => !ids.includes(e.source) && !ids.includes(e.target),
   )
 
   // Remove nodes from store
