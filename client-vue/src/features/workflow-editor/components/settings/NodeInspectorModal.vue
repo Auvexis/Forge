@@ -5,7 +5,7 @@ import { useNodeInspectorStore } from '../../stores/node-inspector.store'
 import { useWorkflowStore } from '../../stores/workflow.store'
 import { useExecutionStore } from '../../stores/execution.store'
 import type { NodeData } from './editors/types'
-import type { WorkflowNodeType } from '@/core/types/workflow.types'
+import type { RetryPolicy, WorkflowNodeType } from '@/core/types/workflow.types'
 
 import { NODE_EDITOR_REGISTRY } from './editors'
 import JsonTreeView from './shared/JsonTreeView.vue'
@@ -14,6 +14,8 @@ import PluginMenuAuth from './editors/PluginMenuAuth.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
@@ -197,8 +199,18 @@ const injectVariable = (paramKey: string, variable: string) => {
 
 const isPluginNode = computed(() => inspectorStore.activeNode?.type === 'plugin')
 const isEventListenerNode = computed(() => inspectorStore.activeNode?.type === 'event-listener')
+const canConfigureRetry = computed(() => inspectorStore.activeNodeId !== 'trigger')
 const activeTab = ref<'config' | 'settings'>('config')
 const localId = ref('')
+const retryPolicy = computed<RetryPolicy | undefined>(() => {
+  return enrichedNode.value?.data?.retryPolicy as RetryPolicy | undefined
+})
+const retryEnabled = computed(() => Boolean(retryPolicy.value))
+const retryBackoffOptions = [
+  { value: 'fixed', label: 'Fixed', icon: 'minus' },
+  { value: 'linear', label: 'Linear', icon: 'chart-line' },
+  { value: 'exponential', label: 'Exponential', icon: 'activity' },
+]
 
 watch(
   () => inspectorStore.isOpen,
@@ -311,6 +323,35 @@ const handleIdChange = (newId: string) => {
   } else {
     localId.value = inspectorStore.activeNode.id
   }
+}
+
+function setRetryEnabled(enabled: boolean) {
+  if (!enabled) {
+    updateNodeData({ retryPolicy: undefined })
+    return
+  }
+
+  updateNodeData({
+    retryPolicy: retryPolicy.value ?? {
+      maxRetries: 2,
+      intervalSeconds: 1,
+      backoffStrategy: 'fixed',
+    },
+  })
+}
+
+function updateRetryPolicy(patch: Partial<RetryPolicy>) {
+  const current = retryPolicy.value ?? {
+    maxRetries: 2,
+    intervalSeconds: 1,
+    backoffStrategy: 'fixed' as const,
+  }
+  updateNodeData({
+    retryPolicy: {
+      ...current,
+      ...patch,
+    },
+  })
 }
 
 const copyToClipboard = async (path: string) => {
@@ -473,6 +514,50 @@ const copyToClipboard = async (path: string) => {
                   />
                 </div>
 
+                <!-- Retry Policy -->
+                <div
+                  v-if="canConfigureRetry"
+                  class="flex flex-col gap-3 pt-4 border-t border-nod8-border"
+                >
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="flex flex-col gap-1">
+                      <label class="text-sm font-semibold text-primary">Retry Policy</label>
+                      <p class="text-xs text-muted leading-tight">
+                        Re-run this node when it fails.
+                      </p>
+                    </div>
+                    <BaseSwitch
+                      :model-value="retryEnabled"
+                      @update:model-value="setRetryEnabled"
+                    />
+                  </div>
+
+                  <div v-if="retryEnabled" class="retry-settings-grid">
+                    <BaseInput
+                      type="number"
+                      label="Max retries"
+                      :model-value="String(retryPolicy?.maxRetries ?? 2)"
+                      min="0"
+                      max="20"
+                      @update:model-value="updateRetryPolicy({ maxRetries: Math.max(0, Number($event) || 0) })"
+                    />
+                    <BaseInput
+                      type="number"
+                      label="Interval seconds"
+                      :model-value="String(retryPolicy?.intervalSeconds ?? 1)"
+                      min="0"
+                      step="0.5"
+                      @update:model-value="updateRetryPolicy({ intervalSeconds: Math.max(0, Number($event) || 0) })"
+                    />
+                    <BaseSelect
+                      label="Backoff"
+                      :model-value="retryPolicy?.backoffStrategy ?? 'fixed'"
+                      :options="retryBackoffOptions"
+                      @update:model-value="updateRetryPolicy({ backoffStrategy: $event as RetryPolicy['backoffStrategy'] })"
+                    />
+                  </div>
+                </div>
+
                 <!-- Authorization Configuration (Plugin Only) -->
                 <div
                   v-if="isPluginNode"
@@ -552,6 +637,18 @@ const copyToClipboard = async (path: string) => {
 
 .spin {
   animation: spin 1s linear infinite;
+}
+
+.retry-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--nod8-space-3);
+}
+
+@media (max-width: 900px) {
+  .retry-settings-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @keyframes spin {
