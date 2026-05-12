@@ -467,6 +467,36 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
   });
 
+  fastify.get("/workflows/:workflowId", async (req, reply) => {
+    const { workflowId } = req.params as { workflowId: string };
+
+    try {
+      const workflow = WorkflowRepository.getWorkflowById(workflowId);
+      if (!workflow) {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Workflow not found",
+          error: "Not Found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Workflow fetched successfully",
+        error: null,
+        data: workflow,
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to fetch workflow",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
   // ──────────── Save or Update a workflow ────────────
 
   fastify.post("/workflows", async (req, reply) => {
