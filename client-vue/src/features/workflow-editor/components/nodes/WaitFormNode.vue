@@ -5,7 +5,7 @@ import type { WaitFormNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 
 const props = defineProps<
-  NodeProps<WaitFormNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+  NodeProps<WaitFormNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const stepTitle = computed(() => props.data?.name || 'Wait for Form')

@@ -166,7 +166,7 @@ export const useExecutionStore = defineStore('execution', () => {
               const data = ev.data as { attempt?: number; delayMs?: number } | undefined
               const previous = nodeStatuses[ev.nodeId]?.retries ?? []
               _patchNode(ev.nodeId, {
-                status: 'running',
+                status: 'retrying',
                 attempts: data?.attempt,
                 error: ev.error,
                 retries: [

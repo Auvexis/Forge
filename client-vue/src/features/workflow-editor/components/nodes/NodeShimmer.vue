@@ -26,7 +26,7 @@
   background: linear-gradient(
     to right,
     transparent 0%,
-    rgba(245, 158, 11, 0.18) 50%,
+    var(--node-shimmer-color, rgba(245, 158, 11, 0.18)) 50%,
     transparent 100%
   );
   animation: nod8-shimmer 1.5s ease-in-out infinite;

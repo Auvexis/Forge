@@ -5,7 +5,7 @@ import BaseNode from '../BaseNode.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
-  NodeProps<CodeNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+  NodeProps<CodeNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const snippet = computed(() => props.data?.script || '// empty script')

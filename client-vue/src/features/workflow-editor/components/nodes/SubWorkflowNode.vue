@@ -5,7 +5,7 @@ import BaseNode from '../BaseNode.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
-  NodeProps<SubWorkflowNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+  NodeProps<SubWorkflowNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const workflowId = computed(() => (props.data as any)?.targetWorkflowId || 'not configured')

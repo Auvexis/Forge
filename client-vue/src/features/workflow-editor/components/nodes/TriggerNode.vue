@@ -15,7 +15,7 @@ import RunWorkflowPanel from '../execution/RunWorkflowPanel.vue'
 import NodeShimmer from './NodeShimmer.vue'
 
 const props = defineProps<
-  NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+  NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const store = useWorkflowStore()
@@ -99,7 +99,7 @@ const nodeTitle = computed(() => {
   return triggerConfig.value.title
 })
 
-const effectiveStatus = computed<'idle' | 'running' | 'success' | 'failed'>(() => {
+const effectiveStatus = computed<'idle' | 'running' | 'retrying' | 'success' | 'failed'>(() => {
   const storeStatus = executionStore.nodeStatuses['trigger']?.status
   if (storeStatus && storeStatus !== 'idle') return storeStatus
   return props.status ?? 'idle'

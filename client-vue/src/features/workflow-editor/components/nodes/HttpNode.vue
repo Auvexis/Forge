@@ -5,7 +5,7 @@ import BaseNode from '../BaseNode.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
-  NodeProps<HttpNode> & { status?: 'idle' | 'running' | 'success' | 'failed' }
+  NodeProps<HttpNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const method = computed(() => props.data?.method || 'GET')
