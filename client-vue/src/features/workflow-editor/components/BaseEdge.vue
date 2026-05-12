@@ -11,11 +11,13 @@ const props = defineProps<EdgeProps>()
 const { removeEdges, getNodes } = useVueFlow()
 const executionStore = useExecutionStore()
 
-// Auto-routing bezier: detours around nodes that block the direct path
+// Adaptive routing: bezier for natural left→right flow, smoothstep fallback when reversed/too close
 const pathData = computed(() => {
   const [path, lx, ly] = routedBezierPath(
     props.sourceX, props.sourceY,
     props.targetX, props.targetY,
+    props.sourcePosition,
+    props.targetPosition,
     getNodes.value,
     [props.source, props.target],
   )

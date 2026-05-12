@@ -1,10 +1,9 @@
 import type { GraphNode } from '@vue-flow/core'
+import { getSmoothStepPath } from '@vue-flow/core'
+import type { Position } from '@vue-flow/core'
 
-const MARGIN = 28 // padding around GraphNode bounding box
+const MARGIN = 28
 
-/**
- * Returns true if a point is inside the padded bounding box of a GraphNode.
- */
 function pointInNode(px: number, py: number, node: GraphNode): boolean {
   const w = (node.dimensions?.width  ?? 200) + MARGIN * 2
   const h = (node.dimensions?.height ?? 80)  + MARGIN * 2
@@ -13,10 +12,6 @@ function pointInNode(px: number, py: number, node: GraphNode): boolean {
   return px >= nx && px <= nx + w && py >= ny && py <= ny + h
 }
 
-/**
- * Samples several points along the cubic bezier curve and checks whether any
- * GraphNode bbox is hit.
- */
 function bezierHitsNode(
   sx: number, sy: number,
   cx1: number, cy1: number,
@@ -31,7 +26,6 @@ function bezierHitsNode(
     const mt = 1 - t
     const px = mt ** 3 * sx + 3 * mt ** 2 * t * cx1 + 3 * mt * t ** 2 * cx2 + t ** 3 * tx
     const py = mt ** 3 * sy + 3 * mt ** 2 * t * cy1 + 3 * mt * t ** 2 * cy2 + t ** 3 * ty
-
     for (const node of nodes) {
       if (excludeIds.includes(node.id)) continue
       if (pointInNode(px, py, node)) return node
@@ -41,52 +35,61 @@ function bezierHitsNode(
 }
 
 /**
- * Builds cubic bezier control points for a left→right flow and checks GraphNode
- * collisions. If a collision is detected it adds a vertical detour above or
- * below the blocking GraphNode.
+ * Adaptive routing:
+ * - Uses a smooth bezier when source → target flows naturally left-to-right with enough horizontal space.
+ * - Falls back to smoothstep (elbow routing) when the connection goes backwards or the
+ *   horizontal gap is too small (would produce a distorted S-curve, like n8n does).
+ * - Auto-detours around blocking nodes on the bezier path.
  *
  * Returns [svgPath, labelX, labelY].
  */
 export function routedBezierPath(
   sx: number, sy: number,
   tx: number, ty: number,
+  sourcePosition: Position,
+  targetPosition: Position,
   nodes: GraphNode[],
   excludeIds: string[],
 ): [string, number, number] {
-  const dx = (tx - sx) * 0.45
-  // Standard bezier control points (horizontal handles for left→right flow)
-  let cx1 = sx + dx
-  let cy1 = sy
-  let cx2 = tx - dx
-  let cy2 = ty
+  const horizontalGap = tx - sx
+  const BEZIER_THRESHOLD = 80 // min px to use bezier
 
+  // ── Fallback to SmoothStep when going backwards or too close ──────────
+  if (horizontalGap < BEZIER_THRESHOLD) {
+    const [path, lx, ly] = getSmoothStepPath({
+      sourceX: sx, sourceY: sy, sourcePosition,
+      targetX: tx, targetY: ty, targetPosition,
+      borderRadius: 16,
+    })
+    return [path, lx, ly]
+  }
+
+  // ── Bezier control points ──────────────────────────────────────────────
+  const dx = horizontalGap * 0.45
+  const cx1 = sx + dx
+  const cy1 = sy
+  const cx2 = tx - dx
+  const cy2 = ty
+
+  // ── Auto-routing: detour around blocking nodes ─────────────────────────
   const blocker = bezierHitsNode(sx, sy, cx1, cy1, cx2, cy2, tx, ty, nodes, excludeIds)
 
   if (blocker) {
     const bTop    = blocker.position.y - MARGIN
     const bBottom = blocker.position.y + (blocker.dimensions?.height ?? 80) + MARGIN
     const midX    = (sx + tx) / 2
-
-    // Decide direction: route above if source is above the blocker centre, else below
     const blockerMidY = blocker.position.y + (blocker.dimensions?.height ?? 80) / 2
-    const detourY = (sy + ty) / 2 < blockerMidY
-      ? bTop    - 40   // above
-      : bBottom + 40   // below
+    const detourY = (sy + ty) / 2 < blockerMidY ? bTop - 40 : bBottom + 40
 
-    // Build a 2-segment path via a waypoint
-    const midY = detourY
     const path =
       `M ${sx} ${sy} ` +
-      `C ${sx + dx} ${sy}, ${midX - dx * 0.5} ${midY}, ${midX} ${midY} ` +
-      `C ${midX + dx * 0.5} ${midY}, ${tx - dx} ${ty}, ${tx} ${ty}`
+      `C ${cx1} ${sy}, ${midX - dx * 0.5} ${detourY}, ${midX} ${detourY} ` +
+      `C ${midX + dx * 0.5} ${detourY}, ${cx2} ${ty}, ${tx} ${ty}`
 
-    const labelX = midX
-    const labelY = midY
-
-    return [path, labelX, labelY]
+    return [path, midX, detourY]
   }
 
-  // No blocker — standard bezier
+  // ── Standard bezier ────────────────────────────────────────────────────
   const labelX = 0.125 * sx + 0.375 * cx1 + 0.375 * cx2 + 0.125 * tx
   const labelY = 0.125 * sy + 0.375 * cy1 + 0.375 * cy2 + 0.125 * ty
   const path = `M ${sx} ${sy} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${tx} ${ty}`

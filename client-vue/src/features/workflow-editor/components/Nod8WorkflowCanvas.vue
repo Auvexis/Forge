@@ -593,10 +593,12 @@ const onNodeDragStop = (event: NodeDragEvent) => {
     let y = Math.round(node.position.y / SNAP) * SNAP
 
     // ── Avoid node overlap ────────────────────────────────────────────────
+    // Dimensions come from the VueFlow internal store (not drag event, which may be 0)
     if (instance) {
+      const internalDragged = instance.findNode(node.id)
+      const dw = internalDragged?.dimensions?.width  ?? 200
+      const dh = internalDragged?.dimensions?.height ?? 80
       const allNodes = instance.getNodes.value
-      const dw = node.dimensions?.width  ?? 200
-      const dh = node.dimensions?.height ?? 80
 
       let attempts = 0
       let overlapping = true
@@ -616,17 +618,6 @@ const onNodeDragStop = (event: NodeDragEvent) => {
         }
         attempts++
       }
-    }
-
-    // Bail early if unchanged
-    const existingUi = node.id === 'trigger'
-      ? workflowStore.activeWorkflow?.trigger.ui
-      : workflowStore.activeWorkflow?.nodes[node.id]?.ui
-
-    if (existingUi &&
-      Math.round((existingUi.positionX ?? 0) * 10) / 10 === x &&
-      Math.round((existingUi.positionY ?? 0) * 10) / 10 === y) {
-      continue
     }
 
     // Apply snapped + de-overlapped position back to VueFlow
