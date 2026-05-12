@@ -206,6 +206,19 @@
 
       <div class="wed-divider-v" />
 
+      <BaseButton
+        size="sm"
+        :variant="isAutosaveEnabled ? 'primary' : 'ghost'"
+        :icon-left="isAutosaveEnabled ? 'toggle-right' : 'toggle-left'"
+        :disabled="isBusy || isSaving"
+        title="Toggle autosave for this workflow"
+        @click="$emit('toggle-autosave', !isAutosaveEnabled)"
+      >
+        Autosave
+      </BaseButton>
+
+      <div class="wed-divider-v" />
+
       <!-- Save -->
       <BaseButton
         size="sm"
@@ -271,6 +284,7 @@ const props = defineProps<{
   isDirty?: boolean
   autosaveStatus?: 'idle' | 'saving' | 'saved' | 'error' | 'conflict'
   lastAutosavedAt?: number | null
+  isAutosaveEnabled?: boolean
   canUndo?: boolean
   canRedo?: boolean
 }>()
@@ -289,6 +303,7 @@ defineEmits<{
   (e: 'workflow-updated', w: WorkflowItem): void
   (e: 'undo'): void
   (e: 'redo'): void
+  (e: 'toggle-autosave', enabled: boolean): void
 }>()
 
 const route = useRoute()
@@ -343,6 +358,7 @@ async function handleCreate() {
       isActive: false,
       isDraft: true,
       public: false,
+      autosaveEnabled: false,
       createdAt: new Date().toISOString(),
     },
     trigger: { type: 'manual' },

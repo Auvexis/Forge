@@ -9,6 +9,8 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
   flex-direction: column;
   padding: var(--nod8-space-4);
   gap: var(--nod8-space-6);
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 /* ── Section ─────────────────────────────────────────────────────────────── */
@@ -56,9 +58,23 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 
 .wsp-variable-form {
   display: grid;
-  grid-template-columns: minmax(90px, 1fr) 120px minmax(120px, 1fr) minmax(120px, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(110px, 140px);
   gap: var(--nod8-space-2);
   align-items: start;
+  min-width: 0;
+}
+
+.wsp-variable-value-field {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.wsp-variable-form > :nth-child(4) {
+  grid-column: 1 / -1;
+}
+
+.wsp-variable-form > :last-child {
+  justify-self: flex-start;
 }
 
 .wsp-variable-list {
@@ -71,8 +87,8 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 
 .wsp-variable-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(80px, 140px) 28px 28px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) 28px 28px;
+  align-items: start;
   gap: var(--nod8-space-2);
   padding: var(--nod8-space-2) var(--nod8-space-3);
   background: var(--nod8-bg-overlay);
@@ -99,9 +115,8 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 
 .wsp-variable-name,
 .wsp-variable-preview {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .wsp-variable-name {
@@ -117,11 +132,14 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 }
 
 .wsp-variable-preview {
+  grid-column: 1 / -1;
   padding: 2px 6px;
   border-radius: 4px;
   background: var(--nod8-bg-base);
   font-size: 10px;
   color: var(--nod8-text-muted);
+  white-space: pre-wrap;
+  max-width: 100%;
 }
 
 .wsp-variable-empty {

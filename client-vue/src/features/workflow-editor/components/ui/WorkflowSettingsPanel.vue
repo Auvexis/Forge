@@ -272,9 +272,18 @@ async function handleDeleteClick() {
             placeholder="Type"
           />
           <BaseInput
+            v-if="variableDraft.type === 'secret'"
             v-model="variableDefaultValue"
-            :type="variableDraft.type === 'secret' ? 'password' : 'text'"
+            class="wsp-variable-value-field"
+            type="password"
             placeholder="Default value"
+          />
+          <BaseTextarea
+            v-else
+            v-model="variableDefaultValue"
+            class="wsp-variable-value-field"
+            placeholder="Default value"
+            :rows="2"
           />
           <BaseInput v-model="variableDraft.description" placeholder="Description" />
           <BaseButton size="sm" variant="primary" icon-left="plus" @click="addVariable">
@@ -297,7 +306,6 @@ async function handleDeleteClick() {
                 <span class="wsp-variable-desc">{{ variable.description || variable.type }}</span>
               </div>
             </div>
-            <code class="wsp-variable-preview">{{ previewVariable(variable) }}</code>
             <BaseButton
               v-if="variable.type === 'secret'"
               size="icon"
@@ -319,6 +327,7 @@ async function handleDeleteClick() {
                 <LucideIcon name="trash-2" :size="13" />
               </template>
             </BaseButton>
+            <code class="wsp-variable-preview">{{ previewVariable(variable) }}</code>
           </div>
         </div>
         <div v-else class="wsp-variable-empty">No variables found</div>

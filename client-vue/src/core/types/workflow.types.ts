@@ -378,6 +378,7 @@ export interface WorkflowMetadata {
   isActive: boolean
   isDraft: boolean
   public: boolean
+  autosaveEnabled?: boolean
   createdAt: string
   updatedAt?: string
   publishedAt?: string

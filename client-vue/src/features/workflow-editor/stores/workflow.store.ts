@@ -77,6 +77,9 @@ export const useWorkflowStore = defineStore('workflow', () => {
   })
   const canUndo = computed(() => undoStack.value.length > 0)
   const canRedo = computed(() => redoStack.value.length > 0)
+  const isAutosaveEnabled = computed(
+    () => activeWorkflow.value?.metadata.autosaveEnabled === true,
+  )
   const draftStorageKey = computed(() =>
     activeWorkflow.value ? `nod8.workflow-draft.${activeWorkflow.value.metadata.id}` : null,
   )
@@ -261,10 +264,21 @@ export const useWorkflowStore = defineStore('workflow', () => {
   function applySnapshot(snapshot: string) {
     suppressHistory = true
     activeWorkflow.value = JSON.parse(snapshot) as WorkflowItem
-    _lastHistorySnapshot.value = serializeForDiff(activeWorkflow.value)
+    _lastHistorySnapshot.value = JSON.stringify(activeWorkflow.value)
     graphUpdateTrigger.value++
     suppressHistory = false
     saveDraft()
+  }
+
+  function setAutosaveEnabled(enabled: boolean) {
+    if (!activeWorkflow.value) return
+    activeWorkflow.value.metadata.autosaveEnabled = enabled
+    if (!enabled && autosaveTimer) {
+      window.clearTimeout(autosaveTimer)
+      autosaveTimer = null
+      autosaveStatus.value = 'idle'
+    }
+    void saveActiveWorkflow({ silent: true })
   }
 
   function undo() {
@@ -282,7 +296,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   function scheduleAutosave() {
     if (!activeWorkflow.value) return
     saveDraft()
-    if (!isDirty.value || autosaveStatus.value === 'conflict') return
+    if (!isAutosaveEnabled.value || !isDirty.value || autosaveStatus.value === 'conflict') return
     if (autosaveTimer) window.clearTimeout(autosaveTimer)
     autosaveTimer = window.setTimeout(() => {
       void saveActiveWorkflow({ silent: true, autosave: true })
@@ -344,6 +358,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     conflictMessage,
     canUndo,
     canRedo,
+    isAutosaveEnabled,
     graphUpdateTrigger,
     isSaving: saveApi.loading,
     setActiveWorkflow,
@@ -353,6 +368,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     renameNode,
     saveActiveWorkflow,
     recoverDraft,
+    setAutosaveEnabled,
     undo,
     redo,
     deleteActiveWorkflow,

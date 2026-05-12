@@ -284,6 +284,9 @@ function migrateWorkflow(workflow: any): WorkflowItem {
   if (workflow.metadata && !workflow.metadata.updatedAt) {
     workflow.metadata.updatedAt = workflow.metadata.createdAt;
   }
+  if (workflow.metadata && workflow.metadata.autosaveEnabled === undefined) {
+    workflow.metadata.autosaveEnabled = false;
+  }
   if (workflow.nodes) {
     for (const [_id, node] of Object.entries(workflow.nodes)) {
       const n = node as any;

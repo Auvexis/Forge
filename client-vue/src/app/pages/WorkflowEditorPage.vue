@@ -75,6 +75,7 @@ async function initWorkflow() {
         isActive: false,
         isDraft: true,
         public: false,
+        autosaveEnabled: false,
         createdAt: new Date().toISOString(),
       },
       trigger: { type: 'manual' },
@@ -174,9 +175,11 @@ watch(
         :is-dirty="workflowStore.isDirty"
         :autosave-status="workflowStore.autosaveStatus"
         :last-autosaved-at="workflowStore.lastAutosavedAt"
+        :is-autosave-enabled="workflowStore.isAutosaveEnabled"
         :can-undo="workflowStore.canUndo"
         :can-redo="workflowStore.canRedo"
         @save="handleSaveWorkflow()"
+        @toggle-autosave="workflowStore.setAutosaveEnabled($event)"
         @undo="workflowStore.undo()"
         @redo="workflowStore.redo()"
         @add-node="canvasRef?.openAddNodePanel()"
