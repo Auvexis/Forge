@@ -249,6 +249,7 @@ quickAddBus.on((payload: { sourceId: string; sourceHandle?: string }) => {
 // ── Insert node between two connected nodes (edge toolbar quick-add) ──────────
 
 let pendingInsertEdgeId: string | null = null
+let pendingInsertSourceId: string | null = null
 let pendingInsertTargetId: string | null = null
 let pendingInsertTargetHandle: string | null = null
 
@@ -260,12 +261,11 @@ quickAddBetweenBus.on((payload: {
   sourceHandle?: string
   targetHandle?: string
 }) => {
-  // We'll insert a new node between source → target.
-  // Remember the edge details so addLogicNode / addPluginNode can rewire after selection.
-  pendingInsertEdgeId    = payload.edgeId
-  pendingInsertTargetId  = payload.targetId
+  pendingInsertEdgeId       = payload.edgeId
+  pendingInsertSourceId     = payload.sourceId
+  pendingInsertTargetId     = payload.targetId
   pendingInsertTargetHandle = payload.targetHandle ?? null
-  quickAddSourceHandle   = payload.sourceHandle ?? null
+  quickAddSourceHandle      = payload.sourceHandle ?? null
   openAddNodePanel(payload.sourceId)
 })
 
@@ -428,73 +428,99 @@ function autoConnectToSource(sourceId: string, targetId: string, sourceHandle?: 
   vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
 }
 
-function insertNodeBetween(edgeId: string, newNodeId: string, oldTargetId: string, oldTargetHandle: string | null) {
+function insertNodeBetween(
+  edgeId: string,
+  newNodeId: string,
+  oldSourceId: string,
+  oldTargetId: string,
+  oldTargetHandle: string | null,
+) {
   if (!workflowStore.activeWorkflow) return
 
-  // 1. Delete the old edge from both store and VueFlow
-  const storeEdgeIdx = workflowStore.activeWorkflow.edges.findIndex((e) => e.id === edgeId)
-  if (storeEdgeIdx !== -1) {
-    workflowStore.activeWorkflow.edges.splice(storeEdgeIdx, 1)
-  }
-  const vfEdgeIdx = vueFlowEdges.value.findIndex((e) => e.id === edgeId)
-  if (vfEdgeIdx !== -1) {
-    vueFlowEdges.value.splice(vfEdgeIdx, 1)
-  }
+  // 1. Capture source/target positions BEFORE deleting the edge
+  const instance = vueFlowStore.value
+  const sourceNode    = instance?.findNode(oldSourceId)
+  const oldTargetNode = instance?.findNode(oldTargetId)
+  const newNode       = instance?.findNode(newNodeId)
+  if (!instance || !newNode) return
 
-  // 2. We already auto-connected source -> newNode via autoConnectToSource in addLogicNode/addPluginNode.
-  // Now we need to connect newNode -> oldTarget.
+  const sx  = sourceNode?.position.x    ?? (newNode.position.x - 300)
+  const tx  = oldTargetNode?.position.x ?? (newNode.position.x + 300)
+  const midX = Math.round((sx + tx) / 2)
+  const midY = sourceNode?.position.y   ?? newNode.position.y
+
+  // 2. Delete the old edge
+  const storeEdgeIdx = workflowStore.activeWorkflow.edges.findIndex((e) => e.id === edgeId)
+  if (storeEdgeIdx !== -1) workflowStore.activeWorkflow.edges.splice(storeEdgeIdx, 1)
+  const vfEdgeIdx = vueFlowEdges.value.findIndex((e) => e.id === edgeId)
+  if (vfEdgeIdx !== -1) vueFlowEdges.value.splice(vfEdgeIdx, 1)
+
+  // 3. Add edge: newNode → oldTarget
   const newEdge2 = {
     id: `e-${newNodeId}-${oldTargetId}-${Date.now()}`,
     source: newNodeId,
     target: oldTargetId,
-    sourceHandle: 'target', // The standard output of the new node
+    sourceHandle: 'source',
     targetHandle: oldTargetHandle ?? undefined,
   }
-
   workflowStore.activeWorkflow.edges.push(newEdge2)
   vueFlowEdges.value.push({ ...newEdge2, type: 'workflow-edge' })
 
-  // 3. Position new node midway between source and old target, then push both outward
-  alignNodeCenters(newNodeId, oldTargetId)
-  const instance = vueFlowStore.value
-  const sourceNode   = instance?.findNode(
-    workflowStore.activeWorkflow?.edges.find((e) => e.target === oldTargetId)?.source ?? ''
-  )
-  const newNode      = instance?.findNode(newNodeId)
-  const oldTargetNode = instance?.findNode(oldTargetId)
-
-  if (instance && newNode) {
-    // Push new node to midpoint between source and old target
-    const sx = sourceNode?.position.x ?? (newNode.position.x - 300)
-    const tx = oldTargetNode?.position.x ?? (newNode.position.x + 300)
-    const midX = Math.round((sx + tx) / 2)
-    instance.updateNode(newNodeId, { position: { x: midX, y: newNode.position.y } })
-
-    const HALF_GAP = 240 // half of desired gap between nodes
-
-    // Push source leftward if it's too close
-    if (sourceNode && midX - sourceNode.position.x < HALF_GAP) {
-      const pushLeft = HALF_GAP - (midX - sourceNode.position.x)
-      // move everything to the left of midX back
-      const allNodes = instance.getNodes
-      for (const n of allNodes) {
-        if (n.id !== newNodeId && n.position.x <= sx) {
-          instance.updateNode(n.id, { position: { x: n.position.x - pushLeft, y: n.position.y } })
-        }
-      }
+  // 4. Place new node exactly at the midpoint
+  instance.updateNode(newNodeId, { position: { x: midX, y: midY } })
+  if (workflowStore.activeWorkflow.nodes[newNodeId]) {
+    workflowStore.activeWorkflow.nodes[newNodeId].ui = {
+      ...workflowStore.activeWorkflow.nodes[newNodeId].ui,
+      positionX: midX,
+      positionY: midY,
     }
+  }
 
-    // Push old target (and everything to its right) rightward
-    if (oldTargetNode && oldTargetNode.position.x - midX < HALF_GAP) {
-      const pushRight = HALF_GAP - (oldTargetNode.position.x - midX)
-      const allNodes = instance.getNodes
-      for (const n of allNodes) {
-        if (n.id !== newNodeId && n.position.x >= oldTargetNode.position.x) {
-          instance.updateNode(n.id, { position: { x: n.position.x + pushRight, y: n.position.y } })
+  const MIN_GAP = 240 // minimum distance from new node to each neighbour
+
+  // 5. Push source (and everything to its left) leftward to ensure MIN_GAP
+  const currentLeftGap = midX - sx
+  if (currentLeftGap < MIN_GAP) {
+    const pushLeft = MIN_GAP - currentLeftGap
+    const allNodes = instance.getNodes
+    for (const n of allNodes) {
+      if (n.id === newNodeId) continue
+      if (n.position.x <= sx + 1) {
+        const nx = n.position.x - pushLeft
+        instance.updateNode(n.id, { position: { x: nx, y: n.position.y } })
+        if (workflowStore.activeWorkflow.nodes[n.id]) {
+          workflowStore.activeWorkflow.nodes[n.id].ui = {
+            ...workflowStore.activeWorkflow.nodes[n.id].ui,
+            positionX: nx,
+          }
         }
       }
     }
   }
+
+  // 6. Push oldTarget (and everything to its right) rightward to ensure MIN_GAP
+  const currentRightGap = tx - midX
+  if (currentRightGap < MIN_GAP) {
+    const pushRight = MIN_GAP - currentRightGap
+    const allNodes = instance.getNodes
+    for (const n of allNodes) {
+      if (n.id === newNodeId) continue
+      if (n.position.x >= tx - 1) {
+        const nx = n.position.x + pushRight
+        instance.updateNode(n.id, { position: { x: nx, y: n.position.y } })
+        if (workflowStore.activeWorkflow.nodes[n.id]) {
+          workflowStore.activeWorkflow.nodes[n.id].ui = {
+            ...workflowStore.activeWorkflow.nodes[n.id].ui,
+            positionX: nx,
+          }
+        }
+      }
+    }
+  }
+
+  // 7. Align new node vertically with source
+  alignNodeCenters(oldSourceId, newNodeId)
+  alignNodeCenters(newNodeId, oldTargetId)
 }
 
 const generateNodeId = (prefix: string) => {
@@ -592,9 +618,10 @@ const addLogicNode = (type: WorkflowNodeType) => {
   }
 
   // Insert-between: splice new node into an existing edge
-  if (pendingInsertEdgeId && pendingInsertTargetId) {
-    insertNodeBetween(pendingInsertEdgeId, id, pendingInsertTargetId, pendingInsertTargetHandle)
+  if (pendingInsertEdgeId && pendingInsertSourceId && pendingInsertTargetId) {
+    insertNodeBetween(pendingInsertEdgeId, id, pendingInsertSourceId, pendingInsertTargetId, pendingInsertTargetHandle)
     pendingInsertEdgeId = null
+    pendingInsertSourceId = null
     pendingInsertTargetId = null
     pendingInsertTargetHandle = null
   }
@@ -636,9 +663,10 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
   }
 
   // Insert-between: splice new node into an existing edge
-  if (pendingInsertEdgeId && pendingInsertTargetId) {
-    insertNodeBetween(pendingInsertEdgeId, id, pendingInsertTargetId, pendingInsertTargetHandle)
+  if (pendingInsertEdgeId && pendingInsertSourceId && pendingInsertTargetId) {
+    insertNodeBetween(pendingInsertEdgeId, id, pendingInsertSourceId, pendingInsertTargetId, pendingInsertTargetHandle)
     pendingInsertEdgeId = null
+    pendingInsertSourceId = null
     pendingInsertTargetId = null
     pendingInsertTargetHandle = null
   }
