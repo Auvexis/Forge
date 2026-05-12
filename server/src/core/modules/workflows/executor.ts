@@ -269,10 +269,14 @@ async function executeWithRetry(input: {
 
       if (attempts <= maxRetries) {
         const interval = node.retryPolicy?.intervalSeconds ?? 2;
-        const ms =
-          (node.retryPolicy?.backoffStrategy === "exponential"
-            ? Math.pow(2, attempts) * interval
-            : interval) * 1000;
+        const strategy = node.retryPolicy?.backoffStrategy ?? "fixed";
+        const multiplier =
+          strategy === "exponential"
+            ? Math.pow(2, attempts - 1)
+            : strategy === "linear"
+              ? attempts
+              : 1;
+        const ms = multiplier * interval * 1000;
         recordNodeRetry(context, nodeId, attempts + 1, ms, lastError);
         emitNodeRetry(
           workflow.metadata.id,

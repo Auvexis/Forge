@@ -38,13 +38,6 @@ export const httpNodeHandler = createNodeHandler<HttpNode>("http", async ({ node
   return runExternalIO({
     label: `HTTP ${node.method} ${resolvedUrl}`,
     timeoutMs: node.timeout ?? 30000,
-    retryPolicy: node.retryPolicy
-      ? {
-          maxRetries: node.retryPolicy.maxRetries,
-          intervalMs: node.retryPolicy.intervalSeconds * 1000,
-          backoffStrategy: node.retryPolicy.backoffStrategy,
-        }
-      : undefined,
     operation: async ({ signal }) => {
     const response = await fetch(resolvedUrl, {
       method: node.method,
