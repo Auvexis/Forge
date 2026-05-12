@@ -21,15 +21,16 @@
           class="set-assignment-row"
         >
           <!-- Key -->
-          <BaseInput
+          <BaseVariableInput
             :model-value="assignment.key"
             @update:model-value="updateKey(i, $event as string)"
             placeholder="field_name"
             class="set-assignment-key"
+            :show-variable-button="false"
           />
           <span class="set-assignment-sep">=</span>
           <!-- Value (supports {{ }} templates) -->
-          <BaseInput
+          <ExpressionInput
             :model-value="assignment.value"
             @update:model-value="updateValue(i, $event as string)"
             placeholder="{{ steps.prev.output.field }}"
@@ -60,7 +61,9 @@ import type { NodeEditorProps } from './types'
 import type { SetNodeAssignment } from '@/core/types/workflow.types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseVariableInput from '@/shared/components/base/BaseVariableInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import ExpressionInput from '../expressions/ExpressionInput.vue'
 
 const props = defineProps<NodeEditorProps>()
 

@@ -39,7 +39,7 @@ import { EdgeLabelRenderer, useVueFlow } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 
-const { getSelectedNodes, removeNodes } = useVueFlow()
+const { getSelectedNodes, removeNodes, viewport } = useVueFlow()
 const workflowStore = useWorkflowStore()
 
 const PADDING_TOP = 24
@@ -56,6 +56,10 @@ const selectedNodes = computed(() =>
 
 const isMultiSelection = computed(() => getSelectedNodes.value.length >= 2)
 const showBox = computed(() => isMultiSelection.value && selectedNodes.value.length >= 2)
+const toolbarScale = computed(() => {
+  const zoom = viewport.value.zoom || 1
+  return Math.min(2, Math.max(1, 1 / zoom))
+})
 
 // ── Bounding box in canvas/flow coordinates ─────────────────────────────────
 
@@ -102,7 +106,8 @@ const toolbarStyle = computed(() => ({
   left: 0,
   top: 0,
   // Centered above the box
-  transform: `translate(${bbox.value.x + bbox.value.w / 2}px, ${bbox.value.y - TOOLBAR_H - 12}px) translateX(-50%)`,
+  transform: `translate(${bbox.value.x + bbox.value.w / 2}px, ${bbox.value.y - TOOLBAR_H * toolbarScale.value - 12}px) translateX(-50%) scale(${toolbarScale.value})`,
+  transformOrigin: 'center bottom',
   pointerEvents: 'all' as const,
   zIndex: 501,
 }))

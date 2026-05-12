@@ -9,7 +9,7 @@
     </EditorField>
 
     <EditorField label="Target Workflow ID" icon="layers">
-      <BaseInput
+      <ExpressionInput
         :model-value="(node.data.targetWorkflowId as string) || ''"
         @update:model-value="updateNodeData({ targetWorkflowId: $event as string })"
         placeholder="wf_abc123"
@@ -27,6 +27,7 @@
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import ExpressionInput from '../expressions/ExpressionInput.vue'
 
 defineProps<NodeEditorProps>()
 </script>

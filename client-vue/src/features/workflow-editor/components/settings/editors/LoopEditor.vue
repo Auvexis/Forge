@@ -12,7 +12,7 @@
       <div class="editor-hint editor-hint--blue">
         The array to interate over (e.g. from a previous step).
       </div>
-      <BaseInput
+      <ExpressionInput
         :model-value="(node.data.collectionPath as string) || ''"
         @update:model-value="updateNodeData({ collectionPath: $event as string })"
         placeholder="steps.fetch_users.output.items"
@@ -29,6 +29,7 @@
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import ExpressionInput from '../expressions/ExpressionInput.vue'
 
 defineProps<NodeEditorProps>()
 </script>

@@ -313,11 +313,18 @@ function applyUiIntent(intent: { type: string; target?: string; payload?: Record
     }
     window.dispatchEvent(new CustomEvent('nod8:command-palette:intent', { detail: intent }))
   }
-  if (type === 'workflow-settings.open' || type === 'workflow-logs.open') {
+  if (type === 'workflow-settings.open' || type === 'workflow-logs.open' || type === 'workflow-variables.open') {
     if (intent.target && intent.target !== commandContext.value.activeWorkflowId) {
       void router.push({
         path: `/workflows/${intent.target}`,
-        query: { panel: type === 'workflow-logs.open' ? 'logs' : 'settings' },
+        query: {
+          panel:
+            type === 'workflow-logs.open'
+              ? 'logs'
+              : type === 'workflow-variables.open'
+                ? 'variables'
+                : 'settings',
+        },
       })
     } else {
       window.dispatchEvent(new CustomEvent('nod8:command-palette:intent', { detail: intent }))

@@ -1,5 +1,9 @@
 <template>
-  <label class="base-switch-wrapper" :class="{ 'base-switch-wrapper--disabled': disabled }">
+  <label
+    class="base-switch-wrapper"
+    :class="{ 'base-switch-wrapper--disabled': disabled }"
+    v-bind="rootAttrs"
+  >
     <div class="base-switch" :class="{ 'base-switch--checked': modelValue }">
       <input
         type="checkbox"
@@ -7,7 +11,7 @@
         :checked="modelValue"
         :disabled="disabled"
         @change="onChange"
-        v-bind="$attrs"
+        v-bind="inputAttrs"
       />
       <div class="base-switch__track"></div>
       <div class="base-switch__thumb"></div>
@@ -20,6 +24,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed, useAttrs } from 'vue'
+
 const props = withDefaults(
   defineProps<{
     modelValue: boolean
@@ -34,6 +40,17 @@ const props = withDefaults(
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
+
+const attrs = useAttrs()
+const rootAttrs = computed(() => ({
+  class: attrs.class,
+  style: attrs.style,
+  title: typeof attrs.title === 'string' ? attrs.title : undefined,
+}))
+const inputAttrs = computed(() => {
+  const { class: _class, style: _style, title: _title, ...rest } = attrs
+  return rest
+})
 
 const onChange = (e: Event) => {
   const target = e.target as HTMLInputElement

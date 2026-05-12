@@ -16,7 +16,7 @@
         <span class="editor-code-snippet">variables</span>.
         Result is compared as a string.
       </div>
-      <BaseTextarea
+      <ExpressionTextarea
         :model-value="(node.data.inputExpression as string) || ''"
         @update:model-value="updateNodeData({ inputExpression: $event })"
         placeholder="steps.prev.output.status"
@@ -34,7 +34,7 @@
           <div class="switch-case-index">{{ i + 1 }}</div>
 
           <!-- Value to match -->
-          <BaseInput
+          <ExpressionInput
             :model-value="c.value"
             @update:model-value="updateCaseValue(i, $event as string)"
             placeholder="200"
@@ -85,8 +85,9 @@ import type { SwitchNodeCase } from '@/core/types/workflow.types'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import ExpressionInput from '../expressions/ExpressionInput.vue'
+import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
 
 const props = defineProps<NodeEditorProps>()
 const workflowStore = useWorkflowStore()

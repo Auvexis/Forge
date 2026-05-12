@@ -15,7 +15,7 @@
         <span class="editor-code-snippet">steps</span>,
         <span class="editor-code-snippet">variables</span>
       </div>
-      <BaseTextarea
+      <ExpressionTextarea
         :model-value="(node.data.condition as string) || ''"
         @update:model-value="updateNodeData({ condition: $event })"
         placeholder="steps.prevStep.output.status === 200"
@@ -48,8 +48,8 @@
 <script setup lang="ts">
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
 
 defineProps<NodeEditorProps>()
 </script>

@@ -2,6 +2,7 @@
   <div
     class="nt-toolbar"
     :class="{ 'nt-toolbar--visible': visible && !isMultiSelection }"
+    :style="{ '--nt-toolbar-scale': toolbarScale }"
     @mousedown.stop
     @click.stop
   >
@@ -31,12 +32,16 @@ const props = defineProps<{
   visible: boolean
 }>()
 
-const { removeNodes, getNodes, addNodes, getSelectedNodes } = useVueFlow()
+const { removeNodes, getNodes, addNodes, getSelectedNodes, viewport } = useVueFlow()
 const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const panelStore = useAppPanelStore()
 
 const isMultiSelection = computed(() => getSelectedNodes.value.length >= 2)
+const toolbarScale = computed(() => {
+  const zoom = viewport.value.zoom || 1
+  return Math.min(2, Math.max(1, 1 / zoom))
+})
 
 // nodeStatuses is Record<string, NodeExecutionState>; with noUncheckedIndexedAccess the
 // lookup can return undefined — the computed value reflects that correctly.
@@ -94,16 +99,12 @@ function deleteNode() {
   position: absolute;
   top: -40px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(var(--nt-toolbar-scale, 1));
+  transform-origin: center bottom;
   display: flex;
   align-items: center;
   gap: 3px;
-  background-color: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
   padding: 3px 5px;
-  box-shadow: var(--nod8-shadow-md);
-  /* Hidden by default — revealed via the --visible modifier */
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--nod8-duration-fast);

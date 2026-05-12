@@ -701,6 +701,20 @@ function activeWorkflowCommands(): CommandHandler[] {
     },
     {
       describe: (context): CommandDescriptor => ({
+        id: "workflow.variables.open",
+        group: "workflow",
+        label: "Open Workflow Variables",
+        description: "Open the active workflow variables modal",
+        keywords: ["workflow variables", "vars", "environment", "secret"],
+        icon: "tags",
+        availability: activeAvailability(context),
+      }),
+      execute: () => workflowResult("Workflow variables opened", {
+        uiIntent: { type: "workflow-variables.open" },
+      }),
+    },
+    {
+      describe: (context): CommandDescriptor => ({
         id: "workflow.copy-id",
         group: "utility",
         label: "Copy Workflow ID",

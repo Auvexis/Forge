@@ -22,7 +22,7 @@
         Supports <span class="editor-code-snippet" v-pre>{{ template }}</span> expressions.
         JSON strings are auto-parsed.
       </div>
-      <BaseTextarea
+      <ExpressionTextarea
         :model-value="(node.data.body as string) || ''"
         @update:model-value="updateNodeData({ body: $event })"
         placeholder='{ "ok": true, "data": {{ steps.fetchData.output.result }} }'
@@ -39,14 +39,15 @@
           :key="i"
           class="respond-header-row"
         >
-          <BaseInput
+          <BaseVariableInput
             :model-value="entry.key"
             @update:model-value="updateHeader(i, 'key', $event as string)"
             placeholder="Content-Type"
             class="respond-header-key"
+            :show-variable-button="false"
           />
           <span class="respond-header-sep">:</span>
-          <BaseInput
+          <ExpressionInput
             :model-value="entry.value"
             @update:model-value="updateHeader(i, 'value', $event as string)"
             placeholder="application/json"
@@ -79,8 +80,10 @@ import { computed } from 'vue'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import BaseVariableInput from '@/shared/components/base/BaseVariableInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import ExpressionInput from '../expressions/ExpressionInput.vue'
+import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
 
 const props = defineProps<NodeEditorProps>()
 

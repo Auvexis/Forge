@@ -136,6 +136,16 @@
         Add Node
       </BaseButton>
 
+      <!-- Variables -->
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        icon-left="tags"
+        :disabled="isBusy"
+        title="Workflow variables"
+        @click="$emit('variables')"
+      />
+
       <!-- Settings -->
       <BaseButton
         size="sm"
@@ -206,16 +216,15 @@
 
       <div class="wed-divider-v" />
 
-      <BaseButton
-        size="sm"
-        :variant="isAutosaveEnabled ? 'primary' : 'ghost'"
-        :icon-left="isAutosaveEnabled ? 'toggle-right' : 'toggle-left'"
+      <BaseSwitch
+        class="wed-autosave-switch"
+        :model-value="!!isAutosaveEnabled"
         :disabled="isBusy || isSaving"
         title="Toggle autosave for this workflow"
-        @click="$emit('toggle-autosave', !isAutosaveEnabled)"
+        @update:model-value="$emit('toggle-autosave', $event)"
       >
         Autosave
-      </BaseButton>
+      </BaseSwitch>
 
       <div class="wed-divider-v" />
 
@@ -261,6 +270,7 @@ import { useRoute } from 'vue-router'
 import AppDock from '@/shared/components/layout/AppDock.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
@@ -298,6 +308,7 @@ defineEmits<{
   (e: 'stop'): void
   (e: 'export-workflow'): void
   (e: 'toggle-logs'): void
+  (e: 'variables'): void
   (e: 'settings'): void
   (e: 'close'): void
   (e: 'workflow-updated', w: WorkflowItem): void

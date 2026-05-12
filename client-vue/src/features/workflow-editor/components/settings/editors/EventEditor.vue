@@ -25,14 +25,15 @@
 
       <div class="payload-assignments">
         <div v-for="(param, i) in params" :key="i" class="payload-row">
-          <BaseInput
+          <BaseVariableInput
             :model-value="param.key"
             @update:model-value="updateKey(i, $event as string)"
             placeholder="param_name"
             class="payload-key"
+            :show-variable-button="false"
           />
           <span class="payload-sep">=</span>
-          <BaseInput
+          <ExpressionInput
             :model-value="param.value"
             @update:model-value="updateValue(i, $event as string)"
             placeholder="{{ steps.prev.output.field }}"
@@ -62,7 +63,9 @@ import type { NodeEditorProps } from './types'
 import type { EventNodeParam } from '@/core/types/workflow.types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseVariableInput from '@/shared/components/base/BaseVariableInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import ExpressionInput from '../expressions/ExpressionInput.vue'
 
 const props = defineProps<NodeEditorProps>()
 

@@ -14,7 +14,7 @@
         Example: <span class="editor-code-snippet">trigger.body.items</span> or
         <span class="editor-code-snippet">steps.fetch.output.results</span>
       </div>
-      <BaseTextarea
+      <ExpressionTextarea
         :model-value="(node.data.collection as string) || ''"
         @update:model-value="updateNodeData({ collection: $event })"
         placeholder="trigger.body.items"
@@ -68,7 +68,7 @@
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
 
 defineProps<NodeEditorProps>()
 </script>

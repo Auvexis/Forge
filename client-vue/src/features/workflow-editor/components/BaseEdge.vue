@@ -16,7 +16,8 @@
       :style="{
         pointerEvents: 'all',
         position: 'absolute',
-        transform: `translate(-50%, calc(-100% - 14px)) translate(${pathData[1]}px,${pathData[2]}px)`,
+        transform: `translate(-50%, calc(-100% - 14px)) translate(${pathData[1]}px,${pathData[2]}px) scale(${toolbarScale})`,
+        transformOrigin: 'center bottom',
       }"
       @mouseenter="isHovered = true"
       @mouseleave="isHovered = false"
@@ -86,10 +87,14 @@ import { useEventBus } from '@/shared/composables/useEventBus'
 
 const props = defineProps<EdgeProps>()
 
-const { removeEdges, getNodes, getSelectedNodes } = useVueFlow()
+const { removeEdges, getNodes, getSelectedNodes, viewport } = useVueFlow()
 const executionStore = useExecutionStore()
 
 const isMultiSelection = computed(() => getSelectedNodes.value.length >= 2)
+const toolbarScale = computed(() => {
+  const zoom = viewport.value.zoom || 1
+  return Math.min(2, Math.max(1, 1 / zoom))
+})
 
 // ── Path ─────────────────────────────────────────────────────────────────────
 
@@ -218,20 +223,14 @@ function cancelLabel() {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
   padding: 3px 4px;
-  box-shadow: var(--nod8-shadow-md);
   opacity: 0;
-  scale: 0.85;
-  transition: opacity 0.15s ease, scale 0.15s ease;
+  transition: opacity 0.15s ease;
   z-index: 2000;
 }
 
 .nod8-edge-toolbar--visible {
   opacity: 1;
-  scale: 1;
 }
 
 /* Wider invisible hover zone — tall enough to bridge toolbar ↔ label gap */

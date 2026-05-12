@@ -105,6 +105,27 @@ describe("workflows command provider", () => {
     assert.equal(command?.availability.enabled, true);
   });
 
+  it("opens active workflow variables through a typed UI intent", async () => {
+    const context: CommandExecutionContext = {
+      activeWorkflowId: "wf_alpha",
+      services: {
+        workflows: {
+          getWorkflowById: () => workflow(),
+        },
+      },
+    };
+    const { registry, executor } = buildExecutor(context);
+
+    const command = (await registry.list(context)).find(
+      (descriptor) => descriptor.id === "workflow.variables.open",
+    );
+    const result = await executor.execute("workflow.variables.open", context, {});
+
+    assert.equal(command?.label, "Open Workflow Variables");
+    assert.equal(command?.availability.enabled, true);
+    assert.deepEqual(result.uiIntent, { type: "workflow-variables.open" });
+  });
+
   it("runs and stops active workflow executions through workflow services", async () => {
     let cancelled = "";
     const context: CommandExecutionContext = {

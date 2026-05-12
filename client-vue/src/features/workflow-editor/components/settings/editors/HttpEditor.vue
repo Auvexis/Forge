@@ -19,7 +19,7 @@
           />
         </div>
         <div class="editor-row--grow">
-          <BaseInput
+          <ExpressionInput
             :model-value="(node.data.url as string) || ''"
             @update:model-value="updateNodeData({ url: $event as string })"
             placeholder="https://api.example.com/v1/resource"
@@ -39,7 +39,7 @@
       </EditorField>
 
       <EditorField label="Request Body">
-        <BaseTextarea
+        <ExpressionTextarea
           :model-value="(node.data.body as string) || ''"
           @update:model-value="updateNodeData({ body: $event as string })"
           placeholder='{ "key": "value" }'
@@ -69,12 +69,13 @@
               class="editor-header-row"
               style="display: flex; gap: 8px; margin-bottom: 8px"
             >
-              <BaseInput
+              <BaseVariableInput
                 :model-value="key"
                 @blur="updateHeaderKey(key as string, ($event.target as HTMLInputElement).value)"
                 style="font-family: var(--nod8-font-mono); flex: 1"
+                :show-variable-button="false"
               />
-              <BaseInput
+              <ExpressionInput
                 :model-value="val"
                 @update:model-value="updateHeaderValue(key as string, $event as string)"
                 style="font-family: var(--nod8-font-mono); flex: 1"
@@ -118,9 +119,10 @@ import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseVariableInput from '@/shared/components/base/BaseVariableInput.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import ExpressionInput from '../expressions/ExpressionInput.vue'
+import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
 
 const props = defineProps<NodeEditorProps>()
 const advancedOpen = ref(false)

@@ -8,6 +8,7 @@ import {
 } from '@/features/workflow-editor'
 import WorkflowEditorDock from '@/features/workflow-editor/components/ui/WorkflowEditorDock.vue'
 import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/WorkflowSettingsPanel.vue'
+import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/WorkflowVariablesModal.vue'
 import AppPage from '@/shared/components/layout/AppPage.vue'
 import { useApi } from '@/shared/composables/useApi'
 import { useConfirm } from '@/shared/composables/useConfirm'
@@ -58,6 +59,7 @@ const canvasRef = ref<InstanceType<typeof Nod8WorkflowCanvas> | null>(null)
 // ── Logs panel state (shared between dock and canvas) ─────────────────────
 const showLogs = ref(false)
 const showSettings = ref(false)
+const showVariables = ref(false)
 
 let workflow: WorkflowItem | null = null
 const { data: workflows, execute: fetchWorkflow } = useApi(workflowsApi.getAll)
@@ -105,6 +107,7 @@ async function initWorkflow() {
 function handleUiIntent(e: Event) {
   const intent = (e as CustomEvent).detail
   if (intent?.type === 'workflow-settings.open') showSettings.value = true
+  if (intent?.type === 'workflow-variables.open') showVariables.value = true
   if (intent?.type === 'workflow-logs.open') showLogs.value = true
 }
 
@@ -131,6 +134,9 @@ watch(
       void router.replace({ query: { ...route.query, panel: undefined } })
     } else if (panel === 'settings') {
       showSettings.value = true
+      void router.replace({ query: { ...route.query, panel: undefined } })
+    } else if (panel === 'variables') {
+      showVariables.value = true
       void router.replace({ query: { ...route.query, panel: undefined } })
     }
   },
@@ -187,6 +193,7 @@ watch(
         @stop="canvasRef?.handleStop()"
         @export-workflow="exportWorkflow()"
         @toggle-logs="showLogs = !showLogs"
+        @variables="showVariables = !showVariables"
         @settings="showSettings = !showSettings"
         @close="handleClose()"
         @workflow-updated="workflowStore.setActiveWorkflow($event)"
@@ -203,5 +210,6 @@ watch(
     </div>
 
     <WorkflowSettingsPanel :is-open="showSettings" @close="showSettings = false" />
+    <WorkflowVariablesModal :is-open="showVariables" @close="showVariables = false" />
   </AppPage>
 </template>

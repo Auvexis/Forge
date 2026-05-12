@@ -99,7 +99,7 @@
             :disabled="(paramVal as any)['x-dynamic-options'] && dynamicOptionsMap[paramKey.toString()]?.loading"
             :placeholder="(paramVal as any)['x-dynamic-options'] && dynamicOptionsMap[paramKey.toString()]?.loading ? 'Loading options...' : `Select ${(paramVal as any)['x-label'] || paramKey}...`"
             @update:model-value="
-              (val) => updateNodeData({
+              (val: string | number) => updateNodeData({
                 params: {
                   ...(data.params || {}),
                   [paramKey]: val,
@@ -135,10 +135,10 @@
 
         <!-- Textarea -->
         <template v-else-if="(paramVal as any)['x-input-type'] === 'textarea'">
-          <BaseTextarea
+          <ExpressionTextarea
             :model-value="(data.params as any)?.[paramKey] || ''"
             @update:model-value="
-              (val) => updateNodeData({
+              (val: string | boolean) => updateNodeData({
                 params: {
                   ...(data.params || {}),
                   [paramKey]: val,
@@ -158,7 +158,7 @@
           <BaseCodeEditor
             :model-value="(data.params as any)?.[paramKey] || ''"
             @update:model-value="
-              (val) => updateNodeData({
+              (val: string | boolean) => updateNodeData({
                 params: {
                   ...(data.params || {}),
                   [paramKey]: val,
@@ -176,7 +176,7 @@
             type="datetime-local"
             :model-value="(data.params as any)?.[paramKey] || ''"
             @update:model-value="
-              (val) => updateNodeData({
+              (val: string | boolean) => updateNodeData({
                 params: {
                   ...(data.params || {}),
                   [paramKey]: val,
@@ -197,7 +197,7 @@
                 </div>
                 
                 <div v-else class="pe-file-text-mode">
-                  <BaseInput
+                  <ExpressionInput
                     style="flex: 1"
                     :model-value="(data.params as any)?.[paramKey] || ''"
                     @update:model-value="updateSingleFile(paramKey.toString(), $event as string)"
@@ -244,7 +244,7 @@
                 </div>
                 
                 <div v-else class="pe-file-text-mode">
-                  <BaseInput
+                  <ExpressionInput
                     style="flex: 1"
                     :model-value="item"
                     @update:model-value="updateFileArray(paramKey.toString(), index, $event as string)"
@@ -282,10 +282,10 @@
 
         <!-- Default Input -->
         <template v-else>
-          <BaseInput
+          <ExpressionInput
             :model-value="(data.params as any)?.[paramKey] || ''"
             @update:model-value="
-              (val) => updateNodeData({
+              (val: string | boolean) => updateNodeData({
                 params: {
                   ...(data.params || {}),
                   [paramKey]: val,
@@ -316,8 +316,9 @@ import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PluginNode } from '@/core/types/workflow.types'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
+import ExpressionInput from '../expressions/ExpressionInput.vue'
+import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
 
 const props = defineProps<NodeEditorProps>()
 
