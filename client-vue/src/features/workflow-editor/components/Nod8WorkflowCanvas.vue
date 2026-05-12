@@ -32,6 +32,7 @@ import RunWorkflowPanel from './execution/RunWorkflowPanel.vue'
 import ExecutionLogsPanel from './execution/ExecutionLogsPanel.vue'
 import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
 import { useEventBus } from '@/shared/composables/useEventBus'
+import { isCanvasSelecting } from '../composables/useCanvasSelecting'
 
 // Stores
 const workflowStore = useWorkflowStore()
@@ -853,6 +854,9 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       @init="onVueFlowInit"
       @edges-change="onEdgesChange"
       @nodes-change="onNodesChange"
+      @selection-drag-start="isCanvasSelecting = true"
+      @selection-drag-stop="isCanvasSelecting = false"
+      @pane-click="isCanvasSelecting = false"
     >
       <!-- Bottom zoom controls dock (no run/stop/save — those are in the top AppDock) -->
       <EditorControlsDock
