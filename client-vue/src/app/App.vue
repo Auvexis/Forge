@@ -20,7 +20,6 @@
                 to="/workflows"
                 class="nav-link"
                 :class="{ 'nav-link--active': route.path.startsWith('/workflows') }"
-                title="Workflows"
               >
                 <LucideIcon name="workflow" :size="16" />
               </router-link>
@@ -35,7 +34,6 @@
               <button
                 class="nav-link"
                 :class="{ 'nav-link--active': isMonitorOpen }"
-                title="Production Monitor"
                 @click="toggleMonitor"
               >
                 <LucideIcon name="activity" :size="16" />
@@ -58,7 +56,6 @@
                     to="/universe"
                     class="nav-link"
                     active-class="nav-link--active"
-                    title="Universe Mode"
                     @click="appUiStore.enterUniverseMode()"
                   >
                     <LucideIcon name="orbit" :size="16" />
@@ -69,7 +66,7 @@
                   description="Read the official documentation to learn how to build, deploy, and scale your automated workflows."
                   icon="book"
                 >
-                  <a href="https://docs.nod8.dev" target="_blank" class="nav-link" title="Documentation">
+                  <a href="https://docs.nod8.dev" target="_blank" class="nav-link">
                     <LucideIcon name="book" :size="16" />
                   </a>
                 </SidebarHint>
@@ -81,7 +78,6 @@
                   <button
                     class="nav-link"
                     :class="{ 'nav-link--active': settingsStore.isOpen }"
-                    title="Settings"
                     @click="settingsStore.toggle"
                   >
                     <LucideIcon name="settings" :size="16" />
