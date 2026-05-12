@@ -6,8 +6,17 @@ const db = DatabaseManager.workflows;
 export const WorkflowRepository = {
   saveWorkflow: (workflow: WorkflowItem) => {
     const stmt = db.prepare(
-      `INSERT OR REPLACE INTO workflows (id, name, description, version, is_active, is_public, is_draft, created_at, published_at, definition)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO workflows (id, name, description, version, is_active, is_public, is_draft, created_at, published_at, definition)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         name = excluded.name,
+         description = excluded.description,
+         version = excluded.version,
+         is_active = excluded.is_active,
+         is_public = excluded.is_public,
+         is_draft = excluded.is_draft,
+         published_at = excluded.published_at,
+         definition = excluded.definition`
     );
     stmt.run(
       workflow.metadata.id,

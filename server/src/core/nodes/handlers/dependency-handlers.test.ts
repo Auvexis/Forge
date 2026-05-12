@@ -103,6 +103,33 @@ describe("dependency-backed utility node handlers", () => {
     }
   });
 
+  it("fails http nodes when the response status is not 2xx", async () => {
+    const server = http.createServer((_req, res) => {
+      res.statusCode = 405;
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify({ error: "Method not allowed" }));
+    });
+
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    assert.equal(typeof address, "object");
+
+    try {
+      const port = (address as { port: number }).port;
+      await assert.rejects(
+        () => httpNodeHandler.execute(input({
+          type: "http",
+          name: "HTTP",
+          method: "GET",
+          url: `http://127.0.0.1:${port}/wrong-method`,
+        }, { trigger: {}, steps: {}, variables: {} })),
+        /HTTP request failed with status 405/,
+      );
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
   it("emits internal events through injected services", async () => {
     const emitted: any[] = [];
 

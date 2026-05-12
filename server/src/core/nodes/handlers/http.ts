@@ -72,6 +72,18 @@ export const httpNodeHandler = createNodeHandler<HttpNode>("http", async ({ node
       responseData = await response.text();
     }
 
+    if (!response.ok) {
+      const bodyPreview =
+        typeof responseData === "string"
+          ? responseData.slice(0, 500)
+          : JSON.stringify(responseData).slice(0, 500);
+      throw new Error(
+        `HTTP request failed with status ${response.status} ${response.statusText}${
+          bodyPreview ? `: ${bodyPreview}` : ""
+        }`,
+      );
+    }
+
     return {
       status: response.status,
       statusText: response.statusText,
