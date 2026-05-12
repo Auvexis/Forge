@@ -101,7 +101,7 @@
     <!-- Global Overlays -->
     <template v-if="!appUiStore.isUniverseMode" #overlay>
       <AppGlobalSettings />
-      <ProductionMonitorPanel :is-open="isMonitorOpen" @close="isMonitorOpen = false" />
+      <AppProductionMonitor :is-open="isMonitorOpen" @close="isMonitorOpen = false" />
     </template>
   </AppShell>
   <template v-if="!isPublicRoute">
@@ -127,7 +127,7 @@ import CommandPaletteHost from '@/features/command-palette/components/CommandPal
 import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
-import ProductionMonitorPanel from '@/features/workflow-editor/components/ui/ProductionMonitorPanel.vue'
+import AppProductionMonitor from '@/shared/components/layout/AppProductionMonitor.vue'
 
 const sidebarStore = useSidebarPanelStore()
 const settingsStore = useSettingsStore()
