@@ -42,7 +42,10 @@ import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.sto
 const { getSelectedNodes, removeNodes } = useVueFlow()
 const workflowStore = useWorkflowStore()
 
-const PADDING = 24   // space around nodes inside the box
+const PADDING_TOP = 24
+const PADDING_BOTTOM = 60 // Space for text/labels below the node
+const PADDING_LEFT = 24
+const PADDING_RIGHT = 60 // Space for quick-add handles on the right
 const TOOLBAR_H = 40 // approx height of toolbar (for positioning)
 
 // ── Selected nodes ──────────────────────────────────────────────────────────
@@ -74,10 +77,10 @@ const bbox = computed(() => {
   }
 
   return {
-    x: minX - PADDING,
-    y: minY - PADDING,
-    w: maxX - minX + PADDING * 2,
-    h: maxY - minY + PADDING * 2,
+    x: minX - PADDING_LEFT,
+    y: minY - PADDING_TOP,
+    w: maxX - minX + PADDING_LEFT + PADDING_RIGHT,
+    h: maxY - minY + PADDING_TOP + PADDING_BOTTOM,
   }
 })
 
