@@ -69,9 +69,12 @@
               <span class="elp-timeline-dot" />
               <div class="elp-timeline-copy">
                 <span>{{ item.label }}</span>
-                <small>{{ formatTime(item.timestamp) }}</small>
+                <small>{{ item.description ?? formatTime(item.timestamp) }}</small>
               </div>
-              <span v-if="item.error" class="elp-timeline-error">{{ item.error }}</span>
+              <span v-if="item.delayMs" class="elp-timeline-delay">
+                {{ (item.delayMs / 1000).toFixed(1).replace(/\.0$/, '') }}s wait
+              </span>
+              <span v-else-if="item.error" class="elp-timeline-error">{{ item.error }}</span>
             </div>
           </div>
         </div>
@@ -177,8 +180,8 @@
                 <div v-if="step?.retries?.length" class="elp-retry-list">
                   <div v-for="retry in step.retries" :key="`${nodeId}-${retry.at}`" class="elp-retry-row">
                     <LucideIcon name="rotate-ccw" :size="11" />
-                    <span>Attempt {{ retry.attempt }}</span>
-                    <span>{{ (retry.delayMs / 1000).toFixed(1) }}s delay</span>
+                    <span>Waiting before attempt {{ retry.attempt }}</span>
+                    <span>{{ (retry.delayMs / 1000).toFixed(1).replace(/\.0$/, '') }}s timer</span>
                     <span v-if="retry.error" class="elp-timeline-error">{{ retry.error }}</span>
                   </div>
                 </div>
@@ -671,6 +674,17 @@ onBeforeUnmount(() => {
   max-width: 120px;
   font-size: 10px;
   color: var(--nod8-red-400);
+}
+
+.elp-timeline-delay {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  color: var(--nod8-accent);
+  font-size: 10px;
+  font-family: var(--nod8-font-mono);
+  white-space: nowrap;
 }
 
 .elp-row {

@@ -78,6 +78,9 @@ export interface ExecutionTimelineEvent {
   timestamp: number
   status: 'running' | 'success' | 'failed' | 'retrying' | 'cancelled' | 'info'
   label: string
+  description?: string
+  delayMs?: number
+  attempt?: number
   payload?: unknown
   error?: string
 }

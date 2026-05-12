@@ -64,8 +64,15 @@ export const useExecutionStore = defineStore('execution', () => {
   }
 
   function timelineLabelFor(ev: WorkflowEvent): string {
-    if (ev.type === 'node:start') return `${ev.nodeId} started`
-    if (ev.type === 'node:retry') return `${ev.nodeId} retrying`
+    if (ev.type === 'node:start') {
+      const attempt = ev.nodeId ? nodeStatuses[ev.nodeId]?.attempts : undefined
+      return attempt && attempt > 1 ? `${ev.nodeId} attempt ${attempt} started` : `${ev.nodeId} started`
+    }
+    if (ev.type === 'node:retry') {
+      const data = ev.data as { attempt?: number; delayMs?: number } | undefined
+      const seconds = ((data?.delayMs ?? 0) / 1000).toFixed(1).replace(/\.0$/, '')
+      return `${ev.nodeId} waiting ${seconds}s before attempt ${data?.attempt ?? 'next'}`
+    }
     if (ev.type === 'node:success') return `${ev.nodeId} succeeded`
     if (ev.type === 'node:failed') return `${ev.nodeId} failed`
     if (ev.type === 'trigger:data') return 'Trigger payload received'
@@ -74,6 +81,7 @@ export const useExecutionStore = defineStore('execution', () => {
   }
 
   function recordTimelineEvent(ev: WorkflowEvent) {
+    const data = ev.data as { attempt?: number; delayMs?: number } | undefined
     timeline.value.push({
       id: `${ev.type}:${ev.nodeId ?? 'workflow'}:${ev.timestamp}:${timeline.value.length}`,
       type: ev.type,
@@ -81,6 +89,17 @@ export const useExecutionStore = defineStore('execution', () => {
       timestamp: ev.timestamp,
       status: timelineStatusFor(ev.type),
       label: timelineLabelFor(ev),
+      description:
+        ev.type === 'node:retry'
+          ? 'Delay timer started. The next request begins after this wait.'
+          : undefined,
+      delayMs: ev.type === 'node:retry' ? data?.delayMs : undefined,
+      attempt:
+        ev.type === 'node:retry'
+          ? data?.attempt
+          : ev.type === 'node:start' && ev.nodeId
+            ? nodeStatuses[ev.nodeId]?.attempts
+            : undefined,
       payload: ev.data,
       error: ev.error,
     })
