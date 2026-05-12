@@ -6,10 +6,6 @@
  * Both are module-level singletons so any component can read them without
  * needing to pass props down the tree.
  */
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
-export const isCanvasSelecting   = ref(false)
-export const multiSelectionCount = ref(0)
-
-/** True whenever 2+ nodes are selected (either via shift+drag or shift+click). */
-export const isMultiSelection = computed(() => multiSelectionCount.value >= 2)
+export const isCanvasSelecting = ref(false)

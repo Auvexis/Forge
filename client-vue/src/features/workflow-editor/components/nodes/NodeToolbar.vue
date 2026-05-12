@@ -25,17 +25,18 @@ import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.sto
 import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import type { WorkflowNode } from '@/core/types/workflow.types'
-import { isMultiSelection } from '@/features/workflow-editor/composables/useCanvasSelecting'
 
 const props = defineProps<{
   nodeId: string
   visible: boolean
 }>()
 
-const { removeNodes, getNodes, addNodes } = useVueFlow()
+const { removeNodes, getNodes, addNodes, getSelectedNodes } = useVueFlow()
 const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const panelStore = useAppPanelStore()
+
+const isMultiSelection = computed(() => getSelectedNodes.value.length >= 2)
 
 // nodeStatuses is Record<string, NodeExecutionState>; with noUncheckedIndexedAccess the
 // lookup can return undefined — the computed value reflects that correctly.

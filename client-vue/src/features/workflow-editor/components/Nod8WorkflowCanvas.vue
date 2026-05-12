@@ -32,7 +32,7 @@ import RunWorkflowPanel from './execution/RunWorkflowPanel.vue'
 import ExecutionLogsPanel from './execution/ExecutionLogsPanel.vue'
 import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
 import { useEventBus } from '@/shared/composables/useEventBus'
-import { isCanvasSelecting, multiSelectionCount } from '../composables/useCanvasSelecting'
+import { isCanvasSelecting } from '../composables/useCanvasSelecting'
 
 // Stores
 const workflowStore = useWorkflowStore()
@@ -40,10 +40,6 @@ const panelStore = useAppPanelStore()
 const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
 const vueFlowStore = ref<VueFlowStore | null>(null)
-
-// Keep multiSelectionCount in sync so NodeToolbar and BaseEdge can suppress themselves
-const { getSelectedNodes } = useVueFlow()
-watch(() => getSelectedNodes.value.length, (len) => { multiSelectionCount.value = len })
 
 // ── Props / emits (for v-model:show-logs from parent page) ──────────────────
 const props = defineProps<{

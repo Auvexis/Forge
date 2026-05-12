@@ -83,12 +83,13 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useExecutionStore } from '../stores/execution.store'
 import { routedBezierPath } from '../composables/useEdgeRouting'
 import { useEventBus } from '@/shared/composables/useEventBus'
-import { isMultiSelection } from '../composables/useCanvasSelecting'
 
 const props = defineProps<EdgeProps>()
 
-const { removeEdges, getNodes } = useVueFlow()
+const { removeEdges, getNodes, getSelectedNodes } = useVueFlow()
 const executionStore = useExecutionStore()
+
+const isMultiSelection = computed(() => getSelectedNodes.value.length >= 2)
 
 // ── Path ─────────────────────────────────────────────────────────────────────
 
