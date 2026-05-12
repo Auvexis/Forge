@@ -598,7 +598,7 @@ const onNodeDragStop = (event: NodeDragEvent) => {
       const internalDragged = instance.findNode(node.id)
       const dw = internalDragged?.dimensions?.width  ?? 200
       const dh = internalDragged?.dimensions?.height ?? 80
-      const allNodes = instance.getNodes.value
+      const allNodes = instance.getNodes
 
       let attempts = 0
       let overlapping = true
