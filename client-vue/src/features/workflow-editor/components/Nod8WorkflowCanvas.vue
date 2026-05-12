@@ -20,6 +20,7 @@ import SplitInBatchesNode from './nodes/SplitInBatchesNode.vue'
 import RespondToWebhookNode from './nodes/RespondToWebhookNode.vue'
 import WaitFormNode from './nodes/WaitFormNode.vue'
 import BaseEdge from './BaseEdge.vue'
+import NodeGroupSelectionBox from './NodeGroupSelectionBox.vue'
 import { Background } from '@vue-flow/background'
 
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
@@ -980,6 +981,9 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       <template #edge-workflow-edge="edgeProps">
         <BaseEdge v-bind="edgeProps" />
       </template>
+
+      <!-- Multi-selection bounding box -->
+      <NodeGroupSelectionBox />
 
       <!-- Trigger Node -->
       <template #node-trigger="nodeProps">
