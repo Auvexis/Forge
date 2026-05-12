@@ -77,11 +77,11 @@
 - [ ] Execution highlights
 
 <!-- #7 -->
-- [ ] Add smart connections
-- [ ] Auto-routing edges
-- [ ] Avoid node overlap
-- [ ] Smooth bezier curves
-- [ ] Magnetic snapping
+- [x] Add smart connections
+- [x] Auto-routing edges
+- [x] Avoid node overlap
+- [x] Smooth bezier curves
+- [x] Magnetic snapping
 
 <!-- #8 -->
 - [ ] Add execution timeline
