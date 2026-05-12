@@ -101,7 +101,7 @@
     <!-- Global Overlays -->
     <template v-if="!appUiStore.isUniverseMode" #overlay>
       <AppGlobalSettings />
-      <AppProductionMonitor :is-open="isMonitorOpen" @close="isMonitorOpen = false" />
+      <AppProductionMonitor />
     </template>
   </AppShell>
   <template v-if="!isPublicRoute">
@@ -112,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
@@ -127,18 +127,13 @@ import CommandPaletteHost from '@/features/command-palette/components/CommandPal
 import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
-import AppProductionMonitor from '@/shared/components/layout/AppProductionMonitor.vue'
+import AppProductionMonitor, { isMonitorOpen, toggleMonitor } from '@/shared/components/layout/AppProductionMonitor.vue'
 
 const sidebarStore = useSidebarPanelStore()
 const settingsStore = useSettingsStore()
 const appUiStore = useAppUiStore()
 const route = useRoute()
-const isMonitorOpen = ref(false)
 const isPublicRoute = computed(() => route.meta.public === true)
-
-function toggleMonitor() {
-  isMonitorOpen.value = !isMonitorOpen.value
-}
 </script>
 
 <style scoped>

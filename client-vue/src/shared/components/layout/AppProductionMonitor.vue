@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :is-open="isOpen" @close="$emit('close')" max-width="900px" height="85vh">
+  <BaseModal :is-open="isMonitorOpen" @close="isMonitorOpen = false" max-width="900px" height="85vh">
     <div class="pm-panel" style="height: 100%; display: flex; flex-direction: column;">
     <!-- ── Header actions ── -->
     <div class="pm-toolbar">
@@ -14,7 +14,7 @@
       >
         <RefreshCwIcon :size="14" />
       </button>
-      <button class="pm-close-btn" style="background: none; border: none; cursor: pointer; color: var(--nod8-text-muted); padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: var(--nod8-radius-sm);" @click="$emit('close')" title="Close">
+      <button class="pm-close-btn" style="background: none; border: none; cursor: pointer; color: var(--nod8-text-muted); padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: var(--nod8-radius-sm);" @click="isMonitorOpen = false" title="Close">
         <LucideIcon name="x" :size="16" />
       </button>
     </div>
@@ -131,8 +131,18 @@
   </BaseModal>
 </template>
 
+<script lang="ts">
+import { ref, watch } from 'vue'
+
+export const isMonitorOpen = ref(false)
+
+export function toggleMonitor() {
+  isMonitorOpen.value = !isMonitorOpen.value
+}
+</script>
+
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { RefreshCwIcon, ActivityIcon, LoaderIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-vue-next'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
@@ -140,9 +150,6 @@ import { workflowsApi, type ProductionWorkflowStatus } from '@/core/api/workflow
 import { useToast } from '@/shared/composables/useToast'
 
 const toast = useToast()
-
-const props = defineProps<{ isOpen: boolean }>()
-defineEmits<{ (e: 'close'): void }>()
 
 const items = ref<ProductionWorkflowStatus[]>([])
 const loading = ref(false)
@@ -237,7 +244,7 @@ async function refresh() {
 }
 
 async function autoRefresh() {
-  if (!props.isOpen) return
+  if (!isMonitorOpen.value) return
   if (expandedId.value) return // Disable auto-refresh when details are open to prevent jump
   await refresh()
 }
@@ -299,7 +306,7 @@ onMounted(() => {
   pollInterval = setInterval(autoRefresh, 5_000)
 })
 
-watch(() => props.isOpen, (open) => {
+watch(isMonitorOpen, (open) => {
   if (open) {
     refresh()
   } else {
