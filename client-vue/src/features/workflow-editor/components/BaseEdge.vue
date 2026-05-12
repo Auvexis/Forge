@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, useVueFlow } from '@vue-flow/core'
+import { BaseEdge, EdgeLabelRenderer, getBezierPath, useVueFlow } from '@vue-flow/core'
 import type { EdgeProps } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useExecutionStore } from '../stores/execution.store'
@@ -10,15 +10,16 @@ const props = defineProps<EdgeProps>()
 const { removeEdges } = useVueFlow()
 const executionStore = useExecutionStore()
 
-// Calcula o formato "SmoothStep" nativo que usamos e extrae a posição central (X, Y)
+// Bezier path — smoother and more premium-looking than SmoothStep
 const pathData = computed(() =>
-  getSmoothStepPath({
+  getBezierPath({
     sourceX: props.sourceX,
     sourceY: props.sourceY,
     sourcePosition: props.sourcePosition,
     targetX: props.targetX,
     targetY: props.targetY,
     targetPosition: props.targetPosition,
+    curvature: 0.45,
   }),
 )
 

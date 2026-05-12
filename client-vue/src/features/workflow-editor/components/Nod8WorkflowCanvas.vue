@@ -527,25 +527,113 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
   panelStore.closePanel()
 }
 
+const SNAP = 20
+const NODE_PADDING = 24 // extra breathing room around each node
+
+/**
+ * Returns true if two axis-aligned rectangles overlap (with padding).
+ */
+function rectsOverlap(
+  ax: number, ay: number, aw: number, ah: number,
+  bx: number, by: number, bw: number, bh: number,
+): boolean {
+  return (
+    ax < bx + bw + NODE_PADDING &&
+    ax + aw + NODE_PADDING > bx &&
+    ay < by + bh + NODE_PADDING &&
+    ay + ah + NODE_PADDING > by
+  )
+}
+
+/**
+ * Resolves an overlap by nudging node A to the nearest non-overlapping
+ * snapped position on each axis.
+ */
+function resolveOverlap(
+  ax: number, ay: number, aw: number, ah: number,
+  bx: number, by: number, bw: number, bh: number,
+): { x: number; y: number } {
+  // Compute overlap depth on each axis
+  const overlapRight  = bx + bw + NODE_PADDING - ax
+  const overlapLeft   = ax + aw + NODE_PADDING - bx
+  const overlapBottom = by + bh + NODE_PADDING - ay
+  const overlapTop    = ay + ah + NODE_PADDING - by
+
+  const minX = Math.min(overlapRight, overlapLeft)
+  const minY = Math.min(overlapBottom, overlapTop)
+
+  let nx = ax
+  let ny = ay
+
+  if (minX <= minY) {
+    // Push horizontally
+    nx = overlapRight < overlapLeft
+      ? Math.round((bx + bw + NODE_PADDING) / SNAP) * SNAP
+      : Math.round((bx - aw - NODE_PADDING) / SNAP) * SNAP
+  } else {
+    // Push vertically
+    ny = overlapBottom < overlapTop
+      ? Math.round((by + bh + NODE_PADDING) / SNAP) * SNAP
+      : Math.round((by - ah - NODE_PADDING) / SNAP) * SNAP
+  }
+
+  return { x: nx, y: ny }
+}
+
 /**
  * Sincroniza a nova posição de volta pro store quando o drag termina.
- * Isso garante que o save envie as coordenadas corretas pro backend.
+ * Também empurra nodes sobrepostos para evitar overlap.
  */
 const onNodeDragStop = (event: NodeDragEvent) => {
   const draggedNodes = event.nodes && event.nodes.length > 0 ? event.nodes : [event.node]
+  const instance = vueFlowStore.value
 
   for (const node of draggedNodes) {
-    const x = Math.round(node.position.x * 10) / 10
-    const y = Math.round(node.position.y * 10) / 10
+    let x = Math.round(node.position.x / SNAP) * SNAP
+    let y = Math.round(node.position.y / SNAP) * SNAP
 
-    // Bail early if the position is identical to what's stored — avoids marking
-    // the workflow dirty when the user drags a node back to its original spot.
+    // ── Avoid node overlap ────────────────────────────────────────────────
+    if (instance) {
+      const allNodes = instance.getNodes.value
+      const dw = node.dimensions?.width  ?? 200
+      const dh = node.dimensions?.height ?? 80
+
+      let attempts = 0
+      let overlapping = true
+      while (overlapping && attempts < 20) {
+        overlapping = false
+        for (const other of allNodes) {
+          if (other.id === node.id) continue
+          const ow = other.dimensions?.width  ?? 200
+          const oh = other.dimensions?.height ?? 80
+          if (rectsOverlap(x, y, dw, dh, other.position.x, other.position.y, ow, oh)) {
+            const resolved = resolveOverlap(x, y, dw, dh, other.position.x, other.position.y, ow, oh)
+            x = resolved.x
+            y = resolved.y
+            overlapping = true
+            break
+          }
+        }
+        attempts++
+      }
+    }
+
+    // Bail early if unchanged
     const existingUi = node.id === 'trigger'
       ? workflowStore.activeWorkflow?.trigger.ui
       : workflowStore.activeWorkflow?.nodes[node.id]?.ui
 
-    if (existingUi && Math.round((existingUi.positionX ?? 0) * 10) / 10 === x && Math.round((existingUi.positionY ?? 0) * 10) / 10 === y) {
+    if (existingUi &&
+      Math.round((existingUi.positionX ?? 0) * 10) / 10 === x &&
+      Math.round((existingUi.positionY ?? 0) * 10) / 10 === y) {
       continue
+    }
+
+    // Apply snapped + de-overlapped position back to VueFlow
+    if (instance) {
+      instance.updateNode(node.id, { position: { x, y } })
+      const vNode = (vueFlowNodes.value as any[]).find((n) => n.id === node.id)
+      if (vNode) { vNode.position.x = x; vNode.position.y = y }
     }
 
     workflowStore.updateNodeData(node.id, {
@@ -626,7 +714,7 @@ defineExpose({ handleRun, handleStop, openAddNodePanel })
       :max-zoom="1.5"
       fit-view-on-init
       :snap-to-grid="true"
-      :snap-grid="[10, 10]"
+      :snap-grid="[20, 20]"
       :delete-key-code="['Delete']"
       @node-double-click="onNodeDoubleClick"
       @node-drag-stop="onNodeDragStop"

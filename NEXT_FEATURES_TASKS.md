@@ -81,7 +81,6 @@
 - [ ] Auto-routing edges
 - [ ] Avoid node overlap
 - [ ] Smooth bezier curves
-- [ ] Animated execution flow
 - [ ] Magnetic snapping
 
 <!-- #8 -->
