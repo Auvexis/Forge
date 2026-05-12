@@ -38,7 +38,7 @@ import { computed } from 'vue'
 import { EdgeLabelRenderer, useVueFlow } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
-import { isCanvasSelecting } from '../composables/useCanvasSelecting'
+import { isMultiSelection } from '../composables/useCanvasSelecting'
 
 const { getSelectedNodes, removeNodes } = useVueFlow()
 const workflowStore = useWorkflowStore()
@@ -52,7 +52,7 @@ const selectedNodes = computed(() =>
   getSelectedNodes.value.filter((n) => n.dimensions?.width && n.dimensions?.height),
 )
 
-const showBox = computed(() => !isCanvasSelecting.value && selectedNodes.value.length >= 2)
+const showBox = computed(() => isMultiSelection.value && selectedNodes.value.length >= 2)
 
 // ── Bounding box in canvas/flow coordinates ─────────────────────────────────
 

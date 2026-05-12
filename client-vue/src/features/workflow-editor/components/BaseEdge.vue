@@ -12,7 +12,7 @@
     <!-- Toolbar ABOVE the edge midpoint -->
     <div
       class="nodrag nopan nod8-edge-toolbar"
-      :class="{ 'nod8-edge-toolbar--visible': !isCanvasSelecting && (isHovered || selected) }"
+      :class="{ 'nod8-edge-toolbar--visible': !isMultiSelection && (isHovered || selected) }"
       :style="{
         pointerEvents: 'all',
         position: 'absolute',
@@ -83,7 +83,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useExecutionStore } from '../stores/execution.store'
 import { routedBezierPath } from '../composables/useEdgeRouting'
 import { useEventBus } from '@/shared/composables/useEventBus'
-import { isCanvasSelecting } from '../composables/useCanvasSelecting'
+import { isMultiSelection } from '../composables/useCanvasSelecting'
 
 const props = defineProps<EdgeProps>()
 

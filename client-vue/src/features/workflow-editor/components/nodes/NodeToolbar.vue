@@ -1,7 +1,7 @@
 <template>
   <div
     class="nt-toolbar"
-    :class="{ 'nt-toolbar--visible': visible }"
+    :class="{ 'nt-toolbar--visible': visible && !isMultiSelection }"
     @mousedown.stop
     @click.stop
   >
@@ -25,6 +25,7 @@ import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.sto
 import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import type { WorkflowNode } from '@/core/types/workflow.types'
+import { isMultiSelection } from '@/features/workflow-editor/composables/useCanvasSelecting'
 
 const props = defineProps<{
   nodeId: string
