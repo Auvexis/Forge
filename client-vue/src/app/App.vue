@@ -101,6 +101,7 @@
     <!-- Global Overlays -->
     <template v-if="!appUiStore.isUniverseMode" #overlay>
       <AppGlobalSettings />
+      <ProductionMonitorPanel :is-open="isMonitorOpen" @close="isMonitorOpen = false" />
     </template>
   </AppShell>
   <template v-if="!isPublicRoute">
@@ -111,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
@@ -132,15 +133,11 @@ const sidebarStore = useSidebarPanelStore()
 const settingsStore = useSettingsStore()
 const appUiStore = useAppUiStore()
 const route = useRoute()
-const isMonitorOpen = computed(() => sidebarStore.isOpen && sidebarStore.title === 'Production Monitor')
+const isMonitorOpen = ref(false)
 const isPublicRoute = computed(() => route.meta.public === true)
 
 function toggleMonitor() {
-  sidebarStore.togglePanel({
-    title: 'Production Monitor',
-    component: ProductionMonitorPanel,
-    width: 'md',
-  })
+  isMonitorOpen.value = !isMonitorOpen.value
 }
 </script>
 

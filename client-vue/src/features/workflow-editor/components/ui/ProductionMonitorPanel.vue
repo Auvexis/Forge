@@ -1,5 +1,6 @@
 <template>
-  <div class="pm-panel">
+  <BaseModal :is-open="isOpen" @close="$emit('close')" max-width="900px" height="85vh">
+    <div class="pm-panel" style="height: 100%; display: flex; flex-direction: column;">
     <!-- ── Header actions ── -->
     <div class="pm-toolbar">
       <span class="pm-count">
@@ -12,6 +13,9 @@
         title="Refresh"
       >
         <RefreshCwIcon :size="14" />
+      </button>
+      <button class="pm-close-btn" style="background: none; border: none; cursor: pointer; color: var(--nod8-text-muted); padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: var(--nod8-radius-sm);" @click="$emit('close')" title="Close">
+        <LucideIcon name="x" :size="16" />
       </button>
     </div>
 
@@ -124,17 +128,22 @@
         </div>
       </div>
     </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { RefreshCwIcon, ActivityIcon, LoaderIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-vue-next'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import BaseModal from '@/shared/components/base/BaseModal.vue'
 import { workflowsApi, type ProductionWorkflowStatus } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
 
 const toast = useToast()
+
+const props = defineProps<{ isOpen: boolean }>()
+defineEmits<{ (e: 'close'): void }>()
+
 const items = ref<ProductionWorkflowStatus[]>([])
 const loading = ref(false)
 
@@ -228,6 +237,7 @@ async function refresh() {
 }
 
 async function autoRefresh() {
+  if (!props.isOpen) return
   if (expandedId.value) return // Disable auto-refresh when details are open to prevent jump
   await refresh()
 }
@@ -286,8 +296,15 @@ function relativeTime(ms: number): string {
 }
 
 onMounted(() => {
-  refresh()
   pollInterval = setInterval(autoRefresh, 5_000)
+})
+
+watch(() => props.isOpen, (open) => {
+  if (open) {
+    refresh()
+  } else {
+    expandedId.value = null
+  }
 })
 
 onUnmounted(() => {
