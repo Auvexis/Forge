@@ -7,29 +7,16 @@
     :marker-end="props.selected ? 'url(#nod8-arrow-selected)' : `url(#nod8-arrow-${edgeStatus})`"
   />
 
-  <!-- ── Floating toolbar (hover OR selected) ── -->
+  <!-- ── Floating elements ── -->
   <EdgeLabelRenderer>
-    <!-- Persistent label on the path -->
-    <div
-      v-if="edgeLabel"
-      class="nodrag nopan nod8-edge-label"
-      :style="{
-        position: 'absolute',
-        transform: `translate(-50%, -50%) translate(${pathData[1]}px,${pathData[2]}px)`,
-        pointerEvents: 'none',
-      }"
-    >
-      {{ edgeLabel }}
-    </div>
-
-    <!-- Toolbar: visible on hover or when selected -->
+    <!-- Toolbar ABOVE the edge midpoint -->
     <div
       class="nodrag nopan nod8-edge-toolbar"
       :class="{ 'nod8-edge-toolbar--visible': isHovered || selected }"
       :style="{
         pointerEvents: 'all',
         position: 'absolute',
-        transform: `translate(-50%, -50%) translate(${pathData[1]}px,${pathData[2]}px)`,
+        transform: `translate(-50%, calc(-100% - 14px)) translate(${pathData[1]}px,${pathData[2]}px)`,
       }"
       @mouseenter="isHovered = true"
       @mouseleave="isHovered = false"
@@ -61,7 +48,7 @@
       </button>
     </div>
 
-    <!-- Invisible wider hover target so the toolbar doesn't flicker -->
+    <!-- Invisible wider hover zone spanning toolbar + label area -->
     <div
       class="nodrag nopan nod8-edge-hover-zone"
       :style="{
@@ -72,6 +59,19 @@
       @mouseenter="isHovered = true"
       @mouseleave="isHovered = false"
     />
+
+    <!-- Label BELOW the edge midpoint -->
+    <div
+      v-if="edgeLabel"
+      class="nodrag nopan nod8-edge-label"
+      :style="{
+        position: 'absolute',
+        transform: `translate(-50%, 14px) translate(${pathData[1]}px,${pathData[2]}px)`,
+        pointerEvents: 'none',
+      }"
+    >
+      {{ edgeLabel }}
+    </div>
   </EdgeLabelRenderer>
 </template>
 
@@ -186,10 +186,10 @@ function onQuickAdd() {
 
 // ── Label editing ─────────────────────────────────────────────────────────────
 
-const edgeLabel     = computed(() => props.label as string | undefined)
+const edgeLabel      = computed(() => props.label as string | undefined)
 const isEditingLabel = ref(false)
-const labelDraft    = ref('')
-const labelInputRef = ref<HTMLInputElement | null>(null)
+const labelDraft     = ref('')
+const labelInputRef  = ref<HTMLInputElement | null>(null)
 
 const edgeUpdateBus = useEventBus('edge:update-label')
 
@@ -211,7 +211,7 @@ function cancelLabel() {
 </script>
 
 <style scoped>
-/* ── Toolbar ──────────────────────────────────────────────────────── */
+/* ── Toolbar (above midpoint) ────────────────────────────────────── */
 .nod8-edge-toolbar {
   display: flex;
   align-items: center;
@@ -222,20 +222,20 @@ function cancelLabel() {
   padding: 3px 4px;
   box-shadow: var(--nod8-shadow-md);
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.85);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  scale: 0.85;
+  transition: opacity 0.15s ease, scale 0.15s ease;
   z-index: 2000;
 }
 
 .nod8-edge-toolbar--visible {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  scale: 1;
 }
 
-/* Wider invisible zone to stabilise hover without flickering */
+/* Wider invisible hover zone — tall enough to bridge toolbar ↔ label gap */
 .nod8-edge-hover-zone {
-  width: 48px;
-  height: 28px;
+  width: 80px;
+  height: 80px;   /* covers toolbar above + label below */
   z-index: 1999;
   opacity: 0;
 }
@@ -265,15 +265,16 @@ function cancelLabel() {
   color: var(--nod8-red-500, #ef4444);
 }
 
-/* ── Label ────────────────────────────────────────────────────────── */
+/* ── Label (below midpoint) ───────────────────────────────────────── */
 .nod8-edge-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
+  line-height: 1;
   color: var(--nod8-text-secondary);
   background: var(--nod8-bg-surface);
   border: 1px solid var(--nod8-border-subtle);
   border-radius: var(--nod8-radius-xs, 3px);
-  padding: 1px 6px;
+  padding: 3px 8px;
   white-space: nowrap;
   z-index: 1998;
 }
@@ -283,7 +284,7 @@ function cancelLabel() {
   border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-xs, 3px);
   color: var(--nod8-text-primary);
-  font-size: 11px;
+  font-size: 12px;
   height: 22px;
   padding: 0 6px;
   width: 90px;

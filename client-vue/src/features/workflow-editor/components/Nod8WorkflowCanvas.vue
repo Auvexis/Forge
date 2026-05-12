@@ -278,7 +278,6 @@ edgeLabelBus.on((payload: { edgeId: string; label: string }) => {
   if (edge) edge.label = payload.label || undefined
   const vfEdge = vueFlowEdges.value.find((e) => e.id === payload.edgeId)
   if (vfEdge) (vfEdge as any).label = payload.label || undefined
-  workflowStore.markDirty()
 })
 
 const openAddNodePanel = (sourceId?: string | null) => {
@@ -372,8 +371,8 @@ function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
     const nodes = vueFlowNodes.value as any[]
     const sourceNode = nodes.find((n) => n.id === sourceId)
     if (sourceNode) {
-      // Posição x: 200px para a direita. O Y vamos apenas herdar e o alignNodeCenters corrige depois
-      return { x: sourceNode.position.x + 200, y: sourceNode.position.y }
+      // Posição x: 300px para a direita. O Y vamos apenas herdar e o alignNodeCenters corrige depois
+      return { x: sourceNode.position.x + 300, y: sourceNode.position.y }
     }
   }
   return getCenterPosition()
@@ -455,22 +454,44 @@ function insertNodeBetween(edgeId: string, newNodeId: string, oldTargetId: strin
   workflowStore.activeWorkflow.edges.push(newEdge2)
   vueFlowEdges.value.push({ ...newEdge2, type: 'workflow-edge' })
 
-  // 3. Align the old target to the right of the new node
+  // 3. Position new node midway between source and old target, then push both outward
   alignNodeCenters(newNodeId, oldTargetId)
   const instance = vueFlowStore.value
-  const newNode = instance?.findNode(newNodeId)
+  const sourceNode   = instance?.findNode(
+    workflowStore.activeWorkflow?.edges.find((e) => e.target === oldTargetId)?.source ?? ''
+  )
+  const newNode      = instance?.findNode(newNodeId)
   const oldTargetNode = instance?.findNode(oldTargetId)
-  
-  if (newNode && oldTargetNode) {
-    const xOffset = 200 // push old target 200px to the right
-    const newX = newNode.position.x + xOffset
-    instance.updateNode(oldTargetId, { position: { x: newX, y: oldTargetNode.position.y } })
-    
-    // Also push anything that was to the right of the old target
-    const allNodes = instance.getNodes
-    for (const n of allNodes) {
-      if (n.id !== oldTargetId && n.id !== newNodeId && n.position.x >= oldTargetNode.position.x) {
-        instance.updateNode(n.id, { position: { x: n.position.x + xOffset, y: n.position.y } })
+
+  if (instance && newNode) {
+    // Push new node to midpoint between source and old target
+    const sx = sourceNode?.position.x ?? (newNode.position.x - 300)
+    const tx = oldTargetNode?.position.x ?? (newNode.position.x + 300)
+    const midX = Math.round((sx + tx) / 2)
+    instance.updateNode(newNodeId, { position: { x: midX, y: newNode.position.y } })
+
+    const HALF_GAP = 240 // half of desired gap between nodes
+
+    // Push source leftward if it's too close
+    if (sourceNode && midX - sourceNode.position.x < HALF_GAP) {
+      const pushLeft = HALF_GAP - (midX - sourceNode.position.x)
+      // move everything to the left of midX back
+      const allNodes = instance.getNodes
+      for (const n of allNodes) {
+        if (n.id !== newNodeId && n.position.x <= sx) {
+          instance.updateNode(n.id, { position: { x: n.position.x - pushLeft, y: n.position.y } })
+        }
+      }
+    }
+
+    // Push old target (and everything to its right) rightward
+    if (oldTargetNode && oldTargetNode.position.x - midX < HALF_GAP) {
+      const pushRight = HALF_GAP - (oldTargetNode.position.x - midX)
+      const allNodes = instance.getNodes
+      for (const n of allNodes) {
+        if (n.id !== newNodeId && n.position.x >= oldTargetNode.position.x) {
+          instance.updateNode(n.id, { position: { x: n.position.x + pushRight, y: n.position.y } })
+        }
       }
     }
   }
