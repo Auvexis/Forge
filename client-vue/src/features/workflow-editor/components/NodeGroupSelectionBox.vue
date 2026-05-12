@@ -45,7 +45,7 @@ const workflowStore = useWorkflowStore()
 const PADDING_TOP = 24
 const PADDING_BOTTOM = 60 // Space for text/labels below the node
 const PADDING_LEFT = 24
-const PADDING_RIGHT = 60 // Space for quick-add handles on the right
+const PADDING_RIGHT = 24 // Reverted to standard padding
 const TOOLBAR_H = 40 // approx height of toolbar (for positioning)
 
 // ── Selected nodes ──────────────────────────────────────────────────────────
