@@ -246,6 +246,41 @@ quickAddBus.on((payload: { sourceId: string; sourceHandle?: string }) => {
   openAddNodePanel(payload.sourceId)
 })
 
+// ── Insert node between two connected nodes (edge toolbar quick-add) ──────────
+
+let pendingInsertEdgeId: string | null = null
+let pendingInsertTargetId: string | null = null
+let pendingInsertTargetHandle: string | null = null
+
+const quickAddBetweenBus = useEventBus('edge:quick-add-between')
+quickAddBetweenBus.on((payload: {
+  edgeId: string
+  sourceId: string
+  targetId: string
+  sourceHandle?: string
+  targetHandle?: string
+}) => {
+  // We'll insert a new node between source → target.
+  // Remember the edge details so addLogicNode / addPluginNode can rewire after selection.
+  pendingInsertEdgeId    = payload.edgeId
+  pendingInsertTargetId  = payload.targetId
+  pendingInsertTargetHandle = payload.targetHandle ?? null
+  quickAddSourceHandle   = payload.sourceHandle ?? null
+  openAddNodePanel(payload.sourceId)
+})
+
+// ── Update edge label from toolbar ────────────────────────────────────────────
+
+const edgeLabelBus = useEventBus('edge:update-label')
+edgeLabelBus.on((payload: { edgeId: string; label: string }) => {
+  if (!workflowStore.activeWorkflow) return
+  const edge = workflowStore.activeWorkflow.edges.find((e) => e.id === payload.edgeId)
+  if (edge) edge.label = payload.label || undefined
+  const vfEdge = vueFlowEdges.value.find((e) => e.id === payload.edgeId)
+  if (vfEdge) (vfEdge as any).label = payload.label || undefined
+  workflowStore.markDirty()
+})
+
 const openAddNodePanel = (sourceId?: string | null) => {
   quickAddSourceId = sourceId || null
 
@@ -394,6 +429,53 @@ function autoConnectToSource(sourceId: string, targetId: string, sourceHandle?: 
   vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
 }
 
+function insertNodeBetween(edgeId: string, newNodeId: string, oldTargetId: string, oldTargetHandle: string | null) {
+  if (!workflowStore.activeWorkflow) return
+
+  // 1. Delete the old edge from both store and VueFlow
+  const storeEdgeIdx = workflowStore.activeWorkflow.edges.findIndex((e) => e.id === edgeId)
+  if (storeEdgeIdx !== -1) {
+    workflowStore.activeWorkflow.edges.splice(storeEdgeIdx, 1)
+  }
+  const vfEdgeIdx = vueFlowEdges.value.findIndex((e) => e.id === edgeId)
+  if (vfEdgeIdx !== -1) {
+    vueFlowEdges.value.splice(vfEdgeIdx, 1)
+  }
+
+  // 2. We already auto-connected source -> newNode via autoConnectToSource in addLogicNode/addPluginNode.
+  // Now we need to connect newNode -> oldTarget.
+  const newEdge2 = {
+    id: `e-${newNodeId}-${oldTargetId}-${Date.now()}`,
+    source: newNodeId,
+    target: oldTargetId,
+    sourceHandle: 'target', // The standard output of the new node
+    targetHandle: oldTargetHandle ?? undefined,
+  }
+
+  workflowStore.activeWorkflow.edges.push(newEdge2)
+  vueFlowEdges.value.push({ ...newEdge2, type: 'workflow-edge' })
+
+  // 3. Align the old target to the right of the new node
+  alignNodeCenters(newNodeId, oldTargetId)
+  const instance = vueFlowStore.value
+  const newNode = instance?.findNode(newNodeId)
+  const oldTargetNode = instance?.findNode(oldTargetId)
+  
+  if (newNode && oldTargetNode) {
+    const xOffset = 200 // push old target 200px to the right
+    const newX = newNode.position.x + xOffset
+    instance.updateNode(oldTargetId, { position: { x: newX, y: oldTargetNode.position.y } })
+    
+    // Also push anything that was to the right of the old target
+    const allNodes = instance.getNodes
+    for (const n of allNodes) {
+      if (n.id !== oldTargetId && n.id !== newNodeId && n.position.x >= oldTargetNode.position.x) {
+        instance.updateNode(n.id, { position: { x: n.position.x + xOffset, y: n.position.y } })
+      }
+    }
+  }
+}
+
 const generateNodeId = (prefix: string) => {
   if (!workflowStore.activeWorkflow) return `${prefix}_1`
 
@@ -488,6 +570,14 @@ const addLogicNode = (type: WorkflowNodeType) => {
     alignNodeCenters(backupSourceId, id)
   }
 
+  // Insert-between: splice new node into an existing edge
+  if (pendingInsertEdgeId && pendingInsertTargetId) {
+    insertNodeBetween(pendingInsertEdgeId, id, pendingInsertTargetId, pendingInsertTargetHandle)
+    pendingInsertEdgeId = null
+    pendingInsertTargetId = null
+    pendingInsertTargetHandle = null
+  }
+
   panelStore.closePanel()
 }
 
@@ -522,6 +612,14 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
   if (backupSourceId) {
     autoConnectToSource(backupSourceId, id, backupSourceHandle)
     alignNodeCenters(backupSourceId, id)
+  }
+
+  // Insert-between: splice new node into an existing edge
+  if (pendingInsertEdgeId && pendingInsertTargetId) {
+    insertNodeBetween(pendingInsertEdgeId, id, pendingInsertTargetId, pendingInsertTargetHandle)
+    pendingInsertEdgeId = null
+    pendingInsertTargetId = null
+    pendingInsertTargetHandle = null
   }
 
   panelStore.closePanel()

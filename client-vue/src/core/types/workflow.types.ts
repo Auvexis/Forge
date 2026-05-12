@@ -227,6 +227,8 @@ export interface WorkflowEdge {
   sourceHandle?: string
   targetHandle?: string
   condition?: string
+  /** Display label shown on the canvas edge — UI only, ignored by executor. */
+  label?: string
 }
 
 // ── Variables ────────────────────────────────────────────────

@@ -1,17 +1,96 @@
+<template>
+  <!-- ── Edge path ── -->
+  <BaseEdge
+    :id="id"
+    :style="computedStyle"
+    :path="pathData[0]"
+    :marker-end="props.selected ? 'url(#nod8-arrow-selected)' : `url(#nod8-arrow-${edgeStatus})`"
+  />
+
+  <!-- ── Floating toolbar (hover OR selected) ── -->
+  <EdgeLabelRenderer>
+    <!-- Persistent label on the path -->
+    <div
+      v-if="edgeLabel"
+      class="nodrag nopan nod8-edge-label"
+      :style="{
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${pathData[1]}px,${pathData[2]}px)`,
+        pointerEvents: 'none',
+      }"
+    >
+      {{ edgeLabel }}
+    </div>
+
+    <!-- Toolbar: visible on hover or when selected -->
+    <div
+      class="nodrag nopan nod8-edge-toolbar"
+      :class="{ 'nod8-edge-toolbar--visible': isHovered || selected }"
+      :style="{
+        pointerEvents: 'all',
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${pathData[1]}px,${pathData[2]}px)`,
+      }"
+      @mouseenter="isHovered = true"
+      @mouseleave="isHovered = false"
+    >
+      <!-- Quick-add between nodes -->
+      <button class="nod8-edge-btn" @click.stop="onQuickAdd" title="Insert node here">
+        <LucideIcon name="plus" :size="13" />
+      </button>
+
+      <!-- Edit label -->
+      <template v-if="isEditingLabel">
+        <input
+          ref="labelInputRef"
+          class="nod8-edge-label-input"
+          v-model="labelDraft"
+          placeholder="Label…"
+          @keydown.enter.stop="commitLabel"
+          @keydown.escape.stop="cancelLabel"
+          @blur="commitLabel"
+        />
+      </template>
+      <button v-else class="nod8-edge-btn" @click.stop="startEditLabel" title="Edit label">
+        <LucideIcon name="tag" :size="13" />
+      </button>
+
+      <!-- Delete -->
+      <button class="nod8-edge-btn nod8-edge-btn--danger" @click.stop="onDelete" title="Delete connection">
+        <LucideIcon name="trash" :size="13" />
+      </button>
+    </div>
+
+    <!-- Invisible wider hover target so the toolbar doesn't flicker -->
+    <div
+      class="nodrag nopan nod8-edge-hover-zone"
+      :style="{
+        pointerEvents: 'all',
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${pathData[1]}px,${pathData[2]}px)`,
+      }"
+      @mouseenter="isHovered = true"
+      @mouseleave="isHovered = false"
+    />
+  </EdgeLabelRenderer>
+</template>
+
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { BaseEdge, EdgeLabelRenderer, useVueFlow } from '@vue-flow/core'
 import type { EdgeProps } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useExecutionStore } from '../stores/execution.store'
 import { routedBezierPath } from '../composables/useEdgeRouting'
+import { useEventBus } from '@/shared/composables/useEventBus'
 
 const props = defineProps<EdgeProps>()
 
 const { removeEdges, getNodes } = useVueFlow()
 const executionStore = useExecutionStore()
 
-// Adaptive routing: bezier for natural left→right flow, smoothstep fallback when reversed/too close
+// ── Path ─────────────────────────────────────────────────────────────────────
+
 const pathData = computed(() => {
   const [path, lx, ly] = routedBezierPath(
     props.sourceX, props.sourceY,
@@ -24,12 +103,12 @@ const pathData = computed(() => {
   return [path, lx, ly] as [string, number, number]
 })
 
+// ── Execution status / colors ─────────────────────────────────────────────────
+
 const edgeStatus = computed(() => {
   let sStatus: string
 
   if (props.source === 'trigger') {
-    // Use the real trigger node status if available.
-    // Only fall back to 'success' when the workflow has actually finished.
     const triggerNodeStatus = executionStore.nodeStatuses['trigger']?.status
     if (triggerNodeStatus && triggerNodeStatus !== 'idle') {
       sStatus = triggerNodeStatus
@@ -45,11 +124,8 @@ const edgeStatus = computed(() => {
   const tNodeState = executionStore.nodeStatuses[props.target]
   const tStatus = tNodeState?.status || 'idle'
 
-  // Se o source não começou, a linha tá morta
   if (sStatus === 'idle') return 'idle'
 
-  // Verifica roteamento condicional para Switch e If
-  // Assim garantimos que o caminho ignorado fique cinza
   if (sStatus === 'success') {
     const sOutput = executionStore.nodeStatuses[props.source]?.output as any
     if (sOutput && typeof sOutput === 'object') {
@@ -62,32 +138,21 @@ const edgeStatus = computed(() => {
     }
   }
 
-  // A partir daqui sabemos que a linha FOI/ESTÁ sendo atravessada
-  // A cor dela reflete o estado do Node de DESTINO
-  if (tStatus !== 'idle') {
-    return tStatus
-  }
-
-  // Se o destino ainda não rodou mas a origem já foi, a energia tá parada na linha aguardando (ex: Merge Node)
-  if (sStatus === 'success') {
-    return 'success'
-  }
-
+  if (tStatus !== 'idle') return tStatus
+  if (sStatus === 'success') return 'success'
   return 'idle'
 })
 
 const strokeColor = computed(() => {
   if (props.selected) return 'var(--nod8-rf-edge-stroke-selected)'
-  
   switch (edgeStatus.value) {
     case 'success': return 'var(--nod8-green-500, #22c55e)'
-    case 'failed': return 'var(--nod8-red-500, #ef4444)'
+    case 'failed':  return 'var(--nod8-red-500, #ef4444)'
     case 'running': return 'var(--nod8-amber-500, #f59e0b)'
-    default: return 'var(--nod8-rf-edge-stroke)'
+    default:        return 'var(--nod8-rf-edge-stroke)'
   }
 })
 
-// Aplica as cores via Tokens Globais que herdamos do React
 const computedStyle = computed(() => ({
   ...props.style,
   stroke: strokeColor.value,
@@ -95,59 +160,137 @@ const computedStyle = computed(() => ({
   transition: 'stroke 0.3s ease, stroke-width 0.3s ease',
 }))
 
-// Ação de Lixeira
-const onDelete = () => {
-  removeEdges(props.id) // Quebra a conexão pelo ID
+// ── Hover state ───────────────────────────────────────────────────────────────
+
+const isHovered = ref(false)
+
+// ── Delete ────────────────────────────────────────────────────────────────────
+
+function onDelete() {
+  removeEdges(props.id)
+}
+
+// ── Quick-add between nodes ───────────────────────────────────────────────────
+
+const quickAddBetweenBus = useEventBus('edge:quick-add-between')
+
+function onQuickAdd() {
+  quickAddBetweenBus.emit({
+    edgeId: props.id,
+    sourceId: props.source,
+    targetId: props.target,
+    sourceHandle: props.sourceHandleId ?? props.data?.sourceHandle,
+    targetHandle: props.targetHandleId ?? props.data?.targetHandle,
+  })
+}
+
+// ── Label editing ─────────────────────────────────────────────────────────────
+
+const edgeLabel     = computed(() => props.label as string | undefined)
+const isEditingLabel = ref(false)
+const labelDraft    = ref('')
+const labelInputRef = ref<HTMLInputElement | null>(null)
+
+const edgeUpdateBus = useEventBus('edge:update-label')
+
+function startEditLabel() {
+  labelDraft.value = edgeLabel.value ?? ''
+  isEditingLabel.value = true
+  nextTick(() => labelInputRef.value?.focus())
+}
+
+function commitLabel() {
+  if (!isEditingLabel.value) return
+  isEditingLabel.value = false
+  edgeUpdateBus.emit({ edgeId: props.id, label: labelDraft.value.trim() })
+}
+
+function cancelLabel() {
+  isEditingLabel.value = false
 }
 </script>
 
-<template>
-  <!-- O Caminho do Fio -->
-  <BaseEdge
-    :id="id"
-    :style="computedStyle"
-    :path="pathData[0]"
-    :marker-end="props.selected ? 'url(#nod8-arrow-selected)' : `url(#nod8-arrow-${edgeStatus})`"
-  />
-
-  <!-- A Toolbar Flutuante HtmlRender (Só aparece se o Fio estiver Selecionado) -->
-  <EdgeLabelRenderer v-if="selected">
-    <div
-      class="nodrag nopan nod8-edge-toolbar flex-center gap-2"
-      :style="{
-        pointerEvents: 'all' /* Vital para o botão ser clicável sobre o SVG */,
-        position: 'absolute',
-        transform: `translate(-50%, 50%) translate(${pathData[1]}px,${pathData[2]}px)`,
-      }"
-    >
-      <button class="nod8-edge-btn" @click.stop="onDelete" title="Deletar Conexão">
-        <LucideIcon name="trash" :size="14" />
-      </button>
-    </div>
-  </EdgeLabelRenderer>
-</template>
-
 <style scoped>
+/* ── Toolbar ──────────────────────────────────────────────────────── */
 .nod8-edge-toolbar {
-  z-index: 2000; /* Garante que fica por cima dos wires e nodes vizinhos */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--nod8-bg-surface);
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-sm);
+  padding: 3px 4px;
+  box-shadow: var(--nod8-shadow-md);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.85);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 2000;
 }
 
-.nod8-edge-btn {
-  background-color: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border); /* Vermelho translúcido */
-  border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-text-muted);
-  width: 28px;
+.nod8-edge-toolbar--visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Wider invisible zone to stabilise hover without flickering */
+.nod8-edge-hover-zone {
+  width: 48px;
   height: 28px;
+  z-index: 1999;
+  opacity: 0;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────── */
+.nod8-edge-btn {
+  background: none;
+  border: none;
+  border-radius: var(--nod8-radius-xs, 3px);
+  color: var(--nod8-text-muted);
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .nod8-edge-btn:hover {
-  background-color: var(--nod8-bg-elevated);
+  background: var(--nod8-bg-elevated);
   color: var(--nod8-text-primary);
+}
+
+.nod8-edge-btn--danger:hover {
+  background: color-mix(in srgb, var(--nod8-red-500, #ef4444) 15%, transparent);
+  color: var(--nod8-red-500, #ef4444);
+}
+
+/* ── Label ────────────────────────────────────────────────────────── */
+.nod8-edge-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--nod8-text-secondary);
+  background: var(--nod8-bg-surface);
+  border: 1px solid var(--nod8-border-subtle);
+  border-radius: var(--nod8-radius-xs, 3px);
+  padding: 1px 6px;
+  white-space: nowrap;
+  z-index: 1998;
+}
+
+.nod8-edge-label-input {
+  background: var(--nod8-bg-base);
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-xs, 3px);
+  color: var(--nod8-text-primary);
+  font-size: 11px;
+  height: 22px;
+  padding: 0 6px;
+  width: 90px;
+  outline: none;
+}
+
+.nod8-edge-label-input:focus {
+  border-color: var(--nod8-accent);
 }
 </style>

@@ -226,6 +226,8 @@ export interface WorkflowEdge {
   sourceHandle?: string; // "then" | "else" for IfNode, "loop-body" | "loop-done" for LoopNode
   targetHandle?: string;
   condition?: string; // Optional expression (legacy support)
+  /** Display label shown on the canvas edge — UI only, ignored by executor. */
+  label?: string;
 }
 
 // ──────────── Workflow Variables ────────────
