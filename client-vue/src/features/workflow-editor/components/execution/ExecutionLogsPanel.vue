@@ -43,7 +43,11 @@
       </div>
 
       <!-- Empty List View -->
-      <div v-else-if="!detailExecution && !executions?.length" key="empty" class="elp-empty">
+      <div
+        v-else-if="!detailExecution && !executions?.length && !executionStore.timeline.length"
+        key="empty"
+        class="elp-empty"
+      >
         <LucideIcon name="database" :size="24" class="elp-empty-icon" />
         <p>No executions yet</p>
         <p class="elp-empty-sub">Run the workflow to see logs here.</p>
@@ -238,6 +242,7 @@ const clearLoading = ref(false)
 const detailExecution = ref<ExecutionLog | null>(null)
 const { error: toastError, success: toastSuccess } = useToast()
 const executionStore = useExecutionStore()
+let liveRefreshTimer: number | null = null
 
 const expandedSteps = ref(new Set<string>())
 const copiedStepId = ref<string | null>(null)
@@ -262,6 +267,14 @@ async function copyStepOutput(nodeId: string, output: any) {
 
 async function refresh() {
   await fetchExecutions(props.workflowId)
+}
+
+function scheduleRefresh(delay = 150) {
+  if (liveRefreshTimer) window.clearTimeout(liveRefreshTimer)
+  liveRefreshTimer = window.setTimeout(() => {
+    void refresh()
+    liveRefreshTimer = null
+  }, delay)
 }
 
 async function handleClear() {
@@ -377,6 +390,24 @@ watch(detailExecution, () => {
 watch(() => props.workflowId, refresh)
 onMounted(refresh)
 
+watch(
+  () => executionStore.timeline.length,
+  (length) => {
+    if (length > 0 && !detailExecution.value) {
+      scheduleRefresh()
+    }
+  },
+)
+
+watch(
+  () => executionStore.workflowStatus,
+  (status) => {
+    if (status === 'SUCCESS' || status === 'FAILED' || status === 'CANCELLED') {
+      scheduleRefresh(250)
+    }
+  },
+)
+
 // ── Draggable panel ──────────────────────────────────────────────────────────
 
 const dragOffset = ref({ x: 0, y: 0 })
@@ -421,6 +452,7 @@ function stopDrag() {
 }
 
 onBeforeUnmount(() => {
+  if (liveRefreshTimer) window.clearTimeout(liveRefreshTimer)
   window.removeEventListener('pointermove', onDrag)
   window.removeEventListener('pointerup', stopDrag)
 })
