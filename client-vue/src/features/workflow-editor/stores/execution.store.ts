@@ -2,7 +2,11 @@ import { defineStore } from 'pinia'
 import { ref, reactive, computed } from 'vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
-import type { NodeExecutionState, WorkflowExecutionStatus } from '@/core/types/execution.types'
+import type {
+  ExecutionTimelineEvent,
+  NodeExecutionState,
+  WorkflowExecutionStatus,
+} from '@/core/types/execution.types'
 import type { WorkflowEvent } from '@/core/types/execution.types'
 
 export const useExecutionStore = defineStore('execution', () => {
@@ -28,6 +32,7 @@ export const useExecutionStore = defineStore('execution', () => {
 
   /** Last known overall workflow execution outcome */
   const workflowStatus = ref<WorkflowExecutionStatus | null>(null)
+  const timeline = ref<ExecutionTimelineEvent[]>([])
 
   // Internal EventSource — intentionally non-reactive (DOM object)
   let _es: EventSource | null = null
@@ -47,6 +52,40 @@ export const useExecutionStore = defineStore('execution', () => {
     nodeStatuses[nodeId] = prev ? { ...prev, ...patch } : { status: 'idle' as const, ...patch }
   }
 
+  function timelineStatusFor(type: string): ExecutionTimelineEvent['status'] {
+    if (type === 'node:success' || type === 'workflow:success' || type === 'trigger:data') return 'success'
+    if (type === 'node:failed' || type === 'workflow:failed') return 'failed'
+    if (type === 'node:retry') return 'retrying'
+    if (type === 'workflow:cancelled') return 'cancelled'
+    if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created') {
+      return 'running'
+    }
+    return 'info'
+  }
+
+  function timelineLabelFor(ev: WorkflowEvent): string {
+    if (ev.type === 'node:start') return `${ev.nodeId} started`
+    if (ev.type === 'node:retry') return `${ev.nodeId} retrying`
+    if (ev.type === 'node:success') return `${ev.nodeId} succeeded`
+    if (ev.type === 'node:failed') return `${ev.nodeId} failed`
+    if (ev.type === 'trigger:data') return 'Trigger payload received'
+    if (ev.type === 'temporary-form:created') return `${ev.nodeId} waiting for form`
+    return ev.type.replace(':', ' ')
+  }
+
+  function recordTimelineEvent(ev: WorkflowEvent) {
+    timeline.value.push({
+      id: `${ev.type}:${ev.nodeId ?? 'workflow'}:${ev.timestamp}:${timeline.value.length}`,
+      type: ev.type,
+      nodeId: ev.nodeId,
+      timestamp: ev.timestamp,
+      status: timelineStatusFor(ev.type),
+      label: timelineLabelFor(ev),
+      payload: ev.data,
+      error: ev.error,
+    })
+  }
+
   function patchNodeStatus(nodeId: string, patch: Partial<NodeExecutionState>) {
     _patchNode(nodeId, patch)
   }
@@ -60,6 +99,7 @@ export const useExecutionStore = defineStore('execution', () => {
       delete nodeStatuses[key]
     }
     workflowStatus.value = null
+    timeline.value = []
   }
 
   /** Marks the trigger node as 'running' (e.g. waiting for a form submission). */
@@ -104,6 +144,7 @@ export const useExecutionStore = defineStore('execution', () => {
       _es.onmessage = (rawEvt: MessageEvent) => {
         try {
           const ev = JSON.parse(rawEvt.data as string) as WorkflowEvent
+          recordTimelineEvent(ev)
 
           switch (ev.type) {
             case 'trigger:data':
@@ -123,6 +164,27 @@ export const useExecutionStore = defineStore('execution', () => {
               }
               break
 
+            case 'node:retry':
+              if (ev.nodeId) {
+                const data = ev.data as { attempt?: number; delayMs?: number } | undefined
+                const previous = nodeStatuses[ev.nodeId]?.retries ?? []
+                _patchNode(ev.nodeId, {
+                  status: 'running',
+                  attempts: data?.attempt,
+                  error: ev.error,
+                  retries: [
+                    ...previous,
+                    {
+                      attempt: data?.attempt ?? previous.length + 2,
+                      delayMs: data?.delayMs ?? 0,
+                      error: ev.error,
+                      at: ev.timestamp,
+                    },
+                  ],
+                })
+              }
+              break
+
             case 'temporary-form:created':
               if (ev.nodeId) {
                 _patchNode(ev.nodeId, {
@@ -139,6 +201,7 @@ export const useExecutionStore = defineStore('execution', () => {
                   status: 'success',
                   output: ev.data,
                   endedAt: ev.timestamp,
+                  attempts: nodeStatuses[ev.nodeId]?.attempts ?? 1,
                 })
               }
               break
@@ -149,6 +212,7 @@ export const useExecutionStore = defineStore('execution', () => {
                   status: 'failed',
                   error: ev.error,
                   endedAt: ev.timestamp,
+                  attempts: nodeStatuses[ev.nodeId]?.attempts ?? 1,
                 })
                 toastError(ev.error ?? `Node "${ev.nodeId}" failed`, 'Node execution failed')
               }
@@ -280,6 +344,7 @@ export const useExecutionStore = defineStore('execution', () => {
 
   return {
     nodeStatuses,
+    timeline,
     isStreaming,
     isExecuting,
     activeExecutionId,

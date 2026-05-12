@@ -50,6 +50,28 @@
       </div>
       <!-- List View -->
       <div v-else-if="!detailExecution" key="list" class="elp-list">
+        <div v-if="executionStore.timeline.length" class="elp-live-timeline">
+          <div class="elp-section-title-row">
+            <p class="elp-section-title">Live Timeline</p>
+            <span class="elp-row-id">{{ executionStore.activeExecutionId?.slice(-8) }}</span>
+          </div>
+          <div class="elp-timeline">
+            <div
+              v-for="item in executionStore.timeline"
+              :key="item.id"
+              class="elp-timeline-item"
+              :class="`elp-timeline-item--${item.status}`"
+            >
+              <span class="elp-timeline-dot" />
+              <div class="elp-timeline-copy">
+                <span>{{ item.label }}</span>
+                <small>{{ formatTime(item.timestamp) }}</small>
+              </div>
+              <span v-if="item.error" class="elp-timeline-error">{{ item.error }}</span>
+            </div>
+          </div>
+        </div>
+
         <button
           v-for="exec in executions"
           :key="exec.id"
@@ -91,6 +113,25 @@
           <span class="elp-detail-date">{{ formatDate(detailExecution.startedAt) }}</span>
         </div>
 
+        <div v-if="detailTimeline.length" class="elp-section">
+          <p class="elp-section-title">Execution Timeline</p>
+          <div class="elp-timeline">
+            <div
+              v-for="item in detailTimeline"
+              :key="item.id"
+              class="elp-timeline-item"
+              :class="`elp-timeline-item--${item.status}`"
+            >
+              <span class="elp-timeline-dot" />
+              <div class="elp-timeline-copy">
+                <span>{{ item.label }}</span>
+                <small>{{ formatTime(item.timestamp) }}</small>
+              </div>
+              <span v-if="item.duration" class="elp-step-duration">{{ item.duration }}</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Trigger payload -->
         <div v-if="detailExecution.context?.trigger" class="elp-section">
           <div class="elp-section-title-row">
@@ -121,12 +162,38 @@
                 <LucideIcon :name="stepStatusIcon(step?.status ?? '')" :size="12" />
                 <span class="elp-step-id">{{ nodeId }}</span>
                 <span class="elp-step-status">{{ step?.status ?? '—' }}</span>
+                <span v-if="step?.attempts && step.attempts > 1" class="elp-step-retries">
+                  {{ step.attempts }} attempts
+                </span>
+                <span v-if="step?.startedAt && step?.endedAt" class="elp-step-duration">
+                  {{ formatDuration(step.startedAt, step.endedAt) }}
+                </span>
               </div>
               <div v-if="expandedSteps.has(nodeId as string)" class="elp-step-details">
-                <pre v-if="step?.error" class="elp-step-error">{{ typeof step.error === 'string' ? step.error : JSON.stringify(step.error, null, 2) }}</pre>
-                <div v-else-if="step?.output" class="elp-step-output-wrap">
+                <div v-if="step?.retries?.length" class="elp-retry-list">
+                  <div v-for="retry in step.retries" :key="`${nodeId}-${retry.at}`" class="elp-retry-row">
+                    <LucideIcon name="rotate-ccw" :size="11" />
+                    <span>Attempt {{ retry.attempt }}</span>
+                    <span>{{ (retry.delayMs / 1000).toFixed(1) }}s delay</span>
+                    <span v-if="retry.error" class="elp-timeline-error">{{ retry.error }}</span>
+                  </div>
+                </div>
+                <div v-if="step?.error" class="elp-error-panel">
                   <div class="elp-section-title-row" style="margin-top: 8px;">
-                    <span style="font-size: 10px; font-weight: 600; color: var(--nod8-text-muted); text-transform: uppercase;">Output Data</span>
+                    <span style="font-size: 10px; font-weight: 600; color: var(--nod8-text-muted); text-transform: uppercase;">Error Trace</span>
+                    <button
+                      class="elp-copy-btn"
+                      :title="copiedStepId === nodeId ? 'Copied!' : 'Copy error'"
+                      @click.stop="copyStepOutput(nodeId as string, step.error)"
+                    >
+                      <LucideIcon :name="copiedStepId === nodeId ? 'check' : 'copy'" :size="10" />
+                    </button>
+                  </div>
+                  <pre class="elp-step-error">{{ typeof step.error === 'string' ? step.error : JSON.stringify(step.error, null, 2) }}</pre>
+                </div>
+                <div v-if="step?.output" class="elp-step-output-wrap">
+                  <div class="elp-section-title-row" style="margin-top: 8px;">
+                    <span style="font-size: 10px; font-weight: 600; color: var(--nod8-text-muted); text-transform: uppercase;">Payload Preview</span>
                     <button
                       class="elp-copy-btn"
                       :title="copiedStepId === nodeId ? 'Copied!' : 'Copy output'"
@@ -161,6 +228,7 @@ import { workflowsApi } from '@/core/api/workflows.api'
 import { useApi } from '@/shared/composables/useApi'
 import { useToast } from '@/shared/composables/useToast'
 import type { ExecutionLog, WorkflowExecutionStatus } from '@/core/types/execution.types'
+import { useExecutionStore } from '../../stores/execution.store'
 
 const props = defineProps<{ workflowId: string }>()
 defineEmits<{ (e: 'close'): void }>()
@@ -169,6 +237,7 @@ const { data: executions, loading, execute: fetchExecutions } = useApi(workflows
 const clearLoading = ref(false)
 const detailExecution = ref<ExecutionLog | null>(null)
 const { error: toastError, success: toastSuccess } = useToast()
+const executionStore = useExecutionStore()
 
 const expandedSteps = ref(new Set<string>())
 const copiedStepId = ref<string | null>(null)
@@ -242,9 +311,42 @@ function formatDate(ts: number): string {
   return new Date(ts).toLocaleString()
 }
 
+function formatTime(ts: number): string {
+  return new Date(ts).toLocaleTimeString()
+}
+
 function formatDuration(start: number, end: number): string {
   return `${((end - start) / 1000).toFixed(2)}s`
 }
+
+const detailTimeline = computed(() => {
+  const execution = detailExecution.value
+  if (!execution?.context?.steps) return []
+
+  return Object.entries(execution.context.steps)
+    .flatMap(([nodeId, step]) => {
+      const items = []
+      if (step.startedAt) {
+        items.push({
+          id: `${nodeId}:start`,
+          timestamp: step.startedAt,
+          status: 'running',
+          label: `${nodeId} started`,
+        })
+      }
+      if (step.endedAt) {
+        items.push({
+          id: `${nodeId}:end`,
+          timestamp: step.endedAt,
+          status: step.status === 'FAILED' ? 'failed' : 'success',
+          label: `${nodeId} ${step.status.toLowerCase()}`,
+          duration: step.startedAt ? formatDuration(step.startedAt, step.endedAt) : undefined,
+        })
+      }
+      return items
+    })
+    .sort((a, b) => a.timestamp - b.timestamp)
+})
 
 function formatJson(data: unknown): string {
   try {
@@ -459,6 +561,84 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+}
+
+.elp-live-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nod8-space-2);
+  padding: var(--nod8-space-3) var(--nod8-space-4);
+  border-bottom: 1px solid var(--nod8-border);
+  background: var(--nod8-bg-base);
+}
+
+.elp-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nod8-space-2);
+}
+
+.elp-timeline-item {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--nod8-space-2);
+  min-width: 0;
+}
+
+.elp-timeline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--nod8-text-muted);
+}
+
+.elp-timeline-item--running .elp-timeline-dot {
+  background: var(--nod8-amber-400);
+}
+.elp-timeline-item--success .elp-timeline-dot {
+  background: var(--nod8-green-400);
+}
+.elp-timeline-item--failed .elp-timeline-dot {
+  background: var(--nod8-red-400);
+}
+.elp-timeline-item--retrying .elp-timeline-dot {
+  background: var(--nod8-accent);
+}
+.elp-timeline-item--cancelled .elp-timeline-dot {
+  background: var(--nod8-text-muted);
+}
+
+.elp-timeline-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.elp-timeline-copy span,
+.elp-timeline-error {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.elp-timeline-copy span {
+  font-size: var(--nod8-text-xs);
+  color: var(--nod8-text-secondary);
+}
+
+.elp-timeline-copy small,
+.elp-step-duration,
+.elp-step-retries {
+  font-size: 10px;
+  font-family: var(--nod8-font-mono);
+  color: var(--nod8-text-muted);
+}
+
+.elp-timeline-error {
+  max-width: 120px;
+  font-size: 10px;
+  color: var(--nod8-red-400);
 }
 
 .elp-row {
@@ -723,6 +903,34 @@ onBeforeUnmount(() => {
   font-weight: 600;
   text-transform: uppercase;
   color: var(--nod8-text-muted);
+}
+
+.elp-step-retries {
+  color: var(--nod8-accent);
+}
+
+.elp-retry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: var(--nod8-space-2);
+  padding: var(--nod8-space-2);
+  border-radius: var(--nod8-radius-sm);
+  background: var(--nod8-bg-overlay);
+}
+
+.elp-retry-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nod8-space-2);
+  min-width: 0;
+  font-size: 10px;
+  color: var(--nod8-text-muted);
+}
+
+.elp-error-panel {
+  display: flex;
+  flex-direction: column;
 }
 
 .elp-step--failed .elp-step-status {

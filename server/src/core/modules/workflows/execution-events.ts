@@ -13,6 +13,26 @@ export function emitNodeStart(workflowId: string, executionId: string, nodeId: s
   });
 }
 
+export function emitNodeRetry(
+  workflowId: string,
+  executionId: string,
+  nodeId: string,
+  attempt: number,
+  maxRetries: number,
+  delayMs: number,
+  error: Error,
+): void {
+  workflowEventBus.emitWorkflowEvent({
+    executionId,
+    workflowId,
+    type: "node:retry",
+    nodeId,
+    timestamp: Date.now(),
+    data: { attempt, maxRetries, delayMs },
+    error: error.message,
+  });
+}
+
 export function emitNodeSuccess(
   workflowId: string,
   executionId: string,
@@ -54,13 +74,61 @@ export function recordSuccessfulStep(
   result: any,
 ): void {
   if (node.type === "code") {
+    const startedAt = context.steps[nodeId]?.startedAt;
+    const attempts = context.steps[nodeId]?.attempts ?? 1;
+    const retries = context.steps[nodeId]?.retries ?? [];
     context.steps[nodeId] = {
       status: "SUCCESS",
       output: result.output,
       logs: result.logs,
+      startedAt,
+      endedAt: Date.now(),
+      attempts,
+      retries,
     };
     return;
   }
 
-  context.steps[nodeId] = { status: "SUCCESS", output: result };
+  context.steps[nodeId] = {
+    status: "SUCCESS",
+    output: result,
+    startedAt: context.steps[nodeId]?.startedAt,
+    endedAt: Date.now(),
+    attempts: context.steps[nodeId]?.attempts ?? 1,
+    retries: context.steps[nodeId]?.retries ?? [],
+  };
+}
+
+export function recordNodeStart(context: WorkflowExecutionContext, nodeId: string): void {
+  context.steps[nodeId] = {
+    ...(context.steps[nodeId] ?? {}),
+    status: "RUNNING",
+    startedAt: Date.now(),
+    attempts: context.steps[nodeId]?.attempts ?? 1,
+  };
+}
+
+export function recordNodeRetry(
+  context: WorkflowExecutionContext,
+  nodeId: string,
+  attempt: number,
+  delayMs: number,
+  error: Error,
+): void {
+  const previousRetries = context.steps[nodeId]?.retries ?? [];
+  context.steps[nodeId] = {
+    ...(context.steps[nodeId] ?? {}),
+    status: "RETRYING",
+    attempts: attempt,
+    error: error.message,
+    retries: [
+      ...previousRetries,
+      {
+        attempt,
+        delayMs,
+        error: error.message,
+        at: Date.now(),
+      },
+    ],
+  };
 }

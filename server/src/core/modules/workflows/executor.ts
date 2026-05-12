@@ -8,8 +8,11 @@ import {
 } from "./execution-context.ts";
 import {
   emitNodeFailure,
+  emitNodeRetry,
   emitNodeStart,
   emitNodeSuccess,
+  recordNodeRetry,
+  recordNodeStart,
   recordSuccessfulStep,
 } from "./execution-events.ts";
 import { createGraph, shouldReleaseEdge } from "./graph.ts";
@@ -154,6 +157,7 @@ export const WorkflowEngine = {
         }
 
         const node = workflow.nodes[nodeId];
+        recordNodeStart(context, nodeId);
         emitNodeStart(workflow.metadata.id, execId, nodeId);
 
         await executeWithRetry({
@@ -255,7 +259,13 @@ async function executeWithRetry(input: {
     } catch (error: any) {
       attempts++;
       lastError = error instanceof Error ? error : new Error(String(error));
-      context.steps[nodeId] = { status: "FAILED", error: lastError.message };
+      context.steps[nodeId] = {
+        ...(context.steps[nodeId] ?? {}),
+        status: "FAILED",
+        error: lastError.message,
+        endedAt: Date.now(),
+        attempts,
+      };
 
       if (attempts <= maxRetries) {
         const interval = node.retryPolicy?.intervalSeconds ?? 2;
@@ -263,6 +273,16 @@ async function executeWithRetry(input: {
           (node.retryPolicy?.backoffStrategy === "exponential"
             ? Math.pow(2, attempts) * interval
             : interval) * 1000;
+        recordNodeRetry(context, nodeId, attempts + 1, ms, lastError);
+        emitNodeRetry(
+          workflow.metadata.id,
+          executionId,
+          nodeId,
+          attempts + 1,
+          maxRetries,
+          ms,
+          lastError,
+        );
         await delay(ms);
       }
     }

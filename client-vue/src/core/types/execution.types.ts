@@ -6,6 +6,7 @@
 
 export type WorkflowEventType =
   | 'node:start'
+  | 'node:retry'
   | 'node:success'
   | 'node:failed'
   | 'workflow:start'
@@ -35,6 +36,8 @@ export interface NodeExecutionState {
   error?: string
   startedAt?: number
   endedAt?: number
+  attempts?: number
+  retries?: Array<{ attempt: number; delayMs: number; error?: string; at: number }>
 }
 
 // ── Workflow Execution Status ─────────────────────────────────
@@ -51,9 +54,32 @@ export interface ExecutionLog {
   endedAt: number | null
   context: {
     trigger?: unknown
-    steps?: Record<string, { status: string; output?: unknown; error?: string }>
+    steps?: Record<
+      string,
+      {
+        status: string
+        output?: unknown
+        error?: string
+        startedAt?: number
+        endedAt?: number
+        attempts?: number
+        retries?: Array<{ attempt: number; delayMs: number; error?: string; at: number }>
+        logs?: unknown
+      }
+    >
     variables?: Record<string, unknown>
   }
+}
+
+export interface ExecutionTimelineEvent {
+  id: string
+  type: WorkflowEventType
+  nodeId?: string
+  timestamp: number
+  status: 'running' | 'success' | 'failed' | 'retrying' | 'cancelled' | 'info'
+  label: string
+  payload?: unknown
+  error?: string
 }
 
 // ── Active Execution State ────────────────────────────────────

@@ -8,6 +8,7 @@ export interface WorkflowEvent {
   type:
     | "trigger:data"
     | "node:start"
+    | "node:retry"
     | "node:success"
     | "node:failed"
     | "workflow:start"
