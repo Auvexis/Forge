@@ -13,6 +13,8 @@ interface NodeTestExecutionContext {
 
 interface EventListenerPreviewOptions {
   eventName: string
+  listenerNodeId?: string
+  sourceNodeName?: string
   workflowNodes: Record<string, WorkflowNode | any>
   nodeStatuses: NodeStatuses
 }
@@ -110,12 +112,10 @@ export function buildKnownPathsFromNodeStatuses(nodeStatuses: NodeStatuses): Var
 export function buildEventListenerInputPreview(
   options: EventListenerPreviewOptions,
 ): Record<string, unknown> | null {
-  const paths = inferEventListenerPaths({
-    eventName: options.eventName,
-    listenerNodeId: 'event-listener-preview',
-    sourceNodeName: 'Event Listener',
-    workflowNodes: options.workflowNodes,
-    knownPaths: buildKnownPathsFromNodeStatuses(options.nodeStatuses),
+  const paths = buildEventListenerOutputPathsFromStatuses({
+    ...options,
+    listenerNodeId: options.listenerNodeId ?? 'event-listener-preview',
+    sourceNodeName: options.sourceNodeName ?? 'Event Listener',
   })
 
   const preview: Record<string, unknown> = {}
@@ -124,4 +124,19 @@ export function buildEventListenerInputPreview(
   }
 
   return Object.keys(preview).length > 0 ? preview : null
+}
+
+export function buildEventListenerOutputPathsFromStatuses(
+  options: Required<Pick<EventListenerPreviewOptions, 'eventName' | 'workflowNodes' | 'nodeStatuses'>> & {
+    listenerNodeId: string
+    sourceNodeName: string
+  },
+): VariableTreePath[] {
+  return inferEventListenerPaths({
+    eventName: options.eventName,
+    listenerNodeId: options.listenerNodeId,
+    sourceNodeName: options.sourceNodeName,
+    workflowNodes: options.workflowNodes,
+    knownPaths: buildKnownPathsFromNodeStatuses(options.nodeStatuses),
+  })
 }

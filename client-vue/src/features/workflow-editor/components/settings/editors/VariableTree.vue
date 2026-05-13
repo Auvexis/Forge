@@ -33,6 +33,7 @@ import {
 import type { WorkflowTrigger, WorkflowNode, PluginNode } from '@/core/types/workflow.types'
 import type { NodeData } from './types'
 import { inferAssignedPath, inferEventListenerPaths } from './variableTreeInference'
+import { buildEventListenerOutputPathsFromStatuses } from '../nodeInspectorPreview'
 import { useWorkflowStore } from '../../../stores/workflow.store'
 import { useExecutionStore } from '../../../stores/execution.store'
 
@@ -264,13 +265,22 @@ const allPaths = computed(() => {
       } else if (upData.type === 'event-listener') {
         const eventName = (upData as any).eventName
         const workflowNodes = useWorkflowStore().activeWorkflow?.nodes || {}
-        const inferredPaths = inferEventListenerPaths({
+        let inferredPaths = buildEventListenerOutputPathsFromStatuses({
           eventName,
           listenerNodeId: upNode.id,
           sourceNodeName: nodeName,
           workflowNodes,
-          knownPaths: paths,
+          nodeStatuses: executionStore.nodeStatuses,
         })
+        if (inferredPaths.length === 0) {
+          inferredPaths = inferEventListenerPaths({
+            eventName,
+            listenerNodeId: upNode.id,
+            sourceNodeName: nodeName,
+            workflowNodes,
+            knownPaths: paths,
+          })
+        }
         paths.push(...inferredPaths)
         
         if (inferredPaths.length === 0) {
