@@ -47,12 +47,12 @@
     </EditorField>
 
     <EditorField label="Form URLs" icon="radio">
-      <div class="wait-form-url-group">
-        <div class="wait-form-url-row">
-          <span class="wait-form-url-badge wait-form-url-badge--test">TEST</span>
-          <div class="wait-form-url-box">{{ formTestUrlPreview }}</div>
+      <div class="te-url-group">
+        <div class="te-url-row">
+          <span class="te-url-badge te-url-badge--test">TEST</span>
+          <div class="te-url-box">{{ formTestUrlPreview }}</div>
           <button
-            class="wait-form-icon-btn"
+            class="te-icon-btn"
             title="Copy URL"
             :disabled="!formTestUrlPreview"
             @click="copyUrl(formTestUrlPreview, 'test')"
@@ -65,17 +65,17 @@
             :href="formTestUrl"
             target="_blank"
             rel="noopener"
-            class="wait-form-icon-btn"
+            class="te-icon-btn"
             title="Open in new tab"
           >
             <RadioIcon :size="14" />
           </a>
         </div>
-        <div class="wait-form-url-row">
-          <span class="wait-form-url-badge wait-form-url-badge--prod">RUNTIME</span>
-          <div class="wait-form-url-box">{{ runtimeUrlPreview }}</div>
+        <div class="te-url-row">
+          <span class="te-url-badge te-url-badge--prod">RUNTIME</span>
+          <div class="te-url-box">{{ runtimeUrlPreview }}</div>
           <button
-            class="wait-form-icon-btn"
+            class="te-icon-btn"
             title="Copy URL"
             :disabled="!runtimeUrlPreview"
             @click="copyUrl(runtimeUrlPreview, 'prod')"
@@ -88,17 +88,17 @@
             :href="runtimeFormUrl"
             target="_blank"
             rel="noopener"
-            class="wait-form-icon-btn"
+            class="te-icon-btn"
             title="Open in new tab"
           >
             <RadioIcon :size="14" />
           </a>
         </div>
       </div>
-      <div class="editor-hint">
+      <p class="te-hint">
         Template slugs are resolved when the workflow reaches this step. The runtime URL appears
         after the temporary form session is created.
-      </div>
+      </p>
     </EditorField>
 
     <FormThemeMenu
@@ -215,67 +215,34 @@ function updateExpiration(value: string | boolean) {
 </script>
 
 <style scoped>
-.wait-form-url-group {
+.te-url-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.wait-form-url-row {
+.te-url-row {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.wait-form-url-badge {
-  flex-shrink: 0;
-  padding: 2px 6px;
-  border-radius: var(--nod8-radius-sm);
+.te-url-badge {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: var(--nod8-radius-sm);
+  flex-shrink: 0;
 }
 
-.wait-form-url-badge--test {
+.te-url-badge--test {
   background: var(--nod8-bg-muted);
   color: var(--nod8-text-secondary);
 }
 
-.wait-form-url-badge--prod {
+.te-url-badge--prod {
   background: color-mix(in srgb, var(--nod8-green-400) 15%, transparent);
   color: var(--nod8-green-400);
-}
-
-.wait-form-url-box {
-  flex: 1;
-  min-width: 0;
-  padding: 6px 8px;
-  border: 1px solid var(--nod8-border-subtle);
-  border-radius: var(--nod8-radius-sm);
-  background: var(--nod8-bg-surface);
-  color: var(--nod8-text-secondary);
-  font-family: var(--nod8-font-mono);
-  font-size: 11px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.wait-form-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--nod8-border-subtle);
-  border-radius: var(--nod8-radius-sm);
-  background: var(--nod8-bg-surface);
-  color: var(--nod8-text-secondary);
-  cursor: pointer;
-}
-
-.wait-form-icon-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
 }
 </style>
