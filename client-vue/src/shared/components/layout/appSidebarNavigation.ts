@@ -88,6 +88,11 @@ export const sidebarActivityItems: SidebarActivityItem[] = [
 
 export const sidebarMainUsesWoobyMenu = false
 
+export const sidebarMainActiveStyle = {
+  hidesInheritedBeforeIndicator: true,
+  usesOutline: true,
+} as const
+
 export const sidebarProfileIcon = 'grip'
 
 export const sidebarChromeLayout = {

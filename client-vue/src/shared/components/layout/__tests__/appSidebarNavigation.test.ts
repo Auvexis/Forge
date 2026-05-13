@@ -6,6 +6,7 @@ import {
   sidebarActivityItems,
   sidebarSections,
   sidebarMainUsesWoobyMenu,
+  sidebarMainActiveStyle,
   sidebarProfileIcon,
   sidebarWidthForState,
 } from '../appSidebarNavigation.ts'
@@ -64,5 +65,12 @@ describe('app sidebar navigation', () => {
 
   it('uses a grip icon for the workspace profile control', () => {
     assert.equal(sidebarProfileIcon, 'grip')
+  })
+
+  it('uses outline-only active styling for main suite items', () => {
+    assert.deepEqual(sidebarMainActiveStyle, {
+      hidesInheritedBeforeIndicator: true,
+      usesOutline: true,
+    })
   })
 })
