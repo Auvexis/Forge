@@ -4,6 +4,7 @@ import { describe, it } from 'node:test'
 import {
   sidebarActivityItems,
   sidebarSections,
+  sidebarMainUsesWoobyMenu,
   sidebarWidthForState,
 } from '../appSidebarNavigation.ts'
 
@@ -46,5 +47,9 @@ describe('app sidebar navigation', () => {
 
   it('uses a wider expanded sidebar token for the suite layout', () => {
     assert.equal(sidebarWidthForState(false, { expandedPx: 288 }), '288px')
+  })
+
+  it('keeps suite app links outside WoobyMenu to avoid stretched active backgrounds', () => {
+    assert.equal(sidebarMainUsesWoobyMenu, false)
   })
 })

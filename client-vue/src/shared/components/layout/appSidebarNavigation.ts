@@ -75,6 +75,8 @@ export const sidebarActivityItems: SidebarActivityItem[] = [
   },
 ]
 
+export const sidebarMainUsesWoobyMenu = false
+
 export function sidebarWidthForState(
   isCollapsed: boolean,
   options: { expandedPx?: number } = {},

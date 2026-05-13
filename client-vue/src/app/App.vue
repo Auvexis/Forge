@@ -24,11 +24,7 @@
                 class="sidebar-section"
               >
                 <span class="sidebar-section__label">{{ section.label }}</span>
-                <BaseWoobyMenu
-                  tag="div"
-                  class="sidebar-section__items"
-                  active-selector=".nav-link--active"
-                >
+                <div class="sidebar-section__items">
                   <SidebarHint
                     v-for="item in section.items"
                     :key="item.id"
@@ -61,7 +57,7 @@
                       <span class="suite-nav-link__label">{{ item.label }}</span>
                     </router-link>
                   </SidebarHint>
-                </BaseWoobyMenu>
+                </div>
               </section>
 
               <template #footer>

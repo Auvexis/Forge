@@ -15,13 +15,9 @@
       </button>
     </header>
 
-    <BaseWoobyMenu
-      tag="nav"
-      class="app-sidebar__main"
-      active-selector=".nav-link--active"
-    >
+    <nav class="app-sidebar__main">
       <slot />
-    </BaseWoobyMenu>
+    </nav>
 
     <div class="app-sidebar__footer">
       <slot name="footer"></slot>
@@ -30,7 +26,6 @@
 </template>
 
 <script setup lang="ts">
-import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 defineProps<{

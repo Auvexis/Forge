@@ -22,3 +22,4 @@
 - [x] Trocar collapse para ghost sem borda e icone maior.
 - [x] Remover borda inteira entre sidebar/topbar e criar divisor curto no header.
 - [x] Corrigir main para labels fora do WoobyMenu e apps em grid minimalista de 2 colunas.
+- [x] Remover WoobyMenu da main e impedir itens isolados de ocupar 100% da linha.
