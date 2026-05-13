@@ -32,7 +32,7 @@ import {
 } from '@/core/utils/schemaResolver'
 import type { WorkflowTrigger, WorkflowNode, PluginNode } from '@/core/types/workflow.types'
 import type { NodeData } from './types'
-import { inferAssignedPath, inferEventListenerPaths } from './variableTreeInference'
+import { inferAssignedPath, inferEventListenerPaths, inferWaitFormOutputPaths } from './variableTreeInference'
 import { buildEventListenerOutputPathsFromStatuses } from '../nodeInspectorPreview'
 import { useWorkflowStore } from '../../../stores/workflow.store'
 import { useExecutionStore } from '../../../stores/execution.store'
@@ -211,6 +211,16 @@ const allPaths = computed(() => {
         }
       }
       return res
+    }
+
+    if (upData.type === 'wait-form') {
+      paths.push(...inferWaitFormOutputPaths({
+        nodeId: upNode.id,
+        sourceNodeName: nodeName,
+        fields: (upData as any).fields || [],
+        liveOutput,
+      }))
+      continue
     }
 
     // 1. Dynamic Inference: If the node has run, we use its EXACT real-time output

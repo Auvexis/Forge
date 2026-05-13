@@ -60,17 +60,18 @@ async function loadForm() {
   }
 }
 
-async function handleSubmit() {
+async function handleSubmit(submittedValues?: Record<string, unknown>) {
   submitError.value = ''
   isSubmitting.value = true
+  const payload = submittedValues ?? { ...values }
   try {
     if (mode.value === 'temp') {
-      await workflowsApi.submitTemporaryForm(formId.value, { ...values })
+      await workflowsApi.submitTemporaryForm(formId.value, payload)
     } else {
       await workflowsApi.submitForm(
         formId.value,
         mode.value,
-        { ...values },
+        payload,
         execId.value || undefined,
       )
     }

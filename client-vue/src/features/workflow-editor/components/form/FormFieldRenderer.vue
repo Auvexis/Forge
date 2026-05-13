@@ -9,6 +9,7 @@
     </small>
     <textarea
       v-if="field.type === 'textarea'"
+      :name="field.name"
       :value="stringValue"
       :required="field.required"
       :placeholder="field.placeholder"
@@ -17,12 +18,14 @@
     <input
       v-else-if="field.type === 'file'"
       type="file"
+      :name="field.name"
       :accept="field.accept"
       :required="field.required"
       @change="onFileChange"
     />
     <select
       v-else-if="field.type === 'select'"
+      :name="field.name"
       :value="stringValue"
       :required="field.required"
       @change="emitValue(($event.target as HTMLSelectElement).value)"
@@ -35,6 +38,7 @@
     <select
       v-else-if="field.type === 'multiselect'"
       multiple
+      :name="field.name"
       :value="arrayValue"
       :required="field.required"
       @change="onMultiSelectChange"
@@ -46,6 +50,8 @@
     <label v-else-if="field.type === 'checkbox'" class="form-renderer-choice">
       <input
         type="checkbox"
+        :name="field.name"
+        value="true"
         :checked="Boolean(value)"
         :required="field.required"
         @change="emitValue(($event.target as HTMLInputElement).checked)"
@@ -72,6 +78,7 @@
     <input
       v-else
       :type="inputType"
+      :name="field.name"
       :value="stringValue"
       :required="field.required"
       :placeholder="field.placeholder"

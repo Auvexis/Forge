@@ -22,6 +22,13 @@ interface InferEventListenerPathsOptions {
   knownPaths: VariableTreePath[]
 }
 
+interface InferWaitFormOutputPathsOptions {
+  nodeId: string
+  sourceNodeName: string
+  fields: Array<{ name?: string; label?: string; type?: string }>
+  liveOutput?: unknown
+}
+
 const EXACT_TEMPLATE_RE = /^{{\s*([^{}]+?)\s*}}$/
 const TEMPLATE_RE = /{{\s*([^{}]+?)\s*}}/g
 
@@ -124,4 +131,76 @@ export function inferEventListenerPaths(options: InferEventListenerPathsOptions)
   }
 
   return inferred
+}
+
+export function inferWaitFormOutputPaths(options: InferWaitFormOutputPathsOptions): VariableTreePath[] {
+  const prefix = `steps.${options.nodeId}.output`
+  const liveOutput = isRecord(options.liveOutput) ? options.liveOutput : undefined
+  const submittedFields = isRecord(liveOutput?.fields) ? liveOutput.fields : undefined
+  const paths: VariableTreePath[] = []
+
+  if (liveOutput) {
+    paths.push({
+      path: prefix,
+      label: 'output',
+      type: 'object',
+      sourceNodeName: options.sourceNodeName,
+      value: liveOutput,
+    })
+  }
+
+  paths.push(
+    buildPath(`${prefix}.formId`, 'formId', 'string', options.sourceNodeName, liveOutput?.formId),
+    buildPath(`${prefix}.fields`, 'fields', 'object', options.sourceNodeName, submittedFields),
+  )
+
+  for (const field of options.fields) {
+    if (!field.name) continue
+    const fieldValue = submittedFields?.[field.name]
+    paths.push(
+      buildPath(
+        `${prefix}.fields.${field.name}`,
+        field.label || field.name,
+        mapFormFieldType(field.type),
+        options.sourceNodeName,
+        fieldValue,
+      ),
+    )
+  }
+
+  paths.push(
+    buildPath(`${prefix}.submittedAt`, 'submittedAt', 'number', options.sourceNodeName, liveOutput?.submittedAt),
+    buildPath(`${prefix}.formUrl`, 'formUrl', 'string', options.sourceNodeName, liveOutput?.formUrl),
+    buildPath(`${prefix}.expiresAt`, 'expiresAt', 'number', options.sourceNodeName, liveOutput?.expiresAt),
+  )
+
+  return paths
+}
+
+function buildPath(
+  path: string,
+  label: string,
+  type: string,
+  sourceNodeName: string,
+  value: unknown,
+): VariableTreePath {
+  return {
+    path,
+    label,
+    type: value === undefined ? type : inferValueType(value),
+    sourceNodeName,
+    ...(value !== undefined ? { value } : {}),
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function mapFormFieldType(type: string | undefined): string {
+  if (type === 'number') return 'number'
+  if (type === 'checkbox') return 'boolean'
+  if (type === 'checkbox-group' || type === 'multiselect') return 'array'
+  if (type === 'file') return 'object'
+  return 'string'
 }

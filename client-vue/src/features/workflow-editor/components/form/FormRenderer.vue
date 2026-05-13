@@ -16,7 +16,7 @@
       <span>Your form has been received.</span>
     </div>
 
-    <form v-else class="form-renderer-fields" @submit.prevent="$emit('submit')">
+    <form v-else class="form-renderer-fields" @submit.prevent="submitForm">
       <FormFieldRenderer
         v-for="field in definition.fields"
         :key="field.name"
@@ -41,7 +41,7 @@ import type { FormDefinition } from '@/core/api/workflows.api'
 import FormFieldRenderer from './FormFieldRenderer.vue'
 import FormThemeProvider from './FormThemeProvider.vue'
 
-defineProps<{
+const props = defineProps<{
   definition: FormDefinition
   mode: 'test' | 'prod' | 'temp'
   execId?: string
@@ -51,8 +51,33 @@ defineProps<{
   submitError?: string
 }>()
 
-defineEmits<{
-  submit: []
+const emit = defineEmits<{
+  submit: [values: Record<string, unknown>]
   'update:value': [key: string, value: unknown]
 }>()
+
+function submitForm(event: Event) {
+  const form = event.currentTarget as HTMLFormElement
+  const formData = new FormData(form)
+  const submittedValues: Record<string, unknown> = { ...props.values }
+
+  for (const field of props.definition.fields) {
+    if (!field.name) continue
+
+    if (field.type === 'checkbox-group' || field.type === 'multiselect') {
+      submittedValues[field.name] = formData.getAll(field.name)
+      continue
+    }
+
+    if (field.type === 'checkbox') {
+      submittedValues[field.name] = formData.has(field.name)
+      continue
+    }
+
+    const value = formData.get(field.name)
+    if (value !== null) submittedValues[field.name] = value
+  }
+
+  emit('submit', submittedValues)
+}
 </script>

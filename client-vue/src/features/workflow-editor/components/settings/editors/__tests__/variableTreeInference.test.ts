@@ -4,6 +4,7 @@ import { describe, it } from 'node:test'
 import {
   inferAssignedPath,
   inferEventListenerPaths,
+  inferWaitFormOutputPaths,
 } from '../variableTreeInference.ts'
 
 describe('variable tree inference', () => {
@@ -82,5 +83,61 @@ describe('variable tree inference', () => {
     assert.equal(inferred[0]?.path, 'steps.event-listener_1.output.cod_vaga')
     assert.equal(inferred[0]?.type, 'string')
     assert.equal(inferred[0]?.value, '4f41f350-f37c-41ec-88f3-c9c7851ec3a9')
+  })
+
+  it('infers wait-form output fields from declared form fields and live submitted values', () => {
+    const paths = inferWaitFormOutputPaths({
+      nodeId: 'wait-form_1',
+      sourceNodeName: 'Wait For Form',
+      fields: [
+        { name: 'email', label: 'Email', type: 'email' },
+        { name: 'score', label: 'Score', type: 'number' },
+      ],
+      liveOutput: {
+        formId: 'job-1',
+        fields: { email: 'ada@example.com', score: 10 },
+        submittedAt: 1778716191107,
+        formUrl: 'http://localhost:23802/temporary-forms/job-1',
+        expiresAt: 1778716226705,
+      },
+    })
+
+    assert.deepEqual(paths.map((path) => [path.path, path.type, path.value]), [
+      ['steps.wait-form_1.output', 'object', {
+        formId: 'job-1',
+        fields: { email: 'ada@example.com', score: 10 },
+        submittedAt: 1778716191107,
+        formUrl: 'http://localhost:23802/temporary-forms/job-1',
+        expiresAt: 1778716226705,
+      }],
+      ['steps.wait-form_1.output.formId', 'string', 'job-1'],
+      ['steps.wait-form_1.output.fields', 'object', { email: 'ada@example.com', score: 10 }],
+      ['steps.wait-form_1.output.fields.email', 'string', 'ada@example.com'],
+      ['steps.wait-form_1.output.fields.score', 'number', 10],
+      ['steps.wait-form_1.output.submittedAt', 'number', 1778716191107],
+      ['steps.wait-form_1.output.formUrl', 'string', 'http://localhost:23802/temporary-forms/job-1'],
+      ['steps.wait-form_1.output.expiresAt', 'number', 1778716226705],
+    ])
+  })
+
+  it('infers wait-form output field types before the form has been submitted', () => {
+    const paths = inferWaitFormOutputPaths({
+      nodeId: 'wait-form_1',
+      sourceNodeName: 'Wait For Form',
+      fields: [
+        { name: 'email', label: 'Email', type: 'email' },
+        { name: 'accepted', label: 'Accepted', type: 'checkbox' },
+      ],
+    })
+
+    assert.deepEqual(paths.map((path) => [path.path, path.type, path.value]), [
+      ['steps.wait-form_1.output.formId', 'string', undefined],
+      ['steps.wait-form_1.output.fields', 'object', undefined],
+      ['steps.wait-form_1.output.fields.email', 'string', undefined],
+      ['steps.wait-form_1.output.fields.accepted', 'boolean', undefined],
+      ['steps.wait-form_1.output.submittedAt', 'number', undefined],
+      ['steps.wait-form_1.output.formUrl', 'string', undefined],
+      ['steps.wait-form_1.output.expiresAt', 'number', undefined],
+    ])
   })
 })
