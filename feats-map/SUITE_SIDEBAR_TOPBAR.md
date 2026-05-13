@@ -9,7 +9,7 @@
 
 ## Tasks
 
-- [ ] Criar testes vermelhos para a configuracao da nova sidebar suite.
+- [x] Criar testes vermelhos para a configuracao da nova sidebar suite.
 - [ ] Implementar configuracao e layout expandido/minimizado da sidebar com hints.
 - [ ] Adicionar topbar global que abre command palette.
 - [ ] Ajustar variaveis de largura ativa para sidebar panels.
