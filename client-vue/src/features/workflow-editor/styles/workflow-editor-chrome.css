@@ -332,14 +332,23 @@
 }
 
 .wec-save-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
   background: var(--nd8-chrome-text-muted);
+  box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+  opacity: 0.62;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 .wec-save-dot--dirty {
   background: var(--nd8-chrome-text);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--nd8-chrome-text) 48%, transparent);
+  opacity: 1;
 }
 
 .wec-save-dot--saving {

@@ -223,14 +223,23 @@ const onSliderChange = (event: Event) => {
 }
 
 .dock-save-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
   background: var(--nod8-text-muted);
+  box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+  opacity: 0.62;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 .dock-save-dot--dirty {
   background: var(--nod8-text-primary);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--nod8-text-primary) 48%, transparent);
+  opacity: 1;
 }
 
 .dock-save-dot--saving {
