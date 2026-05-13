@@ -1,6 +1,6 @@
 # Workflow Chrome Header Reorder
 
-- [ ] Task 1: TDD para publish como item real de menu
+- [x] Task 1: TDD para publish como item real de menu
 - [ ] Task 2: reorganizar layout em 3 linhas: header, menus, toolbar
 - [ ] Task 3: remover botao publish da direita e mostrar metadados
 - [ ] Task 4: verificar type-check/build e QA visual

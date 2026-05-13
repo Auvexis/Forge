@@ -21,4 +21,12 @@ describe('workflow chrome actions', () => {
       ['history', 'canvas', 'insert', 'workflow', 'execution', 'save'],
     )
   })
+
+  it('exposes publish as a real enabled run menu action', () => {
+    const runMenu = workflowChromeMenus.find((menu) => menu.id === 'run')
+    const publishItem = runMenu?.items.find((item) => item.id === 'run.publish')
+
+    assert.equal(publishItem?.label, 'Publish Workflow')
+    assert.equal(publishItem?.disabledReason, undefined)
+  })
 })

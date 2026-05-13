@@ -83,7 +83,7 @@ export const workflowChromeMenus: WorkflowChromeMenu[] = [
     items: [
       { id: 'run.workflow', label: 'Run Workflow', icon: 'play' },
       { id: 'run.stop', label: 'Stop Run', icon: 'square' },
-      { id: 'run.publish', label: 'Publish Controls', icon: 'radio', disabledReason: 'Use the header publish control' },
+      { id: 'run.publish', label: 'Publish Workflow', icon: 'radio' },
     ],
   },
   {
