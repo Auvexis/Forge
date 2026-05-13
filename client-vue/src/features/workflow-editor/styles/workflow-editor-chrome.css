@@ -240,12 +240,6 @@
   line-height: 1;
 }
 
-.wec-menu-trigger:hover,
-.wec-menu-trigger--active {
-  background: var(--nd8-chrome-bg-hover);
-  color: var(--nd8-chrome-text);
-}
-
 .wec-menu-bar .app-popover-wrapper {
   height: 30px;
   width: auto;
@@ -262,7 +256,17 @@
 }
 
 .wec-menu-bar .app-popover-trigger:hover {
+  background: var(--nd8-chrome-bg-hover);
+}
+
+.wec-menu-bar .app-popover-trigger:has(.wec-menu-trigger--active) {
+  background: var(--nd8-chrome-bg-hover);
+}
+
+.wec-menu-trigger:hover,
+.wec-menu-trigger--active {
   background: transparent;
+  color: var(--nd8-chrome-text);
 }
 
 .wec-workflow-search {
