@@ -54,7 +54,7 @@ defineEmits<{
   border-left-width: 0;
   z-index: var(--nod8-z-raised);
   flex-shrink: 0;
-  background-color: var(--nod8-bg-surface);
+  background-color: var(--nod8-sidebar-bg);
   transition: width var(--nod8-duration-base) var(--nod8-ease-standard);
 }
 
@@ -65,7 +65,7 @@ defineEmits<{
   right: 0;
   bottom: 0;
   width: 1px;
-  background: var(--nod8-border);
+  background: var(--nod8-sidebar-border);
   pointer-events: none;
 }
 
@@ -87,7 +87,7 @@ defineEmits<{
   bottom: 0;
   height: 1px;
   border-radius: var(--nod8-radius-full);
-  background: var(--nod8-border);
+  background: var(--nod8-sidebar-divider);
 }
 
 .app-sidebar__profile {
@@ -96,7 +96,7 @@ defineEmits<{
   width: 30px;
   height: 30px;
   flex: 0 0 auto;
-  color: var(--nod8-text-primary);
+  color: var(--nod8-sidebar-text);
 }
 
 .app-sidebar__identity {
@@ -109,7 +109,7 @@ defineEmits<{
 
 .app-sidebar__name,
 .app-sidebar__name {
-  color: var(--nod8-text-primary);
+  color: var(--nod8-sidebar-text);
   font-size: var(--nod8-text-sm);
   font-weight: var(--nod8-font-medium);
 }
@@ -122,7 +122,7 @@ defineEmits<{
   flex: 0 0 auto;
   border: 0;
   border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-text-muted);
+  color: var(--nod8-sidebar-text-muted);
   background: transparent;
   cursor: pointer;
   transition:
@@ -131,7 +131,7 @@ defineEmits<{
 }
 
 .app-sidebar__collapse:hover {
-  color: var(--nod8-text-primary);
+  color: var(--nod8-sidebar-text);
   background: transparent;
 }
 
@@ -153,7 +153,7 @@ defineEmits<{
   justify-content: space-between;
   gap: var(--nod8-space-1);
   padding: var(--nod8-space-2) var(--nod8-space-3);
-  border-top: 1px solid var(--nod8-border);
+  border-top: 1px solid var(--nod8-sidebar-border);
   flex-shrink: 0;
 }
 

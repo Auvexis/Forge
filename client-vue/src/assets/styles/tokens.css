@@ -118,6 +118,22 @@
   --nod8-text-warning: var(--nod8-amber-400);
   --nod8-text-error: var(--nod8-red-400);
 
+  /* Sidebar / Topbar */
+  --nod8-sidebar-bg: #131313;
+  --nod8-sidebar-border: var(--nod8-border);
+  --nod8-sidebar-divider: var(--nod8-border);
+  --nod8-sidebar-text: var(--nod8-text-primary);
+  --nod8-sidebar-text-muted: var(--nod8-text-secondary);
+  --nod8-sidebar-link-text: var(--nod8-text-primary);
+
+  --nod8-topbar-bg: #141414;
+  --nod8-topbar-border: var(--nod8-border);
+  --nod8-topbar-search-bg: #0e0e0e;
+  --nod8-topbar-search-border: var(--nod8-border);
+  --nod8-topbar-search-text: var(--nod8-text-muted);
+  --nod8-topbar-search-hover-text: var(--nod8-text-primary);
+  --nod8-topbar-search-hover-bg: var(--nod8-button-ghost-hover);
+  --nod8-topbar-kbd-bg: var(--nod8-bg-surface);
   /* ── Buttons ─────────────────────────────────────────────── */
   /* Primary */
   --nod8-button-primary-bg: var(--nod8-gray-200);
@@ -445,6 +461,22 @@
   --nod8-text-inverse: #ffffff;
   --nod8-text-brand: var(--nod8-brand-600);
 
+  /* Sidebar / Topbar */
+  --nod8-sidebar-bg: #ffffff;
+  --nod8-sidebar-border: var(--nod8-border);
+  --nod8-sidebar-divider: var(--nod8-border);
+  --nod8-sidebar-text: var(--nod8-text-primary);
+  --nod8-sidebar-text-muted: var(--nod8-text-secondary);
+  --nod8-sidebar-link-text: var(--nod8-text-primary);
+
+  --nod8-topbar-bg: #ffffff;
+  --nod8-topbar-border: var(--nod8-border);
+  --nod8-topbar-search-bg: #f6f6f6;
+  --nod8-topbar-search-border: var(--nod8-border);
+  --nod8-topbar-search-text: var(--nod8-text-muted);
+  --nod8-topbar-search-hover-text: var(--nod8-text-primary);
+  --nod8-topbar-search-hover-bg: var(--nod8-button-ghost-hover);
+  --nod8-topbar-kbd-bg: var(--nod8-bg-surface);
   /* Buttons */
   --nod8-button-primary-bg: var(--nod8-gray-900);
   --nod8-button-primary-text: #ffffff;

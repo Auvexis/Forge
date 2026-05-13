@@ -23,8 +23,8 @@ defineEmits<{
   justify-content: center;
   min-height: 48px;
   padding: 0 var(--nod8-space-5);
-  border-bottom: 1px solid var(--nod8-border);
-  background: var(--nod8-bg-surface);
+  border-bottom: 1px solid var(--nod8-topbar-border);
+  background: var(--nod8-topbar-bg);
   flex-shrink: 0;
 }
 
@@ -35,10 +35,10 @@ defineEmits<{
   width: min(620px, 100%);
   height: 34px;
   padding: 0 var(--nod8-space-3);
-  border: 1px solid var(--nod8-border);
+  border: 1px solid var(--nod8-topbar-search-border);
   border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-text-muted);
-  background: var(--nod8-bg-base);
+  color: var(--nod8-topbar-search-text);
+  background: var(--nod8-topbar-search-bg);
   cursor: pointer;
   transition:
     border-color var(--nod8-duration-fast) var(--nod8-ease-standard),
@@ -47,9 +47,9 @@ defineEmits<{
 }
 
 .app-topbar__search:hover {
-  color: var(--nod8-text-primary);
-  border-color: var(--nod8-border-muted);
-  background: var(--nod8-button-ghost-hover);
+  color: var(--nod8-topbar-search-hover-text);
+  border-color: var(--nod8-topbar-search-border);
+  background: var(--nod8-topbar-search-hover-bg);
 }
 
 .app-topbar__search span {
@@ -65,10 +65,10 @@ defineEmits<{
 .app-topbar__search kbd {
   flex: 0 0 auto;
   padding: 2px 6px;
-  border: 1px solid var(--nod8-border);
+  border: 1px solid var(--nod8-topbar-search-border);
   border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-text-muted);
-  background: var(--nod8-bg-surface);
+  color: var(--nod8-topbar-search-text);
+  background: var(--nod8-topbar-kbd-bg);
   font-family: var(--nod8-font-mono);
   font-size: 10px;
 }

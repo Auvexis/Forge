@@ -14,7 +14,7 @@
   width: 40px;
   height: 36px;
   border-radius: var(--nod8-radius-md);
-  color: var(--nod8-text-secondary);
+  color: var(--nod8-sidebar-text-muted);
   transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
   text-decoration: none;
   cursor: pointer;
@@ -27,13 +27,13 @@
   min-height: 24px;
   gap: 8px;
   padding: 0;
-  color: var(--nod8-text-secondary);
+  color: var(--nod8-sidebar-text-muted);
 }
 
 .suite-nav-link:hover,
 .suite-nav-link.nav-link--active {
   background: transparent;
-  color: var(--nod8-text-primary);
+  color: var(--nod8-sidebar-link-text);
 }
 
 .suite-nav-link.nav-link--active::before {
@@ -55,7 +55,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--nod8-text-primary);
+  color: var(--nod8-sidebar-link-text);
   font-size: var(--nod8-text-sm);
   font-weight: var(--nod8-font-medium);
 }
@@ -93,7 +93,7 @@
 
 .sidebar-section__label {
   padding: 0;
-  color: var(--nod8-text-secondary);
+  color: var(--nod8-sidebar-text-muted);
   font-size: 0.7rem;
   font-weight: 600;
 }
@@ -108,7 +108,7 @@
 }
 
 .nav-link:hover {
-  color: var(--nod8-text-primary);
+  color: var(--nod8-sidebar-link-text);
 }
 
 /* Active indicator bar on the left edge */
