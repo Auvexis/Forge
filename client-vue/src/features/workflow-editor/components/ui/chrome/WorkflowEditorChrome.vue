@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
+import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import WorkflowChromeHeader from './WorkflowChromeHeader.vue'
 import WorkflowChromeMenuBar from './WorkflowChromeMenuBar.vue'
 import WorkflowChromeToolbar from './WorkflowChromeToolbar.vue'
@@ -43,12 +45,16 @@ const emit = defineEmits<{
   (e: 'zoom-out'): void
   (e: 'zoom-reset'): void
   (e: 'fit-view'): void
+  (e: 'publish'): void
 }>()
 
 const route = useRoute()
 const headerRef = ref<InstanceType<typeof WorkflowChromeHeader> | null>(null)
 const isBusy = computed(() => props.isExecuting || props.isStreaming)
 const isUnsavedDraft = computed(() => !route.params.id)
+const disabledMenuReasons = computed<Partial<Record<WorkflowChromeCommandId, string>>>(() => ({
+  ...(isUnsavedDraft.value || !props.workflow ? { 'run.publish': 'Save workflow before publishing' } : {}),
+}))
 
 function handleCommand(id: WorkflowChromeCommandId) {
   const handlers: Partial<Record<WorkflowChromeCommandId, () => void>> = {
@@ -70,6 +76,7 @@ function handleCommand(id: WorkflowChromeCommandId) {
     'go.settings': () => emit('settings'),
     'run.workflow': () => emit('run'),
     'run.stop': () => emit('stop'),
+    'run.publish': () => emit('publish'),
   }
 
   handlers[id]?.()
@@ -78,6 +85,10 @@ function handleCommand(id: WorkflowChromeCommandId) {
 
 <template>
   <section class="wec-shell" aria-label="Workflow editor toolbar">
+    <div class="wec-rail-icon" aria-hidden="true">
+      <LucideIcon name="workflow" :size="19" />
+    </div>
+
     <WorkflowChromeHeader
       ref="headerRef"
       :workflow-name="workflowName"
@@ -86,16 +97,15 @@ function handleCommand(id: WorkflowChromeCommandId) {
       :autosave-status="autosaveStatus"
       :last-autosaved-at="lastAutosavedAt"
       :is-dirty="isDirty"
-      :is-autosave-enabled="isAutosaveEnabled"
       :is-busy="isBusy"
-      :is-saving="isSaving"
-      :is-unsaved-draft="isUnsavedDraft"
-      @toggle-autosave="emit('toggle-autosave', $event)"
-      @workflow-updated="emit('workflow-updated', $event)"
     />
 
+    <div class="wec-row wec-menu-row">
+      <WorkflowChromeMenuBar :disabled-reasons="disabledMenuReasons" @command="handleCommand" />
+    </div>
+
     <div class="wec-row wec-toolbar-row">
-      <WorkflowChromeMenuBar @command="handleCommand" />
+      <div class="wec-toolbar-spacer" />
       <div class="wec-divider" />
       <WorkflowChromeToolbar
         :can-undo="canUndo"
@@ -107,6 +117,16 @@ function handleCommand(id: WorkflowChromeCommandId) {
         :is-logs-open="isLogsOpen"
         @command="handleCommand"
       />
+      <div class="wec-divider" />
+      <BaseSwitch
+        class="wec-autosave"
+        :model-value="!!isAutosaveEnabled"
+        :disabled="isBusy || isSaving"
+        title="Toggle autosave for this workflow"
+        @update:model-value="emit('toggle-autosave', $event)"
+      >
+        Autosave
+      </BaseSwitch>
     </div>
   </section>
 </template>

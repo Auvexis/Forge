@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import { workflowsApi } from '@/core/api/workflows.api'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 import AppDropdownDivider from '@/shared/components/overlay/Dropdown/AppDropdownDivider.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useApi } from '@/shared/composables/useApi'
 import { useWorkflowActions } from '@/features/workflow-editor/composables/useWorkflowActions'
-import WorkflowPublishButton from '../WorkflowPublishButton.vue'
 
 const props = defineProps<{
   workflowName: string
@@ -20,18 +16,9 @@ const props = defineProps<{
   autosaveStatus?: 'idle' | 'saving' | 'saved' | 'error' | 'conflict'
   lastAutosavedAt?: number | null
   isDirty?: boolean
-  isAutosaveEnabled?: boolean
   isBusy?: boolean
-  isSaving?: boolean
-  isUnsavedDraft?: boolean
 }>()
 
-const emit = defineEmits<{
-  (e: 'toggle-autosave', enabled: boolean): void
-  (e: 'workflow-updated', workflow: WorkflowItem): void
-}>()
-
-const route = useRoute()
 const workflowMenuRef = ref<InstanceType<typeof AppDropdownMenu> | null>(null)
 const searchQuery = ref('')
 const { openWorkflow } = useWorkflowActions()
@@ -50,6 +37,19 @@ const filteredWorkflows = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return list
   return list.filter((workflow) => workflow.metadata.name.toLowerCase().includes(q))
+})
+
+const nodeCountLabel = computed(() => {
+  const count = props.workflow ? Object.keys(props.workflow.nodes).length : 0
+  return count === 1 ? '1 node' : `${count} nodes`
+})
+
+const versionLabel = computed(() => `v${props.workflow?.metadata.version ?? '1'}`)
+
+const publishLabel = computed(() => {
+  if (!props.workflow) return 'Draft'
+  if (props.workflow.metadata.isActive && !props.workflow.metadata.isDraft) return 'Live'
+  return props.workflow.metadata.isDraft ? 'Draft' : 'Inactive'
 })
 
 function openWorkflowMenu() {
@@ -79,20 +79,12 @@ watch(() => props.workflowId, () => {
   fetchWorkflows().catch(console.error)
 })
 
-watch(() => props.isSaving, (isSaving) => {
-  if (!isSaving) fetchWorkflows().catch(console.error)
-})
-
 defineExpose({ openWorkflowMenu })
 </script>
 
 <template>
   <div class="wec-row wec-header">
     <div class="wec-doc">
-      <div class="wec-doc__icon">
-        <LucideIcon name="workflow" :size="18" />
-      </div>
-
       <AppDropdownMenu ref="workflowMenuRef" position="bottom-start" :offset="3" max-height="350px">
         <template #trigger>
           <button class="wec-doc__name" type="button">
@@ -140,25 +132,15 @@ defineExpose({ openWorkflowMenu })
       </span>
     </div>
 
-    <div class="wec-header-actions">
-      <BaseSwitch
-        class="wec-autosave"
-        :model-value="!!isAutosaveEnabled"
-        :disabled="isBusy || isSaving"
-        title="Toggle autosave for this workflow"
-        @update:model-value="emit('toggle-autosave', $event)"
+    <div class="wec-header-meta" aria-label="Workflow metadata">
+      <span class="wec-meta-pill">{{ versionLabel }}</span>
+      <span class="wec-meta-pill">{{ nodeCountLabel }}</span>
+      <span
+        class="wec-meta-pill"
+        :class="{ 'wec-meta-pill--live': publishLabel === 'Live' }"
       >
-        Autosave
-      </BaseSwitch>
-
-      <WorkflowPublishButton
-        v-if="workflow"
-        :workflow="workflow"
-        :disabled="isUnsavedDraft"
-        @updated="emit('workflow-updated', $event)"
-      />
-
-      <span v-if="route.params.id" class="wec-route-id">{{ String(route.params.id).slice(0, 8) }}</span>
+        {{ publishLabel }}
+      </span>
     </div>
   </div>
 </template>

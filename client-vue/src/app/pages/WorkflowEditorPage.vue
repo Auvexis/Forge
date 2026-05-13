@@ -12,6 +12,7 @@ import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/Wor
 import AppPage from '@/shared/components/layout/AppPage.vue'
 import { useApi } from '@/shared/composables/useApi'
 import { useConfirm } from '@/shared/composables/useConfirm'
+import { useToast } from '@/shared/composables/useToast'
 import { onMounted, onBeforeUnmount, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
@@ -27,6 +28,7 @@ const executionStore = useExecutionStore()
 // Composables
 const { closeWorkflow, exportWorkflow } = useWorkflowActions()
 const { confirm } = useConfirm()
+const toast = useToast()
 
 // ── Close with dirty-check guard ──────────────────────────────────────────
 async function handleClose() {
@@ -192,6 +194,22 @@ function handleImportWorkflow() {
   input.click()
 }
 
+async function handlePublishWorkflow() {
+  const active = workflowStore.activeWorkflow
+  if (!active || !route.params.id) {
+    toast.error('Save workflow before publishing')
+    return
+  }
+
+  const isPublished = active.metadata.isActive && !active.metadata.isDraft
+  const updated = isPublished
+    ? await workflowsApi.unpublish(active.metadata.id)
+    : await workflowsApi.publish(active.metadata.id)
+
+  workflowStore.setActiveWorkflow(updated)
+  toast.success(isPublished ? 'Workflow unpublished' : 'Workflow published')
+}
+
 watch(
   () => workflowStore.activeWorkflow,
   (newWorkflow, oldWorkflow) => {
@@ -244,6 +262,7 @@ watch(
         @zoom-out="canvasRef?.zoomOut()"
         @zoom-reset="canvasRef?.zoomReset()"
         @fit-view="canvasRef?.fitWorkflowView()"
+        @publish="handlePublishWorkflow()"
       />
     </template>
 

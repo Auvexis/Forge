@@ -7,6 +7,10 @@ import type { WorkflowChromeCommandId } from './workflowChrome.types'
 const emit = defineEmits<{
   (e: 'command', id: WorkflowChromeCommandId): void
 }>()
+
+const props = defineProps<{
+  disabledReasons?: Partial<Record<WorkflowChromeCommandId, string>>
+}>()
 </script>
 
 <template>
@@ -26,8 +30,8 @@ const emit = defineEmits<{
         :key="item.id"
         :icon="item.icon"
         :label="item.label"
-        :hint="item.disabledReason"
-        :disabled="!!item.disabledReason"
+        :hint="props.disabledReasons?.[item.id] ?? item.disabledReason"
+        :disabled="!!(props.disabledReasons?.[item.id] ?? item.disabledReason)"
         @click="emit('command', item.id)"
       />
     </AppDropdownMenu>
