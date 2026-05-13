@@ -6,7 +6,7 @@ import {
   useExecutionStore,
   Nod8WorkflowCanvas,
 } from '@/features/workflow-editor'
-import WorkflowEditorDock from '@/features/workflow-editor/components/ui/WorkflowEditorDock.vue'
+import WorkflowEditorChrome from '@/features/workflow-editor/components/ui/chrome/WorkflowEditorChrome.vue'
 import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/WorkflowSettingsPanel.vue'
 import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/WorkflowVariablesModal.vue'
 import AppPage from '@/shared/components/layout/AppPage.vue'
@@ -63,6 +63,7 @@ const showVariables = ref(false)
 
 let workflow: WorkflowItem | null = null
 const { data: workflows, execute: fetchWorkflow } = useApi(workflowsApi.getAll)
+const { execute: createWorkflowApi } = useApi(workflowsApi.create)
 
 async function initWorkflow() {
   const currentId = route.params.id as string | undefined
@@ -151,6 +152,46 @@ async function handleSaveWorkflow() {
   }
 }
 
+async function handleCreateWorkflow() {
+  const newWorkflow: WorkflowItem = {
+    metadata: {
+      id: crypto.randomUUID(),
+      name: 'New Workflow',
+      version: '1',
+      isActive: false,
+      isDraft: true,
+      public: false,
+      autosaveEnabled: false,
+      createdAt: new Date().toISOString(),
+    },
+    trigger: { type: 'manual' },
+    nodes: {},
+    edges: [],
+  }
+
+  const created = await createWorkflowApi(newWorkflow)
+  workflowStore.setActiveWorkflow(created)
+  router.replace(`/workflows/${created.metadata.id}`)
+}
+
+function handleImportWorkflow() {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.json,application/json'
+  input.onchange = async (event) => {
+    const file = (event.target as HTMLInputElement).files?.[0]
+    if (!file) return
+    const workflow = JSON.parse(await file.text()) as WorkflowItem
+    workflow.metadata.id = crypto.randomUUID()
+    workflow.metadata.createdAt = new Date().toISOString()
+    workflow.metadata.isDraft = true
+    const created = await createWorkflowApi(workflow)
+    workflowStore.setActiveWorkflow(created)
+    router.replace(`/workflows/${created.metadata.id}`)
+  }
+  input.click()
+}
+
 watch(
   () => workflowStore.activeWorkflow,
   (newWorkflow, oldWorkflow) => {
@@ -170,7 +211,7 @@ watch(
 <template>
   <AppPage>
     <template #dock>
-      <WorkflowEditorDock
+      <WorkflowEditorChrome
         :workflow-name="workflowStore.activeWorkflow?.metadata.name ?? 'Workflow'"
         :workflow-id="workflowStore.activeWorkflow?.metadata.id ?? ''"
         :workflow="workflowStore.activeWorkflow ?? undefined"
@@ -192,11 +233,17 @@ watch(
         @run="canvasRef?.handleRun()"
         @stop="canvasRef?.handleStop()"
         @export-workflow="exportWorkflow()"
+        @import-workflow="handleImportWorkflow()"
+        @create-workflow="handleCreateWorkflow()"
         @toggle-logs="showLogs = !showLogs"
         @variables="showVariables = !showVariables"
         @settings="showSettings = !showSettings"
         @close="handleClose()"
         @workflow-updated="workflowStore.setActiveWorkflow($event)"
+        @zoom-in="canvasRef?.zoomIn()"
+        @zoom-out="canvasRef?.zoomOut()"
+        @zoom-reset="canvasRef?.zoomReset()"
+        @fit-view="canvasRef?.fitWorkflowView()"
       />
     </template>
 

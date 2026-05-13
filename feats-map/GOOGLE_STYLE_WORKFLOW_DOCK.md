@@ -5,7 +5,7 @@
 - [x] Task 3: criar header e menu bar usando dropdown real existente
 - [x] Task 4: criar toolbar
 - [x] Task 5: compor WorkflowEditorChrome
-- [ ] Task 6: conectar chrome na pagina e expor zoom/fit no canvas
+- [x] Task 6: conectar chrome na pagina e expor zoom/fit no canvas
 - [ ] Task 7: QA visual/responsivo e polish
 - [ ] Task 8: apos migracao, aposentar dock antigo se nao houver uso
 

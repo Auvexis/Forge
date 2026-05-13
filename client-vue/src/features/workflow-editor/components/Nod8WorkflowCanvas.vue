@@ -40,6 +40,7 @@ const panelStore = useAppPanelStore()
 const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
 const vueFlowStore = ref<VueFlowStore | null>(null)
+const { zoomIn, zoomOut, zoomTo, fitView } = useVueFlow()
 
 // ── Props / emits (for v-model:show-logs from parent page) ──────────────────
 const props = defineProps<{
@@ -831,7 +832,15 @@ const onNodesChange = (changes: NodeChange[]) => {
 }
 
 // ── Expose public API so WorkflowEditorPage can call these ────────────────
-defineExpose({ handleRun, handleStop, openAddNodePanel })
+defineExpose({
+  handleRun,
+  handleStop,
+  openAddNodePanel,
+  zoomIn: () => zoomIn({ duration: 300 }),
+  zoomOut: () => zoomOut({ duration: 300 }),
+  zoomReset: () => zoomTo(1, { duration: 300 }),
+  fitWorkflowView: () => fitView({ duration: 300, padding: 0.2 }),
+})
 </script>
 
 <template>
