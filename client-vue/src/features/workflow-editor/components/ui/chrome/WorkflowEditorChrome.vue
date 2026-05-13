@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import nd8Icon from '@/assets/icon_accent.svg'
 import WorkflowChromeHeader from './WorkflowChromeHeader.vue'
 import WorkflowChromeMenuBar from './WorkflowChromeMenuBar.vue'
 import WorkflowChromeToolbar from './WorkflowChromeToolbar.vue'
@@ -86,7 +86,7 @@ function handleCommand(id: WorkflowChromeCommandId) {
 <template>
   <section class="wec-shell" aria-label="Workflow editor toolbar">
     <div class="wec-rail-icon" aria-hidden="true">
-      <LucideIcon name="workflow" :size="19" />
+      <img :src="nd8Icon" alt="" />
     </div>
 
     <WorkflowChromeHeader
