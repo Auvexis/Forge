@@ -16,14 +16,14 @@ describe('wait form editor contract', () => {
   })
 
   it('uses variable-aware inputs for public slug and expiration', () => {
-    assert.match(editorSource, /BaseVariableInput/)
+    assert.match(editorSource, /ExpressionInput/)
     assert.match(
       editorSource,
-      /EditorField label="Public URL Slug"[\s\S]*?<BaseVariableInput[\s\S]*?publicSlug/,
+      /EditorField label="Public URL Slug"[\s\S]*?<ExpressionInput[\s\S]*?publicSlug/,
     )
     assert.match(
       editorSource,
-      /EditorField label="Expiration \(seconds\)"[\s\S]*?<BaseVariableInput[\s\S]*?expiresInSeconds/,
+      /EditorField label="Expiration \(seconds\)"[\s\S]*?<ExpressionInput[\s\S]*?updateExpiration/,
     )
   })
 })

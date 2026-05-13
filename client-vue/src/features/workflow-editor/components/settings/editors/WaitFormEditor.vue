@@ -26,7 +26,7 @@
     </EditorField>
 
     <EditorField label="Public URL Slug" icon="link">
-      <BaseVariableInput
+      <ExpressionInput
         :model-value="(node.data.publicSlug as string) || ''"
         @update:model-value="updateNodeData({ publicSlug: $event as string || undefined })"
         placeholder="vaga-{{ steps.uuid.output }}"
@@ -38,9 +38,9 @@
     </EditorField>
 
     <EditorField label="Expiration (seconds)" icon="timer">
-      <BaseVariableInput
+      <ExpressionInput
         :model-value="String(node.data.expiresInSeconds ?? 900)"
-        @update:model-value="updateNodeData({ expiresInSeconds: $event })"
+        @update:model-value="updateExpiration"
         placeholder="900"
       />
       <div class="editor-hint">If the form is not submitted before this, the workflow stops.</div>
@@ -124,7 +124,7 @@ import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
-import BaseVariableInput from '@/shared/components/base/BaseVariableInput.vue'
+import ExpressionInput from '../expressions/ExpressionInput.vue'
 import FormThemeMenu from '../../form/FormThemeMenu.vue'
 import FormFieldsEditor from '../../form/FormFieldsEditor.vue'
 import { API_BASE_URL } from '@/core/constants/app'
@@ -169,6 +169,20 @@ async function copyUrl(url: string, which: 'test' | 'prod') {
   setTimeout(() => {
     copied.value = null
   }, 2000)
+}
+
+function updateExpiration(value: string | boolean) {
+  if (typeof value !== 'string') return
+  const trimmed = value.trim()
+  if (!trimmed) {
+    props.updateNodeData({ expiresInSeconds: undefined })
+    return
+  }
+  const numericValue = Number(trimmed)
+  props.updateNodeData({
+    expiresInSeconds:
+      Number.isFinite(numericValue) && !trimmed.includes('{{') ? numericValue : trimmed,
+  })
 }
 </script>
 

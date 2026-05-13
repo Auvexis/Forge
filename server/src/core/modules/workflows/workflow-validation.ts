@@ -134,6 +134,18 @@ function validateFormFields(
   return null;
 }
 
+function isValidWaitFormExpiration(value: unknown): boolean {
+  if (typeof value === "number") return value >= 1;
+  if (typeof value !== "string") return false;
+
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (trimmed.includes("{{") && trimmed.includes("}}")) return true;
+
+  const numericValue = Number(trimmed);
+  return Number.isFinite(numericValue) && numericValue >= 1;
+}
+
 function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): string | null {
   switch (node.type) {
     case "plugin":
@@ -216,7 +228,7 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       }
       if (
         node.expiresInSeconds !== undefined &&
-        (typeof node.expiresInSeconds !== "number" || node.expiresInSeconds < 1)
+        !isValidWaitFormExpiration(node.expiresInSeconds)
       ) {
         return `Wait Form node "${nodeId}" must have expiresInSeconds >= 1`;
       }
