@@ -1,5 +1,11 @@
 <template>
-  <AppPopover ref="popoverRef" :position="position" :offset="offset">
+  <AppPopover
+    ref="popoverRef"
+    :position="position"
+    :offset="offset"
+    @open="emit('open')"
+    @close="emit('close')"
+  >
     <template #trigger>
       <slot name="trigger"></slot>
     </template>
@@ -46,6 +52,10 @@ withDefaults(
 )
 
 const popoverRef = ref<InstanceType<typeof AppPopover> | null>(null)
+const emit = defineEmits<{
+  open: []
+  close: []
+}>()
 
 const closeDropdown = () => {
   popoverRef.value?.close()

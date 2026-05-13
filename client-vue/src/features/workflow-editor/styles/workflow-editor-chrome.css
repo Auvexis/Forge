@@ -4,7 +4,7 @@
   --nd8-chrome-height-toolbar: 38px;
   --nd8-chrome-bg: var(--nod8-bg-surface);
   --nd8-chrome-bg-muted: var(--nod8-bg-surface);
-  --nd8-chrome-bg-hover: var(--nod8-bg-muted);
+  --nd8-chrome-bg-hover: var(--nod8-button-ghost-hover);
   --nd8-chrome-border: var(--nod8-border);
   --nd8-chrome-text: var(--nod8-text-primary);
   --nd8-chrome-text-muted: var(--nod8-text-muted);
@@ -240,8 +240,10 @@
   line-height: 1;
 }
 
-.wec-menu-trigger:hover {
+.wec-menu-trigger:hover,
+.wec-menu-trigger--active {
   background: var(--nd8-chrome-bg-hover);
+  color: var(--nd8-chrome-text);
 }
 
 .wec-menu-bar .app-popover-wrapper {

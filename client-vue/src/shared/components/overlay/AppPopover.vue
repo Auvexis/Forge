@@ -49,6 +49,10 @@ const isOpen = ref(false)
 const triggerRef = ref<HTMLElement | null>(null)
 const contentRef = ref<HTMLElement | null>(null)
 const triggerRect = ref<DOMRect | null>(null)
+const emit = defineEmits<{
+  open: []
+  close: []
+}>()
 
 const toggle = () => {
   if (isOpen.value) {
@@ -61,10 +65,13 @@ const toggle = () => {
 const open = () => {
   updateRect()
   isOpen.value = true
+  emit('open')
 }
 
 const close = () => {
+  if (!isOpen.value) return
   isOpen.value = false
+  emit('close')
 }
 
 const updateRect = () => {
