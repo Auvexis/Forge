@@ -40,11 +40,16 @@ const emit = defineEmits<{
   (e: 'workflow-updated', workflow: WorkflowItem): void
   (e: 'undo'): void
   (e: 'redo'): void
+  (e: 'duplicate-selection'): void
+  (e: 'delete-selection'): void
+  (e: 'select-all'): void
+  (e: 'clear-selection'): void
   (e: 'toggle-autosave', enabled: boolean): void
   (e: 'zoom-in'): void
   (e: 'zoom-out'): void
   (e: 'zoom-reset'): void
   (e: 'fit-view'): void
+  (e: 'command-palette'): void
   (e: 'publish'): void
 }>()
 
@@ -66,14 +71,19 @@ function handleCommand(id: WorkflowChromeCommandId) {
     'file.close': () => emit('close'),
     'edit.undo': () => emit('undo'),
     'edit.redo': () => emit('redo'),
+    'edit.duplicate-selection': () => emit('duplicate-selection'),
+    'edit.delete-selection': () => emit('delete-selection'),
     'view.zoom-out': () => emit('zoom-out'),
     'view.zoom-in': () => emit('zoom-in'),
     'view.zoom-reset': () => emit('zoom-reset'),
     'view.fit': () => emit('fit-view'),
     'view.logs': () => emit('toggle-logs'),
+    'select.all': () => emit('select-all'),
+    'select.clear': () => emit('clear-selection'),
     'go.add-node': () => emit('add-node'),
     'go.variables': () => emit('variables'),
     'go.settings': () => emit('settings'),
+    'go.command-palette': () => emit('command-palette'),
     'run.workflow': () => emit('run'),
     'run.stop': () => emit('stop'),
     'run.publish': () => emit('publish'),

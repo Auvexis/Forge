@@ -37,10 +37,13 @@
 import { computed } from 'vue'
 import { EdgeLabelRenderer, useVueFlow } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 
-const { getSelectedNodes, removeNodes, viewport } = useVueFlow()
-const workflowStore = useWorkflowStore()
+const props = defineProps<{
+  onDuplicateSelection?: () => void
+  onDeleteSelection?: () => void
+}>()
+
+const { getSelectedNodes, viewport } = useVueFlow()
 
 const PADDING_TOP = 24
 const PADDING_BOTTOM = 60 // Space for text/labels below the node
@@ -115,26 +118,11 @@ const toolbarStyle = computed(() => ({
 // ── Actions ─────────────────────────────────────────────────────────────────
 
 function deleteAll() {
-  if (!workflowStore.activeWorkflow) return
-  const ids = selectedNodes.value.map((n) => n.id)
-
-  // Remove edges referencing any of these nodes
-  workflowStore.activeWorkflow.edges = workflowStore.activeWorkflow.edges.filter(
-    (e: { source: string; target: string }) => !ids.includes(e.source) && !ids.includes(e.target),
-  )
-
-  // Remove nodes from store
-  for (const id of ids) {
-    if (id === 'trigger') continue
-    delete workflowStore.activeWorkflow.nodes[id]
-  }
-
-  // Remove from VueFlow
-  removeNodes(ids)
+  props.onDeleteSelection?.()
 }
 
 function duplicateAll() {
-  // Future feature — no-op for now to keep the API clean
+  props.onDuplicateSelection?.()
 }
 </script>
 

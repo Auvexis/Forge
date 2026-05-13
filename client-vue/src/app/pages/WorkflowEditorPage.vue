@@ -13,6 +13,7 @@ import AppPage from '@/shared/components/layout/AppPage.vue'
 import { useApi } from '@/shared/composables/useApi'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { useToast } from '@/shared/composables/useToast'
+import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
 import { onMounted, onBeforeUnmount, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
@@ -24,6 +25,7 @@ const workflowId = route.params.id as string
 // Stores
 const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
+const commandPaletteStore = useCommandPaletteStore()
 
 // Composables
 const { closeWorkflow, exportWorkflow } = useWorkflowActions()
@@ -112,6 +114,14 @@ function handleUiIntent(e: Event) {
   if (intent?.type === 'workflow-settings.open') showSettings.value = true
   if (intent?.type === 'workflow-variables.open') showVariables.value = true
   if (intent?.type === 'workflow-logs.open') showLogs.value = true
+}
+
+function openCommandPalette() {
+  void commandPaletteStore.open({
+    routePath: route.path,
+    activeWorkflowId: workflowStore.activeWorkflow?.metadata.id,
+    activeExecutionId: executionStore.activeExecutionId ?? undefined,
+  })
 }
 
 onMounted(() => {
@@ -247,6 +257,10 @@ watch(
         @toggle-autosave="workflowStore.setAutosaveEnabled($event)"
         @undo="workflowStore.undo()"
         @redo="workflowStore.redo()"
+        @duplicate-selection="canvasRef?.duplicateSelection()"
+        @delete-selection="canvasRef?.deleteSelection()"
+        @select-all="canvasRef?.selectAllNodes()"
+        @clear-selection="canvasRef?.clearSelection()"
         @add-node="canvasRef?.openAddNodePanel()"
         @run="canvasRef?.handleRun()"
         @stop="canvasRef?.handleStop()"
@@ -262,6 +276,7 @@ watch(
         @zoom-out="canvasRef?.zoomOut()"
         @zoom-reset="canvasRef?.zoomReset()"
         @fit-view="canvasRef?.fitWorkflowView()"
+        @command-palette="openCommandPalette()"
         @publish="handlePublishWorkflow()"
       />
     </template>

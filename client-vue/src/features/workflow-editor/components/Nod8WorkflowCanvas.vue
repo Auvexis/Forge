@@ -33,6 +33,10 @@ import ExecutionLogsPanel from './execution/ExecutionLogsPanel.vue'
 import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
 import { useEventBus } from '@/shared/composables/useEventBus'
 import { isCanvasSelecting } from '../composables/useCanvasSelecting'
+import {
+  deleteWorkflowSelection,
+  duplicateWorkflowSelection,
+} from '../utils/workflowSelectionActions'
 
 // Stores
 const workflowStore = useWorkflowStore()
@@ -364,6 +368,46 @@ function resetCanvasZoom() {
 
 function fitWorkflowView() {
   return vueFlowStore.value?.fitView({ duration: 300, padding: 0.2 })
+}
+
+async function selectAllNodes() {
+  const instance = vueFlowStore.value
+  if (!instance) return
+  instance.removeSelectedElements()
+  instance.addSelectedNodes(instance.getNodes)
+}
+
+function clearSelection() {
+  vueFlowStore.value?.removeSelectedElements()
+}
+
+function getSelectedNodeIds() {
+  return vueFlowStore.value?.getSelectedNodes.map((node) => node.id) ?? []
+}
+
+async function deleteSelection() {
+  if (!workflowStore.activeWorkflow) return
+  const result = deleteWorkflowSelection(workflowStore.activeWorkflow, getSelectedNodeIds())
+  if (result.nodeIds.length === 0) return
+
+  clearSelection()
+  await replaceGraphFromStore()
+}
+
+async function duplicateSelection() {
+  if (!workflowStore.activeWorkflow) return
+  const instance = vueFlowStore.value
+  const result = duplicateWorkflowSelection(workflowStore.activeWorkflow, getSelectedNodeIds())
+  if (result.nodeIds.length === 0) return
+
+  await replaceGraphFromStore()
+  await nextTick()
+  const duplicatedNodes = result.nodeIds
+    .map((id) => instance?.findNode(id))
+    .filter((node): node is NonNullable<typeof node> => !!node)
+
+  instance?.removeSelectedElements()
+  if (duplicatedNodes.length > 0) instance?.addSelectedNodes(duplicatedNodes)
 }
 
 // Friendly default name per node type (shown in the node header before the user renames it)
@@ -851,6 +895,10 @@ defineExpose({
   handleRun,
   handleStop,
   openAddNodePanel,
+  selectAllNodes,
+  clearSelection,
+  duplicateSelection,
+  deleteSelection,
   zoomIn: zoomCanvasIn,
   zoomOut: zoomCanvasOut,
   zoomReset: resetCanvasZoom,
@@ -1011,7 +1059,10 @@ defineExpose({
       </template>
 
       <!-- Multi-selection bounding box -->
-      <NodeGroupSelectionBox />
+      <NodeGroupSelectionBox
+        :on-duplicate-selection="duplicateSelection"
+        :on-delete-selection="deleteSelection"
+      />
 
       <!-- Trigger Node -->
       <template #node-trigger="nodeProps">

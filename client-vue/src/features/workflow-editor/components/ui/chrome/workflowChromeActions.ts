@@ -19,18 +19,8 @@ export const workflowChromeMenus: WorkflowChromeMenu[] = [
     items: [
       { id: 'edit.undo', label: 'Undo', icon: 'undo-2' },
       { id: 'edit.redo', label: 'Redo', icon: 'redo-2' },
-      {
-        id: 'edit.duplicate-selection',
-        label: 'Duplicate Selection',
-        icon: 'copy',
-        disabledReason: 'Selection duplication is not wired yet',
-      },
-      {
-        id: 'edit.delete-selection',
-        label: 'Delete Selection',
-        icon: 'trash-2',
-        disabledReason: 'Selection deletion is not wired yet',
-      },
+      { id: 'edit.duplicate-selection', label: 'Duplicate Selection', icon: 'copy' },
+      { id: 'edit.delete-selection', label: 'Delete Selection', icon: 'trash-2' },
     ],
   },
   {
@@ -48,18 +38,8 @@ export const workflowChromeMenus: WorkflowChromeMenu[] = [
     id: 'select',
     label: 'Select',
     items: [
-      {
-        id: 'select.all',
-        label: 'Select All Nodes',
-        icon: 'mouse-pointer-square-dashed',
-        disabledReason: 'Select all is not wired yet',
-      },
-      {
-        id: 'select.clear',
-        label: 'Clear Selection',
-        icon: 'eraser',
-        disabledReason: 'Clear selection is not wired yet',
-      },
+      { id: 'select.all', label: 'Select All Nodes', icon: 'mouse-pointer-square-dashed' },
+      { id: 'select.clear', label: 'Clear Selection', icon: 'eraser' },
     ],
   },
   {
@@ -69,12 +49,7 @@ export const workflowChromeMenus: WorkflowChromeMenu[] = [
       { id: 'go.add-node', label: 'Add Node', icon: 'plus' },
       { id: 'go.variables', label: 'Variables', icon: 'tags' },
       { id: 'go.settings', label: 'Workflow Settings', icon: 'settings' },
-      {
-        id: 'go.command-palette',
-        label: 'Command Palette',
-        icon: 'command',
-        disabledReason: 'Programmatic palette opening needs a shared entrypoint',
-      },
+      { id: 'go.command-palette', label: 'Command Palette', icon: 'command' },
     ],
   },
   {
