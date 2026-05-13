@@ -24,7 +24,11 @@
                 class="sidebar-section"
               >
                 <span class="sidebar-section__label">{{ section.label }}</span>
-                <div class="sidebar-section__items">
+                <BaseWoobyMenu
+                  tag="div"
+                  class="sidebar-section__items"
+                  active-selector=".nav-link--active"
+                >
                   <SidebarHint
                     v-for="item in section.items"
                     :key="item.id"
@@ -57,7 +61,7 @@
                       <span class="suite-nav-link__label">{{ item.label }}</span>
                     </router-link>
                   </SidebarHint>
-                </div>
+                </BaseWoobyMenu>
               </section>
 
               <template #footer>
@@ -180,7 +184,9 @@ const commandPaletteStore = useCommandPaletteStore()
 const route = useRoute()
 const isPublicRoute = computed(() => route.meta.public === true)
 const isSidebarCollapsed = ref(false)
-const activeSidebarWidth = computed(() => sidebarWidthForState(isSidebarCollapsed.value))
+const activeSidebarWidth = computed(() =>
+  sidebarWidthForState(isSidebarCollapsed.value, { expandedPx: 288 }),
+)
 const activityById = Object.fromEntries(sidebarActivityItems.map((item) => [item.id, item])) as {
   search: (typeof sidebarActivityItems)[number]
   monitor: (typeof sidebarActivityItems)[number]

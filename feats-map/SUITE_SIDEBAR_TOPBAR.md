@@ -14,3 +14,11 @@
 - [x] Adicionar topbar global que abre command palette.
 - [x] Ajustar variaveis de largura ativa para sidebar panels.
 - [x] Rodar verificacoes automatizadas; Browser in-app bloqueou localhost com `ERR_BLOCKED_BY_CLIENT`.
+
+## Refinamento visual
+
+- [x] Aumentar largura expandida e reduzir alturas de header/topbar.
+- [x] Centralizar searchbar e simplificar header para "Workspace".
+- [x] Trocar collapse para ghost sem borda e icone maior.
+- [x] Remover borda inteira entre sidebar/topbar e criar divisor curto no header.
+- [x] Corrigir main para labels fora do WoobyMenu e apps em grid minimalista de 2 colunas.

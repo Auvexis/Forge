@@ -3,8 +3,7 @@
     <header class="app-sidebar__header">
       <div class="app-sidebar__profile" aria-hidden="true">N</div>
       <div class="app-sidebar__identity">
-        <span class="app-sidebar__name">ND8 Suite</span>
-        <span class="app-sidebar__workspace">Local workspace</span>
+        <span class="app-sidebar__name">Workspace</span>
       </div>
       <button
         class="app-sidebar__collapse"
@@ -12,7 +11,7 @@
         :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
         @click="$emit('toggle-collapsed')"
       >
-        <LucideIcon :name="collapsed ? 'panel-left-open' : 'panel-left-close'" :size="15" />
+        <LucideIcon :name="collapsed ? 'panel-left-open' : 'panel-left-close'" :size="19" />
       </button>
     </header>
 
@@ -61,13 +60,24 @@ defineEmits<{
 }
 
 .app-sidebar__header {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--nod8-space-2);
-  min-height: 56px;
+  min-height: 48px;
   padding: 0 var(--nod8-space-3);
-  border-bottom: 1px solid var(--nod8-border);
   flex-shrink: 0;
+}
+
+.app-sidebar__header::after {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 0;
+  height: 2px;
+  border-radius: var(--nod8-radius-full);
+  background: var(--nod8-border);
 }
 
 .app-sidebar__profile {
@@ -93,30 +103,19 @@ defineEmits<{
 }
 
 .app-sidebar__name,
-.app-sidebar__workspace {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .app-sidebar__name {
   color: var(--nod8-text-primary);
   font-size: var(--nod8-text-sm);
   font-weight: var(--nod8-font-semibold);
 }
 
-.app-sidebar__workspace {
-  color: var(--nod8-text-muted);
-  font-size: var(--nod8-text-xs);
-}
-
 .app-sidebar__collapse {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   flex: 0 0 auto;
-  border: 1px solid var(--nod8-border);
+  border: 0;
   border-radius: var(--nod8-radius-sm);
   color: var(--nod8-text-muted);
   background: transparent;
@@ -128,7 +127,7 @@ defineEmits<{
 
 .app-sidebar__collapse:hover {
   color: var(--nod8-text-primary);
-  background: var(--nod8-button-ghost-hover);
+  background: transparent;
 }
 
 .app-sidebar__main {
@@ -156,7 +155,7 @@ defineEmits<{
 .app-sidebar--collapsed .app-sidebar__header {
   flex-direction: column;
   justify-content: center;
-  min-height: 96px;
+  min-height: 86px;
   padding: var(--nod8-space-3) var(--nod8-space-1);
 }
 

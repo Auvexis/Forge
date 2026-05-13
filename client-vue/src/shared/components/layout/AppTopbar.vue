@@ -20,9 +20,9 @@ defineEmits<{
 .app-topbar {
   display: flex;
   align-items: center;
-  min-height: 56px;
+  justify-content: center;
+  min-height: 48px;
   padding: 0 var(--nod8-space-5);
-  border-bottom: 1px solid var(--nod8-border);
   background: var(--nod8-bg-surface);
   flex-shrink: 0;
 }
@@ -31,8 +31,8 @@ defineEmits<{
   display: flex;
   align-items: center;
   gap: var(--nod8-space-3);
-  width: min(680px, 100%);
-  height: 36px;
+  width: min(620px, 100%);
+  height: 34px;
   padding: 0 var(--nod8-space-3);
   border: 1px solid var(--nod8-border);
   border-radius: var(--nod8-radius-sm);

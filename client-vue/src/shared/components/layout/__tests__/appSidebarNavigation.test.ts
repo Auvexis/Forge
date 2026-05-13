@@ -43,4 +43,8 @@ describe('app sidebar navigation', () => {
     assert.equal(sidebarWidthForState(false), 'var(--nod8-sidebar-expanded)')
     assert.equal(sidebarWidthForState(true), 'var(--nod8-sidebar-width)')
   })
+
+  it('uses a wider expanded sidebar token for the suite layout', () => {
+    assert.equal(sidebarWidthForState(false, { expandedPx: 288 }), '288px')
+  })
 })

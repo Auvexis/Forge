@@ -75,6 +75,10 @@ export const sidebarActivityItems: SidebarActivityItem[] = [
   },
 ]
 
-export function sidebarWidthForState(isCollapsed: boolean): string {
+export function sidebarWidthForState(
+  isCollapsed: boolean,
+  options: { expandedPx?: number } = {},
+): string {
+  if (!isCollapsed && options.expandedPx) return `${options.expandedPx}px`
   return isCollapsed ? 'var(--nod8-sidebar-width)' : 'var(--nod8-sidebar-expanded)'
 }
