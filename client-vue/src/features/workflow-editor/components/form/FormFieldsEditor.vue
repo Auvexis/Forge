@@ -125,6 +125,7 @@ const FORM_FIELD_TYPES = [
   { value: 'password', label: 'Password', icon: 'lock-keyhole' },
   { value: 'file', label: 'File', icon: 'file' },
   { value: 'select', label: 'Select', icon: 'list' },
+  { value: 'multiselect', label: 'Multi Select', icon: 'list-checks' },
   { value: 'checkbox', label: 'Checkbox', icon: 'square-check' },
   { value: 'checkbox-group', label: 'Checkbox Group', icon: 'list-todo' },
   { value: 'radio', label: 'Radio Group', icon: 'circle-dot' },
@@ -135,6 +136,7 @@ const FORM_FIELD_TYPES = [
 
 const FIELD_TYPES_WITH_OPTIONS = new Set<FormTriggerField['type']>([
   'select',
+  'multiselect',
   'checkbox-group',
   'radio',
   'quiz',

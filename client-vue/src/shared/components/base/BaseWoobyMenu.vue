@@ -3,7 +3,7 @@
     :is="tag"
     ref="containerRef"
     class="base-floating-nav"
-    :style="{ position: position, overflow: 'hidden' }"
+    :style="{ position: position, overflow }"
     @mouseleave="hoveredEl = null"
     @mousemove="handleMouseMove"
   >
@@ -41,6 +41,10 @@ const props = defineProps({
   inset: {
     type: Number,
     default: 0,
+  },
+  overflow: {
+    type: String,
+    default: 'hidden',
   },
 })
 

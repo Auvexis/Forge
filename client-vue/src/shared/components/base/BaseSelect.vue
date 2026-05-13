@@ -40,6 +40,7 @@
           position="absolute"
           class="base-select-dropdown"
           active-selector=".base-select-option--selected"
+          overflow="auto"
           :style="dropdownStyle"
           @click.stop
         >
