@@ -178,10 +178,12 @@ export const workflowsApi = {
     }),
 
   /** Execute a single node in isolation (Test Step) */
-  executeNode: (workflowId: string, nodeId: string, nodeConfig: unknown) =>
+  executeNode: (workflowId: string, nodeId: string, nodeConfig: unknown, context?: unknown) =>
     apiRequest<any>(`${ENDPOINTS.WORKFLOW_BY_ID(workflowId)}/nodes/${nodeId}/execute`, {
       method: 'POST',
-      body: nodeConfig as Record<string, unknown>,
+      body: context
+        ? { nodeConfig, context }
+        : nodeConfig as Record<string, unknown>,
     }),
 
   /**

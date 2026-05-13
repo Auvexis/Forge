@@ -674,7 +674,13 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         workflowId: string;
         nodeId: string;
       };
-      const overrideNodeConfig = req.body as WorkflowNode;
+      const body = req.body as WorkflowNode | {
+        nodeConfig?: WorkflowNode;
+        context?: any;
+      };
+      const overrideNodeConfig = "nodeConfig" in body && body.nodeConfig
+        ? body.nodeConfig
+        : body as WorkflowNode;
 
       try {
         const workflow = WorkflowRepository.getWorkflowById(workflowId);
@@ -694,7 +700,9 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
           (e) => e.status === "SUCCESS" || e.status === "FAILED",
         );
 
-        if (lastExecution && lastExecution.context) {
+        if ("context" in body && body.context) {
+          baseContext = body.context;
+        } else if (lastExecution && lastExecution.context) {
           baseContext = JSON.parse(JSON.stringify(lastExecution.context));
         }
 

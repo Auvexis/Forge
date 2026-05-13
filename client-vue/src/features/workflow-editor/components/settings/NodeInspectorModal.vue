@@ -19,6 +19,10 @@ import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
+import {
+  buildEventListenerInputPreview,
+  buildNodeTestExecutionContext,
+} from './nodeInspectorPreview'
 
 const inspectorStore = useNodeInspectorStore()
 const workflowStore = useWorkflowStore()
@@ -81,6 +85,13 @@ async function runStep() {
       workflowStore.activeWorkflow.metadata.id,
       nodeId,
       inspectorStore.activeNode!.data,
+      buildNodeTestExecutionContext(
+        executionStore.nodeStatuses,
+        workflowStore.activeWorkflow.variables?.reduce<Record<string, unknown>>((acc, variable) => {
+          acc[variable.name] = variable.defaultValue
+          return acc
+        }, {}) ?? {},
+      ),
     )
     inspectorStore.lastTestOutput = { success: true, data: res }
     executionStore.patchNodeStatus(nodeId, {
@@ -239,22 +250,11 @@ const eventListenerInputPreview = computed(() => {
   const eventName = (node.data as any)?.eventName as string
   if (!eventName) return null
 
-  const wfNodes = workflowStore.activeWorkflow?.nodes ?? {}
-  const preview: Record<string, string> = {}
-
-  for (const n of Object.values(wfNodes)) {
-    if (n.type === 'event' && (n as any).eventName === eventName) {
-      const params = (n as any).payloadParams ?? []
-      for (const p of params) {
-        if (p.key && !(p.key in preview)) {
-          const val = typeof p.value === 'string' ? p.value : ''
-          preview[p.key] = val.includes('{{') ? 'any' : (val || 'any')
-        }
-      }
-    }
-  }
-
-  return Object.keys(preview).length > 0 ? preview : null
+  return buildEventListenerInputPreview({
+    eventName,
+    workflowNodes: workflowStore.activeWorkflow?.nodes ?? {},
+    nodeStatuses: executionStore.nodeStatuses,
+  })
 })
 
 const eventListenerSearch = ref('')

@@ -217,7 +217,27 @@ export const WorkflowEngine = {
     executionCacheContext?: WorkflowExecutionContext,
   ): Promise<any> => {
     const execId = `exec_test_${Date.now()}`;
-    const context = executionCacheContext ?? createExecutionContext(workflow, {}, execId);
+    const context = createExecutionContext(
+      workflow,
+      executionCacheContext?.trigger ?? {},
+      execId,
+    );
+
+    if (executionCacheContext) {
+      context.steps = {
+        ...context.steps,
+        ...(executionCacheContext.steps ?? {}),
+      };
+      context.variables = {
+        ...context.variables,
+        ...(executionCacheContext.variables ?? {}),
+      };
+      context._event_payloads = {
+        ...context._event_payloads,
+        ...(executionCacheContext._event_payloads ?? {}),
+      };
+    }
+
     const result = await dispatchNode({
       nodeId,
       node: nodeConfigOverride,
