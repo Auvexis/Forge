@@ -77,6 +77,11 @@ export const sidebarActivityItems: SidebarActivityItem[] = [
 
 export const sidebarMainUsesWoobyMenu = false
 
+export const sidebarChromeLayout = {
+  topbarHasBottomBorder: true,
+  sidebarSeparatorStartsBelowHeader: true,
+} as const
+
 export function sidebarWidthForState(
   isCollapsed: boolean,
   options: { expandedPx?: number } = {},

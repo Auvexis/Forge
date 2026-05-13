@@ -39,12 +39,13 @@ defineEmits<{
 
 <style scoped>
 .app-sidebar {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: var(--nod8-active-sidebar-width, var(--nod8-sidebar-expanded));
   height: 100vh;
-  border-right-width: 1px;
-  border-right-style: solid;
+  border-right-width: 0;
+  border-right-style: none;
   border-top-width: 0;
   border-bottom-width: 0;
   border-left-width: 0;
@@ -52,6 +53,17 @@ defineEmits<{
   flex-shrink: 0;
   background-color: var(--nod8-bg-surface);
   transition: width var(--nod8-duration-base) var(--nod8-ease-standard);
+}
+
+.app-sidebar::before {
+  content: '';
+  position: absolute;
+  top: 48px;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--nod8-border);
+  pointer-events: none;
 }
 
 .app-sidebar__header {

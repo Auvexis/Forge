@@ -23,6 +23,7 @@ defineEmits<{
   justify-content: center;
   min-height: 48px;
   padding: 0 var(--nod8-space-5);
+  border-bottom: 1px solid var(--nod8-border);
   background: var(--nod8-bg-surface);
   flex-shrink: 0;
 }

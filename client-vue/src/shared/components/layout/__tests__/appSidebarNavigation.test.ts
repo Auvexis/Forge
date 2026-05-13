@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
 import {
+  sidebarChromeLayout,
   sidebarActivityItems,
   sidebarSections,
   sidebarMainUsesWoobyMenu,
@@ -51,5 +52,12 @@ describe('app sidebar navigation', () => {
 
   it('keeps suite app links outside WoobyMenu to avoid stretched active backgrounds', () => {
     assert.equal(sidebarMainUsesWoobyMenu, false)
+  })
+
+  it('keeps topbar and sidebar separators from crossing each other', () => {
+    assert.deepEqual(sidebarChromeLayout, {
+      topbarHasBottomBorder: true,
+      sidebarSeparatorStartsBelowHeader: true,
+    })
   })
 })
