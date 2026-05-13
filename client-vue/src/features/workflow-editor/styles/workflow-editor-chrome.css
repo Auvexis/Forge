@@ -33,7 +33,9 @@
 }
 
 .wec-header {
+  gap: 10px;
   justify-content: space-between;
+  overflow: hidden;
 }
 
 .wec-toolbar {
@@ -252,12 +254,50 @@
 .wec-toolbar-row {
   gap: 8px;
   background: var(--nd8-chrome-bg-muted);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
 
 .wec-toolbar-row > .wec-toolbar {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
   padding: 0;
   background: transparent;
+}
+
+.wec-toolbar-row::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .wec-row {
+    padding: 0 8px;
+  }
+
+  .wec-doc {
+    flex: 1 1 auto;
+  }
+
+  .wec-doc__name {
+    max-width: 92px;
+  }
+
+  .wec-doc__status,
+  .wec-route-id {
+    display: none;
+  }
+
+  .wec-header-actions {
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .wec-autosave .base-switch__label {
+    display: none;
+  }
+
+  .wec-menu-bar {
+    padding-right: 4px;
+  }
 }

@@ -53,7 +53,7 @@ const isUnsavedDraft = computed(() => !route.params.id)
 function handleCommand(id: WorkflowChromeCommandId) {
   const handlers: Partial<Record<WorkflowChromeCommandId, () => void>> = {
     'file.new': () => emit('create-workflow'),
-    'file.open': () => headerRef.value?.openWorkflowMenu(),
+    'file.open': () => window.setTimeout(() => headerRef.value?.openWorkflowMenu(), 0),
     'file.import': () => emit('import-workflow'),
     'file.export': () => emit('export-workflow'),
     'file.save': () => emit('save'),
