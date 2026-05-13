@@ -32,6 +32,7 @@ import {
 } from '@/core/utils/schemaResolver'
 import type { WorkflowTrigger, WorkflowNode, PluginNode } from '@/core/types/workflow.types'
 import type { NodeData } from './types'
+import { inferAssignedPath, inferEventListenerPaths } from './variableTreeInference'
 import { useWorkflowStore } from '../../../stores/workflow.store'
 import { useExecutionStore } from '../../../stores/execution.store'
 
@@ -241,28 +242,13 @@ const allPaths = computed(() => {
         if (assignments.length > 0) {
           for (const assignment of assignments) {
             if (assignment.key) {
-              let inferredType = 'any'
-              if (assignment.value !== undefined && assignment.value !== null) {
-                const strVal = String(assignment.value).trim()
-                const match = strVal.match(/^{{\s*(.*?)\s*}}$/)
-                if (match) {
-                  const refPath = match[1]
-                  const foundPath = paths.find(p => p.path === refPath)
-                  if (foundPath) inferredType = foundPath.type
-                } else if (!isNaN(Number(strVal)) && strVal !== '') {
-                  inferredType = 'number'
-                } else if (strVal === 'true' || strVal === 'false') {
-                  inferredType = 'boolean'
-                } else {
-                  inferredType = 'string'
-                }
-              }
-              paths.push({
+              paths.push(inferAssignedPath({
                 path: `steps.${upNode.id}.output.${assignment.key}`,
                 label: assignment.key,
-                type: inferredType,
                 sourceNodeName: nodeName,
-              })
+                rawValue: assignment.value,
+                knownPaths: paths,
+              }))
             }
           }
         } else {
@@ -278,26 +264,16 @@ const allPaths = computed(() => {
       } else if (upData.type === 'event-listener') {
         const eventName = (upData as any).eventName
         const workflowNodes = useWorkflowStore().activeWorkflow?.nodes || {}
-        let hasParams = false
+        const inferredPaths = inferEventListenerPaths({
+          eventName,
+          listenerNodeId: upNode.id,
+          sourceNodeName: nodeName,
+          workflowNodes,
+          knownPaths: paths,
+        })
+        paths.push(...inferredPaths)
         
-        for (const n of Object.values(workflowNodes)) {
-          if (n.type === 'event' && (n as any).eventName === eventName) {
-            const params = (n as any).payloadParams || []
-            for (const param of params) {
-              if (param.key) {
-                paths.push({
-                  path: `steps.${upNode.id}.output.${param.key}`,
-                  label: param.key,
-                  type: 'any',
-                  sourceNodeName: nodeName
-                })
-                hasParams = true
-              }
-            }
-          }
-        }
-        
-        if (!hasParams) {
+        if (inferredPaths.length === 0) {
           paths.push({ path: `steps.${upNode.id}.output`, label: 'output', type: 'any', sourceNodeName: nodeName })
         }
       } else {
