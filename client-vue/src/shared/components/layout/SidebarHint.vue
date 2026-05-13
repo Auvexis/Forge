@@ -38,10 +38,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
-const props = defineProps<{
+defineProps<{
   title: string
   description: string
   image?: string
@@ -50,14 +50,26 @@ const props = defineProps<{
 
 const isVisible = ref(false)
 const wrapperRef = ref<HTMLElement | null>(null)
+const anchorRect = ref<DOMRect | null>(null)
 let hoverTimer: number | null = null
+let resizeObserver: ResizeObserver | null = null
 
 // Estimated height for collision detection (image 140px + content ~80px + paddings)
 const ESTIMATED_MODAL_HEIGHT = 220
 
+function updatePosition() {
+  if (!wrapperRef.value) {
+    anchorRect.value = null
+    return
+  }
+
+  const readRect = wrapperRef.value['getBoundingClientRect'].bind(wrapperRef.value)
+  anchorRect.value = readRect()
+}
+
 const modalStyle = computed(() => {
-  if (!wrapperRef.value) return {}
-  const rect = wrapperRef.value.getBoundingClientRect()
+  const rect = anchorRect.value
+  if (!rect) return {}
   
   // Position to the right of the sidebar
   const left = rect.right + 12
@@ -86,6 +98,7 @@ function handleMouseEnter() {
   // Faster delay for snappier UI
   hoverTimer = window.setTimeout(() => {
     isVisible.value = true
+    void nextTick(updatePosition)
   }, 150)
 }
 
@@ -93,6 +106,27 @@ function handleMouseLeave() {
   if (hoverTimer) clearTimeout(hoverTimer)
   isVisible.value = false
 }
+
+watch(isVisible, (visible) => {
+  if (visible) updatePosition()
+})
+
+onMounted(() => {
+  window.addEventListener('resize', updatePosition)
+  window.addEventListener('scroll', updatePosition, true)
+
+  if (wrapperRef.value) {
+    resizeObserver = new ResizeObserver(updatePosition)
+    resizeObserver.observe(wrapperRef.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (hoverTimer) clearTimeout(hoverTimer)
+  window.removeEventListener('resize', updatePosition)
+  window.removeEventListener('scroll', updatePosition, true)
+  resizeObserver?.disconnect()
+})
 </script>
 
 <style scoped>
