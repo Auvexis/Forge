@@ -33,25 +33,13 @@
                     :icon="item.icon"
                   >
                     <router-link
-                      v-if="item.id === 'workflows'"
-                      to="/workflows"
+                      :to="item.route"
                       class="nav-link suite-nav-link"
                       :class="[
                         `suite-nav-link--${item.accent}`,
-                        { 'nav-link--active': route.path.startsWith('/workflows') },
+                        { 'nav-link--active': route.path.startsWith(item.route) },
                       ]"
-                    >
-                      <LucideIcon :name="item.icon" :size="18" />
-                      <span class="suite-nav-link__label">{{ item.label }}</span>
-                    </router-link>
-
-                    <router-link
-                      v-else-if="item.id === 'universe'"
-                      to="/universe"
-                      class="nav-link suite-nav-link"
-                      active-class="nav-link--active"
-                      :class="`suite-nav-link--${item.accent}`"
-                      @click="appUiStore.enterUniverseMode()"
+                      @click="handleSidebarNavClick(item)"
                     >
                       <LucideIcon :name="item.icon" :size="18" />
                       <span class="suite-nav-link__label">{{ item.label }}</span>
@@ -171,6 +159,7 @@ import {
   sidebarActivityItems,
   sidebarSections,
   sidebarWidthForState,
+  type SidebarNavItem,
 } from '@/shared/components/layout/appSidebarNavigation'
 import AppProductionMonitor, { isMonitorOpen, toggleMonitor } from '@/shared/components/layout/AppProductionMonitor.vue'
 
@@ -192,6 +181,10 @@ const activityById = Object.fromEntries(sidebarActivityItems.map((item) => [item
 
 function openGlobalCommandPalette() {
   void commandPaletteStore.open({ routePath: route.path })
+}
+
+function handleSidebarNavClick(item: SidebarNavItem) {
+  if (item.id === 'universe') appUiStore.enterUniverseMode()
 }
 </script>
 

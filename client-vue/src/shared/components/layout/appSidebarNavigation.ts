@@ -6,6 +6,7 @@ export interface SidebarNavItem {
   description: string
   icon: string
   accent: SidebarAccent
+  route: string
 }
 
 export interface SidebarSection {
@@ -29,28 +30,16 @@ export const sidebarSections: SidebarSection[] = [
         label: 'Workflows',
         description: 'Create, edit, and manage your automated workflows visually.',
         icon: 'workflow',
-        accent: 'blue',
+        accent: 'green',
+        route: '/workflows',
       },
       {
         id: 'agents',
         label: 'Agents',
-        description: 'Create, edit, and manage your automated agents.',
+        description: 'Create, edit, and manage your AI agents.',
         icon: 'bot',
-        accent: 'green',
-      },
-      {
-        id: 'workflows',
-        label: 'Workflows',
-        description: 'Create, edit, and manage your automated workflows visually.',
-        icon: 'workflow',
         accent: 'blue',
-      },
-      {
-        id: 'workflows',
-        label: 'Workflows',
-        description: 'Create, edit, and manage your automated workflows visually.',
-        icon: 'workflow',
-        accent: 'blue',
+        route: '/agents',
       },
     ],
   },
@@ -64,6 +53,7 @@ export const sidebarSections: SidebarSection[] = [
           'Explore your node ecosystem in an immersive 3D space for integrations and dependencies.',
         icon: 'orbit',
         accent: 'violet',
+        route: '/universe',
       },
     ],
   },

@@ -22,8 +22,17 @@ describe('app sidebar navigation', () => {
   it('assigns stable color accents to visible suite apps', () => {
     const items = sidebarSections.flatMap((section) => section.items)
 
-    assert.equal(items.find((item) => item.id === 'workflows')?.accent, 'blue')
+    assert.equal(items.find((item) => item.id === 'workflows')?.accent, 'green')
+    assert.equal(items.find((item) => item.id === 'agents')?.accent, 'blue')
     assert.equal(items.find((item) => item.id === 'universe')?.accent, 'violet')
+  })
+
+  it('provides routes for each visible suite navigation item', () => {
+    const items = sidebarSections.flatMap((section) => section.items)
+
+    assert.equal(items.find((item) => item.id === 'workflows')?.route, '/workflows')
+    assert.equal(items.find((item) => item.id === 'agents')?.route, '/agents')
+    assert.equal(items.find((item) => item.id === 'universe')?.route, '/universe')
   })
 
   it('keeps bottom activity actions compact and professional', () => {
