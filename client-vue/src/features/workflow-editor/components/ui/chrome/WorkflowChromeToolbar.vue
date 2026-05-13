@@ -60,7 +60,16 @@ function showsLabel(id: WorkflowChromeCommandId, kind?: string) {
           :title="action.label"
           @click="emit('command', action.id)"
         >
-          <LucideIcon :name="action.icon" :size="15" />
+          <span
+            v-if="action.id === 'file.save'"
+            class="wec-save-dot"
+            :class="{
+              'wec-save-dot--dirty': isDirty,
+              'wec-save-dot--saving': isSaving,
+            }"
+            aria-hidden="true"
+          />
+          <LucideIcon v-else :name="action.icon" :size="15" />
           <span v-if="showsLabel(action.id, action.kind)">{{ action.label }}</span>
         </button>
       </div>

@@ -63,13 +63,21 @@
         variant="ghost"
         :disabled="isSaving || !workflowStore.isDirty || isStreaming"
         :loading="isSaving"
-        icon-left="save"
         class="dock-btn"
         :class="{
           'opacity-60 cursor-not-allowed': isSaving || !workflowStore.isDirty || isStreaming,
         }"
         @click="$emit('save')"
       >
+        <template #left>
+          <span
+            class="dock-save-dot"
+            :class="{
+              'dock-save-dot--dirty': workflowStore.isDirty,
+              'dock-save-dot--saving': isSaving,
+            }"
+          />
+        </template>
         {{ isSaving ? 'Saving…' : 'Save' }}
       </BaseButton>
 
@@ -212,6 +220,28 @@ const onSliderChange = (event: Event) => {
 :deep(.dock-btn--toggled) {
   background: transparent !important;
   color: var(--nod8-text-primary) !important;
+}
+
+.dock-save-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--nod8-text-muted);
+}
+
+.dock-save-dot--dirty {
+  background: var(--nod8-text-primary);
+}
+
+.dock-save-dot--saving {
+  animation: dock-save-pulse 900ms ease-in-out infinite;
+}
+
+@keyframes dock-save-pulse {
+  50% {
+    opacity: 0.45;
+    transform: scale(0.75);
+  }
 }
 
 .text-primary {

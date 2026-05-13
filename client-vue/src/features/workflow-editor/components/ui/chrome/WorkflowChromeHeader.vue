@@ -18,6 +18,7 @@ const props = defineProps<{
   lastAutosavedAt?: number | null
   isDirty?: boolean
   isBusy?: boolean
+  isSaving?: boolean
 }>()
 
 const workflowMenuRef = ref<InstanceType<typeof AppDropdownMenu> | null>(null)
@@ -26,13 +27,22 @@ const isWorkflowMenuOpen = ref(false)
 const { openWorkflow } = useWorkflowActions()
 const { data: workflowsList, execute: fetchWorkflows } = useApi(workflowsApi.getAll, [])
 
-const statusLabel = computed(() => {
-  if (props.autosaveStatus === 'saving') return 'Autosaving'
-  if (props.autosaveStatus === 'saved')
-    return props.lastAutosavedAt ? `Saved ${getRelativeTime(props.lastAutosavedAt)}` : 'Saved'
-  if (props.autosaveStatus === 'conflict') return 'Save conflict'
-  if (props.isDirty) return 'Unsaved changes'
-  return props.workflowId ? props.workflowId.slice(0, 14) : 'New Workflow'
+const saveState = computed<'saving' | 'dirty' | 'saved'>(() => {
+  if (props.isSaving || props.autosaveStatus === 'saving') return 'saving'
+  if (props.isDirty || props.autosaveStatus === 'conflict') return 'dirty'
+  return 'saved'
+})
+
+const saveStatusLabel = computed(() => {
+  if (saveState.value === 'saving') return 'Saving workflow...'
+  if (saveState.value === 'dirty') return 'Unsaved changes'
+  return props.lastAutosavedAt ? `Saved ${getRelativeTime(props.lastAutosavedAt)}` : 'Saved'
+})
+
+const saveStatusIcon = computed(() => {
+  if (saveState.value === 'saving') return 'loader-circle'
+  if (saveState.value === 'dirty') return 'cloud-alert'
+  return 'cloud-check'
 })
 
 const filteredWorkflows = computed(() => {
@@ -48,6 +58,8 @@ const nodeCountLabel = computed(() => {
 })
 
 const versionLabel = computed(() => `v${props.workflow?.metadata.version ?? '1'}`)
+
+const workflowIdLabel = computed(() => props.workflowId ? props.workflowId.slice(0, 8) : 'new')
 
 const publishLabel = computed(() => {
   if (!props.workflow) return 'Draft'
@@ -144,23 +156,23 @@ defineExpose({ openWorkflowMenu })
       </AppDropdownMenu>
 
       <span class="wec-doc__status">
-        <span
-          class="wec-status-dot"
-          :class="{
-            'wec-status-dot--running': isBusy,
-            'wec-status-dot--dirty': isDirty && !isBusy,
-          }"
+        <LucideIcon
+          class="wec-save-status__icon"
+          :class="{ 'wec-save-status__icon--spin': saveState === 'saving' }"
+          :name="saveStatusIcon"
+          :size="14"
         />
-        {{ statusLabel }}
+        {{ saveStatusLabel }}
       </span>
     </div>
 
     <div class="wec-header-meta" aria-label="Workflow metadata">
-      <span class="wec-meta-pill">{{ versionLabel }}</span>
-      <span class="wec-meta-pill">{{ nodeCountLabel }}</span>
+      <span class="wec-meta-pill wec-meta-pill--version">{{ versionLabel }}</span>
+      <span class="wec-meta-pill wec-meta-pill--nodes">{{ nodeCountLabel }}</span>
       <span class="wec-meta-pill" :class="{ 'wec-meta-pill--live': publishLabel === 'Live' }">
         {{ publishLabel }}
       </span>
+      <span class="wec-meta-pill wec-meta-pill--id">{{ workflowIdLabel }}</span>
     </div>
   </div>
 </template>

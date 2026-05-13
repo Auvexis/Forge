@@ -98,6 +98,7 @@ function handleCommand(id: WorkflowChromeCommandId) {
       :last-autosaved-at="lastAutosavedAt"
       :is-dirty="isDirty"
       :is-busy="isBusy"
+      :is-saving="isSaving"
     />
 
     <div class="wec-row wec-menu-row">

@@ -123,10 +123,7 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  flex: 0 0 auto;
   border-radius: 7px;
-  color: var(--nd8-chrome-accent);
-  background: color-mix(in srgb, var(--nd8-chrome-accent) 12%, transparent);
 }
 
 .wec-rail-icon {
@@ -138,13 +135,13 @@
   place-items: center;
   width: 52px;
   height: 68px;
-  color: var(--nd8-chrome-accent);
+  padding: 10px;
 }
 
 .wec-rail-icon img {
   display: block;
-  width: 30px;
-  height: 30px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
@@ -184,19 +181,18 @@
   font-size: 11px;
 }
 
-.wec-status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--nd8-chrome-text-muted);
+.wec-save-status__icon {
+  color: var(--nd8-chrome-text-muted);
 }
 
-.wec-status-dot--running {
-  background: var(--nd8-chrome-run);
+.wec-save-status__icon--spin {
+  animation: wec-spin 800ms linear infinite;
 }
 
-.wec-status-dot--dirty {
-  background: var(--nd8-chrome-save);
+@keyframes wec-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .wec-header-meta {
@@ -222,6 +218,24 @@
   color: var(--nd8-chrome-run);
   border-color: color-mix(in srgb, var(--nd8-chrome-run) 38%, transparent);
   background: color-mix(in srgb, var(--nd8-chrome-run) 10%, transparent);
+}
+
+.wec-meta-pill--version {
+  color: var(--nod8-brand-400);
+  border-color: color-mix(in srgb, var(--nod8-brand-400) 36%, transparent);
+  background: color-mix(in srgb, var(--nod8-brand-400) 10%, transparent);
+}
+
+.wec-meta-pill--nodes {
+  color: var(--nod8-amber-400);
+  border-color: color-mix(in srgb, var(--nod8-amber-400) 36%, transparent);
+  background: color-mix(in srgb, var(--nod8-amber-400) 10%, transparent);
+}
+
+.wec-meta-pill--id {
+  color: var(--nod8-blue-400);
+  border-color: color-mix(in srgb, var(--nod8-blue-400) 36%, transparent);
+  background: color-mix(in srgb, var(--nod8-blue-400) 10%, transparent);
 }
 
 .wec-menu-bar {
@@ -315,6 +329,28 @@
   width: var(--nd8-chrome-icon);
   height: var(--nd8-chrome-icon);
   flex: 0 0 auto;
+}
+
+.wec-save-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--nd8-chrome-text-muted);
+}
+
+.wec-save-dot--dirty {
+  background: var(--nd8-chrome-text);
+}
+
+.wec-save-dot--saving {
+  animation: wec-save-pulse 900ms ease-in-out infinite;
+}
+
+@keyframes wec-save-pulse {
+  50% {
+    opacity: 0.45;
+    transform: scale(0.75);
+  }
 }
 
 .wec-control--primary {
