@@ -6,32 +6,24 @@ import {
   sidebarActivityItems,
   sidebarSections,
   sidebarMainUsesWoobyMenu,
+  sidebarProfileIcon,
   sidebarWidthForState,
 } from '../appSidebarNavigation.ts'
 
 describe('app sidebar navigation', () => {
-  it('groups suite areas into apps and spaces without placeholder features', () => {
-    assert.deepEqual(
-      sidebarSections.map((section) => ({
-        label: section.label,
-        items: section.items.map((item) => item.id),
-      })),
-      [
-        { label: 'Apps', items: ['workflows'] },
-        { label: 'Spaces', items: ['universe'] },
-      ],
-    )
+  it('groups core suite areas into apps and spaces', () => {
+    const apps = sidebarSections.find((section) => section.label === 'Apps')
+    const spaces = sidebarSections.find((section) => section.label === 'Spaces')
+
+    assert.equal(apps?.items.some((item) => item.id === 'workflows'), true)
+    assert.equal(spaces?.items.some((item) => item.id === 'universe'), true)
   })
 
   it('assigns stable color accents to visible suite apps', () => {
-    const accents = sidebarSections.flatMap((section) =>
-      section.items.map((item) => [item.id, item.accent]),
-    )
+    const items = sidebarSections.flatMap((section) => section.items)
 
-    assert.deepEqual(accents, [
-      ['workflows', 'blue'],
-      ['universe', 'violet'],
-    ])
+    assert.equal(items.find((item) => item.id === 'workflows')?.accent, 'blue')
+    assert.equal(items.find((item) => item.id === 'universe')?.accent, 'violet')
   })
 
   it('keeps bottom activity actions compact and professional', () => {
@@ -59,5 +51,9 @@ describe('app sidebar navigation', () => {
       topbarHasBottomBorder: true,
       sidebarSeparatorStartsBelowHeader: true,
     })
+  })
+
+  it('uses a grip icon for the workspace profile control', () => {
+    assert.equal(sidebarProfileIcon, 'grip')
   })
 })

@@ -1,7 +1,9 @@
 <template>
   <aside class="app-sidebar surface" :class="{ 'app-sidebar--collapsed': collapsed }">
     <header class="app-sidebar__header">
-      <div class="app-sidebar__profile" aria-hidden="true">N</div>
+      <div class="app-sidebar__profile" aria-hidden="true">
+        <LucideIcon :name="sidebarProfileIcon" :size="24" stroke-width="1.3" />
+      </div>
       <div class="app-sidebar__identity">
         <span class="app-sidebar__name">Workspace</span>
       </div>
@@ -11,7 +13,7 @@
         :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
         @click="$emit('toggle-collapsed')"
       >
-        <LucideIcon :name="collapsed ? 'panel-left-open' : 'panel-left-close'" :size="19" />
+        <LucideIcon :name="collapsed ? 'panel-right' : 'panel-left'" :size="19" />
       </button>
     </header>
 
@@ -27,6 +29,7 @@
 
 <script setup lang="ts">
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { sidebarProfileIcon } from './appSidebarNavigation'
 
 defineProps<{
   collapsed?: boolean
@@ -71,7 +74,7 @@ defineEmits<{
   display: flex;
   align-items: center;
   gap: var(--nod8-space-2);
-  min-height: 48px;
+  min-height: 55px;
   padding: 0 var(--nod8-space-3);
   flex-shrink: 0;
 }
@@ -79,9 +82,9 @@ defineEmits<{
 .app-sidebar__header::after {
   content: '';
   position: absolute;
-  left: 10%;
-  right: 10%;
-  bottom: 0;
+  left: 5%;
+  right: 5%;
+  bottom: -3px;
   height: 2px;
   border-radius: var(--nod8-radius-full);
   background: var(--nod8-border);
@@ -93,12 +96,7 @@ defineEmits<{
   width: 30px;
   height: 30px;
   flex: 0 0 auto;
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-full);
   color: var(--nod8-text-primary);
-  background: var(--nod8-bg-muted);
-  font-size: var(--nod8-text-xs);
-  font-weight: var(--nod8-font-semibold);
 }
 
 .app-sidebar__identity {

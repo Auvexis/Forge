@@ -31,6 +31,27 @@ export const sidebarSections: SidebarSection[] = [
         icon: 'workflow',
         accent: 'blue',
       },
+      {
+        id: 'agents',
+        label: 'Agents',
+        description: 'Create, edit, and manage your automated agents.',
+        icon: 'bot',
+        accent: 'green',
+      },
+      {
+        id: 'workflows',
+        label: 'Workflows',
+        description: 'Create, edit, and manage your automated workflows visually.',
+        icon: 'workflow',
+        accent: 'blue',
+      },
+      {
+        id: 'workflows',
+        label: 'Workflows',
+        description: 'Create, edit, and manage your automated workflows visually.',
+        icon: 'workflow',
+        accent: 'blue',
+      },
     ],
   },
   {
@@ -76,6 +97,8 @@ export const sidebarActivityItems: SidebarActivityItem[] = [
 ]
 
 export const sidebarMainUsesWoobyMenu = false
+
+export const sidebarProfileIcon = 'grip'
 
 export const sidebarChromeLayout = {
   topbarHasBottomBorder: true,
