@@ -87,6 +87,7 @@ describe('app sidebar navigation', () => {
       sectionLabelToGridPx: 22,
       itemColumnGapPx: 58,
       itemRowGapPx: 22,
+      gridColumns: 'stretch',
     })
   })
 })
