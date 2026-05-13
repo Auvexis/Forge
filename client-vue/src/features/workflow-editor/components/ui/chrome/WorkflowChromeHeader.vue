@@ -8,6 +8,7 @@ import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMen
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { useApi } from '@/shared/composables/useApi'
 import { useWorkflowActions } from '@/features/workflow-editor/composables/useWorkflowActions'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = defineProps<{
   workflowName: string
@@ -21,12 +22,14 @@ const props = defineProps<{
 
 const workflowMenuRef = ref<InstanceType<typeof AppDropdownMenu> | null>(null)
 const searchQuery = ref('')
+const isWorkflowMenuOpen = ref(false)
 const { openWorkflow } = useWorkflowActions()
 const { data: workflowsList, execute: fetchWorkflows } = useApi(workflowsApi.getAll, [])
 
 const statusLabel = computed(() => {
   if (props.autosaveStatus === 'saving') return 'Autosaving'
-  if (props.autosaveStatus === 'saved') return props.lastAutosavedAt ? `Saved ${getRelativeTime(props.lastAutosavedAt)}` : 'Saved'
+  if (props.autosaveStatus === 'saved')
+    return props.lastAutosavedAt ? `Saved ${getRelativeTime(props.lastAutosavedAt)}` : 'Saved'
   if (props.autosaveStatus === 'conflict') return 'Save conflict'
   if (props.isDirty) return 'Unsaved changes'
   return props.workflowId ? props.workflowId.slice(0, 14) : 'New Workflow'
@@ -75,9 +78,12 @@ onMounted(() => {
   fetchWorkflows().catch(console.error)
 })
 
-watch(() => props.workflowId, () => {
-  fetchWorkflows().catch(console.error)
-})
+watch(
+  () => props.workflowId,
+  () => {
+    fetchWorkflows().catch(console.error)
+  },
+)
 
 defineExpose({ openWorkflowMenu })
 </script>
@@ -85,17 +91,34 @@ defineExpose({ openWorkflowMenu })
 <template>
   <div class="wec-row wec-header">
     <div class="wec-doc">
-      <AppDropdownMenu ref="workflowMenuRef" position="bottom-start" :offset="3" max-height="350px">
+      <AppDropdownMenu
+        ref="workflowMenuRef"
+        position="bottom-start"
+        :offset="3"
+        max-height="350px"
+        @open="isWorkflowMenuOpen = true"
+        @close="isWorkflowMenuOpen = false"
+      >
         <template #trigger>
-          <button class="wec-doc__name" type="button">
+          <button
+            class="wec-doc__name"
+            :class="{ 'wec-doc__name--open': isWorkflowMenuOpen }"
+            style="padding: 5px 8px"
+            type="button"
+          >
             <span>{{ workflowName }}</span>
-            <LucideIcon name="chevron-down" :size="13" />
+            <LucideIcon class="wec-doc__chevron" name="chevron-down" :size="13" />
           </button>
         </template>
 
         <template #fixed>
           <div class="wec-workflow-search">
-            <BaseInput v-model="searchQuery" icon-left="search" placeholder="Search workflows..." @click.stop />
+            <BaseInput
+              v-model="searchQuery"
+              icon-left="search"
+              placeholder="Search workflows..."
+              @click.stop
+            />
           </div>
           <AppDropdownDivider />
         </template>
@@ -135,10 +158,7 @@ defineExpose({ openWorkflowMenu })
     <div class="wec-header-meta" aria-label="Workflow metadata">
       <span class="wec-meta-pill">{{ versionLabel }}</span>
       <span class="wec-meta-pill">{{ nodeCountLabel }}</span>
-      <span
-        class="wec-meta-pill"
-        :class="{ 'wec-meta-pill--live': publishLabel === 'Live' }"
-      >
+      <span class="wec-meta-pill" :class="{ 'wec-meta-pill--live': publishLabel === 'Live' }">
         {{ publishLabel }}
       </span>
     </div>

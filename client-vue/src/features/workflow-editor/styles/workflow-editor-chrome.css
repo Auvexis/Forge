@@ -165,6 +165,15 @@
   white-space: nowrap;
 }
 
+.wec-doc__chevron {
+  flex: 0 0 auto;
+  transition: transform 140ms ease;
+}
+
+.wec-doc__name--open .wec-doc__chevron {
+  transform: rotate(180deg);
+}
+
 .wec-doc__status {
   display: inline-flex;
   align-items: center;
