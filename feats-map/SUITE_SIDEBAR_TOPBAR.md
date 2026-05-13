@@ -24,3 +24,4 @@
 - [x] Corrigir main para labels fora do WoobyMenu e apps em grid minimalista de 2 colunas.
 - [x] Remover WoobyMenu da main e impedir itens isolados de ocupar 100% da linha.
 - [x] Adicionar border bottom no topbar e fazer o separador vertical da sidebar iniciar abaixo do header.
+- [x] Ajustar ritmo de espacamento da sidebar main/header para ficar mais proximo da referencia visual.

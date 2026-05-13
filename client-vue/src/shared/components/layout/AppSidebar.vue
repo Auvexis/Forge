@@ -2,7 +2,7 @@
   <aside class="app-sidebar surface" :class="{ 'app-sidebar--collapsed': collapsed }">
     <header class="app-sidebar__header">
       <div class="app-sidebar__profile" aria-hidden="true">
-        <LucideIcon :name="sidebarProfileIcon" :size="24" stroke-width="1.3" />
+        <LucideIcon :name="sidebarProfileIcon" :size="26" stroke-width="1.5" />
       </div>
       <div class="app-sidebar__identity">
         <span class="app-sidebar__name">Workspace</span>
@@ -13,7 +13,7 @@
         :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
         @click="$emit('toggle-collapsed')"
       >
-        <LucideIcon :name="collapsed ? 'panel-right' : 'panel-left'" :size="19" />
+        <LucideIcon :name="collapsed ? 'panel-right' : 'panel-left'" :size="21" />
       </button>
     </header>
 
@@ -61,7 +61,7 @@ defineEmits<{
 .app-sidebar::before {
   content: '';
   position: absolute;
-  top: 48px;
+  top: 54px;
   right: 0;
   bottom: 0;
   width: 1px;
@@ -73,19 +73,19 @@ defineEmits<{
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
-  min-height: 55px;
-  padding: 0 var(--nod8-space-3);
+  gap: 12px;
+  min-height: 58px;
+  padding: 0 18px;
   flex-shrink: 0;
 }
 
 .app-sidebar__header::after {
   content: '';
   position: absolute;
-  left: 5%;
-  right: 5%;
-  bottom: -3px;
-  height: 2px;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 1px;
   border-radius: var(--nod8-radius-full);
   background: var(--nod8-border);
 }
@@ -111,7 +111,7 @@ defineEmits<{
 .app-sidebar__name {
   color: var(--nod8-text-primary);
   font-size: var(--nod8-text-sm);
-  font-weight: var(--nod8-font-semibold);
+  font-weight: var(--nod8-font-medium);
 }
 
 .app-sidebar__collapse {
@@ -139,8 +139,8 @@ defineEmits<{
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-4);
-  padding: var(--nod8-space-4) var(--nod8-space-3);
+  gap: 30px;
+  padding: 24px 18px var(--nod8-space-4);
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;

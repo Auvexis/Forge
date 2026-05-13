@@ -95,6 +95,17 @@ export const sidebarMainActiveStyle = {
 
 export const sidebarProfileIcon = 'grip'
 
+export const sidebarReferenceSpacing = {
+  headerHeightPx: 58,
+  horizontalPaddingPx: 18,
+  dividerInsetPx: 12,
+  mainTopPaddingPx: 24,
+  sectionGapPx: 30,
+  sectionLabelToGridPx: 22,
+  itemColumnGapPx: 58,
+  itemRowGapPx: 22,
+} as const
+
 export const sidebarChromeLayout = {
   topbarHasBottomBorder: true,
   sidebarSeparatorStartsBelowHeader: true,

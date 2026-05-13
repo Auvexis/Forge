@@ -8,6 +8,7 @@ import {
   sidebarMainUsesWoobyMenu,
   sidebarMainActiveStyle,
   sidebarProfileIcon,
+  sidebarReferenceSpacing,
   sidebarWidthForState,
 } from '../appSidebarNavigation.ts'
 
@@ -71,6 +72,19 @@ describe('app sidebar navigation', () => {
     assert.deepEqual(sidebarMainActiveStyle, {
       hidesInheritedBeforeIndicator: true,
       usesOutline: true,
+    })
+  })
+
+  it('matches the reference sidebar spacing rhythm', () => {
+    assert.deepEqual(sidebarReferenceSpacing, {
+      headerHeightPx: 58,
+      horizontalPaddingPx: 18,
+      dividerInsetPx: 12,
+      mainTopPaddingPx: 24,
+      sectionGapPx: 30,
+      sectionLabelToGridPx: 22,
+      itemColumnGapPx: 58,
+      itemRowGapPx: 22,
     })
   })
 })
