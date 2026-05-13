@@ -244,13 +244,21 @@
   background: var(--nd8-chrome-bg-hover);
 }
 
-.wec-menu-bar :deep(.app-popover-trigger),
-.wec-menu-bar .app-popover-trigger {
-  align-items: center;
-  padding: 0;
+.wec-menu-bar .app-popover-wrapper {
+  height: 30px;
+  width: auto;
 }
 
-.wec-menu-bar :deep(.app-popover-trigger:hover),
+.wec-menu-bar .app-popover-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  width: auto;
+  padding: 0;
+  border-radius: 7px;
+}
+
 .wec-menu-bar .app-popover-trigger:hover {
   background: transparent;
 }
