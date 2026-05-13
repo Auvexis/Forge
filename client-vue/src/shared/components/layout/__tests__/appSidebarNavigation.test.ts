@@ -68,10 +68,10 @@ describe('app sidebar navigation', () => {
     assert.equal(sidebarProfileIcon, 'grip')
   })
 
-  it('uses outline-only active styling for main suite items', () => {
+  it('uses text underline active styling for main suite items', () => {
     assert.deepEqual(sidebarMainActiveStyle, {
       hidesInheritedBeforeIndicator: true,
-      usesOutline: true,
+      usesTextUnderline: true,
     })
   })
 

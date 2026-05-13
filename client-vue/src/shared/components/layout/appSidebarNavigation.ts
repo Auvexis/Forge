@@ -90,7 +90,7 @@ export const sidebarMainUsesWoobyMenu = false
 
 export const sidebarMainActiveStyle = {
   hidesInheritedBeforeIndicator: true,
-  usesOutline: true,
+  usesTextUnderline: true,
 } as const
 
 export const sidebarProfileIcon = 'grip'
