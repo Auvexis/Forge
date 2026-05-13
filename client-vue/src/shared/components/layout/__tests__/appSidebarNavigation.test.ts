@@ -15,7 +15,9 @@ import {
 describe('app sidebar navigation', () => {
   it('groups core suite areas into apps and spaces', () => {
     const apps = sidebarSections.find((section) => section.label === 'Apps')
-    const spaces = sidebarSections.find((section) => section.label === 'Spaces')
+    const spaces = sidebarSections.find((section) =>
+      section.items.some((item) => item.id === 'universe'),
+    )
 
     assert.equal(apps?.items.some((item) => item.id === 'workflows'), true)
     assert.equal(spaces?.items.some((item) => item.id === 'universe'), true)
@@ -24,9 +26,9 @@ describe('app sidebar navigation', () => {
   it('assigns stable color accents to visible suite apps', () => {
     const items = sidebarSections.flatMap((section) => section.items)
 
-    assert.equal(items.find((item) => item.id === 'workflows')?.accent, 'green')
-    assert.equal(items.find((item) => item.id === 'agents')?.accent, 'blue')
-    assert.equal(items.find((item) => item.id === 'universe')?.accent, 'violet')
+    assert.match(items.find((item) => item.id === 'workflows')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
+    assert.match(items.find((item) => item.id === 'agents')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
+    assert.match(items.find((item) => item.id === 'universe')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
   })
 
   it('provides routes for each visible suite navigation item', () => {

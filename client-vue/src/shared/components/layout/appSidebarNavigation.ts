@@ -1,4 +1,4 @@
-export type SidebarAccent = 'blue' | 'violet' | 'green' | 'amber'
+export type SidebarAccent = `#${string}`
 
 export interface SidebarNavItem {
   id: string
@@ -30,7 +30,7 @@ export const sidebarSections: SidebarSection[] = [
         label: 'Workflows',
         description: 'Create, edit, and manage your automated workflows visually.',
         icon: 'workflow',
-        accent: 'green',
+        accent: '#34d399',
         route: '/workflows',
       },
       {
@@ -38,13 +38,13 @@ export const sidebarSections: SidebarSection[] = [
         label: 'Agents',
         description: 'Create, edit, and manage your AI agents.',
         icon: 'bot',
-        accent: 'blue',
+        accent: '#60a5fa',
         route: '/agents',
       },
     ],
   },
   {
-    label: 'Spaces',
+    label: 'UI',
     items: [
       {
         id: 'universe',
@@ -52,7 +52,7 @@ export const sidebarSections: SidebarSection[] = [
         description:
           'Explore your node ecosystem in an immersive 3D space for integrations and dependencies.',
         icon: 'orbit',
-        accent: 'violet',
+        accent: '#8a52ff',
         route: '/universe',
       },
     ],

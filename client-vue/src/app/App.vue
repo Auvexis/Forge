@@ -35,10 +35,8 @@
                     <router-link
                       :to="item.route"
                       class="nav-link suite-nav-link"
-                      :class="[
-                        `suite-nav-link--${item.accent}`,
-                        { 'nav-link--active': route.path.startsWith(item.route) },
-                      ]"
+                      :class="{ 'nav-link--active': route.path.startsWith(item.route) }"
+                      :style="{ '--suite-nav-accent': item.accent }"
                       @click="handleSidebarNavClick(item)"
                     >
                       <LucideIcon :name="item.icon" :size="18" />
