@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, markRaw, computed, onBeforeUnmount, nextTick } from 'vue'
-import { VueFlow, useVueFlow } from '@vue-flow/core'
+import { VueFlow } from '@vue-flow/core'
 import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection, VueFlowStore } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
 import { useExecutionStore } from '../stores/execution.store'
@@ -40,7 +40,6 @@ const panelStore = useAppPanelStore()
 const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
 const vueFlowStore = ref<VueFlowStore | null>(null)
-const { zoomIn, zoomOut, zoomTo, fitView } = useVueFlow()
 
 // ── Props / emits (for v-model:show-logs from parent page) ──────────────────
 const props = defineProps<{
@@ -349,6 +348,22 @@ async function handleStop() {
 
 function handleToggleLogs() {
   emit('update:show-logs', !props.showLogs)
+}
+
+function zoomCanvasIn() {
+  return vueFlowStore.value?.zoomIn({ duration: 300 })
+}
+
+function zoomCanvasOut() {
+  return vueFlowStore.value?.zoomOut({ duration: 300 })
+}
+
+function resetCanvasZoom() {
+  return vueFlowStore.value?.zoomTo(1, { duration: 300 })
+}
+
+function fitWorkflowView() {
+  return vueFlowStore.value?.fitView({ duration: 300, padding: 0.2 })
 }
 
 // Friendly default name per node type (shown in the node header before the user renames it)
@@ -836,10 +851,10 @@ defineExpose({
   handleRun,
   handleStop,
   openAddNodePanel,
-  zoomIn: () => zoomIn({ duration: 300 }),
-  zoomOut: () => zoomOut({ duration: 300 }),
-  zoomReset: () => zoomTo(1, { duration: 300 }),
-  fitWorkflowView: () => fitView({ duration: 300, padding: 0.2 }),
+  zoomIn: zoomCanvasIn,
+  zoomOut: zoomCanvasOut,
+  zoomReset: resetCanvasZoom,
+  fitWorkflowView,
 })
 </script>
 

@@ -39,7 +39,7 @@ export const workflowChromeMenus: WorkflowChromeMenu[] = [
     items: [
       { id: 'view.zoom-out', label: 'Zoom Out', icon: 'zoom-out' },
       { id: 'view.zoom-in', label: 'Zoom In', icon: 'zoom-in' },
-      { id: 'view.zoom-reset', label: 'Reset Zoom', icon: 'scan' },
+      { id: 'view.zoom-reset', label: 'Reset Zoom', icon: 'rotate-ccw' },
       { id: 'view.fit', label: 'Fit View', icon: 'maximize' },
       { id: 'view.logs', label: 'Logs', icon: 'scroll-text' },
     ],
@@ -124,7 +124,7 @@ export const workflowChromeToolbarGroups: WorkflowChromeToolbarGroup[] = [
     id: 'canvas',
     actions: [
       { id: 'view.zoom-out', label: 'Zoom out', icon: 'zoom-out' },
-      { id: 'view.zoom-reset', label: 'Reset zoom', icon: 'scan' },
+      { id: 'view.zoom-reset', label: 'Reset zoom', icon: 'rotate-ccw' },
       { id: 'view.zoom-in', label: 'Zoom in', icon: 'zoom-in' },
       { id: 'view.fit', label: 'Fit view', icon: 'maximize' },
     ],
