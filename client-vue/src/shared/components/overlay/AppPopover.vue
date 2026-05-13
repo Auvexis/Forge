@@ -181,7 +181,7 @@ defineExpose({ open, close, toggle, isOpen })
   min-width: 200px;
   padding: var(--nod8-space-2);
   border: 1px solid var(--nod8-border);
-  border-top: 0;
+  border-radius: var(--nod8-radius-sm);
   margin-top: 1px;
   background-color: var(--nod8-bg-surface);
 }

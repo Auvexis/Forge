@@ -21,7 +21,7 @@ defineEmits<{
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
+  min-height: 50px;
   padding: 0 var(--nod8-space-5);
   border-bottom: 1px solid var(--nod8-topbar-border);
   background: var(--nod8-topbar-bg);

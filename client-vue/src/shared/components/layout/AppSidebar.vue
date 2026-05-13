@@ -13,7 +13,7 @@
         :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
         @click="$emit('toggle-collapsed')"
       >
-        <LucideIcon :name="collapsed ? 'panel-right' : 'panel-left'" :size="21" />
+        <LucideIcon :name="collapsed ? 'panel-right' : 'panel-left'" :size="21" stroke-width="2" />
       </button>
     </header>
 
@@ -61,7 +61,7 @@ defineEmits<{
 .app-sidebar::before {
   content: '';
   position: absolute;
-  top: 54px;
+  top: 49px;
   right: 0;
   bottom: 0;
   width: 1px;
@@ -74,7 +74,7 @@ defineEmits<{
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 58px;
+  min-height: 50px;
   padding: 0 18px;
   flex-shrink: 0;
 }
@@ -82,8 +82,8 @@ defineEmits<{
 .app-sidebar__header::after {
   content: '';
   position: absolute;
-  left: 12px;
-  right: 12px;
+  left: 23px;
+  right: 23px;
   bottom: 0;
   height: 1px;
   border-radius: var(--nod8-radius-full);
@@ -140,7 +140,7 @@ defineEmits<{
   display: flex;
   flex-direction: column;
   gap: 30px;
-  padding: 24px 18px var(--nod8-space-4);
+  padding: 20px 18px;
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;

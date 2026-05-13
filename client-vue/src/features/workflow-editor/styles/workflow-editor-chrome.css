@@ -391,7 +391,7 @@
 
 .wec-autosave .base-switch__label {
   color: var(--nd8-chrome-text-muted);
-  font-size: var(--nod8-text-xs);
+  font-size: 12px !important;
 }
 
 .wec-toolbar-row {

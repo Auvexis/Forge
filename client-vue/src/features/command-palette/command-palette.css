@@ -6,7 +6,7 @@
   align-items: flex-start;
   justify-content: center;
   padding: min(12vh, 96px) 16px 16px;
-  background: rgba(3, 7, 18, 0.56);
+  background: rgba(0, 0, 0, 0.095);
   backdrop-filter: blur(8px);
 }
 
