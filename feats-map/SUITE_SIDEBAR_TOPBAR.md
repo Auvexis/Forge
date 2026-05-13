@@ -13,4 +13,4 @@
 - [x] Implementar configuracao e layout expandido/minimizado da sidebar com hints.
 - [x] Adicionar topbar global que abre command palette.
 - [x] Ajustar variaveis de largura ativa para sidebar panels.
-- [ ] Rodar verificacoes e revisar comportamento visual basico.
+- [x] Rodar verificacoes automatizadas; Browser in-app bloqueou localhost com `ERR_BLOCKED_BY_CLIENT`.
