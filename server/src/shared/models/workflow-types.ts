@@ -195,7 +195,7 @@ export interface WaitFormNode extends WorkflowNodeBase {
   publicSlug?: string;
   fields: FormTriggerField[];
   theme?: FormTheme;
-  expiresInSeconds?: number;
+  expiresInSeconds?: number | string;
 }
 
 // ──────────── Discriminated Union ────────────
