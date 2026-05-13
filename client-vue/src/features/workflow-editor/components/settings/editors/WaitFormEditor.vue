@@ -72,20 +72,20 @@
           </a>
         </div>
         <div class="wait-form-url-row">
-          <span class="wait-form-url-badge wait-form-url-badge--prod">PROD</span>
-          <div class="wait-form-url-box">{{ formProdUrl || '<generated-on-execution>' }}</div>
+          <span class="wait-form-url-badge wait-form-url-badge--prod">RUNTIME</span>
+          <div class="wait-form-url-box">{{ runtimeUrlHint }}</div>
           <button
             class="wait-form-icon-btn"
             title="Copy URL"
-            :disabled="!formProdUrl"
-            @click="copyUrl(formProdUrl, 'prod')"
+            :disabled="!runtimeFormUrl"
+            @click="copyUrl(runtimeFormUrl, 'prod')"
           >
             <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--nod8-green-400)" />
             <CopyIcon v-else :size="14" />
           </button>
           <a
-            v-if="formProdUrl"
-            :href="formProdUrl"
+            v-if="runtimeFormUrl"
+            :href="runtimeFormUrl"
             target="_blank"
             rel="noopener"
             class="wait-form-icon-btn"
@@ -96,8 +96,8 @@
         </div>
       </div>
       <div class="editor-hint">
-        Static URLs need a Public URL Slug. Without one, the temporary form URL is generated when
-        this step runs.
+        Template slugs are resolved when the workflow reaches this step. The runtime URL appears
+        after the temporary form session is created.
       </div>
     </EditorField>
 
@@ -127,24 +127,18 @@ import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import ExpressionInput from '../expressions/ExpressionInput.vue'
 import FormThemeMenu from '../../form/FormThemeMenu.vue'
 import FormFieldsEditor from '../../form/FormFieldsEditor.vue'
-import { API_BASE_URL } from '@/core/constants/app'
-import { appApi } from '@/core/api/app.api'
+import { useExecutionStore } from '../../../stores/execution.store'
+import { useWorkflowStore } from '../../../stores/workflow.store'
+import {
+  buildTemporaryFormUrl,
+  resolveWaitFormRuntimeSlug,
+  type WaitFormTemplateContext,
+} from './waitFormRuntimeUrls'
 
 const props = defineProps<NodeEditorProps>()
 const copied = ref<'test' | 'prod' | null>(null)
-const backendPublicUrl = ref(API_BASE_URL)
-
-async function loadAppInfo() {
-  try {
-    const info = await appApi.getInfo()
-    if (info.publicUrl) {
-      backendPublicUrl.value = info.publicUrl
-    }
-  } catch {
-    // Keep API_BASE_URL fallback.
-  }
-}
-loadAppInfo()
+const executionStore = useExecutionStore()
+const workflowStore = useWorkflowStore()
 
 const formFields = computed<FormTriggerField[]>(
   () => (props.node.data.fields as FormTriggerField[]) ?? [],
@@ -154,13 +148,43 @@ const formTheme = computed<FormTheme>(
   () => (props.node.data.theme as FormTheme) ?? {},
 )
 
-const formPublicSlug = computed(() => String(props.node.data.publicSlug ?? '').trim())
+const templateContext = computed<WaitFormTemplateContext>(() => {
+  const steps: WaitFormTemplateContext['steps'] = {}
+  for (const [nodeId, state] of Object.entries(executionStore.nodeStatuses)) {
+    if (state.output !== undefined) steps[nodeId] = { output: state.output }
+  }
+
+  return {
+    trigger: workflowStore.activeWorkflow?.trigger.lastTriggerPayload ?? {},
+    steps,
+    variables: Object.fromEntries(
+      (workflowStore.activeWorkflow?.variables ?? []).map((variable) => [
+        variable.name,
+        variable.defaultValue,
+      ]),
+    ),
+  }
+})
+
+const formPublicSlug = computed(() =>
+  resolveWaitFormRuntimeSlug(String(props.node.data.publicSlug ?? ''), templateContext.value),
+)
+const runtimeFormUrl = computed(() => {
+  const output = executionStore.nodeStatuses[props.node.id]?.output as
+    | { formUrl?: string }
+    | undefined
+  return output?.formUrl ?? ''
+})
 const formTestUrl = computed(() =>
-  formPublicSlug.value ? `${API_BASE_URL}/temporary-forms/${formPublicSlug.value}` : '',
+  runtimeFormUrl.value || buildTemporaryFormUrl(window.location.origin, formPublicSlug.value.slug),
 )
-const formProdUrl = computed(() =>
-  formPublicSlug.value ? `${backendPublicUrl.value}/temporary-forms/${formPublicSlug.value}` : '',
-)
+const runtimeUrlHint = computed(() => {
+  if (runtimeFormUrl.value) return runtimeFormUrl.value
+  if (formPublicSlug.value.hasTemplate && !formPublicSlug.value.isResolved) {
+    return '<generated after upstream values exist>'
+  }
+  return formTestUrl.value || '<generated-on-execution>'
+})
 
 async function copyUrl(url: string, which: 'test' | 'prod') {
   if (!url) return

@@ -27,6 +27,8 @@ export const ENDPOINTS = {
   // Forms
   FORM_DEFINITION: (id: string) => `/forms-api/${id}`,
   FORM_SUBMIT: (id: string) => `/forms-api/${id}/submit`,
+  TEMPORARY_FORM_DEFINITION: (id: string) => `/temporary-forms-api/${id}`,
+  TEMPORARY_FORM_SUBMIT: (id: string) => `/temporary-forms-api/${id}/submit`,
 
   // Plugins
   PLUGINS: '/plugins',

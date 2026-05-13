@@ -31,7 +31,16 @@ function input(
     workflow,
     edges: [],
     executionId: "exec-1",
-    context: { trigger: { uuid: "candidate-123", ttl: 12 }, steps: {}, variables: {} },
+    context: {
+      trigger: { uuid: "candidate-123", ttl: 12 },
+      steps: {
+        "event-listener_1": {
+          status: "SUCCESS",
+          output: { cod_vaga: "4f41f350-f37c-41ec-88f3-c9c7851ec3a9" },
+        },
+      },
+      variables: {},
+    },
     services: {
       executeNode: async () => undefined,
       executeWorkflow: async () => undefined,
@@ -103,6 +112,41 @@ describe("wait-form utility node", () => {
     assert.equal(formId, "vaga-candidate-123");
     submitTemporaryFormSession(formId, { email: "ada@example.com" });
     await execution;
+  });
+
+  it("resolves event-listener output in publicSlug and emits the frontend temporary form URL", async () => {
+    const previousClientOrigin = process.env.CLIENT_ORIGIN;
+    process.env.CLIENT_ORIGIN = "http://localhost:23802";
+    let formId = "";
+    let formUrl = "";
+    const execution = waitFormNodeHandler.execute(
+      input(
+        {
+          type: "wait-form",
+          name: "Candidate Form",
+          title: "Candidate",
+          publicSlug: "job-{{ steps.event-listener_1.output.cod_vaga }}",
+          fields: [{ name: "email", label: "Email", type: "email" }],
+          expiresInSeconds: 5,
+        },
+        {
+          emitWorkflowEvent: (event) => {
+            formId = event.data?.formId ?? formId;
+            formUrl = event.data?.formUrl ?? formUrl;
+          },
+        },
+      ),
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(formId, "job-4f41f350-f37c-41ec-88f3-c9c7851ec3a9");
+    assert.equal(
+      formUrl,
+      "http://localhost:23802/temporary-forms/job-4f41f350-f37c-41ec-88f3-c9c7851ec3a9",
+    );
+    submitTemporaryFormSession(formId, { email: "ada@example.com" });
+    await execution;
+    process.env.CLIENT_ORIGIN = previousClientOrigin;
   });
 
   it("resolves a templated expiration before creating the temporary form", async () => {

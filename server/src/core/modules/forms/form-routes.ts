@@ -147,44 +147,39 @@ export function registerFormRoutes(
       );
     }
 
-    return reply
-      .type("text/html; charset=utf-8")
-      .send(
-        renderFormPage(
-          {
-            metadata: {
-              id: session.id,
-              name: session.title,
-              version: "temporary",
-              isActive: true,
-              isDraft: false,
-              public: true,
-              createdAt: new Date(session.createdAt).toISOString(),
-            },
-            trigger: {
-              type: "form",
-              formTitle: session.title,
-              formDescription: session.description,
-              formFields: session.fields,
-              formTheme: session.theme,
-            },
-            nodes: {},
-            edges: [],
-          },
-          session.fields.map((field) => ({
-            name: field.name,
-            label: field.label,
-            type: field.type,
-            required: Boolean(field.required),
-            placeholder: field.placeholder ?? "",
-            description: field.description ?? "",
-            options: field.options ?? [],
-            accept: field.accept,
-            maxSize: field.maxSize,
-          })),
-          { submitPath: `/temporary-forms/${session.id}/submit` },
-        ),
-      );
+    return reply.redirect(
+      `${deps.clientOrigin}/temporary-forms/${encodeURIComponent(session.id)}`,
+    );
+  });
+
+  fastify.get("/temporary-forms-api/:formId", async (req, reply) => {
+    const { formId } = req.params as { formId: string };
+    const session = getTemporaryFormSession(formId);
+
+    if (!session) {
+      return deps.sendResponse(reply, {
+        status_code: 404,
+        message: "Temporary form not found or expired",
+        error: "Not Found",
+        data: null,
+      });
+    }
+
+    return deps.sendResponse(reply, {
+      status_code: 200,
+      message: "Temporary form definition fetched",
+      error: null,
+      data: {
+        id: session.id,
+        workflowId: session.workflowId,
+        mode: "temp",
+        title: session.title,
+        description: session.description ?? "",
+        fields: session.fields,
+        theme: session.theme ?? {},
+        expiresAt: session.expiresAt,
+      },
+    });
   });
 
   fastify.post("/temporary-forms/:formId/submit", async (req, reply) => {
@@ -225,6 +220,37 @@ export function registerFormRoutes(
         nodes: {},
         edges: [],
       }));
+  });
+
+  fastify.post("/temporary-forms-api/:formId/submit", async (req, reply) => {
+    const { formId } = req.params as { formId: string };
+    const session = getTemporaryFormSession(formId);
+    if (!session) {
+      return deps.sendResponse(reply, {
+        status_code: 404,
+        message: "Temporary form not found or expired",
+        error: "Not Found",
+        data: null,
+      });
+    }
+
+    const fields = ((req.body as Record<string, unknown>) ?? {});
+    const submitted = submitTemporaryFormSession(formId, fields);
+    if (!submitted) {
+      return deps.sendResponse(reply, {
+        status_code: 404,
+        message: "Temporary form not found or expired",
+        error: "Not Found",
+        data: null,
+      });
+    }
+
+    return deps.sendResponse(reply, {
+      status_code: 200,
+      message: "Temporary form submitted",
+      error: null,
+      data: { submitted: true },
+    });
   });
 }
 

@@ -12,11 +12,11 @@ function normalizeExpirationSeconds(value: unknown): number {
   return Math.min(MAX_EXPIRATION_SECONDS, Math.max(1, safeValue));
 }
 
-function resolvePublicOrigin(): string {
+function resolveTemporaryFormOrigin(): string {
   return (
-    process.env.SERVER_PUBLIC_ORIGIN ||
-    process.env.API_PUBLIC_ORIGIN ||
-    `http://localhost:${process.env.PORT || 23801}`
+    process.env.CLIENT_PUBLIC_ORIGIN ||
+    process.env.CLIENT_ORIGIN ||
+    "http://localhost:23802"
   ).replace(/\/$/, "");
 }
 
@@ -45,7 +45,7 @@ export const waitFormNodeHandler = createNodeHandler<WaitFormNode>(
       publicSlug: String(resolvedConfig.publicSlug || ""),
       expiresInSeconds,
     });
-    const formUrl = `${resolvePublicOrigin()}/temporary-forms/${session.id}`;
+    const formUrl = `${resolveTemporaryFormOrigin()}/temporary-forms/${session.id}`;
 
     services.emitWorkflowEvent?.({
       executionId,

@@ -26,7 +26,10 @@ import { workflowsApi, type FormDefinition } from '@/core/api/workflows.api'
 import FormRenderer from '@/features/workflow-editor/components/form/FormRenderer.vue'
 
 const route = useRoute()
-const mode = computed<'test' | 'prod'>(() => route.name === 'form-test' ? 'test' : 'prod')
+const mode = computed<'test' | 'prod' | 'temp'>(() => {
+  if (route.name === 'temporary-form') return 'temp'
+  return route.name === 'form-test' ? 'test' : 'prod'
+})
 const formId = computed(() => String(route.params.formId ?? ''))
 const execId = computed(() => String(route.query.execId ?? ''))
 
@@ -46,7 +49,10 @@ async function loadForm() {
   isLoading.value = true
   loadError.value = ''
   try {
-    definition.value = await workflowsApi.getFormDefinition(formId.value, mode.value)
+    definition.value =
+      mode.value === 'temp'
+        ? await workflowsApi.getTemporaryFormDefinition(formId.value)
+        : await workflowsApi.getFormDefinition(formId.value, mode.value)
   } catch (err: any) {
     loadError.value = err?.message ?? 'Form not available'
   } finally {
@@ -58,12 +64,16 @@ async function handleSubmit() {
   submitError.value = ''
   isSubmitting.value = true
   try {
-    await workflowsApi.submitForm(
-      formId.value,
-      mode.value,
-      { ...values },
-      execId.value || undefined,
-    )
+    if (mode.value === 'temp') {
+      await workflowsApi.submitTemporaryForm(formId.value, { ...values })
+    } else {
+      await workflowsApi.submitForm(
+        formId.value,
+        mode.value,
+        { ...values },
+        execId.value || undefined,
+      )
+    }
     submitted.value = true
   } catch (err: any) {
     submitError.value = err?.message ?? 'Failed to submit form'

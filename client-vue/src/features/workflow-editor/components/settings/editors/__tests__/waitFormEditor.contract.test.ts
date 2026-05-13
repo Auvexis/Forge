@@ -12,7 +12,7 @@ describe('wait form editor contract', () => {
     assert.match(editorSource, /EditorField label="Description"/)
     assert.match(editorSource, /Form URLs/)
     assert.match(editorSource, /formTestUrl/)
-    assert.match(editorSource, /formProdUrl/)
+    assert.match(editorSource, /runtimeFormUrl/)
   })
 
   it('uses variable-aware inputs for public slug and expiration', () => {

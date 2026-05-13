@@ -26,11 +26,12 @@ export interface ProductionWorkflowStatus {
 export interface FormDefinition {
   id: string
   workflowId: string
-  mode: 'test' | 'prod'
+  mode: 'test' | 'prod' | 'temp'
   title: string
   description: string
   fields: FormTriggerField[]
   theme: FormTheme
+  expiresAt?: number
 }
 
 // ── Server response shape (snake_case from SQLite row) ────────
@@ -218,6 +219,9 @@ export const workflowsApi = {
       params: { mode },
     }),
 
+  getTemporaryFormDefinition: (formId: string) =>
+    apiRequest<FormDefinition>(ENDPOINTS.TEMPORARY_FORM_DEFINITION(formId)),
+
   submitForm: (
     formId: string,
     mode: 'test' | 'prod',
@@ -251,6 +255,32 @@ export const workflowsApi = {
       params: { mode },
       body,
       headers,
+    })
+  },
+
+  submitTemporaryForm: (formId: string, payload: Record<string, unknown>) => {
+    const hasFiles = Object.values(payload).some((value) => value instanceof File)
+    let body: Record<string, unknown> | FormData = payload
+
+    if (hasFiles) {
+      const form = new FormData()
+      for (const [key, value] of Object.entries(payload)) {
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            form.append(key, String(item))
+          }
+        } else if (value instanceof File) {
+          form.append(key, value, value.name)
+        } else if (value !== undefined && value !== null) {
+          form.append(key, typeof value === 'string' ? value : JSON.stringify(value))
+        }
+      }
+      body = form
+    }
+
+    return apiRequest<{ submitted: boolean }>(ENDPOINTS.TEMPORARY_FORM_SUBMIT(formId), {
+      method: 'POST',
+      body,
     })
   },
 }

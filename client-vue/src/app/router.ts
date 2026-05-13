@@ -33,6 +33,12 @@ const router = createRouter({
       meta: { title: 'Form', public: true },
     },
     {
+      path: '/temporary-forms/:formId',
+      name: 'temporary-form',
+      component: () => import('@/app/pages/FormPage.vue'),
+      meta: { title: 'Temporary Form', public: true },
+    },
+    {
       path: '/universe',
       name: 'universe',
       component: () => import('@/app/pages/UniversePage.vue'),

@@ -1,7 +1,7 @@
 <template>
   <FormThemeProvider :theme="definition.theme">
     <header class="form-renderer-header">
-      <span class="form-renderer-badge">{{ mode === 'test' ? 'Test Form' : 'Form' }}</span>
+      <span class="form-renderer-badge">{{ mode === 'test' ? 'Test Form' : mode === 'temp' ? 'Temporary Form' : 'Form' }}</span>
       <h1>{{ definition.title }}</h1>
       <p v-if="definition.description">{{ definition.description }}</p>
       <div v-if="execId" class="form-renderer-watching">
@@ -43,7 +43,7 @@ import FormThemeProvider from './FormThemeProvider.vue'
 
 defineProps<{
   definition: FormDefinition
-  mode: 'test' | 'prod'
+  mode: 'test' | 'prod' | 'temp'
   execId?: string
   values: Record<string, unknown>
   submitted: boolean
