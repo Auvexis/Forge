@@ -121,6 +121,7 @@ export const workflowChromeToolbarGroups: WorkflowChromeToolbarGroup[] = [
     actions: [
       { id: 'run.workflow', label: 'Run', icon: 'play', kind: 'primary' },
       { id: 'run.stop', label: 'Stop', icon: 'square', kind: 'danger' },
+      { id: 'run.clean-execution', label: 'Clean Execution', icon: 'eraser' },
     ],
   },
   {

@@ -23,6 +23,7 @@ const props = defineProps<{
   isAutosaveEnabled?: boolean
   canUndo?: boolean
   canRedo?: boolean
+  hasExecutionState?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -30,6 +31,7 @@ const emit = defineEmits<{
   (e: 'add-node'): void
   (e: 'run'): void
   (e: 'stop'): void
+  (e: 'clean-execution'): void
   (e: 'export-workflow'): void
   (e: 'import-workflow'): void
   (e: 'create-workflow'): void
@@ -86,6 +88,7 @@ function handleCommand(id: WorkflowChromeCommandId) {
     'go.command-palette': () => emit('command-palette'),
     'run.workflow': () => emit('run'),
     'run.stop': () => emit('stop'),
+    'run.clean-execution': () => emit('clean-execution'),
     'run.publish': () => emit('publish'),
   }
 
@@ -124,6 +127,7 @@ function handleCommand(id: WorkflowChromeCommandId) {
         :is-saving="isSaving"
         :is-dirty="isDirty"
         :is-logs-open="isLogsOpen"
+        :has-execution-state="hasExecutionState"
         @command="handleCommand"
       />
       <div class="wec-divider" />

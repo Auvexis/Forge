@@ -11,6 +11,7 @@ const props = defineProps<{
   isSaving?: boolean
   isDirty?: boolean
   isLogsOpen?: boolean
+  hasExecutionState?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -22,6 +23,9 @@ function isDisabled(id: WorkflowChromeCommandId) {
   if (id === 'edit.redo') return !props.canRedo || props.isExecuting || props.isStreaming
   if (id === 'run.workflow') return props.isExecuting === true
   if (id === 'run.stop') return props.isStreaming !== true
+  if (id === 'run.clean-execution') {
+    return props.isExecuting || props.isStreaming || !props.hasExecutionState
+  }
   if (id === 'file.save') return props.isSaving || !props.isDirty || props.isExecuting || props.isStreaming
   return false
 }

@@ -14,7 +14,7 @@ import { useApi } from '@/shared/composables/useApi'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { useToast } from '@/shared/composables/useToast'
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
-import { onMounted, onBeforeUnmount, watch, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 
@@ -64,6 +64,7 @@ const canvasRef = ref<InstanceType<typeof Nod8WorkflowCanvas> | null>(null)
 const showLogs = ref(false)
 const showSettings = ref(false)
 const showVariables = ref(false)
+const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
 
 let workflow: WorkflowItem | null = null
 const { data: workflows, execute: fetchWorkflow } = useApi(workflowsApi.getAll)
@@ -253,6 +254,7 @@ watch(
         :is-autosave-enabled="workflowStore.isAutosaveEnabled"
         :can-undo="workflowStore.canUndo"
         :can-redo="workflowStore.canRedo"
+        :has-execution-state="hasExecutionState"
         @save="handleSaveWorkflow()"
         @toggle-autosave="workflowStore.setAutosaveEnabled($event)"
         @undo="workflowStore.undo()"
@@ -264,6 +266,7 @@ watch(
         @add-node="canvasRef?.openAddNodePanel()"
         @run="canvasRef?.handleRun()"
         @stop="canvasRef?.handleStop()"
+        @clean-execution="executionStore.resetNodeStatuses()"
         @export-workflow="exportWorkflow()"
         @import-workflow="handleImportWorkflow()"
         @create-workflow="handleCreateWorkflow()"

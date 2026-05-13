@@ -22,6 +22,7 @@ export type WorkflowChromeCommandId =
   | 'go.command-palette'
   | 'run.workflow'
   | 'run.stop'
+  | 'run.clean-execution'
   | 'run.publish'
   | 'help.shortcuts'
   | 'help.docs'

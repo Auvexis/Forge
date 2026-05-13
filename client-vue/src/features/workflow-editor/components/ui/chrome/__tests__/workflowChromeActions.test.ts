@@ -1,7 +1,18 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { describe, it } from 'node:test'
 
 import { workflowChromeMenus, workflowChromeToolbarGroups } from '../workflowChromeActions.ts'
+
+const chromeSource = readFileSync(
+  fileURLToPath(new URL('../WorkflowEditorChrome.vue', import.meta.url)),
+  'utf8',
+)
+const canvasSource = readFileSync(
+  fileURLToPath(new URL('../../../Nod8WorkflowCanvas.vue', import.meta.url)),
+  'utf8',
+)
 
 describe('workflow chrome actions', () => {
   it('defines only supported top-level menus in the intended order', () => {
@@ -28,5 +39,19 @@ describe('workflow chrome actions', () => {
 
     assert.equal(publishItem?.label, 'Publish Workflow')
     assert.equal(publishItem?.disabledReason, undefined)
+  })
+
+  it('exposes clean execution from the toolbar execution group', () => {
+    const executionGroup = workflowChromeToolbarGroups.find((group) => group.id === 'execution')
+    const cleanAction = executionGroup?.actions.find((action) => action.id === 'run.clean-execution')
+
+    assert.equal(cleanAction?.label, 'Clean Execution')
+    assert.equal(cleanAction?.icon, 'eraser')
+  })
+
+  it('routes clean execution through the workflow chrome instead of the old canvas dock', () => {
+    assert.match(chromeSource, /\(e: 'clean-execution'\): void/)
+    assert.match(chromeSource, /'run\.clean-execution': \(\) => emit\('clean-execution'\)/)
+    assert.doesNotMatch(canvasSource, /EditorControlsDock/)
   })
 })

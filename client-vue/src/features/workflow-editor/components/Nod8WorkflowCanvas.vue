@@ -27,7 +27,6 @@ import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import { useNodeInspectorStore } from '../stores/node-inspector.store'
 import NodeInspectorModal from './settings/NodeInspectorModal.vue'
 import AddNodePanel from './settings/AddNodePanel.vue'
-import EditorControlsDock from './ui/EditorControlsDock.vue'
 import RunWorkflowPanel from './execution/RunWorkflowPanel.vue'
 import ExecutionLogsPanel from './execution/ExecutionLogsPanel.vue'
 import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
@@ -348,10 +347,6 @@ async function handleRun() {
 
 async function handleStop() {
   await executionStore.cancel()
-}
-
-function handleToggleLogs() {
-  emit('update:show-logs', !props.showLogs)
 }
 
 function zoomCanvasIn() {
@@ -930,19 +925,6 @@ defineExpose({
       @selection-drag-stop="isCanvasSelecting = false"
       @pane-click="isCanvasSelecting = false"
     >
-      <!-- Bottom zoom controls dock (no run/stop/save — those are in the top AppDock) -->
-      <EditorControlsDock
-        :is-saving="workflowStore.isSaving"
-        :is-executing="executionStore.isExecuting"
-        :is-streaming="executionStore.isStreaming"
-        :is-logs-open="showLogsLocal"
-        @save="workflowStore.saveActiveWorkflow()"
-        @add-node="() => openAddNodePanel(null)"
-        @run="handleRun"
-        @stop="handleStop"
-        @toggle-logs="handleToggleLogs"
-      />
-
       <!-- Execution Logs floating panel — centered above the canvas -->
       <Transition name="slide-up">
         <div v-if="showLogsLocal && workflowStore.activeWorkflow" class="canvas-logs-overlay">
