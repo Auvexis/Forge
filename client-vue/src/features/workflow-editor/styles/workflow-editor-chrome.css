@@ -248,3 +248,16 @@
   color: var(--nd8-chrome-text-muted);
   font-size: var(--nod8-text-xs);
 }
+
+.wec-toolbar-row {
+  gap: 8px;
+  background: var(--nd8-chrome-bg-muted);
+  overflow: hidden;
+}
+
+.wec-toolbar-row > .wec-toolbar {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+}
