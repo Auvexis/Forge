@@ -2,9 +2,9 @@
   --nd8-chrome-height-header: 38px;
   --nd8-chrome-height-menu: 30px;
   --nd8-chrome-height-toolbar: 38px;
-  --nd8-chrome-bg: color-mix(in srgb, var(--nod8-bg-surface) 94%, white 6%);
-  --nd8-chrome-bg-muted: color-mix(in srgb, var(--nod8-bg-surface) 88%, white 12%);
-  --nd8-chrome-bg-hover: color-mix(in srgb, var(--nod8-bg-elevated) 86%, white 14%);
+  --nd8-chrome-bg: var(--nod8-bg-surface);
+  --nd8-chrome-bg-muted: var(--nod8-bg-surface);
+  --nd8-chrome-bg-hover: var(--nod8-bg-muted);
   --nd8-chrome-border: var(--nod8-border);
   --nd8-chrome-text: var(--nod8-text-primary);
   --nd8-chrome-text-muted: var(--nod8-text-muted);
@@ -228,15 +228,31 @@
 }
 
 .wec-menu-trigger {
-  height: 26px;
-  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 10px;
   border-radius: 7px;
   color: var(--nd8-chrome-text);
-  font-size: var(--nod8-text-xs);
+  font-size: var(--nod8-text-sm);
+  font-weight: var(--nod8-font-medium);
+  line-height: 1;
 }
 
 .wec-menu-trigger:hover {
   background: var(--nd8-chrome-bg-hover);
+}
+
+.wec-menu-bar :deep(.app-popover-trigger),
+.wec-menu-bar .app-popover-trigger {
+  align-items: center;
+  padding: 0;
+}
+
+.wec-menu-bar :deep(.app-popover-trigger:hover),
+.wec-menu-bar .app-popover-trigger:hover {
+  background: transparent;
 }
 
 .wec-workflow-search {
