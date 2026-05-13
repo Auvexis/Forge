@@ -5,6 +5,7 @@
 
     <!-- Main content area -->
     <main class="app-shell__main">
+      <slot name="topbar"></slot>
       <slot></slot>
     </main>
 

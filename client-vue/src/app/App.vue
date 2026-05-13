@@ -7,88 +7,127 @@
   <AppShell v-else>
     <!-- Use the AppSidebar in the sidebar slot -->
     <template #sidebar>
-      <Transition name="app-sidebar-universe">
-        <div v-if="!appUiStore.isUniverseMode" class="app-sidebar-transition-frame">
-          <AppSidebar>
-            <!-- Navigation Links -->
-            <SidebarHint
-              title="Workflows"
-              description="Create, edit, and manage your automated workflows visually."
-              icon="workflow"
+      <div
+        class="app-sidebar-area"
+        :class="{ 'app-sidebar-area--collapsed': isSidebarCollapsed }"
+        :style="{ '--nod8-active-sidebar-width': activeSidebarWidth }"
+      >
+        <Transition name="app-sidebar-universe">
+          <div v-if="!appUiStore.isUniverseMode" class="app-sidebar-transition-frame">
+            <AppSidebar
+              :collapsed="isSidebarCollapsed"
+              @toggle-collapsed="isSidebarCollapsed = !isSidebarCollapsed"
             >
-              <router-link
-                to="/workflows"
-                class="nav-link"
-                :class="{ 'nav-link--active': route.path.startsWith('/workflows') }"
+              <section
+                v-for="section in sidebarSections"
+                :key="section.label"
+                class="sidebar-section"
               >
-                <LucideIcon name="workflow" :size="16" />
-              </router-link>
-            </SidebarHint>
-
-            <!-- Production Monitor -->
-            <SidebarHint
-              title="Production Monitor"
-              description="View real-time workflow executions, monitor active runs, and debug past errors with detailed step-by-step metrics."
-              icon="activity"
-            >
-              <button
-                class="nav-link"
-                :class="{ 'nav-link--active': isMonitorOpen }"
-                @click="toggleMonitor"
-              >
-                <LucideIcon name="activity" :size="16" />
-              </button>
-            </SidebarHint>
-
-            <!-- Sidebar footer -->
-            <template #footer>
-              <BaseWoobyMenu
-                tag="div"
-                class="sidebar-footer-links"
-                active-selector=".nav-link--active"
-              >
-                <SidebarHint
-                  title="Universe Mode"
-                  description="Explore your node ecosystem in an immersive 3D galaxy view to visualize integrations and dependencies."
-                  icon="orbit"
-                >
-                  <router-link
-                    to="/universe"
-                    class="nav-link"
-                    active-class="nav-link--active"
-                    @click="appUiStore.enterUniverseMode()"
+                <span class="sidebar-section__label">{{ section.label }}</span>
+                <div class="sidebar-section__items">
+                  <SidebarHint
+                    v-for="item in section.items"
+                    :key="item.id"
+                    :title="item.label"
+                    :description="item.description"
+                    :icon="item.icon"
                   >
-                    <LucideIcon name="orbit" :size="16" />
-                  </router-link>
-                </SidebarHint>
-                <SidebarHint
-                  title="Documentation"
-                  description="Read the official documentation to learn how to build, deploy, and scale your automated workflows."
-                  icon="book"
+                    <router-link
+                      v-if="item.id === 'workflows'"
+                      to="/workflows"
+                      class="nav-link suite-nav-link"
+                      :class="[
+                        `suite-nav-link--${item.accent}`,
+                        { 'nav-link--active': route.path.startsWith('/workflows') },
+                      ]"
+                    >
+                      <LucideIcon :name="item.icon" :size="18" />
+                      <span class="suite-nav-link__label">{{ item.label }}</span>
+                    </router-link>
+
+                    <router-link
+                      v-else-if="item.id === 'universe'"
+                      to="/universe"
+                      class="nav-link suite-nav-link"
+                      active-class="nav-link--active"
+                      :class="`suite-nav-link--${item.accent}`"
+                      @click="appUiStore.enterUniverseMode()"
+                    >
+                      <LucideIcon :name="item.icon" :size="18" />
+                      <span class="suite-nav-link__label">{{ item.label }}</span>
+                    </router-link>
+                  </SidebarHint>
+                </div>
+              </section>
+
+              <template #footer>
+                <BaseWoobyMenu
+                  tag="div"
+                  class="sidebar-footer-links"
+                  active-selector=".nav-link--active"
                 >
-                  <a href="https://docs.nod8.dev" target="_blank" class="nav-link">
-                    <LucideIcon name="book" :size="16" />
-                  </a>
-                </SidebarHint>
-                <SidebarHint
-                  title="Settings"
-                  description="Manage your global preferences, authentication, environment variables, and connections."
-                  icon="settings"
-                >
-                  <button
-                    class="nav-link"
-                    :class="{ 'nav-link--active': settingsStore.isOpen }"
-                    @click="settingsStore.toggle"
+                  <SidebarHint
+                    :title="activityById.search.label"
+                    :description="activityById.search.description"
+                    :icon="activityById.search.icon"
                   >
-                    <LucideIcon name="settings" :size="16" />
-                  </button>
-                </SidebarHint>
-              </BaseWoobyMenu>
-            </template>
-          </AppSidebar>
-        </div>
-      </Transition>
-      <SidebarGlobalPanel v-if="!appUiStore.isUniverseMode" />
+                    <button class="nav-link sidebar-activity-link" @click="openGlobalCommandPalette">
+                      <LucideIcon :name="activityById.search.icon" :size="16" />
+                    </button>
+                  </SidebarHint>
+
+                  <SidebarHint
+                    :title="activityById.monitor.label"
+                    :description="activityById.monitor.description"
+                    :icon="activityById.monitor.icon"
+                  >
+                    <button
+                      class="nav-link sidebar-activity-link"
+                      :class="{ 'nav-link--active': isMonitorOpen }"
+                      @click="toggleMonitor"
+                    >
+                      <LucideIcon :name="activityById.monitor.icon" :size="16" />
+                    </button>
+                  </SidebarHint>
+
+                  <SidebarHint
+                    :title="activityById.docs.label"
+                    :description="activityById.docs.description"
+                    :icon="activityById.docs.icon"
+                  >
+                    <a
+                      href="https://docs.nod8.dev"
+                      target="_blank"
+                      class="nav-link sidebar-activity-link"
+                    >
+                      <LucideIcon :name="activityById.docs.icon" :size="16" />
+                    </a>
+                  </SidebarHint>
+
+                  <SidebarHint
+                    :title="activityById.settings.label"
+                    :description="activityById.settings.description"
+                    :icon="activityById.settings.icon"
+                  >
+                    <button
+                      class="nav-link sidebar-activity-link"
+                      :class="{ 'nav-link--active': settingsStore.isOpen }"
+                      @click="settingsStore.toggle"
+                    >
+                      <LucideIcon :name="activityById.settings.icon" :size="16" />
+                    </button>
+                  </SidebarHint>
+                </BaseWoobyMenu>
+              </template>
+            </AppSidebar>
+          </div>
+        </Transition>
+        <SidebarGlobalPanel v-if="!appUiStore.isUniverseMode" />
+      </div>
+    </template>
+
+    <template v-if="!appUiStore.isUniverseMode" #topbar>
+      <AppTopbar @open-command-palette="openGlobalCommandPalette" />
     </template>
 
     <!-- Main Content Area -->
@@ -112,10 +151,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
+import AppTopbar from '@/shared/components/layout/AppTopbar.vue'
 import SidebarHint from '@/shared/components/layout/SidebarHint.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
 import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
@@ -124,19 +164,44 @@ import SidebarGlobalPanel from '@/shared/components/layout/SidebarGlobalPanel.vu
 import AppGlobalSettings from '@/shared/components/layout/AppGlobalSettings.vue'
 import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import CommandPaletteHost from '@/features/command-palette/components/CommandPaletteHost.vue'
-import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
+import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
+import {
+  sidebarActivityItems,
+  sidebarSections,
+  sidebarWidthForState,
+} from '@/shared/components/layout/appSidebarNavigation'
 import AppProductionMonitor, { isMonitorOpen, toggleMonitor } from '@/shared/components/layout/AppProductionMonitor.vue'
 
-const sidebarStore = useSidebarPanelStore()
 const settingsStore = useSettingsStore()
 const appUiStore = useAppUiStore()
+const commandPaletteStore = useCommandPaletteStore()
 const route = useRoute()
 const isPublicRoute = computed(() => route.meta.public === true)
+const isSidebarCollapsed = ref(false)
+const activeSidebarWidth = computed(() => sidebarWidthForState(isSidebarCollapsed.value))
+const activityById = Object.fromEntries(sidebarActivityItems.map((item) => [item.id, item])) as {
+  search: (typeof sidebarActivityItems)[number]
+  monitor: (typeof sidebarActivityItems)[number]
+  docs: (typeof sidebarActivityItems)[number]
+  settings: (typeof sidebarActivityItems)[number]
+}
+
+function openGlobalCommandPalette() {
+  void commandPaletteStore.open({ routePath: route.path })
+}
 </script>
 
 <style scoped>
+.app-sidebar-area {
+  --nod8-active-sidebar-width: var(--nod8-sidebar-expanded);
+  position: relative;
+  display: flex;
+  height: 100vh;
+  flex-shrink: 0;
+}
+
 .app-sidebar-transition-frame {
   display: flex;
   height: 100vh;
@@ -154,6 +219,6 @@ const isPublicRoute = computed(() => route.meta.public === true)
 .app-sidebar-universe-enter-from,
 .app-sidebar-universe-leave-to {
   opacity: 0;
-  transform: translateX(calc(-1 * var(--nod8-sidebar-width)));
+  transform: translateX(calc(-1 * var(--nod8-active-sidebar-width)));
 }
 </style>

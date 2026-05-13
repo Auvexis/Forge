@@ -20,6 +20,74 @@
   cursor: pointer;
 }
 
+.suite-nav-link {
+  justify-content: flex-start;
+  width: 100%;
+  height: 44px;
+  gap: var(--nod8-space-3);
+  padding: 0 var(--nod8-space-3);
+  border: 1px solid transparent;
+  color: var(--nod8-text-secondary);
+}
+
+.suite-nav-link:hover,
+.suite-nav-link.nav-link--active {
+  background: var(--nod8-button-ghost-hover);
+  border-color: var(--nod8-border-subtle);
+  color: var(--nod8-text-primary);
+}
+
+.suite-nav-link svg,
+.sidebar-activity-link svg {
+  flex: 0 0 auto;
+}
+
+.suite-nav-link__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--nod8-text-primary);
+  font-size: var(--nod8-text-sm);
+  font-weight: var(--nod8-font-medium);
+}
+
+.suite-nav-link--blue svg {
+  color: var(--nod8-blue-400);
+}
+
+.suite-nav-link--violet svg {
+  color: var(--nod8-brand-400);
+}
+
+.suite-nav-link--green svg {
+  color: var(--nod8-green-400);
+}
+
+.suite-nav-link--amber svg {
+  color: var(--nod8-amber-400);
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nod8-space-2);
+  width: 100%;
+}
+
+.sidebar-section__label {
+  padding: 0 var(--nod8-space-1);
+  color: var(--nod8-text-muted);
+  font-size: var(--nod8-text-xs);
+  font-weight: var(--nod8-font-medium);
+}
+
+.sidebar-section__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nod8-space-1);
+}
+
 .nav-link:hover {
   color: var(--nod8-text-primary);
 }
@@ -41,6 +109,39 @@
 
 .sidebar-footer-links {
   display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+  gap: var(--nod8-space-1);
+}
+
+.sidebar-activity-link {
+  width: 36px;
+  height: 34px;
+}
+
+.app-sidebar-area--collapsed .sidebar-section {
+  align-items: center;
+}
+
+.app-sidebar-area--collapsed .sidebar-section__label,
+.app-sidebar-area--collapsed .suite-nav-link__label {
+  display: none;
+}
+
+.app-sidebar-area--collapsed .sidebar-section__items {
+  align-items: center;
+}
+
+.app-sidebar-area--collapsed .suite-nav-link {
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}
+
+.app-sidebar-area--collapsed .sidebar-footer-links {
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: flex-start;
 }

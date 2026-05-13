@@ -37,7 +37,7 @@ const panelStore = useSidebarPanelStore()
   position: absolute;
   top: 0;
   bottom: 0;
-  left: var(--nod8-sidebar-width);
+  left: var(--nod8-active-sidebar-width, var(--nod8-sidebar-width));
   background-color: var(--nod8-bg-surface);
   border-right: 1px solid var(--nod8-border);
   z-index: var(--nod8-z-raised);
