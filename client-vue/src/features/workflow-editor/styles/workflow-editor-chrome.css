@@ -96,3 +96,117 @@
 .wec-control--danger {
   color: var(--nd8-chrome-danger);
 }
+
+.wec-doc,
+.wec-header-actions,
+.wec-menu-bar {
+  display: flex;
+  align-items: center;
+}
+
+.wec-doc {
+  min-width: 0;
+  gap: 8px;
+}
+
+.wec-doc__icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 7px;
+  color: var(--nd8-chrome-accent);
+  background: color-mix(in srgb, var(--nd8-chrome-accent) 12%, transparent);
+}
+
+.wec-doc__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: min(280px, 36vw);
+  color: var(--nd8-chrome-text);
+  font-size: var(--nod8-text-sm);
+  font-weight: var(--nod8-font-semibold);
+}
+
+.wec-doc__name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wec-doc__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  color: var(--nd8-chrome-text-muted);
+  font-family: var(--nod8-font-mono);
+  font-size: 11px;
+}
+
+.wec-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--nd8-chrome-text-muted);
+}
+
+.wec-status-dot--running {
+  background: var(--nd8-chrome-run);
+}
+
+.wec-status-dot--dirty {
+  background: var(--nd8-chrome-save);
+}
+
+.wec-header-actions {
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.wec-menu-bar {
+  gap: 2px;
+  height: 100%;
+  flex: 0 0 auto;
+}
+
+.wec-menu-trigger {
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 7px;
+  color: var(--nd8-chrome-text);
+  font-size: var(--nod8-text-xs);
+}
+
+.wec-menu-trigger:hover {
+  background: var(--nd8-chrome-bg-hover);
+}
+
+.wec-workflow-search {
+  padding: 0;
+}
+
+.wec-workflow-option {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  color: var(--nd8-chrome-text-muted);
+  font-family: var(--nod8-font-mono);
+  font-size: 10px;
+}
+
+.wec-menu-empty {
+  padding: 10px;
+  color: var(--nd8-chrome-text-muted);
+  font-size: var(--nod8-text-xs);
+}
+
+.wec-route-id {
+  color: var(--nd8-chrome-text-muted);
+  font-family: var(--nod8-font-mono);
+  font-size: 10px;
+}

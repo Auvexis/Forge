@@ -2,7 +2,7 @@
 
 - [x] Task 1: criar modelo tipado de menus/actions com teste TDD
 - [x] Task 2: adicionar CSS isolado do chrome
-- [ ] Task 3: criar header e menu bar usando dropdown real existente
+- [x] Task 3: criar header e menu bar usando dropdown real existente
 - [ ] Task 4: criar toolbar
 - [ ] Task 5: compor WorkflowEditorChrome
 - [ ] Task 6: conectar chrome na pagina e expor zoom/fit no canvas

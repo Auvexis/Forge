@@ -51,10 +51,18 @@ const closeDropdown = () => {
   popoverRef.value?.close()
 }
 
+const openDropdown = () => {
+  popoverRef.value?.open()
+}
+
+const toggleDropdown = () => {
+  popoverRef.value?.toggle()
+}
+
 // Provide close function for child items (AppDropdownItem)
 provide('closeDropdown', closeDropdown)
 
-defineExpose({ close: closeDropdown })
+defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown })
 </script>
 
 <style scoped>
