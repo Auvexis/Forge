@@ -1,0 +1,98 @@
+:root {
+  --nd8-chrome-height-header: 38px;
+  --nd8-chrome-height-toolbar: 38px;
+  --nd8-chrome-bg: color-mix(in srgb, var(--nod8-bg-surface) 94%, white 6%);
+  --nd8-chrome-bg-muted: color-mix(in srgb, var(--nod8-bg-surface) 88%, white 12%);
+  --nd8-chrome-bg-hover: color-mix(in srgb, var(--nod8-bg-elevated) 86%, white 14%);
+  --nd8-chrome-border: var(--nod8-border);
+  --nd8-chrome-text: var(--nod8-text-primary);
+  --nd8-chrome-text-muted: var(--nod8-text-muted);
+  --nd8-chrome-accent: var(--nod8-accent);
+  --nd8-chrome-run: var(--nod8-green-500);
+  --nd8-chrome-danger: var(--nod8-red-500);
+  --nd8-chrome-save: var(--nod8-amber-500);
+  --nd8-chrome-radius: 8px;
+  --nd8-chrome-control-h: 28px;
+  --nd8-chrome-icon: 15px;
+  --nd8-chrome-gap: 6px;
+}
+
+.wec-shell {
+  display: grid;
+  grid-template-rows: var(--nd8-chrome-height-header) var(--nd8-chrome-height-toolbar);
+  min-width: 0;
+  background: var(--nd8-chrome-bg);
+  border-bottom: 1px solid var(--nd8-chrome-border);
+}
+
+.wec-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 12px;
+}
+
+.wec-header {
+  justify-content: space-between;
+}
+
+.wec-toolbar {
+  gap: var(--nd8-chrome-gap);
+  background: var(--nd8-chrome-bg-muted);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.wec-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.wec-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.wec-divider {
+  width: 1px;
+  height: 18px;
+  flex: 0 0 auto;
+  background: var(--nd8-chrome-border);
+  margin: 0 4px;
+}
+
+.wec-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: var(--nd8-chrome-control-h);
+  min-width: var(--nd8-chrome-control-h);
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--nd8-chrome-radius);
+  color: var(--nd8-chrome-text-muted);
+  font-size: var(--nod8-text-xs);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.wec-control:hover:not(:disabled),
+.wec-control--active {
+  background: var(--nd8-chrome-bg-hover);
+  color: var(--nd8-chrome-text);
+}
+
+.wec-control:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.wec-control--primary {
+  color: var(--nd8-chrome-run);
+}
+
+.wec-control--danger {
+  color: var(--nd8-chrome-danger);
+}

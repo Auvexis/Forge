@@ -1,7 +1,7 @@
 # Google Style Workflow Dock
 
 - [x] Task 1: criar modelo tipado de menus/actions com teste TDD
-- [ ] Task 2: adicionar CSS isolado do chrome
+- [x] Task 2: adicionar CSS isolado do chrome
 - [ ] Task 3: criar header e menu bar usando dropdown real existente
 - [ ] Task 4: criar toolbar
 - [ ] Task 5: compor WorkflowEditorChrome

@@ -20,6 +20,7 @@
 
 /* ── Workflow Editor UI Styles ─────────────────────────────── */
 @import '../../features/workflow-editor/styles/editor-dock.css';
+@import '../../features/workflow-editor/styles/workflow-editor-chrome.css';
 @import '../../features/workflow-editor/styles/production-monitor.css';
 @import '../../features/workflow-editor/styles/workflow-settings-panel.css';
 @import '../../features/command-palette/command-palette.css';
