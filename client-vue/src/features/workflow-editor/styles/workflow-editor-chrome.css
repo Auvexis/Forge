@@ -312,11 +312,6 @@
   scrollbar-width: none;
 }
 
-.wec-toolbar-spacer {
-  width: 36px;
-  flex: 0 0 auto;
-}
-
 .wec-toolbar-row > .wec-toolbar {
   flex: 0 0 auto;
   min-width: 0;

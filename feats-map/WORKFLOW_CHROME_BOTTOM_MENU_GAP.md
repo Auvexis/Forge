@@ -1,7 +1,7 @@
 # Workflow Chrome Bottom Menu Gap
 
-- [ ] Remover espaco vazio antes dos botoes da toolbar
-- [ ] Verificar type-check/build
+- [x] Remover espaco vazio antes dos botoes da toolbar
+- [x] Verificar type-check/build
 
 Nota:
 - Ajuste so no frontend.

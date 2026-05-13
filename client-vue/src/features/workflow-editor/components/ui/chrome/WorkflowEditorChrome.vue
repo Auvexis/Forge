@@ -105,8 +105,6 @@ function handleCommand(id: WorkflowChromeCommandId) {
     </div>
 
     <div class="wec-row wec-toolbar-row">
-      <div class="wec-toolbar-spacer" />
-      <div class="wec-divider" />
       <WorkflowChromeToolbar
         :can-undo="canUndo"
         :can-redo="canRedo"
