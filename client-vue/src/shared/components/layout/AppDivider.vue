@@ -13,7 +13,6 @@
  *
  * Replaces all ad-hoc divider patterns across the app:
  *   - .divider / .divider--vertical (main.css globals)
- *   - .wed-divider-v (WorkflowEditorDock)
  *   - .dock-divider (WorkflowsPage)
  */
 withDefaults(

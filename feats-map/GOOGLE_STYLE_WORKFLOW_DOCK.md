@@ -7,7 +7,7 @@
 - [x] Task 5: compor WorkflowEditorChrome
 - [x] Task 6: conectar chrome na pagina e expor zoom/fit no canvas
 - [x] Task 7: QA visual/responsivo e polish
-- [ ] Task 8: apos migracao, aposentar dock antigo se nao houver uso
+- [x] Task 8: apos migracao, aposentar dock antigo se nao houver uso
 
 Notas:
 - Nao mexer em plugins. Feature fica no client-vue workflow editor.
