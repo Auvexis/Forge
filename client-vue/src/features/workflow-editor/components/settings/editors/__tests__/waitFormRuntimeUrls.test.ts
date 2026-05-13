@@ -3,6 +3,7 @@ import { describe, it } from 'node:test'
 
 import {
   buildTemporaryFormUrl,
+  buildTemporaryFormUrlPreview,
   resolveWaitFormRuntimeSlug,
 } from '../waitFormRuntimeUrls.ts'
 
@@ -36,5 +37,20 @@ describe('wait form runtime urls', () => {
     assert.equal(preview.hasTemplate, true)
     assert.equal(preview.isResolved, false)
     assert.equal(buildTemporaryFormUrl('http://localhost:23802', preview.slug), '')
+  })
+
+  it('builds a copyable temporary form preview url with generated placeholders', () => {
+    assert.equal(
+      buildTemporaryFormUrlPreview('http://localhost:23802', '<generated-on-execution>'),
+      'http://localhost:23802/temporary-forms/<generated-on-execution>',
+    )
+
+    assert.equal(
+      buildTemporaryFormUrlPreview(
+        'http://localhost:23802',
+        '<generated after upstream values exist>',
+      ),
+      'http://localhost:23802/temporary-forms/<generated after upstream values exist>',
+    )
   })
 })

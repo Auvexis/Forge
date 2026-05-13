@@ -42,6 +42,11 @@ export function buildTemporaryFormUrl(origin: string, slug: string): string {
   return `${origin.replace(/\/$/, '')}/temporary-forms/${slug}`
 }
 
+export function buildTemporaryFormUrlPreview(origin: string, placeholder: string): string {
+  if (!origin || !placeholder) return placeholder
+  return `${origin.replace(/\/$/, '')}/temporary-forms/${placeholder}`
+}
+
 function sanitizeTemporaryFormSlug(value: string): string {
   return value
     .trim()

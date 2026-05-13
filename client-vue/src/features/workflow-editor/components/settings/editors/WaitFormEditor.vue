@@ -50,12 +50,12 @@
       <div class="wait-form-url-group">
         <div class="wait-form-url-row">
           <span class="wait-form-url-badge wait-form-url-badge--test">TEST</span>
-          <div class="wait-form-url-box">{{ formTestUrl || '<generated-on-execution>' }}</div>
+          <div class="wait-form-url-box">{{ formTestUrlPreview }}</div>
           <button
             class="wait-form-icon-btn"
             title="Copy URL"
-            :disabled="!formTestUrl"
-            @click="copyUrl(formTestUrl, 'test')"
+            :disabled="!formTestUrlPreview"
+            @click="copyUrl(formTestUrlPreview, 'test')"
           >
             <CheckIcon v-if="copied === 'test'" :size="14" style="color: var(--nod8-green-400)" />
             <CopyIcon v-else :size="14" />
@@ -73,12 +73,12 @@
         </div>
         <div class="wait-form-url-row">
           <span class="wait-form-url-badge wait-form-url-badge--prod">RUNTIME</span>
-          <div class="wait-form-url-box">{{ runtimeUrlHint }}</div>
+          <div class="wait-form-url-box">{{ runtimeUrlPreview }}</div>
           <button
             class="wait-form-icon-btn"
             title="Copy URL"
-            :disabled="!runtimeFormUrl"
-            @click="copyUrl(runtimeFormUrl, 'prod')"
+            :disabled="!runtimeUrlPreview"
+            @click="copyUrl(runtimeUrlPreview, 'prod')"
           >
             <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--nod8-green-400)" />
             <CopyIcon v-else :size="14" />
@@ -131,6 +131,7 @@ import { useExecutionStore } from '../../../stores/execution.store'
 import { useWorkflowStore } from '../../../stores/workflow.store'
 import {
   buildTemporaryFormUrl,
+  buildTemporaryFormUrlPreview,
   resolveWaitFormRuntimeSlug,
   type WaitFormTemplateContext,
 } from './waitFormRuntimeUrls'
@@ -178,12 +179,15 @@ const runtimeFormUrl = computed(() => {
 const formTestUrl = computed(() =>
   runtimeFormUrl.value || buildTemporaryFormUrl(window.location.origin, formPublicSlug.value.slug),
 )
-const runtimeUrlHint = computed(() => {
+const formTestUrlPreview = computed(() =>
+  formTestUrl.value || buildTemporaryFormUrlPreview(window.location.origin, '<generated-on-execution>'),
+)
+const runtimeUrlPreview = computed(() => {
   if (runtimeFormUrl.value) return runtimeFormUrl.value
   if (formPublicSlug.value.hasTemplate && !formPublicSlug.value.isResolved) {
-    return '<generated after upstream values exist>'
+    return buildTemporaryFormUrlPreview(window.location.origin, '<generated after upstream values exist>')
   }
-  return formTestUrl.value || '<generated-on-execution>'
+  return formTestUrlPreview.value
 })
 
 async function copyUrl(url: string, which: 'test' | 'prod') {
