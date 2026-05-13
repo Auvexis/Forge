@@ -20,7 +20,7 @@
 
 .wec-shell {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 52px minmax(0, 1fr);
   grid-template-rows:
     var(--nd8-chrome-height-header)
     var(--nd8-chrome-height-menu)
@@ -135,17 +135,15 @@
   justify-self: center;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
+  width: 52px;
+  height: 68px;
   color: var(--nd8-chrome-accent);
-  background: color-mix(in srgb, var(--nd8-chrome-accent) 12%, transparent);
 }
 
 .wec-rail-icon img {
   display: block;
-  width: 19px;
-  height: 19px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
 }
 
