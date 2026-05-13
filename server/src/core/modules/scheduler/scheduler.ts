@@ -32,7 +32,9 @@ export const Scheduler = {
       }
     }
 
-    console.log(`[NOD8 | SCHEDULER]: Initialized ${count} cron job(s)`);
+    if (count > 0) {
+      console.log(`[NOD8 | SCHEDULER]: Initialized ${count} cron job(s)`);
+    }
   },
 
   /**
