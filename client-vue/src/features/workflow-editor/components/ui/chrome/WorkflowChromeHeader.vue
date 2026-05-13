@@ -160,7 +160,7 @@ defineExpose({ openWorkflowMenu })
           class="wec-save-status__icon"
           :class="{ 'wec-save-status__icon--spin': saveState === 'saving' }"
           :name="saveStatusIcon"
-          :size="14"
+          :size="19"
         />
         {{ saveStatusLabel }}
       </span>

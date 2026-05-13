@@ -174,11 +174,11 @@
 .wec-doc__status {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
   flex: 0 0 auto;
   color: var(--nd8-chrome-text-muted);
   font-family: var(--nod8-font-mono);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .wec-save-status__icon {
