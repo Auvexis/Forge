@@ -564,11 +564,11 @@ Melhor caminho:
 
 ### Task 16 - Stop automatico ao desconectar
 
-- [ ] SSE close chama stop da sessao.
-- [ ] Stop manual fecha stream com evento final.
-- [ ] Garantir teardown idempotente.
-- [ ] Testar disconnect encerra cron/listeners/fila.
-- [ ] Commit.
+- [x] SSE close chama stop da sessao.
+- [x] Stop manual fecha stream com evento final.
+- [x] Garantir teardown idempotente.
+- [x] Testar disconnect encerra cron/listeners/fila.
+- [x] Commit.
 
 ### Task 17 - Limites e hardening
 
