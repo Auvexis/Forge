@@ -46,6 +46,7 @@ export interface WorkflowNodeUI {
 interface WorkflowNodeBase {
   type: WorkflowNodeType
   name: string
+  disabled?: boolean
   retryPolicy?: RetryPolicy
   ui?: WorkflowNodeUI
 }
@@ -136,6 +137,7 @@ export interface EventListenerNode extends WorkflowNodeBase {
 
 export interface TriggerNode extends WorkflowNodeBase {
   type: 'trigger'
+  trigger?: WorkflowTrigger
 }
 
 // ── Set Node ─────────────────────────────────────────────────
