@@ -846,7 +846,7 @@ function startListening() {
     }
   }, 1000)
 
-  _listenEs = workflowsApi.listenForTrigger(workflowId)
+  _listenEs = workflowsApi.listenForTrigger(workflowId, props.node.id)
 
   _listenEs.onmessage = (rawEvt: MessageEvent) => {
     try {
@@ -858,10 +858,7 @@ function startListening() {
         cleanup()
       } else if (ev.type === 'captured' && ev.payload) {
         listenState.value = 'captured'
-        // Immediately update the workflow store so the left pane refreshes
-        if (workflowStore.activeWorkflow) {
-          workflowStore.activeWorkflow.trigger.lastTriggerPayload = ev.payload
-        }
+        props.updateNodeData({ lastTriggerPayload: ev.payload })
         cleanup()
       } else if (ev.type === 'timeout') {
         listenState.value = 'timeout'

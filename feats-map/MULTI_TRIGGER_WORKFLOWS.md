@@ -21,7 +21,7 @@ Objetivo: permitir varios triggers reais em um workflow. Cada trigger e um ponto
   - Agendar cron por trigger node.
   - Manter fallback legado.
 
-- [ ] Task 4: Frontend canvas e editor
+- [x] Task 4: Frontend canvas e editor
   - Mostrar triggers como nodes reais.
   - Permitir adicionar trigger pela aba de utilitarios.
   - Editar cada trigger independentemente.

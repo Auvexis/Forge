@@ -172,6 +172,15 @@ const selectedPlugin = computed(
 
 const LOGIC_NODES = [
   {
+    type: 'trigger' as WorkflowNodeType,
+    label: 'Trigger',
+    description: 'Add another workflow entry point',
+    icon: 'zap',
+    color: 'rgb(245, 158, 11)',
+    bgColor: 'rgba(245, 158, 11, 0.12)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+  },
+  {
     type: 'code' as WorkflowNodeType,
     label: 'Code Block',
     description: 'Run custom JavaScript in a sandbox',

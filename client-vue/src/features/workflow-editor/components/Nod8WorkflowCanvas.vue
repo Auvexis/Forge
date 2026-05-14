@@ -77,6 +77,9 @@ async function onVueFlowInit(instance: VueFlowStore) {
 
 function buildNodes() {
   if (!workflowStore.activeWorkflow) return []
+  const hasRealTriggerNodes = Object.values(workflowStore.activeWorkflow.nodes).some(
+    (nodeData) => nodeData.type === 'trigger',
+  )
 
   const normalNodes: Node[] = Object.entries(workflowStore.activeWorkflow.nodes).map(
     ([nodeId, nodeData]) => ({
@@ -86,6 +89,8 @@ function buildNodes() {
       data: nodeData,
     }),
   )
+
+  if (hasRealTriggerNodes) return normalNodes
 
   const triggerNode: Node = {
     id: 'trigger',
@@ -177,7 +182,7 @@ watch(
     if (!nodes && !trigger) return
 
     for (const vfNode of vueFlowNodes.value) {
-      if (vfNode.id === 'trigger') {
+      if (vfNode.id === 'trigger' && !nodes?.[vfNode.id]) {
         if (trigger && vfNode.data !== trigger) {
           Object.assign(vfNode.data, trigger)
         }
@@ -310,8 +315,13 @@ const openAddNodePanel = (sourceId?: string | null) => {
 async function handleRun() {
   if (!workflowStore.activeWorkflow) return
 
-  const schema = workflowStore.activeWorkflow.trigger.schema ?? {}
-  const trigger = workflowStore.activeWorkflow.trigger
+  const firstRealTrigger = Object.entries(workflowStore.activeWorkflow.nodes)
+    .find(([, node]) => node.type === 'trigger')
+  const triggerNodeId = firstRealTrigger?.[0] ?? 'trigger'
+  const trigger = firstRealTrigger
+    ? ((firstRealTrigger[1] as any).trigger ?? { type: 'manual' })
+    : workflowStore.activeWorkflow.trigger
+  const schema = trigger.schema ?? {}
 
   if (trigger.type === 'form') {
     // Generate a client-side executionId, start streaming, then open the form
@@ -322,7 +332,7 @@ async function handleRun() {
 
     executionStore.resetNodeStatuses()
     executionStore.startStream(clientExecId)
-    executionStore.setTriggerRunning()   // shimmer laranja no trigger enquanto aguarda o form
+    executionStore.setTriggerRunning(triggerNodeId)   // shimmer laranja no trigger enquanto aguarda o form
 
     const formUrl = `${window.location.origin}/forms-test/${formPublicId}?execId=${clientExecId}`
     window.open(formUrl, '_blank', 'noopener')
@@ -336,12 +346,13 @@ async function handleRun() {
         workflowId: workflowStore.activeWorkflow.metadata.id,
         schema,
         triggerType: trigger.type,
+        triggerNodeId,
       },
       position: 'right',
       width: 'md',
     })
   } else {
-    await executionStore.execute(workflowStore.activeWorkflow.metadata.id)
+    await executionStore.execute(workflowStore.activeWorkflow.metadata.id, {}, triggerNodeId)
   }
 }
 
@@ -407,6 +418,7 @@ async function duplicateSelection() {
 
 // Friendly default name per node type (shown in the node header before the user renames it)
 const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
+  trigger: 'Trigger',
   code: 'Code Block',
   if: 'Conditional',
   loop: 'Loop / ForEach',
@@ -642,6 +654,8 @@ const addLogicNode = (type: WorkflowNodeType) => {
     defaultData.fields = [
       { name: 'email', label: 'Email', type: 'email', required: true },
     ]
+  } else if (type === 'trigger') {
+    defaultData.trigger = { type: 'manual' }
   }
 
   // Adicionar no store
@@ -661,7 +675,7 @@ const addLogicNode = (type: WorkflowNodeType) => {
     data: newNode,
   })
 
-  if (backupSourceId) {
+  if (backupSourceId && type !== 'trigger') {
     autoConnectToSource(backupSourceId, id, backupSourceHandle)
     alignNodeCenters(backupSourceId, id)
   }

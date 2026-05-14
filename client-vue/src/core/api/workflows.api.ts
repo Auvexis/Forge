@@ -26,6 +26,7 @@ export interface ProductionWorkflowStatus {
 export interface FormDefinition {
   id: string
   workflowId: string
+  triggerNodeId?: string
   mode: 'test' | 'prod' | 'temp'
   title: string
   description: string
@@ -134,7 +135,7 @@ export const workflowsApi = {
     }),
 
   /** Manually trigger a workflow execution */
-  execute: (id: string, payload?: Record<string, unknown>, clientExecId?: string) => {
+  execute: (id: string, payload?: Record<string, unknown>, clientExecId?: string, triggerNodeId?: string) => {
     const headers: Record<string, string> = {}
     if (clientExecId) {
       headers['x-nod8-execution-id'] = clientExecId
@@ -164,7 +165,8 @@ export const workflowsApi = {
       body = payload ?? {}
     }
 
-    return apiRequest<{ executionId: string }>(ENDPOINTS.EXECUTE_WORKFLOW(id), {
+    const suffix = triggerNodeId ? `?triggerNodeId=${encodeURIComponent(triggerNodeId)}` : ''
+    return apiRequest<{ executionId: string }>(`${ENDPOINTS.EXECUTE_WORKFLOW(id)}${suffix}`, {
       method: 'POST',
       body,
       headers,
@@ -205,8 +207,9 @@ export const workflowsApi = {
    *   { type: 'captured', payload }       — webhook received, payload captured
    *   { type: 'timeout' }                 — 120s elapsed with no webhook
    */
-  listenForTrigger: (workflowId: string): EventSource => {
-    return new EventSource(`${API_BASE_URL}${ENDPOINTS.TRIGGER_LISTEN(workflowId)}`)
+  listenForTrigger: (workflowId: string, triggerNodeId?: string): EventSource => {
+    const suffix = triggerNodeId ? `?triggerNodeId=${encodeURIComponent(triggerNodeId)}` : ''
+    return new EventSource(`${API_BASE_URL}${ENDPOINTS.TRIGGER_LISTEN(workflowId)}${suffix}`)
   },
 
   /**

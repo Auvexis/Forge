@@ -110,6 +110,7 @@ const props = defineProps<{
   workflowId: string
   schema: Record<string, WorkflowSchemaField>
   triggerType: string
+  triggerNodeId?: string
   formId?: string
   formFields?: FormTriggerField[]
 }>()
@@ -139,7 +140,7 @@ async function handleRun() {
     if (isFormTrigger.value) {
       await executionStore.executeFormSubmission(props.formId ?? props.workflowId, 'test', { ...params })
     } else {
-      await executionStore.execute(props.workflowId, { ...params })
+      await executionStore.execute(props.workflowId, { ...params }, props.triggerNodeId ?? 'trigger')
     }
     panelStore.closePanel()
   } catch {

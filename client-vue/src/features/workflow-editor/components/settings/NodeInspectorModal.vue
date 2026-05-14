@@ -40,7 +40,9 @@ const executionState = computed(() => {
  * (because it writes directly to workflowStore.activeWorkflow.trigger.lastTriggerPayload).
  */
 const lastTriggerPayload = computed(() =>
-  workflowStore.activeWorkflow?.trigger.lastTriggerPayload ?? null
+  ((enrichedNode.value?.data as any)?.lastTriggerPayload ??
+    workflowStore.activeWorkflow?.trigger.lastTriggerPayload ??
+    null)
 )
 
 const displayOutput = computed(() => {
@@ -67,6 +69,8 @@ const activeEditor = computed(() => {
   if (!node || !node.type) return null
   return NODE_EDITOR_REGISTRY[node.type as WorkflowNodeType | 'trigger'] ?? null
 })
+
+const isTriggerNode = computed(() => inspectorStore.activeNode?.type === 'trigger')
 
 function close() {
   inspectorStore.closeInspector()
@@ -121,14 +125,17 @@ const nodes = computed((): GraphNode<NodeData>[] => {
   const wf = workflowStore.activeWorkflow
   if (!wf) return []
 
-  const result: GraphNode<NodeData>[] = [
-    {
-      id: 'trigger',
-      type: 'trigger',
-      data: wf.trigger as unknown as NodeData,
-      position: { x: 0, y: 0 },
-    } as GraphNode<NodeData>,
-  ]
+  const hasRealTriggerNodes = Object.values(wf.nodes).some((node) => node.type === 'trigger')
+  const result: GraphNode<NodeData>[] = hasRealTriggerNodes
+    ? []
+    : [
+        {
+          id: 'trigger',
+          type: 'trigger',
+          data: wf.trigger as unknown as NodeData,
+          position: { x: 0, y: 0 },
+        } as GraphNode<NodeData>,
+      ]
 
   for (const [id, nodeData] of Object.entries(wf.nodes)) {
     result.push({
@@ -181,18 +188,34 @@ const enrichedNode = computed(() => {
 
   const id = inspectorStore.activeNode.id
   const storeData: NodeData | undefined =
-    id === 'trigger'
+    id === 'trigger' && !workflowStore.activeWorkflow?.nodes[id]
       ? (workflowStore.activeWorkflow?.trigger as unknown as NodeData)
       : (workflowStore.activeWorkflow?.nodes[id] as unknown as NodeData)
 
+  const editorData =
+    storeData?.type === 'trigger' && (storeData as any).trigger
+      ? ((storeData as any).trigger as NodeData)
+      : storeData
+
   return {
     ...inspectorStore.activeNode,
-    data: storeData ?? inspectorStore.activeNode.data,
+    data: editorData ?? inspectorStore.activeNode.data,
   }
 })
 
 const updateNodeData = (newData: Record<string, unknown>) => {
   if (!inspectorStore.activeNode) return
+  const id = inspectorStore.activeNode.id
+  const storeNode = workflowStore.activeWorkflow?.nodes[id]
+  if (storeNode?.type === 'trigger') {
+    workflowStore.updateNodeData(id, {
+      trigger: {
+        ...((storeNode as any).trigger ?? { type: 'manual' }),
+        ...newData,
+      },
+    })
+    return
+  }
   workflowStore.updateNodeData(inspectorStore.activeNode.id, newData)
 }
 
@@ -210,7 +233,13 @@ const injectVariable = (paramKey: string, variable: string) => {
 
 const isPluginNode = computed(() => inspectorStore.activeNode?.type === 'plugin')
 const isEventListenerNode = computed(() => inspectorStore.activeNode?.type === 'event-listener')
-const canConfigureRetry = computed(() => inspectorStore.activeNodeId !== 'trigger')
+const canConfigureRetry = computed(() => !isTriggerNode.value)
+const nodeDisabled = computed(() => {
+  const id = inspectorStore.activeNodeId
+  if (!id) return false
+  if (id === 'trigger' && !workflowStore.activeWorkflow?.nodes[id]) return false
+  return workflowStore.activeWorkflow?.nodes[id]?.disabled === true
+})
 const activeTab = ref<'config' | 'settings'>('config')
 const localId = ref('')
 const retryPolicy = computed<RetryPolicy | undefined>(() => {
@@ -354,6 +383,12 @@ function updateRetryPolicy(patch: Partial<RetryPolicy>) {
   })
 }
 
+function setNodeDisabled(disabled: boolean) {
+  if (!inspectorStore.activeNodeId) return
+  if (inspectorStore.activeNodeId === 'trigger' && !workflowStore.activeWorkflow?.nodes.trigger) return
+  workflowStore.updateNodeData(inspectorStore.activeNodeId, { disabled })
+}
+
 const copyToClipboard = async (path: string) => {
   try {
     await navigator.clipboard.writeText(`{{ ${path} }}`)
@@ -383,7 +418,7 @@ const copyToClipboard = async (path: string) => {
           </div>
           <div class="inspector-pane-content overflow-y-auto flex flex-col h-full">
             <!-- Special case: Trigger node with captured payload from Listen for Event -->
-            <template v-if="inspectorStore.activeNodeId === 'trigger'">
+            <template v-if="isTriggerNode">
               <div v-if="lastTriggerPayload" class="p-4 flex-1">
                 <p class="text-xs text-muted mb-3" style="font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
                   Last Captured Event
@@ -514,6 +549,24 @@ const copyToClipboard = async (path: string) => {
                   />
                 </div>
 
+                <div
+                  v-if="!(inspectorStore.activeNodeId === 'trigger' && !workflowStore.activeWorkflow?.nodes.trigger)"
+                  class="flex items-center justify-between gap-3 pt-4 border-t border-nod8-border"
+                >
+                  <div class="flex flex-col gap-1">
+                    <label class="text-sm font-semibold text-primary">
+                      {{ isTriggerNode ? 'Trigger Enabled' : 'Node Enabled' }}
+                    </label>
+                    <p class="text-xs text-muted leading-tight">
+                      Disabled triggers do not start. Disabled nodes are skipped.
+                    </p>
+                  </div>
+                  <BaseSwitch
+                    :model-value="!nodeDisabled"
+                    @update:model-value="(value) => setNodeDisabled(!value)"
+                  />
+                </div>
+
                 <!-- Retry Policy -->
                 <div
                   v-if="canConfigureRetry"
@@ -591,7 +644,7 @@ const copyToClipboard = async (path: string) => {
               OUTPUT (Future)
             </div>
             <BaseButton
-              v-if="inspectorStore.activeNodeId !== 'trigger'"
+              v-if="!isTriggerNode"
               variant="ghost"
               size="sm"
               icon-left="play"
@@ -600,7 +653,7 @@ const copyToClipboard = async (path: string) => {
             >
               Run Step
             </BaseButton>
-            <div id="listen-button-container" v-if="inspectorStore.activeNodeId === 'trigger'"></div>
+            <div id="listen-button-container" v-if="isTriggerNode"></div>
           </div>
           <div class="inspector-pane-content overflow-y-auto flex flex-col h-full">
             <div

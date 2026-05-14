@@ -122,8 +122,16 @@ export const useExecutionStore = defineStore('execution', () => {
   }
 
   /** Marks the trigger node as 'running' (e.g. waiting for a form submission). */
-  function setTriggerRunning() {
-    _patchNode('trigger', { status: 'running', startedAt: Date.now() })
+  function setTriggerRunning(triggerNodeId = 'trigger') {
+    _patchNode(triggerNodeId, { status: 'running', startedAt: Date.now() })
+  }
+
+  function markRunningTriggersSuccess(timestamp: number) {
+    for (const [nodeId, state] of Object.entries(nodeStatuses)) {
+      if (state?.status === 'running' && nodeId.startsWith('trigger')) {
+        _patchNode(nodeId, { status: 'success', endedAt: timestamp })
+      }
+    }
   }
 
   /** Closes any open EventSource connection. */
@@ -164,7 +172,7 @@ export const useExecutionStore = defineStore('execution', () => {
 
         switch (ev.type) {
           case 'trigger:data':
-            _patchNode('trigger', {
+            _patchNode(ev.nodeId ?? 'trigger', {
               status: 'success',
               output: ev.data,
               endedAt: ev.timestamp,
@@ -173,9 +181,7 @@ export const useExecutionStore = defineStore('execution', () => {
 
           case 'node:start':
             if (ev.nodeId) {
-              if (!nodeStatuses['trigger'] || nodeStatuses['trigger'].status === 'idle' || nodeStatuses['trigger'].status === 'running') {
-                _patchNode('trigger', { status: 'success', endedAt: ev.timestamp })
-              }
+              markRunningTriggersSuccess(ev.timestamp)
               _patchNode(ev.nodeId, { status: 'running', startedAt: ev.timestamp })
             }
             break
@@ -236,9 +242,7 @@ export const useExecutionStore = defineStore('execution', () => {
 
           case 'workflow:success':
             workflowStatus.value = 'SUCCESS'
-            if (nodeStatuses['trigger']?.status === 'running') {
-              _patchNode('trigger', { status: 'success', endedAt: ev.timestamp })
-            }
+            markRunningTriggersSuccess(ev.timestamp)
             isStreaming.value = false
             stopStream()
             success('Workflow completed successfully')
@@ -246,9 +250,7 @@ export const useExecutionStore = defineStore('execution', () => {
 
           case 'workflow:failed':
             workflowStatus.value = 'FAILED'
-            if (nodeStatuses['trigger']?.status === 'running') {
-              _patchNode('trigger', { status: 'success', endedAt: ev.timestamp })
-            }
+            markRunningTriggersSuccess(ev.timestamp)
             isStreaming.value = false
             stopStream()
             toastError('Workflow execution failed', 'Workflow failed')
@@ -290,18 +292,18 @@ export const useExecutionStore = defineStore('execution', () => {
    * 3. POSTs to the execute endpoint
    * 4. If the server returns a different execution ID, reconnects the stream
    */
-  async function execute(workflowId: string, payload: Record<string, unknown> = {}) {
+  async function execute(workflowId: string, payload: Record<string, unknown> = {}, triggerNodeId = 'trigger') {
     const { error: toastError } = useToast()
 
     resetNodeStatuses()
 
     const clientExecId = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
     startStream(clientExecId)
-    setTriggerRunning()   // shimmer laranja no trigger enquanto a execução inicia
+    setTriggerRunning(triggerNodeId)   // shimmer laranja no trigger enquanto a execução inicia
 
     isExecuting.value = true
     try {
-      const result = await workflowsApi.execute(workflowId, payload, clientExecId)
+      const result = await workflowsApi.execute(workflowId, payload, clientExecId, triggerNodeId)
 
       // Reconnect to the server-assigned ID if it differs from our client ID
       if (result.executionId && result.executionId !== clientExecId) {

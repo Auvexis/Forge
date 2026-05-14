@@ -71,12 +71,13 @@ const allPaths = computed(() => {
   }
 
   for (const upNode of [...props.upstreamNodes].reverse()) {
-    if (upNode.id === 'trigger') {
-      const triggerData = upNode.data as unknown as WorkflowTrigger
+    if (upNode.type === 'trigger') {
+      const rawTriggerNode = upNode.data as any
+      const triggerData = (rawTriggerNode.trigger ?? rawTriggerNode) as WorkflowTrigger
 
       // ── Form Trigger: campos ficam em trigger.fields.<name> ──
       if (triggerData?.type === 'form' && triggerData.formFields && triggerData.formFields.length > 0) {
-        const triggerOutput = executionStore.nodeStatuses['trigger']?.output as any
+        const triggerOutput = executionStore.nodeStatuses[upNode.id]?.output as any
         for (const field of triggerData.formFields) {
           if (!field.name) continue
           if (field.type === 'file') {
@@ -154,7 +155,7 @@ const allPaths = computed(() => {
       if (triggerData?.schema && Object.keys(triggerData.schema).length > 0) {
         paths.push(...resolveTriggerPaths(triggerData.schema))
       } else {
-        const lastPayload = useWorkflowStore().activeWorkflow?.trigger?.lastTriggerPayload
+        const lastPayload = triggerData.lastTriggerPayload ?? useWorkflowStore().activeWorkflow?.trigger?.lastTriggerPayload
         if (lastPayload) {
           // Flatten the payload dynamically
           const flatten = (obj: any, prefix = 'trigger'): SchemaPath[] => {
@@ -395,8 +396,9 @@ const iconsMap = computed(() => {
   }
 
   for (const upNode of props.upstreamNodes) {
-    if (upNode.id === 'trigger') {
-      const triggerData = upNode.data as unknown as WorkflowTrigger
+    if (upNode.type === 'trigger') {
+      const rawTriggerNode = upNode.data as any
+      const triggerData = (rawTriggerNode.trigger ?? rawTriggerNode) as WorkflowTrigger
       if (triggerData?.type === 'form') {
         map['trigger'] = 'file-text'
         map['trigger.fields'] = 'list'

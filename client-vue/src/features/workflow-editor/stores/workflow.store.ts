@@ -118,10 +118,10 @@ export const useWorkflowStore = defineStore('workflow', () => {
   function updateNodeData(nodeId: string, payload: Record<string, unknown>) {
     if (!activeWorkflow.value) return
 
-    if (nodeId === 'trigger') {
-      Object.assign(activeWorkflow.value.trigger, payload)
-    } else if (activeWorkflow.value.nodes[nodeId]) {
+    if (activeWorkflow.value.nodes[nodeId]) {
       Object.assign(activeWorkflow.value.nodes[nodeId], payload)
+    } else if (nodeId === 'trigger') {
+      Object.assign(activeWorkflow.value.trigger, payload)
     }
   }
 
@@ -141,7 +141,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
    */
   function renameNode(oldId: string, newId: string) {
     if (!activeWorkflow.value) return false
-    if (oldId === 'trigger' || newId === 'trigger') return false
+    if ((oldId === 'trigger' && !activeWorkflow.value.nodes[oldId]) || newId === 'trigger') return false
     if (activeWorkflow.value.nodes[newId]) return false // Conflict
 
     const nodeData = activeWorkflow.value.nodes[oldId]

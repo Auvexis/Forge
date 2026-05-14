@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, markRaw } from 'vue'
 import type { NodeProps } from '@vue-flow/core'
-import type { TriggerNode } from '@/core/types/workflow.types'
+import type { TriggerNode, WorkflowTrigger } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
@@ -22,7 +22,11 @@ const store = useWorkflowStore()
 const executionStore = useExecutionStore()
 const panelStore = useAppPanelStore()
 
-const triggerData = computed(() => store.activeWorkflow?.trigger)
+const triggerData = computed<WorkflowTrigger | undefined>(() => {
+  const data = props.data as unknown as TriggerNode | WorkflowTrigger
+  if ('trigger' in data && data.trigger) return data.trigger
+  return data as WorkflowTrigger
+})
 
 const triggerConfig = computed(() => {
   const type = triggerData.value?.type || 'manual'
@@ -100,7 +104,7 @@ const nodeTitle = computed(() => {
 })
 
 const effectiveStatus = computed<'idle' | 'running' | 'retrying' | 'success' | 'failed'>(() => {
-  const storeStatus = executionStore.nodeStatuses['trigger']?.status
+  const storeStatus = executionStore.nodeStatuses[props.id]?.status
   if (storeStatus && storeStatus !== 'idle') return storeStatus
   return props.status ?? 'idle'
 })
@@ -109,15 +113,16 @@ const onExecuteWorkflow = async () => {
   const workflow = store.activeWorkflow
   if (!workflow?.metadata.id) return
 
-  const schema = workflow.trigger.schema ?? {}
+  const trigger = triggerData.value ?? workflow.trigger
+  const schema = trigger.schema ?? {}
 
-  if (workflow.trigger.type === 'form') {
-    const formPublicId = workflow.trigger.formSlug?.trim() || workflow.metadata.id
+  if (trigger.type === 'form') {
+    const formPublicId = trigger.formSlug?.trim() || workflow.metadata.id
     const clientExecId = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 
     executionStore.resetNodeStatuses()
     executionStore.startStream(clientExecId)
-    executionStore.setTriggerRunning()
+    executionStore.setTriggerRunning(props.id)
 
     const formUrl = `${window.location.origin}/forms-test/${formPublicId}?execId=${clientExecId}`
     window.open(formUrl, '_blank', 'noopener')
@@ -130,13 +135,14 @@ const onExecuteWorkflow = async () => {
       props: {
         workflowId: workflow.metadata.id,
         schema,
-        triggerType: workflow.trigger.type,
+        triggerType: trigger.type,
+        triggerNodeId: props.id,
       },
       position: 'right',
       width: 'md',
     })
   } else {
-    await executionStore.execute(workflow.metadata.id)
+    await executionStore.execute(workflow.metadata.id, {}, props.id)
   }
 }
 
