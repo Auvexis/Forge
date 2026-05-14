@@ -469,13 +469,13 @@ Melhor caminho:
 
 ### Task 5 - Criar SessionEventBus/SSE
 
-- [ ] Criar bus por sessionId.
-- [ ] Encaminhar eventos de jobs e nodes.
-- [ ] Criar endpoint de stream por sessao.
-- [ ] Nao fechar SSE em `job:success`.
-- [ ] Fechar SSE apenas em `session:stopped` ou desconexao.
-- [ ] Testar stream continua apos primeiro job.
-- [ ] Commit.
+- [x] Criar bus por sessionId.
+- [x] Encaminhar eventos de jobs e nodes.
+- [x] Criar endpoint de stream por sessao.
+- [x] Nao fechar SSE em `job:success`.
+- [x] Fechar SSE apenas em `session:stopped` ou desconexao.
+- [x] Testar stream continua apos primeiro job.
+- [x] Commit.
 
 ### Task 6 - Adaptar Run Manual para criar sessao dev
 

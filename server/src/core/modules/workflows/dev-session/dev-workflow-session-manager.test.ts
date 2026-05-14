@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { DevWorkflowSessionManager } from "./dev-workflow-session-manager.ts";
+import { workflowEventBus } from "../event-bus.ts";
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 
 function workflow(): WorkflowItem {
@@ -75,5 +76,37 @@ describe("DevWorkflowSessionManager", () => {
 
     assert.equal(teardownCalls, 1);
     assert.equal(manager.getSession("session-1"), null);
+  });
+
+  it("emits session lifecycle and forwarded node events", async () => {
+    const events: string[] = [];
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_1`,
+      onEvent: (event) => events.push(`${event.type}:${event.jobId ?? event.sessionId}`),
+      runWorkflowJob: async (job) => {
+        workflowEventBus.emitWorkflowEvent({
+          type: "node:start",
+          executionId: job.executionId,
+          workflowId: job.workflowId,
+          nodeId: "node-1",
+          timestamp: Date.now(),
+        });
+      },
+    });
+    const session = manager.createSession(workflow());
+
+    manager.enqueueJob(session.id, {
+      triggerNodeId: "trigger",
+      source: "manual",
+      payload: {},
+    });
+    await manager.onIdle();
+    await manager.stopSession(session.id, "done");
+
+    assert.ok(events.includes("session:start:session_1"));
+    assert.ok(events.includes("session:ready:session_1"));
+    assert.ok(events.includes("node:start:job_1"));
+    assert.ok(events.includes("session:stopping:session_1"));
+    assert.ok(events.includes("session:stopped:session_1"));
   });
 });

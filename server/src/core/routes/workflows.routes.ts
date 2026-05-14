@@ -22,6 +22,7 @@ import { Scheduler } from "../modules/scheduler/scheduler.ts";
 import { PluginManager } from "../modules/plugins/manager.ts";
 import { TriggerListenerRegistry } from "../modules/workflows/trigger-listener-registry.ts";
 import { WorkflowLifecycleManager } from "../modules/workflows/lifecycle.ts";
+import { devWorkflowSessionRuntime } from "../modules/workflows/dev-session/runtime.ts";
 import { buildWorkflowSchema } from "../modules/workflows/workflow-schema.ts";
 import { validateWorkflowDefinition } from "../modules/workflows/workflow-validation.ts";
 import {
@@ -322,6 +323,67 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
   });
 
   // ──────────── SSE Stream Endpoint ────────────
+
+  fastify.get(
+    "/workflows/dev-sessions/:sessionId/stream",
+    async (req, reply) => {
+      const { sessionId } = req.params as { sessionId: string };
+
+      if (!devWorkflowSessionRuntime.manager.getSession(sessionId)) {
+        return reply.code(404).send({ error: "Dev workflow session not found" });
+      }
+
+      reply.hijack();
+      reply.raw.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+        "Access-Control-Allow-Origin": CLIENT_ORIGIN,
+        "Access-Control-Allow-Credentials": "true",
+      });
+      reply.raw.write(": connected\n\n");
+
+      let stoppedBySession = false;
+      const unsubscribe = devWorkflowSessionRuntime.eventBus.onSession(
+        sessionId,
+        (event) => {
+          try {
+            reply.raw.write(`data: ${safeSerialize(event)}\n\n`);
+          } catch {
+            const fallback = { ...event, data: "[unserializable output]" };
+            try {
+              reply.raw.write(`data: ${JSON.stringify(fallback)}\n\n`);
+            } catch {
+              /* skip */
+            }
+          }
+
+          if (event.type === "session:stopped") {
+            stoppedBySession = true;
+            setTimeout(() => reply.raw.end(), 250);
+          }
+        },
+      );
+
+      const heartbeat = setInterval(() => {
+        reply.raw.write(": heartbeat\n\n");
+      }, 15000);
+
+      req.raw.on("close", () => {
+        unsubscribe();
+        clearInterval(heartbeat);
+        if (!stoppedBySession) {
+          devWorkflowSessionRuntime.manager
+            .stopSession(sessionId, "sse disconnected")
+            .catch(console.error);
+        }
+      });
+
+      return new Promise((resolve) => {
+        req.raw.on("close", resolve);
+      });
+    },
+  );
 
   fastify.get(
     "/workflows/executions/:executionId/stream",

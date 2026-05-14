@@ -1,4 +1,5 @@
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
+import { workflowEventBus, type WorkflowEvent } from "../event-bus.ts";
 import { InMemoryExecutionQueue } from "./execution-queue.ts";
 import { WorkflowJobRunner } from "./workflow-job-runner.ts";
 import {
@@ -50,11 +51,18 @@ export class DevWorkflowSessionManager {
       runJob: async (job) => {
         const session = this.sessions.get(job.sessionId);
         if (!session) return;
-        if (this.runWorkflowJob) {
-          await this.runWorkflowJob(job, session.workflow);
-          return;
+        const unsubscribe = workflowEventBus.onExecution(job.executionId, (event) => {
+          this.emitWorkflowEvent(job, event);
+        });
+        try {
+          if (this.runWorkflowJob) {
+            await this.runWorkflowJob(job, session.workflow);
+            return;
+          }
+          await this.runner.run(job, session.workflow);
+        } finally {
+          unsubscribe();
         }
-        await this.runner.run(job, session.workflow);
       },
     });
   }
@@ -72,7 +80,9 @@ export class DevWorkflowSessionManager {
     };
 
     this.sessions.set(session.id, session);
+    this.emitSessionEvent(session, "session:start");
     this.transition(session, "running");
+    this.emitSessionEvent(session, "session:ready");
     return session;
   }
 
@@ -104,12 +114,14 @@ export class DevWorkflowSessionManager {
     try {
       this.transition(session, "stopping");
       session.stopReason = reason;
+      this.emitSessionEvent(session, "session:stopping");
       for (const runtime of session.triggerRuntimes.splice(0)) {
         await runtime.teardown();
       }
       this.queue.stopSession(sessionId);
       this.transition(session, "stopped");
       session.stoppedAt = Date.now();
+      this.emitSessionEvent(session, "session:stopped");
       this.sessions.delete(sessionId);
     } finally {
       this.stopping.delete(sessionId);
@@ -134,4 +146,44 @@ export class DevWorkflowSessionManager {
     if (!session) throw new Error(`Dev workflow session ${sessionId} was not found`);
     return session;
   }
+
+  private emitSessionEvent(
+    session: DevWorkflowSession,
+    type: SessionEvent["type"],
+  ): void {
+    this.options.onEvent?.({
+      type,
+      sessionId: session.id,
+      workflowId: session.workflowId,
+      timestamp: Date.now(),
+    });
+  }
+
+  private emitWorkflowEvent(job: WorkflowJob, event: WorkflowEvent): void {
+    const mappedType = workflowEventToSessionEvent(event.type);
+    if (!mappedType) return;
+
+    this.options.onEvent?.({
+      type: mappedType,
+      sessionId: job.sessionId,
+      workflowId: job.workflowId,
+      executionId: job.executionId,
+      triggerNodeId: job.triggerNodeId,
+      nodeId: event.nodeId,
+      jobId: job.id,
+      source: job.source,
+      timestamp: event.timestamp,
+      data: event.data,
+      error: event.error,
+    });
+  }
+}
+
+function workflowEventToSessionEvent(
+  type: WorkflowEvent["type"],
+): SessionEvent["type"] | null {
+  if (type === "node:start") return "node:start";
+  if (type === "node:success") return "node:success";
+  if (type === "node:failed") return "node:failed";
+  return null;
 }
