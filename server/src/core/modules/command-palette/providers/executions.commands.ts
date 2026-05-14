@@ -240,11 +240,18 @@ function toggleThemeCommand(): CommandHandler {
       icon: "sun-moon",
       availability: { enabled: true },
     }),
-    execute: () => ({
-      ok: true,
-      message: "Theme toggled",
-      uiIntent: { type: "theme.toggle" },
-    }),
+    execute: (context) => {
+      const services = executionServices(context);
+      const current = services.getSetting("theme");
+      const next = current === "dark" ? "light" : "dark";
+      services.setSetting("theme", next);
+      return {
+        ok: true,
+        message: "Theme toggled",
+        uiIntent: { type: "theme.toggle" },
+        refreshHints: ["settings"],
+      };
+    },
   };
 }
 

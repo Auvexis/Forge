@@ -27,7 +27,7 @@ Objetivo: permitir varios triggers reais em um workflow. Cada trigger e um ponto
   - Editar cada trigger independentemente.
   - Adicionar toggle enable/disable para trigger/node.
 
-- [ ] Task 5: Verificacao final
+- [x] Task 5: Verificacao final
   - Rodar testes backend.
   - Rodar type-check/build frontend.
   - Testar fluxo manual/webhook basico.
