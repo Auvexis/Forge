@@ -13,6 +13,7 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import RunWorkflowPanel from '../execution/RunWorkflowPanel.vue'
 import NodeShimmer from './NodeShimmer.vue'
+import NodeToolbar from './NodeToolbar.vue'
 
 const props = defineProps<
   NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
@@ -109,6 +110,14 @@ const effectiveStatus = computed<'idle' | 'running' | 'retrying' | 'success' | '
   return props.status ?? 'idle'
 })
 
+const isRealTriggerNode = computed(() => {
+  return Boolean(props.id && store.activeWorkflow?.nodes[props.id])
+})
+
+const showToolbar = computed(() => {
+  return Boolean(props.id && props.selected && isRealTriggerNode.value)
+})
+
 const onExecuteWorkflow = async () => {
   const workflow = store.activeWorkflow
   if (!workflow?.metadata.id) return
@@ -192,6 +201,18 @@ const onQuickAdd = () => {
     <div class="trigger-node__icon" :style="{ color: triggerConfig.color }">
       <LucideIcon :name="triggerConfig.icon" :size="48" />
     </div>
+
+    <NodeToolbar
+      v-if="props.id && isRealTriggerNode"
+      :node-id="props.id"
+      :visible="showToolbar"
+    />
+
+    <div
+      v-if="props.id && isRealTriggerNode"
+      class="trigger-node__toolbar-bridge"
+      aria-hidden="true"
+    />
   </div>
 
   <!-- Source handle -->
@@ -253,6 +274,19 @@ const onQuickAdd = () => {
     var(--trigger-border, #3c3c3c) 80%,
     var(--nod8-text-primary) 20%
   );
+}
+
+.trigger-node:hover :deep(.nt-toolbar) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.trigger-node__toolbar-bridge {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  right: 0;
+  height: 40px;
 }
 
 .trigger-node.is-selected {
