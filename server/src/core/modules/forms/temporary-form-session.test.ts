@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  cancelTemporaryFormSessionsByExecution,
   createTemporaryFormSession,
+  getTemporaryFormSession,
   resetTemporaryFormSessionsForTests,
   submitTemporaryFormSession,
 } from "./temporary-form-session.ts";
@@ -59,5 +61,31 @@ describe("temporary form sessions", () => {
     });
 
     await assert.rejects(session.result, /expired/i);
+  });
+
+  it("cancels waiting sessions by execution id", async () => {
+    resetTemporaryFormSessionsForTests();
+
+    const session = createTemporaryFormSession({
+      workflowId: "workflow-1",
+      executionId: "exec-1",
+      nodeId: "wait-form-1",
+      title: "Apply",
+      fields: [{ name: "email", label: "Email", type: "email" }],
+      expiresInSeconds: 5,
+    });
+
+    const result = session.result.catch((error) => error.message);
+    const cancelled = cancelTemporaryFormSessionsByExecution(
+      "exec-1",
+      "dev session stopped",
+    );
+
+    assert.equal(cancelled, 1);
+    assert.equal(getTemporaryFormSession(session.id), null);
+    assert.equal(
+      await result,
+      `Temporary form "${session.id}" cancelled: dev session stopped`,
+    );
   });
 });

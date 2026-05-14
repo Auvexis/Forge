@@ -1,6 +1,8 @@
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 import { schedule as scheduleCronTask } from "node-cron";
 import { InternalEventBus, type InternalEvent } from "../../events/internal-event-bus.ts";
+import { cancelTemporaryFormSessionsByExecution } from "../../forms/temporary-form-session.ts";
+import { CancellationRegistry } from "../cancellation-registry.ts";
 import { workflowEventBus, type WorkflowEvent } from "../event-bus.ts";
 import {
   getTriggerFormPublicId,
@@ -59,6 +61,8 @@ export class DevWorkflowSessionManager {
     DevWorkflowSessionManagerOptions["deactivatePluginTriggers"]
   >;
   private readonly eventTriggerCounts = new Map<string, number>();
+  private readonly jobsById = new Map<string, WorkflowJob>();
+  private readonly activeJobIdsBySession = new Map<string, Set<string>>();
   private readonly runner: WorkflowJobRunner;
   private readonly queue: InMemoryExecutionQueue;
   private readonly runWorkflowJob?: DevWorkflowSessionManagerOptions["runWorkflowJob"];
@@ -81,7 +85,10 @@ export class DevWorkflowSessionManager {
     this.queue = new InMemoryExecutionQueue({
       maxConcurrentPerSession: options.maxConcurrentPerSession ?? 2,
       maxConcurrentGlobal: options.maxConcurrentGlobal ?? 8,
-      onEvent: options.onEvent,
+      onEvent: (event) => {
+        this.handleQueueEvent(event);
+        options.onEvent?.(event);
+      },
       runJob: async (job) => {
         const session = this.sessions.get(job.sessionId);
         if (!session) return;
@@ -142,6 +149,7 @@ export class DevWorkflowSessionManager {
       source: input.source,
       payload: input.payload,
     });
+    this.jobsById.set(job.id, job);
     return this.queue.enqueue(job);
   }
 
@@ -219,6 +227,7 @@ export class DevWorkflowSessionManager {
       for (const runtime of session.triggerRuntimes.splice(0)) {
         await runtime.teardown();
       }
+      this.cancelRunningJobs(sessionId, reason);
       this.queue.stopSession(sessionId);
       this.transition(session, "stopped");
       session.stoppedAt = Date.now();
@@ -246,6 +255,37 @@ export class DevWorkflowSessionManager {
     const session = this.sessions.get(sessionId);
     if (!session) throw new Error(`Dev workflow session ${sessionId} was not found`);
     return session;
+  }
+
+  private handleQueueEvent(event: SessionEvent): void {
+    if (!event.jobId) return;
+
+    if (event.type === "job:start") {
+      const jobs = this.activeJobIdsBySession.get(event.sessionId) ?? new Set<string>();
+      jobs.add(event.jobId);
+      this.activeJobIdsBySession.set(event.sessionId, jobs);
+      return;
+    }
+
+    if (
+      event.type === "job:success" ||
+      event.type === "job:failed" ||
+      event.type === "job:cancelled"
+    ) {
+      this.activeJobIdsBySession.get(event.sessionId)?.delete(event.jobId);
+      this.jobsById.delete(event.jobId);
+    }
+  }
+
+  private cancelRunningJobs(sessionId: string, reason: string): void {
+    const jobIds = Array.from(this.activeJobIdsBySession.get(sessionId) ?? []);
+    for (const jobId of jobIds) {
+      const job = this.jobsById.get(jobId);
+      if (!job) continue;
+      CancellationRegistry.cancel(job.executionId);
+      cancelTemporaryFormSessionsByExecution(job.executionId, reason);
+    }
+    this.activeJobIdsBySession.delete(sessionId);
   }
 
   private activateInitialTriggers(

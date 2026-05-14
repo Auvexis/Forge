@@ -52,6 +52,13 @@ export class TemporaryFormSessionConflictError extends Error {
   }
 }
 
+export class TemporaryFormCancelledError extends Error {
+  constructor(formId: string, reason: string) {
+    super(`Temporary form "${formId}" cancelled: ${reason}`);
+    this.name = "TemporaryFormCancelledError";
+  }
+}
+
 export function createTemporaryFormSession(
   input: TemporaryFormSessionInput,
 ): TemporaryFormSession {
@@ -144,6 +151,22 @@ export function expireTemporaryFormSession(id: string): boolean {
   sessions.delete(id);
   session.reject(new TemporaryFormExpiredError(id));
   return true;
+}
+
+export function cancelTemporaryFormSessionsByExecution(
+  executionId: string,
+  reason: string,
+): number {
+  let cancelled = 0;
+  for (const session of Array.from(sessions.values())) {
+    if (session.executionId !== executionId || session.status !== "waiting") continue;
+    session.status = "expired";
+    clearTimeout(session.timer);
+    sessions.delete(session.id);
+    session.reject(new TemporaryFormCancelledError(session.id, reason));
+    cancelled++;
+  }
+  return cancelled;
 }
 
 export function resetTemporaryFormSessionsForTests(): void {

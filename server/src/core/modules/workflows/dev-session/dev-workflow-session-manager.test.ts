@@ -4,6 +4,10 @@ import { describe, it } from "node:test";
 import { DevWorkflowSessionManager } from "./dev-workflow-session-manager.ts";
 import { workflowEventBus } from "../event-bus.ts";
 import { InternalEventBus } from "../../events/internal-event-bus.ts";
+import {
+  createTemporaryFormSession,
+  resetTemporaryFormSessionsForTests,
+} from "../../forms/temporary-form-session.ts";
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 
 function workflow(): WorkflowItem {
@@ -321,5 +325,41 @@ describe("DevWorkflowSessionManager", () => {
 
     assert.deepEqual(ran, ['plugin_a:plugin:{"message":"hi"}']);
     assert.equal(deactivated, 1);
+  });
+
+  it("cancels temporary wait forms for running jobs when session stops", async () => {
+    resetTemporaryFormSessionsForTests();
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_1`,
+      runWorkflowJob: async () => new Promise(() => {}),
+    });
+    const wf = workflow();
+    wf.nodes = {
+      webhook_a: {
+        type: "trigger",
+        name: "Webhook A",
+        trigger: { type: "webhook", webhookSlug: "hook" },
+      },
+    };
+    const session = manager.createSession(wf);
+    manager.enqueueJob(session.id, {
+      triggerNodeId: "webhook_a",
+      source: "webhook",
+      payload: {},
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const form = createTemporaryFormSession({
+      workflowId: wf.metadata.id,
+      executionId: "exec_1",
+      nodeId: "wait-1",
+      title: "Wait",
+      fields: [],
+      expiresInSeconds: 60,
+    });
+
+    const result = form.result.catch((error) => error.message);
+    await manager.stopSession(session.id, "manual stop");
+
+    assert.match(await result, /manual stop/);
   });
 });

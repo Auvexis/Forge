@@ -538,11 +538,11 @@ Melhor caminho:
 
 ### Task 13 - Integrar Wait For Form com sessao
 
-- [ ] Garantir que wait-form cria URL temporaria ligada ao executionId/jobId.
-- [ ] Submit libera job correto.
-- [ ] Stop cancela waits pendentes.
-- [ ] Testar submit depois do Stop retorna erro claro.
-- [ ] Commit.
+- [x] Garantir que wait-form cria URL temporaria ligada ao executionId/jobId.
+- [x] Submit libera job correto.
+- [x] Stop cancela waits pendentes.
+- [x] Testar submit depois do Stop retorna erro claro.
+- [x] Commit.
 
 ### Task 14 - Corrigir estado visual de nodes e edges
 
