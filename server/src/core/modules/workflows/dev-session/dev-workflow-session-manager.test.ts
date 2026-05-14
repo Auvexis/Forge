@@ -213,4 +213,41 @@ describe("DevWorkflowSessionManager", () => {
 
     assert.deepEqual(ran, ['form_enabled:form:{"fields":{"email":"a@b.test"}}']);
   });
+
+  it("schedules cron triggers during the session and stops them on teardown", async () => {
+    let tick: (() => void) | undefined;
+    let stopped = false;
+    const ran: string[] = [];
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_${ran.length + 1}`,
+      scheduleCron: (_expression, callback) => {
+        tick = callback;
+        return {
+          stop: () => {
+            stopped = true;
+          },
+        };
+      },
+      runWorkflowJob: async (job) => {
+        ran.push(`${job.triggerNodeId}:${job.source}`);
+      },
+    });
+    const wf = workflow();
+    wf.nodes = {
+      cron_a: {
+        type: "trigger",
+        name: "Cron A",
+        trigger: { type: "cron", cronExpression: "* * * * *" },
+      },
+    };
+    const session = manager.createSession(wf);
+
+    if (!tick) assert.fail("cron was not scheduled");
+    tick();
+    await manager.onIdle();
+    await manager.stopSession(session.id, "stop");
+
+    assert.deepEqual(ran, ["cron_a:cron"]);
+    assert.equal(stopped, true);
+  });
 });

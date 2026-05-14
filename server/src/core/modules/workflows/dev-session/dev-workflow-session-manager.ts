@@ -1,4 +1,5 @@
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
+import { schedule as scheduleCronTask } from "node-cron";
 import { workflowEventBus, type WorkflowEvent } from "../event-bus.ts";
 import {
   getTriggerFormPublicId,
@@ -29,6 +30,10 @@ export interface DevWorkflowSessionManagerOptions {
   maxConcurrentPerSession?: number;
   maxConcurrentGlobal?: number;
   createId?: (prefix: "session" | "job" | "exec") => string;
+  scheduleCron?: (
+    expression: string,
+    callback: () => void,
+  ) => { stop: () => void };
   runWorkflowJob?: (job: WorkflowJob, workflow: WorkflowItem) => Promise<void>;
   onEvent?: (event: SessionEvent) => void;
 }
@@ -41,6 +46,7 @@ export class DevWorkflowSessionManager {
   private readonly sessions = new Map<string, DevWorkflowSession>();
   private readonly stopping = new Set<string>();
   private readonly createIdFn: NonNullable<DevWorkflowSessionManagerOptions["createId"]>;
+  private readonly scheduleCronFn: NonNullable<DevWorkflowSessionManagerOptions["scheduleCron"]>;
   private readonly runner: WorkflowJobRunner;
   private readonly queue: InMemoryExecutionQueue;
   private readonly runWorkflowJob?: DevWorkflowSessionManagerOptions["runWorkflowJob"];
@@ -49,6 +55,9 @@ export class DevWorkflowSessionManager {
   constructor(options: DevWorkflowSessionManagerOptions = {}) {
     this.options = options;
     this.createIdFn = options.createId ?? defaultCreateId;
+    this.scheduleCronFn =
+      options.scheduleCron ??
+      ((expression, callback) => scheduleCronTask(expression, callback));
     this.runWorkflowJob = options.runWorkflowJob;
     this.runner = new WorkflowJobRunner({
       createId: (prefix) => this.createIdFn(prefix),
@@ -235,6 +244,25 @@ export class DevWorkflowSessionManager {
           payload: initialPayload,
         });
         continue;
+      }
+
+      if (entry.trigger.type === "cron" && entry.trigger.cronExpression) {
+        const task = this.scheduleCronFn(entry.trigger.cronExpression, () => {
+          if (session.status !== "running") return;
+          this.enqueueJob(session.id, {
+            triggerNodeId: entry.id,
+            source: "cron",
+            payload: {
+              scheduledAt: Date.now(),
+              cronExpression: entry.trigger.cronExpression,
+            },
+          });
+        });
+        session.triggerRuntimes.push({
+          triggerNodeId: entry.id,
+          type: "cron",
+          teardown: () => task.stop(),
+        });
       }
 
       this.options.onEvent?.({

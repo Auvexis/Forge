@@ -513,11 +513,11 @@ Melhor caminho:
 
 ### Task 10 - Ativar cron dev
 
-- [ ] Registrar cron jobs por sessionId + triggerNodeId.
-- [ ] Enfileirar job a cada tick.
-- [ ] Parar cron no Stop/SSE close.
-- [ ] Testar que cron nao dispara apos stop.
-- [ ] Commit.
+- [x] Registrar cron jobs por sessionId + triggerNodeId.
+- [x] Enfileirar job a cada tick.
+- [x] Parar cron no Stop/SSE close.
+- [x] Testar que cron nao dispara apos stop.
+- [x] Commit.
 
 ### Task 11 - Ativar event trigger dev
 
