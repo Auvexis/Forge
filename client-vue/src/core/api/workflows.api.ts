@@ -49,6 +49,13 @@ export interface DevWorkflowSessionResponse {
   initialPayload: Record<string, unknown>
 }
 
+export interface DevWorkflowTriggerExecutionResponse {
+  sessionId: string
+  jobId: string
+  executionId: string
+  triggerNodeId: string
+}
+
 // ── Server response shape (snake_case from SQLite row) ────────
 
 /**
@@ -201,6 +208,19 @@ export const workflowsApi = {
     apiRequest<{ sessionId: string }>(ENDPOINTS.STOP_DEV_SESSION(sessionId), {
       method: 'POST',
     }),
+
+  executeDevSessionTrigger: (
+    sessionId: string,
+    triggerNodeId: string,
+    payload: Record<string, unknown> = {},
+  ) =>
+    apiRequest<DevWorkflowTriggerExecutionResponse>(
+      ENDPOINTS.EXECUTE_DEV_SESSION_TRIGGER(sessionId, triggerNodeId),
+      {
+        method: 'POST',
+        body: { payload },
+      },
+    ),
 
   createDevSessionStream: (sessionId: string): EventSource => {
     return new EventSource(`${API_BASE_URL}${ENDPOINTS.STREAM_DEV_SESSION(sessionId)}`)

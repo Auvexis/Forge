@@ -325,7 +325,7 @@ export class DevWorkflowSessionManager {
       if (entry.disabled) continue;
 
       if (entry.trigger.type === "manual") {
-        if (initialTriggerNodeId && entry.id !== initialTriggerNodeId) continue;
+        if (!initialTriggerNodeId || entry.id !== initialTriggerNodeId) continue;
         this.enqueueJob(session.id, {
           triggerNodeId: entry.id,
           source: "manual",

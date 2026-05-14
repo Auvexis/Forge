@@ -140,7 +140,7 @@ async function handleRun() {
     if (isFormTrigger.value) {
       await executionStore.executeFormSubmission(props.formId ?? props.workflowId, 'test', { ...params })
     } else {
-      await executionStore.execute(props.workflowId, { ...params }, props.triggerNodeId ?? 'trigger')
+      await executionStore.executeTrigger(props.workflowId, props.triggerNodeId ?? 'trigger', { ...params })
     }
     panelStore.closePanel()
   } catch {

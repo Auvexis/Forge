@@ -497,7 +497,7 @@ export const useExecutionStore = defineStore('execution', () => {
    * 3. POSTs to the execute endpoint
    * 4. If the server returns a different execution ID, reconnects the stream
    */
-  async function execute(workflowId: string, payload: Record<string, unknown> = {}, triggerNodeId = 'trigger') {
+  async function execute(workflowId: string, payload: Record<string, unknown> = {}, triggerNodeId?: string) {
     const { error: toastError } = useToast()
 
     resetNodeStatuses()
@@ -515,7 +515,7 @@ export const useExecutionStore = defineStore('execution', () => {
       for (const trigger of result.triggers) {
         if (trigger.type === 'manual') {
           manualTriggerNodeIds.add(trigger.triggerNodeId)
-          if (!triggerNodeId || trigger.triggerNodeId === triggerNodeId) {
+          if (trigger.triggerNodeId === triggerNodeId) {
             triggerStatuses[trigger.triggerNodeId] = 'running'
             _patchNode(trigger.triggerNodeId, { status: 'running', startedAt: Date.now() })
           }
@@ -531,6 +531,33 @@ export const useExecutionStore = defineStore('execution', () => {
       stopStream()
       toastError('Failed to start workflow execution')
       throw new Error('Execution failed')
+    } finally {
+      isExecuting.value = false
+    }
+  }
+
+  async function executeTrigger(
+    workflowId: string,
+    triggerNodeId: string,
+    payload: Record<string, unknown> = {},
+  ) {
+    const sessionId = activeSessionId.value
+    if (!sessionId || sessionStatus.value !== 'running') {
+      await execute(workflowId, payload, triggerNodeId)
+      return
+    }
+
+    const { error: toastError } = useToast()
+    isExecuting.value = true
+    try {
+      manualTriggerNodeIds.add(triggerNodeId)
+      triggerStatuses[triggerNodeId] = 'running'
+      _patchNode(triggerNodeId, { status: 'running', startedAt: Date.now() })
+      const result = await workflowsApi.executeDevSessionTrigger(sessionId, triggerNodeId, payload)
+      activeExecutionId.value = result.executionId
+    } catch {
+      toastError('Failed to execute trigger')
+      throw new Error('Trigger execution failed')
     } finally {
       isExecuting.value = false
     }
@@ -594,6 +621,7 @@ export const useExecutionStore = defineStore('execution', () => {
     workflowStatus,
     hasActiveExecution,
     execute,
+    executeTrigger,
     executeFormSubmission,
     cancel,
     startStream,

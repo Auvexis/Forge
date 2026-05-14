@@ -747,6 +747,52 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     });
   });
 
+  fastify.post("/workflows/dev-sessions/:sessionId/triggers/:triggerNodeId/execute", async (req, reply) => {
+    const { sessionId, triggerNodeId } = req.params as {
+      sessionId: string;
+      triggerNodeId: string;
+    };
+    const body = (req.body as { payload?: Record<string, any> } | null) ?? {};
+    const session = devWorkflowSessionRuntime.manager.getSession(sessionId);
+
+    if (!session) {
+      return sendResponse(reply, {
+        status_code: 404,
+        message: "Dev workflow session not found",
+        error: "Not Found",
+        data: null,
+      });
+    }
+
+    const triggerEntry = getTriggerEntry(session.workflow, triggerNodeId);
+    if (!triggerEntry || triggerEntry.disabled || triggerEntry.trigger.type !== "manual") {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Manual trigger not available for this dev session",
+        error: "Bad Request",
+        data: null,
+      });
+    }
+
+    const job = devWorkflowSessionRuntime.manager.enqueueJob(sessionId, {
+      triggerNodeId,
+      source: "manual",
+      payload: body.payload ?? {},
+    });
+
+    return sendResponse(reply, {
+      status_code: 202,
+      message: "Manual trigger queued",
+      error: null,
+      data: {
+        sessionId,
+        jobId: job.id,
+        executionId: job.executionId,
+        triggerNodeId,
+      },
+    });
+  });
+
   fastify.get("/workflows/dev-sessions/:sessionId", async (req, reply) => {
     const { sessionId } = req.params as { sessionId: string };
     const session = devWorkflowSessionRuntime.manager.getSession(sessionId);

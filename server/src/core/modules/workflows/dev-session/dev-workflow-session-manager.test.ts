@@ -123,7 +123,7 @@ describe("DevWorkflowSessionManager", () => {
     assert.ok(events.includes("session:stopped:session_1"));
   });
 
-  it("enqueues enabled manual triggers when a session starts", async () => {
+  it("does not enqueue manual triggers when a session starts without a requested trigger", async () => {
     const ran: string[] = [];
     const manager = new DevWorkflowSessionManager({
       createId: (prefix) => `${prefix}_${ran.length + 1}`,
@@ -154,7 +154,7 @@ describe("DevWorkflowSessionManager", () => {
     manager.createSession(wf, { initialPayload: { ok: true } });
     await manager.onIdle();
 
-    assert.deepEqual(ran, ['manual_a:{"ok":true}']);
+    assert.deepEqual(ran, []);
   });
 
   it("enqueues only the requested manual trigger when a session starts from a trigger node", async () => {

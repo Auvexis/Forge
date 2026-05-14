@@ -22,6 +22,8 @@ export const ENDPOINTS = {
   CREATE_DEV_SESSION: (id: string) => `/workflows/${id}/dev-sessions`,
   STOP_DEV_SESSION: (sessionId: string) => `/workflows/dev-sessions/${sessionId}/stop`,
   STREAM_DEV_SESSION: (sessionId: string) => `/workflows/dev-sessions/${sessionId}/stream`,
+  EXECUTE_DEV_SESSION_TRIGGER: (sessionId: string, triggerNodeId: string) =>
+    `/workflows/dev-sessions/${sessionId}/triggers/${triggerNodeId}/execute`,
 
   // Trigger
   TRIGGER_LISTEN: (id: string) => `/workflows/${id}/trigger/listen`,

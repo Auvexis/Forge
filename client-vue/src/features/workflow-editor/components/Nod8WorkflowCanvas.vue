@@ -27,25 +27,22 @@ import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import { useNodeInspectorStore } from '../stores/node-inspector.store'
 import NodeInspectorModal from './settings/NodeInspectorModal.vue'
 import AddNodePanel from './settings/AddNodePanel.vue'
-import RunWorkflowPanel from './execution/RunWorkflowPanel.vue'
 import ExecutionLogsPanel from './execution/ExecutionLogsPanel.vue'
 import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
 import { useEventBus } from '@/shared/composables/useEventBus'
-import { useToast } from '@/shared/composables/useToast'
 import { isCanvasSelecting } from '../composables/useCanvasSelecting'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import {
   deleteWorkflowSelection,
   duplicateWorkflowSelection,
 } from '../utils/workflowSelectionActions'
-import { selectToolbarRunTrigger, shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
+import { shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
 
 // Stores
 const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
 const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
-const toast = useToast()
 const vueFlowStore = ref<VueFlowStore | null>(null)
 
 // ── Props / emits (for v-model:show-logs from parent page) ──────────────────
@@ -313,53 +310,9 @@ const openAddNodePanel = (sourceId?: string | null) => {
 
 // ── Run / Stop ────────────────────────────────────────────────────────────
 
-/**
- * Smart run: if the trigger has manual input fields, opens RunWorkflowPanel
- * so the user can fill them in. Otherwise executes immediately.
- */
 async function handleRun() {
   if (!workflowStore.activeWorkflow) return
-
-  const runTrigger = selectToolbarRunTrigger(workflowStore.activeWorkflow)
-  if (!runTrigger) {
-    toast.warning('Add or enable a Manual trigger to run from the toolbar.')
-    return
-  }
-
-  const { triggerNodeId, trigger } = runTrigger
-  const schema = trigger.schema ?? {}
-
-  if (trigger.type === 'form') {
-    // Generate a client-side executionId, start streaming, then open the form
-    // in a new tab. The form page reads ?execId from the URL and forwards it
-    // as X-Nod8-Execution-Id so the server ties that submission to this stream.
-    const formPublicId = trigger.formSlug?.trim() || workflowStore.activeWorkflow.metadata.id
-    const clientExecId = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-
-    executionStore.resetNodeStatuses()
-    executionStore.startStream(clientExecId)
-    executionStore.setTriggerRunning(triggerNodeId)   // shimmer laranja no trigger enquanto aguarda o form
-
-    const formUrl = `${window.location.origin}/forms-test/${formPublicId}?execId=${clientExecId}`
-    window.open(formUrl, '_blank', 'noopener')
-    return
-  } else if (Object.keys(schema).length > 0) {
-    panelStore.togglePanel({
-      id: 'run-workflow-panel',
-      title: 'Run Workflow',
-      component: markRaw(RunWorkflowPanel),
-      props: {
-        workflowId: workflowStore.activeWorkflow.metadata.id,
-        schema,
-        triggerType: trigger.type,
-        triggerNodeId,
-      },
-      position: 'right',
-      width: 'md',
-    })
-  } else {
-    await executionStore.execute(workflowStore.activeWorkflow.metadata.id, {}, triggerNodeId)
-  }
+  await executionStore.execute(workflowStore.activeWorkflow.metadata.id, {})
 }
 
 async function handleStop() {

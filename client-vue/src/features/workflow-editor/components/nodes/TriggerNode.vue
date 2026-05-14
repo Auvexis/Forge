@@ -160,7 +160,7 @@ const onExecuteWorkflow = async () => {
       width: 'md',
     })
   } else {
-    await executionStore.execute(workflow.metadata.id, {}, props.id)
+    await executionStore.executeTrigger(workflow.metadata.id, props.id, {})
   }
 }
 
@@ -193,7 +193,7 @@ const onQuickAdd = () => {
       icon-left="play"
       @click.stop="onExecuteWorkflow"
     >
-      Execute Workflow
+      Execute Trigger
     </BaseButton>
 
     <!-- Shimmer clip wrapper — needs overflow:hidden + border-radius match -->
