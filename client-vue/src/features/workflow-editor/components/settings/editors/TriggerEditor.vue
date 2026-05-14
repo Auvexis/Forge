@@ -547,6 +547,7 @@ import { appApi } from '@/core/api/app.api'
 import { useWorkflowStore } from '../../../stores/workflow.store'
 import { useToast } from '@/shared/composables/useToast'
 import { onMounted } from 'vue'
+import { buildTriggerFormProdUrl, buildTriggerFormTestUrl } from './triggerRuntimeUrls'
 
 const props = defineProps<NodeEditorProps>()
 const workflowStore = useWorkflowStore()
@@ -616,7 +617,6 @@ function humanizeCron(expression: string | undefined): string {
 const copied = ref<'test' | 'prod' | 'form-test' | 'form-prod' | null>(null)
 
 const backendPublicUrl = ref(API_BASE_URL)
-const frontendOrigin = window.location.origin
 
 async function loadAppInfo() {
   try {
@@ -751,8 +751,8 @@ const formPublicId = computed(() => {
   return slug || id || ''
 })
 
-const formTestUrl = computed(() => formPublicId.value ? `${frontendOrigin}/forms-test/${formPublicId.value}` : '')
-const formProdUrl = computed(() => formPublicId.value ? `${backendPublicUrl.value}/forms/${formPublicId.value}` : '')
+const formTestUrl = computed(() => buildTriggerFormTestUrl(backendPublicUrl.value, formPublicId.value))
+const formProdUrl = computed(() => buildTriggerFormProdUrl(backendPublicUrl.value, formPublicId.value))
 
 const formIsPublished = computed(
   () => workflowStore.activeWorkflow?.metadata.isActive ?? false,

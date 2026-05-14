@@ -27,7 +27,7 @@ const props = defineProps<{
   hasSource?: boolean
 
   selected?: boolean
-  status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed'
+  status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed'
 
   height?: number | string
   width?: number | string
@@ -76,7 +76,7 @@ const cancelIdChange = () => {
   isEditingId.value = false
 }
 
-const effectiveStatus = computed<'idle' | 'running' | 'retrying' | 'success' | 'failed'>(() => {
+const effectiveStatus = computed<'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed'>(() => {
   if (props.id) {
     const storeStatus = executionStore.nodeStatuses[props.id]?.status
     if (storeStatus && storeStatus !== 'idle') return storeStatus
@@ -115,8 +115,8 @@ const onQuickAdd = () => {
       width: props.width ? (typeof props.width === 'number' ? `${props.width}px` : props.width) : undefined
     }"
   >
-    <!-- Shimmer overlay while running/retrying -->
-    <NodeShimmer v-if="effectiveStatus === 'running' || effectiveStatus === 'retrying'" />
+    <!-- Shimmer overlay while active/waiting -->
+    <NodeShimmer v-if="effectiveStatus === 'running' || effectiveStatus === 'retrying' || effectiveStatus === 'waiting'" />
 
     <!-- Icon area (center of card) -->
     <div class="nod8-base-node__icon-wrap">
@@ -228,6 +228,12 @@ const onQuickAdd = () => {
 
 .nod8-base-node.is-running {
   border-color: var(--nod8-amber-400);
+}
+
+.nod8-base-node.is-waiting {
+  border-color: var(--nod8-purple-400, #8b5cf6);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(139, 92, 246, 0.2);
+  --node-shimmer-color: rgba(139, 92, 246, 0.18);
 }
 
 .nod8-base-node.is-retrying {

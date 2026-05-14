@@ -43,7 +43,7 @@ export interface WorkflowEvent {
 
 // ── Node Execution Status ─────────────────────────────────────
 
-export type NodeExecutionStatus = 'idle' | 'running' | 'retrying' | 'success' | 'failed'
+export type NodeExecutionStatus = 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed'
 
 export interface NodeExecutionState {
   status: NodeExecutionStatus

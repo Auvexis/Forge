@@ -7,7 +7,7 @@ import { apiRequest } from '@/core/api/client'
 import { ENDPOINTS } from '@/core/api/endpoints'
 
 const props = defineProps<
-  NodeProps<PluginNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
+  NodeProps<PluginNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const pluginName = computed(() => props.data?.name || props.data?.action || 'Plugin Action')

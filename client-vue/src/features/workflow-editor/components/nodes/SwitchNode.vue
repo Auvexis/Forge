@@ -9,7 +9,7 @@ import QuickAddButton from '../QuickAddButton.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
-  NodeProps<SwitchNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
+  NodeProps<SwitchNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const stepTitle = computed(() => (props.data as any)?.name || 'Switch')

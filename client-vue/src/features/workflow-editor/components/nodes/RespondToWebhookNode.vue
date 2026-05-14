@@ -7,7 +7,7 @@ import BaseHandle from '../BaseHandle.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
-  NodeProps<RespondToWebhookNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
+  NodeProps<RespondToWebhookNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const stepTitle = computed(() => (props.data as any)?.name || 'Respond to Webhook')

@@ -5,7 +5,7 @@ import BaseNode from '../BaseNode.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
-  NodeProps<EventNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
+  NodeProps<EventNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const paramCount = computed(() => (props.data?.payloadParams ?? []).length)

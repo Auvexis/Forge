@@ -9,7 +9,7 @@ import QuickAddButton from '../QuickAddButton.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
-  NodeProps<LoopNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
+  NodeProps<LoopNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const collection = computed(() => (props.data as any)?.collectionPath || '—')

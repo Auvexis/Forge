@@ -614,6 +614,9 @@ const addLogicNode = (type: WorkflowNodeType) => {
 
   const id = generateNodeId(type)
   const pos = getNewNodePosition(backupSourceId)
+  const shouldAdoptLegacyTrigger =
+    type === 'trigger' &&
+    !Object.values(workflowStore.activeWorkflow.nodes).some((nodeData) => nodeData.type === 'trigger')
 
   // Default properties required by backend validation
   const defaultData: Record<string, any> = {}
@@ -659,7 +662,9 @@ const addLogicNode = (type: WorkflowNodeType) => {
       { name: 'email', label: 'Email', type: 'email', required: true },
     ]
   } else if (type === 'trigger') {
-    defaultData.trigger = { type: 'manual' }
+    defaultData.trigger = shouldAdoptLegacyTrigger
+      ? { ...workflowStore.activeWorkflow.trigger, ui: undefined }
+      : { type: 'manual' }
   }
 
   // Adicionar no store
@@ -670,6 +675,13 @@ const addLogicNode = (type: WorkflowNodeType) => {
     ...defaultData,
   }
   workflowStore.activeWorkflow.nodes[id] = newNode
+
+  if (shouldAdoptLegacyTrigger) {
+    workflowStore.activeWorkflow.edges = workflowStore.activeWorkflow.edges.map((edge) =>
+      edge.source === 'trigger' ? { ...edge, source: id } : edge,
+    )
+    vueFlowEdges.value = buildEdges()
+  }
 
   // Adicionar no VueFlow
   vueFlowNodes.value.push({

@@ -8,7 +8,7 @@ import QuickAddButton from '../QuickAddButton.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
-  NodeProps<MergeNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
+  NodeProps<MergeNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const stepTitle = computed(() => (props.data as any)?.name || 'Merge')

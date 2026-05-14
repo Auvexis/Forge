@@ -9,7 +9,7 @@ import QuickAddButton from '../QuickAddButton.vue'
 import { computed } from 'vue'
 
 const props = defineProps<
-  NodeProps<SplitInBatchesNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
+  NodeProps<SplitInBatchesNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const stepTitle = computed(() => (props.data as any)?.name || 'Split In Batches')

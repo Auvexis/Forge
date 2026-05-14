@@ -6,7 +6,7 @@ import { computed } from 'vue'
 import { useWorkflowStore } from '../../stores/workflow.store'
 
 const props = defineProps<
-  NodeProps<EventListenerNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
+  NodeProps<EventListenerNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const workflowStore = useWorkflowStore()

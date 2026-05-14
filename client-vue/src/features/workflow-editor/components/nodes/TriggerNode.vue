@@ -17,7 +17,7 @@ import NodeShimmer from './NodeShimmer.vue'
 import NodeToolbar from './NodeToolbar.vue'
 
 const props = defineProps<
-  NodeProps<TriggerNode> & { status?: 'idle' | 'running' | 'retrying' | 'success' | 'failed' }
+  NodeProps<TriggerNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
 
 const store = useWorkflowStore()
@@ -106,7 +106,7 @@ const nodeTitle = computed(() => {
   return triggerConfig.value.title
 })
 
-const effectiveStatus = computed<'idle' | 'running' | 'retrying' | 'success' | 'failed'>(() => {
+const effectiveStatus = computed<'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed'>(() => {
   const storeStatus = executionStore.nodeStatuses[props.id]?.status
   if (storeStatus && storeStatus !== 'idle') return storeStatus
   return props.status ?? 'idle'
@@ -197,7 +197,7 @@ const onQuickAdd = () => {
     </BaseButton>
 
     <!-- Shimmer clip wrapper — needs overflow:hidden + border-radius match -->
-    <div v-if="effectiveStatus === 'running'" class="trigger-node__shimmer-clip">
+    <div v-if="effectiveStatus === 'running' || effectiveStatus === 'waiting'" class="trigger-node__shimmer-clip">
       <NodeShimmer />
     </div>
 
@@ -311,6 +311,14 @@ const onQuickAdd = () => {
 
 .trigger-node.is-running {
   border-color: var(--nod8-amber-400);
+}
+
+.trigger-node.is-waiting {
+  border-color: var(--nod8-purple-400, #8b5cf6);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    0 0 0 3px rgba(139, 92, 246, 0.2);
+  --node-shimmer-color: rgba(139, 92, 246, 0.18);
 }
 
 .trigger-node.is-success {

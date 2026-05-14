@@ -42,6 +42,7 @@ export const useExecutionStore = defineStore('execution', () => {
 
   // Internal EventSource — intentionally non-reactive (DOM object)
   let _es: EventSource | null = null
+  const clearStatusTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
   // ── Derived ──────────────────────────────────────────────────────────────
 
@@ -54,6 +55,7 @@ export const useExecutionStore = defineStore('execution', () => {
    * In-place mutation on the reactive record triggers per-key tracking.
    */
   function _patchNode(nodeId: string, patch: Partial<NodeExecutionState>) {
+    if (patch.status && patch.status !== 'idle') clearNodeStatusTimer(nodeId)
     const prev = nodeStatuses[nodeId]
     nodeStatuses[nodeId] = prev ? { ...prev, ...patch } : { status: 'idle' as const, ...patch }
   }
@@ -66,6 +68,41 @@ export const useExecutionStore = defineStore('execution', () => {
       ...executionStatuses,
       [nodeId]: prev ? { ...prev, ...patch } : { status: 'idle' as const, ...patch },
     }
+  }
+
+  function clearNodeStatusTimer(nodeId: string) {
+    const timer = clearStatusTimers.get(nodeId)
+    if (timer) clearTimeout(timer)
+    clearStatusTimers.delete(nodeId)
+  }
+
+  function clearNodeStatusLater(nodeId: string, expectedStatus: NodeExecutionState['status'], delayMs = 1800) {
+    clearNodeStatusTimer(nodeId)
+    clearStatusTimers.set(
+      nodeId,
+      setTimeout(() => {
+        const current = nodeStatuses[nodeId]
+        if (current?.status === expectedStatus) {
+          nodeStatuses[nodeId] = { ...current, status: 'idle' }
+        }
+        delete triggerStatuses[nodeId]
+        clearStatusTimers.delete(nodeId)
+      }, delayMs),
+    )
+  }
+
+  function clearTransientNodeStatuses() {
+    for (const timer of clearStatusTimers.values()) clearTimeout(timer)
+    clearStatusTimers.clear()
+
+    for (const [nodeId, state] of Object.entries(nodeStatuses)) {
+      if (state?.status === 'waiting' || state?.status === 'running' || state?.status === 'retrying') {
+        nodeStatuses[nodeId] = { ...state, status: 'idle' }
+      }
+    }
+
+    for (const key of Object.keys(triggerStatuses)) delete triggerStatuses[key]
+    for (const key of Object.keys(activeJobs)) delete activeJobs[key]
   }
 
   function timelineStatusFor(type: string): ExecutionTimelineEvent['status'] {
@@ -141,6 +178,8 @@ export const useExecutionStore = defineStore('execution', () => {
     for (const key of Object.keys(nodeStatuses)) {
       delete nodeStatuses[key]
     }
+    for (const timer of clearStatusTimers.values()) clearTimeout(timer)
+    clearStatusTimers.clear()
     workflowStatus.value = null
     sessionStatus.value = null
     activeSessionId.value = null
@@ -160,6 +199,7 @@ export const useExecutionStore = defineStore('execution', () => {
     for (const [nodeId, state] of Object.entries(nodeStatuses)) {
       if (state?.status === 'running' && nodeId.startsWith('trigger')) {
         _patchNode(nodeId, { status: 'success', endedAt: timestamp })
+        clearNodeStatusLater(nodeId, 'success')
       }
     }
   }
@@ -288,11 +328,7 @@ export const useExecutionStore = defineStore('execution', () => {
 
           case 'workflow:cancelled':
             workflowStatus.value = 'CANCELLED'
-            for (const nid of Object.keys(nodeStatuses)) {
-              if (nodeStatuses[nid]?.status === 'running') {
-                nodeStatuses[nid] = { ...nodeStatuses[nid]!, status: 'idle' }
-              }
-            }
+            clearTransientNodeStatuses()
             isStreaming.value = false
             stopStream()
             useToast().warning('Workflow execution cancelled')
@@ -337,22 +373,29 @@ export const useExecutionStore = defineStore('execution', () => {
           case 'trigger:waiting':
             if (ev.triggerNodeId) {
               triggerStatuses[ev.triggerNodeId] = 'waiting'
-              _patchNode(ev.triggerNodeId, { status: 'running', startedAt: ev.timestamp })
+              _patchNode(ev.triggerNodeId, { status: 'waiting', startedAt: ev.timestamp })
             }
             break
 
           case 'trigger:received':
             if (ev.triggerNodeId) {
               triggerStatuses[ev.triggerNodeId] = 'received'
-              _patchNode(ev.triggerNodeId, { status: 'running', output: ev.data, startedAt: ev.timestamp })
+              _patchNode(ev.triggerNodeId, { output: ev.data, startedAt: ev.timestamp })
             }
             break
 
           case 'job:queued':
+            if (ev.jobId) activeJobs[ev.jobId] = ev
+            if (ev.executionId) activeExecutionId.value = ev.executionId
+            break
+
           case 'job:start':
             if (ev.jobId) activeJobs[ev.jobId] = ev
             if (ev.executionId) activeExecutionId.value = ev.executionId
-            if (ev.triggerNodeId) triggerStatuses[ev.triggerNodeId] = 'running'
+            if (ev.triggerNodeId) {
+              triggerStatuses[ev.triggerNodeId] = 'running'
+              _patchNode(ev.triggerNodeId, { status: 'running', startedAt: ev.timestamp })
+            }
             break
 
           case 'node:start':
@@ -390,21 +433,31 @@ export const useExecutionStore = defineStore('execution', () => {
             break
 
           case 'job:success':
-            if (ev.triggerNodeId) triggerStatuses[ev.triggerNodeId] = 'success'
+            if (ev.triggerNodeId) {
+              triggerStatuses[ev.triggerNodeId] = 'success'
+              _patchNode(ev.triggerNodeId, { status: 'success', endedAt: ev.timestamp })
+              clearNodeStatusLater(ev.triggerNodeId, 'success')
+            }
             break
 
           case 'job:failed':
-            if (ev.triggerNodeId) triggerStatuses[ev.triggerNodeId] = 'failed'
+            if (ev.triggerNodeId) {
+              triggerStatuses[ev.triggerNodeId] = 'failed'
+              _patchNode(ev.triggerNodeId, { status: 'failed', error: ev.error, endedAt: ev.timestamp })
+              clearNodeStatusLater(ev.triggerNodeId, 'failed')
+            }
             toastError(ev.error ?? 'Workflow job failed', 'Job failed')
             break
 
           case 'session:stopping':
             sessionStatus.value = 'stopping'
+            clearTransientNodeStatuses()
             break
 
           case 'session:stopped':
             sessionStatus.value = 'stopped'
             isStreaming.value = false
+            clearTransientNodeStatuses()
             stopStream()
             useToast().success('Dev session stopped')
             break
@@ -447,6 +500,9 @@ export const useExecutionStore = defineStore('execution', () => {
       sessionStatus.value = result.status
       for (const trigger of result.triggers) {
         triggerStatuses[trigger.triggerNodeId] = trigger.type === 'manual' ? 'running' : 'waiting'
+        if (trigger.type !== 'manual') {
+          _patchNode(trigger.triggerNodeId, { status: 'waiting', startedAt: Date.now() })
+        }
       }
       startSessionStream(result.sessionId)
     } catch {

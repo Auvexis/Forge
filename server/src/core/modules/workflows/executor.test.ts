@@ -64,6 +64,24 @@ describe("WorkflowEngine trigger entry execution", () => {
     assert.equal(result.context.steps.set_a, undefined);
   });
 
+  it("records selected trigger payload as trigger node output", async () => {
+    const wf = baseWorkflow();
+    WorkflowRepository.saveWorkflow(wf);
+
+    const payload = { payload: "any", nested: { ok: true } };
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      wf,
+      "trigger_b",
+      payload,
+      "exec_multi_trigger_payload_output",
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.deepEqual(result.context.trigger, payload);
+    assert.deepEqual(result.context.steps.trigger_b.output, payload);
+    assert.equal(result.context.steps.trigger_b.status, "SUCCESS");
+  });
+
   it("passes through disabled normal nodes to their downstream targets", async () => {
     const wf = baseWorkflow();
     wf.nodes.disabled_mid = {

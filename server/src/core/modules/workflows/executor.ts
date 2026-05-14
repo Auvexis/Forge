@@ -31,6 +31,7 @@ import type {
   EventListenerNode,
   MergeNode,
   PluginNode,
+  TriggerNode,
   WorkflowItem,
   WorkflowNode,
 } from "../../../shared/models/workflow-types.ts";
@@ -127,6 +128,15 @@ export const WorkflowEngine = {
       null,
       sanitizeContextForLogging(context),
     );
+
+    const triggerNode =
+      triggerEntry.node ??
+      ({
+        type: "trigger",
+        name: triggerEntry.name,
+        trigger: triggerEntry.trigger,
+      } satisfies TriggerNode);
+    recordSuccessfulStep(context, triggerNodeId, triggerNode, triggerPayload);
 
     try {
       const { adjList } = createGraph(workflow);
