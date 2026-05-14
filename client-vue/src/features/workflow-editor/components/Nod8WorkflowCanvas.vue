@@ -1202,9 +1202,8 @@ defineExpose({
   place-items: center;
   color: var(--nod8-text-muted);
   background: color-mix(in srgb, var(--nod8-bg-surface) 70%, transparent);
-  border: 2px dashed color-mix(in srgb, var(--nod8-border-strong) 86%, var(--nod8-green-400));
+  border: 2px dashed var(--nod8-border-strong);
   border-radius: 8px;
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--nod8-green-400, #4ade80) 55%, transparent);
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
@@ -1213,7 +1212,6 @@ defineExpose({
 
 .canvas-empty-step__label {
   font-size: 13px;
-  font-weight: 500;
   line-height: 1.2;
   color: var(--nod8-text-primary);
   white-space: nowrap;
@@ -1222,7 +1220,7 @@ defineExpose({
 .canvas-empty-step:hover .canvas-empty-step__box {
   color: var(--nod8-text-primary);
   background: var(--nod8-bg-surface-hover);
-  border-color: var(--nod8-green-400, #4ade80);
+  border-color: var(--nod8-text-primary);
 }
 
 .canvas-empty-step:focus-visible .canvas-empty-step__box {
