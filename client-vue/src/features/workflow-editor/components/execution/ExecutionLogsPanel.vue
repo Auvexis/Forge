@@ -56,8 +56,12 @@
       <div v-else-if="!detailExecution" key="list" class="elp-list">
         <div v-if="executionStore.timeline.length" class="elp-live-timeline">
           <div class="elp-section-title-row">
-            <p class="elp-section-title">Live Timeline</p>
-            <span class="elp-row-id">{{ executionStore.activeExecutionId?.slice(-8) }}</span>
+            <p class="elp-section-title">
+              {{ executionStore.activeSessionId ? 'Dev Session Timeline' : 'Live Timeline' }}
+            </p>
+            <span class="elp-row-id">
+              {{ (executionStore.activeExecutionId ?? executionStore.activeSessionId)?.slice(-8) }}
+            </span>
           </div>
           <div class="elp-timeline">
             <div

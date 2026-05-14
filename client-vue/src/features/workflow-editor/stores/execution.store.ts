@@ -34,6 +34,7 @@ export const useExecutionStore = defineStore('execution', () => {
   const sessionStatus = ref<DevWorkflowSessionStatus | null>(null)
   const activeJobs = reactive<Record<string, WorkflowEvent>>({})
   const triggerStatuses = reactive<Record<string, 'waiting' | 'received' | 'running' | 'success' | 'failed'>>({})
+  const nodeStatusesByExecution = reactive<Record<string, Record<string, NodeExecutionState>>>({})
 
   /** Last known overall workflow execution outcome */
   const workflowStatus = ref<WorkflowExecutionStatus | null>(null)
@@ -55,6 +56,16 @@ export const useExecutionStore = defineStore('execution', () => {
   function _patchNode(nodeId: string, patch: Partial<NodeExecutionState>) {
     const prev = nodeStatuses[nodeId]
     nodeStatuses[nodeId] = prev ? { ...prev, ...patch } : { status: 'idle' as const, ...patch }
+  }
+
+  function _patchExecutionNode(executionId: string | undefined, nodeId: string, patch: Partial<NodeExecutionState>) {
+    if (!executionId) return
+    const executionStatuses = nodeStatusesByExecution[executionId] ?? {}
+    const prev = executionStatuses[nodeId]
+    nodeStatusesByExecution[executionId] = {
+      ...executionStatuses,
+      [nodeId]: prev ? { ...prev, ...patch } : { status: 'idle' as const, ...patch },
+    }
   }
 
   function timelineStatusFor(type: string): ExecutionTimelineEvent['status'] {
@@ -137,6 +148,7 @@ export const useExecutionStore = defineStore('execution', () => {
     timeline.value = []
     for (const key of Object.keys(activeJobs)) delete activeJobs[key]
     for (const key of Object.keys(triggerStatuses)) delete triggerStatuses[key]
+    for (const key of Object.keys(nodeStatusesByExecution)) delete nodeStatusesByExecution[key]
   }
 
   /** Marks the trigger node as 'running' (e.g. waiting for a form submission). */
@@ -323,11 +335,17 @@ export const useExecutionStore = defineStore('execution', () => {
             break
 
           case 'trigger:waiting':
-            if (ev.triggerNodeId) triggerStatuses[ev.triggerNodeId] = 'waiting'
+            if (ev.triggerNodeId) {
+              triggerStatuses[ev.triggerNodeId] = 'waiting'
+              _patchNode(ev.triggerNodeId, { status: 'running', startedAt: ev.timestamp })
+            }
             break
 
           case 'trigger:received':
-            if (ev.triggerNodeId) triggerStatuses[ev.triggerNodeId] = 'received'
+            if (ev.triggerNodeId) {
+              triggerStatuses[ev.triggerNodeId] = 'received'
+              _patchNode(ev.triggerNodeId, { status: 'running', output: ev.data, startedAt: ev.timestamp })
+            }
             break
 
           case 'job:queued':
@@ -338,28 +356,35 @@ export const useExecutionStore = defineStore('execution', () => {
             break
 
           case 'node:start':
-            if (ev.nodeId) _patchNode(ev.nodeId, { status: 'running', startedAt: ev.timestamp })
+            if (ev.nodeId) {
+              _patchNode(ev.nodeId, { status: 'running', startedAt: ev.timestamp })
+              _patchExecutionNode(ev.executionId, ev.nodeId, { status: 'running', startedAt: ev.timestamp })
+            }
             break
 
           case 'node:success':
             if (ev.nodeId) {
-              _patchNode(ev.nodeId, {
+              const patch = {
                 status: 'success',
                 output: ev.data,
                 endedAt: ev.timestamp,
                 attempts: nodeStatuses[ev.nodeId]?.attempts ?? 1,
-              })
+              } satisfies Partial<NodeExecutionState>
+              _patchNode(ev.nodeId, patch)
+              _patchExecutionNode(ev.executionId, ev.nodeId, patch)
             }
             break
 
           case 'node:failed':
             if (ev.nodeId) {
-              _patchNode(ev.nodeId, {
+              const patch = {
                 status: 'failed',
                 error: ev.error,
                 endedAt: ev.timestamp,
                 attempts: nodeStatuses[ev.nodeId]?.attempts ?? 1,
-              })
+              } satisfies Partial<NodeExecutionState>
+              _patchNode(ev.nodeId, patch)
+              _patchExecutionNode(ev.executionId, ev.nodeId, patch)
               toastError(ev.error ?? `Node "${ev.nodeId}" failed`, 'Node execution failed')
             }
             break
@@ -488,6 +513,7 @@ export const useExecutionStore = defineStore('execution', () => {
     sessionStatus,
     activeJobs,
     triggerStatuses,
+    nodeStatusesByExecution,
     workflowStatus,
     hasActiveExecution,
     execute,

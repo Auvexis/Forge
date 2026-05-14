@@ -546,21 +546,21 @@ Melhor caminho:
 
 ### Task 14 - Corrigir estado visual de nodes e edges
 
-- [ ] Mudar frontend para estado por `sessionId/jobId/executionId`.
-- [ ] Nao marcar edges de ramos nao executados como success.
-- [ ] Triggers passivos ficam waiting.
-- [ ] Ultimo job pode destacar apenas seu ramo.
-- [ ] Testar store com dois jobs de triggers diferentes.
-- [ ] Commit.
+- [x] Mudar frontend para estado por `sessionId/jobId/executionId`.
+- [x] Nao marcar edges de ramos nao executados como success.
+- [x] Triggers passivos ficam waiting.
+- [x] Ultimo job pode destacar apenas seu ramo.
+- [x] Testar store com dois jobs de triggers diferentes.
+- [x] Commit.
 
 ### Task 15 - Melhorar painel de logs
 
-- [ ] Agrupar eventos por job.
-- [ ] Mostrar origem do job.
-- [ ] Mostrar triggers ativos/waiting.
-- [ ] Remover toast de success por job no modo dev.
-- [ ] Testar timeline com jobs paralelos.
-- [ ] Commit.
+- [x] Agrupar eventos por job.
+- [x] Mostrar origem do job.
+- [x] Mostrar triggers ativos/waiting.
+- [x] Remover toast de success por job no modo dev.
+- [x] Testar timeline com jobs paralelos.
+- [x] Commit.
 
 ### Task 16 - Stop automatico ao desconectar
 
