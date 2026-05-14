@@ -1,6 +1,6 @@
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 import { workflowEventBus, type WorkflowEvent } from "../event-bus.ts";
-import { listTriggerEntries } from "../workflow-triggers.ts";
+import { getTriggerWebhookPath, listTriggerEntries } from "../workflow-triggers.ts";
 import { InMemoryExecutionQueue } from "./execution-queue.ts";
 import { WorkflowJobRunner } from "./workflow-job-runner.ts";
 import {
@@ -113,6 +113,36 @@ export class DevWorkflowSessionManager {
       payload: input.payload,
     });
     return this.queue.enqueue(job);
+  }
+
+  enqueueWebhook(webhookPath: string, payload: unknown): boolean {
+    for (const session of this.sessions.values()) {
+      if (session.status !== "running") continue;
+
+      for (const entry of listTriggerEntries(session.workflow)) {
+        if (entry.disabled) continue;
+        if (entry.trigger.type !== "webhook") continue;
+        if (getTriggerWebhookPath(session.workflow, entry) !== webhookPath) continue;
+
+        this.options.onEvent?.({
+          type: "trigger:received",
+          sessionId: session.id,
+          workflowId: session.workflowId,
+          triggerNodeId: entry.id,
+          source: "webhook",
+          timestamp: Date.now(),
+          data: payload,
+        });
+        this.enqueueJob(session.id, {
+          triggerNodeId: entry.id,
+          source: "webhook",
+          payload,
+        });
+        return true;
+      }
+    }
+
+    return false;
   }
 
   async stopSession(sessionId: string, reason: string): Promise<void> {

@@ -85,6 +85,23 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
   fastify.all("/webhook-test/:webhookPath", async (req, reply) => {
     const { webhookPath } = req.params as { webhookPath: string };
 
+    const devPayload = {
+      method: req.method,
+      headers: req.headers,
+      query: req.query,
+      body: req.body ?? {},
+      ip: req.ip,
+      timestamp: Date.now(),
+    };
+
+    if (devWorkflowSessionRuntime.manager.enqueueWebhook(webhookPath, devPayload)) {
+      return reply.code(202).send({
+        status: "accepted",
+        mode: "dev-session",
+        webhookPath,
+      });
+    }
+
     // ── Listen for Event intercept ─────────────────────────────────
     if (TriggerListenerRegistry.has(webhookPath)) {
       const payload = {

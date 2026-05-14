@@ -151,4 +151,35 @@ describe("DevWorkflowSessionManager", () => {
 
     assert.deepEqual(ran, ['manual_a:{"ok":true}']);
   });
+
+  it("enqueues webhook dev jobs for active sessions only", async () => {
+    const ran: string[] = [];
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_${ran.length + 1}`,
+      runWorkflowJob: async (job) => {
+        ran.push(`${job.triggerNodeId}:${job.source}:${JSON.stringify(job.payload)}`);
+      },
+    });
+    const wf = workflow();
+    wf.nodes = {
+      webhook_enabled: {
+        type: "trigger",
+        name: "Webhook Enabled",
+        trigger: { type: "webhook", webhookSlug: "orders" },
+      },
+      webhook_disabled: {
+        type: "trigger",
+        name: "Webhook Disabled",
+        disabled: true,
+        trigger: { type: "webhook", webhookSlug: "ignored" },
+      },
+    };
+    manager.createSession(wf);
+
+    assert.equal(manager.enqueueWebhook("ignored", { body: 1 }), false);
+    assert.equal(manager.enqueueWebhook("orders", { body: 2 }), true);
+    await manager.onIdle();
+
+    assert.deepEqual(ran, ['webhook_enabled:webhook:{"body":2}']);
+  });
 });

@@ -496,12 +496,12 @@ Melhor caminho:
 
 ### Task 8 - Ativar webhook dev
 
-- [ ] Registrar webhookPath/forma de resolucao para sessao dev.
-- [ ] Fazer `/webhook-test/:webhookPath` enfileirar job na sessao.
-- [ ] Garantir que trigger disabled nao registra.
-- [ ] Garantir que webhook publicado nao mistura com dev.
-- [ ] Testar payload e triggerNodeId corretos.
-- [ ] Commit.
+- [x] Registrar webhookPath/forma de resolucao para sessao dev.
+- [x] Fazer `/webhook-test/:webhookPath` enfileirar job na sessao.
+- [x] Garantir que trigger disabled nao registra.
+- [x] Garantir que webhook publicado nao mistura com dev.
+- [x] Testar payload e triggerNodeId corretos.
+- [x] Commit.
 
 ### Task 9 - Ativar form trigger dev
 
