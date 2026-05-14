@@ -48,7 +48,7 @@ export function validateWorkflowDefinition(workflow: WorkflowItem): string | nul
   }
 
   if (workflow.trigger.type === "form") {
-    const formError = validateFormTrigger(workflow);
+    const formError = validateTriggerConfig(workflow.trigger, "Form trigger");
     if (formError) return formError;
   }
 
@@ -82,15 +82,42 @@ export function validateWorkflowDefinition(workflow: WorkflowItem): string | nul
   return null;
 }
 
-function validateFormTrigger(workflow: WorkflowItem): string | null {
-  if (workflow.trigger.formSlug && !FORM_SLUG_REGEX.test(workflow.trigger.formSlug)) {
-    return `Form ID must be kebab-case (e.g. 'contact-us'). Got: '${workflow.trigger.formSlug}'`;
-  }
-  if (!Array.isArray(workflow.trigger.formFields)) {
-    return "Form trigger must have a formFields array";
+function validateTriggerConfig(
+  trigger: NonNullable<WorkflowItem["nodes"][string] & { type: "trigger" }>["trigger"] | WorkflowItem["trigger"],
+  label: string,
+): string | null {
+  if (!trigger?.type) return `${label} must have type`;
+
+  if (trigger.type === "form") {
+    if (trigger.formSlug && !FORM_SLUG_REGEX.test(trigger.formSlug)) {
+      return `Form ID must be kebab-case (e.g. 'contact-us'). Got: '${trigger.formSlug}'`;
+    }
+    if (!Array.isArray(trigger.formFields)) {
+      return `${label} must have a formFields array`;
+    }
+
+    return validateFormFields(trigger.formFields, label);
   }
 
-  return validateFormFields(workflow.trigger.formFields, "Form");
+  if (trigger.type === "webhook" || trigger.type === "plugin") {
+    if (trigger.webhookSlug && !FORM_SLUG_REGEX.test(trigger.webhookSlug)) {
+      return `Webhook slug must be kebab-case (e.g. 'new-sale'). Got: '${trigger.webhookSlug}'`;
+    }
+  }
+
+  if (trigger.type === "cron" && !trigger.cronExpression) {
+    return `${label} must have cronExpression`;
+  }
+
+  if (trigger.type === "event" && !trigger.eventName) {
+    return `${label} must have eventName`;
+  }
+
+  if (trigger.type === "plugin" && (!trigger.pluginId || !trigger.triggerName)) {
+    return `${label} must have pluginId and triggerName`;
+  }
+
+  return null;
 }
 
 function validateFormFields(
@@ -234,6 +261,6 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       }
       return null;
     case "trigger":
-      return null;
+      return validateTriggerConfig(node.trigger ?? { type: "manual" }, `Trigger node "${nodeId}"`);
   }
 }

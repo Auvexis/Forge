@@ -15,7 +15,7 @@ Objetivo: permitir varios triggers reais em um workflow. Cada trigger e um ponto
   - Se node normal estiver desabilitado, pular e liberar proximos nodes.
   - Se trigger estiver desabilitado, nao iniciar execucao.
 
-- [ ] Task 3: Ingressos backend
+- [x] Task 3: Ingressos backend
   - Resolver webhook/plugin/form/cron/event para o trigger node correto.
   - Registrar/desregistrar triggers de plugin por node.
   - Agendar cron por trigger node.

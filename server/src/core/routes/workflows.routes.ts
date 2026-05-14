@@ -24,6 +24,12 @@ import { TriggerListenerRegistry } from "../modules/workflows/trigger-listener-r
 import { WorkflowLifecycleManager } from "../modules/workflows/lifecycle.ts";
 import { buildWorkflowSchema } from "../modules/workflows/workflow-schema.ts";
 import { validateWorkflowDefinition } from "../modules/workflows/workflow-validation.ts";
+import {
+  getTriggerEntry,
+  getTriggerWebhookPath,
+  listTriggerEntries,
+  resolveWebhookTrigger,
+} from "../modules/workflows/workflow-triggers.ts";
 
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
 
@@ -101,20 +107,14 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
     // ──────────────────────────────────────────────────────────────
 
-    const workflows = WorkflowRepository.getWorkflows();
-    const workflow = workflows.find(
-      (wf) =>
-        (wf.trigger.type === "webhook" || wf.trigger.type === "plugin") &&
-        (wf.trigger.webhookSlug === webhookPath ||
-          wf.trigger.webhookPath === webhookPath ||
-          (wf.trigger.type === "plugin" && wf.metadata.id === webhookPath)),
-    );
+    const resolved = resolveWebhookTrigger(WorkflowRepository.getWorkflows(), webhookPath);
 
-    if (!workflow) {
+    if (!resolved) {
       return reply.code(404).send({ error: "Webhook not found" });
     }
+    const { workflow, triggerNodeId, entry } = resolved;
 
-    const allowedMethods = workflow.trigger.webhookMethods ?? ["POST"];
+    const allowedMethods = entry.trigger.webhookMethods ?? ["POST"];
     if (!allowedMethods.includes(req.method as any)) {
       return reply
         .code(405)
@@ -134,8 +134,9 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
     try {
       // Synchronous — await the result so the caller gets the full context
-      const result = await WorkflowEngine.executeWorkflow(
+      const result = await WorkflowEngine.executeWorkflowFromTrigger(
         workflow,
+        triggerNodeId,
         triggerPayload,
         executionId,
       );
@@ -190,21 +191,15 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
     // ──────────────────────────────────────────────────────────────
 
-    const workflows = WorkflowRepository.getActiveWorkflows();
-    const workflow = workflows.find(
-      (wf) =>
-        (wf.trigger.type === "webhook" || wf.trigger.type === "plugin") &&
-        (wf.trigger.webhookSlug === webhookPath ||
-          wf.trigger.webhookPath === webhookPath ||
-          (wf.trigger.type === "plugin" && wf.metadata.id === webhookPath)),
-    );
+    const resolved = resolveWebhookTrigger(WorkflowRepository.getActiveWorkflows(), webhookPath);
 
-    if (!workflow) {
+    if (!resolved) {
       return reply.code(404).send({ error: "Webhook not found" });
     }
+    const { workflow, triggerNodeId, entry } = resolved;
 
     // Method validation
-    const allowedMethods = workflow.trigger.webhookMethods ?? ["POST"];
+    const allowedMethods = entry.trigger.webhookMethods ?? ["POST"];
     if (!allowedMethods.includes(req.method as any)) {
       return reply
         .code(405)
@@ -212,7 +207,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
 
     // HMAC signature validation when a secret is configured
-    if (workflow.trigger.webhookSecret) {
+    if (entry.trigger.webhookSecret) {
       const signature = req.headers["x-nod8-signature"] as string | undefined;
       if (!signature) {
         return reply
@@ -223,7 +218,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       if (
         !validateWebhookSignature(
           rawBody,
-          workflow.trigger.webhookSecret,
+          entry.trigger.webhookSecret,
           signature,
         )
       ) {
@@ -267,8 +262,9 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       };
 
       // Start execution (fire — don't await)
-      WorkflowEngine.executeWorkflow(
+      WorkflowEngine.executeWorkflowFromTrigger(
         workflow,
+        triggerNodeId,
         enrichedPayload,
         executionId,
       ).catch((err: Error) =>
@@ -305,7 +301,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
 
     // Default: fire-and-forget (no RespondToWebhookNode)
-    WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(
+    WorkflowEngine.executeWorkflowFromTrigger(workflow, triggerNodeId, triggerPayload, executionId).catch(
       (err: Error) =>
         console.error(
           `[NOD8 | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
@@ -549,6 +545,16 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         }
       }
 
+      const triggerError = prepareTriggerNodesForSave(workflow);
+      if (triggerError) {
+        return sendResponse(reply, {
+          status_code: 400,
+          message: triggerError,
+          error: triggerError,
+          data: null,
+        });
+      }
+
       const validationError = validateWorkflowDefinition(workflow);
       if (validationError) {
         return sendResponse(reply, {
@@ -582,6 +588,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
   fastify.post("/workflows/:workflowId/execute", async (req, reply) => {
     const { workflowId } = req.params as { workflowId: string };
+    const query = req.query as { triggerNodeId?: string };
 
     try {
       const workflow = WorkflowRepository.getWorkflowById(workflowId);
@@ -624,6 +631,12 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       } else {
         triggerPayload = (req.body as Record<string, any>) || {};
       }
+      const bodyTriggerNodeId =
+        typeof triggerPayload._triggerNodeId === "string"
+          ? String(triggerPayload._triggerNodeId)
+          : undefined;
+      delete triggerPayload._triggerNodeId;
+      const triggerNodeId = query.triggerNodeId || bodyTriggerNodeId || "trigger";
 
       const executionId =
         headerExecutionId ??
@@ -642,8 +655,9 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       await reply.code(202).send(responseBody);
 
       setImmediate(() => {
-        WorkflowEngine.executeWorkflow(
+        WorkflowEngine.executeWorkflowFromTrigger(
           workflow,
+          triggerNodeId,
           triggerPayload,
           executionId,
         ).catch((err: Error) =>
@@ -840,6 +854,16 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         }
       }
 
+      const triggerError = prepareTriggerNodesForSave(workflow);
+      if (triggerError) {
+        return sendResponse(reply, {
+          status_code: 400,
+          message: triggerError,
+          error: triggerError,
+          data: null,
+        });
+      }
+
       const validationError = validateWorkflowDefinition(workflow);
       if (validationError) {
         return sendResponse(reply, {
@@ -897,17 +921,20 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
   fastify.get("/workflows/:workflowId/trigger/listen", async (req, reply) => {
     const { workflowId } = req.params as { workflowId: string };
+    const query = req.query as { triggerNodeId?: string };
+    const triggerNodeId = query.triggerNodeId || "trigger";
 
     const workflow = WorkflowRepository.getWorkflowById(workflowId);
     if (!workflow) {
       return reply.code(404).send({ error: "Workflow not found" });
     }
 
-    // Determine the webhook path used for this workflow
-    const webhookPath =
-      workflow.trigger.webhookSlug ||
-      workflow.trigger.webhookPath ||
-      (workflow.trigger.type === "plugin" ? workflowId : null);
+    // Determine the webhook path used for this trigger
+    const triggerEntry = getTriggerEntry(workflow, triggerNodeId);
+    if (!triggerEntry) {
+      return reply.code(404).send({ error: "Trigger not found" });
+    }
+    const webhookPath = getTriggerWebhookPath(workflow, triggerEntry);
 
     if (!webhookPath) {
       return reply.code(400).send({
@@ -928,7 +955,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     });
 
     const isUnpublishedPluginTrigger =
-      workflow.trigger.type === "plugin" && !workflow.metadata.isActive;
+      triggerEntry.trigger.type === "plugin" && !workflow.metadata.isActive;
 
     let teardownDone = false;
     const performTeardown = () => {
@@ -1166,4 +1193,44 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       });
     }
   });
+}
+
+function prepareTriggerNodesForSave(workflow: WorkflowItem): string | null {
+  const webhookSlugs = new Set<string>();
+  const formSlugs = new Set<string>();
+
+  for (const entry of listTriggerEntries(workflow)) {
+    const trigger = entry.trigger;
+    if ((trigger.type === "webhook" || trigger.type === "plugin") && !trigger.webhookPath) {
+      trigger.webhookPath = `wh_${workflow.metadata.id}_${entry.id}_${crypto
+        .randomBytes(4)
+        .toString("hex")}`.replace(/[^a-zA-Z0-9_-]/g, "_");
+    }
+
+    if ((trigger.type === "webhook" || trigger.type === "plugin") && trigger.webhookSlug) {
+      if (webhookSlugs.has(trigger.webhookSlug)) {
+        return `webhookSlug '${trigger.webhookSlug}' is duplicated in this workflow`;
+      }
+      webhookSlugs.add(trigger.webhookSlug);
+      const slugError = WorkflowRepository.validateWebhookSlug(
+        trigger.webhookSlug,
+        workflow.metadata.id,
+      );
+      if (slugError) return slugError;
+    }
+
+    if (trigger.type === "form" && trigger.formSlug) {
+      if (formSlugs.has(trigger.formSlug)) {
+        return `formSlug '${trigger.formSlug}' is duplicated in this workflow`;
+      }
+      formSlugs.add(trigger.formSlug);
+      const slugError = WorkflowRepository.validateFormSlug(
+        trigger.formSlug,
+        workflow.metadata.id,
+      );
+      if (slugError) return slugError;
+    }
+  }
+
+  return null;
 }

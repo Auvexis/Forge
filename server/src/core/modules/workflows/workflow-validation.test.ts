@@ -70,4 +70,21 @@ describe("workflow validation", () => {
 
     assert.match(error ?? "", /invalid name/);
   });
+
+  it("rejects invalid form fields on real trigger nodes", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        form_trigger: {
+          type: "trigger",
+          name: "Form Trigger",
+          trigger: {
+            type: "form",
+            formFields: [{ name: "bad name", label: "Bad", type: "text" }],
+          },
+        },
+      },
+    }));
+
+    assert.match(error ?? "", /invalid name/);
+  });
 });

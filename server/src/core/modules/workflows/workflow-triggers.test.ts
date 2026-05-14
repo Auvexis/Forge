@@ -3,7 +3,10 @@ import { describe, it } from "node:test";
 
 import {
   getTriggerEntry,
+  listCronTriggers,
+  listPluginTriggers,
   listTriggerEntries,
+  resolveEventTriggers,
   resolveFormTrigger,
   resolveWebhookTrigger,
 } from "./workflow-triggers.ts";
@@ -118,5 +121,83 @@ describe("workflow trigger helpers", () => {
 
     assert.equal(getTriggerEntry(wf, "trigger_a")?.name, "Manual A");
     assert.equal(getTriggerEntry(wf, "missing"), null);
+  });
+
+  it("lists enabled cron triggers with their node ids", () => {
+    const wf = workflow({
+      nodes: {
+        hourly: {
+          type: "trigger",
+          name: "Hourly",
+          trigger: { type: "cron", cronExpression: "0 * * * *" },
+        },
+        disabled_daily: {
+          type: "trigger",
+          name: "Disabled Daily",
+          disabled: true,
+          trigger: { type: "cron", cronExpression: "0 0 * * *" },
+        },
+      },
+    });
+
+    const entries = listCronTriggers([wf]);
+
+    assert.equal(entries.length, 1);
+    assert.equal(entries[0].triggerNodeId, "hourly");
+    assert.equal(entries[0].entry.trigger.cronExpression, "0 * * * *");
+  });
+
+  it("resolves all enabled event triggers for an event name", () => {
+    const wf = workflow({
+      nodes: {
+        event_a: {
+          type: "trigger",
+          name: "Event A",
+          trigger: { type: "event", eventName: "telegram.callback" },
+        },
+        event_b: {
+          type: "trigger",
+          name: "Event B",
+          disabled: true,
+          trigger: { type: "event", eventName: "telegram.callback" },
+        },
+      },
+    });
+
+    const entries = resolveEventTriggers([wf], "telegram.callback");
+
+    assert.deepEqual(entries.map((entry) => entry.triggerNodeId), ["event_a"]);
+  });
+
+  it("lists enabled plugin triggers for lifecycle registration", () => {
+    const wf = workflow({
+      nodes: {
+        telegram_callback: {
+          type: "trigger",
+          name: "Telegram Callback",
+          trigger: {
+            type: "plugin",
+            pluginId: "nod8.telegram",
+            triggerName: "callback",
+            webhookPath: "tg-callback",
+          },
+        },
+        disabled_plugin: {
+          type: "trigger",
+          name: "Disabled Plugin",
+          disabled: true,
+          trigger: {
+            type: "plugin",
+            pluginId: "nod8.telegram",
+            triggerName: "message",
+          },
+        },
+      },
+    });
+
+    const entries = listPluginTriggers(wf);
+
+    assert.equal(entries.length, 1);
+    assert.equal(entries[0].id, "telegram_callback");
   });
 });

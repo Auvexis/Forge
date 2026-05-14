@@ -8,7 +8,7 @@ import {
 import {
   formDefinition,
   formPublicId,
-  resolveFormWorkflow,
+  resolveFormWorkflowTrigger,
 } from "./form-service.ts";
 import { processFormSubmission } from "./form-submission.ts";
 import {
@@ -33,9 +33,9 @@ export function registerFormRoutes(
 ) {
   fastify.get("/forms-test/:formId", async (req, reply) => {
     const { formId } = req.params as { formId: string };
-    const workflow = resolveFormWorkflow(formId, { requireActive: false });
+    const resolved = resolveFormWorkflowTrigger(formId, { requireActive: false });
 
-    if (!workflow) {
+    if (!resolved) {
       return renderMissingFormPage(
         reply,
         "Form not available",
@@ -44,15 +44,15 @@ export function registerFormRoutes(
     }
 
     return reply.redirect(
-      `${deps.clientOrigin}/forms-test/${encodeURIComponent(formPublicId(workflow))}`,
+      `${deps.clientOrigin}/forms-test/${encodeURIComponent(formPublicId(resolved.workflow, resolved.triggerNodeId))}`,
     );
   });
 
   fastify.get("/forms/:formId", async (req, reply) => {
     const { formId } = req.params as { formId: string };
-    const workflow = resolveFormWorkflow(formId, { requireActive: true });
+    const resolved = resolveFormWorkflowTrigger(formId, { requireActive: true });
 
-    if (!workflow) {
+    if (!resolved) {
       return renderMissingFormPage(
         reply,
         "Form not available",
@@ -61,18 +61,18 @@ export function registerFormRoutes(
     }
 
     return reply.redirect(
-      `${deps.clientOrigin}/forms/${encodeURIComponent(formPublicId(workflow))}`,
+      `${deps.clientOrigin}/forms/${encodeURIComponent(formPublicId(resolved.workflow, resolved.triggerNodeId))}`,
     );
   });
 
   fastify.get("/forms-api/:formId", async (req, reply) => {
     const { formId } = req.params as { formId: string };
     const formMode = resolveFormMode((req.query as { mode?: string }).mode);
-    const workflow = resolveFormWorkflow(formId, {
+    const resolved = resolveFormWorkflowTrigger(formId, {
       requireActive: formMode === "prod",
     });
 
-    if (!workflow) {
+    if (!resolved) {
       return deps.sendResponse(reply, {
         status_code: 404,
         message: "Form not found or unavailable",
@@ -85,7 +85,7 @@ export function registerFormRoutes(
       status_code: 200,
       message: "Form definition fetched",
       error: null,
-      data: formDefinition(workflow, formMode),
+      data: formDefinition(resolved.workflow, formMode, resolved.triggerNodeId),
     });
   });
 

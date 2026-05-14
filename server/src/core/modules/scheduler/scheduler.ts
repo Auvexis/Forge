@@ -1,11 +1,13 @@
 import cron from "node-cron";
 import { WorkflowRepository } from "../workflows/repository.ts";
 import { WorkflowEngine } from "../workflows/executor.ts";
+import { listCronTriggers } from "../workflows/workflow-triggers.ts";
 
 // ──────────── Types ────────────
 
 interface ScheduledJob {
   workflowId: string;
+  triggerNodeId: string;
   cronExpression: string;
   task: cron.ScheduledTask;
 }
@@ -25,11 +27,13 @@ export const Scheduler = {
     const workflows = WorkflowRepository.getActiveWorkflows();
     let count = 0;
 
-    for (const workflow of workflows) {
-      if (workflow.trigger.type === "cron" && workflow.trigger.cronExpression) {
-        this.scheduleWorkflow(workflow.metadata.id, workflow.trigger.cronExpression);
-        count++;
-      }
+    for (const resolved of listCronTriggers(workflows)) {
+      this.scheduleWorkflow(
+        resolved.workflow.metadata.id,
+        resolved.triggerNodeId,
+        resolved.entry.trigger.cronExpression!,
+      );
+      count++;
     }
 
     if (count > 0) {
@@ -41,7 +45,7 @@ export const Scheduler = {
    * Schedule a single workflow by its ID and cron expression.
    * If the workflow already has a job, it will be replaced.
    */
-  scheduleWorkflow(workflowId: string, cronExpression: string): void {
+  scheduleWorkflow(workflowId: string, triggerNodeId: string, cronExpression: string): void {
     if (!cron.validate(cronExpression)) {
       console.error(
         `[NOD8 | SCHEDULER]: Invalid cron expression for workflow ${workflowId}: "${cronExpression}"`,
@@ -50,17 +54,17 @@ export const Scheduler = {
     }
 
     // Remove existing job for this workflow before re-scheduling
-    this.unscheduleWorkflow(workflowId);
+    this.unscheduleWorkflow(workflowId, triggerNodeId);
 
     const task = cron.schedule(cronExpression, async () => {
-      console.log(`[NOD8 | SCHEDULER]: Triggering workflow ${workflowId} (cron: ${cronExpression})`);
+      console.log(`[NOD8 | SCHEDULER]: Triggering workflow ${workflowId}/${triggerNodeId} (cron: ${cronExpression})`);
 
       const workflow = WorkflowRepository.getWorkflowById(workflowId);
       if (!workflow) {
         console.error(
           `[NOD8 | SCHEDULER]: Workflow ${workflowId} not found — removing job`,
         );
-        this.unscheduleWorkflow(workflowId);
+        this.unscheduleWorkflow(workflowId, triggerNodeId);
         return;
       }
 
@@ -68,6 +72,7 @@ export const Scheduler = {
         scheduledAt: new Date().toISOString(),
         cronExpression,
         triggerType: "cron",
+        triggerNodeId,
       };
 
       const executionId = `exec_cron_${Date.now()}_${Math.random()
@@ -75,7 +80,12 @@ export const Scheduler = {
         .substring(2, 9)}`;
 
       try {
-        await WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId);
+        await WorkflowEngine.executeWorkflowFromTrigger(
+          workflow,
+          triggerNodeId,
+          triggerPayload,
+          executionId,
+        );
         console.log(`[NOD8 | SCHEDULER]: Workflow ${workflowId} completed`);
       } catch (err: any) {
         console.error(
@@ -84,7 +94,8 @@ export const Scheduler = {
       }
     });
 
-    activeJobs.set(workflowId, { workflowId, cronExpression, task });
+    const jobId = schedulerJobId(workflowId, triggerNodeId);
+    activeJobs.set(jobId, { workflowId, triggerNodeId, cronExpression, task });
     console.log(
       `[NOD8 | SCHEDULER]: Scheduled workflow ${workflowId} (${cronExpression})`,
     );
@@ -93,11 +104,11 @@ export const Scheduler = {
   /**
    * Stop and remove the scheduled job for a workflow.
    */
-  unscheduleWorkflow(workflowId: string): void {
-    const job = activeJobs.get(workflowId);
+  unscheduleWorkflow(workflowId: string, triggerNodeId = "trigger"): void {
+    const job = activeJobs.get(schedulerJobId(workflowId, triggerNodeId));
     if (job) {
       job.task.stop();
-      activeJobs.delete(workflowId);
+      activeJobs.delete(schedulerJobId(workflowId, triggerNodeId));
     }
   },
 
@@ -123,3 +134,7 @@ export const Scheduler = {
     return Array.from(activeJobs.keys());
   },
 };
+
+function schedulerJobId(workflowId: string, triggerNodeId: string): string {
+  return `${workflowId}:${triggerNodeId}`;
+}

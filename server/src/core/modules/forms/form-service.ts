@@ -1,37 +1,51 @@
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 import { WorkflowRepository } from "../workflows/repository.ts";
+import {
+  getTriggerEntry,
+  getTriggerFormPublicId,
+  resolveFormTrigger,
+  type ResolvedWorkflowTrigger,
+} from "../workflows/workflow-triggers.ts";
 import { normalizeFormFields } from "./form-fields.ts";
 import { normalizeFormTheme } from "./form-theme.ts";
 import type { FormMode } from "./form-types.ts";
 
-export function formPublicId(workflow: WorkflowItem): string {
-  return workflow.trigger.formSlug?.trim() || workflow.metadata.id;
+export function formPublicId(workflow: WorkflowItem, triggerNodeId = "trigger"): string {
+  const entry = getTriggerEntry(workflow, triggerNodeId);
+  return entry ? getTriggerFormPublicId(workflow, entry) : workflow.metadata.id;
+}
+
+export function resolveFormWorkflowTrigger(
+  formId: string,
+  opts: { requireActive: boolean },
+): ResolvedWorkflowTrigger | null {
+  const workflows = WorkflowRepository.getWorkflows();
+  return resolveFormTrigger(workflows, formId, opts);
 }
 
 export function resolveFormWorkflow(
   formId: string,
   opts: { requireActive: boolean },
 ): WorkflowItem | null {
-  const workflows = WorkflowRepository.getWorkflows();
-  return (
-    workflows.find((workflow) => {
-      if (workflow.trigger.type !== "form") return false;
-      if (opts.requireActive && !workflow.metadata.isActive) return false;
-      return (
-        workflow.metadata.id === formId || workflow.trigger.formSlug === formId
-      );
-    }) ?? null
-  );
+  return resolveFormWorkflowTrigger(formId, opts)?.workflow ?? null;
 }
 
-export function formDefinition(workflow: WorkflowItem, mode: FormMode) {
+export function formDefinition(
+  workflow: WorkflowItem,
+  mode: FormMode,
+  triggerNodeId = "trigger",
+) {
+  const entry = getTriggerEntry(workflow, triggerNodeId);
+  const trigger = entry?.trigger ?? workflow.trigger;
+
   return {
-    id: formPublicId(workflow),
+    id: formPublicId(workflow, triggerNodeId),
     workflowId: workflow.metadata.id,
+    triggerNodeId,
     mode,
-    title: workflow.trigger.formTitle?.trim() || workflow.metadata.name,
-    description: workflow.trigger.formDescription?.trim() || "",
-    fields: normalizeFormFields(workflow.trigger.formFields),
-    theme: normalizeFormTheme(workflow.trigger.formTheme),
+    title: trigger.formTitle?.trim() || workflow.metadata.name,
+    description: trigger.formDescription?.trim() || "",
+    fields: normalizeFormFields(trigger.formFields),
+    theme: normalizeFormTheme(trigger.formTheme),
   };
 }

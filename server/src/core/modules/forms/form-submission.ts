@@ -4,7 +4,7 @@ import { workflowEventBus } from "../workflows/event-bus.ts";
 import { normalizeFormFields } from "./form-fields.ts";
 import { isFormRateLimited } from "./form-rate-limit.ts";
 import { parseFormRequestBody } from "./form-request.ts";
-import { resolveFormWorkflow } from "./form-service.ts";
+import { resolveFormWorkflowTrigger } from "./form-service.ts";
 import {
   FORM_FIELD_MAX_BYTES,
   type FormMode,
@@ -26,14 +26,15 @@ export async function processFormSubmission(
   opts: { requireActive: boolean; mode: FormMode },
   req: any,
 ): Promise<FormSubmissionResult> {
-  const workflow = resolveFormWorkflow(formId, {
+  const resolved = resolveFormWorkflowTrigger(formId, {
     requireActive: opts.requireActive,
   });
-  if (!workflow) {
+  if (!resolved) {
     return { ok: false, statusCode: 404, message: "Form not available" };
   }
+  const { workflow, triggerNodeId, entry } = resolved;
 
-  const rateKey = `${req.ip}:${workflow.metadata.id}`;
+  const rateKey = `${req.ip}:${workflow.metadata.id}:${triggerNodeId}`;
   if (isFormRateLimited(rateKey)) {
     return {
       ok: false,
@@ -43,7 +44,7 @@ export async function processFormSubmission(
     };
   }
 
-  const fields = normalizeFormFields(workflow.trigger.formFields);
+  const fields = normalizeFormFields(entry.trigger.formFields);
   const rawBody = await parseFormRequestBody(req);
   const fieldData: Record<string, unknown> = {};
 
@@ -164,12 +165,12 @@ export async function processFormSubmission(
     executionId,
     workflowId: workflow.metadata.id,
     type: "trigger:data",
-    nodeId: "trigger",
+    nodeId: triggerNodeId,
     data: serializeTriggerPayload(triggerPayload),
     timestamp: Date.now(),
   });
 
-  WorkflowEngine.executeWorkflow(workflow, triggerPayload, executionId).catch(
+  WorkflowEngine.executeWorkflowFromTrigger(workflow, triggerNodeId, triggerPayload, executionId).catch(
     (err: Error) => {
       console.error(
         `[NOD8 | FORM-TRIGGER]: Execution failed for "${workflow.metadata.id}": ${err.message}`,
