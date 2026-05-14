@@ -440,13 +440,13 @@ Melhor caminho:
 
 ### Task 2 - Criar ExecutionQueue in-memory
 
-- [ ] Criar fila por sessao.
-- [ ] Implementar concorrencia por sessao.
-- [ ] Implementar concorrencia global.
-- [ ] Rejeitar novos jobs quando sessao estiver stopping/stopped.
-- [ ] Cancelar jobs pendentes.
-- [ ] Testar ordem, concorrencia e cancelamento.
-- [ ] Commit.
+- [x] Criar fila por sessao.
+- [x] Implementar concorrencia por sessao.
+- [x] Implementar concorrencia global.
+- [x] Rejeitar novos jobs quando sessao estiver stopping/stopped.
+- [x] Cancelar jobs pendentes.
+- [x] Testar ordem, concorrencia e cancelamento.
+- [x] Commit.
 
 ### Task 3 - Criar WorkflowJobRunner
 
