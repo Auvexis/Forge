@@ -31,17 +31,20 @@ import RunWorkflowPanel from './execution/RunWorkflowPanel.vue'
 import ExecutionLogsPanel from './execution/ExecutionLogsPanel.vue'
 import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
 import { useEventBus } from '@/shared/composables/useEventBus'
+import { useToast } from '@/shared/composables/useToast'
 import { isCanvasSelecting } from '../composables/useCanvasSelecting'
 import {
   deleteWorkflowSelection,
   duplicateWorkflowSelection,
 } from '../utils/workflowSelectionActions'
+import { selectToolbarRunTrigger } from '../utils/workflowRunTrigger'
 
 // Stores
 const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
 const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
+const toast = useToast()
 const vueFlowStore = ref<VueFlowStore | null>(null)
 
 // ── Props / emits (for v-model:show-logs from parent page) ──────────────────
@@ -315,12 +318,13 @@ const openAddNodePanel = (sourceId?: string | null) => {
 async function handleRun() {
   if (!workflowStore.activeWorkflow) return
 
-  const firstRealTrigger = Object.entries(workflowStore.activeWorkflow.nodes)
-    .find(([, node]) => node.type === 'trigger')
-  const triggerNodeId = firstRealTrigger?.[0] ?? 'trigger'
-  const trigger = firstRealTrigger
-    ? ((firstRealTrigger[1] as any).trigger ?? { type: 'manual' })
-    : workflowStore.activeWorkflow.trigger
+  const runTrigger = selectToolbarRunTrigger(workflowStore.activeWorkflow)
+  if (!runTrigger) {
+    toast.warning('Add or enable a Manual trigger to run from the toolbar.')
+    return
+  }
+
+  const { triggerNodeId, trigger } = runTrigger
   const schema = trigger.schema ?? {}
 
   if (trigger.type === 'form') {

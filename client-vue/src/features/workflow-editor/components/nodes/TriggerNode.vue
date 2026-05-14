@@ -11,6 +11,7 @@ import { useExecutionStore } from '../../stores/execution.store'
 import { useEventBus } from '@/shared/composables/useEventBus'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
+import { useToast } from '@/shared/composables/useToast'
 import RunWorkflowPanel from '../execution/RunWorkflowPanel.vue'
 import NodeShimmer from './NodeShimmer.vue'
 import NodeToolbar from './NodeToolbar.vue'
@@ -22,6 +23,7 @@ const props = defineProps<
 const store = useWorkflowStore()
 const executionStore = useExecutionStore()
 const panelStore = useAppPanelStore()
+const toast = useToast()
 
 const triggerData = computed<WorkflowTrigger | undefined>(() => {
   const data = props.data as unknown as TriggerNode | WorkflowTrigger
@@ -136,7 +138,14 @@ const onExecuteWorkflow = async () => {
     const formUrl = `${window.location.origin}/forms-test/${formPublicId}?execId=${clientExecId}`
     window.open(formUrl, '_blank', 'noopener')
     return
-  } else if (Object.keys(schema).length > 0) {
+  }
+
+  if (trigger.type !== 'manual') {
+    toast.warning('This trigger waits for its real event before running the next nodes.')
+    return
+  }
+
+  if (Object.keys(schema).length > 0) {
     panelStore.togglePanel({
       id: 'run-workflow-panel',
       title: 'Run Workflow',
