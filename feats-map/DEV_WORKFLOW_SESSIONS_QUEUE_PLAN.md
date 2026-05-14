@@ -432,11 +432,11 @@ Melhor caminho:
 
 ### Task 1 - Especificar contratos de sessao e job
 
-- [ ] Criar tipos server-side para `DevWorkflowSession`, `WorkflowJob`, `WorkflowJobStatus`, `SessionEvent`.
-- [ ] Definir estados de sessao: `starting`, `running`, `stopping`, `stopped`, `failed`.
-- [ ] Definir estados de job: `queued`, `running`, `success`, `failed`, `cancelled`.
-- [ ] Testar transicoes invalidas.
-- [ ] Commit.
+- [x] Criar tipos server-side para `DevWorkflowSession`, `WorkflowJob`, `WorkflowJobStatus`, `SessionEvent`.
+- [x] Definir estados de sessao: `starting`, `running`, `stopping`, `stopped`, `failed`.
+- [x] Definir estados de job: `queued`, `running`, `success`, `failed`, `cancelled`.
+- [x] Testar transicoes invalidas.
+- [x] Commit.
 
 ### Task 2 - Criar ExecutionQueue in-memory
 
