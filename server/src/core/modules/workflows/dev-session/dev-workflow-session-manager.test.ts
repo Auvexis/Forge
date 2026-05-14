@@ -281,4 +281,45 @@ describe("DevWorkflowSessionManager", () => {
 
     assert.deepEqual(ran, ["event_a:event:order.created"]);
   });
+
+  it("activates plugin trigger lifecycle and enqueues plugin payloads", async () => {
+    let activated = 0;
+    let deactivated = 0;
+    const ran: string[] = [];
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_${ran.length + 1}`,
+      activatePluginTriggers: async () => {
+        activated++;
+      },
+      deactivatePluginTriggers: async () => {
+        deactivated++;
+      },
+      runWorkflowJob: async (job) => {
+        ran.push(`${job.triggerNodeId}:${job.source}:${JSON.stringify(job.payload)}`);
+      },
+    });
+    const wf = workflow();
+    wf.nodes = {
+      plugin_a: {
+        type: "trigger",
+        name: "Plugin A",
+        trigger: {
+          type: "plugin",
+          pluginId: "nod8.test",
+          triggerName: "message",
+          webhookPath: "plugin-hook",
+        },
+      },
+    };
+    const session = manager.createSession(wf);
+    await Promise.resolve();
+
+    assert.equal(activated, 1);
+    assert.equal(manager.enqueueWebhook("plugin-hook", { message: "hi" }), true);
+    await manager.onIdle();
+    await manager.stopSession(session.id, "stop");
+
+    assert.deepEqual(ran, ['plugin_a:plugin:{"message":"hi"}']);
+    assert.equal(deactivated, 1);
+  });
 });

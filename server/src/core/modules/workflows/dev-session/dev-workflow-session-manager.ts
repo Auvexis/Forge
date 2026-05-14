@@ -5,8 +5,10 @@ import { workflowEventBus, type WorkflowEvent } from "../event-bus.ts";
 import {
   getTriggerFormPublicId,
   getTriggerWebhookPath,
+  listPluginTriggers,
   listTriggerEntries,
 } from "../workflow-triggers.ts";
+import { WorkflowLifecycleManager } from "../lifecycle.ts";
 import { InMemoryExecutionQueue } from "./execution-queue.ts";
 import { WorkflowJobRunner } from "./workflow-job-runner.ts";
 import {
@@ -35,6 +37,8 @@ export interface DevWorkflowSessionManagerOptions {
     expression: string,
     callback: () => void,
   ) => { stop: () => void };
+  activatePluginTriggers?: (workflow: WorkflowItem) => Promise<void>;
+  deactivatePluginTriggers?: (workflow: WorkflowItem) => Promise<void>;
   runWorkflowJob?: (job: WorkflowJob, workflow: WorkflowItem) => Promise<void>;
   onEvent?: (event: SessionEvent) => void;
 }
@@ -48,6 +52,12 @@ export class DevWorkflowSessionManager {
   private readonly stopping = new Set<string>();
   private readonly createIdFn: NonNullable<DevWorkflowSessionManagerOptions["createId"]>;
   private readonly scheduleCronFn: NonNullable<DevWorkflowSessionManagerOptions["scheduleCron"]>;
+  private readonly activatePluginTriggers: NonNullable<
+    DevWorkflowSessionManagerOptions["activatePluginTriggers"]
+  >;
+  private readonly deactivatePluginTriggers: NonNullable<
+    DevWorkflowSessionManagerOptions["deactivatePluginTriggers"]
+  >;
   private readonly eventTriggerCounts = new Map<string, number>();
   private readonly runner: WorkflowJobRunner;
   private readonly queue: InMemoryExecutionQueue;
@@ -60,6 +70,10 @@ export class DevWorkflowSessionManager {
     this.scheduleCronFn =
       options.scheduleCron ??
       ((expression, callback) => scheduleCronTask(expression, callback));
+    this.activatePluginTriggers =
+      options.activatePluginTriggers ?? WorkflowLifecycleManager.activate;
+    this.deactivatePluginTriggers =
+      options.deactivatePluginTriggers ?? WorkflowLifecycleManager.deactivate;
     this.runWorkflowJob = options.runWorkflowJob;
     this.runner = new WorkflowJobRunner({
       createId: (prefix) => this.createIdFn(prefix),
@@ -105,6 +119,7 @@ export class DevWorkflowSessionManager {
     this.sessions.set(session.id, session);
     this.emitSessionEvent(session, "session:start");
     this.transition(session, "running");
+    this.activatePluginLifecycle(session);
     this.activateInitialTriggers(session, options.initialPayload ?? {});
     this.emitSessionEvent(session, "session:ready");
     return session;
@@ -136,21 +151,22 @@ export class DevWorkflowSessionManager {
 
       for (const entry of listTriggerEntries(session.workflow)) {
         if (entry.disabled) continue;
-        if (entry.trigger.type !== "webhook") continue;
+        if (entry.trigger.type !== "webhook" && entry.trigger.type !== "plugin") continue;
         if (getTriggerWebhookPath(session.workflow, entry) !== webhookPath) continue;
+        const source = entry.trigger.type === "plugin" ? "plugin" : "webhook";
 
         this.options.onEvent?.({
           type: "trigger:received",
           sessionId: session.id,
           workflowId: session.workflowId,
           triggerNodeId: entry.id,
-          source: "webhook",
+          source,
           timestamp: Date.now(),
           data: payload,
         });
         this.enqueueJob(session.id, {
           triggerNodeId: entry.id,
-          source: "webhook",
+          source,
           payload,
         });
         return true;
@@ -287,6 +303,27 @@ export class DevWorkflowSessionManager {
         timestamp: Date.now(),
       });
     }
+  }
+
+  private activatePluginLifecycle(session: DevWorkflowSession): void {
+    if (listPluginTriggers(session.workflow).length === 0) return;
+
+    void this.activatePluginTriggers(session.workflow).catch((error: any) => {
+      this.options.onEvent?.({
+        type: "job:failed",
+        sessionId: session.id,
+        workflowId: session.workflowId,
+        source: "plugin",
+        timestamp: Date.now(),
+        error: error?.message ?? String(error),
+      });
+    });
+
+    session.triggerRuntimes.push({
+      triggerNodeId: "plugin-lifecycle",
+      type: "plugin",
+      teardown: () => this.deactivatePluginTriggers(session.workflow),
+    });
   }
 
   private emitSessionEvent(

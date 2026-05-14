@@ -209,6 +209,23 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
     // ──────────────────────────────────────────────────────────────
 
+    const devPayload = {
+      method: req.method,
+      headers: req.headers,
+      query: req.query,
+      body: req.body ?? {},
+      ip: req.ip,
+      timestamp: Date.now(),
+    };
+
+    if (devWorkflowSessionRuntime.manager.enqueueWebhook(webhookPath, devPayload)) {
+      return reply.code(202).send({
+        status: "accepted",
+        mode: "dev-session",
+        webhookPath,
+      });
+    }
+
     const resolved = resolveWebhookTrigger(WorkflowRepository.getActiveWorkflows(), webhookPath);
 
     if (!resolved) {

@@ -529,12 +529,12 @@ Melhor caminho:
 
 ### Task 12 - Ativar plugin trigger dev
 
-- [ ] Usar lifecycle temporario para plugin triggers da sessao.
-- [ ] Enfileirar job quando plugin emitir payload.
-- [ ] Teardown no Stop/SSE close.
-- [ ] Garantir que plugin nao conhece detalhes da sessao.
-- [ ] Testar ativacao e teardown com mock plugin.
-- [ ] Commit.
+- [x] Usar lifecycle temporario para plugin triggers da sessao.
+- [x] Enfileirar job quando plugin emitir payload.
+- [x] Teardown no Stop/SSE close.
+- [x] Garantir que plugin nao conhece detalhes da sessao.
+- [x] Testar ativacao e teardown com mock plugin.
+- [x] Commit.
 
 ### Task 13 - Integrar Wait For Form com sessao
 
