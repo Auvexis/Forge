@@ -505,11 +505,11 @@ Melhor caminho:
 
 ### Task 9 - Ativar form trigger dev
 
-- [ ] Resolver `/forms-test/:formId` contra sessoes dev ativas.
-- [ ] Submit de form trigger enfileira job.
-- [ ] Manter comportamento publicado separado.
-- [ ] Testar formSlug duplicado/disabled.
-- [ ] Commit.
+- [x] Resolver `/forms-test/:formId` contra sessoes dev ativas.
+- [x] Submit de form trigger enfileira job.
+- [x] Manter comportamento publicado separado.
+- [x] Testar formSlug duplicado/disabled.
+- [x] Commit.
 
 ### Task 10 - Ativar cron dev
 

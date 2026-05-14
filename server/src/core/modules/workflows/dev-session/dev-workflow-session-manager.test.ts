@@ -182,4 +182,35 @@ describe("DevWorkflowSessionManager", () => {
 
     assert.deepEqual(ran, ['webhook_enabled:webhook:{"body":2}']);
   });
+
+  it("enqueues form dev jobs by form slug and ignores disabled forms", async () => {
+    const ran: string[] = [];
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_${ran.length + 1}`,
+      runWorkflowJob: async (job) => {
+        ran.push(`${job.triggerNodeId}:${job.source}:${JSON.stringify(job.payload)}`);
+      },
+    });
+    const wf = workflow();
+    wf.nodes = {
+      form_enabled: {
+        type: "trigger",
+        name: "Form Enabled",
+        trigger: { type: "form", formSlug: "signup" },
+      },
+      form_disabled: {
+        type: "trigger",
+        name: "Form Disabled",
+        disabled: true,
+        trigger: { type: "form", formSlug: "disabled" },
+      },
+    };
+    manager.createSession(wf);
+
+    assert.equal(manager.enqueueForm("disabled", { fields: { email: "x" } }), false);
+    assert.equal(manager.enqueueForm("signup", { fields: { email: "a@b.test" } }), true);
+    await manager.onIdle();
+
+    assert.deepEqual(ran, ['form_enabled:form:{"fields":{"email":"a@b.test"}}']);
+  });
 });

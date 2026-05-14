@@ -1,6 +1,10 @@
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 import { workflowEventBus, type WorkflowEvent } from "../event-bus.ts";
-import { getTriggerWebhookPath, listTriggerEntries } from "../workflow-triggers.ts";
+import {
+  getTriggerFormPublicId,
+  getTriggerWebhookPath,
+  listTriggerEntries,
+} from "../workflow-triggers.ts";
 import { InMemoryExecutionQueue } from "./execution-queue.ts";
 import { WorkflowJobRunner } from "./workflow-job-runner.ts";
 import {
@@ -136,6 +140,37 @@ export class DevWorkflowSessionManager {
         this.enqueueJob(session.id, {
           triggerNodeId: entry.id,
           source: "webhook",
+          payload,
+        });
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  enqueueForm(formId: string, payload: unknown): boolean {
+    for (const session of this.sessions.values()) {
+      if (session.status !== "running") continue;
+
+      for (const entry of listTriggerEntries(session.workflow)) {
+        if (entry.disabled) continue;
+        if (entry.trigger.type !== "form") continue;
+        const publicId = getTriggerFormPublicId(session.workflow, entry);
+        if (session.workflowId !== formId && publicId !== formId) continue;
+
+        this.options.onEvent?.({
+          type: "trigger:received",
+          sessionId: session.id,
+          workflowId: session.workflowId,
+          triggerNodeId: entry.id,
+          source: "form",
+          timestamp: Date.now(),
+          data: payload,
+        });
+        this.enqueueJob(session.id, {
+          triggerNodeId: entry.id,
+          source: "form",
           payload,
         });
         return true;

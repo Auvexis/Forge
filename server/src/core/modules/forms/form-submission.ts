@@ -1,6 +1,7 @@
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 import { WorkflowEngine } from "../workflows/executor.ts";
 import { workflowEventBus } from "../workflows/event-bus.ts";
+import { devWorkflowSessionRuntime } from "../workflows/dev-session/runtime.ts";
 import { normalizeFormFields } from "./form-fields.ts";
 import { isFormRateLimited } from "./form-rate-limit.ts";
 import { parseFormRequestBody } from "./form-request.ts";
@@ -169,6 +170,13 @@ export async function processFormSubmission(
     data: serializeTriggerPayload(triggerPayload),
     timestamp: Date.now(),
   });
+
+  if (
+    opts.mode === "test" &&
+    devWorkflowSessionRuntime.manager.enqueueForm(formId, triggerPayload)
+  ) {
+    return { ok: true, workflow, executionId };
+  }
 
   WorkflowEngine.executeWorkflowFromTrigger(workflow, triggerNodeId, triggerPayload, executionId).catch(
     (err: Error) => {
