@@ -9,12 +9,29 @@ export interface InternalEvent {
   timestamp: number;
 }
 
+type InternalEventHandler = (event: InternalEvent) => void | Promise<void>;
+const listeners = new Map<string, Set<InternalEventHandler>>();
+
 export const InternalEventBus = {
+  on(eventName: string, handler: InternalEventHandler): () => void {
+    const handlers = listeners.get(eventName) ?? new Set<InternalEventHandler>();
+    handlers.add(handler);
+    listeners.set(eventName, handlers);
+    return () => {
+      handlers.delete(handler);
+      if (handlers.size === 0) listeners.delete(eventName);
+    };
+  },
+
   async emit(event: InternalEvent): Promise<{ triggered: string[] }> {
     const { WorkflowEngine } = await import("../workflows/executor.ts");
 
     const workflows: WorkflowItem[] = WorkflowRepository.getActiveWorkflows();
     const triggered: string[] = [];
+
+    for (const handler of listeners.get(event.name) ?? []) {
+      await handler(event);
+    }
 
     for (const resolved of resolveEventTriggers(workflows, event.name)) {
       const { workflow, triggerNodeId } = resolved;

@@ -1,5 +1,6 @@
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 import { schedule as scheduleCronTask } from "node-cron";
+import { InternalEventBus, type InternalEvent } from "../../events/internal-event-bus.ts";
 import { workflowEventBus, type WorkflowEvent } from "../event-bus.ts";
 import {
   getTriggerFormPublicId,
@@ -47,6 +48,7 @@ export class DevWorkflowSessionManager {
   private readonly stopping = new Set<string>();
   private readonly createIdFn: NonNullable<DevWorkflowSessionManagerOptions["createId"]>;
   private readonly scheduleCronFn: NonNullable<DevWorkflowSessionManagerOptions["scheduleCron"]>;
+  private readonly eventTriggerCounts = new Map<string, number>();
   private readonly runner: WorkflowJobRunner;
   private readonly queue: InMemoryExecutionQueue;
   private readonly runWorkflowJob?: DevWorkflowSessionManagerOptions["runWorkflowJob"];
@@ -265,6 +267,17 @@ export class DevWorkflowSessionManager {
         });
       }
 
+      if (entry.trigger.type === "event" && entry.trigger.eventName) {
+        const off = InternalEventBus.on(entry.trigger.eventName, (event) => {
+          this.enqueueInternalEvent(session, entry.id, event);
+        });
+        session.triggerRuntimes.push({
+          triggerNodeId: entry.id,
+          type: "event",
+          teardown: off,
+        });
+      }
+
       this.options.onEvent?.({
         type: "trigger:waiting",
         sessionId: session.id,
@@ -285,6 +298,51 @@ export class DevWorkflowSessionManager {
       sessionId: session.id,
       workflowId: session.workflowId,
       timestamp: Date.now(),
+    });
+  }
+
+  private enqueueInternalEvent(
+    session: DevWorkflowSession,
+    triggerNodeId: string,
+    event: InternalEvent,
+  ): void {
+    if (session.status !== "running") return;
+    const counterKey = `${session.id}:${event.name}`;
+    const count = (this.eventTriggerCounts.get(counterKey) ?? 0) + 1;
+    this.eventTriggerCounts.set(counterKey, count);
+    if (count > 25) {
+      this.options.onEvent?.({
+        type: "job:failed",
+        sessionId: session.id,
+        workflowId: session.workflowId,
+        triggerNodeId,
+        source: "event",
+        timestamp: Date.now(),
+        error: `Event trigger anti-loop limit reached for "${event.name}"`,
+      });
+      return;
+    }
+
+    const payload = {
+      event: event.name,
+      payload: event.payload,
+      emittedBy: event.emittedBy ?? "unknown",
+      timestamp: event.timestamp,
+      triggerNodeId,
+    };
+    this.options.onEvent?.({
+      type: "trigger:received",
+      sessionId: session.id,
+      workflowId: session.workflowId,
+      triggerNodeId,
+      source: "event",
+      timestamp: Date.now(),
+      data: payload,
+    });
+    this.enqueueJob(session.id, {
+      triggerNodeId,
+      source: "event",
+      payload,
     });
   }
 

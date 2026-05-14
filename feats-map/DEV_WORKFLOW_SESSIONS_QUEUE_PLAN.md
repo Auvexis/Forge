@@ -521,11 +521,11 @@ Melhor caminho:
 
 ### Task 11 - Ativar event trigger dev
 
-- [ ] Registrar listener de evento interno por sessao.
-- [ ] Enfileirar job quando evento bater.
-- [ ] Adicionar protecao anti-loop basica.
-- [ ] Testar evento dispara ramo correto.
-- [ ] Commit.
+- [x] Registrar listener de evento interno por sessao.
+- [x] Enfileirar job quando evento bater.
+- [x] Adicionar protecao anti-loop basica.
+- [x] Testar evento dispara ramo correto.
+- [x] Commit.
 
 ### Task 12 - Ativar plugin trigger dev
 
