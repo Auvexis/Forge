@@ -450,12 +450,12 @@ Melhor caminho:
 
 ### Task 3 - Criar WorkflowJobRunner
 
-- [ ] Encapsular chamada para `WorkflowEngine.executeWorkflowFromTrigger`.
-- [ ] Gerar `jobId` e `executionId`.
-- [ ] Propagar `triggerNodeId`, `payload`, `source`.
-- [ ] Integrar com CancellationRegistry.
-- [ ] Testar sucesso, falha e cancelamento.
-- [ ] Commit.
+- [x] Encapsular chamada para `WorkflowEngine.executeWorkflowFromTrigger`.
+- [x] Gerar `jobId` e `executionId`.
+- [x] Propagar `triggerNodeId`, `payload`, `source`.
+- [x] Integrar com CancellationRegistry.
+- [x] Testar sucesso, falha e cancelamento.
+- [x] Commit.
 
 ### Task 4 - Criar DevWorkflowSessionManager
 
