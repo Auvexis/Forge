@@ -1074,17 +1074,10 @@ defineExpose({
         type="button"
         @click.stop="openAddNodePanel()"
       >
-        <span class="canvas-empty-step__accent" aria-hidden="true" />
-        <span class="canvas-empty-step__icon">
-          <LucideIcon name="route" :size="22" />
-          <span class="canvas-empty-step__plus">
-            <LucideIcon name="plus" :size="12" />
-          </span>
+        <span class="canvas-empty-step__box">
+          <LucideIcon name="plus" :size="34" />
         </span>
-        <span class="canvas-empty-step__copy">
-          <span class="canvas-empty-step__label">Start workflow</span>
-          <span class="canvas-empty-step__hint">Add trigger or action</span>
-        </span>
+        <span class="canvas-empty-step__label">Add first step...</span>
       </button>
 
       <!-- Custom Edge (Contains trash toolbar etc) -->
@@ -1191,99 +1184,50 @@ defineExpose({
   left: 50%;
   z-index: 20;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  min-width: 224px;
-  height: 64px;
-  padding: 0 16px 0 14px;
+  gap: 8px;
+  padding: 0;
   color: var(--nod8-text-primary);
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--nod8-bg-surface) 88%, transparent), var(--nod8-node-body));
-  border: 1px solid var(--nod8-node-border);
-  border-radius: 8px;
-  box-shadow:
-    0 14px 36px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: transparent;
+  border: 0;
   transform: translate(-50%, -50%);
   cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
 }
 
-.canvas-empty-step__accent {
-  position: absolute;
-  top: 10px;
-  bottom: 10px;
-  left: 0;
-  width: 3px;
-  background: linear-gradient(180deg, var(--nod8-green-400, #4ade80), var(--nod8-brand-500));
-  border-radius: 0 4px 4px 0;
-}
-
-.canvas-empty-step__icon {
-  position: relative;
-  width: 38px;
-  height: 38px;
+.canvas-empty-step__box {
+  width: 82px;
+  height: 82px;
   display: grid;
   place-items: center;
-  flex: 0 0 auto;
-  color: var(--nod8-green-300, #86efac);
-  background: color-mix(in srgb, var(--nod8-green-500, #22c55e) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--nod8-green-500, #22c55e) 36%, transparent);
+  color: var(--nod8-text-muted);
+  background: color-mix(in srgb, var(--nod8-bg-surface) 70%, transparent);
+  border: 2px dashed color-mix(in srgb, var(--nod8-border-strong) 86%, var(--nod8-green-400));
   border-radius: 8px;
-}
-
-.canvas-empty-step__plus {
-  position: absolute;
-  right: -4px;
-  bottom: -4px;
-  width: 18px;
-  height: 18px;
-  display: grid;
-  place-items: center;
-  color: var(--nod8-bg-canvas);
-  background: var(--nod8-green-400, #4ade80);
-  border: 2px solid var(--nod8-node-body);
-  border-radius: 50%;
-}
-
-.canvas-empty-step__copy {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-width: 0;
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--nod8-green-400, #4ade80) 55%, transparent);
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .canvas-empty-step__label {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   line-height: 1.2;
   color: var(--nod8-text-primary);
   white-space: nowrap;
 }
 
-.canvas-empty-step__hint {
-  margin-top: 3px;
-  font-size: 12px;
-  line-height: 1.2;
-  color: var(--nod8-text-muted);
-  white-space: nowrap;
+.canvas-empty-step:hover .canvas-empty-step__box {
+  color: var(--nod8-text-primary);
+  background: var(--nod8-bg-surface-hover);
+  border-color: var(--nod8-green-400, #4ade80);
 }
 
-.canvas-empty-step:hover {
-  border-color: color-mix(in srgb, var(--nod8-green-400, #4ade80) 55%, var(--nod8-node-border));
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, 0.36),
-    0 0 0 3px color-mix(in srgb, var(--nod8-green-500, #22c55e) 14%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  transform: translate(-50%, -50%) translateY(-1px);
-}
-
-.canvas-empty-step:focus-visible {
+.canvas-empty-step:focus-visible .canvas-empty-step__box {
   outline: 2px solid var(--nod8-node-selected);
-  outline-offset: 4px;
+  outline-offset: 3px;
 }
 
 /*
