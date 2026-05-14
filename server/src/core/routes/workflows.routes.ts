@@ -663,7 +663,9 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const session = devWorkflowSessionRuntime.manager.createSession(workflow);
+      const session = devWorkflowSessionRuntime.manager.createSession(workflow, {
+        initialPayload: body.payload ?? {},
+      });
       const triggers = listTriggerEntries(workflow)
         .filter((entry) => !entry.disabled)
         .map((entry) => ({

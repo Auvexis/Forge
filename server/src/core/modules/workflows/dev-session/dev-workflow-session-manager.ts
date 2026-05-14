@@ -1,5 +1,6 @@
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 import { workflowEventBus, type WorkflowEvent } from "../event-bus.ts";
+import { listTriggerEntries } from "../workflow-triggers.ts";
 import { InMemoryExecutionQueue } from "./execution-queue.ts";
 import { WorkflowJobRunner } from "./workflow-job-runner.ts";
 import {
@@ -14,6 +15,10 @@ export interface EnqueueDevWorkflowJobInput {
   triggerNodeId: string;
   source: WorkflowJobSource;
   payload: unknown;
+}
+
+export interface CreateDevWorkflowSessionOptions {
+  initialPayload?: unknown;
 }
 
 export interface DevWorkflowSessionManagerOptions {
@@ -67,7 +72,10 @@ export class DevWorkflowSessionManager {
     });
   }
 
-  createSession(workflow: WorkflowItem): DevWorkflowSession {
+  createSession(
+    workflow: WorkflowItem,
+    options: CreateDevWorkflowSessionOptions = {},
+  ): DevWorkflowSession {
     const now = Date.now();
     const session: DevWorkflowSession = {
       id: this.createIdFn("session"),
@@ -82,6 +90,7 @@ export class DevWorkflowSessionManager {
     this.sessions.set(session.id, session);
     this.emitSessionEvent(session, "session:start");
     this.transition(session, "running");
+    this.activateInitialTriggers(session, options.initialPayload ?? {});
     this.emitSessionEvent(session, "session:ready");
     return session;
   }
@@ -145,6 +154,33 @@ export class DevWorkflowSessionManager {
     const session = this.sessions.get(sessionId);
     if (!session) throw new Error(`Dev workflow session ${sessionId} was not found`);
     return session;
+  }
+
+  private activateInitialTriggers(
+    session: DevWorkflowSession,
+    initialPayload: unknown,
+  ): void {
+    for (const entry of listTriggerEntries(session.workflow)) {
+      if (entry.disabled) continue;
+
+      if (entry.trigger.type === "manual") {
+        this.enqueueJob(session.id, {
+          triggerNodeId: entry.id,
+          source: "manual",
+          payload: initialPayload,
+        });
+        continue;
+      }
+
+      this.options.onEvent?.({
+        type: "trigger:waiting",
+        sessionId: session.id,
+        workflowId: session.workflowId,
+        triggerNodeId: entry.id,
+        source: entry.trigger.type,
+        timestamp: Date.now(),
+      });
+    }
   }
 
   private emitSessionEvent(

@@ -45,7 +45,15 @@ describe("DevWorkflowSessionManager", () => {
         ran.push(job.id);
       },
     });
-    const session = manager.createSession(workflow());
+    const wf = workflow();
+    wf.nodes = {
+      webhook_a: {
+        type: "trigger",
+        name: "Webhook A",
+        trigger: { type: "webhook", webhookSlug: "hook" },
+      },
+    };
+    const session = manager.createSession(wf);
 
     manager.enqueueJob(session.id, {
       triggerNodeId: "trigger",
@@ -108,5 +116,39 @@ describe("DevWorkflowSessionManager", () => {
     assert.ok(events.includes("node:start:job_1"));
     assert.ok(events.includes("session:stopping:session_1"));
     assert.ok(events.includes("session:stopped:session_1"));
+  });
+
+  it("enqueues enabled manual triggers when a session starts", async () => {
+    const ran: string[] = [];
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_${ran.length + 1}`,
+      runWorkflowJob: async (job) => {
+        ran.push(`${job.triggerNodeId}:${JSON.stringify(job.payload)}`);
+      },
+    });
+    const wf = workflow();
+    wf.nodes = {
+      manual_a: {
+        type: "trigger",
+        name: "Manual A",
+        trigger: { type: "manual" },
+      },
+      webhook_a: {
+        type: "trigger",
+        name: "Webhook A",
+        trigger: { type: "webhook", webhookSlug: "hook" },
+      },
+      manual_disabled: {
+        type: "trigger",
+        name: "Disabled",
+        disabled: true,
+        trigger: { type: "manual" },
+      },
+    };
+
+    manager.createSession(wf, { initialPayload: { ok: true } });
+    await manager.onIdle();
+
+    assert.deepEqual(ran, ['manual_a:{"ok":true}']);
   });
 });

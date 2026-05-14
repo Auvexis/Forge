@@ -488,11 +488,11 @@ Melhor caminho:
 
 ### Task 7 - Ativar trigger manual na sessao
 
-- [ ] No start da sessao, listar triggers habilitados.
-- [ ] Enfileirar job inicial para triggers manuais.
-- [ ] Ignorar manual disabled.
-- [ ] Testar workflow com multiplos triggers e manual em qualquer ordem.
-- [ ] Commit.
+- [x] No start da sessao, listar triggers habilitados.
+- [x] Enfileirar job inicial para triggers manuais.
+- [x] Ignorar manual disabled.
+- [x] Testar workflow com multiplos triggers e manual em qualquer ordem.
+- [x] Commit.
 
 ### Task 8 - Ativar webhook dev
 
