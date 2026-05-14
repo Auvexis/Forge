@@ -29,6 +29,7 @@ export interface EnqueueDevWorkflowJobInput {
 
 export interface CreateDevWorkflowSessionOptions {
   initialPayload?: unknown;
+  initialTriggerNodeId?: string;
 }
 
 export interface DevWorkflowSessionManagerOptions {
@@ -133,7 +134,11 @@ export class DevWorkflowSessionManager {
     this.emitSessionEvent(session, "session:start");
     this.transition(session, "running");
     this.activatePluginLifecycle(session);
-    this.activateInitialTriggers(session, options.initialPayload ?? {});
+    this.activateInitialTriggers(
+      session,
+      options.initialPayload ?? {},
+      options.initialTriggerNodeId,
+    );
     this.emitSessionEvent(session, "session:ready");
     return session;
   }
@@ -314,11 +319,13 @@ export class DevWorkflowSessionManager {
   private activateInitialTriggers(
     session: DevWorkflowSession,
     initialPayload: unknown,
+    initialTriggerNodeId?: string,
   ): void {
     for (const entry of listTriggerEntries(session.workflow)) {
       if (entry.disabled) continue;
 
       if (entry.trigger.type === "manual") {
+        if (initialTriggerNodeId && entry.id !== initialTriggerNodeId) continue;
         this.enqueueJob(session.id, {
           triggerNodeId: entry.id,
           source: "manual",

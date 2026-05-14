@@ -34,3 +34,10 @@ export function selectToolbarRunTrigger(workflow: WorkflowItem): ToolbarRunTrigg
     trigger: triggerNode.trigger ?? { type: 'manual' },
   }
 }
+
+export function shouldRenderLegacyTriggerNode(workflow: WorkflowItem): boolean {
+  const hasRealTriggerNodes = Object.values(workflow.nodes).some(isTriggerNode)
+  if (hasRealTriggerNodes) return false
+
+  return workflow.edges.some((edge) => edge.source === 'trigger' || edge.target === 'trigger')
+}

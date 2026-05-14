@@ -35,6 +35,8 @@ export const useExecutionStore = defineStore('execution', () => {
   const activeJobs = reactive<Record<string, WorkflowEvent>>({})
   const triggerStatuses = reactive<Record<string, 'waiting' | 'received' | 'running' | 'success' | 'failed'>>({})
   const nodeStatusesByExecution = reactive<Record<string, Record<string, NodeExecutionState>>>({})
+  /** Tracks which trigger node IDs are of type 'manual' — used to decide reset target after job ends */
+  const manualTriggerNodeIds = new Set<string>()
 
   /** Last known overall workflow execution outcome */
   const workflowStatus = ref<WorkflowExecutionStatus | null>(null)
@@ -76,16 +78,20 @@ export const useExecutionStore = defineStore('execution', () => {
     clearStatusTimers.delete(nodeId)
   }
 
-  function clearNodeStatusLater(nodeId: string, expectedStatus: NodeExecutionState['status'], delayMs = 1800) {
+  function clearNodeStatusLater(nodeId: string, expectedStatus: NodeExecutionState['status'], delayMs = 1800, resetTo: NodeExecutionState['status'] = 'idle') {
     clearNodeStatusTimer(nodeId)
     clearStatusTimers.set(
       nodeId,
       setTimeout(() => {
         const current = nodeStatuses[nodeId]
         if (current?.status === expectedStatus) {
-          nodeStatuses[nodeId] = { ...current, status: 'idle' }
+          nodeStatuses[nodeId] = { ...current, status: resetTo }
         }
-        delete triggerStatuses[nodeId]
+        if (resetTo === 'waiting') {
+          triggerStatuses[nodeId] = 'waiting'
+        } else {
+          delete triggerStatuses[nodeId]
+        }
         clearStatusTimers.delete(nodeId)
       }, delayMs),
     )
@@ -188,6 +194,7 @@ export const useExecutionStore = defineStore('execution', () => {
     for (const key of Object.keys(activeJobs)) delete activeJobs[key]
     for (const key of Object.keys(triggerStatuses)) delete triggerStatuses[key]
     for (const key of Object.keys(nodeStatusesByExecution)) delete nodeStatusesByExecution[key]
+    manualTriggerNodeIds.clear()
   }
 
   /** Marks the trigger node as 'running' (e.g. waiting for a form submission). */
@@ -415,6 +422,7 @@ export const useExecutionStore = defineStore('execution', () => {
               } satisfies Partial<NodeExecutionState>
               _patchNode(ev.nodeId, patch)
               _patchExecutionNode(ev.executionId, ev.nodeId, patch)
+              clearNodeStatusLater(ev.nodeId, 'success')
             }
             break
 
@@ -429,22 +437,25 @@ export const useExecutionStore = defineStore('execution', () => {
               _patchNode(ev.nodeId, patch)
               _patchExecutionNode(ev.executionId, ev.nodeId, patch)
               toastError(ev.error ?? `Node "${ev.nodeId}" failed`, 'Node execution failed')
+              clearNodeStatusLater(ev.nodeId, 'failed', 3000)
             }
             break
 
           case 'job:success':
             if (ev.triggerNodeId) {
+              const isManual = manualTriggerNodeIds.has(ev.triggerNodeId)
               triggerStatuses[ev.triggerNodeId] = 'success'
               _patchNode(ev.triggerNodeId, { status: 'success', endedAt: ev.timestamp })
-              clearNodeStatusLater(ev.triggerNodeId, 'success')
+              clearNodeStatusLater(ev.triggerNodeId, 'success', 1800, isManual ? 'idle' : 'waiting')
             }
             break
 
           case 'job:failed':
             if (ev.triggerNodeId) {
+              const isManual = manualTriggerNodeIds.has(ev.triggerNodeId)
               triggerStatuses[ev.triggerNodeId] = 'failed'
               _patchNode(ev.triggerNodeId, { status: 'failed', error: ev.error, endedAt: ev.timestamp })
-              clearNodeStatusLater(ev.triggerNodeId, 'failed')
+              clearNodeStatusLater(ev.triggerNodeId, 'failed', 3000, isManual ? 'idle' : 'waiting')
             }
             toastError(ev.error ?? 'Workflow job failed', 'Job failed')
             break
@@ -491,19 +502,29 @@ export const useExecutionStore = defineStore('execution', () => {
 
     resetNodeStatuses()
 
-    setTriggerRunning(triggerNodeId)   // shimmer laranja no trigger enquanto a execução inicia
-
     isExecuting.value = true
     try {
       const result = await workflowsApi.createDevSession(workflowId, payload, triggerNodeId)
       activeSessionId.value = result.sessionId
       sessionStatus.value = result.status
+
+      // Pre-patch ALL triggers from the HTTP response (reliable — avoids SSE race condition
+      // where trigger:waiting events fire before the client stream connects).
+      // • Manual triggers: server queues them ALL immediately → show 'running' (orange shimmer)
+      // • Non-manual (webhook/cron/event/plugin): waiting for their external event → show 'waiting' (purple)
       for (const trigger of result.triggers) {
-        triggerStatuses[trigger.triggerNodeId] = trigger.type === 'manual' ? 'running' : 'waiting'
-        if (trigger.type !== 'manual') {
+        if (trigger.type === 'manual') {
+          manualTriggerNodeIds.add(trigger.triggerNodeId)
+          if (!triggerNodeId || trigger.triggerNodeId === triggerNodeId) {
+            triggerStatuses[trigger.triggerNodeId] = 'running'
+            _patchNode(trigger.triggerNodeId, { status: 'running', startedAt: Date.now() })
+          }
+        } else {
+          triggerStatuses[trigger.triggerNodeId] = 'waiting'
           _patchNode(trigger.triggerNodeId, { status: 'waiting', startedAt: Date.now() })
         }
       }
+
       startSessionStream(result.sessionId)
     } catch {
       isStreaming.value = false

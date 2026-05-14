@@ -684,7 +684,10 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
   fastify.post("/workflows/:workflowId/dev-sessions", async (req, reply) => {
     const { workflowId } = req.params as { workflowId: string };
-    const body = (req.body as { payload?: Record<string, any> } | null) ?? {};
+    const body = (req.body as {
+      payload?: Record<string, any>;
+      triggerNodeId?: string;
+    } | null) ?? {};
 
     try {
       const workflow = WorkflowRepository.getWorkflowById(workflowId);
@@ -699,6 +702,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
       const session = devWorkflowSessionRuntime.manager.createSession(workflow, {
         initialPayload: body.payload ?? {},
+        initialTriggerNodeId: body.triggerNodeId,
       });
       const triggers = listTriggerEntries(workflow)
         .filter((entry) => !entry.disabled)

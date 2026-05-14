@@ -157,6 +157,42 @@ describe("DevWorkflowSessionManager", () => {
     assert.deepEqual(ran, ['manual_a:{"ok":true}']);
   });
 
+  it("enqueues only the requested manual trigger when a session starts from a trigger node", async () => {
+    const ran: string[] = [];
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_${ran.length + 1}`,
+      runWorkflowJob: async (job) => {
+        ran.push(`${job.triggerNodeId}:${JSON.stringify(job.payload)}`);
+      },
+    });
+    const wf = workflow();
+    wf.nodes = {
+      manual_a: {
+        type: "trigger",
+        name: "Manual A",
+        trigger: { type: "manual" },
+      },
+      manual_b: {
+        type: "trigger",
+        name: "Manual B",
+        trigger: { type: "manual" },
+      },
+      webhook_a: {
+        type: "trigger",
+        name: "Webhook A",
+        trigger: { type: "webhook", webhookSlug: "hook" },
+      },
+    };
+
+    manager.createSession(wf, {
+      initialPayload: { clicked: true },
+      initialTriggerNodeId: "manual_b",
+    });
+    await manager.onIdle();
+
+    assert.deepEqual(ran, ['manual_b:{"clicked":true}']);
+  });
+
   it("enqueues webhook dev jobs for active sessions only", async () => {
     const ran: string[] = [];
     const manager = new DevWorkflowSessionManager({

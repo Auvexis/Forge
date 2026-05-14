@@ -37,7 +37,7 @@ import {
   deleteWorkflowSelection,
   duplicateWorkflowSelection,
 } from '../utils/workflowSelectionActions'
-import { selectToolbarRunTrigger } from '../utils/workflowRunTrigger'
+import { selectToolbarRunTrigger, shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
 
 // Stores
 const workflowStore = useWorkflowStore()
@@ -80,10 +80,6 @@ async function onVueFlowInit(instance: VueFlowStore) {
 
 function buildNodes() {
   if (!workflowStore.activeWorkflow) return []
-  const hasRealTriggerNodes = Object.values(workflowStore.activeWorkflow.nodes).some(
-    (nodeData) => nodeData.type === 'trigger',
-  )
-
   const normalNodes: Node[] = Object.entries(workflowStore.activeWorkflow.nodes).map(
     ([nodeId, nodeData]) => ({
       id: nodeId,
@@ -93,7 +89,7 @@ function buildNodes() {
     }),
   )
 
-  if (hasRealTriggerNodes) return normalNodes
+  if (!shouldRenderLegacyTriggerNode(workflowStore.activeWorkflow)) return normalNodes
 
   const triggerNode: Node = {
     id: 'trigger',
@@ -592,7 +588,8 @@ const generateNodeId = (prefix: string) => {
   if (!workflowStore.activeWorkflow) return `${prefix}_1`
 
   const nodes = workflowStore.activeWorkflow.nodes
-  let counter = 1
+  // Triggers start at 0 (trigger_0), all other node types start at 1
+  let counter = prefix === 'trigger' ? 0 : 1
   let newId = `${prefix}_${counter}`
 
   // Safe check against both store and current VueFlow nodes
