@@ -19,6 +19,9 @@ export const ENDPOINTS = {
   EXECUTE_WORKFLOW: (id: string) => `/workflows/${id}/execute`,
   CANCEL_EXECUTION: (execId: string) => `/workflows/executions/${execId}/cancel`,
   STREAM_EXECUTION: (execId: string) => `/workflows/executions/${execId}/stream`,
+  CREATE_DEV_SESSION: (id: string) => `/workflows/${id}/dev-sessions`,
+  STOP_DEV_SESSION: (sessionId: string) => `/workflows/dev-sessions/${sessionId}/stop`,
+  STREAM_DEV_SESSION: (sessionId: string) => `/workflows/dev-sessions/${sessionId}/stream`,
 
   // Trigger
   TRIGGER_LISTEN: (id: string) => `/workflows/${id}/trigger/listen`,

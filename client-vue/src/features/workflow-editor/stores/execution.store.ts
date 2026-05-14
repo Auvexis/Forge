@@ -3,6 +3,7 @@ import { ref, reactive, computed } from 'vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
 import type {
+  DevWorkflowSessionStatus,
   ExecutionTimelineEvent,
   NodeExecutionState,
   WorkflowExecutionStatus,
@@ -29,6 +30,10 @@ export const useExecutionStore = defineStore('execution', () => {
 
   /** The execution ID currently being streamed */
   const activeExecutionId = ref<string | null>(null)
+  const activeSessionId = ref<string | null>(null)
+  const sessionStatus = ref<DevWorkflowSessionStatus | null>(null)
+  const activeJobs = reactive<Record<string, WorkflowEvent>>({})
+  const triggerStatuses = reactive<Record<string, 'waiting' | 'received' | 'running' | 'success' | 'failed'>>({})
 
   /** Last known overall workflow execution outcome */
   const workflowStatus = ref<WorkflowExecutionStatus | null>(null)
@@ -39,7 +44,7 @@ export const useExecutionStore = defineStore('execution', () => {
 
   // ── Derived ──────────────────────────────────────────────────────────────
 
-  const hasActiveExecution = computed(() => isStreaming.value || isExecuting.value)
+  const hasActiveExecution = computed(() => isStreaming.value || isExecuting.value || sessionStatus.value === 'running')
 
   // ── Internal helpers ─────────────────────────────────────────────────────
 
@@ -53,11 +58,11 @@ export const useExecutionStore = defineStore('execution', () => {
   }
 
   function timelineStatusFor(type: string): ExecutionTimelineEvent['status'] {
-    if (type === 'node:success' || type === 'workflow:success' || type === 'trigger:data') return 'success'
-    if (type === 'node:failed' || type === 'workflow:failed') return 'failed'
+    if (type === 'node:success' || type === 'workflow:success' || type === 'trigger:data' || type === 'job:success') return 'success'
+    if (type === 'node:failed' || type === 'workflow:failed' || type === 'job:failed') return 'failed'
     if (type === 'node:retry') return 'retrying'
-    if (type === 'workflow:cancelled') return 'cancelled'
-    if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created') {
+    if (type === 'workflow:cancelled' || type === 'job:cancelled') return 'cancelled'
+    if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created' || type === 'job:start') {
       return 'running'
     }
     return 'info'
@@ -75,6 +80,14 @@ export const useExecutionStore = defineStore('execution', () => {
     }
     if (ev.type === 'node:success') return `${ev.nodeId} succeeded`
     if (ev.type === 'node:failed') return `${ev.nodeId} failed`
+    if (ev.type === 'job:queued') return `${ev.source ?? 'manual'} job queued`
+    if (ev.type === 'job:start') return `${ev.source ?? 'manual'} job started`
+    if (ev.type === 'job:success') return `${ev.source ?? 'manual'} job succeeded`
+    if (ev.type === 'job:failed') return `${ev.source ?? 'manual'} job failed`
+    if (ev.type === 'session:start') return 'Dev session started'
+    if (ev.type === 'session:ready') return 'Dev session ready'
+    if (ev.type === 'session:stopping') return 'Dev session stopping'
+    if (ev.type === 'session:stopped') return 'Dev session stopped'
     if (ev.type === 'trigger:data') return 'Trigger payload received'
     if (ev.type === 'temporary-form:created') return `${ev.nodeId} waiting for form`
     return ev.type.replace(':', ' ')
@@ -118,7 +131,12 @@ export const useExecutionStore = defineStore('execution', () => {
       delete nodeStatuses[key]
     }
     workflowStatus.value = null
+    sessionStatus.value = null
+    activeSessionId.value = null
+    activeExecutionId.value = null
     timeline.value = []
+    for (const key of Object.keys(activeJobs)) delete activeJobs[key]
+    for (const key of Object.keys(triggerStatuses)) delete triggerStatuses[key]
   }
 
   /** Marks the trigger node as 'running' (e.g. waiting for a form submission). */
@@ -284,6 +302,104 @@ export const useExecutionStore = defineStore('execution', () => {
     }
   }
 
+  function startSessionStream(sessionId: string): void {
+    stopStream()
+    activeSessionId.value = sessionId
+    sessionStatus.value = 'running'
+    isStreaming.value = true
+
+    const { error: toastError } = useToast()
+    _es = workflowsApi.createDevSessionStream(sessionId)
+
+    _es.onmessage = (rawEvt: MessageEvent) => {
+      try {
+        const ev = JSON.parse(rawEvt.data as string) as WorkflowEvent
+        recordTimelineEvent(ev)
+
+        switch (ev.type) {
+          case 'session:start':
+          case 'session:ready':
+            sessionStatus.value = 'running'
+            break
+
+          case 'trigger:waiting':
+            if (ev.triggerNodeId) triggerStatuses[ev.triggerNodeId] = 'waiting'
+            break
+
+          case 'trigger:received':
+            if (ev.triggerNodeId) triggerStatuses[ev.triggerNodeId] = 'received'
+            break
+
+          case 'job:queued':
+          case 'job:start':
+            if (ev.jobId) activeJobs[ev.jobId] = ev
+            if (ev.executionId) activeExecutionId.value = ev.executionId
+            if (ev.triggerNodeId) triggerStatuses[ev.triggerNodeId] = 'running'
+            break
+
+          case 'node:start':
+            if (ev.nodeId) _patchNode(ev.nodeId, { status: 'running', startedAt: ev.timestamp })
+            break
+
+          case 'node:success':
+            if (ev.nodeId) {
+              _patchNode(ev.nodeId, {
+                status: 'success',
+                output: ev.data,
+                endedAt: ev.timestamp,
+                attempts: nodeStatuses[ev.nodeId]?.attempts ?? 1,
+              })
+            }
+            break
+
+          case 'node:failed':
+            if (ev.nodeId) {
+              _patchNode(ev.nodeId, {
+                status: 'failed',
+                error: ev.error,
+                endedAt: ev.timestamp,
+                attempts: nodeStatuses[ev.nodeId]?.attempts ?? 1,
+              })
+              toastError(ev.error ?? `Node "${ev.nodeId}" failed`, 'Node execution failed')
+            }
+            break
+
+          case 'job:success':
+            if (ev.triggerNodeId) triggerStatuses[ev.triggerNodeId] = 'success'
+            break
+
+          case 'job:failed':
+            if (ev.triggerNodeId) triggerStatuses[ev.triggerNodeId] = 'failed'
+            toastError(ev.error ?? 'Workflow job failed', 'Job failed')
+            break
+
+          case 'session:stopping':
+            sessionStatus.value = 'stopping'
+            break
+
+          case 'session:stopped':
+            sessionStatus.value = 'stopped'
+            isStreaming.value = false
+            stopStream()
+            useToast().success('Dev session stopped')
+            break
+
+          default:
+            break
+        }
+      } catch {
+      }
+    }
+
+    _es.onerror = () => {
+      if (isStreaming.value) {
+        isStreaming.value = false
+        stopStream()
+        useToast().error('Dev session stream disconnected')
+      }
+    }
+  }
+
   /**
    * Kicks off a workflow execution:
    * 1. Resets previous node statuses so the canvas is clean
@@ -297,18 +413,17 @@ export const useExecutionStore = defineStore('execution', () => {
 
     resetNodeStatuses()
 
-    const clientExecId = `exec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-    startStream(clientExecId)
     setTriggerRunning(triggerNodeId)   // shimmer laranja no trigger enquanto a execução inicia
 
     isExecuting.value = true
     try {
-      const result = await workflowsApi.execute(workflowId, payload, clientExecId, triggerNodeId)
-
-      // Reconnect to the server-assigned ID if it differs from our client ID
-      if (result.executionId && result.executionId !== clientExecId) {
-        startStream(result.executionId)
+      const result = await workflowsApi.createDevSession(workflowId, payload, triggerNodeId)
+      activeSessionId.value = result.sessionId
+      sessionStatus.value = result.status
+      for (const trigger of result.triggers) {
+        triggerStatuses[trigger.triggerNodeId] = trigger.type === 'manual' ? 'running' : 'waiting'
       }
+      startSessionStream(result.sessionId)
     } catch {
       isStreaming.value = false
       stopStream()
@@ -349,10 +464,15 @@ export const useExecutionStore = defineStore('execution', () => {
 
   /** Sends a cancel request for the active execution (fire-and-forget UX). */
   async function cancel() {
-    if (!activeExecutionId.value) return
+    if (!activeSessionId.value && !activeExecutionId.value) return
     const { error: toastError } = useToast()
     try {
-      await workflowsApi.cancelExecution(activeExecutionId.value)
+      if (activeSessionId.value) {
+        sessionStatus.value = 'stopping'
+        await workflowsApi.stopDevSession(activeSessionId.value)
+      } else if (activeExecutionId.value) {
+        await workflowsApi.cancelExecution(activeExecutionId.value)
+      }
     } catch {
       toastError('Failed to cancel execution')
     }
@@ -364,6 +484,10 @@ export const useExecutionStore = defineStore('execution', () => {
     isStreaming,
     isExecuting,
     activeExecutionId,
+    activeSessionId,
+    sessionStatus,
+    activeJobs,
+    triggerStatuses,
     workflowStatus,
     hasActiveExecution,
     execute,

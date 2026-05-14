@@ -479,12 +479,12 @@ Melhor caminho:
 
 ### Task 6 - Adaptar Run Manual para criar sessao dev
 
-- [ ] Criar endpoint `POST /workflows/:workflowId/dev-sessions`.
-- [ ] Frontend chamar esse endpoint no Run.
-- [ ] Store guardar `activeSessionId`.
-- [ ] Botao Run virar Stop enquanto sessao ativa.
-- [ ] Testar que Run nao chama mais execucao unica antiga.
-- [ ] Commit.
+- [x] Criar endpoint `POST /workflows/:workflowId/dev-sessions`.
+- [x] Frontend chamar esse endpoint no Run.
+- [x] Store guardar `activeSessionId`.
+- [x] Botao Run virar Stop enquanto sessao ativa.
+- [x] Testar que Run nao chama mais execucao unica antiga.
+- [x] Commit.
 
 ### Task 7 - Ativar trigger manual na sessao
 

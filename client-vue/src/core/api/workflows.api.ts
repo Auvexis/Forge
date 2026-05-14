@@ -6,7 +6,7 @@ import { apiRequest } from './client'
 import { ENDPOINTS } from './endpoints'
 import { API_BASE_URL } from '../constants/app'
 import type { FormTheme, FormTriggerField, WorkflowItem } from '../types/workflow.types'
-import type { ExecutionLog, WorkflowExecutionStatus } from '../types/execution.types'
+import type { DevWorkflowSessionStatus, ExecutionLog, WorkflowExecutionStatus } from '../types/execution.types'
 
 // ── Production Status Shape ───────────────────────────────
 
@@ -33,6 +33,20 @@ export interface FormDefinition {
   fields: FormTriggerField[]
   theme: FormTheme
   expiresAt?: number
+}
+
+export interface DevWorkflowSessionTrigger {
+  triggerNodeId: string
+  type: string
+  name: string
+  webhookPath?: string | null
+}
+
+export interface DevWorkflowSessionResponse {
+  sessionId: string
+  status: DevWorkflowSessionStatus
+  triggers: DevWorkflowSessionTrigger[]
+  initialPayload: Record<string, unknown>
 }
 
 // ── Server response shape (snake_case from SQLite row) ────────
@@ -171,6 +185,25 @@ export const workflowsApi = {
       body,
       headers,
     })
+  },
+
+  createDevSession: (id: string, payload: Record<string, unknown> = {}, triggerNodeId?: string) => {
+    return apiRequest<DevWorkflowSessionResponse>(ENDPOINTS.CREATE_DEV_SESSION(id), {
+      method: 'POST',
+      body: {
+        payload,
+        triggerNodeId,
+      },
+    })
+  },
+
+  stopDevSession: (sessionId: string) =>
+    apiRequest<{ sessionId: string }>(ENDPOINTS.STOP_DEV_SESSION(sessionId), {
+      method: 'POST',
+    }),
+
+  createDevSessionStream: (sessionId: string): EventSource => {
+    return new EventSource(`${API_BASE_URL}${ENDPOINTS.STREAM_DEV_SESSION(sessionId)}`)
   },
 
   /** Request to cancel an active execution */

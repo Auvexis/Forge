@@ -5,6 +5,17 @@
 // ── SSE Event Types (mirrors server event-bus.ts) ─────────────
 
 export type WorkflowEventType =
+  | 'session:start'
+  | 'session:ready'
+  | 'session:stopping'
+  | 'session:stopped'
+  | 'trigger:waiting'
+  | 'trigger:received'
+  | 'job:queued'
+  | 'job:start'
+  | 'job:success'
+  | 'job:failed'
+  | 'job:cancelled'
   | 'node:start'
   | 'node:retry'
   | 'node:success'
@@ -17,9 +28,13 @@ export type WorkflowEventType =
   | 'trigger:data'   // emitted after form submission with the serializable trigger payload
 
 export interface WorkflowEvent {
-  executionId: string
+  executionId?: string
   workflowId: string
   type: WorkflowEventType
+  sessionId?: string
+  jobId?: string
+  triggerNodeId?: string
+  source?: string
   nodeId?: string
   timestamp: number
   data?: unknown
@@ -43,6 +58,7 @@ export interface NodeExecutionState {
 // ── Workflow Execution Status ─────────────────────────────────
 
 export type WorkflowExecutionStatus = 'RUNNING' | 'SUCCESS' | 'FAILED' | 'CANCELLED'
+export type DevWorkflowSessionStatus = 'starting' | 'running' | 'stopping' | 'stopped' | 'failed'
 
 // ── Execution Log (from GET /workflows/:id/executions) ────────
 

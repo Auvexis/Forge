@@ -648,6 +648,65 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
   // ──────────── Execute a workflow manually ────────────
 
+  fastify.post("/workflows/:workflowId/dev-sessions", async (req, reply) => {
+    const { workflowId } = req.params as { workflowId: string };
+    const body = (req.body as { payload?: Record<string, any> } | null) ?? {};
+
+    try {
+      const workflow = WorkflowRepository.getWorkflowById(workflowId);
+      if (!workflow) {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Workflow not found",
+          error: "Not Found",
+          data: null,
+        });
+      }
+
+      const session = devWorkflowSessionRuntime.manager.createSession(workflow);
+      const triggers = listTriggerEntries(workflow)
+        .filter((entry) => !entry.disabled)
+        .map((entry) => ({
+          triggerNodeId: entry.id,
+          type: entry.trigger.type,
+          name: entry.name,
+          webhookPath: getTriggerWebhookPath(workflow, entry),
+        }));
+
+      return sendResponse(reply, {
+        status_code: 201,
+        message: "Dev workflow session started",
+        error: null,
+        data: {
+          sessionId: session.id,
+          status: session.status,
+          triggers,
+          initialPayload: body.payload ?? {},
+        },
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 500,
+        message: `Failed to start dev workflow session: ${error.message}`,
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
+  fastify.post("/workflows/dev-sessions/:sessionId/stop", async (req, reply) => {
+    const { sessionId } = req.params as { sessionId: string };
+
+    await devWorkflowSessionRuntime.manager.stopSession(sessionId, "manual stop");
+
+    return sendResponse(reply, {
+      status_code: 202,
+      message: "Dev workflow session stop requested",
+      error: null,
+      data: { sessionId },
+    });
+  });
+
   fastify.post("/workflows/:workflowId/execute", async (req, reply) => {
     const { workflowId } = req.params as { workflowId: string };
     const query = req.query as { triggerNodeId?: string };
