@@ -33,6 +33,7 @@ import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types
 import { useEventBus } from '@/shared/composables/useEventBus'
 import { useToast } from '@/shared/composables/useToast'
 import { isCanvasSelecting } from '../composables/useCanvasSelecting'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import {
   deleteWorkflowSelection,
   duplicateWorkflowSelection,
@@ -58,6 +59,11 @@ const emit = defineEmits<{
 
 // ── Local alias so internal logic can still read the value ────────────────
 const showLogsLocal = computed(() => props.showLogs ?? false)
+const isWorkflowEmpty = computed(() => {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return false
+  return Object.keys(workflow.nodes).length === 0 && workflow.edges.length === 0
+})
 
 //
 // ── Inicialização única dos nodes/edges ────────────────────────────────────
@@ -1062,6 +1068,18 @@ defineExpose({
         :style="{ 'background-color': 'var(--nod8-canvas-bg)' }"
       />
 
+      <button
+        v-if="isWorkflowEmpty"
+        class="canvas-empty-step nodrag nopan"
+        type="button"
+        @click.stop="openAddNodePanel()"
+      >
+        <span class="canvas-empty-step__box">
+          <LucideIcon name="plus" :size="34" />
+        </span>
+        <span class="canvas-empty-step__label">Add first step...</span>
+      </button>
+
       <!-- Custom Edge (Contains trash toolbar etc) -->
       <template #edge-workflow-edge="edgeProps">
         <BaseEdge v-bind="edgeProps" />
@@ -1159,6 +1177,57 @@ defineExpose({
   width: 100%;
   height: 100%;
 }
+
+.canvas-empty-step {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  color: var(--nod8-text-primary);
+  background: transparent;
+  border: 0;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+.canvas-empty-step__box {
+  width: 82px;
+  height: 82px;
+  display: grid;
+  place-items: center;
+  color: var(--nod8-text-muted);
+  background: color-mix(in srgb, var(--nod8-bg-surface) 70%, transparent);
+  border: 2px dashed var(--nod8-border-strong);
+  border-radius: 8px;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.canvas-empty-step__label {
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--nod8-text-primary);
+  white-space: nowrap;
+}
+
+.canvas-empty-step:hover .canvas-empty-step__box {
+  color: var(--nod8-text-primary);
+  background: var(--nod8-bg-surface-hover);
+  border-color: var(--nod8-text-primary);
+}
+
+.canvas-empty-step:focus-visible .canvas-empty-step__box {
+  outline: 2px solid var(--nod8-node-selected);
+  outline-offset: 3px;
+}
+
 /*
   Execution logs overlay — floats centered at the top of the canvas.
   pointer-events: none on the wrapper is intentional: the wrapper div stays
