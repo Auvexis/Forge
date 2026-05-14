@@ -362,4 +362,43 @@ describe("DevWorkflowSessionManager", () => {
 
     assert.match(await result, /manual stop/);
   });
+
+  it("enforces session and payload limits", () => {
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_1`,
+      maxSessions: 1,
+      maxPayloadBytes: 8,
+    });
+    const session = manager.createSession(workflow());
+
+    assert.throws(() => manager.createSession(workflow()), /Too many active dev sessions/);
+    assert.throws(
+      () => manager.enqueueJob(session.id, {
+        triggerNodeId: "trigger",
+        source: "manual",
+        payload: { tooLarge: true },
+      }),
+      /payload exceeds/,
+    );
+  });
+
+  it("stops all sessions during cleanup", async () => {
+    let teardownCalls = 0;
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_${teardownCalls + 1}`,
+    });
+    const session = manager.createSession(workflow());
+    session.triggerRuntimes.push({
+      triggerNodeId: "trigger",
+      type: "manual",
+      teardown: () => {
+        teardownCalls++;
+      },
+    });
+
+    await manager.stopAll("server shutdown");
+
+    assert.equal(teardownCalls, 1);
+    assert.equal(manager.getSession(session.id), null);
+  });
 });

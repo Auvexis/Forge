@@ -743,6 +743,34 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     });
   });
 
+  fastify.get("/workflows/dev-sessions/:sessionId", async (req, reply) => {
+    const { sessionId } = req.params as { sessionId: string };
+    const session = devWorkflowSessionRuntime.manager.getSession(sessionId);
+
+    if (!session) {
+      return sendResponse(reply, {
+        status_code: 404,
+        message: "Dev workflow session not found",
+        error: "Not Found",
+        data: null,
+      });
+    }
+
+    return sendResponse(reply, {
+      status_code: 200,
+      message: "Dev workflow session fetched",
+      error: null,
+      data: {
+        sessionId: session.id,
+        workflowId: session.workflowId,
+        status: session.status,
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
+        stopReason: session.stopReason,
+      },
+    });
+  });
+
   fastify.post("/workflows/:workflowId/execute", async (req, reply) => {
     const { workflowId } = req.params as { workflowId: string };
     const query = req.query as { triggerNodeId?: string };

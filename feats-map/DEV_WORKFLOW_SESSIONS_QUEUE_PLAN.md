@@ -572,11 +572,11 @@ Melhor caminho:
 
 ### Task 17 - Limites e hardening
 
-- [ ] Adicionar limites de sessoes, jobs, payload e concorrencia.
-- [ ] Adicionar logs de diagnostico.
-- [ ] Adicionar cleanup em server shutdown.
-- [ ] Testar limites e mensagens de erro.
-- [ ] Commit.
+- [x] Adicionar limites de sessoes, jobs, payload e concorrencia.
+- [x] Adicionar logs de diagnostico.
+- [x] Adicionar cleanup em server shutdown.
+- [x] Testar limites e mensagens de erro.
+- [x] Commit.
 
 ### Task 18 - Regressao end-to-end local
 

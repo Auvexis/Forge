@@ -13,6 +13,7 @@ import commandPaletteRoutes from "./routes/command-palette.routes.ts";
 import { initializeDatabases } from "./database/index.ts";
 import { loadPlugins } from "./modules/plugins/loader.ts";
 import { Scheduler } from "./modules/scheduler/scheduler.ts";
+import { devWorkflowSessionRuntime } from "./modules/workflows/dev-session/runtime.ts";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
@@ -61,6 +62,10 @@ fastify.register(workflowsRoutes);
 fastify.register(webhooksRoutes);
 fastify.register(credentialsRoutes);
 fastify.register(commandPaletteRoutes);
+
+fastify.addHook("onClose", async () => {
+  await devWorkflowSessionRuntime.manager.stopAll("server shutdown");
+});
 
 // Run the server!
 fastify.listen({ port: PORT, host: "0.0.0.0" }, function (err, address) {

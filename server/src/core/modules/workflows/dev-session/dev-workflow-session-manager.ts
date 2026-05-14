@@ -34,6 +34,8 @@ export interface CreateDevWorkflowSessionOptions {
 export interface DevWorkflowSessionManagerOptions {
   maxConcurrentPerSession?: number;
   maxConcurrentGlobal?: number;
+  maxSessions?: number;
+  maxPayloadBytes?: number;
   createId?: (prefix: "session" | "job" | "exec") => string;
   scheduleCron?: (
     expression: string,
@@ -112,6 +114,10 @@ export class DevWorkflowSessionManager {
     workflow: WorkflowItem,
     options: CreateDevWorkflowSessionOptions = {},
   ): DevWorkflowSession {
+    if (this.sessions.size >= (this.options.maxSessions ?? 10)) {
+      throw new Error("Too many active dev sessions");
+    }
+
     const now = Date.now();
     const session: DevWorkflowSession = {
       id: this.createIdFn("session"),
@@ -141,6 +147,7 @@ export class DevWorkflowSessionManager {
     if (session.status === "stopping" || session.status === "stopped") {
       throw new Error(`Cannot enqueue job for ${session.status} session ${sessionId}`);
     }
+    this.assertPayloadSize(input.payload);
 
     const job = this.runner.createJob({
       sessionId,
@@ -238,6 +245,14 @@ export class DevWorkflowSessionManager {
     }
   }
 
+  async stopAll(reason: string): Promise<void> {
+    await Promise.all(
+      Array.from(this.sessions.keys()).map((sessionId) =>
+        this.stopSession(sessionId, reason),
+      ),
+    );
+  }
+
   onIdle(): Promise<void> {
     return this.queue.onIdle();
   }
@@ -255,6 +270,14 @@ export class DevWorkflowSessionManager {
     const session = this.sessions.get(sessionId);
     if (!session) throw new Error(`Dev workflow session ${sessionId} was not found`);
     return session;
+  }
+
+  private assertPayloadSize(payload: unknown): void {
+    const maxBytes = this.options.maxPayloadBytes ?? 256 * 1024;
+    const bytes = Buffer.byteLength(JSON.stringify(payload ?? null), "utf8");
+    if (bytes > maxBytes) {
+      throw new Error(`Dev workflow job payload exceeds ${maxBytes} bytes`);
+    }
   }
 
   private handleQueueEvent(event: SessionEvent): void {
