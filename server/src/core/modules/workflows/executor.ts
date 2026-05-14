@@ -21,6 +21,7 @@ import { WorkflowParser } from "./parser.ts";
 import { WorkflowRepository } from "./repository.ts";
 import { workflowEventBus } from "./event-bus.ts";
 import { createUtilityNodeRegistry } from "../../nodes/registry.ts";
+import { getTriggerEntry } from "./workflow-triggers.ts";
 import type {
   NodeHandlerInput,
   NodeHandlerServices,
@@ -83,6 +84,28 @@ export const WorkflowEngine = {
     triggerPayload: any,
     executionId?: string,
   ): Promise<any> => {
+    return WorkflowEngine.executeWorkflowFromTrigger(
+      workflow,
+      "trigger",
+      triggerPayload,
+      executionId,
+    );
+  },
+
+  executeWorkflowFromTrigger: async (
+    workflow: WorkflowItem,
+    triggerNodeId: string,
+    triggerPayload: any,
+    executionId?: string,
+  ): Promise<any> => {
+    const triggerEntry = getTriggerEntry(workflow, triggerNodeId);
+    if (!triggerEntry) {
+      throw new Error(`Trigger node "${triggerNodeId}" was not found`);
+    }
+    if (triggerEntry.disabled) {
+      throw new Error(`Trigger node "${triggerNodeId}" is disabled`);
+    }
+
     const execId =
       executionId ?? `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     const context = createExecutionContext(workflow, triggerPayload, execId);
@@ -106,14 +129,15 @@ export const WorkflowEngine = {
     );
 
     try {
-      const { nodeIds, inDegree, adjList } = createGraph(workflow);
-      const queue = nodeIds.filter(
-        (nodeId) => inDegree[nodeId] === 0 && workflow.nodes[nodeId]?.type !== "event-listener",
-      );
+      const { adjList } = createGraph(workflow);
+      const reachable = collectReachableNodeIds(triggerNodeId, adjList);
+      const branchInDegree = createBranchInDegree(reachable, adjList, triggerNodeId);
+      const queue: string[] = [];
       const executed = new Set<string>();
 
       const enqueueTarget = (targetId: string) => {
-        inDegree[targetId]--;
+        if (!reachable.has(targetId)) return;
+        branchInDegree[targetId]--;
         const targetNode = workflow.nodes[targetId];
         const isWaitAny =
           targetNode?.type === "merge" && (targetNode as MergeNode).mode === "wait-any";
@@ -123,8 +147,10 @@ export const WorkflowEngine = {
           return;
         }
 
-        if (inDegree[targetId] === 0) queue.push(targetId);
+        if (branchInDegree[targetId] <= 0) queue.push(targetId);
       };
+
+      for (const edge of adjList[triggerNodeId] || []) enqueueTarget(edge.target);
 
       while (queue.length > 0) {
         const nodeId = queue.shift()!;
@@ -151,12 +177,12 @@ export const WorkflowEngine = {
 
         executed.add(nodeId);
 
-        if (nodeId === "trigger") {
+        const node = workflow.nodes[nodeId];
+        if (!node || node.type === "trigger" || node.disabled === true) {
           for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
           continue;
         }
 
-        const node = workflow.nodes[nodeId];
         recordNodeStart(context, nodeId);
         emitNodeStart(workflow.metadata.id, execId, nodeId);
 
@@ -345,4 +371,42 @@ function enqueueMatchingEventListeners(
       queue.push(listenerId);
     }
   }
+}
+
+function collectReachableNodeIds(
+  triggerNodeId: string,
+  adjList: Record<string, WorkflowItem["edges"]>,
+): Set<string> {
+  const reachable = new Set<string>([triggerNodeId]);
+  const queue = [triggerNodeId];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    for (const edge of adjList[current] || []) {
+      if (reachable.has(edge.target)) continue;
+      reachable.add(edge.target);
+      queue.push(edge.target);
+    }
+  }
+
+  return reachable;
+}
+
+function createBranchInDegree(
+  reachable: Set<string>,
+  adjList: Record<string, WorkflowItem["edges"]>,
+  triggerNodeId: string,
+): Record<string, number> {
+  const inDegree: Record<string, number> = {};
+  for (const nodeId of reachable) inDegree[nodeId] = 0;
+
+  for (const [source, edges] of Object.entries(adjList)) {
+    if (source === triggerNodeId || !reachable.has(source)) continue;
+    for (const edge of edges) {
+      if (!reachable.has(edge.target)) continue;
+      inDegree[edge.target] = (inDegree[edge.target] ?? 0) + 1;
+    }
+  }
+
+  return inDegree;
 }

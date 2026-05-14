@@ -9,7 +9,7 @@ Objetivo: permitir varios triggers reais em um workflow. Cada trigger e um ponto
   - Adicionar `disabled?: boolean` para nodes.
   - Preservar compatibilidade com `workflow.trigger` legado.
 
-- [ ] Task 2: Executor por trigger
+- [x] Task 2: Executor por trigger
   - Criar execucao a partir de um `triggerNodeId`.
   - Rodar somente nodes alcancaveis daquele trigger.
   - Se node normal estiver desabilitado, pular e liberar proximos nodes.
