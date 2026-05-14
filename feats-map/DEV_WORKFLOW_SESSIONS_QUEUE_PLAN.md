@@ -580,15 +580,15 @@ Melhor caminho:
 
 ### Task 18 - Regressao end-to-end local
 
-- [ ] Criar workflow com manual, webhook, cron, form, plugin/event mock.
-- [ ] Run deve manter sessao aberta.
-- [ ] Manual deve rodar no start.
-- [ ] Webhook deve rodar somente ao receber request.
-- [ ] Form deve rodar somente no submit.
-- [ ] Cron deve disparar enquanto sessao ativa.
-- [ ] Stop deve encerrar tudo.
-- [ ] Build backend e frontend.
-- [ ] Commit final se houver ajustes.
+- [x] Criar workflow com manual, webhook, cron, form, plugin/event mock.
+- [x] Run deve manter sessao aberta.
+- [x] Manual deve rodar no start.
+- [x] Webhook deve rodar somente ao receber request.
+- [x] Form deve rodar somente no submit.
+- [x] Cron deve disparar enquanto sessao ativa.
+- [x] Stop deve encerrar tudo.
+- [x] Build backend e frontend.
+- [x] Commit final se houver ajustes.
 
 ## Criterios de Aceite
 

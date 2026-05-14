@@ -16,7 +16,13 @@ function workflow(): WorkflowItem {
       createdAt: "2026-05-14T00:00:00.000Z",
     },
     trigger: { type: "manual" },
-    nodes: {},
+    nodes: {
+      webhook_a: {
+        type: "trigger",
+        name: "Webhook A",
+        trigger: { type: "webhook", webhookSlug: "hook" },
+      },
+    },
     edges: [],
     variables: [],
   };
@@ -32,6 +38,6 @@ describe("dev workflow session runtime", () => {
     runtime.eventBus.onSession("session-1", (event) => received.push(event.type));
     runtime.manager.createSession(workflow());
 
-    assert.deepEqual(received, ["session:start", "session:ready"]);
+    assert.deepEqual(received, ["session:start", "trigger:waiting", "session:ready"]);
   });
 });
