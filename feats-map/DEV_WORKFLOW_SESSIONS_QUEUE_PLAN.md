@@ -459,13 +459,13 @@ Melhor caminho:
 
 ### Task 4 - Criar DevWorkflowSessionManager
 
-- [ ] Criar sessao.
-- [ ] Guardar registro em memoria.
-- [ ] Conectar sessao a uma fila.
-- [ ] Parar sessao com teardown idempotente.
-- [ ] Remover sessao depois de parada.
-- [ ] Testar start/stop/close duplicado.
-- [ ] Commit.
+- [x] Criar sessao.
+- [x] Guardar registro em memoria.
+- [x] Conectar sessao a uma fila.
+- [x] Parar sessao com teardown idempotente.
+- [x] Remover sessao depois de parada.
+- [x] Testar start/stop/close duplicado.
+- [x] Commit.
 
 ### Task 5 - Criar SessionEventBus/SSE
 
