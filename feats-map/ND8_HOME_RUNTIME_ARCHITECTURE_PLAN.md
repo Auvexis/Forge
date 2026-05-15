@@ -353,22 +353,22 @@ Isso evita perder dados em update de pacote.
 
 ### Task 14 - Regressao backend
 
-- [ ] Rodar testes do backend.
-- [ ] Rodar testes de plugins.
-- [ ] Rodar testes de database/migrations.
-- [ ] Subir servidor local com `ND8_HOME` temporario.
-- [ ] Confirmar criacao da estrutura.
-- [ ] Confirmar que plugins internos aparecem em `/plugins`.
-- [ ] Commit final se houver ajuste.
+- [x] Rodar testes do backend.
+- [x] Rodar testes de plugins.
+- [x] Rodar testes de database/migrations.
+- [x] Subir servidor local com `ND8_HOME` temporario.
+- [x] Confirmar criacao da estrutura.
+- [x] Confirmar que plugins internos aparecem em `/plugins`.
+- [x] Commit final se houver ajuste.
 
 ### Task 15 - Preparar handoff para External Plugin Installer
 
-- [ ] Confirmar que `ND8_HOME/global/plugins` existe.
-- [ ] Confirmar que registry diferencia `internal` e `external`.
-- [ ] Confirmar que manifest preview nao executa codigo.
-- [ ] Confirmar que plugin externo pode ser descoberto pelo loader.
-- [ ] Criar novo plano especifico para External Plugin Installer.
-- [ ] Commit.
+- [x] Confirmar que `ND8_HOME/global/plugins` existe.
+- [x] Confirmar que registry diferencia `internal` e `external`.
+- [x] Confirmar que manifest preview nao executa codigo.
+- [x] Confirmar que plugin externo pode ser descoberto pelo loader.
+- [x] Nao criar novo plano especifico para External Plugin Installer neste PR, seguindo instrucao do usuario.
+- [x] Commit.
 
 ## Criterios De Aceite
 

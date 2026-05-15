@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import Database from "better-sqlite3";
 
-import { up } from "./002_plugin_source_metadata.ts";
+import { up } from "./migrations/plugins/002_plugin_source_metadata.ts";
 
 describe("002_plugin_source_metadata", () => {
   it("adds source and path metadata while preserving existing plugin rows", async () => {

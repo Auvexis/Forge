@@ -6,6 +6,11 @@ import { fileURLToPath, pathToFileURL } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+export function isRunnableMigrationFile(filePath: string): boolean {
+  const fileName = path.basename(filePath);
+  return /\.(ts|js)$/.test(fileName) && !/\.test\.(ts|js)$/.test(fileName);
+}
+
 // ─── SQLite-native Umzug storage ─────────────────────────────────────────────
 
 /**
@@ -77,6 +82,14 @@ export function createMigrationEngine(
       // Use [pattern, { cwd }] tuple for portability across Windows/Unix
       glob: ["*.{ts,js}", { cwd: migrationsDir }],
       resolve({ name, path: migPath, context }) {
+        if (!isRunnableMigrationFile(name)) {
+          return {
+            name,
+            up: async () => {},
+            down: async () => {},
+          };
+        }
+
         // Convert to file:// URL for Windows ESM compatibility
         const fileUrl = pathToFileURL(migPath!).href;
         return {
