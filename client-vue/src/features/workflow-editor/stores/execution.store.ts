@@ -556,6 +556,9 @@ export const useExecutionStore = defineStore('execution', () => {
       const result = await workflowsApi.executeDevSessionTrigger(sessionId, triggerNodeId, payload)
       activeExecutionId.value = result.executionId
     } catch {
+      triggerStatuses[triggerNodeId] = 'failed'
+      _patchNode(triggerNodeId, { status: 'failed', endedAt: Date.now() })
+      clearNodeStatusLater(triggerNodeId, 'failed', 3000, 'idle')
       toastError('Failed to execute trigger')
       throw new Error('Trigger execution failed')
     } finally {

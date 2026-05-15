@@ -418,6 +418,29 @@ describe("DevWorkflowSessionManager", () => {
     );
   });
 
+  it("cleans up a partially created session when trigger activation fails", () => {
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_1`,
+      maxSessions: 1,
+      scheduleCron: () => {
+        throw new Error("invalid cron");
+      },
+    });
+    const wf = workflow();
+    wf.nodes = {
+      cron_a: {
+        type: "trigger",
+        name: "Cron A",
+        trigger: { type: "cron", cronExpression: "bad cron" },
+      },
+    };
+
+    assert.throws(() => manager.createSession(wf), /invalid cron/);
+
+    const cleanSession = manager.createSession(workflow());
+    assert.equal(cleanSession.status, "running");
+  });
+
   it("stops all sessions during cleanup", async () => {
     let teardownCalls = 0;
     const manager = new DevWorkflowSessionManager({

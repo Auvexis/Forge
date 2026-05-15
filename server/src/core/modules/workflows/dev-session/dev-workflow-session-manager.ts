@@ -131,16 +131,21 @@ export class DevWorkflowSessionManager {
     };
 
     this.sessions.set(session.id, session);
-    this.emitSessionEvent(session, "session:start");
-    this.transition(session, "running");
-    this.activatePluginLifecycle(session);
-    this.activateInitialTriggers(
-      session,
-      options.initialPayload ?? {},
-      options.initialTriggerNodeId,
-    );
-    this.emitSessionEvent(session, "session:ready");
-    return session;
+    try {
+      this.emitSessionEvent(session, "session:start");
+      this.transition(session, "running");
+      this.activatePluginLifecycle(session);
+      this.activateInitialTriggers(
+        session,
+        options.initialPayload ?? {},
+        options.initialTriggerNodeId,
+      );
+      this.emitSessionEvent(session, "session:ready");
+      return session;
+    } catch (error: any) {
+      this.cleanupFailedSession(session, error?.message ?? String(error));
+      throw error;
+    }
   }
 
   getSession(sessionId: string): DevWorkflowSession | null {
@@ -245,6 +250,7 @@ export class DevWorkflowSessionManager {
       session.stoppedAt = Date.now();
       this.emitSessionEvent(session, "session:stopped");
       this.sessions.delete(sessionId);
+      this.cleanupSessionState(sessionId);
     } finally {
       this.stopping.delete(sessionId);
     }
@@ -314,6 +320,33 @@ export class DevWorkflowSessionManager {
       cancelTemporaryFormSessionsByExecution(job.executionId, reason);
     }
     this.activeJobIdsBySession.delete(sessionId);
+  }
+
+  private cleanupFailedSession(session: DevWorkflowSession, reason: string): void {
+    for (const runtime of session.triggerRuntimes.splice(0)) {
+      try {
+        void Promise.resolve(runtime.teardown()).catch(() => {});
+      } catch {
+        /* teardown best effort */
+      }
+    }
+    this.cancelRunningJobs(session.id, reason);
+    this.queue.stopSession(session.id);
+    this.transition(session, "failed");
+    session.stopReason = reason;
+    session.stoppedAt = Date.now();
+    this.sessions.delete(session.id);
+    this.cleanupSessionState(session.id);
+  }
+
+  private cleanupSessionState(sessionId: string): void {
+    for (const key of Array.from(this.eventTriggerCounts.keys())) {
+      if (key.startsWith(`${sessionId}:`)) this.eventTriggerCounts.delete(key);
+    }
+    this.activeJobIdsBySession.delete(sessionId);
+    for (const [jobId, job] of Array.from(this.jobsById.entries())) {
+      if (job.sessionId === sessionId) this.jobsById.delete(jobId);
+    }
   }
 
   private activateInitialTriggers(
