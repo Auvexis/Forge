@@ -1,25 +1,15 @@
-# Node.js Base Image
 FROM node:22-alpine
 
-# Set the working directory
 WORKDIR /app
 
 ENV ND8_HOME=/app/.nd8
 
-# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --frozen-lockfile
+RUN npm ci
 
-# Copy the rest of the application code
 COPY . .
 
-# Compile TypeScript to JavaScript
-RUN npx tsc
-
-# Expose the port the app runs on
 EXPOSE 23801
 
-# Start the application
-CMD ["node", "dist/core/server.js"]
+CMD ["npx", "ts-node", "src/core/server.ts"]
