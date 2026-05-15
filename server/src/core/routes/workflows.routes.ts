@@ -212,7 +212,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
     // ──────────────────────────────────────────────────────────────
 
-    const resolved = resolveWebhookTrigger(WorkflowRepository.getActiveWorkflows(), webhookPath);
+    const resolved = resolveWebhookTrigger(WorkflowRepository.getWorkflows(), webhookPath);
 
     if (!resolved) {
       return reply.code(404).send({ error: "Webhook not found" });

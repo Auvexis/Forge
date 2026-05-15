@@ -270,7 +270,7 @@
                 <CopyIcon v-else :size="14" />
               </button>
               <a
-                v-if="formProdUrl && formIsPublished"
+                v-if="formProdUrl"
                 :href="formProdUrl"
                 target="_blank"
                 rel="noopener"
@@ -282,7 +282,7 @@
             </div>
           </div>
           <p class="te-hint">
-            Test URL works for drafts through localhost. Prod URL requires publishing and uses the configured Public URL.
+            Test URL works through localhost. Prod URL uses the configured Public URL.
           </p>
         </div>
 
@@ -358,35 +358,6 @@
               <code class="te-preset-value">{{ p.value }}</code>
             </button>
           </div>
-        </div>
-      </div>
-    </template>
-
-    <!-- ── EVENT ── -->
-    <template v-if="node.data.type === 'event'">
-      <div class="te-section">
-        <div class="te-field">
-          <span class="te-label">Internal Event Name</span>
-          <BaseInput
-            :model-value="(node.data as unknown as WorkflowTrigger).eventName || ''"
-            @update:model-value="updateNodeData({ eventName: $event as string })"
-            placeholder="video.uploaded"
-            style="font-family: var(--nod8-font-mono)"
-          />
-          <p class="te-hint">
-            This workflow will run whenever an <strong>Emit Event</strong> node or the
-            <code class="editor-code-snippet">/events/emit</code> API emits this event name.
-          </p>
-        </div>
-
-        <div class="te-info-yellow">
-          <p class="te-info-yellow__title">How it works</p>
-          <p class="te-info-yellow__body">
-            Use an <strong>Emit Event</strong> node in another workflow to trigger this one. The
-            emitted payload will be available in
-            <code class="font-mono" style="color: #eab308" v-pre>{{ trigger.payload }}</code
-            >.
-          </p>
         </div>
       </div>
     </template>
@@ -563,7 +534,6 @@ const TRIGGER_OPTIONS = [
   { value: 'webhook', label: 'Webhook', icon: 'globe' },
   { value: 'form', label: 'Form', icon: 'file-text' },
   { value: 'cron', label: 'Cron / Schedule', icon: 'clock' },
-  { value: 'event', label: 'Event', icon: 'zap' },
   { value: 'plugin', label: 'Plugin Trigger', icon: 'plug' },
 ]
 
@@ -751,12 +721,10 @@ const formPublicId = computed(() => {
   return slug || id || ''
 })
 
-const formTestUrl = computed(() => buildTriggerFormTestUrl(backendPublicUrl.value, formPublicId.value))
+// For TEST: use the local backend URL (same as testWebhookUrl pattern — server redirects to local SPA)
+// For PROD: use the public backend URL (server renders/redirects via public client URL)
+const formTestUrl = computed(() => buildTriggerFormTestUrl(API_BASE_URL, formPublicId.value))
 const formProdUrl = computed(() => buildTriggerFormProdUrl(backendPublicUrl.value, formPublicId.value))
-
-const formIsPublished = computed(
-  () => workflowStore.activeWorkflow?.metadata.isActive ?? false,
-)
 
 function saveFormFields(next: FormTriggerField[]) {
   props.updateNodeData({ formFields: next })

@@ -15,6 +15,9 @@
       >
         <LucideIcon :name="collapsed ? 'panel-right' : 'panel-left'" :size="21" stroke-width="2" />
       </button>
+      <div v-if="$slots['header-extra']" class="app-sidebar__header-extra">
+        <slot name="header-extra"></slot>
+      </div>
     </header>
 
     <nav class="app-sidebar__main">
@@ -135,6 +138,12 @@ defineEmits<{
   background: transparent;
 }
 
+.app-sidebar__header-extra {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .app-sidebar__main {
   flex: 1;
   display: flex;
@@ -160,7 +169,7 @@ defineEmits<{
 .app-sidebar--collapsed .app-sidebar__header {
   flex-direction: column;
   justify-content: center;
-  min-height: 86px;
+  min-height: 122px;
   padding: var(--nod8-space-3) var(--nod8-space-1);
 }
 

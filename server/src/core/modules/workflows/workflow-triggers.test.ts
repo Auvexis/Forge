@@ -147,26 +147,10 @@ describe("workflow trigger helpers", () => {
     assert.equal(entries[0].entry.trigger.cronExpression, "0 * * * *");
   });
 
-  it("resolves all enabled event triggers for an event name", () => {
-    const wf = workflow({
-      nodes: {
-        event_a: {
-          type: "trigger",
-          name: "Event A",
-          trigger: { type: "event", eventName: "telegram.callback" },
-        },
-        event_b: {
-          type: "trigger",
-          name: "Event B",
-          disabled: true,
-          trigger: { type: "event", eventName: "telegram.callback" },
-        },
-      },
-    });
+  it("does not expose workflow trigger entries for internal events", () => {
+    const entries = resolveEventTriggers([workflow()], "telegram.callback");
 
-    const entries = resolveEventTriggers([wf], "telegram.callback");
-
-    assert.deepEqual(entries.map((entry) => entry.triggerNodeId), ["event_a"]);
+    assert.deepEqual(entries, []);
   });
 
   it("lists enabled plugin triggers for lifecycle registration", () => {

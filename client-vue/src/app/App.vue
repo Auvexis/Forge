@@ -18,6 +18,17 @@
               :collapsed="isSidebarCollapsed"
               @toggle-collapsed="isSidebarCollapsed = !isSidebarCollapsed"
             >
+              <template v-if="isSidebarCollapsed" #header-extra>
+                <SidebarHint
+                  :title="activityById.search.label"
+                  :description="activityById.search.description"
+                  :icon="activityById.search.icon"
+                >
+                  <button class="nav-link sidebar-activity-link" @click="openGlobalCommandPalette">
+                    <LucideIcon :name="activityById.search.icon" :size="16" />
+                  </button>
+                </SidebarHint>
+              </template>
               <section
                 v-for="section in sidebarSections"
                 :key="section.label"
@@ -112,7 +123,7 @@
       </div>
     </template>
 
-    <template v-if="!appUiStore.isUniverseMode" #topbar>
+    <template v-if="!appUiStore.isUniverseMode && !isSidebarCollapsed" #topbar>
       <AppTopbar @open-command-palette="openGlobalCommandPalette" />
     </template>
 

@@ -339,7 +339,7 @@ export interface FormTheme {
 // ──────────── Trigger ────────────
 
 export interface WorkflowTrigger {
-  type: "manual" | "webhook" | "cron" | "event" | "plugin" | "form";
+  type: "manual" | "webhook" | "cron" | "plugin" | "form";
   schema?: Record<string, any>;
   ui?: WorkflowNodeUI;
   // Webhook config
@@ -350,8 +350,6 @@ export interface WorkflowTrigger {
   webhookBodySchema?: Record<string, WebhookBodyField>; // Expected body shape (docs + optional validation)
   // Cron config
   cronExpression?: string;
-  // Internal event config
-  eventName?: string;
   // Plugin trigger config
   pluginId?: string; // ID of the plugin that owns this trigger
   triggerName?: string; // Key in plugin.manifest.triggers (e.g. "onMessage")

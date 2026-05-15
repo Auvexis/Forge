@@ -3,7 +3,6 @@ import { describe, it } from "node:test";
 
 import { DevWorkflowSessionManager } from "./dev-workflow-session-manager.ts";
 import { workflowEventBus } from "../event-bus.ts";
-import { InternalEventBus } from "../../events/internal-event-bus.ts";
 import {
   createTemporaryFormSession,
   resetTemporaryFormSessionsForTests,
@@ -313,68 +312,6 @@ describe("DevWorkflowSessionManager", () => {
 
     assert.deepEqual(ran, ["cron_a:cron"]);
     assert.equal(stopped, true);
-  });
-
-  it("enqueues event trigger jobs while the session is active", async () => {
-    const ran: string[] = [];
-    const manager = new DevWorkflowSessionManager({
-      createId: (prefix) => `${prefix}_${ran.length + 1}`,
-      runWorkflowJob: async (job) => {
-        ran.push(`${job.triggerNodeId}:${job.source}:${(job.payload as any).event}`);
-      },
-    });
-    const wf = workflow();
-    wf.nodes = {
-      event_a: {
-        type: "trigger",
-        name: "Event A",
-        trigger: { type: "event", eventName: "order.created" },
-      },
-    };
-    const session = await manager.createSession(wf);
-
-    await InternalEventBus.emit({
-      name: "order.created",
-      payload: { id: 1 },
-      emittedBy: "test",
-      timestamp: Date.now(),
-    });
-    await manager.onIdle();
-    await manager.stopSession(session.id, "stop");
-
-    assert.deepEqual(ran, ["event_a:event:order.created"]);
-  });
-
-  it("does not block legitimate event triggers across time windows", async () => {
-    const ran: string[] = [];
-    const manager = new DevWorkflowSessionManager({
-      createId: (prefix) => `${prefix}_${ran.length + 1}`,
-      runWorkflowJob: async (job) => {
-        ran.push(`${job.triggerNodeId}:${job.source}`);
-      },
-    });
-    const wf = workflow();
-    wf.nodes = {
-      event_a: {
-        type: "trigger",
-        name: "Event A",
-        trigger: { type: "event", eventName: "order.created" },
-      },
-    };
-    const session = await manager.createSession(wf);
-
-    for (let i = 0; i < 26; i++) {
-      await InternalEventBus.emit({
-        name: "order.created",
-        payload: { id: i },
-        emittedBy: "test",
-        timestamp: i * 61_000,
-      });
-    }
-    await manager.onIdle();
-    await manager.stopSession(session.id, "stop");
-
-    assert.equal(ran.length, 26);
   });
 
   it("activates plugin trigger lifecycle and enqueues plugin payloads", async () => {

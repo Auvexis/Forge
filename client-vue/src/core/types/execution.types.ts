@@ -91,6 +91,10 @@ export interface ExecutionTimelineEvent {
   id: string
   type: WorkflowEventType
   nodeId?: string
+  triggerNodeId?: string
+  jobId?: string
+  source?: string
+  executionId?: string
   timestamp: number
   status: 'running' | 'success' | 'failed' | 'retrying' | 'cancelled' | 'info'
   label: string

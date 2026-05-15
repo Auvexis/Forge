@@ -59,14 +59,6 @@ const triggerConfig = computed(() => {
       bg: 'rgba(138,82,255,0.12)',
       borderColor: 'rgba(138,82,255,0.4)',
     },
-    event: {
-      icon: 'zap',
-      title: 'Event Trigger',
-      subtitle: null,
-      color: 'rgb(245, 158, 11)',
-      bg: 'rgba(245,158,11,0.12)',
-      borderColor: 'rgba(245,158,11,0.4)',
-    },
     form: {
       icon: 'clipboard-list',
       title: 'Form Trigger',
@@ -94,11 +86,8 @@ const nodeTitle = computed(() => {
     // webhookSlug is human-readable; webhookPath is the auto-generated UUID — never show the UUID
     return triggerData.value?.webhookSlug ?? 'Webhook'
   }
-  if (type === 'cron' && triggerData.value?.cronExpression) {
-    return triggerData.value.cronExpression
-  }
-  if (type === 'event' && triggerData.value?.eventName) {
-    return triggerData.value.eventName
+  if (type === 'cron') {
+    return 'Cron'
   }
   if (type === 'form') {
     return triggerData.value?.formSlug ?? 'Form'

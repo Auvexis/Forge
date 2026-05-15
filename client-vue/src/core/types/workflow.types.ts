@@ -346,7 +346,7 @@ export interface FormTheme {
 // ── Trigger ───────────────────────────────────────
 
 export interface WorkflowTrigger {
-  type: 'manual' | 'webhook' | 'cron' | 'event' | 'plugin' | 'form'
+  type: 'manual' | 'webhook' | 'cron' | 'plugin' | 'form'
   schema?: Record<string, WorkflowSchemaField>
   ui?: WorkflowNodeUI
   webhookPath?: string
@@ -355,7 +355,6 @@ export interface WorkflowTrigger {
   webhookSecret?: string
   webhookBodySchema?: Record<string, WebhookBodyField>
   cronExpression?: string
-  eventName?: string
   // Plugin trigger fields
   pluginId?: string
   triggerName?: string

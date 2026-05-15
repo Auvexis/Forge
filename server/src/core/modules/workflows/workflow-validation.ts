@@ -109,10 +109,6 @@ function validateTriggerConfig(
     return `${label} must have cronExpression`;
   }
 
-  if (trigger.type === "event" && !trigger.eventName) {
-    return `${label} must have eventName`;
-  }
-
   if (trigger.type === "plugin" && (!trigger.pluginId || !trigger.triggerName)) {
     return `${label} must have pluginId and triggerName`;
   }

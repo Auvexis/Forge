@@ -27,7 +27,6 @@ import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import { useNodeInspectorStore } from '../stores/node-inspector.store'
 import NodeInspectorModal from './settings/NodeInspectorModal.vue'
 import AddNodePanel from './settings/AddNodePanel.vue'
-import ExecutionLogsPanel from './execution/ExecutionLogsPanel.vue'
 import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
 import { useEventBus } from '@/shared/composables/useEventBus'
 import { isCanvasSelecting } from '../composables/useCanvasSelecting'
@@ -912,15 +911,6 @@ defineExpose({
       @pane-click="isCanvasSelecting = false"
     >
       <!-- Execution Logs floating panel — centered above the canvas -->
-      <Transition name="slide-up">
-        <div v-if="showLogsLocal && workflowStore.activeWorkflow" class="canvas-logs-overlay">
-          <ExecutionLogsPanel
-            :workflow-id="workflowStore.activeWorkflow.metadata.id"
-            @close="emit('update:show-logs', false)"
-          />
-        </div>
-      </Transition>
-
       <!-- MARCADORES SVG CUSTOMIZADOS ATRELADOS ÀS VARIÁVEIS CSS (GLOBAL DOM) -->
       <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
         <defs>

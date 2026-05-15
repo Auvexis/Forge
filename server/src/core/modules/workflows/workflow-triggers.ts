@@ -143,18 +143,9 @@ export function resolveEventTriggers(
   workflows: WorkflowItem[],
   eventName: string,
 ): ResolvedWorkflowTrigger[] {
-  const resolved: ResolvedWorkflowTrigger[] = [];
-
-  for (const workflow of workflows) {
-    for (const entry of listTriggerEntries(workflow)) {
-      if (entry.disabled) continue;
-      if (entry.trigger.type !== "event") continue;
-      if (entry.trigger.eventName !== eventName) continue;
-      resolved.push({ workflow, triggerNodeId: entry.id, entry });
-    }
-  }
-
-  return resolved;
+  void workflows;
+  void eventName;
+  return [];
 }
 
 export function listPluginTriggers(workflow: WorkflowItem): WorkflowTriggerEntry[] {

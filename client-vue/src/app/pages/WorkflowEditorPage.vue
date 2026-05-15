@@ -9,12 +9,14 @@ import {
 import WorkflowEditorChrome from '@/features/workflow-editor/components/ui/chrome/WorkflowEditorChrome.vue'
 import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/WorkflowSettingsPanel.vue'
 import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/WorkflowVariablesModal.vue'
+import ExecutionBottomPanel from '@/features/workflow-editor/components/execution/ExecutionBottomPanel.vue'
 import AppPage from '@/shared/components/layout/AppPage.vue'
+import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import { useApi } from '@/shared/composables/useApi'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { useToast } from '@/shared/composables/useToast'
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
-import { computed, onMounted, onBeforeUnmount, watch, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, watch, ref, markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 
@@ -26,6 +28,7 @@ const workflowId = route.params.id as string
 const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const commandPaletteStore = useCommandPaletteStore()
+const appPanelStore = useAppPanelStore()
 
 // Composables
 const { closeWorkflow, exportWorkflow } = useWorkflowActions()
@@ -61,10 +64,12 @@ async function handleClose() {
 const canvasRef = ref<InstanceType<typeof Nod8WorkflowCanvas> | null>(null)
 
 // ── Logs panel state (shared between dock and canvas) ─────────────────────
-const showLogs = ref(false)
 const showSettings = ref(false)
 const showVariables = ref(false)
 const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
+const isExecutionPanelOpen = computed(
+  () => appPanelStore.isOpen && appPanelStore.panelId === 'workflow-execution-bottom-panel',
+)
 
 let workflow: WorkflowItem | null = null
 const { data: workflows, execute: fetchWorkflow } = useApi(workflowsApi.getAll)
@@ -114,7 +119,17 @@ function handleUiIntent(e: Event) {
   const intent = (e as CustomEvent).detail
   if (intent?.type === 'workflow-settings.open') showSettings.value = true
   if (intent?.type === 'workflow-variables.open') showVariables.value = true
-  if (intent?.type === 'workflow-logs.open') showLogs.value = true
+  if (intent?.type === 'workflow-logs.open') openExecutionPanel()
+}
+
+function openExecutionPanel() {
+  appPanelStore.openPanel({
+    id: 'workflow-execution-bottom-panel',
+    title: 'Execution',
+    component: markRaw(ExecutionBottomPanel),
+    position: 'bottom',
+    width: 'xl',
+  })
 }
 
 function openCommandPalette() {
@@ -144,7 +159,7 @@ watch(
   () => route.query.panel,
   (panel) => {
     if (panel === 'logs') {
-      showLogs.value = true
+      openExecutionPanel()
       void router.replace({ query: { ...route.query, panel: undefined } })
     } else if (panel === 'settings') {
       showSettings.value = true
@@ -247,7 +262,7 @@ watch(
         :is-saving="workflowStore.isSaving"
         :is-executing="executionStore.isExecuting"
         :is-streaming="executionStore.isStreaming"
-        :is-logs-open="showLogs"
+        :is-logs-open="isExecutionPanelOpen"
         :is-dirty="workflowStore.isDirty"
         :autosave-status="workflowStore.autosaveStatus"
         :last-autosaved-at="workflowStore.lastAutosavedAt"
@@ -270,7 +285,7 @@ watch(
         @export-workflow="exportWorkflow()"
         @import-workflow="handleImportWorkflow()"
         @create-workflow="handleCreateWorkflow()"
-        @toggle-logs="showLogs = !showLogs"
+        @toggle-logs="openExecutionPanel()"
         @variables="showVariables = !showVariables"
         @settings="showSettings = !showSettings"
         @close="handleClose()"
@@ -288,12 +303,59 @@ watch(
       <Nod8WorkflowCanvas
         v-if="workflowStore.activeWorkflow"
         ref="canvasRef"
-        :show-logs="showLogs"
-        @update:show-logs="showLogs = $event"
       />
     </div>
+
+    <button v-if="!isExecutionPanelOpen" class="workflow-status-bar" type="button" @click="openExecutionPanel">
+      <span class="workflow-status-bar__dot" :class="{ 'is-active': executionStore.hasActiveExecution }" />
+      <span>Execution</span>
+      <code>{{ executionStore.timeline.length }} events</code>
+    </button>
 
     <WorkflowSettingsPanel :is-open="showSettings" @close="showSettings = false" />
     <WorkflowVariablesModal :is-open="showVariables" @close="showVariables = false" />
   </AppPage>
 </template>
+
+<style scoped>
+.workflow-status-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--nod8-z-raised);
+  display: flex;
+  align-items: center;
+  gap: var(--nod8-space-2);
+  height: 24px;
+  padding: 0 var(--nod8-space-3);
+  border: 0;
+  border-top: 1px solid var(--nod8-border);
+  background: var(--nod8-bg-base);
+  color: var(--nod8-text-muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.workflow-status-bar:hover {
+  color: var(--nod8-text-primary);
+  background: var(--nod8-bg-surface);
+}
+
+.workflow-status-bar__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--nod8-text-muted);
+}
+
+.workflow-status-bar__dot.is-active {
+  background: var(--nod8-green-400);
+}
+
+.workflow-status-bar code {
+  margin-left: auto;
+  font-family: var(--nod8-font-mono);
+  font-size: 10px;
+}
+</style>

@@ -9,7 +9,6 @@ import { computed, ref } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
-import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useWorkflowStore } from '../../stores/workflow.store'
@@ -25,29 +24,19 @@ defineEmits<{
 
 const workflowStore = useWorkflowStore()
 const variableSearch = ref('')
-const revealedSecrets = ref<Record<string, boolean>>({})
+const showCreate = ref(false)
 const variableDraft = ref<WorkflowVariable>({
   name: '',
   type: 'string',
   defaultValue: '',
-  description: '',
 })
-
-const variableTypeOptions = [
-  { value: 'string', label: 'String', icon: 'type' },
-  { value: 'number', label: 'Number', icon: 'hash' },
-  { value: 'boolean', label: 'Boolean', icon: 'toggle-left' },
-  { value: 'object', label: 'Object', icon: 'braces' },
-  { value: 'array', label: 'Array', icon: 'list' },
-  { value: 'secret', label: 'Secret', icon: 'key-round' },
-]
 
 const filteredVariables = computed(() => {
   const variables = workflowStore.activeWorkflow?.variables ?? []
   const q = variableSearch.value.trim().toLowerCase()
   if (!q) return variables
   return variables.filter((variable) =>
-    [variable.name, variable.type, variable.description ?? ''].some((value) =>
+    [variable.name, variable.defaultValue ?? ''].some((value) =>
       String(value).toLowerCase().includes(q),
     ),
   )
@@ -60,20 +49,10 @@ const variableDefaultValue = computed({
   },
 })
 
-function normalizeDefaultValue(variable: WorkflowVariable): unknown {
-  if (variable.type === 'number') return Number(variable.defaultValue ?? 0)
-  if (variable.type === 'boolean') {
-    return variable.defaultValue === true || variable.defaultValue === 'true'
-  }
-  if (variable.type === 'object' || variable.type === 'array') {
-    if (typeof variable.defaultValue !== 'string') return variable.defaultValue
-    try {
-      return JSON.parse(variable.defaultValue)
-    } catch {
-      return variable.type === 'array' ? [] : {}
-    }
-  }
-  return variable.defaultValue ?? ''
+function normalizeDefaultValue(value: string): string | number {
+  const trimmed = value.trim()
+  if (trimmed !== '' && /^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed)
+  return value
 }
 
 function addVariable() {
@@ -82,9 +61,9 @@ function addVariable() {
   if (!name) return
 
   const nextVariable: WorkflowVariable = {
-    ...variableDraft.value,
     name,
-    defaultValue: normalizeDefaultValue(variableDraft.value),
+    type: typeof normalizeDefaultValue(variableDefaultValue.value) === 'number' ? 'number' : 'string',
+    defaultValue: normalizeDefaultValue(variableDefaultValue.value),
   }
   const variables = workflowStore.activeWorkflow.variables ?? []
   const existingIndex = variables.findIndex((variable) => variable.name === name)
@@ -94,7 +73,8 @@ function addVariable() {
     variables.push(nextVariable)
   }
   workflowStore.activeWorkflow.variables = [...variables]
-  variableDraft.value = { name: '', type: 'string', defaultValue: '', description: '' }
+  variableDraft.value = { name: '', type: 'string', defaultValue: '' }
+  showCreate.value = false
 }
 
 function removeVariable(name: string) {
@@ -105,9 +85,7 @@ function removeVariable(name: string) {
 }
 
 function previewVariable(variable: WorkflowVariable): string {
-  if (variable.type === 'secret' && !revealedSecrets.value[variable.name]) return '************'
   if (variable.defaultValue === undefined || variable.defaultValue === '') return 'empty'
-  if (typeof variable.defaultValue === 'object') return JSON.stringify(variable.defaultValue)
   return String(variable.defaultValue)
 }
 
@@ -130,6 +108,25 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
         </div>
         <div class="wvm-header__actions">
           <BaseInput v-model="variableSearch" icon-left="search" placeholder="Search variables" />
+          <div class="wvm-create">
+            <BaseButton size="icon" variant="secondary" title="Add variable" @click="showCreate = !showCreate">
+              <template #left>
+                <LucideIcon name="plus" :size="15" />
+              </template>
+            </BaseButton>
+            <form v-if="showCreate" class="wvm-create__dropdown" @submit.prevent="addVariable">
+              <BaseInput v-model="variableDraft.name" label="Name" placeholder="customer_id" />
+              <BaseTextarea
+                v-model="variableDefaultValue"
+                label="Value"
+                placeholder="Text or number"
+                :rows="3"
+              />
+              <BaseButton size="sm" variant="primary" icon-left="plus" type="submit">
+                Add Variable
+              </BaseButton>
+            </form>
+          </div>
           <BaseButton size="icon" variant="ghost" title="Close" @click="$emit('close')">
             <template #left>
               <LucideIcon name="x" :size="16" />
@@ -139,41 +136,6 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
       </header>
 
       <div class="wvm-content">
-        <section class="wvm-form" aria-label="Create workflow variable">
-          <BaseInput v-model="variableDraft.name" label="Name" placeholder="customer_id" />
-          <BaseSelect
-            v-model="variableDraft.type"
-            label="Type"
-            :options="variableTypeOptions"
-            placeholder="Type"
-          />
-          <BaseInput
-            v-if="variableDraft.type === 'secret'"
-            v-model="variableDefaultValue"
-            class="wvm-form__wide"
-            type="password"
-            label="Default value"
-            placeholder="Default value"
-          />
-          <BaseTextarea
-            v-else
-            v-model="variableDefaultValue"
-            class="wvm-form__wide"
-            label="Default value"
-            placeholder="Default value"
-            :rows="3"
-          />
-          <BaseInput
-            v-model="variableDraft.description"
-            class="wvm-form__wide"
-            label="Description"
-            placeholder="What this variable is for"
-          />
-          <BaseButton size="sm" variant="primary" icon-left="plus" @click="addVariable">
-            Add Variable
-          </BaseButton>
-        </section>
-
         <section class="wvm-list" aria-label="Workflow variables">
           <div
             v-for="variable in filteredVariables"
@@ -183,29 +145,15 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
             @dragstart="onVariableDragStart($event, variable)"
           >
             <div class="wvm-row__main">
-              <LucideIcon :name="variable.type === 'secret' ? 'key-round' : 'tag'" :size="14" />
+              <LucideIcon name="tag" :size="14" />
               <div class="wvm-row__meta">
                 <span class="wvm-row__name">{{ variable.name }}</span>
-                <span class="wvm-row__desc">{{ variable.description || variable.type }}</span>
+                <span class="wvm-row__desc">{{ previewVariable(variable) }}</span>
               </div>
             </div>
             <code class="wvm-row__token">{{ variableToken(variable) }}</code>
             <code class="wvm-row__preview">{{ previewVariable(variable) }}</code>
             <div class="wvm-row__actions">
-              <BaseButton
-                v-if="variable.type === 'secret'"
-                size="icon"
-                variant="ghost"
-                :title="revealedSecrets[variable.name] ? 'Hide secret' : 'Show secret'"
-                @click="revealedSecrets[variable.name] = !revealedSecrets[variable.name]"
-              >
-                <template #left>
-                  <LucideIcon
-                    :name="revealedSecrets[variable.name] ? 'eye-off' : 'eye'"
-                    :size="13"
-                  />
-                </template>
-              </BaseButton>
               <BaseButton
                 size="icon"
                 variant="ghost"
@@ -251,6 +199,27 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
   gap: var(--nod8-space-2);
 }
 
+.wvm-create {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.wvm-create__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: var(--nod8-z-popover);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nod8-space-3);
+  width: 260px;
+  padding: var(--nod8-space-3);
+  border: 1px solid var(--nod8-border);
+  border-radius: var(--nod8-radius-sm);
+  background: var(--nod8-bg-surface);
+  box-shadow: var(--nod8-shadow-lg);
+}
+
 .wvm-title h2 {
   margin: 0;
   font-size: var(--nod8-text-sm);
@@ -259,32 +228,13 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
 }
 
 .wvm-content {
-  display: grid;
-  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  display: flex;
   min-height: 0;
   flex: 1;
 }
 
-.wvm-form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(110px, 140px);
-  align-content: start;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-4);
-  border-right: 1px solid var(--nod8-border);
-  background: var(--nod8-bg-overlay);
-}
-
-.wvm-form__wide,
-.wvm-form > :last-child {
-  grid-column: 1 / -1;
-}
-
-.wvm-form > :last-child {
-  justify-self: flex-start;
-}
-
 .wvm-list {
+  flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -363,12 +313,7 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
   }
 
   .wvm-content {
-    grid-template-columns: 1fr;
-  }
-
-  .wvm-form {
-    border-right: none;
-    border-bottom: 1px solid var(--nod8-border);
+    display: flex;
   }
 
   .wvm-row {

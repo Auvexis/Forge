@@ -1,6 +1,5 @@
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 import { schedule as scheduleCronTask } from "node-cron";
-import { InternalEventBus, type InternalEvent } from "../../events/internal-event-bus.ts";
 import { cancelTemporaryFormSessionsByExecution } from "../../forms/temporary-form-session.ts";
 import { CancellationRegistry } from "../cancellation-registry.ts";
 import { workflowEventBus, type WorkflowEvent } from "../event-bus.ts";
@@ -27,11 +26,6 @@ export interface EnqueueDevWorkflowJobInput {
   payload: unknown;
 }
 
-interface EventTriggerCounter {
-  count: number;
-  windowStartedAt: number;
-}
-
 export interface CreateDevWorkflowSessionOptions {
   initialPayload?: unknown;
   initialTriggerNodeId?: string;
@@ -42,7 +36,6 @@ export interface DevWorkflowSessionManagerOptions {
   maxConcurrentGlobal?: number;
   maxSessions?: number;
   maxPayloadBytes?: number;
-  eventAntiLoopWindowMs?: number;
   createId?: (prefix: "session" | "job" | "exec") => string;
   scheduleCron?: (
     expression: string,
@@ -75,7 +68,6 @@ export class DevWorkflowSessionManager {
   private readonly deactivatePluginTriggers: NonNullable<
     DevWorkflowSessionManagerOptions["deactivatePluginTriggers"]
   >;
-  private readonly eventTriggerCounts = new Map<string, EventTriggerCounter>();
   private readonly jobsById = new Map<string, WorkflowJob>();
   private readonly activeJobIdsBySession = new Map<string, Set<string>>();
   private readonly runner: WorkflowJobRunner;
@@ -326,9 +318,6 @@ export class DevWorkflowSessionManager {
   }
 
   private cleanupSessionState(sessionId: string): void {
-    for (const key of Array.from(this.eventTriggerCounts.keys())) {
-      if (key.startsWith(`${sessionId}:`)) this.eventTriggerCounts.delete(key);
-    }
     this.activeJobIdsBySession.delete(sessionId);
     for (const [jobId, job] of Array.from(this.jobsById.entries())) {
       if (job.sessionId === sessionId) this.jobsById.delete(jobId);
@@ -372,17 +361,6 @@ export class DevWorkflowSessionManager {
         });
       }
 
-      if (entry.trigger.type === "event" && entry.trigger.eventName) {
-        const off = InternalEventBus.on(entry.trigger.eventName, (event) => {
-          this.enqueueInternalEvent(session, entry.id, event);
-        });
-        session.triggerRuntimes.push({
-          triggerNodeId: entry.id,
-          type: "event",
-          teardown: off,
-        });
-      }
-
       this.options.onEvent?.({
         type: "trigger:waiting",
         sessionId: session.id,
@@ -416,44 +394,6 @@ export class DevWorkflowSessionManager {
       workflowId: session.workflowId,
       timestamp: Date.now(),
     });
-  }
-
-  private enqueueInternalEvent(
-    session: DevWorkflowSession,
-    triggerNodeId: string,
-    event: InternalEvent,
-  ): void {
-    if (session.status !== "running") return;
-    const counterKey = `${session.id}:${event.name}`;
-    const windowMs = this.options.eventAntiLoopWindowMs ?? 60_000;
-    const now = event.timestamp ?? Date.now();
-    const current = this.eventTriggerCounts.get(counterKey);
-    const counter =
-      current && now - current.windowStartedAt < windowMs
-        ? { count: current.count + 1, windowStartedAt: current.windowStartedAt }
-        : { count: 1, windowStartedAt: now };
-    this.eventTriggerCounts.set(counterKey, counter);
-    if (counter.count > 25) {
-      this.options.onEvent?.({
-        type: "job:failed",
-        sessionId: session.id,
-        workflowId: session.workflowId,
-        triggerNodeId,
-        source: "event",
-        timestamp: Date.now(),
-        error: `Event trigger anti-loop limit reached for "${event.name}"`,
-      });
-      return;
-    }
-
-    const payload = {
-      event: event.name,
-      payload: event.payload,
-      emittedBy: event.emittedBy ?? "unknown",
-      timestamp: event.timestamp,
-      triggerNodeId,
-    };
-    this.enqueueExternalJob(session, triggerNodeId, "event", payload);
   }
 
   private enqueueExternalJob(
