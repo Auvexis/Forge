@@ -1,20 +1,57 @@
-import { fileURLToPath, pathToFileURL } from "url";
-import path, { dirname } from "path";
+import { pathToFileURL } from "url";
+import path from "path";
 import fs from "fs";
+import type Database from "better-sqlite3";
 import { PluginManager } from "./manager.ts";
-import { DatabaseManager } from "../../database/index.ts";
+import { nd8HomePaths } from "../../runtime/nd8-home.ts";
+import {
+  isPluginEnabled,
+  syncPluginRegistry,
+  type PluginSource,
+} from "./plugin-registry.ts";
 import type { Nod8Plugin } from "../../../shared/models/plugin-types.ts";
 
-// ──────────── Manifest Validation ────────────
+interface PluginManagerLike {
+  registerPlugin(plugin: Nod8Plugin): void;
+}
 
-// Simple structural validator — avoids adding Ajv as a dependency for now.
-// Checks the top-level contract that every Nod8 plugin manifest must satisfy.
-function validateManifest(manifest: any, pluginPath: string): string[] {
+interface PluginLoaderLogger {
+  info(message: string): void;
+  warn(message: string): void;
+  error(message: string, error?: unknown): void;
+}
+
+type PluginImporter = (entrypoint: string) => Promise<Nod8Plugin>;
+
+export interface LoadPluginsOptions {
+  internalPluginsDir?: string;
+  externalPluginsDir?: string;
+  registryDb?: Database.Database;
+  pluginManager?: PluginManagerLike;
+  logger?: PluginLoaderLogger;
+  pluginImporter?: PluginImporter;
+}
+
+export interface LoadPluginsResult {
+  loaded: Record<PluginSource, number>;
+  failed: number;
+  skippedDisabled: number;
+  skippedConflicts: number;
+}
+
+const defaultLogger: PluginLoaderLogger = {
+  info: (message) => console.log(message),
+  warn: (message) => console.warn(message),
+  error: (message, error) => console.error(message, error),
+};
+
+// Simple structural validator. Checks the top-level contract every plugin manifest must satisfy.
+export function validateManifest(manifest: any): string[] {
   const errors: string[] = [];
 
   if (!manifest.metadata) {
     errors.push("Missing 'metadata' section");
-    return errors; // Can't continue without metadata
+    return errors;
   }
 
   const required = ["id", "name", "description", "author", "category", "version"];
@@ -24,12 +61,10 @@ function validateManifest(manifest: any, pluginPath: string): string[] {
     }
   }
 
-  // Validate id format: kebab-case
   if (manifest.metadata.id && !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(manifest.metadata.id)) {
     errors.push(`metadata.id must be kebab-case (e.g. 'my-plugin'). Got: '${manifest.metadata.id}'`);
   }
 
-  // Validate semver
   if (manifest.metadata.version && !/^\d+\.\d+\.\d+$/.test(manifest.metadata.version)) {
     errors.push(`metadata.version must be semver (e.g. '1.0.0'). Got: '${manifest.metadata.version}'`);
   }
@@ -59,103 +94,118 @@ function validateManifest(manifest: any, pluginPath: string): string[] {
   return errors;
 }
 
-// ──────────── Plugin Registry ────────────
+function findPluginEntrypoints(dir: string): string[] {
+  if (!fs.existsSync(dir)) return [];
 
-const pluginsDb = DatabaseManager.plugins;
-
-/**
- * Upserts a plugin record in the `registered_plugins` table.
- * On first registration, is_enabled defaults to 1 (enabled).
- * On subsequent boots, we only update the version, preserving the
- * user's enabled/disabled choice.
- */
-function syncPluginRegistry(id: string, version: string): void {
-  const existing = pluginsDb
-    .prepare("SELECT id, is_enabled FROM registered_plugins WHERE id = ?")
-    .get(id) as { id: string; is_enabled: number } | undefined;
-
-  if (existing) {
-    pluginsDb
-      .prepare(
-        "UPDATE registered_plugins SET version = ?, updated_at = datetime('now') WHERE id = ?",
-      )
-      .run(version, id);
-  } else {
-    pluginsDb
-      .prepare(
-        "INSERT INTO registered_plugins (id, version) VALUES (?, ?)",
-      )
-      .run(id, version);
-  }
-}
-
-/**
- * Returns true if the plugin is enabled in the DB registry.
- * Unknown plugins (not yet registered) are treated as enabled by default.
- */
-function isPluginEnabled(id: string): boolean {
-  const row = pluginsDb
-    .prepare("SELECT is_enabled FROM registered_plugins WHERE id = ?")
-    .get(id) as { is_enabled: number } | undefined;
-
-  return row ? row.is_enabled === 1 : true;
-}
-
-// ──────────── Loader ────────────
-
-export async function loadPlugins() {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
-
-  const pluginsDir = path.join(__dirname, "../../../plugins");
-
-  async function loadRecursively(dir: string) {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const entrypoints: string[] = [];
+  const walk = (current: string) => {
+    const entries = fs.readdirSync(current, { withFileTypes: true });
 
     for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-
+      const fullPath = path.join(current, entry.name);
       if (entry.isDirectory()) {
-        // Skip the developer template directory
         if (entry.name === "_template") continue;
-        await loadRecursively(fullPath);
-      } else if (entry.isFile() && entry.name === "index.ts") {
-        try {
-          const module = await import(pathToFileURL(fullPath).href);
-
-          const plugin: Nod8Plugin =
-            module.default || module[Object.keys(module)[0]];
-
-          if (!plugin.id) throw new Error("Missing plugin id");
-          if (!plugin.manifest) throw new Error("Missing manifest");
-          if (!plugin.auth) throw new Error("Missing auth provider");
-          if (!plugin.methods) throw new Error("Missing methods");
-
-          // Validate manifest against Nod8 plugin contract
-          const validationErrors = validateManifest(plugin.manifest, fullPath);
-          if (validationErrors.length > 0) {
-            throw new Error(
-              `Manifest validation failed:\n${validationErrors.map((e) => `  - ${e}`).join("\n")}`
-            );
-          }
-
-          // Sync with plugins.db registry
-          const version = plugin.manifest.metadata.version as string;
-          syncPluginRegistry(plugin.id, version);
-
-          // Skip loading if disabled by the user in the registry
-          if (!isPluginEnabled(plugin.id)) {
-            console.log(`[NOD8 | PLUGINS]: Skipping disabled plugin ${plugin.id}`);
-            continue;
-          }
-
-          PluginManager.registerPlugin(plugin);
-        } catch (err) {
-          console.error(`[NOD8 | PLUGINS]: Failed to load plugin from ${fullPath}`, err);
-        }
+        walk(fullPath);
+      } else if (entry.isFile() && (entry.name === "index.ts" || entry.name === "index.js")) {
+        entrypoints.push(fullPath);
       }
     }
+  };
+
+  walk(dir);
+  return entrypoints;
+}
+
+async function importPlugin(entrypoint: string): Promise<Nod8Plugin> {
+  const module = await import(pathToFileURL(entrypoint).href);
+  const plugin: Nod8Plugin = module.default || module[Object.keys(module)[0]];
+
+  if (!plugin.id) throw new Error("Missing plugin id");
+  if (!plugin.manifest) throw new Error("Missing manifest");
+  if (!plugin.auth) throw new Error("Missing auth provider");
+  if (!plugin.methods) throw new Error("Missing methods");
+
+  const validationErrors = validateManifest(plugin.manifest);
+  if (validationErrors.length > 0) {
+    throw new Error(
+      `Manifest validation failed:\n${validationErrors.map((error) => `  - ${error}`).join("\n")}`,
+    );
   }
 
-  await loadRecursively(pluginsDir);
+  return plugin;
+}
+
+async function loadSource(
+  source: PluginSource,
+  dir: string,
+  options: Required<Pick<LoadPluginsOptions, "registryDb" | "pluginManager" | "logger" | "pluginImporter">>,
+  result: LoadPluginsResult,
+  internalIds: Set<string>,
+): Promise<void> {
+  for (const entrypoint of findPluginEntrypoints(dir)) {
+    try {
+      const plugin = await options.pluginImporter(entrypoint);
+
+      if (source === "external" && internalIds.has(plugin.id)) {
+        result.skippedConflicts += 1;
+        options.logger.warn(
+          `[NOD8 | PLUGINS]: Skipping external plugin ${plugin.id}; it conflicts with an internal plugin`,
+        );
+        continue;
+      }
+
+      const version = plugin.manifest.metadata.version as string;
+      const installPath = source === "external" ? path.dirname(entrypoint) : null;
+      syncPluginRegistry(options.registryDb, {
+        id: plugin.id,
+        version,
+        source,
+        installPath,
+        manifestPath: source === "external" ? path.join(path.dirname(entrypoint), "manifest.json") : null,
+      });
+
+      if (!isPluginEnabled(options.registryDb, plugin.id)) {
+        result.skippedDisabled += 1;
+        options.logger.info(`[NOD8 | PLUGINS]: Skipping disabled plugin ${plugin.id}`);
+        continue;
+      }
+
+      options.pluginManager.registerPlugin(plugin);
+      result.loaded[source] += 1;
+      if (source === "internal") {
+        internalIds.add(plugin.id);
+      }
+    } catch (error) {
+      result.failed += 1;
+      options.logger.error(`[NOD8 | PLUGINS]: Failed to load plugin from ${entrypoint}`, error);
+    }
+  }
+}
+
+export async function loadPlugins(options: LoadPluginsOptions = {}): Promise<LoadPluginsResult> {
+  const registryDb = options.registryDb ?? (await import("../../database/index.ts")).DatabaseManager.plugins;
+  const resolved = {
+    registryDb,
+    pluginManager: options.pluginManager ?? PluginManager,
+    logger: options.logger ?? defaultLogger,
+    pluginImporter: options.pluginImporter ?? importPlugin,
+  };
+  const internalPluginsDir = options.internalPluginsDir ?? nd8HomePaths.internalPluginsDir;
+  const externalPluginsDir = options.externalPluginsDir ?? nd8HomePaths.globalPluginsDir;
+  const result: LoadPluginsResult = {
+    loaded: { internal: 0, external: 0 },
+    failed: 0,
+    skippedDisabled: 0,
+    skippedConflicts: 0,
+  };
+  const internalIds = new Set<string>();
+
+  await loadSource("internal", internalPluginsDir, resolved, result, internalIds);
+  await loadSource("external", externalPluginsDir, resolved, result, internalIds);
+
+  resolved.logger.info(
+    `[NOD8 | PLUGINS]: Loaded ${result.loaded.internal} internal and ${result.loaded.external} external plugins`,
+  );
+
+  return result;
 }

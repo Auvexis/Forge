@@ -273,33 +273,33 @@ Isso evita perder dados em update de pacote.
 
 ### Task 6 - Separar plugins internos e externos no loader
 
-- [ ] Manter loader de plugins internos funcionando.
-- [ ] Adicionar loader para `ND8_HOME/global/plugins`.
-- [ ] Garantir que pasta externa vazia nao quebra startup.
-- [ ] Garantir que `_template` continua ignorado nos internos.
-- [ ] Garantir que plugin externo invalido nao derruba servidor.
-- [ ] Testar carregamento interno.
-- [ ] Testar carregamento externo fake.
-- [ ] Commit.
+- [x] Manter loader de plugins internos funcionando.
+- [x] Adicionar loader para `ND8_HOME/global/plugins`.
+- [x] Garantir que pasta externa vazia nao quebra startup.
+- [x] Garantir que `_template` continua ignorado nos internos.
+- [x] Garantir que plugin externo invalido nao derruba servidor.
+- [x] Testar carregamento interno.
+- [x] Testar carregamento externo fake.
+- [x] Commit.
 
 ### Task 7 - Atualizar registry de plugins
 
-- [ ] Criar migracao para campos `source`, `install_path` e `manifest_path`.
-- [ ] Marcar plugins existentes como `internal`.
-- [ ] Registrar plugins internos com source `internal`.
-- [ ] Registrar plugins externos com source `external`.
-- [ ] Preservar `is_enabled` em updates.
-- [ ] Testar migracao com banco antigo.
-- [ ] Commit.
+- [x] Criar migracao para campos `source`, `install_path` e `manifest_path`.
+- [x] Marcar plugins existentes como `internal`.
+- [x] Registrar plugins internos com source `internal`.
+- [x] Registrar plugins externos com source `external`.
+- [x] Preservar `is_enabled` em updates.
+- [x] Testar migracao com banco antigo.
+- [x] Commit.
 
 ### Task 8 - Proteger conflitos entre plugin interno e externo
 
-- [ ] Bloquear plugin externo com mesmo id de plugin interno.
-- [ ] Logar erro claro quando houver conflito.
-- [ ] Nao registrar o plugin externo conflitante.
-- [ ] Garantir que plugin interno continua ativo.
-- [ ] Testar conflito de id.
-- [ ] Commit.
+- [x] Bloquear plugin externo com mesmo id de plugin interno.
+- [x] Logar erro claro quando houver conflito.
+- [x] Nao registrar o plugin externo conflitante.
+- [x] Garantir que plugin interno continua ativo.
+- [x] Testar conflito de id.
+- [x] Commit.
 
 ### Task 9 - Preparar contratos para installer futuro
 
