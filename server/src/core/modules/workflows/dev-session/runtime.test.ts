@@ -29,14 +29,14 @@ function workflow(): WorkflowItem {
 }
 
 describe("dev workflow session runtime", () => {
-  it("connects manager events to the session event bus", () => {
+  it("connects manager events to the session event bus", async () => {
     const runtime = createDevWorkflowSessionRuntime({
       createId: () => "session-1",
     });
     const received: string[] = [];
 
     runtime.eventBus.onSession("session-1", (event) => received.push(event.type));
-    runtime.manager.createSession(workflow());
+    await runtime.manager.createSession(workflow());
 
     assert.deepEqual(received, ["session:start", "trigger:waiting", "session:ready"]);
   });

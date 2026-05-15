@@ -20,13 +20,15 @@ function resolvePublicUrl(): string {
   return process.env.PUBLIC_URL || `http://localhost:${SERVER_PORT}`;
 }
 
-function buildWebhookUrl(webhookPath: string): string {
-  return `${resolvePublicUrl()}/webhook/${webhookPath}`;
+function buildWebhookUrl(webhookPath: string, mode: "prod" | "test" = "prod"): string {
+  const path = mode === "test" ? "webhook-test" : "webhook";
+  return `${resolvePublicUrl()}/${path}/${webhookPath}`;
 }
 
 async function buildTriggerContext(
   workflow: WorkflowItem,
   entry: WorkflowTriggerEntry,
+  mode: "prod" | "test" = "prod",
 ): Promise<TriggerRegistrationContext | null> {
   const { trigger } = entry;
 
@@ -52,7 +54,7 @@ async function buildTriggerContext(
   const tokens = CredentialStore.getTokens(trigger.pluginId) ?? undefined;
 
   return {
-    webhookUrl: buildWebhookUrl(webhookPath),
+    webhookUrl: buildWebhookUrl(webhookPath, mode),
     credentials,
     tokens,
     params: trigger.triggerParams ?? {},
@@ -61,9 +63,12 @@ async function buildTriggerContext(
 }
 
 export const WorkflowLifecycleManager = {
-  async activate(workflow: WorkflowItem): Promise<void> {
+  async activate(
+    workflow: WorkflowItem,
+    options: { mode?: "prod" | "test" } = {},
+  ): Promise<void> {
     for (const entry of listPluginTriggers(workflow)) {
-      const ctx = await buildTriggerContext(workflow, entry);
+      const ctx = await buildTriggerContext(workflow, entry, options.mode ?? "prod");
       if (!ctx) continue;
 
       const plugin = PluginManager.getPlugin(entry.trigger.pluginId!);
@@ -88,9 +93,12 @@ export const WorkflowLifecycleManager = {
     }
   },
 
-  async deactivate(workflow: WorkflowItem): Promise<void> {
+  async deactivate(
+    workflow: WorkflowItem,
+    options: { mode?: "prod" | "test" } = {},
+  ): Promise<void> {
     for (const entry of listPluginTriggers(workflow)) {
-      const ctx = await buildTriggerContext(workflow, entry);
+      const ctx = await buildTriggerContext(workflow, entry, options.mode ?? "prod");
       if (!ctx) continue;
 
       const plugin = PluginManager.getPlugin(entry.trigger.pluginId!);

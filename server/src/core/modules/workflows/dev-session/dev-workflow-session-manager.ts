@@ -27,6 +27,11 @@ export interface EnqueueDevWorkflowJobInput {
   payload: unknown;
 }
 
+interface EventTriggerCounter {
+  count: number;
+  windowStartedAt: number;
+}
+
 export interface CreateDevWorkflowSessionOptions {
   initialPayload?: unknown;
   initialTriggerNodeId?: string;
@@ -37,13 +42,20 @@ export interface DevWorkflowSessionManagerOptions {
   maxConcurrentGlobal?: number;
   maxSessions?: number;
   maxPayloadBytes?: number;
+  eventAntiLoopWindowMs?: number;
   createId?: (prefix: "session" | "job" | "exec") => string;
   scheduleCron?: (
     expression: string,
     callback: () => void,
   ) => { stop: () => void };
-  activatePluginTriggers?: (workflow: WorkflowItem) => Promise<void>;
-  deactivatePluginTriggers?: (workflow: WorkflowItem) => Promise<void>;
+  activatePluginTriggers?: (
+    workflow: WorkflowItem,
+    options?: { mode?: "prod" | "test" },
+  ) => Promise<void>;
+  deactivatePluginTriggers?: (
+    workflow: WorkflowItem,
+    options?: { mode?: "prod" | "test" },
+  ) => Promise<void>;
   runWorkflowJob?: (job: WorkflowJob, workflow: WorkflowItem) => Promise<void>;
   onEvent?: (event: SessionEvent) => void;
 }
@@ -63,7 +75,7 @@ export class DevWorkflowSessionManager {
   private readonly deactivatePluginTriggers: NonNullable<
     DevWorkflowSessionManagerOptions["deactivatePluginTriggers"]
   >;
-  private readonly eventTriggerCounts = new Map<string, number>();
+  private readonly eventTriggerCounts = new Map<string, EventTriggerCounter>();
   private readonly jobsById = new Map<string, WorkflowJob>();
   private readonly activeJobIdsBySession = new Map<string, Set<string>>();
   private readonly runner: WorkflowJobRunner;
@@ -111,10 +123,10 @@ export class DevWorkflowSessionManager {
     });
   }
 
-  createSession(
+  async createSession(
     workflow: WorkflowItem,
     options: CreateDevWorkflowSessionOptions = {},
-  ): DevWorkflowSession {
+  ): Promise<DevWorkflowSession> {
     if (this.sessions.size >= (this.options.maxSessions ?? 10)) {
       throw new Error("Too many active dev sessions");
     }
@@ -133,13 +145,13 @@ export class DevWorkflowSessionManager {
     this.sessions.set(session.id, session);
     try {
       this.emitSessionEvent(session, "session:start");
-      this.transition(session, "running");
-      this.activatePluginLifecycle(session);
+      await this.activatePluginLifecycle(session);
       this.activateInitialTriggers(
         session,
         options.initialPayload ?? {},
         options.initialTriggerNodeId,
       );
+      this.transition(session, "running");
       this.emitSessionEvent(session, "session:ready");
       return session;
     } catch (error: any) {
@@ -180,20 +192,7 @@ export class DevWorkflowSessionManager {
         if (getTriggerWebhookPath(session.workflow, entry) !== webhookPath) continue;
         const source = entry.trigger.type === "plugin" ? "plugin" : "webhook";
 
-        this.options.onEvent?.({
-          type: "trigger:received",
-          sessionId: session.id,
-          workflowId: session.workflowId,
-          triggerNodeId: entry.id,
-          source,
-          timestamp: Date.now(),
-          data: payload,
-        });
-        this.enqueueJob(session.id, {
-          triggerNodeId: entry.id,
-          source,
-          payload,
-        });
+        this.enqueueExternalJob(session, entry.id, source, payload);
         return true;
       }
     }
@@ -211,20 +210,7 @@ export class DevWorkflowSessionManager {
         const publicId = getTriggerFormPublicId(session.workflow, entry);
         if (session.workflowId !== formId && publicId !== formId) continue;
 
-        this.options.onEvent?.({
-          type: "trigger:received",
-          sessionId: session.id,
-          workflowId: session.workflowId,
-          triggerNodeId: entry.id,
-          source: "form",
-          timestamp: Date.now(),
-          data: payload,
-        });
-        this.enqueueJob(session.id, {
-          triggerNodeId: entry.id,
-          source: "form",
-          payload,
-        });
+        this.enqueueExternalJob(session, entry.id, "form", payload);
         return true;
       }
     }
@@ -408,25 +394,16 @@ export class DevWorkflowSessionManager {
     }
   }
 
-  private activatePluginLifecycle(session: DevWorkflowSession): void {
+  private async activatePluginLifecycle(session: DevWorkflowSession): Promise<void> {
     if (listPluginTriggers(session.workflow).length === 0) return;
-
-    void this.activatePluginTriggers(session.workflow).catch((error: any) => {
-      this.options.onEvent?.({
-        type: "job:failed",
-        sessionId: session.id,
-        workflowId: session.workflowId,
-        source: "plugin",
-        timestamp: Date.now(),
-        error: error?.message ?? String(error),
-      });
-    });
 
     session.triggerRuntimes.push({
       triggerNodeId: "plugin-lifecycle",
       type: "plugin",
-      teardown: () => this.deactivatePluginTriggers(session.workflow),
+      teardown: () => this.deactivatePluginTriggers(session.workflow, { mode: "test" }),
     });
+
+    await this.activatePluginTriggers(session.workflow, { mode: "test" });
   }
 
   private emitSessionEvent(
@@ -448,9 +425,15 @@ export class DevWorkflowSessionManager {
   ): void {
     if (session.status !== "running") return;
     const counterKey = `${session.id}:${event.name}`;
-    const count = (this.eventTriggerCounts.get(counterKey) ?? 0) + 1;
-    this.eventTriggerCounts.set(counterKey, count);
-    if (count > 25) {
+    const windowMs = this.options.eventAntiLoopWindowMs ?? 60_000;
+    const now = event.timestamp ?? Date.now();
+    const current = this.eventTriggerCounts.get(counterKey);
+    const counter =
+      current && now - current.windowStartedAt < windowMs
+        ? { count: current.count + 1, windowStartedAt: current.windowStartedAt }
+        : { count: 1, windowStartedAt: now };
+    this.eventTriggerCounts.set(counterKey, counter);
+    if (counter.count > 25) {
       this.options.onEvent?.({
         type: "job:failed",
         sessionId: session.id,
@@ -470,20 +453,43 @@ export class DevWorkflowSessionManager {
       timestamp: event.timestamp,
       triggerNodeId,
     };
-    this.options.onEvent?.({
-      type: "trigger:received",
-      sessionId: session.id,
-      workflowId: session.workflowId,
-      triggerNodeId,
-      source: "event",
-      timestamp: Date.now(),
-      data: payload,
-    });
-    this.enqueueJob(session.id, {
-      triggerNodeId,
-      source: "event",
-      payload,
-    });
+    this.enqueueExternalJob(session, triggerNodeId, "event", payload);
+  }
+
+  private enqueueExternalJob(
+    session: DevWorkflowSession,
+    triggerNodeId: string,
+    source: WorkflowJobSource,
+    payload: unknown,
+  ): boolean {
+    try {
+      this.enqueueJob(session.id, {
+        triggerNodeId,
+        source,
+        payload,
+      });
+      this.options.onEvent?.({
+        type: "trigger:received",
+        sessionId: session.id,
+        workflowId: session.workflowId,
+        triggerNodeId,
+        source,
+        timestamp: Date.now(),
+        data: payload,
+      });
+      return true;
+    } catch (error: any) {
+      this.options.onEvent?.({
+        type: "job:failed",
+        sessionId: session.id,
+        workflowId: session.workflowId,
+        triggerNodeId,
+        source,
+        timestamp: Date.now(),
+        error: error?.message ?? String(error),
+      });
+      return false;
+    }
   }
 
   private emitWorkflowEvent(job: WorkflowJob, event: WorkflowEvent): void {

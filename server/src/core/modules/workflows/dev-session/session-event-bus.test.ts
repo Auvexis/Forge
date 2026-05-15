@@ -67,4 +67,26 @@ describe("SessionEventBus", () => {
       error: undefined,
     }]);
   });
+
+  it("replays buffered session events to late subscribers", () => {
+    const bus = new SessionEventBus({ replayLimit: 3 });
+    const received: string[] = [];
+
+    bus.emitSessionEvent({
+      type: "session:start",
+      sessionId: "session-1",
+      workflowId: "wf-1",
+      timestamp: 1,
+    });
+    bus.emitSessionEvent({
+      type: "session:ready",
+      sessionId: "session-1",
+      workflowId: "wf-1",
+      timestamp: 2,
+    });
+
+    bus.onSession("session-1", (event) => received.push(event.type));
+
+    assert.deepEqual(received, ["session:start", "session:ready"]);
+  });
 });

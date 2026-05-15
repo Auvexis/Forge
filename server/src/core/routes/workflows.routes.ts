@@ -33,6 +33,9 @@ import {
 } from "../modules/workflows/workflow-triggers.ts";
 
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
+const DEV_SESSION_STREAM_RECONNECT_GRACE_MS = 5000;
+const devSessionStreamConnections = new Map<string, number>();
+const devSessionStopTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 // ──────────── Safe SSE serializer ────────────
 // Handles circular references and non-JSON-safe values so a bad plugin
@@ -209,23 +212,6 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     }
     // ──────────────────────────────────────────────────────────────
 
-    const devPayload = {
-      method: req.method,
-      headers: req.headers,
-      query: req.query,
-      body: req.body ?? {},
-      ip: req.ip,
-      timestamp: Date.now(),
-    };
-
-    if (devWorkflowSessionRuntime.manager.enqueueWebhook(webhookPath, devPayload)) {
-      return reply.code(202).send({
-        status: "accepted",
-        mode: "dev-session",
-        webhookPath,
-      });
-    }
-
     const resolved = resolveWebhookTrigger(WorkflowRepository.getActiveWorkflows(), webhookPath);
 
     if (!resolved) {
@@ -378,6 +364,15 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       reply.raw.write(": connected\n\n");
 
       let stoppedBySession = false;
+      const pendingStop = devSessionStopTimers.get(sessionId);
+      if (pendingStop) {
+        clearTimeout(pendingStop);
+        devSessionStopTimers.delete(sessionId);
+      }
+      devSessionStreamConnections.set(
+        sessionId,
+        (devSessionStreamConnections.get(sessionId) ?? 0) + 1,
+      );
       const unsubscribe = devWorkflowSessionRuntime.eventBus.onSession(
         sessionId,
         (event) => {
@@ -394,6 +389,10 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
           if (event.type === "session:stopped") {
             stoppedBySession = true;
+            const stopTimer = devSessionStopTimers.get(sessionId);
+            if (stopTimer) clearTimeout(stopTimer);
+            devSessionStopTimers.delete(sessionId);
+            devSessionStreamConnections.delete(sessionId);
             setTimeout(() => reply.raw.end(), 250);
           }
         },
@@ -406,11 +405,25 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       req.raw.on("close", () => {
         unsubscribe();
         clearInterval(heartbeat);
-        if (!stoppedBySession) {
+        const connections = Math.max(
+          0,
+          (devSessionStreamConnections.get(sessionId) ?? 1) - 1,
+        );
+        if (connections > 0) {
+          devSessionStreamConnections.set(sessionId, connections);
+          return;
+        }
+        devSessionStreamConnections.delete(sessionId);
+        if (stoppedBySession) return;
+
+        const timer = setTimeout(() => {
+          devSessionStopTimers.delete(sessionId);
+          if ((devSessionStreamConnections.get(sessionId) ?? 0) > 0) return;
           devWorkflowSessionRuntime.manager
             .stopSession(sessionId, "sse disconnected")
             .catch(console.error);
-        }
+        }, DEV_SESSION_STREAM_RECONNECT_GRACE_MS);
+        devSessionStopTimers.set(sessionId, timer);
       });
 
       return new Promise((resolve) => {
@@ -700,7 +713,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const session = devWorkflowSessionRuntime.manager.createSession(workflow, {
+      const session = await devWorkflowSessionRuntime.manager.createSession(workflow, {
         initialPayload: body.payload ?? {},
         initialTriggerNodeId: body.triggerNodeId,
       });

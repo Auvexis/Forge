@@ -9,16 +9,29 @@ const workflowToSessionEvent: Partial<Record<WorkflowEvent["type"], SessionEvent
 };
 
 export class SessionEventBus extends EventEmitter {
-  constructor() {
+  private readonly replayLimit: number;
+  private readonly eventsBySession = new Map<string, SessionEvent[]>();
+
+  constructor(options: { replayLimit?: number } = {}) {
     super();
     this.setMaxListeners(300);
+    this.replayLimit = options.replayLimit ?? 200;
   }
 
   emitSessionEvent(event: SessionEvent): boolean {
+    const events = this.eventsBySession.get(event.sessionId) ?? [];
+    events.push(event);
+    if (events.length > this.replayLimit) {
+      events.splice(0, events.length - this.replayLimit);
+    }
+    this.eventsBySession.set(event.sessionId, events);
     return super.emit("session-event", event);
   }
 
   onSession(sessionId: string, handler: (event: SessionEvent) => void): () => void {
+    for (const event of this.eventsBySession.get(sessionId) ?? []) {
+      handler(event);
+    }
     const listener = (event: SessionEvent) => {
       if (event.sessionId === sessionId) handler(event);
     };

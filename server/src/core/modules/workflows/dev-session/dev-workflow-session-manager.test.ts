@@ -29,12 +29,12 @@ function workflow(): WorkflowItem {
 }
 
 describe("DevWorkflowSessionManager", () => {
-  it("creates and stores a running dev session", () => {
+  it("creates and stores a running dev session", async () => {
     const manager = new DevWorkflowSessionManager({
       createId: () => "session-1",
     });
 
-    const session = manager.createSession(workflow());
+    const session = await manager.createSession(workflow());
 
     assert.equal(session.id, "session-1");
     assert.equal(session.workflowId, "wf-1");
@@ -58,7 +58,7 @@ describe("DevWorkflowSessionManager", () => {
         trigger: { type: "webhook", webhookSlug: "hook" },
       },
     };
-    const session = manager.createSession(wf);
+    const session = await manager.createSession(wf);
 
     manager.enqueueJob(session.id, {
       triggerNodeId: "trigger",
@@ -75,7 +75,7 @@ describe("DevWorkflowSessionManager", () => {
     const manager = new DevWorkflowSessionManager({
       createId: () => "session-1",
     });
-    const session = manager.createSession(workflow());
+    const session = await manager.createSession(workflow());
     session.triggerRuntimes.push({
       triggerNodeId: "trigger",
       type: "manual",
@@ -106,7 +106,7 @@ describe("DevWorkflowSessionManager", () => {
         });
       },
     });
-    const session = manager.createSession(workflow());
+    const session = await manager.createSession(workflow());
 
     manager.enqueueJob(session.id, {
       triggerNodeId: "trigger",
@@ -151,7 +151,7 @@ describe("DevWorkflowSessionManager", () => {
       },
     };
 
-    manager.createSession(wf, { initialPayload: { ok: true } });
+    await manager.createSession(wf, { initialPayload: { ok: true } });
     await manager.onIdle();
 
     assert.deepEqual(ran, []);
@@ -184,7 +184,7 @@ describe("DevWorkflowSessionManager", () => {
       },
     };
 
-    manager.createSession(wf, {
+    await manager.createSession(wf, {
       initialPayload: { clicked: true },
       initialTriggerNodeId: "manual_b",
     });
@@ -215,13 +215,36 @@ describe("DevWorkflowSessionManager", () => {
         trigger: { type: "webhook", webhookSlug: "ignored" },
       },
     };
-    manager.createSession(wf);
+    await manager.createSession(wf);
 
     assert.equal(manager.enqueueWebhook("ignored", { body: 1 }), false);
     assert.equal(manager.enqueueWebhook("orders", { body: 2 }), true);
     await manager.onIdle();
 
     assert.deepEqual(ran, ['webhook_enabled:webhook:{"body":2}']);
+  });
+
+  it("does not emit trigger received when webhook payload cannot be queued", async () => {
+    const events: string[] = [];
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_1`,
+      maxPayloadBytes: 8,
+      onEvent: (event) => events.push(event.type),
+    });
+    const wf = workflow();
+    wf.nodes = {
+      webhook_enabled: {
+        type: "trigger",
+        name: "Webhook Enabled",
+        trigger: { type: "webhook", webhookSlug: "orders" },
+      },
+    };
+    await manager.createSession(wf);
+
+    assert.equal(manager.enqueueWebhook("orders", { tooLarge: true }), true);
+
+    assert.equal(events.includes("trigger:received"), false);
+    assert.equal(events.includes("job:failed"), true);
   });
 
   it("enqueues form dev jobs by form slug and ignores disabled forms", async () => {
@@ -246,7 +269,7 @@ describe("DevWorkflowSessionManager", () => {
         trigger: { type: "form", formSlug: "disabled" },
       },
     };
-    manager.createSession(wf);
+    await manager.createSession(wf);
 
     assert.equal(manager.enqueueForm("disabled", { fields: { email: "x" } }), false);
     assert.equal(manager.enqueueForm("signup", { fields: { email: "a@b.test" } }), true);
@@ -281,7 +304,7 @@ describe("DevWorkflowSessionManager", () => {
         trigger: { type: "cron", cronExpression: "* * * * *" },
       },
     };
-    const session = manager.createSession(wf);
+    const session = await manager.createSession(wf);
 
     if (!tick) assert.fail("cron was not scheduled");
     tick();
@@ -308,7 +331,7 @@ describe("DevWorkflowSessionManager", () => {
         trigger: { type: "event", eventName: "order.created" },
       },
     };
-    const session = manager.createSession(wf);
+    const session = await manager.createSession(wf);
 
     await InternalEventBus.emit({
       name: "order.created",
@@ -322,17 +345,52 @@ describe("DevWorkflowSessionManager", () => {
     assert.deepEqual(ran, ["event_a:event:order.created"]);
   });
 
-  it("activates plugin trigger lifecycle and enqueues plugin payloads", async () => {
-    let activated = 0;
-    let deactivated = 0;
+  it("does not block legitimate event triggers across time windows", async () => {
     const ran: string[] = [];
     const manager = new DevWorkflowSessionManager({
       createId: (prefix) => `${prefix}_${ran.length + 1}`,
-      activatePluginTriggers: async () => {
-        activated++;
+      runWorkflowJob: async (job) => {
+        ran.push(`${job.triggerNodeId}:${job.source}`);
       },
-      deactivatePluginTriggers: async () => {
+    });
+    const wf = workflow();
+    wf.nodes = {
+      event_a: {
+        type: "trigger",
+        name: "Event A",
+        trigger: { type: "event", eventName: "order.created" },
+      },
+    };
+    const session = await manager.createSession(wf);
+
+    for (let i = 0; i < 26; i++) {
+      await InternalEventBus.emit({
+        name: "order.created",
+        payload: { id: i },
+        emittedBy: "test",
+        timestamp: i * 61_000,
+      });
+    }
+    await manager.onIdle();
+    await manager.stopSession(session.id, "stop");
+
+    assert.equal(ran.length, 26);
+  });
+
+  it("activates plugin trigger lifecycle and enqueues plugin payloads", async () => {
+    let activated = 0;
+    let deactivated = 0;
+    const modes: Array<string | undefined> = [];
+    const ran: string[] = [];
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_${ran.length + 1}`,
+      activatePluginTriggers: async (_workflow, options) => {
+        activated++;
+        modes.push(options?.mode);
+      },
+      deactivatePluginTriggers: async (_workflow, options) => {
         deactivated++;
+        modes.push(options?.mode);
       },
       runWorkflowJob: async (job) => {
         ran.push(`${job.triggerNodeId}:${job.source}:${JSON.stringify(job.payload)}`);
@@ -351,7 +409,7 @@ describe("DevWorkflowSessionManager", () => {
         },
       },
     };
-    const session = manager.createSession(wf);
+    const session = await manager.createSession(wf);
     await Promise.resolve();
 
     assert.equal(activated, 1);
@@ -361,6 +419,46 @@ describe("DevWorkflowSessionManager", () => {
 
     assert.deepEqual(ran, ['plugin_a:plugin:{"message":"hi"}']);
     assert.equal(deactivated, 1);
+    assert.deepEqual(modes, ["test", "test"]);
+  });
+
+  it("emits session ready only after plugin trigger setup completes", async () => {
+    const events: string[] = [];
+    let resolveActivation: (() => void) | undefined;
+    const activated = new Promise<void>((resolve) => {
+      resolveActivation = resolve;
+    });
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_1`,
+      onEvent: (event) => events.push(event.type),
+      activatePluginTriggers: async () => {
+        await activated;
+      },
+      deactivatePluginTriggers: async () => {},
+    });
+    const wf = workflow();
+    wf.nodes = {
+      plugin_a: {
+        type: "trigger",
+        name: "Plugin A",
+        trigger: {
+          type: "plugin",
+          pluginId: "nod8.test",
+          triggerName: "message",
+          webhookPath: "plugin-hook",
+        },
+      },
+    };
+
+    const sessionPromise = manager.createSession(wf);
+    await Promise.resolve();
+
+    assert.equal(events.includes("session:ready"), false);
+    resolveActivation?.();
+    const session = await sessionPromise;
+
+    assert.equal(session.status, "running");
+    assert.equal(events.includes("session:ready"), true);
   });
 
   it("cancels temporary wait forms for running jobs when session stops", async () => {
@@ -377,7 +475,7 @@ describe("DevWorkflowSessionManager", () => {
         trigger: { type: "webhook", webhookSlug: "hook" },
       },
     };
-    const session = manager.createSession(wf);
+    const session = await manager.createSession(wf);
     manager.enqueueJob(session.id, {
       triggerNodeId: "webhook_a",
       source: "webhook",
@@ -399,15 +497,15 @@ describe("DevWorkflowSessionManager", () => {
     assert.match(await result, /manual stop/);
   });
 
-  it("enforces session and payload limits", () => {
+  it("enforces session and payload limits", async () => {
     const manager = new DevWorkflowSessionManager({
       createId: (prefix) => `${prefix}_1`,
       maxSessions: 1,
       maxPayloadBytes: 8,
     });
-    const session = manager.createSession(workflow());
+    const session = await manager.createSession(workflow());
 
-    assert.throws(() => manager.createSession(workflow()), /Too many active dev sessions/);
+    await assert.rejects(() => manager.createSession(workflow()), /Too many active dev sessions/);
     assert.throws(
       () => manager.enqueueJob(session.id, {
         triggerNodeId: "trigger",
@@ -418,7 +516,7 @@ describe("DevWorkflowSessionManager", () => {
     );
   });
 
-  it("cleans up a partially created session when trigger activation fails", () => {
+  it("cleans up a partially created session when trigger activation fails", async () => {
     const manager = new DevWorkflowSessionManager({
       createId: (prefix) => `${prefix}_1`,
       maxSessions: 1,
@@ -435,9 +533,9 @@ describe("DevWorkflowSessionManager", () => {
       },
     };
 
-    assert.throws(() => manager.createSession(wf), /invalid cron/);
+    await assert.rejects(() => manager.createSession(wf), /invalid cron/);
 
-    const cleanSession = manager.createSession(workflow());
+    const cleanSession = await manager.createSession(workflow());
     assert.equal(cleanSession.status, "running");
   });
 
@@ -446,7 +544,7 @@ describe("DevWorkflowSessionManager", () => {
     const manager = new DevWorkflowSessionManager({
       createId: (prefix) => `${prefix}_${teardownCalls + 1}`,
     });
-    const session = manager.createSession(workflow());
+    const session = await manager.createSession(workflow());
     session.triggerRuntimes.push({
       triggerNodeId: "trigger",
       type: "manual",
