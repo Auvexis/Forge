@@ -2,9 +2,9 @@
 
 ## Objetivo
 
-Criar um menu para instalar plugins externos no ND8 usando a nova arquitetura `ND8_HOME`, permitindo instalar a partir de link de repositorio ou arquivo `.zip`, mostrando preview seguro do `manifest.json` antes da instalacao.
+Criar um menu para instalar plugins externos no ND8 usando a arquitetura `ND8_HOME`, permitindo instalar a partir de link de repositorio ou de uma pasta ja extraida, mostrando preview seguro do `manifest.json` antes da instalacao.
 
-O usuario deve conseguir escolher se o plugin sera habilitado apenas no profile atual ou em todos os profiles.
+O usuario deve escolher se o plugin sera habilitado apenas no profile atual ou em todos os profiles.
 
 ## Opiniao Sobre A Ideia Do `release/`
 
@@ -24,18 +24,15 @@ Cada plugin externo precisa ter dependencias isoladas dentro da propria pasta in
 
 ## Lei Do Plugin Externo
 
-Todo plugin externo instalavel precisa publicar uma pasta `release/` na raiz do repositorio ou dentro do `.zip`.
+Todo plugin externo instalavel precisa publicar uma pasta `release/` na raiz do repositorio ou dentro da pasta extraida selecionada pelo usuario.
 
 Estrutura obrigatoria:
 
-```text
-release/
-  manifest.json
-  index.js
-  methods.js
-  package.json
-  package-lock.json
-```
+- `release/manifest.json`
+- `release/index.js`
+- `release/methods.js`
+- `release/package.json`
+- `release/package-lock.json`
 
 Regras:
 
@@ -45,9 +42,9 @@ Regras:
 - `package-lock.json` e obrigatorio para instalacao reproduzivel.
 - `index.js` e `methods.js` precisam ficar dentro da pasta do plugin.
 - O plugin instalado nao pode escrever fora da propria pasta.
-- O plugin instalado nao pode sobrescrever plugin interno.
 - O plugin instalado nao pode instalar dependencia global.
 - O plugin instalado nao pode compartilhar `node_modules` com outro plugin.
+- O plugin instalado nao pode escolher o proprio id de instalacao.
 
 ## Decisao De Escopo
 
@@ -65,6 +62,32 @@ O contrato fica preparado para a futura CLI:
 
 Esse escopo evita misturar duas features grandes: Developer CLI e User Installer.
 
+## Decisao Sobre Id Unico De Instalacao
+
+Plugins externos instalados devem usar uma pasta unica por instalacao.
+
+Formato:
+
+- `ND8_HOME/global/plugins/<plugin-id>-<hex32>/`
+
+Exemplo:
+
+- `ND8_HOME/global/plugins/github-tools-88f0c9401001ed2a6dce94eb8efac5d8/`
+
+Regras:
+
+- `pluginId` continua sendo o id declarado no `manifest.json`.
+- `installId` e gerado pelo ND8 no formato `<pluginId>-<hex32>`.
+- `hex32` deve ser aleatorio, lowercase e com 32 caracteres hexadecimais.
+- `installId` e a identidade da instalacao externa.
+- Duas instalacoes com o mesmo `pluginId`, nome ou versao nao se sobrescrevem.
+- Registry, profile settings e workflows devem referenciar a instalacao externa por `installId`.
+- UI pode mostrar o nome/id original do manifest, mas operacoes internas usam `installId`.
+- Plugins internos continuam usando seus ids atuais.
+- Plugin externo nao pode substituir plugin interno porque o caminho e a identidade runtime sao install-scoped.
+
+Essa decisao evita conflito quando o usuario instala dois plugins diferentes com o mesmo nome/id, ou duas builds do mesmo plugin.
+
 ## Novo Fluxo De Instalacao
 
 ### Link De Repositorio
@@ -79,56 +102,54 @@ Esse escopo evita misturar duas features grandes: Developer CLI e User Installer
    - profile atual;
    - todos os profiles.
 8. Usuario confirma.
-9. Backend instala em `ND8_HOME/global/plugins/<plugin-id>/<version>/`.
-10. Backend instala dependencias isoladas dentro da pasta do plugin.
-11. Backend registra no `plugins.db`.
-12. Backend habilita no profile escolhido.
-13. Backend recarrega plugin ou pede restart controlado se hot reload nao for seguro.
+9. Backend gera `installId` com `<pluginId>-<hex32>`.
+10. Backend instala em `ND8_HOME/global/plugins/<installId>/`.
+11. Backend instala dependencias isoladas dentro da pasta do plugin.
+12. Backend registra no `plugins.db`.
+13. Backend habilita o `installId` no profile escolhido.
+14. Backend recarrega plugin ou pede restart controlado se hot reload nao for seguro.
 
-### Arquivo Zip
+### Pasta Extraida
 
-1. Usuario seleciona ou arrasta `.zip`.
-2. Backend salva zip temporario em `ND8_HOME/global/plugin-cache`.
-3. Backend extrai em pasta temporaria segura.
-4. Backend bloqueia path traversal.
-5. Backend procura `release/`.
-6. Backend segue o mesmo fluxo de preview e instalacao.
+1. Usuario seleciona uma pasta ja extraida.
+2. Frontend envia a pasta selecionada para preview.
+3. Backend guarda a entrada em cache temporario dentro de `ND8_HOME/global/plugin-cache`.
+4. Backend valida que todos os arquivos continuam dentro da pasta base.
+5. Backend bloqueia symlink ou path que escape da pasta base.
+6. Backend procura `release/`.
+7. Backend segue o mesmo fluxo de preview e instalacao.
+
+Observacao importante:
+
+- Em browser comum, o frontend nao deve confiar em path absoluto do PC do usuario.
+- O backend so deve aceitar path local direto em modo local/desktop confiavel.
+- No modo web, usar envio de pasta pelo seletor de diretorio quando suportado.
 
 ## Estrutura Alvo No ND8_HOME
 
-```text
-ND8_HOME/
-  global/
-    plugins/
-      plugin-id/
-        1.0.0/
-          manifest.json
-          index.js
-          methods.js
-          package.json
-          package-lock.json
-          node_modules/
+Estrutura principal:
 
-    plugin-cache/
-      downloads/
-      extracted/
-      previews/
-
-  profiles/
-    default/
-      plugin-settings.json
-```
-
-## Estrategia De Dependencias
-
-Cada plugin tem seu proprio `node_modules`.
+- `ND8_HOME/global/plugins/<installId>/manifest.json`
+- `ND8_HOME/global/plugins/<installId>/index.js`
+- `ND8_HOME/global/plugins/<installId>/methods.js`
+- `ND8_HOME/global/plugins/<installId>/package.json`
+- `ND8_HOME/global/plugins/<installId>/package-lock.json`
+- `ND8_HOME/global/plugins/<installId>/node_modules/`
+- `ND8_HOME/global/plugin-cache/downloads/`
+- `ND8_HOME/global/plugin-cache/folders/`
+- `ND8_HOME/global/plugin-cache/previews/`
+- `ND8_HOME/profiles/default/plugin-settings.json`
 
 Exemplo:
 
-```text
-ND8_HOME/global/plugins/github-tools/1.0.0/node_modules/
-ND8_HOME/global/plugins/slack-tools/1.0.0/node_modules/
-```
+- `ND8_HOME/global/plugins/github-tools-88f0c9401001ed2a6dce94eb8efac5d8/node_modules/`
+- `ND8_HOME/global/plugins/github-tools-6d31f61adfe74f54985d157ad6aa8120/node_modules/`
+
+Essas duas instalacoes podem ter o mesmo `pluginId` no manifest, mas sao instancias diferentes.
+
+## Estrategia De Dependencias
+
+Cada instalacao externa tem seu proprio `node_modules`.
 
 Isso evita:
 
@@ -165,11 +186,11 @@ Responsavel por transformar entrada do usuario em uma pasta local temporaria.
 Entradas:
 
 - URL de repositorio;
-- arquivo `.zip`.
+- pasta extraida.
 
 Saida:
 
-- path local extraido;
+- path local temporario;
 - tipo da fonte;
 - metadados de origem.
 
@@ -181,7 +202,7 @@ Responsavel por encontrar a pasta `release/`.
 
 Regras:
 
-- procurar somente dentro da pasta extraida;
+- procurar somente dentro da pasta recebida;
 - rejeitar se houver mais de um `release/` ambiguo;
 - rejeitar se nao existir `release/`;
 - rejeitar se faltar arquivo obrigatorio.
@@ -215,24 +236,33 @@ Validacoes:
 
 - `metadata.id` kebab-case;
 - `metadata.version` semver;
-- plugin interno com mesmo id bloqueia externo;
-- plugin externo existente com mesma versao exige decisao de reinstall;
-- downgrade exige confirmacao explicita;
 - `package-lock.json` obrigatorio;
 - paths dentro do release nao podem escapar da pasta;
+- symlinks nao podem apontar para fora da pasta;
 - tamanho maximo do release;
-- tamanho maximo extraido;
-- quantidade maxima de arquivos.
+- tamanho maximo da pasta recebida;
+- quantidade maxima de arquivos;
+- permissao runtime nao pode depender do `pluginId` original ser unico.
 
-### 5. PluginInstaller
+### 5. PluginInstallIdGenerator
+
+Responsavel por gerar id unico de instalacao.
+
+Regras:
+
+- receber `pluginId` validado do manifest;
+- gerar `hex32` criptograficamente forte;
+- montar `installId` com `<pluginId>-<hex32>`;
+- verificar que a pasta destino ainda nao existe;
+- nunca aceitar `installId` vindo do plugin ou do frontend.
+
+### 6. PluginInstaller
 
 Responsavel por copiar o `release/` para o destino final.
 
 Destino:
 
-```text
-ND8_HOME/global/plugins/<plugin-id>/<version>/
-```
+- `ND8_HOME/global/plugins/<installId>/`
 
 Fluxo:
 
@@ -242,23 +272,23 @@ Fluxo:
 - validar entrypoint depois da instalacao;
 - mover staging para destino final de forma atomica;
 - registrar no `plugins.db`;
-- atualizar profile settings;
+- atualizar profile settings com `installId`;
 - limpar cache temporario.
 
-### 6. PluginDependencyInstaller
+### 7. PluginDependencyInstaller
 
 Responsavel apenas por dependencias.
 
 Regras:
 
-- roda dentro da pasta do plugin;
+- roda dentro da pasta da instalacao;
 - usa `npm ci --omit=dev --ignore-scripts`;
 - usa lockfile do plugin;
 - timeout configuravel;
 - log por instalacao;
 - nao altera package do ND8.
 
-### 7. PluginProfileScopeService
+### 8. PluginProfileScopeService
 
 Responsavel por habilitar plugin por profile.
 
@@ -273,9 +303,15 @@ Primeira versao:
 - manter contrato pronto para multiplos profiles;
 - nao implementar UI completa de profiles agora.
 
-### 8. PluginRuntimeReloadService
+### 9. PluginRuntimeReloadService
 
 Responsavel por tornar o plugin disponivel depois da instalacao.
+
+Decisao importante:
+
+- plugin externo deve ser registrado no runtime pelo `installId`;
+- `manifest.metadata.id` permanece como id original para exibicao;
+- APIs e workflows devem usar `installId` para plugins externos.
 
 Opcao recomendada alpha:
 
@@ -305,13 +341,15 @@ Saida:
 - warnings;
 - errors.
 
-### Criar preview por ZIP
+### Criar preview por pasta extraida
 
-`POST /plugins/external/preview-zip`
+`POST /plugins/external/preview-folder`
 
 Entrada:
 
-- multipart file `.zip`
+- pasta selecionada pelo usuario;
+- ou payload de diretorio enviado pelo frontend;
+- ou path local apenas em modo local/desktop confiavel.
 
 Saida:
 
@@ -329,11 +367,11 @@ Entrada:
 
 - `previewId`
 - `scope`
-- `reinstallPolicy`
 
 Saida:
 
-- plugin id;
+- `installId`;
+- `pluginId`;
 - version;
 - install path;
 - profile scope aplicado;
@@ -364,7 +402,7 @@ Layout proposto:
 Controles:
 
 - input para URL de repositorio;
-- area drag/drop de `.zip`;
+- seletor de pasta extraida;
 - botao "Preview";
 - seletor de escopo:
   - Profile atual;
@@ -393,6 +431,15 @@ Nao mostrar:
 - tutorial longo dentro da tela;
 - detalhes internos do filesystem.
 
+Lista de plugins instalados deve mostrar:
+
+- nome do plugin;
+- version;
+- author;
+- `installId` em area tecnica/expandida;
+- profile onde esta habilitado;
+- status runtime.
+
 ## Arquivos Provaveis
 
 ### Backend
@@ -400,6 +447,7 @@ Nao mostrar:
 - Criar `server/src/core/modules/plugins/external/plugin-install-source-resolver.ts`
 - Criar `server/src/core/modules/plugins/external/plugin-release-locator.ts`
 - Criar `server/src/core/modules/plugins/external/plugin-install-validator.ts`
+- Criar `server/src/core/modules/plugins/external/plugin-install-id-generator.ts`
 - Criar `server/src/core/modules/plugins/external/plugin-installer.ts`
 - Criar `server/src/core/modules/plugins/external/plugin-dependency-installer.ts`
 - Criar `server/src/core/modules/plugins/external/plugin-profile-scope-service.ts`
@@ -407,6 +455,7 @@ Nao mostrar:
 - Criar `server/src/core/modules/plugins/external/plugin-runtime-reload-service.ts`
 - Modificar `server/src/core/modules/plugins/plugin-manifest-preview.ts`
 - Modificar `server/src/core/modules/plugins/loader.ts`
+- Modificar `server/src/core/modules/plugins/plugin-manager.ts`
 - Modificar `server/src/core/routes/plugins.routes.ts`
 - Modificar `server/src/core/database/migrations/plugins/*`
 - Modificar `server/src/core/runtime/profile-plugin-settings.ts`
@@ -428,17 +477,17 @@ Nao mostrar:
 - [ ] Documentar a lei do `release/` neste plano.
 - [ ] Definir arquivos obrigatorios.
 - [ ] Definir que `package-lock.json` e obrigatorio.
-- [ ] Definir que dependencia e isolada por plugin.
+- [ ] Definir que dependencia e isolada por instalacao.
 - [ ] Definir que installer nao executa codigo durante preview.
 - [ ] Commit.
 
 ### Task 2 - Criar tipos backend para installer externo
 
-- [ ] Criar tipos de source: `repository_url` e `zip_upload`.
+- [ ] Criar tipos de source: `repository_url` e `extracted_folder`.
 - [ ] Criar tipos de preview status.
 - [ ] Criar tipos de install scope: `current_profile` e `all_profiles`.
-- [ ] Criar tipos de reinstall policy.
-- [ ] Criar tipos de install result.
+- [ ] Criar tipos de install source metadata.
+- [ ] Criar tipos de install result com `installId` e `pluginId`.
 - [ ] Testar validacao de tipos/contratos.
 - [ ] Commit.
 
@@ -451,13 +500,15 @@ Nao mostrar:
 - [ ] Implementar locator sem executar codigo.
 - [ ] Commit.
 
-### Task 4 - Criar validacao segura de ZIP
+### Task 4 - Criar validacao segura de pasta extraida
 
 - [ ] Escrever teste para bloquear path traversal.
-- [ ] Escrever teste para bloquear arquivo absoluto.
-- [ ] Escrever teste para limitar tamanho extraido.
-- [ ] Escrever teste para aceitar zip valido com `release/`.
-- [ ] Implementar extracao segura em cache.
+- [ ] Escrever teste para bloquear path absoluto.
+- [ ] Escrever teste para bloquear symlink que escape da pasta base.
+- [ ] Escrever teste para limitar tamanho total.
+- [ ] Escrever teste para limitar quantidade de arquivos.
+- [ ] Escrever teste para aceitar pasta valida com `release/`.
+- [ ] Implementar copia segura para cache.
 - [ ] Commit.
 
 ### Task 5 - Criar resolver de URL de repositorio
@@ -491,25 +542,33 @@ Nao mostrar:
 ### Task 8 - Criar rotas de preview
 
 - [ ] Criar `POST /plugins/external/preview-url`.
-- [ ] Criar `POST /plugins/external/preview-zip`.
+- [ ] Criar `POST /plugins/external/preview-folder`.
 - [ ] Validar payloads com zod.
 - [ ] Retornar erro claro quando nao houver `release/`.
 - [ ] Retornar erro claro quando manifest for invalido.
 - [ ] Testar rotas com Fastify inject.
 - [ ] Commit.
 
-### Task 9 - Criar PluginInstallValidator
+### Task 9 - Criar PluginInstallIdGenerator
 
-- [ ] Bloquear conflito com plugin interno.
-- [ ] Detectar plugin externo ja instalado na mesma versao.
-- [ ] Detectar downgrade.
+- [ ] Escrever teste para gerar `installId` no formato `<pluginId>-<hex32>`.
+- [ ] Escrever teste para `hex32` lowercase.
+- [ ] Escrever teste para nao aceitar `installId` vindo do frontend.
+- [ ] Escrever teste para evitar colisao se pasta ja existir.
+- [ ] Implementar geracao criptograficamente forte.
+- [ ] Commit.
+
+### Task 10 - Criar PluginInstallValidator
+
 - [ ] Validar lockfile obrigatorio.
 - [ ] Validar entrypoint obrigatorio.
 - [ ] Validar paths dentro do release.
-- [ ] Testar todos os casos.
+- [ ] Validar que plugin externo usa identidade runtime por `installId`.
+- [ ] Validar que plugin interno nao e sobrescrito.
+- [ ] Testar multiplas instalacoes com mesmo `pluginId`.
 - [ ] Commit.
 
-### Task 10 - Criar PluginDependencyInstaller
+### Task 11 - Criar PluginDependencyInstaller
 
 - [ ] Escrever teste para comando rodar dentro da pasta do plugin.
 - [ ] Usar `npm ci --omit=dev --ignore-scripts`.
@@ -518,40 +577,44 @@ Nao mostrar:
 - [ ] Falha de dependencia deve deixar staging limpo.
 - [ ] Commit.
 
-### Task 11 - Criar PluginInstaller com staging atomico
+### Task 12 - Criar PluginInstaller com staging atomico
 
 - [ ] Criar pasta staging em `ND8_HOME/global/plugin-cache`.
 - [ ] Copiar `release/` para staging.
+- [ ] Gerar `installId`.
 - [ ] Instalar dependencias no staging.
-- [ ] Mover staging para `ND8_HOME/global/plugins/<id>/<version>`.
-- [ ] Nao sobrescrever instalacao existente sem policy.
+- [ ] Mover staging para `ND8_HOME/global/plugins/<installId>`.
+- [ ] Nunca sobrescrever instalacao existente.
 - [ ] Registrar no `plugins.db`.
 - [ ] Limpar cache temporario.
 - [ ] Testar sucesso e falha.
 - [ ] Commit.
 
-### Task 12 - Atualizar registry para multiplas versoes externas
+### Task 13 - Atualizar registry para instalacoes externas
 
-- [ ] Decidir se registry guarda plugin por `id` ou `id + version`.
-- [ ] Recomendacao: guardar instalacao por `id + version`, e enabled aponta versao ativa.
-- [ ] Criar migracao se necessario.
+- [ ] Registry deve guardar `installId`.
+- [ ] Registry deve guardar `pluginId` original do manifest.
+- [ ] Registry deve guardar version, source, install path e status.
+- [ ] Profile settings deve habilitar externo por `installId`.
 - [ ] Preservar compatibilidade com plugins internos.
-- [ ] Testar upgrade e reinstall.
+- [ ] Testar duas instalacoes com mesmo `pluginId`.
 - [ ] Commit.
 
-### Task 13 - Aplicar escopo por profile
+### Task 14 - Aplicar escopo por profile
 
 - [ ] Implementar `current_profile` usando `profiles/default`.
 - [ ] Implementar `all_profiles` iterando profiles existentes.
-- [ ] Atualizar `plugin-settings.json`.
+- [ ] Atualizar `plugin-settings.json` com `installId`.
 - [ ] Nao mover credentials ainda.
 - [ ] Testar profile atual.
 - [ ] Testar todos os profiles.
 - [ ] Commit.
 
-### Task 14 - Runtime reload externo
+### Task 15 - Runtime reload externo
 
 - [ ] Carregar plugin instalado sem reiniciar servidor.
+- [ ] Registrar externo no runtime por `installId`.
+- [ ] Preservar `pluginId` original como metadata.
 - [ ] Se carregar falhar, marcar erro no resultado.
 - [ ] Nao derrubar servidor.
 - [ ] Nao executar plugin durante preview.
@@ -559,28 +622,27 @@ Nao mostrar:
 - [ ] Testar falha de import.
 - [ ] Commit.
 
-### Task 15 - Criar rota de install confirmada
+### Task 16 - Criar rota de install confirmada
 
 - [ ] Criar `POST /plugins/external/install`.
 - [ ] Validar `previewId`.
 - [ ] Validar `scope`.
-- [ ] Validar `reinstallPolicy`.
 - [ ] Chamar installer.
-- [ ] Retornar install result.
+- [ ] Retornar install result com `installId`.
 - [ ] Testar sucesso, conflito e preview expirado.
 - [ ] Commit.
 
-### Task 16 - Criar API frontend
+### Task 17 - Criar API frontend
 
 - [ ] Adicionar endpoints.
 - [ ] Adicionar `pluginsApi.previewExternalUrl`.
-- [ ] Adicionar `pluginsApi.previewExternalZip`.
+- [ ] Adicionar `pluginsApi.previewExternalFolder`.
 - [ ] Adicionar `pluginsApi.installExternal`.
 - [ ] Adicionar tipos de preview e install result.
 - [ ] Testar chamadas com mocks ou type-check.
 - [ ] Commit.
 
-### Task 17 - Construir UI base da PluginsPage
+### Task 18 - Construir UI base da PluginsPage
 
 - [ ] Substituir placeholder.
 - [ ] Criar layout com lista instalada, installer e preview.
@@ -589,10 +651,10 @@ Nao mostrar:
 - [ ] Garantir responsividade basica.
 - [ ] Commit.
 
-### Task 18 - Criar ExternalPluginInstaller
+### Task 19 - Criar ExternalPluginInstaller
 
 - [ ] Input de URL.
-- [ ] Dropzone de zip.
+- [ ] Seletor de pasta extraida.
 - [ ] Botao preview.
 - [ ] Estado loading.
 - [ ] Estado erro.
@@ -600,7 +662,7 @@ Nao mostrar:
 - [ ] Bloquear install sem preview valido.
 - [ ] Commit.
 
-### Task 19 - Criar ExternalPluginPreviewPanel
+### Task 20 - Criar ExternalPluginPreviewPanel
 
 - [ ] Mostrar nome.
 - [ ] Mostrar descricao.
@@ -614,34 +676,36 @@ Nao mostrar:
 - [ ] Mostrar escopo de instalacao.
 - [ ] Commit.
 
-### Task 20 - Criar fluxo de install no frontend
+### Task 21 - Criar fluxo de install no frontend
 
 - [ ] Selecionar `profile atual`.
 - [ ] Selecionar `todos os profiles`.
 - [ ] Confirmar install.
 - [ ] Mostrar progresso.
-- [ ] Mostrar resultado.
+- [ ] Mostrar resultado com `installId`.
 - [ ] Atualizar lista de plugins instalados.
 - [ ] Commit.
 
-### Task 21 - Hardening de seguranca
+### Task 22 - Hardening de seguranca
 
-- [ ] Limitar tamanho de zip.
-- [ ] Limitar tamanho extraido.
+- [ ] Limitar tamanho da pasta recebida.
+- [ ] Limitar quantidade de arquivos.
 - [ ] Limitar tempo de download.
 - [ ] Limitar tempo de install.
 - [ ] Bloquear protocolos perigosos.
+- [ ] Bloquear symlink para fora da pasta.
 - [ ] Sanitizar logs.
 - [ ] Garantir cleanup em erro.
 - [ ] Commit.
 
-### Task 22 - Regressao local
+### Task 23 - Regressao local
 
 - [ ] Criar plugin fake com `release/` valido.
-- [ ] Testar preview por pasta/zip.
+- [ ] Testar preview por pasta extraida.
 - [ ] Testar preview por URL usando fixture local ou mock.
 - [ ] Testar install com dependencias isoladas.
 - [ ] Confirmar plugin aparece em `/plugins`.
+- [ ] Confirmar duas instalacoes com mesmo `pluginId` nao se sobrescrevem.
 - [ ] Confirmar plugin externo nao sobrescreve interno.
 - [ ] Rodar testes backend.
 - [ ] Rodar build frontend.
@@ -651,12 +715,14 @@ Nao mostrar:
 
 - Menu de plugins externos existe na PluginsPage.
 - Usuario consegue gerar preview por URL.
-- Usuario consegue gerar preview por zip.
+- Usuario consegue gerar preview por pasta extraida.
 - Sem `release/`, instalacao e bloqueada.
 - Preview mostra metadata, author, version, icon, methods e triggers.
 - Preview nao executa codigo do plugin.
-- Install usa `ND8_HOME/global/plugins`.
-- Dependencias ficam isoladas por plugin.
+- Install usa `ND8_HOME/global/plugins/<installId>`.
+- `installId` segue `<pluginId>-<hex32>`.
+- Duas instalacoes com mesmo `pluginId` nao se sobrescrevem.
+- Dependencias ficam isoladas por instalacao.
 - `package-lock.json` e obrigatorio.
 - Plugin externo nao sobrescreve plugin interno.
 - Usuario escolhe profile atual ou todos os profiles.
@@ -668,27 +734,31 @@ Nao mostrar:
 ## Riscos
 
 - Executar codigo malicioso durante preview. Mitigacao: ler somente `manifest.json`.
-- Dependencias conflitarem entre plugins. Mitigacao: `node_modules` por plugin.
+- Dependencias conflitarem entre plugins. Mitigacao: `node_modules` por instalacao.
 - `npm install` rodar scripts perigosos. Mitigacao: `npm ci --omit=dev --ignore-scripts`.
-- Zip path traversal. Mitigacao: extracao segura e path normalization.
-- Repositorio enorme ou zip gigante. Mitigacao: limites de tamanho e timeout.
+- Pasta extraida conter symlink/path perigoso. Mitigacao: validar path real dentro da base.
+- Repositorio enorme ou pasta gigante. Mitigacao: limites de tamanho, arquivos e timeout.
 - Hot reload instavel. Mitigacao: fallback para restart required.
+- APIs antigas esperarem `pluginId` unico. Mitigacao: externos usam `installId` como identidade runtime.
 - Misturar profiles cedo demais. Mitigacao: usar `default` como profile atual e manter contrato pronto.
 
 ## Ordem Recomendada
 
 1. Contrato `release/`.
 2. Release locator.
-3. Preview seguro.
-4. Preview routes.
-5. Install validator.
-6. Dependency installer isolado.
-7. Installer com staging atomico.
-8. Profile scope.
-9. Runtime reload.
-10. UI de preview/install.
-11. Hardening.
-12. Regressao completa.
+3. Validacao de pasta extraida.
+4. Preview seguro.
+5. Preview routes.
+6. Install id generator.
+7. Install validator.
+8. Dependency installer isolado.
+9. Installer com staging atomico.
+10. Registry por instalacao.
+11. Profile scope.
+12. Runtime reload.
+13. UI de preview/install.
+14. Hardening.
+15. Regressao completa.
 
 ## Nota Sobre A CLI
 
