@@ -4,7 +4,13 @@
 
 import { apiRequest } from './client'
 import { ENDPOINTS } from './endpoints'
-import type { PluginSummary, PluginStatusResponse, PluginManifest } from '../types/plugin.types'
+import type {
+  ExternalPluginInstallResult,
+  ExternalPluginInstallScope,
+  ExternalPluginPreview,
+  PluginSummary,
+  PluginStatusResponse,
+} from '../types/plugin.types'
 
 export const pluginsApi = {
   /** Get all plugins and their statuses */
@@ -37,6 +43,29 @@ export const pluginsApi = {
    */
   getDynamicOptions: (pluginId: string, method: string) =>
     apiRequest<any[]>(ENDPOINTS.PLUGIN_DYNAMIC_OPTIONS(pluginId, method)),
+
+  previewExternalUrl: (repositoryUrl: string) =>
+    apiRequest<ExternalPluginPreview>(ENDPOINTS.PLUGIN_EXTERNAL_PREVIEW_URL, {
+      method: 'POST',
+      body: { repositoryUrl },
+    }),
+
+  previewExternalFolder: (folderPath: string, files?: string[]) =>
+    apiRequest<ExternalPluginPreview>(ENDPOINTS.PLUGIN_EXTERNAL_PREVIEW_FOLDER, {
+      method: 'POST',
+      body: { folderPath, files },
+    }),
+
+  installExternal: (previewId: string, scope: ExternalPluginInstallScope) =>
+    apiRequest<ExternalPluginInstallResult>(ENDPOINTS.PLUGIN_EXTERNAL_INSTALL, {
+      method: 'POST',
+      body: { previewId, scope },
+    }),
+
+  cancelExternalPreview: (previewId: string) =>
+    apiRequest<null>(ENDPOINTS.PLUGIN_EXTERNAL_PREVIEW(previewId), {
+      method: 'DELETE',
+    }),
 
   // ── OAuth specific endpoints ─────────────────────────
 

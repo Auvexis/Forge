@@ -13,6 +13,7 @@ function createDb(): Database.Database {
     `
     CREATE TABLE registered_plugins (
       id TEXT PRIMARY KEY NOT NULL,
+      plugin_id TEXT,
       version TEXT NOT NULL,
       is_enabled INTEGER NOT NULL DEFAULT 1,
       installed_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -32,6 +33,7 @@ describe("plugin registry", () => {
 
     syncPluginRegistry(db, {
       id: "external-plugin",
+      pluginId: "external-plugin",
       version: "2.0.0",
       source: "external",
       installPath: "C:/nd8/global/plugins/external-plugin",
@@ -39,6 +41,7 @@ describe("plugin registry", () => {
     });
 
     const row = db.prepare("SELECT * FROM registered_plugins WHERE id = ?").get("external-plugin") as any;
+    assert.equal(row.plugin_id, "external-plugin");
     assert.equal(row.version, "2.0.0");
     assert.equal(row.source, "external");
     assert.equal(row.install_path, "C:/nd8/global/plugins/external-plugin");
@@ -56,6 +59,7 @@ describe("plugin registry", () => {
 
     syncPluginRegistry(db, {
       id: "telegram",
+      pluginId: "telegram",
       version: "1.1.0",
       source: "internal",
       installPath: null,
@@ -67,6 +71,41 @@ describe("plugin registry", () => {
     assert.equal(row.is_enabled, 0);
     assert.equal(isPluginEnabled(db, "telegram"), false);
 
+    db.close();
+  });
+
+  it("stores external install ids separately from original manifest plugin ids", () => {
+    const db = createDb();
+
+    syncPluginRegistry(db, {
+      id: "github-tools-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      pluginId: "github-tools",
+      version: "1.0.0",
+      source: "external",
+      installPath: "C:/nd8/global/plugins/github-tools-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      manifestPath: "C:/nd8/global/plugins/github-tools-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/manifest.json",
+    });
+    syncPluginRegistry(db, {
+      id: "github-tools-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      pluginId: "github-tools",
+      version: "1.0.0",
+      source: "external",
+      installPath: "C:/nd8/global/plugins/github-tools-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      manifestPath: "C:/nd8/global/plugins/github-tools-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/manifest.json",
+    });
+
+    const rows = db.prepare("SELECT id, plugin_id FROM registered_plugins ORDER BY id").all() as any[];
+
+    assert.deepEqual(rows, [
+      {
+        id: "github-tools-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        plugin_id: "github-tools",
+      },
+      {
+        id: "github-tools-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        plugin_id: "github-tools",
+      },
+    ]);
     db.close();
   });
 });

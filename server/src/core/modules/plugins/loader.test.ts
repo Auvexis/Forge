@@ -14,6 +14,7 @@ function createRegistryDb(): Database.Database {
     `
     CREATE TABLE registered_plugins (
       id TEXT PRIMARY KEY NOT NULL,
+      plugin_id TEXT,
       version TEXT NOT NULL,
       is_enabled INTEGER NOT NULL DEFAULT 1,
       installed_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -63,8 +64,8 @@ function writePlugin(root: string, id: string, version = "1.0.0"): string {
   return pluginDir;
 }
 
-function pluginFromEntrypoint(entrypoint: string): Nod8Plugin {
-  const id = path.basename(path.dirname(entrypoint));
+function pluginFromEntrypoint(entrypoint: string, pluginId = path.basename(path.dirname(entrypoint))): Nod8Plugin {
+  const id = pluginId;
   return {
     id,
     manifest: {
@@ -135,12 +136,12 @@ describe("loadPlugins", () => {
     db.close();
   });
 
-  it("skips external plugins that conflict with internal plugin ids", async () => {
+  it("loads external plugins under install id when manifest id conflicts with internal plugin ids", async () => {
     const temp = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-loader-"));
     const internalDir = path.join(temp, "internal");
     const externalDir = path.join(temp, "external");
     writePlugin(internalDir, "same-plugin");
-    writePlugin(externalDir, "same-plugin");
+    writePlugin(externalDir, "same-plugin-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     const db = createRegistryDb();
     const { manager, registered } = createManager();
 
@@ -150,13 +151,29 @@ describe("loadPlugins", () => {
       registryDb: db,
       pluginManager: manager,
       logger: { info: () => {}, error: () => {}, warn: () => {} },
-      pluginImporter: async (entrypoint) => pluginFromEntrypoint(entrypoint),
+      pluginImporter: async (entrypoint) => {
+        if (entrypoint.includes("same-plugin-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")) {
+          return pluginFromEntrypoint(entrypoint, "same-plugin");
+        }
+        return pluginFromEntrypoint(entrypoint);
+      },
     });
 
     assert.equal(result.loaded.internal, 1);
-    assert.equal(result.loaded.external, 0);
-    assert.equal(result.skippedConflicts, 1);
-    assert.deepEqual(registered.map((plugin) => plugin.id), ["same-plugin"]);
+    assert.equal(result.loaded.external, 1);
+    assert.equal(result.skippedConflicts, 0);
+    assert.deepEqual(registered.map((plugin) => plugin.id).sort(), [
+      "same-plugin",
+      "same-plugin-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    ]);
+
+    const row = db
+      .prepare("SELECT id, plugin_id FROM registered_plugins WHERE id = ?")
+      .get("same-plugin-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") as any;
+    assert.deepEqual(row, {
+      id: "same-plugin-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      plugin_id: "same-plugin",
+    });
     db.close();
   });
 

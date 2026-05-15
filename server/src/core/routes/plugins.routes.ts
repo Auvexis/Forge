@@ -4,6 +4,16 @@ import { PluginManager } from "../modules/plugins/manager.ts";
 import { PluginExecutor, PluginValidationError } from "../modules/plugins/executor.ts";
 import { CredentialStore } from "../modules/plugins/credential-store.ts";
 import { Vault } from "../modules/plugins/vault.ts";
+import { DatabaseManager } from "../database/manager.ts";
+import { nd8HomePaths } from "../runtime/nd8-home.ts";
+import { locatePluginRelease } from "../modules/plugins/external/plugin-release-locator.ts";
+import {
+  copyExtractedFolderToCache,
+  resolveRepositoryUrlToCache,
+} from "../modules/plugins/external/plugin-install-source-resolver.ts";
+import { externalPluginPreviewStore } from "../modules/plugins/external/plugin-preview-store.ts";
+import { readPluginManifestPreview } from "../modules/plugins/plugin-manifest-preview.ts";
+import { installExternalPlugin } from "../modules/plugins/external/plugin-installer.ts";
 import { z } from "zod";
 import type {
   CredentialSchema,
@@ -18,6 +28,17 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
   const sendResponse = <T>(reply: FastifyReply, response: ApiResponse<T>) => {
     return reply.code(response.status_code).send(response);
   };
+
+  function createExternalPreview(localPath: string, source: any) {
+    const release = locatePluginRelease(localPath);
+    const preview = readPluginManifestPreview(release.manifestPath);
+    return externalPluginPreviewStore.create({
+      localPath,
+      preview,
+      release,
+      source,
+    });
+  }
 
   /**
    * Get all plugins (with status)
@@ -42,6 +63,141 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
       message: "Plugins fetched successfully",
       error: null,
       data,
+    });
+  });
+
+  const PreviewUrlSchema = z.object({
+    repositoryUrl: z.string().url(),
+  });
+
+  fastify.post("/plugins/external/preview-url", async (req, reply) => {
+    const validation = PreviewUrlSchema.safeParse(req.body);
+    if (!validation.success) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Invalid request parameters",
+        error: validation.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join(", "),
+        data: null,
+      });
+    }
+
+    try {
+      const source = resolveRepositoryUrlToCache(validation.data.repositoryUrl, nd8HomePaths.pluginCacheDir);
+      const preview = createExternalPreview(source.localPath, source.metadata);
+      return sendResponse(reply, {
+        status_code: preview.status === "ready" ? 200 : 400,
+        message: preview.status === "ready" ? "External plugin preview created" : "External plugin manifest is invalid",
+        error: preview.errors.length > 0 ? preview.errors.join("; ") : null,
+        data: preview,
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Failed to create external plugin preview",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
+  const PreviewFolderSchema = z.object({
+    folderPath: z.string().min(1),
+    files: z.array(z.string()).optional(),
+  });
+
+  fastify.post("/plugins/external/preview-folder", async (req, reply) => {
+    const validation = PreviewFolderSchema.safeParse(req.body);
+    if (!validation.success) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Invalid request parameters",
+        error: validation.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join(", "),
+        data: null,
+      });
+    }
+
+    try {
+      const source = copyExtractedFolderToCache(validation.data.folderPath, nd8HomePaths.pluginCacheDir, {
+        allowedRelativePaths: validation.data.files,
+      });
+      const preview = createExternalPreview(source.localPath, source.metadata);
+      return sendResponse(reply, {
+        status_code: preview.status === "ready" ? 200 : 400,
+        message: preview.status === "ready" ? "External plugin preview created" : "External plugin manifest is invalid",
+        error: preview.errors.length > 0 ? preview.errors.join("; ") : null,
+        data: preview,
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Failed to create external plugin preview",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
+  const InstallExternalSchema = z.object({
+    previewId: z.string().min(1),
+    scope: z.enum(["current_profile", "all_profiles"]),
+  });
+
+  fastify.post("/plugins/external/install", async (req, reply) => {
+    const validation = InstallExternalSchema.safeParse(req.body);
+    if (!validation.success) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Invalid request parameters",
+        error: validation.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join(", "),
+        data: null,
+      });
+    }
+
+    const preview = externalPluginPreviewStore.get(validation.data.previewId);
+    const localPath = externalPluginPreviewStore.getLocalPath(validation.data.previewId);
+    if (!preview || !localPath || !preview.release || preview.status !== "ready") {
+      return sendResponse(reply, {
+        status_code: 404,
+        message: "External plugin preview not found or expired",
+        error: "preview_expired",
+        data: null,
+      });
+    }
+
+    try {
+      const result = installExternalPlugin({
+        releaseDir: preview.release.releaseDir,
+        source: preview.source,
+        scope: validation.data.scope,
+        registryDb: DatabaseManager.plugins,
+      });
+      externalPluginPreviewStore.remove(validation.data.previewId);
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "External plugin installed",
+        error: null,
+        data: result,
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to install external plugin",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
+  fastify.delete("/plugins/external/previews/:previewId", async (req, reply) => {
+    const { previewId } = req.params as { previewId: string };
+    externalPluginPreviewStore.remove(previewId);
+
+    return sendResponse(reply, {
+      status_code: 200,
+      message: "External plugin preview cancelled",
+      error: null,
+      data: null,
     });
   });
 

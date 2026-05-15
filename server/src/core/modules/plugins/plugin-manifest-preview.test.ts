@@ -53,4 +53,40 @@ describe("readPluginManifestPreview", () => {
     assert.match(preview.errors.join("\n"), /metadata.id must be kebab-case/);
     assert.match(preview.errors.join("\n"), /Missing or invalid 'methods' section/);
   });
+
+  it("returns structured preview metadata, methods, triggers, auth type and warnings", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-preview-"));
+    const manifest = {
+      ...validManifest,
+      auth: { type: "api_key" },
+      triggers: {
+        onMessage: {
+          metadata: { label: "On Message", description: "Message received" },
+          parameters: { type: "object", properties: {} },
+        },
+      },
+    };
+    fs.writeFileSync(path.join(dir, "manifest.json"), JSON.stringify(manifest));
+
+    const preview = readPluginManifestPreview(path.join(dir, "manifest.json"));
+
+    assert.equal(preview.valid, true);
+    assert.equal(preview.metadata?.id, "preview-plugin");
+    assert.deepEqual(preview.methods, [
+      {
+        name: "ping",
+        label: "Ping",
+        description: "Ping",
+      },
+    ]);
+    assert.deepEqual(preview.triggers, [
+      {
+        name: "onMessage",
+        label: "On Message",
+        description: "Message received",
+      },
+    ]);
+    assert.equal(preview.authType, "api_key");
+    assert.deepEqual(preview.warnings, []);
+  });
 });

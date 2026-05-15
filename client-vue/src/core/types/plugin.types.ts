@@ -188,3 +188,40 @@ export interface PluginSummary {
   status: PluginStatusResponse
   auth_type: PluginAuthType
 }
+
+export type ExternalPluginInstallScope = 'current_profile' | 'all_profiles'
+export type ExternalPluginPreviewStatus = 'ready' | 'invalid' | 'expired'
+
+export interface ExternalPluginPreviewMethod {
+  name: string
+  label: string
+  description: string
+}
+
+export interface ExternalPluginPreview {
+  previewId: string
+  status: ExternalPluginPreviewStatus
+  manifest: PluginManifest | null
+  methodNames: string[]
+  triggerNames: string[]
+  authType: string | null
+  warnings: string[]
+  errors: string[]
+  source: {
+    type: 'repository_url' | 'extracted_folder'
+    originalValue: string
+    cachedAt: string
+  }
+  createdAt: string
+  expiresAt: string
+}
+
+export interface ExternalPluginInstallResult {
+  installId: string
+  pluginId: string
+  version: string
+  installPath: string
+  scope: ExternalPluginInstallScope
+  reloadStatus: 'loaded' | 'restart_required' | 'failed'
+  error?: string
+}

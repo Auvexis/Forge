@@ -41,6 +41,10 @@ export const ENDPOINTS = {
   PLUGIN_STATUS: (id: string) => `/plugins/${encodeURIComponent(id)}/status`,
   PLUGIN_CREDENTIALS: (id: string) => `/plugins/${encodeURIComponent(id)}/credentials`,
   PLUGIN_EXECUTE: (id: string) => `/plugins/${encodeURIComponent(id)}/execute`,
+  PLUGIN_EXTERNAL_PREVIEW_URL: '/plugins/external/preview-url',
+  PLUGIN_EXTERNAL_PREVIEW_FOLDER: '/plugins/external/preview-folder',
+  PLUGIN_EXTERNAL_INSTALL: '/plugins/external/install',
+  PLUGIN_EXTERNAL_PREVIEW: (id: string) => `/plugins/external/previews/${encodeURIComponent(id)}`,
 
   // Plugin OAuth
   PLUGIN_AUTH_CONNECT: (id: string) => `/plugins/${encodeURIComponent(id)}/auth/connect`,

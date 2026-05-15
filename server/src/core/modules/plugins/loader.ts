@@ -145,11 +145,18 @@ async function loadSource(
   for (const entrypoint of findPluginEntrypoints(dir)) {
     try {
       const plugin = await options.pluginImporter(entrypoint);
+      const runtimePlugin =
+        source === "external"
+          ? {
+              ...plugin,
+              id: path.basename(path.dirname(entrypoint)),
+            }
+          : plugin;
 
-      if (source === "external" && internalIds.has(plugin.id)) {
+      if (source === "external" && internalIds.has(runtimePlugin.id)) {
         result.skippedConflicts += 1;
         options.logger.warn(
-          `[NOD8 | PLUGINS]: Skipping external plugin ${plugin.id}; it conflicts with an internal plugin`,
+          `[NOD8 | PLUGINS]: Skipping external plugin ${runtimePlugin.id}; it conflicts with an internal plugin`,
         );
         continue;
       }
@@ -157,23 +164,24 @@ async function loadSource(
       const version = plugin.manifest.metadata.version as string;
       const installPath = source === "external" ? path.dirname(entrypoint) : null;
       syncPluginRegistry(options.registryDb, {
-        id: plugin.id,
+        id: runtimePlugin.id,
+        pluginId: plugin.manifest.metadata.id,
         version,
         source,
         installPath,
         manifestPath: source === "external" ? path.join(path.dirname(entrypoint), "manifest.json") : null,
       });
 
-      if (!isPluginEnabled(options.registryDb, plugin.id)) {
+      if (!isPluginEnabled(options.registryDb, runtimePlugin.id)) {
         result.skippedDisabled += 1;
-        options.logger.info(`[NOD8 | PLUGINS]: Skipping disabled plugin ${plugin.id}`);
+        options.logger.info(`[NOD8 | PLUGINS]: Skipping disabled plugin ${runtimePlugin.id}`);
         continue;
       }
 
-      options.pluginManager.registerPlugin(plugin);
+      options.pluginManager.registerPlugin(runtimePlugin);
       result.loaded[source] += 1;
       if (source === "internal") {
-        internalIds.add(plugin.id);
+        internalIds.add(runtimePlugin.id);
       }
     } catch (error) {
       result.failed += 1;
