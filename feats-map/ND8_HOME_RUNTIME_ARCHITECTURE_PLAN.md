@@ -303,25 +303,25 @@ Isso evita perder dados em update de pacote.
 
 ### Task 9 - Preparar contratos para installer futuro
 
-- [ ] Criar servico de leitura de manifest sem executar plugin.
-- [ ] Validar manifest usando o contrato existente.
-- [ ] Retornar metadados necessarios para preview.
-- [ ] Garantir que preview nao importa `index.ts`.
-- [ ] Garantir que preview nao registra plugin no manager.
-- [ ] Testar manifest valido.
-- [ ] Testar manifest invalido.
-- [ ] Commit.
+- [x] Criar servico de leitura de manifest sem executar plugin.
+- [x] Validar manifest usando o contrato existente.
+- [x] Retornar metadados necessarios para preview.
+- [x] Garantir que preview nao importa `index.ts`.
+- [x] Garantir que preview nao registra plugin no manager.
+- [x] Testar manifest valido.
+- [x] Testar manifest invalido.
+- [x] Commit.
 
 ### Task 10 - Preparar plugin settings por profile default
 
-- [ ] Criar leitor/escritor de `profiles/default/plugin-settings.json`.
-- [ ] Representar plugins habilitados no profile default.
-- [ ] Nao mudar ainda a UI.
-- [ ] Nao quebrar `registered_plugins.is_enabled`.
-- [ ] Documentar que por enquanto registry global ainda manda no enable/disable.
-- [ ] Testar leitura quando arquivo nao existe.
-- [ ] Testar escrita preservando formato.
-- [ ] Commit.
+- [x] Criar leitor/escritor de `profiles/default/plugin-settings.json`.
+- [x] Representar plugins habilitados no profile default.
+- [x] Nao mudar ainda a UI.
+- [x] Nao quebrar `registered_plugins.is_enabled`.
+- [x] Documentar que por enquanto registry global ainda manda no enable/disable.
+- [x] Testar leitura quando arquivo nao existe.
+- [x] Testar escrita preservando formato.
+- [x] Commit.
 
 ### Task 11 - Atualizar logs e diagnostico de startup
 
