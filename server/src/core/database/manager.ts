@@ -1,18 +1,20 @@
 import Database from "better-sqlite3";
 import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
+import { ensureNd8HomeStructure, nd8HomePaths } from "../runtime/nd8-home.ts";
+import { prepareNd8DataDirectory } from "../runtime/nd8-data-directory.ts";
 
 // ─── Resolve data directory ───────────────────────────────────────────────────
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+ensureNd8HomeStructure(nd8HomePaths);
+const dataPreparation = prepareNd8DataDirectory({ dataDir: nd8HomePaths.dataDir });
 
-const DATA_DIR = path.join(__dirname, "../../../../config/data");
-
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+if (dataPreparation.copied) {
+  console.log(
+    `[NOD8 | RUNTIME]: Copied legacy databases into ${nd8HomePaths.dataDir}: ${dataPreparation.files.join(", ")}`,
+  );
 }
+
+const DATA_DIR = nd8HomePaths.dataDir;
 
 // ─── Factory ──────────────────────────────────────────────────────────────────
 
@@ -33,7 +35,7 @@ function openDatabase(filename: string): Database.Database {
 /**
  * Central Database Manager.
  *
- * Each key maps to an isolated SQLite file in config/data/.
+ * Each key maps to an isolated SQLite file in ND8_HOME/data.
  * Consumers import this object instead of opening their own connections.
  *
  * @example
@@ -50,3 +52,15 @@ export const DatabaseManager = {
   /** Plugin credentials and OAuth2 tokens */
   credentials: openDatabase("credentials.db"),
 } as const;
+
+export function getDatabaseDirectory(): string {
+  return DATA_DIR;
+}
+
+export function closeDatabases(): void {
+  for (const db of Object.values(DatabaseManager)) {
+    if (db.open) {
+      db.close();
+    }
+  }
+}

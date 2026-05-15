@@ -253,23 +253,23 @@ Isso evita perder dados em update de pacote.
 
 ### Task 4 - Migrar DatabaseManager para ND8_HOME/data
 
-- [ ] Trocar abertura de bancos para usar runtime path resolver.
-- [ ] Garantir que migracoes continuam rodando igual.
-- [ ] Garantir que WAL e foreign keys continuam aplicados.
-- [ ] Adicionar log do diretorio de dados ativo.
-- [ ] Testar criacao dos quatro bancos em `ND8_HOME/data`.
-- [ ] Commit.
+- [x] Trocar abertura de bancos para usar runtime path resolver.
+- [x] Garantir que migracoes continuam rodando igual.
+- [x] Garantir que WAL e foreign keys continuam aplicados.
+- [x] Adicionar log do diretorio de dados ativo.
+- [x] Testar criacao dos quatro bancos em `ND8_HOME/data`.
+- [x] Commit.
 
 ### Task 5 - Compatibilidade com bancos antigos de dev
 
-- [ ] Detectar se `ND8_HOME/data` esta vazio.
-- [ ] Detectar se existe `config/data` antigo.
-- [ ] Copiar bancos antigos para `ND8_HOME/data` sem apagar origem.
-- [ ] Nao sobrescrever banco novo existente.
-- [ ] Logar migracao local de forma clara.
-- [ ] Testar copia segura.
-- [ ] Testar que segunda inicializacao nao copia de novo.
-- [ ] Commit.
+- [x] Detectar se `ND8_HOME/data` esta vazio.
+- [x] Detectar se existe `config/data` antigo.
+- [x] Copiar bancos antigos para `ND8_HOME/data` sem apagar origem.
+- [x] Nao sobrescrever banco novo existente.
+- [x] Logar migracao local de forma clara.
+- [x] Testar copia segura.
+- [x] Testar que segunda inicializacao nao copia de novo.
+- [x] Commit.
 
 ### Task 6 - Separar plugins internos e externos no loader
 
