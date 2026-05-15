@@ -3,11 +3,12 @@
 ## UX
 
 <!-- #1 -->
+
 - [x] Add global command palette
   - [x] Navigate pages
   - [x] Fuzzy search
   - [x] Quick actions:
-        Open Settings, 
+        Open Settings,
         Workflows(Open, Create, Delete, Publish, Unpublish, Import, Export, Rename, Stop Running, Copy Webhook/Form URL),
         Universe(Enter, Exit),
         Production Panel(Open, Close),
@@ -17,18 +18,21 @@
         Utility(Copy Workflow ID, Copy Webhook URL, Copy Form URL, Toggle Theme)
 
 <!-- #2 -->
+
 - [x] Add sidebar hints
 - [x] Hover modal
 - [x] Preview image
 - [x] Small description text
 
-<!-- #3 -->
+<!-- #999 -->
+
 - [ ] Add plugin hints
 - [ ] Plugin hint on hover on add node panel
 - [ ] Plugin description
 - [ ] Developer-defined content
 
 <!-- #999 -->
+
 - [ ] Add onboarding tutorial
 - [ ] First-launch detection
 - [ ] Minimal walkthrough
@@ -40,7 +44,11 @@
 
 ---
 
+- [ ] Wait For Callback Utility Node - wait for a response from a plugin and with expiration time
+- [ ] Image Editor Utility Node - Image editor with crop, resize, rotate, aspect ratio
+
 <!-- #5 -->
+
 ## Plugins
 
 ### Communication
@@ -70,6 +78,7 @@
 ---
 
 <!-- #6 -->
+
 - [ ] Add minimap
 - [ ] Draggable viewport
 - [ ] Node preview dots
@@ -77,6 +86,7 @@
 - [ ] Execution highlights
 
 <!-- #7 -->
+
 - [x] Add smart connections
 - [x] Auto-routing edges
 - [x] Avoid node overlap
@@ -84,29 +94,33 @@
 - [x] Magnetic snapping
 
 <!-- #8 -->
-- [ ] Add execution timeline
-- [ ] Step-by-step execution logs
-- [ ] Duration tracking
-- [ ] Retry visualization
-- [ ] Payload preview
-- [ ] Error trace panel
+
+- [x] Add execution timeline
+- [x] Step-by-step execution logs
+- [x] Duration tracking
+- [x] Retry visualization
+- [x] Payload preview
+- [x] Error trace panel
 
 <!-- #9 -->
-- [ ] Workflow variables
-- [ ] Add variable explorer
-- [ ] Secrets preview
-- [ ] Search/filter variables
-- [ ] Drag variables into fields
+
+- [x] Workflow variables
+- [x] Add variable explorer
+- [x] Secrets preview
+- [x] Search/filter variables
+- [x] Drag variables into fields
 
 <!-- #10 -->
-- [ ] Add autosave system
-- [ ] Save indicator
-- [ ] Draft recovery
-- [ ] Undo history
-- [ ] Redo history
-- [ ] Conflict handling
+
+- [x] Add autosave system
+- [x] Save indicator
+- [x] Draft recovery
+- [x] Undo history
+- [x] Redo history
+- [x] Conflict handling
 
 <!-- #11 -->
+
 - [ ] Add developer tools
 - [ ] Plugin debugger
 - [ ] Execution profiler
@@ -115,6 +129,7 @@
 - [ ] Workflow metrics
 
 <!-- #999 -->
+
 ## Polish
 
 - [ ] Improve loading states
@@ -123,3 +138,19 @@
 - [ ] Improve execution feedback visuals
 
 ---
+
+- [x] Add support to have more than 1 trigger per automation.
+
+<!--  -->
+
+Proximas funcionalidades antes de lançar:
+
+- [ ] Adicionar funcionalidades de ter varios perfis, cada perfil com sua configuração, workflows e plugins instalados.
+
+- [ ] Adicionar painel global que permite ver as automações rodando em tempo real em qualquer parte do sistema.
+
+- [ ] Adicionar tutorial inicial que vai ensinar tudo, vai ter uma parte do tutorial que vai mostrar todos os utilitarios, ai quando vc clicar em cada um deles vai abrir uma janelinha explicando com um gif e uma descrição como funciona aquele utilitario. Isso não tem no n8n, então quando tu instala o n8n pela primeira vez tu simplesmente não consegue fazer nada sem ver tutorial no youtube.
+
+- [ ] Adicionar um menu onde permite baixar plugins externos(opção de baixar em todos os perfis ou apenas no perfil atual). Dentro do menu você cola o link do repositorio ou selecionar/arrastar o arquivo zip, ele vai buscar as informações do plugin atraves do manifest.json, e vai mostrar no painel da direita as informações do plugin antes de instalar, informações como nome, descrição, icone, author, versão, metodos, etc.
+
+- [ ] Criar todos os gifs de tutorial do sistema.

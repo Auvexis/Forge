@@ -50,13 +50,15 @@ export function registerFormRoutes(
 
   fastify.get("/forms/:formId", async (req, reply) => {
     const { formId } = req.params as { formId: string };
-    const resolved = resolveFormWorkflowTrigger(formId, { requireActive: true });
+    // requireActive: false — allows draft/unpublished workflows to be accessed via the
+    // PROD URL, consistent with how webhook PROD URLs work (no publish requirement).
+    const resolved = resolveFormWorkflowTrigger(formId, { requireActive: false });
 
     if (!resolved) {
       return renderMissingFormPage(
         reply,
         "Form not available",
-        "This form is either inactive or does not exist.",
+        "This form does not exist.",
       );
     }
 
@@ -69,7 +71,8 @@ export function registerFormRoutes(
     const { formId } = req.params as { formId: string };
     const formMode = resolveFormMode((req.query as { mode?: string }).mode);
     const resolved = resolveFormWorkflowTrigger(formId, {
-      requireActive: formMode === "prod",
+      // requireActive: false — consistent with webhook PROD (no publish requirement)
+      requireActive: false,
     });
 
     if (!resolved) {
@@ -94,7 +97,7 @@ export function registerFormRoutes(
     const formMode = resolveFormMode((req.query as { mode?: string }).mode);
     const result = await processFormSubmission(
       formId,
-      { requireActive: formMode === "prod", mode: formMode },
+      { requireActive: false, mode: formMode },
       req,
     );
 
@@ -129,7 +132,8 @@ export function registerFormRoutes(
     const { formId } = req.params as { formId: string };
     return handleFormSubmission(
       formId,
-      { requireActive: true, mode: "prod" },
+      // requireActive: false — consistent with webhook PROD (no publish requirement)
+      { requireActive: false, mode: "prod" },
       req,
       reply,
     );
