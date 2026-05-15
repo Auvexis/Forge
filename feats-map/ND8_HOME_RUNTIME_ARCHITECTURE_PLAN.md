@@ -325,31 +325,31 @@ Isso evita perder dados em update de pacote.
 
 ### Task 11 - Atualizar logs e diagnostico de startup
 
-- [ ] Logar `ND8_HOME` resolvido.
-- [ ] Logar data dir ativo.
-- [ ] Logar quantidade de plugins internos carregados.
-- [ ] Logar quantidade de plugins externos carregados.
-- [ ] Logar plugins ignorados por erro.
-- [ ] Nao logar credentials, tokens ou secrets.
-- [ ] Testar mensagens principais com mocks.
-- [ ] Commit.
+- [x] Logar `ND8_HOME` resolvido.
+- [x] Logar data dir ativo.
+- [x] Logar quantidade de plugins internos carregados.
+- [x] Logar quantidade de plugins externos carregados.
+- [x] Logar plugins ignorados por erro.
+- [x] Nao logar credentials, tokens ou secrets.
+- [x] Testar mensagens principais com mocks.
+- [x] Commit.
 
 ### Task 12 - Atualizar documentacao de Docker
 
-- [ ] Documentar `ND8_HOME=/app/.nd8`.
-- [ ] Documentar volume nomeado.
-- [ ] Documentar bind mount local.
-- [ ] Explicar que sem volume os dados nao sobrevivem remocao do container.
-- [ ] Explicar onde ficam bancos e plugins externos.
-- [ ] Commit.
+- [x] Documentar `ND8_HOME=/app/.nd8`.
+- [x] Documentar volume nomeado.
+- [x] Documentar bind mount local.
+- [x] Explicar que sem volume os dados nao sobrevivem remocao do container.
+- [x] Explicar onde ficam bancos e plugins externos.
+- [x] Commit.
 
 ### Task 13 - Atualizar documentacao de npm
 
-- [ ] Documentar default home por OS.
-- [ ] Documentar override por env var `ND8_HOME`.
-- [ ] Explicar que plugins externos nao ficam dentro do pacote npm.
-- [ ] Explicar que updates do pacote nao apagam `ND8_HOME`.
-- [ ] Commit.
+- [x] Documentar default home por OS.
+- [x] Documentar override por env var `ND8_HOME`.
+- [x] Explicar que plugins externos nao ficam dentro do pacote npm.
+- [x] Explicar que updates do pacote nao apagam `ND8_HOME`.
+- [x] Commit.
 
 ### Task 14 - Regressao backend
 

@@ -8,14 +8,19 @@ services:
     container_name: nod8-server
     ports:
       - "23801:23801"
+    environment:
+      - ND8_HOME=/app/.nd8
     volumes:
-      - ./server/data:/app/data
+      - nd8_data:/app/.nd8
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:23801/"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: always
+
+volumes:
+  nd8_data:
 
   nod8-client:
     build: 

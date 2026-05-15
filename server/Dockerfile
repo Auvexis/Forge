@@ -4,6 +4,8 @@ FROM node:22-alpine
 # Set the working directory
 WORKDIR /app
 
+ENV ND8_HOME=/app/.nd8
+
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
@@ -17,7 +19,7 @@ COPY . .
 RUN npx tsc
 
 # Expose the port the app runs on
-EXPOSE 8032
+EXPOSE 23801
 
 # Start the application
 CMD ["node", "dist/core/server.js"]

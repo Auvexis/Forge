@@ -14,6 +14,8 @@ import { initializeDatabases } from "./database/index.ts";
 import { loadPlugins } from "./modules/plugins/loader.ts";
 import { Scheduler } from "./modules/scheduler/scheduler.ts";
 import { devWorkflowSessionRuntime } from "./modules/workflows/dev-session/runtime.ts";
+import { nd8HomePaths } from "./runtime/nd8-home.ts";
+import { formatRuntimeDiagnostics } from "./runtime/runtime-diagnostics.ts";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
@@ -50,6 +52,10 @@ await fastify.register(cors, {
   methods: ["*"],
   credentials: true,
 });
+
+for (const line of formatRuntimeDiagnostics(nd8HomePaths)) {
+  console.log(line);
+}
 
 await initializeDatabases();
 await loadPlugins();
