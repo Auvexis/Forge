@@ -37,7 +37,7 @@ function writeRelease(root: string): string {
       description: "Tools",
       icon: "plug",
       category: "dev",
-      author: "ND8",
+      author: "SAILOR",
       version: "1.0.0",
       repository: "https://github.com/acme/github-tools",
     },
@@ -46,7 +46,7 @@ function writeRelease(root: string): string {
         metadata: { label: "Ping", description: "Ping" },
         parameters: { type: "object", properties: {} },
         responseSchema: { type: "object", properties: {} },
-        ui: { component: "form" },
+        ui: { component: "card" },
       },
     },
   };
@@ -60,7 +60,7 @@ function writeRelease(root: string): string {
 
 describe("installExternalPlugin", () => {
   it("installs release into an installId folder, registers it and enables profile scope", () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-install-"));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-install-"));
     const sourceRoot = path.join(home, "source");
     const releaseDir = writeRelease(sourceRoot);
     const db = createDb();
@@ -103,7 +103,7 @@ describe("installExternalPlugin", () => {
   });
 
   it("cleans staging when dependency installation fails", () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-install-"));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-install-"));
     const sourceRoot = path.join(home, "source");
     const releaseDir = writeRelease(sourceRoot);
     const db = createDb();

@@ -13,7 +13,7 @@ const validManifest = {
     description: "Preview only",
     icon: "plug",
     category: "test",
-    author: "ND8",
+    author: "SAILOR",
     version: "1.0.0",
     repository: "",
   },
@@ -22,14 +22,14 @@ const validManifest = {
       metadata: { label: "Ping", description: "Ping" },
       parameters: { type: "object", properties: {} },
       responseSchema: { type: "object", properties: {} },
-      ui: { component: "form" },
+      ui: { component: "card" },
     },
   },
 };
 
 describe("readPluginManifestPreview", () => {
   it("reads and validates manifest metadata without executing plugin code", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-preview-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
     const marker = path.join(dir, "executed.txt");
     fs.writeFileSync(path.join(dir, "manifest.json"), JSON.stringify(validManifest));
     fs.writeFileSync(path.join(dir, "index.js"), `import fs from "node:fs"; fs.writeFileSync(${JSON.stringify(marker)}, "ran");`);
@@ -43,19 +43,19 @@ describe("readPluginManifestPreview", () => {
   });
 
   it("returns validation errors for invalid manifests", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-preview-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
     fs.writeFileSync(path.join(dir, "manifest.json"), JSON.stringify({ metadata: { id: "Bad ID" } }));
 
     const preview = readPluginManifestPreview(path.join(dir, "manifest.json"));
 
     assert.equal(preview.valid, false);
     assert.equal(preview.manifest, null);
-    assert.match(preview.errors.join("\n"), /metadata.id must be kebab-case/);
-    assert.match(preview.errors.join("\n"), /Missing or invalid 'methods' section/);
+    assert.match(preview.errors.join("\n"), /metadata.id must match pattern/);
+    assert.match(preview.errors.join("\n"), /root must have required property 'methods'/);
   });
 
   it("returns structured preview metadata, methods, triggers, auth type and warnings", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-preview-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
     const manifest = {
       ...validManifest,
       auth: { type: "api_key" },

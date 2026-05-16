@@ -5,8 +5,8 @@ import path from "node:path";
 import { describe, it } from "node:test";
 import Database from "better-sqlite3";
 
-import { loadPlugins } from "./loader.ts";
-import type { Nod8Plugin } from "../../../shared/models/plugin-types.ts";
+import { loadPlugins, validateManifest } from "./loader.ts";
+import type { SailorPlugin } from "../../../shared/models/plugin-types.ts";
 
 function createRegistryDb(): Database.Database {
   const db = new Database(":memory:");
@@ -43,7 +43,7 @@ function writePlugin(root: string, id: string, version = "1.0.0"): string {
             description: "Test plugin",
             icon: "plug",
             category: "test",
-            author: "ND8",
+            author: "SAILOR",
             version: ${JSON.stringify(version)},
             repository: ""
           },
@@ -52,7 +52,7 @@ function writePlugin(root: string, id: string, version = "1.0.0"): string {
               metadata: { label: "Ping", description: "Ping" },
               parameters: { type: "object", properties: {} },
               responseSchema: { type: "object", properties: {} },
-              ui: { component: "form" }
+              ui: { component: "card" }
             }
           }
         },
@@ -64,7 +64,7 @@ function writePlugin(root: string, id: string, version = "1.0.0"): string {
   return pluginDir;
 }
 
-function pluginFromEntrypoint(entrypoint: string, pluginId = path.basename(path.dirname(entrypoint))): Nod8Plugin {
+function pluginFromEntrypoint(entrypoint: string, pluginId = path.basename(path.dirname(entrypoint))): SailorPlugin {
   const id = pluginId;
   return {
     id,
@@ -75,7 +75,46 @@ function pluginFromEntrypoint(entrypoint: string, pluginId = path.basename(path.
         description: "Test plugin",
         icon: "plug",
         category: "test",
-        author: "ND8",
+        author: "SAILOR",
+        version: "1.0.0",
+        repository: "",
+      },
+      methods: {
+        ping: {
+          metadata: { label: "Ping", description: "Ping" },
+          parameters: { type: "object", properties: {} },
+          responseSchema: { type: "object", properties: {} },
+          ui: { component: "card" },
+        },
+      },
+    },
+    auth: { type: "none" },
+    methods: { ping: async () => ({ ok: true }) },
+  };
+}
+
+function createManager() {
+  const registered: SailorPlugin[] = [];
+  return {
+    registered,
+    manager: {
+      registerPlugin(plugin: SailorPlugin) {
+        registered.push(plugin);
+      },
+    },
+  };
+}
+
+describe("loadPlugins", () => {
+  it("validates manifests using the public Sailor SDK contract", () => {
+    const errors = validateManifest({
+      metadata: {
+        id: "sdk-contract-plugin",
+        name: "SDK Contract Plugin",
+        description: "Checks SDK validation",
+        icon: "plug",
+        category: "test",
+        author: "SAILOR",
         version: "1.0.0",
         repository: "",
       },
@@ -87,27 +126,15 @@ function pluginFromEntrypoint(entrypoint: string, pluginId = path.basename(path.
           ui: { component: "form" },
         },
       },
-    },
-    auth: { type: "none" },
-    methods: { ping: async () => ({ ok: true }) },
-  };
-}
+    });
 
-function createManager() {
-  const registered: Nod8Plugin[] = [];
-  return {
-    registered,
-    manager: {
-      registerPlugin(plugin: Nod8Plugin) {
-        registered.push(plugin);
-      },
-    },
-  };
-}
+    assert.deepEqual(errors, [
+      "methods.ping.ui.component must be equal to one of the allowed values",
+    ]);
+  });
 
-describe("loadPlugins", () => {
   it("loads internal and external plugin sources into the registry", async () => {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-loader-"));
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
     const internalDir = path.join(temp, "internal");
     const externalDir = path.join(temp, "external");
     writePlugin(internalDir, "internal-one");
@@ -137,7 +164,7 @@ describe("loadPlugins", () => {
   });
 
   it("loads external plugins under install id when manifest id conflicts with internal plugin ids", async () => {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-loader-"));
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
     const internalDir = path.join(temp, "internal");
     const externalDir = path.join(temp, "external");
     writePlugin(internalDir, "same-plugin");
@@ -178,7 +205,7 @@ describe("loadPlugins", () => {
   });
 
   it("does not throw when external plugin directory is missing or invalid", async () => {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-loader-"));
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
     const internalDir = path.join(temp, "internal");
     const externalDir = path.join(temp, "missing-external");
     const invalidDir = path.join(temp, "invalid");
