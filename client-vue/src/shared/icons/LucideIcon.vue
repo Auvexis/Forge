@@ -58,10 +58,12 @@ const sizeCss = computed(() => {
 })
 
 const maskStyle = computed(() => {
+  const tintColor = props.color === 'currentColor' ? 'var(--sailor-text-primary)' : props.color
+
   return {
     width: sizeCss.value,
     height: sizeCss.value,
-    color: props.color,
+    color: tintColor,
     '--sailor-icon-mask': `url("${String(props.name).replaceAll('"', '\\"')}")`,
   }
 })
