@@ -123,7 +123,7 @@ Use one active profile per backend process/UI session.
   - Add tests for first boot with no Sailor home and with existing default profile files.
   - Expected result: runtime path ownership is explicit.
 
-- [ ] Task 6: Add profile database manager
+- [x] Task 6: Add profile database manager
   - Add `server/src/core/profiles/profile-database-manager.ts`.
   - Manage database handles for one active profile.
   - Provide `open(profilePaths)`, `close()`, and getters for `app`, `workflows`, `plugins`, and `credentials`.
