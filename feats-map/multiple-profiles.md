@@ -137,7 +137,7 @@ Use one active profile per backend process/UI session.
   - Add tests proving migrations run independently for profile A and profile B.
   - Expected result: every profile has complete schema without sharing rows.
 
-- [ ] Task 8: Add active profile service
+- [x] Task 8: Add active profile service
   - Add `server/src/core/profiles/active-profile-service.ts`.
   - Own startup activation and profile switching flow.
   - Sequence: load profile index, verify password when required, resolve profile paths, open DBs, run migrations, load profile plugin settings, load plugins, resync scheduler.
