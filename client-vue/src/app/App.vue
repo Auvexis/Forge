@@ -19,6 +19,7 @@
             <AppSidebar
               :collapsed="isSidebarCollapsed"
               :show-logo="isSidebarCollapsed"
+              @sign-out="hasEnteredProfile = false"
               @toggle-collapsed="isSidebarCollapsed = !isSidebarCollapsed"
             >
               <template v-if="isSidebarCollapsed" #header-extra>

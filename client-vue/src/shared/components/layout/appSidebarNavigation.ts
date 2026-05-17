@@ -220,8 +220,6 @@ export const sidebarMainActiveStyle = {
   usesTextUnderline: true,
 } as const
 
-export const sidebarProfileIcon = 'grip'
-
 export const sidebarReferenceSpacing = {
   headerHeightPx: 58,
   horizontalPaddingPx: 18,

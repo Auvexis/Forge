@@ -244,7 +244,7 @@ Use one active profile per backend process/UI session.
   - For deleting a profile, require typing `DELETE` in a confirmation input before deletion.
   - Expected result: profile entry is deliberate, clean, and prevents accidental destructive deletion.
 
-- [ ] Task 21: Add sidebar profile menu
+- [x] Task 21: Add sidebar profile menu
   - Replace the current static profile/control area in `AppSidebar.vue` with a profile switcher component.
   - Add `client-vue/src/shared/components/layout/ProfileSwitcher.vue`.
   - Replace the grid-of-dots icon with the active profile avatar emoji.

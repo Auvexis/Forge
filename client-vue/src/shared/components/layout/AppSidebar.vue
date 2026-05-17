@@ -7,12 +7,11 @@
         alt="Sailor"
         class="app-sidebar__logo"
       />
-      <div class="app-sidebar__profile" aria-hidden="true">
-        <LucideIcon :name="sidebarProfileIcon" :size="26" stroke-width="1.5" />
-      </div>
-      <div class="app-sidebar__identity">
-        <span class="app-sidebar__name">Workspace</span>
-      </div>
+      <ProfileSwitcher
+        class="app-sidebar__profile-switcher"
+        :collapsed="collapsed"
+        @sign-out="$emit('sign-out')"
+      />
       <button
         class="app-sidebar__collapse"
         type="button"
@@ -38,8 +37,8 @@
 
 <script setup lang="ts">
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { sidebarProfileIcon } from './appSidebarNavigation'
 import { useTheme } from '@/shared/composables/useTheme'
+import ProfileSwitcher from './ProfileSwitcher.vue'
 
 defineProps<{
   collapsed?: boolean
@@ -48,6 +47,7 @@ defineProps<{
 
 defineEmits<{
   (e: 'toggle-collapsed'): void
+  (e: 'sign-out'): void
 }>()
 
 const { logoSrc } = useTheme()
@@ -112,28 +112,9 @@ const { logoSrc } = useTheme()
   user-select: none;
 }
 
-.app-sidebar__profile {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 auto;
-  color: var(--sailor-sidebar-text);
-}
-
-.app-sidebar__identity {
-  display: flex;
+.app-sidebar__profile-switcher {
   flex: 1;
   min-width: 0;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.app-sidebar__name,
-.app-sidebar__name {
-  color: var(--sailor-sidebar-text);
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-medium);
 }
 
 .app-sidebar__collapse {
@@ -192,8 +173,8 @@ const { logoSrc } = useTheme()
   padding: var(--sailor-space-3) var(--sailor-space-1);
 }
 
-.app-sidebar--collapsed .app-sidebar__identity {
-  display: none;
+.app-sidebar--collapsed .app-sidebar__profile-switcher {
+  flex: 0 0 auto;
 }
 
 .app-sidebar--collapsed .app-sidebar__main {

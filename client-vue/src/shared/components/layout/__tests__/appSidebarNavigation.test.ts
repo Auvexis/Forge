@@ -7,7 +7,6 @@ import {
   sidebarSections,
   sidebarMainUsesWoobyMenu,
   sidebarMainActiveStyle,
-  sidebarProfileIcon,
   sidebarReferenceSpacing,
   sidebarWidthForState,
 } from '../appSidebarNavigation.ts'
@@ -73,10 +72,6 @@ describe('app sidebar navigation', () => {
       topbarHasBottomBorder: true,
       sidebarSeparatorStartsBelowHeader: true,
     })
-  })
-
-  it('uses a grip icon for the workspace profile control', () => {
-    assert.equal(sidebarProfileIcon, 'grip')
   })
 
   it('uses text underline active styling for main suite items', () => {
