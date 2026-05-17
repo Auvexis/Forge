@@ -521,7 +521,7 @@ git commit -m "feat(plugins): scaffold supabase plugin"
 - Modify: `server/src/plugins/sailor/supabase/manifest.json`
 - Modify: `server/src/plugins/sailor/supabase/methods.test.ts`
 
-- [ ] **Step 1: Escrever testes falhando para filtros**
+- [x] **Step 1: Escrever testes falhando para filtros**
 
 ```ts
 import assert from "node:assert/strict";
@@ -547,19 +547,19 @@ assert.deepEqual(calls, [
 ]);
 ```
 
-- [ ] **Step 2: Implementar client**
+- [x] **Step 2: Implementar client**
 
 Criar `createClientFromContext(context)` usando `createClient(url, key, { db: { schema } })` e erro claro quando faltar URL/key.
 
-- [ ] **Step 3: Implementar filtros**
+- [x] **Step 3: Implementar filtros**
 
 Permitir operadores `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `ilike`, `is`, `in`; qualquer outro operador lança erro.
 
-- [ ] **Step 4: Implementar metodos DB**
+- [x] **Step 4: Implementar metodos DB**
 
 Implementar `testConnection`, `listTables`, `selectRows`, `insertRow`, `updateRows`, `deleteRows`, `upsertRow`, `callRpc`. `deleteRows` exige `confirm === true`.
 
-- [ ] **Step 5: SQL da RPC para README/erro**
+- [x] **Step 5: SQL da RPC para README/erro**
 
 Usar esta mensagem quando `listTables` falhar por RPC ausente:
 
@@ -576,11 +576,11 @@ as $$
 $$;
 ```
 
-- [ ] **Step 6: Atualizar manifest**
+- [x] **Step 6: Atualizar manifest**
 
 Adicionar schemas de parametros para DB/RPC com `table`, `filters`, `row`, `patch`, `payload`, `limit`, `offset`, `orderBy`, `confirm`.
 
-- [ ] **Step 7: Rodar testes**
+- [x] **Step 7: Rodar testes**
 
 Run:
 ```bash
@@ -589,7 +589,7 @@ node --loader ts-node/esm --test src/plugins/sailor/supabase/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add server/src/plugins/sailor/supabase feats-map/default-database-canary-plugins.md

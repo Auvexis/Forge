@@ -32,6 +32,140 @@
           "ok": { "type": "boolean" }
         }
       }
+    },
+    "listTables": {
+      "metadata": {
+        "label": "List Tables",
+        "description": "Lists tables through the sailor_list_tables RPC."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "schema": { "type": "string", "description": "Schema name. Default: credential schema or public.", "default": "public", "x-input-type": "text" }
+        },
+        "required": []
+      },
+      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+    },
+    "selectRows": {
+      "metadata": {
+        "label": "Select Rows",
+        "description": "Selects rows with optional filters, ordering, limit, and offset."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
+          "columns": { "type": "array", "description": "Columns to select. Empty selects all.", "items": { "type": "string" }, "x-input-type": "json" },
+          "filters": {
+            "type": "array",
+            "description": "Filters with operators: eq, neq, gt, gte, lt, lte, ilike, is, in.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "column": { "type": "string" },
+                "operator": { "type": "string", "enum": ["eq", "neq", "gt", "gte", "lt", "lte", "ilike", "is", "in"] },
+                "value": {}
+              },
+              "required": ["column", "operator", "value"],
+              "additionalProperties": false
+            },
+            "x-input-type": "json"
+          },
+          "orderBy": {
+            "type": "object",
+            "description": "Order configuration.",
+            "properties": {
+              "column": { "type": "string" },
+              "direction": { "type": "string", "enum": ["asc", "desc"] }
+            },
+            "additionalProperties": false,
+            "x-input-type": "json"
+          },
+          "limit": { "type": "number", "description": "Maximum rows. Max: 1000.", "default": 100, "x-input-type": "number" },
+          "offset": { "type": "number", "description": "Rows to skip.", "default": 0, "x-input-type": "number" }
+        },
+        "required": ["table"]
+      },
+      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+    },
+    "insertRow": {
+      "metadata": {
+        "label": "Insert Row",
+        "description": "Inserts one row and returns it."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
+          "row": { "type": "object", "description": "Row values.", "additionalProperties": true, "x-input-type": "json" }
+        },
+        "required": ["table", "row"]
+      },
+      "responseSchema": { "type": "object", "properties": {} }
+    },
+    "updateRows": {
+      "metadata": {
+        "label": "Update Rows",
+        "description": "Updates rows matching filters and returns changed rows."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
+          "patch": { "type": "object", "description": "Fields to update.", "additionalProperties": true, "x-input-type": "json" },
+          "filters": { "type": "array", "description": "Filter list.", "items": { "type": "object", "additionalProperties": true }, "x-input-type": "json" }
+        },
+        "required": ["table", "patch"]
+      },
+      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+    },
+    "deleteRows": {
+      "metadata": {
+        "label": "Delete Rows",
+        "description": "Deletes rows matching filters and requires confirm: true."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
+          "filters": { "type": "array", "description": "Filter list.", "items": { "type": "object", "additionalProperties": true }, "x-input-type": "json" },
+          "confirm": { "type": "boolean", "description": "Must be true to delete rows.", "x-input-type": "toggle" }
+        },
+        "required": ["table", "confirm"]
+      },
+      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+    },
+    "upsertRow": {
+      "metadata": {
+        "label": "Upsert Row",
+        "description": "Upserts one row and returns it."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
+          "row": { "type": "object", "description": "Row values.", "additionalProperties": true, "x-input-type": "json" },
+          "onConflict": { "type": "string", "description": "Comma-separated conflict columns.", "x-input-type": "text" }
+        },
+        "required": ["table", "row"]
+      },
+      "responseSchema": { "type": "object", "properties": {} }
+    },
+    "callRpc": {
+      "metadata": {
+        "label": "Call RPC",
+        "description": "Calls a Supabase Postgres function with a JSON payload."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "RPC function name.", "x-input-type": "text" },
+          "payload": { "type": "object", "description": "RPC payload.", "additionalProperties": true, "x-input-type": "json" }
+        },
+        "required": ["name"]
+      },
+      "responseSchema": { "type": "object", "properties": {} }
     }
   }
 }
