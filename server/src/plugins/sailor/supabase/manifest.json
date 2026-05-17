@@ -166,6 +166,79 @@
         "required": ["name"]
       },
       "responseSchema": { "type": "object", "properties": {} }
+    },
+    "uploadObject": {
+      "metadata": {
+        "label": "Upload Object",
+        "description": "Uploads text or base64 content to Supabase Storage."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "bucket": { "type": "string", "description": "Storage bucket.", "x-input-type": "text" },
+          "path": { "type": "string", "description": "Object path.", "x-input-type": "text" },
+          "content": { "type": "string", "description": "Text or base64 content.", "x-input-type": "textarea" },
+          "encoding": { "type": "string", "description": "text or base64. Default: text.", "enum": ["text", "base64"], "default": "text", "x-input-type": "select" },
+          "contentType": { "type": "string", "description": "MIME type.", "x-input-type": "text" },
+          "upsert": { "type": "boolean", "description": "Replace existing object.", "x-input-type": "toggle" }
+        },
+        "required": ["bucket", "path", "content"]
+      },
+      "responseSchema": { "type": "object", "properties": {} }
+    },
+    "downloadObject": {
+      "metadata": {
+        "label": "Download Object",
+        "description": "Downloads a Storage object as base64."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "bucket": { "type": "string", "description": "Storage bucket.", "x-input-type": "text" },
+          "path": { "type": "string", "description": "Object path.", "x-input-type": "text" }
+        },
+        "required": ["bucket", "path"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "content": { "type": "string" },
+          "encoding": { "type": "string" },
+          "contentType": { "type": "string" },
+          "sizeBytes": { "type": "number" }
+        }
+      }
+    },
+    "deleteObject": {
+      "metadata": {
+        "label": "Delete Object",
+        "description": "Deletes one Storage object."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "bucket": { "type": "string", "description": "Storage bucket.", "x-input-type": "text" },
+          "path": { "type": "string", "description": "Object path.", "x-input-type": "text" }
+        },
+        "required": ["bucket", "path"]
+      },
+      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+    },
+    "createSignedUrl": {
+      "metadata": {
+        "label": "Create Signed URL",
+        "description": "Creates a temporary signed URL for a Storage object."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "bucket": { "type": "string", "description": "Storage bucket.", "x-input-type": "text" },
+          "path": { "type": "string", "description": "Object path.", "x-input-type": "text" },
+          "expiresIn": { "type": "number", "description": "Seconds until expiration. Default: 3600.", "default": 3600, "x-input-type": "number" }
+        },
+        "required": ["bucket", "path"]
+      },
+      "responseSchema": { "type": "object", "properties": {} }
     }
   }
 }

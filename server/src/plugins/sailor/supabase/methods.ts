@@ -66,6 +66,22 @@ type CallRpcParams = {
   payload?: Record<string, unknown>;
 };
 
+type StorageObjectParams = {
+  bucket: string;
+  path: string;
+};
+
+type UploadObjectParams = StorageObjectParams & {
+  content: string;
+  encoding?: string;
+  contentType?: string;
+  upsert?: boolean;
+};
+
+type CreateSignedUrlParams = StorageObjectParams & {
+  expiresIn?: number;
+};
+
 export function createClientFromContext(context?: PluginContext) {
   const url = context?.credentials?.url;
   const key = context?.credentials?.key;
@@ -151,6 +167,12 @@ function applyOrderToQuery<T extends SupabaseQuery>(query: T, orderBy?: OrderBy)
 function selectedColumns(columns?: string[]): string {
   if (!columns || columns.length === 0) return "*";
   return columns.join(",");
+}
+
+export function contentToBuffer(params: { content: string; encoding?: string }): Buffer {
+  if (params.encoding === "base64") return Buffer.from(params.content, "base64");
+  if (!params.encoding || params.encoding === "text") return Buffer.from(params.content, "utf8");
+  throw new Error("Unsupported storage encoding.");
 }
 
 export function createSupabaseMethods() {
@@ -253,6 +275,52 @@ export function createSupabaseMethods() {
     async callRpc(params: CallRpcParams, context?: PluginContext) {
       const client = createClientFromContext(context);
       const { data, error } = await client.rpc(params.name, params.payload ?? {});
+
+      throwIfError(error);
+      return data;
+    },
+
+    async uploadObject(params: UploadObjectParams, context?: PluginContext) {
+      const client = createClientFromContext(context);
+      const content = contentToBuffer(params);
+      const { data, error } = await client.storage.from(params.bucket).upload(params.path, content, {
+        contentType: params.contentType,
+        upsert: params.upsert === true,
+      });
+
+      throwIfError(error);
+      return data;
+    },
+
+    async downloadObject(params: StorageObjectParams, context?: PluginContext) {
+      const client = createClientFromContext(context);
+      const { data, error } = await client.storage.from(params.bucket).download(params.path);
+
+      throwIfError(error);
+      if (!data) throw new Error("Supabase storage object was not returned.");
+
+      const buffer = Buffer.from(await data.arrayBuffer());
+      return {
+        content: buffer.toString("base64"),
+        encoding: "base64",
+        contentType: data.type || "application/octet-stream",
+        sizeBytes: buffer.byteLength,
+      };
+    },
+
+    async deleteObject(params: StorageObjectParams, context?: PluginContext) {
+      const client = createClientFromContext(context);
+      const { data, error } = await client.storage.from(params.bucket).remove([params.path]);
+
+      throwIfError(error);
+      return data ?? [];
+    },
+
+    async createSignedUrl(params: CreateSignedUrlParams, context?: PluginContext) {
+      const client = createClientFromContext(context);
+      const { data, error } = await client.storage
+        .from(params.bucket)
+        .createSignedUrl(params.path, params.expiresIn ?? 3600);
 
       throwIfError(error);
       return data;

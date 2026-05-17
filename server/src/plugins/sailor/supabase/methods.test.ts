@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import plugin from "./index.ts";
-import { applyFiltersToQuery, createSupabaseMethods } from "./methods.ts";
+import { applyFiltersToQuery, contentToBuffer, createSupabaseMethods } from "./methods.ts";
 
 describe("supabase plugin", () => {
   it("exports default internal Sailor plugin", () => {
@@ -61,5 +61,23 @@ describe("supabase helpers", () => {
     assert.equal(typeof methods.deleteRows, "function");
     assert.equal(typeof methods.upsertRow, "function");
     assert.equal(typeof methods.callRpc, "function");
+  });
+
+  it("converts storage content to buffers", () => {
+    assert.equal(contentToBuffer({ content: "hello", encoding: "text" }).toString("utf8"), "hello");
+    assert.equal(
+      contentToBuffer({ content: Buffer.from("hello").toString("base64"), encoding: "base64" }).toString("utf8"),
+      "hello",
+    );
+    assert.throws(() => contentToBuffer({ content: "x", encoding: "zip" }), /Unsupported storage encoding/);
+  });
+
+  it("exposes storage methods", () => {
+    const methods = createSupabaseMethods();
+
+    assert.equal(typeof methods.uploadObject, "function");
+    assert.equal(typeof methods.downloadObject, "function");
+    assert.equal(typeof methods.deleteObject, "function");
+    assert.equal(typeof methods.createSignedUrl, "function");
   });
 });

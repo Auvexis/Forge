@@ -603,7 +603,7 @@ git commit -m "feat(supabase): add database and rpc methods"
 - Modify: `server/src/plugins/sailor/supabase/manifest.json`
 - Modify: `server/src/plugins/sailor/supabase/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando para payload**
+- [x] **Step 1: Escrever teste falhando para payload**
 
 ```ts
 import assert from "node:assert/strict";
@@ -614,7 +614,7 @@ assert.equal(contentToBuffer({ content: Buffer.from("hello").toString("base64"),
 assert.throws(() => contentToBuffer({ content: "x", encoding: "zip" }), /Unsupported storage encoding/);
 ```
 
-- [ ] **Step 2: Implementar helper**
+- [x] **Step 2: Implementar helper**
 
 ```ts
 export function contentToBuffer(params: { content: string; encoding?: string }): Buffer {
@@ -624,15 +624,15 @@ export function contentToBuffer(params: { content: string; encoding?: string }):
 }
 ```
 
-- [ ] **Step 3: Implementar metodos Storage**
+- [x] **Step 3: Implementar metodos Storage**
 
 Implementar `uploadObject`, `downloadObject`, `deleteObject`, `createSignedUrl`. `downloadObject` retorna `{ content, encoding, contentType, sizeBytes }`.
 
-- [ ] **Step 4: Atualizar manifest**
+- [x] **Step 4: Atualizar manifest**
 
 Adicionar `bucket`, `path`, `content`, `encoding`, `contentType`, `upsert`, `expiresIn`.
 
-- [ ] **Step 5: Rodar testes**
+- [x] **Step 5: Rodar testes**
 
 Run:
 ```bash
@@ -641,7 +641,7 @@ node --loader ts-node/esm --test src/plugins/sailor/supabase/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/plugins/sailor/supabase feats-map/default-database-canary-plugins.md
