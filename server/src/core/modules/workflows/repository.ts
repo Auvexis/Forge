@@ -1,11 +1,26 @@
 import { DatabaseManager } from "../../database/index.ts";
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
+import type Database from "better-sqlite3";
 
-const db = DatabaseManager.workflows;
+type WorkflowDatabaseProvider = () => Database.Database;
+
+let workflowDatabaseProvider: WorkflowDatabaseProvider = () => DatabaseManager.workflows;
+
+export function setWorkflowDatabaseProvider(provider: WorkflowDatabaseProvider): void {
+  workflowDatabaseProvider = provider;
+}
+
+export function resetWorkflowDatabaseProvider(): void {
+  workflowDatabaseProvider = () => DatabaseManager.workflows;
+}
+
+function getWorkflowDatabase(): Database.Database {
+  return workflowDatabaseProvider();
+}
 
 export const WorkflowRepository = {
   saveWorkflow: (workflow: WorkflowItem) => {
-    const stmt = db.prepare(
+    const stmt = getWorkflowDatabase().prepare(
       `INSERT INTO workflows (id, name, description, version, is_active, is_public, is_draft, created_at, published_at, definition)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
@@ -34,13 +49,13 @@ export const WorkflowRepository = {
   },
 
   getWorkflows: (): WorkflowItem[] => {
-    const stmt = db.prepare(`SELECT definition FROM workflows`);
+    const stmt = getWorkflowDatabase().prepare(`SELECT definition FROM workflows`);
     const rows = stmt.all() as { definition: string }[];
     return rows.map((row) => migrateWorkflow(JSON.parse(row.definition)));
   },
 
   getActiveWorkflows: (): WorkflowItem[] => {
-    const stmt = db.prepare(
+    const stmt = getWorkflowDatabase().prepare(
       `SELECT definition FROM workflows WHERE is_active = 1 AND is_draft = 0`
     );
     const rows = stmt.all() as { definition: string }[];
@@ -48,7 +63,7 @@ export const WorkflowRepository = {
   },
 
   getDrafts: (): WorkflowItem[] => {
-    const stmt = db.prepare(
+    const stmt = getWorkflowDatabase().prepare(
       `SELECT definition FROM workflows WHERE is_draft = 1`
     );
     const rows = stmt.all() as { definition: string }[];
@@ -56,19 +71,19 @@ export const WorkflowRepository = {
   },
 
   getWorkflowById: (id: string): WorkflowItem | null => {
-    const stmt = db.prepare(`SELECT definition FROM workflows WHERE id = ?`);
+    const stmt = getWorkflowDatabase().prepare(`SELECT definition FROM workflows WHERE id = ?`);
     const row = stmt.get(id) as { definition: string } | undefined;
     if (!row) return null;
     return migrateWorkflow(JSON.parse(row.definition));
   },
 
   deleteWorkflow: (id: string) => {
-    const stmt = db.prepare(`DELETE FROM workflows WHERE id = ?`);
+    const stmt = getWorkflowDatabase().prepare(`DELETE FROM workflows WHERE id = ?`);
     stmt.run(id);
   },
 
   deleteWorkflowExecutions: (workflowId: string) => {
-    const stmt = db.prepare(`DELETE FROM workflow_executions WHERE workflow_id = ?`);
+    const stmt = getWorkflowDatabase().prepare(`DELETE FROM workflow_executions WHERE workflow_id = ?`);
     stmt.run(workflowId);
   },
 
@@ -78,7 +93,7 @@ export const WorkflowRepository = {
    */
   publishWorkflow: (id: string): WorkflowItem | null => {
     const now = new Date().toISOString();
-    db.prepare(
+    getWorkflowDatabase().prepare(
       `UPDATE workflows SET is_active=1, is_draft=0, published_at=? WHERE id=?`
     ).run(now, id);
 
@@ -91,7 +106,7 @@ export const WorkflowRepository = {
     workflow.metadata.updatedAt = now;
 
     // Persist the updated definition blob
-    db.prepare(`UPDATE workflows SET definition=? WHERE id=?`).run(
+    getWorkflowDatabase().prepare(`UPDATE workflows SET definition=? WHERE id=?`).run(
       JSON.stringify(workflow),
       id
     );
@@ -105,7 +120,7 @@ export const WorkflowRepository = {
    */
   unpublishWorkflow: (id: string): WorkflowItem | null => {
     const now = new Date().toISOString();
-    db.prepare(`UPDATE workflows SET is_active=0, published_at=NULL WHERE id=?`).run(id);
+    getWorkflowDatabase().prepare(`UPDATE workflows SET is_active=0, published_at=NULL WHERE id=?`).run(id);
 
     const workflow = WorkflowRepository.getWorkflowById(id);
     if (!workflow) return null;
@@ -114,7 +129,7 @@ export const WorkflowRepository = {
     workflow.metadata.publishedAt = null;
     workflow.metadata.updatedAt = now;
 
-    db.prepare(`UPDATE workflows SET definition=? WHERE id=?`).run(
+    getWorkflowDatabase().prepare(`UPDATE workflows SET definition=? WHERE id=?`).run(
       JSON.stringify(workflow),
       id
     );
@@ -127,7 +142,7 @@ export const WorkflowRepository = {
    * last execution row attached (if any). Used by the Production Monitor.
    */
   getProductionStatus: () => {
-    const rows = db.prepare(`
+    const rows = getWorkflowDatabase().prepare(`
       SELECT
         w.id,
         w.name,
@@ -179,7 +194,7 @@ export const WorkflowRepository = {
       return `webhookSlug must be kebab-case (e.g. 'nova-venda'). Got: '${slug}'`;
     }
 
-    const existing = db.prepare(
+    const existing = getWorkflowDatabase().prepare(
       `SELECT id FROM workflows WHERE json_extract(definition, '$.trigger.webhookSlug') = ?`
     ).get(slug) as { id: string } | undefined;
 
@@ -199,7 +214,7 @@ export const WorkflowRepository = {
       return `formSlug must be kebab-case (e.g. 'contact-us'). Got: '${slug}'`;
     }
 
-    const existing = db.prepare(
+    const existing = getWorkflowDatabase().prepare(
       `SELECT id FROM workflows WHERE json_extract(definition, '$.trigger.formSlug') = ?`
     ).get(slug) as { id: string } | undefined;
 
@@ -218,7 +233,7 @@ export const WorkflowRepository = {
     endTime: number | null,
     contextState: any
   ) => {
-    const stmt = db.prepare(
+    const stmt = getWorkflowDatabase().prepare(
       `INSERT OR REPLACE INTO workflow_executions (id, workflow_id, status, start_time, end_time, context_state)
        VALUES (?, ?, ?, ?, ?, ?)`
     );
@@ -233,7 +248,7 @@ export const WorkflowRepository = {
   },
 
   getWorkflowExecutions: (workflowId: string) => {
-    const stmt = db.prepare(
+    const stmt = getWorkflowDatabase().prepare(
       `SELECT * FROM workflow_executions WHERE workflow_id = ? ORDER BY start_time DESC`
     );
     const rows = stmt.all(workflowId);
@@ -252,7 +267,7 @@ export const WorkflowRepository = {
    */
   saveLastTriggerPayload: (workflowId: string, payload: Record<string, any>) => {
     // Update the dedicated column for fast retrieval
-    db.prepare(`UPDATE workflows SET last_trigger_payload = ? WHERE id = ?`)
+    getWorkflowDatabase().prepare(`UPDATE workflows SET last_trigger_payload = ? WHERE id = ?`)
       .run(JSON.stringify(payload), workflowId);
 
     // Also embed it in the definition blob so the WorkflowItem returned by
@@ -260,7 +275,7 @@ export const WorkflowRepository = {
     const workflow = WorkflowRepository.getWorkflowById(workflowId);
     if (workflow) {
       workflow.trigger.lastTriggerPayload = payload;
-      db.prepare(`UPDATE workflows SET definition = ? WHERE id = ?`)
+      getWorkflowDatabase().prepare(`UPDATE workflows SET definition = ? WHERE id = ?`)
         .run(JSON.stringify(workflow), workflowId);
     }
   },
@@ -269,7 +284,7 @@ export const WorkflowRepository = {
    * Returns the last captured trigger payload for a workflow, or null.
    */
   getLastTriggerPayload: (workflowId: string): Record<string, any> | null => {
-    const row = db.prepare(`SELECT last_trigger_payload FROM workflows WHERE id = ?`)
+    const row = getWorkflowDatabase().prepare(`SELECT last_trigger_payload FROM workflows WHERE id = ?`)
       .get(workflowId) as { last_trigger_payload: string | null } | undefined;
 
     if (!row || !row.last_trigger_payload) return null;

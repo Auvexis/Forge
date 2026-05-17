@@ -145,7 +145,7 @@ Use one active profile per backend process/UI session.
   - Add tests with fakes for database manager, plugin loader, scheduler, and password verification.
   - Expected result: profile switching is a single coordinated responsibility.
 
-- [ ] Task 9: Refactor workflow repository to profile-scoped database access
+- [x] Task 9: Refactor workflow repository to profile-scoped database access
   - Replace module-level `DatabaseManager.workflows` usage with injected database/provider access.
   - Preserve existing workflow API behavior.
   - Add isolation tests: create workflow in profile A, switch to profile B, verify it is absent, switch back and verify it returns.
