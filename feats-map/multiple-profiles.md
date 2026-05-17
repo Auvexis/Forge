@@ -178,7 +178,7 @@ Use one active profile per backend process/UI session.
   - Add tests for current profile scope, selected profile scope, and all profiles scope.
   - Expected result: current profile scope becomes real, not an alias for default.
 
-- [ ] Task 14: Add profile API routes
+- [x] Task 14: Add profile API routes
   - Add `server/src/core/routes/profiles.routes.ts`.
   - Endpoints:
     - `GET /profiles`

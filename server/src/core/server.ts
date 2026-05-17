@@ -9,6 +9,7 @@ import pluginsRoutes from "./routes/plugins.routes.ts";
 import workflowsRoutes from "./routes/workflows.routes.ts";
 import webhooksRoutes from "./routes/webhooks.routes.ts";
 import credentialsRoutes from "./routes/credentials.routes.ts";
+import profilesRoutes from "./routes/profiles.routes.ts";
 import commandPaletteRoutes from "./routes/command-palette.routes.ts";
 import { initializeDatabases } from "./database/index.ts";
 import { loadPlugins } from "./modules/plugins/loader.ts";
@@ -67,6 +68,7 @@ fastify.register(pluginsRoutes);
 fastify.register(workflowsRoutes);
 fastify.register(webhooksRoutes);
 fastify.register(credentialsRoutes);
+fastify.register(profilesRoutes);
 fastify.register(commandPaletteRoutes);
 
 fastify.addHook("onClose", async () => {
