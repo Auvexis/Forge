@@ -62,24 +62,17 @@
           <section class="plugin-installer-modal__block">
             <div class="plugin-installer-modal__block-head">
               <LucideIcon name="users" :size="15" />
-              <span>Install scope</span>
+              <span>Install target</span>
             </div>
-            <div class="plugin-installer-modal__scope" role="group" aria-label="Install scope">
-              <button
-                type="button"
-                :class="{ 'is-active': scope === 'current_profile' }"
-                @click="scope = 'current_profile'"
-              >
-                Current profile
-              </button>
-              <button
-                type="button"
-                :class="{ 'is-active': scope === 'all_profiles' }"
-                @click="scope = 'all_profiles'"
-              >
-                All profiles
-              </button>
-            </div>
+            <BaseSelect
+              v-model="installTarget"
+              :options="installTargetOptions"
+              aria-label="Install target"
+              :disabled="loading"
+            />
+            <p class="plugin-installer-modal__hint">
+              Installs for {{ installTargetLabel }}.
+            </p>
           </section>
 
           <BaseButton
@@ -100,7 +93,7 @@
 
           <div v-if="result" class="plugin-installer-modal__result">
             <LucideIcon name="check" :size="14" />
-            <span>Installed: {{ result.installId }} ({{ result.reloadStatus }})</span>
+            <span>Installed for {{ resultTargetLabel }}: {{ result.installId }} ({{ result.reloadStatus }})</span>
           </div>
         </div>
       </aside>
@@ -210,18 +203,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { pluginsApi } from '@/core/api/plugins.api'
 import type {
   ExternalPluginInstallResult,
-  ExternalPluginInstallScope,
   ExternalPluginPreview,
   PluginManifest,
 } from '@/core/types/plugin.types'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
+import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { useProfileStore } from '@/shared/stores/profile.store'
+import {
+  buildPluginInstallTargetOptions,
+  describePluginInstallTarget,
+  installTargetToPayload,
+  profileInstallTargetValue,
+} from './pluginInstallTargetOptions'
 
 withDefaults(
   defineProps<{
@@ -244,7 +244,8 @@ interface UploadFileEntry {
 }
 
 const repositoryUrl = ref('')
-const scope = ref<ExternalPluginInstallScope>('current_profile')
+const profileStore = useProfileStore()
+const installTarget = ref('profile:default')
 const preview = ref<ExternalPluginPreview | null>(null)
 const result = ref<ExternalPluginInstallResult | null>(null)
 const loading = ref(false)
@@ -271,6 +272,34 @@ const emptyManifest: PluginManifest = {
 
 const canInstall = computed(() => preview.value?.status === 'ready')
 const manifest = computed(() => preview.value?.manifest ?? emptyManifest)
+const installTargetOptions = computed(() =>
+  buildPluginInstallTargetOptions(profileStore.sortedProfiles, profileStore.currentProfile?.id),
+)
+const installTargetLabel = computed(() =>
+  describePluginInstallTarget(installTarget.value, profileStore.profiles),
+)
+const resultTargetLabel = computed(() => {
+  if (!result.value) return installTargetLabel.value
+  if (result.value.scope === 'all_profiles') return 'all profiles'
+  if (result.value.profileId) {
+    return profileStore.profiles.find((profile) => profile.id === result.value?.profileId)?.name ?? result.value.profileId
+  }
+  return 'current profile'
+})
+
+onMounted(async () => {
+  if (!profileStore.currentProfile && !profileStore.isLoading) {
+    await profileStore.loadProfiles()
+  }
+})
+
+watch(
+  () => profileStore.currentProfile?.id,
+  (profileId) => {
+    if (profileId) installTarget.value = profileInstallTargetValue(profileId)
+  },
+  { immediate: true },
+)
 
 watch(repositoryUrl, (value) => {
   window.clearTimeout(repositoryPreviewTimer)
@@ -329,7 +358,12 @@ function previewUpload(files: UploadFileEntry[]) {
 function install() {
   if (!preview.value) return
   void run('install', async () => {
-    result.value = await pluginsApi.installExternal(preview.value!.previewId, scope.value)
+    const target = installTargetToPayload(installTarget.value)
+    result.value = await pluginsApi.installExternal(
+      preview.value!.previewId,
+      target.scope,
+      target.profileId,
+    )
     emit('installed', result.value)
   })
 }
@@ -540,29 +574,11 @@ async function collectDroppedEntryFiles(entry: unknown, parentPath: string): Pro
   display: none;
 }
 
-.plugin-installer-modal__scope {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px;
-  padding: 3px;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-}
-
-.plugin-installer-modal__scope button {
-  height: 30px;
-  border: 0;
-  border-radius: var(--sailor-radius-sm);
-  background: transparent;
-  color: var(--sailor-text-secondary);
-  font: inherit;
+.plugin-installer-modal__hint {
+  margin: 0;
+  color: var(--sailor-text-muted);
   font-size: var(--sailor-text-xs);
-  cursor: pointer;
-}
-
-.plugin-installer-modal__scope button.is-active {
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  line-height: 1.4;
 }
 
 .plugin-installer-modal__result {

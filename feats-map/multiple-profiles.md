@@ -265,7 +265,7 @@ Use one active profile per backend process/UI session.
   - Clearly show whether password protection is enabled without displaying password details.
   - Expected result: profile metadata is editable after creation.
 
-- [ ] Task 24: Update plugin installer profile target
+- [x] Task 24: Update plugin installer profile target
   - Add a profile dropdown to the plugin installer UI.
   - Default selection should be the current active profile.
   - Let user choose another profile or all profiles when backend supports that scope.
