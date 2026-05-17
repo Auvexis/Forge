@@ -234,7 +234,7 @@ Use one active profile per backend process/UI session.
   - Add tests if the project already has store tests for similar modules.
   - Expected result: profile state has one frontend owner.
 
-- [ ] Task 20: Add profile selection screen
+- [x] Task 20: Add profile selection screen
   - Add a startup/profile selection view inspired by Netflix profile selection.
   - Show profile avatar emoji and name for each profile.
   - Include create profile and delete profile actions.

@@ -101,6 +101,10 @@ export const useProfileStore = defineStore('profile', () => {
     return profiles.value.some((profile) => profile.id === profileId && profile.passwordProtected)
   }
 
+  function clearError() {
+    error.value = null
+  }
+
   return {
     profiles,
     sortedProfiles,
@@ -116,5 +120,6 @@ export const useProfileStore = defineStore('profile', () => {
     switchProfile,
     deleteProfile,
     selectedProfileRequiresPassword,
+    clearError,
   }
 })

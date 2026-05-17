@@ -4,6 +4,8 @@
     <AppToaster />
   </router-view>
 
+  <ProfileSelectionPage v-else-if="!hasEnteredProfile" @entered="hasEnteredProfile = true" />
+
   <AppShell v-else>
     <!-- Use the AppSidebar in the sidebar slot -->
     <template #sidebar>
@@ -182,6 +184,7 @@ import { useCommandPaletteStore } from '@/features/command-palette/stores/comman
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
 import ExternalPluginInstaller from '@/features/plugins/components/ExternalPluginInstaller.vue'
+import ProfileSelectionPage from '@/features/profiles/components/ProfileSelectionPage.vue'
 import {
   dispatchSidebarNavIntent,
   sidebarActivityItems,
@@ -199,6 +202,7 @@ const route = useRoute()
 const isPublicRoute = computed(() => route.meta.public === true)
 const isSidebarCollapsed = ref(false)
 const isPluginInstallerOpen = ref(false)
+const hasEnteredProfile = ref(false)
 const activeSidebarWidth = computed(() =>
   sidebarWidthForState(isSidebarCollapsed.value, { expandedPx: 288 }),
 )
