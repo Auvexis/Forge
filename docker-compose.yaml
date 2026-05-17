@@ -31,5 +31,22 @@ services:
         condition: service_healthy
     restart: always
 
+  sailor-postgres-canary:
+    image: postgres:16-alpine
+    container_name: sailor-postgres-canary
+    ports:
+      - "25432:5432"
+    environment:
+      - POSTGRES_DB=sailor_canary
+      - POSTGRES_USER=sailor
+      - POSTGRES_PASSWORD=sailor
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sailor -d sailor_canary"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - canary
+
 volumes:
   sailor_data:

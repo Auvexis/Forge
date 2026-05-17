@@ -687,7 +687,7 @@ git commit -m "test(plugins): ensure database plugins load by default"
 **Files:**
 - Modify: `docker-compose.yaml`
 
-- [ ] **Step 1: Adicionar servico com profile canary**
+- [x] **Step 1: Adicionar servico com profile canary**
 
 ```yaml
   sailor-postgres-canary:
@@ -716,6 +716,8 @@ docker compose --profile canary up -d sailor-postgres-canary
 ```
 Expected: container saudavel.
 
+Blocked in this environment: Docker Desktop engine is not running (`dockerDesktopLinuxEngine` pipe missing). `docker compose --profile canary config` validates the service configuration.
+
 - [ ] **Step 3: Testar connection string no plugin**
 
 Credential:
@@ -724,7 +726,9 @@ postgres://sailor:sailor@localhost:25432/sailor_canary
 ```
 Expected: `testConnection` retorna `ok: true` e `database: sailor_canary`.
 
-- [ ] **Step 4: Commit**
+Blocked in this environment: depends on the canary container from Step 2.
+
+- [x] **Step 4: Commit**
 
 ```bash
 git add docker-compose.yaml feats-map/default-database-canary-plugins.md
