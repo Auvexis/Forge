@@ -29,6 +29,7 @@ interface ProfileDatabaseManagerLike {
 }
 
 interface SchedulerLike {
+  stopAll?(): void;
   resync(): void;
 }
 
@@ -116,6 +117,7 @@ export class ActiveProfileService {
     }
 
     try {
+      this.scheduler.stopAll?.();
       await this.activateProfile(target);
       const current = this.store.setCurrentProfile(target.id);
       this.activeProfile = current;

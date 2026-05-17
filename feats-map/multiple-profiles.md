@@ -203,7 +203,7 @@ Use one active profile per backend process/UI session.
   - Add integration tests for profile switch followed by existing route calls.
   - Expected result: existing API surface automatically respects active profile.
 
-- [ ] Task 16: Scheduler and runtime lifecycle safety
+- [x] Task 16: Scheduler and runtime lifecycle safety
   - Stop or pause scheduled jobs before switching profile.
   - Reschedule only workflows from the new active profile.
   - Ensure in-flight execution uses the profile it started with or is rejected with a clear error if switching makes it unsafe.

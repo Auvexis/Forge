@@ -117,14 +117,17 @@ export const Scheduler = {
    * Call this after any workflow is saved, updated, or deleted.
    */
   resync(): void {
-    // Stop all current jobs
+    this.stopAll();
+
+    // Re-initialize from current DB state
+    this.initialize();
+  },
+
+  stopAll(): void {
     for (const [, job] of activeJobs) {
       job.task.stop();
     }
     activeJobs.clear();
-
-    // Re-initialize from current DB state
-    this.initialize();
   },
 
   /**

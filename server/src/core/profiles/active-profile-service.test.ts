@@ -194,6 +194,45 @@ describe("ActiveProfileService", () => {
     assert.deepEqual(db.opened, ["default", "work"]);
   });
 
+  it("stops scheduled jobs before switching databases and resyncs after activation", async () => {
+    const store = createStore();
+    const events: string[] = [];
+    const db = new FakeDatabaseManager();
+    db.open = (paths: ProfilePaths) => {
+      events.push(`open:${path.basename(paths.profileDir)}`);
+      db.opened.push(path.basename(paths.profileDir));
+    };
+    const service = new ActiveProfileService({
+      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      store,
+      passwordService: new ProfilePasswordService({ store }),
+      databaseManager: db,
+      migrate: async (profile) => {
+        events.push(`migrate:${profile.id}`);
+      },
+      loadProfilePluginSettings: async () => {},
+      loadPlugins: async (profile) => {
+        events.push(`plugins:${profile.id}`);
+      },
+      scheduler: {
+        stopAll: () => events.push("stopAll"),
+        resync: () => events.push("resync"),
+      },
+    });
+    await service.start();
+    events.length = 0;
+
+    await service.switchProfile({ profileId: "work" });
+
+    assert.deepEqual(events, [
+      "stopAll",
+      "open:work",
+      "migrate:work",
+      "plugins:work",
+      "resync",
+    ]);
+  });
+
   it("requires a valid password before switching to a protected profile", async () => {
     const store = createStore();
     const passwordService = new ProfilePasswordService({ store });
