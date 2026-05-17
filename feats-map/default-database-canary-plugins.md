@@ -740,7 +740,7 @@ git commit -m "chore(postgresql): add local canary database profile"
 **Files:**
 - Modify: `feats-map/default-database-canary-plugins.md`
 
-- [ ] **Step 1: Rodar testes dos plugins**
+- [x] **Step 1: Rodar testes dos plugins**
 
 Run:
 ```bash
@@ -750,7 +750,7 @@ node --loader ts-node/esm --test src/plugins/sailor/supabase/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 2: Rodar testes de loader**
+- [x] **Step 2: Rodar testes de loader**
 
 Run:
 ```bash
@@ -759,7 +759,7 @@ node --loader ts-node/esm --test src/core/modules/plugins/loader.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 3: Rodar build/typecheck**
+- [x] **Step 3: Rodar build/typecheck**
 
 Run:
 ```bash
@@ -777,7 +777,9 @@ Confirmar:
 - Os manifests nao usam UI legada.
 - Os plugins nao importam core/engine/outros plugins.
 
-- [ ] **Step 5: Commit final**
+Verification note: Docker runtime verification for `sailor-postgres-canary` could not run because Docker Desktop engine is unavailable in this environment. `docker compose --profile canary config` passes and validates the profile.
+
+- [x] **Step 5: Commit final**
 
 ```bash
 git add feats-map/default-database-canary-plugins.md
