@@ -278,7 +278,7 @@ Use one active profile per backend process/UI session.
   - Add focused tests or manual browser verification for switching profiles.
   - Expected result: UI always reflects the active profile.
 
-- [ ] Task 26: Frontend smoke test
+- [x] Task 26: Frontend smoke test
   - Start backend and frontend locally.
   - Open app in browser.
   - Create profile A and profile B with distinct emoji avatars.
