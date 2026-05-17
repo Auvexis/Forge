@@ -191,7 +191,7 @@ export interface PluginSummary {
   auth_type: PluginAuthType
 }
 
-export type ExternalPluginInstallScope = 'current_profile' | 'all_profiles'
+export type ExternalPluginInstallScope = 'current_profile' | 'selected_profile' | 'all_profiles'
 export type ExternalPluginPreviewStatus = 'ready' | 'invalid' | 'expired'
 
 export interface ExternalPluginPreviewMethod {
@@ -224,6 +224,7 @@ export interface ExternalPluginInstallResult {
   version: string
   installPath: string
   scope: ExternalPluginInstallScope
+  profileId?: string
   reloadStatus: 'loaded' | 'restart_required' | 'failed'
   error?: string
 }

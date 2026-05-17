@@ -68,10 +68,10 @@ export const pluginsApi = {
     })
   },
 
-  installExternal: (previewId: string, scope: ExternalPluginInstallScope) =>
+  installExternal: (previewId: string, scope: ExternalPluginInstallScope, profileId?: string) =>
     apiRequest<ExternalPluginInstallResult>(ENDPOINTS.PLUGIN_EXTERNAL_INSTALL, {
       method: 'POST',
-      body: { previewId, scope },
+      body: { previewId, scope, profileId },
     }),
 
   cancelExternalPreview: (previewId: string) =>

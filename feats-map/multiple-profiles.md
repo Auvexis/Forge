@@ -219,7 +219,7 @@ Use one active profile per backend process/UI session.
 
 ## Frontend Tasks
 
-- [ ] Task 18: Add profiles API client
+- [x] Task 18: Add profiles API client
   - Add `client-vue/src/core/api/profiles.api.ts`.
   - Use existing API client patterns.
   - Add types matching backend responses.

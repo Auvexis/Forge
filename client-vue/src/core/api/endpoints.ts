@@ -6,6 +6,14 @@ export const ENDPOINTS = {
   // App
   APP_INFO: '/app/info',
 
+  // Profiles
+  PROFILES: '/profiles',
+  PROFILES_CURRENT: '/profiles/current',
+  PROFILE_BY_ID: (id: string) => `/profiles/${encodeURIComponent(id)}`,
+  PROFILE_PASSWORD: (id: string) => `/profiles/${encodeURIComponent(id)}/password`,
+  PROFILE_VERIFY_PASSWORD: (id: string) => `/profiles/${encodeURIComponent(id)}/verify-password`,
+  PROFILE_SWITCH: (id: string) => `/profiles/${encodeURIComponent(id)}/switch`,
+
   // Workflows
   WORKFLOWS: '/workflows',
   WORKFLOW_BY_ID: (id: string) => `/workflows/${encodeURIComponent(id)}`,
