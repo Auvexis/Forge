@@ -205,6 +205,28 @@ describe("loadPlugins", () => {
     db.close();
   });
 
+  it("loads default database canary plugins from internal sailor plugins", async () => {
+    const internalDir = path.resolve("src/plugins/sailor");
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
+    const externalDir = path.join(temp, "external");
+    const db = createRegistryDb();
+    const { manager, registered } = createManager();
+
+    await loadPlugins({
+      internalPluginsDir: internalDir,
+      externalPluginsDir: externalDir,
+      registryDb: db,
+      pluginManager: manager,
+      logger: { info: () => {}, error: () => {}, warn: () => {} },
+    });
+
+    const pluginIds = registered.map((plugin) => plugin.id);
+
+    assert.ok(pluginIds.includes("sailor-postgresql"));
+    assert.ok(pluginIds.includes("sailor-supabase"));
+    db.close();
+  });
+
   it("loads external plugins under install id when manifest id conflicts with internal plugin ids", async () => {
     const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
     const internalDir = path.join(temp, "internal");

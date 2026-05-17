@@ -653,11 +653,11 @@ git commit -m "feat(supabase): add storage methods"
 **Files:**
 - Modify: `server/src/core/modules/plugins/loader.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 Adicionar teste no loader que aponta `internalPluginsDir` para `server/src/plugins/sailor` e confirma que `sailor-postgresql` e `sailor-supabase` aparecem entre plugins registrados.
 
-- [ ] **Step 2: Rodar teste**
+- [x] **Step 2: Rodar teste**
 
 Run:
 ```bash
@@ -666,7 +666,7 @@ node --loader ts-node/esm --test src/core/modules/plugins/loader.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 3: Rodar typecheck**
+- [x] **Step 3: Rodar typecheck**
 
 Run:
 ```bash
@@ -675,7 +675,7 @@ npx tsc --noEmit --pretty false
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add server/src/core/modules/plugins/loader.test.ts feats-map/default-database-canary-plugins.md
