@@ -259,7 +259,7 @@ Use one active profile per backend process/UI session.
   - Keep avatar rendering stable in dark and light themes.
   - Expected result: profile avatars are lightweight, safe, and visually distinct.
 
-- [ ] Task 23: Add profile settings UI
+- [x] Task 23: Add profile settings UI
   - Add profile settings entry from the sidebar dropdown.
   - Support editing name, emoji avatar, optional email, and optional password.
   - Clearly show whether password protection is enabled without displaying password details.

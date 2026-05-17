@@ -153,6 +153,7 @@
     <!-- Global Overlays -->
     <template v-if="!appUiStore.isUniverseMode" #overlay>
       <AppGlobalSettings />
+      <ProfileSettingsPanel v-model="isProfileSettingsOpen" />
       <AppProductionMonitor />
       <ExternalPluginInstaller
         :is-open="isPluginInstallerOpen"
@@ -186,6 +187,7 @@ import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
 import ExternalPluginInstaller from '@/features/plugins/components/ExternalPluginInstaller.vue'
 import ProfileSelectionPage from '@/features/profiles/components/ProfileSelectionPage.vue'
+import ProfileSettingsPanel from '@/features/profiles/components/ProfileSettingsPanel.vue'
 import {
   dispatchSidebarNavIntent,
   sidebarActivityItems,
@@ -203,6 +205,7 @@ const route = useRoute()
 const isPublicRoute = computed(() => route.meta.public === true)
 const isSidebarCollapsed = ref(false)
 const isPluginInstallerOpen = ref(false)
+const isProfileSettingsOpen = ref(false)
 const hasEnteredProfile = ref(false)
 const activeSidebarWidth = computed(() =>
   sidebarWidthForState(isSidebarCollapsed.value, { expandedPx: 288 }),
@@ -237,8 +240,18 @@ function handleUiIntent(event: Event) {
   if (intent?.type === 'plugin-installer.open') openPluginInstallerPanel()
 }
 
-onMounted(() => window.addEventListener('sailor:command-palette:intent', handleUiIntent))
-onUnmounted(() => window.removeEventListener('sailor:command-palette:intent', handleUiIntent))
+function handleProfileIntent() {
+  isProfileSettingsOpen.value = true
+}
+
+onMounted(() => {
+  window.addEventListener('sailor:command-palette:intent', handleUiIntent)
+  window.addEventListener('sailor:profiles:intent', handleProfileIntent)
+})
+onUnmounted(() => {
+  window.removeEventListener('sailor:command-palette:intent', handleUiIntent)
+  window.removeEventListener('sailor:profiles:intent', handleProfileIntent)
+})
 </script>
 
 <style scoped>
