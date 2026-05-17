@@ -116,7 +116,7 @@ Use one active profile per backend process/UI session.
   - Add tests for setting password, verifying correct password, rejecting wrong password, removing password, and never returning password hash in public profile responses.
   - Expected result: password protection is isolated, testable, and safe enough for local profile access.
 
-- [ ] Task 5: Split global runtime from active profile runtime
+- [x] Task 5: Split global runtime from active profile runtime
   - Refactor `server/src/core/runtime/sailor-home.ts` to expose global paths and active-profile path helpers separately.
   - Keep legacy compatibility only where needed for first development reset/migration.
   - Avoid copying legacy databases into global `data` for new profile-scoped databases.

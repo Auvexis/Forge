@@ -2,6 +2,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveProfilePaths, type ProfilePaths } from "../profiles/profile-paths.ts";
+import { ProfileStore } from "../profiles/profile-store.ts";
 
 export interface SailorHomePaths {
   home: string;
@@ -11,6 +13,7 @@ export interface SailorHomePaths {
   pluginCacheDir: string;
   logsDir: string;
   profilesDir: string;
+  profilesIndexPath: string;
   defaultProfileDir: string;
   internalPluginsDir: string;
 }
@@ -56,6 +59,7 @@ export function resolveSailorHomePaths(options: ResolveSailorHomeOptions = {}): 
     pluginCacheDir: path.join(globalDir, "plugin-cache"),
     logsDir: path.join(globalDir, "logs"),
     profilesDir,
+    profilesIndexPath: path.join(home, "profiles.json"),
     defaultProfileDir: path.join(profilesDir, "default"),
     internalPluginsDir: path.resolve(__dirname, "../../plugins"),
   };
@@ -75,19 +79,22 @@ export function ensureSailorHomeStructure(paths: SailorHomePaths): void {
     paths.logsDir,
     paths.profilesDir,
     paths.defaultProfileDir,
-    path.join(paths.defaultProfileDir, "workflows"),
   ]) {
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  writeJsonIfMissing(path.join(paths.defaultProfileDir, "profile.json"), {
-    id: "default",
-    name: "Default",
-  });
+  const profileStore = new ProfileStore({ sailorHome: paths.home });
+  profileStore.ensureInitialized();
+  const defaultProfilePaths = resolveDefaultProfilePaths(paths);
+  fs.mkdirSync(defaultProfilePaths.dataDir, { recursive: true });
 
   writeJsonIfMissing(path.join(paths.defaultProfileDir, "plugin-settings.json"), {
     enabledPlugins: [],
   });
+}
+
+export function resolveDefaultProfilePaths(paths: SailorHomePaths): ProfilePaths {
+  return resolveProfilePaths({ profilesDir: paths.profilesDir, profileId: "default" });
 }
 
 export const sailorHomePaths = resolveSailorHomePaths();

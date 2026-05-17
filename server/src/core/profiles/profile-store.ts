@@ -52,12 +52,14 @@ export class ProfileStore {
     fs.mkdirSync(this.profilesDir, { recursive: true });
 
     if (!fs.existsSync(this.indexPath)) {
-      const manifest = this.createManifest({
-        id: "default",
-        name: "Default",
-        avatarEmoji: "⛵",
-      });
-      this.writeManifest(manifest);
+      if (!fs.existsSync(this.profilePaths("default").profileManifestPath)) {
+        const manifest = this.createManifest({
+          id: "default",
+          name: "Default",
+          avatarEmoji: "⛵",
+        });
+        this.writeManifest(manifest);
+      }
       this.writeIndex({ currentProfileId: "default", profileIds: ["default"] });
       return;
     }
