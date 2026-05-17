@@ -78,7 +78,7 @@ Use one active profile per backend process/UI session.
 
 ## Backend Tasks
 
-- [ ] Task 1: Baseline and safety check
+- [x] Task 1: Baseline and safety check
   - Read `DEFAULT_PROMPT.md`, `ROADMAP.md`, current profile runtime files, database manager, plugin loader, workflow repository, credential store, and routes.
   - Run current backend tests before implementation.
   - Document known dirty files and do not include unrelated user changes in commits.
