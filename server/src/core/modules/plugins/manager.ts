@@ -49,6 +49,10 @@ export const PluginManager = {
     console.log(`[SAILOR | PLUGINS]: Registered plugin ${plugin.id}`);
   },
 
+  clearPlugins: () => {
+    plugins.clear();
+  },
+
   getRedirectUri: (pluginId: string): string => {
     return `${getPublicBaseUrl()}/plugins/${pluginId}/auth/callback`;
   },

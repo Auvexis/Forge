@@ -197,7 +197,7 @@ Use one active profile per backend process/UI session.
   - Add route tests for happy paths, password-required switch, wrong password, password removal, and validation failures.
   - Expected result: frontend can manage profiles without touching filesystem details.
 
-- [ ] Task 15: Wire existing backend routes through active profile dependencies
+- [x] Task 15: Wire existing backend routes through active profile dependencies
   - Update workflows, credentials, plugins, and app routes to read from active profile services.
   - Add current profile metadata to app bootstrap response if there is an existing endpoint for app info.
   - Add integration tests for profile switch followed by existing route calls.

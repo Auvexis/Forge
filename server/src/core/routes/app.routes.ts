@@ -1,9 +1,16 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { AppRepository } from "../modules/app/app-repository.ts";
+import { ProfileStore } from "../profiles/profile-store.ts";
+import { sailorHomePaths } from "../runtime/sailor-home.ts";
 import { z } from "zod";
 
-export default async function appRoutes(fastify: FastifyInstance) {
+export interface AppRoutesOptions {
+  profileStore?: ProfileStore;
+}
+
+export default async function appRoutes(fastify: FastifyInstance, options: AppRoutesOptions = {}) {
+  const profileStore = options.profileStore ?? new ProfileStore({ sailorHome: sailorHomePaths.home });
   /**
    * Helper to send standardized responses with proper HTTP status codes
    */
@@ -26,7 +33,7 @@ export default async function appRoutes(fastify: FastifyInstance) {
       status_code: 200,
       message: "App info fetched successfully",
       error: null,
-      data: { publicUrl: PUBLIC_URL },
+      data: { publicUrl: PUBLIC_URL, currentProfile: profileStore.getCurrentProfile() },
     });
   });
 
