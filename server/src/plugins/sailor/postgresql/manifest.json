@@ -117,6 +117,134 @@
           }
         }
       }
+    },
+    "selectRows": {
+      "metadata": {
+        "label": "Select Rows",
+        "description": "Runs a safe SELECT with optional columns, filters, ordering, limit, and offset."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "schema": { "type": "string", "description": "Schema name. Default: public.", "default": "public", "x-input-type": "text" },
+          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
+          "columns": { "type": "array", "description": "Columns to select. Empty selects all.", "items": { "type": "string" }, "x-input-type": "json" },
+          "where": { "type": "object", "description": "Simple equality filters.", "additionalProperties": true, "x-input-type": "json" },
+          "orderBy": {
+            "type": "object",
+            "description": "Order configuration.",
+            "properties": {
+              "column": { "type": "string" },
+              "direction": { "type": "string", "enum": ["asc", "desc"] }
+            },
+            "additionalProperties": false,
+            "x-input-type": "json"
+          },
+          "limit": { "type": "number", "description": "Maximum rows. Max: 1000.", "default": 100, "x-input-type": "number" },
+          "offset": { "type": "number", "description": "Rows to skip.", "default": 0, "x-input-type": "number" }
+        },
+        "required": ["table"]
+      },
+      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+    },
+    "insertRow": {
+      "metadata": {
+        "label": "Insert Row",
+        "description": "Inserts one JSON row with parameterized values."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "schema": { "type": "string", "description": "Schema name. Default: public.", "default": "public", "x-input-type": "text" },
+          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
+          "row": { "type": "object", "description": "Row values.", "additionalProperties": true, "x-input-type": "json" }
+        },
+        "required": ["table", "row"]
+      },
+      "responseSchema": { "type": "object", "properties": {} }
+    },
+    "updateRows": {
+      "metadata": {
+        "label": "Update Rows",
+        "description": "Updates rows using a simple equality filter and returns changed rows."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "schema": { "type": "string", "description": "Schema name. Default: public.", "default": "public", "x-input-type": "text" },
+          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
+          "patch": { "type": "object", "description": "Fields to update.", "additionalProperties": true, "x-input-type": "json" },
+          "where": { "type": "object", "description": "Simple equality filters.", "additionalProperties": true, "x-input-type": "json" }
+        },
+        "required": ["table", "patch"]
+      },
+      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+    },
+    "deleteRows": {
+      "metadata": {
+        "label": "Delete Rows",
+        "description": "Deletes rows and requires confirm: true."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "schema": { "type": "string", "description": "Schema name. Default: public.", "default": "public", "x-input-type": "text" },
+          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
+          "where": { "type": "object", "description": "Simple equality filters.", "additionalProperties": true, "x-input-type": "json" },
+          "confirm": { "type": "boolean", "description": "Must be true to delete rows.", "x-input-type": "toggle" }
+        },
+        "required": ["table", "confirm"]
+      },
+      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+    },
+    "executeQuery": {
+      "metadata": {
+        "label": "Execute Query",
+        "description": "Runs raw SQL only when unsafe SQL is enabled in credentials."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "sql": { "type": "string", "description": "SQL statement.", "x-input-type": "code" },
+          "values": { "type": "array", "description": "Parameterized values.", "items": {}, "x-input-type": "json" }
+        },
+        "required": ["sql"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "rowCount": { "type": ["number", "null"] },
+          "rows": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+        }
+      }
+    },
+    "transaction": {
+      "metadata": {
+        "label": "Transaction",
+        "description": "Runs raw SQL statements in a transaction only when unsafe SQL is enabled."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "statements": {
+            "type": "array",
+            "description": "SQL statements with optional values.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sql": { "type": "string" },
+                "values": { "type": "array", "items": {} }
+              },
+              "required": ["sql"],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "x-input-type": "json"
+          }
+        },
+        "required": ["statements"]
+      },
+      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
     }
   }
 }

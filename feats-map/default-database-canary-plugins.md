@@ -352,7 +352,7 @@ git commit -m "feat(postgresql): add connection introspection methods"
 - Modify: `server/src/plugins/sailor/postgresql/manifest.json`
 - Modify: `server/src/plugins/sailor/postgresql/methods.test.ts`
 
-- [ ] **Step 1: Escrever testes falhando para builders**
+- [x] **Step 1: Escrever testes falhando para builders**
 
 ```ts
 import assert from "node:assert/strict";
@@ -366,7 +366,7 @@ assert.equal(buildOrderClause({ column: "created_at", direction: "desc" }), " or
 assert.throws(() => assertUnsafeSqlAllowed({ credentials: {} } as any), /Unsafe SQL is disabled/);
 ```
 
-- [ ] **Step 2: Implementar builders**
+- [x] **Step 2: Implementar builders**
 
 ```ts
 export function buildWhereClause(where: Record<string, unknown> = {}, startIndex = 1) {
@@ -390,11 +390,11 @@ export function assertUnsafeSqlAllowed(context?: PluginContext) {
 }
 ```
 
-- [ ] **Step 3: Implementar metodos**
+- [x] **Step 3: Implementar metodos**
 
 Implementar `selectRows`, `insertRow`, `updateRows`, `deleteRows`, `executeQuery`, `transaction`. Usar identifiers escapados, valores parametrizados, `returning *`, `deleteRows.confirm === true`, e gate `assertUnsafeSqlAllowed` para SQL livre.
 
-- [ ] **Step 4: Atualizar manifest**
+- [x] **Step 4: Atualizar manifest**
 
 Declarar parametros de CRUD:
 - `schema`: string default `public`
@@ -411,7 +411,7 @@ Declarar parametros de CRUD:
 - `values`: array
 - `statements`: array
 
-- [ ] **Step 5: Rodar testes**
+- [x] **Step 5: Rodar testes**
 
 Run:
 ```bash
@@ -420,7 +420,7 @@ node --loader ts-node/esm --test src/plugins/sailor/postgresql/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/plugins/sailor/postgresql feats-map/default-database-canary-plugins.md

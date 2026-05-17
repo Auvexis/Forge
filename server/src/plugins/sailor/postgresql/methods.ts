@@ -1,4 +1,5 @@
 import type { PluginContext } from "@auvexis/sailor-sdk";
+import type { PoolClient } from "pg";
 import pg from "pg";
 
 const { Pool } = pg;
@@ -8,7 +9,7 @@ type Queryable = {
   query<T extends Record<string, unknown> = Record<string, unknown>>(
     sql: string,
     values?: unknown[],
-  ): Promise<{ rows: T[] }>;
+  ): Promise<{ rowCount: number | null; rows: T[] }>;
 };
 
 type TableParams = {
@@ -17,6 +18,42 @@ type TableParams = {
 
 type DescribeTableParams = TableParams & {
   table: string;
+};
+
+type OrderBy = {
+  column?: string;
+  direction?: string;
+};
+
+type SelectRowsParams = DescribeTableParams & {
+  columns?: string[];
+  where?: Record<string, unknown>;
+  orderBy?: OrderBy;
+  limit?: number;
+  offset?: number;
+};
+
+type InsertRowParams = DescribeTableParams & {
+  row: Record<string, unknown>;
+};
+
+type UpdateRowsParams = DescribeTableParams & {
+  patch: Record<string, unknown>;
+  where?: Record<string, unknown>;
+};
+
+type DeleteRowsParams = DescribeTableParams & {
+  where?: Record<string, unknown>;
+  confirm?: boolean;
+};
+
+type ExecuteQueryParams = {
+  sql: string;
+  values?: unknown[];
+};
+
+type TransactionParams = {
+  statements: ExecuteQueryParams[];
 };
 
 type PoolLike = InstanceType<typeof Pool>;
@@ -34,6 +71,40 @@ export function normalizeLimit(value?: number, fallback = 100): number {
   const parsed = Number(value ?? fallback);
   if (!Number.isFinite(parsed) || parsed < 1) return fallback;
   return Math.min(Math.trunc(parsed), MAX_LIMIT);
+}
+
+function normalizeOffset(value?: number): number {
+  const parsed = Number(value ?? 0);
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return Math.trunc(parsed);
+}
+
+export function buildWhereClause(where: Record<string, unknown> = {}, startIndex = 1) {
+  const entries = Object.entries(where);
+  if (entries.length === 0) return { sql: "", values: [] as unknown[] };
+
+  const parts = entries.map(([key], index) => `${quoteIdentifier(key)} = $${startIndex + index}`);
+  return {
+    sql: ` where ${parts.join(" and ")}`,
+    values: entries.map(([, value]) => value),
+  };
+}
+
+export function buildOrderClause(orderBy?: OrderBy) {
+  if (!orderBy?.column) return "";
+
+  const direction = String(orderBy.direction || "asc").toLowerCase();
+  if (!["asc", "desc"].includes(direction)) {
+    throw new Error("Invalid order direction.");
+  }
+
+  return ` order by ${quoteIdentifier(orderBy.column)} ${direction}`;
+}
+
+export function assertUnsafeSqlAllowed(context?: PluginContext) {
+  if (context?.credentials?.allowUnsafeSql !== "I_UNDERSTAND_SQL_RISK") {
+    throw new Error("Unsafe SQL is disabled. Set allowUnsafeSql credential to I_UNDERSTAND_SQL_RISK.");
+  }
 }
 
 function sslFromMode(mode?: string) {
@@ -63,6 +134,38 @@ async function withPool<T>(context: PluginContext | undefined, operation: (db: Q
     return await operation(pool);
   } finally {
     await pool.end();
+  }
+}
+
+function qualifiedTable(schema: string | undefined, table: string): string {
+  return `${quoteIdentifier(schema ?? "public")}.${quoteIdentifier(table)}`;
+}
+
+function selectedColumns(columns?: string[]): string {
+  if (!columns || columns.length === 0) return "*";
+  return columns.map(quoteIdentifier).join(", ");
+}
+
+function assertObjectHasFields(value: Record<string, unknown>, label: string) {
+  if (!value || Object.keys(value).length === 0) {
+    throw new Error(`${label} must include at least one field.`);
+  }
+}
+
+async function runTransaction(client: PoolClient, statements: ExecuteQueryParams[]) {
+  const results: Array<{ rowCount: number | null; rows: Record<string, unknown>[] }> = [];
+
+  await client.query("begin");
+  try {
+    for (const statement of statements) {
+      const result = await client.query(statement.sql, statement.values ?? []);
+      results.push({ rowCount: result.rowCount, rows: result.rows });
+    }
+    await client.query("commit");
+    return results;
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
   }
 }
 
@@ -165,6 +268,94 @@ export function createPostgresqlMethods() {
 
         return result.rows;
       });
+    },
+
+    async selectRows(params: SelectRowsParams, context?: PluginContext) {
+      return withPool(context, async (db) => {
+        const where = buildWhereClause(params.where);
+        const limit = normalizeLimit(params.limit);
+        const offset = normalizeOffset(params.offset);
+        const sql =
+          `select ${selectedColumns(params.columns)} from ${qualifiedTable(params.schema, params.table)}` +
+          where.sql +
+          buildOrderClause(params.orderBy) +
+          ` limit $${where.values.length + 1} offset $${where.values.length + 2}`;
+        const result = await db.query(sql, [...where.values, limit, offset]);
+
+        return result.rows;
+      });
+    },
+
+    async insertRow(params: InsertRowParams, context?: PluginContext) {
+      return withPool(context, async (db) => {
+        assertObjectHasFields(params.row, "row");
+
+        const entries = Object.entries(params.row);
+        const columns = entries.map(([key]) => quoteIdentifier(key)).join(", ");
+        const placeholders = entries.map((_, index) => `$${index + 1}`).join(", ");
+        const values = entries.map(([, value]) => value);
+        const result = await db.query(
+          `insert into ${qualifiedTable(params.schema, params.table)} (${columns}) values (${placeholders}) returning *`,
+          values,
+        );
+
+        return result.rows[0] ?? null;
+      });
+    },
+
+    async updateRows(params: UpdateRowsParams, context?: PluginContext) {
+      return withPool(context, async (db) => {
+        assertObjectHasFields(params.patch, "patch");
+
+        const patchEntries = Object.entries(params.patch);
+        const setSql = patchEntries.map(([key], index) => `${quoteIdentifier(key)} = $${index + 1}`).join(", ");
+        const patchValues = patchEntries.map(([, value]) => value);
+        const where = buildWhereClause(params.where, patchValues.length + 1);
+        const result = await db.query(
+          `update ${qualifiedTable(params.schema, params.table)} set ${setSql}${where.sql} returning *`,
+          [...patchValues, ...where.values],
+        );
+
+        return result.rows;
+      });
+    },
+
+    async deleteRows(params: DeleteRowsParams, context?: PluginContext) {
+      if (params.confirm !== true) {
+        throw new Error("deleteRows requires confirm: true.");
+      }
+
+      return withPool(context, async (db) => {
+        const where = buildWhereClause(params.where);
+        const result = await db.query(
+          `delete from ${qualifiedTable(params.schema, params.table)}${where.sql} returning *`,
+          where.values,
+        );
+
+        return result.rows;
+      });
+    },
+
+    async executeQuery(params: ExecuteQueryParams, context?: PluginContext) {
+      assertUnsafeSqlAllowed(context);
+
+      return withPool(context, async (db) => {
+        const result = await db.query(params.sql, params.values ?? []);
+        return { rowCount: result.rowCount, rows: result.rows };
+      });
+    },
+
+    async transaction(params: TransactionParams, context?: PluginContext) {
+      assertUnsafeSqlAllowed(context);
+
+      const pool = createPool(context);
+      const client = await pool.connect();
+      try {
+        return await runTransaction(client, params.statements);
+      } finally {
+        client.release();
+        await pool.end();
+      }
     },
   };
 }
