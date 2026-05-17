@@ -131,7 +131,7 @@ Use one active profile per backend process/UI session.
   - Add tests that create two temp profiles and verify separate database files are opened.
   - Expected result: database lifetime belongs to active profile runtime.
 
-- [ ] Task 7: Run migrations per profile
+- [x] Task 7: Run migrations per profile
   - Refactor `server/src/core/database/index.ts` to initialize databases for the active profile manager.
   - Keep migration registry reusable per database group.
   - Add tests proving migrations run independently for profile A and profile B.

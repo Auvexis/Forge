@@ -8,11 +8,24 @@
 
 import { DatabaseManager } from "./manager.ts";
 import { createMigrationEngine } from "./migration-engine.ts";
+import type { ActiveProfileDatabases, ProfileDatabaseManager } from "../profiles/profile-database-manager.ts";
 
 export async function initializeDatabases(): Promise<void> {
   console.log("[SAILOR | DB]: Initializing databases...");
 
-  const entries: Array<[keyof typeof DatabaseManager, string]> = [
+  await runMigrations(DatabaseManager);
+
+  console.log("[SAILOR | DB]: All databases are up to date.");
+}
+
+export async function initializeProfileDatabases(
+  manager: ProfileDatabaseManager,
+): Promise<void> {
+  await runMigrations(manager.getAll());
+}
+
+async function runMigrations(databases: ActiveProfileDatabases): Promise<void> {
+  const entries: Array<[keyof ActiveProfileDatabases, string]> = [
     ["app", "app"],
     ["workflows", "workflows"],
     ["plugins", "plugins"],
@@ -20,12 +33,9 @@ export async function initializeDatabases(): Promise<void> {
   ];
 
   for (const [key, dbName] of entries) {
-    const db = DatabaseManager[key];
-    const engine = createMigrationEngine(db, dbName);
+    const engine = createMigrationEngine(databases[key], dbName);
     await engine.up();
   }
-
-  console.log("[SAILOR | DB]: All databases are up to date.");
 }
 
 // Re-export the manager so consumers only need to import from one place
