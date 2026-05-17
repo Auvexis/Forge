@@ -3,7 +3,7 @@
     "id": "google-drive",
     "name": "Google Drive",
     "description": "Interact with Google Drive to upload, download, list, move, copy and manage files and folders.",
-    "icon": "https://static.vecteezy.com/system/resources/previews/012/871/368/non_2x/google-drive-icon-google-product-illustration-free-png.png",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/google-drive.svg",
     "category": "Google",
     "author": "Sailor",
     "version": "1.1.0",

@@ -3,7 +3,7 @@
     "id": "sailor-supabase",
     "name": "Supabase",
     "description": "Connect to Supabase local, self-hosted, or remote projects.",
-    "icon": "database-zap",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/supabase.svg",
     "category": "Database",
     "author": "Sailor",
     "version": "1.0.0",

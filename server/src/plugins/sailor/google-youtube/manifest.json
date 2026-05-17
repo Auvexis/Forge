@@ -3,7 +3,7 @@
     "id": "google-youtube",
     "name": "Google YouTube",
     "description": "Allows the AI to interact with YouTube to search, upload, and manage videos, channels, comments, playlists, and subscriptions.",
-    "icon": "https://static.vecteezy.com/system/resources/previews/023/986/704/non_2x/youtube-logo-youtube-logo-transparent-youtube-icon-transparent-free-free-png.png",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/youtube.svg",
     "category": "Google",
     "author": "Sailor",
     "version": "1.0.0",

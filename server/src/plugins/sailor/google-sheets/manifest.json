@@ -3,7 +3,7 @@
     "id": "google-sheets",
     "name": "Google Sheets",
     "description": "Read, append, and update rows in Google Sheets.",
-    "icon": "https://upload.wikimedia.org/wikipedia/commons/3/30/Google_Sheets_logo_%282014-2020%29.svg",
+    "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/google-sheets.svg",
     "category": "Google",
     "author": "Sailor",
     "version": "1.0.0",

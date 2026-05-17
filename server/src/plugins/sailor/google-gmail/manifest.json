@@ -3,7 +3,7 @@
     "id": "google-gmail",
     "name": "Google Gmail",
     "description": "Integration with Google Gmail API to manage emails, threads, drafts, and labels.",
-    "icon": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gmail.svg",
     "category": "Communication",
     "author": "Sailor",
     "version": "1.1.0",

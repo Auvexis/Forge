@@ -3,7 +3,7 @@
     "id": "sailor-ollama",
     "name": "Ollama",
     "description": "Manage and use local LLMs with Ollama Plugin.",
-    "icon": "https://mintcdn.com/ollama-9269c548/XefrxzvUktkk84RL/images/logo-dark.png?fit=max&auto=format&n=XefrxzvUktkk84RL&q=85&s=c214b467f5623414c31d4e05c66110fb",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ollama.svg",
     "category": "AI",
     "author": "Sailor",
     "version": "1.0.0",

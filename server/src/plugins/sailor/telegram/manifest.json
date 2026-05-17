@@ -3,7 +3,7 @@
     "id": "telegram",
     "name": "Telegram",
     "description": "Send messages, files, photos, and polls via a Telegram Bot. Supports webhooks for receiving user updates.",
-    "icon": "https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/telegram.svg",
     "category": "Communication",
     "author": "Sailor",
     "version": "1.0.0",
