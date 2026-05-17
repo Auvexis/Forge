@@ -1,6 +1,23 @@
 import type Database from "better-sqlite3";
+import { DatabaseManager } from "../../database/index.ts";
 
 export type PluginSource = "internal" | "external";
+
+type PluginRegistryDatabaseProvider = () => Database.Database;
+
+let pluginRegistryDatabaseProvider: PluginRegistryDatabaseProvider = () => DatabaseManager.plugins;
+
+export function setPluginRegistryDatabaseProvider(provider: PluginRegistryDatabaseProvider): void {
+  pluginRegistryDatabaseProvider = provider;
+}
+
+export function resetPluginRegistryDatabaseProvider(): void {
+  pluginRegistryDatabaseProvider = () => DatabaseManager.plugins;
+}
+
+export function getPluginRegistryDatabase(): Database.Database {
+  return pluginRegistryDatabaseProvider();
+}
 
 export interface SyncPluginRegistryInput {
   id: string;

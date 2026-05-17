@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 import Database from "better-sqlite3";
 
 import {
   isPluginEnabled,
+  getPluginRegistryDatabase,
+  resetPluginRegistryDatabaseProvider,
+  setPluginRegistryDatabaseProvider,
   syncPluginRegistry,
 } from "./plugin-registry.ts";
 
@@ -28,6 +31,10 @@ function createDb(): Database.Database {
 }
 
 describe("plugin registry", () => {
+  afterEach(() => {
+    resetPluginRegistryDatabaseProvider();
+  });
+
   it("inserts source and paths for new plugins", () => {
     const db = createDb();
 
@@ -49,6 +56,57 @@ describe("plugin registry", () => {
     assert.equal(row.is_enabled, 1);
 
     db.close();
+  });
+
+  it("uses the active database provider so registry rows and enabled state stay isolated by profile", () => {
+    const profileA = createDb();
+    const profileB = createDb();
+
+    setPluginRegistryDatabaseProvider(() => profileA);
+    syncPluginRegistry(getPluginRegistryDatabase(), {
+      id: "external-plugin",
+      pluginId: "external",
+      version: "1.0.0",
+      source: "external",
+      installPath: "C:/plugins/external-plugin",
+      manifestPath: "C:/plugins/external-plugin/manifest.json",
+    });
+    profileA
+      .prepare("UPDATE registered_plugins SET is_enabled = 0 WHERE id = ?")
+      .run("external-plugin");
+
+    setPluginRegistryDatabaseProvider(() => profileB);
+    assert.equal(isPluginEnabled(getPluginRegistryDatabase(), "external-plugin"), true);
+    const profileBCount = profileB
+      .prepare("SELECT COUNT(*) AS count FROM registered_plugins")
+      .get() as { count: number };
+    assert.equal(profileBCount.count, 0);
+
+    syncPluginRegistry(getPluginRegistryDatabase(), {
+      id: "external-plugin",
+      pluginId: "external",
+      version: "2.0.0",
+      source: "external",
+      installPath: "C:/plugins/external-plugin-b",
+      manifestPath: "C:/plugins/external-plugin-b/manifest.json",
+    });
+
+    setPluginRegistryDatabaseProvider(() => profileA);
+    assert.equal(isPluginEnabled(getPluginRegistryDatabase(), "external-plugin"), false);
+    const profileARow = profileA
+      .prepare("SELECT version FROM registered_plugins WHERE id = ?")
+      .get("external-plugin") as { version: string };
+    assert.equal(profileARow.version, "1.0.0");
+
+    setPluginRegistryDatabaseProvider(() => profileB);
+    assert.equal(isPluginEnabled(getPluginRegistryDatabase(), "external-plugin"), true);
+    const profileBRow = profileB
+      .prepare("SELECT version FROM registered_plugins WHERE id = ?")
+      .get("external-plugin") as { version: string };
+    assert.equal(profileBRow.version, "2.0.0");
+
+    profileA.close();
+    profileB.close();
   });
 
   it("updates metadata without overwriting disabled state", () => {

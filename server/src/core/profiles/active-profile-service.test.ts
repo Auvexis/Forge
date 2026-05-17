@@ -13,11 +13,13 @@ import { AppRepository, resetAppDatabaseProvider } from "../modules/app/app-repo
 import { resetWorkflowDatabaseProvider } from "../modules/workflows/repository.ts";
 import { resetCredentialsDatabaseProvider } from "../modules/plugins/credential-store.ts";
 import { resetOAuth2SessionDatabaseProvider } from "../modules/plugins/auth/oauth2-session-store.ts";
+import { resetPluginRegistryDatabaseProvider } from "../modules/plugins/plugin-registry.ts";
 
 class FakeDatabaseManager {
   opened: string[] = [];
   app = "app-db";
   workflows = "workflows-db";
+  plugins = "plugins-db";
   credentials = "credentials-db";
   open(paths: ProfilePaths): void {
     this.opened.push(path.basename(paths.profileDir));
@@ -43,6 +45,7 @@ describe("ActiveProfileService", () => {
   afterEach(() => {
     resetAppDatabaseProvider();
     resetWorkflowDatabaseProvider();
+    resetPluginRegistryDatabaseProvider();
     resetCredentialsDatabaseProvider();
     resetOAuth2SessionDatabaseProvider();
   });
@@ -114,7 +117,12 @@ describe("ActiveProfileService", () => {
       passwordService: new ProfilePasswordService({ store }),
       databaseManager: db,
       configureProfileRepositories: (manager) => {
-        configured.push(String(manager.app), String(manager.workflows), String(manager.credentials));
+        configured.push(
+          String(manager.app),
+          String(manager.workflows),
+          String(manager.plugins),
+          String(manager.credentials),
+        );
       },
       migrate: async () => {},
       loadProfilePluginSettings: async () => {},
@@ -124,7 +132,7 @@ describe("ActiveProfileService", () => {
 
     await service.start();
 
-    assert.deepEqual(configured, ["app-db", "workflows-db", "credentials-db"]);
+    assert.deepEqual(configured, ["app-db", "workflows-db", "plugins-db", "credentials-db"]);
   });
 
   it("uses default repository provider wiring for active profile app settings", async () => {
@@ -132,10 +140,12 @@ describe("ActiveProfileService", () => {
     const appDb = new Database(":memory:");
     appDb.prepare("CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT)").run();
     const workflowDb = new Database(":memory:");
+    const pluginsDb = new Database(":memory:");
     const credentialsDb = new Database(":memory:");
     const db = {
       app: appDb,
       workflows: workflowDb,
+      plugins: pluginsDb,
       credentials: credentialsDb,
       open: () => {},
       close: () => {},
@@ -158,6 +168,7 @@ describe("ActiveProfileService", () => {
     assert.equal(JSON.parse(row.value), "https://profile.example");
     appDb.close();
     workflowDb.close();
+    pluginsDb.close();
     credentialsDb.close();
   });
 

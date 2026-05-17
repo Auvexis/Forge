@@ -12,6 +12,7 @@ import {
 import {
   setOAuth2SessionDatabaseProvider,
 } from "../modules/plugins/auth/oauth2-session-store.ts";
+import { setPluginRegistryDatabaseProvider } from "../modules/plugins/plugin-registry.ts";
 
 export interface SwitchProfileInput {
   profileId: ProfileId;
@@ -23,6 +24,7 @@ interface ProfileDatabaseManagerLike {
   close(): void;
   app?: unknown;
   workflows?: unknown;
+  plugins?: unknown;
   credentials?: unknown;
 }
 
@@ -159,13 +161,20 @@ function configureDefaultProfileRepositories(
 ): void {
   const app = manager.app;
   const workflows = manager.workflows;
+  const plugins = manager.plugins;
   const credentials = manager.credentials;
-  if (!isDatabaseLike(app) || !isDatabaseLike(workflows) || !isDatabaseLike(credentials)) {
+  if (
+    !isDatabaseLike(app) ||
+    !isDatabaseLike(workflows) ||
+    !isDatabaseLike(plugins) ||
+    !isDatabaseLike(credentials)
+  ) {
     return;
   }
 
   setAppDatabaseProvider(() => app);
   setWorkflowDatabaseProvider(() => workflows);
+  setPluginRegistryDatabaseProvider(() => plugins);
   setCredentialsDatabaseProvider(() => credentials);
   setOAuth2SessionDatabaseProvider(() => credentials);
 }

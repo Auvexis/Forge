@@ -163,7 +163,7 @@ Use one active profile per backend process/UI session.
   - Add tests for settings isolation across profiles.
   - Expected result: profile configuration is independent.
 
-- [ ] Task 12: Refactor plugin registry state to profile scope
+- [x] Task 12: Refactor plugin registry state to profile scope
   - Use active profile `plugins.db` for installed/registered plugin state.
   - Keep source plugin files global when installed for all profiles.
   - Keep `plugin-settings.json` per profile.

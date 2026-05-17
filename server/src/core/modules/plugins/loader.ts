@@ -8,6 +8,7 @@ import { PluginManager } from "./manager.ts";
 import { sailorHomePaths } from "../../runtime/sailor-home.ts";
 import {
   isPluginEnabled,
+  getPluginRegistryDatabase,
   syncPluginRegistry,
   type PluginSource,
 } from "./plugin-registry.ts";
@@ -153,7 +154,7 @@ async function loadSource(
 }
 
 export async function loadPlugins(options: LoadPluginsOptions = {}): Promise<LoadPluginsResult> {
-  const registryDb = options.registryDb ?? (await import("../../database/index.ts")).DatabaseManager.plugins;
+  const registryDb = options.registryDb ?? getPluginRegistryDatabase();
   const resolved = {
     registryDb,
     pluginManager: options.pluginManager ?? PluginManager,

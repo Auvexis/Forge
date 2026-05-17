@@ -7,7 +7,7 @@ import { PluginManager } from "../modules/plugins/manager.ts";
 import { PluginExecutor, PluginValidationError } from "../modules/plugins/executor.ts";
 import { CredentialStore, isMaskedCredentialValue } from "../modules/plugins/credential-store.ts";
 import { Vault } from "../modules/plugins/vault.ts";
-import { DatabaseManager } from "../database/manager.ts";
+import { getPluginRegistryDatabase } from "../modules/plugins/plugin-registry.ts";
 import { sailorHomePaths } from "../runtime/sailor-home.ts";
 import { locatePluginRelease } from "../modules/plugins/external/plugin-release-locator.ts";
 import {
@@ -262,7 +262,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         releaseDir: preview.release.releaseDir,
         source: preview.source,
         scope: validation.data.scope,
-        registryDb: DatabaseManager.plugins,
+        registryDb: getPluginRegistryDatabase(),
       });
       externalPluginPreviewStore.remove(validation.data.previewId);
 
