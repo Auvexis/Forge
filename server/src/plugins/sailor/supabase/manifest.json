@@ -7,13 +7,7 @@
     "category": "Database",
     "author": "Sailor",
     "version": "1.0.0",
-    "repository": "https://github.com/Auvexis/sailor",
-    "style": {
-      "icon": "database-zap",
-      "iconColor": "rgb(16, 185, 129)",
-      "bgColor": "rgba(16, 185, 129, 0.12)",
-      "borderColor": "rgba(16, 185, 129, 0.4)"
-    }
+    "repository": "https://github.com/Auvexis/sailor"
   },
   "methods": {
     "testConnection": {
