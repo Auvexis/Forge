@@ -226,7 +226,7 @@ Use one active profile per backend process/UI session.
   - Include methods for password verification, password set/remove, selected-profile plugin install, and profile deletion confirmation flow.
   - Expected result: profile API access is centralized.
 
-- [ ] Task 19: Add profile store
+- [x] Task 19: Add profile store
   - Add a small profile store using the existing frontend state pattern.
   - Support loading profiles, creating profile, switching active profile, renaming, updating emoji avatar, updating optional email, setting/removing optional password, and deleting non-active profiles.
   - Ensure failed switch keeps current UI state.
