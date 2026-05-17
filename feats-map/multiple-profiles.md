@@ -100,7 +100,7 @@ Use one active profile per backend process/UI session.
   - Add tests for Windows-safe paths and traversal rejection.
   - Expected result: no service builds profile paths manually.
 
-- [ ] Task 4: Add profile store
+- [x] Task 4: Add profile store
   - Add `server/src/core/profiles/profile-store.ts`.
   - Manage `profiles.json` as the global profile index.
   - Support list, get current profile, create, rename/update metadata, set current profile, update avatar emoji, update optional email, set/change/remove optional password, and delete non-active profiles.
