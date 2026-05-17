@@ -86,13 +86,13 @@
               @click="selectPlugin(plugin.id)"
             >
               <div class="add-node-item-icon-well add-node-item-icon-well--plugin">
-                <img
-                  v-if="isUrl(plugin.manifest.metadata.icon)"
-                  :src="plugin.manifest.metadata.icon"
+                <LucideIcon
+                  v-if="plugin.manifest.metadata.icon"
+                  :name="plugin.manifest.metadata.icon"
+                  :size="18"
                   class="add-node-plugin-img"
-                  alt=""
                 />
-                <LucideIcon v-else :name="plugin.manifest.metadata.icon || 'box'" :size="16" />
+                <LucideIcon v-else name="box" :size="16" />
               </div>
               <div class="add-node-item-info">
                 <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
@@ -348,8 +348,6 @@ const goBack = () => {
 // Used by parent (AppPanel header back button is not available) — exposed via provide/inject pattern
 // Instead we emit nothing: the back button sits on the panel header via slot
 
-// Simple URL detect for plugin icons
-const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
 </script>
 
 <style scoped>
