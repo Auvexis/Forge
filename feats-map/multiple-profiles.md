@@ -108,7 +108,7 @@ Use one active profile per backend process/UI session.
   - Add tests for first-run bootstrap, persistence, duplicate IDs, switching, metadata updates, password metadata persistence, and delete guards.
   - Expected result: profile metadata is stored once and has no database dependency.
 
-- [ ] Task 4.1: Add profile password service
+- [x] Task 4.1: Add profile password service
   - Add `server/src/core/profiles/profile-password-service.ts`.
   - Hash passwords with a standard Node crypto KDF such as `scrypt` using a per-password random salt.
   - Verify passwords with timing-safe comparison.
