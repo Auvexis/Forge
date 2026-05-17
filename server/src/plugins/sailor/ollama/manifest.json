@@ -21,13 +21,11 @@
           "prompt": {
             "type": "string",
             "description": "The prompt to use for generation.",
-            "placeholder": "Hello, how are you?",
             "x-input-type": "textarea"
           },
           "system": {
             "type": "string",
             "description": "Override the default system instructions.",
-            "placeholder": "You are a helpful assistant.",
             "x-input-type": "textarea"
           },
           "jsonMode": {
