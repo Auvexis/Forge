@@ -84,7 +84,7 @@ Use one active profile per backend process/UI session.
   - Document known dirty files and do not include unrelated user changes in commits.
   - Commit only this plan when reviewed.
 
-- [ ] Task 2: Define profile domain types
+- [x] Task 2: Define profile domain types
   - Add `server/src/core/profiles/profile-types.ts`.
   - Define `ProfileId`, `ProfileSummary`, `ProfileManifest`, `ProfilePasswordMetadata`, `CreateProfileInput`, `UpdateProfileInput`, `VerifyProfilePasswordInput`, and validation helpers.
   - Support `name`, `avatarEmoji`, optional `email`, and optional password fields.
