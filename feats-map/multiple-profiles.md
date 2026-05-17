@@ -252,7 +252,7 @@ Use one active profile per backend process/UI session.
   - Use compact app-sidebar styling, not a marketing-style panel.
   - Expected result: the sidebar shows a real active profile identity and gives fast access to profile actions.
 
-- [ ] Task 22: Add emoji avatar picker
+- [x] Task 22: Add emoji avatar picker
   - Add an emoji-only avatar picker component inspired by Phantom Wallet.
   - Use grouped emoji choices and recently selected emoji if a local pattern already exists.
   - Do not allow arbitrary uploaded images in this feature.

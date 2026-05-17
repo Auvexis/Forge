@@ -32,20 +32,7 @@
         <button type="button" class="profile-entry__back" aria-label="Voltar" @click="resetMode">
           <LucideIcon name="arrow-left" :size="18" />
         </button>
-        <div class="profile-entry__emoji-grid" role="radiogroup" aria-label="Avatar">
-          <button
-            v-for="emoji in PROFILE_AVATAR_OPTIONS"
-            :key="emoji"
-            type="button"
-            class="profile-entry__emoji-choice"
-            :class="{ 'profile-entry__emoji-choice--active': draft.avatarEmoji === emoji }"
-            :aria-checked="draft.avatarEmoji === emoji"
-            role="radio"
-            @click="draft.avatarEmoji = emoji"
-          >
-            {{ emoji }}
-          </button>
-        </div>
+        <ProfileAvatarPicker v-model="draft.avatarEmoji" />
         <input
           v-model="draft.name"
           class="profile-entry__input"
@@ -129,7 +116,8 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useProfileStore } from '@/shared/stores/profile.store'
 import type { ProfileSummary } from '@/core/api/profiles.api'
-import { pickDefaultProfileAvatar, PROFILE_AVATAR_OPTIONS } from '../profileSelectionOptions'
+import ProfileAvatarPicker from './ProfileAvatarPicker.vue'
+import { DEFAULT_PROFILE_AVATAR, pickDefaultProfileAvatar } from '../profileSelectionOptions'
 
 const emit = defineEmits<{
   entered: []
@@ -146,7 +134,7 @@ const deleteConfirmation = ref('')
 const isCreating = ref(false)
 const draft = reactive<{ name: string; avatarEmoji: string; email: string }>({
   name: '',
-  avatarEmoji: PROFILE_AVATAR_OPTIONS[0],
+  avatarEmoji: DEFAULT_PROFILE_AVATAR,
   email: '',
 })
 
@@ -411,26 +399,6 @@ function resetMode() {
 .profile-entry__input:focus {
   outline: none;
   border-color: var(--sailor-input-border-focus);
-}
-
-.profile-entry__emoji-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 48px);
-  gap: 10px;
-}
-
-.profile-entry__emoji-choice {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  border: 1px solid var(--sailor-border);
-  background: rgba(255, 255, 255, 0.045);
-  font-size: 24px;
-}
-
-.profile-entry__emoji-choice--active {
-  border-color: var(--sailor-border-brand);
-  background: rgba(249, 115, 22, 0.14);
 }
 
 .profile-entry__error {
