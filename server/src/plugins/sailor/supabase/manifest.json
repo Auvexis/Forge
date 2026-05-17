@@ -1,0 +1,37 @@
+{
+  "metadata": {
+    "id": "sailor-supabase",
+    "name": "Supabase",
+    "description": "Connect to Supabase local, self-hosted, or remote projects.",
+    "icon": "database-zap",
+    "category": "Database",
+    "author": "Sailor",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/sailor",
+    "style": {
+      "icon": "database-zap",
+      "iconColor": "rgb(16, 185, 129)",
+      "bgColor": "rgba(16, 185, 129, 0.12)",
+      "borderColor": "rgba(16, 185, 129, 0.4)"
+    }
+  },
+  "methods": {
+    "testConnection": {
+      "metadata": {
+        "label": "Test Connection",
+        "description": "Validates Supabase URL and key by calling the API."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

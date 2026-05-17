@@ -435,7 +435,7 @@ git commit -m "feat(postgresql): add safe crud and guarded sql"
 - Create: `server/src/plugins/sailor/supabase/manifest.json`
 - Create: `server/src/plugins/sailor/supabase/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 ```ts
 import assert from "node:assert/strict";
@@ -452,7 +452,7 @@ describe("supabase plugin", () => {
 });
 ```
 
-- [ ] **Step 2: Criar `index.ts`**
+- [x] **Step 2: Criar `index.ts`**
 
 ```ts
 import type { SailorPlugin, PluginManifest } from "@auvexis/sailor-sdk";
@@ -494,11 +494,11 @@ const SupabasePlugin: SailorPlugin = {
 export default SupabasePlugin;
 ```
 
-- [ ] **Step 3: Criar `methods.ts` minimo e `manifest.json` minimo**
+- [x] **Step 3: Criar `methods.ts` minimo e `manifest.json` minimo**
 
 `methods.ts` exporta `createSupabaseMethods()` com `testConnection`. `manifest.json` declara metadata `sailor-supabase` e metodo `testConnection`.
 
-- [ ] **Step 4: Rodar teste**
+- [x] **Step 4: Rodar teste**
 
 Run:
 ```bash
@@ -507,7 +507,7 @@ node --loader ts-node/esm --test src/plugins/sailor/supabase/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/plugins/sailor/supabase feats-map/default-database-canary-plugins.md
