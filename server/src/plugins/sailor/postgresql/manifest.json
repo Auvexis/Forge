@@ -32,6 +32,91 @@
           "ok": { "type": "boolean" }
         }
       }
+    },
+    "listSchemas": {
+      "metadata": {
+        "label": "List Schemas",
+        "description": "Lists non-system PostgreSQL schemas."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "schema": { "type": "string" }
+          }
+        }
+      }
+    },
+    "listTables": {
+      "metadata": {
+        "label": "List Tables",
+        "description": "Lists tables and views in a schema."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "string",
+            "description": "Schema name. Default: public.",
+            "default": "public",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "schema": { "type": "string" },
+            "name": { "type": "string" },
+            "type": { "type": "string" }
+          }
+        }
+      }
+    },
+    "describeTable": {
+      "metadata": {
+        "label": "Describe Table",
+        "description": "Returns columns, types, nullability, defaults, and primary key flags."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "string",
+            "description": "Schema name. Default: public.",
+            "default": "public",
+            "x-input-type": "text"
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["table"]
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "type": { "type": "string" },
+            "nullable": { "type": "boolean" },
+            "default": { "type": ["string", "null"] },
+            "primaryKey": { "type": "boolean" }
+          }
+        }
+      }
     }
   }
 }

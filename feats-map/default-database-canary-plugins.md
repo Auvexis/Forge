@@ -251,7 +251,7 @@ git commit -m "feat(plugins): scaffold postgresql plugin"
 - Modify: `server/src/plugins/sailor/postgresql/manifest.json`
 - Modify: `server/src/plugins/sailor/postgresql/methods.test.ts`
 
-- [ ] **Step 1: Escrever testes falhando para helpers**
+- [x] **Step 1: Escrever testes falhando para helpers**
 
 ```ts
 import assert from "node:assert/strict";
@@ -280,7 +280,7 @@ describe("postgresql helpers", () => {
 });
 ```
 
-- [ ] **Step 2: Implementar helpers de conexao**
+- [x] **Step 2: Implementar helpers de conexao**
 
 ```ts
 import pg from "pg";
@@ -321,15 +321,15 @@ function createPool(context?: PluginContext) {
 }
 ```
 
-- [ ] **Step 3: Implementar metodos**
+- [x] **Step 3: Implementar metodos**
 
 Implementar `testConnection`, `listSchemas`, `listTables`, `describeTable` usando `information_schema` e parametros `$1`, `$2`.
 
-- [ ] **Step 4: Atualizar manifest**
+- [x] **Step 4: Atualizar manifest**
 
 Adicionar `listSchemas`, `listTables`, `describeTable` com `schema` default `public`, `table` required e `responseSchema.type = "array"`.
 
-- [ ] **Step 5: Rodar testes**
+- [x] **Step 5: Rodar testes**
 
 Run:
 ```bash
@@ -338,7 +338,7 @@ node --loader ts-node/esm --test src/plugins/sailor/postgresql/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/plugins/sailor/postgresql feats-map/default-database-canary-plugins.md
