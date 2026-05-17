@@ -294,7 +294,7 @@ Use one active profile per backend process/UI session.
 
 ## Final Verification Tasks
 
-- [ ] Task 27: Full regression run
+- [x] Task 27: Full regression run
   - Run backend tests.
   - Run frontend tests/typecheck/build according to project scripts.
   - Run a manual profile isolation smoke.

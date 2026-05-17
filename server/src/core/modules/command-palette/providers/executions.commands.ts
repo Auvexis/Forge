@@ -67,10 +67,18 @@ function webhookUrl(workflow: WorkflowItem, context: CommandExecutionContext): s
   return `${publicBaseUrl(context)}/webhook/${path}`;
 }
 
+function exposesWebhookUrl(workflow: WorkflowItem): boolean {
+  return workflow.trigger.type === "webhook" || workflow.trigger.type === "plugin";
+}
+
 function formUrl(workflow: WorkflowItem, context: CommandExecutionContext): string | null {
   if (workflow.trigger.type !== "form") return null;
   const formId = workflow.trigger.formSlug?.trim() || workflow.metadata.id;
   return `${publicBaseUrl(context)}/forms/${formId}`;
+}
+
+function exposesFormUrl(workflow: WorkflowItem): boolean {
+  return workflow.trigger.type === "form";
 }
 
 function logsOpenCommand(): CommandHandler {
@@ -181,7 +189,7 @@ function copyWebhookUrlCommand(): CommandHandler {
   return {
     describe: (context): CommandDescriptor => {
       const workflow = activeWorkflow(context);
-      const url = workflow ? webhookUrl(workflow, context) : null;
+      const exposesUrl = workflow ? exposesWebhookUrl(workflow) : false;
       return {
         id: "utility.copy-webhook-url",
         group: "utility",
@@ -189,7 +197,7 @@ function copyWebhookUrlCommand(): CommandHandler {
         description: "Copy the active workflow webhook URL",
         keywords: ["copy", "webhook url", "plugin webhook"],
         icon: "link",
-        availability: url
+        availability: exposesUrl
           ? { enabled: true }
           : { enabled: false, reason: "Active workflow does not expose a webhook URL" },
       };
@@ -207,7 +215,7 @@ function copyFormUrlCommand(): CommandHandler {
   return {
     describe: (context): CommandDescriptor => {
       const workflow = activeWorkflow(context);
-      const url = workflow ? formUrl(workflow, context) : null;
+      const exposesUrl = workflow ? exposesFormUrl(workflow) : false;
       return {
         id: "utility.copy-form-url",
         group: "utility",
@@ -215,7 +223,7 @@ function copyFormUrlCommand(): CommandHandler {
         description: "Copy the active workflow form URL",
         keywords: ["copy", "form url"],
         icon: "clipboard-list",
-        availability: url
+        availability: exposesUrl
           ? { enabled: true }
           : { enabled: false, reason: "Active workflow does not expose a form URL" },
       };

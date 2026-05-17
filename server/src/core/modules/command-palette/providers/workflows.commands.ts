@@ -136,10 +136,14 @@ function buildWebhookUrl(workflow: WorkflowItem, services: WorkflowCommandServic
   return `${services.getPublicUrl().replace(/\/$/, "")}/webhook/${path}`;
 }
 
+function exposesWebhookUrl(workflow: WorkflowItem): boolean {
+  return workflow.trigger.type === "webhook" || workflow.trigger.type === "plugin";
+}
+
 function webhookAvailability(context: CommandExecutionContext) {
   const workflow = activeWorkflow(context);
   if (!workflow) return { enabled: false, reason: "Active workflow not found" };
-  return buildWebhookUrl(workflow, workflowServices(context))
+  return exposesWebhookUrl(workflow)
     ? { enabled: true }
     : { enabled: false, reason: "Active workflow does not expose a webhook URL" };
 }
@@ -147,7 +151,7 @@ function webhookAvailability(context: CommandExecutionContext) {
 function formAvailability(context: CommandExecutionContext) {
   const workflow = activeWorkflow(context);
   if (!workflow) return { enabled: false, reason: "Active workflow not found" };
-  return buildFormUrl(workflow, workflowServices(context))
+  return exposesFormUrl(workflow)
     ? { enabled: true }
     : { enabled: false, reason: "Active workflow does not expose a form URL" };
 }
@@ -156,6 +160,10 @@ function buildFormUrl(workflow: WorkflowItem, services: WorkflowCommandServices)
   if (workflow.trigger.type !== "form") return null;
   const formId = workflow.trigger.formSlug?.trim() || workflow.metadata.id;
   return `${services.getPublicUrl().replace(/\/$/, "")}/forms/${formId}`;
+}
+
+function exposesFormUrl(workflow: WorkflowItem): boolean {
+  return workflow.trigger.type === "form";
 }
 
 // ─── Drilldown helpers ──────────────────────────────────────────────────────

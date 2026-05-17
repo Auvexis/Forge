@@ -1,9 +1,26 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it } from "node:test";
+import Database from "better-sqlite3";
 
+import { createMigrationEngine } from "../../database/migration-engine.ts";
+import { resetAppDatabaseProvider, setAppDatabaseProvider } from "../app/app-repository.ts";
 import { WorkflowEngine } from "./executor.ts";
-import { WorkflowRepository } from "./repository.ts";
+import {
+  resetWorkflowDatabaseProvider,
+  setWorkflowDatabaseProvider,
+  WorkflowRepository,
+} from "./repository.ts";
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
+
+let db: Database.Database | null = null;
+let appDb: Database.Database | null = null;
+
+async function createMigratedDb(kind: "app" | "workflows"): Promise<Database.Database> {
+  const database = new Database(":memory:");
+  database.pragma("foreign_keys = ON");
+  await createMigrationEngine(database, kind).up();
+  return database;
+}
 
 function baseWorkflow(): WorkflowItem {
   return {
@@ -48,6 +65,22 @@ function baseWorkflow(): WorkflowItem {
 }
 
 describe("WorkflowEngine trigger entry execution", () => {
+  beforeEach(async () => {
+    appDb = await createMigratedDb("app");
+    db = await createMigratedDb("workflows");
+    setAppDatabaseProvider(() => appDb!);
+    setWorkflowDatabaseProvider(() => db!);
+  });
+
+  afterEach(() => {
+    resetAppDatabaseProvider();
+    resetWorkflowDatabaseProvider();
+    appDb?.close();
+    db?.close();
+    appDb = null;
+    db = null;
+  });
+
   it("executes only nodes downstream of the selected trigger", async () => {
     const wf = baseWorkflow();
     WorkflowRepository.saveWorkflow(wf);
