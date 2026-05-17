@@ -6,6 +6,7 @@ import {
   type ProfileSummary,
   type UpdateProfilePayload,
 } from '@/core/api/profiles.api'
+import { refreshAfterProfileSwitch } from '@/features/profiles/profileSwitchRefresh'
 
 export const useProfileStore = defineStore('profile', () => {
   const profiles = ref<ProfileSummary[]>([])
@@ -82,6 +83,7 @@ export const useProfileStore = defineStore('profile', () => {
       const switched = await profilesApi.switchProfile(profileId, password)
       currentProfile.value = switched
       setProfile(switched)
+      await refreshAfterProfileSwitch()
       return switched
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to switch profile'

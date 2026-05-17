@@ -11,12 +11,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { pluginsApi } from '@/core/api/plugins.api'
 import type { ExternalPluginInstallResult, ExternalPluginPreview, PluginSummary } from '@/core/types/plugin.types'
 import ExternalPluginInstaller from '@/features/plugins/components/ExternalPluginInstaller.vue'
 import ExternalPluginPreviewPanel from '@/features/plugins/components/ExternalPluginPreviewPanel.vue'
 import InstalledPluginsList from '@/features/plugins/components/InstalledPluginsList.vue'
+import { PROFILE_SWITCH_REFRESH_EVENT } from '@/features/profiles/profileSwitchRefresh'
 
 const plugins = ref<PluginSummary[]>([])
 const preview = ref<ExternalPluginPreview | null>(null)
@@ -31,6 +32,11 @@ function onInstalled(_result: ExternalPluginInstallResult) {
 
 onMounted(() => {
   void loadPlugins()
+  window.addEventListener(PROFILE_SWITCH_REFRESH_EVENT, loadPlugins)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener(PROFILE_SWITCH_REFRESH_EVENT, loadPlugins)
 })
 </script>
 

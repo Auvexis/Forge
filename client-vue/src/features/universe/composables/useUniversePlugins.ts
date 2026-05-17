@@ -1,7 +1,8 @@
-import { computed, onMounted, ref, shallowRef } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 import { pluginsApi } from '@/core/api/plugins.api'
 import { mapPluginsToUniverse } from '../utils/pluginUniverseMapper'
 import type { UniversePluginMap } from '../types/universe.types'
+import { PROFILE_SWITCH_REFRESH_EVENT } from '@/features/profiles/profileSwitchRefresh'
 
 export function useUniversePlugins() {
   const plugins = shallowRef<UniversePluginMap>(mapPluginsToUniverse([]))
@@ -27,6 +28,11 @@ export function useUniversePlugins() {
 
   onMounted(() => {
     loadPlugins()
+    window.addEventListener(PROFILE_SWITCH_REFRESH_EVENT, loadPlugins)
+  })
+
+  onBeforeUnmount(() => {
+    window.removeEventListener(PROFILE_SWITCH_REFRESH_EVENT, loadPlugins)
   })
 
   return {

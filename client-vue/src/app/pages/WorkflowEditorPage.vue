@@ -16,6 +16,7 @@ import { useApi } from '@/shared/composables/useApi'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { useToast } from '@/shared/composables/useToast'
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
+import { PROFILE_SWITCH_REFRESH_EVENT } from '@/features/profiles/profileSwitchRefresh'
 import { computed, onMounted, onBeforeUnmount, watch, ref, markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
@@ -143,12 +144,14 @@ function openCommandPalette() {
 onMounted(() => {
   initWorkflow()
   window.addEventListener('sailor:command-palette:intent', handleUiIntent)
+  window.addEventListener(PROFILE_SWITCH_REFRESH_EVENT, initWorkflow)
 })
 
 // Limpa o store ao sair da página para que o canvas arranque sem dados obsoletos
 onBeforeUnmount(() => {
   workflowStore.clearWorkflow()
   window.removeEventListener('sailor:command-palette:intent', handleUiIntent)
+  window.removeEventListener(PROFILE_SWITCH_REFRESH_EVENT, initWorkflow)
 })
 
 watch(() => route.params.id, () => {

@@ -272,7 +272,7 @@ Use one active profile per backend process/UI session.
   - Make the install result clear: installed for current profile, selected profile, or all profiles.
   - Expected result: plugin install target is explicit.
 
-- [ ] Task 25: Refresh app state on profile switch
+- [x] Task 25: Refresh app state on profile switch
   - Clear and refetch workflows, plugin catalog/state, credentials/settings, and canvas data after successful switch.
   - Avoid stale active-profile data in stores.
   - Add focused tests or manual browser verification for switching profiles.

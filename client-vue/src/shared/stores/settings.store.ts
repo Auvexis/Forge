@@ -143,6 +143,14 @@ export const useSettingsStore = defineStore('settings', () => {
     delete credentials.value[pluginId]
   }
 
+  function clearProfileScopedState() {
+    variables.value = []
+    variablesError.value = null
+    settings.value = {}
+    credentials.value = {}
+    isLoadingCredential.value = {}
+  }
+
   // ── Navigation ────────────────────────────────────────────────────────────
 
   const activeTab = ref<string>('preferences')
@@ -181,5 +189,6 @@ export const useSettingsStore = defineStore('settings', () => {
     fetchCredential,
     saveCredential,
     deleteCredential,
+    clearProfileScopedState,
   }
 })
