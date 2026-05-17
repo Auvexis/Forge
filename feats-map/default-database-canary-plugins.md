@@ -111,7 +111,7 @@ git commit -m "chore(server): add database plugin dependencies"
 - Create: `server/src/plugins/sailor/postgresql/manifest.json`
 - Create: `server/src/plugins/sailor/postgresql/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 ```ts
 import assert from "node:assert/strict";
@@ -128,7 +128,7 @@ describe("postgresql plugin", () => {
 });
 ```
 
-- [ ] **Step 2: Rodar teste e confirmar falha**
+- [x] **Step 2: Rodar teste e confirmar falha**
 
 Run:
 ```bash
@@ -137,7 +137,7 @@ node --loader ts-node/esm --test src/plugins/sailor/postgresql/methods.test.ts
 Working dir: `server`
 Expected: FAIL por arquivos ausentes.
 
-- [ ] **Step 3: Criar `index.ts`**
+- [x] **Step 3: Criar `index.ts`**
 
 ```ts
 import type { SailorPlugin, PluginManifest } from "@auvexis/sailor-sdk";
@@ -179,7 +179,7 @@ const PostgresqlPlugin: SailorPlugin = {
 export default PostgresqlPlugin;
 ```
 
-- [ ] **Step 4: Criar `methods.ts` minimo**
+- [x] **Step 4: Criar `methods.ts` minimo**
 
 ```ts
 import type { PluginContext } from "@auvexis/sailor-sdk";
@@ -193,7 +193,7 @@ export function createPostgresqlMethods() {
 }
 ```
 
-- [ ] **Step 5: Criar `manifest.json` minimo**
+- [x] **Step 5: Criar `manifest.json` minimo**
 
 ```json
 {
@@ -228,7 +228,7 @@ export function createPostgresqlMethods() {
 }
 ```
 
-- [ ] **Step 6: Rodar teste**
+- [x] **Step 6: Rodar teste**
 
 Run:
 ```bash
@@ -237,7 +237,7 @@ node --loader ts-node/esm --test src/plugins/sailor/postgresql/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add server/src/plugins/sailor/postgresql feats-map/default-database-canary-plugins.md
