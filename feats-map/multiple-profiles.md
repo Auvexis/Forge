@@ -210,7 +210,7 @@ Use one active profile per backend process/UI session.
   - Add tests for scheduler reset on profile switch.
   - Expected result: workflow execution cannot run under the wrong profile.
 
-- [ ] Task 17: Backend smoke and development reset
+- [x] Task 17: Backend smoke and development reset
   - Manually delete `%AppData%/Sailor` for a clean development boot if needed.
   - Start backend and verify default profile bootstrap.
   - Create a second profile, add data to both profiles, switch between them, and verify isolation.
