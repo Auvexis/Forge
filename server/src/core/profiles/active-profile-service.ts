@@ -1,8 +1,17 @@
 import { resolveProfilePaths, type ProfilePaths } from "./profile-paths.ts";
+import type Database from "better-sqlite3";
 import type { ProfilePasswordService } from "./profile-password-service.ts";
 import type { ProfileDatabaseManager } from "./profile-database-manager.ts";
 import type { ProfileId, ProfileSummary } from "./profile-types.ts";
 import type { ProfileStore } from "./profile-store.ts";
+import { setAppDatabaseProvider } from "../modules/app/app-repository.ts";
+import { setWorkflowDatabaseProvider } from "../modules/workflows/repository.ts";
+import {
+  setCredentialsDatabaseProvider,
+} from "../modules/plugins/credential-store.ts";
+import {
+  setOAuth2SessionDatabaseProvider,
+} from "../modules/plugins/auth/oauth2-session-store.ts";
 
 export interface SwitchProfileInput {
   profileId: ProfileId;
@@ -12,6 +21,9 @@ export interface SwitchProfileInput {
 interface ProfileDatabaseManagerLike {
   open(paths: ProfilePaths): void;
   close(): void;
+  app?: unknown;
+  workflows?: unknown;
+  credentials?: unknown;
 }
 
 interface SchedulerLike {
@@ -28,6 +40,9 @@ export interface ActiveProfileServiceOptions {
   store: ProfileStore;
   passwordService: ProfilePasswordService;
   databaseManager: ProfileDatabaseManager | ProfileDatabaseManagerLike;
+  configureProfileRepositories?: (
+    manager: ProfileDatabaseManager | ProfileDatabaseManagerLike,
+  ) => void;
   migrate: ProfileActivationHook;
   loadProfilePluginSettings: ProfileActivationHook;
   loadPlugins: ProfileActivationHook;
@@ -39,6 +54,9 @@ export class ActiveProfileService {
   private readonly store: ProfileStore;
   private readonly passwordService: ProfilePasswordService;
   private readonly databaseManager: ProfileDatabaseManager | ProfileDatabaseManagerLike;
+  private readonly configureProfileRepositories: (
+    manager: ProfileDatabaseManager | ProfileDatabaseManagerLike,
+  ) => void;
   private readonly migrate: ProfileActivationHook;
   private readonly loadProfilePluginSettings: ProfileActivationHook;
   private readonly loadPlugins: ProfileActivationHook;
@@ -50,6 +68,8 @@ export class ActiveProfileService {
     this.store = options.store;
     this.passwordService = options.passwordService;
     this.databaseManager = options.databaseManager;
+    this.configureProfileRepositories =
+      options.configureProfileRepositories ?? configureDefaultProfileRepositories;
     this.migrate = options.migrate;
     this.loadProfilePluginSettings = options.loadProfilePluginSettings;
     this.loadPlugins = options.loadPlugins;
@@ -112,6 +132,7 @@ export class ActiveProfileService {
       profileId: profile.id,
     });
     this.databaseManager.open(profilePaths);
+    this.configureProfileRepositories(this.databaseManager);
     await this.migrate(profile, profilePaths);
     await this.loadProfilePluginSettings(profile, profilePaths);
     await this.loadPlugins(profile, profilePaths);
@@ -124,10 +145,31 @@ export class ActiveProfileService {
       profileId: profile.id,
     });
     this.databaseManager.open(profilePaths);
+    this.configureProfileRepositories(this.databaseManager);
     await this.migrate(profile, profilePaths);
     await this.loadProfilePluginSettings(profile, profilePaths);
     await this.loadPlugins(profile, profilePaths);
     this.scheduler.resync();
     this.activeProfile = profile;
   }
+}
+
+function configureDefaultProfileRepositories(
+  manager: ProfileDatabaseManager | ProfileDatabaseManagerLike,
+): void {
+  const app = manager.app;
+  const workflows = manager.workflows;
+  const credentials = manager.credentials;
+  if (!isDatabaseLike(app) || !isDatabaseLike(workflows) || !isDatabaseLike(credentials)) {
+    return;
+  }
+
+  setAppDatabaseProvider(() => app);
+  setWorkflowDatabaseProvider(() => workflows);
+  setCredentialsDatabaseProvider(() => credentials);
+  setOAuth2SessionDatabaseProvider(() => credentials);
+}
+
+function isDatabaseLike(value: unknown): value is Database.Database {
+  return typeof value === "object" && value !== null && "prepare" in value;
 }

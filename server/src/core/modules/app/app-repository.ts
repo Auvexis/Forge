@@ -1,6 +1,21 @@
 import { DatabaseManager } from "../../database/index.ts";
+import type Database from "better-sqlite3";
 
-const db = DatabaseManager.app;
+type AppDatabaseProvider = () => Database.Database;
+
+let appDatabaseProvider: AppDatabaseProvider = () => DatabaseManager.app;
+
+export function setAppDatabaseProvider(provider: AppDatabaseProvider): void {
+  appDatabaseProvider = provider;
+}
+
+export function resetAppDatabaseProvider(): void {
+  appDatabaseProvider = () => DatabaseManager.app;
+}
+
+function getAppDatabase(): Database.Database {
+  return appDatabaseProvider();
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,7 +42,7 @@ export const AppRepository = {
   // ── Settings ──────────────────────────────────────────────────────────────
 
   getSetting(key: string): unknown | null {
-    const row = db
+    const row = getAppDatabase()
       .prepare("SELECT value FROM settings WHERE key = ?")
       .get(key) as { value: string } | undefined;
 
@@ -41,7 +56,7 @@ export const AppRepository = {
   },
 
   setSetting(key: string, value: unknown): void {
-    db.prepare(
+    getAppDatabase().prepare(
       `INSERT INTO settings (key, value, updated_at)
        VALUES (?, ?, datetime('now'))
        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
@@ -49,7 +64,7 @@ export const AppRepository = {
   },
 
   getAllSettings(): Record<string, unknown> {
-    const rows = db
+    const rows = getAppDatabase()
       .prepare("SELECT key, value FROM settings ORDER BY key ASC")
       .all() as { key: string; value: string }[];
 
@@ -65,7 +80,7 @@ export const AppRepository = {
   },
 
   deleteSetting(key: string): void {
-    db.prepare("DELETE FROM settings WHERE key = ?").run(key);
+    getAppDatabase().prepare("DELETE FROM settings WHERE key = ?").run(key);
   },
 
   // ── Global Variables ──────────────────────────────────────────────────────
@@ -75,7 +90,7 @@ export const AppRepository = {
    * Used by the workflow executor to populate the `env` context namespace.
    */
   getAllGlobalVariablesAsMap(): Record<string, string> {
-    const rows = db
+    const rows = getAppDatabase()
       .prepare("SELECT key, value FROM global_variables ORDER BY key ASC")
       .all() as { key: string; value: string }[];
 
@@ -90,13 +105,13 @@ export const AppRepository = {
    * Returns all global variables with metadata (for the settings UI).
    */
   getAllGlobalVariables(): GlobalVariable[] {
-    return db
+    return getAppDatabase()
       .prepare("SELECT * FROM global_variables ORDER BY key ASC")
       .all() as GlobalVariable[];
   },
 
   getGlobalVariable(key: string): GlobalVariable | null {
-    const row = db
+    const row = getAppDatabase()
       .prepare("SELECT * FROM global_variables WHERE key = ?")
       .get(key) as GlobalVariable | undefined;
 
@@ -108,7 +123,7 @@ export const AppRepository = {
     value: string,
     description = "",
   ): GlobalVariable {
-    db.prepare(
+    getAppDatabase().prepare(
       `INSERT INTO global_variables (key, value, description, updated_at)
        VALUES (?, ?, ?, datetime('now'))
        ON CONFLICT(key) DO UPDATE SET
@@ -121,6 +136,6 @@ export const AppRepository = {
   },
 
   deleteGlobalVariable(key: string): void {
-    db.prepare("DELETE FROM global_variables WHERE key = ?").run(key);
+    getAppDatabase().prepare("DELETE FROM global_variables WHERE key = ?").run(key);
   },
 };

@@ -2,15 +2,23 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
+import Database from "better-sqlite3";
 
 import { ActiveProfileService } from "./active-profile-service.ts";
 import { ProfilePasswordService } from "./profile-password-service.ts";
 import { ProfileStore } from "./profile-store.ts";
 import type { ProfilePaths } from "./profile-paths.ts";
+import { AppRepository, resetAppDatabaseProvider } from "../modules/app/app-repository.ts";
+import { resetWorkflowDatabaseProvider } from "../modules/workflows/repository.ts";
+import { resetCredentialsDatabaseProvider } from "../modules/plugins/credential-store.ts";
+import { resetOAuth2SessionDatabaseProvider } from "../modules/plugins/auth/oauth2-session-store.ts";
 
 class FakeDatabaseManager {
   opened: string[] = [];
+  app = "app-db";
+  workflows = "workflows-db";
+  credentials = "credentials-db";
   open(paths: ProfilePaths): void {
     this.opened.push(path.basename(paths.profileDir));
   }
@@ -32,6 +40,13 @@ function createStore(): ProfileStore {
 }
 
 describe("ActiveProfileService", () => {
+  afterEach(() => {
+    resetAppDatabaseProvider();
+    resetWorkflowDatabaseProvider();
+    resetCredentialsDatabaseProvider();
+    resetOAuth2SessionDatabaseProvider();
+  });
+
   it("starts the current profile and runs runtime hooks", async () => {
     const store = createStore();
     const db = new FakeDatabaseManager();
@@ -87,6 +102,63 @@ describe("ActiveProfileService", () => {
 
     assert.equal(settingsProfileDir, path.join(sailorHome, "profiles", "default"));
     assert.deepEqual(calls, ["migrate", "loadProfilePluginSettings", "loadPlugins", "resync"]);
+  });
+
+  it("configures profile-scoped repository providers after opening databases", async () => {
+    const store = createStore();
+    const db = new FakeDatabaseManager();
+    const configured: string[] = [];
+    const service = new ActiveProfileService({
+      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      store,
+      passwordService: new ProfilePasswordService({ store }),
+      databaseManager: db,
+      configureProfileRepositories: (manager) => {
+        configured.push(String(manager.app), String(manager.workflows), String(manager.credentials));
+      },
+      migrate: async () => {},
+      loadProfilePluginSettings: async () => {},
+      loadPlugins: async () => {},
+      scheduler: { resync: () => {} },
+    });
+
+    await service.start();
+
+    assert.deepEqual(configured, ["app-db", "workflows-db", "credentials-db"]);
+  });
+
+  it("uses default repository provider wiring for active profile app settings", async () => {
+    const store = createStore();
+    const appDb = new Database(":memory:");
+    appDb.prepare("CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT)").run();
+    const workflowDb = new Database(":memory:");
+    const credentialsDb = new Database(":memory:");
+    const db = {
+      app: appDb,
+      workflows: workflowDb,
+      credentials: credentialsDb,
+      open: () => {},
+      close: () => {},
+    };
+    const service = new ActiveProfileService({
+      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      store,
+      passwordService: new ProfilePasswordService({ store }),
+      databaseManager: db,
+      migrate: async () => {},
+      loadProfilePluginSettings: async () => {},
+      loadPlugins: async () => {},
+      scheduler: { resync: () => {} },
+    });
+
+    await service.start();
+    AppRepository.setSetting("public_url", "https://profile.example");
+
+    const row = appDb.prepare("SELECT value FROM settings WHERE key = 'public_url'").get() as { value: string };
+    assert.equal(JSON.parse(row.value), "https://profile.example");
+    appDb.close();
+    workflowDb.close();
+    credentialsDb.close();
   });
 
   it("switches to an unprotected profile after opening runtime dependencies", async () => {

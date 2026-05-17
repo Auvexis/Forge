@@ -157,7 +157,7 @@ Use one active profile per backend process/UI session.
   - Add tests for credential isolation and OAuth session isolation between profiles.
   - Expected result: credentials never leak across profiles.
 
-- [ ] Task 11: Refactor app settings/global variables to profile scope
+- [x] Task 11: Refactor app settings/global variables to profile scope
   - Decide which current app settings are profile-owned.
   - Move public URL/global variables/settings reads to active profile `app.db` unless explicitly app-wide.
   - Add tests for settings isolation across profiles.
