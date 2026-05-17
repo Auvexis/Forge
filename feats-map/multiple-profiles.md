@@ -151,7 +151,7 @@ Use one active profile per backend process/UI session.
   - Add isolation tests: create workflow in profile A, switch to profile B, verify it is absent, switch back and verify it returns.
   - Expected result: workflows are profile-owned.
 
-- [ ] Task 10: Refactor credentials and OAuth sessions to profile-scoped database access
+- [x] Task 10: Refactor credentials and OAuth sessions to profile-scoped database access
   - Replace module-level `DatabaseManager.credentials` usage in credential store and related routes/services.
   - Keep encryption behavior unchanged.
   - Add tests for credential isolation and OAuth session isolation between profiles.

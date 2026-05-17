@@ -5,10 +5,25 @@ import type {
   PluginAuthType,
   PluginStatus,
 } from "@auvexis/sailor-sdk";
+import type Database from "better-sqlite3";
 
 // ─── Database Connection ──────────────────────────────────────────────────────
 
-const db = DatabaseManager.credentials;
+type CredentialsDatabaseProvider = () => Database.Database;
+
+let credentialsDatabaseProvider: CredentialsDatabaseProvider = () => DatabaseManager.credentials;
+
+export function setCredentialsDatabaseProvider(provider: CredentialsDatabaseProvider): void {
+  credentialsDatabaseProvider = provider;
+}
+
+export function resetCredentialsDatabaseProvider(): void {
+  credentialsDatabaseProvider = () => DatabaseManager.credentials;
+}
+
+function getCredentialsDatabase(): Database.Database {
+  return credentialsDatabaseProvider();
+}
 
 export function isMaskedCredentialValue(value: unknown): value is string {
   return (
@@ -23,7 +38,7 @@ export const CredentialStore = {
   // ──────────── Credentials (client_id, client_secret, api_key, etc) ────────────
 
   getCredentials(pluginId: string): Record<string, string> | null {
-    const row = db
+    const row = getCredentialsDatabase()
       .prepare("SELECT fields FROM plugin_credentials WHERE plugin_id = ?")
       .get(pluginId) as { fields: string } | undefined;
 
@@ -37,23 +52,23 @@ export const CredentialStore = {
   },
 
   saveCredentials(pluginId: string, fields: Record<string, string>): void {
-    const existing = db
+    const existing = getCredentialsDatabase()
       .prepare("SELECT plugin_id FROM plugin_credentials WHERE plugin_id = ?")
       .get(pluginId);
 
     if (existing) {
-      db.prepare(
+      getCredentialsDatabase().prepare(
         "UPDATE plugin_credentials SET fields = ?, updated_at = datetime('now') WHERE plugin_id = ?",
       ).run(JSON.stringify(fields), pluginId);
     } else {
-      db.prepare(
+      getCredentialsDatabase().prepare(
         "INSERT INTO plugin_credentials (plugin_id, fields) VALUES (?, ?)",
       ).run(pluginId, JSON.stringify(fields));
     }
   },
 
   deleteCredentials(pluginId: string): void {
-    db.prepare("DELETE FROM plugin_credentials WHERE plugin_id = ?").run(
+    getCredentialsDatabase().prepare("DELETE FROM plugin_credentials WHERE plugin_id = ?").run(
       pluginId,
     );
     // Also delete tokens when credentials are removed
@@ -63,7 +78,7 @@ export const CredentialStore = {
   // ── OAuth2 Tokens ──
 
   getTokens(pluginId: string): OAuth2Tokens | null {
-    const row = db
+    const row = getCredentialsDatabase()
       .prepare("SELECT tokens FROM plugin_tokens WHERE plugin_id = ?")
       .get(pluginId) as { tokens: string } | undefined;
 
@@ -77,23 +92,23 @@ export const CredentialStore = {
   },
 
   saveTokens(pluginId: string, tokens: OAuth2Tokens): void {
-    const existing = db
+    const existing = getCredentialsDatabase()
       .prepare("SELECT plugin_id FROM plugin_tokens WHERE plugin_id = ?")
       .get(pluginId);
 
     if (existing) {
-      db.prepare(
+      getCredentialsDatabase().prepare(
         "UPDATE plugin_tokens SET tokens = ?, expires_at = ?, updated_at = datetime('now') WHERE plugin_id = ?",
       ).run(JSON.stringify(tokens), tokens.expires_at ?? null, pluginId);
     } else {
-      db.prepare(
+      getCredentialsDatabase().prepare(
         "INSERT INTO plugin_tokens (plugin_id, tokens, expires_at) VALUES (?, ?, ?)",
       ).run(pluginId, JSON.stringify(tokens), tokens.expires_at ?? null);
     }
   },
 
   deleteTokens(pluginId: string): void {
-    db.prepare("DELETE FROM plugin_tokens WHERE plugin_id = ?").run(pluginId);
+    getCredentialsDatabase().prepare("DELETE FROM plugin_tokens WHERE plugin_id = ?").run(pluginId);
   },
 
   // ── Status ──

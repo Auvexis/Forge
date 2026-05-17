@@ -1,8 +1,13 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 import Database from "better-sqlite3";
 
-import { OAuth2SessionStore } from "./oauth2-session-store.ts";
+import {
+  oauth2SessionStore,
+  OAuth2SessionStore,
+  resetOAuth2SessionDatabaseProvider,
+  setOAuth2SessionDatabaseProvider,
+} from "./oauth2-session-store.ts";
 
 function createDb(): Database.Database {
   const db = new Database(":memory:");
@@ -22,6 +27,10 @@ function createDb(): Database.Database {
 }
 
 describe("OAuth2SessionStore", () => {
+  afterEach(() => {
+    resetOAuth2SessionDatabaseProvider();
+  });
+
   it("saves and consumes a session by state", () => {
     const db = createDb();
     const store = new OAuth2SessionStore(db, { now: () => 1_000 });
@@ -74,5 +83,36 @@ describe("OAuth2SessionStore", () => {
 
     assert.equal(store.consume("state-123"), null);
     db.close();
+  });
+
+  it("uses the active database provider so auth sessions stay isolated by profile", () => {
+    const profileA = createDb();
+    const profileB = createDb();
+
+    setOAuth2SessionDatabaseProvider(() => profileA);
+    oauth2SessionStore.save({
+      state: "state-a",
+      pluginId: "github",
+      redirectUri: "https://sailor.example/a",
+      ttlMs: 60_000,
+    });
+
+    setOAuth2SessionDatabaseProvider(() => profileB);
+    assert.equal(oauth2SessionStore.consume("state-a"), null);
+    oauth2SessionStore.save({
+      state: "state-b",
+      pluginId: "github",
+      redirectUri: "https://sailor.example/b",
+      ttlMs: 60_000,
+    });
+
+    setOAuth2SessionDatabaseProvider(() => profileA);
+    assert.equal(oauth2SessionStore.consume("state-a")?.redirectUri, "https://sailor.example/a");
+
+    setOAuth2SessionDatabaseProvider(() => profileB);
+    assert.equal(oauth2SessionStore.consume("state-b")?.redirectUri, "https://sailor.example/b");
+
+    profileA.close();
+    profileB.close();
   });
 });

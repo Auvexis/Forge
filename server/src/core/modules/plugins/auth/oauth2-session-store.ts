@@ -5,6 +5,18 @@ interface OAuth2SessionStoreDependencies {
   now?: () => number;
 }
 
+type OAuth2SessionDatabaseProvider = () => Database.Database;
+
+let oauth2SessionDatabaseProvider: OAuth2SessionDatabaseProvider = () => DatabaseManager.credentials;
+
+export function setOAuth2SessionDatabaseProvider(provider: OAuth2SessionDatabaseProvider): void {
+  oauth2SessionDatabaseProvider = provider;
+}
+
+export function resetOAuth2SessionDatabaseProvider(): void {
+  oauth2SessionDatabaseProvider = () => DatabaseManager.credentials;
+}
+
 export interface SaveOAuth2SessionInput {
   state: string;
   pluginId: string;
@@ -32,17 +44,17 @@ interface OAuth2AuthSessionRow {
 }
 
 export class OAuth2SessionStore {
-  private readonly db: Database.Database;
+  private readonly databaseProvider: OAuth2SessionDatabaseProvider;
   private readonly now: () => number;
 
   constructor(db: Database.Database = DatabaseManager.credentials, dependencies: OAuth2SessionStoreDependencies = {}) {
-    this.db = db;
+    this.databaseProvider = () => db;
     this.now = dependencies.now ?? Date.now;
   }
 
   save(input: SaveOAuth2SessionInput): void {
     const createdAt = this.now();
-    this.db
+    this.databaseProvider()
       .prepare(
         `
         INSERT INTO oauth2_auth_sessions
@@ -61,11 +73,11 @@ export class OAuth2SessionStore {
   }
 
   consume(state: string): OAuth2AuthSession | null {
-    const row = this.db
+    const row = this.databaseProvider()
       .prepare("SELECT * FROM oauth2_auth_sessions WHERE state = ?")
       .get(state) as OAuth2AuthSessionRow | undefined;
 
-    this.db.prepare("DELETE FROM oauth2_auth_sessions WHERE state = ?").run(state);
+    this.databaseProvider().prepare("DELETE FROM oauth2_auth_sessions WHERE state = ?").run(state);
 
     if (!row || row.expires_at <= this.now()) {
       return null;
@@ -82,4 +94,14 @@ export class OAuth2SessionStore {
   }
 }
 
-export const oauth2SessionStore = new OAuth2SessionStore();
+class OAuth2SessionStoreProxy {
+  save(input: SaveOAuth2SessionInput): void {
+    new OAuth2SessionStore(oauth2SessionDatabaseProvider()).save(input);
+  }
+
+  consume(state: string): OAuth2AuthSession | null {
+    return new OAuth2SessionStore(oauth2SessionDatabaseProvider()).consume(state);
+  }
+}
+
+export const oauth2SessionStore = new OAuth2SessionStoreProxy();
