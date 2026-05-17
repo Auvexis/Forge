@@ -38,8 +38,8 @@ defineEmits<{
 <style scoped>
 .installed-plugins {
   min-width: 280px;
-  border-right: 1px solid var(--nod8-border);
-  background: var(--nod8-bg-surface);
+  border-right: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-surface);
 }
 
 .installed-plugins__header {
@@ -47,14 +47,14 @@ defineEmits<{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--nod8-space-4);
-  border-bottom: 1px solid var(--nod8-border);
+  padding: 0 var(--sailor-space-4);
+  border-bottom: 1px solid var(--sailor-border);
 }
 
 .installed-plugins__header h2 {
   margin: 0;
-  font-size: var(--nod8-text-base);
-  font-weight: var(--nod8-font-semibold);
+  font-size: var(--sailor-text-base);
+  font-weight: var(--sailor-font-semibold);
 }
 
 .icon-button {
@@ -63,26 +63,26 @@ defineEmits<{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--nod8-radius-sm);
-  border: 1px solid var(--nod8-border);
-  background: var(--nod8-button-ghost-bg);
-  color: var(--nod8-text-secondary);
+  border-radius: var(--sailor-radius-sm);
+  border: 1px solid var(--sailor-border);
+  background: var(--sailor-button-ghost-bg);
+  color: var(--sailor-text-secondary);
 }
 
 .installed-plugins__list {
   display: grid;
-  gap: var(--nod8-space-2);
-  padding: var(--nod8-space-3);
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-3);
 }
 
 .installed-plugin {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-3);
-  border-radius: var(--nod8-radius-sm);
-  border: 1px solid var(--nod8-border);
-  background: var(--nod8-bg-base);
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-3);
+  border-radius: var(--sailor-radius-sm);
+  border: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-base);
 }
 
 .installed-plugin__icon {
@@ -90,10 +90,10 @@ defineEmits<{
   height: 34px;
   display: grid;
   place-items: center;
-  border-radius: var(--nod8-radius-sm);
-  background: var(--nod8-bg-elevated);
-  color: var(--nod8-text-primary);
-  font-size: var(--nod8-text-sm);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
 }
 
 .installed-plugin__body {
@@ -111,14 +111,14 @@ defineEmits<{
 }
 
 .installed-plugin__body strong {
-  font-size: var(--nod8-text-sm);
-  font-weight: var(--nod8-font-medium);
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-medium);
 }
 
 .installed-plugin__body span,
 .installed-plugin__body code,
 .installed-plugins__empty {
-  color: var(--nod8-text-muted);
-  font-size: var(--nod8-text-xs);
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
 }
 </style>

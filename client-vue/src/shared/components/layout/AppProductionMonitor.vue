@@ -14,7 +14,7 @@
       >
         <RefreshCwIcon :size="14" />
       </button>
-      <button class="pm-close-btn" style="background: none; border: none; cursor: pointer; color: var(--nod8-text-muted); padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: var(--nod8-radius-sm);" @click="isMonitorOpen = false" title="Close">
+      <button class="pm-close-btn" style="background: none; border: none; cursor: pointer; color: var(--sailor-text-muted); padding: 4px; display: flex; align-items: center; justify-content: center; border-radius: var(--sailor-radius-sm);" @click="isMonitorOpen = false" title="Close">
         <LucideIcon name="x" :size="16" />
       </button>
     </div>

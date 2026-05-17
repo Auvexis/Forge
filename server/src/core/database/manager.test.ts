@@ -5,10 +5,10 @@ import path from "node:path";
 import { describe, it } from "node:test";
 
 describe("DatabaseManager", () => {
-  it("opens SQLite files under ND8_HOME/data", async () => {
-    const previousNd8Home = process.env.ND8_HOME;
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-db-home-"));
-    process.env.ND8_HOME = home;
+  it("opens SQLite files under SAILOR_HOME/data", async () => {
+    const previousSailorHome = process.env.SAILOR_HOME;
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-db-home-"));
+    process.env.SAILOR_HOME = home;
 
     try {
       const mod = await import(`./manager.ts?home=${Date.now()}`);
@@ -21,10 +21,10 @@ describe("DatabaseManager", () => {
 
       mod.closeDatabases();
     } finally {
-      if (previousNd8Home === undefined) {
-        delete process.env.ND8_HOME;
+      if (previousSailorHome === undefined) {
+        delete process.env.SAILOR_HOME;
       } else {
-        process.env.ND8_HOME = previousNd8Home;
+        process.env.SAILOR_HOME = previousSailorHome;
       }
     }
   });

@@ -1,5 +1,5 @@
 /* =========================================================
-   NOD8 — Main CSS Entry
+   SAILOR — Main CSS Entry
    Import order matters: tokens → reset → typography → transitions
    ========================================================= */
 
@@ -26,11 +26,11 @@
 
 
 /* ── Layout Utilities ─────────────────────────────────────── */
-.nod8-fill {
+.sailor-fill {
   width: 100%;
   height: 100%;
 }
-.nod8-fill-viewport {
+.sailor-fill-viewport {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
@@ -72,19 +72,19 @@
   min-width: 0;
 }
 .gap-1 {
-  gap: var(--nod8-space-1);
+  gap: var(--sailor-space-1);
 }
 .gap-2 {
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
 }
 .gap-3 {
-  gap: var(--nod8-space-3);
+  gap: var(--sailor-space-3);
 }
 .gap-4 {
-  gap: var(--nod8-space-4);
+  gap: var(--sailor-space-4);
 }
 .gap-6 {
-  gap: var(--nod8-space-6);
+  gap: var(--sailor-space-6);
 }
 
 .relative {
@@ -109,42 +109,42 @@
 }
 
 .rounded-sm {
-  border-radius: var(--nod8-radius-sm);
+  border-radius: var(--sailor-radius-sm);
 }
 .rounded-md {
-  border-radius: var(--nod8-radius-md);
+  border-radius: var(--sailor-radius-md);
 }
 .rounded-lg {
-  border-radius: var(--nod8-radius-lg);
+  border-radius: var(--sailor-radius-lg);
 }
 .rounded-xl {
-  border-radius: var(--nod8-radius-xl);
+  border-radius: var(--sailor-radius-xl);
 }
 
 /* ── Glassmorphism Surfaces ──────────────────────────────── */
 .surface {
-  background: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
+  background: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
 }
 
 .surface-elevated {
-  background: var(--nod8-bg-elevated);
-  border: 1px solid var(--nod8-border-strong);
-  box-shadow: var(--nod8-shadow-md);
+  background: var(--sailor-bg-elevated);
+  border: 1px solid var(--sailor-border-strong);
+  box-shadow: var(--sailor-shadow-md);
 }
 
 .glass {
   background: rgba(17, 22, 34, 0.75);
   backdrop-filter: blur(16px) saturate(1.5);
   -webkit-backdrop-filter: blur(16px) saturate(1.5);
-  border: 1px solid var(--nod8-border);
+  border: 1px solid var(--sailor-border);
 }
 
 /* ── Divider ─────────────────────────────────────────────── */
 .divider {
   width: 100%;
   height: 1px;
-  background: var(--nod8-border);
+  background: var(--sailor-border);
 }
 
 .divider--vertical {
@@ -165,8 +165,8 @@
   width: 48px;
   height: 48px;
   border-radius: 8px;
-  background-color: var(--nod8-bg-elevated);
-  border: 1px solid var(--nod8-border);
+  background-color: var(--sailor-bg-elevated);
+  border: 1px solid var(--sailor-border);
   display: flex;
   align-items: center;
   justify-content: center;

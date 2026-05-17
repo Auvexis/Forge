@@ -161,7 +161,7 @@ describe("workflow trigger helpers", () => {
           name: "Telegram Callback",
           trigger: {
             type: "plugin",
-            pluginId: "nod8.telegram",
+            pluginId: "sailor.telegram",
             triggerName: "callback",
             webhookPath: "tg-callback",
           },
@@ -172,7 +172,7 @@ describe("workflow trigger helpers", () => {
           disabled: true,
           trigger: {
             type: "plugin",
-            pluginId: "nod8.telegram",
+            pluginId: "sailor.telegram",
             triggerName: "message",
           },
         },

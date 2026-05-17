@@ -3,7 +3,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 </script>
 
 <template>
-  <div class="nod8-fill flex-center flex-col gap-3">
+  <div class="sailor-fill flex-center flex-col gap-3">
     <div class="icon-box">
       <LucideIcon class="text-muted" name="frown" :size="24" />
     </div>

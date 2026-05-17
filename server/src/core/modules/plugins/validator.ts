@@ -1,7 +1,7 @@
 import AjvModule from "ajv";
 import addFormatsModule from "ajv-formats";
 import type { ErrorObject, ValidateFunction } from "ajv";
-import type { JSONSchemaObject } from "../../../shared/models/plugin-types.ts";
+import type { JSONSchemaObject } from "@auvexis/sailor-sdk";
 
 // ──────────── AJV Singleton ────────────
 // A single AJV instance is created once and reused.
@@ -19,7 +19,7 @@ const ajv = new AjvCtor({
   removeAdditional: true,
   // Provide human-readable error messages.
   allErrors: true,
-  // Allow unknown keywords prefixed with "x-" (our Nod8 UI extensions).
+  // Allow unknown keywords prefixed with "x-" (our Sailor UI extensions).
   // Without this, AJV would throw on "x-input-type", "x-label", etc.
   strict: false,
 });

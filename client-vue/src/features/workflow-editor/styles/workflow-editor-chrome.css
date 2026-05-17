@@ -1,33 +1,34 @@
 :root {
-  --nd8-chrome-height-header: 38px;
-  --nd8-chrome-height-menu: 30px;
-  --nd8-chrome-height-toolbar: 38px;
-  --nd8-chrome-bg: var(--nod8-bg-surface);
-  --nd8-chrome-bg-muted: var(--nod8-bg-surface);
-  --nd8-chrome-bg-hover: var(--nod8-button-ghost-hover);
-  --nd8-chrome-border: var(--nod8-border);
-  --nd8-chrome-text: var(--nod8-text-primary);
-  --nd8-chrome-text-muted: var(--nod8-text-muted);
-  --nd8-chrome-accent: var(--nod8-accent);
-  --nd8-chrome-run: var(--nod8-green-500);
-  --nd8-chrome-danger: var(--nod8-red-500);
-  --nd8-chrome-save: var(--nod8-amber-500);
-  --nd8-chrome-radius: 8px;
-  --nd8-chrome-control-h: 28px;
-  --nd8-chrome-icon: 15px;
-  --nd8-chrome-gap: 6px;
+  --sailor-chrome-height-header: 38px;
+  --sailor-chrome-height-menu: 30px;
+  --sailor-chrome-height-toolbar: 38px;
+  --sailor-chrome-bg: var(--sailor-bg-surface);
+  --sailor-chrome-bg-muted: var(--sailor-bg-surface);
+  --sailor-chrome-bg-hover: var(--sailor-button-ghost-hover);
+  --sailor-chrome-border: var(--sailor-border);
+  --sailor-chrome-text: var(--sailor-text-primary);
+  --sailor-chrome-text-muted: var(--sailor-text-muted);
+  --sailor-chrome-accent: var(--sailor-accent);
+  --sailor-chrome-run: var(--sailor-green-500);
+  --sailor-chrome-danger: var(--sailor-red-500);
+  --sailor-chrome-save: var(--sailor-amber-500);
+  --sailor-chrome-radius: 8px;
+  --sailor-chrome-control-h: 28px;
+  --sailor-chrome-icon: 15px;
+  --sailor-chrome-gap: 6px;
 }
 
 .wec-shell {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-columns: 3px minmax(0, 1fr);
   grid-template-rows:
-    var(--nd8-chrome-height-header)
-    var(--nd8-chrome-height-menu)
-    var(--nd8-chrome-height-toolbar);
+    var(--sailor-chrome-height-header)
+    var(--sailor-chrome-height-menu)
+    var(--sailor-chrome-height-toolbar);
   min-width: 0;
-  background: var(--nd8-chrome-bg);
-  border-bottom: 1px solid var(--nd8-chrome-border);
+  row-gap: 2px;
+  background: var(--sailor-chrome-bg);
+  border-bottom: 1px solid var(--sailor-chrome-border);
 }
 
 .wec-row {
@@ -46,8 +47,8 @@
 }
 
 .wec-toolbar {
-  gap: var(--nd8-chrome-gap);
-  background: var(--nd8-chrome-bg-muted);
+  gap: var(--sailor-chrome-gap);
+  background: var(--sailor-chrome-bg-muted);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -67,7 +68,7 @@
   width: 1px;
   height: 18px;
   flex: 0 0 auto;
-  background: var(--nd8-chrome-border);
+  background: var(--sailor-chrome-border);
   margin: 0 4px;
 }
 
@@ -76,21 +77,21 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: var(--nd8-chrome-control-h);
-  min-width: var(--nd8-chrome-control-h);
+  height: var(--sailor-chrome-control-h);
+  min-width: var(--sailor-chrome-control-h);
   padding: 0 8px;
   border: 1px solid transparent;
-  border-radius: var(--nd8-chrome-radius);
-  color: var(--nd8-chrome-text-muted);
-  font-size: var(--nod8-text-xs);
+  border-radius: var(--sailor-chrome-radius);
+  color: var(--sailor-chrome-text-muted);
+  font-size: var(--sailor-text-xs);
   line-height: 1;
   white-space: nowrap;
 }
 
 .wec-control:hover:not(:disabled),
 .wec-control--active {
-  background: var(--nd8-chrome-bg-hover);
-  color: var(--nd8-chrome-text);
+  background: var(--sailor-chrome-bg-hover);
+  color: var(--sailor-chrome-text);
 }
 
 .wec-control:disabled {
@@ -99,11 +100,11 @@
 }
 
 .wec-control--primary {
-  color: var(--nd8-chrome-run);
+  color: var(--sailor-chrome-run);
 }
 
 .wec-control--danger {
-  color: var(--nd8-chrome-danger);
+  color: var(--sailor-chrome-danger);
 }
 
 .wec-doc,
@@ -119,23 +120,11 @@
 }
 
 .wec-doc__icon {
-  display: grid;
+  /* display: grid; */
   place-items: center;
   width: 28px;
   height: 28px;
   border-radius: 7px;
-}
-
-.wec-rail-icon {
-  grid-column: 1;
-  grid-row: 1 / 3;
-  align-self: center;
-  justify-self: center;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 68px;
-  padding: 10px;
 }
 
 .wec-rail-icon img {
@@ -151,9 +140,9 @@
   gap: 4px;
   min-width: 0;
   max-width: min(280px, 36vw);
-  color: var(--nd8-chrome-text);
-  font-size: var(--nod8-text-sm);
-  font-weight: var(--nod8-font-semibold);
+  color: var(--sailor-chrome-text);
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
 }
 
 .wec-doc__name span {
@@ -176,13 +165,13 @@
   align-items: center;
   gap: 10px;
   flex: 0 0 auto;
-  color: var(--nd8-chrome-text-muted);
-  font-family: var(--nod8-font-mono);
+  color: var(--sailor-chrome-text-muted);
+  font-family: var(--sailor-font-mono);
   font-size: 13px;
 }
 
 .wec-save-status__icon {
-  color: var(--nd8-chrome-text-muted);
+  color: var(--sailor-chrome-text-muted);
 }
 
 .wec-save-status__icon--spin {
@@ -205,37 +194,37 @@
   align-items: center;
   height: 22px;
   padding: 0 8px;
-  border: 1px solid var(--nd8-chrome-border);
+  border: 1px solid var(--sailor-chrome-border);
   border-radius: 999px;
-  color: var(--nd8-chrome-text-muted);
-  background: color-mix(in srgb, var(--nd8-chrome-bg-muted) 88%, transparent);
-  font-family: var(--nod8-font-mono);
+  color: var(--sailor-chrome-text-muted);
+  background: color-mix(in srgb, var(--sailor-chrome-bg-muted) 88%, transparent);
+  font-family: var(--sailor-font-mono);
   font-size: 10px;
   white-space: nowrap;
 }
 
 .wec-meta-pill--live {
-  color: var(--nd8-chrome-run);
-  border-color: color-mix(in srgb, var(--nd8-chrome-run) 38%, transparent);
-  background: color-mix(in srgb, var(--nd8-chrome-run) 10%, transparent);
+  color: var(--sailor-chrome-run);
+  border-color: color-mix(in srgb, var(--sailor-chrome-run) 38%, transparent);
+  background: color-mix(in srgb, var(--sailor-chrome-run) 10%, transparent);
 }
 
 .wec-meta-pill--version {
-  color: var(--nod8-brand-400);
-  border-color: color-mix(in srgb, var(--nod8-brand-400) 36%, transparent);
-  background: color-mix(in srgb, var(--nod8-brand-400) 10%, transparent);
+  color: var(--sailor-brand-400);
+  border-color: color-mix(in srgb, var(--sailor-brand-400) 36%, transparent);
+  background: color-mix(in srgb, var(--sailor-brand-400) 10%, transparent);
 }
 
 .wec-meta-pill--nodes {
-  color: var(--nod8-amber-400);
-  border-color: color-mix(in srgb, var(--nod8-amber-400) 36%, transparent);
-  background: color-mix(in srgb, var(--nod8-amber-400) 10%, transparent);
+  color: var(--sailor-amber-400);
+  border-color: color-mix(in srgb, var(--sailor-amber-400) 36%, transparent);
+  background: color-mix(in srgb, var(--sailor-amber-400) 10%, transparent);
 }
 
 .wec-meta-pill--id {
-  color: var(--nod8-blue-400);
-  border-color: color-mix(in srgb, var(--nod8-blue-400) 36%, transparent);
-  background: color-mix(in srgb, var(--nod8-blue-400) 10%, transparent);
+  color: var(--sailor-blue-400);
+  border-color: color-mix(in srgb, var(--sailor-blue-400) 36%, transparent);
+  background: color-mix(in srgb, var(--sailor-blue-400) 10%, transparent);
 }
 
 .wec-menu-bar {
@@ -246,7 +235,7 @@
 
 .wec-menu-row {
   grid-column: 2;
-  background: var(--nd8-chrome-bg);
+  background: var(--sailor-chrome-bg);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -264,9 +253,9 @@
   height: 30px;
   padding: 0 10px;
   border-radius: 7px;
-  color: var(--nd8-chrome-text);
-  font-size: var(--nod8-text-sm);
-  font-weight: var(--nod8-font-medium);
+  color: var(--sailor-chrome-text);
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-medium);
   line-height: 1;
 }
 
@@ -286,17 +275,17 @@
 }
 
 .wec-menu-bar .app-popover-trigger:hover {
-  background: var(--nd8-chrome-bg-hover);
+  background: var(--sailor-chrome-bg-hover);
 }
 
 .wec-menu-bar .app-popover-trigger:has(.wec-menu-trigger--active) {
-  background: var(--nd8-chrome-bg-hover);
+  background: var(--sailor-chrome-bg-hover);
 }
 
 .wec-menu-trigger:hover,
 .wec-menu-trigger--active {
   background: transparent;
-  color: var(--nd8-chrome-text);
+  color: var(--sailor-chrome-text);
 }
 
 .wec-workflow-search {
@@ -308,26 +297,26 @@
   justify-content: space-between;
   gap: 12px;
   margin-top: 4px;
-  color: var(--nd8-chrome-text-muted);
-  font-family: var(--nod8-font-mono);
+  color: var(--sailor-chrome-text-muted);
+  font-family: var(--sailor-font-mono);
   font-size: 10px;
 }
 
 .wec-menu-empty {
   padding: 10px;
-  color: var(--nd8-chrome-text-muted);
-  font-size: var(--nod8-text-xs);
+  color: var(--sailor-chrome-text-muted);
+  font-size: var(--sailor-text-xs);
 }
 
 .wec-route-id {
-  color: var(--nd8-chrome-text-muted);
-  font-family: var(--nod8-font-mono);
+  color: var(--sailor-chrome-text-muted);
+  font-family: var(--sailor-font-mono);
   font-size: 10px;
 }
 
 .wec-control svg {
-  width: var(--nd8-chrome-icon);
-  height: var(--nd8-chrome-icon);
+  width: var(--sailor-chrome-icon);
+  height: var(--sailor-chrome-icon);
   flex: 0 0 auto;
 }
 
@@ -335,7 +324,7 @@
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background: var(--nd8-chrome-text-muted);
+  background: var(--sailor-chrome-text-muted);
   box-shadow: 0 0 0 rgba(255, 255, 255, 0);
   opacity: 0.62;
   transition:
@@ -346,8 +335,8 @@
 }
 
 .wec-save-dot--dirty {
-  background: var(--nd8-chrome-text);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--nd8-chrome-text) 48%, transparent);
+  background: var(--sailor-chrome-text);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--sailor-chrome-text) 48%, transparent);
   opacity: 1;
 }
 
@@ -363,11 +352,11 @@
 }
 
 .wec-control--primary {
-  background: color-mix(in srgb, var(--nd8-chrome-run) 12%, transparent);
+  background: color-mix(in srgb, var(--sailor-chrome-run) 12%, transparent);
 }
 
 .wec-control--danger {
-  background: color-mix(in srgb, var(--nd8-chrome-danger) 10%, transparent);
+  background: color-mix(in srgb, var(--sailor-chrome-danger) 10%, transparent);
 }
 
 .wec-autosave {
@@ -390,14 +379,14 @@
 }
 
 .wec-autosave .base-switch__label {
-  color: var(--nd8-chrome-text-muted);
+  color: var(--sailor-chrome-text-muted);
   font-size: 12px !important;
 }
 
 .wec-toolbar-row {
   grid-column: 1 / -1;
   gap: 8px;
-  background: var(--nd8-chrome-bg-muted);
+  background: var(--sailor-chrome-bg-muted);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;

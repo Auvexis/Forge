@@ -23,7 +23,7 @@
             :model-value="(node.data.url as string) || ''"
             @update:model-value="updateNodeData({ url: $event as string })"
             placeholder="https://api.example.com/v1/resource"
-            style="font-family: var(--nod8-font-mono)"
+            style="font-family: var(--sailor-font-mono)"
           />
         </div>
       </div>
@@ -72,19 +72,19 @@
               <BaseVariableInput
                 :model-value="key"
                 @blur="updateHeaderKey(key as string, ($event.target as HTMLInputElement).value)"
-                style="font-family: var(--nod8-font-mono); flex: 1"
+                style="font-family: var(--sailor-font-mono); flex: 1"
                 :show-variable-button="false"
               />
               <ExpressionInput
                 :model-value="val"
                 @update:model-value="updateHeaderValue(key as string, $event as string)"
-                style="font-family: var(--nod8-font-mono); flex: 1"
+                style="font-family: var(--sailor-font-mono); flex: 1"
               />
               <BaseButton
                 variant="ghost"
                 size="icon"
                 icon-left="x"
-                style="padding: 15px; border-radius: var(--nod8-radius-md)"
+                style="padding: 15px; border-radius: var(--sailor-radius-md)"
                 @click="removeHeader(key as string)"
               />
             </div>
@@ -94,7 +94,7 @@
               icon-left="plus"
               full-width
               @click="addHeader"
-              style="border-radius: var(--nod8-radius-full)"
+              style="border-radius: var(--sailor-radius-full)"
             >
               Add Header
             </BaseButton>

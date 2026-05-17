@@ -5,9 +5,9 @@ import { pluginsCommandProvider } from "./plugins.commands.ts";
 import { CommandExecutor } from "../command-executor.ts";
 import { CommandRegistry } from "../command-registry.ts";
 import type { CommandExecutionContext } from "../command-types.ts";
-import type { Nod8Plugin } from "../../../../shared/models/plugin-types.ts";
+import type { SailorPlugin } from "@auvexis/sailor-sdk";
 
-function oauthPlugin(id = "generic-oauth"): Nod8Plugin {
+function oauthPlugin(id = "generic-oauth"): SailorPlugin {
   return {
     id,
     manifest: {
@@ -26,7 +26,6 @@ function oauthPlugin(id = "generic-oauth"): Nod8Plugin {
           metadata: { label: "List Items", description: "List items" },
           parameters: { type: "object", properties: {} },
           responseSchema: { type: "array" },
-          ui: {},
         },
       },
     },
@@ -50,7 +49,7 @@ function oauthPlugin(id = "generic-oauth"): Nod8Plugin {
   };
 }
 
-function apiKeyPlugin(id = "generic-api-key"): Nod8Plugin {
+function apiKeyPlugin(id = "generic-api-key"): SailorPlugin {
   return {
     ...oauthPlugin(id),
     manifest: {

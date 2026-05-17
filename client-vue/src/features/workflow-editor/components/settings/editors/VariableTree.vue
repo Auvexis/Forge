@@ -435,8 +435,8 @@ const iconsMap = computed(() => {
 .variable-tree {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-2);
-  margin-top: var(--nod8-space-1);
+  gap: var(--sailor-space-2);
+  margin-top: var(--sailor-space-1);
 }
 
 .vt-search {
@@ -445,7 +445,7 @@ const iconsMap = computed(() => {
 }
 
 .vt-search-icon {
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   flex-shrink: 0;
 }
 
@@ -455,11 +455,11 @@ const iconsMap = computed(() => {
   border: none;
   font-size: 11px;
   outline: none;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
 }
 
 .vt-search-input::placeholder {
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   opacity: 0.5;
 }
 
@@ -467,7 +467,7 @@ const iconsMap = computed(() => {
 
 .vt-empty {
   font-size: 11px;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   font-style: italic;
   padding: 0 4px;
 }

@@ -54,7 +54,7 @@ export const InternalEventBus = {
         executionId,
       ).catch((err: Error) =>
         console.error(
-          `[NOD8 | EVENTS]: Workflow ${workflow.metadata.id}/${triggerNodeId} triggered by "${event.name}" failed: ${err.message}`,
+          `[SAILOR | EVENTS]: Workflow ${workflow.metadata.id}/${triggerNodeId} triggered by "${event.name}" failed: ${err.message}`,
         ),
       );
 
@@ -63,7 +63,7 @@ export const InternalEventBus = {
 
     if (triggered.length > 0) {
       console.log(
-        `[NOD8 | EVENTS]: Event "${event.name}" triggered ${triggered.length} workflow(s): ${triggered.join(", ")}`,
+        `[SAILOR | EVENTS]: Event "${event.name}" triggered ${triggered.length} workflow(s): ${triggered.join(", ")}`,
       );
     }
 

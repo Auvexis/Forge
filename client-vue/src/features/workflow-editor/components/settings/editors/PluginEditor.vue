@@ -574,12 +574,12 @@ const removeFileFromArray = (key: string, index: number) => {
 
 <style scoped>
 .mt-2 {
-  margin-top: var(--nod8-space-2);
+  margin-top: var(--sailor-space-2);
 }
 
 .pe-loading-text {
   font-size: 11px;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   font-style: italic;
   padding: 4px 0;
 }
@@ -587,22 +587,22 @@ const removeFileFromArray = (key: string, index: number) => {
 .pe-params-header {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
-  border-bottom: 1px solid var(--nod8-border);
-  padding-bottom: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
+  border-bottom: 1px solid var(--sailor-border);
+  padding-bottom: var(--sailor-space-2);
 }
 
 .pe-params-indicator {
   width: 4px;
   height: 16px;
-  background-color: var(--nod8-text-primary);
+  background-color: var(--sailor-text-primary);
   border-radius: 9999px;
 }
 
 .pe-params-title {
   font-size: 11px;
   font-weight: 900;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   opacity: 0.7;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -612,10 +612,10 @@ const removeFileFromArray = (key: string, index: number) => {
 .pe-param-card {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-4);
-  border-radius: var(--nod8-radius-lg);
-  border: 1px solid var(--nod8-border);
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-4);
+  border-radius: var(--sailor-radius-lg);
+  border: 1px solid var(--sailor-border);
 }
 
 .pe-param-head {
@@ -635,12 +635,12 @@ const removeFileFromArray = (key: string, index: number) => {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
 }
 
 .pe-param-desc {
   font-size: 10px;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   line-height: 1;
   margin-top: 2px;
 }
@@ -658,23 +658,23 @@ const removeFileFromArray = (key: string, index: number) => {
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   text-transform: uppercase;
   font-weight: 900;
   letter-spacing: -0.05em;
-  border: 1px solid var(--nod8-border);
+  border: 1px solid var(--sailor-border);
 }
 
 .pe-param-toggle {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   height: 40px;
 }
 
 .pe-param-toggle-text {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
   font-style: italic;
   font-weight: 500;
 }
@@ -685,12 +685,12 @@ const removeFileFromArray = (key: string, index: number) => {
 .pe-files-container {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
 }
 
 .pe-file-input-group {
   display: flex;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   align-items: center;
 }
 
@@ -700,7 +700,7 @@ const removeFileFromArray = (key: string, index: number) => {
 
 .pe-file-text-mode {
   display: flex;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   align-items: center;
   width: 100%;
 }
@@ -709,12 +709,12 @@ const removeFileFromArray = (key: string, index: number) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: var(--nod8-bg-surface);
+  background-color: var(--sailor-bg-surface);
 }
 
 .pe-file-name {
   font-size: 12px;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -725,17 +725,17 @@ const removeFileFromArray = (key: string, index: number) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
-  color: var(--nod8-text-muted);
+  background: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  color: var(--sailor-text-muted);
   cursor: pointer;
-  border-radius: var(--nod8-radius-sm);
+  border-radius: var(--sailor-radius-sm);
   transition: all 0.2s ease;
 }
 
 .pe-file-btn:hover {
-  color: var(--nod8-text-primary);
-  background: var(--nod8-bg-surface-hover);
+  color: var(--sailor-text-primary);
+  background: var(--sailor-bg-surface-hover);
 }
 
 .pe-file-btn--upload {
@@ -745,8 +745,8 @@ const removeFileFromArray = (key: string, index: number) => {
 }
 
 .pe-file-btn--upload:hover {
-  color: var(--nod8-text-primary);
-  border-color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
+  border-color: var(--sailor-text-primary);
 }
 
 .pe-file-btn--remove {

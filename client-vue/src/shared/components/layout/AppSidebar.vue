@@ -1,6 +1,12 @@
 <template>
   <aside class="app-sidebar surface" :class="{ 'app-sidebar--collapsed': collapsed }">
     <header class="app-sidebar__header">
+      <img
+        v-if="collapsed && showLogo"
+        :src="logoSrc"
+        alt="Sailor"
+        class="app-sidebar__logo"
+      />
       <div class="app-sidebar__profile" aria-hidden="true">
         <LucideIcon :name="sidebarProfileIcon" :size="26" stroke-width="1.5" />
       </div>
@@ -33,14 +39,18 @@
 <script setup lang="ts">
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { sidebarProfileIcon } from './appSidebarNavigation'
+import { useTheme } from '@/shared/composables/useTheme'
 
 defineProps<{
   collapsed?: boolean
+  showLogo?: boolean
 }>()
 
 defineEmits<{
   (e: 'toggle-collapsed'): void
 }>()
+
+const { logoSrc } = useTheme()
 </script>
 
 <style scoped>
@@ -48,17 +58,17 @@ defineEmits<{
   position: relative;
   display: flex;
   flex-direction: column;
-  width: var(--nod8-active-sidebar-width, var(--nod8-sidebar-expanded));
+  width: var(--sailor-active-sidebar-width, var(--sailor-sidebar-expanded));
   height: 100vh;
   border-right-width: 0;
   border-right-style: none;
   border-top-width: 0;
   border-bottom-width: 0;
   border-left-width: 0;
-  z-index: var(--nod8-z-raised);
+  z-index: var(--sailor-z-raised);
   flex-shrink: 0;
-  background-color: var(--nod8-sidebar-bg);
-  transition: width var(--nod8-duration-base) var(--nod8-ease-standard);
+  background-color: var(--sailor-sidebar-bg);
+  transition: width var(--sailor-duration-base) var(--sailor-ease-standard);
 }
 
 .app-sidebar::before {
@@ -68,7 +78,7 @@ defineEmits<{
   right: 0;
   bottom: 0;
   width: 1px;
-  background: var(--nod8-sidebar-border);
+  background: var(--sailor-sidebar-border);
   pointer-events: none;
 }
 
@@ -89,8 +99,17 @@ defineEmits<{
   right: 23px;
   bottom: 0;
   height: 1px;
-  border-radius: var(--nod8-radius-full);
-  background: var(--nod8-sidebar-divider);
+  border-radius: var(--sailor-radius-full);
+  background: var(--sailor-sidebar-divider);
+}
+
+.app-sidebar__logo {
+  width: 26px;
+  height: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+  pointer-events: none;
+  user-select: none;
 }
 
 .app-sidebar__profile {
@@ -99,7 +118,7 @@ defineEmits<{
   width: 30px;
   height: 30px;
   flex: 0 0 auto;
-  color: var(--nod8-sidebar-text);
+  color: var(--sailor-sidebar-text);
 }
 
 .app-sidebar__identity {
@@ -112,9 +131,9 @@ defineEmits<{
 
 .app-sidebar__name,
 .app-sidebar__name {
-  color: var(--nod8-sidebar-text);
-  font-size: var(--nod8-text-sm);
-  font-weight: var(--nod8-font-medium);
+  color: var(--sailor-sidebar-text);
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-medium);
 }
 
 .app-sidebar__collapse {
@@ -124,17 +143,17 @@ defineEmits<{
   height: 30px;
   flex: 0 0 auto;
   border: 0;
-  border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-sidebar-text-muted);
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-sidebar-text-muted);
   background: transparent;
   cursor: pointer;
   transition:
-    background-color var(--nod8-duration-fast) var(--nod8-ease-standard),
-    color var(--nod8-duration-fast) var(--nod8-ease-standard);
+    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
+    color var(--sailor-duration-fast) var(--sailor-ease-standard);
 }
 
 .app-sidebar__collapse:hover {
-  color: var(--nod8-sidebar-text);
+  color: var(--sailor-sidebar-text);
   background: transparent;
 }
 
@@ -160,9 +179,9 @@ defineEmits<{
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: var(--nod8-space-1);
-  padding: var(--nod8-space-2) var(--nod8-space-3);
-  border-top: 1px solid var(--nod8-sidebar-border);
+  gap: var(--sailor-space-1);
+  padding: var(--sailor-space-2) var(--sailor-space-3);
+  border-top: 1px solid var(--sailor-sidebar-border);
   flex-shrink: 0;
 }
 
@@ -170,7 +189,7 @@ defineEmits<{
   flex-direction: column;
   justify-content: center;
   min-height: 122px;
-  padding: var(--nod8-space-3) var(--nod8-space-1);
+  padding: var(--sailor-space-3) var(--sailor-space-1);
 }
 
 .app-sidebar--collapsed .app-sidebar__identity {
@@ -179,13 +198,13 @@ defineEmits<{
 
 .app-sidebar--collapsed .app-sidebar__main {
   align-items: center;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-3) 0;
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-3) 0;
 }
 
 .app-sidebar--collapsed .app-sidebar__footer {
   flex-direction: column;
   justify-content: flex-start;
-  padding: var(--nod8-space-2) 0;
+  padding: var(--sailor-space-2) 0;
 }
 </style>

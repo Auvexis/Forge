@@ -2,30 +2,30 @@
   <EdgeLabelRenderer v-if="showBox">
     <!-- Dual-border selection box (renders in canvas space) -->
     <div
-      class="nod8-group-box-outer"
+      class="sailor-group-box-outer"
       :style="outerBoxStyle"
     >
-      <div class="nod8-group-box-inner" />
+      <div class="sailor-group-box-inner" />
     </div>
 
     <!-- Toolbar above the box -->
     <div
-      class="nodrag nopan nod8-group-toolbar"
+      class="nodrag nopan sailor-group-toolbar"
       :style="toolbarStyle"
     >
-      <span class="nod8-group-count">
+      <span class="sailor-group-count">
         <LucideIcon name="layers" :size="12" />
         {{ selectedNodes.length }} nodes selected
       </span>
 
-      <div class="nod8-group-divider" />
+      <div class="sailor-group-divider" />
 
-      <button class="nod8-group-btn" @click="duplicateAll" title="Duplicate all">
+      <button class="sailor-group-btn" @click="duplicateAll" title="Duplicate all">
         <LucideIcon name="copy" :size="13" />
         <span>Duplicate</span>
       </button>
 
-      <button class="nod8-group-btn nod8-group-btn--danger" @click="deleteAll" title="Delete all selected">
+      <button class="sailor-group-btn sailor-group-btn--danger" @click="deleteAll" title="Delete all selected">
         <LucideIcon name="trash-2" :size="13" />
         <span>Delete All</span>
       </button>
@@ -128,73 +128,73 @@ function duplicateAll() {
 
 <style scoped>
 /* ── Outer box (weak accent border + subtle fill) ──────────────────── */
-.nod8-group-box-outer {
-  border: 2px dashed color-mix(in srgb, var(--nod8-accent) 30%, transparent);
+.sailor-group-box-outer {
+  border: 2px dashed color-mix(in srgb, var(--sailor-accent) 30%, transparent);
   border-radius: 10px;
-  background: color-mix(in srgb, var(--nod8-accent) 4%, transparent);
+  background: color-mix(in srgb, var(--sailor-accent) 4%, transparent);
   box-sizing: border-box;
 }
 
 /* ── Inner box (strong accent border) ─────────────────────────────── */
-.nod8-group-box-inner {
+.sailor-group-box-inner {
   position: absolute;
   inset: 4px;
-  border: 1.5px solid color-mix(in srgb, var(--nod8-accent) 60%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--sailor-accent) 60%, transparent);
   border-radius: 7px;
   pointer-events: none;
 }
 
 /* ── Toolbar ───────────────────────────────────────────────────────── */
-.nod8-group-toolbar {
+.sailor-group-toolbar {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 5px 8px;
-  background: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
-  box-shadow: var(--nod8-shadow-md), 0 0 0 1px color-mix(in srgb, var(--nod8-accent) 20%, transparent);
+  background: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  box-shadow: var(--sailor-shadow-md), 0 0 0 1px color-mix(in srgb, var(--sailor-accent) 20%, transparent);
   white-space: nowrap;
 }
 
-.nod8-group-count {
+.sailor-group-count {
   display: flex;
   align-items: center;
   gap: 5px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--nod8-text-secondary);
+  color: var(--sailor-text-secondary);
 }
 
-.nod8-group-divider {
+.sailor-group-divider {
   width: 1px;
   height: 18px;
-  background: var(--nod8-border);
+  background: var(--sailor-border);
   margin: 0 2px;
 }
 
-.nod8-group-btn {
+.sailor-group-btn {
   display: flex;
   align-items: center;
   gap: 5px;
   padding: 4px 8px;
   background: none;
   border: none;
-  border-radius: var(--nod8-radius-xs, 3px);
-  color: var(--nod8-text-muted);
+  border-radius: var(--sailor-radius-xs, 3px);
+  color: var(--sailor-text-muted);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.nod8-group-btn:hover {
-  background: var(--nod8-bg-elevated);
-  color: var(--nod8-text-primary);
+.sailor-group-btn:hover {
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
 }
 
-.nod8-group-btn--danger:hover {
-  background: color-mix(in srgb, var(--nod8-red-500, #ef4444) 12%, transparent);
-  color: var(--nod8-red-500, #ef4444);
+.sailor-group-btn--danger:hover {
+  background: color-mix(in srgb, var(--sailor-red-500, #ef4444) 12%, transparent);
+  color: var(--sailor-red-500, #ef4444);
 }
 </style>

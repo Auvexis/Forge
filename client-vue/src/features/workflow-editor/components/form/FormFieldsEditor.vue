@@ -12,7 +12,7 @@
             :model-value="field.name"
             @update:model-value="updateField(i, { name: $event as string })"
             placeholder="field_name"
-            style="font-family: var(--nod8-font-mono)"
+            style="font-family: var(--sailor-font-mono)"
           />
           <BaseInput
             :model-value="field.label"
@@ -43,7 +43,7 @@
               variant="ghost"
               size="icon"
               icon-left="x"
-              class="!text-[var(--nod8-text-muted)] hover:!text-[var(--nod8-text-primary)] !p-2"
+              class="!text-[var(--sailor-text-muted)] hover:!text-[var(--sailor-text-primary)] !p-2"
               @click="removeField(i)"
             />
           </div>
@@ -212,7 +212,7 @@ function updateFieldOptionsText(i: number, value: string) {
 }
 
 .ffe-label {
-  color: var(--nod8-text-secondary);
+  color: var(--sailor-text-secondary);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -221,7 +221,7 @@ function updateFieldOptionsText(i: number, value: string) {
 
 .ffe-hint {
   margin: 0;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -235,9 +235,9 @@ function updateFieldOptionsText(i: number, value: string) {
 
 .ffe-card {
   padding: 10px;
-  border: 1px solid var(--nod8-border-subtle);
-  border-radius: var(--nod8-radius-md);
-  background: var(--nod8-bg-surface);
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: var(--sailor-radius-md);
+  background: var(--sailor-bg-surface);
 }
 
 .ffe-grid {
@@ -265,7 +265,7 @@ function updateFieldOptionsText(i: number, value: string) {
 }
 
 .ffe-required {
-  color: var(--nod8-text-secondary);
+  color: var(--sailor-text-secondary);
   font-size: 12px;
   font-weight: 600;
 }

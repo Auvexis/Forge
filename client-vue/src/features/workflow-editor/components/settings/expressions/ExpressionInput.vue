@@ -112,7 +112,7 @@ defineOptions({ inheritAttrs: false })
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-1);
+  gap: var(--sailor-space-1);
   min-width: 0;
   width: 100%;
 }

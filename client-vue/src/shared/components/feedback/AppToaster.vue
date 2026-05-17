@@ -49,12 +49,12 @@ const getIcon = (variant: ToastVariant) => {
 <style scoped>
 .app-toaster {
   position: fixed;
-  bottom: var(--nod8-space-6);
-  right: var(--nod8-space-6);
+  bottom: var(--sailor-space-6);
+  right: var(--sailor-space-6);
   z-index: 99999 !important;
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-3);
+  gap: var(--sailor-space-3);
   pointer-events: none; /* Let clicks pass through empty space */
 }
 
@@ -62,17 +62,17 @@ const getIcon = (variant: ToastVariant) => {
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: var(--nod8-space-3);
+  gap: var(--sailor-space-3);
   width: 380px;
-  max-width: calc(100vw - var(--nod8-space-8));
-  padding: var(--nod8-space-4);
-  border-radius: var(--nod8-radius-lg);
-  border-top-left-radius: var(--nod8-radius-sm);
-  border-bottom-left-radius: var(--nod8-radius-sm);
+  max-width: calc(100vw - var(--sailor-space-8));
+  padding: var(--sailor-space-4);
+  border-radius: var(--sailor-radius-lg);
+  border-top-left-radius: var(--sailor-radius-sm);
+  border-bottom-left-radius: var(--sailor-radius-sm);
   pointer-events: auto; /* Re-enable clicks on the toast */
   overflow: hidden;
-  background-color: var(--nod8-bg-base);
-  border-color: var(--nod8-border);
+  background-color: var(--sailor-bg-base);
+  border-color: var(--sailor-border);
 }
 
 /* Adds a subtle left border matching the variant */
@@ -83,21 +83,21 @@ const getIcon = (variant: ToastVariant) => {
   top: 6px;
   bottom: 6px;
   width: 3px;
-  border-radius: var(--nod8-radius-full);
+  border-radius: var(--sailor-radius-full);
   height: calc(100% - 12px);
 }
 
 .app-toast--default::before {
-  background-color: var(--nod8-blue-500);
+  background-color: var(--sailor-blue-500);
 }
 .app-toast--success::before {
-  background-color: var(--nod8-green-500);
+  background-color: var(--sailor-green-500);
 }
 .app-toast--warning::before {
-  background-color: var(--nod8-amber-500);
+  background-color: var(--sailor-amber-500);
 }
 .app-toast--error::before {
-  background-color: var(--nod8-red-500);
+  background-color: var(--sailor-red-500);
 }
 
 .app-toast__icon {
@@ -105,55 +105,55 @@ const getIcon = (variant: ToastVariant) => {
   margin-top: 2px;
 }
 .app-toast--default .app-toast__icon {
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
 }
 .app-toast--success .app-toast__icon {
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
 }
 .app-toast--warning .app-toast__icon {
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
 }
 .app-toast--error .app-toast__icon {
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
 }
 
 .app-toast__content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-1);
+  gap: var(--sailor-space-1);
 }
 
 .app-toast__title {
-  font-size: var(--nod8-text-sm);
-  font-weight: var(--nod8-font-semibold);
-  color: var(--nod8-text-primary);
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
+  color: var(--sailor-text-primary);
   margin: 0;
 }
 
 .app-toast__message {
-  font-size: var(--nod8-text-sm);
-  color: var(--nod8-text-secondary);
-  line-height: var(--nod8-leading-normal);
+  font-size: var(--sailor-text-sm);
+  color: var(--sailor-text-secondary);
+  line-height: var(--sailor-leading-normal);
   margin: 0;
   word-break: break-word;
 }
 
 .app-toast__close {
   flex-shrink: 0;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   width: 24px;
   height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--nod8-radius-sm);
+  border-radius: var(--sailor-radius-sm);
   margin: -4px -4px 0 0;
-  transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
+  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
 }
 
 .app-toast__close:hover {
-  background-color: var(--nod8-bg-muted);
-  color: var(--nod8-text-primary);
+  background-color: var(--sailor-bg-muted);
+  color: var(--sailor-text-primary);
 }
 </style>

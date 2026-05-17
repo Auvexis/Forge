@@ -25,8 +25,8 @@ const emit = defineEmits<{
     role="listbox"
     aria-label="Command results"
     active-selector=".cp-row--active"
-    hover-background="var(--nod8-bg-surface)"
-    active-background="var(--nod8-bg-muted)"
+    hover-background="var(--sailor-bg-surface)"
+    active-background="var(--sailor-bg-muted)"
   >
     <div v-if="error" class="cp-empty cp-empty--error" role="alert">{{ error }}</div>
     <div v-else-if="loading" class="cp-empty" aria-live="polite">Loading commands</div>

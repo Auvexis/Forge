@@ -1,5 +1,5 @@
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
-import type { TriggerRegistrationContext } from "../../../shared/models/plugin-types.ts";
+import type { TriggerRegistrationContext } from "@auvexis/sailor-sdk";
 import { PluginManager } from "../plugins/manager.ts";
 import { CredentialStore } from "../plugins/credential-store.ts";
 import { Vault } from "../plugins/vault.ts";
@@ -76,19 +76,19 @@ export const WorkflowLifecycleManager = {
 
       if (!triggerHooks) {
         console.warn(
-          `[NOD8 | LIFECYCLE]: Plugin '${entry.trigger.pluginId}' has no trigger '${entry.trigger.triggerName}' hooks registered.`,
+          `[SAILOR | LIFECYCLE]: Plugin '${entry.trigger.pluginId}' has no trigger '${entry.trigger.triggerName}' hooks registered.`,
         );
         continue;
       }
 
       console.log(
-        `[NOD8 | LIFECYCLE]: Calling setup() for plugin '${entry.trigger.pluginId}' / trigger '${entry.trigger.triggerName}' (workflow: ${workflow.metadata.id}/${entry.id})`,
+        `[SAILOR | LIFECYCLE]: Calling setup() for plugin '${entry.trigger.pluginId}' / trigger '${entry.trigger.triggerName}' (workflow: ${workflow.metadata.id}/${entry.id})`,
       );
 
       await triggerHooks.setup(ctx);
 
       console.log(
-        `[NOD8 | LIFECYCLE]: setup() completed for workflow '${workflow.metadata.id}/${entry.id}'`,
+        `[SAILOR | LIFECYCLE]: setup() completed for workflow '${workflow.metadata.id}/${entry.id}'`,
       );
     }
   },
@@ -107,17 +107,17 @@ export const WorkflowLifecycleManager = {
       if (!triggerHooks) continue;
 
       console.log(
-        `[NOD8 | LIFECYCLE]: Calling teardown() for plugin '${entry.trigger.pluginId}' / trigger '${entry.trigger.triggerName}' (workflow: ${workflow.metadata.id}/${entry.id})`,
+        `[SAILOR | LIFECYCLE]: Calling teardown() for plugin '${entry.trigger.pluginId}' / trigger '${entry.trigger.triggerName}' (workflow: ${workflow.metadata.id}/${entry.id})`,
       );
 
       try {
         await triggerHooks.teardown(ctx);
         console.log(
-          `[NOD8 | LIFECYCLE]: teardown() completed for workflow '${workflow.metadata.id}/${entry.id}'`,
+          `[SAILOR | LIFECYCLE]: teardown() completed for workflow '${workflow.metadata.id}/${entry.id}'`,
         );
       } catch (err: any) {
         console.error(
-          `[NOD8 | LIFECYCLE]: teardown() failed for workflow '${workflow.metadata.id}/${entry.id}': ${err.message}`,
+          `[SAILOR | LIFECYCLE]: teardown() failed for workflow '${workflow.metadata.id}/${entry.id}': ${err.message}`,
         );
       }
     }

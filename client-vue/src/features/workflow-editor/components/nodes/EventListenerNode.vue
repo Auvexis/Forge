@@ -47,8 +47,8 @@ const subtitle = computed(() =>
     :title="stepTitle"
     :subtitle="subtitle"
     icon="target"
-    color="var(--nod8-node-event-listener-icon)"
-    bg="var(--nod8-node-event-listener-bg)"
-    border-color="var(--nod8-node-event-listener-border)"
+    color="var(--sailor-node-event-listener-icon)"
+    bg="var(--sailor-node-event-listener-bg)"
+    border-color="var(--sailor-node-event-listener-border)"
   />
 </template>

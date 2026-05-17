@@ -162,9 +162,9 @@ async function handleRun() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--nod8-space-3) var(--nod8-space-4);
-  border-bottom: 1px solid var(--nod8-border);
-  background-color: var(--nod8-bg-surface);
+  padding: var(--sailor-space-3) var(--sailor-space-4);
+  border-bottom: 1px solid var(--sailor-border);
+  background-color: var(--sailor-bg-surface);
   flex-shrink: 0;
 }
 
@@ -175,14 +175,14 @@ async function handleRun() {
 }
 
 .rwp-title {
-  font-size: var(--nod8-text-sm);
+  font-size: var(--sailor-text-sm);
   font-weight: 600;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
 }
 
 .rwp-subtitle {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
   text-transform: capitalize;
 }
 
@@ -191,29 +191,29 @@ async function handleRun() {
 .rwp-body {
   flex: 1;
   overflow-y: auto;
-  padding: var(--nod8-space-4);
+  padding: var(--sailor-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-4);
-  background-color: var(--nod8-bg-canvas);
+  gap: var(--sailor-space-4);
+  background-color: var(--sailor-bg-canvas);
 }
 
 .rwp-info-box {
-  padding: var(--nod8-space-3);
-  border-radius: var(--nod8-radius-sm);
-  background-color: var(--nod8-bg-elevated);
-  border: 1px solid var(--nod8-border);
-  font-size: var(--nod8-text-sm);
-  color: var(--nod8-text-muted);
+  padding: var(--sailor-space-3);
+  border-radius: var(--sailor-radius-sm);
+  background-color: var(--sailor-bg-elevated);
+  border: 1px solid var(--sailor-border);
+  font-size: var(--sailor-text-sm);
+  color: var(--sailor-text-muted);
   line-height: 1.5;
 }
 
 /* ── Fields ───────────────────────────────────────────────── */
 
 .rwp-fields-label {
-  font-size: var(--nod8-text-xs);
+  font-size: var(--sailor-text-xs);
   font-weight: 600;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 0;
@@ -222,13 +222,13 @@ async function handleRun() {
 .rwp-fields {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-3);
+  gap: var(--sailor-space-3);
 }
 
 .rwp-field {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-1);
+  gap: var(--sailor-space-1);
 }
 
 .rwp-field-header {
@@ -238,23 +238,23 @@ async function handleRun() {
 }
 
 .rwp-field-label {
-  font-size: var(--nod8-text-xs);
+  font-size: var(--sailor-text-xs);
   font-weight: 500;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
 }
 
 .rwp-required {
-  color: var(--nod8-red-400);
+  color: var(--sailor-red-400);
   margin-left: 2px;
 }
 
 .rwp-field-type {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
-  background: var(--nod8-bg-elevated);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+  background: var(--sailor-bg-elevated);
   padding: 2px 6px;
   border-radius: 4px;
-  border: 1px solid var(--nod8-border);
+  border: 1px solid var(--sailor-border);
 }
 
 /* ── Input ────────────────────────────────────────────────── */
@@ -262,57 +262,57 @@ async function handleRun() {
 .rwp-input {
   width: 100%;
   height: 36px;
-  background-color: var(--nod8-bg-overlay);
-  border: 1px solid var(--nod8-border-strong);
-  border-radius: var(--nod8-radius-sm);
-  padding: 0 var(--nod8-space-3);
-  font-size: var(--nod8-text-sm);
+  background-color: var(--sailor-bg-overlay);
+  border: 1px solid var(--sailor-border-strong);
+  border-radius: var(--sailor-radius-sm);
+  padding: 0 var(--sailor-space-3);
+  font-size: var(--sailor-text-sm);
   font-family: inherit;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   outline: none;
   box-sizing: border-box;
-  transition: border-color var(--nod8-duration-fast);
+  transition: border-color var(--sailor-duration-fast);
 }
 
 .rwp-input:focus {
-  border-color: var(--nod8-accent);
-  box-shadow: 0 0 0 1px var(--nod8-accent);
+  border-color: var(--sailor-accent);
+  box-shadow: 0 0 0 1px var(--sailor-accent);
 }
 
 .rwp-input::placeholder {
-  color: var(--nod8-text-disabled);
+  color: var(--sailor-text-disabled);
 }
 
 .rwp-input--file {
-  padding: 6px var(--nod8-space-3);
+  padding: 6px var(--sailor-space-3);
   height: auto;
   cursor: pointer;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
 }
 
 .rwp-textarea {
   width: 100%;
   min-height: 96px;
   resize: vertical;
-  background-color: var(--nod8-bg-overlay);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
+  background-color: var(--sailor-bg-overlay);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
   padding: 10px 12px;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   font: inherit;
   outline: none;
 }
 
 .rwp-textarea:focus {
-  border-color: var(--nod8-accent);
+  border-color: var(--sailor-accent);
 }
 
 /* ── Footer ───────────────────────────────────────────────── */
 
 .rwp-footer {
-  padding: var(--nod8-space-3) var(--nod8-space-4);
-  border-top: 1px solid var(--nod8-border);
-  background-color: var(--nod8-bg-surface);
+  padding: var(--sailor-space-3) var(--sailor-space-4);
+  border-top: 1px solid var(--sailor-border);
+  background-color: var(--sailor-bg-surface);
   flex-shrink: 0;
 }
 </style>

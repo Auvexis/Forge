@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import type { PluginManifest } from "../../../shared/models/plugin-types.ts";
+import type { PluginManifest } from "@auvexis/sailor-sdk";
 import { validateManifest } from "./loader.ts";
 
 export interface PluginManifestPreview {

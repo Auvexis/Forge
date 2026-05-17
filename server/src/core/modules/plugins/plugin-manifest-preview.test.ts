@@ -22,7 +22,6 @@ const validManifest = {
       metadata: { label: "Ping", description: "Ping" },
       parameters: { type: "object", properties: {} },
       responseSchema: { type: "object", properties: {} },
-      ui: { component: "card" },
     },
   },
 };
@@ -54,11 +53,10 @@ describe("readPluginManifestPreview", () => {
     assert.match(preview.errors.join("\n"), /root must have required property 'methods'/);
   });
 
-  it("returns structured preview metadata, methods, triggers, auth type and warnings", () => {
+  it("returns structured preview metadata, methods, triggers and missing-auth warning", () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
     const manifest = {
       ...validManifest,
-      auth: { type: "api_key" },
       triggers: {
         onMessage: {
           metadata: { label: "On Message", description: "Message received" },
@@ -86,7 +84,9 @@ describe("readPluginManifestPreview", () => {
         description: "Message received",
       },
     ]);
-    assert.equal(preview.authType, "api_key");
-    assert.deepEqual(preview.warnings, []);
+    assert.equal(preview.authType, null);
+    assert.deepEqual(preview.warnings, [
+      "Manifest preview does not declare auth type; runtime plugin auth will be checked on load.",
+    ]);
   });
 });

@@ -93,7 +93,7 @@ onMounted(loadForm)
   place-items: center;
   padding: 32px 16px;
   background: #0b0d12;
-  color: var(--nod8-text-secondary);
+  color: var(--sailor-text-secondary);
   font-size: 14px;
 }
 
@@ -102,6 +102,6 @@ onMounted(loadForm)
   background:
     radial-gradient(circle at 20% 0%, rgba(236, 72, 153, 0.16), transparent 28%),
     linear-gradient(135deg, #0b0d12 0%, #111827 100%);
-  color: var(--nod8-red-400);
+  color: var(--sailor-red-400);
 }
 </style>

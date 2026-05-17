@@ -9,7 +9,6 @@
     "version": "1.0.0",
     "repository": "https://github.com/yourusername/my-plugin"
   },
-
   "methods": {
     "listItems": {
       "metadata": {
@@ -36,28 +35,25 @@
       },
       "responseSchema": {
         "type": "array",
-        "x-nod8-display": "generic",
         "items": {
           "type": "object",
           "properties": {
-            "id": { "type": "string", "x-label": "ID" },
-            "name": { "type": "string", "x-label": "Name" },
-            "createdAt": { "type": "string", "x-label": "Created At" }
+            "id": {
+              "type": "string",
+              "x-label": "ID"
+            },
+            "name": {
+              "type": "string",
+              "x-label": "Name"
+            },
+            "createdAt": {
+              "type": "string",
+              "x-label": "Created At"
+            }
           }
         }
-      },
-      "ui": {
-        "component": "table",
-        "actions": [
-          {
-            "label": "Get Details",
-            "action": "getItem",
-            "parameters": { "id": "{{id}}" }
-          }
-        ]
       }
     },
-
     "getItem": {
       "metadata": {
         "label": "Get item",
@@ -72,20 +68,30 @@
             "x-input-type": "text"
           }
         },
-        "required": ["id"]
+        "required": [
+          "id"
+        ]
       },
       "responseSchema": {
         "type": "object",
-        "x-nod8-display": "generic",
         "properties": {
-          "id": { "type": "string", "x-label": "ID" },
-          "name": { "type": "string", "x-label": "Name" },
-          "description": { "type": "string", "x-label": "Description" },
-          "createdAt": { "type": "string", "x-label": "Created At" }
+          "id": {
+            "type": "string",
+            "x-label": "ID"
+          },
+          "name": {
+            "type": "string",
+            "x-label": "Name"
+          },
+          "description": {
+            "type": "string",
+            "x-label": "Description"
+          },
+          "createdAt": {
+            "type": "string",
+            "x-label": "Created At"
+          }
         }
-      },
-      "ui": {
-        "component": "card"
       }
     }
   }

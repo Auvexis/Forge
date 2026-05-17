@@ -340,7 +340,7 @@ describe("DevWorkflowSessionManager", () => {
         name: "Plugin A",
         trigger: {
           type: "plugin",
-          pluginId: "nod8.test",
+          pluginId: "sailor.test",
           triggerName: "message",
           webhookPath: "plugin-hook",
         },
@@ -380,7 +380,7 @@ describe("DevWorkflowSessionManager", () => {
         name: "Plugin A",
         trigger: {
           type: "plugin",
-          pluginId: "nod8.test",
+          pluginId: "sailor.test",
           triggerName: "message",
           webhookPath: "plugin-hook",
         },

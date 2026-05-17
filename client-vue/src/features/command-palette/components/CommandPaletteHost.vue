@@ -301,17 +301,17 @@ function applyUiIntent(intent: { type: string; target?: string; payload?: Record
       void router.push('/universe')
       // Wait for Universe to mount
       setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('nod8:command-palette:intent', { detail: intent }))
+        window.dispatchEvent(new CustomEvent('sailor:command-palette:intent', { detail: intent }))
       }, 400)
     } else {
-      window.dispatchEvent(new CustomEvent('nod8:command-palette:intent', { detail: intent }))
+      window.dispatchEvent(new CustomEvent('sailor:command-palette:intent', { detail: intent }))
     }
   }
   if (type === 'plugin.oauth.open' || type === 'plugin.credentials.open') {
     if (intent.target) {
       settingsStore.openCredentialsFor(intent.target)
     }
-    window.dispatchEvent(new CustomEvent('nod8:command-palette:intent', { detail: intent }))
+    window.dispatchEvent(new CustomEvent('sailor:command-palette:intent', { detail: intent }))
   }
   if (type === 'workflow-settings.open' || type === 'workflow-logs.open' || type === 'workflow-variables.open') {
     if (intent.target && intent.target !== commandContext.value.activeWorkflowId) {
@@ -327,7 +327,7 @@ function applyUiIntent(intent: { type: string; target?: string; payload?: Record
         },
       })
     } else {
-      window.dispatchEvent(new CustomEvent('nod8:command-palette:intent', { detail: intent }))
+      window.dispatchEvent(new CustomEvent('sailor:command-palette:intent', { detail: intent }))
     }
   }
 }

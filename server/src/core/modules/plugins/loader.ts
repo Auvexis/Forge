@@ -1,18 +1,19 @@
 import { pathToFileURL } from "url";
 import path from "path";
 import fs from "fs";
+import { validateManifest as validateSdkManifest } from "@auvexis/sailor-sdk";
+import type { SailorPlugin } from "@auvexis/sailor-sdk";
 import type Database from "better-sqlite3";
 import { PluginManager } from "./manager.ts";
-import { nd8HomePaths } from "../../runtime/nd8-home.ts";
+import { sailorHomePaths } from "../../runtime/sailor-home.ts";
 import {
   isPluginEnabled,
   syncPluginRegistry,
   type PluginSource,
 } from "./plugin-registry.ts";
-import type { Nod8Plugin } from "../../../shared/models/plugin-types.ts";
 
 interface PluginManagerLike {
-  registerPlugin(plugin: Nod8Plugin): void;
+  registerPlugin(plugin: SailorPlugin): void;
 }
 
 interface PluginLoaderLogger {
@@ -21,7 +22,7 @@ interface PluginLoaderLogger {
   error(message: string, error?: unknown): void;
 }
 
-type PluginImporter = (entrypoint: string) => Promise<Nod8Plugin>;
+type PluginImporter = (entrypoint: string) => Promise<SailorPlugin>;
 
 export interface LoadPluginsOptions {
   internalPluginsDir?: string;
@@ -45,53 +46,9 @@ const defaultLogger: PluginLoaderLogger = {
   error: (message, error) => console.error(message, error),
 };
 
-// Simple structural validator. Checks the top-level contract every plugin manifest must satisfy.
 export function validateManifest(manifest: any): string[] {
-  const errors: string[] = [];
-
-  if (!manifest.metadata) {
-    errors.push("Missing 'metadata' section");
-    return errors;
-  }
-
-  const required = ["id", "name", "description", "author", "category", "version"];
-  for (const field of required) {
-    if (!manifest.metadata[field]) {
-      errors.push(`Missing metadata.${field}`);
-    }
-  }
-
-  if (manifest.metadata.id && !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(manifest.metadata.id)) {
-    errors.push(`metadata.id must be kebab-case (e.g. 'my-plugin'). Got: '${manifest.metadata.id}'`);
-  }
-
-  if (manifest.metadata.version && !/^\d+\.\d+\.\d+$/.test(manifest.metadata.version)) {
-    errors.push(`metadata.version must be semver (e.g. '1.0.0'). Got: '${manifest.metadata.version}'`);
-  }
-
-  if (!manifest.methods || typeof manifest.methods !== "object") {
-    errors.push("Missing or invalid 'methods' section");
-    return errors;
-  }
-
-  if (Object.keys(manifest.methods).length === 0) {
-    errors.push("Plugin must define at least one method");
-  }
-
-  for (const [methodName, method] of Object.entries(manifest.methods) as [string, any][]) {
-    if (!method.metadata?.label) errors.push(`methods.${methodName}: missing metadata.label`);
-    if (!method.parameters || method.parameters.type !== "object") {
-      errors.push(`methods.${methodName}: parameters must be a JSON Schema object (type: "object")`);
-    }
-    if (!method.responseSchema?.type) {
-      errors.push(`methods.${methodName}: missing responseSchema.type`);
-    }
-    if (!method.ui?.component) {
-      errors.push(`methods.${methodName}: missing ui.component`);
-    }
-  }
-
-  return errors;
+  const result = validateSdkManifest(manifest);
+  return result.valid ? [] : result.errors;
 }
 
 function findPluginEntrypoints(dir: string): string[] {
@@ -100,13 +57,18 @@ function findPluginEntrypoints(dir: string): string[] {
   const entrypoints: string[] = [];
   const walk = (current: string) => {
     const entries = fs.readdirSync(current, { withFileTypes: true });
+    const hasManifest = entries.some((entry) => entry.isFile() && entry.name === "manifest.json");
 
     for (const entry of entries) {
       const fullPath = path.join(current, entry.name);
       if (entry.isDirectory()) {
-        if (entry.name === "_template") continue;
+        if (entry.name === "_template" || entry.name === "node_modules") continue;
         walk(fullPath);
-      } else if (entry.isFile() && (entry.name === "index.ts" || entry.name === "index.js")) {
+      } else if (
+        hasManifest &&
+        entry.isFile() &&
+        (entry.name === "index.ts" || entry.name === "index.js")
+      ) {
         entrypoints.push(fullPath);
       }
     }
@@ -116,9 +78,9 @@ function findPluginEntrypoints(dir: string): string[] {
   return entrypoints;
 }
 
-async function importPlugin(entrypoint: string): Promise<Nod8Plugin> {
+async function importPlugin(entrypoint: string): Promise<SailorPlugin> {
   const module = await import(pathToFileURL(entrypoint).href);
-  const plugin: Nod8Plugin = module.default || module[Object.keys(module)[0]];
+  const plugin: SailorPlugin = module.default || module[Object.keys(module)[0]];
 
   if (!plugin.id) throw new Error("Missing plugin id");
   if (!plugin.manifest) throw new Error("Missing manifest");
@@ -156,7 +118,7 @@ async function loadSource(
       if (source === "external" && internalIds.has(runtimePlugin.id)) {
         result.skippedConflicts += 1;
         options.logger.warn(
-          `[NOD8 | PLUGINS]: Skipping external plugin ${runtimePlugin.id}; it conflicts with an internal plugin`,
+          `[SAILOR | PLUGINS]: Skipping external plugin ${runtimePlugin.id}; it conflicts with an internal plugin`,
         );
         continue;
       }
@@ -174,7 +136,7 @@ async function loadSource(
 
       if (!isPluginEnabled(options.registryDb, runtimePlugin.id)) {
         result.skippedDisabled += 1;
-        options.logger.info(`[NOD8 | PLUGINS]: Skipping disabled plugin ${runtimePlugin.id}`);
+        options.logger.info(`[SAILOR | PLUGINS]: Skipping disabled plugin ${runtimePlugin.id}`);
         continue;
       }
 
@@ -185,7 +147,7 @@ async function loadSource(
       }
     } catch (error) {
       result.failed += 1;
-      options.logger.error(`[NOD8 | PLUGINS]: Failed to load plugin from ${entrypoint}`, error);
+      options.logger.error(`[SAILOR | PLUGINS]: Failed to load plugin from ${entrypoint}`, error);
     }
   }
 }
@@ -198,8 +160,8 @@ export async function loadPlugins(options: LoadPluginsOptions = {}): Promise<Loa
     logger: options.logger ?? defaultLogger,
     pluginImporter: options.pluginImporter ?? importPlugin,
   };
-  const internalPluginsDir = options.internalPluginsDir ?? nd8HomePaths.internalPluginsDir;
-  const externalPluginsDir = options.externalPluginsDir ?? nd8HomePaths.globalPluginsDir;
+  const internalPluginsDir = options.internalPluginsDir ?? sailorHomePaths.internalPluginsDir;
+  const externalPluginsDir = options.externalPluginsDir ?? sailorHomePaths.globalPluginsDir;
   const result: LoadPluginsResult = {
     loaded: { internal: 0, external: 0 },
     failed: 0,
@@ -212,7 +174,7 @@ export async function loadPlugins(options: LoadPluginsOptions = {}): Promise<Loa
   await loadSource("external", externalPluginsDir, resolved, result, internalIds);
 
   resolved.logger.info(
-    `[NOD8 | PLUGINS]: Loaded ${result.loaded.internal} internal and ${result.loaded.external} external plugins`,
+    `[SAILOR | PLUGINS]: Loaded ${result.loaded.internal} internal and ${result.loaded.external} external plugins`,
   );
 
   return result;

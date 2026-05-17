@@ -13,7 +13,7 @@
         :model-value="(node.data.targetWorkflowId as string) || ''"
         @update:model-value="updateNodeData({ targetWorkflowId: $event as string })"
         placeholder="wf_abc123"
-        style="font-family: var(--nod8-font-mono)"
+        style="font-family: var(--sailor-font-mono)"
       />
     </EditorField>
     
@@ -34,6 +34,6 @@ defineProps<NodeEditorProps>()
 
 <style scoped>
 .mt-2 {
-  margin-top: var(--nod8-space-2);
+  margin-top: var(--sailor-space-2);
 }
 </style>

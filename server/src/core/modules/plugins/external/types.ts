@@ -1,4 +1,4 @@
-import type { PluginManifest } from "../../../../shared/models/plugin-types.ts";
+import type { PluginManifest } from "@auvexis/sailor-sdk";
 
 export type PluginInstallSourceType = "repository_url" | "extracted_folder";
 export type PluginPreviewStatus = "ready" | "invalid" | "expired";

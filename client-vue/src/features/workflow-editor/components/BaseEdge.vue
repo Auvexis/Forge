@@ -4,15 +4,15 @@
     :id="id"
     :style="computedStyle"
     :path="pathData[0]"
-    :marker-end="props.selected ? 'url(#nod8-arrow-selected)' : `url(#nod8-arrow-${edgeStatus})`"
+    :marker-end="props.selected ? 'url(#sailor-arrow-selected)' : `url(#sailor-arrow-${edgeStatus})`"
   />
 
   <!-- ── Floating elements ── -->
   <EdgeLabelRenderer>
     <!-- Toolbar ABOVE the edge midpoint -->
     <div
-      class="nodrag nopan nod8-edge-toolbar"
-      :class="{ 'nod8-edge-toolbar--visible': !isMultiSelection && (isHovered || selected) }"
+      class="nodrag nopan sailor-edge-toolbar"
+      :class="{ 'sailor-edge-toolbar--visible': !isMultiSelection && (isHovered || selected) }"
       :style="{
         pointerEvents: 'all',
         position: 'absolute',
@@ -23,7 +23,7 @@
       @mouseleave="isHovered = false"
     >
       <!-- Quick-add between nodes -->
-      <button class="nod8-edge-btn" @click.stop="onQuickAdd" title="Insert node here">
+      <button class="sailor-edge-btn" @click.stop="onQuickAdd" title="Insert node here">
         <LucideIcon name="plus" :size="13" />
       </button>
 
@@ -31,7 +31,7 @@
       <template v-if="isEditingLabel">
         <input
           ref="labelInputRef"
-          class="nod8-edge-label-input"
+          class="sailor-edge-label-input"
           v-model="labelDraft"
           placeholder="Label…"
           @keydown.enter.stop="commitLabel"
@@ -39,19 +39,19 @@
           @blur="commitLabel"
         />
       </template>
-      <button v-else class="nod8-edge-btn" @click.stop="startEditLabel" title="Edit label">
+      <button v-else class="sailor-edge-btn" @click.stop="startEditLabel" title="Edit label">
         <LucideIcon name="tag" :size="13" />
       </button>
 
       <!-- Delete -->
-      <button class="nod8-edge-btn nod8-edge-btn--danger" @click.stop="onDelete" title="Delete connection">
+      <button class="sailor-edge-btn sailor-edge-btn--danger" @click.stop="onDelete" title="Delete connection">
         <LucideIcon name="trash" :size="13" />
       </button>
     </div>
 
     <!-- Invisible wider hover zone spanning toolbar + label area -->
     <div
-      class="nodrag nopan nod8-edge-hover-zone"
+      class="nodrag nopan sailor-edge-hover-zone"
       :style="{
         pointerEvents: 'all',
         position: 'absolute',
@@ -64,7 +64,7 @@
     <!-- Label BELOW the edge midpoint -->
     <div
       v-if="edgeLabel"
-      class="nodrag nopan nod8-edge-label"
+      class="nodrag nopan sailor-edge-label"
       :style="{
         position: 'absolute',
         transform: `translate(-50%, 14px) translate(${pathData[1]}px,${pathData[2]}px)`,
@@ -151,12 +151,12 @@ const edgeStatus = computed(() => {
 })
 
 const strokeColor = computed(() => {
-  if (props.selected) return 'var(--nod8-rf-edge-stroke-selected)'
+  if (props.selected) return 'var(--sailor-rf-edge-stroke-selected)'
   switch (edgeStatus.value) {
-    case 'success': return 'var(--nod8-green-500, #22c55e)'
-    case 'failed':  return 'var(--nod8-red-500, #ef4444)'
-    case 'running': return 'var(--nod8-amber-500, #f59e0b)'
-    default:        return 'var(--nod8-rf-edge-stroke)'
+    case 'success': return 'var(--sailor-green-500, #22c55e)'
+    case 'failed':  return 'var(--sailor-red-500, #ef4444)'
+    case 'running': return 'var(--sailor-amber-500, #f59e0b)'
+    default:        return 'var(--sailor-rf-edge-stroke)'
   }
 })
 
@@ -219,7 +219,7 @@ function cancelLabel() {
 
 <style scoped>
 /* ── Toolbar (above midpoint) ────────────────────────────────────── */
-.nod8-edge-toolbar {
+.sailor-edge-toolbar {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -229,12 +229,12 @@ function cancelLabel() {
   z-index: 2000;
 }
 
-.nod8-edge-toolbar--visible {
+.sailor-edge-toolbar--visible {
   opacity: 1;
 }
 
 /* Wider invisible hover zone — tall enough to bridge toolbar ↔ label gap */
-.nod8-edge-hover-zone {
+.sailor-edge-hover-zone {
   width: 80px;
   height: 80px;   /* covers toolbar above + label below */
   z-index: 1999;
@@ -242,11 +242,11 @@ function cancelLabel() {
 }
 
 /* ── Buttons ──────────────────────────────────────────────────────── */
-.nod8-edge-btn {
+.sailor-edge-btn {
   background: none;
   border: none;
-  border-radius: var(--nod8-radius-xs, 3px);
-  color: var(--nod8-text-muted);
+  border-radius: var(--sailor-radius-xs, 3px);
+  color: var(--sailor-text-muted);
   width: 24px;
   height: 24px;
   display: flex;
@@ -256,35 +256,35 @@ function cancelLabel() {
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.nod8-edge-btn:hover {
-  background: var(--nod8-bg-elevated);
-  color: var(--nod8-text-primary);
+.sailor-edge-btn:hover {
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
 }
 
-.nod8-edge-btn--danger:hover {
-  background: color-mix(in srgb, var(--nod8-red-500, #ef4444) 15%, transparent);
-  color: var(--nod8-red-500, #ef4444);
+.sailor-edge-btn--danger:hover {
+  background: color-mix(in srgb, var(--sailor-red-500, #ef4444) 15%, transparent);
+  color: var(--sailor-red-500, #ef4444);
 }
 
 /* ── Label (below midpoint) ───────────────────────────────────────── */
-.nod8-edge-label {
+.sailor-edge-label {
   font-size: 13px;
   font-weight: 500;
   line-height: 1;
-  color: var(--nod8-text-secondary);
-  background: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border-subtle);
-  border-radius: var(--nod8-radius-xs, 3px);
+  color: var(--sailor-text-secondary);
+  background: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: var(--sailor-radius-xs, 3px);
   padding: 3px 8px;
   white-space: nowrap;
   z-index: 1998;
 }
 
-.nod8-edge-label-input {
-  background: var(--nod8-bg-base);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-xs, 3px);
-  color: var(--nod8-text-primary);
+.sailor-edge-label-input {
+  background: var(--sailor-bg-base);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-xs, 3px);
+  color: var(--sailor-text-primary);
   font-size: 12px;
   height: 22px;
   padding: 0 6px;
@@ -292,7 +292,7 @@ function cancelLabel() {
   outline: none;
 }
 
-.nod8-edge-label-input:focus {
-  border-color: var(--nod8-accent);
+.sailor-edge-label-input:focus {
+  border-color: var(--sailor-accent);
 }
 </style>

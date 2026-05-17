@@ -25,8 +25,8 @@
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background-color: var(--nod8-bg-base);
-  color: var(--nod8-text-primary);
+  background-color: var(--sailor-bg-base);
+  color: var(--sailor-text-primary);
 }
 
 .app-shell__main {

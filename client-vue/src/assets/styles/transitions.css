@@ -1,12 +1,12 @@
 /* =========================================================
-   NOD8 — Shared Transition Classes
+   SAILOR — Shared Transition Classes
    Used with Vue's <Transition> component.
    ========================================================= */
 
 /* ── Fade ──────────────────────────────────────────────── */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity var(--nod8-duration-base) var(--nod8-ease-standard);
+  transition: opacity var(--sailor-duration-base) var(--sailor-ease-standard);
 }
 .fade-enter-from,
 .fade-leave-to {
@@ -17,8 +17,8 @@
 .slide-up-enter-active,
 .slide-up-leave-active {
   transition:
-    opacity var(--nod8-duration-slow) var(--nod8-ease-decelerate),
-    transform var(--nod8-duration-slow) var(--nod8-ease-decelerate);
+    opacity var(--sailor-duration-slow) var(--sailor-ease-decelerate),
+    transform var(--sailor-duration-slow) var(--sailor-ease-decelerate);
 }
 .slide-up-enter-from,
 .slide-up-leave-to {
@@ -30,8 +30,8 @@
 .slide-right-enter-active,
 .slide-right-leave-active {
   transition:
-    opacity var(--nod8-duration-base) var(--nod8-ease-standard),
-    transform var(--nod8-duration-base) var(--nod8-ease-standard);
+    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
+    transform var(--sailor-duration-base) var(--sailor-ease-standard);
 }
 .slide-right-enter-from,
 .slide-right-leave-to {
@@ -43,8 +43,8 @@
 .slide-left-enter-active,
 .slide-left-leave-active {
   transition:
-    opacity var(--nod8-duration-base) var(--nod8-ease-standard),
-    transform var(--nod8-duration-base) var(--nod8-ease-standard);
+    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
+    transform var(--sailor-duration-base) var(--sailor-ease-standard);
 }
 .slide-left-enter-from,
 .slide-left-leave-to {
@@ -56,8 +56,8 @@
 .scale-enter-active,
 .scale-leave-active {
   transition:
-    opacity var(--nod8-duration-fast) var(--nod8-ease-standard),
-    transform var(--nod8-duration-fast) var(--nod8-ease-standard);
+    opacity var(--sailor-duration-fast) var(--sailor-ease-standard),
+    transform var(--sailor-duration-fast) var(--sailor-ease-standard);
   transform-origin: top left;
 }
 .scale-enter-from,
@@ -69,13 +69,13 @@
 /* ── Toast ───────────────────────────────────────────────── */
 .toast-enter-active {
   transition:
-    opacity var(--nod8-duration-base) var(--nod8-ease-decelerate),
-    transform var(--nod8-duration-base) var(--nod8-ease-decelerate);
+    opacity var(--sailor-duration-base) var(--sailor-ease-decelerate),
+    transform var(--sailor-duration-base) var(--sailor-ease-decelerate);
 }
 .toast-leave-active {
   transition:
-    opacity var(--nod8-duration-base) var(--nod8-ease-accelerate),
-    transform var(--nod8-duration-base) var(--nod8-ease-accelerate);
+    opacity var(--sailor-duration-base) var(--sailor-ease-accelerate),
+    transform var(--sailor-duration-base) var(--sailor-ease-accelerate);
 }
 .toast-enter-from {
   opacity: 0;
@@ -86,6 +86,6 @@
   transform: translateY(-8px);
 }
 .toast-move {
-  transition: transform var(--nod8-duration-slow) var(--nod8-ease-standard);
+  transition: transform var(--sailor-duration-slow) var(--sailor-ease-standard);
 }
 

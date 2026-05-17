@@ -29,8 +29,8 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Emit Event')
     :title="stepTitle"
     :subtitle="subtitle"
     icon="zap"
-    color="var(--nod8-node-event-icon)"
-    bg="var(--nod8-node-event-bg)"
-    border-color="var(--nod8-node-event-border)"
+    color="var(--sailor-node-event-icon)"
+    bg="var(--sailor-node-event-bg)"
+    border-color="var(--sailor-node-event-border)"
   />
 </template>

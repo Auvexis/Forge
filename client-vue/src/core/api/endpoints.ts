@@ -43,6 +43,7 @@ export const ENDPOINTS = {
   PLUGIN_EXECUTE: (id: string) => `/plugins/${encodeURIComponent(id)}/execute`,
   PLUGIN_EXTERNAL_PREVIEW_URL: '/plugins/external/preview-url',
   PLUGIN_EXTERNAL_PREVIEW_FOLDER: '/plugins/external/preview-folder',
+  PLUGIN_EXTERNAL_PREVIEW_UPLOAD: '/plugins/external/preview-upload',
   PLUGIN_EXTERNAL_INSTALL: '/plugins/external/install',
   PLUGIN_EXTERNAL_PREVIEW: (id: string) => `/plugins/external/previews/${encodeURIComponent(id)}`,
 

@@ -86,45 +86,45 @@ defineOptions({ inheritAttrs: false })
 .base-textarea-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-1);
+  gap: var(--sailor-space-1);
   width: 100%;
 }
 
 .base-input-wrapper__label {
-  font-size: var(--nod8-text-xs);
-  font-weight: var(--nod8-font-medium);
-  color: var(--nod8-text-secondary);
+  font-size: var(--sailor-text-xs);
+  font-weight: var(--sailor-font-medium);
+  color: var(--sailor-text-secondary);
 }
 
 .required {
-  color: var(--nod8-text-error);
+  color: var(--sailor-text-error);
 }
 
 .base-textarea-container {
   display: flex;
   position: relative;
-  background-color: var(--nod8-bg-overlay);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
-  transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
+  background-color: var(--sailor-bg-overlay);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
   width: 100%;
 }
 
 .base-textarea-container:focus-within {
-  border-color: var(--nod8-border-strong);
+  border-color: var(--sailor-border-strong);
 }
 
 .base-textarea-container--error {
-  border-color: var(--nod8-red-500);
+  border-color: var(--sailor-red-500);
 }
 .base-textarea-container--error:focus-within {
-  box-shadow: 0 0 0 1px var(--nod8-red-500);
+  box-shadow: 0 0 0 1px var(--sailor-red-500);
 }
 
 .base-textarea-container--disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: var(--nod8-bg-muted);
+  background-color: var(--sailor-bg-muted);
 }
 
 .base-textarea {
@@ -134,27 +134,27 @@ defineOptions({ inheritAttrs: false })
   background: transparent;
   border: none;
   outline: none;
-  color: var(--nod8-text-primary);
-  font-size: var(--nod8-text-sm);
-  padding: var(--nod8-space-2) var(--nod8-space-3);
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
+  padding: var(--sailor-space-2) var(--sailor-space-3);
   resize: vertical;
   line-height: 1.5;
   font-family: inherit;
 }
 
 .base-textarea::placeholder {
-  color: var(--nod8-text-disabled);
+  color: var(--sailor-text-disabled);
 }
 
 .base-input-wrapper__error {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-error);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-error);
   margin-top: 2px;
 }
 
 .base-input-wrapper__hint {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
   margin-top: 2px;
 }
 </style>

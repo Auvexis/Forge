@@ -14,7 +14,7 @@ import { initializeDatabases } from "./database/index.ts";
 import { loadPlugins } from "./modules/plugins/loader.ts";
 import { Scheduler } from "./modules/scheduler/scheduler.ts";
 import { devWorkflowSessionRuntime } from "./modules/workflows/dev-session/runtime.ts";
-import { nd8HomePaths } from "./runtime/nd8-home.ts";
+import { sailorHomePaths } from "./runtime/sailor-home.ts";
 import { formatRuntimeDiagnostics } from "./runtime/runtime-diagnostics.ts";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
@@ -53,7 +53,7 @@ await fastify.register(cors, {
   credentials: true,
 });
 
-for (const line of formatRuntimeDiagnostics(nd8HomePaths)) {
+for (const line of formatRuntimeDiagnostics(sailorHomePaths)) {
   console.log(line);
 }
 
@@ -76,10 +76,10 @@ fastify.addHook("onClose", async () => {
 // Run the server!
 fastify.listen({ port: PORT, host: "0.0.0.0" }, function (err, address) {
   if (err) {
-    console.error("[NOD8 | FATAL ERROR]:", err);
+    console.error("[SAILOR | FATAL ERROR]:", err);
     fastify.log.error(err);
     process.exit(1);
   }
 
-  console.log(`[NOD8 | SERVER]: Server running at ${address}`);
+  console.log(`[SAILOR | SERVER]: Server running at ${address}`);
 });

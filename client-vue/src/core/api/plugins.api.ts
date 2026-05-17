@@ -56,6 +56,18 @@ export const pluginsApi = {
       body: { folderPath, files },
     }),
 
+  previewExternalUpload: (files: Array<{ file: File; relativePath: string }>) => {
+    const formData = new FormData()
+    for (const item of files) {
+      formData.append('files', item.file, item.relativePath)
+    }
+
+    return apiRequest<ExternalPluginPreview>(ENDPOINTS.PLUGIN_EXTERNAL_PREVIEW_UPLOAD, {
+      method: 'POST',
+      body: formData,
+    })
+  },
+
   installExternal: (previewId: string, scope: ExternalPluginInstallScope) =>
     apiRequest<ExternalPluginInstallResult>(ENDPOINTS.PLUGIN_EXTERNAL_INSTALL, {
       method: 'POST',

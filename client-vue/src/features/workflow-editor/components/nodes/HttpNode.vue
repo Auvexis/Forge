@@ -23,8 +23,8 @@ const stepTitle = computed(() => (props.data as any)?.name || 'HTTP Request')
     :title="stepTitle"
     :subtitle="`${method} request`"
     icon="globe"
-    color="var(--nod8-node-http-icon)"
-    bg="var(--nod8-node-http-bg)"
-    border-color="var(--nod8-node-http-border)"
+    color="var(--sailor-node-http-icon)"
+    bg="var(--sailor-node-http-bg)"
+    border-color="var(--sailor-node-http-border)"
   />
 </template>

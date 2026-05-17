@@ -9,7 +9,7 @@ Se voce ver que a feature que o usuario pediu pode ser perigosa e quebrar outras
 Voce SEMPRE tem que criar um arquivo .md em feats-map/ com todas as tasks antes de implementar.
 Sempre que voce completar uma task, marque como concluido e faca commit.
 
-No ND8(Nome do projeto), nos seguimos regras muito importantes que nao podem ser esquecidas:
+No SAILOR(Nome do projeto), nos seguimos regras muito importantes que nao podem ser esquecidas:
 
 - Plugins nao podem saber o que acontece fora da pasta deles, eles nao podem chamar nada do core/engines e nem de outros plugins.
 - Plugins sao 100% genericos, eles seguem os tipos em shared/ e o manifest.json deles e usado pelo frontend para carregar a UI

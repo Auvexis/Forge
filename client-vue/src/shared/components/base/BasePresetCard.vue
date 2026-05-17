@@ -32,33 +32,33 @@ const emit = defineEmits<{
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-md);
-  background: var(--nod8-bg-surface);
-  color: var(--nod8-text-primary);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
   text-align: left;
   cursor: pointer;
-  transition: border-color var(--nod8-duration-fast) var(--nod8-ease-standard),
-              background var(--nod8-duration-fast) var(--nod8-ease-standard);
+  transition: border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
+              background var(--sailor-duration-fast) var(--sailor-ease-standard);
   width: 100%;
 }
 
 .preset-card:hover {
-  border-color: var(--nod8-border-strong);
-  background: var(--nod8-button-ghost-hover);
+  border-color: var(--sailor-border-strong);
+  background: var(--sailor-button-ghost-hover);
 }
 
 .preset-card--active {
-  border-color: var(--nod8-border-strong);
-  box-shadow: inset 0 0 0 1px var(--nod8-border-strong);
+  border-color: var(--sailor-border-strong);
+  box-shadow: inset 0 0 0 1px var(--sailor-border-strong);
 }
 
 .preset-card__swatch {
   display: block;
   width: 100%;
   height: 26px;
-  border-radius: var(--nod8-radius-sm);
-  border: 1px solid var(--nod8-border);
+  border-radius: var(--sailor-radius-sm);
+  border: 1px solid var(--sailor-border);
   flex-shrink: 0;
 }
 
@@ -72,14 +72,14 @@ const emit = defineEmits<{
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   line-height: 1.2;
 }
 
 .preset-card__desc {
   display: block;
   font-size: 11px;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   line-height: 1.35;
   font-weight: 400;
 }

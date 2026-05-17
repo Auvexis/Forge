@@ -1,17 +1,67 @@
 import type {
-  Nod8Plugin,
+  SailorPlugin,
   OAuth2Provider,
   PluginContext,
-} from "../../../shared/models/plugin-types.ts";
+} from "@auvexis/sailor-sdk";
 import { PluginManager } from "./manager.ts";
 import { CredentialStore } from "./credential-store.ts";
 import { Vault } from "./vault.ts";
 import { validateParams, PluginValidationError } from "./validator.ts";
+import { OAuth2Service } from "./auth/oauth2-service.ts";
+import { isDeclarativeOAuth2Auth, isLegacyOAuth2Auth } from "./auth/oauth2-types.ts";
+import type { CustomOAuth2Auth, OAuth2DeclarativeAuth } from "./auth/oauth2-types.ts";
+import type { OAuth2Tokens } from "@auvexis/sailor-sdk";
 
 export { PluginValidationError };
 
 /** Refresh tokens if they expire within this window (5 minutes) */
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
+
+interface RefreshOAuth2TokensInput {
+  pluginId: string;
+  auth: OAuth2DeclarativeAuth | CustomOAuth2Auth | OAuth2Provider;
+  tokens?: OAuth2Tokens;
+  credentials: Record<string, string>;
+  now?: () => number;
+  saveTokens?: (pluginId: string, tokens: OAuth2Tokens) => void;
+  oauth2Service?: Pick<OAuth2Service, "refreshTokens">;
+}
+
+export async function refreshOAuth2TokensIfNeeded(input: RefreshOAuth2TokensInput): Promise<OAuth2Tokens | undefined> {
+  const now = input.now ?? Date.now;
+  const saveTokens = input.saveTokens ?? CredentialStore.saveTokens.bind(CredentialStore);
+
+  if (!input.tokens?.expires_at || now() < input.tokens.expires_at - TOKEN_REFRESH_BUFFER_MS) {
+    return input.tokens;
+  }
+
+  if (!input.tokens.refresh_token) {
+    return input.tokens;
+  }
+
+  try {
+    let refreshed: OAuth2Tokens | undefined;
+    if (isDeclarativeOAuth2Auth(input.auth)) {
+      const service = input.oauth2Service ?? new OAuth2Service();
+      refreshed = await service.refreshTokens({
+        auth: input.auth,
+        tokens: input.tokens,
+        credentials: input.credentials,
+      });
+    } else if (isLegacyOAuth2Auth(input.auth) && input.auth.refreshTokens) {
+      refreshed = await input.auth.refreshTokens(input.tokens, input.credentials);
+    }
+
+    if (refreshed) {
+      saveTokens(input.pluginId, refreshed);
+      return refreshed;
+    }
+
+    return input.tokens;
+  } catch (err: any) {
+    throw new Error(`Token refresh failed for plugin ${input.pluginId}: ${err.message}`);
+  }
+}
 
 export const PluginExecutor = {
   execute: async (
@@ -19,7 +69,7 @@ export const PluginExecutor = {
     methodName: string,
     params: Record<string, any>,
   ) => {
-    const plugin: Nod8Plugin = PluginManager.getPlugin(pluginId);
+    const plugin: SailorPlugin = PluginManager.getPlugin(pluginId);
 
     if (!plugin) {
       throw new Error(`Plugin ${pluginId} not found`);
@@ -44,25 +94,13 @@ export const PluginExecutor = {
     // Resolve {{env.KEY}} expressions inside credentials
     credentials = Vault.resolveEnvExpressions(credentials);
 
-    // Auto-refresh expired OAuth2 tokens before execution
-    if (plugin.auth.type === "oauth2" && tokens?.expires_at) {
-      const isExpired =
-        Date.now() >= tokens.expires_at - TOKEN_REFRESH_BUFFER_MS;
-
-      if (isExpired) {
-        const provider = plugin.auth as OAuth2Provider;
-
-        if (provider.refreshTokens && tokens.refresh_token) {
-          try {
-            tokens = await provider.refreshTokens(tokens, credentials);
-            CredentialStore.saveTokens(pluginId, tokens);
-          } catch (err: any) {
-            throw new Error(
-              `Token refresh failed for plugin ${pluginId}: ${err.message}`,
-            );
-          }
-        }
-      }
+    if (plugin.auth.type === "oauth2") {
+      tokens = await refreshOAuth2TokensIfNeeded({
+        pluginId,
+        auth: plugin.auth as OAuth2Provider,
+        tokens,
+        credentials,
+      });
     }
 
     const context: PluginContext = {

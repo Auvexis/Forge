@@ -74,10 +74,10 @@ useKeyboard(
 <style scoped>
 .app-panel {
   position: absolute;
-  z-index: var(--nod8-z-raised);
+  z-index: var(--sailor-z-raised);
   display: flex;
   flex-direction: column;
-  background-color: var(--nod8-bg-surface);
+  background-color: var(--sailor-bg-surface);
 }
 
 /* ── Positioning ───────────────────────────────── */
@@ -86,7 +86,7 @@ useKeyboard(
   right: 0;
   bottom: 0;
   border-top: 0;
-  border-left: 1px solid var(--nod8-border);
+  border-left: 1px solid var(--sailor-border);
   border-right: 0;
   border-bottom: 0;
 }
@@ -95,7 +95,7 @@ useKeyboard(
   top: 0;
   left: 0;
   bottom: 0;
-  border-right: 1px solid var(--nod8-border);
+  border-right: 1px solid var(--sailor-border);
   border-top: 0;
   border-left: 0;
   border-bottom: 0;
@@ -106,7 +106,7 @@ useKeyboard(
   right: 0;
   bottom: 0;
   height: 300px;
-  border-top: 1px solid var(--nod8-border);
+  border-top: 1px solid var(--sailor-border);
   border-left: 0;
   border-right: 0;
   border-bottom: 0;
@@ -115,11 +115,11 @@ useKeyboard(
 /* ── Widths (for left/right) ───────────────────── */
 .app-panel--right.app-panel--md,
 .app-panel--left.app-panel--md {
-  width: var(--nod8-panel-width);
+  width: var(--sailor-panel-width);
 }
 .app-panel--right.app-panel--lg,
 .app-panel--left.app-panel--lg {
-  width: var(--nod8-panel-width-wide);
+  width: var(--sailor-panel-width-wide);
 }
 .app-panel--right.app-panel--xl,
 .app-panel--left.app-panel--xl {
@@ -132,21 +132,21 @@ useKeyboard(
   align-items: center;
   justify-content: space-between;
   height: 56px;
-  padding: 0 var(--nod8-space-4);
-  border-bottom: 1px solid var(--nod8-border);
+  padding: 0 var(--sailor-space-4);
+  border-bottom: 1px solid var(--sailor-border);
   flex-shrink: 0;
 }
 
 .app-panel__title {
-  font-size: var(--nod8-text-base);
-  font-weight: var(--nod8-font-semibold);
+  font-size: var(--sailor-text-base);
+  font-weight: var(--sailor-font-semibold);
   margin: 0;
 }
 
 .app-panel__actions {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-1);
+  gap: var(--sailor-space-1);
 }
 
 .app-panel__close {
@@ -155,14 +155,14 @@ useKeyboard(
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-text-secondary);
-  transition: background-color var(--nod8-duration-fast);
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-secondary);
+  transition: background-color var(--sailor-duration-fast);
 }
 
 .app-panel__close:hover {
-  background-color: var(--nod8-bg-muted);
-  color: var(--nod8-text-primary);
+  background-color: var(--sailor-bg-muted);
+  color: var(--sailor-text-primary);
 }
 
 .app-panel__body {
@@ -171,9 +171,9 @@ useKeyboard(
 }
 
 .app-panel__footer {
-  padding: var(--nod8-space-4);
-  border-top: 1px solid var(--nod8-border);
-  background-color: var(--nod8-bg-elevated);
+  padding: var(--sailor-space-4);
+  border-top: 1px solid var(--sailor-border);
+  background-color: var(--sailor-bg-elevated);
   flex-shrink: 0;
 }
 </style>

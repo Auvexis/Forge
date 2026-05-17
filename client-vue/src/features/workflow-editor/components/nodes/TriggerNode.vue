@@ -39,9 +39,9 @@ const triggerConfig = computed(() => {
       icon: 'mouse-pointer-2',
       title: 'Manual Trigger',
       subtitle: null,
-      color: 'var(--nod8-text-primary)',
-      bg: 'var(--nod8-node-body)',
-      borderColor: 'var(--nod8-node-border)',
+      color: 'var(--sailor-text-primary)',
+      bg: 'var(--sailor-node-body)',
+      borderColor: 'var(--sailor-node-border)',
     },
     webhook: {
       icon: 'webhook',
@@ -250,7 +250,7 @@ const onQuickAdd = () => {
   position: relative;
   width: 100px;
   height: 100px;
-  background-color: var(--nod8-node-body);
+  background-color: var(--sailor-node-body);
   background-image: linear-gradient(var(--node-tint, transparent), var(--node-tint, transparent));
   border: 2px solid var(--trigger-border, #3c3c3c);
   border-radius: 50px 16px 16px 50px;
@@ -270,7 +270,7 @@ const onQuickAdd = () => {
   border-color: color-mix(
     in srgb,
     var(--trigger-border, #3c3c3c) 80%,
-    var(--nod8-text-primary) 20%
+    var(--sailor-text-primary) 20%
   );
 }
 
@@ -291,7 +291,7 @@ const onQuickAdd = () => {
   border-color: color-mix(
     in srgb,
     var(--trigger-border, #3c3c3c) 80%,
-    var(--nod8-text-primary) 20%
+    var(--sailor-text-primary) 20%
   );
   box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.5),
@@ -299,11 +299,11 @@ const onQuickAdd = () => {
 }
 
 .trigger-node.is-running {
-  border-color: var(--nod8-amber-400);
+  border-color: var(--sailor-amber-400);
 }
 
 .trigger-node.is-waiting {
-  border-color: var(--nod8-purple-400, #8b5cf6);
+  border-color: var(--sailor-purple-400, #8b5cf6);
   box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.5),
     0 0 0 3px rgba(139, 92, 246, 0.2);
@@ -311,11 +311,11 @@ const onQuickAdd = () => {
 }
 
 .trigger-node.is-success {
-  border-color: var(--nod8-green-400);
+  border-color: var(--sailor-green-400);
 }
 
 .trigger-node.is-failed {
-  border-color: var(--nod8-red-400);
+  border-color: var(--sailor-red-400);
 }
 
 /* ─── Shimmer clip (isolates overflow without breaking the execute-btn) ─── */
@@ -334,12 +334,12 @@ const onQuickAdd = () => {
   top: 50%;
   left: -50px;
   transform: translateY(-50%);
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   opacity: 0.9;
   display: flex;
   align-items: center;
   line-height: 1;
-  transition: opacity 0.2s var(--nod8-ease-standard);
+  transition: opacity 0.2s var(--sailor-ease-standard);
 }
 
 .trigger-node:hover .trigger-node__lightning {
@@ -407,7 +407,7 @@ const onQuickAdd = () => {
 .trigger-node__label-title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   line-height: 1.3;
   max-width: 140px;
   white-space: nowrap;
@@ -418,7 +418,7 @@ const onQuickAdd = () => {
 
 .trigger-node__label-subtitle {
   font-size: 11px;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   text-align: center;
   margin-top: 2px;
   max-width: 140px;
@@ -441,15 +441,15 @@ const onQuickAdd = () => {
 .trigger-node__quick-add-cable {
   width: 60px;
   height: 2px;
-  background-color: var(--nod8-node-handle);
+  background-color: var(--sailor-node-handle);
   transition: background-color 0.2s;
 }
 
 .trigger-node__quick-add-btn {
-  border-radius: var(--nod8-radius-sm);
-  background-color: var(--nod8-node-border);
-  border: 2px solid var(--nod8-border-strong);
-  color: var(--nod8-text-primary);
+  border-radius: var(--sailor-radius-sm);
+  background-color: var(--sailor-node-border);
+  border: 2px solid var(--sailor-border-strong);
+  color: var(--sailor-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;

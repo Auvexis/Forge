@@ -56,21 +56,21 @@ defineProps<NodeEditorProps>()
 
 <style scoped>
 .editor-branches {
-  padding: var(--nod8-space-3);
-  border-radius: var(--nod8-radius-lg);
-  background-color: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
+  padding: var(--sailor-space-3);
+  border-radius: var(--sailor-radius-lg);
+  background-color: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
 }
 
 .branches-legend {
   display: flex;
-  gap: var(--nod8-space-3);
+  gap: var(--sailor-space-3);
 }
 
 .branch-item {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
 }
 
 .branch-dot {
@@ -88,7 +88,7 @@ defineProps<NodeEditorProps>()
 }
 
 .branch-label {
-  font-size: var(--nod8-text-xs);
+  font-size: var(--sailor-text-xs);
   font-weight: 700;
 }
 
@@ -102,9 +102,9 @@ defineProps<NodeEditorProps>()
 
 .editor-hint-text {
   font-size: 11px;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   font-style: italic;
   line-height: 1.5;
-  margin-top: var(--nod8-space-2);
+  margin-top: var(--sailor-space-2);
 }
 </style>

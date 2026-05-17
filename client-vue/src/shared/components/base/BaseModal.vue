@@ -64,10 +64,10 @@ onUnmounted(() => {
 }
 
 .base-modal-container {
-  background: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
-  box-shadow: var(--nod8-shadow-xl);
-  border-radius: var(--nod8-radius-sm);
+  background: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  box-shadow: var(--sailor-shadow-xl);
+  border-radius: var(--sailor-radius-sm);
 }
 
 /* ── Transition: base-modal-slide-up ── */

@@ -184,7 +184,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     const { webhookPath } = req.params as { webhookPath: string };
 
     console.log(
-      `[NOD8 | WEBHOOK-IN]: ${req.method} /webhook/${webhookPath} — ` +
+      `[SAILOR | WEBHOOK-IN]: ${req.method} /webhook/${webhookPath} — ` +
         `listen-active=${TriggerListenerRegistry.has(webhookPath)} ` +
         `body-keys=${Object.keys((req.body as any) ?? {}).join(",")}`,
     );
@@ -229,11 +229,11 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
     // HMAC signature validation when a secret is configured
     if (entry.trigger.webhookSecret) {
-      const signature = req.headers["x-nod8-signature"] as string | undefined;
+      const signature = req.headers["x-sailor-signature"] as string | undefined;
       if (!signature) {
         return reply
           .code(401)
-          .send({ error: "Missing X-Nod8-Signature header" });
+          .send({ error: "Missing X-Sailor-Signature header" });
       }
       const rawBody = JSON.stringify(req.body ?? {});
       if (
@@ -247,7 +247,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       }
     } else {
       console.warn(
-        `[NOD8 | WEBHOOK]: Webhook "${webhookPath}" has no secret configured — consider adding one`,
+        `[SAILOR | WEBHOOK]: Webhook "${webhookPath}" has no secret configured — consider adding one`,
       );
     }
 
@@ -264,7 +264,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       (req.headers["content-type"] ?? "").split(";")[0].trim() ||
       "application/json";
     console.log(
-      `[NOD8 | WEBHOOKS]: Webhook received — identifier: '${webhookPath}', content-type: ${contentType}`,
+      `[SAILOR | WEBHOOKS]: Webhook received — identifier: '${webhookPath}', content-type: ${contentType}`,
     );
 
     const executionId = `exec_wh_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -290,7 +290,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         executionId,
       ).catch((err: Error) =>
         console.error(
-          `[NOD8 | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
+          `[SAILOR | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
         ),
       );
 
@@ -325,7 +325,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
     WorkflowEngine.executeWorkflowFromTrigger(workflow, triggerNodeId, triggerPayload, executionId).catch(
       (err: Error) =>
         console.error(
-          `[NOD8 | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
+          `[SAILOR | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
         ),
     );
 
@@ -851,7 +851,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
 
       let triggerPayload: Record<string, any> = {};
 
-      const headerExecRaw = req.headers["x-nod8-execution-id"];
+      const headerExecRaw = req.headers["x-sailor-execution-id"];
       const headerExecutionId =
         typeof headerExecRaw === "string" &&
         headerExecRaw.length < 96 &&
@@ -910,7 +910,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
           executionId,
         ).catch((err: Error) =>
           console.error(
-            `[NOD8 | WORKFLOW]: Background execution ${executionId} failed: ${err.message}`,
+            `[SAILOR | WORKFLOW]: Background execution ${executionId} failed: ${err.message}`,
           ),
         );
       });
@@ -1221,7 +1221,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
         await WorkflowLifecycleManager.activate(workflow);
       } catch (err: any) {
         console.error(
-          `[NOD8 | LISTEN]: Failed to temporarily activate plugin trigger:`,
+          `[SAILOR | LISTEN]: Failed to temporarily activate plugin trigger:`,
           err.message,
         );
         reply.raw.write(
@@ -1324,7 +1324,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       }
 
       console.log(
-        `[NOD8 | WORKFLOWS]: Published workflow "${workflow.metadata.name}" (${workflowId})`,
+        `[SAILOR | WORKFLOWS]: Published workflow "${workflow.metadata.name}" (${workflowId})`,
       );
       return sendResponse(reply, {
         status_code: 200,
@@ -1368,7 +1368,7 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
       }
 
       console.log(
-        `[NOD8 | WORKFLOWS]: Unpublished workflow "${workflow.metadata.name}" (${workflowId})`,
+        `[SAILOR | WORKFLOWS]: Unpublished workflow "${workflow.metadata.name}" (${workflowId})`,
       );
       return sendResponse(reply, {
         status_code: 200,

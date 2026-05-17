@@ -33,6 +33,8 @@ export interface PluginStatusResponse {
     buttonIcon?: string
   }
   oauth_redirect_uri?: string
+  oauth_public_url_required?: boolean
+  oauth_public_url_warning?: string
   error?: string
 }
 
@@ -95,7 +97,7 @@ export interface JSONSchemaProperty {
   items?: JSONSchemaProperty
   minItems?: number
   maxItems?: number
-  // ── Nod8 UI extensions ──────────────────────────────────────
+  // ── Sailor UI extensions ──────────────────────────────────────
   'x-input-type'?:
     | 'text'
     | 'password'
@@ -112,8 +114,8 @@ export interface JSONSchemaProperty {
     | 'code'
     | 'json'
   'x-label'?: string
-  'x-nod8-display'?: 'file' | 'folder' | 'media' | 'text' | 'generic'
-  'x-nod8-icon'?: string
+  'x-sailor-display'?: 'file' | 'folder' | 'media' | 'text' | 'generic'
+  'x-sailor-icon'?: string
   'x-dynamic-options'?: DynamicOptionsConfig
   'x-visible-if'?: VisibleIfConfig
 }
@@ -127,7 +129,7 @@ export interface JSONSchemaObject {
 
 export interface JSONSchemaResponse {
   type: 'object' | 'array'
-  'x-nod8-display'?: 'file' | 'folder' | 'media' | 'text' | 'generic'
+  'x-sailor-display'?: 'file' | 'folder' | 'media' | 'text' | 'generic'
   properties?: Record<string, JSONSchemaProperty>
   required?: string[]
   items?: JSONSchemaProperty & {

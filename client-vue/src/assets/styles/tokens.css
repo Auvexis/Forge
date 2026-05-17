@@ -1,5 +1,5 @@
 /* =========================================================
-   NOD8 — Design Tokens
+   SAILOR — Design Tokens
    All CSS custom properties that define the design language.
    Import this file first before any other styles.
    ========================================================= */
@@ -10,532 +10,532 @@
   /* ── Color Palette ──────────────────────────────────────── */
 
   /* Neutral (dark-first) */
-  --nod8-gray-50: #f6f6f6;
-  --nod8-gray-100: #ededed;
-  --nod8-gray-200: #dddddd;
-  --nod8-gray-300: #c4c4c4;
-  --nod8-gray-400: #9a9a9a;
-  --nod8-gray-500: #6e6e6e;
-  --nod8-gray-600: #4c4c4c;
-  --nod8-gray-700: #333333;
-  --nod8-gray-800: #222222;
-  --nod8-gray-850: #1a1a1a;
-  --nod8-gray-900: #141414;
-  --nod8-gray-950: #0e0e0e;
+  --sailor-gray-50: #f6f6f6;
+  --sailor-gray-100: #ededed;
+  --sailor-gray-200: #dddddd;
+  --sailor-gray-300: #c4c4c4;
+  --sailor-gray-400: #9a9a9a;
+  --sailor-gray-500: #6e6e6e;
+  --sailor-gray-600: #4c4c4c;
+  --sailor-gray-700: #333333;
+  --sailor-gray-800: #222222;
+  --sailor-gray-850: #1a1a1a;
+  --sailor-gray-900: #141414;
+  --sailor-gray-950: #0e0e0e;
 
   /* Brand — Electric Violet */
-  --nod8-brand-50: #fff7ed;
-  --nod8-brand-100: #ffedd5;
-  --nod8-brand-200: #fed7aa;
-  --nod8-brand-300: #fdba74;
-  --nod8-brand-400: #fb923c;
-  --nod8-brand-500: #f97316;
-  --nod8-brand-600: #ea580c;
-  --nod8-brand-700: #c2410c;
-  --nod8-brand-800: #9a3412;
-  --nod8-brand-900: #7c2d12;
+  --sailor-brand-50: #fff7ed;
+  --sailor-brand-100: #ffedd5;
+  --sailor-brand-200: #fed7aa;
+  --sailor-brand-300: #fdba74;
+  --sailor-brand-400: #fb923c;
+  --sailor-brand-500: #f97316;
+  --sailor-brand-600: #ea580c;
+  --sailor-brand-700: #c2410c;
+  --sailor-brand-800: #9a3412;
+  --sailor-brand-900: #7c2d12;
 
   /* Semantic — Success */
-  --nod8-green-400: #34d399;
-  --nod8-green-500: #10b981;
-  --nod8-green-600: #059669;
-  --nod8-green-900: #064e3b;
+  --sailor-green-400: #34d399;
+  --sailor-green-500: #10b981;
+  --sailor-green-600: #059669;
+  --sailor-green-900: #064e3b;
 
   /* Semantic — Warning */
-  --nod8-amber-400: #fbbf24;
-  --nod8-amber-500: #f59e0b;
-  --nod8-amber-900: #78350f;
+  --sailor-amber-400: #fbbf24;
+  --sailor-amber-500: #f59e0b;
+  --sailor-amber-900: #78350f;
 
   /* Semantic — Error */
-  --nod8-red-400: #f87171;
-  --nod8-red-500: #ef4444;
-  --nod8-red-600: #dc2626;
-  --nod8-red-900: #7f1d1d;
+  --sailor-red-400: #f87171;
+  --sailor-red-500: #ef4444;
+  --sailor-red-600: #dc2626;
+  --sailor-red-900: #7f1d1d;
 
   /* Semantic — Info */
-  --nod8-blue-400: #60a5fa;
-  --nod8-blue-500: #3b82f6;
-  --nod8-blue-900: #1e3a5f;
+  --sailor-blue-400: #60a5fa;
+  --sailor-blue-500: #3b82f6;
+  --sailor-blue-900: #1e3a5f;
 
   /* Node type colors */
-  --nod8-node-trigger: #f59e0b;
-  --nod8-node-plugin: #7c3aed;
-  --nod8-node-code: #6366f1;
-  --nod8-node-logic: #0ea5e9;
-  --nod8-node-flow: #14b8a6;
-  --nod8-node-http: #f97316;
-  --nod8-node-integration: #ec4899;
+  --sailor-node-trigger: #f59e0b;
+  --sailor-node-plugin: #7c3aed;
+  --sailor-node-code: #6366f1;
+  --sailor-node-logic: #0ea5e9;
+  --sailor-node-flow: #14b8a6;
+  --sailor-node-http: #f97316;
+  --sailor-node-integration: #ec4899;
 
-  /* Nod8 colors */
-  --nod8-color-1: #f9b643;
-  --nod8-color-2: #fb923c;
-  --nod8-color-3: #f87171;
-  --nod8-color-4: #e879f9;
-  --nod8-color-5: #c084fc;
-  --nod8-color-6: #818cf8;
-  --nod8-color-7: #60a5fa;
+  /* Sailor colors */
+  --sailor-color-1: #f9b643;
+  --sailor-color-2: #fb923c;
+  --sailor-color-3: #f87171;
+  --sailor-color-4: #e879f9;
+  --sailor-color-5: #c084fc;
+  --sailor-color-6: #818cf8;
+  --sailor-color-7: #60a5fa;
 
-  /* ── Nod8 brand gradient (header strip + emphasis button border) ── */
-  --nod8-brand-gradient: linear-gradient(
+  /* ── Sailor brand gradient (header strip + emphasis button border) ── */
+  --sailor-brand-gradient: linear-gradient(
     to right,
-    var(--nod8-color-1),
-    var(--nod8-color-2),
-    var(--nod8-color-3),
-    var(--nod8-color-4),
-    var(--nod8-color-5),
-    var(--nod8-color-6),
-    var(--nod8-color-7)
+    var(--sailor-color-1),
+    var(--sailor-color-2),
+    var(--sailor-color-3),
+    var(--sailor-color-4),
+    var(--sailor-color-5),
+    var(--sailor-color-6),
+    var(--sailor-color-7)
   );
 
   /* ── Semantic UI References ─────────────────────────────── */
 
   /* Backgrounds */
-  --nod8-bg-base: var(--nod8-gray-950);
-  --nod8-bg-surface: rgb(15, 15, 15);
-  --nod8-bg-elevated: var(--nod8-gray-850);
-  --nod8-bg-overlay: var(--nod8-gray-800);
-  --nod8-bg-muted: var(--nod8-gray-700);
-  --nod8-bg-subtle: var(--nod8-gray-600);
+  --sailor-bg-base: var(--sailor-gray-950);
+  --sailor-bg-surface: rgb(15, 15, 15);
+  --sailor-bg-elevated: var(--sailor-gray-850);
+  --sailor-bg-overlay: var(--sailor-gray-800);
+  --sailor-bg-muted: var(--sailor-gray-700);
+  --sailor-bg-subtle: var(--sailor-gray-600);
 
   /* Accents */
-  --nod8-accent: var(--nod8-brand-500);
-  --nod8-accent-subtle: rgba(124, 58, 237, 0.15);
+  --sailor-accent: var(--sailor-brand-500);
+  --sailor-accent-subtle: rgba(124, 58, 237, 0.15);
 
   /* Borders */
-  --nod8-border: rgba(255, 255, 255, 0.07);
-  --nod8-border-muted: rgba(255, 255, 255, 0.04);
-  --nod8-border-strong: rgba(255, 255, 255, 0.14);
-  --nod8-border-brand: rgba(237, 144, 58, 0.6);
+  --sailor-border: rgba(255, 255, 255, 0.07);
+  --sailor-border-muted: rgba(255, 255, 255, 0.04);
+  --sailor-border-strong: rgba(255, 255, 255, 0.14);
+  --sailor-border-brand: rgba(237, 144, 58, 0.6);
 
   /* Text */
-  --nod8-text-primary: #f2f2f2;
-  --nod8-text-secondary: #a3a3a3;
-  --nod8-text-muted: #737373;
-  --nod8-text-disabled: #525252;
-  --nod8-text-inverse: #0e0e0e;
-  --nod8-text-brand: var(--nod8-brand-300);
-  --nod8-text-success: var(--nod8-green-400);
-  --nod8-text-warning: var(--nod8-amber-400);
-  --nod8-text-error: var(--nod8-red-400);
+  --sailor-text-primary: #f2f2f2;
+  --sailor-text-secondary: #a3a3a3;
+  --sailor-text-muted: #737373;
+  --sailor-text-disabled: #525252;
+  --sailor-text-inverse: #0e0e0e;
+  --sailor-text-brand: var(--sailor-brand-300);
+  --sailor-text-success: var(--sailor-green-400);
+  --sailor-text-warning: var(--sailor-amber-400);
+  --sailor-text-error: var(--sailor-red-400);
 
   /* Sidebar / Topbar */
-  --nod8-sidebar-bg: var(--nod8-bg-surface);
-  --nod8-sidebar-border: var(--nod8-border);
-  --nod8-sidebar-divider: var(--nod8-border);
-  --nod8-sidebar-text: var(--nod8-text-primary);
-  --nod8-sidebar-text-muted: var(--nod8-text-secondary);
-  --nod8-sidebar-link-text: var(--nod8-text-primary);
+  --sailor-sidebar-bg: var(--sailor-bg-surface);
+  --sailor-sidebar-border: var(--sailor-border);
+  --sailor-sidebar-divider: var(--sailor-border);
+  --sailor-sidebar-text: var(--sailor-text-primary);
+  --sailor-sidebar-text-muted: var(--sailor-text-secondary);
+  --sailor-sidebar-link-text: var(--sailor-text-primary);
 
-  --nod8-topbar-bg: var(--nod8-bg-surface);
-  --nod8-topbar-border: var(--nod8-border);
-  --nod8-topbar-search-bg: var(--nod8-bg-base);
-  --nod8-topbar-search-border: var(--nod8-border);
-  --nod8-topbar-search-text: var(--nod8-text-muted);
-  --nod8-topbar-search-hover-text: var(--nod8-text-primary);
-  --nod8-topbar-search-hover-bg: var(--nod8-button-ghost-hover);
-  --nod8-topbar-kbd-bg: var(--nod8-bg-surface);
+  --sailor-topbar-bg: var(--sailor-bg-surface);
+  --sailor-topbar-border: var(--sailor-border);
+  --sailor-topbar-search-bg: var(--sailor-bg-base);
+  --sailor-topbar-search-border: var(--sailor-border);
+  --sailor-topbar-search-text: var(--sailor-text-muted);
+  --sailor-topbar-search-hover-text: var(--sailor-text-primary);
+  --sailor-topbar-search-hover-bg: var(--sailor-button-ghost-hover);
+  --sailor-topbar-kbd-bg: var(--sailor-bg-surface);
 
   /* ── Buttons ─────────────────────────────────────────────── */
   /* Primary */
-  --nod8-button-primary-bg: var(--nod8-gray-200);
-  --nod8-button-primary-text: var(--nod8-text-inverse);
-  --nod8-button-primary-border: var(--nod8-gray-300);
-  --nod8-button-primary-hover: var(--nod8-gray-300);
-  --nod8-button-primary-active: var(--nod8-gray-300);
-  --nod8-button-primary-active-text: var(--nod8-text-inverse);
+  --sailor-button-primary-bg: var(--sailor-gray-200);
+  --sailor-button-primary-text: var(--sailor-text-inverse);
+  --sailor-button-primary-border: var(--sailor-gray-300);
+  --sailor-button-primary-hover: var(--sailor-gray-300);
+  --sailor-button-primary-active: var(--sailor-gray-300);
+  --sailor-button-primary-active-text: var(--sailor-text-inverse);
 
   /* Secondary */
-  --nod8-button-secondary-bg: var(--nod8-gray-850);
-  --nod8-button-secondary-text: var(--nod8-text-primary);
-  --nod8-button-secondary-border: var(--nod8-gray-700);
-  --nod8-button-secondary-hover: var(--nod8-gray-700);
-  --nod8-button-secondary-active: var(--nod8-gray-700);
-  --nod8-button-secondary-active-text: var(--nod8-text-primary);
+  --sailor-button-secondary-bg: var(--sailor-gray-850);
+  --sailor-button-secondary-text: var(--sailor-text-primary);
+  --sailor-button-secondary-border: var(--sailor-gray-700);
+  --sailor-button-secondary-hover: var(--sailor-gray-700);
+  --sailor-button-secondary-active: var(--sailor-gray-700);
+  --sailor-button-secondary-active-text: var(--sailor-text-primary);
 
   /* Outline */
-  --nod8-button-outline-bg: transparent;
-  --nod8-button-outline-text: var(--nod8-text-primary);
-  --nod8-button-outline-border: var(--nod8-gray-700);
-  --nod8-button-outline-hover: var(--nod8-gray-800);
-  --nod8-button-outline-active: var(--nod8-gray-800);
-  --nod8-button-outline-active-text: var(--nod8-text-primary);
+  --sailor-button-outline-bg: transparent;
+  --sailor-button-outline-text: var(--sailor-text-primary);
+  --sailor-button-outline-border: var(--sailor-gray-700);
+  --sailor-button-outline-hover: var(--sailor-gray-800);
+  --sailor-button-outline-active: var(--sailor-gray-800);
+  --sailor-button-outline-active-text: var(--sailor-text-primary);
 
   /* Ghost */
-  --nod8-button-ghost-bg: transparent;
-  --nod8-button-ghost-text: var(--nod8-text-primary);
-  --nod8-button-ghost-border: transparent;
-  --nod8-button-ghost-hover: var(--nod8-gray-800);
-  --nod8-button-ghost-active: var(--nod8-gray-800);
-  --nod8-button-ghost-active-text: var(--nod8-text-primary);
+  --sailor-button-ghost-bg: transparent;
+  --sailor-button-ghost-text: var(--sailor-text-primary);
+  --sailor-button-ghost-border: transparent;
+  --sailor-button-ghost-hover: var(--sailor-gray-800);
+  --sailor-button-ghost-active: var(--sailor-gray-800);
+  --sailor-button-ghost-active-text: var(--sailor-text-primary);
 
   /* Danger */
-  --nod8-button-danger-bg: transparent;
-  --nod8-button-danger-text: rgba(216, 77, 77, 0.949);
-  --nod8-button-danger-border: transparent;
-  --nod8-button-danger-hover: rgba(255, 1, 1, 0.107);
-  --nod8-button-danger-active: rgba(255, 1, 1, 0.107);
-  --nod8-button-danger-active-text: rgb(255, 41, 41);
+  --sailor-button-danger-bg: transparent;
+  --sailor-button-danger-text: rgba(216, 77, 77, 0.949);
+  --sailor-button-danger-border: transparent;
+  --sailor-button-danger-hover: rgba(255, 1, 1, 0.107);
+  --sailor-button-danger-active: rgba(255, 1, 1, 0.107);
+  --sailor-button-danger-active-text: rgb(255, 41, 41);
 
   /* ── Inputs ──────────────────────────────────────────────── */
-  --nod8-input-bg: var(--nod8-gray-900);
-  --nod8-input-border: var(--nod8-border);
-  --nod8-input-border-focus: var(--nod8-text-secondary);
-  --nod8-input-text: var(--nod8-text-primary);
-  --nod8-input-placeholder: var(--nod8-text-disabled);
-  --nod8-input-error-border: var(--nod8-red-500);
-  --nod8-input-disabled-bg: var(--nod8-bg-muted);
+  --sailor-input-bg: var(--sailor-gray-900);
+  --sailor-input-border: var(--sailor-border);
+  --sailor-input-border-focus: var(--sailor-text-secondary);
+  --sailor-input-text: var(--sailor-text-primary);
+  --sailor-input-placeholder: var(--sailor-text-disabled);
+  --sailor-input-error-border: var(--sailor-red-500);
+  --sailor-input-disabled-bg: var(--sailor-bg-muted);
 
   /* Publish (Custom Workflow Button) */
-  --nod8-button-publish-draft-bg: var(--nod8-button-primary-bg);
-  --nod8-button-publish-draft-text: var(--nod8-button-primary-text);
-  --nod8-button-publish-live-bg: color-mix(in srgb, var(--nod8-green-400) 15%, transparent);
-  --nod8-button-publish-live-text: var(--nod8-green-400);
-  --nod8-button-publish-live-border: color-mix(in srgb, var(--nod8-green-400) 30%, transparent);
-  --nod8-button-publish-live-hover-bg: color-mix(in srgb, #ef4444 15%, transparent);
-  --nod8-button-publish-live-hover-text: #ef4444;
-  --nod8-button-publish-live-hover-border: color-mix(in srgb, #ef4444 30%, transparent);
-  --nod8-button-publish-unpub-bg: color-mix(in srgb, #f97316 15%, transparent);
-  --nod8-button-publish-unpub-text: #f97316;
-  --nod8-button-publish-unpub-border: color-mix(in srgb, #f97316 30%, transparent);
-  --nod8-button-publish-unpub-hover-bg: color-mix(in srgb, #f97316 25%, transparent);
+  --sailor-button-publish-draft-bg: var(--sailor-button-primary-bg);
+  --sailor-button-publish-draft-text: var(--sailor-button-primary-text);
+  --sailor-button-publish-live-bg: color-mix(in srgb, var(--sailor-green-400) 15%, transparent);
+  --sailor-button-publish-live-text: var(--sailor-green-400);
+  --sailor-button-publish-live-border: color-mix(in srgb, var(--sailor-green-400) 30%, transparent);
+  --sailor-button-publish-live-hover-bg: color-mix(in srgb, #ef4444 15%, transparent);
+  --sailor-button-publish-live-hover-text: #ef4444;
+  --sailor-button-publish-live-hover-border: color-mix(in srgb, #ef4444 30%, transparent);
+  --sailor-button-publish-unpub-bg: color-mix(in srgb, #f97316 15%, transparent);
+  --sailor-button-publish-unpub-text: #f97316;
+  --sailor-button-publish-unpub-border: color-mix(in srgb, #f97316 30%, transparent);
+  --sailor-button-publish-unpub-hover-bg: color-mix(in srgb, #f97316 25%, transparent);
 
   /* ── Spacing ─────────────────────────────────────────────── */
-  --nod8-space-1: 4px;
-  --nod8-space-2: 8px;
-  --nod8-space-3: 12px;
-  --nod8-space-4: 16px;
-  --nod8-space-5: 20px;
-  --nod8-space-6: 24px;
-  --nod8-space-8: 32px;
-  --nod8-space-10: 40px;
-  --nod8-space-12: 48px;
-  --nod8-space-16: 64px;
+  --sailor-space-1: 4px;
+  --sailor-space-2: 8px;
+  --sailor-space-3: 12px;
+  --sailor-space-4: 16px;
+  --sailor-space-5: 20px;
+  --sailor-space-6: 24px;
+  --sailor-space-8: 32px;
+  --sailor-space-10: 40px;
+  --sailor-space-12: 48px;
+  --sailor-space-16: 64px;
 
   /* ── Border Radius ───────────────────────────────────────── */
-  --nod8-radius-sm: 6px;
-  --nod8-radius-md: 10px;
-  --nod8-radius-lg: 14px;
-  --nod8-radius-xl: 20px;
-  --nod8-radius-full: 9999px;
+  --sailor-radius-sm: 6px;
+  --sailor-radius-md: 10px;
+  --sailor-radius-lg: 14px;
+  --sailor-radius-xl: 20px;
+  --sailor-radius-full: 9999px;
 
   /* ── Typography ──────────────────────────────────────────── */
-  --nod8-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --nod8-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --sailor-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --sailor-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 
-  --nod8-text-xs: 11px;
-  --nod8-text-sm: 13px;
-  --nod8-text-base: 15px;
-  --nod8-text-lg: 17px;
-  --nod8-text-xl: 20px;
-  --nod8-text-2xl: 24px;
-  --nod8-text-3xl: 30px;
+  --sailor-text-xs: 11px;
+  --sailor-text-sm: 13px;
+  --sailor-text-base: 15px;
+  --sailor-text-lg: 17px;
+  --sailor-text-xl: 20px;
+  --sailor-text-2xl: 24px;
+  --sailor-text-3xl: 30px;
 
-  --nod8-font-normal: 400;
-  --nod8-font-medium: 500;
-  --nod8-font-semibold: 600;
-  --nod8-font-bold: 700;
+  --sailor-font-normal: 400;
+  --sailor-font-medium: 500;
+  --sailor-font-semibold: 600;
+  --sailor-font-bold: 700;
 
-  --nod8-leading-tight: 1.25;
-  --nod8-leading-snug: 1.375;
-  --nod8-leading-normal: 1.5;
-  --nod8-leading-loose: 1.75;
+  --sailor-leading-tight: 1.25;
+  --sailor-leading-snug: 1.375;
+  --sailor-leading-normal: 1.5;
+  --sailor-leading-loose: 1.75;
 
   /* ── Shadows ─────────────────────────────────────────────── */
-  --nod8-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.25);
-  --nod8-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
-  --nod8-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
-  --nod8-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6), 0 8px 20px rgba(0, 0, 0, 0.4);
-  --nod8-shadow-brand: 0 0 24px rgba(237, 147, 58, 0.25);
-  --nod8-shadow-glow-green: 0 0 16px rgba(52, 211, 153, 0.3);
-  --nod8-shadow-glow-red: 0 0 16px rgba(248, 113, 113, 0.3);
-  --nod8-shadow-glow-amber: 0 0 16px rgba(251, 191, 36, 0.3);
+  --sailor-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --sailor-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --sailor-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --sailor-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6), 0 8px 20px rgba(0, 0, 0, 0.4);
+  --sailor-shadow-brand: 0 0 24px rgba(237, 147, 58, 0.25);
+  --sailor-shadow-glow-green: 0 0 16px rgba(52, 211, 153, 0.3);
+  --sailor-shadow-glow-red: 0 0 16px rgba(248, 113, 113, 0.3);
+  --sailor-shadow-glow-amber: 0 0 16px rgba(251, 191, 36, 0.3);
 
   /* ── Z-index Scale ───────────────────────────────────────── */
-  --nod8-z-base: 0;
-  --nod8-z-raised: 10;
-  --nod8-z-overlay: 100;
-  --nod8-z-modal: 200;
-  --nod8-z-toast: 300;
-  --nod8-z-tooltip: 400;
+  --sailor-z-base: 0;
+  --sailor-z-raised: 10;
+  --sailor-z-overlay: 100;
+  --sailor-z-modal: 200;
+  --sailor-z-toast: 300;
+  --sailor-z-tooltip: 400;
 
   /* ── Transitions ─────────────────────────────────────────── */
-  --nod8-duration-fast: 100ms;
-  --nod8-duration-base: 180ms;
-  --nod8-duration-slow: 300ms;
-  --nod8-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --nod8-ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
-  --nod8-ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --sailor-duration-fast: 100ms;
+  --sailor-duration-base: 180ms;
+  --sailor-duration-slow: 300ms;
+  --sailor-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --sailor-ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --sailor-ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
 
   /* ── Layout ─────────────────────────────────────────────── */
-  --nod8-sidebar-width: 48px;
-  --nod8-sidebar-expanded: 240px;
-  --nod8-panel-width: 360px;
-  --nod8-panel-width-wide: 480px;
-  --nod8-dock-height: 48px;
+  --sailor-sidebar-width: 48px;
+  --sailor-sidebar-expanded: 240px;
+  --sailor-panel-width: 360px;
+  --sailor-panel-width-wide: 480px;
+  --sailor-dock-height: 48px;
 
   /* ── React Flow ─────────────────────────────────────────── */
 
   /* ── Canvas ─────────────────────────────────────────── */
-  --nod8-canvas-bg: #0f0f0f;
-  --nod8-canvas-grid: rgb(87, 87, 87);
+  --sailor-canvas-bg: #0f0f0f;
+  --sailor-canvas-grid: rgb(87, 87, 87);
 
   /* ── Node Colors ─────────────────────────────────────────── */
-  --nod8-node-header: #161617;
-  --nod8-node-body: #191919;
-  --nod8-node-border: rgb(54, 54, 54);
-  --nod8-node-selected: rgb(77, 77, 77);
+  --sailor-node-header: #161617;
+  --sailor-node-body: #191919;
+  --sailor-node-border: rgb(54, 54, 54);
+  --sailor-node-selected: rgb(77, 77, 77);
 
   /* ── Handle Colors ─────────────────────────────────────────── */
-  --nod8-node-handle: var(--nod8-node-border);
-  --nod8-node-handle-hover: var(--nod8-node-selected);
+  --sailor-node-handle: var(--sailor-node-border);
+  --sailor-node-handle-hover: var(--sailor-node-selected);
 
   /* ── Edge Colors ─────────────────────────────────────────── */
-  --nod8-rf-edge-stroke: var(--nod8-node-border);
-  --nod8-rf-edge-stroke-hover: var(--nod8-node-selected);
-  --nod8-rf-edge-stroke-selected: var(--nod8-node-selected);
-  --nod8-rf-edge-stroke-error: var(--nod8-node-selected);
+  --sailor-rf-edge-stroke: var(--sailor-node-border);
+  --sailor-rf-edge-stroke-hover: var(--sailor-node-selected);
+  --sailor-rf-edge-stroke-selected: var(--sailor-node-selected);
+  --sailor-rf-edge-stroke-error: var(--sailor-node-selected);
 
   /* ── Arrow Colors ─────────────────────────────────────────── */
-  --nod8-rf-arrow-stroke: var(--nod8-node-border);
-  --nod8-rf-arrow-stroke-selected: var(--nod8-node-selected);
+  --sailor-rf-arrow-stroke: var(--sailor-node-border);
+  --sailor-rf-arrow-stroke-selected: var(--sailor-node-selected);
 
   /* Nodes */
   /* Triggers */
-  --nod8-node-trigger-bg: rgba(8, 127, 224, 0.05);
-  --nod8-node-trigger-icon: rgb(8, 127, 224);
-  --nod8-node-trigger-webhook-bg: rgba(16, 185, 129, 0.05);
-  --nod8-node-trigger-webhook-icon: rgb(16, 185, 129);
-  --nod8-node-trigger-cron-bg: rgba(138, 82, 255, 0.05);
-  --nod8-node-trigger-cron-icon: rgb(138, 82, 255);
-  --nod8-node-trigger-event-bg: rgba(245, 158, 11, 0.05);
-  --nod8-node-trigger-event-icon: rgb(245, 158, 11);
+  --sailor-node-trigger-bg: rgba(8, 127, 224, 0.05);
+  --sailor-node-trigger-icon: rgb(8, 127, 224);
+  --sailor-node-trigger-webhook-bg: rgba(16, 185, 129, 0.05);
+  --sailor-node-trigger-webhook-icon: rgb(16, 185, 129);
+  --sailor-node-trigger-cron-bg: rgba(138, 82, 255, 0.05);
+  --sailor-node-trigger-cron-icon: rgb(138, 82, 255);
+  --sailor-node-trigger-event-bg: rgba(245, 158, 11, 0.05);
+  --sailor-node-trigger-event-icon: rgb(245, 158, 11);
 
   /* Plugin */
-  --nod8-node-plugin-bg: transparent;
-  --nod8-node-plugin-icon: rgb(253, 253, 253);
-  --nod8-node-plugin-border: var(--nod8-node-border);
+  --sailor-node-plugin-bg: transparent;
+  --sailor-node-plugin-icon: rgb(253, 253, 253);
+  --sailor-node-plugin-border: var(--sailor-node-border);
 
   /* Code Block */
-  --nod8-node-codeblock-bg: rgba(129, 219, 13, 0.12);
-  --nod8-node-codeblock-icon: rgb(129, 219, 13);
-  --nod8-node-codeblock-border: rgba(129, 219, 13, 0.4);
+  --sailor-node-codeblock-bg: rgba(129, 219, 13, 0.12);
+  --sailor-node-codeblock-icon: rgb(129, 219, 13);
+  --sailor-node-codeblock-border: rgba(129, 219, 13, 0.4);
 
   /* HTTP */
-  --nod8-node-http-bg: rgba(251, 146, 60, 0.12);
-  --nod8-node-http-icon: rgb(251, 146, 60);
-  --nod8-node-http-border: rgba(251, 146, 60, 0.4);
+  --sailor-node-http-bg: rgba(251, 146, 60, 0.12);
+  --sailor-node-http-icon: rgb(251, 146, 60);
+  --sailor-node-http-border: rgba(251, 146, 60, 0.4);
 
   /* Sub Workflow */
-  --nod8-node-subworkflow-bg: rgba(251, 113, 133, 0.12);
-  --nod8-node-subworkflow-icon: rgb(251, 113, 133);
-  --nod8-node-subworkflow-border: rgba(251, 113, 133, 0.4);
+  --sailor-node-subworkflow-bg: rgba(251, 113, 133, 0.12);
+  --sailor-node-subworkflow-icon: rgb(251, 113, 133);
+  --sailor-node-subworkflow-border: rgba(251, 113, 133, 0.4);
 
   /* Event */
-  --nod8-node-event-bg: rgba(250, 204, 21, 0.12);
-  --nod8-node-event-icon: rgb(250, 204, 21);
-  --nod8-node-event-border: rgba(250, 204, 21, 0.4);
+  --sailor-node-event-bg: rgba(250, 204, 21, 0.12);
+  --sailor-node-event-icon: rgb(250, 204, 21);
+  --sailor-node-event-border: rgba(250, 204, 21, 0.4);
 
   /* Event Listener */
-  --nod8-node-event-listener-bg: rgba(244, 114, 182, 0.12);
-  --nod8-node-event-listener-icon: rgb(244, 114, 182);
-  --nod8-node-event-listener-border: rgba(244, 114, 182, 0.4);
+  --sailor-node-event-listener-bg: rgba(244, 114, 182, 0.12);
+  --sailor-node-event-listener-icon: rgb(244, 114, 182);
+  --sailor-node-event-listener-border: rgba(244, 114, 182, 0.4);
 
   /* Loop */
-  --nod8-node-loop-bg: rgba(34, 211, 238, 0.12);
-  --nod8-node-loop-icon: rgb(34, 211, 238);
-  --nod8-node-loop-border: rgba(34, 211, 238, 0.4);
+  --sailor-node-loop-bg: rgba(34, 211, 238, 0.12);
+  --sailor-node-loop-icon: rgb(34, 211, 238);
+  --sailor-node-loop-border: rgba(34, 211, 238, 0.4);
 
   /* Selections */
-  --nod8-node-if-bg: rgba(167, 139, 250, 0.12);
-  --nod8-node-if-icon: rgb(167, 139, 250);
-  --nod8-node-if-border: rgba(167, 139, 250, 0.4);
+  --sailor-node-if-bg: rgba(167, 139, 250, 0.12);
+  --sailor-node-if-icon: rgb(167, 139, 250);
+  --sailor-node-if-border: rgba(167, 139, 250, 0.4);
 
   /* Set (Edit Fields) — teal-green */
-  --nod8-node-set-bg: rgba(20, 184, 166, 0.12);
-  --nod8-node-set-icon: rgb(20, 184, 166);
-  --nod8-node-set-border: rgba(20, 184, 166, 0.4);
+  --sailor-node-set-bg: rgba(20, 184, 166, 0.12);
+  --sailor-node-set-icon: rgb(20, 184, 166);
+  --sailor-node-set-border: rgba(20, 184, 166, 0.4);
 
   /* Switch (N-way routing) — amber */
-  --nod8-node-switch-bg: rgba(245, 158, 11, 0.12);
-  --nod8-node-switch-icon: rgb(245, 158, 11);
-  --nod8-node-switch-border: rgba(245, 158, 11, 0.4);
+  --sailor-node-switch-bg: rgba(245, 158, 11, 0.12);
+  --sailor-node-switch-icon: rgb(245, 158, 11);
+  --sailor-node-switch-border: rgba(245, 158, 11, 0.4);
 
   /* Merge (converge branches) — rose-indigo */
-  --nod8-node-merge-bg: rgba(99, 102, 241, 0.12);
-  --nod8-node-merge-icon: rgb(129, 140, 248);
-  --nod8-node-merge-border: rgba(129, 140, 248, 0.4);
+  --sailor-node-merge-bg: rgba(99, 102, 241, 0.12);
+  --sailor-node-merge-icon: rgb(129, 140, 248);
+  --sailor-node-merge-border: rgba(129, 140, 248, 0.4);
 
   /* Split In Batches — deep orange */
-  --nod8-node-split-bg: rgba(249, 115, 22, 0.12);
-  --nod8-node-split-icon: rgb(249, 115, 22);
-  --nod8-node-split-border: rgba(249, 115, 22, 0.4);
+  --sailor-node-split-bg: rgba(249, 115, 22, 0.12);
+  --sailor-node-split-icon: rgb(249, 115, 22);
+  --sailor-node-split-border: rgba(249, 115, 22, 0.4);
 
   /* Respond to Webhook — rose/pink */
-  --nod8-node-respond-webhook-bg: rgba(244, 63, 94, 0.1);
-  --nod8-node-respond-webhook-icon: rgb(251, 113, 133);
-  --nod8-node-respond-webhook-border: rgba(251, 113, 133, 0.4);
+  --sailor-node-respond-webhook-bg: rgba(244, 63, 94, 0.1);
+  --sailor-node-respond-webhook-icon: rgb(251, 113, 133);
+  --sailor-node-respond-webhook-border: rgba(251, 113, 133, 0.4);
 
   /* ── Extra: Node Body Tags (React Equivalents) ── */
-  --nod8-node-http-tag-bg: rgba(251, 146, 60, 0.05);
-  --nod8-node-http-tag-text: rgb(251, 146, 60);
-  --nod8-node-http-tag-border: rgba(251, 146, 60, 0.1);
+  --sailor-node-http-tag-bg: rgba(251, 146, 60, 0.05);
+  --sailor-node-http-tag-text: rgb(251, 146, 60);
+  --sailor-node-http-tag-border: rgba(251, 146, 60, 0.1);
 
-  --nod8-node-loop-tag-bg: rgba(34, 211, 238, 0.05);
-  --nod8-node-loop-tag-text: rgb(34, 211, 238);
-  --nod8-node-loop-tag-border: rgba(34, 211, 238, 0.1);
+  --sailor-node-loop-tag-bg: rgba(34, 211, 238, 0.05);
+  --sailor-node-loop-tag-text: rgb(34, 211, 238);
+  --sailor-node-loop-tag-border: rgba(34, 211, 238, 0.1);
 
-  --nod8-node-if-tag-bg: rgba(167, 139, 250, 0.05);
-  --nod8-node-if-tag-text: rgb(167, 139, 250);
-  --nod8-node-if-tag-border: rgba(167, 139, 250, 0.1);
+  --sailor-node-if-tag-bg: rgba(167, 139, 250, 0.05);
+  --sailor-node-if-tag-text: rgb(167, 139, 250);
+  --sailor-node-if-tag-border: rgba(167, 139, 250, 0.1);
 
-  --nod8-node-subworkflow-tag-bg: rgba(251, 113, 133, 0.05);
-  --nod8-node-subworkflow-tag-text: rgb(251, 113, 133);
-  --nod8-node-subworkflow-tag-border: rgba(251, 113, 133, 0.1);
+  --sailor-node-subworkflow-tag-bg: rgba(251, 113, 133, 0.05);
+  --sailor-node-subworkflow-tag-text: rgb(251, 113, 133);
+  --sailor-node-subworkflow-tag-border: rgba(251, 113, 133, 0.1);
 
-  --nod8-node-event-tag-bg: rgba(250, 204, 21, 0.05);
-  --nod8-node-event-tag-text: rgb(250, 204, 21);
-  --nod8-node-event-tag-border: rgba(250, 204, 21, 0.1);
+  --sailor-node-event-tag-bg: rgba(250, 204, 21, 0.05);
+  --sailor-node-event-tag-text: rgb(250, 204, 21);
+  --sailor-node-event-tag-border: rgba(250, 204, 21, 0.1);
 
-  --nod8-node-listener-tag-bg: rgba(244, 114, 182, 0.05);
-  --nod8-node-listener-tag-text: rgb(244, 114, 182);
-  --nod8-node-listener-tag-border: rgba(244, 114, 182, 0.1);
+  --sailor-node-listener-tag-bg: rgba(244, 114, 182, 0.05);
+  --sailor-node-listener-tag-text: rgb(244, 114, 182);
+  --sailor-node-listener-tag-border: rgba(244, 114, 182, 0.1);
 
-  /* ── Canvas (referenced in editor-shared.css as --nod8-bg-canvas) ── */
-  --nod8-bg-canvas: #0c0c0c;
+  /* ── Canvas (referenced in editor-shared.css as --sailor-bg-canvas) ── */
+  --sailor-bg-canvas: #0c0c0c;
 
   /* ── Status semantic tokens ──────────────────────────────────── */
   /* Used by StatusBadge, last-run badge, workflow-badge, execution states */
-  --nod8-status-success-bg: rgba(52, 211, 153, 0.1);
-  --nod8-status-success-border: rgba(52, 211, 153, 0.25);
-  --nod8-status-success-text: var(--nod8-green-400);
+  --sailor-status-success-bg: rgba(52, 211, 153, 0.1);
+  --sailor-status-success-border: rgba(52, 211, 153, 0.25);
+  --sailor-status-success-text: var(--sailor-green-400);
 
-  --nod8-status-running-bg: rgba(251, 191, 36, 0.1);
-  --nod8-status-running-border: rgba(251, 191, 36, 0.25);
-  --nod8-status-running-text: var(--nod8-amber-400);
+  --sailor-status-running-bg: rgba(251, 191, 36, 0.1);
+  --sailor-status-running-border: rgba(251, 191, 36, 0.25);
+  --sailor-status-running-text: var(--sailor-amber-400);
 
-  --nod8-status-error-bg: rgba(248, 113, 113, 0.1);
-  --nod8-status-error-border: rgba(248, 113, 113, 0.25);
-  --nod8-status-error-text: var(--nod8-red-400);
+  --sailor-status-error-bg: rgba(248, 113, 113, 0.1);
+  --sailor-status-error-border: rgba(248, 113, 113, 0.25);
+  --sailor-status-error-text: var(--sailor-red-400);
 
-  --nod8-status-draft-bg: var(--nod8-bg-muted);
-  --nod8-status-draft-text: var(--nod8-text-secondary);
-  --nod8-status-draft-border: transparent;
+  --sailor-status-draft-bg: var(--sailor-bg-muted);
+  --sailor-status-draft-text: var(--sailor-text-secondary);
+  --sailor-status-draft-border: transparent;
 
-  --nod8-status-inactive-bg: rgba(249, 115, 22, 0.1);
-  --nod8-status-inactive-border: rgba(249, 115, 22, 0.25);
-  --nod8-status-inactive-text: #f97316;
+  --sailor-status-inactive-bg: rgba(249, 115, 22, 0.1);
+  --sailor-status-inactive-border: rgba(249, 115, 22, 0.25);
+  --sailor-status-inactive-text: #f97316;
 
   /* ── Scrollbar tokens ────────────────────────────────────────── */
-  --nod8-scrollbar-width: 4px;
-  --nod8-scrollbar-track: transparent;
-  --nod8-scrollbar-thumb: var(--nod8-border);
-  --nod8-scrollbar-thumb-hover: var(--nod8-border-strong);
+  --sailor-scrollbar-width: 4px;
+  --sailor-scrollbar-track: transparent;
+  --sailor-scrollbar-thumb: var(--sailor-border);
+  --sailor-scrollbar-thumb-hover: var(--sailor-border-strong);
 }
 
 /* =========================================================
-   NOD8 — Light Theme Override
+   SAILOR — Light Theme Override
    Applied via class="light" on <html> element.
    Only override the semantic reference tokens — palette
    tokens stay the same (they're the source of truth).
    ========================================================= */
 :root.light {
   /* Backgrounds */
-  --nod8-bg-base: var(--nod8-gray-50);
-  --nod8-bg-surface: #f0f2f6;
-  --nod8-bg-elevated: var(--nod8-gray-100);
-  --nod8-bg-overlay: var(--nod8-gray-100);
-  --nod8-bg-muted: var(--nod8-gray-100);
-  --nod8-bg-subtle: var(--nod8-gray-200);
-  --nod8-bg-canvas: #f0f0f0;
+  --sailor-bg-base: var(--sailor-gray-50);
+  --sailor-bg-surface: #f0f2f6;
+  --sailor-bg-elevated: var(--sailor-gray-100);
+  --sailor-bg-overlay: var(--sailor-gray-100);
+  --sailor-bg-muted: var(--sailor-gray-100);
+  --sailor-bg-subtle: var(--sailor-gray-200);
+  --sailor-bg-canvas: #f0f0f0;
 
   /* Borders */
-  --nod8-border: rgba(0, 0, 0, 0.08);
-  --nod8-border-muted: rgba(0, 0, 0, 0.04);
-  --nod8-border-strong: rgba(0, 0, 0, 0.14);
-  --nod8-border-brand: rgba(237, 147, 58, 0.4);
+  --sailor-border: rgba(0, 0, 0, 0.08);
+  --sailor-border-muted: rgba(0, 0, 0, 0.04);
+  --sailor-border-strong: rgba(0, 0, 0, 0.14);
+  --sailor-border-brand: rgba(237, 147, 58, 0.4);
 
   /* Text */
-  --nod8-text-primary: var(--nod8-gray-900);
-  --nod8-text-secondary: var(--nod8-gray-600);
-  --nod8-text-muted: var(--nod8-gray-500);
-  --nod8-text-disabled: var(--nod8-gray-400);
-  --nod8-text-inverse: #ffffff;
-  --nod8-text-brand: var(--nod8-brand-600);
+  --sailor-text-primary: var(--sailor-gray-900);
+  --sailor-text-secondary: var(--sailor-gray-600);
+  --sailor-text-muted: var(--sailor-gray-500);
+  --sailor-text-disabled: var(--sailor-gray-400);
+  --sailor-text-inverse: #ffffff;
+  --sailor-text-brand: var(--sailor-brand-600);
 
   /* Sidebar / Topbar */
-  --nod8-sidebar-bg: var(--nod8-bg-surface);
-  --nod8-sidebar-border: var(--nod8-border);
-  --nod8-sidebar-divider: var(--nod8-border);
-  --nod8-sidebar-text: var(--nod8-text-primary);
-  --nod8-sidebar-text-muted: var(--nod8-text-secondary);
-  --nod8-sidebar-link-text: var(--nod8-text-primary);
+  --sailor-sidebar-bg: var(--sailor-bg-surface);
+  --sailor-sidebar-border: var(--sailor-border);
+  --sailor-sidebar-divider: var(--sailor-border);
+  --sailor-sidebar-text: var(--sailor-text-primary);
+  --sailor-sidebar-text-muted: var(--sailor-text-secondary);
+  --sailor-sidebar-link-text: var(--sailor-text-primary);
 
-  --nod8-topbar-bg: var(--nod8-bg-surface);
-  --nod8-topbar-border: var(--nod8-border);
-  --nod8-topbar-search-bg: var(--nod8-bg-base);
-  --nod8-topbar-search-border: var(--nod8-border);
-  --nod8-topbar-search-text: var(--nod8-text-muted);
-  --nod8-topbar-search-hover-text: var(--nod8-text-primary);
-  --nod8-topbar-search-hover-bg: var(--nod8-button-ghost-hover);
-  --nod8-topbar-kbd-bg: var(--nod8-bg-surface);
+  --sailor-topbar-bg: var(--sailor-bg-surface);
+  --sailor-topbar-border: var(--sailor-border);
+  --sailor-topbar-search-bg: var(--sailor-bg-base);
+  --sailor-topbar-search-border: var(--sailor-border);
+  --sailor-topbar-search-text: var(--sailor-text-muted);
+  --sailor-topbar-search-hover-text: var(--sailor-text-primary);
+  --sailor-topbar-search-hover-bg: var(--sailor-button-ghost-hover);
+  --sailor-topbar-kbd-bg: var(--sailor-bg-surface);
 
   /* Buttons */
-  --nod8-button-primary-bg: var(--nod8-gray-900);
-  --nod8-button-primary-text: #ffffff;
-  --nod8-button-primary-border: var(--nod8-gray-800);
-  --nod8-button-primary-hover: var(--nod8-gray-800);
-  --nod8-button-primary-active: var(--nod8-gray-800);
-  --nod8-button-primary-active-text: #ffffff;
+  --sailor-button-primary-bg: var(--sailor-gray-900);
+  --sailor-button-primary-text: #ffffff;
+  --sailor-button-primary-border: var(--sailor-gray-800);
+  --sailor-button-primary-hover: var(--sailor-gray-800);
+  --sailor-button-primary-active: var(--sailor-gray-800);
+  --sailor-button-primary-active-text: #ffffff;
 
-  --nod8-button-secondary-bg: var(--nod8-gray-100);
-  --nod8-button-secondary-text: var(--nod8-gray-900);
-  --nod8-button-secondary-border: var(--nod8-gray-200);
-  --nod8-button-secondary-hover: var(--nod8-gray-200);
-  --nod8-button-secondary-active: var(--nod8-gray-200);
-  --nod8-button-secondary-active-text: var(--nod8-gray-900);
+  --sailor-button-secondary-bg: var(--sailor-gray-100);
+  --sailor-button-secondary-text: var(--sailor-gray-900);
+  --sailor-button-secondary-border: var(--sailor-gray-200);
+  --sailor-button-secondary-hover: var(--sailor-gray-200);
+  --sailor-button-secondary-active: var(--sailor-gray-200);
+  --sailor-button-secondary-active-text: var(--sailor-gray-900);
 
-  --nod8-button-outline-bg: transparent;
-  --nod8-button-outline-text: var(--nod8-gray-800);
-  --nod8-button-outline-border: var(--nod8-gray-300);
-  --nod8-button-outline-hover: var(--nod8-gray-100);
-  --nod8-button-outline-active: var(--nod8-gray-200);
-  --nod8-button-outline-active-text: var(--nod8-gray-800);
+  --sailor-button-outline-bg: transparent;
+  --sailor-button-outline-text: var(--sailor-gray-800);
+  --sailor-button-outline-border: var(--sailor-gray-300);
+  --sailor-button-outline-hover: var(--sailor-gray-100);
+  --sailor-button-outline-active: var(--sailor-gray-200);
+  --sailor-button-outline-active-text: var(--sailor-gray-800);
 
-  --nod8-button-ghost-bg: transparent;
-  --nod8-button-ghost-text: var(--nod8-gray-700);
-  --nod8-button-ghost-border: transparent;
-  --nod8-button-ghost-hover: var(--nod8-gray-200);
-  --nod8-button-ghost-active: var(--nod8-gray-200);
-  --nod8-button-ghost-active-text: var(--nod8-gray-700);
+  --sailor-button-ghost-bg: transparent;
+  --sailor-button-ghost-text: var(--sailor-gray-700);
+  --sailor-button-ghost-border: transparent;
+  --sailor-button-ghost-hover: var(--sailor-gray-200);
+  --sailor-button-ghost-active: var(--sailor-gray-200);
+  --sailor-button-ghost-active-text: var(--sailor-gray-700);
 
   /* Inputs */
-  --nod8-input-bg: #ffffff;
-  --nod8-input-border: var(--nod8-gray-300);
-  --nod8-input-border-focus: var(--nod8-gray-600);
-  --nod8-input-text: var(--nod8-gray-900);
-  --nod8-input-placeholder: var(--nod8-gray-400);
-  --nod8-input-error-border: var(--nod8-red-500);
-  --nod8-input-disabled-bg: var(--nod8-gray-100);
+  --sailor-input-bg: #ffffff;
+  --sailor-input-border: var(--sailor-gray-300);
+  --sailor-input-border-focus: var(--sailor-gray-600);
+  --sailor-input-text: var(--sailor-gray-900);
+  --sailor-input-placeholder: var(--sailor-gray-400);
+  --sailor-input-error-border: var(--sailor-red-500);
+  --sailor-input-disabled-bg: var(--sailor-gray-100);
 
   /* Shadows */
-  --nod8-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --nod8-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.07);
-  --nod8-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
-  --nod8-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.1);
+  --sailor-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --sailor-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.07);
+  --sailor-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+  --sailor-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.1);
 
   /* Canvas */
-  --nod8-canvas-bg: #f1f1f1;
-  --nod8-canvas-grid: rgb(0, 0, 0);
+  --sailor-canvas-bg: #f1f1f1;
+  --sailor-canvas-grid: rgb(0, 0, 0);
 
   /* Node Colors (light) */
-  --nod8-node-header: #f8f8f8;
-  --nod8-node-body: #ffffff;
-  --nod8-node-border: rgb(194, 194, 194);
-  --nod8-node-selected: rgb(0, 0, 0);
-  --nod8-node-handle: var(--nod8-node-border);
-  --nod8-node-handle-hover: var(--nod8-node-selected);
+  --sailor-node-header: #f8f8f8;
+  --sailor-node-body: #ffffff;
+  --sailor-node-border: rgb(194, 194, 194);
+  --sailor-node-selected: rgb(0, 0, 0);
+  --sailor-node-handle: var(--sailor-node-border);
+  --sailor-node-handle-hover: var(--sailor-node-selected);
 
   /* Scrollbar (light) */
-  --nod8-scrollbar-thumb: rgba(0, 0, 0, 0.15);
-  --nod8-scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
+  --sailor-scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --sailor-scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
 }

@@ -4,11 +4,18 @@ import type {
   OAuth2Tokens,
   PluginAuthType,
   PluginStatus,
-} from "../../../shared/models/plugin-types.ts";
+} from "@auvexis/sailor-sdk";
 
 // ─── Database Connection ──────────────────────────────────────────────────────
 
 const db = DatabaseManager.credentials;
+
+export function isMaskedCredentialValue(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    (value.includes("\u2022") || value.includes("\u00e2\u20ac\u00a2"))
+  );
+}
 
 // ──────────── Credential Store ────────────
 

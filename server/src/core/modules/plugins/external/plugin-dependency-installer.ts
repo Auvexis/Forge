@@ -5,6 +5,15 @@ import path from "node:path";
 export interface InstallPluginDependenciesOptions {
   execFile?: typeof childProcess.execFileSync;
   timeoutMs?: number;
+  platform?: NodeJS.Platform;
+}
+
+function npmCommand(platform = process.platform): string {
+  return platform === "win32" ? "npm.cmd" : "npm";
+}
+
+function shouldUseShell(platform = process.platform): boolean {
+  return platform === "win32";
 }
 
 export function installPluginDependencies(
@@ -21,9 +30,10 @@ export function installPluginDependencies(
   const execFile = options.execFile ?? childProcess.execFileSync;
 
   try {
-    const output = execFile("npm", ["ci", "--omit=dev", "--ignore-scripts"], {
+    const output = execFile(npmCommand(options.platform), ["ci", "--omit=dev", "--ignore-scripts"], {
       cwd: pluginDir,
       stdio: "pipe",
+      shell: shouldUseShell(options.platform),
       timeout: options.timeoutMs ?? 60_000,
     });
     fs.writeFileSync(path.join(logsDir, `${installId}.log`), output.toString(), "utf8");

@@ -10,7 +10,7 @@
  * - All CSS theme switching is done ONLY by toggling the class on <html>.
  *   No Vue component should ever check `isDark` to conditionally apply colors.
  *   Colors are handled 100% by CSS variables in tokens.css.
- * - Preference is persisted in localStorage under 'nod8:theme'.
+ * - Preference is persisted in localStorage under 'sailor:theme'.
  * - A system OS listener auto-updates when mode is 'system'.
  */
 
@@ -18,7 +18,7 @@ import { ref, computed, watchEffect, onUnmounted } from 'vue'
 
 export type ThemeMode = 'dark' | 'light' | 'system'
 
-const STORAGE_KEY = 'nod8:theme'
+const STORAGE_KEY = 'sailor:theme'
 const HTML_EL = typeof document !== 'undefined' ? document.documentElement : null
 
 // ─── Module-level singleton state ─────────────────────────────────────────────
@@ -87,6 +87,13 @@ export function useTheme() {
   const resolvedTheme = computed<'dark' | 'light'>(() => resolveTheme(mode.value))
   const isDark = computed(() => resolvedTheme.value === 'dark')
 
+  /**
+   * Theme-aware logo source.
+   * dark  → LOGO_LIGHT.svg (light logo on dark chrome)
+   * light → LOGO_DARK.svg  (dark logo on light chrome)
+   */
+  const logoSrc = computed(() => (isDark.value ? '/LOGO_LIGHT.svg' : '/LOGO_DARK.svg'))
+
   function setMode(newMode: ThemeMode) {
     mode.value = newMode
   }
@@ -110,6 +117,8 @@ export function useTheme() {
     resolvedTheme,
     /** Shorthand boolean for resolved dark state */
     isDark,
+    /** Theme-aware logo path ('/LOGO_LIGHT.svg' or '/LOGO_DARK.svg') */
+    logoSrc,
     /** Set a specific mode */
     setMode,
     /** Toggle between dark and light (exits system mode) */

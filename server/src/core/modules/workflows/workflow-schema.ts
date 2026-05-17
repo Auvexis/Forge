@@ -1,9 +1,9 @@
 import { VALID_NODE_TYPES } from "./workflow-validation.ts";
-import type { Nod8Plugin } from "../../../shared/models/plugin-types.ts";
+import type { SailorPlugin } from "@auvexis/sailor-sdk";
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 
 export interface WorkflowSchemaDependencies {
-  getPlugin?: (pluginId: string) => Nod8Plugin;
+  getPlugin?: (pluginId: string) => SailorPlugin;
 }
 
 export function buildWorkflowSchema(

@@ -60,51 +60,51 @@ withDefaults(
   align-items: center;
   gap: 4px;
   font-size: 10px;
-  font-weight: var(--nod8-font-semibold);
+  font-weight: var(--sailor-font-semibold);
   padding: 2px 7px;
-  border-radius: var(--nod8-radius-sm);
+  border-radius: var(--sailor-radius-sm);
   border: 1px solid;
   white-space: nowrap;
   line-height: 1.4;
 }
 
 .status-badge--pill {
-  border-radius: var(--nod8-radius-full);
+  border-radius: var(--sailor-radius-full);
 }
 
 .status-badge--success {
-  background: var(--nod8-status-success-bg);
-  border-color: var(--nod8-status-success-border);
-  color: var(--nod8-status-success-text);
+  background: var(--sailor-status-success-bg);
+  border-color: var(--sailor-status-success-border);
+  color: var(--sailor-status-success-text);
 }
 
 .status-badge--running {
-  background: var(--nod8-status-running-bg);
-  border-color: var(--nod8-status-running-border);
-  color: var(--nod8-status-running-text);
+  background: var(--sailor-status-running-bg);
+  border-color: var(--sailor-status-running-border);
+  color: var(--sailor-status-running-text);
 }
 
 .status-badge--error {
-  background: var(--nod8-status-error-bg);
-  border-color: var(--nod8-status-error-border);
-  color: var(--nod8-status-error-text);
+  background: var(--sailor-status-error-bg);
+  border-color: var(--sailor-status-error-border);
+  color: var(--sailor-status-error-text);
 }
 
 .status-badge--draft {
-  background: var(--nod8-status-draft-bg);
-  border-color: var(--nod8-status-draft-border);
-  color: var(--nod8-status-draft-text);
+  background: var(--sailor-status-draft-bg);
+  border-color: var(--sailor-status-draft-border);
+  color: var(--sailor-status-draft-text);
 }
 
 .status-badge--inactive {
-  background: var(--nod8-status-inactive-bg);
-  border-color: var(--nod8-status-inactive-border);
-  color: var(--nod8-status-inactive-text);
+  background: var(--sailor-status-inactive-bg);
+  border-color: var(--sailor-status-inactive-border);
+  color: var(--sailor-status-inactive-text);
 }
 
 .status-badge--neutral {
-  background: var(--nod8-bg-muted);
-  border-color: var(--nod8-border);
-  color: var(--nod8-text-muted);
+  background: var(--sailor-bg-muted);
+  border-color: var(--sailor-border);
+  color: var(--sailor-text-muted);
 }
 </style>

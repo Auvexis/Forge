@@ -75,22 +75,22 @@ defineProps<NodeEditorProps>()
 
 <style scoped>
 .split-handles-info {
-  padding: var(--nod8-space-3);
-  border-radius: var(--nod8-radius-lg);
-  background-color: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
+  padding: var(--sailor-space-3);
+  border-radius: var(--sailor-radius-lg);
+  background-color: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
 }
 
 .split-handles {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-3);
+  gap: var(--sailor-space-3);
 }
 
 .split-handle-item {
   display: flex;
   align-items: flex-start;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
 }
 
 .split-dot {
@@ -101,8 +101,8 @@ defineProps<NodeEditorProps>()
   flex-shrink: 0;
 }
 
-.split-dot--batch { background-color: var(--nod8-node-split-icon, #f59e0b); }
-.split-dot--done  { background-color: var(--nod8-green-400, #34d399); }
+.split-dot--batch { background-color: var(--sailor-node-split-icon, #f59e0b); }
+.split-dot--done  { background-color: var(--sailor-green-400, #34d399); }
 
 .split-handle-text {
   display: flex;
@@ -111,21 +111,21 @@ defineProps<NodeEditorProps>()
 }
 
 .split-handle-name {
-  font-size: var(--nod8-text-sm);
+  font-size: var(--sailor-text-sm);
   font-weight: 500;
-  font-family: var(--nod8-font-mono);
-  color: var(--nod8-accent);
+  font-family: var(--sailor-font-mono);
+  color: var(--sailor-accent);
 }
 
 .split-handle-desc {
   font-size: 11px;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
 }
 
 code {
-  font-family: var(--nod8-font-mono);
+  font-family: var(--sailor-font-mono);
   font-size: 10px;
   font-weight: 500;
-  color: var(--nod8-accent);
+  color: var(--sailor-accent);
 }
 </style>

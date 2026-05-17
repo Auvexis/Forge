@@ -8,7 +8,7 @@ import { generatePluginInstallId } from "./plugin-install-id-generator.ts";
 
 describe("generatePluginInstallId", () => {
   it("generates installId using pluginId plus lowercase hex32", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-install-id-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-install-id-"));
 
     const installId = generatePluginInstallId("github-tools", root);
 
@@ -16,7 +16,7 @@ describe("generatePluginInstallId", () => {
   });
 
   it("does not accept installId from the caller", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-install-id-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-install-id-"));
 
     const installId = generatePluginInstallId("github-tools", root, { requestedInstallId: "github-tools-bad" });
 
@@ -25,7 +25,7 @@ describe("generatePluginInstallId", () => {
   });
 
   it("retries when generated id already has a destination folder", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-install-id-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-install-id-"));
     const collidingHex = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     const expectedHex = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
     fs.mkdirSync(path.join(root, `github-tools-${collidingHex}`));

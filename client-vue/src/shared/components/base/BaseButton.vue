@@ -74,11 +74,11 @@ defineOptions({ inheritAttrs: false })
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--nod8-space-2);
-  border-radius: var(--nod8-radius-sm);
+  gap: var(--sailor-space-2);
+  border-radius: var(--sailor-radius-sm);
   font-family: inherit;
-  font-weight: var(--nod8-font-medium);
-  transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
+  font-weight: var(--sailor-font-medium);
+  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
   user-select: none;
 }
 
@@ -95,20 +95,20 @@ defineOptions({ inheritAttrs: false })
 /* ── Sizes ─────────────────────────────────────── */
 .base-button--sm {
   height: 28px;
-  padding: 0 var(--nod8-space-3);
-  font-size: var(--nod8-text-xs);
+  padding: 0 var(--sailor-space-3);
+  font-size: var(--sailor-text-xs);
 }
 
 .base-button--md {
   height: 36px;
-  padding: 0 var(--nod8-space-4);
-  font-size: var(--nod8-text-sm);
+  padding: 0 var(--sailor-space-4);
+  font-size: var(--sailor-text-sm);
 }
 
 .base-button--lg {
   height: 44px;
-  padding: 0 var(--nod8-space-6);
-  font-size: var(--nod8-text-base);
+  padding: 0 var(--sailor-space-6);
+  font-size: var(--sailor-text-base);
 }
 
 .base-button--icon {
@@ -121,99 +121,99 @@ defineOptions({ inheritAttrs: false })
   width: 28px;
   height: 28px;
   padding: 0;
-  border-radius: var(--nod8-radius-sm);
-  font-size: var(--nod8-text-xs);
+  border-radius: var(--sailor-radius-sm);
+  font-size: var(--sailor-text-xs);
 }
 
 /* ── Variants ──────────────────────────────────── */
 /* Primary */
 .base-button--primary {
-  background-color: var(--nod8-button-primary-bg);
-  color: var(--nod8-button-primary-text);
-  border: 1px solid var(--nod8-button-primary-border);
+  background-color: var(--sailor-button-primary-bg);
+  color: var(--sailor-button-primary-text);
+  border: 1px solid var(--sailor-button-primary-border);
 }
 .base-button--primary:hover {
-  background-color: var(--nod8-button-primary-hover);
-  color: var(--nod8-button-primary-text);
+  background-color: var(--sailor-button-primary-hover);
+  color: var(--sailor-button-primary-text);
 }
 .base-button--primary:active {
-  background-color: var(--nod8-button-primary-active);
-  color: var(--nod8-button-primary-active-text);
+  background-color: var(--sailor-button-primary-active);
+  color: var(--sailor-button-primary-active-text);
 }
 
 /* Secondary */
 .base-button--secondary {
-  background-color: var(--nod8-button-secondary-bg);
-  color: var(--nod8-button-secondary-text);
-  border: 1px solid var(--nod8-button-secondary-border);
+  background-color: var(--sailor-button-secondary-bg);
+  color: var(--sailor-button-secondary-text);
+  border: 1px solid var(--sailor-button-secondary-border);
 }
 .base-button--secondary:hover {
-  background-color: var(--nod8-button-secondary-hover);
-  color: var(--nod8-button-secondary-text);
+  background-color: var(--sailor-button-secondary-hover);
+  color: var(--sailor-button-secondary-text);
 }
 .base-button--secondary:active {
-  background-color: var(--nod8-button-secondary-active);
-  color: var(--nod8-button-secondary-active-text);
+  background-color: var(--sailor-button-secondary-active);
+  color: var(--sailor-button-secondary-active-text);
 }
 
 /* Outline */
 .base-button--outline {
-  background-color: var(--nod8-button-outline-bg);
-  color: var(--nod8-button-outline-text);
-  border: 1px solid var(--nod8-button-outline-border);
+  background-color: var(--sailor-button-outline-bg);
+  color: var(--sailor-button-outline-text);
+  border: 1px solid var(--sailor-button-outline-border);
 }
 .base-button--outline:hover {
-  background-color: var(--nod8-button-outline-hover);
-  color: var(--nod8-button-outline-text);
+  background-color: var(--sailor-button-outline-hover);
+  color: var(--sailor-button-outline-text);
 }
 .base-button--outline:active {
-  background-color: var(--nod8-button-outline-active);
-  color: var(--nod8-button-outline-active-text);
+  background-color: var(--sailor-button-outline-active);
+  color: var(--sailor-button-outline-active-text);
 }
 
 /* Ghost */
 .base-button--ghost {
-  background-color: var(--nod8-button-ghost-bg);
-  color: var(--nod8-button-ghost-text);
-  border: 1px solid var(--nod8-button-ghost-border);
+  background-color: var(--sailor-button-ghost-bg);
+  color: var(--sailor-button-ghost-text);
+  border: 1px solid var(--sailor-button-ghost-border);
 }
 .base-button--ghost:hover {
-  background-color: var(--nod8-button-ghost-hover);
-  color: var(--nod8-button-ghost-text);
+  background-color: var(--sailor-button-ghost-hover);
+  color: var(--sailor-button-ghost-text);
 }
 .base-button--ghost:active {
-  background-color: var(--nod8-button-ghost-active);
-  color: var(--nod8-button-ghost-active-text);
+  background-color: var(--sailor-button-ghost-active);
+  color: var(--sailor-button-ghost-active-text);
 }
 
 /* Danger */
 .base-button--danger {
-  background-color: var(--nod8-button-danger-bg);
-  color: var(--nod8-button-danger-text);
-  border: 1px solid var(--nod8-button-danger-border);
+  background-color: var(--sailor-button-danger-bg);
+  color: var(--sailor-button-danger-text);
+  border: 1px solid var(--sailor-button-danger-border);
 }
 .base-button--danger:hover {
-  background-color: var(--nod8-button-danger-hover);
-  color: var(--nod8-button-danger-active-text);
+  background-color: var(--sailor-button-danger-hover);
+  color: var(--sailor-button-danger-active-text);
 }
 .base-button--danger:active {
-  background-color: var(--nod8-button-danger-active);
-  color: var(--nod8-button-danger-active-text);
+  background-color: var(--sailor-button-danger-active);
+  color: var(--sailor-button-danger-active-text);
 }
 
 /* Dashed */
 .base-button--dashed {
-  background-color: var(--nod8-button-outline-bg);
-  color: var(--nod8-button-outline-text);
-  border: 1px dashed var(--nod8-button-outline-border);
+  background-color: var(--sailor-button-outline-bg);
+  color: var(--sailor-button-outline-text);
+  border: 1px dashed var(--sailor-button-outline-border);
 }
 .base-button--dashed:hover {
-  background-color: var(--nod8-button-outline-hover);
-  color: var(--nod8-button-outline-text);
+  background-color: var(--sailor-button-outline-hover);
+  color: var(--sailor-button-outline-text);
 }
 .base-button--dashed:active {
-  background-color: var(--nod8-button-outline-active);
-  color: var(--nod8-button-outline-active-text);
+  background-color: var(--sailor-button-outline-active);
+  color: var(--sailor-button-outline-active-text);
 }
 
 .base-button__icon-left,

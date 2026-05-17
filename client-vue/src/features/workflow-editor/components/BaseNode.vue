@@ -106,7 +106,7 @@ const onQuickAdd = () => {
 
 <template>
   <div 
-    class="nod8-base-node" 
+    class="sailor-base-node"
     :class="[{ 'is-selected': selected }, statusClasses]" 
     :style="{ 
       '--node-tint': props.bg, 
@@ -119,11 +119,11 @@ const onQuickAdd = () => {
     <NodeShimmer v-if="effectiveStatus === 'running' || effectiveStatus === 'retrying' || effectiveStatus === 'waiting'" />
 
     <!-- Icon area (center of card) -->
-    <div class="nod8-base-node__icon-wrap">
+    <div class="sailor-base-node__icon-wrap">
       <slot name="icon">
         <div
           v-if="props.icon"
-          class="nod8-base-node__icon-box"
+          class="sailor-base-node__icon-box"
           :style="{ color: props.color }"
         >
           <LucideIcon :name="props.icon" :size="48" />
@@ -132,7 +132,7 @@ const onQuickAdd = () => {
     </div>
 
     <!-- Custom slot content (if any) -->
-    <div v-if="$slots.default" class="nod8-base-node__body">
+    <div v-if="$slots.default" class="sailor-base-node__body">
       <slot />
     </div>
 
@@ -143,12 +143,12 @@ const onQuickAdd = () => {
     <!-- Quick Add Cable (n8n style) -->
     <div
       v-if="props.hasSource && !hasOutgoingConnection && props.id"
-      class="nod8-base-node__quick-add"
+      class="sailor-base-node__quick-add"
       title="Add connected node"
       @click.stop="onQuickAdd"
     >
-      <div class="nod8-base-node__quick-add-cable"></div>
-      <button class="nod8-base-node__quick-add-btn">
+      <div class="sailor-base-node__quick-add-cable"></div>
+      <button class="sailor-base-node__quick-add-btn">
         <LucideIcon name="plus" :size="11" />
       </button>
     </div>
@@ -163,29 +163,29 @@ const onQuickAdd = () => {
     <!-- Gap bridge for CSS hover -->
     <div
       v-if="props.id && props.id !== 'trigger'"
-      class="nod8-base-node__toolbar-bridge"
+      class="sailor-base-node__toolbar-bridge"
       aria-hidden="true"
     />
   </div>
 
   <!-- Label area — outside the card, below it, like n8n -->
-  <div class="nod8-base-node__label-area" @dblclick.stop="startEditingId">
+  <div class="sailor-base-node__label-area" @dblclick.stop="startEditingId">
     <slot name="label">
-      <div v-if="props.title || props.subtitle" class="nod8-base-node__label">
+      <div v-if="props.title || props.subtitle" class="sailor-base-node__label">
         <BaseInput
           v-if="isEditingId"
           ref="idInputRef"
           v-model="editedId"
-          class="nod8-base-node__label-input"
+          class="sailor-base-node__label-input"
           @blur="commitIdChange"
           @keydown.enter="commitIdChange"
           @keydown.esc="cancelIdChange"
           @click.stop
         />
-        <span v-else class="nod8-base-node__label-title" :title="props.title">
+        <span v-else class="sailor-base-node__label-title" :title="props.title">
           {{ props.title }}
         </span>
-        <span v-if="props.subtitle" class="nod8-base-node__label-subtitle">
+        <span v-if="props.subtitle" class="sailor-base-node__label-subtitle">
           {{ props.subtitle }}
         </span>
       </div>
@@ -195,13 +195,13 @@ const onQuickAdd = () => {
 
 <style scoped>
 /* ─── Shell ──────────────────────────────────────────────────── */
-.nod8-base-node {
+.sailor-base-node {
   position: relative;
   width: 100px;
   height: 100px;
-  background-color: var(--nod8-node-body);
+  background-color: var(--sailor-node-body);
   background-image: linear-gradient(var(--node-tint, transparent), var(--node-tint, transparent));
-  border: 2px solid var(--node-custom-border, var(--nod8-node-border));
+  border: 2px solid var(--node-custom-border, var(--sailor-node-border));
   border-radius: 16px;
   display: flex;
   flex-direction: column;
@@ -215,50 +215,50 @@ const onQuickAdd = () => {
   cursor: pointer;
 }
 
-.nod8-base-node:hover {
-  border-color: color-mix(in srgb, var(--node-custom-border, var(--nod8-node-selected)) 80%, var(--nod8-text-primary) 20%);
+.sailor-base-node:hover {
+  border-color: color-mix(in srgb, var(--node-custom-border, var(--sailor-node-selected)) 80%, var(--sailor-text-primary) 20%);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
 
 /* ─── Selection & execution status borders ──────────────────── */
-.nod8-base-node.is-selected {
-  border-color: color-mix(in srgb, var(--node-custom-border, var(--nod8-node-border)) 80%, var(--nod8-text-primary) 20%);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 3px color-mix(in srgb, var(--node-custom-border, var(--nod8-node-border)) 50%, transparent);
+.sailor-base-node.is-selected {
+  border-color: color-mix(in srgb, var(--node-custom-border, var(--sailor-node-border)) 80%, var(--sailor-text-primary) 20%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 3px color-mix(in srgb, var(--node-custom-border, var(--sailor-node-border)) 50%, transparent);
 }
 
-.nod8-base-node.is-running {
-  border-color: var(--nod8-amber-400);
+.sailor-base-node.is-running {
+  border-color: var(--sailor-amber-400);
 }
 
-.nod8-base-node.is-waiting {
-  border-color: var(--nod8-purple-400, #8b5cf6);
+.sailor-base-node.is-waiting {
+  border-color: var(--sailor-purple-400, #8b5cf6);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(139, 92, 246, 0.2);
   --node-shimmer-color: rgba(139, 92, 246, 0.18);
 }
 
-.nod8-base-node.is-retrying {
-  border-color: var(--nod8-purple-400, #8b5cf6);
+.sailor-base-node.is-retrying {
+  border-color: var(--sailor-purple-400, #8b5cf6);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(139, 92, 246, 0.22);
   --node-shimmer-color: rgba(139, 92, 246, 0.24);
 }
 
-.nod8-base-node.is-success {
-  border-color: var(--nod8-green-400);
+.sailor-base-node.is-success {
+  border-color: var(--sailor-green-400);
 }
 
-.nod8-base-node.is-failed {
-  border-color: var(--nod8-red-400);
+.sailor-base-node.is-failed {
+  border-color: var(--sailor-red-400);
 }
 
 /* ─── Icon area ─────────────────────────────────────────────── */
-.nod8-base-node__icon-wrap {
+.sailor-base-node__icon-wrap {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.nod8-base-node__icon-box {
+.sailor-base-node__icon-box {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -276,12 +276,12 @@ const onQuickAdd = () => {
 }
 
 /* ─── Extra body slot (e.g. trigger details) ─────────────────── */
-.nod8-base-node__body {
+.sailor-base-node__body {
   width: 100%;
 }
 
 /* ─── Label (below card, outside the node box) ──────────────── */
-.nod8-base-node__label-area {
+.sailor-base-node__label-area {
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
@@ -295,17 +295,17 @@ const onQuickAdd = () => {
   pointer-events: all;
 }
 
-.nod8-base-node__label {
+.sailor-base-node__label {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
 }
 
-.nod8-base-node__label-title {
+.sailor-base-node__label-title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   line-height: 1.3;
   word-break: break-word;
   white-space: normal;
@@ -313,22 +313,22 @@ const onQuickAdd = () => {
   max-width: 140px;
 }
 
-.nod8-base-node__label-subtitle {
+.sailor-base-node__label-subtitle {
   font-size: 11px;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   text-align: center;
 }
 
-.nod8-base-node__label-input {
+.sailor-base-node__label-input {
   width: 120px;
 }
 
-.nod8-base-node__label-input :deep(.base-input-container) {
-  background: var(--nod8-node-body);
-  border-color: var(--nod8-node-selected);
+.sailor-base-node__label-input :deep(.base-input-container) {
+  background: var(--sailor-node-body);
+  border-color: var(--sailor-node-selected);
 }
 
-.nod8-base-node__label-input :deep(.base-input) {
+.sailor-base-node__label-input :deep(.base-input) {
   height: 24px;
   font-size: 13px;
   font-weight: 500;
@@ -337,13 +337,13 @@ const onQuickAdd = () => {
 }
 
 /* ─── Toolbar hover via CSS ──────────────────────────────────── */
-.nod8-base-node:hover :deep(.nt-toolbar) {
+.sailor-base-node:hover :deep(.nt-toolbar) {
   opacity: 1;
   pointer-events: auto;
 }
 
 /* ─── Toolbar gap bridge ─────────────────────────────────────── */
-.nod8-base-node__toolbar-bridge {
+.sailor-base-node__toolbar-bridge {
   position: absolute;
   top: -40px;
   left: 0;
@@ -352,7 +352,7 @@ const onQuickAdd = () => {
 }
 
 /* ─── Quick Add Node (n8n style) ─────────────────────────────── */
-.nod8-base-node__quick-add {
+.sailor-base-node__quick-add {
   position: absolute;
   top: 50%;
   right: -82px;
@@ -362,18 +362,18 @@ const onQuickAdd = () => {
   z-index: 5;
 }
 
-.nod8-base-node__quick-add-cable {
+.sailor-base-node__quick-add-cable {
   width: 60px;
   height: 2px;
-  background-color: var(--nod8-node-handle);
+  background-color: var(--sailor-node-handle);
   transition: background-color 0.2s;
 }
 
-.nod8-base-node__quick-add-btn {
-  border-radius: var(--nod8-radius-sm);
-  background-color: var(--nod8-node-border);
-  border: 2px solid var(--nod8-border-strong);
-  color: var(--nod8-text-primary);
+.sailor-base-node__quick-add-btn {
+  border-radius: var(--sailor-radius-sm);
+  background-color: var(--sailor-node-border);
+  border: 2px solid var(--sailor-border-strong);
+  color: var(--sailor-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;

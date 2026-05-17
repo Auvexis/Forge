@@ -22,8 +22,8 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Code Block')
     :title="stepTitle"
     :subtitle="'JavaScript Engine'"
     icon="code-2"
-    color="var(--nod8-node-codeblock-icon)"
-    bg="var(--nod8-node-codeblock-bg)"
-    border-color="var(--nod8-node-codeblock-border)"
+    color="var(--sailor-node-codeblock-icon)"
+    bg="var(--sailor-node-codeblock-bg)"
+    border-color="var(--sailor-node-codeblock-border)"
   />
 </template>

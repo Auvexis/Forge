@@ -22,8 +22,8 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Sub-Workflow')
     :title="stepTitle"
     subtitle="Trigger external flow"
     icon="workflow"
-    color="var(--nod8-node-subworkflow-icon)"
-    bg="var(--nod8-node-subworkflow-bg)"
-    border-color="var(--nod8-node-subworkflow-border)"
+    color="var(--sailor-node-subworkflow-icon)"
+    bg="var(--sailor-node-subworkflow-bg)"
+    border-color="var(--sailor-node-subworkflow-border)"
   />
 </template>

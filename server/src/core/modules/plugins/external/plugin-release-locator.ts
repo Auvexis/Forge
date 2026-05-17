@@ -4,6 +4,20 @@ import type { LocatedPluginRelease } from "./types.ts";
 
 const REQUIRED_RELEASE_FILES = ["manifest.json", "index.js", "methods.js", "package.json", "package-lock.json"] as const;
 
+function hasRequiredReleaseFiles(dir: string): boolean {
+  return REQUIRED_RELEASE_FILES.every((file) => {
+    const filePath = path.join(dir, file);
+    return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+  });
+}
+
+function hasAnyRequiredReleaseFile(dir: string): boolean {
+  return REQUIRED_RELEASE_FILES.some((file) => {
+    const filePath = path.join(dir, file);
+    return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+  });
+}
+
 function assertInside(baseDir: string, targetPath: string): void {
   const relative = path.relative(baseDir, targetPath);
   if (relative.startsWith("..") || path.isAbsolute(relative)) {
@@ -15,6 +29,10 @@ function findReleaseDirs(rootDir: string): string[] {
   const releaseDirs: string[] = [];
   const rootRealPath = fs.realpathSync(rootDir);
 
+  if (hasRequiredReleaseFiles(rootDir)) {
+    return [rootDir];
+  }
+
   const walk = (currentDir: string) => {
     assertInside(rootRealPath, fs.realpathSync(currentDir));
     const entries = fs.readdirSync(currentDir, { withFileTypes: true });
@@ -23,7 +41,12 @@ function findReleaseDirs(rootDir: string): string[] {
       const fullPath = path.join(currentDir, entry.name);
       if (!entry.isDirectory()) continue;
 
-      if (entry.name === "release") {
+      if (entry.name === "release" && hasAnyRequiredReleaseFile(fullPath)) {
+        releaseDirs.push(fullPath);
+        continue;
+      }
+
+      if (hasRequiredReleaseFiles(fullPath)) {
         releaseDirs.push(fullPath);
         continue;
       }

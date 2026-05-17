@@ -4,7 +4,7 @@ import {
   useWorkflowActions,
   useWorkflowStore,
   useExecutionStore,
-  Nod8WorkflowCanvas,
+  SailorWorkflowCanvas,
 } from '@/features/workflow-editor'
 import WorkflowEditorChrome from '@/features/workflow-editor/components/ui/chrome/WorkflowEditorChrome.vue'
 import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/WorkflowSettingsPanel.vue'
@@ -61,7 +61,7 @@ async function handleClose() {
 }
 
 // ── Canvas ref — used to call exposed actions (run, stop, add-node) ───────
-const canvasRef = ref<InstanceType<typeof Nod8WorkflowCanvas> | null>(null)
+const canvasRef = ref<InstanceType<typeof SailorWorkflowCanvas> | null>(null)
 
 // ── Logs panel state (shared between dock and canvas) ─────────────────────
 const showSettings = ref(false)
@@ -142,13 +142,13 @@ function openCommandPalette() {
 
 onMounted(() => {
   initWorkflow()
-  window.addEventListener('nod8:command-palette:intent', handleUiIntent)
+  window.addEventListener('sailor:command-palette:intent', handleUiIntent)
 })
 
 // Limpa o store ao sair da página para que o canvas arranque sem dados obsoletos
 onBeforeUnmount(() => {
   workflowStore.clearWorkflow()
-  window.removeEventListener('nod8:command-palette:intent', handleUiIntent)
+  window.removeEventListener('sailor:command-palette:intent', handleUiIntent)
 })
 
 watch(() => route.params.id, () => {
@@ -299,8 +299,8 @@ watch(
       />
     </template>
 
-    <div class="nod8-fill flex-center">
-      <Nod8WorkflowCanvas
+    <div class="sailor-fill flex-center">
+      <SailorWorkflowCanvas
         v-if="workflowStore.activeWorkflow"
         ref="canvasRef"
       />
@@ -323,39 +323,39 @@ watch(
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: var(--nod8-z-raised);
+  z-index: var(--sailor-z-raised);
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   height: 24px;
-  padding: 0 var(--nod8-space-3);
+  padding: 0 var(--sailor-space-3);
   border: 0;
-  border-top: 1px solid var(--nod8-border);
-  background: var(--nod8-bg-base);
-  color: var(--nod8-text-muted);
+  border-top: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-base);
+  color: var(--sailor-text-muted);
   font-size: 11px;
   cursor: pointer;
 }
 
 .workflow-status-bar:hover {
-  color: var(--nod8-text-primary);
-  background: var(--nod8-bg-surface);
+  color: var(--sailor-text-primary);
+  background: var(--sailor-bg-surface);
 }
 
 .workflow-status-bar__dot {
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background: var(--nod8-text-muted);
+  background: var(--sailor-text-muted);
 }
 
 .workflow-status-bar__dot.is-active {
-  background: var(--nod8-green-400);
+  background: var(--sailor-green-400);
 }
 
 .workflow-status-bar code {
   margin-left: auto;
-  font-family: var(--nod8-font-mono);
+  font-family: var(--sailor-font-mono);
   font-size: 10px;
 }
 </style>

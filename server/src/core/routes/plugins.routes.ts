@@ -1,11 +1,14 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
+import fs from "node:fs";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { PluginManager } from "../modules/plugins/manager.ts";
 import { PluginExecutor, PluginValidationError } from "../modules/plugins/executor.ts";
-import { CredentialStore } from "../modules/plugins/credential-store.ts";
+import { CredentialStore, isMaskedCredentialValue } from "../modules/plugins/credential-store.ts";
 import { Vault } from "../modules/plugins/vault.ts";
 import { DatabaseManager } from "../database/manager.ts";
-import { nd8HomePaths } from "../runtime/nd8-home.ts";
+import { sailorHomePaths } from "../runtime/sailor-home.ts";
 import { locatePluginRelease } from "../modules/plugins/external/plugin-release-locator.ts";
 import {
   copyExtractedFolderToCache,
@@ -14,12 +17,17 @@ import {
 import { externalPluginPreviewStore } from "../modules/plugins/external/plugin-preview-store.ts";
 import { readPluginManifestPreview } from "../modules/plugins/plugin-manifest-preview.ts";
 import { installExternalPlugin } from "../modules/plugins/external/plugin-installer.ts";
+import { OAuth2Service } from "../modules/plugins/auth/oauth2-service.ts";
+import { oauth2SessionStore } from "../modules/plugins/auth/oauth2-session-store.ts";
+import { isDeclarativeOAuth2Auth, isLegacyOAuth2Auth } from "../modules/plugins/auth/oauth2-types.ts";
 import { z } from "zod";
 import type {
   CredentialSchema,
   OAuth2Provider,
   ApiKeyProvider,
-} from "../../shared/models/plugin-types.ts";
+} from "@auvexis/sailor-sdk";
+
+const OAUTH2_AUTH_SESSION_TTL_MS = 10 * 60 * 1000;
 
 export default async function pluginsRoutes(fastify: FastifyInstance) {
   /**
@@ -38,6 +46,25 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
       release,
       source,
     });
+  }
+
+  function assertUploadRelativePath(relativePath: string): string {
+    if (!relativePath || path.isAbsolute(relativePath)) {
+      throw new Error("Invalid upload path");
+    }
+
+    const normalized = path.normalize(relativePath);
+    if (normalized === ".." || normalized.startsWith(`..${path.sep}`)) {
+      throw new Error("Path traversal is not allowed in plugin uploads");
+    }
+
+    return normalized;
+  }
+
+  function createUploadPreviewFolder(): string {
+    const destination = path.join(sailorHomePaths.pluginCacheDir, "uploads", randomUUID());
+    fs.mkdirSync(destination, { recursive: true });
+    return destination;
   }
 
   /**
@@ -82,7 +109,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const source = resolveRepositoryUrlToCache(validation.data.repositoryUrl, nd8HomePaths.pluginCacheDir);
+      const source = resolveRepositoryUrlToCache(validation.data.repositoryUrl, sailorHomePaths.pluginCacheDir);
       const preview = createExternalPreview(source.localPath, source.metadata);
       return sendResponse(reply, {
         status_code: preview.status === "ready" ? 200 : 400,
@@ -117,7 +144,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const source = copyExtractedFolderToCache(validation.data.folderPath, nd8HomePaths.pluginCacheDir, {
+      const source = copyExtractedFolderToCache(validation.data.folderPath, sailorHomePaths.pluginCacheDir, {
         allowedRelativePaths: validation.data.files,
       });
       const preview = createExternalPreview(source.localPath, source.metadata);
@@ -128,6 +155,72 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         data: preview,
       });
     } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Failed to create external plugin preview",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
+  fastify.post("/plugins/external/preview-upload", async (req, reply) => {
+    if (!req.isMultipart()) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Expected multipart plugin upload",
+        error: "multipart_required",
+        data: null,
+      });
+    }
+
+    const uploadFolder = createUploadPreviewFolder();
+    let uploadedFiles = 0;
+    let uploadedBytes = 0;
+    const maxFiles = 5_000;
+    const maxBytes = 50 * 1024 * 1024;
+
+    try {
+      for await (const part of req.parts()) {
+        if (part.type !== "file") continue;
+
+        const relativePath = assertUploadRelativePath(part.filename);
+        const destination = path.join(uploadFolder, relativePath);
+        fs.mkdirSync(path.dirname(destination), { recursive: true });
+
+        const buffer = await part.toBuffer();
+        uploadedFiles += 1;
+        uploadedBytes += buffer.byteLength;
+
+        if (uploadedFiles > maxFiles) {
+          throw new Error("Plugin upload file count limit exceeded");
+        }
+
+        if (uploadedBytes > maxBytes) {
+          throw new Error("Plugin upload size limit exceeded");
+        }
+
+        fs.writeFileSync(destination, buffer);
+      }
+
+      if (uploadedFiles === 0) {
+        throw new Error("No plugin files uploaded");
+      }
+
+      const preview = createExternalPreview(uploadFolder, {
+        type: "extracted_folder",
+        originalValue: `${uploadedFiles} uploaded file${uploadedFiles === 1 ? "" : "s"}`,
+        cachedAt: new Date().toISOString(),
+      });
+
+      return sendResponse(reply, {
+        status_code: preview.status === "ready" ? 200 : 400,
+        message: preview.status === "ready" ? "External plugin preview created" : "External plugin manifest is invalid",
+        error: preview.errors.length > 0 ? preview.errors.join("; ") : null,
+        data: preview,
+      });
+    } catch (error: any) {
+      fs.rmSync(uploadFolder, { recursive: true, force: true });
       return sendResponse(reply, {
         status_code: 400,
         message: "Failed to create external plugin preview",
@@ -274,9 +367,16 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
 
       let oauth_ui = undefined;
       let oauth_redirect_uri = undefined;
+      let oauth_public_url_required = false;
+      let oauth_public_url_warning = undefined;
       if (plugin.auth.type === "oauth2") {
         oauth_ui = (plugin.auth as OAuth2Provider).ui;
         oauth_redirect_uri = PluginManager.getRedirectUri(pluginId);
+        oauth_public_url_required = PluginManager.isLocalRedirectUri(oauth_redirect_uri);
+        if (oauth_public_url_required) {
+          oauth_public_url_warning =
+            "OAuth providers usually require a public HTTPS callback URL. Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.";
+        }
       }
 
       return sendResponse(reply, {
@@ -291,6 +391,8 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
           locked_fields: lockedFields,
           oauth_ui,
           oauth_redirect_uri,
+          oauth_public_url_required,
+          oauth_public_url_warning,
         },
       });
     } catch (error: any) {
@@ -315,11 +417,27 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
       const plugin = PluginManager.getPlugin(pluginId);
       const schema = (plugin.auth as any).credentialSchema as CredentialSchema | undefined;
       const lockedFields = schema ? Vault.getLockedFields(pluginId, schema) : new Set<string>();
+      const existingCredentials = CredentialStore.getCredentials(pluginId) ?? {};
+      const sensitiveFields = schema
+        ? new Set(
+            Object.entries(schema)
+              .filter(([_, field]) => field.inputType === "password")
+              .map(([key]) => key),
+          )
+        : new Set<string>();
 
       // Filter out ENV-locked fields — they cannot be overridden via the UI
       const filtered: Record<string, string> = {};
       for (const [key, value] of Object.entries(submitted)) {
-        if (!lockedFields.has(key)) {
+        if (lockedFields.has(key)) {
+          continue;
+        }
+
+        if (sensitiveFields.has(key) && isMaskedCredentialValue(value)) {
+          if (existingCredentials[key]) {
+            filtered[key] = existingCredentials[key];
+          }
+        } else {
           filtered[key] = value;
         }
       }
@@ -548,7 +666,44 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
       }
 
       const redirectUri = PluginManager.getRedirectUri(pluginId);
-      const url = await provider.getAuthUrl(credentials, redirectUri);
+      if (PluginManager.isLocalRedirectUri(redirectUri)) {
+        return sendResponse(reply, {
+          status_code: 400,
+          message: "Public URL required before starting OAuth2",
+          error:
+            "Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.",
+          data: null,
+        });
+      }
+
+      let url: string;
+      if (isDeclarativeOAuth2Auth(provider)) {
+        const state = randomUUID();
+        const result = await OAuth2Service.createAuthorizationUrl({
+          auth: provider,
+          credentials,
+          redirectUri,
+          state,
+        });
+
+        oauth2SessionStore.save({
+          state,
+          pluginId,
+          redirectUri,
+          codeVerifier: result.codeVerifier,
+          ttlMs: OAUTH2_AUTH_SESSION_TTL_MS,
+        });
+        url = result.url;
+      } else if (isLegacyOAuth2Auth(provider)) {
+        url = await provider.getAuthUrl(credentials, redirectUri);
+      } else {
+        return sendResponse(reply, {
+          status_code: 400,
+          message: "Invalid OAuth2 provider contract",
+          error: "oauth2_provider_contract_invalid",
+          data: null,
+        });
+      }
 
       return sendResponse(reply, {
         status_code: 200,
@@ -594,42 +749,89 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
   /**
    * OAuth2 Callback — exchanges code for tokens
    *
-   * Sends an HTML page that posts a message back to the opener window.
-   * Values are serialized with JSON.stringify to prevent XSS injection,
-   * and postMessage targets the known client origin only.
+   * Renders a final success/error page in the provider tab.
    */
-  const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:8033";
+  const escapeHtml = (value: string): string =>
+    value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
 
-  const buildOAuthCallbackHtml = (payload: Record<string, unknown>): string => {
-    const serialized = JSON.stringify(payload);
-    return `
-      <html>
+  const buildOAuthCallbackHtml = (
+    status: "success" | "error",
+    title: string,
+    message: string,
+  ): string => {
+    const accent = status === "success" ? "#0f9f6e" : "#b42318";
+    return `<!doctype html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>${escapeHtml(title)}</title>
+          <style>
+            body {
+              margin: 0;
+              min-height: 100vh;
+              display: grid;
+              place-items: center;
+              font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+              color: #172033;
+              background: #f6f7fb;
+            }
+            main {
+              width: min(520px, calc(100vw - 32px));
+              padding: 32px;
+              border: 1px solid #d7dce7;
+              border-radius: 8px;
+              background: #fff;
+              box-shadow: 0 16px 40px rgba(23, 32, 51, 0.12);
+            }
+            .status {
+              width: 12px;
+              height: 12px;
+              border-radius: 999px;
+              background: ${accent};
+              margin-bottom: 20px;
+            }
+            h1 {
+              margin: 0 0 12px;
+              font-size: 24px;
+              line-height: 1.2;
+            }
+            p {
+              margin: 0;
+              color: #4a5568;
+              line-height: 1.6;
+            }
+          </style>
+        </head>
         <body>
-          <script>
-            window.opener.postMessage(${serialized}, ${JSON.stringify(
-              CLIENT_ORIGIN,
-            )});
-            window.close();
-          </script>
+          <main>
+            <div class="status" aria-hidden="true"></div>
+            <h1>${escapeHtml(title)}</h1>
+            <p>${escapeHtml(message)}</p>
+          </main>
         </body>
-      </html>
-    `;
+      </html>`;
   };
 
   fastify.get("/plugins/:pluginId/auth/callback", async (req, reply) => {
     const { pluginId } = req.params as { pluginId: string };
-    const query = req.query as { code?: string; error?: string };
+    const query = req.query as { code?: string; error?: string; error_description?: string; state?: string };
 
     if (query.error || !query.code) {
       return reply
         .code(200)
         .type("text/html")
         .send(
-          buildOAuthCallbackHtml({
-            type: "oauth-error",
-            plugin: pluginId,
-            error: query.error || "no_code",
-          }),
+          buildOAuthCallbackHtml(
+            "error",
+            "OAuth connection failed",
+            query.error_description || query.error || "The provider did not return an authorization code.",
+          ),
         );
     }
 
@@ -641,11 +843,11 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
           .code(200)
           .type("text/html")
           .send(
-            buildOAuthCallbackHtml({
-              type: "oauth-error",
-              plugin: pluginId,
-              error: "not_oauth2",
-            }),
+            buildOAuthCallbackHtml(
+              "error",
+              "OAuth connection failed",
+              "This plugin does not support OAuth2.",
+            ),
           );
       }
 
@@ -666,20 +868,57 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
           .code(200)
           .type("text/html")
           .send(
-            buildOAuthCallbackHtml({
-              type: "oauth-error",
-              plugin: pluginId,
-              error: "no_credentials",
-            }),
+            buildOAuthCallbackHtml(
+              "error",
+              "OAuth connection failed",
+              "Credentials are missing. Return to Sailor, save credentials, and try again.",
+            ),
           );
       }
 
       const redirectUri = PluginManager.getRedirectUri(pluginId);
-      const tokens = await provider.exchangeCode(
-        query.code,
-        credentials,
-        redirectUri,
-      );
+      let tokens;
+      if (isDeclarativeOAuth2Auth(provider)) {
+        const session = query.state ? oauth2SessionStore.consume(query.state) : null;
+        if (!session || session.pluginId !== pluginId || session.redirectUri !== redirectUri) {
+          return reply
+            .code(200)
+            .type("text/html")
+            .send(
+              buildOAuthCallbackHtml(
+                "error",
+                "OAuth connection failed",
+                "The authorization session expired or is invalid. Return to Sailor and start the connection again.",
+              ),
+            );
+        }
+
+        const oauth2Service = new OAuth2Service();
+        tokens = await oauth2Service.exchangeCode({
+          auth: provider,
+          code: query.code,
+          credentials,
+          redirectUri,
+          codeVerifier: session.codeVerifier,
+        });
+      } else if (isLegacyOAuth2Auth(provider)) {
+        tokens = await provider.exchangeCode(
+          query.code,
+          credentials,
+          redirectUri,
+        );
+      } else {
+        return reply
+          .code(200)
+          .type("text/html")
+          .send(
+            buildOAuthCallbackHtml(
+              "error",
+              "OAuth connection failed",
+              "The plugin OAuth2 contract is invalid.",
+            ),
+          );
+      }
 
       CredentialStore.saveTokens(pluginId, tokens);
 
@@ -687,21 +926,22 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         .code(200)
         .type("text/html")
         .send(
-          buildOAuthCallbackHtml({
-            type: "oauth-success",
-            plugin: pluginId,
-          }),
+          buildOAuthCallbackHtml(
+            "success",
+            "OAuth connection complete",
+            "Tokens were saved. Return to Sailor and check the plugin connection status.",
+          ),
         );
     } catch (err: any) {
       return reply
         .code(200)
         .type("text/html")
         .send(
-          buildOAuthCallbackHtml({
-            type: "oauth-error",
-            plugin: pluginId,
-            error: err.message || "unknown_error",
-          }),
+          buildOAuthCallbackHtml(
+            "error",
+            "OAuth connection failed",
+            err.message || "Unknown OAuth2 error.",
+          ),
         );
     }
   });

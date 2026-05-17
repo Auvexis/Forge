@@ -26,7 +26,7 @@ export const TriggerListenerRegistry = {
    */
   register(webhookPath: string, workflowId: string, send: SseSender): void {
     registry.set(webhookPath, { workflowId, send });
-    console.log(`[NOD8 | LISTEN]: Registered listener for webhook path '${webhookPath}'`);
+    console.log(`[SAILOR | LISTEN]: Registered listener for webhook path '${webhookPath}'`);
   },
 
   /**
@@ -52,7 +52,7 @@ export const TriggerListenerRegistry = {
     }
 
     registry.delete(webhookPath);
-    console.log(`[NOD8 | LISTEN]: Consumed listener for webhook path '${webhookPath}'`);
+    console.log(`[SAILOR | LISTEN]: Consumed listener for webhook path '${webhookPath}'`);
     return { consumed: true, workflowId: entry.workflowId };
   },
 
@@ -61,7 +61,7 @@ export const TriggerListenerRegistry = {
    */
   remove(webhookPath: string): void {
     if (registry.delete(webhookPath)) {
-      console.log(`[NOD8 | LISTEN]: Removed listener for webhook path '${webhookPath}'`);
+      console.log(`[SAILOR | LISTEN]: Removed listener for webhook path '${webhookPath}'`);
     }
   },
 

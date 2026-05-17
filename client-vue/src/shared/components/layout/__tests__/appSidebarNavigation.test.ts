@@ -39,6 +39,15 @@ describe('app sidebar navigation', () => {
     assert.equal(items.find((item) => item.id === 'universe')?.route, '/universe')
   })
 
+  it('opens the external plugin installer through a dispatched sidebar intent', () => {
+    const item = sidebarSections
+      .flatMap((section) => section.items)
+      .find((navItem) => navItem.id === 'plugin-external-installer')
+
+    assert.equal(item?.route, undefined)
+    assert.deepEqual(item?.intent, { type: 'plugin-installer.open' })
+  })
+
   it('keeps bottom activity actions compact and professional', () => {
     assert.deepEqual(
       sidebarActivityItems.map((item) => item.id),
@@ -47,8 +56,8 @@ describe('app sidebar navigation', () => {
   })
 
   it('returns the active sidebar width token for expanded and collapsed states', () => {
-    assert.equal(sidebarWidthForState(false), 'var(--nod8-sidebar-expanded)')
-    assert.equal(sidebarWidthForState(true), 'var(--nod8-sidebar-width)')
+    assert.equal(sidebarWidthForState(false), 'var(--sailor-sidebar-expanded)')
+    assert.equal(sidebarWidthForState(true), 'var(--sailor-sidebar-width)')
   })
 
   it('uses a wider expanded sidebar token for the suite layout', () => {

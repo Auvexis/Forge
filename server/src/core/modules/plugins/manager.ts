@@ -1,15 +1,40 @@
-import type { Nod8Plugin } from "../../../shared/models/plugin-types.ts";
+import type { SailorPlugin } from "@auvexis/sailor-sdk";
+import { AppRepository } from "../app/app-repository.ts";
 
-const plugins = new Map<string, Nod8Plugin>();
+const plugins = new Map<string, SailorPlugin>();
 
 const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
 
+const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
+
+const getPublicBaseUrl = (): string => {
+  const configuredPublicUrl = AppRepository.getSetting("public_url");
+  if (typeof configuredPublicUrl === "string" && configuredPublicUrl.trim()) {
+    return trimTrailingSlash(configuredPublicUrl.trim());
+  }
+
+  if (process.env.PUBLIC_URL?.trim()) {
+    return trimTrailingSlash(process.env.PUBLIC_URL.trim());
+  }
+
+  return `http://localhost:${SERVER_PORT}`;
+};
+
+const isLocalPublicUrl = (url: string): boolean => {
+  try {
+    const parsed = new URL(url);
+    return ["localhost", "127.0.0.1", "::1"].includes(parsed.hostname);
+  } catch {
+    return true;
+  }
+};
+
 export const PluginManager = {
-  getPlugins: (): Nod8Plugin[] => {
+  getPlugins: (): SailorPlugin[] => {
     return Array.from(plugins.values());
   },
 
-  getPlugin: (id: string): Nod8Plugin => {
+  getPlugin: (id: string): SailorPlugin => {
     const plugin = plugins.get(id);
 
     if (!plugin) {
@@ -19,12 +44,16 @@ export const PluginManager = {
     return plugin;
   },
 
-  registerPlugin: (plugin: Nod8Plugin) => {
+  registerPlugin: (plugin: SailorPlugin) => {
     plugins.set(plugin.id, plugin);
-    console.log(`[NOD8 | PLUGINS]: Registered plugin ${plugin.id}`);
+    console.log(`[SAILOR | PLUGINS]: Registered plugin ${plugin.id}`);
   },
 
   getRedirectUri: (pluginId: string): string => {
-    return `http://localhost:${SERVER_PORT}/plugins/${pluginId}/auth/callback`;
+    return `${getPublicBaseUrl()}/plugins/${pluginId}/auth/callback`;
+  },
+
+  isLocalRedirectUri: (redirectUri: string): boolean => {
+    return isLocalPublicUrl(redirectUri);
   },
 };

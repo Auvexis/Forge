@@ -16,7 +16,7 @@
         :model-value="(node.data.collectionPath as string) || ''"
         @update:model-value="updateNodeData({ collectionPath: $event as string })"
         placeholder="steps.fetch_users.output.items"
-        style="font-family: var(--nod8-font-mono)"
+        style="font-family: var(--sailor-font-mono)"
       />
       <p class="text-xs text-muted-foreground mt-1">
         Supports variable injection via <code v-pre>{{ path }}</code>
@@ -36,14 +36,14 @@ defineProps<NodeEditorProps>()
 
 <style scoped>
 .text-xs {
-  font-size: var(--nod8-text-xs);
+  font-size: var(--sailor-text-xs);
 }
 
 .text-muted-foreground {
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
 }
 
 .mt-1 {
-  margin-top: var(--nod8-space-1);
+  margin-top: var(--sailor-space-1);
 }
 </style>

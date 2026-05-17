@@ -39,8 +39,8 @@ onMounted(() => {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr) 360px;
-  background: var(--nod8-bg-base);
-  color: var(--nod8-text-primary);
+  background: var(--sailor-bg-base);
+  color: var(--sailor-text-primary);
 }
 
 .plugins-page__workspace {
@@ -65,7 +65,7 @@ onMounted(() => {
   .plugins-page :deep(.installed-plugins) {
     min-width: 0;
     border-right: 0;
-    border-bottom: 1px solid var(--nod8-border);
+    border-bottom: 1px solid var(--sailor-border);
   }
 }
 </style>

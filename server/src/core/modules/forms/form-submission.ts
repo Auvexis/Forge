@@ -160,7 +160,7 @@ export async function processFormSubmission(
     ip: req.ip,
     userAgent: req.headers["user-agent"] ?? "",
   };
-  const executionId = resolveExecutionId(req.headers["x-nod8-execution-id"]);
+  const executionId = resolveExecutionId(req.headers["x-sailor-execution-id"]);
 
   workflowEventBus.emitWorkflowEvent({
     executionId,
@@ -181,7 +181,7 @@ export async function processFormSubmission(
   WorkflowEngine.executeWorkflowFromTrigger(workflow, triggerNodeId, triggerPayload, executionId).catch(
     (err: Error) => {
       console.error(
-        `[NOD8 | FORM-TRIGGER]: Execution failed for "${workflow.metadata.id}": ${err.message}`,
+        `[SAILOR | FORM-TRIGGER]: Execution failed for "${workflow.metadata.id}": ${err.message}`,
       );
     },
   );

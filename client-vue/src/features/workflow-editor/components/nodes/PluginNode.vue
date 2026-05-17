@@ -11,7 +11,8 @@ const props = defineProps<
 >()
 
 const pluginName = computed(() => props.data?.name || props.data?.action || 'Plugin Action')
-const subtitle = computed(() => props.data?.pluginId || 'plugin_action')
+const displayPluginId = ref<string | undefined>(undefined)
+const subtitle = computed(() => displayPluginId.value || props.data?.pluginId || 'plugin_action')
 
 const pluginIcon = ref<string>('box')
 const customBg = ref<string | undefined>(undefined)
@@ -24,6 +25,7 @@ onMounted(async () => {
     try {
       const plugin = await apiRequest<any>(ENDPOINTS.PLUGIN_BY_ID(pid))
       if (plugin?.manifest?.metadata) {
+        displayPluginId.value = plugin.manifest.metadata.id || plugin.id || pid
         const style = plugin.manifest.metadata.style
         if (style) {
           customBg.value = style.bgColor
@@ -60,8 +62,8 @@ const remainingParams = computed(() => Math.max(0, paramEntries.value.length - 3
     :title="pluginName"
     :subtitle="subtitle"
     :icon="pluginIcon"
-    :color="customIconColor || 'var(--nod8-node-plugin-icon)'"
-    :bg="customBg || 'var(--nod8-node-plugin-bg)'"
-    :border-color="customBorder || 'var(--nod8-node-plugin-border)'"
+    :color="customIconColor || 'var(--sailor-node-plugin-icon)'"
+    :bg="customBg || 'var(--sailor-node-plugin-bg)'"
+    :border-color="customBorder || 'var(--sailor-node-plugin-border)'"
   />
 </template>

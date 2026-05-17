@@ -162,7 +162,7 @@ const onDragStart = (event: DragEvent) => {
 .json-children {
   margin-left: 12px;
   padding-left: 8px;
-  border-left: 1px solid var(--nod8-border);
+  border-left: 1px solid var(--sailor-border);
 }
 .json-toggle-btn {
   width: 20px;
@@ -174,16 +174,16 @@ const onDragStart = (event: DragEvent) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   transition: all 0.15s ease;
   user-select: none;
 }
 .json-toggle-btn:hover {
-  color: var(--nod8-button-ghost-hover-text);
-  background-color: var(--nod8-button-ghost-hover);
+  color: var(--sailor-button-ghost-hover-text);
+  background-color: var(--sailor-button-ghost-hover);
 }
 .json-key {
-  color: var(--json-color-key, var(--nod8-text-primary));
+  color: var(--json-color-key, var(--sailor-text-primary));
   min-width: 0;
   flex-shrink: 0;
   height: 22px; /* Force small vertical height so it never looks 'gigante' */
@@ -203,8 +203,8 @@ const onDragStart = (event: DragEvent) => {
   cursor: grab;
 }
 .json-key-draggable:hover {
-  color: var(--nod8-button-ghost-hover-text);
-  background-color: var(--nod8-button-ghost-hover);
+  color: var(--sailor-button-ghost-hover-text);
+  background-color: var(--sailor-button-ghost-hover);
 }
 .json-key-draggable:active {
   cursor: grabbing;
@@ -224,7 +224,7 @@ const onDragStart = (event: DragEvent) => {
   color: var(--json-color-boolean, rgb(239, 68, 68));
 }
 .json-punctuation {
-  color: var(--json-color-punctuation, var(--nod8-text-muted));
+  color: var(--json-color-punctuation, var(--sailor-text-muted));
 }
 .draggable-item {
   cursor: grab;

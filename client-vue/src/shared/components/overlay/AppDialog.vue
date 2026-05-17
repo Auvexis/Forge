@@ -105,11 +105,11 @@ onUnmounted(() => {
   inset: 0;
   background-color: rgba(11, 15, 26, 0.75);
   backdrop-filter: blur(4px);
-  z-index: var(--nod8-z-modal);
+  z-index: var(--sailor-z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--nod8-space-4);
+  padding: var(--sailor-space-4);
 }
 
 .app-dialog {
@@ -117,9 +117,9 @@ onUnmounted(() => {
   flex-direction: column;
   width: 100%;
   max-height: 90vh;
-  border-radius: var(--nod8-radius-lg);
+  border-radius: var(--sailor-radius-lg);
   overflow: hidden;
-  box-shadow: var(--nod8-shadow-xl);
+  box-shadow: var(--sailor-shadow-xl);
 }
 
 /* ── Sizes ─────────────────────────────────────── */
@@ -141,27 +141,27 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: var(--nod8-space-5) var(--nod8-space-6);
-  border-bottom: 1px solid var(--nod8-border);
+  padding: var(--sailor-space-5) var(--sailor-space-6);
+  border-bottom: 1px solid var(--sailor-border);
 }
 
 .app-dialog__title-block {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-1);
+  gap: var(--sailor-space-1);
 }
 
 .app-dialog__title {
-  font-size: var(--nod8-text-lg);
-  font-weight: var(--nod8-font-semibold);
-  color: var(--nod8-text-primary);
+  font-size: var(--sailor-text-lg);
+  font-weight: var(--sailor-font-semibold);
+  color: var(--sailor-text-primary);
   margin: 0;
 }
 
 .app-dialog__description {
-  font-size: var(--nod8-text-sm);
-  color: var(--nod8-text-secondary);
-  line-height: var(--nod8-leading-normal);
+  font-size: var(--sailor-text-sm);
+  color: var(--sailor-text-secondary);
+  line-height: var(--sailor-leading-normal);
   margin: 0;
 }
 
@@ -171,19 +171,19 @@ onUnmounted(() => {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-text-secondary);
-  transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-secondary);
+  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
   margin: -4px -8px 0 0; /* optical alignment */
 }
 
 .app-dialog__close:hover {
-  background-color: var(--nod8-bg-muted);
-  color: var(--nod8-text-primary);
+  background-color: var(--sailor-bg-muted);
+  color: var(--sailor-text-primary);
 }
 
 .app-dialog__body {
-  padding: var(--nod8-space-6);
+  padding: var(--sailor-space-6);
   overflow-y: auto;
   flex: 1;
 }
@@ -192,9 +192,9 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-4) var(--nod8-space-6);
-  border-top: 1px solid var(--nod8-border);
-  background-color: var(--nod8-bg-surface);
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-4) var(--sailor-space-6);
+  border-top: 1px solid var(--sailor-border);
+  background-color: var(--sailor-bg-surface);
 }
 </style>

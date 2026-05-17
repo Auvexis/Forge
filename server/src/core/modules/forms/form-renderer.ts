@@ -110,7 +110,7 @@ export function renderFormPage(
   ${errorBlock}
   ${fieldsHtml}
   <button type="submit">Submit</button>
-  <div class="footer">Powered by Nod8</div>
+  <div class="footer">Powered by Sailor</div>
 </form>
 </body></html>`;
 }

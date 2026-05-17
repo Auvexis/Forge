@@ -10,7 +10,7 @@ import { DatabaseManager } from "./manager.ts";
 import { createMigrationEngine } from "./migration-engine.ts";
 
 export async function initializeDatabases(): Promise<void> {
-  console.log("[NOD8 | DB]: Initializing databases...");
+  console.log("[SAILOR | DB]: Initializing databases...");
 
   const entries: Array<[keyof typeof DatabaseManager, string]> = [
     ["app", "app"],
@@ -25,7 +25,7 @@ export async function initializeDatabases(): Promise<void> {
     await engine.up();
   }
 
-  console.log("[NOD8 | DB]: All databases are up to date.");
+  console.log("[SAILOR | DB]: All databases are up to date.");
 }
 
 // Re-export the manager so consumers only need to import from one place

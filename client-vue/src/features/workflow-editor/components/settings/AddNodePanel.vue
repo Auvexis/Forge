@@ -58,8 +58,8 @@
               style="position: relative; z-index: 1"
               @click="selectPlugin(plugin.id)"
             >
-              <div class="add-node-item-icon-well" :style="{ backgroundColor: plugin.manifest.metadata.style?.bgColor || 'var(--nod8-bg-surface)', borderColor: plugin.manifest.metadata.style?.borderColor || 'var(--nod8-border)' }">
-                <LucideIcon :name="plugin.manifest.metadata.style?.icon || plugin.manifest.metadata.icon || 'box'" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--nod8-text-muted)'" />
+              <div class="add-node-item-icon-well" :style="{ backgroundColor: plugin.manifest.metadata.style?.bgColor || 'var(--sailor-bg-surface)', borderColor: plugin.manifest.metadata.style?.borderColor || 'var(--sailor-border)' }">
+                <LucideIcon :name="plugin.manifest.metadata.style?.icon || plugin.manifest.metadata.icon || 'box'" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--sailor-text-muted)'" />
               </div>
               <div class="add-node-item-info">
                 <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
@@ -185,108 +185,108 @@ const LOGIC_NODES = [
     label: 'Code Block',
     description: 'Run custom JavaScript in a sandbox',
     icon: 'code-2',
-    color: 'var(--nod8-node-codeblock-icon)',
-    bgColor: 'var(--nod8-node-codeblock-bg)',
-    borderColor: 'var(--nod8-node-codeblock-border)',
+    color: 'var(--sailor-node-codeblock-icon)',
+    bgColor: 'var(--sailor-node-codeblock-bg)',
+    borderColor: 'var(--sailor-node-codeblock-border)',
   },
   {
     type: 'if' as WorkflowNodeType,
     label: 'If / Else',
     description: 'Branch the flow based on a condition',
     icon: 'git-branch',
-    color: 'var(--nod8-node-if-icon)',
-    bgColor: 'var(--nod8-node-if-bg)',
-    borderColor: 'var(--nod8-node-if-border)',
+    color: 'var(--sailor-node-if-icon)',
+    bgColor: 'var(--sailor-node-if-bg)',
+    borderColor: 'var(--sailor-node-if-border)',
   },
   {
     type: 'loop' as WorkflowNodeType,
     label: 'Loop / ForEach',
     description: 'Iterate over a collection item by item',
     icon: 'repeat',
-    color: 'var(--nod8-node-loop-icon)',
-    bgColor: 'var(--nod8-node-loop-bg)',
-    borderColor: 'var(--nod8-node-loop-border)',
+    color: 'var(--sailor-node-loop-icon)',
+    bgColor: 'var(--sailor-node-loop-bg)',
+    borderColor: 'var(--sailor-node-loop-border)',
   },
   {
     type: 'subworkflow' as WorkflowNodeType,
     label: 'Sub-Workflow',
     description: 'Call another workflow as a sub-step',
     icon: 'layers',
-    color: 'var(--nod8-node-subworkflow-icon)',
-    bgColor: 'var(--nod8-node-subworkflow-bg)',
-    borderColor: 'var(--nod8-node-subworkflow-border)',
+    color: 'var(--sailor-node-subworkflow-icon)',
+    bgColor: 'var(--sailor-node-subworkflow-bg)',
+    borderColor: 'var(--sailor-node-subworkflow-border)',
   },
   {
     type: 'http' as WorkflowNodeType,
     label: 'HTTP Request',
     description: 'Send an HTTP request to an external API',
     icon: 'globe',
-    color: 'var(--nod8-node-http-icon)',
-    bgColor: 'var(--nod8-node-http-bg)',
-    borderColor: 'var(--nod8-node-http-border)',
+    color: 'var(--sailor-node-http-icon)',
+    bgColor: 'var(--sailor-node-http-bg)',
+    borderColor: 'var(--sailor-node-http-border)',
   },
   {
     type: 'event' as WorkflowNodeType,
     label: 'Event Emitter',
     description: 'Publish an event to trigger other flows',
     icon: 'zap',
-    color: 'var(--nod8-node-event-icon)',
-    bgColor: 'var(--nod8-node-event-bg)',
-    borderColor: 'var(--nod8-node-event-border)',
+    color: 'var(--sailor-node-event-icon)',
+    bgColor: 'var(--sailor-node-event-bg)',
+    borderColor: 'var(--sailor-node-event-border)',
   },
   {
     type: 'event-listener' as WorkflowNodeType,
     label: 'Event Listener',
     description: 'Wait for an event to trigger a sub-flow',
     icon: 'target',
-    color: 'var(--nod8-node-event-listener-icon)',
-    bgColor: 'var(--nod8-node-event-listener-bg)',
-    borderColor: 'var(--nod8-node-event-listener-border)',
+    color: 'var(--sailor-node-event-listener-icon)',
+    bgColor: 'var(--sailor-node-event-listener-bg)',
+    borderColor: 'var(--sailor-node-event-listener-border)',
   },
   {
     type: 'set' as WorkflowNodeType,
     label: 'Set Fields',
     description: 'Set or rename fields without JavaScript',
     icon: 'sliders-horizontal',
-    color: 'var(--nod8-node-set-icon)',
-    bgColor: 'var(--nod8-node-set-bg)',
-    borderColor: 'var(--nod8-node-set-border)',
+    color: 'var(--sailor-node-set-icon)',
+    bgColor: 'var(--sailor-node-set-bg)',
+    borderColor: 'var(--sailor-node-set-border)',
   },
   {
     type: 'switch' as WorkflowNodeType,
     label: 'Switch',
     description: 'Route to multiple paths based on a value',
     icon: 'git-branch-plus',
-    color: 'var(--nod8-node-switch-icon)',
-    bgColor: 'var(--nod8-node-switch-bg)',
-    borderColor: 'var(--nod8-node-switch-border)',
+    color: 'var(--sailor-node-switch-icon)',
+    bgColor: 'var(--sailor-node-switch-bg)',
+    borderColor: 'var(--sailor-node-switch-border)',
   },
   {
     type: 'merge' as WorkflowNodeType,
     label: 'Merge',
     description: 'Merge parallel flows into a single path',
     icon: 'merge',
-    color: 'var(--nod8-node-merge-icon)',
-    bgColor: 'var(--nod8-node-merge-bg)',
-    borderColor: 'var(--nod8-node-merge-border)',
+    color: 'var(--sailor-node-merge-icon)',
+    bgColor: 'var(--sailor-node-merge-bg)',
+    borderColor: 'var(--sailor-node-merge-border)',
   },
   {
     type: 'split-in-batches' as WorkflowNodeType,
     label: 'Split In Batches',
     description: 'Split an array into batches and process each one',
     icon: 'layers',
-    color: 'var(--nod8-node-split-icon)',
-    bgColor: 'var(--nod8-node-split-bg)',
-    borderColor: 'var(--nod8-node-split-border)',
+    color: 'var(--sailor-node-split-icon)',
+    bgColor: 'var(--sailor-node-split-bg)',
+    borderColor: 'var(--sailor-node-split-border)',
   },
   {
     type: 'respond-webhook' as WorkflowNodeType,
     label: 'Respond to Webhook',
     description: 'Respond to the HTTP caller with a custom status and body',
     icon: 'send',
-    color: 'var(--nod8-node-respond-webhook-icon)',
-    bgColor: 'var(--nod8-node-respond-webhook-bg)',
-    borderColor: 'var(--nod8-node-respond-webhook-border)',
+    color: 'var(--sailor-node-respond-webhook-icon)',
+    bgColor: 'var(--sailor-node-respond-webhook-bg)',
+    borderColor: 'var(--sailor-node-respond-webhook-border)',
   },
   {
     type: 'wait-form' as WorkflowNodeType,
@@ -362,37 +362,37 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
 
 /* ── Back header ── */
 .add-node-back-header {
-  padding: var(--nod8-space-2) var(--nod8-space-3);
-  border-bottom: 1px solid var(--nod8-border);
+  padding: var(--sailor-space-2) var(--sailor-space-3);
+  border-bottom: 1px solid var(--sailor-border);
   flex-shrink: 0;
 }
 
 .add-node-back-btn {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-1);
+  gap: var(--sailor-space-1);
   background: transparent;
   border: none;
-  border-radius: var(--nod8-radius-sm);
-  padding: var(--nod8-space-1) var(--nod8-space-2);
+  border-radius: var(--sailor-radius-sm);
+  padding: var(--sailor-space-1) var(--sailor-space-2);
   cursor: pointer;
   font-family: inherit;
-  font-size: var(--nod8-text-sm);
+  font-size: var(--sailor-text-sm);
   font-weight: 500;
-  color: var(--nod8-text-muted);
-  transition: all var(--nod8-duration-fast);
+  color: var(--sailor-text-muted);
+  transition: all var(--sailor-duration-fast);
   margin-left: -4px;
 }
 
 .add-node-back-btn:hover {
-  color: var(--nod8-text-primary);
-  background-color: var(--nod8-bg-overlay);
+  color: var(--sailor-text-primary);
+  background-color: var(--sailor-bg-overlay);
 }
 
 /* ── Search ── */
 .add-node-search-wrapper {
-  padding: var(--nod8-space-3) var(--nod8-space-4);
-  border-bottom: 1px solid var(--nod8-border);
+  padding: var(--sailor-space-3) var(--sailor-space-4);
+  border-bottom: 1px solid var(--sailor-border);
   flex-shrink: 0;
 }
 
@@ -405,47 +405,47 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
   left: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   pointer-events: none;
 }
 
 .add-node-search-input {
   width: 100%;
-  background-color: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-md);
+  background-color: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
   padding: 6px 12px 6px 32px;
-  font-size: var(--nod8-text-sm);
+  font-size: var(--sailor-text-sm);
   font-family: inherit;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   outline: none;
-  transition: border-color var(--nod8-duration-fast);
+  transition: border-color var(--sailor-duration-fast);
   box-sizing: border-box;
 }
 
 .add-node-search-input::placeholder {
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
 }
 
 .add-node-search-input:focus {
-  border-color: var(--nod8-accent);
+  border-color: var(--sailor-accent);
 }
 
 /* ── Content scroll area ── */
 .add-node-content {
   flex: 1;
   overflow-y: auto;
-  padding: var(--nod8-space-3);
+  padding: var(--sailor-space-3);
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-4);
+  gap: var(--sailor-space-4);
 }
 
 /* ── Section ── */
 .add-node-section {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
 }
 
 .add-node-section-label {
@@ -453,8 +453,8 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--nod8-text-muted);
-  padding: 0 var(--nod8-space-1);
+  color: var(--sailor-text-muted);
+  padding: 0 var(--sailor-space-1);
 }
 
 /* ── List ── */
@@ -468,20 +468,20 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
 .add-node-item {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-3);
+  gap: var(--sailor-space-3);
   width: 100%;
-  padding: var(--nod8-space-2) var(--nod8-space-2);
+  padding: var(--sailor-space-2) var(--sailor-space-2);
   background: transparent;
   border: none;
-  border-radius: var(--nod8-radius-md);
+  border-radius: var(--sailor-radius-md);
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
 }
 
 .add-node-item:active {
-  background-color: var(--nod8-bg-muted);
+  background-color: var(--sailor-bg-muted);
 }
 
 /* ── Icon Well ── */
@@ -491,14 +491,14 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--nod8-radius-sm);
-  border: 1px solid var(--nod8-border);
+  border-radius: var(--sailor-radius-sm);
+  border: 1px solid var(--sailor-border);
   flex-shrink: 0;
 }
 
 .add-node-item-icon-well--plugin {
-  background-color: var(--nod8-bg-surface);
-  color: var(--nod8-text-muted);
+  background-color: var(--sailor-bg-surface);
+  color: var(--sailor-text-muted);
 }
 
 .add-node-plugin-img {
@@ -517,15 +517,15 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
 }
 
 .add-node-item-label {
-  font-size: var(--nod8-text-sm);
+  font-size: var(--sailor-text-sm);
   font-weight: 500;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   line-height: 1.3;
 }
 
 .add-node-item-desc {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -534,7 +534,7 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
 }
 
 .add-node-item-chevron {
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   flex-shrink: 0;
   opacity: 0.5;
 }
@@ -545,10 +545,10 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--nod8-space-2);
-  padding: var(--nod8-space-8) 0;
-  color: var(--nod8-text-muted);
-  font-size: var(--nod8-text-xs);
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-8) 0;
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
 }
 
 .add-node-spinner {
@@ -566,10 +566,10 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--nod8-space-2);
-  padding: var(--nod8-space-8) 0;
-  color: var(--nod8-text-muted);
-  font-size: var(--nod8-text-sm);
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-8) 0;
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-sm);
 }
 
 .add-node-empty-icon {

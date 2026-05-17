@@ -28,7 +28,7 @@ export const respondWebhookNodeHandler = createNodeHandler<RespondToWebhookNode>
 
     if (!resolved && correlationId) {
       console.warn(
-        `[NOD8 | RESPOND-WEBHOOK]: correlationId "${correlationId}" not found - ` +
+        `[SAILOR | RESPOND-WEBHOOK]: correlationId "${correlationId}" not found - ` +
           "webhook caller may have already timed out.",
       );
     }

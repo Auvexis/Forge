@@ -78,7 +78,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     data = await response.json()
   } catch (err) {
     // If it's not JSON but the request was OK, maybe it was a raw response?
-    // In Nod8, we expect our standard ApiResponse envelope.
+    // In Sailor, we expect our standard ApiResponse envelope.
     if (!response.ok) {
       throw new ApiError(`HTTP Error ${response.status}: ${response.statusText}`, response.status)
     }
@@ -87,10 +87,13 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   // API Envelope Error
   if (!response.ok || data.error || data.status_code >= 400) {
+    const message = data.message ?? 'Request failed'
+    const detail = data.error ?? null
+
     throw new ApiError(
-      data.message ?? data.error ?? 'Request failed',
+      detail && detail !== message ? `${message}: ${detail}` : message,
       data.status_code ?? response.status,
-      data.error,
+      detail,
     )
   }
 

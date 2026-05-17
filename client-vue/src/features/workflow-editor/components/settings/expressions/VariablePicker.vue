@@ -116,18 +116,18 @@ function itemScopeLabel(scope: ExpressionScope) {
 .variable-picker {
   width: min(420px, calc(100vw - 32px));
   overflow: hidden;
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
-  background: var(--nod8-bg-surface);
-  box-shadow: var(--nod8-shadow-xl);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  box-shadow: var(--sailor-shadow-xl);
 }
 
 .variable-picker__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--nod8-space-3);
-  border-bottom: 1px solid var(--nod8-border);
+  padding: var(--sailor-space-3);
+  border-bottom: 1px solid var(--sailor-border);
 }
 
 .variable-picker__title,
@@ -139,39 +139,39 @@ function itemScopeLabel(scope: ExpressionScope) {
 }
 
 .variable-picker__title {
-  gap: var(--nod8-space-2);
-  font-size: var(--nod8-text-sm);
-  font-weight: var(--nod8-font-semibold);
-  color: var(--nod8-text-primary);
+  gap: var(--sailor-space-2);
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
+  color: var(--sailor-text-primary);
 }
 
 .variable-picker__tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2px;
-  padding: var(--nod8-space-2);
-  border-bottom: 1px solid var(--nod8-border);
+  padding: var(--sailor-space-2);
+  border-bottom: 1px solid var(--sailor-border);
 }
 
 .variable-picker__tab {
   justify-content: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   height: 28px;
   border: 1px solid transparent;
-  border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-text-muted);
-  font-size: var(--nod8-text-xs);
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
 }
 
 .variable-picker__tab--active {
-  border-color: var(--nod8-border-strong);
-  background: var(--nod8-bg-overlay);
-  color: var(--nod8-text-primary);
+  border-color: var(--sailor-border-strong);
+  background: var(--sailor-bg-overlay);
+  color: var(--sailor-text-primary);
 }
 
 .variable-picker__search {
-  padding: var(--nod8-space-2);
-  border-bottom: 1px solid var(--nod8-border);
+  padding: var(--sailor-space-2);
+  border-bottom: 1px solid var(--sailor-border);
 }
 
 .variable-picker__list {
@@ -179,28 +179,28 @@ function itemScopeLabel(scope: ExpressionScope) {
   flex-direction: column;
   max-height: 280px;
   overflow-y: auto;
-  padding: var(--nod8-space-2);
+  padding: var(--sailor-space-2);
   gap: 2px;
 }
 
 .variable-picker__item {
   width: 100%;
   min-width: 0;
-  gap: var(--nod8-space-2);
-  padding: var(--nod8-space-2);
-  border-radius: var(--nod8-radius-sm);
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-2);
+  border-radius: var(--sailor-radius-sm);
   text-align: left;
 }
 
 .variable-picker__item:hover,
 .variable-picker__item:focus-visible {
-  background: var(--nod8-bg-overlay);
+  background: var(--sailor-bg-overlay);
   outline: none;
 }
 
 .variable-picker__item-icon {
   flex-shrink: 0;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
 }
 
 .variable-picker__item-main {
@@ -213,16 +213,16 @@ function itemScopeLabel(scope: ExpressionScope) {
 
 .variable-picker__item-name {
   overflow: hidden;
-  color: var(--nod8-text-primary);
-  font-family: var(--nod8-font-mono);
-  font-size: var(--nod8-text-xs);
+  color: var(--sailor-text-primary);
+  font-family: var(--sailor-font-mono);
+  font-size: var(--sailor-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .variable-picker__item-preview {
   overflow: hidden;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -237,9 +237,9 @@ function itemScopeLabel(scope: ExpressionScope) {
   max-width: 88px;
   overflow: hidden;
   padding: 2px 6px;
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-full);
-  color: var(--nod8-text-muted);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-full);
+  color: var(--sailor-text-muted);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -258,13 +258,13 @@ function itemScopeLabel(scope: ExpressionScope) {
 }
 
 .variable-picker__badge--type {
-  background: var(--nod8-bg-base);
+  background: var(--sailor-bg-base);
 }
 
 .variable-picker__empty {
-  padding: var(--nod8-space-4);
-  color: var(--nod8-text-muted);
-  font-size: var(--nod8-text-xs);
+  padding: var(--sailor-space-4);
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
   text-align: center;
 }
 </style>

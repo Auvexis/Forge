@@ -168,22 +168,22 @@ defineExpose({ open, close, toggle, isOpen })
   height: 100%;
   width: 100%;
   padding: 5px;
-  border-radius: var(--nod8-radius-sm);
+  border-radius: var(--sailor-radius-sm);
 }
 
 .app-popover-trigger:hover {
-  background-color: var(--nod8-button-ghost-hover);
+  background-color: var(--sailor-button-ghost-hover);
 }
 
 .app-popover-content {
   position: fixed;
-  z-index: var(--nod8-z-overlay);
+  z-index: var(--sailor-z-overlay);
   min-width: 200px;
-  padding: var(--nod8-space-2);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
+  padding: var(--sailor-space-2);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
   margin-top: 1px;
-  background-color: var(--nod8-bg-surface);
+  background-color: var(--sailor-bg-surface);
 }
 
 .app-popover--bottom-start {

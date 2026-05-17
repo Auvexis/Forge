@@ -32,7 +32,7 @@
   width: 100%;
   height: 100%;
   opacity: 0;
-  animation: universe-canvas-in 900ms var(--nod8-ease-decelerate) 220ms forwards;
+  animation: universe-canvas-in 900ms var(--sailor-ease-decelerate) 220ms forwards;
 }
 
 .universe-shell__brand {
@@ -43,12 +43,12 @@
   align-items: center;
   gap: 10px;
   color: var(--universe-muted);
-  font-size: var(--nod8-text-sm);
-  font-weight: var(--nod8-font-semibold);
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
 }
 
 .universe-shell__brand--ready .universe-shell__logo {
-  animation: universe-logo-settle 900ms var(--nod8-ease-decelerate) both;
+  animation: universe-logo-settle 900ms var(--sailor-ease-decelerate) both;
 }
 
 .universe-shell__logo {
@@ -68,15 +68,15 @@
   max-width: min(560px, calc(100vw - 48px));
   text-align: center;
   transform: translateX(-50%);
-  animation: universe-fade-in 700ms var(--nod8-ease-decelerate) both;
+  animation: universe-fade-in 700ms var(--sailor-ease-decelerate) both;
   z-index: 3;
 }
 
 .universe-shell__eyebrow {
   margin: 0 0 12px;
   color: var(--universe-cyan);
-  font-size: var(--nod8-text-xs);
-  font-weight: var(--nod8-font-semibold);
+  font-size: var(--sailor-text-xs);
+  font-weight: var(--sailor-font-semibold);
   text-transform: uppercase;
 }
 
@@ -84,7 +84,7 @@
   margin: 0;
   color: var(--universe-text);
   font-size: clamp(30px, 5vw, 54px);
-  font-weight: var(--nod8-font-semibold);
+  font-weight: var(--sailor-font-semibold);
   line-height: 0.96;
   letter-spacing: 0;
 }
@@ -93,8 +93,8 @@
   max-width: 430px;
   margin: 18px auto 0;
   color: var(--universe-muted);
-  font-size: var(--nod8-text-base);
-  line-height: var(--nod8-leading-normal);
+  font-size: var(--sailor-text-base);
+  line-height: var(--sailor-leading-normal);
 }
 
 .universe-shell__status {
@@ -105,7 +105,7 @@
   align-items: center;
   gap: 10px;
   color: var(--universe-dim);
-  font-size: var(--nod8-text-sm);
+  font-size: var(--sailor-text-sm);
 }
 
 .universe-shell__details {
@@ -160,20 +160,20 @@
 .universe-shell__details-kicker,
 .universe-shell__details-copy span {
   color: var(--universe-dim);
-  font-size: var(--nod8-text-xs);
+  font-size: var(--sailor-text-xs);
   text-transform: uppercase;
 }
 
 .universe-shell__details-copy h2 {
   color: var(--universe-text);
-  font-size: var(--nod8-text-lg);
-  font-weight: var(--nod8-font-semibold);
+  font-size: var(--sailor-text-lg);
+  font-weight: var(--sailor-font-semibold);
 }
 
 .universe-shell__details-copy p {
   color: var(--universe-muted);
-  font-size: var(--nod8-text-sm);
-  line-height: var(--nod8-leading-snug);
+  font-size: var(--sailor-text-sm);
+  line-height: var(--sailor-leading-snug);
 }
 
 .universe-shell__error {
@@ -181,14 +181,14 @@
   left: 28px;
   bottom: 24px;
   max-width: min(380px, calc(100vw - 56px));
-  color: var(--nod8-red-400);
-  font-size: var(--nod8-text-sm);
+  color: var(--sailor-red-400);
+  font-size: var(--sailor-text-sm);
 }
 
 .universe-shell__pulse {
   width: 8px;
   height: 8px;
-  border-radius: var(--nod8-radius-full);
+  border-radius: var(--sailor-radius-full);
   background: var(--universe-amber);
   box-shadow: 0 0 18px rgba(249, 182, 67, 0.8);
   animation: universe-pulse 1.6s ease-in-out infinite;

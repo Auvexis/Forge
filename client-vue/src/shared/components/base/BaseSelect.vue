@@ -55,7 +55,7 @@
             <LucideIcon v-if="option.icon" :name="option.icon" :size="16" class="option-icon text-muted" />
             <img v-else-if="option.image" :src="option.image" class="option-image" />
             <span class="truncate">{{ option.label }}</span>
-            <LucideIcon v-if="option.value === modelValue" name="check" :size="14" class="ml-auto text-nod8-accent" />
+            <LucideIcon v-if="option.value === modelValue" name="check" :size="14" class="ml-auto text-sailor-accent" />
           </div>
           <div v-if="!options.length" class="base-select-empty" style="position: relative; z-index: 1;">
             No options available
@@ -193,29 +193,29 @@ defineOptions({ inheritAttrs: false })
 .base-select-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-1);
+  gap: var(--sailor-space-1);
   width: 100%;
   position: relative;
 }
 
 .base-input-wrapper__label {
-  font-size: var(--nod8-text-xs);
-  font-weight: var(--nod8-font-medium);
-  color: var(--nod8-text-secondary);
+  font-size: var(--sailor-text-xs);
+  font-weight: var(--sailor-font-medium);
+  color: var(--sailor-text-secondary);
 }
 
 .required {
-  color: var(--nod8-text-error);
+  color: var(--sailor-text-error);
 }
 
 .base-select-container {
   display: flex;
   align-items: center;
   position: relative;
-  background-color: var(--nod8-bg-overlay);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
-  transition: all var(--nod8-duration-fast) var(--nod8-ease-standard);
+  background-color: var(--sailor-bg-overlay);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
   width: 100%;
   min-height: 36px;
   cursor: pointer;
@@ -223,31 +223,31 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-select-container--error {
-  border-color: var(--nod8-red-500);
+  border-color: var(--sailor-red-500);
 }
 .base-select-container--error.base-select-container--open {
-  box-shadow: 0 0 0 1px var(--nod8-red-500);
+  box-shadow: 0 0 0 1px var(--sailor-red-500);
 }
 
 .base-select-container--disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: var(--nod8-bg-muted);
+  background-color: var(--sailor-bg-muted);
 }
 
 .base-select-trigger {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   width: 100%;
-  padding: 0 var(--nod8-space-8) 0 var(--nod8-space-3);
-  color: var(--nod8-text-primary);
-  font-size: var(--nod8-text-sm);
+  padding: 0 var(--sailor-space-8) 0 var(--sailor-space-3);
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
 }
 
 .placeholder {
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
 }
 
 .base-select__icon {
@@ -256,7 +256,7 @@ defineOptions({ inheritAttrs: false })
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--nod8-text-secondary);
+  color: var(--sailor-text-secondary);
   width: 36px;
   height: 100%;
   pointer-events: none;
@@ -271,11 +271,11 @@ defineOptions({ inheritAttrs: false })
 .base-select-dropdown {
   max-height: 240px;
   overflow-y: auto;
-  background-color: var(--nod8-bg-elevated);
-  border: 1px solid var(--nod8-border-strong);
-  border-radius: var(--nod8-radius-sm);
-  box-shadow: var(--nod8-shadow-lg);
-  gap: var(--nod8-space-1);
+  background-color: var(--sailor-bg-elevated);
+  border: 1px solid var(--sailor-border-strong);
+  border-radius: var(--sailor-radius-sm);
+  box-shadow: var(--sailor-shadow-lg);
+  gap: var(--sailor-space-1);
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -285,19 +285,19 @@ defineOptions({ inheritAttrs: false })
 .base-select-option {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   padding: 8px 12px;
-  font-size: var(--nod8-text-sm);
-  color: var(--nod8-text-primary);
-  border-radius: var(--nod8-radius-sm);
+  font-size: var(--sailor-text-sm);
+  color: var(--sailor-text-primary);
+  border-radius: var(--sailor-radius-sm);
   cursor: pointer;
 }
 
 .base-select-empty {
   padding: 12px;
   text-align: center;
-  font-size: var(--nod8-text-sm);
-  color: var(--nod8-text-muted);
+  font-size: var(--sailor-text-sm);
+  color: var(--sailor-text-muted);
 }
 
 /* Icons & Images */
@@ -324,14 +324,14 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-input-wrapper__error {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-error);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-error);
   margin-top: 2px;
 }
 
 .base-input-wrapper__hint {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
   margin-top: 2px;
 }
 </style>

@@ -6,24 +6,24 @@
   /* ── Inspector Specific Variables ──────────────────────── */
   /* Backgrounds */
   --inspector-bg-backdrop: rgba(0, 0, 0, 0.046);
-  --inspector-bg-modal: var(--nod8-bg-surface);
-  --inspector-bg-pane: var(--nod8-bg-elevated);
-  --inspector-bg-header: var(--nod8-bg-elevated);
+  --inspector-bg-modal: var(--sailor-bg-surface);
+  --inspector-bg-pane: var(--sailor-bg-elevated);
+  --inspector-bg-header: var(--sailor-bg-elevated);
   
   /* Borders */
-  --inspector-border: var(--nod8-border);
-  --inspector-border-focus: var(--nod8-color-primary);
+  --inspector-border: var(--sailor-border);
+  --inspector-border-focus: var(--sailor-color-primary);
 
   /* JSON Tree View Variables */
-  --json-color-string: var(--nod8-color-success);
-  --json-color-number: var(--nod8-color-warning);
-  --json-color-boolean: var(--nod8-color-danger);
-  --json-color-key: var(--nod8-text-primary);
-  --json-color-punctuation: var(--nod8-text-muted);
+  --json-color-string: var(--sailor-color-success);
+  --json-color-number: var(--sailor-color-warning);
+  --json-color-boolean: var(--sailor-color-danger);
+  --json-color-key: var(--sailor-text-primary);
+  --json-color-punctuation: var(--sailor-text-muted);
 
   /* Drag and Drop */
   --drag-indicator-bg: rgba(99, 102, 241, 0.1); /* Primary color with opacity */
-  --drag-indicator-border: var(--nod8-color-primary);
+  --drag-indicator-border: var(--sailor-color-primary);
 }
 
 /* ── Inspector Layout Utilities ─────────────────────────── */

@@ -1,15 +1,15 @@
 services:
-  nod8-server:
+  sailor-server:
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: nod8-server
+    container_name: sailor-server
     ports:
       - "23801:23801"
     environment:
-      - ND8_HOME=/app/.nd8
+      - SAILOR_HOME=/app/.sailor
     volumes:
-      - nd8_data:/app/.nd8
+      - sailor_data:/app/.sailor
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:23801/"]
       interval: 10s
@@ -17,19 +17,19 @@ services:
       retries: 5
     restart: always
 
-  nod8-client:
+  sailor-client:
     build:
       context: ./client-vue
       dockerfile: Dockerfile
       args:
         VITE_API_URL: http://localhost:23801
-    container_name: nod8-client
+    container_name: sailor-client
     ports:
       - "23802:23802"
     depends_on:
-      nod8-server:
+      sailor-server:
         condition: service_healthy
     restart: always
 
 volumes:
-  nd8_data:
+  sailor_data:

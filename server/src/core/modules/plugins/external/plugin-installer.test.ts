@@ -46,7 +46,6 @@ function writeRelease(root: string): string {
         metadata: { label: "Ping", description: "Ping" },
         parameters: { type: "object", properties: {} },
         responseSchema: { type: "object", properties: {} },
-        ui: { component: "card" },
       },
     },
   };

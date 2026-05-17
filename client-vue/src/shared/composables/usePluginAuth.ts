@@ -8,6 +8,7 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
   const formValues = ref<Record<string, any>>({})
   const saving = ref(false)
   const authLoading = ref(false)
+  const awaitingOAuthReturn = ref(false)
   const toast = useToast()
 
   const getPluginId = () => {
@@ -54,17 +55,20 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
   const handleConnect = async () => {
     const id = getPluginId()
     if (!id) return
+    if (pluginStatus.value?.oauth_public_url_required) {
+      toast.error(
+        'Public URL required',
+        'Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.',
+      )
+      return
+    }
+
     authLoading.value = true
     try {
       const data = await pluginsApi.getAuthUrl(id)
       if (data?.url) {
-        const win = window.open(data.url, '_blank', 'width=600,height=700')
-        const timer = setInterval(() => {
-          if (win?.closed) {
-            clearInterval(timer)
-            loadStatus()
-          }
-        }, 1000)
+        window.open(data.url, '_blank', 'noopener,noreferrer')
+        awaitingOAuthReturn.value = true
       }
     } catch (err) {
       console.error(err)
@@ -84,24 +88,34 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
     }
   }
 
-  const handleMessage = (event: MessageEvent) => {
-    if (!event.data || typeof event.data !== 'object') return
-    
-    if (event.data.type === 'oauth-success' && event.data.plugin === getPluginId()) {
+  const checkConnection = async () => {
+    await loadStatus()
+    if (pluginStatus.value?.status === 'connected') {
+      awaitingOAuthReturn.value = false
       toast.success('OAuth connection successful!', 'Success')
-      loadStatus()
-    } else if (event.data.type === 'oauth-error' && event.data.plugin === getPluginId()) {
-      toast.error(`OAuth connection failed: ${event.data.error}`, 'Error')
-      loadStatus()
+    }
+  }
+
+  const handleFocus = () => {
+    if (awaitingOAuthReturn.value) {
+      void checkConnection()
+    }
+  }
+
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && awaitingOAuthReturn.value) {
+      void checkConnection()
     }
   }
 
   onMounted(() => {
-    window.addEventListener('message', handleMessage)
+    window.addEventListener('focus', handleFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
   })
 
   onUnmounted(() => {
-    window.removeEventListener('message', handleMessage)
+    window.removeEventListener('focus', handleFocus)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
   })
 
   return {
@@ -109,10 +123,12 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
     formValues,
     saving,
     authLoading,
+    awaitingOAuthReturn,
     loadStatus,
     isLocked,
     handleSaveCredentials,
     handleConnect,
-    handleDisconnect
+    handleDisconnect,
+    checkConnection
   }
 }

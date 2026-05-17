@@ -10,7 +10,7 @@ const chromeSource = readFileSync(
   'utf8',
 )
 const canvasSource = readFileSync(
-  fileURLToPath(new URL('../../../Nod8WorkflowCanvas.vue', import.meta.url)),
+  fileURLToPath(new URL('../../../SailorWorkflowCanvas.vue', import.meta.url)),
   'utf8',
 )
 

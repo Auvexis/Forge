@@ -30,7 +30,7 @@ withDefaults(
 
 <style>
 .app-divider {
-  background: var(--nod8-border);
+  background: var(--sailor-border);
   flex-shrink: 0;
 }
 
@@ -40,7 +40,7 @@ withDefaults(
 }
 
 .app-divider--horizontal.app-divider--spacing {
-  margin: var(--nod8-space-2) 0;
+  margin: var(--sailor-space-2) 0;
 }
 
 .app-divider--vertical {
@@ -49,6 +49,6 @@ withDefaults(
 }
 
 .app-divider--vertical.app-divider--spacing {
-  margin: 0 var(--nod8-space-2);
+  margin: 0 var(--sailor-space-2);
 }
 </style>

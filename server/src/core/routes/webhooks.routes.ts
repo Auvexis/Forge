@@ -58,7 +58,7 @@ export default async function webhooksRoutes(fastify: FastifyInstance) {
       };
 
       console.log(
-        `[NOD8 | WEBHOOKS]: Webhook received — identifier: '${identifier}', content-type: ${payload.contentType}`
+        `[SAILOR | WEBHOOKS]: Webhook received — identifier: '${identifier}', content-type: ${payload.contentType}`
       );
 
       // ── Listen for Event intercept ─────────────────────────────────
@@ -68,7 +68,7 @@ export default async function webhooksRoutes(fastify: FastifyInstance) {
         const { consumed, workflowId } = TriggerListenerRegistry.consume(identifier, payload);
         if (consumed && workflowId) {
           WorkflowRepository.saveLastTriggerPayload(workflowId, payload);
-          console.log(`[NOD8 | WEBHOOKS]: Captured payload for 'Listen for Event' on '${identifier}'`);
+          console.log(`[SAILOR | WEBHOOKS]: Captured payload for 'Listen for Event' on '${identifier}'`);
         }
         return reply.code(200).send({ ok: true });
       }
@@ -76,7 +76,7 @@ export default async function webhooksRoutes(fastify: FastifyInstance) {
 
       return reply.code(200).send({ ok: true });
     } catch (err: any) {
-      console.error(`[NOD8 | WEBHOOKS]: Error processing webhook '${identifier}':`, err.message);
+      console.error(`[SAILOR | WEBHOOKS]: Error processing webhook '${identifier}':`, err.message);
       // Return 200 to prevent the sender from retrying indefinitely
       return reply.code(200).send({ ok: true });
     }
@@ -90,7 +90,7 @@ export default async function webhooksRoutes(fastify: FastifyInstance) {
     const query = req.query as Record<string, string>;
 
     console.log(
-      `[NOD8 | WEBHOOKS]: GET challenge received — identifier: '${identifier}', query:`,
+      `[SAILOR | WEBHOOKS]: GET challenge received — identifier: '${identifier}', query:`,
       Object.keys(query)
     );
 

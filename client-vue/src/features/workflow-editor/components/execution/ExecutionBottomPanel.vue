@@ -86,34 +86,34 @@ function formatTime(timestamp: number): string {
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--nod8-bg-surface);
+  background: var(--sailor-bg-surface);
 }
 
 .ebp-tabs {
   display: flex;
   gap: 1px;
   min-height: 36px;
-  border-bottom: 1px solid var(--nod8-border);
-  background: var(--nod8-bg-base);
+  border-bottom: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-base);
   overflow-x: auto;
 }
 
 .ebp-tab {
   display: inline-flex;
   align-items: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   min-width: 120px;
-  padding: 0 var(--nod8-space-3);
+  padding: 0 var(--sailor-space-3);
   border: 0;
-  border-right: 1px solid var(--nod8-border);
-  color: var(--nod8-text-muted);
+  border-right: 1px solid var(--sailor-border);
+  color: var(--sailor-text-muted);
   background: transparent;
   cursor: pointer;
 }
 
 .ebp-tab--active {
-  color: var(--nod8-text-primary);
-  background: var(--nod8-bg-surface);
+  color: var(--sailor-text-primary);
+  background: var(--sailor-bg-surface);
 }
 
 .ebp-tab span {
@@ -122,11 +122,11 @@ function formatTime(timestamp: number): string {
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: left;
-  font-size: var(--nod8-text-xs);
+  font-size: var(--sailor-text-xs);
 }
 
 .ebp-tab small {
-  font-family: var(--nod8-font-mono);
+  font-family: var(--sailor-font-mono);
   font-size: 10px;
 }
 
@@ -140,10 +140,10 @@ function formatTime(timestamp: number): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   height: 100%;
-  color: var(--nod8-text-muted);
-  font-size: var(--nod8-text-sm);
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-sm);
 }
 
 .ebp-timeline {
@@ -155,29 +155,29 @@ function formatTime(timestamp: number): string {
   display: grid;
   grid-template-columns: 10px minmax(0, 1fr) minmax(120px, auto) minmax(0, auto);
   align-items: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   min-height: 30px;
-  padding: 0 var(--nod8-space-3);
-  border-bottom: 1px solid var(--nod8-border-muted);
+  padding: 0 var(--sailor-space-3);
+  border-bottom: 1px solid var(--sailor-border-muted);
 }
 
 .ebp-dot {
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background: var(--nod8-text-muted);
+  background: var(--sailor-text-muted);
 }
 
 .ebp-event--running .ebp-dot {
-  background: var(--nod8-amber-400);
+  background: var(--sailor-amber-400);
 }
 
 .ebp-event--success .ebp-dot {
-  background: var(--nod8-green-400);
+  background: var(--sailor-green-400);
 }
 
 .ebp-event--failed .ebp-dot {
-  background: var(--nod8-red-400);
+  background: var(--sailor-red-400);
 }
 
 .ebp-copy {
@@ -194,20 +194,20 @@ function formatTime(timestamp: number): string {
 }
 
 .ebp-copy span {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-secondary);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-secondary);
 }
 
 .ebp-copy small,
 .ebp-event code {
-  font-family: var(--nod8-font-mono);
+  font-family: var(--sailor-font-mono);
   font-size: 10px;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
 }
 
 .ebp-error {
   max-width: 320px;
-  color: var(--nod8-red-400);
+  color: var(--sailor-red-400);
   font-size: 10px;
 }
 </style>

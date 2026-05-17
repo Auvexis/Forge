@@ -108,8 +108,8 @@ async function handleUnpublish() {
 
 /* Draft state — neutral/accent */
 .publish-btn--draft {
-  background-color: var(--nod8-button-publish-draft-bg) !important;
-  color: var(--nod8-button-publish-draft-text) !important;
+  background-color: var(--sailor-button-publish-draft-bg) !important;
+  color: var(--sailor-button-publish-draft-text) !important;
 }
 
 .publish-btn--draft:hover:not(:disabled) {
@@ -118,30 +118,30 @@ async function handleUnpublish() {
 
 /* Unpublished (was published before) — orange */
 .publish-btn--unpublished {
-  background-color: var(--nod8-button-publish-unpub-bg) !important;
-  color: var(--nod8-button-publish-unpub-text) !important;
-  border-color: var(--nod8-button-publish-unpub-border) !important;
+  background-color: var(--sailor-button-publish-unpub-bg) !important;
+  color: var(--sailor-button-publish-unpub-text) !important;
+  border-color: var(--sailor-button-publish-unpub-border) !important;
 }
 
 .publish-btn--unpublished:hover:not(:disabled) {
-  background-color: var(--nod8-button-publish-unpub-hover-bg) !important;
+  background-color: var(--sailor-button-publish-unpub-hover-bg) !important;
 }
 
 /* Published state — green pill with live dot */
 .publish-btn--published {
-  background-color: var(--nod8-button-publish-live-bg) !important;
-  color: var(--nod8-button-publish-live-text) !important;
-  border-color: var(--nod8-button-publish-live-border) !important;
+  background-color: var(--sailor-button-publish-live-bg) !important;
+  color: var(--sailor-button-publish-live-text) !important;
+  border-color: var(--sailor-button-publish-live-border) !important;
 }
 
 .publish-btn--published:hover:not(:disabled) {
-  background-color: var(--nod8-button-publish-live-hover-bg) !important;
-  color: var(--nod8-button-publish-live-hover-text) !important;
-  border-color: var(--nod8-button-publish-live-hover-border) !important;
+  background-color: var(--sailor-button-publish-live-hover-bg) !important;
+  color: var(--sailor-button-publish-live-hover-text) !important;
+  border-color: var(--sailor-button-publish-live-hover-border) !important;
 }
 
 .publish-btn--published:hover:not(:disabled) .publish-btn__dot {
-  background: var(--nod8-button-publish-live-hover-text);
+  background: var(--sailor-button-publish-live-hover-text);
 }
 
 /* Live dot */
@@ -149,7 +149,7 @@ async function handleUnpublish() {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--nod8-green-400);
+  background: var(--sailor-green-400);
   animation: pulse-dot 2s ease-in-out infinite;
   flex-shrink: 0;
 }

@@ -37,6 +37,15 @@
         >
           {{ pluginStatus.oauth_ui.oauthCallbackInstructions }}
         </p>
+        <div v-if="pluginStatus.oauth_public_url_required" class="oauth-warning">
+          <LucideIcon name="circle-alert" size="14" />
+          <span>
+            {{
+              pluginStatus.oauth_public_url_warning ||
+              'OAuth needs a public HTTPS URL. Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.'
+            }}
+          </span>
+        </div>
       </div>
     </section>
 
@@ -101,12 +110,16 @@
     <section
       v-if="pluginStatus?.auth_type === 'oauth2'"
       class="plugin-auth__section plugin-auth__section--oauth"
-    >
+      >
+      <p v-if="awaitingOAuthReturn" class="auth-field__desc auth-field__desc--oauth-waiting">
+        Waiting for authorization. Return here after finishing in the new tab.
+      </p>
+
       <button
         v-if="pluginStatus.status === 'configured'"
         class="auth-btn auth-btn--secondary auth-btn--full"
         @click="handleConnect"
-        :disabled="authLoading"
+        :disabled="authLoading || pluginStatus.oauth_public_url_required"
       >
         <LucideIcon v-if="authLoading" name="loader-2" size="16" class="animate-spin mr-2" />
         <template v-else>
@@ -115,6 +128,15 @@
            <LucideIcon v-else name="external-link" size="16" class="mr-2" />
         </template>
         {{ pluginStatus.oauth_ui?.buttonText || 'Connect with OAuth2' }}
+      </button>
+
+      <button
+        v-if="awaitingOAuthReturn"
+        class="auth-btn auth-btn--secondary auth-btn--full"
+        @click="checkConnection"
+      >
+        <LucideIcon name="refresh-cw" size="16" class="mr-2" />
+        Check connection
       </button>
 
       <button
@@ -145,11 +167,13 @@ const {
   formValues,
   saving,
   authLoading,
+  awaitingOAuthReturn,
   loadStatus,
   isLocked,
   handleSaveCredentials,
   handleConnect,
-  handleDisconnect
+  handleDisconnect,
+  checkConnection
 } = usePluginAuth(() => props.pluginId)
 
 onMounted(() => {
@@ -169,43 +193,43 @@ watch(
 .plugin-auth {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-4);
-  padding: var(--nod8-space-1);
+  gap: var(--sailor-space-4);
+  padding: var(--sailor-space-1);
 }
 
 .plugin-auth__header {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-3);
+  gap: var(--sailor-space-3);
 }
 
 .plugin-auth__icon-well {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-lg);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-lg);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .plugin-auth__icon {
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
 }
 
 .plugin-auth__title {
-  font-size: var(--nod8-text-base);
+  font-size: var(--sailor-text-base);
   font-weight: 600;
-  margin: 0 0 var(--nod8-space-1) 0;
-  color: var(--nod8-text-primary);
+  margin: 0 0 var(--sailor-space-1) 0;
+  color: var(--sailor-text-primary);
 }
 
 .plugin-auth__status {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-1);
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
+  gap: var(--sailor-space-1);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
 }
 
 .status-icon--success {
@@ -226,22 +250,22 @@ watch(
 .plugin-auth__form {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-4);
+  gap: var(--sailor-space-4);
 }
 
 .auth-field {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-1);
+  gap: var(--sailor-space-1);
 }
 
 .auth-field__label {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-1);
-  font-size: var(--nod8-text-sm);
+  gap: var(--sailor-space-1);
+  font-size: var(--sailor-text-sm);
   font-weight: 500;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
 }
 
 .auth-field__asterisk {
@@ -263,21 +287,21 @@ watch(
 }
 
 .auth-field__desc {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
-  margin: 0 0 var(--nod8-space-1) 0;
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+  margin: 0 0 var(--sailor-space-1) 0;
 }
 
 .auth-field__locked-input {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
-  padding: 0 var(--nod8-space-3);
+  gap: var(--sailor-space-2);
+  padding: 0 var(--sailor-space-3);
   height: 40px;
-  border-radius: var(--nod8-radius-md);
-  border: 1px solid var(--nod8-border);
-  background-color: var(--nod8-bg-muted);
-  color: var(--nod8-text-muted);
+  border-radius: var(--sailor-radius-md);
+  border: 1px solid var(--sailor-border);
+  background-color: var(--sailor-bg-muted);
+  color: var(--sailor-text-muted);
 }
 
 .text-emerald {
@@ -287,13 +311,13 @@ watch(
 .auth-field__toggle {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   height: 40px;
 }
 
 .auth-field__toggle-text {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
   font-style: italic;
 }
 
@@ -304,17 +328,17 @@ watch(
   align-items: center;
   justify-content: center;
   height: 36px;
-  border-radius: var(--nod8-radius-md);
-  font-size: var(--nod8-text-sm);
+  border-radius: var(--sailor-radius-md);
+  font-size: var(--sailor-text-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color var(--nod8-duration-fast);
+  transition: background-color var(--sailor-duration-fast);
   border: none;
 }
 
 .auth-btn--primary {
-  border: 1px solid var(--nod8-border);
-  color: var(--nod8-text-primary);
+  border: 1px solid var(--sailor-border);
+  color: var(--sailor-text-primary);
 }
 
 .auth-btn--primary:hover {
@@ -327,13 +351,13 @@ watch(
 }
 
 .auth-btn--secondary {
-  background-color: var(--nod8-bg-surface);
-  color: var(--nod8-text-primary);
-  border: 1px solid var(--nod8-border);
+  background-color: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
+  border: 1px solid var(--sailor-border);
 }
 
 .auth-btn--secondary:hover {
-  background-color: var(--nod8-bg-muted);
+  background-color: var(--sailor-bg-muted);
 }
 
 .auth-btn--destructive {
@@ -346,7 +370,7 @@ watch(
 }
 
 .auth-btn--mt {
-  margin-top: var(--nod8-space-2);
+  margin-top: var(--sailor-space-2);
 }
 
 .auth-btn--full {
@@ -354,7 +378,7 @@ watch(
 }
 
 .mr-2 {
-  margin-right: var(--nod8-space-2);
+  margin-right: var(--sailor-space-2);
 }
 .animate-spin {
   animation: spin 1s linear infinite;
@@ -371,18 +395,34 @@ watch(
   object-fit: contain;
 }
 .plugin-auth__section--oauth-info {
-  margin-bottom: var(--nod8-space-2);
-  padding: var(--nod8-space-3);
-  background: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-md);
+  margin-bottom: var(--sailor-space-2);
+  padding: var(--sailor-space-3);
+  background: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
 }
 .oauth-redirect-block {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
+}
+.oauth-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-2);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  border-radius: var(--sailor-radius-md);
+  background: rgba(234, 179, 8, 0.08);
+  color: rgb(234, 179, 8);
+  font-size: var(--sailor-text-xs);
+  line-height: 1.4;
+}
+.oauth-warning svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
 }
 .mt-1 {
-  margin-top: var(--nod8-space-1);
+  margin-top: var(--sailor-space-1);
 }
 </style>

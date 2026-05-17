@@ -439,7 +439,7 @@ const copyToClipboard = async (path: string) => {
             <!-- Special case: event-listener node - show payload preview from Emit Event -->
             <template v-else-if="isEventListenerNode">
               <div v-if="eventListenerInputPreview" class="flex-1 flex flex-col min-h-0">
-                <div class="p-2 border-b border-nod8-border bg-[var(--nod8-bg-surface)] sticky top-0 z-10">
+                <div class="p-2 border-b border-sailor-border bg-[var(--sailor-bg-surface)] sticky top-0 z-10">
                   <BaseInput v-model="eventListenerSearch" icon-left="search" placeholder="Search variables..." />
                 </div>
                 <div class="p-4 flex-1 overflow-y-auto">
@@ -485,10 +485,10 @@ const copyToClipboard = async (path: string) => {
         </div>
 
         <!-- Center Pane: Config -->
-        <div class="inspector-pane" style="background: var(--nod8-bg-surface)">
+        <div class="inspector-pane" style="background: var(--sailor-bg-surface)">
           <div
             class="inspector-pane-header flex-between w-full"
-            style="background: var(--nod8-bg-surface)"
+            style="background: var(--sailor-bg-surface)"
           >
             <div class="text-sm text-muted font-semibold flex items-center gap-2">
               <LucideIcon name="settings" size="16" />
@@ -551,7 +551,7 @@ const copyToClipboard = async (path: string) => {
 
                 <div
                   v-if="!(inspectorStore.activeNodeId === 'trigger' && !workflowStore.activeWorkflow?.nodes.trigger)"
-                  class="flex items-center justify-between gap-3 pt-4 border-t border-nod8-border"
+                  class="flex items-center justify-between gap-3 pt-4 border-t border-sailor-border"
                 >
                   <div class="flex flex-col gap-1">
                     <label class="text-sm font-semibold text-primary">
@@ -570,7 +570,7 @@ const copyToClipboard = async (path: string) => {
                 <!-- Retry Policy -->
                 <div
                   v-if="canConfigureRetry"
-                  class="flex flex-col gap-3 pt-4 border-t border-nod8-border"
+                  class="flex flex-col gap-3 pt-4 border-t border-sailor-border"
                 >
                   <div class="flex items-center justify-between gap-3">
                     <div class="flex flex-col gap-1">
@@ -614,7 +614,7 @@ const copyToClipboard = async (path: string) => {
                 <!-- Authorization Configuration (Plugin Only) -->
                 <div
                   v-if="isPluginNode"
-                  class="flex flex-col gap-2 pt-4 border-t border-nod8-border"
+                  class="flex flex-col gap-2 pt-4 border-t border-sailor-border"
                 >
                   <label class="text-sm font-semibold text-primary mb-1"
                     >Integration Authorization</label
@@ -625,7 +625,7 @@ const copyToClipboard = async (path: string) => {
                   />
                   <div
                     v-else
-                    class="text-sm text-muted p-4 flex flex-col items-center justify-center h-full text-center bg-[var(--nod8-bg-elevated)] rounded"
+                    class="text-sm text-muted p-4 flex flex-col items-center justify-center h-full text-center bg-[var(--sailor-bg-elevated)] rounded"
                   >
                     <LucideIcon name="shield-alert" size="24" class="mb-2 opacity-50" />
                     Select an integration first<br />to configure authorization.
@@ -660,7 +660,7 @@ const copyToClipboard = async (path: string) => {
               v-if="isExecutingNode"
               class="empty-state flex-1 flex flex-col items-center justify-center text-center min-h-[200px]"
             >
-              <LucideIcon name="loader-2" size="24" class="spin text-nod8-accent mb-3" />
+              <LucideIcon name="loader-2" size="24" class="spin text-sailor-accent mb-3" />
               <p class="text-sm text-primary font-medium">Executing step...</p>
             </div>
 
@@ -695,7 +695,7 @@ const copyToClipboard = async (path: string) => {
 .retry-settings-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--nod8-space-3);
+  gap: var(--sailor-space-3);
 }
 
 @media (max-width: 900px) {

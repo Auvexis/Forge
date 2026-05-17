@@ -37,10 +37,10 @@ const panelStore = useSidebarPanelStore()
   position: absolute;
   top: 0;
   bottom: 0;
-  left: var(--nod8-active-sidebar-width, var(--nod8-sidebar-width));
-  background-color: var(--nod8-bg-surface);
-  border-right: 1px solid var(--nod8-border);
-  z-index: var(--nod8-z-raised);
+  left: var(--sailor-active-sidebar-width, var(--sailor-sidebar-width));
+  background-color: var(--sailor-bg-surface);
+  border-right: 1px solid var(--sailor-border);
+  z-index: var(--sailor-z-raised);
   overflow: hidden;
 }
 
@@ -61,15 +61,15 @@ const panelStore = useSidebarPanelStore()
   align-items: center;
   justify-content: space-between;
   height: 48px;
-  padding: 0 var(--nod8-space-4);
-  border-bottom: 1px solid var(--nod8-border);
+  padding: 0 var(--sailor-space-4);
+  border-bottom: 1px solid var(--sailor-border);
   flex-shrink: 0;
 }
 
 .sidebar-panel__title {
-  font-size: var(--nod8-text-sm);
+  font-size: var(--sailor-text-sm);
   font-weight: 500;
-  color: var(--nod8-text-secondary);
+  color: var(--sailor-text-secondary);
   margin: 0;
 }
 
@@ -79,17 +79,17 @@ const panelStore = useSidebarPanelStore()
   justify-content: center;
   width: 24px;
   height: 24px;
-  border-radius: var(--nod8-radius-sm);
-  color: var(--nod8-text-muted);
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-muted);
   cursor: pointer;
   background: transparent;
   border: none;
-  transition: all var(--nod8-duration-fast);
+  transition: all var(--sailor-duration-fast);
 }
 
 .sidebar-panel__close:hover {
-  background-color: var(--nod8-bg-muted);
-  color: var(--nod8-text-primary);
+  background-color: var(--sailor-bg-muted);
+  color: var(--sailor-text-primary);
 }
 
 .sidebar-panel__content {
@@ -111,7 +111,7 @@ const panelStore = useSidebarPanelStore()
   background: transparent;
 }
 .sidebar-panel__content::-webkit-scrollbar-thumb {
-  background: var(--nod8-border);
+  background: var(--sailor-border);
   border-radius: 4px;
 }
 </style>

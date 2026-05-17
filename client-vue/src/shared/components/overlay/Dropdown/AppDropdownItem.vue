@@ -79,18 +79,18 @@ const handleClick = (e: MouseEvent) => {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   width: 100%;
-  padding: var(--nod8-space-2) var(--nod8-space-3);
-  border-radius: var(--nod8-radius-sm);
+  padding: var(--sailor-space-2) var(--sailor-space-3);
+  border-radius: var(--sailor-radius-sm);
   background-color: transparent;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   text-align: left;
   border: none;
   cursor: pointer;
-  transition: color var(--nod8-duration-fast) var(--nod8-ease-standard);
+  transition: color var(--sailor-duration-fast) var(--sailor-ease-standard);
   user-select: none;
-  font-size: var(--nod8-text-sm);
+  font-size: var(--sailor-text-sm);
   font-family: inherit;
 }
 
@@ -100,7 +100,7 @@ const handleClick = (e: MouseEvent) => {
 }
 
 .app-dropdown-item--danger {
-  color: var(--nod8-text-error);
+  color: var(--sailor-text-error);
 }
 
 .app-dropdown-item__icon {
@@ -120,22 +120,22 @@ const handleClick = (e: MouseEvent) => {
 }
 
 .app-dropdown-item__label {
-  font-size: var(--nod8-text-sm);
+  font-size: var(--sailor-text-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .app-dropdown-item__hint {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
 }
 
 .app-dropdown-item__shortcut {
   flex-shrink: 0;
-  font-size: var(--nod8-text-xs);
-  font-family: var(--nod8-font-mono);
-  color: var(--nod8-text-muted);
+  font-size: var(--sailor-text-xs);
+  font-family: var(--sailor-font-mono);
+  color: var(--sailor-text-muted);
   letter-spacing: 0.05em;
   opacity: 0.7;
 }

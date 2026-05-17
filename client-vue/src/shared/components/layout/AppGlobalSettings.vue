@@ -46,7 +46,7 @@
         <!-- ── Headers (Fade) ──────────────────────────────────────── -->
         <transition name="fade" mode="out-in">
           <div v-if="activeTab === 'variables'" key="head-var" class="gs-section__head">
-            <div style="display: flex; flex-direction: column; gap: var(--nod8-space-1)">
+            <div style="display: flex; flex-direction: column; gap: var(--sailor-space-1)">
               <h2 class="gs-section__title">Environment Variables</h2>
               <p class="gs-section__desc">
                 Use <code class="gs-code" v-pre>{{ env.KEY }}</code> in any workflow to reference
@@ -66,7 +66,7 @@
             "
           >
             <div>
-              <div style="display: flex; flex-direction: column; gap: var(--nod8-space-1)">
+              <div style="display: flex; flex-direction: column; gap: var(--sailor-space-1)">
                 <h2 class="gs-section__title">Credentials</h2>
                 <p class="gs-section__desc">
                   Configure API keys and tokens for your installed plugins.
@@ -78,9 +78,9 @@
             </div>
           </div>
           <div v-else-if="activeTab === 'preferences'" key="head-pref" class="gs-section__head">
-            <div style="display: flex; flex-direction: column; gap: var(--nod8-space-1)">
+            <div style="display: flex; flex-direction: column; gap: var(--sailor-space-1)">
               <h2 class="gs-section__title">Preferences</h2>
-              <p class="gs-section__desc">System preferences for this Nod8 instance.</p>
+              <p class="gs-section__desc">System preferences for this Sailor instance.</p>
             </div>
           </div>
         </transition>
@@ -264,8 +264,8 @@
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    background: var(--nod8-bg-surface);
-                    border: 1px solid var(--nod8-border);
+                    background: var(--sailor-bg-surface);
+                    border: 1px solid var(--sailor-border);
                     border-radius: 8px;
                     margin-bottom: 0.75rem;
                   "
@@ -281,7 +281,7 @@
                   style="
                     font-size: 0.95em;
                     font-weight: 500;
-                    color: var(--nod8-text-primary);
+                    color: var(--sailor-text-primary);
                     margin-bottom: 0.25rem;
                     text-align: center;
                   "
@@ -299,10 +299,10 @@
                   "
                   :style="
                     plugin.status === 'connected'
-                      ? 'color: var(--nod8-text-success);'
+                      ? 'color: var(--sailor-text-success);'
                       : plugin.status === 'configured'
-                      ? 'color: var(--nod8-text-warning);'
-                      : 'color: var(--nod8-text-danger);'
+                      ? 'color: var(--sailor-text-warning);'
+                      : 'color: var(--sailor-text-danger);'
                   "
                 >
                   <LucideIcon
@@ -333,9 +333,9 @@
                 <!-- OAuth Redirect URL Block -->
                 <div
                   v-if="selectedPluginForMenu.auth_type === 'oauth2' && pluginStatus?.oauth_redirect_uri"
-                  style="display: flex; flex-direction: column; gap: var(--nod8-space-2); padding: var(--nod8-space-3); background: var(--nod8-bg-surface); border-radius: var(--nod8-radius-md); border: 1px solid var(--nod8-border); margin-bottom: var(--nod8-space-2);"
+                  style="display: flex; flex-direction: column; gap: var(--sailor-space-2); padding: var(--sailor-space-3); background: var(--sailor-bg-surface); border-radius: var(--sailor-radius-md); border: 1px solid var(--sailor-border); margin-bottom: var(--sailor-space-2);"
                 >
-                  <span style="font-size: var(--nod8-text-sm); font-weight: 500; color: var(--nod8-text-primary);">OAuth Redirect URL</span>
+                  <span style="font-size: var(--sailor-text-sm); font-weight: 500; color: var(--sailor-text-primary);">OAuth Redirect URL</span>
                   <BaseInput
                     :model-value="pluginStatus.oauth_redirect_uri"
                     readonly
@@ -343,29 +343,41 @@
                   />
                   <p
                     v-if="pluginStatus?.oauth_ui?.oauthCallbackInstructions"
-                    style="margin: 0; font-size: var(--nod8-text-xs); color: var(--nod8-text-muted); margin-top: var(--nod8-space-1);"
+                    style="margin: 0; font-size: var(--sailor-text-xs); color: var(--sailor-text-muted); margin-top: var(--sailor-space-1);"
                   >
                     {{ pluginStatus.oauth_ui.oauthCallbackInstructions }}
                   </p>
+                  <div
+                    v-if="pluginStatus.oauth_public_url_required"
+                    style="display: flex; align-items: flex-start; gap: var(--sailor-space-2); padding: var(--sailor-space-2); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: var(--sailor-radius-md); background: rgba(234, 179, 8, 0.08); color: rgb(234, 179, 8); font-size: var(--sailor-text-xs); line-height: 1.4;"
+                  >
+                    <LucideIcon name="circle-alert" :size="14" style="flex: 0 0 auto; margin-top: 1px;" />
+                    <span>
+                      {{
+                        pluginStatus.oauth_public_url_warning ||
+                        'OAuth needs a public HTTPS URL. Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.'
+                      }}
+                    </span>
+                  </div>
                 </div>
                 <template
                   v-for="(schema, fieldKey) in credentialSchema(selectedPluginForMenu)"
                   :key="fieldKey"
                 >
-                  <div style="display: flex; flex-direction: column; gap: var(--nod8-space-1)">
-                    <label style="display: flex; align-items: center; gap: var(--nod8-space-1); font-size: var(--nod8-text-sm); font-weight: 500; color: var(--nod8-text-primary);">
+                  <div style="display: flex; flex-direction: column; gap: var(--sailor-space-1)">
+                    <label style="display: flex; align-items: center; gap: var(--sailor-space-1); font-size: var(--sailor-text-sm); font-weight: 500; color: var(--sailor-text-primary);">
                       {{ (schema as any).label ?? (schema as any).title ?? String(fieldKey) }}
                       <span v-if="(schema as any).required" style="color: rgb(239, 68, 68);">*</span>
                     </label>
                     <p
                       v-if="(schema as any).description"
-                      style="margin: 0; font-size: var(--nod8-text-xs); color: var(--nod8-text-muted);"
+                      style="margin: 0; font-size: var(--sailor-text-xs); color: var(--sailor-text-muted);"
                     >
                       {{ (schema as any).description }}
                     </p>
 
                     <div
-                      style="display: flex; align-items: center; gap: 0.5rem; margin-top: var(--nod8-space-1)"
+                      style="display: flex; align-items: center; gap: 0.5rem; margin-top: var(--sailor-space-1)"
                     >
                       <BaseInput
                         style="flex: 1"
@@ -409,7 +421,7 @@
               </div>
 
               <template #footer>
-                <div style="display: flex; flex-direction: column; gap: var(--nod8-space-2); width: 100%;">
+                <div style="display: flex; flex-direction: column; gap: var(--sailor-space-2); width: 100%;">
                   <!-- Save Button -->
                   <BaseButton
                     variant="primary"
@@ -426,6 +438,7 @@
                     v-if="selectedPluginForMenu?.auth_type === 'oauth2' && pluginStatus?.status === 'configured'"
                     variant="secondary"
                     :title="pluginStatus?.oauth_ui?.buttonText || 'Authenticate via OAuth2'"
+                    :disabled="pluginStatus?.oauth_public_url_required"
                     @click="handleOAuth2(selectedPluginForMenu.id)"
                     style="width: 100%; justify-content: center; height: 36px; font-weight: 500;"
                   >
@@ -435,6 +448,22 @@
                       <LucideIcon v-else name="external-link" :size="16" />
                     </template>
                     {{ pluginStatus?.oauth_ui?.buttonText || 'Connect with OAuth2' }}
+                  </BaseButton>
+                  <p
+                    v-if="selectedPluginForMenu?.auth_type === 'oauth2' && awaitingOAuthReturn"
+                    class="gs-field__hint"
+                  >
+                    Waiting for authorization. Return here after finishing in the new tab.
+                  </p>
+                  <BaseButton
+                    v-if="selectedPluginForMenu?.auth_type === 'oauth2' && awaitingOAuthReturn"
+                    variant="secondary"
+                    title="Check connection"
+                    @click="checkConnection"
+                    style="width: 100%; justify-content: center; height: 36px; font-weight: 500;"
+                  >
+                    <template #left><LucideIcon name="refresh-cw" :size="16" /></template>
+                    Check connection
                   </BaseButton>
                   <BaseButton
                     v-else-if="selectedPluginForMenu?.auth_type !== 'none' && selectedPluginForMenu?.auth_type !== 'oauth2'"
@@ -637,6 +666,8 @@ const {
   handleConnect: startOAuth2,
   handleDisconnect: disconnectOAuth2,
   authLoading: isAuthLoading,
+  awaitingOAuthReturn,
+  checkConnection,
 } = usePluginAuth(() => selectedPluginForMenu.value?.id ?? null)
 
 watch(() => pluginStatus.value?.status, (newStatus) => {
@@ -825,7 +856,7 @@ async function handlePublicUrlSave() {
   align-items: center;
   justify-content: center;
   padding: 1rem 0.5rem;
-  border-radius: var(--nod8-radius-sm);
+  border-radius: var(--sailor-radius-sm);
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
@@ -833,11 +864,11 @@ async function handlePublicUrlSave() {
 }
 
 .gs-cred-grid-item:hover {
-  background: var(--nod8-button-ghost-hover);
-  border-color: var(--nod8-border-muted);
+  background: var(--sailor-button-ghost-hover);
+  border-color: var(--sailor-border-muted);
 }
 .gs-cred-grid-item--active {
-  background: var(--nod8-bg-surface);
-  border-color: var(--nod8-border);
+  background: var(--sailor-bg-surface);
+  border-color: var(--sailor-border);
 }
 </style>

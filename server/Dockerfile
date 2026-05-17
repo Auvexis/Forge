@@ -2,7 +2,7 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-ENV ND8_HOME=/app/.nd8
+ENV SAILOR_HOME=/app/.sailor
 
 COPY package*.json ./
 

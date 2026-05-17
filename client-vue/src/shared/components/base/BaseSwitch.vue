@@ -64,7 +64,7 @@ defineOptions({ inheritAttrs: false })
 .base-switch-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   cursor: pointer;
   user-select: none;
 }
@@ -95,10 +95,10 @@ defineOptions({ inheritAttrs: false })
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: var(--nod8-radius-full);
-  background-color: var(--nod8-bg-muted);
-  transition: background-color var(--nod8-duration-fast) var(--nod8-ease-standard);
-  border: 1px solid var(--nod8-border-strong);
+  border-radius: var(--sailor-radius-full);
+  background-color: var(--sailor-bg-muted);
+  transition: background-color var(--sailor-duration-fast) var(--sailor-ease-standard);
+  border: 1px solid var(--sailor-border-strong);
 }
 
 .base-switch__thumb {
@@ -108,15 +108,15 @@ defineOptions({ inheritAttrs: false })
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background-color: var(--nod8-text-inverse);
-  transition: transform var(--nod8-duration-fast) var(--nod8-ease-standard);
+  background-color: var(--sailor-text-inverse);
+  transition: transform var(--sailor-duration-fast) var(--sailor-ease-standard);
   transform: translateY(-50%);
-  box-shadow: var(--nod8-shadow-sm);
+  box-shadow: var(--sailor-shadow-sm);
 }
 
 /* Checked State */
 .base-switch--checked .base-switch__track {
-  background-color: var(--nod8-button-primary-bg);
+  background-color: var(--sailor-button-primary-bg);
   border-color: transparent;
 }
 
@@ -126,13 +126,13 @@ defineOptions({ inheritAttrs: false })
 
 /* Focus State */
 .base-switch__input:focus-visible + .base-switch__track {
-  outline: 2px solid var(--nod8-border-strong);
+  outline: 2px solid var(--sailor-border-strong);
   outline-offset: 2px;
 }
 
 .base-switch__label {
-  font-size: var(--nod8-text-sm);
-  color: var(--nod8-text-primary);
+  font-size: var(--sailor-text-sm);
+  color: var(--sailor-text-primary);
   line-height: 1.2;
 }
 </style>

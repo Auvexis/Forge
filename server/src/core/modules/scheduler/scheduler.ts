@@ -37,7 +37,7 @@ export const Scheduler = {
     }
 
     if (count > 0) {
-      console.log(`[NOD8 | SCHEDULER]: Initialized ${count} cron job(s)`);
+      console.log(`[SAILOR | SCHEDULER]: Initialized ${count} cron job(s)`);
     }
   },
 
@@ -48,7 +48,7 @@ export const Scheduler = {
   scheduleWorkflow(workflowId: string, triggerNodeId: string, cronExpression: string): void {
     if (!cron.validate(cronExpression)) {
       console.error(
-        `[NOD8 | SCHEDULER]: Invalid cron expression for workflow ${workflowId}: "${cronExpression}"`,
+        `[SAILOR | SCHEDULER]: Invalid cron expression for workflow ${workflowId}: "${cronExpression}"`,
       );
       return;
     }
@@ -57,12 +57,12 @@ export const Scheduler = {
     this.unscheduleWorkflow(workflowId, triggerNodeId);
 
     const task = cron.schedule(cronExpression, async () => {
-      console.log(`[NOD8 | SCHEDULER]: Triggering workflow ${workflowId}/${triggerNodeId} (cron: ${cronExpression})`);
+      console.log(`[SAILOR | SCHEDULER]: Triggering workflow ${workflowId}/${triggerNodeId} (cron: ${cronExpression})`);
 
       const workflow = WorkflowRepository.getWorkflowById(workflowId);
       if (!workflow) {
         console.error(
-          `[NOD8 | SCHEDULER]: Workflow ${workflowId} not found — removing job`,
+          `[SAILOR | SCHEDULER]: Workflow ${workflowId} not found — removing job`,
         );
         this.unscheduleWorkflow(workflowId, triggerNodeId);
         return;
@@ -86,10 +86,10 @@ export const Scheduler = {
           triggerPayload,
           executionId,
         );
-        console.log(`[NOD8 | SCHEDULER]: Workflow ${workflowId} completed`);
+        console.log(`[SAILOR | SCHEDULER]: Workflow ${workflowId} completed`);
       } catch (err: any) {
         console.error(
-          `[NOD8 | SCHEDULER]: Workflow ${workflowId} failed: ${err.message}`,
+          `[SAILOR | SCHEDULER]: Workflow ${workflowId} failed: ${err.message}`,
         );
       }
     });
@@ -97,7 +97,7 @@ export const Scheduler = {
     const jobId = schedulerJobId(workflowId, triggerNodeId);
     activeJobs.set(jobId, { workflowId, triggerNodeId, cronExpression, task });
     console.log(
-      `[NOD8 | SCHEDULER]: Scheduled workflow ${workflowId} (${cronExpression})`,
+      `[SAILOR | SCHEDULER]: Scheduled workflow ${workflowId} (${cronExpression})`,
     );
   },
 

@@ -1,4 +1,4 @@
-import type { Nod8Plugin } from "../../shared/models/plugin-types.ts";
+import type { SailorPlugin } from "@auvexis/sailor-sdk";
 import manifest from "./manifest.json" with { type: "json" };
 import { createMethods } from "./methods.ts";
 
@@ -12,7 +12,7 @@ import { createMethods } from "./methods.ts";
  *
  * The plugin `id` must match manifest.metadata.id exactly.
  */
-const MyPlugin: Nod8Plugin = {
+const MyPlugin: SailorPlugin = {
   id: "my-plugin",
   manifest: manifest as any,
   auth: {

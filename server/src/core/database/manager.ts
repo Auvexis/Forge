@@ -1,20 +1,20 @@
 import Database from "better-sqlite3";
 import path from "path";
-import { ensureNd8HomeStructure, nd8HomePaths } from "../runtime/nd8-home.ts";
-import { prepareNd8DataDirectory } from "../runtime/nd8-data-directory.ts";
+import { ensureSailorHomeStructure, sailorHomePaths } from "../runtime/sailor-home.ts";
+import { prepareSailorDataDirectory } from "../runtime/sailor-data-directory.ts";
 
 // ─── Resolve data directory ───────────────────────────────────────────────────
 
-ensureNd8HomeStructure(nd8HomePaths);
-const dataPreparation = prepareNd8DataDirectory({ dataDir: nd8HomePaths.dataDir });
+ensureSailorHomeStructure(sailorHomePaths);
+const dataPreparation = prepareSailorDataDirectory({ dataDir: sailorHomePaths.dataDir });
 
 if (dataPreparation.copied) {
   console.log(
-    `[NOD8 | RUNTIME]: Copied legacy databases into ${nd8HomePaths.dataDir}: ${dataPreparation.files.join(", ")}`,
+    `[SAILOR | RUNTIME]: Copied legacy databases into ${sailorHomePaths.dataDir}: ${dataPreparation.files.join(", ")}`,
   );
 }
 
-const DATA_DIR = nd8HomePaths.dataDir;
+const DATA_DIR = sailorHomePaths.dataDir;
 
 // ─── Factory ──────────────────────────────────────────────────────────────────
 
@@ -35,7 +35,7 @@ function openDatabase(filename: string): Database.Database {
 /**
  * Central Database Manager.
  *
- * Each key maps to an isolated SQLite file in ND8_HOME/data.
+ * Each key maps to an isolated SQLite file in SAILOR_HOME/data.
  * Consumers import this object instead of opening their own connections.
  *
  * @example

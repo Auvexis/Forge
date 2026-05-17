@@ -31,11 +31,11 @@ const props = defineProps({
   // Allows customizing the background color when hovering vs active
   hoverBackground: {
     type: String,
-    default: 'var(--nod8-button-ghost-hover)',
+    default: 'var(--sailor-button-ghost-hover)',
   },
   activeBackground: {
     type: String,
-    default: 'var(--nod8-button-ghost-active)',
+    default: 'var(--sailor-button-ghost-active)',
   },
   // To allow padding offset calculations if needed
   inset: {
@@ -144,7 +144,7 @@ const pillStyle = computed(() => {
   position: absolute;
   top: 0;
   left: 0;
-  border-radius: var(--nod8-radius-sm);
+  border-radius: var(--sailor-radius-sm);
   /* The amoeba/wooby bounce effect */
   transition:
     transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),

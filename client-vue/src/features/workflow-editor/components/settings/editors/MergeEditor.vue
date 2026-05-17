@@ -58,36 +58,36 @@ const currentMode = computed(() => (props.node.data.mode as string) ?? 'wait-any
 .merge-modes {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-2);
-  margin-top: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
+  margin-top: var(--sailor-space-2);
 }
 
 .merge-mode-btn {
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-3);
-  padding: var(--nod8-space-3);
-  background: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-md);
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-3);
+  background: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
   cursor: pointer;
   font-family: inherit;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   text-align: left;
-  transition: border-color var(--nod8-duration-fast), color var(--nod8-duration-fast);
+  transition: border-color var(--sailor-duration-fast), color var(--sailor-duration-fast);
   width: 100%;
 }
 
 .merge-mode-btn:hover {
-  border-color: var(--nod8-node-merge-icon, #a78bfa);
-  color: var(--nod8-text-primary);
-  background: color-mix(in srgb, var(--nod8-node-merge-bg, rgba(167,139,250,0.12)) 60%, transparent);
+  border-color: var(--sailor-node-merge-icon, #a78bfa);
+  color: var(--sailor-text-primary);
+  background: color-mix(in srgb, var(--sailor-node-merge-bg, rgba(167,139,250,0.12)) 60%, transparent);
 }
 
 .merge-mode-btn--active {
-  border-color: var(--nod8-node-merge-icon, #a78bfa);
-  color: var(--nod8-text-primary);
-  background: color-mix(in srgb, var(--nod8-node-merge-bg, rgba(167,139,250,0.12)) 60%, transparent);
+  border-color: var(--sailor-node-merge-icon, #a78bfa);
+  color: var(--sailor-text-primary);
+  background: color-mix(in srgb, var(--sailor-node-merge-bg, rgba(167,139,250,0.12)) 60%, transparent);
 }
 
 .merge-mode-info {
@@ -97,12 +97,12 @@ const currentMode = computed(() => (props.node.data.mode as string) ?? 'wait-any
 }
 
 .merge-mode-label {
-  font-size: var(--nod8-text-sm);
+  font-size: var(--sailor-text-sm);
   font-weight: 600;
 }
 
 .merge-mode-desc {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-muted);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
 }
 </style>

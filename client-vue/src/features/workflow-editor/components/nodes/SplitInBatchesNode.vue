@@ -26,9 +26,9 @@ const subtitle = computed(() => `${batchSize.value} items per batch`)
     :title="stepTitle"
     :subtitle="subtitle"
     icon="layers"
-    color="var(--nod8-node-split-icon)"
-    bg="var(--nod8-node-split-bg)"
-    border-color="var(--nod8-node-split-border)"
+    color="var(--sailor-node-split-icon)"
+    bg="var(--sailor-node-split-bg)"
+    border-color="var(--sailor-node-split-border)"
   >
     <!-- batch handle — fires for each batch -->
     <BaseHandle id="batch-body" type="source" :position="Position.Right" style="top: 35%" />

@@ -100,10 +100,10 @@ defineExpose({ open, close, isOpen })
 <style scoped>
 .app-context-menu {
   position: fixed;
-  z-index: var(--nod8-z-modal);
+  z-index: var(--sailor-z-modal);
   min-width: 220px;
-  border-radius: var(--nod8-radius-md);
-  padding: var(--nod8-space-2);
+  border-radius: var(--sailor-radius-md);
+  padding: var(--sailor-space-2);
   transform-origin: top left;
 }
 

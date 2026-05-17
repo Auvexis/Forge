@@ -10,7 +10,7 @@
 
     <EditorField label="JavaScript Code" icon="code-2">
       <div class="editor-hint editor-hint--green">
-        <span style="color: var(--nod8-text-primary)">Available:</span>
+        <span style="color: var(--sailor-text-primary)">Available:</span>
         <BaseBadge variant="default" size="sm" text="context.trigger" />
         <BaseBadge variant="default" size="sm" text="context.steps" />
         <BaseBadge variant="default" size="sm" text="variables" />

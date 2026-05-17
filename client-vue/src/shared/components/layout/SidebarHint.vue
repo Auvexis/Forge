@@ -141,23 +141,23 @@ onBeforeUnmount(() => {
   position: fixed;
   z-index: 99999;
   width: 240px;
-  background-color: var(--nod8-bg-surface);
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-lg);
-  box-shadow: var(--nod8-shadow-lg);
+  background-color: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-lg);
+  box-shadow: var(--sailor-shadow-lg);
   display: flex;
   flex-direction: column;
-  padding: var(--nod8-space-2);
-  gap: var(--nod8-space-3);
+  padding: var(--sailor-space-2);
+  gap: var(--sailor-space-3);
   pointer-events: none;
 }
 
 .sidebar-hint-modal__image-wrapper {
   width: 100%;
   height: 120px;
-  background-color: var(--nod8-bg-base);
-  border-radius: var(--nod8-radius-md);
-  border: 1px solid var(--nod8-border-subtle);
+  background-color: var(--sailor-bg-base);
+  border-radius: var(--sailor-radius-md);
+  border: 1px solid var(--sailor-border-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -176,7 +176,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
 }
 
 .placeholder-icon {
@@ -186,25 +186,25 @@ onBeforeUnmount(() => {
 .sidebar-hint-modal__content {
   display: flex;
   flex-direction: column;
-  gap: var(--nod8-space-2);
-  padding: 0 var(--nod8-space-1) var(--nod8-space-1) var(--nod8-space-1);
+  gap: var(--sailor-space-2);
+  padding: 0 var(--sailor-space-1) var(--sailor-space-1) var(--sailor-space-1);
 }
 
 .sidebar-hint-modal__title {
   margin: 0;
-  font-size: var(--nod8-text-sm);
+  font-size: var(--sailor-text-sm);
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   display: flex;
   align-items: center;
-  gap: var(--nod8-space-2);
+  gap: var(--sailor-space-2);
   letter-spacing: 0.5px;
 }
 
 .sidebar-hint-modal__desc {
-  font-size: var(--nod8-text-xs);
-  color: var(--nod8-text-secondary);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-secondary);
   line-height: 1.5;
   max-height: 80px;
   overflow-y: auto;
@@ -217,8 +217,8 @@ onBeforeUnmount(() => {
   background: transparent;
 }
 .sidebar-hint-modal__desc::-webkit-scrollbar-thumb {
-  background-color: var(--nod8-border-muted);
-  border-radius: var(--nod8-radius-full);
+  background-color: var(--sailor-border-muted);
+  border-radius: var(--sailor-radius-full);
 }
 
 .hint-fade-enter-active,

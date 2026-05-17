@@ -30,72 +30,72 @@ export const NODE_TYPE_META: Record<
 > = {
   trigger: {
     label: 'Trigger',
-    color: 'var(--nod8-node-trigger)',
+    color: 'var(--sailor-node-trigger)',
     category: 'trigger',
   },
   plugin: {
     label: 'Plugin',
-    color: 'var(--nod8-node-plugin)',
+    color: 'var(--sailor-node-plugin)',
     category: 'integration',
   },
   code: {
     label: 'Code',
-    color: 'var(--nod8-node-code)',
+    color: 'var(--sailor-node-code)',
     category: 'data',
   },
   if: {
     label: 'Condition',
-    color: 'var(--nod8-node-logic)',
+    color: 'var(--sailor-node-logic)',
     category: 'logic',
   },
   loop: {
     label: 'Loop',
-    color: 'var(--nod8-node-flow)',
+    color: 'var(--sailor-node-flow)',
     category: 'flow',
   },
   subworkflow: {
     label: 'Sub-Workflow',
-    color: 'var(--nod8-node-plugin)',
+    color: 'var(--sailor-node-plugin)',
     category: 'flow',
   },
   http: {
     label: 'HTTP Request',
-    color: 'var(--nod8-node-http)',
+    color: 'var(--sailor-node-http)',
     category: 'integration',
   },
   event: {
     label: 'Emit Event',
-    color: 'var(--nod8-node-integration)',
+    color: 'var(--sailor-node-integration)',
     category: 'flow',
   },
   'event-listener': {
     label: 'Event Listener',
-    color: 'var(--nod8-node-integration)',
+    color: 'var(--sailor-node-integration)',
     category: 'trigger',
   },
   set: {
     label: 'Set Fields',
-    color: 'var(--nod8-node-set-icon)',
+    color: 'var(--sailor-node-set-icon)',
     category: 'data',
   },
   switch: {
     label: 'Switch',
-    color: 'var(--nod8-node-switch-icon)',
+    color: 'var(--sailor-node-switch-icon)',
     category: 'logic',
   },
   merge: {
     label: 'Merge',
-    color: 'var(--nod8-node-merge-icon)',
+    color: 'var(--sailor-node-merge-icon)',
     category: 'flow',
   },
   'split-in-batches': {
     label: 'Split In Batches',
-    color: 'var(--nod8-node-split-icon)',
+    color: 'var(--sailor-node-split-icon)',
     category: 'flow',
   },
   'respond-webhook': {
     label: 'Respond to Webhook',
-    color: 'var(--nod8-node-respond-webhook-icon)',
+    color: 'var(--sailor-node-respond-webhook-icon)',
     category: 'output',
   },
   'wait-form': {

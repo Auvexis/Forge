@@ -34,7 +34,7 @@ export const eventNodeHandler = createNodeHandler<EventNode>(
     };
   },
   {
-    description: "Emits an internal Nod8 event and records triggered executions.",
+    description: "Emits an internal Sailor event and records triggered executions.",
     execution: "external-io",
     sideEffects: ["event-emit", "workflow-dispatch"],
     outputs: [{ id: "default", label: "Event" }],

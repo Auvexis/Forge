@@ -107,7 +107,7 @@ function deleteNode() {
   padding: 3px 5px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--nod8-duration-fast);
+  transition: opacity var(--sailor-duration-fast);
   white-space: nowrap;
   z-index: 20;
 }
@@ -125,32 +125,32 @@ function deleteNode() {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--nod8-radius-sm);
+  border-radius: var(--sailor-radius-sm);
   background: transparent;
   border: none;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   cursor: pointer;
-  transition: background-color var(--nod8-duration-fast), color var(--nod8-duration-fast);
+  transition: background-color var(--sailor-duration-fast), color var(--sailor-duration-fast);
 }
 
 .nt-btn:hover {
-  background-color: var(--nod8-bg-elevated);
-  color: var(--nod8-text-primary);
+  background-color: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
 }
 
 /* Output button when node errored */
 .nt-btn--error {
-  color: var(--nod8-amber-400);
+  color: var(--sailor-amber-400);
 }
 
 .nt-btn--error:hover {
   background-color: rgba(245, 158, 11, 0.1);
-  color: var(--nod8-amber-400);
+  color: var(--sailor-amber-400);
 }
 
 /* Delete button */
 .nt-btn--danger:hover {
   background-color: rgba(239, 68, 68, 0.1);
-  color: var(--nod8-red-400);
+  color: var(--sailor-red-400);
 }
 </style>

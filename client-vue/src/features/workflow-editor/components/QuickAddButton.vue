@@ -49,15 +49,15 @@ const onQuickAdd = () => {
 .qab-cable {
   width: 60px;
   height: 2px;
-  background-color: var(--nod8-node-handle);
+  background-color: var(--sailor-node-handle);
   transition: background-color 0.2s;
 }
 
 .qab-btn {
-  border-radius: var(--nod8-radius-sm);
-  background-color: var(--nod8-node-border);
-  border: 2px solid var(--nod8-border-strong);
-  color: var(--nod8-text-primary);
+  border-radius: var(--sailor-radius-sm);
+  background-color: var(--sailor-node-border);
+  border: 2px solid var(--sailor-border-strong);
+  color: var(--sailor-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;

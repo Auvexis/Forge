@@ -24,9 +24,9 @@ const subtitle = computed(() => `HTTP ${statusCode.value}`)
     :title="stepTitle"
     :subtitle="subtitle"
     icon="send"
-    color="var(--nod8-node-respond-webhook-icon)"
-    bg="var(--nod8-node-respond-webhook-bg)"
-    border-color="var(--nod8-node-respond-webhook-border)"
+    color="var(--sailor-node-respond-webhook-icon)"
+    bg="var(--sailor-node-respond-webhook-bg)"
+    border-color="var(--sailor-node-respond-webhook-border)"
   >
     <!-- Terminal node — no source output handle -->
   </BaseNode>

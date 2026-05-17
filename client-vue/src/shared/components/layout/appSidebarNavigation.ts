@@ -6,7 +6,14 @@ export interface SidebarNavItem {
   description: string
   icon: string
   accent: SidebarAccent
-  route: string
+  route?: string
+  intent?: SidebarNavIntent
+}
+
+export interface SidebarNavIntent {
+  type: string
+  target?: string
+  payload?: Record<string, unknown>
 }
 
 export interface SidebarSection {
@@ -153,11 +160,6 @@ export const sidebarSections: SidebarSection[] = [
         accent: '#22c55e',
         route: '/database',
       },
-    ],
-  },
-  {
-    label: 'UI',
-    items: [
       {
         id: 'universe',
         label: 'Universe',
@@ -166,6 +168,19 @@ export const sidebarSections: SidebarSection[] = [
         icon: 'orbit',
         accent: '#8a52ff',
         route: '/universe',
+      },
+    ],
+  },
+  {
+    label: 'Plugins',
+    items: [
+      {
+        id: 'plugin-external-installer',
+        label: 'Installer',
+        description: 'Install plugins from the external repository or local files.',
+        icon: 'package',
+        accent: '#8a52ff',
+        intent: { type: 'plugin-installer.open' },
       },
     ],
   },
@@ -229,5 +244,12 @@ export function sidebarWidthForState(
   options: { expandedPx?: number } = {},
 ): string {
   if (!isCollapsed && options.expandedPx) return `${options.expandedPx}px`
-  return isCollapsed ? 'var(--nod8-sidebar-width)' : 'var(--nod8-sidebar-expanded)'
+  return isCollapsed ? 'var(--sailor-sidebar-width)' : 'var(--sailor-sidebar-expanded)'
+}
+
+export function dispatchSidebarNavIntent(item: SidebarNavItem): boolean {
+  if (!item.intent) return false
+
+  window.dispatchEvent(new CustomEvent('sailor:command-palette:intent', { detail: item.intent }))
+  return true
 }

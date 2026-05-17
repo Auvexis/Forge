@@ -4,12 +4,12 @@ import { PluginManager } from "../../plugins/manager.ts";
 import { Vault } from "../../plugins/vault.ts";
 import type {
   CredentialSchema,
-  Nod8Plugin,
+  SailorPlugin,
   OAuth2Provider,
   OAuth2Tokens,
   PluginAuthType,
   PluginStatus,
-} from "../../../../shared/models/plugin-types.ts";
+} from "@auvexis/sailor-sdk";
 import type {
   CommandDescriptor,
   CommandDrilldown,
@@ -19,8 +19,8 @@ import type {
 } from "../command-types.ts";
 
 interface PluginCommandServices {
-  listPlugins: () => Nod8Plugin[];
-  getPlugin: (id: string) => Nod8Plugin;
+  listPlugins: () => SailorPlugin[];
+  getPlugin: (id: string) => SailorPlugin;
   getPluginStatus: (
     pluginId: string,
     authType: PluginAuthType,
@@ -51,15 +51,15 @@ function pluginServices(context: CommandExecutionContext): PluginCommandServices
   };
 }
 
-function pluginCredentialSchema(plugin: Nod8Plugin): CredentialSchema | undefined {
+function pluginCredentialSchema(plugin: SailorPlugin): CredentialSchema | undefined {
   return (plugin.auth as { credentialSchema?: CredentialSchema }).credentialSchema;
 }
 
-function pluginStatus(plugin: Nod8Plugin, services: PluginCommandServices): PluginStatus {
+function pluginStatus(plugin: SailorPlugin, services: PluginCommandServices): PluginStatus {
   return services.getPluginStatus(plugin.id, plugin.auth.type, pluginCredentialSchema(plugin));
 }
 
-function pluginKeywords(plugin: Nod8Plugin, extra: string[] = []): string[] {
+function pluginKeywords(plugin: SailorPlugin, extra: string[] = []): string[] {
   const metadata = plugin.manifest.metadata;
   return [
     plugin.id,
@@ -71,7 +71,7 @@ function pluginKeywords(plugin: Nod8Plugin, extra: string[] = []): string[] {
   ].filter(Boolean);
 }
 
-async function oauthUrl(plugin: Nod8Plugin, services: PluginCommandServices): Promise<string> {
+async function oauthUrl(plugin: SailorPlugin, services: PluginCommandServices): Promise<string> {
   if (plugin.auth.type !== "oauth2") {
     throw new Error("Plugin does not support OAuth2");
   }
@@ -90,7 +90,7 @@ async function oauthUrl(plugin: Nod8Plugin, services: PluginCommandServices): Pr
 
 // ─── Drilldown builder ────────────────────────────────────────────────────────
 
-function pluginDrilldown(plugin: Nod8Plugin, context: CommandExecutionContext): CommandDrilldown {
+function pluginDrilldown(plugin: SailorPlugin, context: CommandExecutionContext): CommandDrilldown {
   const services = pluginServices(context);
   const status = pluginStatus(plugin, services);
   const isOAuth = plugin.auth.type === "oauth2";
@@ -172,7 +172,7 @@ function pluginDrilldown(plugin: Nod8Plugin, context: CommandExecutionContext): 
 
 // ─── Per-plugin parent entry (shown in main list) ─────────────────────────────
 
-function pluginEntryCommand(plugin: Nod8Plugin): CommandHandler {
+function pluginEntryCommand(plugin: SailorPlugin): CommandHandler {
   return {
     describe: (context): CommandDescriptor => {
       const services = pluginServices(context);
@@ -198,7 +198,7 @@ function pluginEntryCommand(plugin: Nod8Plugin): CommandHandler {
 // These are hidden from the main list (availability.hidden = true) and only
 // reachable via the drilldown mechanism.
 
-function openPluginCommand(plugin: Nod8Plugin): CommandHandler {
+function openPluginCommand(plugin: SailorPlugin): CommandHandler {
   return {
     describe: (): CommandDescriptor => ({
       id: `plugin.open.${plugin.id}`,
@@ -221,7 +221,7 @@ function openPluginCommand(plugin: Nod8Plugin): CommandHandler {
   };
 }
 
-function connectPluginCommand(plugin: Nod8Plugin): CommandHandler {
+function connectPluginCommand(plugin: SailorPlugin): CommandHandler {
   return {
     describe: (context): CommandDescriptor => {
       const services = pluginServices(context);
@@ -247,7 +247,7 @@ function connectPluginCommand(plugin: Nod8Plugin): CommandHandler {
   };
 }
 
-function disconnectPluginCommand(plugin: Nod8Plugin): CommandHandler {
+function disconnectPluginCommand(plugin: SailorPlugin): CommandHandler {
   return {
     describe: (context): CommandDescriptor => ({
       id: `plugin.disconnect.${plugin.id}`,
@@ -293,7 +293,7 @@ function disabledInstallCommand(): CommandHandler {
   };
 }
 
-function pluginCommands(plugin: Nod8Plugin): CommandHandler[] {
+function pluginCommands(plugin: SailorPlugin): CommandHandler[] {
   return [
     pluginEntryCommand(plugin),
     openPluginCommand(plugin),

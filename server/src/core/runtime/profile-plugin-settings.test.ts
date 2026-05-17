@@ -11,7 +11,7 @@ import {
 
 describe("profile plugin settings", () => {
   it("returns empty enabledPlugins when settings file is missing", () => {
-    const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-profile-"));
+    const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-"));
 
     const settings = readProfilePluginSettings(profileDir);
 
@@ -19,7 +19,7 @@ describe("profile plugin settings", () => {
   });
 
   it("writes and reads enabled plugin references", () => {
-    const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-profile-"));
+    const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-"));
 
     writeProfilePluginSettings(profileDir, {
       enabledPlugins: [{ id: "telegram", source: "external", version: "1.0.0" }],

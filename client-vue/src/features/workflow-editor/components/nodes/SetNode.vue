@@ -29,9 +29,9 @@ const subtitle = computed(() =>
     :title="stepTitle"
     :subtitle="subtitle"
     icon="sliders-horizontal"
-    color="var(--nod8-node-set-icon)"
-    bg="var(--nod8-node-set-bg)"
-    border-color="var(--nod8-node-set-border)"
+    color="var(--sailor-node-set-icon)"
+    bg="var(--sailor-node-set-bg)"
+    border-color="var(--sailor-node-set-border)"
   >
     <BaseHandle id="source" type="source" :position="Position.Right" />
     <QuickAddButton :node-id="props.id" handle-id="source" style="top: 50%" />

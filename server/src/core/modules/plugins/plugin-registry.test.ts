@@ -36,16 +36,16 @@ describe("plugin registry", () => {
       pluginId: "external-plugin",
       version: "2.0.0",
       source: "external",
-      installPath: "C:/nd8/global/plugins/external-plugin",
-      manifestPath: "C:/nd8/global/plugins/external-plugin/manifest.json",
+      installPath: "C:/sailor/global/plugins/external-plugin",
+      manifestPath: "C:/sailor/global/plugins/external-plugin/manifest.json",
     });
 
     const row = db.prepare("SELECT * FROM registered_plugins WHERE id = ?").get("external-plugin") as any;
     assert.equal(row.plugin_id, "external-plugin");
     assert.equal(row.version, "2.0.0");
     assert.equal(row.source, "external");
-    assert.equal(row.install_path, "C:/nd8/global/plugins/external-plugin");
-    assert.equal(row.manifest_path, "C:/nd8/global/plugins/external-plugin/manifest.json");
+    assert.equal(row.install_path, "C:/sailor/global/plugins/external-plugin");
+    assert.equal(row.manifest_path, "C:/sailor/global/plugins/external-plugin/manifest.json");
     assert.equal(row.is_enabled, 1);
 
     db.close();
@@ -82,16 +82,16 @@ describe("plugin registry", () => {
       pluginId: "github-tools",
       version: "1.0.0",
       source: "external",
-      installPath: "C:/nd8/global/plugins/github-tools-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      manifestPath: "C:/nd8/global/plugins/github-tools-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/manifest.json",
+      installPath: "C:/sailor/global/plugins/github-tools-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      manifestPath: "C:/sailor/global/plugins/github-tools-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/manifest.json",
     });
     syncPluginRegistry(db, {
       id: "github-tools-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       pluginId: "github-tools",
       version: "1.0.0",
       source: "external",
-      installPath: "C:/nd8/global/plugins/github-tools-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      manifestPath: "C:/nd8/global/plugins/github-tools-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/manifest.json",
+      installPath: "C:/sailor/global/plugins/github-tools-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      manifestPath: "C:/sailor/global/plugins/github-tools-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/manifest.json",
     });
 
     const rows = db.prepare("SELECT id, plugin_id FROM registered_plugins ORDER BY id").all() as any[];

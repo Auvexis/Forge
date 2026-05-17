@@ -159,7 +159,7 @@ export const workflowsApi = {
   execute: (id: string, payload?: Record<string, unknown>, clientExecId?: string, triggerNodeId?: string) => {
     const headers: Record<string, string> = {}
     if (clientExecId) {
-      headers['x-nod8-execution-id'] = clientExecId
+      headers['x-sailor-execution-id'] = clientExecId
     }
 
     // If the payload contains any File objects, send as multipart/form-data so
@@ -287,7 +287,7 @@ export const workflowsApi = {
     clientExecId?: string,
   ) => {
     const headers: Record<string, string> = {}
-    if (clientExecId) headers['x-nod8-execution-id'] = clientExecId
+    if (clientExecId) headers['x-sailor-execution-id'] = clientExecId
 
     const hasFiles = Object.values(payload).some((value) => value instanceof File)
     let body: Record<string, unknown> | FormData = payload

@@ -1,0 +1,491 @@
+{
+  "metadata": {
+    "id": "google-gmail",
+    "name": "Google Gmail",
+    "description": "Integration with Google Gmail API to manage emails, threads, drafts, and labels.",
+    "icon": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg",
+    "category": "Communication",
+    "author": "Sailor",
+    "version": "1.1.0",
+    "repository": "https://github.com/sailor/google-gmail"
+  },
+  "methods": {
+    "listMessages": {
+      "metadata": {
+        "label": "List Messages",
+        "description": "Lists messages in the user's mailbox. Returns an array of message IDs."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Filter messages by a Gmail search query (same syntax as the Gmail search box, e.g. 'from:user@example.com is:unread').",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of messages to return (1–500). Default is 100.",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 500,
+            "x-input-type": "number",
+            "x-label": "Max Results"
+          },
+          "labelIds": {
+            "type": "string",
+            "description": "Comma-separated list of label IDs. Only return messages that have all specified labels.",
+            "x-label": "Label IDs (comma-separated)",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "x-label": "Message ID"
+            },
+            "threadId": {
+              "type": "string",
+              "x-label": "Thread ID"
+            }
+          }
+        }
+      }
+    },
+    "getMessage": {
+      "metadata": {
+        "label": "Get Message",
+        "description": "Retrieves a specific message by ID with its full content, headers, and body."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message to retrieve.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "format": {
+            "type": "string",
+            "description": "The format to return the message in. 'full' includes all headers and body. 'metadata' returns only headers. 'minimal' returns minimal data. 'raw' returns the raw RFC 2822 message.",
+            "default": "full",
+            "enum": [
+              "full",
+              "metadata",
+              "minimal",
+              "raw"
+            ],
+            "x-label": "Format",
+            "x-input-type": "select"
+          }
+        },
+        "required": [
+          "messageId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "threadId": {
+            "type": "string",
+            "x-label": "Thread ID"
+          },
+          "snippet": {
+            "type": "string",
+            "x-label": "Snippet"
+          },
+          "payload": {
+            "type": "object",
+            "x-label": "Payload"
+          }
+        }
+      }
+    },
+    "sendMessage": {
+      "metadata": {
+        "label": "Send Message",
+        "description": "Sends an email message. Supports plain text, HTML, and attachments."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "description": "Recipient email address. Formats accepted: 'user@example.com' or 'Display Name <user@example.com>'.",
+            "x-label": "To",
+            "x-input-type": "text"
+          },
+          "from": {
+            "type": "string",
+            "description": "Optional sender alias or display name (e.g. 'My Name <email@gmail.com>'). Defaults to the authenticated account.",
+            "x-label": "From (optional)",
+            "x-input-type": "text"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Email subject line. Unicode is fully supported.",
+            "x-label": "Subject",
+            "x-input-type": "text"
+          },
+          "body": {
+            "type": "string",
+            "description": "Email body. Accepts plain text or HTML. The Content-Type is automatically detected.",
+            "x-label": "Body",
+            "x-input-type": "textarea"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Optional list of file attachments. Each file must be base64-encoded.",
+            "x-label": "Attachments",
+            "x-input-type": "files",
+            "items": {
+              "type": [
+                "string",
+                "object"
+              ]
+            }
+          }
+        },
+        "required": [
+          "to",
+          "subject",
+          "body"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "threadId": {
+            "type": "string",
+            "x-label": "Thread ID"
+          },
+          "labelIds": {
+            "type": "array",
+            "x-label": "Labels",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "listLabels": {
+      "metadata": {
+        "label": "List Labels",
+        "description": "Lists all labels in the user's mailbox (system and user-defined)."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "x-label": "Label ID"
+            },
+            "name": {
+              "type": "string",
+              "x-label": "Label Name"
+            },
+            "type": {
+              "type": "string",
+              "x-label": "Type"
+            }
+          }
+        }
+      }
+    },
+    "modifyMessageLabels": {
+      "metadata": {
+        "label": "Modify Message Labels",
+        "description": "Adds or removes labels from a specific message."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message to modify.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "addLabelIds": {
+            "type": "string",
+            "description": "Comma-separated list of label IDs to add (e.g. 'STARRED,IMPORTANT').",
+            "x-label": "Add Label IDs",
+            "x-input-type": "text"
+          },
+          "removeLabelIds": {
+            "type": "string",
+            "description": "Comma-separated list of label IDs to remove (e.g. 'UNREAD').",
+            "x-label": "Remove Label IDs",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "messageId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "threadId": {
+            "type": "string",
+            "x-label": "Thread ID"
+          },
+          "labelIds": {
+            "type": "array",
+            "x-label": "Labels",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "listDrafts": {
+      "metadata": {
+        "label": "List Drafts",
+        "description": "Lists all drafts in the user's mailbox."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "x-label": "Draft ID"
+            },
+            "message": {
+              "type": "object",
+              "x-label": "Message"
+            }
+          }
+        }
+      }
+    },
+    "createDraft": {
+      "metadata": {
+        "label": "Create Draft",
+        "description": "Creates a new draft message. The draft is saved but not sent."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "description": "Recipient email address. Formats accepted: 'user@example.com' or 'Display Name <user@example.com>'.",
+            "x-label": "To",
+            "x-input-type": "text"
+          },
+          "from": {
+            "type": "string",
+            "description": "Optional sender alias (e.g. 'My Name <email@gmail.com>').",
+            "x-label": "From (optional)",
+            "x-input-type": "text"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Email subject.",
+            "x-label": "Subject",
+            "x-input-type": "text"
+          },
+          "body": {
+            "type": "string",
+            "description": "Email body. Accepts plain text or HTML.",
+            "x-label": "Body",
+            "x-input-type": "textarea"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Optional list of file attachments.",
+            "x-label": "Attachments",
+            "x-input-type": "files",
+            "items": {
+              "type": [
+                "string",
+                "object"
+              ]
+            }
+          }
+        },
+        "required": [
+          "to",
+          "subject",
+          "body"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Draft ID"
+          },
+          "message": {
+            "type": "object",
+            "x-label": "Message"
+          }
+        }
+      }
+    },
+    "trashMessage": {
+      "metadata": {
+        "label": "Trash Message",
+        "description": "Moves a message to the trash. The message can be restored within 30 days."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message to move to trash.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "messageId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "threadId": {
+            "type": "string",
+            "x-label": "Thread ID"
+          },
+          "labelIds": {
+            "type": "array",
+            "x-label": "Labels",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "listThreads": {
+      "metadata": {
+        "label": "List Threads",
+        "description": "Lists email threads in the user's mailbox."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Gmail search query to filter threads.",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of threads to return (1–500). Default is 100.",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 500,
+            "x-input-type": "number",
+            "x-label": "Max Results"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "x-label": "Thread ID"
+            },
+            "snippet": {
+              "type": "string",
+              "x-label": "Snippet"
+            },
+            "historyId": {
+              "type": "string",
+              "x-label": "History ID"
+            }
+          }
+        }
+      }
+    },
+    "getAttachment": {
+      "metadata": {
+        "label": "Get Attachment",
+        "description": "Downloads the binary data of a specific message attachment."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message containing the attachment.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "attachmentId": {
+            "type": "string",
+            "description": "The ID of the attachment to download.",
+            "x-label": "Attachment ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "messageId",
+          "attachmentId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "attachmentId": {
+            "type": "string",
+            "x-label": "Attachment ID"
+          },
+          "size": {
+            "type": "number",
+            "x-label": "Size (bytes)"
+          },
+          "data": {
+            "type": "string",
+            "x-label": "Data (Base64)"
+          }
+        }
+      }
+    }
+  }
+}

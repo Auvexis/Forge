@@ -8,7 +8,7 @@ export function notifyPluginExecutionEnd(executionId: string, status: string): v
     if (plugin.executionLifecycle?.onExecutionEnd) {
       plugin.executionLifecycle.onExecutionEnd(executionId, terminalStatus).catch((error) => {
         console.error(
-          `[NOD8 | PLUGINS]: executionLifecycle.onExecutionEnd failed for plugin '${plugin.id}':`,
+          `[SAILOR | PLUGINS]: executionLifecycle.onExecutionEnd failed for plugin '${plugin.id}':`,
           error,
         );
       });

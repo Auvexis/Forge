@@ -3,7 +3,6 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
-import nd8Icon from '@/assets/icon_accent.svg'
 import WorkflowChromeHeader from './WorkflowChromeHeader.vue'
 import WorkflowChromeMenuBar from './WorkflowChromeMenuBar.vue'
 import WorkflowChromeToolbar from './WorkflowChromeToolbar.vue'
@@ -60,7 +59,9 @@ const headerRef = ref<InstanceType<typeof WorkflowChromeHeader> | null>(null)
 const isBusy = computed(() => props.isExecuting || props.isStreaming)
 const isUnsavedDraft = computed(() => !route.params.id)
 const disabledMenuReasons = computed<Partial<Record<WorkflowChromeCommandId, string>>>(() => ({
-  ...(isUnsavedDraft.value || !props.workflow ? { 'run.publish': 'Save workflow before publishing' } : {}),
+  ...(isUnsavedDraft.value || !props.workflow
+    ? { 'run.publish': 'Save workflow before publishing' }
+    : {}),
 }))
 
 function handleCommand(id: WorkflowChromeCommandId) {
@@ -98,10 +99,6 @@ function handleCommand(id: WorkflowChromeCommandId) {
 
 <template>
   <section class="wec-shell" aria-label="Workflow editor toolbar">
-    <div class="wec-rail-icon" aria-hidden="true">
-      <img :src="nd8Icon" alt="" />
-    </div>
-
     <WorkflowChromeHeader
       ref="headerRef"
       :workflow-name="workflowName"

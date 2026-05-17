@@ -6,7 +6,7 @@ import { describe, it } from "node:test";
 import Database from "better-sqlite3";
 
 import { loadPlugins, validateManifest } from "./loader.ts";
-import type { SailorPlugin } from "../../../shared/models/plugin-types.ts";
+import type { SailorPlugin } from "@auvexis/sailor-sdk";
 
 function createRegistryDb(): Database.Database {
   const db = new Database(":memory:");
@@ -32,6 +32,28 @@ function writePlugin(root: string, id: string, version = "1.0.0"): string {
   const pluginDir = path.join(root, id);
   fs.mkdirSync(pluginDir, { recursive: true });
   fs.writeFileSync(
+    path.join(pluginDir, "manifest.json"),
+    JSON.stringify({
+      metadata: {
+        id,
+        name: id,
+        description: "Test plugin",
+        icon: "plug",
+        category: "test",
+        author: "SAILOR",
+        version,
+        repository: "",
+      },
+      methods: {
+        ping: {
+          metadata: { label: "Ping", description: "Ping" },
+          parameters: { type: "object", properties: {} },
+          responseSchema: { type: "object", properties: {} },
+        },
+      },
+    }),
+  );
+  fs.writeFileSync(
     path.join(pluginDir, "index.js"),
     `
       export default {
@@ -51,8 +73,7 @@ function writePlugin(root: string, id: string, version = "1.0.0"): string {
             ping: {
               metadata: { label: "Ping", description: "Ping" },
               parameters: { type: "object", properties: {} },
-              responseSchema: { type: "object", properties: {} },
-              ui: { component: "card" }
+              responseSchema: { type: "object", properties: {} }
             }
           }
         },
@@ -84,7 +105,6 @@ function pluginFromEntrypoint(entrypoint: string, pluginId = path.basename(path.
           metadata: { label: "Ping", description: "Ping" },
           parameters: { type: "object", properties: {} },
           responseSchema: { type: "object", properties: {} },
-          ui: { component: "card" },
         },
       },
     },
@@ -123,14 +143,36 @@ describe("loadPlugins", () => {
           metadata: { label: "Ping", description: "Ping" },
           parameters: { type: "object", properties: {} },
           responseSchema: { type: "object", properties: {} },
-          ui: { component: "form" },
         },
       },
     });
 
-    assert.deepEqual(errors, [
-      "methods.ping.ui.component must be equal to one of the allowed values",
-    ]);
+    assert.deepEqual(errors, []);
+  });
+
+  it("rejects legacy method ui metadata through the public Sailor SDK contract", () => {
+    const errors = validateManifest({
+      metadata: {
+        id: "sdk-contract-plugin",
+        name: "SDK Contract Plugin",
+        description: "Checks SDK validation",
+        icon: "plug",
+        category: "test",
+        author: "SAILOR",
+        version: "1.0.0",
+        repository: "",
+      },
+      methods: {
+        ping: {
+          metadata: { label: "Ping", description: "Ping" },
+          parameters: { type: "object", properties: {} },
+          responseSchema: { type: "object", properties: {} },
+          ui: { component: "card" },
+        },
+      },
+    });
+
+    assert.deepEqual(errors, ["methods.ping must NOT have additional property 'ui'"]);
   });
 
   it("loads internal and external plugin sources into the registry", async () => {
@@ -204,12 +246,44 @@ describe("loadPlugins", () => {
     db.close();
   });
 
+  it("does not try to load package entrypoints inside plugin node_modules", async () => {
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
+    const internalDir = path.join(temp, "internal");
+    const externalDir = path.join(temp, "external");
+    const pluginDir = writePlugin(externalDir, "external-with-deps");
+    const packageDir = path.join(pluginDir, "node_modules", "some-package");
+    fs.mkdirSync(packageDir, { recursive: true });
+    fs.writeFileSync(path.join(packageDir, "index.js"), "export default {};");
+    const db = createRegistryDb();
+    const { manager, registered } = createManager();
+    const seenEntrypoints: string[] = [];
+
+    const result = await loadPlugins({
+      internalPluginsDir: internalDir,
+      externalPluginsDir: externalDir,
+      registryDb: db,
+      pluginManager: manager,
+      logger: { info: () => {}, error: () => {}, warn: () => {} },
+      pluginImporter: async (entrypoint) => {
+        seenEntrypoints.push(entrypoint);
+        return pluginFromEntrypoint(entrypoint);
+      },
+    });
+
+    assert.equal(result.loaded.external, 1);
+    assert.equal(result.failed, 0);
+    assert.equal(registered.length, 1);
+    assert.deepEqual(seenEntrypoints, [path.join(pluginDir, "index.js")]);
+    db.close();
+  });
+
   it("does not throw when external plugin directory is missing or invalid", async () => {
     const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
     const internalDir = path.join(temp, "internal");
     const externalDir = path.join(temp, "missing-external");
     const invalidDir = path.join(temp, "invalid");
     fs.mkdirSync(path.join(invalidDir, "bad-plugin"), { recursive: true });
+    fs.writeFileSync(path.join(invalidDir, "bad-plugin", "manifest.json"), "{}");
     fs.writeFileSync(path.join(invalidDir, "bad-plugin", "index.js"), "export default {};");
     const db = createRegistryDb();
     const { manager } = createManager();

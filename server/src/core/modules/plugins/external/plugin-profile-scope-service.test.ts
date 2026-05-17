@@ -9,7 +9,7 @@ import { readProfilePluginSettings } from "../../../runtime/profile-plugin-setti
 
 describe("applyPluginProfileScope", () => {
   it("enables the install id in the current default profile", () => {
-    const profilesDir = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-profiles-"));
+    const profilesDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profiles-"));
     const defaultProfileDir = path.join(profilesDir, "default");
 
     applyPluginProfileScope({
@@ -25,7 +25,7 @@ describe("applyPluginProfileScope", () => {
   });
 
   it("enables the install id in all existing profiles without duplicates", () => {
-    const profilesDir = fs.mkdtempSync(path.join(os.tmpdir(), "nd8-profiles-"));
+    const profilesDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profiles-"));
     const defaultProfileDir = path.join(profilesDir, "default");
     const teamProfileDir = path.join(profilesDir, "team");
     fs.mkdirSync(defaultProfileDir, { recursive: true });

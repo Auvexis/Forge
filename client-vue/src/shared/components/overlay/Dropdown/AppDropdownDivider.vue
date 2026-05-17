@@ -5,7 +5,7 @@
 <style scoped>
 .app-dropdown-divider {
   height: 1px;
-  background-color: var(--nod8-border);
-  margin: var(--nod8-space-1) 0;
+  background-color: var(--sailor-border);
+  margin: var(--sailor-space-1) 0;
 }
 </style>

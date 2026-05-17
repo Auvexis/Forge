@@ -257,7 +257,7 @@ export interface WebhookBodyField {
 
 /**
  * Describes a single field rendered on the public Form Trigger page.
- * The Nod8 server hosts a minimal HTML page at GET /forms/:workflowId
+ * The Sailor server hosts a minimal HTML page at GET /forms/:workflowId
  * built from this list. Submitting the form posts to /forms/:workflowId/submit
  * and that POST handler kicks off the workflow as the trigger payload.
  */

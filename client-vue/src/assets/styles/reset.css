@@ -1,5 +1,5 @@
 /* =========================================================
-   NOD8 — CSS Reset
+   SAILOR — CSS Reset
    A minimal, opinionated reset for consistent rendering.
    ========================================================= */
 
@@ -19,12 +19,12 @@ html {
 }
 
 body {
-  font-family: var(--nod8-font-sans);
-  font-size: var(--nod8-text-base);
-  font-weight: var(--nod8-font-normal);
-  line-height: var(--nod8-leading-normal);
-  color: var(--nod8-text-primary);
-  background-color: var(--nod8-bg-base);
+  font-family: var(--sailor-font-sans);
+  font-size: var(--sailor-text-base);
+  font-weight: var(--sailor-font-normal);
+  line-height: var(--sailor-leading-normal);
+  color: var(--sailor-text-primary);
+  background-color: var(--sailor-bg-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
@@ -36,13 +36,13 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: var(--nod8-font-semibold);
-  line-height: var(--nod8-leading-tight);
-  color: var(--nod8-text-primary);
+  font-weight: var(--sailor-font-semibold);
+  line-height: var(--sailor-leading-tight);
+  color: var(--sailor-text-primary);
 }
 
 a {
-  color: var(--nod8-text-brand);
+  color: var(--sailor-text-brand);
   text-decoration: none;
 }
 
@@ -82,14 +82,14 @@ ol {
 
 p,
 li {
-  line-height: var(--nod8-leading-normal);
+  line-height: var(--sailor-leading-normal);
 }
 
 code,
 pre,
 kbd,
 samp {
-  font-family: var(--nod8-font-mono);
+  font-family: var(--sailor-font-mono);
 }
 
 /* Scrollbar styling (webkit) */
@@ -103,17 +103,17 @@ samp {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--nod8-bg-muted);
-  border-radius: var(--nod8-radius-full);
+  background: var(--sailor-bg-muted);
+  border-radius: var(--sailor-radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--nod8-bg-subtle);
+  background: var(--sailor-bg-subtle);
 }
 
 /* Focus ring — accessible, not obtrusive */
 :focus-visible {
-  outline: 2px solid var(--nod8-border-strong);
+  outline: 2px solid var(--sailor-border-strong);
   outline-offset: 2px;
-  border-radius: var(--nod8-radius-sm);
+  border-radius: var(--sailor-radius-sm);
 }

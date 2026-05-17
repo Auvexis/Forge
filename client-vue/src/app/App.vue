@@ -10,12 +10,13 @@
       <div
         class="app-sidebar-area"
         :class="{ 'app-sidebar-area--collapsed': isSidebarCollapsed }"
-        :style="{ '--nod8-active-sidebar-width': activeSidebarWidth }"
+        :style="{ '--sailor-active-sidebar-width': activeSidebarWidth }"
       >
         <Transition name="app-sidebar-universe">
           <div v-if="!appUiStore.isUniverseMode" class="app-sidebar-transition-frame">
             <AppSidebar
               :collapsed="isSidebarCollapsed"
+              :show-logo="isSidebarCollapsed"
               @toggle-collapsed="isSidebarCollapsed = !isSidebarCollapsed"
             >
               <template v-if="isSidebarCollapsed" #header-extra>
@@ -44,15 +45,27 @@
                     :icon="item.icon"
                   >
                     <router-link
+                      v-if="item.route"
                       :to="item.route"
                       class="nav-link suite-nav-link"
-                      :class="{ 'nav-link--active': route.path.startsWith(item.route) }"
+                      :class="{ 'nav-link--active': isSidebarNavItemActive(item) }"
                       :style="{ '--suite-nav-accent': item.accent }"
                       @click="handleSidebarNavClick(item)"
                     >
                       <LucideIcon :name="item.icon" :size="18" />
                       <span class="suite-nav-link__label">{{ item.label }}</span>
                     </router-link>
+                    <button
+                      v-else
+                      type="button"
+                      class="nav-link suite-nav-link"
+                      :class="{ 'nav-link--active': isSidebarNavItemActive(item) }"
+                      :style="{ '--suite-nav-accent': item.accent }"
+                      @click="handleSidebarNavClick(item)"
+                    >
+                      <LucideIcon :name="item.icon" :size="18" />
+                      <span class="suite-nav-link__label">{{ item.label }}</span>
+                    </button>
                   </SidebarHint>
                 </div>
               </section>
@@ -93,7 +106,7 @@
                     :icon="activityById.docs.icon"
                   >
                     <a
-                      href="https://docs.nod8.dev"
+                      href="https://docs.sailor.dev"
                       target="_blank"
                       class="nav-link sidebar-activity-link"
                     >
@@ -138,6 +151,10 @@
     <template v-if="!appUiStore.isUniverseMode" #overlay>
       <AppGlobalSettings />
       <AppProductionMonitor />
+      <ExternalPluginInstaller
+        :is-open="isPluginInstallerOpen"
+        @close="isPluginInstallerOpen = false"
+      />
     </template>
   </AppShell>
   <template v-if="!isPublicRoute">
@@ -148,7 +165,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
@@ -164,10 +181,13 @@ import CommandPaletteHost from '@/features/command-palette/components/CommandPal
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
+import ExternalPluginInstaller from '@/features/plugins/components/ExternalPluginInstaller.vue'
 import {
+  dispatchSidebarNavIntent,
   sidebarActivityItems,
   sidebarSections,
   sidebarWidthForState,
+  type SidebarNavIntent,
   type SidebarNavItem,
 } from '@/shared/components/layout/appSidebarNavigation'
 import AppProductionMonitor, { isMonitorOpen, toggleMonitor } from '@/shared/components/layout/AppProductionMonitor.vue'
@@ -178,6 +198,7 @@ const commandPaletteStore = useCommandPaletteStore()
 const route = useRoute()
 const isPublicRoute = computed(() => route.meta.public === true)
 const isSidebarCollapsed = ref(false)
+const isPluginInstallerOpen = ref(false)
 const activeSidebarWidth = computed(() =>
   sidebarWidthForState(isSidebarCollapsed.value, { expandedPx: 288 }),
 )
@@ -194,12 +215,30 @@ function openGlobalCommandPalette() {
 
 function handleSidebarNavClick(item: SidebarNavItem) {
   if (item.id === 'universe') appUiStore.enterUniverseMode()
+  dispatchSidebarNavIntent(item)
 }
+
+function isSidebarNavItemActive(item: SidebarNavItem) {
+  if (item.route) return route.path.startsWith(item.route)
+  return item.intent?.type === 'plugin-installer.open' && isPluginInstallerOpen.value
+}
+
+function openPluginInstallerPanel() {
+  isPluginInstallerOpen.value = true
+}
+
+function handleUiIntent(event: Event) {
+  const intent = (event as CustomEvent<SidebarNavIntent>).detail
+  if (intent?.type === 'plugin-installer.open') openPluginInstallerPanel()
+}
+
+onMounted(() => window.addEventListener('sailor:command-palette:intent', handleUiIntent))
+onUnmounted(() => window.removeEventListener('sailor:command-palette:intent', handleUiIntent))
 </script>
 
 <style scoped>
 .app-sidebar-area {
-  --nod8-active-sidebar-width: var(--nod8-sidebar-expanded);
+  --sailor-active-sidebar-width: var(--sailor-sidebar-expanded);
   position: relative;
   display: flex;
   height: 100vh;
@@ -223,6 +262,6 @@ function handleSidebarNavClick(item: SidebarNavItem) {
 .app-sidebar-universe-enter-from,
 .app-sidebar-universe-leave-to {
   opacity: 0;
-  transform: translateX(calc(-1 * var(--nod8-active-sidebar-width)));
+  transform: translateX(calc(-1 * var(--sailor-active-sidebar-width)));
 }
 </style>

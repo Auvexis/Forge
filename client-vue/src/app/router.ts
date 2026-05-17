@@ -52,14 +52,13 @@ const router = createRouter({
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/app/pages/NotFoundPage.vue'),
-      meta: { title: '404 Não Encontrado' },
+      meta: { title: '404 Not Found' },
     },
   ],
 })
 
 router.afterEach((to) => {
-  const defaultTitle = 'nd.8'
-  // Altera a aba dinamicamente com base nas rotas no formato "Tela — nd.8"
+  const defaultTitle = 'Sailor'
   document.title = to.meta.title ? `${to.meta.title} — ${defaultTitle}` : defaultTitle
 })
 

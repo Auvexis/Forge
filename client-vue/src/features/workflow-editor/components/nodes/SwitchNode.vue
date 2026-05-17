@@ -52,9 +52,9 @@ const handlePositions = computed(() => {
     :title="stepTitle"
     subtitle="N-way routing"
     icon="git-branch-plus"
-    color="var(--nod8-node-switch-icon)"
-    bg="var(--nod8-node-switch-bg)"
-    border-color="var(--nod8-node-switch-border)"
+    color="var(--sailor-node-switch-icon)"
+    bg="var(--sailor-node-switch-bg)"
+    border-color="var(--sailor-node-switch-border)"
   >
     <!--
       Key includes outputs.length so that when a case is added/removed, Vue

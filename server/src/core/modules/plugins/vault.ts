@@ -1,16 +1,16 @@
-import type { CredentialSchema } from "../../../shared/models/plugin-types.ts";
+import type { CredentialSchema } from "@auvexis/sailor-sdk";
 import { AppRepository } from "../app/app-repository.ts";
 
 /**
- * ENV-based credential vault for Nod8 plugins.
+ * ENV-based credential vault for Sailor plugins.
  *
  * Convention:
- *   NOD8_PLUGIN_{PLUGIN_ID}_{FIELD_KEY}
+ *   SAILOR_PLUGIN_{PLUGIN_ID}_{FIELD_KEY}
  *
  * Examples:
- *   NOD8_PLUGIN_GOOGLE_DRIVE_CLIENT_ID=xxx
- *   NOD8_PLUGIN_GOOGLE_DRIVE_CLIENT_SECRET=yyy
- *   NOD8_PLUGIN_GOOGLE_YOUTUBE_CLIENT_ID=xxx
+ *   SAILOR_PLUGIN_GOOGLE_DRIVE_CLIENT_ID=xxx
+ *   SAILOR_PLUGIN_GOOGLE_DRIVE_CLIENT_SECRET=yyy
+ *   SAILOR_PLUGIN_GOOGLE_YOUTUBE_CLIENT_ID=xxx
  *
  * Plugin IDs with hyphens are converted to underscores.
  * Keys are uppercased.
@@ -26,7 +26,7 @@ export const Vault = {
   envKey(pluginId: string, fieldKey: string): string {
     const normalizedId = pluginId.toUpperCase().replace(/-/g, "_");
     const normalizedKey = fieldKey.toUpperCase().replace(/-/g, "_");
-    return `NOD8_PLUGIN_${normalizedId}_${normalizedKey}`;
+    return `SAILOR_PLUGIN_${normalizedId}_${normalizedKey}`;
   },
 
   /**

@@ -593,11 +593,11 @@ const presetDefaults = {
       spacing: 16,
     },
     typography: {
-      fontFamily: 'var(--nod8-font-sans)',
-      titleFontFamily: 'var(--nod8-font-sans)',
-      subtitleFontFamily: 'var(--nod8-font-sans)',
-      buttonFontFamily: 'var(--nod8-font-sans)',
-      inputFontFamily: 'var(--nod8-font-sans)',
+      fontFamily: 'var(--sailor-font-sans)',
+      titleFontFamily: 'var(--sailor-font-sans)',
+      subtitleFontFamily: 'var(--sailor-font-sans)',
+      buttonFontFamily: 'var(--sailor-font-sans)',
+      inputFontFamily: 'var(--sailor-font-sans)',
       titleColor: '#e7e9ee',
       subtitleColor: '#9ba3b3',
       baseSize: 14,
@@ -639,11 +639,11 @@ const presetDefaults = {
       spacing: 16,
     },
     typography: {
-      fontFamily: 'var(--nod8-font-sans)',
-      titleFontFamily: 'var(--nod8-font-sans)',
-      subtitleFontFamily: 'var(--nod8-font-sans)',
-      buttonFontFamily: 'var(--nod8-font-sans)',
-      inputFontFamily: 'var(--nod8-font-sans)',
+      fontFamily: 'var(--sailor-font-sans)',
+      titleFontFamily: 'var(--sailor-font-sans)',
+      subtitleFontFamily: 'var(--sailor-font-sans)',
+      buttonFontFamily: 'var(--sailor-font-sans)',
+      inputFontFamily: 'var(--sailor-font-sans)',
       titleColor: '#ffffff',
       subtitleColor: 'rgba(255, 255, 255, 0.7)',
       baseSize: 14,
@@ -1060,7 +1060,7 @@ const previewSubtitleStyle = computed(() => ({
   marginBottom: `${activeTheme.value.fields?.spacing ?? 16}px`,
 }))
 
-const CUSTOM_THEME_KEY = 'nod8_custom_form_theme'
+const CUSTOM_THEME_KEY = 'sailor_custom_form_theme'
 
 function saveCustomTheme(theme: FormTheme) {
   try {
@@ -1140,24 +1140,24 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   align-items: center;
   gap: 10px;
   padding: 10px;
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-md);
-  background: var(--nod8-bg-surface);
-  color: var(--nod8-text-primary);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
   text-align: left;
   cursor: pointer;
 }
 
 .ftm-open-btn:hover {
-  border-color: var(--nod8-border-strong);
+  border-color: var(--sailor-border-strong);
 }
 
 .ftm-open-preview {
   width: 44px;
   height: 34px;
   flex-shrink: 0;
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
 }
 
 .ftm-open-btn strong,
@@ -1171,7 +1171,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
 .ftm-preset-card small {
   display: block;
   margin-top: 2px;
-  color: var(--nod8-text-muted);
+  color: var(--sailor-text-muted);
   font-size: 11px;
   line-height: 1.35;
 }
@@ -1190,8 +1190,8 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   display: grid;
   place-items: center;
   padding: 20px;
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-md);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
   overflow: hidden;
 }
 
@@ -1233,7 +1233,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   position: absolute;
   top: -12px;
   right: -12px;
-  background: var(--nod8-accent);
+  background: var(--sailor-accent);
   color: white;
   font-size: 10px;
   font-weight: 700;
@@ -1247,7 +1247,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
 
 .ftm-preview-card h3 {
   margin: 0;
-  color: var(--nod8-text-primary);
+  color: var(--sailor-text-primary);
   font-size: 20px;
   font-weight: 700;
   line-height: 1.2;
@@ -1255,7 +1255,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
 
 .ftm-preview-card p {
   margin: 6px 0 0 0;
-  color: var(--nod8-text-secondary);
+  color: var(--sailor-text-secondary);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -1376,7 +1376,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
 
 /* Sections */
 .ftm-section {
-  border-radius: var(--nod8-radius-md);
+  border-radius: var(--sailor-radius-md);
 }
 
 .ftm-section-title {
@@ -1386,8 +1386,8 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--nod8-text-primary);
-  background: var(--nod8-bg-base);
+  color: var(--sailor-text-primary);
+  background: var(--sailor-bg-base);
 }
 
 /* Rows — label left, control right */
@@ -1403,7 +1403,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
 .ftm-row-label {
   font-size: 13px;
   font-weight: 500;
-  color: var(--nod8-text-secondary);
+  color: var(--sailor-text-secondary);
   flex-shrink: 0;
 }
 
@@ -1425,14 +1425,14 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   width: 36px;
   height: 28px;
   padding: 2px;
-  border: 1px solid var(--nod8-border);
-  border-radius: var(--nod8-radius-sm);
-  background: var(--nod8-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
   cursor: pointer;
 }
 
 .ftm-color:hover {
-  border-color: var(--nod8-accent);
+  border-color: var(--sailor-accent);
 }
 
 @media (max-width: 820px) {
