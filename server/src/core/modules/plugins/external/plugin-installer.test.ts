@@ -69,6 +69,7 @@ describe("installExternalPlugin", () => {
       releaseDir,
       source: { type: "extracted_folder", originalValue: sourceRoot, cachedAt: new Date().toISOString() },
       scope: "current_profile",
+      currentProfileId: "work",
       paths: {
         globalPluginsDir: path.join(home, "global", "plugins"),
         pluginCacheDir: path.join(home, "global", "plugin-cache"),
@@ -95,9 +96,46 @@ describe("installExternalPlugin", () => {
       source: "external",
     });
     assert.match(
-      fs.readFileSync(path.join(home, "profiles", "default", "plugin-settings.json"), "utf8"),
+      fs.readFileSync(path.join(home, "profiles", "work", "plugin-settings.json"), "utf8"),
       /github-tools-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/,
     );
+    assert.equal(fs.existsSync(path.join(home, "profiles", "default", "plugin-settings.json")), false);
+    db.close();
+  });
+
+  it("enables a selected profile without enabling the current profile", () => {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-install-"));
+    const sourceRoot = path.join(home, "source");
+    const releaseDir = writeRelease(sourceRoot);
+    const db = createDb();
+    fs.mkdirSync(path.join(home, "profiles", "default"), { recursive: true });
+    fs.mkdirSync(path.join(home, "profiles", "team"), { recursive: true });
+
+    const result = installExternalPlugin({
+      releaseDir,
+      source: { type: "extracted_folder", originalValue: sourceRoot, cachedAt: new Date().toISOString() },
+      scope: "selected_profile",
+      currentProfileId: "default",
+      selectedProfileId: "team",
+      paths: {
+        globalPluginsDir: path.join(home, "global", "plugins"),
+        pluginCacheDir: path.join(home, "global", "plugin-cache"),
+        logsDir: path.join(home, "global", "logs"),
+        profilesDir: path.join(home, "profiles"),
+        defaultProfileDir: path.join(home, "profiles", "default"),
+      },
+      registryDb: db,
+      installIdGenerator: () => "github-tools-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      dependencyInstaller: () => {},
+      runtimeReload: () => ({ status: "loaded" }),
+    });
+
+    assert.equal(result.profileId, "team");
+    assert.match(
+      fs.readFileSync(path.join(home, "profiles", "team", "plugin-settings.json"), "utf8"),
+      /github-tools-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/,
+    );
+    assert.equal(fs.existsSync(path.join(home, "profiles", "default", "plugin-settings.json")), false);
     db.close();
   });
 

@@ -170,7 +170,7 @@ Use one active profile per backend process/UI session.
   - Add tests for enabled plugins per profile and registry row isolation.
   - Expected result: plugin install/enabled state is profile-owned.
 
-- [ ] Task 13: Preserve external plugin install scopes
+- [x] Task 13: Preserve external plugin install scopes
   - Update current `current_profile` and `all_profiles` install behavior to use real profiles.
   - `current_profile`: install/enable only active profile.
   - `all_profiles`: enable for every existing profile and set default behavior for future profiles if supported.

@@ -2,7 +2,7 @@ import type { PluginManifest } from "@auvexis/sailor-sdk";
 
 export type PluginInstallSourceType = "repository_url" | "extracted_folder";
 export type PluginPreviewStatus = "ready" | "invalid" | "expired";
-export type PluginInstallScope = "current_profile" | "all_profiles";
+export type PluginInstallScope = "current_profile" | "selected_profile" | "all_profiles";
 
 export interface PluginInstallSourceMetadata {
   type: PluginInstallSourceType;
@@ -46,6 +46,7 @@ export interface PluginInstallResult {
   version: string;
   installPath: string;
   scope: PluginInstallScope;
+  profileId?: string;
   reloadStatus: "loaded" | "restart_required" | "failed";
   error?: string;
 }

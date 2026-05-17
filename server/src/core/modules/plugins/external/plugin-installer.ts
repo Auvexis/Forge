@@ -10,6 +10,7 @@ import { generatePluginInstallId } from "./plugin-install-id-generator.ts";
 import { validatePluginInstallRelease } from "./plugin-install-validator.ts";
 import { reloadExternalPlugin, type RuntimeReloadResult } from "./plugin-runtime-reload-service.ts";
 import type { PluginInstallResult, PluginInstallScope, PluginInstallSourceMetadata } from "./types.ts";
+import type { ProfileId } from "../../../profiles/profile-types.ts";
 
 export interface ExternalPluginInstallerPaths {
   globalPluginsDir: string;
@@ -23,6 +24,8 @@ export interface InstallExternalPluginInput {
   releaseDir: string;
   source: PluginInstallSourceMetadata;
   scope: PluginInstallScope;
+  currentProfileId?: ProfileId;
+  selectedProfileId?: ProfileId;
   paths?: ExternalPluginInstallerPaths;
   registryDb: Database.Database;
   installIdGenerator?: (pluginId: string, pluginsDir: string) => string;
@@ -100,6 +103,8 @@ export function installExternalPlugin(input: InstallExternalPluginInput): Plugin
     profilesDir: paths.profilesDir,
     defaultProfileDir: paths.defaultProfileDir,
     scope: input.scope,
+    currentProfileId: input.currentProfileId,
+    selectedProfileId: input.selectedProfileId,
     reference: { id: installId, source: "external", version },
   });
 
@@ -118,6 +123,7 @@ export function installExternalPlugin(input: InstallExternalPluginInput): Plugin
     version,
     installPath: destination,
     scope: input.scope,
+    profileId: input.scope === "selected_profile" ? input.selectedProfileId : input.currentProfileId,
     reloadStatus: reloadResult.status,
     error: reloadResult.error,
   };

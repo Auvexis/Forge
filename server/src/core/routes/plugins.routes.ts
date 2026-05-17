@@ -9,6 +9,7 @@ import { CredentialStore, isMaskedCredentialValue } from "../modules/plugins/cre
 import { Vault } from "../modules/plugins/vault.ts";
 import { getPluginRegistryDatabase } from "../modules/plugins/plugin-registry.ts";
 import { sailorHomePaths } from "../runtime/sailor-home.ts";
+import { ProfileStore } from "../profiles/profile-store.ts";
 import { locatePluginRelease } from "../modules/plugins/external/plugin-release-locator.ts";
 import {
   copyExtractedFolderToCache,
@@ -232,7 +233,8 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
 
   const InstallExternalSchema = z.object({
     previewId: z.string().min(1),
-    scope: z.enum(["current_profile", "all_profiles"]),
+    scope: z.enum(["current_profile", "selected_profile", "all_profiles"]),
+    profileId: z.string().optional(),
   });
 
   fastify.post("/plugins/external/install", async (req, reply) => {
@@ -258,10 +260,26 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     }
 
     try {
+      const profileStore = new ProfileStore({ sailorHome: sailorHomePaths.home });
+      const currentProfile = profileStore.getCurrentProfile();
+      const selectedProfileId = validation.data.profileId;
+      if (validation.data.scope === "selected_profile") {
+        if (!selectedProfileId || !profileStore.getProfile(selectedProfileId)) {
+          return sendResponse(reply, {
+            status_code: 400,
+            message: "Selected profile was not found",
+            error: "profile_not_found",
+            data: null,
+          });
+        }
+      }
+
       const result = installExternalPlugin({
         releaseDir: preview.release.releaseDir,
         source: preview.source,
         scope: validation.data.scope,
+        currentProfileId: currentProfile?.id ?? "default",
+        selectedProfileId,
         registryDb: getPluginRegistryDatabase(),
       });
       externalPluginPreviewStore.remove(validation.data.previewId);
