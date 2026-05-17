@@ -93,7 +93,7 @@ Use one active profile per backend process/UI session.
   - Add tests for valid IDs, invalid IDs, duplicate display names, reserved path names, unsafe path traversal, invalid emoji avatar, invalid email, and password metadata redaction.
   - Expected result: profile identity rules are centralized and independent from filesystem/database logic.
 
-- [ ] Task 3: Add profile path resolver
+- [x] Task 3: Add profile path resolver
   - Add `server/src/core/profiles/profile-paths.ts`.
   - Resolve profile directories, profile manifest path, plugin settings path, and profile data directory from `SAILOR_HOME`.
   - Ensure all resolved paths stay under `SAILOR_HOME/profiles`.
