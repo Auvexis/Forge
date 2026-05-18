@@ -61,10 +61,14 @@ function publicBaseUrl(context: CommandExecutionContext): string {
   return executionServices(context).getPublicUrl().replace(/\/$/, "");
 }
 
+function profilePath(context: CommandExecutionContext, path: string): string {
+  return context.profileId ? `/p/${encodeURIComponent(context.profileId)}${path}` : path;
+}
+
 function webhookUrl(workflow: WorkflowItem, context: CommandExecutionContext): string | null {
   if (workflow.trigger.type !== "webhook" && workflow.trigger.type !== "plugin") return null;
   const path = workflow.trigger.webhookSlug || workflow.trigger.webhookPath || workflow.metadata.id;
-  return `${publicBaseUrl(context)}/webhook/${path}`;
+  return `${publicBaseUrl(context)}${profilePath(context, `/webhook/${encodeURIComponent(path)}`)}`;
 }
 
 function exposesWebhookUrl(workflow: WorkflowItem): boolean {
@@ -74,7 +78,7 @@ function exposesWebhookUrl(workflow: WorkflowItem): boolean {
 function formUrl(workflow: WorkflowItem, context: CommandExecutionContext): string | null {
   if (workflow.trigger.type !== "form") return null;
   const formId = workflow.trigger.formSlug?.trim() || workflow.metadata.id;
-  return `${publicBaseUrl(context)}/forms/${formId}`;
+  return `${publicBaseUrl(context)}${profilePath(context, `/forms/${encodeURIComponent(formId)}`)}`;
 }
 
 function exposesFormUrl(workflow: WorkflowItem): boolean {

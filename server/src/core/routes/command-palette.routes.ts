@@ -13,6 +13,7 @@ import { executionsCommandProvider } from "../modules/command-palette/providers/
 import { navigationCommandProvider } from "../modules/command-palette/providers/navigation.commands.ts";
 import { pluginsCommandProvider } from "../modules/command-palette/providers/plugins.commands.ts";
 import { workflowsCommandProvider } from "../modules/command-palette/providers/workflows.commands.ts";
+import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
 
 interface CommandPaletteRouteOptions {
   registry?: CommandRegistry;
@@ -47,7 +48,11 @@ function stringFromQuery(value: unknown): string | undefined {
 }
 
 function createContext(input: Partial<CommandExecutionContext> = {}): CommandExecutionContext {
-  return { services: {}, ...input };
+  return {
+    services: {},
+    profileId: activeProfileRuntime.activeProfileService.getActiveProfile()?.id,
+    ...input,
+  };
 }
 
 function createContextFromRequest(req: FastifyRequest): CommandExecutionContext {
@@ -59,6 +64,7 @@ function createContextFromRequest(req: FastifyRequest): CommandExecutionContext 
   return createContext({
     ...bodyContext,
     routePath: bodyContext.routePath ?? stringFromQuery(query.routePath),
+    profileId: bodyContext.profileId ?? stringFromQuery(query.profileId),
     activeWorkflowId: bodyContext.activeWorkflowId ?? stringFromQuery(query.activeWorkflowId),
     activeExecutionId: bodyContext.activeExecutionId ?? stringFromQuery(query.activeExecutionId),
     isUniverseMode: bodyContext.isUniverseMode ?? booleanFromQuery(query.isUniverseMode),

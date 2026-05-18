@@ -150,4 +150,35 @@ describe("workflows command provider", () => {
     assert.equal(stop.ok, true);
     assert.equal(cancelled, "exec_1");
   });
+
+  it("passes the active profile to workflow lifecycle commands and copied URLs", async () => {
+    const lifecycleProfiles: Array<string | undefined> = [];
+    const context: CommandExecutionContext = {
+      activeWorkflowId: "wf_alpha",
+      profileId: "bruno",
+      services: {
+        workflows: {
+          getWorkflowById: () => workflow(),
+          publishWorkflow: () => workflow({ metadata: { ...workflow().metadata, isActive: true } }),
+          unpublishWorkflow: () => workflow({ metadata: { ...workflow().metadata, isActive: false } }),
+          activateWorkflow: async (_workflow: WorkflowItem, options?: { profileId?: string }) => {
+            lifecycleProfiles.push(options?.profileId);
+          },
+          deactivateWorkflow: async (_workflow: WorkflowItem, options?: { profileId?: string }) => {
+            lifecycleProfiles.push(options?.profileId);
+          },
+          resyncScheduler: () => {},
+          getPublicUrl: () => "https://forge.example",
+        },
+      },
+    };
+    const { executor } = buildExecutor(context);
+
+    await executor.execute("workflow.publish.picked", context, { workflowId: "wf_alpha" });
+    await executor.execute("workflow.unpublish.picked", context, { workflowId: "wf_alpha" });
+    const webhook = await executor.execute("workflow.copy-webhook-url", context, {});
+
+    assert.deepEqual(lifecycleProfiles, ["bruno", "bruno"]);
+    assert.equal(webhook.clipboardText, "https://forge.example/p/bruno/webhook/alpha-flow");
+  });
 });

@@ -43,6 +43,7 @@ export interface CommandDescriptor {
 
 export interface CommandExecutionContext {
   routePath?: string;
+  profileId?: string;
   activeWorkflowId?: string;
   activeExecutionId?: string;
   isUniverseMode?: boolean;

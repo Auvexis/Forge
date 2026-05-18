@@ -24,10 +24,19 @@ Sem gambiarra: core resolve perfil antes; plugins continuam genericos.
 - [x] Criar testes para forms scoped: API e submit com `/p/:profileId/forms-api/:formId`.
 - [x] Ajustar form routes/service para resolver dentro do contexto do perfil explicito.
 - [x] Ajustar tipos compartilhados/frontend para expor URLs scoped sem quebrar drafts/test.
-- [ ] Rodar `npx tsc --noEmit --pretty false`.
-- [ ] Rodar testes backend focados.
-- [ ] Rodar suite backend completa.
-- [ ] Marcar tasks concluidas e commitar cada bloco seguro.
+- [x] Ajustar command palette para publicar/despublicar/copiar URLs com `profileId`.
+- [x] Rodar `npx tsc --noEmit --pretty false`.
+- [x] Rodar testes backend focados.
+- [x] Rodar suite backend completa.
+- [x] Marcar tasks concluidas e commitar cada bloco seguro.
+
+## Verificacao
+
+- Backend typecheck: `npx tsc --noEmit --pretty false`.
+- Backend focado: profile scope, scheduler, webhooks, lifecycle, forms e command palette.
+- Backend completo: `node --loader ts-node/esm --test "src/**/*.test.ts"` com 246 pass, 1 skip.
+- Frontend URL unit: `node --test src/features/workflow-editor/components/settings/editors/__tests__/triggerRuntimeUrls.test.ts`.
+- Frontend typecheck completo segue bloqueado por erros preexistentes em `ProfileAvatarPicker.vue` e testes de contrato com tipos Node.
 
 ## Regras de arquitetura
 

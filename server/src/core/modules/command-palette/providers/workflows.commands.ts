@@ -5,7 +5,7 @@ import { Scheduler } from "../../scheduler/scheduler.ts";
 import { CancellationRegistry } from "../../workflows/cancellation-registry.ts";
 import { WorkflowEngine } from "../../workflows/executor.ts";
 import { createDraftWorkflow } from "../../workflows/workflow-factory.ts";
-import { WorkflowLifecycleManager } from "../../workflows/lifecycle.ts";
+import { WorkflowLifecycleManager, type WorkflowLifecycleOptions } from "../../workflows/lifecycle.ts";
 import { WorkflowRepository } from "../../workflows/repository.ts";
 import { validateWorkflowDefinition } from "../../workflows/workflow-validation.ts";
 import type {
@@ -31,8 +31,8 @@ interface WorkflowCommandServices {
     payload: unknown,
     executionId?: string,
   ) => Promise<unknown>;
-  activateWorkflow: (workflow: WorkflowItem) => Promise<void>;
-  deactivateWorkflow: (workflow: WorkflowItem) => Promise<void>;
+  activateWorkflow: (workflow: WorkflowItem, options?: WorkflowLifecycleOptions) => Promise<void>;
+  deactivateWorkflow: (workflow: WorkflowItem, options?: WorkflowLifecycleOptions) => Promise<void>;
   cancelExecution: (executionId: string) => void;
   resyncScheduler: () => void;
   getPublicUrl: () => string;
@@ -130,10 +130,21 @@ function withUpdatedWorkflow(workflow: WorkflowItem): WorkflowItem {
   };
 }
 
-function buildWebhookUrl(workflow: WorkflowItem, services: WorkflowCommandServices): string | null {
+function buildProfilePath(context: CommandExecutionContext, path: string): string {
+  return context.profileId ? `/p/${encodeURIComponent(context.profileId)}${path}` : path;
+}
+
+function buildWebhookUrl(
+  workflow: WorkflowItem,
+  services: WorkflowCommandServices,
+  context: CommandExecutionContext,
+): string | null {
   if (workflow.trigger.type !== "webhook" && workflow.trigger.type !== "plugin") return null;
   const path = workflow.trigger.webhookSlug || workflow.trigger.webhookPath || workflow.metadata.id;
-  return `${services.getPublicUrl().replace(/\/$/, "")}/webhook/${path}`;
+  return `${services.getPublicUrl().replace(/\/$/, "")}${buildProfilePath(
+    context,
+    `/webhook/${encodeURIComponent(path)}`,
+  )}`;
 }
 
 function exposesWebhookUrl(workflow: WorkflowItem): boolean {
@@ -156,10 +167,17 @@ function formAvailability(context: CommandExecutionContext) {
     : { enabled: false, reason: "Active workflow does not expose a form URL" };
 }
 
-function buildFormUrl(workflow: WorkflowItem, services: WorkflowCommandServices): string | null {
+function buildFormUrl(
+  workflow: WorkflowItem,
+  services: WorkflowCommandServices,
+  context: CommandExecutionContext,
+): string | null {
   if (workflow.trigger.type !== "form") return null;
   const formId = workflow.trigger.formSlug?.trim() || workflow.metadata.id;
-  return `${services.getPublicUrl().replace(/\/$/, "")}/forms/${formId}`;
+  return `${services.getPublicUrl().replace(/\/$/, "")}${buildProfilePath(
+    context,
+    `/forms/${encodeURIComponent(formId)}`,
+  )}`;
 }
 
 function exposesFormUrl(workflow: WorkflowItem): boolean {
@@ -342,7 +360,7 @@ function deleteWorkflowPickedCommand(): CommandHandler {
       services.deleteWorkflowExecutions(workflowId);
       services.deleteWorkflow(workflowId);
       services.resyncScheduler();
-      await services.deactivateWorkflow(wf);
+      await services.deactivateWorkflow(wf, { profileId: context.profileId });
       const isActive = context.activeWorkflowId === workflowId;
       return workflowResult("Workflow deleted", {
         navigation: isActive ? { path: "/workflows" } : undefined,
@@ -464,7 +482,7 @@ function publishWorkflowPickedCommand(): CommandHandler {
       const wf = services.publishWorkflow(workflowId);
       if (!wf) throw new Error("Workflow not found");
       services.resyncScheduler();
-      await services.activateWorkflow(wf);
+      await services.activateWorkflow(wf, { profileId: context.profileId });
       return workflowResult("Workflow published");
     },
   };
@@ -505,7 +523,7 @@ function unpublishWorkflowPickedCommand(): CommandHandler {
       const wf = services.unpublishWorkflow(workflowId);
       if (!wf) throw new Error("Workflow not found");
       services.resyncScheduler();
-      if (before) await services.deactivateWorkflow(before);
+      if (before) await services.deactivateWorkflow(before, { profileId: context.profileId });
       return workflowResult("Workflow unpublished");
     },
   };
@@ -747,7 +765,7 @@ function activeWorkflowCommands(): CommandHandler[] {
       }),
       execute: (context) => {
         const workflow = activeWorkflow(context);
-        const url = workflow ? buildWebhookUrl(workflow, workflowServices(context)) : null;
+        const url = workflow ? buildWebhookUrl(workflow, workflowServices(context), context) : null;
         if (!url) throw new Error("Active workflow does not expose a webhook URL");
         return workflowResult("Webhook URL copied", { clipboardText: url });
       },
@@ -764,7 +782,7 @@ function activeWorkflowCommands(): CommandHandler[] {
       }),
       execute: (context) => {
         const workflow = activeWorkflow(context);
-        const url = workflow ? buildFormUrl(workflow, workflowServices(context)) : null;
+        const url = workflow ? buildFormUrl(workflow, workflowServices(context), context) : null;
         if (!url) throw new Error("Active workflow does not expose a form URL");
         return workflowResult("Form URL copied", { clipboardText: url });
       },

@@ -101,6 +101,7 @@ describe("executions command provider", () => {
   it("generates clipboard URLs server-side for active workflow triggers", async () => {
     const context: CommandExecutionContext = {
       activeWorkflowId: "wf_orders",
+      profileId: "bruno",
       services: {
         executions: {
           getWorkflowById: () => workflow(),
@@ -114,7 +115,7 @@ describe("executions command provider", () => {
     const webhook = await executor.execute("utility.copy-webhook-url", context, {});
 
     assert.equal(id.clipboardText, "wf_orders");
-    assert.equal(webhook.clipboardText, "https://forge.example/webhook/orders");
+    assert.equal(webhook.clipboardText, "https://forge.example/p/bruno/webhook/orders");
   });
 
   it("toggles theme through app settings service", async () => {

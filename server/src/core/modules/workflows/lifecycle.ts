@@ -12,7 +12,7 @@ import {
 
 const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
 
-interface WorkflowLifecycleOptions {
+export interface WorkflowLifecycleOptions {
   mode?: "prod" | "test";
   profileId?: string;
 }
