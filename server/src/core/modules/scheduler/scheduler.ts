@@ -120,7 +120,21 @@ export const Scheduler = {
       };
 
       if (profileId && profileScope) {
-        await profileScope.runWithProfile(profileId, run);
+        try {
+          await profileScope.runWithProfile(profileId, run);
+        } catch (err: any) {
+          if (err?.message === `Profile '${profileId}' not found`) {
+            console.warn(
+              `[SAILOR | SCHEDULER]: Profile '${profileId}' not found - removing scheduled jobs`,
+            );
+            this.unscheduleProfile(profileId);
+            return;
+          }
+
+          console.error(
+            `[SAILOR | SCHEDULER]: Workflow ${workflowId} failed: ${err?.message ?? err}`,
+          );
+        }
         return;
       }
 
@@ -148,6 +162,14 @@ export const Scheduler = {
     const jobId = schedulerJobId(workflowId, triggerNodeId, profileId);
     const job = activeJobs.get(jobId);
     if (job) {
+      job.task.stop();
+      activeJobs.delete(jobId);
+    }
+  },
+
+  unscheduleProfile(profileId: string): void {
+    for (const [jobId, job] of activeJobs) {
+      if (job.profileId !== profileId) continue;
       job.task.stop();
       activeJobs.delete(jobId);
     }

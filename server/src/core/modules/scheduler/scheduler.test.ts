@@ -74,4 +74,34 @@ describe("Scheduler", () => {
     dbs.andre.close();
     dbs.bruno.close();
   });
+
+  it("removes every scheduled job that belongs to a deleted profile", async () => {
+    const dbs = {
+      andre: await createWorkflowDb(),
+      bruno: await createWorkflowDb(),
+    };
+    let currentDb = dbs.andre;
+    setWorkflowDatabaseProvider(() => currentDb);
+
+    currentDb = dbs.andre;
+    WorkflowRepository.saveWorkflow(cronWorkflow("wf-andre", "Andre cron"));
+    currentDb = dbs.bruno;
+    WorkflowRepository.saveWorkflow(cronWorkflow("wf-bruno", "Bruno cron"));
+
+    Scheduler.configureProfileScope({
+      listProfileIds: () => ["andre", "bruno"],
+      runWithProfile: (profileId, callback) => {
+        currentDb = dbs[profileId as keyof typeof dbs];
+        return callback();
+      },
+    });
+
+    Scheduler.resync();
+    Scheduler.unscheduleProfile("bruno");
+
+    assert.deepEqual(Scheduler.getActiveJobs(), ["andre:wf-andre:trigger"]);
+
+    dbs.andre.close();
+    dbs.bruno.close();
+  });
 });

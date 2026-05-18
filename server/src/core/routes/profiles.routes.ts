@@ -4,17 +4,26 @@ import { z } from "zod";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { ProfilePasswordService } from "../profiles/profile-password-service.ts";
 import { ProfileStore } from "../profiles/profile-store.ts";
-import type { ActiveProfileService, SwitchProfileInput } from "../profiles/active-profile-service.ts";
+import { Scheduler } from "../modules/scheduler/scheduler.ts";
+import type {
+  ActiveProfileService,
+  SwitchProfileInput,
+} from "../profiles/active-profile-service.ts";
 import { sailorHomePaths } from "../runtime/sailor-home.ts";
 
 interface SwitchProfileService {
   switchProfile(input: SwitchProfileInput): Promise<unknown>;
 }
 
+interface ProfileSchedulerService {
+  unscheduleProfile(profileId: string): void;
+}
+
 export interface ProfilesRoutesOptions {
   store?: ProfileStore;
   passwordService?: ProfilePasswordService;
   activeProfileService?: SwitchProfileService | ActiveProfileService;
+  scheduler?: ProfileSchedulerService;
 }
 
 const CreateProfileSchema = z.object({
@@ -41,6 +50,7 @@ export default async function profilesRoutes(
   const store = options.store ?? new ProfileStore({ sailorHome: sailorHomePaths.home });
   const passwordService = options.passwordService ?? new ProfilePasswordService({ store });
   const activeProfileService = options.activeProfileService;
+  const scheduler = options.scheduler ?? Scheduler;
 
   const sendResponse = <T>(reply: FastifyReply, response: ApiResponse<T>) => {
     return reply.code(response.status_code).send(response);
@@ -212,6 +222,7 @@ export default async function profilesRoutes(
     const { profileId } = req.params as { profileId: string };
     try {
       store.deleteProfile(profileId);
+      scheduler.unscheduleProfile(profileId);
       return sendResponse(reply, {
         status_code: 200,
         message: "Profile deleted",

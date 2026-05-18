@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 
 import { resolveProfilePaths, resolveProfilesRoot } from "./profile-paths.ts";
@@ -98,7 +99,9 @@ export class ProfileStore {
   createProfile(input: CreateProfileInput): ProfileSummary {
     this.ensureInitialized();
     const index = this.readIndex();
-    const id = validateProfileId(input.id ?? slugifyProfileName(input.name));
+    const id = input.id
+      ? validateProfileId(input.id)
+      : this.generateProfileId(index.profileIds);
     if (index.profileIds.includes(id)) {
       throw new Error(`Profile id '${id}' already exists`);
     }
@@ -241,13 +244,13 @@ export class ProfileStore {
   private now(): string {
     return this.clock().toISOString();
   }
-}
 
-function slugifyProfileName(name: string): string {
-  const slug = validateProfileName(name)
-    .toLocaleLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  private generateProfileId(existingIds: ProfileId[]): ProfileId {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const id = validateProfileId(crypto.randomBytes(16).toString("hex"));
+      if (!existingIds.includes(id)) return id;
+    }
 
-  return validateProfileId(slug || "profile");
+    throw new Error("Unable to generate unique profile id");
+  }
 }

@@ -56,6 +56,20 @@ describe("ProfileStore", () => {
     });
   });
 
+  it("generates opaque hex ids for profiles created without an explicit id", () => {
+    const store = new ProfileStore({ sailorHome: createHome() });
+    store.ensureInitialized();
+
+    const created = store.createProfile({
+      name: "Bruno Henrique",
+      avatarEmoji: "💼",
+    });
+
+    assert.match(created.id, /^[a-f0-9]{32}$/);
+    assert.notEqual(created.id, "bruno-henrique");
+    assert.equal(store.getProfile(created.id)?.name, "Bruno Henrique");
+  });
+
   it("rejects duplicate ids and duplicate display names", () => {
     const store = new ProfileStore({ sailorHome: createHome() });
     store.ensureInitialized();
