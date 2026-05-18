@@ -33,12 +33,24 @@ describe('workflow chrome actions', () => {
     )
   })
 
-  it('exposes publish as a real enabled run menu action', () => {
+  it('exposes publish and unpublish as real enabled workflow chrome actions', () => {
     const runMenu = workflowChromeMenus.find((menu) => menu.id === 'run')
     const publishItem = runMenu?.items.find((item) => item.id === 'run.publish')
+    const toolbarGroup = workflowChromeToolbarGroups.find((group) => group.id === 'save')
+    const publishToolbarItem = toolbarGroup?.actions.find((item) => item.id === 'run.publish')
 
     assert.equal(publishItem?.label, 'Publish Workflow')
     assert.equal(publishItem?.disabledReason, undefined)
+    assert.equal(publishToolbarItem?.label, 'Publish')
+    assert.equal(publishToolbarItem?.icon, 'radio')
+  })
+
+  it('computes the publish command label from the active workflow state', () => {
+    assert.match(chromeSource, /isWorkflowPublished/)
+    assert.match(chromeSource, /dynamicMenuOverrides/)
+    assert.match(chromeSource, /Unpublish Workflow/)
+    assert.match(chromeSource, /Publish Workflow/)
+    assert.match(chromeSource, /publishToolbarLabel/)
   })
 
   it('exposes clean execution from the toolbar execution group', () => {
