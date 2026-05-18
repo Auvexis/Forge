@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import type { FastifyInstance, FastifyReply } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import type {
   WorkflowItem,
@@ -23,6 +23,7 @@ import { PluginManager } from "../modules/plugins/manager.ts";
 import { TriggerListenerRegistry } from "../modules/workflows/trigger-listener-registry.ts";
 import { WorkflowLifecycleManager } from "../modules/workflows/lifecycle.ts";
 import { devWorkflowSessionRuntime } from "../modules/workflows/dev-session/runtime.ts";
+import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
 import { buildWorkflowSchema } from "../modules/workflows/workflow-schema.ts";
 import { validateWorkflowDefinition } from "../modules/workflows/workflow-validation.ts";
 import {
@@ -36,6 +37,14 @@ const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
 const DEV_SESSION_STREAM_RECONNECT_GRACE_MS = 5000;
 const devSessionStreamConnections = new Map<string, number>();
 const devSessionStopTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+interface ProfileScopeRunnerLike {
+  runWithProfile<T>(profileId: string, callback: () => T): T;
+}
+
+interface WorkflowsRoutesOptions {
+  profileScopeRunner?: ProfileScopeRunnerLike;
+}
 
 // ──────────── Safe SSE serializer ────────────
 // Handles circular references and non-JSON-safe values so a bad plugin
@@ -76,7 +85,169 @@ function validateWebhookSignature(
   }
 }
 
-export default async function workflowsRoutes(fastify: FastifyInstance) {
+async function handleProductionWebhook(
+  req: FastifyRequest,
+  reply: FastifyReply,
+  webhookPath: string,
+  options: { awaitBackgroundExecution?: boolean } = {},
+) {
+  console.log(
+    `[SAILOR | WEBHOOK-IN]: ${req.method} /webhook/${webhookPath} - ` +
+      `listen-active=${TriggerListenerRegistry.has(webhookPath)} ` +
+      `body-keys=${Object.keys((req.body as any) ?? {}).join(",")}`,
+  );
+
+  if (TriggerListenerRegistry.has(webhookPath)) {
+    const payload = {
+      body: req.body ?? null,
+      headers: req.headers,
+      query: req.query,
+      method: req.method,
+      contentType: req.headers["content-type"] ?? "",
+      receivedAt: Date.now(),
+      identifier: webhookPath,
+    };
+
+    const { consumed, workflowId } = TriggerListenerRegistry.consume(
+      webhookPath,
+      payload,
+    );
+    if (consumed && workflowId) {
+      WorkflowRepository.saveLastTriggerPayload(workflowId, payload);
+    }
+    return reply.code(200).send({ ok: true });
+  }
+
+  const resolved = resolveWebhookTrigger(WorkflowRepository.getWorkflows(), webhookPath);
+  if (!resolved) {
+    return reply.code(404).send({ error: "Webhook not found" });
+  }
+  const { workflow, triggerNodeId, entry } = resolved;
+
+  const allowedMethods = entry.trigger.webhookMethods ?? ["POST"];
+  if (!allowedMethods.includes(req.method as any)) {
+    return reply
+      .code(405)
+      .send({ error: `Method ${req.method} not allowed` });
+  }
+
+  if (entry.trigger.webhookSecret) {
+    const signature = req.headers["x-sailor-signature"] as string | undefined;
+    if (!signature) {
+      return reply
+        .code(401)
+        .send({ error: "Missing X-Sailor-Signature header" });
+    }
+    const rawBody = JSON.stringify(req.body ?? {});
+    if (
+      !validateWebhookSignature(
+        rawBody,
+        entry.trigger.webhookSecret,
+        signature,
+      )
+    ) {
+      return reply.code(401).send({ error: "Invalid webhook signature" });
+    }
+  } else {
+    console.warn(
+      `[SAILOR | WEBHOOK]: Webhook "${webhookPath}" has no secret configured - consider adding one`,
+    );
+  }
+
+  const triggerPayload = {
+    method: req.method,
+    headers: req.headers,
+    query: req.query,
+    body: req.body ?? {},
+    ip: req.ip,
+    timestamp: Date.now(),
+  };
+
+  const contentType =
+    (req.headers["content-type"] ?? "").split(";")[0].trim() ||
+    "application/json";
+  console.log(
+    `[SAILOR | WEBHOOKS]: Webhook received - identifier: '${webhookPath}', content-type: ${contentType}`,
+  );
+
+  const executionId = `exec_wh_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  const hasRespondNode = Object.values(workflow.nodes).some(
+    (n: any) => n.type === "respond-webhook",
+  );
+
+  if (hasRespondNode) {
+    const correlationId = `wh_${executionId}`;
+    const enrichedPayload = {
+      ...triggerPayload,
+      _webhookCorrelationId: correlationId,
+    };
+
+    WorkflowEngine.executeWorkflowFromTrigger(
+      workflow,
+      triggerNodeId,
+      enrichedPayload,
+      executionId,
+    ).catch((err: Error) =>
+      console.error(
+        `[SAILOR | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
+      ),
+    );
+
+    try {
+      const webhookResponse =
+        await PendingWebhookResponseRegistry.waitForResponse(
+          correlationId,
+          30_000,
+        );
+
+      if (webhookResponse.headers) {
+        for (const [k, v] of Object.entries(webhookResponse.headers)) {
+          reply.header(k, v);
+        }
+      }
+
+      return reply
+        .code(webhookResponse.statusCode)
+        .send(webhookResponse.body);
+    } catch {
+      return reply
+        .code(504)
+        .send({
+          error: "Gateway Timeout - workflow did not respond in time",
+        });
+    }
+  }
+
+  const execution = WorkflowEngine.executeWorkflowFromTrigger(
+    workflow,
+    triggerNodeId,
+    triggerPayload,
+    executionId,
+  );
+
+  if (options.awaitBackgroundExecution) {
+    await execution;
+  } else {
+    execution.catch((err: Error) =>
+      console.error(
+        `[SAILOR | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
+      ),
+    );
+  }
+
+  return reply.code(202).send({
+    status: "accepted",
+    executionId,
+    message: `Workflow "${workflow.metadata.name}" triggered via webhook`,
+  });
+}
+
+export default async function workflowsRoutes(
+  fastify: FastifyInstance,
+  options: WorkflowsRoutesOptions = {},
+) {
+  const profileScopeRunner =
+    options.profileScopeRunner ?? activeProfileRuntime.profileScopeRunner;
   const sendResponse = <T>(reply: FastifyReply, response: ApiResponse<T>) => {
     return reply.code(response.status_code).send(response);
   };
@@ -180,160 +351,29 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
   // Must be registered BEFORE /:workflowId routes to avoid conflicts
   // Resolves webhookSlug first, falls back to webhookPath.
 
-  fastify.all("/webhook/:webhookPath", async (req, reply) => {
-    const { webhookPath } = req.params as { webhookPath: string };
-
-    console.log(
-      `[SAILOR | WEBHOOK-IN]: ${req.method} /webhook/${webhookPath} — ` +
-        `listen-active=${TriggerListenerRegistry.has(webhookPath)} ` +
-        `body-keys=${Object.keys((req.body as any) ?? {}).join(",")}`,
-    );
-
-    // ── Listen for Event intercept ─────────────────────────────────
-    if (TriggerListenerRegistry.has(webhookPath)) {
-      const payload = {
-        body: req.body ?? null,
-        headers: req.headers,
-        query: req.query,
-        method: req.method,
-        contentType: req.headers["content-type"] ?? "",
-        receivedAt: Date.now(),
-        identifier: webhookPath,
-      };
-
-      const { consumed, workflowId } = TriggerListenerRegistry.consume(
-        webhookPath,
-        payload,
-      );
-      if (consumed && workflowId) {
-        WorkflowRepository.saveLastTriggerPayload(workflowId, payload);
-      }
-      return reply.code(200).send({ ok: true });
-    }
-    // ──────────────────────────────────────────────────────────────
-
-    const resolved = resolveWebhookTrigger(WorkflowRepository.getWorkflows(), webhookPath);
-
-    if (!resolved) {
-      return reply.code(404).send({ error: "Webhook not found" });
-    }
-    const { workflow, triggerNodeId, entry } = resolved;
-
-    // Method validation
-    const allowedMethods = entry.trigger.webhookMethods ?? ["POST"];
-    if (!allowedMethods.includes(req.method as any)) {
-      return reply
-        .code(405)
-        .send({ error: `Method ${req.method} not allowed` });
-    }
-
-    // HMAC signature validation when a secret is configured
-    if (entry.trigger.webhookSecret) {
-      const signature = req.headers["x-sailor-signature"] as string | undefined;
-      if (!signature) {
-        return reply
-          .code(401)
-          .send({ error: "Missing X-Sailor-Signature header" });
-      }
-      const rawBody = JSON.stringify(req.body ?? {});
-      if (
-        !validateWebhookSignature(
-          rawBody,
-          entry.trigger.webhookSecret,
-          signature,
-        )
-      ) {
-        return reply.code(401).send({ error: "Invalid webhook signature" });
-      }
-    } else {
-      console.warn(
-        `[SAILOR | WEBHOOK]: Webhook "${webhookPath}" has no secret configured — consider adding one`,
-      );
-    }
-
-    const triggerPayload = {
-      method: req.method,
-      headers: req.headers,
-      query: req.query,
-      body: req.body ?? {},
-      ip: req.ip,
-      timestamp: Date.now(),
+  fastify.all("/p/:profileId/webhook/:webhookPath", async (req, reply) => {
+    const { profileId, webhookPath } = req.params as {
+      profileId: string;
+      webhookPath: string;
     };
 
-    const contentType =
-      (req.headers["content-type"] ?? "").split(";")[0].trim() ||
-      "application/json";
-    console.log(
-      `[SAILOR | WEBHOOKS]: Webhook received — identifier: '${webhookPath}', content-type: ${contentType}`,
-    );
-
-    const executionId = `exec_wh_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-    // Check if this workflow has a RespondToWebhookNode — if so, await the response
-    const hasRespondNode = Object.values(workflow.nodes).some(
-      (n: any) => n.type === "respond-webhook",
-    );
-
-    if (hasRespondNode) {
-      // Inject correlationId into trigger payload for the executor to pick up
-      const correlationId = `wh_${executionId}`;
-      const enrichedPayload = {
-        ...triggerPayload,
-        _webhookCorrelationId: correlationId,
-      };
-
-      // Start execution (fire — don't await)
-      WorkflowEngine.executeWorkflowFromTrigger(
-        workflow,
-        triggerNodeId,
-        enrichedPayload,
-        executionId,
-      ).catch((err: Error) =>
-        console.error(
-          `[SAILOR | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
-        ),
+    try {
+      return await profileScopeRunner.runWithProfile(profileId, () =>
+        handleProductionWebhook(req, reply, webhookPath, {
+          awaitBackgroundExecution: true,
+        }),
       );
-
-      // Wait for RespondToWebhookNode to resolve (or 30s timeout → 504)
-      try {
-        const webhookResponse =
-          await PendingWebhookResponseRegistry.waitForResponse(
-            correlationId,
-            30_000,
-          );
-
-        // Apply custom headers
-        if (webhookResponse.headers) {
-          for (const [k, v] of Object.entries(webhookResponse.headers)) {
-            reply.header(k, v);
-          }
-        }
-
-        return reply
-          .code(webhookResponse.statusCode)
-          .send(webhookResponse.body);
-      } catch {
-        return reply
-          .code(504)
-          .send({
-            error: "Gateway Timeout — workflow did not respond in time",
-          });
+    } catch (error: any) {
+      if (error instanceof Error && /Profile '.+' not found/.test(error.message)) {
+        return reply.code(404).send({ error: "Profile not found" });
       }
+      throw error;
     }
+  });
 
-    // Default: fire-and-forget (no RespondToWebhookNode)
-    WorkflowEngine.executeWorkflowFromTrigger(workflow, triggerNodeId, triggerPayload, executionId).catch(
-      (err: Error) =>
-        console.error(
-          `[SAILOR | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
-        ),
-    );
-
-    return reply.code(202).send({
-      status: "accepted",
-      executionId,
-      message: `Workflow "${workflow.metadata.name}" triggered via webhook`,
-    });
+  fastify.all("/webhook/:webhookPath", async (req, reply) => {
+    const { webhookPath } = req.params as { webhookPath: string };
+    return handleProductionWebhook(req, reply, webhookPath);
   });
 
   // Form Trigger routes are owned by the forms module.
@@ -859,8 +899,12 @@ export default async function workflowsRoutes(fastify: FastifyInstance) {
           ? headerExecRaw
           : null;
 
-      if (req.isMultipart()) {
-        const parts = req.parts();
+      const multipartReq = req as typeof req & {
+        isMultipart(): boolean;
+        parts(): AsyncIterable<any>;
+      };
+      if (multipartReq.isMultipart()) {
+        const parts = multipartReq.parts();
         for await (const part of parts) {
           if (part.type === "file") {
             triggerPayload[part.fieldname] = {

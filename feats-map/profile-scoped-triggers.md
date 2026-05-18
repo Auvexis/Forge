@@ -17,8 +17,8 @@ Sem gambiarra: core resolve perfil antes; plugins continuam genericos.
 ## Tasks
 
 - [x] Criar helper core para executar callback dentro do contexto de um `profileId` existente.
-- [ ] Criar testes para webhook scoped: mesmo slug em dois perfis resolve pelo `profileId` da URL.
-- [ ] Ajustar rotas `/p/:profileId/webhook/:webhookPath` e manter rota antiga como compat.
+- [x] Criar testes para webhook scoped: mesmo slug em dois perfis resolve pelo `profileId` da URL.
+- [x] Ajustar rotas `/p/:profileId/webhook/:webhookPath` e manter rota antiga como compat.
 - [ ] Ajustar builder de URL de lifecycle para plugin trigger usar `/p/:profileId/webhook/:path`.
 - [ ] Criar testes para plugin lifecycle garantindo URL scoped e credenciais do perfil dono.
 - [ ] Criar testes para forms scoped: API e submit com `/p/:profileId/forms-api/:formId`.
