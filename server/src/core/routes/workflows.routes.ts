@@ -1262,7 +1262,9 @@ export default async function workflowsRoutes(
 
     if (isUnpublishedPluginTrigger) {
       try {
-        await WorkflowLifecycleManager.activate(workflow);
+        await WorkflowLifecycleManager.activate(workflow, {
+          profileId: activeProfileRuntime.activeProfileService.getActiveProfile()?.id,
+        });
       } catch (err: any) {
         console.error(
           `[SAILOR | LISTEN]: Failed to temporarily activate plugin trigger:`,
@@ -1408,7 +1410,9 @@ export default async function workflowsRoutes(
 
       // Lifecycle teardown — non-fatal (errors are logged, not propagated)
       if (workflowBeforeUnpublish) {
-        await WorkflowLifecycleManager.deactivate(workflowBeforeUnpublish);
+        await WorkflowLifecycleManager.deactivate(workflowBeforeUnpublish, {
+          profileId: activeProfileRuntime.activeProfileService.getActiveProfile()?.id,
+        });
       }
 
       console.log(
@@ -1445,7 +1449,9 @@ export default async function workflowsRoutes(
 
       // Lifecycle teardown — non-fatal
       if (workflowBeforeDelete) {
-        await WorkflowLifecycleManager.deactivate(workflowBeforeDelete);
+        await WorkflowLifecycleManager.deactivate(workflowBeforeDelete, {
+          profileId: activeProfileRuntime.activeProfileService.getActiveProfile()?.id,
+        });
       }
 
       return sendResponse(reply, {

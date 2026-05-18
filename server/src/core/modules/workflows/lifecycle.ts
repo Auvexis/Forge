@@ -12,6 +12,11 @@ import {
 
 const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
 
+interface WorkflowLifecycleOptions {
+  mode?: "prod" | "test";
+  profileId?: string;
+}
+
 function resolvePublicUrl(): string {
   const configuredPublicUrl = AppRepository.getSetting("public_url");
   if (typeof configuredPublicUrl === "string" && configuredPublicUrl.trim()) {
@@ -20,15 +25,22 @@ function resolvePublicUrl(): string {
   return process.env.PUBLIC_URL || `http://localhost:${SERVER_PORT}`;
 }
 
-function buildWebhookUrl(webhookPath: string, mode: "prod" | "test" = "prod"): string {
+function buildWebhookUrl(
+  webhookPath: string,
+  options: WorkflowLifecycleOptions = {},
+): string {
+  const mode = options.mode ?? "prod";
   const path = mode === "test" ? "webhook-test" : "webhook";
+  if (mode === "prod" && options.profileId) {
+    return `${resolvePublicUrl()}/p/${encodeURIComponent(options.profileId)}/${path}/${webhookPath}`;
+  }
   return `${resolvePublicUrl()}/${path}/${webhookPath}`;
 }
 
 async function buildTriggerContext(
   workflow: WorkflowItem,
   entry: WorkflowTriggerEntry,
-  mode: "prod" | "test" = "prod",
+  options: WorkflowLifecycleOptions = {},
 ): Promise<TriggerRegistrationContext | null> {
   const { trigger } = entry;
 
@@ -54,7 +66,7 @@ async function buildTriggerContext(
   const tokens = CredentialStore.getTokens(trigger.pluginId) ?? undefined;
 
   return {
-    webhookUrl: buildWebhookUrl(webhookPath, mode),
+    webhookUrl: buildWebhookUrl(webhookPath, options),
     credentials,
     tokens,
     params: trigger.triggerParams ?? {},
@@ -65,10 +77,10 @@ async function buildTriggerContext(
 export const WorkflowLifecycleManager = {
   async activate(
     workflow: WorkflowItem,
-    options: { mode?: "prod" | "test" } = {},
+    options: WorkflowLifecycleOptions = {},
   ): Promise<void> {
     for (const entry of listPluginTriggers(workflow)) {
-      const ctx = await buildTriggerContext(workflow, entry, options.mode ?? "prod");
+      const ctx = await buildTriggerContext(workflow, entry, options);
       if (!ctx) continue;
 
       const plugin = PluginManager.getPlugin(entry.trigger.pluginId!);
@@ -95,10 +107,10 @@ export const WorkflowLifecycleManager = {
 
   async deactivate(
     workflow: WorkflowItem,
-    options: { mode?: "prod" | "test" } = {},
+    options: WorkflowLifecycleOptions = {},
   ): Promise<void> {
     for (const entry of listPluginTriggers(workflow)) {
-      const ctx = await buildTriggerContext(workflow, entry, options.mode ?? "prod");
+      const ctx = await buildTriggerContext(workflow, entry, options);
       if (!ctx) continue;
 
       const plugin = PluginManager.getPlugin(entry.trigger.pluginId!);
