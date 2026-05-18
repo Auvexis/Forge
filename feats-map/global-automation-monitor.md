@@ -12,4 +12,4 @@
 - [x] Wire `monitoring.open`, production-panel command palette intents, and sidebar activity button to the new monitor.
 - [x] Add publish/unpublish action to workflow editor toolbar.
 - [x] Make Run menu label switch between `Publish Workflow` and `Unpublish Workflow` from workflow publish state.
-- [ ] Run focused tests/type checks and update this task map.
+- [x] Run focused tests/type checks and update this task map.
