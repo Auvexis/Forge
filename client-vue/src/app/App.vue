@@ -231,6 +231,7 @@ function handleSidebarNavClick(item: SidebarNavItem) {
 
 function isSidebarNavItemActive(item: SidebarNavItem) {
   if (item.route) return route.path.startsWith(item.route)
+  if (item.intent?.type === 'monitoring.open') return isAutomationMonitorOpen.value
   return item.intent?.type === 'plugin-installer.open' && isPluginInstallerOpen.value
 }
 
