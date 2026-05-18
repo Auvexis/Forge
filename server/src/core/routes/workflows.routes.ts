@@ -39,6 +39,7 @@ const devSessionStreamConnections = new Map<string, number>();
 const devSessionStopTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 interface ProfileScopeRunnerLike {
+  listProfileIds(): string[];
   runWithProfile<T>(profileId: string, callback: () => T): T;
 }
 
@@ -381,6 +382,41 @@ export default async function workflowsRoutes(
     clientOrigin: CLIENT_ORIGIN,
     sendResponse,
     profileScopeRunner,
+  });
+
+  fastify.get("/p/:profileId/workflows/:workflowId/executions", async (req, reply) => {
+    const { profileId, workflowId } = req.params as {
+      profileId: string;
+      workflowId: string;
+    };
+
+    try {
+      const executions = await profileScopeRunner.runWithProfile(profileId, () =>
+        WorkflowRepository.getWorkflowExecutions(workflowId),
+      );
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Executions fetched successfully",
+        error: null,
+        data: executions,
+      });
+    } catch (error: any) {
+      if (error instanceof Error && /Profile '.+' not found/.test(error.message)) {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Profile not found",
+          error: error.message,
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to fetch executions",
+        error: error.message,
+        data: null,
+      });
+    }
   });
 
   // ──────────── SSE Stream Endpoint ────────────
@@ -1201,6 +1237,34 @@ export default async function workflowsRoutes(
       return sendResponse(reply, {
         status_code: 500,
         message: "Failed to fetch production status",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
+  fastify.get("/workflows/production-status/global", async (_req, reply) => {
+    try {
+      const profileIds = profileScopeRunner.listProfileIds();
+      const statuses = profileIds.flatMap((profileId) =>
+          profileScopeRunner.runWithProfile(profileId, () =>
+            WorkflowRepository.getProductionStatus().map((item) => ({
+              ...item,
+              profileId,
+            })),
+          ),
+        );
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Global production status fetched",
+        error: null,
+        data: statuses,
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to fetch global production status",
         error: error.message,
         data: null,
       });

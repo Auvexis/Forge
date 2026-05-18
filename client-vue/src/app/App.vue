@@ -96,8 +96,8 @@
                   >
                     <button
                       class="nav-link sidebar-activity-link"
-                      :class="{ 'nav-link--active': isMonitorOpen }"
-                      @click="toggleMonitor"
+                      :class="{ 'nav-link--active': isAutomationMonitorOpen }"
+                      @click="toggleAutomationMonitor"
                     >
                       <LucideIcon :name="activityById.monitor.icon" :size="16" />
                     </button>
@@ -154,7 +154,7 @@
     <template v-if="!appUiStore.isUniverseMode" #overlay>
       <AppGlobalSettings />
       <ProfileSettingsPanel v-model="isProfileSettingsOpen" />
-      <AppProductionMonitor />
+      <AppGlobalAutomationMonitor />
       <ExternalPluginInstaller
         :is-open="isPluginInstallerOpen"
         @close="isPluginInstallerOpen = false"
@@ -196,7 +196,10 @@ import {
   type SidebarNavIntent,
   type SidebarNavItem,
 } from '@/shared/components/layout/appSidebarNavigation'
-import AppProductionMonitor, { isMonitorOpen, toggleMonitor } from '@/shared/components/layout/AppProductionMonitor.vue'
+import AppGlobalAutomationMonitor, {
+  isAutomationMonitorOpen,
+  toggleAutomationMonitor,
+} from '@/shared/components/layout/AppGlobalAutomationMonitor.vue'
 
 const settingsStore = useSettingsStore()
 const appUiStore = useAppUiStore()
@@ -238,6 +241,9 @@ function openPluginInstallerPanel() {
 function handleUiIntent(event: Event) {
   const intent = (event as CustomEvent<SidebarNavIntent>).detail
   if (intent?.type === 'plugin-installer.open') openPluginInstallerPanel()
+  if (intent?.type === 'monitoring.open') {
+    if (!isAutomationMonitorOpen.value) toggleAutomationMonitor()
+  }
 }
 
 function handleProfileIntent() {

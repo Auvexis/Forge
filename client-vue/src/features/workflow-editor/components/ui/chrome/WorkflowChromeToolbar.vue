@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { workflowChromeToolbarGroups } from './workflowChromeActions'
-import type { WorkflowChromeCommandId } from './workflowChrome.types'
+import type { WorkflowChromeActionOverrides, WorkflowChromeCommandId } from './workflowChrome.types'
 
 const props = defineProps<{
   canUndo?: boolean
@@ -12,6 +12,7 @@ const props = defineProps<{
   isDirty?: boolean
   isLogsOpen?: boolean
   hasExecutionState?: boolean
+  actionOverrides?: WorkflowChromeActionOverrides
 }>()
 
 const emit = defineEmits<{
@@ -26,6 +27,7 @@ function isDisabled(id: WorkflowChromeCommandId) {
   if (id === 'run.clean-execution') {
     return props.isExecuting || props.isStreaming || !props.hasExecutionState
   }
+  if (id === 'run.publish') return props.isSaving || props.isExecuting || props.isStreaming
   if (id === 'file.save') return props.isSaving || !props.isDirty || props.isExecuting || props.isStreaming
   return false
 }
@@ -41,7 +43,15 @@ function isActive(id: WorkflowChromeCommandId) {
 }
 
 function showsLabel(id: WorkflowChromeCommandId, kind?: string) {
-  return kind === 'primary' || id === 'go.add-node' || id === 'file.save'
+  return kind === 'primary' || id === 'go.add-node' || id === 'file.save' || id === 'run.publish'
+}
+
+function actionLabel(action: { id: WorkflowChromeCommandId; label: string }) {
+  return props.actionOverrides?.[action.id]?.label ?? action.label
+}
+
+function actionIcon(action: { id: WorkflowChromeCommandId; icon: string }) {
+  return props.actionOverrides?.[action.id]?.icon ?? action.icon
 }
 </script>
 
@@ -61,7 +71,7 @@ function showsLabel(id: WorkflowChromeCommandId, kind?: string) {
             'wec-control--active': isActive(action.id),
           }"
           :disabled="isDisabled(action.id)"
-          :title="action.label"
+          :title="actionLabel(action)"
           @click="emit('command', action.id)"
         >
           <span
@@ -73,8 +83,8 @@ function showsLabel(id: WorkflowChromeCommandId, kind?: string) {
             }"
             aria-hidden="true"
           />
-          <LucideIcon v-else :name="action.icon" :size="15" />
-          <span v-if="showsLabel(action.id, action.kind)">{{ action.label }}</span>
+          <LucideIcon v-else :name="actionIcon(action)" :size="15" />
+          <span v-if="showsLabel(action.id, action.kind)">{{ actionLabel(action) }}</span>
         </button>
       </div>
     </template>

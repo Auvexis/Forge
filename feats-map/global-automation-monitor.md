@@ -8,8 +8,8 @@
 
 ## Tasks
 - [x] Add contract tests for the new global monitor shell, profile filter, workflow tabs, and realtime refresh behavior.
-- [ ] Replace the old `AppProductionMonitor.vue` with a new BaseModal-based global automation monitor.
-- [ ] Wire `monitoring.open`, production-panel command palette intents, and sidebar activity button to the new monitor.
-- [ ] Add publish/unpublish action to workflow editor toolbar.
-- [ ] Make Run menu label switch between `Publish Workflow` and `Unpublish Workflow` from workflow publish state.
+- [x] Replace the old `AppProductionMonitor.vue` with a new BaseModal-based global automation monitor.
+- [x] Wire `monitoring.open`, production-panel command palette intents, and sidebar activity button to the new monitor.
+- [x] Add publish/unpublish action to workflow editor toolbar.
+- [x] Make Run menu label switch between `Publish Workflow` and `Unpublish Workflow` from workflow publish state.
 - [ ] Run focused tests/type checks and update this task map.

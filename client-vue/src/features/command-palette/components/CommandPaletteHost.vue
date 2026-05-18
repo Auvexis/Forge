@@ -13,7 +13,10 @@ import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useTheme } from '@/shared/composables/useTheme'
 import { useToast } from '@/shared/composables/useToast'
 import type { CommandDescriptor, CommandExecutionContext } from '../types/command-palette.types'
-import { isMonitorOpen, toggleMonitor } from '@/shared/components/layout/AppProductionMonitor.vue'
+import {
+  isAutomationMonitorOpen,
+  toggleAutomationMonitor,
+} from '@/shared/components/layout/AppGlobalAutomationMonitor.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -289,10 +292,10 @@ function applyUiIntent(intent: { type: string; target?: string; payload?: Record
   }
   if (type === 'settings.open') settingsStore.open()
   if (type === 'production-panel.open') {
-    if (!isMonitorOpen.value) toggleMonitor()
+    if (!isAutomationMonitorOpen.value) toggleAutomationMonitor()
   }
   if (type === 'production-panel.close') {
-    if (isMonitorOpen.value) toggleMonitor()
+    if (isAutomationMonitorOpen.value) toggleAutomationMonitor()
   }
   if (type === 'universe.enter') appUiStore.enterUniverseMode()
   if (type === 'universe.exit') appUiStore.quitUniverseMode()

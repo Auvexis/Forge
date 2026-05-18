@@ -21,9 +21,12 @@ export const ENDPOINTS = {
   WORKFLOW_PUBLISH: (id: string) => `/workflows/${encodeURIComponent(id)}/publish`,
   WORKFLOW_UNPUBLISH: (id: string) => `/workflows/${encodeURIComponent(id)}/unpublish`,
   WORKFLOW_PRODUCTION_STATUS: '/workflows/production-status',
+  WORKFLOW_GLOBAL_PRODUCTION_STATUS: '/workflows/production-status/global',
 
   // Executions
   EXECUTIONS_BY_WORKFLOW: (id: string) => `/workflows/${encodeURIComponent(id)}/executions`,
+  PROFILE_WORKFLOW_EXECUTIONS: (profileId: string, id: string) =>
+    `/p/${encodeURIComponent(profileId)}/workflows/${encodeURIComponent(id)}/executions`,
   EXECUTE_WORKFLOW: (id: string) => `/workflows/${encodeURIComponent(id)}/execute`,
   CANCEL_EXECUTION: (execId: string) => `/workflows/executions/${encodeURIComponent(execId)}/cancel`,
   STREAM_EXECUTION: (execId: string) => `/workflows/executions/${encodeURIComponent(execId)}/stream`,

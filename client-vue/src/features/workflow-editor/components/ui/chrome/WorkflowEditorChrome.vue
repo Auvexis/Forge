@@ -6,7 +6,7 @@ import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import WorkflowChromeHeader from './WorkflowChromeHeader.vue'
 import WorkflowChromeMenuBar from './WorkflowChromeMenuBar.vue'
 import WorkflowChromeToolbar from './WorkflowChromeToolbar.vue'
-import type { WorkflowChromeCommandId } from './workflowChrome.types'
+import type { WorkflowChromeActionOverrides, WorkflowChromeCommandId } from './workflowChrome.types'
 
 const props = defineProps<{
   workflowName: string
@@ -58,6 +58,16 @@ const route = useRoute()
 const headerRef = ref<InstanceType<typeof WorkflowChromeHeader> | null>(null)
 const isBusy = computed(() => props.isExecuting || props.isStreaming)
 const isUnsavedDraft = computed(() => !route.params.id)
+const isWorkflowPublished = computed(
+  () => props.workflow?.metadata.isActive === true && props.workflow.metadata.isDraft === false,
+)
+const publishToolbarLabel = computed(() => (isWorkflowPublished.value ? 'Unpublish' : 'Publish'))
+const dynamicMenuOverrides = computed<WorkflowChromeActionOverrides>(() => ({
+  'run.publish': {
+    label: isWorkflowPublished.value ? 'Unpublish Workflow' : 'Publish Workflow',
+    icon: isWorkflowPublished.value ? 'pause' : 'radio',
+  },
+}))
 const disabledMenuReasons = computed<Partial<Record<WorkflowChromeCommandId, string>>>(() => ({
   ...(isUnsavedDraft.value || !props.workflow
     ? { 'run.publish': 'Save workflow before publishing' }
@@ -112,7 +122,11 @@ function handleCommand(id: WorkflowChromeCommandId) {
     />
 
     <div class="wec-row wec-menu-row">
-      <WorkflowChromeMenuBar :disabled-reasons="disabledMenuReasons" @command="handleCommand" />
+      <WorkflowChromeMenuBar
+        :disabled-reasons="disabledMenuReasons"
+        :action-overrides="dynamicMenuOverrides"
+        @command="handleCommand"
+      />
     </div>
 
     <div class="wec-row wec-toolbar-row">
@@ -125,6 +139,13 @@ function handleCommand(id: WorkflowChromeCommandId) {
         :is-dirty="isDirty"
         :is-logs-open="isLogsOpen"
         :has-execution-state="hasExecutionState"
+        :action-overrides="{
+          ...dynamicMenuOverrides,
+          'run.publish': {
+            ...dynamicMenuOverrides['run.publish'],
+            label: publishToolbarLabel,
+          },
+        }"
         @command="handleCommand"
       />
       <div class="wec-divider" />

@@ -52,3 +52,7 @@ export interface WorkflowChromeToolbarGroup {
   id: 'history' | 'canvas' | 'insert' | 'workflow' | 'execution' | 'save'
   actions: WorkflowChromeToolbarAction[]
 }
+
+export type WorkflowChromeActionOverrides = Partial<
+  Record<WorkflowChromeCommandId, Partial<Pick<WorkflowChromeMenuItem, 'label' | 'icon'>>>
+>

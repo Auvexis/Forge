@@ -126,6 +126,9 @@ export const workflowChromeToolbarGroups: WorkflowChromeToolbarGroup[] = [
   },
   {
     id: 'save',
-    actions: [{ id: 'file.save', label: 'Save', icon: 'save' }],
+    actions: [
+      { id: 'run.publish', label: 'Publish', icon: 'radio' },
+      { id: 'file.save', label: 'Save', icon: 'save' },
+    ],
   },
 ]

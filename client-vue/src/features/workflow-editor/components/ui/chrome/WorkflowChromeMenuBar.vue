@@ -3,7 +3,11 @@ import { ref } from 'vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import { workflowChromeMenus } from './workflowChromeActions'
-import type { WorkflowChromeCommandId, WorkflowChromeMenu } from './workflowChrome.types'
+import type {
+  WorkflowChromeActionOverrides,
+  WorkflowChromeCommandId,
+  WorkflowChromeMenu,
+} from './workflowChrome.types'
 
 const emit = defineEmits<{
   (e: 'command', id: WorkflowChromeCommandId): void
@@ -11,6 +15,7 @@ const emit = defineEmits<{
 
 const props = defineProps<{
   disabledReasons?: Partial<Record<WorkflowChromeCommandId, string>>
+  actionOverrides?: WorkflowChromeActionOverrides
 }>()
 
 const activeMenuId = ref<WorkflowChromeMenu['id'] | null>(null)
@@ -43,6 +48,14 @@ function handleCommandClick(id: WorkflowChromeCommandId) {
   activeMenuId.value = null
   emit('command', id)
 }
+
+function itemLabel(item: { id: WorkflowChromeCommandId; label: string }) {
+  return props.actionOverrides?.[item.id]?.label ?? item.label
+}
+
+function itemIcon(item: { id: WorkflowChromeCommandId; icon?: string }) {
+  return props.actionOverrides?.[item.id]?.icon ?? item.icon
+}
 </script>
 
 <template>
@@ -70,8 +83,8 @@ function handleCommandClick(id: WorkflowChromeCommandId) {
       <AppDropdownItem
         v-for="item in menu.items"
         :key="item.id"
-        :icon="item.icon"
-        :label="item.label"
+        :icon="itemIcon(item)"
+        :label="itemLabel(item)"
         :hint="props.disabledReasons?.[item.id] ?? item.disabledReason"
         :disabled="!!(props.disabledReasons?.[item.id] ?? item.disabledReason)"
         @click="handleCommandClick(item.id)"

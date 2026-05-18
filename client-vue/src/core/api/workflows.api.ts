@@ -13,7 +13,19 @@ import type { DevWorkflowSessionStatus, ExecutionLog, WorkflowExecutionStatus } 
 export interface ProductionWorkflowStatus {
   id: string
   name: string
-  triggerType: 'manual' | 'webhook' | 'cron' | 'event'
+  profileId?: string
+  profileName?: string
+  triggerType:
+    | 'manual'
+    | 'webhook'
+    | 'cron'
+    | 'schedule'
+    | 'event'
+    | 'event-listener'
+    | 'plugin'
+    | 'form'
+    | 'webhook-form'
+    | 'subworkflow'
   publishedAt: string | null
   lastExecution: {
     id: string
@@ -128,6 +140,10 @@ export const workflowsApi = {
   getProductionStatus: () =>
     apiRequest<ProductionWorkflowStatus[]>(ENDPOINTS.WORKFLOW_PRODUCTION_STATUS),
 
+  /** Get all published workflows from every profile scope. */
+  getGlobalProductionStatus: () =>
+    apiRequest<ProductionWorkflowStatus[]>(ENDPOINTS.WORKFLOW_GLOBAL_PRODUCTION_STATUS),
+
   /** Delete a workflow */
   delete: (id: string) =>
     apiRequest<null>(ENDPOINTS.WORKFLOW_BY_ID(id), {
@@ -144,8 +160,12 @@ export const workflowsApi = {
    * those to the camelCase ExecutionLog shape expected by the frontend so
    * that callers never have to deal with the raw server format.
    */
-  getExecutions: async (id: string): Promise<ExecutionLog[]> => {
-    const raw = await apiRequest<ServerExecutionLog[]>(ENDPOINTS.EXECUTIONS_BY_WORKFLOW(id))
+  getExecutions: async (id: string, profileId?: string): Promise<ExecutionLog[]> => {
+    const raw = await apiRequest<ServerExecutionLog[]>(
+      profileId
+        ? ENDPOINTS.PROFILE_WORKFLOW_EXECUTIONS(profileId, id)
+        : ENDPOINTS.EXECUTIONS_BY_WORKFLOW(id),
+    )
     return raw.map(mapExecutionLog)
   },
 
