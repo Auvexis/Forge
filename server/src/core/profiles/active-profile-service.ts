@@ -13,6 +13,7 @@ import {
   setOAuth2SessionDatabaseProvider,
 } from "../modules/plugins/auth/oauth2-session-store.ts";
 import { setPluginRegistryDatabaseProvider } from "../modules/plugins/plugin-registry.ts";
+import { getProfileDatabaseContext } from "./profile-database-context.ts";
 
 export interface SwitchProfileInput {
   profileId: ProfileId;
@@ -174,11 +175,11 @@ function configureDefaultProfileRepositories(
     return;
   }
 
-  setAppDatabaseProvider(() => app);
-  setWorkflowDatabaseProvider(() => workflows);
-  setPluginRegistryDatabaseProvider(() => plugins);
-  setCredentialsDatabaseProvider(() => credentials);
-  setOAuth2SessionDatabaseProvider(() => credentials);
+  setAppDatabaseProvider(() => getProfileDatabaseContext()?.app ?? app);
+  setWorkflowDatabaseProvider(() => getProfileDatabaseContext()?.workflows ?? workflows);
+  setPluginRegistryDatabaseProvider(() => getProfileDatabaseContext()?.plugins ?? plugins);
+  setCredentialsDatabaseProvider(() => getProfileDatabaseContext()?.credentials ?? credentials);
+  setOAuth2SessionDatabaseProvider(() => getProfileDatabaseContext()?.credentials ?? credentials);
 }
 
 function isDatabaseLike(value: unknown): value is Database.Database {

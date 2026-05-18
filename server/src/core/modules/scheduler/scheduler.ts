@@ -3,37 +3,59 @@ import { WorkflowRepository } from "../workflows/repository.ts";
 import { WorkflowEngine } from "../workflows/executor.ts";
 import { listCronTriggers } from "../workflows/workflow-triggers.ts";
 
-// ──────────── Types ────────────
-
 interface ScheduledJob {
+  profileId: string | null;
   workflowId: string;
   triggerNodeId: string;
   cronExpression: string;
   task: cron.ScheduledTask;
 }
 
-// ──────────── Active Jobs Registry ────────────
+interface SchedulerProfileScope {
+  listProfileIds(): string[];
+  runWithProfile<T>(profileId: string, callback: () => T): T;
+}
 
 const activeJobs = new Map<string, ScheduledJob>();
-
-// ──────────── Scheduler ────────────
+let profileScope: SchedulerProfileScope | null = null;
 
 export const Scheduler = {
-  /**
-   * Initialize all cron jobs from active, non-draft workflows.
-   * Called once at server startup after plugins are loaded.
-   */
+  configureProfileScope(scope: SchedulerProfileScope): void {
+    profileScope = scope;
+  },
+
+  resetProfileScope(): void {
+    profileScope = null;
+  },
+
   initialize(): void {
-    const workflows = WorkflowRepository.getActiveWorkflows();
     let count = 0;
 
-    for (const resolved of listCronTriggers(workflows)) {
-      this.scheduleWorkflow(
-        resolved.workflow.metadata.id,
-        resolved.triggerNodeId,
-        resolved.entry.trigger.cronExpression!,
-      );
-      count++;
+    if (profileScope) {
+      for (const profileId of profileScope.listProfileIds()) {
+        profileScope.runWithProfile(profileId, () => {
+          const workflows = WorkflowRepository.getActiveWorkflows();
+          for (const resolved of listCronTriggers(workflows)) {
+            this.scheduleWorkflow(
+              resolved.workflow.metadata.id,
+              resolved.triggerNodeId,
+              resolved.entry.trigger.cronExpression!,
+              profileId,
+            );
+            count++;
+          }
+        });
+      }
+    } else {
+      const workflows = WorkflowRepository.getActiveWorkflows();
+      for (const resolved of listCronTriggers(workflows)) {
+        this.scheduleWorkflow(
+          resolved.workflow.metadata.id,
+          resolved.triggerNodeId,
+          resolved.entry.trigger.cronExpression!,
+        );
+        count++;
+      }
     }
 
     if (count > 0) {
@@ -41,11 +63,12 @@ export const Scheduler = {
     }
   },
 
-  /**
-   * Schedule a single workflow by its ID and cron expression.
-   * If the workflow already has a job, it will be replaced.
-   */
-  scheduleWorkflow(workflowId: string, triggerNodeId: string, cronExpression: string): void {
+  scheduleWorkflow(
+    workflowId: string,
+    triggerNodeId: string,
+    cronExpression: string,
+    profileId: string | null = null,
+  ): void {
     if (!cron.validate(cronExpression)) {
       console.error(
         `[SAILOR | SCHEDULER]: Invalid cron expression for workflow ${workflowId}: "${cronExpression}"`,
@@ -53,73 +76,85 @@ export const Scheduler = {
       return;
     }
 
-    // Remove existing job for this workflow before re-scheduling
-    this.unscheduleWorkflow(workflowId, triggerNodeId);
+    this.unscheduleWorkflow(workflowId, triggerNodeId, profileId);
 
     const task = cron.schedule(cronExpression, async () => {
-      console.log(`[SAILOR | SCHEDULER]: Triggering workflow ${workflowId}/${triggerNodeId} (cron: ${cronExpression})`);
+      console.log(
+        `[SAILOR | SCHEDULER]: Triggering workflow ${workflowId}/${triggerNodeId} (cron: ${cronExpression})`,
+      );
 
-      const workflow = WorkflowRepository.getWorkflowById(workflowId);
-      if (!workflow) {
-        console.error(
-          `[SAILOR | SCHEDULER]: Workflow ${workflowId} not found — removing job`,
-        );
-        this.unscheduleWorkflow(workflowId, triggerNodeId);
+      const run = async () => {
+        const workflow = WorkflowRepository.getWorkflowById(workflowId);
+        if (!workflow) {
+          console.error(
+            `[SAILOR | SCHEDULER]: Workflow ${workflowId} not found - removing job`,
+          );
+          this.unscheduleWorkflow(workflowId, triggerNodeId, profileId);
+          return;
+        }
+
+        const triggerPayload = {
+          scheduledAt: new Date().toISOString(),
+          cronExpression,
+          triggerType: "cron",
+          triggerNodeId,
+        };
+
+        const executionId = `exec_cron_${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(2, 9)}`;
+
+        try {
+          await WorkflowEngine.executeWorkflowFromTrigger(
+            workflow,
+            triggerNodeId,
+            triggerPayload,
+            executionId,
+          );
+          console.log(`[SAILOR | SCHEDULER]: Workflow ${workflowId} completed`);
+        } catch (err: any) {
+          console.error(
+            `[SAILOR | SCHEDULER]: Workflow ${workflowId} failed: ${err.message}`,
+          );
+        }
+      };
+
+      if (profileId && profileScope) {
+        await profileScope.runWithProfile(profileId, run);
         return;
       }
 
-      const triggerPayload = {
-        scheduledAt: new Date().toISOString(),
-        cronExpression,
-        triggerType: "cron",
-        triggerNodeId,
-      };
-
-      const executionId = `exec_cron_${Date.now()}_${Math.random()
-        .toString(36)
-        .substring(2, 9)}`;
-
-      try {
-        await WorkflowEngine.executeWorkflowFromTrigger(
-          workflow,
-          triggerNodeId,
-          triggerPayload,
-          executionId,
-        );
-        console.log(`[SAILOR | SCHEDULER]: Workflow ${workflowId} completed`);
-      } catch (err: any) {
-        console.error(
-          `[SAILOR | SCHEDULER]: Workflow ${workflowId} failed: ${err.message}`,
-        );
-      }
+      await run();
     });
 
-    const jobId = schedulerJobId(workflowId, triggerNodeId);
-    activeJobs.set(jobId, { workflowId, triggerNodeId, cronExpression, task });
+    const jobId = schedulerJobId(workflowId, triggerNodeId, profileId);
+    activeJobs.set(jobId, {
+      profileId,
+      workflowId,
+      triggerNodeId,
+      cronExpression,
+      task,
+    });
     console.log(
       `[SAILOR | SCHEDULER]: Scheduled workflow ${workflowId} (${cronExpression})`,
     );
   },
 
-  /**
-   * Stop and remove the scheduled job for a workflow.
-   */
-  unscheduleWorkflow(workflowId: string, triggerNodeId = "trigger"): void {
-    const job = activeJobs.get(schedulerJobId(workflowId, triggerNodeId));
+  unscheduleWorkflow(
+    workflowId: string,
+    triggerNodeId = "trigger",
+    profileId: string | null = null,
+  ): void {
+    const jobId = schedulerJobId(workflowId, triggerNodeId, profileId);
+    const job = activeJobs.get(jobId);
     if (job) {
       job.task.stop();
-      activeJobs.delete(schedulerJobId(workflowId, triggerNodeId));
+      activeJobs.delete(jobId);
     }
   },
 
-  /**
-   * Re-scan all active workflows and rebuild the job registry.
-   * Call this after any workflow is saved, updated, or deleted.
-   */
   resync(): void {
     this.stopAll();
-
-    // Re-initialize from current DB state
     this.initialize();
   },
 
@@ -130,14 +165,17 @@ export const Scheduler = {
     activeJobs.clear();
   },
 
-  /**
-   * Returns the IDs of all currently scheduled workflows.
-   */
   getActiveJobs(): string[] {
     return Array.from(activeJobs.keys());
   },
 };
 
-function schedulerJobId(workflowId: string, triggerNodeId: string): string {
-  return `${workflowId}:${triggerNodeId}`;
+function schedulerJobId(
+  workflowId: string,
+  triggerNodeId: string,
+  profileId: string | null,
+): string {
+  return profileId
+    ? `${profileId}:${workflowId}:${triggerNodeId}`
+    : `${workflowId}:${triggerNodeId}`;
 }
