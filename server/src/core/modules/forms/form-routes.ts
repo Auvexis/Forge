@@ -25,12 +25,144 @@ type SendResponse = <T>(
 interface RegisterFormRoutesDeps {
   clientOrigin: string;
   sendResponse: SendResponse;
+  profileScopeRunner?: {
+    runWithProfile<T>(profileId: string, callback: () => T): T;
+  };
 }
 
 export function registerFormRoutes(
   fastify: FastifyInstance,
   deps: RegisterFormRoutesDeps,
 ) {
+  fastify.get("/p/:profileId/forms/:formId", async (req, reply) => {
+    const { profileId, formId } = req.params as {
+      profileId: string;
+      formId: string;
+    };
+    if (!deps.profileScopeRunner) {
+      return renderMissingFormPage(reply, "Form not available", "Profile routing is not configured.");
+    }
+
+    try {
+      return await deps.profileScopeRunner.runWithProfile(profileId, () => {
+        const resolved = resolveFormWorkflowTrigger(formId, { requireActive: false });
+        if (!resolved) {
+          return renderMissingFormPage(reply, "Form not available", "This form does not exist.");
+        }
+        return reply.redirect(
+          `${deps.clientOrigin}/p/${encodeURIComponent(profileId)}/forms/${encodeURIComponent(formPublicId(resolved.workflow, resolved.triggerNodeId))}`,
+        );
+      });
+    } catch (error: any) {
+      if (error instanceof Error && /Profile '.+' not found/.test(error.message)) {
+        return renderMissingFormPage(reply, "Profile not found", "This profile does not exist.");
+      }
+      throw error;
+    }
+  });
+
+  fastify.get("/p/:profileId/forms-api/:formId", async (req, reply) => {
+    const { profileId, formId } = req.params as {
+      profileId: string;
+      formId: string;
+    };
+    if (!deps.profileScopeRunner) {
+      return deps.sendResponse(reply, {
+        status_code: 500,
+        message: "Profile routing is not configured",
+        error: "Profile routing is not configured",
+        data: null,
+      });
+    }
+
+    try {
+      return await deps.profileScopeRunner.runWithProfile(profileId, () => {
+        const formMode = resolveFormMode((req.query as { mode?: string }).mode);
+        const resolved = resolveFormWorkflowTrigger(formId, {
+          requireActive: false,
+        });
+
+        if (!resolved) {
+          return deps.sendResponse(reply, {
+            status_code: 404,
+            message: "Form not found or unavailable",
+            error: "Not Found",
+            data: null,
+          });
+        }
+
+        return deps.sendResponse(reply, {
+          status_code: 200,
+          message: "Form definition fetched",
+          error: null,
+          data: formDefinition(resolved.workflow, formMode, resolved.triggerNodeId),
+        });
+      });
+    } catch (error: any) {
+      if (error instanceof Error && /Profile '.+' not found/.test(error.message)) {
+        return deps.sendResponse(reply, {
+          status_code: 404,
+          message: "Profile not found",
+          error: "Not Found",
+          data: null,
+        });
+      }
+      throw error;
+    }
+  });
+
+  fastify.post("/p/:profileId/forms-api/:formId/submit", async (req, reply) => {
+    const { profileId, formId } = req.params as {
+      profileId: string;
+      formId: string;
+    };
+    if (!deps.profileScopeRunner) {
+      return deps.sendResponse(reply, {
+        status_code: 500,
+        message: "Profile routing is not configured",
+        error: "Profile routing is not configured",
+        data: null,
+      });
+    }
+
+    try {
+      return await deps.profileScopeRunner.runWithProfile(profileId, async () => {
+        const formMode = resolveFormMode((req.query as { mode?: string }).mode);
+        const result = await processFormSubmission(
+          formId,
+          { requireActive: false, mode: formMode, awaitExecution: true },
+          req,
+        );
+
+        if (!result.ok) {
+          return deps.sendResponse(reply, {
+            status_code: result.statusCode,
+            message: result.message,
+            error: result.message,
+            data: null,
+          });
+        }
+
+        return deps.sendResponse(reply, {
+          status_code: 202,
+          message: "Form submitted and workflow execution started",
+          error: null,
+          data: { executionId: result.executionId },
+        });
+      });
+    } catch (error: any) {
+      if (error instanceof Error && /Profile '.+' not found/.test(error.message)) {
+        return deps.sendResponse(reply, {
+          status_code: 404,
+          message: "Profile not found",
+          error: "Not Found",
+          data: null,
+        });
+      }
+      throw error;
+    }
+  });
+
   fastify.get("/forms-test/:formId", async (req, reply) => {
     const { formId } = req.params as { formId: string };
     const resolved = resolveFormWorkflowTrigger(formId, { requireActive: false });

@@ -21,8 +21,8 @@ Sem gambiarra: core resolve perfil antes; plugins continuam genericos.
 - [x] Ajustar rotas `/p/:profileId/webhook/:webhookPath` e manter rota antiga como compat.
 - [x] Ajustar builder de URL de lifecycle para plugin trigger usar `/p/:profileId/webhook/:path`.
 - [x] Criar testes para plugin lifecycle garantindo URL scoped e credenciais do perfil dono.
-- [ ] Criar testes para forms scoped: API e submit com `/p/:profileId/forms-api/:formId`.
-- [ ] Ajustar form routes/service para resolver dentro do contexto do perfil explicito.
+- [x] Criar testes para forms scoped: API e submit com `/p/:profileId/forms-api/:formId`.
+- [x] Ajustar form routes/service para resolver dentro do contexto do perfil explicito.
 - [ ] Ajustar tipos compartilhados/frontend para expor URLs scoped sem quebrar drafts/test.
 - [ ] Rodar `npx tsc --noEmit --pretty false`.
 - [ ] Rodar testes backend focados.

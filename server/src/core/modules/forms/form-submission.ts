@@ -24,7 +24,7 @@ type FormSubmissionResult =
 
 export async function processFormSubmission(
   formId: string,
-  opts: { requireActive: boolean; mode: FormMode },
+  opts: { requireActive: boolean; mode: FormMode; awaitExecution?: boolean },
   req: any,
 ): Promise<FormSubmissionResult> {
   const resolved = resolveFormWorkflowTrigger(formId, {
@@ -178,13 +178,22 @@ export async function processFormSubmission(
     return { ok: true, workflow, executionId };
   }
 
-  WorkflowEngine.executeWorkflowFromTrigger(workflow, triggerNodeId, triggerPayload, executionId).catch(
-    (err: Error) => {
+  const execution = WorkflowEngine.executeWorkflowFromTrigger(
+    workflow,
+    triggerNodeId,
+    triggerPayload,
+    executionId,
+  );
+
+  if (opts.awaitExecution) {
+    await execution;
+  } else {
+    execution.catch((err: Error) => {
       console.error(
         `[SAILOR | FORM-TRIGGER]: Execution failed for "${workflow.metadata.id}": ${err.message}`,
       );
-    },
-  );
+    });
+  }
 
   return { ok: true, workflow, executionId };
 }

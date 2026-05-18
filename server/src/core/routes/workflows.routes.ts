@@ -380,6 +380,7 @@ export default async function workflowsRoutes(
   registerFormRoutes(fastify, {
     clientOrigin: CLIENT_ORIGIN,
     sendResponse,
+    profileScopeRunner,
   });
 
   // ──────────── SSE Stream Endpoint ────────────
