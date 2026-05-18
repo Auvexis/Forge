@@ -26,7 +26,8 @@ describe('execution bottom panel runtime detail view', () => {
   })
 
   it('animates step rows smoothly while realtime events arrive', () => {
-    assert.match(source, /<TransitionGroup[^>]+name="ebp-event-list"/)
+    assert.match(source, /TransitionGroup/)
+    assert.match(source, /name:\s*'ebp-event-list'/)
     assert.match(source, /\.ebp-event-list-enter-active/)
     assert.match(source, /\.ebp-event-list-leave-active/)
   })
