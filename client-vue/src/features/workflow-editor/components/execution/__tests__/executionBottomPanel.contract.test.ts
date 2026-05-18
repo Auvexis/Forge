@@ -27,8 +27,17 @@ describe('execution bottom panel runtime detail view', () => {
 
   it('animates step rows smoothly while realtime events arrive', () => {
     assert.match(source, /TransitionGroup/)
-    assert.match(source, /name:\s*'ebp-event-list'/)
+    assert.match(source, /<TransitionGroup\s+[^>]*name="ebp-event-list"[^>]*tag="div"[^>]*class="ebp-timeline"/)
     assert.match(source, /\.ebp-event-list-enter-active/)
     assert.match(source, /\.ebp-event-list-leave-active/)
+  })
+
+  it('keeps realtime rows in the scoped template so styling applies cleanly', () => {
+    assert.doesNotMatch(source, /defineComponent\(\{\s*name:\s*'ExecutionEventList'/)
+    assert.doesNotMatch(source, /h\(\s*TransitionGroup/)
+    assert.match(source, /ebp-event-main/)
+    assert.match(source, /ebp-event-status/)
+    assert.match(source, /ebp-event-time/)
+    assert.match(source, /ebp-event-detail__header/)
   })
 })
