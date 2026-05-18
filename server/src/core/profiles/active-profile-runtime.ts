@@ -5,42 +5,23 @@ import { Scheduler } from "../modules/scheduler/scheduler.ts";
 import { readProfilePluginSettings } from "../runtime/profile-plugin-settings.ts";
 import { sailorHomePaths } from "../runtime/sailor-home.ts";
 import { ActiveProfileService } from "./active-profile-service.ts";
-import { runWithProfileDatabaseContext } from "./profile-database-context.ts";
 import { ProfileDatabaseManager } from "./profile-database-manager.ts";
 import { ProfilePasswordService } from "./profile-password-service.ts";
-import { resolveProfilePaths } from "./profile-paths.ts";
+import { ProfileScopeRunner } from "./profile-scope-runner.ts";
 import { ProfileStore } from "./profile-store.ts";
 
 export const activeProfileRuntime = (() => {
   const profileStore = new ProfileStore({ sailorHome: sailorHomePaths.home });
   const passwordService = new ProfilePasswordService({ store: profileStore });
   const databaseManager = new ProfileDatabaseManager();
+  const profileScopeRunner = new ProfileScopeRunner({
+    sailorHome: sailorHomePaths.home,
+    store: profileStore,
+  });
   Scheduler.configureProfileScope({
-    listProfileIds: () => profileStore.listProfiles().map((profile) => profile.id),
-    runWithProfile: (profileId, callback) => {
-      const scopedManager = new ProfileDatabaseManager();
-      scopedManager.open(resolveProfilePaths({
-        sailorHome: sailorHomePaths.home,
-        profileId,
-      }));
-
-      try {
-        const result = runWithProfileDatabaseContext(
-          scopedManager.getAll(),
-          callback,
-        );
-
-        if (result instanceof Promise) {
-          return result.finally(() => scopedManager.close()) as typeof result;
-        }
-
-        scopedManager.close();
-        return result;
-      } catch (error) {
-        scopedManager.close();
-        throw error;
-      }
-    },
+    listProfileIds: () => profileScopeRunner.listProfileIds(),
+    runWithProfile: (profileId, callback) =>
+      profileScopeRunner.runWithProfile(profileId, callback),
   });
   const activeProfileService = new ActiveProfileService({
     sailorHome: sailorHomePaths.home,
@@ -62,6 +43,7 @@ export const activeProfileRuntime = (() => {
     profileStore,
     passwordService,
     databaseManager,
+    profileScopeRunner,
     activeProfileService,
     start: () => activeProfileService.start(),
     close: () => databaseManager.close(),
