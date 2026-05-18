@@ -119,22 +119,37 @@
               <span>No execution events yet.</span>
             </div>
 
-            <div v-else class="gam-timeline">
+            <TransitionGroup v-else name="gam-event-list" tag="div" class="gam-timeline">
               <article
                 v-for="event in activeTriggerEvents"
                 :key="event.id"
                 class="gam-event"
                 :class="`gam-event--${event.status}`"
               >
-                <span class="gam-event__dot" />
-                <div class="gam-event__copy">
-                  <strong>{{ event.label }}</strong>
-                  <small>{{ formatTime(event.timestamp) }}</small>
-                </div>
-                <code v-if="event.nodeId">{{ event.nodeId }}</code>
-                <pre v-if="event.error">{{ event.error }}</pre>
+                <button class="gam-event-row" type="button" @click="toggleEventDetails(event.id)">
+                  <LucideIcon
+                    name="chevron-right"
+                    :size="13"
+                    class="gam-event__chevron"
+                    :class="{ 'gam-event__chevron--open': expandedEventIds.has(event.id) }"
+                  />
+                  <span class="gam-event__dot" />
+                  <div class="gam-event__copy">
+                    <strong>{{ event.label }}</strong>
+                    <small>{{ formatTime(event.timestamp) }}</small>
+                  </div>
+                  <code v-if="event.nodeId">{{ event.nodeId }}</code>
+                  <span v-if="event.error" class="gam-event__error">{{ event.error }}</span>
+                </button>
+                <Transition name="gam-event-detail-slide">
+                  <div v-if="expandedEventIds.has(event.id)" class="gam-event-detail">
+                    <pre v-if="event.error">{{ event.error }}</pre>
+                    <pre v-else-if="event.body">{{ formatJson(event.body) }}</pre>
+                    <span v-else>No body data for this step.</span>
+                  </div>
+                </Transition>
               </article>
-            </div>
+            </TransitionGroup>
           </div>
         </template>
       </main>
@@ -168,6 +183,7 @@ interface RuntimeEvent {
   nodeId?: string
   status: 'running' | 'success' | 'failed'
   timestamp: number
+  body?: unknown
   error?: string
 }
 
@@ -180,6 +196,7 @@ const selectedWorkflowKey = ref<string | null>(null)
 const selectedExecutions = ref<ExecutionLog[]>([])
 const activeTriggerTabId = ref('all')
 const isProfileMenuOpen = ref(false)
+const expandedEventIds = ref(new Set<string>())
 
 const profileNameById = computed(() =>
   Object.fromEntries(profileStore.profiles.map((profile) => [profile.id, profile.name])),
@@ -274,6 +291,7 @@ function selectProfile(profileId: string | null) {
 function selectWorkflow(workflow: ProductionWorkflowStatus) {
   selectedWorkflowKey.value = workflowKey(workflow)
   activeTriggerTabId.value = 'all'
+  expandedEventIds.value = new Set()
   void loadSelectedWorkflowExecutions()
 }
 
@@ -323,6 +341,7 @@ function executionToEvents(execution: ExecutionLog): RuntimeEvent[] {
       label: `Execution ${execLabel(execution.status)}`,
       status: statusToEvent(execution.status),
       timestamp: execution.startedAt,
+      body: context.trigger,
       error: execution.status === 'FAILED' ? 'Workflow failed' : undefined,
     },
   ]
@@ -335,6 +354,7 @@ function executionToEvents(execution: ExecutionLog): RuntimeEvent[] {
       label: step.status ?? 'Step',
       status: statusToEvent(step.status ?? execution.status),
       timestamp: execution.endedAt ?? execution.startedAt,
+      body: step.output,
       error: step.error ? formatError(step.error) : undefined,
     })
   }
@@ -385,6 +405,21 @@ function formatTime(timestamp: number): string {
   return new Date(timestamp).toLocaleTimeString()
 }
 
+function toggleEventDetails(eventId: string) {
+  const next = new Set(expandedEventIds.value)
+  if (next.has(eventId)) next.delete(eventId)
+  else next.add(eventId)
+  expandedEventIds.value = next
+}
+
+function formatJson(data: unknown): string {
+  try {
+    return JSON.stringify(data, null, 2)
+  } catch {
+    return String(data)
+  }
+}
+
 function formatError(error: unknown): string {
   return typeof error === 'string' ? error : JSON.stringify(error)
 }
@@ -395,6 +430,7 @@ watch(isAutomationMonitorOpen, (open) => {
     void refreshLiveData()
   } else {
     selectedExecutions.value = []
+    expandedEventIds.value = new Set()
   }
 })
 
@@ -701,13 +737,36 @@ onUnmounted(() => {
 }
 
 .gam-event {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--sailor-border-muted);
+}
+
+.gam-event-row {
   display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) minmax(120px, auto) minmax(0, 260px);
+  grid-template-columns: 14px 12px minmax(0, 1fr) minmax(120px, auto) minmax(0, 260px);
   align-items: center;
   gap: var(--sailor-space-3);
   min-height: 38px;
   padding: 0 var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border-muted);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gam-event-row:hover {
+  background: var(--sailor-bg-base);
+}
+
+.gam-event__chevron {
+  color: var(--sailor-text-muted);
+  transition: transform 160ms ease;
+}
+
+.gam-event__chevron--open {
+  transform: rotate(90deg);
 }
 
 .gam-event__copy {
@@ -722,14 +781,64 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.gam-event pre {
+.gam-event__error {
   overflow: hidden;
-  margin: 0;
   color: var(--sailor-red-400);
-  font-family: var(--sailor-font-mono);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.gam-event-detail {
+  padding: var(--sailor-space-3) var(--sailor-space-4) var(--sailor-space-3) 54px;
+  border-top: 1px solid var(--sailor-border-muted);
+  background: var(--sailor-bg-base);
+}
+
+.gam-event-detail pre {
+  max-height: 240px;
+  margin: 0;
+  overflow: auto;
+  color: var(--sailor-text-secondary);
+  font-family: var(--sailor-font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.gam-event-detail span {
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+}
+
+.gam-event-detail-slide-enter-active,
+.gam-event-detail-slide-leave-active {
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.gam-event-detail-slide-enter-from,
+.gam-event-detail-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.gam-event-list-enter-active,
+.gam-event-list-leave-active {
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease,
+    background-color 500ms ease;
+}
+
+.gam-event-list-enter-from,
+.gam-event-list-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.gam-event-list-enter-active {
+  background: color-mix(in srgb, var(--sailor-green-400) 12%, transparent);
 }
 
 .gam-spin {
