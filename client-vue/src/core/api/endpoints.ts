@@ -39,7 +39,11 @@ export const ENDPOINTS = {
 
   // Forms
   FORM_DEFINITION: (id: string) => `/forms-api/${encodeURIComponent(id)}`,
+  PROFILE_FORM_DEFINITION: (profileId: string, id: string) =>
+    `/p/${encodeURIComponent(profileId)}/forms-api/${encodeURIComponent(id)}`,
   FORM_SUBMIT: (id: string) => `/forms-api/${encodeURIComponent(id)}/submit`,
+  PROFILE_FORM_SUBMIT: (profileId: string, id: string) =>
+    `/p/${encodeURIComponent(profileId)}/forms-api/${encodeURIComponent(id)}/submit`,
   TEMPORARY_FORM_DEFINITION: (id: string) => `/temporary-forms-api/${encodeURIComponent(id)}`,
   TEMPORARY_FORM_SUBMIT: (id: string) => `/temporary-forms-api/${encodeURIComponent(id)}/submit`,
 

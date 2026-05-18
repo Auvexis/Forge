@@ -516,12 +516,14 @@ import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { appApi } from '@/core/api/app.api'
 import { useWorkflowStore } from '../../../stores/workflow.store'
+import { useProfileStore } from '@/shared/stores/profile.store'
 import { useToast } from '@/shared/composables/useToast'
 import { onMounted } from 'vue'
-import { buildTriggerFormProdUrl, buildTriggerFormTestUrl } from './triggerRuntimeUrls'
+import { buildTriggerFormProdUrl, buildTriggerFormTestUrl, buildTriggerWebhookProdUrl } from './triggerRuntimeUrls'
 
 const props = defineProps<NodeEditorProps>()
 const workflowStore = useWorkflowStore()
+const profileStore = useProfileStore()
 const toast = useToast()
 
 const isMounted = ref(false)
@@ -606,7 +608,10 @@ function resolvedPath(): string {
 }
 
 const testWebhookUrl = computed(() => `${API_BASE_URL}/webhook-test/${resolvedPath()}`)
-const prodWebhookUrl = computed(() => `${backendPublicUrl.value}/webhook/${resolvedPath()}`)
+const currentProfileId = computed(() => profileStore.currentProfile?.id)
+const prodWebhookUrl = computed(() =>
+  buildTriggerWebhookProdUrl(backendPublicUrl.value, resolvedPath(), currentProfileId.value),
+)
 
 const allowedMethods = computed<string[]>(() => {
   return (props.node.data as unknown as WorkflowTrigger).webhookMethods ?? ['POST']
@@ -724,7 +729,9 @@ const formPublicId = computed(() => {
 // For TEST: use the local backend URL (same as testWebhookUrl pattern — server redirects to local SPA)
 // For PROD: use the public backend URL (server renders/redirects via public client URL)
 const formTestUrl = computed(() => buildTriggerFormTestUrl(API_BASE_URL, formPublicId.value))
-const formProdUrl = computed(() => buildTriggerFormProdUrl(backendPublicUrl.value, formPublicId.value))
+const formProdUrl = computed(() =>
+  buildTriggerFormProdUrl(backendPublicUrl.value, formPublicId.value, currentProfileId.value),
+)
 
 function saveFormFields(next: FormTriggerField[]) {
   props.updateNodeData({ formFields: next })

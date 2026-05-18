@@ -23,7 +23,7 @@ Sem gambiarra: core resolve perfil antes; plugins continuam genericos.
 - [x] Criar testes para plugin lifecycle garantindo URL scoped e credenciais do perfil dono.
 - [x] Criar testes para forms scoped: API e submit com `/p/:profileId/forms-api/:formId`.
 - [x] Ajustar form routes/service para resolver dentro do contexto do perfil explicito.
-- [ ] Ajustar tipos compartilhados/frontend para expor URLs scoped sem quebrar drafts/test.
+- [x] Ajustar tipos compartilhados/frontend para expor URLs scoped sem quebrar drafts/test.
 - [ ] Rodar `npx tsc --noEmit --pretty false`.
 - [ ] Rodar testes backend focados.
 - [ ] Rodar suite backend completa.

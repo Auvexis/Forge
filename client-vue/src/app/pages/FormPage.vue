@@ -31,6 +31,10 @@ const mode = computed<'test' | 'prod' | 'temp'>(() => {
   return route.name === 'form-test' ? 'test' : 'prod'
 })
 const formId = computed(() => String(route.params.formId ?? ''))
+const profileId = computed(() => {
+  const value = route.params.profileId
+  return typeof value === 'string' && value.trim() ? value : undefined
+})
 const execId = computed(() => String(route.query.execId ?? ''))
 
 const definition = ref<FormDefinition | null>(null)
@@ -52,7 +56,7 @@ async function loadForm() {
     definition.value =
       mode.value === 'temp'
         ? await workflowsApi.getTemporaryFormDefinition(formId.value)
-        : await workflowsApi.getFormDefinition(formId.value, mode.value)
+        : await workflowsApi.getFormDefinition(formId.value, mode.value, profileId.value)
   } catch (err: any) {
     loadError.value = err?.message ?? 'Form not available'
   } finally {
@@ -73,6 +77,7 @@ async function handleSubmit(submittedValues?: Record<string, unknown>) {
         mode.value,
         payload,
         execId.value || undefined,
+        profileId.value,
       )
     }
     submitted.value = true

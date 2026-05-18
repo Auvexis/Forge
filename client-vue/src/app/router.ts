@@ -33,6 +33,12 @@ const router = createRouter({
       meta: { title: 'Form', public: true },
     },
     {
+      path: '/p/:profileId/forms/:formId',
+      name: 'profile-form-prod',
+      component: () => import('@/app/pages/FormPage.vue'),
+      meta: { title: 'Form', public: true },
+    },
+    {
       path: '/temporary-forms/:formId',
       name: 'temporary-form',
       component: () => import('@/app/pages/FormPage.vue'),

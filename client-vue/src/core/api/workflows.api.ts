@@ -272,8 +272,10 @@ export const workflowsApi = {
   getLastTriggerPayload: (workflowId: string) =>
     apiRequest<Record<string, any> | null>(ENDPOINTS.TRIGGER_LAST_PAYLOAD(workflowId)),
 
-  getFormDefinition: (formId: string, mode: 'test' | 'prod') =>
-    apiRequest<FormDefinition>(ENDPOINTS.FORM_DEFINITION(formId), {
+  getFormDefinition: (formId: string, mode: 'test' | 'prod', profileId?: string) =>
+    apiRequest<FormDefinition>(profileId
+      ? ENDPOINTS.PROFILE_FORM_DEFINITION(profileId, formId)
+      : ENDPOINTS.FORM_DEFINITION(formId), {
       params: { mode },
     }),
 
@@ -285,6 +287,7 @@ export const workflowsApi = {
     mode: 'test' | 'prod',
     payload: Record<string, unknown>,
     clientExecId?: string,
+    profileId?: string,
   ) => {
     const headers: Record<string, string> = {}
     if (clientExecId) headers['x-sailor-execution-id'] = clientExecId
@@ -308,7 +311,9 @@ export const workflowsApi = {
       body = form
     }
 
-    return apiRequest<{ executionId: string }>(ENDPOINTS.FORM_SUBMIT(formId), {
+    return apiRequest<{ executionId: string }>(profileId
+      ? ENDPOINTS.PROFILE_FORM_SUBMIT(profileId, formId)
+      : ENDPOINTS.FORM_SUBMIT(formId), {
       method: 'POST',
       params: { mode },
       body,
