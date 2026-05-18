@@ -79,8 +79,9 @@
           </div>
 
           <!-- Textarea -->
-          <BaseTextarea
+          <BaseVariableInput
             v-else-if="field.inputType === 'textarea'"
+            fieldType="textarea"
             :id="key.toString()"
             :placeholder="field.placeholder"
             :required="field.required"
@@ -88,7 +89,7 @@
           />
 
           <!-- Default Input -->
-          <BaseInput
+          <BaseVariableInput
             v-else
             :id="key.toString()"
             :type="field.inputType"
@@ -155,8 +156,8 @@
 import { onMounted, watch } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { usePluginAuth } from '@/shared/composables/usePluginAuth'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseVariableInput from '@/shared/components/base/BaseVariableInput.vue'
 
 const props = defineProps<{
   pluginId: string

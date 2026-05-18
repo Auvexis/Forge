@@ -29,8 +29,8 @@ describe('workflow editor variable-safe inputs', () => {
     assert.match(pluginAuthSource, /import BaseVariableInput/)
     assert.match(pluginAuthSource, /fieldType="textarea"/)
     assert.match(pluginAuthSource, /:type="field\.inputType"/)
-    assert.doesNotMatch(pluginAuthSource, /<BaseTextarea[\s\S]*?field\.inputType === 'textarea'/)
-    assert.doesNotMatch(pluginAuthSource, /<BaseInput[\s\S]*?:type="field\.inputType"/)
+    assert.doesNotMatch(pluginAuthSource, /<BaseTextarea\b[^>]*field\.inputType === 'textarea'/)
+    assert.doesNotMatch(pluginAuthSource, /<BaseInput\b[^>]*:type="field\.inputType"/)
   })
 
   it('uses BaseVariableInput for trigger slugs, secrets, cron, and plugin trigger params', () => {
@@ -38,8 +38,8 @@ describe('workflow editor variable-safe inputs', () => {
     assert.match(triggerEditorSource, /webhookSecret/)
     assert.match(triggerEditorSource, /cronExpression/)
     assert.match(triggerEditorSource, /triggerParams/)
-    assert.doesNotMatch(triggerEditorSource, /<BaseInput[\s\S]*?webhookSecret/)
-    assert.doesNotMatch(triggerEditorSource, /<BaseInput[\s\S]*?cronExpression/)
-    assert.doesNotMatch(triggerEditorSource, /<BaseInput[\s\S]*?triggerParams/)
+    assert.doesNotMatch(triggerEditorSource, /<BaseInput\b[^>]*webhookSecret/)
+    assert.doesNotMatch(triggerEditorSource, /<BaseInput\b[^>]*cronExpression/)
+    assert.doesNotMatch(triggerEditorSource, /<BaseInput\b[^>]*triggerParams/)
   })
 })

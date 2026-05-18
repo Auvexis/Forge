@@ -26,44 +26,74 @@
       </button>
     </div>
 
-    <div class="ebp-body">
-      <div v-if="showHistory" class="ebp-history">
-        <aside class="ebp-history-list">
-          <button
-            v-for="run in historyRuns"
-            :key="run.id"
-            class="ebp-history-run"
-            :class="{ 'ebp-history-run--active': run.id === selectedHistoryRunId }"
-            type="button"
-            @click="selectedHistoryRunId = run.id"
-          >
-            <span class="ebp-history-run__status" :class="`ebp-history-run__status--${run.status.toLowerCase()}`" />
-            <span>{{ formatTime(run.startedAt) }}</span>
-            <small>{{ run.status }}</small>
-          </button>
-          <div v-if="historyLoading" class="ebp-history-loading">Loading...</div>
-        </aside>
+    <div class="ebp-body" :class="{ 'ebp-body--history': showHistory }">
+      <aside v-if="showHistory" class="ebp-history-list">
+        <button
+          v-for="run in historyRuns"
+          :key="run.id"
+          class="ebp-history-run"
+          :class="{ 'ebp-history-run--active': run.id === selectedHistoryRunId }"
+          type="button"
+          @click="selectedHistoryRunId = run.id"
+        >
+          <span class="ebp-history-run__status" :class="`ebp-history-run__status--${run.status.toLowerCase()}`" />
+          <span>{{ formatTime(run.startedAt) }}</span>
+          <small>{{ run.status }}</small>
+        </button>
+        <div v-if="historyLoading" class="ebp-history-loading">Loading...</div>
+      </aside>
 
-        <div class="ebp-history-body">
-          <div v-if="historyRuns.length === 0 && !historyLoading" class="ebp-empty">
-            <LucideIcon name="history" :size="18" />
-            <span>No previous runs yet.</span>
-          </div>
-          <ExecutionEventList v-else :events="historyEvents" />
+      <div class="ebp-main">
+        <div v-if="visibleEvents.length === 0" class="ebp-empty">
+          <LucideIcon :name="showHistory ? 'history' : 'activity'" :size="18" />
+          <span>{{ emptyMessage }}</span>
         </div>
-      </div>
 
-      <div v-else-if="activeEvents.length === 0" class="ebp-empty">
-        <LucideIcon name="activity" :size="18" />
-        <span>No live events yet.</span>
+        <TransitionGroup v-else name="ebp-event-list" tag="div" class="ebp-timeline">
+          <article
+            v-for="item in visibleEvents"
+            :key="item.id"
+            class="ebp-event"
+            :class="`ebp-event--${item.status}`"
+          >
+            <button class="ebp-event-row" type="button" @click="toggleEventDetails(item.id)">
+              <LucideIcon
+                name="chevron-right"
+                :size="13"
+                class="ebp-chevron"
+                :class="{ 'ebp-chevron--open': expandedEventIds.has(item.id) }"
+              />
+              <span class="ebp-dot" />
+              <div class="ebp-event-main">
+                <span class="ebp-event-label">{{ item.label }}</span>
+                <small class="ebp-event-time">{{ formatTime(item.timestamp) }}</small>
+              </div>
+              <code v-if="item.nodeId" class="ebp-event-node">{{ item.nodeId }}</code>
+              <span v-else class="ebp-event-node ebp-event-node--empty">workflow</span>
+              <span class="ebp-event-status">{{ item.status }}</span>
+              <span v-if="item.error" class="ebp-error">{{ item.error }}</span>
+            </button>
+
+            <Transition name="ebp-event-detail-slide">
+              <div v-if="expandedEventIds.has(item.id)" class="ebp-event-detail">
+                <div class="ebp-event-detail__header">
+                  <span>{{ item.error ? 'Error' : 'Body' }}</span>
+                  <small>{{ item.nodeId || item.source || 'workflow' }}</small>
+                </div>
+                <pre v-if="item.error">{{ item.error }}</pre>
+                <pre v-else-if="eventBody(item)">{{ formatJson(eventBody(item)) }}</pre>
+                <span v-else>No body data for this step.</span>
+              </div>
+            </Transition>
+          </article>
+        </TransitionGroup>
       </div>
-      <ExecutionEventList v-else :events="activeEvents" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, ref, TransitionGroup, watch, type PropType } from 'vue'
+import { computed, ref, watch } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useExecutionStore } from '../../stores/execution.store'
 import { useWorkflowStore } from '../../stores/workflow.store'
@@ -77,6 +107,7 @@ const showHistory = ref(false)
 const historyLoading = ref(false)
 const historyRuns = ref<ExecutionLog[]>([])
 const selectedHistoryRunId = ref<string | null>(null)
+const expandedEventIds = ref(new Set<string>())
 
 type PanelEvent = ExecutionTimelineEvent & { workflowId?: string; body?: unknown }
 
@@ -110,6 +141,15 @@ const selectedHistoryRun = computed(() =>
 const historyEvents = computed<PanelEvent[]>(() =>
   selectedHistoryRun.value ? executionLogToEvents(selectedHistoryRun.value) : [],
 )
+
+const visibleEvents = computed<PanelEvent[]>(() =>
+  showHistory.value ? historyEvents.value : activeEvents.value,
+)
+
+const emptyMessage = computed(() => {
+  if (showHistory.value && historyLoading.value) return 'Loading history...'
+  return showHistory.value ? 'No previous runs yet.' : 'No live events yet.'
+})
 
 watch(tabs, (next) => {
   if (!next.some((tab) => tab.id === activeTabId.value)) activeTabId.value = 'all'
@@ -179,6 +219,13 @@ function eventBody(item: PanelEvent): unknown {
   return item.body ?? item.payload
 }
 
+function toggleEventDetails(id: string) {
+  const next = new Set(expandedEventIds.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  expandedEventIds.value = next
+}
+
 function formatJson(data: unknown): string {
   try {
     return JSON.stringify(data, null, 2)
@@ -186,70 +233,6 @@ function formatJson(data: unknown): string {
     return String(data)
   }
 }
-
-const ExecutionEventList = defineComponent({
-  name: 'ExecutionEventList',
-  props: {
-    events: {
-      type: Array as PropType<PanelEvent[]>,
-      required: true,
-    },
-  },
-  setup(props) {
-    const expandedEventIds = ref(new Set<string>())
-
-    function toggleEventDetails(id: string) {
-      const next = new Set(expandedEventIds.value)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      expandedEventIds.value = next
-    }
-
-    return () =>
-      h(
-        TransitionGroup,
-        { name: 'ebp-event-list', tag: 'div', class: 'ebp-timeline' },
-        {
-          default: () =>
-            props.events.map((item) =>
-              h('article', { key: item.id, class: ['ebp-event', `ebp-event--${item.status}`] }, [
-                h(
-                  'button',
-                  {
-                    class: 'ebp-event-row',
-                    type: 'button',
-                    onClick: () => toggleEventDetails(item.id),
-                  },
-                  [
-                    h(LucideIcon, {
-                      name: 'chevron-right',
-                      size: 12,
-                      class: ['ebp-chevron', { 'ebp-chevron--open': expandedEventIds.value.has(item.id) }],
-                    }),
-                    h('span', { class: 'ebp-dot' }),
-                    h('div', { class: 'ebp-copy' }, [
-                      h('span', item.label),
-                      h('small', formatTime(item.timestamp)),
-                    ]),
-                    item.nodeId ? h('code', item.nodeId) : null,
-                    item.error ? h('span', { class: 'ebp-error' }, item.error) : null,
-                  ],
-                ),
-                expandedEventIds.value.has(item.id)
-                  ? h('div', { class: 'ebp-event-detail' }, [
-                      item.error
-                        ? h('pre', item.error)
-                        : eventBody(item)
-                          ? h('pre', formatJson(eventBody(item)))
-                          : h('span', 'No body data for this step.'),
-                    ])
-                  : null,
-              ]),
-            ),
-        },
-      )
-  },
-})
 </script>
 
 <style scoped>
@@ -333,10 +316,9 @@ const ExecutionEventList = defineComponent({
   overflow: auto;
 }
 
-.ebp-history {
+.ebp-body--history {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
-  height: 100%;
   min-height: 0;
 }
 
@@ -406,7 +388,7 @@ const ExecutionEventList = defineComponent({
   padding: var(--sailor-space-3);
 }
 
-.ebp-history-body {
+.ebp-main {
   min-width: 0;
   min-height: 0;
   overflow: auto;
@@ -425,20 +407,25 @@ const ExecutionEventList = defineComponent({
 .ebp-timeline {
   display: flex;
   flex-direction: column;
+  padding: var(--sailor-space-2);
+  gap: var(--sailor-space-1);
 }
 
 .ebp-event {
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid var(--sailor-border-muted);
+  overflow: hidden;
+  border: 1px solid var(--sailor-border-muted);
+  border-radius: var(--sailor-radius-md);
+  background: var(--sailor-bg-surface);
 }
 
 .ebp-event-row {
   display: grid;
-  grid-template-columns: 12px 10px minmax(0, 1fr) minmax(120px, auto) minmax(0, auto);
+  grid-template-columns: 16px 10px minmax(160px, 1fr) minmax(110px, 0.5fr) 76px minmax(0, 0.9fr);
   align-items: center;
   gap: var(--sailor-space-2);
-  min-height: 30px;
+  min-height: 42px;
   padding: 0 var(--sailor-space-3);
   border: 0;
   background: transparent;
@@ -479,41 +466,110 @@ const ExecutionEventList = defineComponent({
   background: var(--sailor-red-400);
 }
 
-.ebp-copy {
+.ebp-event-main {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  gap: 2px;
 }
 
-.ebp-copy span,
+.ebp-event-label,
+.ebp-event-node,
+.ebp-event-status,
 .ebp-error {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.ebp-copy span {
+.ebp-event-label {
   font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-secondary);
+  font-weight: 600;
+  color: var(--sailor-text-primary);
 }
 
-.ebp-copy small,
-.ebp-event code {
+.ebp-event-time,
+.ebp-event-node {
   font-family: var(--sailor-font-mono);
   font-size: 10px;
   color: var(--sailor-text-muted);
 }
 
-.ebp-error {
-  max-width: 320px;
-  color: var(--sailor-red-400);
+.ebp-event-node {
+  justify-self: start;
+  max-width: 100%;
+  padding: 2px 6px;
+  border: 1px solid var(--sailor-border-muted);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-base);
+}
+
+.ebp-event-node--empty {
+  font-family: var(--sailor-font-sans);
+  font-style: italic;
+}
+
+.ebp-event-status {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--sailor-bg-muted);
+  color: var(--sailor-text-secondary);
   font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ebp-event--running .ebp-event-status {
+  background: color-mix(in srgb, var(--sailor-amber-400) 14%, transparent);
+  color: var(--sailor-amber-400);
+}
+
+.ebp-event--success .ebp-event-status {
+  background: color-mix(in srgb, var(--sailor-green-400) 14%, transparent);
+  color: var(--sailor-green-400);
+}
+
+.ebp-event--failed .ebp-event-status {
+  background: color-mix(in srgb, var(--sailor-red-400) 14%, transparent);
+  color: var(--sailor-red-400);
+}
+
+.ebp-error {
+  max-width: 100%;
+  color: var(--sailor-red-400);
+  font-size: 11px;
 }
 
 .ebp-event-detail {
-  padding: var(--sailor-space-3) var(--sailor-space-4) var(--sailor-space-3) 44px;
+  margin: 0 var(--sailor-space-3) var(--sailor-space-3) 38px;
+  padding: var(--sailor-space-3);
   border-top: 1px solid var(--sailor-border-muted);
+  border-left: 2px solid var(--sailor-border);
+  border-radius: 0 0 var(--sailor-radius-sm) var(--sailor-radius-sm);
   background: var(--sailor-bg-base);
+}
+
+.ebp-event-detail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sailor-space-2);
+  margin-bottom: var(--sailor-space-2);
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
+  font-weight: 700;
+}
+
+.ebp-event-detail__header small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--sailor-text-muted);
+  font-family: var(--sailor-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ebp-event-detail pre {
@@ -547,5 +603,29 @@ const ExecutionEventList = defineComponent({
 
 .ebp-event-list-enter-active {
   background: color-mix(in srgb, var(--sailor-green-400) 12%, transparent);
+}
+
+.ebp-event-detail-slide-enter-active,
+.ebp-event-detail-slide-leave-active {
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.ebp-event-detail-slide-enter-from,
+.ebp-event-detail-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@media (max-width: 900px) {
+  .ebp-event-row {
+    grid-template-columns: 16px 10px minmax(0, 1fr) 68px;
+  }
+
+  .ebp-event-node,
+  .ebp-error {
+    display: none;
+  }
 }
 </style>

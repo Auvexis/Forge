@@ -78,7 +78,7 @@
             Endpoint Slug
             <span class="te-label-sub">(optional, readable name)</span>
           </span>
-          <BaseInput
+          <BaseVariableInput
             type="text"
             :model-value="(node.data as unknown as WorkflowTrigger).webhookSlug || ''"
             @update:model-value="updateNodeData({ webhookSlug: $event as string || undefined })"
@@ -135,7 +135,7 @@
             <span class="te-label-sub">(recommended)</span>
           </span>
           <div class="te-input-row">
-            <BaseInput
+            <BaseVariableInput
               type="password"
               :model-value="(node.data as unknown as WorkflowTrigger).webhookSecret || ''"
               @update:model-value="updateNodeData({ webhookSecret: $event as string })"
@@ -221,7 +221,7 @@
             Form ID
             <span class="te-label-sub">(optional, readable URL)</span>
           </span>
-          <BaseInput
+          <BaseVariableInput
             type="text"
             :model-value="(node.data as unknown as WorkflowTrigger).formSlug || ''"
             @update:model-value="updateNodeData({ formSlug: $event as string || undefined })"
@@ -297,7 +297,7 @@
         <!-- Form Title / Description -->
         <div class="te-field">
           <span class="te-label">Form Title</span>
-          <BaseInput
+          <BaseVariableInput
             :model-value="(node.data as unknown as WorkflowTrigger).formTitle || ''"
             @update:model-value="updateNodeData({ formTitle: $event as string })"
             placeholder="Contact us"
@@ -309,7 +309,7 @@
             Description
             <span class="te-label-sub">(optional)</span>
           </span>
-          <BaseInput
+          <BaseVariableInput
             :model-value="(node.data as unknown as WorkflowTrigger).formDescription || ''"
             @update:model-value="updateNodeData({ formDescription: $event as string })"
             placeholder="We'll get back within 24h"
@@ -330,7 +330,7 @@
       <div class="te-section">
         <div class="te-field">
           <span class="te-label">Cron Expression</span>
-          <BaseInput
+          <BaseVariableInput
             :model-value="(node.data as unknown as WorkflowTrigger).cronExpression || ''"
             @update:model-value="updateNodeData({ cronExpression: $event as string })"
             placeholder="* * * * *"
@@ -393,7 +393,7 @@
             Endpoint Slug
             <span class="te-label-sub">(optional, readable name)</span>
           </span>
-          <BaseInput
+          <BaseVariableInput
             type="text"
             :model-value="(node.data as unknown as WorkflowTrigger).webhookSlug || ''"
             @update:model-value="updateNodeData({ webhookSlug: $event as string || undefined })"
@@ -438,7 +438,7 @@
               >
                 <span class="te-label">{{ propSchema['x-label'] || propKey }}</span>
                 <p v-if="propSchema.description" class="te-hint">{{ propSchema.description }}</p>
-                <BaseInput
+                <BaseVariableInput
                   :model-value="String((node.data as unknown as WorkflowTrigger).triggerParams?.[String(propKey)] ?? '')"
                   @update:model-value="updateTriggerParam(String(propKey), $event as string)"
                 />
@@ -507,7 +507,7 @@ import type { PluginSummary, PluginTriggerManifest } from '@/core/types/plugin.t
 import EditorField from './EditorField.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import BaseVariableInput from '@/shared/components/base/BaseVariableInput.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import FormThemeMenu from '../../form/FormThemeMenu.vue'
 import FormFieldsEditor from '../../form/FormFieldsEditor.vue'

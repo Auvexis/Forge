@@ -14,6 +14,7 @@ import PluginMenuAuth from './editors/PluginMenuAuth.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseVariableInput from '@/shared/components/base/BaseVariableInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
@@ -540,10 +541,11 @@ const copyToClipboard = async (path: string) => {
                     Used to reference this node's output in other variables.<br />Example:
                     <code>&#123;&#123; {{ localId }}.data.email &#125;&#125;</code>
                   </p>
-                  <BaseInput
+                  <BaseVariableInput
                     v-model="localId"
                     class="font-mono w-full"
                     spellcheck="false"
+                    variable-button-title="Insert variable"
                     @blur="handleIdChange(localId)"
                     @keydown.enter="handleIdChange(localId)"
                   />
