@@ -440,23 +440,23 @@ git commit -m "feat(plugins): add notion plugin"
 - Create: `server/src/plugins/sailor/trello/manifest.json`
 - Create: `server/src/plugins/sailor/trello/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 Validar export, auth `api_key`, credentials `api_key` e `token`, e 8 metodos.
 
-- [ ] **Step 2: Implementar helper de API**
+- [x] **Step 2: Implementar helper de API**
 
 Criar `trelloApi(context, method, path, query?, body?)` com base `https://api.trello.com/1`, query auth `key` e `token`, e erro com status/body.
 
-- [ ] **Step 3: Implementar metodos**
+- [x] **Step 3: Implementar metodos**
 
 Implementar boards, lists, cards, update/move, comentarios e checklist item. `updateCard` so envia campos definidos.
 
-- [ ] **Step 4: Criar manifest**
+- [x] **Step 4: Criar manifest**
 
 Declarar `boardId`, `listId`, `cardId`, `name`, `desc`, `due`, `idLabels`, `pos`, `comment`, `checklistName`, `itemName`.
 
-- [ ] **Step 5: Rodar teste**
+- [x] **Step 5: Rodar teste**
 
 Run:
 ```bash
@@ -465,7 +465,7 @@ node --loader ts-node/esm --test src/plugins/sailor/trello/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/plugins/sailor/trello feats-map/default-plugin-catalog-expansion.md

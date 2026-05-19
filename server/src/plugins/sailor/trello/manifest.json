@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "id": "trello",
+    "name": "Trello",
+    "description": "Manage boards, lists, cards, comments, and checklist items.",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/trello.svg",
+    "category": "Productivity",
+    "author": "Sailor",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/sailor"
+  },
+  "methods": {
+    "listBoards": { "metadata": { "label": "List Boards", "description": "Lists boards." }, "parameters": { "type": "object", "properties": { "filter": { "type": "string", "default": "open", "x-label": "Filter", "x-input-type": "text" } } }, "responseSchema": { "type": "array", "items": { "type": "object" } } },
+    "listLists": { "metadata": { "label": "List Lists", "description": "Lists lists in a board." }, "parameters": { "type": "object", "properties": { "boardId": { "type": "string", "x-label": "Board ID", "x-input-type": "text" }, "filter": { "type": "string", "default": "open", "x-label": "Filter", "x-input-type": "text" } }, "required": ["boardId"] }, "responseSchema": { "type": "array", "items": { "type": "object" } } },
+    "listCards": { "metadata": { "label": "List Cards", "description": "Lists cards by board or list." }, "parameters": { "type": "object", "properties": { "boardId": { "type": "string", "x-label": "Board ID", "x-input-type": "text" }, "listId": { "type": "string", "x-label": "List ID", "x-input-type": "text" }, "filter": { "type": "string", "default": "open", "x-label": "Filter", "x-input-type": "text" } } }, "responseSchema": { "type": "array", "items": { "type": "object" } } },
+    "createCard": { "metadata": { "label": "Create Card", "description": "Creates a card." }, "parameters": { "type": "object", "properties": { "listId": { "type": "string", "x-label": "List ID", "x-input-type": "text" }, "name": { "type": "string", "x-label": "Name", "x-input-type": "text" }, "desc": { "type": "string", "x-label": "Description", "x-input-type": "textarea" }, "due": { "type": "string", "x-label": "Due", "x-input-type": "text" }, "idLabels": { "type": "string", "x-label": "Label IDs", "x-input-type": "text" }, "pos": { "type": "string", "x-label": "Position", "x-input-type": "text" } }, "required": ["listId", "name"] }, "responseSchema": { "type": "object" } },
+    "updateCard": { "metadata": { "label": "Update Card", "description": "Updates card fields." }, "parameters": { "type": "object", "properties": { "cardId": { "type": "string", "x-label": "Card ID", "x-input-type": "text" }, "name": { "type": "string", "x-label": "Name", "x-input-type": "text" }, "desc": { "type": "string", "x-label": "Description", "x-input-type": "textarea" }, "due": { "type": "string", "x-label": "Due", "x-input-type": "text" }, "idLabels": { "type": "string", "x-label": "Label IDs", "x-input-type": "text" } }, "required": ["cardId"] }, "responseSchema": { "type": "object" } },
+    "moveCard": { "metadata": { "label": "Move Card", "description": "Moves a card to another list." }, "parameters": { "type": "object", "properties": { "cardId": { "type": "string", "x-label": "Card ID", "x-input-type": "text" }, "listId": { "type": "string", "x-label": "List ID", "x-input-type": "text" }, "pos": { "type": "string", "x-label": "Position", "x-input-type": "text" } }, "required": ["cardId", "listId"] }, "responseSchema": { "type": "object" } },
+    "addCommentToCard": { "metadata": { "label": "Add Comment To Card", "description": "Adds a card comment." }, "parameters": { "type": "object", "properties": { "cardId": { "type": "string", "x-label": "Card ID", "x-input-type": "text" }, "comment": { "type": "string", "x-label": "Comment", "x-input-type": "textarea" } }, "required": ["cardId", "comment"] }, "responseSchema": { "type": "object" } },
+    "createChecklistItem": { "metadata": { "label": "Create Checklist Item", "description": "Creates a checklist item, creating a checklist when needed." }, "parameters": { "type": "object", "properties": { "cardId": { "type": "string", "x-label": "Card ID", "x-input-type": "text" }, "checklistId": { "type": "string", "x-label": "Checklist ID", "x-input-type": "text" }, "checklistName": { "type": "string", "default": "Checklist", "x-label": "Checklist Name", "x-input-type": "text" }, "itemName": { "type": "string", "x-label": "Item Name", "x-input-type": "text" } }, "required": ["cardId", "itemName"] }, "responseSchema": { "type": "object" } }
+  }
+}
