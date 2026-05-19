@@ -2,7 +2,7 @@
   "metadata": {
     "id": "google-sheets",
     "name": "Google Sheets",
-    "description": "Read, append, and update rows in Google Sheets.",
+    "description": "List, read, append, update, clear, create, delete, find, and upsert rows in Google Sheets.",
     "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/google-sheets.svg",
     "category": "Google",
     "author": "Sailor",
@@ -10,134 +10,16 @@
     "repository": "https://github.com/Auvexis/sailor"
   },
   "methods": {
-    "listSpreadsheets": {
-      "metadata": {
-        "label": "List Spreadsheets",
-        "description": "Helper method to list available spreadsheets. Typically used internally for dynamic dropdowns."
-      },
-      "parameters": {
-        "type": "object",
-        "properties": {}
-      },
-      "responseSchema": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "x-label": "Spreadsheet ID"
-            },
-            "name": {
-              "type": "string",
-              "x-label": "Name"
-            }
-          }
-        }
-      }
-    },
-    "readRows": {
-      "metadata": {
-        "label": "Read Rows",
-        "description": "Reads data from a specified range in a Google Sheet. Returns an array of objects if headers are included, or an array of arrays otherwise."
-      },
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "spreadsheetId": {
-            "type": "string",
-            "description": "The spreadsheet to read from.",
-            "x-label": "Spreadsheet",
-            "x-input-type": "select",
-            "x-dynamic-options": {
-              "method": "listSpreadsheets",
-              "labelPath": "name",
-              "valuePath": "id"
-            }
-          },
-          "range": {
-            "type": "string",
-            "description": "The A1 notation of the values to retrieve (e.g. 'Sheet1!A1:D10' or just 'Sheet1').",
-            "x-label": "Range",
-            "x-input-type": "text",
-            "default": "Sheet1"
-          },
-          "includeHeader": {
-            "type": "boolean",
-            "description": "If enabled, the first row of the range is treated as headers, and the output is an array of JSON objects instead of arrays.",
-            "x-label": "First Row as Header",
-            "x-input-type": "toggle",
-            "default": true
-          }
-        },
-        "required": [
-          "spreadsheetId",
-          "range"
-        ]
-      },
-      "responseSchema": {
-        "type": "array",
-        "items": {
-          "type": "object"
-        }
-      }
-    },
-    "appendRow": {
-      "metadata": {
-        "label": "Append Row",
-        "description": "Appends a new row of data to a specific sheet."
-      },
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "spreadsheetId": {
-            "type": "string",
-            "description": "The spreadsheet to append to.",
-            "x-label": "Spreadsheet",
-            "x-input-type": "select",
-            "x-dynamic-options": {
-              "method": "listSpreadsheets",
-              "labelPath": "name",
-              "valuePath": "id"
-            }
-          },
-          "range": {
-            "type": "string",
-            "description": "The A1 notation of a range to search for a logical table of data. Values will be appended after the last row of the table. E.g. 'Sheet1'.",
-            "x-label": "Sheet Name or Range",
-            "x-input-type": "text",
-            "default": "Sheet1"
-          },
-          "values": {
-            "type": "string",
-            "description": "JSON array of values representing the row to append. E.g. [\"John\", \"Doe\", \"john@example.com\"]",
-            "x-label": "Row Values (JSON Array)",
-            "x-input-type": "json"
-          }
-        },
-        "required": [
-          "spreadsheetId",
-          "range",
-          "values"
-        ]
-      },
-      "responseSchema": {
-        "type": "object",
-        "properties": {
-          "updatedRange": {
-            "type": "string",
-            "x-label": "Updated Range"
-          },
-          "updatedRows": {
-            "type": "number",
-            "x-label": "Updated Rows"
-          },
-          "updatedCells": {
-            "type": "number",
-            "x-label": "Updated Cells"
-          }
-        }
-      }
-    }
+    "listSpreadsheets": { "metadata": { "label": "List Spreadsheets", "description": "Lists available spreadsheets." }, "parameters": { "type": "object", "properties": {} }, "responseSchema": { "type": "array", "items": { "type": "object" } } },
+    "listSheets": { "metadata": { "label": "List Sheets", "description": "Lists sheets and metadata in a spreadsheet." }, "parameters": { "type": "object", "properties": { "spreadsheetId": { "type": "string", "x-label": "Spreadsheet", "x-input-type": "select", "x-dynamic-options": { "method": "listSpreadsheets", "labelPath": "name", "valuePath": "id" } } }, "required": ["spreadsheetId"] }, "responseSchema": { "type": "array", "items": { "type": "object" } } },
+    "readRows": { "metadata": { "label": "Read Rows", "description": "Reads rows from a range." }, "parameters": { "type": "object", "properties": { "spreadsheetId": { "type": "string", "x-label": "Spreadsheet", "x-input-type": "select", "x-dynamic-options": { "method": "listSpreadsheets", "labelPath": "name", "valuePath": "id" } }, "range": { "type": "string", "default": "Sheet1", "x-label": "Range", "x-input-type": "text" }, "includeHeader": { "type": "boolean", "default": true, "x-label": "First Row As Header", "x-input-type": "toggle" } }, "required": ["spreadsheetId", "range"] }, "responseSchema": { "type": "array", "items": { "type": "object" } } },
+    "appendRow": { "metadata": { "label": "Append Row", "description": "Appends one row." }, "parameters": { "type": "object", "properties": { "spreadsheetId": { "type": "string", "x-label": "Spreadsheet", "x-input-type": "select", "x-dynamic-options": { "method": "listSpreadsheets", "labelPath": "name", "valuePath": "id" } }, "range": { "type": "string", "default": "Sheet1", "x-label": "Range", "x-input-type": "text" }, "values": { "type": "string", "x-label": "Values JSON Array", "x-input-type": "json" } }, "required": ["spreadsheetId", "range", "values"] }, "responseSchema": { "type": "object" } },
+    "appendRows": { "metadata": { "label": "Append Rows", "description": "Appends multiple rows." }, "parameters": { "type": "object", "properties": { "spreadsheetId": { "type": "string", "x-label": "Spreadsheet", "x-input-type": "select", "x-dynamic-options": { "method": "listSpreadsheets", "labelPath": "name", "valuePath": "id" } }, "range": { "type": "string", "default": "Sheet1", "x-label": "Range", "x-input-type": "text" }, "rows": { "type": "string", "x-label": "Rows JSON Array", "x-input-type": "json" } }, "required": ["spreadsheetId", "range", "rows"] }, "responseSchema": { "type": "object" } },
+    "updateRange": { "metadata": { "label": "Update Range", "description": "Updates a range." }, "parameters": { "type": "object", "properties": { "spreadsheetId": { "type": "string", "x-label": "Spreadsheet", "x-input-type": "select", "x-dynamic-options": { "method": "listSpreadsheets", "labelPath": "name", "valuePath": "id" } }, "range": { "type": "string", "x-label": "Range", "x-input-type": "text" }, "values": { "type": "string", "x-label": "Values JSON Array", "x-input-type": "json" } }, "required": ["spreadsheetId", "range", "values"] }, "responseSchema": { "type": "object" } },
+    "clearRange": { "metadata": { "label": "Clear Range", "description": "Clears a range with confirmation." }, "parameters": { "type": "object", "properties": { "spreadsheetId": { "type": "string", "x-label": "Spreadsheet", "x-input-type": "select", "x-dynamic-options": { "method": "listSpreadsheets", "labelPath": "name", "valuePath": "id" } }, "range": { "type": "string", "x-label": "Range", "x-input-type": "text" }, "confirm": { "type": "boolean", "default": false, "x-label": "Confirm Clear", "x-input-type": "toggle" } }, "required": ["spreadsheetId", "range", "confirm"] }, "responseSchema": { "type": "object" } },
+    "createSheet": { "metadata": { "label": "Create Sheet", "description": "Creates a sheet tab." }, "parameters": { "type": "object", "properties": { "spreadsheetId": { "type": "string", "x-label": "Spreadsheet", "x-input-type": "select", "x-dynamic-options": { "method": "listSpreadsheets", "labelPath": "name", "valuePath": "id" } }, "sheetName": { "type": "string", "x-label": "Sheet Name", "x-input-type": "text" } }, "required": ["spreadsheetId", "sheetName"] }, "responseSchema": { "type": "object" } },
+    "deleteSheet": { "metadata": { "label": "Delete Sheet", "description": "Deletes a sheet tab with confirmation." }, "parameters": { "type": "object", "properties": { "spreadsheetId": { "type": "string", "x-label": "Spreadsheet", "x-input-type": "select", "x-dynamic-options": { "method": "listSpreadsheets", "labelPath": "name", "valuePath": "id" } }, "sheetId": { "type": "number", "x-label": "Sheet ID", "x-input-type": "number" }, "confirm": { "type": "boolean", "default": false, "x-label": "Confirm Delete", "x-input-type": "toggle" } }, "required": ["spreadsheetId", "sheetId", "confirm"] }, "responseSchema": { "type": "object" } },
+    "findRows": { "metadata": { "label": "Find Rows", "description": "Finds rows by header key and value." }, "parameters": { "type": "object", "properties": { "spreadsheetId": { "type": "string", "x-label": "Spreadsheet", "x-input-type": "select", "x-dynamic-options": { "method": "listSpreadsheets", "labelPath": "name", "valuePath": "id" } }, "range": { "type": "string", "default": "Sheet1", "x-label": "Range", "x-input-type": "text" }, "keyColumn": { "type": "string", "x-label": "Key Column", "x-input-type": "text" }, "keyValue": { "type": "string", "x-label": "Key Value", "x-input-type": "text" } }, "required": ["spreadsheetId", "range", "keyColumn", "keyValue"] }, "responseSchema": { "type": "array", "items": { "type": "object" } } },
+    "upsertRowByKey": { "metadata": { "label": "Upsert Row By Key", "description": "Updates a matching row or appends a new one." }, "parameters": { "type": "object", "properties": { "spreadsheetId": { "type": "string", "x-label": "Spreadsheet", "x-input-type": "select", "x-dynamic-options": { "method": "listSpreadsheets", "labelPath": "name", "valuePath": "id" } }, "sheetName": { "type": "string", "default": "Sheet1", "x-label": "Sheet Name", "x-input-type": "text" }, "keyColumn": { "type": "string", "x-label": "Key Column", "x-input-type": "text" }, "keyValue": { "type": "string", "x-label": "Key Value", "x-input-type": "text" }, "row": { "type": "string", "x-label": "Row JSON Object", "x-input-type": "json" } }, "required": ["spreadsheetId", "sheetName", "keyColumn", "keyValue", "row"] }, "responseSchema": { "type": "object" } }
   }
 }

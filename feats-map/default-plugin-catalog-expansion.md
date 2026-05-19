@@ -644,11 +644,11 @@ git commit -m "feat(plugins): add openai plugin"
 - Modify: `server/src/plugins/sailor/google-sheets/manifest.json`
 - Create: `server/src/plugins/sailor/google-sheets/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 Validar que o plugin expõe 11 metodos finais: `listSpreadsheets`, `listSheets`, `readRows`, `appendRow`, `appendRows`, `updateRange`, `clearRange`, `createSheet`, `deleteSheet`, `findRows`, `upsertRowByKey`.
 
-- [ ] **Step 2: Extrair helpers testaveis**
+- [x] **Step 2: Extrair helpers testaveis**
 
 Exportar helpers puros:
 ```ts
@@ -657,27 +657,27 @@ export function rowsToObjects(rows: any[][]): Record<string, any>[];
 export function findHeaderIndex(headers: any[], keyColumn: string): number;
 ```
 
-- [ ] **Step 3: Implementar metodos de metadata**
+- [x] **Step 3: Implementar metodos de metadata**
 
 `listSheets` usa `sheets.spreadsheets.get` com `fields: "sheets(properties(sheetId,title,index,gridProperties))"`.
 
-- [ ] **Step 4: Implementar metodos de escrita**
+- [x] **Step 4: Implementar metodos de escrita**
 
 `appendRows`, `updateRange`, `clearRange`, `createSheet`, `deleteSheet`. `clearRange` e `deleteSheet` exigem `confirm === true`.
 
-- [ ] **Step 5: Implementar busca/upsert**
+- [x] **Step 5: Implementar busca/upsert**
 
 `findRows` le range com header, compara `keyColumn` com `keyValue`, retorna objetos com `_rowNumber`. `upsertRowByKey` usa `findRows`; se achar, atualiza a linha; se nao achar, append.
 
-- [ ] **Step 6: Atualizar scopes**
+- [x] **Step 6: Atualizar scopes**
 
 Manter `spreadsheets` e `drive.readonly`. Confirmar se `createSheet/deleteSheet` funcionam com `spreadsheets`.
 
-- [ ] **Step 7: Atualizar manifest**
+- [x] **Step 7: Atualizar manifest**
 
 Adicionar `sheetName`, `sheetId`, `range`, `values`, `rows`, `keyColumn`, `keyValue`, `row`, `confirm`, com `x-dynamic-options` para spreadsheets.
 
-- [ ] **Step 8: Rodar teste**
+- [x] **Step 8: Rodar teste**
 
 Run:
 ```bash
@@ -686,7 +686,7 @@ node --loader ts-node/esm --test src/plugins/sailor/google-sheets/methods.test.t
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add server/src/plugins/sailor/google-sheets feats-map/default-plugin-catalog-expansion.md
