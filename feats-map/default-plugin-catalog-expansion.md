@@ -480,23 +480,23 @@ git commit -m "feat(plugins): add trello plugin"
 - Create: `server/src/plugins/sailor/jira/manifest.json`
 - Create: `server/src/plugins/sailor/jira/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 Validar export, auth `api_key`, credentials `base_url`, `email`, `api_token`, e 8 metodos.
 
-- [ ] **Step 2: Implementar helper de API**
+- [x] **Step 2: Implementar helper de API**
 
 Criar `jiraApi(context, method, path, body?)` com base URL normalizada sem barra final, Basic auth `email:api_token`, e erro com status/body.
 
-- [ ] **Step 3: Implementar metodos**
+- [x] **Step 3: Implementar metodos**
 
 Implementar projects, JQL search, issue get/create/update, transition, comment e assign. Aceitar `fields` como JSON object/string.
 
-- [ ] **Step 4: Criar manifest**
+- [x] **Step 4: Criar manifest**
 
 Declarar `jql`, `issueIdOrKey`, `projectKey`, `issueType`, `summary`, `description`, `fields`, `transitionId`, `accountId`, `comment`.
 
-- [ ] **Step 5: Rodar teste**
+- [x] **Step 5: Rodar teste**
 
 Run:
 ```bash
@@ -505,7 +505,7 @@ node --loader ts-node/esm --test src/plugins/sailor/jira/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/plugins/sailor/jira feats-map/default-plugin-catalog-expansion.md
