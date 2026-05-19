@@ -738,7 +738,7 @@ git commit -m "test(plugins): cover expanded default catalog"
 **Files:**
 - Modify: `feats-map/default-plugin-catalog-expansion.md`
 
-- [ ] **Step 1: Rodar todos os testes dos plugins novos**
+- [x] **Step 1: Rodar todos os testes dos plugins novos**
 
 Run:
 ```bash
@@ -756,7 +756,7 @@ node --loader ts-node/esm --test src/plugins/sailor/google-sheets/methods.test.t
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 2: Rodar typecheck**
+- [x] **Step 2: Rodar typecheck**
 
 Run:
 ```bash
@@ -765,7 +765,7 @@ npx tsc --noEmit --pretty false
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 3: Verificar isolamento de plugins**
+- [x] **Step 3: Verificar isolamento de plugins**
 
 Run:
 ```bash
@@ -773,7 +773,7 @@ rg "from [\"'].*server/src/core|from [\"'].*core/|from [\"'].*engines|from [\"']
 ```
 Expected: nenhum import proibido nos plugins novos.
 
-- [ ] **Step 4: Verificar metodos nos manifests**
+- [x] **Step 4: Verificar metodos nos manifests**
 
 Run:
 ```bash
@@ -782,7 +782,7 @@ npx ts-node --esm -e "import fs from 'fs'; import path from 'path'; const dirs=[
 Working dir: `server`
 Expected: cada plugin com 5+ metodos; alvo real 8+.
 
-- [ ] **Step 5: Acceptance criteria**
+- [x] **Step 5: Acceptance criteria**
 
 Confirmar:
 - Todos os plugins novos aparecem no catalogo default.
@@ -794,7 +794,7 @@ Confirmar:
 - Testes focados passam.
 - Typecheck passa.
 
-- [ ] **Step 6: Commit final**
+- [x] **Step 6: Commit final**
 
 ```bash
 git add feats-map/default-plugin-catalog-expansion.md
