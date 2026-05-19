@@ -1,0 +1,54 @@
+{
+  "metadata": {
+    "id": "notion",
+    "name": "Notion",
+    "description": "Search, read, create, and update Notion pages, databases, and blocks.",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/notion.svg",
+    "category": "Productivity",
+    "author": "Sailor",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/sailor"
+  },
+  "methods": {
+    "search": {
+      "metadata": { "label": "Search", "description": "Searches pages and databases." },
+      "parameters": { "type": "object", "properties": { "query": { "type": "string", "x-label": "Query", "x-input-type": "text" }, "filter": { "type": "string", "x-label": "Filter JSON", "x-input-type": "json" }, "sort": { "type": "string", "x-label": "Sort JSON", "x-input-type": "json" }, "pageSize": { "type": "number", "default": 10, "x-label": "Page Size", "x-input-type": "number" } } },
+      "responseSchema": { "type": "object" }
+    },
+    "getPage": {
+      "metadata": { "label": "Get Page", "description": "Gets a Notion page." },
+      "parameters": { "type": "object", "properties": { "pageId": { "type": "string", "x-label": "Page ID", "x-input-type": "text" } }, "required": ["pageId"] },
+      "responseSchema": { "type": "object" }
+    },
+    "createPage": {
+      "metadata": { "label": "Create Page", "description": "Creates a page under a parent." },
+      "parameters": { "type": "object", "properties": { "parent": { "type": "string", "x-label": "Parent JSON", "x-input-type": "json" }, "properties": { "type": "string", "x-label": "Properties JSON", "x-input-type": "json" }, "children": { "type": "string", "x-label": "Children JSON", "x-input-type": "json" } }, "required": ["parent", "properties"] },
+      "responseSchema": { "type": "object" }
+    },
+    "updatePageProperties": {
+      "metadata": { "label": "Update Page Properties", "description": "Updates page properties." },
+      "parameters": { "type": "object", "properties": { "pageId": { "type": "string", "x-label": "Page ID", "x-input-type": "text" }, "properties": { "type": "string", "x-label": "Properties JSON", "x-input-type": "json" }, "archived": { "type": "boolean", "x-label": "Archived", "x-input-type": "toggle" } }, "required": ["pageId", "properties"] },
+      "responseSchema": { "type": "object" }
+    },
+    "queryDatabase": {
+      "metadata": { "label": "Query Database", "description": "Queries a Notion database." },
+      "parameters": { "type": "object", "properties": { "databaseId": { "type": "string", "x-label": "Database ID", "x-input-type": "text" }, "filter": { "type": "string", "x-label": "Filter JSON", "x-input-type": "json" }, "sorts": { "type": "string", "x-label": "Sorts JSON", "x-input-type": "json" }, "pageSize": { "type": "number", "default": 10, "x-label": "Page Size", "x-input-type": "number" } }, "required": ["databaseId"] },
+      "responseSchema": { "type": "object" }
+    },
+    "createDatabaseItem": {
+      "metadata": { "label": "Create Database Item", "description": "Creates a page in a database." },
+      "parameters": { "type": "object", "properties": { "databaseId": { "type": "string", "x-label": "Database ID", "x-input-type": "text" }, "properties": { "type": "string", "x-label": "Properties JSON", "x-input-type": "json" }, "children": { "type": "string", "x-label": "Children JSON", "x-input-type": "json" } }, "required": ["databaseId", "properties"] },
+      "responseSchema": { "type": "object" }
+    },
+    "appendBlockChildren": {
+      "metadata": { "label": "Append Block Children", "description": "Appends blocks to a block or page." },
+      "parameters": { "type": "object", "properties": { "blockId": { "type": "string", "x-label": "Block ID", "x-input-type": "text" }, "children": { "type": "string", "x-label": "Children JSON", "x-input-type": "json" } }, "required": ["blockId", "children"] },
+      "responseSchema": { "type": "object" }
+    },
+    "listBlockChildren": {
+      "metadata": { "label": "List Block Children", "description": "Lists child blocks." },
+      "parameters": { "type": "object", "properties": { "blockId": { "type": "string", "x-label": "Block ID", "x-input-type": "text" }, "pageSize": { "type": "number", "default": 10, "x-label": "Page Size", "x-input-type": "number" }, "startCursor": { "type": "string", "x-label": "Start Cursor", "x-input-type": "text" } }, "required": ["blockId"] },
+      "responseSchema": { "type": "object" }
+    }
+  }
+}

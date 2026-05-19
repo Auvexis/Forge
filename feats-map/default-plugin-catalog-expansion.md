@@ -400,23 +400,23 @@ git commit -m "feat(plugins): add github plugin"
 - Create: `server/src/plugins/sailor/notion/manifest.json`
 - Create: `server/src/plugins/sailor/notion/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 Validar export, auth `api_key`, credential `integration_token`, e 8 metodos.
 
-- [ ] **Step 2: Implementar helper de API**
+- [x] **Step 2: Implementar helper de API**
 
 Criar `notionApi(context, method, path, body?)` com base `https://api.notion.com/v1`, bearer token, `Notion-Version`, JSON parse e erro por `message`.
 
-- [ ] **Step 3: Implementar metodos**
+- [x] **Step 3: Implementar metodos**
 
 Implementar search, page, database query, page create/update e blocks. Aceitar JSON string ou object em `properties`, `filter`, `sorts`, `children`.
 
-- [ ] **Step 4: Criar manifest**
+- [x] **Step 4: Criar manifest**
 
 Declarar `query`, `pageId`, `databaseId`, `parent`, `properties`, `filter`, `sorts`, `children`, `pageSize`.
 
-- [ ] **Step 5: Rodar teste**
+- [x] **Step 5: Rodar teste**
 
 Run:
 ```bash
@@ -425,7 +425,7 @@ node --loader ts-node/esm --test src/plugins/sailor/notion/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/plugins/sailor/notion feats-map/default-plugin-catalog-expansion.md
