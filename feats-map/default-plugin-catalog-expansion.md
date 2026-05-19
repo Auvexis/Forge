@@ -360,23 +360,23 @@ git commit -m "feat(plugins): add slack plugin"
 - Create: `server/src/plugins/sailor/github/manifest.json`
 - Create: `server/src/plugins/sailor/github/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 Validar export, auth `api_key`, credential `token`, e 8 metodos.
 
-- [ ] **Step 2: Implementar helper de API**
+- [x] **Step 2: Implementar helper de API**
 
 Criar `githubApi(context, method, path, body?)` com base `https://api.github.com`, bearer token, `Accept: application/vnd.github+json`, e erro com status/message.
 
-- [ ] **Step 3: Implementar metodos**
+- [x] **Step 3: Implementar metodos**
 
 Implementar repository, issues, comments, PRs e workflow runs. Normalizar `owner`, `repo`, `issueNumber`, `pullNumber`, `state`, `labels`.
 
-- [ ] **Step 4: Criar manifest**
+- [x] **Step 4: Criar manifest**
 
 Declarar campos `owner`, `repo`, `title`, `body`, `state`, `labels`, `head`, `base`, `workflowId`, `limit`.
 
-- [ ] **Step 5: Rodar teste**
+- [x] **Step 5: Rodar teste**
 
 Run:
 ```bash
@@ -385,7 +385,7 @@ node --loader ts-node/esm --test src/plugins/sailor/github/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/plugins/sailor/github feats-map/default-plugin-catalog-expansion.md
