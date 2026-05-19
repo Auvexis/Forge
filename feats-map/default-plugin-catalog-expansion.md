@@ -600,27 +600,27 @@ git commit -m "feat(plugins): add openrouter plugin"
 - Create: `server/src/plugins/sailor/openai/manifest.json`
 - Create: `server/src/plugins/sailor/openai/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 Validar export, auth `api_key`, credential `api_key`, e 8 metodos.
 
-- [ ] **Step 2: Implementar helper de API**
+- [x] **Step 2: Implementar helper de API**
 
 Criar `openAiApi(context, method, path, body?)` com base `https://api.openai.com`, bearer token, parse JSON, e erro com `error.message`.
 
-- [ ] **Step 3: Implementar metodos base**
+- [x] **Step 3: Implementar metodos base**
 
 Implementar `listModels`, `createResponse`, `chatCompletion`, `structuredResponse`. Preferir Responses API para features novas; manter Chat Completions por compatibilidade.
 
-- [ ] **Step 4: Implementar wrappers ergonomicos**
+- [x] **Step 4: Implementar wrappers ergonomicos**
 
 Implementar `summarizeText`, `extractJson`, `classifyText`, `generateImage`. Wrappers devem montar payloads simples e previsiveis, sem esconder `model`, `temperature` e `maxOutputTokens`.
 
-- [ ] **Step 5: Criar manifest**
+- [x] **Step 5: Criar manifest**
 
 Declarar `model`, `input`, `messages`, `instructions`, `schema`, `text`, `labels`, `prompt`, `size`, `quality`, `temperature`, `maxOutputTokens`.
 
-- [ ] **Step 6: Rodar teste**
+- [x] **Step 6: Rodar teste**
 
 Run:
 ```bash
@@ -629,7 +629,7 @@ node --loader ts-node/esm --test src/plugins/sailor/openai/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add server/src/plugins/sailor/openai feats-map/default-plugin-catalog-expansion.md
