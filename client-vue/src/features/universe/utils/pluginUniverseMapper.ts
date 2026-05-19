@@ -1,4 +1,5 @@
 import type { PluginSummary } from '@/core/types/plugin.types'
+import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 import type { UniversePluginMap, UniversePluginNode } from '../types/universe.types'
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
@@ -85,7 +86,7 @@ export function mapPluginsToUniverse(plugins: PluginSummary[]): UniversePluginMa
 
   const nodes: UniversePluginNode[] = sorted.map((plugin, index) => {
     const metadata = plugin.manifest.metadata
-    const iconValue = metadata.style?.icon ?? metadata.icon ?? 'blocks'
+    const iconValue = resolvePluginIcon(metadata, { isDark: true, fallback: 'blocks' })
     const color = getNodeColor(plugin, index)
 
     return {

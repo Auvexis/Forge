@@ -5,6 +5,8 @@ import BaseNode from '../BaseNode.vue'
 import { computed, onMounted, ref } from 'vue'
 import { apiRequest } from '@/core/api/client'
 import { ENDPOINTS } from '@/core/api/endpoints'
+import { useTheme } from '@/shared/composables/useTheme'
+import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 
 const props = defineProps<
   NodeProps<PluginNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
@@ -18,6 +20,7 @@ const pluginIcon = ref<string>('box')
 const customBg = ref<string | undefined>(undefined)
 const customBorder = ref<string | undefined>(undefined)
 const customIconColor = ref<string | undefined>(undefined)
+const { isDark } = useTheme()
 
 onMounted(async () => {
   const pid = props.data?.pluginId
@@ -31,10 +34,11 @@ onMounted(async () => {
           customBg.value = style.bgColor
           customBorder.value = style.borderColor
           customIconColor.value = style.iconColor
-          pluginIcon.value = style.icon || plugin.manifest.metadata.icon || 'box'
-        } else {
-          pluginIcon.value = plugin.manifest.metadata.icon || 'box'
         }
+        pluginIcon.value = resolvePluginIcon(plugin.manifest.metadata, {
+          isDark: isDark.value,
+          fallback: 'box',
+        })
       }
     } catch (err) {
       console.warn(`Failed to load plugin icon for ${pid}`, err)

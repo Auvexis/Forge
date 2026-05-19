@@ -4,6 +4,8 @@
     "name": "GitHub",
     "description": "Manage repositories, issues, pull requests, comments, and workflow runs.",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/github-light.svg",
+    "iconLight": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/github-light.svg",
+    "iconDark": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/github.svg",
     "category": "Development",
     "author": "Sailor",
     "version": "1.0.0",

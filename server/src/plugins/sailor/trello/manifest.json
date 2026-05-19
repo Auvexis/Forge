@@ -3,7 +3,7 @@
     "id": "trello",
     "name": "Trello",
     "description": "Manage boards, lists, cards, comments, and checklist items.",
-    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/trello.svg",
+    "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/trello.svg",
     "category": "Productivity",
     "author": "Sailor",
     "version": "1.0.0",

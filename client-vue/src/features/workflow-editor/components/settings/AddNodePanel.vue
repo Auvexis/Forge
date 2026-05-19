@@ -59,7 +59,7 @@
               @click="selectPlugin(plugin.id)"
             >
               <div class="add-node-item-icon-well" :style="{ backgroundColor: plugin.manifest.metadata.style?.bgColor || 'var(--sailor-bg-surface)', borderColor: plugin.manifest.metadata.style?.borderColor || 'var(--sailor-border)' }">
-                <LucideIcon :name="plugin.manifest.metadata.style?.icon || plugin.manifest.metadata.icon || 'box'" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--sailor-text-muted)'" />
+                <LucideIcon :name="pluginIcon(plugin)" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--sailor-text-muted)'" />
               </div>
               <div class="add-node-item-info">
                 <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
@@ -86,13 +86,7 @@
               @click="selectPlugin(plugin.id)"
             >
               <div class="add-node-item-icon-well add-node-item-icon-well--plugin">
-                <LucideIcon
-                  v-if="plugin.manifest.metadata.icon"
-                  :name="plugin.manifest.metadata.icon"
-                  :size="18"
-                  class="add-node-plugin-img"
-                />
-                <LucideIcon v-else name="box" :size="16" />
+                <LucideIcon :name="pluginIcon(plugin)" :size="18" class="add-node-plugin-img" />
               </div>
               <div class="add-node-item-info">
                 <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
@@ -141,6 +135,9 @@ import type { WorkflowNodeType } from '@/core/types/workflow.types'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import { useTheme } from '@/shared/composables/useTheme'
+import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
+import type { PluginSummary } from '@/core/types/plugin.types'
 
 defineProps<{
   onAddLogicNode?: (type: WorkflowNodeType) => void
@@ -154,6 +151,7 @@ const view = ref<ViewMode>('categories')
 const selectedPluginId = ref<string | null>(null)
 const search = ref('')
 const searchInput = ref<InstanceType<typeof BaseInput>>()
+const { isDark } = useTheme()
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
@@ -330,6 +328,9 @@ const filteredMethods = computed(() => {
     (val.metadata.label || key).toLowerCase().includes(search.value.toLowerCase()),
   )
 })
+
+const pluginIcon = (plugin: PluginSummary) =>
+  resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 

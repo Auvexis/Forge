@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@auvexis/sailor-sdk": "^1.1.0",
+    "@auvexis/sailor-sdk": "file:../../sailor-sdk",
     "@fastify/cors": "^11.2.0",
     "@fastify/formbody": "^8.0.2",
     "@fastify/multipart": "^9.4.0",

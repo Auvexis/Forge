@@ -150,6 +150,32 @@ describe("loadPlugins", () => {
     assert.deepEqual(errors, []);
   });
 
+  it("accepts light and dark plugin metadata icons through the public Sailor SDK contract", () => {
+    const errors = validateManifest({
+      metadata: {
+        id: "sdk-contract-plugin",
+        name: "SDK Contract Plugin",
+        description: "Checks SDK icon variants",
+        icon: "https://cdn.example.com/icon.svg",
+        iconLight: "https://cdn.example.com/icon-light.svg",
+        iconDark: "https://cdn.example.com/icon-dark.svg",
+        category: "test",
+        author: "SAILOR",
+        version: "1.0.0",
+        repository: "",
+      },
+      methods: {
+        ping: {
+          metadata: { label: "Ping", description: "Ping" },
+          parameters: { type: "object", properties: {} },
+          responseSchema: { type: "object", properties: {} },
+        },
+      },
+    });
+
+    assert.deepEqual(errors, []);
+  });
+
   it("rejects legacy method ui metadata through the public Sailor SDK contract", () => {
     const errors = validateManifest({
       metadata: {

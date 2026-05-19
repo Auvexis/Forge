@@ -45,6 +45,8 @@ export interface PluginMetadata {
   name: string
   description: string
   icon: string
+  iconLight?: string
+  iconDark?: string
   category: string
   author: string
   version: string
