@@ -6,6 +6,8 @@ export interface AppPanelState {
   title: string
   position: 'left' | 'right' | 'bottom'
   width: 'md' | 'lg' | 'xl'
+  resizable: boolean
+  resizeSide: 'top' | 'bottom' | 'left' | 'right'
   component: Component | null
   props: Record<string, unknown>
 }
@@ -17,6 +19,8 @@ export interface AppPanelConfig {
   props?: Record<string, unknown>
   position?: 'left' | 'right' | 'bottom'
   width?: 'md' | 'lg' | 'xl'
+  resizable?: boolean
+  resizeSide?: 'top' | 'bottom' | 'left' | 'right'
 }
 
 export const useAppPanelStore = defineStore('app-panel', () => {
@@ -25,6 +29,8 @@ export const useAppPanelStore = defineStore('app-panel', () => {
   const title = ref('')
   const position = ref<'left' | 'right' | 'bottom'>('right')
   const width = ref<'md' | 'lg' | 'xl'>('md')
+  const resizable = ref(false)
+  const resizeSide = ref<'top' | 'bottom' | 'left' | 'right'>('top')
 
   // Utilizar shallowRef é a melhor prática no Vue para armazenar componentes
   // pois não tenta tornar a árvore interna do componente inteira reativa.
@@ -38,6 +44,8 @@ export const useAppPanelStore = defineStore('app-panel', () => {
     title.value = config.title
     position.value = config.position || 'right'
     width.value = config.width || 'md'
+    resizable.value = config.resizable === true
+    resizeSide.value = config.resizeSide || 'top'
     panelComponent.value = markRaw(config.component)
     componentProps.value = config.props || {}
     isOpen.value = true
@@ -79,6 +87,8 @@ export const useAppPanelStore = defineStore('app-panel', () => {
     transitionTimeout = window.setTimeout(() => {
       if (!isOpen.value) {
         panelId.value = ''
+        resizable.value = false
+        resizeSide.value = 'top'
         panelComponent.value = null
         componentProps.value = {}
       }
@@ -99,6 +109,8 @@ export const useAppPanelStore = defineStore('app-panel', () => {
     title,
     position,
     width,
+    resizable,
+    resizeSide,
     panelComponent,
     componentProps,
     panelId,

@@ -21,5 +21,7 @@ const panelAttrs = computed(() => ({
   title: panelStore.title,
   position: panelStore.position,
   width: panelStore.width,
+  resizable: panelStore.resizable,
+  resizeSide: panelStore.resizeSide,
 }))
 </script>

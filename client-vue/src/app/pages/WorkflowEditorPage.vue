@@ -130,6 +130,8 @@ function openExecutionPanel() {
     component: markRaw(ExecutionBottomPanel),
     position: 'bottom',
     width: 'xl',
+    resizable: true,
+    resizeSide: 'top',
   })
 }
 
