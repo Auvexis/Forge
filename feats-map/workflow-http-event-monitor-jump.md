@@ -10,6 +10,7 @@
 - [x] Rastrear execucao de `event-listener -> http` com o workflow exportado.
 - [x] Criar teste falhando para HTTP depois de evento, se a causa for backend.
 - [x] Corrigir causa raiz sem quebrar plugins/generic engines.
+- [x] Validar formato exato do workflow exportado contra o executor.
 - [x] Rastrear layout/animacao do `AppGlobalAutomationMonitor`.
 - [x] Corrigir salto visual no monitor.
 - [x] Rodar testes/build focados.

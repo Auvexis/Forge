@@ -207,6 +207,89 @@ describe("WorkflowEngine trigger entry execution", () => {
     }
   });
 
+  it("continues the exported event-listener branch shape into the HTTP node", async () => {
+    let requests = 0;
+    const server = http.createServer((_req, res) => {
+      requests++;
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: true }));
+    });
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const port = (server.address() as { port: number }).port;
+
+    try {
+      const wf: WorkflowItem = {
+        metadata: {
+          id: "wf-exported-event-http",
+          name: "Workflow Date",
+          version: "1.0.7",
+          isActive: true,
+          isDraft: false,
+          public: false,
+          createdAt: "2026-05-19T01:54:44.217Z",
+        },
+        trigger: { type: "manual" },
+        nodes: {
+          trigger_0: {
+            type: "trigger",
+            name: "Trigger",
+            trigger: { type: "manual", cronExpression: "* * * * *" },
+          },
+          event_1: {
+            type: "event",
+            name: "Emit Event",
+            eventName: "message.sent",
+            payloadParams: [],
+          },
+          "event-listener_1": {
+            type: "event-listener",
+            name: "Wait for Event",
+            eventName: "message.sent",
+          },
+          http_1: {
+            type: "http",
+            name: "HTTP Request",
+            url: `http://127.0.0.1:${port}/after-event`,
+            method: "POST",
+            body: "{ \"message\": \"Hello World!\" }",
+          },
+        },
+        edges: [
+          {
+            id: "e-trigger_0-event_1",
+            source: "trigger_0",
+            target: "event_1",
+            sourceHandle: "source",
+            targetHandle: "target",
+          },
+          {
+            id: "e-event-listener_1-http_1",
+            source: "event-listener_1",
+            target: "http_1",
+            sourceHandle: "source",
+            targetHandle: "target",
+          },
+        ],
+        variables: [],
+      };
+      WorkflowRepository.saveWorkflow(wf);
+
+      const result = await WorkflowEngine.executeWorkflowFromTrigger(
+        wf,
+        "trigger_0",
+        {},
+        "exec_exported_event_http",
+      );
+
+      assert.equal(result.status, "SUCCESS");
+      assert.equal(requests, 1);
+      assert.equal(result.context.steps["event-listener_1"].status, "SUCCESS");
+      assert.equal(result.context.steps.http_1.status, "SUCCESS");
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
   it("rejects disabled trigger nodes", async () => {
     const wf = baseWorkflow();
     wf.nodes.trigger_b.disabled = true;
