@@ -8,6 +8,11 @@ const source = readFileSync(
   'utf8',
 )
 
+function cssBlock(selector: string) {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return source.match(new RegExp(`${escaped}\\s*\\{(?<body>[\\s\\S]*?)\\n\\}`))?.groups?.body ?? ''
+}
+
 describe('execution bottom panel runtime detail view', () => {
   it('has a history toggle that loads previous workflow runs into the body', () => {
     assert.match(source, /showHistory/)
@@ -43,11 +48,13 @@ describe('execution bottom panel runtime detail view', () => {
   })
 
   it('keeps log rows compact without card gaps or outer row borders', () => {
-    assert.match(source, /\.ebp-event\s*\{[\s\S]*border-bottom: 1px solid var\(--sailor-border-muted\)/)
-    assert.doesNotMatch(source, /\.ebp-timeline\s*\{[\s\S]*gap:/)
-    assert.doesNotMatch(source, /\.ebp-timeline\s*\{[\s\S]*padding:/)
-    assert.doesNotMatch(source, /\.ebp-event\s*\{[\s\S]*border-radius:/)
-    assert.doesNotMatch(source, /\.ebp-event\s*\{[\s\S]*border: 1px/)
+    const timelineStyles = cssBlock('.ebp-timeline')
+    const eventStyles = cssBlock('.ebp-event')
+    assert.match(eventStyles, /border-bottom: 1px solid var\(--sailor-border-muted\)/)
+    assert.doesNotMatch(timelineStyles, /gap:/)
+    assert.doesNotMatch(timelineStyles, /padding:/)
+    assert.doesNotMatch(eventStyles, /border-radius:/)
+    assert.doesNotMatch(eventStyles, /border: 1px/)
   })
 
   it('can be resized vertically from the top border', () => {
