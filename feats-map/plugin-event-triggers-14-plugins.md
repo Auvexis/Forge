@@ -252,7 +252,7 @@ git commit -m "feat: add plugin trigger runtime"
 - Create: `server/src/core/routes/plugin-events.routes.test.ts`
 - Modify: `server/src/core/server.ts`
 
-- [ ] **Step 1: Write failing route tests**
+- [x] **Step 1: Write failing route tests**
 
 Cover:
 
@@ -262,7 +262,7 @@ Cover:
 - duplicate event id does not execute twice
 - normalized payload is stored as last trigger payload
 
-- [ ] **Step 2: Implement route**
+- [x] **Step 2: Implement route**
 
 Add route:
 
@@ -278,7 +278,7 @@ Route responsibility only:
 - dispatch workflow
 - return provider-safe response
 
-- [ ] **Step 3: Add dedupe helper**
+- [x] **Step 3: Add dedupe helper**
 
 Dedupe by provider event id when available:
 
@@ -288,14 +288,14 @@ const dedupeKey = `${pluginId}:${triggerName}:${eventId}`;
 
 Keep storage core-owned.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```bash
 cd server
 npm test -- plugin-events.routes.test.ts workflows.routes.test.ts
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/routes/plugin-events.routes.ts server/src/core/routes/plugin-events.routes.test.ts server/src/core/server.ts
