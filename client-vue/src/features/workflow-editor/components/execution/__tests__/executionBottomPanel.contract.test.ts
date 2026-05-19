@@ -30,12 +30,15 @@ describe('execution bottom panel runtime detail view', () => {
     assert.match(source, /item\.error/)
   })
 
-  it('animates step rows smoothly while realtime events arrive', () => {
+  it('keeps step rows static when switching tabs or receiving events', () => {
     assert.match(source, /TransitionGroup/)
     assert.match(source, /<TransitionGroup\s+[^>]*name="ebp-event-list"[^>]*tag="div"[^>]*class="ebp-timeline"/)
-    assert.match(source, /\.ebp-event-list-enter-active/)
+    assert.doesNotMatch(source, /\.ebp-event-list-enter-active/)
+    assert.doesNotMatch(source, /\.ebp-event-list-enter-from/)
+    assert.doesNotMatch(source, /\.ebp-event-list-move/)
     assert.doesNotMatch(source, /\.ebp-event-list-leave-active/)
     assert.doesNotMatch(source, /\.ebp-event-list-leave-to/)
+    assert.doesNotMatch(source, /background: color-mix\(in srgb, var\(--sailor-green-400\) 12%, transparent\)/)
   })
 
   it('keeps realtime rows in the scoped template so styling applies cleanly', () => {
