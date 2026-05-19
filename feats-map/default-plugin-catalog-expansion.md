@@ -560,23 +560,23 @@ git commit -m "feat(plugins): add google calendar plugin"
 - Create: `server/src/plugins/sailor/openrouter/manifest.json`
 - Create: `server/src/plugins/sailor/openrouter/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 Validar export, auth `api_key`, credential `api_key`, e 8 metodos.
 
-- [ ] **Step 2: Implementar helper de API**
+- [x] **Step 2: Implementar helper de API**
 
 Criar `openRouterApi(context, method, path, body?)` com base `https://openrouter.ai/api/v1`, bearer token, `Content-Type`, `HTTP-Referer` e `X-Title` opcionais por credential.
 
-- [ ] **Step 3: Implementar metodos**
+- [x] **Step 3: Implementar metodos**
 
 Implementar models, chat, JSON mode quando suportado por response format, wrappers de summarize/extract/classify e `compareModels` com `Promise.all`.
 
-- [ ] **Step 4: Criar manifest**
+- [x] **Step 4: Criar manifest**
 
 Declarar `model`, `messages`, `prompt`, `system`, `temperature`, `maxTokens`, `responseSchema`, `models`, `providerPreferences`.
 
-- [ ] **Step 5: Rodar teste**
+- [x] **Step 5: Rodar teste**
 
 Run:
 ```bash
@@ -585,7 +585,7 @@ node --loader ts-node/esm --test src/plugins/sailor/openrouter/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/plugins/sailor/openrouter feats-map/default-plugin-catalog-expansion.md
