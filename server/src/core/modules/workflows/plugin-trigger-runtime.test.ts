@@ -111,4 +111,18 @@ describe("PluginTriggerRuntimeService", () => {
       /Plugin trigger setup failed: plugin 'telegram' does not declare trigger 'onCommand'/,
     );
   });
+
+  it("allows declared triggers without runtime hooks as no-op registrations", async () => {
+    const calls: string[] = [];
+    const declaredOnly = plugin("telegram", "onMessage", calls);
+    delete declaredOnly.triggers;
+    const runtime = new PluginTriggerRuntimeService({
+      getPlugin: () => declaredOnly,
+    });
+
+    await runtime.setup(context());
+    await runtime.teardown(context());
+
+    assert.deepEqual(calls, []);
+  });
 });
