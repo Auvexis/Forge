@@ -12,9 +12,11 @@ export interface PluginTriggerRuntimePluginRegistry {
 }
 
 export class PluginTriggerRuntimeService {
-  constructor(
-    private readonly plugins: PluginTriggerRuntimePluginRegistry = PluginManager,
-  ) {}
+  private readonly plugins: PluginTriggerRuntimePluginRegistry;
+
+  constructor(plugins: PluginTriggerRuntimePluginRegistry = PluginManager) {
+    this.plugins = plugins;
+  }
 
   async setup(context: PluginTriggerRuntimeContext): Promise<void> {
     const triggerHooks = this.getTriggerHooks(context, "setup");
