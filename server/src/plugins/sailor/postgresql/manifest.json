@@ -23,7 +23,9 @@
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean" }
+          "ok": {
+            "type": "boolean"
+          }
         }
       }
     },
@@ -42,7 +44,9 @@
         "items": {
           "type": "object",
           "properties": {
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         }
       }
@@ -69,9 +73,15 @@
         "items": {
           "type": "object",
           "properties": {
-            "schema": { "type": "string" },
-            "name": { "type": "string" },
-            "type": { "type": "string" }
+            "schema": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
           }
         }
       }
@@ -96,18 +106,33 @@
             "x-input-type": "text"
           }
         },
-        "required": ["table"]
+        "required": [
+          "table"
+        ]
       },
       "responseSchema": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "name": { "type": "string" },
-            "type": { "type": "string" },
-            "nullable": { "type": "boolean" },
-            "default": { "type": ["string", "null"] },
-            "primaryKey": { "type": "boolean" }
+            "name": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "nullable": {
+              "type": "boolean"
+            },
+            "default": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "primaryKey": {
+              "type": "boolean"
+            }
           }
         }
       }
@@ -120,26 +145,73 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "schema": { "type": "string", "description": "Schema name. Default: public.", "default": "public", "x-input-type": "text" },
-          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
-          "columns": { "type": "array", "description": "Columns to select. Empty selects all.", "items": { "type": "string" }, "x-input-type": "json" },
-          "where": { "type": "object", "description": "Simple equality filters.", "additionalProperties": true, "x-input-type": "json" },
+          "schema": {
+            "type": "string",
+            "description": "Schema name. Default: public.",
+            "default": "public",
+            "x-input-type": "text"
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-input-type": "text"
+          },
+          "columns": {
+            "type": "array",
+            "description": "Columns to select. Empty selects all.",
+            "items": {
+              "type": "string"
+            },
+            "x-input-type": "json"
+          },
+          "where": {
+            "type": "object",
+            "description": "Simple equality filters.",
+            "additionalProperties": true,
+            "x-input-type": "json"
+          },
           "orderBy": {
             "type": "object",
             "description": "Order configuration.",
             "properties": {
-              "column": { "type": "string" },
-              "direction": { "type": "string", "enum": ["asc", "desc"] }
+              "column": {
+                "type": "string"
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "asc",
+                  "desc"
+                ]
+              }
             },
             "additionalProperties": false,
             "x-input-type": "json"
           },
-          "limit": { "type": "number", "description": "Maximum rows. Max: 1000.", "default": 100, "x-input-type": "number" },
-          "offset": { "type": "number", "description": "Rows to skip.", "default": 0, "x-input-type": "number" }
+          "limit": {
+            "type": "number",
+            "description": "Maximum rows. Max: 1000.",
+            "default": 100,
+            "x-input-type": "number"
+          },
+          "offset": {
+            "type": "number",
+            "description": "Rows to skip.",
+            "default": 0,
+            "x-input-type": "number"
+          }
         },
-        "required": ["table"]
+        "required": [
+          "table"
+        ]
       },
-      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
     },
     "insertRow": {
       "metadata": {
@@ -149,13 +221,33 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "schema": { "type": "string", "description": "Schema name. Default: public.", "default": "public", "x-input-type": "text" },
-          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
-          "row": { "type": "object", "description": "Row values.", "additionalProperties": true, "x-input-type": "json" }
+          "schema": {
+            "type": "string",
+            "description": "Schema name. Default: public.",
+            "default": "public",
+            "x-input-type": "text"
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-input-type": "text"
+          },
+          "row": {
+            "type": "object",
+            "description": "Row values.",
+            "additionalProperties": true,
+            "x-input-type": "json"
+          }
         },
-        "required": ["table", "row"]
+        "required": [
+          "table",
+          "row"
+        ]
       },
-      "responseSchema": { "type": "object", "properties": {} }
+      "responseSchema": {
+        "type": "object",
+        "properties": {}
+      }
     },
     "updateRows": {
       "metadata": {
@@ -165,14 +257,42 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "schema": { "type": "string", "description": "Schema name. Default: public.", "default": "public", "x-input-type": "text" },
-          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
-          "patch": { "type": "object", "description": "Fields to update.", "additionalProperties": true, "x-input-type": "json" },
-          "where": { "type": "object", "description": "Simple equality filters.", "additionalProperties": true, "x-input-type": "json" }
+          "schema": {
+            "type": "string",
+            "description": "Schema name. Default: public.",
+            "default": "public",
+            "x-input-type": "text"
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-input-type": "text"
+          },
+          "patch": {
+            "type": "object",
+            "description": "Fields to update.",
+            "additionalProperties": true,
+            "x-input-type": "json"
+          },
+          "where": {
+            "type": "object",
+            "description": "Simple equality filters.",
+            "additionalProperties": true,
+            "x-input-type": "json"
+          }
         },
-        "required": ["table", "patch"]
+        "required": [
+          "table",
+          "patch"
+        ]
       },
-      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
     },
     "deleteRows": {
       "metadata": {
@@ -182,14 +302,41 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "schema": { "type": "string", "description": "Schema name. Default: public.", "default": "public", "x-input-type": "text" },
-          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
-          "where": { "type": "object", "description": "Simple equality filters.", "additionalProperties": true, "x-input-type": "json" },
-          "confirm": { "type": "boolean", "description": "Must be true to delete rows.", "x-input-type": "toggle" }
+          "schema": {
+            "type": "string",
+            "description": "Schema name. Default: public.",
+            "default": "public",
+            "x-input-type": "text"
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-input-type": "text"
+          },
+          "where": {
+            "type": "object",
+            "description": "Simple equality filters.",
+            "additionalProperties": true,
+            "x-input-type": "json"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Must be true to delete rows.",
+            "x-input-type": "toggle"
+          }
         },
-        "required": ["table", "confirm"]
+        "required": [
+          "table",
+          "confirm"
+        ]
       },
-      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
     },
     "executeQuery": {
       "metadata": {
@@ -199,16 +346,38 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "sql": { "type": "string", "description": "SQL statement.", "x-input-type": "code" },
-          "values": { "type": "array", "description": "Parameterized values.", "items": {}, "x-input-type": "json" }
+          "sql": {
+            "type": "string",
+            "description": "SQL statement.",
+            "x-input-type": "code"
+          },
+          "values": {
+            "type": "array",
+            "description": "Parameterized values.",
+            "items": {},
+            "x-input-type": "json"
+          }
         },
-        "required": ["sql"]
+        "required": [
+          "sql"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "rowCount": { "type": ["number", "null"] },
-          "rows": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+          "rowCount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
         }
       }
     },
@@ -226,19 +395,284 @@
             "items": {
               "type": "object",
               "properties": {
-                "sql": { "type": "string" },
-                "values": { "type": "array", "items": {} }
+                "sql": {
+                  "type": "string"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {}
+                }
               },
-              "required": ["sql"],
+              "required": [
+                "sql"
+              ],
               "additionalProperties": false
             },
             "minItems": 1,
             "x-input-type": "json"
           }
         },
-        "required": ["statements"]
+        "required": [
+          "statements"
+        ]
       },
-      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "triggers": {
+    "onRowInserted": {
+      "metadata": {
+        "label": "On Row Inserted",
+        "description": "Triggers when a PostgreSQL row is inserted."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "string",
+            "description": "Database schema.",
+            "x-label": "Schema",
+            "x-input-type": "text"
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-label": "Table",
+            "x-input-type": "text"
+          },
+          "primaryKey": {
+            "type": "string",
+            "description": "Primary key column.",
+            "x-label": "Primary Key",
+            "x-input-type": "text"
+          },
+          "maxRows": {
+            "type": "integer",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 1000,
+            "x-label": "Max Rows",
+            "x-input-type": "number"
+          }
+        },
+        "required": [
+          "table",
+          "primaryKey"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Database event identifier."
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name."
+          },
+          "schema": {
+            "type": "string",
+            "description": "Database schema."
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "insert",
+              "update",
+              "query_match",
+              "auth_user_created"
+            ]
+          },
+          "row": {
+            "type": "object",
+            "description": "Current row."
+          },
+          "oldRow": {
+            "type": "object",
+            "description": "Previous row when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId",
+          "operation"
+        ]
+      }
+    },
+    "onRowUpdated": {
+      "metadata": {
+        "label": "On Row Updated",
+        "description": "Triggers when a PostgreSQL row is updated."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "string",
+            "description": "Database schema.",
+            "x-label": "Schema",
+            "x-input-type": "text"
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-label": "Table",
+            "x-input-type": "text"
+          },
+          "primaryKey": {
+            "type": "string",
+            "description": "Primary key column.",
+            "x-label": "Primary Key",
+            "x-input-type": "text"
+          },
+          "maxRows": {
+            "type": "integer",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 1000,
+            "x-label": "Max Rows",
+            "x-input-type": "number"
+          }
+        },
+        "required": [
+          "table",
+          "primaryKey"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Database event identifier."
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name."
+          },
+          "schema": {
+            "type": "string",
+            "description": "Database schema."
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "insert",
+              "update",
+              "query_match",
+              "auth_user_created"
+            ]
+          },
+          "row": {
+            "type": "object",
+            "description": "Current row."
+          },
+          "oldRow": {
+            "type": "object",
+            "description": "Previous row when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId",
+          "operation"
+        ]
+      }
+    },
+    "onQueryMatch": {
+      "metadata": {
+        "label": "On Query Match",
+        "description": "Triggers when a safe read query returns rows."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Read-only SQL query.",
+            "x-label": "Query",
+            "x-input-type": "textarea"
+          },
+          "maxRows": {
+            "type": "integer",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 1000,
+            "x-label": "Max Rows",
+            "x-input-type": "number"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Database event identifier."
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name."
+          },
+          "schema": {
+            "type": "string",
+            "description": "Database schema."
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "insert",
+              "update",
+              "query_match",
+              "auth_user_created"
+            ]
+          },
+          "row": {
+            "type": "object",
+            "description": "Current row."
+          },
+          "oldRow": {
+            "type": "object",
+            "description": "Previous row when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId",
+          "operation"
+        ]
+      }
     }
   }
 }

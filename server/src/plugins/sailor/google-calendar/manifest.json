@@ -1,13 +1,513 @@
 {
-  "metadata": { "id": "google-calendar", "name": "Google Calendar", "description": "List calendars, manage events, and query free/busy availability.", "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/google-calendar.svg", "category": "Google", "author": "Sailor", "version": "1.0.0", "repository": "https://github.com/Auvexis/sailor" },
+  "metadata": {
+    "id": "google-calendar",
+    "name": "Google Calendar",
+    "description": "List calendars, manage events, and query free/busy availability.",
+    "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/google-calendar.svg",
+    "category": "Google",
+    "author": "Sailor",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/sailor"
+  },
   "methods": {
-    "listCalendars": { "metadata": { "label": "List Calendars", "description": "Lists calendars." }, "parameters": { "type": "object", "properties": { "maxResults": { "type": "number", "default": 100, "x-label": "Max Results", "x-input-type": "number" } } }, "responseSchema": { "type": "array", "items": { "type": "object" } } },
-    "listEvents": { "metadata": { "label": "List Events", "description": "Lists events." }, "parameters": { "type": "object", "properties": { "calendarId": { "type": "string", "x-label": "Calendar", "x-input-type": "select", "x-dynamic-options": { "method": "listCalendars", "labelPath": "summary", "valuePath": "id" } }, "timeMin": { "type": "string", "x-label": "Time Min", "x-input-type": "text" }, "timeMax": { "type": "string", "x-label": "Time Max", "x-input-type": "text" }, "q": { "type": "string", "x-label": "Search", "x-input-type": "text" }, "maxResults": { "type": "number", "default": 50, "x-label": "Max Results", "x-input-type": "number" } }, "required": ["calendarId"] }, "responseSchema": { "type": "array", "items": { "type": "object" } } },
-    "getEvent": { "metadata": { "label": "Get Event", "description": "Gets an event." }, "parameters": { "type": "object", "properties": { "calendarId": { "type": "string", "x-label": "Calendar ID", "x-input-type": "text" }, "eventId": { "type": "string", "x-label": "Event ID", "x-input-type": "text" } }, "required": ["calendarId", "eventId"] }, "responseSchema": { "type": "object" } },
-    "createEvent": { "metadata": { "label": "Create Event", "description": "Creates an event." }, "parameters": { "type": "object", "properties": { "calendarId": { "type": "string", "x-label": "Calendar ID", "x-input-type": "text" }, "summary": { "type": "string", "x-label": "Summary", "x-input-type": "text" }, "description": { "type": "string", "x-label": "Description", "x-input-type": "textarea" }, "location": { "type": "string", "x-label": "Location", "x-input-type": "text" }, "start": { "type": "string", "x-label": "Start", "x-input-type": "text" }, "end": { "type": "string", "x-label": "End", "x-input-type": "text" }, "timeZone": { "type": "string", "x-label": "Time Zone", "x-input-type": "text" }, "attendees": { "type": "string", "x-label": "Attendees", "x-input-type": "text" } }, "required": ["calendarId", "summary", "start", "end"] }, "responseSchema": { "type": "object" } },
-    "updateEvent": { "metadata": { "label": "Update Event", "description": "Updates an event." }, "parameters": { "type": "object", "properties": { "calendarId": { "type": "string", "x-label": "Calendar ID", "x-input-type": "text" }, "eventId": { "type": "string", "x-label": "Event ID", "x-input-type": "text" }, "summary": { "type": "string", "x-label": "Summary", "x-input-type": "text" }, "description": { "type": "string", "x-label": "Description", "x-input-type": "textarea" }, "location": { "type": "string", "x-label": "Location", "x-input-type": "text" }, "start": { "type": "string", "x-label": "Start", "x-input-type": "text" }, "end": { "type": "string", "x-label": "End", "x-input-type": "text" }, "timeZone": { "type": "string", "x-label": "Time Zone", "x-input-type": "text" }, "attendees": { "type": "string", "x-label": "Attendees", "x-input-type": "text" } }, "required": ["calendarId", "eventId"] }, "responseSchema": { "type": "object" } },
-    "deleteEvent": { "metadata": { "label": "Delete Event", "description": "Deletes an event with confirmation." }, "parameters": { "type": "object", "properties": { "calendarId": { "type": "string", "x-label": "Calendar ID", "x-input-type": "text" }, "eventId": { "type": "string", "x-label": "Event ID", "x-input-type": "text" }, "confirm": { "type": "boolean", "default": false, "x-label": "Confirm Delete", "x-input-type": "toggle" } }, "required": ["calendarId", "eventId", "confirm"] }, "responseSchema": { "type": "object" } },
-    "freeBusy": { "metadata": { "label": "Free Busy", "description": "Queries availability." }, "parameters": { "type": "object", "properties": { "calendarIds": { "type": "string", "x-label": "Calendar IDs", "x-input-type": "text" }, "timeMin": { "type": "string", "x-label": "Time Min", "x-input-type": "text" }, "timeMax": { "type": "string", "x-label": "Time Max", "x-input-type": "text" }, "timeZone": { "type": "string", "x-label": "Time Zone", "x-input-type": "text" } }, "required": ["calendarIds", "timeMin", "timeMax"] }, "responseSchema": { "type": "object" } },
-    "quickAddEvent": { "metadata": { "label": "Quick Add Event", "description": "Creates an event from natural language." }, "parameters": { "type": "object", "properties": { "calendarId": { "type": "string", "x-label": "Calendar ID", "x-input-type": "text" }, "text": { "type": "string", "x-label": "Text", "x-input-type": "textarea" } }, "required": ["calendarId", "text"] }, "responseSchema": { "type": "object" } }
+    "listCalendars": {
+      "metadata": {
+        "label": "List Calendars",
+        "description": "Lists calendars."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "maxResults": {
+            "type": "number",
+            "default": 100,
+            "x-label": "Max Results",
+            "x-input-type": "number"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
+    },
+    "listEvents": {
+      "metadata": {
+        "label": "List Events",
+        "description": "Lists events."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "calendarId": {
+            "type": "string",
+            "x-label": "Calendar",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listCalendars",
+              "labelPath": "summary",
+              "valuePath": "id"
+            }
+          },
+          "timeMin": {
+            "type": "string",
+            "x-label": "Time Min",
+            "x-input-type": "text"
+          },
+          "timeMax": {
+            "type": "string",
+            "x-label": "Time Max",
+            "x-input-type": "text"
+          },
+          "q": {
+            "type": "string",
+            "x-label": "Search",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "number",
+            "default": 50,
+            "x-label": "Max Results",
+            "x-input-type": "number"
+          }
+        },
+        "required": [
+          "calendarId"
+        ]
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
+    },
+    "getEvent": {
+      "metadata": {
+        "label": "Get Event",
+        "description": "Gets an event."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "calendarId": {
+            "type": "string",
+            "x-label": "Calendar ID",
+            "x-input-type": "text"
+          },
+          "eventId": {
+            "type": "string",
+            "x-label": "Event ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "calendarId",
+          "eventId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "createEvent": {
+      "metadata": {
+        "label": "Create Event",
+        "description": "Creates an event."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "calendarId": {
+            "type": "string",
+            "x-label": "Calendar ID",
+            "x-input-type": "text"
+          },
+          "summary": {
+            "type": "string",
+            "x-label": "Summary",
+            "x-input-type": "text"
+          },
+          "description": {
+            "type": "string",
+            "x-label": "Description",
+            "x-input-type": "textarea"
+          },
+          "location": {
+            "type": "string",
+            "x-label": "Location",
+            "x-input-type": "text"
+          },
+          "start": {
+            "type": "string",
+            "x-label": "Start",
+            "x-input-type": "text"
+          },
+          "end": {
+            "type": "string",
+            "x-label": "End",
+            "x-input-type": "text"
+          },
+          "timeZone": {
+            "type": "string",
+            "x-label": "Time Zone",
+            "x-input-type": "text"
+          },
+          "attendees": {
+            "type": "string",
+            "x-label": "Attendees",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "calendarId",
+          "summary",
+          "start",
+          "end"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "updateEvent": {
+      "metadata": {
+        "label": "Update Event",
+        "description": "Updates an event."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "calendarId": {
+            "type": "string",
+            "x-label": "Calendar ID",
+            "x-input-type": "text"
+          },
+          "eventId": {
+            "type": "string",
+            "x-label": "Event ID",
+            "x-input-type": "text"
+          },
+          "summary": {
+            "type": "string",
+            "x-label": "Summary",
+            "x-input-type": "text"
+          },
+          "description": {
+            "type": "string",
+            "x-label": "Description",
+            "x-input-type": "textarea"
+          },
+          "location": {
+            "type": "string",
+            "x-label": "Location",
+            "x-input-type": "text"
+          },
+          "start": {
+            "type": "string",
+            "x-label": "Start",
+            "x-input-type": "text"
+          },
+          "end": {
+            "type": "string",
+            "x-label": "End",
+            "x-input-type": "text"
+          },
+          "timeZone": {
+            "type": "string",
+            "x-label": "Time Zone",
+            "x-input-type": "text"
+          },
+          "attendees": {
+            "type": "string",
+            "x-label": "Attendees",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "calendarId",
+          "eventId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "deleteEvent": {
+      "metadata": {
+        "label": "Delete Event",
+        "description": "Deletes an event with confirmation."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "calendarId": {
+            "type": "string",
+            "x-label": "Calendar ID",
+            "x-input-type": "text"
+          },
+          "eventId": {
+            "type": "string",
+            "x-label": "Event ID",
+            "x-input-type": "text"
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "x-label": "Confirm Delete",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "calendarId",
+          "eventId",
+          "confirm"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "freeBusy": {
+      "metadata": {
+        "label": "Free Busy",
+        "description": "Queries availability."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "calendarIds": {
+            "type": "string",
+            "x-label": "Calendar IDs",
+            "x-input-type": "text"
+          },
+          "timeMin": {
+            "type": "string",
+            "x-label": "Time Min",
+            "x-input-type": "text"
+          },
+          "timeMax": {
+            "type": "string",
+            "x-label": "Time Max",
+            "x-input-type": "text"
+          },
+          "timeZone": {
+            "type": "string",
+            "x-label": "Time Zone",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "calendarIds",
+          "timeMin",
+          "timeMax"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "quickAddEvent": {
+      "metadata": {
+        "label": "Quick Add Event",
+        "description": "Creates an event from natural language."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "calendarId": {
+            "type": "string",
+            "x-label": "Calendar ID",
+            "x-input-type": "text"
+          },
+          "text": {
+            "type": "string",
+            "x-label": "Text",
+            "x-input-type": "textarea"
+          }
+        },
+        "required": [
+          "calendarId",
+          "text"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    }
+  },
+  "triggers": {
+    "onEventCreated": {
+      "metadata": {
+        "label": "On Event Created",
+        "description": "Triggers when a calendar event is created."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "calendarId": {
+            "type": "string",
+            "description": "Google Calendar ID. Use primary for the main calendar.",
+            "x-label": "Calendar ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onEventStartingSoon": {
+      "metadata": {
+        "label": "On Event Starting Soon",
+        "description": "Triggers before a calendar event starts."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "calendarId": {
+            "type": "string",
+            "description": "Google Calendar ID.",
+            "x-label": "Calendar ID",
+            "x-input-type": "text"
+          },
+          "minutesBefore": {
+            "type": "integer",
+            "description": "Minutes before start time.",
+            "default": 10,
+            "minimum": 1,
+            "x-label": "Minutes Before",
+            "x-input-type": "number"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onEventUpdated": {
+      "metadata": {
+        "label": "On Event Updated",
+        "description": "Triggers when a calendar event is updated."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "calendarId": {
+            "type": "string",
+            "description": "Google Calendar ID.",
+            "x-label": "Calendar ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    }
   }
 }

@@ -1324,5 +1324,179 @@
         }
       }
     }
+  },
+  "triggers": {
+    "onNewVideo": {
+      "metadata": {
+        "label": "On New Video",
+        "description": "Triggers when a channel publishes a new video."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "YouTube channel ID.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "channelId"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onNewComment": {
+      "metadata": {
+        "label": "On New Comment",
+        "description": "Triggers when a new comment is detected."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Optional YouTube channel ID.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "videoId": {
+            "type": "string",
+            "description": "Optional YouTube video ID.",
+            "x-label": "Video ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onChannelUpdate": {
+      "metadata": {
+        "label": "On Channel Update",
+        "description": "Triggers when channel metadata changes."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "YouTube channel ID.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "channelId"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    }
   }
 }

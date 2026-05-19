@@ -23,7 +23,9 @@
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean" }
+          "ok": {
+            "type": "boolean"
+          }
         }
       }
     },
@@ -35,11 +37,22 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "schema": { "type": "string", "description": "Schema name. Default: credential schema or public.", "default": "public", "x-input-type": "text" }
+          "schema": {
+            "type": "string",
+            "description": "Schema name. Default: credential schema or public.",
+            "default": "public",
+            "x-input-type": "text"
+          }
         },
         "required": []
       },
-      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
     },
     "selectRows": {
       "metadata": {
@@ -49,19 +62,49 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
-          "columns": { "type": "array", "description": "Columns to select. Empty selects all.", "items": { "type": "string" }, "x-input-type": "json" },
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-input-type": "text"
+          },
+          "columns": {
+            "type": "array",
+            "description": "Columns to select. Empty selects all.",
+            "items": {
+              "type": "string"
+            },
+            "x-input-type": "json"
+          },
           "filters": {
             "type": "array",
             "description": "Filters with operators: eq, neq, gt, gte, lt, lte, ilike, is, in.",
             "items": {
               "type": "object",
               "properties": {
-                "column": { "type": "string" },
-                "operator": { "type": "string", "enum": ["eq", "neq", "gt", "gte", "lt", "lte", "ilike", "is", "in"] },
+                "column": {
+                  "type": "string"
+                },
+                "operator": {
+                  "type": "string",
+                  "enum": [
+                    "eq",
+                    "neq",
+                    "gt",
+                    "gte",
+                    "lt",
+                    "lte",
+                    "ilike",
+                    "is",
+                    "in"
+                  ]
+                },
                 "value": {}
               },
-              "required": ["column", "operator", "value"],
+              "required": [
+                "column",
+                "operator",
+                "value"
+              ],
               "additionalProperties": false
             },
             "x-input-type": "json"
@@ -70,18 +113,44 @@
             "type": "object",
             "description": "Order configuration.",
             "properties": {
-              "column": { "type": "string" },
-              "direction": { "type": "string", "enum": ["asc", "desc"] }
+              "column": {
+                "type": "string"
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "asc",
+                  "desc"
+                ]
+              }
             },
             "additionalProperties": false,
             "x-input-type": "json"
           },
-          "limit": { "type": "number", "description": "Maximum rows. Max: 1000.", "default": 100, "x-input-type": "number" },
-          "offset": { "type": "number", "description": "Rows to skip.", "default": 0, "x-input-type": "number" }
+          "limit": {
+            "type": "number",
+            "description": "Maximum rows. Max: 1000.",
+            "default": 100,
+            "x-input-type": "number"
+          },
+          "offset": {
+            "type": "number",
+            "description": "Rows to skip.",
+            "default": 0,
+            "x-input-type": "number"
+          }
         },
-        "required": ["table"]
+        "required": [
+          "table"
+        ]
       },
-      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
     },
     "insertRow": {
       "metadata": {
@@ -91,12 +160,27 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
-          "row": { "type": "object", "description": "Row values.", "additionalProperties": true, "x-input-type": "json" }
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-input-type": "text"
+          },
+          "row": {
+            "type": "object",
+            "description": "Row values.",
+            "additionalProperties": true,
+            "x-input-type": "json"
+          }
         },
-        "required": ["table", "row"]
+        "required": [
+          "table",
+          "row"
+        ]
       },
-      "responseSchema": { "type": "object", "properties": {} }
+      "responseSchema": {
+        "type": "object",
+        "properties": {}
+      }
     },
     "updateRows": {
       "metadata": {
@@ -106,13 +190,39 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
-          "patch": { "type": "object", "description": "Fields to update.", "additionalProperties": true, "x-input-type": "json" },
-          "filters": { "type": "array", "description": "Filter list.", "items": { "type": "object", "additionalProperties": true }, "x-input-type": "json" }
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-input-type": "text"
+          },
+          "patch": {
+            "type": "object",
+            "description": "Fields to update.",
+            "additionalProperties": true,
+            "x-input-type": "json"
+          },
+          "filters": {
+            "type": "array",
+            "description": "Filter list.",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "x-input-type": "json"
+          }
         },
-        "required": ["table", "patch"]
+        "required": [
+          "table",
+          "patch"
+        ]
       },
-      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
     },
     "deleteRows": {
       "metadata": {
@@ -122,13 +232,38 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
-          "filters": { "type": "array", "description": "Filter list.", "items": { "type": "object", "additionalProperties": true }, "x-input-type": "json" },
-          "confirm": { "type": "boolean", "description": "Must be true to delete rows.", "x-input-type": "toggle" }
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-input-type": "text"
+          },
+          "filters": {
+            "type": "array",
+            "description": "Filter list.",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "x-input-type": "json"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Must be true to delete rows.",
+            "x-input-type": "toggle"
+          }
         },
-        "required": ["table", "confirm"]
+        "required": [
+          "table",
+          "confirm"
+        ]
       },
-      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
     },
     "upsertRow": {
       "metadata": {
@@ -138,13 +273,32 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "table": { "type": "string", "description": "Table name.", "x-input-type": "text" },
-          "row": { "type": "object", "description": "Row values.", "additionalProperties": true, "x-input-type": "json" },
-          "onConflict": { "type": "string", "description": "Comma-separated conflict columns.", "x-input-type": "text" }
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-input-type": "text"
+          },
+          "row": {
+            "type": "object",
+            "description": "Row values.",
+            "additionalProperties": true,
+            "x-input-type": "json"
+          },
+          "onConflict": {
+            "type": "string",
+            "description": "Comma-separated conflict columns.",
+            "x-input-type": "text"
+          }
         },
-        "required": ["table", "row"]
+        "required": [
+          "table",
+          "row"
+        ]
       },
-      "responseSchema": { "type": "object", "properties": {} }
+      "responseSchema": {
+        "type": "object",
+        "properties": {}
+      }
     },
     "callRpc": {
       "metadata": {
@@ -154,12 +308,26 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "name": { "type": "string", "description": "RPC function name.", "x-input-type": "text" },
-          "payload": { "type": "object", "description": "RPC payload.", "additionalProperties": true, "x-input-type": "json" }
+          "name": {
+            "type": "string",
+            "description": "RPC function name.",
+            "x-input-type": "text"
+          },
+          "payload": {
+            "type": "object",
+            "description": "RPC payload.",
+            "additionalProperties": true,
+            "x-input-type": "json"
+          }
         },
-        "required": ["name"]
+        "required": [
+          "name"
+        ]
       },
-      "responseSchema": { "type": "object", "properties": {} }
+      "responseSchema": {
+        "type": "object",
+        "properties": {}
+      }
     },
     "uploadObject": {
       "metadata": {
@@ -169,16 +337,52 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "bucket": { "type": "string", "description": "Storage bucket.", "x-input-type": "text" },
-          "path": { "type": "string", "description": "Object path.", "x-input-type": "text" },
-          "content": { "type": "string", "description": "Text or base64 content.", "x-input-type": "textarea" },
-          "encoding": { "type": "string", "description": "text or base64. Default: text.", "enum": ["text", "base64"], "default": "text", "x-input-type": "select" },
-          "contentType": { "type": "string", "description": "MIME type.", "x-input-type": "text" },
-          "upsert": { "type": "boolean", "description": "Replace existing object.", "x-input-type": "toggle" }
+          "bucket": {
+            "type": "string",
+            "description": "Storage bucket.",
+            "x-input-type": "text"
+          },
+          "path": {
+            "type": "string",
+            "description": "Object path.",
+            "x-input-type": "text"
+          },
+          "content": {
+            "type": "string",
+            "description": "Text or base64 content.",
+            "x-input-type": "textarea"
+          },
+          "encoding": {
+            "type": "string",
+            "description": "text or base64. Default: text.",
+            "enum": [
+              "text",
+              "base64"
+            ],
+            "default": "text",
+            "x-input-type": "select"
+          },
+          "contentType": {
+            "type": "string",
+            "description": "MIME type.",
+            "x-input-type": "text"
+          },
+          "upsert": {
+            "type": "boolean",
+            "description": "Replace existing object.",
+            "x-input-type": "toggle"
+          }
         },
-        "required": ["bucket", "path", "content"]
+        "required": [
+          "bucket",
+          "path",
+          "content"
+        ]
       },
-      "responseSchema": { "type": "object", "properties": {} }
+      "responseSchema": {
+        "type": "object",
+        "properties": {}
+      }
     },
     "downloadObject": {
       "metadata": {
@@ -188,18 +392,37 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "bucket": { "type": "string", "description": "Storage bucket.", "x-input-type": "text" },
-          "path": { "type": "string", "description": "Object path.", "x-input-type": "text" }
+          "bucket": {
+            "type": "string",
+            "description": "Storage bucket.",
+            "x-input-type": "text"
+          },
+          "path": {
+            "type": "string",
+            "description": "Object path.",
+            "x-input-type": "text"
+          }
         },
-        "required": ["bucket", "path"]
+        "required": [
+          "bucket",
+          "path"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "content": { "type": "string" },
-          "encoding": { "type": "string" },
-          "contentType": { "type": "string" },
-          "sizeBytes": { "type": "number" }
+          "content": {
+            "type": "string"
+          },
+          "encoding": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "number"
+          }
         }
       }
     },
@@ -211,12 +434,29 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "bucket": { "type": "string", "description": "Storage bucket.", "x-input-type": "text" },
-          "path": { "type": "string", "description": "Object path.", "x-input-type": "text" }
+          "bucket": {
+            "type": "string",
+            "description": "Storage bucket.",
+            "x-input-type": "text"
+          },
+          "path": {
+            "type": "string",
+            "description": "Object path.",
+            "x-input-type": "text"
+          }
         },
-        "required": ["bucket", "path"]
+        "required": [
+          "bucket",
+          "path"
+        ]
       },
-      "responseSchema": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
     },
     "createSignedUrl": {
       "metadata": {
@@ -226,13 +466,232 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "bucket": { "type": "string", "description": "Storage bucket.", "x-input-type": "text" },
-          "path": { "type": "string", "description": "Object path.", "x-input-type": "text" },
-          "expiresIn": { "type": "number", "description": "Seconds until expiration. Default: 3600.", "default": 3600, "x-input-type": "number" }
+          "bucket": {
+            "type": "string",
+            "description": "Storage bucket.",
+            "x-input-type": "text"
+          },
+          "path": {
+            "type": "string",
+            "description": "Object path.",
+            "x-input-type": "text"
+          },
+          "expiresIn": {
+            "type": "number",
+            "description": "Seconds until expiration. Default: 3600.",
+            "default": 3600,
+            "x-input-type": "number"
+          }
         },
-        "required": ["bucket", "path"]
+        "required": [
+          "bucket",
+          "path"
+        ]
       },
-      "responseSchema": { "type": "object", "properties": {} }
+      "responseSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  },
+  "triggers": {
+    "onRowInserted": {
+      "metadata": {
+        "label": "On Row Inserted",
+        "description": "Triggers when a Supabase row is inserted."
+      },
+      "delivery": {
+        "mode": "realtime"
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "string",
+            "description": "Database schema.",
+            "x-label": "Schema",
+            "x-input-type": "text"
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-label": "Table",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Database event identifier."
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name."
+          },
+          "schema": {
+            "type": "string",
+            "description": "Database schema."
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "insert",
+              "update",
+              "query_match",
+              "auth_user_created"
+            ]
+          },
+          "row": {
+            "type": "object",
+            "description": "Current row."
+          },
+          "oldRow": {
+            "type": "object",
+            "description": "Previous row when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId",
+          "operation"
+        ]
+      }
+    },
+    "onRowUpdated": {
+      "metadata": {
+        "label": "On Row Updated",
+        "description": "Triggers when a Supabase row is updated."
+      },
+      "delivery": {
+        "mode": "realtime"
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "string",
+            "description": "Database schema.",
+            "x-label": "Schema",
+            "x-input-type": "text"
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name.",
+            "x-label": "Table",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "table"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Database event identifier."
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name."
+          },
+          "schema": {
+            "type": "string",
+            "description": "Database schema."
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "insert",
+              "update",
+              "query_match",
+              "auth_user_created"
+            ]
+          },
+          "row": {
+            "type": "object",
+            "description": "Current row."
+          },
+          "oldRow": {
+            "type": "object",
+            "description": "Previous row when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId",
+          "operation"
+        ]
+      }
+    },
+    "onAuthUserCreated": {
+      "metadata": {
+        "label": "On Auth User Created",
+        "description": "Triggers when a Supabase Auth user is created."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Database event identifier."
+          },
+          "table": {
+            "type": "string",
+            "description": "Table name."
+          },
+          "schema": {
+            "type": "string",
+            "description": "Database schema."
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "insert",
+              "update",
+              "query_match",
+              "auth_user_created"
+            ]
+          },
+          "row": {
+            "type": "object",
+            "description": "Current row."
+          },
+          "oldRow": {
+            "type": "object",
+            "description": "Previous row when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId",
+          "operation"
+        ]
+      }
     }
   }
 }

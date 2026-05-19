@@ -1,13 +1,408 @@
 {
-  "metadata": { "id": "jira", "name": "Jira", "description": "Search and manage Jira Cloud projects, issues, comments, transitions, and assignees.", "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jira.svg", "category": "Productivity", "author": "Sailor", "version": "1.0.0", "repository": "https://github.com/Auvexis/sailor" },
+  "metadata": {
+    "id": "jira",
+    "name": "Jira",
+    "description": "Search and manage Jira Cloud projects, issues, comments, transitions, and assignees.",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jira.svg",
+    "category": "Productivity",
+    "author": "Sailor",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/sailor"
+  },
   "methods": {
-    "listProjects": { "metadata": { "label": "List Projects", "description": "Lists accessible projects." }, "parameters": { "type": "object", "properties": {} }, "responseSchema": { "type": "object" } },
-    "searchIssues": { "metadata": { "label": "Search Issues", "description": "Searches issues with JQL." }, "parameters": { "type": "object", "properties": { "jql": { "type": "string", "x-label": "JQL", "x-input-type": "textarea" }, "maxResults": { "type": "number", "default": 50, "x-label": "Max Results", "x-input-type": "number" }, "fields": { "type": "string", "x-label": "Fields", "x-input-type": "text" } }, "required": ["jql"] }, "responseSchema": { "type": "object" } },
-    "getIssue": { "metadata": { "label": "Get Issue", "description": "Gets an issue." }, "parameters": { "type": "object", "properties": { "issueIdOrKey": { "type": "string", "x-label": "Issue ID Or Key", "x-input-type": "text" } }, "required": ["issueIdOrKey"] }, "responseSchema": { "type": "object" } },
-    "createIssue": { "metadata": { "label": "Create Issue", "description": "Creates an issue." }, "parameters": { "type": "object", "properties": { "projectKey": { "type": "string", "x-label": "Project Key", "x-input-type": "text" }, "issueType": { "type": "string", "x-label": "Issue Type", "x-input-type": "text" }, "summary": { "type": "string", "x-label": "Summary", "x-input-type": "text" }, "description": { "type": "string", "x-label": "Description", "x-input-type": "textarea" }, "fields": { "type": "string", "x-label": "Fields JSON", "x-input-type": "json" } }, "required": ["projectKey", "issueType", "summary"] }, "responseSchema": { "type": "object" } },
-    "updateIssue": { "metadata": { "label": "Update Issue", "description": "Updates issue fields." }, "parameters": { "type": "object", "properties": { "issueIdOrKey": { "type": "string", "x-label": "Issue ID Or Key", "x-input-type": "text" }, "fields": { "type": "string", "x-label": "Fields JSON", "x-input-type": "json" } }, "required": ["issueIdOrKey", "fields"] }, "responseSchema": { "type": "object" } },
-    "transitionIssue": { "metadata": { "label": "Transition Issue", "description": "Transitions an issue." }, "parameters": { "type": "object", "properties": { "issueIdOrKey": { "type": "string", "x-label": "Issue ID Or Key", "x-input-type": "text" }, "transitionId": { "type": "string", "x-label": "Transition ID", "x-input-type": "text" } }, "required": ["issueIdOrKey", "transitionId"] }, "responseSchema": { "type": "object" } },
-    "addComment": { "metadata": { "label": "Add Comment", "description": "Adds a comment." }, "parameters": { "type": "object", "properties": { "issueIdOrKey": { "type": "string", "x-label": "Issue ID Or Key", "x-input-type": "text" }, "comment": { "type": "string", "x-label": "Comment", "x-input-type": "textarea" } }, "required": ["issueIdOrKey", "comment"] }, "responseSchema": { "type": "object" } },
-    "assignIssue": { "metadata": { "label": "Assign Issue", "description": "Assigns an issue." }, "parameters": { "type": "object", "properties": { "issueIdOrKey": { "type": "string", "x-label": "Issue ID Or Key", "x-input-type": "text" }, "accountId": { "type": "string", "x-label": "Account ID", "x-input-type": "text" } }, "required": ["issueIdOrKey", "accountId"] }, "responseSchema": { "type": "object" } }
+    "listProjects": {
+      "metadata": {
+        "label": "List Projects",
+        "description": "Lists accessible projects."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "searchIssues": {
+      "metadata": {
+        "label": "Search Issues",
+        "description": "Searches issues with JQL."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "jql": {
+            "type": "string",
+            "x-label": "JQL",
+            "x-input-type": "textarea"
+          },
+          "maxResults": {
+            "type": "number",
+            "default": 50,
+            "x-label": "Max Results",
+            "x-input-type": "number"
+          },
+          "fields": {
+            "type": "string",
+            "x-label": "Fields",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "jql"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "getIssue": {
+      "metadata": {
+        "label": "Get Issue",
+        "description": "Gets an issue."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "issueIdOrKey": {
+            "type": "string",
+            "x-label": "Issue ID Or Key",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "issueIdOrKey"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "createIssue": {
+      "metadata": {
+        "label": "Create Issue",
+        "description": "Creates an issue."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "projectKey": {
+            "type": "string",
+            "x-label": "Project Key",
+            "x-input-type": "text"
+          },
+          "issueType": {
+            "type": "string",
+            "x-label": "Issue Type",
+            "x-input-type": "text"
+          },
+          "summary": {
+            "type": "string",
+            "x-label": "Summary",
+            "x-input-type": "text"
+          },
+          "description": {
+            "type": "string",
+            "x-label": "Description",
+            "x-input-type": "textarea"
+          },
+          "fields": {
+            "type": "string",
+            "x-label": "Fields JSON",
+            "x-input-type": "json"
+          }
+        },
+        "required": [
+          "projectKey",
+          "issueType",
+          "summary"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "updateIssue": {
+      "metadata": {
+        "label": "Update Issue",
+        "description": "Updates issue fields."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "issueIdOrKey": {
+            "type": "string",
+            "x-label": "Issue ID Or Key",
+            "x-input-type": "text"
+          },
+          "fields": {
+            "type": "string",
+            "x-label": "Fields JSON",
+            "x-input-type": "json"
+          }
+        },
+        "required": [
+          "issueIdOrKey",
+          "fields"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "transitionIssue": {
+      "metadata": {
+        "label": "Transition Issue",
+        "description": "Transitions an issue."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "issueIdOrKey": {
+            "type": "string",
+            "x-label": "Issue ID Or Key",
+            "x-input-type": "text"
+          },
+          "transitionId": {
+            "type": "string",
+            "x-label": "Transition ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "issueIdOrKey",
+          "transitionId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "addComment": {
+      "metadata": {
+        "label": "Add Comment",
+        "description": "Adds a comment."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "issueIdOrKey": {
+            "type": "string",
+            "x-label": "Issue ID Or Key",
+            "x-input-type": "text"
+          },
+          "comment": {
+            "type": "string",
+            "x-label": "Comment",
+            "x-input-type": "textarea"
+          }
+        },
+        "required": [
+          "issueIdOrKey",
+          "comment"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
+    "assignIssue": {
+      "metadata": {
+        "label": "Assign Issue",
+        "description": "Assigns an issue."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "issueIdOrKey": {
+            "type": "string",
+            "x-label": "Issue ID Or Key",
+            "x-input-type": "text"
+          },
+          "accountId": {
+            "type": "string",
+            "x-label": "Account ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "issueIdOrKey",
+          "accountId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    }
+  },
+  "triggers": {
+    "onIssueCreated": {
+      "metadata": {
+        "label": "On Issue Created",
+        "description": "Triggers when a Jira issue is created."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "projectKey": {
+            "type": "string",
+            "description": "Optional Jira project key filter.",
+            "x-label": "Project Key",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onIssueUpdated": {
+      "metadata": {
+        "label": "On Issue Updated",
+        "description": "Triggers when a Jira issue is updated."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "projectKey": {
+            "type": "string",
+            "description": "Optional Jira project key filter.",
+            "x-label": "Project Key",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onStatusChanged": {
+      "metadata": {
+        "label": "On Status Changed",
+        "description": "Triggers when a Jira issue changes status."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "projectKey": {
+            "type": "string",
+            "description": "Optional Jira project key filter.",
+            "x-label": "Project Key",
+            "x-input-type": "text"
+          },
+          "status": {
+            "type": "string",
+            "description": "Optional target status name.",
+            "x-label": "Status",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    }
   }
 }

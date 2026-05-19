@@ -13,44 +13,593 @@
   },
   "methods": {
     "getRepository": {
-      "metadata": { "label": "Get Repository", "description": "Gets repository metadata." },
-      "parameters": { "type": "object", "properties": { "owner": { "type": "string", "x-label": "Owner", "x-input-type": "text" }, "repo": { "type": "string", "x-label": "Repo", "x-input-type": "text" } }, "required": ["owner", "repo"] },
-      "responseSchema": { "type": "object" }
+      "metadata": {
+        "label": "Get Repository",
+        "description": "Gets repository metadata."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "x-label": "Owner",
+            "x-input-type": "text"
+          },
+          "repo": {
+            "type": "string",
+            "x-label": "Repo",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "owner",
+          "repo"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
     },
     "listIssues": {
-      "metadata": { "label": "List Issues", "description": "Lists repository issues." },
-      "parameters": { "type": "object", "properties": { "owner": { "type": "string", "x-label": "Owner", "x-input-type": "text" }, "repo": { "type": "string", "x-label": "Repo", "x-input-type": "text" }, "state": { "type": "string", "default": "open", "x-label": "State", "x-input-type": "text" }, "labels": { "type": "string", "x-label": "Labels", "x-input-type": "text" }, "limit": { "type": "number", "default": 30, "x-label": "Limit", "x-input-type": "number" } }, "required": ["owner", "repo"] },
-      "responseSchema": { "type": "array", "items": { "type": "object" } }
+      "metadata": {
+        "label": "List Issues",
+        "description": "Lists repository issues."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "x-label": "Owner",
+            "x-input-type": "text"
+          },
+          "repo": {
+            "type": "string",
+            "x-label": "Repo",
+            "x-input-type": "text"
+          },
+          "state": {
+            "type": "string",
+            "default": "open",
+            "x-label": "State",
+            "x-input-type": "text"
+          },
+          "labels": {
+            "type": "string",
+            "x-label": "Labels",
+            "x-input-type": "text"
+          },
+          "limit": {
+            "type": "number",
+            "default": 30,
+            "x-label": "Limit",
+            "x-input-type": "number"
+          }
+        },
+        "required": [
+          "owner",
+          "repo"
+        ]
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
     },
     "createIssue": {
-      "metadata": { "label": "Create Issue", "description": "Creates a repository issue." },
-      "parameters": { "type": "object", "properties": { "owner": { "type": "string", "x-label": "Owner", "x-input-type": "text" }, "repo": { "type": "string", "x-label": "Repo", "x-input-type": "text" }, "title": { "type": "string", "x-label": "Title", "x-input-type": "text" }, "body": { "type": "string", "x-label": "Body", "x-input-type": "textarea" }, "labels": { "type": "string", "x-label": "Labels", "x-input-type": "text" } }, "required": ["owner", "repo", "title"] },
-      "responseSchema": { "type": "object" }
+      "metadata": {
+        "label": "Create Issue",
+        "description": "Creates a repository issue."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "x-label": "Owner",
+            "x-input-type": "text"
+          },
+          "repo": {
+            "type": "string",
+            "x-label": "Repo",
+            "x-input-type": "text"
+          },
+          "title": {
+            "type": "string",
+            "x-label": "Title",
+            "x-input-type": "text"
+          },
+          "body": {
+            "type": "string",
+            "x-label": "Body",
+            "x-input-type": "textarea"
+          },
+          "labels": {
+            "type": "string",
+            "x-label": "Labels",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "owner",
+          "repo",
+          "title"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
     },
     "updateIssue": {
-      "metadata": { "label": "Update Issue", "description": "Updates an issue or pull request issue fields." },
-      "parameters": { "type": "object", "properties": { "owner": { "type": "string", "x-label": "Owner", "x-input-type": "text" }, "repo": { "type": "string", "x-label": "Repo", "x-input-type": "text" }, "issueNumber": { "type": "number", "x-label": "Issue Number", "x-input-type": "number" }, "title": { "type": "string", "x-label": "Title", "x-input-type": "text" }, "body": { "type": "string", "x-label": "Body", "x-input-type": "textarea" }, "state": { "type": "string", "x-label": "State", "x-input-type": "text" }, "labels": { "type": "string", "x-label": "Labels", "x-input-type": "text" } }, "required": ["owner", "repo", "issueNumber"] },
-      "responseSchema": { "type": "object" }
+      "metadata": {
+        "label": "Update Issue",
+        "description": "Updates an issue or pull request issue fields."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "x-label": "Owner",
+            "x-input-type": "text"
+          },
+          "repo": {
+            "type": "string",
+            "x-label": "Repo",
+            "x-input-type": "text"
+          },
+          "issueNumber": {
+            "type": "number",
+            "x-label": "Issue Number",
+            "x-input-type": "number"
+          },
+          "title": {
+            "type": "string",
+            "x-label": "Title",
+            "x-input-type": "text"
+          },
+          "body": {
+            "type": "string",
+            "x-label": "Body",
+            "x-input-type": "textarea"
+          },
+          "state": {
+            "type": "string",
+            "x-label": "State",
+            "x-input-type": "text"
+          },
+          "labels": {
+            "type": "string",
+            "x-label": "Labels",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "owner",
+          "repo",
+          "issueNumber"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
     },
     "addIssueComment": {
-      "metadata": { "label": "Add Issue Comment", "description": "Adds a comment to an issue or pull request." },
-      "parameters": { "type": "object", "properties": { "owner": { "type": "string", "x-label": "Owner", "x-input-type": "text" }, "repo": { "type": "string", "x-label": "Repo", "x-input-type": "text" }, "issueNumber": { "type": "number", "x-label": "Issue Number", "x-input-type": "number" }, "body": { "type": "string", "x-label": "Body", "x-input-type": "textarea" } }, "required": ["owner", "repo", "issueNumber", "body"] },
-      "responseSchema": { "type": "object" }
+      "metadata": {
+        "label": "Add Issue Comment",
+        "description": "Adds a comment to an issue or pull request."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "x-label": "Owner",
+            "x-input-type": "text"
+          },
+          "repo": {
+            "type": "string",
+            "x-label": "Repo",
+            "x-input-type": "text"
+          },
+          "issueNumber": {
+            "type": "number",
+            "x-label": "Issue Number",
+            "x-input-type": "number"
+          },
+          "body": {
+            "type": "string",
+            "x-label": "Body",
+            "x-input-type": "textarea"
+          }
+        },
+        "required": [
+          "owner",
+          "repo",
+          "issueNumber",
+          "body"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
     },
     "listPullRequests": {
-      "metadata": { "label": "List Pull Requests", "description": "Lists repository pull requests." },
-      "parameters": { "type": "object", "properties": { "owner": { "type": "string", "x-label": "Owner", "x-input-type": "text" }, "repo": { "type": "string", "x-label": "Repo", "x-input-type": "text" }, "state": { "type": "string", "default": "open", "x-label": "State", "x-input-type": "text" }, "limit": { "type": "number", "default": 30, "x-label": "Limit", "x-input-type": "number" } }, "required": ["owner", "repo"] },
-      "responseSchema": { "type": "array", "items": { "type": "object" } }
+      "metadata": {
+        "label": "List Pull Requests",
+        "description": "Lists repository pull requests."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "x-label": "Owner",
+            "x-input-type": "text"
+          },
+          "repo": {
+            "type": "string",
+            "x-label": "Repo",
+            "x-input-type": "text"
+          },
+          "state": {
+            "type": "string",
+            "default": "open",
+            "x-label": "State",
+            "x-input-type": "text"
+          },
+          "limit": {
+            "type": "number",
+            "default": 30,
+            "x-label": "Limit",
+            "x-input-type": "number"
+          }
+        },
+        "required": [
+          "owner",
+          "repo"
+        ]
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      }
     },
     "createPullRequest": {
-      "metadata": { "label": "Create Pull Request", "description": "Creates a pull request." },
-      "parameters": { "type": "object", "properties": { "owner": { "type": "string", "x-label": "Owner", "x-input-type": "text" }, "repo": { "type": "string", "x-label": "Repo", "x-input-type": "text" }, "title": { "type": "string", "x-label": "Title", "x-input-type": "text" }, "head": { "type": "string", "x-label": "Head", "x-input-type": "text" }, "base": { "type": "string", "x-label": "Base", "x-input-type": "text" }, "body": { "type": "string", "x-label": "Body", "x-input-type": "textarea" }, "draft": { "type": "boolean", "default": false, "x-label": "Draft", "x-input-type": "toggle" } }, "required": ["owner", "repo", "title", "head", "base"] },
-      "responseSchema": { "type": "object" }
+      "metadata": {
+        "label": "Create Pull Request",
+        "description": "Creates a pull request."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "x-label": "Owner",
+            "x-input-type": "text"
+          },
+          "repo": {
+            "type": "string",
+            "x-label": "Repo",
+            "x-input-type": "text"
+          },
+          "title": {
+            "type": "string",
+            "x-label": "Title",
+            "x-input-type": "text"
+          },
+          "head": {
+            "type": "string",
+            "x-label": "Head",
+            "x-input-type": "text"
+          },
+          "base": {
+            "type": "string",
+            "x-label": "Base",
+            "x-input-type": "text"
+          },
+          "body": {
+            "type": "string",
+            "x-label": "Body",
+            "x-input-type": "textarea"
+          },
+          "draft": {
+            "type": "boolean",
+            "default": false,
+            "x-label": "Draft",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "owner",
+          "repo",
+          "title",
+          "head",
+          "base"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
     },
     "listWorkflowRuns": {
-      "metadata": { "label": "List Workflow Runs", "description": "Lists GitHub Actions workflow runs." },
-      "parameters": { "type": "object", "properties": { "owner": { "type": "string", "x-label": "Owner", "x-input-type": "text" }, "repo": { "type": "string", "x-label": "Repo", "x-input-type": "text" }, "workflowId": { "type": "string", "x-label": "Workflow ID", "x-input-type": "text" }, "branch": { "type": "string", "x-label": "Branch", "x-input-type": "text" }, "status": { "type": "string", "x-label": "Status", "x-input-type": "text" }, "limit": { "type": "number", "default": 30, "x-label": "Limit", "x-input-type": "number" } }, "required": ["owner", "repo"] },
-      "responseSchema": { "type": "object" }
+      "metadata": {
+        "label": "List Workflow Runs",
+        "description": "Lists GitHub Actions workflow runs."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "x-label": "Owner",
+            "x-input-type": "text"
+          },
+          "repo": {
+            "type": "string",
+            "x-label": "Repo",
+            "x-input-type": "text"
+          },
+          "workflowId": {
+            "type": "string",
+            "x-label": "Workflow ID",
+            "x-input-type": "text"
+          },
+          "branch": {
+            "type": "string",
+            "x-label": "Branch",
+            "x-input-type": "text"
+          },
+          "status": {
+            "type": "string",
+            "x-label": "Status",
+            "x-input-type": "text"
+          },
+          "limit": {
+            "type": "number",
+            "default": 30,
+            "x-label": "Limit",
+            "x-input-type": "number"
+          }
+        },
+        "required": [
+          "owner",
+          "repo"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    }
+  },
+  "triggers": {
+    "onIssueOpened": {
+      "metadata": {
+        "label": "On Issue Opened",
+        "description": "Triggers when a GitHub issue is opened."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "repository": {
+            "type": "string",
+            "description": "owner/repo repository name.",
+            "x-label": "Repository",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "repository"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onPullRequestOpened": {
+      "metadata": {
+        "label": "On Pull Request Opened",
+        "description": "Triggers when a GitHub pull request is opened."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "repository": {
+            "type": "string",
+            "description": "owner/repo repository name.",
+            "x-label": "Repository",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "repository"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onPullRequestReview": {
+      "metadata": {
+        "label": "On Pull Request Review",
+        "description": "Triggers when a GitHub pull request review is submitted."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "repository": {
+            "type": "string",
+            "description": "owner/repo repository name.",
+            "x-label": "Repository",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "repository"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onWorkflowFailed": {
+      "metadata": {
+        "label": "On Workflow Failed",
+        "description": "Triggers when a GitHub Actions workflow run fails."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "repository": {
+            "type": "string",
+            "description": "owner/repo repository name.",
+            "x-label": "Repository",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "repository"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
     }
   }
 }

@@ -487,5 +487,171 @@
         }
       }
     }
+  },
+  "triggers": {
+    "onNewEmail": {
+      "metadata": {
+        "label": "On New Email",
+        "description": "Triggers when a new Gmail message is detected."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Optional Gmail search query, e.g. newer_than:1d.",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onEmailMatchingFilter": {
+      "metadata": {
+        "label": "On Email Matching Filter",
+        "description": "Triggers when a Gmail message matches a search filter."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Gmail search query used to match messages.",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onAttachmentReceived": {
+      "metadata": {
+        "label": "On Attachment Received",
+        "description": "Triggers when a Gmail message with attachments is detected."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Optional Gmail search query. has:attachment is applied by convention.",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    }
   }
 }

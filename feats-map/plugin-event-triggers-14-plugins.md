@@ -428,7 +428,7 @@ git commit -m "feat: add messaging plugin triggers"
 - Modify/Create trigger files under each plugin folder.
 - Tests beside each plugin trigger file.
 
-- [ ] **Step 1: Write failing tests for all Google trigger manifests**
+- [x] **Step 1: Write failing tests for all Google trigger manifests**
 
 Events:
 
@@ -438,7 +438,7 @@ Events:
 - Sheets: `onRowAdded`, `onRowUpdated`, `onSheetChanged`
 - YouTube: `onNewVideo`, `onNewComment`, `onChannelUpdate`
 
-- [ ] **Step 2: Add shared Google trigger helper inside Google plugin boundaries only when local**
+- [x] **Step 2: Add shared Google trigger helper inside Google plugin boundaries only when local**
 
 If helper is needed, place it where ownership is clear:
 
@@ -448,13 +448,13 @@ server/src/plugins/sailor/google-*/triggers.ts
 
 Do not create cross-plugin imports between Google plugins.
 
-- [ ] **Step 3: Use delivery modes correctly**
+- [x] **Step 3: Use delivery modes correctly**
 
 - Gmail/Drive/Calendar/YouTube: webhook or polling depending existing auth/provider support.
 - Sheets: polling first unless a webhook channel already exists in codebase.
 - Calendar `onEventStartingSoon`: polling/scheduler owned by core runtime, plugin only declares params.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```bash
 cd server
@@ -482,7 +482,7 @@ git commit -m "feat: add google workspace plugin triggers"
 - Modify/Create trigger files under each plugin folder.
 - Tests beside each plugin trigger file.
 
-- [ ] **Step 1: Write failing tests for manifests and normalization**
+- [x] **Step 1: Write failing tests for manifests and normalization**
 
 Events:
 
@@ -495,7 +495,7 @@ Events:
 
 Plugin adapter can expose normalization and signature metadata. Core performs route rejection.
 
-- [ ] **Step 3: Add manifest schemas**
+- [x] **Step 3: Add manifest schemas**
 
 Common parameters:
 
@@ -503,7 +503,7 @@ Common parameters:
 - event filter
 - optional branch/status/list filter
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```bash
 cd server
@@ -533,14 +533,14 @@ git commit -m "feat: add dev productivity plugin triggers"
 - Create: `server/src/plugins/sailor/supabase/triggers.ts`
 - Test: `server/src/plugins/sailor/supabase/triggers.test.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Events:
 
 - PostgreSQL: `onRowInserted`, `onRowUpdated`, `onQueryMatch`
 - Supabase: `onRowInserted`, `onRowUpdated`, `onAuthUserCreated`
 
-- [ ] **Step 2: Add safety limits**
+- [x] **Step 2: Add safety limits**
 
 Required params:
 
@@ -565,7 +565,7 @@ Payload:
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```bash
 cd server
