@@ -28,6 +28,9 @@ describe('execution bottom panel runtime detail view', () => {
     assert.match(source, /eventBody/)
     assert.match(source, /ebp-event-detail/)
     assert.match(source, /item\.error/)
+    const detailStyles = cssBlock('.ebp-event-detail')
+    assert.doesNotMatch(detailStyles, /border-left:/)
+    assert.doesNotMatch(detailStyles, /border-radius:/)
   })
 
   it('keeps step rows static when switching tabs or receiving events', () => {
@@ -60,12 +63,17 @@ describe('execution bottom panel runtime detail view', () => {
     assert.doesNotMatch(eventStyles, /border: 1px/)
   })
 
-  it('can be resized vertically from the top border', () => {
-    assert.match(source, /ebp-resize-handle/)
-    assert.match(source, /startResize/)
-    assert.match(source, /panelHeight/)
-    assert.match(source, /mousemove/)
-    assert.match(source, /--ebp-panel-height/)
-    assert.match(source, /cursor: ns-resize/)
+  it('does not own panel resizing inside the execution component', () => {
+    assert.doesNotMatch(source, /ebp-resize-handle/)
+    assert.doesNotMatch(source, /startResize/)
+    assert.doesNotMatch(source, /panelHeight/)
+    assert.doesNotMatch(source, /--ebp-panel-height/)
+    assert.doesNotMatch(source, /cursor: ns-resize/)
+  })
+
+  it('loads history with the current profile id, including default', () => {
+    assert.match(source, /useProfileStore/)
+    assert.match(source, /currentProfile\?\.id/)
+    assert.match(source, /workflowsApi\.getExecutions\(workflowId,\s*currentProfileId/)
   })
 })
