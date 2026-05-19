@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
+import http from "node:http";
 import Database from "better-sqlite3";
 
 import { createMigrationEngine } from "../../database/migration-engine.ts";
@@ -144,6 +145,66 @@ describe("WorkflowEngine trigger entry execution", () => {
     assert.equal(result.status, "SUCCESS");
     assert.equal(result.context.steps.disabled_mid, undefined);
     assert.equal(result.context.steps.after_disabled.output.continued, "yes");
+  });
+
+  it("executes nodes downstream of a matching event listener in the same workflow", async () => {
+    let requests = 0;
+    const server = http.createServer((req, res) => {
+      requests++;
+      assert.equal(req.method, "POST");
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: true }));
+    });
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const port = (server.address() as { port: number }).port;
+
+    try {
+      const wf = baseWorkflow();
+      wf.nodes = {
+        trigger_a: {
+          type: "trigger",
+          name: "Trigger A",
+          trigger: { type: "manual" },
+        },
+        emit_event: {
+          type: "event",
+          name: "Emit Event",
+          eventName: "message.sent",
+          payloadParams: [],
+        },
+        wait_event: {
+          type: "event-listener",
+          name: "Wait for Event",
+          eventName: "message.sent",
+        },
+        http_after_event: {
+          type: "http",
+          name: "HTTP after event",
+          method: "POST",
+          url: `http://127.0.0.1:${port}/after-event`,
+          body: "{\"message\":\"ok\"}",
+        },
+      };
+      wf.edges = [
+        { id: "trigger-to-event", source: "trigger_a", target: "emit_event" },
+        { id: "listener-to-http", source: "wait_event", target: "http_after_event" },
+      ];
+      WorkflowRepository.saveWorkflow(wf);
+
+      const result = await WorkflowEngine.executeWorkflowFromTrigger(
+        wf,
+        "trigger_a",
+        {},
+        "exec_event_listener_downstream",
+      );
+
+      assert.equal(result.status, "SUCCESS");
+      assert.equal(requests, 1);
+      assert.equal(result.context.steps.wait_event.status, "SUCCESS");
+      assert.equal(result.context.steps.http_after_event.status, "SUCCESS");
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
   });
 
   it("rejects disabled trigger nodes", async () => {

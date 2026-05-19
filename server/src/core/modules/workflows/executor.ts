@@ -205,7 +205,16 @@ export const WorkflowEngine = {
         });
 
         if (node.type === "event") {
-          enqueueMatchingEventListeners(workflow, nodeId, context, executed, queue);
+          enqueueMatchingEventListeners(
+            workflow,
+            nodeId,
+            context,
+            executed,
+            queue,
+            adjList,
+            reachable,
+            branchInDegree,
+          );
         }
 
         const output = context.steps[nodeId]?.output;
@@ -365,6 +374,9 @@ function enqueueMatchingEventListeners(
   context: WorkflowExecutionContext,
   executed: Set<string>,
   queue: string[],
+  adjList: Record<string, WorkflowItem["edges"]>,
+  reachable: Set<string>,
+  branchInDegree: Record<string, number>,
 ): void {
   const emittedName = context.steps[nodeId]?.output?.eventName;
   const payload = context.steps[nodeId]?.output?.payload;
@@ -378,7 +390,34 @@ function enqueueMatchingEventListeners(
       !executed.has(listenerId) &&
       !queue.includes(listenerId)
     ) {
+      addReachableListenerBranch(listenerId, adjList, reachable, branchInDegree);
       queue.push(listenerId);
+    }
+  }
+}
+
+function addReachableListenerBranch(
+  listenerId: string,
+  adjList: Record<string, WorkflowItem["edges"]>,
+  reachable: Set<string>,
+  branchInDegree: Record<string, number>,
+): void {
+  const listenerReachable = collectReachableNodeIds(listenerId, adjList);
+  const newReachable = new Set<string>();
+
+  for (const nodeId of listenerReachable) {
+    if (reachable.has(nodeId)) continue;
+    reachable.add(nodeId);
+    branchInDegree[nodeId] = 0;
+    newReachable.add(nodeId);
+  }
+
+  for (const source of listenerReachable) {
+    if (source === listenerId) continue;
+    for (const edge of adjList[source] || []) {
+      if (newReachable.has(edge.target)) {
+        branchInDegree[edge.target] = (branchInDegree[edge.target] ?? 0) + 1;
+      }
     }
   }
 }

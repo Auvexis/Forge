@@ -119,7 +119,7 @@
               <span>No execution events yet.</span>
             </div>
 
-            <TransitionGroup v-else name="gam-event-list" tag="div" class="gam-timeline">
+            <div v-else class="gam-timeline">
               <article
                 v-for="event in activeTriggerEvents"
                 :key="event.id"
@@ -141,15 +141,13 @@
                   <code v-if="event.nodeId">{{ event.nodeId }}</code>
                   <span v-if="event.error" class="gam-event__error">{{ event.error }}</span>
                 </button>
-                <Transition name="gam-event-detail-slide">
-                  <div v-if="expandedEventIds.has(event.id)" class="gam-event-detail">
-                    <pre v-if="event.error">{{ event.error }}</pre>
-                    <pre v-else-if="event.body">{{ formatJson(event.body) }}</pre>
-                    <span v-else>No body data for this step.</span>
-                  </div>
-                </Transition>
+                <div v-if="expandedEventIds.has(event.id)" class="gam-event-detail">
+                  <pre v-if="event.error">{{ event.error }}</pre>
+                  <pre v-else-if="event.body">{{ formatJson(event.body) }}</pre>
+                  <span v-else>No body data for this step.</span>
+                </div>
               </article>
-            </TransitionGroup>
+            </div>
           </div>
         </template>
       </main>
@@ -808,37 +806,6 @@ onUnmounted(() => {
 .gam-event-detail span {
   color: var(--sailor-text-muted);
   font-size: var(--sailor-text-xs);
-}
-
-.gam-event-detail-slide-enter-active,
-.gam-event-detail-slide-leave-active {
-  transition:
-    opacity 140ms ease,
-    transform 140ms ease;
-}
-
-.gam-event-detail-slide-enter-from,
-.gam-event-detail-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-
-.gam-event-list-enter-active,
-.gam-event-list-leave-active {
-  transition:
-    opacity 220ms ease,
-    transform 220ms ease,
-    background-color 500ms ease;
-}
-
-.gam-event-list-enter-from,
-.gam-event-list-leave-to {
-  opacity: 0;
-  transform: translateY(8px);
-}
-
-.gam-event-list-enter-active {
-  background: color-mix(in srgb, var(--sailor-green-400) 12%, transparent);
 }
 
 .gam-spin {
