@@ -659,23 +659,6 @@ onBeforeUnmount(() => {
   font-size: var(--sailor-text-xs);
 }
 
-.ebp-event-list-enter-active,
-.ebp-event-list-move {
-  transition:
-    opacity 220ms ease,
-    transform 220ms ease,
-    background-color 500ms ease;
-}
-
-.ebp-event-list-enter-from {
-  opacity: 0;
-  transform: translateY(8px);
-}
-
-.ebp-event-list-enter-active {
-  background: color-mix(in srgb, var(--sailor-green-400) 12%, transparent);
-}
-
 .ebp-event-detail-slide-enter-active,
 .ebp-event-detail-slide-leave-active {
   transition:
