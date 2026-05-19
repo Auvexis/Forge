@@ -38,14 +38,26 @@
             "x-input-type": "toggle"
           }
         },
-        "required": ["channelId", "content"]
+        "required": [
+          "channelId",
+          "content"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "x-label": "Message ID" },
-          "channel_id": { "type": "string", "x-label": "Channel ID" },
-          "content": { "type": "string", "x-label": "Content" }
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "channel_id": {
+            "type": "string",
+            "x-label": "Channel ID"
+          },
+          "content": {
+            "type": "string",
+            "x-label": "Content"
+          }
         }
       }
     },
@@ -76,13 +88,23 @@
             "x-input-type": "textarea"
           }
         },
-        "required": ["channelId", "messageId", "content"]
+        "required": [
+          "channelId",
+          "messageId",
+          "content"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "x-label": "Message ID" },
-          "content": { "type": "string", "x-label": "Content" }
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "content": {
+            "type": "string",
+            "x-label": "Content"
+          }
         }
       }
     },
@@ -114,12 +136,19 @@
             "x-input-type": "toggle"
           }
         },
-        "required": ["channelId", "messageId", "confirm"]
+        "required": [
+          "channelId",
+          "messageId",
+          "confirm"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "x-label": "Deleted" }
+          "ok": {
+            "type": "boolean",
+            "x-label": "Deleted"
+          }
         }
       }
     },
@@ -144,14 +173,26 @@
             "x-input-type": "text"
           }
         },
-        "required": ["channelId", "messageId"]
+        "required": [
+          "channelId",
+          "messageId"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "x-label": "Message ID" },
-          "content": { "type": "string", "x-label": "Content" },
-          "author": { "type": "object", "x-label": "Author" }
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "content": {
+            "type": "string",
+            "x-label": "Content"
+          },
+          "author": {
+            "type": "object",
+            "x-label": "Author"
+          }
         }
       }
     },
@@ -197,15 +238,23 @@
             "x-input-type": "text"
           }
         },
-        "required": ["channelId"]
+        "required": [
+          "channelId"
+        ]
       },
       "responseSchema": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "id": { "type": "string", "x-label": "Message ID" },
-            "content": { "type": "string", "x-label": "Content" }
+            "id": {
+              "type": "string",
+              "x-label": "Message ID"
+            },
+            "content": {
+              "type": "string",
+              "x-label": "Content"
+            }
           }
         }
       }
@@ -257,13 +306,22 @@
             "x-input-type": "toggle"
           }
         },
-        "required": ["channelId", "name"]
+        "required": [
+          "channelId",
+          "name"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "x-label": "Thread ID" },
-          "name": { "type": "string", "x-label": "Name" }
+          "id": {
+            "type": "string",
+            "x-label": "Thread ID"
+          },
+          "name": {
+            "type": "string",
+            "x-label": "Name"
+          }
         }
       }
     },
@@ -294,12 +352,19 @@
             "x-input-type": "text"
           }
         },
-        "required": ["channelId", "messageId", "emoji"]
+        "required": [
+          "channelId",
+          "messageId",
+          "emoji"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "x-label": "Added" }
+          "ok": {
+            "type": "boolean",
+            "x-label": "Added"
+          }
         }
       }
     },
@@ -324,18 +389,178 @@
             "x-input-type": "text"
           }
         },
-        "required": ["guildId", "userId"]
+        "required": [
+          "guildId",
+          "userId"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "user": { "type": "object", "x-label": "User" },
+          "user": {
+            "type": "object",
+            "x-label": "User"
+          },
           "roles": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "x-label": "Roles"
           }
         }
+      }
+    }
+  },
+  "triggers": {
+    "onMessage": {
+      "metadata": {
+        "label": "On Message",
+        "description": "Triggers when Discord sends a message event to this workflow."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onSlashCommand": {
+      "metadata": {
+        "label": "On Slash Command",
+        "description": "Triggers when Discord sends a slash command interaction."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onReaction": {
+      "metadata": {
+        "label": "On Reaction",
+        "description": "Triggers when Discord sends a message reaction event."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
       }
     }
   }

@@ -359,7 +359,7 @@ git commit -m "feat: render plugin event triggers in workflow editor"
 - Create: `server/src/plugins/sailor/slack/triggers.ts`
 - Test: `server/src/plugins/sailor/slack/triggers.test.ts`
 
-- [ ] **Step 1: Write failing payload normalization tests**
+- [x] **Step 1: Write failing payload normalization tests**
 
 Expected normalized payload fields:
 
@@ -375,7 +375,7 @@ Expected normalized payload fields:
 }
 ```
 
-- [ ] **Step 2: Add manifest triggers**
+- [x] **Step 2: Add manifest triggers**
 
 Telegram:
 
@@ -395,18 +395,18 @@ Slack:
 - `onMention`
 - `onAppHomeOpened`
 
-- [ ] **Step 3: Add trigger adapters**
+- [x] **Step 3: Add trigger adapters**
 
 Each adapter owns only provider-specific setup/teardown/normalization. No workflow engine imports.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```bash
 cd server
 npm test -- telegram/triggers.test.ts discord/triggers.test.ts slack/triggers.test.ts
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/plugins/sailor/telegram server/src/plugins/sailor/discord server/src/plugins/sailor/slack

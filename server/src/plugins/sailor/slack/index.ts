@@ -1,6 +1,7 @@
 import type { ApiKeyProvider, PluginManifest, SailorPlugin } from "@auvexis/sailor-sdk";
 import manifest from "./manifest.json" with { type: "json" };
 import { createSlackMethods } from "./methods.ts";
+import { createNoopWebhookTrigger } from "./triggers.ts";
 
 const auth: ApiKeyProvider = {
   type: "api_key",
@@ -43,6 +44,11 @@ const SlackPlugin: SailorPlugin = {
   manifest: manifest as PluginManifest,
   auth,
   methods: createSlackMethods(),
+  triggers: {
+    onMessage: createNoopWebhookTrigger(),
+    onMention: createNoopWebhookTrigger(),
+    onAppHomeOpened: createNoopWebhookTrigger(),
+  },
 };
 
 export default SlackPlugin;

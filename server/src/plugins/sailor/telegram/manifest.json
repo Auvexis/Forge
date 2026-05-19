@@ -366,18 +366,172 @@
     "onMessage": {
       "metadata": {
         "label": "On New Message",
-        "description": "Triggers the workflow whenever the Telegram Bot receives a new message. Sailor automatically registers/unregisters the webhook with Telegram when the workflow is published or unpublished."
+        "description": "Triggers when the Telegram bot receives a new message."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
       },
       "parameters": {
         "type": "object",
         "properties": {
           "allowedUpdateTypes": {
             "type": "string",
-            "description": "Comma-separated list of update types to receive. Leave empty to receive all types. Example: message,callback_query",
+            "description": "Comma-separated provider update types. Leave empty for provider defaults.",
             "x-label": "Allowed Update Types",
             "x-input-type": "text"
           }
         }
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onCommand": {
+      "metadata": {
+        "label": "On Command",
+        "description": "Triggers when the Telegram bot receives a slash command message."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "allowedUpdateTypes": {
+            "type": "string",
+            "description": "Comma-separated provider update types. Leave empty for provider defaults.",
+            "x-label": "Allowed Update Types",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onCallbackQuery": {
+      "metadata": {
+        "label": "On Callback Query",
+        "description": "Triggers when a user taps an inline keyboard callback button."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "allowedUpdateTypes": {
+            "type": "string",
+            "description": "Comma-separated provider update types. Leave empty for provider defaults.",
+            "x-label": "Allowed Update Types",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
       }
     }
   }

@@ -37,14 +37,26 @@
             "x-input-type": "text"
           }
         },
-        "required": ["channel", "text"]
+        "required": [
+          "channel",
+          "text"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "x-label": "OK" },
-          "channel": { "type": "string", "x-label": "Channel" },
-          "ts": { "type": "string", "x-label": "Timestamp" }
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
+          "channel": {
+            "type": "string",
+            "x-label": "Channel"
+          },
+          "ts": {
+            "type": "string",
+            "x-label": "Timestamp"
+          }
         }
       }
     },
@@ -75,14 +87,27 @@
             "x-input-type": "textarea"
           }
         },
-        "required": ["channel", "ts", "text"]
+        "required": [
+          "channel",
+          "ts",
+          "text"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "x-label": "OK" },
-          "channel": { "type": "string", "x-label": "Channel" },
-          "ts": { "type": "string", "x-label": "Timestamp" }
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
+          "channel": {
+            "type": "string",
+            "x-label": "Channel"
+          },
+          "ts": {
+            "type": "string",
+            "x-label": "Timestamp"
+          }
         }
       }
     },
@@ -114,12 +139,19 @@
             "x-input-type": "toggle"
           }
         },
-        "required": ["channel", "ts", "confirm"]
+        "required": [
+          "channel",
+          "ts",
+          "confirm"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "x-label": "Deleted" }
+          "ok": {
+            "type": "boolean",
+            "x-label": "Deleted"
+          }
         }
       }
     },
@@ -158,10 +190,15 @@
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "x-label": "OK" },
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
           "channels": {
             "type": "array",
-            "items": { "type": "object" },
+            "items": {
+              "type": "object"
+            },
             "x-label": "Channels"
           }
         }
@@ -203,15 +240,22 @@
             "x-input-type": "text"
           }
         },
-        "required": ["channel"]
+        "required": [
+          "channel"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "x-label": "OK" },
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
           "messages": {
             "type": "array",
-            "items": { "type": "object" },
+            "items": {
+              "type": "object"
+            },
             "x-label": "Messages"
           }
         }
@@ -244,12 +288,19 @@
             "x-input-type": "text"
           }
         },
-        "required": ["channel", "ts", "emoji"]
+        "required": [
+          "channel",
+          "ts",
+          "emoji"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "x-label": "OK" }
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          }
         }
       }
     },
@@ -275,13 +326,21 @@
             "x-input-type": "toggle"
           }
         },
-        "required": ["users"]
+        "required": [
+          "users"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "x-label": "OK" },
-          "channel": { "type": "object", "x-label": "Channel" }
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
+          "channel": {
+            "type": "object",
+            "x-label": "Channel"
+          }
         }
       }
     },
@@ -324,18 +383,179 @@
             "x-input-type": "textarea"
           }
         },
-        "required": ["channel", "filename", "contentBase64"]
+        "required": [
+          "channel",
+          "filename",
+          "contentBase64"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean", "x-label": "OK" },
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
           "files": {
             "type": "array",
-            "items": { "type": "object" },
+            "items": {
+              "type": "object"
+            },
             "x-label": "Files"
           }
         }
+      }
+    }
+  },
+  "triggers": {
+    "onMessage": {
+      "metadata": {
+        "label": "On Message",
+        "description": "Triggers when Slack sends a message event to this workflow."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onMention": {
+      "metadata": {
+        "label": "On Mention",
+        "description": "Triggers when the Slack app is mentioned."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onAppHomeOpened": {
+      "metadata": {
+        "label": "On App Home Opened",
+        "description": "Triggers when a user opens the Slack app home."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
       }
     }
   }

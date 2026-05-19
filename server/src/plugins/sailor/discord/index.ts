@@ -1,6 +1,7 @@
 import type { ApiKeyProvider, PluginManifest, SailorPlugin } from "@auvexis/sailor-sdk";
 import manifest from "./manifest.json" with { type: "json" };
 import { createDiscordMethods } from "./methods.ts";
+import { createNoopWebhookTrigger } from "./triggers.ts";
 
 const auth: ApiKeyProvider = {
   type: "api_key",
@@ -38,6 +39,11 @@ const DiscordPlugin: SailorPlugin = {
   manifest: manifest as PluginManifest,
   auth,
   methods: createDiscordMethods(),
+  triggers: {
+    onMessage: createNoopWebhookTrigger(),
+    onSlashCommand: createNoopWebhookTrigger(),
+    onReaction: createNoopWebhookTrigger(),
+  },
 };
 
 export default DiscordPlugin;
