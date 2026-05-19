@@ -1,18 +1,5 @@
 <template>
-  <div
-    ref="panelRef"
-    class="ebp"
-    :class="{ 'ebp--resizing': isResizing }"
-    :style="panelStyle"
-  >
-    <div
-      class="ebp-resize-handle"
-      role="separator"
-      aria-orientation="horizontal"
-      title="Resize execution panel"
-      @mousedown="startResize"
-      @dblclick="resetPanelHeight"
-    />
+  <div class="ebp">
     <div class="ebp-topbar">
       <div class="ebp-tabs">
         <button
@@ -106,25 +93,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useExecutionStore } from '../../stores/execution.store'
 import { useWorkflowStore } from '../../stores/workflow.store'
 import { workflowsApi } from '@/core/api/workflows.api'
+import { useProfileStore } from '@/shared/stores/profile.store'
 import type { ExecutionLog, ExecutionTimelineEvent } from '@/core/types/execution.types'
 
 const executionStore = useExecutionStore()
 const workflowStore = useWorkflowStore()
+const profileStore = useProfileStore()
 const activeTabId = ref('all')
 const showHistory = ref(false)
 const historyLoading = ref(false)
 const historyRuns = ref<ExecutionLog[]>([])
 const selectedHistoryRunId = ref<string | null>(null)
 const expandedEventIds = ref(new Set<string>())
-const panelRef = ref<HTMLElement | null>(null)
-const panelHeight = ref<number | null>(null)
-const isResizing = ref(false)
-const resizeStart = ref({ y: 0, height: 0 })
 
 type PanelEvent = ExecutionTimelineEvent & { workflowId?: string; body?: unknown }
 
@@ -168,11 +153,7 @@ const emptyMessage = computed(() => {
   return showHistory.value ? 'No previous runs yet.' : 'No live events yet.'
 })
 
-const panelStyle = computed(() =>
-  panelHeight.value === null
-    ? undefined
-    : ({ '--ebp-panel-height': `${panelHeight.value}px` } as Record<string, string>),
-)
+const currentProfileId = computed(() => profileStore.currentProfile?.id)
 
 watch(tabs, (next) => {
   if (!next.some((tab) => tab.id === activeTabId.value)) activeTabId.value = 'all'
@@ -181,32 +162,6 @@ watch(tabs, (next) => {
 function showLiveTab(tabId: string) {
   showHistory.value = false
   activeTabId.value = tabId
-}
-
-function startResize(event: MouseEvent) {
-  const rect = panelRef.value?.getBoundingClientRect()
-  if (!rect) return
-
-  event.preventDefault()
-  isResizing.value = true
-  resizeStart.value = { y: event.clientY, height: rect.height }
-  window.addEventListener('mousemove', resizePanel)
-  window.addEventListener('mouseup', stopResize, { once: true })
-}
-
-function resizePanel(event: MouseEvent) {
-  if (!isResizing.value) return
-  const nextHeight = resizeStart.value.height + resizeStart.value.y - event.clientY
-  panelHeight.value = Math.min(640, Math.max(160, Math.round(nextHeight)))
-}
-
-function stopResize() {
-  isResizing.value = false
-  window.removeEventListener('mousemove', resizePanel)
-}
-
-function resetPanelHeight() {
-  panelHeight.value = null
 }
 
 async function toggleHistory() {
@@ -220,7 +175,7 @@ async function loadHistory() {
 
   historyLoading.value = true
   try {
-    historyRuns.value = await workflowsApi.getExecutions(workflowId)
+    historyRuns.value = await workflowsApi.getExecutions(workflowId, currentProfileId.value)
     selectedHistoryRunId.value = historyRuns.value[0]?.id ?? null
   } finally {
     historyLoading.value = false
@@ -282,41 +237,15 @@ function formatJson(data: unknown): string {
     return String(data)
   }
 }
-
-onBeforeUnmount(() => {
-  window.removeEventListener('mousemove', resizePanel)
-})
 </script>
 
 <style scoped>
 .ebp {
-  position: relative;
   display: flex;
   flex-direction: column;
-  height: var(--ebp-panel-height, 100%);
+  height: 100%;
   min-height: 0;
   background: var(--sailor-bg-surface);
-}
-
-.ebp--resizing,
-.ebp--resizing * {
-  user-select: none;
-}
-
-.ebp-resize-handle {
-  position: absolute;
-  top: -3px;
-  right: 0;
-  left: 0;
-  z-index: 5;
-  height: 6px;
-  cursor: ns-resize;
-  background: transparent;
-}
-
-.ebp-resize-handle:hover,
-.ebp--resizing .ebp-resize-handle {
-  background: color-mix(in srgb, var(--sailor-accent) 28%, transparent);
 }
 
 .ebp-topbar {
@@ -617,8 +546,6 @@ onBeforeUnmount(() => {
   margin: 0 var(--sailor-space-3) var(--sailor-space-3) 38px;
   padding: var(--sailor-space-3);
   border-top: 1px solid var(--sailor-border-muted);
-  border-left: 2px solid var(--sailor-border);
-  border-radius: 0 0 var(--sailor-radius-sm) var(--sailor-radius-sm);
   background: var(--sailor-bg-base);
 }
 
