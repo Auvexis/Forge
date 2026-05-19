@@ -206,7 +206,7 @@ git commit -m "feat: add plugin trigger manifest contract"
 - Create: `server/src/core/modules/workflows/plugin-trigger-runtime.test.ts`
 - Modify: `server/src/core/modules/workflows/plugin-lifecycle.ts`
 
-- [ ] **Step 1: Write failing runtime tests**
+- [x] **Step 1: Write failing runtime tests**
 
 Cover:
 
@@ -216,7 +216,7 @@ Cover:
 - missing trigger throws safe error
 - plugin receives only generic registration data
 
-- [ ] **Step 2: Implement runtime service**
+- [x] **Step 2: Implement runtime service**
 
 Create a small service with SRP:
 
@@ -225,18 +225,18 @@ Create a small service with SRP:
 - call plugin trigger lifecycle
 - never execute workflow directly
 
-- [ ] **Step 3: Wire publish/unpublish lifecycle**
+- [x] **Step 3: Wire publish/unpublish lifecycle**
 
 On workflow publish, setup active plugin triggers. On unpublish, teardown active plugin triggers.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```bash
 cd server
 npm test -- plugin-trigger-runtime.test.ts
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/modules/workflows

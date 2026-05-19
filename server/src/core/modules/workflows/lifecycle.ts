@@ -1,5 +1,5 @@
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
-import type { TriggerRegistrationContext } from "@auvexis/sailor-sdk";
+import type { PluginTriggerRuntimeContext } from "./plugin-trigger-runtime.ts";
 import { PluginManager } from "../plugins/manager.ts";
 import { CredentialStore } from "../plugins/credential-store.ts";
 import { Vault } from "../plugins/vault.ts";
@@ -9,6 +9,7 @@ import {
   listPluginTriggers,
   type WorkflowTriggerEntry,
 } from "./workflow-triggers.ts";
+import { PluginTriggerRuntime } from "./plugin-trigger-runtime.ts";
 
 const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
 
@@ -41,7 +42,7 @@ async function buildTriggerContext(
   workflow: WorkflowItem,
   entry: WorkflowTriggerEntry,
   options: WorkflowLifecycleOptions = {},
-): Promise<TriggerRegistrationContext | null> {
+): Promise<PluginTriggerRuntimeContext | null> {
   const { trigger } = entry;
 
   if (
@@ -66,6 +67,9 @@ async function buildTriggerContext(
   const tokens = CredentialStore.getTokens(trigger.pluginId) ?? undefined;
 
   return {
+    pluginId: trigger.pluginId,
+    triggerName: trigger.triggerName,
+    triggerNodeId: entry.id,
     webhookUrl: buildWebhookUrl(webhookPath, options),
     credentials,
     tokens,
@@ -83,21 +87,11 @@ export const WorkflowLifecycleManager = {
       const ctx = await buildTriggerContext(workflow, entry, options);
       if (!ctx) continue;
 
-      const plugin = PluginManager.getPlugin(entry.trigger.pluginId!);
-      const triggerHooks = plugin.triggers?.[entry.trigger.triggerName!];
-
-      if (!triggerHooks) {
-        console.warn(
-          `[SAILOR | LIFECYCLE]: Plugin '${entry.trigger.pluginId}' has no trigger '${entry.trigger.triggerName}' hooks registered.`,
-        );
-        continue;
-      }
-
       console.log(
         `[SAILOR | LIFECYCLE]: Calling setup() for plugin '${entry.trigger.pluginId}' / trigger '${entry.trigger.triggerName}' (workflow: ${workflow.metadata.id}/${entry.id})`,
       );
 
-      await triggerHooks.setup(ctx);
+      await PluginTriggerRuntime.setup(ctx);
 
       console.log(
         `[SAILOR | LIFECYCLE]: setup() completed for workflow '${workflow.metadata.id}/${entry.id}'`,
@@ -113,17 +107,12 @@ export const WorkflowLifecycleManager = {
       const ctx = await buildTriggerContext(workflow, entry, options);
       if (!ctx) continue;
 
-      const plugin = PluginManager.getPlugin(entry.trigger.pluginId!);
-      const triggerHooks = plugin.triggers?.[entry.trigger.triggerName!];
-
-      if (!triggerHooks) continue;
-
       console.log(
         `[SAILOR | LIFECYCLE]: Calling teardown() for plugin '${entry.trigger.pluginId}' / trigger '${entry.trigger.triggerName}' (workflow: ${workflow.metadata.id}/${entry.id})`,
       );
 
       try {
-        await triggerHooks.teardown(ctx);
+        await PluginTriggerRuntime.teardown(ctx);
         console.log(
           `[SAILOR | LIFECYCLE]: teardown() completed for workflow '${workflow.metadata.id}/${entry.id}'`,
         );
