@@ -19,18 +19,18 @@ const triggerEditorSource = readFileSync(
 )
 
 describe('workflow editor variable-safe inputs', () => {
-  it('uses BaseVariableInput for the node identifier field', () => {
-    assert.match(nodeInspectorSource, /BaseVariableInput/)
+  it('uses BaseInput for the node identifier field', () => {
+    assert.match(nodeInspectorSource, /BaseInput/)
     assert.match(nodeInspectorSource, /v-model="localId"/)
-    assert.match(nodeInspectorSource, /variable-button-title="Insert variable"/)
+    assert.doesNotMatch(nodeInspectorSource, /variable-button-title="Insert variable"/)
   })
 
-  it('uses BaseVariableInput for plugin credential text, password, and textarea fields', () => {
-    assert.match(pluginAuthSource, /import BaseVariableInput/)
-    assert.match(pluginAuthSource, /fieldType="textarea"/)
+  it('uses BaseInput for plugin credential text, password, and textarea fields', () => {
+    assert.doesNotMatch(pluginAuthSource, /import BaseVariableInput/)
+    assert.doesNotMatch(pluginAuthSource, /fieldType="textarea"/)
     assert.match(pluginAuthSource, /:type="field\.inputType"/)
     assert.doesNotMatch(pluginAuthSource, /<BaseTextarea\b[^>]*field\.inputType === 'textarea'/)
-    assert.doesNotMatch(pluginAuthSource, /<BaseInput\b[^>]*:type="field\.inputType"/)
+    assert.match(pluginAuthSource, /<BaseInput/)
   })
 
   it('uses BaseVariableInput for trigger slugs, secrets, cron, and plugin trigger params', () => {
