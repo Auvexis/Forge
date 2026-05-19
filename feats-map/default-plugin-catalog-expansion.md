@@ -699,7 +699,7 @@ git commit -m "feat(google-sheets): expand spreadsheet methods"
 - Modify: `server/src/core/modules/plugins/loader.test.ts`
 - Modify: `feats-map/default-plugin-catalog-expansion.md`
 
-- [ ] **Step 1: Escrever teste de carregamento default**
+- [x] **Step 1: Escrever teste de carregamento default**
 
 Adicionar teste que carrega `server/src/plugins/sailor` e confirma os ids:
 ```ts
@@ -717,7 +717,7 @@ Adicionar teste que carrega `server/src/plugins/sailor` e confirma os ids:
 ]
 ```
 
-- [ ] **Step 2: Rodar teste de loader**
+- [x] **Step 2: Rodar teste de loader**
 
 Run:
 ```bash
@@ -726,7 +726,7 @@ node --loader ts-node/esm --test src/core/modules/plugins/loader.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add server/src/core/modules/plugins/loader.test.ts feats-map/default-plugin-catalog-expansion.md
