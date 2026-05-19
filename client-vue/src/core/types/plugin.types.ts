@@ -174,7 +174,13 @@ export interface PluginTriggerManifest {
     label: string
     description: string
   }
+  delivery: {
+    mode: 'webhook' | 'polling' | 'realtime'
+    requiresPublicUrl?: boolean
+    recommendedPollSeconds?: number
+  }
   parameters?: JSONSchemaObject
+  payloadSchema: JSONSchemaResponse
 }
 
 export interface PluginManifest {

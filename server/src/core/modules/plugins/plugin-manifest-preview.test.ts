@@ -60,7 +60,14 @@ describe("readPluginManifestPreview", () => {
       triggers: {
         onMessage: {
           metadata: { label: "On Message", description: "Message received" },
+          delivery: { mode: "webhook", requiresPublicUrl: true },
           parameters: { type: "object", properties: {} },
+          payloadSchema: {
+            type: "object",
+            properties: {
+              text: { type: "string" },
+            },
+          },
         },
       },
     };
@@ -88,5 +95,73 @@ describe("readPluginManifestPreview", () => {
     assert.deepEqual(preview.warnings, [
       "Manifest preview does not declare auth type; runtime plugin auth will be checked on load.",
     ]);
+  });
+
+  it("accepts plugin triggers that declare delivery and payload schema", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
+    const manifest = {
+      ...validManifest,
+      triggers: {
+        onMessage: {
+          metadata: { label: "On Message", description: "Message received" },
+          delivery: { mode: "webhook", requiresPublicUrl: true },
+          parameters: { type: "object", properties: {} },
+          payloadSchema: {
+            type: "object",
+            properties: {
+              eventId: { type: "string" },
+              text: { type: "string" },
+            },
+            required: ["eventId"],
+          },
+        },
+      },
+    };
+    fs.writeFileSync(path.join(dir, "manifest.json"), JSON.stringify(manifest));
+
+    const preview = readPluginManifestPreview(path.join(dir, "manifest.json"));
+
+    assert.equal(preview.valid, true);
+    assert.deepEqual(preview.triggerNames, ["onMessage"]);
+  });
+
+  it("rejects plugin triggers that omit delivery or payload schema", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
+    const manifest = {
+      ...validManifest,
+      triggers: {
+        onMessage: {
+          metadata: { label: "On Message", description: "Message received" },
+          parameters: { type: "object", properties: {} },
+        },
+      },
+    };
+    fs.writeFileSync(path.join(dir, "manifest.json"), JSON.stringify(manifest));
+
+    const preview = readPluginManifestPreview(path.join(dir, "manifest.json"));
+
+    assert.equal(preview.valid, false);
+    assert.match(preview.errors.join("\n"), /triggers\.onMessage must have required property 'delivery'/);
+    assert.match(preview.errors.join("\n"), /triggers\.onMessage must have required property 'payloadSchema'/);
+  });
+
+  it("rejects plugin triggers with invalid delivery modes", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
+    const manifest = {
+      ...validManifest,
+      triggers: {
+        onMessage: {
+          metadata: { label: "On Message", description: "Message received" },
+          delivery: { mode: "socket" },
+          payloadSchema: { type: "object", properties: {} },
+        },
+      },
+    };
+    fs.writeFileSync(path.join(dir, "manifest.json"), JSON.stringify(manifest));
+
+    const preview = readPluginManifestPreview(path.join(dir, "manifest.json"));
+
+    assert.equal(preview.valid, false);
+    assert.match(preview.errors.join("\n"), /triggers\.onMessage\.delivery\.mode must be one of/);
   });
 });

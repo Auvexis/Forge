@@ -1,7 +1,9 @@
 import { pathToFileURL } from "url";
 import path from "path";
 import fs from "fs";
-import { validateManifest as validateSdkManifest } from "@auvexis/sailor-sdk";
+import AjvModule from "ajv";
+import addFormatsModule from "ajv-formats";
+import { manifestSchema } from "@auvexis/sailor-sdk";
 import type { SailorPlugin } from "@auvexis/sailor-sdk";
 import type Database from "better-sqlite3";
 import { PluginManager } from "./manager.ts";
@@ -24,6 +26,74 @@ interface PluginLoaderLogger {
 }
 
 type PluginImporter = (entrypoint: string) => Promise<SailorPlugin>;
+
+const AjvCtor = AjvModule as any;
+const addFormats = addFormatsModule as any;
+const triggerDeliveryModes = ["webhook", "polling", "realtime"] as const;
+
+function buildSailorManifestSchema(): any {
+  const schema = structuredClone(manifestSchema as any);
+  const triggerDefinition = schema.$defs.TriggerDefinition;
+
+  triggerDefinition.required = ["metadata", "delivery", "payloadSchema"];
+  triggerDefinition.additionalProperties = false;
+  triggerDefinition.properties.delivery = {
+    type: "object",
+    required: ["mode"],
+    additionalProperties: false,
+    properties: {
+      mode: { enum: triggerDeliveryModes },
+      requiresPublicUrl: { type: "boolean" },
+      recommendedPollSeconds: { type: "integer", minimum: 1 },
+    },
+  };
+  triggerDefinition.properties.payloadSchema = {
+    $ref: "#/$defs/JSONSchemaResponse",
+  };
+
+  return schema;
+}
+
+const ajv = new AjvCtor({
+  allErrors: true,
+  strict: false,
+});
+addFormats(ajv);
+const validateSailorManifest = ajv.compile(buildSailorManifestSchema());
+
+function formatPath(error: any): string {
+  const instancePath = String(error.instancePath ?? "").replace(/^\//, "").replace(/\//g, ".");
+  if (error.keyword === "required" && typeof error.params?.missingProperty === "string") {
+    return instancePath || "root";
+  }
+  return instancePath || "root";
+}
+
+function formatValidationError(error: any): string {
+  const path = formatPath(error);
+
+  if (error.keyword === "required" && typeof error.params?.missingProperty === "string") {
+    return `${path} must have required property '${error.params.missingProperty}'`;
+  }
+
+  if (error.keyword === "pattern" && typeof error.params?.pattern === "string") {
+    return `${path} must match pattern ${error.params.pattern}`;
+  }
+
+  if (error.keyword === "const") {
+    return `${path} must be equal to one of the allowed values`;
+  }
+
+  if (error.keyword === "enum" && Array.isArray(error.params?.allowedValues)) {
+    return `${path} must be one of ${error.params.allowedValues.join(", ")}`;
+  }
+
+  if (error.keyword === "additionalProperties" && typeof error.params?.additionalProperty === "string") {
+    return `${path} must NOT have additional property '${error.params.additionalProperty}'`;
+  }
+
+  return `${path} ${error.message ?? "is invalid"}`;
+}
 
 export interface LoadPluginsOptions {
   internalPluginsDir?: string;
@@ -48,8 +118,9 @@ const defaultLogger: PluginLoaderLogger = {
 };
 
 export function validateManifest(manifest: any): string[] {
-  const result = validateSdkManifest(manifest);
-  return result.valid ? [] : result.errors;
+  return validateSailorManifest(manifest)
+    ? []
+    : (validateSailorManifest.errors ?? []).map(formatValidationError);
 }
 
 function findPluginEntrypoints(dir: string): string[] {
