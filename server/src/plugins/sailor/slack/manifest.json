@@ -1,0 +1,342 @@
+{
+  "metadata": {
+    "id": "slack",
+    "name": "Slack",
+    "description": "Send, update, delete, list, react, open conversations, and upload files through Slack Web API.",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/slack.svg",
+    "category": "Communication",
+    "author": "Sailor",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/sailor"
+  },
+  "methods": {
+    "postMessage": {
+      "metadata": {
+        "label": "Post Message",
+        "description": "Sends a message to a Slack channel or conversation."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "text": {
+            "type": "string",
+            "description": "Message text.",
+            "x-label": "Message",
+            "x-input-type": "textarea"
+          },
+          "threadTs": {
+            "type": "string",
+            "description": "Optional parent message timestamp for threaded replies.",
+            "x-label": "Thread Timestamp",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["channel", "text"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "x-label": "OK" },
+          "channel": { "type": "string", "x-label": "Channel" },
+          "ts": { "type": "string", "x-label": "Timestamp" }
+        }
+      }
+    },
+    "updateMessage": {
+      "metadata": {
+        "label": "Update Message",
+        "description": "Updates an existing Slack message."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "ts": {
+            "type": "string",
+            "description": "Slack message timestamp.",
+            "x-label": "Timestamp",
+            "x-input-type": "text"
+          },
+          "text": {
+            "type": "string",
+            "description": "New message text.",
+            "x-label": "Message",
+            "x-input-type": "textarea"
+          }
+        },
+        "required": ["channel", "ts", "text"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "x-label": "OK" },
+          "channel": { "type": "string", "x-label": "Channel" },
+          "ts": { "type": "string", "x-label": "Timestamp" }
+        }
+      }
+    },
+    "deleteMessage": {
+      "metadata": {
+        "label": "Delete Message",
+        "description": "Deletes a Slack message. Requires explicit confirmation."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "ts": {
+            "type": "string",
+            "description": "Slack message timestamp.",
+            "x-label": "Timestamp",
+            "x-input-type": "text"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Must be enabled to delete the message.",
+            "default": false,
+            "x-label": "Confirm Delete",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": ["channel", "ts", "confirm"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "x-label": "Deleted" }
+        }
+      }
+    },
+    "listChannels": {
+      "metadata": {
+        "label": "List Channels",
+        "description": "Lists public and private channels accessible to the bot."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "type": "string",
+            "description": "Comma-separated conversation types.",
+            "default": "public_channel,private_channel",
+            "x-label": "Types",
+            "x-input-type": "text"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Maximum number of channels.",
+            "default": 200,
+            "minimum": 1,
+            "maximum": 1000,
+            "x-label": "Limit",
+            "x-input-type": "number"
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor.",
+            "x-label": "Cursor",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "x-label": "OK" },
+          "channels": {
+            "type": "array",
+            "items": { "type": "object" },
+            "x-label": "Channels"
+          }
+        }
+      }
+    },
+    "getChannelHistory": {
+      "metadata": {
+        "label": "Get Channel History",
+        "description": "Gets recent Slack messages from a channel or conversation."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Maximum number of messages.",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 1000,
+            "x-label": "Limit",
+            "x-input-type": "number"
+          },
+          "oldest": {
+            "type": "string",
+            "description": "Only messages after this timestamp.",
+            "x-label": "Oldest",
+            "x-input-type": "text"
+          },
+          "latest": {
+            "type": "string",
+            "description": "Only messages before this timestamp.",
+            "x-label": "Latest",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["channel"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "x-label": "OK" },
+          "messages": {
+            "type": "array",
+            "items": { "type": "object" },
+            "x-label": "Messages"
+          }
+        }
+      }
+    },
+    "addReaction": {
+      "metadata": {
+        "label": "Add Reaction",
+        "description": "Adds an emoji reaction to a Slack message."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "ts": {
+            "type": "string",
+            "description": "Slack message timestamp.",
+            "x-label": "Timestamp",
+            "x-input-type": "text"
+          },
+          "emoji": {
+            "type": "string",
+            "description": "Emoji name, with or without colons.",
+            "x-label": "Emoji",
+            "x-input-type": "text"
+          }
+        },
+        "required": ["channel", "ts", "emoji"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "x-label": "OK" }
+        }
+      }
+    },
+    "openConversation": {
+      "metadata": {
+        "label": "Open Conversation",
+        "description": "Opens a DM or multi-person conversation with one or more users."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "string",
+            "description": "Comma-separated Slack user IDs.",
+            "x-label": "Users",
+            "x-input-type": "text"
+          },
+          "returnIm": {
+            "type": "boolean",
+            "description": "Return the IM channel when opening a single-user DM.",
+            "default": true,
+            "x-label": "Return IM",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": ["users"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "x-label": "OK" },
+          "channel": { "type": "object", "x-label": "Channel" }
+        }
+      }
+    },
+    "uploadFile": {
+      "metadata": {
+        "label": "Upload File",
+        "description": "Uploads a base64 file to Slack using the external upload flow."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "filename": {
+            "type": "string",
+            "description": "Filename shown in Slack.",
+            "x-label": "Filename",
+            "x-input-type": "text"
+          },
+          "contentBase64": {
+            "type": "string",
+            "description": "File content encoded as base64.",
+            "x-label": "Content Base64",
+            "x-input-type": "textarea"
+          },
+          "title": {
+            "type": "string",
+            "description": "Optional Slack file title.",
+            "x-label": "Title",
+            "x-input-type": "text"
+          },
+          "initialComment": {
+            "type": "string",
+            "description": "Optional comment posted with the uploaded file.",
+            "x-label": "Initial Comment",
+            "x-input-type": "textarea"
+          }
+        },
+        "required": ["channel", "filename", "contentBase64"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "x-label": "OK" },
+          "files": {
+            "type": "array",
+            "items": { "type": "object" },
+            "x-label": "Files"
+          }
+        }
+      }
+    }
+  }
+}

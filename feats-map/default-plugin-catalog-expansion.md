@@ -320,23 +320,23 @@ git commit -m "feat(plugins): add discord plugin"
 - Create: `server/src/plugins/sailor/slack/manifest.json`
 - Create: `server/src/plugins/sailor/slack/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 Validar `plugin.id === "slack"`, `auth.type === "api_key"`, credential `bot_token`, e os 8 metodos do contrato.
 
-- [ ] **Step 2: Implementar helper de API**
+- [x] **Step 2: Implementar helper de API**
 
 Criar `slackApi(context, endpoint, body?)` com base `https://slack.com/api`, bearer token, parse `{ ok, error }`, e erro claro quando `ok !== true`.
 
-- [ ] **Step 3: Implementar metodos**
+- [x] **Step 3: Implementar metodos**
 
 Mapear metodos para `chat.postMessage`, `chat.update`, `chat.delete`, `conversations.list`, `conversations.history`, `reactions.add`, `conversations.open`, `files.getUploadURLExternal` + `files.completeUploadExternal` quando implementar upload.
 
-- [ ] **Step 4: Criar manifest**
+- [x] **Step 4: Criar manifest**
 
 Declarar `channel`, `ts`, `text`, `users`, `limit`, `emoji`, `filename`, `contentBase64`, `confirm`.
 
-- [ ] **Step 5: Rodar teste**
+- [x] **Step 5: Rodar teste**
 
 Run:
 ```bash
@@ -345,7 +345,7 @@ node --loader ts-node/esm --test src/plugins/sailor/slack/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/plugins/sailor/slack feats-map/default-plugin-catalog-expansion.md
