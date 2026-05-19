@@ -520,23 +520,23 @@ git commit -m "feat(plugins): add jira plugin"
 - Create: `server/src/plugins/sailor/google-calendar/manifest.json`
 - Create: `server/src/plugins/sailor/google-calendar/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 Validar export, auth `oauth2`, scopes de Calendar, e 8 metodos.
 
-- [ ] **Step 2: Implementar OAuth2**
+- [x] **Step 2: Implementar OAuth2**
 
 Reusar padrao de `google-sheets/index.ts`: `getAuthUrl`, `exchangeCode`, `testConnection`, `refreshTokens`, scopes de Calendar, UI com botao Google.
 
-- [ ] **Step 3: Implementar metodos**
+- [x] **Step 3: Implementar metodos**
 
 Criar `getCalendarClient(context)` com `google.calendar({ version: "v3", auth })`. Implementar os 8 metodos com validacao de `calendarId`, `eventId`, `timeMin`, `timeMax`.
 
-- [ ] **Step 4: Criar manifest**
+- [x] **Step 4: Criar manifest**
 
 Usar `x-dynamic-options` de `listCalendars` para selecionar `calendarId`. Declarar eventos com `summary`, `description`, `location`, `start`, `end`, `timeZone`, `attendees`, `confirm`.
 
-- [ ] **Step 5: Rodar teste**
+- [x] **Step 5: Rodar teste**
 
 Run:
 ```bash
@@ -545,7 +545,7 @@ node --loader ts-node/esm --test src/plugins/sailor/google-calendar/methods.test
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/plugins/sailor/google-calendar feats-map/default-plugin-catalog-expansion.md
