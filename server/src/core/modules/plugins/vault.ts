@@ -83,19 +83,22 @@ export const Vault = {
   },
 
   /**
-   * Resolves {{env.KEY}} expressions in a credentials object.
+   * Resolves {{ env.KEY }} and {{ variables.KEY }} expressions in credentials.
    * This should be called right before a plugin executes, tests a connection,
    * or performs an OAuth2 flow.
    */
   resolveEnvExpressions(credentials: Record<string, string>): Record<string, string> {
-    const envVars = AppRepository.getAllGlobalVariablesAsMap();
+    const variables = AppRepository.getAllGlobalVariablesAsMap();
     const resolved: Record<string, string> = {};
 
     for (const [key, value] of Object.entries(credentials)) {
       if (typeof value === "string") {
-        resolved[key] = value.replace(/\{\{\s*env\.([A-Za-z0-9_]+)\s*\}\}/g, (_, envKey) => {
-          return envVars[envKey] !== undefined ? envVars[envKey] : `{{env.${envKey}}}`;
-        });
+        resolved[key] = value.replace(
+          /\{\{\s*(env|variables)\.([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g,
+          (match, _scope, variableKey) => {
+            return variables[variableKey] !== undefined ? variables[variableKey] : match;
+          },
+        );
       } else {
         resolved[key] = value;
       }
