@@ -261,7 +261,7 @@ describe("<plugin> plugin", () => {
 });
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add feats-map/default-plugin-catalog-expansion.md
@@ -276,27 +276,27 @@ git commit -m "docs(plugins): plan default catalog expansion"
 - Create: `server/src/plugins/sailor/discord/manifest.json`
 - Create: `server/src/plugins/sailor/discord/methods.test.ts`
 
-- [ ] **Step 1: Escrever teste falhando**
+- [x] **Step 1: Escrever teste falhando**
 
 Validar `plugin.id === "discord"`, `auth.type === "api_key"`, credential `bot_token`, e os 8 metodos do contrato.
 
-- [ ] **Step 2: Implementar `index.ts`**
+- [x] **Step 2: Implementar `index.ts`**
 
 Exportar `SailorPlugin` com `auth.credentialSchema.bot_token` tipo password e `methods: createDiscordMethods()`.
 
-- [ ] **Step 3: Implementar helper de API**
+- [x] **Step 3: Implementar helper de API**
 
 Criar `discordApi(context, method, path, body?)` com base `https://discord.com/api/v10`, header `Authorization: Bot <token>`, parse JSON quando houver body, e erro `Discord API error on '<path>': ...`.
 
-- [ ] **Step 4: Implementar metodos**
+- [x] **Step 4: Implementar metodos**
 
 Implementar os 8 metodos do contrato usando endpoints REST do Discord. `deleteMessage` exige `confirm === true`.
 
-- [ ] **Step 5: Criar manifest**
+- [x] **Step 5: Criar manifest**
 
 Declarar metadata, parametros, required e responseSchema para todos os metodos. Usar `textarea` para conteudo, `number` para limit, `toggle` para confirm.
 
-- [ ] **Step 6: Rodar teste**
+- [x] **Step 6: Rodar teste**
 
 Run:
 ```bash
@@ -305,7 +305,7 @@ node --loader ts-node/esm --test src/plugins/sailor/discord/methods.test.ts
 Working dir: `server`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add server/src/plugins/sailor/discord feats-map/default-plugin-catalog-expansion.md
