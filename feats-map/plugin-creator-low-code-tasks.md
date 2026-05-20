@@ -880,15 +880,15 @@
 
 ### Task 11.6: Smoke manual
 
-- [ ] Subir server.
-- [ ] Subir client.
-- [ ] Abrir `/plugin-creator`.
-- [ ] Criar plugin simples.
-- [ ] Criar metodo GET publico.
-- [ ] Rodar teste.
+- [x] Subir server.
+- [x] Subir client.
+- [x] Abrir `/plugin-creator`.
+- [x] Criar plugin simples.
+- [x] Criar metodo GET publico.
+- [x] Rodar teste.
 - [ ] Mapear output.
-- [ ] Gerar preview.
-- [ ] Publicar.
+- [x] Gerar preview.
+- [x] Publicar.
 - [ ] Instalar no perfil atual.
 - [ ] Confirmar plugin aparece no Workflow Editor.
 - [ ] Confirmar draft quebrado nao quebra plugin publicado.
