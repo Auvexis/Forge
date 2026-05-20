@@ -855,14 +855,14 @@
 **Files:**
 - Test: `server/src/core/modules/plugin-creator/plugin-creator-code-safety.test.ts`
 
-- [ ] Escrever teste com input malicioso tentando inserir `process.exit`.
-- [ ] Escrever teste com template tentando acessar `constructor.constructor`.
-- [ ] Confirmar generator escapa strings.
-- [ ] Confirmar template renderer rejeita paths invalidos.
-- [ ] Rodar teste e confirmar falha se inseguro.
-- [ ] Ajustar generator/renderer.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `test: harden plugin creator code generation`
+- [x] Escrever teste com input malicioso tentando inserir `process.exit`.
+- [x] Escrever teste com template tentando acessar `constructor.constructor`.
+- [x] Confirmar generator escapa strings.
+- [x] Confirmar template renderer rejeita paths invalidos.
+- [x] Rodar teste e confirmar falha se inseguro.
+- [x] Ajustar generator/renderer.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `test: harden plugin creator code generation`
 
 ### Task 11.4: Build backend
 
