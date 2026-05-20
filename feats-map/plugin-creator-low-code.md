@@ -405,18 +405,51 @@ Sugestao:
 - O plugin criado no perfil X nao aparece automaticamente em outros perfis.
 - Para usar em outro perfil, o usuario precisa instalar/exportar esse plugin pelo Plugin Installer existente.
 
+O Sailor ja resolve a pasta base por plataforma em `server/src/core/runtime/sailor-home.ts`:
+
+- Windows: `%AppData%/Sailor`
+- macOS: `~/Library/Application Support/Sailor`
+- Linux: `~/.config/sailor`
+
+O Plugin Creator deve criar sua propria pasta dentro do perfil ativo, usando `resolveProfilePaths`.
+Nao salvar blueprint em `global/`, porque blueprint e draft pertencem ao perfil.
+
 Possivel estrutura:
 
 ```text
 sailor-home/
-  plugin-creator/
-    drafts/
-      <blueprint-id>/
-    versions/
-      <blueprint-id>/
-        0.1.0/
-  plugins/
-    global/
+  profiles/
+    <profile-id>/
+      plugin-creator/
+        blueprints/
+          <blueprint-id>/
+            blueprint.json
+            assets/
+              icon.svg
+              icon-dark.svg
+              icon-light.svg
+            generated/
+              manifest.json
+              methods.ts
+              index.ts
+              package.json
+            tests/
+              last-run.json
+            snapshots/
+              <snapshot-id>.json
+            releases/
+              <version>/
+                manifest.json
+                methods.ts
+                index.ts
+                package.json
+                package-lock.json
+                README.md
+                assets/
+            exports/
+              <version>.zip
+  global/
+    plugins/
       <install-id>/
 ```
 
@@ -425,6 +458,72 @@ Regra importante:
 > Plugin Creator e profile-scoped. Plugin Installer e o caminho oficial para compartilhar entre perfis.
 
 Isso evita vazamento entre perfis e reaproveita a logica atual de instalacao de plugins externos.
+
+### Snapshots
+
+Snapshots devem salvar somente o blueprint e metadados pequenos, nao duplicar release inteira.
+
+Snapshot sugerido:
+
+```json
+{
+  "id": "snap_...",
+  "blueprintId": "bp_...",
+  "createdAt": "2026-05-20T00:00:00.000Z",
+  "reason": "manual-save",
+  "version": "0.1.0",
+  "blueprint": {}
+}
+```
+
+Tipos de snapshot:
+
+- `manual-save`: criado quando usuario salva;
+- `pre-publish`: criado antes de publicar;
+- `rollback-point`: criado antes de restaurar versao antiga;
+- `autosave`, se autosave entrar depois.
+
+Manter limite por blueprint:
+
+- 50 snapshots recentes por plugin criado;
+- snapshots de publish nao devem ser apagados automaticamente.
+
+### Releases
+
+Release e diferente de snapshot.
+
+- snapshot: estado editavel do blueprint;
+- release: plugin SDK gerado e instalavel.
+
+Ao publicar:
+
+1. validar blueprint;
+2. gerar arquivos em `generated/`;
+3. copiar release fixa para `releases/<version>/`;
+4. criar snapshot `pre-publish`;
+5. disponibilizar release para Plugin Installer.
+
+### Last Run
+
+Salvar ultimo teste em:
+
+```text
+tests/last-run.json
+```
+
+Esse arquivo deve guardar:
+
+- metodo testado;
+- request renderizada;
+- status;
+- headers;
+- body;
+- tempo;
+- erro;
+- timestamp.
+
+Nao salvar secrets em claro no `last-run.json`.
+Campos vindos de credentials devem ser mascarados.
 
 ## Rotas Backend
 
