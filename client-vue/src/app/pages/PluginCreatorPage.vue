@@ -1,18 +1,6 @@
 <template>
   <main class="plugin-creator-page">
-    <header class="plugin-creator-page__header">
-      <div>
-        <p class="plugin-creator-page__label">Plugin Creator</p>
-        <h1>Low-code plugin workspace</h1>
-      </div>
-
-      <div class="plugin-creator-page__actions">
-        <button type="button" class="plugin-creator-page__button">New Plugin</button>
-        <button type="button" class="plugin-creator-page__button plugin-creator-page__button--primary">
-          Save Draft
-        </button>
-      </div>
-    </header>
+    <PluginCreatorHeader />
 
     <section class="plugin-creator-page__workspace" aria-label="Plugin creator canvas">
       <aside class="plugin-creator-page__rail">
@@ -40,6 +28,10 @@
   </main>
 </template>
 
+<script setup lang="ts">
+import PluginCreatorHeader from '@/features/plugin-creator/components/PluginCreatorHeader.vue'
+</script>
+
 <style scoped>
 .plugin-creator-page {
   width: 100%;
@@ -50,39 +42,6 @@
   color: #142033;
 }
 
-.plugin-creator-page__header {
-  min-height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 16px 24px;
-  border-bottom: 1px solid #d9e1ec;
-  background: #ffffff;
-}
-
-.plugin-creator-page__label {
-  margin: 0 0 4px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #526173;
-}
-
-.plugin-creator-page h1 {
-  margin: 0;
-  font-size: 20px;
-  line-height: 1.2;
-  font-weight: 700;
-}
-
-.plugin-creator-page__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.plugin-creator-page__button,
 .plugin-creator-page__rail button {
   min-height: 34px;
   border: 1px solid #cbd5e1;
@@ -92,16 +51,6 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-}
-
-.plugin-creator-page__button {
-  padding: 0 12px;
-}
-
-.plugin-creator-page__button--primary {
-  border-color: #246bfe;
-  background: #246bfe;
-  color: #ffffff;
 }
 
 .plugin-creator-page__workspace {

@@ -656,7 +656,7 @@
 - Create: `client-vue/src/features/plugin-creator/components/PluginCreatorCommandMenu.vue`
 - Test: `client-vue/src/features/plugin-creator/components/PluginCreatorHeader.contract.test.ts`
 
-- [ ] Escrever teste que menu contem:
+- [x] Escrever teste que menu contem:
   - New Plugin
   - Open Plugin
   - Import Plugin
@@ -667,10 +667,10 @@
   - Version History
   - Advanced Code
   - Discard Draft
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar menu com componentes existentes de dropdown.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator command menu`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar menu com componentes existentes de dropdown.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator command menu`
 
 ### Task 9.2: Criar canvas VueFlow
 
