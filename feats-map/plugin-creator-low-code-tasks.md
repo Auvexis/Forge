@@ -568,16 +568,16 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-export-service.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-export-service.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - export ZIP da release
   - export folder local com path permitido
   - bloquear path traversal
   - exportar plugin customizado sem sobrescrever codigo
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar ZIP com dependencia existente ou API Node disponivel.
-- [ ] Se precisar de dependencia nova, justificar antes no commit.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: export plugin creator releases`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar ZIP com dependencia existente ou API Node disponivel.
+- [x] Se precisar de dependencia nova, justificar antes no commit.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: export plugin creator releases`
 
 ### Task 7.2: Criar rota export.zip
 
