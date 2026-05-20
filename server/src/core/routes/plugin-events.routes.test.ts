@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import Fastify from "fastify";
 
 import pluginEventsRoutes from "./plugin-events.routes.ts";
+import { TriggerListenerRegistry } from "../modules/workflows/trigger-listener-registry.ts";
 import type { WorkflowItem } from "../../shared/models/workflow-types.ts";
 
 function workflow(): WorkflowItem {
@@ -191,6 +192,49 @@ describe("plugin event routes", () => {
     assert.equal(JSON.parse(response.body).status, "ignored");
     assert.equal(executions, 0);
 
+    await app.close();
+  });
+
+  it("captures draft plugin events for Listen for Event without executing", async () => {
+    const draftWorkflow = workflow();
+    draftWorkflow.metadata.isActive = false;
+    draftWorkflow.metadata.isDraft = true;
+
+    let captured: Record<string, any> | null = null;
+    let executions = 0;
+    TriggerListenerRegistry.register("wh_wf_1_triggerA", "wf-1", (payload) => {
+      captured = payload;
+    });
+
+    const app = Fastify({ logger: false });
+    await app.register(pluginEventsRoutes, {
+      workflows: {
+        getWorkflowById: () => draftWorkflow,
+        saveLastTriggerPayload: () => {},
+      },
+      engine: {
+        executeWorkflowFromTrigger: async () => {
+          executions += 1;
+          return {};
+        },
+      },
+      normalizer: async () => ({ eventId: "evt-1", channelId: "C1", text: "hello" }),
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/plugin-events/wf-1/triggerA/telegram/onMessage",
+      payload: { update_id: "evt-1" },
+      headers: {
+        "x-sailor-signature": sign({ update_id: "evt-1" }, "secret"),
+      },
+    });
+
+    assert.equal(response.statusCode, 200, response.body);
+    assert.deepEqual(captured, { eventId: "evt-1", channelId: "C1", text: "hello" });
+    assert.equal(executions, 0);
+
+    TriggerListenerRegistry.remove("wh_wf_1_triggerA");
     await app.close();
   });
 });

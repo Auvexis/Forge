@@ -54,7 +54,7 @@ describe("WorkflowLifecycleManager", () => {
     resetCredentialsDatabaseProvider();
   });
 
-  it("passes profile-scoped webhook URLs and profile credentials to plugin setup", async () => {
+  it("passes profile-scoped plugin event URLs and profile credentials to plugin setup", async () => {
     const appDb = await createDb("app");
     const credentialsDb = await createDb("credentials");
     setAppDatabaseProvider(() => appDb);
@@ -68,6 +68,11 @@ describe("WorkflowLifecycleManager", () => {
       manifest: {
         metadata: { id: "telegram", name: "Telegram", version: "1.0.0" },
         methods: {},
+        triggers: {
+          onMessage: {
+            metadata: { label: "On Message", description: "On Message" },
+          },
+        },
       },
       auth: { type: "api_key" },
       methods: {},
@@ -87,7 +92,7 @@ describe("WorkflowLifecycleManager", () => {
 
     assert.equal(
       receivedContext.webhookUrl,
-      "https://sailor.example/p/bruno/webhook/telegram-hook",
+      "https://sailor.example/p/bruno/plugin-events/wf-plugin/trigger/telegram/onMessage",
     );
     assert.deepEqual(receivedContext.credentials, { botToken: "bruno-token" });
 

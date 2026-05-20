@@ -26,16 +26,17 @@ function resolvePublicUrl(): string {
   return process.env.PUBLIC_URL || `http://localhost:${SERVER_PORT}`;
 }
 
-function buildWebhookUrl(
-  webhookPath: string,
+function buildPluginEventUrl(
+  workflow: WorkflowItem,
+  entry: WorkflowTriggerEntry,
   options: WorkflowLifecycleOptions = {},
 ): string {
-  const mode = options.mode ?? "prod";
-  const path = mode === "test" ? "webhook-test" : "webhook";
-  if (mode === "prod" && options.profileId) {
-    return `${resolvePublicUrl()}/p/${encodeURIComponent(options.profileId)}/${path}/${webhookPath}`;
+  const trigger = entry.trigger;
+  const suffix = `plugin-events/${encodeURIComponent(workflow.metadata.id)}/${encodeURIComponent(entry.id)}/${encodeURIComponent(trigger.pluginId ?? "")}/${encodeURIComponent(trigger.triggerName ?? "")}`;
+  if (options.profileId) {
+    return `${resolvePublicUrl()}/p/${encodeURIComponent(options.profileId)}/${suffix}`;
   }
-  return `${resolvePublicUrl()}/${path}/${webhookPath}`;
+  return `${resolvePublicUrl()}/${suffix}`;
 }
 
 async function buildTriggerContext(
@@ -70,7 +71,7 @@ async function buildTriggerContext(
     pluginId: trigger.pluginId,
     triggerName: trigger.triggerName,
     triggerNodeId: entry.id,
-    webhookUrl: buildWebhookUrl(webhookPath, options),
+    webhookUrl: buildPluginEventUrl(workflow, entry, options),
     credentials,
     tokens,
     params: trigger.triggerParams ?? {},

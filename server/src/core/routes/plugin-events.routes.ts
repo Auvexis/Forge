@@ -3,8 +3,10 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { WorkflowItem } from "../../shared/models/workflow-types.ts";
 import { WorkflowEngine } from "../modules/workflows/executor.ts";
 import { WorkflowRepository } from "../modules/workflows/repository.ts";
-import { getTriggerEntry } from "../modules/workflows/workflow-triggers.ts";
+import { getTriggerEntry, getTriggerWebhookPath } from "../modules/workflows/workflow-triggers.ts";
 import { evaluatePluginTriggerFilters } from "../modules/workflows/plugin-trigger-filter.ts";
+import { TriggerListenerRegistry } from "../modules/workflows/trigger-listener-registry.ts";
+import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
 
 interface PluginEventWorkflowStore {
   getWorkflowById(id: string): WorkflowItem | null;
@@ -71,81 +73,109 @@ export default async function pluginEventsRoutes(
   const normalize = options.normalizer ?? defaultNormalizer;
   const acceptedEventKeys = new Set<string>();
 
-  fastify.post(
-    "/plugin-events/:workflowId/:triggerNodeId/:pluginId/:triggerName",
-    async (req: FastifyRequest, reply: FastifyReply) => {
-      const { workflowId, triggerNodeId, pluginId, triggerName } = req.params as {
-        workflowId: string;
-        triggerNodeId: string;
-        pluginId: string;
-        triggerName: string;
-      };
+  async function handlePluginEvent(req: FastifyRequest, reply: FastifyReply) {
+    const { workflowId, triggerNodeId, pluginId, triggerName } = req.params as {
+      workflowId: string;
+      triggerNodeId: string;
+      pluginId: string;
+      triggerName: string;
+    };
 
-      const workflow = workflows.getWorkflowById(workflowId);
-      if (!workflow || !workflow.metadata.isActive) {
-        return reply.code(404).send({ error: "Plugin event trigger not found" });
+    const workflow = workflows.getWorkflowById(workflowId);
+    if (!workflow) {
+      return reply.code(404).send({ error: "Plugin event trigger not found" });
+    }
+
+    const entry = getTriggerEntry(workflow, triggerNodeId);
+    if (
+      !entry ||
+      entry.disabled ||
+      entry.trigger.type !== "plugin" ||
+      entry.trigger.pluginId !== pluginId ||
+      entry.trigger.triggerName !== triggerName
+    ) {
+      return reply.code(404).send({ error: "Plugin event trigger not found" });
+    }
+
+    if (entry.trigger.webhookSecret) {
+      const signature = req.headers["x-sailor-signature"] as string | undefined;
+      if (!validateSignature(req.body ?? {}, entry.trigger.webhookSecret, signature)) {
+        return reply.code(401).send({ error: "Invalid plugin event signature" });
       }
+    }
 
-      const entry = getTriggerEntry(workflow, triggerNodeId);
-      if (
-        !entry ||
-        entry.disabled ||
-        entry.trigger.type !== "plugin" ||
-        entry.trigger.pluginId !== pluginId ||
-        entry.trigger.triggerName !== triggerName
-      ) {
-        return reply.code(404).send({ error: "Plugin event trigger not found" });
-      }
+    const normalizedPayload = await normalize({
+      workflow,
+      triggerNodeId,
+      pluginId,
+      triggerName,
+      rawPayload: req.body ?? {},
+    });
 
-      if (entry.trigger.webhookSecret) {
-        const signature = req.headers["x-sailor-signature"] as string | undefined;
-        if (!validateSignature(req.body ?? {}, entry.trigger.webhookSecret, signature)) {
-          return reply.code(401).send({ error: "Invalid plugin event signature" });
-        }
-      }
-
-      const normalizedPayload = await normalize({
-        workflow,
-        triggerNodeId,
-        pluginId,
-        triggerName,
-        rawPayload: req.body ?? {},
+    const filterResult = evaluatePluginTriggerFilters(
+      entry.trigger.triggerParams ?? {},
+      normalizedPayload,
+    );
+    if (!filterResult.accepted) {
+      return reply.code(202).send({
+        status: "ignored",
+        reason: filterResult.reason,
       });
+    }
 
-      const filterResult = evaluatePluginTriggerFilters(
-        entry.trigger.triggerParams ?? {},
+    const webhookPath = getTriggerWebhookPath(workflow, entry);
+    if (webhookPath && TriggerListenerRegistry.has(webhookPath)) {
+      const { consumed, workflowId: consumedWorkflowId } = TriggerListenerRegistry.consume(
+        webhookPath,
         normalizedPayload,
       );
-      if (!filterResult.accepted) {
-        return reply.code(202).send({
-          status: "ignored",
-          reason: filterResult.reason,
-        });
+      if (consumed && consumedWorkflowId) {
+        workflows.saveLastTriggerPayload(consumedWorkflowId, normalizedPayload);
       }
+      return reply.code(200).send({ ok: true });
+    }
 
-      const key = dedupeKey(pluginId, triggerName, normalizedPayload);
-      if (key && acceptedEventKeys.has(key)) {
-        return reply.code(202).send({
-          status: "duplicate",
-          message: "Plugin event already accepted",
-        });
-      }
-      if (key) acceptedEventKeys.add(key);
+    if (!workflow.metadata.isActive) {
+      return reply.code(404).send({ error: "Plugin event trigger not found" });
+    }
 
-      workflows.saveLastTriggerPayload(workflowId, normalizedPayload);
-
-      const executionId = `exec_plugin_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      await engine.executeWorkflowFromTrigger(
-        workflow,
-        triggerNodeId,
-        { payload: normalizedPayload },
-        executionId,
-      );
-
+    const key = dedupeKey(pluginId, triggerName, normalizedPayload);
+    if (key && acceptedEventKeys.has(key)) {
       return reply.code(202).send({
-        status: "accepted",
-        executionId,
+        status: "duplicate",
+        message: "Plugin event already accepted",
       });
+    }
+    if (key) acceptedEventKeys.add(key);
+
+    workflows.saveLastTriggerPayload(workflowId, normalizedPayload);
+
+    const executionId = `exec_plugin_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    await engine.executeWorkflowFromTrigger(
+      workflow,
+      triggerNodeId,
+      { payload: normalizedPayload },
+      executionId,
+    );
+
+    return reply.code(202).send({
+      status: "accepted",
+      executionId,
+    });
+  }
+
+  fastify.post(
+    "/plugin-events/:workflowId/:triggerNodeId/:pluginId/:triggerName",
+    handlePluginEvent,
+  );
+
+  fastify.post(
+    "/p/:profileId/plugin-events/:workflowId/:triggerNodeId/:pluginId/:triggerName",
+    async (req: FastifyRequest, reply: FastifyReply) => {
+      const { profileId } = req.params as { profileId: string };
+      return activeProfileRuntime.profileScopeRunner.runWithProfile(profileId, () =>
+        handlePluginEvent(req, reply),
+      );
     },
   );
 }
