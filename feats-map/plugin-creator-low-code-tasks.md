@@ -386,16 +386,16 @@
 - Modify/Create conforme contrato encontrado do SDK.
 - Test: `server/src/core/modules/plugin-creator/plugin-error-helper-contract.test.ts`
 
-- [ ] Verificar se `@auvexis/sailor-sdk` ja exporta erro compativel.
-- [ ] Escrever testes para:
+- [x] Verificar se `@auvexis/sailor-sdk` ja exporta erro compativel.
+- [x] Escrever testes para:
   - `SailorPluginError` preserva `code`, `status`, `details`
   - `assertHttpOk` nao joga para 2xx
   - `assertHttpOk` joga erro mapeado para 401
   - `assertHttpOk` joga fallback para 5xx
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar helper usado pelo generator.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator error helpers`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar helper usado pelo generator.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator error helpers`
 
 ---
 
