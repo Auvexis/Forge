@@ -774,7 +774,7 @@
 - Create: `client-vue/src/features/plugin-creator/components/PluginCreatorTestPanel.vue`
 - Test: `client-vue/src/features/plugin-creator/components/PluginCreatorTestPanel.contract.test.ts`
 
-- [ ] Escrever teste que painel mostra:
+- [x] Escrever teste que painel mostra:
   - inputs do metodo
   - credentials de teste
   - request final renderizada
@@ -783,10 +783,10 @@
   - response body JSON tree
   - tempo da request
   - erro
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar painel chamando `testMethod`.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator test panel`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar painel chamando `testMethod`.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator test panel`
 
 ### Task 10.2: Criar nodes de mapper/output/error
 

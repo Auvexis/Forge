@@ -154,4 +154,20 @@ describe('plugin creator store', () => {
     assert.equal(method?.request.url, 'https://api.example.com/search')
     assert.deepEqual(method?.request.body, { type: 'json', value: { q: '{{ params.query }}' } })
   })
+
+  it('runs a method test and stores the last result', async () => {
+    const store = usePluginCreatorStore()
+    store.setApiClient(createApi())
+    store.setActiveBlueprint(createBlueprint())
+
+    const result = await store.runMethodTest({
+      methodId: 'method_1',
+      params: { limit: 10 },
+      credentials: { apiKey: 'secret' },
+    })
+
+    assert.equal(result?.status, 200)
+    assert.equal(store.lastTestResult?.methodId, 'method_1')
+    assert.equal(store.lastTestResult?.request.url, 'https://api.example.com')
+  })
 })

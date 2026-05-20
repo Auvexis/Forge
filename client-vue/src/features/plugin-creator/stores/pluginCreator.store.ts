@@ -89,6 +89,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
   const savedSnapshot = ref<string | null>(null)
   const isLoading = ref(false)
   const isSaving = ref(false)
+  const isTesting = ref(false)
   const error = ref<string | null>(null)
   const lastTestResult = ref<PluginCreatorTestResult | null>(null)
   const lastPreview = ref<PluginCreatorGeneratePreviewResult | null>(null)
@@ -177,6 +178,22 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
       throw err
     } finally {
       isSaving.value = false
+    }
+  }
+
+  async function runMethodTest(payload: PluginCreatorTestMethodPayload) {
+    if (!activeBlueprint.value) return null
+    isTesting.value = true
+    error.value = null
+    try {
+      const result = await apiClient.value.testMethod(activeBlueprint.value.id, payload)
+      lastTestResult.value = result
+      return result
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to test plugin method'
+      throw err
+    } finally {
+      isTesting.value = false
     }
   }
 
@@ -293,6 +310,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     blueprints,
     isLoading,
     isSaving,
+    isTesting,
     error,
     isDirty,
     canUndo,
@@ -307,6 +325,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     createBlueprint,
     loadBlueprint,
     saveDraft,
+    runMethodTest,
     updateMetadata,
     addNode,
     updateNode,

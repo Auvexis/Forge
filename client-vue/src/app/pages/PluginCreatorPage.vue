@@ -19,16 +19,25 @@
         <PluginCreatorAddItemPanel :open="isAddPanelOpen" @close="isAddPanelOpen = false" />
       </div>
 
-      <PluginCreatorInspector
-        :blueprint="store.activeBlueprint"
-        :selected-node-id="selectedNodeId"
-        @update-metadata="store.updateMetadata"
-        @update-node="store.updateNode"
-        @update-method="store.updateMethod"
-        @update-input="store.updateMethodInput"
-        @update-credential="store.updateCredentialField"
-        @update-request="store.updateMethodRequest"
-      />
+      <aside class="plugin-creator-page__side">
+        <PluginCreatorInspector
+          :blueprint="store.activeBlueprint"
+          :selected-node-id="selectedNodeId"
+          @update-metadata="store.updateMetadata"
+          @update-node="store.updateNode"
+          @update-method="store.updateMethod"
+          @update-input="store.updateMethodInput"
+          @update-credential="store.updateCredentialField"
+          @update-request="store.updateMethodRequest"
+        />
+        <PluginCreatorTestPanel
+          :blueprint="store.activeBlueprint"
+          :selected-node-id="selectedNodeId"
+          :last-test-result="store.lastTestResult"
+          :is-running="store.isTesting"
+          @test-method="store.runMethodTest"
+        />
+      </aside>
     </section>
   </main>
 </template>
@@ -39,6 +48,7 @@ import PluginCreatorCanvas from '@/features/plugin-creator/components/PluginCrea
 import PluginCreatorFloatingToolbar from '@/features/plugin-creator/components/PluginCreatorFloatingToolbar.vue'
 import PluginCreatorAddItemPanel from '@/features/plugin-creator/components/PluginCreatorAddItemPanel.vue'
 import PluginCreatorInspector from '@/features/plugin-creator/components/PluginCreatorInspector.vue'
+import PluginCreatorTestPanel from '@/features/plugin-creator/components/PluginCreatorTestPanel.vue'
 import { usePluginCreatorStore } from '@/features/plugin-creator'
 import { ref } from 'vue'
 
@@ -86,6 +96,15 @@ const selectedNodeId = ref<string | null>(null)
   background: #ffffff;
 }
 
+.plugin-creator-page__side {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) minmax(220px, auto);
+  overflow: hidden;
+  background: #ffffff;
+}
+
 .plugin-creator-page__rail-title {
   display: block;
   margin-bottom: 12px;
@@ -110,6 +129,10 @@ const selectedNodeId = ref<string | null>(null)
   .plugin-creator-page__rail {
     border: 0;
     border-bottom: 1px solid #d9e1ec;
+  }
+
+  .plugin-creator-page__side {
+    min-height: 420px;
   }
 }
 </style>
