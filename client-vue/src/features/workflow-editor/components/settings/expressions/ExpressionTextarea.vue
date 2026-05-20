@@ -50,7 +50,7 @@ function selectItem(item: ExpressionItem) {
   const next = insertExpressionToken(props.modelValue, item.token, selection.value)
   emit('update:modelValue', next)
   isOpen.value = false
-  window.removeEventListener('pointerdown', onDocumentPointerDown)
+  document.removeEventListener('pointerdown', onDocumentPointerDown, true)
   removePickerPositionListeners()
 }
 
@@ -65,16 +65,16 @@ function onDocumentPointerDown(event: PointerEvent) {
 async function togglePicker() {
   isOpen.value = !isOpen.value
   if (isOpen.value) {
-    window.addEventListener('pointerdown', onDocumentPointerDown)
+    document.addEventListener('pointerdown', onDocumentPointerDown, true)
     await preparePickerPosition()
   } else {
-    window.removeEventListener('pointerdown', onDocumentPointerDown)
+    document.removeEventListener('pointerdown', onDocumentPointerDown, true)
     removePickerPositionListeners()
   }
 }
 
 onBeforeUnmount(() => {
-  window.removeEventListener('pointerdown', onDocumentPointerDown)
+  document.removeEventListener('pointerdown', onDocumentPointerDown, true)
   removePickerPositionListeners()
 })
 

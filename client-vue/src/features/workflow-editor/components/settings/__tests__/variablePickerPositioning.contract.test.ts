@@ -29,6 +29,8 @@ describe('variable picker positioning', () => {
     assert.match(pickerPositionSource, /spaceAbove/)
     assert.match(pickerPositionSource, /openUp/)
     assert.match(pickerPositionSource, /position: 'fixed'/)
+    assert.match(pickerPositionSource, /desiredLeft/)
+    assert.match(pickerPositionSource, /rect\.right - pickerWidth/)
     assert.match(pickerPositionSource, /window\.innerHeight/)
   })
 
@@ -37,6 +39,13 @@ describe('variable picker positioning', () => {
       assert.match(source, /useVariablePickerPosition/)
       assert.match(source, /<Teleport to="body">/)
       assert.match(source, /:style="pickerStyle"/)
+    }
+  })
+
+  it('closes teleported pickers from captured outside pointer events', () => {
+    for (const source of [expressionInputSource, expressionTextareaSource, triggerEditorSource]) {
+      assert.match(source, /document\.addEventListener\('pointerdown', [^,\n]+, true\)/)
+      assert.match(source, /document\.removeEventListener\('pointerdown', [^,\n]+, true\)/)
     }
   })
 })

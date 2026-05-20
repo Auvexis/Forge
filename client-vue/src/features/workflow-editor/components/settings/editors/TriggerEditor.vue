@@ -851,7 +851,7 @@ function rememberTriggerParamSelection(key: string, event: Event) {
 function closeTriggerParamPicker() {
   activeTriggerParamPicker.value = null
   activeTriggerParamAnchor.value = null
-  window.removeEventListener('pointerdown', onTriggerParamDocumentPointerDown)
+  document.removeEventListener('pointerdown', onTriggerParamDocumentPointerDown, true)
   removePickerPositionListeners()
 }
 
@@ -870,7 +870,7 @@ async function toggleTriggerParamPicker(key: string, event: MouseEvent) {
 
   activeTriggerParamPicker.value = key
   activeTriggerParamAnchor.value = (event.currentTarget as HTMLElement | null)?.closest('.te-variable-field') as HTMLElement | null
-  window.addEventListener('pointerdown', onTriggerParamDocumentPointerDown)
+  document.addEventListener('pointerdown', onTriggerParamDocumentPointerDown, true)
   await preparePickerPosition()
 }
 

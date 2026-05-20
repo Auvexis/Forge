@@ -27,13 +27,17 @@ export function useVariablePickerPosition(
     const spaceAbove = rect.top - viewportGap
     const openUp = spaceBelow < preferredMaxHeight && spaceAbove > spaceBelow
     const availableHeight = Math.max(120, openUp ? spaceAbove : spaceBelow)
+    const pickerWidth = Math.min(420, window.innerWidth - viewportGap * 2)
+    const desiredLeft = rect.right - pickerWidth
+    const maxLeft = window.innerWidth - viewportGap - pickerWidth
+    const left = Math.min(Math.max(viewportGap, desiredLeft), maxLeft)
 
     pickerStyle.value = {
       position: 'fixed',
       top: openUp ? 'auto' : `${rect.bottom + offset}px`,
       bottom: openUp ? `${window.innerHeight - rect.top + offset}px` : 'auto',
-      left: `${rect.left}px`,
-      width: `${rect.width}px`,
+      left: `${left}px`,
+      width: `${pickerWidth}px`,
       maxHeight: `${Math.min(preferredMaxHeight, availableHeight)}px`,
       zIndex: '10030',
     }
