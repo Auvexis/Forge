@@ -1,5 +1,5 @@
-import { API_BASE_URL } from '../constants/app'
-import { ApiError } from '../types/api.types'
+import { API_BASE_URL } from '../constants/app.ts'
+import { ApiError } from '../types/api.types.ts'
 import type {
   CreatePluginBlueprintPayload,
   PluginBlueprint,
@@ -9,9 +9,9 @@ import type {
   PluginCreatorTestResult,
   PluginCreatorVersionsResult,
   RollbackPluginBlueprintPayload,
-} from '../types/plugin-creator.types'
-import { apiRequest } from './client'
-import { ENDPOINTS } from './endpoints'
+} from '../types/plugin-creator.types.ts'
+import { apiRequest } from './client.ts'
+import { ENDPOINTS } from './endpoints.ts'
 
 function buildUrl(path: string): string {
   return `${API_BASE_URL}${path}`

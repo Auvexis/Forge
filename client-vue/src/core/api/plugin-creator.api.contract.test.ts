@@ -1,11 +1,11 @@
-import { ENDPOINTS } from './endpoints'
-import { pluginCreatorApi } from './plugin-creator.api'
+import { ENDPOINTS } from './endpoints.ts'
+import { pluginCreatorApi } from './plugin-creator.api.ts'
 import type {
   CreatePluginBlueprintPayload,
   PluginBlueprint,
   PluginCreatorTestMethodPayload,
   RollbackPluginBlueprintPayload,
-} from '../types/plugin-creator.types'
+} from '../types/plugin-creator.types.ts'
 
 async function contract(blueprint: PluginBlueprint) {
   const createPayload: CreatePluginBlueprintPayload = {

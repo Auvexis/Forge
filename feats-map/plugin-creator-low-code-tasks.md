@@ -618,17 +618,17 @@
 - Create: `client-vue/src/features/plugin-creator/stores/pluginCreatorHistory.store.ts`
 - Test: `client-vue/src/features/plugin-creator/stores/pluginCreator.store.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - carregar blueprint
   - salvar draft
   - adicionar node
   - editar node
   - undo/redo
   - marcar dirty state
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar stores.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator stores`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar stores.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator stores`
 
 ### Task 8.3: Criar rota e pagina vazia funcional
 
