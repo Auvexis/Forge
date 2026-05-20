@@ -444,7 +444,7 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-code-generator.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-code-generator.test.ts`
 
-- [ ] Escrever testes para gerar:
+- [x] Escrever testes para gerar:
   - `manifest.json`
   - `methods.ts`
   - `index.ts`
@@ -452,11 +452,11 @@
   - `README.md`
   - assets
   - metadata creator
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar orquestrador.
-- [ ] Gerar em `generated/`, nunca direto em `global/plugins`.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: generate complete low code plugins`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar orquestrador.
+- [x] Gerar em `generated/`, nunca direto em `global/plugins`.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: generate complete low code plugins`
 
 ### Task 5.4: Criar rota generate-preview
 
