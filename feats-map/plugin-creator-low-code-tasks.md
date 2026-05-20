@@ -425,18 +425,18 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-methods-generator.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-methods-generator.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - gerar metodo HTTP GET
   - gerar metodo POST com JSON body
   - aplicar response mapping
   - aplicar error mapping
   - nao incluir codigo custom do usuario
   - output TypeScript contem imports esperados
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar generator por template controlado.
-- [ ] Escapar strings via `JSON.stringify`.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: generate plugin creator methods`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar generator por template controlado.
+- [x] Escapar strings via `JSON.stringify`.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: generate plugin creator methods`
 
 ### Task 5.3: Gerar plugin completo
 
