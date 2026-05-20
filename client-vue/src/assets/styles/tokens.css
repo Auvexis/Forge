@@ -96,6 +96,7 @@
   --sailor-bg-overlay: var(--sailor-gray-800);
   --sailor-bg-muted: var(--sailor-gray-700);
   --sailor-bg-subtle: var(--sailor-gray-600);
+  --sailor-bg-inverse: rgba(251, 251, 251, 0.991);
 
   /* Accents */
   --sailor-accent: var(--sailor-brand-500);
@@ -447,6 +448,7 @@
   --sailor-bg-muted: var(--sailor-gray-100);
   --sailor-bg-subtle: var(--sailor-gray-200);
   --sailor-bg-canvas: #f0f0f0;
+  --sailor-bg-inverse: rgb(15, 15, 15);
 
   /* Borders */
   --sailor-border: rgba(0, 0, 0, 0.08);

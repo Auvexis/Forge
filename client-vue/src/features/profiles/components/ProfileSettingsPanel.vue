@@ -1,69 +1,92 @@
 <template>
-  <AppDialog
-    :model-value="modelValue"
-    title="Profile settings"
-    description="Edit the active profile identity and local access protection."
-    max-width="md"
-    @update:model-value="emit('update:modelValue', $event)"
-  >
-    <form class="profile-settings" @submit.prevent="saveProfile">
-      <div class="profile-settings__identity">
-        <span class="profile-settings__avatar">{{ draft.avatarEmoji }}</span>
+  <BaseModal :is-open="modelValue" max-width="560px" height="auto" @close="closeModal">
+    <section
+      class="profile-settings-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="profile-settings-title"
+    >
+      <header class="profile-settings-modal__header">
         <div>
-          <h3>{{ profileStore.currentProfile?.name ?? 'Profile' }}</h3>
-          <p>{{ passwordState }}</p>
+          <h2 id="profile-settings-title">Profile settings</h2>
+          <p>Edit the active profile identity and local access protection.</p>
         </div>
+        <button
+          type="button"
+          class="profile-settings-modal__close"
+          aria-label="Close"
+          @click="closeModal"
+        >
+          <LucideIcon name="x" :size="18" />
+        </button>
+      </header>
+
+      <div class="profile-settings-modal__body">
+        <form class="profile-settings" @submit.prevent="saveProfile">
+          <div class="profile-settings__identity">
+            <span class="profile-settings__avatar">{{ draft.avatarEmoji }}</span>
+            <div>
+              <h3>{{ profileStore.currentProfile?.name ?? 'Profile' }}</h3>
+              <p>{{ passwordState }}</p>
+            </div>
+          </div>
+
+          <ProfileAvatarPicker v-model="draft.avatarEmoji" />
+
+          <BaseInput v-model="draft.name" label="Name" required placeholder="Profile name" />
+          <BaseInput
+            v-model="draft.email"
+            label="Email"
+            type="email"
+            placeholder="Email optional"
+          />
+
+          <div class="profile-settings__password-field">
+            <BaseInput
+              v-if="!profileStore.currentProfile?.passwordProtected"
+              v-model="newPasswordDraft"
+              type="password"
+              label="New password"
+              placeholder="Optional password"
+              hint="Leave empty to keep password disabled."
+            />
+            <template v-else>
+              <BaseInput
+                v-model="currentPasswordDraft"
+                type="password"
+                label="Current password"
+                placeholder="Confirm current password"
+              />
+              <BaseInput
+                v-model="newPasswordDraft"
+                type="password"
+                label="New password"
+                placeholder="New password"
+                hint="Required only when changing password."
+              />
+            </template>
+          </div>
+
+          <p v-if="error" class="profile-settings__error">{{ error }}</p>
+
+          <div class="profile-settings__actions">
+            <BaseButton type="button" variant="secondary" @click="closeModal">Cancel</BaseButton>
+            <BaseButton type="submit" variant="primary" :loading="isSaving"
+              >Save profile</BaseButton
+            >
+          </div>
+        </form>
       </div>
-
-      <ProfileAvatarPicker v-model="draft.avatarEmoji" />
-
-      <BaseInput v-model="draft.name" label="Name" required placeholder="Profile name" />
-      <BaseInput v-model="draft.email" label="Email" type="email" placeholder="Email optional" />
-
-      <p v-if="error" class="profile-settings__error">{{ error }}</p>
-
-      <div class="profile-settings__actions">
-        <BaseButton type="button" variant="secondary" @click="emit('update:modelValue', false)">
-          Cancel
-        </BaseButton>
-        <BaseButton type="submit" variant="primary" :loading="isSaving">Save profile</BaseButton>
-      </div>
-    </form>
-
-    <section class="profile-settings__password" aria-label="Password protection">
-      <div>
-        <h3>Password protection</h3>
-        <p>{{ passwordState }}</p>
-      </div>
-
-      <form v-if="!profileStore.currentProfile?.passwordProtected" class="profile-settings__password-form" @submit.prevent="setPassword">
-        <BaseInput
-          v-model="passwordDraft"
-          type="password"
-          label="New password"
-          placeholder="Password"
-        />
-        <BaseButton type="submit" variant="secondary" :loading="isSavingPassword">Set password</BaseButton>
-      </form>
-
-      <BaseButton
-        v-else
-        type="button"
-        variant="danger"
-        :loading="isSavingPassword"
-        @click="removePassword"
-      >
-        Remove password
-      </BaseButton>
     </section>
-  </AppDialog>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import AppDialog from '@/shared/components/overlay/AppDialog.vue'
+import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useProfileStore } from '@/shared/stores/profile.store'
 import { buildProfileSettingsPayload, profilePasswordStateLabel } from '../profileSettingsForm'
 import ProfileAvatarPicker from './ProfileAvatarPicker.vue'
@@ -78,14 +101,18 @@ const emit = defineEmits<{
 
 const profileStore = useProfileStore()
 const draft = reactive({ name: '', avatarEmoji: '⛵', email: '' })
-const passwordDraft = ref('')
+const currentPasswordDraft = ref('')
+const newPasswordDraft = ref('')
 const error = ref<string | null>(null)
 const isSaving = ref(false)
-const isSavingPassword = ref(false)
 
 const passwordState = computed(() =>
   profilePasswordStateLabel(profileStore.currentProfile?.passwordProtected ?? false),
 )
+
+function closeModal() {
+  emit('update:modelValue', false)
+}
 
 watch(
   () => [props.modelValue, profileStore.currentProfile] as const,
@@ -94,7 +121,8 @@ watch(
     draft.name = profileStore.currentProfile.name
     draft.avatarEmoji = profileStore.currentProfile.avatarEmoji
     draft.email = profileStore.currentProfile.email ?? ''
-    passwordDraft.value = ''
+    currentPasswordDraft.value = ''
+    newPasswordDraft.value = ''
     error.value = null
   },
   { immediate: true },
@@ -107,52 +135,103 @@ async function saveProfile() {
     error.value = 'Name is required'
     return
   }
+  const currentPassword = currentPasswordDraft.value
+  const newPassword = newPasswordDraft.value.trim()
 
   isSaving.value = true
   error.value = null
   try {
+    if (newPassword) {
+      if (profile.passwordProtected) {
+        if (!currentPassword) {
+          error.value = 'Current password is required to change password'
+          return
+        }
+
+        const result = await profileStore.verifyPassword(profile.id, currentPassword)
+        if (!result.valid) {
+          error.value = 'Current password is invalid'
+          return
+        }
+      }
+    } else if (currentPassword) {
+      error.value = 'New password is required to change password'
+      return
+    }
+
     await profileStore.updateProfile(profile.id, buildProfileSettingsPayload(draft))
-    emit('update:modelValue', false)
+    if (newPassword) await profileStore.setPassword(profile.id, newPassword)
+
+    closeModal()
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Could not save profile'
   } finally {
     isSaving.value = false
   }
 }
-
-async function setPassword() {
-  const profile = profileStore.currentProfile
-  if (!profile || !passwordDraft.value) return
-
-  isSavingPassword.value = true
-  error.value = null
-  try {
-    await profileStore.setPassword(profile.id, passwordDraft.value)
-    passwordDraft.value = ''
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Could not set password'
-  } finally {
-    isSavingPassword.value = false
-  }
-}
-
-async function removePassword() {
-  const profile = profileStore.currentProfile
-  if (!profile) return
-
-  isSavingPassword.value = true
-  error.value = null
-  try {
-    await profileStore.removePassword(profile.id)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Could not remove password'
-  } finally {
-    isSavingPassword.value = false
-  }
-}
 </script>
 
 <style scoped>
+.profile-settings-modal {
+  display: flex;
+  max-height: min(82vh, 760px);
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.profile-settings-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sailor-space-4);
+  padding: var(--sailor-space-5) var(--sailor-space-6);
+  border-bottom: 1px solid var(--sailor-border);
+  flex-shrink: 0;
+}
+
+.profile-settings-modal__header h2 {
+  margin: 0;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-lg);
+  font-weight: var(--sailor-font-semibold);
+}
+
+.profile-settings-modal__header p {
+  margin: var(--sailor-space-1) 0 0;
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-sm);
+  line-height: var(--sailor-leading-normal);
+}
+
+.profile-settings-modal__close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  margin: -4px -8px 0 0;
+  border: 0;
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
+    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+}
+
+.profile-settings-modal__close:hover {
+  color: var(--sailor-text-primary);
+  background: var(--sailor-bg-muted);
+}
+
+.profile-settings-modal__body {
+  min-height: 0;
+  padding: var(--sailor-space-6);
+  overflow-y: auto;
+}
+
 .profile-settings {
   display: flex;
   flex-direction: column;
@@ -178,16 +257,14 @@ async function removePassword() {
   line-height: 1;
 }
 
-.profile-settings h3,
-.profile-settings__password h3 {
+.profile-settings h3 {
   margin: 0;
   color: var(--sailor-text-primary);
   font-size: var(--sailor-text-sm);
   font-weight: var(--sailor-font-semibold);
 }
 
-.profile-settings p,
-.profile-settings__password p {
+.profile-settings p {
   margin: 2px 0 0;
   color: var(--sailor-text-muted);
   font-size: var(--sailor-text-xs);
@@ -203,27 +280,9 @@ async function removePassword() {
   gap: var(--sailor-space-2);
 }
 
-.profile-settings__password {
+.profile-settings__password-field {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  flex-direction: column;
   gap: var(--sailor-space-4);
-  padding-top: var(--sailor-space-5);
-  margin-top: var(--sailor-space-5);
-  border-top: 1px solid var(--sailor-border);
-}
-
-.profile-settings__password-form {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--sailor-space-2);
-}
-
-@media (max-width: 560px) {
-  .profile-settings__password,
-  .profile-settings__password-form {
-    align-items: stretch;
-    flex-direction: column;
-  }
 }
 </style>

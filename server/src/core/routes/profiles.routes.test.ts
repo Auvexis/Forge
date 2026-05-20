@@ -24,12 +24,20 @@ async function buildApp(store = createStore()) {
     store,
     passwordService,
     activeProfileService: {
-      switchProfile: async (input: { profileId: string; password?: string }) => {
+      switchProfile: async (input: {
+        profileId: string;
+        password?: string;
+      }) => {
         const manifest = store.getProfileManifest(input.profileId);
         if (!manifest) throw new Error("PROFILE_NOT_FOUND");
         if (manifest.password.enabled) {
           if (!input.password) throw new Error("PROFILE_PASSWORD_REQUIRED");
-          if (!passwordService.verifyPassword({ profileId: input.profileId, password: input.password })) {
+          if (
+            !passwordService.verifyPassword({
+              profileId: input.profileId,
+              password: input.password,
+            })
+          ) {
             throw new Error("PROFILE_PASSWORD_INVALID");
           }
         }
@@ -47,7 +55,12 @@ describe("profiles routes", () => {
     const created = await app.inject({
       method: "POST",
       url: "/profiles",
-      payload: { id: "work", name: "Work", avatarEmoji: "💼", email: "work@example.com" },
+      payload: {
+        id: "work",
+        name: "Work",
+        avatarEmoji: "💼",
+        email: "work@example.com",
+      },
     });
     assert.equal(created.statusCode, 201);
 
@@ -55,7 +68,10 @@ describe("profiles routes", () => {
     const body = response.json() as ApiResponse<Array<Record<string, unknown>>>;
 
     assert.equal(response.statusCode, 200);
-    assert.deepEqual(body.data?.map((profile) => profile.id), ["default", "work"]);
+    assert.deepEqual(
+      body.data?.map((profile) => profile.id),
+      ["default", "work"],
+    );
     assert.equal(JSON.stringify(body).includes("hash"), false);
   });
 
@@ -77,7 +93,10 @@ describe("profiles routes", () => {
       payload: {},
     });
     assert.equal(missingPasswordSwitch.statusCode, 401);
-    assert.equal((missingPasswordSwitch.json() as ApiResponse<null>).error, "PROFILE_PASSWORD_REQUIRED");
+    assert.equal(
+      (missingPasswordSwitch.json() as ApiResponse<null>).error,
+      "PROFILE_PASSWORD_REQUIRED",
+    );
 
     const wrongPassword = await app.inject({
       method: "POST",
@@ -94,12 +113,15 @@ describe("profiles routes", () => {
     assert.equal(switched.statusCode, 200);
     assert.equal(store.getCurrentProfile()?.id, "work");
 
-    const removePassword = await app.inject({ method: "DELETE", url: "/profiles/work/password" });
+    const removePassword = await app.inject({
+      method: "DELETE",
+      url: "/profiles/work/password",
+    });
     assert.equal(removePassword.statusCode, 200);
     assert.equal(store.getProfile("work")?.passwordProtected, false);
   });
 
-  it("updates metadata and blocks active profile deletion", async () => {
+  it("updates metadata and blocks default profile deletion", async () => {
     const store = createStore();
     store.createProfile({ id: "work", name: "Work", avatarEmoji: "💼" });
     const app = await buildApp(store);
@@ -107,13 +129,23 @@ describe("profiles routes", () => {
     const update = await app.inject({
       method: "PATCH",
       url: "/profiles/work",
-      payload: { name: "Client Work", avatarEmoji: "🧭", email: "client@example.com" },
+      payload: {
+        name: "Client Work",
+        avatarEmoji: "🧭",
+        email: "client@example.com",
+      },
     });
     assert.equal(update.statusCode, 200);
     assert.equal(store.getProfile("work")?.name, "Client Work");
 
-    const deleteActive = await app.inject({ method: "DELETE", url: "/profiles/default" });
+    const deleteActive = await app.inject({
+      method: "DELETE",
+      url: "/profiles/default",
+    });
     assert.equal(deleteActive.statusCode, 409);
-    assert.equal((deleteActive.json() as ApiResponse<null>).error, "PROFILE_ACTIVE_DELETE");
+    assert.equal(
+      (deleteActive.json() as ApiResponse<null>).error,
+      "PROFILE_DEFAULT_DELETE",
+    );
   });
 });

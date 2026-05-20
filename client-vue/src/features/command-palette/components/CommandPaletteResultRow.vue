@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useTheme } from '@/shared/composables/useTheme'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 import type { CommandDescriptor } from '../types/command-palette.types'
 
-defineProps<{
+const props = defineProps<{
   command: CommandDescriptor
   active: boolean
   index: number
@@ -12,6 +15,11 @@ defineProps<{
 const emit = defineEmits<{
   select: []
 }>()
+
+const { isDark } = useTheme()
+const commandIcon = computed(() =>
+  resolvePluginIcon(props.command, { isDark: isDark.value, fallback: 'command' }),
+)
 </script>
 
 <template>
@@ -28,7 +36,7 @@ const emit = defineEmits<{
     @click="emit('select')"
   >
     <span class="cp-row__icon">
-      <LucideIcon :name="command.icon || 'command'" :size="16" />
+      <LucideIcon :name="commandIcon" :size="16" />
     </span>
     <span class="cp-row__main">
       <span class="cp-row__title">

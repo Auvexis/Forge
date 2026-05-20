@@ -15,14 +15,12 @@
         <span class="app-dropdown-menu__title">{{ title }}</span>
       </div>
 
-      <div v-if="$slots.fixed" class="app-dropdown-menu__items" style="padding-bottom: 0;">
-        <BaseWoobyMenu>
-          <slot name="fixed"></slot>
-        </BaseWoobyMenu>
+      <div v-if="$slots.fixed" class="app-dropdown-menu__fixed">
+        <slot name="fixed"></slot>
       </div>
 
-      <div 
-        class="app-dropdown-menu__items custom-scrollbar" 
+      <div
+        class="app-dropdown-menu__items custom-scrollbar"
         :style="maxHeight ? { maxHeight, overflowY: 'auto', overflowX: 'hidden' } : {}"
       >
         <BaseWoobyMenu>
@@ -99,5 +97,11 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.app-dropdown-menu__fixed {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
 }
 </style>

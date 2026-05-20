@@ -1,12 +1,5 @@
 <template>
-  <span
-    v-if="isTintableUrl"
-    class="lucide-icon-mask"
-    :class="className"
-    :style="maskStyle"
-    aria-hidden="true"
-  />
-  <div v-else-if="isUrl" class="lucide-icon-img" :style="{ width: sizeCss, height: sizeCss }">
+  <div v-if="isUrl" class="lucide-icon-img" :style="{ width: sizeCss, height: sizeCss }">
     <img
       :src="name"
       alt="icon"
@@ -27,7 +20,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import * as LucideIcons from 'lucide-vue-next'
-import { isIconUrl, isTintableExternalIcon } from './iconRendering'
+import { isIconUrl } from './iconRendering'
 
 const props = withDefaults(
   defineProps<{
@@ -49,23 +42,8 @@ const isUrl = computed(() => {
   return isIconUrl(props.name)
 })
 
-const isTintableUrl = computed(() => {
-  return isTintableExternalIcon(props.name)
-})
-
 const sizeCss = computed(() => {
   return typeof props.size === 'number' ? `${props.size}px` : String(props.size)
-})
-
-const maskStyle = computed(() => {
-  const tintColor = props.color === 'currentColor' ? 'var(--sailor-text-primary)' : props.color
-
-  return {
-    width: sizeCss.value,
-    height: sizeCss.value,
-    color: tintColor,
-    '--sailor-icon-mask': `url("${String(props.name).replaceAll('"', '\\"')}")`,
-  }
 })
 
 const icon = computed(() => {
@@ -86,13 +64,5 @@ const icon = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.lucide-icon-mask {
-  display: inline-block;
-  flex-shrink: 0;
-  background-color: currentColor;
-  mask: var(--sailor-icon-mask) center / contain no-repeat;
-  -webkit-mask: var(--sailor-icon-mask) center / contain no-repeat;
 }
 </style>

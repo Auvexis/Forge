@@ -71,6 +71,15 @@ function pluginKeywords(plugin: SailorPlugin, extra: string[] = []): string[] {
   ].filter(Boolean);
 }
 
+function pluginIconFields(plugin: SailorPlugin): Pick<CommandDescriptor, "icon" | "iconLight" | "iconDark"> {
+  const metadata = plugin.manifest.metadata;
+  return {
+    icon: metadata.icon || "plug",
+    iconLight: metadata.iconLight,
+    iconDark: metadata.iconDark,
+  };
+}
+
 async function oauthUrl(plugin: SailorPlugin, services: PluginCommandServices): Promise<string> {
   if (plugin.auth.type !== "oauth2") {
     throw new Error("Plugin does not support OAuth2");
@@ -105,7 +114,7 @@ function pluginDrilldown(plugin: SailorPlugin, context: CommandExecutionContext)
       label: "Open in Universe",
       description: "Focus this plugin in the Universe view",
       keywords: ["universe", "open"],
-      icon: "globe",
+      ...pluginIconFields(plugin),
       availability: { enabled: true },
     },
   ];
@@ -183,7 +192,7 @@ function pluginEntryCommand(plugin: SailorPlugin): CommandHandler {
         label: plugin.manifest.metadata.name,
         description: `${plugin.manifest.metadata.category} · ${status}`,
         keywords: pluginKeywords(plugin, ["plugin"]),
-        icon: plugin.manifest.metadata.icon || "plug",
+        ...pluginIconFields(plugin),
         availability: { enabled: true },
       };
     },
@@ -205,7 +214,7 @@ function openPluginCommand(plugin: SailorPlugin): CommandHandler {
       group: "plugin",
       label: `Open ${plugin.manifest.metadata.name} in Universe`,
       keywords: pluginKeywords(plugin, ["open plugin", "universe"]),
-      icon: plugin.manifest.metadata.icon || "plug",
+      ...pluginIconFields(plugin),
       availability: { enabled: true, hidden: true },
     }),
     execute: () => ({

@@ -7,6 +7,7 @@ import {
   sidebarSections,
   sidebarMainUsesWoobyMenu,
   sidebarMainActiveStyle,
+  sidebarPageLabelForPath,
   sidebarReferenceSpacing,
   sidebarWidthForState,
 } from '../appSidebarNavigation.ts'
@@ -18,8 +19,14 @@ describe('app sidebar navigation', () => {
       section.items.some((item) => item.id === 'universe'),
     )
 
-    assert.equal(apps?.items.some((item) => item.id === 'workflows'), true)
-    assert.equal(spaces?.items.some((item) => item.id === 'universe'), true)
+    assert.equal(
+      apps?.items.some((item) => item.id === 'workflows'),
+      true,
+    )
+    assert.equal(
+      spaces?.items.some((item) => item.id === 'universe'),
+      true,
+    )
   })
 
   it('assigns stable color accents to visible suite apps', () => {
@@ -79,6 +86,12 @@ describe('app sidebar navigation', () => {
       hidesInheritedBeforeIndicator: true,
       usesTextUnderline: true,
     })
+  })
+
+  it('uses the active page label in the sidebar header', () => {
+    assert.equal(sidebarPageLabelForPath('/workflows'), 'Workflow')
+    assert.equal(sidebarPageLabelForPath('/workflows/example-id'), 'Workflow')
+    assert.equal(sidebarPageLabelForPath('/universe'), 'Universe')
   })
 
   it('matches the reference sidebar spacing rhythm', () => {

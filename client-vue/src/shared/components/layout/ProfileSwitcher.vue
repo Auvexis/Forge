@@ -13,23 +13,11 @@
         :aria-label="triggerLabel"
       >
         <span class="profile-switcher__avatar" aria-hidden="true">{{ activeAvatar }}</span>
-        <span v-if="!collapsed" class="profile-switcher__identity">
-          <span class="profile-switcher__name">{{ activeName }}</span>
-          <span v-if="profileStore.currentProfile?.email" class="profile-switcher__email">
-            {{ profileStore.currentProfile.email }}
-          </span>
-        </span>
-        <LucideIcon
-          v-if="!collapsed"
-          class="profile-switcher__chevron"
-          name="chevrons-up-down"
-          :size="14"
-          stroke-width="2"
-        />
       </button>
     </template>
 
-    <div class="profile-switcher__menu">
+    <!-- Summary header goes in #fixed so it's isolated from the item pill tracking -->
+    <template #fixed>
       <div class="profile-switcher__summary">
         <span class="profile-switcher__summary-avatar" aria-hidden="true">{{ activeAvatar }}</span>
         <div class="profile-switcher__summary-text">
@@ -39,17 +27,18 @@
           </span>
         </div>
       </div>
+    </template>
 
-      <AppDropdownItem
-        v-for="action in actions"
-        :key="action.id"
-        :label="action.label"
-        :hint="action.hint"
-        :icon="action.icon"
-        :danger="action.danger"
-        @click="handleAction(action.id)"
-      />
-    </div>
+    <!-- Items are now direct children of BaseWoobyMenu → pill tracks correctly -->
+    <AppDropdownItem
+      v-for="action in actions"
+      :key="action.id"
+      :label="action.label"
+      :hint="action.hint"
+      :icon="action.icon"
+      :danger="action.danger"
+      @click="handleAction(action.id)"
+    />
   </AppDropdownMenu>
 </template>
 
@@ -57,7 +46,6 @@
 import { computed, onMounted } from 'vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useProfileStore } from '@/shared/stores/profile.store'
 import {
   buildProfileSwitcherActions,
@@ -94,6 +82,7 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
     return
   }
 
+  // edit-profile → open profile settings panel
   window.dispatchEvent(
     new CustomEvent('sailor:profiles:intent', {
       detail: {
@@ -107,15 +96,22 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
 
 <style scoped>
 .profile-switcher {
-  min-width: 236px;
+  min-width: 0;
+}
+
+.profile-switcher :deep(.app-popover-trigger) {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: var(--sailor-radius-full);
 }
 
 .profile-switcher__trigger {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) 16px;
+  grid-template-columns: 30px;
   align-items: center;
-  gap: 10px;
-  width: 100%;
+  justify-content: center;
+  width: 30px;
   min-width: 0;
   min-height: 34px;
   padding: 0;
@@ -137,17 +133,18 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
 
 .profile-switcher__avatar,
 .profile-switcher__summary-avatar {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-button-ghost-hover);
+  border-radius: var(--sailor-radius-full);
+  background: var(--sailor-bg-base);
   font-size: 17px;
   line-height: 1;
+  border: 1px solid var(--sailor-border);
 }
 
-.profile-switcher__identity,
 .profile-switcher__summary-text {
   display: flex;
   min-width: 0;
@@ -155,7 +152,6 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   gap: 1px;
 }
 
-.profile-switcher__name,
 .profile-switcher__summary-name {
   overflow: hidden;
   color: var(--sailor-sidebar-text);
@@ -166,7 +162,6 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   white-space: nowrap;
 }
 
-.profile-switcher__email,
 .profile-switcher__summary-email {
   overflow: hidden;
   color: var(--sailor-sidebar-text-muted);
@@ -174,14 +169,6 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.profile-switcher__chevron {
-  color: var(--sailor-sidebar-text-muted);
-}
-
-.profile-switcher__menu {
-  width: 236px;
 }
 
 .profile-switcher__summary {
@@ -197,8 +184,7 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
 .profile-switcher__summary-avatar {
   width: 34px;
   height: 34px;
-  color: var(--sailor-text-primary);
-  background: var(--sailor-bg-muted);
+  font-size: 17px;
 }
 
 .profile-switcher__summary-name {

@@ -6,7 +6,7 @@ O seu trabalho e analisar analisar os ultimos commits, arquitetura do backend(se
 
 Se voce ver que a feature que o usuario pediu pode ser perigosa e quebrar outras features, avise e de sugestoes de formas melhores de implementar o que foi pedido.
 
-Voce SEMPRE tem que criar um arquivo .md em feats-map/ com todas as tasks antes de implementar.
+Voce SEMPRE tem que criar um arquivo .md em feats-map/ com todas as tasks antes de implementar. NAO CRIE UMA BRANCH NOVA, USE A BRANCH DEV SEMPRE.
 Sempre que voce completar uma task, marque como concluido e faca commit.
 
 No SAILOR(Nome do projeto), nos seguimos regras muito importantes que nao podem ser esquecidas:

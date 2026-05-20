@@ -52,27 +52,28 @@
 
 ### Communication
 
-- [ ] Discord plugin
-- [ ] Slack plugin
+- [x] Discord plugin
+- [x] Slack plugin
 
 ### Development
 
-- [ ] GitHub plugin
+- [x] GitHub plugin
 
 ### Productivity
 
-- [ ] Notion plugin
-- [ ] Trello plugin
-- [ ] Google Calendar plugin
+- [x] Notion plugin
+- [x] Trello plugin
+- [x] Google Calendar plugin
 
 ### AI
 
-- [ ] OpenAI plugin
-- [ ] OpenRouter plugin
+- [x] OpenAI plugin
+- [x] OpenRouter plugin
 
 ### Database
 
-- [ ] PostgreSQL plugin
+- [x] PostgreSQL plugin
+- [x] Supabase plugin
 
 ---
 
@@ -141,12 +142,6 @@
 - [x] Add support to have more than 1 trigger per automation.
 
 <!--  -->
-
-Proximas funcionalidades antes de lançar:
-
-- [ ] Adicionar funcionalidades de ter varios perfis, cada perfil com sua configuração, workflows e plugins instalados.
-
-- [ ] Adicionar painel global que permite ver as automações rodando em tempo real em qualquer parte do sistema.
 
 - [ ] Adicionar tutorial inicial que vai ensinar tudo, vai ter uma parte do tutorial que vai mostrar todos os utilitarios, ai quando vc clicar em cada um deles vai abrir uma janelinha explicando com um gif e uma descrição como funciona aquele utilitario. Isso não tem no n8n, então quando tu instala o n8n pela primeira vez tu simplesmente não consegue fazer nada sem ver tutorial no youtube.
 

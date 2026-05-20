@@ -117,10 +117,16 @@ export class ProfileStore {
     return redactProfileManifest(manifest);
   }
 
-  updateProfile(profileId: ProfileId, input: UpdateProfileInput): ProfileSummary {
+  updateProfile(
+    profileId: ProfileId,
+    input: UpdateProfileInput,
+  ): ProfileSummary {
     const manifest = this.requireManifest(profileId);
     const profiles = this.listProfiles();
-    const nextName = input.name === undefined ? manifest.name : validateProfileName(input.name);
+    const nextName =
+      input.name === undefined
+        ? manifest.name
+        : validateProfileName(input.name);
     assertUniqueProfileName(nextName, profiles, manifest.id);
 
     const updated: ProfileManifest = {
@@ -130,7 +136,10 @@ export class ProfileStore {
         input.avatarEmoji === undefined
           ? manifest.avatarEmoji
           : validateProfileAvatarEmoji(input.avatarEmoji),
-      email: input.email === undefined ? manifest.email : validateProfileEmail(input.email),
+      email:
+        input.email === undefined
+          ? manifest.email
+          : validateProfileEmail(input.email),
       updatedAt: this.now(),
     };
     this.writeManifest(updated);
@@ -147,7 +156,10 @@ export class ProfileStore {
     return redactProfileManifest(this.readManifest(id));
   }
 
-  setPasswordMetadata(profileId: ProfileId, password: ProfilePasswordMetadata): ProfileSummary {
+  setPasswordMetadata(
+    profileId: ProfileId,
+    password: ProfilePasswordMetadata,
+  ): ProfileSummary {
     const manifest = this.requireManifest(profileId);
     const updated = {
       ...manifest,
@@ -165,6 +177,9 @@ export class ProfileStore {
   deleteProfile(profileId: ProfileId): void {
     const id = validateProfileId(profileId);
     const index = this.readIndex();
+    if (id === "default") {
+      throw new Error("Cannot delete default profile");
+    }
     if (index.currentProfileId === id) {
       throw new Error("Cannot delete active profile");
     }
@@ -172,12 +187,19 @@ export class ProfileStore {
       throw new Error(`Profile '${id}' not found`);
     }
 
-    const nextProfileIds = index.profileIds.filter((existing) => existing !== id);
+    const nextProfileIds = index.profileIds.filter(
+      (existing) => existing !== id,
+    );
     this.writeIndex({ ...index, profileIds: nextProfileIds });
-    fs.rmSync(this.profilePaths(id).profileDir, { recursive: true, force: true });
+    fs.rmSync(this.profilePaths(id).profileDir, {
+      recursive: true,
+      force: true,
+    });
   }
 
-  private createManifest(input: CreateProfileInput & { id: ProfileId }): ProfileManifest {
+  private createManifest(
+    input: CreateProfileInput & { id: ProfileId },
+  ): ProfileManifest {
     const now = this.now();
     return {
       id: validateProfileId(input.id),
@@ -205,7 +227,11 @@ export class ProfileStore {
 
   private writeIndex(index: ProfileIndex): void {
     fs.mkdirSync(this.sailorHome, { recursive: true });
-    fs.writeFileSync(this.indexPath, `${JSON.stringify(index, null, 2)}\n`, "utf8");
+    fs.writeFileSync(
+      this.indexPath,
+      `${JSON.stringify(index, null, 2)}\n`,
+      "utf8",
+    );
   }
 
   private readManifest(profileId: ProfileId): ProfileManifest {

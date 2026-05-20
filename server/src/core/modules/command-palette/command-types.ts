@@ -36,6 +36,8 @@ export interface CommandDescriptor {
   description?: string;
   keywords?: string[];
   icon?: string;
+  iconLight?: string;
+  iconDark?: string;
   destructive?: boolean;
   payloadSchema?: ZodType;
   availability: CommandAvailability;

@@ -19,6 +19,7 @@
             <AppSidebar
               :collapsed="isSidebarCollapsed"
               :show-logo="isSidebarCollapsed"
+              :page-label="activeSidebarPageLabel"
               @sign-out="hasEnteredProfile = false"
               @toggle-collapsed="isSidebarCollapsed = !isSidebarCollapsed"
             >
@@ -84,7 +85,10 @@
                     :description="activityById.search.description"
                     :icon="activityById.search.icon"
                   >
-                    <button class="nav-link sidebar-activity-link" @click="openGlobalCommandPalette">
+                    <button
+                      class="nav-link sidebar-activity-link"
+                      @click="openGlobalCommandPalette"
+                    >
                       <LucideIcon :name="activityById.search.icon" :size="16" />
                     </button>
                   </SidebarHint>
@@ -190,6 +194,7 @@ import ProfileSelectionPage from '@/features/profiles/components/ProfileSelectio
 import ProfileSettingsPanel from '@/features/profiles/components/ProfileSettingsPanel.vue'
 import {
   dispatchSidebarNavIntent,
+  sidebarPageLabelForPath,
   sidebarActivityItems,
   sidebarSections,
   sidebarWidthForState,
@@ -213,6 +218,7 @@ const hasEnteredProfile = ref(false)
 const activeSidebarWidth = computed(() =>
   sidebarWidthForState(isSidebarCollapsed.value, { expandedPx: 288 }),
 )
+const activeSidebarPageLabel = computed(() => sidebarPageLabelForPath(route.path))
 const activityById = Object.fromEntries(sidebarActivityItems.map((item) => [item.id, item])) as {
   search: (typeof sidebarActivityItems)[number]
   monitor: (typeof sidebarActivityItems)[number]

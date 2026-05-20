@@ -47,8 +47,10 @@ export default async function profilesRoutes(
   fastify: FastifyInstance,
   options: ProfilesRoutesOptions = {},
 ) {
-  const store = options.store ?? new ProfileStore({ sailorHome: sailorHomePaths.home });
-  const passwordService = options.passwordService ?? new ProfilePasswordService({ store });
+  const store =
+    options.store ?? new ProfileStore({ sailorHome: sailorHomePaths.home });
+  const passwordService =
+    options.passwordService ?? new ProfilePasswordService({ store });
   const activeProfileService = options.activeProfileService;
   const scheduler = options.scheduler ?? Scheduler;
 
@@ -56,7 +58,12 @@ export default async function profilesRoutes(
     return reply.code(response.status_code).send(response);
   };
 
-  function sendError(reply: FastifyReply, statusCode: number, message: string, error: string) {
+  function sendError(
+    reply: FastifyReply,
+    statusCode: number,
+    message: string,
+    error: string,
+  ) {
     return sendResponse(reply, {
       status_code: statusCode,
       message,
@@ -86,7 +93,12 @@ export default async function profilesRoutes(
   fastify.post("/profiles", async (req, reply) => {
     const validation = CreateProfileSchema.safeParse(req.body);
     if (!validation.success) {
-      return sendError(reply, 400, "Invalid profile payload", "PROFILE_VALIDATION_FAILED");
+      return sendError(
+        reply,
+        400,
+        "Invalid profile payload",
+        "PROFILE_VALIDATION_FAILED",
+      );
     }
 
     try {
@@ -106,7 +118,12 @@ export default async function profilesRoutes(
     const { profileId } = req.params as { profileId: string };
     const validation = UpdateProfileSchema.safeParse(req.body);
     if (!validation.success) {
-      return sendError(reply, 400, "Invalid profile payload", "PROFILE_VALIDATION_FAILED");
+      return sendError(
+        reply,
+        400,
+        "Invalid profile payload",
+        "PROFILE_VALIDATION_FAILED",
+      );
     }
 
     try {
@@ -126,7 +143,12 @@ export default async function profilesRoutes(
     const { profileId } = req.params as { profileId: string };
     const validation = PasswordSchema.safeParse(req.body);
     if (!validation.success) {
-      return sendError(reply, 400, "Invalid password payload", "PROFILE_VALIDATION_FAILED");
+      return sendError(
+        reply,
+        400,
+        "Invalid password payload",
+        "PROFILE_VALIDATION_FAILED",
+      );
     }
 
     try {
@@ -161,7 +183,12 @@ export default async function profilesRoutes(
     const { profileId } = req.params as { profileId: string };
     const validation = PasswordSchema.safeParse(req.body);
     if (!validation.success) {
-      return sendError(reply, 400, "Invalid password payload", "PROFILE_VALIDATION_FAILED");
+      return sendError(
+        reply,
+        400,
+        "Invalid password payload",
+        "PROFILE_VALIDATION_FAILED",
+      );
     }
 
     const valid = passwordService.verifyPassword({
@@ -169,7 +196,12 @@ export default async function profilesRoutes(
       password: validation.data.password,
     });
     if (!valid) {
-      return sendError(reply, 401, "Invalid profile password", "PROFILE_PASSWORD_INVALID");
+      return sendError(
+        reply,
+        401,
+        "Invalid profile password",
+        "PROFILE_PASSWORD_INVALID",
+      );
     }
 
     return sendResponse(reply, {
@@ -182,14 +214,18 @@ export default async function profilesRoutes(
 
   fastify.post("/profiles/:profileId/switch", async (req, reply) => {
     const { profileId } = req.params as { profileId: string };
-    const password = typeof req.body === "object" && req.body && "password" in req.body
-      ? String((req.body as { password?: unknown }).password ?? "")
-      : undefined;
+    const password =
+      typeof req.body === "object" && req.body && "password" in req.body
+        ? String((req.body as { password?: unknown }).password ?? "")
+        : undefined;
 
     try {
       let switched: unknown;
       if (activeProfileService) {
-        switched = await activeProfileService.switchProfile({ profileId, password });
+        switched = await activeProfileService.switchProfile({
+          profileId,
+          password,
+        });
       } else {
         const manifest = store.getProfileManifest(profileId);
         if (!manifest) throw new Error("PROFILE_NOT_FOUND");
@@ -209,10 +245,20 @@ export default async function profilesRoutes(
       });
     } catch (error: any) {
       if (error.message === "PROFILE_PASSWORD_REQUIRED") {
-        return sendError(reply, 401, "Profile password is required", "PROFILE_PASSWORD_REQUIRED");
+        return sendError(
+          reply,
+          401,
+          "Profile password is required",
+          "PROFILE_PASSWORD_REQUIRED",
+        );
       }
       if (error.message === "PROFILE_PASSWORD_INVALID") {
-        return sendError(reply, 401, "Invalid profile password", "PROFILE_PASSWORD_INVALID");
+        return sendError(
+          reply,
+          401,
+          "Invalid profile password",
+          "PROFILE_PASSWORD_INVALID",
+        );
       }
       return sendError(reply, 404, error.message, "PROFILE_NOT_FOUND");
     }
@@ -230,6 +276,9 @@ export default async function profilesRoutes(
         data: null,
       });
     } catch (error: any) {
+      if (error.message.includes("default profile")) {
+        return sendError(reply, 409, error.message, "PROFILE_DEFAULT_DELETE");
+      }
       if (error.message.includes("active profile")) {
         return sendError(reply, 409, error.message, "PROFILE_ACTIVE_DELETE");
       }

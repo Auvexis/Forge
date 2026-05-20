@@ -89,3 +89,12 @@
   transition: transform var(--sailor-duration-slow) var(--sailor-ease-standard);
 }
 
+/* ── Page exit (full-screen fade-out before navigation) ─── */
+.page-exit {
+  animation: page-exit-anim var(--sailor-duration-slow) var(--sailor-ease-accelerate) forwards;
+}
+
+@keyframes page-exit-anim {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}

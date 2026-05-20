@@ -16,6 +16,8 @@ function oauthPlugin(id = "generic-oauth"): SailorPlugin {
         name: "Generic OAuth",
         description: "OAuth plugin",
         icon: "plug",
+        iconLight: "plug-light.svg",
+        iconDark: "plug-dark.svg",
         category: "Test",
         author: "Test",
         version: "1.0.0",
@@ -91,12 +93,18 @@ describe("plugins command provider", () => {
     const commands = await registry.list(context);
 
     assert.ok(commands.some((command) => command.id === "plugin.entry.generic-oauth"));
+    const entry = commands.find((command) => command.id === "plugin.entry.generic-oauth");
+    assert.equal(entry?.iconLight, "plug-light.svg");
+    assert.equal(entry?.iconDark, "plug-dark.svg");
     assert.equal(commands.some((command) => command.id.includes("telegram")), false);
 
     const result = await executor.execute("plugin.entry.generic-oauth", context, {});
     assert.equal(result.drilldown?.type, "list");
     if (result.drilldown?.type === "list") {
       assert.ok(result.drilldown.commands.some(c => c.id === "plugin.open.generic-oauth"));
+      const openCommand = result.drilldown.commands.find(c => c.id === "plugin.open.generic-oauth");
+      assert.equal(openCommand?.iconLight, "plug-light.svg");
+      assert.equal(openCommand?.iconDark, "plug-dark.svg");
       assert.ok(result.drilldown.commands.some(c => c.id === "plugin.methods.generic-oauth"));
     }
   });

@@ -7,15 +7,7 @@ export interface ProfileSwitcherSummary {
 }
 
 export interface ProfileSwitcherAction {
-  id:
-    | 'switch-profile'
-    | 'sign-out'
-    | 'profile-settings'
-    | 'rename-profile'
-    | 'change-avatar'
-    | 'change-email'
-    | 'set-password'
-    | 'remove-password'
+  id: 'switch-profile' | 'sign-out' | 'edit-profile'
   label: string
   icon: string
   hint?: string
@@ -29,8 +21,15 @@ export function profileSwitcherTriggerLabel(profile: ProfileSwitcherSummary | nu
   return `${profile.avatarEmoji} ${profile.name}`
 }
 
-export function buildProfileSwitcherActions(profile: ProfileSwitcherSummary): ProfileSwitcherAction[] {
+export function buildProfileSwitcherActions(
+  _profile: ProfileSwitcherSummary,
+): ProfileSwitcherAction[] {
   return [
+    {
+      id: 'edit-profile',
+      label: 'Edit Profile',
+      icon: 'pencil',
+    },
     {
       id: 'switch-profile',
       label: 'Switch profile',
@@ -43,37 +42,5 @@ export function buildProfileSwitcherActions(profile: ProfileSwitcherSummary): Pr
       icon: 'log-out',
       hint: 'Return to profile selection',
     },
-    {
-      id: 'profile-settings',
-      label: 'Profile settings',
-      icon: 'settings',
-    },
-    {
-      id: 'rename-profile',
-      label: 'Rename',
-      icon: 'pencil',
-    },
-    {
-      id: 'change-avatar',
-      label: 'Change avatar',
-      icon: 'smile',
-    },
-    {
-      id: 'change-email',
-      label: profile.email ? 'Change email' : 'Add email',
-      icon: 'mail',
-    },
-    profile.passwordProtected
-      ? {
-          id: 'remove-password',
-          label: 'Remove password',
-          icon: 'lock-open',
-          danger: true,
-        }
-      : {
-          id: 'set-password',
-          label: 'Set password',
-          icon: 'lock',
-        },
   ]
 }

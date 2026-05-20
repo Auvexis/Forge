@@ -245,8 +245,8 @@
                 @click="openPluginMenu(plugin)"
               >
                 <img
-                  v-if="isUrl(plugin.manifest?.metadata?.icon)"
-                  :src="plugin.manifest?.metadata?.icon"
+                  v-if="isUrl(pluginIcon(plugin))"
+                  :src="pluginIcon(plugin)"
                   alt=""
                   style="
                     width: 40px;
@@ -270,11 +270,7 @@
                     margin-bottom: 0.75rem;
                   "
                 >
-                  <LucideIcon
-                    :name="plugin.manifest?.metadata?.icon || 'puzzle'"
-                    :size="20"
-                    style="opacity: 0.7"
-                  />
+                  <LucideIcon :name="pluginIcon(plugin)" :size="20" style="opacity: 0.7" />
                 </div>
 
                 <span
@@ -321,8 +317,8 @@
                 'Configure ' +
                 (selectedPluginForMenu?.manifest?.metadata?.name ?? selectedPluginForMenu?.id)
               "
-              :logo="selectedPluginForMenu?.manifest?.metadata?.icon"
-              :icon="selectedPluginForMenu?.manifest?.metadata?.icon || 'puzzle'"
+              :logo="selectedPluginIcon"
+              :icon="selectedPluginIcon"
               max-width="520px"
               @close="closePluginMenu"
             >
@@ -565,13 +561,14 @@ import BaseMiniMenu from '@/shared/components/base/BaseMiniMenu.vue'
 import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import { usePluginAuth } from '@/shared/composables/usePluginAuth'
 import { useToast } from '@/shared/composables/useToast'
+import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 
 const toast = useToast()
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 const store = useSettingsStore()
-const { setMode } = useTheme()
+const { isDark, setMode } = useTheme()
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
@@ -655,6 +652,17 @@ const showCredValues = ref<Record<string, boolean>>({})
 const selectedPluginForMenu = ref<any>(null)
 const credSearch = ref('')
 
+function pluginIcon(plugin: any): string {
+  return resolvePluginIcon(plugin.manifest?.metadata ?? {}, {
+    isDark: isDark.value,
+    fallback: 'puzzle',
+  })
+}
+
+const selectedPluginIcon = computed(() =>
+  selectedPluginForMenu.value ? pluginIcon(selectedPluginForMenu.value) : 'puzzle',
+)
+
 function toggleCredVisibility(pluginId: string, fieldKey: string) {
   const key = `${pluginId}_${fieldKey}`
   showCredValues.value[key] = !showCredValues.value[key]
@@ -697,7 +705,7 @@ async function loadPlugins() {
     for (const p of authPlugins.value) {
       await store.fetchCredential(p.id)
     }
-    
+
     if (store.targetPluginId) {
       const target = plugins.value.find((p: any) => p.id === store.targetPluginId)
       if (target) openPluginMenu(target)

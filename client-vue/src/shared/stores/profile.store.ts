@@ -6,6 +6,7 @@ import {
   type ProfileSummary,
   type UpdateProfilePayload,
 } from '@/core/api/profiles.api'
+import { compareProfilesForLoginList } from '@/features/profiles/profileListRules'
 import { refreshAfterProfileSwitch } from '@/features/profiles/profileSwitchRefresh'
 
 export const useProfileStore = defineStore('profile', () => {
@@ -15,9 +16,7 @@ export const useProfileStore = defineStore('profile', () => {
   const isSwitching = ref(false)
   const error = ref<string | null>(null)
 
-  const sortedProfiles = computed(() =>
-    [...profiles.value].sort((a, b) => a.name.localeCompare(b.name)),
-  )
+  const sortedProfiles = computed(() => [...profiles.value].sort(compareProfilesForLoginList))
 
   function setProfile(profile: ProfileSummary) {
     const index = profiles.value.findIndex((item) => item.id === profile.id)
@@ -69,6 +68,11 @@ export const useProfileStore = defineStore('profile', () => {
     return updated
   }
 
+  async function verifyPassword(profileId: string, password: string) {
+    error.value = null
+    return profilesApi.verifyPassword(profileId, password)
+  }
+
   async function removePassword(profileId: string) {
     error.value = null
     const updated = await profilesApi.removePassword(profileId)
@@ -118,6 +122,7 @@ export const useProfileStore = defineStore('profile', () => {
     createProfile,
     updateProfile,
     setPassword,
+    verifyPassword,
     removePassword,
     switchProfile,
     deleteProfile,

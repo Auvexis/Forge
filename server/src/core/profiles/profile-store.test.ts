@@ -28,7 +28,10 @@ describe("ProfileStore", () => {
       },
     ]);
     assert.equal(fs.existsSync(path.join(home, "profiles.json")), true);
-    assert.equal(fs.existsSync(path.join(home, "profiles", "default", "profile.json")), true);
+    assert.equal(
+      fs.existsSync(path.join(home, "profiles", "default", "profile.json")),
+      true,
+    );
   });
 
   it("persists created profiles and current profile selection", () => {
@@ -76,11 +79,13 @@ describe("ProfileStore", () => {
     store.createProfile({ id: "work", name: "Work", avatarEmoji: "💼" });
 
     assert.throws(
-      () => store.createProfile({ id: "work", name: "Other", avatarEmoji: "🧭" }),
+      () =>
+        store.createProfile({ id: "work", name: "Other", avatarEmoji: "🧭" }),
       /already exists/,
     );
     assert.throws(
-      () => store.createProfile({ id: "other", name: " work ", avatarEmoji: "🧭" }),
+      () =>
+        store.createProfile({ id: "other", name: " work ", avatarEmoji: "🧭" }),
       /already exists/,
     );
   });
@@ -111,7 +116,10 @@ describe("ProfileStore", () => {
       email: "client@example.com",
       passwordProtected: true,
     });
-    assert.equal(JSON.stringify(store.getProfile("work")).includes("hash-value"), false);
+    assert.equal(
+      JSON.stringify(store.getProfile("work")).includes("hash-value"),
+      false,
+    );
 
     store.clearPasswordMetadata("work");
     assert.equal(store.getProfile("work")?.passwordProtected, false);
@@ -123,12 +131,10 @@ describe("ProfileStore", () => {
     store.createProfile({ id: "work", name: "Work", avatarEmoji: "💼" });
 
     assert.throws(() => store.setCurrentProfile("missing"), /not found/);
-    assert.throws(() => store.deleteProfile("default"), /active profile/);
+    assert.throws(() => store.deleteProfile("default"), /default profile/);
 
     store.setCurrentProfile("work");
-    store.deleteProfile("default");
-
-    assert.equal(store.getProfile("default"), null);
+    assert.throws(() => store.deleteProfile("default"), /default profile/);
     assert.throws(() => store.deleteProfile("work"), /active profile/);
   });
 });

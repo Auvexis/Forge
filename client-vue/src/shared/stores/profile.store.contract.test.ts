@@ -14,6 +14,7 @@ async function contract(profile: ProfileSummary) {
   await store.switchProfile(profile.id, 'secret')
   await store.updateProfile(profile.id, { name: 'Renamed', avatarEmoji: '🚢', email: null })
   await store.setPassword(profile.id, 'secret')
+  await store.verifyPassword(profile.id, 'secret')
   await store.removePassword(profile.id)
   await store.deleteProfile(profile.id)
 

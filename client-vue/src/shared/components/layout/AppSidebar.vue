@@ -1,17 +1,13 @@
 <template>
   <aside class="app-sidebar surface" :class="{ 'app-sidebar--collapsed': collapsed }">
     <header class="app-sidebar__header">
-      <img
-        v-if="collapsed && showLogo"
-        :src="logoSrc"
-        alt="Sailor"
-        class="app-sidebar__logo"
-      />
+      <img v-if="collapsed && showLogo" :src="logoSrc" alt="Sailor" class="app-sidebar__logo" />
       <ProfileSwitcher
         class="app-sidebar__profile-switcher"
-        :collapsed="collapsed"
+        collapsed
         @sign-out="$emit('sign-out')"
       />
+      <span v-if="!collapsed" class="app-sidebar__page-label">{{ pageLabel }}</span>
       <button
         class="app-sidebar__collapse"
         type="button"
@@ -43,6 +39,7 @@ import ProfileSwitcher from './ProfileSwitcher.vue'
 defineProps<{
   collapsed?: boolean
   showLogo?: boolean
+  pageLabel?: string
 }>()
 
 defineEmits<{
@@ -113,8 +110,20 @@ const { logoSrc } = useTheme()
 }
 
 .app-sidebar__profile-switcher {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.app-sidebar__page-label {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+  color: var(--sailor-sidebar-text);
+  font-size: var(--sailor-text-base);
+  font-weight: var(--sailor-font-medium);
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .app-sidebar__collapse {
@@ -168,13 +177,17 @@ const { logoSrc } = useTheme()
 
 .app-sidebar--collapsed .app-sidebar__header {
   flex-direction: column;
-  justify-content: center;
-  min-height: 122px;
-  padding: var(--sailor-space-3) var(--sailor-space-1);
+  justify-content: flex-start;
+  gap: var(--sailor-space-2);
+  min-height: auto;
+  padding: var(--sailor-space-3) 0;
 }
 
 .app-sidebar--collapsed .app-sidebar__profile-switcher {
   flex: 0 0 auto;
+  margin-top: 5px;
+  width: 30px;
+  height: 30px;
 }
 
 .app-sidebar--collapsed .app-sidebar__main {

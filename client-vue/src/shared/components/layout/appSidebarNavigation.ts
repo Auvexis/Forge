@@ -3,6 +3,7 @@ export type SidebarAccent = `#${string}`
 export interface SidebarNavItem {
   id: string
   label: string
+  pageLabel?: string
   description: string
   icon: string
   accent: SidebarAccent
@@ -35,82 +36,11 @@ export const sidebarSections: SidebarSection[] = [
       {
         id: 'workflows',
         label: 'Workflows',
+        pageLabel: 'Workflow',
         description: 'Create, edit, and manage your automated workflows visually.',
         icon: 'workflow',
         accent: '#34d399',
         route: '/workflows',
-      },
-      {
-        id: 'agents',
-        label: 'Agents',
-        description: 'Create, edit, and manage your AI agents.',
-        icon: 'bot',
-        accent: '#60a5fa',
-        route: '/agents',
-      },
-      {
-        id: 'chat',
-        label: 'Chat',
-        description: 'Build internal chat tools, AI assistants, and conversational apps.',
-        icon: 'message-circle',
-        accent: '#38bdf8',
-        route: '/chat',
-      },
-      {
-        id: 'forms',
-        label: 'Forms',
-        description: 'Create forms, surveys, and input-driven apps for your workflows.',
-        icon: 'clipboard-list',
-        accent: '#f59e0b',
-        route: '/forms',
-      },
-      {
-        id: 'tables',
-        label: 'Tables',
-        description: 'Create database-like tables for storing and managing operational data.',
-        icon: 'table-2',
-        accent: '#84cc16',
-        route: '/tables',
-      },
-      {
-        id: 'dashboards',
-        label: 'Dashboards',
-        description: 'Create visual dashboards for metrics, reports, and business insights.',
-        icon: 'layout-dashboard',
-        accent: '#818cf8',
-        route: '/dashboards',
-      },
-      {
-        id: 'knowledge',
-        label: 'Knowledge',
-        description: 'Create searchable knowledge bases for documents, teams, and AI agents.',
-        icon: 'book-open-text',
-        accent: '#a78bfa',
-        route: '/knowledge',
-      },
-      {
-        id: 'storage',
-        label: 'Storage',
-        description: 'Store, organize, and process files used across your workspace.',
-        icon: 'folder-open',
-        accent: '#eab308',
-        route: '/storage',
-      },
-      {
-        id: 'api',
-        label: 'API',
-        description: 'Create internal APIs, mock endpoints, and backend utilities.',
-        icon: 'braces',
-        accent: '#14b8a6',
-        route: '/api',
-      },
-      {
-        id: 'scheduler',
-        label: 'Scheduler',
-        description: 'Create scheduled jobs, recurring tasks, and timed automations.',
-        icon: 'calendar-clock',
-        accent: '#fb7185',
-        route: '/scheduler',
       },
       {
         id: 'monitoring',
@@ -118,47 +48,7 @@ export const sidebarSections: SidebarSection[] = [
         description: 'Monitor uptime, jobs, services, automations, and system health.',
         icon: 'activity',
         accent: '#10b981',
-        route: '/monitoring',
-      },
-      {
-        id: 'browser',
-        label: 'Browser',
-        description: 'Run browser-based automations, scraping tasks, and web interactions.',
-        icon: 'globe',
-        accent: '#0ea5e9',
-        route: '/browser',
-      },
-      {
-        id: 'email',
-        label: 'Email',
-        description: 'Build email-based automations, inbox tools, and campaign utilities.',
-        icon: 'mail',
-        accent: '#ef4444',
-        route: '/email',
-      },
-      {
-        id: 'crm',
-        label: 'CRM',
-        description: 'Manage contacts, leads, pipelines, and customer interactions.',
-        icon: 'contact',
-        accent: '#f97316',
-        route: '/crm',
-      },
-      {
-        id: 'canvas',
-        label: 'Canvas',
-        description: 'Design visual apps, interfaces, diagrams, and internal tools.',
-        icon: 'panel-top',
-        accent: '#ec4899',
-        route: '/canvas',
-      },
-      {
-        id: 'database',
-        label: 'Database',
-        description: 'Create and manage databases for apps, automations, and agents.',
-        icon: 'database',
-        accent: '#22c55e',
-        route: '/database',
+        intent: { type: 'monitoring.open' },
       },
       {
         id: 'universe',
@@ -243,6 +133,15 @@ export function sidebarWidthForState(
 ): string {
   if (!isCollapsed && options.expandedPx) return `${options.expandedPx}px`
   return isCollapsed ? 'var(--sailor-sidebar-width)' : 'var(--sailor-sidebar-expanded)'
+}
+
+export function sidebarPageLabelForPath(path: string): string {
+  const items = sidebarSections.flatMap((section) => section.items)
+  const activeItem = items
+    .filter((item) => item.route && path.startsWith(item.route))
+    .sort((a, b) => (b.route?.length ?? 0) - (a.route?.length ?? 0))[0]
+
+  return activeItem?.pageLabel ?? activeItem?.label ?? 'Sailor'
 }
 
 export function dispatchSidebarNavIntent(item: SidebarNavItem): boolean {

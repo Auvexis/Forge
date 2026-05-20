@@ -7,13 +7,13 @@
    - `sailor build`
    - `sailor release`
 
-3. Criar um plugin canario para validar o fluxo externo completo.
-   - Prioridade: OpenAI plugin.
-   - Alternativa forte: PostgreSQL plugin.
+3. Criar plugin canario para validar fluxo externo completo.
+   - 1: PostgreSQL plugin.
+   - 2: Supabase plugin.
 
-4. Adicionar painel global para ver automacoes rodando em tempo real em qualquer parte do sistema.
+4. Adicionar suporte a varios perfis, cada um com configuracao, workflows e plugins instalados.
 
-5. Adicionar suporte a varios perfis, cada um com configuracao, workflows e plugins instalados.
+5. Adicionar painel global para ver automacoes rodando em tempo real em qualquer parte do sistema.
 
 6. Expandir catalogo de plugins:
    - Discord
@@ -21,9 +21,15 @@
    - GitHub
    - Notion
    - Trello
+   - Jira
    - Google Calendar
    - OpenRouter
-   - PostgreSQL
+   - OpenAI
+   - Adicionar mais funcionalidades e metodos no Plugin Google Sheets.
 
-7. Criar utility nodes adicionais:
+7. Plugins Mestre:
+   - Playwright
+   - Waha
+
+8. Criar utility nodes adicionais:
    - Image Editor Utility Node: crop, resize, rotate e aspect ratio.
