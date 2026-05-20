@@ -502,11 +502,11 @@
 - Modify: `server/src/core/routes/plugin-creator.routes.ts`
 - Test: `server/src/core/routes/plugin-creator-save-snapshot.routes.test.ts`
 
-- [ ] Escrever teste que `PUT /blueprints/:id` cria snapshot `manual-save`.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar integracao.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: snapshot plugin creator saves`
+- [x] Escrever teste que `PUT /blueprints/:id` cria snapshot `manual-save`.
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar integracao.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: snapshot plugin creator saves`
 
 ### Task 6.3: Criar publish service
 

@@ -9,6 +9,7 @@ import { PluginBlueprintRepository } from "../modules/plugin-creator/plugin-blue
 import { PluginCreatorEngine } from "../modules/plugin-creator/plugin-creator-engine.ts";
 import { PluginScaffoldService } from "../modules/plugin-creator/plugin-scaffold-service.ts";
 import { PluginTestRunner } from "../modules/plugin-creator/plugin-test-runner.ts";
+import { PluginVersionService } from "../modules/plugin-creator/plugin-version-service.ts";
 import { parsePluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-validation.ts";
 import type { PluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-types.ts";
 
@@ -207,6 +208,7 @@ function createEngineForCurrentProfile(profileStore = new ProfileStore({ sailorH
     repository,
     scaffold: new PluginScaffoldService(),
     testRunner: new PluginTestRunner({ repository }),
+    versionService: new PluginVersionService({ profilePaths, repository }),
   });
 }
 

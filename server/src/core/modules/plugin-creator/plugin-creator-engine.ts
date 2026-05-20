@@ -3,6 +3,7 @@ import type { PluginBlueprintRepository } from "./plugin-blueprint-repository.ts
 import type { PluginTestRunner } from "./plugin-test-runner.ts";
 import type { ProfilePaths } from "../../profiles/profile-paths.ts";
 import { generateCompletePlugin } from "./plugin-code-generator.ts";
+import type { PluginVersionService } from "./plugin-version-service.ts";
 import type {
   CreatePluginBlueprintInput,
   PluginScaffoldService,
@@ -13,6 +14,7 @@ export interface PluginCreatorEngineDependencies {
   scaffold: PluginScaffoldService;
   testRunner?: PluginTestRunner;
   profilePaths?: ProfilePaths;
+  versionService?: PluginVersionService;
 }
 
 export interface TestPluginMethodInput {
@@ -34,12 +36,14 @@ export class PluginCreatorEngine {
   private readonly scaffold: PluginScaffoldService;
   private readonly testRunner?: PluginTestRunner;
   private readonly profilePaths?: ProfilePaths;
+  private readonly versionService?: PluginVersionService;
 
   constructor(dependencies: PluginCreatorEngineDependencies) {
     this.repository = dependencies.repository;
     this.scaffold = dependencies.scaffold;
     this.testRunner = dependencies.testRunner;
     this.profilePaths = dependencies.profilePaths;
+    this.versionService = dependencies.versionService;
   }
 
   listBlueprints(): PluginBlueprint[] {
@@ -62,6 +66,7 @@ export class PluginCreatorEngine {
     if (!updated) {
       throw new Error("Blueprint update failed");
     }
+    this.versionService?.createSnapshot(updated, "manual-save");
     return updated;
   }
 
