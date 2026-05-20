@@ -200,7 +200,7 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-blueprint-repository.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-blueprint-repository.test.ts`
 
-- [ ] Escrever testes com pasta temporaria para:
+- [x] Escrever testes com pasta temporaria para:
   - criar blueprint
   - listar blueprints
   - ler blueprint por id
@@ -208,11 +208,11 @@
   - retornar null quando nao existe
   - impedir id/path traversal
   - escrever JSON com newline final
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar repository com fs sync/async consistente com padrao atual.
-- [ ] Repository nao deve chamar generator, publish ou installer.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator blueprint repository`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar repository com fs sync/async consistente com padrao atual.
+- [x] Repository nao deve chamar generator, publish ou installer.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator blueprint repository`
 
 ### Task 1.5: Criar scaffold service
 
