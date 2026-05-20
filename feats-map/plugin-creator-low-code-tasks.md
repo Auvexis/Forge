@@ -483,17 +483,17 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-version-service.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-version-service.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - criar snapshot `manual-save`
   - criar snapshot `pre-publish`
   - criar snapshot `rollback-point`
   - manter limite de 50 snapshots comuns
   - nao apagar snapshot de publish automaticamente
   - rollback restaura blueprint
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar service.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: version plugin creator blueprints`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar service.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: version plugin creator blueprints`
 
 ### Task 6.2: Integrar save com snapshot
 
