@@ -12,7 +12,8 @@
 
       <div class="plugin-creator-page__canvas-shell">
         <PluginCreatorCanvas :blueprint="store.activeBlueprint" />
-        <PluginCreatorFloatingToolbar />
+        <PluginCreatorFloatingToolbar @add-item="isAddPanelOpen = true" />
+        <PluginCreatorAddItemPanel :open="isAddPanelOpen" @close="isAddPanelOpen = false" />
       </div>
 
       <aside class="plugin-creator-page__inspector">
@@ -27,9 +28,12 @@
 import PluginCreatorHeader from '@/features/plugin-creator/components/PluginCreatorHeader.vue'
 import PluginCreatorCanvas from '@/features/plugin-creator/components/PluginCreatorCanvas.vue'
 import PluginCreatorFloatingToolbar from '@/features/plugin-creator/components/PluginCreatorFloatingToolbar.vue'
+import PluginCreatorAddItemPanel from '@/features/plugin-creator/components/PluginCreatorAddItemPanel.vue'
 import { usePluginCreatorStore } from '@/features/plugin-creator'
+import { ref } from 'vue'
 
 const store = usePluginCreatorStore()
+const isAddPanelOpen = ref(false)
 </script>
 
 <style scoped>

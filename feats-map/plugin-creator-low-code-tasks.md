@@ -716,7 +716,7 @@
 - Create: `client-vue/src/features/plugin-creator/components/PluginCreatorAddItemPanel.vue`
 - Test: `client-vue/src/features/plugin-creator/components/PluginCreatorAddItemPanel.contract.test.ts`
 
-- [ ] Escrever teste que painel lista:
+- [x] Escrever teste que painel lista:
   - Method
   - Input Field
   - Credential Field
@@ -727,10 +727,10 @@
   - Response Mapper
   - Error Mapper
   - Output Field
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar painel lateral direito.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator item panel`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar painel lateral direito.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator item panel`
 
 ### Task 9.5: Criar nodes MVP
 
