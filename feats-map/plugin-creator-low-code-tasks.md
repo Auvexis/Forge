@@ -155,22 +155,22 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-blueprint-validation.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-blueprint-validation.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - handle valido `my-crm`
   - handle invalido com espaco
   - method handle valido `createLead`
   - URL obrigatoria quando request existe
   - input type limitado a `string`, `number`, `boolean`, `object`, `array`, `select`, `file`
   - error mapping sem codigo falha
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar schemas Zod e funcoes:
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar schemas Zod e funcoes:
   - `validatePluginBlueprint(input)`
   - `parsePluginBlueprint(input)`
   - `validatePluginCreatorId(id)`
   - `validatePluginHandle(handle)`
   - `validateMethodHandle(handle)`
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: validate plugin creator blueprints`
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: validate plugin creator blueprints`
 
 ### Task 1.3: Criar resolver de paths profile-scoped
 
