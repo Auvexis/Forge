@@ -32,6 +32,9 @@ import MethodNode from './nodes/MethodNode.vue'
 import InputNode from './nodes/InputNode.vue'
 import CredentialNode from './nodes/CredentialNode.vue'
 import RequestNode from './nodes/RequestNode.vue'
+import ResponseMapperNode from './nodes/ResponseMapperNode.vue'
+import ErrorMapperNode from './nodes/ErrorMapperNode.vue'
+import OutputNode from './nodes/OutputNode.vue'
 
 const props = defineProps<{
   blueprint?: PluginBlueprint | null
@@ -46,6 +49,9 @@ const nodeTypes = {
   input: InputNode,
   credential: CredentialNode,
   request: RequestNode,
+  responseMapper: ResponseMapperNode,
+  errorMapper: ErrorMapperNode,
+  output: OutputNode,
 } as unknown as NodeTypesObject
 
 const nodes = computed<Node[]>({

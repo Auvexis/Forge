@@ -48,3 +48,37 @@
 .plugin-creator-node--request {
   border-color: #b8a7f2;
 }
+
+.plugin-creator-node--response-mapper {
+  border-color: #74c69d;
+}
+
+.plugin-creator-node--error-mapper {
+  border-color: #f08c8c;
+}
+
+.plugin-creator-node--output {
+  border-color: #7db7f4;
+}
+
+.plugin-creator-node ul {
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+  color: #526173;
+  font-size: 11px;
+  list-style: none;
+}
+
+.plugin-creator-node button {
+  margin-top: 8px;
+  min-height: 28px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #142033;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}

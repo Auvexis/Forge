@@ -5,11 +5,14 @@ import type {
   CreatePluginBlueprintPayload,
   PluginBlueprint,
   PluginBlueprintCredentialField,
+  PluginBlueprintErrorMapping,
   PluginBlueprintInput,
   PluginBlueprintMetadata,
   PluginBlueprintMethod,
   PluginBlueprintNode,
+  PluginBlueprintOutputType,
   PluginBlueprintRequest,
+  PluginBlueprintResponseMapping,
   PluginCreatorGeneratePreviewResult,
   PluginCreatorRelease,
   PluginCreatorTestMethodPayload,
@@ -291,6 +294,50 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     }
   }
 
+  function findMethod(methodId: string): PluginBlueprintMethod | null {
+    if (!activeBlueprint.value) return null
+    return activeBlueprint.value.methods.find((candidate) => candidate.id === methodId) ?? null
+  }
+
+  function mapSelectedFieldAsOutput(
+    methodId: string,
+    payload: Pick<PluginBlueprintResponseMapping, 'outputName' | 'path'> & {
+      type: PluginBlueprintOutputType
+    },
+  ) {
+    const method = findMethod(methodId)
+    if (!method) return
+    recordHistory()
+    method.responseMapping.push({
+      id: `output_${method.responseMapping.length + 1}`,
+      outputName: payload.outputName,
+      path: payload.path,
+      type: payload.type,
+    })
+  }
+
+  function createErrorRuleFromResponse(
+    methodId: string,
+    payload: { status: number; code: string; messagePath?: string },
+  ) {
+    const method = findMethod(methodId)
+    if (!method) return
+    recordHistory()
+    const rule: PluginBlueprintErrorMapping = {
+      id: `error_${method.errorMapping.length + 1}`,
+      code: payload.code,
+      condition: {
+        source: 'status',
+        operator: 'equals',
+        value: payload.status,
+      },
+      message: payload.messagePath
+        ? { type: 'bodyPath', path: payload.messagePath, fallback: payload.code }
+        : { type: 'static', value: payload.code },
+    }
+    method.errorMapping.push(rule)
+  }
+
   function undo() {
     if (!activeBlueprint.value) return
     const previous = history.undo(snapshot(activeBlueprint.value))
@@ -333,6 +380,8 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     updateMethodInput,
     updateCredentialField,
     updateMethodRequest,
+    mapSelectedFieldAsOutput,
+    createErrorRuleFromResponse,
     undo,
     redo,
   }

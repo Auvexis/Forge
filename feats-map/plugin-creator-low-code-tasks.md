@@ -796,13 +796,13 @@
 - Create: `client-vue/src/features/plugin-creator/components/nodes/OutputNode.vue`
 - Test: `client-vue/src/features/plugin-creator/components/nodes/pluginCreatorMapperNodes.contract.test.ts`
 
-- [ ] Escrever teste que nodes renderizam mappings.
-- [ ] Escrever teste que acao "Map selected field as output" cria output.
-- [ ] Escrever teste que acao "Create error rule from this response" cria regra.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar nodes e acoes.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator mapping nodes`
+- [x] Escrever teste que nodes renderizam mappings.
+- [x] Escrever teste que acao "Map selected field as output" cria output.
+- [x] Escrever teste que acao "Create error rule from this response" cria regra.
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar nodes e acoes.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator mapping nodes`
 
 ### Task 10.3: Criar Version Panel
 

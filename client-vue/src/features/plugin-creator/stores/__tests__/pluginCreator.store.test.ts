@@ -170,4 +170,45 @@ describe('plugin creator store', () => {
     assert.equal(store.lastTestResult?.methodId, 'method_1')
     assert.equal(store.lastTestResult?.request.url, 'https://api.example.com')
   })
+
+  it('maps selected response fields as output and creates error rules', () => {
+    const store = usePluginCreatorStore()
+    const blueprint = createBlueprint()
+    blueprint.methods = [
+      {
+        id: 'method_1',
+        handle: 'listLeads',
+        name: 'List Leads',
+        description: 'List CRM leads',
+        inputs: [],
+        request: {
+          method: 'GET',
+          url: 'https://api.example.com/leads',
+          headers: [],
+          query: [],
+          body: { type: 'none' },
+        },
+        responseMapping: [],
+        errorMapping: [],
+      },
+    ]
+    store.setActiveBlueprint(blueprint)
+
+    store.mapSelectedFieldAsOutput('method_1', {
+      outputName: 'leadId',
+      path: 'body.data.id',
+      type: 'string',
+    })
+    store.createErrorRuleFromResponse('method_1', {
+      status: 401,
+      code: 'UNAUTHORIZED',
+      messagePath: 'body.error.message',
+    })
+
+    const method = store.activeBlueprint?.methods[0]
+    assert.equal(method?.responseMapping[0]?.outputName, 'leadId')
+    assert.equal(method?.responseMapping[0]?.path, 'body.data.id')
+    assert.equal(method?.errorMapping[0]?.code, 'UNAUTHORIZED')
+    assert.equal(method?.errorMapping[0]?.condition.value, 401)
+  })
 })
