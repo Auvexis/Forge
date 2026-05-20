@@ -4,7 +4,7 @@ import path from "node:path";
 import type { ProfilePaths } from "../../profiles/profile-paths.ts";
 import { resolveBlueprintPaths, resolvePluginCreatorProfilePaths } from "./plugin-creator-paths.ts";
 import { parsePluginBlueprint, validatePluginCreatorId } from "./plugin-blueprint-validation.ts";
-import type { PluginBlueprint } from "./plugin-blueprint-types.ts";
+import type { PluginBlueprint, PluginCreatorLastRun } from "./plugin-blueprint-types.ts";
 
 export class PluginBlueprintRepository {
   private readonly profilePaths: ProfilePaths;
@@ -54,6 +54,13 @@ export class PluginBlueprintRepository {
     fs.mkdirSync(path.dirname(paths.blueprintPath), { recursive: true });
     writeJsonFile(paths.blueprintPath, parsePluginBlueprint(blueprint));
     return paths.blueprintPath;
+  }
+
+  saveLastRun(blueprintId: string, lastRun: PluginCreatorLastRun): string {
+    const paths = resolveBlueprintPaths(this.profilePaths, validatePluginCreatorId(blueprintId));
+    fs.mkdirSync(path.dirname(paths.lastRunPath), { recursive: true });
+    writeJsonFile(paths.lastRunPath, lastRun);
+    return paths.lastRunPath;
   }
 }
 

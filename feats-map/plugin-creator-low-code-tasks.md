@@ -312,18 +312,18 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-test-runner.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-test-runner.test.ts`
 
-- [ ] Escrever testes com server HTTP local para:
+- [x] Escrever testes com server HTTP local para:
   - GET retorna status, headers, body e duration
   - POST JSON envia body renderizado
   - erro de rede retorna erro estruturado
   - credentials sao mascaradas no request salvo
   - timeout encerra request
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar runner usando fetch nativo.
-- [ ] Definir timeout default seguro.
-- [ ] Salvar `tests/last-run.json` via repository.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator test runner`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar runner usando fetch nativo.
+- [x] Definir timeout default seguro.
+- [x] Salvar `tests/last-run.json` via repository.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator test runner`
 
 ### Task 3.3: Criar rota de test-method
 
