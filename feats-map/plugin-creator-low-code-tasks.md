@@ -514,17 +514,17 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-publish-service.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-publish-service.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - validar blueprint antes de publicar
   - criar snapshot `pre-publish`
   - gerar arquivos em `generated/`
   - copiar release fixa para `releases/<version>/`
   - nao quebrar release anterior
   - bloquear sobrescrita de plugin customizado sem confirmacao
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar service.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: publish plugin creator releases`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar service.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: publish plugin creator releases`
 
 ### Task 6.4: Integrar release com Plugin Installer
 
