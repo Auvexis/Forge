@@ -277,11 +277,11 @@
 - Modify: `server/src/core/server.ts`
 - Test: `server/src/core/routes/plugin-creator.routes.test.ts`
 
-- [ ] Escrever teste que confirma rota registrada no app de teste ou atualizar fixture de servidor se existir.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Importar e registrar `pluginCreatorRoutes`.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: register plugin creator routes`
+- [x] Escrever teste que confirma rota registrada no app de teste ou atualizar fixture de servidor se existir.
+- [x] Rodar teste e confirmar falha.
+- [x] Importar e registrar `pluginCreatorRoutes`.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: register plugin creator routes`
 
 ---
 
