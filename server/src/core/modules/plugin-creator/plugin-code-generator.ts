@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 
 import { validateManifest } from "../plugins/loader.ts";
 import type { ProfilePaths } from "../../profiles/profile-paths.ts";
@@ -8,6 +9,7 @@ import { parsePluginBlueprint } from "./plugin-blueprint-validation.ts";
 import type { PluginBlueprint } from "./plugin-blueprint-types.ts";
 import { resolveBlueprintPaths } from "./plugin-creator-paths.ts";
 import { generatePluginManifest } from "./plugin-manifest-generator.ts";
+import { generatePluginAuthProvider } from "./plugin-manifest-generator.ts";
 import { generatePluginMethodsSource } from "./plugin-methods-generator.ts";
 
 export interface GenerateCompletePluginInput {
@@ -50,14 +52,24 @@ export function generateCompletePlugin(input: GenerateCompletePluginInput): Gene
   const files: GeneratedPluginFile[] = [];
 
   writeGeneratedFile(files, paths.generatedDir, "manifest.json", `${JSON.stringify(manifest, null, 2)}\n`);
-  writeGeneratedFile(files, paths.generatedDir, "methods.ts", generatePluginMethodsSource(blueprint));
+  const methodsSource = generatePluginMethodsSource(blueprint);
+  writeGeneratedFile(files, paths.generatedDir, "methods.ts", methodsSource);
+  writeGeneratedFile(files, paths.generatedDir, "methods.js", transpileTypescript(methodsSource));
   writeGeneratedFile(files, paths.generatedDir, "index.ts", generateIndexSource());
+  writeGeneratedFile(files, paths.generatedDir, "index.js", generateRuntimeIndexSource(blueprint));
   writeGeneratedFile(files, paths.generatedDir, "package.json", `${JSON.stringify(generatePackageJson(blueprint), null, 2)}\n`);
+  writeGeneratedFile(files, paths.generatedDir, "package-lock.json", `${JSON.stringify(generatePackageLockJson(blueprint), null, 2)}\n`);
   writeGeneratedFile(files, paths.generatedDir, "README.md", generateReadme(blueprint));
 
   for (const helperFile of helperFiles) {
     const sourcePath = path.join(currentDir(), helperFile);
     copyGeneratedFile(files, sourcePath, paths.generatedDir, helperFile);
+    writeGeneratedFile(
+      files,
+      paths.generatedDir,
+      helperFile.replace(/\.ts$/, ".js"),
+      transpileTypescript(fs.readFileSync(sourcePath, "utf8")),
+    );
   }
 
   copyIconAssets(files, paths.assetsDir, paths.generatedDir, blueprint);
@@ -73,6 +85,23 @@ function generateIndexSource(): string {
 `;
 }
 
+function generateRuntimeIndexSource(blueprint: PluginBlueprint): string {
+  return `import { methods } from "./methods.js";
+
+const manifest = ${JSON.stringify(generatePluginManifest(blueprint), null, 2)};
+const auth = ${JSON.stringify(generatePluginAuthProvider(blueprint), null, 2)};
+
+const plugin = {
+  id: manifest.metadata.id,
+  manifest,
+  auth,
+  methods,
+};
+
+export default plugin;
+`;
+}
+
 function generatePackageJson(blueprint: PluginBlueprint): Record<string, unknown> {
   return {
     name: `@sailor-generated/${blueprint.metadata.handle}`,
@@ -85,6 +114,18 @@ function generatePackageJson(blueprint: PluginBlueprint): Record<string, unknown
     },
     devDependencies: {
       typescript: "^5.9.3",
+    },
+  };
+}
+
+function generatePackageLockJson(blueprint: PluginBlueprint): Record<string, unknown> {
+  return {
+    name: `@sailor-generated/${blueprint.metadata.handle}`,
+    version: blueprint.metadata.version,
+    lockfileVersion: 3,
+    requires: true,
+    packages: {
+      "": generatePackageJson(blueprint),
     },
   };
 }
@@ -153,4 +194,15 @@ function normalizeRelativePath(relativePath: string): string {
 
 function currentDir(): string {
   return path.dirname(fileURLToPath(import.meta.url));
+}
+
+function transpileTypescript(source: string): string {
+  return ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.ES2022,
+      target: ts.ScriptTarget.ES2022,
+      moduleResolution: ts.ModuleResolutionKind.NodeNext,
+      verbatimModuleSyntax: true,
+    },
+  }).outputText;
 }

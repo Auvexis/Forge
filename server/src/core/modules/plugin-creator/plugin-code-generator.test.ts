@@ -107,14 +107,21 @@ describe("generateCompletePlugin", () => {
         "assets/icon-dark.svg",
         "assets/icon-light.svg",
         "assets/icon.svg",
+        "index.js",
         "index.ts",
         "manifest.json",
-        "package.json",
-        "plugin-error-mapper.ts",
-        "plugin-generated-http-helpers.ts",
-        "plugin-request-template.ts",
-        "plugin-response-mapper.ts",
+        "methods.js",
         "methods.ts",
+        "package-lock.json",
+        "package.json",
+        "plugin-error-mapper.js",
+        "plugin-error-mapper.ts",
+        "plugin-generated-http-helpers.js",
+        "plugin-generated-http-helpers.ts",
+        "plugin-request-template.js",
+        "plugin-request-template.ts",
+        "plugin-response-mapper.js",
+        "plugin-response-mapper.ts",
       ].sort(),
     );
 
@@ -127,14 +134,20 @@ describe("generateCompletePlugin", () => {
     const methodsSource = fs.readFileSync(path.join(result.generatedDir, "methods.ts"), "utf8");
     assert.match(methodsSource, /export const methods = \{/);
     assert.match(methodsSource, /createLead/);
+    assert.equal(fs.existsSync(path.join(result.generatedDir, "methods.js")), true);
 
     const indexSource = fs.readFileSync(path.join(result.generatedDir, "index.ts"), "utf8");
     assert.match(indexSource, /export \{ methods \} from "\.\/methods\.js";/);
+    const indexRuntimeSource = fs.readFileSync(path.join(result.generatedDir, "index.js"), "utf8");
+    assert.match(indexRuntimeSource, /const plugin = \{/);
+    assert.match(indexRuntimeSource, /export default plugin;/);
 
     const packageJson = JSON.parse(fs.readFileSync(path.join(result.generatedDir, "package.json"), "utf8"));
     assert.equal(packageJson.name, "@sailor-generated/my-crm");
     assert.equal(packageJson.version, "0.1.0");
     assert.equal(packageJson.dependencies["@auvexis/sailor-sdk"], "^1.2.0");
+    const packageLock = JSON.parse(fs.readFileSync(path.join(result.generatedDir, "package-lock.json"), "utf8"));
+    assert.equal(packageLock.lockfileVersion, 3);
 
     const readme = fs.readFileSync(path.join(result.generatedDir, "README.md"), "utf8");
     assert.match(readme, /# My CRM/);

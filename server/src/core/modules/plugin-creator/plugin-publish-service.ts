@@ -1,7 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
+import type Database from "better-sqlite3";
 
 import type { ProfilePaths } from "../../profiles/profile-paths.ts";
+import type { ProfileId } from "../../profiles/profile-types.ts";
+import {
+  installExternalPlugin,
+  type ExternalPluginInstallerPaths,
+} from "../plugins/external/plugin-installer.ts";
+import type { RuntimeReloadResult } from "../plugins/external/plugin-runtime-reload-service.ts";
+import type { PluginInstallResult } from "../plugins/external/types.ts";
 import type { PluginBlueprintRepository } from "./plugin-blueprint-repository.ts";
 import type { PluginCreatorRelease } from "./plugin-blueprint-types.ts";
 import { parsePluginBlueprint, validatePluginCreatorId } from "./plugin-blueprint-validation.ts";
@@ -18,6 +26,15 @@ export interface PluginPublishServiceDependencies {
 
 export interface PluginPublishOptions {
   allowOverwriteCustom?: boolean;
+}
+
+export interface InstallPublishedReleaseOptions {
+  currentProfileId: ProfileId;
+  registryDb: Database.Database;
+  installerPaths?: ExternalPluginInstallerPaths;
+  installIdGenerator?: (pluginId: string, pluginsDir: string) => string;
+  dependencyInstaller?: (pluginDir: string, installId: string, logsDir: string) => void;
+  runtimeReload?: (pluginDir: string, installId: string) => RuntimeReloadResult | Promise<RuntimeReloadResult>;
 }
 
 export class PluginPublishService {
@@ -65,6 +82,29 @@ export class PluginPublishService {
       releaseDir,
       snapshotId: snapshot.id,
     };
+  }
+
+  installPublishedRelease(
+    blueprintId: string,
+    options: InstallPublishedReleaseOptions,
+  ): PluginInstallResult {
+    const release = this.publish(blueprintId);
+
+    return installExternalPlugin({
+      releaseDir: release.releaseDir,
+      source: {
+        type: "extracted_folder",
+        originalValue: release.releaseDir,
+        cachedAt: this.now(),
+      },
+      scope: "current_profile",
+      currentProfileId: options.currentProfileId,
+      paths: options.installerPaths,
+      registryDb: options.registryDb,
+      installIdGenerator: options.installIdGenerator,
+      dependencyInstaller: options.dependencyInstaller,
+      runtimeReload: options.runtimeReload,
+    });
   }
 }
 

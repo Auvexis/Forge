@@ -533,13 +533,13 @@
 - Modify: `server/src/core/routes/plugin-creator.routes.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-publish-installer-integration.test.ts`
 
-- [ ] Escrever teste que release publicada pode ser instalada no perfil atual via fluxo existente.
-- [ ] Confirmar que outros perfis nao recebem automaticamente.
-- [ ] Confirmar que registry recarrega apos install.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Integrar com `installExternalPlugin` ou caminho equivalente.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: install published plugin creator releases`
+- [x] Escrever teste que release publicada pode ser instalada no perfil atual via fluxo existente.
+- [x] Confirmar que outros perfis nao recebem automaticamente.
+- [x] Confirmar que registry recarrega apos install.
+- [x] Rodar teste e confirmar falha.
+- [x] Integrar com `installExternalPlugin` ou caminho equivalente.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: install published plugin creator releases`
 
 ### Task 6.5: Criar rotas versions, rollback e publish
 
