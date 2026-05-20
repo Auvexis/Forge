@@ -99,25 +99,25 @@
 
 ### Task 0.1: Confirmar branch e estado do worktree
 
-- [ ] Rodar `git branch --show-current`.
+- [x] Rodar `git branch --show-current`.
   - Esperado: `dev`.
-- [ ] Rodar `git status --short`.
+- [x] Rodar `git status --short`.
   - Esperado: entender alteracoes existentes antes de tocar arquivos.
-- [ ] Se houver mudancas de outros arquivos, nao reverter.
-- [ ] Commit: nao precisa, task de leitura.
+- [x] Se houver mudancas de outros arquivos, nao reverter.
+- [x] Commit: nao precisa, task de leitura.
 
 ### Task 0.2: Mapear pontos de integracao existentes
 
-- [ ] Ler `server/src/core/server.ts`.
-- [ ] Ler `server/src/core/routes/plugins.routes.ts`.
-- [ ] Ler `server/src/core/modules/plugins/external/plugin-installer.ts`.
-- [ ] Ler `server/src/core/modules/plugins/external/plugin-runtime-reload-service.ts`.
-- [ ] Ler `server/src/core/profiles/profile-paths.ts`.
-- [ ] Ler `server/src/core/runtime/sailor-home.ts`.
-- [ ] Ler `client-vue/src/app/router.ts`.
-- [ ] Ler `client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue`.
-- [ ] Registrar achados neste arquivo se algum contrato mudar o plano.
-- [ ] Commit: nao precisa, task de leitura.
+- [x] Ler `server/src/core/server.ts`.
+- [x] Ler `server/src/core/routes/plugins.routes.ts`.
+- [x] Ler `server/src/core/modules/plugins/external/plugin-installer.ts`.
+- [x] Ler `server/src/core/modules/plugins/external/plugin-runtime-reload-service.ts`.
+- [x] Ler `server/src/core/profiles/profile-paths.ts`.
+- [x] Ler `server/src/core/runtime/sailor-home.ts`.
+- [x] Ler `client-vue/src/app/router.ts`.
+- [x] Ler `client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue`.
+- [x] Registrar achados neste arquivo se algum contrato mudar o plano.
+- [x] Commit: nao precisa, task de leitura.
 
 ---
 
