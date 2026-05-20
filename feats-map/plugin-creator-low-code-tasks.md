@@ -332,14 +332,14 @@
 - Modify: `server/src/core/routes/plugin-creator.routes.ts`
 - Test: `server/src/core/routes/plugin-creator-test-method.routes.test.ts`
 
-- [ ] Escrever testes para `POST /plugin-creator/blueprints/:id/test-method`.
-- [ ] Validar payload com methodId, params e credentials de teste.
-- [ ] Confirmar que blueprint inexistente retorna 404.
-- [ ] Confirmar que secrets nao aparecem no response.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar endpoint chamando engine.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: expose plugin creator method testing`
+- [x] Escrever testes para `POST /plugin-creator/blueprints/:id/test-method`.
+- [x] Validar payload com methodId, params e credentials de teste.
+- [x] Confirmar que blueprint inexistente retorna 404.
+- [x] Confirmar que secrets nao aparecem no response.
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar endpoint chamando engine.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: expose plugin creator method testing`
 
 ---
 

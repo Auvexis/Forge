@@ -8,6 +8,7 @@ import { sailorHomePaths } from "../runtime/sailor-home.ts";
 import { PluginBlueprintRepository } from "../modules/plugin-creator/plugin-blueprint-repository.ts";
 import { PluginCreatorEngine } from "../modules/plugin-creator/plugin-creator-engine.ts";
 import { PluginScaffoldService } from "../modules/plugin-creator/plugin-scaffold-service.ts";
+import { PluginTestRunner } from "../modules/plugin-creator/plugin-test-runner.ts";
 import { parsePluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-validation.ts";
 import type { PluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-types.ts";
 
@@ -24,6 +25,13 @@ const createBlueprintSchema = z.object({
   iconDark: z.string().optional(),
   iconLight: z.string().optional(),
   includeDefaultMethod: z.boolean().optional(),
+});
+
+const testMethodSchema = z.object({
+  methodId: z.string().min(1),
+  params: z.record(z.string(), z.unknown()).default({}),
+  credentials: z.record(z.string(), z.unknown()).default({}),
+  timeoutMs: z.number().int().positive().optional(),
 });
 
 export default async function pluginCreatorRoutes(
@@ -94,6 +102,46 @@ export default async function pluginCreatorRoutes(
     });
   });
 
+  fastify.post("/plugin-creator/blueprints/:id/test-method", async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const validation = testMethodSchema.safeParse(req.body);
+    if (!validation.success) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Invalid plugin creator test payload",
+        error: formatZodError(validation.error),
+        data: null,
+      });
+    }
+
+    try {
+      const result = await getEngine().testMethod(id, validation.data);
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Plugin creator method tested",
+        error: null,
+        data: result,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "unknown_error";
+      if (message === "blueprint_not_found") {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Plugin creator blueprint not found",
+          error: "blueprint_not_found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Failed to test plugin creator method",
+        error: message,
+        data: null,
+      });
+    }
+  });
+
   fastify.put("/plugin-creator/blueprints/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
 
@@ -122,9 +170,11 @@ function createEngineForCurrentProfile(profileStore = new ProfileStore({ sailorH
   const profileId = currentProfile?.id ?? "default";
   const profilePaths = resolveProfilePaths({ profilesDir: sailorHomePaths.profilesDir, profileId });
 
+  const repository = new PluginBlueprintRepository(profilePaths);
   return new PluginCreatorEngine({
-    repository: new PluginBlueprintRepository(profilePaths),
+    repository,
     scaffold: new PluginScaffoldService(),
+    testRunner: new PluginTestRunner({ repository }),
   });
 }
 

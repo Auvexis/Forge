@@ -1,5 +1,6 @@
 import type { PluginBlueprint } from "./plugin-blueprint-types.ts";
 import type { PluginBlueprintRepository } from "./plugin-blueprint-repository.ts";
+import type { PluginTestRunner } from "./plugin-test-runner.ts";
 import type {
   CreatePluginBlueprintInput,
   PluginScaffoldService,
@@ -8,15 +9,25 @@ import type {
 export interface PluginCreatorEngineDependencies {
   repository: PluginBlueprintRepository;
   scaffold: PluginScaffoldService;
+  testRunner?: PluginTestRunner;
+}
+
+export interface TestPluginMethodInput {
+  methodId: string;
+  params: Record<string, unknown>;
+  credentials: Record<string, unknown>;
+  timeoutMs?: number;
 }
 
 export class PluginCreatorEngine {
   private readonly repository: PluginBlueprintRepository;
   private readonly scaffold: PluginScaffoldService;
+  private readonly testRunner?: PluginTestRunner;
 
   constructor(dependencies: PluginCreatorEngineDependencies) {
     this.repository = dependencies.repository;
     this.scaffold = dependencies.scaffold;
+    this.testRunner = dependencies.testRunner;
   }
 
   listBlueprints(): PluginBlueprint[] {
@@ -40,5 +51,30 @@ export class PluginCreatorEngine {
       throw new Error("Blueprint update failed");
     }
     return updated;
+  }
+
+  async testMethod(blueprintId: string, input: TestPluginMethodInput) {
+    if (!this.testRunner) {
+      throw new Error("Plugin test runner is not configured");
+    }
+
+    const blueprint = this.getBlueprint(blueprintId);
+    if (!blueprint) {
+      throw new Error("blueprint_not_found");
+    }
+
+    const method = blueprint.methods.find((candidate) => candidate.id === input.methodId);
+    if (!method) {
+      throw new Error("method_not_found");
+    }
+
+    return this.testRunner.run({
+      blueprintId,
+      methodId: input.methodId,
+      request: method.request,
+      params: input.params,
+      credentials: input.credentials,
+      timeoutMs: input.timeoutMs,
+    });
   }
 }
