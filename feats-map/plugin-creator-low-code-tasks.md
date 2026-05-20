@@ -841,14 +841,14 @@
 **Files:**
 - Test: `server/src/core/modules/plugin-creator/plugin-creator-secret-redaction.integration.test.ts`
 
-- [ ] Escrever teste que usa credential `apiKey=secret-token`.
-- [ ] Confirmar que `last-run.json` nao contem `secret-token`.
-- [ ] Confirmar que response da rota test-method nao contem `secret-token`.
-- [ ] Confirmar que snapshots nao contem credential de teste.
-- [ ] Rodar teste e confirmar falha se houver vazamento.
-- [ ] Ajustar mascaramento.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `test: prevent plugin creator secret leaks`
+- [x] Escrever teste que usa credential `apiKey=secret-token`.
+- [x] Confirmar que `last-run.json` nao contem `secret-token`.
+- [x] Confirmar que response da rota test-method nao contem `secret-token`.
+- [x] Confirmar que snapshots nao contem credential de teste.
+- [x] Rodar teste e confirmar falha se houver vazamento.
+- [x] Ajustar mascaramento.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `test: prevent plugin creator secret leaks`
 
 ### Task 11.3: Teste contra codigo arbitrario
 
