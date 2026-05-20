@@ -220,15 +220,15 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-scaffold-service.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-scaffold-service.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - criar plugin default com `version: 0.1.0`
   - criar canvas vazio
   - criar metodo default quando solicitado
   - ids previsiveis por gerador injetado em teste
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar service sem I/O direto; persistencia fica no repository.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: scaffold plugin creator blueprints`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar service sem I/O direto; persistencia fica no repository.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: scaffold plugin creator blueprints`
 
 ---
 
