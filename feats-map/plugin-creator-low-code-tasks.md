@@ -407,17 +407,17 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-manifest-generator.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-manifest-generator.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - metadata vira manifest valido
   - inputs viram JSON Schema
   - credential API key vira auth schema
   - metadados `x-created-by`, `x-creator-version`, `x-editable-low-code`
   - manifest invalido falha antes de salvar
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar generator.
-- [ ] Reusar validador existente em `server/src/core/modules/plugins/validator.ts` se aplicavel.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: generate plugin creator manifests`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar generator.
+- [x] Reusar validador existente em `server/src/core/modules/plugins/validator.ts` se aplicavel.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: generate plugin creator manifests`
 
 ### Task 5.2: Gerar methods.ts seguro
 

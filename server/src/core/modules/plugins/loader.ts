@@ -35,6 +35,10 @@ function buildSailorManifestSchema(): any {
   const schema = structuredClone(manifestSchema as any);
   const triggerDefinition = schema.$defs.TriggerDefinition;
 
+  schema.properties["x-created-by"] = { const: "sailor-plugin-creator" };
+  schema.properties["x-creator-version"] = { type: "string" };
+  schema.properties["x-editable-low-code"] = { type: "boolean" };
+
   triggerDefinition.required = ["metadata", "delivery", "payloadSchema"];
   triggerDefinition.additionalProperties = false;
   triggerDefinition.properties.delivery = {
