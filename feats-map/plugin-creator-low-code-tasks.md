@@ -873,10 +873,10 @@
 
 ### Task 11.5: Build frontend
 
-- [ ] Rodar `cd client-vue; npm run build`.
-- [ ] Corrigir erros de typecheck/build.
-- [ ] Rodar novamente ate passar.
-- [ ] Commit: `chore: fix plugin creator client build`
+- [x] Rodar `cd client-vue; npm run build`.
+- [x] Corrigir erros de typecheck/build.
+- [x] Rodar novamente ate passar.
+- [x] Commit: `chore: fix plugin creator client build`
 
 ### Task 11.6: Smoke manual
 
