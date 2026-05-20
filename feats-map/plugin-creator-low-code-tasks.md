@@ -638,12 +638,12 @@
 - Modify: `client-vue/src/app/router.ts`
 - Test: `client-vue/src/app/router-plugin-creator.contract.test.ts`
 
-- [ ] Escrever teste que `/plugin-creator` e `/plugin-creator/:pluginId` existem.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Criar pagina com header e canvas placeholder.
-- [ ] Nao usar `BaseModal.vue`.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator route`
+- [x] Escrever teste que `/plugin-creator` e `/plugin-creator/:pluginId` existem.
+- [x] Rodar teste e confirmar falha.
+- [x] Criar pagina com header e canvas placeholder.
+- [x] Nao usar `BaseModal.vue`.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator route`
 
 ---
 

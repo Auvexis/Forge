@@ -1,7 +1,10 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history:
+    typeof window === 'undefined'
+      ? createMemoryHistory(import.meta.env?.BASE_URL ?? '/')
+      : createWebHistory(import.meta.env?.BASE_URL ?? '/'),
   routes: [
     {
       path: '/',
@@ -53,6 +56,18 @@ const router = createRouter({
     {
       path: '/plugins',
       redirect: '/universe',
+    },
+    {
+      path: '/plugin-creator',
+      name: 'plugin-creator',
+      component: () => import('@/app/pages/PluginCreatorPage.vue'),
+      meta: { title: 'Plugin Creator' },
+    },
+    {
+      path: '/plugin-creator/:pluginId',
+      name: 'plugin-creator-detail',
+      component: () => import('@/app/pages/PluginCreatorPage.vue'),
+      meta: { title: 'Plugin Creator' },
     },
     {
       path: '/:pathMatch(.*)*',
