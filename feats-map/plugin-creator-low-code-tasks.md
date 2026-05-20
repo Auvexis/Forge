@@ -240,16 +240,16 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-creator-engine.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-creator-engine.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - `listBlueprints(profileId)`
   - `createBlueprint(profileId, input)`
   - `getBlueprint(profileId, id)`
   - `updateBlueprint(profileId, id, input)`
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar engine injetando repository, paths e scaffold.
-- [ ] Garantir que profile ativo entra por parametro, nao global escondido.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator engine crud`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar engine injetando repository, paths e scaffold.
+- [x] Garantir que profile ativo entra por parametro, nao global escondido.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator engine crud`
 
 ### Task 2.2: Criar rotas CRUD
 
