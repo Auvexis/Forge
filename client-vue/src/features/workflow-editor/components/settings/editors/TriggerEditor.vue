@@ -438,13 +438,27 @@
               >
                 <span class="te-label">{{ propSchema['x-label'] || propKey }}</span>
                 <p v-if="propSchema.description" class="te-hint">{{ propSchema.description }}</p>
-                <BaseVariableInput
-                  :field-type="triggerParamFieldType(propSchema)"
-                  :placeholder="triggerParamPlaceholder(propSchema)"
-                  :rows="triggerParamFieldType(propSchema) === 'textarea' ? 3 : undefined"
-                  :model-value="String((node.data as unknown as WorkflowTrigger).triggerParams?.[String(propKey)] ?? '')"
-                  @update:model-value="updateTriggerParam(String(propKey), $event as string)"
-                />
+                <div class="te-variable-field">
+                  <BaseVariableInput
+                    :field-type="triggerParamFieldType(propSchema)"
+                    :placeholder="triggerParamPlaceholder(propSchema)"
+                    :rows="triggerParamFieldType(propSchema) === 'textarea' ? 3 : undefined"
+                    :model-value="String((node.data as unknown as WorkflowTrigger).triggerParams?.[String(propKey)] ?? '')"
+                    @update:model-value="updateTriggerParam(String(propKey), $event as string)"
+                    @focus="rememberTriggerParamSelection(String(propKey), $event)"
+                    @keyup="rememberTriggerParamSelection(String(propKey), $event)"
+                    @mouseup="rememberTriggerParamSelection(String(propKey), $event)"
+                    @click="rememberTriggerParamSelection(String(propKey), $event)"
+                    @variable-click="toggleTriggerParamPicker(String(propKey))"
+                  />
+
+                  <div
+                    v-if="activeTriggerParamPicker === String(propKey)"
+                    class="te-variable-picker-popover"
+                  >
+                    <VariablePicker @select="selectTriggerParamVariable(String(propKey), $event)" />
+                  </div>
+                </div>
                 <p v-if="triggerParamHint(propSchema)" class="te-hint">{{ triggerParamHint(propSchema) }}</p>
               </div>
             </div>
@@ -515,6 +529,7 @@ import BaseVariableInput from '@/shared/components/base/BaseVariableInput.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import FormThemeMenu from '../../form/FormThemeMenu.vue'
 import FormFieldsEditor from '../../form/FormFieldsEditor.vue'
+import VariablePicker from '../expressions/VariablePicker.vue'
 import { API_BASE_URL } from '@/core/constants/app'
 import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowsApi } from '@/core/api/workflows.api'
@@ -524,6 +539,8 @@ import { useProfileStore } from '@/shared/stores/profile.store'
 import { useToast } from '@/shared/composables/useToast'
 import { onMounted } from 'vue'
 import { buildTriggerFormProdUrl, buildTriggerFormTestUrl, buildTriggerWebhookProdUrl } from './triggerRuntimeUrls'
+import type { ExpressionItem, TextSelectionRange } from '../expressions/expressionVariables'
+import { insertExpressionToken } from '../expressions/expressionVariables'
 
 const props = defineProps<NodeEditorProps>()
 const workflowStore = useWorkflowStore()
@@ -744,6 +761,8 @@ function saveFormFields(next: FormTriggerField[]) {
 // ── Plugin Trigger ──────────────────────────────────────────
 
 const allPlugins = ref<PluginSummary[]>([])
+const activeTriggerParamPicker = ref<string | null>(null)
+const triggerParamSelections = ref<Record<string, TextSelectionRange>>({})
 
 // Fetch plugins lazily when the trigger type is "plugin"
 async function loadPlugins() {
@@ -799,6 +818,37 @@ function onPluginChange(pluginId: string) {
 function updateTriggerParam(key: string, value: string) {
   const current = (props.node.data as unknown as WorkflowTrigger).triggerParams ?? {}
   props.updateNodeData({ triggerParams: { ...current, [key]: value } })
+}
+
+function rememberTriggerParamSelection(key: string, event: Event) {
+  const target = event.target as HTMLInputElement | HTMLTextAreaElement | null
+  const fallback = String((props.node.data as unknown as WorkflowTrigger).triggerParams?.[key] ?? '').length
+  if (!target || typeof target.selectionStart !== 'number') {
+    triggerParamSelections.value = {
+      ...triggerParamSelections.value,
+      [key]: { start: fallback, end: fallback },
+    }
+    return
+  }
+
+  triggerParamSelections.value = {
+    ...triggerParamSelections.value,
+    [key]: {
+      start: target.selectionStart ?? fallback,
+      end: target.selectionEnd ?? target.selectionStart ?? fallback,
+    },
+  }
+}
+
+function toggleTriggerParamPicker(key: string) {
+  activeTriggerParamPicker.value = activeTriggerParamPicker.value === key ? null : key
+}
+
+function selectTriggerParamVariable(key: string, item: ExpressionItem) {
+  const current = String((props.node.data as unknown as WorkflowTrigger).triggerParams?.[key] ?? '')
+  const next = insertExpressionToken(current, item.token, triggerParamSelections.value[key])
+  updateTriggerParam(key, next)
+  activeTriggerParamPicker.value = null
 }
 
 function triggerParamFieldType(propSchema: Record<string, any>): 'input' | 'textarea' {
@@ -962,6 +1012,18 @@ onUnmounted(() => cleanup())
   padding: 0;
   accent-color: var(--sailor-accent);
   cursor: pointer;
+}
+
+.te-variable-field {
+  position: relative;
+  width: 100%;
+}
+
+.te-variable-picker-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 10030;
 }
 
 /* ── URL group (test + prod stacked) ───────── */

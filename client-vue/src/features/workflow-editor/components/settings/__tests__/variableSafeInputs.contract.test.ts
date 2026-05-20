@@ -35,9 +35,12 @@ describe('workflow editor variable-safe inputs', () => {
 
   it('uses BaseVariableInput for trigger slugs, secrets, cron, and plugin trigger params', () => {
     assert.match(triggerEditorSource, /import BaseVariableInput/)
+    assert.match(triggerEditorSource, /import VariablePicker/)
+    assert.match(triggerEditorSource, /insertExpressionToken/)
     assert.match(triggerEditorSource, /webhookSecret/)
     assert.match(triggerEditorSource, /cronExpression/)
     assert.match(triggerEditorSource, /triggerParams/)
+    assert.match(triggerEditorSource, /@variable-click="toggleTriggerParamPicker\(String\(propKey\)\)"/)
     assert.doesNotMatch(triggerEditorSource, /<BaseInput\b[^>]*webhookSecret/)
     assert.doesNotMatch(triggerEditorSource, /<BaseInput\b[^>]*cronExpression/)
     assert.doesNotMatch(triggerEditorSource, /<BaseInput\b[^>]*triggerParams/)
