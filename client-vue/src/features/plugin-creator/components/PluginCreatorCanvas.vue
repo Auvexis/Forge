@@ -3,6 +3,7 @@
     <VueFlow
       v-model:nodes="nodes"
       v-model:edges="edges"
+      :node-types="nodeTypes"
       :default-zoom="1"
       :min-zoom="0.4"
       :max-zoom="1.8"
@@ -23,13 +24,24 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { VueFlow, type Edge, type Node } from '@vue-flow/core'
+import { VueFlow, type Edge, type Node, type NodeTypesObject } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import type { PluginBlueprint } from '../../../core/types/plugin-creator.types.ts'
+import MethodNode from './nodes/MethodNode.vue'
+import InputNode from './nodes/InputNode.vue'
+import CredentialNode from './nodes/CredentialNode.vue'
+import RequestNode from './nodes/RequestNode.vue'
 
 const props = defineProps<{
   blueprint?: PluginBlueprint | null
 }>()
+
+const nodeTypes = {
+  method: MethodNode,
+  input: InputNode,
+  credential: CredentialNode,
+  request: RequestNode,
+} as unknown as NodeTypesObject
 
 const nodes = computed<Node[]>({
   get() {

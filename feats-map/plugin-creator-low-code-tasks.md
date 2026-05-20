@@ -741,11 +741,11 @@
 - Create: `client-vue/src/features/plugin-creator/components/nodes/RequestNode.vue`
 - Test: `client-vue/src/features/plugin-creator/components/nodes/pluginCreatorNodes.contract.test.ts`
 
-- [ ] Escrever teste que cada node renderiza nome, handle e handles de conexao.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar nodes.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator mvp nodes`
+- [x] Escrever teste que cada node renderiza nome, handle e handles de conexao.
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar nodes.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator mvp nodes`
 
 ### Task 9.6: Criar inspector
 
