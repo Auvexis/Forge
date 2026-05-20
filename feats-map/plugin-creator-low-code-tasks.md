@@ -585,13 +585,13 @@
 - Modify: `server/src/core/routes/plugin-creator.routes.ts`
 - Test: `server/src/core/routes/plugin-creator-export.routes.test.ts`
 
-- [ ] Escrever teste para `GET /plugin-creator/blueprints/:id/export.zip`.
-- [ ] Confirmar content-type de ZIP.
-- [ ] Confirmar erro quando nao existe release.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar rota.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: expose plugin creator zip export`
+- [x] Escrever teste para `GET /plugin-creator/blueprints/:id/export.zip`.
+- [x] Confirmar content-type de ZIP.
+- [x] Confirmar erro quando nao existe release.
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar rota.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: expose plugin creator zip export`
 
 ---
 

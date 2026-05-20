@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
+import fs from "node:fs";
 import { z } from "zod";
 
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
@@ -11,6 +12,7 @@ import { PluginScaffoldService } from "../modules/plugin-creator/plugin-scaffold
 import { PluginTestRunner } from "../modules/plugin-creator/plugin-test-runner.ts";
 import { PluginVersionService } from "../modules/plugin-creator/plugin-version-service.ts";
 import { PluginPublishService } from "../modules/plugin-creator/plugin-publish-service.ts";
+import { PluginExportService } from "../modules/plugin-creator/plugin-export-service.ts";
 import { parsePluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-validation.ts";
 import type { PluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-types.ts";
 
@@ -281,6 +283,36 @@ export default async function pluginCreatorRoutes(
     }
   });
 
+  fastify.get("/plugin-creator/blueprints/:id/export.zip", async (req, reply) => {
+    const { id } = req.params as { id: string };
+
+    try {
+      const exported = getEngine().exportZip(id);
+      return reply
+        .code(200)
+        .type("application/zip")
+        .header("content-disposition", `attachment; filename="${id}.zip"`)
+        .send(fs.readFileSync(exported.zipPath));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "unknown_error";
+      if (message === "blueprint_not_found") {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Plugin creator blueprint not found",
+          error: "blueprint_not_found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Failed to export plugin creator release",
+        error: message,
+        data: null,
+      });
+    }
+  });
+
   fastify.put("/plugin-creator/blueprints/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
 
@@ -318,6 +350,7 @@ function createEngineForCurrentProfile(profileStore = new ProfileStore({ sailorH
     testRunner: new PluginTestRunner({ repository }),
     versionService,
     publishService: new PluginPublishService({ profilePaths, repository, versionService }),
+    exportService: new PluginExportService({ profilePaths }),
   });
 }
 

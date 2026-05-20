@@ -5,6 +5,7 @@ import type { ProfilePaths } from "../../profiles/profile-paths.ts";
 import { generateCompletePlugin } from "./plugin-code-generator.ts";
 import type { PluginVersionService } from "./plugin-version-service.ts";
 import type { PluginPublishService } from "./plugin-publish-service.ts";
+import type { PluginExportService } from "./plugin-export-service.ts";
 import type {
   CreatePluginBlueprintInput,
   PluginScaffoldService,
@@ -17,6 +18,7 @@ export interface PluginCreatorEngineDependencies {
   profilePaths?: ProfilePaths;
   versionService?: PluginVersionService;
   publishService?: PluginPublishService;
+  exportService?: PluginExportService;
 }
 
 export interface TestPluginMethodInput {
@@ -40,6 +42,7 @@ export class PluginCreatorEngine {
   private readonly profilePaths?: ProfilePaths;
   private readonly versionService?: PluginVersionService;
   private readonly publishService?: PluginPublishService;
+  private readonly exportService?: PluginExportService;
 
   constructor(dependencies: PluginCreatorEngineDependencies) {
     this.repository = dependencies.repository;
@@ -48,6 +51,7 @@ export class PluginCreatorEngine {
     this.profilePaths = dependencies.profilePaths;
     this.versionService = dependencies.versionService;
     this.publishService = dependencies.publishService;
+    this.exportService = dependencies.exportService;
   }
 
   listBlueprints(): PluginBlueprint[] {
@@ -151,5 +155,18 @@ export class PluginCreatorEngine {
     }
 
     return this.publishService.publish(blueprintId);
+  }
+
+  exportZip(blueprintId: string) {
+    if (!this.exportService) {
+      throw new Error("Plugin export service is not configured");
+    }
+
+    const blueprint = this.getBlueprint(blueprintId);
+    if (!blueprint) {
+      throw new Error("blueprint_not_found");
+    }
+
+    return this.exportService.exportZip(blueprintId, blueprint.metadata.version);
   }
 }
