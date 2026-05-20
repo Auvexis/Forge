@@ -368,17 +368,17 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-error-mapper.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-error-mapper.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - `status == 401`
   - `status >= 500`
   - `body.success == false`
   - mensagem vinda de `body.error.message`
   - fallback sem regra retorna null
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar evaluator com operadores permitidos.
-- [ ] Nao permitir expressao JS livre.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: map plugin creator errors`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar evaluator com operadores permitidos.
+- [x] Nao permitir expressao JS livre.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: map plugin creator errors`
 
 ### Task 4.3: Adicionar helpers de erro para codigo gerado
 
