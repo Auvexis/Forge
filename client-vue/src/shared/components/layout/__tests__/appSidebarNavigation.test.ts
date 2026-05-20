@@ -33,16 +33,19 @@ describe('app sidebar navigation', () => {
     const items = sidebarSections.flatMap((section) => section.items)
 
     assert.match(items.find((item) => item.id === 'workflows')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
-    assert.match(items.find((item) => item.id === 'agents')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
     assert.match(items.find((item) => item.id === 'universe')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
+    assert.match(
+      items.find((item) => item.id === 'plugin-creator')?.accent ?? '',
+      /^#[0-9a-fA-F]{6}$/,
+    )
   })
 
   it('provides routes for each visible suite navigation item', () => {
     const items = sidebarSections.flatMap((section) => section.items)
 
     assert.equal(items.find((item) => item.id === 'workflows')?.route, '/workflows')
-    assert.equal(items.find((item) => item.id === 'agents')?.route, '/agents')
     assert.equal(items.find((item) => item.id === 'universe')?.route, '/universe')
+    assert.equal(items.find((item) => item.id === 'plugin-creator')?.route, '/plugin-creator')
   })
 
   it('opens the external plugin installer through a dispatched sidebar intent', () => {
@@ -92,6 +95,7 @@ describe('app sidebar navigation', () => {
     assert.equal(sidebarPageLabelForPath('/workflows'), 'Workflow')
     assert.equal(sidebarPageLabelForPath('/workflows/example-id'), 'Workflow')
     assert.equal(sidebarPageLabelForPath('/universe'), 'Universe')
+    assert.equal(sidebarPageLabelForPath('/plugin-creator'), 'Plugin Creator')
   })
 
   it('matches the reference sidebar spacing rhythm', () => {

@@ -216,6 +216,39 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     }
   }
 
+  async function generatePreview() {
+    if (!activeBlueprint.value) return null
+    isLoading.value = true
+    error.value = null
+    try {
+      const result = await apiClient.value.generatePreview(activeBlueprint.value.id)
+      lastPreview.value = result
+      return result
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to generate plugin preview'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function publishActiveBlueprint() {
+    if (!activeBlueprint.value) return null
+    isSaving.value = true
+    error.value = null
+    try {
+      const release = await apiClient.value.publish(activeBlueprint.value.id)
+      lastRelease.value = release
+      await loadVersions()
+      return release
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to publish plugin'
+      throw err
+    } finally {
+      isSaving.value = false
+    }
+  }
+
   async function rollbackToSnapshot(snapshotId: string) {
     if (!activeBlueprint.value) return null
     isSaving.value = true
@@ -406,6 +439,8 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     saveDraft,
     runMethodTest,
     loadVersions,
+    generatePreview,
+    publishActiveBlueprint,
     rollbackToSnapshot,
     updateMetadata,
     addNode,

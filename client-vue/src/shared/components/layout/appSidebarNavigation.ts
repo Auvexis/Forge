@@ -65,6 +65,14 @@ export const sidebarSections: SidebarSection[] = [
     label: 'Plugins',
     items: [
       {
+        id: 'plugin-creator',
+        label: 'Plugin Creator',
+        description: 'Create low-code SDK plugins from visual API methods.',
+        icon: 'blocks',
+        accent: '#246bfe',
+        route: '/plugin-creator',
+      },
+      {
         id: 'plugin-external-installer',
         label: 'Installer',
         description: 'Install plugins from the external repository or local files.',

@@ -894,6 +894,19 @@
 - [ ] Confirmar draft quebrado nao quebra plugin publicado.
 - [ ] Commit: nao precisa se nao houver mudanca.
 
+### Task 11.7: Corrigir lacunas de UI encontradas no smoke
+
+- [x] Adicionar item `Plugin Creator` na sidebar em `client-vue/src/shared/components/layout/appSidebarNavigation.ts`.
+- [x] Adicionar contrato para rota/sidebar marcar `/plugin-creator` como label ativo `Plugin Creator`.
+- [x] Fazer `PluginCreatorPage.vue` carregar blueprint da rota, abrir o primeiro existente ou criar draft default com metodo inicial.
+- [x] Conectar Run, Save, Publish, Undo, Redo e Clear Execution da toolbar/header na store.
+- [x] Adicionar actions `generatePreview` e `publishActiveBlueprint` na store.
+- [x] Rodar testes focados do Plugin Creator e sidebar.
+- [x] Rodar `npm run type-check`.
+- [x] Rodar `npm run build-only`.
+- [ ] Smoke visual via Browser/Playwright.
+  - Bloqueado: Browser plugin deu timeout abrindo `localhost:23802`/`127.0.0.1:23802`; Playwright nao esta instalado no `client-vue`.
+
 ---
 
 ## Ordem Recomendada de Execucao
