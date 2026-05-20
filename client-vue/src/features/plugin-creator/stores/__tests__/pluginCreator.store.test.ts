@@ -100,4 +100,58 @@ describe('plugin creator store', () => {
     store.redo()
     assert.equal(store.activeBlueprint?.canvas.nodes.node_method?.data.name, 'Get Lead')
   })
+
+  it('edits method, input, credential and request details', () => {
+    const store = usePluginCreatorStore()
+    const blueprint = createBlueprint()
+    blueprint.auth.fields = [
+      {
+        name: 'apiKey',
+        label: 'API Key',
+        target: 'header',
+        headerName: 'Authorization',
+      },
+    ]
+    blueprint.methods = [
+      {
+        id: 'method_1',
+        handle: 'listLeads',
+        name: 'List Leads',
+        description: 'List CRM leads',
+        inputs: [{ name: 'limit', type: 'number', required: false }],
+        request: {
+          method: 'GET',
+          url: 'https://api.example.com/leads',
+          headers: [{ name: 'Accept', value: 'application/json' }],
+          query: [{ name: 'limit', value: '{{ params.limit }}' }],
+          body: { type: 'none' },
+        },
+        responseMapping: [],
+        errorMapping: [],
+      },
+    ]
+    store.setActiveBlueprint(blueprint)
+
+    store.updateMethod('method_1', { name: 'Search Leads', handle: 'searchLeads' })
+    store.updateMethodInput('method_1', 'limit', { name: 'pageSize', required: true })
+    store.updateCredentialField('apiKey', { label: 'Bearer token', headerName: 'X-API-Key' })
+    store.updateMethodRequest('method_1', {
+      method: 'POST',
+      url: 'https://api.example.com/search',
+      headers: [{ name: 'Content-Type', value: 'application/json' }],
+      query: [{ name: 'q', value: '{{ params.query }}' }],
+      body: { type: 'json', value: { q: '{{ params.query }}' } },
+    })
+
+    const method = store.activeBlueprint?.methods[0]
+    assert.equal(method?.name, 'Search Leads')
+    assert.equal(method?.handle, 'searchLeads')
+    assert.equal(method?.inputs[0]?.name, 'pageSize')
+    assert.equal(method?.inputs[0]?.required, true)
+    assert.equal(store.activeBlueprint?.auth.fields[0]?.label, 'Bearer token')
+    assert.equal(store.activeBlueprint?.auth.fields[0]?.headerName, 'X-API-Key')
+    assert.equal(method?.request.method, 'POST')
+    assert.equal(method?.request.url, 'https://api.example.com/search')
+    assert.deepEqual(method?.request.body, { type: 'json', value: { q: '{{ params.query }}' } })
+  })
 })

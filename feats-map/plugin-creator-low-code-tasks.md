@@ -753,16 +753,16 @@
 - Create: `client-vue/src/features/plugin-creator/components/PluginCreatorInspector.vue`
 - Test: `client-vue/src/features/plugin-creator/components/PluginCreatorInspector.contract.test.ts`
 
-- [ ] Escrever testes para editar:
+- [x] Escrever testes para editar:
   - metadata do plugin
   - metadata do metodo
   - input field
   - credential field
   - request URL/method/header/query/body
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar inspector usando inputs base existentes.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator inspector`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar inspector usando inputs base existentes.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator inspector`
 
 ---
 

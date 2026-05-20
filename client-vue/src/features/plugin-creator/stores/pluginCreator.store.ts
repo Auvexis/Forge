@@ -4,8 +4,12 @@ import { defineStore } from 'pinia'
 import type {
   CreatePluginBlueprintPayload,
   PluginBlueprint,
+  PluginBlueprintCredentialField,
+  PluginBlueprintInput,
   PluginBlueprintMetadata,
+  PluginBlueprintMethod,
   PluginBlueprintNode,
+  PluginBlueprintRequest,
   PluginCreatorGeneratePreviewResult,
   PluginCreatorRelease,
   PluginCreatorTestMethodPayload,
@@ -204,6 +208,72 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     }
   }
 
+  function updateMethod(methodId: string, payload: Partial<PluginBlueprintMethod>) {
+    if (!activeBlueprint.value) return
+    const index = activeBlueprint.value.methods.findIndex((method) => method.id === methodId)
+    if (index < 0) return
+    const existing = activeBlueprint.value.methods[index]
+    if (!existing) return
+    recordHistory()
+    activeBlueprint.value.methods[index] = {
+      ...existing,
+      ...payload,
+      request: payload.request
+        ? { ...existing.request, ...payload.request }
+        : existing.request,
+    }
+  }
+
+  function updateMethodInput(
+    methodId: string,
+    inputName: string,
+    payload: Partial<PluginBlueprintInput>,
+  ) {
+    if (!activeBlueprint.value) return
+    const method = activeBlueprint.value.methods.find((candidate) => candidate.id === methodId)
+    if (!method) return
+    const index = method.inputs.findIndex((input) => input.name === inputName)
+    if (index < 0) return
+    const existing = method.inputs[index]
+    if (!existing) return
+    recordHistory()
+    method.inputs[index] = {
+      ...existing,
+      ...payload,
+    }
+  }
+
+  function updateCredentialField(
+    fieldName: string,
+    payload: Partial<PluginBlueprintCredentialField>,
+  ) {
+    if (!activeBlueprint.value) return
+    const index = activeBlueprint.value.auth.fields.findIndex((field) => field.name === fieldName)
+    if (index < 0) return
+    const existing = activeBlueprint.value.auth.fields[index]
+    if (!existing) return
+    recordHistory()
+    activeBlueprint.value.auth.fields[index] = {
+      ...existing,
+      ...payload,
+    }
+  }
+
+  function updateMethodRequest(
+    methodId: string,
+    payload: Partial<PluginBlueprintRequest>,
+  ) {
+    if (!activeBlueprint.value) return
+    const method = activeBlueprint.value.methods.find((candidate) => candidate.id === methodId)
+    if (!method) return
+    recordHistory()
+    method.request = {
+      ...method.request,
+      ...payload,
+      body: payload.body ? { ...method.request.body, ...payload.body } : method.request.body,
+    }
+  }
+
   function undo() {
     if (!activeBlueprint.value) return
     const previous = history.undo(snapshot(activeBlueprint.value))
@@ -240,6 +310,10 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     updateMetadata,
     addNode,
     updateNode,
+    updateMethod,
+    updateMethodInput,
+    updateCredentialField,
+    updateMethodRequest,
     undo,
     redo,
   }

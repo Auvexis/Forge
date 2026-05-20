@@ -11,15 +11,24 @@
       </aside>
 
       <div class="plugin-creator-page__canvas-shell">
-        <PluginCreatorCanvas :blueprint="store.activeBlueprint" />
+        <PluginCreatorCanvas
+          :blueprint="store.activeBlueprint"
+          @select-node="selectedNodeId = $event"
+        />
         <PluginCreatorFloatingToolbar @add-item="isAddPanelOpen = true" />
         <PluginCreatorAddItemPanel :open="isAddPanelOpen" @close="isAddPanelOpen = false" />
       </div>
 
-      <aside class="plugin-creator-page__inspector">
-        <span class="plugin-creator-page__rail-title">Inspector</span>
-        <p>Select a method or request block to edit plugin metadata.</p>
-      </aside>
+      <PluginCreatorInspector
+        :blueprint="store.activeBlueprint"
+        :selected-node-id="selectedNodeId"
+        @update-metadata="store.updateMetadata"
+        @update-node="store.updateNode"
+        @update-method="store.updateMethod"
+        @update-input="store.updateMethodInput"
+        @update-credential="store.updateCredentialField"
+        @update-request="store.updateMethodRequest"
+      />
     </section>
   </main>
 </template>
@@ -29,11 +38,13 @@ import PluginCreatorHeader from '@/features/plugin-creator/components/PluginCrea
 import PluginCreatorCanvas from '@/features/plugin-creator/components/PluginCreatorCanvas.vue'
 import PluginCreatorFloatingToolbar from '@/features/plugin-creator/components/PluginCreatorFloatingToolbar.vue'
 import PluginCreatorAddItemPanel from '@/features/plugin-creator/components/PluginCreatorAddItemPanel.vue'
+import PluginCreatorInspector from '@/features/plugin-creator/components/PluginCreatorInspector.vue'
 import { usePluginCreatorStore } from '@/features/plugin-creator'
 import { ref } from 'vue'
 
 const store = usePluginCreatorStore()
 const isAddPanelOpen = ref(false)
+const selectedNodeId = ref<string | null>(null)
 </script>
 
 <style scoped>
@@ -69,16 +80,10 @@ const isAddPanelOpen = ref(false)
   min-height: 0;
 }
 
-.plugin-creator-page__rail,
-.plugin-creator-page__inspector {
+.plugin-creator-page__rail {
   padding: 16px;
   border-right: 1px solid #d9e1ec;
   background: #ffffff;
-}
-
-.plugin-creator-page__inspector {
-  border-right: 0;
-  border-left: 1px solid #d9e1ec;
 }
 
 .plugin-creator-page__rail-title {
@@ -96,27 +101,15 @@ const isAddPanelOpen = ref(false)
   padding: 0 10px;
 }
 
-.plugin-creator-page__inspector p {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #526173;
-}
-
 @media (max-width: 900px) {
   .plugin-creator-page__workspace {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(360px, 1fr) auto;
   }
 
-  .plugin-creator-page__rail,
-  .plugin-creator-page__inspector {
+  .plugin-creator-page__rail {
     border: 0;
     border-bottom: 1px solid #d9e1ec;
-  }
-
-  .plugin-creator-page__inspector {
-    border-top: 1px solid #d9e1ec;
   }
 }
 </style>

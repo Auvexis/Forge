@@ -12,6 +12,7 @@
       :nodes-connectable="true"
       :elements-selectable="true"
       class="plugin-creator-canvas__flow"
+      @node-click="onNodeClick"
     >
       <Background :gap="24" :size="1" color="var(--sailor-canvas-grid, #cbd5e1)" />
 
@@ -34,6 +35,10 @@ import RequestNode from './nodes/RequestNode.vue'
 
 const props = defineProps<{
   blueprint?: PluginBlueprint | null
+}>()
+
+const emit = defineEmits<{
+  'select-node': [nodeId: string]
 }>()
 
 const nodeTypes = {
@@ -74,6 +79,12 @@ const edges = computed<Edge[]>({
     // Store sync lands in a later inspector/canvas task.
   },
 })
+
+function onNodeClick(event: { node?: Node }) {
+  if (event.node?.id) {
+    emit('select-node', event.node.id)
+  }
+}
 </script>
 
 <style scoped>
