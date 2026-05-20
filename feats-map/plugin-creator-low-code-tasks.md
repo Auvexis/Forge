@@ -129,10 +129,10 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-blueprint-types.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-blueprint-types.test.ts`
 
-- [ ] Escrever teste de shape minimo do blueprint.
+- [x] Escrever teste de shape minimo do blueprint.
   - Deve aceitar metadata, icons, auth, methods vazios e canvas vazio.
-- [ ] Rodar teste e confirmar falha por arquivo inexistente.
-- [ ] Criar tipos:
+- [x] Rodar teste e confirmar falha por arquivo inexistente.
+- [x] Criar tipos:
   - `PluginBlueprint`
   - `PluginBlueprintMetadata`
   - `PluginBlueprintIcons`
@@ -146,8 +146,8 @@
   - `PluginCreatorSnapshot`
   - `PluginCreatorRelease`
   - `PluginCreatorLastRun`
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator blueprint types`
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator blueprint types`
 
 ### Task 1.2: Criar validacao Zod do blueprint
 
