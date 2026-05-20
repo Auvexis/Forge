@@ -10,6 +10,7 @@ import { PluginCreatorEngine } from "../modules/plugin-creator/plugin-creator-en
 import { PluginScaffoldService } from "../modules/plugin-creator/plugin-scaffold-service.ts";
 import { PluginTestRunner } from "../modules/plugin-creator/plugin-test-runner.ts";
 import { PluginVersionService } from "../modules/plugin-creator/plugin-version-service.ts";
+import { PluginPublishService } from "../modules/plugin-creator/plugin-publish-service.ts";
 import { parsePluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-validation.ts";
 import type { PluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-types.ts";
 
@@ -33,6 +34,10 @@ const testMethodSchema = z.object({
   params: z.record(z.string(), z.unknown()).default({}),
   credentials: z.record(z.string(), z.unknown()).default({}),
   timeoutMs: z.number().int().positive().optional(),
+});
+
+const rollbackSchema = z.object({
+  snapshotId: z.string().min(1),
 });
 
 export default async function pluginCreatorRoutes(
@@ -174,6 +179,108 @@ export default async function pluginCreatorRoutes(
     }
   });
 
+  fastify.get("/plugin-creator/blueprints/:id/versions", async (req, reply) => {
+    const { id } = req.params as { id: string };
+
+    try {
+      const versions = getEngine().listVersions(id);
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Plugin creator versions fetched successfully",
+        error: null,
+        data: versions,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "unknown_error";
+      if (message === "blueprint_not_found") {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Plugin creator blueprint not found",
+          error: "blueprint_not_found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Failed to fetch plugin creator versions",
+        error: message,
+        data: null,
+      });
+    }
+  });
+
+  fastify.post("/plugin-creator/blueprints/:id/rollback", async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const validation = rollbackSchema.safeParse(req.body);
+    if (!validation.success) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Invalid plugin creator rollback payload",
+        error: formatZodError(validation.error),
+        data: null,
+      });
+    }
+
+    try {
+      const blueprint = getEngine().rollback(id, validation.data.snapshotId);
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Plugin creator blueprint rolled back",
+        error: null,
+        data: blueprint,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "unknown_error";
+      if (message === "blueprint_not_found") {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Plugin creator blueprint not found",
+          error: "blueprint_not_found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Failed to rollback plugin creator blueprint",
+        error: message,
+        data: null,
+      });
+    }
+  });
+
+  fastify.post("/plugin-creator/blueprints/:id/publish", async (req, reply) => {
+    const { id } = req.params as { id: string };
+
+    try {
+      const release = getEngine().publish(id);
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Plugin creator blueprint published",
+        error: null,
+        data: release,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "unknown_error";
+      if (message === "blueprint_not_found") {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Plugin creator blueprint not found",
+          error: "blueprint_not_found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Failed to publish plugin creator blueprint",
+        error: message,
+        data: null,
+      });
+    }
+  });
+
   fastify.put("/plugin-creator/blueprints/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
 
@@ -203,12 +310,14 @@ function createEngineForCurrentProfile(profileStore = new ProfileStore({ sailorH
   const profilePaths = resolveProfilePaths({ profilesDir: sailorHomePaths.profilesDir, profileId });
 
   const repository = new PluginBlueprintRepository(profilePaths);
+  const versionService = new PluginVersionService({ profilePaths, repository });
   return new PluginCreatorEngine({
     profilePaths,
     repository,
     scaffold: new PluginScaffoldService(),
     testRunner: new PluginTestRunner({ repository }),
-    versionService: new PluginVersionService({ profilePaths, repository }),
+    versionService,
+    publishService: new PluginPublishService({ profilePaths, repository, versionService }),
   });
 }
 

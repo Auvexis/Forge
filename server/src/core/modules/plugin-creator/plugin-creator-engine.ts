@@ -4,6 +4,7 @@ import type { PluginTestRunner } from "./plugin-test-runner.ts";
 import type { ProfilePaths } from "../../profiles/profile-paths.ts";
 import { generateCompletePlugin } from "./plugin-code-generator.ts";
 import type { PluginVersionService } from "./plugin-version-service.ts";
+import type { PluginPublishService } from "./plugin-publish-service.ts";
 import type {
   CreatePluginBlueprintInput,
   PluginScaffoldService,
@@ -15,6 +16,7 @@ export interface PluginCreatorEngineDependencies {
   testRunner?: PluginTestRunner;
   profilePaths?: ProfilePaths;
   versionService?: PluginVersionService;
+  publishService?: PluginPublishService;
 }
 
 export interface TestPluginMethodInput {
@@ -37,6 +39,7 @@ export class PluginCreatorEngine {
   private readonly testRunner?: PluginTestRunner;
   private readonly profilePaths?: ProfilePaths;
   private readonly versionService?: PluginVersionService;
+  private readonly publishService?: PluginPublishService;
 
   constructor(dependencies: PluginCreatorEngineDependencies) {
     this.repository = dependencies.repository;
@@ -44,6 +47,7 @@ export class PluginCreatorEngine {
     this.testRunner = dependencies.testRunner;
     this.profilePaths = dependencies.profilePaths;
     this.versionService = dependencies.versionService;
+    this.publishService = dependencies.publishService;
   }
 
   listBlueprints(): PluginBlueprint[] {
@@ -116,5 +120,36 @@ export class PluginCreatorEngine {
         content: file.content ?? "",
       })),
     };
+  }
+
+  listVersions(blueprintId: string) {
+    if (!this.versionService) {
+      throw new Error("Plugin version service is not configured");
+    }
+
+    if (!this.getBlueprint(blueprintId)) {
+      throw new Error("blueprint_not_found");
+    }
+
+    return {
+      snapshots: this.versionService.listSnapshots(blueprintId),
+      releases: [],
+    };
+  }
+
+  rollback(blueprintId: string, snapshotId: string): PluginBlueprint {
+    if (!this.versionService) {
+      throw new Error("Plugin version service is not configured");
+    }
+
+    return this.versionService.rollback(blueprintId, snapshotId);
+  }
+
+  publish(blueprintId: string) {
+    if (!this.publishService) {
+      throw new Error("Plugin publish service is not configured");
+    }
+
+    return this.publishService.publish(blueprintId);
   }
 }

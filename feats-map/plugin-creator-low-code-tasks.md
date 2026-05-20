@@ -547,16 +547,16 @@
 - Modify: `server/src/core/routes/plugin-creator.routes.ts`
 - Test: `server/src/core/routes/plugin-creator-versioning.routes.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - `GET /plugin-creator/blueprints/:id/versions`
   - `POST /plugin-creator/blueprints/:id/rollback`
   - `POST /plugin-creator/blueprints/:id/publish`
   - 404 para blueprint inexistente
   - 400 para versao inexistente
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar rotas.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: expose plugin creator versioning`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar rotas.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: expose plugin creator versioning`
 
 ---
 
