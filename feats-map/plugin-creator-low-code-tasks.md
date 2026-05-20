@@ -293,18 +293,18 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-request-template.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-request-template.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - renderizar `{{ params.userId }}` na URL
   - renderizar `{{ credentials.apiKey }}` em header
   - manter body JSON valido
   - falhar quando parametro obrigatorio nao existe
   - falhar para path fora de `params` e `credentials`
   - mascarar secrets quando retornar preview
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar parser simples e restrito.
-- [ ] Nao usar `eval`, `Function`, VM ou JS livre.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: render plugin creator request templates`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar parser simples e restrito.
+- [x] Nao usar `eval`, `Function`, VM ou JS livre.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: render plugin creator request templates`
 
 ### Task 3.2: Criar test runner HTTP
 
