@@ -399,9 +399,11 @@ Importante:
 
 Sugestao:
 
-- Blueprints ficam em banco/perfil.
+- Blueprints ficam no perfil onde foram criados.
 - Arquivos gerados ficam em pasta controlada do Sailor.
-- Publicacao copia para pasta global de plugins externos.
+- Publicacao gera um pacote/plugin instalavel a partir do perfil atual.
+- O plugin criado no perfil X nao aparece automaticamente em outros perfis.
+- Para usar em outro perfil, o usuario precisa instalar/exportar esse plugin pelo Plugin Installer existente.
 
 Possivel estrutura:
 
@@ -417,6 +419,12 @@ sailor-home/
     global/
       <install-id>/
 ```
+
+Regra importante:
+
+> Plugin Creator e profile-scoped. Plugin Installer e o caminho oficial para compartilhar entre perfis.
+
+Isso evita vazamento entre perfis e reaproveita a logica atual de instalacao de plugins externos.
 
 ## Rotas Backend
 
@@ -546,9 +554,11 @@ Isso faz o Sailor substituir parte do Postman.
 - save draft;
 - publish version;
 - rollback;
-- instalar plugin publicado na pasta global;
-- recarregar registry;
-- plugin aparece no Workflow Editor.
+- gerar release instalavel do plugin criado no perfil atual;
+- permitir instalar no perfil atual via fluxo do Plugin Installer;
+- para outros perfis, exportar/instalar pelo Plugin Installer existente;
+- recarregar registry do perfil alvo;
+- plugin aparece no Workflow Editor do perfil onde foi instalado.
 
 ### Fase 7: Export
 
@@ -597,13 +607,16 @@ Build:
 2. Plugin draft quebrar workflow existente.
    - Solucao: workflow usa publicado; draft fica isolado.
 
-3. UI visual ficar mais dificil que formulario.
+3. Plugin criado em um perfil vazar para outros perfis.
+   - Solucao: blueprint fica profile-scoped; outros perfis usam Plugin Installer.
+
+4. UI visual ficar mais dificil que formulario.
    - Solucao: metodo nasce com flow padrao pronto.
 
-4. Engine ficar acoplada ao Workflow Editor.
+5. Engine ficar acoplada ao Workflow Editor.
    - Solucao: feature separada, engine separada, shared types claros.
 
-5. Sobrescrever plugin customizado.
+6. Sobrescrever plugin customizado.
    - Solucao: detectar `x-editable-low-code` e mudancas manuais.
 
 ## Ordem Recomendada de Execucao
@@ -625,8 +638,7 @@ Build:
 - [ ] Criar methods generator.
 - [ ] Criar publish service.
 - [ ] Criar version service.
-- [ ] Instalar plugin publicado como external/global plugin.
+- [ ] Gerar release instalavel e integrar com Plugin Installer existente.
 - [ ] Adicionar export ZIP.
 - [ ] Rodar testes e builds.
 - [ ] Revisar UX final no browser.
-
