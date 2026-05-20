@@ -66,7 +66,7 @@ describe("plugin event routes", () => {
     });
 
     assert.equal(response.statusCode, 202, response.body);
-    assert.deepEqual(executions, [{ payload: { eventId: "evt-1", text: "hello" } }]);
+    assert.deepEqual(executions, [{ eventId: "evt-1", text: "hello" }]);
 
     await app.close();
   });

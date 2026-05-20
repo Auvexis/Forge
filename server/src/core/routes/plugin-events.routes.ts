@@ -154,7 +154,7 @@ export default async function pluginEventsRoutes(
     await engine.executeWorkflowFromTrigger(
       workflow,
       triggerNodeId,
-      { payload: normalizedPayload },
+      normalizedPayload,
       executionId,
     );
 
