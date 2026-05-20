@@ -691,7 +691,7 @@
 - Create: `client-vue/src/features/plugin-creator/components/PluginCreatorFloatingToolbar.vue`
 - Test: `client-vue/src/features/plugin-creator/components/PluginCreatorFloatingToolbar.contract.test.ts`
 
-- [ ] Escrever teste que toolbar contem:
+- [x] Escrever teste que toolbar contem:
   - Cursor/select
   - Pan tool
   - Delete tool
@@ -703,12 +703,12 @@
   - Run
   - Save
   - Publish
-- [ ] Escrever teste que `Esc` volta para cursor/select.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar toolbar com icones lucide.
-- [ ] Delete tool deve ter estado visual vermelho/claro.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator floating toolbar`
+- [x] Escrever teste que `Esc` volta para cursor/select.
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar toolbar com icones lucide.
+- [x] Delete tool deve ter estado visual vermelho/claro.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator floating toolbar`
 
 ### Task 9.4: Criar Add Item panel
 

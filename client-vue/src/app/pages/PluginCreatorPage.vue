@@ -10,7 +10,10 @@
         <button type="button">Request</button>
       </aside>
 
-      <PluginCreatorCanvas :blueprint="store.activeBlueprint" />
+      <div class="plugin-creator-page__canvas-shell">
+        <PluginCreatorCanvas :blueprint="store.activeBlueprint" />
+        <PluginCreatorFloatingToolbar />
+      </div>
 
       <aside class="plugin-creator-page__inspector">
         <span class="plugin-creator-page__rail-title">Inspector</span>
@@ -23,6 +26,7 @@
 <script setup lang="ts">
 import PluginCreatorHeader from '@/features/plugin-creator/components/PluginCreatorHeader.vue'
 import PluginCreatorCanvas from '@/features/plugin-creator/components/PluginCreatorCanvas.vue'
+import PluginCreatorFloatingToolbar from '@/features/plugin-creator/components/PluginCreatorFloatingToolbar.vue'
 import { usePluginCreatorStore } from '@/features/plugin-creator'
 
 const store = usePluginCreatorStore()
@@ -53,6 +57,12 @@ const store = usePluginCreatorStore()
   min-height: 0;
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr) 280px;
+}
+
+.plugin-creator-page__canvas-shell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
 }
 
 .plugin-creator-page__rail,
