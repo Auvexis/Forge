@@ -137,7 +137,7 @@ export class PluginCreatorEngine {
 
     return {
       snapshots: this.versionService.listSnapshots(blueprintId),
-      releases: [],
+      releases: this.publishService?.listReleases(blueprintId) ?? [],
     };
   }
 

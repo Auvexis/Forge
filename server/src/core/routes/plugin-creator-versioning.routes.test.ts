@@ -89,6 +89,19 @@ describe("plugin creator versioning routes", () => {
     assert.equal(publishResponse.statusCode, 200);
     assert.equal(publishBody.data?.version, "0.1.0");
     assert.equal(fs.existsSync(path.join(publishBody.data!.releaseDir, "manifest.json")), true);
+
+    const versionsAfterPublishResponse = await app.inject({
+      method: "GET",
+      url: `/plugin-creator/blueprints/${created.id}/versions`,
+    });
+    const versionsAfterPublishBody = versionsAfterPublishResponse.json() as ApiResponse<{
+      snapshots: PluginCreatorSnapshot[];
+      releases: PluginCreatorRelease[];
+    }>;
+    assert.equal(
+      versionsAfterPublishBody.data?.releases.some((release) => release.version === "0.1.0"),
+      true,
+    );
   });
 
   it("returns 404 for missing blueprints", async () => {

@@ -84,6 +84,40 @@ export class PluginPublishService {
     };
   }
 
+  listReleases(blueprintId: string): PluginCreatorRelease[] {
+    const validBlueprintId = validatePluginCreatorId(blueprintId);
+    const blueprint = this.repository.get(validBlueprintId);
+    if (!blueprint) {
+      throw new Error("blueprint_not_found");
+    }
+
+    const paths = resolveBlueprintPaths(this.profilePaths, validBlueprintId);
+    if (!fs.existsSync(paths.releasesDir)) {
+      return [];
+    }
+
+    const snapshots = this.versionService.listSnapshots(validBlueprintId);
+    return fs
+      .readdirSync(paths.releasesDir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .filter((entry) => fs.existsSync(path.join(paths.releasesDir, entry.name, "manifest.json")))
+      .map((entry) => {
+        const releaseDir = path.join(paths.releasesDir, entry.name);
+        const snapshot = snapshots
+          .filter((candidate) => candidate.reason === "pre-publish" && candidate.version === entry.name)
+          .at(-1);
+        return {
+          id: `rel_${validBlueprintId}_${entry.name.replaceAll(".", "_")}`,
+          blueprintId: validBlueprintId,
+          version: entry.name,
+          createdAt: snapshot?.createdAt ?? fs.statSync(releaseDir).mtime.toISOString(),
+          releaseDir,
+          snapshotId: snapshot?.id ?? "",
+        };
+      })
+      .sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+  }
+
   installPublishedRelease(
     blueprintId: string,
     options: InstallPublishedReleaseOptions,
