@@ -351,16 +351,16 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-response-mapper.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-response-mapper.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - extrair `body.data.id`
   - extrair array por path
   - retornar null quando path nao existe e campo nao requerido
   - falhar quando path requerido nao existe
   - inferir tipo basico para preview
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar mapper sem dependencias externas.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: map plugin creator responses`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar mapper sem dependencias externas.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: map plugin creator responses`
 
 ### Task 4.2: Criar error mapper
 
