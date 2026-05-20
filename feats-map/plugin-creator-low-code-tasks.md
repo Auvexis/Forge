@@ -465,13 +465,13 @@
 - Modify: `server/src/core/routes/plugin-creator.routes.ts`
 - Test: `server/src/core/routes/plugin-creator-generate-preview.routes.test.ts`
 
-- [ ] Escrever testes para `POST /plugin-creator/blueprints/:id/generate-preview`.
-- [ ] Confirmar que retorna lista de arquivos e conteudo seguro.
-- [ ] Confirmar que blueprint invalido retorna 400.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar endpoint.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: preview generated plugin creator files`
+- [x] Escrever testes para `POST /plugin-creator/blueprints/:id/generate-preview`.
+- [x] Confirmar que retorna lista de arquivos e conteudo seguro.
+- [x] Confirmar que blueprint invalido retorna 400.
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar endpoint.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: preview generated plugin creator files`
 
 ---
 

@@ -142,6 +142,37 @@ export default async function pluginCreatorRoutes(
     }
   });
 
+  fastify.post("/plugin-creator/blueprints/:id/generate-preview", async (req, reply) => {
+    const { id } = req.params as { id: string };
+
+    try {
+      const preview = getEngine().generatePreview(id);
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Plugin creator preview generated",
+        error: null,
+        data: preview,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "unknown_error";
+      if (message === "blueprint_not_found") {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Plugin creator blueprint not found",
+          error: "blueprint_not_found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Failed to generate plugin creator preview",
+        error: message,
+        data: null,
+      });
+    }
+  });
+
   fastify.put("/plugin-creator/blueprints/:id", async (req, reply) => {
     const { id } = req.params as { id: string };
 
@@ -172,6 +203,7 @@ function createEngineForCurrentProfile(profileStore = new ProfileStore({ sailorH
 
   const repository = new PluginBlueprintRepository(profilePaths);
   return new PluginCreatorEngine({
+    profilePaths,
     repository,
     scaffold: new PluginScaffoldService(),
     testRunner: new PluginTestRunner({ repository }),
