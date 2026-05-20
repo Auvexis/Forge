@@ -178,7 +178,7 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-creator-paths.ts`
 - Test: `server/src/core/modules/plugin-creator/plugin-creator-paths.test.ts`
 
-- [ ] Escrever testes para:
+- [x] Escrever testes para:
   - blueprint fica em `profiles/<profile-id>/plugin-creator/blueprints/<id>/blueprint.json`
   - assets ficam abaixo de `assets/`
   - generated fica abaixo de `generated/`
@@ -186,13 +186,13 @@
   - releases ficam abaixo de `releases/<version>/`
   - path traversal com `../` falha
   - nenhum path aponta para `global/`
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar:
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar:
   - `resolvePluginCreatorProfilePaths(profilePaths)`
   - `resolveBlueprintPaths(profilePaths, blueprintId)`
   - `assertInsidePluginCreatorRoot(root, target)`
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: resolve profile scoped plugin creator paths`
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: resolve profile scoped plugin creator paths`
 
 ### Task 1.4: Criar repository de blueprint
 
