@@ -380,6 +380,43 @@
             "description": "Comma-separated provider update types. Leave empty for provider defaults.",
             "x-label": "Allowed Update Types",
             "x-input-type": "text"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
           }
         }
       },
@@ -437,6 +474,43 @@
             "description": "Comma-separated provider update types. Leave empty for provider defaults.",
             "x-label": "Allowed Update Types",
             "x-input-type": "text"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
           }
         }
       },
@@ -494,6 +568,43 @@
             "description": "Comma-separated provider update types. Leave empty for provider defaults.",
             "x-label": "Allowed Update Types",
             "x-input-type": "text"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
           }
         }
       },

@@ -659,6 +659,24 @@
             "description": "Optional Drive folder ID to watch.",
             "x-label": "Folder ID",
             "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Only accept this provider resource type. Example: issue, file, row, video, page.",
+            "x-label": "Resource Type",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
           }
         },
         "required": []
@@ -713,6 +731,24 @@
             "description": "Optional Drive folder ID to watch.",
             "x-label": "Folder ID",
             "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Only accept this provider resource type. Example: issue, file, row, video, page.",
+            "x-label": "Resource Type",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
           }
         },
         "required": []
@@ -766,6 +802,24 @@
             "type": "string",
             "description": "Drive folder ID to watch.",
             "x-label": "Folder ID",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Only accept this provider resource type. Example: issue, file, row, video, page.",
+            "x-label": "Resource Type",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
             "x-input-type": "text"
           }
         },

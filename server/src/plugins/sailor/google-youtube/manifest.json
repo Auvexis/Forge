@@ -1343,6 +1343,30 @@
             "description": "YouTube channel ID.",
             "x-label": "Channel ID",
             "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Only accept this provider resource type. Example: issue, file, row, video, page.",
+            "x-label": "Resource Type",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
           }
         },
         "required": [
@@ -1405,6 +1429,30 @@
             "description": "Optional YouTube video ID.",
             "x-label": "Video ID",
             "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Only accept this provider resource type. Example: issue, file, row, video, page.",
+            "x-label": "Resource Type",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
           }
         },
         "required": []
@@ -1458,6 +1506,30 @@
             "type": "string",
             "description": "YouTube channel ID.",
             "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Only accept this provider resource type. Example: issue, file, row, video, page.",
+            "x-label": "Resource Type",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
             "x-input-type": "text"
           }
         },

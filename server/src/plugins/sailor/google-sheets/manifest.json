@@ -457,6 +457,18 @@
             "description": "Worksheet/tab name.",
             "x-label": "Sheet Name",
             "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
           }
         },
         "required": [
@@ -519,6 +531,18 @@
             "description": "Worksheet/tab name.",
             "x-label": "Sheet Name",
             "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
           }
         },
         "required": [
@@ -574,6 +598,18 @@
             "type": "string",
             "description": "Google Sheets spreadsheet ID.",
             "x-label": "Spreadsheet ID",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
             "x-input-type": "text"
           }
         },

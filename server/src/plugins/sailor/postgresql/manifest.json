@@ -463,6 +463,12 @@
             "maximum": 1000,
             "x-label": "Max Rows",
             "x-input-type": "number"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
           }
         },
         "required": [
@@ -550,6 +556,12 @@
             "maximum": 1000,
             "x-label": "Max Rows",
             "x-input-type": "number"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
           }
         },
         "required": [
@@ -625,6 +637,30 @@
             "maximum": 1000,
             "x-label": "Max Rows",
             "x-input-type": "number"
+          },
+          "schema": {
+            "type": "string",
+            "description": "Database schema to watch or filter. Leave empty for provider default.",
+            "x-label": "Schema",
+            "x-input-type": "text"
+          },
+          "table": {
+            "type": "string",
+            "description": "Database table to watch or filter.",
+            "x-label": "Table",
+            "x-input-type": "text"
+          },
+          "primaryKey": {
+            "type": "string",
+            "description": "Primary key column used to dedupe and track rows.",
+            "x-label": "Primary Key",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
           }
         },
         "required": [

@@ -306,6 +306,24 @@
             "description": "Trello board ID.",
             "x-label": "Board ID",
             "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
           }
         },
         "required": [
@@ -368,6 +386,24 @@
             "description": "Optional destination list ID.",
             "x-label": "List ID",
             "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
           }
         },
         "required": [
@@ -423,6 +459,24 @@
             "type": "string",
             "description": "Trello board ID.",
             "x-label": "Board ID",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
             "x-input-type": "text"
           }
         },

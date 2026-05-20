@@ -25,6 +25,23 @@ const expectedTriggers: Record<string, string[]> = {
   "google-youtube": ["onNewVideo", "onNewComment", "onChannelUpdate"],
 };
 
+const expectedFilterFields: Record<string, string[]> = {
+  "telegram": ["channelId", "userId", "messageContains", "messageRegex", "commandName", "ignoreBots"],
+  "discord": ["guildId", "channelId", "userId", "messageId", "messageContains", "messageRegex", "commandName", "emoji", "ignoreBots"],
+  "slack": ["channelId", "userId", "messageContains", "messageRegex", "commandName", "ignoreBots"],
+  "google-gmail": ["resourceId", "eventAction"],
+  "google-calendar": ["resourceId", "eventAction"],
+  "google-drive": ["resourceId", "resourceType", "eventAction"],
+  "google-sheets": ["resourceId", "eventAction"],
+  "github": ["resourceId", "resourceType", "eventAction", "userId"],
+  "jira": ["resourceId", "eventAction", "userId"],
+  "trello": ["resourceId", "eventAction", "userId"],
+  "notion": ["resourceId", "resourceType", "eventAction"],
+  "postgresql": ["schema", "table", "primaryKey", "maxRows", "eventAction"],
+  "supabase": ["schema", "table", "eventAction"],
+  "google-youtube": ["resourceId", "resourceType", "eventAction", "userId"],
+};
+
 describe("built-in plugin trigger manifests", () => {
   for (const [pluginDir, triggerNames] of Object.entries(expectedTriggers)) {
     it(`${pluginDir} declares supported event triggers`, () => {
@@ -38,6 +55,13 @@ describe("built-in plugin trigger manifests", () => {
         const trigger = manifest.triggers[triggerName];
         assert.ok(trigger.delivery?.mode, `${pluginDir}.${triggerName} missing delivery.mode`);
         assert.ok(trigger.payloadSchema, `${pluginDir}.${triggerName} missing payloadSchema`);
+        const parameterKeys = Object.keys(trigger.parameters?.properties ?? {});
+        for (const filterField of expectedFilterFields[pluginDir] ?? []) {
+          assert.ok(
+            parameterKeys.includes(filterField),
+            `${pluginDir}.${triggerName} missing filter '${filterField}'`,
+          );
+        }
       }
     });
   }

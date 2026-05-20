@@ -517,6 +517,12 @@
             "description": "Table name.",
             "x-label": "Table",
             "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
           }
         },
         "required": [
@@ -588,6 +594,12 @@
             "description": "Table name.",
             "x-label": "Table",
             "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
           }
         },
         "required": [
@@ -648,7 +660,26 @@
       },
       "parameters": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "schema": {
+            "type": "string",
+            "description": "Database schema to watch or filter. Leave empty for provider default.",
+            "x-label": "Schema",
+            "x-input-type": "text"
+          },
+          "table": {
+            "type": "string",
+            "description": "Database table to watch or filter.",
+            "x-label": "Table",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          }
+        }
       },
       "payloadSchema": {
         "type": "object",

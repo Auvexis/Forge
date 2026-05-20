@@ -424,7 +424,63 @@
       },
       "parameters": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "guildId": {
+            "type": "string",
+            "description": "Only accept events from this Discord guild/server ID. Leave empty for any guild.",
+            "x-label": "Guild ID",
+            "x-input-type": "text"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Only accept events related to this message ID. Leave empty for any message.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "emoji": {
+            "type": "string",
+            "description": "Only accept this emoji/reaction value. Leave empty for any emoji.",
+            "x-label": "Emoji",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
+          }
+        }
       },
       "payloadSchema": {
         "type": "object",
@@ -474,7 +530,63 @@
       },
       "parameters": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "guildId": {
+            "type": "string",
+            "description": "Only accept events from this Discord guild/server ID. Leave empty for any guild.",
+            "x-label": "Guild ID",
+            "x-input-type": "text"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Only accept events related to this message ID. Leave empty for any message.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "emoji": {
+            "type": "string",
+            "description": "Only accept this emoji/reaction value. Leave empty for any emoji.",
+            "x-label": "Emoji",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
+          }
+        }
       },
       "payloadSchema": {
         "type": "object",
@@ -524,7 +636,63 @@
       },
       "parameters": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "guildId": {
+            "type": "string",
+            "description": "Only accept events from this Discord guild/server ID. Leave empty for any guild.",
+            "x-label": "Guild ID",
+            "x-input-type": "text"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Only accept events related to this message ID. Leave empty for any message.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "emoji": {
+            "type": "string",
+            "description": "Only accept this emoji/reaction value. Leave empty for any emoji.",
+            "x-label": "Emoji",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
+          }
+        }
       },
       "payloadSchema": {
         "type": "object",

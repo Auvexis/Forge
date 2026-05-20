@@ -114,11 +114,11 @@ git commit -m "feat: filter plugin trigger events before execution"
 - Modify: `client-vue/src/features/workflow-editor/components/settings/editors/TriggerEditor.vue`
 - Test: existing editor tests if practical in current test setup.
 
-- [ ] **Step 1: Verify current rendering**
+- [x] **Step 1: Verify current rendering**
 
 Confirm the Plugin Trigger param renderer uses `BaseVariableInput` for text-like params and does not use `BaseInput`.
 
-- [ ] **Step 2: Add type-aware generic rendering**
+- [x] **Step 2: Add type-aware generic rendering**
 
 Support:
 
@@ -126,18 +126,18 @@ Support:
 - boolean with `BaseVariableInput` and stable string values `true`/`false`
 - enum/select with existing generic select if already used by local pattern
 
-- [ ] **Step 3: Preserve variable support**
+- [x] **Step 3: Preserve variable support**
 
 For all editable param values, keep `BaseVariableInput` so users can use workflow variables.
 
-- [ ] **Step 4: Run frontend type/build check**
+- [x] **Step 4: Run frontend type/build check**
 
 ```bash
 cd client-vue
 npm run build
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add client-vue/src/features/workflow-editor/components/settings/editors/TriggerEditor.vue feats-map/plugin-trigger-configurable-filters.md
@@ -152,7 +152,7 @@ git commit -m "feat: render configurable plugin trigger filters"
 - Modify: `server/src/plugins/sailor/*/manifest.json` for the 14 trigger-capable plugins.
 - Modify: `server/src/plugins/sailor/plugin-triggers-manifest.test.ts`
 
-- [ ] **Step 1: Write failing manifest assertions**
+- [x] **Step 1: Write failing manifest assertions**
 
 Assert Discord trigger params include:
 
@@ -164,7 +164,7 @@ Assert Discord trigger params include:
 
 Assert all 14 trigger plugins have at least one meaningful filter parameter.
 
-- [ ] **Step 2: Update Discord filters**
+- [x] **Step 2: Update Discord filters**
 
 Add:
 
@@ -178,7 +178,7 @@ Add:
 - `emoji`
 - `ignoreBots`
 
-- [ ] **Step 3: Update messaging filters**
+- [x] **Step 3: Update messaging filters**
 
 Telegram and Slack get:
 
@@ -189,14 +189,14 @@ Telegram and Slack get:
 - `commandName`
 - `ignoreBots`
 
-- [ ] **Step 4: Update productivity/content/data filters**
+- [x] **Step 4: Update productivity/content/data filters**
 
 Add useful resource filters:
 
 - Google/GitHub/Jira/Trello/Notion/YouTube: `resourceId`, `resourceType`, `eventAction`, plus provider-specific fields.
 - PostgreSQL/Supabase: `schema`, `table`, `primaryKey`, `maxRows`, plus `eventAction`.
 
-- [ ] **Step 5: Run tests and commit**
+- [x] **Step 5: Run tests and commit**
 
 ```bash
 cd server

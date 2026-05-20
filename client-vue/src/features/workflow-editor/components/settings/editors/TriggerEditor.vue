@@ -439,9 +439,13 @@
                 <span class="te-label">{{ propSchema['x-label'] || propKey }}</span>
                 <p v-if="propSchema.description" class="te-hint">{{ propSchema.description }}</p>
                 <BaseVariableInput
+                  :field-type="triggerParamFieldType(propSchema)"
+                  :placeholder="triggerParamPlaceholder(propSchema)"
+                  :rows="triggerParamFieldType(propSchema) === 'textarea' ? 3 : undefined"
                   :model-value="String((node.data as unknown as WorkflowTrigger).triggerParams?.[String(propKey)] ?? '')"
                   @update:model-value="updateTriggerParam(String(propKey), $event as string)"
                 />
+                <p v-if="triggerParamHint(propSchema)" class="te-hint">{{ triggerParamHint(propSchema) }}</p>
               </div>
             </div>
           </div>
@@ -795,6 +799,29 @@ function onPluginChange(pluginId: string) {
 function updateTriggerParam(key: string, value: string) {
   const current = (props.node.data as unknown as WorkflowTrigger).triggerParams ?? {}
   props.updateNodeData({ triggerParams: { ...current, [key]: value } })
+}
+
+function triggerParamFieldType(propSchema: Record<string, any>): 'input' | 'textarea' {
+  const inputType = propSchema['x-input-type']
+  return inputType === 'textarea' || inputType === 'json' || inputType === 'code' ? 'textarea' : 'input'
+}
+
+function triggerParamPlaceholder(propSchema: Record<string, any>): string {
+  if (typeof propSchema.placeholder === 'string') return propSchema.placeholder
+  if (Array.isArray(propSchema.enum) && propSchema.enum.length > 0) return propSchema.enum.map(String).join(' | ')
+  if (propSchema.type === 'boolean') return 'true or false'
+  if (propSchema.type === 'integer' || propSchema.type === 'number') return 'number or {{ variable }}'
+  return '{{ variable }} or value'
+}
+
+function triggerParamHint(propSchema: Record<string, any>): string {
+  if (Array.isArray(propSchema.enum) && propSchema.enum.length > 0) {
+    return `Allowed values: ${propSchema.enum.map(String).join(', ')}. Variables are also supported.`
+  }
+  if (propSchema.type === 'boolean') {
+    return 'Use true/false, or insert a variable that resolves to a boolean.'
+  }
+  return ''
 }
 
 // ── Listen for Event state machine ────────────────────────────
