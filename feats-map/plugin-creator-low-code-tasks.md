@@ -826,15 +826,15 @@
 **Files:**
 - Test: `server/src/core/modules/plugin-creator/plugin-creator-profile-scope.integration.test.ts`
 
-- [ ] Escrever teste com dois perfis:
+- [x] Escrever teste com dois perfis:
   - perfil A cria blueprint
   - perfil B nao lista blueprint de A
   - publish em A nao instala em B automaticamente
   - export/import via installer e o caminho para B
-- [ ] Rodar teste e confirmar falha se isolamento ainda nao cobrir caso.
-- [ ] Ajustar repository/publish se necessario.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `test: cover plugin creator profile isolation`
+- [x] Rodar teste e confirmar falha se isolamento ainda nao cobrir caso.
+- [x] Ajustar repository/publish se necessario.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `test: cover plugin creator profile isolation`
 
 ### Task 11.2: Teste contra vazamento de secrets
 
