@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import path from 'node:path'
+import { describe, it } from 'node:test'
+
+const componentDir = path.resolve('src/features/plugin-creator/components')
+
+describe('PluginCreatorCanvas contract', () => {
+  it('uses VueFlow and maps blueprint nodes and edges', () => {
+    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
+
+    assert.match(source, /VueFlow/)
+    assert.match(source, /@vue-flow\/core/)
+    assert.match(source, /blueprint\.canvas\.nodes/)
+    assert.match(source, /blueprint\.canvas\.edges/)
+  })
+})

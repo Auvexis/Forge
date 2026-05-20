@@ -10,15 +10,7 @@
         <button type="button">Request</button>
       </aside>
 
-      <div class="plugin-creator-page__canvas">
-        <div class="plugin-creator-page__placeholder">
-          <span class="plugin-creator-page__node">Method</span>
-          <span class="plugin-creator-page__connector" aria-hidden="true"></span>
-          <span class="plugin-creator-page__node">Request</span>
-          <span class="plugin-creator-page__connector" aria-hidden="true"></span>
-          <span class="plugin-creator-page__node">Output</span>
-        </div>
-      </div>
+      <PluginCreatorCanvas :blueprint="store.activeBlueprint" />
 
       <aside class="plugin-creator-page__inspector">
         <span class="plugin-creator-page__rail-title">Inspector</span>
@@ -30,6 +22,10 @@
 
 <script setup lang="ts">
 import PluginCreatorHeader from '@/features/plugin-creator/components/PluginCreatorHeader.vue'
+import PluginCreatorCanvas from '@/features/plugin-creator/components/PluginCreatorCanvas.vue'
+import { usePluginCreatorStore } from '@/features/plugin-creator'
+
+const store = usePluginCreatorStore()
 </script>
 
 <style scoped>
@@ -91,43 +87,6 @@ import PluginCreatorHeader from '@/features/plugin-creator/components/PluginCrea
   font-size: 13px;
   line-height: 1.5;
   color: #526173;
-}
-
-.plugin-creator-page__canvas {
-  min-width: 0;
-  min-height: 0;
-  display: grid;
-  place-items: center;
-  background-color: #eef3f9;
-  background-image:
-    linear-gradient(#dbe4ef 1px, transparent 1px),
-    linear-gradient(90deg, #dbe4ef 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
-.plugin-creator-page__placeholder {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.plugin-creator-page__node {
-  min-width: 108px;
-  min-height: 52px;
-  display: inline-grid;
-  place-items: center;
-  border: 1px solid #b8c6d8;
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 12px 24px rgba(20, 32, 51, 0.08);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.plugin-creator-page__connector {
-  width: 40px;
-  height: 2px;
-  background: #7c8da4;
 }
 
 @media (max-width: 900px) {

@@ -678,12 +678,12 @@
 - Create: `client-vue/src/features/plugin-creator/components/PluginCreatorCanvas.vue`
 - Test: `client-vue/src/features/plugin-creator/components/PluginCreatorCanvas.contract.test.ts`
 
-- [ ] Escrever teste que renderiza nodes e edges do blueprint.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar VueFlow com pan, zoom e select.
-- [ ] Reusar estilo Sailor de canvas sem copiar logica do Workflow Editor.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator canvas`
+- [x] Escrever teste que renderiza nodes e edges do blueprint.
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar VueFlow com pan, zoom e select.
+- [x] Reusar estilo Sailor de canvas sem copiar logica do Workflow Editor.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator canvas`
 
 ### Task 9.3: Criar mini toolbar bottom
 
