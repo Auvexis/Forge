@@ -257,19 +257,19 @@
 - Create: `server/src/core/routes/plugin-creator.routes.ts`
 - Test: `server/src/core/routes/plugin-creator.routes.test.ts`
 
-- [ ] Escrever testes Fastify para:
+- [x] Escrever testes Fastify para:
   - `GET /plugin-creator/blueprints`
   - `POST /plugin-creator/blueprints`
   - `GET /plugin-creator/blueprints/:id`
   - `PUT /plugin-creator/blueprints/:id`
   - 400 em body invalido
   - 404 em blueprint inexistente
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar rotas usando `ApiResponse`.
-- [ ] Usar profile atual via `ProfileStore`/runtime existente.
-- [ ] Nao usar `PluginManager`.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator crud routes`
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar rotas usando `ApiResponse`.
+- [x] Usar profile atual via `ProfileStore`/runtime existente.
+- [x] Nao usar `PluginManager`.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator crud routes`
 
 ### Task 2.3: Registrar rotas no servidor
 
