@@ -211,4 +211,43 @@ describe('plugin creator store', () => {
     assert.equal(method?.errorMapping[0]?.code, 'UNAUTHORIZED')
     assert.equal(method?.errorMapping[0]?.condition.value, 401)
   })
+
+  it('loads versions and rolls back to a snapshot', async () => {
+    const store = usePluginCreatorStore()
+    store.setApiClient({
+      ...createApi(),
+      listVersions: async () => ({
+        snapshots: [
+          {
+            id: 'snap_1',
+            blueprintId: 'bp_my_crm',
+            createdAt: '2026-05-20T00:00:00.000Z',
+            reason: 'manual-save',
+            version: '0.1.0',
+            blueprint: createBlueprint('Snapshot CRM'),
+          },
+        ],
+        releases: [
+          {
+            id: 'rel_1',
+            blueprintId: 'bp_my_crm',
+            version: '0.1.0',
+            createdAt: '2026-05-20T01:00:00.000Z',
+            releaseDir: '/tmp/release',
+            snapshotId: 'snap_1',
+          },
+        ],
+      }),
+      rollback: async () => createBlueprint('Snapshot CRM'),
+    })
+    store.setActiveBlueprint(createBlueprint())
+
+    const versions = await store.loadVersions()
+    const rolledBack = await store.rollbackToSnapshot('snap_1')
+
+    assert.equal(versions?.snapshots[0]?.id, 'snap_1')
+    assert.equal(store.versions?.releases[0]?.id, 'rel_1')
+    assert.equal(rolledBack?.metadata.name, 'Snapshot CRM')
+    assert.equal(store.activeBlueprint?.metadata.name, 'Snapshot CRM')
+  })
 })

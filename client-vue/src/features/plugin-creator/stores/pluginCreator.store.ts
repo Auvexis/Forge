@@ -200,6 +200,38 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     }
   }
 
+  async function loadVersions() {
+    if (!activeBlueprint.value) return null
+    isLoading.value = true
+    error.value = null
+    try {
+      const result = await apiClient.value.listVersions(activeBlueprint.value.id)
+      versions.value = result
+      return result
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to load plugin versions'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function rollbackToSnapshot(snapshotId: string) {
+    if (!activeBlueprint.value) return null
+    isSaving.value = true
+    error.value = null
+    try {
+      const rolledBack = await apiClient.value.rollback(activeBlueprint.value.id, { snapshotId })
+      setActiveBlueprint(rolledBack)
+      return rolledBack
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to roll back plugin blueprint'
+      throw err
+    } finally {
+      isSaving.value = false
+    }
+  }
+
   function updateMetadata(payload: Partial<PluginBlueprintMetadata>) {
     if (!activeBlueprint.value) return
     recordHistory()
@@ -373,6 +405,8 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     loadBlueprint,
     saveDraft,
     runMethodTest,
+    loadVersions,
+    rollbackToSnapshot,
     updateMetadata,
     addNode,
     updateNode,

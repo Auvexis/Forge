@@ -810,12 +810,12 @@
 - Create: `client-vue/src/features/plugin-creator/components/PluginCreatorVersionPanel.vue`
 - Test: `client-vue/src/features/plugin-creator/components/PluginCreatorVersionPanel.contract.test.ts`
 
-- [ ] Escrever teste que lista snapshots e releases.
-- [ ] Escrever teste que rollback chama API correta.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar painel.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator version panel`
+- [x] Escrever teste que lista snapshots e releases.
+- [x] Escrever teste que rollback chama API correta.
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar painel.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator version panel`
 
 ---
 

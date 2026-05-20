@@ -37,6 +37,12 @@
           :is-running="store.isTesting"
           @test-method="store.runMethodTest"
         />
+        <PluginCreatorVersionPanel
+          :versions="store.versions"
+          :is-loading="store.isLoading"
+          @load="store.loadVersions"
+          @rollback="store.rollbackToSnapshot"
+        />
       </aside>
     </section>
   </main>
@@ -49,6 +55,7 @@ import PluginCreatorFloatingToolbar from '@/features/plugin-creator/components/P
 import PluginCreatorAddItemPanel from '@/features/plugin-creator/components/PluginCreatorAddItemPanel.vue'
 import PluginCreatorInspector from '@/features/plugin-creator/components/PluginCreatorInspector.vue'
 import PluginCreatorTestPanel from '@/features/plugin-creator/components/PluginCreatorTestPanel.vue'
+import PluginCreatorVersionPanel from '@/features/plugin-creator/components/PluginCreatorVersionPanel.vue'
 import { usePluginCreatorStore } from '@/features/plugin-creator'
 import { ref } from 'vue'
 
@@ -100,7 +107,7 @@ const selectedNodeId = ref<string | null>(null)
   min-width: 0;
   min-height: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) minmax(220px, auto);
+  grid-template-rows: minmax(0, 1fr) minmax(220px, auto) minmax(160px, auto);
   overflow: hidden;
   background: #ffffff;
 }
