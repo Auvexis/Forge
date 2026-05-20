@@ -4,6 +4,7 @@ import type { WorkflowItem } from "../../shared/models/workflow-types.ts";
 import { WorkflowEngine } from "../modules/workflows/executor.ts";
 import { WorkflowRepository } from "../modules/workflows/repository.ts";
 import { getTriggerEntry } from "../modules/workflows/workflow-triggers.ts";
+import { evaluatePluginTriggerFilters } from "../modules/workflows/plugin-trigger-filter.ts";
 
 interface PluginEventWorkflowStore {
   getWorkflowById(id: string): WorkflowItem | null;
@@ -110,6 +111,17 @@ export default async function pluginEventsRoutes(
         triggerName,
         rawPayload: req.body ?? {},
       });
+
+      const filterResult = evaluatePluginTriggerFilters(
+        entry.trigger.triggerParams ?? {},
+        normalizedPayload,
+      );
+      if (!filterResult.accepted) {
+        return reply.code(202).send({
+          status: "ignored",
+          reason: filterResult.reason,
+        });
+      }
 
       const key = dedupeKey(pluginId, triggerName, normalizedPayload);
       if (key && acceptedEventKeys.has(key)) {

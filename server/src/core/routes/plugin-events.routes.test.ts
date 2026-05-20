@@ -152,6 +152,47 @@ describe("plugin event routes", () => {
 
     await app.close();
   });
+
+  it("ignores events that do not match configured trigger filters", async () => {
+    let executions = 0;
+    const filteredWorkflow = workflow();
+    const triggerNode = filteredWorkflow.nodes.triggerA;
+    if (triggerNode.type !== "trigger" || !triggerNode.trigger) {
+      throw new Error("Invalid test workflow");
+    }
+    triggerNode.trigger.triggerParams = { channelId: "C1" };
+
+    const app = Fastify({ logger: false });
+    await app.register(pluginEventsRoutes, {
+      workflows: {
+        getWorkflowById: () => filteredWorkflow,
+        saveLastTriggerPayload: () => {},
+      },
+      engine: {
+        executeWorkflowFromTrigger: async () => {
+          executions += 1;
+          return {};
+        },
+      },
+      normalizer: async () => ({ eventId: "evt-1", channelId: "C2", text: "hello" }),
+    });
+
+    const body = { update_id: "evt-1" };
+    const response = await app.inject({
+      method: "POST",
+      url: "/plugin-events/wf-1/triggerA/telegram/onMessage",
+      payload: body,
+      headers: {
+        "x-sailor-signature": sign(body, "secret"),
+      },
+    });
+
+    assert.equal(response.statusCode, 202, response.body);
+    assert.equal(JSON.parse(response.body).status, "ignored");
+    assert.equal(executions, 0);
+
+    await app.close();
+  });
 });
 
 function sign(payload: unknown, secret: string): string {
