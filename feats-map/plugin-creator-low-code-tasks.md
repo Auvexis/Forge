@@ -604,12 +604,12 @@
 - Create: `client-vue/src/core/api/plugin-creator.api.ts`
 - Test: `client-vue/src/core/api/plugin-creator.api.contract.test.ts`
 
-- [ ] Escrever testes de contrato para endpoints CRUD, test, preview, publish, versions e rollback.
-- [ ] Rodar teste e confirmar falha.
-- [ ] Implementar tipos espelhando response do backend.
-- [ ] Implementar API client usando padrao de `client-vue/src/core/api/*.api.ts`.
-- [ ] Rodar teste e confirmar pass.
-- [ ] Commit: `feat: add plugin creator client api`
+- [x] Escrever testes de contrato para endpoints CRUD, test, preview, publish, versions e rollback.
+- [x] Rodar teste e confirmar falha.
+- [x] Implementar tipos espelhando response do backend.
+- [x] Implementar API client usando padrao de `client-vue/src/core/api/*.api.ts`.
+- [x] Rodar teste e confirmar pass.
+- [x] Commit: `feat: add plugin creator client api`
 
 ### Task 8.2: Criar store Pinia
 
