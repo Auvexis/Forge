@@ -213,7 +213,7 @@ git commit -m "feat: add configurable filters to plugin trigger manifests"
 **Files:**
 - No production changes expected.
 
-- [ ] **Step 1: Run backend verification**
+- [x] **Step 1: Run backend verification**
 
 ```bash
 cd server
@@ -221,7 +221,7 @@ node --loader ts-node/esm --test src/core/modules/workflows/plugin-trigger-filte
 npx tsc --noEmit
 ```
 
-- [ ] **Step 2: Run dev smoke**
+- [x] **Step 2: Run dev smoke**
 
 ```bash
 cd server
@@ -230,7 +230,7 @@ $env:PORT=23999; npm run dev
 
 Expected: server starts and loads 22 plugins.
 
-- [ ] **Step 3: Commit task map if only checkbox changes remain**
+- [x] **Step 3: Commit task map if only checkbox changes remain**
 
 ```bash
 git add feats-map/plugin-trigger-configurable-filters.md
