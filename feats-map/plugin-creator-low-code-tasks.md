@@ -866,10 +866,10 @@
 
 ### Task 11.4: Build backend
 
-- [ ] Rodar `cd server; npm run build`.
-- [ ] Corrigir erros de typecheck.
-- [ ] Rodar novamente ate passar.
-- [ ] Commit: `chore: fix plugin creator server build`
+- [x] Rodar `cd server; npm run build`.
+- [x] Corrigir erros de typecheck.
+- [x] Rodar novamente ate passar.
+- [x] Commit: `chore: fix plugin creator server build`
 
 ### Task 11.5: Build frontend
 
