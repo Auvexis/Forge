@@ -40,7 +40,7 @@ describe('workflow editor variable-safe inputs', () => {
     assert.match(triggerEditorSource, /webhookSecret/)
     assert.match(triggerEditorSource, /cronExpression/)
     assert.match(triggerEditorSource, /triggerParams/)
-    assert.match(triggerEditorSource, /@variable-click="toggleTriggerParamPicker\(String\(propKey\)\)"/)
+    assert.match(triggerEditorSource, /@variable-click="toggleTriggerParamPicker\(String\(propKey\), \$event\)"/)
     assert.doesNotMatch(triggerEditorSource, /<BaseInput\b[^>]*webhookSecret/)
     assert.doesNotMatch(triggerEditorSource, /<BaseInput\b[^>]*cronExpression/)
     assert.doesNotMatch(triggerEditorSource, /<BaseInput\b[^>]*triggerParams/)

@@ -449,15 +449,19 @@
                     @keyup="rememberTriggerParamSelection(String(propKey), $event)"
                     @mouseup="rememberTriggerParamSelection(String(propKey), $event)"
                     @click="rememberTriggerParamSelection(String(propKey), $event)"
-                    @variable-click="toggleTriggerParamPicker(String(propKey))"
+                    @variable-click="toggleTriggerParamPicker(String(propKey), $event)"
                   />
 
-                  <div
-                    v-if="activeTriggerParamPicker === String(propKey)"
-                    class="te-variable-picker-popover"
-                  >
-                    <VariablePicker @select="selectTriggerParamVariable(String(propKey), $event)" />
-                  </div>
+                  <Teleport to="body">
+                    <div
+                      v-if="activeTriggerParamPicker === String(propKey)"
+                      ref="pickerRef"
+                      class="te-variable-picker-popover"
+                      :style="pickerStyle"
+                    >
+                      <VariablePicker @select="selectTriggerParamVariable(String(propKey), $event)" />
+                    </div>
+                  </Teleport>
                 </div>
                 <p v-if="triggerParamHint(propSchema)" class="te-hint">{{ triggerParamHint(propSchema) }}</p>
               </div>
@@ -541,6 +545,7 @@ import { onMounted } from 'vue'
 import { buildTriggerFormProdUrl, buildTriggerFormTestUrl, buildTriggerWebhookProdUrl } from './triggerRuntimeUrls'
 import type { ExpressionItem, TextSelectionRange } from '../expressions/expressionVariables'
 import { insertExpressionToken } from '../expressions/expressionVariables'
+import { useVariablePickerPosition } from '../expressions/useVariablePickerPosition'
 
 const props = defineProps<NodeEditorProps>()
 const workflowStore = useWorkflowStore()
@@ -762,7 +767,10 @@ function saveFormFields(next: FormTriggerField[]) {
 
 const allPlugins = ref<PluginSummary[]>([])
 const activeTriggerParamPicker = ref<string | null>(null)
+const activeTriggerParamAnchor = ref<HTMLElement | null>(null)
 const triggerParamSelections = ref<Record<string, TextSelectionRange>>({})
+const { pickerRef, pickerStyle, preparePickerPosition, removePickerPositionListeners } =
+  useVariablePickerPosition(activeTriggerParamAnchor)
 
 // Fetch plugins lazily when the trigger type is "plugin"
 async function loadPlugins() {
@@ -840,15 +848,37 @@ function rememberTriggerParamSelection(key: string, event: Event) {
   }
 }
 
-function toggleTriggerParamPicker(key: string) {
-  activeTriggerParamPicker.value = activeTriggerParamPicker.value === key ? null : key
+function closeTriggerParamPicker() {
+  activeTriggerParamPicker.value = null
+  activeTriggerParamAnchor.value = null
+  window.removeEventListener('pointerdown', onTriggerParamDocumentPointerDown)
+  removePickerPositionListeners()
+}
+
+function onTriggerParamDocumentPointerDown(event: PointerEvent) {
+  const target = event.target as Node
+  if (!activeTriggerParamAnchor.value?.contains(target) && !pickerRef.value?.contains(target)) {
+    closeTriggerParamPicker()
+  }
+}
+
+async function toggleTriggerParamPicker(key: string, event: MouseEvent) {
+  if (activeTriggerParamPicker.value === key) {
+    closeTriggerParamPicker()
+    return
+  }
+
+  activeTriggerParamPicker.value = key
+  activeTriggerParamAnchor.value = (event.currentTarget as HTMLElement | null)?.closest('.te-variable-field') as HTMLElement | null
+  window.addEventListener('pointerdown', onTriggerParamDocumentPointerDown)
+  await preparePickerPosition()
 }
 
 function selectTriggerParamVariable(key: string, item: ExpressionItem) {
   const current = String((props.node.data as unknown as WorkflowTrigger).triggerParams?.[key] ?? '')
   const next = insertExpressionToken(current, item.token, triggerParamSelections.value[key])
   updateTriggerParam(key, next)
-  activeTriggerParamPicker.value = null
+  closeTriggerParamPicker()
 }
 
 function triggerParamFieldType(propSchema: Record<string, any>): 'input' | 'textarea' {
@@ -943,7 +973,10 @@ function cleanup() {
   }
 }
 
-onUnmounted(() => cleanup())
+onUnmounted(() => {
+  cleanup()
+  closeTriggerParamPicker()
+})
 </script>
 
 <style scoped>
@@ -1020,9 +1053,6 @@ onUnmounted(() => cleanup())
 }
 
 .te-variable-picker-popover {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
   z-index: 10030;
 }
 

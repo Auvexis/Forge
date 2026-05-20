@@ -5,6 +5,7 @@ import type { ExpressionItem, TextSelectionRange } from './expressionVariables'
 import { insertExpressionToken } from './expressionVariables'
 import ExpressionBadges from './ExpressionBadges.vue'
 import VariablePicker from './VariablePicker.vue'
+import { useVariablePickerPosition } from './useVariablePickerPosition'
 
 const props = withDefaults(
   defineProps<{
@@ -33,6 +34,8 @@ const emit = defineEmits<{
 const isOpen = ref(false)
 const selection = ref<TextSelectionRange | null>(null)
 const rootRef = ref<HTMLElement | null>(null)
+const { pickerRef, pickerStyle, preparePickerPosition, removePickerPositionListeners } =
+  useVariablePickerPosition(rootRef)
 
 function rememberSelection(event: Event) {
   const target = event.target as HTMLTextAreaElement | null
@@ -47,25 +50,32 @@ function selectItem(item: ExpressionItem) {
   const next = insertExpressionToken(props.modelValue, item.token, selection.value)
   emit('update:modelValue', next)
   isOpen.value = false
+  window.removeEventListener('pointerdown', onDocumentPointerDown)
+  removePickerPositionListeners()
 }
 
 function onDocumentPointerDown(event: PointerEvent) {
-  if (!rootRef.value?.contains(event.target as Node)) {
+  const target = event.target as Node
+  if (!rootRef.value?.contains(target) && !pickerRef.value?.contains(target)) {
     isOpen.value = false
+    removePickerPositionListeners()
   }
 }
 
-function togglePicker() {
+async function togglePicker() {
   isOpen.value = !isOpen.value
   if (isOpen.value) {
     window.addEventListener('pointerdown', onDocumentPointerDown)
+    await preparePickerPosition()
   } else {
     window.removeEventListener('pointerdown', onDocumentPointerDown)
+    removePickerPositionListeners()
   }
 }
 
 onBeforeUnmount(() => {
   window.removeEventListener('pointerdown', onDocumentPointerDown)
+  removePickerPositionListeners()
 })
 
 defineOptions({ inheritAttrs: false })
@@ -100,9 +110,16 @@ defineOptions({ inheritAttrs: false })
 
     <ExpressionBadges :value="modelValue" />
 
-    <div v-if="isOpen" class="expression-field__popover">
-      <VariablePicker @select="selectItem" />
-    </div>
+    <Teleport to="body">
+      <div
+        v-if="isOpen"
+        ref="pickerRef"
+        class="expression-field__popover"
+        :style="pickerStyle"
+      >
+        <VariablePicker @select="selectItem" />
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -117,9 +134,6 @@ defineOptions({ inheritAttrs: false })
 }
 
 .expression-field__popover {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
   z-index: 10030;
 }
 </style>
