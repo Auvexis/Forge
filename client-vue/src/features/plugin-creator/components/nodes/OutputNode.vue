@@ -1,21 +1,28 @@
 <template>
-  <div class="plugin-creator-node plugin-creator-node--output">
-    <Handle type="target" :position="Position.Left" />
-    <div class="plugin-creator-node__eyebrow">Output Field</div>
-    <strong>{{ data.name ?? data.label ?? 'Output' }}</strong>
-    <span>{{ data.methodId ?? 'method' }}</span>
-    <ul>
-      <li v-for="output in outputs" :key="output">{{ output }}</li>
-    </ul>
-    <Handle type="source" :position="Position.Right" />
-  </div>
+  <BaseNode
+    class="plugin-creator-node"
+    icon="package-check"
+    color="#60a5fa"
+    bg="rgba(59, 130, 246, 0.12)"
+    border-color="rgba(96, 165, 250, 0.58)"
+    has-target
+    has-source
+    :selected="selected"
+  >
+    <template #label>
+      <div class="plugin-creator-node__label">
+        <strong>{{ data.name ?? data.label ?? 'Output' }}</strong>
+        <span>{{ outputs[0] ?? data.methodId ?? 'method' }}</span>
+      </div>
+    </template>
+  </BaseNode>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Handle, Position } from '@vue-flow/core'
+import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
-const props = defineProps<{ data: Record<string, unknown> }>()
+const props = defineProps<{ data: Record<string, unknown>; selected?: boolean }>()
 
 const outputs = computed(() =>
   Array.isArray(props.data.outputs) ? props.data.outputs.map(String) : [],

@@ -81,14 +81,14 @@ const items: Array<{ type: AddItemType; label: string; icon: Component }> = [
   top: 16px;
   right: 16px;
   z-index: 30;
-  width: min(320px, calc(100% - 32px));
+  width: min(360px, calc(100% - 32px));
   max-height: calc(100% - 32px);
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--sailor-border, #d9e1ec);
-  border-radius: 8px;
-  background: var(--sailor-surface, #ffffff);
-  box-shadow: 0 18px 40px rgba(20, 32, 51, 0.16);
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: 0;
+  background: var(--sailor-bg-base);
+  box-shadow: -18px 0 40px rgba(0, 0, 0, 0.32);
   overflow: hidden;
 }
 
@@ -98,7 +98,7 @@ const items: Array<{ type: AddItemType; label: string; icon: Component }> = [
   justify-content: space-between;
   gap: 12px;
   padding: 14px 16px;
-  border-bottom: 1px solid var(--sailor-border, #d9e1ec);
+  border-bottom: 1px solid var(--sailor-border-subtle);
 }
 
 .plugin-creator-add-panel__header p,
@@ -107,14 +107,14 @@ const items: Array<{ type: AddItemType; label: string; icon: Component }> = [
 }
 
 .plugin-creator-add-panel__header p {
-  color: var(--sailor-text-secondary, #526173);
+  color: var(--sailor-text-secondary);
   font-size: 12px;
   font-weight: 700;
 }
 
 .plugin-creator-add-panel__header h2 {
   margin-top: 4px;
-  color: var(--sailor-text-primary, #142033);
+  color: var(--sailor-text-primary);
   font-size: 16px;
   line-height: 1.2;
 }
@@ -127,7 +127,7 @@ const items: Array<{ type: AddItemType; label: string; icon: Component }> = [
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: var(--sailor-text-secondary, #526173);
+  color: var(--sailor-text-secondary);
   cursor: pointer;
 }
 
@@ -147,7 +147,7 @@ const items: Array<{ type: AddItemType; label: string; icon: Component }> = [
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
-  color: var(--sailor-text-primary, #142033);
+  color: var(--sailor-text-primary);
   font-size: 13px;
   font-weight: 650;
   text-align: left;
@@ -155,7 +155,7 @@ const items: Array<{ type: AddItemType; label: string; icon: Component }> = [
 }
 
 .plugin-creator-add-panel__items button:hover {
-  border-color: var(--sailor-border, #d9e1ec);
-  background: var(--sailor-bg-surface-hover, #f3f6fb);
+  border-color: var(--sailor-border-subtle);
+  background: var(--sailor-bg-elevated);
 }
 </style>

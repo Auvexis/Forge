@@ -8,13 +8,6 @@
     />
 
     <section class="plugin-creator-page__workspace" aria-label="Plugin creator canvas">
-      <aside class="plugin-creator-page__rail">
-        <span class="plugin-creator-page__rail-title">Add Item</span>
-        <button type="button" @click="isAddPanelOpen = true">Method</button>
-        <button type="button" @click="isAddPanelOpen = true">Input Field</button>
-        <button type="button" @click="isAddPanelOpen = true">Request</button>
-      </aside>
-
       <div class="plugin-creator-page__canvas-shell">
         <div v-if="store.error" class="plugin-creator-page__status plugin-creator-page__status--error">
           {{ store.error }}
@@ -155,31 +148,21 @@ function clearExecution() {
   height: 100%;
   display: grid;
   grid-template-rows: auto 1fr;
-  background: #f6f8fb;
-  color: #142033;
-}
-
-.plugin-creator-page__rail button {
-  min-height: 34px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #172033;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
+  background: var(--sailor-bg-base);
+  color: var(--sailor-text-primary);
 }
 
 .plugin-creator-page__workspace {
   min-height: 0;
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) 360px;
 }
 
 .plugin-creator-page__canvas-shell {
   position: relative;
   min-width: 0;
   min-height: 0;
+  border-right: 1px solid var(--sailor-border-subtle);
 }
 
 .plugin-creator-page__status {
@@ -191,8 +174,8 @@ function clearExecution() {
   padding: 8px 10px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  background: #ffffff;
-  color: #526173;
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-secondary);
   font-size: 12px;
   font-weight: 650;
   box-shadow: 0 10px 24px rgba(20, 32, 51, 0.12);
@@ -204,45 +187,20 @@ function clearExecution() {
   color: #b91c1c;
 }
 
-.plugin-creator-page__rail {
-  padding: 16px;
-  border-right: 1px solid #d9e1ec;
-  background: #ffffff;
-}
-
 .plugin-creator-page__side {
   min-width: 0;
   min-height: 0;
   display: grid;
   grid-template-rows: minmax(0, 1fr) minmax(220px, auto) minmax(160px, auto);
   overflow: hidden;
-  background: #ffffff;
-}
-
-.plugin-creator-page__rail-title {
-  display: block;
-  margin-bottom: 12px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #526173;
-}
-
-.plugin-creator-page__rail button {
-  width: 100%;
-  margin-bottom: 8px;
-  text-align: left;
-  padding: 0 10px;
+  background: var(--sailor-bg-base);
+  border-left: 1px solid var(--sailor-border-subtle);
 }
 
 @media (max-width: 900px) {
   .plugin-creator-page__workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(360px, 1fr) auto;
-  }
-
-  .plugin-creator-page__rail {
-    border: 0;
-    border-bottom: 1px solid #d9e1ec;
+    grid-template-rows: minmax(360px, 1fr) auto;
   }
 
   .plugin-creator-page__side {

@@ -13,8 +13,9 @@ describe('plugin creator MVP nodes', () => {
       const source = fs.readFileSync(path.join(nodesDir, file), 'utf8')
       assert.match(source, /data\.name|data\.label/)
       assert.match(source, /data\.handle|data\.name/)
-      assert.match(source, /Handle/)
-      assert.match(source, /source|target/)
+      assert.match(source, /BaseNode/)
+      assert.match(source, /has-source/)
+      assert.match(source, /has-target/)
     }
   })
 })

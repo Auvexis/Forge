@@ -130,10 +130,10 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 4px;
   padding: 6px;
-  border: 1px solid var(--sailor-border, #d9e1ec);
+  border: 1px solid var(--sailor-border-subtle);
   border-radius: 8px;
-  background: var(--sailor-surface, #ffffff);
-  box-shadow: 0 18px 40px rgba(20, 32, 51, 0.16);
+  background: color-mix(in srgb, var(--sailor-bg-base) 94%, transparent);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
   transform: translateX(-50%);
 }
 
@@ -145,14 +145,14 @@ onBeforeUnmount(() => {
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
-  color: var(--sailor-text-primary, #142033);
+  color: var(--sailor-text-primary);
   cursor: pointer;
 }
 
 .plugin-creator-toolbar button:hover,
 .plugin-creator-toolbar button.is-active {
-  border-color: var(--sailor-border, #d9e1ec);
-  background: var(--sailor-bg-surface-hover, #f3f6fb);
+  border-color: var(--sailor-border-subtle);
+  background: var(--sailor-bg-elevated);
 }
 
 .plugin-creator-toolbar__danger {
@@ -166,15 +166,15 @@ onBeforeUnmount(() => {
 }
 
 .plugin-creator-toolbar__publish {
-  background: #246bfe !important;
-  color: #ffffff !important;
+  background: rgba(0, 214, 143, 0.16) !important;
+  color: var(--sailor-accent) !important;
 }
 
 .plugin-creator-toolbar__divider {
   width: 1px;
   height: 26px;
   margin: 0 4px;
-  background: var(--sailor-border, #d9e1ec);
+  background: var(--sailor-border-subtle);
 }
 
 .plugin-creator-toolbar__zoom {

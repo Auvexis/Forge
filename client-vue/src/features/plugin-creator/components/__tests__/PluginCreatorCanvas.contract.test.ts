@@ -11,6 +11,8 @@ describe('PluginCreatorCanvas contract', () => {
 
     assert.match(source, /VueFlow/)
     assert.match(source, /@vue-flow\/core/)
+    assert.match(source, /BaseEdge/)
+    assert.match(source, /plugin-creator-edge/)
     assert.match(source, /blueprint\.canvas\.nodes/)
     assert.match(source, /blueprint\.canvas\.edges/)
   })

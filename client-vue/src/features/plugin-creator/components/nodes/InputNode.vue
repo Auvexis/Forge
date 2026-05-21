@@ -1,18 +1,29 @@
 <template>
-  <div class="plugin-creator-node plugin-creator-node--input">
-    <Handle type="target" :position="Position.Left" />
-    <div class="plugin-creator-node__eyebrow">Input Field</div>
-    <strong>{{ data.label ?? data.name ?? 'Input' }}</strong>
-    <span>{{ data.handle ?? data.name ?? 'inputName' }}</span>
-    <Handle type="source" :position="Position.Right" />
-  </div>
+  <BaseNode
+    class="plugin-creator-node"
+    icon="braces"
+    color="#34d399"
+    bg="rgba(16, 185, 129, 0.12)"
+    border-color="rgba(52, 211, 153, 0.55)"
+    has-target
+    has-source
+    :selected="selected"
+  >
+    <template #label>
+      <div class="plugin-creator-node__label">
+        <strong>{{ data.label ?? data.name ?? 'Input' }}</strong>
+        <span>{{ data.handle ?? data.name ?? 'inputName' }}</span>
+      </div>
+    </template>
+  </BaseNode>
 </template>
 
 <script setup lang="ts">
-import { Handle, Position } from '@vue-flow/core'
+import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
 defineProps<{
   data: Record<string, unknown>
+  selected?: boolean
 }>()
 </script>
 

@@ -65,8 +65,8 @@ function formatDate(value: string): string {
   display: grid;
   gap: 12px;
   padding: 16px;
-  border-top: 1px solid var(--sailor-border, #d9e1ec);
-  background: var(--sailor-surface, #ffffff);
+  border-top: 1px solid var(--sailor-border-subtle);
+  background: var(--sailor-bg-base);
 }
 
 .plugin-creator-version-panel header,
@@ -84,12 +84,12 @@ function formatDate(value: string): string {
 }
 
 .plugin-creator-version-panel h2 {
-  color: var(--sailor-text-primary, #142033);
+  color: var(--sailor-text-primary);
   font-size: 13px;
 }
 
 .plugin-creator-version-panel h3 {
-  color: var(--sailor-text-secondary, #526173);
+  color: var(--sailor-text-secondary);
   font-size: 12px;
 }
 
@@ -100,7 +100,7 @@ function formatDate(value: string): string {
 
 .plugin-creator-version-panel article {
   padding: 8px;
-  border: 1px solid var(--sailor-border, #d9e1ec);
+  border: 1px solid var(--sailor-border-subtle);
   border-radius: 6px;
 }
 
@@ -110,23 +110,23 @@ function formatDate(value: string): string {
 }
 
 .plugin-creator-version-panel strong {
-  color: var(--sailor-text-primary, #142033);
+  color: var(--sailor-text-primary);
   font-size: 13px;
 }
 
 .plugin-creator-version-panel span,
 .plugin-creator-version-panel p {
-  color: var(--sailor-text-secondary, #526173);
+  color: var(--sailor-text-secondary);
   font-size: 12px;
 }
 
 .plugin-creator-version-panel button {
   min-height: 28px;
   padding: 0 10px;
-  border: 1px solid var(--sailor-border, #cbd5e1);
+  border: 1px solid var(--sailor-border-subtle);
   border-radius: 6px;
-  background: #ffffff;
-  color: var(--sailor-text-primary, #142033);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;

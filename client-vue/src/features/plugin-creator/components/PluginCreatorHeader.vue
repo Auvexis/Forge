@@ -51,14 +51,14 @@ const emit = defineEmits<{
 
 <style scoped>
 .plugin-creator-header {
-  min-height: 72px;
+  min-height: 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--sailor-border);
-  background: var(--sailor-surface);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--sailor-border-subtle);
+  background: var(--sailor-bg-base);
 }
 
 .plugin-creator-header__left,
@@ -91,9 +91,9 @@ const emit = defineEmits<{
   align-items: center;
   gap: 7px;
   padding: 0 12px;
-  border: 1px solid var(--sailor-border);
+  border: 1px solid var(--sailor-border-subtle);
   border-radius: 6px;
-  background: var(--sailor-surface);
+  background: transparent;
   color: var(--sailor-text-primary);
   font-size: 13px;
   font-weight: 600;
@@ -101,8 +101,17 @@ const emit = defineEmits<{
 }
 
 .plugin-creator-header__button--primary {
-  border-color: #246bfe;
-  background: #246bfe;
+  border-color: rgba(0, 214, 143, 0.35);
+  background: rgba(0, 214, 143, 0.16);
+  color: var(--sailor-accent);
+}
+
+.plugin-creator-header__button:hover {
+  background: var(--sailor-bg-elevated);
+}
+
+.plugin-creator-header__button--primary:hover {
+  background: rgba(0, 214, 143, 0.22);
   color: #ffffff;
 }
 

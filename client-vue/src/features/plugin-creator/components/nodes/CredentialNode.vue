@@ -1,18 +1,29 @@
 <template>
-  <div class="plugin-creator-node plugin-creator-node--credential">
-    <Handle type="target" :position="Position.Left" />
-    <div class="plugin-creator-node__eyebrow">Credential Field</div>
-    <strong>{{ data.label ?? data.name ?? 'Credential' }}</strong>
-    <span>{{ data.handle ?? data.name ?? 'credentialName' }}</span>
-    <Handle type="source" :position="Position.Right" />
-  </div>
+  <BaseNode
+    class="plugin-creator-node"
+    icon="key-round"
+    color="#f59e0b"
+    bg="rgba(245, 158, 11, 0.12)"
+    border-color="rgba(245, 158, 11, 0.62)"
+    has-target
+    has-source
+    :selected="selected"
+  >
+    <template #label>
+      <div class="plugin-creator-node__label">
+        <strong>{{ data.label ?? data.name ?? 'Credential' }}</strong>
+        <span>{{ data.handle ?? data.name ?? 'credentialName' }}</span>
+      </div>
+    </template>
+  </BaseNode>
 </template>
 
 <script setup lang="ts">
-import { Handle, Position } from '@vue-flow/core'
+import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
 defineProps<{
   data: Record<string, unknown>
+  selected?: boolean
 }>()
 </script>
 

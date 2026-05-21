@@ -251,8 +251,8 @@ function updateRequestJsonBody(event: Event) {
   flex-direction: column;
   gap: 18px;
   overflow: auto;
-  border-left: 1px solid var(--sailor-border, #d9e1ec);
-  background: var(--sailor-surface, #ffffff);
+  border-left: 1px solid var(--sailor-border-subtle);
+  background: var(--sailor-bg-base);
 }
 
 .plugin-creator-inspector section {
@@ -262,7 +262,7 @@ function updateRequestJsonBody(event: Event) {
 
 .plugin-creator-inspector h2 {
   margin: 0;
-  color: var(--sailor-text-primary, #142033);
+  color: var(--sailor-text-primary);
   font-size: 13px;
   line-height: 1.2;
 }
@@ -270,7 +270,7 @@ function updateRequestJsonBody(event: Event) {
 .plugin-creator-inspector label {
   display: grid;
   gap: 5px;
-  color: var(--sailor-text-secondary, #526173);
+  color: var(--sailor-text-secondary);
   font-size: 12px;
   font-weight: 650;
 }
@@ -280,10 +280,10 @@ function updateRequestJsonBody(event: Event) {
 .plugin-creator-inspector textarea {
   width: 100%;
   min-width: 0;
-  border: 1px solid var(--sailor-border, #cbd5e1);
+  border: 1px solid var(--sailor-border-subtle);
   border-radius: 6px;
-  background: #ffffff;
-  color: var(--sailor-text-primary, #142033);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
   font: inherit;
   font-size: 13px;
 }
@@ -312,7 +312,7 @@ function updateRequestJsonBody(event: Event) {
 
 .plugin-creator-inspector__empty {
   margin: 0;
-  color: var(--sailor-text-secondary, #526173);
+  color: var(--sailor-text-secondary);
   font-size: 13px;
   line-height: 1.45;
 }

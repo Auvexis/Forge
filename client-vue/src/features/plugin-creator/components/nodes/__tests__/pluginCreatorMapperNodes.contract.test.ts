@@ -12,7 +12,9 @@ describe('plugin creator mapper nodes', () => {
 
     for (const file of files) {
       const source = fs.readFileSync(path.join(nodesDir, file), 'utf8')
-      assert.match(source, /Handle/)
+      assert.match(source, /BaseNode/)
+      assert.match(source, /has-source/)
+      assert.match(source, /has-target/)
       assert.match(source, /data\.methodId/)
       assert.match(source, /data\.mappings|data\.errors|data\.outputs/)
     }
@@ -22,9 +24,9 @@ describe('plugin creator mapper nodes', () => {
     const responseMapper = fs.readFileSync(path.join(nodesDir, 'ResponseMapperNode.vue'), 'utf8')
     const errorMapper = fs.readFileSync(path.join(nodesDir, 'ErrorMapperNode.vue'), 'utf8')
 
-    assert.match(responseMapper, /Map selected field as output/)
+    assert.match(responseMapper, /Map output/)
     assert.match(responseMapper, /map-selected-field-as-output/)
-    assert.match(errorMapper, /Create error rule from this response/)
+    assert.match(errorMapper, /Error rule/)
     assert.match(errorMapper, /create-error-rule-from-response/)
   })
 

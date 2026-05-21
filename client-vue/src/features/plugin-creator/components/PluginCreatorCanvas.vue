@@ -14,7 +14,41 @@
       class="plugin-creator-canvas__flow"
       @node-click="onNodeClick"
     >
-      <Background :gap="24" :size="1" color="var(--sailor-canvas-grid, #cbd5e1)" />
+      <Background
+        :gap="20"
+        :size="1"
+        variant="dots"
+        color="var(--sailor-canvas-grid)"
+        :style="{ 'background-color': 'var(--sailor-canvas-bg)' }"
+      />
+
+      <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
+        <defs>
+          <marker
+            v-for="marker in edgeMarkers"
+            :id="marker.id"
+            :key="marker.id"
+            viewBox="0 0 12 12"
+            refX="10"
+            refY="6"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
+            <path
+              d="M 2 2 L 10 6 L 2 10 z"
+              :fill="marker.color"
+              :stroke="marker.color"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+          </marker>
+        </defs>
+      </svg>
+
+      <template #edge-plugin-creator-edge="edgeProps">
+        <PluginCreatorEdge v-bind="edgeProps" />
+      </template>
 
       <div v-if="!blueprint" class="plugin-creator-canvas__empty nodrag nopan">
         Open or create a plugin to start mapping methods.
@@ -35,6 +69,7 @@ import RequestNode from './nodes/RequestNode.vue'
 import ResponseMapperNode from './nodes/ResponseMapperNode.vue'
 import ErrorMapperNode from './nodes/ErrorMapperNode.vue'
 import OutputNode from './nodes/OutputNode.vue'
+import PluginCreatorEdge from '../../workflow-editor/components/BaseEdge.vue'
 
 const props = defineProps<{
   blueprint?: PluginBlueprint | null
@@ -53,6 +88,14 @@ const nodeTypes = {
   errorMapper: ErrorMapperNode,
   output: OutputNode,
 } as unknown as NodeTypesObject
+
+const edgeMarkers = [
+  { id: 'sailor-arrow-idle', color: 'var(--sailor-rf-arrow-stroke)' },
+  { id: 'sailor-arrow-success', color: 'var(--sailor-green-500, #22c55e)' },
+  { id: 'sailor-arrow-failed', color: 'var(--sailor-red-500, #ef4444)' },
+  { id: 'sailor-arrow-running', color: 'var(--sailor-amber-500, #f59e0b)' },
+  { id: 'sailor-arrow-selected', color: 'var(--sailor-rf-arrow-stroke-selected)' },
+]
 
 const nodes = computed<Node[]>({
   get() {
@@ -78,7 +121,7 @@ const edges = computed<Edge[]>({
 
     return blueprint.canvas.edges.map((edge) => ({
       ...edge,
-      type: 'default',
+      type: 'plugin-creator-edge',
     }))
   },
   set() {
@@ -99,7 +142,7 @@ function onNodeClick(event: { node?: Node }) {
   height: 100%;
   min-width: 0;
   min-height: 0;
-  background: var(--sailor-canvas-bg, #eef3f9);
+  background: var(--sailor-canvas-bg, #080909);
 }
 
 .plugin-creator-canvas__flow {

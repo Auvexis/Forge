@@ -1,24 +1,31 @@
 <template>
-  <div class="plugin-creator-node plugin-creator-node--response-mapper">
-    <Handle type="target" :position="Position.Left" />
-    <div class="plugin-creator-node__eyebrow">Response Mapper</div>
-    <strong>{{ data.name ?? 'Response mapping' }}</strong>
-    <span>{{ data.methodId ?? 'method' }}</span>
-    <ul>
-      <li v-for="mapping in mappings" :key="mapping">{{ mapping }}</li>
-    </ul>
-    <button type="button" @click="emit('map-selected-field-as-output', data.methodId)">
-      Map selected field as output
+  <BaseNode
+    class="plugin-creator-node"
+    icon="git-branch-plus"
+    color="#34d399"
+    bg="rgba(16, 185, 129, 0.1)"
+    border-color="rgba(52, 211, 153, 0.5)"
+    has-target
+    has-source
+    :selected="selected"
+  >
+    <button class="plugin-creator-node__action" type="button" @click="emit('map-selected-field-as-output', data.methodId)">
+      Map output
     </button>
-    <Handle type="source" :position="Position.Right" />
-  </div>
+    <template #label>
+      <div class="plugin-creator-node__label">
+        <strong>{{ data.name ?? 'Response mapping' }}</strong>
+        <span>{{ mappings[0] ?? data.methodId ?? 'method' }}</span>
+      </div>
+    </template>
+  </BaseNode>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Handle, Position } from '@vue-flow/core'
+import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
-const props = defineProps<{ data: Record<string, unknown> }>()
+const props = defineProps<{ data: Record<string, unknown>; selected?: boolean }>()
 const emit = defineEmits<{
   'map-selected-field-as-output': [methodId: unknown]
 }>()

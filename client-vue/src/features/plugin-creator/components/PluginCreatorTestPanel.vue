@@ -150,8 +150,8 @@ function runTest() {
   display: grid;
   gap: 12px;
   padding: 16px;
-  border-top: 1px solid var(--sailor-border, #d9e1ec);
-  background: var(--sailor-surface, #ffffff);
+  border-top: 1px solid var(--sailor-border-subtle);
+  background: var(--sailor-bg-base);
 }
 
 .plugin-creator-test-panel header,
@@ -169,14 +169,14 @@ function runTest() {
 }
 
 .plugin-creator-test-panel h2 {
-  color: var(--sailor-text-primary, #142033);
+  color: var(--sailor-text-primary);
   font-size: 13px;
 }
 
 .plugin-creator-test-panel h3,
 .plugin-creator-test-panel__metrics span,
 .plugin-creator-test-panel__error span {
-  color: var(--sailor-text-secondary, #526173);
+  color: var(--sailor-text-secondary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -184,10 +184,10 @@ function runTest() {
 .plugin-creator-test-panel button {
   height: 30px;
   padding: 0 12px;
-  border: 1px solid #1f6feb;
+  border: 1px solid rgba(0, 214, 143, 0.35);
   border-radius: 6px;
-  background: #1f6feb;
-  color: #ffffff;
+  background: rgba(0, 214, 143, 0.16);
+  color: var(--sailor-accent);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -206,7 +206,7 @@ function runTest() {
 .plugin-creator-test-panel label {
   display: grid;
   gap: 5px;
-  color: var(--sailor-text-secondary, #526173);
+  color: var(--sailor-text-secondary);
   font-size: 12px;
   font-weight: 650;
 }
@@ -215,9 +215,10 @@ function runTest() {
   height: 32px;
   min-width: 0;
   padding: 0 9px;
-  border: 1px solid var(--sailor-border, #cbd5e1);
+  border: 1px solid var(--sailor-border-subtle);
   border-radius: 6px;
-  color: var(--sailor-text-primary, #142033);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
   font: inherit;
   font-size: 13px;
 }
@@ -228,8 +229,8 @@ function runTest() {
   padding: 9px;
   overflow: auto;
   border-radius: 6px;
-  background: #f3f6fb;
-  color: #172033;
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
   font-size: 12px;
   line-height: 1.45;
   white-space: pre-wrap;
@@ -237,7 +238,7 @@ function runTest() {
 
 .plugin-creator-test-panel__metrics strong,
 .plugin-creator-test-panel__error p {
-  color: var(--sailor-text-primary, #142033);
+  color: var(--sailor-text-primary);
   font-size: 13px;
 }
 </style>

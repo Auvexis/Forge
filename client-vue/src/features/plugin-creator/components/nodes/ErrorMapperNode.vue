@@ -1,24 +1,31 @@
 <template>
-  <div class="plugin-creator-node plugin-creator-node--error-mapper">
-    <Handle type="target" :position="Position.Left" />
-    <div class="plugin-creator-node__eyebrow">Error Mapper</div>
-    <strong>{{ data.name ?? 'Error rules' }}</strong>
-    <span>{{ data.methodId ?? 'method' }}</span>
-    <ul>
-      <li v-for="error in errors" :key="error">{{ error }}</li>
-    </ul>
-    <button type="button" @click="emit('create-error-rule-from-response', data.methodId)">
-      Create error rule from this response
+  <BaseNode
+    class="plugin-creator-node"
+    icon="shield-alert"
+    color="#fb7185"
+    bg="rgba(244, 63, 94, 0.12)"
+    border-color="rgba(251, 113, 133, 0.58)"
+    has-target
+    has-source
+    :selected="selected"
+  >
+    <button class="plugin-creator-node__action" type="button" @click="emit('create-error-rule-from-response', data.methodId)">
+      Error rule
     </button>
-    <Handle type="source" :position="Position.Right" />
-  </div>
+    <template #label>
+      <div class="plugin-creator-node__label">
+        <strong>{{ data.name ?? 'Error rules' }}</strong>
+        <span>{{ errors[0] ?? data.methodId ?? 'method' }}</span>
+      </div>
+    </template>
+  </BaseNode>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Handle, Position } from '@vue-flow/core'
+import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
-const props = defineProps<{ data: Record<string, unknown> }>()
+const props = defineProps<{ data: Record<string, unknown>; selected?: boolean }>()
 const emit = defineEmits<{
   'create-error-rule-from-response': [methodId: unknown]
 }>()

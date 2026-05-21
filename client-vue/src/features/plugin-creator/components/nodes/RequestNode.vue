@@ -1,18 +1,29 @@
 <template>
-  <div class="plugin-creator-node plugin-creator-node--request">
-    <Handle type="target" :position="Position.Left" />
-    <div class="plugin-creator-node__eyebrow">Request</div>
-    <strong>{{ data.name ?? data.method ?? 'HTTP Request' }}</strong>
-    <span>{{ data.handle ?? data.url ?? 'https://api.example.com' }}</span>
-    <Handle type="source" :position="Position.Right" />
-  </div>
+  <BaseNode
+    class="plugin-creator-node"
+    icon="globe"
+    color="#fb923c"
+    bg="rgba(249, 115, 22, 0.13)"
+    border-color="rgba(251, 146, 60, 0.62)"
+    has-target
+    has-source
+    :selected="selected"
+  >
+    <template #label>
+      <div class="plugin-creator-node__label">
+        <strong>{{ data.name ?? data.method ?? 'HTTP Request' }}</strong>
+        <span>{{ data.handle ?? data.url ?? 'https://api.example.com' }}</span>
+      </div>
+    </template>
+  </BaseNode>
 </template>
 
 <script setup lang="ts">
-import { Handle, Position } from '@vue-flow/core'
+import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
 defineProps<{
   data: Record<string, unknown>
+  selected?: boolean
 }>()
 </script>
 
