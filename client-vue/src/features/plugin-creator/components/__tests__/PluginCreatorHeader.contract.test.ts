@@ -26,6 +26,40 @@ describe('PluginCreatorHeader contract', () => {
     }
   })
 
+  it('command menu exposes plugin context and emits actionable menu events', () => {
+    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorCommandMenu.vue'), 'utf8')
+
+    assert.match(source, /activeBlueprint/)
+    assert.match(source, /blueprints/)
+    assert.match(source, /activePluginTitle/)
+    assert.match(source, /activePluginHandle/)
+    assert.match(source, /isDirty/)
+
+    for (const eventName of [
+      'newPlugin',
+      'openPlugin',
+      'exportZip',
+      'settings',
+      'versions',
+      'run',
+      'publish',
+      'discardDraft',
+    ]) {
+      assert.match(source, new RegExp(eventName))
+    }
+  })
+
+  it('header forwards menu workflow events to the page', () => {
+    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorHeader.vue'), 'utf8')
+
+    assert.match(source, /:active-blueprint="activeBlueprint"/)
+    assert.match(source, /:blueprints="blueprints"/)
+    assert.match(source, /@new-plugin="emit\('newPlugin'\)"/)
+    assert.match(source, /@open-plugin="emit\('openPlugin', \$event\)"/)
+    assert.match(source, /@export-zip="emit\('exportZip'\)"/)
+    assert.match(source, /@discard-draft="emit\('discardDraft'\)"/)
+  })
+
   it('header only renders the plugin creator command menu trigger', () => {
     const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorHeader.vue'), 'utf8')
 

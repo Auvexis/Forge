@@ -47,6 +47,19 @@ function snapshot(blueprint: PluginBlueprint | null): string {
   return JSON.stringify(blueprint)
 }
 
+function upsertBlueprint(list: PluginBlueprint[], blueprint: PluginBlueprint): PluginBlueprint[] {
+  const index = list.findIndex((candidate) => candidate.id === blueprint.id)
+  if (index < 0) {
+    return [...list, cloneBlueprint(blueprint)].sort((left, right) =>
+      left.metadata.name.localeCompare(right.metadata.name),
+    )
+  }
+
+  const next = [...list]
+  next[index] = cloneBlueprint(blueprint)
+  return next.sort((left, right) => left.metadata.name.localeCompare(right.metadata.name))
+}
+
 const defaultApiClient: PluginCreatorApiClient = {
   listBlueprints: (...args) =>
     import('../../../core/api/plugin-creator.api.ts').then((api) =>
@@ -147,6 +160,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     try {
       const blueprint = await apiClient.value.createBlueprint(payload)
       setActiveBlueprint(blueprint)
+      blueprints.value = upsertBlueprint(blueprints.value, blueprint)
       return blueprint
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to create plugin blueprint'
@@ -162,6 +176,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     try {
       const blueprint = await apiClient.value.getBlueprint(id)
       setActiveBlueprint(blueprint)
+      blueprints.value = upsertBlueprint(blueprints.value, blueprint)
       return blueprint
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to load plugin blueprint'
@@ -182,6 +197,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
       )
       activeBlueprint.value = cloneBlueprint(saved)
       savedSnapshot.value = snapshot(activeBlueprint.value)
+      blueprints.value = upsertBlueprint(blueprints.value, saved)
       return saved
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to save plugin blueprint'
@@ -253,6 +269,20 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
       throw err
     } finally {
       isSaving.value = false
+    }
+  }
+
+  async function exportZip() {
+    if (!activeBlueprint.value) return null
+    isLoading.value = true
+    error.value = null
+    try {
+      return await apiClient.value.exportZip(activeBlueprint.value.id)
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to export plugin ZIP'
+      throw err
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -485,6 +515,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     loadVersions,
     generatePreview,
     publishActiveBlueprint,
+    exportZip,
     rollbackToSnapshot,
     updateMetadata,
     addNode,

@@ -288,4 +288,23 @@ describe('plugin creator store', () => {
     assert.equal(rolledBack?.metadata.name, 'Snapshot CRM')
     assert.equal(store.activeBlueprint?.metadata.name, 'Snapshot CRM')
   })
+
+  it('exports the active blueprint zip through the api client', async () => {
+    const store = usePluginCreatorStore()
+    let exportedId = ''
+    const blob = new Blob(['zip'])
+    store.setApiClient({
+      ...createApi(),
+      exportZip: async (id) => {
+        exportedId = id
+        return blob
+      },
+    })
+    store.setActiveBlueprint(createBlueprint())
+
+    const result = await store.exportZip()
+
+    assert.equal(exportedId, 'bp_my_crm')
+    assert.equal(result, blob)
+  })
 })

@@ -5,8 +5,14 @@
         <div class="plugin-creator-page__canvas-shell">
           <PluginCreatorHeader
             :title="store.activeBlueprint?.metadata.name ?? 'Low-code plugin workspace'"
+            :active-blueprint="store.activeBlueprint"
+            :blueprints="store.blueprints"
             :is-dirty="store.isDirty"
             :is-saving="store.isSaving"
+            @new-plugin="createNewPlugin"
+            @open-plugin="openPluginBlueprint"
+            @export-zip="exportActivePluginZip"
+            @discard-draft="discardDraft"
             @settings="openWorkspaceModal('metadata')"
             @versions="openWorkspaceModal('versions')"
             @run="runSelectedMethod"
@@ -153,6 +159,7 @@ onMounted(() => {
 })
 
 async function loadInitialBlueprint() {
+  const blueprints = await store.listBlueprints()
   const routePluginId = Array.isArray(route.params.pluginId)
     ? route.params.pluginId[0]
     : route.params.pluginId
@@ -164,7 +171,6 @@ async function loadInitialBlueprint() {
     return blueprint
   }
 
-  const blueprints = await store.listBlueprints()
   const [firstBlueprint] = blueprints
   if (firstBlueprint) {
     const blueprint = await store.loadBlueprint(firstBlueprint.id)
@@ -184,6 +190,60 @@ async function loadInitialBlueprint() {
   selectDefaultNode()
   fitCanvasSoon()
   return blueprint
+}
+
+async function createNewPlugin() {
+  if (!confirmUnsavedChanges()) return
+
+  const fallbackName = `Untitled Plugin ${store.blueprints.length + 1}`
+  const name = window.prompt('Plugin name', fallbackName)?.trim()
+  if (!name) return
+
+  const blueprint = await store.createBlueprint({
+    handle: uniquePluginHandle(name),
+    name,
+    description: 'Low-code API plugin',
+    includeDefaultMethod: true,
+  })
+  await router.replace({ name: 'plugin-creator-detail', params: { pluginId: blueprint.id } })
+  selectDefaultNode()
+  fitCanvasSoon()
+}
+
+async function openPluginBlueprint(blueprintId: string) {
+  if (blueprintId === store.activeBlueprint?.id || !confirmUnsavedChanges()) return
+
+  const blueprint = await store.loadBlueprint(blueprintId)
+  await router.replace({ name: 'plugin-creator-detail', params: { pluginId: blueprint.id } })
+  selectDefaultNode()
+  fitCanvasSoon()
+}
+
+async function exportActivePluginZip() {
+  const blueprint = store.activeBlueprint
+  if (!blueprint) return
+
+  const blob = await store.exportZip()
+  if (!blob) return
+
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `${blueprint.metadata.handle || blueprint.id}.zip`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}
+
+async function discardDraft() {
+  const blueprintId = store.activeBlueprint?.id
+  if (!blueprintId || !store.isDirty) return
+  if (!window.confirm('Discard unsaved plugin changes?')) return
+
+  await store.loadBlueprint(blueprintId)
+  selectDefaultNode()
+  fitCanvasSoon()
 }
 
 function selectDefaultNode() {
@@ -355,6 +415,7 @@ async function publishActiveBlueprint() {
   await saveDraft()
   await store.generatePreview()
   await store.publishActiveBlueprint()
+  openWorkspaceModal('versions')
 }
 
 function clearExecution() {
@@ -365,6 +426,30 @@ function fitCanvasSoon() {
   void nextTick(() => {
     window.setTimeout(() => canvasRef.value?.fitView(), 40)
   })
+}
+
+function confirmUnsavedChanges() {
+  return !store.isDirty || window.confirm('Discard unsaved plugin changes?')
+}
+
+function uniquePluginHandle(name: string) {
+  const baseHandle = slugifyPluginHandle(name) || `plugin-${Date.now().toString(36)}`
+  const existingHandles = new Set(store.blueprints.map((blueprint) => blueprint.metadata.handle))
+  if (!existingHandles.has(baseHandle)) return baseHandle
+
+  let index = 2
+  while (existingHandles.has(`${baseHandle}-${index}`)) {
+    index += 1
+  }
+  return `${baseHandle}-${index}`
+}
+
+function slugifyPluginHandle(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
 </script>
 

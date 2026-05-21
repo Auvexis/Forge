@@ -32,6 +32,20 @@ describe('PluginCreatorPage contract', () => {
     assert.match(source, /:is-saving="store\.isSaving"/)
   })
 
+  it('wires plugin menu workflows for switching, creation, export and draft discard', () => {
+    const source = fs.readFileSync(pagePath, 'utf8')
+
+    assert.match(source, /:active-blueprint="store\.activeBlueprint"/)
+    assert.match(source, /:blueprints="store\.blueprints"/)
+    assert.match(source, /@new-plugin="createNewPlugin"/)
+    assert.match(source, /@open-plugin="openPluginBlueprint"/)
+    assert.match(source, /@export-zip="exportActivePluginZip"/)
+    assert.match(source, /@discard-draft="discardDraft"/)
+    assert.match(source, /store\.exportZip/)
+    assert.match(source, /URL\.createObjectURL/)
+    assert.match(source, /router\.replace/)
+  })
+
   it('uses the shared app page and app panel instead of a local add sidebar', () => {
     const source = fs.readFileSync(pagePath, 'utf8')
 
