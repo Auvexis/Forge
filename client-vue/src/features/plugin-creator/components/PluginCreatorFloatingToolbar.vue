@@ -3,39 +3,33 @@
     <BaseButton
       type="button"
       variant="ghost"
-      size="sm"
+      size="icon"
       icon-left="mouse-pointer-2"
       :class="{ 'is-active': activeTool === 'cursor' }"
       title="Cursor/select"
       aria-label="Cursor/select"
       @click="setTool('cursor')"
-    >
-      Cursor
-    </BaseButton>
+    />
     <BaseButton
       type="button"
       variant="ghost"
-      size="sm"
+      size="icon"
       icon-left="hand"
       :class="{ 'is-active': activeTool === 'pan' }"
       title="Pan tool"
       aria-label="Pan tool"
       @click="setTool('pan')"
-    >
-      Pan
-    </BaseButton>
+    />
     <BaseButton
       type="button"
       variant="ghost"
-      size="sm"
+      size="icon"
       icon-left="trash-2"
       :class="{ 'is-active': activeTool === 'delete' }"
       title="Delete tool"
       aria-label="Delete tool"
       @click="setTool('delete')"
-    >
-      Delete
-    </BaseButton>
+    />
     <BaseButton
       type="button"
       variant="ghost"
@@ -64,27 +58,22 @@
     <BaseButton
       type="button"
       variant="ghost"
-      size="sm"
+      size="icon"
       icon-left="undo-2"
       title="Undo"
       aria-label="Undo"
       @click="emit('undo')"
-    >
-      Undo
-    </BaseButton>
+    />
     <BaseButton
       type="button"
       variant="ghost"
-      size="sm"
+      size="icon"
       icon-left="redo-2"
       title="Redo"
       aria-label="Redo"
       @click="emit('redo')"
-    >
-      Redo
-    </BaseButton>
+    />
     <label class="plugin-creator-toolbar__zoom">
-      <span>Zoom</span>
       <input
         v-model.number="zoomValue"
         type="range"
@@ -112,22 +101,22 @@
       type="button"
       variant="ghost"
       size="sm"
-      icon-left="save"
       title="Save"
       aria-label="Save"
       :disabled="isSaving || !isDirty"
       @click="emit('save')"
     >
-      Save
-      <template #right>
+      <template #left>
         <span
-          class="plugin-creator-save-dot"
+          class="wec-save-dot"
           :class="{
-            'plugin-creator-save-dot--dirty': isDirty,
-            'plugin-creator-save-dot--saving': isSaving,
+            'wec-save-dot--dirty': isDirty,
+            'wec-save-dot--saving': isSaving,
           }"
+          aria-hidden="true"
         />
       </template>
+      Save
     </BaseButton>
     <BaseButton
       type="button"
@@ -227,34 +216,34 @@ onBeforeUnmount(() => {
   background: var(--sailor-bg-elevated);
 }
 
-.plugin-creator-save-dot {
-  width: 8px;
-  height: 8px;
+.wec-save-dot {
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
-  border: 1px solid var(--sailor-border-subtle);
-  background: transparent;
+  background: var(--sailor-chrome-text-muted);
+  box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+  opacity: 0.62;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
-.plugin-creator-save-dot--dirty {
-  border-color: rgba(245, 158, 11, 0.6);
-  background: var(--sailor-amber-500, #f59e0b);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.16);
+.wec-save-dot--dirty {
+  background: var(--sailor-chrome-text);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--sailor-chrome-text) 48%, transparent);
+  opacity: 1;
 }
 
-.plugin-creator-save-dot--saving {
-  border-color: rgba(59, 130, 246, 0.56);
-  background: #3b82f6;
-  animation: plugin-creator-save-pulse 1s ease-in-out infinite;
+.wec-save-dot--saving {
+  animation: wec-save-pulse 900ms ease-in-out infinite;
 }
 
-@keyframes plugin-creator-save-pulse {
-  0%,
-  100% {
-    opacity: 0.45;
-  }
-
+@keyframes wec-save-pulse {
   50% {
-    opacity: 1;
+    opacity: 0.45;
+    transform: scale(0.75);
   }
 }
 

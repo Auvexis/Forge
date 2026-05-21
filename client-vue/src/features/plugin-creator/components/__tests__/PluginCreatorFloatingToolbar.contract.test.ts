@@ -19,7 +19,6 @@ describe('PluginCreatorFloatingToolbar contract', () => {
       'Add Item/Node',
       'Undo',
       'Redo',
-      'Zoom',
       'Run',
       'Save',
       'Publish',
@@ -59,7 +58,7 @@ describe('PluginCreatorFloatingToolbar contract', () => {
 
     assert.match(source, /isDirty/)
     assert.match(source, /isSaving/)
-    assert.match(source, /plugin-creator-save-dot/)
+    assert.match(source, /wec-save-dot/)
     assert.match(source, /:disabled="isSaving \|\| !isDirty"/)
   })
 
@@ -72,10 +71,40 @@ describe('PluginCreatorFloatingToolbar contract', () => {
     assert.match(source, /BaseButton/)
     assert.match(source, /variant="ghost"/)
     assert.match(source, /icon-left="mouse-pointer-2"/)
-    assert.match(source, /icon-left="save"/)
     assert.match(source, /icon-left="rocket"/)
     assert.doesNotMatch(source, /plugin-creator-toolbar__publish/)
     assert.doesNotMatch(source, /rgba\(0,\s*214,\s*143/)
     assert.doesNotMatch(source, /<button/)
+  })
+
+  it('keeps selection and history controls icon-only and removes the zoom label', () => {
+    const source = fs.readFileSync(
+      path.join(componentDir, 'PluginCreatorFloatingToolbar.vue'),
+      'utf8',
+    )
+
+    for (const label of ['Cursor', 'Pan', 'Delete', 'Undo', 'Redo']) {
+      assert.doesNotMatch(source, new RegExp(`>\\s*${label}\\s*<`))
+    }
+
+    assert.match(source, /size="icon"[\s\S]*icon-left="mouse-pointer-2"/)
+    assert.match(source, /size="icon"[\s\S]*icon-left="hand"/)
+    assert.match(source, /size="icon"[\s\S]*icon-left="trash-2"/)
+    assert.match(source, /size="icon"[\s\S]*icon-left="undo-2"/)
+    assert.match(source, /size="icon"[\s\S]*icon-left="redo-2"/)
+    assert.doesNotMatch(source, />\s*Zoom\s*</)
+  })
+
+  it('matches WorkflowChromeToolbar save dot structure', () => {
+    const source = fs.readFileSync(
+      path.join(componentDir, 'PluginCreatorFloatingToolbar.vue'),
+      'utf8',
+    )
+
+    assert.match(source, /class="wec-save-dot"/)
+    assert.match(source, /'wec-save-dot--dirty': isDirty/)
+    assert.match(source, /'wec-save-dot--saving': isSaving/)
+    assert.doesNotMatch(source, /icon-left="save"/)
+    assert.doesNotMatch(source, /plugin-creator-save-dot/)
   })
 })
