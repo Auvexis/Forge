@@ -21,7 +21,12 @@ describe('PluginCreatorCanvas contract', () => {
     const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
 
     assert.match(source, /@node-drag-stop="onNodeDragStop"/)
+    assert.match(source, /@connect="onConnect"/)
+    assert.match(source, /@edges-change="onEdgesChange"/)
+    assert.match(source, /@node-double-click="onNodeDoubleClick"/)
     assert.match(source, /'update-node-position'/)
+    assert.match(source, /'connect-nodes'/)
+    assert.match(source, /'open-node-settings'/)
     assert.match(source, /'delete-selected'/)
     assert.match(source, /defineExpose/)
     assert.match(source, /zoomTo/)

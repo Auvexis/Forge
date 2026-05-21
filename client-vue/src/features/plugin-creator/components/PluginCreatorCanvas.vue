@@ -10,12 +10,15 @@
       fit-view-on-init
       :nodes-draggable="tool !== 'pan'"
       :nodes-connectable="true"
-      :elements-selectable="true"
-      :pan-on-drag="tool === 'pan'"
+      :elements-selectable="tool !== 'pan'"
+      :pan-on-drag="true"
       class="plugin-creator-canvas__flow"
       @init="onInit"
       @node-click="onNodeClick"
+      @node-double-click="onNodeDoubleClick"
       @node-drag-stop="onNodeDragStop"
+      @connect="onConnect"
+      @edges-change="onEdgesChange"
       @pane-click="selectedNodeIds = []"
     >
       <Background
@@ -63,7 +66,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { VueFlow, type Edge, type Node, type NodeTypesObject } from '@vue-flow/core'
+import {
+  VueFlow,
+  type Connection,
+  type Edge,
+  type Node,
+  type NodeTypesObject,
+} from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import type {
   PluginBlueprint,
@@ -86,7 +95,12 @@ const props = defineProps<{
 const emit = defineEmits<{
   'select-node': [nodeId: string]
   'update-node-position': [payload: { nodeId: string; position: PluginBlueprintPosition }]
+  'connect-nodes': [
+    payload: { source: string; target: string; sourceHandle?: string; targetHandle?: string },
+  ]
+  'remove-edges': [edgeIds: string[]]
   'delete-selected': [nodeIds: string[]]
+  'open-node-settings': [nodeId: string]
 }>()
 
 const vueFlow = ref<{
@@ -150,12 +164,19 @@ const edges = computed<Edge[]>({
 })
 
 function onNodeClick(event: { node?: Node }) {
+  if (props.tool === 'pan') return
   if (event.node?.id) {
     selectedNodeIds.value = [event.node.id]
     emit('select-node', event.node.id)
     if (props.tool === 'delete') {
       emit('delete-selected', [event.node.id])
     }
+  }
+}
+
+function onNodeDoubleClick(event: { node?: Node }) {
+  if (event.node?.id) {
+    emit('open-node-settings', event.node.id)
   }
 }
 
@@ -173,6 +194,25 @@ function onNodeDragStop(event: { node?: Node; nodes?: Node[] }) {
         y: Math.round(node.position.y),
       },
     })
+  }
+}
+
+function onConnect(connection: Connection) {
+  if (!connection.source || !connection.target) return
+  emit('connect-nodes', {
+    source: connection.source,
+    target: connection.target,
+    sourceHandle: connection.sourceHandle ?? undefined,
+    targetHandle: connection.targetHandle ?? undefined,
+  })
+}
+
+function onEdgesChange(changes: Array<{ type: string; id?: string }>) {
+  const edgeIds = changes
+    .filter((change) => change.type === 'remove' && change.id)
+    .map((change) => change.id!)
+  if (edgeIds.length > 0) {
+    emit('remove-edges', edgeIds)
   }
 }
 

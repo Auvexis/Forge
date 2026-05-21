@@ -25,6 +25,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
+import { useEventBus } from '@/shared/composables/useEventBus'
 import type { WorkflowNode } from '@/core/types/workflow.types'
 
 const props = defineProps<{
@@ -36,6 +37,9 @@ const { removeNodes, getNodes, addNodes, getSelectedNodes, viewport } = useVueFl
 const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const panelStore = useAppPanelStore()
+const toolbarBus = useEventBus<{ action: 'duplicate' | 'delete'; nodeId: string }>(
+  'node:toolbar-action',
+)
 
 const isMultiSelection = computed(() => getSelectedNodes.value.length >= 2)
 const toolbarScale = computed(() => {
@@ -50,6 +54,7 @@ const nodeState = computed(() => executionStore.nodeStatuses[props.nodeId])
 // ── Actions ────────────────────────────────────────────────────────────────
 
 function cloneNode() {
+  toolbarBus.emit({ action: 'duplicate', nodeId: props.nodeId })
   const original = getNodes.value.find((n) => n.id === props.nodeId)
   if (!original || !workflowStore.activeWorkflow) return
 
@@ -78,6 +83,7 @@ function cloneNode() {
 }
 
 function deleteNode() {
+  toolbarBus.emit({ action: 'delete', nodeId: props.nodeId })
   if (!workflowStore.activeWorkflow) return
 
   removeNodes([props.nodeId])
@@ -130,7 +136,9 @@ function deleteNode() {
   border: none;
   color: var(--sailor-text-muted);
   cursor: pointer;
-  transition: background-color var(--sailor-duration-fast), color var(--sailor-duration-fast);
+  transition:
+    background-color var(--sailor-duration-fast),
+    color var(--sailor-duration-fast);
 }
 
 .nt-btn:hover {

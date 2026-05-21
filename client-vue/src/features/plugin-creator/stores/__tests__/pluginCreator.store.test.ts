@@ -128,6 +128,17 @@ describe('plugin creator store', () => {
     assert.equal(store.canUndo, true)
   })
 
+  it('adds and removes canvas edges', () => {
+    const store = usePluginCreatorStore()
+    store.setActiveBlueprint(createBlueprint())
+
+    store.addEdge({ id: 'edge_1', source: 'node_a', target: 'node_b' })
+    assert.equal(store.activeBlueprint?.canvas.edges[0]?.id, 'edge_1')
+
+    store.removeEdges(['edge_1'])
+    assert.equal(store.activeBlueprint?.canvas.edges.length, 0)
+  })
+
   it('edits method, input, credential and request details', () => {
     const store = usePluginCreatorStore()
     const blueprint = createBlueprint()

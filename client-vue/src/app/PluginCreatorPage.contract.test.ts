@@ -24,6 +24,8 @@ describe('PluginCreatorPage contract', () => {
     assert.match(source, /@tool-change="setCanvasTool"/)
     assert.match(source, /@add-item="openAddBlocksPanel"/)
     assert.match(source, /@delete-selected="deleteSelectedNodes"/)
+    assert.match(source, /@connect-nodes="connectNodes"/)
+    assert.match(source, /@open-node-settings="openNodeSettingsPanel"/)
     assert.match(source, /@undo="store\.undo"/)
     assert.match(source, /@redo="store\.redo"/)
   })
@@ -43,6 +45,8 @@ describe('PluginCreatorPage contract', () => {
     const source = fs.readFileSync(pagePath, 'utf8')
 
     assert.match(source, /PluginCreatorWorkspaceModal/)
+    assert.match(source, /PluginCreatorNodeSettingsPanel/)
+    assert.match(source, /useEventBus/)
     assert.match(source, /@settings="openWorkspaceModal\('metadata'\)"/)
     assert.match(source, /@versions="openWorkspaceModal\('versions'\)"/)
   })

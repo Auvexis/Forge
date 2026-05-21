@@ -5,6 +5,7 @@ import type {
   CreatePluginBlueprintPayload,
   PluginBlueprint,
   PluginBlueprintCredentialField,
+  PluginBlueprintEdge,
   PluginBlueprintErrorMapping,
   PluginBlueprintInput,
   PluginBlueprintMetadata,
@@ -301,6 +302,31 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     )
   }
 
+  function addEdge(edge: PluginBlueprintEdge) {
+    if (!activeBlueprint.value) return
+    const duplicate = activeBlueprint.value.canvas.edges.some(
+      (candidate) =>
+        candidate.source === edge.source &&
+        candidate.target === edge.target &&
+        candidate.sourceHandle === edge.sourceHandle &&
+        candidate.targetHandle === edge.targetHandle,
+    )
+    if (duplicate) return
+
+    recordHistory()
+    activeBlueprint.value.canvas.edges.push({ ...edge })
+  }
+
+  function removeEdges(edgeIds: string[]) {
+    if (!activeBlueprint.value || edgeIds.length === 0) return
+    const edgeIdSet = new Set(edgeIds)
+    const nextEdges = activeBlueprint.value.canvas.edges.filter((edge) => !edgeIdSet.has(edge.id))
+    if (nextEdges.length === activeBlueprint.value.canvas.edges.length) return
+
+    recordHistory()
+    activeBlueprint.value.canvas.edges = nextEdges
+  }
+
   function updateNode(nodeId: string, payload: Partial<PluginBlueprintNode>) {
     if (!activeBlueprint.value) return
     const existing = activeBlueprint.value.canvas.nodes[nodeId]
@@ -463,6 +489,8 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     updateMetadata,
     addNode,
     removeNodes,
+    addEdge,
+    removeEdges,
     updateNode,
     updateMethod,
     updateMethodInput,

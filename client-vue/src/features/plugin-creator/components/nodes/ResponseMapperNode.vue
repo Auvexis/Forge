@@ -1,5 +1,6 @@
 <template>
   <BaseNode
+    :id="id"
     class="plugin-creator-node"
     icon="git-branch-plus"
     color="#34d399"
@@ -9,7 +10,11 @@
     has-source
     :selected="selected"
   >
-    <button class="plugin-creator-node__action" type="button" @click="emit('map-selected-field-as-output', data.methodId)">
+    <button
+      class="plugin-creator-node__action"
+      type="button"
+      @click="emit('map-selected-field-as-output', data.methodId)"
+    >
       Map output
     </button>
     <template #label>
@@ -25,7 +30,7 @@
 import { computed } from 'vue'
 import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
-const props = defineProps<{ data: Record<string, unknown>; selected?: boolean }>()
+const props = defineProps<{ id: string; data: Record<string, unknown>; selected?: boolean }>()
 const emit = defineEmits<{
   'map-selected-field-as-output': [methodId: unknown]
 }>()

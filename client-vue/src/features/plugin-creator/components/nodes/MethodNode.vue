@@ -1,5 +1,6 @@
 <template>
   <BaseNode
+    :id="id"
     class="plugin-creator-node"
     title="Method"
     :subtitle="String(data.handle ?? data.name ?? 'methodHandle')"
@@ -24,6 +25,7 @@
 import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
 defineProps<{
+  id: string
   data: Record<string, unknown>
   selected?: boolean
 }>()

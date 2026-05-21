@@ -14,6 +14,7 @@ describe('plugin creator MVP nodes', () => {
       assert.match(source, /data\.name|data\.label/)
       assert.match(source, /data\.handle|data\.name/)
       assert.match(source, /BaseNode/)
+      assert.match(source, /:id="id"/)
       assert.match(source, /has-source/)
       assert.match(source, /has-target/)
     }

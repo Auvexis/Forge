@@ -1,5 +1,6 @@
 <template>
   <BaseNode
+    :id="id"
     class="plugin-creator-node"
     icon="package-check"
     color="#60a5fa"
@@ -22,7 +23,7 @@
 import { computed } from 'vue'
 import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
-const props = defineProps<{ data: Record<string, unknown>; selected?: boolean }>()
+const props = defineProps<{ id: string; data: Record<string, unknown>; selected?: boolean }>()
 
 const outputs = computed(() =>
   Array.isArray(props.data.outputs) ? props.data.outputs.map(String) : [],

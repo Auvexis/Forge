@@ -12,18 +12,10 @@
       </header>
 
       <div class="plugin-creator-workspace-modal__body">
-        <PluginCreatorInspector
+        <PluginCreatorPluginSettings
           v-if="view === 'metadata'"
           :blueprint="blueprint"
-          :selected-node-id="selectedNodeId"
           @update-metadata="emit('updateMetadata', $event)"
-          @update-node="(nodeId, payload) => emit('updateNode', nodeId, payload)"
-          @update-method="(methodId, payload) => emit('updateMethod', methodId, payload)"
-          @update-input="
-            (methodId, inputName, payload) => emit('updateInput', methodId, inputName, payload)
-          "
-          @update-credential="(fieldName, payload) => emit('updateCredential', fieldName, payload)"
-          @update-request="(methodId, payload) => emit('updateRequest', methodId, payload)"
         />
         <PluginCreatorTestPanel
           v-else-if="view === 'test'"
@@ -61,7 +53,7 @@ import type {
   PluginCreatorTestResult,
   PluginCreatorVersionsResult,
 } from '@/core/types/plugin-creator.types'
-import PluginCreatorInspector from './PluginCreatorInspector.vue'
+import PluginCreatorPluginSettings from './PluginCreatorPluginSettings.vue'
 import PluginCreatorTestPanel from './PluginCreatorTestPanel.vue'
 import PluginCreatorVersionPanel from './PluginCreatorVersionPanel.vue'
 

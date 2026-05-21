@@ -919,6 +919,21 @@
 - [x] Rodar `npm run type-check`.
 - [x] Rodar `npm run build-only`.
 
+### Task 11.9: Corrigir interacoes do canvas e configuracao por node
+
+- [x] Separar Settings geral do plugin de configuracao de method/node.
+- [x] Passar `id` para `BaseNode` nos nodes do Plugin Creator para ativar handles, quick add e toolbar.
+- [x] Conectar `@connect` do VueFlow na store para persistir edges.
+- [x] Conectar remocao de edges via `@edges-change`.
+- [x] Abrir painel de configuracao do node no double click.
+- [x] Criar painel de configuracao por node usando `BaseInput`, `BaseCodeEditor`, `BaseSwitch` e `JsonTreeView`.
+- [x] Permitir pan do canvas com cursor e impedir selecao de node com mao.
+- [x] Fazer quick add criar node conectado ao source.
+- [x] Fazer node toolbar duplicar/deletar nodes do Plugin Creator via event bus compartilhado.
+- [x] Rodar contratos focados do Plugin Creator.
+- [x] Rodar `npm run type-check`.
+- [x] Rodar `npm run build-only`.
+
 ---
 
 ## Ordem Recomendada de Execucao

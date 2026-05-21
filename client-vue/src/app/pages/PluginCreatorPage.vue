@@ -29,7 +29,10 @@
             :tool="activeTool"
             @select-node="selectedNodeId = $event"
             @update-node-position="updateNodePosition"
+            @connect-nodes="connectNodes"
+            @remove-edges="store.removeEdges"
             @delete-selected="deleteSelectedNodes"
+            @open-node-settings="openNodeSettingsPanel"
           />
           <PluginCreatorFloatingToolbar
             @tool-change="setCanvasTool"
@@ -72,6 +75,7 @@
 <script setup lang="ts">
 import AppPage from '@/shared/components/layout/AppPage.vue'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
+import { useEventBus } from '@/shared/composables/useEventBus'
 import PluginCreatorHeader from '@/features/plugin-creator/components/PluginCreatorHeader.vue'
 import PluginCreatorCanvas from '@/features/plugin-creator/components/PluginCreatorCanvas.vue'
 import PluginCreatorFloatingToolbar from '@/features/plugin-creator/components/PluginCreatorFloatingToolbar.vue'
@@ -81,13 +85,14 @@ import PluginCreatorAddItemPanel, {
 import PluginCreatorWorkspaceModal, {
   type PluginCreatorWorkspaceView,
 } from '@/features/plugin-creator/components/PluginCreatorWorkspaceModal.vue'
+import PluginCreatorNodeSettingsPanel from '@/features/plugin-creator/components/PluginCreatorNodeSettingsPanel.vue'
 import { usePluginCreatorStore } from '@/features/plugin-creator'
 import type {
   PluginBlueprintNode,
   PluginBlueprintPosition,
   PluginBlueprintNodeType,
 } from '@/core/types/plugin-creator.types'
-import { onMounted, ref } from 'vue'
+import { markRaw, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 type ToolbarTool = 'cursor' | 'pan' | 'delete'
@@ -104,6 +109,24 @@ const activeTool = ref<ToolbarTool>('cursor')
 const selectedNodeId = ref<string | null>(null)
 const isWorkspaceModalOpen = ref(false)
 const workspaceModalView = ref<PluginCreatorWorkspaceView>('metadata')
+const quickAddSourceId = ref<string | null>(null)
+
+const quickAddBus = useEventBus<{ sourceId: string; sourceHandle?: string }>('node:quick-add')
+quickAddBus.on((payload) => {
+  openAddBlocksPanel(payload?.sourceId ?? null)
+})
+
+const nodeToolbarBus = useEventBus<{ action: 'duplicate' | 'delete'; nodeId: string }>(
+  'node:toolbar-action',
+)
+nodeToolbarBus.on((payload) => {
+  if (!payload?.nodeId || !store.activeBlueprint?.canvas.nodes[payload.nodeId]) return
+  if (payload.action === 'delete') {
+    deleteSelectedNodes([payload.nodeId])
+  } else {
+    duplicateNode(payload.nodeId)
+  }
+})
 
 onMounted(() => {
   void loadInitialBlueprint()
@@ -145,13 +168,37 @@ function selectDefaultNode() {
   selectedNodeId.value = nodes ? (Object.keys(nodes)[0] ?? null) : null
 }
 
-function openAddBlocksPanel() {
+function openAddBlocksPanel(sourceId: string | null = null) {
+  quickAddSourceId.value = sourceId
   appPanelStore.openPanel({
     id: 'plugin-creator-add-blocks',
     title: 'Add Block',
-    component: PluginCreatorAddItemPanel,
+    component: markRaw(PluginCreatorAddItemPanel),
     props: {
       onAddItem: addPluginCreatorBlock,
+    },
+    position: 'right',
+    width: 'md',
+    resizable: true,
+    resizeSide: 'left',
+  })
+}
+
+function openNodeSettingsPanel(nodeId: string) {
+  selectedNodeId.value = nodeId
+  appPanelStore.openPanel({
+    id: 'plugin-creator-node-settings',
+    title: 'Configure Block',
+    component: markRaw(PluginCreatorNodeSettingsPanel),
+    props: {
+      blueprint: store.activeBlueprint,
+      nodeId,
+      lastTestResult: store.lastTestResult,
+      onUpdateNode: store.updateNode,
+      onUpdateMethod: store.updateMethod,
+      onUpdateInput: store.updateMethodInput,
+      onUpdateCredential: store.updateCredentialField,
+      onUpdateRequest: store.updateMethodRequest,
     },
     position: 'right',
     width: 'md',
@@ -190,10 +237,42 @@ function deleteSelectedNodes(nodeIds: string[]) {
   }
 }
 
+function connectNodes(payload: {
+  source: string
+  target: string
+  sourceHandle?: string
+  targetHandle?: string
+}) {
+  store.addEdge({
+    id: `edge_${payload.source}_${payload.target}_${Date.now()}`,
+    ...payload,
+  })
+}
+
 function addPluginCreatorBlock(type: PluginCreatorAddItemType) {
   const node = createNode(type)
   store.addNode(node)
+  if (quickAddSourceId.value) {
+    connectNodes({ source: quickAddSourceId.value, target: node.id })
+    quickAddSourceId.value = null
+  }
   selectedNodeId.value = node.id
+}
+
+function duplicateNode(nodeId: string) {
+  const existing = store.activeBlueprint?.canvas.nodes[nodeId]
+  if (!existing) return
+  const id = `${existing.type}_${Date.now()}`
+  store.addNode({
+    ...existing,
+    id,
+    position: {
+      x: existing.position.x + 40,
+      y: existing.position.y + 40,
+    },
+    data: { ...existing.data },
+  })
+  selectedNodeId.value = id
 }
 
 function createNode(type: PluginCreatorAddItemType): PluginBlueprintNode {

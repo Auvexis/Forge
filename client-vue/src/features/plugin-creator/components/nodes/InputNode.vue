@@ -1,5 +1,6 @@
 <template>
   <BaseNode
+    :id="id"
     class="plugin-creator-node"
     icon="braces"
     color="#34d399"
@@ -22,6 +23,7 @@
 import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
 defineProps<{
+  id: string
   data: Record<string, unknown>
   selected?: boolean
 }>()
