@@ -61,4 +61,17 @@ describe('PluginCreatorCanvas contract', () => {
     assert.match(boxSource, /onDuplicateSelection/)
     assert.match(boxSource, /onDeleteSelection/)
   })
+
+  it('shows live selection marquee and workflow-style empty add button', () => {
+    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
+
+    assert.match(source, /@selection-drag-start/)
+    assert.match(source, /@selection-drag-stop/)
+    assert.match(source, /selection-key-code="Control"/)
+    assert.match(source, /isCanvasSelecting/)
+    assert.match(source, /:deep\(\.vue-flow__selectionpane\)/)
+    assert.match(source, /canvas-empty-step/)
+    assert.match(source, /Add first step/)
+    assert.match(source, /openAddItem/)
+  })
 })

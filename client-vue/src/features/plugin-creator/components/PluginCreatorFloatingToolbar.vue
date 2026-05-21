@@ -73,6 +73,7 @@
     <label class="plugin-creator-toolbar__zoom">
       <input
         v-model.number="zoomValue"
+        :style="{ '--plugin-creator-zoom-track': sliderBackground }"
         type="range"
         min="40"
         max="180"
@@ -130,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 type ToolbarTool = 'cursor' | 'pan' | 'delete'
@@ -160,6 +161,12 @@ withDefaults(
 
 const activeTool = ref<ToolbarTool>('cursor')
 const zoomValue = ref(100)
+const sliderBackground = computed(() => {
+  const min = 40
+  const max = 180
+  const progress = ((zoomValue.value - min) / (max - min)) * 100
+  return `linear-gradient(to right, var(--sailor-text-primary) 0%, var(--sailor-text-primary) ${progress}%, var(--sailor-text-muted, var(--sailor-border-subtle)) ${progress}%, var(--sailor-text-muted, var(--sailor-border-subtle)) 100%)`
+})
 
 function setTool(tool: ToolbarTool) {
   activeTool.value = tool
@@ -278,7 +285,7 @@ onBeforeUnmount(() => {
 .plugin-creator-toolbar__zoom input::-webkit-slider-runnable-track {
   height: 3px;
   border-radius: 999px;
-  background: var(--sailor-border-subtle);
+  background: var(--plugin-creator-zoom-track);
 }
 
 .plugin-creator-toolbar__zoom input::-webkit-slider-thumb {
@@ -295,7 +302,7 @@ onBeforeUnmount(() => {
   height: 3px;
   border: 0;
   border-radius: 999px;
-  background: var(--sailor-border-subtle);
+  background: var(--plugin-creator-zoom-track);
 }
 
 .plugin-creator-toolbar__zoom input::-moz-range-thumb {

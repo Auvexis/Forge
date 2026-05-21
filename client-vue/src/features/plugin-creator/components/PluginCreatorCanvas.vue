@@ -14,6 +14,7 @@
       :nodes-connectable="true"
       :elements-selectable="tool !== 'pan'"
       :pan-on-drag="true"
+      selection-key-code="Control"
       :delete-key-code="['Delete']"
       class="plugin-creator-canvas__flow"
       @init="onInit"
@@ -22,6 +23,8 @@
       @node-drag-stop="onNodeDragStop"
       @connect="onConnect"
       @edges-change="onEdgesChange"
+      @selection-drag-start="isCanvasSelecting = true"
+      @selection-drag-stop="isCanvasSelecting = false"
       @pane-click="selectedNodeIds = []"
     >
       <Background
@@ -31,6 +34,18 @@
         color="var(--sailor-canvas-grid)"
         :style="{ 'background-color': 'var(--sailor-canvas-bg)' }"
       />
+
+      <button
+        v-if="isCanvasEmpty"
+        class="canvas-empty-step nodrag nopan"
+        type="button"
+        @click.stop="openAddItem"
+      >
+        <span class="canvas-empty-step__box">
+          <Plus :size="34" />
+        </span>
+        <span class="canvas-empty-step__label">Add first step...</span>
+      </button>
 
       <svg style="position: absolute; width: 0; height: 0" aria-hidden="true">
         <defs>
@@ -74,6 +89,7 @@
 
 <script setup lang="ts">
 import { computed, markRaw, ref } from 'vue'
+import { Plus } from 'lucide-vue-next'
 import {
   VueFlow,
   type Connection,
@@ -110,6 +126,7 @@ const emit = defineEmits<{
   'remove-edges': [edgeIds: string[]]
   'delete-selected': [nodeIds: string[]]
   'duplicate-selected': [nodeIds: string[]]
+  'add-first-node': []
   'open-node-settings': [nodeId: string]
 }>()
 
@@ -121,6 +138,7 @@ const vueFlow = ref<{
 } | null>(null)
 const canvasElement = ref<HTMLElement | null>(null)
 const selectedNodeIds = ref<string[]>([])
+const isCanvasSelecting = ref(false)
 
 const nodeTypes = {
   method: markRaw(MethodNode),
@@ -176,6 +194,12 @@ const edges = computed<Edge[]>({
   set() {
     // Store sync lands in a later inspector/canvas task.
   },
+})
+
+const isCanvasEmpty = computed(() => {
+  const blueprint = props.blueprint
+  if (!blueprint) return false
+  return Object.keys(blueprint.canvas.nodes).length === 0 && blueprint.canvas.edges.length === 0
 })
 
 function onNodeClick(event: { node?: Node }) {
@@ -268,6 +292,10 @@ function duplicateSelection() {
   }
 }
 
+function openAddItem() {
+  emit('add-first-node')
+}
+
 function zoomTo(value: number) {
   vueFlow.value?.zoomTo?.(value, { duration: 180 })
 }
@@ -320,5 +348,63 @@ defineExpose({
   font-size: 13px;
   font-weight: 600;
   pointer-events: none;
+}
+
+.canvas-empty-step {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--sailor-text-primary);
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+.canvas-empty-step__box {
+  width: 82px;
+  height: 82px;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--sailor-border-strong);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--sailor-bg-surface) 70%, transparent);
+  color: var(--sailor-text-muted);
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.canvas-empty-step__label {
+  color: var(--sailor-text-primary);
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.canvas-empty-step:hover .canvas-empty-step__box {
+  border-color: var(--sailor-text-primary);
+  background: var(--sailor-bg-surface-hover);
+  color: var(--sailor-text-primary);
+}
+
+.canvas-empty-step:focus-visible .canvas-empty-step__box {
+  outline: 2px solid var(--sailor-node-selected);
+  outline-offset: 3px;
+}
+
+:deep(.vue-flow__selectionpane),
+:deep(.vue-flow__selection) {
+  z-index: 1000;
+  border: 1px solid var(--sailor-text-primary) !important;
+  border-radius: var(--sailor-radius-sm);
+  background-color: color-mix(in srgb, var(--sailor-text-primary) 10%, transparent) !important;
 }
 </style>

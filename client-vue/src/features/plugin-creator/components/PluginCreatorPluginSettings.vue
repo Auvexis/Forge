@@ -59,24 +59,42 @@
     </div>
 
     <div class="plugin-creator-plugin-settings__grid">
-      <BaseInput
-        :model-value="blueprint?.icons.icon ?? ''"
-        label="Icon"
-        placeholder="/icon.svg"
-        @update:model-value="updateIcons('icon', String($event))"
-      />
-      <BaseInput
-        :model-value="blueprint?.icons.iconDark ?? ''"
-        label="Dark icon"
-        placeholder="/icon-dark.svg"
-        @update:model-value="updateIcons('iconDark', String($event))"
-      />
-      <BaseInput
-        :model-value="blueprint?.icons.iconLight ?? ''"
-        label="Light icon"
-        placeholder="/icon-light.svg"
-        @update:model-value="updateIcons('iconLight', String($event))"
-      />
+      <div class="plugin-creator-icon-field">
+        <BaseInput
+          :model-value="blueprint?.icons.icon ?? ''"
+          type="url"
+          label="Icon"
+          placeholder="https://example.com/icon.svg"
+          @update:model-value="updateIcons('icon', String($event))"
+        />
+        <span class="plugin-creator-icon-preview">
+          <img v-if="blueprint?.icons.icon" :src="blueprint.icons.icon" alt="" />
+        </span>
+      </div>
+      <div class="plugin-creator-icon-field">
+        <BaseInput
+          :model-value="blueprint?.icons.iconDark ?? ''"
+          type="url"
+          label="Dark icon"
+          placeholder="https://example.com/icon-dark.svg"
+          @update:model-value="updateIcons('iconDark', String($event))"
+        />
+        <span class="plugin-creator-icon-preview">
+          <img v-if="blueprint?.icons.iconDark" :src="blueprint.icons.iconDark" alt="" />
+        </span>
+      </div>
+      <div class="plugin-creator-icon-field">
+        <BaseInput
+          :model-value="blueprint?.icons.iconLight ?? ''"
+          type="url"
+          label="Light icon"
+          placeholder="https://example.com/icon-light.svg"
+          @update:model-value="updateIcons('iconLight', String($event))"
+        />
+        <span class="plugin-creator-icon-preview">
+          <img v-if="blueprint?.icons.iconLight" :src="blueprint.icons.iconLight" alt="" />
+        </span>
+      </div>
     </div>
 
     <BaseTextarea
@@ -154,5 +172,29 @@ function updateTags(value: string) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
+}
+
+.plugin-creator-icon-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  align-items: end;
+  gap: 8px;
+}
+
+.plugin-creator-icon-preview {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: 6px;
+  background: var(--sailor-bg-surface);
+}
+
+.plugin-creator-icon-preview img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
 }
 </style>

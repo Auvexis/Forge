@@ -38,9 +38,34 @@
         />
 
         <div class="plugin-creator-create-modal__grid">
-          <BaseInput v-model="form.icon" label="Icon" placeholder="/icon.svg" />
-          <BaseInput v-model="form.iconDark" label="Dark icon" placeholder="/icon-dark.svg" />
-          <BaseInput v-model="form.iconLight" label="Light icon" placeholder="/icon-light.svg" />
+          <div class="plugin-creator-icon-field">
+            <BaseInput v-model="form.icon" type="url" label="Icon" placeholder="https://example.com/icon.svg" />
+            <span class="plugin-creator-icon-preview">
+              <img v-if="form.icon" :src="form.icon" alt="" />
+            </span>
+          </div>
+          <div class="plugin-creator-icon-field">
+            <BaseInput
+              v-model="form.iconDark"
+              type="url"
+              label="Dark icon"
+              placeholder="https://example.com/icon-dark.svg"
+            />
+            <span class="plugin-creator-icon-preview">
+              <img v-if="form.iconDark" :src="form.iconDark" alt="" />
+            </span>
+          </div>
+          <div class="plugin-creator-icon-field">
+            <BaseInput
+              v-model="form.iconLight"
+              type="url"
+              label="Light icon"
+              placeholder="https://example.com/icon-light.svg"
+            />
+            <span class="plugin-creator-icon-preview">
+              <img v-if="form.iconLight" :src="form.iconLight" alt="" />
+            </span>
+          </div>
         </div>
       </div>
 
@@ -127,7 +152,7 @@ function submit() {
     icon: cleanOptional(form.icon),
     iconDark: cleanOptional(form.iconDark),
     iconLight: cleanOptional(form.iconLight),
-    includeDefaultMethod: true,
+    includeDefaultMethod: false,
   })
 }
 
@@ -218,6 +243,30 @@ function slugifyPluginHandle(value: string) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
+}
+
+.plugin-creator-icon-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  align-items: end;
+  gap: 8px;
+}
+
+.plugin-creator-icon-preview {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: 6px;
+  background: var(--sailor-bg-surface);
+}
+
+.plugin-creator-icon-preview img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
 }
 
 .plugin-creator-create-modal__footer {

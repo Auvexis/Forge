@@ -40,6 +40,7 @@
             @remove-edges="store.removeEdges"
             @delete-selected="deleteSelectedNodes"
             @duplicate-selected="duplicateSelectedNodes"
+            @add-first-node="openAddBlocksPanel"
             @open-node-settings="openNodeSettingsModal"
           />
           <PluginCreatorFloatingToolbar
@@ -199,7 +200,7 @@ async function loadInitialBlueprint() {
     handle: 'my-api',
     name: 'My API',
     description: 'Low-code API plugin',
-    includeDefaultMethod: true,
+    includeDefaultMethod: false,
   })
   await router.replace({ name: 'plugin-creator-detail', params: { pluginId: blueprint.id } })
   void store.loadVersions()
@@ -214,8 +215,8 @@ async function createNewPlugin() {
 }
 
 async function createPluginFromModal(payload: CreatePluginBlueprintPayload) {
-  const blueprint = await store.createBlueprint(payload)
   isCreatePluginModalOpen.value = false
+  const blueprint = await store.createBlueprint(payload)
   await router.replace({ name: 'plugin-creator-detail', params: { pluginId: blueprint.id } })
   void store.loadVersions()
   selectDefaultNode()

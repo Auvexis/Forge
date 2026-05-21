@@ -110,4 +110,16 @@ describe('PluginCreatorFloatingToolbar contract', () => {
     assert.doesNotMatch(source, /icon-left="save"/)
     assert.doesNotMatch(source, /plugin-creator-save-dot/)
   })
+
+  it('uses muted slider rail and text-primary active range color', () => {
+    const source = fs.readFileSync(
+      path.join(componentDir, 'PluginCreatorFloatingToolbar.vue'),
+      'utf8',
+    )
+
+    assert.match(source, /sliderBackground/)
+    assert.match(source, /--plugin-creator-zoom-track/)
+    assert.match(source, /var\(--sailor-text-primary\)/)
+    assert.match(source, /var\(--sailor-text-muted/)
+  })
 })

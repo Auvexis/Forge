@@ -28,6 +28,8 @@ describe('PluginCreatorInspector contract', () => {
     ]) {
       assert.match(source, new RegExp(label))
     }
+    assert.match(source, /plugin-creator-icon-preview/)
+    assert.match(source, /type="url"/)
   })
 
   it('edits plugin, method, input, credential and request fields', () => {

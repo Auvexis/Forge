@@ -12,7 +12,7 @@ describe('PluginCreatorPage contract', () => {
     assert.match(source, /useRoute/)
     assert.match(source, /onMounted/)
     assert.match(source, /loadInitialBlueprint/)
-    assert.match(source, /includeDefaultMethod:\s*true/)
+    assert.match(source, /includeDefaultMethod:\s*false/)
   })
 
   it('wires header and floating toolbar lifecycle actions to the store', () => {
@@ -23,6 +23,7 @@ describe('PluginCreatorPage contract', () => {
     assert.match(source, /@publish="publishActiveBlueprint"/)
     assert.match(source, /@tool-change="setCanvasTool"/)
     assert.match(source, /@add-item="openAddBlocksPanel"/)
+    assert.match(source, /@add-first-node="openAddBlocksPanel"/)
     assert.match(source, /@delete-selected="deleteSelectedNodes"/)
     assert.match(source, /@connect-nodes="connectNodes"/)
     assert.match(source, /@open-node-settings="openNodeSettingsModal"/)
@@ -58,10 +59,14 @@ describe('PluginCreatorPage contract', () => {
     assert.match(source, /PluginCreatorCreatePluginModal/)
     assert.match(source, /isCreatePluginModalOpen/)
     assert.doesNotMatch(source, /window\.prompt/)
+    assert.doesNotMatch(modal, /includeDefaultMethod:\s*true/)
+    assert.match(modal, /includeDefaultMethod:\s*false/)
     assert.match(modal, /BaseModal/)
     for (const field of ['icon', 'iconDark', 'iconLight', 'handle', 'name', 'description']) {
       assert.match(modal, new RegExp(field))
     }
+    assert.match(modal, /plugin-creator-icon-preview/)
+    assert.match(modal, /type="url"/)
   })
 
   it('uses the shared app page and app panel instead of a local add sidebar', () => {
