@@ -62,4 +62,20 @@ describe('PluginCreatorFloatingToolbar contract', () => {
     assert.match(source, /plugin-creator-save-dot/)
     assert.match(source, /:disabled="isSaving \|\| !isDirty"/)
   })
+
+  it('uses BaseButton labels with left icons and ghost variant for every action', () => {
+    const source = fs.readFileSync(
+      path.join(componentDir, 'PluginCreatorFloatingToolbar.vue'),
+      'utf8',
+    )
+
+    assert.match(source, /BaseButton/)
+    assert.match(source, /variant="ghost"/)
+    assert.match(source, /icon-left="mouse-pointer-2"/)
+    assert.match(source, /icon-left="save"/)
+    assert.match(source, /icon-left="rocket"/)
+    assert.doesNotMatch(source, /plugin-creator-toolbar__publish/)
+    assert.doesNotMatch(source, /rgba\(0,\s*214,\s*143/)
+    assert.doesNotMatch(source, /<button/)
+  })
 })

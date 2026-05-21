@@ -1,53 +1,88 @@
 <template>
   <div class="plugin-creator-toolbar" role="toolbar" aria-label="Plugin creator tools">
-    <button
+    <BaseButton
       type="button"
+      variant="ghost"
+      size="sm"
+      icon-left="mouse-pointer-2"
       :class="{ 'is-active': activeTool === 'cursor' }"
       title="Cursor/select"
       aria-label="Cursor/select"
       @click="setTool('cursor')"
     >
-      <MousePointer2 :size="16" />
-    </button>
-    <button
+      Cursor
+    </BaseButton>
+    <BaseButton
       type="button"
+      variant="ghost"
+      size="sm"
+      icon-left="hand"
       :class="{ 'is-active': activeTool === 'pan' }"
       title="Pan tool"
       aria-label="Pan tool"
       @click="setTool('pan')"
     >
-      <Hand :size="16" />
-    </button>
-    <button
+      Pan
+    </BaseButton>
+    <BaseButton
       type="button"
-      class="plugin-creator-toolbar__danger"
+      variant="ghost"
+      size="sm"
+      icon-left="trash-2"
       :class="{ 'is-active': activeTool === 'delete' }"
       title="Delete tool"
       aria-label="Delete tool"
       @click="setTool('delete')"
     >
-      <Trash2 :size="16" />
-    </button>
-    <button
+      Delete
+    </BaseButton>
+    <BaseButton
       type="button"
+      variant="ghost"
+      size="sm"
+      icon-left="eraser"
       title="Clear Execution"
       aria-label="Clear Execution"
       @click="emit('clearExecution')"
     >
-      <Eraser :size="16" />
-    </button>
-    <button type="button" title="Add Item/Node" aria-label="Add Item/Node" @click="emit('addItem')">
-      <Plus :size="16" />
-    </button>
+      Clear
+    </BaseButton>
+    <BaseButton
+      type="button"
+      variant="ghost"
+      size="sm"
+      icon-left="plus"
+      title="Add Item/Node"
+      aria-label="Add Item/Node"
+      @click="emit('addItem')"
+    >
+      Add
+    </BaseButton>
 
     <span class="plugin-creator-toolbar__divider" aria-hidden="true"></span>
 
-    <button type="button" title="Undo" aria-label="Undo" @click="emit('undo')">
-      <Undo2 :size="16" />
-    </button>
-    <button type="button" title="Redo" aria-label="Redo" @click="emit('redo')">
-      <Redo2 :size="16" />
-    </button>
+    <BaseButton
+      type="button"
+      variant="ghost"
+      size="sm"
+      icon-left="undo-2"
+      title="Undo"
+      aria-label="Undo"
+      @click="emit('undo')"
+    >
+      Undo
+    </BaseButton>
+    <BaseButton
+      type="button"
+      variant="ghost"
+      size="sm"
+      icon-left="redo-2"
+      title="Redo"
+      aria-label="Redo"
+      @click="emit('redo')"
+    >
+      Redo
+    </BaseButton>
     <label class="plugin-creator-toolbar__zoom">
       <span>Zoom</span>
       <input
@@ -62,49 +97,55 @@
 
     <span class="plugin-creator-toolbar__divider" aria-hidden="true"></span>
 
-    <button type="button" title="Run" aria-label="Run" @click="emit('run')">
-      <Play :size="16" />
-    </button>
-    <button
+    <BaseButton
       type="button"
+      variant="ghost"
+      size="sm"
+      icon-left="play"
+      title="Run"
+      aria-label="Run"
+      @click="emit('run')"
+    >
+      Run
+    </BaseButton>
+    <BaseButton
+      type="button"
+      variant="ghost"
+      size="sm"
+      icon-left="save"
       title="Save"
       aria-label="Save"
       :disabled="isSaving || !isDirty"
       @click="emit('save')"
     >
-      <span
-        class="plugin-creator-save-dot"
-        :class="{
-          'plugin-creator-save-dot--dirty': isDirty,
-          'plugin-creator-save-dot--saving': isSaving,
-        }"
-      />
-    </button>
-    <button
+      Save
+      <template #right>
+        <span
+          class="plugin-creator-save-dot"
+          :class="{
+            'plugin-creator-save-dot--dirty': isDirty,
+            'plugin-creator-save-dot--saving': isSaving,
+          }"
+        />
+      </template>
+    </BaseButton>
+    <BaseButton
       type="button"
-      class="plugin-creator-toolbar__publish"
+      variant="ghost"
+      size="sm"
+      icon-left="rocket"
       title="Publish"
       aria-label="Publish"
       @click="emit('publish')"
     >
-      <Rocket :size="16" />
-    </button>
+      Publish
+    </BaseButton>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import {
-  Eraser,
-  Hand,
-  MousePointer2,
-  Play,
-  Plus,
-  Redo2,
-  Rocket,
-  Trash2,
-  Undo2,
-} from 'lucide-vue-next'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 type ToolbarTool = 'cursor' | 'pan' | 'delete'
 
@@ -174,32 +215,21 @@ onBeforeUnmount(() => {
   transform: translateX(-50%);
 }
 
-.plugin-creator-toolbar button {
-  width: 34px;
-  height: 34px;
-  display: inline-grid;
-  place-items: center;
+.plugin-creator-toolbar :deep(.base-button) {
+  flex: 0 0 auto;
   border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
   color: var(--sailor-text-primary);
-  cursor: pointer;
 }
 
-.plugin-creator-toolbar button:hover,
-.plugin-creator-toolbar button.is-active {
+.plugin-creator-toolbar :deep(.base-button:hover),
+.plugin-creator-toolbar :deep(.base-button.is-active) {
   border-color: var(--sailor-border-subtle);
   background: var(--sailor-bg-elevated);
 }
 
-.plugin-creator-toolbar button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .plugin-creator-save-dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   border: 1px solid var(--sailor-border-subtle);
   background: transparent;
@@ -212,8 +242,8 @@ onBeforeUnmount(() => {
 }
 
 .plugin-creator-save-dot--saving {
-  border-color: rgba(0, 214, 143, 0.56);
-  background: var(--sailor-accent);
+  border-color: rgba(59, 130, 246, 0.56);
+  background: #3b82f6;
   animation: plugin-creator-save-pulse 1s ease-in-out infinite;
 }
 
@@ -226,21 +256,6 @@ onBeforeUnmount(() => {
   50% {
     opacity: 1;
   }
-}
-
-.plugin-creator-toolbar__danger {
-  color: #c2410c !important;
-}
-
-.plugin-creator-toolbar__danger.is-active {
-  border-color: #fecaca !important;
-  background: #fff1f2 !important;
-  color: #b91c1c !important;
-}
-
-.plugin-creator-toolbar__publish {
-  background: rgba(0, 214, 143, 0.16) !important;
-  color: var(--sailor-accent) !important;
 }
 
 .plugin-creator-toolbar__divider {
