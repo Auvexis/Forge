@@ -1,82 +1,109 @@
 <template>
-  <main class="plugin-creator-page">
-    <PluginCreatorHeader
-      :title="store.activeBlueprint?.metadata.name ?? 'Low-code plugin workspace'"
-      @run="runSelectedMethod"
-      @save="store.saveDraft"
-      @publish="publishActiveBlueprint"
-    />
+  <AppPage>
+    <template #dock>
+      <PluginCreatorHeader
+        :title="store.activeBlueprint?.metadata.name ?? 'Low-code plugin workspace'"
+        @settings="openWorkspaceModal('metadata')"
+        @versions="openWorkspaceModal('versions')"
+        @run="runSelectedMethod"
+        @save="saveDraft"
+        @publish="publishActiveBlueprint"
+      />
+    </template>
 
-    <section class="plugin-creator-page__workspace" aria-label="Plugin creator canvas">
-      <div class="plugin-creator-page__canvas-shell">
-        <div v-if="store.error" class="plugin-creator-page__status plugin-creator-page__status--error">
-          {{ store.error }}
+    <main class="plugin-creator-page">
+      <section class="plugin-creator-page__workspace" aria-label="Plugin creator canvas">
+        <div class="plugin-creator-page__canvas-shell">
+          <div
+            v-if="store.error"
+            class="plugin-creator-page__status plugin-creator-page__status--error"
+          >
+            {{ store.error }}
+          </div>
+          <div v-else-if="store.isLoading" class="plugin-creator-page__status">
+            Loading plugin workspace...
+          </div>
+          <PluginCreatorCanvas
+            ref="canvasRef"
+            :blueprint="store.activeBlueprint"
+            :tool="activeTool"
+            @select-node="selectedNodeId = $event"
+            @update-node-position="updateNodePosition"
+            @delete-selected="deleteSelectedNodes"
+          />
+          <PluginCreatorFloatingToolbar
+            @tool-change="setCanvasTool"
+            @add-item="openAddBlocksPanel"
+            @run="runSelectedMethod"
+            @save="saveDraft"
+            @publish="publishActiveBlueprint"
+            @undo="store.undo"
+            @redo="store.redo"
+            @zoom="zoomCanvas"
+            @clear-execution="clearExecution"
+          />
         </div>
-        <div v-else-if="store.isLoading" class="plugin-creator-page__status">
-          Loading plugin workspace...
-        </div>
-        <PluginCreatorCanvas
-          :blueprint="store.activeBlueprint"
-          @select-node="selectedNodeId = $event"
-        />
-        <PluginCreatorFloatingToolbar
-          @add-item="isAddPanelOpen = true"
-          @run="runSelectedMethod"
-          @save="store.saveDraft"
-          @publish="publishActiveBlueprint"
-          @undo="store.undo"
-          @redo="store.redo"
-          @clear-execution="clearExecution"
-        />
-        <PluginCreatorAddItemPanel :open="isAddPanelOpen" @close="isAddPanelOpen = false" />
-      </div>
+      </section>
 
-      <aside class="plugin-creator-page__side">
-        <PluginCreatorInspector
-          :blueprint="store.activeBlueprint"
-          :selected-node-id="selectedNodeId"
-          @update-metadata="store.updateMetadata"
-          @update-node="store.updateNode"
-          @update-method="store.updateMethod"
-          @update-input="store.updateMethodInput"
-          @update-credential="store.updateCredentialField"
-          @update-request="store.updateMethodRequest"
-        />
-        <PluginCreatorTestPanel
-          :blueprint="store.activeBlueprint"
-          :selected-node-id="selectedNodeId"
-          :last-test-result="store.lastTestResult"
-          :is-running="store.isTesting"
-          @test-method="store.runMethodTest"
-        />
-        <PluginCreatorVersionPanel
-          :versions="store.versions"
-          :is-loading="store.isLoading"
-          @load="store.loadVersions"
-          @rollback="store.rollbackToSnapshot"
-        />
-      </aside>
-    </section>
-  </main>
+      <PluginCreatorWorkspaceModal
+        :is-open="isWorkspaceModalOpen"
+        :view="workspaceModalView"
+        :blueprint="store.activeBlueprint"
+        :selected-node-id="selectedNodeId"
+        :last-test-result="store.lastTestResult"
+        :versions="store.versions"
+        :is-running="store.isTesting"
+        :is-loading="store.isLoading"
+        @close="isWorkspaceModalOpen = false"
+        @update-metadata="store.updateMetadata"
+        @update-node="store.updateNode"
+        @update-method="store.updateMethod"
+        @update-input="store.updateMethodInput"
+        @update-credential="store.updateCredentialField"
+        @update-request="store.updateMethodRequest"
+        @test-method="store.runMethodTest"
+        @load-versions="store.loadVersions"
+        @rollback="store.rollbackToSnapshot"
+      />
+    </main>
+  </AppPage>
 </template>
 
 <script setup lang="ts">
+import AppPage from '@/shared/components/layout/AppPage.vue'
+import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import PluginCreatorHeader from '@/features/plugin-creator/components/PluginCreatorHeader.vue'
 import PluginCreatorCanvas from '@/features/plugin-creator/components/PluginCreatorCanvas.vue'
 import PluginCreatorFloatingToolbar from '@/features/plugin-creator/components/PluginCreatorFloatingToolbar.vue'
-import PluginCreatorAddItemPanel from '@/features/plugin-creator/components/PluginCreatorAddItemPanel.vue'
-import PluginCreatorInspector from '@/features/plugin-creator/components/PluginCreatorInspector.vue'
-import PluginCreatorTestPanel from '@/features/plugin-creator/components/PluginCreatorTestPanel.vue'
-import PluginCreatorVersionPanel from '@/features/plugin-creator/components/PluginCreatorVersionPanel.vue'
+import PluginCreatorAddItemPanel, {
+  type PluginCreatorAddItemType,
+} from '@/features/plugin-creator/components/PluginCreatorAddItemPanel.vue'
+import PluginCreatorWorkspaceModal, {
+  type PluginCreatorWorkspaceView,
+} from '@/features/plugin-creator/components/PluginCreatorWorkspaceModal.vue'
 import { usePluginCreatorStore } from '@/features/plugin-creator'
+import type {
+  PluginBlueprintNode,
+  PluginBlueprintPosition,
+  PluginBlueprintNodeType,
+} from '@/core/types/plugin-creator.types'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+type ToolbarTool = 'cursor' | 'pan' | 'delete'
+
 const store = usePluginCreatorStore()
+const appPanelStore = useAppPanelStore()
 const route = useRoute()
 const router = useRouter()
-const isAddPanelOpen = ref(false)
+const canvasRef = ref<{
+  deleteSelection: () => void
+  zoomTo: (value: number) => void
+} | null>(null)
+const activeTool = ref<ToolbarTool>('cursor')
 const selectedNodeId = ref<string | null>(null)
+const isWorkspaceModalOpen = ref(false)
+const workspaceModalView = ref<PluginCreatorWorkspaceView>('metadata')
 
 onMounted(() => {
   void loadInitialBlueprint()
@@ -115,10 +142,99 @@ async function loadInitialBlueprint() {
 
 function selectDefaultNode() {
   const nodes = store.activeBlueprint?.canvas.nodes
-  selectedNodeId.value = nodes ? Object.keys(nodes)[0] ?? null : null
+  selectedNodeId.value = nodes ? (Object.keys(nodes)[0] ?? null) : null
+}
+
+function openAddBlocksPanel() {
+  appPanelStore.openPanel({
+    id: 'plugin-creator-add-blocks',
+    title: 'Add Block',
+    component: PluginCreatorAddItemPanel,
+    props: {
+      onAddItem: addPluginCreatorBlock,
+    },
+    position: 'right',
+    width: 'md',
+    resizable: true,
+    resizeSide: 'left',
+  })
+}
+
+function openWorkspaceModal(view: PluginCreatorWorkspaceView) {
+  workspaceModalView.value = view
+  isWorkspaceModalOpen.value = true
+  if (view === 'versions') {
+    void store.loadVersions()
+  }
+}
+
+function setCanvasTool(tool: ToolbarTool) {
+  activeTool.value = tool
+  if (tool === 'delete') {
+    canvasRef.value?.deleteSelection()
+  }
+}
+
+function zoomCanvas(value: number) {
+  canvasRef.value?.zoomTo(value / 100)
+}
+
+function updateNodePosition(payload: { nodeId: string; position: PluginBlueprintPosition }) {
+  store.updateNode(payload.nodeId, { position: payload.position })
+}
+
+function deleteSelectedNodes(nodeIds: string[]) {
+  store.removeNodes(nodeIds)
+  if (selectedNodeId.value && nodeIds.includes(selectedNodeId.value)) {
+    selectDefaultNode()
+  }
+}
+
+function addPluginCreatorBlock(type: PluginCreatorAddItemType) {
+  const node = createNode(type)
+  store.addNode(node)
+  selectedNodeId.value = node.id
+}
+
+function createNode(type: PluginCreatorAddItemType): PluginBlueprintNode {
+  const nodeCount = Object.keys(store.activeBlueprint?.canvas.nodes ?? {}).length
+  const methodId = store.activeBlueprint?.methods[0]?.id
+  const id = `${type}_${Date.now()}_${nodeCount}`
+  const position = {
+    x: 180 + (nodeCount % 4) * 190,
+    y: 160 + Math.floor(nodeCount / 4) * 150,
+  }
+
+  return {
+    id,
+    type: type as PluginBlueprintNodeType,
+    position,
+    data: {
+      label: nodeLabel(type),
+      name: nodeLabel(type),
+      methodId,
+    },
+  }
+}
+
+function nodeLabel(type: PluginCreatorAddItemType) {
+  const labels: Record<PluginCreatorAddItemType, string> = {
+    method: 'Untitled Method',
+    input: 'Input',
+    credential: 'Credential',
+    request: 'HTTP Request',
+    header: 'Header',
+    query: 'Query Param',
+    body: 'JSON Body',
+    responseMapper: 'Response mapping',
+    errorMapper: 'Error mapping',
+    output: 'Output',
+  }
+  return labels[type]
 }
 
 async function runSelectedMethod() {
+  openWorkspaceModal('test')
   const methodId =
     selectedNodeId.value && store.activeBlueprint?.canvas.nodes[selectedNodeId.value]?.data.methodId
   const fallbackMethodId = store.activeBlueprint?.methods[0]?.id
@@ -132,7 +248,12 @@ async function runSelectedMethod() {
   })
 }
 
+async function saveDraft() {
+  await store.saveDraft()
+}
+
 async function publishActiveBlueprint() {
+  await saveDraft()
   await store.generatePreview()
   await store.publishActiveBlueprint()
 }
@@ -146,23 +267,26 @@ function clearExecution() {
 .plugin-creator-page {
   width: 100%;
   height: 100%;
-  display: grid;
-  grid-template-rows: auto 1fr;
+  min-height: 0;
+  display: flex;
   background: var(--sailor-bg-base);
   color: var(--sailor-text-primary);
+  overflow: hidden;
 }
 
 .plugin-creator-page__workspace {
+  min-width: 0;
   min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  flex: 1;
+  display: flex;
 }
 
 .plugin-creator-page__canvas-shell {
   position: relative;
   min-width: 0;
   min-height: 0;
-  border-right: 1px solid var(--sailor-border-subtle);
+  flex: 1;
+  overflow: hidden;
 }
 
 .plugin-creator-page__status {
@@ -172,39 +296,18 @@ function clearExecution() {
   z-index: 25;
   max-width: min(420px, calc(100% - 28px));
   padding: 8px 10px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--sailor-border-subtle);
   border-radius: 6px;
   background: var(--sailor-bg-surface);
   color: var(--sailor-text-secondary);
   font-size: 12px;
   font-weight: 650;
-  box-shadow: 0 10px 24px rgba(20, 32, 51, 0.12);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
 }
 
 .plugin-creator-page__status--error {
-  border-color: #fecaca;
-  background: #fff1f2;
-  color: #b91c1c;
-}
-
-.plugin-creator-page__side {
-  min-width: 0;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) minmax(220px, auto) minmax(160px, auto);
-  overflow: hidden;
-  background: var(--sailor-bg-base);
-  border-left: 1px solid var(--sailor-border-subtle);
-}
-
-@media (max-width: 900px) {
-  .plugin-creator-page__workspace {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(360px, 1fr) auto;
-  }
-
-  .plugin-creator-page__side {
-    min-height: 420px;
-  }
+  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(127, 29, 29, 0.26);
+  color: #fecaca;
 }
 </style>

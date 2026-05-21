@@ -25,4 +25,15 @@ describe('PluginCreatorAddItemPanel contract', () => {
       assert.match(source, new RegExp(label))
     }
   })
+
+  it('uses the shared AddNodePanel layout contract inside AppPanel', () => {
+    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorAddItemPanel.vue'), 'utf8')
+
+    assert.match(source, /class="add-node-panel"/)
+    assert.match(source, /add-node-search-wrapper/)
+    assert.match(source, /add-node-content/)
+    assert.match(source, /onAddItem/)
+    assert.doesNotMatch(source, /<aside/)
+    assert.doesNotMatch(source, /open\?: boolean/)
+  })
 })

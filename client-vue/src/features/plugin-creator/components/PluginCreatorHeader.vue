@@ -9,6 +9,24 @@
     </div>
 
     <div class="plugin-creator-header__actions">
+      <button
+        type="button"
+        class="plugin-creator-header__icon-button"
+        title="Settings"
+        aria-label="Settings"
+        @click="emit('settings')"
+      >
+        <Settings :size="15" />
+      </button>
+      <button
+        type="button"
+        class="plugin-creator-header__icon-button"
+        title="History"
+        aria-label="History"
+        @click="emit('versions')"
+      >
+        <History :size="15" />
+      </button>
       <button type="button" class="plugin-creator-header__button" @click="emit('run')">
         <Play :size="15" />
         Run
@@ -30,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { Play, Rocket, Save } from 'lucide-vue-next'
+import { History, Play, Rocket, Save, Settings } from 'lucide-vue-next'
 import PluginCreatorCommandMenu from './PluginCreatorCommandMenu.vue'
 
 withDefaults(
@@ -43,6 +61,8 @@ withDefaults(
 )
 
 const emit = defineEmits<{
+  settings: []
+  versions: []
   run: []
   save: []
   publish: []
@@ -98,6 +118,23 @@ const emit = defineEmits<{
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.plugin-creator-header__icon-button {
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sailor-text-secondary);
+  cursor: pointer;
+}
+
+.plugin-creator-header__icon-button:hover {
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
 }
 
 .plugin-creator-header__button--primary {

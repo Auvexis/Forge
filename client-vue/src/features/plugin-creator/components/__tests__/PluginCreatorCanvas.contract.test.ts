@@ -16,4 +16,15 @@ describe('PluginCreatorCanvas contract', () => {
     assert.match(source, /blueprint\.canvas\.nodes/)
     assert.match(source, /blueprint\.canvas\.edges/)
   })
+
+  it('syncs canvas interactions back to the plugin blueprint', () => {
+    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
+
+    assert.match(source, /@node-drag-stop="onNodeDragStop"/)
+    assert.match(source, /'update-node-position'/)
+    assert.match(source, /'delete-selected'/)
+    assert.match(source, /defineExpose/)
+    assert.match(source, /zoomTo/)
+    assert.match(source, /deleteSelection/)
+  })
 })

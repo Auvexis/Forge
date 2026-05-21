@@ -101,6 +101,33 @@ describe('plugin creator store', () => {
     assert.equal(store.activeBlueprint?.canvas.nodes.node_method?.data.name, 'Get Lead')
   })
 
+  it('removes nodes and related edges from the canvas', () => {
+    const store = usePluginCreatorStore()
+    const blueprint = createBlueprint()
+    blueprint.canvas.nodes = {
+      node_method: {
+        id: 'node_method',
+        type: 'method',
+        position: { x: 100, y: 120 },
+        data: {},
+      },
+      node_request: {
+        id: 'node_request',
+        type: 'request',
+        position: { x: 320, y: 120 },
+        data: {},
+      },
+    }
+    blueprint.canvas.edges = [{ id: 'edge_1', source: 'node_method', target: 'node_request' }]
+    store.setActiveBlueprint(blueprint)
+
+    store.removeNodes(['node_request'])
+
+    assert.equal(store.activeBlueprint?.canvas.nodes.node_request, undefined)
+    assert.equal(store.activeBlueprint?.canvas.edges.length, 0)
+    assert.equal(store.canUndo, true)
+  })
+
   it('edits method, input, credential and request details', () => {
     const store = usePluginCreatorStore()
     const blueprint = createBlueprint()

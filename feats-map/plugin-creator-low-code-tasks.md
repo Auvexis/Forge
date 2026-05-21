@@ -907,6 +907,18 @@
 - [ ] Smoke visual via Browser/Playwright.
   - Bloqueado: Browser plugin deu timeout abrindo `localhost:23802`/`127.0.0.1:23802`; Playwright nao esta instalado no `client-vue`.
 
+### Task 11.8: Corrigir UX do Plugin Creator apos comparacao com Workflow Editor
+
+- [x] Trocar o painel lateral local de Add Item por `AppPanel.vue` via `GlobalAppPanel`, no mesmo padrao do `AddNodePanel.vue`.
+- [x] Mover metadata, test panel e version history para modal usando `BaseModal.vue`.
+- [x] Reposicionar toolbar dentro do canvas para nao escapar quando a sidebar esta expandida.
+- [x] Conectar toolbar com tool mode, add block, zoom, delete, run, save, publish, undo e redo.
+- [x] Persistir posicao dos nodes em `node-drag-stop` antes do save.
+- [x] Adicionar remocao de nodes e edges relacionadas na store.
+- [x] Rodar contratos focados do Plugin Creator.
+- [x] Rodar `npm run type-check`.
+- [x] Rodar `npm run build-only`.
+
 ---
 
 ## Ordem Recomendada de Execucao

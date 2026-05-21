@@ -27,7 +27,10 @@ export interface PluginCreatorApiClient {
   createBlueprint: (payload: CreatePluginBlueprintPayload) => Promise<PluginBlueprint>
   getBlueprint: (id: string) => Promise<PluginBlueprint>
   updateBlueprint: (id: string, blueprint: PluginBlueprint) => Promise<PluginBlueprint>
-  testMethod: (id: string, payload: PluginCreatorTestMethodPayload) => Promise<PluginCreatorTestResult>
+  testMethod: (
+    id: string,
+    payload: PluginCreatorTestMethodPayload,
+  ) => Promise<PluginCreatorTestResult>
   generatePreview: (id: string) => Promise<PluginCreatorGeneratePreviewResult>
   publish: (id: string) => Promise<PluginCreatorRelease>
   listVersions: (id: string) => Promise<PluginCreatorVersionsResult>
@@ -172,7 +175,10 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     isSaving.value = true
     error.value = null
     try {
-      const saved = await apiClient.value.updateBlueprint(activeBlueprint.value.id, activeBlueprint.value)
+      const saved = await apiClient.value.updateBlueprint(
+        activeBlueprint.value.id,
+        activeBlueprint.value,
+      )
       activeBlueprint.value = cloneBlueprint(saved)
       savedSnapshot.value = snapshot(activeBlueprint.value)
       return saved
@@ -280,6 +286,21 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     activeBlueprint.value.canvas.nodes[node.id] = cloneNode(node)
   }
 
+  function removeNodes(nodeIds: string[]) {
+    if (!activeBlueprint.value || nodeIds.length === 0) return
+    const nodeIdSet = new Set(nodeIds)
+    const hasAnyNode = nodeIds.some((nodeId) => activeBlueprint.value?.canvas.nodes[nodeId])
+    if (!hasAnyNode) return
+
+    recordHistory()
+    for (const nodeId of nodeIdSet) {
+      delete activeBlueprint.value.canvas.nodes[nodeId]
+    }
+    activeBlueprint.value.canvas.edges = activeBlueprint.value.canvas.edges.filter(
+      (edge) => !nodeIdSet.has(edge.source) && !nodeIdSet.has(edge.target),
+    )
+  }
+
   function updateNode(nodeId: string, payload: Partial<PluginBlueprintNode>) {
     if (!activeBlueprint.value) return
     const existing = activeBlueprint.value.canvas.nodes[nodeId]
@@ -289,7 +310,9 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
       ...existing,
       ...payload,
       data: payload.data ? { ...existing.data, ...payload.data } : existing.data,
-      position: payload.position ? { ...existing.position, ...payload.position } : existing.position,
+      position: payload.position
+        ? { ...existing.position, ...payload.position }
+        : existing.position,
     }
   }
 
@@ -303,9 +326,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     activeBlueprint.value.methods[index] = {
       ...existing,
       ...payload,
-      request: payload.request
-        ? { ...existing.request, ...payload.request }
-        : existing.request,
+      request: payload.request ? { ...existing.request, ...payload.request } : existing.request,
     }
   }
 
@@ -344,10 +365,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     }
   }
 
-  function updateMethodRequest(
-    methodId: string,
-    payload: Partial<PluginBlueprintRequest>,
-  ) {
+  function updateMethodRequest(methodId: string, payload: Partial<PluginBlueprintRequest>) {
     if (!activeBlueprint.value) return
     const method = activeBlueprint.value.methods.find((candidate) => candidate.id === methodId)
     if (!method) return
@@ -444,6 +462,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     rollbackToSnapshot,
     updateMetadata,
     addNode,
+    removeNodes,
     updateNode,
     updateMethod,
     updateMethodInput,

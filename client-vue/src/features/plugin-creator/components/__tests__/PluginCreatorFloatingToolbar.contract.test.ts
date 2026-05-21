@@ -7,7 +7,10 @@ const componentDir = path.resolve('src/features/plugin-creator/components')
 
 describe('PluginCreatorFloatingToolbar contract', () => {
   it('contains required bottom toolbar tools', () => {
-    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorFloatingToolbar.vue'), 'utf8')
+    const source = fs.readFileSync(
+      path.join(componentDir, 'PluginCreatorFloatingToolbar.vue'),
+      'utf8',
+    )
     const labels = [
       'Cursor/select',
       'Pan tool',
@@ -28,10 +31,23 @@ describe('PluginCreatorFloatingToolbar contract', () => {
   })
 
   it('handles Escape by returning to cursor mode', () => {
-    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorFloatingToolbar.vue'), 'utf8')
+    const source = fs.readFileSync(
+      path.join(componentDir, 'PluginCreatorFloatingToolbar.vue'),
+      'utf8',
+    )
 
     assert.match(source, /keydown/)
     assert.match(source, /Escape/)
     assert.match(source, /cursor/)
+  })
+
+  it('keeps the toolbar within the canvas viewport', () => {
+    const source = fs.readFileSync(
+      path.join(componentDir, 'PluginCreatorFloatingToolbar.vue'),
+      'utf8',
+    )
+
+    assert.match(source, /max-width:\s*calc\(100% - 32px\)/)
+    assert.match(source, /overflow-x:\s*auto/)
   })
 })

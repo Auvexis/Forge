@@ -8,11 +8,15 @@
       :min-zoom="0.4"
       :max-zoom="1.8"
       fit-view-on-init
-      :nodes-draggable="true"
+      :nodes-draggable="tool !== 'pan'"
       :nodes-connectable="true"
       :elements-selectable="true"
+      :pan-on-drag="tool === 'pan'"
       class="plugin-creator-canvas__flow"
+      @init="onInit"
       @node-click="onNodeClick"
+      @node-drag-stop="onNodeDragStop"
+      @pane-click="selectedNodeIds = []"
     >
       <Background
         :gap="20"
@@ -58,10 +62,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { VueFlow, type Edge, type Node, type NodeTypesObject } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
-import type { PluginBlueprint } from '../../../core/types/plugin-creator.types.ts'
+import type {
+  PluginBlueprint,
+  PluginBlueprintPosition,
+} from '../../../core/types/plugin-creator.types.ts'
 import MethodNode from './nodes/MethodNode.vue'
 import InputNode from './nodes/InputNode.vue'
 import CredentialNode from './nodes/CredentialNode.vue'
@@ -73,17 +80,30 @@ import PluginCreatorEdge from '../../workflow-editor/components/BaseEdge.vue'
 
 const props = defineProps<{
   blueprint?: PluginBlueprint | null
+  tool?: 'cursor' | 'pan' | 'delete'
 }>()
 
 const emit = defineEmits<{
   'select-node': [nodeId: string]
+  'update-node-position': [payload: { nodeId: string; position: PluginBlueprintPosition }]
+  'delete-selected': [nodeIds: string[]]
 }>()
+
+const vueFlow = ref<{
+  zoomTo?: (zoom: number, options?: { duration?: number }) => void
+  fitView?: (options?: { duration?: number }) => void
+  getSelectedNodes?: unknown
+} | null>(null)
+const selectedNodeIds = ref<string[]>([])
 
 const nodeTypes = {
   method: MethodNode,
   input: InputNode,
   credential: CredentialNode,
   request: RequestNode,
+  header: RequestNode,
+  query: RequestNode,
+  body: RequestNode,
   responseMapper: ResponseMapperNode,
   errorMapper: ErrorMapperNode,
   output: OutputNode,
@@ -131,9 +151,74 @@ const edges = computed<Edge[]>({
 
 function onNodeClick(event: { node?: Node }) {
   if (event.node?.id) {
+    selectedNodeIds.value = [event.node.id]
     emit('select-node', event.node.id)
+    if (props.tool === 'delete') {
+      emit('delete-selected', [event.node.id])
+    }
   }
 }
+
+function onInit(instance: unknown) {
+  vueFlow.value = instance as typeof vueFlow.value
+}
+
+function onNodeDragStop(event: { node?: Node; nodes?: Node[] }) {
+  const draggedNodes = event.nodes?.length ? event.nodes : event.node ? [event.node] : []
+  for (const node of draggedNodes) {
+    emit('update-node-position', {
+      nodeId: node.id,
+      position: {
+        x: Math.round(node.position.x),
+        y: Math.round(node.position.y),
+      },
+    })
+  }
+}
+
+function selectedCanvasNodeIds() {
+  const selectedNodes = selectedNodesFromVueFlow()
+  if (selectedNodes?.length) {
+    return selectedNodes.map((node) => node.id)
+  }
+  return selectedNodeIds.value
+}
+
+function selectedNodesFromVueFlow(): Node[] {
+  const selectedNodes = vueFlow.value?.getSelectedNodes
+  if (Array.isArray(selectedNodes)) {
+    return selectedNodes
+  }
+  if (typeof selectedNodes === 'function') {
+    return selectedNodes()
+  }
+  if (selectedNodes && typeof selectedNodes === 'object' && 'value' in selectedNodes) {
+    return selectedNodes.value as Node[]
+  }
+  return []
+}
+
+function deleteSelection() {
+  const nodeIds = selectedCanvasNodeIds()
+  if (nodeIds.length > 0) {
+    emit('delete-selected', nodeIds)
+    selectedNodeIds.value = []
+  }
+}
+
+function zoomTo(value: number) {
+  vueFlow.value?.zoomTo?.(value, { duration: 180 })
+}
+
+function fitView() {
+  vueFlow.value?.fitView?.({ duration: 220 })
+}
+
+defineExpose({
+  deleteSelection,
+  fitView,
+  zoomTo,
+})
 </script>
 
 <style scoped>

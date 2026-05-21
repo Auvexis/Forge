@@ -30,6 +30,8 @@ describe('PluginCreatorHeader contract', () => {
     const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorHeader.vue'), 'utf8')
 
     assert.match(source, /PluginCreatorCommandMenu/)
+    assert.match(source, /Settings/)
+    assert.match(source, /History/)
     assert.match(source, /Save/)
     assert.match(source, /Publish/)
   })

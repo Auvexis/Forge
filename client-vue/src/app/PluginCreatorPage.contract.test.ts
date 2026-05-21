@@ -19,9 +19,31 @@ describe('PluginCreatorPage contract', () => {
     const source = fs.readFileSync(pagePath, 'utf8')
 
     assert.match(source, /@run="runSelectedMethod"/)
-    assert.match(source, /@save="store\.saveDraft"/)
+    assert.match(source, /@save="saveDraft"/)
     assert.match(source, /@publish="publishActiveBlueprint"/)
+    assert.match(source, /@tool-change="setCanvasTool"/)
+    assert.match(source, /@add-item="openAddBlocksPanel"/)
+    assert.match(source, /@delete-selected="deleteSelectedNodes"/)
     assert.match(source, /@undo="store\.undo"/)
     assert.match(source, /@redo="store\.redo"/)
+  })
+
+  it('uses the shared app page and app panel instead of a local add sidebar', () => {
+    const source = fs.readFileSync(pagePath, 'utf8')
+
+    assert.match(source, /AppPage/)
+    assert.match(source, /useAppPanelStore/)
+    assert.match(source, /openAddBlocksPanel/)
+    assert.match(source, /PluginCreatorAddItemPanel/)
+    assert.doesNotMatch(source, /:open="isAddPanelOpen"/)
+    assert.doesNotMatch(source, /plugin-creator-page__side/)
+  })
+
+  it('moves metadata, testing and versions into a base modal workspace', () => {
+    const source = fs.readFileSync(pagePath, 'utf8')
+
+    assert.match(source, /PluginCreatorWorkspaceModal/)
+    assert.match(source, /@settings="openWorkspaceModal\('metadata'\)"/)
+    assert.match(source, /@versions="openWorkspaceModal\('versions'\)"/)
   })
 })

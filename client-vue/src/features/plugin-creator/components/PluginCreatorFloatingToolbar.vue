@@ -28,7 +28,12 @@
     >
       <Trash2 :size="16" />
     </button>
-    <button type="button" title="Clear Execution" aria-label="Clear Execution" @click="emit('clearExecution')">
+    <button
+      type="button"
+      title="Clear Execution"
+      aria-label="Clear Execution"
+      @click="emit('clearExecution')"
+    >
       <Eraser :size="16" />
     </button>
     <button type="button" title="Add Item/Node" aria-label="Add Item/Node" @click="emit('addItem')">
@@ -45,7 +50,14 @@
     </button>
     <label class="plugin-creator-toolbar__zoom">
       <span>Zoom</span>
-      <input v-model.number="zoomValue" type="range" min="40" max="180" step="5" @input="emit('zoom', zoomValue)" />
+      <input
+        v-model.number="zoomValue"
+        type="range"
+        min="40"
+        max="180"
+        step="5"
+        @input="emit('zoom', zoomValue)"
+      />
     </label>
 
     <span class="plugin-creator-toolbar__divider" aria-hidden="true"></span>
@@ -126,6 +138,7 @@ onBeforeUnmount(() => {
   left: 50%;
   bottom: 18px;
   z-index: 20;
+  max-width: calc(100% - 32px);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -134,6 +147,8 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   background: color-mix(in srgb, var(--sailor-bg-base) 94%, transparent);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
+  overflow-x: auto;
+  overflow-y: hidden;
   transform: translateX(-50%);
 }
 
