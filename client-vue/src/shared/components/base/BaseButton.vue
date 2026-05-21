@@ -175,11 +175,12 @@ defineOptions({ inheritAttrs: false })
 .base-button--ghost {
   background-color: var(--sailor-button-ghost-bg);
   color: var(--sailor-button-ghost-text);
-  border: 1px solid var(--sailor-button-ghost-border);
+  border: 1px solid transparent;
 }
 .base-button--ghost:hover {
   background-color: var(--sailor-button-ghost-hover);
   color: var(--sailor-button-ghost-text);
+  border-color: transparent;
 }
 .base-button--ghost:active {
   background-color: var(--sailor-button-ghost-active);

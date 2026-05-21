@@ -31,10 +31,11 @@ defineEmits<{
 
 <style scoped>
 .plugin-creator-header {
-  min-height: 48px;
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 30;
   display: flex;
   align-items: center;
-  padding: 8px 12px;
-  background: var(--sailor-bg-base);
 }
 </style>

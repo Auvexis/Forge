@@ -1,21 +1,18 @@
 <template>
   <AppPage>
-    <template #dock>
-      <PluginCreatorHeader
-        :title="store.activeBlueprint?.metadata.name ?? 'Low-code plugin workspace'"
-        :is-dirty="store.isDirty"
-        :is-saving="store.isSaving"
-        @settings="openWorkspaceModal('metadata')"
-        @versions="openWorkspaceModal('versions')"
-        @run="runSelectedMethod"
-        @save="saveDraft"
-        @publish="publishActiveBlueprint"
-      />
-    </template>
-
     <main class="plugin-creator-page">
       <section class="plugin-creator-page__workspace" aria-label="Plugin creator canvas">
         <div class="plugin-creator-page__canvas-shell">
+          <PluginCreatorHeader
+            :title="store.activeBlueprint?.metadata.name ?? 'Low-code plugin workspace'"
+            :is-dirty="store.isDirty"
+            :is-saving="store.isSaving"
+            @settings="openWorkspaceModal('metadata')"
+            @versions="openWorkspaceModal('versions')"
+            @run="runSelectedMethod"
+            @save="saveDraft"
+            @publish="publishActiveBlueprint"
+          />
           <div
             v-if="store.error"
             class="plugin-creator-page__status plugin-creator-page__status--error"

@@ -2,30 +2,27 @@
   <div class="plugin-creator-toolbar" role="toolbar" aria-label="Plugin creator tools">
     <BaseButton
       type="button"
-      variant="ghost"
+      :variant="activeTool === 'cursor' ? 'primary' : 'ghost'"
       size="icon"
       icon-left="mouse-pointer-2"
-      :class="{ 'is-active': activeTool === 'cursor' }"
       title="Cursor/select"
       aria-label="Cursor/select"
       @click="setTool('cursor')"
     />
     <BaseButton
       type="button"
-      variant="ghost"
+      :variant="activeTool === 'pan' ? 'primary' : 'ghost'"
       size="icon"
       icon-left="hand"
-      :class="{ 'is-active': activeTool === 'pan' }"
       title="Pan tool"
       aria-label="Pan tool"
       @click="setTool('pan')"
     />
     <BaseButton
       type="button"
-      variant="ghost"
+      :variant="activeTool === 'delete' ? 'primary' : 'ghost'"
       size="icon"
       icon-left="trash-2"
-      :class="{ 'is-active': activeTool === 'delete' }"
       title="Delete tool"
       aria-label="Delete tool"
       @click="setTool('delete')"
@@ -201,18 +198,20 @@ onBeforeUnmount(() => {
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
   overflow-x: auto;
   overflow-y: hidden;
+  scrollbar-width: none;
   transform: translateX(-50%);
+}
+
+.plugin-creator-toolbar::-webkit-scrollbar {
+  display: none;
 }
 
 .plugin-creator-toolbar :deep(.base-button) {
   flex: 0 0 auto;
-  border: 1px solid transparent;
-  color: var(--sailor-text-primary);
 }
 
-.plugin-creator-toolbar :deep(.base-button:hover),
-.plugin-creator-toolbar :deep(.base-button.is-active) {
-  border-color: var(--sailor-border-subtle);
+.plugin-creator-toolbar :deep(.base-button--ghost:hover) {
+  border-color: transparent;
   background: var(--sailor-bg-elevated);
 }
 
@@ -255,17 +254,55 @@ onBeforeUnmount(() => {
 }
 
 .plugin-creator-toolbar__zoom {
+  flex: 0 0 96px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 132px;
-  padding: 0 6px;
+  min-width: 0;
+  width: 96px;
+  padding: 0 2px;
   color: var(--sailor-text-secondary, #526173);
   font-size: 12px;
   font-weight: 700;
 }
 
 .plugin-creator-toolbar__zoom input {
-  width: 82px;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--sailor-text-primary);
+  cursor: pointer;
+  appearance: none;
+  background: transparent;
+}
+
+.plugin-creator-toolbar__zoom input::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--sailor-border-subtle);
+}
+
+.plugin-creator-toolbar__zoom input::-webkit-slider-thumb {
+  width: 10px;
+  height: 10px;
+  margin-top: -3.5px;
+  border: 1px solid var(--sailor-text-primary);
+  border-radius: 999px;
+  background: var(--sailor-bg-base);
+  appearance: none;
+}
+
+.plugin-creator-toolbar__zoom input::-moz-range-track {
+  height: 3px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sailor-border-subtle);
+}
+
+.plugin-creator-toolbar__zoom input::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--sailor-text-primary);
+  border-radius: 999px;
+  background: var(--sailor-bg-base);
 }
 </style>
