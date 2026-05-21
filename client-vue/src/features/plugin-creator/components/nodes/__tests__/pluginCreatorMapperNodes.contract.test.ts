@@ -21,14 +21,14 @@ describe('plugin creator mapper nodes', () => {
     }
   })
 
-  it('exposes actions for creating output and error rules', () => {
+  it('does not show extra mapper action badges inside nodes', () => {
     const responseMapper = fs.readFileSync(path.join(nodesDir, 'ResponseMapperNode.vue'), 'utf8')
     const errorMapper = fs.readFileSync(path.join(nodesDir, 'ErrorMapperNode.vue'), 'utf8')
 
-    assert.match(responseMapper, /Map output/)
-    assert.match(responseMapper, /map-selected-field-as-output/)
-    assert.match(errorMapper, /Error rule/)
-    assert.match(errorMapper, /create-error-rule-from-response/)
+    assert.doesNotMatch(responseMapper, /Map output/)
+    assert.doesNotMatch(responseMapper, /map-selected-field-as-output/)
+    assert.doesNotMatch(errorMapper, /Error rule/)
+    assert.doesNotMatch(errorMapper, /create-error-rule-from-response/)
   })
 
   it('registers mapper nodes in the canvas', () => {

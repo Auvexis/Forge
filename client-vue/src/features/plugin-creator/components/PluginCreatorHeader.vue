@@ -31,8 +31,19 @@
         <Play :size="15" />
         Run
       </button>
-      <button type="button" class="plugin-creator-header__button" @click="emit('save')">
-        <Save :size="15" />
+      <button
+        type="button"
+        class="plugin-creator-header__button plugin-creator-header__button--save"
+        :disabled="isSaving || !isDirty"
+        @click="emit('save')"
+      >
+        <span
+          class="plugin-creator-save-dot"
+          :class="{
+            'plugin-creator-save-dot--dirty': isDirty,
+            'plugin-creator-save-dot--saving': isSaving,
+          }"
+        />
         Save
       </button>
       <button
@@ -48,15 +59,19 @@
 </template>
 
 <script setup lang="ts">
-import { History, Play, Rocket, Save, Settings } from 'lucide-vue-next'
+import { History, Play, Rocket, Settings } from 'lucide-vue-next'
 import PluginCreatorCommandMenu from './PluginCreatorCommandMenu.vue'
 
 withDefaults(
   defineProps<{
     title?: string
+    isDirty?: boolean
+    isSaving?: boolean
   }>(),
   {
     title: 'Low-code plugin workspace',
+    isDirty: false,
+    isSaving: false,
   },
 )
 
@@ -145,6 +160,46 @@ const emit = defineEmits<{
 
 .plugin-creator-header__button:hover {
   background: var(--sailor-bg-elevated);
+}
+
+.plugin-creator-header__button:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.plugin-creator-header__button--save {
+  position: relative;
+}
+
+.plugin-creator-save-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--sailor-border-subtle);
+  background: transparent;
+}
+
+.plugin-creator-save-dot--dirty {
+  border-color: rgba(245, 158, 11, 0.6);
+  background: var(--sailor-amber-500, #f59e0b);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.16);
+}
+
+.plugin-creator-save-dot--saving {
+  border-color: rgba(0, 214, 143, 0.56);
+  background: var(--sailor-accent);
+  animation: plugin-creator-save-pulse 1s ease-in-out infinite;
+}
+
+@keyframes plugin-creator-save-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 .plugin-creator-header__button--primary:hover {

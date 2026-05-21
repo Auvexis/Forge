@@ -31,6 +31,7 @@ describe('PluginCreatorCanvas contract', () => {
     assert.match(source, /defineExpose/)
     assert.match(source, /zoomTo/)
     assert.match(source, /deleteSelection/)
+    assert.match(source, /centerPosition/)
   })
 
   it('marks plugin creator nodes that already have outgoing connections', () => {
@@ -38,5 +39,13 @@ describe('PluginCreatorCanvas contract', () => {
 
     assert.match(source, /hasOutgoingConnection/)
     assert.match(source, /blueprint\.canvas\.edges\.some/)
+  })
+
+  it('can translate the viewport center into flow coordinates for new nodes', () => {
+    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
+
+    assert.match(source, /ref="canvasElement"/)
+    assert.match(source, /screenToFlowCoordinate/)
+    assert.match(source, /getBoundingClientRect/)
   })
 })

@@ -1,34 +1,89 @@
 <template>
-  <BaseModal :is-open="isOpen" max-width="920px" height="78vh" @close="emit('close')">
-    <section class="plugin-creator-node-settings-modal">
-      <header class="plugin-creator-node-settings-modal__header">
-        <div>
-          <p>Plugin Creator</p>
-          <h2>{{ title }}</h2>
+  <BaseModal :is-open="isOpen" max-width="1600px" height="85vh" @close="emit('close')">
+    <div class="inspector-grid flex-1 min-h-0">
+      <div class="inspector-pane">
+        <div class="inspector-pane-header text-sm text-muted font-semibold flex items-center gap-2">
+          <LucideIcon name="download" size="16" />
+          INPUT (Past)
         </div>
-        <button type="button" aria-label="Close modal" @click="emit('close')">
-          <X :size="18" />
-        </button>
-      </header>
 
-      <PluginCreatorNodeSettingsPanel
-        :blueprint="blueprint"
-        :node-id="nodeId"
-        :last-test-result="lastTestResult"
-        @update-node="forwardUpdateNode"
-        @update-method="forwardUpdateMethod"
-        @update-input="forwardUpdateInput"
-        @update-credential="forwardUpdateCredential"
-        @update-request="forwardUpdateRequest"
-      />
-    </section>
+        <div class="inspector-pane-content relative overflow-y-auto">
+          <div class="plugin-creator-context-block">
+            <p class="text-xs text-muted font-semibold mb-3">Method Context</p>
+            <JsonTreeView :data="inputTreeData" :is-root="true" />
+          </div>
+        </div>
+      </div>
+
+      <div class="inspector-pane" style="background: var(--sailor-bg-surface)">
+        <div class="inspector-pane-header flex-between text-sm text-muted font-semibold">
+          <div class="flex items-center gap-2">
+            <LucideIcon name="settings" size="16" />
+            CONFIGURATION
+          </div>
+
+          <div class="flex items-center gap-2">
+            <BaseButton
+              :variant="isDirty ? 'primary' : 'ghost'"
+              size="sm"
+              icon-left="save"
+              :loading="isSaving"
+              :disabled="isSaving || !isDirty"
+              title="Save Plugin"
+              @click="emit('save')"
+            >
+              Save
+            </BaseButton>
+            <BaseButton variant="ghost" size="sm" icon-left="x" title="Close" @click="emit('close')">
+              Close
+            </BaseButton>
+          </div>
+        </div>
+
+        <div class="inspector-pane-content relative overflow-y-auto">
+          <PluginCreatorNodeSettingsPanel
+            :blueprint="blueprint"
+            :node-id="nodeId"
+            :last-test-result="lastTestResult"
+            @update-node="forwardUpdateNode"
+            @update-method="forwardUpdateMethod"
+            @update-input="forwardUpdateInput"
+            @update-credential="forwardUpdateCredential"
+            @update-request="forwardUpdateRequest"
+          />
+        </div>
+      </div>
+
+      <div class="inspector-pane">
+        <div class="inspector-pane-header flex-between text-sm text-muted font-semibold">
+          <div class="flex items-center gap-2">
+            <LucideIcon name="upload" size="16" />
+            OUTPUT (Future)
+          </div>
+          <BaseButton variant="ghost" size="sm" icon-left="play" @click="emit('run')">
+            Run Step
+          </BaseButton>
+        </div>
+
+        <div class="inspector-pane-content relative overflow-y-auto">
+          <div class="plugin-creator-context-block">
+            <p class="text-xs text-muted font-semibold mb-3">
+              {{ lastTestResult ? 'Last Response' : 'Expected Response' }}
+            </p>
+            <JsonTreeView :data="outputTreeData" :is-root="true" />
+          </div>
+        </div>
+      </div>
+    </div>
   </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { X } from 'lucide-vue-next'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import JsonTreeView from '@/features/workflow-editor/components/settings/shared/JsonTreeView.vue'
 import type {
   PluginBlueprint,
   PluginBlueprintCredentialField,
@@ -40,15 +95,28 @@ import type {
 } from '@/core/types/plugin-creator.types'
 import PluginCreatorNodeSettingsPanel from './PluginCreatorNodeSettingsPanel.vue'
 
-const props = defineProps<{
-  isOpen: boolean
-  blueprint?: PluginBlueprint | null
-  nodeId?: string | null
-  lastTestResult?: PluginCreatorTestResult | null
-}>()
+const props = withDefaults(
+  defineProps<{
+    isOpen: boolean
+    blueprint?: PluginBlueprint | null
+    nodeId?: string | null
+    lastTestResult?: PluginCreatorTestResult | null
+    isDirty?: boolean
+    isSaving?: boolean
+  }>(),
+  {
+    blueprint: null,
+    nodeId: null,
+    lastTestResult: null,
+    isDirty: false,
+    isSaving: false,
+  },
+)
 
 const emit = defineEmits<{
   close: []
+  run: []
+  save: []
   updateNode: [nodeId: string, payload: Partial<PluginBlueprintNode>]
   updateMethod: [methodId: string, payload: Partial<PluginBlueprintMethod>]
   updateInput: [methodId: string, inputName: string, payload: Partial<PluginBlueprintInput>]
@@ -56,10 +124,47 @@ const emit = defineEmits<{
   updateRequest: [methodId: string, payload: Partial<PluginBlueprintRequest>]
 }>()
 
-const title = computed(() => {
-  const node = props.blueprint && props.nodeId ? props.blueprint.canvas.nodes[props.nodeId] : null
-  return node ? String(node.data.name ?? node.data.label ?? node.id) : 'Configure Block'
+const node = computed(() =>
+  props.blueprint && props.nodeId ? props.blueprint.canvas.nodes[props.nodeId] : null,
+)
+
+const method = computed(() => {
+  if (!props.blueprint) return null
+  const methodId = node.value?.data.methodId
+  if (typeof methodId === 'string') {
+    return props.blueprint.methods.find((candidate) => candidate.id === methodId) ?? null
+  }
+  return props.blueprint.methods[0] ?? null
 })
+
+const inputTreeData = computed(() => ({
+  plugin: {
+    name: props.blueprint?.metadata.name ?? 'Plugin',
+    handle: props.blueprint?.metadata.handle ?? 'plugin',
+    authType: props.blueprint?.auth.type ?? 'none',
+  },
+  method: method.value
+    ? {
+        id: method.value.id,
+        handle: method.value.handle,
+        inputs: method.value.inputs,
+        credentials: props.blueprint?.auth.fields ?? [],
+        request: method.value.request,
+      }
+    : {},
+}))
+
+const outputTreeData = computed(
+  () =>
+    props.lastTestResult?.body ?? {
+      body: {
+        data: {
+          id: 'example',
+          name: 'Example payload',
+        },
+      },
+    },
+)
 
 function forwardUpdateNode(nodeId: string, payload: Partial<PluginBlueprintNode>) {
   emit('updateNode', nodeId, payload)
@@ -90,58 +195,12 @@ function forwardUpdateRequest(methodId: string, payload: Partial<PluginBlueprint
 </script>
 
 <style scoped>
-.plugin-creator-node-settings-modal {
+.plugin-creator-context-block {
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--sailor-bg-base);
-  color: var(--sailor-text-primary);
+  min-height: 0;
 }
 
-.plugin-creator-node-settings-modal__header {
-  min-height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--sailor-border-subtle);
-}
-
-.plugin-creator-node-settings-modal__header p,
-.plugin-creator-node-settings-modal__header h2 {
-  margin: 0;
-}
-
-.plugin-creator-node-settings-modal__header p {
-  color: var(--sailor-text-secondary);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.plugin-creator-node-settings-modal__header h2 {
-  margin-top: 4px;
-  color: var(--sailor-text-primary);
-  font-size: 18px;
-  line-height: 1.2;
-}
-
-.plugin-creator-node-settings-modal__header button {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--sailor-text-secondary);
-  cursor: pointer;
-}
-
-.plugin-creator-node-settings-modal__header button:hover {
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+.plugin-creator-context-block p {
+  margin: 0 0 12px;
 }
 </style>

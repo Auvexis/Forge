@@ -1,5 +1,5 @@
 <template>
-  <div class="plugin-creator-canvas">
+  <div ref="canvasElement" class="plugin-creator-canvas">
     <VueFlow
       v-model:nodes="nodes"
       v-model:edges="edges"
@@ -106,8 +106,10 @@ const emit = defineEmits<{
 const vueFlow = ref<{
   zoomTo?: (zoom: number, options?: { duration?: number }) => void
   fitView?: (options?: { duration?: number }) => void
+  screenToFlowCoordinate?: (position: PluginBlueprintPosition) => PluginBlueprintPosition
   getSelectedNodes?: unknown
 } | null>(null)
+const canvasElement = ref<HTMLElement | null>(null)
 const selectedNodeIds = ref<string[]>([])
 
 const nodeTypes = {
@@ -257,7 +259,20 @@ function fitView() {
   vueFlow.value?.fitView?.({ duration: 220 })
 }
 
+function centerPosition(): PluginBlueprintPosition {
+  const bounds = canvasElement.value?.getBoundingClientRect()
+  if (!bounds || !vueFlow.value?.screenToFlowCoordinate) {
+    return { x: 260, y: 220 }
+  }
+
+  return vueFlow.value.screenToFlowCoordinate({
+    x: bounds.left + bounds.width / 2,
+    y: bounds.top + bounds.height / 2,
+  })
+}
+
 defineExpose({
+  centerPosition,
   deleteSelection,
   fitView,
   zoomTo,

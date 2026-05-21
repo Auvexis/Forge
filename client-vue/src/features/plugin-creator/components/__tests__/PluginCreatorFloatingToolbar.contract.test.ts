@@ -50,4 +50,16 @@ describe('PluginCreatorFloatingToolbar contract', () => {
     assert.match(source, /max-width:\s*calc\(100% - 32px\)/)
     assert.match(source, /overflow-x:\s*auto/)
   })
+
+  it('shows save state and blocks no-op saves like the workflow toolbar', () => {
+    const source = fs.readFileSync(
+      path.join(componentDir, 'PluginCreatorFloatingToolbar.vue'),
+      'utf8',
+    )
+
+    assert.match(source, /isDirty/)
+    assert.match(source, /isSaving/)
+    assert.match(source, /plugin-creator-save-dot/)
+    assert.match(source, /:disabled="isSaving \|\| !isDirty"/)
+  })
 })

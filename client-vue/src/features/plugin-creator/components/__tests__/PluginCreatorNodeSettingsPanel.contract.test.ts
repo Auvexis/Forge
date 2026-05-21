@@ -16,7 +16,38 @@ describe('PluginCreatorNodeSettingsPanel contract', () => {
     assert.match(source, /BaseSelect/)
     assert.match(source, /BaseCodeEditor/)
     assert.match(source, /BaseSwitch/)
-    assert.match(source, /JsonTreeView/)
+    assert.match(source, /editor-stack/)
+    assert.match(source, /te-section/)
+  })
+
+  it('uses the workflow inspector modal layout with JsonTreeView context panes', () => {
+    const modalSource = fs.readFileSync(
+      path.join(componentDir, 'PluginCreatorNodeSettingsModal.vue'),
+      'utf8',
+    )
+
+    assert.match(modalSource, /max-width="1600px"/)
+    assert.match(modalSource, /height="85vh"/)
+    assert.match(modalSource, /inspector-grid/)
+    assert.match(modalSource, /inspector-pane/)
+    assert.match(modalSource, /INPUT \(Past\)/)
+    assert.match(modalSource, /OUTPUT \(Future\)/)
+    assert.match(modalSource, /JsonTreeView/)
+    assert.match(modalSource, /LucideIcon/)
+    assert.match(modalSource, /BaseButton/)
+  })
+
+  it('keeps editor update events explicit so closing the modal does not drop edits', () => {
+    const editorDir = path.join(componentDir, 'node-editors')
+    const editors = fs
+      .readdirSync(editorDir)
+      .filter((file) => file.endsWith('NodeEditor.vue') || file === 'InputFieldNodeEditor.vue')
+
+    for (const editor of editors) {
+      const source = fs.readFileSync(path.join(editorDir, editor), 'utf8')
+      assert.match(source, /defineOptions\(\{\s*inheritAttrs:\s*false\s*\}\)/)
+      assert.match(source, /v-on="\$attrs"/)
+    }
   })
 
   it('keeps plugin metadata separate from per-node method settings', () => {

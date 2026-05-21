@@ -11,16 +11,9 @@
     :has-outgoing-connection="Boolean(data.hasOutgoingConnection)"
     :selected="selected"
   >
-    <button
-      class="plugin-creator-node__action"
-      type="button"
-      @click="emit('create-error-rule-from-response', data.methodId)"
-    >
-      Error rule
-    </button>
     <template #label>
       <div class="plugin-creator-node__label">
-        <strong>{{ data.name ?? 'Error rules' }}</strong>
+        <strong>{{ data.name ?? 'Error mapping' }}</strong>
         <span>{{ errors[0] ?? data.methodId ?? 'method' }}</span>
       </div>
     </template>
@@ -32,9 +25,6 @@ import { computed } from 'vue'
 import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
 const props = defineProps<{ id: string; data: Record<string, unknown>; selected?: boolean }>()
-const emit = defineEmits<{
-  'create-error-rule-from-response': [methodId: unknown]
-}>()
 
 const errors = computed(() =>
   Array.isArray(props.data.errors) ? props.data.errors.map(String) : [],

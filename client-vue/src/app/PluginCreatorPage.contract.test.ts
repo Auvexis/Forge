@@ -25,9 +25,11 @@ describe('PluginCreatorPage contract', () => {
     assert.match(source, /@add-item="openAddBlocksPanel"/)
     assert.match(source, /@delete-selected="deleteSelectedNodes"/)
     assert.match(source, /@connect-nodes="connectNodes"/)
-    assert.match(source, /@open-node-settings="openNodeSettingsPanel"/)
+    assert.match(source, /@open-node-settings="openNodeSettingsModal"/)
     assert.match(source, /@undo="store\.undo"/)
     assert.match(source, /@redo="store\.redo"/)
+    assert.match(source, /:is-dirty="store\.isDirty"/)
+    assert.match(source, /:is-saving="store\.isSaving"/)
   })
 
   it('uses the shared app page and app panel instead of a local add sidebar', () => {
@@ -45,9 +47,17 @@ describe('PluginCreatorPage contract', () => {
     const source = fs.readFileSync(pagePath, 'utf8')
 
     assert.match(source, /PluginCreatorWorkspaceModal/)
-    assert.match(source, /PluginCreatorNodeSettingsPanel/)
+    assert.match(source, /PluginCreatorNodeSettingsModal/)
     assert.match(source, /useEventBus/)
     assert.match(source, /@settings="openWorkspaceModal\('metadata'\)"/)
     assert.match(source, /@versions="openWorkspaceModal\('versions'\)"/)
+  })
+
+  it('uses the canvas center when adding new plugin creator blocks', () => {
+    const source = fs.readFileSync(pagePath, 'utf8')
+
+    assert.match(source, /centerPosition/)
+    assert.match(source, /canvasRef\.value\?\.centerPosition/)
+    assert.match(source, /fitCanvasSoon/)
   })
 })

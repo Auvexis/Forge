@@ -35,4 +35,15 @@ describe('PluginCreatorHeader contract', () => {
     assert.match(source, /Save/)
     assert.match(source, /Publish/)
   })
+
+  it('mirrors workflow save dirty and saving affordances', () => {
+    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorHeader.vue'), 'utf8')
+
+    assert.match(source, /isDirty/)
+    assert.match(source, /isSaving/)
+    assert.match(source, /plugin-creator-save-dot/)
+    assert.match(source, /plugin-creator-save-dot--dirty/)
+    assert.match(source, /plugin-creator-save-dot--saving/)
+    assert.match(source, /:disabled="isSaving \|\| !isDirty"/)
+  })
 })

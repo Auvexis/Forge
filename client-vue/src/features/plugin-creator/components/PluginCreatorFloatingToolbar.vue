@@ -65,8 +65,20 @@
     <button type="button" title="Run" aria-label="Run" @click="emit('run')">
       <Play :size="16" />
     </button>
-    <button type="button" title="Save" aria-label="Save" @click="emit('save')">
-      <Save :size="16" />
+    <button
+      type="button"
+      title="Save"
+      aria-label="Save"
+      :disabled="isSaving || !isDirty"
+      @click="emit('save')"
+    >
+      <span
+        class="plugin-creator-save-dot"
+        :class="{
+          'plugin-creator-save-dot--dirty': isDirty,
+          'plugin-creator-save-dot--saving': isSaving,
+        }"
+      />
     </button>
     <button
       type="button"
@@ -90,7 +102,6 @@ import {
   Plus,
   Redo2,
   Rocket,
-  Save,
   Trash2,
   Undo2,
 } from 'lucide-vue-next'
@@ -108,6 +119,17 @@ const emit = defineEmits<{
   save: []
   publish: []
 }>()
+
+withDefaults(
+  defineProps<{
+    isDirty?: boolean
+    isSaving?: boolean
+  }>(),
+  {
+    isDirty: false,
+    isSaving: false,
+  },
+)
 
 const activeTool = ref<ToolbarTool>('cursor')
 const zoomValue = ref(100)
@@ -168,6 +190,42 @@ onBeforeUnmount(() => {
 .plugin-creator-toolbar button.is-active {
   border-color: var(--sailor-border-subtle);
   background: var(--sailor-bg-elevated);
+}
+
+.plugin-creator-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.plugin-creator-save-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  border: 1px solid var(--sailor-border-subtle);
+  background: transparent;
+}
+
+.plugin-creator-save-dot--dirty {
+  border-color: rgba(245, 158, 11, 0.6);
+  background: var(--sailor-amber-500, #f59e0b);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.16);
+}
+
+.plugin-creator-save-dot--saving {
+  border-color: rgba(0, 214, 143, 0.56);
+  background: var(--sailor-accent);
+  animation: plugin-creator-save-pulse 1s ease-in-out infinite;
+}
+
+@keyframes plugin-creator-save-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 .plugin-creator-toolbar__danger {

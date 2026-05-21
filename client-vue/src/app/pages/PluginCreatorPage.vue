@@ -3,6 +3,8 @@
     <template #dock>
       <PluginCreatorHeader
         :title="store.activeBlueprint?.metadata.name ?? 'Low-code plugin workspace'"
+        :is-dirty="store.isDirty"
+        :is-saving="store.isSaving"
         @settings="openWorkspaceModal('metadata')"
         @versions="openWorkspaceModal('versions')"
         @run="runSelectedMethod"
@@ -35,6 +37,8 @@
             @open-node-settings="openNodeSettingsModal"
           />
           <PluginCreatorFloatingToolbar
+            :is-dirty="store.isDirty"
+            :is-saving="store.isSaving"
             @tool-change="setCanvasTool"
             @add-item="openAddBlocksPanel"
             @run="runSelectedMethod"
@@ -73,7 +77,11 @@
         :blueprint="store.activeBlueprint"
         :node-id="selectedNodeId"
         :last-test-result="store.lastTestResult"
+        :is-dirty="store.isDirty"
+        :is-saving="store.isSaving"
         @close="isNodeSettingsModalOpen = false"
+        @save="saveDraft"
+        @run="runSelectedMethod"
         @update-node="store.updateNode"
         @update-method="store.updateMethod"
         @update-input="store.updateMethodInput"
@@ -104,7 +112,7 @@ import type {
   PluginBlueprintPosition,
   PluginBlueprintNodeType,
 } from '@/core/types/plugin-creator.types'
-import { markRaw, onMounted, ref } from 'vue'
+import { markRaw, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 type ToolbarTool = 'cursor' | 'pan' | 'delete'
@@ -116,6 +124,8 @@ const router = useRouter()
 const canvasRef = ref<{
   deleteSelection: () => void
   zoomTo: (value: number) => void
+  fitView: () => void
+  centerPosition: () => PluginBlueprintPosition
 } | null>(null)
 const activeTool = ref<ToolbarTool>('cursor')
 const selectedNodeId = ref<string | null>(null)
@@ -153,6 +163,7 @@ async function loadInitialBlueprint() {
   if (routePluginId) {
     const blueprint = await store.loadBlueprint(routePluginId)
     selectDefaultNode()
+    fitCanvasSoon()
     return blueprint
   }
 
@@ -162,6 +173,7 @@ async function loadInitialBlueprint() {
     const blueprint = await store.loadBlueprint(firstBlueprint.id)
     await router.replace({ name: 'plugin-creator-detail', params: { pluginId: firstBlueprint.id } })
     selectDefaultNode()
+    fitCanvasSoon()
     return blueprint
   }
 
@@ -173,6 +185,7 @@ async function loadInitialBlueprint() {
   })
   await router.replace({ name: 'plugin-creator-detail', params: { pluginId: blueprint.id } })
   selectDefaultNode()
+  fitCanvasSoon()
   return blueprint
 }
 
@@ -258,6 +271,7 @@ function addPluginCreatorBlock(type: PluginCreatorAddItemType) {
     quickAddSourceId.value = null
   }
   selectedNodeId.value = node.id
+  fitCanvasSoon()
 }
 
 function duplicateNode(nodeId: string) {
@@ -280,10 +294,18 @@ function createNode(type: PluginCreatorAddItemType): PluginBlueprintNode {
   const nodeCount = Object.keys(store.activeBlueprint?.canvas.nodes ?? {}).length
   const methodId = store.activeBlueprint?.methods[0]?.id
   const id = `${type}_${Date.now()}_${nodeCount}`
-  const position = {
-    x: 180 + (nodeCount % 4) * 190,
-    y: 160 + Math.floor(nodeCount / 4) * 150,
-  }
+  const sourceNode =
+    quickAddSourceId.value && store.activeBlueprint?.canvas.nodes[quickAddSourceId.value]
+  const center = canvasRef.value?.centerPosition() ?? { x: 260, y: 220 }
+  const position = sourceNode
+    ? {
+        x: sourceNode.position.x + 240,
+        y: sourceNode.position.y,
+      }
+    : {
+        x: Math.round(center.x - 80 + (nodeCount % 3) * 28),
+        y: Math.round(center.y - 48 + Math.floor(nodeCount % 3) * 28),
+      }
 
   return {
     id,
@@ -340,6 +362,12 @@ async function publishActiveBlueprint() {
 
 function clearExecution() {
   store.lastTestResult = null
+}
+
+function fitCanvasSoon() {
+  void nextTick(() => {
+    window.setTimeout(() => canvasRef.value?.fitView(), 40)
+  })
 }
 </script>
 

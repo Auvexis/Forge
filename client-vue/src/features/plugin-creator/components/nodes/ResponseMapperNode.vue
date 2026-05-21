@@ -11,13 +11,6 @@
     :has-outgoing-connection="Boolean(data.hasOutgoingConnection)"
     :selected="selected"
   >
-    <button
-      class="plugin-creator-node__action"
-      type="button"
-      @click="emit('map-selected-field-as-output', data.methodId)"
-    >
-      Map output
-    </button>
     <template #label>
       <div class="plugin-creator-node__label">
         <strong>{{ data.name ?? 'Response mapping' }}</strong>
@@ -32,9 +25,6 @@ import { computed } from 'vue'
 import BaseNode from '../../../workflow-editor/components/BaseNode.vue'
 
 const props = defineProps<{ id: string; data: Record<string, unknown>; selected?: boolean }>()
-const emit = defineEmits<{
-  'map-selected-field-as-output': [methodId: unknown]
-}>()
 
 const mappings = computed(() =>
   Array.isArray(props.data.mappings) ? props.data.mappings.map(String) : [],
