@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, markRaw, ref } from 'vue'
 import {
   VueFlow,
   type Connection,
@@ -111,16 +111,16 @@ const vueFlow = ref<{
 const selectedNodeIds = ref<string[]>([])
 
 const nodeTypes = {
-  method: MethodNode,
-  input: InputNode,
-  credential: CredentialNode,
-  request: RequestNode,
-  header: RequestNode,
-  query: RequestNode,
-  body: RequestNode,
-  responseMapper: ResponseMapperNode,
-  errorMapper: ErrorMapperNode,
-  output: OutputNode,
+  method: markRaw(MethodNode),
+  input: markRaw(InputNode),
+  credential: markRaw(CredentialNode),
+  request: markRaw(RequestNode),
+  header: markRaw(RequestNode),
+  query: markRaw(RequestNode),
+  body: markRaw(RequestNode),
+  responseMapper: markRaw(ResponseMapperNode),
+  errorMapper: markRaw(ErrorMapperNode),
+  output: markRaw(OutputNode),
 } as unknown as NodeTypesObject
 
 const edgeMarkers = [
@@ -140,7 +140,10 @@ const nodes = computed<Node[]>({
       id: node.id,
       type: node.type,
       position: node.position,
-      data: node.data,
+      data: {
+        ...node.data,
+        hasOutgoingConnection: blueprint.canvas.edges.some((edge) => edge.source === node.id),
+      },
     }))
   },
   set() {

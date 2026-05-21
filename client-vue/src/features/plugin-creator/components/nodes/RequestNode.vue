@@ -8,6 +8,7 @@
     border-color="rgba(251, 146, 60, 0.62)"
     has-target
     has-source
+    :has-outgoing-connection="Boolean(data.hasOutgoingConnection)"
     :selected="selected"
   >
     <template #label>

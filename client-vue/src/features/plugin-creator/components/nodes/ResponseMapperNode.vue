@@ -8,6 +8,7 @@
     border-color="rgba(52, 211, 153, 0.5)"
     has-target
     has-source
+    :has-outgoing-connection="Boolean(data.hasOutgoingConnection)"
     :selected="selected"
   >
     <button

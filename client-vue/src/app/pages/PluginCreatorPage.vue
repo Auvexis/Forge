@@ -32,7 +32,7 @@
             @connect-nodes="connectNodes"
             @remove-edges="store.removeEdges"
             @delete-selected="deleteSelectedNodes"
-            @open-node-settings="openNodeSettingsPanel"
+            @open-node-settings="openNodeSettingsModal"
           />
           <PluginCreatorFloatingToolbar
             @tool-change="setCanvasTool"
@@ -68,6 +68,18 @@
         @load-versions="store.loadVersions"
         @rollback="store.rollbackToSnapshot"
       />
+      <PluginCreatorNodeSettingsModal
+        :is-open="isNodeSettingsModalOpen"
+        :blueprint="store.activeBlueprint"
+        :node-id="selectedNodeId"
+        :last-test-result="store.lastTestResult"
+        @close="isNodeSettingsModalOpen = false"
+        @update-node="store.updateNode"
+        @update-method="store.updateMethod"
+        @update-input="store.updateMethodInput"
+        @update-credential="store.updateCredentialField"
+        @update-request="store.updateMethodRequest"
+      />
     </main>
   </AppPage>
 </template>
@@ -85,7 +97,7 @@ import PluginCreatorAddItemPanel, {
 import PluginCreatorWorkspaceModal, {
   type PluginCreatorWorkspaceView,
 } from '@/features/plugin-creator/components/PluginCreatorWorkspaceModal.vue'
-import PluginCreatorNodeSettingsPanel from '@/features/plugin-creator/components/PluginCreatorNodeSettingsPanel.vue'
+import PluginCreatorNodeSettingsModal from '@/features/plugin-creator/components/PluginCreatorNodeSettingsModal.vue'
 import { usePluginCreatorStore } from '@/features/plugin-creator'
 import type {
   PluginBlueprintNode,
@@ -108,6 +120,7 @@ const canvasRef = ref<{
 const activeTool = ref<ToolbarTool>('cursor')
 const selectedNodeId = ref<string | null>(null)
 const isWorkspaceModalOpen = ref(false)
+const isNodeSettingsModalOpen = ref(false)
 const workspaceModalView = ref<PluginCreatorWorkspaceView>('metadata')
 const quickAddSourceId = ref<string | null>(null)
 
@@ -184,27 +197,9 @@ function openAddBlocksPanel(sourceId: string | null = null) {
   })
 }
 
-function openNodeSettingsPanel(nodeId: string) {
+function openNodeSettingsModal(nodeId: string) {
   selectedNodeId.value = nodeId
-  appPanelStore.openPanel({
-    id: 'plugin-creator-node-settings',
-    title: 'Configure Block',
-    component: markRaw(PluginCreatorNodeSettingsPanel),
-    props: {
-      blueprint: store.activeBlueprint,
-      nodeId,
-      lastTestResult: store.lastTestResult,
-      onUpdateNode: store.updateNode,
-      onUpdateMethod: store.updateMethod,
-      onUpdateInput: store.updateMethodInput,
-      onUpdateCredential: store.updateCredentialField,
-      onUpdateRequest: store.updateMethodRequest,
-    },
-    position: 'right',
-    width: 'md',
-    resizable: true,
-    resizeSide: 'left',
-  })
+  isNodeSettingsModalOpen.value = true
 }
 
 function openWorkspaceModal(view: PluginCreatorWorkspaceView) {
@@ -247,6 +242,12 @@ function connectNodes(payload: {
     id: `edge_${payload.source}_${payload.target}_${Date.now()}`,
     ...payload,
   })
+  if (quickAddSourceId.value === payload.source) {
+    quickAddSourceId.value = null
+    if (appPanelStore.panelId === 'plugin-creator-add-blocks') {
+      appPanelStore.closePanel()
+    }
+  }
 }
 
 function addPluginCreatorBlock(type: PluginCreatorAddItemType) {

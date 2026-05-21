@@ -32,4 +32,11 @@ describe('PluginCreatorCanvas contract', () => {
     assert.match(source, /zoomTo/)
     assert.match(source, /deleteSelection/)
   })
+
+  it('marks plugin creator nodes that already have outgoing connections', () => {
+    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
+
+    assert.match(source, /hasOutgoingConnection/)
+    assert.match(source, /blueprint\.canvas\.edges\.some/)
+  })
 })

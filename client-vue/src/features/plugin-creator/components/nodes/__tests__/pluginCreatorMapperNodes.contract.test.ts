@@ -15,6 +15,7 @@ describe('plugin creator mapper nodes', () => {
       assert.match(source, /BaseNode/)
       assert.match(source, /has-source/)
       assert.match(source, /has-target/)
+      assert.match(source, /hasOutgoingConnection|has-outgoing-connection/)
       assert.match(source, /data\.methodId/)
       assert.match(source, /data\.mappings|data\.errors|data\.outputs/)
     }

@@ -12,6 +12,8 @@ import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import { useEventBus } from '@/shared/composables/useEventBus'
 import { useToast } from '@/shared/composables/useToast'
 
+defineOptions({ inheritAttrs: false })
+
 const props = defineProps<{
   id?: string
 
@@ -25,6 +27,7 @@ const props = defineProps<{
 
   hasTarget?: boolean
   hasSource?: boolean
+  hasOutgoingConnection?: boolean
 
   selected?: boolean
   status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed'
@@ -92,6 +95,7 @@ const statusClasses = computed(() => {
 const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!props.selected)
 
 const hasOutgoingConnection = computed(() => {
+  if (typeof props.hasOutgoingConnection === 'boolean') return props.hasOutgoingConnection
   if (!props.id) return false
   if (!workflowStore.activeWorkflow) return false
   return workflowStore.activeWorkflow.edges.some((e) => e.source === props.id)

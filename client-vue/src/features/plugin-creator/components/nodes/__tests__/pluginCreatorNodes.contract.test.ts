@@ -17,6 +17,7 @@ describe('plugin creator MVP nodes', () => {
       assert.match(source, /:id="id"/)
       assert.match(source, /has-source/)
       assert.match(source, /has-target/)
+      assert.match(source, /hasOutgoingConnection|has-outgoing-connection/)
     }
   })
 })
