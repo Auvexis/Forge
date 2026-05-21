@@ -9,6 +9,27 @@ const componentPath = path.resolve(
 const pagePath = path.resolve('src/app/pages/PluginCreatorPage.vue')
 
 describe('PluginCreatorInspector contract', () => {
+  it('plugin settings exposes full manifest metadata and icon controls', () => {
+    const source = fs.readFileSync(
+      path.resolve('src/features/plugin-creator/components/PluginCreatorPluginSettings.vue'),
+      'utf8',
+    )
+
+    for (const label of [
+      'Icon',
+      'Dark icon',
+      'Light icon',
+      'Category',
+      'Author',
+      'Repository',
+      'Homepage',
+      'Docs URL',
+      'Tags',
+    ]) {
+      assert.match(source, new RegExp(label))
+    }
+  })
+
   it('edits plugin, method, input, credential and request fields', () => {
     const source = fs.readFileSync(componentPath, 'utf8')
 
@@ -36,10 +57,11 @@ describe('PluginCreatorInspector contract', () => {
     assert.match(source, /methodId/)
   })
 
-  it('is mounted in the plugin creator page', () => {
+  it('is available through the plugin creator workspace modal', () => {
     const page = fs.readFileSync(pagePath, 'utf8')
 
-    assert.match(page, /PluginCreatorInspector/)
+    assert.match(page, /PluginCreatorWorkspaceModal/)
+    assert.match(page, /@settings="openWorkspaceModal\('metadata'\)"/)
     assert.match(page, /selectedNodeId/)
   })
 })

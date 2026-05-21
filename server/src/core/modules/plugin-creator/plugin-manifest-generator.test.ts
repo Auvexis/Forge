@@ -111,6 +111,25 @@ describe("generatePluginManifest", () => {
     assert.deepEqual(validateManifest(manifest), []);
   });
 
+  it("preserves extended plugin metadata from the blueprint", () => {
+    const blueprint = createBlueprint();
+    blueprint.metadata.category = "Development";
+    blueprint.metadata.author = "Acme";
+    blueprint.metadata.repository = "https://github.com/acme/plugin";
+    blueprint.metadata.homepage = "https://acme.dev";
+    blueprint.metadata.docsUrl = "https://docs.acme.dev/plugin";
+    blueprint.metadata.tags = ["crm", "sales"];
+
+    const manifest = generatePluginManifest(blueprint);
+
+    assert.equal(manifest.metadata.category, "Development");
+    assert.equal(manifest.metadata.author, "Acme");
+    assert.equal(manifest.metadata.repository, "https://github.com/acme/plugin");
+    assert.equal((manifest.metadata as any).homepage, "https://acme.dev");
+    assert.equal((manifest.metadata as any).docsUrl, "https://docs.acme.dev/plugin");
+    assert.deepEqual((manifest.metadata as any).tags, ["crm", "sales"]);
+  });
+
   it("maps inputs to JSON Schema parameters", () => {
     const manifest = generatePluginManifest(createBlueprint());
     const parameters = manifest.methods.createLead.parameters;

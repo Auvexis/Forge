@@ -7,11 +7,14 @@
       :default-zoom="1"
       :min-zoom="0.4"
       :max-zoom="1.8"
+      :snap-to-grid="true"
+      :snap-grid="[20, 20]"
       fit-view-on-init
       :nodes-draggable="tool !== 'pan'"
       :nodes-connectable="true"
       :elements-selectable="tool !== 'pan'"
       :pan-on-drag="true"
+      :delete-key-code="['Delete']"
       class="plugin-creator-canvas__flow"
       @init="onInit"
       @node-click="onNodeClick"
@@ -57,6 +60,11 @@
         <PluginCreatorEdge v-bind="edgeProps" />
       </template>
 
+      <PluginCreatorNodeGroupSelectionBox
+        :on-duplicate-selection="duplicateSelection"
+        :on-delete-selection="deleteSelection"
+      />
+
       <div v-if="!blueprint" class="plugin-creator-canvas__empty nodrag nopan">
         Open or create a plugin to start mapping methods.
       </div>
@@ -86,6 +94,7 @@ import ResponseMapperNode from './nodes/ResponseMapperNode.vue'
 import ErrorMapperNode from './nodes/ErrorMapperNode.vue'
 import OutputNode from './nodes/OutputNode.vue'
 import PluginCreatorEdge from '../../workflow-editor/components/BaseEdge.vue'
+import PluginCreatorNodeGroupSelectionBox from './PluginCreatorNodeGroupSelectionBox.vue'
 
 const props = defineProps<{
   blueprint?: PluginBlueprint | null
@@ -100,6 +109,7 @@ const emit = defineEmits<{
   ]
   'remove-edges': [edgeIds: string[]]
   'delete-selected': [nodeIds: string[]]
+  'duplicate-selected': [nodeIds: string[]]
   'open-node-settings': [nodeId: string]
 }>()
 
@@ -248,6 +258,13 @@ function deleteSelection() {
   if (nodeIds.length > 0) {
     emit('delete-selected', nodeIds)
     selectedNodeIds.value = []
+  }
+}
+
+function duplicateSelection() {
+  const nodeIds = selectedCanvasNodeIds()
+  if (nodeIds.length > 0) {
+    emit('duplicate-selected', nodeIds)
   }
 }
 

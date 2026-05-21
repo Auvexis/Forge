@@ -16,6 +16,7 @@
           v-if="view === 'metadata'"
           :blueprint="blueprint"
           @update-metadata="emit('updateMetadata', $event)"
+          @update-icons="emit('updateIcons', $event)"
         />
         <PluginCreatorTestPanel
           v-else-if="view === 'test'"
@@ -44,6 +45,7 @@ import BaseModal from '@/shared/components/base/BaseModal.vue'
 import type {
   PluginBlueprint,
   PluginBlueprintCredentialField,
+  PluginBlueprintIcons,
   PluginBlueprintInput,
   PluginBlueprintMetadata,
   PluginBlueprintMethod,
@@ -73,6 +75,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: []
   updateMetadata: [payload: Partial<PluginBlueprintMetadata>]
+  updateIcons: [payload: Partial<PluginBlueprintIcons>]
   updateNode: [nodeId: string, payload: Partial<PluginBlueprintNode>]
   updateMethod: [methodId: string, payload: Partial<PluginBlueprintMethod>]
   updateInput: [methodId: string, inputName: string, payload: Partial<PluginBlueprintInput>]

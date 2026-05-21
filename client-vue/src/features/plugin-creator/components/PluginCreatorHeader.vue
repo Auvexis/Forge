@@ -2,29 +2,40 @@
   <div class="plugin-creator-header">
     <PluginCreatorCommandMenu
       :active-blueprint="activeBlueprint"
-      :blueprints="blueprints"
       :is-dirty="isDirty"
       @new-plugin="emit('newPlugin')"
-      @open-plugin="emit('openPlugin', $event)"
       @export-zip="emit('exportZip')"
       @settings="emit('settings')"
-      @versions="emit('versions')"
       @run="emit('run')"
       @publish="emit('publish')"
       @discard-draft="emit('discardDraft')"
+    />
+    <PluginCreatorPluginDropdown
+      :active-blueprint="activeBlueprint"
+      :blueprints="blueprints"
+      @open-plugin="emit('openPlugin', $event)"
+    />
+    <PluginCreatorReleaseDropdown
+      :active-blueprint="activeBlueprint"
+      :versions="versions"
+      @open-release-history="emit('versions')"
+      @rollback="emit('rollback', $event)"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import PluginCreatorCommandMenu from './PluginCreatorCommandMenu.vue'
-import type { PluginBlueprint } from '@/core/types/plugin-creator.types'
+import PluginCreatorPluginDropdown from './PluginCreatorPluginDropdown.vue'
+import PluginCreatorReleaseDropdown from './PluginCreatorReleaseDropdown.vue'
+import type { PluginBlueprint, PluginCreatorVersionsResult } from '@/core/types/plugin-creator.types'
 
 withDefaults(
   defineProps<{
     title?: string
     activeBlueprint?: PluginBlueprint | null
     blueprints?: PluginBlueprint[]
+    versions?: PluginCreatorVersionsResult | null
     isDirty?: boolean
     isSaving?: boolean
   }>(),
@@ -32,6 +43,7 @@ withDefaults(
     title: 'Low-code plugin workspace',
     activeBlueprint: null,
     blueprints: () => [],
+    versions: null,
     isDirty: false,
     isSaving: false,
   },
@@ -44,6 +56,7 @@ const emit = defineEmits<{
   discardDraft: []
   settings: []
   versions: []
+  rollback: [snapshotId: string]
   run: []
   save: []
   publish: []
@@ -58,5 +71,6 @@ const emit = defineEmits<{
   z-index: 30;
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 </style>

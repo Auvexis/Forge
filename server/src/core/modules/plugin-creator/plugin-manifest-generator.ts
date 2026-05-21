@@ -37,10 +37,13 @@ export function generatePluginManifest(
       icon: blueprint.icons.icon,
       iconDark: blueprint.icons.iconDark,
       iconLight: blueprint.icons.iconLight,
-      category: "Custom",
-      author: "Sailor",
+      category: blueprint.metadata.category ?? "Custom",
+      author: blueprint.metadata.author ?? "Sailor",
       version: blueprint.metadata.version,
-      repository: "",
+      repository: blueprint.metadata.repository ?? "",
+      ...(blueprint.metadata.homepage ? { homepage: blueprint.metadata.homepage } : {}),
+      ...(blueprint.metadata.docsUrl ? { docsUrl: blueprint.metadata.docsUrl } : {}),
+      ...(blueprint.metadata.tags?.length ? { tags: blueprint.metadata.tags } : {}),
     },
     methods: Object.fromEntries(
       blueprint.methods.map((method) => [

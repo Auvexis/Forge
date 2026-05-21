@@ -7,6 +7,7 @@ import type {
   PluginBlueprintCredentialField,
   PluginBlueprintEdge,
   PluginBlueprintErrorMapping,
+  PluginBlueprintIcons,
   PluginBlueprintInput,
   PluginBlueprintMetadata,
   PluginBlueprintMethod,
@@ -131,6 +132,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
   function setActiveBlueprint(blueprint: PluginBlueprint) {
     activeBlueprint.value = cloneBlueprint(blueprint)
     savedSnapshot.value = snapshot(activeBlueprint.value)
+    versions.value = null
     history.clear()
     error.value = null
   }
@@ -293,6 +295,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     try {
       const rolledBack = await apiClient.value.rollback(activeBlueprint.value.id, { snapshotId })
       setActiveBlueprint(rolledBack)
+      blueprints.value = upsertBlueprint(blueprints.value, rolledBack)
       return rolledBack
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to roll back plugin blueprint'
@@ -307,6 +310,15 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     recordHistory()
     activeBlueprint.value.metadata = {
       ...activeBlueprint.value.metadata,
+      ...payload,
+    }
+  }
+
+  function updateIcons(payload: Partial<PluginBlueprintIcons>) {
+    if (!activeBlueprint.value) return
+    recordHistory()
+    activeBlueprint.value.icons = {
+      ...activeBlueprint.value.icons,
       ...payload,
     }
   }
@@ -518,6 +530,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     exportZip,
     rollbackToSnapshot,
     updateMetadata,
+    updateIcons,
     addNode,
     removeNodes,
     addEdge,

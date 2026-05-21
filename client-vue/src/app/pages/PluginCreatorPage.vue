@@ -7,6 +7,7 @@
             :title="store.activeBlueprint?.metadata.name ?? 'Low-code plugin workspace'"
             :active-blueprint="store.activeBlueprint"
             :blueprints="store.blueprints"
+            :versions="store.versions"
             :is-dirty="store.isDirty"
             :is-saving="store.isSaving"
             @new-plugin="createNewPlugin"
@@ -15,6 +16,7 @@
             @discard-draft="discardDraft"
             @settings="openWorkspaceModal('metadata')"
             @versions="openWorkspaceModal('versions')"
+            @rollback="rollbackToReleaseSnapshot"
             @run="runSelectedMethod"
             @save="saveDraft"
             @publish="publishActiveBlueprint"
@@ -37,6 +39,7 @@
             @connect-nodes="connectNodes"
             @remove-edges="store.removeEdges"
             @delete-selected="deleteSelectedNodes"
+            @duplicate-selected="duplicateSelectedNodes"
             @open-node-settings="openNodeSettingsModal"
           />
           <PluginCreatorFloatingToolbar
@@ -66,6 +69,7 @@
         :is-loading="store.isLoading"
         @close="isWorkspaceModalOpen = false"
         @update-metadata="store.updateMetadata"
+        @update-icons="store.updateIcons"
         @update-node="store.updateNode"
         @update-method="store.updateMethod"
         @update-input="store.updateMethodInput"
@@ -73,7 +77,13 @@
         @update-request="store.updateMethodRequest"
         @test-method="store.runMethodTest"
         @load-versions="store.loadVersions"
-        @rollback="store.rollbackToSnapshot"
+        @rollback="rollbackToReleaseSnapshot"
+      />
+      <PluginCreatorCreatePluginModal
+        :is-open="isCreatePluginModalOpen"
+        :existing-handles="store.blueprints.map((blueprint) => blueprint.metadata.handle)"
+        @close="isCreatePluginModalOpen = false"
+        @create="createPluginFromModal"
       />
       <PluginCreatorNodeSettingsModal
         :is-open="isNodeSettingsModalOpen"
@@ -108,12 +118,14 @@ import PluginCreatorAddItemPanel, {
 import PluginCreatorWorkspaceModal, {
   type PluginCreatorWorkspaceView,
 } from '@/features/plugin-creator/components/PluginCreatorWorkspaceModal.vue'
+import PluginCreatorCreatePluginModal from '@/features/plugin-creator/components/PluginCreatorCreatePluginModal.vue'
 import PluginCreatorNodeSettingsModal from '@/features/plugin-creator/components/PluginCreatorNodeSettingsModal.vue'
 import { usePluginCreatorStore } from '@/features/plugin-creator'
 import type {
   PluginBlueprintNode,
   PluginBlueprintPosition,
   PluginBlueprintNodeType,
+  CreatePluginBlueprintPayload,
 } from '@/core/types/plugin-creator.types'
 import { markRaw, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -133,6 +145,7 @@ const canvasRef = ref<{
 const activeTool = ref<ToolbarTool>('cursor')
 const selectedNodeId = ref<string | null>(null)
 const isWorkspaceModalOpen = ref(false)
+const isCreatePluginModalOpen = ref(false)
 const isNodeSettingsModalOpen = ref(false)
 const workspaceModalView = ref<PluginCreatorWorkspaceView>('metadata')
 const quickAddSourceId = ref<string | null>(null)
@@ -166,6 +179,7 @@ async function loadInitialBlueprint() {
 
   if (routePluginId) {
     const blueprint = await store.loadBlueprint(routePluginId)
+    void store.loadVersions()
     selectDefaultNode()
     fitCanvasSoon()
     return blueprint
@@ -175,6 +189,7 @@ async function loadInitialBlueprint() {
   if (firstBlueprint) {
     const blueprint = await store.loadBlueprint(firstBlueprint.id)
     await router.replace({ name: 'plugin-creator-detail', params: { pluginId: firstBlueprint.id } })
+    void store.loadVersions()
     selectDefaultNode()
     fitCanvasSoon()
     return blueprint
@@ -187,6 +202,7 @@ async function loadInitialBlueprint() {
     includeDefaultMethod: true,
   })
   await router.replace({ name: 'plugin-creator-detail', params: { pluginId: blueprint.id } })
+  void store.loadVersions()
   selectDefaultNode()
   fitCanvasSoon()
   return blueprint
@@ -194,18 +210,14 @@ async function loadInitialBlueprint() {
 
 async function createNewPlugin() {
   if (!confirmUnsavedChanges()) return
+  isCreatePluginModalOpen.value = true
+}
 
-  const fallbackName = `Untitled Plugin ${store.blueprints.length + 1}`
-  const name = window.prompt('Plugin name', fallbackName)?.trim()
-  if (!name) return
-
-  const blueprint = await store.createBlueprint({
-    handle: uniquePluginHandle(name),
-    name,
-    description: 'Low-code API plugin',
-    includeDefaultMethod: true,
-  })
+async function createPluginFromModal(payload: CreatePluginBlueprintPayload) {
+  const blueprint = await store.createBlueprint(payload)
+  isCreatePluginModalOpen.value = false
   await router.replace({ name: 'plugin-creator-detail', params: { pluginId: blueprint.id } })
+  void store.loadVersions()
   selectDefaultNode()
   fitCanvasSoon()
 }
@@ -215,6 +227,7 @@ async function openPluginBlueprint(blueprintId: string) {
 
   const blueprint = await store.loadBlueprint(blueprintId)
   await router.replace({ name: 'plugin-creator-detail', params: { pluginId: blueprint.id } })
+  void store.loadVersions()
   selectDefaultNode()
   fitCanvasSoon()
 }
@@ -242,6 +255,7 @@ async function discardDraft() {
   if (!window.confirm('Discard unsaved plugin changes?')) return
 
   await store.loadBlueprint(blueprintId)
+  void store.loadVersions()
   selectDefaultNode()
   fitCanvasSoon()
 }
@@ -347,6 +361,12 @@ function duplicateNode(nodeId: string) {
   selectedNodeId.value = id
 }
 
+function duplicateSelectedNodes(nodeIds: string[]) {
+  for (const nodeId of nodeIds) {
+    duplicateNode(nodeId)
+  }
+}
+
 function createNode(type: PluginCreatorAddItemType): PluginBlueprintNode {
   const nodeCount = Object.keys(store.activeBlueprint?.canvas.nodes ?? {}).length
   const methodId = store.activeBlueprint?.methods[0]?.id
@@ -418,6 +438,14 @@ async function publishActiveBlueprint() {
   openWorkspaceModal('versions')
 }
 
+async function rollbackToReleaseSnapshot(snapshotId: string) {
+  if (!window.confirm('Rollback this plugin to the selected snapshot?')) return
+  await store.rollbackToSnapshot(snapshotId)
+  await store.loadVersions()
+  selectDefaultNode()
+  fitCanvasSoon()
+}
+
 function clearExecution() {
   store.lastTestResult = null
 }
@@ -432,25 +460,6 @@ function confirmUnsavedChanges() {
   return !store.isDirty || window.confirm('Discard unsaved plugin changes?')
 }
 
-function uniquePluginHandle(name: string) {
-  const baseHandle = slugifyPluginHandle(name) || `plugin-${Date.now().toString(36)}`
-  const existingHandles = new Set(store.blueprints.map((blueprint) => blueprint.metadata.handle))
-  if (!existingHandles.has(baseHandle)) return baseHandle
-
-  let index = 2
-  while (existingHandles.has(`${baseHandle}-${index}`)) {
-    index += 1
-  }
-  return `${baseHandle}-${index}`
-}
-
-function slugifyPluginHandle(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
 </script>
 
 <style scoped>

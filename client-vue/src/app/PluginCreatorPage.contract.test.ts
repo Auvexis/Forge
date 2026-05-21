@@ -37,13 +37,31 @@ describe('PluginCreatorPage contract', () => {
 
     assert.match(source, /:active-blueprint="store\.activeBlueprint"/)
     assert.match(source, /:blueprints="store\.blueprints"/)
+    assert.match(source, /:versions="store\.versions"/)
     assert.match(source, /@new-plugin="createNewPlugin"/)
     assert.match(source, /@open-plugin="openPluginBlueprint"/)
+    assert.match(source, /@rollback="rollbackToReleaseSnapshot"/)
     assert.match(source, /@export-zip="exportActivePluginZip"/)
     assert.match(source, /@discard-draft="discardDraft"/)
     assert.match(source, /store\.exportZip/)
     assert.match(source, /URL\.createObjectURL/)
     assert.match(source, /router\.replace/)
+  })
+
+  it('uses a BaseModal creation flow instead of prompt for new plugins', () => {
+    const source = fs.readFileSync(pagePath, 'utf8')
+    const modal = fs.readFileSync(
+      path.resolve('src/features/plugin-creator/components/PluginCreatorCreatePluginModal.vue'),
+      'utf8',
+    )
+
+    assert.match(source, /PluginCreatorCreatePluginModal/)
+    assert.match(source, /isCreatePluginModalOpen/)
+    assert.doesNotMatch(source, /window\.prompt/)
+    assert.match(modal, /BaseModal/)
+    for (const field of ['icon', 'iconDark', 'iconLight', 'handle', 'name', 'description']) {
+      assert.match(modal, new RegExp(field))
+    }
   })
 
   it('uses the shared app page and app panel instead of a local add sidebar', () => {

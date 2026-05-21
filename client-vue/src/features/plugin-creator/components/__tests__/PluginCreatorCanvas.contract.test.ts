@@ -48,4 +48,17 @@ describe('PluginCreatorCanvas contract', () => {
     assert.match(source, /screenToFlowCoordinate/)
     assert.match(source, /getBoundingClientRect/)
   })
+
+  it('uses a plugin-creator-owned group selection box', () => {
+    const canvasSource = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
+    const boxSource = fs.readFileSync(
+      path.join(componentDir, 'PluginCreatorNodeGroupSelectionBox.vue'),
+      'utf8',
+    )
+
+    assert.match(canvasSource, /PluginCreatorNodeGroupSelectionBox/)
+    assert.match(boxSource, /sailor-group-box-outer/)
+    assert.match(boxSource, /onDuplicateSelection/)
+    assert.match(boxSource, /onDeleteSelection/)
+  })
 })

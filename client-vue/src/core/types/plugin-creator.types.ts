@@ -16,6 +16,12 @@ export interface PluginBlueprintMetadata {
   name: string
   version: string
   description: string
+  category?: string
+  author?: string
+  repository?: string
+  homepage?: string
+  docsUrl?: string
+  tags?: string[]
 }
 
 export interface PluginBlueprintIcons {

@@ -157,6 +157,12 @@ export const pluginBlueprintSchema = z.object({
     name: z.string().min(1),
     version: z.string().min(1),
     description: z.string(),
+    category: z.string().optional(),
+    author: z.string().optional(),
+    repository: z.string().optional(),
+    homepage: z.string().optional(),
+    docsUrl: z.string().optional(),
+    tags: z.array(z.string()).optional(),
   }),
   icons: z.object({
     icon: z.string().optional(),
