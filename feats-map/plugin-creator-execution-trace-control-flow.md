@@ -233,8 +233,8 @@ Allowed context:
 - `headers`
 - `status`
 
-- [ ] Write failing safety tests.
-- [ ] Reject forbidden tokens:
+- [x] Write failing safety tests.
+- [x] Reject forbidden tokens:
   - `import`
   - `require`
   - `process`
@@ -247,16 +247,16 @@ Allowed context:
   - `document`
   - `__dirname`
   - `__filename`
-- [ ] Implement evaluator with strict sandbox strategy already used by project dependencies if available.
-- [ ] Return typed error messages for unsafe expressions.
-- [ ] Run:
+- [x] Implement evaluator with strict sandbox strategy already used by project dependencies if available.
+- [x] Return typed error messages for unsafe expressions.
+- [x] Run:
 
 ```bash
 cd server
 node --test src/core/modules/plugin-creator/plugin-method-expression-evaluator.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add server/src/core/modules/plugin-creator/plugin-method-expression-evaluator.ts server/src/core/modules/plugin-creator/plugin-method-expression-evaluator.test.ts
