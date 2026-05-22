@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 
 import type { PluginBlueprint } from "./plugin-blueprint-types.ts";
 import { generatePluginMethodsSource } from "./plugin-methods-generator.ts";
+import { writeMethodSource } from "./plugin-method-code-writer.ts";
+import type { PluginMethodPlan } from "./plugin-method-plan-types.ts";
 
 function createBlueprintWithRequestMapperAndCodeBlock(): PluginBlueprint {
   return {
@@ -82,5 +84,81 @@ describe("plugin method code writer", () => {
     assert.match(source, /const map_create_lead = mapPluginCreatorResponse/);
     assert.match(source, /\/\/ Node Code Block: code_after_map/);
     assert.match(source, /const code_after_map = await \(async \(\) => \{/);
+  });
+
+  it("emits TypeScript for control flow and transform nodes", () => {
+    const blueprint = createBlueprintWithRequestMapperAndCodeBlock();
+    const method = blueprint.methods[0]!;
+    const plan: PluginMethodPlan = {
+      methodId: method.id,
+      handle: method.handle,
+      name: method.name,
+      steps: [
+        {
+          kind: "jsonTransform",
+          nodeId: "transform_payload",
+          methodId: method.id,
+          expression: "({ name: params.name })",
+          outputName: "payload",
+        },
+        {
+          kind: "if",
+          nodeId: "if_has_name",
+          methodId: method.id,
+          condition: "Boolean(params.name)",
+          thenSteps: [{ kind: "return", nodeId: "return_name", methodId: method.id, valueExpression: "payload" }],
+          elseSteps: [{ kind: "return", nodeId: "return_empty", methodId: method.id, valueExpression: "null" }],
+        },
+        {
+          kind: "switch",
+          nodeId: "switch_status",
+          methodId: method.id,
+          expression: "status",
+          cases: [{ id: "case_ok", label: "OK", value: 200, handle: "case_ok", steps: [] }],
+          defaultSteps: [],
+        },
+        {
+          kind: "tryCatch",
+          nodeId: "try_request",
+          methodId: method.id,
+          errorVariable: "error",
+          trySteps: [],
+          catchSteps: [],
+        },
+        {
+          kind: "for",
+          nodeId: "for_pages",
+          methodId: method.id,
+          itemVariable: "page",
+          fromExpression: "1",
+          toExpression: "2",
+          bodySteps: [],
+        },
+        {
+          kind: "forEach",
+          nodeId: "foreach_items",
+          methodId: method.id,
+          arrayExpression: "params.items",
+          itemVariable: "item",
+          bodySteps: [],
+        },
+      ],
+    };
+
+    const source = writeMethodSource({ blueprint, method, plan });
+
+    assert.match(source, /\/\/ Node JSON Transform: transform_payload/);
+    assert.match(source, /const payload = \(\{ name: params\.name \}\);/);
+    assert.match(source, /\/\/ Node If: if_has_name/);
+    assert.match(source, /if \(Boolean\(params\.name\)\)/);
+    assert.match(source, /\/\/ Node Return: return_name/);
+    assert.match(source, /\/\/ Node Switch: switch_status/);
+    assert.match(source, /case 200:/);
+    assert.match(source, /\/\/ Node Try\/Catch: try_request/);
+    assert.match(source, /catch \(error\)/);
+    assert.match(source, /\/\/ Node For: for_pages/);
+    assert.match(source, /for \(let page = 1; page <= 2; page \+= 1\)/);
+    assert.match(source, /\/\/ Node ForEach: foreach_items/);
+    assert.match(source, /for \(const item of params\.items\)/);
   });
 });

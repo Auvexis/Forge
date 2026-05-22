@@ -477,25 +477,25 @@ Why:
 - Preview e publish precisam produzir codigo igual ao plano.
 - Control flow nao pode ser so visual.
 
-- [ ] Write writer tests for each node:
+- [x] Write writer tests for each node:
   - if/else emits branch code.
   - switch emits cases.
   - try/catch emits catch block.
   - jsonTransform emits named const.
   - return emits final return.
   - for/forEach emits loops.
-- [ ] Update `plugin-method-code-writer.ts`.
-- [ ] Preserve node comments:
+- [x] Update `plugin-method-code-writer.ts`.
+- [x] Preserve node comments:
   - `// Node If: node_id`
   - `// Node Return: node_id`
-- [ ] Run:
+- [x] Run:
 
 ```bash
 cd server
 node --test src/core/modules/plugin-creator/plugin-method-code-writer.test.ts src/core/modules/plugin-creator/plugin-methods-generator.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add server/src/core/modules/plugin-creator/plugin-method-code-writer.ts server/src/core/modules/plugin-creator/plugin-method-code-writer.test.ts server/src/core/modules/plugin-creator/plugin-methods-generator.test.ts
