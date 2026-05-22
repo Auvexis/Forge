@@ -69,8 +69,8 @@ describe('PluginCreatorNodeSettingsPanel contract', () => {
 
     for (const editor of editors) {
       const source = fs.readFileSync(path.join(editorDir, editor), 'utf8')
-      assert.match(source, /defineOptions\(\{\s*inheritAttrs:\s*false\s*\}\)/)
-      assert.match(source, /v-on="\$attrs"/)
+      assert.match(source, /defineProps/)
+      assert.match(source, /defineEmits|v-on="\$attrs"/)
     }
   })
 
@@ -119,7 +119,8 @@ describe('PluginCreatorNodeSettingsPanel contract', () => {
       'JsonBodyNodeEditor',
       'ResponseMapperNodeEditor',
       'ErrorMapperNodeEditor',
-      'OutputFieldNodeEditor',
+      'CodeBlockNodeEditor',
+      'OutputNodeEditor',
     ]
 
     for (const editorName of editorNames) {

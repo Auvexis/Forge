@@ -1,21 +1,21 @@
 <template>
   <div class="node-editor-stack">
     <NodeEditorSection
-      title="Response Mapping"
-      eyebrow="Mapper"
-      description="Map response fields into typed method outputs."
+      title="Output"
+      eyebrow="Method result"
+      description="Describe the typed output fields returned by this method."
     >
       <div v-for="(mapping, index) in mappings" :key="mapping.id" class="node-editor-row">
         <BaseInput
           :model-value="mapping.outputName"
-          label="Output name"
-          placeholder="customerId"
+          label="Output field"
+          placeholder="customer"
           @update:model-value="updateMapping(index, { outputName: String($event) })"
         />
         <BaseInput
           :model-value="mapping.path"
-          label="Response path"
-          placeholder="body.data.id"
+          label="Source path"
+          placeholder="body.data"
           @update:model-value="updateMapping(index, { path: String($event) })"
         />
         <BaseSelect
@@ -24,32 +24,17 @@
           label="Type"
           @update:model-value="updateMapping(index, { type: String($event) as any })"
         />
-        <BaseSwitch
-          :model-value="Boolean(mapping.required)"
-          label="Required"
-          @update:model-value="updateMapping(index, { required: Boolean($event) })"
-        />
       </div>
-      <button class="node-editor-action" type="button" @click="addMapping">Add mapping</button>
-    </NodeEditorSection>
-
-    <NodeEditorSection
-      title="Sample Response"
-      description="Latest test body available to map from."
-    >
-      <BaseCodeEditor :model-value="sampleResponse" language="json" height="180px" readonly />
+      <button class="node-editor-action" type="button" @click="addOutput">Add output</button>
     </NodeEditorSection>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
-import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import NodeEditorSection from './NodeEditorSection.vue'
-import { stringifyEditorValue } from './editorValueUtils'
 import { usePluginCreatorNodeEditorContext } from './usePluginCreatorNodeEditorContext'
 import type { PluginBlueprintResponseMapping } from '@/core/types/plugin-creator.types'
 import type { PluginCreatorNodeEditorEmits, PluginCreatorNodeEditorProps } from './types'
@@ -62,14 +47,13 @@ const outputTypeOptions = ['string', 'number', 'boolean', 'object', 'array', 'se
   (value) => ({ value, label: value }),
 )
 const mappings = computed(() => method.value?.responseMapping ?? [])
-const sampleResponse = computed(() => stringifyEditorValue(props.lastTestResult?.body ?? {}))
 
-function addMapping() {
+function addOutput() {
   updateMethodPatch({
     responseMapping: [
       ...mappings.value,
       {
-        id: `mapping_${Date.now()}`,
+        id: `output_${Date.now()}`,
         outputName: '',
         path: '',
         type: 'string',
@@ -95,7 +79,7 @@ function updateMapping(index: number, payload: Partial<PluginBlueprintResponseMa
 
 .node-editor-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 140px 100px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 140px;
   gap: 12px;
   align-items: end;
 }

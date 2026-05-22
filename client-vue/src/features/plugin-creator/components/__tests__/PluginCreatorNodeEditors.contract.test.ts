@@ -39,3 +39,33 @@ describe('PluginCreator node editor foundation', () => {
     assert.match(source, /eyebrow/)
   })
 })
+
+describe('PluginCreator focused node editors', () => {
+  for (const fileName of [
+    'RequestNodeEditor.vue',
+    'ResponseMapperNodeEditor.vue',
+    'ErrorMapperNodeEditor.vue',
+    'CodeBlockNodeEditor.vue',
+    'OutputNodeEditor.vue',
+  ]) {
+    it(`${fileName} is a focused editor and not a monolith wrapper`, () => {
+      const source = readEditorFile(fileName)
+
+      assert.match(source, /NodeEditorSection/)
+      assert.match(source, /usePluginCreatorNodeEditorContext/)
+      assert.doesNotMatch(source, /PluginCreatorNodeEditorFields/)
+    })
+  }
+
+  it('settings panel routes core node types to focused editors', () => {
+    const source = fs.readFileSync(
+      path.resolve('src/features/plugin-creator/components/PluginCreatorNodeSettingsPanel.vue'),
+      'utf8',
+    )
+
+    assert.match(source, /CodeBlockNodeEditor/)
+    assert.match(source, /OutputNodeEditor/)
+    assert.match(source, /case 'codeBlock':\s*return CodeBlockNodeEditor/s)
+    assert.match(source, /case 'output':\s*return OutputNodeEditor/s)
+  })
+})

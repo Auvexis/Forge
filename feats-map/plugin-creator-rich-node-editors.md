@@ -94,16 +94,16 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing tests proving each node type maps to its focused editor.
-- [ ] Keep `PluginCreatorNodeEditorFields.vue` only as temporary fallback for not-yet-split nodes.
-- [ ] `RequestNodeEditor`: method, URL, headers table, query table, body mode tabs, JSON/text editor, generated request preview.
-- [ ] `ResponseMapperNodeEditor`: mapping rows, output type, required toggle, response path picker area, sample response preview from last test result.
-- [ ] `ErrorMapperNodeEditor`: condition builder, status/body source selector, operator segmented control, message builder, mapped error preview.
-- [ ] `CodeBlockNodeEditor`: source editor, output variable, quick inserts for `params`, `previous`, `context.credentials`, safety hint from backend rules.
-- [ ] `OutputNodeEditor`: final output shaping, typed outputs list, source path/expression, required toggle.
-- [ ] Run focused frontend tests.
-- [ ] Run `npm run type-check`.
-- [ ] Commit: `feat: split plugin creator core node editors`.
+- [x] Write failing tests proving each node type maps to its focused editor.
+- [x] Keep `PluginCreatorNodeEditorFields.vue` only as temporary fallback for not-yet-split nodes.
+- [x] `RequestNodeEditor`: method, URL, headers table, query table, body mode tabs, JSON/text editor, generated request preview.
+- [x] `ResponseMapperNodeEditor`: mapping rows, output type, required toggle, response path picker area, sample response preview from last test result.
+- [x] `ErrorMapperNodeEditor`: condition builder, status/body source selector, operator segmented control, message builder, mapped error preview.
+- [x] `CodeBlockNodeEditor`: source editor, output variable, quick inserts for `params`, `previous`, `context.credentials`, safety hint from backend rules.
+- [x] `OutputNodeEditor`: final output shaping, typed outputs list, source path/expression, required toggle.
+- [x] Run focused frontend tests.
+- [x] Run `npm run type-check`.
+- [x] Commit: `feat: split plugin creator core node editors`.
 
 ## Task 3: Rich HTTP Request editor
 

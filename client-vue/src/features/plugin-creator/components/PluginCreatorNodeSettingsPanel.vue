@@ -37,7 +37,8 @@ import QueryParamNodeEditor from './node-editors/QueryParamNodeEditor.vue'
 import JsonBodyNodeEditor from './node-editors/JsonBodyNodeEditor.vue'
 import ResponseMapperNodeEditor from './node-editors/ResponseMapperNodeEditor.vue'
 import ErrorMapperNodeEditor from './node-editors/ErrorMapperNodeEditor.vue'
-import OutputFieldNodeEditor from './node-editors/OutputFieldNodeEditor.vue'
+import CodeBlockNodeEditor from './node-editors/CodeBlockNodeEditor.vue'
+import OutputNodeEditor from './node-editors/OutputNodeEditor.vue'
 import PluginCreatorNodeEditorFields from './node-editors/PluginCreatorNodeEditorFields.vue'
 
 const props = defineProps<{
@@ -80,9 +81,9 @@ const editorComponent = computed(() => {
     case 'errorMapper':
       return ErrorMapperNodeEditor
     case 'codeBlock':
-      return PluginCreatorNodeEditorFields
+      return CodeBlockNodeEditor
     case 'output':
-      return OutputFieldNodeEditor
+      return OutputNodeEditor
     default:
       return null
   }
