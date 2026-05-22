@@ -1,6 +1,6 @@
 <template>
   <div class="plugin-creator-expression-input editor-field">
-    <label class="editor-field__label">
+    <label v-if="label" class="editor-field__label">
       <LucideIcon name="braces" :size="13" />
       {{ label }}
     </label>
@@ -28,7 +28,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import PluginCreatorVariablePicker from './PluginCreatorVariablePicker.vue'
 
 const props = withDefaults(
-  defineProps<{ modelValue: string; label: string; placeholder?: string; showHint?: boolean }>(),
+  defineProps<{ modelValue: string; label?: string; placeholder?: string; showHint?: boolean }>(),
   { showHint: true },
 )
 defineEmits<{ 'update:modelValue': [value: string] }>()

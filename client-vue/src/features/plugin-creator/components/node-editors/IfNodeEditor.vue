@@ -22,6 +22,7 @@
       <PluginCreatorExpressionInput
         :model-value="String(node?.data.condition ?? '')"
         label=""
+        :show-hint="false"
         placeholder="Boolean(previous?.id)"
         @update:model-value="updateNodeData({ condition: String($event) })"
       />
@@ -78,9 +79,9 @@ const { node, updateNodeData } = usePluginCreatorNodeEditorContext(props, emit)
 <style scoped>
 .editor-branches {
   padding: var(--sailor-space-3);
-  border-radius: var(--sailor-radius-lg);
-  background-color: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: color-mix(in srgb, var(--sailor-bg-surface) 64%, transparent);
+  border: 1px solid var(--sailor-border-subtle);
 }
 
 .branches-legend {

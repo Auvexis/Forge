@@ -9,7 +9,6 @@
         <div class="node-editor-row__header">
           <strong>{{ mapping.outputName || `Output ${index + 1}` }}</strong>
           <div class="node-editor-row__actions">
-            <button type="button" @click="duplicateOutput(index)">Duplicate</button>
             <button type="button" @click="removeOutput(index)">Remove</button>
           </div>
         </div>
@@ -124,22 +123,6 @@ function addOutput() {
   })
 }
 
-function duplicateOutput(index: number) {
-  const mapping = mappings.value[index]
-  if (!mapping) return
-  updateMethodPatch({
-    responseMapping: [
-      ...mappings.value.slice(0, index + 1),
-      {
-        ...mapping,
-        id: `output_${Date.now()}`,
-        outputName: `${mapping.outputName || 'output'}Copy`,
-      },
-      ...mappings.value.slice(index + 1),
-    ],
-  })
-}
-
 function removeOutput(index: number) {
   updateMethodPatch({
     responseMapping: mappings.value.filter((_, currentIndex) => currentIndex !== index),
@@ -172,11 +155,11 @@ function updateSourceMode(id: string, mode: 'path' | 'expression') {
 .node-editor-row {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px;
+  gap: 12px;
+  padding: 14px;
   border: 1px solid var(--sailor-border-subtle);
   border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
+  background: color-mix(in srgb, var(--sailor-bg-surface) 64%, transparent);
 }
 
 .node-editor-row__header,
@@ -192,9 +175,15 @@ function updateSourceMode(id: string, mode: 'path' | 'expression') {
   justify-content: space-between;
 }
 
+.node-editor-row__header strong {
+  color: var(--sailor-text-primary);
+  font-size: 13px;
+  font-weight: 750;
+}
+
 .node-editor-row__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 140px 110px;
+  grid-template-columns: minmax(220px, 1fr) 140px auto;
   align-items: end;
 }
 
@@ -202,18 +191,25 @@ function updateSourceMode(id: string, mode: 'path' | 'expression') {
 .node-editor-row__actions button {
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
+  background: transparent;
+  color: var(--sailor-text-muted);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 750;
+  padding: 8px 10px;
 }
 
 .node-editor-row__mode button.active {
   border-color: var(--sailor-border-strong);
   background: var(--sailor-bg-muted);
+  color: var(--sailor-text-primary);
+}
+
+.node-editor-row__mode button:hover,
+.node-editor-row__actions button:hover {
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
 }
 
 .node-editor-preview {
@@ -225,5 +221,11 @@ function updateSourceMode(id: string, mode: 'path' | 'expression') {
   background: var(--sailor-bg-surface);
   color: var(--sailor-text-secondary);
   overflow: auto;
+}
+
+@media (max-width: 900px) {
+  .node-editor-row__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

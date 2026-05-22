@@ -4,37 +4,38 @@
       No mappings yet. Add a mapping to expose response data.
     </div>
     <div v-for="(mapping, index) in mappings" :key="mapping.id" class="mapping-rows-editor__row">
-      <BaseInput
-        :model-value="mapping.outputName"
-        label="Output name"
-        placeholder="customerId"
-        @update:model-value="updateMapping(index, { outputName: String($event) })"
-      />
-      <BaseInput
-        :model-value="mapping.path"
-        label="Response path"
-        placeholder="body.data.id"
-        @update:model-value="updateMapping(index, { path: String($event) })"
-      />
-      <BaseSelect
-        :model-value="mapping.type"
-        :options="outputTypeOptions"
-        label="Type"
-        @update:model-value="updateMapping(index, { type: String($event) as any })"
-      />
-      <BaseSwitch
-        :model-value="Boolean(mapping.required)"
-        label="required"
-        @update:model-value="updateMapping(index, { required: Boolean($event) })"
-      />
+      <div class="mapping-rows-editor__main">
+        <BaseInput
+          :model-value="mapping.outputName"
+          label="Output name"
+          placeholder="customerId"
+          @update:model-value="updateMapping(index, { outputName: String($event) })"
+        />
+        <BaseInput
+          :model-value="mapping.path"
+          label="Response path"
+          placeholder="body.data.id"
+          @update:model-value="updateMapping(index, { path: String($event) })"
+        />
+      </div>
+      <div class="mapping-rows-editor__meta">
+        <BaseSelect
+          :model-value="mapping.type"
+          :options="outputTypeOptions"
+          label="Type"
+          @update:model-value="updateMapping(index, { type: String($event) as any })"
+        />
+        <BaseSwitch
+          :model-value="Boolean(mapping.required)"
+          label="required"
+          @update:model-value="updateMapping(index, { required: Boolean($event) })"
+        />
+      </div>
       <div class="mapping-rows-editor__actions">
-        <button type="button" title="Move up" @click="moveMapping(index, -1)">Move up</button>
-        <button type="button" title="Move down" @click="moveMapping(index, 1)">Move down</button>
-        <button type="button" title="Duplicate" @click="duplicateMapping(index)">Duplicate</button>
         <button type="button" title="Remove" @click="removeMapping(index)">Remove</button>
       </div>
     </div>
-    <button class="mapping-rows-editor__add" type="button" @click="addMapping">Add mapping</button>
+    <button class="editor-add-btn" type="button" @click="addMapping">Add mapping</button>
   </div>
 </template>
 
@@ -77,16 +78,6 @@ function updateMapping(index: number, payload: Partial<PluginBlueprintResponseMa
   )
 }
 
-function duplicateMapping(index: number) {
-  const mapping = props.mappings[index]
-  if (!mapping) return
-  emit('update', [
-    ...props.mappings.slice(0, index + 1),
-    { ...mapping, id: `mapping_${Date.now()}` },
-    ...props.mappings.slice(index + 1),
-  ])
-}
-
 function removeMapping(index: number) {
   emit(
     'update',
@@ -94,24 +85,13 @@ function removeMapping(index: number) {
   )
 }
 
-function moveMapping(index: number, direction: -1 | 1) {
-  const nextIndex = index + direction
-  if (nextIndex < 0 || nextIndex >= props.mappings.length) return
-  const next = [...props.mappings]
-  const current = next[index]
-  const target = next[nextIndex]
-  if (!current || !target) return
-  next[index] = target
-  next[nextIndex] = current
-  emit('update', next)
-}
 </script>
 
 <style scoped>
 .mapping-rows-editor {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .mapping-rows-editor__empty {
@@ -124,33 +104,62 @@ function moveMapping(index: number, direction: -1 | 1) {
 
 .mapping-rows-editor__row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) 130px 90px auto;
+  grid-template-columns: minmax(0, 1fr) 230px auto;
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: var(--sailor-radius-sm);
+  background: color-mix(in srgb, var(--sailor-bg-surface) 64%, transparent);
+}
+
+.mapping-rows-editor__main {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.8fr) minmax(220px, 1.2fr);
+  gap: 10px;
+}
+
+.mapping-rows-editor__meta {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto;
   gap: 10px;
   align-items: end;
 }
 
 .mapping-rows-editor__actions {
   display: flex;
-  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 6px;
+  padding-top: 20px;
 }
 
-.mapping-rows-editor__actions button,
-.mapping-rows-editor__add {
+.mapping-rows-editor__actions button {
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
+  background: transparent;
+  color: var(--sailor-text-muted);
   cursor: pointer;
   font: inherit;
   font-size: 11px;
-  font-weight: 650;
-  padding: 6px 8px;
+  font-weight: 750;
+  padding: 8px 10px;
 }
 
-.mapping-rows-editor__add {
-  align-self: flex-start;
-  font-size: 12px;
+.mapping-rows-editor__actions button:hover {
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
+}
+
+@media (max-width: 1100px) {
+  .mapping-rows-editor__row,
+  .mapping-rows-editor__main,
+  .mapping-rows-editor__meta {
+    grid-template-columns: 1fr;
+  }
+
+  .mapping-rows-editor__actions {
+    padding-top: 0;
+    justify-content: flex-start;
+  }
 }
 </style>

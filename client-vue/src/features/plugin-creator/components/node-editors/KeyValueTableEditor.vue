@@ -8,26 +8,28 @@
       :key="`${item.name}_${index}`"
       class="key-value-table-editor__row"
     >
-      <BaseInput
-        :model-value="item.name"
-        label="Name"
-        :placeholder="namePlaceholder"
-        @update:model-value="updateItem(index, { name: String($event) })"
-      />
-      <PluginCreatorExpressionInput
-        :model-value="String(item.value ?? '')"
-        label="Value"
-        :placeholder="valuePlaceholder"
-        @update:model-value="updateItem(index, { value: String($event) })"
-      />
+      <div class="te-field">
+        <span class="te-label">Name</span>
+        <BaseInput
+          :model-value="item.name"
+          :placeholder="namePlaceholder"
+          @update:model-value="updateItem(index, { name: String($event) })"
+        />
+      </div>
+      <div class="te-field">
+        <span class="te-label">Value</span>
+        <PluginCreatorExpressionInput
+          :model-value="String(item.value ?? '')"
+          :placeholder="valuePlaceholder"
+          :show-hint="false"
+          @update:model-value="updateItem(index, { value: String($event) })"
+        />
+      </div>
       <div class="key-value-table-editor__actions">
-        <button type="button" title="Move up" @click="moveItem(index, -1)">Move up</button>
-        <button type="button" title="Move down" @click="moveItem(index, 1)">Move down</button>
-        <button type="button" title="Duplicate" @click="duplicateItem(index)">Duplicate</button>
         <button type="button" title="Remove" @click="removeItem(index)">Remove</button>
       </div>
     </div>
-    <button class="key-value-table-editor__add" type="button" @click="addItem">
+    <button class="editor-add-btn" type="button" @click="addItem">
       {{ addLabel }}
     </button>
   </div>
@@ -68,12 +70,6 @@ function updateItem(index: number, payload: Partial<PluginBlueprintKeyValue>) {
   )
 }
 
-function duplicateItem(index: number) {
-  const item = props.items[index]
-  if (!item) return
-  emit('update', [...props.items.slice(0, index + 1), { ...item }, ...props.items.slice(index + 1)])
-}
-
 function removeItem(index: number) {
   emit(
     'update',
@@ -81,24 +77,13 @@ function removeItem(index: number) {
   )
 }
 
-function moveItem(index: number, direction: -1 | 1) {
-  const nextIndex = index + direction
-  if (nextIndex < 0 || nextIndex >= props.items.length) return
-  const next = [...props.items]
-  const current = next[index]
-  const target = next[nextIndex]
-  if (!current || !target) return
-  next[index] = target
-  next[nextIndex] = current
-  emit('update', next)
-}
 </script>
 
 <style scoped>
 .key-value-table-editor {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .key-value-table-editor__empty {
@@ -111,33 +96,48 @@ function moveItem(index: number, direction: -1 | 1) {
 
 .key-value-table-editor__row {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) auto;
-  gap: 10px;
-  align-items: end;
+  grid-template-columns: minmax(140px, 0.75fr) minmax(240px, 1.25fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: var(--sailor-radius-sm);
+  background: color-mix(in srgb, var(--sailor-bg-surface) 64%, transparent);
 }
 
 .key-value-table-editor__actions {
   display: flex;
-  flex-wrap: wrap;
+  align-items: end;
   gap: 6px;
   justify-content: flex-end;
+  padding-top: 20px;
 }
 
-.key-value-table-editor__actions button,
-.key-value-table-editor__add {
+.key-value-table-editor__actions button {
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
+  background: transparent;
+  color: var(--sailor-text-muted);
   cursor: pointer;
   font: inherit;
   font-size: 11px;
-  font-weight: 650;
-  padding: 6px 8px;
+  font-weight: 750;
+  padding: 8px 10px;
 }
 
-.key-value-table-editor__add {
-  align-self: flex-start;
-  font-size: 12px;
+.key-value-table-editor__actions button:hover {
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
+}
+
+@media (max-width: 980px) {
+  .key-value-table-editor__row {
+    grid-template-columns: 1fr;
+  }
+
+  .key-value-table-editor__actions {
+    padding-top: 0;
+    justify-content: flex-start;
+  }
 }
 </style>

@@ -18,12 +18,13 @@
           />
         </div>
         <div class="editor-row--grow">
-        <PluginCreatorExpressionInput
-          :model-value="method?.request.url ?? ''"
-          label=""
-          placeholder="https://api.example.com/{{ params.id }}"
-          @update:model-value="updateRequest({ url: String($event) })"
-        />
+          <PluginCreatorExpressionInput
+            :model-value="method?.request.url ?? ''"
+            label=""
+            :show-hint="false"
+            placeholder="https://api.example.com/{{ params.id }}"
+            @update:model-value="updateRequest({ url: String($event) })"
+          />
         </div>
       </div>
     </NodeEditorSection>
@@ -94,13 +95,20 @@ function updateRequest(payload: Partial<PluginBlueprintRequest>) {
 </script>
 
 <style scoped>
-.node-editor-grid {
-  display: grid;
-  gap: 12px;
+.editor-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
 }
 
-.node-editor-grid--2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.editor-row--grow {
+  flex: 1;
+  min-width: 0;
 }
 
+@media (max-width: 720px) {
+  .editor-row {
+    flex-direction: column;
+  }
+}
 </style>

@@ -23,6 +23,7 @@
       <PluginCreatorExpressionInput
         :model-value="String(node?.data.expression ?? '')"
         label=""
+        :show-hint="false"
         placeholder="previous.status"
         @update:model-value="updateNodeData({ expression: String($event) })"
       />
@@ -262,7 +263,11 @@ function normalizeHandle(value: string, index: number) {
   grid-template-columns: 18px minmax(120px, 1fr) minmax(120px, 1fr) minmax(130px, 0.8fr) auto;
   display: grid;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: var(--sailor-radius-sm);
+  background: color-mix(in srgb, var(--sailor-bg-surface) 64%, transparent);
 }
 
 .switch-node-editor__case-index {

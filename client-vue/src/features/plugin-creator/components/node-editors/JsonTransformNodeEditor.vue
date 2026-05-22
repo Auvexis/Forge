@@ -74,7 +74,7 @@ const preview = computed(() =>
   padding: 10px;
   border: 1px solid var(--sailor-border-subtle);
   border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
+  background: color-mix(in srgb, var(--sailor-bg-surface) 64%, transparent);
   color: var(--sailor-text-secondary);
   overflow: auto;
 }
