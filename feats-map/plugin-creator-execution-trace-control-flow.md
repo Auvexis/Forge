@@ -446,9 +446,9 @@ Nodes:
 - `For`
 - `ForEach`
 
-- [ ] Write palette/canvas contracts.
-- [ ] Add node components.
-- [ ] Add settings editor sections:
+- [x] Write palette/canvas contracts.
+- [x] Add node components.
+- [x] Add settings editor sections:
   - If: condition, then/else handles.
   - Switch: expression, cases, default.
   - Try/Catch: catch error variable name.
@@ -456,15 +456,15 @@ Nodes:
   - Return: value expression.
   - For: init/condition/after or range.
   - ForEach: array expression, item variable.
-- [ ] Add handles for branch nodes.
-- [ ] Run:
+- [x] Add handles for branch nodes.
+- [x] Run:
 
 ```bash
 cd client-vue
 node --test src/features/plugin-creator/components/__tests__/PluginCreatorControlFlowNodes.contract.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add client-vue/src/features/plugin-creator/components/PluginCreatorAddItemPanel.vue client-vue/src/features/plugin-creator/components/PluginCreatorCanvas.vue client-vue/src/features/plugin-creator/components/nodes client-vue/src/features/plugin-creator/components/node-editors/PluginCreatorNodeEditorFields.vue client-vue/src/features/plugin-creator/components/__tests__/PluginCreatorControlFlowNodes.contract.test.ts

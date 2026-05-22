@@ -42,11 +42,16 @@ import { useEventBus } from '@/shared/composables/useEventBus'
 import {
   Braces,
   CircleAlert,
+  GitBranch,
   FileInput,
   FileOutput,
+  List,
   Network,
+  RotateCw,
   Search,
   Send,
+  Split,
+  Undo2,
 } from 'lucide-vue-next'
 
 export type PluginCreatorAddItemType =
@@ -55,6 +60,13 @@ export type PluginCreatorAddItemType =
   | 'responseMapper'
   | 'errorMapper'
   | 'codeBlock'
+  | 'if'
+  | 'switch'
+  | 'tryCatch'
+  | 'jsonTransform'
+  | 'return'
+  | 'for'
+  | 'forEach'
   | 'output'
 
 const props = defineProps<{
@@ -123,6 +135,69 @@ const items: Array<{
     color: '#f472b6',
     bgColor: 'rgba(244, 114, 182, 0.14)',
     borderColor: 'rgba(244, 114, 182, 0.34)',
+  },
+  {
+    type: 'if',
+    label: 'If',
+    description: 'Branch by expression',
+    icon: GitBranch,
+    color: '#facc15',
+    bgColor: 'rgba(250, 204, 21, 0.14)',
+    borderColor: 'rgba(250, 204, 21, 0.34)',
+  },
+  {
+    type: 'switch',
+    label: 'Switch',
+    description: 'Choose a case from expression',
+    icon: Split,
+    color: '#38bdf8',
+    bgColor: 'rgba(56, 189, 248, 0.14)',
+    borderColor: 'rgba(56, 189, 248, 0.34)',
+  },
+  {
+    type: 'tryCatch',
+    label: 'Try/Catch',
+    description: 'Catch step errors',
+    icon: Undo2,
+    color: '#c084fc',
+    bgColor: 'rgba(192, 132, 252, 0.14)',
+    borderColor: 'rgba(192, 132, 252, 0.34)',
+  },
+  {
+    type: 'jsonTransform',
+    label: 'JSON Transform',
+    description: 'Create JSON from expression',
+    icon: Braces,
+    color: '#2dd4bf',
+    bgColor: 'rgba(45, 212, 191, 0.14)',
+    borderColor: 'rgba(45, 212, 191, 0.34)',
+  },
+  {
+    type: 'return',
+    label: 'Return',
+    description: 'Finish method with value',
+    icon: FileOutput,
+    color: '#93c5fd',
+    bgColor: 'rgba(147, 197, 253, 0.14)',
+    borderColor: 'rgba(147, 197, 253, 0.34)',
+  },
+  {
+    type: 'for',
+    label: 'For',
+    description: 'Loop over a range',
+    icon: RotateCw,
+    color: '#fb923c',
+    bgColor: 'rgba(251, 146, 60, 0.14)',
+    borderColor: 'rgba(251, 146, 60, 0.34)',
+  },
+  {
+    type: 'forEach',
+    label: 'ForEach',
+    description: 'Loop over array expression',
+    icon: List,
+    color: '#a3e635',
+    bgColor: 'rgba(163, 230, 53, 0.14)',
+    borderColor: 'rgba(163, 230, 53, 0.34)',
   },
   {
     type: 'output',

@@ -110,6 +110,13 @@ import ResponseMapperNode from './nodes/ResponseMapperNode.vue'
 import ErrorMapperNode from './nodes/ErrorMapperNode.vue'
 import OutputNode from './nodes/OutputNode.vue'
 import CodeBlockNode from './nodes/CodeBlockNode.vue'
+import IfNode from './nodes/IfNode.vue'
+import SwitchNode from './nodes/SwitchNode.vue'
+import TryCatchNode from './nodes/TryCatchNode.vue'
+import JsonTransformNode from './nodes/JsonTransformNode.vue'
+import ReturnNode from './nodes/ReturnNode.vue'
+import ForNode from './nodes/ForNode.vue'
+import ForEachNode from './nodes/ForEachNode.vue'
 import PluginCreatorEdge from './PluginCreatorEdge.vue'
 import PluginCreatorNodeGroupSelectionBox from './PluginCreatorNodeGroupSelectionBox.vue'
 import { usePluginCreatorExecutionStore } from '../stores/pluginCreatorExecution.store.ts'
@@ -154,6 +161,13 @@ const nodeTypes = {
   responseMapper: markRaw(ResponseMapperNode),
   errorMapper: markRaw(ErrorMapperNode),
   codeBlock: markRaw(CodeBlockNode),
+  if: markRaw(IfNode),
+  switch: markRaw(SwitchNode),
+  tryCatch: markRaw(TryCatchNode),
+  jsonTransform: markRaw(JsonTransformNode),
+  return: markRaw(ReturnNode),
+  for: markRaw(ForNode),
+  forEach: markRaw(ForEachNode),
   output: markRaw(OutputNode),
 } as unknown as NodeTypesObject
 

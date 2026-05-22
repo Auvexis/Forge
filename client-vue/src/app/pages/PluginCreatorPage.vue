@@ -470,6 +470,7 @@ function createNode(type: PluginCreatorAddItemType): PluginBlueprintNode {
       label: nodeLabel(type),
       name: nodeLabel(type),
       methodId: nodeMethodId,
+      ...defaultNodeData(type),
     },
   }
 }
@@ -481,9 +482,29 @@ function nodeLabel(type: PluginCreatorAddItemType) {
     responseMapper: 'Response mapping',
     errorMapper: 'Error mapping',
     codeBlock: 'Code Block',
+    if: 'If',
+    switch: 'Switch',
+    tryCatch: 'Try/Catch',
+    jsonTransform: 'JSON Transform',
+    return: 'Return',
+    for: 'For',
+    forEach: 'ForEach',
     output: 'Output',
   }
   return labels[type]
+}
+
+function defaultNodeData(type: PluginCreatorAddItemType): Record<string, unknown> {
+  const defaults: Partial<Record<PluginCreatorAddItemType, Record<string, unknown>>> = {
+    if: { condition: 'Boolean(previous)' },
+    switch: { expression: 'status', cases: [] },
+    tryCatch: { errorVariable: 'error' },
+    jsonTransform: { expression: 'previous', outputName: 'transformed' },
+    return: { valueExpression: 'previous' },
+    for: { itemVariable: 'index', fromExpression: '0', toExpression: '0' },
+    forEach: { itemVariable: 'item', arrayExpression: 'previous' },
+  }
+  return defaults[type] ?? {}
 }
 
 async function runSelectedMethod() {

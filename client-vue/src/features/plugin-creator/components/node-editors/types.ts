@@ -19,6 +19,13 @@ export type PluginCreatorNodeEditorKind =
   | 'responseMapper'
   | 'errorMapper'
   | 'codeBlock'
+  | 'if'
+  | 'switch'
+  | 'tryCatch'
+  | 'jsonTransform'
+  | 'return'
+  | 'for'
+  | 'forEach'
   | 'output'
 
 export interface PluginCreatorNodeEditorProps {

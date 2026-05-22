@@ -474,6 +474,88 @@
       />
     </section>
 
+    <section v-else-if="kind === 'if'" class="te-section">
+      <div class="te-section__header"><h3>If</h3></div>
+      <BaseInput
+        :model-value="String(node.data.condition ?? '')"
+        label="Condition"
+        placeholder="params.enabled === true"
+        @update:model-value="updateNodeData({ condition: String($event) })"
+      />
+    </section>
+
+    <section v-else-if="kind === 'switch'" class="te-section">
+      <div class="te-section__header"><h3>Switch</h3></div>
+      <BaseInput
+        :model-value="String(node.data.expression ?? '')"
+        label="Expression"
+        placeholder="status"
+        @update:model-value="updateNodeData({ expression: String($event) })"
+      />
+      <BaseCodeEditor
+        :model-value="stringifyEditorValue(node.data.cases ?? [])"
+        language="json"
+        label="Cases"
+        height="150px"
+        @update:model-value="updateNodeData({ cases: parseEditorValue(String($event)) })"
+      />
+    </section>
+
+    <section v-else-if="kind === 'tryCatch'" class="te-section">
+      <div class="te-section__header"><h3>Try/Catch</h3></div>
+      <BaseInput
+        :model-value="String(node.data.errorVariable ?? 'error')"
+        label="Error variable"
+        placeholder="error"
+        @update:model-value="updateNodeData({ errorVariable: String($event) })"
+      />
+    </section>
+
+    <section v-else-if="kind === 'jsonTransform'" class="te-section">
+      <div class="te-section__header"><h3>JSON Transform</h3></div>
+      <div class="te-grid te-grid--2">
+        <BaseInput
+          :model-value="String(node.data.outputName ?? '')"
+          label="Output name"
+          placeholder="payload"
+          @update:model-value="updateNodeData({ outputName: String($event) })"
+        />
+        <BaseInput
+          :model-value="String(node.data.expression ?? '')"
+          label="Expression"
+          placeholder="({ id: body.id })"
+          @update:model-value="updateNodeData({ expression: String($event) })"
+        />
+      </div>
+    </section>
+
+    <section v-else-if="kind === 'return'" class="te-section">
+      <div class="te-section__header"><h3>Return</h3></div>
+      <BaseInput
+        :model-value="String(node.data.valueExpression ?? 'previous')"
+        label="Value expression"
+        placeholder="previous"
+        @update:model-value="updateNodeData({ valueExpression: String($event) })"
+      />
+    </section>
+
+    <section v-else-if="kind === 'for'" class="te-section">
+      <div class="te-section__header"><h3>For</h3></div>
+      <div class="te-grid te-grid--3">
+        <BaseInput :model-value="String(node.data.itemVariable ?? 'index')" label="Item variable" @update:model-value="updateNodeData({ itemVariable: String($event) })" />
+        <BaseInput :model-value="String(node.data.fromExpression ?? '0')" label="From expression" @update:model-value="updateNodeData({ fromExpression: String($event) })" />
+        <BaseInput :model-value="String(node.data.toExpression ?? '0')" label="To expression" @update:model-value="updateNodeData({ toExpression: String($event) })" />
+      </div>
+    </section>
+
+    <section v-else-if="kind === 'forEach'" class="te-section">
+      <div class="te-section__header"><h3>ForEach</h3></div>
+      <div class="te-grid te-grid--2">
+        <BaseInput :model-value="String(node.data.arrayExpression ?? 'previous')" label="Array expression" @update:model-value="updateNodeData({ arrayExpression: String($event) })" />
+        <BaseInput :model-value="String(node.data.itemVariable ?? 'item')" label="Item variable" @update:model-value="updateNodeData({ itemVariable: String($event) })" />
+      </div>
+    </section>
+
     <section v-else-if="kind === 'output' && method" class="te-section">
       <div class="te-section__header">
         <h3>Output field</h3>
@@ -585,6 +667,13 @@ const title = computed(() => {
     responseMapper: 'Response Mapper',
     errorMapper: 'Error Mapper',
     codeBlock: 'Code Block',
+    if: 'If',
+    switch: 'Switch',
+    tryCatch: 'Try/Catch',
+    jsonTransform: 'JSON Transform',
+    return: 'Return',
+    for: 'For',
+    forEach: 'ForEach',
     output: 'Output Field',
   }
   return labels[props.kind]
