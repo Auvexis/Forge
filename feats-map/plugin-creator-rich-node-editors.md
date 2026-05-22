@@ -116,13 +116,13 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing test for method picker, URL expression input, headers/query add/remove/reorder, body modes.
-- [ ] Implement `KeyValueTableEditor` with rows, remove button, duplicate button, empty state, variable buttons.
-- [ ] Implement `RequestBodyEditor` with `none`, `json`, `text`, `form`; JSON validates before save.
-- [ ] Show request preview card: method, URL, headers count, query count, body status.
-- [ ] Use `PluginCreatorExpressionInput` for URL and key/value values.
-- [ ] Run test and type-check.
-- [ ] Commit: `feat: add rich plugin creator request editor`.
+- [x] Write failing test for method picker, URL expression input, headers/query add/remove/reorder, body modes.
+- [x] Implement `KeyValueTableEditor` with rows, remove button, duplicate button, empty state, variable buttons.
+- [x] Implement `RequestBodyEditor` with `none`, `json`, `text`, `form`; JSON validates before save.
+- [x] Show request preview card: method, URL, headers count, query count, body status.
+- [x] Use `PluginCreatorExpressionInput` for URL and key/value values.
+- [x] Run test and type-check.
+- [x] Commit: `feat: add rich plugin creator request editor`.
 
 ## Task 4: Rich Response Mapping editor
 
