@@ -210,12 +210,12 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing visual contract: dynamic handles from `data.cases`, default handle, dynamic height.
-- [ ] Copy/adapt Workflow Editor `SwitchNode.vue` handle/badge layout.
-- [ ] Add editor with switch expression, cases table, labels, values, handle ids, default branch toggle.
-- [ ] Case handle ids must be stable after label/value edits.
-- [ ] Run tests and type-check.
-- [ ] Commit: `feat: add workflow-style plugin creator switch node`.
+- [x] Write failing visual contract: dynamic handles from `data.cases`, default handle, dynamic height.
+- [x] Copy/adapt Workflow Editor `SwitchNode.vue` handle/badge layout.
+- [x] Add editor with switch expression, cases table, labels, values, handle ids, default branch toggle.
+- [x] Case handle ids must be stable after label/value edits.
+- [x] Run tests and type-check.
+- [x] Commit: `feat: add workflow-style plugin creator switch node`.
 
 ## Task 9: Try/Catch node with multiple catches
 

@@ -40,6 +40,7 @@ import ErrorMapperNodeEditor from './node-editors/ErrorMapperNodeEditor.vue'
 import CodeBlockNodeEditor from './node-editors/CodeBlockNodeEditor.vue'
 import OutputNodeEditor from './node-editors/OutputNodeEditor.vue'
 import IfNodeEditor from './node-editors/IfNodeEditor.vue'
+import SwitchNodeEditor from './node-editors/SwitchNodeEditor.vue'
 import PluginCreatorNodeEditorFields from './node-editors/PluginCreatorNodeEditorFields.vue'
 
 const props = defineProps<{
@@ -87,6 +88,8 @@ const editorComponent = computed(() => {
       return OutputNodeEditor
     case 'if':
       return IfNodeEditor
+    case 'switch':
+      return SwitchNodeEditor
     default:
       return null
   }

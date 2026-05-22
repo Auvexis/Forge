@@ -17,4 +17,15 @@ describe('Plugin Creator control nodes', () => {
     assert.match(source, /True/)
     assert.match(source, /False/)
   })
+
+  it('SwitchNode uses workflow-style dynamic handles and quick add buttons', () => {
+    const source = fs.readFileSync(path.join(nodeDir, 'SwitchNode.vue'), 'utf8')
+
+    assert.match(source, /BaseHandle/)
+    assert.match(source, /BaseBadge/)
+    assert.match(source, /QuickAddButton/)
+    assert.match(source, /nodeHeight/)
+    assert.match(source, /handlePositions/)
+    assert.match(source, /default/)
+  })
 })
