@@ -433,6 +433,19 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     }
   }
 
+  function addCredentialField() {
+    if (!activeBlueprint.value) return
+    recordHistory()
+    const nextIndex = activeBlueprint.value.auth.fields.length + 1
+    activeBlueprint.value.auth.fields.push({
+      name: `credential${nextIndex}`,
+      label: `Credential ${nextIndex}`,
+      target: 'header',
+      headerName: `X-Credential-${nextIndex}`,
+      required: false,
+    })
+  }
+
   function updateMethodRequest(methodId: string, payload: Partial<PluginBlueprintRequest>) {
     if (!activeBlueprint.value) return
     const method = activeBlueprint.value.methods.find((candidate) => candidate.id === methodId)
@@ -539,6 +552,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     updateMethod,
     updateMethodInput,
     updateCredentialField,
+    addCredentialField,
     updateMethodRequest,
     mapSelectedFieldAsOutput,
     createErrorRuleFromResponse,

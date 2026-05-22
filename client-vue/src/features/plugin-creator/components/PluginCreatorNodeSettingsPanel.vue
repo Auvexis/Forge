@@ -11,6 +11,7 @@
       @update-input="forwardUpdateInput"
       @update-credential="forwardUpdateCredential"
       @update-request="forwardUpdateRequest"
+      @add-credential="emit('addCredential')"
     />
     <p v-else class="plugin-creator-node-settings__empty">Select a node to configure it.</p>
   </section>
@@ -37,6 +38,7 @@ import JsonBodyNodeEditor from './node-editors/JsonBodyNodeEditor.vue'
 import ResponseMapperNodeEditor from './node-editors/ResponseMapperNodeEditor.vue'
 import ErrorMapperNodeEditor from './node-editors/ErrorMapperNodeEditor.vue'
 import OutputFieldNodeEditor from './node-editors/OutputFieldNodeEditor.vue'
+import PluginCreatorNodeEditorFields from './node-editors/PluginCreatorNodeEditorFields.vue'
 
 const props = defineProps<{
   blueprint?: PluginBlueprint | null
@@ -50,6 +52,7 @@ const emit = defineEmits<{
   updateInput: [methodId: string, inputName: string, payload: Partial<PluginBlueprintInput>]
   updateCredential: [fieldName: string, payload: Partial<PluginBlueprintCredentialField>]
   updateRequest: [methodId: string, payload: Partial<PluginBlueprintRequest>]
+  addCredential: []
 }>()
 
 const node = computed(() =>
@@ -76,6 +79,8 @@ const editorComponent = computed(() => {
       return ResponseMapperNodeEditor
     case 'errorMapper':
       return ErrorMapperNodeEditor
+    case 'codeBlock':
+      return PluginCreatorNodeEditorFields
     case 'output':
       return OutputFieldNodeEditor
     default:

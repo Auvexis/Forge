@@ -20,6 +20,30 @@ describe('PluginCreatorNodeSettingsPanel contract', () => {
     assert.match(source, /te-section/)
   })
 
+  it('groups small configuration inside method request and code block settings', () => {
+    const source = fs.readFileSync(
+      path.join(componentDir, 'node-editors', 'PluginCreatorNodeEditorFields.vue'),
+      'utf8',
+    )
+
+    for (const label of [
+      'Inputs',
+      'Credentials',
+      'Add input',
+      'Add credential',
+      'Headers',
+      'Query params',
+      'Body',
+      'Add header',
+      'Add query param',
+      'Code Block',
+      'Output name',
+      'Source',
+    ]) {
+      assert.match(source, new RegExp(label))
+    }
+  })
+
   it('uses the workflow inspector modal layout with JsonTreeView context panes', () => {
     const modalSource = fs.readFileSync(
       path.join(componentDir, 'PluginCreatorNodeSettingsModal.vue'),

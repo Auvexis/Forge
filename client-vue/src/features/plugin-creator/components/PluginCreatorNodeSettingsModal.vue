@@ -50,6 +50,7 @@
             @update-input="forwardUpdateInput"
             @update-credential="forwardUpdateCredential"
             @update-request="forwardUpdateRequest"
+            @add-credential="emit('addCredential')"
           />
         </div>
       </div>
@@ -122,6 +123,7 @@ const emit = defineEmits<{
   updateInput: [methodId: string, inputName: string, payload: Partial<PluginBlueprintInput>]
   updateCredential: [fieldName: string, payload: Partial<PluginBlueprintCredentialField>]
   updateRequest: [methodId: string, payload: Partial<PluginBlueprintRequest>]
+  addCredential: []
 }>()
 
 const node = computed(() =>

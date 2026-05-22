@@ -18,6 +18,7 @@ export type PluginCreatorNodeEditorKind =
   | 'body'
   | 'responseMapper'
   | 'errorMapper'
+  | 'codeBlock'
   | 'output'
 
 export interface PluginCreatorNodeEditorProps {
@@ -32,4 +33,5 @@ export type PluginCreatorNodeEditorEmits = {
   updateInput: [methodId: string, inputName: string, payload: Partial<PluginBlueprintInput>]
   updateCredential: [fieldName: string, payload: Partial<PluginBlueprintCredentialField>]
   updateRequest: [methodId: string, payload: Partial<PluginBlueprintRequest>]
+  addCredential: []
 }

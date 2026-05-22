@@ -52,6 +52,56 @@
         height="140px"
         @update:model-value="emit('updateMethod', method.id, { description: String($event) })"
       />
+
+      <div class="te-section__header te-section__header--compact">
+        <h3>Inputs</h3>
+        <button class="te-inline-button" type="button" @click="addInput">Add input</button>
+      </div>
+      <div v-for="(input, index) in method.inputs" :key="`${input.name}_${index}`" class="te-grid te-grid--3">
+        <BaseInput
+          :model-value="input.name"
+          label="Input name"
+          @update:model-value="updateInputAt(index, { name: String($event) })"
+        />
+        <BaseSelect
+          :model-value="input.type"
+          :options="inputTypeOptions"
+          label="Type"
+          @update:model-value="updateInputAt(index, { type: String($event) as any })"
+        />
+        <BaseSwitch
+          :model-value="Boolean(input.required)"
+          label="Required"
+          @update:model-value="updateInputAt(index, { required: Boolean($event) })"
+        />
+      </div>
+
+      <div class="te-section__header te-section__header--compact">
+        <h3>Credentials</h3>
+        <button class="te-inline-button" type="button" @click="addCredential">Add credential</button>
+      </div>
+      <div
+        v-for="(credential, index) in blueprint?.auth.fields ?? []"
+        :key="`${credential.name}_${index}`"
+        class="te-grid te-grid--3"
+      >
+        <BaseInput
+          :model-value="credential.name"
+          label="Credential name"
+          @update:model-value="updateCredentialAt(index, { name: String($event) })"
+        />
+        <BaseInput
+          :model-value="credential.label"
+          label="Label"
+          @update:model-value="updateCredentialAt(index, { label: String($event) })"
+        />
+        <BaseSelect
+          :model-value="credential.target"
+          :options="credentialTargetOptions"
+          label="Target"
+          @update:model-value="updateCredentialAt(index, { target: String($event) as any })"
+        />
+      </div>
     </section>
 
     <section v-else-if="kind === 'input' && method" class="te-section">
@@ -207,6 +257,56 @@
         height="180px"
         disabled
       />
+      <div class="te-section__header te-section__header--compact">
+        <h3>Headers</h3>
+        <button class="te-inline-button" type="button" @click="addHeader">Add header</button>
+      </div>
+      <div v-for="(header, index) in method.request.headers" :key="`header_${index}`" class="te-grid te-grid--2">
+        <BaseInput
+          :model-value="header.name"
+          label="Header name"
+          @update:model-value="updateRequestKeyValueAt('headers', index, { name: String($event) })"
+        />
+        <BaseInput
+          :model-value="String(header.value ?? '')"
+          label="Header value"
+          @update:model-value="updateRequestKeyValueAt('headers', index, { value: String($event) })"
+        />
+      </div>
+
+      <div class="te-section__header te-section__header--compact">
+        <h3>Query params</h3>
+        <button class="te-inline-button" type="button" @click="addQueryParam">Add query param</button>
+      </div>
+      <div v-for="(query, index) in method.request.query" :key="`query_${index}`" class="te-grid te-grid--2">
+        <BaseInput
+          :model-value="query.name"
+          label="Query param"
+          @update:model-value="updateRequestKeyValueAt('query', index, { name: String($event) })"
+        />
+        <BaseInput
+          :model-value="String(query.value ?? '')"
+          label="Query value"
+          @update:model-value="updateRequestKeyValueAt('query', index, { value: String($event) })"
+        />
+      </div>
+
+      <div class="te-section__header te-section__header--compact">
+        <h3>Body</h3>
+      </div>
+      <BaseSelect
+        :model-value="method.request.body.type"
+        :options="bodyTypeOptions"
+        label="Body type"
+        @update:model-value="emit('updateRequest', method.id, { body: { ...method.request.body, type: String($event) as any } })"
+      />
+      <BaseCodeEditor
+        :model-value="requestBody"
+        :language="method.request.body.type === 'json' ? 'json' : 'text'"
+        label="Body value"
+        height="220px"
+        @update:model-value="updateRequestBody(String($event))"
+      />
     </section>
 
     <section v-else-if="kind === 'header' && method" class="te-section">
@@ -347,6 +447,33 @@
       />
     </section>
 
+    <section v-else-if="kind === 'codeBlock' && method" class="te-section">
+      <div class="te-section__header">
+        <h3>Code Block</h3>
+      </div>
+      <div class="te-grid te-grid--2">
+        <BaseInput
+          :model-value="codeBlock.name"
+          label="Name"
+          placeholder="Prepare payload"
+          @update:model-value="updateCodeBlock({ name: String($event) })"
+        />
+        <BaseInput
+          :model-value="codeBlock.outputName ?? ''"
+          label="Output name"
+          placeholder="preparedPayload"
+          @update:model-value="updateCodeBlock({ outputName: String($event) || undefined })"
+        />
+      </div>
+      <BaseCodeEditor
+        :model-value="codeBlock.source"
+        language="typescript"
+        label="Source"
+        height="220px"
+        @update:model-value="updateCodeBlock({ source: String($event) })"
+      />
+    </section>
+
     <section v-else-if="kind === 'output' && method" class="te-section">
       <div class="te-section__header">
         <h3>Output field</h3>
@@ -390,6 +517,7 @@ import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import type {
   PluginBlueprintAuthType,
+  PluginBlueprintCodeBlock,
   PluginBlueprintCredentialField,
   PluginBlueprintErrorCondition,
   PluginBlueprintErrorMapping,
@@ -456,6 +584,7 @@ const title = computed(() => {
     body: 'JSON Body',
     responseMapper: 'Response Mapper',
     errorMapper: 'Error Mapper',
+    codeBlock: 'Code Block',
     output: 'Output Field',
   }
   return labels[props.kind]
@@ -490,6 +619,17 @@ const errorMessageValue = computed(() => {
   const message = firstErrorMapping.value.message
   return message.type === 'static' ? message.value : message.path
 })
+const codeBlock = computed<PluginBlueprintCodeBlock>(() => {
+  const codeBlockId = String(node.value?.data.codeBlockId ?? node.value?.id ?? 'code_block')
+  return (
+    method.value?.codeBlocks?.find((candidate) => candidate.id === codeBlockId) ?? {
+      id: codeBlockId,
+      name: String(node.value?.data.name ?? node.value?.data.label ?? 'Code Block'),
+      source: String(node.value?.data.source ?? 'return previous;'),
+      outputName: typeof node.value?.data.outputName === 'string' ? node.value.data.outputName : undefined,
+    }
+  )
+})
 
 function updateNodeData(data: Record<string, unknown>) {
   if (!node.value) return
@@ -506,6 +646,38 @@ function updateCredential(payload: Partial<PluginBlueprintCredentialField>) {
   emit('updateCredential', firstCredential.value.name, payload)
 }
 
+function addInput() {
+  if (!method.value) return
+  emit('updateMethod', method.value.id, {
+    inputs: [
+      ...method.value.inputs,
+      {
+        name: `input${method.value.inputs.length + 1}`,
+        type: 'string',
+        required: false,
+      },
+    ],
+  })
+}
+
+function updateInputAt(index: number, payload: Partial<PluginBlueprintInput>) {
+  if (!method.value) return
+  const inputs = method.value.inputs.map((input, currentIndex) =>
+    currentIndex === index ? { ...input, ...payload } : input,
+  )
+  emit('updateMethod', method.value.id, { inputs })
+}
+
+function addCredential() {
+  emit('addCredential')
+}
+
+function updateCredentialAt(index: number, payload: Partial<PluginBlueprintCredentialField>) {
+  const credential = props.blueprint?.auth.fields[index]
+  if (!credential) return
+  emit('updateCredential', credential.name, payload)
+}
+
 function updateAuthType(type: PluginBlueprintAuthType) {
   updateNodeData({ authType: type })
 }
@@ -520,6 +692,32 @@ function updateRequestKeyValue(
   emit('updateRequest', method.value.id, {
     [key]: [{ ...first, ...payload }, ...current.slice(1)],
   } as Partial<PluginBlueprintRequest>)
+}
+
+function addHeader() {
+  if (!method.value) return
+  emit('updateRequest', method.value.id, {
+    headers: [...method.value.request.headers, { name: '', value: '' }],
+  })
+}
+
+function addQueryParam() {
+  if (!method.value) return
+  emit('updateRequest', method.value.id, {
+    query: [...method.value.request.query, { name: '', value: '' }],
+  })
+}
+
+function updateRequestKeyValueAt(
+  key: 'headers' | 'query',
+  index: number,
+  payload: Partial<PluginBlueprintKeyValue>,
+) {
+  if (!method.value) return
+  const values = method.value.request[key].map((entry, currentIndex) =>
+    currentIndex === index ? { ...entry, ...payload } : entry,
+  )
+  emit('updateRequest', method.value.id, { [key]: values } as Partial<PluginBlueprintRequest>)
 }
 
 function updateRequestBody(value: string) {
@@ -577,6 +775,27 @@ function updateErrorMessage(value: string) {
   updateErrorMapping({ message: { type: 'static', value } })
 }
 
+function updateCodeBlock(payload: Partial<PluginBlueprintCodeBlock>) {
+  if (!method.value || !node.value) return
+  const current = method.value.codeBlocks ?? []
+  const existingIndex = current.findIndex((candidate) => candidate.id === codeBlock.value.id)
+  const nextBlock = { ...codeBlock.value, ...payload }
+  const codeBlocks =
+    existingIndex >= 0
+      ? current.map((candidate, index) => (index === existingIndex ? nextBlock : candidate))
+      : [...current, nextBlock]
+  emit('updateMethod', method.value.id, { codeBlocks })
+  emit('updateNode', node.value.id, {
+    data: {
+      codeBlockId: nextBlock.id,
+      name: nextBlock.name,
+      label: nextBlock.name,
+      outputName: nextBlock.outputName,
+      source: nextBlock.source,
+    },
+  })
+}
+
 function stringifyEditorValue(value: unknown) {
   if (typeof value === 'string') return value
   return JSON.stringify(value, null, 2)
@@ -606,6 +825,22 @@ function parseEditorValue(value: string): unknown {
 
 .te-section__header h3 {
   margin: 0;
+}
+
+.te-section__header--compact {
+  margin-top: 14px;
+}
+
+.te-inline-button {
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  padding: 6px 8px;
 }
 
 .te-grid {
