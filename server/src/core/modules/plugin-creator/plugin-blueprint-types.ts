@@ -24,9 +24,12 @@ export const PLUGIN_BLUEPRINT_AUTH_TYPES = [
   "basic",
 ] as const;
 
-export type PluginBlueprintInputType = (typeof PLUGIN_BLUEPRINT_INPUT_TYPES)[number];
-export type PluginBlueprintHttpMethod = (typeof PLUGIN_BLUEPRINT_HTTP_METHODS)[number];
-export type PluginBlueprintAuthType = (typeof PLUGIN_BLUEPRINT_AUTH_TYPES)[number];
+export type PluginBlueprintInputType =
+  (typeof PLUGIN_BLUEPRINT_INPUT_TYPES)[number];
+export type PluginBlueprintHttpMethod =
+  (typeof PLUGIN_BLUEPRINT_HTTP_METHODS)[number];
+export type PluginBlueprintAuthType =
+  (typeof PLUGIN_BLUEPRINT_AUTH_TYPES)[number];
 
 export interface PluginBlueprintMetadata {
   handle: string;
@@ -99,7 +102,10 @@ export interface PluginBlueprintRequest {
   body: PluginBlueprintRequestBody;
 }
 
-export type PluginBlueprintOutputType = Exclude<PluginBlueprintInputType, "file">;
+export type PluginBlueprintOutputType = Exclude<
+  PluginBlueprintInputType,
+  "file"
+>;
 
 export interface PluginBlueprintResponseMapping {
   id: string;
@@ -149,6 +155,13 @@ export interface PluginBlueprintSwitchCase {
   id: string;
   label: string;
   value: unknown;
+  handle?: string;
+}
+
+export interface PluginBlueprintCatchCase {
+  id: string;
+  label: string;
+  errorCode?: string;
   handle?: string;
 }
 
@@ -207,6 +220,7 @@ export interface PluginBlueprintSwitchNodeData extends PluginBlueprintBaseNodeDa
 
 export interface PluginBlueprintTryCatchNodeData extends PluginBlueprintBaseNodeData {
   errorVariable?: string;
+  catchCases?: PluginBlueprintCatchCase[];
 }
 
 export interface PluginBlueprintJsonTransformNodeData extends PluginBlueprintBaseNodeData {
@@ -230,8 +244,7 @@ export interface PluginBlueprintForEachNodeData extends PluginBlueprintBaseNodeD
   itemVariable: string;
 }
 
-export type PluginBlueprintNodeData =
-  Record<string, unknown>;
+export type PluginBlueprintNodeData = Record<string, unknown>;
 
 export interface PluginBlueprintNode {
   id: string;

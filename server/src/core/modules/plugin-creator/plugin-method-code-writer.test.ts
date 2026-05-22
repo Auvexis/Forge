@@ -31,9 +31,17 @@ function createBlueprintWithRequestMapperAndCodeBlock(): PluginBlueprint {
           query: [],
           body: { type: "json", value: { name: "{{ params.name }}" } },
         },
-        responseMapping: [{ id: "map_lead", outputName: "lead", path: "body", type: "object" }],
+        responseMapping: [
+          { id: "map_lead", outputName: "lead", path: "body", type: "object" },
+        ],
         errorMapping: [],
-        codeBlocks: [{ id: "code_after_map", name: "After map", source: "return previous;" }],
+        codeBlocks: [
+          {
+            id: "code_after_map",
+            name: "After map",
+            source: "return previous;",
+          },
+        ],
       },
     ],
     canvas: {
@@ -60,12 +68,23 @@ function createBlueprintWithRequestMapperAndCodeBlock(): PluginBlueprint {
           id: "code_after_map",
           type: "codeBlock",
           position: { x: 720, y: 0 },
-          data: { methodId: "method_create_lead", codeBlockId: "code_after_map" },
+          data: {
+            methodId: "method_create_lead",
+            codeBlockId: "code_after_map",
+          },
         },
       },
       edges: [
-        { id: "edge_1", source: "method_create_lead", target: "request_create_lead" },
-        { id: "edge_2", source: "request_create_lead", target: "map_create_lead" },
+        {
+          id: "edge_1",
+          source: "method_create_lead",
+          target: "request_create_lead",
+        },
+        {
+          id: "edge_2",
+          source: "request_create_lead",
+          target: "map_create_lead",
+        },
         { id: "edge_3", source: "map_create_lead", target: "code_after_map" },
       ],
     },
@@ -76,7 +95,9 @@ function createBlueprintWithRequestMapperAndCodeBlock(): PluginBlueprint {
 
 describe("plugin method code writer", () => {
   it("emits method source as ordered node statements", () => {
-    const source = generatePluginMethodsSource(createBlueprintWithRequestMapperAndCodeBlock());
+    const source = generatePluginMethodsSource(
+      createBlueprintWithRequestMapperAndCodeBlock(),
+    );
 
     assert.match(source, /\/\/ Node HTTP Request: request_create_lead/);
     assert.match(source, /const request_create_lead = await fetch/);
@@ -106,15 +127,37 @@ describe("plugin method code writer", () => {
           nodeId: "if_has_name",
           methodId: method.id,
           condition: "Boolean(params.name)",
-          thenSteps: [{ kind: "return", nodeId: "return_name", methodId: method.id, valueExpression: "payload" }],
-          elseSteps: [{ kind: "return", nodeId: "return_empty", methodId: method.id, valueExpression: "null" }],
+          thenSteps: [
+            {
+              kind: "return",
+              nodeId: "return_name",
+              methodId: method.id,
+              valueExpression: "payload",
+            },
+          ],
+          elseSteps: [
+            {
+              kind: "return",
+              nodeId: "return_empty",
+              methodId: method.id,
+              valueExpression: "null",
+            },
+          ],
         },
         {
           kind: "switch",
           nodeId: "switch_status",
           methodId: method.id,
           expression: "status",
-          cases: [{ id: "case_ok", label: "OK", value: 200, handle: "case_ok", steps: [] }],
+          cases: [
+            {
+              id: "case_ok",
+              label: "OK",
+              value: 200,
+              handle: "case_ok",
+              steps: [],
+            },
+          ],
           defaultSteps: [],
         },
         {
@@ -123,6 +166,22 @@ describe("plugin method code writer", () => {
           methodId: method.id,
           errorVariable: "error",
           trySteps: [],
+          catchCases: [
+            {
+              id: "catch_rate_limit",
+              label: "Rate limit",
+              errorCode: "RATE_LIMIT",
+              handle: "catch_rate_limit",
+              steps: [
+                {
+                  kind: "return",
+                  nodeId: "return_retry",
+                  methodId: method.id,
+                  valueExpression: "error",
+                },
+              ],
+            },
+          ],
           catchSteps: [],
         },
         {
@@ -156,6 +215,8 @@ describe("plugin method code writer", () => {
     assert.match(source, /case 200:/);
     assert.match(source, /\/\/ Node Try\/Catch: try_request/);
     assert.match(source, /catch \(error\)/);
+    assert.match(source, /catch_rate_limit/);
+    assert.match(source, /RATE_LIMIT/);
     assert.match(source, /\/\/ Node For: for_pages/);
     assert.match(source, /for \(let page = 1; page <= 2; page \+= 1\)/);
     assert.match(source, /\/\/ Node ForEach: foreach_items/);

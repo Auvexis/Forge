@@ -28,4 +28,16 @@ describe('Plugin Creator control nodes', () => {
     assert.match(source, /handlePositions/)
     assert.match(source, /default/)
   })
+
+  it('TryCatchNode uses workflow-style dynamic catch handles and quick add buttons', () => {
+    const source = fs.readFileSync(path.join(nodeDir, 'TryCatchNode.vue'), 'utf8')
+
+    assert.match(source, /BaseHandle/)
+    assert.match(source, /BaseBadge/)
+    assert.match(source, /QuickAddButton/)
+    assert.match(source, /catchCases/)
+    assert.match(source, /nodeHeight/)
+    assert.match(source, /handlePositions/)
+    assert.match(source, /try/)
+  })
 })

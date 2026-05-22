@@ -1,5 +1,11 @@
-import type { PluginBlueprint, PluginBlueprintMethod } from "./plugin-blueprint-types.ts";
-import type { PluginMethodPlan, PluginMethodPlanStep } from "./plugin-method-plan.ts";
+import type {
+  PluginBlueprint,
+  PluginBlueprintMethod,
+} from "./plugin-blueprint-types.ts";
+import type {
+  PluginMethodPlan,
+  PluginMethodPlanStep,
+} from "./plugin-method-plan.ts";
 import { assertSafePluginCreatorCodeBlock } from "./plugin-code-block-safety.ts";
 
 interface WriterState {
@@ -110,7 +116,9 @@ function writeErrorMapperStep(
   state: WriterState,
 ): string {
   const response = state.latestResponse ?? "{}";
-  const status = state.latestResponse ? `${state.latestResponse}.status` : "200";
+  const status = state.latestResponse
+    ? `${state.latestResponse}.status`
+    : "200";
   const body = state.latestResponse ? `${state.latestResponse}.body` : "null";
   const mapping = JSON.stringify(method.errorMapping, null, 2);
 
@@ -131,7 +139,9 @@ function writeCodeBlockStep(
   step: Extract<PluginMethodPlanStep, { kind: "codeBlock" }>,
   state: WriterState,
 ): string {
-  const codeBlock = method.codeBlocks?.find((candidate) => candidate.id === step.codeBlockId) ?? {
+  const codeBlock = method.codeBlocks?.find(
+    (candidate) => candidate.id === step.codeBlockId,
+  ) ?? {
     id: step.codeBlockId,
     name: step.codeBlockId,
     source: "return previous;",
@@ -156,7 +166,8 @@ function writeIfStep(
   const elseState = { ...state };
   const thenSource = writeStepsSource(method, step.thenSteps, thenState);
   const elseSource = writeStepsSource(method, step.elseSteps, elseState);
-  state.latestValue = thenState.latestValue ?? elseState.latestValue ?? state.latestValue;
+  state.latestValue =
+    thenState.latestValue ?? elseState.latestValue ?? state.latestValue;
 
   return `// Node If: ${step.nodeId}
 if (${step.condition}) {
@@ -180,7 +191,11 @@ ${indent(caseSource || "break;", 2)}
   break;`;
   });
   const defaultState = { ...state };
-  const defaultSource = writeStepsSource(method, step.defaultSteps, defaultState);
+  const defaultSource = writeStepsSource(
+    method,
+    step.defaultSteps,
+    defaultState,
+  );
   state.latestValue = defaultState.latestValue ?? state.latestValue;
 
   return `// Node Switch: ${step.nodeId}
@@ -197,16 +212,44 @@ function writeTryCatchStep(
   state: WriterState,
 ): string {
   const tryState = { ...state };
-  const catchState = { ...state };
   const trySource = writeStepsSource(method, step.trySteps, tryState);
+  let latestCatchCaseValue: string | null = null;
+  const catchCaseSources = step.catchCases.map((catchCase, index) => {
+    const catchCaseState = { ...state };
+    const catchCaseSource = writeStepsSource(
+      method,
+      catchCase.steps,
+      catchCaseState,
+    );
+    latestCatchCaseValue = catchCaseState.latestValue ?? latestCatchCaseValue;
+    const condition = catchCase.errorCode
+      ? `${step.nodeId}_error_code === ${JSON.stringify(catchCase.errorCode)}`
+      : "true";
+    return `${index === 0 ? "if" : "else if"} (${condition}) {
+${indent(`// Catch case: ${catchCase.handle}\n${catchCaseSource}`, 2)}
+}`;
+  });
+  const catchState = { ...state };
   const catchSource = writeStepsSource(method, step.catchSteps, catchState);
-  state.latestValue = tryState.latestValue ?? catchState.latestValue ?? state.latestValue;
+  state.latestValue =
+    tryState.latestValue ??
+    catchState.latestValue ??
+    latestCatchCaseValue ??
+    state.latestValue;
+  const fallbackSource = catchSource
+    ? `${catchCaseSources.length > 0 ? "else" : "if (true)"} {
+${indent(catchSource, 2)}
+}`
+    : `${catchCaseSources.length > 0 ? "else" : "if (true)"} {
+  throw ${step.errorVariable};
+}`;
 
   return `// Node Try/Catch: ${step.nodeId}
 try {
 ${indent(trySource, 2)}
 } catch (${step.errorVariable}) {
-${indent(catchSource, 2)}
+  const ${step.nodeId}_error_code = getPluginCreatorErrorCode(${step.errorVariable});
+${indent([...catchCaseSources, fallbackSource].join(" "), 2)}
 }`;
 }
 

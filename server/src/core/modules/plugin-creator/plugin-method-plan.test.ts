@@ -49,16 +49,18 @@ function createBlueprintWithMethodGraph(input: {
           id,
           {
             id,
-            type:
-              id.startsWith("method_")
-                ? "method"
-                : id.startsWith("request_")
-                  ? "request"
-                  : id.startsWith("map_")
-                    ? "responseMapper"
-                    : "codeBlock",
+            type: id.startsWith("method_")
+              ? "method"
+              : id.startsWith("request_")
+                ? "request"
+                : id.startsWith("map_")
+                  ? "responseMapper"
+                  : "codeBlock",
             position: { x: index * 240, y: 0 },
-            data: { methodId: method.id, codeBlockId: id === "code_after_map" ? id : undefined },
+            data: {
+              methodId: method.id,
+              codeBlockId: id === "code_after_map" ? id : undefined,
+            },
           },
         ]),
       ),
@@ -76,7 +78,12 @@ function createBlueprintWithMethodGraph(input: {
 describe("buildPluginMethodPlans", () => {
   it("orders method canvas nodes into executable method steps", () => {
     const blueprint = createBlueprintWithMethodGraph({
-      nodes: ["method_create_lead", "request_create_lead", "map_create_lead", "code_after_map"],
+      nodes: [
+        "method_create_lead",
+        "request_create_lead",
+        "map_create_lead",
+        "code_after_map",
+      ],
       edges: [
         ["method_create_lead", "request_create_lead"],
         ["request_create_lead", "map_create_lead"],
@@ -87,11 +94,10 @@ describe("buildPluginMethodPlans", () => {
     const [plan] = buildPluginMethodPlans(blueprint);
 
     assert.equal(plan?.handle, "createLead");
-    assert.deepEqual(plan?.steps.map((step) => step.kind), [
-      "httpRequest",
-      "responseMapper",
-      "codeBlock",
-    ]);
+    assert.deepEqual(
+      plan?.steps.map((step) => step.kind),
+      ["httpRequest", "responseMapper", "codeBlock"],
+    );
   });
 
   it("falls back to request mapper and error steps without graph nodes", () => {
@@ -99,16 +105,20 @@ describe("buildPluginMethodPlans", () => {
 
     const [plan] = buildPluginMethodPlans(blueprint);
 
-    assert.deepEqual(plan?.steps.map((step) => step.kind), [
-      "httpRequest",
-      "responseMapper",
-      "errorMapper",
-    ]);
+    assert.deepEqual(
+      plan?.steps.map((step) => step.kind),
+      ["httpRequest", "responseMapper", "errorMapper"],
+    );
   });
 
   it("nests if branches from source handles", () => {
     const blueprint = createBlueprintWithMethodGraph({
-      nodes: ["method_create_lead", "if_has_email", "request_then", "code_else"],
+      nodes: [
+        "method_create_lead",
+        "if_has_email",
+        "request_then",
+        "code_else",
+      ],
       edges: [
         ["method_create_lead", "if_has_email"],
         ["if_has_email", "request_then"],
@@ -127,13 +137,24 @@ describe("buildPluginMethodPlans", () => {
     const [step] = plan!.steps;
 
     assert.equal(step?.kind, "if");
-    assert.deepEqual(step?.thenSteps.map((candidate) => candidate.kind), ["httpRequest"]);
-    assert.deepEqual(step?.elseSteps.map((candidate) => candidate.kind), ["codeBlock"]);
+    assert.deepEqual(
+      step?.thenSteps.map((candidate) => candidate.kind),
+      ["httpRequest"],
+    );
+    assert.deepEqual(
+      step?.elseSteps.map((candidate) => candidate.kind),
+      ["codeBlock"],
+    );
   });
 
   it("nests switch cases and default steps", () => {
     const blueprint = createBlueprintWithMethodGraph({
-      nodes: ["method_create_lead", "switch_status", "request_ok", "code_default"],
+      nodes: [
+        "method_create_lead",
+        "switch_status",
+        "request_ok",
+        "code_default",
+      ],
       edges: [
         ["method_create_lead", "switch_status"],
         ["switch_status", "request_ok"],
@@ -154,8 +175,14 @@ describe("buildPluginMethodPlans", () => {
 
     assert.equal(step?.kind, "switch");
     assert.equal(step?.cases[0]?.handle, "case_ok");
-    assert.deepEqual(step?.cases[0]?.steps.map((candidate) => candidate.kind), ["httpRequest"]);
-    assert.deepEqual(step?.defaultSteps.map((candidate) => candidate.kind), ["codeBlock"]);
+    assert.deepEqual(
+      step?.cases[0]?.steps.map((candidate) => candidate.kind),
+      ["httpRequest"],
+    );
+    assert.deepEqual(
+      step?.defaultSteps.map((candidate) => candidate.kind),
+      ["codeBlock"],
+    );
   });
 
   it("nests try and catch steps", () => {
@@ -179,8 +206,67 @@ describe("buildPluginMethodPlans", () => {
     const [step] = plan!.steps;
 
     assert.equal(step?.kind, "tryCatch");
-    assert.deepEqual(step?.trySteps.map((candidate) => candidate.kind), ["httpRequest"]);
-    assert.deepEqual(step?.catchSteps.map((candidate) => candidate.kind), ["codeBlock"]);
+    assert.deepEqual(
+      step?.trySteps.map((candidate) => candidate.kind),
+      ["httpRequest"],
+    );
+    assert.deepEqual(
+      step?.catchSteps.map((candidate) => candidate.kind),
+      ["codeBlock"],
+    );
+  });
+
+  it("nests try catch cases from stable handles and keeps legacy catch fallback", () => {
+    const blueprint = createBlueprintWithMethodGraph({
+      nodes: [
+        "method_create_lead",
+        "try_request",
+        "request_try",
+        "code_case",
+        "code_legacy",
+      ],
+      edges: [
+        ["method_create_lead", "try_request"],
+        ["try_request", "request_try"],
+        ["try_request", "code_case"],
+        ["try_request", "code_legacy"],
+      ],
+    });
+    blueprint.canvas.nodes.try_request!.type = "tryCatch";
+    blueprint.canvas.nodes.try_request!.data = {
+      methodId: "method_create_lead",
+      errorVariable: "error",
+      catchCases: [
+        {
+          id: "catch_rate_limit",
+          label: "Rate limit",
+          errorCode: "RATE_LIMIT",
+          handle: "catch_rate_limit",
+        },
+      ],
+    };
+    blueprint.canvas.edges[1]!.sourceHandle = "try";
+    blueprint.canvas.edges[2]!.sourceHandle = "catch_rate_limit";
+    blueprint.canvas.edges[3]!.sourceHandle = "catch";
+
+    const [plan] = buildPluginMethodPlans(blueprint);
+    const [step] = plan!.steps;
+
+    assert.equal(step?.kind, "tryCatch");
+    assert.deepEqual(
+      step?.trySteps.map((candidate) => candidate.kind),
+      ["httpRequest"],
+    );
+    assert.equal(step?.catchCases[0]?.handle, "catch_rate_limit");
+    assert.equal(step?.catchCases[0]?.errorCode, "RATE_LIMIT");
+    assert.deepEqual(
+      step?.catchCases[0]?.steps.map((candidate) => candidate.kind),
+      ["codeBlock"],
+    );
+    assert.deepEqual(
+      step?.catchSteps.map((candidate) => candidate.kind),
+      ["codeBlock"],
+    );
   });
 
   it("nests forEach body steps", () => {
@@ -203,7 +289,10 @@ describe("buildPluginMethodPlans", () => {
     const [step] = plan!.steps;
 
     assert.equal(step?.kind, "forEach");
-    assert.deepEqual(step?.bodySteps.map((candidate) => candidate.kind), ["codeBlock"]);
+    assert.deepEqual(
+      step?.bodySteps.map((candidate) => candidate.kind),
+      ["codeBlock"],
+    );
   });
 
   it("stops the method plan at a return node", () => {
@@ -222,6 +311,9 @@ describe("buildPluginMethodPlans", () => {
 
     const [plan] = buildPluginMethodPlans(blueprint);
 
-    assert.deepEqual(plan?.steps.map((step) => step.kind), ["return"]);
+    assert.deepEqual(
+      plan?.steps.map((step) => step.kind),
+      ["return"],
+    );
   });
 });

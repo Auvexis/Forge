@@ -240,16 +240,16 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing backend tests for `catchCases`.
-- [ ] Add node data shape: `catchCases: Array<{ id: string; label: string; errorCode?: string; handle?: string }>` and keep old `catch` fallback.
-- [ ] Plan compiler maps `try` branch plus each catch case branch.
-- [ ] Code writer emits ordered `catch` routing block. Simple implementation: one JS `catch(error)` and inside it route by configured predicates/error code.
-- [ ] Runner supports same branch routing for test execution.
-- [ ] Node visual uses Switch-like dynamic handles: `try`, each catch case, optional `finally` later not in this task.
-- [ ] Editor supports add/remove/reorder catches, stable handle ids, error variable, fallback catch.
-- [ ] Run backend + frontend focused tests.
-- [ ] Run server build and client type-check.
-- [ ] Commit: `feat: add multi-catch plugin creator try catch node`.
+- [x] Write failing backend tests for `catchCases`.
+- [x] Add node data shape: `catchCases: Array<{ id: string; label: string; errorCode?: string; handle?: string }>` and keep old `catch` fallback.
+- [x] Plan compiler maps `try` branch plus each catch case branch.
+- [x] Code writer emits ordered `catch` routing block. Simple implementation: one JS `catch(error)` and inside it route by configured predicates/error code.
+- [x] Runner supports same branch routing for test execution.
+- [x] Node visual uses Switch-like dynamic handles: `try`, each catch case, optional `finally` later not in this task.
+- [x] Editor supports add/remove/reorder catches, stable handle ids, error variable, fallback catch.
+- [x] Run backend + frontend focused tests.
+- [x] Run server build and client type-check.
+- [x] Commit: `feat: add multi-catch plugin creator try catch node`.
 
 ## Task 10: JSON Transform editor
 

@@ -13,7 +13,10 @@ import {
   evaluatePluginCreatorExpression,
   type PluginCreatorExpressionContext,
 } from "./plugin-method-expression-evaluator.ts";
-import type { PluginMethodPlan, PluginMethodPlanStep } from "./plugin-method-plan-types.ts";
+import type {
+  PluginMethodPlan,
+  PluginMethodPlanStep,
+} from "./plugin-method-plan-types.ts";
 import type { PluginMethodTraceEvent } from "./plugin-method-trace-types.ts";
 import { renderPluginRequestTemplate } from "./plugin-request-template.ts";
 import { mapPluginCreatorResponse } from "./plugin-response-mapper.ts";
@@ -43,7 +46,10 @@ interface RunnerState {
   latestValue: unknown;
   returned: boolean;
   trace: PluginMethodTraceEvent[];
-  steps: Record<string, { status: "success" | "failed"; output?: unknown; error?: string }>;
+  steps: Record<
+    string,
+    { status: "success" | "failed"; output?: unknown; error?: string }
+  >;
 }
 
 interface ResponseLike {
@@ -64,7 +70,9 @@ export class PluginMethodPlanRunner {
     this.repository = dependencies.repository;
   }
 
-  async run(input: PluginMethodPlanRunnerInput): Promise<PluginMethodPlanRunResult> {
+  async run(
+    input: PluginMethodPlanRunnerInput,
+  ): Promise<PluginMethodPlanRunResult> {
     const state: RunnerState = {
       startedAt: Date.now(),
       renderedRequest: null,
@@ -78,12 +86,20 @@ export class PluginMethodPlanRunner {
     try {
       await this.runSteps(input, state, input.plan.steps);
       const result = this.createResult(input, state, null);
-      state.trace.push({ type: "method:success", timestamp: this.now(), output: result.body });
+      state.trace.push({
+        type: "method:success",
+        timestamp: this.now(),
+        output: result.body,
+      });
       result.trace = state.trace;
       this.repository?.saveLastRun(input.blueprint.id, result);
       return result;
     } catch (error) {
-      const result = this.createResult(input, state, normalizeErrorMessage(error));
+      const result = this.createResult(
+        input,
+        state,
+        normalizeErrorMessage(error),
+      );
       state.trace.push({
         type: "method:failed",
         timestamp: this.now(),
@@ -111,7 +127,11 @@ export class PluginMethodPlanRunner {
     state: RunnerState,
     step: PluginMethodPlanStep,
   ): Promise<void> {
-    state.trace.push({ type: "node:running", timestamp: this.now(), nodeId: step.nodeId });
+    state.trace.push({
+      type: "node:running",
+      timestamp: this.now(),
+      nodeId: step.nodeId,
+    });
 
     try {
       const output = await this.executeStep(input, state, step);
@@ -122,7 +142,10 @@ export class PluginMethodPlanRunner {
         nodeId: step.nodeId,
         output,
         status: state.latestResponse?.status,
-        request: step.kind === "httpRequest" ? state.renderedRequest ?? undefined : undefined,
+        request:
+          step.kind === "httpRequest"
+            ? (state.renderedRequest ?? undefined)
+            : undefined,
       });
     } catch (error) {
       const message = normalizeErrorMessage(error);
@@ -147,21 +170,32 @@ export class PluginMethodPlanRunner {
       case "httpRequest":
         return await this.executeHttpRequest(input, state);
       case "responseMapper": {
-        const mapped = input.method.responseMapping.length > 0
-          ? mapPluginCreatorResponse(state.latestResponse ?? emptyResponse(), input.method.responseMapping)
-          : state.latestResponse?.body ?? {};
+        const mapped =
+          input.method.responseMapping.length > 0
+            ? mapPluginCreatorResponse(
+                state.latestResponse ?? emptyResponse(),
+                input.method.responseMapping,
+              )
+            : (state.latestResponse?.body ?? {});
         state.latestValue = mapped;
         return mapped;
       }
       case "errorMapper": {
-        const mapped = mapPluginCreatorError(state.latestResponse ?? emptyResponse(), input.method.errorMapping);
+        const mapped = mapPluginCreatorError(
+          state.latestResponse ?? emptyResponse(),
+          input.method.errorMapping,
+        );
         if (mapped) {
           throw new Error(mapped.message);
         }
         return null;
       }
       case "codeBlock": {
-        const output = await this.executeCodeBlock(input, state, step.codeBlockId);
+        const output = await this.executeCodeBlock(
+          input,
+          state,
+          step.codeBlockId,
+        );
         state.latestValue = output;
         return output;
       }
@@ -174,16 +208,33 @@ export class PluginMethodPlanRunner {
       }
       case "switch": {
         const value = this.evaluateExpression(input, state, step.expression);
-        const selectedCase = step.cases.find((candidate) => candidate.value === value);
-        await this.runSteps(input, state, selectedCase?.steps ?? step.defaultSteps);
+        const selectedCase = step.cases.find(
+          (candidate) => candidate.value === value,
+        );
+        await this.runSteps(
+          input,
+          state,
+          selectedCase?.steps ?? step.defaultSteps,
+        );
         return state.latestValue;
       }
       case "tryCatch":
         try {
           await this.runSteps(input, state, step.trySteps);
         } catch (error) {
-          state.latestValue = { [step.errorVariable]: normalizeErrorMessage(error) };
-          await this.runSteps(input, state, step.catchSteps);
+          state.latestValue = {
+            [step.errorVariable]: normalizeCaughtError(error),
+          };
+          const errorCode = getErrorCode(error);
+          const selectedCase = step.catchCases.find(
+            (candidate) =>
+              !candidate.errorCode || candidate.errorCode === errorCode,
+          );
+          await this.runSteps(
+            input,
+            state,
+            selectedCase?.steps ?? step.catchSteps,
+          );
         }
         return state.latestValue;
       case "jsonTransform": {
@@ -192,7 +243,11 @@ export class PluginMethodPlanRunner {
         return output;
       }
       case "return": {
-        const output = this.evaluateExpression(input, state, step.valueExpression);
+        const output = this.evaluateExpression(
+          input,
+          state,
+          step.valueExpression,
+        );
         state.latestValue = output;
         state.returned = true;
         return output;
@@ -200,14 +255,20 @@ export class PluginMethodPlanRunner {
       case "for": {
         const outputs: unknown[] = [];
         if (step.iterableExpression) {
-          for (const item of toArray(this.evaluateExpression(input, state, step.iterableExpression))) {
+          for (const item of toArray(
+            this.evaluateExpression(input, state, step.iterableExpression),
+          )) {
             state.latestValue = item;
             await this.runSteps(input, state, step.bodySteps);
             outputs.push(state.latestValue);
           }
         } else {
-          const from = Number(this.evaluateExpression(input, state, step.fromExpression ?? "0"));
-          const to = Number(this.evaluateExpression(input, state, step.toExpression ?? "0"));
+          const from = Number(
+            this.evaluateExpression(input, state, step.fromExpression ?? "0"),
+          );
+          const to = Number(
+            this.evaluateExpression(input, state, step.toExpression ?? "0"),
+          );
           for (let index = from; index <= to; index += 1) {
             state.latestValue = index;
             await this.runSteps(input, state, step.bodySteps);
@@ -219,7 +280,9 @@ export class PluginMethodPlanRunner {
       }
       case "forEach": {
         const outputs: unknown[] = [];
-        for (const item of toArray(this.evaluateExpression(input, state, step.arrayExpression))) {
+        for (const item of toArray(
+          this.evaluateExpression(input, state, step.arrayExpression),
+        )) {
           state.latestValue = item;
           await this.runSteps(input, state, step.bodySteps);
           outputs.push(state.latestValue);
@@ -242,15 +305,21 @@ export class PluginMethodPlanRunner {
     state.renderedRequest = rendered.preview;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), input.timeoutMs ?? defaultTimeoutMs);
+    const timeout = setTimeout(
+      () => controller.abort(),
+      input.timeoutMs ?? defaultTimeoutMs,
+    );
 
     try {
-      const response = await fetch(buildUrl(rendered.request.url, rendered.request.query), {
-        method: rendered.request.method,
-        headers: rendered.request.headers,
-        body: createFetchBody(rendered.request.body),
-        signal: controller.signal,
-      });
+      const response = await fetch(
+        buildUrl(rendered.request.url, rendered.request.query),
+        {
+          method: rendered.request.method,
+          headers: rendered.request.headers,
+          body: createFetchBody(rendered.request.body),
+          signal: controller.signal,
+        },
+      );
       const responseLike = {
         status: response.status,
         headers: headersToRecord(response.headers),
@@ -269,7 +338,9 @@ export class PluginMethodPlanRunner {
     state: RunnerState,
     codeBlockId: string,
   ): Promise<unknown> {
-    const codeBlock = input.method.codeBlocks?.find((candidate) => candidate.id === codeBlockId) ?? {
+    const codeBlock = input.method.codeBlocks?.find(
+      (candidate) => candidate.id === codeBlockId,
+    ) ?? {
       id: codeBlockId,
       name: codeBlockId,
       source: "return previous;",
@@ -277,8 +348,12 @@ export class PluginMethodPlanRunner {
     assertSafePluginCreatorCodeBlock(codeBlock.source);
     const context = this.createExpressionContext(input, state);
     const sandbox = vm.createContext(context);
-    const script = new vm.Script(`"use strict";\n(async () => {\n${codeBlock.source}\n})()`);
-    return normalizeVmValue(await script.runInContext(sandbox, { timeout: codeBlockTimeoutMs }));
+    const script = new vm.Script(
+      `"use strict";\n(async () => {\n${codeBlock.source}\n})()`,
+    );
+    return normalizeVmValue(
+      await script.runInContext(sandbox, { timeout: codeBlockTimeoutMs }),
+    );
   }
 
   private evaluateExpression(
@@ -286,7 +361,10 @@ export class PluginMethodPlanRunner {
     state: RunnerState,
     source: string,
   ): unknown {
-    return evaluatePluginCreatorExpression(source, this.createExpressionContext(input, state));
+    return evaluatePluginCreatorExpression(
+      source,
+      this.createExpressionContext(input, state),
+    );
   }
 
   private createExpressionContext(
@@ -321,7 +399,7 @@ export class PluginMethodPlanRunner {
       },
       status: state.latestResponse?.status ?? null,
       headers: state.latestResponse?.headers ?? {},
-      body: error ? state.latestResponse?.body ?? null : state.latestValue,
+      body: error ? (state.latestResponse?.body ?? null) : state.latestValue,
       durationMs: Date.now() - state.startedAt,
       error,
       timestamp: this.now(),
@@ -369,7 +447,8 @@ function emptyResponse(): ResponseLike {
 }
 
 function normalizeErrorMessage(error: unknown): string {
-  if (error instanceof Error && error.name === "AbortError") return "Request timeout";
+  if (error instanceof Error && error.name === "AbortError")
+    return "Request timeout";
   if (error instanceof Error) return error.message;
   if (
     error &&
@@ -380,6 +459,26 @@ function normalizeErrorMessage(error: unknown): string {
     return error.message;
   }
   return "Method failed";
+}
+
+function normalizeCaughtError(error: unknown): unknown {
+  const message = normalizeErrorMessage(error);
+  const code = getErrorCode(error);
+  if (!code) return message;
+  return { message, code };
+}
+
+function getErrorCode(error: unknown): string | undefined {
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    typeof error.code === "string" &&
+    error.code.length > 0
+  ) {
+    return error.code;
+  }
+  return undefined;
 }
 
 function normalizeVmValue(value: unknown): unknown {

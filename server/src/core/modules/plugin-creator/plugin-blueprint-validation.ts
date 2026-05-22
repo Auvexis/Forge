@@ -96,7 +96,11 @@ const errorConditionSchema = z.object({
 
 const errorMessageSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("static"), value: z.string().min(1) }),
-  z.object({ type: z.literal("bodyPath"), path: z.string().min(1), fallback: z.string().optional() }),
+  z.object({
+    type: z.literal("bodyPath"),
+    path: z.string().min(1),
+    fallback: z.string().optional(),
+  }),
 ]);
 
 const errorMappingSchema = z.object({
@@ -110,7 +114,10 @@ const codeBlockSchema = z.object({
   id: z.string().regex(pluginCreatorIdPattern, "Invalid code block id"),
   name: z.string().min(1),
   source: z.string(),
-  outputName: z.string().regex(fieldNamePattern, "Invalid output name").optional(),
+  outputName: z
+    .string()
+    .regex(fieldNamePattern, "Invalid output name")
+    .optional(),
 });
 
 const methodSchema = z.object({
@@ -139,14 +146,33 @@ const baseNodeSchema = z.object({
 const legacyNodeDataSchema = z.record(z.string(), z.unknown());
 
 const nodeDataWithMethodSchema = z.object({
-  methodId: z.string().regex(pluginCreatorIdPattern, "Invalid method id").optional(),
+  methodId: z
+    .string()
+    .regex(pluginCreatorIdPattern, "Invalid method id")
+    .optional(),
 });
 
 const switchCaseSchema = z.object({
   id: z.string().regex(pluginCreatorIdPattern, "Invalid switch case id"),
   label: z.string().min(1),
   value: z.unknown(),
-  handle: z.string().regex(pluginCreatorIdPattern, "Invalid switch case handle").optional(),
+  handle: z
+    .string()
+    .regex(pluginCreatorIdPattern, "Invalid switch case handle")
+    .optional(),
+});
+
+const catchCaseSchema = z.object({
+  id: z.string().regex(pluginCreatorIdPattern, "Invalid catch case id"),
+  label: z.string().min(1),
+  errorCode: z
+    .string()
+    .regex(errorCodePattern, "Invalid catch error code")
+    .optional(),
+  handle: z
+    .string()
+    .regex(pluginCreatorIdPattern, "Invalid catch case handle")
+    .optional(),
 });
 
 const nodeSchema = z.discriminatedUnion("type", [
@@ -184,14 +210,21 @@ const nodeSchema = z.discriminatedUnion("type", [
   baseNodeSchema.extend({
     type: z.literal("tryCatch"),
     data: nodeDataWithMethodSchema.extend({
-      errorVariable: z.string().regex(variableNamePattern, "Invalid error variable").optional(),
+      errorVariable: z
+        .string()
+        .regex(variableNamePattern, "Invalid error variable")
+        .optional(),
+      catchCases: z.array(catchCaseSchema).optional(),
     }),
   }),
   baseNodeSchema.extend({
     type: z.literal("jsonTransform"),
     data: nodeDataWithMethodSchema.extend({
       expression: z.string().min(1),
-      outputName: z.string().regex(fieldNamePattern, "Invalid output name").optional(),
+      outputName: z
+        .string()
+        .regex(fieldNamePattern, "Invalid output name")
+        .optional(),
     }),
   }),
   baseNodeSchema.extend({
@@ -203,7 +236,9 @@ const nodeSchema = z.discriminatedUnion("type", [
   baseNodeSchema.extend({
     type: z.literal("for"),
     data: nodeDataWithMethodSchema.extend({
-      itemVariable: z.string().regex(variableNamePattern, "Invalid item variable"),
+      itemVariable: z
+        .string()
+        .regex(variableNamePattern, "Invalid item variable"),
       fromExpression: z.string().min(1).optional(),
       toExpression: z.string().min(1).optional(),
       iterableExpression: z.string().min(1).optional(),
@@ -213,7 +248,9 @@ const nodeSchema = z.discriminatedUnion("type", [
     type: z.literal("forEach"),
     data: nodeDataWithMethodSchema.extend({
       arrayExpression: z.string().min(1),
-      itemVariable: z.string().regex(variableNamePattern, "Invalid item variable"),
+      itemVariable: z
+        .string()
+        .regex(variableNamePattern, "Invalid item variable"),
     }),
   }),
 ]);
@@ -280,7 +317,9 @@ export function parsePluginBlueprint(input: unknown): PluginBlueprint {
   return pluginBlueprintSchema.parse(input);
 }
 
-export function validatePluginBlueprint(input: unknown): PluginBlueprintValidationResult {
+export function validatePluginBlueprint(
+  input: unknown,
+): PluginBlueprintValidationResult {
   const result = pluginBlueprintSchema.safeParse(input);
   if (result.success) {
     return { success: true, data: result.data };

@@ -130,6 +130,13 @@ export interface PluginBlueprintSwitchCase {
   handle?: string
 }
 
+export interface PluginBlueprintCatchCase {
+  id: string
+  label: string
+  errorCode?: string
+  handle?: string
+}
+
 export interface PluginBlueprintMethod {
   id: string
   handle: string
@@ -185,6 +192,7 @@ export interface PluginBlueprintSwitchNodeData extends PluginBlueprintBaseNodeDa
 
 export interface PluginBlueprintTryCatchNodeData extends PluginBlueprintBaseNodeData {
   errorVariable?: string
+  catchCases?: PluginBlueprintCatchCase[]
 }
 
 export interface PluginBlueprintJsonTransformNodeData extends PluginBlueprintBaseNodeData {
@@ -208,8 +216,7 @@ export interface PluginBlueprintForEachNodeData extends PluginBlueprintBaseNodeD
   itemVariable: string
 }
 
-export type PluginBlueprintNodeData =
-  Record<string, unknown>
+export type PluginBlueprintNodeData = Record<string, unknown>
 
 export interface PluginBlueprintNode {
   id: string

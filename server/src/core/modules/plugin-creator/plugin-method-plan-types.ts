@@ -25,6 +25,7 @@ export type PluginMethodPlanStep =
       methodId: string;
       errorVariable: string;
       trySteps: PluginMethodPlanStep[];
+      catchCases: PluginMethodPlanCatchCase[];
       catchSteps: PluginMethodPlanStep[];
     }
   | {
@@ -63,6 +64,14 @@ export interface PluginMethodPlanSwitchCase {
   id: string;
   label: string;
   value: unknown;
+  handle: string;
+  steps: PluginMethodPlanStep[];
+}
+
+export interface PluginMethodPlanCatchCase {
+  id: string;
+  label: string;
+  errorCode?: string;
   handle: string;
   steps: PluginMethodPlanStep[];
 }

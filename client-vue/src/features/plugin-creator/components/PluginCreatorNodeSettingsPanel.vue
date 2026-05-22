@@ -41,6 +41,7 @@ import CodeBlockNodeEditor from './node-editors/CodeBlockNodeEditor.vue'
 import OutputNodeEditor from './node-editors/OutputNodeEditor.vue'
 import IfNodeEditor from './node-editors/IfNodeEditor.vue'
 import SwitchNodeEditor from './node-editors/SwitchNodeEditor.vue'
+import TryCatchNodeEditor from './node-editors/TryCatchNodeEditor.vue'
 import PluginCreatorNodeEditorFields from './node-editors/PluginCreatorNodeEditorFields.vue'
 
 const props = defineProps<{
@@ -90,6 +91,8 @@ const editorComponent = computed(() => {
       return IfNodeEditor
     case 'switch':
       return SwitchNodeEditor
+    case 'tryCatch':
+      return TryCatchNodeEditor
     default:
       return null
   }

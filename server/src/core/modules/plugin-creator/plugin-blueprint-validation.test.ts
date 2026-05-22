@@ -10,7 +10,9 @@ import {
 } from "./plugin-blueprint-validation.ts";
 import type { PluginBlueprint } from "./plugin-blueprint-types.ts";
 
-function createValidBlueprint(overrides: Partial<PluginBlueprint> = {}): PluginBlueprint {
+function createValidBlueprint(
+  overrides: Partial<PluginBlueprint> = {},
+): PluginBlueprint {
   return {
     id: "bp_my_crm",
     metadata: {
@@ -83,7 +85,10 @@ describe("plugin blueprint validation", () => {
     const result = validatePluginBlueprint(createValidBlueprint());
 
     assert.equal(result.success, true);
-    assert.equal(parsePluginBlueprint(createValidBlueprint()).metadata.handle, "my-crm");
+    assert.equal(
+      parsePluginBlueprint(createValidBlueprint()).metadata.handle,
+      "my-crm",
+    );
   });
 
   it("accepts code block nodes and method code blocks", () => {
@@ -100,7 +105,10 @@ describe("plugin blueprint validation", () => {
       id: "code_prepare_payload",
       type: "codeBlock",
       position: { x: 300, y: 0 },
-      data: { methodId: blueprint.methods[0]!.id, codeBlockId: "code_prepare_payload" },
+      data: {
+        methodId: blueprint.methods[0]!.id,
+        codeBlockId: "code_prepare_payload",
+      },
     };
 
     const result = validatePluginBlueprint(blueprint);
@@ -110,7 +118,13 @@ describe("plugin blueprint validation", () => {
 
   it("keeps small legacy canvas node types loadable", () => {
     const blueprint = createValidBlueprint();
-    for (const type of ["input", "credential", "header", "query", "body"] as const) {
+    for (const type of [
+      "input",
+      "credential",
+      "header",
+      "query",
+      "body",
+    ] as const) {
       blueprint.canvas.nodes[`legacy_${type}`] = {
         id: `legacy_${type}`,
         type,
@@ -141,20 +155,47 @@ describe("plugin blueprint validation", () => {
         data: {
           methodId,
           expression: "response.status",
-          cases: [{ id: "case_success", label: "Success", value: 200, handle: "case_success" }],
+          cases: [
+            {
+              id: "case_success",
+              label: "Success",
+              value: 200,
+              handle: "case_success",
+            },
+          ],
         },
       },
       try_request: {
         id: "try_request",
         type: "tryCatch",
         position: { x: 300, y: 0 },
-        data: { methodId, errorVariable: "error" },
+        data: {
+          methodId,
+          errorVariable: "error",
+          catchCases: [
+            {
+              id: "catch_rate_limit",
+              label: "Rate limit",
+              errorCode: "RATE_LIMIT",
+              handle: "catch_rate_limit",
+            },
+            {
+              id: "catch_fallback",
+              label: "Fallback",
+              handle: "catch_fallback",
+            },
+          ],
+        },
       },
       transform_payload: {
         id: "transform_payload",
         type: "jsonTransform",
         position: { x: 400, y: 0 },
-        data: { methodId, expression: "({ email: params.email })", outputName: "payload" },
+        data: {
+          methodId,
+          expression: "({ email: params.email })",
+          outputName: "payload",
+        },
       },
       return_payload: {
         id: "return_payload",
@@ -177,7 +218,11 @@ describe("plugin blueprint validation", () => {
         id: "foreach_items",
         type: "forEach",
         position: { x: 700, y: 0 },
-        data: { methodId, arrayExpression: "params.items", itemVariable: "item" },
+        data: {
+          methodId,
+          arrayExpression: "params.items",
+          itemVariable: "item",
+        },
       },
     };
 
@@ -198,32 +243,57 @@ describe("plugin blueprint validation", () => {
       id: "foreach_items",
       type: "forEach",
       position: { x: 200, y: 0 },
-      data: { methodId: blueprint.methods[0]!.id, arrayExpression: "params.items", itemVariable: "1item" },
+      data: {
+        methodId: blueprint.methods[0]!.id,
+        arrayExpression: "params.items",
+        itemVariable: "1item",
+      },
     };
 
     const result = validatePluginBlueprint(blueprint);
 
     assert.equal(result.success, false);
-    assert.match(result.error ?? "", /canvas\.nodes\.if_has_email\.data\.condition/);
-    assert.match(result.error ?? "", /canvas\.nodes\.foreach_items\.data\.itemVariable/);
+    assert.match(
+      result.error ?? "",
+      /canvas\.nodes\.if_has_email\.data\.condition/,
+    );
+    assert.match(
+      result.error ?? "",
+      /canvas\.nodes\.foreach_items\.data\.itemVariable/,
+    );
   });
 
   it("validates plugin creator ids", () => {
     assert.equal(validatePluginCreatorId("bp_my_crm"), "bp_my_crm");
-    assert.throws(() => validatePluginCreatorId("../bp_my_crm"), /Invalid plugin creator id/);
-    assert.throws(() => validatePluginCreatorId("bp/my-crm"), /Invalid plugin creator id/);
+    assert.throws(
+      () => validatePluginCreatorId("../bp_my_crm"),
+      /Invalid plugin creator id/,
+    );
+    assert.throws(
+      () => validatePluginCreatorId("bp/my-crm"),
+      /Invalid plugin creator id/,
+    );
   });
 
   it("validates plugin handles", () => {
     assert.equal(validatePluginHandle("my-crm"), "my-crm");
-    assert.throws(() => validatePluginHandle("my crm"), /Invalid plugin handle/);
+    assert.throws(
+      () => validatePluginHandle("my crm"),
+      /Invalid plugin handle/,
+    );
     assert.throws(() => validatePluginHandle("MyCRM"), /Invalid plugin handle/);
   });
 
   it("validates method handles", () => {
     assert.equal(validateMethodHandle("createLead"), "createLead");
-    assert.throws(() => validateMethodHandle("create lead"), /Invalid method handle/);
-    assert.throws(() => validateMethodHandle("create-lead"), /Invalid method handle/);
+    assert.throws(
+      () => validateMethodHandle("create lead"),
+      /Invalid method handle/,
+    );
+    assert.throws(
+      () => validateMethodHandle("create-lead"),
+      /Invalid method handle/,
+    );
   });
 
   it("rejects methods without a request URL", () => {

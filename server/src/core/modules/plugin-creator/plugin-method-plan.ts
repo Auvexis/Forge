@@ -2,11 +2,18 @@ import type {
   PluginBlueprint,
   PluginBlueprintMethod,
   PluginBlueprintNode,
+  PluginBlueprintCatchCase,
   PluginBlueprintSwitchCase,
 } from "./plugin-blueprint-types.ts";
-import type { PluginMethodPlan, PluginMethodPlanStep } from "./plugin-method-plan-types.ts";
+import type {
+  PluginMethodPlan,
+  PluginMethodPlanStep,
+} from "./plugin-method-plan-types.ts";
 
-export type { PluginMethodPlan, PluginMethodPlanStep } from "./plugin-method-plan-types.ts";
+export type {
+  PluginMethodPlan,
+  PluginMethodPlanStep,
+} from "./plugin-method-plan-types.ts";
 
 const branchHandles = new Set([
   "then",
@@ -17,13 +24,20 @@ const branchHandles = new Set([
   "body",
 ]);
 
-export function buildPluginMethodPlans(blueprint: PluginBlueprint): PluginMethodPlan[] {
+export function buildPluginMethodPlans(
+  blueprint: PluginBlueprint,
+): PluginMethodPlan[] {
   return blueprint.methods.map((method) => {
     const methodNode = Object.values(blueprint.canvas.nodes).find(
       (node) => node.type === "method" && node.data.methodId === method.id,
     );
     const steps = methodNode
-      ? buildStepsFromNodeIds(blueprint, method, nextNodeIds(blueprint, methodNode.id), new Set())
+      ? buildStepsFromNodeIds(
+          blueprint,
+          method,
+          nextNodeIds(blueprint, methodNode.id),
+          new Set(),
+        )
       : [];
 
     return {
@@ -66,12 +80,18 @@ function buildStepsFromNodeIds(
 
 function nextNodeIds(blueprint: PluginBlueprint, nodeId: string): string[] {
   return blueprint.canvas.edges
-    .filter((edge) => edge.source === nodeId && isSequentialHandle(edge.sourceHandle))
+    .filter(
+      (edge) => edge.source === nodeId && isSequentialHandle(edge.sourceHandle),
+    )
     .sort((left, right) => left.id.localeCompare(right.id))
     .map((edge) => edge.target);
 }
 
-function branchNodeIds(blueprint: PluginBlueprint, nodeId: string, handle: string): string[] {
+function branchNodeIds(
+  blueprint: PluginBlueprint,
+  nodeId: string,
+  handle: string,
+): string[] {
   return blueprint.canvas.edges
     .filter((edge) => edge.source === nodeId && edge.sourceHandle === handle)
     .sort((left, right) => left.id.localeCompare(right.id))
@@ -126,21 +146,25 @@ function nodeToPlanStep(
         ),
       };
     case "switch": {
-      const cases = arrayData<PluginBlueprintSwitchCase>(node, "cases").map((candidate, index) => {
-        const handle = String(candidate.handle ?? candidate.id ?? `case_${index}`);
-        return {
-          id: String(candidate.id ?? handle),
-          label: String(candidate.label ?? handle),
-          value: candidate.value,
-          handle,
-          steps: buildStepsFromNodeIds(
-            blueprint,
-            method,
-            branchNodeIds(blueprint, node.id, handle),
-            cloneVisited(visited),
-          ),
-        };
-      });
+      const cases = arrayData<PluginBlueprintSwitchCase>(node, "cases").map(
+        (candidate, index) => {
+          const handle = String(
+            candidate.handle ?? candidate.id ?? `case_${index}`,
+          );
+          return {
+            id: String(candidate.id ?? handle),
+            label: String(candidate.label ?? handle),
+            value: candidate.value,
+            handle,
+            steps: buildStepsFromNodeIds(
+              blueprint,
+              method,
+              branchNodeIds(blueprint, node.id, handle),
+              cloneVisited(visited),
+            ),
+          };
+        },
+      );
 
       return {
         kind: "switch",
@@ -157,11 +181,33 @@ function nodeToPlanStep(
       };
     }
     case "tryCatch":
+      const catchCases = arrayData<PluginBlueprintCatchCase>(
+        node,
+        "catchCases",
+      ).map((candidate, index) => {
+        const handle = String(
+          candidate.handle ?? candidate.id ?? `catch_${index}`,
+        );
+        return {
+          id: String(candidate.id ?? handle),
+          label: String(candidate.label ?? handle),
+          errorCode: optionalString(candidate.errorCode),
+          handle,
+          steps: buildStepsFromNodeIds(
+            blueprint,
+            method,
+            branchNodeIds(blueprint, node.id, handle),
+            cloneVisited(visited),
+          ),
+        };
+      });
+
       return {
         kind: "tryCatch",
         nodeId: node.id,
         methodId,
         errorVariable: stringData(node, "errorVariable", "error"),
+        catchCases,
         trySteps: buildStepsFromNodeIds(
           blueprint,
           method,
@@ -227,8 +273,16 @@ function nodeToPlanStep(
 
 function fallbackSteps(method: PluginBlueprintMethod): PluginMethodPlanStep[] {
   return [
-    { kind: "httpRequest", nodeId: `${method.id}_request`, methodId: method.id },
-    { kind: "responseMapper", nodeId: `${method.id}_response`, methodId: method.id },
+    {
+      kind: "httpRequest",
+      nodeId: `${method.id}_request`,
+      methodId: method.id,
+    },
+    {
+      kind: "responseMapper",
+      nodeId: `${method.id}_response`,
+      methodId: method.id,
+    },
     { kind: "errorMapper", nodeId: `${method.id}_error`, methodId: method.id },
   ];
 }
@@ -237,12 +291,19 @@ function cloneVisited(visited: Set<string>): Set<string> {
   return new Set(visited);
 }
 
-function stringData(node: PluginBlueprintNode, key: string, fallback: string): string {
+function stringData(
+  node: PluginBlueprintNode,
+  key: string,
+  fallback: string,
+): string {
   const value = node.data[key];
   return typeof value === "string" && value.length > 0 ? value : fallback;
 }
 
-function optionalStringData(node: PluginBlueprintNode, key: string): string | undefined {
+function optionalStringData(
+  node: PluginBlueprintNode,
+  key: string,
+): string | undefined {
   const value = node.data[key];
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
@@ -250,4 +311,8 @@ function optionalStringData(node: PluginBlueprintNode, key: string): string | un
 function arrayData<T>(node: PluginBlueprintNode, key: string): T[] {
   const value = node.data[key];
   return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
 }

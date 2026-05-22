@@ -2,8 +2,12 @@ import type { PluginBlueprint } from "./plugin-blueprint-types.ts";
 import { buildPluginMethodPlans } from "./plugin-method-plan.ts";
 import { writeMethodSource } from "./plugin-method-code-writer.ts";
 
-export function generatePluginMethodsSource(blueprint: PluginBlueprint): string {
-  const plans = new Map(buildPluginMethodPlans(blueprint).map((plan) => [plan.methodId, plan]));
+export function generatePluginMethodsSource(
+  blueprint: PluginBlueprint,
+): string {
+  const plans = new Map(
+    buildPluginMethodPlans(blueprint).map((plan) => [plan.methodId, plan]),
+  );
   const methodEntries = blueprint.methods
     .map((method) =>
       writeMethodSource({
@@ -50,6 +54,19 @@ async function parseResponseBody(response: Response): Promise<unknown> {
     return JSON.parse(text);
   }
   return text;
+}
+
+function getPluginCreatorErrorCode(error: unknown): string | undefined {
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    typeof error.code === "string" &&
+    error.code.length > 0
+  ) {
+    return error.code;
+  }
+  return undefined;
 }
 `;
 }
