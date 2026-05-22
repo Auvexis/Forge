@@ -7,7 +7,10 @@ const componentDir = path.resolve('src/features/plugin-creator/components')
 
 describe('PluginCreator control flow nodes contract', () => {
   it('registers control flow nodes in the palette and canvas', () => {
-    const addPanel = fs.readFileSync(path.join(componentDir, 'PluginCreatorAddItemPanel.vue'), 'utf8')
+    const addPanel = fs.readFileSync(
+      path.join(componentDir, 'PluginCreatorAddItemPanel.vue'),
+      'utf8',
+    )
     const canvas = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
 
     for (const type of ['if', 'switch', 'tryCatch', 'jsonTransform', 'return', 'for', 'forEach']) {
@@ -29,30 +32,26 @@ describe('PluginCreator control flow nodes contract', () => {
       const source = fs.readFileSync(path.join(componentDir, 'nodes', file), 'utf8')
       assert.match(source, /BaseNode/)
       assert.match(source, /has-target/)
-      assert.match(source, /has-source/)
+      assert.match(source, /has-source|BaseHandle/)
       assert.match(source, /:status="data\.status/)
     }
   })
 
-  it('adds settings editor sections for control flow node data', () => {
-    const source = fs.readFileSync(
-      path.join(componentDir, 'node-editors/PluginCreatorNodeEditorFields.vue'),
-      'utf8',
-    )
+  it('adds dedicated editor sections for control flow node data', () => {
+    const editorAssertions = {
+      'IfNodeEditor.vue': /condition/,
+      'SwitchNodeEditor.vue': /expression/,
+      'TryCatchNodeEditor.vue': /errorVariable/,
+      'JsonTransformNodeEditor.vue': /outputName/,
+      'ReturnNodeEditor.vue': /valueExpression/,
+      'ForNodeEditor.vue': /fromExpression/,
+      'ForEachNodeEditor.vue': /arrayExpression/,
+    }
 
-    assert.match(source, /kind === 'if'/)
-    assert.match(source, /condition/)
-    assert.match(source, /kind === 'switch'/)
-    assert.match(source, /expression/)
-    assert.match(source, /kind === 'tryCatch'/)
-    assert.match(source, /errorVariable/)
-    assert.match(source, /kind === 'jsonTransform'/)
-    assert.match(source, /outputName/)
-    assert.match(source, /kind === 'return'/)
-    assert.match(source, /valueExpression/)
-    assert.match(source, /kind === 'for'/)
-    assert.match(source, /fromExpression/)
-    assert.match(source, /kind === 'forEach'/)
-    assert.match(source, /arrayExpression/)
+    for (const [file, pattern] of Object.entries(editorAssertions)) {
+      const source = fs.readFileSync(path.join(componentDir, 'node-editors', file), 'utf8')
+      assert.match(source, pattern)
+      assert.match(source, /updateNodeData/)
+    }
   })
 })

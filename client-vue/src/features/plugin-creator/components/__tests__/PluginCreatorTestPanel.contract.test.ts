@@ -6,6 +6,9 @@ import { describe, it } from 'node:test'
 const componentPath = path.resolve(
   'src/features/plugin-creator/components/PluginCreatorTestPanel.vue',
 )
+const workspaceModalPath = path.resolve(
+  'src/features/plugin-creator/components/PluginCreatorWorkspaceModal.vue',
+)
 const pagePath = path.resolve('src/app/pages/PluginCreatorPage.vue')
 
 describe('PluginCreatorTestPanel contract', () => {
@@ -33,8 +36,10 @@ describe('PluginCreatorTestPanel contract', () => {
 
   it('is mounted in the plugin creator page', () => {
     const page = fs.readFileSync(pagePath, 'utf8')
+    const workspaceModal = fs.readFileSync(workspaceModalPath, 'utf8')
 
-    assert.match(page, /PluginCreatorTestPanel/)
+    assert.match(page, /PluginCreatorWorkspaceModal/)
+    assert.match(workspaceModal, /PluginCreatorTestPanel/)
     assert.match(page, /runMethodTest/)
   })
 })
