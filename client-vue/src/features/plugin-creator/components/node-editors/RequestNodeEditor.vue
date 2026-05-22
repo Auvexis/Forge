@@ -1,23 +1,30 @@
 <template>
-  <div class="node-editor-stack">
-    <NodeEditorSection
-      title="HTTP Request"
-      eyebrow="Request"
-      description="Configure the request sent by this method."
-    >
-      <div class="node-editor-grid node-editor-grid--2">
-        <BaseSelect
-          :model-value="method?.request.method ?? 'GET'"
-          :options="httpMethodOptions"
-          label="HTTP method"
-          @update:model-value="updateRequest({ method: String($event) as any })"
-        />
+  <div class="editor-stack">
+    <NodeEditorSection title="Step Name">
+      <BaseInput
+        :model-value="String(node?.data.name ?? node?.data.label ?? '')"
+        placeholder="HTTP Request"
+        @update:model-value="updateNodeData({ name: String($event), label: String($event) })"
+      />
+    </NodeEditorSection>
+
+    <NodeEditorSection title="Method & URL">
+      <div class="editor-row">
+        <div style="width: 140px; flex-shrink: 0">
+          <BaseSelect
+            :model-value="method?.request.method ?? 'GET'"
+            :options="httpMethodOptions"
+            @update:model-value="updateRequest({ method: String($event) as any })"
+          />
+        </div>
+        <div class="editor-row--grow">
         <PluginCreatorExpressionInput
           :model-value="method?.request.url ?? ''"
-          label="Request URL"
+          label=""
           placeholder="https://api.example.com/{{ params.id }}"
           @update:model-value="updateRequest({ url: String($event) })"
         />
+        </div>
       </div>
     </NodeEditorSection>
 
@@ -60,6 +67,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import PluginCreatorExpressionInput from '../expressions/PluginCreatorExpressionInput.vue'
 import KeyValueTableEditor from './KeyValueTableEditor.vue'
@@ -72,7 +80,7 @@ import type { PluginCreatorNodeEditorEmits, PluginCreatorNodeEditorProps } from 
 
 const props = defineProps<PluginCreatorNodeEditorProps>()
 const emit = defineEmits<PluginCreatorNodeEditorEmits>()
-const { method } = usePluginCreatorNodeEditorContext(props, emit)
+const { node, method, updateNodeData } = usePluginCreatorNodeEditorContext(props, emit)
 
 const option = (value: string) => ({ value, label: value })
 const httpMethodOptions = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'].map(option)
@@ -86,11 +94,6 @@ function updateRequest(payload: Partial<PluginBlueprintRequest>) {
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-}
-
 .node-editor-grid {
   display: grid;
   gap: 12px;
@@ -100,16 +103,4 @@ function updateRequest(payload: Partial<PluginBlueprintRequest>) {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.node-editor-action {
-  align-self: flex-start;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 6px 8px;
-}
 </style>

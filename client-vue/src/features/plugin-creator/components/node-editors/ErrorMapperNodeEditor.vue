@@ -1,5 +1,5 @@
 <template>
-  <div class="node-editor-stack">
+  <div class="editor-stack">
     <NodeEditorSection
       title="Error Mapping"
       eyebrow="Errors"
@@ -13,7 +13,8 @@
           @remove="removeMapping(index)"
         />
       </div>
-      <button class="node-editor-action" type="button" @click="addMapping">
+      <button class="editor-add-btn" type="button" @click="addMapping">
+        <span>+</span>
         Add error mapping
       </button>
     </NodeEditorSection>
@@ -88,26 +89,8 @@ function removeMapping(index: number) {
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-}
-
 .node-editor-card {
   display: grid;
   gap: 12px;
-}
-
-.node-editor-action {
-  align-self: flex-start;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 6px 8px;
 }
 </style>

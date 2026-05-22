@@ -1,5 +1,5 @@
 <template>
-  <div class="node-editor-stack">
+  <div class="editor-stack">
     <NodeEditorSection
       title="Response Mapping"
       eyebrow="Mapper"
@@ -39,9 +39,4 @@ function updateMappings(responseMapping: PluginBlueprintResponseMapping[]) {
 }
 </script>
 
-<style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-}
-</style>
+<style scoped></style>

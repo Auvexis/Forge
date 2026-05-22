@@ -1,24 +1,39 @@
 <template>
-  <div class="node-editor-stack">
+  <div class="editor-stack">
+    <NodeEditorSection title="Step Name">
+      <BaseInput
+        :model-value="String(node?.data.name ?? node?.data.label ?? '')"
+        placeholder="Name this switch"
+        @update:model-value="updateNodeData({ name: String($event), label: String($event) })"
+      />
+    </NodeEditorSection>
+
     <NodeEditorSection
-      title="Switch"
-      eyebrow="Control flow"
-      description="Route execution by matching one expression against ordered cases."
+      title="Input Expression"
+      icon="git-branch-plus"
+      description="Result is compared as a string."
     >
+      <div class="editor-hint editor-hint--violet">
+        JS expression evaluated against
+        <span class="editor-code-snippet">params</span>,
+        <span class="editor-code-snippet">previous</span>,
+        <span class="editor-code-snippet">steps</span>.
+        Result is compared as a string.
+      </div>
       <PluginCreatorExpressionInput
         :model-value="String(node?.data.expression ?? '')"
-        label="Switch expression"
+        label=""
         placeholder="previous.status"
         @update:model-value="updateNodeData({ expression: String($event) })"
       />
-      <div class="switch-node-editor__quick">
-        <button type="button" @click="updateNodeData({ expression: 'previous.status' })">
+      <div class="te-methods">
+        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: 'previous.status' })">
           response status
         </button>
-        <button type="button" @click="updateNodeData({ expression: 'params.type' })">
+        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: 'params.type' })">
           param type
         </button>
-        <button type="button" @click="updateNodeData({ expression: 'previous.body?.state' })">
+        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: 'previous.body?.state' })">
           body state
         </button>
       </div>
@@ -28,17 +43,6 @@
       title="Cases"
       description="Each case keeps its handle id when label or value changes."
     >
-      <template #toolbar>
-        <button
-          type="button"
-          class="switch-node-editor__icon-action"
-          title="Add case"
-          @click="addCase"
-        >
-          <LucideIcon name="plus" :size="14" />
-        </button>
-      </template>
-
       <div v-if="cases.length" class="switch-node-editor__cases">
         <div v-for="(item, index) in cases" :key="item.id" class="switch-node-editor__case">
           <span class="switch-node-editor__case-index">{{ index + 1 }}</span>
@@ -88,12 +92,20 @@
         </div>
       </div>
       <div v-else class="switch-node-editor__empty">
-        <span>No cases yet.</span>
-        <button type="button" @click="addCase">Add case</button>
+        No cases yet.
       </div>
+      <button class="editor-add-btn" type="button" @click="addCase">
+        <LucideIcon name="plus" :size="14" />
+        Add Case
+      </button>
     </NodeEditorSection>
 
-    <NodeEditorSection title="Default branch" description="Fallback route when no case matches.">
+    <NodeEditorSection title="Default / Fallback Output" icon="corner-down-right">
+      <div class="editor-hint">
+        Output handle activated when no case matches. Keep this as
+        <span class="editor-code-snippet">default</span>
+        unless you intentionally want a dead-end.
+      </div>
       <BaseSwitch
         :model-value="defaultEnabled"
         label="Enable default handle"
@@ -204,33 +216,12 @@ function normalizeHandle(value: string, index: number) {
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.switch-node-editor__quick,
 .switch-node-editor__case-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.switch-node-editor__quick button,
-.switch-node-editor__empty button {
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 6px 8px;
-}
-
-.switch-node-editor__icon-action,
 .switch-node-editor__case-actions button {
   display: inline-flex;
   align-items: center;
@@ -244,7 +235,6 @@ function normalizeHandle(value: string, index: number) {
   cursor: pointer;
 }
 
-.switch-node-editor__icon-action:hover,
 .switch-node-editor__case-actions button:hover {
   background: var(--sailor-bg-elevated);
   color: var(--sailor-text-primary);

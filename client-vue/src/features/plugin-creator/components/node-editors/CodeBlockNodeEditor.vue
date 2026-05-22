@@ -1,5 +1,5 @@
 <template>
-  <div class="node-editor-stack">
+  <div class="editor-stack">
     <NodeEditorSection
       title="Code Block"
       eyebrow="TypeScript"
@@ -127,11 +127,6 @@ function insertSnippet(source: string) {
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-}
-
 .node-editor-grid {
   display: grid;
   gap: 12px;
@@ -156,13 +151,15 @@ function insertSnippet(source: string) {
 .node-editor-snippet-buttons button {
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
+  background-color: var(--sailor-bg-surface);
+  color: var(--sailor-text-muted);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 650;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
   padding: 6px 8px;
+  text-transform: uppercase;
 }
 
 .node-editor-snippets code {

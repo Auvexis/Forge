@@ -1,24 +1,39 @@
 <template>
-  <div class="node-editor-stack">
+  <div class="editor-stack">
+    <NodeEditorSection title="Step Name">
+      <BaseInput
+        :model-value="String(node?.data.name ?? node?.data.label ?? '')"
+        placeholder="Name this condition"
+        @update:model-value="updateNodeData({ name: String($event), label: String($event) })"
+      />
+    </NodeEditorSection>
+
     <NodeEditorSection
-      title="If"
-      eyebrow="Control flow"
-      description="Route execution into a true or false branch."
+      title="Condition Expression"
+      icon="git-branch"
+      description="JS expression evaluated against params, credentials, previous, steps and response."
     >
+      <div class="editor-hint editor-hint--violet">
+        JS expression evaluated against
+        <span class="editor-code-snippet">params</span>,
+        <span class="editor-code-snippet">previous</span>,
+        <span class="editor-code-snippet">steps</span>
+      </div>
       <PluginCreatorExpressionInput
         :model-value="String(node?.data.condition ?? '')"
-        label="Condition"
+        label=""
         placeholder="Boolean(previous?.id)"
         @update:model-value="updateNodeData({ condition: String($event) })"
       />
-      <div class="if-node-editor__quick">
-        <button type="button" @click="updateNodeData({ condition: 'Boolean(previous)' })">
+      <div class="te-methods">
+        <button class="te-method-btn" type="button" @click="updateNodeData({ condition: 'Boolean(previous)' })">
           previous exists
         </button>
-        <button type="button" @click="updateNodeData({ condition: 'params.enabled === true' })">
+        <button class="te-method-btn" type="button" @click="updateNodeData({ condition: 'params.enabled === true' })">
           enabled param
         </button>
         <button
+          class="te-method-btn"
           type="button"
           @click="updateNodeData({ condition: 'status >= 200 && status < 300' })"
         >
@@ -27,16 +42,22 @@
       </div>
     </NodeEditorSection>
 
-    <NodeEditorSection title="Branches" description="Connect branch handles from the canvas.">
-      <div class="if-node-editor__branches">
-        <div>
-          <strong>True branch</strong>
-          <span>Handle: then</span>
+    <NodeEditorSection title="Output Branches">
+      <div class="editor-branches">
+        <span class="editor-field__label">Output Branches</span>
+        <div class="branches-legend">
+          <div class="branch-item">
+            <div class="branch-dot branch-dot--true"></div>
+            <span class="branch-label branch-label--true">Then (true)</span>
+          </div>
+          <div class="branch-item">
+            <div class="branch-dot branch-dot--false"></div>
+            <span class="branch-label branch-label--false">Else (false)</span>
+          </div>
         </div>
-        <div>
-          <strong>False branch</strong>
-          <span>Handle: else</span>
-        </div>
+        <p class="editor-hint-text">
+          Connect the green handle for the true path and the red handle for the false path.
+        </p>
       </div>
     </NodeEditorSection>
   </div>
@@ -44,6 +65,7 @@
 
 <script setup lang="ts">
 import PluginCreatorExpressionInput from '../expressions/PluginCreatorExpressionInput.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 import NodeEditorSection from './NodeEditorSection.vue'
 import { usePluginCreatorNodeEditorContext } from './usePluginCreatorNodeEditorContext'
 import type { PluginCreatorNodeEditorEmits, PluginCreatorNodeEditorProps } from './types'
@@ -54,59 +76,56 @@ const { node, updateNodeData } = usePluginCreatorNodeEditorContext(props, emit)
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.if-node-editor__quick,
-.if-node-editor__branches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.if-node-editor__quick button {
+.editor-branches {
+  padding: var(--sailor-space-3);
+  border-radius: var(--sailor-radius-lg);
+  background-color: var(--sailor-bg-surface);
   border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 6px 8px;
 }
 
-.if-node-editor__branches > div {
-  min-width: 150px;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+.branches-legend {
+  display: flex;
+  gap: var(--sailor-space-3);
+}
+
+.branch-item {
+  display: flex;
   align-items: center;
-  column-gap: 8px;
-  row-gap: 2px;
-  padding: 2px 0;
+  gap: var(--sailor-space-2);
 }
 
-.if-node-editor__branches > div::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: var(--sailor-radius-full);
-  grid-row: span 2;
+.branch-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
 }
 
-.if-node-editor__branches > div:first-child::before {
-  background: rgb(34, 197, 94);
+.branch-dot--true {
+  background-color: rgb(16, 185, 129);
 }
 
-.if-node-editor__branches > div:last-child::before {
-  background: rgb(239, 68, 68);
+.branch-dot--false {
+  background-color: rgb(239, 68, 68);
 }
 
-.if-node-editor__branches span {
+.branch-label {
+  font-size: var(--sailor-text-xs);
+  font-weight: 700;
+}
+
+.branch-label--true {
+  color: rgb(16, 185, 129);
+}
+
+.branch-label--false {
+  color: rgb(239, 68, 68);
+}
+
+.editor-hint-text {
+  margin: var(--sailor-space-2) 0 0;
   color: var(--sailor-text-muted);
-  font-size: 12px;
+  font-size: 11px;
+  font-style: italic;
+  line-height: 1.5;
 }
 </style>

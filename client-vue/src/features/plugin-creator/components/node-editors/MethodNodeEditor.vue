@@ -62,12 +62,6 @@
       title="Inputs"
       description="Parameters exposed to workflows as method params."
     >
-      <template #toolbar>
-        <button class="te-icon-btn" type="button" title="Add input" @click="addInput">
-          <LucideIcon name="plus" :size="14" />
-        </button>
-      </template>
-
       <div v-if="method.inputs.length" class="method-node-editor__rows">
         <div v-for="(input, index) in method.inputs" :key="`${input.name}_${index}`" class="method-node-editor__row">
           <BaseInput
@@ -98,7 +92,7 @@
           </button>
         </div>
       </div>
-      <button v-else class="editor-add-btn" type="button" @click="addInput">
+      <button class="editor-add-btn" type="button" @click="addInput">
         <LucideIcon name="plus" :size="14" />
         Add input
       </button>
@@ -108,12 +102,6 @@
       title="Credentials"
       description="Auth fields shared by methods in this plugin."
     >
-      <template #toolbar>
-        <button class="te-icon-btn" type="button" title="Add credential" @click="emit('addCredential')">
-          <LucideIcon name="plus" :size="14" />
-        </button>
-      </template>
-
       <div v-if="credentials.length" class="method-node-editor__rows">
         <div
           v-for="(credential, index) in credentials"
@@ -145,7 +133,7 @@
           />
         </div>
       </div>
-      <button v-else class="editor-add-btn" type="button" @click="emit('addCredential')">
+      <button class="editor-add-btn" type="button" @click="emit('addCredential')">
         <LucideIcon name="plus" :size="14" />
         Add credential
       </button>

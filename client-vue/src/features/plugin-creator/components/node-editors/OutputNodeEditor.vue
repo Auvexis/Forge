@@ -1,5 +1,5 @@
 <template>
-  <div class="node-editor-stack">
+  <div class="editor-stack">
     <NodeEditorSection
       title="Output"
       eyebrow="Method result"
@@ -55,7 +55,7 @@
           @update:model-value="updateMapping(index, { path: String($event) })"
         />
       </div>
-      <button class="node-editor-action" type="button" @click="addOutput">Add output</button>
+      <button class="editor-add-btn" type="button" @click="addOutput">Add output</button>
     </NodeEditorSection>
 
     <NodeEditorSection
@@ -169,11 +169,6 @@ function updateSourceMode(id: string, mode: 'path' | 'expression') {
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-}
-
 .node-editor-row {
   display: flex;
   flex-direction: column;
@@ -204,8 +199,7 @@ function updateSourceMode(id: string, mode: 'path' | 'expression') {
 }
 
 .node-editor-row__mode button,
-.node-editor-row__actions button,
-.node-editor-action {
+.node-editor-row__actions button {
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-surface);
@@ -220,10 +214,6 @@ function updateSourceMode(id: string, mode: 'path' | 'expression') {
 .node-editor-row__mode button.active {
   border-color: var(--sailor-border-strong);
   background: var(--sailor-bg-muted);
-}
-
-.node-editor-action {
-  align-self: flex-start;
 }
 
 .node-editor-preview {

@@ -1,5 +1,5 @@
 <template>
-  <div class="node-editor-stack">
+  <div class="editor-stack">
     <NodeEditorSection
       title="Return"
       eyebrow="Method exit"
@@ -12,11 +12,11 @@
         @update:model-value="updateNodeData({ valueExpression: String($event) })"
       />
       <div class="return-node-editor__quick">
-        <button type="button" @click="updateNodeData({ valueExpression: 'previous' })">
+        <button class="te-method-btn" type="button" @click="updateNodeData({ valueExpression: 'previous' })">
           previous
         </button>
-        <button type="button" @click="updateNodeData({ valueExpression: 'params' })">params</button>
-        <button type="button" @click="updateNodeData({ valueExpression: '({ ...previous })' })">
+        <button class="te-method-btn" type="button" @click="updateNodeData({ valueExpression: 'params' })">params</button>
+        <button class="te-method-btn" type="button" @click="updateNodeData({ valueExpression: '({ ...previous })' })">
           object literal
         </button>
       </div>
@@ -46,27 +46,10 @@ const valueExpression = computed(() => String(node.value?.data.valueExpression ?
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-}
-
 .return-node-editor__quick {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.return-node-editor__quick button {
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 6px 8px;
 }
 
 .return-node-editor__preview {

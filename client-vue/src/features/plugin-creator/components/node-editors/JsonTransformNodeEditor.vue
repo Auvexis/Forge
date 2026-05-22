@@ -1,5 +1,5 @@
 <template>
-  <div class="node-editor-stack">
+  <div class="editor-stack">
     <NodeEditorSection
       title="JSON Transform"
       eyebrow="Data shaping"
@@ -18,9 +18,9 @@
         @update:model-value="updateNodeData({ expression: String($event) })"
       />
       <div class="json-transform-node-editor__quick">
-        <button type="button" @click="updateNodeData({ expression: 'previous' })">previous</button>
-        <button type="button" @click="updateNodeData({ expression: 'body' })">body</button>
-        <button type="button" @click="updateNodeData({ expression: '({ ...previous })' })">
+        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: 'previous' })">previous</button>
+        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: 'body' })">body</button>
+        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: '({ ...previous })' })">
           object copy
         </button>
       </div>
@@ -62,27 +62,10 @@ const preview = computed(() =>
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-}
-
 .json-transform-node-editor__quick {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.json-transform-node-editor__quick button {
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 6px 8px;
 }
 
 .json-transform-node-editor__preview {

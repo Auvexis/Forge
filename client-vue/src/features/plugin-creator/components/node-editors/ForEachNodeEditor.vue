@@ -1,8 +1,15 @@
 <template>
-  <div class="node-editor-stack">
+  <div class="editor-stack">
+    <NodeEditorSection title="Step Name">
+      <BaseInput
+        :model-value="String(node?.data.name ?? node?.data.label ?? '')"
+        placeholder="Loop / ForEach"
+        @update:model-value="updateNodeData({ name: String($event), label: String($event) })"
+      />
+    </NodeEditorSection>
+
     <NodeEditorSection
-      title="ForEach"
-      eyebrow="Loop"
+      title="Collection Path"
       description="Run the body branch once for each item in an array expression."
     >
       <PluginCreatorExpressionInput
@@ -55,12 +62,6 @@ function normalizeVariable(value: string) {
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
 .for-each-node-editor__branch {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);

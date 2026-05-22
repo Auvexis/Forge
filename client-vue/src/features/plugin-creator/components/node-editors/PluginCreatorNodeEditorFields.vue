@@ -55,7 +55,7 @@
 
       <div class="te-section__header te-section__header--compact">
         <h3>Inputs</h3>
-        <button class="te-inline-button" type="button" @click="addInput">Add input</button>
+        <button class="editor-add-btn" type="button" @click="addInput">Add input</button>
       </div>
       <div v-for="(input, index) in method.inputs" :key="`${input.name}_${index}`" class="te-grid te-grid--3">
         <BaseInput
@@ -78,7 +78,7 @@
 
       <div class="te-section__header te-section__header--compact">
         <h3>Credentials</h3>
-        <button class="te-inline-button" type="button" @click="addCredential">Add credential</button>
+        <button class="editor-add-btn" type="button" @click="addCredential">Add credential</button>
       </div>
       <div
         v-for="(credential, index) in blueprint?.auth.fields ?? []"
@@ -259,7 +259,7 @@
       />
       <div class="te-section__header te-section__header--compact">
         <h3>Headers</h3>
-        <button class="te-inline-button" type="button" @click="addHeader">Add header</button>
+        <button class="editor-add-btn" type="button" @click="addHeader">Add header</button>
       </div>
       <div v-for="(header, index) in method.request.headers" :key="`header_${index}`" class="te-grid te-grid--2">
         <BaseInput
@@ -276,7 +276,7 @@
 
       <div class="te-section__header te-section__header--compact">
         <h3>Query params</h3>
-        <button class="te-inline-button" type="button" @click="addQueryParam">Add query param</button>
+        <button class="editor-add-btn" type="button" @click="addQueryParam">Add query param</button>
       </div>
       <div v-for="(query, index) in method.request.query" :key="`query_${index}`" class="te-grid te-grid--2">
         <BaseInput
@@ -920,18 +920,6 @@ function parseEditorValue(value: string): unknown {
 
 .te-section__header--compact {
   margin-top: 14px;
-}
-
-.te-inline-button {
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 6px 8px;
 }
 
 .te-grid {

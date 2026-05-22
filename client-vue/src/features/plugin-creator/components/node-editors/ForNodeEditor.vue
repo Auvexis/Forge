@@ -1,15 +1,22 @@
 <template>
-  <div class="node-editor-stack">
+  <div class="editor-stack">
+    <NodeEditorSection title="Step Name">
+      <BaseInput
+        :model-value="String(node?.data.name ?? node?.data.label ?? '')"
+        placeholder="Loop / For"
+        @update:model-value="updateNodeData({ name: String($event), label: String($event) })"
+      />
+    </NodeEditorSection>
+
     <NodeEditorSection
-      title="For"
-      eyebrow="Loop"
+      title="Loop Mode"
       description="Run the body branch over a numeric range or iterable expression."
     >
-      <div class="for-node-editor__mode" role="group" aria-label="Loop mode">
-        <button type="button" :class="{ active: mode === 'range' }" @click="setMode('range')">
+      <div class="te-methods" role="group" aria-label="Loop mode">
+        <button class="te-method-btn" type="button" :class="{ 'te-method-btn--active': mode === 'range' }" @click="setMode('range')">
           range
         </button>
-        <button type="button" :class="{ active: mode === 'iterable' }" @click="setMode('iterable')">
+        <button class="te-method-btn" type="button" :class="{ 'te-method-btn--active': mode === 'iterable' }" @click="setMode('iterable')">
           iterable
         </button>
       </div>
@@ -98,34 +105,10 @@ function normalizeVariable(value: string) {
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.for-node-editor__mode,
 .for-node-editor__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-}
-
-.for-node-editor__mode button {
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 7px 8px;
-}
-
-.for-node-editor__mode button.active {
-  border-color: var(--sailor-border-strong);
-  background: var(--sailor-bg-muted);
 }
 
 .for-node-editor__branch {

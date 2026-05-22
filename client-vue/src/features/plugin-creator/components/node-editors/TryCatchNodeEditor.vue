@@ -1,5 +1,5 @@
 <template>
-  <div class="node-editor-stack">
+  <div class="editor-stack">
     <NodeEditorSection
       title="Try/Catch"
       eyebrow="Control flow"
@@ -27,12 +27,6 @@
       title="Catch cases"
       description="Specific catches match by error code before the fallback catch branch."
     >
-      <template #toolbar>
-        <button type="button" class="try-catch-node-editor__action" @click="addCatch">
-          Add catch
-        </button>
-      </template>
-
       <div v-if="catchCases.length" class="try-catch-node-editor__cases">
         <div v-for="(item, index) in catchCases" :key="item.id" class="try-catch-node-editor__case">
           <div class="try-catch-node-editor__case-head">
@@ -76,9 +70,9 @@
         </div>
       </div>
       <div v-else class="try-catch-node-editor__empty">
-        <span>No specific catches yet.</span>
-        <button type="button" @click="addCatch">Add catch</button>
+        No specific catches yet.
       </div>
+      <button class="editor-add-btn" type="button" @click="addCatch">Add catch</button>
     </NodeEditorSection>
   </div>
 </template>
@@ -192,11 +186,6 @@ function normalizeHandle(value: string, index: number) {
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-}
-
 .try-catch-node-editor__branches,
 .try-catch-node-editor__case-actions {
   display: flex;
@@ -204,9 +193,7 @@ function normalizeHandle(value: string, index: number) {
   gap: 8px;
 }
 
-.try-catch-node-editor__action,
-.try-catch-node-editor__case-actions button,
-.try-catch-node-editor__empty button {
+.try-catch-node-editor__case-actions button {
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-surface);
