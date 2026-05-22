@@ -104,7 +104,7 @@ describe('usePluginCreatorMethodPreview', () => {
     assert.equal(hasPluginCreatorMethodSteps(blueprint, 'firstMethod'), true)
   })
 
-  it('uses selected code block source instead of compiled method internals', () => {
+  it('uses selected code block source inside a readable method preview', () => {
     const blueprint = {
       methods: [
         {
@@ -128,6 +128,7 @@ describe('usePluginCreatorMethodPreview', () => {
             data: { methodId: 'method-a', codeBlockId: 'code-shape' },
           },
         },
+        edges: [{ id: 'edge_method_code', source: 'method', target: 'code' }],
       },
     } as PluginBlueprint
 
@@ -136,30 +137,92 @@ describe('usePluginCreatorMethodPreview', () => {
       selectedNodeId: 'code',
     })
 
-    assert.equal(preview.code, 'return { id: previous.id };')
-    assert.equal(preview.label, 'Shape response code block')
+    assert.equal(preview.label, 'method1 method')
+    assert.match(preview.code, /async function method1/)
+    assert.match(preview.code, /return \{ id: previous\.id \};/)
     assert.doesNotMatch(preview.code, /method1: async/)
     assert.doesNotMatch(preview.code, /fetch/)
   })
 
-  it('summarizes selected method instead of showing compiled generated source', () => {
+  it('renders a readable method preview with ordered canvas steps', () => {
     const blueprint = {
-      methods: [{ id: 'method-a', handle: 'method1', name: 'Method 1' }],
+      methods: [
+        {
+          id: 'method-a',
+          handle: 'method1',
+          name: 'Method 1',
+          inputs: [],
+          request: {
+            method: 'GET',
+            url: 'https://api.example.com',
+            headers: [],
+            query: [],
+            body: { type: 'none' },
+          },
+          responseMapping: [{ id: 'map-id', outputName: 'id', path: 'id', type: 'string' }],
+          errorMapping: [],
+          codeBlocks: [
+            {
+              id: 'code-shape',
+              name: 'Shape response',
+              source: 'return { id: previous.id };',
+            },
+          ],
+        },
+      ],
       canvas: {
         nodes: {
           method: { id: 'method', type: 'method', data: { methodId: 'method-a' } },
           request: { id: 'request', type: 'request', data: { methodId: 'method-a' } },
+          mapper: { id: 'mapper', type: 'responseMapper', data: { methodId: 'method-a' } },
+          ifNode: {
+            id: 'ifNode',
+            type: 'if',
+            data: { methodId: 'method-a', condition: 'Boolean(previous.id)' },
+          },
+          code: {
+            id: 'code',
+            type: 'codeBlock',
+            data: { methodId: 'method-a', codeBlockId: 'code-shape' },
+          },
+          switchNode: {
+            id: 'switchNode',
+            type: 'switch',
+            data: {
+              methodId: 'method-a',
+              expression: 'previous.status',
+              cases: [{ id: 'case_ok', label: 'OK', value: 200, handle: 'case_ok' }],
+            },
+          },
         },
+        edges: [
+          { id: 'edge_method_request', source: 'method', target: 'request' },
+          { id: 'edge_request_mapper', source: 'request', target: 'mapper' },
+          { id: 'edge_mapper_if', source: 'mapper', target: 'ifNode' },
+          { id: 'edge_if_code', source: 'ifNode', target: 'code', sourceHandle: 'then' },
+          {
+            id: 'edge_if_switch',
+            source: 'ifNode',
+            target: 'switchNode',
+            sourceHandle: 'else',
+          },
+        ],
       },
     } as PluginBlueprint
 
     const preview = resolvePluginCreatorSelectedNodePreview({
       blueprint,
-      selectedNodeId: 'method',
+      selectedNodeId: 'ifNode',
     })
 
     assert.equal(preview.label, 'Method 1 method')
-    assert.match(preview.code, /handle: method1/)
+    assert.match(preview.code, /async function method1/)
+    assert.match(preview.code, /const request = await httpRequest/)
+    assert.match(preview.code, /const mapper = mapResponse/)
+    assert.match(preview.code, /if \(Boolean\(previous\.id\)\)/)
+    assert.match(preview.code, /return \{ id: previous\.id \};/)
+    assert.match(preview.code, /switch \(previous\.status\)/)
+    assert.match(preview.code, /case 200:/)
     assert.doesNotMatch(preview.code, /method1: async/)
     assert.doesNotMatch(preview.code, /fetch/)
   })

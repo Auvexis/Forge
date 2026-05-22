@@ -1,5 +1,7 @@
 import type { PluginBlueprint } from '@/core/types/plugin-creator.types'
 
+const branchHandles = new Set(['then', 'else', 'default', 'try', 'catch', 'body'])
+
 export interface PluginCreatorSelectedNodePreview {
   code: string
   label: string
@@ -20,56 +22,218 @@ export function resolvePluginCreatorSelectedNodePreview(input: {
     return { code: '', label: 'selected node' }
   }
 
-  if (node.type === 'codeBlock') {
-    const codeBlockId = typeof node.data.codeBlockId === 'string' ? node.data.codeBlockId : node.id
-    const codeBlock = method.codeBlocks?.find((candidate) => candidate.id === codeBlockId)
-    const nodeSource = typeof node.data.source === 'string' ? node.data.source : undefined
-    return {
-      code: codeBlock?.source ?? nodeSource ?? 'return previous;',
-      label: `${codeBlock?.name ?? String(node.data.name ?? 'Code Block')} code block`,
-    }
-  }
-
-  if (node.type === 'method') {
-    const steps = Object.values(blueprint.canvas.nodes).filter(
-      (candidate) => candidate.type !== 'method' && candidate.data.methodId === method.id,
-    )
-    return {
-      code: [
-        '// Method',
-        `handle: ${method.handle}`,
-        `inputs: ${method.inputs?.length ?? 0}`,
-        `steps: ${steps.length}`,
-      ].join('\n'),
-      label: `${method.name} method`,
-    }
-  }
-
-  if (node.type === 'request') {
-    return {
-      code: JSON.stringify(method.request, null, 2),
-      label: `${method.name} request`,
-    }
-  }
-
-  if (node.type === 'responseMapper') {
-    return {
-      code: JSON.stringify(method.responseMapping, null, 2),
-      label: `${method.name} response mapping`,
-    }
-  }
-
-  if (node.type === 'errorMapper') {
-    return {
-      code: JSON.stringify(method.errorMapping, null, 2),
-      label: `${method.name} error mapping`,
-    }
-  }
-
   return {
-    code: String(node.data.name ?? node.type),
-    label: `${String(node.data.name ?? node.type)} node`,
+    code: formatPluginCreatorReadableMethodPreview(blueprint, method),
+    label: `${method.name || method.handle} method`,
   }
+}
+
+function formatPluginCreatorReadableMethodPreview(
+  blueprint: PluginBlueprint,
+  method: PluginBlueprint['methods'][number],
+) {
+  const methodNode = Object.values(blueprint.canvas.nodes).find(
+    (node) => node.type === 'method' && node.data.methodId === method.id,
+  )
+  const steps = methodNode
+    ? formatStepsFromNodeIds(blueprint, method, nextNodeIds(blueprint, methodNode.id), new Set())
+    : []
+  const body = steps.length > 0 ? steps.join('\n\n') : '// No steps connected yet.'
+
+  return `async function ${method.handle}(params, context) {\n${indent(body, 2)}\n}`
+}
+
+function formatStepsFromNodeIds(
+  blueprint: PluginBlueprint,
+  method: PluginBlueprint['methods'][number],
+  startNodeIds: string[],
+  visited: Set<string>,
+): string[] {
+  const output: string[] = []
+  const queue = [...startNodeIds]
+
+  while (queue.length > 0) {
+    const nodeId = queue.shift()
+    if (!nodeId || visited.has(nodeId)) continue
+    visited.add(nodeId)
+
+    const node = blueprint.canvas.nodes[nodeId]
+    if (!node || node.data.methodId !== method.id) continue
+
+    const source = formatStep(blueprint, method, node, visited)
+    if (source) output.push(source)
+
+    queue.unshift(...nextNodeIds(blueprint, nodeId))
+  }
+
+  return output
+}
+
+function formatStep(
+  blueprint: PluginBlueprint,
+  method: PluginBlueprint['methods'][number],
+  node: PluginBlueprint['canvas']['nodes'][string],
+  visited: Set<string>,
+): string {
+  switch (node.type) {
+    case 'request':
+      return [
+        `// HTTP Request: ${node.id}`,
+        `const ${node.id} = await httpRequest({`,
+        `  method: ${JSON.stringify(method.request.method)},`,
+        `  url: ${JSON.stringify(method.request.url)},`,
+        `});`,
+      ].join('\n')
+    case 'responseMapper':
+    case 'output':
+      return [
+        `// Response Mapper: ${node.id}`,
+        `const ${node.id} = mapResponse(${JSON.stringify(method.responseMapping, null, 2)});`,
+      ].join('\n')
+    case 'errorMapper':
+      return [
+        `// Error Mapper: ${node.id}`,
+        `throwIfMappedError(${JSON.stringify(method.errorMapping, null, 2)});`,
+      ].join('\n')
+    case 'codeBlock':
+      return formatCodeBlockStep(method, node)
+    case 'if':
+      return formatIfStep(blueprint, method, node, visited)
+    case 'switch':
+      return formatSwitchStep(blueprint, method, node, visited)
+    case 'jsonTransform':
+      return [
+        `// JSON Transform: ${node.id}`,
+        `const ${stringData(node, 'outputName', node.id)} = ${stringData(node, 'expression', 'previous')};`,
+      ].join('\n')
+    case 'return':
+      return [
+        `// Return: ${node.id}`,
+        `return ${stringData(node, 'valueExpression', 'previous')};`,
+      ].join('\n')
+    default:
+      return `// ${String(node.data.name ?? node.type)}: ${node.id}`
+  }
+}
+
+function formatCodeBlockStep(
+  method: PluginBlueprint['methods'][number],
+  node: PluginBlueprint['canvas']['nodes'][string],
+) {
+  const codeBlockId = typeof node.data.codeBlockId === 'string' ? node.data.codeBlockId : node.id
+  const codeBlock = method.codeBlocks?.find((candidate) => candidate.id === codeBlockId)
+  const source =
+    codeBlock?.source ??
+    (typeof node.data.source === 'string' ? node.data.source : 'return previous;')
+  return [`// Code Block: ${codeBlock?.name ?? node.id}`, source].join('\n')
+}
+
+function formatIfStep(
+  blueprint: PluginBlueprint,
+  method: PluginBlueprint['methods'][number],
+  node: PluginBlueprint['canvas']['nodes'][string],
+  visited: Set<string>,
+) {
+  const thenSource = formatStepsFromNodeIds(
+    blueprint,
+    method,
+    branchNodeIds(blueprint, node.id, 'then'),
+    cloneVisited(visited),
+  ).join('\n\n')
+  const elseSource = formatStepsFromNodeIds(
+    blueprint,
+    method,
+    branchNodeIds(blueprint, node.id, 'else'),
+    cloneVisited(visited),
+  ).join('\n\n')
+
+  return [
+    `// If: ${node.id}`,
+    `if (${stringData(node, 'condition', 'false')}) {`,
+    indent(thenSource || '// then branch empty', 2),
+    `} else {`,
+    indent(elseSource || '// else branch empty', 2),
+    `}`,
+  ].join('\n')
+}
+
+function formatSwitchStep(
+  blueprint: PluginBlueprint,
+  method: PluginBlueprint['methods'][number],
+  node: PluginBlueprint['canvas']['nodes'][string],
+  visited: Set<string>,
+) {
+  const cases = arrayData<{ id?: string; label?: string; value?: unknown; handle?: string }>(
+    node,
+    'cases',
+  ).map((switchCase, index) => {
+    const handle = String(switchCase.handle ?? switchCase.id ?? `case_${index}`)
+    const caseSource = formatStepsFromNodeIds(
+      blueprint,
+      method,
+      branchNodeIds(blueprint, node.id, handle),
+      cloneVisited(visited),
+    ).join('\n\n')
+    return [`case ${JSON.stringify(switchCase.value)}:`, indent(caseSource || 'break;', 2)].join(
+      '\n',
+    )
+  })
+  const defaultSource = formatStepsFromNodeIds(
+    blueprint,
+    method,
+    branchNodeIds(blueprint, node.id, 'default'),
+    cloneVisited(visited),
+  ).join('\n\n')
+
+  return [
+    `// Switch: ${node.id}`,
+    `switch (${stringData(node, 'expression', 'undefined')}) {`,
+    indent(cases.join('\n') || '// no cases', 2),
+    `  default:`,
+    indent(defaultSource || 'break;', 4),
+    `}`,
+  ].join('\n')
+}
+
+function nextNodeIds(blueprint: PluginBlueprint, nodeId: string): string[] {
+  return (blueprint.canvas.edges ?? [])
+    .filter((edge) => edge.source === nodeId && isSequentialHandle(edge.sourceHandle))
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .map((edge) => edge.target)
+}
+
+function branchNodeIds(blueprint: PluginBlueprint, nodeId: string, handle: string): string[] {
+  return (blueprint.canvas.edges ?? [])
+    .filter((edge) => edge.source === nodeId && edge.sourceHandle === handle)
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .map((edge) => edge.target)
+}
+
+function isSequentialHandle(handle: string | undefined): boolean {
+  return !handle || handle === 'next' || !branchHandles.has(handle)
+}
+
+function cloneVisited(visited: Set<string>): Set<string> {
+  return new Set(visited)
+}
+
+function stringData(
+  node: PluginBlueprint['canvas']['nodes'][string],
+  key: string,
+  fallback: string,
+): string {
+  const value = node.data[key]
+  return typeof value === 'string' && value.length > 0 ? value : fallback
+}
+
+function arrayData<T>(node: PluginBlueprint['canvas']['nodes'][string], key: string): T[] {
+  const value = node.data[key]
+  return Array.isArray(value) ? (value as T[]) : []
+}
+
+function indent(value: string, spaces: number): string {
+  const padding = ' '.repeat(spaces)
+  return padding + value.replace(/\n/g, `\n${padding}`)
 }
 
 export function resolvePluginCreatorMethodHandle(
