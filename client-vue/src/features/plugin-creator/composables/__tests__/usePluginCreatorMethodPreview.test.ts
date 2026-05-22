@@ -3,6 +3,7 @@ import { describe, it } from 'node:test'
 
 import {
   extractPluginCreatorMethodBlock,
+  hasPluginCreatorMethodSteps,
   resolvePluginCreatorMethodHandle,
 } from '../usePluginCreatorMethodPreview.ts'
 import type { PluginBlueprint } from '@/core/types/plugin-creator.types'
@@ -68,5 +69,37 @@ describe('usePluginCreatorMethodPreview', () => {
     } as PluginBlueprint
 
     assert.equal(resolvePluginCreatorMethodHandle(blueprint, null), 'firstMethod')
+  })
+
+  it('treats an empty canvas or method-only canvas as no method steps', () => {
+    const emptyBlueprint = {
+      methods: [{ id: 'method-a', handle: 'firstMethod' }],
+      canvas: { nodes: {} },
+    } as PluginBlueprint
+    const methodOnlyBlueprint = {
+      methods: [{ id: 'method-a', handle: 'firstMethod' }],
+      canvas: {
+        nodes: {
+          method: { id: 'method', type: 'method', data: { methodId: 'method-a' } },
+        },
+      },
+    } as PluginBlueprint
+
+    assert.equal(hasPluginCreatorMethodSteps(emptyBlueprint, 'firstMethod'), false)
+    assert.equal(hasPluginCreatorMethodSteps(methodOnlyBlueprint, 'firstMethod'), false)
+  })
+
+  it('detects real method steps for the generated preview', () => {
+    const blueprint = {
+      methods: [{ id: 'method-a', handle: 'firstMethod' }],
+      canvas: {
+        nodes: {
+          method: { id: 'method', type: 'method', data: { methodId: 'method-a' } },
+          request: { id: 'request', type: 'request', data: { methodId: 'method-a' } },
+        },
+      },
+    } as PluginBlueprint
+
+    assert.equal(hasPluginCreatorMethodSteps(blueprint, 'firstMethod'), true)
   })
 })

@@ -90,11 +90,26 @@ describe('PluginCreatorPage contract', () => {
     assert.match(source, /@versions="openWorkspaceModal\('versions'\)"/)
   })
 
-  it('uses the canvas center when adding new plugin creator blocks', () => {
+  it('uses the canvas center for new blocks without auto-fitting after every add', () => {
     const source = fs.readFileSync(pagePath, 'utf8')
+    const addBlockBody = functionBody(source, 'addPluginCreatorBlock')
 
     assert.match(source, /centerPosition/)
     assert.match(source, /canvasRef\.value\?\.centerPosition/)
-    assert.match(source, /fitCanvasSoon/)
+    assert.doesNotMatch(addBlockBody, /fitCanvasSoon\(\)/)
+  })
+
+  it('closes the add block panel after adding a plugin creator block', () => {
+    const source = fs.readFileSync(pagePath, 'utf8')
+
+    assert.match(source, /closeAddBlocksPanel/)
+    assert.match(source, /function addPluginCreatorBlock[\s\S]*closeAddBlocksPanel\(\)/)
   })
 })
+
+function functionBody(source: string, functionName: string) {
+  const start = source.indexOf(`function ${functionName}`)
+  assert.notEqual(start, -1)
+  const nextFunction = source.indexOf('\nfunction ', start + 1)
+  return source.slice(start, nextFunction === -1 ? source.length : nextFunction)
+}

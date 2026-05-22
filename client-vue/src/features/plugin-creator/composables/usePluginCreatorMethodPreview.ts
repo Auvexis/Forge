@@ -17,6 +17,19 @@ export function resolvePluginCreatorMethodHandle(
   return selectedMethod?.handle ?? blueprint.methods[0]?.handle ?? null
 }
 
+export function hasPluginCreatorMethodSteps(
+  blueprint: PluginBlueprint | null | undefined,
+  methodHandle: string | null | undefined,
+) {
+  if (!blueprint || !methodHandle) return false
+  const method = blueprint.methods.find((candidate) => candidate.handle === methodHandle)
+  if (!method) return false
+
+  return Object.values(blueprint.canvas.nodes).some((node) => {
+    return node.type !== 'method' && node.data.methodId === method.id
+  })
+}
+
 export function extractPluginCreatorMethodBlock(
   source: string,
   methodHandle: string | null | undefined,

@@ -13,25 +13,26 @@ describe('PluginCreatorCodePreviewMinimap contract', () => {
     )
 
     assert.match(source, /BaseCodeEditor/)
+    assert.match(source, /BaseFloatingWindow/)
     assert.match(source, /readonly/)
     assert.match(source, /Generated method/)
     assert.match(source, /selectedMethodCode/)
     assert.match(source, /selectedNodeId/)
+    assert.match(source, /hasPluginCreatorMethodSteps/)
     assert.match(source, /method block/)
   })
 
-  it('supports moving, resizing, minimizing, and persisted layout', () => {
+  it('delegates moving, resizing, minimizing, and persisted layout to BaseFloatingWindow', () => {
     const source = fs.readFileSync(
       path.join(componentDir, 'PluginCreatorCodePreviewMinimap.vue'),
       'utf8',
     )
 
-    assert.match(source, /localStorage/)
-    assert.match(source, /pointerdown/)
-    assert.match(source, /pointermove/)
-    assert.match(source, /startResize/)
-    assert.match(source, /isCollapsed/)
-    assert.match(source, /plugin-creator-code-preview-minimap__resize/)
+    assert.match(source, /storage-key="pluginCreator\.codePreviewMinimap\.layout"/)
+    assert.match(source, /:default-width="520"/)
+    assert.match(source, /:default-height="360"/)
+    assert.doesNotMatch(source, /localStorage/)
+    assert.doesNotMatch(source, /startResize/)
   })
 
   it('is mounted on the plugin creator page with the selected node id', () => {

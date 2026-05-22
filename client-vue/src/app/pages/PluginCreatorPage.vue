@@ -302,6 +302,12 @@ function openAddBlocksPanel(sourceId: string | null = null) {
   })
 }
 
+function closeAddBlocksPanel() {
+  if (appPanelStore.panelId === 'plugin-creator-add-blocks') {
+    appPanelStore.closePanel()
+  }
+}
+
 function openNodeSettingsModal(nodeId: string) {
   selectedNodeId.value = nodeId
   isNodeSettingsModalOpen.value = true
@@ -369,7 +375,7 @@ function addPluginCreatorBlock(type: PluginCreatorAddItemType) {
     quickAddSourceId.value = null
   }
   selectedNodeId.value = node.id
-  fitCanvasSoon()
+  closeAddBlocksPanel()
 }
 
 function duplicateNode(nodeId: string) {
