@@ -16,7 +16,7 @@
             :key="item.type"
             type="button"
             class="add-node-item"
-            @click="addItem(item.type)"
+            @click.capture="addItem(item.type)"
             @pointerdown="addItem(item.type)"
           >
             <div
