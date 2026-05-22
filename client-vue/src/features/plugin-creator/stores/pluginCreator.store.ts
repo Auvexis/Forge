@@ -384,6 +384,31 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     }
   }
 
+  function renameNode(oldId: string, newId: string) {
+    if (!activeBlueprint.value) return false
+    const nextId = newId.trim()
+    if (!nextId || nextId === oldId) return false
+    if (activeBlueprint.value.canvas.nodes[nextId]) return false
+
+    const existing = activeBlueprint.value.canvas.nodes[oldId]
+    if (!existing) return false
+
+    recordHistory()
+    activeBlueprint.value.canvas.nodes[nextId] = {
+      ...existing,
+      id: nextId,
+    }
+    delete activeBlueprint.value.canvas.nodes[oldId]
+
+    activeBlueprint.value.canvas.edges = activeBlueprint.value.canvas.edges.map((edge) => ({
+      ...edge,
+      source: edge.source === oldId ? nextId : edge.source,
+      target: edge.target === oldId ? nextId : edge.target,
+    }))
+
+    return true
+  }
+
   function updateMethod(methodId: string, payload: Partial<PluginBlueprintMethod>) {
     if (!activeBlueprint.value) return
     const index = activeBlueprint.value.methods.findIndex((method) => method.id === methodId)
@@ -556,6 +581,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     addEdge,
     removeEdges,
     updateNode,
+    renameNode,
     addMethod,
     updateMethod,
     updateMethodInput,

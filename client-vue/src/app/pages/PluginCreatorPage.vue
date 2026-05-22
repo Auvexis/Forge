@@ -109,6 +109,7 @@
         @save="saveDraft"
         @run="runSelectedMethod"
         @update-node="store.updateNode"
+        @rename-node="renameSelectedNode"
         @update-method="store.updateMethod"
         @update-input="store.updateMethodInput"
         @update-credential="store.updateCredentialField"
@@ -311,6 +312,14 @@ function closeAddBlocksPanel() {
 function openNodeSettingsModal(nodeId: string) {
   selectedNodeId.value = nodeId
   isNodeSettingsModalOpen.value = true
+}
+
+function renameSelectedNode(payload: { oldId: string; newId: string }) {
+  const renamed = store.renameNode(payload.oldId, payload.newId)
+  if (renamed) {
+    selectedNodeId.value = payload.newId.trim()
+  }
+  return renamed
 }
 
 function openWorkspaceModal(view: PluginCreatorWorkspaceView) {

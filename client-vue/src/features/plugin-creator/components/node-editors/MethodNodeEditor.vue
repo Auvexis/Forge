@@ -6,20 +6,18 @@
       icon="workflow"
       :description="method.description || 'Define how this action appears, receives inputs and stores credentials.'"
     >
-      <div class="method-node-editor__summary">
-        <div class="method-node-editor__summary-main">
-          <span class="method-node-editor__summary-icon">
-            <LucideIcon name="route" :size="18" />
-          </span>
-          <div>
-            <strong>{{ method.name || 'Untitled Method' }}</strong>
-            <span>{{ method.handle || 'method_handle' }}</span>
-          </div>
+      <div class="method-node-editor__action-row">
+        <span class="method-node-editor__action-icon">
+          <LucideIcon name="route" :size="15" />
+        </span>
+        <div class="method-node-editor__action-copy">
+          <strong>{{ method.name || 'Untitled Method' }}</strong>
+          <span>{{ method.handle || 'method_handle' }}</span>
         </div>
-        <div class="method-node-editor__summary-stats">
-          <span><strong>{{ method.inputs.length }}</strong> inputs</span>
-          <span><strong>{{ credentialCount }}</strong> credentials</span>
-          <span><strong>{{ method.responseMapping.length }}</strong> outputs</span>
+        <div class="method-node-editor__action-stats">
+          <span>{{ method.inputs.length }} inputs</span>
+          <span>{{ credentialCount }} credentials</span>
+          <span>{{ method.responseMapping.length }} outputs</span>
         </div>
       </div>
 
@@ -32,12 +30,18 @@
       <div class="method-node-editor__grid method-node-editor__grid--2">
         <BaseInput
           :model-value="String(node.data.name ?? node.data.label ?? '')"
-          label="Node label"
+          label="Step name"
           placeholder="List records"
           hint="Visible label used on the canvas."
           @update:model-value="updateNodeData({ name: String($event), label: String($event) })"
         />
-        <BaseInput :model-value="node.id" label="Node id" disabled />
+        <BaseInput
+          :model-value="method.handle"
+          label="Method handle"
+          placeholder="listRecords"
+          hint="Used by workflows."
+          @update:model-value="updateMethodPatch({ handle: normalizeHandle(String($event)) })"
+        />
       </div>
     </NodeEditorSection>
 
@@ -49,13 +53,7 @@
           placeholder="List records"
           @update:model-value="updateMethodPatch({ name: String($event) })"
         />
-        <BaseInput
-          :model-value="method.handle"
-          label="Method handle"
-          placeholder="listRecords"
-          hint="Stable key used by workflows."
-          @update:model-value="updateMethodPatch({ handle: normalizeHandle(String($event)) })"
-        />
+        <BaseInput :model-value="node.id" label="Node ID" hint="Edit this in Settings." disabled />
       </div>
       <BaseInput
         :model-value="method.category ?? ''"
@@ -262,76 +260,57 @@ function normalizeHandle(value: string) {
   gap: 22px;
 }
 
-.method-node-editor__summary {
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-}
-
-.method-node-editor__summary-main {
+.method-node-editor__action-row {
   display: flex;
   align-items: center;
-  min-width: 0;
-  gap: 10px;
+  gap: 12px;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-elevated);
 }
 
-.method-node-editor__summary-main > div {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 2px;
-}
-
-.method-node-editor__summary-main strong {
-  color: var(--sailor-text-primary);
-  font-size: 14px;
-}
-
-.method-node-editor__summary-main span:not(.method-node-editor__summary-icon) {
-  color: var(--sailor-text-muted);
-  font-family: var(--sailor-font-mono);
-  font-size: 11px;
-}
-
-.method-node-editor__summary-icon {
+.method-node-editor__action-icon {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
-  border: 1px solid color-mix(in srgb, var(--sailor-accent) 35%, transparent);
-  border-radius: var(--sailor-radius-sm);
-  background: color-mix(in srgb, var(--sailor-accent) 12%, transparent);
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
   color: var(--sailor-accent);
 }
 
-.method-node-editor__summary-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(70px, auto));
-  align-items: center;
-  gap: 6px;
+.method-node-editor__action-copy {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 8px;
 }
 
-.method-node-editor__summary-stats span {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 6px 8px;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-sm);
+.method-node-editor__action-copy strong {
+  color: var(--sailor-text-primary);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.method-node-editor__action-copy span {
   color: var(--sailor-text-muted);
+  font-family: var(--sailor-font-mono);
   font-size: 11px;
 }
 
-.method-node-editor__summary-stats strong {
-  color: var(--sailor-text-primary);
-  font-family: var(--sailor-font-mono);
-  font-size: 14px;
+.method-node-editor__action-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.method-node-editor__action-stats span {
+  color: var(--sailor-text-muted);
+  font-size: 11px;
+  font-weight: 650;
 }
 
 .method-node-editor__grid {
@@ -400,13 +379,11 @@ function normalizeHandle(value: string) {
 }
 
 @media (max-width: 980px) {
-  .method-node-editor__summary,
-  .method-node-editor__summary-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .method-node-editor__summary {
-    display: grid;
+  .method-node-editor__action-row,
+  .method-node-editor__action-copy,
+  .method-node-editor__action-stats {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .method-node-editor__grid--2,
