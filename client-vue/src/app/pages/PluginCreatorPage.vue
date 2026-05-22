@@ -57,6 +57,13 @@
             @zoom="zoomCanvas"
             @clear-execution="clearExecution"
           />
+          <PluginCreatorExecutionBottomPanel
+            :has-execution="executionStore.hasExecution"
+            :timeline="executionStore.timeline"
+            :node-statuses="executionStore.nodeStatuses"
+            :selected-node-id="selectedNodeId"
+            @clear-execution="clearExecution"
+          />
         </div>
       </section>
 
@@ -78,7 +85,7 @@
         @update-credential="store.updateCredentialField"
         @update-request="store.updateMethodRequest"
         @add-credential="store.addCredentialField"
-        @test-method="store.runMethodTest"
+        @test-method="runMethodTestAndApplyTrace"
         @load-versions="store.loadVersions"
         @rollback="rollbackToReleaseSnapshot"
       />
@@ -124,12 +131,15 @@ import PluginCreatorWorkspaceModal, {
 import PluginCreatorCreatePluginModal from '@/features/plugin-creator/components/PluginCreatorCreatePluginModal.vue'
 import PluginCreatorNodeSettingsModal from '@/features/plugin-creator/components/PluginCreatorNodeSettingsModal.vue'
 import PluginCreatorCodePreviewMinimap from '@/features/plugin-creator/components/PluginCreatorCodePreviewMinimap.vue'
+import PluginCreatorExecutionBottomPanel from '@/features/plugin-creator/components/PluginCreatorExecutionBottomPanel.vue'
 import { usePluginCreatorStore } from '@/features/plugin-creator'
+import { usePluginCreatorExecutionStore } from '@/features/plugin-creator/stores/pluginCreatorExecution.store'
 import type {
   PluginBlueprintNode,
   PluginBlueprintPosition,
   PluginBlueprintNodeType,
   CreatePluginBlueprintPayload,
+  PluginCreatorTestMethodPayload,
 } from '@/core/types/plugin-creator.types'
 import { markRaw, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -137,6 +147,7 @@ import { useRoute, useRouter } from 'vue-router'
 type ToolbarTool = 'cursor' | 'pan' | 'delete'
 
 const store = usePluginCreatorStore()
+const executionStore = usePluginCreatorExecutionStore()
 const appPanelStore = useAppPanelStore()
 const route = useRoute()
 const router = useRouter()
@@ -483,11 +494,19 @@ async function runSelectedMethod() {
   const selectedMethodId = typeof methodId === 'string' ? methodId : fallbackMethodId
   if (!selectedMethodId) return
 
-  await store.runMethodTest({
+  await runMethodTestAndApplyTrace({
     methodId: selectedMethodId,
     params: {},
     credentials: {},
   })
+}
+
+async function runMethodTestAndApplyTrace(payload: PluginCreatorTestMethodPayload) {
+  const result = await store.runMethodTest(payload)
+  if (result?.trace) {
+    executionStore.applyTrace(result.trace)
+  }
+  return result
 }
 
 async function saveDraft() {
@@ -511,6 +530,7 @@ async function rollbackToReleaseSnapshot(snapshotId: string) {
 
 function clearExecution() {
   store.lastTestResult = null
+  executionStore.clearExecution()
 }
 
 function fitCanvasSoon() {

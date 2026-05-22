@@ -406,25 +406,25 @@ Copy visual from:
 - `NodeOutputPanel.vue`
 - `RunWorkflowPanel.vue`
 
-- [ ] Write contracts for:
+- [x] Write contracts for:
   - bottom execution panel exists.
   - node output panel shows selected node output.
   - run method panel handles params and credentials.
   - clear execution action resets store.
-- [ ] Create:
+- [x] Create:
   - `PluginCreatorExecutionBottomPanel.vue`
   - `PluginCreatorNodeOutputPanel.vue`
   - `PluginCreatorRunMethodPanel.vue`
-- [ ] Mount in `PluginCreatorPage.vue`.
-- [ ] Wire `lastTestResult.trace` into execution store.
-- [ ] Run:
+- [x] Mount in `PluginCreatorPage.vue`.
+- [x] Wire `lastTestResult.trace` into execution store.
+- [x] Run:
 
 ```bash
 cd client-vue
 node --test src/features/plugin-creator/components/__tests__/PluginCreatorExecutionPanels.contract.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add client-vue/src/features/plugin-creator/components/PluginCreatorExecutionBottomPanel.vue client-vue/src/features/plugin-creator/components/PluginCreatorNodeOutputPanel.vue client-vue/src/features/plugin-creator/components/PluginCreatorRunMethodPanel.vue client-vue/src/app/pages/PluginCreatorPage.vue client-vue/src/features/plugin-creator/components/__tests__/PluginCreatorExecutionPanels.contract.test.ts
