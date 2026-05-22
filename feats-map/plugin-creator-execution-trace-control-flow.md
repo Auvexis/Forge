@@ -337,25 +337,25 @@ Why:
 Copy pattern from:
 - `client-vue/src/features/workflow-editor/stores/execution.store.ts`
 
-- [ ] Write failing Pinia tests for:
+- [x] Write failing Pinia tests for:
   - patch node status.
   - set output per node.
   - derive edge status from source/target.
   - timeline append.
   - clear execution.
-- [ ] Create `pluginCreatorExecution.store.ts`.
-- [ ] Add types:
+- [x] Create `pluginCreatorExecution.store.ts`.
+- [x] Add types:
   - `PluginCreatorNodeExecutionStatus`
   - `PluginCreatorNodeExecutionState`
   - `PluginCreatorTimelineEvent`
-- [ ] Run:
+- [x] Run:
 
 ```bash
 cd client-vue
 node --test src/features/plugin-creator/stores/__tests__/pluginCreatorExecution.store.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add client-vue/src/features/plugin-creator/stores/pluginCreatorExecution.store.ts client-vue/src/features/plugin-creator/stores/__tests__/pluginCreatorExecution.store.test.ts
