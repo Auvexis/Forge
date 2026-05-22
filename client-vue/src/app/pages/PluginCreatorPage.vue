@@ -43,7 +43,10 @@
             @add-first-node="openAddBlocksPanel"
             @open-node-settings="openNodeSettingsModal"
           />
-          <PluginCreatorCodePreviewMinimap :blueprint="store.activeBlueprint" />
+          <PluginCreatorCodePreviewMinimap
+            :blueprint="store.activeBlueprint"
+            :selected-node-id="selectedNodeId"
+          />
           <PluginCreatorFloatingToolbar
             :is-dirty="store.isDirty"
             :is-saving="store.isSaving"
@@ -563,7 +566,6 @@ function fitCanvasSoon() {
 function confirmUnsavedChanges() {
   return !store.isDirty || window.confirm('Discard unsaved plugin changes?')
 }
-
 </script>
 
 <style scoped>
