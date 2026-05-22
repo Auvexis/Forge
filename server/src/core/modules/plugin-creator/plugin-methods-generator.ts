@@ -1,42 +1,17 @@
 import type { PluginBlueprint } from "./plugin-blueprint-types.ts";
+import { buildPluginMethodPlans } from "./plugin-method-plan.ts";
+import { writeMethodSource } from "./plugin-method-code-writer.ts";
 
 export function generatePluginMethodsSource(blueprint: PluginBlueprint): string {
+  const plans = new Map(buildPluginMethodPlans(blueprint).map((plan) => [plan.methodId, plan]));
   const methodEntries = blueprint.methods
-    .map((method) => {
-      const request = JSON.stringify(method.request, null, 2);
-      const responseMapping = JSON.stringify(method.responseMapping, null, 2);
-      const errorMapping = JSON.stringify(method.errorMapping, null, 2);
-
-      return `  ${method.handle}: async (params: Record<string, unknown>, context: PluginContext = emptyContext) => {
-    const rendered = renderPluginRequestTemplate({
-      request: ${indent(request, 6)},
-      params,
-      credentials: context.credentials ?? {},
-    }).request;
-    const url = buildUrl(rendered.url, rendered.query);
-    const response = await fetch(url, {
-      method: ${JSON.stringify(method.request.method)},
-      headers: rendered.headers,
-      body: rendered.body === undefined ? undefined : JSON.stringify(rendered.body),
-    });
-    const body = await parseResponseBody(response);
-    const responseLike = {
-      status: response.status,
-      headers: headersToRecord(response.headers),
-      body,
-    };
-    const mappedError = mapPluginCreatorError(responseLike, ${indent(errorMapping, 6)});
-    if (mappedError) {
-      throw new SailorPluginError(mappedError.message, {
-        code: mappedError.code,
-        status: mappedError.status ?? undefined,
-        details: mappedError.details,
-      });
-    }
-    assertHttpOk({ status: response.status, body });
-    return mapPluginCreatorResponse(responseLike, ${indent(responseMapping, 6)});
-  }`;
-    })
+    .map((method) =>
+      writeMethodSource({
+        blueprint,
+        method,
+        plan: plans.get(method.id)!,
+      }),
+    )
     .join(",\n");
 
   return `import type { PluginContext } from "@auvexis/sailor-sdk";
@@ -77,9 +52,4 @@ async function parseResponseBody(response: Response): Promise<unknown> {
   return text;
 }
 `;
-}
-
-function indent(value: string, spaces: number): string {
-  const padding = " ".repeat(spaces);
-  return value.replace(/\n/g, `\n${padding}`);
 }

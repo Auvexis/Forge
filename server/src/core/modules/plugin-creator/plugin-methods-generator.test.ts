@@ -79,7 +79,7 @@ describe("generatePluginMethodsSource", () => {
     assert.match(source, /getLead: async \(params: Record<string, unknown>, context: PluginContext = emptyContext\)/);
     assert.match(source, /method: "POST"/);
     assert.match(source, /method: "GET"/);
-    assert.match(source, /body: rendered\.body === undefined \? undefined : JSON\.stringify\(rendered\.body\)/);
+    assert.match(source, /body: rendered_method_create_lead_request\.body === undefined \? undefined : JSON\.stringify\(rendered_method_create_lead_request\.body\)/);
   });
 
   it("embeds response and error mappings as JSON data", () => {
