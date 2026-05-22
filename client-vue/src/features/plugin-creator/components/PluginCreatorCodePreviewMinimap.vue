@@ -9,15 +9,14 @@
     :min-height="220"
   >
     <template #title>
-      <strong>Generated method</strong>
+      <strong>Node preview</strong>
     </template>
     <template #subtitle>
-      <small>{{ isLoading ? 'Generating...' : previewLabel }}</small>
+      <small>{{ preview.label }}</small>
     </template>
 
-    <p v-if="error" class="plugin-creator-code-preview-minimap__error">{{ error }}</p>
     <BaseCodeEditor
-      :model-value="selectedMethodCode"
+      :model-value="preview.code"
       language="typescript"
       height="100%"
       readonly
@@ -30,11 +29,8 @@ import { computed, toRef } from 'vue'
 import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import BaseFloatingWindow from '@/shared/components/base/BaseFloatingWindow.vue'
 import type { PluginBlueprint } from '@/core/types/plugin-creator.types'
-import { usePluginCreatorCodePreview } from '../composables/usePluginCreatorCodePreview'
 import {
-  extractPluginCreatorMethodBlock,
-  hasPluginCreatorMethodSteps,
-  resolvePluginCreatorMethodHandle,
+  resolvePluginCreatorSelectedNodePreview,
 } from '../composables/usePluginCreatorMethodPreview'
 
 const props = defineProps<{
@@ -42,27 +38,16 @@ const props = defineProps<{
   selectedNodeId?: string | null
 }>()
 
-const { code, isLoading, error } = usePluginCreatorCodePreview(toRef(props, 'blueprint'))
-
-const selectedMethodHandle = computed(() =>
-  resolvePluginCreatorMethodHandle(props.blueprint, props.selectedNodeId),
-)
-const selectedMethodCode = computed(() => {
-  if (!hasPluginCreatorMethodSteps(props.blueprint, selectedMethodHandle.value)) return ''
-  return extractPluginCreatorMethodBlock(code.value, selectedMethodHandle.value)
-})
-const previewLabel = computed(() =>
-  selectedMethodHandle.value ? `${selectedMethodHandle.value} method block` : 'method block',
+const blueprintRef = toRef(props, 'blueprint')
+const preview = computed(() =>
+  resolvePluginCreatorSelectedNodePreview({
+    blueprint: blueprintRef.value,
+    selectedNodeId: props.selectedNodeId,
+  }),
 )
 </script>
 
 <style scoped>
-.plugin-creator-code-preview-minimap__error {
-  margin: 0 0 8px;
-  color: var(--sailor-text-muted);
-  font-size: 11px;
-}
-
 .plugin-creator-code-preview-minimap :deep(.base-code-editor) {
   min-height: 0;
   flex: 1;

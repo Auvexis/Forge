@@ -4,6 +4,7 @@ import { describe, it } from 'node:test'
 import {
   extractPluginCreatorMethodBlock,
   hasPluginCreatorMethodSteps,
+  resolvePluginCreatorSelectedNodePreview,
   resolvePluginCreatorMethodHandle,
 } from '../usePluginCreatorMethodPreview.ts'
 import type { PluginBlueprint } from '@/core/types/plugin-creator.types'
@@ -101,5 +102,65 @@ describe('usePluginCreatorMethodPreview', () => {
     } as PluginBlueprint
 
     assert.equal(hasPluginCreatorMethodSteps(blueprint, 'firstMethod'), true)
+  })
+
+  it('uses selected code block source instead of compiled method internals', () => {
+    const blueprint = {
+      methods: [
+        {
+          id: 'method-a',
+          handle: 'method1',
+          codeBlocks: [
+            {
+              id: 'code-shape',
+              name: 'Shape response',
+              source: 'return { id: previous.id };',
+            },
+          ],
+        },
+      ],
+      canvas: {
+        nodes: {
+          method: { id: 'method', type: 'method', data: { methodId: 'method-a' } },
+          code: {
+            id: 'code',
+            type: 'codeBlock',
+            data: { methodId: 'method-a', codeBlockId: 'code-shape' },
+          },
+        },
+      },
+    } as PluginBlueprint
+
+    const preview = resolvePluginCreatorSelectedNodePreview({
+      blueprint,
+      selectedNodeId: 'code',
+    })
+
+    assert.equal(preview.code, 'return { id: previous.id };')
+    assert.equal(preview.label, 'Shape response code block')
+    assert.doesNotMatch(preview.code, /method1: async/)
+    assert.doesNotMatch(preview.code, /fetch/)
+  })
+
+  it('summarizes selected method instead of showing compiled generated source', () => {
+    const blueprint = {
+      methods: [{ id: 'method-a', handle: 'method1', name: 'Method 1' }],
+      canvas: {
+        nodes: {
+          method: { id: 'method', type: 'method', data: { methodId: 'method-a' } },
+          request: { id: 'request', type: 'request', data: { methodId: 'method-a' } },
+        },
+      },
+    } as PluginBlueprint
+
+    const preview = resolvePluginCreatorSelectedNodePreview({
+      blueprint,
+      selectedNodeId: 'method',
+    })
+
+    assert.equal(preview.label, 'Method 1 method')
+    assert.match(preview.code, /handle: method1/)
+    assert.doesNotMatch(preview.code, /method1: async/)
+    assert.doesNotMatch(preview.code, /fetch/)
   })
 })

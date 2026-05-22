@@ -1,5 +1,77 @@
 import type { PluginBlueprint } from '@/core/types/plugin-creator.types'
 
+export interface PluginCreatorSelectedNodePreview {
+  code: string
+  label: string
+}
+
+export function resolvePluginCreatorSelectedNodePreview(input: {
+  blueprint: PluginBlueprint | null | undefined
+  selectedNodeId: string | null | undefined
+}): PluginCreatorSelectedNodePreview {
+  const blueprint = input.blueprint
+  const node =
+    blueprint && input.selectedNodeId ? blueprint.canvas.nodes[input.selectedNodeId] : undefined
+  const method = node?.data.methodId
+    ? blueprint?.methods.find((candidate) => candidate.id === node.data.methodId)
+    : undefined
+
+  if (!blueprint || !node || !method) {
+    return { code: '', label: 'selected node' }
+  }
+
+  if (node.type === 'codeBlock') {
+    const codeBlockId = typeof node.data.codeBlockId === 'string' ? node.data.codeBlockId : node.id
+    const codeBlock = method.codeBlocks?.find((candidate) => candidate.id === codeBlockId)
+    const nodeSource = typeof node.data.source === 'string' ? node.data.source : undefined
+    return {
+      code: codeBlock?.source ?? nodeSource ?? 'return previous;',
+      label: `${codeBlock?.name ?? String(node.data.name ?? 'Code Block')} code block`,
+    }
+  }
+
+  if (node.type === 'method') {
+    const steps = Object.values(blueprint.canvas.nodes).filter(
+      (candidate) => candidate.type !== 'method' && candidate.data.methodId === method.id,
+    )
+    return {
+      code: [
+        '// Method',
+        `handle: ${method.handle}`,
+        `inputs: ${method.inputs?.length ?? 0}`,
+        `steps: ${steps.length}`,
+      ].join('\n'),
+      label: `${method.name} method`,
+    }
+  }
+
+  if (node.type === 'request') {
+    return {
+      code: JSON.stringify(method.request, null, 2),
+      label: `${method.name} request`,
+    }
+  }
+
+  if (node.type === 'responseMapper') {
+    return {
+      code: JSON.stringify(method.responseMapping, null, 2),
+      label: `${method.name} response mapping`,
+    }
+  }
+
+  if (node.type === 'errorMapper') {
+    return {
+      code: JSON.stringify(method.errorMapping, null, 2),
+      label: `${method.name} error mapping`,
+    }
+  }
+
+  return {
+    code: String(node.data.name ?? node.type),
+    label: `${String(node.data.name ?? node.type)} node`,
+  }
+}
+
 export function resolvePluginCreatorMethodHandle(
   blueprint: PluginBlueprint | null | undefined,
   selectedNodeId: string | null | undefined,

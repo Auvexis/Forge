@@ -6,7 +6,7 @@ import { describe, it } from 'node:test'
 const componentDir = path.resolve('src/features/plugin-creator/components')
 
 describe('PluginCreatorCodePreviewMinimap contract', () => {
-  it('renders a read-only BaseCodeEditor for generated method preview', () => {
+  it('renders a read-only BaseCodeEditor for selected node preview', () => {
     const source = fs.readFileSync(
       path.join(componentDir, 'PluginCreatorCodePreviewMinimap.vue'),
       'utf8',
@@ -15,11 +15,12 @@ describe('PluginCreatorCodePreviewMinimap contract', () => {
     assert.match(source, /BaseCodeEditor/)
     assert.match(source, /BaseFloatingWindow/)
     assert.match(source, /readonly/)
-    assert.match(source, /Generated method/)
-    assert.match(source, /selectedMethodCode/)
+    assert.match(source, /Node preview/)
+    assert.match(source, /resolvePluginCreatorSelectedNodePreview/)
     assert.match(source, /selectedNodeId/)
-    assert.match(source, /hasPluginCreatorMethodSteps/)
-    assert.match(source, /method block/)
+    assert.doesNotMatch(source, /usePluginCreatorCodePreview/)
+    assert.doesNotMatch(source, /selectedMethodCode/)
+    assert.doesNotMatch(source, /hasPluginCreatorMethodSteps/)
   })
 
   it('delegates moving, resizing, minimizing, and persisted layout to BaseFloatingWindow', () => {
