@@ -37,6 +37,43 @@ describe('PluginCreator node editor foundation', () => {
     assert.match(source, /<slot name="toolbar"/)
     assert.match(source, /<slot \/>/)
     assert.match(source, /eyebrow/)
+    assert.match(source, /editor-field/)
+    assert.match(source, /LucideIcon/)
+    assert.match(source, /node-editor-section--flush/)
+    assert.doesNotMatch(source, /border-bottom:\s*1px solid var\(--sailor-border-subtle\)/)
+  })
+
+  it('expression controls share Workflow Editor field and hint chrome', () => {
+    const inputSource = fs.readFileSync(
+      path.resolve('src/features/plugin-creator/components/expressions/PluginCreatorExpressionInput.vue'),
+      'utf8',
+    )
+    const textareaSource = fs.readFileSync(
+      path.resolve(
+        'src/features/plugin-creator/components/expressions/PluginCreatorExpressionTextarea.vue',
+      ),
+      'utf8',
+    )
+
+    for (const source of [inputSource, textareaSource]) {
+      assert.match(source, /editor-field/)
+      assert.match(source, /editor-field__label/)
+      assert.match(source, /editor-expression-control/)
+      assert.match(source, /editor-hint/)
+      assert.match(source, /editor-code-snippet/)
+    }
+  })
+
+  it('uses a compact variable picker button instead of an always-open token dump', () => {
+    const source = fs.readFileSync(
+      path.resolve('src/features/plugin-creator/components/expressions/PluginCreatorVariablePicker.vue'),
+      'utf8',
+    )
+
+    assert.match(source, /plugin-creator-variable-picker__trigger/)
+    assert.match(source, /LucideIcon/)
+    assert.match(source, /v-if="isOpen"/)
+    assert.match(source, /plugin-creator-variable-picker__popover/)
   })
 })
 

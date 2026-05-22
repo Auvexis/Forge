@@ -27,12 +27,14 @@
           :model-value="String(node?.data.fromExpression ?? '0')"
           label="From expression"
           placeholder="0"
+          :show-hint="false"
           @update:model-value="updateNodeData({ fromExpression: String($event) })"
         />
         <PluginCreatorExpressionInput
           :model-value="String(node?.data.toExpression ?? '0')"
           label="To expression"
           placeholder="10"
+          :show-hint="false"
           @update:model-value="updateNodeData({ toExpression: String($event) })"
         />
       </div>
@@ -99,6 +101,7 @@ function normalizeVariable(value: string) {
 .node-editor-stack {
   display: flex;
   flex-direction: column;
+  gap: 22px;
 }
 
 .for-node-editor__mode,
@@ -126,13 +129,21 @@ function normalizeVariable(value: string) {
 }
 
 .for-node-editor__branch {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 2px;
+  padding: 2px 0;
+}
+
+.for-node-editor__branch::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: var(--sailor-radius-full);
+  background: rgb(59, 130, 246);
+  grid-row: span 2;
 }
 
 .for-node-editor__branch span {

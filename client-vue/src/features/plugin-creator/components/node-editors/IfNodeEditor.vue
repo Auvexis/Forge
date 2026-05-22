@@ -57,6 +57,7 @@ const { node, updateNodeData } = usePluginCreatorNodeEditorContext(props, emit)
 .node-editor-stack {
   display: flex;
   flex-direction: column;
+  gap: 22px;
 }
 
 .if-node-editor__quick,
@@ -80,13 +81,28 @@ const { node, updateNodeData } = usePluginCreatorNodeEditorContext(props, emit)
 
 .if-node-editor__branches > div {
   min-width: 150px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 2px;
+  padding: 2px 0;
+}
+
+.if-node-editor__branches > div::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: var(--sailor-radius-full);
+  grid-row: span 2;
+}
+
+.if-node-editor__branches > div:first-child::before {
+  background: rgb(34, 197, 94);
+}
+
+.if-node-editor__branches > div:last-child::before {
+  background: rgb(239, 68, 68);
 }
 
 .if-node-editor__branches span {

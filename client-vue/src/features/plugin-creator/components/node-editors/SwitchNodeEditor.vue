@@ -29,25 +29,19 @@
       description="Each case keeps its handle id when label or value changes."
     >
       <template #toolbar>
-        <button type="button" class="switch-node-editor__action" @click="addCase">Add case</button>
+        <button
+          type="button"
+          class="switch-node-editor__icon-action"
+          title="Add case"
+          @click="addCase"
+        >
+          <LucideIcon name="plus" :size="14" />
+        </button>
       </template>
 
       <div v-if="cases.length" class="switch-node-editor__cases">
         <div v-for="(item, index) in cases" :key="item.id" class="switch-node-editor__case">
-          <div class="switch-node-editor__case-head">
-            <strong>Case {{ index + 1 }}</strong>
-            <div class="switch-node-editor__case-actions">
-              <button type="button" :disabled="index === 0" @click="moveCase(index, -1)">Up</button>
-              <button
-                type="button"
-                :disabled="index === cases.length - 1"
-                @click="moveCase(index, 1)"
-              >
-                Down
-              </button>
-              <button type="button" @click="removeCase(index)">Remove</button>
-            </div>
-          </div>
+          <span class="switch-node-editor__case-index">{{ index + 1 }}</span>
           <BaseInput
             :model-value="item.label"
             label="Label"
@@ -58,6 +52,7 @@
             :model-value="item.value"
             label="Value"
             placeholder="'success'"
+            :show-hint="false"
             @update:model-value="updateCase(index, { value: String($event) })"
           />
           <BaseInput
@@ -68,6 +63,28 @@
               updateCase(index, { handle: normalizeHandle(String($event), index) })
             "
           />
+          <span class="switch-node-editor__case-route">-> {{ item.handle }}</span>
+          <div class="switch-node-editor__case-actions">
+            <button
+              type="button"
+              :disabled="index === 0"
+              title="Move up"
+              @click="moveCase(index, -1)"
+            >
+              <LucideIcon name="chevron-up" :size="14" />
+            </button>
+            <button
+              type="button"
+              :disabled="index === cases.length - 1"
+              title="Move down"
+              @click="moveCase(index, 1)"
+            >
+              <LucideIcon name="chevron-down" :size="14" />
+            </button>
+            <button type="button" title="Remove case" @click="removeCase(index)">
+              <LucideIcon name="x" :size="14" />
+            </button>
+          </div>
         </div>
       </div>
       <div v-else class="switch-node-editor__empty">
@@ -94,6 +111,7 @@
 import { computed } from 'vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import PluginCreatorExpressionInput from '../expressions/PluginCreatorExpressionInput.vue'
 import NodeEditorSection from './NodeEditorSection.vue'
 import { usePluginCreatorNodeEditorContext } from './usePluginCreatorNodeEditorContext'
@@ -189,6 +207,7 @@ function normalizeHandle(value: string, index: number) {
 .node-editor-stack {
   display: flex;
   flex-direction: column;
+  gap: 22px;
 }
 
 .switch-node-editor__quick,
@@ -199,8 +218,6 @@ function normalizeHandle(value: string, index: number) {
 }
 
 .switch-node-editor__quick button,
-.switch-node-editor__action,
-.switch-node-editor__case-actions button,
 .switch-node-editor__empty button {
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
@@ -211,6 +228,26 @@ function normalizeHandle(value: string, index: number) {
   font-size: 12px;
   font-weight: 650;
   padding: 6px 8px;
+}
+
+.switch-node-editor__icon-action,
+.switch-node-editor__case-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: transparent;
+  color: var(--sailor-text-muted);
+  cursor: pointer;
+}
+
+.switch-node-editor__icon-action:hover,
+.switch-node-editor__case-actions button:hover {
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
 }
 
 .switch-node-editor__case-actions button:disabled {
@@ -227,20 +264,45 @@ function normalizeHandle(value: string, index: number) {
 .switch-node-editor__case,
 .switch-node-editor__empty,
 .switch-node-editor__default {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
+  display: grid;
+  gap: 8px;
 }
 
-.switch-node-editor__case-head {
-  display: flex;
+.switch-node-editor__case {
+  grid-template-columns: 18px minmax(120px, 1fr) minmax(120px, 1fr) minmax(130px, 0.8fr) auto;
+  display: grid;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
+}
+
+.switch-node-editor__case-index {
+  color: var(--sailor-text-muted);
+  font-family: var(--sailor-font-mono);
+  font-size: 12px;
+  text-align: center;
+}
+
+.switch-node-editor__case-route {
+  color: var(--sailor-text-muted);
+  font-family: var(--sailor-font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.switch-node-editor__case-actions {
+  display: flex;
+  gap: 4px;
+}
+
+@media (max-width: 980px) {
+  .switch-node-editor__case {
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+  }
+
+  .switch-node-editor__case > :deep(.base-input-wrapper),
+  .switch-node-editor__case > :deep(.plugin-creator-expression-input) {
+    grid-column: 2 / -1;
+  }
 }
 
 .switch-node-editor__empty,

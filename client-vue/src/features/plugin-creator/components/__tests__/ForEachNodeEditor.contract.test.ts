@@ -16,7 +16,7 @@ describe('ForEachNodeEditor contract', () => {
     assert.match(source, /PluginCreatorExpressionInput/)
     assert.match(source, /arrayExpression/)
     assert.match(source, /itemVariable/)
-    assert.match(source, /PluginCreatorVariableTree/)
+    assert.doesNotMatch(source, /<PluginCreatorVariableTree/)
     assert.match(source, /Body branch/)
     assert.match(source, /Item variable is required/)
     assert.match(source, /updateNodeData/)

@@ -18,7 +18,6 @@
         :error="itemVariableError"
         @update:model-value="updateNodeData({ itemVariable: normalizeVariable(String($event)) })"
       />
-      <PluginCreatorVariableTree @select="updateNodeData({ arrayExpression: $event })" />
     </NodeEditorSection>
 
     <NodeEditorSection
@@ -37,7 +36,6 @@
 import { computed } from 'vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import PluginCreatorExpressionInput from '../expressions/PluginCreatorExpressionInput.vue'
-import PluginCreatorVariableTree from '../PluginCreatorVariableTree.vue'
 import NodeEditorSection from './NodeEditorSection.vue'
 import { usePluginCreatorNodeEditorContext } from './usePluginCreatorNodeEditorContext'
 import type { PluginCreatorNodeEditorEmits, PluginCreatorNodeEditorProps } from './types'
@@ -60,16 +58,25 @@ function normalizeVariable(value: string) {
 .node-editor-stack {
   display: flex;
   flex-direction: column;
+  gap: 22px;
 }
 
 .for-each-node-editor__branch {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 2px;
+  padding: 2px 0;
+}
+
+.for-each-node-editor__branch::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: var(--sailor-radius-full);
+  background: rgb(34, 197, 94);
+  grid-row: span 2;
 }
 
 .for-each-node-editor__branch span {
