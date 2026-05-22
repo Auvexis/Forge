@@ -18,6 +18,7 @@ const pluginHandlePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const methodHandlePattern = /^[a-z][a-zA-Z0-9]*$/;
 const fieldNamePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const errorCodePattern = /^[A-Z][A-Z0-9_]*$/;
+const variableNamePattern = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 
 const keyValueSchema = z.object({
   name: z.string().min(1),
@@ -130,26 +131,92 @@ const positionSchema = z.object({
   y: z.number(),
 });
 
-const nodeSchema = z.object({
+const baseNodeSchema = z.object({
   id: z.string().regex(pluginCreatorIdPattern, "Invalid node id"),
-  type: z.enum([
-    "method",
-    "input",
-    "credential",
-    "request",
-    "header",
-    "query",
-    "body",
-    "responseMapper",
-    "errorMapper",
-    "output",
-    "codeBlock",
-    "note",
-    "group",
-  ]),
   position: positionSchema,
-  data: z.record(z.string(), z.unknown()),
 });
+
+const legacyNodeDataSchema = z.record(z.string(), z.unknown());
+
+const nodeDataWithMethodSchema = z.object({
+  methodId: z.string().regex(pluginCreatorIdPattern, "Invalid method id").optional(),
+});
+
+const switchCaseSchema = z.object({
+  id: z.string().regex(pluginCreatorIdPattern, "Invalid switch case id"),
+  label: z.string().min(1),
+  value: z.unknown(),
+  handle: z.string().regex(pluginCreatorIdPattern, "Invalid switch case handle").optional(),
+});
+
+const nodeSchema = z.discriminatedUnion("type", [
+  baseNodeSchema.extend({
+    type: z.enum([
+      "method",
+      "input",
+      "credential",
+      "request",
+      "header",
+      "query",
+      "body",
+      "responseMapper",
+      "errorMapper",
+      "output",
+      "codeBlock",
+      "note",
+      "group",
+    ]),
+    data: legacyNodeDataSchema,
+  }),
+  baseNodeSchema.extend({
+    type: z.literal("if"),
+    data: nodeDataWithMethodSchema.extend({
+      condition: z.string().min(1),
+    }),
+  }),
+  baseNodeSchema.extend({
+    type: z.literal("switch"),
+    data: nodeDataWithMethodSchema.extend({
+      expression: z.string().min(1),
+      cases: z.array(switchCaseSchema).optional(),
+    }),
+  }),
+  baseNodeSchema.extend({
+    type: z.literal("tryCatch"),
+    data: nodeDataWithMethodSchema.extend({
+      errorVariable: z.string().regex(variableNamePattern, "Invalid error variable").optional(),
+    }),
+  }),
+  baseNodeSchema.extend({
+    type: z.literal("jsonTransform"),
+    data: nodeDataWithMethodSchema.extend({
+      expression: z.string().min(1),
+      outputName: z.string().regex(fieldNamePattern, "Invalid output name").optional(),
+    }),
+  }),
+  baseNodeSchema.extend({
+    type: z.literal("return"),
+    data: nodeDataWithMethodSchema.extend({
+      valueExpression: z.string().min(1),
+    }),
+  }),
+  baseNodeSchema.extend({
+    type: z.literal("for"),
+    data: nodeDataWithMethodSchema.extend({
+      itemVariable: z.string().regex(variableNamePattern, "Invalid item variable"),
+      fromExpression: z.string().min(1).optional(),
+      toExpression: z.string().min(1).optional(),
+      iterableExpression: z.string().min(1).optional(),
+    }),
+  }),
+  baseNodeSchema.extend({
+    type: z.literal("forEach"),
+    data: nodeDataWithMethodSchema.extend({
+      arrayExpression: z.string().min(1),
+      itemVariable: z.string().regex(variableNamePattern, "Invalid item variable"),
+    }),
+  }),
+]);
 
 const edgeSchema = z.object({
   id: z.string().regex(pluginCreatorIdPattern, "Invalid edge id"),

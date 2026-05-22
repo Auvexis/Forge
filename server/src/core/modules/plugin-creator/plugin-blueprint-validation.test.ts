@@ -124,6 +124,90 @@ describe("plugin blueprint validation", () => {
     assert.equal(result.success, true);
   });
 
+  it("accepts control flow and transform canvas node types", () => {
+    const blueprint = createValidBlueprint();
+    const methodId = blueprint.methods[0]!.id;
+    blueprint.canvas.nodes = {
+      if_has_email: {
+        id: "if_has_email",
+        type: "if",
+        position: { x: 100, y: 0 },
+        data: { methodId, condition: "params.email !== undefined" },
+      },
+      switch_status: {
+        id: "switch_status",
+        type: "switch",
+        position: { x: 200, y: 0 },
+        data: {
+          methodId,
+          expression: "response.status",
+          cases: [{ id: "case_success", label: "Success", value: 200, handle: "case_success" }],
+        },
+      },
+      try_request: {
+        id: "try_request",
+        type: "tryCatch",
+        position: { x: 300, y: 0 },
+        data: { methodId, errorVariable: "error" },
+      },
+      transform_payload: {
+        id: "transform_payload",
+        type: "jsonTransform",
+        position: { x: 400, y: 0 },
+        data: { methodId, expression: "({ email: params.email })", outputName: "payload" },
+      },
+      return_payload: {
+        id: "return_payload",
+        type: "return",
+        position: { x: 500, y: 0 },
+        data: { methodId, valueExpression: "previous" },
+      },
+      for_pages: {
+        id: "for_pages",
+        type: "for",
+        position: { x: 600, y: 0 },
+        data: {
+          methodId,
+          itemVariable: "page",
+          fromExpression: "1",
+          toExpression: "3",
+        },
+      },
+      foreach_items: {
+        id: "foreach_items",
+        type: "forEach",
+        position: { x: 700, y: 0 },
+        data: { methodId, arrayExpression: "params.items", itemVariable: "item" },
+      },
+    };
+
+    const result = validatePluginBlueprint(blueprint);
+
+    assert.equal(result.success, true);
+  });
+
+  it("rejects invalid control flow node data", () => {
+    const blueprint = createValidBlueprint();
+    blueprint.canvas.nodes.if_has_email = {
+      id: "if_has_email",
+      type: "if",
+      position: { x: 100, y: 0 },
+      data: { methodId: blueprint.methods[0]!.id, condition: "" },
+    };
+    blueprint.canvas.nodes.foreach_items = {
+      id: "foreach_items",
+      type: "forEach",
+      position: { x: 200, y: 0 },
+      data: { methodId: blueprint.methods[0]!.id, arrayExpression: "params.items", itemVariable: "1item" },
+    };
+
+    const result = validatePluginBlueprint(blueprint);
+
+    assert.equal(result.success, false);
+    assert.match(result.error ?? "", /canvas\.nodes\.if_has_email\.data\.condition/);
+    assert.match(result.error ?? "", /canvas\.nodes\.foreach_items\.data\.itemVariable/);
+  });
+
   it("validates plugin creator ids", () => {
     assert.equal(validatePluginCreatorId("bp_my_crm"), "bp_my_crm");
     assert.throws(() => validatePluginCreatorId("../bp_my_crm"), /Invalid plugin creator id/);

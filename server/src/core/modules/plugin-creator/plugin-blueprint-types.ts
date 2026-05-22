@@ -145,6 +145,13 @@ export interface PluginBlueprintCodeBlock {
   outputName?: string;
 }
 
+export interface PluginBlueprintSwitchCase {
+  id: string;
+  label: string;
+  value: unknown;
+  handle?: string;
+}
+
 export interface PluginBlueprintMethod {
   id: string;
   handle: string;
@@ -165,6 +172,13 @@ export type PluginBlueprintNodeType =
   | "errorMapper"
   | "output"
   | "codeBlock"
+  | "if"
+  | "switch"
+  | "tryCatch"
+  | "jsonTransform"
+  | "return"
+  | "for"
+  | "forEach"
   | "input"
   | "credential"
   | "header"
@@ -178,11 +192,59 @@ export interface PluginBlueprintPosition {
   y: number;
 }
 
+export interface PluginBlueprintBaseNodeData {
+  methodId?: string;
+}
+
+export interface PluginBlueprintIfNodeData extends PluginBlueprintBaseNodeData {
+  condition: string;
+}
+
+export interface PluginBlueprintSwitchNodeData extends PluginBlueprintBaseNodeData {
+  expression: string;
+  cases?: PluginBlueprintSwitchCase[];
+}
+
+export interface PluginBlueprintTryCatchNodeData extends PluginBlueprintBaseNodeData {
+  errorVariable?: string;
+}
+
+export interface PluginBlueprintJsonTransformNodeData extends PluginBlueprintBaseNodeData {
+  expression: string;
+  outputName?: string;
+}
+
+export interface PluginBlueprintReturnNodeData extends PluginBlueprintBaseNodeData {
+  valueExpression: string;
+}
+
+export interface PluginBlueprintForNodeData extends PluginBlueprintBaseNodeData {
+  itemVariable: string;
+  fromExpression?: string;
+  toExpression?: string;
+  iterableExpression?: string;
+}
+
+export interface PluginBlueprintForEachNodeData extends PluginBlueprintBaseNodeData {
+  arrayExpression: string;
+  itemVariable: string;
+}
+
+export type PluginBlueprintNodeData =
+  | PluginBlueprintIfNodeData
+  | PluginBlueprintSwitchNodeData
+  | PluginBlueprintTryCatchNodeData
+  | PluginBlueprintJsonTransformNodeData
+  | PluginBlueprintReturnNodeData
+  | PluginBlueprintForNodeData
+  | PluginBlueprintForEachNodeData
+  | Record<string, unknown>;
+
 export interface PluginBlueprintNode {
   id: string;
   type: PluginBlueprintNodeType;
   position: PluginBlueprintPosition;
-  data: Record<string, unknown>;
+  data: PluginBlueprintNodeData;
 }
 
 export interface PluginBlueprintEdge {

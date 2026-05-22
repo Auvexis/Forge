@@ -160,7 +160,7 @@ Why:
 - Tipos claros evitam if/switch/loop virarem strings soltas.
 - SRP: tipos e validacao separados do runner e writer.
 
-- [ ] Write failing validation tests for node types:
+- [x] Write failing validation tests for node types:
   - `if`
   - `switch`
   - `tryCatch`
@@ -168,17 +168,17 @@ Why:
   - `return`
   - `for`
   - `forEach`
-- [ ] Add backend and frontend blueprint types.
-- [ ] Add Zod schemas for node data.
-- [ ] Keep backward compatibility for old node types.
-- [ ] Run:
+- [x] Add backend and frontend blueprint types.
+- [x] Add Zod schemas for node data.
+- [x] Keep backward compatibility for old node types.
+- [x] Run:
 
 ```bash
 cd server
 node --test src/core/modules/plugin-creator/plugin-blueprint-validation.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add server/src/core/modules/plugin-creator/plugin-blueprint-types.ts server/src/core/modules/plugin-creator/plugin-blueprint-validation.ts server/src/core/modules/plugin-creator/plugin-blueprint-validation.test.ts client-vue/src/core/types/plugin-creator.types.ts
