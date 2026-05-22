@@ -270,7 +270,7 @@ Why:
 - `Run` precisa executar request, mapper, error mapper, code block e control flow.
 - `Code Block` deixa de ser apenas preview e passa a ser testavel.
 
-- [ ] Write failing runner tests:
+- [x] Write failing runner tests:
   - request node returns rendered request and response.
   - response mapper returns mapped output.
   - error mapper throws/returns mapped error.
@@ -279,24 +279,24 @@ Why:
   - if/switch branch only executes selected branch.
   - try/catch catches request/code errors.
   - for/forEach aggregate outputs.
-- [ ] Create `plugin-method-plan-runner.ts`.
-- [ ] Create `plugin-method-trace-types.ts`.
-- [ ] Emit trace events:
+- [x] Create `plugin-method-plan-runner.ts`.
+- [x] Create `plugin-method-trace-types.ts`.
+- [x] Emit trace events:
   - `node:running`
   - `node:success`
   - `node:failed`
   - `method:success`
   - `method:failed`
-- [ ] Keep credentials redaction.
-- [ ] Keep timeout support.
-- [ ] Run:
+- [x] Keep credentials redaction.
+- [x] Keep timeout support.
+- [x] Run:
 
 ```bash
 cd server
 node --test src/core/modules/plugin-creator/plugin-method-plan-runner.test.ts src/core/modules/plugin-creator/plugin-creator-secret-redaction.integration.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add server/src/core/modules/plugin-creator/plugin-method-plan-runner.ts server/src/core/modules/plugin-creator/plugin-method-trace-types.ts server/src/core/modules/plugin-creator/plugin-method-plan-runner.test.ts
