@@ -44,6 +44,8 @@ import SwitchNodeEditor from './node-editors/SwitchNodeEditor.vue'
 import TryCatchNodeEditor from './node-editors/TryCatchNodeEditor.vue'
 import JsonTransformNodeEditor from './node-editors/JsonTransformNodeEditor.vue'
 import ReturnNodeEditor from './node-editors/ReturnNodeEditor.vue'
+import ForNodeEditor from './node-editors/ForNodeEditor.vue'
+import ForEachNodeEditor from './node-editors/ForEachNodeEditor.vue'
 import PluginCreatorNodeEditorFields from './node-editors/PluginCreatorNodeEditorFields.vue'
 
 const props = defineProps<{
@@ -99,6 +101,10 @@ const editorComponent = computed(() => {
       return JsonTransformNodeEditor
     case 'return':
       return ReturnNodeEditor
+    case 'for':
+      return ForNodeEditor
+    case 'forEach':
+      return ForEachNodeEditor
     default:
       return null
   }

@@ -298,12 +298,12 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing tests for loop editors.
-- [ ] `ForNodeEditor`: mode segmented control `range` or `iterable`, item variable, from/to expressions, iterable expression.
-- [ ] `ForEachNodeEditor`: array expression, item variable, variable picker, body branch hint.
-- [ ] Add warnings for empty item variable.
-- [ ] Run tests and type-check.
-- [ ] Commit: `feat: add loop node editors`.
+- [x] Write failing tests for loop editors.
+- [x] `ForNodeEditor`: mode segmented control `range` or `iterable`, item variable, from/to expressions, iterable expression.
+- [x] `ForEachNodeEditor`: array expression, item variable, variable picker, body branch hint.
+- [x] Add warnings for empty item variable.
+- [x] Run tests and type-check.
+- [x] Commit: `feat: add loop node editors`.
 
 ## Task 13: Output editor polish
 
