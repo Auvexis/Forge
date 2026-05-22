@@ -74,11 +74,24 @@ describe('PluginCreatorCanvas contract', () => {
 
     assert.match(source, /@selection-drag-start/)
     assert.match(source, /@selection-drag-stop/)
-    assert.match(source, /selection-key-code="Control"/)
+    assert.match(source, /:selection-key-code="null"/)
     assert.match(source, /isCanvasSelecting/)
     assert.match(source, /:deep\(\.vue-flow__selectionpane\)/)
     assert.match(source, /canvas-empty-step/)
     assert.match(source, /Add first step/)
     assert.match(source, /openAddItem/)
+  })
+
+  it('keeps VueFlow nodes in local refs like the Workflow Editor for smoother dragging', () => {
+    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
+
+    assert.match(source, /const vueFlowNodes = ref<Node\[\]>\(\[\]\)/)
+    assert.match(source, /const vueFlowEdges = ref<Edge\[\]>\(\[\]\)/)
+    assert.match(source, /v-model:nodes="vueFlowNodes"/)
+    assert.match(source, /v-model:edges="vueFlowEdges"/)
+    assert.match(source, /replaceGraphFromBlueprint/)
+    assert.match(source, /isApplyingGraphSnapshot/)
+    assert.doesNotMatch(source, /const nodes = computed<Node\[\]>/)
+    assert.doesNotMatch(source, /const edges = computed<Edge\[\]>/)
   })
 })

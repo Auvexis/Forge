@@ -1,8 +1,8 @@
 <template>
   <div ref="canvasElement" class="plugin-creator-canvas">
     <VueFlow
-      v-model:nodes="nodes"
-      v-model:edges="edges"
+      v-model:nodes="vueFlowNodes"
+      v-model:edges="vueFlowEdges"
       :node-types="nodeTypes"
       :default-zoom="1"
       :min-zoom="0.4"
@@ -13,8 +13,7 @@
       :nodes-draggable="tool !== 'pan'"
       :nodes-connectable="true"
       :elements-selectable="tool !== 'pan'"
-      :pan-on-drag="true"
-      selection-key-code="Control"
+      :selection-key-code="null"
       :delete-key-code="['Delete']"
       class="plugin-creator-canvas__flow"
       @init="onInit"
@@ -88,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, markRaw, ref } from 'vue'
+import { computed, markRaw, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { Plus } from 'lucide-vue-next'
 import {
   VueFlow,
@@ -96,6 +95,7 @@ import {
   type Edge,
   type Node,
   type NodeTypesObject,
+  type VueFlowStore,
 } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import type {
@@ -139,15 +139,13 @@ const emit = defineEmits<{
   'open-node-settings': [nodeId: string]
 }>()
 
-const vueFlow = ref<{
-  zoomTo?: (zoom: number, options?: { duration?: number }) => void
-  fitView?: (options?: { duration?: number }) => void
-  screenToFlowCoordinate?: (position: PluginBlueprintPosition) => PluginBlueprintPosition
-  getSelectedNodes?: unknown
-} | null>(null)
+const vueFlow = ref<VueFlowStore | null>(null)
 const canvasElement = ref<HTMLElement | null>(null)
 const selectedNodeIds = ref<string[]>([])
 const isCanvasSelecting = ref(false)
+const isApplyingGraphSnapshot = ref(false)
+const vueFlowNodes = ref<Node[]>([])
+const vueFlowEdges = ref<Edge[]>([])
 const executionStore = usePluginCreatorExecutionStore()
 
 const nodeTypes = {
@@ -179,41 +177,39 @@ const edgeMarkers = [
   { id: 'sailor-arrow-selected', color: 'var(--sailor-rf-arrow-stroke-selected)' },
 ]
 
-const nodes = computed<Node[]>({
-  get() {
-    const blueprint = props.blueprint
-    if (!blueprint) return []
+function buildNodes() {
+  const blueprint = props.blueprint
+  if (!blueprint) return []
 
-    return Object.values(blueprint.canvas.nodes).map((node) => ({
-      id: node.id,
-      type: node.type,
-      position: node.position,
-      data: {
-        ...node.data,
-        status: executionStore.nodeStatuses[node.id]?.status ?? 'idle',
-        hasOutgoingConnection: blueprint.canvas.edges.some((edge) => edge.source === node.id),
-      },
-    }))
-  },
-  set() {
-    // Store sync lands in a later inspector/canvas task.
-  },
-})
+  return Object.values(blueprint.canvas.nodes).map((node) => ({
+    id: node.id,
+    type: node.type,
+    position: node.position,
+    data: {
+      ...node.data,
+      status: executionStore.nodeStatuses[node.id]?.status ?? 'idle',
+      hasOutgoingConnection: blueprint.canvas.edges.some((edge) => edge.source === node.id),
+    },
+  }))
+}
 
-const edges = computed<Edge[]>({
-  get() {
-    const blueprint = props.blueprint
-    if (!blueprint) return []
+function buildEdges() {
+  const blueprint = props.blueprint
+  if (!blueprint) return []
 
-    return blueprint.canvas.edges.map((edge) => ({
-      ...edge,
-      type: 'plugin-creator-edge',
-    }))
-  },
-  set() {
-    // Store sync lands in a later inspector/canvas task.
-  },
-})
+  return blueprint.canvas.edges.map((edge) => ({
+    ...edge,
+    type: 'plugin-creator-edge',
+  }))
+}
+
+async function replaceGraphFromBlueprint() {
+  isApplyingGraphSnapshot.value = true
+  vueFlowNodes.value = buildNodes()
+  vueFlowEdges.value = buildEdges()
+  await nextTick()
+  isApplyingGraphSnapshot.value = false
+}
 
 const isCanvasEmpty = computed(() => {
   const blueprint = props.blueprint
@@ -238,8 +234,10 @@ function onNodeDoubleClick(event: { node?: Node }) {
   }
 }
 
-function onInit(instance: unknown) {
-  vueFlow.value = instance as typeof vueFlow.value
+async function onInit(instance: VueFlowStore) {
+  vueFlow.value = instance
+  await nextTick()
+  instance.updateNodeInternals()
 }
 
 function onNodeDragStop(event: { node?: Node; nodes?: Node[] }) {
@@ -266,6 +264,7 @@ function onConnect(connection: Connection) {
 }
 
 function onEdgesChange(changes: Array<{ type: string; id?: string }>) {
+  if (isApplyingGraphSnapshot.value) return
   const edgeIds = changes
     .filter((change) => change.type === 'remove' && change.id)
     .map((change) => change.id!)
@@ -283,17 +282,7 @@ function selectedCanvasNodeIds() {
 }
 
 function selectedNodesFromVueFlow(): Node[] {
-  const selectedNodes = vueFlow.value?.getSelectedNodes
-  if (Array.isArray(selectedNodes)) {
-    return selectedNodes
-  }
-  if (typeof selectedNodes === 'function') {
-    return selectedNodes()
-  }
-  if (selectedNodes && typeof selectedNodes === 'object' && 'value' in selectedNodes) {
-    return selectedNodes.value as Node[]
-  }
-  return []
+  return vueFlow.value?.getSelectedNodes ?? []
 }
 
 function deleteSelection() {
@@ -334,6 +323,58 @@ function centerPosition(): PluginBlueprintPosition {
     y: bounds.top + bounds.height / 2,
   })
 }
+
+onBeforeUnmount(() => {
+  isApplyingGraphSnapshot.value = true
+  const instance = vueFlow.value
+  if (!instance) return
+  if (instance.nodes.length > 0) instance.removeNodes(instance.nodes)
+  if (instance.edges.length > 0) instance.removeEdges(instance.edges)
+})
+
+watch(
+  () => props.blueprint?.id,
+  () => replaceGraphFromBlueprint(),
+  { immediate: true },
+)
+
+watch(
+  () => props.blueprint?.canvas.edges.map((edge) => `${edge.id}:${edge.source}:${edge.sourceHandle ?? ''}:${edge.target}:${edge.targetHandle ?? ''}`).join('|'),
+  () => {
+    if (isApplyingGraphSnapshot.value) return
+    vueFlowEdges.value = buildEdges()
+  },
+)
+
+watch(
+  () => props.blueprint?.canvas.nodes,
+  (nodes) => {
+    if (!nodes) return
+
+    const existingIds = new Set(vueFlowNodes.value.map((node) => node.id))
+    const nextIds = new Set(Object.keys(nodes))
+    if (
+      existingIds.size !== nextIds.size ||
+      [...nextIds].some((nodeId) => !existingIds.has(nodeId))
+    ) {
+      void replaceGraphFromBlueprint()
+      return
+    }
+
+    for (const vfNode of vueFlowNodes.value) {
+      const blueprintNode = nodes[vfNode.id]
+      if (!blueprintNode) continue
+      vfNode.type = blueprintNode.type
+      Object.assign(vfNode.data, {
+        ...blueprintNode.data,
+        status: executionStore.nodeStatuses[vfNode.id]?.status ?? 'idle',
+        hasOutgoingConnection:
+          props.blueprint?.canvas.edges.some((edge) => edge.source === vfNode.id) ?? false,
+      })
+    }
+  },
+  { deep: true },
+)
 
 defineExpose({
   centerPosition,

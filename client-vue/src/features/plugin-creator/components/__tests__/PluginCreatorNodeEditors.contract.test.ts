@@ -80,6 +80,7 @@ describe('PluginCreator node editor foundation', () => {
 describe('PluginCreator focused node editors', () => {
   for (const fileName of [
     'RequestNodeEditor.vue',
+    'MethodNodeEditor.vue',
     'ResponseMapperNodeEditor.vue',
     'ErrorMapperNodeEditor.vue',
     'CodeBlockNodeEditor.vue',
@@ -104,5 +105,20 @@ describe('PluginCreator focused node editors', () => {
     assert.match(source, /OutputNodeEditor/)
     assert.match(source, /case 'codeBlock':\s*return CodeBlockNodeEditor/s)
     assert.match(source, /case 'output':\s*return OutputNodeEditor/s)
+  })
+
+  it('method editor exposes a detailed workflow-style method overview', () => {
+    const source = readEditorFile('MethodNodeEditor.vue')
+
+    assert.match(source, /usePluginCreatorNodeEditorContext/)
+    assert.match(source, /method-node-editor__summary/)
+    assert.match(source, /editor-hint/)
+    assert.match(source, /editor-code-snippet/)
+    assert.match(source, /Inputs/)
+    assert.match(source, /Credentials/)
+    assert.match(source, /Method metadata/)
+    assert.match(source, /Add input/)
+    assert.match(source, /Add credential/)
+    assert.doesNotMatch(source, /PluginCreatorNodeEditorFields/)
   })
 })
