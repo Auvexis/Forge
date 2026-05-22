@@ -190,12 +190,12 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing visual contract: imports `BaseHandle`, `BaseBadge`, `QuickAddButton`, uses handles `then` and `else`.
-- [ ] Copy/adapt Workflow Editor `IfNode.vue` visual style.
-- [ ] Preserve Plugin Creator props shape: `{ id, data, selected }`.
-- [ ] Add editor with expression input, quick operators, variable picker, true/false branch hints.
-- [ ] Run tests and type-check.
-- [ ] Commit: `feat: add workflow-style plugin creator if node`.
+- [x] Write failing visual contract: imports `BaseHandle`, `BaseBadge`, `QuickAddButton`, uses handles `then` and `else`.
+- [x] Copy/adapt Workflow Editor `IfNode.vue` visual style.
+- [x] Preserve Plugin Creator props shape: `{ id, data, selected }`.
+- [x] Add editor with expression input, quick operators, variable picker, true/false branch hints.
+- [x] Run tests and type-check.
+- [x] Commit: `feat: add workflow-style plugin creator if node`.
 
 ## Task 8: Workflow-style Switch node visual and editor
 
