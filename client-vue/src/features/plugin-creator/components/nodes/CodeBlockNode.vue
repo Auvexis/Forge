@@ -12,6 +12,7 @@
     has-source
     :has-outgoing-connection="Boolean(data.hasOutgoingConnection)"
     :selected="selected"
+    :status="data.status as any"
   >
     <template #label>
       <div class="plugin-creator-node__label">

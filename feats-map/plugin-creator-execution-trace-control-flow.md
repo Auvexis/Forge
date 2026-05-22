@@ -373,22 +373,22 @@ Copy visual from:
 - `NodeShimmer.vue`
 - `BaseEdge.vue`
 
-- [ ] Write frontend contracts proving:
+- [x] Write frontend contracts proving:
   - canvas passes `status` to Plugin Creator nodes.
   - `PluginCreatorEdge` reads plugin creator execution store.
   - marker ids include idle/success/failed/running.
   - `NodeShimmer` is used when status is waiting/running.
-- [ ] Create `PluginCreatorEdge.vue`.
-- [ ] Keep `BaseNode` visual, but do not use Workflow execution store.
-- [ ] Update `PluginCreatorCanvas.vue`.
-- [ ] Run:
+- [x] Create `PluginCreatorEdge.vue`.
+- [x] Keep `BaseNode` visual, but do not use Workflow execution store.
+- [x] Update `PluginCreatorCanvas.vue`.
+- [x] Run:
 
 ```bash
 cd client-vue
 node --test src/features/plugin-creator/components/__tests__/PluginCreatorExecution.contract.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add client-vue/src/features/plugin-creator/components/PluginCreatorCanvas.vue client-vue/src/features/plugin-creator/components/PluginCreatorEdge.vue client-vue/src/features/plugin-creator/components/__tests__/PluginCreatorExecution.contract.test.ts

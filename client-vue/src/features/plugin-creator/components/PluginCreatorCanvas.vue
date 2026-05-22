@@ -110,8 +110,9 @@ import ResponseMapperNode from './nodes/ResponseMapperNode.vue'
 import ErrorMapperNode from './nodes/ErrorMapperNode.vue'
 import OutputNode from './nodes/OutputNode.vue'
 import CodeBlockNode from './nodes/CodeBlockNode.vue'
-import PluginCreatorEdge from '../../workflow-editor/components/BaseEdge.vue'
+import PluginCreatorEdge from './PluginCreatorEdge.vue'
 import PluginCreatorNodeGroupSelectionBox from './PluginCreatorNodeGroupSelectionBox.vue'
+import { usePluginCreatorExecutionStore } from '../stores/pluginCreatorExecution.store.ts'
 
 const props = defineProps<{
   blueprint?: PluginBlueprint | null
@@ -140,6 +141,7 @@ const vueFlow = ref<{
 const canvasElement = ref<HTMLElement | null>(null)
 const selectedNodeIds = ref<string[]>([])
 const isCanvasSelecting = ref(false)
+const executionStore = usePluginCreatorExecutionStore()
 
 const nodeTypes = {
   method: markRaw(MethodNode),
@@ -174,6 +176,7 @@ const nodes = computed<Node[]>({
       position: node.position,
       data: {
         ...node.data,
+        status: executionStore.nodeStatuses[node.id]?.status ?? 'idle',
         hasOutgoingConnection: blueprint.canvas.edges.some((edge) => edge.source === node.id),
       },
     }))
