@@ -525,17 +525,17 @@ Plugin Creator context:
 - `response.headers`
 - `response.body`
 
-- [ ] Write contracts for expression components.
-- [ ] Implement variable tree inference from current method graph.
-- [ ] Use expression components in If/Switch/Transform/Return/For/ForEach settings.
-- [ ] Run:
+- [x] Write contracts for expression components.
+- [x] Implement variable tree inference from current method graph.
+- [x] Use expression components in If/Switch/Transform/Return/For/ForEach settings.
+- [x] Run:
 
 ```bash
 cd client-vue
 node --test src/features/plugin-creator/components/__tests__/PluginCreatorExpressionTools.contract.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add client-vue/src/features/plugin-creator/components/expressions client-vue/src/features/plugin-creator/components/PluginCreatorVariableTree.vue client-vue/src/features/plugin-creator/components/node-editors/PluginCreatorNodeEditorFields.vue client-vue/src/features/plugin-creator/components/__tests__/PluginCreatorExpressionTools.contract.test.ts

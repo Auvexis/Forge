@@ -476,7 +476,7 @@
 
     <section v-else-if="kind === 'if'" class="te-section">
       <div class="te-section__header"><h3>If</h3></div>
-      <BaseInput
+      <PluginCreatorExpressionInput
         :model-value="String(node.data.condition ?? '')"
         label="Condition"
         placeholder="params.enabled === true"
@@ -486,17 +486,15 @@
 
     <section v-else-if="kind === 'switch'" class="te-section">
       <div class="te-section__header"><h3>Switch</h3></div>
-      <BaseInput
+      <PluginCreatorExpressionInput
         :model-value="String(node.data.expression ?? '')"
         label="Expression"
         placeholder="status"
         @update:model-value="updateNodeData({ expression: String($event) })"
       />
-      <BaseCodeEditor
+      <PluginCreatorExpressionTextarea
         :model-value="stringifyEditorValue(node.data.cases ?? [])"
-        language="json"
         label="Cases"
-        height="150px"
         @update:model-value="updateNodeData({ cases: parseEditorValue(String($event)) })"
       />
     </section>
@@ -520,7 +518,7 @@
           placeholder="payload"
           @update:model-value="updateNodeData({ outputName: String($event) })"
         />
-        <BaseInput
+        <PluginCreatorExpressionInput
           :model-value="String(node.data.expression ?? '')"
           label="Expression"
           placeholder="({ id: body.id })"
@@ -531,7 +529,7 @@
 
     <section v-else-if="kind === 'return'" class="te-section">
       <div class="te-section__header"><h3>Return</h3></div>
-      <BaseInput
+      <PluginCreatorExpressionInput
         :model-value="String(node.data.valueExpression ?? 'previous')"
         label="Value expression"
         placeholder="previous"
@@ -543,17 +541,18 @@
       <div class="te-section__header"><h3>For</h3></div>
       <div class="te-grid te-grid--3">
         <BaseInput :model-value="String(node.data.itemVariable ?? 'index')" label="Item variable" @update:model-value="updateNodeData({ itemVariable: String($event) })" />
-        <BaseInput :model-value="String(node.data.fromExpression ?? '0')" label="From expression" @update:model-value="updateNodeData({ fromExpression: String($event) })" />
-        <BaseInput :model-value="String(node.data.toExpression ?? '0')" label="To expression" @update:model-value="updateNodeData({ toExpression: String($event) })" />
+        <PluginCreatorExpressionInput :model-value="String(node.data.fromExpression ?? '0')" label="From expression" @update:model-value="updateNodeData({ fromExpression: String($event) })" />
+        <PluginCreatorExpressionInput :model-value="String(node.data.toExpression ?? '0')" label="To expression" @update:model-value="updateNodeData({ toExpression: String($event) })" />
       </div>
     </section>
 
     <section v-else-if="kind === 'forEach'" class="te-section">
       <div class="te-section__header"><h3>ForEach</h3></div>
       <div class="te-grid te-grid--2">
-        <BaseInput :model-value="String(node.data.arrayExpression ?? 'previous')" label="Array expression" @update:model-value="updateNodeData({ arrayExpression: String($event) })" />
+        <PluginCreatorExpressionInput :model-value="String(node.data.arrayExpression ?? 'previous')" label="Array expression" @update:model-value="updateNodeData({ arrayExpression: String($event) })" />
         <BaseInput :model-value="String(node.data.itemVariable ?? 'item')" label="Item variable" @update:model-value="updateNodeData({ itemVariable: String($event) })" />
       </div>
+      <PluginCreatorVariableTree @select="updateNodeData({ arrayExpression: $event })" />
     </section>
 
     <section v-else-if="kind === 'output' && method" class="te-section">
@@ -597,6 +596,9 @@ import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import PluginCreatorExpressionInput from '../expressions/PluginCreatorExpressionInput.vue'
+import PluginCreatorExpressionTextarea from '../expressions/PluginCreatorExpressionTextarea.vue'
+import PluginCreatorVariableTree from '../PluginCreatorVariableTree.vue'
 import type {
   PluginBlueprintAuthType,
   PluginBlueprintCodeBlock,
