@@ -169,13 +169,13 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing test for source editor, output name, quick snippets, safety warnings.
-- [ ] Add Monaco/`BaseCodeEditor` TypeScript source editor.
-- [ ] Add snippet toolbar: `return previous;`, `return { ...previous };`, `params.<name>`, `context.credentials.<name>`.
-- [ ] Add read-only context panel: available variables from previous nodes.
-- [ ] Add safety warning list matching backend blocked patterns.
-- [ ] Run test and type-check.
-- [ ] Commit: `feat: add rich code block editor`.
+- [x] Write failing test for source editor, output name, quick snippets, safety warnings.
+- [x] Add Monaco/`BaseCodeEditor` TypeScript source editor.
+- [x] Add snippet toolbar: `return previous;`, `return { ...previous };`, `params.<name>`, `context.credentials.<name>`.
+- [x] Add read-only context panel: available variables from previous nodes.
+- [x] Add safety warning list matching backend blocked patterns.
+- [x] Run test and type-check.
+- [x] Commit: `feat: add rich code block editor`.
 
 ## Task 7: Workflow-style If node visual and editor
 

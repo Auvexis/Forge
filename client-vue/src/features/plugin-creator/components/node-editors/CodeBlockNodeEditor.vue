@@ -26,6 +26,16 @@
         height="260px"
         @update:model-value="updateCodeBlock({ source: String($event) })"
       />
+      <div class="node-editor-snippet-buttons" aria-label="Code snippets">
+        <button
+          v-for="snippet in snippets"
+          :key="snippet.label"
+          type="button"
+          @click="insertSnippet(snippet.source)"
+        >
+          {{ snippet.label }}
+        </button>
+      </div>
     </NodeEditorSection>
 
     <NodeEditorSection
@@ -36,6 +46,20 @@
         <code>params</code>
         <code>previous</code>
         <code>context.credentials</code>
+      </div>
+    </NodeEditorSection>
+
+    <NodeEditorSection
+      title="Blocked runtime access"
+      description="Code blocks must stay portable and cannot import runtime modules."
+    >
+      <div class="node-editor-snippets">
+        <code>import</code>
+        <code>require</code>
+        <code>process</code>
+        <code>fs</code>
+        <code>eval</code>
+        <code>Function</code>
       </div>
     </NodeEditorSection>
   </div>
@@ -70,6 +94,13 @@ const codeBlock = computed<PluginBlueprintCodeBlock>(() => {
   )
 })
 
+const snippets = [
+  { label: 'return previous;', source: 'return previous;' },
+  { label: 'return { ...previous };', source: 'return { ...previous };' },
+  { label: 'params value', source: 'const value = params.value;' },
+  { label: 'credential value', source: 'const token = context.credentials.token;' },
+]
+
 function updateCodeBlock(payload: Partial<PluginBlueprintCodeBlock>) {
   if (!method.value) return
   const nextBlock = { ...codeBlock.value, ...payload }
@@ -87,6 +118,11 @@ function updateCodeBlock(payload: Partial<PluginBlueprintCodeBlock>) {
     outputName: nextBlock.outputName,
     source: nextBlock.source,
   })
+}
+
+function insertSnippet(source: string) {
+  const separator = codeBlock.value.source.trim().length > 0 ? '\n' : ''
+  updateCodeBlock({ source: `${codeBlock.value.source}${separator}${source}` })
 }
 </script>
 
@@ -109,6 +145,24 @@ function updateCodeBlock(payload: Partial<PluginBlueprintCodeBlock>) {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.node-editor-snippet-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.node-editor-snippet-buttons button {
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  padding: 6px 8px;
 }
 
 .node-editor-snippets code {
