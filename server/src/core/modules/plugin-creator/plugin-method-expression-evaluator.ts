@@ -68,10 +68,7 @@ export function evaluatePluginCreatorExpression(
     headers: context.headers,
     status: context.status,
   });
-  const script = new vm.Script(`"use strict";\n(${source})`, {
-    displayErrors: false,
-    timeout: expressionTimeoutMs,
-  });
+  const script = new vm.Script(`"use strict";\n(${source})`);
 
   try {
     return normalizeVmValue(script.runInContext(sandbox, { timeout: expressionTimeoutMs }));

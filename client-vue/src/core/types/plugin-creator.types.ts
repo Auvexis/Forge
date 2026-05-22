@@ -209,14 +209,7 @@ export interface PluginBlueprintForEachNodeData extends PluginBlueprintBaseNodeD
 }
 
 export type PluginBlueprintNodeData =
-  | PluginBlueprintIfNodeData
-  | PluginBlueprintSwitchNodeData
-  | PluginBlueprintTryCatchNodeData
-  | PluginBlueprintJsonTransformNodeData
-  | PluginBlueprintReturnNodeData
-  | PluginBlueprintForNodeData
-  | PluginBlueprintForEachNodeData
-  | Record<string, unknown>
+  Record<string, unknown>
 
 export interface PluginBlueprintNode {
   id: string

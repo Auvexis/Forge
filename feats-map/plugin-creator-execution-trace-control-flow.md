@@ -577,21 +577,21 @@ Why:
 - Essa feature mexe em run, publish, compiler, canvas e UX.
 - Precisa provar que o caminho todo funciona.
 
-- [ ] Run backend tests:
+- [x] Run backend tests:
 
 ```bash
 cd server
 node --test src/core/modules/plugin-creator/plugin-method-plan.test.ts src/core/modules/plugin-creator/plugin-method-code-writer.test.ts src/core/modules/plugin-creator/plugin-method-plan-runner.test.ts src/core/modules/plugin-creator/plugin-method-expression-evaluator.test.ts src/core/modules/plugin-creator/plugin-publish-validator.test.ts src/core/routes/plugin-creator-test-method.routes.test.ts
 ```
 
-- [ ] Run frontend tests:
+- [x] Run frontend tests:
 
 ```bash
 cd client-vue
 node --test src/features/plugin-creator/stores/__tests__/pluginCreatorExecution.store.test.ts src/features/plugin-creator/components/__tests__/PluginCreatorExecution.contract.test.ts src/features/plugin-creator/components/__tests__/PluginCreatorExecutionPanels.contract.test.ts src/features/plugin-creator/components/__tests__/PluginCreatorControlFlowNodes.contract.test.ts src/features/plugin-creator/components/__tests__/PluginCreatorExpressionTools.contract.test.ts
 ```
 
-- [ ] Run builds:
+- [x] Run builds:
 
 ```bash
 cd client-vue
@@ -618,7 +618,7 @@ npm run build
   - publish.
   - export zip.
 
-- [ ] Commit verification fixes:
+- [x] Commit verification fixes:
 
 ```bash
 git add <only verification fix files>
