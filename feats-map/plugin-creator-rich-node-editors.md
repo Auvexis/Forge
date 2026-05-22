@@ -261,12 +261,12 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing test for expression editor and output name.
-- [ ] Add expression editor with variable picker.
-- [ ] Add output name field.
-- [ ] Add live formatted preview: expression result placeholder, not real eval.
-- [ ] Run test and type-check.
-- [ ] Commit: `feat: add json transform node editor`.
+- [x] Write failing test for expression editor and output name.
+- [x] Add expression editor with variable picker.
+- [x] Add output name field.
+- [x] Add live formatted preview: expression result placeholder, not real eval.
+- [x] Run test and type-check.
+- [x] Commit: `feat: add json transform node editor`.
 
 ## Task 11: Return editor
 
