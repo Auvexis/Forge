@@ -150,4 +150,37 @@ function forwardUpdateRequest(methodId: string, payload: Partial<PluginBlueprint
   padding: 16px;
   color: var(--sailor-text-secondary);
 }
+
+.plugin-creator-node-settings :deep(.node-editor-stack) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-5);
+}
+
+.plugin-creator-node-settings :deep(.base-input-wrapper__label),
+.plugin-creator-node-settings :deep(.base-select__label),
+.plugin-creator-node-settings :deep(.base-code-editor__label) {
+  display: block;
+  margin-left: 4px;
+  color: var(--sailor-text-muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.plugin-creator-node-settings :deep(.base-input-wrapper__hint) {
+  margin: 2px 0 0 4px;
+  color: var(--sailor-text-muted);
+  font-size: 10px;
+  font-style: italic;
+  line-height: 1.5;
+  opacity: 0.7;
+}
+
+.plugin-creator-node-settings :deep(.node-editor-grid),
+.plugin-creator-node-settings :deep(.method-node-editor__rows) {
+  gap: 8px;
+}
 </style>

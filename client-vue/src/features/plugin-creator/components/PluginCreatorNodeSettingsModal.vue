@@ -41,9 +41,6 @@
               title="Settings"
               @click="toggleSettings"
             />
-            <BaseButton variant="ghost" size="sm" icon-left="x" title="Close" @click="emit('close')">
-              Close
-            </BaseButton>
           </div>
         </div>
 

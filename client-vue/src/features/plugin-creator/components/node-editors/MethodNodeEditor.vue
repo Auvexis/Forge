@@ -1,73 +1,61 @@
 <template>
-  <div v-if="node && method" class="node-editor-stack method-node-editor">
+  <div v-if="node && method" class="editor-stack method-node-editor">
     <NodeEditorSection
       title="Method"
       eyebrow="Plugin action"
       icon="workflow"
       :description="method.description || 'Define how this action appears, receives inputs and stores credentials.'"
     >
-      <div class="method-node-editor__action-row">
-        <span class="method-node-editor__action-icon">
-          <LucideIcon name="route" :size="15" />
-        </span>
-        <div class="method-node-editor__action-copy">
-          <strong>{{ method.name || 'Untitled Method' }}</strong>
-          <span>{{ method.handle || 'method_handle' }}</span>
-        </div>
-        <div class="method-node-editor__action-stats">
-          <span>{{ method.inputs.length }} inputs</span>
-          <span>{{ credentialCount }} credentials</span>
-          <span>{{ method.responseMapping.length }} outputs</span>
-        </div>
-      </div>
-
-      <div class="editor-hint editor-hint--violet">
-        Workflows call this method by
-        <span class="editor-code-snippet">{{ method.handle || 'handle' }}</span>
-        and receive mapped outputs from the response nodes.
-      </div>
-
-      <div class="method-node-editor__grid method-node-editor__grid--2">
+      <div class="te-field">
+        <span class="te-label">Step Name</span>
         <BaseInput
           :model-value="String(node.data.name ?? node.data.label ?? '')"
-          label="Step name"
           placeholder="List records"
-          hint="Visible label used on the canvas."
           @update:model-value="updateNodeData({ name: String($event), label: String($event) })"
         />
+        <p class="te-hint">Visible label used on the canvas.</p>
+      </div>
+
+      <div class="te-field">
+        <span class="te-label">Method Handle</span>
         <BaseInput
           :model-value="method.handle"
-          label="Method handle"
           placeholder="listRecords"
-          hint="Used by workflows."
           @update:model-value="updateMethodPatch({ handle: normalizeHandle(String($event)) })"
         />
+        <p class="te-hint">
+          Workflows call this method by
+          <code class="editor-code-snippet">{{ method.handle || 'handle' }}</code>.
+        </p>
       </div>
     </NodeEditorSection>
 
     <NodeEditorSection title="Method metadata" description="Public method identity used by generated plugin code.">
-      <div class="method-node-editor__grid method-node-editor__grid--2">
+      <div class="te-field">
+        <span class="te-label">Method Name</span>
         <BaseInput
           :model-value="method.name"
-          label="Method name"
           placeholder="List records"
           @update:model-value="updateMethodPatch({ name: String($event) })"
         />
-        <BaseInput :model-value="node.id" label="Node ID" hint="Edit this in Settings." disabled />
       </div>
-      <BaseInput
-        :model-value="method.category ?? ''"
-        label="Category"
-        placeholder="Records"
-        @update:model-value="updateMethodPatch({ category: String($event) || undefined })"
-      />
-      <BaseCodeEditor
-        :model-value="method.description"
-        language="markdown"
-        label="Method description"
-        height="132px"
-        @update:model-value="updateMethodPatch({ description: String($event) })"
-      />
+      <div class="te-field">
+        <span class="te-label">Category</span>
+        <BaseInput
+          :model-value="method.category ?? ''"
+          placeholder="Records"
+          @update:model-value="updateMethodPatch({ category: String($event) || undefined })"
+        />
+      </div>
+      <div class="te-field">
+        <span class="te-label">Method Description</span>
+        <BaseCodeEditor
+          :model-value="method.description"
+          language="markdown"
+          height="132px"
+          @update:model-value="updateMethodPatch({ description: String($event) })"
+        />
+      </div>
     </NodeEditorSection>
 
     <NodeEditorSection
@@ -75,9 +63,8 @@
       description="Parameters exposed to workflows as method params."
     >
       <template #toolbar>
-        <button class="method-node-editor__icon-action" type="button" title="Add input" @click="addInput">
+        <button class="te-icon-btn" type="button" title="Add input" @click="addInput">
           <LucideIcon name="plus" :size="14" />
-          <span>Add input</span>
         </button>
       </template>
 
@@ -111,7 +98,7 @@
           </button>
         </div>
       </div>
-      <button v-else class="method-node-editor__empty-add" type="button" @click="addInput">
+      <button v-else class="editor-add-btn" type="button" @click="addInput">
         <LucideIcon name="plus" :size="14" />
         Add input
       </button>
@@ -122,9 +109,8 @@
       description="Auth fields shared by methods in this plugin."
     >
       <template #toolbar>
-        <button class="method-node-editor__icon-action" type="button" title="Add credential" @click="emit('addCredential')">
+        <button class="te-icon-btn" type="button" title="Add credential" @click="emit('addCredential')">
           <LucideIcon name="plus" :size="14" />
-          <span>Add credential</span>
         </button>
       </template>
 
@@ -159,7 +145,7 @@
           />
         </div>
       </div>
-      <button v-else class="method-node-editor__empty-add" type="button" @click="emit('addCredential')">
+      <button v-else class="editor-add-btn" type="button" @click="emit('addCredential')">
         <LucideIcon name="plus" :size="14" />
         Add credential
       </button>
@@ -206,7 +192,6 @@ const credentialTargetOptions = [
 ]
 
 const credentials = computed(() => blueprint.value?.auth.fields ?? [])
-const credentialCount = computed(() => credentials.value.length)
 
 function addInput() {
   if (!method.value) return
@@ -254,74 +239,6 @@ function normalizeHandle(value: string) {
 </script>
 
 <style scoped>
-.node-editor-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.method-node-editor__action-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 38px;
-  padding: 0 10px;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-}
-
-.method-node-editor__action-icon {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
-  color: var(--sailor-accent);
-}
-
-.method-node-editor__action-copy {
-  display: flex;
-  align-items: baseline;
-  min-width: 0;
-  gap: 8px;
-}
-
-.method-node-editor__action-copy strong {
-  color: var(--sailor-text-primary);
-  font-size: 13px;
-  font-weight: 750;
-}
-
-.method-node-editor__action-copy span {
-  color: var(--sailor-text-muted);
-  font-family: var(--sailor-font-mono);
-  font-size: 11px;
-}
-
-.method-node-editor__action-stats {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-left: auto;
-}
-
-.method-node-editor__action-stats span {
-  color: var(--sailor-text-muted);
-  font-size: 11px;
-  font-weight: 650;
-}
-
-.method-node-editor__grid {
-  display: grid;
-  gap: 10px;
-}
-
-.method-node-editor__grid--2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .method-node-editor__rows {
   display: flex;
   flex-direction: column;
@@ -339,8 +256,6 @@ function normalizeHandle(value: string) {
   grid-template-columns: minmax(110px, 1fr) minmax(120px, 1fr) minmax(120px, 0.8fr) auto;
 }
 
-.method-node-editor__icon-action,
-.method-node-editor__empty-add,
 .method-node-editor__row-action {
   display: inline-flex;
   align-items: center;
@@ -357,36 +272,17 @@ function normalizeHandle(value: string) {
   font-weight: 700;
 }
 
-.method-node-editor__icon-action {
-  padding: 0 9px;
-}
-
 .method-node-editor__row-action {
   width: 30px;
   color: var(--sailor-text-muted);
 }
 
-.method-node-editor__empty-add {
-  width: 100%;
-  border-style: dashed;
-}
-
-.method-node-editor__icon-action:hover,
-.method-node-editor__empty-add:hover,
 .method-node-editor__row-action:hover {
   background: var(--sailor-bg-elevated);
   color: var(--sailor-text-primary);
 }
 
 @media (max-width: 980px) {
-  .method-node-editor__action-row,
-  .method-node-editor__action-copy,
-  .method-node-editor__action-stats {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .method-node-editor__grid--2,
   .method-node-editor__row,
   .method-node-editor__row--credentials {
     grid-template-columns: 1fr;
