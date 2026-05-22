@@ -105,6 +105,13 @@ const errorMappingSchema = z.object({
   message: errorMessageSchema,
 });
 
+const codeBlockSchema = z.object({
+  id: z.string().regex(pluginCreatorIdPattern, "Invalid code block id"),
+  name: z.string().min(1),
+  source: z.string(),
+  outputName: z.string().regex(fieldNamePattern, "Invalid output name").optional(),
+});
+
 const methodSchema = z.object({
   id: z.string().regex(pluginCreatorIdPattern, "Invalid method id"),
   handle: z.string().regex(methodHandlePattern, "Invalid method handle"),
@@ -115,6 +122,7 @@ const methodSchema = z.object({
   request: requestSchema,
   responseMapping: z.array(responseMappingSchema),
   errorMapping: z.array(errorMappingSchema),
+  codeBlocks: z.array(codeBlockSchema).optional(),
 });
 
 const positionSchema = z.object({
@@ -135,6 +143,7 @@ const nodeSchema = z.object({
     "responseMapper",
     "errorMapper",
     "output",
+    "codeBlock",
     "note",
     "group",
   ]),

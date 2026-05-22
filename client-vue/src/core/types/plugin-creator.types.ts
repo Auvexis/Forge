@@ -116,6 +116,13 @@ export interface PluginBlueprintErrorMapping {
   message: PluginBlueprintErrorMessage
 }
 
+export interface PluginBlueprintCodeBlock {
+  id: string
+  name: string
+  source: string
+  outputName?: string
+}
+
 export interface PluginBlueprintMethod {
   id: string
   handle: string
@@ -126,19 +133,21 @@ export interface PluginBlueprintMethod {
   request: PluginBlueprintRequest
   responseMapping: PluginBlueprintResponseMapping[]
   errorMapping: PluginBlueprintErrorMapping[]
+  codeBlocks?: PluginBlueprintCodeBlock[]
 }
 
 export type PluginBlueprintNodeType =
   | 'method'
-  | 'input'
-  | 'credential'
   | 'request'
-  | 'header'
-  | 'query'
-  | 'body'
   | 'responseMapper'
   | 'errorMapper'
   | 'output'
+  | 'codeBlock'
+  | 'input'
+  | 'credential'
+  | 'header'
+  | 'query'
+  | 'body'
   | 'note'
   | 'group'
 

@@ -86,6 +86,44 @@ describe("plugin blueprint validation", () => {
     assert.equal(parsePluginBlueprint(createValidBlueprint()).metadata.handle, "my-crm");
   });
 
+  it("accepts code block nodes and method code blocks", () => {
+    const blueprint = createValidBlueprint();
+    blueprint.methods[0]!.codeBlocks = [
+      {
+        id: "code_prepare_payload",
+        name: "Prepare payload",
+        source: "return { name: params.name };",
+        outputName: "preparedPayload",
+      },
+    ];
+    blueprint.canvas.nodes.code_prepare_payload = {
+      id: "code_prepare_payload",
+      type: "codeBlock",
+      position: { x: 300, y: 0 },
+      data: { methodId: blueprint.methods[0]!.id, codeBlockId: "code_prepare_payload" },
+    };
+
+    const result = validatePluginBlueprint(blueprint);
+
+    assert.equal(result.success, true);
+  });
+
+  it("keeps small legacy canvas node types loadable", () => {
+    const blueprint = createValidBlueprint();
+    for (const type of ["input", "credential", "header", "query", "body"] as const) {
+      blueprint.canvas.nodes[`legacy_${type}`] = {
+        id: `legacy_${type}`,
+        type,
+        position: { x: 0, y: 0 },
+        data: {},
+      };
+    }
+
+    const result = validatePluginBlueprint(blueprint);
+
+    assert.equal(result.success, true);
+  });
+
   it("validates plugin creator ids", () => {
     assert.equal(validatePluginCreatorId("bp_my_crm"), "bp_my_crm");
     assert.throws(() => validatePluginCreatorId("../bp_my_crm"), /Invalid plugin creator id/);
