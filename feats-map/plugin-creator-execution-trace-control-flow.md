@@ -309,18 +309,18 @@ Why:
 - `PluginTestRunner` testa so HTTP request.
 - Precisamos que endpoint de run use o mesmo plano do compiler.
 
-- [ ] Write failing route test proving code block affects method output.
-- [ ] Modify `PluginCreatorEngine.testMethod` to use plan runner.
-- [ ] Preserve old response shape where possible.
-- [ ] Add `trace` to test result payload.
-- [ ] Run:
+- [x] Write failing route test proving code block affects method output.
+- [x] Modify `PluginCreatorEngine.testMethod` to use plan runner.
+- [x] Preserve old response shape where possible.
+- [x] Add `trace` to test result payload.
+- [x] Run:
 
 ```bash
 cd server
 node --test src/core/routes/plugin-creator-test-method.routes.test.ts src/core/modules/plugin-creator/plugin-creator-engine.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add server/src/core/modules/plugin-creator/plugin-creator-engine.ts server/src/core/routes/plugin-creator.routes.ts server/src/core/routes/plugin-creator-test-method.routes.test.ts server/src/core/modules/plugin-creator/plugin-creator-engine.test.ts

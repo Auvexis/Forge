@@ -276,6 +276,24 @@ export interface PluginCreatorTestResult {
   durationMs: number
   error: string | null
   timestamp: string
+  trace?: PluginCreatorMethodTraceEvent[]
+}
+
+export type PluginCreatorMethodTraceEventType =
+  | 'node:running'
+  | 'node:success'
+  | 'node:failed'
+  | 'method:success'
+  | 'method:failed'
+
+export interface PluginCreatorMethodTraceEvent {
+  type: PluginCreatorMethodTraceEventType
+  timestamp: string
+  nodeId?: string
+  output?: unknown
+  error?: string
+  request?: PluginCreatorRenderedRequest
+  status?: number | null
 }
 
 export interface PluginCreatorTestMethodPayload {

@@ -102,6 +102,87 @@ describe("plugin creator test-method route", () => {
     }
   });
 
+  it("runs the generated method plan so code blocks affect output", async () => {
+    const server = await startServer((_req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify({ id: "lead_1" }));
+    });
+    const { app, engine } = await buildApp();
+    const created = engine.createBlueprint({
+      handle: "my-crm",
+      name: "My CRM",
+      description: "CRM API connector",
+      includeDefaultMethod: true,
+    });
+    const method = created.methods[0]!;
+    const updated: PluginBlueprint = {
+      ...created,
+      methods: [
+        {
+          ...method,
+          request: { ...method.request, url: `${server.url}/lead` },
+          responseMapping: [{ id: "map_id", outputName: "id", path: "body.id", type: "string" }],
+          codeBlocks: [
+            {
+              id: "code_shape",
+              name: "Shape",
+              source: "return { shaped: previous.id };",
+            },
+          ],
+        },
+      ],
+      canvas: {
+        nodes: {
+          node_method: {
+            id: "node_method",
+            type: "method",
+            position: { x: 0, y: 0 },
+            data: { methodId: method.id },
+          },
+          node_request: {
+            id: "node_request",
+            type: "request",
+            position: { x: 240, y: 0 },
+            data: { methodId: method.id },
+          },
+          node_map: {
+            id: "node_map",
+            type: "responseMapper",
+            position: { x: 480, y: 0 },
+            data: { methodId: method.id },
+          },
+          code_shape: {
+            id: "code_shape",
+            type: "codeBlock",
+            position: { x: 720, y: 0 },
+            data: { methodId: method.id, codeBlockId: "code_shape" },
+          },
+        },
+        edges: [
+          { id: "edge_method_request", source: "node_method", target: "node_request" },
+          { id: "edge_request_map", source: "node_request", target: "node_map" },
+          { id: "edge_map_code", source: "node_map", target: "code_shape" },
+        ],
+      },
+    };
+    engine.updateBlueprint(created.id, updated);
+
+    try {
+      const response = await app.inject({
+        method: "POST",
+        url: `/plugin-creator/blueprints/${created.id}/test-method`,
+        payload: { methodId: method.id, params: {}, credentials: {} },
+      });
+      const body = response.json() as ApiResponse<PluginCreatorLastRun>;
+
+      assert.equal(response.statusCode, 200);
+      assert.deepEqual(body.data?.body, { shaped: "lead_1" });
+      assert.equal(body.data?.trace?.some((event) => event.nodeId === "code_shape"), true);
+    } finally {
+      await server.close();
+    }
+  });
+
   it("returns 404 when the blueprint does not exist", async () => {
     const { app } = await buildApp();
 

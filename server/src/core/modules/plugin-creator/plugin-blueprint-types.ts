@@ -312,6 +312,7 @@ export interface PluginCreatorTestResult {
   durationMs: number;
   error: string | null;
   timestamp: string;
+  trace?: import("./plugin-method-trace-types.ts").PluginMethodTraceEvent[];
 }
 
 export type PluginCreatorLastRun = PluginCreatorTestResult;

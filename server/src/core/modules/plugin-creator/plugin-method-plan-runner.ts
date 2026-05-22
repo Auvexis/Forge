@@ -147,7 +147,9 @@ export class PluginMethodPlanRunner {
       case "httpRequest":
         return await this.executeHttpRequest(input, state);
       case "responseMapper": {
-        const mapped = mapPluginCreatorResponse(state.latestResponse ?? emptyResponse(), input.method.responseMapping);
+        const mapped = input.method.responseMapping.length > 0
+          ? mapPluginCreatorResponse(state.latestResponse ?? emptyResponse(), input.method.responseMapping)
+          : state.latestResponse?.body ?? {};
         state.latestValue = mapped;
         return mapped;
       }

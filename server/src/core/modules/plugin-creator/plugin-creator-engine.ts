@@ -10,6 +10,8 @@ import type {
   CreatePluginBlueprintInput,
   PluginScaffoldService,
 } from "./plugin-scaffold-service.ts";
+import { buildPluginMethodPlans } from "./plugin-method-plan.ts";
+import { PluginMethodPlanRunner } from "./plugin-method-plan-runner.ts";
 
 export interface PluginCreatorEngineDependencies {
   repository: PluginBlueprintRepository;
@@ -79,10 +81,6 @@ export class PluginCreatorEngine {
   }
 
   async testMethod(blueprintId: string, input: TestPluginMethodInput) {
-    if (!this.testRunner) {
-      throw new Error("Plugin test runner is not configured");
-    }
-
     const blueprint = this.getBlueprint(blueprintId);
     if (!blueprint) {
       throw new Error("blueprint_not_found");
@@ -93,10 +91,15 @@ export class PluginCreatorEngine {
       throw new Error("method_not_found");
     }
 
-    return this.testRunner.run({
-      blueprintId,
-      methodId: input.methodId,
-      request: method.request,
+    const plan = buildPluginMethodPlans(blueprint).find((candidate) => candidate.methodId === method.id);
+    if (!plan) {
+      throw new Error("method_plan_not_found");
+    }
+
+    return new PluginMethodPlanRunner({ repository: this.repository }).run({
+      blueprint,
+      method,
+      plan,
       params: input.params,
       credentials: input.credentials,
       timeoutMs: input.timeoutMs,
