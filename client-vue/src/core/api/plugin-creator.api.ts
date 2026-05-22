@@ -67,6 +67,12 @@ export const pluginCreatorApi = {
       { method: 'POST' },
     ),
 
+  previewCode: (blueprint: PluginBlueprint) =>
+    apiRequest<PluginCreatorGeneratePreviewResult>(ENDPOINTS.PLUGIN_CREATOR_PREVIEW_CODE, {
+      method: 'POST',
+      body: { blueprint },
+    }),
+
   publish: (id: string) =>
     apiRequest<PluginCreatorRelease>(ENDPOINTS.PLUGIN_CREATOR_PUBLISH(id), {
       method: 'POST',

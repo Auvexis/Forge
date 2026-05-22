@@ -15,6 +15,7 @@ import { PluginPublishService } from "../modules/plugin-creator/plugin-publish-s
 import { PluginExportService } from "../modules/plugin-creator/plugin-export-service.ts";
 import { parsePluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-validation.ts";
 import type { PluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-types.ts";
+import { generatePluginMethodsSource } from "../modules/plugin-creator/plugin-methods-generator.ts";
 
 export interface PluginCreatorRoutesOptions {
   engine?: PluginCreatorEngine;
@@ -40,6 +41,10 @@ const testMethodSchema = z.object({
 
 const rollbackSchema = z.object({
   snapshotId: z.string().min(1),
+});
+
+const previewCodeSchema = z.object({
+  blueprint: z.unknown(),
 });
 
 export default async function pluginCreatorRoutes(
@@ -84,6 +89,38 @@ export default async function pluginCreatorRoutes(
       return sendResponse(reply, {
         status_code: 400,
         message: "Failed to create plugin creator blueprint",
+        error: error instanceof Error ? error.message : "unknown_error",
+        data: null,
+      });
+    }
+  });
+
+  fastify.post("/plugin-creator/blueprints/preview-code", async (req, reply) => {
+    const validation = previewCodeSchema.safeParse(req.body);
+    if (!validation.success) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Invalid plugin creator code preview payload",
+        error: formatZodError(validation.error),
+        data: null,
+      });
+    }
+
+    try {
+      const blueprint = parsePluginBlueprint(validation.data.blueprint);
+      const methodsSource = generatePluginMethodsSource(blueprint);
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Plugin code preview generated",
+        error: null,
+        data: {
+          files: [{ relativePath: "methods.ts", content: methodsSource }],
+        },
+      });
+    } catch (error) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Failed to generate plugin creator code preview",
         error: error instanceof Error ? error.message : "unknown_error",
         data: null,
       });

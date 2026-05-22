@@ -76,6 +76,7 @@ export const ENDPOINTS = {
     `/plugin-creator/blueprints/${encodeURIComponent(id)}/test-method`,
   PLUGIN_CREATOR_GENERATE_PREVIEW: (id: string) =>
     `/plugin-creator/blueprints/${encodeURIComponent(id)}/generate-preview`,
+  PLUGIN_CREATOR_PREVIEW_CODE: '/plugin-creator/blueprints/preview-code',
   PLUGIN_CREATOR_PUBLISH: (id: string) =>
     `/plugin-creator/blueprints/${encodeURIComponent(id)}/publish`,
   PLUGIN_CREATOR_VERSIONS: (id: string) =>

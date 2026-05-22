@@ -29,6 +29,7 @@ async function contract(blueprint: PluginBlueprint) {
   await pluginCreatorApi.updateBlueprint(blueprint.id, blueprint)
   await pluginCreatorApi.testMethod(blueprint.id, testPayload)
   await pluginCreatorApi.generatePreview(blueprint.id)
+  await pluginCreatorApi.previewCode(blueprint)
   await pluginCreatorApi.publish(blueprint.id)
   await pluginCreatorApi.listVersions(blueprint.id)
   await pluginCreatorApi.rollback(blueprint.id, rollbackPayload)
@@ -39,6 +40,7 @@ async function contract(blueprint: PluginBlueprint) {
     detailPath: ENDPOINTS.PLUGIN_CREATOR_BLUEPRINT(blueprint.id),
     testPath: ENDPOINTS.PLUGIN_CREATOR_TEST_METHOD(blueprint.id),
     previewPath: ENDPOINTS.PLUGIN_CREATOR_GENERATE_PREVIEW(blueprint.id),
+    previewCodePath: ENDPOINTS.PLUGIN_CREATOR_PREVIEW_CODE,
     publishPath: ENDPOINTS.PLUGIN_CREATOR_PUBLISH(blueprint.id),
     versionsPath: ENDPOINTS.PLUGIN_CREATOR_VERSIONS(blueprint.id),
     rollbackPath: ENDPOINTS.PLUGIN_CREATOR_ROLLBACK(blueprint.id),
