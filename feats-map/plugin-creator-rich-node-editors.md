@@ -278,11 +278,11 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing test for return expression editor.
-- [ ] Add expression editor with quick values: `previous`, `params`, object literal.
-- [ ] Add final-output preview panel.
-- [ ] Run test and type-check.
-- [ ] Commit: `feat: add return node editor`.
+- [x] Write failing test for return expression editor.
+- [x] Add expression editor with quick values: `previous`, `params`, object literal.
+- [x] Add final-output preview panel.
+- [x] Run test and type-check.
+- [x] Commit: `feat: add return node editor`.
 
 ## Task 12: For and ForEach editors
 
