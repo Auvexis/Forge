@@ -1,8 +1,8 @@
-# Plugin Creator CLI Icon Upload Manifest Plan
+# Plugin Creator Icon Assets Manifest Plan
 
-**Goal:** permitir que `icon`, `iconDark` e `iconLight` sejam definidos por upload no Plugin Creator e por arquivo local no Sailor CLI, sem obrigar o dev a usar URL externa.
+**Goal:** permitir que `icon`, `iconDark` e `iconLight` sejam definidos por upload no Plugin Creator e por assets locais no template do plugin, sem obrigar o dev a usar URL externa.
 
-**Architecture:** manter compatibilidade com o manifest atual. `metadata.icon`, `metadata.iconDark` e `metadata.iconLight` continuam sendo `string`, mas passam a aceitar URL, `data:image/*` pequeno ou caminho relativo dentro da pasta do plugin, como `assets/icons/icon.svg`. O backend/CLI copia arquivos para assets do plugin e nunca grava path absoluto no manifest.
+**Architecture:** manter compatibilidade com o manifest atual. `metadata.icon`, `metadata.iconDark` e `metadata.iconLight` continuam sendo `string`, mas passam a aceitar URL, `data:image/*` pequeno ou caminho relativo dentro da pasta do plugin, como `assets/icons/icon.svg`. O Plugin Creator salva uploads dentro de assets do blueprint; plugins criados manualmente colocam `assets/icons/` ao lado de `index.ts`, `manifest.json` e `methods.ts`, e o comando `sailor release` empacota isso junto com o resto da pasta.
 
 **Rules:** plugin nao acessa nada fora da propria pasta. Manifest nao deve permitir `C:/...`, `/home/...`, `file://...` ou `../...`.
 
@@ -24,7 +24,7 @@
 - Create: `server/src/core/modules/plugin-creator/plugin-icon-asset-service.ts`
 - Create: `server/src/core/modules/plugin-creator/plugin-icon-asset-service.test.ts`
 - Create: `server/src/core/routes/plugin-creator-icon-assets.routes.test.ts`
-- Create/Modify: Sailor CLI package files when CLI location is confirmed.
+- Modify: plugin template/docs for local `assets/icons/` convention when template location is confirmed.
 
 ---
 
@@ -264,20 +264,19 @@ git commit -m "fix: render plugin relative icon assets"
 
 ---
 
-## Task 7: Sailor CLI Support
+## Task 7: Plugin Template And Sailor Release Convention
 
 **Files:**
-- Create/Modify CLI files after locating package.
-- Test CLI manifest pack/validate command.
+- Modify: plugin template files when template location is confirmed.
+- Modify: release docs when docs location is confirmed.
 
-- [ ] Locate Sailor CLI package. Current workspace search did not show it under `client-vue/` or `server/`.
-- [ ] Add flags:
+- [ ] Confirm where the plugin template lives. Current backend template exists at:
 
-```bash
-sailor plugin pack --icon ./icon.svg --icon-dark ./icon-dark.svg --icon-light ./icon-light.svg
+```text
+server/src/plugins/_template/
 ```
 
-- [ ] Copy files into plugin output:
+- [ ] Add template asset folder:
 
 ```text
 assets/icons/icon.svg
@@ -285,10 +284,29 @@ assets/icons/icon-dark.svg
 assets/icons/icon-light.svg
 ```
 
-- [ ] Rewrite manifest fields to relative paths.
-- [ ] Validate same blocked values as backend.
-- [ ] Add CLI tests for copy, rewrite and invalid path.
-- [ ] Commit CLI changes after tests pass.
+- [ ] Update template `manifest.json` to reference relative assets:
+
+```json
+{
+  "metadata": {
+    "icon": "assets/icons/icon.svg",
+    "iconDark": "assets/icons/icon-dark.svg",
+    "iconLight": "assets/icons/icon-light.svg"
+  }
+}
+```
+
+- [ ] Do not add CLI flags.
+- [ ] Do not rewrite manifest during `sailor release`.
+- [ ] Verify `sailor release` already copies everything beside `index.ts`, `manifest.json` and `methods.ts`, including `assets/icons/*`.
+- [ ] If release currently filters files too aggressively, update release copy allowlist to include nested assets from the plugin folder.
+- [ ] Add release test only if the CLI/release package exists in this repo. Test expectation: folder with `assets/icons/icon.svg` releases with that file included.
+- [ ] Commit:
+
+```bash
+git add server/src/plugins/_template
+git commit -m "docs: show local plugin icon assets in template"
+```
 
 ---
 
@@ -333,4 +351,3 @@ node --test src/shared/icons/__tests__/iconRendering.test.ts
 - SVG must be rendered as image only. Do not inline SVG into DOM.
 - Existing CDN icons must keep working.
 - Existing Lucide icon names must keep working.
-
