@@ -17,6 +17,13 @@ describe('PluginCreatorCanvas contract', () => {
     assert.match(source, /blueprint\.canvas\.edges/)
   })
 
+  it('registers the code block canvas node', () => {
+    const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
+
+    assert.match(source, /CodeBlockNode/)
+    assert.match(source, /codeBlock:\s*markRaw\(CodeBlockNode\)/)
+  })
+
   it('syncs canvas interactions back to the plugin blueprint', () => {
     const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
 

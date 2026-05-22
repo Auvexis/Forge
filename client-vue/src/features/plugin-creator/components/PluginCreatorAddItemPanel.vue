@@ -42,25 +42,17 @@ import {
   CircleAlert,
   FileInput,
   FileOutput,
-  FormInput,
-  KeyRound,
-  ListFilter,
   Network,
-  Rows3,
   Search,
   Send,
 } from 'lucide-vue-next'
 
 export type PluginCreatorAddItemType =
   | 'method'
-  | 'input'
-  | 'credential'
   | 'request'
-  | 'header'
-  | 'query'
-  | 'body'
   | 'responseMapper'
   | 'errorMapper'
+  | 'codeBlock'
   | 'output'
 
 const props = defineProps<{
@@ -92,26 +84,8 @@ const items: Array<{
     borderColor: 'rgba(129, 140, 248, 0.38)',
   },
   {
-    type: 'input',
-    label: 'Input Field',
-    description: 'Parameter passed to a method',
-    icon: FormInput,
-    color: '#22c55e',
-    bgColor: 'rgba(34, 197, 94, 0.14)',
-    borderColor: 'rgba(34, 197, 94, 0.34)',
-  },
-  {
-    type: 'credential',
-    label: 'Credential Field',
-    description: 'Auth value injected into requests',
-    icon: KeyRound,
-    color: '#f59e0b',
-    bgColor: 'rgba(245, 158, 11, 0.14)',
-    borderColor: 'rgba(245, 158, 11, 0.34)',
-  },
-  {
     type: 'request',
-    label: 'Request',
+    label: 'HTTP Request',
     description: 'HTTP method, URL, headers and body',
     icon: Send,
     color: '#60a5fa',
@@ -119,35 +93,8 @@ const items: Array<{
     borderColor: 'rgba(96, 165, 250, 0.34)',
   },
   {
-    type: 'header',
-    label: 'Header',
-    description: 'Add a request header mapping',
-    icon: Rows3,
-    color: '#38bdf8',
-    bgColor: 'rgba(56, 189, 248, 0.14)',
-    borderColor: 'rgba(56, 189, 248, 0.34)',
-  },
-  {
-    type: 'query',
-    label: 'Query Param',
-    description: 'Add a URL query mapping',
-    icon: ListFilter,
-    color: '#2dd4bf',
-    bgColor: 'rgba(45, 212, 191, 0.14)',
-    borderColor: 'rgba(45, 212, 191, 0.34)',
-  },
-  {
-    type: 'body',
-    label: 'JSON Body',
-    description: 'Add a request payload mapping',
-    icon: Braces,
-    color: '#f472b6',
-    bgColor: 'rgba(244, 114, 182, 0.14)',
-    borderColor: 'rgba(244, 114, 182, 0.34)',
-  },
-  {
     type: 'responseMapper',
-    label: 'Response Mapper',
+    label: 'Response Mapping',
     description: 'Map response data to outputs',
     icon: FileInput,
     color: '#34d399',
@@ -156,7 +103,7 @@ const items: Array<{
   },
   {
     type: 'errorMapper',
-    label: 'Error Mapper',
+    label: 'Error Mapping',
     description: 'Map status or body errors',
     icon: CircleAlert,
     color: '#fb7185',
@@ -164,8 +111,17 @@ const items: Array<{
     borderColor: 'rgba(251, 113, 133, 0.34)',
   },
   {
+    type: 'codeBlock',
+    label: 'Code Block',
+    description: 'Run safe TypeScript between steps',
+    icon: Braces,
+    color: '#f472b6',
+    bgColor: 'rgba(244, 114, 182, 0.14)',
+    borderColor: 'rgba(244, 114, 182, 0.34)',
+  },
+  {
     type: 'output',
-    label: 'Output Field',
+    label: 'Output',
     description: 'Final typed method output',
     icon: FileOutput,
     color: '#93c5fd',

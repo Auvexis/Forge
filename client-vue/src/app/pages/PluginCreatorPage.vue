@@ -43,6 +43,7 @@
             @add-first-node="openAddBlocksPanel"
             @open-node-settings="openNodeSettingsModal"
           />
+          <PluginCreatorCodePreviewMinimap :blueprint="store.activeBlueprint" />
           <PluginCreatorFloatingToolbar
             :is-dirty="store.isDirty"
             :is-saving="store.isSaving"
@@ -76,6 +77,7 @@
         @update-input="store.updateMethodInput"
         @update-credential="store.updateCredentialField"
         @update-request="store.updateMethodRequest"
+        @add-credential="store.addCredentialField"
         @test-method="store.runMethodTest"
         @load-versions="store.loadVersions"
         @rollback="rollbackToReleaseSnapshot"
@@ -121,6 +123,7 @@ import PluginCreatorWorkspaceModal, {
 } from '@/features/plugin-creator/components/PluginCreatorWorkspaceModal.vue'
 import PluginCreatorCreatePluginModal from '@/features/plugin-creator/components/PluginCreatorCreatePluginModal.vue'
 import PluginCreatorNodeSettingsModal from '@/features/plugin-creator/components/PluginCreatorNodeSettingsModal.vue'
+import PluginCreatorCodePreviewMinimap from '@/features/plugin-creator/components/PluginCreatorCodePreviewMinimap.vue'
 import { usePluginCreatorStore } from '@/features/plugin-creator'
 import type {
   PluginBlueprintNode,
@@ -338,6 +341,9 @@ function connectNodes(payload: {
 function addPluginCreatorBlock(type: PluginCreatorAddItemType) {
   const node = createNode(type)
   store.addNode(node)
+  if (type === 'codeBlock' && methodIdFromNode(node)) {
+    upsertNodeCodeBlock(node)
+  }
   if (quickAddSourceId.value) {
     connectNodes({ source: quickAddSourceId.value, target: node.id })
     quickAddSourceId.value = null
@@ -360,6 +366,30 @@ function duplicateNode(nodeId: string) {
     data: { ...existing.data },
   })
   selectedNodeId.value = id
+}
+
+function methodIdFromNode(node: PluginBlueprintNode): string | null {
+  return typeof node.data.methodId === 'string' ? node.data.methodId : null
+}
+
+function upsertNodeCodeBlock(node: PluginBlueprintNode) {
+  const methodId = methodIdFromNode(node)
+  const method = store.activeBlueprint?.methods.find((candidate) => candidate.id === methodId)
+  if (!method) return
+  const codeBlock = {
+    id: node.id,
+    name: String(node.data.name ?? node.data.label ?? 'Code Block'),
+    source: 'return previous;',
+  }
+  store.updateMethod(method.id, {
+    codeBlocks: [...(method.codeBlocks ?? []), codeBlock],
+  })
+  store.updateNode(node.id, {
+    data: {
+      codeBlockId: codeBlock.id,
+      source: codeBlock.source,
+    },
+  })
 }
 
 function duplicateSelectedNodes(nodeIds: string[]) {
@@ -400,14 +430,10 @@ function createNode(type: PluginCreatorAddItemType): PluginBlueprintNode {
 function nodeLabel(type: PluginCreatorAddItemType) {
   const labels: Record<PluginCreatorAddItemType, string> = {
     method: 'Untitled Method',
-    input: 'Input',
-    credential: 'Credential',
     request: 'HTTP Request',
-    header: 'Header',
-    query: 'Query Param',
-    body: 'JSON Body',
     responseMapper: 'Response mapping',
     errorMapper: 'Error mapping',
+    codeBlock: 'Code Block',
     output: 'Output',
   }
   return labels[type]

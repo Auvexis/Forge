@@ -6,23 +6,23 @@ import { describe, it } from 'node:test'
 const componentDir = path.resolve('src/features/plugin-creator/components')
 
 describe('PluginCreatorAddItemPanel contract', () => {
-  it('lists all MVP addable items', () => {
+  it('lists only high-level addable canvas blocks', () => {
     const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorAddItemPanel.vue'), 'utf8')
     const labels = [
       'Method',
-      'Input Field',
-      'Credential Field',
-      'Request',
-      'Header',
-      'Query Param',
-      'JSON Body',
-      'Response Mapper',
-      'Error Mapper',
-      'Output Field',
+      'HTTP Request',
+      'Response Mapping',
+      'Error Mapping',
+      'Code Block',
+      'Output',
     ]
 
     for (const label of labels) {
       assert.match(source, new RegExp(label))
+    }
+
+    for (const label of ['Input Field', 'Credential Field', 'Header', 'Query Param', 'JSON Body']) {
+      assert.doesNotMatch(source, new RegExp(label))
     }
   })
 

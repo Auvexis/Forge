@@ -109,6 +109,7 @@ import RequestNode from './nodes/RequestNode.vue'
 import ResponseMapperNode from './nodes/ResponseMapperNode.vue'
 import ErrorMapperNode from './nodes/ErrorMapperNode.vue'
 import OutputNode from './nodes/OutputNode.vue'
+import CodeBlockNode from './nodes/CodeBlockNode.vue'
 import PluginCreatorEdge from '../../workflow-editor/components/BaseEdge.vue'
 import PluginCreatorNodeGroupSelectionBox from './PluginCreatorNodeGroupSelectionBox.vue'
 
@@ -150,6 +151,7 @@ const nodeTypes = {
   body: markRaw(RequestNode),
   responseMapper: markRaw(ResponseMapperNode),
   errorMapper: markRaw(ErrorMapperNode),
+  codeBlock: markRaw(CodeBlockNode),
   output: markRaw(OutputNode),
 } as unknown as NodeTypesObject
 
