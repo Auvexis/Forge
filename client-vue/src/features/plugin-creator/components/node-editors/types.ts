@@ -42,3 +42,8 @@ export type PluginCreatorNodeEditorEmits = {
   updateRequest: [methodId: string, payload: Partial<PluginBlueprintRequest>]
   addCredential: []
 }
+
+export type PluginCreatorNodeEditorEmitFn = <K extends keyof PluginCreatorNodeEditorEmits>(
+  event: K,
+  ...args: PluginCreatorNodeEditorEmits[K]
+) => void

@@ -66,14 +66,14 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing contract test proving shared editor helpers exist.
-- [ ] Add `usePluginCreatorNodeEditorContext` to resolve `node`, `method`, `methodId`, `updateNodeData`, `updateMethodPatch`.
-- [ ] Add `editorValueUtils` with `stringifyEditorValue`, `parseEditorValue`, `parseJsonObject`, `parseJsonArray`.
-- [ ] Add `NodeEditorSection.vue` for consistent header, eyebrow, toolbar slot, body slot.
-- [ ] Keep emits compatible with `PluginCreatorNodeEditorEmits`.
-- [ ] Run `node --test src/features/plugin-creator/components/__tests__/PluginCreatorNodeEditors.contract.test.ts`.
-- [ ] Run `npm run type-check`.
-- [ ] Commit: `feat: add plugin creator node editor foundation`.
+- [x] Write failing contract test proving shared editor helpers exist.
+- [x] Add `usePluginCreatorNodeEditorContext` to resolve `node`, `method`, `methodId`, `updateNodeData`, `updateMethodPatch`.
+- [x] Add `editorValueUtils` with `stringifyEditorValue`, `parseEditorValue`, `parseJsonObject`, `parseJsonArray`.
+- [x] Add `NodeEditorSection.vue` for consistent header, eyebrow, toolbar slot, body slot.
+- [x] Keep emits compatible with `PluginCreatorNodeEditorEmits`.
+- [x] Run `node --test src/features/plugin-creator/components/__tests__/PluginCreatorNodeEditors.contract.test.ts`.
+- [x] Run `npm run type-check`.
+- [x] Commit: `feat: add plugin creator node editor foundation`.
 
 ## Task 2: Split existing big editor into focused editors
 
