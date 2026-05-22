@@ -335,12 +335,12 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing tests that all requested node types resolve to dedicated editors.
-- [ ] Replace `PluginCreatorNodeEditorFields` fallback for requested nodes.
-- [ ] Ensure save/run buttons still work from modal.
-- [ ] Ensure node data updates refresh minimap preview.
-- [ ] Run tests and type-check.
-- [ ] Commit: `feat: wire rich plugin creator node editors`.
+- [x] Write failing tests that all requested node types resolve to dedicated editors.
+- [x] Replace `PluginCreatorNodeEditorFields` fallback for requested nodes.
+- [x] Ensure save/run buttons still work from modal.
+- [x] Ensure node data updates refresh minimap preview.
+- [x] Run tests and type-check.
+- [x] Commit: `feat: wire rich plugin creator node editors`.
 
 ## Task 15: Browser smoke and final cleanup
 

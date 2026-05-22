@@ -121,6 +121,13 @@ describe('PluginCreatorNodeSettingsPanel contract', () => {
       'ErrorMapperNodeEditor',
       'CodeBlockNodeEditor',
       'OutputNodeEditor',
+      'IfNodeEditor',
+      'SwitchNodeEditor',
+      'TryCatchNodeEditor',
+      'JsonTransformNodeEditor',
+      'ReturnNodeEditor',
+      'ForNodeEditor',
+      'ForEachNodeEditor',
     ]
 
     for (const editorName of editorNames) {
@@ -130,5 +137,7 @@ describe('PluginCreatorNodeSettingsPanel contract', () => {
         `${editorName}.vue should exist`,
       )
     }
+
+    assert.doesNotMatch(panelSource, /PluginCreatorNodeEditorFields/)
   })
 })
