@@ -549,22 +549,22 @@ Why:
 - Publish precisa bloquear code block inseguro.
 - Publish deve ser a etapa mais confiavel.
 
-- [ ] Write failing publish validator tests:
+- [x] Write failing publish validator tests:
   - invalid generated TS fails.
   - unsafe code block fails.
   - valid generated plugin passes.
   - smoke run can execute one selected method with safe mock or sample params.
-- [ ] Create `plugin-publish-validator.ts`.
-- [ ] Call validator before release write.
-- [ ] Return clear error messages to frontend.
-- [ ] Run:
+- [x] Create `plugin-publish-validator.ts`.
+- [x] Call validator before release write.
+- [x] Return clear error messages to frontend.
+- [x] Run:
 
 ```bash
 cd server
 node --test src/core/modules/plugin-creator/plugin-publish-validator.test.ts src/core/modules/plugin-creator/plugin-publish-service.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add server/src/core/modules/plugin-creator/plugin-publish-validator.ts server/src/core/modules/plugin-creator/plugin-publish-validator.test.ts server/src/core/modules/plugin-creator/plugin-publish-service.ts server/src/core/modules/plugin-creator/plugin-publish-service.test.ts

@@ -15,6 +15,7 @@ import type { PluginCreatorRelease } from "./plugin-blueprint-types.ts";
 import { parsePluginBlueprint, validatePluginCreatorId } from "./plugin-blueprint-validation.ts";
 import { generateCompletePlugin } from "./plugin-code-generator.ts";
 import { resolveBlueprintPaths } from "./plugin-creator-paths.ts";
+import { validatePluginCreatorPublish } from "./plugin-publish-validator.ts";
 import type { PluginVersionService } from "./plugin-version-service.ts";
 
 export interface PluginPublishServiceDependencies {
@@ -66,6 +67,13 @@ export class PluginPublishService {
     }
 
     const snapshot = this.versionService.createSnapshot(validBlueprint, "pre-publish");
+    const validation = validatePluginCreatorPublish({
+      profilePaths: this.profilePaths,
+      blueprint: validBlueprint,
+    });
+    if (!validation.success) {
+      throw new Error(validation.error);
+    }
     const generated = generateCompletePlugin({
       profilePaths: this.profilePaths,
       blueprint: validBlueprint,
