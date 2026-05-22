@@ -34,6 +34,7 @@ const props = withDefaults(
     error?: string
     height?: string
     disabled?: boolean
+    readonly?: boolean
     required?: boolean
   }>(),
   {
@@ -41,6 +42,7 @@ const props = withDefaults(
     language: 'javascript',
     height: '260px',
     disabled: false,
+    readonly: false,
     required: false,
   },
 )
@@ -200,7 +202,7 @@ onMounted(() => {
     value: props.modelValue,
     language: props.language,
     theme: monacoTheme(),
-    readOnly: props.disabled,
+    readOnly: props.disabled || props.readonly,
     automaticLayout: true,
     fixedOverflowWidgets: true,
     minimap: { enabled: false },
@@ -244,9 +246,9 @@ watch(resolvedTheme, () => {
 })
 
 watch(
-  () => props.disabled,
-  (readOnly) => {
-    editor?.updateOptions({ readOnly })
+  () => [props.disabled, props.readonly],
+  ([disabled, readonly]) => {
+    editor?.updateOptions({ readOnly: Boolean(disabled || readonly) })
   },
 )
 
