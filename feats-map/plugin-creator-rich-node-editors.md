@@ -314,12 +314,12 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing test for multiple output fields.
-- [ ] Support list of output fields, not only first response mapping.
-- [ ] Add source path/expression mode.
-- [ ] Add output schema preview.
-- [ ] Run test and type-check.
-- [ ] Commit: `feat: polish plugin creator output editor`.
+- [x] Write failing test for multiple output fields.
+- [x] Support list of output fields, not only first response mapping.
+- [x] Add source path/expression mode.
+- [x] Add output schema preview.
+- [x] Run test and type-check.
+- [x] Commit: `feat: polish plugin creator output editor`.
 
 ## Task 14: Integrate all editors in settings panel
 
