@@ -134,13 +134,13 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing test for multiple mapping rows.
-- [ ] Add rows with output name, response path, type, required, remove, duplicate.
-- [ ] Add sample response panel using `lastTestResult.body`.
-- [ ] Add click-to-copy/click-to-fill path from sample JSON tree.
-- [ ] Add empty state with one-click `Add mapping`.
-- [ ] Run test and type-check.
-- [ ] Commit: `feat: add rich response mapping editor`.
+- [x] Write failing test for multiple mapping rows.
+- [x] Add rows with output name, response path, type, required, remove, duplicate.
+- [x] Add sample response panel using `lastTestResult.body`.
+- [x] Add click-to-copy/click-to-fill path from sample JSON tree.
+- [x] Add empty state with one-click `Add mapping`.
+- [x] Run test and type-check.
+- [x] Commit: `feat: add rich response mapping editor`.
 
 ## Task 5: Rich Error Mapping editor
 
