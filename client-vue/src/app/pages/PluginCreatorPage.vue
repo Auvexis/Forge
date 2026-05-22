@@ -159,6 +159,11 @@ quickAddBus.on((payload) => {
   openAddBlocksPanel(payload?.sourceId ?? null)
 })
 
+const addItemBus = useEventBus<PluginCreatorAddItemType>('plugin-creator:add-item')
+addItemBus.on((type) => {
+  addPluginCreatorBlock(type)
+})
+
 const nodeToolbarBus = useEventBus<{ action: 'duplicate' | 'delete'; nodeId: string }>(
   'node:toolbar-action',
 )
@@ -275,9 +280,7 @@ function openAddBlocksPanel(sourceId: string | null = null) {
     id: 'plugin-creator-add-blocks',
     title: 'Add Block',
     component: markRaw(PluginCreatorAddItemPanel),
-    props: {
-      onAddItem: addPluginCreatorBlock,
-    },
+    props: {},
     position: 'right',
     width: 'md',
     resizable: true,
@@ -341,6 +344,9 @@ function connectNodes(payload: {
 function addPluginCreatorBlock(type: PluginCreatorAddItemType) {
   const node = createNode(type)
   store.addNode(node)
+  if (type === 'method') {
+    addMethodFromNode(node)
+  }
   if (type === 'codeBlock' && methodIdFromNode(node)) {
     upsertNodeCodeBlock(node)
   }
@@ -392,6 +398,35 @@ function upsertNodeCodeBlock(node: PluginBlueprintNode) {
   })
 }
 
+function addMethodFromNode(node: PluginBlueprintNode) {
+  const methodId = methodIdFromNode(node) ?? node.id
+  const methodCount = store.activeBlueprint?.methods.length ?? 0
+  const handle = `method${methodCount + 1}`
+  store.addMethod({
+    id: methodId,
+    handle,
+    name: String(node.data.name ?? node.data.label ?? 'Untitled Method'),
+    description: '',
+    inputs: [],
+    request: {
+      method: 'GET',
+      url: 'https://api.example.com',
+      headers: [],
+      query: [],
+      body: { type: 'none' },
+    },
+    responseMapping: [],
+    errorMapping: [],
+    codeBlocks: [],
+  })
+  store.updateNode(node.id, {
+    data: {
+      methodId,
+      handle,
+    },
+  })
+}
+
 function duplicateSelectedNodes(nodeIds: string[]) {
   for (const nodeId of nodeIds) {
     duplicateNode(nodeId)
@@ -402,6 +437,7 @@ function createNode(type: PluginCreatorAddItemType): PluginBlueprintNode {
   const nodeCount = Object.keys(store.activeBlueprint?.canvas.nodes ?? {}).length
   const methodId = store.activeBlueprint?.methods[0]?.id
   const id = `${type}_${Date.now()}_${nodeCount}`
+  const nodeMethodId = type === 'method' ? id : methodId
   const sourceNode =
     quickAddSourceId.value && store.activeBlueprint?.canvas.nodes[quickAddSourceId.value]
   const center = canvasRef.value?.centerPosition() ?? { x: 260, y: 220 }
@@ -422,7 +458,7 @@ function createNode(type: PluginCreatorAddItemType): PluginBlueprintNode {
     data: {
       label: nodeLabel(type),
       name: nodeLabel(type),
-      methodId,
+      methodId: nodeMethodId,
     },
   }
 }

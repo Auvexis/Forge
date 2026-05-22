@@ -398,6 +398,13 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     }
   }
 
+  function addMethod(method: PluginBlueprintMethod) {
+    if (!activeBlueprint.value) return
+    if (activeBlueprint.value.methods.some((candidate) => candidate.id === method.id)) return
+    recordHistory()
+    activeBlueprint.value.methods.push(cloneBlueprint({ ...activeBlueprint.value, methods: [method] }).methods[0]!)
+  }
+
   function updateMethodInput(
     methodId: string,
     inputName: string,
@@ -549,6 +556,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     addEdge,
     removeEdges,
     updateNode,
+    addMethod,
     updateMethod,
     updateMethodInput,
     updateCredentialField,

@@ -17,6 +17,7 @@
             type="button"
             class="add-node-item"
             @click="addItem(item.type)"
+            @pointerdown="addItem(item.type)"
           >
             <div
               class="add-node-item-icon-well"
@@ -37,6 +38,7 @@
 
 <script setup lang="ts">
 import { computed, ref, type Component } from 'vue'
+import { useEventBus } from '@/shared/composables/useEventBus'
 import {
   Braces,
   CircleAlert,
@@ -56,6 +58,7 @@ export type PluginCreatorAddItemType =
   | 'output'
 
 const props = defineProps<{
+  addItem?: (type: PluginCreatorAddItemType) => void
   onAddItem?: (type: PluginCreatorAddItemType) => void
 }>()
 
@@ -64,6 +67,8 @@ const emit = defineEmits<{
 }>()
 
 const search = ref('')
+const addItemBus = useEventBus<PluginCreatorAddItemType>('plugin-creator:add-item')
+let lastAddAt = 0
 
 const items: Array<{
   type: PluginCreatorAddItemType
@@ -140,7 +145,12 @@ const filteredItems = computed(() => {
 })
 
 function addItem(type: PluginCreatorAddItemType) {
+  const now = Date.now()
+  if (now - lastAddAt < 180) return
+  lastAddAt = now
+  props.addItem?.(type)
   props.onAddItem?.(type)
+  addItemBus.emit(type)
   emit('add', type)
 }
 </script>
