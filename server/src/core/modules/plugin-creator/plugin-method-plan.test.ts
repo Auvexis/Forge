@@ -105,4 +105,123 @@ describe("buildPluginMethodPlans", () => {
       "errorMapper",
     ]);
   });
+
+  it("nests if branches from source handles", () => {
+    const blueprint = createBlueprintWithMethodGraph({
+      nodes: ["method_create_lead", "if_has_email", "request_then", "code_else"],
+      edges: [
+        ["method_create_lead", "if_has_email"],
+        ["if_has_email", "request_then"],
+        ["if_has_email", "code_else"],
+      ],
+    });
+    blueprint.canvas.nodes.if_has_email!.type = "if";
+    blueprint.canvas.nodes.if_has_email!.data = {
+      methodId: "method_create_lead",
+      condition: "params.email",
+    };
+    blueprint.canvas.edges[1]!.sourceHandle = "then";
+    blueprint.canvas.edges[2]!.sourceHandle = "else";
+
+    const [plan] = buildPluginMethodPlans(blueprint);
+    const [step] = plan!.steps;
+
+    assert.equal(step?.kind, "if");
+    assert.deepEqual(step?.thenSteps.map((candidate) => candidate.kind), ["httpRequest"]);
+    assert.deepEqual(step?.elseSteps.map((candidate) => candidate.kind), ["codeBlock"]);
+  });
+
+  it("nests switch cases and default steps", () => {
+    const blueprint = createBlueprintWithMethodGraph({
+      nodes: ["method_create_lead", "switch_status", "request_ok", "code_default"],
+      edges: [
+        ["method_create_lead", "switch_status"],
+        ["switch_status", "request_ok"],
+        ["switch_status", "code_default"],
+      ],
+    });
+    blueprint.canvas.nodes.switch_status!.type = "switch";
+    blueprint.canvas.nodes.switch_status!.data = {
+      methodId: "method_create_lead",
+      expression: "response.status",
+      cases: [{ id: "case_ok", label: "OK", value: 200, handle: "case_ok" }],
+    };
+    blueprint.canvas.edges[1]!.sourceHandle = "case_ok";
+    blueprint.canvas.edges[2]!.sourceHandle = "default";
+
+    const [plan] = buildPluginMethodPlans(blueprint);
+    const [step] = plan!.steps;
+
+    assert.equal(step?.kind, "switch");
+    assert.equal(step?.cases[0]?.handle, "case_ok");
+    assert.deepEqual(step?.cases[0]?.steps.map((candidate) => candidate.kind), ["httpRequest"]);
+    assert.deepEqual(step?.defaultSteps.map((candidate) => candidate.kind), ["codeBlock"]);
+  });
+
+  it("nests try and catch steps", () => {
+    const blueprint = createBlueprintWithMethodGraph({
+      nodes: ["method_create_lead", "try_request", "request_try", "code_catch"],
+      edges: [
+        ["method_create_lead", "try_request"],
+        ["try_request", "request_try"],
+        ["try_request", "code_catch"],
+      ],
+    });
+    blueprint.canvas.nodes.try_request!.type = "tryCatch";
+    blueprint.canvas.nodes.try_request!.data = {
+      methodId: "method_create_lead",
+      errorVariable: "error",
+    };
+    blueprint.canvas.edges[1]!.sourceHandle = "try";
+    blueprint.canvas.edges[2]!.sourceHandle = "catch";
+
+    const [plan] = buildPluginMethodPlans(blueprint);
+    const [step] = plan!.steps;
+
+    assert.equal(step?.kind, "tryCatch");
+    assert.deepEqual(step?.trySteps.map((candidate) => candidate.kind), ["httpRequest"]);
+    assert.deepEqual(step?.catchSteps.map((candidate) => candidate.kind), ["codeBlock"]);
+  });
+
+  it("nests forEach body steps", () => {
+    const blueprint = createBlueprintWithMethodGraph({
+      nodes: ["method_create_lead", "foreach_items", "code_after_map"],
+      edges: [
+        ["method_create_lead", "foreach_items"],
+        ["foreach_items", "code_after_map"],
+      ],
+    });
+    blueprint.canvas.nodes.foreach_items!.type = "forEach";
+    blueprint.canvas.nodes.foreach_items!.data = {
+      methodId: "method_create_lead",
+      arrayExpression: "params.items",
+      itemVariable: "item",
+    };
+    blueprint.canvas.edges[1]!.sourceHandle = "body";
+
+    const [plan] = buildPluginMethodPlans(blueprint);
+    const [step] = plan!.steps;
+
+    assert.equal(step?.kind, "forEach");
+    assert.deepEqual(step?.bodySteps.map((candidate) => candidate.kind), ["codeBlock"]);
+  });
+
+  it("stops the method plan at a return node", () => {
+    const blueprint = createBlueprintWithMethodGraph({
+      nodes: ["method_create_lead", "return_payload", "request_create_lead"],
+      edges: [
+        ["method_create_lead", "return_payload"],
+        ["return_payload", "request_create_lead"],
+      ],
+    });
+    blueprint.canvas.nodes.return_payload!.type = "return";
+    blueprint.canvas.nodes.return_payload!.data = {
+      methodId: "method_create_lead",
+      valueExpression: "previous",
+    };
+
+    const [plan] = buildPluginMethodPlans(blueprint);
+
+    assert.deepEqual(plan?.steps.map((step) => step.kind), ["return"]);
+  });
 });

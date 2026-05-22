@@ -192,24 +192,24 @@ Why:
 - `If`, `Switch`, `Try/Catch`, `For`, `ForEach` precisam preservar branches/children.
 - SRP: plan builder nao executa e nao gera codigo.
 
-- [ ] Write failing tests proving:
+- [x] Write failing tests proving:
   - linear graph becomes ordered steps.
   - `if` creates `thenSteps` and `elseSteps`.
   - `switch` creates cases and default steps.
   - `tryCatch` creates `trySteps` and `catchSteps`.
   - `forEach` nests child steps.
   - `return` ends method plan.
-- [ ] Move plan interfaces to `plugin-method-plan-types.ts`.
-- [ ] Implement graph-to-plan nesting rules.
-- [ ] Keep fallback legacy plan.
-- [ ] Run:
+- [x] Move plan interfaces to `plugin-method-plan-types.ts`.
+- [x] Implement graph-to-plan nesting rules.
+- [x] Keep fallback legacy plan.
+- [x] Run:
 
 ```bash
 cd server
 node --test src/core/modules/plugin-creator/plugin-method-plan.test.ts
 ```
 
-- [ ] Commit:
+- [x] Commit:
 
 ```bash
 git add server/src/core/modules/plugin-creator/plugin-method-plan.ts server/src/core/modules/plugin-creator/plugin-method-plan-types.ts server/src/core/modules/plugin-creator/plugin-method-plan.test.ts
