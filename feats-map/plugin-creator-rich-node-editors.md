@@ -152,13 +152,13 @@ Try/Catch com varios catches nao e so UI. Precisa contrato de dados (`catchCases
 
 **Tasks**
 
-- [ ] Write failing test for multiple error mappings.
-- [ ] Add condition builder: source `status/body`, operator, path, compare value.
-- [ ] Add message builder: static message or body path fallback.
-- [ ] Add mapped error preview from `lastTestResult`.
-- [ ] Add remove/duplicate/reorder mappings.
-- [ ] Run test and type-check.
-- [ ] Commit: `feat: add rich error mapping editor`.
+- [x] Write failing test for multiple error mappings.
+- [x] Add condition builder: source `status/body`, operator, path, compare value.
+- [x] Add message builder: static message or body path fallback.
+- [x] Add mapped error preview from `lastTestResult`.
+- [x] Add remove/duplicate/reorder mappings.
+- [x] Run test and type-check.
+- [x] Commit: `feat: add rich error mapping editor`.
 
 ## Task 6: Rich Code Block editor
 

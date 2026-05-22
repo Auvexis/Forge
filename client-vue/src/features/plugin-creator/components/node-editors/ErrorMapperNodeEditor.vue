@@ -6,47 +6,11 @@
       description="Turn response status or body values into plugin errors."
     >
       <div v-for="(mapping, index) in mappings" :key="mapping.id" class="node-editor-card">
-        <div class="node-editor-grid node-editor-grid--3">
-          <BaseInput
-            :model-value="mapping.code"
-            label="Code"
-            placeholder="REQUEST_FAILED"
-            @update:model-value="updateMapping(index, { code: String($event) })"
-          />
-          <BaseSelect
-            :model-value="mapping.condition.source"
-            :options="errorSourceOptions"
-            label="Source"
-            @update:model-value="updateCondition(index, { source: String($event) as any })"
-          />
-          <BaseSelect
-            :model-value="mapping.condition.operator"
-            :options="errorOperatorOptions"
-            label="Operator"
-            @update:model-value="updateCondition(index, { operator: String($event) as any })"
-          />
-        </div>
-        <div class="node-editor-grid node-editor-grid--2">
-          <BaseInput
-            :model-value="String(mapping.condition.path ?? '')"
-            label="Body path"
-            placeholder="body.error.code"
-            @update:model-value="updateCondition(index, { path: String($event) })"
-          />
-          <BaseInput
-            :model-value="String(mapping.condition.value ?? '')"
-            label="Compare value"
-            placeholder="400"
-            @update:model-value="updateCondition(index, { value: normalizeValue(String($event)) })"
-          />
-        </div>
-        <BaseInput
-          :model-value="messageValue(mapping)"
-          label="Message"
-          placeholder="Request failed"
-          @update:model-value="
-            updateMapping(index, { message: { type: 'static', value: String($event) } })
-          "
+        <ErrorConditionEditor
+          :mapping="mapping"
+          @update="updateMapping(index, $event)"
+          @duplicate="duplicateMapping(index)"
+          @remove="removeMapping(index)"
         />
       </div>
       <button class="node-editor-action" type="button" @click="addMapping">
@@ -63,34 +27,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
-import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import ErrorConditionEditor from './ErrorConditionEditor.vue'
 import NodeEditorSection from './NodeEditorSection.vue'
 import { stringifyEditorValue } from './editorValueUtils'
 import { usePluginCreatorNodeEditorContext } from './usePluginCreatorNodeEditorContext'
-import type {
-  PluginBlueprintErrorCondition,
-  PluginBlueprintErrorMapping,
-} from '@/core/types/plugin-creator.types'
+import type { PluginBlueprintErrorMapping } from '@/core/types/plugin-creator.types'
 import type { PluginCreatorNodeEditorEmits, PluginCreatorNodeEditorProps } from './types'
 
 const props = defineProps<PluginCreatorNodeEditorProps>()
 const emit = defineEmits<PluginCreatorNodeEditorEmits>()
 const { method, updateMethodPatch } = usePluginCreatorNodeEditorContext(props, emit)
 
-const errorSourceOptions = ['status', 'body'].map((value) => ({ value, label: value }))
-const errorOperatorOptions = (
-  [
-    ['equals', 'equals'],
-    ['notEquals', 'not equals'],
-    ['greaterThan', 'greater than'],
-    ['greaterThanOrEquals', 'greater/equal'],
-    ['lessThan', 'less than'],
-    ['lessThanOrEquals', 'less/equal'],
-    ['exists', 'exists'],
-    ['notExists', 'not exists'],
-  ] satisfies Array<[string, string]>
-).map(([value, label]) => ({ value, label }))
 const mappings = computed(() => method.value?.errorMapping ?? [])
 const latestResponse = computed(() =>
   stringifyEditorValue({
@@ -121,18 +68,22 @@ function updateMapping(index: number, payload: Partial<PluginBlueprintErrorMappi
   })
 }
 
-function updateCondition(index: number, payload: Partial<PluginBlueprintErrorCondition>) {
+function duplicateMapping(index: number) {
   const mapping = mappings.value[index]
   if (!mapping) return
-  updateMapping(index, { condition: { ...mapping.condition, ...payload } })
+  updateMethodPatch({
+    errorMapping: [
+      ...mappings.value.slice(0, index + 1),
+      { ...mapping, id: `error_${Date.now()}` },
+      ...mappings.value.slice(index + 1),
+    ],
+  })
 }
 
-function messageValue(mapping: PluginBlueprintErrorMapping) {
-  return mapping.message.type === 'static' ? mapping.message.value : mapping.message.path
-}
-
-function normalizeValue(value: string) {
-  return value.trim() !== '' && !Number.isNaN(Number(value)) ? Number(value) : value
+function removeMapping(index: number) {
+  updateMethodPatch({
+    errorMapping: mappings.value.filter((_, currentIndex) => currentIndex !== index),
+  })
 }
 </script>
 
@@ -142,18 +93,9 @@ function normalizeValue(value: string) {
   flex-direction: column;
 }
 
-.node-editor-card,
-.node-editor-grid {
+.node-editor-card {
   display: grid;
   gap: 12px;
-}
-
-.node-editor-grid--2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.node-editor-grid--3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .node-editor-action {
