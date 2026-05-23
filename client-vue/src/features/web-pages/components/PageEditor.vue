@@ -103,6 +103,14 @@
       </template>
       <p v-if="editorStore.selectedTarget.type === 'none'" class="web-page-editor__empty">Select a page, body, or block.</p>
     </AppPanel>
+
+    <PageSwitcherModal
+      :is-open="isPageSwitcherOpen"
+      :pages="pagesStore.pages"
+      :active-page-id="pagesStore.activePage?.id"
+      @close="isPageSwitcherOpen = false"
+      @select="switchPage"
+    />
   </section>
 </template>
 
@@ -126,12 +134,14 @@ import BlockActionPanel from './BlockActionPanel.vue'
 import FormImportPanel from './FormImportPanel.vue'
 import PageMetadataPanel from './PageMetadataPanel.vue'
 import PageEditorActionsMenu from './PageEditorActionsMenu.vue'
+import PageSwitcherModal from './PageSwitcherModal.vue'
 
 const route = useRoute()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
+const isPageSwitcherOpen = ref(false)
 
 const bodyStyleBlock = computed<PageBlock>(() => ({
   id: 'body',
@@ -203,12 +213,18 @@ function patchPageMetadata(patch: Partial<SailorPage>) {
   pagesStore.setActivePage({ ...pagesStore.activePage, ...patch })
 }
 
-function openPageSwitcher() {
-  // Task 6 wires this action to the page switcher modal.
+async function openPageSwitcher() {
+  if (pagesStore.pages.length === 0) await pagesStore.listPages()
+  isPageSwitcherOpen.value = true
 }
 
 function noopPageAction() {
   // Task 8 wires duplicate/delete page actions.
+}
+
+async function switchPage(pageId: string) {
+  await pagesStore.switchPage(pageId)
+  isPageSwitcherOpen.value = false
 }
 
 async function savePage() {

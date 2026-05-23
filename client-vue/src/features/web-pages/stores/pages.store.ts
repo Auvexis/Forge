@@ -87,6 +87,15 @@ export const usePagesStore = defineStore('web-pages', () => {
     }
   }
 
+  async function switchPage(pageId: string) {
+    if (activePage.value?.id === pageId) return activePage.value
+    if (isDirty.value) {
+      error.value = 'Save current page before switching.'
+      throw new Error('Save current page before switching.')
+    }
+    return openPage(pageId)
+  }
+
   async function saveActivePage() {
     if (!activePage.value) return null
     isSaving.value = true
@@ -152,6 +161,7 @@ export const usePagesStore = defineStore('web-pages', () => {
     listPages,
     createPage,
     openPage,
+    switchPage,
     saveActivePage,
     deletePage,
     publishActivePage,
