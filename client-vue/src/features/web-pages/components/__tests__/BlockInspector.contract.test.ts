@@ -18,10 +18,21 @@ describe('block inspector contract', () => {
 
   it('style panel uses controls for allowlisted properties', () => {
     const source = read('src/features/web-pages/components/BlockStylePanel.vue')
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const allowlist = read('src/features/web-pages/utils/styleAllowlist.ts')
+
     assert.match(source, /padding/)
+    assert.match(source, /width/)
+    assert.match(source, /height/)
+    assert.match(source, /margin/)
+    assert.match(source, /border/)
+    assert.match(source, /fontSize/)
     assert.match(source, /backgroundColor/)
     assert.match(source, /BaseColorPicker/)
     assert.match(source, /sanitizeStyles/)
+    assert.match(renderer, /:style="block\.styles"/)
+    assert.match(allowlist, /minWidth/)
+    assert.match(allowlist, /maxHeight/)
   })
 
   it('action panel supports form submit, workflow trigger, open URL without custom JS', () => {

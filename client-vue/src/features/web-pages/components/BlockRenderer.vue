@@ -3,6 +3,7 @@
     :is="renderTag"
     class="web-page-block"
     :class="blockClasses"
+    :style="block.styles"
     draggable="true"
     @click.stop="$emit('select', block.id)"
     @dragstart.stop="onDragStart"

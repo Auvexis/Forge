@@ -3,8 +3,10 @@ import type { PageBlockStyles } from '../types/page.types.ts'
 const ALLOWED_STYLES = new Set([
   'width',
   'height',
+  'minWidth',
   'maxWidth',
   'minHeight',
+  'maxHeight',
   'padding',
   'margin',
   'display',
