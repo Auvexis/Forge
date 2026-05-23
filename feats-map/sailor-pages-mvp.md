@@ -15,7 +15,7 @@ Tasks:
 - [x] Task 1: Backend page contracts
 - [x] Task 2: Backend repository
 - [x] Task 3: Safe page renderer
-- [ ] Task 4: Page service
+- [x] Task 4: Page service
 - [ ] Task 5: Page action execution
 - [ ] Task 6: Backend routes
 - [ ] Task 7: Frontend API and types
