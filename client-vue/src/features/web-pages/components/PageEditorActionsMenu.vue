@@ -7,9 +7,9 @@
     <AppDropdownItem label="Switch page" icon="files" @click="$emit('switch-page')" />
     <AppDropdownDivider />
     <AppDropdownItem label="Rename page" icon="pencil" @click="$emit('rename-page')" />
-    <AppDropdownItem label="Duplicate page" icon="copy" disabled @click="$emit('duplicate-page')" />
+    <AppDropdownItem label="Duplicate page" icon="copy" @click="$emit('duplicate-page')" />
     <AppDropdownDivider />
-    <AppDropdownItem label="Delete page" icon="trash-2" danger disabled @click="$emit('delete-page')" />
+    <AppDropdownItem label="Delete page" icon="trash-2" danger @click="$emit('delete-page')" />
   </AppDropdownMenu>
 </template>
 

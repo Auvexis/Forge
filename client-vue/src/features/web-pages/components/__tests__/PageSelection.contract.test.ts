@@ -46,4 +46,12 @@ describe('page selection contract', () => {
     assert.match(source, /patch/)
     assert.doesNotMatch(source, /pagesApi|saveActivePage|fetch\(/)
   })
+
+  it('page metadata panel uses base inputs and emits page patches', () => {
+    const source = read('src/features/web-pages/components/PageMetadataPanel.vue')
+
+    assert.match(source, /BaseInput/)
+    assert.match(source, /patchField\('title'/)
+    assert.match(source, /patchField\('slug'/)
+  })
 })

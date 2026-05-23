@@ -81,6 +81,21 @@ export const usePagesStore = defineStore('web-pages', () => {
     return page
   }
 
+  async function duplicateActivePage() {
+    if (!activePage.value) return null
+    const source = activePage.value
+    const page = await createPage({
+      title: `${source.title} copy`,
+      blocks: clone(source.blocks),
+    })
+    setSavedPage({ ...page, bodyStyles: clone(source.bodyStyles ?? {}) })
+    activePage.value = {
+      ...activePage.value!,
+      bodyStyles: clone(source.bodyStyles ?? {}),
+    }
+    return activePage.value
+  }
+
   async function openPage(pageId: string) {
     isLoading.value = true
     error.value = null
@@ -131,6 +146,15 @@ export const usePagesStore = defineStore('web-pages', () => {
     }
   }
 
+  async function deleteActivePageAndChooseNext() {
+    const pageId = activePage.value?.id
+    if (!pageId) return null
+    const remaining = pages.value.filter((page) => page.id !== pageId)
+    await deletePage(pageId)
+    const next = remaining[0]
+    return next ? openPage(next.id) : null
+  }
+
   async function publishActivePage() {
     if (!activePage.value) return null
     const published = await apiClient.value.publishPage(activePage.value.id)
@@ -168,10 +192,12 @@ export const usePagesStore = defineStore('web-pages', () => {
     listPages,
     createPage,
     createPageAfterActive,
+    duplicateActivePage,
     openPage,
     switchPage,
     saveActivePage,
     deletePage,
+    deleteActivePageAndChooseNext,
     publishActivePage,
   }
 })

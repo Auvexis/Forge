@@ -53,8 +53,8 @@
       <PageEditorActionsMenu
         @switch-page="openPageSwitcher"
         @rename-page="editorStore.selectPage"
-        @duplicate-page="noopPageAction"
-        @delete-page="noopPageAction"
+        @duplicate-page="duplicateActivePage"
+        @delete-page="deleteActivePageAndChooseNext"
       />
       <BaseButton variant="secondary" icon-left="save" :loading="pagesStore.isSaving" @click="savePage">
         Save
@@ -224,13 +224,19 @@ async function openPageSwitcher() {
   isPageSwitcherOpen.value = true
 }
 
-function noopPageAction() {
-  // Task 8 wires duplicate/delete page actions.
-}
-
 async function switchPage(pageId: string) {
   await pagesStore.switchPage(pageId)
   isPageSwitcherOpen.value = false
+}
+
+async function duplicateActivePage() {
+  await pagesStore.duplicateActivePage()
+  editorStore.selectPage()
+}
+
+async function deleteActivePageAndChooseNext() {
+  await pagesStore.deleteActivePageAndChooseNext()
+  editorStore.selectPage()
 }
 
 async function addPageBelowCanvas() {

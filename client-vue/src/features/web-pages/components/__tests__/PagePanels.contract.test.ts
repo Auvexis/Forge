@@ -50,4 +50,15 @@ describe('page editor panels contract', () => {
     assert.match(menu, /delete-page/)
     assert.match(editor, /PageEditorActionsMenu/)
   })
+
+  it('page actions are wired to metadata, duplicate and delete flows', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const store = read('src/features/web-pages/stores/pages.store.ts')
+
+    assert.match(editor, /@rename-page="editorStore\.selectPage"/)
+    assert.match(editor, /duplicateActivePage/)
+    assert.match(editor, /deleteActivePageAndChooseNext/)
+    assert.match(store, /duplicateActivePage/)
+    assert.match(store, /deleteActivePageAndChooseNext/)
+  })
 })
