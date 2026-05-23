@@ -51,7 +51,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   select: [blockId: string]
-  dropBlock: [payload: { targetId: string; position: InsertPosition; tag: PageBlockTag }]
+  'drop-block': [payload: { targetId: string; position: InsertPosition; tag: PageBlockTag }]
 }>()
 
 const isContainer = computed(() =>
@@ -66,6 +66,6 @@ const renderTag = computed(() => {
 })
 
 function emitDrop(position: InsertPosition, tag: PageBlockTag) {
-  emit('dropBlock', { targetId: props.block.id, position, tag })
+  emit('drop-block', { targetId: props.block.id, position, tag })
 }
 </script>

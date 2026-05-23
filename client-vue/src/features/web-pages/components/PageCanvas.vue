@@ -27,6 +27,6 @@ defineProps<{
 
 defineEmits<{
   select: [blockId: string]
-  dropBlock: [payload: { targetId: string; position: InsertPosition; tag: PageBlockTag }]
+  'drop-block': [payload: { targetId: string; position: InsertPosition; tag: PageBlockTag }]
 }>()
 </script>
