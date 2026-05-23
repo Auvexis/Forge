@@ -18,7 +18,7 @@ Tasks:
 - [x] Task 4: Page service
 - [x] Task 5: Page action execution
 - [x] Task 6: Backend routes
-- [ ] Task 7: Frontend API and types
+- [x] Task 7: Frontend API and types
 - [ ] Task 8: Block tree utilities
 - [ ] Task 9: Style and CSS sanitization utilities
 - [ ] Task 10: Form schema import utility

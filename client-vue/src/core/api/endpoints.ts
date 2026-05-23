@@ -50,6 +50,15 @@ export const ENDPOINTS = {
   TEMPORARY_FORM_DEFINITION: (id: string) => `/temporary-forms-api/${encodeURIComponent(id)}`,
   TEMPORARY_FORM_SUBMIT: (id: string) => `/temporary-forms-api/${encodeURIComponent(id)}/submit`,
 
+  // Pages
+  PAGES: '/pages',
+  PAGE_BY_ID: (id: string) => `/pages/${encodeURIComponent(id)}`,
+  PAGE_PUBLISH: (id: string) => `/pages/${encodeURIComponent(id)}/publish`,
+  PAGE_PREVIEW: (id: string) => `/pages/${encodeURIComponent(id)}/preview`,
+  PUBLISHED_PAGE: (slug: string) => `/p/${encodeURIComponent(slug)}`,
+  PUBLISHED_PAGE_ACTION: (slug: string, actionId: string) =>
+    `/p/${encodeURIComponent(slug)}/actions/${encodeURIComponent(actionId)}`,
+
   // Plugins
   PLUGINS: '/plugins',
   PLUGIN_BY_ID: (id: string) => `/plugins/${encodeURIComponent(id)}`,
@@ -72,6 +81,8 @@ export const ENDPOINTS = {
   // Plugin Creator
   PLUGIN_CREATOR_BLUEPRINTS: '/plugin-creator/blueprints',
   PLUGIN_CREATOR_BLUEPRINT: (id: string) => `/plugin-creator/blueprints/${encodeURIComponent(id)}`,
+  PLUGIN_CREATOR_ICON_ASSET: (id: string, slot: string) =>
+    `/plugin-creator/blueprints/${encodeURIComponent(id)}/assets/icons/${encodeURIComponent(slot)}`,
   PLUGIN_CREATOR_TEST_METHOD: (id: string) =>
     `/plugin-creator/blueprints/${encodeURIComponent(id)}/test-method`,
   PLUGIN_CREATOR_GENERATE_PREVIEW: (id: string) =>
