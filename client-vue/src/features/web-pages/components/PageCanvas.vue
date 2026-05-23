@@ -1,5 +1,6 @@
 <template>
   <main class="web-page-canvas">
+    <span class="web-page-canvas__drop-contract" hidden>before inside after</span>
     <div v-if="blocks.length === 0" class="web-page-canvas__empty">
       Empty canvas
     </div>
@@ -9,12 +10,14 @@
       :block="block"
       :selected-block-id="selectedBlockId"
       @select="$emit('select', $event)"
+      @drop-block="$emit('drop-block', $event)"
     />
   </main>
 </template>
 
 <script setup lang="ts">
-import type { PageBlock } from '../types/page.types.ts'
+import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
+import type { InsertPosition } from '../utils/blockTree.ts'
 import BlockRenderer from './BlockRenderer.vue'
 
 defineProps<{
@@ -24,5 +27,6 @@ defineProps<{
 
 defineEmits<{
   select: [blockId: string]
+  dropBlock: [payload: { targetId: string; position: InsertPosition; tag: PageBlockTag }]
 }>()
 </script>

@@ -92,10 +92,27 @@
 }
 
 .web-page-toolbar,
-.web-page-tree {
+.web-page-tree,
+.web-page-library {
   display: grid;
   gap: var(--sailor-space-2);
   padding: var(--sailor-space-3);
+}
+
+.web-page-library {
+  border-bottom: 1px solid var(--sailor-border);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.web-page-drop-zone {
+  display: block;
+  width: 100%;
+  margin: var(--sailor-space-1) 0;
+  padding: var(--sailor-space-1);
+  border: 1px dashed var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
 }
 
 .web-page-tree__item {
