@@ -26,7 +26,7 @@ Tasks:
 - [x] Task 12: Page management UI
 - [x] Task 13: Editor canvas and block renderer
 - [x] Task 14: Block library and drop zones
-- [ ] Task 15: Inspector panels
+- [x] Task 15: Inspector panels
 - [ ] Task 16: Form import panel
 - [ ] Task 17: Preview and publish UX
 - [ ] Task 18: Published page runtime actions

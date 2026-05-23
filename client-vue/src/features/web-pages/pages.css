@@ -115,6 +115,13 @@
   font-size: var(--sailor-text-xs);
 }
 
+.web-page-inspector {
+  display: grid;
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-3);
+  border-top: 1px solid var(--sailor-border);
+}
+
 .web-page-tree__item {
   display: flex;
   justify-content: space-between;

@@ -22,6 +22,20 @@
         @delete="editorStore.deleteBlock(editorStore.selectedBlock.id)"
         @duplicate="editorStore.duplicateBlock(editorStore.selectedBlock.id)"
       />
+      <template v-if="editorStore.selectedBlock">
+        <BlockContentPanel
+          :block="editorStore.selectedBlock"
+          @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
+        />
+        <BlockStylePanel
+          :block="editorStore.selectedBlock"
+          @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
+        />
+        <BlockActionPanel
+          :block="editorStore.selectedBlock"
+          @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
+        />
+      </template>
       <p v-else class="web-page-editor__empty">Select a block.</p>
     </AppPanel>
   </section>
@@ -40,6 +54,9 @@ import PageCanvas from './PageCanvas.vue'
 import BlockToolbar from './BlockToolbar.vue'
 import BlockTreePanel from './BlockTreePanel.vue'
 import BlockLibrary from './BlockLibrary.vue'
+import BlockContentPanel from './BlockContentPanel.vue'
+import BlockStylePanel from './BlockStylePanel.vue'
+import BlockActionPanel from './BlockActionPanel.vue'
 
 const route = useRoute()
 const pagesStore = usePagesStore()

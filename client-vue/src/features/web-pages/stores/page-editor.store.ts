@@ -64,6 +64,12 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     })
   }
 
+  function patchBlock(blockId: string, patch: Partial<PageBlock>) {
+    mutate(() => {
+      blocks.value = patchBlocks(blocks.value, blockId, patch)
+    })
+  }
+
   function undo() {
     const previous = undoStack.value.pop()
     if (!previous) return
@@ -101,6 +107,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     moveBlock,
     deleteBlock,
     duplicateBlock,
+    patchBlock,
     undo,
     redo,
     markSaved,
@@ -109,6 +116,14 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
+}
+
+function patchBlocks(blocks: PageBlock[], blockId: string, patch: Partial<PageBlock>): PageBlock[] {
+  return blocks.map((block) =>
+    block.id === blockId
+      ? { ...block, ...patch }
+      : { ...block, children: patchBlocks(block.children ?? [], blockId, patch) },
+  )
 }
 
 function snapshot(value: unknown): string {
