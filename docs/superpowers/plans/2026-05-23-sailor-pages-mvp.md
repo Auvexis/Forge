@@ -38,9 +38,15 @@ Excluded:
 ## Architecture Rules
 
 - `pages` backend module owns page data, validation, rendering, publishing, and page action routing.
+- Pages are profile-scoped: page lists, drafts, published snapshots, and slugs belong to the active profile and are not shared across all profiles.
 - `forms` module remains the source of truth for form schema and form submission validation.
 - `workflows` module remains the source of truth for workflow execution.
 - Frontend `web-pages` owns UI/editor state only.
+- The site creator canvas starts empty, matching the workflow editor empty-canvas behavior.
+- Frontend UI must use only base/shared components already created under `client-vue/src/shared/components/`.
+- Page menus and side panels must use `AppPanel.vue`, `AppConfirmPanel.vue`, and `GlobalAppPanel.vue` from `client-vue/src/shared/components/layout/`.
+- Styling must use existing variables from `client-vue/src/assets/styles/tokens.css`; feature-specific CSS can live in `client-vue/src/features/web-pages/pages.css` when needed.
+- Unit tests are not required for every small UI detail. Keep TDD for core logic, contracts, and risky behavior; browser/manual testing is required only for important flows.
 - No plugin code imports `core/engines` or other plugins.
 - No raw user HTML is rendered without escaping.
 - No arbitrary JS in pages.
