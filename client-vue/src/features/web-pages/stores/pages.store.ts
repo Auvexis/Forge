@@ -74,6 +74,13 @@ export const usePagesStore = defineStore('web-pages', () => {
     }
   }
 
+  async function createPageAfterActive() {
+    const nextIndex = pages.value.length + 1
+    const page = await createPage({ title: `Page ${nextIndex}`, blocks: [] })
+    setSavedPage(page)
+    return page
+  }
+
   async function openPage(pageId: string) {
     isLoading.value = true
     error.value = null
@@ -160,6 +167,7 @@ export const usePagesStore = defineStore('web-pages', () => {
     setActivePage,
     listPages,
     createPage,
+    createPageAfterActive,
     openPage,
     switchPage,
     saveActivePage,

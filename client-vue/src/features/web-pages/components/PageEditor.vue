@@ -34,6 +34,12 @@
       @clear-drag-intent="editorStore.clearDragIntent"
     />
 
+    <div class="web-page-editor__add-page">
+      <BaseButton variant="outline" icon-left="plus" @click="addPageBelowCanvas">
+        Add page
+      </BaseButton>
+    </div>
+
     <button
       v-if="pagesStore.activePage"
       type="button"
@@ -225,6 +231,12 @@ function noopPageAction() {
 async function switchPage(pageId: string) {
   await pagesStore.switchPage(pageId)
   isPageSwitcherOpen.value = false
+}
+
+async function addPageBelowCanvas() {
+  if (pagesStore.isDirty) await savePage()
+  await pagesStore.createPageAfterActive()
+  editorStore.selectPage()
 }
 
 async function savePage() {

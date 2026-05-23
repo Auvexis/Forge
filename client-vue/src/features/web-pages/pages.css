@@ -94,8 +94,15 @@
 .web-page-canvas {
   min-height: 100%;
   margin: 0 var(--sailor-panel-width);
-  padding: var(--sailor-space-8);
+  padding: var(--sailor-space-8) var(--sailor-space-8) var(--sailor-space-4);
   overflow: auto;
+}
+
+.web-page-editor__add-page {
+  display: flex;
+  justify-content: center;
+  margin: 0 var(--sailor-panel-width);
+  padding: 0 var(--sailor-space-8) var(--sailor-space-8);
 }
 
 .web-page-canvas__body {
