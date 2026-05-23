@@ -13,6 +13,11 @@ Source plan: `docs/superpowers/plans/2026-05-23-sailor-pages-canva-editor-ux.md`
 - [x] Task 7: Canva-Like Add Page Below Canvas
 - [x] Task 8: Page Metadata Editing and Safer Page Actions
 - [x] Task 9: Full Verification and Important Manual Smoke
+  - [x] Focused frontend contracts
+  - [x] Backend Pages tests
+  - [x] Type-check
+  - [x] Frontend build
+  - [ ] Browser/manual smoke: pending; Browser tool was not callable in this session and Playwright is not installed.
 
 ## Done Criteria
 
