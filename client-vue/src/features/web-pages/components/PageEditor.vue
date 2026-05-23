@@ -44,6 +44,12 @@
     </button>
 
     <div class="web-page-editor__actions">
+      <PageEditorActionsMenu
+        @switch-page="openPageSwitcher"
+        @rename-page="editorStore.selectPage"
+        @duplicate-page="noopPageAction"
+        @delete-page="noopPageAction"
+      />
       <BaseButton variant="secondary" icon-left="save" :loading="pagesStore.isSaving" @click="savePage">
         Save
       </BaseButton>
@@ -119,6 +125,7 @@ import BlockStylePanel from './BlockStylePanel.vue'
 import BlockActionPanel from './BlockActionPanel.vue'
 import FormImportPanel from './FormImportPanel.vue'
 import PageMetadataPanel from './PageMetadataPanel.vue'
+import PageEditorActionsMenu from './PageEditorActionsMenu.vue'
 
 const route = useRoute()
 const pagesStore = usePagesStore()
@@ -194,6 +201,14 @@ function patchBodyStyles(patch: Partial<PageBlock>) {
 function patchPageMetadata(patch: Partial<SailorPage>) {
   if (!pagesStore.activePage) return
   pagesStore.setActivePage({ ...pagesStore.activePage, ...patch })
+}
+
+function openPageSwitcher() {
+  // Task 6 wires this action to the page switcher modal.
+}
+
+function noopPageAction() {
+  // Task 8 wires duplicate/delete page actions.
 }
 
 async function savePage() {

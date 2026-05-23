@@ -36,4 +36,18 @@ describe('page editor panels contract', () => {
     assert.match(styles, /web-page-editor--left-collapsed/)
     assert.match(styles, /web-page-editor--right-collapsed/)
   })
+
+  it('editor actions menu uses app dropdown components', () => {
+    const menu = read('src/features/web-pages/components/PageEditorActionsMenu.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(menu, /AppDropdownMenu/)
+    assert.match(menu, /AppDropdownItem/)
+    assert.match(menu, /AppDropdownDivider/)
+    assert.match(menu, /switch-page/)
+    assert.match(menu, /rename-page/)
+    assert.match(menu, /duplicate-page/)
+    assert.match(menu, /delete-page/)
+    assert.match(editor, /PageEditorActionsMenu/)
+  })
 })
