@@ -76,7 +76,19 @@ export const usePagesStore = defineStore('web-pages', () => {
 
   async function createPageAfterActive() {
     const nextIndex = pages.value.length + 1
+    const activePageId = activePage.value?.id
     const page = await createPage({ title: `Page ${nextIndex}`, blocks: [] })
+    if (activePageId) {
+      const withoutNew = pages.value.filter((item) => item.id !== page.id)
+      const activeIndex = withoutNew.findIndex((item) => item.id === activePageId)
+      if (activeIndex >= 0) {
+        const summary = pages.value.find((item) => item.id === page.id)
+        if (summary) {
+          withoutNew.splice(activeIndex + 1, 0, summary)
+          pages.value = withoutNew
+        }
+      }
+    }
     setSavedPage(page)
     return page
   }

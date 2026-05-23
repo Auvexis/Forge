@@ -6,7 +6,18 @@
       'web-page-editor--right-collapsed': !isRightPanelOpen,
     }"
   >
+    <PageChromeToolbar @command="handleChromeCommand" />
+
     <AppPanel :is-open="isLeftPanelOpen" title="Elements" position="left" width="md" :show-close="false">
+      <template #actions>
+        <BaseButton
+          size="icon"
+          variant="ghost"
+          icon-left="panel-left-close"
+          title="Collapse elements"
+          @click="toggleLeftPanel"
+        />
+      </template>
       <BlockTreePanel
         :blocks="editorStore.blocks"
         :selected-block-id="editorStore.selectedBlockId"
@@ -17,27 +28,46 @@
     <BaseButton
       class="web-page-editor__panel-toggle web-page-editor__panel-toggle--left"
       variant="outline"
-      icon-left="panel-left"
+      icon-left="panel-left-open"
+      title="Open elements"
       @click="toggleLeftPanel"
     />
 
-    <PageCanvas
-      :blocks="editorStore.blocks"
-      :body-styles="pagesStore.activePage?.bodyStyles"
-      :selected-block-id="editorStore.selectedBlockId"
-      :drop-intent="editorStore.dragIntent"
-      @select="editorStore.selectBlock"
-      @select-body="editorStore.selectBody"
-      @drop-block="handleDropBlock"
-      @drop-root="handleDropRoot"
-      @drag-intent="editorStore.setDragIntent"
-      @clear-drag-intent="editorStore.clearDragIntent"
-    />
+    <div class="web-page-editor__workspace">
+      <template v-for="page in pagesStore.pages" :key="page.id">
+        <button
+          v-if="page.id !== pagesStore.activePage?.id"
+          type="button"
+          class="web-page-editor__page-preview"
+          @click="switchPage(page.id)"
+        >
+          <span class="web-page-editor__page-preview-paper">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+          <strong>{{ page.title }}</strong>
+        </button>
+        <PageCanvas
+          v-else
+          :blocks="editorStore.blocks"
+          :body-styles="pagesStore.activePage?.bodyStyles"
+          :selected-block-id="editorStore.selectedBlockId"
+          :drop-intent="editorStore.dragIntent"
+          @select="editorStore.selectBlock"
+          @select-body="editorStore.selectBody"
+          @drop-block="handleDropBlock"
+          @drop-root="handleDropRoot"
+          @drag-intent="editorStore.setDragIntent"
+          @clear-drag-intent="editorStore.clearDragIntent"
+        />
+      </template>
 
-    <div class="web-page-editor__add-page">
-      <BaseButton variant="outline" icon-left="plus" @click="addPageBelowCanvas">
-        Add page
-      </BaseButton>
+      <div class="web-page-editor__add-page">
+        <BaseButton variant="outline" icon-left="plus" @click="addPageBelowCanvas">
+          Add page
+        </BaseButton>
+      </div>
     </div>
 
     <button
@@ -49,32 +79,24 @@
       {{ pagesStore.activePage.title }}
     </button>
 
-    <div class="web-page-editor__actions">
-      <PageEditorActionsMenu
-        @switch-page="openPageSwitcher"
-        @rename-page="editorStore.selectPage"
-        @duplicate-page="duplicateActivePage"
-        @delete-page="deleteActivePageAndChooseNext"
-      />
-      <BaseButton variant="secondary" icon-left="save" :loading="pagesStore.isSaving" @click="savePage">
-        Save
-      </BaseButton>
-      <BaseButton variant="outline" icon-left="eye" @click="previewPage">
-        Preview
-      </BaseButton>
-      <BaseButton variant="primary" icon-left="send" @click="publishPage">
-        Publish
-      </BaseButton>
-    </div>
-
     <BaseButton
       class="web-page-editor__panel-toggle web-page-editor__panel-toggle--right"
       variant="outline"
-      icon-left="panel-right"
+      icon-left="panel-right-open"
+      title="Open inspector"
       @click="toggleRightPanel"
     />
 
     <AppPanel :is-open="isRightPanelOpen" title="Inspector" position="right" width="md" :show-close="false">
+      <template #actions>
+        <BaseButton
+          size="icon"
+          variant="ghost"
+          icon-left="panel-right-close"
+          title="Collapse inspector"
+          @click="toggleRightPanel"
+        />
+      </template>
       <BlockLibrary @add="addBlock" />
       <FormImportPanel @insert="insertImportedForm" />
       <PageMetadataPanel
@@ -122,7 +144,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { usePagesStore } from '../stores/pages.store.ts'
@@ -139,10 +161,11 @@ import BlockStylePanel from './BlockStylePanel.vue'
 import BlockActionPanel from './BlockActionPanel.vue'
 import FormImportPanel from './FormImportPanel.vue'
 import PageMetadataPanel from './PageMetadataPanel.vue'
-import PageEditorActionsMenu from './PageEditorActionsMenu.vue'
 import PageSwitcherModal from './PageSwitcherModal.vue'
+import PageChromeToolbar, { type PageChromeCommand } from './PageChromeToolbar.vue'
 
 const route = useRoute()
+const router = useRouter()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
 const isLeftPanelOpen = ref(true)
@@ -166,11 +189,22 @@ function toggleRightPanel() {
 }
 
 onMounted(async () => {
-  const pageId = route.params.pageId
-  if (typeof pageId === 'string') {
-    await pagesStore.openPage(pageId)
-  }
+  await openRoutePage(route.params.pageId)
 })
+
+watch(
+  () => route.params.pageId,
+  (pageId) => {
+    void openRoutePage(pageId)
+  },
+)
+
+async function openRoutePage(pageId: unknown) {
+  if (typeof pageId === 'string') {
+    if (pagesStore.pages.length === 0) await pagesStore.listPages()
+    if (pagesStore.activePage?.id !== pageId) await pagesStore.openPage(pageId)
+  }
+}
 
 watch(
   () => pagesStore.activePage,
@@ -225,7 +259,9 @@ async function openPageSwitcher() {
 }
 
 async function switchPage(pageId: string) {
+  if (pagesStore.isDirty) await savePage()
   await pagesStore.switchPage(pageId)
+  await router.replace(`/pages/${pageId}`)
   isPageSwitcherOpen.value = false
 }
 
@@ -241,8 +277,22 @@ async function deleteActivePageAndChooseNext() {
 
 async function addPageBelowCanvas() {
   if (pagesStore.isDirty) await savePage()
-  await pagesStore.createPageAfterActive()
+  const page = await pagesStore.createPageAfterActive()
+  await router.replace(`/pages/${page.id}`)
   editorStore.selectPage()
+}
+
+function handleChromeCommand(command: PageChromeCommand) {
+  if (command === 'go.pages') void router.push('/pages')
+  if (command === 'file.save') void savePage()
+  if (command === 'file.preview') previewPage()
+  if (command === 'file.publish') void publishPage()
+  if (command === 'edit.rename') editorStore.selectPage()
+  if (command === 'edit.duplicate') void duplicateActivePage()
+  if (command === 'edit.delete') void deleteActivePageAndChooseNext()
+  if (command === 'view.switch') void openPageSwitcher()
+  if (command === 'view.left-panel') toggleLeftPanel()
+  if (command === 'view.right-panel') toggleRightPanel()
 }
 
 async function savePage() {

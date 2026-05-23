@@ -39,8 +39,11 @@ describe('page switcher contract', () => {
     const store = read('src/features/web-pages/stores/pages.store.ts')
 
     assert.match(editor, /web-page-editor__add-page/)
+    assert.match(editor, /web-page-editor__workspace/)
+    assert.match(editor, /web-page-editor__page-preview/)
     assert.match(editor, /addPageBelowCanvas/)
     assert.match(store, /createPageAfterActive/)
+    assert.match(store, /activeIndex \+ 1/)
     const addPageFunction = editor.match(/async function addPageBelowCanvas\(\) \{[\s\S]*?\n\}/)?.[0] ?? ''
     assert.doesNotMatch(addPageFunction, /insertBlock/)
   })

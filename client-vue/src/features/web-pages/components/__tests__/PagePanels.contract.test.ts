@@ -37,25 +37,26 @@ describe('page editor panels contract', () => {
     assert.match(styles, /web-page-editor--right-collapsed/)
   })
 
-  it('editor actions menu uses app dropdown components', () => {
-    const menu = read('src/features/web-pages/components/PageEditorActionsMenu.vue')
+  it('top chrome toolbar uses app dropdown components and replaces bottom actions', () => {
+    const menu = read('src/features/web-pages/components/PageChromeToolbar.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
 
     assert.match(menu, /AppDropdownMenu/)
     assert.match(menu, /AppDropdownItem/)
-    assert.match(menu, /AppDropdownDivider/)
-    assert.match(menu, /switch-page/)
-    assert.match(menu, /rename-page/)
-    assert.match(menu, /duplicate-page/)
-    assert.match(menu, /delete-page/)
-    assert.match(editor, /PageEditorActionsMenu/)
+    assert.match(menu, /File/)
+    assert.match(menu, /Edit/)
+    assert.match(menu, /View/)
+    assert.match(menu, /arrow-right/)
+    assert.match(editor, /PageChromeToolbar/)
+    assert.doesNotMatch(editor, /web-page-editor__actions/)
   })
 
   it('page actions are wired to metadata, duplicate and delete flows', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const store = read('src/features/web-pages/stores/pages.store.ts')
 
-    assert.match(editor, /@rename-page="editorStore\.selectPage"/)
+    assert.match(editor, /handleChromeCommand/)
+    assert.match(editor, /edit\.rename/)
     assert.match(editor, /duplicateActivePage/)
     assert.match(editor, /deleteActivePageAndChooseNext/)
     assert.match(store, /duplicateActivePage/)
