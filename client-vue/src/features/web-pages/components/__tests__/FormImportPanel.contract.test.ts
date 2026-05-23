@@ -35,4 +35,14 @@ describe('form import panel contract', () => {
     assert.match(source, /emit\('insert'/)
     assert.match(source, /catch/)
   })
+
+  it('page editor only shows form import while a form element is selected', () => {
+    const source = fs.readFileSync(
+      path.resolve('src/features/web-pages/components/PageEditor.vue'),
+      'utf8',
+    )
+
+    assert.match(source, /editorStore\.selectedBlock\.tag === 'form'/)
+    assert.doesNotMatch(source, /<FormImportPanel @insert="insertImportedForm" \/>/)
+  })
 })

@@ -120,7 +120,14 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
 
   function patchBlock(blockId: string, patch: Partial<PageBlock>) {
     mutate(() => {
-      blocks.value = patchBlocks(blocks.value, blockId, patch)
+      const match = findTreeBlock(blocks.value, blockId)?.block
+      if (!match) return
+      if (patch.props) match.props = patch.props
+      if (patch.styles) match.styles = patch.styles
+      if (patch.className !== undefined) match.className = patch.className
+      if (patch.customCss !== undefined) match.customCss = patch.customCss
+      if (patch.action !== undefined) match.action = patch.action
+      if (patch.children) match.children = patch.children
     })
   }
 
@@ -180,14 +187,6 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
-}
-
-function patchBlocks(blocks: PageBlock[], blockId: string, patch: Partial<PageBlock>): PageBlock[] {
-  return blocks.map((block) =>
-    block.id === blockId
-      ? { ...block, ...patch }
-      : { ...block, children: patchBlocks(block.children ?? [], blockId, patch) },
-  )
 }
 
 function snapshot(value: unknown): string {

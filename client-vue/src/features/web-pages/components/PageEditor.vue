@@ -16,6 +16,10 @@
         :selected-block-id="editorStore.selectedBlockId"
         @select-page="selectTreePage"
         @select="editorStore.selectBlock"
+        @delete-page="deletePageFromTree"
+        @duplicate-page="duplicatePageFromTree"
+        @delete-block="deleteBlockFromTree"
+        @duplicate-block="duplicateBlockFromTree"
       />
     </AppPanel>
 
@@ -53,7 +57,6 @@
 
     <AppPanel :is-open="isRightPanelOpen" title="Inspector" position="right" width="md" @close="closeRightPanel">
       <BlockLibrary @add="addBlock" />
-      <FormImportPanel @insert="insertImportedForm" />
       <PageMetadataPanel
         v-if="pagesStore.activePage && editorStore.selectedTarget.type === 'page'"
         :page="pagesStore.activePage"
@@ -67,10 +70,11 @@
       />
       <BlockToolbar
         v-if="editorStore.selectedTarget.type === 'block' && editorStore.selectedBlock"
-        @delete="editorStore.deleteBlock(editorStore.selectedBlock.id)"
-        @duplicate="editorStore.duplicateBlock(editorStore.selectedBlock.id)"
+        @delete="deleteSelectedBlock"
+        @duplicate="duplicateSelectedBlock"
       />
       <template v-if="editorStore.selectedTarget.type === 'block' && editorStore.selectedBlock">
+        <FormImportPanel v-if="editorStore.selectedBlock.tag === 'form'" @insert="insertImportedForm" />
         <BlockContentPanel
           :block="editorStore.selectedBlock"
           @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
@@ -280,13 +284,50 @@ async function selectTreePage(pageId: string) {
 }
 
 async function duplicateActivePage() {
-  await pagesStore.duplicateActivePage()
+  const page = await pagesStore.duplicateActivePage()
+  if (page) await router.replace(`/pages/${page.id}`)
   editorStore.selectPage()
 }
 
 async function deleteActivePageAndChooseNext() {
-  await pagesStore.deleteActivePageAndChooseNext()
-  editorStore.selectPage()
+  const page = await pagesStore.deleteActivePageAndChooseNext()
+  if (page) {
+    await router.replace(`/pages/${page.id}`)
+    editorStore.selectPage()
+  } else {
+    await router.push('/pages')
+  }
+}
+
+function deleteSelectedBlock() {
+  if (!editorStore.selectedBlockId) return
+  editorStore.deleteBlock(editorStore.selectedBlockId)
+}
+
+function duplicateSelectedBlock() {
+  if (!editorStore.selectedBlockId) return
+  editorStore.duplicateBlock(editorStore.selectedBlockId)
+}
+
+async function deletePageFromTree(pageId: string) {
+  if (pagesStore.activePage?.id === pageId) {
+    await deleteActivePageAndChooseNext()
+    return
+  }
+  await pagesStore.deletePage(pageId)
+}
+
+async function duplicatePageFromTree(pageId: string) {
+  if (pagesStore.activePage?.id !== pageId) await switchPage(pageId)
+  await duplicateActivePage()
+}
+
+function deleteBlockFromTree(blockId: string) {
+  editorStore.deleteBlock(blockId)
+}
+
+function duplicateBlockFromTree(blockId: string) {
+  editorStore.duplicateBlock(blockId)
 }
 
 async function addPageBelowCanvas() {
@@ -302,8 +343,14 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'file.preview') previewPage()
   if (command === 'file.publish') void publishPage()
   if (command === 'edit.rename') editorStore.selectPage()
-  if (command === 'edit.duplicate') void duplicateActivePage()
-  if (command === 'edit.delete') void deleteActivePageAndChooseNext()
+  if (command === 'edit.duplicate') {
+    if (editorStore.selectedBlockId) duplicateSelectedBlock()
+    else void duplicateActivePage()
+  }
+  if (command === 'edit.delete') {
+    if (editorStore.selectedBlockId) deleteSelectedBlock()
+    else void deleteActivePageAndChooseNext()
+  }
   if (command === 'view.switch') void openPageSwitcher()
   if (command === 'view.left-panel') toggleLeftPanel()
   if (command === 'view.right-panel') toggleRightPanel()

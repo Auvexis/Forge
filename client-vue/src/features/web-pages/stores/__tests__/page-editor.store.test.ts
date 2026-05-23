@@ -50,4 +50,16 @@ describe('page editor store', () => {
     store.redo()
     assert.equal(store.blocks.length, 2)
   })
+
+  it('patches selected block in place to preserve inspector focus', () => {
+    const store = usePageEditorStore()
+    store.setBlocks(blocks())
+    store.selectBlock('section_1')
+    const selected = store.selectedBlock
+
+    store.patchBlock('section_1', { props: { label: 'Hero' } })
+
+    assert.equal(store.selectedBlock, selected)
+    assert.equal(store.selectedBlock?.props?.label, 'Hero')
+  })
 })

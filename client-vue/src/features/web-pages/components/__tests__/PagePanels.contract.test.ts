@@ -55,6 +55,13 @@ describe('page editor panels contract', () => {
     assert.doesNotMatch(editor, /web-page-editor__actions/)
   })
 
+  it('toolbar and side panels are fixed to the editor viewport', () => {
+    const styles = read('src/features/web-pages/pages.css')
+
+    assert.match(styles, /\.web-page-chrome \{[\s\S]*position: fixed/)
+    assert.match(styles, /\.web-page-editor \.app-panel \{[\s\S]*position: fixed/)
+  })
+
   it('page actions are wired to metadata, duplicate and delete flows', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const store = read('src/features/web-pages/stores/pages.store.ts')

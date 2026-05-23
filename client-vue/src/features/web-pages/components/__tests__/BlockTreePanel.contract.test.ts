@@ -14,8 +14,8 @@ describe('block tree panel contract', () => {
     assert.match(source, /LucideIcon/)
     assert.match(source, /blockDisplayName/)
     assert.match(source, /blockChildCount/)
-    assert.match(source, /web-page-tree__child-count/)
-    assert.match(source, /web-page-tree__drag-handle/)
+    assert.match(source, /web-page-tree__status/)
+    assert.match(source, /web-page-tree__section/)
   })
 
   it('container rows can expand and collapse', () => {
@@ -53,5 +53,18 @@ describe('block tree panel contract', () => {
     assert.match(source, /web-page-tree__item--page/)
     assert.match(editor, /:pages="pagesStore\.pages"/)
     assert.match(editor, /@select-page="selectTreePage"/)
+  })
+
+  it('tree exposes page and block actions through dropdown menus', () => {
+    const source = read('src/features/web-pages/components/BlockTreePanel.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /AppDropdownMenu/)
+    assert.match(source, /duplicate-page/)
+    assert.match(source, /delete-page/)
+    assert.match(source, /duplicate-block/)
+    assert.match(source, /delete-block/)
+    assert.match(editor, /deletePageFromTree/)
+    assert.match(editor, /deleteBlockFromTree/)
   })
 })
