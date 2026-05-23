@@ -12,10 +12,13 @@
       :blocks="editorStore.blocks"
       :body-styles="pagesStore.activePage?.bodyStyles"
       :selected-block-id="editorStore.selectedBlockId"
+      :drop-intent="editorStore.dragIntent"
       @select="editorStore.selectBlock"
       @select-body="editorStore.selectBody"
       @drop-block="handleDropBlock"
       @drop-root="handleDropRoot"
+      @drag-intent="editorStore.setDragIntent"
+      @clear-drag-intent="editorStore.clearDragIntent"
     />
 
     <button

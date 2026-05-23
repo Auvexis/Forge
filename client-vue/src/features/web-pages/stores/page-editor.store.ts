@@ -17,10 +17,16 @@ export type PageEditorSelection =
   | { type: 'block'; blockId: string }
   | { type: 'none' }
 
+export interface PageDragIntent {
+  targetId: string | 'root'
+  position: InsertPosition
+}
+
 export const usePageEditorStore = defineStore('web-page-editor', () => {
   const blocks = ref<PageBlock[]>([])
   const selectedBlockId = ref<string | null>(null)
   const selectedTarget = ref<PageEditorSelection>({ type: 'none' })
+  const dragIntent = ref<PageDragIntent | null>(null)
   const savedSnapshot = ref<string>('[]')
   const undoStack = ref<string[]>([])
   const redoStack = ref<string[]>([])
@@ -61,11 +67,20 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     selectedTarget.value = { type: 'none' }
   }
 
+  function setDragIntent(intent: PageDragIntent) {
+    dragIntent.value = intent
+  }
+
+  function clearDragIntent() {
+    dragIntent.value = null
+  }
+
   function insertBlock(targetId: string, position: InsertPosition, block: PageBlock) {
     mutate(() => {
       blocks.value = insertTreeBlock(blocks.value, targetId, position, block)
       selectedBlockId.value = block.id
       selectedTarget.value = { type: 'block', blockId: block.id }
+      clearDragIntent()
     })
   }
 
@@ -74,6 +89,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
       blocks.value = moveTreeBlock(blocks.value, draggedId, targetId, position)
       selectedBlockId.value = draggedId
       selectedTarget.value = { type: 'block', blockId: draggedId }
+      clearDragIntent()
     })
   }
 
@@ -124,6 +140,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     blocks,
     selectedBlockId,
     selectedTarget,
+    dragIntent,
     selectedBlock,
     isDirty,
     canUndo,
@@ -133,6 +150,8 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     selectPage,
     selectBody,
     clearSelection,
+    setDragIntent,
+    clearDragIntent,
     insertBlock,
     moveBlock,
     deleteBlock,

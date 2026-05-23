@@ -77,6 +77,7 @@
 }
 
 .web-page-canvas__body {
+  position: relative;
   display: grid;
   align-content: start;
   gap: var(--sailor-space-3);
@@ -97,6 +98,7 @@
 }
 
 .web-page-block {
+  position: relative;
   display: block;
   min-height: 36px;
   padding: var(--sailor-space-3);
@@ -110,6 +112,43 @@
 .web-page-block--selected {
   outline: 2px solid var(--sailor-border-brand);
   outline-offset: 2px;
+}
+
+.web-page-block--drop-inside {
+  outline: 2px solid var(--sailor-border-brand);
+  outline-offset: -3px;
+  background: color-mix(in srgb, #ffffff 90%, var(--sailor-accent) 10%);
+}
+
+.web-page-block--drop-before,
+.web-page-block--drop-after {
+  border-color: var(--sailor-border-brand);
+}
+
+.web-page-drop-indicator {
+  position: absolute;
+  left: var(--sailor-space-2);
+  right: var(--sailor-space-2);
+  z-index: 2;
+  height: 2px;
+  border-radius: var(--sailor-radius-full);
+  background: var(--sailor-border-brand);
+  pointer-events: none;
+}
+
+.web-page-drop-indicator--before {
+  top: -4px;
+}
+
+.web-page-drop-indicator--after {
+  bottom: -4px;
+}
+
+.web-page-drop-indicator--root {
+  position: static;
+  display: block;
+  width: 100%;
+  margin: var(--sailor-space-2) 0;
 }
 
 .web-page-toolbar,
