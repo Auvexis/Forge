@@ -30,6 +30,12 @@ const router = createRouter({
       meta: { title: 'Pages' },
     },
     {
+      path: '/pages/:pageId/preview',
+      name: 'pages-preview',
+      component: () => import('@/app/pages/PublicSailorPage.vue'),
+      meta: { title: 'Preview', public: true },
+    },
+    {
       path: '/pages/:pageId',
       name: 'pages-editor',
       component: () => import('@/app/pages/PagesEditorPage.vue'),
@@ -52,6 +58,12 @@ const router = createRouter({
       name: 'profile-form-prod',
       component: () => import('@/app/pages/FormPage.vue'),
       meta: { title: 'Form', public: true },
+    },
+    {
+      path: '/p/:slug',
+      name: 'sailor-page',
+      component: () => import('@/app/pages/PublicSailorPage.vue'),
+      meta: { title: 'Page', public: true },
     },
     {
       path: '/temporary-forms/:formId',

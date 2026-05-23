@@ -61,6 +61,14 @@
   background: var(--sailor-bg-base);
 }
 
+.web-page-editor__actions {
+  position: absolute;
+  right: calc(var(--sailor-panel-width) + var(--sailor-space-4));
+  bottom: var(--sailor-space-4);
+  display: flex;
+  gap: var(--sailor-space-2);
+}
+
 .web-page-canvas {
   display: grid;
   align-content: start;

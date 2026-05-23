@@ -17,6 +17,18 @@
       @drop-block="handleDropBlock"
     />
 
+    <div class="web-page-editor__actions">
+      <BaseButton variant="secondary" icon-left="save" :loading="pagesStore.isSaving" @click="savePage">
+        Save
+      </BaseButton>
+      <BaseButton variant="outline" icon-left="eye" @click="previewPage">
+        Preview
+      </BaseButton>
+      <BaseButton variant="primary" icon-left="send" @click="publishPage">
+        Publish
+      </BaseButton>
+    </div>
+
     <AppPanel :is-open="true" title="Inspector" position="right" width="md" :show-close="false">
       <BlockToolbar
         v-if="editorStore.selectedBlock"
@@ -46,6 +58,7 @@
 import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageEditorStore } from '../stores/page-editor.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
@@ -94,5 +107,23 @@ function insertImportedForm(block: ReturnType<typeof createBlock>) {
   const targetId = editorStore.selectedBlockId ?? editorStore.blocks[editorStore.blocks.length - 1]?.id
   if (targetId) editorStore.insertBlock(targetId, 'after', block)
   else editorStore.setBlocks([block])
+}
+
+async function savePage() {
+  if (!pagesStore.activePage) return
+  pagesStore.setActivePage({ ...pagesStore.activePage, blocks: editorStore.blocks })
+  await pagesStore.saveActivePage()
+  editorStore.markSaved()
+}
+
+function previewPage() {
+  if (!pagesStore.activePage) return
+  window.open(`/pages/${pagesStore.activePage.id}/preview`, '_blank')
+}
+
+async function publishPage() {
+  await savePage()
+  const published = await pagesStore.publishActivePage()
+  if (published) window.open(`/p/${published.slug}`, '_blank')
 }
 </script>

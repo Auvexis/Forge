@@ -28,7 +28,7 @@ Tasks:
 - [x] Task 14: Block library and drop zones
 - [x] Task 15: Inspector panels
 - [x] Task 16: Form import panel
-- [ ] Task 17: Preview and publish UX
+- [x] Task 17: Preview and publish UX
 - [ ] Task 18: Published page runtime actions
 - [ ] Task 19: Security hardening pass
 - [ ] Task 20: End-to-end smoke workflow
