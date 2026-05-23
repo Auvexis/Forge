@@ -12,7 +12,7 @@ Rules:
 - Test important backend, utility, store, contract, and security behavior; avoid broad browser testing for every small UI detail.
 
 Tasks:
-- [ ] Task 1: Backend page contracts
+- [x] Task 1: Backend page contracts
 - [ ] Task 2: Backend repository
 - [ ] Task 3: Safe page renderer
 - [ ] Task 4: Page service
