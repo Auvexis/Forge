@@ -13,7 +13,7 @@ Rules:
 
 Tasks:
 - [x] Task 1: Backend page contracts
-- [ ] Task 2: Backend repository
+- [x] Task 2: Backend repository
 - [ ] Task 3: Safe page renderer
 - [ ] Task 4: Page service
 - [ ] Task 5: Page action execution
