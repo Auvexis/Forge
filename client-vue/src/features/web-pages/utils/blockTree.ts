@@ -73,6 +73,14 @@ export function findBlock(
   return null
 }
 
+export function blockDisplayName(block: PageBlock): string {
+  return String(block.props?.text ?? block.props?.label ?? block.props?.name ?? block.props?.alt ?? block.id)
+}
+
+export function blockChildCount(block: PageBlock): number {
+  return block.children?.length ?? 0
+}
+
 function mapTree(tree: PageBlock[], mapper: (siblings: PageBlock[]) => PageBlock[]): PageBlock[] {
   const mapped = mapper(tree)
   if (mapped !== tree) return mapped

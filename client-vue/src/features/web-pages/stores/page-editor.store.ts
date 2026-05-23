@@ -27,6 +27,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
   const selectedBlockId = ref<string | null>(null)
   const selectedTarget = ref<PageEditorSelection>({ type: 'none' })
   const dragIntent = ref<PageDragIntent | null>(null)
+  const collapsedBlockIds = ref<Record<string, boolean>>({})
   const savedSnapshot = ref<string>('[]')
   const undoStack = ref<string[]>([])
   const redoStack = ref<string[]>([])
@@ -73,6 +74,17 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
 
   function clearDragIntent() {
     dragIntent.value = null
+  }
+
+  function toggleBlockCollapsed(blockId: string) {
+    collapsedBlockIds.value = {
+      ...collapsedBlockIds.value,
+      [blockId]: !collapsedBlockIds.value[blockId],
+    }
+  }
+
+  function isBlockCollapsed(blockId: string) {
+    return Boolean(collapsedBlockIds.value[blockId])
   }
 
   function insertBlock(targetId: string, position: InsertPosition, block: PageBlock) {
@@ -141,6 +153,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     selectedBlockId,
     selectedTarget,
     dragIntent,
+    collapsedBlockIds,
     selectedBlock,
     isDirty,
     canUndo,
@@ -152,6 +165,8 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     clearSelection,
     setDragIntent,
     clearDragIntent,
+    toggleBlockCollapsed,
+    isBlockCollapsed,
     insertBlock,
     moveBlock,
     deleteBlock,

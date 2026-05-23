@@ -7,7 +7,7 @@ Source plan: `docs/superpowers/plans/2026-05-23-sailor-pages-canva-editor-ux.md`
 - [x] Task 1: Selection Model for Page, Body, and Blocks
 - [x] Task 2: Drag Prediction Indicators
 - [x] Task 3: Collapsible Left and Right Panels
-- [ ] Task 4: Rich Element Tree Panel
+- [x] Task 4: Rich Element Tree Panel
 - [ ] Task 5: Editor Dropdown Actions Menu
 - [ ] Task 6: Page Switcher Modal with Previews
 - [ ] Task 7: Canva-Like Add Page Below Canvas

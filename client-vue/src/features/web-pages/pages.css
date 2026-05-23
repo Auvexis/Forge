@@ -205,9 +205,11 @@
 
 .web-page-tree__item {
   display: grid;
-  grid-template-columns: 84px minmax(0, 1fr);
+  grid-template-columns: 20px 18px 22px minmax(0, 1fr) auto 22px;
+  align-items: center;
   gap: var(--sailor-space-2);
-  padding: var(--sailor-space-2);
+  min-height: 34px;
+  padding: var(--sailor-space-1) var(--sailor-space-2);
   border-radius: var(--sailor-radius-sm);
   color: var(--sailor-text-primary);
   text-align: left;
@@ -215,13 +217,26 @@
 }
 
 .web-page-tree__item--selected {
-  background: var(--sailor-bg-elevated);
+  background: color-mix(in srgb, var(--sailor-bg-elevated) 82%, var(--sailor-accent) 18%);
+  box-shadow: inset 2px 0 0 var(--sailor-border-brand);
+}
+
+.web-page-tree__node {
+  position: relative;
+}
+
+.web-page-tree__depth-guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--sailor-space-2);
+  width: 1px;
+  background: var(--sailor-border);
 }
 
 .web-page-tree__children {
-  padding-left: var(--sailor-space-5);
-  border-left: 1px solid var(--sailor-border);
-  margin-left: var(--sailor-space-3);
+  padding-left: var(--sailor-space-4);
+  margin-left: var(--sailor-space-2);
 }
 
 .web-page-tree__tag {
@@ -229,11 +244,50 @@
   color: var(--sailor-text-primary);
 }
 
+.web-page-tree__main {
+  display: grid;
+  min-width: 0;
+}
+
 .web-page-tree__name {
   overflow: hidden;
   color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.web-page-tree__collapse,
+.web-page-tree__row-action {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--sailor-radius-sm);
+  background: transparent;
+  color: var(--sailor-text-secondary);
+}
+
+.web-page-tree__collapse:disabled {
+  opacity: 0;
+}
+
+.web-page-tree__drag-handle,
+.web-page-tree__icon,
+.web-page-tree__child-count {
+  display: inline-grid;
+  place-items: center;
+  color: var(--sailor-text-secondary);
+}
+
+.web-page-tree__child-count {
+  min-width: 18px;
+  height: 18px;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-full);
+  font-size: var(--sailor-text-xs);
 }
 
 .web-page-style-panel h4 {
