@@ -16,7 +16,7 @@ Tasks:
 - [x] Task 2: Backend repository
 - [x] Task 3: Safe page renderer
 - [x] Task 4: Page service
-- [ ] Task 5: Page action execution
+- [x] Task 5: Page action execution
 - [ ] Task 6: Backend routes
 - [ ] Task 7: Frontend API and types
 - [ ] Task 8: Block tree utilities
