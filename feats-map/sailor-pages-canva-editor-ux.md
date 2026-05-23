@@ -12,7 +12,7 @@ Source plan: `docs/superpowers/plans/2026-05-23-sailor-pages-canva-editor-ux.md`
 - [x] Task 6: Page Switcher Modal with Previews
 - [x] Task 7: Canva-Like Add Page Below Canvas
 - [x] Task 8: Page Metadata Editing and Safer Page Actions
-- [ ] Task 9: Full Verification and Important Manual Smoke
+- [x] Task 9: Full Verification and Important Manual Smoke
 
 ## Done Criteria
 
