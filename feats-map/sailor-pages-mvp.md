@@ -24,7 +24,7 @@ Tasks:
 - [x] Task 10: Form schema import utility
 - [x] Task 11: Pages stores
 - [x] Task 12: Page management UI
-- [ ] Task 13: Editor canvas and block renderer
+- [x] Task 13: Editor canvas and block renderer
 - [ ] Task 14: Block library and drop zones
 - [ ] Task 15: Inspector panels
 - [ ] Task 16: Form import panel
