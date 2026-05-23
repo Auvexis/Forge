@@ -34,6 +34,7 @@ export class PageService {
       profileId: this.profileId,
       title: input.title,
       slug: input.slug ?? this.createUniqueSlug(input.title),
+      bodyStyles: { backgroundColor: "#ffffff", color: "#111111" },
       blocks: input.blocks ?? [],
       createdAt: now,
       updatedAt: now,
@@ -56,6 +57,7 @@ export class PageService {
       ...existing,
       title: input.title ?? existing.title,
       slug: input.slug ?? existing.slug,
+      bodyStyles: input.bodyStyles ?? existing.bodyStyles,
       blocks: input.blocks ?? existing.blocks,
       updatedAt: new Date().toISOString(),
     };
@@ -84,6 +86,7 @@ export class PageService {
       profileId: this.profileId,
       title: validation.page.title,
       slug: validation.page.slug,
+      bodyStyles: validation.page.bodyStyles,
       blocks: validation.page.blocks,
       publishedAt: new Date().toISOString(),
     };
@@ -100,6 +103,7 @@ export class PageService {
       profileId: this.profileId,
       title: page.title,
       slug: page.slug,
+      bodyStyles: page.bodyStyles,
       blocks: page.blocks,
       publishedAt: new Date().toISOString(),
     });

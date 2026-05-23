@@ -95,6 +95,8 @@ export function validatePageInput(input: SailorPage): PageValidationResult {
     if (!result.success) return result;
     normalizedBlocks.push(result.block);
   }
+  const bodyStylesResult = normalizeStyles(input.bodyStyles ?? {});
+  if (!bodyStylesResult.success) return bodyStylesResult;
 
   return {
     success: true,
@@ -102,6 +104,7 @@ export function validatePageInput(input: SailorPage): PageValidationResult {
       ...input,
       title,
       slug,
+      bodyStyles: bodyStylesResult.styles,
       blocks: normalizedBlocks,
     },
   };

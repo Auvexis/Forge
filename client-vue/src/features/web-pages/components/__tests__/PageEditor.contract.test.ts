@@ -13,7 +13,9 @@ describe('page editor contract', () => {
 
     assert.match(source, /pagesStore\.activePage/)
     assert.match(source, /<PageCanvas/)
-    assert.match(source, /<AppPanel/)
+    assert.match(source, /title="Elements"/)
+    assert.match(source, /title="Inspector"/)
+    assert.match(source, /<BlockLibrary/)
   })
 
   it('canvas uses structural block renderer, not free-position canvas', () => {

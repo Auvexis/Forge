@@ -49,6 +49,7 @@ export interface SailorPage {
   profileId: string
   title: string
   slug: string
+  bodyStyles?: PageBlockStyles
   blocks: PageBlock[]
   createdAt: string
   updatedAt: string
@@ -70,6 +71,7 @@ export interface CreatePagePayload {
 export interface UpdatePagePayload {
   title?: string
   slug?: string
+  bodyStyles?: PageBlockStyles
   blocks?: PageBlock[]
 }
 

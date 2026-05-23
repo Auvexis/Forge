@@ -16,9 +16,12 @@ describe('block library contract', () => {
     assert.doesNotMatch(source, /absolute|x:|y:/)
   })
 
-  it('canvas exposes before, inside and after drop zone events', () => {
-    const source = read('src/features/web-pages/components/PageCanvas.vue')
+  it('blocks support direct drag-and-drop placement', () => {
+    const source = read('src/features/web-pages/components/BlockRenderer.vue')
 
+    assert.match(source, /draggable="true"/)
+    assert.match(source, /@dragstart/)
+    assert.match(source, /@drop/)
     assert.match(source, /before/)
     assert.match(source, /inside/)
     assert.match(source, /after/)

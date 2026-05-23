@@ -3,19 +3,12 @@
     :is="renderTag"
     class="web-page-block"
     :class="{ 'web-page-block--selected': selectedBlockId === block.id }"
+    draggable="true"
     @click.stop="$emit('select', block.id)"
+    @dragstart.stop="onDragStart"
+    @dragover.prevent.stop
+    @drop.prevent.stop="onDrop"
   >
-    <button type="button" class="web-page-drop-zone" @click.stop="emitDrop('before', 'section')">
-      before
-    </button>
-    <button
-      v-if="isContainer"
-      type="button"
-      class="web-page-drop-zone"
-      @click.stop="emitDrop('inside', 'text')"
-    >
-      inside
-    </button>
     <template v-if="block.tag === 'text' || block.tag === 'button' || block.tag === 'link'">
       {{ block.props?.text ?? block.tag }}
     </template>
@@ -33,9 +26,6 @@
       @select="$emit('select', $event)"
       @drop-block="$emit('drop-block', $event)"
     />
-    <button type="button" class="web-page-drop-zone" @click.stop="emitDrop('after', 'section')">
-      after
-    </button>
   </component>
 </template>
 
@@ -51,7 +41,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   select: [blockId: string]
-  'drop-block': [payload: { targetId: string; position: InsertPosition; tag: PageBlockTag }]
+  'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string }]
 }>()
 
 const isContainer = computed(() =>
@@ -65,7 +55,29 @@ const renderTag = computed(() => {
   return props.block.tag
 })
 
-function emitDrop(position: InsertPosition, tag: PageBlockTag) {
-  emit('drop-block', { targetId: props.block.id, position, tag })
+function onDragStart(event: DragEvent) {
+  event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ blockId: props.block.id }))
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+}
+
+function onDrop(event: DragEvent) {
+  const payload = readDragPayload(event)
+  if (!payload) return
+  emit('drop-block', { targetId: props.block.id, position: dropPosition(event), ...payload })
+}
+
+function dropPosition(event: DragEvent): InsertPosition {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const ratio = (event.clientY - rect.top) / rect.height
+  if (ratio < 0.25) return 'before'
+  if (ratio > 0.75) return 'after'
+  return isContainer.value ? 'inside' : 'after'
+}
+
+function readDragPayload(event: DragEvent): { tag?: PageBlockTag; draggedId?: string } | null {
+  const raw = event.dataTransfer?.getData('application/x-sailor-page-block')
+  if (!raw) return null
+  const parsed = JSON.parse(raw) as { tag?: PageBlockTag; blockId?: string }
+  return { tag: parsed.tag, draggedId: parsed.blockId }
 }
 </script>

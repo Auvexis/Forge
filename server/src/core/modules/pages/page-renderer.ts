@@ -64,11 +64,19 @@ export function renderPublishedPage(page: PublishedPage): string {
     `<title>${title}</title>`,
     `<style>${renderPageCss(page)}</style>`,
     "</head>",
-    "<body>",
+    `<body${renderBodyStyle(page)}>`,
     renderPageBody(page.blocks),
     "</body>",
     "</html>",
   ].join("");
+}
+
+function renderBodyStyle(page: PublishedPage): string {
+  const declarations = Object.entries(page.bodyStyles ?? {})
+    .filter(([key, value]) => STYLE_ALLOWLIST.has(key) && !containsDangerousCss(String(value)))
+    .map(([key, value]) => `${camelToKebab(key)}: ${escapeAttribute(String(value))};`)
+    .join(" ");
+  return declarations ? ` style="${declarations}"` : "";
 }
 
 export function renderPageBody(blocks: PageBlock[]): string {

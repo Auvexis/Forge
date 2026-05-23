@@ -1,10 +1,8 @@
 <template>
   <section class="web-page-editor">
-    <AppPanel :is-open="true" title="Blocks" position="left" width="md" :show-close="false">
-      <BlockLibrary @add="addBlock" />
-      <FormImportPanel @insert="insertImportedForm" />
+    <AppPanel :is-open="true" title="Elements" position="left" width="md" :show-close="false">
       <BlockTreePanel
-        :blocks="pagesStore.activePage?.blocks ?? []"
+        :blocks="editorStore.blocks"
         :selected-block-id="editorStore.selectedBlockId"
         @select="editorStore.selectBlock"
       />
@@ -12,9 +10,11 @@
 
     <PageCanvas
       :blocks="editorStore.blocks"
+      :body-styles="pagesStore.activePage?.bodyStyles"
       :selected-block-id="editorStore.selectedBlockId"
       @select="editorStore.selectBlock"
       @drop-block="handleDropBlock"
+      @drop-root="handleDropRoot"
     />
 
     <div class="web-page-editor__actions">
@@ -30,6 +30,14 @@
     </div>
 
     <AppPanel :is-open="true" title="Inspector" position="right" width="md" :show-close="false">
+      <BlockLibrary @add="addBlock" />
+      <FormImportPanel @insert="insertImportedForm" />
+      <BlockStylePanel
+        v-if="pagesStore.activePage"
+        :block="bodyStyleBlock"
+        title="Body"
+        @patch="patchBodyStyles"
+      />
       <BlockToolbar
         v-if="editorStore.selectedBlock"
         @delete="editorStore.deleteBlock(editorStore.selectedBlock.id)"
@@ -55,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
@@ -63,7 +71,7 @@ import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageEditorStore } from '../stores/page-editor.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
-import type { PageBlockTag } from '../types/page.types.ts'
+import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import PageCanvas from './PageCanvas.vue'
 import BlockToolbar from './BlockToolbar.vue'
 import BlockTreePanel from './BlockTreePanel.vue'
@@ -76,6 +84,14 @@ import FormImportPanel from './FormImportPanel.vue'
 const route = useRoute()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
+
+const bodyStyleBlock = computed<PageBlock>(() => ({
+  id: 'body',
+  tag: 'div',
+  props: { label: 'body' },
+  styles: pagesStore.activePage?.bodyStyles ?? { backgroundColor: '#ffffff', color: '#111111' },
+  children: [],
+}))
 
 onMounted(async () => {
   const pageId = route.params.pageId
@@ -99,14 +115,31 @@ function addBlock(tag: PageBlockTag) {
   else editorStore.setBlocks([block])
 }
 
-function handleDropBlock(payload: { targetId: string; position: InsertPosition; tag: PageBlockTag }) {
-  editorStore.insertBlock(payload.targetId, payload.position, createBlock(payload.tag))
+function handleDropBlock(payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string }) {
+  if (payload.draggedId) editorStore.moveBlock(payload.draggedId, payload.targetId, payload.position)
+  else if (payload.tag) editorStore.insertBlock(payload.targetId, payload.position, createBlock(payload.tag))
 }
 
-function insertImportedForm(block: ReturnType<typeof createBlock>) {
+function handleDropRoot(payload: { tag?: PageBlockTag; draggedId?: string }) {
+  if (payload.draggedId && editorStore.blocks.length > 0) {
+    editorStore.moveBlock(payload.draggedId, editorStore.blocks[editorStore.blocks.length - 1]!.id, 'after')
+  } else if (payload.tag) {
+    editorStore.setBlocks([...editorStore.blocks, createBlock(payload.tag)])
+  }
+}
+
+function insertImportedForm(block: PageBlock) {
   const targetId = editorStore.selectedBlockId ?? editorStore.blocks[editorStore.blocks.length - 1]?.id
   if (targetId) editorStore.insertBlock(targetId, 'after', block)
   else editorStore.setBlocks([block])
+}
+
+function patchBodyStyles(patch: Partial<PageBlock>) {
+  if (!pagesStore.activePage) return
+  pagesStore.setActivePage({
+    ...pagesStore.activePage,
+    bodyStyles: patch.styles ?? pagesStore.activePage.bodyStyles,
+  })
 }
 
 async function savePage() {

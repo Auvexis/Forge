@@ -95,6 +95,7 @@ export const usePagesStore = defineStore('web-pages', () => {
       const saved = await apiClient.value.updatePage(activePage.value.id, {
         title: activePage.value.title,
         slug: activePage.value.slug,
+        bodyStyles: activePage.value.bodyStyles,
         blocks: activePage.value.blocks,
       })
       setSavedPage(saved)

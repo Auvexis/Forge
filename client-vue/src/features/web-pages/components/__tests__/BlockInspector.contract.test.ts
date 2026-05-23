@@ -20,6 +20,7 @@ describe('block inspector contract', () => {
     const source = read('src/features/web-pages/components/BlockStylePanel.vue')
     assert.match(source, /padding/)
     assert.match(source, /backgroundColor/)
+    assert.match(source, /BaseColorPicker/)
     assert.match(source, /sanitizeStyles/)
   })
 

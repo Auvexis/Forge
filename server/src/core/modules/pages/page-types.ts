@@ -49,6 +49,7 @@ export interface SailorPage {
   profileId: string;
   title: string;
   slug: string;
+  bodyStyles?: PageBlockStyles;
   blocks: PageBlock[];
   createdAt: string;
   updatedAt: string;
@@ -64,6 +65,7 @@ export interface CreatePageInput {
 export interface UpdatePageInput {
   title?: string;
   slug?: string;
+  bodyStyles?: PageBlockStyles;
   blocks?: PageBlock[];
 }
 
@@ -73,6 +75,7 @@ export interface PublishedPage {
   profileId: string;
   title: string;
   slug: string;
+  bodyStyles?: PageBlockStyles;
   blocks: PageBlock[];
   publishedAt: string;
 }
