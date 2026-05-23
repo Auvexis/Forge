@@ -61,6 +61,28 @@
   background: var(--sailor-bg-canvas);
 }
 
+.web-page-editor--left-collapsed .web-page-canvas {
+  margin-left: var(--sailor-space-8);
+}
+
+.web-page-editor--right-collapsed .web-page-canvas {
+  margin-right: var(--sailor-space-8);
+}
+
+.web-page-editor__panel-toggle {
+  position: absolute;
+  top: var(--sailor-space-4);
+  z-index: 5;
+}
+
+.web-page-editor__panel-toggle--left {
+  left: var(--sailor-space-4);
+}
+
+.web-page-editor__panel-toggle--right {
+  right: var(--sailor-space-4);
+}
+
 .web-page-editor__actions {
   position: absolute;
   right: calc(var(--sailor-panel-width) + var(--sailor-space-4));

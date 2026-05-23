@@ -1,12 +1,25 @@
 <template>
-  <section class="web-page-editor">
-    <AppPanel :is-open="true" title="Elements" position="left" width="md" :show-close="false">
+  <section
+    class="web-page-editor"
+    :class="{
+      'web-page-editor--left-collapsed': !isLeftPanelOpen,
+      'web-page-editor--right-collapsed': !isRightPanelOpen,
+    }"
+  >
+    <AppPanel :is-open="isLeftPanelOpen" title="Elements" position="left" width="md" :show-close="false">
       <BlockTreePanel
         :blocks="editorStore.blocks"
         :selected-block-id="editorStore.selectedBlockId"
         @select="editorStore.selectBlock"
       />
     </AppPanel>
+
+    <BaseButton
+      class="web-page-editor__panel-toggle web-page-editor__panel-toggle--left"
+      variant="outline"
+      icon-left="panel-left"
+      @click="toggleLeftPanel"
+    />
 
     <PageCanvas
       :blocks="editorStore.blocks"
@@ -42,7 +55,14 @@
       </BaseButton>
     </div>
 
-    <AppPanel :is-open="true" title="Inspector" position="right" width="md" :show-close="false">
+    <BaseButton
+      class="web-page-editor__panel-toggle web-page-editor__panel-toggle--right"
+      variant="outline"
+      icon-left="panel-right"
+      @click="toggleRightPanel"
+    />
+
+    <AppPanel :is-open="isRightPanelOpen" title="Inspector" position="right" width="md" :show-close="false">
       <BlockLibrary @add="addBlock" />
       <FormImportPanel @insert="insertImportedForm" />
       <PageMetadataPanel
@@ -81,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
@@ -103,6 +123,8 @@ import PageMetadataPanel from './PageMetadataPanel.vue'
 const route = useRoute()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
+const isLeftPanelOpen = ref(true)
+const isRightPanelOpen = ref(true)
 
 const bodyStyleBlock = computed<PageBlock>(() => ({
   id: 'body',
@@ -111,6 +133,14 @@ const bodyStyleBlock = computed<PageBlock>(() => ({
   styles: pagesStore.activePage?.bodyStyles ?? { backgroundColor: '#ffffff', color: '#111111' },
   children: [],
 }))
+
+function toggleLeftPanel() {
+  isLeftPanelOpen.value = !isLeftPanelOpen.value
+}
+
+function toggleRightPanel() {
+  isRightPanelOpen.value = !isRightPanelOpen.value
+}
 
 onMounted(async () => {
   const pageId = route.params.pageId
