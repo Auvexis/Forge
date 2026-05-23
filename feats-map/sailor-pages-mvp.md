@@ -22,7 +22,7 @@ Tasks:
 - [x] Task 8: Block tree utilities
 - [x] Task 9: Style and CSS sanitization utilities
 - [x] Task 10: Form schema import utility
-- [ ] Task 11: Pages stores
+- [x] Task 11: Pages stores
 - [ ] Task 12: Page management UI
 - [ ] Task 13: Editor canvas and block renderer
 - [ ] Task 14: Block library and drop zones
