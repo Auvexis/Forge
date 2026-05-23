@@ -27,7 +27,7 @@ Tasks:
 - [x] Task 13: Editor canvas and block renderer
 - [x] Task 14: Block library and drop zones
 - [x] Task 15: Inspector panels
-- [ ] Task 16: Form import panel
+- [x] Task 16: Form import panel
 - [ ] Task 17: Preview and publish UX
 - [ ] Task 18: Published page runtime actions
 - [ ] Task 19: Security hardening pass

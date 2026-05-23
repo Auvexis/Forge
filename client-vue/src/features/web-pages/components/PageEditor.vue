@@ -2,6 +2,7 @@
   <section class="web-page-editor">
     <AppPanel :is-open="true" title="Blocks" position="left" width="md" :show-close="false">
       <BlockLibrary @add="addBlock" />
+      <FormImportPanel @insert="insertImportedForm" />
       <BlockTreePanel
         :blocks="pagesStore.activePage?.blocks ?? []"
         :selected-block-id="editorStore.selectedBlockId"
@@ -57,6 +58,7 @@ import BlockLibrary from './BlockLibrary.vue'
 import BlockContentPanel from './BlockContentPanel.vue'
 import BlockStylePanel from './BlockStylePanel.vue'
 import BlockActionPanel from './BlockActionPanel.vue'
+import FormImportPanel from './FormImportPanel.vue'
 
 const route = useRoute()
 const pagesStore = usePagesStore()
@@ -86,5 +88,11 @@ function addBlock(tag: PageBlockTag) {
 
 function handleDropBlock(payload: { targetId: string; position: InsertPosition; tag: PageBlockTag }) {
   editorStore.insertBlock(payload.targetId, payload.position, createBlock(payload.tag))
+}
+
+function insertImportedForm(block: ReturnType<typeof createBlock>) {
+  const targetId = editorStore.selectedBlockId ?? editorStore.blocks[editorStore.blocks.length - 1]?.id
+  if (targetId) editorStore.insertBlock(targetId, 'after', block)
+  else editorStore.setBlocks([block])
 }
 </script>

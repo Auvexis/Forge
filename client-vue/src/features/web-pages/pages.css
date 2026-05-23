@@ -122,6 +122,16 @@
   border-top: 1px solid var(--sailor-border);
 }
 
+.web-page-import-preview {
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
+}
+
+.web-page-import-error {
+  color: var(--sailor-text-error);
+  font-size: var(--sailor-text-xs);
+}
+
 .web-page-tree__item {
   display: flex;
   justify-content: space-between;
