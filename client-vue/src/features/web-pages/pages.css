@@ -120,20 +120,6 @@
   margin-right: var(--sailor-space-8);
 }
 
-.web-page-editor__panel-toggle {
-  position: absolute;
-  top: calc(40px + var(--sailor-space-4));
-  z-index: 12;
-}
-
-.web-page-editor__panel-toggle--left {
-  left: var(--sailor-space-4);
-}
-
-.web-page-editor__panel-toggle--right {
-  right: var(--sailor-space-4);
-}
-
 .web-page-editor__workspace {
   min-height: 100%;
   margin: 0 var(--sailor-panel-width);
@@ -144,7 +130,7 @@
 .web-page-canvas {
   min-height: auto;
   margin: 0;
-  padding: 0 0 var(--sailor-space-4);
+  padding: 0 0 var(--sailor-space-8);
 }
 
 .web-page-editor__add-page {
@@ -153,44 +139,10 @@
   padding: var(--sailor-space-4) 0;
 }
 
-.web-page-editor__page-preview {
-  display: grid;
-  gap: var(--sailor-space-2);
-  width: min(960px, 100%);
-  margin: 0 auto var(--sailor-space-6);
-  padding: var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  text-align: left;
-}
-
-.web-page-editor__page-preview-paper {
-  display: grid;
-  align-content: start;
-  gap: var(--sailor-space-2);
-  aspect-ratio: 16 / 5;
-  padding: var(--sailor-space-4);
-  background: #ffffff;
-  box-shadow: var(--sailor-shadow-sm);
-}
-
-.web-page-editor__page-preview-paper span {
-  display: block;
-  width: 56%;
-  height: 8px;
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-border);
-}
-
 .web-page-editor__page-handle {
-  position: absolute;
-  top: calc(40px + var(--sailor-space-3));
-  left: 50%;
-  z-index: 6;
-  transform: translateX(-50%);
+  display: block;
   max-width: 280px;
+  margin: 0 auto var(--sailor-space-2);
   overflow: hidden;
   padding: var(--sailor-space-1) var(--sailor-space-3);
   border: 1px solid var(--sailor-border);
@@ -200,6 +152,11 @@
   font-size: var(--sailor-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.web-page-editor__page-handle--active {
+  border-color: var(--sailor-border-brand);
+  color: var(--sailor-text-primary);
 }
 
 .web-page-canvas__body {
@@ -320,6 +277,10 @@
   cursor: grab;
 }
 
+.web-page-tree__item--page {
+  cursor: pointer;
+}
+
 .web-page-tree__item--selected {
   background: color-mix(in srgb, var(--sailor-bg-elevated) 82%, var(--sailor-accent) 18%);
   box-shadow: inset 2px 0 0 var(--sailor-border-brand);
@@ -384,6 +345,10 @@
   display: inline-grid;
   place-items: center;
   color: var(--sailor-text-secondary);
+}
+
+.web-page-tree__drag-handle--muted {
+  cursor: default;
 }
 
 .web-page-tree__child-count {

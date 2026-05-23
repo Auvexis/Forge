@@ -29,6 +29,7 @@ const defaultApiClient: PagesApiClient = {
 
 export const usePagesStore = defineStore('web-pages', () => {
   const pages = ref<SailorPageSummary[]>([])
+  const pageDocuments = ref<Record<string, SailorPage>>({})
   const activePage = ref<SailorPage | null>(null)
   const savedSnapshot = ref<string | null>(null)
   const lastPublished = ref<PublishedPageSummary | null>(null)
@@ -59,6 +60,12 @@ export const usePagesStore = defineStore('web-pages', () => {
     } finally {
       isLoading.value = false
     }
+  }
+
+  async function loadPageDocuments() {
+    const missing = pages.value.filter((page) => !pageDocuments.value[page.id])
+    await Promise.all(missing.map((page) => openPageDocument(page.id)))
+    return pageDocuments.value
   }
 
   async function createPage(payload: CreatePagePayload) {
@@ -112,7 +119,7 @@ export const usePagesStore = defineStore('web-pages', () => {
     isLoading.value = true
     error.value = null
     try {
-      const page = await apiClient.value.getPage(pageId)
+      const page = await openPageDocument(pageId)
       setSavedPage(page)
       upsertSummary(page)
       return page
@@ -152,6 +159,7 @@ export const usePagesStore = defineStore('web-pages', () => {
   async function deletePage(pageId: string) {
     await apiClient.value.deletePage(pageId)
     pages.value = pages.value.filter((page) => page.id !== pageId)
+    delete pageDocuments.value[pageId]
     if (activePage.value?.id === pageId) {
       activePage.value = null
       savedSnapshot.value = null
@@ -176,6 +184,7 @@ export const usePagesStore = defineStore('web-pages', () => {
 
   function setSavedPage(page: SailorPage) {
     activePage.value = clone(page)
+    pageDocuments.value[page.id] = clone(page)
     savedSnapshot.value = snapshot(activePage.value)
   }
 
@@ -191,8 +200,19 @@ export const usePagesStore = defineStore('web-pages', () => {
     else pages.value[index] = summary
   }
 
+  async function openPageDocument(pageId: string) {
+    const page = await apiClient.value.getPage(pageId)
+    pageDocuments.value[page.id] = clone(page)
+    return page
+  }
+
+  function pageDocument(pageId: string) {
+    return pageDocuments.value[pageId] ?? null
+  }
+
   return {
     pages,
+    pageDocuments,
     activePage,
     lastPublished,
     isLoading,
@@ -202,6 +222,7 @@ export const usePagesStore = defineStore('web-pages', () => {
     setApiClient,
     setActivePage,
     listPages,
+    loadPageDocuments,
     createPage,
     createPageAfterActive,
     duplicateActivePage,
@@ -211,6 +232,7 @@ export const usePagesStore = defineStore('web-pages', () => {
     deletePage,
     deleteActivePageAndChooseNext,
     publishActivePage,
+    pageDocument,
   }
 })
 

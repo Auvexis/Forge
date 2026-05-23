@@ -29,6 +29,7 @@
       :block="child"
       :selected-block-id="selectedBlockId"
       :drop-intent="dropIntent"
+      :readonly="readonly"
       @select="$emit('select', $event)"
       @drop-block="$emit('drop-block', $event)"
       @drag-intent="$emit('drag-intent', $event)"
@@ -45,6 +46,7 @@ const props = defineProps<{
   block: PageBlock
   selectedBlockId: string | null
   dropIntent?: { targetId: string; position: InsertPosition } | null
+  readonly?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -72,17 +74,20 @@ const blockClasses = computed(() => ({
 }))
 
 function onDragStart(event: DragEvent) {
+  if (props.readonly) return
   event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ blockId: props.block.id }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
 }
 
 function onDrop(event: DragEvent) {
+  if (props.readonly) return
   const payload = readDragPayload(event)
   if (!payload) return
   emit('drop-block', { targetId: props.block.id, position: dropPosition(event), ...payload })
 }
 
 function onDragOver(event: DragEvent) {
+  if (props.readonly) return
   emit('drag-intent', { targetId: props.block.id, position: dropPosition(event) })
 }
 

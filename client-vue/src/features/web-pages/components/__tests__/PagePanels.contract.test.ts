@@ -26,13 +26,17 @@ describe('page editor panels contract', () => {
     assert.doesNotMatch(source, /toggleRightPanel[\s\S]*clearSelection/)
   })
 
-  it('collapsed panel controls use base buttons and stable edge classes', () => {
+  it('panels close from AppPanel and reopen from the top toolbar', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
     const styles = read('src/features/web-pages/pages.css')
+    const chrome = read('src/features/web-pages/components/PageChromeToolbar.vue')
 
-    assert.match(source, /BaseButton/)
-    assert.match(source, /web-page-editor__panel-toggle/)
-    assert.match(styles, /web-page-editor__panel-toggle/)
+    assert.match(source, /@close="closeLeftPanel"/)
+    assert.match(source, /@close="closeRightPanel"/)
+    assert.match(chrome, /view\.left-panel/)
+    assert.match(chrome, /view\.right-panel/)
+    assert.doesNotMatch(source, /web-page-editor__panel-toggle/)
+    assert.doesNotMatch(styles, /web-page-editor__panel-toggle/)
     assert.match(styles, /web-page-editor--left-collapsed/)
     assert.match(styles, /web-page-editor--right-collapsed/)
   })

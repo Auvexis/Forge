@@ -1,6 +1,43 @@
 <template>
   <nav class="web-page-tree" role="tree">
-    <div v-for="block in blocks" :key="block.id" class="web-page-tree__node">
+    <template v-if="pages.length">
+      <div v-for="page in pages" :key="page.id" class="web-page-tree__node web-page-tree__node--page">
+        <span class="web-page-tree__depth-guide" aria-hidden="true"></span>
+        <div
+          class="web-page-tree__item web-page-tree__item--page"
+          :class="{ 'web-page-tree__item--selected': page.id === activePageId }"
+          role="treeitem"
+          @click="$emit('select-page', page.id)"
+        >
+          <button type="button" class="web-page-tree__collapse" :disabled="page.id !== activePageId">
+            <LucideIcon :name="page.id === activePageId ? 'chevron-down' : 'chevron-right'" :size="14" />
+          </button>
+          <span class="web-page-tree__drag-handle web-page-tree__drag-handle--muted">
+            <LucideIcon name="file" :size="14" />
+          </span>
+          <span class="web-page-tree__icon">
+            <LucideIcon name="panel-top" :size="15" />
+          </span>
+          <span class="web-page-tree__main">
+            <span class="web-page-tree__tag">page</span>
+            <span class="web-page-tree__name">{{ page.title }}</span>
+          </span>
+          <span v-if="page.id === activePageId" class="web-page-tree__child-count">{{ blocks.length }}</span>
+          <button type="button" class="web-page-tree__row-action" @click.stop>
+            <LucideIcon name="ellipsis" :size="14" />
+          </button>
+        </div>
+        <div v-if="page.id === activePageId" class="web-page-tree__children" role="group">
+          <BlockTreePanel
+            :blocks="blocks"
+            :selected-block-id="selectedBlockId"
+            @select="$emit('select', $event)"
+          />
+        </div>
+      </div>
+    </template>
+
+    <div v-for="block in pages.length ? [] : blocks" :key="block.id" class="web-page-tree__node">
       <span class="web-page-tree__depth-guide" aria-hidden="true"></span>
       <div
         class="web-page-tree__item"
@@ -50,19 +87,25 @@
 
 <script setup lang="ts">
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import type { PageBlock } from '../types/page.types.ts'
+import type { PageBlock, SailorPageSummary } from '../types/page.types.ts'
 import { blockChildCount, blockDisplayName } from '../utils/blockTree.ts'
 import { usePageEditorStore } from '../stores/page-editor.store.ts'
 
-defineProps<{
+withDefaults(defineProps<{
   blocks: PageBlock[]
   selectedBlockId: string | null
-}>()
+  pages?: SailorPageSummary[]
+  activePageId?: string
+}>(), {
+  pages: () => [],
+  activePageId: undefined,
+})
 
 const editorStore = usePageEditorStore()
 
 defineEmits<{
   select: [blockId: string]
+  'select-page': [pageId: string]
 }>()
 
 function onDragStart(event: DragEvent, blockId: string) {

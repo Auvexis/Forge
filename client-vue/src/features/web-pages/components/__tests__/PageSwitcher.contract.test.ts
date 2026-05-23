@@ -34,13 +34,17 @@ describe('page switcher contract', () => {
     assert.match(source, /Save current page before switching/)
   })
 
-  it('editor can create a new page below the canvas without inserting a block', () => {
+  it('editor renders open pages in the canvas and can create a new page below without inserting a block', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const store = read('src/features/web-pages/stores/pages.store.ts')
 
     assert.match(editor, /web-page-editor__add-page/)
     assert.match(editor, /web-page-editor__workspace/)
-    assert.match(editor, /web-page-editor__page-preview/)
+    assert.match(editor, /web-page-editor__page-handle/)
+    assert.match(editor, /pageBlocks/)
+    assert.match(editor, /pageBodyStyles/)
+    assert.match(store, /pageDocuments/)
+    assert.match(store, /loadPageDocuments/)
     assert.match(editor, /addPageBelowCanvas/)
     assert.match(store, /createPageAfterActive/)
     assert.match(store, /activeIndex \+ 1/)

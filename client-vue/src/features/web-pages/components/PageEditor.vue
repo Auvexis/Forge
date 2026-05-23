@@ -8,58 +8,39 @@
   >
     <PageChromeToolbar @command="handleChromeCommand" />
 
-    <AppPanel :is-open="isLeftPanelOpen" title="Elements" position="left" width="md" :show-close="false">
-      <template #actions>
-        <BaseButton
-          size="icon"
-          variant="ghost"
-          icon-left="panel-left-close"
-          title="Collapse elements"
-          @click="toggleLeftPanel"
-        />
-      </template>
+    <AppPanel :is-open="isLeftPanelOpen" title="Elements" position="left" width="md" @close="closeLeftPanel">
       <BlockTreePanel
+        :pages="pagesStore.pages"
+        :active-page-id="pagesStore.activePage?.id"
         :blocks="editorStore.blocks"
         :selected-block-id="editorStore.selectedBlockId"
+        @select-page="selectTreePage"
         @select="editorStore.selectBlock"
       />
     </AppPanel>
 
-    <BaseButton
-      class="web-page-editor__panel-toggle web-page-editor__panel-toggle--left"
-      variant="outline"
-      icon-left="panel-left-open"
-      title="Open elements"
-      @click="toggleLeftPanel"
-    />
-
     <div class="web-page-editor__workspace">
       <template v-for="page in pagesStore.pages" :key="page.id">
         <button
-          v-if="page.id !== pagesStore.activePage?.id"
           type="button"
-          class="web-page-editor__page-preview"
-          @click="switchPage(page.id)"
+          class="web-page-editor__page-handle"
+          :class="{ 'web-page-editor__page-handle--active': page.id === pagesStore.activePage?.id }"
+          @click="selectTreePage(page.id)"
         >
-          <span class="web-page-editor__page-preview-paper">
-            <span></span>
-            <span></span>
-            <span></span>
-          </span>
-          <strong>{{ page.title }}</strong>
+          {{ page.title }}
         </button>
         <PageCanvas
-          v-else
-          :blocks="editorStore.blocks"
-          :body-styles="pagesStore.activePage?.bodyStyles"
-          :selected-block-id="editorStore.selectedBlockId"
-          :drop-intent="editorStore.dragIntent"
-          @select="editorStore.selectBlock"
-          @select-body="editorStore.selectBody"
-          @drop-block="handleDropBlock"
-          @drop-root="handleDropRoot"
-          @drag-intent="editorStore.setDragIntent"
-          @clear-drag-intent="editorStore.clearDragIntent"
+          :blocks="pageBlocks(page.id)"
+          :body-styles="pageBodyStyles(page.id)"
+          :selected-block-id="page.id === pagesStore.activePage?.id ? editorStore.selectedBlockId : null"
+          :drop-intent="page.id === pagesStore.activePage?.id ? editorStore.dragIntent : null"
+          :readonly="page.id !== pagesStore.activePage?.id"
+          @select="selectCanvasBlock(page.id, $event)"
+          @select-body="selectCanvasBody(page.id)"
+          @drop-block="handlePageDropBlock(page.id, $event)"
+          @drop-root="handlePageDropRoot(page.id, $event)"
+          @drag-intent="setPageDragIntent(page.id, $event)"
+          @clear-drag-intent="clearPageDragIntent(page.id)"
         />
       </template>
 
@@ -70,33 +51,7 @@
       </div>
     </div>
 
-    <button
-      v-if="pagesStore.activePage"
-      type="button"
-      class="web-page-editor__page-handle"
-      @click="editorStore.selectPage"
-    >
-      {{ pagesStore.activePage.title }}
-    </button>
-
-    <BaseButton
-      class="web-page-editor__panel-toggle web-page-editor__panel-toggle--right"
-      variant="outline"
-      icon-left="panel-right-open"
-      title="Open inspector"
-      @click="toggleRightPanel"
-    />
-
-    <AppPanel :is-open="isRightPanelOpen" title="Inspector" position="right" width="md" :show-close="false">
-      <template #actions>
-        <BaseButton
-          size="icon"
-          variant="ghost"
-          icon-left="panel-right-close"
-          title="Collapse inspector"
-          @click="toggleRightPanel"
-        />
-      </template>
+    <AppPanel :is-open="isRightPanelOpen" title="Inspector" position="right" width="md" @close="closeRightPanel">
       <BlockLibrary @add="addBlock" />
       <FormImportPanel @insert="insertImportedForm" />
       <PageMetadataPanel
@@ -143,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
@@ -151,7 +106,7 @@ import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageEditorStore } from '../stores/page-editor.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
-import type { PageBlock, PageBlockTag, SailorPage } from '../types/page.types.ts'
+import type { PageBlock, PageBlockStyles, PageBlockTag, SailorPage } from '../types/page.types.ts'
 import PageCanvas from './PageCanvas.vue'
 import BlockToolbar from './BlockToolbar.vue'
 import BlockTreePanel from './BlockTreePanel.vue'
@@ -188,6 +143,14 @@ function toggleRightPanel() {
   isRightPanelOpen.value = !isRightPanelOpen.value
 }
 
+function closeLeftPanel() {
+  isLeftPanelOpen.value = false
+}
+
+function closeRightPanel() {
+  isRightPanelOpen.value = false
+}
+
 onMounted(async () => {
   await openRoutePage(route.params.pageId)
 })
@@ -202,6 +165,7 @@ watch(
 async function openRoutePage(pageId: unknown) {
   if (typeof pageId === 'string') {
     if (pagesStore.pages.length === 0) await pagesStore.listPages()
+    await pagesStore.loadPageDocuments()
     if (pagesStore.activePage?.id !== pageId) await pagesStore.openPage(pageId)
   }
 }
@@ -240,6 +204,50 @@ function insertImportedForm(block: PageBlock) {
   else editorStore.setBlocks([block])
 }
 
+function pageBlocks(pageId: string) {
+  return pagesStore.activePage?.id === pageId ? editorStore.blocks : (pagesStore.pageDocument(pageId)?.blocks ?? [])
+}
+
+function pageBodyStyles(pageId: string): PageBlockStyles | undefined {
+  return pagesStore.activePage?.id === pageId ? pagesStore.activePage.bodyStyles : pagesStore.pageDocument(pageId)?.bodyStyles
+}
+
+async function ensurePageActive(pageId: string) {
+  if (pagesStore.activePage?.id !== pageId) await switchPage(pageId)
+  await nextTick()
+}
+
+function selectCanvasBlock(pageId: string, blockId: string) {
+  void ensurePageActive(pageId).then(() => editorStore.selectBlock(blockId))
+}
+
+function selectCanvasBody(pageId: string) {
+  void ensurePageActive(pageId).then(() => editorStore.selectBody())
+}
+
+function handlePageDropBlock(
+  pageId: string,
+  payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string },
+) {
+  if (pageId !== pagesStore.activePage?.id) return
+  handleDropBlock(payload)
+}
+
+function handlePageDropRoot(pageId: string, payload: { tag?: PageBlockTag; draggedId?: string }) {
+  if (pageId !== pagesStore.activePage?.id) return
+  handleDropRoot(payload)
+}
+
+function setPageDragIntent(pageId: string, payload: { targetId: string | 'root'; position: InsertPosition }) {
+  if (pageId !== pagesStore.activePage?.id) return
+  editorStore.setDragIntent(payload)
+}
+
+function clearPageDragIntent(pageId: string) {
+  if (pageId !== pagesStore.activePage?.id) return
+  editorStore.clearDragIntent()
+}
+
 function patchBodyStyles(patch: Partial<PageBlock>) {
   if (!pagesStore.activePage) return
   pagesStore.setActivePage({
@@ -263,6 +271,12 @@ async function switchPage(pageId: string) {
   await pagesStore.switchPage(pageId)
   await router.replace(`/pages/${pageId}`)
   isPageSwitcherOpen.value = false
+}
+
+async function selectTreePage(pageId: string) {
+  await switchPage(pageId)
+  await nextTick()
+  editorStore.selectPage()
 }
 
 async function duplicateActivePage() {

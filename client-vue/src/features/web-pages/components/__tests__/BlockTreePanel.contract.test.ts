@@ -42,4 +42,16 @@ describe('block tree panel contract', () => {
     assert.match(source, /web-page-tree__row-action/)
     assert.match(source, /web-page-tree__item--selected/)
   })
+
+  it('tree can list pages above the active page elements', () => {
+    const source = read('src/features/web-pages/components/BlockTreePanel.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /pages/)
+    assert.match(source, /activePageId/)
+    assert.match(source, /select-page/)
+    assert.match(source, /web-page-tree__item--page/)
+    assert.match(editor, /:pages="pagesStore\.pages"/)
+    assert.match(editor, /@select-page="selectTreePage"/)
+  })
 })

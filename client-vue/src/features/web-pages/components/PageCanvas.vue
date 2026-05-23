@@ -21,6 +21,7 @@
         :block="block"
         :selected-block-id="selectedBlockId"
         :drop-intent="dropIntent"
+        :readonly="readonly"
         @select="$emit('select', $event)"
         @drop-block="$emit('drop-block', $event)"
         @drag-intent="$emit('drag-intent', $event)"
@@ -39,6 +40,7 @@ const props = defineProps<{
   selectedBlockId: string | null
   dropIntent?: { targetId: string | 'root'; position: InsertPosition } | null
   bodyStyles?: Record<string, string | number>
+  readonly?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -51,6 +53,7 @@ const emit = defineEmits<{
 }>()
 
 function dropOnRoot(event: DragEvent) {
+  if (props.readonly) return
   if (event.target !== event.currentTarget && props.blocks.length > 0) return
   const payload = readDragPayload(event)
   if (!payload) return
@@ -59,6 +62,7 @@ function dropOnRoot(event: DragEvent) {
 }
 
 function onRootDragOver(event: DragEvent) {
+  if (props.readonly) return
   if (event.target !== event.currentTarget && props.blocks.length > 0) return
   emit('drag-intent', { targetId: 'root', position: 'after' })
 }
