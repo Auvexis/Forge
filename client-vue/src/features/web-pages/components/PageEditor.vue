@@ -13,9 +13,19 @@
       :body-styles="pagesStore.activePage?.bodyStyles"
       :selected-block-id="editorStore.selectedBlockId"
       @select="editorStore.selectBlock"
+      @select-body="editorStore.selectBody"
       @drop-block="handleDropBlock"
       @drop-root="handleDropRoot"
     />
+
+    <button
+      v-if="pagesStore.activePage"
+      type="button"
+      class="web-page-editor__page-handle"
+      @click="editorStore.selectPage"
+    >
+      {{ pagesStore.activePage.title }}
+    </button>
 
     <div class="web-page-editor__actions">
       <BaseButton variant="secondary" icon-left="save" :loading="pagesStore.isSaving" @click="savePage">
@@ -32,18 +42,23 @@
     <AppPanel :is-open="true" title="Inspector" position="right" width="md" :show-close="false">
       <BlockLibrary @add="addBlock" />
       <FormImportPanel @insert="insertImportedForm" />
+      <PageMetadataPanel
+        v-if="pagesStore.activePage && editorStore.selectedTarget.type === 'page'"
+        :page="pagesStore.activePage"
+        @patch="patchPageMetadata"
+      />
       <BlockStylePanel
-        v-if="pagesStore.activePage"
+        v-if="pagesStore.activePage && editorStore.selectedTarget.type === 'body'"
         :block="bodyStyleBlock"
         title="Body"
         @patch="patchBodyStyles"
       />
       <BlockToolbar
-        v-if="editorStore.selectedBlock"
+        v-if="editorStore.selectedTarget.type === 'block' && editorStore.selectedBlock"
         @delete="editorStore.deleteBlock(editorStore.selectedBlock.id)"
         @duplicate="editorStore.duplicateBlock(editorStore.selectedBlock.id)"
       />
-      <template v-if="editorStore.selectedBlock">
+      <template v-if="editorStore.selectedTarget.type === 'block' && editorStore.selectedBlock">
         <BlockContentPanel
           :block="editorStore.selectedBlock"
           @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
@@ -57,7 +72,7 @@
           @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
         />
       </template>
-      <p v-else class="web-page-editor__empty">Select a block.</p>
+      <p v-if="editorStore.selectedTarget.type === 'none'" class="web-page-editor__empty">Select a page, body, or block.</p>
     </AppPanel>
   </section>
 </template>
@@ -71,7 +86,7 @@ import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageEditorStore } from '../stores/page-editor.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
-import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
+import type { PageBlock, PageBlockTag, SailorPage } from '../types/page.types.ts'
 import PageCanvas from './PageCanvas.vue'
 import BlockToolbar from './BlockToolbar.vue'
 import BlockTreePanel from './BlockTreePanel.vue'
@@ -80,6 +95,7 @@ import BlockContentPanel from './BlockContentPanel.vue'
 import BlockStylePanel from './BlockStylePanel.vue'
 import BlockActionPanel from './BlockActionPanel.vue'
 import FormImportPanel from './FormImportPanel.vue'
+import PageMetadataPanel from './PageMetadataPanel.vue'
 
 const route = useRoute()
 const pagesStore = usePagesStore()
@@ -140,6 +156,11 @@ function patchBodyStyles(patch: Partial<PageBlock>) {
     ...pagesStore.activePage,
     bodyStyles: patch.styles ?? pagesStore.activePage.bodyStyles,
   })
+}
+
+function patchPageMetadata(patch: Partial<SailorPage>) {
+  if (!pagesStore.activePage) return
+  pagesStore.setActivePage({ ...pagesStore.activePage, ...patch })
 }
 
 async function savePage() {

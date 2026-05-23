@@ -11,9 +11,16 @@ import {
 } from '../utils/blockTree.ts'
 import type { PageBlock } from '../types/page.types.ts'
 
+export type PageEditorSelection =
+  | { type: 'page' }
+  | { type: 'body' }
+  | { type: 'block'; blockId: string }
+  | { type: 'none' }
+
 export const usePageEditorStore = defineStore('web-page-editor', () => {
   const blocks = ref<PageBlock[]>([])
   const selectedBlockId = ref<string | null>(null)
+  const selectedTarget = ref<PageEditorSelection>({ type: 'none' })
   const savedSnapshot = ref<string>('[]')
   const undoStack = ref<string[]>([])
   const redoStack = ref<string[]>([])
@@ -31,16 +38,34 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     undoStack.value = []
     redoStack.value = []
     selectedBlockId.value = null
+    selectedTarget.value = { type: 'none' }
   }
 
   function selectBlock(blockId: string | null) {
     selectedBlockId.value = blockId
+    selectedTarget.value = blockId ? { type: 'block', blockId } : { type: 'none' }
+  }
+
+  function selectPage() {
+    selectedBlockId.value = null
+    selectedTarget.value = { type: 'page' }
+  }
+
+  function selectBody() {
+    selectedBlockId.value = null
+    selectedTarget.value = { type: 'body' }
+  }
+
+  function clearSelection() {
+    selectedBlockId.value = null
+    selectedTarget.value = { type: 'none' }
   }
 
   function insertBlock(targetId: string, position: InsertPosition, block: PageBlock) {
     mutate(() => {
       blocks.value = insertTreeBlock(blocks.value, targetId, position, block)
       selectedBlockId.value = block.id
+      selectedTarget.value = { type: 'block', blockId: block.id }
     })
   }
 
@@ -48,13 +73,14 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     mutate(() => {
       blocks.value = moveTreeBlock(blocks.value, draggedId, targetId, position)
       selectedBlockId.value = draggedId
+      selectedTarget.value = { type: 'block', blockId: draggedId }
     })
   }
 
   function deleteBlock(blockId: string) {
     mutate(() => {
       blocks.value = deleteTreeBlock(blocks.value, blockId)
-      if (selectedBlockId.value === blockId) selectedBlockId.value = null
+      if (selectedBlockId.value === blockId) clearSelection()
     })
   }
 
@@ -97,12 +123,16 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
   return {
     blocks,
     selectedBlockId,
+    selectedTarget,
     selectedBlock,
     isDirty,
     canUndo,
     canRedo,
     setBlocks,
     selectBlock,
+    selectPage,
+    selectBody,
+    clearSelection,
     insertBlock,
     moveBlock,
     deleteBlock,

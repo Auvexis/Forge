@@ -3,6 +3,7 @@
     <section
       class="web-page-canvas__body"
       :style="bodyStyles"
+      @click.self="$emit('select-body')"
       @dragover.prevent
       @drop="dropOnRoot"
     >
@@ -34,6 +35,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   select: [blockId: string]
+  'select-body': []
   'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string }]
   'drop-root': [payload: { tag?: PageBlockTag; draggedId?: string }]
 }>()

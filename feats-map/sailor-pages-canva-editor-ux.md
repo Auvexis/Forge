@@ -4,7 +4,7 @@ Source plan: `docs/superpowers/plans/2026-05-23-sailor-pages-canva-editor-ux.md`
 
 ## Tasks
 
-- [ ] Task 1: Selection Model for Page, Body, and Blocks
+- [x] Task 1: Selection Model for Page, Body, and Blocks
 - [ ] Task 2: Drag Prediction Indicators
 - [ ] Task 3: Collapsible Left and Right Panels
 - [ ] Task 4: Rich Element Tree Panel
@@ -28,4 +28,3 @@ Source plan: `docs/superpowers/plans/2026-05-23-sailor-pages-canva-editor-ux.md`
 - Page switcher uses `BaseModal` and page preview cards.
 - Add-page button below canvas creates a new page.
 - Focused tests, type-check, and build pass.
-
