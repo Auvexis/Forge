@@ -55,6 +55,17 @@ describe('block tree panel contract', () => {
     assert.match(editor, /@select-page="selectTreePage"/)
   })
 
+  it('tree can add pages and collapse expanded pages', () => {
+    const source = read('src/features/web-pages/components/BlockTreePanel.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /@click="\$emit\('add-page'\)"/)
+    assert.match(source, /togglePage/)
+    assert.match(source, /isPageExpanded/)
+    assert.match(source, /blocks\.length > 0/)
+    assert.match(editor, /@add-page="addPageBelowCanvas"/)
+  })
+
   it('tree exposes page and block actions through dropdown menus', () => {
     const source = read('src/features/web-pages/components/BlockTreePanel.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
@@ -64,6 +75,8 @@ describe('block tree panel contract', () => {
     assert.match(source, /delete-page/)
     assert.match(source, /duplicate-block/)
     assert.match(source, /delete-block/)
+    assert.match(source, /web-page-tree__action-menu/)
+    assert.doesNotMatch(source, /web-page-tree__row-action" @click\.stop/)
     assert.match(editor, /deletePageFromTree/)
     assert.match(editor, /deleteBlockFromTree/)
   })

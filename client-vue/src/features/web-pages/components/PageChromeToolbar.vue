@@ -23,11 +23,23 @@
         @click="$emit('command', item.id)"
       />
     </AppDropdownMenu>
+
+    <div class="web-page-chrome__divider"></div>
+    <BaseButton size="sm" variant="ghost" icon-left="save" @click="$emit('command', 'file.save')">
+      Save
+    </BaseButton>
+    <BaseButton size="sm" variant="ghost" icon-left="eye" @click="$emit('command', 'file.preview')">
+      Preview
+    </BaseButton>
+    <BaseButton size="sm" variant="ghost" icon-left="send" @click="$emit('command', 'file.publish')">
+      Publish
+    </BaseButton>
   </div>
 </template>
 
 <script setup lang="ts">
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 

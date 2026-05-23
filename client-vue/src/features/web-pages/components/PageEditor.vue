@@ -14,6 +14,7 @@
         :active-page-id="pagesStore.activePage?.id"
         :blocks="editorStore.blocks"
         :selected-block-id="editorStore.selectedBlockId"
+        @add-page="addPageBelowCanvas"
         @select-page="selectTreePage"
         @select="editorStore.selectBlock"
         @delete-page="deletePageFromTree"
@@ -130,6 +131,7 @@ const editorStore = usePageEditorStore()
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
 const isPageSwitcherOpen = ref(false)
+const editorPageId = ref<string | null>(null)
 
 const bodyStyleBlock = computed<PageBlock>(() => ({
   id: 'body',
@@ -177,6 +179,8 @@ async function openRoutePage(pageId: unknown) {
 watch(
   () => pagesStore.activePage,
   (page) => {
+    if (page?.id === editorPageId.value) return
+    editorPageId.value = page?.id ?? null
     editorStore.setBlocks(page?.blocks ?? [])
   },
   { immediate: true },
@@ -334,6 +338,8 @@ async function addPageBelowCanvas() {
   if (pagesStore.isDirty) await savePage()
   const page = await pagesStore.createPageAfterActive()
   await router.replace(`/pages/${page.id}`)
+  editorPageId.value = page.id
+  editorStore.setBlocks(page.blocks)
   editorStore.selectPage()
 }
 
@@ -358,9 +364,11 @@ function handleChromeCommand(command: PageChromeCommand) {
 
 async function savePage() {
   if (!pagesStore.activePage) return
+  const selection = editorStore.selectedTarget
   pagesStore.setActivePage({ ...pagesStore.activePage, blocks: editorStore.blocks })
   await pagesStore.saveActivePage()
   editorStore.markSaved()
+  restoreSelection(selection)
 }
 
 function previewPage() {
@@ -372,5 +380,11 @@ async function publishPage() {
   await savePage()
   const published = await pagesStore.publishActivePage()
   if (published) window.open(`/p/${published.slug}`, '_blank')
+}
+
+function restoreSelection(selection: typeof editorStore.selectedTarget) {
+  if (selection.type === 'page') editorStore.selectPage()
+  if (selection.type === 'body') editorStore.selectBody()
+  if (selection.type === 'block') editorStore.selectBlock(selection.blockId)
 }
 </script>

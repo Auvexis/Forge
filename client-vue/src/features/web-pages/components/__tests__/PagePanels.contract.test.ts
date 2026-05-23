@@ -73,4 +73,12 @@ describe('page editor panels contract', () => {
     assert.match(store, /duplicateActivePage/)
     assert.match(store, /deleteActivePageAndChooseNext/)
   })
+
+  it('editor does not reset inspector selection while saving or patching the same page', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /editorPageId/)
+    assert.match(source, /if \(page\?\.id === editorPageId\.value\) return/)
+    assert.match(source, /restoreSelection/)
+  })
 })

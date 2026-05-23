@@ -23,6 +23,9 @@
     <template v-else-if="block.tag === 'input'">
       <span>{{ block.props?.label || block.props?.name || 'Input' }}</span>
     </template>
+    <template v-else-if="(block.children ?? []).length === 0">
+      <span class="web-page-block__placeholder">{{ block.props?.label ?? block.tag }}</span>
+    </template>
     <BlockRenderer
       v-for="child in block.children ?? []"
       :key="child.id"

@@ -189,9 +189,14 @@
   padding: var(--sailor-space-3);
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
-  background: #ffffff;
+  background: var(--sailor-gray-50);
   color: inherit;
   cursor: grab;
+}
+
+.web-page-block__placeholder {
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
 }
 
 .web-page-block--selected {
@@ -347,6 +352,14 @@
   border-radius: var(--sailor-radius-sm);
   background: transparent;
   color: var(--sailor-text-secondary);
+}
+
+.web-page-tree__row-action:hover {
+  color: var(--sailor-text-primary);
+}
+
+.web-page-tree__action-menu .app-popover-trigger:hover {
+  background: transparent !important;
 }
 
 .web-page-tree__collapse:disabled {

@@ -28,4 +28,14 @@ describe('page chrome contract', () => {
     assert.match(source, /file\.preview/)
     assert.match(source, /file\.publish/)
   })
+
+  it('page chrome has direct save preview and publish ghost buttons', () => {
+    const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
+
+    assert.match(source, /BaseButton/)
+    assert.match(source, /variant="ghost"/)
+    assert.match(source, /Save/)
+    assert.match(source, /Preview/)
+    assert.match(source, /Publish/)
+  })
 })

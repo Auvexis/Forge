@@ -34,6 +34,15 @@ describe('page editor contract', () => {
     assert.match(source, /select/)
   })
 
+  it('empty container blocks still render a visible placeholder on the canvas', () => {
+    const source = read('src/features/web-pages/components/BlockRenderer.vue')
+    const styles = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /web-page-block__placeholder/)
+    assert.match(source, /block\.tag/)
+    assert.match(styles, /web-page-block__placeholder/)
+  })
+
   it('toolbar emits delete and duplicate', () => {
     const source = read('src/features/web-pages/components/BlockToolbar.vue')
 
