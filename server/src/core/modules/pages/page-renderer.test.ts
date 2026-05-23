@@ -1,0 +1,138 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
+import { renderPageBody, renderPageCss, renderPublishedPage } from "./page-renderer.ts";
+import type { PublishedPage } from "./page-types.ts";
+
+function publishedPage(overrides: Partial<PublishedPage> = {}): PublishedPage {
+  return {
+    id: "published_contact",
+    pageId: "page_contact",
+    profileId: "profile_a",
+    title: "Contact",
+    slug: "contact",
+    publishedAt: "2026-05-23T00:00:00.000Z",
+    blocks: [
+      {
+        id: "section_1",
+        tag: "section",
+        props: { ariaLabel: "Main" },
+        styles: { padding: "24px" },
+        children: [
+          { id: "text_1", tag: "text", props: { text: "Hello" }, children: [] },
+        ],
+      },
+    ],
+    ...overrides,
+  };
+}
+
+describe("page renderer", () => {
+  it("renders semantic block tree as HTML", () => {
+    const html = renderPageBody(publishedPage().blocks);
+
+    assert.match(html, /<section/);
+    assert.match(html, /Hello/);
+    assert.match(html, /<\/section>/);
+  });
+
+  it("escapes text, attributes, URLs, and custom class names", () => {
+    const html = renderPageBody([
+      {
+        id: "link_1",
+        tag: "link",
+        className: "safe-class bad<script>",
+        props: { href: "https://example.com?a=<bad>", text: "<Click>" },
+        children: [],
+      },
+    ]);
+
+    assert.match(html, /class="sailor-page-block sailor-block-link_1 safe-class"/);
+    assert.match(html, /&lt;Click&gt;/);
+    assert.match(html, /href="https:\/\/example.com\?a=&lt;bad&gt;"/);
+  });
+
+  it("omits unsupported props", () => {
+    const html = renderPageBody([
+      {
+        id: "button_1",
+        tag: "button",
+        props: { text: "Run", onclick: "alert(1)" } as any,
+        children: [],
+      },
+    ]);
+
+    assert.match(html, />Run<\/button>/);
+    assert.doesNotMatch(html, /onclick/);
+  });
+
+  it("includes sanitized per-block CSS only under generated block selectors", () => {
+    const css = renderPageCss(
+      publishedPage({
+        blocks: [
+          {
+            id: "section_1",
+            tag: "section",
+            styles: { padding: "24px", position: "fixed" } as any,
+            customCss: "color: red; background-image: url(javascript:alert(1));",
+            children: [],
+          },
+        ],
+      }),
+    );
+
+    assert.match(css, /\.sailor-block-section_1 \{/);
+    assert.match(css, /padding: 24px;/);
+    assert.match(css, /color: red;/);
+    assert.doesNotMatch(css, /position/);
+    assert.doesNotMatch(css, /javascript/);
+  });
+
+  it("renders forms with data-sailor-action-id", () => {
+    const html = renderPageBody([
+      {
+        id: "form_1",
+        tag: "form",
+        action: { id: "action_submit", type: "submitForm", formId: "form_contact" },
+        children: [],
+      },
+    ]);
+
+    assert.match(html, /<form/);
+    assert.match(html, /data-sailor-action-id="action_submit"/);
+  });
+
+  it("renders buttons with data-sailor-action-id", () => {
+    const html = renderPageBody([
+      {
+        id: "button_1",
+        tag: "button",
+        props: { text: "Run" },
+        action: { id: "action_run", type: "triggerWorkflow", workflowId: "workflow_1" },
+        children: [],
+      },
+    ]);
+
+    assert.match(html, /<button/);
+    assert.match(html, /data-sailor-action-id="action_run"/);
+  });
+
+  it("never renders script from page content", () => {
+    const html = renderPublishedPage(
+      publishedPage({
+        title: "<script>alert(1)</script>",
+        blocks: [
+          {
+            id: "text_1",
+            tag: "text",
+            props: { text: "<script>alert(1)</script>" },
+            children: [],
+          },
+        ],
+      }),
+    );
+
+    assert.doesNotMatch(html, /<script>alert/);
+    assert.match(html, /&lt;script&gt;alert/);
+  });
+});
