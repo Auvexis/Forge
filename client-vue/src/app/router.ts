@@ -59,15 +59,11 @@ const router = createRouter({
     },
     {
       path: '/plugin-creator',
-      name: 'plugin-creator',
-      component: () => import('@/app/pages/PluginCreatorPage.vue'),
-      meta: { title: 'Plugin Creator' },
+      redirect: '/workflows',
     },
     {
       path: '/plugin-creator/:pluginId',
-      name: 'plugin-creator-detail',
-      component: () => import('@/app/pages/PluginCreatorPage.vue'),
-      meta: { title: 'Plugin Creator' },
+      redirect: '/workflows',
     },
     {
       path: '/:pathMatch(.*)*',

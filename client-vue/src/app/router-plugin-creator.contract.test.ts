@@ -1,11 +1,18 @@
 import router from './router.ts'
 
-const paths = router.getRoutes().map((route) => route.path)
+const routes = router.getRoutes()
+const pluginCreatorRoutes = routes.filter((route) => route.path.startsWith('/plugin-creator'))
 
-if (!paths.includes('/plugin-creator')) {
-  throw new Error('Missing /plugin-creator route')
+if (pluginCreatorRoutes.length !== 2) {
+  throw new Error('Expected disabled Plugin Creator redirects for legacy URLs')
 }
 
-if (!paths.includes('/plugin-creator/:pluginId')) {
-  throw new Error('Missing /plugin-creator/:pluginId route')
+for (const route of pluginCreatorRoutes) {
+  if (route.redirect !== '/workflows') {
+    throw new Error(`Plugin Creator route ${route.path} must redirect to /workflows`)
+  }
+
+  if (route.components?.default) {
+    throw new Error(`Plugin Creator route ${route.path} must not load PluginCreatorPage`)
+  }
 }
