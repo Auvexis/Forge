@@ -21,7 +21,7 @@ Tasks:
 - [x] Task 7: Frontend API and types
 - [x] Task 8: Block tree utilities
 - [x] Task 9: Style and CSS sanitization utilities
-- [ ] Task 10: Form schema import utility
+- [x] Task 10: Form schema import utility
 - [ ] Task 11: Pages stores
 - [ ] Task 12: Page management UI
 - [ ] Task 13: Editor canvas and block renderer
