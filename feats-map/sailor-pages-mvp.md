@@ -29,7 +29,7 @@ Tasks:
 - [x] Task 15: Inspector panels
 - [x] Task 16: Form import panel
 - [x] Task 17: Preview and publish UX
-- [ ] Task 18: Published page runtime actions
+- [x] Task 18: Published page runtime actions
 - [ ] Task 19: Security hardening pass
 - [ ] Task 20: End-to-end smoke workflow
 - [ ] Task 21: Full verification and stabilization
