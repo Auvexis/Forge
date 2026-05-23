@@ -24,6 +24,18 @@ const router = createRouter({
       meta: { title: 'Editor' },
     },
     {
+      path: '/pages',
+      name: 'pages',
+      component: () => import('@/app/pages/PagesEditorPage.vue'),
+      meta: { title: 'Pages' },
+    },
+    {
+      path: '/pages/:pageId',
+      name: 'pages-editor',
+      component: () => import('@/app/pages/PagesEditorPage.vue'),
+      meta: { title: 'Pages' },
+    },
+    {
       path: '/forms-test/:formId',
       name: 'form-test',
       component: () => import('@/app/pages/FormPage.vue'),

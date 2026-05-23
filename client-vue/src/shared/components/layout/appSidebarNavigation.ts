@@ -43,6 +43,15 @@ export const sidebarSections: SidebarSection[] = [
         route: '/workflows',
       },
       {
+        id: 'pages',
+        label: 'Pages',
+        pageLabel: 'Pages',
+        description: 'Create and publish profile-scoped workflow-connected sites.',
+        icon: 'panel-top',
+        accent: '#60a5fa',
+        route: '/pages',
+      },
+      {
         id: 'monitoring',
         label: 'Monitoring',
         description: 'Monitor uptime, jobs, services, automations, and system health.',

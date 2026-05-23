@@ -24,6 +24,10 @@ describe('app sidebar navigation', () => {
       true,
     )
     assert.equal(
+      apps?.items.some((item) => item.id === 'pages'),
+      true,
+    )
+    assert.equal(
       spaces?.items.some((item) => item.id === 'universe'),
       true,
     )
@@ -33,6 +37,7 @@ describe('app sidebar navigation', () => {
     const items = sidebarSections.flatMap((section) => section.items)
 
     assert.match(items.find((item) => item.id === 'workflows')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
+    assert.match(items.find((item) => item.id === 'pages')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
     assert.match(items.find((item) => item.id === 'universe')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
     assert.equal(items.some((item) => item.id === 'plugin-creator'), false)
   })
@@ -41,6 +46,7 @@ describe('app sidebar navigation', () => {
     const items = sidebarSections.flatMap((section) => section.items)
 
     assert.equal(items.find((item) => item.id === 'workflows')?.route, '/workflows')
+    assert.equal(items.find((item) => item.id === 'pages')?.route, '/pages')
     assert.equal(items.find((item) => item.id === 'universe')?.route, '/universe')
     assert.equal(items.some((item) => item.route === '/plugin-creator'), false)
   })
@@ -91,6 +97,8 @@ describe('app sidebar navigation', () => {
   it('uses the active page label in the sidebar header', () => {
     assert.equal(sidebarPageLabelForPath('/workflows'), 'Workflow')
     assert.equal(sidebarPageLabelForPath('/workflows/example-id'), 'Workflow')
+    assert.equal(sidebarPageLabelForPath('/pages'), 'Pages')
+    assert.equal(sidebarPageLabelForPath('/pages/page_1'), 'Pages')
     assert.equal(sidebarPageLabelForPath('/universe'), 'Universe')
     assert.equal(sidebarPageLabelForPath('/plugin-creator'), 'Sailor')
   })
