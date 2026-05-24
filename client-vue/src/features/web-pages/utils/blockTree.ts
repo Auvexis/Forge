@@ -59,6 +59,18 @@ export function duplicateBlock(tree: PageBlock[], blockId: string): PageBlock[] 
   return insertBlock(tree, blockId, 'after', cloneWithNewIds(found.block))
 }
 
+export function renameBlockId(tree: PageBlock[], currentId: string, nextId: string): PageBlock[] {
+  const normalized = nextId.trim()
+  if (!normalized || normalized === currentId) return tree
+  if (findBlock(tree, normalized)) return tree
+
+  return tree.map((block) => ({
+    ...block,
+    id: block.id === currentId ? normalized : block.id,
+    children: renameBlockId(block.children ?? [], currentId, normalized),
+  }))
+}
+
 export function findBlock(
   tree: PageBlock[],
   blockId: string,

@@ -90,4 +90,16 @@ describe('block tree panel contract', () => {
     assert.match(source, /move-block/)
     assert.match(source, /position: dropPosition\(event, block\)/)
   })
+
+  it('tree supports editing a block id with double click', () => {
+    const source = read('src/features/web-pages/components/BlockTreePanel.vue')
+    const store = read('src/features/web-pages/stores/page-editor.store.ts')
+
+    assert.match(source, /@dblclick\.stop="startBlockIdEdit\(block\.id\)"/)
+    assert.match(source, /editingBlockId/)
+    assert.match(source, /draftBlockId/)
+    assert.match(source, /commitBlockId/)
+    assert.match(source, /web-page-tree__id-input/)
+    assert.match(store, /renameBlockId/)
+  })
 })

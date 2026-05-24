@@ -317,12 +317,30 @@
   margin-left: var(--sailor-space-1);
 }
 
-.web-page-tree__tag {
+.web-page-tree__tag,
+.web-page-tree__id,
+.web-page-tree__id-input {
   overflow: hidden;
   color: var(--sailor-text-muted);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.web-page-tree__id,
+.web-page-tree__id-input {
+  min-width: 0;
+  height: 20px;
+  padding: 0 var(--sailor-space-1);
+  border: 1px solid transparent;
+  border-radius: var(--sailor-radius-sm);
+  background: transparent;
+}
+
+.web-page-tree__id:hover,
+.web-page-tree__id-input {
+  border-color: var(--sailor-border);
+  background: var(--sailor-bg-surface);
 }
 
 .web-page-tree__main {

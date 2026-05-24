@@ -242,7 +242,7 @@ git commit -m "fix: support nested page element drops"
 - Modify: `client-vue/src/features/web-pages/components/BlockTreePanel.vue`
 - Modify/Test: `client-vue/src/features/web-pages/components/__tests__/BlockTreePanel.contract.test.ts`
 
-- [ ] **Step 1: Testar rename de ID único**
+- [x] **Step 1: Testar rename de ID único**
 
 Adicionar em `blockTree.test.ts`:
 
@@ -262,7 +262,7 @@ it('rejects duplicate block ids', () => {
 })
 ```
 
-- [ ] **Step 2: Implementar helper**
+- [x] **Step 2: Implementar helper**
 
 Em `blockTree.ts`:
 
@@ -280,7 +280,7 @@ export function renameBlockId(tree: PageBlock[], currentId: string, nextId: stri
 }
 ```
 
-- [ ] **Step 3: Store expõe renameBlockId**
+- [x] **Step 3: Store expõe renameBlockId**
 
 Em `page-editor.store.ts`, importar helper e adicionar:
 
@@ -300,7 +300,7 @@ function renameBlockId(blockId: string, nextId: string) {
 
 Retornar `renameBlockId`.
 
-- [ ] **Step 4: Tree mostra ID editável por duplo clique**
+- [x] **Step 4: Tree mostra ID editável por duplo clique**
 
 Em `BlockTreePanel.vue`, trocar área do ID/tag por chip de ID:
 
@@ -350,7 +350,7 @@ function commitBlockId(blockId: string) {
 }
 ```
 
-- [ ] **Step 5: CSS**
+- [x] **Step 5: CSS**
 
 Adicionar em `pages.css`:
 
@@ -373,7 +373,7 @@ Adicionar em `pages.css`:
 }
 ```
 
-- [ ] **Step 6: Rodar testes**
+- [x] **Step 6: Rodar testes**
 
 Run:
 
@@ -386,7 +386,7 @@ npm exec tsx src/features/web-pages/components/__tests__/BlockTreePanel.contract
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add client-vue/src/features/web-pages/utils/blockTree.ts client-vue/src/features/web-pages/utils/__tests__/blockTree.test.ts client-vue/src/features/web-pages/stores/page-editor.store.ts client-vue/src/features/web-pages/stores/__tests__/page-editor.store.test.ts client-vue/src/features/web-pages/components/BlockTreePanel.vue client-vue/src/features/web-pages/components/__tests__/BlockTreePanel.contract.test.ts client-vue/src/features/web-pages/pages.css feats-map/sailor-pages-floating-toolbar-dnd-sites-grid.md

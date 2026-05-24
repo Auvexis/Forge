@@ -7,6 +7,7 @@ import {
   findBlock,
   insertBlock,
   moveBlock,
+  renameBlockId,
 } from '../blockTree.ts'
 import { createBlock } from '../createBlock.ts'
 import type { PageBlock } from '../../types/page.types.ts'
@@ -103,5 +104,17 @@ describe('block tree utilities', () => {
 
     assert.equal(found?.block.id, 'text_1')
     assert.deepEqual(found?.path, [0, 0])
+  })
+
+  it('renames a block id when the next id is unique', () => {
+    const result = renameBlockId(tree(), 'text_1', 'hero_title')
+
+    assert.equal(result[0]?.children?.[0]?.id, 'hero_title')
+  })
+
+  it('rejects duplicate block ids', () => {
+    const result = renameBlockId(tree(), 'text_1', 'footer_1')
+
+    assert.deepEqual(result, tree())
   })
 })

@@ -8,6 +8,7 @@ import {
   insertBlock as insertTreeBlock,
   type InsertPosition,
   moveBlock as moveTreeBlock,
+  renameBlockId as renameTreeBlockId,
 } from '../utils/blockTree.ts'
 import type { PageBlock } from '../types/page.types.ts'
 
@@ -118,6 +119,20 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     })
   }
 
+  function renameBlockId(blockId: string, nextId: string) {
+    const normalized = nextId.trim()
+    if (!normalized) return false
+    if (findTreeBlock(blocks.value, normalized)) return false
+
+    mutate(() => {
+      blocks.value = renameTreeBlockId(blocks.value, blockId, normalized)
+      selectedBlockId.value = normalized
+      selectedTarget.value = { type: 'block', blockId: normalized }
+    })
+
+    return true
+  }
+
   function patchBlock(blockId: string, patch: Partial<PageBlock>) {
     mutate(() => {
       const match = findTreeBlock(blocks.value, blockId)?.block
@@ -178,6 +193,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     moveBlock,
     deleteBlock,
     duplicateBlock,
+    renameBlockId,
     patchBlock,
     undo,
     redo,

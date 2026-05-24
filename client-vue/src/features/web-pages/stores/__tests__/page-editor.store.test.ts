@@ -62,4 +62,23 @@ describe('page editor store', () => {
     assert.equal(store.selectedBlock, selected)
     assert.equal(store.selectedBlock?.props?.label, 'Hero')
   })
+
+  it('renames selected block ids and rejects duplicates', () => {
+    const store = usePageEditorStore()
+    store.setBlocks([
+      {
+        id: 'section_1',
+        tag: 'section',
+        children: [{ id: 'text_1', tag: 'text', children: [] }],
+      },
+      { id: 'footer_1', tag: 'footer', children: [] },
+    ])
+
+    assert.equal(store.renameBlockId('text_1', 'hero_title'), true)
+    assert.equal(store.selectedBlockId, 'hero_title')
+    assert.equal(store.blocks[0]?.children?.[0]?.id, 'hero_title')
+
+    assert.equal(store.renameBlockId('hero_title', 'footer_1'), false)
+    assert.equal(store.blocks[0]?.children?.[0]?.id, 'hero_title')
+  })
 })

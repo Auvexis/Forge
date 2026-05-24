@@ -77,7 +77,25 @@
         </span>
         <span class="web-page-tree__main">
           <span class="web-page-tree__name">{{ blockDisplayName(block) }}</span>
-          <span class="web-page-tree__tag">{{ block.tag }}</span>
+          <input
+            v-if="editingBlockId === block.id"
+            v-model="draftBlockId"
+            class="web-page-tree__id-input"
+            @click.stop
+            @keydown.enter.prevent="commitBlockId(block.id)"
+            @keydown.esc.prevent="cancelBlockIdEdit"
+            @blur="commitBlockId(block.id)"
+          />
+          <button
+            v-else
+            type="button"
+            class="web-page-tree__id"
+            title="Double click to edit ID"
+            @click.stop="$emit('select', block.id)"
+            @dblclick.stop="startBlockIdEdit(block.id)"
+          >
+            {{ block.id }}
+          </button>
         </span>
         <span class="web-page-tree__status" aria-hidden="true"></span>
         <span class="web-page-tree__action-menu" @click.stop>
@@ -132,6 +150,8 @@ const props = withDefaults(defineProps<{
 
 const editorStore = usePageEditorStore()
 const collapsedPageIds = ref<Record<string, boolean>>({})
+const editingBlockId = ref<string | null>(null)
+const draftBlockId = ref('')
 
 const emit = defineEmits<{
   'add-page': []
@@ -163,6 +183,23 @@ function togglePage(pageId: string) {
     ...collapsedPageIds.value,
     [pageId]: !collapsedPageIds.value[pageId],
   }
+}
+
+function startBlockIdEdit(blockId: string) {
+  editingBlockId.value = blockId
+  draftBlockId.value = blockId
+}
+
+function cancelBlockIdEdit() {
+  editingBlockId.value = null
+  draftBlockId.value = ''
+}
+
+function commitBlockId(blockId: string) {
+  if (draftBlockId.value.trim() && draftBlockId.value.trim() !== blockId) {
+    editorStore.renameBlockId(blockId, draftBlockId.value)
+  }
+  cancelBlockIdEdit()
 }
 
 function onDragStart(event: DragEvent, blockId: string) {
