@@ -21,6 +21,7 @@
         @duplicate-page="duplicatePageFromTree"
         @delete-block="deleteBlockFromTree"
         @duplicate-block="duplicateBlockFromTree"
+        @move-block="moveBlockFromTree"
       />
     </AppPanel>
 
@@ -332,6 +333,10 @@ function deleteBlockFromTree(blockId: string) {
 
 function duplicateBlockFromTree(blockId: string) {
   editorStore.duplicateBlock(blockId)
+}
+
+function moveBlockFromTree(payload: { targetId: string; position: InsertPosition; draggedId: string }) {
+  editorStore.moveBlock(payload.draggedId, payload.targetId, payload.position)
 }
 
 async function addPageBelowCanvas() {

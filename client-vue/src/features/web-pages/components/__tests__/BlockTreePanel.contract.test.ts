@@ -80,4 +80,14 @@ describe('block tree panel contract', () => {
     assert.match(editor, /deletePageFromTree/)
     assert.match(editor, /deleteBlockFromTree/)
   })
+
+  it('tree rows support dropping blocks before, inside and after another block', () => {
+    const source = read('src/features/web-pages/components/BlockTreePanel.vue')
+
+    assert.match(source, /@dragover\.prevent/)
+    assert.match(source, /@drop\.prevent/)
+    assert.match(source, /dropPosition/)
+    assert.match(source, /move-block/)
+    assert.match(source, /position: dropPosition\(event, block\)/)
+  })
 })

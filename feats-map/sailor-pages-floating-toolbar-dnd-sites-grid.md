@@ -83,7 +83,7 @@ git commit -m "docs: plan sailor pages dnd toolbar improvements"
 - Modify: `client-vue/src/features/web-pages/components/PageEditor.vue`
 - Modify/Test: `client-vue/src/features/web-pages/components/__tests__/BlockTreePanel.contract.test.ts`
 
-- [ ] **Step 1: Escrever teste de move inside entre níveis**
+- [x] **Step 1: Escrever teste de move inside entre níveis**
 
 Adicionar em `blockTree.test.ts`:
 
@@ -96,7 +96,7 @@ it('moves a sibling inside a container', () => {
 })
 ```
 
-- [ ] **Step 2: Escrever teste de insert inside em container aninhado**
+- [x] **Step 2: Escrever teste de insert inside em container aninhado**
 
 Adicionar:
 
@@ -116,7 +116,7 @@ it('inserts inside a nested container', () => {
 })
 ```
 
-- [ ] **Step 3: Rodar teste e confirmar falha/reprodução**
+- [x] **Step 3: Rodar teste e confirmar falha/reprodução**
 
 Run:
 
@@ -127,7 +127,7 @@ npm exec tsx src/features/web-pages/utils/__tests__/blockTree.test.ts
 
 Expected: se já passar, bug está na UI. Continuar para Tree/Canvas.
 
-- [ ] **Step 4: Adicionar contrato para Tree aceitar drop before/inside/after**
+- [x] **Step 4: Adicionar contrato para Tree aceitar drop before/inside/after**
 
 Adicionar em `BlockTreePanel.contract.test.ts`:
 
@@ -143,7 +143,7 @@ it('tree rows support dropping blocks before, inside and after another block', (
 })
 ```
 
-- [ ] **Step 5: Implementar emits de drop na Tree**
+- [x] **Step 5: Implementar emits de drop na Tree**
 
 Em `BlockTreePanel.vue`:
 
@@ -191,7 +191,7 @@ function dropPosition(event: DragEvent, block: PageBlock): InsertPosition {
 
 Obs: no código final, `emit` deve ser salvo em `const emit = defineEmits...`.
 
-- [ ] **Step 6: Propagar move-block em recursão e PageEditor**
+- [x] **Step 6: Propagar move-block em recursão e PageEditor**
 
 Em todos os `<BlockTreePanel ...>` filhos, adicionar:
 
@@ -213,7 +213,7 @@ function moveBlockFromTree(payload: { targetId: string; position: InsertPosition
 }
 ```
 
-- [ ] **Step 7: Rodar testes**
+- [x] **Step 7: Rodar testes**
 
 Run:
 
@@ -225,7 +225,7 @@ npm exec tsx src/features/web-pages/components/__tests__/BlockTreePanel.contract
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```powershell
 git add client-vue/src/features/web-pages/utils/blockTree.ts client-vue/src/features/web-pages/utils/__tests__/blockTree.test.ts client-vue/src/features/web-pages/stores/page-editor.store.ts client-vue/src/features/web-pages/components/BlockTreePanel.vue client-vue/src/features/web-pages/components/PageEditor.vue client-vue/src/features/web-pages/components/__tests__/BlockTreePanel.contract.test.ts feats-map/sailor-pages-floating-toolbar-dnd-sites-grid.md

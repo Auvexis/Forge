@@ -56,6 +56,27 @@ describe('block tree utilities', () => {
     assert.equal(result[1]?.children?.[0]?.id, 'text_1')
   })
 
+  it('moves a sibling inside a container', () => {
+    const result = moveBlock(tree(), 'footer_1', 'section_1', 'inside')
+
+    assert.deepEqual(result.map((block) => block.id), ['section_1'])
+    assert.deepEqual(result[0]?.children?.map((block) => block.id), ['text_1', 'footer_1'])
+  })
+
+  it('inserts inside a nested container', () => {
+    const nested: PageBlock[] = [
+      {
+        id: 'section_1',
+        tag: 'section',
+        children: [{ id: 'div_1', tag: 'div', children: [] }],
+      },
+    ]
+
+    const result = insertBlock(nested, 'div_1', 'inside', createBlock('text', 'text_2'))
+
+    assert.deepEqual(result[0]?.children?.[0]?.children?.map((block) => block.id), ['text_2'])
+  })
+
   it('prevents moving a block inside itself or descendant', () => {
     const result = moveBlock(tree(), 'section_1', 'text_1', 'inside')
 

@@ -47,6 +47,7 @@
             @add-page="$emit('add-page')"
             @delete-block="$emit('delete-block', $event)"
             @duplicate-block="$emit('duplicate-block', $event)"
+            @move-block="$emit('move-block', $event)"
           />
         </div>
       </div>
@@ -59,6 +60,8 @@
         draggable="true"
         role="treeitem"
         @dragstart="onDragStart($event, block.id)"
+        @dragover.prevent="onDragOver($event)"
+        @drop.prevent="onDrop($event, block)"
         @click="$emit('select', block.id)"
       >
         <button
@@ -101,6 +104,7 @@
           @add-page="$emit('add-page')"
           @delete-block="$emit('delete-block', $event)"
           @duplicate-block="$emit('duplicate-block', $event)"
+          @move-block="$emit('move-block', $event)"
         />
       </div>
     </div>
@@ -113,7 +117,7 @@ import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMen
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 import { ref, watch } from 'vue'
 import type { PageBlock, SailorPageSummary } from '../types/page.types.ts'
-import { blockChildCount, blockDisplayName } from '../utils/blockTree.ts'
+import { blockChildCount, blockDisplayName, type InsertPosition } from '../utils/blockTree.ts'
 import { usePageEditorStore } from '../stores/page-editor.store.ts'
 
 const props = withDefaults(defineProps<{
@@ -129,7 +133,7 @@ const props = withDefaults(defineProps<{
 const editorStore = usePageEditorStore()
 const collapsedPageIds = ref<Record<string, boolean>>({})
 
-defineEmits<{
+const emit = defineEmits<{
   'add-page': []
   select: [blockId: string]
   'select-page': [pageId: string]
@@ -137,6 +141,7 @@ defineEmits<{
   'duplicate-page': [pageId: string]
   'delete-block': [blockId: string]
   'duplicate-block': [blockId: string]
+  'move-block': [payload: { targetId: string; position: InsertPosition; draggedId: string }]
 }>()
 
 watch(
@@ -165,6 +170,29 @@ function onDragStart(event: DragEvent, blockId: string) {
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
 }
 
+function onDragOver(event: DragEvent) {
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+}
+
+function onDrop(event: DragEvent, block: PageBlock) {
+  const raw = event.dataTransfer?.getData('application/x-sailor-page-block')
+  if (!raw) return
+
+  const parsed = JSON.parse(raw) as { blockId?: string }
+  if (!parsed.blockId) return
+
+  emit('move-block', { targetId: block.id, position: dropPosition(event, block), draggedId: parsed.blockId })
+}
+
+function dropPosition(event: DragEvent, block: PageBlock): InsertPosition {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const ratio = (event.clientY - rect.top) / rect.height
+
+  if (ratio < 0.25) return 'before'
+  if (ratio > 0.75) return 'after'
+  return isContainer(block) ? 'inside' : 'after'
+}
+
 function iconFor(block: PageBlock): string {
   if (block.tag === 'image') return 'image'
   if (block.tag === 'form') return 'clipboard-list'
@@ -173,5 +201,9 @@ function iconFor(block: PageBlock): string {
   if (block.tag === 'link') return 'link'
   if (block.tag === 'text') return 'type'
   return 'hash'
+}
+
+function isContainer(block: PageBlock): boolean {
+  return ['header', 'section', 'div', 'footer', 'form'].includes(block.tag)
 }
 </script>
