@@ -1,9 +1,16 @@
 <template>
-  <main class="web-page-canvas">
+  <main
+    class="web-page-canvas"
+    :class="{
+      'web-page-canvas--active-tool-cursor': !props.activeTool || props.activeTool === 'cursor',
+      'web-page-canvas--active-tool-delete': props.activeTool === 'delete',
+      'web-page-canvas--active-tool-pan': props.activeTool === 'pan',
+    }"
+  >
     <section
       class="web-page-canvas__body"
       :style="bodyStyles"
-      @click.self="$emit('select-body')"
+      @click.self="handleBodyClick"
       @dragover.prevent="onRootDragOver"
       @dragleave="$emit('clear-drag-intent')"
       @drop="dropOnRoot"
@@ -22,7 +29,7 @@
         :selected-block-id="selectedBlockId"
         :drop-intent="dropIntent"
         :readonly="readonly"
-        @select="$emit('select', $event)"
+        @select="handleBlockSelect"
         @drop-block="$emit('drop-block', $event)"
         @drag-intent="$emit('drag-intent', $event)"
         @duplicate-block="$emit('duplicate-block', $event)"
@@ -45,6 +52,7 @@ const props = defineProps<{
   dropIntent?: { targetId: string | 'root'; position: InsertPosition; dropEdge?: DropEdge } | null
   bodyStyles?: Record<string, string | number>
   readonly?: boolean
+  activeTool?: 'cursor' | 'pan' | 'delete'
 }>()
 
 const emit = defineEmits<{
@@ -66,6 +74,20 @@ function dropOnRoot(event: DragEvent) {
   if (!payload) return
   emit('drop-root', payload)
   emit('clear-drag-intent')
+}
+
+function handleBlockSelect(blockId: string) {
+  if (props.activeTool === 'delete') {
+    emit('delete-block', blockId)
+    return
+  }
+  if (props.activeTool === 'pan') return
+  emit('select', blockId)
+}
+
+function handleBodyClick() {
+  if (props.activeTool === 'pan' || props.activeTool === 'delete') return
+  emit('select-body')
 }
 
 function onRootDragOver(event: DragEvent) {

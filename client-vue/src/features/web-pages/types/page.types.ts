@@ -64,6 +64,7 @@ export interface SailorPageSummary {
   title: string
   slug: string
   updatedAt: string
+  publishedAt?: string | null
 }
 
 export interface CreatePagePayload {

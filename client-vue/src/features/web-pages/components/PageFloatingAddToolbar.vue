@@ -6,16 +6,70 @@
     aria-label="Add elements"
   >
     <BaseButton
-      v-for="tool in tools"
-      :key="tool.tag"
+      v-for="tool in modeTools"
+      :key="tool.id"
       class="web-page-floating-add-toolbar__tool"
-      draggable="true"
+      :class="{ 'web-page-floating-add-toolbar__tool--active': modelValue === tool.id }"
       variant="ghost"
       size="icon"
       :icon-left="tool.icon"
       :title="tool.label"
       :data-tooltip="tool.label"
-      @dragstart="onDragStart($event, tool.tag)"
+      @click="selectMode(tool.id)"
+    />
+    <span class="web-page-floating-add-toolbar__divider" />
+    <BaseToolDropdown
+      dropdown-id="layout"
+      label="Layout"
+      icon="layout-template"
+      hint="div header footer section"
+      :tools="layoutTools"
+      :active-dropdown-id="activeDropdownId"
+      :is-any-dropdown-open="activeDropdownId !== null"
+      position="top"
+      @open="activeDropdownId = $event"
+      @close="closeDropdown"
+      @select="startInsertFromClick"
+      @dragstart="onToolDragStart"
+    />
+    <BaseToolDropdown
+      dropdown-id="form"
+      label="Form"
+      icon="clipboard-list"
+      hint="input button form"
+      :tools="formTools"
+      :active-dropdown-id="activeDropdownId"
+      :is-any-dropdown-open="activeDropdownId !== null"
+      position="top"
+      @open="activeDropdownId = $event"
+      @close="closeDropdown"
+      @select="startInsertFromClick"
+      @dragstart="onToolDragStart"
+    />
+    <BaseToolDropdown
+      dropdown-id="content"
+      label="Content"
+      icon="type"
+      hint="text image link"
+      :tools="contentTools"
+      :active-dropdown-id="activeDropdownId"
+      :is-any-dropdown-open="activeDropdownId !== null"
+      position="top"
+      @open="activeDropdownId = $event"
+      @close="closeDropdown"
+      @select="startInsertFromClick"
+      @dragstart="onToolDragStart"
+    />
+    <span class="web-page-floating-add-toolbar__divider" />
+    <BaseButton
+      class="web-page-floating-add-toolbar__tool"
+      draggable="true"
+      variant="ghost"
+      size="icon"
+      icon-left="plus"
+      title="Quick text"
+      data-tooltip="Quick text"
+      @dragstart="onDragStart($event, 'text')"
     />
     <BaseButton
       class="web-page-floating-add-toolbar__move"
@@ -32,36 +86,59 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseToolDropdown, { type BaseToolDropdownItem } from '@/shared/components/base/BaseToolDropdown.vue'
 import type { PageBlockTag } from '../types/page.types.ts'
 
 const props = withDefaults(
   defineProps<{
+    modelValue?: PageCanvasTool
     leftPanelOpen?: boolean
     rightPanelOpen?: boolean
   }>(),
   {
+    modelValue: 'cursor',
     leftPanelOpen: true,
     rightPanelOpen: true,
   },
 )
 
-const tools: Array<{ tag: PageBlockTag; icon: string; label: string }> = [
-  { tag: 'header', icon: 'panel-top', label: 'Header' },
-  { tag: 'section', icon: 'layout-template', label: 'Section' },
-  { tag: 'div', icon: 'box', label: 'Div' },
-  { tag: 'text', icon: 'type', label: 'Text' },
-  { tag: 'button', icon: 'square-mouse-pointer', label: 'Button' },
-  { tag: 'input', icon: 'text-cursor-input', label: 'Input' },
-  { tag: 'form', icon: 'clipboard-list', label: 'Form' },
-  { tag: 'image', icon: 'image', label: 'Image' },
-  { tag: 'link', icon: 'link', label: 'Link' },
-  { tag: 'footer', icon: 'panel-bottom', label: 'Footer' },
+const emit = defineEmits<{
+  'update:modelValue': [value: PageCanvasTool]
+}>()
+
+type Tool = BaseToolDropdownItem & { tag: PageBlockTag }
+type PageCanvasTool = 'cursor' | 'pan' | 'delete'
+
+const modeTools: { id: PageCanvasTool; icon: string; label: string }[] = [
+  { id: 'cursor', icon: 'mouse-pointer-2', label: 'Cursor' },
+  { id: 'pan', icon: 'hand', label: 'Pan' },
+  { id: 'delete', icon: 'trash-2', label: 'Delete' },
+]
+
+const layoutTools: Tool[] = [
+  { id: 'header', tag: 'header', icon: 'panel-top', label: 'Header' },
+  { id: 'section', tag: 'section', icon: 'layout-template', label: 'Section' },
+  { id: 'div', tag: 'div', icon: 'box', label: 'Div' },
+  { id: 'footer', tag: 'footer', icon: 'panel-bottom', label: 'Footer' },
+]
+
+const formTools: Tool[] = [
+  { id: 'input', tag: 'input', icon: 'text-cursor-input', label: 'Input' },
+  { id: 'button', tag: 'button', icon: 'square-mouse-pointer', label: 'Button' },
+  { id: 'form', tag: 'form', icon: 'clipboard-list', label: 'Form' },
+]
+
+const contentTools: Tool[] = [
+  { id: 'text', tag: 'text', icon: 'type', label: 'Text' },
+  { id: 'image', tag: 'image', icon: 'image', label: 'Image' },
+  { id: 'link', tag: 'link', icon: 'link', label: 'Link' },
 ]
 
 const toolbarRef = ref<HTMLElement | null>(null)
 const position = ref<{ left: number; top: number } | null>(null)
 const isMoving = ref(false)
 const dragOffset = ref({ x: 0, y: 0 })
+const activeDropdownId = ref<string | null>(null)
 
 const toolbarStyle = computed(() => {
   if (!position.value) return undefined
@@ -96,6 +173,28 @@ function onDragStart(event: DragEvent, tag: PageBlockTag) {
   event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ tag }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
   setDragPreview(event, tag)
+}
+
+function onToolDragStart(event: DragEvent, tool: BaseToolDropdownItem) {
+  onDragStart(event, tool.id as PageBlockTag)
+}
+
+function startInsertFromClick(tool: BaseToolDropdownItem) {
+  emit('update:modelValue', 'cursor')
+  const tag = tool.id as PageBlockTag
+  const preview = document.createElement('div')
+  preview.className = 'web-page-drag-preview'
+  preview.textContent = tag
+  window.setTimeout(() => preview.remove(), 0)
+}
+
+function selectMode(mode: PageCanvasTool) {
+  emit('update:modelValue', mode)
+  activeDropdownId.value = null
+}
+
+function closeDropdown(id: string) {
+  if (activeDropdownId.value === id) activeDropdownId.value = null
 }
 
 function onMoveStart(event: PointerEvent) {

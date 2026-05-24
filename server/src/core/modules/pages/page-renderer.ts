@@ -152,6 +152,11 @@ function renderAttributes(block: PageBlock): string {
 
   if (block.action && (block.tag === "form" || block.tag === "button")) {
     attrs["data-sailor-action-id"] = block.action.id;
+    attrs["data-sailor-action-type"] = block.action.type;
+    if (block.action.type === "openUrl" && isSafeLinkUrl(block.action.url)) {
+      attrs.href = block.action.url;
+      attrs.target = block.action.target ?? "_blank";
+    }
   }
 
   return Object.entries(attrs)
@@ -191,7 +196,66 @@ function formatCustomCss(block: PageBlock): string[] {
 
 function renderPageJs(page: PublishedPage): string {
   const scripts = page.blocks.flatMap((block) => collectBlockJs(block));
-  return scripts.join("\n");
+  const actionRuntime = hasPageActions(page.blocks) ? renderActionRuntime(page.slug) : "";
+  return [actionRuntime, ...scripts].filter(Boolean).join("\n");
+}
+
+function hasPageActions(blocks: PageBlock[]): boolean {
+  return blocks.some((block) => block.action || hasPageActions(block.children ?? []));
+}
+
+function renderActionRuntime(slug: string): string {
+  return [
+    `;(() => {`,
+    `  const slug = ${JSON.stringify(slug)};`,
+    `  let pendingActionId = "";`,
+    `  let executionId = "";`,
+    `  let runtimeError = "";`,
+    `  const status = document.createElement("div");`,
+    `  status.setAttribute("data-sailor-runtime-status", "");`,
+    `  document.body.appendChild(status);`,
+    `  function updateStatus() {`,
+    `    status.textContent = runtimeError || (executionId ? "Accepted: " + executionId : "");`,
+    `  }`,
+    `  async function submitAction(actionId, payload) {`,
+    `    pendingActionId = actionId;`,
+    `    runtimeError = "";`,
+    `    executionId = "";`,
+    `    updateStatus();`,
+    `    try {`,
+    `      const response = await fetch("/p/" + encodeURIComponent(slug) + "/actions/" + encodeURIComponent(actionId), {`,
+    `        method: "POST",`,
+    `        headers: { "content-type": "application/json" },`,
+    `        body: JSON.stringify(payload),`,
+    `      });`,
+    `      const body = await response.json();`,
+    `      if (!response.ok) throw new Error(body?.error || body?.message || "Action failed");`,
+    `      executionId = body?.data?.executionId || "";`,
+    `    } catch (error) {`,
+    `      runtimeError = error instanceof Error ? error.message : "Action failed";`,
+    `    } finally {`,
+    `      pendingActionId = "";`,
+    `      updateStatus();`,
+    `    }`,
+    `  }`,
+    `  document.addEventListener("submit", (event) => {`,
+    `    const form = event.target;`,
+    `    const actionId = form?.dataset?.sailorActionId;`,
+    `    if (!actionId) return;`,
+    `    event.preventDefault();`,
+    `    submitAction(actionId, Object.fromEntries(new FormData(form).entries()));`,
+    `  });`,
+    `  document.addEventListener("click", (event) => {`,
+    `    const actionElement = event.target?.closest?.("[data-sailor-action-id]");`,
+    `    if (!actionElement || actionElement.tagName.toLowerCase() === "form") return;`,
+    `    const actionId = actionElement.dataset.sailorActionId;`,
+    `    if (!actionId) return;`,
+    `    if (actionElement.dataset.sailorActionType === "openUrl") return;`,
+    `    event.preventDefault();`,
+    `    submitAction(actionId, {});`,
+    `  });`,
+    `})();`,
+  ].join("\n");
 }
 
 function collectBlockJs(block: PageBlock): string[] {

@@ -179,6 +179,9 @@ export const usePagesStore = defineStore('web-pages', () => {
     if (!activePage.value) return null
     const published = await apiClient.value.publishPage(activePage.value.id)
     lastPublished.value = published
+    pages.value = pages.value.map((page) =>
+      page.id === published.pageId ? { ...page, publishedAt: published.publishedAt } : page,
+    )
     return published
   }
 
@@ -194,6 +197,7 @@ export const usePagesStore = defineStore('web-pages', () => {
       title: page.title,
       slug: page.slug,
       updatedAt: page.updatedAt,
+      publishedAt: pages.value.find((item) => item.id === page.id)?.publishedAt ?? null,
     }
     const index = pages.value.findIndex((item) => item.id === page.id)
     if (index === -1) pages.value = [summary, ...pages.value]

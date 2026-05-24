@@ -8,10 +8,11 @@ function read(relativePath: string) {
 }
 
 describe('page preview and publish contract', () => {
-  it('router exposes preview and published routes', () => {
+  it('router does not capture page preview or published site routes', () => {
     const source = read('src/app/router.ts')
-    assert.match(source, /\/pages\/:pageId\/preview/)
-    assert.match(source, /\/p\/:slug/)
+    assert.doesNotMatch(source, /\/pages\/:pageId\/preview/)
+    assert.doesNotMatch(source, /\/p\/:slug/)
+    assert.doesNotMatch(source, /PublicSailorPage/)
   })
 
   it('editor has preview and publish commands', () => {
@@ -21,10 +22,27 @@ describe('page preview and publish contract', () => {
     assert.match(source, /publishActivePage/)
   })
 
-  it('public page route loads published HTML safely', () => {
-    const source = read('src/app/pages/PublicSailorPage.vue')
-    assert.match(source, /fetch/)
-    assert.match(source, /v-html/)
+  it('editor opens preview and live site through backend URLs outside Vue router', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /API_BASE_URL/)
+    assert.match(source, /ENDPOINTS\.PAGE_PREVIEW/)
+    assert.match(source, /ENDPOINTS\.PUBLISHED_PAGE/)
+    assert.match(source, /openLivePage/)
+    assert.doesNotMatch(source, /window\.open\(`\/p\//)
+  })
+
+  it('pages list and editor expose publication status', () => {
+    const list = read('src/features/web-pages/components/PagesList.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const toolbar = read('src/features/web-pages/components/PageChromeToolbar.vue')
+
+    assert.match(list, /publishedAt/)
+    assert.match(list, /web-pages-list__status/)
+    assert.match(editor, /publishedAt/)
+    assert.match(toolbar, /publishedAt/)
+    assert.match(toolbar, /web-page-chrome__publish-status/)
+    assert.match(toolbar, /file\.openLive/)
   })
 
   it('editor block rendering does not use v-html', () => {

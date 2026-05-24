@@ -27,6 +27,27 @@ describe('page editor contract', () => {
     assert.doesNotMatch(source, /\by:/)
   })
 
+  it('editor clears selection when clicking empty workspace and supports pan tool panning', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /@click\.self="clearEditorSelection"/)
+    assert.match(source, /editorStore\.clearSelection\(\)/)
+    assert.match(source, /activeTool === 'pan'/)
+    assert.match(source, /startWorkspacePan/)
+    assert.match(source, /panStart/)
+    assert.match(css, /web-page-editor__workspace--pan/)
+    assert.match(css, /cursor:\s*grab/)
+  })
+
+  it('canvas active tools override block cursor feedback', () => {
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(css, /web-page-canvas--active-tool-cursor/)
+    assert.match(css, /web-page-canvas--active-tool-pan[\s\S]*\.web-page-block/)
+    assert.match(css, /web-page-canvas--active-tool-delete[\s\S]*cursor:\s*url\(/)
+  })
+
   it('block renderer recursively renders children and emits selection', () => {
     const source = read('src/features/web-pages/components/BlockRenderer.vue')
 

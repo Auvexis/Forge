@@ -150,4 +150,12 @@ export const PageRepository = {
 
     return row ? (JSON.parse(row.snapshot) as PublishedPage) : null;
   },
+
+  getPublishedPageByPageId(profileId: string, pageId: string): PublishedPage | null {
+    const row = getPageDatabase()
+      .prepare(`SELECT snapshot FROM published_pages WHERE profile_id = ? AND page_id = ? ORDER BY published_at DESC LIMIT 1`)
+      .get(profileId, pageId) as { snapshot: string } | undefined;
+
+    return row ? (JSON.parse(row.snapshot) as PublishedPage) : null;
+  },
 };

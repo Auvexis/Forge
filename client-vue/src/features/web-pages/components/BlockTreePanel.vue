@@ -81,7 +81,10 @@
             v-if="editingBlockId === block.id"
             v-model="draftBlockId"
             class="web-page-tree__id-input"
+            autofocus
             @click.stop
+            @mousedown.stop
+            @keydown.stop
             @keydown.enter.prevent="commitBlockId(block.id)"
             @keydown.esc.prevent="cancelBlockIdEdit"
             @blur="commitBlockId(block.id)"
@@ -91,6 +94,7 @@
             type="button"
             class="web-page-tree__id"
             title="Double click to edit ID"
+            @mousedown.stop
             @click.stop="$emit('select', block.id)"
             @dblclick.stop="startBlockIdEdit(block.id)"
           >
@@ -196,10 +200,15 @@ function cancelBlockIdEdit() {
 }
 
 function commitBlockId(blockId: string) {
-  if (draftBlockId.value.trim() && draftBlockId.value.trim() !== blockId) {
-    editorStore.renameBlockId(blockId, draftBlockId.value)
+  const nextId = normalizeDraftBlockId(draftBlockId.value)
+  if (nextId && nextId !== blockId) {
+    editorStore.renameBlockId(blockId, nextId)
   }
   cancelBlockIdEdit()
+}
+
+function normalizeDraftBlockId(value: string) {
+  return value.trim().replace(/\s+/g, '_')
 }
 
 function onDragStart(event: DragEvent, blockId: string) {

@@ -130,6 +130,29 @@ describe("page renderer", () => {
     assert.match(html, /data-sailor-action-id="action_submit"/);
   });
 
+  it("renders action runtime inside the standalone HTML document", () => {
+    const html = renderPublishedPage(
+      publishedPage({
+        slug: "contact",
+        blocks: [
+          {
+            id: "form_1",
+            tag: "form",
+            action: { id: "action_submit", type: "submitForm", formId: "form_contact" },
+            children: [{ id: "input_1", tag: "input", props: { name: "email" }, children: [] }],
+          },
+        ],
+      }),
+    );
+
+    assert.match(html, /addEventListener\("submit"/);
+    assert.match(html, /FormData/);
+    assert.match(html, /encodeURIComponent\(slug\).*\/actions\/.*encodeURIComponent\(actionId\)/s);
+    assert.match(html, /pendingActionId/);
+    assert.match(html, /runtimeError/);
+    assert.doesNotMatch(html, /eval\(/);
+  });
+
   it("renders buttons with data-sailor-action-id", () => {
     const html = renderPageBody([
       {

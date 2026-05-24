@@ -43,6 +43,23 @@ describe('block tree panel contract', () => {
     assert.match(source, /web-page-tree__item--selected/)
   })
 
+  it('tree keeps nested layers compact and draws parent-child guide lines', () => {
+    const source = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /--web-page-tree-indent/)
+    assert.match(source, /web-page-tree__children::before/)
+    assert.match(source, /web-page-tree__node::before/)
+    assert.match(source, /grid-template-columns:\s*14px 16px minmax\(0, 1fr\) 4px 20px/)
+    assert.match(source, /padding-left:\s*var\(--web-page-tree-indent\)/)
+  })
+
+  it('tree row action menu has breathing room on the right edge', () => {
+    const source = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /web-page-tree__action-menu/)
+    assert.match(source, /margin-right:\s*var\(--sailor-space-1\)/)
+  })
+
   it('tree can list pages above the active page elements', () => {
     const source = read('src/features/web-pages/components/BlockTreePanel.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')

@@ -3,7 +3,12 @@
     class="web-page-block-frame"
     :class="{ 'web-page-block-frame--selected': selectedBlockId === block.id }"
   >
-    <div v-if="!readonly" class="web-page-block-toolbar" @click.stop>
+    <div
+      v-if="!readonly"
+      class="web-page-block-toolbar"
+      :class="{ 'web-page-block-toolbar--visible': isToolbarVisible }"
+      @click.stop
+    >
       <BaseButton variant="ghost" size="sm" icon-left="copy" @click="$emit('duplicate-block', block.id)">
         Duplicate
       </BaseButton>
@@ -15,7 +20,7 @@
       :is="renderTag"
       v-bind="blockAttributes"
       :id="block.elementId || undefined"
-      class="web-page-block"
+      class="web-page-block web-page-block-frame__inner"
       :class="blockClasses"
       :style="block.styles"
       draggable="true"
@@ -93,6 +98,7 @@ const emit = defineEmits<{
 const isContainer = computed(() =>
   ['header', 'section', 'div', 'footer', 'form'].includes(props.block.tag),
 )
+const isToolbarVisible = computed(() => props.selectedBlockId === props.block.id)
 
 const renderTag = computed(() => {
   if (props.block.tag === 'text') return 'span'

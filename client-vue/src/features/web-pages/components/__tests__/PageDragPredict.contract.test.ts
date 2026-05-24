@@ -42,6 +42,16 @@ describe('page drag prediction contract', () => {
     assert.match(source, /web-page-block--drop-inside/)
   })
 
+  it('canvas elements are squared and drop indicators are high contrast', () => {
+    const source = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /--web-page-drop-color/)
+    assert.match(source, /border-radius:\s*0/)
+    assert.match(source, /height:\s*4px/)
+    assert.match(source, /box-shadow:\s*0 0 0 3px/)
+    assert.match(source, /outline:\s*3px solid var\(--web-page-drop-color\)/)
+  })
+
   it('drag prediction exposes directional arrow indicators and a custom drag preview', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const toolbar = read('src/features/web-pages/components/PageFloatingAddToolbar.vue')

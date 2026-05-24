@@ -6,10 +6,28 @@
       'web-page-editor--right-collapsed': !isRightPanelOpen,
     }"
   >
-    <PageChromeToolbar @command="handleChromeCommand" />
-    <PageFloatingAddToolbar :left-panel-open="isLeftPanelOpen" :right-panel-open="isRightPanelOpen" />
+    <PageChromeToolbar
+      :is-dirty="editorStore.isDirty || pagesStore.isDirty"
+      :is-saving="pagesStore.isSaving"
+      :published-at="activePagePublishedAt"
+      @command="handleChromeCommand"
+    />
+    <PageFloatingAddToolbar
+      :model-value="activeTool"
+      :left-panel-open="isLeftPanelOpen"
+      :right-panel-open="isRightPanelOpen"
+      @update:model-value="activeTool = $event"
+    />
 
-    <AppPanel :is-open="isLeftPanelOpen" title="Elements" position="left" width="md" @close="closeLeftPanel">
+    <AppPanel
+      :is-open="isLeftPanelOpen"
+      title="Elements"
+      position="left"
+      width="md"
+      resizable
+      resize-side="right"
+      @close="closeLeftPanel"
+    >
       <BlockTreePanel
         :pages="pagesStore.pages"
         :active-page-id="pagesStore.activePage?.id"
@@ -26,7 +44,19 @@
       />
     </AppPanel>
 
-    <div class="web-page-editor__workspace">
+    <div
+      ref="workspaceRef"
+      class="web-page-editor__workspace"
+      :class="{
+        'web-page-editor__workspace--pan': activeTool === 'pan',
+        'web-page-editor__workspace--panning': isPanningWorkspace,
+      }"
+      @click.self="clearEditorSelection"
+      @pointerdown="startWorkspacePan"
+      @pointermove="panWorkspace"
+      @pointerup="stopWorkspacePan"
+      @pointerleave="stopWorkspacePan"
+    >
       <template v-for="page in pagesStore.pages" :key="page.id">
         <div class="web-page-editor__page-chip">
           <button
@@ -51,6 +81,7 @@
           :selected-block-id="page.id === pagesStore.activePage?.id ? editorStore.selectedBlockId : null"
           :drop-intent="page.id === pagesStore.activePage?.id ? editorStore.dragIntent : null"
           :readonly="page.id !== pagesStore.activePage?.id"
+          :active-tool="activeTool"
           @select="selectCanvasBlock(page.id, $event)"
           @select-body="selectCanvasBody(page.id)"
           @drop-block="handlePageDropBlock(page.id, $event)"
@@ -70,7 +101,15 @@
       </div>
     </div>
 
-    <AppPanel :is-open="isRightPanelOpen" title="Inspector" position="right" width="md" @close="closeRightPanel">
+    <AppPanel
+      :is-open="isRightPanelOpen"
+      title="Inspector"
+      position="right"
+      width="md"
+      resizable
+      resize-side="left"
+      @close="closeRightPanel"
+    >
       <PageMetadataPanel
         v-if="pagesStore.activePage && editorStore.selectedTarget.type === 'page'"
         :page="pagesStore.activePage"
@@ -119,6 +158,8 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import { API_BASE_URL } from '@/core/constants/app.ts'
+import { ENDPOINTS } from '@/core/api/endpoints.ts'
 import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageEditorStore, type DropEdge } from '../stores/page-editor.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
@@ -144,6 +185,14 @@ const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
 const isPageSwitcherOpen = ref(false)
 const editorPageId = ref<string | null>(null)
+type PageCanvasTool = 'cursor' | 'pan' | 'delete'
+const activeTool = ref<PageCanvasTool>('cursor')
+const workspaceRef = ref<HTMLElement | null>(null)
+const isPanningWorkspace = ref(false)
+const panStart = ref({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0, pointerId: -1 })
+const activePagePublishedAt = computed(
+  () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
+)
 
 const bodyStyleBlock = computed<PageBlock>(() => ({
   id: 'body',
@@ -236,6 +285,38 @@ function selectCanvasBlock(pageId: string, blockId: string) {
 
 function selectCanvasBody(pageId: string) {
   void ensurePageActive(pageId).then(() => editorStore.selectBody())
+}
+
+function clearEditorSelection() {
+  editorStore.clearSelection()
+}
+
+function startWorkspacePan(event: PointerEvent) {
+  if (activeTool.value !== 'pan' || !workspaceRef.value) return
+  event.preventDefault()
+  isPanningWorkspace.value = true
+  panStart.value = {
+    x: event.clientX,
+    y: event.clientY,
+    scrollLeft: workspaceRef.value.scrollLeft,
+    scrollTop: workspaceRef.value.scrollTop,
+    pointerId: event.pointerId,
+  }
+  workspaceRef.value.setPointerCapture?.(event.pointerId)
+}
+
+function panWorkspace(event: PointerEvent) {
+  if (!isPanningWorkspace.value || !workspaceRef.value) return
+  workspaceRef.value.scrollLeft = panStart.value.scrollLeft - (event.clientX - panStart.value.x)
+  workspaceRef.value.scrollTop = panStart.value.scrollTop - (event.clientY - panStart.value.y)
+}
+
+function stopWorkspacePan(event?: PointerEvent) {
+  if (!isPanningWorkspace.value) return
+  if (event && workspaceRef.value?.hasPointerCapture?.(event.pointerId)) {
+    workspaceRef.value.releasePointerCapture?.(event.pointerId)
+  }
+  isPanningWorkspace.value = false
 }
 
 function handlePageDropBlock(
@@ -345,6 +426,14 @@ function deleteBlockFromCanvas(blockId: string) {
   editorStore.deleteBlock(blockId)
 }
 
+function deleteSelectedTarget() {
+  if (editorStore.selectedBlockId) {
+    editorStore.deleteBlock(editorStore.selectedBlockId)
+    return
+  }
+  if (editorStore.selectedTarget.type === 'page') void deleteActivePageAndChooseNext()
+}
+
 function handleInspectBlock(pageId: string, blockId: string) {
   void ensurePageActive(pageId).then(() => {
     editorStore.selectBlock(blockId)
@@ -366,6 +455,7 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'file.save') void savePage()
   if (command === 'file.preview') previewPage()
   if (command === 'file.publish') void publishPage()
+  if (command === 'file.openLive') openLivePage()
   if (command === 'edit.rename') editorStore.selectPage()
   if (command === 'edit.duplicate') {
     if (editorStore.selectedBlockId) editorStore.duplicateBlock(editorStore.selectedBlockId)
@@ -391,13 +481,18 @@ async function savePage() {
 
 function previewPage() {
   if (!pagesStore.activePage) return
-  window.open(`/pages/${pagesStore.activePage.id}/preview`, '_blank')
+  window.open(`${API_BASE_URL}${ENDPOINTS.PAGE_PREVIEW(pagesStore.activePage.id)}`, '_blank', 'noopener')
 }
 
 async function publishPage() {
   await savePage()
-  const published = await pagesStore.publishActivePage()
-  if (published) window.open(`/p/${published.slug}`, '_blank')
+  await pagesStore.publishActivePage()
+}
+
+function openLivePage() {
+  const slug = pagesStore.activePage?.slug
+  if (!slug || !activePagePublishedAt.value) return
+  window.open(`${API_BASE_URL}${ENDPOINTS.PUBLISHED_PAGE(slug)}`, '_blank', 'noopener')
 }
 
 function restoreSelection(selection: typeof editorStore.selectedTarget) {

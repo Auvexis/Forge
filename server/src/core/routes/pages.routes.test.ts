@@ -44,6 +44,7 @@ describe("pages routes", () => {
     const listResponse = await app.inject({ method: "GET", url: "/pages" });
     assert.equal(listResponse.statusCode, 200);
     assert.equal((listResponse.json() as ApiResponse<unknown[]>).data?.length, 1);
+    assert.equal((listResponse.json() as ApiResponse<Array<{ publishedAt: string | null }>>).data?.[0]?.publishedAt, null);
 
     const getResponse = await app.inject({ method: "GET", url: `/pages/${created.data?.id}` });
     assert.equal(getResponse.statusCode, 200);
@@ -79,9 +80,11 @@ describe("pages routes", () => {
     await app.inject({ method: "POST", url: `/pages/${page.id}/publish` });
 
     const response = await app.inject({ method: "GET", url: "/p/landing-page" });
+    const listResponse = await app.inject({ method: "GET", url: "/pages" });
 
     assert.equal(response.statusCode, 200);
     assert.match(response.headers["content-type"] ?? "", /text\/html/);
+    assert.equal(typeof (listResponse.json() as ApiResponse<Array<{ publishedAt: string }>>).data?.[0]?.publishedAt, "string");
   });
 
   it("action submit returns 202", async () => {

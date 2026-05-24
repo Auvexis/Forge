@@ -27,6 +27,19 @@ describe('page chrome contract', () => {
     assert.match(source, /file\.save/)
     assert.match(source, /file\.preview/)
     assert.match(source, /file\.publish/)
+    assert.match(source, /file\.openLive/)
+  })
+
+  it('page chrome switches File Edit View dropdowns on hover after a menu is open', () => {
+    const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
+
+    assert.match(source, /menuRefs/)
+    assert.match(source, /activeMenuId/)
+    assert.match(source, /registerMenuRef/)
+    assert.match(source, /openChromeMenu/)
+    assert.match(source, /handleMenuMouseEnter/)
+    assert.match(source, /@mouseenter="handleMenuMouseEnter\(menu\.id\)"/)
+    assert.match(source, /@open="activeMenuId = menu\.id"/)
   })
 
   it('page chrome has direct save preview and publish ghost buttons', () => {
@@ -37,6 +50,22 @@ describe('page chrome contract', () => {
     assert.match(source, /Save/)
     assert.match(source, /Preview/)
     assert.match(source, /Publish/)
+    assert.match(source, /Open live/)
+  })
+
+  it('page chrome mirrors workflow save cloud status and save dot states', () => {
+    const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /saveState/)
+    assert.match(source, /saveStatusIcon/)
+    assert.match(source, /cloud-check/)
+    assert.match(source, /cloud-alert/)
+    assert.match(source, /loader-circle/)
+    assert.match(source, /web-page-chrome__save-status/)
+    assert.match(source, /web-page-chrome__save-dot/)
+    assert.match(source, /web-page-chrome__save-dot--dirty/)
+    assert.match(css, /300ms/)
   })
 
   it('page badge exposes a direct delete button', () => {
@@ -46,5 +75,15 @@ describe('page chrome contract', () => {
     assert.match(source, /deletePageFromBadge/)
     assert.match(source, /icon-left="trash-2"/)
     assert.match(source, /variant="ghost"/)
+  })
+
+  it('page editor passes dirty and saving state to chrome and makes both side panels resizable', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /:is-dirty="editorStore\.isDirty \|\| pagesStore\.isDirty"/)
+    assert.match(source, /:is-saving="pagesStore\.isSaving"/)
+    assert.match(source, /resizable/)
+    assert.match(source, /resize-side="right"/)
+    assert.match(source, /resize-side="left"/)
   })
 })

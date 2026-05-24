@@ -65,6 +65,17 @@ describe("PageService", () => {
     assert.deepEqual(published.blocks[0]?.styles, { padding: "24px" });
   });
 
+  it("lists pages with publication timestamp", () => {
+    const page = service.createPage({ profileId: "profile_a", title: "Landing Page" });
+
+    assert.equal(service.listPages()[0]?.publishedAt, null);
+
+    const published = service.publishPage(page.id);
+    const listed = service.listPages()[0];
+
+    assert.equal(listed?.publishedAt, published.publishedAt);
+  });
+
   it("preview renders draft", () => {
     const page = service.createPage({ profileId: "profile_a", title: "Landing Page" });
     service.updatePage(page.id, {

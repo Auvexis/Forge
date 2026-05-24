@@ -81,4 +81,32 @@ describe('page editor store', () => {
     assert.equal(store.renameBlockId('hero_title', 'footer_1'), false)
     assert.equal(store.blocks[0]?.children?.[0]?.id, 'hero_title')
   })
+
+  it('renames container block ids while preserving children and current selection', () => {
+    const store = usePageEditorStore()
+    store.setBlocks([
+      {
+        id: 'div_1',
+        tag: 'div',
+        children: [
+          {
+            id: 'header_1',
+            tag: 'header',
+            children: [{ id: 'text_1', tag: 'text', children: [] }],
+          },
+        ],
+      },
+    ])
+    store.selectBlock('header_1')
+
+    assert.equal(store.renameBlockId('header_1', 'site_header'), true)
+    assert.equal(store.selectedBlockId, 'site_header')
+    assert.equal(store.selectedBlock?.id, 'site_header')
+    assert.equal(store.selectedBlock?.children?.[0]?.id, 'text_1')
+
+    store.selectBlock('div_1')
+    assert.equal(store.renameBlockId('div_1', 'page_shell'), true)
+    assert.equal(store.selectedBlockId, 'page_shell')
+    assert.equal(store.selectedBlock?.children?.[0]?.id, 'site_header')
+  })
 })

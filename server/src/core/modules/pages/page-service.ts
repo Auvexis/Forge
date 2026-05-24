@@ -8,6 +8,7 @@ export interface SailorPageSummary {
   title: string;
   slug: string;
   updatedAt: string;
+  publishedAt: string | null;
 }
 
 export class PageService {
@@ -24,6 +25,7 @@ export class PageService {
       title: page.title,
       slug: page.slug,
       updatedAt: page.updatedAt,
+      publishedAt: PageRepository.getPublishedPageByPageId(this.profileId, page.id)?.publishedAt ?? null,
     }));
   }
 
@@ -92,6 +94,12 @@ export class PageService {
     };
 
     return PageRepository.savePublishedPage(published);
+  }
+
+  publicationStatus(id: string): { publishedAt: string | null } {
+    return {
+      publishedAt: PageRepository.getPublishedPageByPageId(this.profileId, id)?.publishedAt ?? null,
+    };
   }
 
   renderPreview(id: string): string | null {

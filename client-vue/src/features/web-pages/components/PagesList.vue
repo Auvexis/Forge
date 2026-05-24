@@ -23,6 +23,12 @@
         <div class="web-pages-list__card-body">
           <strong>{{ page.title }}</strong>
           <small>/p/{{ page.slug }}</small>
+          <span
+            class="web-pages-list__status"
+            :class="{ 'web-pages-list__status--published': page.publishedAt }"
+          >
+            {{ page.publishedAt ? 'Published' : 'Draft' }}
+          </span>
         </div>
 
         <div class="web-pages-list__card-actions">
