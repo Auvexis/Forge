@@ -54,6 +54,7 @@ const STYLE_ALLOWLIST = new Set([
   "boxShadow",
   "opacity",
   "fontSize",
+  "fontFamily",
   "fontWeight",
   "lineHeight",
   "textAlign",

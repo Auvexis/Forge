@@ -73,7 +73,7 @@ describe("page renderer", () => {
           {
             id: "section_1",
             tag: "section",
-            styles: { padding: "24px" },
+            styles: { padding: "24px", fontFamily: "Inter, Arial, sans-serif" },
             customCss: "position: fixed; color: red; background-image: url(javascript:alert(1));",
             children: [],
           },
@@ -83,6 +83,7 @@ describe("page renderer", () => {
 
     assert.match(css, /\.sailor-block-section_1 \{/);
     assert.match(css, /padding: 24px;/);
+    assert.match(css, /font-family: Inter, Arial, sans-serif;/);
     assert.match(css, /position: fixed;/);
     assert.match(css, /color: red;/);
     assert.match(css, /javascript:alert\(1\)/);

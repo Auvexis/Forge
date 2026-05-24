@@ -76,6 +76,10 @@
         <BaseInput :model-value="String(block.styles?.fontSize ?? '')" placeholder="16px" @update:model-value="setStyle('fontSize', $event)" />
       </label>
       <label class="web-page-style-row">
+        <span>Font Family</span>
+        <BaseInput :model-value="String(block.styles?.fontFamily ?? '')" placeholder="Inter, Arial, sans-serif" @update:model-value="setStyle('fontFamily', $event)" />
+      </label>
+      <label class="web-page-style-row">
         <span>Font Weight</span>
         <BaseSelect :model-value="String(block.styles?.fontWeight ?? '')" :options="fontWeightOptions" @update:model-value="setStyle('fontWeight', String($event))" />
       </label>

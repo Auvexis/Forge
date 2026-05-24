@@ -26,4 +26,26 @@ describe('block renderer contract', () => {
     assert.match(source, /web-page-block-frame__inner/)
     assert.match(source, /web-page-block-toolbar/)
   })
+
+  it('keeps the rendered block box visually faithful to published output', () => {
+    const source = read('src/features/web-pages/pages.css')
+    const blockRule = source.match(/^\.web-page-block\s*\{[\s\S]*?\n\}/m)?.[0] ?? ''
+
+    assert.match(blockRule, /position:\s*relative/)
+    assert.match(blockRule, /display:\s*block/)
+    assert.doesNotMatch(blockRule, /background:/)
+    assert.doesNotMatch(blockRule, /padding:/)
+    assert.doesNotMatch(blockRule, /border:/)
+    assert.doesNotMatch(blockRule, /min-height:\s*36px/)
+  })
+
+  it('stabilizes drag intent instead of emitting every dragover tick', () => {
+    const source = read('src/features/web-pages/components/BlockRenderer.vue')
+
+    assert.match(source, /resolveBlockDropIntent/)
+    assert.match(source, /lastDragIntentKey/)
+    assert.match(source, /emitDragIntent/)
+    assert.doesNotMatch(source, /function dropPosition/)
+    assert.doesNotMatch(source, /function dropEdge/)
+  })
 })

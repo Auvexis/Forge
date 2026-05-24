@@ -26,6 +26,7 @@ describe('block inspector contract', () => {
     assert.match(source, /height/)
     assert.match(source, /margin/)
     assert.match(source, /border/)
+    assert.match(source, /fontFamily/)
     assert.match(source, /fontSize/)
     assert.match(source, /backgroundColor/)
     assert.match(source, /BaseColorPicker/)
@@ -33,6 +34,7 @@ describe('block inspector contract', () => {
     assert.match(renderer, /:style="block\.styles"/)
     assert.match(allowlist, /minWidth/)
     assert.match(allowlist, /maxHeight/)
+    assert.match(allowlist, /fontFamily/)
   })
 
   it('style panel groups controls into small sections and exposes extra css options', () => {

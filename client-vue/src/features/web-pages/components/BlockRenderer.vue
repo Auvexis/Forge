@@ -78,6 +78,7 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { DropEdge } from '../stores/page-editor.store.ts'
+import { resolveBlockDropIntent } from '../utils/dropIntent.ts'
 
 const props = defineProps<{
   block: PageBlock
@@ -130,6 +131,7 @@ const customCssRule = computed(() => {
   return `.${blockClass(props.block.id)} { ${css} }`
 })
 const customCssStyleEl = ref<HTMLStyleElement | null>(null)
+const lastDragIntentKey = ref('')
 
 onMounted(() => {
   updateCustomCssStyle()
@@ -143,6 +145,13 @@ onBeforeUnmount(() => {
 watch(customCssRule, () => {
   updateCustomCssStyle()
 })
+
+watch(
+  () => props.dropIntent,
+  (dropIntent) => {
+    if (!dropIntent) lastDragIntentKey.value = ''
+  },
+)
 
 function updateCustomCssStyle() {
   if (!customCssRule.value) {
@@ -171,31 +180,31 @@ function onDrop(event: DragEvent) {
   if (props.readonly) return
   const payload = readDragPayload(event)
   if (!payload) return
-  emit('drop-block', { targetId: props.block.id, position: dropPosition(event), ...payload })
+  const intent = getDropIntent(event)
+  emit('drop-block', { targetId: props.block.id, position: intent.position, ...payload })
 }
 
 function onDragOver(event: DragEvent) {
   if (props.readonly) return
-  emit('drag-intent', { targetId: props.block.id, position: dropPosition(event), dropEdge: dropEdge(event) })
+  emitDragIntent(getDropIntent(event))
 }
 
-function dropPosition(event: DragEvent): InsertPosition {
-  const edge = dropEdge(event)
-  if (edge === 'top') return 'before'
-  if (edge === 'bottom') return 'after'
-  return isContainer.value ? 'inside' : 'after'
-}
-
-function dropEdge(event: DragEvent): DropEdge {
+function getDropIntent(event: DragEvent): { position: InsertPosition; dropEdge: DropEdge } {
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const x = (event.clientX - rect.left) / rect.width
-  const y = (event.clientY - rect.top) / rect.height
+  return resolveBlockDropIntent({
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top,
+    width: rect.width,
+    height: rect.height,
+    isContainer: isContainer.value,
+  })
+}
 
-  if (y < 0.22) return 'top'
-  if (y > 0.78) return 'bottom'
-  if (x < 0.22) return 'left'
-  if (x > 0.78) return 'right'
-  return 'center'
+function emitDragIntent(intent: { position: InsertPosition; dropEdge?: DropEdge }) {
+  const key = `${props.block.id}:${intent.position}:${intent.dropEdge ?? 'center'}`
+  if (key === lastDragIntentKey.value) return
+  lastDragIntentKey.value = key
+  emit('drag-intent', { targetId: props.block.id, ...intent })
 }
 
 function readDragPayload(event: DragEvent): { tag?: PageBlockTag; draggedId?: string } | null {
