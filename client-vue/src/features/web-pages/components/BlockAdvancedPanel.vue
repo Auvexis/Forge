@@ -18,7 +18,11 @@
       />
     </label>
     <details class="web-page-advanced-panel__section">
-      <summary>Attributes</summary>
+      <summary>
+        <LucideIcon name="braces" :size="14" />
+        <span>Attributes</span>
+        <LucideIcon class-name="web-page-advanced-panel__chevron" name="chevron-down" :size="14" />
+      </summary>
       <BaseCodeEditor
         :model-value="attributesJson"
         language="json"
@@ -29,7 +33,11 @@
       <p v-if="attributeError" class="web-page-import-error">{{ attributeError }}</p>
     </details>
     <details class="web-page-advanced-panel__section">
-      <summary>Custom CSS</summary>
+      <summary>
+        <LucideIcon name="palette" :size="14" />
+        <span>Custom CSS</span>
+        <LucideIcon class-name="web-page-advanced-panel__chevron" name="chevron-down" :size="14" />
+      </summary>
       <BaseCodeEditor
         :model-value="block.customCss ?? ''"
         language="css"
@@ -39,7 +47,11 @@
       />
     </details>
     <details class="web-page-advanced-panel__section">
-      <summary>Custom JS</summary>
+      <summary>
+        <LucideIcon name="code-2" :size="14" />
+        <span>Custom JS</span>
+        <LucideIcon class-name="web-page-advanced-panel__chevron" name="chevron-down" :size="14" />
+      </summary>
       <BaseCodeEditor
         :model-value="block.customJs ?? ''"
         language="javascript"
@@ -55,6 +67,7 @@
 import { computed, ref } from 'vue'
 import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlock, PageBlockAttributes } from '../types/page.types.ts'
 
 const props = defineProps<{ block: PageBlock }>()

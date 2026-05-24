@@ -688,14 +688,31 @@
 }
 
 .web-page-advanced-panel__section summary {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: var(--sailor-space-2);
   color: var(--sailor-text-primary);
   cursor: pointer;
   font-size: var(--sailor-text-xs);
   font-weight: var(--sailor-font-semibold);
+  list-style: none;
+}
+
+.web-page-advanced-panel__section summary::-webkit-details-marker {
+  display: none;
 }
 
 .web-page-advanced-panel__section[open] summary {
   margin-bottom: var(--sailor-space-2);
+}
+
+.web-page-advanced-panel__chevron {
+  transition: transform 120ms var(--sailor-ease-standard);
+}
+
+.web-page-advanced-panel__section[open] .web-page-advanced-panel__chevron {
+  transform: rotate(180deg);
 }
 
 .web-page-style-row {
