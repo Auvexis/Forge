@@ -72,7 +72,7 @@ Steps:
 
 Test only this because data migration is risky.
 
-### - [ ] Task 2: Add Site Service and Routes
+### - [x] Task 2: Add Site Service and Routes
 
 Files:
 - Create `server/src/core/modules/pages/site-service.ts`

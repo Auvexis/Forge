@@ -117,6 +117,13 @@ export const SiteRepository = {
 
     return siteToSave;
   },
+
+  deleteSite(profileId: string, id: string): boolean {
+    const result = getSiteDatabase()
+      .prepare(`DELETE FROM sites WHERE profile_id = ? AND id = ?`)
+      .run(profileId, id);
+    return result.changes > 0;
+  },
 };
 
 export function defaultSiteId(profileId: string): string {

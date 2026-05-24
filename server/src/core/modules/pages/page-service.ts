@@ -43,7 +43,7 @@ export class PageService {
       profileId: this.profileId,
       siteId,
       title: input.title,
-      slug: input.slug ?? this.createUniqueSlug(input.title),
+      slug: input.slug ?? this.createUniqueSlug(input.title, siteId),
       bodyStyles: { backgroundColor: "#ffffff", color: "#111111" },
       blocks: input.blocks ?? [],
       createdAt: now,
@@ -150,11 +150,11 @@ export class PageService {
     return PageRepository.savePage(validation.page);
   }
 
-  private createUniqueSlug(title: string): string {
+  private createUniqueSlug(title: string, siteId?: string): string {
     const baseSlug = slugify(title);
     let slug = baseSlug;
     let suffix = 2;
-    while (PageRepository.getPageBySlug(this.profileId, slug)) {
+    while (PageRepository.getPageBySlug(this.profileId, slug, siteId)) {
       slug = `${baseSlug}-${suffix}`;
       suffix += 1;
     }

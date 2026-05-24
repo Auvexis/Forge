@@ -9,6 +9,10 @@ import type { PageBlockAction } from '../../features/web-pages/types/page.types.
 describe('pages api contract', () => {
   it('endpoints include every Pages API route', () => {
     assert.equal(ENDPOINTS.PAGES, '/pages')
+    assert.equal(ENDPOINTS.SITES, '/sites')
+    assert.equal(ENDPOINTS.SITE_BY_ID('site 1'), '/sites/site%201')
+    assert.equal(ENDPOINTS.SITE_PAGES('site_1'), '/sites/site_1/pages')
+    assert.equal(ENDPOINTS.SITE_PAGE_BY_ID('site_1', 'page 1'), '/sites/site_1/pages/page%201')
     assert.equal(ENDPOINTS.PAGE_BY_ID('page 1'), '/pages/page%201')
     assert.equal(ENDPOINTS.PAGE_PUBLISH('page_1'), '/pages/page_1/publish')
     assert.equal(ENDPOINTS.PAGE_PREVIEW('page_1'), '/pages/page_1/preview')
@@ -26,6 +30,12 @@ describe('pages api contract', () => {
     assert.match(source, /updatePage:/)
     assert.match(source, /deletePage:/)
     assert.match(source, /publishPage:/)
+    assert.match(source, /listSites:/)
+    assert.match(source, /createSite:/)
+    assert.match(source, /updateSite:/)
+    assert.match(source, /deleteSite:/)
+    assert.match(source, /listSitePages:/)
+    assert.match(source, /createSitePage:/)
     assert.match(source, /submitPageAction:/)
   })
 

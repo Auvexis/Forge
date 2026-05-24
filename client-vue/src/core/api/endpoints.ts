@@ -51,6 +51,11 @@ export const ENDPOINTS = {
   TEMPORARY_FORM_SUBMIT: (id: string) => `/temporary-forms-api/${encodeURIComponent(id)}/submit`,
 
   // Pages
+  SITES: '/sites',
+  SITE_BY_ID: (id: string) => `/sites/${encodeURIComponent(id)}`,
+  SITE_PAGES: (siteId: string) => `/sites/${encodeURIComponent(siteId)}/pages`,
+  SITE_PAGE_BY_ID: (siteId: string, pageId: string) =>
+    `/sites/${encodeURIComponent(siteId)}/pages/${encodeURIComponent(pageId)}`,
   PAGES: '/pages',
   PAGE_BY_ID: (id: string) => `/pages/${encodeURIComponent(id)}`,
   PAGE_PUBLISH: (id: string) => `/pages/${encodeURIComponent(id)}/publish`,

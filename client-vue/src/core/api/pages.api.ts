@@ -2,15 +2,47 @@ import { apiRequest } from './client.ts'
 import { ENDPOINTS } from './endpoints.ts'
 import type {
   CreatePagePayload,
+  CreateSitePayload,
   PageActionResponse,
   PagePublicationStatus,
   PublishedPageSummary,
   SailorPage,
   SailorPageSummary,
   UpdatePagePayload,
+  SailorSite,
+  UpdateSitePayload,
 } from '../../features/web-pages/types/page.types.ts'
 
 export const pagesApi = {
+  listSites: () => apiRequest<SailorSite[]>(ENDPOINTS.SITES),
+
+  createSite: (payload: CreateSitePayload) =>
+    apiRequest<SailorSite>(ENDPOINTS.SITES, {
+      method: 'POST',
+      body: payload,
+    }),
+
+  getSite: (siteId: string) => apiRequest<SailorSite>(ENDPOINTS.SITE_BY_ID(siteId)),
+
+  updateSite: (siteId: string, payload: UpdateSitePayload) =>
+    apiRequest<SailorSite>(ENDPOINTS.SITE_BY_ID(siteId), {
+      method: 'PUT',
+      body: payload,
+    }),
+
+  deleteSite: (siteId: string) =>
+    apiRequest<null>(ENDPOINTS.SITE_BY_ID(siteId), {
+      method: 'DELETE',
+    }),
+
+  listSitePages: (siteId: string) => apiRequest<SailorPage[]>(ENDPOINTS.SITE_PAGES(siteId)),
+
+  createSitePage: (siteId: string, payload: CreatePagePayload) =>
+    apiRequest<SailorPage>(ENDPOINTS.SITE_PAGES(siteId), {
+      method: 'POST',
+      body: payload,
+    }),
+
   listPages: () => apiRequest<SailorPageSummary[]>(ENDPOINTS.PAGES),
 
   createPage: (payload: CreatePagePayload) =>

@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyReply } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { PageActionService } from "../modules/pages/page-actions.ts";
 import { PageService } from "../modules/pages/page-service.ts";
+import { SiteService } from "../modules/pages/site-service.ts";
 import type { CreatePageInput, SailorPage, UpdatePageInput } from "../modules/pages/page-types.ts";
 import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
 
@@ -27,6 +28,104 @@ export default async function pagesRoutes(
     (() => activeProfileRuntime.activeProfileService.getActiveProfile()?.id ?? "default");
   const actionService = options.actionService ?? new PageActionService();
   const getService = () => new PageService({ profileId: getProfileId() });
+  const getSiteService = () => new SiteService({ profileId: getProfileId() });
+
+  fastify.get("/sites", async (_req, reply) => {
+    return sendResponse(reply, {
+      status_code: 200,
+      message: "Sites fetched successfully",
+      error: null,
+      data: getSiteService().listSites(),
+    });
+  });
+
+  fastify.post("/sites", async (req, reply) => {
+    try {
+      const body = req.body as { name?: string; slug?: string };
+      const site = getSiteService().createSite({
+        name: String(body.name ?? ""),
+        slug: body.slug,
+      });
+      return sendResponse(reply, {
+        status_code: 201,
+        message: "Site created successfully",
+        error: null,
+        data: site,
+      });
+    } catch (error) {
+      return sendResponse(reply, badRequest("Failed to create site", error));
+    }
+  });
+
+  fastify.get("/sites/:siteId", async (req, reply) => {
+    const { siteId } = req.params as { siteId: string };
+    const site = getSiteService().getSite(siteId);
+    if (!site) return sendResponse(reply, notFound("Site not found"));
+    return sendResponse(reply, {
+      status_code: 200,
+      message: "Site fetched successfully",
+      error: null,
+      data: site,
+    });
+  });
+
+  fastify.put("/sites/:siteId", async (req, reply) => {
+    const { siteId } = req.params as { siteId: string };
+    try {
+      const site = getSiteService().updateSite(siteId, req.body as { name?: string; slug?: string; homePageId?: string | null });
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Site updated successfully",
+        error: null,
+        data: site,
+      });
+    } catch (error) {
+      return sendResponse(reply, routeError(error, "Site not found", "Failed to update site"));
+    }
+  });
+
+  fastify.delete("/sites/:siteId", async (req, reply) => {
+    const { siteId } = req.params as { siteId: string };
+    const deleted = getSiteService().deleteSite(siteId);
+    if (!deleted) return sendResponse(reply, notFound("Site not found"));
+    return sendResponse(reply, {
+      status_code: 200,
+      message: "Site deleted successfully",
+      error: null,
+      data: null,
+    });
+  });
+
+  fastify.get("/sites/:siteId/pages", async (req, reply) => {
+    const { siteId } = req.params as { siteId: string };
+    if (!getSiteService().getSite(siteId)) return sendResponse(reply, notFound("Site not found"));
+    return sendResponse(reply, {
+      status_code: 200,
+      message: "Site pages fetched successfully",
+      error: null,
+      data: getSiteService().listPages(siteId),
+    });
+  });
+
+  fastify.post("/sites/:siteId/pages", async (req, reply) => {
+    const { siteId } = req.params as { siteId: string };
+    try {
+      const body = req.body as Partial<CreatePageInput>;
+      const page = getSiteService().createPage(siteId, {
+        title: String(body.title ?? ""),
+        slug: body.slug,
+        blocks: body.blocks,
+      });
+      return sendResponse<SailorPage>(reply, {
+        status_code: 201,
+        message: "Site page created successfully",
+        error: null,
+        data: page,
+      });
+    } catch (error) {
+      return sendResponse(reply, routeError(error, "Site not found", "Failed to create site page"));
+    }
+  });
 
   fastify.get("/pages", async (_req, reply) => {
     return sendResponse(reply, {

@@ -58,8 +58,7 @@ export const PageRepository = {
   },
 
   listPages(profileId: string, siteId?: string): SailorPage[] {
-    const defaultSite = SiteRepository.ensureDefaultSite(profileId);
-    const resolvedSiteId = siteId ?? defaultSite.id;
+    const resolvedSiteId = siteId ?? SiteRepository.ensureDefaultSite(profileId).id;
     const rows = getPageDatabase()
       .prepare(
         `SELECT definition, site_id FROM pages WHERE profile_id = ? AND site_id = ? ORDER BY updated_at DESC`,
@@ -78,8 +77,7 @@ export const PageRepository = {
   },
 
   getPageBySlug(profileId: string, slug: string, siteId?: string): SailorPage | null {
-    const defaultSite = SiteRepository.ensureDefaultSite(profileId);
-    const resolvedSiteId = siteId ?? defaultSite.id;
+    const resolvedSiteId = siteId ?? SiteRepository.ensureDefaultSite(profileId).id;
     const row = getPageDatabase()
       .prepare(`SELECT definition, site_id FROM pages WHERE profile_id = ? AND site_id = ? AND slug = ?`)
       .get(profileId, resolvedSiteId, slug) as { definition: string; site_id: string } | undefined;
@@ -133,6 +131,13 @@ export const PageRepository = {
     return result.changes > 0;
   },
 
+  deletePagesBySite(profileId: string, siteId: string): number {
+    const result = getPageDatabase()
+      .prepare(`DELETE FROM pages WHERE profile_id = ? AND site_id = ?`)
+      .run(profileId, siteId);
+    return result.changes;
+  },
+
   savePublishedPage(page: PublishedPage): PublishedPage {
     const siteId = page.siteId ?? SiteRepository.ensureDefaultSite(page.profileId).id;
     const pageToSave: PublishedPage = { ...page, siteId };
@@ -162,8 +167,7 @@ export const PageRepository = {
   },
 
   getPublishedPageBySlug(profileId: string, slug: string, siteId?: string): PublishedPage | null {
-    const defaultSite = SiteRepository.ensureDefaultSite(profileId);
-    const resolvedSiteId = siteId ?? defaultSite.id;
+    const resolvedSiteId = siteId ?? SiteRepository.ensureDefaultSite(profileId).id;
     const row = getPageDatabase()
       .prepare(`SELECT snapshot, site_id FROM published_pages WHERE profile_id = ? AND site_id = ? AND slug = ?`)
       .get(profileId, resolvedSiteId, slug) as { snapshot: string; site_id: string } | undefined;

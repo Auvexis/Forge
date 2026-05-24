@@ -51,6 +51,7 @@ export interface PageBlock {
 export interface SailorPage {
   id: string
   profileId: string
+  siteId: string
   title: string
   slug: string
   bodyStyles?: PageBlockStyles
@@ -87,6 +88,37 @@ export interface PublishedPageSummary {
   title: string
   slug: string
   publishedAt: string
+}
+
+export interface SiteFile {
+  path: string
+  kind: 'folder' | 'file' | 'asset'
+  content?: string
+  mimeType?: string
+  size?: number
+  updatedAt: string
+}
+
+export interface SailorSite {
+  id: string
+  profileId: string
+  name: string
+  slug: string
+  homePageId: string | null
+  files: SiteFile[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateSitePayload {
+  name: string
+  slug?: string
+}
+
+export interface UpdateSitePayload {
+  name?: string
+  slug?: string
+  homePageId?: string | null
 }
 
 export interface PagePublicationStatus {

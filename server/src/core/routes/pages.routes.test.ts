@@ -5,12 +5,14 @@ import Fastify from "fastify";
 
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { PageRepository } from "../modules/pages/page-repository.ts";
+import { SiteRepository } from "../modules/pages/site-repository.ts";
 import type { SailorPage } from "../modules/pages/page-types.ts";
 import pagesRoutes from "./pages.routes.ts";
 
 async function buildApp() {
   const db = new Database(":memory:");
   PageRepository.setDatabaseProvider(() => db);
+  SiteRepository.setDatabaseProvider(() => db);
   PageRepository.ensureSchema();
   const app = Fastify({ logger: false });
   await app.register(pagesRoutes, {
@@ -25,6 +27,7 @@ async function buildApp() {
 describe("pages routes", () => {
   beforeEach(() => {
     PageRepository.resetDatabaseProvider();
+    SiteRepository.resetDatabaseProvider();
   });
 
   it("CRUD returns API response shape", async () => {
@@ -136,5 +139,49 @@ describe("pages routes", () => {
     const response = await app.inject({ method: "GET", url: "/pages/missing" });
 
     assert.equal(response.statusCode, 404);
+  });
+
+  it("site routes create, list, update, delete, and create site pages", async () => {
+    const app = await buildApp();
+
+    const createSiteResponse = await app.inject({
+      method: "POST",
+      url: "/sites",
+      payload: { name: "Marketing Site" },
+    });
+    const site = createSiteResponse.json().data;
+
+    assert.equal(createSiteResponse.statusCode, 201);
+    assert.equal(site.profileId, "profile_a");
+    assert.deepEqual(site.files.map((file: { path: string }) => file.path), ["pages", "assets", "js", "css"]);
+
+    const createPageResponse = await app.inject({
+      method: "POST",
+      url: `/sites/${site.id}/pages`,
+      payload: { title: "Home" },
+    });
+    const page = createPageResponse.json().data;
+
+    assert.equal(createPageResponse.statusCode, 201);
+    assert.equal(page.siteId, site.id);
+
+    const listPagesResponse = await app.inject({ method: "GET", url: `/sites/${site.id}/pages` });
+    assert.equal(listPagesResponse.statusCode, 200);
+    assert.equal(listPagesResponse.json().data.length, 1);
+
+    const updateSiteResponse = await app.inject({
+      method: "PUT",
+      url: `/sites/${site.id}`,
+      payload: { name: "Marketing", slug: "marketing" },
+    });
+    assert.equal(updateSiteResponse.statusCode, 200);
+    assert.equal(updateSiteResponse.json().data.slug, "marketing");
+
+    const listSitesResponse = await app.inject({ method: "GET", url: "/sites" });
+    assert.equal(listSitesResponse.statusCode, 200);
+    assert.equal(listSitesResponse.json().data.length, 1);
+
+    const deleteSiteResponse = await app.inject({ method: "DELETE", url: `/sites/${site.id}` });
+    assert.equal(deleteSiteResponse.statusCode, 200);
   });
 });
