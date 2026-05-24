@@ -10,6 +10,7 @@ function page(blocks: SailorPage["blocks"]): SailorPage {
   return {
     id: "page_1",
     profileId: "profile_a",
+    siteId: "site_default_profile_a",
     title: "Secure",
     slug: "secure",
     blocks,
@@ -23,6 +24,7 @@ function published(): PublishedPage {
     id: "published_1",
     pageId: "page_1",
     profileId: "profile_a",
+    siteId: "site_default_profile_a",
     title: "Secure",
     slug: "secure",
     publishedAt: "2026-05-23T00:00:00.000Z",

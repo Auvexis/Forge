@@ -9,6 +9,7 @@ function publishedPage(overrides: Partial<PublishedPage> = {}): PublishedPage {
     id: "published_contact",
     pageId: "page_contact",
     profileId: "profile_a",
+    siteId: "site_default_profile_a",
     title: "Contact",
     slug: "contact",
     publishedAt: "2026-05-23T00:00:00.000Z",

@@ -9,6 +9,7 @@ function createPage(overrides: Partial<SailorPage> = {}): SailorPage {
   return {
     id: "page_contact",
     profileId: "profile_a",
+    siteId: "site_default_profile_a",
     title: "Contact",
     slug: "contact",
     blocks: [],
@@ -23,6 +24,7 @@ function createPublishedPage(overrides: Partial<PublishedPage> = {}): PublishedP
     id: "published_contact",
     pageId: "page_contact",
     profileId: "profile_a",
+    siteId: "site_default_profile_a",
     title: "Contact",
     slug: "contact",
     blocks: [],

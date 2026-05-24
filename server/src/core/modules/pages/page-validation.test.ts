@@ -8,6 +8,7 @@ function validPage(overrides: Partial<SailorPage> = {}): SailorPage {
   return {
     id: "page_contact",
     profileId: "profile_default",
+    siteId: "site_default_profile_default",
     title: "Contact",
     slug: "contact",
     blocks: [

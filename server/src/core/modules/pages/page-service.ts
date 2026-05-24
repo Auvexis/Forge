@@ -1,6 +1,7 @@
 import { PageRepository } from "./page-repository.ts";
 import { renderPublishedPage } from "./page-renderer.ts";
 import { validatePageInput } from "./page-validation.ts";
+import { SiteRepository } from "./site-repository.ts";
 import type { CreatePageInput, PublishedPage, SailorPage, UpdatePageInput } from "./page-types.ts";
 
 export interface SailorPageSummary {
@@ -36,9 +37,11 @@ export class PageService {
 
   createPage(input: CreatePageInput): SailorPage {
     const now = new Date().toISOString();
+    const siteId = input.siteId ?? SiteRepository.ensureDefaultSite(this.profileId).id;
     const page: SailorPage = {
       id: createPageId(),
       profileId: this.profileId,
+      siteId,
       title: input.title,
       slug: input.slug ?? this.createUniqueSlug(input.title),
       bodyStyles: { backgroundColor: "#ffffff", color: "#111111" },
@@ -91,6 +94,7 @@ export class PageService {
       id: `published_${page.id}`,
       pageId: page.id,
       profileId: this.profileId,
+      siteId: page.siteId,
       title: validation.page.title,
       slug: validation.page.slug,
       bodyStyles: validation.page.bodyStyles,
@@ -124,6 +128,7 @@ export class PageService {
       id: `preview_${page.id}`,
       pageId: page.id,
       profileId: this.profileId,
+      siteId: page.siteId,
       title: page.title,
       slug: page.slug,
       bodyStyles: page.bodyStyles,
