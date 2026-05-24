@@ -37,6 +37,7 @@ describe('block inspector contract', () => {
 
   it('style panel groups controls into small sections and exposes extra css options', () => {
     const source = read('src/features/web-pages/components/BlockStylePanel.vue')
+    const styles = read('src/features/web-pages/pages.css')
     const allowlist = read('src/features/web-pages/utils/styleAllowlist.ts')
 
     assert.match(source, /web-page-style-section/)
@@ -52,6 +53,7 @@ describe('block inspector contract', () => {
     assert.match(allowlist, /objectFit/)
     assert.match(allowlist, /textTransform/)
     assert.match(allowlist, /backgroundSize/)
+    assert.match(styles, /\.web-page-style-section h5 \{[\s\S]*color: var\(--sailor-text-primary\)/)
   })
 
   it('inspector exposes element identity, attributes, and free custom code editors', () => {
@@ -68,6 +70,22 @@ describe('block inspector contract', () => {
     assert.match(advanced, /language="css"/)
     assert.match(advanced, /language="javascript"/)
     assert.doesNotMatch(advanced, /sanitizeCustomCss|sanitizeClassName/)
+  })
+
+  it('advanced dev code areas are collapsible details sections', () => {
+    const advanced = read('src/features/web-pages/components/BlockAdvancedPanel.vue')
+
+    assert.match(advanced, /<details[^>]*class="web-page-advanced-panel__section"/)
+    assert.match(advanced, /<summary>Attributes<\/summary>/)
+    assert.match(advanced, /<summary>Custom CSS<\/summary>/)
+    assert.match(advanced, /<summary>Custom JS<\/summary>/)
+  })
+
+  it('inspector panel does not render duplicate and delete block actions', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.doesNotMatch(editor, /<BlockToolbar/)
+    assert.doesNotMatch(editor, /deleteSelectedBlock|duplicateSelectedBlock/)
   })
 
   it('renderer injects custom css outside the vue template side-effect tags', () => {
