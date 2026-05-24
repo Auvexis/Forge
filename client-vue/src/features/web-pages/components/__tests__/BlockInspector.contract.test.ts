@@ -35,12 +35,46 @@ describe('block inspector contract', () => {
     assert.match(allowlist, /maxHeight/)
   })
 
-  it('action panel supports form submit, workflow trigger, open URL without custom JS', () => {
+  it('style panel groups controls into small sections and exposes extra css options', () => {
+    const source = read('src/features/web-pages/components/BlockStylePanel.vue')
+    const allowlist = read('src/features/web-pages/utils/styleAllowlist.ts')
+
+    assert.match(source, /web-page-style-section/)
+    assert.match(source, />Layout</)
+    assert.match(source, />Typography</)
+    assert.match(source, />Background</)
+    assert.match(source, />Border</)
+    assert.match(source, /overflow/)
+    assert.match(source, /objectFit/)
+    assert.match(source, /textTransform/)
+    assert.match(source, /backgroundSize/)
+    assert.match(allowlist, /overflow/)
+    assert.match(allowlist, /objectFit/)
+    assert.match(allowlist, /textTransform/)
+    assert.match(allowlist, /backgroundSize/)
+  })
+
+  it('inspector exposes element identity, attributes, and free custom code editors', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const advanced = read('src/features/web-pages/components/BlockAdvancedPanel.vue')
+
+    assert.match(editor, /<BlockAdvancedPanel/)
+    assert.match(advanced, /BaseCodeEditor/)
+    assert.match(advanced, /elementId/)
+    assert.match(advanced, /className/)
+    assert.match(advanced, /attributes/)
+    assert.match(advanced, /customCss/)
+    assert.match(advanced, /customJs/)
+    assert.match(advanced, /language="css"/)
+    assert.match(advanced, /language="javascript"/)
+    assert.doesNotMatch(advanced, /sanitizeCustomCss|sanitizeClassName/)
+  })
+
+  it('action panel supports form submit, workflow trigger, open URL actions', () => {
     const source = read('src/features/web-pages/components/BlockActionPanel.vue')
     assert.match(source, /submitForm/)
     assert.match(source, /triggerWorkflow/)
     assert.match(source, /openUrl/)
-    assert.doesNotMatch(source, /customJavaScript|eval\(|javascript:/)
   })
 
   it('image and link inputs validate URL input', () => {

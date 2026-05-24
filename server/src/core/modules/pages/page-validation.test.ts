@@ -88,6 +88,34 @@ describe("page validation", () => {
     assert.match(result.error ?? "", /javascript/i);
   });
 
+  it("preserves dev-controlled custom css, custom js, ids, and safe attributes", () => {
+    const result = validatePageInput(
+      validPage({
+        blocks: [
+          {
+            id: "block_section",
+            tag: "section",
+            elementId: "hero",
+            className: "hero one",
+            attributes: { "data-test-id": "hero", "aria-label": "Hero", onclick: "alert(1)" } as any,
+            customCss: "position: fixed; background-image: url(javascript:devOnly);",
+            customJs: "document.querySelector('#hero')?.classList.add('ready');",
+            children: [],
+          },
+        ],
+      }),
+    );
+
+    assert.equal(result.success, true);
+    assert.equal(result.page?.blocks[0]?.elementId, "hero");
+    assert.equal(result.page?.blocks[0]?.customCss, "position: fixed; background-image: url(javascript:devOnly);");
+    assert.equal(result.page?.blocks[0]?.customJs, "document.querySelector('#hero')?.classList.add('ready');");
+    assert.deepEqual(result.page?.blocks[0]?.attributes, {
+      "data-test-id": "hero",
+      "aria-label": "Hero",
+    });
+  });
+
   it("rejects block trees deeper than 8 levels", () => {
     let child = { id: "deep_9", tag: "div", children: [] } as any;
     for (let index = 8; index >= 1; index -= 1) {

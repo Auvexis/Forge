@@ -66,15 +66,15 @@ describe("page renderer", () => {
     assert.doesNotMatch(html, /onclick/);
   });
 
-  it("includes sanitized per-block CSS only under generated block selectors", () => {
+  it("includes per-block CSS under generated block selectors", () => {
     const css = renderPageCss(
       publishedPage({
         blocks: [
           {
             id: "section_1",
             tag: "section",
-            styles: { padding: "24px", position: "fixed" } as any,
-            customCss: "color: red; background-image: url(javascript:alert(1));",
+            styles: { padding: "24px" },
+            customCss: "position: fixed; color: red; background-image: url(javascript:alert(1));",
             children: [],
           },
         ],
@@ -83,9 +83,37 @@ describe("page renderer", () => {
 
     assert.match(css, /\.sailor-block-section_1 \{/);
     assert.match(css, /padding: 24px;/);
+    assert.match(css, /position: fixed;/);
     assert.match(css, /color: red;/);
-    assert.doesNotMatch(css, /position/);
-    assert.doesNotMatch(css, /javascript/);
+    assert.match(css, /javascript:alert\(1\)/);
+  });
+
+  it("renders dev-controlled ids, attributes, free custom css, and custom js", () => {
+    const page = publishedPage({
+      blocks: [
+        {
+          id: "section_1",
+          tag: "section",
+          elementId: "hero",
+          className: "hero-section",
+          attributes: { "data-test-id": "hero", "aria-live": "polite" },
+          customCss: "--hero-angle: 32deg; background-image: url(javascript:devOnly);",
+          customJs: "document.querySelector('#hero')?.setAttribute('data-ready', '1');",
+          children: [],
+        },
+      ],
+    });
+
+    const html = renderPublishedPage(page);
+    const css = renderPageCss(page);
+
+    assert.match(html, /id="hero"/);
+    assert.match(html, /class="sailor-page-block sailor-block-section_1 hero-section"/);
+    assert.match(html, /data-test-id="hero"/);
+    assert.match(html, /aria-live="polite"/);
+    assert.match(html, /document\.querySelector/);
+    assert.match(css, /--hero-angle: 32deg;/);
+    assert.match(css, /javascript:devOnly/);
   });
 
   it("renders forms with data-sailor-action-id", () => {

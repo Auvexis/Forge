@@ -23,4 +23,16 @@ describe('page floating add toolbar contract', () => {
     assert.match(editor, /PageFloatingAddToolbar/)
     assert.doesNotMatch(editor, /<BlockLibrary/)
   })
+
+  it('starts as a bottom floating toolbar with a move handle, tooltips, and no persisted position', () => {
+    const source = read('src/features/web-pages/components/PageFloatingAddToolbar.vue')
+
+    assert.match(source, /web-page-floating-add-toolbar--bottom/)
+    assert.match(source, /web-page-floating-add-toolbar__move/)
+    assert.match(source, /onMoveStart/)
+    assert.match(source, /data-tooltip/)
+    assert.match(source, /leftPanelOpen/)
+    assert.match(source, /rightPanelOpen/)
+    assert.doesNotMatch(source, /localStorage|sessionStorage/)
+  })
 })

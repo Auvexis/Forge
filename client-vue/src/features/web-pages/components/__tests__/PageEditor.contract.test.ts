@@ -65,6 +65,18 @@ describe('page editor contract', () => {
     assert.match(editor, /deleteBlockFromCanvas/)
   })
 
+  it('double clicking a canvas block opens the inspector for that block', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(renderer, /@dblclick\.stop/)
+    assert.match(renderer, /inspect-block/)
+    assert.match(canvas, /@inspect-block/)
+    assert.match(editor, /handleInspectBlock/)
+    assert.match(editor, /isRightPanelOpen\.value = true/)
+  })
+
   it('tree panel can select block', () => {
     const source = read('src/features/web-pages/components/BlockTreePanel.vue')
 
