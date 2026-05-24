@@ -941,7 +941,7 @@ git commit -m "feat: polish page drag and drop feedback"
 - Modify/Test: `client-vue/src/features/web-pages/components/__tests__/PagesList.contract.test.ts`
 - Modify: `client-vue/src/features/web-pages/pages.css`
 
-- [ ] **Step 1: Contrato**
+- [x] **Step 1: Contrato**
 
 Atualizar `PagesList.contract.test.ts`:
 
@@ -961,7 +961,7 @@ it('renders pages as searchable grid cards and creates pages through BaseModal',
 })
 ```
 
-- [ ] **Step 2: Criar modal**
+- [x] **Step 2: Criar modal**
 
 `PageCreateSiteModal.vue`:
 
@@ -1004,7 +1004,7 @@ function submit() {
 </script>
 ```
 
-- [ ] **Step 3: Refatorar PagesList**
+- [x] **Step 3: Refatorar PagesList**
 
 Em `PagesList.vue`:
 
@@ -1056,7 +1056,7 @@ Template:
 </section>
 ```
 
-- [ ] **Step 4: CSS grid**
+- [x] **Step 4: CSS grid**
 
 ```css
 .web-pages-list {
@@ -1095,7 +1095,7 @@ Template:
 }
 ```
 
-- [ ] **Step 5: Rodar testes e commit**
+- [x] **Step 5: Rodar testes e commit**
 
 Run:
 

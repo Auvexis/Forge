@@ -29,4 +29,18 @@ describe('pages management UI contract', () => {
     assert.match(source, /openPage/)
     assert.match(source, /router\.push/)
   })
+
+  it('renders pages as searchable grid cards and creates pages through BaseModal', () => {
+    const list = fs.readFileSync(path.resolve('src/features/web-pages/components/PagesList.vue'), 'utf8')
+    const modal = fs.readFileSync(path.resolve('src/features/web-pages/components/PageCreateSiteModal.vue'), 'utf8')
+
+    assert.match(list, /searchQuery/)
+    assert.match(list, /filteredPages/)
+    assert.match(list, /web-pages-list__grid/)
+    assert.match(list, /PageCreateSiteModal/)
+    assert.match(list, /variant="primary"/)
+    assert.match(modal, /BaseModal/)
+    assert.match(modal, /BaseInput/)
+    assert.match(modal, /create/)
+  })
 })

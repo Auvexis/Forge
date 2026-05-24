@@ -1,78 +1,87 @@
 <template>
   <section class="web-pages-list">
-    <AppPanel
-      :is-open="true"
-      title="Pages"
-      position="left"
-      width="lg"
-      :show-close="false"
-    >
-      <div class="web-pages-list__toolbar">
-        <BaseInput
-          v-model="title"
-          label="Title"
-          placeholder="New page"
-          @keyup.enter="createPage"
-        />
-        <BaseButton
-          variant="primary"
-          icon-left="plus"
-          :loading="pagesStore.isSaving"
-          @click="createPage"
-        >
-          Create
-        </BaseButton>
-      </div>
+    <div class="web-pages-list__header">
+      <BaseInput
+        v-model="searchQuery"
+        label="Search"
+        placeholder="Search sites"
+        icon-left="search"
+      />
+      <BaseButton variant="primary" icon-left="plus" @click="isCreateModalOpen = true">
+        New site
+      </BaseButton>
+    </div>
 
-      <div class="web-pages-list__items">
-        <button
-          v-for="page in pagesStore.pages"
-          :key="page.id"
-          class="web-pages-list__item"
-          type="button"
-          @click="openPage(page.id)"
-        >
-          <span class="web-pages-list__item-main">
-            <strong>{{ page.title }}</strong>
-            <small>/p/{{ page.slug }}</small>
-          </span>
+    <div class="web-pages-list__grid">
+      <article v-for="page in filteredPages" :key="page.id" class="web-pages-list__card">
+        <button type="button" class="web-pages-list__preview" @click="openPage(page.id)">
+          <span />
+          <span />
+          <span />
+        </button>
+
+        <div class="web-pages-list__card-body">
+          <strong>{{ page.title }}</strong>
+          <small>/p/{{ page.slug }}</small>
+        </div>
+
+        <div class="web-pages-list__card-actions">
+          <BaseButton variant="ghost" size="sm" icon-left="external-link" @click="openPage(page.id)">
+            Open
+          </BaseButton>
           <BaseButton
             variant="danger"
             size="icon"
             icon-left="trash-2"
             title="Delete"
-            @click.stop="deletePage(page.id)"
+            @click="deletePage(page.id)"
           />
-        </button>
+        </div>
+      </article>
 
-        <p v-if="!pagesStore.pages.length && !pagesStore.isLoading" class="web-pages-list__empty">
-          No pages yet.
-        </p>
-      </div>
-    </AppPanel>
+      <p v-if="!filteredPages.length && !pagesStore.isLoading" class="web-pages-list__empty">
+        No pages found.
+      </p>
+    </div>
+
+    <PageCreateSiteModal
+      :is-open="isCreateModalOpen"
+      :loading="pagesStore.isSaving"
+      @close="isCreateModalOpen = false"
+      @create="createPage"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { usePagesStore } from '../stores/pages.store.ts'
+import PageCreateSiteModal from './PageCreateSiteModal.vue'
 
 const router = useRouter()
 const pagesStore = usePagesStore()
-const title = ref('Untitled page')
+const searchQuery = ref('')
+const isCreateModalOpen = ref(false)
+
+const filteredPages = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) return pagesStore.pages
+  return pagesStore.pages.filter((page) =>
+    `${page.title} ${page.slug}`.toLowerCase().includes(query),
+  )
+})
 
 onMounted(() => {
   void pagesStore.listPages()
 })
 
-async function createPage() {
-  const pageTitle = title.value.trim() || 'Untitled page'
+async function createPage(title: string) {
+  const pageTitle = title.trim() || 'Untitled page'
   const page = await pagesStore.createPage({ title: pageTitle })
-  title.value = 'Untitled page'
+  isCreateModalOpen.value = false
   await router.push(`/pages/${page.id}`)
 }
 
