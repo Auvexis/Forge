@@ -20,6 +20,8 @@ describe('page preview and publish contract', () => {
     assert.match(source, /previewPage/)
     assert.match(source, /publishPage/)
     assert.match(source, /publishActivePage/)
+    assert.match(source, /unpublishPage/)
+    assert.match(source, /unpublishActivePage/)
   })
 
   it('editor opens preview and live site through backend URLs outside Vue router', () => {

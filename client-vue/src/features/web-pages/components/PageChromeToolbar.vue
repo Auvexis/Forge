@@ -71,6 +71,15 @@
       Publish
     </BaseButton>
     <BaseButton
+      v-if="publishedAt"
+      size="sm"
+      variant="ghost"
+      icon-left="radio"
+      @click="$emit('command', 'file.unpublish')"
+    >
+      Unpublish
+    </BaseButton>
+    <BaseButton
       size="sm"
       variant="ghost"
       icon-left="external-link"
@@ -100,6 +109,7 @@ export type PageChromeCommand =
   | 'file.save'
   | 'file.preview'
   | 'file.publish'
+  | 'file.unpublish'
   | 'file.openLive'
   | 'edit.rename'
   | 'edit.duplicate'
@@ -120,6 +130,7 @@ const menus: Array<{
       { id: 'file.save', label: 'Save', icon: 'save' },
       { id: 'file.preview', label: 'Preview', icon: 'eye' },
       { id: 'file.publish', label: 'Publish', icon: 'send' },
+      { id: 'file.unpublish', label: 'Unpublish', icon: 'radio', danger: true },
       { id: 'file.openLive', label: 'Open live', icon: 'external-link' },
     ],
   },

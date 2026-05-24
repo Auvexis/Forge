@@ -158,4 +158,11 @@ export const PageRepository = {
 
     return row ? (JSON.parse(row.snapshot) as PublishedPage) : null;
   },
+
+  deletePublishedPageByPageId(profileId: string, pageId: string): boolean {
+    const result = getPageDatabase()
+      .prepare(`DELETE FROM published_pages WHERE profile_id = ? AND page_id = ?`)
+      .run(profileId, pageId);
+    return result.changes > 0;
+  },
 };

@@ -40,6 +40,7 @@ function api(): PagesApiClient {
       slug: current.slug,
       publishedAt: '2026-05-23T02:00:00.000Z',
     }),
+    unpublishPage: async () => ({ pageId: current.id, publishedAt: null }),
   }
 }
 
@@ -76,6 +77,19 @@ describe('pages store', () => {
 
     assert.equal(published?.slug, 'new-page')
     assert.equal(store.lastPublished?.id, 'published_1')
+  })
+
+  it('unpublish clears published metadata', async () => {
+    const store = usePagesStore()
+    store.setApiClient(api())
+    await store.createPage({ title: 'New Page' })
+    await store.publishActivePage()
+
+    const status = await store.unpublishActivePage()
+
+    assert.deepEqual(status, { pageId: store.activePage?.id, publishedAt: null })
+    assert.equal(store.lastPublished, null)
+    assert.equal(store.pages.find((page) => page.id === store.activePage?.id)?.publishedAt, null)
   })
 
   it('failed save leaves dirty state intact', async () => {

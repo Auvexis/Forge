@@ -87,6 +87,22 @@ describe("pages routes", () => {
     assert.equal(typeof (listResponse.json() as ApiResponse<Array<{ publishedAt: string }>>).data?.[0]?.publishedAt, "string");
   });
 
+  it("unpublish removes live page and clears list status", async () => {
+    const app = await buildApp();
+    const createResponse = await app.inject({ method: "POST", url: "/pages", payload: { title: "Landing Page" } });
+    const page = (createResponse.json() as ApiResponse<SailorPage>).data!;
+    await app.inject({ method: "POST", url: `/pages/${page.id}/publish` });
+
+    const unpublishResponse = await app.inject({ method: "POST", url: `/pages/${page.id}/unpublish` });
+    const liveResponse = await app.inject({ method: "GET", url: "/p/landing-page" });
+    const listResponse = await app.inject({ method: "GET", url: "/pages" });
+
+    assert.equal(unpublishResponse.statusCode, 200);
+    assert.deepEqual(unpublishResponse.json().data, { pageId: page.id, publishedAt: null });
+    assert.equal(liveResponse.statusCode, 404);
+    assert.equal((listResponse.json() as ApiResponse<Array<{ publishedAt: string | null }>>).data?.[0]?.publishedAt, null);
+  });
+
   it("action submit returns 202", async () => {
     const app = await buildApp();
 

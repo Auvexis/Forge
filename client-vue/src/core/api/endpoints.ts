@@ -54,6 +54,7 @@ export const ENDPOINTS = {
   PAGES: '/pages',
   PAGE_BY_ID: (id: string) => `/pages/${encodeURIComponent(id)}`,
   PAGE_PUBLISH: (id: string) => `/pages/${encodeURIComponent(id)}/publish`,
+  PAGE_UNPUBLISH: (id: string) => `/pages/${encodeURIComponent(id)}/unpublish`,
   PAGE_PREVIEW: (id: string) => `/pages/${encodeURIComponent(id)}/preview`,
   PUBLISHED_PAGE: (slug: string) => `/p/${encodeURIComponent(slug)}`,
   PUBLISHED_PAGE_ACTION: (slug: string, actionId: string) =>

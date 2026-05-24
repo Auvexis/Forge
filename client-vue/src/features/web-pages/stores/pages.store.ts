@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 
 import type {
   CreatePagePayload,
+  PagePublicationStatus,
   PublishedPageSummary,
   SailorPage,
   SailorPageSummary,
@@ -16,6 +17,7 @@ export interface PagesApiClient {
   updatePage: (pageId: string, payload: UpdatePagePayload) => Promise<SailorPage>
   deletePage: (pageId: string) => Promise<null>
   publishPage: (pageId: string) => Promise<PublishedPageSummary>
+  unpublishPage: (pageId: string) => Promise<PagePublicationStatus>
 }
 
 const defaultApiClient: PagesApiClient = {
@@ -25,6 +27,7 @@ const defaultApiClient: PagesApiClient = {
   updatePage: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.updatePage(...args)),
   deletePage: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.deletePage(...args)),
   publishPage: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.publishPage(...args)),
+  unpublishPage: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.unpublishPage(...args)),
 }
 
 export const usePagesStore = defineStore('web-pages', () => {
@@ -185,6 +188,16 @@ export const usePagesStore = defineStore('web-pages', () => {
     return published
   }
 
+  async function unpublishActivePage() {
+    if (!activePage.value) return null
+    const status = await apiClient.value.unpublishPage(activePage.value.id)
+    lastPublished.value = null
+    pages.value = pages.value.map((page) =>
+      page.id === status.pageId ? { ...page, publishedAt: status.publishedAt } : page,
+    )
+    return status
+  }
+
   function setSavedPage(page: SailorPage) {
     activePage.value = clone(page)
     pageDocuments.value[page.id] = clone(page)
@@ -236,6 +249,7 @@ export const usePagesStore = defineStore('web-pages', () => {
     deletePage,
     deleteActivePageAndChooseNext,
     publishActivePage,
+    unpublishActivePage,
     pageDocument,
   }
 })

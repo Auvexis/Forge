@@ -102,4 +102,13 @@ describe("PageRepository", () => {
     assert.equal(PageRepository.getPage("profile_a", "page_contact")?.title, "Draft changed");
     assert.equal(PageRepository.getPublishedPageBySlug("profile_a", "contact")?.title, "Contact");
   });
+
+  it("deletes published snapshot by page id", () => {
+    PageRepository.savePage(createPage());
+    PageRepository.savePublishedPage(createPublishedPage());
+
+    assert.equal(PageRepository.deletePublishedPageByPageId("profile_a", "page_contact"), true);
+    assert.equal(PageRepository.getPublishedPageBySlug("profile_a", "contact"), null);
+    assert.equal(PageRepository.getPublishedPageByPageId("profile_a", "page_contact"), null);
+  });
 });

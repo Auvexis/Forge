@@ -111,6 +111,21 @@ export default async function pagesRoutes(
     }
   });
 
+  fastify.post("/pages/:pageId/unpublish", async (req, reply) => {
+    const { pageId } = req.params as { pageId: string };
+    try {
+      const status = getService().unpublishPage(pageId);
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Page unpublished successfully",
+        error: null,
+        data: status,
+      });
+    } catch (error) {
+      return sendResponse(reply, routeError(error, "Page not found", "Failed to unpublish page"));
+    }
+  });
+
   fastify.get("/pages/:pageId/preview", async (req, reply) => {
     const { pageId } = req.params as { pageId: string };
     const html = getService().renderPreview(pageId);

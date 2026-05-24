@@ -100,4 +100,15 @@ describe("PageService", () => {
     assert.match(html, /Published text/);
     assert.doesNotMatch(html, /Draft changed/);
   });
+
+  it("unpublishes page and removes live render", () => {
+    const page = service.createPage({ profileId: "profile_a", title: "Landing Page" });
+    service.publishPage(page.id);
+
+    const status = service.unpublishPage(page.id);
+
+    assert.deepEqual(status, { pageId: page.id, publishedAt: null });
+    assert.equal(service.listPages()[0]?.publishedAt, null);
+    assert.equal(service.renderPublished("landing-page"), null);
+  });
 });

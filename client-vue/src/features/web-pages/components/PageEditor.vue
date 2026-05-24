@@ -455,6 +455,7 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'file.save') void savePage()
   if (command === 'file.preview') previewPage()
   if (command === 'file.publish') void publishPage()
+  if (command === 'file.unpublish') void unpublishPage()
   if (command === 'file.openLive') openLivePage()
   if (command === 'edit.rename') editorStore.selectPage()
   if (command === 'edit.duplicate') {
@@ -487,6 +488,11 @@ function previewPage() {
 async function publishPage() {
   await savePage()
   await pagesStore.publishActivePage()
+}
+
+async function unpublishPage() {
+  if (!pagesStore.activePage || !activePagePublishedAt.value) return
+  await pagesStore.unpublishActivePage()
 }
 
 function openLivePage() {

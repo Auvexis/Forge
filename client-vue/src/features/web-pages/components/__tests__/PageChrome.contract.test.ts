@@ -27,6 +27,7 @@ describe('page chrome contract', () => {
     assert.match(source, /file\.save/)
     assert.match(source, /file\.preview/)
     assert.match(source, /file\.publish/)
+    assert.match(source, /file\.unpublish/)
     assert.match(source, /file\.openLive/)
   })
 
@@ -50,6 +51,7 @@ describe('page chrome contract', () => {
     assert.match(source, /Save/)
     assert.match(source, /Preview/)
     assert.match(source, /Publish/)
+    assert.match(source, /Unpublish/)
     assert.match(source, /Open live/)
   })
 

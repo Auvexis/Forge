@@ -3,6 +3,7 @@ import { ENDPOINTS } from './endpoints.ts'
 import type {
   CreatePagePayload,
   PageActionResponse,
+  PagePublicationStatus,
   PublishedPageSummary,
   SailorPage,
   SailorPageSummary,
@@ -33,6 +34,11 @@ export const pagesApi = {
 
   publishPage: (pageId: string) =>
     apiRequest<PublishedPageSummary>(ENDPOINTS.PAGE_PUBLISH(pageId), {
+      method: 'POST',
+    }),
+
+  unpublishPage: (pageId: string) =>
+    apiRequest<PagePublicationStatus>(ENDPOINTS.PAGE_UNPUBLISH(pageId), {
       method: 'POST',
     }),
 

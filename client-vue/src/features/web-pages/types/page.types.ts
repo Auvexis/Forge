@@ -89,6 +89,11 @@ export interface PublishedPageSummary {
   publishedAt: string
 }
 
+export interface PagePublicationStatus {
+  pageId: string
+  publishedAt: string | null
+}
+
 export interface PageActionResponse {
   executionId: string
 }

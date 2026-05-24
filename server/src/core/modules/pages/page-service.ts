@@ -11,6 +11,11 @@ export interface SailorPageSummary {
   publishedAt: string | null;
 }
 
+export interface PagePublicationStatus {
+  pageId: string;
+  publishedAt: string | null;
+}
+
 export class PageService {
   private readonly profileId: string;
 
@@ -94,6 +99,16 @@ export class PageService {
     };
 
     return PageRepository.savePublishedPage(published);
+  }
+
+  unpublishPage(id: string): PagePublicationStatus {
+    const page = this.getPage(id);
+    if (!page) {
+      throw new Error("Page not found.");
+    }
+
+    PageRepository.deletePublishedPageByPageId(this.profileId, id);
+    return { pageId: id, publishedAt: null };
   }
 
   publicationStatus(id: string): { publishedAt: string | null } {
