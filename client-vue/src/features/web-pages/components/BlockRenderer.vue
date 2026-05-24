@@ -64,12 +64,11 @@
         @inspect-block="$emit('inspect-block', $event)"
       />
     </component>
-    <style v-if="block.customCss">{{ customCssRule }}</style>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
@@ -124,6 +123,36 @@ const customCssRule = computed(() => {
   if (css.includes('{')) return css
   return `.${blockClass(props.block.id)} { ${css} }`
 })
+const customCssStyleEl = ref<HTMLStyleElement | null>(null)
+
+onMounted(() => {
+  updateCustomCssStyle()
+})
+
+onBeforeUnmount(() => {
+  customCssStyleEl.value?.remove()
+  customCssStyleEl.value = null
+})
+
+watch(customCssRule, () => {
+  updateCustomCssStyle()
+})
+
+function updateCustomCssStyle() {
+  if (!customCssRule.value) {
+    customCssStyleEl.value?.remove()
+    customCssStyleEl.value = null
+    return
+  }
+
+  if (!customCssStyleEl.value) {
+    customCssStyleEl.value = document.createElement('style')
+    customCssStyleEl.value.dataset.sailorBlockCss = props.block.id
+    document.head.appendChild(customCssStyleEl.value)
+  }
+
+  customCssStyleEl.value.textContent = customCssRule.value
+}
 
 function onDragStart(event: DragEvent) {
   if (props.readonly) return

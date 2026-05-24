@@ -70,6 +70,14 @@ describe('block inspector contract', () => {
     assert.doesNotMatch(advanced, /sanitizeCustomCss|sanitizeClassName/)
   })
 
+  it('renderer injects custom css outside the vue template side-effect tags', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+
+    assert.match(renderer, /document\.createElement\('style'\)/)
+    assert.match(renderer, /customCssRule/)
+    assert.doesNotMatch(renderer, /<style\s+v-if/)
+  })
+
   it('action panel supports form submit, workflow trigger, open URL actions', () => {
     const source = read('src/features/web-pages/components/BlockActionPanel.vue')
     assert.match(source, /submitForm/)
