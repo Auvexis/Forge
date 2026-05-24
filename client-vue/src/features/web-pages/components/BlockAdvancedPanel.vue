@@ -17,37 +17,37 @@
         @update:model-value="patchField('className', String($event))"
       />
     </label>
-    <div class="web-page-code-field">
+    <details class="web-page-advanced-panel__section">
+      <summary>Attributes</summary>
       <BaseCodeEditor
         :model-value="attributesJson"
         language="json"
-        label="Attributes"
         hint='{"data-track": "hero", "aria-label": "Hero"}'
         height="120px"
         @update:model-value="patchAttributes"
       />
       <p v-if="attributeError" class="web-page-import-error">{{ attributeError }}</p>
-    </div>
-    <div class="web-page-code-field">
+    </details>
+    <details class="web-page-advanced-panel__section">
+      <summary>Custom CSS</summary>
       <BaseCodeEditor
         :model-value="block.customCss ?? ''"
         language="css"
-        label="Custom CSS"
         hint="Use #id, .class, or raw declarations for this element."
         height="160px"
         @update:model-value="patchField('customCss', $event)"
       />
-    </div>
-    <div class="web-page-code-field">
+    </details>
+    <details class="web-page-advanced-panel__section">
+      <summary>Custom JS</summary>
       <BaseCodeEditor
         :model-value="block.customJs ?? ''"
         language="javascript"
-        label="Custom JS"
         hint="element points to this block when the page is published."
         height="180px"
         @update:model-value="patchField('customJs', $event)"
       />
-    </div>
+    </details>
   </div>
 </template>
 

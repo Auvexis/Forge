@@ -82,11 +82,6 @@
         title="Body"
         @patch="patchBodyStyles"
       />
-      <BlockToolbar
-        v-if="editorStore.selectedTarget.type === 'block' && editorStore.selectedBlock"
-        @delete="deleteSelectedBlock"
-        @duplicate="duplicateSelectedBlock"
-      />
       <template v-if="editorStore.selectedTarget.type === 'block' && editorStore.selectedBlock">
         <FormImportPanel v-if="editorStore.selectedBlock.tag === 'form'" @insert="insertImportedForm" />
         <BlockContentPanel
@@ -130,7 +125,6 @@ import { createBlock } from '../utils/createBlock.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { PageBlock, PageBlockStyles, PageBlockTag, SailorPage } from '../types/page.types.ts'
 import PageCanvas from './PageCanvas.vue'
-import BlockToolbar from './BlockToolbar.vue'
 import BlockTreePanel from './BlockTreePanel.vue'
 import PageFloatingAddToolbar from './PageFloatingAddToolbar.vue'
 import BlockContentPanel from './BlockContentPanel.vue'
@@ -314,16 +308,6 @@ async function deleteActivePageAndChooseNext() {
   }
 }
 
-function deleteSelectedBlock() {
-  if (!editorStore.selectedBlockId) return
-  editorStore.deleteBlock(editorStore.selectedBlockId)
-}
-
-function duplicateSelectedBlock() {
-  if (!editorStore.selectedBlockId) return
-  editorStore.duplicateBlock(editorStore.selectedBlockId)
-}
-
 async function deletePageFromTree(pageId: string) {
   if (pagesStore.activePage?.id === pageId) {
     await deleteActivePageAndChooseNext()
@@ -384,11 +368,11 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'file.publish') void publishPage()
   if (command === 'edit.rename') editorStore.selectPage()
   if (command === 'edit.duplicate') {
-    if (editorStore.selectedBlockId) duplicateSelectedBlock()
+    if (editorStore.selectedBlockId) editorStore.duplicateBlock(editorStore.selectedBlockId)
     else void duplicateActivePage()
   }
   if (command === 'edit.delete') {
-    if (editorStore.selectedBlockId) deleteSelectedBlock()
+    if (editorStore.selectedBlockId) editorStore.deleteBlock(editorStore.selectedBlockId)
     else void deleteActivePageAndChooseNext()
   }
   if (command === 'view.switch') void openPageSwitcher()

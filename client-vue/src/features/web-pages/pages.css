@@ -677,9 +677,25 @@
 
 .web-page-style-section h5 {
   margin: var(--sailor-space-2) 0 0;
-  color: var(--sailor-text-secondary);
+  color: var(--sailor-text-primary);
   font-size: var(--sailor-text-xs);
   font-weight: var(--sailor-font-semibold);
+}
+
+.web-page-advanced-panel__section {
+  display: grid;
+  gap: var(--sailor-space-2);
+}
+
+.web-page-advanced-panel__section summary {
+  color: var(--sailor-text-primary);
+  cursor: pointer;
+  font-size: var(--sailor-text-xs);
+  font-weight: var(--sailor-font-semibold);
+}
+
+.web-page-advanced-panel__section[open] summary {
+  margin-bottom: var(--sailor-space-2);
 }
 
 .web-page-style-row {

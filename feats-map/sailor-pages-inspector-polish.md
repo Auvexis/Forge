@@ -2,11 +2,11 @@
 
 ## Tasks
 
-- [ ] Criar contrato RED removendo Delete/Duplicate do Inspector Panel.
-- [ ] Criar contrato RED para Attributes, Custom CSS e Custom JS collapsible/expandable.
-- [ ] Criar contrato RED para mini titulos de secoes em `text-primary`.
-- [ ] Remover `BlockToolbar` do Inspector mantendo toolbar do canvas.
-- [ ] Tornar Attributes, Custom CSS e Custom JS expansíveis no `BlockAdvancedPanel`.
-- [ ] Ajustar cor dos mini titulos de secoes para `var(--sailor-text-primary)`.
-- [ ] Rodar contratos, type-check e build.
-- [ ] Atualizar checklist e commitar.
+- [x] Criar contrato RED removendo Delete/Duplicate do Inspector Panel.
+- [x] Criar contrato RED para Attributes, Custom CSS e Custom JS collapsible/expandable.
+- [x] Criar contrato RED para mini titulos de secoes em `text-primary`.
+- [x] Remover `BlockToolbar` do Inspector mantendo toolbar do canvas.
+- [x] Tornar Attributes, Custom CSS e Custom JS expansíveis no `BlockAdvancedPanel`.
+- [x] Ajustar cor dos mini titulos de secoes para `var(--sailor-text-primary)`.
+- [x] Rodar contratos, type-check e build.
+- [x] Atualizar checklist e commitar.
