@@ -30,5 +30,5 @@ Melhorar a nova feature de Sailor Pages com uma toolbar estilo Figma mais usavel
 - [x] Separar controles de estilo por secoes simples.
 - [x] Adicionar mais opcoes CSS no Inspector e allowlists necessarias.
 - [x] Abrir Inspector no double click do canvas.
-- [ ] Rodar contratos, type-check e build.
-- [ ] Atualizar este checklist e fazer commits por task concluida.
+- [x] Rodar contratos, type-check e build.
+- [x] Atualizar este checklist e fazer commits por task concluida.

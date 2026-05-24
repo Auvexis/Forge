@@ -168,7 +168,7 @@ describe("page validation", () => {
             id: "block_button",
             tag: "button",
             props: { text: "Run" },
-            action: { id: "action_bad", type: "evalJavaScript" as any },
+            action: { id: "action_bad", type: "evalJavaScript" } as any,
             children: [],
           },
         ],
