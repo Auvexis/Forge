@@ -27,14 +27,23 @@
 
     <div class="web-page-editor__workspace">
       <template v-for="page in pagesStore.pages" :key="page.id">
-        <button
-          type="button"
-          class="web-page-editor__page-handle"
-          :class="{ 'web-page-editor__page-handle--active': page.id === pagesStore.activePage?.id }"
-          @click="selectTreePage(page.id)"
-        >
-          {{ page.title }}
-        </button>
+        <div class="web-page-editor__page-chip">
+          <button
+            type="button"
+            class="web-page-editor__page-handle"
+            :class="{ 'web-page-editor__page-handle--active': page.id === pagesStore.activePage?.id }"
+            @click="selectTreePage(page.id)"
+          >
+            {{ page.title }}
+          </button>
+          <BaseButton
+            variant="ghost"
+            size="icon"
+            icon-left="trash-2"
+            title="Delete page"
+            @click.stop="deletePageFromBadge(page.id)"
+          />
+        </div>
         <PageCanvas
           :blocks="pageBlocks(page.id)"
           :body-styles="pageBodyStyles(page.id)"
@@ -322,6 +331,10 @@ async function deletePageFromTree(pageId: string) {
     return
   }
   await pagesStore.deletePage(pageId)
+}
+
+async function deletePageFromBadge(pageId: string) {
+  await deletePageFromTree(pageId)
 }
 
 async function duplicatePageFromTree(pageId: string) {

@@ -144,7 +144,6 @@
 .web-page-editor__page-handle {
   display: block;
   max-width: 280px;
-  margin: 0 auto var(--sailor-space-2);
   overflow: hidden;
   padding: var(--sailor-space-1) var(--sailor-space-3);
   border: 1px solid var(--sailor-border);
@@ -154,6 +153,19 @@
   font-size: var(--sailor-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.web-page-editor__page-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sailor-space-1);
+  margin-bottom: var(--sailor-space-2);
+}
+
+.web-page-editor__page-chip .base-button {
+  width: 28px;
+  height: 28px;
 }
 
 .web-page-editor__page-handle--active {

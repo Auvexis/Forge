@@ -532,7 +532,7 @@ git commit -m "feat: add canvas block quick actions"
 - Modify/Test: `client-vue/src/features/web-pages/components/__tests__/PageChrome.contract.test.ts`
 - Modify: `client-vue/src/features/web-pages/pages.css`
 
-- [ ] **Step 1: Contrato**
+- [x] **Step 1: Contrato**
 
 Adicionar:
 
@@ -547,7 +547,7 @@ it('page badge exposes a direct delete button', () => {
 })
 ```
 
-- [ ] **Step 2: Trocar badge por chip com botão**
+- [x] **Step 2: Trocar badge por chip com botão**
 
 Em `PageEditor.vue`:
 
@@ -579,7 +579,7 @@ async function deletePageFromBadge(pageId: string) {
 }
 ```
 
-- [ ] **Step 3: CSS**
+- [x] **Step 3: CSS**
 
 ```css
 .web-page-editor__page-chip {
@@ -596,7 +596,7 @@ async function deletePageFromBadge(pageId: string) {
 }
 ```
 
-- [ ] **Step 4: Rodar testes e commit**
+- [x] **Step 4: Rodar testes e commit**
 
 Run:
 

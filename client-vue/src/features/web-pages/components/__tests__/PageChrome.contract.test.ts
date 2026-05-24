@@ -38,4 +38,13 @@ describe('page chrome contract', () => {
     assert.match(source, /Preview/)
     assert.match(source, /Publish/)
   })
+
+  it('page badge exposes a direct delete button', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /web-page-editor__page-chip/)
+    assert.match(source, /deletePageFromBadge/)
+    assert.match(source, /icon-left="trash-2"/)
+    assert.match(source, /variant="ghost"/)
+  })
 })
