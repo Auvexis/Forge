@@ -76,9 +76,14 @@ describe('block inspector contract', () => {
     const advanced = read('src/features/web-pages/components/BlockAdvancedPanel.vue')
 
     assert.match(advanced, /<details[^>]*class="web-page-advanced-panel__section"/)
-    assert.match(advanced, /<summary>Attributes<\/summary>/)
-    assert.match(advanced, /<summary>Custom CSS<\/summary>/)
-    assert.match(advanced, /<summary>Custom JS<\/summary>/)
+    assert.match(advanced, /LucideIcon/)
+    assert.match(advanced, /name="braces"/)
+    assert.match(advanced, /name="palette"/)
+    assert.match(advanced, /name="code-2"/)
+    assert.match(advanced, /name="chevron-down"/)
+    assert.match(advanced, />Attributes</)
+    assert.match(advanced, />Custom CSS</)
+    assert.match(advanced, />Custom JS</)
   })
 
   it('inspector panel does not render duplicate and delete block actions', () => {
