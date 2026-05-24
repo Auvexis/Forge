@@ -47,6 +47,8 @@
           @drop-root="handlePageDropRoot(page.id, $event)"
           @drag-intent="setPageDragIntent(page.id, $event)"
           @clear-drag-intent="clearPageDragIntent(page.id)"
+          @duplicate-block="duplicateBlockFromCanvas"
+          @delete-block="deleteBlockFromCanvas"
         />
       </template>
 
@@ -337,6 +339,14 @@ function duplicateBlockFromTree(blockId: string) {
 
 function moveBlockFromTree(payload: { targetId: string; position: InsertPosition; draggedId: string }) {
   editorStore.moveBlock(payload.draggedId, payload.targetId, payload.position)
+}
+
+function duplicateBlockFromCanvas(blockId: string) {
+  editorStore.duplicateBlock(blockId)
+}
+
+function deleteBlockFromCanvas(blockId: string) {
+  editorStore.deleteBlock(blockId)
 }
 
 async function addPageBelowCanvas() {

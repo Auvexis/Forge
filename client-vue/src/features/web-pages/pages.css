@@ -194,6 +194,38 @@
   cursor: grab;
 }
 
+.web-page-block-frame {
+  position: relative;
+}
+
+.web-page-block-toolbar {
+  position: absolute;
+  top: -34px;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  gap: var(--sailor-space-1);
+  padding: var(--sailor-space-1);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  box-shadow: var(--sailor-shadow-sm);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity 140ms var(--sailor-ease-standard),
+    transform 140ms var(--sailor-ease-standard);
+}
+
+.web-page-block-frame:hover > .web-page-block-toolbar,
+.web-page-block-frame:focus-within > .web-page-block-toolbar,
+.web-page-block-frame--selected > .web-page-block-toolbar {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
 .web-page-block__placeholder {
   color: var(--sailor-text-muted);
   font-size: var(--sailor-text-xs);

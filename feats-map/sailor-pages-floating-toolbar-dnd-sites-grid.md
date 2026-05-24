@@ -402,7 +402,7 @@ git commit -m "feat: rename page element ids from tree"
 - Modify/Test: `client-vue/src/features/web-pages/components/__tests__/PageEditor.contract.test.ts`
 - Modify: `client-vue/src/features/web-pages/pages.css`
 
-- [ ] **Step 1: Contrato**
+- [x] **Step 1: Contrato**
 
 Adicionar teste:
 
@@ -422,7 +422,7 @@ it('canvas blocks expose ghost duplicate and delete actions', () => {
 })
 ```
 
-- [ ] **Step 2: Refatorar BlockRenderer com frame seguro**
+- [x] **Step 2: Refatorar BlockRenderer com frame seguro**
 
 Usar wrapper para não colocar toolbar dentro de tags interativas:
 
@@ -442,7 +442,7 @@ Usar wrapper para não colocar toolbar dentro de tags interativas:
 </div>
 ```
 
-- [ ] **Step 3: Propagar eventos**
+- [x] **Step 3: Propagar eventos**
 
 Em `PageCanvas.vue`:
 
@@ -470,7 +470,7 @@ function deleteBlockFromCanvas(blockId: string) {
 }
 ```
 
-- [ ] **Step 4: CSS hover/focus suave**
+- [x] **Step 4: CSS hover/focus suave**
 
 Adicionar:
 
@@ -506,7 +506,7 @@ Adicionar:
 }
 ```
 
-- [ ] **Step 5: Rodar testes**
+- [x] **Step 5: Rodar testes**
 
 Run:
 
@@ -518,7 +518,7 @@ npm run type-check
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add client-vue/src/features/web-pages/components/BlockRenderer.vue client-vue/src/features/web-pages/components/PageCanvas.vue client-vue/src/features/web-pages/components/PageEditor.vue client-vue/src/features/web-pages/components/__tests__/PageEditor.contract.test.ts client-vue/src/features/web-pages/pages.css feats-map/sailor-pages-floating-toolbar-dnd-sites-grid.md

@@ -1,48 +1,66 @@
 <template>
-  <component
-    :is="renderTag"
-    class="web-page-block"
-    :class="blockClasses"
-    :style="block.styles"
-    draggable="true"
-    @click.stop="$emit('select', block.id)"
-    @dragstart.stop="onDragStart"
-    @dragover.prevent.stop="onDragOver"
-    @drop.prevent.stop="onDrop"
+  <div
+    class="web-page-block-frame"
+    :class="{ 'web-page-block-frame--selected': selectedBlockId === block.id }"
   >
-    <span
-      v-if="dropIntent?.targetId === block.id && dropIntent.position !== 'inside'"
-      class="web-page-drop-indicator"
-      :class="`web-page-drop-indicator--${dropIntent.position}`"
-    />
-    <template v-if="block.tag === 'text' || block.tag === 'button' || block.tag === 'link'">
-      {{ block.props?.text ?? block.tag }}
-    </template>
-    <template v-else-if="block.tag === 'image'">
-      <span>{{ block.props?.alt || 'Image' }}</span>
-    </template>
-    <template v-else-if="block.tag === 'input'">
-      <span>{{ block.props?.label || block.props?.name || 'Input' }}</span>
-    </template>
-    <template v-else-if="(block.children ?? []).length === 0">
-      <span class="web-page-block__placeholder">{{ block.props?.label ?? block.tag }}</span>
-    </template>
-    <BlockRenderer
-      v-for="child in block.children ?? []"
-      :key="child.id"
-      :block="child"
-      :selected-block-id="selectedBlockId"
-      :drop-intent="dropIntent"
-      :readonly="readonly"
-      @select="$emit('select', $event)"
-      @drop-block="$emit('drop-block', $event)"
-      @drag-intent="$emit('drag-intent', $event)"
-    />
-  </component>
+    <div v-if="!readonly" class="web-page-block-toolbar" @click.stop>
+      <BaseButton variant="ghost" size="sm" icon-left="copy" @click="$emit('duplicate-block', block.id)">
+        Duplicate
+      </BaseButton>
+      <BaseButton variant="ghost" size="sm" icon-left="trash-2" @click="$emit('delete-block', block.id)">
+        Delete
+      </BaseButton>
+    </div>
+    <component
+      :is="renderTag"
+      class="web-page-block"
+      :class="blockClasses"
+      :style="block.styles"
+      draggable="true"
+      tabindex="0"
+      @click.stop="$emit('select', block.id)"
+      @focus="$emit('select', block.id)"
+      @dragstart.stop="onDragStart"
+      @dragover.prevent.stop="onDragOver"
+      @drop.prevent.stop="onDrop"
+    >
+      <span
+        v-if="dropIntent?.targetId === block.id && dropIntent.position !== 'inside'"
+        class="web-page-drop-indicator"
+        :class="`web-page-drop-indicator--${dropIntent.position}`"
+      />
+      <template v-if="block.tag === 'text' || block.tag === 'button' || block.tag === 'link'">
+        {{ block.props?.text ?? block.tag }}
+      </template>
+      <template v-else-if="block.tag === 'image'">
+        <span>{{ block.props?.alt || 'Image' }}</span>
+      </template>
+      <template v-else-if="block.tag === 'input'">
+        <span>{{ block.props?.label || block.props?.name || 'Input' }}</span>
+      </template>
+      <template v-else-if="(block.children ?? []).length === 0">
+        <span class="web-page-block__placeholder">{{ block.props?.label ?? block.tag }}</span>
+      </template>
+      <BlockRenderer
+        v-for="child in block.children ?? []"
+        :key="child.id"
+        :block="child"
+        :selected-block-id="selectedBlockId"
+        :drop-intent="dropIntent"
+        :readonly="readonly"
+        @select="$emit('select', $event)"
+        @drop-block="$emit('drop-block', $event)"
+        @drag-intent="$emit('drag-intent', $event)"
+        @duplicate-block="$emit('duplicate-block', $event)"
+        @delete-block="$emit('delete-block', $event)"
+      />
+    </component>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
 
@@ -57,6 +75,8 @@ const emit = defineEmits<{
   select: [blockId: string]
   'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string }]
   'drag-intent': [payload: { targetId: string; position: InsertPosition }]
+  'duplicate-block': [blockId: string]
+  'delete-block': [blockId: string]
 }>()
 
 const isContainer = computed(() =>

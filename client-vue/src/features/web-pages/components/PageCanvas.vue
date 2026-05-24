@@ -25,6 +25,8 @@
         @select="$emit('select', $event)"
         @drop-block="$emit('drop-block', $event)"
         @drag-intent="$emit('drag-intent', $event)"
+        @duplicate-block="$emit('duplicate-block', $event)"
+        @delete-block="$emit('delete-block', $event)"
       />
     </section>
   </main>
@@ -50,6 +52,8 @@ const emit = defineEmits<{
   'drop-root': [payload: { tag?: PageBlockTag; draggedId?: string }]
   'drag-intent': [payload: { targetId: string | 'root'; position: InsertPosition }]
   'clear-drag-intent': []
+  'duplicate-block': [blockId: string]
+  'delete-block': [blockId: string]
 }>()
 
 function dropOnRoot(event: DragEvent) {

@@ -50,6 +50,20 @@ describe('page editor contract', () => {
     assert.match(source, /duplicate/)
   })
 
+  it('canvas blocks expose ghost duplicate and delete actions', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(renderer, /BaseButton/)
+    assert.match(renderer, /variant="ghost"/)
+    assert.match(renderer, /duplicate-block/)
+    assert.match(renderer, /delete-block/)
+    assert.match(canvas, /@duplicate-block/)
+    assert.match(editor, /duplicateBlockFromCanvas/)
+    assert.match(editor, /deleteBlockFromCanvas/)
+  })
+
   it('tree panel can select block', () => {
     const source = read('src/features/web-pages/components/BlockTreePanel.vue')
 
