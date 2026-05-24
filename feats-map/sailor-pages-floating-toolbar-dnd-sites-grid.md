@@ -1117,7 +1117,7 @@ git commit -m "feat: redesign pages selection grid"
 **Files:**
 - Modify: `feats-map/sailor-pages-floating-toolbar-dnd-sites-grid.md`
 
-- [ ] **Step 1: Rodar contratos da feature**
+- [x] **Step 1: Rodar contratos da feature**
 
 Run:
 
@@ -1135,7 +1135,7 @@ npm exec tsx src/features/web-pages/components/__tests__/PagesList.contract.test
 
 Expected: PASS.
 
-- [ ] **Step 2: Rodar type-check e build**
+- [x] **Step 2: Rodar type-check e build**
 
 Run:
 
@@ -1148,6 +1148,8 @@ npm run build-only
 Expected: PASS.
 
 - [ ] **Step 3: Teste manual no navegador**
+
+Blocked: dev server frontend respondeu em `http://127.0.0.1:23802/pages`, mas a app ficou presa na seleção de perfil com `Network request failed`. O server local foi iniciado, porém o fluxo de perfis ainda não carregou, então a UI real de `/pages` não ficou acessível para QA manual nesta sessão.
 
 Run:
 
@@ -1171,11 +1173,11 @@ Manual:
 - Hover/focus em elemento no Canvas mostra toolbar Duplicate/Delete.
 - Delete ao lado da badge da Page remove a page correta.
 
-- [ ] **Step 4: Atualizar plano como completo**
+- [x] **Step 4: Atualizar plano com status de verificação**
 
 Marcar tasks concluídas neste arquivo.
 
-- [ ] **Step 5: Commit final do checklist**
+- [x] **Step 5: Commit final do checklist**
 
 ```powershell
 git add feats-map/sailor-pages-floating-toolbar-dnd-sites-grid.md
