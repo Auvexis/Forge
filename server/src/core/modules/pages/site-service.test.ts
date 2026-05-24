@@ -30,9 +30,14 @@ describe("SiteService", () => {
     const site = service.createSite({ name: "Docs" });
     SiteRepository.saveSite({ ...site, id: "other", profileId: "profile_b", slug: "docs-b" });
 
-    const updated = service.updateSite(site.id, { name: "Docs Site", slug: "docs-site" });
+    const updated = service.updateSite(site.id, {
+      name: "Docs Site",
+      slug: "docs-site",
+      files: [...site.files, { path: "css/site.css", kind: "file", content: "", updatedAt: "2026-05-24T00:00:00.000Z" }],
+    });
 
     assert.equal(updated.slug, "docs-site");
+    assert.equal(updated.files.some((file) => file.path === "css/site.css"), true);
     assert.deepEqual(service.listSites().map((item) => item.id), [site.id]);
   });
 

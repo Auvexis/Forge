@@ -99,7 +99,7 @@ Compatibility:
 - Keep old `/pages` endpoints mapped to active/default site for now.
 - Keep old `/p/:slug` working for existing published pages.
 
-### - [ ] Task 3: Frontend Site Store
+### - [x] Task 3: Frontend Site Store
 
 Files:
 - Create `client-vue/src/features/web-pages/stores/sites.store.ts`

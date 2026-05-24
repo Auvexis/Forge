@@ -12,7 +12,9 @@ import type {
 
 export interface PagesApiClient {
   listPages: () => Promise<SailorPageSummary[]>
+  listSitePages: (siteId: string) => Promise<SailorPage[]>
   createPage: (payload: CreatePagePayload) => Promise<SailorPage>
+  createSitePage: (siteId: string, payload: CreatePagePayload) => Promise<SailorPage>
   getPage: (pageId: string) => Promise<SailorPage>
   updatePage: (pageId: string, payload: UpdatePagePayload) => Promise<SailorPage>
   deletePage: (pageId: string) => Promise<null>
@@ -22,7 +24,9 @@ export interface PagesApiClient {
 
 const defaultApiClient: PagesApiClient = {
   listPages: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.listPages(...args)),
+  listSitePages: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.listSitePages(...args)),
   createPage: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.createPage(...args)),
+  createSitePage: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.createSitePage(...args)),
   getPage: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.getPage(...args)),
   updatePage: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.updatePage(...args)),
   deletePage: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.deletePage(...args)),
@@ -33,6 +37,7 @@ const defaultApiClient: PagesApiClient = {
 export const usePagesStore = defineStore('web-pages', () => {
   const pages = ref<SailorPageSummary[]>([])
   const pageDocuments = ref<Record<string, SailorPage>>({})
+  const activeSiteId = ref<string | null>(null)
   const activePage = ref<SailorPage | null>(null)
   const savedSnapshot = ref<string | null>(null)
   const lastPublished = ref<PublishedPageSummary | null>(null)
@@ -49,6 +54,10 @@ export const usePagesStore = defineStore('web-pages', () => {
     apiClient.value = client
   }
 
+  function setActiveSiteId(siteId: string | null) {
+    activeSiteId.value = siteId
+  }
+
   function setActivePage(page: SailorPage | null) {
     activePage.value = page ? clone(page) : null
     savedSnapshot.value ??= activePage.value ? snapshot(activePage.value) : null
@@ -58,7 +67,10 @@ export const usePagesStore = defineStore('web-pages', () => {
     isLoading.value = true
     error.value = null
     try {
-      pages.value = await apiClient.value.listPages()
+      const listed = activeSiteId.value
+        ? await apiClient.value.listSitePages(activeSiteId.value)
+        : await apiClient.value.listPages()
+      pages.value = listed.map((page) => pageSummary(page))
       return pages.value
     } finally {
       isLoading.value = false
@@ -75,7 +87,9 @@ export const usePagesStore = defineStore('web-pages', () => {
     isSaving.value = true
     error.value = null
     try {
-      const page = await apiClient.value.createPage(payload)
+      const page = activeSiteId.value
+        ? await apiClient.value.createSitePage(activeSiteId.value, payload)
+        : await apiClient.value.createPage(payload)
       setSavedPage(page)
       upsertSummary(page)
       return page
@@ -205,13 +219,7 @@ export const usePagesStore = defineStore('web-pages', () => {
   }
 
   function upsertSummary(page: SailorPage) {
-    const summary = {
-      id: page.id,
-      title: page.title,
-      slug: page.slug,
-      updatedAt: page.updatedAt,
-      publishedAt: pages.value.find((item) => item.id === page.id)?.publishedAt ?? null,
-    }
+    const summary = pageSummary(page, pages.value.find((item) => item.id === page.id)?.publishedAt ?? null)
     const index = pages.value.findIndex((item) => item.id === page.id)
     if (index === -1) pages.value = [summary, ...pages.value]
     else pages.value[index] = summary
@@ -230,6 +238,7 @@ export const usePagesStore = defineStore('web-pages', () => {
   return {
     pages,
     pageDocuments,
+    activeSiteId,
     activePage,
     lastPublished,
     isLoading,
@@ -237,6 +246,7 @@ export const usePagesStore = defineStore('web-pages', () => {
     error,
     isDirty,
     setApiClient,
+    setActiveSiteId,
     setActivePage,
     listPages,
     loadPageDocuments,
@@ -260,4 +270,14 @@ function clone<T>(value: T): T {
 
 function snapshot(value: unknown): string {
   return JSON.stringify(value)
+}
+
+function pageSummary(page: SailorPage | SailorPageSummary, publishedAt?: string | null): SailorPageSummary {
+  return {
+    id: page.id,
+    title: page.title,
+    slug: page.slug,
+    updatedAt: page.updatedAt,
+    publishedAt: publishedAt ?? ('publishedAt' in page ? page.publishedAt : null) ?? null,
+  }
 }

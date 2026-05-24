@@ -2,7 +2,7 @@ import { PageRepository } from "./page-repository.ts";
 import { PageService } from "./page-service.ts";
 import { SiteRepository } from "./site-repository.ts";
 import type { CreatePageInput, SailorPage } from "./page-types.ts";
-import type { SailorSite } from "./site-types.ts";
+import type { SailorSite, SiteFile } from "./site-types.ts";
 
 export interface CreateSiteInput {
   name: string;
@@ -13,6 +13,7 @@ export interface UpdateSiteInput {
   name?: string;
   slug?: string;
   homePageId?: string | null;
+  files?: SiteFile[];
 }
 
 export class SiteService {
@@ -57,6 +58,7 @@ export class SiteService {
       name: input.name?.trim() || existing.name,
       slug: input.slug ?? existing.slug,
       homePageId: input.homePageId === undefined ? existing.homePageId : input.homePageId,
+      files: input.files ?? existing.files,
       updatedAt: new Date().toISOString(),
     });
   }

@@ -9,6 +9,7 @@ function page(overrides: Partial<SailorPage> = {}): SailorPage {
   return {
     id: 'page_1',
     profileId: 'profile_a',
+    siteId: 'site_1',
     title: 'Landing Page',
     slug: 'landing-page',
     blocks: [],
@@ -22,7 +23,12 @@ function api(): PagesApiClient {
   let current = page()
   return {
     listPages: async () => [current],
+    listSitePages: async () => [current],
     createPage: async (payload) => {
+      current = page({ title: payload.title, slug: payload.slug ?? 'new-page' })
+      return current
+    },
+    createSitePage: async (_siteId, payload) => {
       current = page({ title: payload.title, slug: payload.slug ?? 'new-page' })
       return current
     },
@@ -105,5 +111,30 @@ describe('pages store', () => {
 
     await assert.rejects(() => store.saveActivePage(), /nope/)
     assert.equal(store.isDirty, true)
+  })
+
+  it('lists and creates pages inside the active site when selected', async () => {
+    const store = usePagesStore()
+    let listedSiteId = ''
+    let createdSiteId = ''
+    store.setApiClient({
+      ...api(),
+      listSitePages: async (siteId) => {
+        listedSiteId = siteId
+        return [page({ siteId })]
+      },
+      createSitePage: async (siteId, payload) => {
+        createdSiteId = siteId
+        return page({ siteId, title: payload.title })
+      },
+    })
+
+    store.setActiveSiteId('site_docs')
+    await store.listPages()
+    await store.createPage({ title: 'Docs Home' })
+
+    assert.equal(listedSiteId, 'site_docs')
+    assert.equal(createdSiteId, 'site_docs')
+    assert.equal(store.activePage?.siteId, 'site_docs')
   })
 })

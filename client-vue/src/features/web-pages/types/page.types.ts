@@ -119,6 +119,7 @@ export interface UpdateSitePayload {
   name?: string
   slug?: string
   homePageId?: string | null
+  files?: SiteFile[]
 }
 
 export interface PagePublicationStatus {
