@@ -29,8 +29,11 @@ const PROP_ALLOWLIST: Record<PageBlockTag, Set<string>> = {
 const STYLE_ALLOWLIST = new Set([
   "width",
   "height",
+  "minWidth",
   "maxWidth",
   "minHeight",
+  "maxHeight",
+  "overflow",
   "padding",
   "margin",
   "display",
@@ -40,8 +43,13 @@ const STYLE_ALLOWLIST = new Set([
   "gap",
   "backgroundColor",
   "backgroundImage",
+  "backgroundSize",
+  "backgroundPosition",
   "color",
   "border",
+  "borderWidth",
+  "borderStyle",
+  "borderColor",
   "borderRadius",
   "boxShadow",
   "opacity",
@@ -49,12 +57,17 @@ const STYLE_ALLOWLIST = new Set([
   "fontWeight",
   "lineHeight",
   "textAlign",
+  "textTransform",
+  "letterSpacing",
+  "objectFit",
+  "objectPosition",
 ]);
 
 const DANGEROUS_CSS_PATTERN = /javascript:|data:text\/html|expression\s*\(|<\/style|<\s*script/i;
 
 export function renderPublishedPage(page: PublishedPage): string {
   const title = escapeHtml(page.title);
+  const pageJs = renderPageJs(page);
   return [
     "<!doctype html>",
     '<html lang="en">',
@@ -66,6 +79,7 @@ export function renderPublishedPage(page: PublishedPage): string {
     "</head>",
     `<body${renderBodyStyle(page)}>`,
     renderPageBody(page.blocks),
+    pageJs ? `<script>${pageJs}</script>` : "",
     "</body>",
     "</html>",
   ].join("");
@@ -111,6 +125,8 @@ function renderAttributes(block: PageBlock): string {
       .join(" "),
   };
 
+  if (block.elementId) attrs.id = block.elementId;
+
   for (const [key, value] of Object.entries(block.props ?? {})) {
     if (!PROP_ALLOWLIST[block.tag].has(key) || value === false || value === null || value === undefined) {
       continue;
@@ -127,6 +143,11 @@ function renderAttributes(block: PageBlock): string {
 
   if (block.props?.ariaLabel) {
     attrs["aria-label"] = String(block.props.ariaLabel);
+  }
+
+  for (const [key, value] of Object.entries(block.attributes ?? {})) {
+    if (!isSafeAttributeName(key) || value === false || value === null || value === undefined) continue;
+    attrs[key] = String(value);
   }
 
   if (block.action && (block.tag === "form" || block.tag === "button")) {
@@ -151,32 +172,49 @@ function collectBlockCss(block: PageBlock): string[] {
     ...Object.entries(block.styles ?? {})
       .filter(([key, value]) => STYLE_ALLOWLIST.has(key) && !containsDangerousCss(String(value)))
       .map(([key, value]) => `${camelToKebab(key)}: ${String(value)};`),
-    ...sanitizeCustomCss(block.customCss ?? ""),
   ];
 
   const ownCss = declarations.length
     ? [`.${blockClass(block.id)} {\n  ${declarations.join("\n  ")}\n}`]
     : [];
+  const customCss = formatCustomCss(block);
 
-  return [...ownCss, ...(block.children ?? []).flatMap((child) => collectBlockCss(child))];
+  return [...ownCss, ...customCss, ...(block.children ?? []).flatMap((child) => collectBlockCss(child))];
 }
 
-function sanitizeCustomCss(css: string): string[] {
+function formatCustomCss(block: PageBlock): string[] {
+  const css = block.customCss?.trim();
   if (!css) return [];
-  return css
-    .split(";")
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .filter((part) => !containsDangerousCss(part))
-    .filter((part) => /^[a-z-]+\s*:\s*[^{}<>]+$/i.test(part))
-    .map((part) => `${part};`);
+  if (css.includes("{")) return [css];
+  return [`.${blockClass(block.id)} {\n  ${css}\n}`];
+}
+
+function renderPageJs(page: PublishedPage): string {
+  const scripts = page.blocks.flatMap((block) => collectBlockJs(block));
+  return scripts.join("\n");
+}
+
+function collectBlockJs(block: PageBlock): string[] {
+  const script = block.customJs?.trim();
+  const ownScript = script
+    ? [
+        `;(() => {`,
+        `  const element = ${JSON.stringify(block.elementId ?? "")} ? document.getElementById(${JSON.stringify(block.elementId ?? "")}) : document.querySelector(${JSON.stringify(`.${blockClass(block.id)}`)});`,
+        `  const block = element;`,
+        `  ${escapeScript(script)}`,
+        `})();`,
+      ].join("\n")
+    : "";
+
+  return [...(ownScript ? [ownScript] : []), ...(block.children ?? []).flatMap((child) => collectBlockJs(child))];
 }
 
 function sanitizeClassName(className: unknown): string {
   if (typeof className !== "string") return "";
   return className
     .split(/\s+/)
-    .filter((part) => /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/.test(part))
+    .map((part) => part.replace(/[<>"']/g, ""))
+    .filter(Boolean)
     .join(" ");
 }
 
@@ -200,12 +238,20 @@ function escapeAttribute(value: string): string {
   return escapeHtml(value).replace(/"/g, "&quot;");
 }
 
+function escapeScript(value: string): string {
+  return value.replace(/<\/script/gi, "<\\/script");
+}
+
 function camelToKebab(value: string): string {
   return value.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 }
 
 function containsDangerousCss(value: string): boolean {
   return DANGEROUS_CSS_PATTERN.test(value);
+}
+
+function isSafeAttributeName(name: string): boolean {
+  return /^(data-[a-z0-9_.:-]+|aria-[a-z0-9_.:-]+|role|title|name|placeholder|target|rel)$/i.test(name);
 }
 
 function isSafeImageUrl(url: string): boolean {

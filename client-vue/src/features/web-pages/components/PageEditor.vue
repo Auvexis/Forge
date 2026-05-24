@@ -59,6 +59,7 @@
           @clear-drag-intent="clearPageDragIntent(page.id)"
           @duplicate-block="duplicateBlockFromCanvas"
           @delete-block="deleteBlockFromCanvas"
+          @inspect-block="handleInspectBlock(page.id, $event)"
         />
       </template>
 
@@ -89,6 +90,10 @@
       <template v-if="editorStore.selectedTarget.type === 'block' && editorStore.selectedBlock">
         <FormImportPanel v-if="editorStore.selectedBlock.tag === 'form'" @insert="insertImportedForm" />
         <BlockContentPanel
+          :block="editorStore.selectedBlock"
+          @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
+        />
+        <BlockAdvancedPanel
           :block="editorStore.selectedBlock"
           @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
         />
@@ -129,6 +134,7 @@ import BlockToolbar from './BlockToolbar.vue'
 import BlockTreePanel from './BlockTreePanel.vue'
 import PageFloatingAddToolbar from './PageFloatingAddToolbar.vue'
 import BlockContentPanel from './BlockContentPanel.vue'
+import BlockAdvancedPanel from './BlockAdvancedPanel.vue'
 import BlockStylePanel from './BlockStylePanel.vue'
 import BlockActionPanel from './BlockActionPanel.vue'
 import FormImportPanel from './FormImportPanel.vue'
@@ -353,6 +359,13 @@ function duplicateBlockFromCanvas(blockId: string) {
 
 function deleteBlockFromCanvas(blockId: string) {
   editorStore.deleteBlock(blockId)
+}
+
+function handleInspectBlock(pageId: string, blockId: string) {
+  void ensurePageActive(pageId).then(() => {
+    editorStore.selectBlock(blockId)
+    isRightPanelOpen.value = true
+  })
 }
 
 async function addPageBelowCanvas() {

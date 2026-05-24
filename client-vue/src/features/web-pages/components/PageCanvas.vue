@@ -27,6 +27,7 @@
         @drag-intent="$emit('drag-intent', $event)"
         @duplicate-block="$emit('duplicate-block', $event)"
         @delete-block="$emit('delete-block', $event)"
+        @inspect-block="$emit('inspect-block', $event)"
       />
     </section>
   </main>
@@ -55,6 +56,7 @@ const emit = defineEmits<{
   'clear-drag-intent': []
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
+  'inspect-block': [blockId: string]
 }>()
 
 function dropOnRoot(event: DragEvent) {

@@ -13,12 +13,15 @@
     </div>
     <component
       :is="renderTag"
+      v-bind="blockAttributes"
+      :id="block.elementId || undefined"
       class="web-page-block"
       :class="blockClasses"
       :style="block.styles"
       draggable="true"
       tabindex="0"
       @click.stop="$emit('select', block.id)"
+      @dblclick.stop="$emit('inspect-block', block.id)"
       @focus="$emit('select', block.id)"
       @dragstart.stop="onDragStart"
       @dragover.prevent.stop="onDragOver"
@@ -58,8 +61,10 @@
         @drag-intent="$emit('drag-intent', $event)"
         @duplicate-block="$emit('duplicate-block', $event)"
         @delete-block="$emit('delete-block', $event)"
+        @inspect-block="$emit('inspect-block', $event)"
       />
     </component>
+    <style v-if="block.customCss">{{ customCssRule }}</style>
   </div>
 </template>
 
@@ -83,6 +88,7 @@ const emit = defineEmits<{
   'drag-intent': [payload: { targetId: string; position: InsertPosition; dropEdge?: DropEdge }]
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
+  'inspect-block': [blockId: string]
 }>()
 
 const isContainer = computed(() =>
@@ -97,11 +103,27 @@ const renderTag = computed(() => {
 })
 
 const blockClasses = computed(() => ({
+  [blockClass(props.block.id)]: true,
+  ...(props.block.className ?? '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .reduce<Record<string, boolean>>((classes, className) => {
+      classes[className] = true
+      return classes
+    }, {}),
   'web-page-block--selected': props.selectedBlockId === props.block.id,
   'web-page-block--drop-before': props.dropIntent?.targetId === props.block.id && props.dropIntent.position === 'before',
   'web-page-block--drop-after': props.dropIntent?.targetId === props.block.id && props.dropIntent.position === 'after',
   'web-page-block--drop-inside': props.dropIntent?.targetId === props.block.id && props.dropIntent.position === 'inside',
 }))
+
+const blockAttributes = computed(() => sanitizeAttributes(props.block.attributes ?? {}))
+const customCssRule = computed(() => {
+  const css = props.block.customCss?.trim()
+  if (!css) return ''
+  if (css.includes('{')) return css
+  return `.${blockClass(props.block.id)} { ${css} }`
+})
 
 function onDragStart(event: DragEvent) {
   if (props.readonly) return
@@ -156,5 +178,22 @@ function setDragPreview(event: DragEvent, label: string) {
   document.body.appendChild(preview)
   event.dataTransfer.setDragImage(preview, 16, 16)
   window.setTimeout(() => preview.remove(), 0)
+}
+
+function blockClass(id: string): string {
+  return `sailor-block-${String(id).replace(/[^a-zA-Z0-9_-]/g, '_')}`
+}
+
+function sanitizeAttributes(attributes: Record<string, string | number | boolean>) {
+  const safe: Record<string, string | number | boolean> = {}
+  for (const [key, value] of Object.entries(attributes)) {
+    if (!isSafeAttributeName(key) || value === false) continue
+    safe[key] = value
+  }
+  return safe
+}
+
+function isSafeAttributeName(name: string) {
+  return /^(data-[a-z0-9_.:-]+|aria-[a-z0-9_.:-]+|role|title|name|placeholder|target|rel)$/i.test(name)
 }
 </script>

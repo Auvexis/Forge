@@ -47,7 +47,7 @@ describe("page renderer", () => {
       },
     ]);
 
-    assert.match(html, /class="sailor-page-block sailor-block-link_1 safe-class"/);
+    assert.match(html, /class="sailor-page-block sailor-block-link_1 safe-class badscript"/);
     assert.match(html, /&lt;Click&gt;/);
     assert.match(html, /href="https:\/\/example.com\?a=&lt;bad&gt;"/);
   });

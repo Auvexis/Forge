@@ -1,5 +1,6 @@
 import type {
   PageBlock,
+  PageBlockAttributes,
   PageBlockAction,
   PageBlockProps,
   PageBlockStyles,
@@ -12,7 +13,7 @@ const PAGE_TITLE_MAX_LENGTH = 120;
 const PAGE_SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MAX_BLOCKS = 300;
 const MAX_DEPTH = 8;
-const MAX_CUSTOM_CSS_LENGTH = 4000;
+const MAX_CUSTOM_CODE_LENGTH = 50000;
 
 const ALLOWED_TAGS = new Set<PageBlockTag>([
   "header",
@@ -45,8 +46,11 @@ const ALLOWED_PROPS: Record<PageBlockTag, Set<string>> = {
 const ALLOWED_STYLES = new Set([
   "width",
   "height",
+  "minWidth",
   "maxWidth",
   "minHeight",
+  "maxHeight",
+  "overflow",
   "padding",
   "margin",
   "display",
@@ -56,8 +60,13 @@ const ALLOWED_STYLES = new Set([
   "gap",
   "backgroundColor",
   "backgroundImage",
+  "backgroundSize",
+  "backgroundPosition",
   "color",
   "border",
+  "borderWidth",
+  "borderStyle",
+  "borderColor",
   "borderRadius",
   "boxShadow",
   "opacity",
@@ -65,6 +74,10 @@ const ALLOWED_STYLES = new Set([
   "fontWeight",
   "lineHeight",
   "textAlign",
+  "textTransform",
+  "letterSpacing",
+  "objectFit",
+  "objectPosition",
 ]);
 
 const DANGEROUS_PATTERN = /<\s*script|javascript:|data:text\/html|on\w+\s*=|expression\s*\(/i;
@@ -136,10 +149,16 @@ function normalizeBlock(
   const stylesResult = normalizeStyles(block.styles ?? {});
   if (!stylesResult.success) return stylesResult;
 
+  const elementId = normalizeElementId(block.elementId);
+  const attributes = normalizeAttributes(block.attributes ?? {});
   const className = normalizeClassName(block.className);
   const customCss = block.customCss ?? "";
-  if (customCss.length > MAX_CUSTOM_CSS_LENGTH || containsDangerousText(customCss)) {
-    return { success: false, error: "Block custom CSS contains unsafe content." };
+  if (customCss.length > MAX_CUSTOM_CODE_LENGTH) {
+    return { success: false, error: "Block custom CSS is too long." };
+  }
+  const customJs = block.customJs ?? "";
+  if (customJs.length > MAX_CUSTOM_CODE_LENGTH) {
+    return { success: false, error: "Block custom JS is too long." };
   }
 
   const actionResult = normalizeAction(block.action);
@@ -159,12 +178,24 @@ function normalizeBlock(
       tag: block.tag,
       props: propsResult.props,
       styles: stylesResult.styles,
+      ...(elementId ? { elementId } : {}),
+      ...(Object.keys(attributes).length ? { attributes } : {}),
       ...(className ? { className } : {}),
       ...(customCss ? { customCss } : {}),
+      ...(customJs ? { customJs } : {}),
       ...(actionResult.action ? { action: actionResult.action } : {}),
       children,
     },
   };
+}
+
+function normalizeAttributes(attributes: PageBlockAttributes): PageBlockAttributes {
+  const normalized: PageBlockAttributes = {};
+  for (const [key, value] of Object.entries(attributes)) {
+    if (!isSafeAttributeName(key) || value === false || value === null || value === undefined) continue;
+    normalized[key] = typeof value === "boolean" ? value : String(value);
+  }
+  return normalized;
 }
 
 function normalizeProps(
@@ -230,8 +261,18 @@ function normalizeClassName(className: unknown): string | undefined {
   if (typeof className !== "string") return undefined;
   return className
     .split(/\s+/)
-    .filter((part) => /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/.test(part))
+    .map((part) => part.replace(/[<>"']/g, ""))
+    .filter(Boolean)
     .join(" ");
+}
+
+function normalizeElementId(elementId: unknown): string | undefined {
+  if (typeof elementId !== "string") return undefined;
+  return elementId.trim().replace(/[<>"'\s]/g, "");
+}
+
+function isSafeAttributeName(name: string): boolean {
+  return /^(data-[a-z0-9_.:-]+|aria-[a-z0-9_.:-]+|role|title|name|placeholder|target|rel)$/i.test(name);
 }
 
 function containsDangerousText(value: string): boolean {

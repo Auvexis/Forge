@@ -23,8 +23,8 @@ describe('style allowlist utilities', () => {
     assert.deepEqual(sanitizeStyles({ backgroundImage: 'url(javascript:alert(1))' }), {})
   })
 
-  it('removes expression', () => {
-    assert.equal(sanitizeCustomCss('width: expression(alert(1)); color: red;'), 'color: red;')
+  it('keeps custom css free for dev-authored blocks', () => {
+    assert.equal(sanitizeCustomCss('width: expression(alert(1)); color: red;'), 'width: expression(alert(1)); color: red;')
   })
 
   it('clamps numeric values where appropriate', () => {
@@ -35,6 +35,6 @@ describe('style allowlist utilities', () => {
   })
 
   it('preserves safe custom class names', () => {
-    assert.equal(sanitizeClassName('hero safe_1 bad<script>'), 'hero safe_1')
+    assert.equal(sanitizeClassName('hero safe_1 hover:bg-blue bad<script>'), 'hero safe_1 hover:bg-blue badscript')
   })
 })

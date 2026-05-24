@@ -32,14 +32,18 @@ export type PageBlockAction =
 
 export type PageBlockStyles = Record<string, string | number>
 export type PageBlockProps = Record<string, string | number | boolean | null | undefined>
+export type PageBlockAttributes = Record<string, string | number | boolean>
 
 export interface PageBlock {
   id: string
   tag: PageBlockTag
   props?: PageBlockProps
   styles?: PageBlockStyles
+  elementId?: string
+  attributes?: PageBlockAttributes
   className?: string
   customCss?: string
+  customJs?: string
   action?: PageBlockAction
   children?: PageBlock[]
 }

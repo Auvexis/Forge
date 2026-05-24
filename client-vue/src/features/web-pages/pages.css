@@ -669,6 +669,19 @@
   text-transform: uppercase;
 }
 
+.web-page-style-section,
+.web-page-code-field {
+  display: grid;
+  gap: var(--sailor-space-2);
+}
+
+.web-page-style-section h5 {
+  margin: var(--sailor-space-2) 0 0;
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
+  font-weight: var(--sailor-font-semibold);
+}
+
 .web-page-style-row {
   display: grid;
   grid-template-columns: minmax(100px, 1fr) minmax(160px, 220px);

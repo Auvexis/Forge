@@ -7,6 +7,7 @@ const ALLOWED_STYLES = new Set([
   'maxWidth',
   'minHeight',
   'maxHeight',
+  'overflow',
   'padding',
   'margin',
   'display',
@@ -16,8 +17,13 @@ const ALLOWED_STYLES = new Set([
   'gap',
   'backgroundColor',
   'backgroundImage',
+  'backgroundSize',
+  'backgroundPosition',
   'color',
   'border',
+  'borderWidth',
+  'borderStyle',
+  'borderColor',
   'borderRadius',
   'boxShadow',
   'opacity',
@@ -25,6 +31,10 @@ const ALLOWED_STYLES = new Set([
   'fontWeight',
   'lineHeight',
   'textAlign',
+  'textTransform',
+  'letterSpacing',
+  'objectFit',
+  'objectPosition',
 ])
 
 const DANGEROUS_CSS_PATTERN = /javascript:|data:text\/html|expression\s*\(|<\/style|<\s*script/i
@@ -54,19 +64,13 @@ export function sanitizeStyles(styles: PageBlockStyles): PageBlockStyles {
 
 export function sanitizeCustomCss(css: string): string {
   return css
-    .split(';')
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .filter((part) => !DANGEROUS_CSS_PATTERN.test(part))
-    .filter((part) => /^[a-z-]+\s*:\s*[^{}<>]+$/i.test(part))
-    .map((part) => `${part};`)
-    .join(' ')
 }
 
 export function sanitizeClassName(className: string): string {
   return className
     .split(/\s+/)
-    .filter((part) => /^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/.test(part))
+    .map((part) => part.replace(/[<>"']/g, ''))
+    .filter(Boolean)
     .join(' ')
 }
 
