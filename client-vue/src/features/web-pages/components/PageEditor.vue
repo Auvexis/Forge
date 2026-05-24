@@ -7,7 +7,7 @@
     }"
   >
     <PageChromeToolbar @command="handleChromeCommand" />
-    <PageFloatingAddToolbar />
+    <PageFloatingAddToolbar :left-panel-open="isLeftPanelOpen" :right-panel-open="isRightPanelOpen" />
 
     <AppPanel :is-open="isLeftPanelOpen" title="Elements" position="left" width="md" @close="closeLeftPanel">
       <BlockTreePanel

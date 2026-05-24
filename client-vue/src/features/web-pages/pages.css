@@ -180,17 +180,64 @@
 
 .web-page-floating-add-toolbar {
   position: fixed;
-  top: 56px;
-  left: 50%;
   z-index: 25;
   display: flex;
+  align-items: center;
   gap: var(--sailor-space-1);
   padding: var(--sailor-space-1);
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-surface);
   box-shadow: var(--sailor-shadow-lg);
-  transform: translateX(-50%);
+  transition:
+    box-shadow 140ms var(--sailor-ease-standard),
+    transform 140ms var(--sailor-ease-standard);
+}
+
+.web-page-floating-add-toolbar--bottom {
+  top: auto;
+}
+
+.web-page-floating-add-toolbar__move {
+  cursor: grab;
+}
+
+.web-page-floating-add-toolbar__move:active {
+  cursor: grabbing;
+}
+
+.web-page-floating-add-toolbar__tool,
+.web-page-floating-add-toolbar__move {
+  position: relative;
+}
+
+.web-page-floating-add-toolbar__tool::after,
+.web-page-floating-add-toolbar__move::after {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 1;
+  padding: 4px 7px;
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-text-primary);
+  color: var(--sailor-bg-surface);
+  content: attr(data-tooltip);
+  font-size: var(--sailor-text-xs);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(4px);
+  transition:
+    opacity 120ms var(--sailor-ease-standard),
+    transform 120ms var(--sailor-ease-standard);
+  white-space: nowrap;
+}
+
+.web-page-floating-add-toolbar__tool:hover::after,
+.web-page-floating-add-toolbar__tool:focus-visible::after,
+.web-page-floating-add-toolbar__move:hover::after,
+.web-page-floating-add-toolbar__move:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .web-page-editor--left-collapsed .web-page-editor__workspace {

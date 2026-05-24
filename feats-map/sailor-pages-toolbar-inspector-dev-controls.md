@@ -18,12 +18,12 @@ Melhorar a nova feature de Sailor Pages com uma toolbar estilo Figma mais usavel
 
 ## Tasks
 
-- [ ] Criar contratos RED para toolbar inferior, drag handle, tooltip e sem storage.
+- [x] Criar contratos RED para toolbar inferior, drag handle, tooltip e sem storage.
 - [ ] Criar contratos RED para Inspector editar `id`, `class`, atributos, Custom CSS e Custom JS.
 - [ ] Criar contratos RED para render/editor publicar `id`, `class`, atributos, CSS e JS livres.
 - [ ] Criar contratos RED para double click no canvas abrir o Inspector.
-- [ ] Implementar toolbar inferior movel com bounds de topbar/paineis.
-- [ ] Implementar tooltips nos elementos da toolbar.
+- [x] Implementar toolbar inferior movel com bounds de topbar/paineis.
+- [x] Implementar tooltips nos elementos da toolbar.
 - [ ] Implementar painel de identidade/atributos no Inspector.
 - [ ] Implementar Custom CSS/JS com `BaseCodeEditor.vue`.
 - [ ] Atualizar renderer/editor/backend para persistir e publicar CSS/JS/atributos livres.
