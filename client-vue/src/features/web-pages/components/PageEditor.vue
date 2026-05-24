@@ -120,7 +120,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { usePagesStore } from '../stores/pages.store.ts'
-import { usePageEditorStore } from '../stores/page-editor.store.ts'
+import { usePageEditorStore, type DropEdge } from '../stores/page-editor.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { PageBlock, PageBlockStyles, PageBlockTag, SailorPage } from '../types/page.types.ts'
@@ -251,7 +251,7 @@ function handlePageDropRoot(pageId: string, payload: { tag?: PageBlockTag; dragg
   handleDropRoot(payload)
 }
 
-function setPageDragIntent(pageId: string, payload: { targetId: string | 'root'; position: InsertPosition }) {
+function setPageDragIntent(pageId: string, payload: { targetId: string | 'root'; position: InsertPosition; dropEdge?: DropEdge }) {
   if (pageId !== pagesStore.activePage?.id) return
   editorStore.setDragIntent(payload)
 }

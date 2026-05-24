@@ -33,5 +33,16 @@ const tools: Array<{ tag: PageBlockTag; icon: string; label: string }> = [
 function onDragStart(event: DragEvent, tag: PageBlockTag) {
   event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ tag }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
+  setDragPreview(event, tag)
+}
+
+function setDragPreview(event: DragEvent, label: string) {
+  if (!event.dataTransfer) return
+  const preview = document.createElement('div')
+  preview.className = 'web-page-drag-preview'
+  preview.textContent = label
+  document.body.appendChild(preview)
+  event.dataTransfer.setDragImage(preview, 16, 16)
+  window.setTimeout(() => preview.remove(), 0)
 }
 </script>

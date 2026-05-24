@@ -18,9 +18,12 @@ export type PageEditorSelection =
   | { type: 'block'; blockId: string }
   | { type: 'none' }
 
+export type DropEdge = 'top' | 'right' | 'bottom' | 'left' | 'center'
+
 export interface PageDragIntent {
   targetId: string | 'root'
   position: InsertPosition
+  dropEdge?: DropEdge
 }
 
 export const usePageEditorStore = defineStore('web-page-editor', () => {

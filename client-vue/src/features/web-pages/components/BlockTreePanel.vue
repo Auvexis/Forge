@@ -205,6 +205,7 @@ function commitBlockId(blockId: string) {
 function onDragStart(event: DragEvent, blockId: string) {
   event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ blockId }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+  setDragPreview(event, blockId)
 }
 
 function onDragOver(event: DragEvent) {
@@ -242,5 +243,15 @@ function iconFor(block: PageBlock): string {
 
 function isContainer(block: PageBlock): boolean {
   return ['header', 'section', 'div', 'footer', 'form'].includes(block.tag)
+}
+
+function setDragPreview(event: DragEvent, label: string) {
+  if (!event.dataTransfer) return
+  const preview = document.createElement('div')
+  preview.className = 'web-page-drag-preview'
+  preview.textContent = label
+  document.body.appendChild(preview)
+  event.dataTransfer.setDragImage(preview, 16, 16)
+  window.setTimeout(() => preview.remove(), 0)
 }
 </script>

@@ -41,4 +41,19 @@ describe('page drag prediction contract', () => {
     assert.match(source, /web-page-block--drop-after/)
     assert.match(source, /web-page-block--drop-inside/)
   })
+
+  it('drag prediction exposes directional arrow indicators and a custom drag preview', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const toolbar = read('src/features/web-pages/components/PageFloatingAddToolbar.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(renderer, /dropEdge/)
+    assert.match(renderer, /web-page-drop-arrow/)
+    assert.match(toolbar, /setDragImage/)
+    assert.match(css, /web-page-drag-preview/)
+    assert.match(css, /web-page-drop-arrow--top/)
+    assert.match(css, /web-page-drop-arrow--right/)
+    assert.match(css, /web-page-drop-arrow--bottom/)
+    assert.match(css, /web-page-drop-arrow--left/)
+  })
 })

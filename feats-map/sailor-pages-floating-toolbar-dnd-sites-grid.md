@@ -763,7 +763,7 @@ git commit -m "feat: add floating page element toolbar"
 - Modify/Test: `client-vue/src/features/web-pages/components/__tests__/PageDragPredict.contract.test.ts`
 - Modify: `client-vue/src/features/web-pages/pages.css`
 
-- [ ] **Step 1: Contrato**
+- [x] **Step 1: Contrato**
 
 Atualizar `PageDragPredict.contract.test.ts`:
 
@@ -784,7 +784,7 @@ it('drag prediction exposes directional arrow indicators and a custom drag previ
 })
 ```
 
-- [ ] **Step 2: Estender intent sem quebrar position atual**
+- [x] **Step 2: Estender intent sem quebrar position atual**
 
 Em `page-editor.store.ts`:
 
@@ -798,7 +798,7 @@ export interface PageDragIntent {
 }
 ```
 
-- [ ] **Step 3: BlockRenderer calcula edge e position**
+- [x] **Step 3: BlockRenderer calcula edge e position**
 
 ```ts
 function dropEdge(event: DragEvent): DropEdge {
@@ -826,7 +826,7 @@ Em `onDragOver`:
 emit('drag-intent', { targetId: props.block.id, position: dropPosition(event), dropEdge: dropEdge(event) })
 ```
 
-- [ ] **Step 4: Renderizar setas minimalistas**
+- [x] **Step 4: Renderizar setas minimalistas**
 
 Em `BlockRenderer.vue`:
 
@@ -838,7 +838,7 @@ Em `BlockRenderer.vue`:
 />
 ```
 
-- [ ] **Step 5: Drag preview custom**
+- [x] **Step 5: Drag preview custom**
 
 Em `PageFloatingAddToolbar.vue`, `BlockTreePanel.vue` e `BlockRenderer.vue`, usar helper local simples:
 
@@ -856,7 +856,7 @@ function setDragPreview(event: DragEvent, label: string) {
 
 Chamar no `onDragStart`.
 
-- [ ] **Step 6: CSS animação**
+- [x] **Step 6: CSS animação**
 
 ```css
 .web-page-block-frame {
@@ -916,7 +916,7 @@ Chamar no `onDragStart`.
 }
 ```
 
-- [ ] **Step 7: Rodar testes e commit**
+- [x] **Step 7: Rodar testes e commit**
 
 Run:
 

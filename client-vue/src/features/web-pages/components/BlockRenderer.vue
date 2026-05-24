@@ -29,6 +29,11 @@
         class="web-page-drop-indicator"
         :class="`web-page-drop-indicator--${dropIntent.position}`"
       />
+      <span
+        v-if="dropIntent?.targetId === block.id"
+        class="web-page-drop-arrow"
+        :class="`web-page-drop-arrow--${dropIntent.dropEdge ?? 'center'}`"
+      />
       <template v-if="block.tag === 'text' || block.tag === 'button' || block.tag === 'link'">
         {{ block.props?.text ?? block.tag }}
       </template>
@@ -63,18 +68,19 @@ import { computed } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
+import type { DropEdge } from '../stores/page-editor.store.ts'
 
 const props = defineProps<{
   block: PageBlock
   selectedBlockId: string | null
-  dropIntent?: { targetId: string; position: InsertPosition } | null
+  dropIntent?: { targetId: string; position: InsertPosition; dropEdge?: DropEdge } | null
   readonly?: boolean
 }>()
 
 const emit = defineEmits<{
   select: [blockId: string]
   'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string }]
-  'drag-intent': [payload: { targetId: string; position: InsertPosition }]
+  'drag-intent': [payload: { targetId: string; position: InsertPosition; dropEdge?: DropEdge }]
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
 }>()
@@ -101,6 +107,7 @@ function onDragStart(event: DragEvent) {
   if (props.readonly) return
   event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ blockId: props.block.id }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+  setDragPreview(event, props.block.id)
 }
 
 function onDrop(event: DragEvent) {
@@ -112,15 +119,26 @@ function onDrop(event: DragEvent) {
 
 function onDragOver(event: DragEvent) {
   if (props.readonly) return
-  emit('drag-intent', { targetId: props.block.id, position: dropPosition(event) })
+  emit('drag-intent', { targetId: props.block.id, position: dropPosition(event), dropEdge: dropEdge(event) })
 }
 
 function dropPosition(event: DragEvent): InsertPosition {
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const ratio = (event.clientY - rect.top) / rect.height
-  if (ratio < 0.25) return 'before'
-  if (ratio > 0.75) return 'after'
+  const edge = dropEdge(event)
+  if (edge === 'top') return 'before'
+  if (edge === 'bottom') return 'after'
   return isContainer.value ? 'inside' : 'after'
+}
+
+function dropEdge(event: DragEvent): DropEdge {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const x = (event.clientX - rect.left) / rect.width
+  const y = (event.clientY - rect.top) / rect.height
+
+  if (y < 0.22) return 'top'
+  if (y > 0.78) return 'bottom'
+  if (x < 0.22) return 'left'
+  if (x > 0.78) return 'right'
+  return 'center'
 }
 
 function readDragPayload(event: DragEvent): { tag?: PageBlockTag; draggedId?: string } | null {
@@ -128,5 +146,15 @@ function readDragPayload(event: DragEvent): { tag?: PageBlockTag; draggedId?: st
   if (!raw) return null
   const parsed = JSON.parse(raw) as { tag?: PageBlockTag; blockId?: string }
   return { tag: parsed.tag, draggedId: parsed.blockId }
+}
+
+function setDragPreview(event: DragEvent, label: string) {
+  if (!event.dataTransfer) return
+  const preview = document.createElement('div')
+  preview.className = 'web-page-drag-preview'
+  preview.textContent = label
+  document.body.appendChild(preview)
+  event.dataTransfer.setDragImage(preview, 16, 16)
+  window.setTimeout(() => preview.remove(), 0)
 }
 </script>

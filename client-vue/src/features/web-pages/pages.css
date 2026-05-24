@@ -223,6 +223,14 @@
 
 .web-page-block-frame {
   position: relative;
+  transition:
+    box-shadow 160ms var(--sailor-ease-standard),
+    transform 160ms var(--sailor-ease-standard);
+}
+
+.web-page-block-frame:focus-within,
+.web-page-block-frame:hover {
+  transform: translateY(-1px);
 }
 
 .web-page-block-toolbar {
@@ -298,6 +306,60 @@
   display: block;
   width: 100%;
   margin: var(--sailor-space-2) 0;
+}
+
+.web-page-drop-arrow {
+  position: absolute;
+  z-index: 4;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid var(--sailor-border-strong);
+  border-left: 2px solid var(--sailor-border-strong);
+  pointer-events: none;
+}
+
+.web-page-drop-arrow--top {
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.web-page-drop-arrow--right {
+  top: 50%;
+  right: -8px;
+  transform: translateY(-50%) rotate(135deg);
+}
+
+.web-page-drop-arrow--bottom {
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(225deg);
+}
+
+.web-page-drop-arrow--left {
+  top: 50%;
+  left: -8px;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.web-page-drop-arrow--center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.web-page-drag-preview {
+  position: fixed;
+  top: -1000px;
+  left: -1000px;
+  z-index: -1;
+  padding: var(--sailor-space-2) var(--sailor-space-3);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  box-shadow: var(--sailor-shadow-md);
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-xs);
 }
 
 .web-page-toolbar,

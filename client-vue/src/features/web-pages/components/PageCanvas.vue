@@ -35,12 +35,13 @@
 <script setup lang="ts">
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
+import type { DropEdge } from '../stores/page-editor.store.ts'
 import BlockRenderer from './BlockRenderer.vue'
 
 const props = defineProps<{
   blocks: PageBlock[]
   selectedBlockId: string | null
-  dropIntent?: { targetId: string | 'root'; position: InsertPosition } | null
+  dropIntent?: { targetId: string | 'root'; position: InsertPosition; dropEdge?: DropEdge } | null
   bodyStyles?: Record<string, string | number>
   readonly?: boolean
 }>()
@@ -50,7 +51,7 @@ const emit = defineEmits<{
   'select-body': []
   'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string }]
   'drop-root': [payload: { tag?: PageBlockTag; draggedId?: string }]
-  'drag-intent': [payload: { targetId: string | 'root'; position: InsertPosition }]
+  'drag-intent': [payload: { targetId: string | 'root'; position: InsertPosition; dropEdge?: DropEdge }]
   'clear-drag-intent': []
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
