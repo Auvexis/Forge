@@ -7,6 +7,7 @@
     }"
   >
     <PageChromeToolbar @command="handleChromeCommand" />
+    <PageFloatingAddToolbar />
 
     <AppPanel :is-open="isLeftPanelOpen" title="Elements" position="left" width="md" @close="closeLeftPanel">
       <BlockTreePanel
@@ -69,7 +70,6 @@
     </div>
 
     <AppPanel :is-open="isRightPanelOpen" title="Inspector" position="right" width="md" @close="closeRightPanel">
-      <BlockLibrary @add="addBlock" />
       <PageMetadataPanel
         v-if="pagesStore.activePage && editorStore.selectedTarget.type === 'page'"
         :page="pagesStore.activePage"
@@ -127,7 +127,7 @@ import type { PageBlock, PageBlockStyles, PageBlockTag, SailorPage } from '../ty
 import PageCanvas from './PageCanvas.vue'
 import BlockToolbar from './BlockToolbar.vue'
 import BlockTreePanel from './BlockTreePanel.vue'
-import BlockLibrary from './BlockLibrary.vue'
+import PageFloatingAddToolbar from './PageFloatingAddToolbar.vue'
 import BlockContentPanel from './BlockContentPanel.vue'
 import BlockStylePanel from './BlockStylePanel.vue'
 import BlockActionPanel from './BlockActionPanel.vue'
@@ -197,13 +197,6 @@ watch(
   },
   { immediate: true },
 )
-
-function addBlock(tag: PageBlockTag) {
-  const block = createBlock(tag)
-  const targetId = editorStore.selectedBlockId ?? editorStore.blocks[editorStore.blocks.length - 1]?.id
-  if (targetId) editorStore.insertBlock(targetId, 'after', block)
-  else editorStore.setBlocks([block])
-}
 
 function handleDropBlock(payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string }) {
   if (payload.draggedId) editorStore.moveBlock(payload.draggedId, payload.targetId, payload.position)

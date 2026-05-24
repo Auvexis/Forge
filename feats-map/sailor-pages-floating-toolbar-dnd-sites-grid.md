@@ -623,7 +623,7 @@ git commit -m "feat: add direct page delete action"
 - Create/Test: `client-vue/src/features/web-pages/components/__tests__/PageFloatingAddToolbar.contract.test.ts`
 - Modify: `client-vue/src/features/web-pages/pages.css`
 
-- [ ] **Step 1: Contrato da floating toolbar**
+- [x] **Step 1: Contrato da floating toolbar**
 
 Criar `PageFloatingAddToolbar.contract.test.ts`:
 
@@ -656,7 +656,7 @@ describe('page floating add toolbar contract', () => {
 })
 ```
 
-- [ ] **Step 2: Criar componente**
+- [x] **Step 2: Criar componente**
 
 `PageFloatingAddToolbar.vue`:
 
@@ -700,7 +700,7 @@ function onDragStart(event: DragEvent, tag: PageBlockTag) {
 </script>
 ```
 
-- [ ] **Step 3: Montar no editor e remover antigo Inspector Library**
+- [x] **Step 3: Montar no editor e remover antigo Inspector Library**
 
 Em `PageEditor.vue`:
 
@@ -716,7 +716,7 @@ Remover do Inspector:
 
 Remover import `BlockLibrary`. Manter `addBlock` se ainda usado por chrome/futuro; se não usado, remover também.
 
-- [ ] **Step 4: CSS**
+- [x] **Step 4: CSS**
 
 ```css
 .web-page-floating-add-toolbar {
@@ -735,7 +735,7 @@ Remover import `BlockLibrary`. Manter `addBlock` se ainda usado por chrome/futur
 }
 ```
 
-- [ ] **Step 5: Rodar testes e commit**
+- [x] **Step 5: Rodar testes e commit**
 
 Run:
 

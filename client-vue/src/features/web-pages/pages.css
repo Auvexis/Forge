@@ -114,6 +114,21 @@
   bottom: 0;
 }
 
+.web-page-floating-add-toolbar {
+  position: fixed;
+  top: 56px;
+  left: 50%;
+  z-index: 25;
+  display: flex;
+  gap: var(--sailor-space-1);
+  padding: var(--sailor-space-1);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  box-shadow: var(--sailor-shadow-lg);
+  transform: translateX(-50%);
+}
+
 .web-page-editor--left-collapsed .web-page-editor__workspace {
   margin-left: var(--sailor-space-8);
 }
