@@ -9,19 +9,11 @@
     </EditorField>
 
     <EditorField label="Tool">
-      <!-- AgentToolPicker placeholder until Task 23 adds the searchable picker. -->
-      <div class="agent-tool-picker-placeholder" :data-picker="AgentToolPicker">
-        <BaseInput
-          :model-value="(node.data.pluginId as string) || ''"
-          @update:model-value="updateNodeData({ pluginId: $event as string })"
-          placeholder="pluginId"
-        />
-        <BaseInput
-          :model-value="(node.data.methodId as string) || ''"
-          @update:model-value="updateNodeData({ methodId: $event as string })"
-          placeholder="methodId"
-        />
-      </div>
+      <AgentToolPicker
+        :plugin-id="(node.data.pluginId as string) || ''"
+        :method-id="(node.data.methodId as string) || ''"
+        @select="updateNodeData($event)"
+      />
     </EditorField>
 
     <EditorField label="Side Effect">
@@ -57,10 +49,9 @@ import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import AgentToolPicker from '../../agent/AgentToolPicker.vue'
 
 defineProps<NodeEditorProps>()
-
-const AgentToolPicker = 'AgentToolPicker'
 
 const SIDE_EFFECTS = [
   { value: 'read', label: 'Read' },
@@ -71,11 +62,3 @@ const SIDE_EFFECTS = [
   { value: 'filesystem', label: 'Filesystem' },
 ]
 </script>
-
-<style scoped>
-.agent-tool-picker-placeholder {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--sailor-space-2);
-}
-</style>
