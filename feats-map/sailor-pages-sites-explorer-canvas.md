@@ -208,7 +208,7 @@ Behavior:
 - Import/export actions should be available from the site/project actions menu.
 - Canvas returns to visual page when selecting page/block in Tree.
 
-### - [ ] Task 7: Ctrl+S Save
+### - [x] Task 7: Ctrl+S Save
 
 Files:
 - Modify `client-vue/src/features/web-pages/components/PageEditor.vue`

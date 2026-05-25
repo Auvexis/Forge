@@ -36,4 +36,17 @@ describe('page explorer contract', () => {
     assert.match(codeCanvas, /readonly/)
     assert.match(codeCanvas, /image preview/i)
   })
+
+  it('Ctrl+S and Meta+S save the active page or active site file', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(editor, /addEventListener\('keydown', handleKeyboardSave\)/)
+    assert.match(editor, /removeEventListener\('keydown', handleKeyboardSave\)/)
+    assert.match(editor, /event\.preventDefault\(\)/)
+    assert.match(editor, /event\.ctrlKey/)
+    assert.match(editor, /event\.metaKey/)
+    assert.match(editor, /activeCodeFile/)
+    assert.match(editor, /sitesStore\.saveActiveSite\(\)/)
+    assert.match(editor, /savePage\(\)/)
+  })
 })

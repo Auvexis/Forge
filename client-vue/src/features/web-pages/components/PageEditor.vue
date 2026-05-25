@@ -7,8 +7,8 @@
     }"
   >
     <PageChromeToolbar
-      :is-dirty="editorStore.isDirty || pagesStore.isDirty"
-      :is-saving="pagesStore.isSaving"
+      :is-dirty="editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty"
+      :is-saving="pagesStore.isSaving || sitesStore.isSaving"
       :published-at="activePagePublishedAt"
       @command="handleChromeCommand"
     />
@@ -167,7 +167,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
@@ -264,8 +264,13 @@ function closeRightPanel() {
 }
 
 onMounted(async () => {
+  window.addEventListener('keydown', handleKeyboardSave)
   await openInitialSite()
   await openRoutePage(route.params.pageId)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeyboardSave)
 })
 
 async function openInitialSite() {
@@ -508,7 +513,7 @@ async function addPageBelowCanvas() {
 
 function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'go.pages') void router.push('/pages')
-  if (command === 'file.save') void savePage()
+  if (command === 'file.save') void saveActiveDocument()
   if (command === 'file.preview') previewPage()
   if (command === 'file.publish') void publishPage()
   if (command === 'file.unpublish') void unpublishPage()
@@ -525,6 +530,21 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'view.switch') void openPageSwitcher()
   if (command === 'view.left-panel') toggleLeftPanel()
   if (command === 'view.right-panel') toggleRightPanel()
+}
+
+function handleKeyboardSave(event: KeyboardEvent) {
+  if (event.key.toLowerCase() !== 's') return
+  if (!event.ctrlKey && !event.metaKey) return
+  event.preventDefault()
+  void saveActiveDocument()
+}
+
+async function saveActiveDocument() {
+  if (activeCodeFile.value) {
+    await sitesStore.saveActiveSite()
+    return
+  }
+  await savePage()
 }
 
 async function savePage() {
