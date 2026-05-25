@@ -46,18 +46,27 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Task 29: Frontend Safety and Usability Polish
 - [x] Task 30: Documentation and Feature Map Completion
 - [x] Task 31: Full Verification
-- [ ] Task 32: Move Chat Trigger Into Existing Trigger Type
-- [ ] Task 33: Rework AI Agent Canvas UX To n8n-Style Cluster
+- [x] Task 32: Move Chat Trigger Into Existing Trigger Type
+- [x] Task 33: Rework AI Agent Canvas UX To n8n-Style Cluster
 - [ ] Task 34: Agent Cluster UX Verification
 
 ## UX Rework Direction
 
-- [ ] Chat Trigger must be configured inside the existing Trigger node through `Trigger Type = Chat`.
-- [ ] Chat Trigger must not appear as a separate AI palette node.
-- [ ] AI Agent should behave like the n8n Agent Tools cluster: one main Agent node with bottom config handles.
-- [ ] Agent bottom handles must be `Chat Model*`, `Memory`, and `Tool`.
-- [ ] Model, Memory, and Tool nodes should read visually as Agent config satellites, not normal execution steps.
-- [ ] Multiple Tool config nodes may connect to the Agent `Tool` handle.
+- [x] Chat Trigger must be configured inside the existing Trigger node through `Trigger Type = Chat`.
+- [x] Chat Trigger must not appear as a separate AI palette node.
+- [x] AI Agent should behave like the n8n Agent Tools cluster: one main Agent node with bottom config handles.
+- [x] Agent bottom handles must be `Chat Model*`, `Memory`, and `Tool`.
+- [x] Model, Memory, and Tool nodes should read visually as Agent config satellites, not normal execution steps.
+- [x] Multiple Tool config nodes may connect to the Agent `Tool` handle.
+
+## Verification Notes
+
+- [x] Automated frontend cluster suite passed.
+- [x] Backend agent suite passed.
+- [x] Frontend and backend builds passed.
+- [x] `npm audit --omit=dev --audit-level=high` exited 0; moderate transitive advisories remain in `ajv` and `uuid`.
+- [x] Browser smoke confirmed the AI palette no longer lists `Chat Trigger`, the AI Agent renders `Chat Model*`, `Memory`, and `Tool` handles, and no new console warnings/errors appear.
+- [ ] Full manual chat-send smoke with a connected model/tool approval flow still needs a configured model credential.
 
 ## Safety Notes
 

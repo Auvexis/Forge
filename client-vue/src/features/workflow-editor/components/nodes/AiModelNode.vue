@@ -15,17 +15,31 @@ const subtitle = computed(() => `${provider.value} / ${model.value}`)
 </script>
 
 <template>
-  <BaseNode
-    :id="props.id"
-    :selected="props.selected"
-    :status="props.status"
-    has-target
-    has-source
-    :title="stepTitle"
-    :subtitle="subtitle"
-    icon="brain-circuit"
-    color="rgb(16, 185, 129)"
-    bg="rgba(16, 185, 129, 0.12)"
-    border-color="rgba(16, 185, 129, 0.45)"
-  />
+  <div class="agent-config-node agent-config-node--model">
+    <BaseNode
+      :id="props.id"
+      :selected="props.selected"
+      :status="props.status"
+      has-source
+      :title="stepTitle"
+      :subtitle="subtitle"
+      icon="brain-circuit"
+      color="rgb(16, 185, 129)"
+      bg="rgba(16, 185, 129, 0.12)"
+      border-color="rgba(16, 185, 129, 0.45)"
+      width="82px"
+      height="82px"
+    />
+  </div>
 </template>
+
+<style scoped>
+.agent-config-node {
+  position: relative;
+}
+
+.agent-config-node :deep(.sailor-base-node__icon-box svg) {
+  width: 34px;
+  height: 34px;
+}
+</style>

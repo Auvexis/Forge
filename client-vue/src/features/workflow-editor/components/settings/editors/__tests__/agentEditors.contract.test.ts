@@ -77,3 +77,23 @@ test('chat trigger editor exposes slug, title, auth, session, and rate limit con
   assert.match(source, /BaseSelect/)
   assert.match(trigger, /ChatTriggerEditor/)
 })
+
+test('trigger editor exposes chat as a normal trigger type and renders chat settings in-place', () => {
+  const trigger = read('src/features/workflow-editor/components/settings/editors/TriggerEditor.vue')
+
+  assert.match(trigger, /value: 'chat'/)
+  assert.match(trigger, /label: 'Chat'/)
+  assert.match(trigger, /<ChatTriggerEditor\s+v-if="node\.data\.type === 'chat'"/)
+  assert.match(trigger, /<EditorField label="Trigger Type">/)
+})
+
+test('chat trigger editor renders the chat session panel after a slug exists', () => {
+  const source = read('src/features/workflow-editor/components/settings/editors/ChatTriggerEditor.vue')
+
+  assert.match(source, /import ChatSessionPanel/)
+  assert.match(source, /const chatSlug = computed/)
+  assert.match(source, /<ChatSessionPanel/)
+  assert.match(source, /v-if="chatSlug"/)
+  assert.match(source, /:chat-slug="chatSlug"/)
+  assert.match(source, /:title="chatTitle \|\| 'Agent Chat'"/)
+})

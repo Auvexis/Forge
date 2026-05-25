@@ -2387,7 +2387,7 @@ git commit -m "fix: stabilize agent runtime"
 - Modify: `client-vue/src/features/workflow-editor/utils/workflowRunTrigger.ts`
 - Modify: `client-vue/src/features/workflow-editor/utils/__tests__/workflowRunTrigger.test.ts`
 
-- [ ] **Step 1: Write failing frontend contract tests**
+- [x] **Step 1: Write failing frontend contract tests**
 
 Tests must assert:
 - Add Node panel no longer exposes a separate `Chat Trigger` AI item.
@@ -2406,7 +2406,7 @@ node --test src/features/workflow-editor/components/settings/__tests__/agentAddN
 
 Expected: fail because Chat Trigger is still discoverable as a separate AI node item and the chat test panel is not reachable from the existing Trigger editor.
 
-- [ ] **Step 2: Move chat configuration under Trigger editor**
+- [x] **Step 2: Move chat configuration under Trigger editor**
 
 Keep `ChatTriggerEditor.vue` focused on chat-specific fields. `TriggerEditor.vue` decides when to render it based on the existing trigger type/subtype. Do not duplicate chat fields in `TriggerEditor.vue`.
 
@@ -2415,11 +2415,11 @@ Expected UI behavior:
 - User selects `Trigger Type = Chat`.
 - Chat fields and test panel appear in the same inspector.
 
-- [ ] **Step 3: Remove separate Chat Trigger palette entry**
+- [x] **Step 3: Remove separate Chat Trigger palette entry**
 
 Remove the standalone `Chat Trigger` add-node item from AI/utility palette entries.
 
-- [ ] **Step 4: Wire chat test panel into chat trigger settings**
+- [x] **Step 4: Wire chat test panel into chat trigger settings**
 
 Render:
 
@@ -2433,7 +2433,7 @@ Render:
 
 Keep session/message behavior inside `ChatSessionPanel`; the trigger editor only passes props.
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run:
 
@@ -2464,7 +2464,7 @@ git commit -m "fix: move chat trigger into trigger type"
 - Modify: `client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue`
 - Modify: `client-vue/src/features/workflow-editor/styles/inspector.css` or existing workflow editor style files only if needed.
 
-- [ ] **Step 1: Write failing canvas contract tests**
+- [x] **Step 1: Write failing canvas contract tests**
 
 Tests must assert:
 - `AiAgentNode.vue` exposes bottom handles labelled `Chat Model*`, `Memory`, and `Tool`.
@@ -2483,7 +2483,7 @@ node --test src/features/workflow-editor/components/nodes/__tests__/agentNodes.c
 
 Expected: fail until the agent node exposes named config handles and visual required-state contracts.
 
-- [ ] **Step 2: Implement named config handles on AI Agent**
+- [x] **Step 2: Implement named config handles on AI Agent**
 
 Use stable handle ids:
 
@@ -2503,7 +2503,7 @@ Tool
 
 Do not move runtime resolution into Vue. Vue only renders contracts and handle ids.
 
-- [ ] **Step 3: Render config nodes as utility satellites**
+- [x] **Step 3: Render config nodes as utility satellites**
 
 Keep `AiModelNode`, `AiMemoryNode`, and `AiToolNode` visually smaller than normal workflow steps. Their role is configuration for the Agent, not linear execution.
 
@@ -2512,7 +2512,7 @@ Expected visual behavior:
 - Model/memory/tool nodes connect to bottom handles.
 - Tool config nodes can fan into the same `Tool` handle.
 
-- [ ] **Step 4: Preserve execution semantics**
+- [x] **Step 4: Preserve execution semantics**
 
 Confirm executor tests still prove:
 - AI config nodes are discovered around the Agent.
@@ -2529,7 +2529,7 @@ node --test src/core/modules/workflows/agent-config-node-execution.test.ts src/c
 
 Expected: pass without frontend-only changes affecting runtime behavior.
 
-- [ ] **Step 5: Verify frontend**
+- [x] **Step 5: Verify frontend**
 
 Run:
 
@@ -2556,7 +2556,7 @@ git commit -m "feat: rework ai agent canvas cluster"
 - Modify: `feats-map/agent-tools-chat-trigger-memory.md`
 - Modify: `docs/superpowers/plans/2026-05-25-agent-tools-chat-trigger-memory.md` if checklist status changes are tracked in the plan.
 
-- [ ] **Step 1: Run frontend cluster suite**
+- [x] **Step 1: Run frontend cluster suite**
 
 ```bash
 cd client-vue
@@ -2565,7 +2565,7 @@ node --test src/core/api/agent-runtime.api.contract.test.ts src/features/workflo
 
 Expected: pass.
 
-- [ ] **Step 2: Run backend agent suite**
+- [x] **Step 2: Run backend agent suite**
 
 ```bash
 cd server
@@ -2574,7 +2574,7 @@ node --test src/core/modules/agent-runtime/*.test.ts src/core/modules/agent-runt
 
 Expected: pass.
 
-- [ ] **Step 3: Run builds**
+- [x] **Step 3: Run builds**
 
 ```bash
 cd client-vue
@@ -2600,7 +2600,7 @@ Smoke:
 - Send a chat message from the trigger panel.
 - Confirm agent response, trace, memory behavior, and approval UI still work.
 
-- [ ] **Step 5: Update feature map**
+- [x] **Step 5: Update feature map**
 
 Mark Tasks 32-34 complete only after the checks above pass.
 

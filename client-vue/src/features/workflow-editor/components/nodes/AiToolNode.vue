@@ -17,26 +17,38 @@ const subtitle = computed(() => `${pluginId.value} / ${methodId.value}`)
 </script>
 
 <template>
-  <BaseNode
-    :id="props.id"
-    :selected="props.selected"
-    :status="props.status"
-    has-target
-    has-source
-    :title="stepTitle"
-    :subtitle="subtitle"
-    icon="wrench"
-    color="rgb(244, 63, 94)"
-    bg="rgba(244, 63, 94, 0.12)"
-    border-color="rgba(244, 63, 94, 0.45)"
-  >
-    <span class="ai-tool-node__badge" :class="{ 'requires-approval': requiresApproval }">
-      {{ sideEffect }}
-    </span>
-  </BaseNode>
+  <div class="agent-config-node agent-config-node--tool">
+    <BaseNode
+      :id="props.id"
+      :selected="props.selected"
+      :status="props.status"
+      has-source
+      :title="stepTitle"
+      :subtitle="subtitle"
+      icon="wrench"
+      color="rgb(244, 63, 94)"
+      bg="rgba(244, 63, 94, 0.12)"
+      border-color="rgba(244, 63, 94, 0.45)"
+      width="82px"
+      height="82px"
+    >
+      <span class="ai-tool-node__badge" :class="{ 'requires-approval': requiresApproval }">
+        {{ sideEffect }}
+      </span>
+    </BaseNode>
+  </div>
 </template>
 
 <style scoped>
+.agent-config-node {
+  position: relative;
+}
+
+.agent-config-node :deep(.sailor-base-node__icon-box svg) {
+  width: 34px;
+  height: 34px;
+}
+
 .ai-tool-node__badge {
   position: absolute;
   bottom: 8px;

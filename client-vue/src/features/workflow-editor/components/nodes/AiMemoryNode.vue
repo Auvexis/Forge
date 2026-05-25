@@ -14,17 +14,31 @@ const subtitle = computed(() => `${scope.value} memory`)
 </script>
 
 <template>
-  <BaseNode
-    :id="props.id"
-    :selected="props.selected"
-    :status="props.status"
-    has-target
-    has-source
-    :title="stepTitle"
-    :subtitle="subtitle"
-    icon="database"
-    color="rgb(245, 158, 11)"
-    bg="rgba(245, 158, 11, 0.12)"
-    border-color="rgba(245, 158, 11, 0.45)"
-  />
+  <div class="agent-config-node agent-config-node--memory">
+    <BaseNode
+      :id="props.id"
+      :selected="props.selected"
+      :status="props.status"
+      has-source
+      :title="stepTitle"
+      :subtitle="subtitle"
+      icon="database"
+      color="rgb(245, 158, 11)"
+      bg="rgba(245, 158, 11, 0.12)"
+      border-color="rgba(245, 158, 11, 0.45)"
+      width="82px"
+      height="82px"
+    />
+  </div>
 </template>
+
+<style scoped>
+.agent-config-node {
+  position: relative;
+}
+
+.agent-config-node :deep(.sailor-base-node__icon-box svg) {
+  width: 34px;
+  height: 34px;
+}
+</style>

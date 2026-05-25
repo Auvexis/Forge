@@ -1,9 +1,5 @@
 <template>
-  <ChatTriggerEditor
-    v-if="node.data.type === 'chat'"
-    v-bind="props"
-  />
-  <div v-else class="editor-stack">
+  <div class="editor-stack">
     <!-- ── Trigger Type ── -->
     <EditorField label="Trigger Type">
       <BaseSelect
@@ -12,6 +8,11 @@
         @update:model-value="updateNodeData({ type: $event as any })"
       />
     </EditorField>
+
+    <ChatTriggerEditor
+      v-if="node.data.type === 'chat'"
+      v-bind="props"
+    />
 
     <!-- ── MANUAL ── -->
     <template v-if="node.data.type === 'manual' || !node.data.type">
@@ -568,6 +569,7 @@ const TRIGGER_OPTIONS = [
   { value: 'form', label: 'Form', icon: 'file-text' },
   { value: 'cron', label: 'Cron / Schedule', icon: 'clock' },
   { value: 'plugin', label: 'Plugin Trigger', icon: 'plug' },
+  { value: 'chat', label: 'Chat', icon: 'message-circle' },
 ]
 
 const MANUAL_FIELD_TYPES = [

@@ -9,16 +9,17 @@ function read(relativePath: string): string {
   return readFileSync(resolve(root, relativePath), 'utf8')
 }
 
-test('add node panel exposes an AI category with agent building blocks', () => {
+test('add node panel exposes an AI category with agent building blocks, not a separate chat trigger item', () => {
   const source = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
   assert.match(source, /const AI_NODES(?:: AddNodeDefinition\[\])? = \[/)
   assert.match(source, /AI/)
 
-  for (const label of ['AI Agent', 'AI Model', 'AI Memory', 'AI Tool', 'Chat Trigger']) {
+  for (const label of ['AI Agent', 'AI Model', 'AI Memory', 'AI Tool']) {
     assert.match(source, new RegExp(`label: '${label}'`))
   }
 
+  assert.doesNotMatch(source, /label: 'Chat Trigger'/)
   assert.match(source, /filteredAiNodes/)
   assert.match(source, /onAddLogicNode\?\.\(def\.type, def\.defaults\)/)
 })
@@ -44,12 +45,13 @@ test('ai node defaults are safe and backend-compatible', () => {
   assert.match(canvas, /defaultData\.sideEffect = 'write'/)
 })
 
-test('chat trigger palette item creates a trigger subtype instead of a new node type', () => {
+test('chat trigger is configured through the normal trigger node, not an AI palette item', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
-  assert.match(panel, /label: 'Chat Trigger'/)
-  assert.match(panel, /type: 'trigger' as WorkflowNodeType/)
-  assert.match(panel, /trigger: \{\s*type: 'chat'/)
+  assert.match(panel, /label: 'Trigger'/)
+  assert.match(panel, /description: 'Add another workflow entry point'/)
+  assert.doesNotMatch(panel, /label: 'Chat Trigger'/)
+  assert.doesNotMatch(panel, /trigger: \{\s*type: 'chat'/)
   assert.doesNotMatch(panel, /type: 'chat-trigger'/)
 })
 

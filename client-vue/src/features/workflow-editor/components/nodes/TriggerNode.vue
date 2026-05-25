@@ -17,6 +17,8 @@ import NodeShimmer from './NodeShimmer.vue'
 import NodeToolbar from './NodeToolbar.vue'
 import ChatTriggerNode from './ChatTriggerNode.vue'
 
+defineOptions({ inheritAttrs: false })
+
 const props = defineProps<
   NodeProps<TriggerNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
 >()
@@ -78,7 +80,7 @@ const triggerConfig = computed(() => {
     },
     chat: {
       icon: 'message-circle',
-      title: 'Chat Trigger',
+      title: 'When chat message received',
       subtitle: null,
       color: 'rgb(20, 184, 166)',
       bg: 'rgba(20,184,166,0.12)',

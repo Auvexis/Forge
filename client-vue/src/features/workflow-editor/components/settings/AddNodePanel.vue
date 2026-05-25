@@ -367,25 +367,6 @@ const AI_NODES: AddNodeDefinition[] = [
     bgColor: 'rgba(244, 63, 94, 0.12)',
     borderColor: 'rgba(244, 63, 94, 0.35)',
   },
-  {
-    type: 'trigger' as WorkflowNodeType,
-    label: 'Chat Trigger',
-    description: 'Start a workflow from an agent chat session',
-    icon: 'message-circle',
-    color: 'rgb(20, 184, 166)',
-    bgColor: 'rgba(20, 184, 166, 0.12)',
-    borderColor: 'rgba(20, 184, 166, 0.35)',
-    defaults: {
-      trigger: {
-        type: 'chat',
-        chatSlug: 'agent-chat',
-        chatTitle: 'Agent Chat',
-        chatAuthMode: 'profile',
-        chatSessionMode: 'resume-by-session-id',
-        chatRateLimitPerMinute: 30,
-      },
-    },
-  },
 ]
 
 // ── Computed ─────────────────────────────────────────────────────────────────

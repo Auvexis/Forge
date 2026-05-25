@@ -46,6 +46,21 @@ test('ai agent node summarizes provider, memory, and tool counts from node data'
   assert.match(source, /BaseNode/)
 })
 
+test('ai agent node exposes n8n-style config handles with a required chat model', () => {
+  const source = read('src/features/workflow-editor/components/nodes/AiAgentNode.vue')
+
+  assert.match(source, /id="chatModel"/)
+  assert.match(source, /id="memory"/)
+  assert.match(source, /id="tool"/)
+  assert.match(source, /Chat Model\*/)
+  assert.match(source, /Memory/)
+  assert.match(source, /Tool/)
+  assert.match(source, /has-target/)
+  assert.match(source, /has-source/)
+  assert.match(source, /missingRequiredModel/)
+  assert.match(source, /ai-agent-node--missing-model/)
+})
+
 test('ai model node shows provider and model identity', () => {
   const source = read('src/features/workflow-editor/components/nodes/AiModelNode.vue')
 
@@ -53,6 +68,9 @@ test('ai model node shows provider and model identity', () => {
   assert.match(source, /provider/)
   assert.match(source, /model/)
   assert.match(source, /BaseNode/)
+  assert.match(source, /agent-config-node/)
+  assert.match(source, /has-source/)
+  assert.doesNotMatch(source, /has-target/)
 })
 
 test('ai memory node shows memory scope', () => {
@@ -61,6 +79,9 @@ test('ai memory node shows memory scope', () => {
   assert.match(source, /NodeProps<AiMemoryNode>/)
   assert.match(source, /scope/)
   assert.match(source, /BaseNode/)
+  assert.match(source, /agent-config-node/)
+  assert.match(source, /has-source/)
+  assert.doesNotMatch(source, /has-target/)
 })
 
 test('ai tool node shows plugin, method, and side effect policy', () => {
@@ -71,9 +92,12 @@ test('ai tool node shows plugin, method, and side effect policy', () => {
   assert.match(source, /methodId/)
   assert.match(source, /sideEffect/)
   assert.match(source, /requiresApproval/)
+  assert.match(source, /agent-config-node/)
+  assert.match(source, /has-source/)
+  assert.doesNotMatch(source, /has-target/)
 })
 
-test('chat trigger node shows chat slug and auth mode while remaining a trigger subtype', () => {
+test('chat trigger node renders through the normal trigger node subtype', () => {
   const source = read('src/features/workflow-editor/components/nodes/ChatTriggerNode.vue')
   const trigger = read('src/features/workflow-editor/components/nodes/TriggerNode.vue')
 
@@ -82,4 +106,5 @@ test('chat trigger node shows chat slug and auth mode while remaining a trigger 
   assert.match(source, /chatAuthMode/)
   assert.match(trigger, /triggerData\.value\?\.type === 'chat'/)
   assert.match(trigger, /ChatTriggerNode/)
+  assert.match(trigger, /When chat message received/)
 })

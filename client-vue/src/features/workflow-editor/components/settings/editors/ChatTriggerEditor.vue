@@ -43,6 +43,12 @@
         placeholder="30"
       />
     </EditorField>
+
+    <ChatSessionPanel
+      v-if="chatSlug"
+      :chat-slug="chatSlug"
+      :title="chatTitle || 'Agent Chat'"
+    />
   </div>
 </template>
 
@@ -52,10 +58,13 @@ import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import ChatSessionPanel from '../../agent/ChatSessionPanel.vue'
 
 const props = defineProps<NodeEditorProps>()
 
 const publicChatWarning = computed(() => props.node.data.chatAuthMode === 'public')
+const chatSlug = computed(() => (props.node.data.chatSlug as string | undefined)?.trim() || '')
+const chatTitle = computed(() => (props.node.data.chatTitle as string | undefined)?.trim() || '')
 
 const AUTH_MODES = [
   { value: 'profile', label: 'Profile' },
