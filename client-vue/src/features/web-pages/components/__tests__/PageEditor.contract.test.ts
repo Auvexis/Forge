@@ -83,6 +83,17 @@ describe('page editor contract', () => {
     assert.match(css, /min-height:\s*1800px/)
   })
 
+  it('canvas x position is independent from side panel state', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.doesNotMatch(css, /web-page-editor--left-collapsed \.web-page-editor__workspace/)
+    assert.doesNotMatch(css, /web-page-editor--right-collapsed \.web-page-editor__workspace/)
+    assert.match(css, /web-page-editor__workspace[\s\S]*margin:\s*0/)
+    assert.match(css, /web-page-editor__workspace[\s\S]*padding:\s*calc\(40px \+ var\(--sailor-space-8\)\) 0 var\(--sailor-space-8\)/)
+    assert.match(source, /centerInitialCanvas/)
+  })
+
   it('centers the initial fixed canvas plane after opening a site page', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
 
@@ -137,6 +148,14 @@ describe('page editor contract', () => {
     assert.match(canvas, /@duplicate-block/)
     assert.match(editor, /duplicateBlockFromCanvas/)
     assert.match(editor, /deleteBlockFromCanvas/)
+  })
+
+  it('new root blocks are selected automatically so inspector opens properties', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const store = read('src/features/web-pages/stores/page-editor.store.ts')
+
+    assert.match(store, /appendBlock/)
+    assert.match(editor, /editorStore\.appendBlock\(createBlock\(payload\.tag\)\)/)
   })
 
   it('double clicking a canvas block opens the inspector for that block', () => {

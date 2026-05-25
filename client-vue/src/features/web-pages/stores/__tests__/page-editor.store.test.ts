@@ -37,6 +37,17 @@ describe('page editor store', () => {
     assert.equal(store.blocks.length, 1)
   })
 
+  it('appends root blocks and selects the new block for inspector focus', () => {
+    const store = usePageEditorStore()
+    store.setBlocks([])
+
+    store.appendBlock({ id: 'text_1', tag: 'text', children: [] })
+
+    assert.equal(store.blocks[0]?.id, 'text_1')
+    assert.equal(store.selectedBlockId, 'text_1')
+    assert.deepEqual(store.selectedTarget, { type: 'block', blockId: 'text_1' })
+  })
+
   it('undo and redo restores block tree', () => {
     const store = usePageEditorStore()
     store.setBlocks(blocks())

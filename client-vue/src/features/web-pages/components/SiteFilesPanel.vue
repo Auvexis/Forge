@@ -6,11 +6,14 @@
         :key="node.path"
         type="button"
         class="web-page-site-files__item"
-        :class="node.file.kind === 'folder' ? 'web-page-site-files__item--folder' : 'web-page-site-files__item--file'"
+        :class="[
+          node.file.kind === 'folder' ? 'web-page-site-files__item--folder' : 'web-page-site-files__item--file',
+          { 'web-page-site-files__item--root': node.depth === 0 },
+        ]"
         :style="{ '--depth': String(node.depth) }"
         @click="node.file.kind === 'folder' ? toggleFolder(node.path) : $emit('open-file', node.file)"
       >
-        <span class="web-page-site-files__guide" />
+        <span v-if="node.depth > 0" class="web-page-site-files__guide" />
         <LucideIcon
           v-if="node.file.kind === 'folder'"
           class="web-page-site-files__chevron"

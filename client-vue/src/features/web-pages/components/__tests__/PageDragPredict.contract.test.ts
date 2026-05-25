@@ -61,6 +61,13 @@ describe('page drag prediction contract', () => {
     assert.match(source, /web-page-block--selected[\s\S]*animation:\s*web-page-selected-dash/)
   })
 
+  it('focused canvas elements use an accent focus border', () => {
+    const source = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /web-page-block:focus-visible/)
+    assert.match(source, /web-page-block:focus-visible[\s\S]*outline:\s*2px solid var\(--web-page-selected-color\)/)
+  })
+
   it('drag prediction exposes directional arrow indicators and a custom drag preview', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const toolbar = read('src/features/web-pages/components/PageFloatingAddToolbar.vue')

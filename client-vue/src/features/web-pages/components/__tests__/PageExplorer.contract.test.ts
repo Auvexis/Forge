@@ -92,6 +92,15 @@ describe('page explorer contract', () => {
     assert.match(css, /web-page-site-files__item--folder:hover[\s\S]*web-page-site-files__folder-actions/)
   })
 
+  it('code explorer only renders guide lines for nested files and folders', () => {
+    const files = read('src/features/web-pages/components/SiteFilesPanel.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(files, /v-if="node\.depth > 0"/)
+    assert.match(files, /web-page-site-files__item--root/)
+    assert.match(css, /web-page-site-files__item--root[\s\S]*web-page-site-files__guide[\s\S]*display:\s*none/)
+  })
+
   it('code canvas can be closed with a BaseButton x icon', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const codeCanvas = read('src/features/web-pages/components/SiteCodeCanvas.vue')
@@ -102,6 +111,15 @@ describe('page explorer contract', () => {
     assert.match(codeCanvas, /@click\.stop="\$emit\('close'\)"/)
     assert.match(editor, /@close="closeCodeCanvas"/)
     assert.match(editor, /function closeCodeCanvas\(\)[\s\S]*activeCodeFile\.value = null/)
+  })
+
+  it('code canvas enters and leaves with a quick transition', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(editor, /<Transition name="web-page-code-editor"/)
+    assert.match(css, /web-page-code-editor-enter-active/)
+    assert.match(css, /web-page-code-editor-leave-active/)
   })
 
   it('Ctrl+S and Meta+S save the active page or active site file', () => {

@@ -100,6 +100,15 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     })
   }
 
+  function appendBlock(block: PageBlock) {
+    mutate(() => {
+      blocks.value = [...blocks.value, block]
+      selectedBlockId.value = block.id
+      selectedTarget.value = { type: 'block', blockId: block.id }
+      clearDragIntent()
+    })
+  }
+
   function moveBlock(draggedId: string, targetId: string, position: InsertPosition) {
     mutate(() => {
       blocks.value = moveTreeBlock(blocks.value, draggedId, targetId, position)
@@ -196,6 +205,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     toggleBlockCollapsed,
     isBlockCollapsed,
     insertBlock,
+    appendBlock,
     moveBlock,
     deleteBlock,
     duplicateBlock,

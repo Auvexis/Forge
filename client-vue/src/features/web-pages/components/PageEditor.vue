@@ -63,16 +63,18 @@
       @pointerleave="stopWorkspacePan"
       @contextmenu.prevent
     >
-      <SiteCodeCanvas
-        v-if="activeCodeFile"
-        :file="activeCodeFile"
-        :model-value="activeCodeContent"
-        :readonly="isActiveCodeFileReadonly"
-        @update:model-value="updateActiveCodeContent"
-        @close="closeCodeCanvas"
-      />
+      <Transition name="web-page-code-editor">
+        <SiteCodeCanvas
+          v-if="activeCodeFile"
+          :file="activeCodeFile"
+          :model-value="activeCodeContent"
+          :readonly="isActiveCodeFileReadonly"
+          @update:model-value="updateActiveCodeContent"
+          @close="closeCodeCanvas"
+        />
+      </Transition>
 
-      <template v-else>
+      <template v-if="!activeCodeFile">
         <div class="web-page-editor__plane" :style="workspacePlaneStyle">
           <template v-for="page in pagesStore.pages" :key="page.id">
             <div class="web-page-editor__page-chip">
@@ -353,14 +355,14 @@ function handleDropRoot(payload: { tag?: PageBlockTag; draggedId?: string }) {
   if (payload.draggedId && editorStore.blocks.length > 0) {
     editorStore.moveBlock(payload.draggedId, editorStore.blocks[editorStore.blocks.length - 1]!.id, 'after')
   } else if (payload.tag) {
-    editorStore.setBlocks([...editorStore.blocks, createBlock(payload.tag)])
+    editorStore.appendBlock(createBlock(payload.tag))
   }
 }
 
 function insertImportedForm(block: PageBlock) {
   const targetId = editorStore.selectedBlockId ?? editorStore.blocks[editorStore.blocks.length - 1]?.id
   if (targetId) editorStore.insertBlock(targetId, 'after', block)
-  else editorStore.setBlocks([block])
+  else editorStore.appendBlock(block)
 }
 
 function pageBlocks(pageId: string) {
