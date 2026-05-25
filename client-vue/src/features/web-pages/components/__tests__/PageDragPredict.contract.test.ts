@@ -61,11 +61,13 @@ describe('page drag prediction contract', () => {
     assert.match(source, /web-page-block--selected[\s\S]*animation:\s*web-page-selected-dash/)
   })
 
-  it('focused canvas elements use an accent focus border', () => {
+  it('focused canvas elements use dashed animated accent outline', () => {
     const source = read('src/features/web-pages/pages.css')
 
+    assert.match(source, /web-page-block:focus/)
     assert.match(source, /web-page-block:focus-visible/)
-    assert.match(source, /web-page-block:focus-visible[\s\S]*outline:\s*2px solid var\(--web-page-selected-color\)/)
+    assert.match(source, /web-page-block:focus[\s\S]*outline:\s*2px dashed var\(--web-page-selected-color\)/)
+    assert.match(source, /web-page-block:focus[\s\S]*animation:\s*web-page-selected-dash/)
   })
 
   it('drag prediction exposes directional arrow indicators and a custom drag preview', () => {

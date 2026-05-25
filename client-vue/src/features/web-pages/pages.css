@@ -336,7 +336,8 @@
   display: grid;
   align-content: start;
   justify-items: center;
-  min-width: 2400px;
+  width: 100%;
+  min-width: 0;
   min-height: 1800px;
   padding: var(--sailor-space-8) 0 320px;
   transform-origin: top center;
@@ -534,9 +535,11 @@
   animation: web-page-selected-dash 1200ms linear infinite;
 }
 
+.web-page-block:focus,
 .web-page-block:focus-visible {
-  outline: 2px solid var(--web-page-selected-color);
-  outline-offset: 4px;
+  outline: 2px dashed var(--web-page-selected-color);
+  outline-offset: 3px;
+  animation: web-page-selected-dash 1200ms linear infinite;
 }
 
 .web-page-block--drop-inside {
@@ -888,6 +891,12 @@
   .web-page-block-toolbar,
   .web-page-drop-indicator {
     transition: none !important;
+  }
+
+  .web-page-block--selected,
+  .web-page-block:focus,
+  .web-page-block:focus-visible {
+    animation: none !important;
   }
 }
 

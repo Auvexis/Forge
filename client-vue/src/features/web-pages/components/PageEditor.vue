@@ -206,7 +206,6 @@ const router = useRouter()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
 const sitesStore = useSitesStore()
-const INITIAL_CANVAS_WIDTH = 2400
 const INITIAL_CANVAS_TOP_OFFSET = 120
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
@@ -297,7 +296,7 @@ onMounted(async () => {
   await openInitialSite()
   await openRoutePage(route.params.pageId)
   await nextTick()
-  centerInitialCanvas()
+  positionInitialCanvas()
 })
 
 onBeforeUnmount(() => {
@@ -330,9 +329,9 @@ async function openRoutePage(pageId: unknown) {
   }
 }
 
-function centerInitialCanvas() {
+function positionInitialCanvas() {
   if (!workspaceRef.value) return
-  workspaceRef.value.scrollLeft = Math.max(0, (INITIAL_CANVAS_WIDTH - workspaceRef.value.clientWidth) / 2)
+  workspaceRef.value.scrollLeft = 0
   workspaceRef.value.scrollTop = INITIAL_CANVAS_TOP_OFFSET
 }
 
@@ -568,7 +567,7 @@ async function addPageBelowCanvas() {
   editorStore.setBlocks(page.blocks)
   editorStore.selectPage()
   await nextTick()
-  centerInitialCanvas()
+  positionInitialCanvas()
 }
 
 function handleChromeCommand(command: PageChromeCommand) {

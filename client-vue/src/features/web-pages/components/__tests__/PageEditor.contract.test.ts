@@ -73,21 +73,24 @@ describe('page editor contract', () => {
     assert.match(renderer, /draggable="!readonly && activeTool === 'cursor'"/)
     assert.match(css, /web-page-editor__plane/)
     assert.match(css, /transform-origin:\s*top center/)
-    assert.match(css, /min-width:\s*2400px/)
+    assert.match(css, /min-width:\s*0/)
     assert.doesNotMatch(source, /FREE_CANVAS_WIDTH/)
     assert.doesNotMatch(source, /centerWorkspacePlane/)
     assert.doesNotMatch(source, /web-page-canvas-controls/)
     assert.doesNotMatch(css, /web-page-canvas-controls/)
   })
 
-  it('workspace keeps the previous centered canvas plane instead of the free plane', () => {
+  it('workspace centers the page by css instead of a wide horizontal plane', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
     const css = read('src/features/web-pages/pages.css')
 
     assert.doesNotMatch(source, /FREE_CANVAS_WIDTH/)
     assert.doesNotMatch(source, /FREE_CANVAS_HEIGHT/)
+    assert.doesNotMatch(source, /INITIAL_CANVAS_WIDTH/)
     assert.doesNotMatch(css, /--web-page-free-canvas-width/)
-    assert.match(css, /min-width:\s*2400px/)
+    assert.doesNotMatch(css, /min-width:\s*2400px/)
+    assert.match(css, /width:\s*100%/)
+    assert.match(css, /min-width:\s*0/)
     assert.match(css, /min-height:\s*1800px/)
   })
 
@@ -99,17 +102,17 @@ describe('page editor contract', () => {
     assert.doesNotMatch(css, /web-page-editor--right-collapsed \.web-page-editor__workspace/)
     assert.match(css, /web-page-editor__workspace[\s\S]*margin:\s*0/)
     assert.match(css, /web-page-editor__workspace[\s\S]*padding:\s*calc\(40px \+ var\(--sailor-space-8\)\) 0 var\(--sailor-space-8\)/)
-    assert.match(source, /centerInitialCanvas/)
+    assert.match(source, /positionInitialCanvas/)
   })
 
-  it('centers the initial fixed canvas plane after opening a site page', () => {
+  it('positions the initial canvas vertically without shifting x', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
 
-    assert.match(source, /centerInitialCanvas/)
-    assert.match(source, /INITIAL_CANVAS_WIDTH/)
-    assert.match(source, /workspaceRef\.value\.scrollLeft/)
+    assert.match(source, /positionInitialCanvas/)
+    assert.doesNotMatch(source, /INITIAL_CANVAS_WIDTH/)
+    assert.match(source, /workspaceRef\.value\.scrollLeft = 0/)
     assert.match(source, /workspaceRef\.value\.scrollTop/)
-    assert.match(source, /await nextTick\(\)[\s\S]*centerInitialCanvas\(\)/)
+    assert.match(source, /await nextTick\(\)[\s\S]*positionInitialCanvas\(\)/)
   })
 
   it('canvas active tools override block cursor feedback', () => {
