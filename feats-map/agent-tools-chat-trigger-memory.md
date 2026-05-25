@@ -28,7 +28,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Task 11: Long-Term Memory Policy
 - [x] Task 12: Agent Graph Builder
 - [x] Task 13: Agent Runner Facade
-- [ ] Task 14: AI Workflow Node Handlers
+- [x] Task 14: AI Workflow Node Handlers
 - [ ] Task 15: Executor Config-Node Traversal Safety
 - [ ] Task 16: Chat Trigger Backend
 - [ ] Task 17: Agent Chat Routes

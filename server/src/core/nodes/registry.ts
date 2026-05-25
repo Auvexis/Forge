@@ -1,4 +1,8 @@
 import type { WorkflowNodeType } from "../../shared/models/workflow-types.ts";
+import { aiAgentNodeHandler } from "./handlers/ai-agent.ts";
+import { aiMemoryNodeHandler } from "./handlers/ai-memory.ts";
+import { aiModelNodeHandler } from "./handlers/ai-model.ts";
+import { aiToolNodeHandler } from "./handlers/ai-tool.ts";
 import { codeNodeHandler } from "./handlers/code.ts";
 import { eventListenerNodeHandler } from "./handlers/event-listener.ts";
 import { eventNodeHandler } from "./handlers/event.ts";
@@ -64,6 +68,10 @@ const utilityNodeTypes: UtilityNodeType[] = [
   "split-in-batches",
   "respond-webhook",
   "wait-form",
+  "ai-agent",
+  "ai-model",
+  "ai-memory",
+  "ai-tool",
 ];
 
 const defaultUtilityHandlers: NodeHandler[] = [
@@ -81,6 +89,10 @@ const defaultUtilityHandlers: NodeHandler[] = [
   splitInBatchesNodeHandler,
   respondWebhookNodeHandler,
   waitFormNodeHandler,
+  aiAgentNodeHandler,
+  aiModelNodeHandler,
+  aiMemoryNodeHandler,
+  aiToolNodeHandler,
 ];
 
 export function createUtilityNodeRegistry(

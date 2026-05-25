@@ -1393,7 +1393,7 @@ git commit -m "feat: add agent runner service"
 - Modify: `server/src/core/nodes/registry.ts`
 - Create: `server/src/core/nodes/handlers/ai-agent.test.ts`
 
-- [ ] **Step 1: Write failing node handler tests**
+- [x] **Step 1: Write failing node handler tests**
 
 Tests:
 - registry contains `ai-agent`, `ai-model`, `ai-memory`, `ai-tool`.
@@ -1411,22 +1411,22 @@ node --test src/core/nodes/handlers/ai-agent.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement configuration handlers**
+- [x] **Step 2: Implement configuration handlers**
 
 Model, memory, and tool handlers should not call external services. They expose metadata and return node config if accidentally executed.
 
-- [ ] **Step 3: Implement AI Agent handler**
+- [x] **Step 3: Implement AI Agent handler**
 
 Find connected config nodes from workflow edges. Recommended rule:
 - inbound edges from `ai-model`, `ai-memory`, `ai-tool` into `ai-agent` are config links.
 - normal execution edge into `ai-agent` is workflow control flow.
 - outgoing edge from `ai-agent` continues workflow.
 
-- [ ] **Step 4: Register handlers**
+- [x] **Step 4: Register handlers**
 
 Add AI node types to `utilityNodeTypes` and `defaultUtilityHandlers`.
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run:
 
@@ -1438,7 +1438,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/core/nodes/handlers/ai-agent.ts server/src/core/nodes/handlers/ai-model.ts server/src/core/nodes/handlers/ai-memory.ts server/src/core/nodes/handlers/ai-tool.ts server/src/core/nodes/registry.ts server/src/core/nodes/handlers/ai-agent.test.ts
