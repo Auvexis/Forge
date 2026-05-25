@@ -116,4 +116,17 @@ export const ENDPOINTS = {
 
   // Events
   EVENTS_EMIT: '/events/emit',
+
+  // Agent Runtime
+  AGENT_CHAT_MESSAGES: (chatSlug: string) =>
+    `/agent-chat/${encodeURIComponent(chatSlug)}/messages`,
+  AGENT_CHAT_SESSION_MESSAGES: (sessionId: string) =>
+    `/agent-chat/sessions/${encodeURIComponent(sessionId)}/messages`,
+  AGENT_TOOLS: '/agent-tools',
+  AGENT_MEMORY: '/agent-memory',
+  AGENT_MEMORY_BY_ID: (memoryId: string) => `/agent-memory/${encodeURIComponent(memoryId)}`,
+  AGENT_APPROVAL_APPROVE: (approvalId: string) =>
+    `/agent-approvals/${encodeURIComponent(approvalId)}/approve`,
+  AGENT_APPROVAL_REJECT: (approvalId: string) =>
+    `/agent-approvals/${encodeURIComponent(approvalId)}/reject`,
 } as const

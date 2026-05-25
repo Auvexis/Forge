@@ -1682,7 +1682,7 @@ git commit -m "test: verify chat agent workflow"
 - Modify: `client-vue/src/core/api/endpoints.ts`
 - Create: `client-vue/src/core/api/agent-runtime.api.contract.test.ts`
 
-- [ ] **Step 1: Write failing frontend API test**
+- [x] **Step 1: Write failing frontend API test**
 
 Tests:
 - endpoints expose chat message, session messages, tools, memory, approvals.
@@ -1700,11 +1700,11 @@ node --test src/core/api/agent-runtime.api.contract.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement types and APIs**
+- [x] **Step 2: Implement types and APIs**
 
 Mirror backend public contracts only. Do not expose internal LangGraph state.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
@@ -1716,7 +1716,7 @@ npm run type-check
 
 Expected: pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add client-vue/src/features/agent-runtime/types/agent.types.ts client-vue/src/core/api/agent-chat.api.ts client-vue/src/core/api/agent-tools.api.ts client-vue/src/core/api/endpoints.ts client-vue/src/core/api/agent-runtime.api.contract.test.ts
