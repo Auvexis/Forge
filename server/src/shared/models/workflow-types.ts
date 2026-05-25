@@ -15,7 +15,21 @@ export type WorkflowNodeType =
   | "merge"
   | "split-in-batches"
   | "respond-webhook"
-  | "wait-form";
+  | "wait-form"
+  | "ai-agent"
+  | "ai-model"
+  | "ai-memory"
+  | "ai-tool";
+
+export type AgentMemoryScope = "none" | "session" | "workflow" | "profile" | "user";
+
+export type AgentToolSideEffect =
+  | "read"
+  | "write"
+  | "delete"
+  | "external-message"
+  | "external-payment"
+  | "filesystem";
 
 // ──────────── Retry Policy ────────────
 
@@ -200,6 +214,47 @@ export interface WaitFormNode extends WorkflowNodeBase {
   expiresInSeconds?: number | string;
 }
 
+export interface AiAgentNode extends WorkflowNodeBase {
+  type: "ai-agent";
+  prompt: string;
+  maxIterations: number;
+  maxToolCalls: number;
+  timeoutMs: number;
+  requireApprovalForSideEffects: AgentToolSideEffect[];
+  outputMode: "text" | "json";
+  outputSchema?: Record<string, any>;
+}
+
+export interface AiModelNode extends WorkflowNodeBase {
+  type: "ai-model";
+  provider: "openai" | "openrouter";
+  model: string;
+  temperature: number;
+  maxTokens?: number;
+  credentialId?: string;
+  baseUrl?: string;
+}
+
+export interface AiMemoryNode extends WorkflowNodeBase {
+  type: "ai-memory";
+  scope: AgentMemoryScope;
+  readEnabled: boolean;
+  writeEnabled: boolean;
+  maxRetrievedMemories: number;
+  maxMemoryChars: number;
+}
+
+export interface AiToolNode extends WorkflowNodeBase {
+  type: "ai-tool";
+  pluginId: string;
+  methodId: string;
+  descriptionOverride?: string;
+  timeoutMs: number;
+  requiresApproval: boolean;
+  sideEffect: AgentToolSideEffect;
+  inputDefaults?: Record<string, any>;
+}
+
 // ──────────── Discriminated Union ────────────
 
 export type WorkflowNode =
@@ -217,7 +272,11 @@ export type WorkflowNode =
   | MergeNode
   | SplitInBatchesNode
   | RespondToWebhookNode
-  | WaitFormNode;
+  | WaitFormNode
+  | AiAgentNode
+  | AiModelNode
+  | AiMemoryNode
+  | AiToolNode;
 
 // ──────────── Edges ────────────
 
@@ -339,7 +398,7 @@ export interface FormTheme {
 // ──────────── Trigger ────────────
 
 export interface WorkflowTrigger {
-  type: "manual" | "webhook" | "cron" | "plugin" | "form";
+  type: "manual" | "webhook" | "cron" | "plugin" | "form" | "chat";
   schema?: Record<string, any>;
   ui?: WorkflowNodeUI;
   // Webhook config
@@ -360,6 +419,13 @@ export interface WorkflowTrigger {
   formDescription?: string; // Optional description shown below the title
   formFields?: FormTriggerField[];
   formTheme?: FormTheme;
+  // Chat trigger config
+  chatSlug?: string;
+  chatTitle?: string;
+  chatAuthMode?: "public" | "signed" | "profile";
+  chatSessionMode?: "new-session-per-user" | "resume-by-session-id";
+  chatAllowedOrigins?: string[];
+  chatRateLimitPerMinute?: number;
   // Captured payload from "Listen for Event" UX (persisted so left pane can display it)
   lastTriggerPayload?: Record<string, any> | null;
 }

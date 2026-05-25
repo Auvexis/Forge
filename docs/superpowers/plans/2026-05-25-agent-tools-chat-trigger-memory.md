@@ -563,7 +563,7 @@ git commit -m "feat: add agent runtime contracts"
 - Modify: `server/src/shared/models/workflow-types.ts`
 - Create: `server/src/shared/models/workflow-agent-types.test.ts`
 
-- [ ] **Step 1: Write failing type contract test**
+- [x] **Step 1: Write failing type contract test**
 
 Create a test that reads `workflow-types.ts` and asserts:
 - `WorkflowNodeType` includes `ai-agent`, `ai-model`, `ai-memory`, `ai-tool`.
@@ -580,7 +580,7 @@ node --test src/shared/models/workflow-agent-types.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Add node interfaces**
+- [x] **Step 2: Add node interfaces**
 
 Add these interfaces to `workflow-types.ts`:
 
@@ -639,7 +639,7 @@ chatAllowedOrigins?: string[];
 chatRateLimitPerMinute?: number;
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
@@ -651,7 +651,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add server/src/shared/models/workflow-types.ts server/src/shared/models/workflow-agent-types.test.ts

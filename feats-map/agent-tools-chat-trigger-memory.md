@@ -17,7 +17,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 
 - [x] Task 1: Dependency Audit and Install
 - [x] Task 2: Agent Domain Types and Limits
-- [ ] Task 3: Workflow Node Types
+- [x] Task 3: Workflow Node Types
 - [ ] Task 4: Agent Runtime Tables and Repositories
 - [ ] Task 5: Event Sanitizer and Agent Event Bus
 - [ ] Task 6: Plugin Agent Tool Metadata

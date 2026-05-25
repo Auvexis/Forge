@@ -19,6 +19,7 @@ export type WorkflowJobSource =
   | "webhook"
   | "form"
   | "cron"
+  | "chat"
   | "event"
   | "plugin";
 

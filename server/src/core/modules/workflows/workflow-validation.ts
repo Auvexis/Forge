@@ -16,6 +16,10 @@ export const VALID_NODE_TYPES = new Set([
   "split-in-batches",
   "respond-webhook",
   "wait-form",
+  "ai-agent",
+  "ai-model",
+  "ai-memory",
+  "ai-tool",
 ]);
 
 const VALID_FORM_FIELD_TYPES = new Set([
@@ -111,6 +115,12 @@ function validateTriggerConfig(
 
   if (trigger.type === "plugin" && (!trigger.pluginId || !trigger.triggerName)) {
     return `${label} must have pluginId and triggerName`;
+  }
+
+  if (trigger.type === "chat") {
+    if (!trigger.chatSlug || !FORM_SLUG_REGEX.test(trigger.chatSlug)) {
+      return `${label} must have chatSlug in kebab-case`;
+    }
   }
 
   return null;
@@ -256,6 +266,39 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
         return `Wait Form node "${nodeId}" must have expiresInSeconds >= 1`;
       }
       return null;
+    case "ai-agent":
+      if (!node.prompt || typeof node.prompt !== "string") {
+        return `AI Agent node "${nodeId}" must have a prompt string`;
+      }
+      if (typeof node.maxIterations !== "number" || node.maxIterations < 1) {
+        return `AI Agent node "${nodeId}" must have maxIterations >= 1`;
+      }
+      return typeof node.maxToolCalls !== "number" || node.maxToolCalls < 0
+        ? `AI Agent node "${nodeId}" must have maxToolCalls >= 0`
+        : null;
+    case "ai-model":
+      if (!(node.provider === "openai" || node.provider === "openrouter")) {
+        return `AI Model node "${nodeId}" must have provider "openai" or "openrouter"`;
+      }
+      return !node.model || typeof node.model !== "string"
+        ? `AI Model node "${nodeId}" must have a model string`
+        : null;
+    case "ai-memory":
+      if (!["none", "session", "workflow", "profile", "user"].includes(node.scope)) {
+        return `AI Memory node "${nodeId}" must have a valid scope`;
+      }
+      return typeof node.maxRetrievedMemories !== "number" || node.maxRetrievedMemories < 0
+        ? `AI Memory node "${nodeId}" must have maxRetrievedMemories >= 0`
+        : null;
+    case "ai-tool":
+      if (!node.pluginId || !node.methodId) {
+        return `AI Tool node "${nodeId}" must have pluginId and methodId`;
+      }
+      return !["read", "write", "delete", "external-message", "external-payment", "filesystem"].includes(
+        node.sideEffect,
+      )
+        ? `AI Tool node "${nodeId}" must have a valid sideEffect`
+        : null;
     case "trigger":
       return validateTriggerConfig(node.trigger ?? { type: "manual" }, `Trigger node "${nodeId}"`);
   }
