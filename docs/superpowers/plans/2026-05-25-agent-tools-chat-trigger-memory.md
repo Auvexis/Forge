@@ -1567,7 +1567,7 @@ git commit -m "feat: add chat trigger backend service"
 - Create: `server/src/core/routes/agent-chat.routes.test.ts`
 - Modify: route registration file used by current server
 
-- [ ] **Step 1: Write failing route tests**
+- [x] **Step 1: Write failing route tests**
 
 Routes:
 - `POST /agent-chat/:chatSlug/messages`
@@ -1596,15 +1596,15 @@ node --test src/core/routes/agent-chat.routes.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement routes**
+- [x] **Step 2: Implement routes**
 
 Use current Fastify route style. Every route must call service methods and serialize errors with `serializeAgentError`.
 
-- [ ] **Step 3: Register routes**
+- [x] **Step 3: Register routes**
 
 Follow the existing route registration pattern in the server.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -1616,7 +1616,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/routes/agent-chat.routes.ts server/src/core/routes/agent-chat.routes.test.ts server/src/core/server.ts

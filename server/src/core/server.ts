@@ -14,6 +14,7 @@ import profilesRoutes from "./routes/profiles.routes.ts";
 import commandPaletteRoutes from "./routes/command-palette.routes.ts";
 import pluginCreatorRoutes from "./routes/plugin-creator.routes.ts";
 import pagesRoutes from "./routes/pages.routes.ts";
+import agentChatRoutes from "./routes/agent-chat.routes.ts";
 import { devWorkflowSessionRuntime } from "./modules/workflows/dev-session/runtime.ts";
 import { sailorHomePaths } from "./runtime/sailor-home.ts";
 import { formatRuntimeDiagnostics } from "./runtime/runtime-diagnostics.ts";
@@ -70,6 +71,7 @@ fastify.register(webhooksRoutes);
 fastify.register(credentialsRoutes);
 fastify.register(pluginCreatorRoutes);
 fastify.register(pagesRoutes);
+fastify.register(agentChatRoutes);
 fastify.register(profilesRoutes, {
   store: activeProfileRuntime.profileStore,
   passwordService: activeProfileRuntime.passwordService,
