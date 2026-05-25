@@ -46,6 +46,20 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Task 29: Frontend Safety and Usability Polish
 - [x] Task 30: Documentation and Feature Map Completion
 - [x] Task 31: Full Verification
+- [ ] Task 32: Move Chat Trigger Into Existing Trigger Type
+- [ ] Task 33: Rework AI Agent Canvas UX To n8n-Style Cluster
+- [ ] Task 34: Compatibility and Palette Cleanup For Agent Config Nodes
+- [ ] Task 35: Agent Cluster UX Verification
+
+## UX Rework Direction
+
+- [ ] Chat Trigger must be configured inside the existing Trigger node through `Trigger Type = Chat`.
+- [ ] Chat Trigger must not appear as a separate AI palette node.
+- [ ] AI Agent should behave like the n8n Agent Tools cluster: one main Agent node with bottom config handles.
+- [ ] Agent bottom handles must be `Chat Model*`, `Memory`, and `Tool`.
+- [ ] Model, Memory, and Tool nodes should read visually as Agent config satellites, not normal execution steps.
+- [ ] Multiple Tool config nodes may connect to the Agent `Tool` handle.
+- [ ] Existing saved chat trigger workflows must remain compatible.
 
 ## Safety Notes
 
