@@ -15,6 +15,7 @@ import { useToast } from '@/shared/composables/useToast'
 import RunWorkflowPanel from '../execution/RunWorkflowPanel.vue'
 import NodeShimmer from './NodeShimmer.vue'
 import NodeToolbar from './NodeToolbar.vue'
+import ChatTriggerNode from './ChatTriggerNode.vue'
 
 const props = defineProps<
   NodeProps<TriggerNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
@@ -75,6 +76,14 @@ const triggerConfig = computed(() => {
       bg: 'rgba(99,179,237,0.12)',
       borderColor: 'rgba(99,179,237,0.4)',
     },
+    chat: {
+      icon: 'message-circle',
+      title: 'Chat Trigger',
+      subtitle: null,
+      color: 'rgb(20, 184, 166)',
+      bg: 'rgba(20,184,166,0.12)',
+      borderColor: 'rgba(20,184,166,0.4)',
+    },
   }
 
   return configMap[type as keyof typeof configMap] ?? configMap.manual
@@ -108,6 +117,8 @@ const isRealTriggerNode = computed(() => {
 const showToolbar = computed(() => {
   return Boolean(props.id && props.selected && isRealTriggerNode.value)
 })
+
+const isChatTrigger = computed(() => triggerData.value?.type === 'chat')
 
 const onExecuteWorkflow = async () => {
   const workflow = store.activeWorkflow
@@ -166,6 +177,11 @@ const onQuickAdd = () => {
 </script>
 
 <template>
+  <ChatTriggerNode
+    v-if="isChatTrigger"
+    v-bind="props"
+  />
+  <template v-else>
   <div
     class="trigger-node"
     :class="[
@@ -242,6 +258,7 @@ const onQuickAdd = () => {
       Form submission
     </span>
   </div>
+  </template>
 </template>
 
 <style scoped>

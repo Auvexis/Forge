@@ -20,6 +20,10 @@ export const VALID_NODE_TYPES = new Set<WorkflowNodeType>([
   'split-in-batches',
   'respond-webhook',
   'wait-form',
+  'ai-agent',
+  'ai-model',
+  'ai-memory',
+  'ai-tool',
 ])
 
 // Node type visual metadata — color and category hints.
@@ -102,5 +106,25 @@ export const NODE_TYPE_META: Record<
     label: 'Wait for Form',
     color: '#22c55e',
     category: 'flow',
+  },
+  'ai-agent': {
+    label: 'AI Agent',
+    color: 'rgb(14, 165, 233)',
+    category: 'ai',
+  },
+  'ai-model': {
+    label: 'AI Model',
+    color: 'rgb(16, 185, 129)',
+    category: 'ai',
+  },
+  'ai-memory': {
+    label: 'AI Memory',
+    color: 'rgb(245, 158, 11)',
+    category: 'ai',
+  },
+  'ai-tool': {
+    label: 'AI Tool',
+    color: 'rgb(244, 63, 94)',
+    category: 'ai',
   },
 }

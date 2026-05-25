@@ -1734,7 +1734,7 @@ git commit -m "feat: add agent runtime frontend api"
 - Modify: `client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue`
 - Create: `client-vue/src/features/workflow-editor/components/nodes/__tests__/agentNodes.contract.test.ts`
 
-- [ ] **Step 1: Write failing node component test**
+- [x] **Step 1: Write failing node component test**
 
 Tests:
 - canvas registers all AI node components.
@@ -1753,11 +1753,11 @@ node --test src/features/workflow-editor/components/nodes/__tests__/agentNodes.c
 
 Expected: fail.
 
-- [ ] **Step 2: Implement components**
+- [x] **Step 2: Implement components**
 
 Use existing `BaseNode.vue` and icon conventions. Keep components display-only; no API calls inside node views.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
@@ -1769,7 +1769,7 @@ npm run type-check
 
 Expected: pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add client-vue/src/features/workflow-editor/components/nodes/AiAgentNode.vue client-vue/src/features/workflow-editor/components/nodes/AiModelNode.vue client-vue/src/features/workflow-editor/components/nodes/AiMemoryNode.vue client-vue/src/features/workflow-editor/components/nodes/AiToolNode.vue client-vue/src/features/workflow-editor/components/nodes/ChatTriggerNode.vue client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue client-vue/src/features/workflow-editor/components/nodes/__tests__/agentNodes.contract.test.ts

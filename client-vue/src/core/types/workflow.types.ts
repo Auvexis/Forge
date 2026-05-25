@@ -21,6 +21,20 @@ export type WorkflowNodeType =
   | 'split-in-batches'
   | 'respond-webhook'
   | 'wait-form'
+  | 'ai-agent'
+  | 'ai-model'
+  | 'ai-memory'
+  | 'ai-tool'
+
+export type AgentMemoryScope = 'none' | 'session' | 'workflow' | 'profile' | 'user'
+
+export type AgentToolSideEffect =
+  | 'read'
+  | 'write'
+  | 'delete'
+  | 'external-message'
+  | 'external-payment'
+  | 'filesystem'
 
 // ── Retry Policy ─────────────────────────────────────────────
 
@@ -201,6 +215,50 @@ export interface WaitFormNode extends WorkflowNodeBase {
   expiresInSeconds?: number | string
 }
 
+export interface AiAgentNode extends WorkflowNodeBase {
+  type: 'ai-agent'
+  prompt: string
+  maxIterations: number
+  maxToolCalls: number
+  timeoutMs: number
+  requireApprovalForSideEffects: AgentToolSideEffect[]
+  outputMode: 'text' | 'json'
+  outputSchema?: Record<string, any>
+  providerCount?: number
+  memoryCount?: number
+  toolCount?: number
+}
+
+export interface AiModelNode extends WorkflowNodeBase {
+  type: 'ai-model'
+  provider: 'openai' | 'openrouter'
+  model: string
+  temperature: number
+  maxTokens?: number
+  credentialId?: string
+  baseUrl?: string
+}
+
+export interface AiMemoryNode extends WorkflowNodeBase {
+  type: 'ai-memory'
+  scope: AgentMemoryScope
+  readEnabled: boolean
+  writeEnabled: boolean
+  maxRetrievedMemories: number
+  maxMemoryChars: number
+}
+
+export interface AiToolNode extends WorkflowNodeBase {
+  type: 'ai-tool'
+  pluginId: string
+  methodId: string
+  descriptionOverride?: string
+  timeoutMs: number
+  requiresApproval: boolean
+  sideEffect: AgentToolSideEffect
+  inputDefaults?: Record<string, any>
+}
+
 // ── Discriminated Union ──────────────────────────────────────
 
 export type WorkflowNode =
@@ -219,6 +277,10 @@ export type WorkflowNode =
   | SplitInBatchesNode
   | RespondToWebhookNode
   | WaitFormNode
+  | AiAgentNode
+  | AiModelNode
+  | AiMemoryNode
+  | AiToolNode
 
 // ── Edges ────────────────────────────────────────────────────
 
@@ -346,7 +408,7 @@ export interface FormTheme {
 // ── Trigger ───────────────────────────────────────
 
 export interface WorkflowTrigger {
-  type: 'manual' | 'webhook' | 'cron' | 'plugin' | 'form'
+  type: 'manual' | 'webhook' | 'cron' | 'plugin' | 'form' | 'chat'
   schema?: Record<string, WorkflowSchemaField>
   ui?: WorkflowNodeUI
   webhookPath?: string
@@ -365,6 +427,13 @@ export interface WorkflowTrigger {
   formDescription?: string
   formFields?: FormTriggerField[]
   formTheme?: FormTheme
+  // Chat trigger fields
+  chatSlug?: string
+  chatTitle?: string
+  chatAuthMode?: 'public' | 'signed' | 'profile'
+  chatSessionMode?: 'new-session-per-user' | 'resume-by-session-id'
+  chatAllowedOrigins?: string[]
+  chatRateLimitPerMinute?: number
   // Last captured webhook payload from "Listen for Event"
   lastTriggerPayload?: Record<string, any> | null
 }
