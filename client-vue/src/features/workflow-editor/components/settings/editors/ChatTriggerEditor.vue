@@ -22,6 +22,9 @@
         :options="AUTH_MODES"
         @update:model-value="updateNodeData({ chatAuthMode: $event as string })"
       />
+      <p v-if="publicChatWarning" class="chat-trigger-editor__warning">
+        Public chat uses auth and rate limit controls to reduce exposed access.
+      </p>
     </EditorField>
 
     <EditorField label="Session Mode">
@@ -44,12 +47,15 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 
-defineProps<NodeEditorProps>()
+const props = defineProps<NodeEditorProps>()
+
+const publicChatWarning = computed(() => props.node.data.chatAuthMode === 'public')
 
 const AUTH_MODES = [
   { value: 'profile', label: 'Profile' },
@@ -62,3 +68,12 @@ const SESSION_MODES = [
   { value: 'new-session-per-user', label: 'New Session per User' },
 ]
 </script>
+
+<style scoped>
+.chat-trigger-editor__warning {
+  margin: var(--sailor-space-2) 0 0;
+  color: var(--sailor-text-warning, var(--sailor-text-secondary));
+  font-size: var(--sailor-text-xs);
+  line-height: 1.4;
+}
+</style>

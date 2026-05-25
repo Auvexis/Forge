@@ -12,7 +12,12 @@
         class="agent-trace-panel__event"
         :class="`agent-trace-panel__event--${trace.status}`"
       >
-        <button class="agent-trace-panel__summary" type="button" @click="togglePayload(trace.id)">
+        <button
+          class="agent-trace-panel__summary"
+          type="button"
+          :aria-label="`Toggle agent trace payload for ${trace.label}`"
+          @click="togglePayload(trace.id)"
+        >
           <span class="agent-trace-panel__kind">{{ trace.group }}</span>
           <span class="agent-trace-panel__label">{{ trace.label }}</span>
           <span v-if="trace.status === 'failed'" class="agent-trace-panel__retry">retry/error</span>
@@ -26,6 +31,7 @@
           v-else
           class="agent-trace-panel__collapsed"
           type="button"
+          :aria-label="`Expand large payload for ${trace.label}`"
           @click="togglePayload(trace.id)"
         >
           Large payload collapsed

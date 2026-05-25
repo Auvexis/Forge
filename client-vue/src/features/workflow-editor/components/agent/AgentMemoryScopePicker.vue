@@ -19,6 +19,9 @@
         :title="writeDisabled ? 'Writes require workflow, profile, or user scope.' : undefined"
         @update:model-value="emit('update:writeEnabled', $event)"
       />
+      <span class="agent-memory-scope-picker__write-state">
+        {{ writeEnabled && !writeDisabled ? 'Long-term writes enabled' : 'Long-term writes disabled' }}
+      </span>
     </div>
   </div>
 </template>
@@ -78,5 +81,10 @@ function handleScopeChange(scope: AgentMemoryScope) {
   display: flex;
   flex-direction: column;
   gap: var(--sailor-space-2);
+}
+
+.agent-memory-scope-picker__write-state {
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
 }
 </style>

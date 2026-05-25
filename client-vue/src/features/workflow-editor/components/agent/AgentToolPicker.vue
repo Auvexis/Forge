@@ -28,18 +28,34 @@
         </span>
 
         <span class="agent-tool-picker__meta">
-          <span class="agent-tool-picker__badge" :data-side-effect="tool.sideEffect">
+          <span
+            class="agent-tool-picker__badge"
+            :class="{ 'agent-tool-picker__badge--danger': isDestructiveSideEffect(tool.sideEffect) }"
+            :data-side-effect="tool.sideEffect"
+          >
             {{ formatSideEffect(tool.sideEffect) }}
           </span>
           <span
             class="agent-tool-picker__badge"
             :class="{ 'agent-tool-picker__badge--approval': tool.requiresApproval }"
+            :aria-label="tool.requiresApproval ? 'Tool approval required' : 'Tool approval not required'"
           >
             {{ tool.requiresApproval ? 'Approval required' : 'No approval' }}
           </span>
         </span>
 
-        <pre class="agent-tool-picker__schema">{{ schemaPreview(tool.inputSchema) }}</pre>
+        <button
+          class="agent-tool-picker__schema-toggle"
+          type="button"
+          :aria-label="schemaToggleLabel(tool)"
+          @click.stop="toggleSchema(tool)"
+        >
+          Schema preview
+        </button>
+        <pre
+          v-if="expandedSchemas.has(schemaKey(tool))"
+          class="agent-tool-picker__schema"
+        >{{ schemaPreview(tool.inputSchema) }}</pre>
       </button>
 
       <div v-if="!filteredTools.length" class="agent-tool-picker__status">No tools found.</div>
@@ -74,6 +90,7 @@ const query = ref('')
 const tools = ref<AgentToolDefinition[]>([])
 const loading = ref(false)
 const error = ref('')
+const expandedSchemas = ref(new Set<string>())
 
 const filteredTools = computed(() => {
   const needle = query.value.trim().toLowerCase()
@@ -115,6 +132,26 @@ function selectTool(tool: AgentToolDefinition) {
 
 function schemaPreview(inputSchema: AgentToolDefinition['inputSchema']) {
   return JSON.stringify(inputSchema ?? {}, null, 2)
+}
+
+function schemaKey(tool: AgentToolDefinition) {
+  return `${tool.pluginId}:${tool.methodId}`
+}
+
+function toggleSchema(tool: AgentToolDefinition) {
+  const next = new Set(expandedSchemas.value)
+  const key = schemaKey(tool)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  expandedSchemas.value = next
+}
+
+function schemaToggleLabel(tool: AgentToolDefinition) {
+  return `${expandedSchemas.value.has(schemaKey(tool)) ? 'Hide' : 'Show'} schema preview for ${tool.name || tool.methodId}`
+}
+
+function isDestructiveSideEffect(sideEffect: AgentToolDefinition['sideEffect']) {
+  return ['delete', 'external-payment', 'filesystem'].includes(sideEffect)
 }
 
 function formatSideEffect(sideEffect: AgentToolDefinition['sideEffect']) {
@@ -212,6 +249,22 @@ onMounted(loadTools)
 .agent-tool-picker__badge--approval {
   border-color: var(--sailor-warning-border, var(--sailor-border-strong));
   color: var(--sailor-text-warning, var(--sailor-text-primary));
+}
+
+.agent-tool-picker__badge--danger {
+  border-color: var(--sailor-red-400);
+  color: var(--sailor-red-400);
+}
+
+.agent-tool-picker__schema-toggle {
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--sailor-text-muted);
+  cursor: pointer;
+  font-size: var(--sailor-text-xs);
+  text-align: left;
 }
 
 .agent-tool-picker__schema {
