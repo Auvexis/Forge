@@ -793,7 +793,7 @@ git commit -m "feat: add agent runtime persistence"
 - Create: `server/src/core/modules/agent-runtime/agent-event-bus.ts`
 - Create: `server/src/core/modules/agent-runtime/agent-event-sanitizer.test.ts`
 
-- [ ] **Step 1: Write failing event sanitizer tests**
+- [x] **Step 1: Write failing event sanitizer tests**
 
 Tests:
 - redacts keys containing `api_key`, `token`, `authorization`, `password`, `secret`.
@@ -810,7 +810,7 @@ node --test src/core/modules/agent-runtime/agent-event-sanitizer.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement sanitizer**
+- [x] **Step 2: Implement sanitizer**
 
 Expose:
 
@@ -819,7 +819,7 @@ export function sanitizeAgentEventPayload(input: unknown): unknown;
 export function truncateAgentText(value: string, maxChars?: number): string;
 ```
 
-- [ ] **Step 3: Implement event bus**
+- [x] **Step 3: Implement event bus**
 
 Expose:
 
@@ -835,7 +835,7 @@ export function emitAgentEvent(input: {
 
 Internally call existing `workflowEventBus.emitWorkflowEvent` with a namespaced event payload.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -847,7 +847,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/modules/agent-runtime/agent-event-sanitizer.ts server/src/core/modules/agent-runtime/agent-event-bus.ts server/src/core/modules/agent-runtime/agent-event-sanitizer.test.ts

@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import type { AgentEventType } from "../agent-runtime/agent-types.ts";
 
 // ──────────── Workflow Execution Event Types ────────────
 
@@ -15,7 +16,8 @@ export interface WorkflowEvent {
     | "workflow:success"
     | "workflow:failed"
     | "workflow:cancelled"
-    | "temporary-form:created";
+    | "temporary-form:created"
+    | AgentEventType;
   nodeId?: string;
   timestamp: number;
   /** Sanitized output data for node:success events */
