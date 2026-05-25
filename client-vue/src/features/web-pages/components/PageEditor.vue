@@ -21,14 +21,15 @@
 
     <AppPanel
       :is-open="isLeftPanelOpen"
-      title="Elements"
+      title="Explorer"
       position="left"
       width="md"
       resizable
       resize-side="right"
       @close="closeLeftPanel"
     >
-      <BlockTreePanel
+      <PageExplorerPanel
+        :site="sitesStore.activeSite"
         :pages="pagesStore.pages"
         :active-page-id="pagesStore.activePage?.id"
         :blocks="editorStore.blocks"
@@ -41,6 +42,8 @@
         @delete-block="deleteBlockFromTree"
         @duplicate-block="duplicateBlockFromTree"
         @move-block="moveBlockFromTree"
+        @open-file="openCodeFile"
+        @create-file="createCodeFile"
       />
     </AppPanel>
 
@@ -57,41 +60,51 @@
       @pointerup="stopWorkspacePan"
       @pointerleave="stopWorkspacePan"
     >
-      <template v-for="page in pagesStore.pages" :key="page.id">
-        <div class="web-page-editor__page-chip">
-          <button
-            type="button"
-            class="web-page-editor__page-handle"
-            :class="{ 'web-page-editor__page-handle--active': page.id === pagesStore.activePage?.id }"
-            @click="selectTreePage(page.id)"
-          >
-            {{ page.title }}
-          </button>
-          <BaseButton
-            variant="ghost"
-            size="icon"
-            icon-left="trash-2"
-            title="Delete page"
-            @click.stop="deletePageFromBadge(page.id)"
+      <SiteCodeCanvas
+        v-if="activeCodeFile"
+        :file="activeCodeFile"
+        :model-value="activeCodeContent"
+        :readonly="isActiveCodeFileReadonly"
+        @update:model-value="updateActiveCodeContent"
+      />
+
+      <template v-else>
+        <template v-for="page in pagesStore.pages" :key="page.id">
+          <div class="web-page-editor__page-chip">
+            <button
+              type="button"
+              class="web-page-editor__page-handle"
+              :class="{ 'web-page-editor__page-handle--active': page.id === pagesStore.activePage?.id }"
+              @click="selectTreePage(page.id)"
+            >
+              {{ page.title }}
+            </button>
+            <BaseButton
+              variant="ghost"
+              size="icon"
+              icon-left="trash-2"
+              title="Delete page"
+              @click.stop="deletePageFromBadge(page.id)"
+            />
+          </div>
+          <PageCanvas
+            :blocks="pageBlocks(page.id)"
+            :body-styles="pageBodyStyles(page.id)"
+            :selected-block-id="page.id === pagesStore.activePage?.id ? editorStore.selectedBlockId : null"
+            :drop-intent="page.id === pagesStore.activePage?.id ? editorStore.dragIntent : null"
+            :readonly="page.id !== pagesStore.activePage?.id"
+            :active-tool="activeTool"
+            @select="selectCanvasBlock(page.id, $event)"
+            @select-body="selectCanvasBody(page.id)"
+            @drop-block="handlePageDropBlock(page.id, $event)"
+            @drop-root="handlePageDropRoot(page.id, $event)"
+            @drag-intent="setPageDragIntent(page.id, $event)"
+            @clear-drag-intent="clearPageDragIntent(page.id)"
+            @duplicate-block="duplicateBlockFromCanvas"
+            @delete-block="deleteBlockFromCanvas"
+            @inspect-block="handleInspectBlock(page.id, $event)"
           />
-        </div>
-        <PageCanvas
-          :blocks="pageBlocks(page.id)"
-          :body-styles="pageBodyStyles(page.id)"
-          :selected-block-id="page.id === pagesStore.activePage?.id ? editorStore.selectedBlockId : null"
-          :drop-intent="page.id === pagesStore.activePage?.id ? editorStore.dragIntent : null"
-          :readonly="page.id !== pagesStore.activePage?.id"
-          :active-tool="activeTool"
-          @select="selectCanvasBlock(page.id, $event)"
-          @select-body="selectCanvasBody(page.id)"
-          @drop-block="handlePageDropBlock(page.id, $event)"
-          @drop-root="handlePageDropRoot(page.id, $event)"
-          @drag-intent="setPageDragIntent(page.id, $event)"
-          @clear-drag-intent="clearPageDragIntent(page.id)"
-          @duplicate-block="duplicateBlockFromCanvas"
-          @delete-block="deleteBlockFromCanvas"
-          @inspect-block="handleInspectBlock(page.id, $event)"
-        />
+        </template>
       </template>
 
       <div class="web-page-editor__add-page">
@@ -162,11 +175,13 @@ import { API_BASE_URL } from '@/core/constants/app.ts'
 import { ENDPOINTS } from '@/core/api/endpoints.ts'
 import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageEditorStore, type DropEdge } from '../stores/page-editor.store.ts'
+import { useSitesStore } from '../stores/sites.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
-import type { PageBlock, PageBlockStyles, PageBlockTag, SailorPage } from '../types/page.types.ts'
+import type { PageBlock, PageBlockStyles, PageBlockTag, SailorPage, SiteFile } from '../types/page.types.ts'
 import PageCanvas from './PageCanvas.vue'
-import BlockTreePanel from './BlockTreePanel.vue'
+import PageExplorerPanel from './PageExplorerPanel.vue'
+import SiteCodeCanvas from './SiteCodeCanvas.vue'
 import PageFloatingAddToolbar from './PageFloatingAddToolbar.vue'
 import BlockContentPanel from './BlockContentPanel.vue'
 import BlockAdvancedPanel from './BlockAdvancedPanel.vue'
@@ -181,18 +196,26 @@ const route = useRoute()
 const router = useRouter()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
+const sitesStore = useSitesStore()
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
 const isPageSwitcherOpen = ref(false)
 const editorPageId = ref<string | null>(null)
 type PageCanvasTool = 'cursor' | 'pan' | 'delete'
 const activeTool = ref<PageCanvasTool>('cursor')
+const activeCodeFile = ref<SiteFile | null>(null)
 const workspaceRef = ref<HTMLElement | null>(null)
 const isPanningWorkspace = ref(false)
 const panStart = ref({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0, pointerId: -1 })
 const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
 )
+const activeCodeContent = computed(() => {
+  if (!activeCodeFile.value) return ''
+  if (activeCodeFile.value.path.startsWith('pages/')) return renderGeneratedHtml(activeCodeFile.value.path)
+  return sitesStore.activeSite?.files.find((file) => file.path === activeCodeFile.value?.path)?.content ?? activeCodeFile.value.content ?? ''
+})
+const isActiveCodeFileReadonly = computed(() => activeCodeFile.value?.path.endsWith('.html') ?? false)
 
 const bodyStyleBlock = computed<PageBlock>(() => ({
   id: 'body',
@@ -202,12 +225,34 @@ const bodyStyleBlock = computed<PageBlock>(() => ({
   children: [],
 }))
 
-function toggleLeftPanel() {
-  isLeftPanelOpen.value = !isLeftPanelOpen.value
+function openCodeFile(file: SiteFile) {
+  activeCodeFile.value = file
+  editorStore.clearSelection()
 }
 
-function toggleRightPanel() {
-  isRightPanelOpen.value = !isRightPanelOpen.value
+function createCodeFile(path: string) {
+  if (!sitesStore.activeSite) return
+  if (!sitesStore.activeSite.files.some((file) => file.path === path)) {
+    sitesStore.createFile(path, '')
+  }
+  const file = sitesStore.activeSite.files.find((item) => item.path === path) ?? { path, kind: 'file' as const, content: '', updatedAt: '' }
+  openCodeFile(file)
+}
+
+function updateActiveCodeContent(value: string) {
+  if (!activeCodeFile.value || isActiveCodeFileReadonly.value) return
+  sitesStore.updateFile(activeCodeFile.value.path, value)
+}
+
+function renderGeneratedHtml(filePath: string) {
+  const slug = filePath.replace(/^pages\//, '').replace(/\.html$/, '')
+  const page = pagesStore.pages.find((item) => item.slug === slug)
+  if (!page) return '<!doctype html>\n<html><body></body></html>'
+  return `<!doctype html>\n<html>\n<head>\n  <title>${escapeHtml(page.title)}</title>\n</head>\n<body>\n  <!-- Generated preview for ${escapeHtml(page.title)} -->\n</body>\n</html>`
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 function closeLeftPanel() {
@@ -219,8 +264,18 @@ function closeRightPanel() {
 }
 
 onMounted(async () => {
+  await openInitialSite()
   await openRoutePage(route.params.pageId)
 })
+
+async function openInitialSite() {
+  if (sitesStore.activeSite) return
+  const sites = await sitesStore.listSites()
+  if (sites[0]) {
+    sitesStore.setActiveSite(sites[0])
+    pagesStore.setActiveSiteId(sites[0].id)
+  }
+}
 
 watch(
   () => route.params.pageId,
@@ -368,6 +423,7 @@ async function switchPage(pageId: string) {
 }
 
 async function selectTreePage(pageId: string) {
+  activeCodeFile.value = null
   await switchPage(pageId)
   await nextTick()
   editorStore.selectPage()
@@ -505,5 +561,13 @@ function restoreSelection(selection: typeof editorStore.selectedTarget) {
   if (selection.type === 'page') editorStore.selectPage()
   if (selection.type === 'body') editorStore.selectBody()
   if (selection.type === 'block') editorStore.selectBlock(selection.blockId)
+}
+
+function toggleLeftPanel() {
+  isLeftPanelOpen.value = !isLeftPanelOpen.value
+}
+
+function toggleRightPanel() {
+  isRightPanelOpen.value = !isRightPanelOpen.value
 }
 </script>

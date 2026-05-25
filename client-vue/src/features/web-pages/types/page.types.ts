@@ -94,6 +94,7 @@ export interface SiteFile {
   path: string
   kind: 'folder' | 'file' | 'asset'
   content?: string
+  url?: string
   mimeType?: string
   size?: number
   updatedAt: string

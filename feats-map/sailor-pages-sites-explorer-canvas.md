@@ -177,7 +177,7 @@ Tests needed:
 - Import rejects unsafe paths.
 - Import resolves duplicate slug/name.
 
-### - [ ] Task 6: Rename Elements Panel to Explorer and Add Tabs
+### - [x] Task 6: Rename Elements Panel to Explorer and Add Tabs
 
 Files:
 - Modify `client-vue/src/features/web-pages/components/PageEditor.vue`

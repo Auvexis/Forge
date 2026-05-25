@@ -596,6 +596,100 @@
   padding: var(--sailor-space-2);
 }
 
+.web-page-explorer {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100%;
+}
+
+.web-page-explorer__tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sailor-space-1);
+  padding: var(--sailor-space-2);
+  border-bottom: 1px solid var(--sailor-border);
+}
+
+.web-page-explorer__tabs button {
+  height: 28px;
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
+}
+
+.web-page-explorer__tab--active {
+  background: var(--sailor-bg-muted);
+  color: var(--sailor-text-primary) !important;
+}
+
+.web-page-site-files {
+  display: grid;
+  gap: var(--sailor-space-2);
+  align-content: start;
+  padding: var(--sailor-space-2);
+}
+
+.web-page-site-files__actions,
+.web-page-site-files__section {
+  display: grid;
+  gap: var(--sailor-space-1);
+}
+
+.web-page-site-files__section > span {
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+  font-weight: var(--sailor-font-semibold);
+}
+
+.web-page-site-files__item,
+.web-page-site-files__actions button {
+  min-height: 28px;
+  padding: 0 var(--sailor-space-2);
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-xs);
+  text-align: left;
+}
+
+.web-page-site-files__item:hover,
+.web-page-site-files__actions button:hover {
+  background: var(--sailor-bg-elevated);
+}
+
+.web-page-code-canvas {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  max-width: 1120px;
+  min-height: calc(100vh - 120px);
+  margin: 0 auto;
+  border: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-surface);
+  box-shadow: var(--sailor-shadow-lg);
+}
+
+.web-page-code-canvas__header {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--sailor-space-3);
+  border-bottom: 1px solid var(--sailor-border);
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
+}
+
+.web-page-code-canvas__preview {
+  display: grid;
+  place-items: center;
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-6);
+  color: var(--sailor-text-secondary);
+}
+
+.web-page-code-canvas__preview img {
+  max-width: min(640px, 100%);
+  max-height: 60vh;
+  object-fit: contain;
+}
+
 .web-page-library {
   border-bottom: 1px solid var(--sailor-border);
   grid-template-columns: repeat(2, minmax(0, 1fr));
