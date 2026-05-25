@@ -13,42 +13,46 @@
     </div>
 
     <div v-else class="agent-tool-picker__list">
-      <button
+      <div
         v-for="tool in filteredTools"
         :key="`${tool.pluginId}:${tool.methodId}`"
-        type="button"
         class="agent-tool-picker__option"
         :class="{ 'agent-tool-picker__option--selected': isSelected(tool) }"
-        @click="selectTool(tool)"
       >
-        <span class="agent-tool-picker__main">
-          <span class="agent-tool-picker__name">{{ tool.name || tool.methodId }}</span>
-          <span class="agent-tool-picker__ids">{{ tool.pluginId }} / {{ tool.methodId }}</span>
-          <span class="agent-tool-picker__description">{{ tool.description }}</span>
-        </span>
+        <button
+          class="agent-tool-picker__select"
+          type="button"
+          @click="selectTool(tool)"
+        >
+          <span class="agent-tool-picker__main">
+            <span class="agent-tool-picker__name">{{ tool.name || tool.methodId }}</span>
+            <span class="agent-tool-picker__ids">{{ tool.pluginId }} / {{ tool.methodId }}</span>
+            <span class="agent-tool-picker__description">{{ tool.description }}</span>
+          </span>
 
-        <span class="agent-tool-picker__meta">
-          <span
-            class="agent-tool-picker__badge"
-            :class="{ 'agent-tool-picker__badge--danger': isDestructiveSideEffect(tool.sideEffect) }"
-            :data-side-effect="tool.sideEffect"
-          >
-            {{ formatSideEffect(tool.sideEffect) }}
+          <span class="agent-tool-picker__meta">
+            <span
+              class="agent-tool-picker__badge"
+              :class="{ 'agent-tool-picker__badge--danger': isDestructiveSideEffect(tool.sideEffect) }"
+              :data-side-effect="tool.sideEffect"
+            >
+              {{ formatSideEffect(tool.sideEffect) }}
+            </span>
+            <span
+              class="agent-tool-picker__badge"
+              :class="{ 'agent-tool-picker__badge--approval': tool.requiresApproval }"
+              :aria-label="tool.requiresApproval ? 'Tool approval required' : 'Tool approval not required'"
+            >
+              {{ tool.requiresApproval ? 'Approval required' : 'No approval' }}
+            </span>
           </span>
-          <span
-            class="agent-tool-picker__badge"
-            :class="{ 'agent-tool-picker__badge--approval': tool.requiresApproval }"
-            :aria-label="tool.requiresApproval ? 'Tool approval required' : 'Tool approval not required'"
-          >
-            {{ tool.requiresApproval ? 'Approval required' : 'No approval' }}
-          </span>
-        </span>
+        </button>
 
         <button
           class="agent-tool-picker__schema-toggle"
           type="button"
           :aria-label="schemaToggleLabel(tool)"
-          @click.stop="toggleSchema(tool)"
+          @click="toggleSchema(tool)"
         >
           Schema preview
         </button>
@@ -56,7 +60,7 @@
           v-if="expandedSchemas.has(schemaKey(tool))"
           class="agent-tool-picker__schema"
         >{{ schemaPreview(tool.inputSchema) }}</pre>
-      </button>
+      </div>
 
       <div v-if="!filteredTools.length" class="agent-tool-picker__status">No tools found.</div>
     </div>
@@ -190,13 +194,26 @@ onMounted(loadTools)
   background: var(--sailor-bg-overlay);
   color: var(--sailor-text-primary);
   text-align: left;
-  cursor: pointer;
 }
 
 .agent-tool-picker__option:hover,
 .agent-tool-picker__option--selected {
   border-color: var(--sailor-border-strong);
   background: var(--sailor-bg-elevated);
+}
+
+.agent-tool-picker__select {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sailor-space-2);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
 }
 
 .agent-tool-picker__main,

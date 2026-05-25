@@ -49,6 +49,12 @@ test('long schema previews are collapsible', () => {
   assert.match(source, /Schema preview/)
 })
 
+test('tool picker does not nest interactive buttons', () => {
+  const source = read('src/features/workflow-editor/components/agent/AgentToolPicker.vue')
+
+  assert.doesNotMatch(source, /<button[\s\S]*<button[\s\S]*<\/button>[\s\S]*<\/button>/)
+})
+
 test('icon-only buttons have accessible labels', () => {
   const trace = read('src/features/workflow-editor/components/agent/AgentTracePanel.vue')
 
