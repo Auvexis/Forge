@@ -22,7 +22,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Task 5: Event Sanitizer and Agent Event Bus
 - [x] Task 6: Plugin Agent Tool Metadata
 - [x] Task 7: Plugin Tool Adapter
-- [ ] Task 8: Plugin Tool Executor Safety
+- [x] Task 8: Plugin Tool Executor Safety
 - [ ] Task 9: Model Provider Registry
 - [ ] Task 10: Short-Term Memory Checkpointer
 - [ ] Task 11: Long-Term Memory Policy

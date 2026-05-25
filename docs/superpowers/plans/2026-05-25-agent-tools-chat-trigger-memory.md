@@ -1009,7 +1009,7 @@ git commit -m "feat: adapt plugin methods into agent tools"
 - Create: `server/src/core/modules/agent-runtime/plugin-tool-executor.ts`
 - Create: `server/src/core/modules/agent-runtime/plugin-tool-executor.test.ts`
 
-- [ ] **Step 1: Write failing executor tests**
+- [x] **Step 1: Write failing executor tests**
 
 Tests:
 - executes selected tool through `PluginExecutor.execute`.
@@ -1029,7 +1029,7 @@ node --test src/core/modules/agent-runtime/plugin-tool-executor.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement executor**
+- [x] **Step 2: Implement executor**
 
 Expose:
 
@@ -1045,11 +1045,11 @@ export async function executePluginAgentTool(input: {
 }): Promise<unknown>;
 ```
 
-- [ ] **Step 3: Add timeout helper**
+- [x] **Step 3: Add timeout helper**
 
 Use `AbortController` only if downstream supports it; otherwise use a timeout race and record timeout as failed execution. Never leave unhandled promise rejection.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -1061,7 +1061,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/modules/agent-runtime/plugin-tool-executor.ts server/src/core/modules/agent-runtime/plugin-tool-executor.test.ts
