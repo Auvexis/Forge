@@ -72,3 +72,10 @@
      default-lang="en"
    />
    ```
+
+12. Agent Tools foundation:
+   - Chat Trigger.
+   - AI Agent / Model / Memory / Tool nodes.
+   - Plugin method tool adapter.
+   - Persistent short-term and long-term memory.
+   - Tool approvals and execution trace.

@@ -8,7 +8,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 
 - [x] Stay on branch `dev`.
 - [x] Use TDD before implementation.
-- [ ] Do not let plugins import core, engines, or other plugins.
+- [x] Do not let plugins import core, engines, or other plugins.
 - [x] Keep agent runtime in core modules.
 - [x] Commit after each completed implementation task.
 - [x] Recheck LangChain/LangGraph advisories before installing dependencies.
@@ -44,7 +44,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Task 27: Human Approval UI
 - [x] Task 28: Security Hardening Backend
 - [x] Task 29: Frontend Safety and Usability Polish
-- [ ] Task 30: Documentation and Feature Map Completion
+- [x] Task 30: Documentation and Feature Map Completion
 - [ ] Task 31: Full Verification
 
 ## Safety Notes
@@ -52,6 +52,6 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Agent tools must be explicit opt-in through plugin manifest metadata.
 - [x] Side-effect tools must have visible policy and approval defaults.
 - [x] Short-term memory must use a real checkpointer.
-- [ ] Long-term memory must use policy-controlled namespaces.
-- [ ] Chat Trigger must own session identity and never trust raw `thread_id` from request bodies.
+- [x] Long-term memory must use policy-controlled namespaces.
+- [x] Chat Trigger must own session identity and never trust raw `thread_id` from request bodies.
 - [x] Execution traces must be redacted and capped.
