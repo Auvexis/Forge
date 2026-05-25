@@ -1783,7 +1783,7 @@ git commit -m "feat: add ai workflow node components"
 - Modify: `client-vue/src/features/workflow-editor/components/settings/nodeInspectorPreview.ts`
 - Create: `client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts`
 
-- [ ] **Step 1: Write failing add-node test**
+- [x] **Step 1: Write failing add-node test**
 
 Tests:
 - AddNodePanel has AI category.
@@ -1801,7 +1801,7 @@ node --test src/features/workflow-editor/components/settings/__tests__/agentAddN
 
 Expected: fail.
 
-- [ ] **Step 2: Implement add-node entries**
+- [x] **Step 2: Implement add-node entries**
 
 Add defaults that match backend validation:
 
@@ -1818,7 +1818,7 @@ Add defaults that match backend validation:
 }
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
@@ -1830,7 +1830,7 @@ npm run type-check
 
 Expected: pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add client-vue/src/features/workflow-editor/components/settings/AddNodePanel.vue client-vue/src/features/workflow-editor/components/settings/nodeInspectorPreview.ts client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts

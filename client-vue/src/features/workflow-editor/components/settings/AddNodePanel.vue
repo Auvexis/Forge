@@ -39,7 +39,7 @@
               :key="def.type"
               class="add-node-item"
               style="position: relative; z-index: 1"
-              @click="onAddLogicNode?.(def.type)"
+              @click="onAddLogicNode?.(def.type, def.defaults)"
             >
               <div class="add-node-item-icon-well" :style="{ backgroundColor: def.bgColor, borderColor: def.borderColor || 'transparent' }">
                 <LucideIcon :name="def.icon" :size="16" :color="def.color" />
@@ -66,6 +66,28 @@
                 <span class="add-node-item-desc">{{ plugin.manifest.metadata.description }}</span>
               </div>
               <LucideIcon name="chevron-right" :size="14" class="add-node-item-chevron" />
+            </button>
+          </BaseWoobyMenu>
+        </div>
+
+        <!-- AI -->
+        <div class="add-node-section">
+          <p class="add-node-section-label">AI</p>
+          <BaseWoobyMenu tag="div" class="add-node-list">
+            <button
+              v-for="def in filteredAiNodes"
+              :key="def.label"
+              class="add-node-item"
+              style="position: relative; z-index: 1"
+              @click="onAddLogicNode?.(def.type, def.defaults)"
+            >
+              <div class="add-node-item-icon-well" :style="{ backgroundColor: def.bgColor, borderColor: def.borderColor || 'transparent' }">
+                <LucideIcon :name="def.icon" :size="16" :color="def.color" />
+              </div>
+              <div class="add-node-item-info">
+                <span class="add-node-item-label">{{ def.label }}</span>
+                <span class="add-node-item-desc">{{ def.description }}</span>
+              </div>
             </button>
           </BaseWoobyMenu>
         </div>
@@ -140,7 +162,7 @@ import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 import type { PluginSummary } from '@/core/types/plugin.types'
 
 defineProps<{
-  onAddLogicNode?: (type: WorkflowNodeType) => void
+  onAddLogicNode?: (type: WorkflowNodeType, defaults?: Record<string, unknown>) => void
   onAddPluginNode?: (pluginId: string, action: string, actionName: string) => void
 }>()
 
@@ -168,7 +190,18 @@ const selectedPlugin = computed(
 
 // ── Logic Nodes Definitions ───────────────────────────────────────────────────
 
-const LOGIC_NODES = [
+interface AddNodeDefinition {
+  type: WorkflowNodeType
+  label: string
+  description: string
+  icon: string
+  color: string
+  bgColor: string
+  borderColor: string
+  defaults?: Record<string, unknown>
+}
+
+const LOGIC_NODES: AddNodeDefinition[] = [
   {
     type: 'trigger' as WorkflowNodeType,
     label: 'Trigger',
@@ -297,6 +330,64 @@ const LOGIC_NODES = [
   },
 ]
 
+const AI_NODES: AddNodeDefinition[] = [
+  {
+    type: 'ai-agent' as WorkflowNodeType,
+    label: 'AI Agent',
+    description: 'Run a governed agent with tools and memory',
+    icon: 'bot',
+    color: 'rgb(14, 165, 233)',
+    bgColor: 'rgba(14, 165, 233, 0.12)',
+    borderColor: 'rgba(14, 165, 233, 0.35)',
+  },
+  {
+    type: 'ai-model' as WorkflowNodeType,
+    label: 'AI Model',
+    description: 'Configure the model provider for an agent',
+    icon: 'brain-circuit',
+    color: 'rgb(16, 185, 129)',
+    bgColor: 'rgba(16, 185, 129, 0.12)',
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+  },
+  {
+    type: 'ai-memory' as WorkflowNodeType,
+    label: 'AI Memory',
+    description: 'Attach scoped memory to an agent run',
+    icon: 'database',
+    color: 'rgb(245, 158, 11)',
+    bgColor: 'rgba(245, 158, 11, 0.12)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+  },
+  {
+    type: 'ai-tool' as WorkflowNodeType,
+    label: 'AI Tool',
+    description: 'Expose an approved plugin method to an agent',
+    icon: 'wrench',
+    color: 'rgb(244, 63, 94)',
+    bgColor: 'rgba(244, 63, 94, 0.12)',
+    borderColor: 'rgba(244, 63, 94, 0.35)',
+  },
+  {
+    type: 'trigger' as WorkflowNodeType,
+    label: 'Chat Trigger',
+    description: 'Start a workflow from an agent chat session',
+    icon: 'message-circle',
+    color: 'rgb(20, 184, 166)',
+    bgColor: 'rgba(20, 184, 166, 0.12)',
+    borderColor: 'rgba(20, 184, 166, 0.35)',
+    defaults: {
+      trigger: {
+        type: 'chat',
+        chatSlug: 'agent-chat',
+        chatTitle: 'Agent Chat',
+        chatAuthMode: 'profile',
+        chatSessionMode: 'resume-by-session-id',
+        chatRateLimitPerMinute: 30,
+      },
+    },
+  },
+]
+
 // ── Computed ─────────────────────────────────────────────────────────────────
 
 const searchPlaceholder = computed(() => {
@@ -306,6 +397,10 @@ const searchPlaceholder = computed(() => {
 
 const filteredLogicNodes = computed(() =>
   LOGIC_NODES.filter((n) => n.label.toLowerCase().includes(search.value.toLowerCase())),
+)
+
+const filteredAiNodes = computed(() =>
+  AI_NODES.filter((n) => n.label.toLowerCase().includes(search.value.toLowerCase())),
 )
 
 const filteredPlugins = computed(() =>

@@ -395,6 +395,10 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   'split-in-batches': 'Split In Batches',
   'respond-webhook': 'Respond to Webhook',
   'wait-form': 'Wait for Form',
+  'ai-agent': 'AI Agent',
+  'ai-model': 'AI Model',
+  'ai-memory': 'AI Memory',
+  'ai-tool': 'AI Tool',
 }
 
 function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
@@ -563,7 +567,7 @@ const generateNodeId = (prefix: string) => {
   return newId
 }
 
-const addLogicNode = (type: WorkflowNodeType) => {
+const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, unknown> = {}) => {
   if (!workflowStore.activeWorkflow) return
 
   const backupSourceId = quickAddSourceId
@@ -620,18 +624,61 @@ const addLogicNode = (type: WorkflowNodeType) => {
     defaultData.fields = [
       { name: 'email', label: 'Email', type: 'email', required: true },
     ]
+  } else if (type === 'ai-agent') {
+    defaultData.prompt = 'You are a helpful workflow agent. Use tools only when needed.'
+    defaultData.maxIterations = 8
+    defaultData.maxToolCalls = 12
+    defaultData.timeoutMs = 180000
+    defaultData.requireApprovalForSideEffects = [
+      'write',
+      'delete',
+      'external-message',
+      'external-payment',
+      'filesystem',
+    ]
+    defaultData.outputMode = 'text'
+    defaultData.providerCount = 0
+    defaultData.memoryCount = 0
+    defaultData.toolCount = 0
+  } else if (type === 'ai-model') {
+    defaultData.provider = 'openai'
+    defaultData.model = 'gpt-4.1-mini'
+    defaultData.temperature = 0.2
+  } else if (type === 'ai-memory') {
+    defaultData.scope = 'session'
+    defaultData.readEnabled = true
+    defaultData.writeEnabled = false
+    defaultData.maxRetrievedMemories = 4
+    defaultData.maxMemoryChars = 2000
+  } else if (type === 'ai-tool') {
+    defaultData.pluginId = 'plugin'
+    defaultData.methodId = 'method'
+    defaultData.timeoutMs = 30000
+    defaultData.requiresApproval = true
+    defaultData.sideEffect = 'write'
+    defaultData.inputDefaults = {}
   } else if (type === 'trigger') {
     defaultData.trigger = shouldAdoptLegacyTrigger
       ? { ...workflowStore.activeWorkflow.trigger, ui: undefined }
       : { type: 'manual' }
   }
 
+  const mergedData = {
+    ...defaultData,
+    ...providedDefaults,
+  }
+
+  const defaultName =
+    type === 'trigger' && (mergedData.trigger as any)?.type === 'chat'
+      ? 'Chat Trigger'
+      : NODE_DEFAULT_NAMES[type] ?? id
+
   // Adicionar no store
   const newNode: any = {
     type,
-    name: NODE_DEFAULT_NAMES[type] ?? id,
+    name: defaultName,
     ui: { positionX: pos.x, positionY: pos.y },
-    ...defaultData,
+    ...mergedData,
   }
   workflowStore.activeWorkflow.nodes[id] = newNode
 

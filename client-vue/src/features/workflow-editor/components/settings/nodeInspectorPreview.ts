@@ -1,5 +1,5 @@
 import type { NodeExecutionState } from '@/core/types/execution.types'
-import type { WorkflowNode } from '@/core/types/workflow.types'
+import type { WorkflowNode, WorkflowTrigger } from '@/core/types/workflow.types'
 import type { VariableTreePath } from './editors/variableTreeInference.ts'
 import { inferEventListenerPaths } from './editors/variableTreeInference.ts'
 
@@ -17,6 +17,12 @@ interface EventListenerPreviewOptions {
   sourceNodeName?: string
   workflowNodes: Record<string, WorkflowNode | any>
   nodeStatuses: NodeStatuses
+}
+
+export interface AgentNodePreview {
+  title: string
+  summary: string
+  details: Record<string, unknown>
 }
 
 function flattenOutput(
@@ -139,4 +145,73 @@ export function buildEventListenerOutputPathsFromStatuses(
     workflowNodes: options.workflowNodes,
     knownPaths: buildKnownPathsFromNodeStatuses(options.nodeStatuses),
   })
+}
+
+export function buildAgentNodePreview(
+  node: WorkflowNode | WorkflowTrigger,
+): AgentNodePreview | null {
+  if ('type' in node && node.type === 'ai-agent') {
+    return {
+      title: node.name,
+      summary: `${node.providerCount ?? 0} provider nodes, ${node.memoryCount ?? 0} memory nodes, ${node.toolCount ?? 0} tools`,
+      details: {
+        provider: node.providerCount ?? 0,
+        memory: node.memoryCount ?? 0,
+        tools: node.toolCount ?? 0,
+        outputMode: node.outputMode,
+      },
+    }
+  }
+
+  if ('type' in node && node.type === 'ai-model') {
+    return {
+      title: node.name,
+      summary: `${node.provider} / ${node.model}`,
+      details: {
+        provider: node.provider,
+        model: node.model,
+        temperature: node.temperature,
+      },
+    }
+  }
+
+  if ('type' in node && node.type === 'ai-memory') {
+    return {
+      title: node.name,
+      summary: `${node.scope} memory`,
+      details: {
+        memory: node.scope,
+        readEnabled: node.readEnabled,
+        writeEnabled: node.writeEnabled,
+        maxRetrievedMemories: node.maxRetrievedMemories,
+      },
+    }
+  }
+
+  if ('type' in node && node.type === 'ai-tool') {
+    return {
+      title: node.name,
+      summary: `${node.pluginId} / ${node.methodId}`,
+      details: {
+        tools: `${node.pluginId}.${node.methodId}`,
+        sideEffect: node.sideEffect,
+        requiresApproval: node.requiresApproval,
+      },
+    }
+  }
+
+  if ('type' in node && node.type === 'chat') {
+    return {
+      title: node.chatTitle ?? 'Chat Trigger',
+      summary: `${node.chatSlug ?? 'chat'} chat`,
+      details: {
+        chat: node.chatSlug ?? 'chat',
+        chatAuthMode: node.chatAuthMode ?? 'profile',
+        chatSessionMode: node.chatSessionMode ?? 'resume-by-session-id',
+        chatRateLimitPerMinute: node.chatRateLimitPerMinute,
+      },
+    }
+  }
+
+  return null
 }
