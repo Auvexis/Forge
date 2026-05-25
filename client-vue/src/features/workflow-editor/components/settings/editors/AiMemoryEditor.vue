@@ -9,26 +9,14 @@
     </EditorField>
 
     <EditorField label="Scope">
-      <BaseSelect
-        :model-value="(node.data.scope as string) || 'session'"
-        :options="MEMORY_SCOPES"
-        @update:model-value="updateNodeData({ scope: $event as string })"
+      <AgentMemoryScopePicker
+        :scope="((node.data.scope as string) || 'session') as AgentMemoryScope"
+        :read-enabled="Boolean(node.data.readEnabled)"
+        :write-enabled="Boolean(node.data.writeEnabled)"
+        @update:scope="updateNodeData({ scope: $event })"
+        @update:read-enabled="updateNodeData({ readEnabled: $event })"
+        @update:write-enabled="updateNodeData({ writeEnabled: $event })"
       />
-    </EditorField>
-
-    <EditorField label="Access">
-      <div class="editor-switches">
-        <BaseSwitch
-          :model-value="Boolean(node.data.readEnabled)"
-          label="Read memory"
-          @update:model-value="updateNodeData({ readEnabled: $event })"
-        />
-        <BaseSwitch
-          :model-value="Boolean(node.data.writeEnabled)"
-          label="Write memory"
-          @update:model-value="updateNodeData({ writeEnabled: $event })"
-        />
-      </div>
     </EditorField>
 
     <EditorField label="Retrieval Limits">
@@ -54,18 +42,10 @@
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseSelect from '@/shared/components/base/BaseSelect.vue'
-import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import AgentMemoryScopePicker from '../../agent/AgentMemoryScopePicker.vue'
+import type { AgentMemoryScope } from '@/features/agent-runtime/types/agent.types'
 
 defineProps<NodeEditorProps>()
-
-const MEMORY_SCOPES = [
-  { value: 'none', label: 'None' },
-  { value: 'session', label: 'Session' },
-  { value: 'workflow', label: 'Workflow' },
-  { value: 'profile', label: 'Profile' },
-  { value: 'user', label: 'User' },
-]
 </script>
 
 <style scoped>
@@ -75,9 +55,4 @@ const MEMORY_SCOPES = [
   gap: var(--sailor-space-2);
 }
 
-.editor-switches {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sailor-space-2);
-}
 </style>
