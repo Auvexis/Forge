@@ -415,7 +415,7 @@ git commit -m "chore: add audited agent runtime dependencies"
 - Create: `server/src/core/modules/agent-runtime/agent-validation.test.ts`
 - Create: `server/src/core/modules/agent-runtime/agent-validation.ts`
 
-- [ ] **Step 1: Write failing validation tests**
+- [x] **Step 1: Write failing validation tests**
 
 Create tests that assert:
 - valid agent, model, memory, tool, and chat trigger configs pass.
@@ -435,7 +435,7 @@ node --test src/core/modules/agent-runtime/agent-validation.test.ts
 
 Expected: fail because files do not exist.
 
-- [ ] **Step 2: Implement limits**
+- [x] **Step 2: Implement limits**
 
 Create `agent-limits.ts`:
 
@@ -461,7 +461,7 @@ export const AGENT_LIMITS = {
 } as const;
 ```
 
-- [ ] **Step 3: Implement domain types**
+- [x] **Step 3: Implement domain types**
 
 Create `agent-types.ts` with the contracts from the Data Contracts section plus:
 
@@ -502,7 +502,7 @@ export interface AgentRunResult {
 }
 ```
 
-- [ ] **Step 4: Implement safe errors**
+- [x] **Step 4: Implement safe errors**
 
 Create `agent-errors.ts`:
 
@@ -526,7 +526,7 @@ export function serializeAgentError(error: unknown): { code: string; message: st
 }
 ```
 
-- [ ] **Step 5: Implement validation**
+- [x] **Step 5: Implement validation**
 
 Use Zod for runtime validation and pure helper functions:
 
@@ -538,7 +538,7 @@ export function validateAiToolConfig(input: unknown): AiToolNodeConfig;
 export function validateChatTriggerConfig(input: unknown): ChatTriggerConfig;
 ```
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 Run:
 
@@ -550,7 +550,7 @@ npm run build
 
 Expected: tests and TypeScript build pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add server/src/core/modules/agent-runtime/agent-types.ts server/src/core/modules/agent-runtime/agent-limits.ts server/src/core/modules/agent-runtime/agent-errors.ts server/src/core/modules/agent-runtime/agent-validation.ts server/src/core/modules/agent-runtime/agent-validation.test.ts
