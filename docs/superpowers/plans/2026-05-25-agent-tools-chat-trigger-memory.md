@@ -1848,7 +1848,7 @@ git commit -m "feat: add ai nodes to workflow palette"
 - Modify: `client-vue/src/features/workflow-editor/components/settings/editors/index.ts`
 - Create: `client-vue/src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts`
 
-- [ ] **Step 1: Write failing editor contract tests**
+- [x] **Step 1: Write failing editor contract tests**
 
 Tests:
 - editor registry maps each AI node to an editor.
@@ -1867,11 +1867,11 @@ node --test src/features/workflow-editor/components/settings/editors/__tests__/a
 
 Expected: fail.
 
-- [ ] **Step 2: Implement editors**
+- [x] **Step 2: Implement editors**
 
 Use existing `EditorField`, `ExpressionInput`, `ExpressionTextarea`, shared base inputs, toggles, and select controls. Do not invent a new form system.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
@@ -1883,7 +1883,7 @@ npm run type-check
 
 Expected: pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add client-vue/src/features/workflow-editor/components/settings/editors/AiAgentEditor.vue client-vue/src/features/workflow-editor/components/settings/editors/AiModelEditor.vue client-vue/src/features/workflow-editor/components/settings/editors/AiMemoryEditor.vue client-vue/src/features/workflow-editor/components/settings/editors/AiToolEditor.vue client-vue/src/features/workflow-editor/components/settings/editors/ChatTriggerEditor.vue client-vue/src/features/workflow-editor/components/settings/editors/index.ts client-vue/src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts

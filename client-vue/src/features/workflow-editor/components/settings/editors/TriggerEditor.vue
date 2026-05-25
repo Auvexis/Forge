@@ -1,5 +1,9 @@
 <template>
-  <div class="editor-stack">
+  <ChatTriggerEditor
+    v-if="node.data.type === 'chat'"
+    v-bind="props"
+  />
+  <div v-else class="editor-stack">
     <!-- ── Trigger Type ── -->
     <EditorField label="Trigger Type">
       <BaseSelect
@@ -533,6 +537,7 @@ import BaseVariableInput from '@/shared/components/base/BaseVariableInput.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import FormThemeMenu from '../../form/FormThemeMenu.vue'
 import FormFieldsEditor from '../../form/FormFieldsEditor.vue'
+import ChatTriggerEditor from './ChatTriggerEditor.vue'
 import VariablePicker from '../expressions/VariablePicker.vue'
 import { API_BASE_URL } from '@/core/constants/app'
 import { pluginsApi } from '@/core/api/plugins.api'
