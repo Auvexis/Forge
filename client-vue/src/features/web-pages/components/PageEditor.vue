@@ -218,8 +218,6 @@ const router = useRouter()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
 const sitesStore = useSitesStore()
-const FREE_CANVAS_WIDTH = 8000
-const FREE_CANVAS_HEIGHT = 5200
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
 const isPageSwitcherOpen = ref(false)
@@ -244,8 +242,6 @@ const activePagePublishedAt = computed(
 )
 const workspacePlaneStyle = computed(() => ({
   transform: `scale(${workspaceZoom.value})`,
-  '--web-page-free-canvas-width': `${FREE_CANVAS_WIDTH}px`,
-  '--web-page-free-canvas-height': `${FREE_CANVAS_HEIGHT}px`,
 }))
 const activeCodeContent = computed(() => {
   if (!activeCodeFile.value) return ''
@@ -319,8 +315,6 @@ onMounted(async () => {
   window.addEventListener('keyup', handleSpacePanKeyUp)
   await openInitialSite()
   await openRoutePage(route.params.pageId)
-  await nextTick()
-  centerWorkspacePlane()
 })
 
 onBeforeUnmount(() => {
@@ -444,12 +438,6 @@ function fitCanvasToWorkspace() {
   const viewportWidth = workspaceRef.value?.clientWidth ?? 1200
   const targetWidth = 1080
   workspaceZoom.value = Math.max(0.5, Math.min(1.25, Number((viewportWidth / targetWidth).toFixed(2))))
-}
-
-function centerWorkspacePlane() {
-  if (!workspaceRef.value) return
-  workspaceRef.value.scrollLeft = Math.max(0, (FREE_CANVAS_WIDTH - workspaceRef.value.clientWidth) / 2)
-  workspaceRef.value.scrollTop = Math.max(0, (FREE_CANVAS_HEIGHT - workspaceRef.value.clientHeight) / 2 - 120)
 }
 
 function handlePageDropBlock(

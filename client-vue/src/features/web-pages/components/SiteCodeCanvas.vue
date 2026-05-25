@@ -1,8 +1,15 @@
 <template>
-  <section class="web-page-code-canvas">
+  <section class="web-page-code-canvas" @pointerdown.stop>
     <header class="web-page-code-canvas__header">
       <strong>{{ file.path }}</strong>
-      <BaseButton variant="ghost" size="icon" icon-left="x" title="Close code editor" @click="$emit('close')" />
+      <BaseButton
+        variant="ghost"
+        size="icon"
+        icon-left="x"
+        title="Close code editor"
+        @pointerdown.stop
+        @click.stop="$emit('close')"
+      />
     </header>
 
     <div v-if="isImage" class="web-page-code-canvas__preview">

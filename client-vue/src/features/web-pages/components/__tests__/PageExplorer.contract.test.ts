@@ -49,7 +49,10 @@ describe('page explorer contract', () => {
     assert.match(files, /fileIcon/)
     assert.match(files, /web-page-site-files__children/)
     assert.match(files, /web-page-site-files__guide/)
+    assert.match(files, /expandedFolders/)
+    assert.match(files, /toggleFolder/)
     assert.match(css, /web-page-site-files__guide/)
+    assert.match(css, /web-page-site-files__icon/)
   })
 
   it('code explorer exposes create file, create folder and upload image actions', () => {
@@ -67,14 +70,38 @@ describe('page explorer contract', () => {
     assert.match(editor, /uploadSiteAsset/)
   })
 
+  it('code explorer uses BaseModal for file and folder creation instead of window prompt', () => {
+    const files = read('src/features/web-pages/components/SiteFilesPanel.vue')
+
+    assert.match(files, /BaseModal/)
+    assert.match(files, /BaseInput/)
+    assert.match(files, /creationDialog/)
+    assert.match(files, /submitCreationDialog/)
+    assert.doesNotMatch(files, /window\.prompt/)
+  })
+
+  it('folder rows reveal scoped create and upload actions on hover', () => {
+    const files = read('src/features/web-pages/components/SiteFilesPanel.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(files, /web-page-site-files__folder-actions/)
+    assert.match(files, /openCreationDialog\('file', node\.path\)/)
+    assert.match(files, /openCreationDialog\('folder', node\.path\)/)
+    assert.match(files, /uploadAssetFromFolder/)
+    assert.match(css, /web-page-site-files__folder-actions/)
+    assert.match(css, /web-page-site-files__item--folder:hover[\s\S]*web-page-site-files__folder-actions/)
+  })
+
   it('code canvas can be closed with a BaseButton x icon', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const codeCanvas = read('src/features/web-pages/components/SiteCodeCanvas.vue')
 
     assert.match(codeCanvas, /BaseButton/)
     assert.match(codeCanvas, /icon-left="x"/)
-    assert.match(codeCanvas, /close/)
+    assert.match(codeCanvas, /@pointerdown\.stop/)
+    assert.match(codeCanvas, /@click\.stop="\$emit\('close'\)"/)
     assert.match(editor, /@close="closeCodeCanvas"/)
+    assert.match(editor, /function closeCodeCanvas\(\)[\s\S]*activeCodeFile\.value = null/)
   })
 
   it('Ctrl+S and Meta+S save the active page or active site file', () => {
