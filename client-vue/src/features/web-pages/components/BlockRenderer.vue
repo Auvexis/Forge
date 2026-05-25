@@ -6,6 +6,21 @@
       'web-page-block-frame--deleting': deletingBlockIds?.includes(block.id),
     }"
   >
+    <span
+      v-if="dropIntent?.targetId === block.id"
+      class="web-page-block-frame__drop-layer"
+      aria-hidden="true"
+    >
+      <span
+        v-if="dropIntent.position !== 'inside'"
+        class="web-page-drop-indicator"
+        :class="`web-page-drop-indicator--${dropIntent.position}`"
+      />
+      <span
+        class="web-page-drop-arrow"
+        :class="`web-page-drop-arrow--${dropIntent.dropEdge ?? 'center'}`"
+      />
+    </span>
     <div
       v-if="!readonly"
       class="web-page-block-toolbar"
@@ -35,16 +50,6 @@
       @dragover.prevent.stop="onDragOver"
       @drop.prevent.stop="onDrop"
     >
-      <span
-        v-if="dropIntent?.targetId === block.id && dropIntent.position !== 'inside'"
-        class="web-page-drop-indicator"
-        :class="`web-page-drop-indicator--${dropIntent.position}`"
-      />
-      <span
-        v-if="dropIntent?.targetId === block.id"
-        class="web-page-drop-arrow"
-        :class="`web-page-drop-arrow--${dropIntent.dropEdge ?? 'center'}`"
-      />
       <template v-if="block.tag === 'text' || block.tag === 'button' || block.tag === 'link'">
         {{ block.props?.text ?? block.tag }}
       </template>

@@ -44,7 +44,7 @@ export class PageService {
       siteId,
       title: input.title,
       slug: input.slug ?? this.createUniqueSlug(input.title, siteId),
-      bodyStyles: { backgroundColor: "#ffffff", color: "#111111" },
+      bodyStyles: defaultBodyStyles(),
       blocks: input.blocks ?? [],
       createdAt: now,
       updatedAt: now,
@@ -160,6 +160,18 @@ export class PageService {
     }
     return slug;
   }
+}
+
+function defaultBodyStyles() {
+  return {
+    width: "100vw",
+    minHeight: "100vh",
+    margin: "0",
+    padding: "0",
+    gap: "0",
+    backgroundColor: "#ffffff",
+    color: "#111111",
+  };
 }
 
 function createPageId(): string {

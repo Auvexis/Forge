@@ -26,6 +26,20 @@ describe("PageService", () => {
     assert.deepEqual(page.blocks, []);
   });
 
+  it("creates page with full viewport zero spacing body defaults", () => {
+    const page = service.createPage({ profileId: "profile_a", title: "Landing Page" });
+
+    assert.deepEqual(page.bodyStyles, {
+      width: "100vw",
+      minHeight: "100vh",
+      margin: "0",
+      padding: "0",
+      gap: "0",
+      backgroundColor: "#ffffff",
+      color: "#111111",
+    });
+  });
+
   it("updates page after validation", () => {
     const page = service.createPage({ profileId: "profile_a", title: "Landing Page" });
     const updated = service.updatePage(page.id, {

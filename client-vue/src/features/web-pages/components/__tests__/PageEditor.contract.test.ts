@@ -27,13 +27,16 @@ describe('page editor contract', () => {
     assert.doesNotMatch(source, /\by:/)
   })
 
-  it('page body padding is a style fallback so user padding zero wins', () => {
+  it('page body defaults to full viewport with zero spacing and user styles still win', () => {
     const source = read('src/features/web-pages/components/PageCanvas.vue')
     const css = read('src/features/web-pages/pages.css')
     const bodyRule = css.match(/\.web-page-canvas__body\s*{[\s\S]*?}/)?.[0] ?? ''
 
     assert.match(source, /resolvedBodyStyles/)
-    assert.match(source, /padding: 'var\(--sailor-space-6\)'/)
+    assert.match(source, /width: '100vw'/)
+    assert.match(source, /minHeight: '100vh'/)
+    assert.match(source, /padding: '0'/)
+    assert.match(source, /gap: '0'/)
     assert.match(source, /\.\.\.props\.bodyStyles/)
     assert.doesNotMatch(bodyRule, /padding:\s*var\(--sailor-space-6\)/)
   })
@@ -78,6 +81,16 @@ describe('page editor contract', () => {
     assert.doesNotMatch(css, /--web-page-free-canvas-width/)
     assert.match(css, /min-width:\s*2400px/)
     assert.match(css, /min-height:\s*1800px/)
+  })
+
+  it('centers the initial fixed canvas plane after opening a site page', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /centerInitialCanvas/)
+    assert.match(source, /INITIAL_CANVAS_WIDTH/)
+    assert.match(source, /workspaceRef\.value\.scrollLeft/)
+    assert.match(source, /workspaceRef\.value\.scrollTop/)
+    assert.match(source, /await nextTick\(\)[\s\S]*centerInitialCanvas\(\)/)
   })
 
   it('canvas active tools override block cursor feedback', () => {

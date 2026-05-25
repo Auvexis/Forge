@@ -37,8 +37,8 @@ describe('page drag prediction contract', () => {
     const source = read('src/features/web-pages/pages.css')
 
     assert.match(source, /web-page-drop-indicator/)
-    assert.match(source, /web-page-block--drop-before/)
-    assert.match(source, /web-page-block--drop-after/)
+    assert.match(source, /web-page-drop-indicator--before/)
+    assert.match(source, /web-page-drop-indicator--after/)
     assert.match(source, /web-page-block--drop-inside/)
   })
 
@@ -51,6 +51,14 @@ describe('page drag prediction contract', () => {
     assert.match(source, /height:\s*4px/)
     assert.match(source, /outline:\s*2px solid var\(--web-page-drop-color\)/)
     assert.doesNotMatch(source, /drop-shadow\(0 0/)
+  })
+
+  it('selected element uses dashed animated accent outline', () => {
+    const source = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /@keyframes web-page-selected-dash/)
+    assert.match(source, /web-page-block--selected[\s\S]*outline:\s*2px dashed var\(--web-page-selected-color\)/)
+    assert.match(source, /web-page-block--selected[\s\S]*animation:\s*web-page-selected-dash/)
   })
 
   it('drag prediction exposes directional arrow indicators and a custom drag preview', () => {
@@ -66,6 +74,19 @@ describe('page drag prediction contract', () => {
     assert.match(css, /web-page-drop-arrow--right/)
     assert.match(css, /web-page-drop-arrow--bottom/)
     assert.match(css, /web-page-drop-arrow--left/)
+  })
+
+  it('drop indicators render outside the block frame without intercepting drag events', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(renderer, /web-page-block-frame__drop-layer/)
+    assert.match(renderer, /web-page-block-frame__drop-layer[\s\S]*web-page-drop-indicator/)
+    assert.match(css, /web-page-block-frame__drop-layer[\s\S]*pointer-events:\s*none/)
+    assert.match(css, /web-page-drop-indicator--before[\s\S]*top:\s*-10px/)
+    assert.match(css, /web-page-drop-indicator--after[\s\S]*bottom:\s*-10px/)
+    assert.doesNotMatch(css, /web-page-block--drop-before[\s\S]*outline:/)
+    assert.doesNotMatch(css, /web-page-block--drop-after[\s\S]*outline:/)
   })
 
   it('canvas elements use subtle motion and animated deletion with reduced motion support', () => {

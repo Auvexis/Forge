@@ -74,7 +74,11 @@ const emit = defineEmits<{
 }>()
 
 const resolvedBodyStyles = computed(() => ({
-  padding: 'var(--sailor-space-6)',
+  width: '100vw',
+  minHeight: '100vh',
+  margin: '0',
+  padding: '0',
+  gap: '0',
   ...props.bodyStyles,
 }))
 

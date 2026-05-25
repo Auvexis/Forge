@@ -204,6 +204,8 @@ const router = useRouter()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
 const sitesStore = useSitesStore()
+const INITIAL_CANVAS_WIDTH = 2400
+const INITIAL_CANVAS_TOP_OFFSET = 120
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
 const isPageSwitcherOpen = ref(false)
@@ -231,7 +233,7 @@ const bodyStyleBlock = computed<PageBlock>(() => ({
   id: 'body',
   tag: 'div',
   props: { label: 'body' },
-  styles: pagesStore.activePage?.bodyStyles ?? { backgroundColor: '#ffffff', color: '#111111' },
+  styles: pagesStore.activePage?.bodyStyles ?? defaultBodyStyles(),
   children: [],
 }))
 
@@ -292,6 +294,8 @@ onMounted(async () => {
   window.addEventListener('keyup', handleSpacePanKeyUp)
   await openInitialSite()
   await openRoutePage(route.params.pageId)
+  await nextTick()
+  centerInitialCanvas()
 })
 
 onBeforeUnmount(() => {
@@ -322,6 +326,12 @@ async function openRoutePage(pageId: unknown) {
     await pagesStore.loadPageDocuments()
     if (pagesStore.activePage?.id !== pageId) await pagesStore.openPage(pageId)
   }
+}
+
+function centerInitialCanvas() {
+  if (!workspaceRef.value) return
+  workspaceRef.value.scrollLeft = Math.max(0, (INITIAL_CANVAS_WIDTH - workspaceRef.value.clientWidth) / 2)
+  workspaceRef.value.scrollTop = INITIAL_CANVAS_TOP_OFFSET
 }
 
 watch(
@@ -555,6 +565,8 @@ async function addPageBelowCanvas() {
   editorPageId.value = page.id
   editorStore.setBlocks(page.blocks)
   editorStore.selectPage()
+  await nextTick()
+  centerInitialCanvas()
 }
 
 function handleChromeCommand(command: PageChromeCommand) {
@@ -650,5 +662,17 @@ function toggleLeftPanel() {
 
 function toggleRightPanel() {
   isRightPanelOpen.value = !isRightPanelOpen.value
+}
+
+function defaultBodyStyles(): PageBlockStyles {
+  return {
+    width: '100vw',
+    minHeight: '100vh',
+    margin: '0',
+    padding: '0',
+    gap: '0',
+    backgroundColor: '#ffffff',
+    color: '#111111',
+  }
 }
 </script>
