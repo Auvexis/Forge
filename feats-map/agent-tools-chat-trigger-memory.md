@@ -24,7 +24,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Task 7: Plugin Tool Adapter
 - [x] Task 8: Plugin Tool Executor Safety
 - [x] Task 9: Model Provider Registry
-- [ ] Task 10: Short-Term Memory Checkpointer
+- [x] Task 10: Short-Term Memory Checkpointer
 - [ ] Task 11: Long-Term Memory Policy
 - [ ] Task 12: Agent Graph Builder
 - [ ] Task 13: Agent Runner Facade
@@ -51,7 +51,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 
 - [x] Agent tools must be explicit opt-in through plugin manifest metadata.
 - [x] Side-effect tools must have visible policy and approval defaults.
-- [ ] Short-term memory must use a real checkpointer.
+- [x] Short-term memory must use a real checkpointer.
 - [ ] Long-term memory must use policy-controlled namespaces.
 - [ ] Chat Trigger must own session identity and never trust raw `thread_id` from request bodies.
 - [x] Execution traces must be redacted and capped.

@@ -1132,7 +1132,7 @@ git commit -m "feat: add agent model provider registry"
 - Create: `server/src/core/modules/agent-runtime/memory/agent-checkpointer.ts`
 - Create: `server/src/core/modules/agent-runtime/memory/agent-checkpointer.test.ts`
 
-- [ ] **Step 1: Write failing checkpointer tests**
+- [x] **Step 1: Write failing checkpointer tests**
 
 Tests:
 - creates a profile-scoped `SqliteSaver`.
@@ -1150,7 +1150,7 @@ node --test src/core/modules/agent-runtime/memory/agent-checkpointer.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement checkpointer factory**
+- [x] **Step 2: Implement checkpointer factory**
 
 ```ts
 export async function createAgentCheckpointer(input: {
@@ -1164,7 +1164,7 @@ export function toLangGraphThreadConfig(sessionId: string): {
 
 Use the existing profile database path conventions. Do not accept thread id directly from public request without session ownership validation.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
@@ -1176,7 +1176,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add server/src/core/modules/agent-runtime/memory/agent-checkpointer.ts server/src/core/modules/agent-runtime/memory/agent-checkpointer.test.ts
@@ -2388,9 +2388,9 @@ git commit -m "fix: stabilize agent runtime"
 - [ ] Model API keys never appear in logs, events, routes, or UI.
 - [ ] Public chat routes enforce slug validation, origin policy, and rate limit.
 - [ ] Chat session ownership is profile-scoped.
-- [ ] LangGraph thread id is derived from validated Sailor session id.
+- [x] LangGraph thread id is derived from validated Sailor session id.
 - [ ] Request body cannot override LangGraph thread id.
-- [ ] Short-term memory is checkpointer-backed, not prompt concatenation.
+- [x] Short-term memory is checkpointer-backed, not prompt concatenation.
 - [ ] Long-term memory writes pass policy.
 - [ ] Memory admin can delete stored memories.
 - [ ] Backend returns safe public errors without stack traces.
