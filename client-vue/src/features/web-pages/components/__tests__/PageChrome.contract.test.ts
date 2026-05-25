@@ -29,6 +29,8 @@ describe('page chrome contract', () => {
     assert.match(source, /file\.publish/)
     assert.match(source, /file\.unpublish/)
     assert.match(source, /file\.openLive/)
+    assert.match(source, /file\.exportProject/)
+    assert.match(source, /Export project/)
   })
 
   it('page chrome switches File Edit View dropdowns on hover after a menu is open', () => {
@@ -82,10 +84,21 @@ describe('page chrome contract', () => {
   it('page editor passes dirty and saving state to chrome and makes both side panels resizable', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
 
-    assert.match(source, /:is-dirty="editorStore\.isDirty \|\| pagesStore\.isDirty"/)
-    assert.match(source, /:is-saving="pagesStore\.isSaving"/)
+    assert.match(source, /:is-dirty="editorStore\.isDirty \|\| pagesStore\.isDirty \|\| sitesStore\.isDirty"/)
+    assert.match(source, /:is-saving="pagesStore\.isSaving \|\| sitesStore\.isSaving"/)
     assert.match(source, /resizable/)
     assert.match(source, /resize-side="right"/)
     assert.match(source, /resize-side="left"/)
+  })
+
+  it('page editor downloads active site project from the File menu export command', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /file\.exportProject/)
+    assert.match(source, /exportActiveProject/)
+    assert.match(source, /sitesStore\.exportActiveSiteProject\(\)/)
+    assert.match(source, /downloadJsonFile/)
+    assert.match(source, /Blob/)
+    assert.match(source, /\.sailor\.json/)
   })
 })

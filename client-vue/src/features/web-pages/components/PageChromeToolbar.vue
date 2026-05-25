@@ -111,6 +111,7 @@ export type PageChromeCommand =
   | 'file.publish'
   | 'file.unpublish'
   | 'file.openLive'
+  | 'file.exportProject'
   | 'edit.rename'
   | 'edit.duplicate'
   | 'edit.delete'
@@ -132,6 +133,7 @@ const menus: Array<{
       { id: 'file.publish', label: 'Publish', icon: 'send' },
       { id: 'file.unpublish', label: 'Unpublish', icon: 'radio', danger: true },
       { id: 'file.openLive', label: 'Open live', icon: 'external-link' },
+      { id: 'file.exportProject', label: 'Export project', icon: 'download' },
     ],
   },
   {

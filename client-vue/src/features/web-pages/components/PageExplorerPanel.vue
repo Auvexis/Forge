@@ -42,6 +42,7 @@
         @create-file="$emit('create-file', $event)"
         @create-folder="$emit('create-folder', $event)"
         @upload-asset="$emit('upload-asset', $event)"
+        @delete-file="$emit('delete-file', $event)"
       />
     </div>
   </div>
@@ -75,6 +76,7 @@ defineEmits<{
   'create-file': [path: string]
   'create-folder': [path: string]
   'upload-asset': [file: File]
+  'delete-file': [path: string]
 }>()
 
 const activeTab = ref<'tree' | 'code'>('tree')

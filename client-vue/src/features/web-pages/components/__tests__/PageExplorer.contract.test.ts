@@ -63,11 +63,26 @@ describe('page explorer contract', () => {
     assert.match(files, /create-file/)
     assert.match(files, /create-folder/)
     assert.match(files, /upload-asset/)
+    assert.match(files, /delete-file/)
     assert.match(files, /type="file"/)
     assert.match(explorer, /@create-folder/)
     assert.match(explorer, /@upload-asset/)
+    assert.match(explorer, /@delete-file/)
     assert.match(editor, /createCodeFolder/)
     assert.match(editor, /uploadSiteAsset/)
+    assert.match(editor, /deleteCodeFile/)
+  })
+
+  it('code explorer exposes a delete button for deletable files', () => {
+    const files = read('src/features/web-pages/components/SiteFilesPanel.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(files, /web-page-site-files__file-actions/)
+    assert.match(files, /canDeleteFile/)
+    assert.match(files, /emit\('delete-file', node\.path\)/)
+    assert.match(files, /name="trash-2"/)
+    assert.match(css, /web-page-site-files__file-actions/)
+    assert.match(css, /web-page-site-files__item--file:hover[\s\S]*web-page-site-files__file-actions/)
   })
 
   it('code explorer uses BaseModal for file and folder creation instead of window prompt', () => {
@@ -111,6 +126,15 @@ describe('page explorer contract', () => {
     assert.match(codeCanvas, /@click\.stop="\$emit\('close'\)"/)
     assert.match(editor, /@close="closeCodeCanvas"/)
     assert.match(editor, /function closeCodeCanvas\(\)[\s\S]*activeCodeFile\.value = null/)
+  })
+
+  it('deleting the active code file closes the code canvas', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(editor, /function deleteCodeFile/)
+    assert.match(editor, /sitesStore\.deleteFile\(path\)/)
+    assert.match(editor, /activeCodeFile\.value\?\.path === path/)
+    assert.match(editor, /closeCodeCanvas\(\)/)
   })
 
   it('code canvas enters and leaves with a quick transition', () => {

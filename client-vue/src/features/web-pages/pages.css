@@ -791,6 +791,34 @@
   color: var(--sailor-text-primary);
 }
 
+.web-page-site-files__file-actions {
+  display: inline-flex;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms var(--sailor-ease-standard);
+}
+
+.web-page-site-files__item--file:hover .web-page-site-files__file-actions,
+.web-page-site-files__item--file:focus-within .web-page-site-files__file-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.web-page-site-files__file-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-secondary);
+}
+
+.web-page-site-files__file-actions button:hover {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-text-error);
+}
+
 .web-page-site-files-dialog {
   display: grid;
 }

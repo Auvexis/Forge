@@ -46,6 +46,7 @@
         @create-file="createCodeFile"
         @create-folder="createCodeFolder"
         @upload-asset="uploadSiteAsset"
+        @delete-file="deleteCodeFile"
       />
     </AppPanel>
 
@@ -263,6 +264,11 @@ async function uploadSiteAsset(file: File) {
 
 function closeCodeCanvas() {
   activeCodeFile.value = null
+}
+
+function deleteCodeFile(path: string) {
+  if (!sitesStore.deleteFile(path)) return
+  if (activeCodeFile.value?.path === path) closeCodeCanvas()
 }
 
 function updateActiveCodeContent(value: string) {
@@ -577,6 +583,7 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'file.publish') void publishPage()
   if (command === 'file.unpublish') void unpublishPage()
   if (command === 'file.openLive') openLivePage()
+  if (command === 'file.exportProject') void exportActiveProject()
   if (command === 'edit.rename') editorStore.selectPage()
   if (command === 'edit.duplicate') {
     if (editorStore.selectedBlockId) editorStore.duplicateBlock(editorStore.selectedBlockId)
@@ -649,6 +656,28 @@ function openLivePage() {
   const slug = pagesStore.activePage?.slug
   if (!slug || !activePagePublishedAt.value) return
   window.open(`${API_BASE_URL}${ENDPOINTS.PUBLISHED_PAGE(slug)}`, '_blank', 'noopener')
+}
+
+async function exportActiveProject() {
+  await saveProjectBeforeExport()
+  const archive = await sitesStore.exportActiveSiteProject()
+  if (!archive) return
+  downloadJsonFile(`${sitesStore.activeSite?.slug ?? 'site'}-project.sailor.json`, archive)
+}
+
+async function saveProjectBeforeExport() {
+  if (pagesStore.isDirty || editorStore.isDirty) await savePage()
+  if (sitesStore.isDirty) await sitesStore.saveActiveSite()
+}
+
+function downloadJsonFile(fileName: string, value: unknown) {
+  const blob = new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  link.click()
+  URL.revokeObjectURL(url)
 }
 
 function restoreSelection(selection: typeof editorStore.selectedTarget) {

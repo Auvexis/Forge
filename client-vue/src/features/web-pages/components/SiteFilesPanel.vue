@@ -34,6 +34,11 @@
             <LucideIcon name="image-plus" :size="13" />
           </button>
         </span>
+        <span v-if="canDeleteFile(node.file)" class="web-page-site-files__file-actions" @click.stop>
+          <button type="button" title="Delete file" @click="emit('delete-file', node.path)">
+            <LucideIcon name="trash-2" :size="13" />
+          </button>
+        </span>
       </button>
     </div>
 
@@ -93,6 +98,7 @@ const emit = defineEmits<{
   'create-file': [path: string]
   'create-folder': [path: string]
   'upload-asset': [file: File]
+  'delete-file': [path: string]
 }>()
 
 const assetInput = ref<HTMLInputElement | null>(null)
@@ -154,6 +160,11 @@ function toggleFolder(path: string) {
 
 function isFolderExpanded(path: string) {
   return expandedFolders.value.has(path)
+}
+
+function canDeleteFile(file: SiteFile) {
+  if (file.kind === 'folder') return false
+  return props.site?.files.some((item) => item.path === file.path && item.kind !== 'folder') ?? false
 }
 
 function defaultFolders(): SiteFile[] {
