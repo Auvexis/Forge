@@ -3,6 +3,7 @@ import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { PageActionService } from "../modules/pages/page-actions.ts";
 import { readSiteAsset, saveSiteAsset } from "../modules/pages/site-asset-service.ts";
 import { PageService } from "../modules/pages/page-service.ts";
+import { SiteProjectArchiveService, type SiteProjectArchive } from "../modules/pages/site-project-archive-service.ts";
 import { SiteService } from "../modules/pages/site-service.ts";
 import type { CreatePageInput, SailorPage, UpdatePageInput } from "../modules/pages/page-types.ts";
 import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
@@ -248,6 +249,36 @@ export default async function pagesRoutes(
       return reply.code(200).send(asset);
     } catch {
       return reply.code(400).send("Invalid asset path");
+    }
+  });
+
+  fastify.get("/sites/:siteId/export", async (req, reply) => {
+    const { siteId } = req.params as { siteId: string };
+    try {
+      const archive = new SiteProjectArchiveService({ assetStorageRoot }).exportSite(getProfileId(), siteId);
+      return reply
+        .code(200)
+        .header("content-disposition", `attachment; filename="${archive.manifest.site.slug}.sailor-site.json"`)
+        .send(archive);
+    } catch (error) {
+      return sendResponse(reply, routeError(error, "Site not found", "Failed to export site"));
+    }
+  });
+
+  fastify.post("/sites/import", async (req, reply) => {
+    try {
+      const site = new SiteProjectArchiveService({ assetStorageRoot }).importSite(
+        getProfileId(),
+        req.body as SiteProjectArchive,
+      );
+      return sendResponse(reply, {
+        status_code: 201,
+        message: "Site imported successfully",
+        error: null,
+        data: site,
+      });
+    } catch (error) {
+      return sendResponse(reply, badRequest("Failed to import site", error));
     }
   });
 

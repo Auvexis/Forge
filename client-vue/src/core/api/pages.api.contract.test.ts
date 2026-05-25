@@ -16,6 +16,8 @@ describe('pages api contract', () => {
     assert.equal(ENDPOINTS.SITE_FILES('site_1'), '/sites/site_1/files')
     assert.equal(ENDPOINTS.SITE_ASSETS('site_1'), '/sites/site_1/assets')
     assert.equal(ENDPOINTS.SITE_ASSET('site_1', 'brand/logo.png'), '/sites/site_1/assets/brand/logo.png')
+    assert.equal(ENDPOINTS.SITE_EXPORT('site_1'), '/sites/site_1/export')
+    assert.equal(ENDPOINTS.SITE_IMPORT, '/sites/import')
     assert.equal(ENDPOINTS.PAGE_BY_ID('page 1'), '/pages/page%201')
     assert.equal(ENDPOINTS.PAGE_PUBLISH('page_1'), '/pages/page_1/publish')
     assert.equal(ENDPOINTS.PAGE_PREVIEW('page_1'), '/pages/page_1/preview')
@@ -43,6 +45,8 @@ describe('pages api contract', () => {
     assert.match(source, /updateSiteFile:/)
     assert.match(source, /deleteSiteFile:/)
     assert.match(source, /uploadSiteAsset:/)
+    assert.match(source, /exportSiteProject:/)
+    assert.match(source, /importSiteProject:/)
     assert.match(source, /submitPageAction:/)
   })
 

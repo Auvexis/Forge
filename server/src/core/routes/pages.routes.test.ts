@@ -239,6 +239,25 @@ describe("pages routes", () => {
     assert.equal(deleteResponse.statusCode, 200);
     assert.equal(deleteResponse.json().data.files.some((file: { path: string }) => file.path === "css/site.css"), false);
   });
+
+  it("exports and imports a site project into the active profile", async () => {
+    const app = await buildApp();
+    const site = (await app.inject({ method: "POST", url: "/sites", payload: { name: "Exportable" } })).json().data;
+    await app.inject({ method: "POST", url: `/sites/${site.id}/pages`, payload: { title: "Home" } });
+
+    const exportResponse = await app.inject({ method: "GET", url: `/sites/${site.id}/export` });
+    assert.equal(exportResponse.statusCode, 200);
+    assert.equal(exportResponse.json().manifest.site.name, "Exportable");
+
+    const importResponse = await app.inject({
+      method: "POST",
+      url: "/sites/import",
+      payload: exportResponse.json(),
+    });
+    assert.equal(importResponse.statusCode, 201);
+    assert.equal(importResponse.json().data.profileId, "profile_a");
+    assert.notEqual(importResponse.json().data.id, site.id);
+  });
 });
 
 function multipartPayload(filename: string, content: string) {

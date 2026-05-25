@@ -142,6 +142,30 @@ export interface SiteAssetUploadResponse {
   asset: SiteFile
 }
 
+export interface SiteProjectArchive {
+  manifest: {
+    schemaVersion: 1
+    site: {
+      name: string
+      slug: string
+      homePageId: string | null
+    }
+  }
+  pages: Array<{
+    id: string
+    title: string
+    slug: string
+    bodyStyles?: PageBlockStyles
+    blocks: PageBlock[]
+  }>
+  files: SiteFile[]
+  assets: Array<{
+    path: string
+    mimeType?: string
+    base64: string
+  }>
+}
+
 export interface PagePublicationStatus {
   pageId: string
   publishedAt: string | null

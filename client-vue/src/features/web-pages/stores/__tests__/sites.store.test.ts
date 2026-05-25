@@ -65,6 +65,16 @@ function api(): SitesApiClient {
       current = { ...current, files: [...current.files, asset] }
       return { site: current, asset }
     },
+    exportSiteProject: async () => ({
+      manifest: { schemaVersion: 1, site: { name: current.name, slug: current.slug, homePageId: current.homePageId } },
+      pages: [],
+      files: current.files,
+      assets: [],
+    }),
+    importSiteProject: async (archive) => {
+      current = site({ id: 'site_imported', name: archive.manifest.site.name, slug: archive.manifest.site.slug })
+      return current
+    },
   }
 }
 
@@ -132,5 +142,18 @@ describe('sites store', () => {
 
     assert.equal(asset?.path, 'assets/logo.png')
     assert.equal(store.activeSite?.files.some((file) => file.path === 'assets/logo.png'), true)
+  })
+
+  it('exports and imports site projects', async () => {
+    const store = useSitesStore()
+    store.setApiClient(api())
+    store.setActiveSite(site())
+
+    const archive = await store.exportActiveSiteProject()
+    const imported = await store.importSiteProject(archive!)
+
+    assert.equal(archive?.manifest.site.name, 'Marketing Site')
+    assert.equal(imported?.id, 'site_imported')
+    assert.equal(store.activeSite?.id, 'site_imported')
   })
 })

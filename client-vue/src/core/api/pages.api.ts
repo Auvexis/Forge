@@ -1,5 +1,6 @@
 import { apiRequest } from './client.ts'
 import { ENDPOINTS } from './endpoints.ts'
+import { API_BASE_URL } from '../constants/app.ts'
 import type {
   CreatePagePayload,
   CreateSiteFilePayload,
@@ -12,6 +13,7 @@ import type {
   SailorPageSummary,
   UpdatePagePayload,
   SiteAssetUploadResponse,
+  SiteProjectArchive,
   SailorSite,
   UpdateSiteFilePayload,
   UpdateSitePayload,
@@ -73,6 +75,18 @@ export const pagesApi = {
       body,
     })
   },
+
+  exportSiteProject: async (siteId: string) => {
+    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.SITE_EXPORT(siteId)}`)
+    if (!response.ok) throw new Error(`Failed to export site project: ${response.status}`)
+    return response.json() as Promise<SiteProjectArchive>
+  },
+
+  importSiteProject: (archive: SiteProjectArchive) =>
+    apiRequest<SailorSite>(ENDPOINTS.SITE_IMPORT, {
+      method: 'POST',
+      body: archive,
+    }),
 
   listPages: () => apiRequest<SailorPageSummary[]>(ENDPOINTS.PAGES),
 

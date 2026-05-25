@@ -6,6 +6,7 @@ import type {
   CreateSiteFilePayload,
   DeleteSiteFilePayload,
   SiteAssetUploadResponse,
+  SiteProjectArchive,
   UpdateSiteFilePayload,
 } from '../types/page.types.ts'
 
@@ -19,6 +20,8 @@ export interface SitesApiClient {
   updateSiteFile: (siteId: string, payload: UpdateSiteFilePayload) => Promise<SailorSite>
   deleteSiteFile: (siteId: string, payload: DeleteSiteFilePayload) => Promise<SailorSite>
   uploadSiteAsset: (siteId: string, file: File) => Promise<SiteAssetUploadResponse>
+  exportSiteProject: (siteId: string) => Promise<SiteProjectArchive>
+  importSiteProject: (archive: SiteProjectArchive) => Promise<SailorSite>
 }
 
 const defaultApiClient: SitesApiClient = {
@@ -31,6 +34,8 @@ const defaultApiClient: SitesApiClient = {
   updateSiteFile: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.updateSiteFile(...args)),
   deleteSiteFile: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.deleteSiteFile(...args)),
   uploadSiteAsset: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.uploadSiteAsset(...args)),
+  exportSiteProject: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.exportSiteProject(...args)),
+  importSiteProject: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.importSiteProject(...args)),
 }
 
 export const useSitesStore = defineStore('web-sites', () => {
@@ -154,6 +159,18 @@ export const useSitesStore = defineStore('web-sites', () => {
     return uploaded.asset
   }
 
+  async function exportActiveSiteProject() {
+    if (!activeSite.value) return null
+    return apiClient.value.exportSiteProject(activeSite.value.id)
+  }
+
+  async function importSiteProject(archive: SiteProjectArchive) {
+    const site = await apiClient.value.importSiteProject(archive)
+    setSavedSite(site)
+    upsertSite(site)
+    return site
+  }
+
   function addProjectFile(file: SiteFile) {
     if (!activeSite.value) return false
     if (activeSite.value.files.some((item) => item.path === file.path)) return false
@@ -191,6 +208,8 @@ export const useSitesStore = defineStore('web-sites', () => {
     updateFile,
     deleteFile,
     uploadAsset,
+    exportActiveSiteProject,
+    importSiteProject,
   }
 })
 

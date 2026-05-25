@@ -141,7 +141,7 @@ Frontend behavior:
 - File explorer can upload image.
 - Image block content panel can choose uploaded asset or external URL.
 
-### - [ ] Task 5: Add Site Project Import and Export
+### - [x] Task 5: Add Site Project Import and Export
 
 Files:
 - Create `server/src/core/modules/pages/site-project-archive-service.ts`
