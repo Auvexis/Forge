@@ -73,20 +73,6 @@
       />
 
       <template v-else>
-        <div class="web-page-canvas-controls" @pointerdown.stop>
-          <button
-            v-for="step in zoomSteps"
-            :key="step.value"
-            type="button"
-            :class="{ 'web-page-canvas-controls__button--active': workspaceZoom === step.value }"
-            @click="setWorkspaceZoom(step.value)"
-          >
-            {{ step.label }}
-          </button>
-          <button type="button" @click="fitCanvasToWorkspace">
-            Fit
-          </button>
-        </div>
         <div class="web-page-editor__plane" :style="workspacePlaneStyle">
           <template v-for="page in pagesStore.pages" :key="page.id">
             <div class="web-page-editor__page-chip">
@@ -226,23 +212,14 @@ type PageCanvasTool = 'cursor' | 'pan' | 'delete'
 const activeTool = ref<PageCanvasTool>('cursor')
 const activeCodeFile = ref<SiteFile | null>(null)
 const deletingBlockIds = ref<string[]>([])
-const workspaceZoom = ref(1)
 const workspaceRef = ref<HTMLElement | null>(null)
 const isPanningWorkspace = ref(false)
 const isSpacePanActive = ref(false)
 const panStart = ref({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0, pointerId: -1 })
-const zoomSteps = [
-  { label: '50%', value: 0.5 },
-  { label: '75%', value: 0.75 },
-  { label: '100%', value: 1 },
-  { label: '125%', value: 1.25 },
-]
 const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
 )
-const workspacePlaneStyle = computed(() => ({
-  transform: `scale(${workspaceZoom.value})`,
-}))
+const workspacePlaneStyle = computed(() => ({}))
 const activeCodeContent = computed(() => {
   if (!activeCodeFile.value) return ''
   if (activeCodeFile.value.path.startsWith('pages/')) return renderGeneratedHtml(activeCodeFile.value.path)
@@ -428,16 +405,6 @@ function stopWorkspacePan(event?: PointerEvent) {
     workspaceRef.value.releasePointerCapture?.(event.pointerId)
   }
   isPanningWorkspace.value = false
-}
-
-function setWorkspaceZoom(value: number) {
-  workspaceZoom.value = value
-}
-
-function fitCanvasToWorkspace() {
-  const viewportWidth = workspaceRef.value?.clientWidth ?? 1200
-  const targetWidth = 1080
-  workspaceZoom.value = Math.max(0.5, Math.min(1.25, Number((viewportWidth / targetWidth).toFixed(2))))
 }
 
 function handlePageDropBlock(

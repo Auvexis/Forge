@@ -352,36 +352,6 @@
   transition: transform 180ms var(--sailor-ease-standard);
 }
 
-.web-page-canvas-controls {
-  position: sticky;
-  top: calc(40px + var(--sailor-space-3));
-  left: 0;
-  z-index: 10;
-  display: flex;
-  width: max-content;
-  gap: var(--sailor-space-1);
-  padding: var(--sailor-space-1);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  box-shadow: var(--sailor-shadow-sm);
-}
-
-.web-page-canvas-controls button {
-  height: 28px;
-  min-width: 44px;
-  padding: 0 var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-}
-
-.web-page-canvas-controls button:hover,
-.web-page-canvas-controls__button--active {
-  background: var(--sailor-bg-muted);
-  color: var(--sailor-text-primary);
-}
-
 .web-page-editor__workspace--pan {
   cursor: grab;
 }

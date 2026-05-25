@@ -51,25 +51,22 @@ describe('page editor contract', () => {
     assert.match(css, /cursor:\s*grab/)
   })
 
-  it('workspace behaves like a free canvas with pan and zoom controls', () => {
+  it('workspace behaves like a pan canvas without the zoom mini menu', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')
 
-    assert.match(source, /workspaceZoom/)
-    assert.match(source, /zoomSteps/)
-    assert.match(source, /fitCanvasToWorkspace/)
     assert.match(source, /isSpacePanActive/)
     assert.match(source, /event\.button === 1/)
     assert.match(source, /web-page-editor__plane/)
-    assert.match(source, /transform: `scale\(\$\{workspaceZoom\.value\}\)`/)
     assert.match(renderer, /draggable="!readonly && activeTool === 'cursor'"/)
     assert.match(css, /web-page-editor__plane/)
     assert.match(css, /transform-origin:\s*top center/)
     assert.match(css, /min-width:\s*2400px/)
     assert.doesNotMatch(source, /FREE_CANVAS_WIDTH/)
     assert.doesNotMatch(source, /centerWorkspacePlane/)
-    assert.match(css, /web-page-canvas-controls/)
+    assert.doesNotMatch(source, /web-page-canvas-controls/)
+    assert.doesNotMatch(css, /web-page-canvas-controls/)
   })
 
   it('workspace keeps the previous centered canvas plane instead of the free plane', () => {
