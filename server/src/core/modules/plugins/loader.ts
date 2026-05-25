@@ -30,9 +30,18 @@ type PluginImporter = (entrypoint: string) => Promise<SailorPlugin>;
 const AjvCtor = AjvModule as any;
 const addFormats = addFormatsModule as any;
 const triggerDeliveryModes = ["webhook", "polling", "realtime"] as const;
+const agentToolSideEffects = [
+  "read",
+  "write",
+  "delete",
+  "external-message",
+  "external-payment",
+  "filesystem",
+] as const;
 
 function buildSailorManifestSchema(): any {
   const schema = structuredClone(manifestSchema as any);
+  const methodDefinition = schema.$defs.MethodDefinition;
   const triggerDefinition = schema.$defs.TriggerDefinition;
 
   schema.properties["x-created-by"] = { const: "sailor-plugin-creator" };
@@ -53,6 +62,38 @@ function buildSailorManifestSchema(): any {
   };
   triggerDefinition.properties.payloadSchema = {
     $ref: "#/$defs/JSONSchemaResponse",
+  };
+
+  methodDefinition.properties.agentTool = {
+    type: "object",
+    required: ["enabled"],
+    additionalProperties: false,
+    properties: {
+      enabled: { type: "boolean" },
+      name: {
+        type: "string",
+        pattern: "^[a-z][a-z0-9_]{2,63}$",
+      },
+      description: {
+        type: "string",
+        minLength: 20,
+        maxLength: 1000,
+      },
+      sideEffect: { enum: agentToolSideEffects },
+      requiresApproval: { type: "boolean" },
+      timeoutMs: {
+        type: "integer",
+        minimum: 1000,
+        maximum: 120000,
+      },
+    },
+    if: {
+      properties: { enabled: { const: true } },
+      required: ["enabled"],
+    },
+    then: {
+      required: ["name", "description", "sideEffect", "requiresApproval", "timeoutMs"],
+    },
   };
 
   return schema;

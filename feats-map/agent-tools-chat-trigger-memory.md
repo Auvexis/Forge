@@ -20,7 +20,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Task 3: Workflow Node Types
 - [x] Task 4: Agent Runtime Tables and Repositories
 - [x] Task 5: Event Sanitizer and Agent Event Bus
-- [ ] Task 6: Plugin Agent Tool Metadata
+- [x] Task 6: Plugin Agent Tool Metadata
 - [ ] Task 7: Plugin Tool Adapter
 - [ ] Task 8: Plugin Tool Executor Safety
 - [ ] Task 9: Model Provider Registry
@@ -49,8 +49,8 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 
 ## Safety Notes
 
-- [ ] Agent tools must be explicit opt-in through plugin manifest metadata.
-- [ ] Side-effect tools must have visible policy and approval defaults.
+- [x] Agent tools must be explicit opt-in through plugin manifest metadata.
+- [x] Side-effect tools must have visible policy and approval defaults.
 - [ ] Short-term memory must use a real checkpointer.
 - [ ] Long-term memory must use policy-controlled namespaces.
 - [ ] Chat Trigger must own session identity and never trust raw `thread_id` from request bodies.

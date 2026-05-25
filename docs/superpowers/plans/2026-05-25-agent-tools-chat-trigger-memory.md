@@ -861,7 +861,7 @@ git commit -m "feat: add sanitized agent events"
 - Modify: `server/src/plugins/_template/manifest.json`
 - Create: `server/src/core/modules/agent-runtime/plugin-tool-metadata.test.ts`
 
-- [ ] **Step 1: Write failing metadata tests**
+- [x] **Step 1: Write failing metadata tests**
 
 Tests:
 - manifest accepts `methods.createIssue.agentTool`.
@@ -879,7 +879,7 @@ node --test src/core/modules/agent-runtime/plugin-tool-metadata.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Extend manifest validation schema**
+- [x] **Step 2: Extend manifest validation schema**
 
 Add optional method metadata shape:
 
@@ -900,11 +900,11 @@ Rules:
 - `sideEffect` must be one of the domain side effects.
 - `timeoutMs` must be 1000 to `AGENT_LIMITS.maxToolTimeoutMs`.
 
-- [ ] **Step 3: Update template manifest**
+- [x] **Step 3: Update template manifest**
 
 Add one disabled example under `_template/manifest.json` that plugin authors can copy.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -916,7 +916,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/modules/plugins/loader.ts server/src/plugins/_template/manifest.json server/src/core/modules/agent-runtime/plugin-tool-metadata.test.ts
