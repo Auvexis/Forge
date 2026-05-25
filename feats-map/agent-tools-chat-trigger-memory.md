@@ -39,7 +39,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Task 22: Node Editors
 - [x] Task 23: Agent Tool Picker
 - [x] Task 24: Memory Scope Picker and Memory Admin UI
-- [ ] Task 25: Chat Session Panel
+- [x] Task 25: Chat Session Panel
 - [ ] Task 26: Agent Trace and Execution Timeline
 - [ ] Task 27: Human Approval UI
 - [ ] Task 28: Security Hardening Backend

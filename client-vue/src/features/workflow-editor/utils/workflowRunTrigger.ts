@@ -3,6 +3,7 @@ import type { TriggerNode, WorkflowItem, WorkflowNode, WorkflowTrigger } from '@
 export interface ToolbarRunTrigger {
   triggerNodeId: string
   trigger: WorkflowTrigger
+  runMode: 'workflow-run' | 'chat-panel'
 }
 
 function isTriggerNode(node: WorkflowNode): node is TriggerNode {
@@ -17,6 +18,7 @@ export function selectToolbarRunTrigger(workflow: WorkflowItem): ToolbarRunTrigg
     return {
       triggerNodeId: 'trigger',
       trigger: workflow.trigger,
+      runMode: workflow.trigger.type === 'chat' ? 'chat-panel' : 'workflow-run',
     }
   }
 
@@ -25,13 +27,29 @@ export function selectToolbarRunTrigger(workflow: WorkflowItem): ToolbarRunTrigg
     return node.disabled !== true && trigger.type === 'manual'
   })
 
-  if (!manualTriggerEntry) return null
+  if (!manualTriggerEntry) {
+    const chatTriggerEntry = realTriggerEntries.find(([, node]) => {
+      const trigger = node.trigger ?? { type: 'manual' as const }
+      return node.disabled !== true && trigger.type === 'chat'
+    })
+
+    if (!chatTriggerEntry) return null
+
+    const [triggerNodeId, triggerNode] = chatTriggerEntry
+
+    return {
+      triggerNodeId,
+      trigger: triggerNode.trigger ?? { type: 'chat' },
+      runMode: 'chat-panel',
+    }
+  }
 
   const [triggerNodeId, triggerNode] = manualTriggerEntry
 
   return {
     triggerNodeId,
     trigger: triggerNode.trigger ?? { type: 'manual' },
+    runMode: 'workflow-run',
   }
 }
 

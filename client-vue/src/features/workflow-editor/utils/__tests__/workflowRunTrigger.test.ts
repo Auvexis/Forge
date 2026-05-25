@@ -54,6 +54,22 @@ describe('workflow run trigger selection', () => {
     assert.equal(selectToolbarRunTrigger(workflow), null)
   })
 
+  it('recognizes chat triggers as chat panel runs', () => {
+    const workflow = makeWorkflow({
+      trigger_chat: {
+        type: 'trigger',
+        name: 'Chat',
+        trigger: { type: 'chat', chatSlug: 'agent-chat' },
+      },
+    })
+
+    const result = selectToolbarRunTrigger(workflow)
+
+    assert.equal(result?.triggerNodeId, 'trigger_chat')
+    assert.equal(result?.trigger.type, 'chat')
+    assert.equal(result?.runMode, 'chat-panel')
+  })
+
   it('falls back to the legacy virtual trigger when there are no real trigger nodes', () => {
     const workflow = makeWorkflow({})
 
