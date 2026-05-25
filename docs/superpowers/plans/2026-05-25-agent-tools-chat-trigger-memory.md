@@ -1189,7 +1189,7 @@ git commit -m "feat: add persistent agent checkpointer"
 - Create: `server/src/core/modules/agent-runtime/memory/agent-memory-policy.ts`
 - Create: `server/src/core/modules/agent-runtime/memory/agent-memory-policy.test.ts`
 
-- [ ] **Step 1: Write failing policy tests**
+- [x] **Step 1: Write failing policy tests**
 
 Tests:
 - session memory can read conversation but cannot write long-term memory.
@@ -1209,7 +1209,7 @@ node --test src/core/modules/agent-runtime/memory/agent-memory-policy.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement namespace builder**
+- [x] **Step 2: Implement namespace builder**
 
 ```ts
 export function buildMemoryNamespace(input: {
@@ -1226,7 +1226,7 @@ Return examples:
 - `workflow:<profileId>:<workflowId>`
 - `user:<profileId>:<userId>`
 
-- [ ] **Step 3: Implement write policy**
+- [x] **Step 3: Implement write policy**
 
 ```ts
 export function assertMemoryWriteAllowed(input: {
@@ -1236,7 +1236,7 @@ export function assertMemoryWriteAllowed(input: {
 }): void;
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -1248,7 +1248,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/modules/agent-runtime/memory/agent-memory-policy.ts server/src/core/modules/agent-runtime/memory/agent-memory-policy.test.ts
