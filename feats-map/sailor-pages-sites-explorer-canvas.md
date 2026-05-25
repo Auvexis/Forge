@@ -220,7 +220,7 @@ Behavior:
 - Save active visual page or active code file.
 - Preserve current selection/editor mode after save.
 
-### - [ ] Task 8: Fix Drag/Drop Intent, Remove Accent Indicators, Add Subtle Motion
+### - [x] Task 8: Fix Drag/Drop Intent, Remove Accent Indicators, Add Subtle Motion
 
 Files:
 - Modify `client-vue/src/features/web-pages/utils/dropIntent.ts`

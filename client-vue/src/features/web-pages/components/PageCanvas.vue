@@ -28,6 +28,7 @@
         :block="block"
         :selected-block-id="selectedBlockId"
         :drop-intent="dropIntent"
+        :deleting-block-ids="deletingBlockIds"
         :readonly="readonly"
         @select="handleBlockSelect"
         @drop-block="$emit('drop-block', $event)"
@@ -50,6 +51,7 @@ const props = defineProps<{
   blocks: PageBlock[]
   selectedBlockId: string | null
   dropIntent?: { targetId: string | 'root'; position: InsertPosition; dropEdge?: DropEdge } | null
+  deletingBlockIds?: string[]
   bodyStyles?: Record<string, string | number>
   readonly?: boolean
   activeTool?: 'cursor' | 'pan' | 'delete'

@@ -140,6 +140,7 @@ import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownIte
 import { ref, watch } from 'vue'
 import type { PageBlock, SailorPageSummary } from '../types/page.types.ts'
 import { blockChildCount, blockDisplayName, type InsertPosition } from '../utils/blockTree.ts'
+import { resolveBlockDropIntent } from '../utils/dropIntent.ts'
 import { usePageEditorStore } from '../stores/page-editor.store.ts'
 
 const props = withDefaults(defineProps<{
@@ -233,11 +234,13 @@ function onDrop(event: DragEvent, block: PageBlock) {
 
 function dropPosition(event: DragEvent, block: PageBlock): InsertPosition {
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const ratio = (event.clientY - rect.top) / rect.height
-
-  if (ratio < 0.25) return 'before'
-  if (ratio > 0.75) return 'after'
-  return isContainer(block) ? 'inside' : 'after'
+  return resolveBlockDropIntent({
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top,
+    width: rect.width,
+    height: rect.height,
+    isContainer: isContainer(block),
+  }).position
 }
 
 function iconFor(block: PageBlock): string {

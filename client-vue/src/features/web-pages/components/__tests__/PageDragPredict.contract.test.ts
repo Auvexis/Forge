@@ -22,7 +22,7 @@ describe('page drag prediction contract', () => {
 
     assert.match(source, /drag-intent/)
     assert.match(source, /targetId: props\.block\.id/)
-    assert.match(source, /dropPosition\(event\)/)
+    assert.match(source, /resolveBlockDropIntent/)
   })
 
   it('canvas clears prediction on drag leave and drop', () => {
@@ -42,14 +42,15 @@ describe('page drag prediction contract', () => {
     assert.match(source, /web-page-block--drop-inside/)
   })
 
-  it('canvas elements are squared and drop indicators are high contrast', () => {
+  it('canvas drop indicators are neutral and do not use accent glow', () => {
     const source = read('src/features/web-pages/pages.css')
 
     assert.match(source, /--web-page-drop-color/)
+    assert.doesNotMatch(source, /--web-page-drop-color:[^;]*sailor-accent/)
     assert.match(source, /border-radius:\s*0/)
     assert.match(source, /height:\s*4px/)
-    assert.match(source, /box-shadow:\s*0 0 0 3px/)
-    assert.match(source, /outline:\s*3px solid var\(--web-page-drop-color\)/)
+    assert.match(source, /outline:\s*2px solid var\(--web-page-drop-color\)/)
+    assert.doesNotMatch(source, /drop-shadow\(0 0/)
   })
 
   it('drag prediction exposes directional arrow indicators and a custom drag preview', () => {
@@ -65,5 +66,20 @@ describe('page drag prediction contract', () => {
     assert.match(css, /web-page-drop-arrow--right/)
     assert.match(css, /web-page-drop-arrow--bottom/)
     assert.match(css, /web-page-drop-arrow--left/)
+  })
+
+  it('canvas elements use subtle motion and animated deletion with reduced motion support', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(editor, /deletingBlockIds/)
+    assert.match(editor, /requestAnimatedBlockDelete/)
+    assert.match(editor, /setTimeout/)
+    assert.match(canvas, /deleting-block-ids/)
+    assert.match(renderer, /web-page-block-frame--deleting/)
+    assert.match(css, /transition:[\s\S]*180ms/)
+    assert.match(css, /@media \(prefers-reduced-motion: reduce\)/)
   })
 })

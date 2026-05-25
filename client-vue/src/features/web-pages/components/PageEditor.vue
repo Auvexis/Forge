@@ -92,6 +92,7 @@
             :body-styles="pageBodyStyles(page.id)"
             :selected-block-id="page.id === pagesStore.activePage?.id ? editorStore.selectedBlockId : null"
             :drop-intent="page.id === pagesStore.activePage?.id ? editorStore.dragIntent : null"
+            :deleting-block-ids="deletingBlockIds"
             :readonly="page.id !== pagesStore.activePage?.id"
             :active-tool="activeTool"
             @select="selectCanvasBlock(page.id, $event)"
@@ -204,6 +205,7 @@ const editorPageId = ref<string | null>(null)
 type PageCanvasTool = 'cursor' | 'pan' | 'delete'
 const activeTool = ref<PageCanvasTool>('cursor')
 const activeCodeFile = ref<SiteFile | null>(null)
+const deletingBlockIds = ref<string[]>([])
 const workspaceRef = ref<HTMLElement | null>(null)
 const isPanningWorkspace = ref(false)
 const panStart = ref({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0, pointerId: -1 })
@@ -468,7 +470,7 @@ async function duplicatePageFromTree(pageId: string) {
 }
 
 function deleteBlockFromTree(blockId: string) {
-  editorStore.deleteBlock(blockId)
+  requestAnimatedBlockDelete(blockId)
 }
 
 function duplicateBlockFromTree(blockId: string) {
@@ -484,15 +486,24 @@ function duplicateBlockFromCanvas(blockId: string) {
 }
 
 function deleteBlockFromCanvas(blockId: string) {
-  editorStore.deleteBlock(blockId)
+  requestAnimatedBlockDelete(blockId)
 }
 
 function deleteSelectedTarget() {
   if (editorStore.selectedBlockId) {
-    editorStore.deleteBlock(editorStore.selectedBlockId)
+    requestAnimatedBlockDelete(editorStore.selectedBlockId)
     return
   }
   if (editorStore.selectedTarget.type === 'page') void deleteActivePageAndChooseNext()
+}
+
+function requestAnimatedBlockDelete(blockId: string) {
+  if (deletingBlockIds.value.includes(blockId)) return
+  deletingBlockIds.value = [...deletingBlockIds.value, blockId]
+  window.setTimeout(() => {
+    editorStore.deleteBlock(blockId)
+    deletingBlockIds.value = deletingBlockIds.value.filter((id) => id !== blockId)
+  }, 140)
 }
 
 function handleInspectBlock(pageId: string, blockId: string) {
@@ -524,7 +535,7 @@ function handleChromeCommand(command: PageChromeCommand) {
     else void duplicateActivePage()
   }
   if (command === 'edit.delete') {
-    if (editorStore.selectedBlockId) editorStore.deleteBlock(editorStore.selectedBlockId)
+    if (editorStore.selectedBlockId) requestAnimatedBlockDelete(editorStore.selectedBlockId)
     else void deleteActivePageAndChooseNext()
   }
   if (command === 'view.switch') void openPageSwitcher()

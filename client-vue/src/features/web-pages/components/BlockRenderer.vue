@@ -1,7 +1,10 @@
 <template>
   <div
     class="web-page-block-frame"
-    :class="{ 'web-page-block-frame--selected': selectedBlockId === block.id }"
+    :class="{
+      'web-page-block-frame--selected': selectedBlockId === block.id,
+      'web-page-block-frame--deleting': deletingBlockIds?.includes(block.id),
+    }"
   >
     <div
       v-if="!readonly"
@@ -60,6 +63,7 @@
         :block="child"
         :selected-block-id="selectedBlockId"
         :drop-intent="dropIntent"
+        :deleting-block-ids="deletingBlockIds"
         :readonly="readonly"
         @select="$emit('select', $event)"
         @drop-block="$emit('drop-block', $event)"
@@ -84,6 +88,7 @@ const props = defineProps<{
   block: PageBlock
   selectedBlockId: string | null
   dropIntent?: { targetId: string; position: InsertPosition; dropEdge?: DropEdge } | null
+  deletingBlockIds?: string[]
   readonly?: boolean
 }>()
 
