@@ -30,6 +30,16 @@
         >
           Large payload collapsed
         </button>
+
+        <AgentApprovalPanel
+          v-if="trace.group === 'approval' && approvalId(trace.payload)"
+          :approval-id="approvalId(trace.payload)"
+          :execution-id="executionId(trace)"
+          :tool-name="approvalToolName(trace.payload)"
+          :side-effect="approvalSideEffect(trace.payload)"
+          :args="approvalArgs(trace.payload)"
+          @refresh-trace="emit('refreshTrace')"
+        />
       </article>
     </div>
   </section>
@@ -38,6 +48,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { ExecutionTimelineEvent } from '@/core/types/execution.types'
+import AgentApprovalPanel from './AgentApprovalPanel.vue'
 
 type AgentTraceGroup = 'model' | 'tool' | 'memory' | 'approval' | 'error' | 'agent'
 
@@ -46,6 +57,7 @@ interface AgentTrace {
   group: AgentTraceGroup
   label: string
   status: ExecutionTimelineEvent['status']
+  executionId?: string
   payload: unknown
 }
 
@@ -54,6 +66,10 @@ const SECRET_FIELD_PATTERN = /authorization|password|secret|token|apiKey/i
 
 const props = defineProps<{
   timeline: ExecutionTimelineEvent[]
+}>()
+
+const emit = defineEmits<{
+  refreshTrace: []
 }>()
 
 const collapsedPayloads = ref(new Set<string>())
@@ -77,6 +93,7 @@ function groupAgentEvents(events: ExecutionTimelineEvent[]): AgentTrace[] {
     group: groupForEvent(event.type),
     label: labelForTrace(event),
     status: event.status,
+    executionId: event.executionId,
     payload: redactSecretLikeFields(event.payload ?? event.error ?? {}),
   }))
 }
@@ -122,6 +139,33 @@ function togglePayload(traceId: string) {
   if (next.has(traceId)) next.delete(traceId)
   else next.add(traceId)
   collapsedPayloads.value = next
+}
+
+function approvalId(payload: unknown) {
+  return approvalPayloadValue(payload, 'approvalId')
+}
+
+function executionId(trace: AgentTrace) {
+  return trace.executionId ?? approvalPayloadValue(trace.payload, 'executionId')
+}
+
+function approvalToolName(payload: unknown) {
+  return approvalPayloadValue(payload, 'toolName') || approvalPayloadValue(payload, 'tool') || 'Agent tool'
+}
+
+function approvalSideEffect(payload: unknown) {
+  return approvalPayloadValue(payload, 'sideEffect') || 'write'
+}
+
+function approvalArgs(payload: unknown) {
+  if (!payload || typeof payload !== 'object') return {}
+  return (payload as Record<string, unknown>).args ?? (payload as Record<string, unknown>).input ?? {}
+}
+
+function approvalPayloadValue(payload: unknown, key: string) {
+  if (!payload || typeof payload !== 'object') return ''
+  const value = (payload as Record<string, unknown>)[key]
+  return typeof value === 'string' ? value : ''
 }
 </script>
 
