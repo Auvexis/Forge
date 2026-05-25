@@ -261,7 +261,7 @@ Behavior:
 - Add subtle viewport/canvas transitions for zoom and page focus, respecting `prefers-reduced-motion`.
 - Do not use `vue-flow` for this pass. It is node/edge oriented and would add complexity for document pages.
 
-### - [ ] Task 10: Fix Base Page Padding Bug
+### - [x] Task 10: Fix Base Page Padding Bug
 
 Files:
 - Modify `client-vue/src/features/web-pages/components/PageCanvas.vue`

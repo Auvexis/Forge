@@ -461,7 +461,6 @@
   min-height: calc(100vh - 120px);
   max-width: 960px;
   margin: 0 auto;
-  padding: var(--sailor-space-6);
   background: #ffffff;
   color: #111111;
   box-shadow: var(--sailor-shadow-lg);

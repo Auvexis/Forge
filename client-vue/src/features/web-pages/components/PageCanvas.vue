@@ -9,7 +9,7 @@
   >
     <section
       class="web-page-canvas__body"
-      :style="bodyStyles"
+      :style="resolvedBodyStyles"
       @click.self="handleBodyClick"
       @dragover.prevent="onRootDragOver"
       @dragleave="$emit('clear-drag-intent')"
@@ -43,6 +43,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { DropEdge } from '../stores/page-editor.store.ts'
@@ -69,6 +70,11 @@ const emit = defineEmits<{
   'delete-block': [blockId: string]
   'inspect-block': [blockId: string]
 }>()
+
+const resolvedBodyStyles = computed(() => ({
+  padding: 'var(--sailor-space-6)',
+  ...props.bodyStyles,
+}))
 
 function dropOnRoot(event: DragEvent) {
   if (props.readonly) return

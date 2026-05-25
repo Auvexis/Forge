@@ -27,6 +27,17 @@ describe('page editor contract', () => {
     assert.doesNotMatch(source, /\by:/)
   })
 
+  it('page body padding is a style fallback so user padding zero wins', () => {
+    const source = read('src/features/web-pages/components/PageCanvas.vue')
+    const css = read('src/features/web-pages/pages.css')
+    const bodyRule = css.match(/\.web-page-canvas__body\s*{[\s\S]*?}/)?.[0] ?? ''
+
+    assert.match(source, /resolvedBodyStyles/)
+    assert.match(source, /padding: 'var\(--sailor-space-6\)'/)
+    assert.match(source, /\.\.\.props\.bodyStyles/)
+    assert.doesNotMatch(bodyRule, /padding:\s*var\(--sailor-space-6\)/)
+  })
+
   it('editor clears selection when clicking empty workspace and supports pan tool panning', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
     const css = read('src/features/web-pages/pages.css')
