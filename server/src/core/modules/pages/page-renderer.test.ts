@@ -241,4 +241,14 @@ describe("page renderer", () => {
 
     assert.match(html, /src="\/sites\/site_default_profile_a\/assets\/logo.png"/);
   });
+
+  it("defaults published body margin to zero and keeps explicit zero padding", () => {
+    const html = renderPublishedPage(
+      publishedPage({
+        bodyStyles: { padding: "0", backgroundColor: "#fff" },
+      }),
+    );
+
+    assert.match(html, /style="margin: 0; padding: 0; background-color: #fff;"/);
+  });
 });

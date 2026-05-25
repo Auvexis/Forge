@@ -22,22 +22,24 @@
       <div v-if="blocks.length === 0" class="web-page-canvas__empty">
         Empty canvas
       </div>
-      <BlockRenderer
-        v-for="block in blocks"
-        :key="block.id"
-        :block="block"
-        :selected-block-id="selectedBlockId"
-        :drop-intent="dropIntent"
-        :deleting-block-ids="deletingBlockIds"
-        :active-tool="activeTool"
-        :readonly="readonly"
-        @select="handleBlockSelect"
-        @drop-block="$emit('drop-block', $event)"
-        @drag-intent="$emit('drag-intent', $event)"
-        @duplicate-block="$emit('duplicate-block', $event)"
-        @delete-block="$emit('delete-block', $event)"
-        @inspect-block="$emit('inspect-block', $event)"
-      />
+      <TransitionGroup name="web-page-block">
+        <BlockRenderer
+          v-for="block in blocks"
+          :key="block.id"
+          :block="block"
+          :selected-block-id="selectedBlockId"
+          :drop-intent="dropIntent"
+          :deleting-block-ids="deletingBlockIds"
+          :active-tool="activeTool"
+          :readonly="readonly"
+          @select="handleBlockSelect"
+          @drop-block="$emit('drop-block', $event)"
+          @drag-intent="$emit('drag-intent', $event)"
+          @duplicate-block="$emit('duplicate-block', $event)"
+          @delete-block="$emit('delete-block', $event)"
+          @inspect-block="$emit('inspect-block', $event)"
+        />
+      </TransitionGroup>
     </section>
   </main>
 </template>

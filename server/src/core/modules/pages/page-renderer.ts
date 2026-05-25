@@ -95,7 +95,7 @@ export function renderPublishedPage(page: PublishedPage, site?: SailorSite | nul
 }
 
 function renderBodyStyle(page: PublishedPage): string {
-  const declarations = Object.entries(page.bodyStyles ?? {})
+  const declarations = Object.entries({ margin: "0", ...(page.bodyStyles ?? {}) })
     .filter(([key, value]) => STYLE_ALLOWLIST.has(key) && !containsDangerousCss(String(value)))
     .map(([key, value]) => `${camelToKebab(key)}: ${escapeAttribute(String(value))};`)
     .join(" ");

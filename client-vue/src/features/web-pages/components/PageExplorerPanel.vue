@@ -17,29 +17,33 @@
       </button>
     </div>
 
-    <BlockTreePanel
-      v-if="activeTab === 'tree'"
-      :pages="pages"
-      :active-page-id="activePageId"
-      :blocks="blocks"
-      :selected-block-id="selectedBlockId"
-      @add-page="$emit('add-page')"
-      @select-page="$emit('select-page', $event)"
-      @select="$emit('select', $event)"
-      @delete-page="$emit('delete-page', $event)"
-      @duplicate-page="$emit('duplicate-page', $event)"
-      @delete-block="$emit('delete-block', $event)"
-      @duplicate-block="$emit('duplicate-block', $event)"
-      @move-block="$emit('move-block', $event)"
-    />
+    <div class="web-page-explorer__content">
+      <BlockTreePanel
+        v-if="activeTab === 'tree'"
+        :pages="pages"
+        :active-page-id="activePageId"
+        :blocks="blocks"
+        :selected-block-id="selectedBlockId"
+        @add-page="$emit('add-page')"
+        @select-page="$emit('select-page', $event)"
+        @select="$emit('select', $event)"
+        @delete-page="$emit('delete-page', $event)"
+        @duplicate-page="$emit('duplicate-page', $event)"
+        @delete-block="$emit('delete-block', $event)"
+        @duplicate-block="$emit('duplicate-block', $event)"
+        @move-block="$emit('move-block', $event)"
+      />
 
-    <SiteFilesPanel
-      v-else
-      :site="site"
-      :pages="pages"
-      @open-file="$emit('open-file', $event)"
-      @create-file="$emit('create-file', $event)"
-    />
+      <SiteFilesPanel
+        v-else
+        :site="site"
+        :pages="pages"
+        @open-file="$emit('open-file', $event)"
+        @create-file="$emit('create-file', $event)"
+        @create-folder="$emit('create-folder', $event)"
+        @upload-asset="$emit('upload-asset', $event)"
+      />
+    </div>
   </div>
 </template>
 
@@ -69,6 +73,8 @@ defineEmits<{
   'move-block': [payload: { targetId: string; position: InsertPosition; draggedId: string }]
   'open-file': [file: SiteFile]
   'create-file': [path: string]
+  'create-folder': [path: string]
+  'upload-asset': [file: File]
 }>()
 
 const activeTab = ref<'tree' | 'code'>('tree')

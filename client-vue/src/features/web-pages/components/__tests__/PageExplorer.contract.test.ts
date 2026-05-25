@@ -37,6 +37,46 @@ describe('page explorer contract', () => {
     assert.match(codeCanvas, /image preview/i)
   })
 
+  it('explorer content stays compact under tabs and code tree has hierarchy affordances', () => {
+    const explorer = read('src/features/web-pages/components/PageExplorerPanel.vue')
+    const files = read('src/features/web-pages/components/SiteFilesPanel.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(css, /web-page-explorer[\s\S]*grid-template-rows:\s*auto minmax\(0,\s*auto\)/)
+    assert.match(explorer, /web-page-explorer__content/)
+    assert.match(files, /LucideIcon/)
+    assert.match(files, /folderIcon/)
+    assert.match(files, /fileIcon/)
+    assert.match(files, /web-page-site-files__children/)
+    assert.match(files, /web-page-site-files__guide/)
+    assert.match(css, /web-page-site-files__guide/)
+  })
+
+  it('code explorer exposes create file, create folder and upload image actions', () => {
+    const explorer = read('src/features/web-pages/components/PageExplorerPanel.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const files = read('src/features/web-pages/components/SiteFilesPanel.vue')
+
+    assert.match(files, /create-file/)
+    assert.match(files, /create-folder/)
+    assert.match(files, /upload-asset/)
+    assert.match(files, /type="file"/)
+    assert.match(explorer, /@create-folder/)
+    assert.match(explorer, /@upload-asset/)
+    assert.match(editor, /createCodeFolder/)
+    assert.match(editor, /uploadSiteAsset/)
+  })
+
+  it('code canvas can be closed with a BaseButton x icon', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const codeCanvas = read('src/features/web-pages/components/SiteCodeCanvas.vue')
+
+    assert.match(codeCanvas, /BaseButton/)
+    assert.match(codeCanvas, /icon-left="x"/)
+    assert.match(codeCanvas, /close/)
+    assert.match(editor, /@close="closeCodeCanvas"/)
+  })
+
   it('Ctrl+S and Meta+S save the active page or active site file', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
 

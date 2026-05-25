@@ -16,6 +16,17 @@ describe('block inspector contract', () => {
     assert.match(source, /link/)
   })
 
+  it('image block content supports uploading a site asset', () => {
+    const panel = read('src/features/web-pages/components/BlockContentPanel.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(panel, /upload-image/)
+    assert.match(panel, /type="file"/)
+    assert.match(panel, /Upload image/)
+    assert.match(editor, /uploadImageForSelectedBlock/)
+    assert.match(editor, /sitesStore\.uploadAsset/)
+  })
+
   it('style panel uses controls for allowlisted properties', () => {
     const source = read('src/features/web-pages/components/BlockStylePanel.vue')
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')

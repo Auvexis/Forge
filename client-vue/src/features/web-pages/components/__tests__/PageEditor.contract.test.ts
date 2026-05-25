@@ -65,9 +65,20 @@ describe('page editor contract', () => {
     assert.match(source, /transform: `scale\(\$\{workspaceZoom\.value\}\)`/)
     assert.match(renderer, /draggable="!readonly && activeTool === 'cursor'"/)
     assert.match(css, /web-page-editor__plane/)
-    assert.match(css, /transform-origin:\s*top center/)
-    assert.match(css, /min-width:\s*2400px/)
+    assert.match(css, /transform-origin:\s*top left/)
+    assert.match(css, /min-width:\s*var\(--web-page-free-canvas-width\)/)
     assert.match(css, /web-page-canvas-controls/)
+  })
+
+  it('workspace uses a large centered free plane with initial centering', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /centerWorkspacePlane/)
+    assert.match(source, /FREE_CANVAS_WIDTH/)
+    assert.match(source, /FREE_CANVAS_HEIGHT/)
+    assert.match(css, /min-width:\s*var\(--web-page-free-canvas-width\)/)
+    assert.match(css, /min-height:\s*var\(--web-page-free-canvas-height\)/)
   })
 
   it('canvas active tools override block cursor feedback', () => {

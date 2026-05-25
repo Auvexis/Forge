@@ -57,22 +57,24 @@
       <template v-else-if="(block.children ?? []).length === 0">
         <span class="web-page-block__placeholder">{{ block.props?.label ?? block.tag }}</span>
       </template>
-      <BlockRenderer
-        v-for="child in block.children ?? []"
-        :key="child.id"
-        :block="child"
-        :selected-block-id="selectedBlockId"
-        :drop-intent="dropIntent"
-        :deleting-block-ids="deletingBlockIds"
-        :active-tool="activeTool"
-        :readonly="readonly"
-        @select="$emit('select', $event)"
-        @drop-block="$emit('drop-block', $event)"
-        @drag-intent="$emit('drag-intent', $event)"
-        @duplicate-block="$emit('duplicate-block', $event)"
-        @delete-block="$emit('delete-block', $event)"
-        @inspect-block="$emit('inspect-block', $event)"
-      />
+      <TransitionGroup name="web-page-block">
+        <BlockRenderer
+          v-for="child in block.children ?? []"
+          :key="child.id"
+          :block="child"
+          :selected-block-id="selectedBlockId"
+          :drop-intent="dropIntent"
+          :deleting-block-ids="deletingBlockIds"
+          :active-tool="activeTool"
+          :readonly="readonly"
+          @select="$emit('select', $event)"
+          @drop-block="$emit('drop-block', $event)"
+          @drag-intent="$emit('drag-intent', $event)"
+          @duplicate-block="$emit('duplicate-block', $event)"
+          @delete-block="$emit('delete-block', $event)"
+          @inspect-block="$emit('inspect-block', $event)"
+        />
+      </TransitionGroup>
     </component>
   </div>
 </template>

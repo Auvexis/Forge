@@ -44,6 +44,8 @@
         @move-block="moveBlockFromTree"
         @open-file="openCodeFile"
         @create-file="createCodeFile"
+        @create-folder="createCodeFolder"
+        @upload-asset="uploadSiteAsset"
       />
     </AppPanel>
 
@@ -67,6 +69,7 @@
         :model-value="activeCodeContent"
         :readonly="isActiveCodeFileReadonly"
         @update:model-value="updateActiveCodeContent"
+        @close="closeCodeCanvas"
       />
 
       <template v-else>
@@ -156,6 +159,7 @@
         <BlockContentPanel
           :block="editorStore.selectedBlock"
           @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
+          @upload-image="uploadImageForSelectedBlock"
         />
         <BlockAdvancedPanel
           :block="editorStore.selectedBlock"
@@ -214,6 +218,8 @@ const router = useRouter()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
 const sitesStore = useSitesStore()
+const FREE_CANVAS_WIDTH = 8000
+const FREE_CANVAS_HEIGHT = 5200
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
 const isPageSwitcherOpen = ref(false)
@@ -238,6 +244,8 @@ const activePagePublishedAt = computed(
 )
 const workspacePlaneStyle = computed(() => ({
   transform: `scale(${workspaceZoom.value})`,
+  '--web-page-free-canvas-width': `${FREE_CANVAS_WIDTH}px`,
+  '--web-page-free-canvas-height': `${FREE_CANVAS_HEIGHT}px`,
 }))
 const activeCodeContent = computed(() => {
   if (!activeCodeFile.value) return ''
@@ -266,6 +274,19 @@ function createCodeFile(path: string) {
   }
   const file = sitesStore.activeSite.files.find((item) => item.path === path) ?? { path, kind: 'file' as const, content: '', updatedAt: '' }
   openCodeFile(file)
+}
+
+function createCodeFolder(path: string) {
+  if (!sitesStore.activeSite) return
+  sitesStore.createFolder(path)
+}
+
+async function uploadSiteAsset(file: File) {
+  await sitesStore.uploadAsset(file)
+}
+
+function closeCodeCanvas() {
+  activeCodeFile.value = null
 }
 
 function updateActiveCodeContent(value: string) {
@@ -298,6 +319,8 @@ onMounted(async () => {
   window.addEventListener('keyup', handleSpacePanKeyUp)
   await openInitialSite()
   await openRoutePage(route.params.pageId)
+  await nextTick()
+  centerWorkspacePlane()
 })
 
 onBeforeUnmount(() => {
@@ -423,6 +446,12 @@ function fitCanvasToWorkspace() {
   workspaceZoom.value = Math.max(0.5, Math.min(1.25, Number((viewportWidth / targetWidth).toFixed(2))))
 }
 
+function centerWorkspacePlane() {
+  if (!workspaceRef.value) return
+  workspaceRef.value.scrollLeft = Math.max(0, (FREE_CANVAS_WIDTH - workspaceRef.value.clientWidth) / 2)
+  workspaceRef.value.scrollTop = Math.max(0, (FREE_CANVAS_HEIGHT - workspaceRef.value.clientHeight) / 2 - 120)
+}
+
 function handlePageDropBlock(
   pageId: string,
   payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string },
@@ -537,6 +566,15 @@ function deleteSelectedTarget() {
     return
   }
   if (editorStore.selectedTarget.type === 'page') void deleteActivePageAndChooseNext()
+}
+
+async function uploadImageForSelectedBlock(file: File) {
+  if (!editorStore.selectedBlockId) return
+  const asset = await sitesStore.uploadAsset(file)
+  if (!asset?.url) return
+  editorStore.patchBlock(editorStore.selectedBlockId, {
+    props: { ...(editorStore.selectedBlock?.props ?? {}), src: asset.url },
+  })
 }
 
 function requestAnimatedBlockDelete(blockId: string) {

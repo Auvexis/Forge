@@ -82,4 +82,15 @@ describe('page drag prediction contract', () => {
     assert.match(css, /transition:[\s\S]*180ms/)
     assert.match(css, /@media \(prefers-reduced-motion: reduce\)/)
   })
+
+  it('block lists animate reordering with transition groups', () => {
+    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(canvas, /TransitionGroup/)
+    assert.match(renderer, /TransitionGroup/)
+    assert.match(css, /web-page-block-move/)
+    assert.match(css, /web-page-block-enter-active/)
+  })
 })
