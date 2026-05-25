@@ -1,6 +1,6 @@
 import { AGENT_LIMITS } from "./agent-limits.ts";
 
-const SECRET_KEY_PATTERN = /(api[_-]?key|authorization|password|secret|token)/i;
+const SECRET_KEY_PATTERN = /(api[_-]?key|authorization|credential|password|secret|token)/i;
 const REDACTED = "[REDACTED]";
 
 export function sanitizeAgentEventPayload(input: unknown): unknown {

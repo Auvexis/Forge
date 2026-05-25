@@ -24,6 +24,7 @@ export interface SendChatMessageInput {
   userId?: string;
   metadata?: Record<string, any>;
   remoteAddress?: string;
+  origin?: string;
 }
 
 export interface SendChatMessageResult {
@@ -73,6 +74,8 @@ export class ChatTriggerService {
     }
 
     const resolved = this.resolve(input.chatSlug);
+    this.assertNoRawThreadId(input);
+    this.assertPublicOriginAllowed(input, resolved);
     this.assertPublicRateLimit(input, resolved);
     const session = this.resolveSession(input, resolved, message);
     const userMessage = this.messages.append({
@@ -196,6 +199,35 @@ export class ChatTriggerService {
     }
 
     bucket.count += 1;
+  }
+
+  private assertPublicOriginAllowed(
+    input: SendChatMessageInput,
+    resolved: ResolvedWorkflowTrigger,
+  ): void {
+    if (resolved.entry.trigger.chatAuthMode !== "public") return;
+
+    const allowedOrigins = resolved.entry.trigger.chatAllowedOrigins ?? [];
+    if (allowedOrigins.length === 0) return;
+    if (input.origin && allowedOrigins.includes(input.origin)) return;
+
+    throw new AgentRuntimeError(
+      "Public chat origin is not allowed",
+      "AGENT_CHAT_ORIGIN_FORBIDDEN",
+      "Chat origin is not allowed",
+      403,
+    );
+  }
+
+  private assertNoRawThreadId(input: SendChatMessageInput): void {
+    if (!input.metadata || !Object.hasOwn(input.metadata, "thread_id")) return;
+
+    throw new AgentRuntimeError(
+      "Raw LangGraph thread_id is not accepted from chat requests",
+      "AGENT_CHAT_THREAD_ID_FORBIDDEN",
+      "Chat requests cannot provide a raw thread id",
+      400,
+    );
   }
 }
 

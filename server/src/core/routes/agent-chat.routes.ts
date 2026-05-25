@@ -44,6 +44,7 @@ export default async function agentChatRoutes(
       }
 
       const body = req.body as Partial<SendChatMessageInput> | undefined;
+      assertNoRawThreadId(body);
       const message = String(body?.message ?? "").trim();
       if (!message) {
         throw new AgentRuntimeError(
@@ -62,6 +63,7 @@ export default async function agentChatRoutes(
         userId: stringOrUndefined(body?.userId),
         metadata: objectOrUndefined(body?.metadata),
         remoteAddress: req.ip,
+        origin: stringOrUndefined(req.headers.origin),
       });
 
       return sendResponse(reply, {
@@ -187,6 +189,23 @@ export default async function agentChatRoutes(
       data: resolved,
     });
   }
+}
+
+function assertNoRawThreadId(body: Partial<SendChatMessageInput> | undefined): void {
+  const record = body as Record<string, unknown> | undefined;
+  const metadata = record?.metadata;
+  const hasRawThreadId =
+    Boolean(record && Object.hasOwn(record, "thread_id")) ||
+    Boolean(metadata && typeof metadata === "object" && Object.hasOwn(metadata, "thread_id"));
+
+  if (!hasRawThreadId) return;
+
+  throw new AgentRuntimeError(
+    "Raw LangGraph thread_id is not accepted from chat requests",
+    "AGENT_CHAT_THREAD_ID_FORBIDDEN",
+    "Chat requests cannot provide a raw thread id",
+    400,
+  );
 }
 
 function sendResponse<T>(reply: FastifyReply, response: ApiResponse<T>) {

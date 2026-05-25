@@ -42,7 +42,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Task 25: Chat Session Panel
 - [x] Task 26: Agent Trace and Execution Timeline
 - [x] Task 27: Human Approval UI
-- [ ] Task 28: Security Hardening Backend
+- [x] Task 28: Security Hardening Backend
 - [ ] Task 29: Frontend Safety and Usability Polish
 - [ ] Task 30: Documentation and Feature Map Completion
 - [ ] Task 31: Full Verification
