@@ -46,12 +46,14 @@ test('ai model editor exposes provider, model, temperature, token limits, and cr
 
 test('ai memory editor exposes scope, read and write toggles, and retrieval limits', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/AiMemoryEditor.vue')
+  const picker = read('src/features/workflow-editor/components/agent/AgentMemoryScopePicker.vue')
 
   for (const field of ['scope', 'readEnabled', 'writeEnabled', 'maxRetrievedMemories', 'maxMemoryChars']) {
     assert.match(source, new RegExp(field))
   }
 
-  assert.match(source, /BaseSwitch/)
+  assert.match(source, /AgentMemoryScopePicker/)
+  assert.match(picker, /BaseSwitch/)
 })
 
 test('ai tool editor exposes picker placeholder and side-effect policy', () => {

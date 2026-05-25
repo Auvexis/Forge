@@ -45,7 +45,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Task 28: Security Hardening Backend
 - [x] Task 29: Frontend Safety and Usability Polish
 - [x] Task 30: Documentation and Feature Map Completion
-- [ ] Task 31: Full Verification
+- [x] Task 31: Full Verification
 
 ## Safety Notes
 
