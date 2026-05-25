@@ -1,5 +1,6 @@
 import { PageRepository } from "./page-repository.ts";
 import { PageService } from "./page-service.ts";
+import { createSiteFile, deleteSiteFile, updateSiteFile } from "./site-file-service.ts";
 import { SiteRepository } from "./site-repository.ts";
 import type { CreatePageInput, SailorPage } from "./page-types.ts";
 import type { SailorSite, SiteFile } from "./site-types.ts";
@@ -89,6 +90,27 @@ export class SiteService {
     }
 
     return page;
+  }
+
+  createProjectFile(siteId: string, input: { path: string; kind: SiteFile["kind"]; content?: string; mimeType?: string; size?: number; url?: string }): SailorSite {
+    const site = this.requireSite(siteId);
+    return SiteRepository.saveSite(createSiteFile(site, input));
+  }
+
+  updateProjectFile(siteId: string, filePath: string, content: string): SailorSite {
+    const site = this.requireSite(siteId);
+    return SiteRepository.saveSite(updateSiteFile(site, filePath, content));
+  }
+
+  deleteProjectFile(siteId: string, filePath: string): SailorSite {
+    const site = this.requireSite(siteId);
+    return SiteRepository.saveSite(deleteSiteFile(site, filePath));
+  }
+
+  private requireSite(siteId: string): SailorSite {
+    const site = this.getSite(siteId);
+    if (!site) throw new Error("Site not found.");
+    return site;
   }
 
   private createUniqueSlug(name: string): string {

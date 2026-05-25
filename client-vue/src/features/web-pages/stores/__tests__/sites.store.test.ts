@@ -38,6 +38,33 @@ function api(): SitesApiClient {
       return current
     },
     deleteSite: async () => null,
+    createSiteFile: async (_siteId, payload) => {
+      current = { ...current, files: [...current.files, { ...payload, updatedAt: '2026-05-24T01:00:00.000Z' }] }
+      return current
+    },
+    updateSiteFile: async (_siteId, payload) => {
+      current = {
+        ...current,
+        files: current.files.map((file) => file.path === payload.path ? { ...file, content: payload.content } : file),
+      }
+      return current
+    },
+    deleteSiteFile: async (_siteId, payload) => {
+      current = { ...current, files: current.files.filter((file) => file.path !== payload.path) }
+      return current
+    },
+    uploadSiteAsset: async () => {
+      const asset = {
+        path: 'assets/logo.png',
+        kind: 'asset' as const,
+        mimeType: 'image/png',
+        size: 3,
+        url: '/sites/site_1/assets/logo.png',
+        updatedAt: '2026-05-24T01:00:00.000Z',
+      }
+      current = { ...current, files: [...current.files, asset] }
+      return { site: current, asset }
+    },
   }
 }
 
@@ -94,5 +121,16 @@ describe('sites store', () => {
     assert.equal(store.createFile('js/site.js', 'console.log("dupe")'), false)
     assert.equal(store.deleteFile('js/site.js'), true)
     assert.equal(store.activeSite?.files.some((file) => file.path === 'js/site.js'), false)
+  })
+
+  it('uploads an asset and updates the active site', async () => {
+    const store = useSitesStore()
+    store.setApiClient(api())
+    store.setActiveSite(site())
+
+    const asset = await store.uploadAsset({} as File)
+
+    assert.equal(asset?.path, 'assets/logo.png')
+    assert.equal(store.activeSite?.files.some((file) => file.path === 'assets/logo.png'), true)
   })
 })

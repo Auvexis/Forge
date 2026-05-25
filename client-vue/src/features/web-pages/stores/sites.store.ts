@@ -2,6 +2,12 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import type { CreateSitePayload, SailorSite, SiteFile, UpdateSitePayload } from '../types/page.types.ts'
+import type {
+  CreateSiteFilePayload,
+  DeleteSiteFilePayload,
+  SiteAssetUploadResponse,
+  UpdateSiteFilePayload,
+} from '../types/page.types.ts'
 
 export interface SitesApiClient {
   listSites: () => Promise<SailorSite[]>
@@ -9,6 +15,10 @@ export interface SitesApiClient {
   getSite: (siteId: string) => Promise<SailorSite>
   updateSite: (siteId: string, payload: UpdateSitePayload) => Promise<SailorSite>
   deleteSite: (siteId: string) => Promise<null>
+  createSiteFile: (siteId: string, payload: CreateSiteFilePayload) => Promise<SailorSite>
+  updateSiteFile: (siteId: string, payload: UpdateSiteFilePayload) => Promise<SailorSite>
+  deleteSiteFile: (siteId: string, payload: DeleteSiteFilePayload) => Promise<SailorSite>
+  uploadSiteAsset: (siteId: string, file: File) => Promise<SiteAssetUploadResponse>
 }
 
 const defaultApiClient: SitesApiClient = {
@@ -17,6 +27,10 @@ const defaultApiClient: SitesApiClient = {
   getSite: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.getSite(...args)),
   updateSite: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.updateSite(...args)),
   deleteSite: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.deleteSite(...args)),
+  createSiteFile: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.createSiteFile(...args)),
+  updateSiteFile: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.updateSiteFile(...args)),
+  deleteSiteFile: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.deleteSiteFile(...args)),
+  uploadSiteAsset: (...args) => import('../../../core/api/pages.api.ts').then((api) => api.pagesApi.uploadSiteAsset(...args)),
 }
 
 export const useSitesStore = defineStore('web-sites', () => {
@@ -132,6 +146,14 @@ export const useSitesStore = defineStore('web-sites', () => {
     return true
   }
 
+  async function uploadAsset(file: File) {
+    if (!activeSite.value) return null
+    const uploaded = await apiClient.value.uploadSiteAsset(activeSite.value.id, file)
+    setSavedSite(uploaded.site)
+    upsertSite(uploaded.site)
+    return uploaded.asset
+  }
+
   function addProjectFile(file: SiteFile) {
     if (!activeSite.value) return false
     if (activeSite.value.files.some((item) => item.path === file.path)) return false
@@ -168,6 +190,7 @@ export const useSitesStore = defineStore('web-sites', () => {
     createFile,
     updateFile,
     deleteFile,
+    uploadAsset,
   }
 })
 

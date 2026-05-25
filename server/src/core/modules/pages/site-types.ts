@@ -6,6 +6,7 @@ export interface SiteFile {
   content?: string;
   mimeType?: string;
   size?: number;
+  url?: string;
   updatedAt: string;
 }
 

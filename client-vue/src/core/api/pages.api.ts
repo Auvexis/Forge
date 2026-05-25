@@ -2,14 +2,18 @@ import { apiRequest } from './client.ts'
 import { ENDPOINTS } from './endpoints.ts'
 import type {
   CreatePagePayload,
+  CreateSiteFilePayload,
   CreateSitePayload,
+  DeleteSiteFilePayload,
   PageActionResponse,
   PagePublicationStatus,
   PublishedPageSummary,
   SailorPage,
   SailorPageSummary,
   UpdatePagePayload,
+  SiteAssetUploadResponse,
   SailorSite,
+  UpdateSiteFilePayload,
   UpdateSitePayload,
 } from '../../features/web-pages/types/page.types.ts'
 
@@ -42,6 +46,33 @@ export const pagesApi = {
       method: 'POST',
       body: payload,
     }),
+
+  createSiteFile: (siteId: string, payload: CreateSiteFilePayload) =>
+    apiRequest<SailorSite>(ENDPOINTS.SITE_FILES(siteId), {
+      method: 'POST',
+      body: payload,
+    }),
+
+  updateSiteFile: (siteId: string, payload: UpdateSiteFilePayload) =>
+    apiRequest<SailorSite>(ENDPOINTS.SITE_FILES(siteId), {
+      method: 'PUT',
+      body: payload,
+    }),
+
+  deleteSiteFile: (siteId: string, payload: DeleteSiteFilePayload) =>
+    apiRequest<SailorSite>(ENDPOINTS.SITE_FILES(siteId), {
+      method: 'DELETE',
+      body: payload,
+    }),
+
+  uploadSiteAsset: (siteId: string, file: File) => {
+    const body = new FormData()
+    body.append('file', file)
+    return apiRequest<SiteAssetUploadResponse>(ENDPOINTS.SITE_ASSETS(siteId), {
+      method: 'POST',
+      body,
+    })
+  },
 
   listPages: () => apiRequest<SailorPageSummary[]>(ENDPOINTS.PAGES),
 

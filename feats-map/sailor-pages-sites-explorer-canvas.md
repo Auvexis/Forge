@@ -116,7 +116,7 @@ Steps:
 - Site files should use project paths like `pages/home.html`, `css/site.css`, `js/site.js`, `assets/logo.png`.
 - Store should support file create, folder create, file update, file delete, and asset upload metadata.
 
-### - [ ] Task 4: Add Site Project Files and Uploads
+### - [x] Task 4: Add Site Project Files and Uploads
 
 Files:
 - Create `server/src/core/modules/pages/site-file-service.ts`

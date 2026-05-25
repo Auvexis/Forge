@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { beforeEach, describe, it } from "node:test";
 import Database from "better-sqlite3";
 import Fastify from "fastify";
+import multipart from "@fastify/multipart";
 
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { PageRepository } from "../modules/pages/page-repository.ts";
@@ -11,12 +15,15 @@ import pagesRoutes from "./pages.routes.ts";
 
 async function buildApp() {
   const db = new Database(":memory:");
+  const assetStorageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-page-assets-route-"));
   PageRepository.setDatabaseProvider(() => db);
   SiteRepository.setDatabaseProvider(() => db);
   PageRepository.ensureSchema();
   const app = Fastify({ logger: false });
+  await app.register(multipart);
   await app.register(pagesRoutes, {
     getActiveProfileId: () => "profile_a",
+    assetStorageRoot,
     actionService: {
       submitAction: async () => ({ ok: true, statusCode: 202, executionId: "exec_page" }),
     },
@@ -184,4 +191,75 @@ describe("pages routes", () => {
     const deleteSiteResponse = await app.inject({ method: "DELETE", url: `/sites/${site.id}` });
     assert.equal(deleteSiteResponse.statusCode, 200);
   });
+
+  it("site project file routes create, update, delete, upload and serve assets", async () => {
+    const app = await buildApp();
+    const site = (await app.inject({ method: "POST", url: "/sites", payload: { name: "Assets" } })).json().data;
+
+    const folderResponse = await app.inject({
+      method: "POST",
+      url: `/sites/${site.id}/files`,
+      payload: { path: "assets/brand", kind: "folder" },
+    });
+    assert.equal(folderResponse.statusCode, 200);
+    assert.equal(folderResponse.json().data.files.some((file: { path: string }) => file.path === "assets/brand"), true);
+
+    const fileResponse = await app.inject({
+      method: "POST",
+      url: `/sites/${site.id}/files`,
+      payload: { path: "css/site.css", kind: "file", content: "body{}" },
+    });
+    assert.equal(fileResponse.statusCode, 200);
+
+    const updateResponse = await app.inject({
+      method: "PUT",
+      url: `/sites/${site.id}/files`,
+      payload: { path: "css/site.css", content: "body{margin:0}" },
+    });
+    assert.equal(updateResponse.statusCode, 200);
+    assert.equal(updateResponse.json().data.files.find((file: { path: string }) => file.path === "css/site.css")?.content, "body{margin:0}");
+
+    const uploadResponse = await app.inject({
+      method: "POST",
+      url: `/sites/${site.id}/assets`,
+      ...multipartPayload("logo.png", "png"),
+    });
+    assert.equal(uploadResponse.statusCode, 200);
+    assert.equal(uploadResponse.json().data.asset.path, "assets/logo.png");
+
+    const assetResponse = await app.inject({ method: "GET", url: `/sites/${site.id}/assets/logo.png` });
+    assert.equal(assetResponse.statusCode, 200);
+    assert.equal(assetResponse.body, "png");
+
+    const deleteResponse = await app.inject({
+      method: "DELETE",
+      url: `/sites/${site.id}/files`,
+      payload: { path: "css/site.css" },
+    });
+    assert.equal(deleteResponse.statusCode, 200);
+    assert.equal(deleteResponse.json().data.files.some((file: { path: string }) => file.path === "css/site.css"), false);
+  });
 });
+
+function multipartPayload(filename: string, content: string) {
+  const boundary = "----sailor-page-asset-test-boundary";
+  const body = Buffer.from(
+    [
+      `--${boundary}`,
+      `Content-Disposition: form-data; name="file"; filename="${filename}"`,
+      "Content-Type: image/png",
+      "",
+      content,
+      `--${boundary}--`,
+      "",
+    ].join("\r\n"),
+  );
+
+  return {
+    headers: {
+      "content-type": `multipart/form-data; boundary=${boundary}`,
+      "content-length": String(body.length),
+    },
+    payload: body,
+  };
+}

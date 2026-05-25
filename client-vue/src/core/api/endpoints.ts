@@ -56,6 +56,10 @@ export const ENDPOINTS = {
   SITE_PAGES: (siteId: string) => `/sites/${encodeURIComponent(siteId)}/pages`,
   SITE_PAGE_BY_ID: (siteId: string, pageId: string) =>
     `/sites/${encodeURIComponent(siteId)}/pages/${encodeURIComponent(pageId)}`,
+  SITE_FILES: (siteId: string) => `/sites/${encodeURIComponent(siteId)}/files`,
+  SITE_ASSETS: (siteId: string) => `/sites/${encodeURIComponent(siteId)}/assets`,
+  SITE_ASSET: (siteId: string, assetPath: string) =>
+    `/sites/${encodeURIComponent(siteId)}/assets/${assetPath.split('/').map(encodeURIComponent).join('/')}`,
   PAGES: '/pages',
   PAGE_BY_ID: (id: string) => `/pages/${encodeURIComponent(id)}`,
   PAGE_PUBLISH: (id: string) => `/pages/${encodeURIComponent(id)}/publish`,

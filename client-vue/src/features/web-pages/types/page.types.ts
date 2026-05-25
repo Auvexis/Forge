@@ -122,6 +122,26 @@ export interface UpdateSitePayload {
   files?: SiteFile[]
 }
 
+export interface CreateSiteFilePayload {
+  path: string
+  kind: SiteFile['kind']
+  content?: string
+}
+
+export interface UpdateSiteFilePayload {
+  path: string
+  content: string
+}
+
+export interface DeleteSiteFilePayload {
+  path: string
+}
+
+export interface SiteAssetUploadResponse {
+  site: SailorSite
+  asset: SiteFile
+}
+
 export interface PagePublicationStatus {
   pageId: string
   publishedAt: string | null
