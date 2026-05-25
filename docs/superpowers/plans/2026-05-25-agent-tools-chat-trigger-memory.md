@@ -1451,7 +1451,7 @@ git commit -m "feat: add ai workflow node handlers"
 - Modify: `server/src/core/modules/workflows/executor.ts`
 - Create: `server/src/core/modules/workflows/agent-config-node-execution.test.ts`
 
-- [ ] **Step 1: Write failing executor tests**
+- [x] **Step 1: Write failing executor tests**
 
 Tests:
 - workflow with `trigger -> ai-agent -> set` executes agent and then set.
@@ -1468,7 +1468,7 @@ node --test src/core/modules/workflows/agent-config-node-execution.test.ts
 
 Expected: fail if current graph tries to execute config nodes.
 
-- [ ] **Step 2: Implement traversal rule**
+- [x] **Step 2: Implement traversal rule**
 
 Add helper in executor or graph module:
 
@@ -1480,7 +1480,7 @@ function isAgentConfigNode(node: WorkflowNode | undefined): boolean {
 
 Do not enqueue config nodes from regular control flow unless they are explicitly used as normal nodes in future design. For this feature, they are cluster sub-nodes only.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run:
 
@@ -1492,7 +1492,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add server/src/core/modules/workflows/executor.ts server/src/core/modules/workflows/agent-config-node-execution.test.ts

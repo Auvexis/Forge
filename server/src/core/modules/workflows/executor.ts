@@ -139,6 +139,7 @@ export const WorkflowEngine = {
     recordSuccessfulStep(context, triggerNodeId, triggerNode, triggerPayload);
 
     try {
+      assertNoAgentConfigNodeCycles(workflow);
       const { adjList } = createGraph(workflow);
       const reachable = collectReachableNodeIds(triggerNodeId, adjList);
       const branchInDegree = createBranchInDegree(reachable, adjList, triggerNodeId);
@@ -188,7 +189,7 @@ export const WorkflowEngine = {
         executed.add(nodeId);
 
         const node = workflow.nodes[nodeId];
-        if (!node || node.type === "trigger" || node.disabled === true) {
+        if (!node || node.type === "trigger" || node.disabled === true || isAgentConfigNode(node)) {
           for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
           continue;
         }
@@ -458,4 +459,33 @@ function createBranchInDegree(
   }
 
   return inDegree;
+}
+
+function isAgentConfigNode(node: WorkflowNode | undefined): boolean {
+  return node?.type === "ai-model" || node?.type === "ai-memory" || node?.type === "ai-tool";
+}
+
+function assertNoAgentConfigNodeCycles(workflow: WorkflowItem): void {
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+
+  const visit = (nodeId: string, path: string[]): void => {
+    if (visiting.has(nodeId)) {
+      throw new Error(`AI config node cycle detected: ${[...path, nodeId].join(" -> ")}`);
+    }
+    if (visited.has(nodeId)) return;
+
+    visiting.add(nodeId);
+    for (const edge of workflow.edges) {
+      if (edge.source !== nodeId) continue;
+      if (!isAgentConfigNode(workflow.nodes[edge.target])) continue;
+      visit(edge.target, [...path, nodeId]);
+    }
+    visiting.delete(nodeId);
+    visited.add(nodeId);
+  };
+
+  for (const [nodeId, node] of Object.entries(workflow.nodes)) {
+    if (isAgentConfigNode(node)) visit(nodeId, []);
+  }
 }
