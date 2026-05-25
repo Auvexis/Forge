@@ -83,6 +83,8 @@
           </div>
         </div>
 
+        <AgentTracePanel :timeline="executionStore.timeline" />
+
         <button
           v-for="exec in executions"
           :key="exec.id"
@@ -240,6 +242,7 @@ import { useApi } from '@/shared/composables/useApi'
 import { useToast } from '@/shared/composables/useToast'
 import type { ExecutionLog, WorkflowExecutionStatus } from '@/core/types/execution.types'
 import { useExecutionStore } from '../../stores/execution.store'
+import AgentTracePanel from '../agent/AgentTracePanel.vue'
 
 const props = defineProps<{ workflowId: string }>()
 defineEmits<{ (e: 'close'): void }>()

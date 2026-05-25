@@ -25,6 +25,17 @@ export type WorkflowEventType =
   | 'workflow:failed'
   | 'workflow:cancelled'
   | 'temporary-form:created'
+  | 'agent:start'
+  | 'agent:model-start'
+  | 'agent:model-end'
+  | 'agent:tool-start'
+  | 'agent:tool-end'
+  | 'agent:memory-read'
+  | 'agent:memory-write'
+  | 'agent:approval-created'
+  | 'agent:approval-resumed'
+  | 'agent:error'
+  | 'agent:end'
   | 'trigger:data'   // emitted after form submission with the serializable trigger payload
 
 export interface WorkflowEvent {

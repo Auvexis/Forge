@@ -112,11 +112,11 @@ export const useExecutionStore = defineStore('execution', () => {
   }
 
   function timelineStatusFor(type: string): ExecutionTimelineEvent['status'] {
-    if (type === 'node:success' || type === 'workflow:success' || type === 'trigger:data' || type === 'job:success') return 'success'
-    if (type === 'node:failed' || type === 'workflow:failed' || type === 'job:failed') return 'failed'
+    if (type === 'node:success' || type === 'workflow:success' || type === 'trigger:data' || type === 'job:success' || type === 'agent:end' || type === 'agent:model-end' || type === 'agent:tool-end') return 'success'
+    if (type === 'node:failed' || type === 'workflow:failed' || type === 'job:failed' || type === 'agent:error') return 'failed'
     if (type === 'node:retry') return 'retrying'
     if (type === 'workflow:cancelled' || type === 'job:cancelled') return 'cancelled'
-    if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created' || type === 'job:start') {
+    if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created' || type === 'job:start' || type === 'agent:start' || type === 'agent:model-start' || type === 'agent:tool-start') {
       return 'running'
     }
     return 'info'
@@ -144,6 +144,17 @@ export const useExecutionStore = defineStore('execution', () => {
     if (ev.type === 'session:stopped') return 'Dev session stopped'
     if (ev.type === 'trigger:data') return 'Trigger payload received'
     if (ev.type === 'temporary-form:created') return `${ev.nodeId} waiting for form`
+    if (ev.type === 'agent:start') return 'Agent started'
+    if (ev.type === 'agent:model-start') return 'Agent model call started'
+    if (ev.type === 'agent:model-end') return 'Agent model call completed'
+    if (ev.type === 'agent:tool-start') return 'Agent tool call started'
+    if (ev.type === 'agent:tool-end') return 'Agent tool call completed'
+    if (ev.type === 'agent:memory-read') return 'Agent memory read'
+    if (ev.type === 'agent:memory-write') return 'Agent memory write'
+    if (ev.type === 'agent:approval-created') return 'Agent approval requested'
+    if (ev.type === 'agent:approval-resumed') return 'Agent approval resumed'
+    if (ev.type === 'agent:error') return 'Agent error'
+    if (ev.type === 'agent:end') return 'Agent completed'
     return ev.type.replace(':', ' ')
   }
 
