@@ -930,7 +930,7 @@ git commit -m "feat: validate plugin agent tool metadata"
 - Create: `server/src/core/modules/agent-runtime/agent-tool-registry.ts`
 - Create: `server/src/core/modules/agent-runtime/plugin-tool-adapter.test.ts`
 
-- [ ] **Step 1: Write failing adapter tests**
+- [x] **Step 1: Write failing adapter tests**
 
 Tests:
 - lists only plugin methods with `agentTool.enabled === true`.
@@ -949,7 +949,7 @@ node --test src/core/modules/agent-runtime/plugin-tool-adapter.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement Sailor tool definition**
+- [x] **Step 2: Implement Sailor tool definition**
 
 ```ts
 export interface SailorAgentToolDefinition {
@@ -964,7 +964,7 @@ export interface SailorAgentToolDefinition {
 }
 ```
 
-- [ ] **Step 3: Implement adapter**
+- [x] **Step 3: Implement adapter**
 
 Expose:
 
@@ -973,7 +973,7 @@ export function listPluginAgentTools(): SailorAgentToolDefinition[];
 export function resolvePluginAgentTool(pluginId: string, methodId: string): SailorAgentToolDefinition;
 ```
 
-- [ ] **Step 4: Implement registry**
+- [x] **Step 4: Implement registry**
 
 Expose:
 
@@ -984,7 +984,7 @@ export class AgentToolRegistry {
 }
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run:
 
@@ -996,7 +996,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/core/modules/agent-runtime/plugin-tool-adapter.ts server/src/core/modules/agent-runtime/agent-tool-registry.ts server/src/core/modules/agent-runtime/plugin-tool-adapter.test.ts
