@@ -1075,7 +1075,7 @@ git commit -m "feat: execute agent tools safely"
 - Create: `server/src/core/modules/agent-runtime/model-providers/openai-compatible-provider.ts`
 - Create: `server/src/core/modules/agent-runtime/model-provider-registry.test.ts`
 
-- [ ] **Step 1: Write failing model provider tests**
+- [x] **Step 1: Write failing model provider tests**
 
 Tests:
 - resolves OpenAI provider with credential id.
@@ -1094,7 +1094,7 @@ node --test src/core/modules/agent-runtime/model-provider-registry.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement provider interface**
+- [x] **Step 2: Implement provider interface**
 
 ```ts
 export interface AgentModelProvider {
@@ -1103,11 +1103,11 @@ export interface AgentModelProvider {
 }
 ```
 
-- [ ] **Step 3: Implement OpenAI-compatible provider**
+- [x] **Step 3: Implement OpenAI-compatible provider**
 
 Use `ChatOpenAI` from `@langchain/openai`. For OpenRouter, set compatible `configuration.baseURL`. Credentials come from existing credential store, not from raw node params.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -1119,7 +1119,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/modules/agent-runtime/model-provider-registry.ts server/src/core/modules/agent-runtime/model-providers/openai-compatible-provider.ts server/src/core/modules/agent-runtime/model-provider-registry.test.ts
