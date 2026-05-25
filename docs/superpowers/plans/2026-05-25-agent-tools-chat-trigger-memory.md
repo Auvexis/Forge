@@ -1628,7 +1628,7 @@ git commit -m "feat: expose agent chat routes"
 **Files:**
 - Create: `server/src/core/routes/agent-chat-workflow.integration.test.ts`
 
-- [ ] **Step 1: Write failing integration test**
+- [x] **Step 1: Write failing integration test**
 
 Scenario:
 1. Register fake OpenAI-compatible model provider.
@@ -1650,11 +1650,11 @@ node --test src/core/routes/agent-chat-workflow.integration.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement missing glue only**
+- [x] **Step 2: Implement missing glue only**
 
 Fix only integration gaps. Do not add product scope.
 
-- [ ] **Step 3: Verify backend focused suite**
+- [x] **Step 3: Verify backend focused suite**
 
 Run:
 
@@ -1666,7 +1666,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add server/src/core/routes/agent-chat-workflow.integration.test.ts server/src/core/modules/agent-runtime server/src/core/modules/workflows server/src/core/nodes server/src/shared/models/workflow-types.ts

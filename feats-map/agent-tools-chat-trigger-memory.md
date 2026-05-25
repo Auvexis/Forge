@@ -32,7 +32,7 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 - [x] Task 15: Executor Config-Node Traversal Safety
 - [x] Task 16: Chat Trigger Backend
 - [x] Task 17: Agent Chat Routes
-- [ ] Task 18: Backend Integration Smoke
+- [x] Task 18: Backend Integration Smoke
 - [ ] Task 19: Frontend API Contracts
 - [ ] Task 20: Frontend Workflow Node Components
 - [ ] Task 21: Add Node Panel and Node Previews
