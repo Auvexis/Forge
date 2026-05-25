@@ -134,12 +134,12 @@ export class PageService {
       bodyStyles: page.bodyStyles,
       blocks: page.blocks,
       publishedAt: new Date().toISOString(),
-    });
+    }, SiteRepository.getSite(this.profileId, page.siteId));
   }
 
   renderPublished(slug: string): string | null {
     const page = PageRepository.getPublishedPageBySlug(this.profileId, slug);
-    return page ? renderPublishedPage(page) : null;
+    return page ? renderPublishedPage(page, SiteRepository.getSite(this.profileId, page.siteId)) : null;
   }
 
   private validateAndSave(page: SailorPage): SailorPage {

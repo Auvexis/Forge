@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import { renderPageBody, renderPageCss, renderPublishedPage } from "./page-renderer.ts";
 import type { PublishedPage } from "./page-types.ts";
+import type { SailorSite } from "./site-types.ts";
 
 function publishedPage(overrides: Partial<PublishedPage> = {}): PublishedPage {
   return {
@@ -24,6 +25,20 @@ function publishedPage(overrides: Partial<PublishedPage> = {}): PublishedPage {
         ],
       },
     ],
+    ...overrides,
+  };
+}
+
+function sailorSite(overrides: Partial<SailorSite> = {}): SailorSite {
+  return {
+    id: "site_default_profile_a",
+    profileId: "profile_a",
+    name: "Default Site",
+    slug: "default-site",
+    homePageId: "page_contact",
+    files: [],
+    createdAt: "2026-05-23T00:00:00.000Z",
+    updatedAt: "2026-05-23T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -187,5 +202,43 @@ describe("page renderer", () => {
 
     assert.doesNotMatch(html, /<script>alert/);
     assert.match(html, /&lt;script&gt;alert/);
+  });
+
+  it("renders safe site css and js files with published pages", () => {
+    const html = renderPublishedPage(
+      publishedPage(),
+      sailorSite({
+        files: [
+          { path: "css/site.css", kind: "file", content: "body { margin: 0; }", updatedAt: "now" },
+          { path: "css/bad.css", kind: "file", content: "body { background: url(javascript:alert(1)); }", updatedAt: "now" },
+          { path: "js/site.js", kind: "file", content: "document.body.dataset.ready = '1';", updatedAt: "now" },
+          { path: "js/bad.js", kind: "file", content: "</script><script>alert(1)</script>", updatedAt: "now" },
+        ],
+      }),
+    );
+
+    assert.match(html, /body \{ margin: 0; \}/);
+    assert.doesNotMatch(html, /javascript:alert/);
+    assert.match(html, /document\.body\.dataset\.ready/);
+    assert.doesNotMatch(html, /<\/script><script>alert/);
+    assert.match(html, /<\\\/script>/);
+  });
+
+  it("resolves uploaded site asset image sources", () => {
+    const html = renderPublishedPage(
+      publishedPage({
+        blocks: [
+          {
+            id: "image_1",
+            tag: "image",
+            props: { src: "assets/logo.png", alt: "Logo" },
+            children: [],
+          },
+        ],
+      }),
+      sailorSite(),
+    );
+
+    assert.match(html, /src="\/sites\/site_default_profile_a\/assets\/logo.png"/);
   });
 });

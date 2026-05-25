@@ -277,7 +277,7 @@ Fix:
 - Let `.web-page-canvas__body` padding default come from body styles fallback.
 - If user sets `padding: 0`, rendered editor body must show zero inner padding.
 
-### - [ ] Task 11: Publish Renderer With Site Assets
+### - [x] Task 11: Publish Renderer With Site Assets
 
 Files:
 - Modify `server/src/core/modules/pages/page-renderer.ts`

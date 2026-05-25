@@ -1,4 +1,9 @@
 import type { PageBlock, PageBlockProps, PageBlockTag, PublishedPage } from "./page-types.ts";
+import type { SailorSite } from "./site-types.ts";
+
+interface RenderOptions {
+  site?: SailorSite | null;
+}
 
 const RENDER_TAGS: Record<PageBlockTag, string> = {
   header: "header",
@@ -66,9 +71,11 @@ const STYLE_ALLOWLIST = new Set([
 
 const DANGEROUS_CSS_PATTERN = /javascript:|data:text\/html|expression\s*\(|<\/style|<\s*script/i;
 
-export function renderPublishedPage(page: PublishedPage): string {
+export function renderPublishedPage(page: PublishedPage, site?: SailorSite | null): string {
   const title = escapeHtml(page.title);
   const pageJs = renderPageJs(page);
+  const siteJs = renderSiteJs(site);
+  const css = [renderSiteCss(site), renderPageCss(page)].filter(Boolean).join("\n");
   return [
     "<!doctype html>",
     '<html lang="en">',
@@ -76,10 +83,11 @@ export function renderPublishedPage(page: PublishedPage): string {
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     `<title>${title}</title>`,
-    `<style>${renderPageCss(page)}</style>`,
+    `<style>${css}</style>`,
     "</head>",
     `<body${renderBodyStyle(page)}>`,
-    renderPageBody(page.blocks),
+    renderPageBody(page.blocks, { site }),
+    siteJs ? `<script>${siteJs}</script>` : "",
     pageJs ? `<script>${pageJs}</script>` : "",
     "</body>",
     "</html>",
@@ -94,18 +102,18 @@ function renderBodyStyle(page: PublishedPage): string {
   return declarations ? ` style="${declarations}"` : "";
 }
 
-export function renderPageBody(blocks: PageBlock[]): string {
-  return blocks.map((block) => renderBlock(block)).join("");
+export function renderPageBody(blocks: PageBlock[], options: RenderOptions = {}): string {
+  return blocks.map((block) => renderBlock(block, options)).join("");
 }
 
 export function renderPageCss(page: PublishedPage): string {
   return page.blocks.flatMap((block) => collectBlockCss(block)).join("\n");
 }
 
-function renderBlock(block: PageBlock): string {
+function renderBlock(block: PageBlock, options: RenderOptions): string {
   const tag = RENDER_TAGS[block.tag];
-  const attrs = renderAttributes(block);
-  const children = renderPageBody(block.children ?? []);
+  const attrs = renderAttributes(block, options);
+  const children = renderPageBody(block.children ?? [], options);
 
   if (block.tag === "input") {
     return `<input${attrs}>`;
@@ -119,7 +127,7 @@ function renderBlock(block: PageBlock): string {
   return `<${tag}${attrs}>${text}${children}</${tag}>`;
 }
 
-function renderAttributes(block: PageBlock): string {
+function renderAttributes(block: PageBlock, options: RenderOptions): string {
   const attrs: Record<string, string> = {
     class: ["sailor-page-block", blockClass(block.id), sanitizeClassName(block.className)]
       .filter(Boolean)
@@ -134,7 +142,7 @@ function renderAttributes(block: PageBlock): string {
     }
 
     const attrName = propToAttributeName(key);
-    const attrValue = String(value);
+    const attrValue = key === "src" ? resolveImageSrc(String(value), options.site) : String(value);
     if ((key === "href" && !isSafeLinkUrl(attrValue)) || (key === "src" && !isSafeImageUrl(attrValue))) {
       continue;
     }
@@ -199,6 +207,23 @@ function renderPageJs(page: PublishedPage): string {
   const scripts = page.blocks.flatMap((block) => collectBlockJs(block));
   const actionRuntime = hasPageActions(page.blocks) ? renderActionRuntime(page.slug) : "";
   return [actionRuntime, ...scripts].filter(Boolean).join("\n");
+}
+
+function renderSiteCss(site?: SailorSite | null): string {
+  return (site?.files ?? [])
+    .filter((file) => file.kind === "file" && file.path.startsWith("css/") && file.path.endsWith(".css"))
+    .map((file) => file.content?.trim() ?? "")
+    .filter((content) => content && !containsDangerousCss(content))
+    .join("\n");
+}
+
+function renderSiteJs(site?: SailorSite | null): string {
+  return (site?.files ?? [])
+    .filter((file) => file.kind === "file" && file.path.startsWith("js/") && file.path.endsWith(".js"))
+    .map((file) => file.content?.trim() ?? "")
+    .filter(Boolean)
+    .map((content) => escapeScript(content))
+    .join("\n");
 }
 
 function hasPageActions(blocks: PageBlock[]): boolean {
@@ -313,6 +338,16 @@ function camelToKebab(value: string): string {
 
 function containsDangerousCss(value: string): boolean {
   return DANGEROUS_CSS_PATTERN.test(value);
+}
+
+function resolveImageSrc(src: string, site?: SailorSite | null): string {
+  if (!src.startsWith("assets/") || !site) return src;
+  const assetPath = src.slice("assets/".length);
+  if (!assetPath || assetPath.includes("..") || assetPath.includes("\\") || assetPath.startsWith("/")) return src;
+  return `/sites/${encodeURIComponent(site.id)}/assets/${assetPath
+    .split("/")
+    .map((part) => encodeURIComponent(part))
+    .join("/")}`;
 }
 
 function isSafeAttributeName(name: string): boolean {

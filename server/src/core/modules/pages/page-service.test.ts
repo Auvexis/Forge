@@ -4,6 +4,7 @@ import Database from "better-sqlite3";
 
 import { PageRepository } from "./page-repository.ts";
 import { PageService } from "./page-service.ts";
+import { SiteRepository } from "./site-repository.ts";
 
 describe("PageService", () => {
   let db: Database.Database;
@@ -12,6 +13,7 @@ describe("PageService", () => {
   beforeEach(() => {
     db = new Database(":memory:");
     PageRepository.setDatabaseProvider(() => db);
+    SiteRepository.setDatabaseProvider(() => db);
     PageRepository.ensureSchema();
     service = new PageService({ profileId: "profile_a" });
   });
@@ -99,6 +101,23 @@ describe("PageService", () => {
 
     assert.match(html, /Published text/);
     assert.doesNotMatch(html, /Draft changed/);
+  });
+
+  it("preview and published render include active site files", () => {
+    const site = SiteRepository.ensureDefaultSite("profile_a");
+    SiteRepository.saveSite({
+      ...site,
+      files: [
+        ...site.files,
+        { path: "css/site.css", kind: "file", content: "body { margin: 0; }", updatedAt: "now" },
+        { path: "js/site.js", kind: "file", content: "document.body.dataset.site = 'ready';", updatedAt: "now" },
+      ],
+    });
+    const page = service.createPage({ profileId: "profile_a", title: "Landing Page", siteId: site.id });
+
+    assert.match(service.renderPreview(page.id) ?? "", /body \{ margin: 0; \}/);
+    service.publishPage(page.id);
+    assert.match(service.renderPublished("landing-page") ?? "", /document\.body\.dataset\.site/);
   });
 
   it("unpublishes page and removes live render", () => {
