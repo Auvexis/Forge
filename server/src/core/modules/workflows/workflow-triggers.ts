@@ -125,6 +125,24 @@ export function resolveFormTrigger(
   return null;
 }
 
+export function resolveChatTrigger(
+  workflows: WorkflowItem[],
+  chatSlug: string,
+  opts: { requireActive: boolean },
+): ResolvedWorkflowTrigger | null {
+  for (const workflow of workflows) {
+    if (opts.requireActive && !workflow.metadata.isActive) continue;
+    for (const entry of listTriggerEntries(workflow)) {
+      if (entry.disabled) continue;
+      if (entry.trigger.type !== "chat") continue;
+      if (entry.trigger.chatSlug !== chatSlug) continue;
+      return { workflow, triggerNodeId: entry.id, entry };
+    }
+  }
+
+  return null;
+}
+
 export function listCronTriggers(workflows: WorkflowItem[]): ResolvedWorkflowTrigger[] {
   const resolved: ResolvedWorkflowTrigger[] = [];
 

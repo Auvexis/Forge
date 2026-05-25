@@ -5,7 +5,7 @@ export const triggerNodeHandler = createNodeHandler<TriggerNode>(
   "trigger",
   () => ({ type: "trigger" }),
   {
-    description: "Represents the virtual workflow entry point.",
+    description: "Represents a workflow entry point, including manual, webhook, form, event, and chat triggers.",
     execution: "stateless",
     sideEffects: ["none"],
     outputs: [{ id: "default", label: "Start" }],

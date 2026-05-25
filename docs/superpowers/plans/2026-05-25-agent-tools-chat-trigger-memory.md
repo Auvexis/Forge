@@ -1507,7 +1507,7 @@ git commit -m "feat: support ai agent config nodes"
 - Create: `server/src/core/modules/agent-runtime/chat/chat-trigger-service.ts`
 - Create: `server/src/core/modules/agent-runtime/chat/chat-trigger-service.test.ts`
 
-- [ ] **Step 1: Write failing chat trigger tests**
+- [x] **Step 1: Write failing chat trigger tests**
 
 Tests:
 - resolves workflow by `chatSlug`.
@@ -1527,11 +1527,11 @@ node --test src/core/modules/agent-runtime/chat/chat-trigger-service.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement chat trigger metadata in existing trigger model**
+- [x] **Step 2: Implement chat trigger metadata in existing trigger model**
 
 Keep current Sailor shape: trigger nodes remain `type: "trigger"`, and Chat Trigger is represented by `node.trigger.type === "chat"` or workflow root `trigger.type === "chat"`. Do not add a separate backend `chat-trigger` node type.
 
-- [ ] **Step 3: Implement trigger service**
+- [x] **Step 3: Implement trigger service**
 
 ```ts
 export class ChatTriggerService {
@@ -1541,7 +1541,7 @@ export class ChatTriggerService {
 }
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -1553,7 +1553,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/nodes/handlers/trigger.ts server/src/core/modules/workflows/workflow-triggers.ts server/src/core/modules/agent-runtime/chat/chat-trigger-service.ts server/src/core/modules/agent-runtime/chat/chat-trigger-service.test.ts
