@@ -1325,7 +1325,7 @@ git commit -m "feat: build agent graph runtime"
 - Create: `server/src/core/modules/agent-runtime/agent-runtime-service.ts`
 - Create: `server/src/core/modules/agent-runtime/agent-runner.test.ts`
 
-- [ ] **Step 1: Write failing runner tests**
+- [x] **Step 1: Write failing runner tests**
 
 Tests:
 - validates run input before execution.
@@ -1347,7 +1347,7 @@ node --test src/core/modules/agent-runtime/agent-runner.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement runner**
+- [x] **Step 2: Implement runner**
 
 ```ts
 export class AgentRunner {
@@ -1355,7 +1355,7 @@ export class AgentRunner {
 }
 ```
 
-- [ ] **Step 3: Implement service facade**
+- [x] **Step 3: Implement service facade**
 
 ```ts
 export const AgentRuntimeService = {
@@ -1364,7 +1364,7 @@ export const AgentRuntimeService = {
 };
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -1376,7 +1376,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/modules/agent-runtime/agent-runner.ts server/src/core/modules/agent-runtime/agent-runtime-service.ts server/src/core/modules/agent-runtime/agent-runner.test.ts

@@ -84,10 +84,14 @@ export type AgentEventType =
   | "agent:end";
 
 export interface AgentRunInput {
+  profileId: string;
   workflowId: string;
   executionId: string;
   nodeId: string;
   sessionId?: string;
+  userId?: string;
+  approvalToken?: string;
+  checkpointerDbPath?: string;
   userMessage: string;
   triggerPayload: Record<string, any>;
   agent: AiAgentNodeConfig;
