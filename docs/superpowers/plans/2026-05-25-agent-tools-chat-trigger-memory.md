@@ -1261,7 +1261,7 @@ git commit -m "feat: add agent memory policy"
 - Create: `server/src/core/modules/agent-runtime/agent-graph-builder.ts`
 - Create: `server/src/core/modules/agent-runtime/agent-graph-builder.test.ts`
 
-- [ ] **Step 1: Write failing graph builder tests**
+- [x] **Step 1: Write failing graph builder tests**
 
 Tests:
 - builds graph with model and no tools.
@@ -1281,7 +1281,7 @@ node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement graph builder interface**
+- [x] **Step 2: Implement graph builder interface**
 
 ```ts
 export interface BuildAgentGraphInput {
@@ -1297,11 +1297,11 @@ export function buildAgentGraph(input: BuildAgentGraphInput): unknown;
 
 Implementation can use LangGraph `StateGraph` with messages state and explicit tool loop. Keep all LangGraph-specific code inside this file.
 
-- [ ] **Step 3: Verify with fake model**
+- [x] **Step 3: Verify with fake model**
 
 Tests must use fake model/tool implementations. Do not call real providers.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```bash
 cd server
@@ -1311,7 +1311,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/modules/agent-runtime/agent-graph-builder.ts server/src/core/modules/agent-runtime/agent-graph-builder.test.ts
