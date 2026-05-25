@@ -74,13 +74,20 @@ const emit = defineEmits<{
 }>()
 
 const resolvedBodyStyles = computed(() => ({
-  width: '100vw',
-  minHeight: '100vh',
-  margin: '0',
-  padding: '0',
-  gap: '0',
-  ...props.bodyStyles,
+  ...normalizeEditorBodyStyles({
+    width: '100vw',
+    minHeight: '100vh',
+    margin: '0',
+    padding: '0',
+    gap: '0',
+    ...props.bodyStyles,
+  }),
 }))
+
+function normalizeEditorBodyStyles(styles: Record<string, string | number>) {
+  if (styles.width === '100vw') return { ...styles, width: '960px' }
+  return styles
+}
 
 function dropOnRoot(event: DragEvent) {
   if (props.readonly) return

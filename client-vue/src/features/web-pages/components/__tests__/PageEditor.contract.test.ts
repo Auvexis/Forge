@@ -41,6 +41,14 @@ describe('page editor contract', () => {
     assert.doesNotMatch(bodyRule, /padding:\s*var\(--sailor-space-6\)/)
   })
 
+  it('normalizes viewport body width inside the editor canvas frame', () => {
+    const source = read('src/features/web-pages/components/PageCanvas.vue')
+
+    assert.match(source, /normalizeEditorBodyStyles/)
+    assert.match(source, /styles\.width === '100vw'/)
+    assert.match(source, /width: '960px'/)
+  })
+
   it('editor clears selection when clicking empty workspace and supports pan tool panning', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
     const css = read('src/features/web-pages/pages.css')
