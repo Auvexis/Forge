@@ -2386,7 +2386,6 @@ git commit -m "fix: stabilize agent runtime"
 - Modify: `client-vue/src/features/workflow-editor/components/nodes/__tests__/agentNodes.contract.test.ts`
 - Modify: `client-vue/src/features/workflow-editor/utils/workflowRunTrigger.ts`
 - Modify: `client-vue/src/features/workflow-editor/utils/__tests__/workflowRunTrigger.test.ts`
-- Modify: backend chat trigger tests only if current serialized workflow shape needs compatibility handling.
 
 - [ ] **Step 1: Write failing frontend contract tests**
 
@@ -2418,7 +2417,7 @@ Expected UI behavior:
 
 - [ ] **Step 3: Remove separate Chat Trigger palette entry**
 
-Remove the standalone `Chat Trigger` add-node item from AI/utility palette entries. Preserve backend support for saved workflows that already have chat trigger metadata.
+Remove the standalone `Chat Trigger` add-node item from AI/utility palette entries.
 
 - [ ] **Step 4: Wire chat test panel into chat trigger settings**
 
@@ -2550,81 +2549,7 @@ git add client-vue/src/features/workflow-editor/components/nodes client-vue/src/
 git commit -m "feat: rework ai agent canvas cluster"
 ```
 
-### Task 34: Compatibility and Palette Cleanup For Agent Config Nodes
-
-**Files:**
-- Modify: `client-vue/src/features/workflow-editor/components/settings/AddNodePanel.vue`
-- Modify: `client-vue/src/features/workflow-editor/components/settings/nodeInspectorPreview.ts`
-- Modify: `client-vue/src/core/types/workflow.types.ts`
-- Modify: `server/src/shared/models/workflow-types.ts`
-- Modify: `server/src/core/modules/agent-runtime/agent-validation.ts`
-- Modify: relevant frontend/backend tests for workflow type compatibility.
-
-- [ ] **Step 1: Write failing compatibility tests**
-
-Tests must assert:
-- Saved workflows with old standalone chat trigger metadata still load as existing trigger nodes with chat subtype.
-- Add Node panel exposes AI config nodes only as Agent satellite/config nodes.
-- Node previews describe config nodes as `Chat Model`, `Memory`, and `Tool`, matching Agent handle labels.
-- Backend validation accepts current chat trigger metadata on normal trigger nodes.
-- Backend validation does not require a separate `chat-trigger` node type.
-
-Run:
-
-```bash
-cd client-vue
-node --test src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts src/features/workflow-editor/components/nodes/__tests__/agentNodes.contract.test.ts
-cd ../server
-node --test src/core/modules/agent-runtime/agent-validation.test.ts src/core/routes/agent-chat*.test.ts
-```
-
-Expected: fail until compatibility and palette language match the new UX.
-
-- [ ] **Step 2: Normalize palette labels and descriptions**
-
-Keep AI category focused:
-- `AI Agent`
-- `Chat Model`
-- `Memory`
-- `Tool`
-
-Do not list Chat Trigger in the AI category.
-
-- [ ] **Step 3: Add compatibility mapping for old chat trigger shape**
-
-If workflows contain old chat trigger node metadata, map it into the existing trigger node data shape during load/normalization. Keep this mapping isolated in workflow normalization/type utilities, not inside random Vue components.
-
-- [ ] **Step 4: Update previews and docs strings**
-
-Use wording consistent with the visual model:
-- Agent: "Tools Agent"
-- Model: "Chat Model"
-- Memory: "Memory"
-- Tool: plugin/method and side-effect summary.
-
-- [ ] **Step 5: Verify**
-
-Run:
-
-```bash
-cd client-vue
-node --test src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts src/features/workflow-editor/components/nodes/__tests__/agentNodes.contract.test.ts
-npm run type-check
-cd ../server
-node --test src/core/modules/agent-runtime/agent-validation.test.ts src/core/routes/agent-chat*.test.ts
-npm run build
-```
-
-Expected: pass.
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add client-vue/src/features/workflow-editor/components/settings client-vue/src/features/workflow-editor/components/nodes client-vue/src/core/types/workflow.types.ts server/src/shared/models/workflow-types.ts server/src/core/modules/agent-runtime server/src/core/routes
-git commit -m "fix: align agent palette with cluster ux"
-```
-
-### Task 35: Agent Cluster UX Verification
+### Task 34: Agent Cluster UX Verification
 
 **Files:**
 - Modify only files required by failed checks.
@@ -2677,7 +2602,7 @@ Smoke:
 
 - [ ] **Step 5: Update feature map**
 
-Mark Tasks 32-35 complete only after the checks above pass.
+Mark Tasks 32-34 complete only after the checks above pass.
 
 - [ ] **Step 6: Commit**
 
