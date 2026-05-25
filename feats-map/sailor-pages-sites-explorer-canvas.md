@@ -292,7 +292,7 @@ Behavior:
 - Sanitize site CSS/JS with same safety level as existing custom CSS/JS.
 - Keep old page preview route working.
 
-### - [ ] Task 12: Final Verification
+### - [x] Task 12: Final Verification
 
 Commands:
 - `cd server; npm test -- pages`
