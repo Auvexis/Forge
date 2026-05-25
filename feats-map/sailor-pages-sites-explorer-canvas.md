@@ -245,7 +245,7 @@ Behavior:
 - Replace accent color with neutral border/indicator tokens.
 - Avoid glowing accent outlines.
 
-### - [ ] Task 9: Improve Free Canvas
+### - [x] Task 9: Improve Free Canvas
 
 Files:
 - Modify `client-vue/src/features/web-pages/components/PageEditor.vue`

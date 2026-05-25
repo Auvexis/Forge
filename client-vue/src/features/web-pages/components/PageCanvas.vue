@@ -29,6 +29,7 @@
         :selected-block-id="selectedBlockId"
         :drop-intent="dropIntent"
         :deleting-block-ids="deletingBlockIds"
+        :active-tool="activeTool"
         :readonly="readonly"
         @select="handleBlockSelect"
         @drop-block="$emit('drop-block', $event)"

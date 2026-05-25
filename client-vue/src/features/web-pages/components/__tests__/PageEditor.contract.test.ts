@@ -13,7 +13,7 @@ describe('page editor contract', () => {
 
     assert.match(source, /pagesStore\.activePage/)
     assert.match(source, /<PageCanvas/)
-    assert.match(source, /title="Elements"/)
+    assert.match(source, /title="Explorer"/)
     assert.match(source, /title="Inspector"/)
     assert.match(source, /<PageFloatingAddToolbar/)
     assert.doesNotMatch(source, /<BlockLibrary/)
@@ -38,6 +38,25 @@ describe('page editor contract', () => {
     assert.match(source, /panStart/)
     assert.match(css, /web-page-editor__workspace--pan/)
     assert.match(css, /cursor:\s*grab/)
+  })
+
+  it('workspace behaves like a free canvas with pan and zoom controls', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /workspaceZoom/)
+    assert.match(source, /zoomSteps/)
+    assert.match(source, /fitCanvasToWorkspace/)
+    assert.match(source, /isSpacePanActive/)
+    assert.match(source, /event\.button === 1/)
+    assert.match(source, /web-page-editor__plane/)
+    assert.match(source, /transform: `scale\(\$\{workspaceZoom\.value\}\)`/)
+    assert.match(renderer, /draggable="!readonly && activeTool === 'cursor'"/)
+    assert.match(css, /web-page-editor__plane/)
+    assert.match(css, /transform-origin:\s*top center/)
+    assert.match(css, /min-width:\s*2400px/)
+    assert.match(css, /web-page-canvas-controls/)
   })
 
   it('canvas active tools override block cursor feedback', () => {

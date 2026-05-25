@@ -51,7 +51,7 @@
       ref="workspaceRef"
       class="web-page-editor__workspace"
       :class="{
-        'web-page-editor__workspace--pan': activeTool === 'pan',
+        'web-page-editor__workspace--pan': activeTool === 'pan' || isSpacePanActive,
         'web-page-editor__workspace--panning': isPanningWorkspace,
       }"
       @click.self="clearEditorSelection"
@@ -59,6 +59,7 @@
       @pointermove="panWorkspace"
       @pointerup="stopWorkspacePan"
       @pointerleave="stopWorkspacePan"
+      @contextmenu.prevent
     >
       <SiteCodeCanvas
         v-if="activeCodeFile"
@@ -69,50 +70,65 @@
       />
 
       <template v-else>
-        <template v-for="page in pagesStore.pages" :key="page.id">
-          <div class="web-page-editor__page-chip">
-            <button
-              type="button"
-              class="web-page-editor__page-handle"
-              :class="{ 'web-page-editor__page-handle--active': page.id === pagesStore.activePage?.id }"
-              @click="selectTreePage(page.id)"
-            >
-              {{ page.title }}
-            </button>
-            <BaseButton
-              variant="ghost"
-              size="icon"
-              icon-left="trash-2"
-              title="Delete page"
-              @click.stop="deletePageFromBadge(page.id)"
+        <div class="web-page-canvas-controls" @pointerdown.stop>
+          <button
+            v-for="step in zoomSteps"
+            :key="step.value"
+            type="button"
+            :class="{ 'web-page-canvas-controls__button--active': workspaceZoom === step.value }"
+            @click="setWorkspaceZoom(step.value)"
+          >
+            {{ step.label }}
+          </button>
+          <button type="button" @click="fitCanvasToWorkspace">
+            Fit
+          </button>
+        </div>
+        <div class="web-page-editor__plane" :style="workspacePlaneStyle">
+          <template v-for="page in pagesStore.pages" :key="page.id">
+            <div class="web-page-editor__page-chip">
+              <button
+                type="button"
+                class="web-page-editor__page-handle"
+                :class="{ 'web-page-editor__page-handle--active': page.id === pagesStore.activePage?.id }"
+                @click="selectTreePage(page.id)"
+              >
+                {{ page.title }}
+              </button>
+              <BaseButton
+                variant="ghost"
+                size="icon"
+                icon-left="trash-2"
+                title="Delete page"
+                @click.stop="deletePageFromBadge(page.id)"
+              />
+            </div>
+            <PageCanvas
+              :blocks="pageBlocks(page.id)"
+              :body-styles="pageBodyStyles(page.id)"
+              :selected-block-id="page.id === pagesStore.activePage?.id ? editorStore.selectedBlockId : null"
+              :drop-intent="page.id === pagesStore.activePage?.id ? editorStore.dragIntent : null"
+              :deleting-block-ids="deletingBlockIds"
+              :readonly="page.id !== pagesStore.activePage?.id"
+              :active-tool="activeTool"
+              @select="selectCanvasBlock(page.id, $event)"
+              @select-body="selectCanvasBody(page.id)"
+              @drop-block="handlePageDropBlock(page.id, $event)"
+              @drop-root="handlePageDropRoot(page.id, $event)"
+              @drag-intent="setPageDragIntent(page.id, $event)"
+              @clear-drag-intent="clearPageDragIntent(page.id)"
+              @duplicate-block="duplicateBlockFromCanvas"
+              @delete-block="deleteBlockFromCanvas"
+              @inspect-block="handleInspectBlock(page.id, $event)"
             />
+          </template>
+          <div class="web-page-editor__add-page">
+            <BaseButton variant="outline" icon-left="plus" @click="addPageBelowCanvas">
+              Add page
+            </BaseButton>
           </div>
-          <PageCanvas
-            :blocks="pageBlocks(page.id)"
-            :body-styles="pageBodyStyles(page.id)"
-            :selected-block-id="page.id === pagesStore.activePage?.id ? editorStore.selectedBlockId : null"
-            :drop-intent="page.id === pagesStore.activePage?.id ? editorStore.dragIntent : null"
-            :deleting-block-ids="deletingBlockIds"
-            :readonly="page.id !== pagesStore.activePage?.id"
-            :active-tool="activeTool"
-            @select="selectCanvasBlock(page.id, $event)"
-            @select-body="selectCanvasBody(page.id)"
-            @drop-block="handlePageDropBlock(page.id, $event)"
-            @drop-root="handlePageDropRoot(page.id, $event)"
-            @drag-intent="setPageDragIntent(page.id, $event)"
-            @clear-drag-intent="clearPageDragIntent(page.id)"
-            @duplicate-block="duplicateBlockFromCanvas"
-            @delete-block="deleteBlockFromCanvas"
-            @inspect-block="handleInspectBlock(page.id, $event)"
-          />
-        </template>
+        </div>
       </template>
-
-      <div class="web-page-editor__add-page">
-        <BaseButton variant="outline" icon-left="plus" @click="addPageBelowCanvas">
-          Add page
-        </BaseButton>
-      </div>
     </div>
 
     <AppPanel
@@ -206,12 +222,23 @@ type PageCanvasTool = 'cursor' | 'pan' | 'delete'
 const activeTool = ref<PageCanvasTool>('cursor')
 const activeCodeFile = ref<SiteFile | null>(null)
 const deletingBlockIds = ref<string[]>([])
+const workspaceZoom = ref(1)
 const workspaceRef = ref<HTMLElement | null>(null)
 const isPanningWorkspace = ref(false)
+const isSpacePanActive = ref(false)
 const panStart = ref({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0, pointerId: -1 })
+const zoomSteps = [
+  { label: '50%', value: 0.5 },
+  { label: '75%', value: 0.75 },
+  { label: '100%', value: 1 },
+  { label: '125%', value: 1.25 },
+]
 const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
 )
+const workspacePlaneStyle = computed(() => ({
+  transform: `scale(${workspaceZoom.value})`,
+}))
 const activeCodeContent = computed(() => {
   if (!activeCodeFile.value) return ''
   if (activeCodeFile.value.path.startsWith('pages/')) return renderGeneratedHtml(activeCodeFile.value.path)
@@ -267,12 +294,16 @@ function closeRightPanel() {
 
 onMounted(async () => {
   window.addEventListener('keydown', handleKeyboardSave)
+  window.addEventListener('keydown', handleSpacePanKeyDown)
+  window.addEventListener('keyup', handleSpacePanKeyUp)
   await openInitialSite()
   await openRoutePage(route.params.pageId)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeyboardSave)
+  window.removeEventListener('keydown', handleSpacePanKeyDown)
+  window.removeEventListener('keyup', handleSpacePanKeyUp)
 })
 
 async function openInitialSite() {
@@ -354,7 +385,8 @@ function clearEditorSelection() {
 }
 
 function startWorkspacePan(event: PointerEvent) {
-  if (activeTool.value !== 'pan' || !workspaceRef.value) return
+  const shouldPan = activeTool.value === 'pan' || isSpacePanActive.value || event.button === 1
+  if (!shouldPan || !workspaceRef.value) return
   event.preventDefault()
   isPanningWorkspace.value = true
   panStart.value = {
@@ -379,6 +411,16 @@ function stopWorkspacePan(event?: PointerEvent) {
     workspaceRef.value.releasePointerCapture?.(event.pointerId)
   }
   isPanningWorkspace.value = false
+}
+
+function setWorkspaceZoom(value: number) {
+  workspaceZoom.value = value
+}
+
+function fitCanvasToWorkspace() {
+  const viewportWidth = workspaceRef.value?.clientWidth ?? 1200
+  const targetWidth = 1080
+  workspaceZoom.value = Math.max(0.5, Math.min(1.25, Number((viewportWidth / targetWidth).toFixed(2))))
 }
 
 function handlePageDropBlock(
@@ -548,6 +590,21 @@ function handleKeyboardSave(event: KeyboardEvent) {
   if (!event.ctrlKey && !event.metaKey) return
   event.preventDefault()
   void saveActiveDocument()
+}
+
+function handleSpacePanKeyDown(event: KeyboardEvent) {
+  if (event.code !== 'Space' || isTypingInField(event.target)) return
+  isSpacePanActive.value = true
+}
+
+function handleSpacePanKeyUp(event: KeyboardEvent) {
+  if (event.code !== 'Space') return
+  isSpacePanActive.value = false
+}
+
+function isTypingInField(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false
+  return ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable
 }
 
 async function saveActiveDocument() {

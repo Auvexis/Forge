@@ -26,7 +26,7 @@
       class="web-page-block web-page-block-frame__inner"
       :class="blockClasses"
       :style="block.styles"
-      draggable="true"
+      :draggable="!readonly && activeTool === 'cursor'"
       tabindex="0"
       @click.stop="$emit('select', block.id)"
       @dblclick.stop="$emit('inspect-block', block.id)"
@@ -64,6 +64,7 @@
         :selected-block-id="selectedBlockId"
         :drop-intent="dropIntent"
         :deleting-block-ids="deletingBlockIds"
+        :active-tool="activeTool"
         :readonly="readonly"
         @select="$emit('select', $event)"
         @drop-block="$emit('drop-block', $event)"
@@ -84,13 +85,17 @@ import type { InsertPosition } from '../utils/blockTree.ts'
 import type { DropEdge } from '../stores/page-editor.store.ts'
 import { resolveBlockDropIntent } from '../utils/dropIntent.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   block: PageBlock
   selectedBlockId: string | null
   dropIntent?: { targetId: string; position: InsertPosition; dropEdge?: DropEdge } | null
   deletingBlockIds?: string[]
+  activeTool?: 'cursor' | 'pan' | 'delete'
   readonly?: boolean
-}>()
+}>(), {
+  activeTool: 'cursor',
+  deletingBlockIds: () => [],
+})
 
 const emit = defineEmits<{
   select: [blockId: string]
