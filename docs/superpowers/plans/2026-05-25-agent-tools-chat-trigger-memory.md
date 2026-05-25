@@ -668,7 +668,7 @@ git commit -m "feat: add workflow ai node contracts"
 - Create: `server/src/core/modules/agent-runtime/agent-approval-service.ts`
 - Create: `server/src/core/modules/agent-runtime/agent-runtime-repositories.test.ts`
 
-- [ ] **Step 1: Write failing repository tests**
+- [x] **Step 1: Write failing repository tests**
 
 Tests:
 - creates chat session with profile/workflow/session ids.
@@ -690,7 +690,7 @@ node --test src/core/modules/agent-runtime/agent-runtime-repositories.test.ts
 
 Expected: fail.
 
-- [ ] **Step 2: Implement migration**
+- [x] **Step 2: Implement migration**
 
 Create tables:
 
@@ -743,7 +743,7 @@ CREATE TABLE IF NOT EXISTS agent_tool_approvals (
 );
 ```
 
-- [ ] **Step 3: Implement repositories**
+- [x] **Step 3: Implement repositories**
 
 Repository APIs:
 
@@ -767,7 +767,7 @@ export class AgentMemoryStore {
 }
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -779,7 +779,7 @@ npm run build
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/database/migrations/workflows/005_agent_runtime_tables.ts server/src/core/modules/agent-runtime/chat server/src/core/modules/agent-runtime/memory/agent-memory-store.ts server/src/core/modules/agent-runtime/agent-approval-service.ts server/src/core/modules/agent-runtime/agent-runtime-repositories.test.ts
