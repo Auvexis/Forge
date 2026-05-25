@@ -6,16 +6,16 @@ Goal: implement Sailor Agent Tools with Chat Trigger, provider/model nodes, memo
 
 ## Rules
 
-- [ ] Stay on branch `dev`.
+- [x] Stay on branch `dev`.
 - [ ] Use TDD before implementation.
 - [ ] Do not let plugins import core, engines, or other plugins.
 - [ ] Keep agent runtime in core modules.
 - [ ] Commit after each completed implementation task.
-- [ ] Recheck LangChain/LangGraph advisories before installing dependencies.
+- [x] Recheck LangChain/LangGraph advisories before installing dependencies.
 
 ## Task Map
 
-- [ ] Task 1: Dependency Audit and Install
+- [x] Task 1: Dependency Audit and Install
 - [ ] Task 2: Agent Domain Types and Limits
 - [ ] Task 3: Workflow Node Types
 - [ ] Task 4: Agent Runtime Tables and Repositories

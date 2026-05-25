@@ -329,7 +329,7 @@ export interface ChatTriggerConfig {
 - Modify: `server/package-lock.json` if present after install
 - Create: `server/src/core/modules/agent-runtime/dependency-versions.test.ts`
 
-- [ ] **Step 1: Check current dependency tree**
+- [x] **Step 1: Check current dependency tree**
 
 Run:
 
@@ -340,7 +340,7 @@ npm ls @langchain/langgraph @langchain/core @langchain/openai @langchain/langgra
 
 Expected: command exits non-zero or shows packages missing.
 
-- [ ] **Step 2: Check current security advisories**
+- [x] **Step 2: Check current security advisories**
 
 Run:
 
@@ -354,7 +354,7 @@ npm view @langchain/langgraph-checkpoint-sqlite version
 
 Expected: versions are current as of implementation day. Do not proceed if public advisories show vulnerable versions.
 
-- [ ] **Step 3: Install dependencies**
+- [x] **Step 3: Install dependencies**
 
 Run:
 
@@ -365,7 +365,7 @@ npm install @langchain/core@latest @langchain/langgraph@latest @langchain/openai
 
 Expected: install succeeds and package files update.
 
-- [ ] **Step 4: Write dependency floor test**
+- [x] **Step 4: Write dependency floor test**
 
 Create `server/src/core/modules/agent-runtime/dependency-versions.test.ts`:
 
@@ -387,7 +387,7 @@ describe("agent runtime dependency policy", () => {
 });
 ```
 
-- [ ] **Step 5: Run dependency test**
+- [x] **Step 5: Run dependency test**
 
 Run:
 
@@ -399,7 +399,7 @@ npm audit --omit=dev
 
 Expected: test passes; audit has no high/critical vulnerabilities affecting installed runtime packages.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/package.json server/package-lock.json server/src/core/modules/agent-runtime/dependency-versions.test.ts
