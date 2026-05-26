@@ -18,6 +18,50 @@ describe("agent runtime validation", () => {
     assert.equal(validateChatTriggerConfig(validChatTrigger()).type, "chat");
   });
 
+  it("accepts valid AI model configs with plugin id and adapter", () => {
+    const model = validateAiModelConfig({
+      ...validModel(),
+      pluginId: "generic-ai",
+      adapter: "openai-compatible",
+    });
+
+    assert.equal(model.pluginId, "generic-ai");
+    assert.equal(model.adapter, "openai-compatible");
+  });
+
+  it("normalizes legacy OpenAI model configs", () => {
+    const model = validateAiModelConfig(legacyModel("openai"));
+
+    assert.equal(model.pluginId, "openai");
+    assert.equal(model.adapter, "openai-compatible");
+    assert.equal("provider" in model, false);
+  });
+
+  it("normalizes legacy OpenRouter model configs", () => {
+    const model = validateAiModelConfig(legacyModel("openrouter"));
+
+    assert.equal(model.pluginId, "openrouter");
+    assert.equal(model.adapter, "openai-compatible");
+    assert.equal("provider" in model, false);
+  });
+
+  it("rejects unsupported AI model adapters", () => {
+    assert.throws(
+      () =>
+        validateAiModelConfig({
+          ...validModel(),
+          adapter: "hardcoded-openai",
+        }),
+      /adapter/i,
+    );
+  });
+
+  it("rejects new AI model configs without a plugin id", () => {
+    const { pluginId: _pluginId, ...model } = validModel();
+
+    assert.throws(() => validateAiModelConfig(model), /pluginId/i);
+  });
+
   it("rejects prompts over the configured limit", () => {
     assert.throws(
       () =>
@@ -99,12 +143,25 @@ function validAgent() {
 function validModel() {
   return {
     type: "ai-model",
-    name: "OpenAI Model",
-    provider: "openai",
+    name: "Generic AI Model",
+    pluginId: "openai",
+    adapter: "openai-compatible",
     model: "gpt-4.1-mini",
     temperature: 0.2,
     maxTokens: 2048,
     credentialId: "cred_openai",
+  };
+}
+
+function legacyModel(provider: "openai" | "openrouter") {
+  return {
+    type: "ai-model",
+    name: "Legacy AI Model",
+    provider,
+    model: "gpt-4.1-mini",
+    temperature: 0.2,
+    maxTokens: 2048,
+    credentialId: `cred_${provider}`,
   };
 }
 

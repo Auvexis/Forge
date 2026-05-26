@@ -43,7 +43,8 @@ const aiModelSchema = z
   .object({
     type: z.literal("ai-model"),
     name: z.string().trim().min(1).max(120),
-    provider: z.enum(["openai", "openrouter"]),
+    pluginId: z.string().trim().min(1).max(120),
+    adapter: z.enum(["openai-compatible"]),
     model: z.string().trim().min(1).max(160),
     temperature: z.number().min(0).max(2),
     maxTokens: z.number().int().min(1).max(200000).optional(),
@@ -105,7 +106,7 @@ export function validateAiAgentConfig(input: unknown): AiAgentNodeConfig {
 }
 
 export function validateAiModelConfig(input: unknown): AiModelNodeConfig {
-  return parseConfig(aiModelSchema, input, "Invalid AI model config");
+  return parseConfig(aiModelSchema, normalizeLegacyAiModel(input), "Invalid AI model config");
 }
 
 export function validateAiMemoryConfig(input: unknown): AiMemoryNodeConfig {
@@ -118,6 +119,30 @@ export function validateAiToolConfig(input: unknown): AiToolNodeConfig {
 
 export function validateChatTriggerConfig(input: unknown): ChatTriggerConfig {
   return parseConfig(chatTriggerSchema, input, "Invalid chat trigger config");
+}
+
+function normalizeLegacyAiModel(input: unknown): unknown {
+  if (!input || typeof input !== "object") {
+    return input;
+  }
+
+  const value = input as Record<string, unknown>;
+  if (value.type !== "ai-model") {
+    return input;
+  }
+  if (typeof value.pluginId === "string" || typeof value.adapter === "string") {
+    return input;
+  }
+  if (value.provider === "openai" || value.provider === "openrouter") {
+    const { provider, ...config } = value;
+    return {
+      ...config,
+      pluginId: provider,
+      adapter: "openai-compatible",
+    };
+  }
+
+  return input;
 }
 
 function parseConfig<T>(schema: ZodType<T>, input: unknown, message: string): T {

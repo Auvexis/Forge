@@ -16,7 +16,7 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 
 - [x] Task 1: Capability Schema Contracts
 - [x] Task 2: Plugin Capability Declarations
-- [ ] Task 3: Generic Backend AI Model Contract
+- [x] Task 3: Generic Backend AI Model Contract
 - [ ] Task 4: Generic Model Provider Registry
 - [ ] Task 5: Workflow Validation Compatibility
 - [ ] Task 6: Frontend Plugin Capability Types
@@ -37,10 +37,10 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 ## Verification Notes
 
 - [x] Backend plugin loader schema tests pass. `cd server; node --test src/core/modules/plugins/loader.test.ts` passed with 15/15 tests after adding internal OpenAI/OpenRouter manifest capability assertions.
-- [ ] Backend agent runtime tests pass.
+- [x] Backend agent runtime tests pass. `cd server; node --test src/shared/models/workflow-agent-types.test.ts src/core/modules/agent-runtime/agent-validation.test.ts` passed with 15/15 tests after Task 3.
 - [ ] Backend workflow validation tests pass.
 - [ ] Frontend add-node panel contracts pass.
 - [ ] Frontend AI editor contracts pass.
-- [x] Server build passes. `cd server; npm run build` completed successfully after Task 2.
+- [ ] Server build passes. `cd server; npm run build` completed successfully after Task 2. After Task 3, build is blocked by remaining provider-based references in files owned by later tasks (`agent-runtime/model-provider-registry*`, `agent-runtime/model-providers/openai-compatible-provider.ts`, workflow validation/node handler files, and related tests).
 - [ ] Client type-check and build pass.
 - [ ] Manual smoke confirms Chat Models are discovered from plugin manifest metadata.

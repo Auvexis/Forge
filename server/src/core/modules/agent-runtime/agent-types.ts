@@ -1,5 +1,7 @@
 export type AgentMemoryScope = "none" | "session" | "workflow" | "profile" | "user";
 
+export type AgentModelAdapter = "openai-compatible";
+
 export type AgentToolSideEffect =
   | "read"
   | "write"
@@ -23,7 +25,8 @@ export interface AiAgentNodeConfig {
 export interface AiModelNodeConfig {
   type: "ai-model";
   name: string;
-  provider: "openai" | "openrouter";
+  pluginId: string;
+  adapter: AgentModelAdapter;
   model: string;
   temperature: number;
   maxTokens?: number;
