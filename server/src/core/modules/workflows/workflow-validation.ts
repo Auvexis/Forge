@@ -277,12 +277,26 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
         ? `AI Agent node "${nodeId}" must have maxToolCalls >= 0`
         : null;
     case "ai-model":
-      if (!(node.provider === "openai" || node.provider === "openrouter")) {
-        return `AI Model node "${nodeId}" must have provider "openai" or "openrouter"`;
+      {
+        const modelNode = node as unknown as Record<string, unknown>;
+        if ("provider" in modelNode) {
+          if (modelNode.provider === "openai" || modelNode.provider === "openrouter") {
+            return !modelNode.model || typeof modelNode.model !== "string"
+              ? `AI Model node "${nodeId}" must have a model string`
+              : null;
+          }
+          return `AI Model node "${nodeId}" legacy provider must be openai/openrouter or use pluginId + adapter`;
+        }
+        if (!modelNode.pluginId || typeof modelNode.pluginId !== "string") {
+          return `AI Model node "${nodeId}" must have pluginId`;
+        }
+        if (modelNode.adapter !== "openai-compatible") {
+          return `AI Model node "${nodeId}" must have a supported adapter: openai-compatible`;
+        }
+        return !modelNode.model || typeof modelNode.model !== "string"
+          ? `AI Model node "${nodeId}" must have a model string`
+          : null;
       }
-      return !node.model || typeof node.model !== "string"
-        ? `AI Model node "${nodeId}" must have a model string`
-        : null;
     case "ai-memory":
       if (!["none", "session", "workflow", "profile", "user"].includes(node.scope)) {
         return `AI Memory node "${nodeId}" must have a valid scope`;

@@ -87,4 +87,89 @@ describe("workflow validation", () => {
 
     assert.match(error ?? "", /invalid name/);
   });
+
+  it("accepts generic AI model nodes with pluginId and adapter", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        model: {
+          type: "ai-model",
+          name: "Generic Model",
+          pluginId: "generic-ai",
+          adapter: "openai-compatible",
+          model: "gpt-test",
+          temperature: 0,
+        },
+      },
+    }));
+
+    assert.equal(error, null);
+  });
+
+  it("accepts legacy OpenAI provider AI model nodes during migration", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        model: {
+          type: "ai-model",
+          name: "Legacy OpenAI Model",
+          provider: "openai",
+          model: "gpt-test",
+          temperature: 0,
+        } as any,
+      },
+    }));
+
+    assert.equal(error, null);
+  });
+
+  it("rejects unsupported legacy AI model providers with migration guidance", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        model: {
+          type: "ai-model",
+          name: "Bad Legacy Model",
+          provider: "random",
+          model: "gpt-test",
+          temperature: 0,
+        } as any,
+      },
+    }));
+
+    assert.match(error ?? "", /legacy provider/i);
+    assert.match(error ?? "", /openai\/openrouter|openai.*openrouter/i);
+    assert.match(error ?? "", /pluginId.*adapter/i);
+  });
+
+  it("rejects new AI model configs without pluginId", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        model: {
+          type: "ai-model",
+          name: "Missing Plugin",
+          adapter: "openai-compatible",
+          model: "gpt-test",
+          temperature: 0,
+        } as any,
+      },
+    }));
+
+    assert.match(error ?? "", /pluginId/);
+  });
+
+  it("rejects unsupported AI model adapters", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        model: {
+          type: "ai-model",
+          name: "Bad Adapter",
+          pluginId: "generic-ai",
+          adapter: "custom-adapter",
+          model: "gpt-test",
+          temperature: 0,
+        } as any,
+      },
+    }));
+
+    assert.match(error ?? "", /supported adapter/i);
+    assert.match(error ?? "", /openai-compatible/);
+  });
 });

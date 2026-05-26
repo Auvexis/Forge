@@ -115,7 +115,8 @@ describe("workflow executor AI config-node traversal", () => {
         unusedModel: {
           type: "ai-model",
           name: "Unused",
-          provider: "openai",
+          pluginId: "openai",
+          adapter: "openai-compatible",
           model: "unused",
           temperature: 0,
         },
@@ -214,7 +215,8 @@ function workflowFixture(overrides: Partial<WorkflowItem> = {}): WorkflowItem {
       model: {
         type: "ai-model",
         name: "Model",
-        provider: "openai",
+        pluginId: "openai",
+        adapter: "openai-compatible",
         model: "gpt-test",
         temperature: 0,
       },

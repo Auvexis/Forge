@@ -227,7 +227,8 @@ function modelConfig(overrides: Partial<AiModelNodeConfig> = {}): AiModelNodeCon
   return {
     type: "ai-model",
     name: "Model",
-    provider: "openai",
+    pluginId: "openai",
+    adapter: "openai-compatible",
     model: "gpt-test",
     temperature: 0,
     ...overrides,

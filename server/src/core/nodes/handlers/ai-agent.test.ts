@@ -33,6 +33,11 @@ describe("AI workflow node handlers", () => {
 
       assert.equal(output.type, node.type);
       assert.equal(output.name, node.name);
+      if (nodeId === "model") {
+        assert.equal(output.pluginId, "openai");
+        assert.equal(output.adapter, "openai-compatible");
+        assert.equal("provider" in output, false);
+      }
     }
   });
 
@@ -58,6 +63,8 @@ describe("AI workflow node handlers", () => {
     assert.equal(result.output, "agent output");
     assert.ok(received);
     const runCall = received as AgentRunInput;
+    assert.equal(runCall.model.pluginId, "openai");
+    assert.equal(runCall.model.adapter, "openai-compatible");
     assert.equal(runCall.model.model, "gpt-test");
     assert.equal(runCall.memory?.scope, "profile");
     assert.equal(runCall.tools.length, 1);
@@ -188,7 +195,8 @@ function workflowFixture(overrides: Partial<WorkflowItem> = {}): WorkflowItem {
       model: {
         type: "ai-model",
         name: "Model",
-        provider: "openai",
+        pluginId: "openai",
+        adapter: "openai-compatible",
         model: "gpt-test",
         temperature: 0,
       },

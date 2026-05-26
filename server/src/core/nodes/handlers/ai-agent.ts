@@ -81,10 +81,14 @@ function toAgentConfig(node: AiAgentNode): AiAgentNodeConfig {
 }
 
 function toModelConfig(node: AiModelNode): AiModelNodeConfig {
+  const legacyProvider = (node as unknown as { provider?: unknown }).provider;
+  const pluginId = typeof legacyProvider === "string" ? legacyProvider : node.pluginId;
+
   return {
     type: "ai-model",
     name: node.name,
-    provider: node.provider,
+    pluginId,
+    adapter: node.adapter ?? "openai-compatible",
     model: node.model,
     temperature: node.temperature,
     maxTokens: node.maxTokens,

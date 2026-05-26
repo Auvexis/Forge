@@ -205,7 +205,8 @@ function agentWorkflow(): WorkflowItem {
       model: {
         type: "ai-model",
         name: "Fake Model",
-        provider: "openai",
+        pluginId: "openai",
+        adapter: "openai-compatible",
         model: "fake-openai",
         temperature: 0,
       },
