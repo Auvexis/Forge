@@ -125,29 +125,125 @@ function createManager() {
   };
 }
 
+function createValidManifest(overrides: Record<string, unknown> = {}) {
+  return {
+    metadata: {
+      id: "sdk-contract-plugin",
+      name: "SDK Contract Plugin",
+      description: "Checks SDK validation",
+      icon: "plug",
+      category: "test",
+      author: "SAILOR",
+      version: "1.0.0",
+      repository: "",
+      ...overrides,
+    },
+    methods: {
+      ping: {
+        metadata: { label: "Ping", description: "Ping" },
+        parameters: { type: "object", properties: {} },
+        responseSchema: { type: "object", properties: {} },
+      },
+    },
+  };
+}
+
 describe("loadPlugins", () => {
   it("validates manifests using the public Sailor SDK contract", () => {
-    const errors = validateManifest({
-      metadata: {
-        id: "sdk-contract-plugin",
-        name: "SDK Contract Plugin",
-        description: "Checks SDK validation",
-        icon: "plug",
-        category: "test",
-        author: "SAILOR",
-        version: "1.0.0",
-        repository: "",
-      },
-      methods: {
-        ping: {
-          metadata: { label: "Ping", description: "Ping" },
-          parameters: { type: "object", properties: {} },
-          responseSchema: { type: "object", properties: {} },
-        },
-      },
-    });
+    const errors = validateManifest(createValidManifest());
 
     assert.deepEqual(errors, []);
+  });
+
+  it("accepts enabled plugin-level chat model agent capabilities", () => {
+    const errors = validateManifest(
+      createValidManifest({
+        agentCapabilities: {
+          chatModel: {
+            enabled: true,
+            adapter: "openai-compatible",
+            label: "OpenAI Compatible",
+            description: "Provides chat completions through an OpenAI-compatible API endpoint.",
+            defaultModel: "gpt-4.1-mini",
+            defaultBaseUrl: "https://api.example.com/v1",
+            credentialPluginId: "openai",
+          },
+        },
+      }),
+    );
+
+    assert.deepEqual(errors, []);
+  });
+
+  it("rejects enabled chat model agent capabilities missing required display metadata", () => {
+    const errors = validateManifest(
+      createValidManifest({
+        agentCapabilities: {
+          chatModel: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    assert.ok(errors.includes("metadata.agentCapabilities.chatModel must have required property 'adapter'"));
+    assert.ok(errors.includes("metadata.agentCapabilities.chatModel must have required property 'label'"));
+    assert.ok(errors.includes("metadata.agentCapabilities.chatModel must have required property 'description'"));
+    assert.ok(errors.includes("metadata.agentCapabilities.chatModel must have required property 'defaultModel'"));
+  });
+
+  it("rejects unsupported chat model agent capability adapters", () => {
+    const errors = validateManifest(
+      createValidManifest({
+        agentCapabilities: {
+          chatModel: {
+            enabled: true,
+            adapter: "not-openai",
+            label: "Unsupported Adapter",
+            description: "Provides chat completions through an unsupported test adapter.",
+            defaultModel: "test-model",
+          },
+        },
+      }),
+    );
+
+    assert.ok(
+      errors.some((error) => error.includes("openai-compatible")),
+      `Expected an error mentioning openai-compatible, got: ${errors.join("; ")}`,
+    );
+  });
+
+  it("accepts enabled plugin-level memory store agent capabilities", () => {
+    const errors = validateManifest(
+      createValidManifest({
+        agentCapabilities: {
+          memoryStore: {
+            enabled: true,
+            adapter: "plugin-memory-store",
+            label: "Plugin Memory",
+            description: "Stores and retrieves agent memory through this plugin capability.",
+          },
+        },
+      }),
+    );
+
+    assert.deepEqual(errors, []);
+  });
+
+  it("rejects enabled memory store agent capabilities missing required metadata", () => {
+    const errors = validateManifest(
+      createValidManifest({
+        agentCapabilities: {
+          memoryStore: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    assert.ok(errors.includes("metadata.agentCapabilities.memoryStore must have required property 'adapter'"));
+    assert.ok(errors.includes("metadata.agentCapabilities.memoryStore must have required property 'label'"));
+    assert.ok(errors.includes("metadata.agentCapabilities.memoryStore must have required property 'description'"));
   });
 
   it("accepts light and dark plugin metadata icons through the public Sailor SDK contract", () => {

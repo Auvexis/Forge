@@ -41,12 +41,59 @@ const agentToolSideEffects = [
 
 function buildSailorManifestSchema(): any {
   const schema = structuredClone(manifestSchema as any);
+  const metadataDefinition = schema.properties.metadata;
   const methodDefinition = schema.$defs.MethodDefinition;
   const triggerDefinition = schema.$defs.TriggerDefinition;
 
   schema.properties["x-created-by"] = { const: "sailor-plugin-creator" };
   schema.properties["x-creator-version"] = { type: "string" };
   schema.properties["x-editable-low-code"] = { type: "boolean" };
+
+  metadataDefinition.properties.agentCapabilities = {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      chatModel: {
+        type: "object",
+        required: ["enabled"],
+        additionalProperties: false,
+        properties: {
+          enabled: { type: "boolean" },
+          adapter: { enum: ["openai-compatible"] },
+          label: { type: "string", minLength: 2, maxLength: 120 },
+          description: { type: "string", minLength: 20, maxLength: 1000 },
+          defaultModel: { type: "string", minLength: 1, maxLength: 200 },
+          defaultBaseUrl: { type: "string", format: "uri" },
+          credentialPluginId: { type: "string", minLength: 1, maxLength: 120 },
+        },
+        if: {
+          properties: { enabled: { const: true } },
+          required: ["enabled"],
+        },
+        then: {
+          required: ["adapter", "label", "description", "defaultModel"],
+        },
+      },
+      memoryStore: {
+        type: "object",
+        required: ["enabled"],
+        additionalProperties: false,
+        properties: {
+          enabled: { type: "boolean" },
+          adapter: { enum: ["sailor-internal", "plugin-memory-store"] },
+          label: { type: "string", minLength: 2, maxLength: 120 },
+          description: { type: "string", minLength: 20, maxLength: 1000 },
+        },
+        if: {
+          properties: { enabled: { const: true } },
+          required: ["enabled"],
+        },
+        then: {
+          required: ["adapter", "label", "description"],
+        },
+      },
+    },
+  };
 
   triggerDefinition.required = ["metadata", "delivery", "payloadSchema"];
   triggerDefinition.additionalProperties = false;

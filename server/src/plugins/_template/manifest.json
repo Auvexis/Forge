@@ -9,7 +9,15 @@
     "category": "Productivity",
     "author": "Your Name or Org",
     "version": "1.0.0",
-    "repository": "https://github.com/yourusername/my-plugin"
+    "repository": "https://github.com/yourusername/my-plugin",
+    "agentCapabilities": {
+      "chatModel": {
+        "enabled": false
+      },
+      "memoryStore": {
+        "enabled": false
+      }
+    }
   },
   "methods": {
     "listItems": {

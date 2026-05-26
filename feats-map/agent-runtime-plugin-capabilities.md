@@ -10,11 +10,11 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] Keep plugins isolated from Core/engines/other plugins.
 - [x] Use TDD before implementation.
 - [x] Update manifest JSON Schema.
-- [ ] Commit after each completed implementation task.
+- [x] Commit after each completed implementation task.
 
 ## Task Map
 
-- [ ] Task 1: Capability Schema Contracts
+- [x] Task 1: Capability Schema Contracts
 - [ ] Task 2: Plugin Capability Declarations
 - [ ] Task 3: Generic Backend AI Model Contract
 - [ ] Task 4: Generic Model Provider Registry
@@ -36,11 +36,11 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 
 ## Verification Notes
 
-- [ ] Backend plugin loader schema tests pass.
+- [x] Backend plugin loader schema tests pass. `cd server; node --test src/core/modules/plugins/loader.test.ts` passed with 14/14 tests.
 - [ ] Backend agent runtime tests pass.
 - [ ] Backend workflow validation tests pass.
 - [ ] Frontend add-node panel contracts pass.
 - [ ] Frontend AI editor contracts pass.
-- [ ] Server build passes.
+- [x] Server build passes. `cd server; npm run build` completed successfully.
 - [ ] Client type-check and build pass.
 - [ ] Manual smoke confirms Chat Models are discovered from plugin manifest metadata.
