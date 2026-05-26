@@ -139,6 +139,9 @@ function normalizeLegacyAiModel(input: unknown): unknown {
       ...config,
       pluginId: provider,
       adapter: "openai-compatible",
+      ...(provider === "openrouter" && !config.baseUrl
+        ? { baseUrl: "https://openrouter.ai/api/v1" }
+        : {}),
     };
   }
 

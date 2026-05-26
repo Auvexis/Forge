@@ -34,14 +34,40 @@ describe("agent runtime validation", () => {
 
     assert.equal(model.pluginId, "openai");
     assert.equal(model.adapter, "openai-compatible");
+    assert.equal(model.baseUrl, undefined);
     assert.equal("provider" in model, false);
   });
 
-  it("normalizes legacy OpenRouter model configs", () => {
+  it("preserves legacy OpenAI base URL when configured", () => {
+    const model = validateAiModelConfig({
+      ...legacyModel("openai"),
+      baseUrl: "https://proxy.example.test/v1",
+    });
+
+    assert.equal(model.pluginId, "openai");
+    assert.equal(model.adapter, "openai-compatible");
+    assert.equal(model.baseUrl, "https://proxy.example.test/v1");
+    assert.equal("provider" in model, false);
+  });
+
+  it("normalizes legacy OpenRouter model configs with the OpenRouter base URL", () => {
     const model = validateAiModelConfig(legacyModel("openrouter"));
 
     assert.equal(model.pluginId, "openrouter");
     assert.equal(model.adapter, "openai-compatible");
+    assert.equal(model.baseUrl, "https://openrouter.ai/api/v1");
+    assert.equal("provider" in model, false);
+  });
+
+  it("preserves legacy OpenRouter base URL when configured", () => {
+    const model = validateAiModelConfig({
+      ...legacyModel("openrouter"),
+      baseUrl: "https://custom-openrouter.example.test/v1",
+    });
+
+    assert.equal(model.pluginId, "openrouter");
+    assert.equal(model.adapter, "openai-compatible");
+    assert.equal(model.baseUrl, "https://custom-openrouter.example.test/v1");
     assert.equal("provider" in model, false);
   });
 
