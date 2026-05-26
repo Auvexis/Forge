@@ -41,6 +41,30 @@ describe("AI workflow node handlers", () => {
     }
   });
 
+  it("normalizes legacy OpenRouter model handler output with the OpenRouter base URL", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture({
+      nodes: {
+        ...workflowFixture().nodes,
+        model: {
+          type: "ai-model",
+          name: "OpenRouter Model",
+          provider: "openrouter",
+          model: "openai/gpt-test",
+          temperature: 0,
+        } as any,
+      },
+    });
+    const output = await registry
+      .get("ai-model")
+      .execute(handlerInput("model", workflow.nodes.model, workflow, contextFixture()));
+
+    assert.equal(output.pluginId, "openrouter");
+    assert.equal(output.adapter, "openai-compatible");
+    assert.equal(output.baseUrl, "https://openrouter.ai/api/v1");
+    assert.equal("provider" in output, false);
+  });
+
   it("finds connected model, memory, and tool nodes for the AI Agent", async () => {
     const registry = createUtilityNodeRegistry();
     const workflow = workflowFixture();
