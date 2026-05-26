@@ -19,7 +19,7 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] Task 3: Generic Backend AI Model Contract
 - [x] Task 4: Generic Model Provider Registry
 - [x] Task 5: Workflow Validation Compatibility
-- [ ] Task 6: Frontend Plugin Capability Types
+- [x] Task 6: Frontend Plugin Capability Types
 - [ ] Task 7: Manifest-Driven Add Node Panel
 - [ ] Task 8: Generic AI Model Editor And Auth Resolution
 - [ ] Task 9: Documentation And Legacy Cleanup
@@ -41,8 +41,8 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] Backend model provider registry tests pass. `cd server; node --test src/core/modules/agent-runtime/model-provider-registry.test.ts` failed before Task 4 implementation because registry still resolved `config.provider`; after Task 4, `cd server; node --test src/core/modules/agent-runtime/model-provider-registry.test.ts src/core/modules/agent-runtime/agent-runner.test.ts` passed with 16/16 tests.
 - [x] Backend workflow validation tests pass. `cd server; node --test src/core/modules/workflows/workflow-validation.test.ts src/core/modules/workflows/agent-config-node-execution.test.ts src/core/nodes/handlers/ai-agent.test.ts` passed with 20/20 tests after Task 5.
 - [x] Backend agent compatibility suite passes. `cd server; node --test src/core/modules/agent-runtime/agent-validation.test.ts src/core/modules/agent-runtime/model-provider-registry.test.ts src/core/modules/agent-runtime/agent-runner.test.ts src/core/routes/agent-chat-workflow.integration.test.ts` passed with 30/30 tests after Task 5.
-- [ ] Frontend add-node panel contracts pass.
-- [ ] Frontend AI editor contracts pass.
+- [ ] Frontend add-node panel contracts pass. Task 6 rerun: `cd client-vue; node --test src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts` reports 16/17 passing; remaining failure is pre-existing/unowned `agentAddNode.contract.test.ts` expecting `AGENT_CONFIG_TOOLS_PER_ROW = 4` in `SailorWorkflowCanvas.vue`.
+- [x] Frontend AI editor contracts pass. Task 6 added source-contract coverage for `agentCapabilities`, `chatModel`, `memoryStore`, `AgentModelAdapter`, `pluginId`, and `adapter`; the new contract failed before type implementation and passed afterward.
 - [x] Server build passes. `cd server; npm run build` completed successfully after Task 5. Adjacent backend fixtures updated for the new `AiModel` shape: `server/src/core/modules/agent-runtime/agent-runner.test.ts` and `server/src/core/routes/agent-chat-workflow.integration.test.ts`.
-- [ ] Client type-check and build pass.
+- [x] Client type-check passes. `cd client-vue; npm run type-check` completed successfully after Task 6.
 - [ ] Manual smoke confirms Chat Models are discovered from plugin manifest metadata.

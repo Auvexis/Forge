@@ -44,6 +44,25 @@ test('ai model editor exposes provider, model, temperature, token limits, and cr
   assert.match(source, /BaseSelect/)
 })
 
+test('frontend agent runtime types expose plugin capability and generic model contracts', () => {
+  const pluginTypes = read('src/core/types/plugin.types.ts')
+  const workflowTypes = read('src/core/types/workflow.types.ts')
+  const agentTypes = read('src/features/agent-runtime/types/agent.types.ts')
+
+  assert.match(pluginTypes, /agentCapabilities/)
+  assert.match(pluginTypes, /chatModel/)
+  assert.match(pluginTypes, /memoryStore/)
+  assert.match(pluginTypes, /AgentModelAdapter/)
+
+  assert.match(workflowTypes, /pluginId/)
+  assert.match(workflowTypes, /adapter/)
+  assert.match(workflowTypes, /AgentModelAdapter/)
+
+  assert.match(agentTypes, /pluginId/)
+  assert.match(agentTypes, /adapter/)
+  assert.match(agentTypes, /AgentModelAdapter/)
+})
+
 test('ai memory editor exposes scope, read and write toggles, and retrieval limits', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/AiMemoryEditor.vue')
   const picker = read('src/features/workflow-editor/components/agent/AgentMemoryScopePicker.vue')

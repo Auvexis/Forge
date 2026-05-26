@@ -1,5 +1,7 @@
 export type AgentMemoryScope = 'none' | 'session' | 'workflow' | 'profile' | 'user'
 
+export type AgentModelAdapter = 'openai-compatible'
+
 export type AgentToolSideEffect =
   | 'read'
   | 'write'
@@ -9,6 +11,53 @@ export type AgentToolSideEffect =
   | 'filesystem'
 
 export type AgentChatMessageRole = 'user' | 'assistant' | 'tool' | 'system'
+
+export interface AiAgentNodeConfig {
+  type: 'ai-agent'
+  name: string
+  prompt: string
+  maxIterations: number
+  maxToolCalls: number
+  timeoutMs: number
+  requireApprovalForSideEffects: AgentToolSideEffect[]
+  outputMode: 'text' | 'json'
+  outputSchema?: Record<string, any>
+}
+
+export interface AiModelNodeConfig {
+  type: 'ai-model'
+  name: string
+  pluginId: string
+  adapter: AgentModelAdapter
+  model: string
+  temperature: number
+  maxTokens?: number
+  credentialId?: string
+  baseUrl?: string
+  provider?: 'openai' | 'openrouter'
+}
+
+export interface AiMemoryNodeConfig {
+  type: 'ai-memory'
+  name: string
+  scope: AgentMemoryScope
+  readEnabled: boolean
+  writeEnabled: boolean
+  maxRetrievedMemories: number
+  maxMemoryChars: number
+}
+
+export interface AiToolNodeConfig {
+  type: 'ai-tool'
+  name: string
+  pluginId: string
+  methodId: string
+  descriptionOverride?: string
+  timeoutMs: number
+  requiresApproval: boolean
+  sideEffect: AgentToolSideEffect
+  inputDefaults?: Record<string, any>
+}
 
 export interface AgentChatSession {
   id: string

@@ -28,6 +28,8 @@ export type WorkflowNodeType =
 
 export type AgentMemoryScope = 'none' | 'session' | 'workflow' | 'profile' | 'user'
 
+export type AgentModelAdapter = 'openai-compatible'
+
 export type AgentToolSideEffect =
   | 'read'
   | 'write'
@@ -231,12 +233,14 @@ export interface AiAgentNode extends WorkflowNodeBase {
 
 export interface AiModelNode extends WorkflowNodeBase {
   type: 'ai-model'
-  provider: 'openai' | 'openrouter'
+  pluginId: string
+  adapter: AgentModelAdapter
   model: string
   temperature: number
   maxTokens?: number
   credentialId?: string
   baseUrl?: string
+  provider?: 'openai' | 'openrouter'
 }
 
 export interface AiMemoryNode extends WorkflowNodeBase {

@@ -40,6 +40,31 @@ export interface PluginStatusResponse {
 
 // ── Plugin Metadata ──────────────────────────────────────────
 
+export type AgentModelAdapter = 'openai-compatible'
+export type AgentMemoryAdapter = 'sailor-internal' | 'plugin-memory-store'
+
+export interface PluginAgentChatModelCapability {
+  enabled: boolean
+  adapter?: AgentModelAdapter
+  label?: string
+  description?: string
+  defaultModel?: string
+  defaultBaseUrl?: string
+  credentialPluginId?: string
+}
+
+export interface PluginAgentMemoryStoreCapability {
+  enabled: boolean
+  adapter?: AgentMemoryAdapter
+  label?: string
+  description?: string
+}
+
+export interface PluginAgentCapabilities {
+  chatModel?: PluginAgentChatModelCapability
+  memoryStore?: PluginAgentMemoryStoreCapability
+}
+
 export interface PluginMetadata {
   id: string
   name: string
@@ -52,6 +77,7 @@ export interface PluginMetadata {
   version: string
   repository: string
   utility?: boolean
+  agentCapabilities?: PluginAgentCapabilities
   style?: {
     icon?: string
     iconColor?: string
