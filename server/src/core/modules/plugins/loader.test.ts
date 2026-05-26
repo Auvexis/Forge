@@ -148,6 +148,10 @@ function createValidManifest(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function readInternalManifest(pluginId: string) {
+  return JSON.parse(fs.readFileSync(path.resolve("src/plugins/sailor", pluginId, "manifest.json"), "utf8")) as any;
+}
+
 describe("loadPlugins", () => {
   it("validates manifests using the public Sailor SDK contract", () => {
     const errors = validateManifest(createValidManifest());
@@ -211,6 +215,17 @@ describe("loadPlugins", () => {
       errors.some((error) => error.includes("openai-compatible")),
       `Expected an error mentioning openai-compatible, got: ${errors.join("; ")}`,
     );
+  });
+
+  it("validates internal OpenAI-compatible chat model provider manifests", () => {
+    for (const pluginId of ["openai", "openrouter"]) {
+      const manifest = readInternalManifest(pluginId);
+      const errors = validateManifest(manifest);
+
+      assert.deepEqual(errors, [], `${pluginId} manifest should validate`);
+      assert.equal(manifest.metadata.agentCapabilities?.chatModel?.enabled, true);
+      assert.equal(manifest.metadata.agentCapabilities.chatModel.adapter, "openai-compatible");
+    }
   });
 
   it("accepts enabled plugin-level memory store agent capabilities", () => {

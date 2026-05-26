@@ -9,7 +9,18 @@
     "category": "AI",
     "author": "Sailor",
     "version": "1.0.0",
-    "repository": "https://github.com/Auvexis/sailor"
+    "repository": "https://github.com/Auvexis/sailor",
+    "agentCapabilities": {
+      "chatModel": {
+        "enabled": true,
+        "adapter": "openai-compatible",
+        "label": "OpenAI Chat Model",
+        "description": "Use OpenAI-compatible chat completions as an Agent Chat Model.",
+        "defaultModel": "gpt-4.1-mini",
+        "defaultBaseUrl": "https://api.openai.com/v1",
+        "credentialPluginId": "openai"
+      }
+    }
   },
   "methods": {
     "listModels": {
