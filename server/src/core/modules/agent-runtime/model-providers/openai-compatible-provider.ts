@@ -7,29 +7,27 @@ export type AgentCredentialResolver = (
 ) => Record<string, string> | null | undefined;
 
 export interface OpenAiCompatibleProviderOptions {
-  id?: "openai" | "openrouter";
   credentialResolver: AgentCredentialResolver;
   createModel?: (config: Record<string, any>) => unknown;
 }
 
 export class OpenAiCompatibleProvider {
-  public readonly id: "openai" | "openrouter";
+  public readonly adapter = "openai-compatible";
   private readonly credentialResolver: AgentCredentialResolver;
   private readonly createModel: (config: Record<string, any>) => unknown;
 
   constructor(options: OpenAiCompatibleProviderOptions) {
-    this.id = options.id ?? "openai";
     this.credentialResolver = options.credentialResolver;
     this.createModel = options.createModel ?? ((config) => new ChatOpenAI(config));
   }
 
   async createChatModel(config: AiModelNodeConfig): Promise<unknown> {
-    const credentials = this.credentialResolver(config.credentialId);
+    const credentials = this.resolveCredentials(config);
     const apiKey = credentials?.api_key ?? credentials?.apiKey ?? credentials?.token;
 
     if (!apiKey) {
       throw new AgentRuntimeError(
-        `Missing model credentials for ${config.provider}`,
+        `Missing model credentials for ${config.pluginId}`,
         "AGENT_MODEL_CREDENTIAL_MISSING",
         "Model credentials are missing",
         400,
@@ -43,15 +41,30 @@ export class OpenAiCompatibleProvider {
       apiKey,
     };
 
-    if (config.provider === "openrouter" || config.baseUrl) {
+    if (config.baseUrl) {
       modelConfig.configuration = {
-        baseURL: config.baseUrl ?? "https://openrouter.ai/api/v1",
+        baseURL: config.baseUrl,
       };
     }
 
     const model = this.createModel(modelConfig);
     return hideSecretConfig(model, apiKey);
   }
+
+  private resolveCredentials(
+    config: AiModelNodeConfig,
+  ): Record<string, string> | null | undefined {
+    if (config.credentialId) {
+      const credentials = this.credentialResolver(config.credentialId);
+      if (hasApiKey(credentials)) return credentials;
+    }
+
+    return this.credentialResolver(config.pluginId);
+  }
+}
+
+function hasApiKey(credentials: Record<string, string> | null | undefined): boolean {
+  return Boolean(credentials?.api_key ?? credentials?.apiKey ?? credentials?.token);
 }
 
 function clampTemperature(value: number): number {

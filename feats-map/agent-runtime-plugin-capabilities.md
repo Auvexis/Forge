@@ -17,7 +17,7 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] Task 1: Capability Schema Contracts
 - [x] Task 2: Plugin Capability Declarations
 - [x] Task 3: Generic Backend AI Model Contract
-- [ ] Task 4: Generic Model Provider Registry
+- [x] Task 4: Generic Model Provider Registry
 - [ ] Task 5: Workflow Validation Compatibility
 - [ ] Task 6: Frontend Plugin Capability Types
 - [ ] Task 7: Manifest-Driven Add Node Panel
@@ -38,9 +38,10 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 
 - [x] Backend plugin loader schema tests pass. `cd server; node --test src/core/modules/plugins/loader.test.ts` passed with 15/15 tests after adding internal OpenAI/OpenRouter manifest capability assertions.
 - [x] Backend agent runtime tests pass. `cd server; node --test src/shared/models/workflow-agent-types.test.ts src/core/modules/agent-runtime/agent-validation.test.ts` passed with 15/15 tests after Task 3.
+- [x] Backend model provider registry tests pass. `cd server; node --test src/core/modules/agent-runtime/model-provider-registry.test.ts` failed before Task 4 implementation because registry still resolved `config.provider`; after Task 4, `cd server; node --test src/core/modules/agent-runtime/model-provider-registry.test.ts src/core/modules/agent-runtime/agent-runner.test.ts` passed with 16/16 tests.
 - [ ] Backend workflow validation tests pass.
 - [ ] Frontend add-node panel contracts pass.
 - [ ] Frontend AI editor contracts pass.
-- [ ] Server build passes. `cd server; npm run build` completed successfully after Task 2. After Task 3, build is blocked by remaining provider-based references in files owned by later tasks (`agent-runtime/model-provider-registry*`, `agent-runtime/model-providers/openai-compatible-provider.ts`, workflow validation/node handler files, and related tests).
+- [ ] Server build passes. `cd server; npm run build` completed successfully after Task 2. After Task 4, build is still blocked by remaining provider-based references in unowned Task 5 files/tests: `agent-runtime/agent-runner.test.ts`, `workflows/agent-config-node-execution.test.ts`, `workflows/workflow-validation.ts`, `nodes/handlers/ai-agent.test.ts`, `nodes/handlers/ai-agent.ts`, `nodes/handlers/ai-model.ts`, and `routes/agent-chat-workflow.integration.test.ts`.
 - [ ] Client type-check and build pass.
 - [ ] Manual smoke confirms Chat Models are discovered from plugin manifest metadata.

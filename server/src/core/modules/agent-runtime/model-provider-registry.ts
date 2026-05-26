@@ -7,7 +7,7 @@ import {
 } from "./model-providers/openai-compatible-provider.ts";
 
 export interface AgentModelProvider {
-  id: string;
+  adapter: string;
   createChatModel(config: AiModelNodeConfig): Promise<unknown>;
 }
 
@@ -23,21 +23,18 @@ export class AgentModelProviderRegistry {
     const credentialResolver = options.credentialResolver ?? defaultCredentialResolver;
     const providers =
       options.providers ??
-      [
-        new OpenAiCompatibleProvider({ id: "openai", credentialResolver }),
-        new OpenAiCompatibleProvider({ id: "openrouter", credentialResolver }),
-      ];
+      [new OpenAiCompatibleProvider({ credentialResolver })];
 
     for (const provider of providers) {
-      this.providers.set(provider.id, provider);
+      this.providers.set(provider.adapter, provider);
     }
   }
 
   async createChatModel(config: AiModelNodeConfig): Promise<unknown> {
-    const provider = this.providers.get(config.provider);
+    const provider = this.providers.get(config.adapter);
     if (!provider) {
       throw new AgentRuntimeError(
-        `Unknown model provider: ${config.provider}`,
+        `Unknown model adapter: ${config.adapter}`,
         "AGENT_MODEL_PROVIDER_UNKNOWN",
       );
     }

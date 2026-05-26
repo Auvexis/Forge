@@ -6,7 +6,7 @@ import { OpenAiCompatibleProvider } from "./model-providers/openai-compatible-pr
 import type { AiModelNodeConfig } from "./agent-types.ts";
 
 describe("agent model provider registry", () => {
-  it("resolves OpenAI provider with credential id", async () => {
+  it("creates an OpenAI-compatible model for an arbitrary plugin id", async () => {
     const registry = new AgentModelProviderRegistry({
       credentialResolver: () => ({ api_key: "sk-test" }),
     });
@@ -16,36 +16,73 @@ describe("agent model provider registry", () => {
     assert.ok(model);
   });
 
-  it("resolves OpenRouter provider with a compatible base URL", async () => {
+  it("uses credential id first and falls back to plugin credentials when unusable", async () => {
+    const resolvedIds: Array<string | undefined> = [];
+    const registry = new AgentModelProviderRegistry({
+      credentialResolver: (credentialId) => {
+        resolvedIds.push(credentialId);
+        if (credentialId === "cred_generic") return credentials({ token: "" });
+        if (credentialId === "generic-ai") return credentials({ apiKey: "sk-plugin" });
+        return null;
+      },
+    });
+
+    const model = await registry.createChatModel(modelConfig());
+
+    assert.ok(model);
+    assert.deepEqual(resolvedIds, ["cred_generic", "generic-ai"]);
+  });
+
+  it("falls back to plugin credentials when credential id is missing", async () => {
+    const resolvedIds: Array<string | undefined> = [];
+    const registry = new AgentModelProviderRegistry({
+      credentialResolver: (credentialId) => {
+        resolvedIds.push(credentialId);
+        return credentialId === "generic-ai" ? { api_key: "sk-plugin" } : null;
+      },
+    });
+
+    const model = await registry.createChatModel({
+      ...modelConfig(),
+      credentialId: undefined,
+    });
+
+    assert.ok(model);
+    assert.deepEqual(resolvedIds, ["generic-ai"]);
+  });
+
+  it("uses config base URL for OpenAI-compatible models without plugin-specific branches", async () => {
     const created: any[] = [];
     const provider = new OpenAiCompatibleProvider({
-      id: "openrouter",
       credentialResolver: () => ({ api_key: "or-test" }),
       createModel: (config) => {
         created.push(config);
         return { kind: "fake-model", config };
       },
     });
-    const registry = new AgentModelProviderRegistry({ providers: [provider] });
 
-    const model = await registry.createChatModel({
+    const model = await provider.createChatModel({
       ...modelConfig(),
-      provider: "openrouter",
-      baseUrl: "https://openrouter.ai/api/v1",
+      pluginId: "not-openrouter",
+      baseUrl: "https://generic.example.test/v1",
     });
 
     assert.equal((model as any).kind, "fake-model");
-    assert.equal(created[0].configuration.baseURL, "https://openrouter.ai/api/v1");
+    assert.equal(created[0].configuration.baseURL, "https://generic.example.test/v1");
   });
 
-  it("rejects unknown providers", async () => {
+  it("rejects unknown adapters", async () => {
     const registry = new AgentModelProviderRegistry({
       credentialResolver: () => ({ api_key: "sk-test" }),
     });
 
     await assert.rejects(
-      registry.createChatModel({ ...modelConfig(), provider: "unknown" } as any),
-      /unknown model provider/i,
+      registry.createChatModel({ ...modelConfig(), adapter: "unknown-adapter" } as any),
+      (error) =>
+        error instanceof AgentRuntimeError &&
+        error.code === "AGENT_MODEL_PROVIDER_UNKNOWN" &&
+        /unknown-adapter/.test(error.message) &&
+        /adapter/i.test(error.message),
     );
   });
 
@@ -92,11 +129,16 @@ describe("agent model provider registry", () => {
 function modelConfig(): AiModelNodeConfig {
   return {
     type: "ai-model",
-    name: "OpenAI",
-    provider: "openai",
+    name: "Generic AI",
+    pluginId: "generic-ai",
+    adapter: "openai-compatible",
     model: "gpt-4.1-mini",
     temperature: 0.2,
     maxTokens: 1000,
-    credentialId: "cred_openai",
+    credentialId: "cred_generic",
   };
+}
+
+function credentials(values: Record<string, string>): Record<string, string> {
+  return values;
 }
