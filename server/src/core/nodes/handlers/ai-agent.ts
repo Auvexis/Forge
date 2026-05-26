@@ -1,4 +1,5 @@
 import { AgentRuntimeService } from "../../modules/agent-runtime/agent-runtime-service.ts";
+import { validateAiModelConfig } from "../../modules/agent-runtime/agent-validation.ts";
 import type {
   AgentRunInput,
   AiAgentNodeConfig,
@@ -82,19 +83,19 @@ function toAgentConfig(node: AiAgentNode): AiAgentNodeConfig {
 
 function toModelConfig(node: AiModelNode): AiModelNodeConfig {
   const legacyProvider = (node as unknown as { provider?: unknown }).provider;
-  const pluginId = typeof legacyProvider === "string" ? legacyProvider : node.pluginId;
 
-  return {
+  return validateAiModelConfig({
     type: "ai-model",
     name: node.name,
-    pluginId,
-    adapter: node.adapter ?? "openai-compatible",
+    ...(typeof legacyProvider === "string"
+      ? { provider: legacyProvider }
+      : { pluginId: node.pluginId, adapter: node.adapter }),
     model: node.model,
     temperature: node.temperature,
     maxTokens: node.maxTokens,
     credentialId: node.credentialId,
     baseUrl: node.baseUrl,
-  };
+  });
 }
 
 function toMemoryConfig(node: AiMemoryNode): AiMemoryNodeConfig {

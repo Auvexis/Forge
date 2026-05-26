@@ -71,6 +71,79 @@ describe("AI workflow node handlers", () => {
     assert.equal(runCall.tools[0].methodId, "lookup");
   });
 
+  it("normalizes legacy OpenRouter model nodes with the OpenRouter base URL", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture({
+      nodes: {
+        ...workflowFixture().nodes,
+        model: {
+          type: "ai-model",
+          name: "OpenRouter Model",
+          provider: "openrouter",
+          model: "openai/gpt-test",
+          temperature: 0,
+        } as any,
+      },
+    });
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "ok",
+        toolCallCount: 0,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", workflow.nodes.agent, workflow, contextFixture()));
+
+    assert.ok(received);
+    const runCall = received as AgentRunInput;
+    assert.equal(runCall.model.pluginId, "openrouter");
+    assert.equal(runCall.model.adapter, "openai-compatible");
+    assert.equal(runCall.model.baseUrl, "https://openrouter.ai/api/v1");
+  });
+
+  it("preserves custom base URL on legacy OpenRouter model nodes", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture({
+      nodes: {
+        ...workflowFixture().nodes,
+        model: {
+          type: "ai-model",
+          name: "Custom OpenRouter Model",
+          provider: "openrouter",
+          model: "openai/gpt-test",
+          temperature: 0,
+          baseUrl: "https://proxy.example.com/v1",
+        } as any,
+      },
+    });
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "ok",
+        toolCallCount: 0,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", workflow.nodes.agent, workflow, contextFixture()));
+
+    assert.ok(received);
+    const runCall = received as AgentRunInput;
+    assert.equal(runCall.model.pluginId, "openrouter");
+    assert.equal(runCall.model.adapter, "openai-compatible");
+    assert.equal(runCall.model.baseUrl, "https://proxy.example.com/v1");
+  });
+
   it("passes trigger payload and workflow context to AgentRuntimeService.runAgent", async () => {
     const registry = createUtilityNodeRegistry();
     const workflow = workflowFixture();
