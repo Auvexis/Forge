@@ -237,6 +237,8 @@ describe("loadPlugins", () => {
             adapter: "plugin-memory-store",
             label: "Plugin Memory",
             description: "Stores and retrieves agent memory through this plugin capability.",
+            searchMethodId: "searchAgentMemory",
+            putMethodId: "putAgentMemory",
           },
         },
       }),
@@ -259,6 +261,19 @@ describe("loadPlugins", () => {
     assert.ok(errors.includes("metadata.agentCapabilities.memoryStore must have required property 'adapter'"));
     assert.ok(errors.includes("metadata.agentCapabilities.memoryStore must have required property 'label'"));
     assert.ok(errors.includes("metadata.agentCapabilities.memoryStore must have required property 'description'"));
+    assert.ok(errors.includes("metadata.agentCapabilities.memoryStore must have required property 'searchMethodId'"));
+    assert.ok(errors.includes("metadata.agentCapabilities.memoryStore must have required property 'putMethodId'"));
+  });
+
+  it("validates internal plugin-backed memory store manifests", () => {
+    const manifest = readInternalManifest("postgresql");
+    const errors = validateManifest(manifest);
+
+    assert.deepEqual(errors, [], "postgresql manifest should validate");
+    assert.equal(manifest.metadata.agentCapabilities?.memoryStore?.enabled, true);
+    assert.equal(manifest.metadata.agentCapabilities.memoryStore.adapter, "plugin-memory-store");
+    assert.equal(typeof manifest.metadata.agentCapabilities.memoryStore.searchMethodId, "string");
+    assert.equal(typeof manifest.metadata.agentCapabilities.memoryStore.putMethodId, "string");
   });
 
   it("accepts light and dark plugin metadata icons through the public Sailor SDK contract", () => {

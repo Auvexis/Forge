@@ -58,6 +58,8 @@ export interface PluginAgentMemoryStoreCapability {
   adapter?: AgentMemoryAdapter
   label?: string
   description?: string
+  searchMethodId?: string
+  putMethodId?: string
 }
 
 export interface PluginAgentCapabilities {

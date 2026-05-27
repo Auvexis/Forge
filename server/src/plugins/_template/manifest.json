@@ -15,7 +15,12 @@
         "enabled": false
       },
       "memoryStore": {
-        "enabled": false
+        "enabled": false,
+        "adapter": "plugin-memory-store",
+        "label": "My Plugin Memory",
+        "description": "Stores and retrieves agent memory through this plugin.",
+        "searchMethodId": "searchAgentMemory",
+        "putMethodId": "putAgentMemory"
       }
     }
   },

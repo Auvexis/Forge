@@ -1,4 +1,5 @@
 export type AgentMemoryScope = 'none' | 'session' | 'workflow' | 'profile' | 'user'
+export type AgentMemoryAdapter = 'sailor-internal' | 'plugin-memory-store'
 
 export type AgentModelAdapter = 'openai-compatible'
 
@@ -44,6 +45,10 @@ export interface AiMemoryNodeConfig {
   writeEnabled: boolean
   maxRetrievedMemories: number
   maxMemoryChars: number
+  adapter?: AgentMemoryAdapter
+  pluginId?: string
+  searchMethodId?: string
+  putMethodId?: string
 }
 
 export interface AiToolNodeConfig {

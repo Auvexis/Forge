@@ -107,6 +107,10 @@ function toMemoryConfig(node: AiMemoryNode): AiMemoryNodeConfig {
     writeEnabled: node.writeEnabled,
     maxRetrievedMemories: node.maxRetrievedMemories,
     maxMemoryChars: node.maxMemoryChars,
+    adapter: node.adapter,
+    pluginId: node.pluginId,
+    searchMethodId: node.searchMethodId,
+    putMethodId: node.putMethodId,
   };
 }
 

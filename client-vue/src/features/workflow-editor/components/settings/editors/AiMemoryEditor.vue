@@ -19,6 +19,37 @@
       />
     </EditorField>
 
+    <EditorField label="Provider Plugin">
+      <BaseInput
+        :model-value="(node.data.pluginId as string) || 'sailor-internal'"
+        disabled
+        placeholder="Selected memory plugin"
+      />
+    </EditorField>
+
+    <EditorField label="Adapter">
+      <BaseInput
+        :model-value="(node.data.adapter as string) || 'sailor-internal'"
+        disabled
+        placeholder="sailor-internal"
+      />
+    </EditorField>
+
+    <EditorField v-if="node.data.searchMethodId || node.data.putMethodId" label="Plugin Methods">
+      <div class="editor-grid">
+        <BaseInput
+          :model-value="(node.data.searchMethodId as string) || ''"
+          disabled
+          placeholder="searchMethodId"
+        />
+        <BaseInput
+          :model-value="(node.data.putMethodId as string) || ''"
+          disabled
+          placeholder="putMethodId"
+        />
+      </div>
+    </EditorField>
+
     <EditorField label="Retrieval Limits">
       <div class="editor-grid">
         <BaseInput

@@ -14,9 +14,11 @@ import {
 import { AgentToolRegistry } from "./agent-tool-registry.ts";
 import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
 import { executePluginAgentTool } from "./plugin-tool-executor.ts";
+import { PluginExecutor } from "../plugins/executor.ts";
 import type {
   AgentRunInput,
   AgentRunResult,
+  AiMemoryNodeConfig,
   AiToolNodeConfig,
 } from "./agent-types.ts";
 import {
@@ -36,6 +38,7 @@ export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
   toolRegistry?: Pick<AgentToolRegistry, "listAvailableTools" | "resolveConfiguredTools">;
   memoryStore?: AgentMemoryAccess;
+  pluginMemoryExecutor?: PluginMemoryExecutor;
   approvalService?: AgentApprovalAccess;
   graphBuilder?: (input: BuildAgentGraphInput) => {
     invoke(input: {
@@ -56,7 +59,7 @@ export interface AgentMemoryAccess {
     profileId: string;
     namespace: string;
     limit?: number;
-  }): Array<Pick<AgentMemoryRecord, "key" | "value">>;
+  }): Array<Pick<AgentMemoryRecord, "key" | "value">> | Promise<Array<Pick<AgentMemoryRecord, "key" | "value">>>;
   put(input: {
     id: string;
     profileId: string;
@@ -64,8 +67,14 @@ export interface AgentMemoryAccess {
     key: string;
     value: unknown;
     source: string;
-  }): unknown;
+  }): unknown | Promise<unknown>;
 }
+
+export type PluginMemoryExecutor = (
+  pluginId: string,
+  methodId: string,
+  params: Record<string, unknown>,
+) => Promise<unknown>;
 
 export interface AgentApprovalAccess {
   create(input: {
@@ -88,6 +97,7 @@ export class AgentRunner {
   private readonly modelRegistry: Pick<AgentModelProviderRegistry, "createChatModel">;
   private readonly toolRegistry: Pick<AgentToolRegistry, "listAvailableTools" | "resolveConfiguredTools">;
   private readonly memoryStore?: AgentMemoryAccess;
+  private readonly pluginMemoryExecutor: PluginMemoryExecutor;
   private readonly approvalService?: AgentApprovalAccess;
   private readonly graphBuilder: NonNullable<AgentRunnerOptions["graphBuilder"]>;
   private readonly checkpointerFactory: NonNullable<AgentRunnerOptions["checkpointerFactory"]>;
@@ -97,6 +107,7 @@ export class AgentRunner {
     this.modelRegistry = options.modelRegistry ?? new AgentModelProviderRegistry();
     this.toolRegistry = options.toolRegistry ?? new AgentToolRegistry();
     this.memoryStore = options.memoryStore;
+    this.pluginMemoryExecutor = options.pluginMemoryExecutor ?? defaultPluginMemoryExecutor;
     this.approvalService = options.approvalService;
     this.graphBuilder = options.graphBuilder ?? buildAgentGraph;
     this.checkpointerFactory = options.checkpointerFactory ?? defaultCheckpointerFactory;
@@ -122,7 +133,7 @@ export class AgentRunner {
         workflowId: input.workflowId,
         userId: input.userId,
       });
-      const contextMessages = this.readMemory(input, validated.memory, namespace);
+      const contextMessages = await this.readMemory(input, validated.memory, namespace);
       const checkpointer = input.sessionId
         ? await this.checkpointerFactory({
             sessionId: input.sessionId,
@@ -144,16 +155,17 @@ export class AgentRunner {
         contextMessages,
       });
 
-      this.writeMemory(input, validated.memory, namespace, result.output);
-      this.eventEmitter({ type: "agent:end", payload: { status: result.status } }, input);
+      await this.writeMemory(input, validated.memory, namespace, result.output);
+      this.eventEmitter({ type: "agent:end", payload: { status: result.status, output: result.output } }, input);
       return result;
     } catch (error) {
       this.eventEmitter({ type: "agent:error", payload: serializeErrorPayload(error) }, input);
       if (error instanceof AgentRuntimeError) throw error;
+      const detail = safeErrorMessage(error);
       throw new AgentRuntimeError(
-        `Agent run failed: ${error instanceof Error ? error.message : String(error)}`,
+        `Agent run failed: ${detail}`,
         "AGENT_RUN_FAILED",
-        "Agent execution failed",
+        `Agent execution failed: ${detail}`,
         500,
       );
     }
@@ -195,18 +207,24 @@ export class AgentRunner {
     };
   }
 
-  private readMemory(
+  private async readMemory(
     input: AgentRunInput,
     memory: AgentRunInput["memory"],
     namespace: string | null,
-  ): Array<{ role: "system"; content: string }> {
-    if (!memory?.readEnabled || !namespace || !this.memoryStore) return [];
+  ): Promise<Array<{ role: "system"; content: string }>> {
+    if (!memory?.readEnabled || !namespace) return [];
 
-    const records = this.memoryStore.search({
-      profileId: input.profileId,
-      namespace,
-      limit: memory.maxRetrievedMemories,
-    });
+    const records = isPluginMemoryConfig(memory)
+      ? normalizePluginMemoryRecords(await this.pluginMemoryExecutor(memory.pluginId, memory.searchMethodId, {
+          profileId: input.profileId,
+          namespace,
+          limit: memory.maxRetrievedMemories,
+        }))
+      : (await this.memoryStore?.search({
+          profileId: input.profileId,
+          namespace,
+          limit: memory.maxRetrievedMemories,
+        })) ?? [];
     this.eventEmitter({
       type: "agent:memory-read",
       payload: { namespace, count: records.length },
@@ -223,22 +241,28 @@ export class AgentRunner {
     memory: AgentRunInput["memory"],
     namespace: string | null,
     output: AgentRunResult["output"],
-  ): void {
-    if (!memory?.writeEnabled || !namespace || !this.memoryStore) return;
+  ): Promise<void> {
+    if (!memory?.writeEnabled || !namespace) return Promise.resolve();
 
     assertMemoryWriteAllowed({ memory, namespace, value: output });
-    this.memoryStore.put({
+    const putInput = {
       id: `memory_${randomUUID()}`,
       profileId: input.profileId,
       namespace,
       key: `agent:${input.nodeId}:last-output`,
       value: output,
       source: `workflow:${input.workflowId}`,
+    };
+
+    const write = isPluginMemoryConfig(memory)
+      ? this.pluginMemoryExecutor(memory.pluginId, memory.putMethodId, putInput)
+      : this.memoryStore?.put(putInput);
+    return Promise.resolve(write).then(() => {
+      this.eventEmitter({
+        type: "agent:memory-write",
+        payload: { namespace, key: `agent:${input.nodeId}:last-output` },
+      }, input);
     });
-    this.eventEmitter({
-      type: "agent:memory-write",
-      payload: { namespace, key: `agent:${input.nodeId}:last-output` },
-    }, input);
   }
 
   private createGraphTools(
@@ -314,6 +338,62 @@ function defaultEventEmitter(event: AgentGraphEvent, input: AgentRunInput): void
   });
 }
 
+async function defaultPluginMemoryExecutor(
+  pluginId: string,
+  methodId: string,
+  params: Record<string, unknown>,
+): Promise<unknown> {
+  return PluginExecutor.execute(pluginId, methodId, params);
+}
+
+function isPluginMemoryConfig(
+  memory: AiMemoryNodeConfig,
+): memory is AiMemoryNodeConfig & {
+  adapter: "plugin-memory-store";
+  pluginId: string;
+  searchMethodId: string;
+  putMethodId: string;
+} {
+  return (
+    memory.adapter === "plugin-memory-store" &&
+    typeof memory.pluginId === "string" &&
+    typeof memory.searchMethodId === "string" &&
+    typeof memory.putMethodId === "string"
+  );
+}
+
+function normalizePluginMemoryRecords(result: unknown): Array<Pick<AgentMemoryRecord, "key" | "value">> {
+  if (!Array.isArray(result)) {
+    throw new AgentRuntimeError(
+      "Plugin memory search returned an invalid response",
+      "AGENT_MEMORY_PROVIDER_INVALID",
+      "Agent memory provider returned invalid data",
+      502,
+    );
+  }
+
+  return result.map((item) => {
+    if (!item || typeof item !== "object") {
+      throw new AgentRuntimeError(
+        "Plugin memory search returned an invalid record",
+        "AGENT_MEMORY_PROVIDER_INVALID",
+        "Agent memory provider returned invalid data",
+        502,
+      );
+    }
+    const record = item as Record<string, unknown>;
+    if (typeof record.key !== "string" || !record.key.trim()) {
+      throw new AgentRuntimeError(
+        "Plugin memory search returned a record without a key",
+        "AGENT_MEMORY_PROVIDER_INVALID",
+        "Agent memory provider returned invalid data",
+        502,
+      );
+    }
+    return { key: record.key, value: record.value };
+  });
+}
+
 function normalizeToolArgs(args: unknown): Record<string, any> {
   if (!args || typeof args !== "object" || Array.isArray(args)) return {};
   return args as Record<string, any>;
@@ -328,4 +408,9 @@ function serializeErrorPayload(error: unknown): Record<string, string> {
     return { code: error.code, message: error.publicMessage };
   }
   return { code: "AGENT_RUN_FAILED", message: "Agent execution failed" };
+}
+
+function safeErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.replace(/\s+/g, " ").trim() || "Unknown error";
 }

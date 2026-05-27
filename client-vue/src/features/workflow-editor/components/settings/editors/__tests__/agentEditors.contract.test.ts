@@ -64,6 +64,8 @@ test('frontend agent runtime types expose plugin capability and generic model co
   assert.match(pluginTypes, /chatModel/)
   assert.match(pluginTypes, /memoryStore/)
   assert.match(pluginTypes, /AgentModelAdapter/)
+  assert.match(pluginTypes, /searchMethodId/)
+  assert.match(pluginTypes, /putMethodId/)
 
   assert.match(workflowTypes, /pluginId/)
   assert.match(workflowTypes, /adapter/)
@@ -85,6 +87,10 @@ test('ai memory editor exposes scope, read and write toggles, and retrieval limi
   }
 
   assert.match(source, /AgentMemoryScopePicker/)
+  assert.match(source, /Provider Plugin/)
+  assert.match(source, /Adapter/)
+  assert.match(source, /searchMethodId/)
+  assert.match(source, /putMethodId/)
   assert.match(picker, /BaseSwitch/)
   assert.doesNotMatch(source, /PluginMenuAuth/)
 })

@@ -46,21 +46,23 @@ test('add node panel supports contextual agent quick-add presets', () => {
   assert.match(source, /baseUrl: capability\.defaultBaseUrl/)
   assert.match(
     source,
-    /v-for="plugin in agentChatModelPlugins"[\s\S]*pluginIcon\(plugin\)[\s\S]*capabilityLabel\(plugin, 'Chat Model'\)/,
+    /v-for="plugin in agentChatModelPlugins"[\s\S]*pluginIcon\(plugin\)[\s\S]*capabilityLabel\(plugin, 'chatModel'\)/,
   )
   assert.match(source, /AGENT_MEMORY_PRESETS/)
   assert.match(source, /SQLite Memory/)
-  assert.match(source, /PostgreSQL Memory/)
-  assert.match(source, /Supabase Memory/)
-  assert.match(source, /pluginId: 'sailor-postgresql'/)
-  assert.match(source, /pluginId: 'sailor-supabase'/)
+  assert.doesNotMatch(source, /label: 'PostgreSQL Memory'/)
+  assert.doesNotMatch(source, /label: 'Supabase Memory'/)
+  assert.match(source, /agentMemoryStorePlugins/)
+  assert.match(source, /manifest\.metadata\.agentCapabilities\?\.memoryStore\?\.enabled === true/)
+  assert.match(source, /manifest\.metadata\.agentCapabilities\.memoryStore\.adapter === 'plugin-memory-store'/)
+  assert.match(source, /addAgentMemoryNode\(plugin\)/)
+  assert.match(source, /pluginId: plugin\.manifest\.metadata\.id/)
+  assert.match(source, /adapter: capability\.adapter/)
+  assert.match(source, /searchMethodId: capability\.searchMethodId/)
+  assert.match(source, /putMethodId: capability\.putMethodId/)
   assert.match(
     source,
-    /label: 'PostgreSQL Memory'[\s\S]*icon: 'https:\/\/cdn\.jsdelivr\.net\/gh\/homarr-labs\/dashboard-icons\/svg\/postgresql\.svg'/,
-  )
-  assert.match(
-    source,
-    /label: 'Supabase Memory'[\s\S]*icon: 'https:\/\/cdn\.jsdelivr\.net\/gh\/homarr-labs\/dashboard-icons\/svg\/supabase\.svg'/,
+    /v-for="plugin in agentMemoryStorePlugins"[\s\S]*pluginIcon\(plugin\)[\s\S]*capabilityLabel\(plugin, 'memoryStore'\)/,
   )
   assert.match(source, /presetPlugin/)
   assert.match(source, /presetIcon/)

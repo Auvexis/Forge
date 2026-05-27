@@ -56,6 +56,19 @@ type TransactionParams = {
   statements: ExecuteQueryParams[];
 };
 
+type AgentMemorySearchParams = {
+  profileId: string;
+  namespace: string;
+  limit?: number;
+};
+
+type AgentMemoryPutParams = AgentMemorySearchParams & {
+  id: string;
+  key: string;
+  value: unknown;
+  source: string;
+};
+
 type PoolLike = InstanceType<typeof Pool>;
 
 export function quoteIdentifier(identifier: string): string {
@@ -150,6 +163,68 @@ function assertObjectHasFields(value: Record<string, unknown>, label: string) {
   if (!value || Object.keys(value).length === 0) {
     throw new Error(`${label} must include at least one field.`);
   }
+}
+
+async function ensureAgentMemoryTable(db: Queryable) {
+  await db.query(`
+    create table if not exists sailor_agent_memories (
+      id text primary key,
+      profile_id text not null,
+      namespace text not null,
+      memory_key text not null,
+      value_json jsonb not null,
+      source text not null,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now(),
+      unique(profile_id, namespace, memory_key)
+    )
+  `);
+  await db.query(`
+    create index if not exists sailor_agent_memories_lookup_idx
+      on sailor_agent_memories (profile_id, namespace, updated_at desc)
+  `);
+}
+
+export async function searchAgentMemoryWithDb(db: Queryable, params: AgentMemorySearchParams) {
+  await ensureAgentMemoryTable(db);
+  const limit = normalizeLimit(params.limit, 50);
+  const result = await db.query<{ key: string; value: unknown }>(
+    `
+      select memory_key as key, value_json as value
+      from sailor_agent_memories
+      where profile_id = $1 and namespace = $2
+      order by updated_at desc
+      limit $3
+    `,
+    [params.profileId, params.namespace, limit],
+  );
+
+  return result.rows;
+}
+
+export async function putAgentMemoryWithDb(db: Queryable, params: AgentMemoryPutParams) {
+  await ensureAgentMemoryTable(db);
+  await db.query(
+    `
+      insert into sailor_agent_memories
+        (id, profile_id, namespace, memory_key, value_json, source)
+      values ($1, $2, $3, $4, $5::jsonb, $6)
+      on conflict(profile_id, namespace, memory_key) do update set
+        value_json = excluded.value_json,
+        source = excluded.source,
+        updated_at = now()
+    `,
+    [
+      params.id,
+      params.profileId,
+      params.namespace,
+      params.key,
+      JSON.stringify(params.value),
+      params.source,
+    ],
+  );
+
+  return { ok: true };
 }
 
 async function runTransaction(client: PoolClient, statements: ExecuteQueryParams[]) {
@@ -356,6 +431,14 @@ export function createPostgresqlMethods() {
         client.release();
         await pool.end();
       }
+    },
+
+    async searchAgentMemory(params: AgentMemorySearchParams, context?: PluginContext) {
+      return withPool(context, (db) => searchAgentMemoryWithDb(db, params));
+    },
+
+    async putAgentMemory(params: AgentMemoryPutParams, context?: PluginContext) {
+      return withPool(context, (db) => putAgentMemoryWithDb(db, params));
     },
   };
 }

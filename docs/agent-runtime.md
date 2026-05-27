@@ -17,7 +17,7 @@ Workflow nodes stay thin. `ai-agent` executes through the agent runner, while `a
 
 Agent Chat Models are discovered from `manifest.metadata.agentCapabilities.chatModel`. Core selects a generic adapter such as `openai-compatible`; it does not hardcode plugin ids like OpenAI or OpenRouter when creating models. Plugins declare capability metadata, credentials, and methods through their manifest and runtime registration, but they do not import or call agent runtime code.
 
-Method tools remain method-level capabilities through `method.agentTool`. Memory store capabilities are plugin-level metadata through `manifest.metadata.agentCapabilities.memoryStore`; plugin-backed memory execution is not enabled unless the runtime has an explicit adapter for it.
+Method tools remain method-level capabilities through `method.agentTool`. Memory store capabilities are plugin-level metadata through `manifest.metadata.agentCapabilities.memoryStore`; plugin-backed memory uses the generic `plugin-memory-store` adapter and explicit `searchMethodId` / `putMethodId` method ids declared by the plugin manifest.
 
 Key backend modules:
 
@@ -44,6 +44,27 @@ Long-term namespaces are policy-built:
 - `user:<profileId>:<userId>`
 
 `none` and `session` scopes do not write long-term memory. Writes must pass `assertMemoryWriteAllowed`, size limits, JSON serializability, and obvious-secret rejection.
+
+Plugin-backed long-term memory is opt-in through manifest metadata:
+
+```json
+{
+  "metadata": {
+    "agentCapabilities": {
+      "memoryStore": {
+        "enabled": true,
+        "adapter": "plugin-memory-store",
+        "label": "PostgreSQL Agent Memory",
+        "description": "Stores and retrieves Agent memory records in PostgreSQL.",
+        "searchMethodId": "searchAgentMemory",
+        "putMethodId": "putAgentMemory"
+      }
+    }
+  }
+}
+```
+
+When an AI Memory node uses `adapter: "plugin-memory-store"`, the runtime calls the declared plugin methods through `PluginExecutor`; Core does not branch on plugin ids. The search method receives `profileId`, `namespace`, and `limit`, and must return memory records with a string `key` and JSON-serializable `value`. The put method receives `id`, `profileId`, `namespace`, `key`, `value`, and `source`.
 
 ## Plugin Tool Metadata
 

@@ -132,6 +132,61 @@ describe("agent runner", () => {
     );
   });
 
+  it("reads and writes plugin-backed memory through configured plugin methods", async () => {
+    const calls: Array<{ pluginId: string; methodId: string; params: Record<string, unknown> }> = [];
+    const contextMessages: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: fakeModelRegistry(),
+      memoryStore: {
+        search: () => {
+          throw new Error("internal memory store should not be used");
+        },
+        put: () => {
+          throw new Error("internal memory store should not be used");
+        },
+      },
+      pluginMemoryExecutor: async (pluginId: string, methodId: string, params: Record<string, unknown>) => {
+        calls.push({ pluginId, methodId, params });
+        if (methodId === "searchAgentMemory") {
+          return [{ key: "tone", value: "friendly" }];
+        }
+        return { ok: true };
+      },
+      graphBuilder: () => ({
+        async invoke(run) {
+          contextMessages.push(run.contextMessages?.[0]?.content ?? "");
+          return successResult("store this memory");
+        },
+      }),
+    });
+
+    await runner.run({
+      ...runInput(),
+      memory: memoryConfig({
+        adapter: "plugin-memory-store",
+        pluginId: "sailor-postgresql",
+        searchMethodId: "searchAgentMemory",
+        putMethodId: "putAgentMemory",
+        writeEnabled: true,
+      } as Partial<AiMemoryNodeConfig>),
+    });
+
+    assert.equal(contextMessages[0], "Memory tone: friendly");
+    assert.equal(calls[0].pluginId, "sailor-postgresql");
+    assert.equal(calls[0].methodId, "searchAgentMemory");
+    assert.deepEqual(calls[0].params, {
+      profileId: "profile_1",
+      namespace: "profile:profile_1",
+      limit: 4,
+    });
+    assert.equal(calls[1].pluginId, "sailor-postgresql");
+    assert.equal(calls[1].methodId, "putAgentMemory");
+    assert.equal(calls[1].params.profileId, "profile_1");
+    assert.equal(calls[1].params.namespace, "profile:profile_1");
+    assert.equal(calls[1].params.key, "agent:agent_1:last-output");
+    assert.equal(calls[1].params.value, "store this memory");
+  });
+
   it("returns waiting-approval when a sensitive configured tool needs approval", async () => {
     const runner = new AgentRunner({
       modelRegistry: fakeModelRegistry(),
@@ -189,7 +244,8 @@ describe("agent runner", () => {
       (error) =>
         error instanceof AgentRuntimeError &&
         error.code === "AGENT_RUN_FAILED" &&
-        /provider exploded/.test(error.message),
+        /provider exploded/.test(error.message) &&
+        /provider exploded/.test(error.publicMessage),
     );
   });
 });

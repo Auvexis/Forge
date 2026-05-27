@@ -172,4 +172,46 @@ describe("workflow validation", () => {
     assert.match(error ?? "", /supported adapter/i);
     assert.match(error ?? "", /openai-compatible/);
   });
+
+  it("accepts plugin-backed AI memory nodes with plugin method ids", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        memory: {
+          type: "ai-memory",
+          name: "PostgreSQL Memory",
+          scope: "profile",
+          readEnabled: true,
+          writeEnabled: true,
+          maxRetrievedMemories: 4,
+          maxMemoryChars: 4000,
+          adapter: "plugin-memory-store",
+          pluginId: "sailor-postgresql",
+          searchMethodId: "searchAgentMemory",
+          putMethodId: "putAgentMemory",
+        },
+      },
+    }));
+
+    assert.equal(error, null);
+  });
+
+  it("rejects plugin-backed AI memory nodes without plugin method ids", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        memory: {
+          type: "ai-memory",
+          name: "Broken Plugin Memory",
+          scope: "profile",
+          readEnabled: true,
+          writeEnabled: true,
+          maxRetrievedMemories: 4,
+          maxMemoryChars: 4000,
+          adapter: "plugin-memory-store",
+          pluginId: "sailor-postgresql",
+        } as any,
+      },
+    }));
+
+    assert.match(error ?? "", /pluginId.*searchMethodId.*putMethodId|searchMethodId.*putMethodId/i);
+  });
 });

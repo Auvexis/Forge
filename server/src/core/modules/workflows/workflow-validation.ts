@@ -301,9 +301,20 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       if (!["none", "session", "workflow", "profile", "user"].includes(node.scope)) {
         return `AI Memory node "${nodeId}" must have a valid scope`;
       }
-      return typeof node.maxRetrievedMemories !== "number" || node.maxRetrievedMemories < 0
-        ? `AI Memory node "${nodeId}" must have maxRetrievedMemories >= 0`
-        : null;
+      if (typeof node.maxRetrievedMemories !== "number" || node.maxRetrievedMemories < 0) {
+        return `AI Memory node "${nodeId}" must have maxRetrievedMemories >= 0`;
+      }
+      {
+        const memoryNode = node as unknown as Record<string, unknown>;
+        if (memoryNode.adapter === "plugin-memory-store") {
+          return !memoryNode.pluginId || !memoryNode.searchMethodId || !memoryNode.putMethodId
+            ? `AI Memory node "${nodeId}" plugin-memory-store must have pluginId, searchMethodId, and putMethodId`
+            : null;
+        }
+        return memoryNode.adapter && memoryNode.adapter !== "sailor-internal"
+          ? `AI Memory node "${nodeId}" must have a supported adapter: sailor-internal or plugin-memory-store`
+          : null;
+      }
     case "ai-tool":
       if (!node.pluginId || !node.methodId) {
         return `AI Tool node "${nodeId}" must have pluginId and methodId`;

@@ -133,8 +133,8 @@
                 <LucideIcon :name="pluginIcon(plugin)" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--sailor-text-muted)'" />
               </div>
               <div class="add-node-item-info">
-                <span class="add-node-item-label">{{ capabilityLabel(plugin, 'Chat Model') }}</span>
-                <span class="add-node-item-desc">{{ capabilityDescription(plugin) }}</span>
+                <span class="add-node-item-label">{{ capabilityLabel(plugin, 'chatModel') }}</span>
+                <span class="add-node-item-desc">{{ capabilityDescription(plugin, 'chatModel') }}</span>
               </div>
             </button>
             <div v-if="agentChatModelPlugins.length === 0" class="add-node-empty" style="position: relative; z-index: 1">
@@ -159,6 +159,21 @@
               <div class="add-node-item-info">
                 <span class="add-node-item-label">{{ def.label }}</span>
                 <span class="add-node-item-desc">{{ def.description }}</span>
+              </div>
+            </button>
+            <button
+              v-for="plugin in agentMemoryStorePlugins"
+              :key="plugin.id"
+              class="add-node-item"
+              style="position: relative; z-index: 1"
+              @click="addAgentMemoryNode(plugin)"
+            >
+              <div class="add-node-item-icon-well" :style="{ backgroundColor: plugin.manifest.metadata.style?.bgColor || 'var(--sailor-bg-surface)', borderColor: plugin.manifest.metadata.style?.borderColor || 'var(--sailor-border)' }">
+                <LucideIcon :name="pluginIcon(plugin)" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--sailor-text-muted)'" />
+              </div>
+              <div class="add-node-item-info">
+                <span class="add-node-item-label">{{ capabilityLabel(plugin, 'memoryStore') }}</span>
+                <span class="add-node-item-desc">{{ capabilityDescription(plugin, 'memoryStore') }}</span>
               </div>
             </button>
           </BaseWoobyMenu>
@@ -402,29 +417,7 @@ const AGENT_MEMORY_PRESETS: AddNodeDefinition[] = [
     bgColor: 'var(--sailor-node-plugin-bg)',
     borderColor: 'var(--sailor-node-plugin-border)',
     pluginId: 'sqlite',
-    defaults: { name: 'SQLite Memory', provider: 'sqlite', pluginId: 'sqlite', scope: 'session' },
-  },
-  {
-    type: 'ai-memory' as WorkflowNodeType,
-    label: 'PostgreSQL Memory',
-    description: 'Store shared agent memory in PostgreSQL',
-    icon: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/postgresql.svg',
-    color: 'var(--sailor-node-plugin-icon)',
-    bgColor: 'var(--sailor-node-plugin-bg)',
-    borderColor: 'var(--sailor-node-plugin-border)',
-    pluginId: 'sailor-postgresql',
-    defaults: { name: 'PostgreSQL Memory', provider: 'postgresql', pluginId: 'sailor-postgresql', scope: 'workflow' },
-  },
-  {
-    type: 'ai-memory' as WorkflowNodeType,
-    label: 'Supabase Memory',
-    description: 'Store agent memory in Supabase Postgres',
-    icon: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/supabase.svg',
-    color: 'var(--sailor-node-plugin-icon)',
-    bgColor: 'var(--sailor-node-plugin-bg)',
-    borderColor: 'var(--sailor-node-plugin-border)',
-    pluginId: 'sailor-supabase',
-    defaults: { name: 'Supabase Memory', provider: 'supabase', pluginId: 'sailor-supabase', scope: 'profile' },
+    defaults: { name: 'SQLite Memory', adapter: 'sailor-internal', scope: 'session' },
   },
 ]
 
@@ -478,6 +471,13 @@ const agentChatModelPlugins = computed(() =>
   ),
 )
 
+const agentMemoryStorePlugins = computed(() =>
+  filteredPlugins.value.filter((plugin) =>
+    plugin.manifest.metadata.agentCapabilities?.memoryStore?.enabled === true &&
+    plugin.manifest.metadata.agentCapabilities.memoryStore.adapter === 'plugin-memory-store',
+  ),
+)
+
 const filteredMethods = computed(() => {
   if (!selectedPlugin.value) return []
   return Object.entries(selectedPlugin.value.manifest.methods).filter(([key, methodVal]) =>
@@ -512,11 +512,19 @@ const presetIconColor = (def: AddNodeDefinition) =>
 const chatModelCapability = (plugin: PluginSummary) =>
   plugin.manifest.metadata.agentCapabilities?.chatModel
 
-const capabilityLabel = (plugin: PluginSummary, fallback: string) =>
-  chatModelCapability(plugin)?.label || `${plugin.manifest.metadata.name} ${fallback}`
+const memoryStoreCapability = (plugin: PluginSummary) =>
+  plugin.manifest.metadata.agentCapabilities?.memoryStore
 
-const capabilityDescription = (plugin: PluginSummary) =>
-  chatModelCapability(plugin)?.description || plugin.manifest.metadata.description
+const capabilityLabel = (plugin: PluginSummary, capabilityType: 'chatModel' | 'memoryStore') => {
+  const fallback = capabilityType === 'chatModel' ? 'Chat Model' : 'Memory'
+  const capability = capabilityType === 'chatModel' ? chatModelCapability(plugin) : memoryStoreCapability(plugin)
+  return capability?.label || `${plugin.manifest.metadata.name} ${fallback}`
+}
+
+const capabilityDescription = (plugin: PluginSummary, capabilityType: 'chatModel' | 'memoryStore') => {
+  const capability = capabilityType === 'chatModel' ? chatModelCapability(plugin) : memoryStoreCapability(plugin)
+  return capability?.description || plugin.manifest.metadata.description
+}
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 
@@ -536,6 +544,24 @@ const addAgentModelNode = (plugin: PluginSummary) => {
     adapter: capability.adapter,
     model: capability.defaultModel,
     baseUrl: capability.defaultBaseUrl,
+  })
+}
+
+const addAgentMemoryNode = (plugin: PluginSummary) => {
+  const capability = memoryStoreCapability(plugin)
+  if (!capability?.adapter || !capability.searchMethodId || !capability.putMethodId) return
+
+  props.onAddLogicNode?.('ai-memory' as WorkflowNodeType, {
+    name: capability.label || `${plugin.manifest.metadata.name} Memory`,
+    pluginId: plugin.manifest.metadata.id,
+    adapter: capability.adapter,
+    searchMethodId: capability.searchMethodId,
+    putMethodId: capability.putMethodId,
+    scope: 'profile',
+    readEnabled: true,
+    writeEnabled: true,
+    maxRetrievedMemories: 4,
+    maxMemoryChars: 4000,
   })
 }
 

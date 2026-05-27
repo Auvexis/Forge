@@ -83,13 +83,15 @@ function buildSailorManifestSchema(): any {
           adapter: { enum: ["sailor-internal", "plugin-memory-store"] },
           label: { type: "string", minLength: 2, maxLength: 120 },
           description: { type: "string", minLength: 20, maxLength: 1000 },
+          searchMethodId: { type: "string", minLength: 1, maxLength: 120 },
+          putMethodId: { type: "string", minLength: 1, maxLength: 120 },
         },
         if: {
           properties: { enabled: { const: true } },
           required: ["enabled"],
         },
         then: {
-          required: ["adapter", "label", "description"],
+          required: ["adapter", "label", "description", "searchMethodId", "putMethodId"],
         },
       },
     },

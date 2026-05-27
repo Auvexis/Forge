@@ -32,7 +32,7 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] Core knows generic adapters, not plugin ids.
 - [x] First adapter: `openai-compatible`.
 - [x] Legacy `provider: "openai" | "openrouter"` configs get normalized during migration.
-- [x] Plugin-backed memory execution is deferred unless runtime support is actually implemented.
+- [x] Plugin-backed memory execution uses the generic `plugin-memory-store` adapter and explicit manifest method ids.
 
 ## Verification Notes
 
@@ -58,4 +58,8 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] High-severity server audit gate passes. `cd server; npm audit --omit=dev --audit-level=high` exited 0; npm still reports moderate advisories in transitive dependencies (`ajv`, `uuid`) that do not fail the high-severity gate.
 - [x] Chat Model quick-add is discovered from `manifest.metadata.agentCapabilities.chatModel`.
 - [x] Agent Tool quick-add filters methods by `agentTool.enabled`.
+- [x] Memory Store quick-add is discovered from `manifest.metadata.agentCapabilities.memoryStore`.
+- [x] Plugin-backed memory nodes execute through `PluginExecutor` with manifest-declared `searchMethodId` and `putMethodId`.
+- [x] PostgreSQL declares and implements `searchAgentMemory` / `putAgentMemory` as the first functional plugin-backed memory store.
 - [ ] Manual smoke confirms Chat Models are discovered from plugin manifest metadata.
+- [ ] Manual smoke confirms PostgreSQL Memory can read/write against a live configured PostgreSQL database.

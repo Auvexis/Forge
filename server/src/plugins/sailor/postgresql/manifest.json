@@ -7,7 +7,17 @@
     "category": "Database",
     "author": "Sailor",
     "version": "1.0.0",
-    "repository": "https://github.com/Auvexis/sailor"
+    "repository": "https://github.com/Auvexis/sailor",
+    "agentCapabilities": {
+      "memoryStore": {
+        "enabled": true,
+        "adapter": "plugin-memory-store",
+        "label": "PostgreSQL Agent Memory",
+        "description": "Stores and retrieves Agent memory records in a PostgreSQL database.",
+        "searchMethodId": "searchAgentMemory",
+        "putMethodId": "putAgentMemory"
+      }
+    }
   },
   "methods": {
     "testConnection": {
@@ -26,6 +36,55 @@
           "ok": {
             "type": "boolean"
           }
+        }
+      }
+    },
+    "searchAgentMemory": {
+      "metadata": {
+        "label": "Search Agent Memory",
+        "description": "Searches Agent memory records stored by Sailor in PostgreSQL."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "profileId": { "type": "string" },
+          "namespace": { "type": "string" },
+          "limit": { "type": "number", "default": 50 }
+        },
+        "required": ["profileId", "namespace"]
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "key": { "type": "string" },
+            "value": {}
+          }
+        }
+      }
+    },
+    "putAgentMemory": {
+      "metadata": {
+        "label": "Put Agent Memory",
+        "description": "Stores or updates an Agent memory record in PostgreSQL."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "profileId": { "type": "string" },
+          "namespace": { "type": "string" },
+          "key": { "type": "string" },
+          "value": {},
+          "source": { "type": "string" }
+        },
+        "required": ["id", "profileId", "namespace", "key", "value", "source"]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean" }
         }
       }
     },

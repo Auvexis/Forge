@@ -62,8 +62,24 @@ const aiMemorySchema = z
     writeEnabled: z.boolean(),
     maxRetrievedMemories: z.number().int().min(0).max(AGENT_LIMITS.maxRetrievedMemories),
     maxMemoryChars: z.number().int().min(1).max(AGENT_LIMITS.maxMemoryChars),
+    adapter: z.enum(["sailor-internal", "plugin-memory-store"]).optional(),
+    pluginId: z.string().trim().min(1).max(120).optional(),
+    searchMethodId: z.string().trim().min(1).max(120).optional(),
+    putMethodId: z.string().trim().min(1).max(120).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    if (value.adapter !== "plugin-memory-store") return;
+    for (const field of ["pluginId", "searchMethodId", "putMethodId"] as const) {
+      if (!value[field]) {
+        context.addIssue({
+          code: "custom",
+          path: [field],
+          message: "is required for plugin-backed memory",
+        });
+      }
+    }
+  });
 
 const aiToolSchema = z
   .object({
