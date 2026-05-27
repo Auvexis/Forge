@@ -21,6 +21,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "jira_list_projects",
+        "description": "Lists accessible projects.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "searchIssues": {
@@ -54,6 +62,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "jira_search_issues",
+        "description": "Searches issues with JQL.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "getIssue": {
@@ -76,6 +92,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "jira_get_issue",
+        "description": "Allow an AI Agent to run Gets an issue. when explicitly enabled.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "createIssue": {
@@ -120,6 +144,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "jira_create_issue",
+        "description": "Allow an AI Agent to run Creates an issue. when explicitly enabled.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "updateIssue": {
@@ -148,6 +180,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "jira_update_issue",
+        "description": "Updates issue fields.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "transitionIssue": {
@@ -176,6 +216,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "jira_transition_issue",
+        "description": "Transitions an issue.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "addComment": {
@@ -204,6 +252,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "jira_add_comment",
+        "description": "Allow an AI Agent to run Adds a comment. when explicitly enabled.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "assignIssue": {
@@ -232,6 +288,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "jira_assign_issue",
+        "description": "Allow an AI Agent to run Assigns an issue. when explicitly enabled.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     }
   },

@@ -31,6 +31,14 @@
         "items": {
           "type": "object"
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "trello_list_boards",
+        "description": "Allow an AI Agent to run Lists boards. when explicitly enabled.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "listLists": {
@@ -62,6 +70,14 @@
         "items": {
           "type": "object"
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "trello_list_lists",
+        "description": "Lists lists in a board.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "listCards": {
@@ -95,6 +111,14 @@
         "items": {
           "type": "object"
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "trello_list_cards",
+        "description": "Lists cards by board or list.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "createCard": {
@@ -143,6 +167,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "trello_create_card",
+        "description": "Allow an AI Agent to run Creates a card. when explicitly enabled.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "updateCard": {
@@ -185,6 +217,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "trello_update_card",
+        "description": "Updates card fields.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "moveCard": {
@@ -218,6 +258,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "trello_move_card",
+        "description": "Moves a card to another list.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "addCommentToCard": {
@@ -246,6 +294,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "trello_add_comment_to_card",
+        "description": "Adds a card comment.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "createChecklistItem": {
@@ -285,6 +341,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "trello_create_checklist_item",
+        "description": "Creates a checklist item, creating a checklist when needed.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     }
   },

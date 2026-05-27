@@ -460,8 +460,13 @@ const filteredUtilityPlugins = computed(() =>
   filteredPlugins.value.filter((p) => p.manifest.metadata.utility === true)
 )
 
+const pluginHasAgentTools = (plugin: PluginSummary) =>
+  Object.values(plugin.manifest.methods).some((method) => method.agentTool?.enabled === true)
+
 const filteredIntegrationPlugins = computed(() =>
-  filteredPlugins.value.filter((p) => p.manifest.metadata.utility !== true)
+  isAgentToolContext.value
+    ? filteredPlugins.value.filter(pluginHasAgentTools)
+    : filteredPlugins.value.filter((p) => p.manifest.metadata.utility !== true)
 )
 
 const agentChatModelPlugins = computed(() =>

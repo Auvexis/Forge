@@ -24,6 +24,14 @@
         "items": {
           "type": "object"
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_list_spreadsheets",
+        "description": "Lists available spreadsheets.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "listSheets": {
@@ -54,6 +62,14 @@
         "items": {
           "type": "object"
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_list_sheets",
+        "description": "Lists sheets and metadata in a spreadsheet.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "readRows": {
@@ -97,6 +113,14 @@
         "items": {
           "type": "object"
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_read_rows",
+        "description": "Reads rows from a range.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "appendRow": {
@@ -137,6 +161,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_append_row",
+        "description": "Allow an AI Agent to run Appends one row. when explicitly enabled.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "appendRows": {
@@ -177,6 +209,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_append_rows",
+        "description": "Appends multiple rows.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "updateRange": {
@@ -216,6 +256,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_update_range",
+        "description": "Allow an AI Agent to run Updates a range. when explicitly enabled.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "clearRange": {
@@ -256,6 +304,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_clear_range",
+        "description": "Clears a range with confirmation.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "createSheet": {
@@ -289,6 +345,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_create_sheet",
+        "description": "Creates a sheet tab.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "deleteSheet": {
@@ -329,6 +393,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_delete_sheet",
+        "description": "Deletes a sheet tab with confirmation.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "findRows": {
@@ -378,6 +450,14 @@
         "items": {
           "type": "object"
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_find_rows",
+        "description": "Finds rows by header key and value.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "upsertRowByKey": {
@@ -430,6 +510,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_upsert_row_by_key",
+        "description": "Updates a matching row or appends a new one.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     }
   },

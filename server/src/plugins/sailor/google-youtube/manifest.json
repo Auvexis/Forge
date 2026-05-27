@@ -89,6 +89,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_search_videos",
+        "description": "Search for videos on YouTube.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "getVideoDetails": {
@@ -161,6 +169,14 @@
             "x-label": "Tags"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_get_video_details",
+        "description": "Get detailed information about a specific video.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "getTrendingVideos": {
@@ -234,6 +250,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_get_trending_videos",
+        "description": "Get currently trending videos.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "getChannelDetails": {
@@ -298,6 +322,14 @@
             "x-label": "Uploads Playlist"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_get_channel_details",
+        "description": "Get detailed information about a YouTube channel.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "getMyChannel": {
@@ -353,6 +385,14 @@
             "x-label": "Uploads Playlist"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_get_my_channel",
+        "description": "Get details of the authenticated user's YouTube channel.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "listComments": {
@@ -421,6 +461,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_list_comments",
+        "description": "List comments on a video.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "createComment": {
@@ -467,6 +515,14 @@
             "x-label": "Published At"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_create_comment",
+        "description": "Post a new comment on a video.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "replyToComment": {
@@ -513,6 +569,14 @@
             "x-label": "Published At"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_reply_to_comment",
+        "description": "Reply to an existing comment.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "deleteComment": {
@@ -545,6 +609,14 @@
             "x-label": "Comment ID"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_delete_comment",
+        "description": "Allow an AI Agent to run Delete a comment. when explicitly enabled.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "likeVideo": {
@@ -581,6 +653,14 @@
             "x-label": "Rating"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_like_video",
+        "description": "Allow an AI Agent to run Like a video. when explicitly enabled.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "dislikeVideo": {
@@ -617,6 +697,14 @@
             "x-label": "Rating"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_dislike_video",
+        "description": "Allow an AI Agent to run Dislike a video. when explicitly enabled.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "removeLike": {
@@ -653,6 +741,14 @@
             "x-label": "Rating"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_remove_like",
+        "description": "Remove like/dislike rating from a video.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "subscribeToChannel": {
@@ -693,6 +789,14 @@
             "x-label": "Subscribed At"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_subscribe_to_channel",
+        "description": "Subscribe to a YouTube channel.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "unsubscribeFromChannel": {
@@ -725,6 +829,14 @@
             "x-label": "Subscription ID"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_unsubscribe_from_channel",
+        "description": "Unsubscribe from a YouTube channel.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "listSubscriptions": {
@@ -781,6 +893,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_list_subscriptions",
+        "description": "List your YouTube subscriptions.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "uploadVideo": {
@@ -870,6 +990,14 @@
             "x-label": "Thumbnail"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_upload_video",
+        "description": "Upload a new video to YouTube.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "updateVideo": {
@@ -944,6 +1072,14 @@
             "x-label": "Tags"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_update_video",
+        "description": "Update a video's metadata.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "deleteVideo": {
@@ -976,6 +1112,14 @@
             "x-label": "Video ID"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_delete_video",
+        "description": "Delete a video from YouTube.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "createPlaylist": {
@@ -1036,6 +1180,14 @@
             "x-label": "Created At"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_create_playlist",
+        "description": "Create a new YouTube playlist.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "deletePlaylist": {
@@ -1068,6 +1220,14 @@
             "x-label": "Playlist ID"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_delete_playlist",
+        "description": "Delete a YouTube playlist.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "listPlaylists": {
@@ -1141,6 +1301,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_list_playlists",
+        "description": "List playlists for a channel or your own.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "addVideoToPlaylist": {
@@ -1197,6 +1365,14 @@
             "x-label": "Position"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_add_video_to_playlist",
+        "description": "Add a video to a YouTube playlist.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "removeVideoFromPlaylist": {
@@ -1229,6 +1405,14 @@
             "x-label": "Playlist Item ID"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_remove_video_from_playlist",
+        "description": "Remove a video from a YouTube playlist.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "getVideoStats": {
@@ -1277,6 +1461,14 @@
             "x-label": "Favorites"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_get_video_stats",
+        "description": "Get statistics for a specific video.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "getChannelStats": {
@@ -1322,6 +1514,14 @@
             "x-label": "Hidden Subscriber Count"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_youtube_get_channel_stats",
+        "description": "Get statistics for a channel (yours if no channelId provided).",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     }
   },

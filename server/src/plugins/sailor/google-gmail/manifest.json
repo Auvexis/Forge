@@ -56,6 +56,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_list_messages",
+        "description": "Lists messages in the user's mailbox. Returns an array of message IDs.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "getMessage": {
@@ -110,6 +118,14 @@
             "x-label": "Payload"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_get_message",
+        "description": "Retrieves a specific message by ID with its full content, headers, and body.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "sendMessage": {
@@ -182,6 +198,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_send_message",
+        "description": "Sends an email message. Supports plain text, HTML, and attachments.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "listLabels": {
@@ -212,6 +236,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_list_labels",
+        "description": "Lists all labels in the user's mailbox (system and user-defined).",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "modifyMessageLabels": {
@@ -264,6 +296,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_modify_message_labels",
+        "description": "Adds or removes labels from a specific message.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "listDrafts": {
@@ -290,6 +330,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_list_drafts",
+        "description": "Lists all drafts in the user's mailbox.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "createDraft": {
@@ -355,6 +403,14 @@
             "x-label": "Message"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_create_draft",
+        "description": "Creates a new draft message. The draft is saved but not sent.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "trashMessage": {
@@ -395,6 +451,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_trash_message",
+        "description": "Moves a message to the trash. The message can be restored within 30 days.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "listThreads": {
@@ -441,6 +505,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_list_threads",
+        "description": "Lists email threads in the user's mailbox.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "getAttachment": {
@@ -485,6 +557,14 @@
             "x-label": "Data (Base64)"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_get_attachment",
+        "description": "Downloads the binary data of a specific message attachment.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     }
   },

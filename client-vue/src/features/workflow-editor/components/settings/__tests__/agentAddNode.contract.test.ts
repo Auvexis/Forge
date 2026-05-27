@@ -72,7 +72,12 @@ test('add node panel supports contextual agent quick-add presets', () => {
   assert.match(source, /isAgentModelContext/)
   assert.match(source, /isAgentMemoryContext/)
   assert.match(source, /isAgentToolContext/)
+  assert.match(source, /pluginHasAgentTools/)
   assert.match(source, /filteredIntegrationPlugins/)
+  assert.match(
+    source,
+    /isAgentToolContext\.value\s*\?\s*filteredPlugins\.value\.filter\(pluginHasAgentTools\)/,
+  )
   assert.match(source, /methodVal\.agentTool\?\.enabled === true/)
   assert.match(source, /<div v-if="!isAgentContext" class="add-node-section">[\s\S]*filteredUtilityPlugins/)
   assert.match(source, /<p class="add-node-section-label">\{\{ isAgentToolContext \? 'Tools' : 'Integrations' \}\}<\/p>/)

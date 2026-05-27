@@ -28,8 +28,21 @@
         "label": "List Models",
         "description": "Lists OpenAI models."
       },
-      "parameters": { "type": "object", "properties": {} },
-      "responseSchema": { "type": "object" }
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "openai_list_models",
+        "description": "Lists OpenAI models.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
     },
     "createResponse": {
       "metadata": {
@@ -65,9 +78,22 @@
             "x-input-type": "number"
           }
         },
-        "required": ["model", "input"]
+        "required": [
+          "model",
+          "input"
+        ]
       },
-      "responseSchema": { "type": "object" }
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "openai_create_response",
+        "description": "Creates a response with the Responses API.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
     },
     "chatCompletion": {
       "metadata": {
@@ -98,9 +124,22 @@
             "x-input-type": "number"
           }
         },
-        "required": ["model", "messages"]
+        "required": [
+          "model",
+          "messages"
+        ]
       },
-      "responseSchema": { "type": "object" }
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "openai_chat_completion",
+        "description": "Creates a Chat Completions response.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
     },
     "structuredResponse": {
       "metadata": {
@@ -141,9 +180,23 @@
             "x-input-type": "number"
           }
         },
-        "required": ["model", "input", "schema"]
+        "required": [
+          "model",
+          "input",
+          "schema"
+        ]
       },
-      "responseSchema": { "type": "object" }
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "openai_structured_response",
+        "description": "Creates a structured JSON response.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
     },
     "summarizeText": {
       "metadata": {
@@ -180,9 +233,22 @@
             "x-input-type": "number"
           }
         },
-        "required": ["model", "text"]
+        "required": [
+          "model",
+          "text"
+        ]
       },
-      "responseSchema": { "type": "object" }
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "openai_summarize_text",
+        "description": "Allow an AI Agent to run Summarizes text. when explicitly enabled.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
     },
     "extractJson": {
       "metadata": {
@@ -224,9 +290,23 @@
             "x-input-type": "number"
           }
         },
-        "required": ["model", "text", "schema"]
+        "required": [
+          "model",
+          "text",
+          "schema"
+        ]
       },
-      "responseSchema": { "type": "object" }
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "openai_extract_json",
+        "description": "Extracts JSON with a schema.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
     },
     "classifyText": {
       "metadata": {
@@ -268,9 +348,23 @@
             "x-input-type": "number"
           }
         },
-        "required": ["model", "text", "labels"]
+        "required": [
+          "model",
+          "text",
+          "labels"
+        ]
       },
-      "responseSchema": { "type": "object" }
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "openai_classify_text",
+        "description": "Classifies text into labels.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
     },
     "generateImage": {
       "metadata": {
@@ -308,9 +402,21 @@
             "x-input-type": "number"
           }
         },
-        "required": ["prompt"]
+        "required": [
+          "prompt"
+        ]
       },
-      "responseSchema": { "type": "object" }
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "openai_generate_image",
+        "description": "Allow an AI Agent to run Generates an image. when explicitly enabled.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
     }
   }
 }

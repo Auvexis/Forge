@@ -101,6 +101,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_list_files",
+        "description": "List files and folders in Google Drive with optional filtering and sorting.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "getFileMetadata": {
@@ -149,6 +157,14 @@
             "x-label": "Last Modified"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_get_file_metadata",
+        "description": "Get metadata of a file or folder.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "listFolderChildren": {
@@ -204,6 +220,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_list_folder_children",
+        "description": "List files/folders inside a specific folder.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "uploadFile": {
@@ -283,6 +307,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_upload_file",
+        "description": "Upload one or more files to Google Drive. Accepts files from the UI or binary data piped from a previous workflow step.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "downloadFile": {
@@ -325,6 +357,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_download_file",
+        "description": "Download a file from Google Drive.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "deleteFile": {
@@ -377,6 +417,14 @@
             "x-label": "File Size"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_delete_file",
+        "description": "Move a file to trash in Google Drive.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "restoreFile": {
@@ -429,6 +477,14 @@
             "x-label": "File Size"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_restore_file",
+        "description": "Restore a trashed file from Google Drive.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "moveFile": {
@@ -487,6 +543,14 @@
             "x-label": "File Size"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_move_file",
+        "description": "Move a file to a different folder.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "copyFile": {
@@ -545,6 +609,14 @@
             "x-label": "File Size"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_copy_file",
+        "description": "Copy a file to a different folder.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "createFolder": {
@@ -590,6 +662,14 @@
             "x-label": "Parents"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_create_folder",
+        "description": "Create a new folder in Google Drive.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "deleteFolder": {
@@ -638,6 +718,14 @@
             "x-label": "Last Modified"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_delete_folder",
+        "description": "Move a folder to trash in Google Drive.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     }
   },

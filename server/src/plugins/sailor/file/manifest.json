@@ -41,6 +41,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_read_file",
+        "description": "Read a file from the sandbox as text or base64.",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "writeFile": {
@@ -74,6 +82,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_write_file",
+        "description": "Write data (text or base64) to a file in the sandbox.",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "deleteFile": {
@@ -96,6 +112,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_delete_file",
+        "description": "Delete a file from the workflow sandbox.",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "listFiles": {
@@ -110,6 +134,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_list_files",
+        "description": "List files in the workflow sandbox directory.",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "convertFile": {
@@ -158,6 +190,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_convert_file",
+        "description": "Convert data between Buffer, Base64, Hex, or UTF-8 formats. Useful for formatting files from triggers or preparing them for API requests (like Telegram).",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "setFileMetadata": {
@@ -198,6 +238,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_set_file_metadata",
+        "description": "Wraps a raw Buffer or Base64 string into the Sailor standard file object ({ content, filename, mimeType }) so it can be safely sent via email or APIs.",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     }
   }

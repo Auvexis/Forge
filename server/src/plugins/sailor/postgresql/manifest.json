@@ -37,6 +37,14 @@
             "type": "boolean"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "postgresql_test_connection",
+        "description": "Connects to PostgreSQL and returns basic server information.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "searchAgentMemory": {
@@ -47,18 +55,30 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "profileId": { "type": "string" },
-          "namespace": { "type": "string" },
-          "limit": { "type": "number", "default": 50 }
+          "profileId": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "number",
+            "default": 50
+          }
         },
-        "required": ["profileId", "namespace"]
+        "required": [
+          "profileId",
+          "namespace"
+        ]
       },
       "responseSchema": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "key": { "type": "string" },
+            "key": {
+              "type": "string"
+            },
             "value": {}
           }
         }
@@ -72,19 +92,38 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
-          "profileId": { "type": "string" },
-          "namespace": { "type": "string" },
-          "key": { "type": "string" },
+          "id": {
+            "type": "string"
+          },
+          "profileId": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
           "value": {},
-          "source": { "type": "string" }
+          "source": {
+            "type": "string"
+          }
         },
-        "required": ["id", "profileId", "namespace", "key", "value", "source"]
+        "required": [
+          "id",
+          "profileId",
+          "namespace",
+          "key",
+          "value",
+          "source"
+        ]
       },
       "responseSchema": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean" }
+          "ok": {
+            "type": "boolean"
+          }
         }
       }
     },
@@ -108,6 +147,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "postgresql_list_schemas",
+        "description": "Lists non-system PostgreSQL schemas.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "listTables": {
@@ -143,6 +190,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "postgresql_list_tables",
+        "description": "Lists tables and views in a schema.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "describeTable": {
@@ -194,6 +249,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "postgresql_describe_table",
+        "description": "Returns columns, types, nullability, defaults, and primary key flags.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "selectRows": {
@@ -270,6 +333,14 @@
           "type": "object",
           "additionalProperties": true
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "postgresql_select_rows",
+        "description": "Runs a safe SELECT with optional columns, filters, ordering, limit, and offset.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "insertRow": {
@@ -306,6 +377,14 @@
       "responseSchema": {
         "type": "object",
         "properties": {}
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "postgresql_insert_row",
+        "description": "Inserts one JSON row with parameterized values.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "updateRows": {
@@ -351,6 +430,14 @@
           "type": "object",
           "additionalProperties": true
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "postgresql_update_rows",
+        "description": "Updates rows using a simple equality filter and returns changed rows.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "deleteRows": {
@@ -395,6 +482,14 @@
           "type": "object",
           "additionalProperties": true
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "postgresql_delete_rows",
+        "description": "Deletes rows and requires confirm: true.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "executeQuery": {
@@ -438,6 +533,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "postgresql_execute_query",
+        "description": "Runs raw SQL only when unsafe SQL is enabled in credentials.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "transaction": {
@@ -481,6 +584,14 @@
           "type": "object",
           "additionalProperties": true
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "postgresql_transaction",
+        "description": "Runs raw SQL statements in a transaction only when unsafe SQL is enabled.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     }
   },

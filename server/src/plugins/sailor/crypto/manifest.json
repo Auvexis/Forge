@@ -46,6 +46,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "crypto_hash",
+        "description": "Hash a string using SHA-256, SHA-512 or MD5.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "hmac": {
@@ -84,6 +92,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "crypto_hmac",
+        "description": "Compute HMAC-SHA256 of a message with a secret key.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "base64Encode": {
@@ -106,6 +122,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "crypto_base64_encode",
+        "description": "Encode a string to Base64.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "base64Decode": {
@@ -128,6 +152,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "crypto_base64_decode",
+        "description": "Decode a Base64 string back to plain text.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "generateUUID": {
@@ -141,6 +173,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "crypto_generate_uuid",
+        "description": "Generate a cryptographically random UUID v4.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "generateRandomString": {
@@ -160,6 +200,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "crypto_generate_random_string",
+        "description": "Generate a cryptographically random hex string.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     }
   }

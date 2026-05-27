@@ -276,6 +276,27 @@ describe("loadPlugins", () => {
     assert.equal(typeof manifest.metadata.agentCapabilities.memoryStore.putMethodId, "string");
   });
 
+  it("declares agent-enabled tools for internal plugin manifests", () => {
+    const internalPluginsDir = path.resolve(import.meta.dirname, "../../../plugins/sailor");
+    const manifests = fs
+      .readdirSync(internalPluginsDir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => ({
+        pluginName: entry.name,
+        manifest: readInternalManifest(entry.name),
+      }));
+
+    assert.ok(manifests.length > 0, "expected internal plugin manifests");
+
+    for (const { pluginName, manifest } of manifests) {
+      const agentToolMethods = Object.values(manifest.methods ?? {}).filter(
+        (method: any) => method.agentTool?.enabled === true,
+      );
+
+      assert.ok(agentToolMethods.length > 0, `${pluginName} should expose at least one agent tool`);
+    }
+  });
+
   it("accepts light and dark plugin metadata icons through the public Sailor SDK contract", () => {
     const errors = validateManifest({
       metadata: {

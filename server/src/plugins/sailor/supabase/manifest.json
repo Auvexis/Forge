@@ -27,6 +27,14 @@
             "type": "boolean"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_test_connection",
+        "description": "Validates Supabase URL and key by calling the API.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "listTables": {
@@ -52,6 +60,14 @@
           "type": "object",
           "additionalProperties": true
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_list_tables",
+        "description": "Lists tables through the sailor_list_tables RPC.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "selectRows": {
@@ -150,6 +166,14 @@
           "type": "object",
           "additionalProperties": true
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_select_rows",
+        "description": "Selects rows with optional filters, ordering, limit, and offset.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "insertRow": {
@@ -180,6 +204,14 @@
       "responseSchema": {
         "type": "object",
         "properties": {}
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_insert_row",
+        "description": "Inserts one row and returns it.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "updateRows": {
@@ -222,6 +254,14 @@
           "type": "object",
           "additionalProperties": true
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_update_rows",
+        "description": "Updates rows matching filters and returns changed rows.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "deleteRows": {
@@ -263,6 +303,14 @@
           "type": "object",
           "additionalProperties": true
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_delete_rows",
+        "description": "Deletes rows matching filters and requires confirm: true.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "upsertRow": {
@@ -298,6 +346,14 @@
       "responseSchema": {
         "type": "object",
         "properties": {}
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_upsert_row",
+        "description": "Upserts one row and returns it.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "callRpc": {
@@ -327,6 +383,14 @@
       "responseSchema": {
         "type": "object",
         "properties": {}
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_call_rpc",
+        "description": "Calls a Supabase Postgres function with a JSON payload.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "uploadObject": {
@@ -382,6 +446,14 @@
       "responseSchema": {
         "type": "object",
         "properties": {}
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_upload_object",
+        "description": "Uploads text or base64 content to Supabase Storage.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "downloadObject": {
@@ -424,6 +496,14 @@
             "type": "number"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_download_object",
+        "description": "Downloads a Storage object as base64.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "deleteObject": {
@@ -456,6 +536,14 @@
           "type": "object",
           "additionalProperties": true
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_delete_object",
+        "description": "Deletes one Storage object.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "createSignedUrl": {
@@ -491,6 +579,14 @@
       "responseSchema": {
         "type": "object",
         "properties": {}
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "supabase_create_signed_url",
+        "description": "Creates a temporary signed URL for a Storage object.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     }
   },

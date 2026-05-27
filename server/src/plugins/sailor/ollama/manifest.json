@@ -98,6 +98,14 @@
             "x-label": "Eval Duration"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "ollama_generate",
+        "description": "Generate content using Ollama.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     }
   }

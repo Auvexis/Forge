@@ -58,6 +58,14 @@
             "x-label": "Timestamp"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_post_message",
+        "description": "Sends a message to a Slack channel or conversation.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "updateMessage": {
@@ -109,6 +117,14 @@
             "x-label": "Timestamp"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_update_message",
+        "description": "Updates an existing Slack message.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "deleteMessage": {
@@ -153,6 +169,14 @@
             "x-label": "Deleted"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_delete_message",
+        "description": "Deletes a Slack message. Requires explicit confirmation.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "listChannels": {
@@ -202,6 +226,14 @@
             "x-label": "Channels"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_list_channels",
+        "description": "Lists public and private channels accessible to the bot.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "getChannelHistory": {
@@ -259,6 +291,14 @@
             "x-label": "Messages"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_get_channel_history",
+        "description": "Gets recent Slack messages from a channel or conversation.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "addReaction": {
@@ -302,6 +342,14 @@
             "x-label": "OK"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_add_reaction",
+        "description": "Adds an emoji reaction to a Slack message.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "openConversation": {
@@ -342,6 +390,14 @@
             "x-label": "Channel"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_open_conversation",
+        "description": "Opens a DM or multi-person conversation with one or more users.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "uploadFile": {
@@ -404,6 +460,14 @@
             "x-label": "Files"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_upload_file",
+        "description": "Uploads a base64 file to Slack using the external upload flow.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     }
   },

@@ -31,6 +31,14 @@
         "items": {
           "type": "object"
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_calendar_list_calendars",
+        "description": "Allow an AI Agent to run Lists calendars. when explicitly enabled.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "listEvents": {
@@ -82,6 +90,14 @@
         "items": {
           "type": "object"
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_calendar_list_events",
+        "description": "Allow an AI Agent to run Lists events. when explicitly enabled.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "getEvent": {
@@ -110,6 +126,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_calendar_get_event",
+        "description": "Allow an AI Agent to run Gets an event. when explicitly enabled.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "createEvent": {
@@ -170,6 +194,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_calendar_create_event",
+        "description": "Allow an AI Agent to run Creates an event. when explicitly enabled.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "updateEvent": {
@@ -233,6 +265,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_calendar_update_event",
+        "description": "Allow an AI Agent to run Updates an event. when explicitly enabled.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "deleteEvent": {
@@ -268,6 +308,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_calendar_delete_event",
+        "description": "Deletes an event with confirmation.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "freeBusy": {
@@ -307,6 +355,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_calendar_free_busy",
+        "description": "Queries availability.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "quickAddEvent": {
@@ -335,6 +391,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_calendar_quick_add_event",
+        "description": "Creates an event from natural language.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     }
   },

@@ -38,6 +38,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "github_get_repository",
+        "description": "Gets repository metadata.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "listIssues": {
@@ -86,6 +94,14 @@
         "items": {
           "type": "object"
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "github_list_issues",
+        "description": "Lists repository issues.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "createIssue": {
@@ -130,6 +146,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "github_create_issue",
+        "description": "Creates a repository issue.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "updateIssue": {
@@ -184,6 +208,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "github_update_issue",
+        "description": "Updates an issue or pull request issue fields.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "addIssueComment": {
@@ -224,6 +256,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "github_add_issue_comment",
+        "description": "Adds a comment to an issue or pull request.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "listPullRequests": {
@@ -267,6 +307,14 @@
         "items": {
           "type": "object"
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "github_list_pull_requests",
+        "description": "Lists repository pull requests.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "createPullRequest": {
@@ -324,6 +372,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "github_create_pull_request",
+        "description": "Creates a pull request.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "listWorkflowRuns": {
@@ -373,6 +429,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "github_list_workflow_runs",
+        "description": "Lists GitHub Actions workflow runs.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     }
   },

@@ -59,6 +59,14 @@
             "x-label": "Content"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_send_message",
+        "description": "Sends a message to a Discord channel.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "editMessage": {
@@ -106,6 +114,14 @@
             "x-label": "Content"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_edit_message",
+        "description": "Edits an existing Discord message sent by the bot.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "deleteMessage": {
@@ -150,6 +166,14 @@
             "x-label": "Deleted"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_delete_message",
+        "description": "Deletes a Discord message. Requires explicit confirmation.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "getMessage": {
@@ -194,6 +218,14 @@
             "x-label": "Author"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_get_message",
+        "description": "Fetches a Discord message by channel and message ID.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "listChannelMessages": {
@@ -257,6 +289,14 @@
             }
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_list_channel_messages",
+        "description": "Lists recent Discord messages in a channel.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     },
     "createThread": {
@@ -323,6 +363,14 @@
             "x-label": "Name"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_create_thread",
+        "description": "Creates a Discord thread from a channel or existing message.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "addReaction": {
@@ -366,6 +414,14 @@
             "x-label": "Added"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_add_reaction",
+        "description": "Adds a reaction emoji to a Discord message.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
       }
     },
     "getGuildMember": {
@@ -409,6 +465,14 @@
             "x-label": "Roles"
           }
         }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_get_guild_member",
+        "description": "Fetches a Discord guild member by guild and user ID.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     }
   },

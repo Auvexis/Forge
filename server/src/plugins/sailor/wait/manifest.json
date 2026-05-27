@@ -41,6 +41,14 @@
       },
       "responseSchema": {
         "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "wait_sleep",
+        "description": "Pause for a given duration. Maximum 10 minutes.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
       }
     }
   }

@@ -61,5 +61,6 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] Memory Store quick-add is discovered from `manifest.metadata.agentCapabilities.memoryStore`.
 - [x] Plugin-backed memory nodes execute through `PluginExecutor` with manifest-declared `searchMethodId` and `putMethodId`.
 - [x] PostgreSQL declares and implements `searchAgentMemory` / `putAgentMemory` as the first functional plugin-backed memory store.
+- [x] Agent Tool quick-add only lists plugins with enabled `method.agentTool` entries, and internal plugin manifests declare agent-enabled tool methods so the Tools Agent picker is not empty.
 - [ ] Manual smoke confirms Chat Models are discovered from plugin manifest metadata.
 - [ ] Manual smoke confirms PostgreSQL Memory can read/write against a live configured PostgreSQL database.
