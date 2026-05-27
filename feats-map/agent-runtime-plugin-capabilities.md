@@ -64,5 +64,6 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] Agent Tool quick-add only lists plugins with enabled `method.agentTool` entries, and internal plugin manifests declare agent-enabled tool methods so the Tools Agent picker is not empty.
 - [x] AI Tool settings configure the already-selected tool with agent-facing instructions and parameter defaults instead of reopening the global tool picker.
 - [x] AI Tool parameter defaults render real method-parameter inputs from the selected plugin method schema instead of a raw JSON textarea.
+- [x] AI Tool settings match the Plugin Editor parameter-card styling so labels, descriptions, types, and toggles remain readable.
 - [ ] Manual smoke confirms Chat Models are discovered from plugin manifest metadata.
 - [ ] Manual smoke confirms PostgreSQL Memory can read/write against a live configured PostgreSQL database.

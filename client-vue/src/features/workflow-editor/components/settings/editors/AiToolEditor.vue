@@ -9,17 +9,15 @@
     </EditorField>
 
     <EditorField label="Selected Tool">
-      <div class="editor-grid">
-        <BaseInput
-          :model-value="(node.data.pluginId as string) || ''"
-          disabled
-          placeholder="Plugin"
-        />
-        <BaseInput
-          :model-value="(node.data.methodId as string) || ''"
-          disabled
-          placeholder="Method"
-        />
+      <div class="selected-tool-stack">
+        <div class="selected-tool-card">
+          <span class="selected-tool-icon">{{ selectedPluginIcon }}</span>
+          <span class="selected-tool-text">{{ selectedPluginLabel }}</span>
+        </div>
+        <div class="selected-tool-card">
+          <span class="selected-tool-icon">bolt</span>
+          <span class="selected-tool-text">{{ selectedActionLabel }}</span>
+        </div>
       </div>
     </EditorField>
 
@@ -177,6 +175,20 @@ const selectedAction = computed(() => {
   return selectedPlugin.value?.manifest.methods[methodId]
 })
 
+const selectedPluginLabel = computed(() =>
+  selectedPlugin.value?.manifest.metadata.name ||
+  String(props.node.data.pluginId ?? 'Plugin'),
+)
+
+const selectedPluginIcon = computed(() =>
+  selectedPlugin.value?.manifest.metadata.icon || 'puzzle',
+)
+
+const selectedActionLabel = computed(() =>
+  selectedAction.value?.metadata.label ||
+  String(props.node.data.methodId ?? 'Method'),
+)
+
 function updateDescriptionOverride(value: string) {
   const next = value.trim()
   props.updateNodeData({ descriptionOverride: next || undefined })
@@ -210,3 +222,137 @@ function parameterPlaceholder(key: string, schema: unknown) {
   return value.description ? `e.g. ${value.default ?? ''}` : `Enter value for ${key}`
 }
 </script>
+
+<style scoped>
+.mt-2 {
+  margin-top: var(--sailor-space-2);
+}
+
+.selected-tool-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-border);
+}
+
+.selected-tool-card {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  min-height: 36px;
+  padding: 0 var(--sailor-space-3);
+  background: var(--sailor-bg-overlay);
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
+}
+
+.selected-tool-icon {
+  flex: 0 0 auto;
+  max-width: 18px;
+  overflow: hidden;
+  color: var(--sailor-text-muted);
+  font-size: 12px;
+  line-height: 1;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.selected-tool-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pe-params-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  border-bottom: 1px solid var(--sailor-border);
+  padding-bottom: var(--sailor-space-2);
+}
+
+.pe-params-indicator {
+  width: 4px;
+  height: 16px;
+  background-color: var(--sailor-text-primary);
+  border-radius: 9999px;
+}
+
+.pe-params-title {
+  margin: 0;
+  color: var(--sailor-text-primary);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.pe-param-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-4);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-lg);
+}
+
+.pe-param-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sailor-space-3);
+}
+
+.pe-param-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pe-param-label {
+  color: var(--sailor-text-primary);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pe-param-desc {
+  margin-top: 2px;
+  color: var(--sailor-text-muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.pe-param-type {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border: 1px solid var(--sailor-border);
+  border-radius: 4px;
+  color: var(--sailor-text-muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}
+
+.pe-param-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  height: 40px;
+}
+
+.pe-param-toggle-text {
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+  font-style: italic;
+  font-weight: 500;
+}
+</style>
