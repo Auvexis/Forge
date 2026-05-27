@@ -35,6 +35,7 @@ export class AgentToolRegistry {
 
       return {
         ...definition,
+        description: config.descriptionOverride ?? definition.description,
         sideEffect,
         requiresApproval: config.requiresApproval || definition.requiresApproval,
         timeoutMs: config.timeoutMs ?? definition.timeoutMs,

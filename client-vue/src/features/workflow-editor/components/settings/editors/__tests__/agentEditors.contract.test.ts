@@ -95,14 +95,20 @@ test('ai memory editor exposes scope, read and write toggles, and retrieval limi
   assert.doesNotMatch(source, /PluginMenuAuth/)
 })
 
-test('ai tool editor exposes picker placeholder and side-effect policy', () => {
+test('ai tool editor configures the selected tool instead of re-opening the tool picker', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/AiToolEditor.vue')
 
-  for (const field of ['AgentToolPicker', 'pluginId', 'methodId', 'sideEffect', 'requiresApproval', 'timeoutMs']) {
+  for (const field of ['pluginId', 'methodId', 'descriptionOverride', 'inputDefaults', 'sideEffect', 'requiresApproval', 'timeoutMs']) {
     assert.match(source, new RegExp(field))
   }
 
+  assert.match(source, /Selected Tool/)
+  assert.match(source, /Tool Instructions/)
+  assert.match(source, /Parameter Defaults/)
+  assert.match(source, /BaseTextarea/)
   assert.match(source, /BaseSwitch/)
+  assert.match(source, /JSON\.parse/)
+  assert.doesNotMatch(source, /AgentToolPicker/)
   assert.doesNotMatch(source, /PluginMenuAuth/)
 })
 

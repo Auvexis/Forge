@@ -56,6 +56,29 @@ describe("plugin tool adapter", () => {
     assert.equal(tool.methodId, "createIssue");
   });
 
+  it("uses configured tool descriptions as agent-facing instructions", () => {
+    PluginManager.registerPlugin(createPlugin());
+
+    const registry = new AgentToolRegistry();
+    const [tool] = registry.resolveConfiguredTools([
+      {
+        type: "ai-tool",
+        name: "Create issue",
+        pluginId: "github",
+        methodId: "createIssue",
+        descriptionOverride: "Use this only when the user explicitly asks to create a tracked GitHub issue.",
+        timeoutMs: 30000,
+        requiresApproval: true,
+        sideEffect: "write",
+      },
+    ]);
+
+    assert.equal(
+      tool.description,
+      "Use this only when the user explicitly asks to create a tracked GitHub issue.",
+    );
+  });
+
   it("rejects write/delete configured tools when policy requires approval", () => {
     PluginManager.registerPlugin(createPlugin({
       manifest: createManifest({

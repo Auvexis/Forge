@@ -46,10 +46,10 @@ test('agent tool picker emits selected plugin and method ids without credential 
   assert.doesNotMatch(source, /credential(Value|Secret|Token|Key)/)
 })
 
-test('ai tool editor uses the real agent tool picker', () => {
+test('ai tool editor does not re-open the global picker after quick-add selection', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/AiToolEditor.vue')
 
-  assert.match(source, /import AgentToolPicker/)
-  assert.match(source, /<AgentToolPicker/)
-  assert.match(source, /@select=/)
+  assert.doesNotMatch(source, /import AgentToolPicker/)
+  assert.doesNotMatch(source, /<AgentToolPicker/)
+  assert.match(source, /Selected Tool/)
 })
