@@ -68,10 +68,12 @@ test('frontend agent runtime types expose plugin capability and generic model co
   assert.match(workflowTypes, /pluginId/)
   assert.match(workflowTypes, /adapter/)
   assert.match(workflowTypes, /AgentModelAdapter/)
+  assert.doesNotMatch(workflowTypes, /provider\?: 'openai' \| 'openrouter'/)
 
   assert.match(agentTypes, /pluginId/)
   assert.match(agentTypes, /adapter/)
   assert.match(agentTypes, /AgentModelAdapter/)
+  assert.doesNotMatch(agentTypes, /provider\?: 'openai' \| 'openrouter'/)
 })
 
 test('ai memory editor exposes scope, read and write toggles, and retrieval limits', () => {

@@ -240,7 +240,6 @@ export interface AiModelNode extends WorkflowNodeBase {
   maxTokens?: number
   credentialId?: string
   baseUrl?: string
-  provider?: 'openai' | 'openrouter'
 }
 
 export interface AiMemoryNode extends WorkflowNodeBase {

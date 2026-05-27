@@ -34,7 +34,6 @@ export interface AiModelNodeConfig {
   maxTokens?: number
   credentialId?: string
   baseUrl?: string
-  provider?: 'openai' | 'openrouter'
 }
 
 export interface AiMemoryNodeConfig {

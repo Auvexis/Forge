@@ -4,6 +4,8 @@
 
 **Goal:** Build a production-grade Sailor AI Agent system with Chat Trigger, model/provider nodes, memory nodes, plugin-backed tools, execution tracing, and safety controls that can surpass n8n Agent Tools while respecting Sailor plugin boundaries.
 
+**Follow-up:** `docs/superpowers/plans/2026-05-26-agent-runtime-plugin-capabilities.md` removes provider-specific Core/UI assumptions and moves Chat Model discovery to plugin manifest capabilities.
+
 **Architecture:** Add a new `agent-runtime` core module that owns LangGraph/LangChain integration, tool adaptation, model adapters, memory, chat sessions, approvals, and audit events. Workflow nodes stay thin and call the runtime through node handlers. Plugins remain generic and never import core/engines; core adapts plugin manifests and methods into agent tools through `PluginExecutor`.
 
 **Tech Stack:** TypeScript, Fastify, better-sqlite3, Node test runner, Zod, AJV, LangGraph JS, LangChain Core, LangChain OpenAI-compatible chat models, existing Sailor workflow engine, plugin manager, profile databases, Vue 3, Pinia, Vue Flow.

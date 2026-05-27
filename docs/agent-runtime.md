@@ -13,6 +13,12 @@ nodes  -> node handlers -> agent runtime facade -> graph/model/tool/memory adapt
 
 Workflow nodes stay thin. `ai-agent` executes through the agent runner, while `ai-model`, `ai-memory`, and `ai-tool` are configuration nodes discovered around the agent node. Plugins remain isolated: they do not import core, engines, or other plugins. Core adapts plugin manifest metadata into agent tools and calls plugin methods through the plugin executor boundary.
 
+## Plugin Capability Boundary
+
+Agent Chat Models are discovered from `manifest.metadata.agentCapabilities.chatModel`. Core selects a generic adapter such as `openai-compatible`; it does not hardcode plugin ids like OpenAI or OpenRouter when creating models. Plugins declare capability metadata, credentials, and methods through their manifest and runtime registration, but they do not import or call agent runtime code.
+
+Method tools remain method-level capabilities through `method.agentTool`. Memory store capabilities are plugin-level metadata through `manifest.metadata.agentCapabilities.memoryStore`; plugin-backed memory execution is not enabled unless the runtime has an explicit adapter for it.
+
 Key backend modules:
 
 - `agent-runner.ts`: validates run input, resolves model/tools/memory, builds the graph, emits events, and handles approval pauses.

@@ -166,9 +166,10 @@ export function buildAgentNodePreview(
   if ('type' in node && node.type === 'ai-model') {
     return {
       title: node.name,
-      summary: `${node.provider} / ${node.model}`,
+      summary: `${node.pluginId} / ${node.model}`,
       details: {
-        provider: node.provider,
+        pluginId: node.pluginId,
+        adapter: node.adapter,
         model: node.model,
         temperature: node.temperature,
       },

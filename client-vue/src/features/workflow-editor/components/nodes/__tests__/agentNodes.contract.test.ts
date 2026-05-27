@@ -36,19 +36,29 @@ test('workflow types expose agent config nodes without a separate chat-trigger n
   assert.match(types, /type: 'manual' \| 'webhook' \| 'cron' \| 'plugin' \| 'form' \| 'chat'/)
 })
 
-test('ai agent node summarizes provider, memory, and tool counts from node data', () => {
+test('ai agent node renders the title inside a wide plugin-colored card without count summary', () => {
   const source = read('src/features/workflow-editor/components/nodes/AiAgentNode.vue')
 
   assert.match(source, /NodeProps<AiAgentNode>/)
-  assert.match(source, /providerCount/)
-  assert.match(source, /memoryCount/)
-  assert.match(source, /toolCount/)
   assert.match(source, /BaseNode/)
+  assert.match(source, /width="236px"/)
+  assert.match(source, /height="100px"/)
+  assert.match(source, /ai-agent-node__card-content/)
+  assert.match(source, /ai-agent-node__title/)
+  assert.match(source, /AI Agent/)
+  assert.match(source, /Tools Agent/)
+  assert.match(source, /color="var\(--sailor-text-muted\)"/)
+  assert.match(source, /bg="transparent"/)
+  assert.match(source, /border-color="var\(--sailor-node-border\)"/)
+  assert.doesNotMatch(source, /models \|/)
+  assert.doesNotMatch(source, /memories \|/)
+  assert.doesNotMatch(source, /tools`\)/)
 })
 
-test('ai agent node exposes n8n-style config handles with a required chat model', () => {
+test('ai agent node exposes clickable diamond config handles with contextual quick-add', () => {
   const source = read('src/features/workflow-editor/components/nodes/AiAgentNode.vue')
 
+  assert.match(source, /QuickAddButton/)
   assert.match(source, /id="chatModel"/)
   assert.match(source, /id="memory"/)
   assert.match(source, /id="tool"/)
@@ -57,19 +67,60 @@ test('ai agent node exposes n8n-style config handles with a required chat model'
   assert.match(source, /Tool/)
   assert.match(source, /has-target/)
   assert.match(source, /has-source/)
-  assert.match(source, /missingRequiredModel/)
-  assert.match(source, /ai-agent-node--missing-model/)
+  assert.doesNotMatch(source, /Model required/)
+  assert.doesNotMatch(source, /missingRequiredModel/)
+  assert.doesNotMatch(source, /hasChatModelConnection/)
+  assert.doesNotMatch(source, /ai-agent-node--missing-model/)
+  assert.match(source, /variant="diamond"/)
+  assert.match(
+    source,
+    /<BaseHandle id="chatModel" type="target" :position="Position\.Bottom" variant="diamond" \/>\s*<span>Chat Model\*<\/span>\s*<QuickAddButton/,
+  )
+  assert.match(
+    source,
+    /<BaseHandle id="memory" type="target" :position="Position\.Bottom" variant="diamond" \/>\s*<span>Memory<\/span>\s*<QuickAddButton/,
+  )
+  assert.match(
+    source,
+    /<BaseHandle id="tool" type="target" :position="Position\.Bottom" variant="diamond" \/>\s*<span>Tool<\/span>\s*<QuickAddButton/,
+  )
+  assert.match(source, /mode="agent-config"/)
+  assert.match(source, /target-handle-id="chatModel"/)
+  assert.match(source, /target-handle-id="memory"/)
+  assert.match(source, /target-handle-id="tool"/)
+  assert.match(source, /always-visible/)
+  assert.match(source, /pointer-events:\s*all/)
+  assert.match(source, /z-index:\s*2110/)
+  assert.match(source, /grid-template-columns:\s*repeat\(3,\s*1fr\)/)
+  assert.match(source, /width:\s*236px/)
+  assert.match(source, /height:\s*86px/)
+  assert.match(source, /--qab-size:\s*19px/)
+  assert.match(source, /--qab-cable-length:\s*48px/)
+  assert.match(source, /:deep\(.qab-wrap--down\)/)
 })
 
-test('ai model node shows provider and model identity', () => {
+test('ai model node shows plugin capability and model identity', () => {
   const source = read('src/features/workflow-editor/components/nodes/AiModelNode.vue')
 
   assert.match(source, /NodeProps<AiModelNode>/)
-  assert.match(source, /provider/)
+  assert.match(source, /pluginId/)
   assert.match(source, /model/)
   assert.match(source, /BaseNode/)
+  assert.match(source, /apiRequest/)
+  assert.match(source, /resolvePluginIcon/)
+  assert.match(source, /BaseHandle/)
+  assert.match(source, /Position\.Top/)
+  assert.match(source, /variant="diamond"/)
   assert.match(source, /agent-config-node/)
-  assert.match(source, /has-source/)
+  assert.match(source, /agent-config-node--round/)
+  assert.match(source, /border-radius:\s*9999px/)
+  assert.match(source, /var\(--sailor-node-plugin-bg\)/)
+  assert.doesNotMatch(source, /provider/)
+  assert.doesNotMatch(source, /openrouter/)
+  assert.doesNotMatch(source, /openai/)
+  assert.doesNotMatch(source, /sailor-ollama/)
+  assert.doesNotMatch(source, /has-source/)
+  assert.doesNotMatch(source, /QuickAddButton/)
   assert.doesNotMatch(source, /has-target/)
 })
 
@@ -79,8 +130,17 @@ test('ai memory node shows memory scope', () => {
   assert.match(source, /NodeProps<AiMemoryNode>/)
   assert.match(source, /scope/)
   assert.match(source, /BaseNode/)
+  assert.match(source, /apiRequest/)
+  assert.match(source, /resolvePluginIcon/)
+  assert.match(source, /BaseHandle/)
+  assert.match(source, /Position\.Top/)
+  assert.match(source, /variant="diamond"/)
   assert.match(source, /agent-config-node/)
-  assert.match(source, /has-source/)
+  assert.match(source, /agent-config-node--round/)
+  assert.match(source, /border-radius:\s*9999px/)
+  assert.match(source, /var\(--sailor-node-plugin-bg\)/)
+  assert.doesNotMatch(source, /has-source/)
+  assert.doesNotMatch(source, /QuickAddButton/)
   assert.doesNotMatch(source, /has-target/)
 })
 
@@ -92,9 +152,28 @@ test('ai tool node shows plugin, method, and side effect policy', () => {
   assert.match(source, /methodId/)
   assert.match(source, /sideEffect/)
   assert.match(source, /requiresApproval/)
+  assert.match(source, /apiRequest/)
+  assert.match(source, /resolvePluginIcon/)
+  assert.match(source, /BaseHandle/)
+  assert.match(source, /Position\.Top/)
+  assert.match(source, /variant="diamond"/)
   assert.match(source, /agent-config-node/)
-  assert.match(source, /has-source/)
+  assert.match(source, /agent-config-node--round/)
+  assert.match(source, /border-radius:\s*9999px/)
+  assert.match(source, /var\(--sailor-node-plugin-bg\)/)
+  assert.doesNotMatch(source, /has-source/)
+  assert.doesNotMatch(source, /QuickAddButton/)
   assert.doesNotMatch(source, /has-target/)
+})
+
+test('agent config edges are rendered as dashed connections', () => {
+  const source = read('src/features/workflow-editor/components/BaseEdge.vue')
+
+  assert.match(source, /AGENT_CONFIG_TARGET_HANDLES/)
+  assert.match(source, /chatModel/)
+  assert.match(source, /memory/)
+  assert.match(source, /tool/)
+  assert.match(source, /strokeDasharray/)
 })
 
 test('chat trigger node renders through the normal trigger node subtype', () => {
