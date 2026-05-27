@@ -254,11 +254,29 @@ function getCenterPosition(): { x: number; y: number } {
 
 let quickAddSourceId: string | null = null
 let quickAddSourceHandle: string | null = null
+let quickAddTargetId: string | null = null
+let quickAddTargetHandle: string | null = null
+let quickAddAgentConfigHandle: 'chatModel' | 'memory' | 'tool' | null = null
+
+const AGENT_CONFIG_HANDLES = ['chatModel', 'memory', 'tool'] as const
+
+function isAgentConfigHandle(handle: string | null | undefined): handle is 'chatModel' | 'memory' | 'tool' {
+  return AGENT_CONFIG_HANDLES.includes(handle as 'chatModel' | 'memory' | 'tool')
+}
 
 const quickAddBus = useEventBus('node:quick-add')
-quickAddBus.on((payload: { sourceId: string; sourceHandle?: string }) => {
+quickAddBus.on((payload: {
+  sourceId?: string
+  sourceHandle?: string
+  targetId?: string
+  targetHandle?: string
+  agentConfigHandle?: 'chatModel' | 'memory' | 'tool'
+}) => {
   quickAddSourceHandle = payload.sourceHandle ?? null
-  openAddNodePanel(payload.sourceId)
+  quickAddTargetId = payload.targetId ?? null
+  quickAddTargetHandle = payload.targetHandle ?? null
+  quickAddAgentConfigHandle = payload.agentConfigHandle ?? null
+  openAddNodePanel(payload.sourceId, payload.agentConfigHandle)
 })
 
 // ── Insert node between two connected nodes (edge toolbar quick-add) ──────────
@@ -281,6 +299,9 @@ quickAddBetweenBus.on((payload: {
   pendingInsertTargetId     = payload.targetId
   pendingInsertTargetHandle = payload.targetHandle ?? null
   quickAddSourceHandle      = payload.sourceHandle ?? null
+  quickAddTargetId          = null
+  quickAddTargetHandle      = null
+  quickAddAgentConfigHandle = null
   openAddNodePanel(payload.sourceId)
 })
 
@@ -295,8 +316,12 @@ edgeLabelBus.on((payload: { edgeId: string; label: string }) => {
   if (vfEdge) (vfEdge as any).label = payload.label || undefined
 })
 
-const openAddNodePanel = (sourceId?: string | null) => {
+const openAddNodePanel = (
+  sourceId?: string | null,
+  agentConfigHandle?: 'chatModel' | 'memory' | 'tool' | null,
+) => {
   quickAddSourceId = sourceId || null
+  quickAddAgentConfigHandle = agentConfigHandle ?? null
 
   panelStore.togglePanel({
     id: 'add-node-panel',
@@ -305,6 +330,8 @@ const openAddNodePanel = (sourceId?: string | null) => {
     props: {
       onAddLogicNode: addLogicNode,
       onAddPluginNode: addPluginNode,
+      onAddAgentToolNode: addAgentToolNode,
+      agentConfigHandle: quickAddAgentConfigHandle ?? undefined,
     },
     position: 'right',
     width: 'md',
@@ -401,16 +428,125 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   'ai-tool': 'AI Tool',
 }
 
+const AGENT_CONFIG_TOOLS_PER_ROW = 4
+const AGENT_CONFIG_LAYOUT = {
+  chatModelX: -165,
+  memoryX: 0,
+  toolsStartX: 165,
+  firstRowY: 265,
+  columnGap: 165,
+  rowGap: 185,
+}
+
 function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
   if (sourceId) {
     const nodes = vueFlowNodes.value as any[]
     const sourceNode = nodes.find((n) => n.id === sourceId)
     if (sourceNode) {
       // Posição x: 300px para a direita. O Y vamos apenas herdar e o alignNodeCenters corrige depois
-      return { x: sourceNode.position.x + 300, y: sourceNode.position.y }
+      const sourceWidth = vueFlowStore.value?.findNode(sourceId)?.dimensions?.width ?? 100
+      return { x: sourceNode.position.x + sourceWidth + 200, y: sourceNode.position.y }
     }
   }
   return getCenterPosition()
+}
+
+function getIncomingNodePosition(targetId: string | null): { x: number; y: number } {
+  if (targetId) {
+    const targetNode = (vueFlowNodes.value as any[]).find((n) => n.id === targetId)
+    if (targetNode) return { x: targetNode.position.x - 300, y: targetNode.position.y }
+  }
+
+  return getCenterPosition()
+}
+
+function hasNodeOutgoingConnection(nodeId: string): boolean {
+  return (
+    vueFlowEdges.value.some((edge) => edge.source === nodeId) ||
+    (workflowStore.activeWorkflow?.edges.some((edge) => edge.source === nodeId) ?? false)
+  )
+}
+
+function getAgentConfigNodePosition(targetId: string | null, targetHandle: string | null): { x: number; y: number } {
+  if (!targetId) return getCenterPosition()
+
+  const targetNode = (vueFlowNodes.value as any[]).find((n) => n.id === targetId)
+  if (!targetNode) return getCenterPosition()
+
+  const toolIndex =
+    targetHandle === 'tool'
+      ? workflowStore.activeWorkflow?.edges.filter((edge) =>
+        edge.target === targetId && edge.targetHandle === 'tool',
+      ).length ?? 0
+      : 0
+
+  return getAgentConfigLayoutPosition(targetNode.position, targetHandle, toolIndex)
+}
+
+function getAgentConfigLayoutPosition(
+  agentPosition: { x: number; y: number },
+  targetHandle: string | null,
+  toolIndex = 0,
+): { x: number; y: number } {
+  if (targetHandle === 'chatModel') {
+    return {
+      x: agentPosition.x + AGENT_CONFIG_LAYOUT.chatModelX,
+      y: agentPosition.y + AGENT_CONFIG_LAYOUT.firstRowY,
+    }
+  }
+
+  if (targetHandle === 'memory') {
+    return {
+      x: agentPosition.x + AGENT_CONFIG_LAYOUT.memoryX,
+      y: agentPosition.y + AGENT_CONFIG_LAYOUT.firstRowY,
+    }
+  }
+
+  const col = toolIndex % AGENT_CONFIG_TOOLS_PER_ROW
+  const row = Math.floor(toolIndex / AGENT_CONFIG_TOOLS_PER_ROW)
+
+  return {
+    x: agentPosition.x + AGENT_CONFIG_LAYOUT.toolsStartX + col * AGENT_CONFIG_LAYOUT.columnGap,
+    y: agentPosition.y + AGENT_CONFIG_LAYOUT.firstRowY + row * AGENT_CONFIG_LAYOUT.rowGap,
+  }
+}
+
+function applyNodePosition(nodeId: string, position: { x: number; y: number }) {
+  vueFlowStore.value?.updateNode(nodeId, { position })
+
+  const vNode = (vueFlowNodes.value as any[]).find((n) => n.id === nodeId)
+  if (vNode) vNode.position = position
+
+  const storeNode = workflowStore.activeWorkflow?.nodes[nodeId]
+  if (!storeNode) return
+
+  const ui = { ...(storeNode.ui ?? {}), positionX: position.x, positionY: position.y }
+  storeNode.ui = ui
+  workflowStore.updateNodeData(nodeId, { ui })
+}
+
+function arrangeAgentConfigNodes(targetId: string) {
+  if (!workflowStore.activeWorkflow) return
+
+  const targetNode = (vueFlowNodes.value as any[]).find((n) => n.id === targetId)
+  if (!targetNode) return
+
+  for (const targetHandle of ['chatModel', 'memory']) {
+    const edge = workflowStore.activeWorkflow.edges.find((candidate) =>
+      candidate.target === targetId && candidate.targetHandle === targetHandle,
+    )
+    if (!edge) continue
+
+    applyNodePosition(edge.source, getAgentConfigLayoutPosition(targetNode.position, targetHandle))
+  }
+
+  const toolEdges = workflowStore.activeWorkflow.edges.filter((edge) =>
+    edge.target === targetId && edge.targetHandle === 'tool',
+  )
+
+  toolEdges.forEach((edge, toolIndex) => {
+    applyNodePosition(edge.source, getAgentConfigLayoutPosition(targetNode.position, 'tool', toolIndex))
+  })
 }
 
 function alignNodeCenters(sourceId: string, targetId: string) {
@@ -461,6 +597,37 @@ function autoConnectToSource(sourceId: string, targetId: string, sourceHandle?: 
 
   workflowStore.activeWorkflow.edges.push(newEdge)
   vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
+}
+
+function autoConnectToTarget(sourceId: string, targetId: string, targetHandle?: string | null) {
+  if (!workflowStore.activeWorkflow) return
+
+  const newEdge = {
+    id: `e-${sourceId}-${targetId}-${Date.now()}`,
+    source: sourceId,
+    target: targetId,
+    sourceHandle: 'source',
+    targetHandle: targetHandle ?? 'target',
+  }
+
+  workflowStore.activeWorkflow.edges.push(newEdge)
+  vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
+}
+
+function connectAgentConfigNode(sourceId: string, targetId: string, targetHandle: string) {
+  if (!workflowStore.activeWorkflow) return
+
+  const newEdge = {
+    id: `e-${sourceId}-${targetId}-${targetHandle}-${Date.now()}`,
+    source: sourceId,
+    target: targetId,
+    sourceHandle: 'source',
+    targetHandle: targetHandle,
+  }
+
+  workflowStore.activeWorkflow.edges.push(newEdge)
+  vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
+  arrangeAgentConfigNodes(targetId)
 }
 
 function insertNodeBetween(
@@ -572,11 +739,23 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
 
   const backupSourceId = quickAddSourceId
   const backupSourceHandle = quickAddSourceHandle
+  const backupTargetId = quickAddTargetId
+  const backupTargetHandle = quickAddTargetHandle
   quickAddSourceId = null
   quickAddSourceHandle = null
+  quickAddTargetId = null
+  quickAddTargetHandle = null
+  quickAddAgentConfigHandle = null
 
   const id = generateNodeId(type)
-  const pos = getNewNodePosition(backupSourceId)
+  const backupAgentConfigHandle = isAgentConfigHandle(backupTargetHandle) ? backupTargetHandle : null
+  const isAgentConfigTarget = Boolean(backupTargetId && backupAgentConfigHandle)
+  let pos = getNewNodePosition(backupSourceId)
+  if (isAgentConfigTarget) {
+    pos = getAgentConfigNodePosition(backupTargetId, backupAgentConfigHandle)
+  } else if (backupTargetId) {
+    pos = getIncomingNodePosition(backupTargetId)
+  }
   const shouldAdoptLegacyTrigger =
     type === 'trigger' &&
     !Object.values(workflowStore.activeWorkflow.nodes).some((nodeData) => nodeData.type === 'trigger')
@@ -697,7 +876,12 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     data: newNode,
   })
 
-  if (backupSourceId && type !== 'trigger') {
+  if (isAgentConfigTarget && backupTargetId && backupAgentConfigHandle) {
+    connectAgentConfigNode(id, backupTargetId, backupAgentConfigHandle)
+  } else if (backupTargetId) {
+    autoConnectToTarget(id, backupTargetId, backupTargetHandle)
+    alignNodeCenters(id, backupTargetId)
+  } else if (backupSourceId && type !== 'trigger') {
     autoConnectToSource(backupSourceId, id, backupSourceHandle)
     alignNodeCenters(backupSourceId, id)
   }
@@ -719,11 +903,18 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
 
   const backupSourceId = quickAddSourceId
   const backupSourceHandle = quickAddSourceHandle
+  const backupTargetId = quickAddTargetId
+  const backupTargetHandle = quickAddTargetHandle
   quickAddSourceId = null
   quickAddSourceHandle = null
+  quickAddTargetId = null
+  quickAddTargetHandle = null
+  quickAddAgentConfigHandle = null
 
   const id = generateNodeId(action)
-  const pos = getNewNodePosition(backupSourceId)
+  const pos = backupTargetId
+    ? getIncomingNodePosition(backupTargetId)
+    : getNewNodePosition(backupSourceId)
 
   const newPluginNode: any = {
     type: 'plugin',
@@ -742,7 +933,10 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
     data: newPluginNode,
   })
 
-  if (backupSourceId) {
+  if (backupTargetId) {
+    autoConnectToTarget(id, backupTargetId, backupTargetHandle)
+    alignNodeCenters(id, backupTargetId)
+  } else if (backupSourceId) {
     autoConnectToSource(backupSourceId, id, backupSourceHandle)
     alignNodeCenters(backupSourceId, id)
   }
@@ -757,6 +951,14 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
   }
 
   panelStore.closePanel()
+}
+
+const addAgentToolNode = (pluginId: string, action: string, actionName: string) => {
+  addLogicNode('ai-tool' as WorkflowNodeType, {
+    name: actionName,
+    pluginId,
+    methodId: action,
+  })
 }
 
 const SNAP = 20
@@ -872,8 +1074,87 @@ const onNodeDragStop = (event: NodeDragEvent) => {
 /**
  * Quando uma nova conexão é criada, sincroniza pro store.
  */
+type PendingConnectionDrag = {
+  nodeId: string
+  handleId: string | null
+  handleType: string | null
+}
+
+let pendingConnectionDrag: PendingConnectionDrag | null = null
+
+function getConnectionDragInfo(args: unknown[]): PendingConnectionDrag | null {
+  const params = (args.length > 1 ? args[1] : args[0]) as any
+  const event = (args[0] instanceof Event ? args[0] : params?.event) as Event | undefined
+  const target = event?.target instanceof Element ? event.target : null
+  const handleEl = target?.closest('.vue-flow__handle')
+
+  const nodeId =
+    params?.nodeId ??
+    params?.node?.id ??
+    params?.fromNode?.id ??
+    handleEl?.getAttribute('data-nodeid') ??
+    handleEl?.getAttribute('data-node-id') ??
+    null
+
+  if (!nodeId) return null
+
+  const handleId =
+    params?.handleId ??
+    params?.handle?.id ??
+    handleEl?.getAttribute('data-handleid') ??
+    handleEl?.getAttribute('data-handle-id') ??
+    null
+
+  const handleType =
+    params?.handleType ??
+    params?.type ??
+    (handleEl?.classList.contains('source') ? 'source' : null) ??
+    (handleEl?.classList.contains('target') ? 'target' : null)
+
+  return { nodeId, handleId, handleType }
+}
+
+const onConnectStart = (...args: unknown[]) => {
+  pendingConnectionDrag = getConnectionDragInfo(args)
+}
+
+const onConnectEnd = (...args: unknown[]) => {
+  const pending = pendingConnectionDrag
+  pendingConnectionDrag = null
+  if (!pending) return
+
+  const payload = args[0] as any
+  const event = (payload instanceof Event ? payload : payload?.event) as Event | undefined
+  const target = event?.target instanceof Element ? event.target : null
+
+  if (!target?.closest('.sailor-workflow-canvas')) return
+  if (target.closest('.vue-flow__handle, .vue-flow__node, .vue-flow__edge')) return
+
+  pendingInsertEdgeId = null
+  pendingInsertSourceId = null
+  pendingInsertTargetId = null
+  pendingInsertTargetHandle = null
+
+  if (pending.handleType === 'target') {
+    quickAddSourceId = null
+    quickAddSourceHandle = null
+    quickAddTargetId = pending.nodeId
+    quickAddTargetHandle = pending.handleId
+    quickAddAgentConfigHandle = isAgentConfigHandle(pending.handleId) ? pending.handleId : null
+    openAddNodePanel(null, quickAddAgentConfigHandle)
+    return
+  }
+
+  quickAddSourceHandle = pending.handleId
+  quickAddTargetId = null
+  quickAddTargetHandle = null
+  quickAddAgentConfigHandle = null
+  openAddNodePanel(pending.nodeId)
+}
+
 const onConnect = (connection: Connection) => {
   if (!workflowStore.activeWorkflow) return
+  pendingConnectionDrag = null
 
   const newEdge = {
     id: `e-${connection.source}-${connection.target}-${Date.now()}`,
@@ -890,6 +1171,9 @@ const onConnect = (connection: Connection) => {
   //    Com v-model:edges, o VueFlow NÃO adiciona automaticamente ao @connect.
   vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
 
+  if (newEdge.targetHandle && ['chatModel', 'memory', 'tool'].includes(newEdge.targetHandle)) {
+    arrangeAgentConfigNodes(newEdge.target)
+  }
 }
 
 type EdgeChange = { type: string; id?: string }
@@ -953,7 +1237,9 @@ defineExpose({
       :delete-key-code="['Delete']"
       @node-double-click="onNodeDoubleClick"
       @node-drag-stop="onNodeDragStop"
+      @connect-start="onConnectStart"
       @connect="onConnect"
+      @connect-end="onConnectEnd"
       @init="onVueFlowInit"
       @edges-change="onEdgesChange"
       @nodes-change="onNodesChange"
@@ -1092,12 +1378,12 @@ defineExpose({
 
       <!-- HTTP Node -->
       <template #node-http="nodeProps">
-        <HttpNode v-bind="nodeProps" />
+        <HttpNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- CODE Node -->
       <template #node-code="nodeProps">
-        <CodeNode v-bind="nodeProps" />
+        <CodeNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- LOOP Node -->
@@ -1107,22 +1393,22 @@ defineExpose({
 
       <!-- EVENT Node -->
       <template #node-event="nodeProps">
-        <EventNode v-bind="nodeProps" />
+        <EventNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- PLUGIN Node -->
       <template #node-plugin="nodeProps">
-        <PluginNode v-bind="nodeProps" />
+        <PluginNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- EVENT LISTENER Node -->
       <template #node-event-listener="nodeProps">
-        <EventListenerNode v-bind="nodeProps" />
+        <EventListenerNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- SUBWORKFLOW Node -->
       <template #node-subworkflow="nodeProps">
-        <SubWorkflowNode v-bind="nodeProps" />
+        <SubWorkflowNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- IF Node -->
@@ -1132,7 +1418,7 @@ defineExpose({
 
       <!-- SET Node -->
       <template #node-set="nodeProps">
-        <SetNode v-bind="nodeProps" />
+        <SetNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- SWITCH Node -->
@@ -1142,7 +1428,7 @@ defineExpose({
 
       <!-- MERGE Node -->
       <template #node-merge="nodeProps">
-        <MergeNode v-bind="nodeProps" />
+        <MergeNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- SPLIT IN BATCHES Node -->
@@ -1152,17 +1438,17 @@ defineExpose({
 
       <!-- RESPOND TO WEBHOOK Node -->
       <template #node-respond-webhook="nodeProps">
-        <RespondToWebhookNode v-bind="nodeProps" />
+        <RespondToWebhookNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- WAIT FORM Node -->
       <template #node-wait-form="nodeProps">
-        <WaitFormNode v-bind="nodeProps" />
+        <WaitFormNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- AI AGENT Node -->
       <template #node-ai-agent="nodeProps">
-        <AiAgentNode v-bind="nodeProps" />
+        <AiAgentNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- AI MODEL Node -->

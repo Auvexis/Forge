@@ -191,6 +191,14 @@ export interface PluginMethodManifest {
   parameters: JSONSchemaObject
   responseSchema: JSONSchemaResponse
   ui: PluginMethodUI
+  agentTool?: {
+    enabled: boolean
+    name?: string
+    description?: string
+    sideEffect?: string
+    requiresApproval?: boolean
+    timeoutMs?: number
+  }
 }
 
 // ── Plugin Trigger Manifest ────────────────────────────────

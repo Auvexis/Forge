@@ -9,19 +9,95 @@ function read(relativePath: string): string {
   return readFileSync(resolve(root, relativePath), 'utf8')
 }
 
-test('add node panel exposes an AI category with agent building blocks, not a separate chat trigger item', () => {
+test('add node panel exposes only the root AI Agent outside contextual agent quick-add', () => {
   const source = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
   assert.match(source, /const AI_NODES(?:: AddNodeDefinition\[\])? = \[/)
   assert.match(source, /AI/)
 
-  for (const label of ['AI Agent', 'AI Model', 'AI Memory', 'AI Tool']) {
-    assert.match(source, new RegExp(`label: '${label}'`))
-  }
+  assert.match(source, /label: 'AI Agent'/)
+  const aiNodesDefinition = source.slice(
+    source.indexOf('const AI_NODES'),
+    source.indexOf('const AGENT_MEMORY_PRESETS'),
+  )
+  assert.doesNotMatch(aiNodesDefinition, /label: 'AI Model'/)
+  assert.doesNotMatch(aiNodesDefinition, /label: 'AI Memory'/)
+  assert.doesNotMatch(aiNodesDefinition, /label: 'AI Tool'/)
 
   assert.doesNotMatch(source, /label: 'Chat Trigger'/)
   assert.match(source, /filteredAiNodes/)
   assert.match(source, /onAddLogicNode\?\.\(def\.type, def\.defaults\)/)
+})
+
+test('add node panel supports contextual agent quick-add presets', () => {
+  const source = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+
+  assert.match(source, /agentConfigHandle\?: 'chatModel' \| 'memory' \| 'tool'/)
+  assert.doesNotMatch(source, /AGENT_MODEL_PRESETS/)
+  assert.doesNotMatch(source, /provider: 'openai'/)
+  assert.doesNotMatch(source, /provider: 'openrouter'/)
+  assert.match(source, /agentChatModelPlugins/)
+  assert.match(source, /manifest\.metadata\.agentCapabilities\?\.chatModel\?\.enabled === true/)
+  assert.match(source, /manifest\.metadata\.agentCapabilities\.chatModel\.adapter === 'openai-compatible'/)
+  assert.match(source, /addAgentModelNode\(plugin\)/)
+  assert.match(source, /pluginId: capability\.credentialPluginId \|\| plugin\.manifest\.metadata\.id/)
+  assert.match(source, /adapter: capability\.adapter/)
+  assert.match(source, /model: capability\.defaultModel/)
+  assert.match(source, /baseUrl: capability\.defaultBaseUrl/)
+  assert.match(
+    source,
+    /v-for="plugin in agentChatModelPlugins"[\s\S]*pluginIcon\(plugin\)[\s\S]*capabilityLabel\(plugin, 'Chat Model'\)/,
+  )
+  assert.match(source, /AGENT_MEMORY_PRESETS/)
+  assert.match(source, /SQLite Memory/)
+  assert.match(source, /PostgreSQL Memory/)
+  assert.match(source, /Supabase Memory/)
+  assert.match(source, /pluginId: 'sailor-postgresql'/)
+  assert.match(source, /pluginId: 'sailor-supabase'/)
+  assert.match(
+    source,
+    /label: 'PostgreSQL Memory'[\s\S]*icon: 'https:\/\/cdn\.jsdelivr\.net\/gh\/homarr-labs\/dashboard-icons\/svg\/postgresql\.svg'/,
+  )
+  assert.match(
+    source,
+    /label: 'Supabase Memory'[\s\S]*icon: 'https:\/\/cdn\.jsdelivr\.net\/gh\/homarr-labs\/dashboard-icons\/svg\/supabase\.svg'/,
+  )
+  assert.match(source, /presetPlugin/)
+  assert.match(source, /presetIcon/)
+  assert.match(source, /presetBgColor/)
+  assert.match(source, /presetBorderColor/)
+  assert.match(source, /presetIconColor/)
+  assert.match(source, /isAgentModelContext/)
+  assert.match(source, /isAgentMemoryContext/)
+  assert.match(source, /isAgentToolContext/)
+  assert.match(source, /filteredIntegrationPlugins/)
+  assert.match(source, /methodVal\.agentTool\?\.enabled === true/)
+  assert.match(source, /<div v-if="!isAgentContext" class="add-node-section">[\s\S]*filteredUtilityPlugins/)
+  assert.match(source, /<p class="add-node-section-label">\{\{ isAgentToolContext \? 'Tools' : 'Integrations' \}\}<\/p>/)
+})
+
+test('canvas connects contextual quick-add nodes into agent config handles', () => {
+  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+
+  assert.match(canvas, /quickAddTargetId/)
+  assert.match(canvas, /quickAddTargetHandle/)
+  assert.match(canvas, /agentConfigHandle/)
+  assert.match(canvas, /connectAgentConfigNode/)
+  assert.match(canvas, /targetHandle: targetHandle/)
+  assert.match(canvas, /sourceHandle: 'source'/)
+  assert.match(canvas, /onAddAgentToolNode/)
+})
+
+test('canvas auto-arranges agent config nodes with model and memory on the left and tools in a grid', () => {
+  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+
+  assert.match(canvas, /AGENT_CONFIG_TOOLS_PER_ROW = 4/)
+  assert.match(canvas, /getAgentConfigLayoutPosition/)
+  assert.match(canvas, /arrangeAgentConfigNodes/)
+  assert.match(canvas, /targetHandle === 'tool'/)
+  assert.match(canvas, /toolIndex % AGENT_CONFIG_TOOLS_PER_ROW/)
+  assert.match(canvas, /Math\.floor\(toolIndex \/ AGENT_CONFIG_TOOLS_PER_ROW\)/)
+  assert.match(canvas, /arrangeAgentConfigNodes\(targetId\)/)
 })
 
 test('ai node defaults are safe and backend-compatible', () => {

@@ -30,7 +30,7 @@
       <!-- View: Categories (default) -->
       <template v-else-if="view === 'categories'">
         <!-- Logic and utilities -->
-        <div class="add-node-section">
+        <div v-if="!isAgentContext" class="add-node-section">
           <p class="add-node-section-label">Logic and Utilities</p>
           <BaseWoobyMenu tag="div" class="add-node-list">
             <!-- Core flow nodes -->
@@ -39,10 +39,10 @@
               :key="def.type"
               class="add-node-item"
               style="position: relative; z-index: 1"
-              @click="onAddLogicNode?.(def.type, def.defaults)"
+              @click="props.onAddLogicNode?.(def.type, def.defaults)"
             >
-              <div class="add-node-item-icon-well" :style="{ backgroundColor: def.bgColor, borderColor: def.borderColor || 'transparent' }">
-                <LucideIcon :name="def.icon" :size="16" :color="def.color" />
+              <div class="add-node-item-icon-well" :style="{ backgroundColor: presetBgColor(def), borderColor: presetBorderColor(def) }">
+                <LucideIcon :name="presetIcon(def)" :size="16" :color="presetIconColor(def)" />
               </div>
               <div class="add-node-item-info">
                 <span class="add-node-item-label">{{ def.label }}</span>
@@ -71,7 +71,7 @@
         </div>
 
         <!-- AI -->
-        <div class="add-node-section">
+        <div v-if="!isAgentContext" class="add-node-section">
           <p class="add-node-section-label">AI</p>
           <BaseWoobyMenu tag="div" class="add-node-list">
             <button
@@ -79,10 +79,10 @@
               :key="def.label"
               class="add-node-item"
               style="position: relative; z-index: 1"
-              @click="onAddLogicNode?.(def.type, def.defaults)"
+              @click="props.onAddLogicNode?.(def.type, def.defaults)"
             >
-              <div class="add-node-item-icon-well" :style="{ backgroundColor: def.bgColor, borderColor: def.borderColor || 'transparent' }">
-                <LucideIcon :name="def.icon" :size="16" :color="def.color" />
+              <div class="add-node-item-icon-well" :style="{ backgroundColor: presetBgColor(def), borderColor: presetBorderColor(def) }">
+                <LucideIcon :name="presetIcon(def)" :size="16" :color="presetIconColor(def)" />
               </div>
               <div class="add-node-item-info">
                 <span class="add-node-item-label">{{ def.label }}</span>
@@ -93,8 +93,8 @@
         </div>
 
         <!-- Integrations / Plugins -->
-        <div class="add-node-section">
-          <p class="add-node-section-label">Integrations</p>
+        <div v-if="!isAgentModelContext && !isAgentMemoryContext" class="add-node-section">
+          <p class="add-node-section-label">{{ isAgentToolContext ? 'Tools' : 'Integrations' }}</p>
           <div v-if="filteredIntegrationPlugins.length === 0" class="add-node-empty">
             <LucideIcon name="blocks" :size="32" class="add-node-empty-icon" />
             <p>No integrations found.</p>
@@ -118,6 +118,51 @@
             </button>
           </BaseWoobyMenu>
         </div>
+
+        <div v-if="isAgentModelContext" class="add-node-section">
+          <p class="add-node-section-label">Chat Models</p>
+          <BaseWoobyMenu tag="div" class="add-node-list">
+            <button
+              v-for="plugin in agentChatModelPlugins"
+              :key="plugin.id"
+              class="add-node-item"
+              style="position: relative; z-index: 1"
+              @click="addAgentModelNode(plugin)"
+            >
+              <div class="add-node-item-icon-well" :style="{ backgroundColor: plugin.manifest.metadata.style?.bgColor || 'var(--sailor-bg-surface)', borderColor: plugin.manifest.metadata.style?.borderColor || 'var(--sailor-border)' }">
+                <LucideIcon :name="pluginIcon(plugin)" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--sailor-text-muted)'" />
+              </div>
+              <div class="add-node-item-info">
+                <span class="add-node-item-label">{{ capabilityLabel(plugin, 'Chat Model') }}</span>
+                <span class="add-node-item-desc">{{ capabilityDescription(plugin) }}</span>
+              </div>
+            </button>
+            <div v-if="agentChatModelPlugins.length === 0" class="add-node-empty" style="position: relative; z-index: 1">
+              <p>No chat models found.</p>
+            </div>
+          </BaseWoobyMenu>
+        </div>
+
+        <div v-if="isAgentMemoryContext" class="add-node-section">
+          <p class="add-node-section-label">Memory</p>
+          <BaseWoobyMenu tag="div" class="add-node-list">
+            <button
+              v-for="def in filteredAgentMemoryPresets"
+              :key="def.label"
+              class="add-node-item"
+              style="position: relative; z-index: 1"
+              @click="props.onAddLogicNode?.(def.type, def.defaults)"
+            >
+              <div class="add-node-item-icon-well" :style="{ backgroundColor: presetBgColor(def), borderColor: presetBorderColor(def) }">
+                <LucideIcon :name="presetIcon(def)" :size="16" :color="presetIconColor(def)" />
+              </div>
+              <div class="add-node-item-info">
+                <span class="add-node-item-label">{{ def.label }}</span>
+                <span class="add-node-item-desc">{{ def.description }}</span>
+              </div>
+            </button>
+          </BaseWoobyMenu>
+        </div>
       </template>
 
       <!-- View: Actions (plugin selected) -->
@@ -129,7 +174,9 @@
             class="add-node-item"
             style="position: relative; z-index: 1"
             @click="
-              onAddPluginNode?.(selectedPluginId!, methodKey, methodVal.metadata.label || methodKey)
+              isAgentToolContext
+                ? props.onAddAgentToolNode?.(selectedPluginId!, methodKey, methodVal.metadata.label || methodKey)
+                : props.onAddPluginNode?.(selectedPluginId!, methodKey, methodVal.metadata.label || methodKey)
             "
           >
             <div class="add-node-item-icon-well add-node-item-icon-well--plugin">
@@ -161,9 +208,11 @@ import { useTheme } from '@/shared/composables/useTheme'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 import type { PluginSummary } from '@/core/types/plugin.types'
 
-defineProps<{
+const props = defineProps<{
   onAddLogicNode?: (type: WorkflowNodeType, defaults?: Record<string, unknown>) => void
   onAddPluginNode?: (pluginId: string, action: string, actionName: string) => void
+  onAddAgentToolNode?: (pluginId: string, action: string, actionName: string) => void
+  agentConfigHandle?: 'chatModel' | 'memory' | 'tool'
 }>()
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -198,6 +247,7 @@ interface AddNodeDefinition {
   color: string
   bgColor: string
   borderColor: string
+  pluginId?: string
   defaults?: Record<string, unknown>
 }
 
@@ -340,32 +390,41 @@ const AI_NODES: AddNodeDefinition[] = [
     bgColor: 'rgba(14, 165, 233, 0.12)',
     borderColor: 'rgba(14, 165, 233, 0.35)',
   },
+]
+
+const AGENT_MEMORY_PRESETS: AddNodeDefinition[] = [
   {
-    type: 'ai-model' as WorkflowNodeType,
-    label: 'AI Model',
-    description: 'Configure the model provider for an agent',
-    icon: 'brain-circuit',
-    color: 'rgb(16, 185, 129)',
-    bgColor: 'rgba(16, 185, 129, 0.12)',
-    borderColor: 'rgba(16, 185, 129, 0.35)',
+    type: 'ai-memory' as WorkflowNodeType,
+    label: 'SQLite Memory',
+    description: 'Store short-term agent memory in SQLite',
+    icon: 'database',
+    color: 'var(--sailor-node-plugin-icon)',
+    bgColor: 'var(--sailor-node-plugin-bg)',
+    borderColor: 'var(--sailor-node-plugin-border)',
+    pluginId: 'sqlite',
+    defaults: { name: 'SQLite Memory', provider: 'sqlite', pluginId: 'sqlite', scope: 'session' },
   },
   {
     type: 'ai-memory' as WorkflowNodeType,
-    label: 'AI Memory',
-    description: 'Attach scoped memory to an agent run',
-    icon: 'database',
-    color: 'rgb(245, 158, 11)',
-    bgColor: 'rgba(245, 158, 11, 0.12)',
-    borderColor: 'rgba(245, 158, 11, 0.35)',
+    label: 'PostgreSQL Memory',
+    description: 'Store shared agent memory in PostgreSQL',
+    icon: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/postgresql.svg',
+    color: 'var(--sailor-node-plugin-icon)',
+    bgColor: 'var(--sailor-node-plugin-bg)',
+    borderColor: 'var(--sailor-node-plugin-border)',
+    pluginId: 'sailor-postgresql',
+    defaults: { name: 'PostgreSQL Memory', provider: 'postgresql', pluginId: 'sailor-postgresql', scope: 'workflow' },
   },
   {
-    type: 'ai-tool' as WorkflowNodeType,
-    label: 'AI Tool',
-    description: 'Expose an approved plugin method to an agent',
-    icon: 'wrench',
-    color: 'rgb(244, 63, 94)',
-    bgColor: 'rgba(244, 63, 94, 0.12)',
-    borderColor: 'rgba(244, 63, 94, 0.35)',
+    type: 'ai-memory' as WorkflowNodeType,
+    label: 'Supabase Memory',
+    description: 'Store agent memory in Supabase Postgres',
+    icon: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/supabase.svg',
+    color: 'var(--sailor-node-plugin-icon)',
+    bgColor: 'var(--sailor-node-plugin-bg)',
+    borderColor: 'var(--sailor-node-plugin-border)',
+    pluginId: 'sailor-supabase',
+    defaults: { name: 'Supabase Memory', provider: 'supabase', pluginId: 'sailor-supabase', scope: 'profile' },
   },
 ]
 
@@ -373,8 +432,18 @@ const AI_NODES: AddNodeDefinition[] = [
 
 const searchPlaceholder = computed(() => {
   if (view.value === 'actions') return 'Search actions...'
+  if (isAgentModelContext.value) return 'Search chat models...'
+  if (isAgentMemoryContext.value) return 'Search memory...'
+  if (isAgentToolContext.value) return 'Search tools...'
   return 'Search components...'
 })
+
+const isAgentModelContext = computed(() => props.agentConfigHandle === 'chatModel')
+const isAgentMemoryContext = computed(() => props.agentConfigHandle === 'memory')
+const isAgentToolContext = computed(() => props.agentConfigHandle === 'tool')
+const isAgentContext = computed(() =>
+  isAgentModelContext.value || isAgentMemoryContext.value || isAgentToolContext.value,
+)
 
 const filteredLogicNodes = computed(() =>
   LOGIC_NODES.filter((n) => n.label.toLowerCase().includes(search.value.toLowerCase())),
@@ -382,6 +451,10 @@ const filteredLogicNodes = computed(() =>
 
 const filteredAiNodes = computed(() =>
   AI_NODES.filter((n) => n.label.toLowerCase().includes(search.value.toLowerCase())),
+)
+
+const filteredAgentMemoryPresets = computed(() =>
+  AGENT_MEMORY_PRESETS.filter((n) => n.label.toLowerCase().includes(search.value.toLowerCase())),
 )
 
 const filteredPlugins = computed(() =>
@@ -398,15 +471,52 @@ const filteredIntegrationPlugins = computed(() =>
   filteredPlugins.value.filter((p) => p.manifest.metadata.utility !== true)
 )
 
+const agentChatModelPlugins = computed(() =>
+  filteredPlugins.value.filter((plugin) =>
+    plugin.manifest.metadata.agentCapabilities?.chatModel?.enabled === true &&
+    plugin.manifest.metadata.agentCapabilities.chatModel.adapter === 'openai-compatible',
+  ),
+)
+
 const filteredMethods = computed(() => {
   if (!selectedPlugin.value) return []
-  return Object.entries(selectedPlugin.value.manifest.methods).filter(([key, val]) =>
-    (val.metadata.label || key).toLowerCase().includes(search.value.toLowerCase()),
+  return Object.entries(selectedPlugin.value.manifest.methods).filter(([key, methodVal]) =>
+    (methodVal.metadata.label || key).toLowerCase().includes(search.value.toLowerCase()) &&
+    (!isAgentToolContext.value || methodVal.agentTool?.enabled === true),
   )
 })
 
 const pluginIcon = (plugin: PluginSummary) =>
   resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
+
+const presetPlugin = (def: AddNodeDefinition) =>
+  (plugins.value ?? []).find((plugin) =>
+    plugin.id === def.pluginId || plugin.manifest.metadata.id === def.pluginId,
+  )
+
+const presetIcon = (def: AddNodeDefinition) => {
+  const plugin = presetPlugin(def)
+  if (!plugin) return def.icon
+  return resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: def.icon })
+}
+
+const presetBgColor = (def: AddNodeDefinition) =>
+  presetPlugin(def)?.manifest.metadata.style?.bgColor || def.bgColor
+
+const presetBorderColor = (def: AddNodeDefinition) =>
+  presetPlugin(def)?.manifest.metadata.style?.borderColor || def.borderColor || 'transparent'
+
+const presetIconColor = (def: AddNodeDefinition) =>
+  presetPlugin(def)?.manifest.metadata.style?.iconColor || def.color
+
+const chatModelCapability = (plugin: PluginSummary) =>
+  plugin.manifest.metadata.agentCapabilities?.chatModel
+
+const capabilityLabel = (plugin: PluginSummary, fallback: string) =>
+  chatModelCapability(plugin)?.label || `${plugin.manifest.metadata.name} ${fallback}`
+
+const capabilityDescription = (plugin: PluginSummary) =>
+  chatModelCapability(plugin)?.description || plugin.manifest.metadata.description
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 
@@ -414,6 +524,19 @@ const selectPlugin = (id: string) => {
   selectedPluginId.value = id
   view.value = 'actions'
   search.value = ''
+}
+
+const addAgentModelNode = (plugin: PluginSummary) => {
+  const capability = chatModelCapability(plugin)
+  if (!capability?.adapter || !capability.defaultModel) return
+
+  props.onAddLogicNode?.('ai-model' as WorkflowNodeType, {
+    name: capability.label || `${plugin.manifest.metadata.name} Chat Model`,
+    pluginId: capability.credentialPluginId || plugin.manifest.metadata.id,
+    adapter: capability.adapter,
+    model: capability.defaultModel,
+    baseUrl: capability.defaultBaseUrl,
+  })
 }
 
 const goBack = () => {
