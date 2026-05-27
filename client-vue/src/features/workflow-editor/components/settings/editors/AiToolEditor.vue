@@ -8,17 +8,22 @@
       />
     </EditorField>
 
-    <EditorField label="Selected Tool">
-      <div class="selected-tool-stack">
-        <div class="selected-tool-card">
-          <span class="selected-tool-icon">{{ selectedPluginIcon }}</span>
-          <span class="selected-tool-text">{{ selectedPluginLabel }}</span>
-        </div>
-        <div class="selected-tool-card">
-          <span class="selected-tool-icon">bolt</span>
-          <span class="selected-tool-text">{{ selectedActionLabel }}</span>
-        </div>
-      </div>
+    <EditorField label="Integration (Plugin)">
+      <BaseSelect
+        :model-value="(node.data.pluginId as string) || ''"
+        :options="pluginOptions"
+        placeholder="Select Integration..."
+        @update:model-value="handlePluginChange"
+      />
+    </EditorField>
+
+    <EditorField v-if="selectedPlugin" label="Action">
+      <BaseSelect
+        :model-value="(node.data.methodId as string) || ''"
+        :options="actionOptions"
+        placeholder="Select Action..."
+        @update:model-value="handleMethodChange"
+      />
     </EditorField>
 
     <EditorField label="Tool Instructions">
@@ -175,19 +180,67 @@ const selectedAction = computed(() => {
   return selectedPlugin.value?.manifest.methods[methodId]
 })
 
-const selectedPluginLabel = computed(() =>
-  selectedPlugin.value?.manifest.metadata.name ||
-  String(props.node.data.pluginId ?? 'Plugin'),
-)
+const pluginOptions = computed(() => {
+  if (!plugins.value) return []
+  return plugins.value
+    .filter(pluginHasAgentTools)
+    .map((plugin) => {
+      const iconStr = plugin.manifest.metadata.icon
+      const isImage = iconStr && (
+        iconStr.startsWith('http') ||
+        iconStr.startsWith('/') ||
+        iconStr.startsWith('data:')
+      )
 
-const selectedPluginIcon = computed(() =>
-  selectedPlugin.value?.manifest.metadata.icon || 'puzzle',
-)
+      return {
+        label: plugin.manifest.metadata.name,
+        value: plugin.id,
+        ...(isImage ? { image: iconStr } : { icon: iconStr || 'puzzle' }),
+      }
+    })
+})
 
-const selectedActionLabel = computed(() =>
-  selectedAction.value?.metadata.label ||
-  String(props.node.data.methodId ?? 'Method'),
-)
+const actionOptions = computed(() => {
+  if (!selectedPlugin.value?.manifest.methods) return []
+  return Object.entries(selectedPlugin.value.manifest.methods)
+    .filter(([, method]) => method.agentTool?.enabled === true)
+    .map(([key, method]) => ({
+      label: method.metadata.label || key,
+      value: key,
+      icon: 'zap',
+    }))
+})
+
+function pluginHasAgentTools(plugin: NonNullable<typeof plugins.value>[number]) {
+  return Object.values(plugin.manifest.methods).some((method) => method.agentTool?.enabled === true)
+}
+
+function methodDefaults(methodId: string) {
+  const method = selectedPlugin.value?.manifest.methods[methodId]
+  const agentTool = method?.agentTool
+
+  return {
+    name: method?.metadata.label || methodId,
+    methodId,
+    sideEffect: agentTool?.sideEffect || 'read',
+    requiresApproval: Boolean(agentTool?.requiresApproval),
+    timeoutMs: agentTool?.timeoutMs ?? 30000,
+    inputDefaults: {},
+  }
+}
+
+function handlePluginChange(value: string | number | null) {
+  props.updateNodeData({
+    pluginId: String(value || ''),
+    methodId: '',
+    inputDefaults: {},
+  })
+}
+
+function handleMethodChange(value: string | number | null) {
+  const methodId = String(value || '')
+  props.updateNodeData(methodId ? methodDefaults(methodId) : { methodId: '', inputDefaults: {} })
+}
 
 function updateDescriptionOverride(value: string) {
   const next = value.trim()
@@ -226,45 +279,6 @@ function parameterPlaceholder(key: string, schema: unknown) {
 <style scoped>
 .mt-2 {
   margin-top: var(--sailor-space-2);
-}
-
-.selected-tool-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-border);
-}
-
-.selected-tool-card {
-  display: flex;
-  align-items: center;
-  gap: var(--sailor-space-2);
-  min-height: 36px;
-  padding: 0 var(--sailor-space-3);
-  background: var(--sailor-bg-overlay);
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
-}
-
-.selected-tool-icon {
-  flex: 0 0 auto;
-  max-width: 18px;
-  overflow: hidden;
-  color: var(--sailor-text-muted);
-  font-size: 12px;
-  line-height: 1;
-  text-overflow: clip;
-  white-space: nowrap;
-}
-
-.selected-tool-text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .pe-params-header {

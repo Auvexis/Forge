@@ -51,5 +51,6 @@ test('ai tool editor does not re-open the global picker after quick-add selectio
 
   assert.doesNotMatch(source, /import AgentToolPicker/)
   assert.doesNotMatch(source, /<AgentToolPicker/)
-  assert.match(source, /Selected Tool/)
+  assert.match(source, /Integration \(Plugin\)/)
+  assert.match(source, /Action/)
 })
