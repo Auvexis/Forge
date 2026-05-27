@@ -8,11 +8,19 @@
       />
     </EditorField>
 
-    <EditorField label="Provider">
-      <BaseSelect
-        :model-value="(node.data.provider as string) || 'openai'"
-        :options="PROVIDERS"
-        @update:model-value="updateNodeData({ provider: $event as string })"
+    <EditorField label="Provider Plugin">
+      <BaseInput
+        :model-value="(node.data.pluginId as string) || ''"
+        disabled
+        placeholder="Selected provider plugin"
+      />
+    </EditorField>
+
+    <EditorField label="Adapter">
+      <BaseInput
+        :model-value="(node.data.adapter as string) || 'openai-compatible'"
+        disabled
+        placeholder="openai-compatible"
       />
     </EditorField>
 
@@ -41,6 +49,14 @@
       </div>
     </EditorField>
 
+    <EditorField label="Base URL">
+      <BaseInput
+        :model-value="(node.data.baseUrl as string) || ''"
+        @update:model-value="updateNodeData({ baseUrl: ($event as string) || undefined })"
+        placeholder="https://api.example.com/v1"
+      />
+    </EditorField>
+
     <EditorField label="Credential">
       <BaseInput
         :model-value="(node.data.credentialId as string) || ''"
@@ -55,14 +71,9 @@
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 
 defineProps<NodeEditorProps>()
 
-const PROVIDERS = [
-  { value: 'openai', label: 'OpenAI' },
-  { value: 'openrouter', label: 'OpenRouter' },
-]
 </script>
 
 <style scoped>

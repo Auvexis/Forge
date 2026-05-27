@@ -232,6 +232,15 @@ const injectVariable = (paramKey: string, variable: string) => {
 }
 
 const isPluginNode = computed(() => inspectorStore.activeNode?.type === 'plugin')
+const settingsAuthPluginId = computed(() => {
+  const node = inspectorStore.activeNode
+  const data = node?.data as Record<string, unknown> | undefined
+  if (!node || !data) return ''
+
+  if (typeof data.pluginId === 'string' && data.pluginId.trim()) return data.pluginId
+  return ''
+})
+const hasAuthSettings = computed(() => isPluginNode.value || Boolean(settingsAuthPluginId.value))
 const isEventListenerNode = computed(() => inspectorStore.activeNode?.type === 'event-listener')
 const canConfigureRetry = computed(() => !isTriggerNode.value)
 const nodeDisabled = computed(() => {
@@ -611,17 +620,17 @@ const copyToClipboard = async (path: string) => {
                   </div>
                 </div>
 
-                <!-- Authorization Configuration (Plugin Only) -->
+                <!-- Authorization Configuration -->
                 <div
-                  v-if="isPluginNode"
+                  v-if="hasAuthSettings"
                   class="flex flex-col gap-2 pt-4 border-t border-sailor-border"
                 >
                   <label class="text-sm font-semibold text-primary mb-1"
                     >Integration Authorization</label
                   >
                   <PluginMenuAuth
-                    v-if="inspectorStore.activeNode?.data?.pluginId"
-                    :plugin-id="inspectorStore.activeNode.data.pluginId as string"
+                    v-if="settingsAuthPluginId"
+                    :plugin-id="settingsAuthPluginId"
                   />
                   <div
                     v-else

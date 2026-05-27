@@ -24,6 +24,7 @@ test('editor registry maps AI workflow nodes to dedicated editors', () => {
 
 test('ai agent editor exposes prompt, limits, timeout, approvals, and output mode', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/AiAgentEditor.vue')
+  const inspector = read('src/features/workflow-editor/components/settings/NodeInspectorModal.vue')
 
   for (const field of ['prompt', 'maxIterations', 'maxToolCalls', 'timeoutMs', 'outputMode', 'requireApprovalForSideEffects']) {
     assert.match(source, new RegExp(field))
@@ -31,17 +32,27 @@ test('ai agent editor exposes prompt, limits, timeout, approvals, and output mod
 
   assert.match(source, /ExpressionTextarea/)
   assert.match(source, /BaseSelect/)
+  assert.doesNotMatch(source, /PluginMenuAuth/)
+  assert.match(inspector, /PluginMenuAuth/)
+  assert.match(inspector, /settingsAuthPluginId/)
 })
 
-test('ai model editor exposes provider, model, temperature, token limits, and credentials', () => {
+test('ai model editor exposes plugin capability identity, model, temperature, token limits, and credentials', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/AiModelEditor.vue')
 
-  for (const field of ['provider', 'model', 'temperature', 'maxTokens', 'credentialId']) {
+  for (const field of ['pluginId', 'adapter', 'model', 'temperature', 'maxTokens', 'credentialId']) {
     assert.match(source, new RegExp(field))
   }
 
   assert.match(source, /Credential/)
-  assert.match(source, /BaseSelect/)
+  assert.match(source, /Provider Plugin/)
+  assert.match(source, /Adapter/)
+  assert.doesNotMatch(source, /const PROVIDERS/)
+  assert.doesNotMatch(source, /value: 'openai'/)
+  assert.doesNotMatch(source, /value: 'openrouter'/)
+  assert.doesNotMatch(source, /updateNodeData\(\{ provider:/)
+  assert.doesNotMatch(source, /PluginMenuAuth/)
+  assert.doesNotMatch(source, /modelAuthPluginId/)
 })
 
 test('frontend agent runtime types expose plugin capability and generic model contracts', () => {
@@ -73,6 +84,7 @@ test('ai memory editor exposes scope, read and write toggles, and retrieval limi
 
   assert.match(source, /AgentMemoryScopePicker/)
   assert.match(picker, /BaseSwitch/)
+  assert.doesNotMatch(source, /PluginMenuAuth/)
 })
 
 test('ai tool editor exposes picker placeholder and side-effect policy', () => {
@@ -83,6 +95,20 @@ test('ai tool editor exposes picker placeholder and side-effect policy', () => {
   }
 
   assert.match(source, /BaseSwitch/)
+  assert.doesNotMatch(source, /PluginMenuAuth/)
+})
+
+test('plugin auth for agent config nodes lives in the node settings tab', () => {
+  const inspector = read('src/features/workflow-editor/components/settings/NodeInspectorModal.vue')
+
+  assert.match(inspector, /import PluginMenuAuth/)
+  assert.match(inspector, /settingsAuthPluginId/)
+  assert.match(inspector, /hasAuthSettings/)
+  assert.match(inspector, /typeof data\.pluginId === 'string'/)
+  assert.match(inspector, /return data\.pluginId/)
+  assert.doesNotMatch(inspector, /provider === 'ollama' \? 'sailor-ollama' : provider/)
+  assert.match(inspector, /v-if="hasAuthSettings"/)
+  assert.match(inspector, /:plugin-id="settingsAuthPluginId"/)
 })
 
 test('chat trigger editor exposes slug, title, auth, session, and rate limit controls', () => {
@@ -94,6 +120,9 @@ test('chat trigger editor exposes slug, title, auth, session, and rate limit con
   }
 
   assert.match(source, /BaseSelect/)
+  assert.match(source, /generateChatSlug/)
+  assert.match(source, /chat-[a-z0-9]+/)
+  assert.match(source, /onMounted/)
   assert.match(trigger, /ChatTriggerEditor/)
 })
 
@@ -106,13 +135,11 @@ test('trigger editor exposes chat as a normal trigger type and renders chat sett
   assert.match(trigger, /<EditorField label="Trigger Type">/)
 })
 
-test('chat trigger editor renders the chat session panel after a slug exists', () => {
+test('chat trigger editor points users to the status bar chat panel instead of embedding chat', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/ChatTriggerEditor.vue')
 
-  assert.match(source, /import ChatSessionPanel/)
-  assert.match(source, /const chatSlug = computed/)
-  assert.match(source, /<ChatSessionPanel/)
-  assert.match(source, /v-if="chatSlug"/)
-  assert.match(source, /:chat-slug="chatSlug"/)
-  assert.match(source, /:title="chatTitle \|\| 'Agent Chat'"/)
+  assert.doesNotMatch(source, /import ChatSessionPanel/)
+  assert.doesNotMatch(source, /<ChatSessionPanel/)
+  assert.match(source, /workflow status bar/)
+  assert.match(source, /Open the Chat panel/)
 })

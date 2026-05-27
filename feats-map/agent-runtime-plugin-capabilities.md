@@ -21,7 +21,7 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] Task 5: Workflow Validation Compatibility
 - [x] Task 6: Frontend Plugin Capability Types
 - [x] Task 7: Manifest-Driven Add Node Panel
-- [ ] Task 8: Generic AI Model Editor And Auth Resolution
+- [x] Task 8: Generic AI Model Editor And Auth Resolution
 - [ ] Task 9: Documentation And Legacy Cleanup
 - [ ] Task 10: Full Verification
 
@@ -46,6 +46,9 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] Server build passes. `cd server; npm run build` completed successfully after Task 5. Adjacent backend fixtures updated for the new `AiModel` shape: `server/src/core/modules/agent-runtime/agent-runner.test.ts` and `server/src/core/routes/agent-chat-workflow.integration.test.ts`.
 - [x] Client type-check passes. `cd client-vue; npm run type-check` completed successfully after Task 6.
 - [x] Client build passes. `cd client-vue; npm run build-only` completed successfully after Task 7.
+- [x] Generic AI Model editor contracts pass. `cd client-vue; node --test src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts` failed first while the editor still exposed provider-specific UI and the inspector still resolved auth from provider fallback; after Task 8 it passed with 10/10 tests.
+- [x] Client type-check passes after Task 8. `cd client-vue; npm run type-check` completed successfully after replacing provider selection with plugin capability identity fields.
+- [x] Client build passes after Task 8. `cd client-vue; npm run build-only` completed successfully after the generic AI Model editor and auth resolution changes.
 - [x] Chat Model quick-add is discovered from `manifest.metadata.agentCapabilities.chatModel`.
 - [x] Agent Tool quick-add filters methods by `agentTool.enabled`.
 - [ ] Manual smoke confirms Chat Models are discovered from plugin manifest metadata.
