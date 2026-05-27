@@ -23,7 +23,7 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] Task 7: Manifest-Driven Add Node Panel
 - [x] Task 8: Generic AI Model Editor And Auth Resolution
 - [x] Task 9: Documentation And Legacy Cleanup
-- [ ] Task 10: Full Verification
+- [x] Task 10: Full Verification
 
 ## Architecture Decisions
 
@@ -53,6 +53,9 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] Legacy hardcoding scan reviewed. `rg -n 'provider: "openai"|provider: ''openai''|openrouter|OpenRouter|AGENT_MODEL_PRESETS|provider === "openrouter"|provider === ''openrouter''|OpenAI' server/src client-vue/src docs -S` leaves only migration compatibility, plugin manifests/plugin implementation literals, docs, and tests that assert no hardcoded UI presets.
 - [x] Task 9 backend verification passes. `cd server; node --test src/core/modules/agent-runtime/*.test.ts src/core/modules/agent-runtime/**/*.test.ts src/core/modules/workflows/*.test.ts src/core/modules/plugins/loader.test.ts` passed with 146/146 tests, and `cd server; npm run build` completed successfully.
 - [x] Task 9 frontend verification passes. `cd client-vue; node --test src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts src/features/workflow-editor/components/nodes/__tests__/agentNodes.contract.test.ts` passed with 26/26 tests; `npm run type-check` and `npm run build-only` completed successfully after removing legacy provider fields from frontend model contracts.
+- [x] Final backend verification passes. `cd server; node --test src/core/modules/plugins/loader.test.ts src/core/modules/agent-runtime/*.test.ts src/core/modules/agent-runtime/**/*.test.ts src/core/modules/workflows/agent-config-node-execution.test.ts src/core/nodes/handlers/ai-agent.test.ts src/core/routes/agent-chat*.test.ts` passed with 115/115 tests, and `cd server; npm run build` completed successfully.
+- [x] Final frontend verification passes. `cd client-vue; node --test src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts src/features/workflow-editor/components/nodes/__tests__/agentNodes.contract.test.ts` passed with 26/26 tests; `npm run type-check` and `npm run build-only` completed successfully.
+- [x] High-severity server audit gate passes. `cd server; npm audit --omit=dev --audit-level=high` exited 0; npm still reports moderate advisories in transitive dependencies (`ajv`, `uuid`) that do not fail the high-severity gate.
 - [x] Chat Model quick-add is discovered from `manifest.metadata.agentCapabilities.chatModel`.
 - [x] Agent Tool quick-add filters methods by `agentTool.enabled`.
 - [ ] Manual smoke confirms Chat Models are discovered from plugin manifest metadata.
