@@ -231,6 +231,7 @@ function methodDefaults(methodId: string) {
 
 function handlePluginChange(value: string | number | null) {
   props.updateNodeData({
+    name: 'AI Tool',
     pluginId: String(value || ''),
     methodId: '',
     inputDefaults: {},

@@ -111,6 +111,7 @@ test('ai tool editor configures the selected tool instead of re-opening the tool
   assert.match(source, /handlePluginChange/)
   assert.match(source, /handleMethodChange/)
   assert.match(source, /inputDefaults: \{\}/)
+  assert.match(source, /name: 'AI Tool'/)
   assert.match(source, /methodDefaults/)
   assert.match(source, /pluginsApi\.getAll/)
   assert.match(source, /selectedAction\.parameters\?\.properties/)
