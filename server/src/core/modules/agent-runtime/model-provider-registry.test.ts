@@ -114,6 +114,37 @@ describe("agent model provider registry", () => {
     assert.equal(created[0].temperature, 2);
   });
 
+  it("omits temperature for OpenAI default-temperature-only models", async () => {
+    const created: any[] = [];
+    const provider = new OpenAiCompatibleProvider({
+      credentialResolver: () => ({ api_key: "sk-test" }),
+      createModel: (config) => {
+        created.push(config);
+        return { kind: "fake-model" };
+      },
+    });
+
+    await provider.createChatModel({ ...modelConfig(), model: "gpt-5-nano", temperature: 0.2 });
+
+    assert.equal(Object.hasOwn(created[0], "temperature"), false);
+  });
+
+  it("uses low-latency defaults for GPT-5 nano chat models", async () => {
+    const created: any[] = [];
+    const provider = new OpenAiCompatibleProvider({
+      credentialResolver: () => ({ api_key: "sk-test" }),
+      createModel: (config) => {
+        created.push(config);
+        return { kind: "fake-model" };
+      },
+    });
+
+    await provider.createChatModel({ ...modelConfig(), model: "gpt-5-nano" });
+
+    assert.deepEqual(created[0].reasoning, { effort: "minimal" });
+    assert.equal(created[0].verbosity, "low");
+  });
+
   it("does not expose API keys through JSON serialization", async () => {
     const provider = new OpenAiCompatibleProvider({
       credentialResolver: () => ({ api_key: "sk-secret-value" }),

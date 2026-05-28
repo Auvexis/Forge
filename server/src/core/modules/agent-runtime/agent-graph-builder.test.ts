@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { AiAgentNodeConfig } from "./agent-types.ts";
-import { buildAgentGraph } from "./agent-graph-builder.ts";
+import { buildAgentGraph, extractStreamDelta } from "./agent-graph-builder.ts";
 
 describe("agent graph builder", () => {
   it("builds a graph with a model and no tools", async () => {
@@ -17,6 +17,30 @@ describe("agent graph builder", () => {
     assert.equal(result.output, "hello from model");
     assert.equal(result.iterationCount, 1);
     assert.equal(result.toolCallCount, 0);
+  });
+
+  it("consumes streamable model text chunks as a final text response", async () => {
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model: fakeStreamModel(["hel", { content: "lo" }]),
+      tools: [],
+    });
+
+    const result = await graph.invoke({ userMessage: "hello" });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "hello");
+    assert.equal(result.iterationCount, 1);
+    assert.equal(result.toolCallCount, 0);
+  });
+
+  it("extracts stream deltas from generic and LangChain chunk shapes", () => {
+    assert.equal(extractStreamDelta("hi"), "hi");
+    assert.equal(extractStreamDelta({ content: "hi" }), "hi");
+    assert.equal(extractStreamDelta({ content: [{ type: "text", text: "hi" }] }), "hi");
+    assert.equal(extractStreamDelta({ content: [{ text: "hi" }, { type: "image", url: "x" }] }), "hi");
+    assert.equal(extractStreamDelta({ content: [{ type: "text", text: "" }] }), "");
+    assert.equal(extractStreamDelta({ notContent: "ignored" }), "");
   });
 
   it("builds a graph that executes requested tools", async () => {
@@ -149,6 +173,21 @@ function fakeModel(responses: Array<{ content: string; toolCalls?: unknown[] }>)
     async invoke(messages: unknown[]) {
       this.calls.push(messages);
       return responses[Math.min(index++, responses.length - 1)];
+    },
+  };
+}
+
+function fakeStreamModel(chunks: unknown[]) {
+  return {
+    calls: [] as unknown[],
+    async invoke(_messages: unknown[]) {
+      throw new Error("invoke should not be used for streamable text responses");
+    },
+    async *stream(messages: unknown[]) {
+      this.calls.push(messages);
+      for (const chunk of chunks) {
+        yield chunk;
+      }
     },
   };
 }

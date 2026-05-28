@@ -39,8 +39,13 @@ export interface AgentGraphMessage {
   toolCallId?: string;
 }
 
+interface StreamableModel {
+  stream(messages: AgentGraphMessage[]): AsyncIterable<unknown>;
+}
+
 interface InvokableModel {
   invoke(messages: AgentGraphMessage[]): Promise<unknown>;
+  stream?: (messages: AgentGraphMessage[]) => AsyncIterable<unknown>;
 }
 
 interface InvokableTool {
@@ -74,6 +79,24 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
       let toolCallCount = 0;
 
       for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
+        if (canStreamTextResponse(input.agent, model, tools)) {
+          input.onEvent?.({ type: "agent:model-start", payload: { iteration } });
+          let content = "";
+          for await (const chunk of model.stream(messages)) {
+            content += extractStreamDelta(chunk);
+          }
+          input.onEvent?.({
+            type: "agent:model-end",
+            payload: { iteration, toolCallCount: 0 },
+          });
+          return {
+            status: "success",
+            output: content,
+            iterationCount: iteration,
+            toolCallCount,
+          };
+        }
+
         input.onEvent?.({ type: "agent:model-start", payload: { iteration } });
         const modelResponse = await model.invoke(messages);
         const assistantContent = extractContent(modelResponse);
@@ -164,6 +187,14 @@ function asModel(value: unknown): InvokableModel {
   return value as InvokableModel;
 }
 
+function canStreamTextResponse(
+  agent: AiAgentNodeConfig,
+  model: InvokableModel,
+  tools: Map<string, InvokableTool>,
+): model is InvokableModel & StreamableModel {
+  return agent.outputMode === "text" && tools.size === 0 && typeof model.stream === "function";
+}
+
 function asTool(value: unknown): InvokableTool {
   const candidate = value as Partial<InvokableTool>;
   if (!candidate?.name || typeof candidate.invoke !== "function") {
@@ -180,10 +211,40 @@ function asTool(value: unknown): InvokableTool {
 function extractContent(response: unknown): string {
   const content = (response as { content?: unknown })?.content;
   if (typeof content === "string") return content;
-  if (Array.isArray(content)) return content.map((item) => (
-    typeof item === "string" ? item : JSON.stringify(item)
-  )).join("");
+  if (Array.isArray(content)) return content.map(extractContentBlockText).join("");
   return "";
+}
+
+export function extractStreamDelta(chunk: unknown): string {
+  if (typeof chunk === "string") return chunk;
+  const content = (chunk as { content?: unknown })?.content;
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) return content.map(extractStreamContentBlockText).join("");
+  return "";
+}
+
+function extractStreamContentBlockText(item: unknown): string {
+  if (typeof item === "string") return item;
+  if (!item || typeof item !== "object") return "";
+
+  const block = item as { type?: string; text?: unknown };
+  if (typeof block.text === "string" && (!block.type || block.type === "text")) {
+    return block.text;
+  }
+
+  return "";
+}
+
+function extractContentBlockText(item: unknown): string {
+  if (typeof item === "string") return item;
+  if (!item || typeof item !== "object") return "";
+
+  const block = item as { type?: string; text?: unknown };
+  if (typeof block.text === "string" && (!block.type || block.type === "text")) {
+    return block.text;
+  }
+
+  return JSON.stringify(item);
 }
 
 function extractToolCalls(response: unknown): AgentToolCall[] {

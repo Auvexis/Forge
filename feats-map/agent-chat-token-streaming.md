@@ -27,7 +27,7 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 ## Task Map
 
 - [x] Task 1: Streaming Event Contract
-- [ ] Task 2: Generic Streamable Model Interface
+- [x] Task 2: Generic Streamable Model Interface
 - [ ] Task 2A: Generic Configurable Chat Model Adapter
 - [ ] Task 2B: Ollama Chat Model Capability
 - [ ] Task 2C: Ollama Plugin Methods And Cloud Credentials
@@ -64,19 +64,19 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - Test: `server/src/core/modules/agent-runtime/model-provider-registry.test.ts`
 
 **Steps**
-- [ ] Add failing test with fake model exposing `stream(messages)` and assert graph can consume text chunks.
-- [ ] Define local generic shape:
+- [x] Add failing test with fake model exposing `stream(messages)` and assert graph can consume text chunks.
+- [x] Define local generic shape:
   - `invoke(messages): Promise<unknown>`
   - optional `stream(messages): AsyncIterable<unknown>`
-- [ ] Add `extractStreamDelta(chunk)` helper supporting generic text chunk shapes:
+- [x] Add `extractStreamDelta(chunk)` helper supporting generic text chunk shapes:
   - string chunk
   - `{ content: string }`
   - LangChain chunk with string `content`
   - LangChain chunk with text content blocks
-- [ ] Ensure OpenAI-compatible provider still returns `ChatOpenAI` directly; no plugin id branches.
-- [ ] Run:
+- [x] Ensure OpenAI-compatible provider still returns `ChatOpenAI` directly; no plugin id branches.
+- [x] Run:
   - `cd server; node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts src/core/modules/agent-runtime/model-provider-registry.test.ts`
-- [ ] Commit:
+- [x] Commit:
   - `git add server/src/core/modules/agent-runtime/agent-graph-builder.ts server/src/core/modules/agent-runtime/agent-graph-builder.test.ts server/src/core/modules/agent-runtime/model-provider-registry.test.ts`
   - `git commit -m "feat: add generic streamable model support"`
 
