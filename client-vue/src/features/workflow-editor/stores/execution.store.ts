@@ -9,6 +9,8 @@ import type {
   WorkflowExecutionStatus,
 } from '@/core/types/execution.types'
 import type { WorkflowEvent } from '@/core/types/execution.types'
+import type { AgentChatMessage, AgentChatMessageRole } from '@/features/agent-runtime/types/agent.types'
+import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 
 export const useExecutionStore = defineStore('execution', () => {
   // ── State ────────────────────────────────────────────────────────────────
@@ -35,6 +37,9 @@ export const useExecutionStore = defineStore('execution', () => {
   const activeJobs = reactive<Record<string, WorkflowEvent>>({})
   const triggerStatuses = reactive<Record<string, 'waiting' | 'received' | 'running' | 'success' | 'failed'>>({})
   const nodeStatusesByExecution = reactive<Record<string, Record<string, NodeExecutionState>>>({})
+  const editorChatMessagesBySession = reactive<Record<string, AgentChatMessage[]>>({})
+  const editorChatSessionIdByExecution = reactive<Record<string, string>>({})
+  const agentFailuresByExecution = new Set<string>()
   /** Tracks which trigger node IDs are of type 'manual' — used to decide reset target after job ends */
   const manualTriggerNodeIds = new Set<string>()
 
@@ -187,8 +192,213 @@ export const useExecutionStore = defineStore('execution', () => {
     })
   }
 
+  function appendEditorChatMessage(input: {
+    id: string
+    sessionId: string
+    role: AgentChatMessageRole
+    content: unknown
+    createdAt?: string
+  }) {
+    const existing = editorChatMessagesBySession[input.sessionId] ?? []
+    const nextMessage: AgentChatMessage = {
+      id: input.id,
+      profileId: '',
+      sessionId: input.sessionId,
+      role: input.role,
+      content: input.content,
+      createdAt: input.createdAt ?? new Date().toISOString(),
+    }
+    editorChatMessagesBySession[input.sessionId] = existing.some((message) => message.id === input.id)
+      ? existing.map((message) => message.id === input.id ? nextMessage : message)
+      : [...existing, nextMessage]
+  }
+
+  function streamAssistantMessageId(executionId: string) {
+    return `chat-assistant-stream:${executionId}:agent`
+  }
+
+  function appendEditorChatMessageDelta(executionId: string, sessionId: string, delta: string, timestamp: number) {
+    if (!delta) return
+
+    const id = streamAssistantMessageId(executionId)
+    const existing = (editorChatMessagesBySession[sessionId] ?? []).find((message) => message.id === id)
+    const content = typeof existing?.content === 'string' ? `${existing.content}${delta}` : delta
+
+    appendEditorChatMessage({
+      id,
+      sessionId,
+      role: 'assistant',
+      content,
+      createdAt: existing?.createdAt ?? new Date(timestamp).toISOString(),
+    })
+  }
+
+  function registerEditorChatExecution(executionId: string, chatSessionId: string) {
+    editorChatSessionIdByExecution[executionId] = chatSessionId
+  }
+
+  function recordEditorChatTriggerReceived(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || !ev.executionId) return
+
+    const data = ev.data as { sessionId?: unknown; message?: unknown } | undefined
+    const chatSessionId = typeof data?.sessionId === 'string' ? data.sessionId : undefined
+    const message = typeof data?.message === 'string' ? data.message : undefined
+    if (!chatSessionId) return
+
+    editorChatSessionIdByExecution[ev.executionId] = chatSessionId
+    if (!message) return
+
+    appendEditorChatMessage({
+      id: `chat-user:${ev.executionId}`,
+      sessionId: chatSessionId,
+      role: 'user',
+      content: message,
+      createdAt: new Date(ev.timestamp).toISOString(),
+    })
+  }
+
+  function recordEditorChatNodeSuccess(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || !ev.executionId) return
+    if (isAiAgentNode(ev.nodeId)) return
+
+    const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
+    const output = extractAgentOutput(ev.data)
+    if (!chatSessionId || output === undefined) return
+
+    appendEditorChatMessage({
+      id: `chat-assistant:${ev.executionId}:${ev.nodeId ?? 'agent'}`,
+      sessionId: chatSessionId,
+      role: 'assistant',
+      content: output,
+      createdAt: new Date(ev.timestamp).toISOString(),
+    })
+  }
+
+  function recordEditorChatAgentOutputDelta(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || ev.type !== 'agent:output-delta' || !ev.executionId) return
+
+    const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
+    const delta = extractAgentDelta(ev.data)
+    if (!chatSessionId || !delta) return
+
+    appendEditorChatMessageDelta(ev.executionId, chatSessionId, delta, ev.timestamp)
+  }
+
+  function recordEditorChatAgentEnd(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || ev.type !== 'agent:end' || !ev.executionId) return
+
+    const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
+    const output = extractAgentOutput(ev.data)
+    if (!chatSessionId || output === undefined) return
+
+    appendEditorChatMessage({
+      id: streamAssistantMessageId(ev.executionId),
+      sessionId: chatSessionId,
+      role: 'assistant',
+      content: output,
+      createdAt: new Date(ev.timestamp).toISOString(),
+    })
+  }
+
+  function recordEditorChatJobFailure(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || !ev.executionId || !ev.error) return
+    agentFailuresByExecution.add(ev.executionId)
+
+    const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
+    if (!chatSessionId || hasAssistantMessageForExecution(chatSessionId, ev.executionId)) return
+
+    appendEditorChatMessage({
+      id: `chat-assistant-error:${ev.executionId}`,
+      sessionId: chatSessionId,
+      role: 'assistant',
+      content: `Chat run failed. ${ev.error}`,
+      createdAt: new Date(ev.timestamp).toISOString(),
+    })
+  }
+
+  function recordEditorChatAgentFailure(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || ev.type !== 'agent:error' || !ev.executionId) return
+    agentFailuresByExecution.add(ev.executionId)
+
+    const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
+    if (!chatSessionId) return
+
+    appendEditorChatMessage({
+      id: `chat-assistant-error:${ev.executionId}:agent-error`,
+      sessionId: chatSessionId,
+      role: 'assistant',
+      content: `Chat run failed. ${extractAgentError(ev.data) ?? ev.error ?? 'Agent execution failed.'}`,
+      createdAt: new Date(ev.timestamp).toISOString(),
+    })
+  }
+
+  function recordEditorChatJobSuccess(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || !ev.executionId) return
+    if (agentFailuresByExecution.has(ev.executionId)) return
+
+    const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
+    if (!chatSessionId || hasAssistantMessageForExecution(chatSessionId, ev.executionId)) return
+
+    appendEditorChatMessage({
+      id: `chat-assistant-empty:${ev.executionId}`,
+      sessionId: chatSessionId,
+      role: 'assistant',
+      content: 'Message received, but this Chat Trigger is not connected to an AI Agent yet. Add an AI Agent with a Chat Model to get a reply.',
+      createdAt: new Date(ev.timestamp).toISOString(),
+    })
+  }
+
+  function hasAssistantMessageForExecution(chatSessionId: string, executionId: string): boolean {
+    return (editorChatMessagesBySession[chatSessionId] ?? []).some((message) =>
+      message.role === 'assistant' && message.id.includes(executionId),
+    )
+  }
+
+  function extractAgentOutput(data: unknown): unknown {
+    if (!data || typeof data !== 'object') return undefined
+    const record = data as Record<string, unknown>
+    if ('output' in record) return record.output
+    return undefined
+  }
+
+  function extractAgentDelta(data: unknown): string | undefined {
+    if (!data || typeof data !== 'object') return undefined
+    const delta = (data as Record<string, unknown>).delta
+    return typeof delta === 'string' ? delta : undefined
+  }
+
+  function extractAgentError(data: unknown): string | undefined {
+    if (!data || typeof data !== 'object') return undefined
+    const record = data as Record<string, unknown>
+    if (typeof record.message === 'string') return record.message
+    if (typeof record.error === 'string') return record.error
+    if (typeof record.code === 'string') return record.code
+    return undefined
+  }
+
+  function isAiAgentNode(nodeId: string | undefined): boolean {
+    if (!nodeId) return false
+    return useWorkflowStore().activeWorkflow?.nodes[nodeId]?.type === 'ai-agent'
+  }
+
   function patchNodeStatus(nodeId: string, patch: Partial<NodeExecutionState>) {
     _patchNode(nodeId, patch)
+  }
+
+  function patchConnectedAgentConfigNode(
+    agentNodeId: string | undefined,
+    targetHandle: 'chatModel' | 'memory' | 'tool',
+    patch: Partial<NodeExecutionState>,
+  ) {
+    if (!agentNodeId) return
+    const workflow = useWorkflowStore().activeWorkflow
+    const edge = workflow?.edges.find((edge) =>
+      edge.target === agentNodeId && edge.targetHandle === targetHandle,
+    )
+    if (!edge) return
+    _patchNode(edge.source, patch)
+    if (patch.status === 'success') clearNodeStatusLater(edge.source, 'success')
+    if (patch.status === 'failed') clearNodeStatusLater(edge.source, 'failed', 3000)
   }
 
   // ── Actions ──────────────────────────────────────────────────────────────
@@ -209,6 +419,7 @@ export const useExecutionStore = defineStore('execution', () => {
     for (const key of Object.keys(activeJobs)) delete activeJobs[key]
     for (const key of Object.keys(triggerStatuses)) delete triggerStatuses[key]
     for (const key of Object.keys(nodeStatusesByExecution)) delete nodeStatusesByExecution[key]
+    agentFailuresByExecution.clear()
     manualTriggerNodeIds.clear()
   }
 
@@ -400,6 +611,7 @@ export const useExecutionStore = defineStore('execution', () => {
             break
 
           case 'trigger:received':
+            recordEditorChatTriggerReceived(ev)
             if (ev.triggerNodeId) {
               triggerStatuses[ev.triggerNodeId] = 'received'
               _patchNode(ev.triggerNodeId, { output: ev.data, startedAt: ev.timestamp })
@@ -428,6 +640,7 @@ export const useExecutionStore = defineStore('execution', () => {
             break
 
           case 'node:success':
+            recordEditorChatNodeSuccess(ev)
             if (ev.nodeId) {
               const patch = {
                 status: 'success',
@@ -454,9 +667,52 @@ export const useExecutionStore = defineStore('execution', () => {
               toastError(ev.error ?? `Node "${ev.nodeId}" failed`, 'Node execution failed')
               clearNodeStatusLater(ev.nodeId, 'failed', 3000)
             }
+              break
+
+          case 'agent:output-delta':
+            recordEditorChatAgentOutputDelta(ev)
+            break
+
+          case 'agent:end':
+            recordEditorChatAgentEnd(ev)
+            if (ev.nodeId) {
+              const patch = {
+                status: 'success',
+                output: ev.data,
+                endedAt: ev.timestamp,
+              } satisfies Partial<NodeExecutionState>
+              _patchNode(ev.nodeId, patch)
+              _patchExecutionNode(ev.executionId, ev.nodeId, patch)
+              clearNodeStatusLater(ev.nodeId, 'success')
+            }
+            break
+
+          case 'agent:model-start':
+            patchConnectedAgentConfigNode(ev.nodeId, 'chatModel', {
+              status: 'running',
+              startedAt: ev.timestamp,
+            })
+            break
+
+          case 'agent:model-end':
+            patchConnectedAgentConfigNode(ev.nodeId, 'chatModel', {
+              status: 'success',
+              output: ev.data,
+              endedAt: ev.timestamp,
+            })
+            break
+
+          case 'agent:error':
+            recordEditorChatAgentFailure(ev)
+            patchConnectedAgentConfigNode(ev.nodeId, 'chatModel', {
+              status: 'failed',
+              error: extractAgentError(ev.data) ?? ev.error,
+              endedAt: ev.timestamp,
+            })
             break
 
           case 'job:success':
+            recordEditorChatJobSuccess(ev)
             if (ev.triggerNodeId) {
               const isManual = manualTriggerNodeIds.has(ev.triggerNodeId)
               triggerStatuses[ev.triggerNodeId] = 'success'
@@ -466,6 +722,7 @@ export const useExecutionStore = defineStore('execution', () => {
             break
 
           case 'job:failed':
+            recordEditorChatJobFailure(ev)
             if (ev.triggerNodeId) {
               const isManual = manualTriggerNodeIds.has(ev.triggerNodeId)
               triggerStatuses[ev.triggerNodeId] = 'failed'
@@ -636,6 +893,7 @@ export const useExecutionStore = defineStore('execution', () => {
     activeJobs,
     triggerStatuses,
     nodeStatusesByExecution,
+    editorChatMessagesBySession,
     workflowStatus,
     hasActiveExecution,
     execute,
@@ -647,5 +905,8 @@ export const useExecutionStore = defineStore('execution', () => {
     resetNodeStatuses,
     setTriggerRunning,
     patchNodeStatus,
+    appendEditorChatMessage,
+    appendEditorChatMessageDelta,
+    registerEditorChatExecution,
   }
 })

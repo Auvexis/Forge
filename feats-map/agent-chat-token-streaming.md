@@ -33,7 +33,7 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - [x] Task 2C: Ollama Plugin Methods And Cloud Credentials
 - [x] Task 3: Agent Graph Text Streaming
 - [x] Task 4: Runtime Event Sanitizing And Dev Session Forwarding
-- [ ] Task 5: Frontend Incremental Chat Message Rendering
+- [x] Task 5: Frontend Incremental Chat Message Rendering
 - [ ] Task 6: Status And Error Semantics
 - [ ] Task 7: Verification And Smoke
 
@@ -232,16 +232,16 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - Test: `client-vue/src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
 
 **Steps**
-- [ ] Add failing contract test: store handles `case 'agent:output-delta'`.
-- [ ] Add failing contract test: streamed deltas update one assistant message id per execution.
-- [ ] Add `appendEditorChatMessageDelta(executionId, sessionId, delta, timestamp)`.
-- [ ] Message id format:
+- [x] Add failing contract test: store handles `case 'agent:output-delta'`.
+- [x] Add failing contract test: streamed deltas update one assistant message id per execution.
+- [x] Add `appendEditorChatMessageDelta(executionId, sessionId, delta, timestamp)`.
+- [x] Message id format:
   - `chat-assistant-stream:${executionId}:agent`
-- [ ] On `agent:end`, replace/finalize the same message with final output, not duplicate it.
-- [ ] Keep non-streaming fallback unchanged.
-- [ ] Run:
+- [x] On `agent:end`, replace/finalize the same message with final output, not duplicate it.
+- [x] Keep non-streaming fallback unchanged.
+- [x] Run:
   - `cd client-vue; node --test src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
-- [ ] Commit:
+- [x] Commit:
   - `git add client-vue/src/features/workflow-editor/stores/execution.store.ts client-vue/src/features/workflow-editor/components/agent/ChatSessionPanel.vue client-vue/src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
   - `git commit -m "feat: render streaming agent chat deltas"`
 
