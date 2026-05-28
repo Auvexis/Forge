@@ -33,7 +33,15 @@ const OllamaPlugin: SailorPlugin = {
         required: true,
         type: "string",
         description: "The name of the model to use (e.g., llama3, mistral)",
-        placeholder: "llama3",
+        placeholder: "llama3.2",
+      },
+      api_key: {
+        label: "API Key",
+        inputType: "password",
+        required: false,
+        type: "string",
+        description: "Optional API key for Ollama Cloud or protected Ollama-compatible hosts.",
+        placeholder: "OLLAMA_API_KEY",
       },
       system: {
         label: "Default System Prompt",

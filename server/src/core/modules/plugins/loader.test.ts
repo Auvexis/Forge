@@ -237,14 +237,20 @@ describe("loadPlugins", () => {
     );
   });
 
-  it("validates internal OpenAI-compatible chat model provider manifests", () => {
-    for (const pluginId of ["openai", "openrouter"]) {
+  it("validates internal chat model provider manifests", () => {
+    const expectedAdapters: Record<string, string> = {
+      openai: "openai-compatible",
+      openrouter: "openai-compatible",
+      ollama: "generic",
+    };
+
+    for (const [pluginId, adapter] of Object.entries(expectedAdapters)) {
       const manifest = readInternalManifest(pluginId);
       const errors = validateManifest(manifest);
 
       assert.deepEqual(errors, [], `${pluginId} manifest should validate`);
       assert.equal(manifest.metadata.agentCapabilities?.chatModel?.enabled, true);
-      assert.equal(manifest.metadata.agentCapabilities.chatModel.adapter, "openai-compatible");
+      assert.equal(manifest.metadata.agentCapabilities.chatModel.adapter, adapter);
     }
   });
 

@@ -9,7 +9,18 @@
     "category": "AI",
     "author": "Sailor",
     "version": "1.0.0",
-    "repository": "https://github.com/Auvexis/sailor"
+    "repository": "https://github.com/Auvexis/sailor",
+    "agentCapabilities": {
+      "chatModel": {
+        "enabled": true,
+        "adapter": "generic",
+        "label": "Ollama Chat Model",
+        "description": "Use local or cloud Ollama models as an Agent Chat Model through a configurable compatible endpoint.",
+        "defaultModel": "llama3.2",
+        "defaultBaseUrl": "http://localhost:11434/v1",
+        "credentialPluginId": "sailor-ollama"
+      }
+    }
   },
   "methods": {
     "generate": {

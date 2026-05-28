@@ -29,7 +29,7 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - [x] Task 1: Streaming Event Contract
 - [x] Task 2: Generic Streamable Model Interface
 - [x] Task 2A: Generic Configurable Chat Model Adapter
-- [ ] Task 2B: Ollama Chat Model Capability
+- [x] Task 2B: Ollama Chat Model Capability
 - [ ] Task 2C: Ollama Plugin Methods And Cloud Credentials
 - [ ] Task 3: Agent Graph Text Streaming
 - [ ] Task 4: Runtime Event Sanitizing And Dev Session Forwarding
@@ -134,24 +134,24 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - Test: `client-vue/src/shared/icons/__tests__/pluginIconResolver.test.ts`
 
 **Steps**
-- [ ] Add failing loader test proving internal chat-model manifests include `openai`, `openrouter`, and `sailor-ollama`.
-- [ ] Add `metadata.agentCapabilities.chatModel` to Ollama:
+- [x] Add failing loader test proving internal chat-model manifests include `openai`, `openrouter`, and `sailor-ollama`.
+- [x] Add `metadata.agentCapabilities.chatModel` to Ollama:
   - `enabled: true`
   - `adapter: "generic"`
   - `defaultModel`: local-friendly model such as `llama3.2`
   - `defaultBaseUrl`: `http://localhost:11434/v1`
   - `credentialPluginId`: `sailor-ollama`
-- [ ] Update Ollama auth schema:
+- [x] Update Ollama auth schema:
   - `host` default/placeholder supports `http://localhost:11434`
   - `model` remains required/defaultable
   - `api_key` optional for cloud or protected endpoints
   - `system` stays optional
-- [ ] Ensure local Ollama works without API key.
-- [ ] Ensure cloud/protected Ollama can use API key.
-- [ ] Run:
+- [x] Ensure local Ollama works without API key.
+- [x] Ensure cloud/protected Ollama can use API key.
+- [x] Run:
   - `cd server; node --test src/core/modules/plugins/loader.test.ts src/plugins/sailor/ollama/methods.test.ts`
   - `cd client-vue; node --test src/shared/icons/__tests__/pluginIconResolver.test.ts`
-- [ ] Commit:
+- [x] Commit:
   - `git add server/src/plugins/sailor/ollama/manifest.json server/src/plugins/sailor/ollama/index.ts server/src/core/modules/plugins/loader.test.ts server/src/plugins/sailor/ollama/methods.test.ts client-vue/src/shared/icons/__tests__/pluginIconResolver.test.ts`
   - `git commit -m "feat: expose ollama chat model capability"`
 
