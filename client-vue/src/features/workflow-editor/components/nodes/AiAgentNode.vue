@@ -4,58 +4,82 @@ import { Position, type NodeProps } from '@vue-flow/core'
 import type { AiAgentNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
+import QuickAddButton from '../QuickAddButton.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = defineProps<
-  NodeProps<AiAgentNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
+  NodeProps<AiAgentNode> & {
+    status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed'
+    hasOutgoingConnection?: boolean
+  }
 >()
 
 const stepTitle = computed(() => props.data?.name || 'AI Agent')
-const providerCount = computed(() => props.data?.providerCount ?? 0)
-const memoryCount = computed(() => props.data?.memoryCount ?? 0)
-const toolCount = computed(() => props.data?.toolCount ?? 0)
-const missingRequiredModel = computed(() => providerCount.value === 0)
-const subtitle = computed(() => {
-  return `${providerCount.value} models | ${memoryCount.value} memories | ${toolCount.value} tools`
-})
 </script>
 
 <template>
-  <div
-    class="ai-agent-node"
-    :class="{ 'ai-agent-node--missing-model': missingRequiredModel }"
-  >
+  <div class="ai-agent-node">
     <BaseNode
       :id="props.id"
       :selected="props.selected"
       :status="props.status"
       has-target
       has-source
-      icon="bot"
-      color="rgb(14, 165, 233)"
-      bg="rgba(14, 165, 233, 0.12)"
-      border-color="rgba(14, 165, 233, 0.45)"
+      :has-outgoing-connection="props.hasOutgoingConnection"
+      color="var(--sailor-text-muted)"
+      bg="transparent"
+      border-color="var(--sailor-node-border)"
+      width="236px"
+      height="100px"
     >
-      <span v-if="missingRequiredModel" class="ai-agent-node__warning">Model required</span>
-      <div class="ai-agent-node__config-handles" aria-label="Agent configuration handles">
-        <div class="ai-agent-node__config-handle" style="left: 16%">
-          <BaseHandle id="chatModel" type="target" :position="Position.Bottom" />
-          <span>Chat Model*</span>
-        </div>
-        <div class="ai-agent-node__config-handle" style="left: 50%">
-          <BaseHandle id="memory" type="target" :position="Position.Bottom" />
-          <span>Memory</span>
-        </div>
-        <div class="ai-agent-node__config-handle" style="left: 84%">
-          <BaseHandle id="tool" type="target" :position="Position.Bottom" />
-          <span>Tool</span>
-        </div>
-      </div>
-      <template #label>
-        <div class="ai-agent-node__label">
-          <span class="ai-agent-node__label-title" :title="stepTitle">{{ stepTitle }}</span>
-          <span class="ai-agent-node__label-subtitle">{{ subtitle }}</span>
+      <template #icon>
+        <div class="ai-agent-node__card-content">
+          <div class="ai-agent-node__icon">
+            <LucideIcon name="bot" :size="36" />
+          </div>
+          <div class="ai-agent-node__copy">
+            <span class="ai-agent-node__title" :title="stepTitle">{{ stepTitle }}</span>
+            <span class="ai-agent-node__subtitle">Tools Agent</span>
+          </div>
         </div>
       </template>
+
+      <div class="ai-agent-node__config-handles" aria-label="Agent configuration handles">
+        <div class="ai-agent-node__config-handle">
+          <BaseHandle id="chatModel" type="target" :position="Position.Bottom" variant="diamond" />
+          <span>Chat Model*</span>
+          <QuickAddButton
+            :node-id="props.id"
+            handle-id="chatModel"
+            target-handle-id="chatModel"
+            mode="agent-config"
+            direction="down"
+          />
+        </div>
+        <div class="ai-agent-node__config-handle">
+          <BaseHandle id="memory" type="target" :position="Position.Bottom" variant="diamond" />
+          <span>Memory</span>
+          <QuickAddButton
+            :node-id="props.id"
+            handle-id="memory"
+            target-handle-id="memory"
+            mode="agent-config"
+            direction="down"
+          />
+        </div>
+        <div class="ai-agent-node__config-handle">
+          <BaseHandle id="tool" type="target" :position="Position.Bottom" variant="diamond" />
+          <span>Tool</span>
+          <QuickAddButton
+            :node-id="props.id"
+            handle-id="tool"
+            target-handle-id="tool"
+            mode="agent-config"
+            direction="down"
+            always-visible
+          />
+        </div>
+      </div>
     </BaseNode>
   </div>
 </template>
@@ -65,45 +89,77 @@ const subtitle = computed(() => {
   position: relative;
 }
 
-.ai-agent-node--missing-model :deep(.sailor-base-node) {
-  border-color: var(--sailor-amber-400, #f59e0b);
+.ai-agent-node :deep(.sailor-base-node) {
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
 }
 
-.ai-agent-node__warning {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  max-width: 88px;
-  padding: 2px 6px;
-  color: var(--sailor-amber-300, #fcd34d);
-  font-size: 10px;
-  font-weight: 700;
+.ai-agent-node__card-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  width: 100%;
+  padding: 0 28px;
+  box-sizing: border-box;
+}
+
+.ai-agent-node__icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--sailor-text-muted);
+  flex-shrink: 0;
+}
+
+.ai-agent-node__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.ai-agent-node__title {
+  max-width: 128px;
+  color: var(--sailor-text-primary);
+  font-size: 14px;
+  font-weight: 600;
   line-height: 1.2;
-  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  border-radius: 6px;
-  transform: translateX(-50%);
+}
+
+.ai-agent-node__subtitle {
+  color: var(--sailor-text-muted);
+  font-size: 11px;
+  line-height: 1.2;
 }
 
 .ai-agent-node__config-handles {
   position: absolute;
-  bottom: -28px;
+  bottom: -86px;
   left: 50%;
-  width: 180px;
-  height: 28px;
-  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: start;
+  justify-items: center;
+  width: 236px;
+  height: 86px;
+  --qab-size: 19px;
+  --qab-cable-length: 48px;
+  pointer-events: all;
   transform: translateX(-50%);
 }
 
 .ai-agent-node__config-handle {
-  position: absolute;
-  top: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 0;
   color: var(--sailor-text-muted);
   font-size: 9px;
   font-weight: 700;
@@ -111,38 +167,28 @@ const subtitle = computed(() => {
   width: 58px;
   text-align: center;
   white-space: normal;
+}
+
+.ai-agent-node__config-handle > span {
+  position: absolute;
+  top: 19px;
+  left: 50%;
+  z-index: 2110;
+  width: 72px;
+  pointer-events: none;
   transform: translateX(-50%);
 }
 
 .ai-agent-node__config-handle :deep(.sailor-base-handle) {
   position: relative !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  margin: 0 auto;
   pointer-events: all;
 }
 
-.ai-agent-node__label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  margin-top: 42px;
-}
-
-.ai-agent-node__label-title {
-  max-width: 140px;
-  color: var(--sailor-text-primary);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.3;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-
-.ai-agent-node__label-subtitle {
-  max-width: 140px;
-  color: var(--sailor-text-muted);
-  font-size: 11px;
-  line-height: 1.25;
-  text-align: center;
-  overflow-wrap: anywhere;
+.ai-agent-node__config-handle :deep(.qab-wrap--down) {
+  margin-top: 0;
 }
 </style>

@@ -275,6 +275,32 @@ describe("plugin blueprint validation", () => {
     );
   });
 
+  it("accepts URL, data URI and plugin-relative icon asset values", () => {
+    for (const icon of [
+      "https://cdn.example.com/icon.svg",
+      "data:image/svg+xml;base64,PHN2Zy8+",
+      "assets/icons/icon.svg",
+      "icon.svg",
+    ]) {
+      assert.equal(validatePluginBlueprint(createValidBlueprint({ icons: { icon } })).success, true);
+    }
+  });
+
+  it("rejects absolute, file URL and path traversal icon values", () => {
+    for (const icon of [
+      "C:/Users/dev/icon.svg",
+      "/Users/dev/icon.svg",
+      "file:///Users/dev/icon.svg",
+      "../outside.svg",
+      "../../core/secret.svg",
+    ]) {
+      const result = validatePluginBlueprint(createValidBlueprint({ icons: { icon } }));
+
+      assert.equal(result.success, false);
+      assert.match(result.error ?? "", /icons\.icon/);
+    }
+  });
+
   it("validates plugin handles", () => {
     assert.equal(validatePluginHandle("my-crm"), "my-crm");
     assert.throws(

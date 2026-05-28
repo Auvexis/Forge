@@ -40,12 +40,12 @@ export interface AgentGraphMessage {
 }
 
 interface StreamableModel {
-  stream(messages: AgentGraphMessage[]): AsyncIterable<unknown>;
+  stream(messages: AgentGraphMessage[]): AsyncIterable<unknown> | Promise<AsyncIterable<unknown>> | unknown;
 }
 
 interface InvokableModel {
   invoke(messages: AgentGraphMessage[]): Promise<unknown>;
-  stream?: (messages: AgentGraphMessage[]) => AsyncIterable<unknown>;
+  stream?: (messages: AgentGraphMessage[]) => AsyncIterable<unknown> | Promise<AsyncIterable<unknown>> | unknown;
 }
 
 interface InvokableTool {
@@ -79,28 +79,36 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
       let toolCallCount = 0;
 
       for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
-        if (canStreamTextResponse(input.agent, model, tools)) {
-          input.onEvent?.({ type: "agent:model-start", payload: { iteration } });
-          let content = "";
-          for await (const chunk of model.stream(messages)) {
-            const delta = extractStreamDelta(chunk);
-            if (!delta) continue;
-            content += delta;
-            input.onEvent?.({ type: "agent:output-delta", payload: { delta } });
+        input.onEvent?.({ type: "agent:model-start", payload: { iteration } });
+
+        if (canAttemptStreamTextResponse(input.agent, model, tools)) {
+          const stream = await resolveModelStream(model, messages);
+          if (stream) {
+            let content = "";
+            for await (const chunk of stream) {
+              const thinkingDelta = extractThinkingDelta(chunk);
+              if (thinkingDelta) {
+                input.onEvent?.({ type: "agent:thinking-delta", payload: { delta: thinkingDelta } });
+              }
+
+              const delta = extractStreamDelta(chunk);
+              if (!delta) continue;
+              content += delta;
+              input.onEvent?.({ type: "agent:output-delta", payload: { delta } });
+            }
+            input.onEvent?.({
+              type: "agent:model-end",
+              payload: { iteration, toolCallCount: 0 },
+            });
+            return {
+              status: "success",
+              output: content,
+              iterationCount: iteration,
+              toolCallCount,
+            };
           }
-          input.onEvent?.({
-            type: "agent:model-end",
-            payload: { iteration, toolCallCount: 0 },
-          });
-          return {
-            status: "success",
-            output: content,
-            iterationCount: iteration,
-            toolCallCount,
-          };
         }
 
-        input.onEvent?.({ type: "agent:model-start", payload: { iteration } });
         const modelResponse = await model.invoke(messages);
         const assistantContent = extractContent(modelResponse);
         const toolCalls = extractToolCalls(modelResponse);
@@ -190,12 +198,24 @@ function asModel(value: unknown): InvokableModel {
   return value as InvokableModel;
 }
 
-function canStreamTextResponse(
+function canAttemptStreamTextResponse(
   agent: AiAgentNodeConfig,
   model: InvokableModel,
   tools: Map<string, InvokableTool>,
 ): model is InvokableModel & StreamableModel {
   return agent.outputMode === "text" && tools.size === 0 && typeof model.stream === "function";
+}
+
+async function resolveModelStream(
+  model: InvokableModel & StreamableModel,
+  messages: AgentGraphMessage[],
+): Promise<AsyncIterable<unknown> | null> {
+  const stream = await model.stream(messages);
+  return isAsyncIterable(stream) ? stream : null;
+}
+
+function isAsyncIterable(value: unknown): value is AsyncIterable<unknown> {
+  return Boolean(value && typeof (value as AsyncIterable<unknown>)[Symbol.asyncIterator] === "function");
 }
 
 function asTool(value: unknown): InvokableTool {
@@ -220,9 +240,85 @@ function extractContent(response: unknown): string {
 
 export function extractStreamDelta(chunk: unknown): string {
   if (typeof chunk === "string") return chunk;
-  const content = (chunk as { content?: unknown })?.content;
+  const record = chunk as {
+    content?: unknown;
+    message?: { content?: unknown };
+    choices?: Array<{ delta?: { content?: unknown }; message?: { content?: unknown } }>;
+  };
+  const choiceContent = record.choices
+    ?.map((choice) => extractStreamContentValue(choice.delta?.content ?? choice.message?.content))
+    .join("");
+  if (choiceContent) return choiceContent;
+
+  const messageContent = extractStreamContentValue(record.message?.content);
+  if (messageContent) return messageContent;
+
+  const content = record?.content;
+  return extractStreamContentValue(content);
+}
+
+function extractStreamContentValue(content: unknown): string {
   if (typeof content === "string") return content;
   if (Array.isArray(content)) return content.map(extractStreamContentBlockText).join("");
+  return "";
+}
+
+export function extractThinkingDelta(chunk: unknown): string {
+  if (!chunk || typeof chunk !== "object") return "";
+  const record = chunk as Record<string, unknown>;
+
+  for (const key of ["thinking", "reasoning", "reasoning_content"]) {
+    if (typeof record[key] === "string") return record[key] as string;
+  }
+
+  for (const key of ["additional_kwargs", "response_metadata"]) {
+    const nested = record[key];
+    if (!nested || typeof nested !== "object") continue;
+    const nestedRecord = nested as Record<string, unknown>;
+    for (const nestedKey of ["thinking", "reasoning", "reasoning_content"]) {
+      if (typeof nestedRecord[nestedKey] === "string") return nestedRecord[nestedKey] as string;
+    }
+  }
+
+  const messageThinking = extractThinkingNestedRecord(record.message);
+  if (messageThinking) return messageThinking;
+
+  if (Array.isArray(record.choices)) {
+    const choicesThinking = record.choices
+      .map((choice) => {
+        if (!choice || typeof choice !== "object") return "";
+        const choiceRecord = choice as Record<string, unknown>;
+        return extractThinkingNestedRecord(choiceRecord.delta) || extractThinkingNestedRecord(choiceRecord.message);
+      })
+      .join("");
+    if (choicesThinking) return choicesThinking;
+  }
+
+  if (Array.isArray(record.content)) {
+    return record.content.map(extractThinkingContentBlockText).join("");
+  }
+
+  return "";
+}
+
+function extractThinkingNestedRecord(value: unknown): string {
+  if (!value || typeof value !== "object") return "";
+  const record = value as Record<string, unknown>;
+  for (const key of ["thinking", "reasoning", "reasoning_content"]) {
+    if (typeof record[key] === "string") return record[key] as string;
+  }
+  return "";
+}
+
+function extractThinkingContentBlockText(item: unknown): string {
+  if (!item || typeof item !== "object") return "";
+  const block = item as { type?: string; text?: unknown; content?: unknown };
+  if ((block.type === "reasoning" || block.type === "thinking") && typeof block.text === "string") {
+    return block.text;
+  }
+  if ((block.type === "reasoning" || block.type === "thinking") && typeof block.content === "string") {
+    return block.content;
+  }
   return "";
 }
 

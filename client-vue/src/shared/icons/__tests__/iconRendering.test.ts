@@ -21,4 +21,10 @@ describe('icon rendering', () => {
     assert.equal(isIconUrl(ollamaIcon), true)
     assert.doesNotMatch(iconSources, /isTintableExternalIcon|lucide-icon-mask|--sailor-icon-mask/)
   })
+
+  it('treats plugin-relative icon assets as images and keeps lucide names as icons', () => {
+    assert.equal(isIconUrl('assets/icons/icon.svg'), true)
+    assert.equal(isIconUrl('icon.svg'), true)
+    assert.equal(isIconUrl('plug'), false)
+  })
 })

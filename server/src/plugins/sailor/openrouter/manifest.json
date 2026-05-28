@@ -18,7 +18,15 @@
         "description": "Use OpenRouter's OpenAI-compatible API as an Agent Chat Model.",
         "defaultModel": "openai/gpt-4.1-mini",
         "defaultBaseUrl": "https://openrouter.ai/api/v1",
-        "credentialPluginId": "openrouter"
+        "credentialPluginId": "openrouter",
+        "thinking": {
+          "enabled": true,
+          "request": {
+            "reasoning": {
+              "enabled": true
+            }
+          }
+        }
       }
     }
   },

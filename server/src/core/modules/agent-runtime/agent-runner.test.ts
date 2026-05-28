@@ -98,6 +98,38 @@ describe("agent runner", () => {
     assert.deepEqual(contextCounts, [1]);
   });
 
+  it("passes short-term chat history after long-term memory context", async () => {
+    const contextMessages: Array<Array<{ role: string; content: string }>> = [];
+    const runner = new AgentRunner({
+      modelRegistry: fakeModelRegistry(),
+      memoryStore: {
+        search: () => [{ key: "preference", value: "likes concise answers" }],
+        put: () => undefined,
+      },
+      graphBuilder: () => ({
+        async invoke(run) {
+          contextMessages.push(run.contextMessages ?? []);
+          return successResult("ok");
+        },
+      }),
+    });
+
+    await runner.run({
+      ...runInput(),
+      memory: memoryConfig({ scope: "profile" }),
+      contextMessages: [
+        { role: "user", content: "Boa noite" },
+        { role: "assistant", content: "Boa noite! Como posso ajudar?" },
+      ],
+    });
+
+    assert.deepEqual(contextMessages[0], [
+      { role: "system", content: "Memory preference: likes concise answers" },
+      { role: "user", content: "Boa noite" },
+      { role: "assistant", content: "Boa noite! Como posso ajudar?" },
+    ]);
+  });
+
   it("writes long-term memory only through policy", async () => {
     const writes: unknown[] = [];
     const runner = new AgentRunner({

@@ -10,6 +10,7 @@ import WorkflowEditorChrome from '@/features/workflow-editor/components/ui/chrom
 import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/WorkflowSettingsPanel.vue'
 import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/WorkflowVariablesModal.vue'
 import ExecutionBottomPanel from '@/features/workflow-editor/components/execution/ExecutionBottomPanel.vue'
+import WorkflowChatBottomPanel from '@/features/workflow-editor/components/agent/WorkflowChatBottomPanel.vue'
 import AppPage from '@/shared/components/layout/AppPage.vue'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import { useApi } from '@/shared/composables/useApi'
@@ -20,6 +21,7 @@ import { PROFILE_SWITCH_REFRESH_EVENT } from '@/features/profiles/profileSwitchR
 import { computed, onMounted, onBeforeUnmount, watch, ref, markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
+import { listWorkflowChatTriggers } from '@/features/workflow-editor/utils/workflowRunTrigger'
 
 const route = useRoute()
 const router = useRouter()
@@ -67,7 +69,57 @@ const canvasRef = ref<InstanceType<typeof SailorWorkflowCanvas> | null>(null)
 // ── Logs panel state (shared between dock and canvas) ─────────────────────
 const showSettings = ref(false)
 const showVariables = ref(false)
+const selectedChatTriggerNodeId = ref('')
 const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
+const activeChatTriggers = computed(() => {
+  const workflow = workflowStore.activeWorkflow
+  return workflow ? listWorkflowChatTriggers(workflow) : []
+})
+const selectedChatTriggerEntry = computed(() => {
+  const selected = activeChatTriggers.value.find((trigger) => trigger.triggerNodeId === selectedChatTriggerNodeId.value)
+  if (selected) {
+    return { nodeId: selected.triggerNodeId, trigger: selected.trigger }
+  }
+
+  const firstChatTrigger = activeChatTriggers.value[0]
+  if (firstChatTrigger) {
+    return { nodeId: firstChatTrigger.triggerNodeId, trigger: firstChatTrigger.trigger }
+  }
+
+  const workflow = workflowStore.activeWorkflow
+  const nodeTriggerEntry = Object.entries(workflowStore.activeWorkflow?.nodes ?? {})
+    .map(([nodeId, node]) => ({ nodeId, trigger: (node as any).trigger }))
+    .find((entry) => entry.trigger?.type === 'chat')
+
+  if (nodeTriggerEntry) return nodeTriggerEntry
+  return { nodeId: 'trigger', trigger: workflow?.trigger }
+})
+const activeChatTrigger = computed(() => selectedChatTriggerEntry.value.trigger)
+const activeChatTriggerNodeId = computed(() => selectedChatTriggerEntry.value.nodeId)
+const activeWorkflowId = computed(() => workflowStore.activeWorkflow?.metadata.id)
+const activeDevSessionId = computed(() => executionStore.activeSessionId ?? undefined)
+const activeDevSessionStatus = computed(() => executionStore.sessionStatus)
+const activeChatDevSessionId = computed(() =>
+  activeDevSessionStatus.value === 'running' ? activeDevSessionId.value : undefined,
+)
+const activeChatPanelMode = computed(() => (activeChatDevSessionId.value ? 'Run session' : 'Published route'))
+const activeChatPanelTitle = computed(() => {
+  const base = activeChatTitle.value || 'Agent Chat'
+  return activeChatPanelMode.value === 'Run session' ? `${base} - Run session` : base
+})
+const activeChatSlug = computed(() => {
+  const trigger = activeChatTrigger.value as Record<string, unknown> | undefined
+  if (trigger?.type !== 'chat') return ''
+  return typeof trigger.chatSlug === 'string' ? trigger.chatSlug.trim() : ''
+})
+const selectedChatSlug = computed(() => activeChatSlug.value)
+const activeChatTitle = computed(() => {
+  const trigger = activeChatTrigger.value as Record<string, unknown> | undefined
+  return typeof trigger?.chatTitle === 'string' ? trigger.chatTitle.trim() : ''
+})
+const isChatPanelOpen = computed(
+  () => appPanelStore.isOpen && appPanelStore.panelId === 'workflow-chat-bottom-panel',
+)
 const isExecutionPanelOpen = computed(
   () => appPanelStore.isOpen && appPanelStore.panelId === 'workflow-execution-bottom-panel',
 )
@@ -135,6 +187,48 @@ function openExecutionPanel() {
   })
 }
 
+function openChatPanel() {
+  appPanelStore.openPanel({
+    id: 'workflow-chat-bottom-panel',
+    title: 'Chat',
+    component: markRaw(WorkflowChatBottomPanel),
+    props: {
+      chatTriggers: activeChatTriggers.value,
+      chatSlug: activeChatSlug.value,
+      title: activeChatPanelTitle.value,
+      workflowId: activeWorkflowId.value,
+      triggerNodeId: activeChatTriggerNodeId.value,
+      devSessionId: activeChatDevSessionId.value,
+      selectedTriggerNodeId: activeChatTriggerNodeId.value,
+      'onUpdate:selectedTriggerNodeId': (triggerNodeId: string) => {
+        selectedChatTriggerNodeId.value = triggerNodeId
+      },
+    },
+    position: 'left',
+    width: 'lg',
+    resizable: true,
+    resizeSide: 'right',
+  })
+}
+
+function toggleChatPanel() {
+  if (isChatPanelOpen.value) {
+    appPanelStore.closePanel()
+    return
+  }
+
+  openChatPanel()
+}
+
+function toggleExecutionPanel() {
+  if (isExecutionPanelOpen.value) {
+    appPanelStore.closePanel()
+    return
+  }
+
+  openExecutionPanel()
+}
+
 function openCommandPalette() {
   void commandPaletteStore.open({
     routePath: route.path,
@@ -142,6 +236,20 @@ function openCommandPalette() {
     activeExecutionId: executionStore.activeExecutionId ?? undefined,
   })
 }
+
+watch([activeChatSlug, activeChatTitle, activeChatTriggerNodeId, activeChatDevSessionId, activeChatTriggers], () => {
+  if (!isChatPanelOpen.value) return
+  openChatPanel()
+})
+
+watch(
+  activeChatTriggers,
+  (nextTriggers) => {
+    if (nextTriggers.some((trigger) => trigger.triggerNodeId === selectedChatTriggerNodeId.value)) return
+    selectedChatTriggerNodeId.value = nextTriggers[0]?.triggerNodeId ?? ''
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
   initWorkflow()
@@ -233,9 +341,19 @@ async function handlePublishWorkflow() {
   }
 
   const isPublished = active.metadata.isActive && !active.metadata.isDraft
+  if (!isPublished && workflowStore.isDirty) {
+    await workflowStore.saveActiveWorkflow()
+  }
+
+  const workflowToPublish = workflowStore.activeWorkflow
+  if (!workflowToPublish) {
+    toast.error('Save workflow before publishing')
+    return
+  }
+
   const updated = isPublished
-    ? await workflowsApi.unpublish(active.metadata.id)
-    : await workflowsApi.publish(active.metadata.id)
+    ? await workflowsApi.unpublish(workflowToPublish.metadata.id)
+    : await workflowsApi.publish(workflowToPublish.metadata.id)
 
   workflowStore.setActiveWorkflow(updated)
   toast.success(isPublished ? 'Workflow unpublished' : 'Workflow published')
@@ -311,11 +429,29 @@ watch(
       />
     </div>
 
-    <button v-if="!isExecutionPanelOpen" class="workflow-status-bar" type="button" @click="openExecutionPanel">
-      <span class="workflow-status-bar__dot" :class="{ 'is-active': executionStore.hasActiveExecution }" />
-      <span>Execution</span>
-      <code>{{ executionStore.timeline.length }} events</code>
-    </button>
+    <div class="workflow-status-bar" role="toolbar" aria-label="Workflow panels">
+      <button
+        class="workflow-status-bar__button"
+        :class="{ 'workflow-status-bar__button--active': isChatPanelOpen }"
+        type="button"
+        @click="toggleChatPanel"
+      >
+        <span class="workflow-status-bar__dot" :class="{ 'is-active': !!activeChatSlug }" />
+        <span>Chat</span>
+        <code>{{ selectedChatSlug || 'not configured' }}</code>
+      </button>
+
+      <button
+        class="workflow-status-bar__button"
+        :class="{ 'workflow-status-bar__button--active': isExecutionPanelOpen }"
+        type="button"
+        @click="toggleExecutionPanel"
+      >
+        <span class="workflow-status-bar__dot" :class="{ 'is-active': executionStore.hasActiveExecution }" />
+        <span>Execution</span>
+        <code>{{ executionStore.timeline.length }} events</code>
+      </button>
+    </div>
 
     <WorkflowSettingsPanel :is-open="showSettings" @close="showSettings = false" />
     <WorkflowVariablesModal :is-open="showVariables" @close="showVariables = false" />
@@ -331,18 +467,31 @@ watch(
   z-index: var(--sailor-z-raised);
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: 1px;
   height: 24px;
-  padding: 0 var(--sailor-space-3);
-  border: 0;
+  padding: 0;
   border-top: 1px solid var(--sailor-border);
   background: var(--sailor-bg-base);
   color: var(--sailor-text-muted);
   font-size: 11px;
+}
+
+.workflow-status-bar__button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  height: 100%;
+  min-width: 140px;
+  padding: 0 var(--sailor-space-3);
+  border: 0;
+  border-right: 1px solid var(--sailor-border-muted);
+  background: transparent;
+  color: inherit;
   cursor: pointer;
 }
 
-.workflow-status-bar:hover {
+.workflow-status-bar__button:hover,
+.workflow-status-bar__button--active {
   color: var(--sailor-text-primary);
   background: var(--sailor-bg-surface);
 }
@@ -358,9 +507,12 @@ watch(
   background: var(--sailor-green-400);
 }
 
-.workflow-status-bar code {
+.workflow-status-bar__button code {
   margin-left: auto;
+  overflow: hidden;
   font-family: var(--sailor-font-mono);
   font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

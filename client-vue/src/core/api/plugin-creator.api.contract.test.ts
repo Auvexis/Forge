@@ -27,6 +27,7 @@ async function contract(blueprint: PluginBlueprint) {
   await pluginCreatorApi.createBlueprint(createPayload)
   await pluginCreatorApi.getBlueprint(blueprint.id)
   await pluginCreatorApi.updateBlueprint(blueprint.id, blueprint)
+  await pluginCreatorApi.uploadIcon(blueprint.id, 'iconLight', new File(['svg'], 'icon.svg'))
   await pluginCreatorApi.testMethod(blueprint.id, testPayload)
   await pluginCreatorApi.generatePreview(blueprint.id)
   await pluginCreatorApi.previewCode(blueprint)
@@ -38,6 +39,7 @@ async function contract(blueprint: PluginBlueprint) {
   return {
     blueprintsPath: ENDPOINTS.PLUGIN_CREATOR_BLUEPRINTS,
     detailPath: ENDPOINTS.PLUGIN_CREATOR_BLUEPRINT(blueprint.id),
+    iconPath: ENDPOINTS.PLUGIN_CREATOR_ICON_ASSET(blueprint.id, 'iconLight'),
     testPath: ENDPOINTS.PLUGIN_CREATOR_TEST_METHOD(blueprint.id),
     previewPath: ENDPOINTS.PLUGIN_CREATOR_GENERATE_PREVIEW(blueprint.id),
     previewCodePath: ENDPOINTS.PLUGIN_CREATOR_PREVIEW_CODE,

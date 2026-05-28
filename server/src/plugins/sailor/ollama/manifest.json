@@ -18,7 +18,13 @@
         "description": "Use local or cloud Ollama models as an Agent Chat Model through a configurable compatible endpoint.",
         "defaultModel": "llama3.2",
         "defaultBaseUrl": "http://localhost:11434/v1",
-        "credentialPluginId": "sailor-ollama"
+        "credentialPluginId": "sailor-ollama",
+        "thinking": {
+          "enabled": true,
+          "request": {
+            "reasoning_effort": "medium"
+          }
+        }
       }
     }
   },
@@ -54,7 +60,7 @@
         "properties": {
           "model": {
             "type": "string",
-            "description": "Override the configured model.",
+            "description": "The model to use (e.g., llama3.2, mistral).",
             "x-input-type": "text"
           },
           "messages": {
@@ -81,6 +87,7 @@
           }
         },
         "required": [
+          "model",
           "messages"
         ]
       },
@@ -109,6 +116,11 @@
             "description": "The prompt to use for generation.",
             "x-input-type": "textarea"
           },
+          "model": {
+            "type": "string",
+            "description": "The model to use (e.g., llama3.2, mistral).",
+            "x-input-type": "text"
+          },
           "system": {
             "type": "string",
             "description": "Override the default system instructions.",
@@ -122,6 +134,7 @@
           }
         },
         "required": [
+          "model",
           "prompt"
         ]
       },
@@ -202,10 +215,13 @@
         "properties": {
           "model": {
             "type": "string",
-            "description": "Override the configured model.",
+            "description": "The model to inspect.",
             "x-input-type": "text"
           }
-        }
+        },
+        "required": [
+          "model"
+        ]
       },
       "responseSchema": {
         "type": "object"

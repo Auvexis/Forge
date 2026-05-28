@@ -35,6 +35,9 @@ export interface AiModelNodeConfig {
   maxTokens?: number
   credentialId?: string
   baseUrl?: string
+  thinkingEnabled?: boolean
+  thinkingRequest?: Record<string, any>
+  thinkingSupported?: boolean
 }
 
 export interface AiMemoryNodeConfig {

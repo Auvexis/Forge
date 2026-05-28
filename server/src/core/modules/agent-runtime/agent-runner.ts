@@ -133,7 +133,11 @@ export class AgentRunner {
         workflowId: input.workflowId,
         userId: input.userId,
       });
-      const contextMessages = await this.readMemory(input, validated.memory, namespace);
+      const memoryMessages = await this.readMemory(input, validated.memory, namespace);
+      const contextMessages = [
+        ...memoryMessages,
+        ...(validated.contextMessages ?? []),
+      ];
       const checkpointer = input.sessionId
         ? await this.checkpointerFactory({
             sessionId: input.sessionId,

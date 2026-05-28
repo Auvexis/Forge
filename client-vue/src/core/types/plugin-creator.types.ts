@@ -10,6 +10,7 @@ export type PluginBlueprintInputType =
 export type PluginBlueprintHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD'
 export type PluginBlueprintAuthType = 'none' | 'apiKey' | 'bearer' | 'basic'
 export type PluginCredentialTarget = 'header' | 'query' | 'body'
+export type PluginBlueprintIconSlot = 'icon' | 'iconDark' | 'iconLight'
 
 export interface PluginBlueprintMetadata {
   handle: string

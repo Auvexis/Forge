@@ -37,34 +37,24 @@
           :rows="3"
         />
 
-        <div class="plugin-creator-create-modal__grid">
-          <div class="plugin-creator-icon-field">
-            <BaseInput v-model="form.icon" type="url" label="Icon" placeholder="https://example.com/icon.svg" />
+        <div class="plugin-creator-create-modal__icon-grid">
+          <div v-for="field in iconFields" :key="field.slot" class="plugin-creator-icon-field">
             <span class="plugin-creator-icon-preview">
-              <img v-if="form.icon" :src="form.icon" alt="" />
+              <img v-if="iconPreview(field.slot)" :src="iconPreview(field.slot)" alt="" />
             </span>
-          </div>
-          <div class="plugin-creator-icon-field">
-            <BaseInput
-              v-model="form.iconDark"
-              type="url"
-              label="Dark icon"
-              placeholder="https://example.com/icon-dark.svg"
-            />
-            <span class="plugin-creator-icon-preview">
-              <img v-if="form.iconDark" :src="form.iconDark" alt="" />
-            </span>
-          </div>
-          <div class="plugin-creator-icon-field">
-            <BaseInput
-              v-model="form.iconLight"
-              type="url"
-              label="Light icon"
-              placeholder="https://example.com/icon-light.svg"
-            />
-            <span class="plugin-creator-icon-preview">
-              <img v-if="form.iconLight" :src="form.iconLight" alt="" />
-            </span>
+            <div class="plugin-creator-icon-field__body">
+              <label>
+                {{ field.label }}
+                <input type="file" accept=".svg,.png,.webp,.jpg,.jpeg,image/*" @change="selectIcon(field.slot, $event)" />
+              </label>
+              <BaseInput
+                v-model="form[field.slot]"
+                type="url"
+                :label="`${field.label} URL`"
+                placeholder="https://example.com/icon.svg"
+              />
+              <BaseButton type="button" variant="ghost" size="sm" @click="removeIcon(field.slot)">Remove</BaseButton>
+            </div>
           </div>
         </div>
       </div>
@@ -84,7 +74,10 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
-import type { CreatePluginBlueprintPayload } from '@/core/types/plugin-creator.types'
+import type {
+  CreatePluginBlueprintPayload,
+  PluginBlueprintIconSlot,
+} from '@/core/types/plugin-creator.types'
 
 const props = withDefaults(
   defineProps<{
@@ -98,7 +91,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   close: []
-  create: [payload: CreatePluginBlueprintPayload]
+  create: [payload: CreatePluginBlueprintPayload, iconFiles: Partial<Record<PluginBlueprintIconSlot, File>>]
 }>()
 
 const form = reactive({
@@ -110,6 +103,13 @@ const form = reactive({
   iconLight: '',
 })
 const handleTouched = ref(false)
+const iconFiles = reactive<Partial<Record<PluginBlueprintIconSlot, File>>>({})
+const iconPreviews = reactive<Partial<Record<PluginBlueprintIconSlot, string>>>({})
+const iconFields: Array<{ slot: PluginBlueprintIconSlot; label: string }> = [
+  { slot: 'icon', label: 'Icon' },
+  { slot: 'iconDark', label: 'Dark icon' },
+  { slot: 'iconLight', label: 'Light icon' },
+]
 
 const normalizedHandle = computed(() => slugifyPluginHandle(form.handle))
 const handleError = computed(() => {
@@ -135,6 +135,7 @@ watch(
       iconLight: '',
     })
     handleTouched.value = false
+    for (const field of iconFields) removeIcon(field.slot)
   },
 )
 
@@ -145,15 +146,40 @@ function syncHandleFromName(value: string) {
 
 function submit() {
   if (!canSubmit.value) return
-  emit('create', {
-    handle: form.handle.trim(),
-    name: form.name.trim(),
-    description: form.description.trim(),
-    icon: cleanOptional(form.icon),
-    iconDark: cleanOptional(form.iconDark),
-    iconLight: cleanOptional(form.iconLight),
-    includeDefaultMethod: false,
-  })
+  emit(
+    'create',
+    {
+      handle: form.handle.trim(),
+      name: form.name.trim(),
+      description: form.description.trim(),
+      icon: iconFiles.icon ? undefined : cleanOptional(form.icon),
+      iconDark: iconFiles.iconDark ? undefined : cleanOptional(form.iconDark),
+      iconLight: iconFiles.iconLight ? undefined : cleanOptional(form.iconLight),
+      includeDefaultMethod: false,
+    },
+    { ...iconFiles },
+  )
+}
+
+function selectIcon(slot: PluginBlueprintIconSlot, event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  removeIcon(slot)
+  iconFiles[slot] = file
+  iconPreviews[slot] = URL.createObjectURL(file)
+  form[slot] = ''
+  input.value = ''
+}
+
+function removeIcon(slot: PluginBlueprintIconSlot) {
+  if (iconPreviews[slot]) URL.revokeObjectURL(iconPreviews[slot])
+  delete iconPreviews[slot]
+  delete iconFiles[slot]
+}
+
+function iconPreview(slot: PluginBlueprintIconSlot) {
+  return iconPreviews[slot] ?? form[slot]
 }
 
 function cleanOptional(value: string) {
@@ -245,11 +271,32 @@ function slugifyPluginHandle(value: string) {
   gap: 12px;
 }
 
+.plugin-creator-create-modal__icon-grid {
+  display: grid;
+  gap: 10px;
+}
+
 .plugin-creator-icon-field {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 38px;
-  align-items: end;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: 6px;
+}
+
+.plugin-creator-icon-field__body {
+  display: grid;
   gap: 8px;
+}
+
+.plugin-creator-icon-field__body label {
+  display: grid;
+  gap: 6px;
+  color: var(--sailor-text-secondary);
+  font-size: 12px;
+  font-weight: 650;
 }
 
 .plugin-creator-icon-preview {

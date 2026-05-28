@@ -67,5 +67,6 @@ Goal: make Agent Chat Model, Memory, and Tool availability manifest-driven, remo
 - [x] AI Tool settings match the Plugin Editor parameter-card styling so labels, descriptions, types, and toggles remain readable.
 - [x] AI Tool settings use Plugin Editor-style integration/action selectors and reset parameter defaults when plugin or action changes.
 - [x] AI Tool canvas node refreshes title, subtitle, icon, and plugin colors when the selected plugin or method changes.
+- [x] Editor chat refreshes stale dev-session workflow snapshots before sending messages and maps agent model events onto the connected Chat Model node.
 - [ ] Manual smoke confirms Chat Models are discovered from plugin manifest metadata.
 - [ ] Manual smoke confirms PostgreSQL Memory can read/write against a live configured PostgreSQL database.

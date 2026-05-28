@@ -26,16 +26,6 @@
         height="260px"
         @update:model-value="updateCodeBlock({ source: String($event) })"
       />
-      <div class="node-editor-snippet-buttons" aria-label="Code snippets">
-        <button
-          v-for="snippet in snippets"
-          :key="snippet.label"
-          type="button"
-          @click="insertSnippet(snippet.source)"
-        >
-          {{ snippet.label }}
-        </button>
-      </div>
     </NodeEditorSection>
 
     <NodeEditorSection
@@ -43,9 +33,9 @@
       description="Common values available in this block."
     >
       <div class="node-editor-snippets">
-        <code>params</code>
-        <code>previous</code>
-        <code>context.credentials</code>
+        <BaseBadge variant="outline" size="sm" text="params" />
+        <BaseBadge variant="outline" size="sm" text="previous" />
+        <BaseBadge variant="outline" size="sm" text="context.credentials" />
       </div>
     </NodeEditorSection>
 
@@ -54,12 +44,12 @@
       description="Code blocks must stay portable and cannot import runtime modules."
     >
       <div class="node-editor-snippets">
-        <code>import</code>
-        <code>require</code>
-        <code>process</code>
-        <code>fs</code>
-        <code>eval</code>
-        <code>Function</code>
+        <BaseBadge variant="outline" size="sm" text="import" />
+        <BaseBadge variant="outline" size="sm" text="require" />
+        <BaseBadge variant="outline" size="sm" text="process" />
+        <BaseBadge variant="outline" size="sm" text="fs" />
+        <BaseBadge variant="outline" size="sm" text="eval" />
+        <BaseBadge variant="outline" size="sm" text="Function" />
       </div>
     </NodeEditorSection>
   </div>
@@ -68,6 +58,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
+import BaseBadge from '@/shared/components/base/BaseBadge.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import NodeEditorSection from './NodeEditorSection.vue'
 import { usePluginCreatorNodeEditorContext } from './usePluginCreatorNodeEditorContext'
@@ -94,13 +85,6 @@ const codeBlock = computed<PluginBlueprintCodeBlock>(() => {
   )
 })
 
-const snippets = [
-  { label: 'return previous;', source: 'return previous;' },
-  { label: 'return { ...previous };', source: 'return { ...previous };' },
-  { label: 'params value', source: 'const value = params.value;' },
-  { label: 'credential value', source: 'const token = context.credentials.token;' },
-]
-
 function updateCodeBlock(payload: Partial<PluginBlueprintCodeBlock>) {
   if (!method.value) return
   const nextBlock = { ...codeBlock.value, ...payload }
@@ -120,10 +104,6 @@ function updateCodeBlock(payload: Partial<PluginBlueprintCodeBlock>) {
   })
 }
 
-function insertSnippet(source: string) {
-  const separator = codeBlock.value.source.trim().length > 0 ? '\n' : ''
-  updateCodeBlock({ source: `${codeBlock.value.source}${separator}${source}` })
-}
 </script>
 
 <style scoped>
@@ -142,31 +122,4 @@ function insertSnippet(source: string) {
   gap: 8px;
 }
 
-.node-editor-snippet-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.node-editor-snippet-buttons button {
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background-color: var(--sailor-bg-surface);
-  color: var(--sailor-text-muted);
-  cursor: pointer;
-  font: inherit;
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  padding: 6px 8px;
-  text-transform: uppercase;
-}
-
-.node-editor-snippets code {
-  padding: 5px 7px;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-secondary);
-}
 </style>

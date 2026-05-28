@@ -1,67 +1,232 @@
 <template>
   <section class="chat-session-panel">
-    <header class="chat-session-panel__header">
-      <h3>{{ title }}</h3>
-      <span v-if="sessionId" class="chat-session-panel__session">{{ sessionId }}</span>
-    </header>
-
-    <div class="chat-session-panel__messages">
+    <div ref="messagesEl" class="chat-session-panel__messages">
       <article
-        v-for="message in messages"
+        v-for="message in displayedMessages"
         :key="message.id"
         class="chat-session-panel__message"
         :data-role="message.role"
       >
-        <strong>{{ formatRole(message.role) }}</strong>
-        <p>{{ messageContent(message.content) }}</p>
+        <div class="chat-session-panel__avatar" aria-hidden="true">
+          <LucideIcon :name="message.role === 'user' ? 'user' : 'bot'" :size="17" />
+        </div>
+        <div class="chat-session-panel__message-copy">
+          <strong>{{ formatRole(message.role) }}</strong>
+          <div v-if="messageThinking(message.content)" class="chat-session-panel__thinking">
+            {{ messageThinking(message.content) }}
+          </div>
+          <div v-if="isPendingAssistantMessage(message)" class="chat-session-panel__typing-dots" aria-label="Agent is thinking">
+            <span />
+            <span />
+            <span />
+          </div>
+          <p v-else>{{ messageContent(message.content) }}</p>
+        </div>
       </article>
 
-      <div v-if="!messages.length" class="chat-session-panel__empty">No messages yet.</div>
+      <div v-if="!displayedMessages.length" class="chat-session-panel__empty">No messages yet.</div>
+    </div>
+
+    <div v-if="selectedTrigger?.chatSlug" class="chat-session-panel__target-bar">
+      <button
+        type="button"
+        class="chat-session-panel__target-select"
+        :disabled="chatTriggers.length <= 1"
+        aria-haspopup="listbox"
+        :aria-expanded="targetMenuOpen"
+        @click="targetMenuOpen = chatTriggers.length > 1 && !targetMenuOpen"
+      >
+        <span>{{ selectedTrigger.title || 'Agent Chat' }}</span>
+        <code>{{ selectedTrigger.chatSlug }}</code>
+        <LucideIcon v-if="chatTriggers.length > 1" name="chevron-down" :size="13" />
+      </button>
+
+      <div v-if="targetMenuOpen" class="chat-session-panel__target-menu" role="listbox">
+        <button
+          v-for="trigger in chatTriggers"
+          :key="trigger.triggerNodeId"
+          type="button"
+          class="chat-session-panel__target-option"
+          :class="{ 'chat-session-panel__target-option--active': trigger.triggerNodeId === selectedTrigger.triggerNodeId }"
+          role="option"
+          :aria-selected="trigger.triggerNodeId === selectedTrigger.triggerNodeId"
+          @click="selectChatTrigger(trigger.triggerNodeId)"
+        >
+          <span>{{ trigger.title || 'Agent Chat' }}</span>
+          <code>{{ trigger.chatSlug || 'no slug' }}</code>
+        </button>
+      </div>
     </div>
 
     <form class="chat-session-panel__composer" @submit.prevent="sendCurrentMessage">
-      <BaseTextarea
-        v-model="draft"
-        :rows="3"
-        :disabled="pending"
-        placeholder="Send a test message"
-        aria-label="Chat message"
-      />
+      <div class="chat-session-panel__composer-shell">
+        <textarea
+          v-model="draft"
+          class="chat-session-panel__input"
+          :disabled="pending"
+          placeholder="Ask the agent..."
+          aria-label="Chat message"
+          rows="2"
+          @keydown.ctrl.enter.prevent="sendCurrentMessage"
+        />
 
-      <div class="chat-session-panel__actions">
-        <span v-if="safeError" class="chat-session-panel__error">{{ safeError }}</span>
-        <BaseButton type="submit" variant="primary" :disabled="!canSend || pending" :loading="pending">
-          Send
-        </BaseButton>
+        <div class="chat-session-panel__composer-actions">
+          <button
+            type="button"
+            class="chat-session-panel__icon-button"
+            :class="{ 'chat-session-panel__icon-button--listening': isListening }"
+            :disabled="pending || !speechSupported"
+            :title="speechSupported ? 'Dictate with Chrome speech recognition' : 'Speech recognition is not available'"
+            aria-label="Dictate message"
+            @click="startSpeechToText"
+          >
+            <LucideIcon v-if="isListening" name="mic-off" :size="15" />
+            <LucideIcon v-else name="mic" :size="15" />
+          </button>
+
+          <button
+            type="submit"
+            class="chat-session-panel__send"
+            :disabled="!canSend || pending"
+            title="Send message with Ctrl+Enter"
+            aria-label="Send message"
+          >
+            <LucideIcon v-if="pending" name="loader-2" :size="15" class="chat-session-panel__spin" />
+            <LucideIcon v-else name="send" :size="15" />
+          </button>
+        </div>
       </div>
+
+      <span v-if="safeError" class="chat-session-panel__error">{{ safeError }}</span>
     </form>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import BaseButton from '@/shared/components/base/BaseButton.vue'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { agentChatApi } from '@/core/api/agent-chat.api'
+import { workflowsApi } from '@/core/api/workflows.api'
+import { ApiError } from '@/core/types/api.types'
 import type { AgentChatMessage, AgentChatMessageRole } from '@/features/agent-runtime/types/agent.types'
+import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
+import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
+import { useToast } from '@/shared/composables/useToast'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
+
+export interface ChatPanelTrigger {
+  triggerNodeId: string
+  chatSlug?: string
+  title?: string
+}
 
 const props = withDefaults(
   defineProps<{
     chatSlug: string
     title?: string
+    workflowId?: string
+    triggerNodeId?: string
+    devSessionId?: string
+    chatTriggers?: ChatPanelTrigger[]
+    selectedTriggerNodeId?: string
   }>(),
   {
     title: 'Agent Chat',
+    chatTriggers: () => [],
   },
 )
+
+const emit = defineEmits<{
+  'update:selectedTriggerNodeId': [triggerNodeId: string]
+}>()
 
 const draft = ref('')
 const pending = ref(false)
 const safeError = ref('')
 const sessionId = ref<string | undefined>()
 const messages = ref<AgentChatMessage[]>([])
+const messagesEl = ref<HTMLElement | null>(null)
+const isListening = ref(false)
+const targetMenuOpen = ref(false)
+const toast = useToast()
+const executionStore = useExecutionStore()
+const workflowStore = useWorkflowStore()
+const sessionWorkflowRevision = ref<string | undefined>()
 
 const canSend = computed(() => draft.value.trim().length > 0)
+const fallbackTrigger = computed<ChatPanelTrigger | null>(() => {
+  if (!props.chatSlug) return null
+  return {
+    triggerNodeId: props.triggerNodeId || 'trigger',
+    chatSlug: props.chatSlug,
+    title: props.title,
+  }
+})
+const chatTriggers = computed(() => props.chatTriggers.length ? props.chatTriggers : fallbackTrigger.value ? [fallbackTrigger.value] : [])
+const selectedTrigger = computed(() =>
+  chatTriggers.value.find((trigger) => trigger.triggerNodeId === props.selectedTriggerNodeId) ??
+  chatTriggers.value.find((trigger) => trigger.triggerNodeId === props.triggerNodeId) ??
+  chatTriggers.value[0] ??
+  null,
+)
+const activeTriggerNodeId = computed(() => selectedTrigger.value?.triggerNodeId ?? props.triggerNodeId)
+const activeChatSlug = computed(() => selectedTrigger.value?.chatSlug ?? props.chatSlug)
+const canSendToDevSession = computed(
+  () => Boolean(props.workflowId && activeTriggerNodeId.value && props.devSessionId),
+)
+const devChatSessionId = computed(() => props.devSessionId ? `chat_dev_${props.devSessionId}` : undefined)
+const displayedDevChatSessionId = computed(() => canSendToDevSession.value ? sessionId.value : undefined)
+const displayedMessages = computed(() => {
+  if (!canSendToDevSession.value || !displayedDevChatSessionId.value) return messages.value
+  return executionStore.editorChatMessagesBySession[displayedDevChatSessionId.value] ?? []
+})
+const currentWorkflowRevision = computed(() => {
+  const workflow = workflowStore.activeWorkflow
+  return JSON.stringify({
+    nodes: workflow?.nodes ?? {},
+    edges: workflow?.edges ?? [],
+  })
+})
+const speechSupported = computed(() => getSpeechRecognitionCtor() !== null)
+
+watch(
+  devChatSessionId,
+  (nextSessionId) => {
+    if (canSendToDevSession.value && nextSessionId) {
+      sessionId.value = nextSessionId
+      sessionWorkflowRevision.value = currentWorkflowRevision.value
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => displayedMessages.value.length,
+  () => {
+    void scrollMessagesToBottom()
+  },
+)
+
+type BrowserSpeechRecognitionEvent = {
+  results: ArrayLike<{
+    isFinal?: boolean
+    0?: {
+      transcript?: string
+    }
+  }>
+}
+
+type BrowserSpeechRecognition = {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  onend: (() => void) | null
+  onerror: ((event: { error?: string }) => void) | null
+  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null
+  start: () => void
+  stop: () => void
+}
+
+let activeRecognition: BrowserSpeechRecognition | null = null
 
 async function sendCurrentMessage() {
   const message = draft.value.trim()
@@ -71,7 +236,12 @@ async function sendCurrentMessage() {
   safeError.value = ''
 
   try {
-    const result = await agentChatApi.sendMessage(props.chatSlug, {
+    if (canSendToDevSession.value) {
+      await sendDevSessionMessage(message)
+      return
+    }
+
+    const result = await agentChatApi.sendMessage(activeChatSlug.value, {
       message,
       sessionId: sessionId.value,
     })
@@ -80,12 +250,155 @@ async function sendCurrentMessage() {
     messages.value = result.messages
     appendAssistantResponse(result.assistantResponse)
     draft.value = ''
-  } catch {
-    safeError.value = 'Unable to send message.'
+    await scrollMessagesToBottom()
+  } catch (error) {
+    safeError.value = formatSendError(error)
+    toast.error(safeError.value, 'Chat message failed')
   } finally {
     pending.value = false
   }
 }
+
+async function sendDevSessionMessage(message: string) {
+  const devSessionId = await ensureFreshDevSession()
+  if (!devSessionId) throw new Error('Chat dev session is not available.')
+  const localSessionId = sessionId.value ?? (devSessionId ? `chat_dev_${devSessionId}` : devChatSessionId.value) ?? `chat_dev_${props.devSessionId}`
+  sessionId.value = localSessionId
+
+  const result = await workflowsApi.executeDevSessionTrigger(devSessionId!, activeTriggerNodeId.value!, {
+    type: 'chat',
+    source: 'chat-panel',
+    workflowId: props.workflowId,
+    triggerNodeId: activeTriggerNodeId.value,
+    chatSlug: activeChatSlug.value,
+    sessionId: localSessionId,
+    message,
+    messages: buildDevSessionHistory(localSessionId),
+  })
+
+  executionStore.registerEditorChatExecution(result.executionId, localSessionId)
+  executionStore.appendEditorChatMessage({
+    id: `chat-user:${result.executionId}`,
+    sessionId: localSessionId,
+    role: 'user',
+    content: message,
+  })
+  executionStore.appendPendingEditorChatAssistantMessage(result.executionId, localSessionId)
+  draft.value = ''
+  await scrollMessagesToBottom()
+}
+
+async function ensureFreshDevSession() {
+  let devSessionId = executionStore.activeSessionId ?? props.devSessionId
+  const graphChanged = sessionWorkflowRevision.value !== currentWorkflowRevision.value
+  if (!devSessionId || (!workflowStore.isDirty && !graphChanged)) return devSessionId
+
+  if (workflowStore.isDirty) {
+    await workflowStore.saveActiveWorkflow({ silent: true })
+    if (workflowStore.isDirty) throw new Error('Save the workflow before sending a chat message.')
+  }
+
+  await workflowsApi.stopDevSession(devSessionId).catch(() => undefined)
+  await executionStore.execute(props.workflowId!, {}, undefined)
+  devSessionId = executionStore.activeSessionId ?? undefined
+  sessionWorkflowRevision.value = currentWorkflowRevision.value
+  sessionId.value = devSessionId ? `chat_dev_${devSessionId}` : undefined
+  return devSessionId
+}
+
+function startSpeechToText() {
+  if (isListening.value && activeRecognition) {
+    activeRecognition.stop()
+    return
+  }
+
+  const Recognition = getSpeechRecognitionCtor()
+  if (!Recognition) {
+    safeError.value = 'Speech recognition is only available in supported Chrome-based browsers.'
+    return
+  }
+
+  const recognition = new Recognition()
+  activeRecognition = recognition
+  recognition.continuous = false
+  recognition.interimResults = false
+  recognition.lang = navigator.language || 'en-US'
+  isListening.value = true
+
+  recognition.onresult = (event) => {
+    const transcript = Array.from(event.results)
+      .map((result) => result[0]?.transcript?.trim() ?? '')
+      .filter(Boolean)
+      .join(' ')
+
+    if (transcript) appendTranscript(transcript)
+  }
+
+  recognition.onerror = (event) => {
+    safeError.value = event.error
+      ? `Speech recognition stopped: ${event.error}.`
+      : 'Speech recognition stopped before receiving audio.'
+  }
+
+  recognition.onend = () => {
+    isListening.value = false
+    activeRecognition = null
+  }
+
+  recognition.start()
+}
+
+function getSpeechRecognitionCtor(): (new () => BrowserSpeechRecognition) | null {
+  if (typeof window === 'undefined') return null
+
+  const speechWindow = window as typeof window & {
+    SpeechRecognition?: new () => BrowserSpeechRecognition
+    webkitSpeechRecognition?: new () => BrowserSpeechRecognition
+  }
+
+  return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition ?? null
+}
+
+function appendTranscript(transcript: string) {
+  draft.value = [draft.value.trim(), transcript.trim()].filter(Boolean).join(' ')
+}
+
+function selectChatTrigger(triggerNodeId: string) {
+  targetMenuOpen.value = false
+  emit('update:selectedTriggerNodeId', triggerNodeId)
+}
+
+async function scrollMessagesToBottom() {
+  await nextTick()
+  const el = messagesEl.value
+  if (!el) return
+  el.scrollTop = el.scrollHeight
+}
+
+function formatSendError(error: unknown) {
+  if (error instanceof ApiError) {
+    if (error.statusCode === 0) {
+      return 'Chat request failed because Sailor could not reach the server. Check that the app is running and try again.'
+    }
+
+    if (error.statusCode === 404) {
+      return `Chat trigger "${activeChatSlug.value}" was not found. Confirm the chat slug in the trigger settings and try again.`
+    }
+
+    const detail = error.serverError && error.serverError !== error.message ? error.serverError : error.message
+    return `Chat request failed (${error.statusCode}). ${detail}`
+  }
+
+  if (error instanceof Error && error.message) {
+    return `Chat request failed. ${error.message}`
+  }
+
+  return 'Chat request failed before the message could be sent.'
+}
+
+onBeforeUnmount(() => {
+  activeRecognition?.stop()
+})
 
 function appendAssistantResponse(assistantResponse: unknown) {
   if (assistantResponse === undefined || assistantResponse === null) return
@@ -106,8 +419,39 @@ function appendAssistantResponse(assistantResponse: unknown) {
   ]
 }
 
+function buildDevSessionHistory(chatSessionId: string) {
+  return (executionStore.editorChatMessagesBySession[chatSessionId] ?? [])
+    .filter((message) =>
+      (message.role === 'user' || message.role === 'assistant') &&
+      !isPendingAssistantMessage(message),
+    )
+    .map((message) => ({
+      role: message.role,
+      content: messageContent(message.content),
+    }))
+    .filter((message) => message.content.trim())
+    .slice(-20)
+}
+
 function messageContent(content: unknown) {
+  if (isChatContentRecord(content)) {
+    return content.text || ''
+  }
   return typeof content === 'string' ? content : JSON.stringify(content)
+}
+
+function messageThinking(content: unknown) {
+  return isChatContentRecord(content) ? content.thinking || '' : ''
+}
+
+function isPendingAssistantMessage(message: AgentChatMessage) {
+  if (message.role !== 'assistant') return false
+  if (isChatContentRecord(message.content)) return message.content.pending === true && !message.content.text
+  return typeof message.content === 'string' && message.content === '' && message.id.startsWith('chat-assistant-stream:')
+}
+
+function isChatContentRecord(content: unknown): content is { text?: string; thinking?: string; pending?: boolean } {
+  return Boolean(content && typeof content === 'object' && !Array.isArray(content))
 }
 
 function formatRole(role: AgentChatMessageRole) {
@@ -119,75 +463,357 @@ function formatRole(role: AgentChatMessageRole) {
 .chat-session-panel {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
   gap: var(--sailor-space-3);
 }
 
-.chat-session-panel__header,
-.chat-session-panel__actions {
+.chat-session-panel__composer-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--sailor-space-3);
 }
 
-.chat-session-panel__header h3 {
-  margin: 0;
-  font-size: var(--sailor-text-sm);
+.chat-session-panel__target-bar {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-height: 18px;
 }
 
-.chat-session-panel__session,
+.chat-session-panel__target-select {
+  display: inline-flex;
+  max-width: min(420px, 100%);
+  align-items: center;
+  gap: var(--sailor-space-2);
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--sailor-text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1.2;
+  padding: 0;
+}
+
+.chat-session-panel__target-select:disabled {
+  cursor: default;
+}
+
+.chat-session-panel__target-select span,
+.chat-session-panel__target-option span {
+  color: var(--sailor-text-primary);
+  font-weight: 700;
+}
+
+.chat-session-panel__target-select code,
+.chat-session-panel__target-option code {
+  overflow: hidden;
+  font-family: var(--sailor-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-session-panel__target-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + var(--sailor-space-2));
+  z-index: var(--sailor-z-raised);
+  display: flex;
+  min-width: 240px;
+  flex-direction: column;
+  gap: 1px;
+  border: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-elevated);
+  box-shadow: var(--sailor-shadow-lg);
+}
+
+.chat-session-panel__target-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sailor-space-3);
+  border: 0;
+  background: transparent;
+  color: var(--sailor-text-muted);
+  cursor: pointer;
+  padding: 7px 9px;
+  text-align: left;
+}
+
+.chat-session-panel__target-option:hover,
+.chat-session-panel__target-option--active {
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
+}
+
 .chat-session-panel__empty,
 .chat-session-panel__error {
   font-size: var(--sailor-text-xs);
 }
 
-.chat-session-panel__session,
 .chat-session-panel__empty {
   color: var(--sailor-text-muted);
 }
 
 .chat-session-panel__messages {
   display: flex;
-  min-height: 160px;
-  max-height: 420px;
+  flex: 1;
+  min-height: 0;
   flex-direction: column;
-  gap: var(--sailor-space-2);
-  overflow: auto;
+  gap: var(--sailor-space-4);
+  overflow-y: auto;
+  padding-right: var(--sailor-space-1);
 }
 
 .chat-session-panel__message {
   display: flex;
-  flex-direction: column;
-  gap: var(--sailor-space-1);
-  padding: var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-overlay);
+  align-items: flex-start;
+  gap: var(--sailor-space-2);
+  width: 100%;
+  max-width: min(760px, 96%);
+  padding: 2px 0;
 }
 
 .chat-session-panel__message[data-role='user'] {
-  border-color: var(--sailor-border-strong);
+  align-self: flex-end;
+  flex-direction: row-reverse;
 }
 
-.chat-session-panel__message strong,
-.chat-session-panel__message p {
-  margin: 0;
-  font-size: var(--sailor-text-xs);
+.chat-session-panel__message[data-role='assistant'] {
+  align-self: flex-start;
 }
 
-.chat-session-panel__message p {
+.chat-session-panel__avatar {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--sailor-border);
+  border-radius: 999px;
+  background: var(--sailor-bg-elevated);
   color: var(--sailor-text-secondary);
+}
+
+.chat-session-panel__message[data-role='assistant'] .chat-session-panel__avatar {
+  border-color: color-mix(in srgb, var(--sailor-green-400) 28%, var(--sailor-border));
+  color: var(--sailor-green-400);
+}
+
+.chat-session-panel__message[data-role='user'] .chat-session-panel__avatar {
+  border-color: color-mix(in srgb, var(--sailor-text-muted) 35%, var(--sailor-border));
+}
+
+.chat-session-panel__message-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chat-session-panel__message[data-role='user'] .chat-session-panel__message-copy {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.chat-session-panel__message-copy strong,
+.chat-session-panel__message-copy p {
+  margin: 0;
+}
+
+.chat-session-panel__message-copy strong {
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
+  font-weight: 700;
+}
+
+.chat-session-panel__message-copy p {
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-sm);
+  line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
+.chat-session-panel__thinking {
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-session-panel__typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 18px;
+}
+
+.chat-session-panel__typing-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--sailor-text-muted);
+  animation: chat-typing-bounce 0.9s ease-in-out infinite;
+}
+
+.chat-session-panel__typing-dots span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.chat-session-panel__typing-dots span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
 .chat-session-panel__composer {
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: var(--sailor-space-2);
 }
 
+.chat-session-panel__composer-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--sailor-space-2);
+  padding: 7px;
+  border: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-surface);
+}
+
+.chat-session-panel__composer-shell:focus-within {
+  border-color: var(--sailor-border-strong);
+}
+
+.chat-session-panel__input {
+  min-height: 65px;
+  max-height: 112px;
+  resize: none;
+  border: 0;
+  outline: none;
+  padding: 5px 6px;
+  background: transparent;
+  color: var(--sailor-text-primary);
+  font: inherit;
+  font-size: var(--sailor-text-sm);
+  line-height: 1.5;
+}
+
+.chat-session-panel__input::placeholder {
+  color: var(--sailor-text-muted);
+}
+
+.chat-session-panel__input:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.chat-session-panel__composer-actions {
+  justify-content: flex-end;
+  gap: var(--sailor-space-1);
+}
+
+.chat-session-panel__icon-button,
+.chat-session-panel__send {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-secondary);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    opacity 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
+}
+
+.chat-session-panel__icon-button {
+  position: relative;
+  background: var(--sailor-bg-elevated);
+}
+
+.chat-session-panel__icon-button:hover:not(:disabled),
+.chat-session-panel__send:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.chat-session-panel__icon-button--listening {
+  border-color: var(--sailor-amber-400);
+  color: var(--sailor-amber-400);
+}
+
+.chat-session-panel__icon-button--listening::after {
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: var(--sailor-radius-sm);
+  animation: chat-listening-pulse 1.2s ease-out infinite;
+  content: '';
+}
+
+.chat-session-panel__send {
+  border-color: var(--sailor-border-strong);
+  background: var(--sailor-bg-inverse);
+  color: var(--sailor-text-inverse);
+}
+
+.chat-session-panel__icon-button:disabled,
+.chat-session-panel__send:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.chat-session-panel__spin {
+  animation: chat-spin 0.8s linear infinite;
+}
+
 .chat-session-panel__error {
   color: var(--sailor-text-error);
+}
+
+@keyframes chat-listening-pulse {
+  from {
+    opacity: 0.8;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes chat-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes chat-typing-bounce {
+  0%,
+  80%,
+  100% {
+    opacity: 0.45;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
 }
 </style>

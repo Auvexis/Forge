@@ -556,6 +556,9 @@ const addAgentModelNode = (plugin: PluginSummary) => {
     adapter: capability.adapter,
     model: capability.defaultModel,
     baseUrl: capability.defaultBaseUrl,
+    thinkingSupported: capability.thinking?.enabled === true,
+    thinkingRequest: capability.thinking?.request,
+    thinkingEnabled: false,
   })
 }
 

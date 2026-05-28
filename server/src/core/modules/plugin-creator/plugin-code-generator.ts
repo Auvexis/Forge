@@ -157,11 +157,26 @@ function copyIconAssets(
     .filter((icon): icon is string => Boolean(icon));
 
   for (const iconPath of new Set(iconPaths)) {
-    const sourcePath = path.join(sourceAssetsDir, iconPath);
+    if (!isLocalIconAssetPath(iconPath)) continue;
+
+    const normalizedIconPath = iconPath.replaceAll("\\", "/");
+    const sourceRelativePath = normalizedIconPath.startsWith("assets/")
+      ? normalizedIconPath.slice("assets/".length)
+      : normalizedIconPath;
+    const sourcePath = path.join(sourceAssetsDir, sourceRelativePath);
     if (!fs.existsSync(sourcePath)) continue;
 
-    copyGeneratedFile(files, sourcePath, generatedDir, path.join("assets", iconPath));
+    copyGeneratedFile(files, sourcePath, generatedDir, path.join("assets", sourceRelativePath));
   }
+}
+
+function isLocalIconAssetPath(iconPath: string): boolean {
+  const normalized = iconPath.toLowerCase();
+  return !(
+    normalized.startsWith("http://") ||
+    normalized.startsWith("https://") ||
+    normalized.startsWith("data:image/")
+  );
 }
 
 function writeGeneratedFile(

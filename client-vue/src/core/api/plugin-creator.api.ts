@@ -3,6 +3,7 @@ import { ApiError } from '../types/api.types.ts'
 import type {
   CreatePluginBlueprintPayload,
   PluginBlueprint,
+  PluginBlueprintIconSlot,
   PluginCreatorGeneratePreviewResult,
   PluginCreatorRelease,
   PluginCreatorTestMethodPayload,
@@ -54,6 +55,15 @@ export const pluginCreatorApi = {
       method: 'PUT',
       body: blueprint,
     }),
+
+  uploadIcon: (id: string, slot: PluginBlueprintIconSlot, file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiRequest<PluginBlueprint>(ENDPOINTS.PLUGIN_CREATOR_ICON_ASSET(id, slot), {
+      method: 'POST',
+      body: formData,
+    })
+  },
 
   testMethod: (id: string, payload: PluginCreatorTestMethodPayload) =>
     apiRequest<PluginCreatorTestResult>(ENDPOINTS.PLUGIN_CREATOR_TEST_METHOD(id), {

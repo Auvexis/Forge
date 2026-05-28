@@ -12,6 +12,7 @@ import type {
 } from "./plugin-scaffold-service.ts";
 import { buildPluginMethodPlans } from "./plugin-method-plan.ts";
 import { PluginMethodPlanRunner } from "./plugin-method-plan-runner.ts";
+import { savePluginIconAsset, type PluginBlueprintIconSlot } from "./plugin-icon-asset-service.ts";
 
 export interface PluginCreatorEngineDependencies {
   repository: PluginBlueprintRepository;
@@ -78,6 +79,41 @@ export class PluginCreatorEngine {
     }
     this.versionService?.createSnapshot(updated, "manual-save");
     return updated;
+  }
+
+  uploadIconAsset(input: {
+    blueprintId: string;
+    slot: PluginBlueprintIconSlot;
+    filename: string;
+    buffer: Buffer;
+  }): PluginBlueprint {
+    if (!this.profilePaths) {
+      throw new Error("Plugin creator profile paths are not configured");
+    }
+
+    const blueprint = this.getBlueprint(input.blueprintId);
+    if (!blueprint) {
+      throw new Error("blueprint_not_found");
+    }
+
+    const iconPath = savePluginIconAsset({
+      profilePaths: this.profilePaths,
+      blueprintId: input.blueprintId,
+      slot: input.slot,
+      filename: input.filename,
+      buffer: input.buffer,
+    });
+    const updated: PluginBlueprint = {
+      ...blueprint,
+      icons: {
+        ...blueprint.icons,
+        [input.slot]: iconPath,
+      },
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.repository.update(input.blueprintId, updated);
+    return this.getBlueprint(input.blueprintId) ?? updated;
   }
 
   async testMethod(blueprintId: string, input: TestPluginMethodInput) {

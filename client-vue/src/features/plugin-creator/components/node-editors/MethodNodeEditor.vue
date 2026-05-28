@@ -235,7 +235,7 @@ function normalizeHandle(value: string) {
 
 .method-node-editor__row {
   display: grid;
-  grid-template-columns: minmax(110px, 1fr) minmax(120px, 0.8fr) minmax(130px, 1fr) auto 32px;
+  grid-template-columns: minmax(110px, 1fr) minmax(120px, 0.8fr) minmax(130px, 1fr) minmax(102px, auto) 32px;
   align-items: end;
   gap: 8px;
 }
@@ -250,6 +250,7 @@ function normalizeHandle(value: string) {
   justify-content: center;
   gap: 6px;
   height: 30px;
+  margin-bottom: 1px;
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
   background: transparent;
@@ -258,6 +259,12 @@ function normalizeHandle(value: string) {
   font: inherit;
   font-size: 12px;
   font-weight: 700;
+}
+
+.method-node-editor__row :deep(.base-switch-wrapper) {
+  min-height: 32px;
+  justify-content: flex-start;
+  white-space: nowrap;
 }
 
 .method-node-editor__row-action {

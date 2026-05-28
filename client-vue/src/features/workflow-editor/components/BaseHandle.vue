@@ -5,6 +5,7 @@ const props = defineProps<{
   id?: string
   type: 'source' | 'target'
   position: Position
+  variant?: 'bar' | 'circle' | 'diamond'
 }>()
 </script>
 
@@ -14,7 +15,7 @@ const props = defineProps<{
     :type="props.type"
     :position="props.position"
     class="sailor-base-handle"
-    :class="`is-position-${props.position}`"
+    :class="[`is-position-${props.position}`, `is-variant-${props.variant ?? 'circle'}`]"
   />
 </template>
 
@@ -42,10 +43,24 @@ const props = defineProps<{
   border-radius: 100% !important;
 }
 
+.sailor-base-handle.is-position-top {
+  width: 12px !important;
+  height: 12px !important;
+  top: -1px !important;
+  border-radius: 100% !important;
+}
+
 .sailor-base-handle.is-position-bottom {
   width: 12px !important;
   height: 12px !important;
   bottom: -1px !important;
   border-radius: 100% !important;
+}
+
+.sailor-base-handle.is-variant-diamond {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 2px !important;
+  transform: rotate(45deg);
 }
 </style>

@@ -101,8 +101,41 @@ describe("chat trigger service", () => {
       sessionId: result.session.id,
       userId: "user_1",
       message: "Payload please",
+      messages: [],
       metadata: { origin: "unit-test" },
     });
+  });
+
+  it("returns a debuggable error when the published chat workflow fails", async () => {
+    WorkflowRepository.saveWorkflow(workflowFixture());
+    const service = new ChatTriggerService({
+      db: workflowDb!,
+      workflowRepository: WorkflowRepository,
+      workflowEngine: {
+        executeWorkflowFromTrigger: async () => ({
+          executionId: "exec_failed_1",
+          status: "FAILED",
+          context: {
+            steps: {
+              error: "Node ai-agent_1 failed after 1 attempt(s). Last error: Missing model credentials",
+              "ai-agent_1": {
+                status: "FAILED",
+                error: "Missing model credentials",
+              },
+            },
+          },
+        }),
+      },
+    });
+
+    await assert.rejects(
+      service.sendMessage({
+        profileId: "profile_1",
+        chatSlug: "support-agent",
+        message: "Hello",
+      }),
+      /exec_failed_1.*Missing model credentials/,
+    );
   });
 
   it("rejects disabled workflows", async () => {

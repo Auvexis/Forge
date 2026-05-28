@@ -28,6 +28,7 @@ describe('PluginCreatorCanvas contract', () => {
     const source = fs.readFileSync(path.join(componentDir, 'PluginCreatorCanvas.vue'), 'utf8')
 
     assert.match(source, /@node-drag-stop="onNodeDragStop"/)
+    assert.match(source, /@nodes-change="onNodesChange"/)
     assert.match(source, /@connect="onConnect"/)
     assert.match(source, /@edges-change="onEdgesChange"/)
     assert.match(source, /@node-double-click="onNodeDoubleClick"/)
@@ -35,10 +36,33 @@ describe('PluginCreatorCanvas contract', () => {
     assert.match(source, /'connect-nodes'/)
     assert.match(source, /'open-node-settings'/)
     assert.match(source, /'delete-selected'/)
+    assert.match(source, /function onNodesChange/)
+    assert.match(source, /change\.type === 'remove'/)
     assert.match(source, /defineExpose/)
     assert.match(source, /zoomTo/)
     assert.match(source, /deleteSelection/)
     assert.match(source, /centerPosition/)
+  })
+
+  it('preserves Quick Add source handles when auto-connecting new plugin nodes', () => {
+    const pageSource = fs.readFileSync(path.resolve('src/app/pages/PluginCreatorPage.vue'), 'utf8')
+
+    assert.match(pageSource, /quickAddSourceHandle/)
+    assert.match(pageSource, /quickAddSourceHandle\.value = payload\?\.sourceHandle/)
+    assert.match(pageSource, /const sourceHandle = quickAddSourceHandle\.value/)
+    assert.match(pageSource, /sourceHandle: sourceHandle \?\? undefined/)
+  })
+
+  it('renders plugin creator edges with the same hover toolbar affordances as workflow edges', () => {
+    const edgeSource = fs.readFileSync(path.join(componentDir, 'PluginCreatorEdge.vue'), 'utf8')
+
+    assert.match(edgeSource, /plugin-creator-edge-toolbar/)
+    assert.match(edgeSource, /plugin-creator-edge-hover-zone/)
+    assert.match(edgeSource, /removeEdges/)
+    assert.match(edgeSource, /routedBezierPath/)
+    assert.match(edgeSource, /edge:quick-add-between/)
+    assert.match(edgeSource, /function onQuickAdd/)
+    assert.match(edgeSource, /LucideIcon/)
   })
 
   it('marks plugin creator nodes that already have outgoing connections', () => {
@@ -74,7 +98,7 @@ describe('PluginCreatorCanvas contract', () => {
 
     assert.match(source, /@selection-drag-start/)
     assert.match(source, /@selection-drag-stop/)
-    assert.match(source, /:selection-key-code="null"/)
+    assert.doesNotMatch(source, /selection-key-code/)
     assert.match(source, /isCanvasSelecting/)
     assert.match(source, /:deep\(\.vue-flow__selectionpane\)/)
     assert.match(source, /canvas-empty-step/)
@@ -93,5 +117,16 @@ describe('PluginCreatorCanvas contract', () => {
     assert.match(source, /isApplyingGraphSnapshot/)
     assert.doesNotMatch(source, /const nodes = computed<Node\[\]>/)
     assert.doesNotMatch(source, /const edges = computed<Edge\[\]>/)
+  })
+
+  it('supports workflow-style quick add between edges and collision-aware positioning', () => {
+    const pageSource = fs.readFileSync(path.resolve('src/app/pages/PluginCreatorPage.vue'), 'utf8')
+
+    assert.match(pageSource, /edge:quick-add-between/)
+    assert.match(pageSource, /pendingInsertEdgeId/)
+    assert.match(pageSource, /insertNodeBetween/)
+    assert.match(pageSource, /getNewNodePosition/)
+    assert.match(pageSource, /resolveNodePositionOverlap/)
+    assert.match(pageSource, /shiftNodesRightOf/)
   })
 })

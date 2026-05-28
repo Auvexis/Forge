@@ -38,6 +38,7 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     sessionId: optionalString(triggerPayload.sessionId ?? triggerPayload.session_id),
     userId: optionalString(triggerPayload.userId ?? triggerPayload.user_id),
     userMessage: String(triggerPayload.message ?? triggerPayload.text ?? ""),
+    contextMessages: toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages),
     triggerPayload,
     agent: agentConfig,
     model: toModelConfig(model),
@@ -83,18 +84,24 @@ function toAgentConfig(node: AiAgentNode): AiAgentNodeConfig {
 
 function toModelConfig(node: AiModelNode): AiModelNodeConfig {
   const legacyProvider = (node as unknown as { provider?: unknown }).provider;
+  const hasPluginModelIdentity = typeof node.pluginId === "string" || typeof node.adapter === "string";
 
   return validateAiModelConfig({
     type: "ai-model",
     name: node.name,
-    ...(typeof legacyProvider === "string"
-      ? { provider: legacyProvider }
-      : { pluginId: node.pluginId, adapter: node.adapter }),
+    ...(hasPluginModelIdentity
+      ? { pluginId: node.pluginId, adapter: node.adapter }
+      : typeof legacyProvider === "string"
+        ? { provider: legacyProvider }
+        : { pluginId: node.pluginId, adapter: node.adapter }),
     model: node.model,
     temperature: node.temperature,
     maxTokens: node.maxTokens,
     credentialId: node.credentialId,
     baseUrl: node.baseUrl,
+    thinkingEnabled: node.thinkingEnabled,
+    thinkingRequest: node.thinkingRequest,
+    thinkingSupported: node.thinkingSupported,
   });
 }
 
@@ -130,4 +137,29 @@ function toToolConfig(node: AiToolNode): AiToolNodeConfig {
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function toContextMessages(value: unknown): AgentRunInput["contextMessages"] {
+  if (!Array.isArray(value)) return undefined;
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const record = item as Record<string, unknown>;
+      const role = record.role;
+      if (role !== "system" && role !== "user" && role !== "assistant" && role !== "tool") return null;
+      const content = normalizeMessageContent(record.content);
+      if (!content.trim()) return null;
+      return { role, content };
+    })
+    .filter((message): message is NonNullable<AgentRunInput["contextMessages"]>[number] => Boolean(message));
+}
+
+function normalizeMessageContent(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "";
+  const record = value as Record<string, unknown>;
+  if (typeof record.text === "string") return record.text;
+  if (typeof record.content === "string") return record.content;
+  return "";
 }

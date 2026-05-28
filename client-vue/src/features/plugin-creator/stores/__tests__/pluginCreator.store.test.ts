@@ -34,6 +34,13 @@ function createApi(): PluginCreatorApiClient {
       blueprint = next
       return next
     },
+    uploadIcon: async (_id, slot, _file) => {
+      blueprint = {
+        ...blueprint,
+        icons: { ...blueprint.icons, [slot]: `assets/icons/${slot}.svg` },
+      }
+      return blueprint
+    },
     testMethod: async () => ({
       methodId: 'method_1',
       request: { method: 'GET', url: 'https://api.example.com', headers: {}, query: {} },
@@ -77,6 +84,58 @@ describe('plugin creator store', () => {
     await store.saveDraft()
     assert.equal(store.activeBlueprint?.metadata.name, 'Updated CRM')
     assert.equal(store.isDirty, false)
+  })
+
+  it('keeps a local unsaved draft and creates the backend blueprint on first save', async () => {
+    const store = usePluginCreatorStore()
+    let createdPayloadName = ''
+    let updatedId = ''
+    store.setApiClient({
+      ...createApi(),
+      listBlueprints: async () => [],
+      createBlueprint: async (payload) => {
+        createdPayloadName = payload.name
+        return {
+          ...createBlueprint(payload.name),
+          id: 'bp_first_plugin',
+          metadata: {
+            ...createBlueprint(payload.name).metadata,
+            handle: payload.handle,
+            name: payload.name,
+            description: payload.description,
+          },
+        }
+      },
+      updateBlueprint: async (id, next) => {
+        updatedId = id
+        return next
+      },
+    })
+
+    store.createLocalDraft()
+    store.addNode({
+      id: 'method_local',
+      type: 'method',
+      position: { x: 100, y: 120 },
+      data: { name: 'List Leads', methodId: 'method_local' },
+    })
+
+    assert.equal(store.isNewBlueprint, true)
+    assert.equal(store.blueprints.length, 0)
+
+    const saved = await store.saveNewBlueprint({
+      handle: 'first-plugin',
+      name: 'First Plugin',
+      description: 'Created on first save',
+      includeDefaultMethod: false,
+    })
+
+    assert.equal(createdPayloadName, 'First Plugin')
+    assert.equal(updatedId, 'bp_first_plugin')
+    assert.equal(saved?.canvas.nodes.method_local?.id, 'method_local')
+    assert.equal(store.isNewBlueprint, false)
+    assert.equal(store.isDirty, false)
+    assert.equal(store.blueprints[0]?.id, 'bp_first_plugin')
   })
 
   it('adds and edits nodes with undo and redo', () => {
@@ -207,6 +266,18 @@ describe('plugin creator store', () => {
     assert.equal(result?.status, 200)
     assert.equal(store.lastTestResult?.methodId, 'method_1')
     assert.equal(store.lastTestResult?.request.url, 'https://api.example.com')
+  })
+
+  it('uploads an icon and updates the active blueprint without marking it dirty', async () => {
+    const store = usePluginCreatorStore()
+    store.setApiClient(createApi())
+    store.setActiveBlueprint(createBlueprint())
+
+    const result = await store.uploadIcon('iconLight', new File(['svg'], 'icon.svg'))
+
+    assert.equal(result?.icons.iconLight, 'assets/icons/iconLight.svg')
+    assert.equal(store.activeBlueprint?.icons.iconLight, 'assets/icons/iconLight.svg')
+    assert.equal(store.isDirty, false)
   })
 
   it('maps selected response fields as output and creates error rules', () => {

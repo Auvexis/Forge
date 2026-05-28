@@ -9,7 +9,9 @@
         <div class="node-editor-row__header">
           <strong>{{ mapping.outputName || `Output ${index + 1}` }}</strong>
           <div class="node-editor-row__actions">
-            <button type="button" @click="removeOutput(index)">Remove</button>
+            <button type="button" title="Remove" aria-label="Remove" @click="removeOutput(index)">
+              <LucideIcon name="x" :size="14" />
+            </button>
           </div>
         </div>
         <div class="node-editor-row__grid">
@@ -71,6 +73,7 @@ import { computed } from 'vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import NodeEditorSection from './NodeEditorSection.vue'
 import { usePluginCreatorNodeEditorContext } from './usePluginCreatorNodeEditorContext'
 import type { PluginBlueprintResponseMapping } from '@/core/types/plugin-creator.types'
@@ -156,7 +159,7 @@ function updateSourceMode(id: string, mode: 'path' | 'expression') {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--sailor-border-subtle);
   border-radius: var(--sailor-radius-sm);
   background: color-mix(in srgb, var(--sailor-bg-surface) 64%, transparent);
@@ -183,8 +186,9 @@ function updateSourceMode(id: string, mode: 'path' | 'expression') {
 
 .node-editor-row__grid {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 140px auto;
+  grid-template-columns: minmax(220px, 1fr) 140px minmax(96px, auto);
   align-items: end;
+  gap: 10px;
 }
 
 .node-editor-row__mode button,
@@ -198,6 +202,15 @@ function updateSourceMode(id: string, mode: 'path' | 'expression') {
   font-size: 11px;
   font-weight: 750;
   padding: 8px 10px;
+}
+
+.node-editor-row__actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
 }
 
 .node-editor-row__mode button.active {

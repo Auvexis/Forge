@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { AiAgentNodeConfig } from "./agent-types.ts";
-import { buildAgentGraph, extractStreamDelta } from "./agent-graph-builder.ts";
+import { buildAgentGraph, extractStreamDelta, extractThinkingDelta } from "./agent-graph-builder.ts";
 
 describe("agent graph builder", () => {
   it("builds a graph with a model and no tools", async () => {
@@ -48,13 +48,87 @@ describe("agent graph builder", () => {
     ]);
   });
 
+  it("emits thinking deltas from stream chunks before output deltas", async () => {
+    const events: Array<{ type: string; payload?: unknown }> = [];
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model: fakeStreamModel([
+        { additional_kwargs: { reasoning_content: "thinking " } },
+        { content: "answer" },
+      ]),
+      tools: [],
+      onEvent: (event) => events.push(event),
+    });
+
+    const result = await graph.invoke({ userMessage: "hello" });
+
+    assert.equal(result.output, "answer");
+    assert.deepEqual(events.map((event) => event.type), [
+      "agent:model-start",
+      "agent:thinking-delta",
+      "agent:output-delta",
+      "agent:model-end",
+    ]);
+    assert.deepEqual(events[1].payload, { delta: "thinking " });
+  });
+
+  it("consumes promised stream iterables from LangChain-compatible models", async () => {
+    const events: Array<{ type: string; payload?: unknown }> = [];
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model: fakePromisedStreamModel(["ol", { content: "lama" }]),
+      tools: [],
+      onEvent: (event) => events.push(event),
+    });
+
+    const result = await graph.invoke({ userMessage: "hello" });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "ollama");
+    assert.deepEqual(events.map((event) => event.type), [
+      "agent:model-start",
+      "agent:output-delta",
+      "agent:output-delta",
+      "agent:model-end",
+    ]);
+  });
+
+  it("falls back to invoke when stream returns a non-iterable value", async () => {
+    const model = fakeBadStreamModel({ invokeContent: "fallback ok" });
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [],
+    });
+
+    const result = await graph.invoke({ userMessage: "hello" });
+
+    assert.equal(result.output, "fallback ok");
+    assert.equal(model.invokeCalls.length, 1);
+    assert.equal(model.streamCalls.length, 1);
+  });
+
   it("extracts stream deltas from generic and LangChain chunk shapes", () => {
     assert.equal(extractStreamDelta("hi"), "hi");
     assert.equal(extractStreamDelta({ content: "hi" }), "hi");
+    assert.equal(extractStreamDelta({ message: { content: "hi" } }), "hi");
+    assert.equal(extractStreamDelta({ choices: [{ delta: { content: "hi" } }] }), "hi");
     assert.equal(extractStreamDelta({ content: [{ type: "text", text: "hi" }] }), "hi");
     assert.equal(extractStreamDelta({ content: [{ text: "hi" }, { type: "image", url: "x" }] }), "hi");
     assert.equal(extractStreamDelta({ content: [{ type: "text", text: "" }] }), "");
     assert.equal(extractStreamDelta({ notContent: "ignored" }), "");
+  });
+
+  it("extracts thinking deltas from provider-specific chunk shapes", () => {
+    assert.equal(extractThinkingDelta({ thinking: "hmm" }), "hmm");
+    assert.equal(extractThinkingDelta({ reasoning: "hmm" }), "hmm");
+    assert.equal(extractThinkingDelta({ reasoning_content: "hmm" }), "hmm");
+    assert.equal(extractThinkingDelta({ additional_kwargs: { reasoning_content: "hmm" } }), "hmm");
+    assert.equal(extractThinkingDelta({ response_metadata: { reasoning: "hmm" } }), "hmm");
+    assert.equal(extractThinkingDelta({ message: { thinking: "hmm" } }), "hmm");
+    assert.equal(extractThinkingDelta({ choices: [{ delta: { reasoning: "hmm" } }] }), "hmm");
+    assert.equal(extractThinkingDelta({ content: [{ type: "reasoning", text: "hmm" }] }), "hmm");
+    assert.equal(extractThinkingDelta({ content: "answer" }), "");
   });
 
   it("builds a graph that executes requested tools", async () => {
@@ -234,6 +308,40 @@ function fakeStreamModel(chunks: unknown[], options: { invokeContent?: string } 
       for (const chunk of chunks) {
         yield chunk;
       }
+    },
+  };
+}
+
+function fakePromisedStreamModel(chunks: unknown[], options: { invokeContent?: string } = {}) {
+  return {
+    invokeCalls: [] as unknown[],
+    streamCalls: [] as unknown[],
+    async invoke(messages: unknown[]) {
+      this.invokeCalls.push(messages);
+      return { content: options.invokeContent ?? "" };
+    },
+    stream(messages: unknown[]) {
+      this.streamCalls.push(messages);
+      return Promise.resolve((async function* () {
+        for (const chunk of chunks) {
+          yield chunk;
+        }
+      })());
+    },
+  };
+}
+
+function fakeBadStreamModel(options: { invokeContent?: string } = {}) {
+  return {
+    invokeCalls: [] as unknown[],
+    streamCalls: [] as unknown[],
+    async invoke(messages: unknown[]) {
+      this.invokeCalls.push(messages);
+      return { content: options.invokeContent ?? "" };
+    },
+    stream(messages: unknown[]) {
+      this.streamCalls.push(messages);
+      return undefined;
     },
   };
 }

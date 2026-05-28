@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, markRaw } from 'vue'
-import type { NodeProps } from '@vue-flow/core'
+import { useVueFlow, type NodeProps } from '@vue-flow/core'
 import type { TriggerNode, WorkflowTrigger } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
@@ -27,6 +27,7 @@ const store = useWorkflowStore()
 const executionStore = useExecutionStore()
 const panelStore = useAppPanelStore()
 const toast = useToast()
+const { edges } = useVueFlow()
 
 const triggerData = computed<WorkflowTrigger | undefined>(() => {
   const data = props.data as unknown as TriggerNode | WorkflowTrigger
@@ -168,8 +169,10 @@ const onExecuteWorkflow = async () => {
 
 const hasOutgoingConnection = computed(() => {
   if (!props.id) return false
-  if (!store.activeWorkflow) return false
-  return store.activeWorkflow.edges.some((e) => e.source === props.id)
+  return (
+    edges.value.some((e) => e.source === props.id) ||
+    (store.activeWorkflow?.edges.some((e) => e.source === props.id) ?? false)
+  )
 })
 
 const onQuickAdd = () => {
@@ -182,6 +185,7 @@ const onQuickAdd = () => {
   <ChatTriggerNode
     v-if="isChatTrigger"
     v-bind="props"
+    :has-outgoing-connection="hasOutgoingConnection"
   />
   <template v-else>
   <div
@@ -454,7 +458,8 @@ const onQuickAdd = () => {
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  z-index: 5;
+  z-index: 2100;
+  pointer-events: all;
 }
 
 .trigger-node__quick-add-cable {

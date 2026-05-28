@@ -6,6 +6,7 @@ import {
   PLUGIN_BLUEPRINT_INPUT_TYPES,
   type PluginBlueprint,
 } from "./plugin-blueprint-types.ts";
+import { validatePluginIconAssetPath } from "./plugin-icon-asset-service.ts";
 
 export interface PluginBlueprintValidationResult {
   success: boolean;
@@ -263,6 +264,18 @@ const edgeSchema = z.object({
   targetHandle: z.string().optional(),
 });
 
+const iconValueSchema = z.string().transform((value, ctx) => {
+  try {
+    return validatePluginIconAssetPath(value);
+  } catch (error) {
+    ctx.addIssue({
+      code: "custom",
+      message: error instanceof Error ? error.message : "Invalid plugin icon asset path",
+    });
+    return z.NEVER;
+  }
+});
+
 export const pluginBlueprintSchema = z.object({
   id: z.string().regex(pluginCreatorIdPattern, "Invalid plugin creator id"),
   metadata: z.object({
@@ -278,9 +291,9 @@ export const pluginBlueprintSchema = z.object({
     tags: z.array(z.string()).optional(),
   }),
   icons: z.object({
-    icon: z.string().optional(),
-    iconDark: z.string().optional(),
-    iconLight: z.string().optional(),
+    icon: iconValueSchema.optional(),
+    iconDark: iconValueSchema.optional(),
+    iconLight: iconValueSchema.optional(),
   }),
   auth: authSchema,
   methods: z.array(methodSchema),

@@ -46,6 +46,6 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Conditional')
   position: absolute;
   transform: translateY(-50%);
   pointer-events: none;
-  z-index: 6;
+  z-index: 6000;
 }
 </style>

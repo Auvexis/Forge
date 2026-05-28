@@ -95,6 +95,45 @@ describe("AI workflow node handlers", () => {
     assert.equal(runCall.tools[0].methodId, "lookup");
   });
 
+  it("prefers plugin model identity over legacy provider on mixed AI model nodes", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture({
+      nodes: {
+        ...workflowFixture().nodes,
+        model: {
+          type: "ai-model",
+          name: "Ollama Model",
+          provider: "openai",
+          pluginId: "sailor-ollama",
+          adapter: "generic",
+          model: "llama3.2",
+          temperature: 0,
+          baseUrl: "http://localhost:11434/v1",
+        } as any,
+      },
+    });
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "ok",
+        toolCallCount: 0,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", workflow.nodes.agent, workflow, contextFixture()));
+
+    assert.ok(received);
+    const runCall = received as AgentRunInput;
+    assert.equal(runCall.model.pluginId, "sailor-ollama");
+    assert.equal(runCall.model.adapter, "generic");
+    assert.equal(runCall.model.baseUrl, "http://localhost:11434/v1");
+  });
+
   it("normalizes legacy OpenRouter model nodes with the OpenRouter base URL", async () => {
     const registry = createUtilityNodeRegistry();
     const workflow = workflowFixture({
@@ -177,6 +216,11 @@ describe("AI workflow node handlers", () => {
         userId: "user_1",
         message: "Hello agent",
         sessionId: "chat_session_1",
+        messages: [
+          { role: "user", content: "Boa noite" },
+          { role: "assistant", content: { text: "Boa noite! Como posso ajudar?" } },
+          { role: "assistant", content: { pending: true } },
+        ],
         metadata: { origin: "test" },
       },
       _executionId: "exec_1",
@@ -205,6 +249,10 @@ describe("AI workflow node handlers", () => {
     assert.equal(runCall.sessionId, "chat_session_1");
     assert.equal(runCall.userId, "user_1");
     assert.equal(runCall.userMessage, "Hello agent");
+    assert.deepEqual(runCall.contextMessages, [
+      { role: "user", content: "Boa noite" },
+      { role: "assistant", content: "Boa noite! Como posso ajudar?" },
+    ]);
     assert.deepEqual(runCall.triggerPayload, context.trigger);
   });
 

@@ -94,6 +94,23 @@ describe("WorkflowJobRunner", () => {
     await assert.rejects(() => runner.run(created, workflow()), /boom/);
   });
 
+  it("propagates failed workflow result statuses as job failures", async () => {
+    const runner = new WorkflowJobRunner({
+      executeWorkflowFromTrigger: async () => ({ status: "FAILED", context: { steps: { error: "agent failed" } } }),
+      cancelExecution: () => {},
+      createId: (prefix) => `${prefix}_1`,
+    });
+    const created = runner.createJob({
+      sessionId: "session-1",
+      workflowId: "wf-1",
+      triggerNodeId: "trigger_a",
+      source: "chat",
+      payload: {},
+    });
+
+    await assert.rejects(() => runner.run(created, workflow()), /agent failed/);
+  });
+
   it("requests cancellation for the job execution id", () => {
     const cancelled: string[] = [];
     const runner = new WorkflowJobRunner({

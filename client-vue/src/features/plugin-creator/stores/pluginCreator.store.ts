@@ -7,6 +7,7 @@ import type {
   PluginBlueprintCredentialField,
   PluginBlueprintEdge,
   PluginBlueprintErrorMapping,
+  PluginBlueprintIconSlot,
   PluginBlueprintIcons,
   PluginBlueprintInput,
   PluginBlueprintMetadata,
@@ -29,6 +30,7 @@ export interface PluginCreatorApiClient {
   createBlueprint: (payload: CreatePluginBlueprintPayload) => Promise<PluginBlueprint>
   getBlueprint: (id: string) => Promise<PluginBlueprint>
   updateBlueprint: (id: string, blueprint: PluginBlueprint) => Promise<PluginBlueprint>
+  uploadIcon: (id: string, slot: PluginBlueprintIconSlot, file: File) => Promise<PluginBlueprint>
   testMethod: (
     id: string,
     payload: PluginCreatorTestMethodPayload,
@@ -61,6 +63,25 @@ function upsertBlueprint(list: PluginBlueprint[], blueprint: PluginBlueprint): P
   return next.sort((left, right) => left.metadata.name.localeCompare(right.metadata.name))
 }
 
+function createDraftBlueprint(): PluginBlueprint {
+  const now = new Date().toISOString()
+  return {
+    id: `local_${Date.now().toString(36)}`,
+    metadata: {
+      handle: '',
+      name: 'Untitled plugin',
+      version: '0.1.0',
+      description: '',
+    },
+    icons: {},
+    auth: { type: 'none', fields: [] },
+    methods: [],
+    canvas: { nodes: {}, edges: [] },
+    createdAt: now,
+    updatedAt: now,
+  }
+}
+
 const defaultApiClient: PluginCreatorApiClient = {
   listBlueprints: (...args) =>
     import('../../../core/api/plugin-creator.api.ts').then((api) =>
@@ -77,6 +98,10 @@ const defaultApiClient: PluginCreatorApiClient = {
   updateBlueprint: (...args) =>
     import('../../../core/api/plugin-creator.api.ts').then((api) =>
       api.pluginCreatorApi.updateBlueprint(...args),
+    ),
+  uploadIcon: (...args) =>
+    import('../../../core/api/plugin-creator.api.ts').then((api) =>
+      api.pluginCreatorApi.uploadIcon(...args),
     ),
   testMethod: (...args) =>
     import('../../../core/api/plugin-creator.api.ts').then((api) =>
@@ -122,6 +147,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
   const isDirty = computed(
     () => activeBlueprint.value !== null && savedSnapshot.value !== snapshot(activeBlueprint.value),
   )
+  const isNewBlueprint = computed(() => activeBlueprint.value?.id.startsWith('local_') === true)
   const canUndo = computed(() => history.canUndo)
   const canRedo = computed(() => history.canRedo)
 
@@ -135,6 +161,12 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     versions.value = null
     history.clear()
     error.value = null
+  }
+
+  function createLocalDraft() {
+    const blueprint = createDraftBlueprint()
+    setActiveBlueprint(blueprint)
+    return blueprint
   }
 
   function recordHistory() {
@@ -203,6 +235,65 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
       return saved
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to save plugin blueprint'
+      throw err
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function saveNewBlueprint(payload: CreatePluginBlueprintPayload) {
+    if (!activeBlueprint.value) return null
+    if (!isNewBlueprint.value) return saveDraft()
+
+    const draft = cloneBlueprint(activeBlueprint.value)
+    isSaving.value = true
+    error.value = null
+    try {
+      const created = await apiClient.value.createBlueprint({
+        ...payload,
+        includeDefaultMethod: false,
+      })
+      const nextBlueprint: PluginBlueprint = {
+        ...created,
+        metadata: {
+          ...created.metadata,
+          handle: payload.handle,
+          name: payload.name,
+          description: payload.description,
+        },
+        icons: {
+          ...created.icons,
+          ...draft.icons,
+        },
+        auth: cloneBlueprint({ ...created, auth: draft.auth }).auth,
+        methods: cloneBlueprint({ ...created, methods: draft.methods }).methods,
+        canvas: cloneBlueprint({ ...created, canvas: draft.canvas }).canvas,
+      }
+      const saved = await apiClient.value.updateBlueprint(created.id, nextBlueprint)
+      activeBlueprint.value = cloneBlueprint(saved)
+      savedSnapshot.value = snapshot(activeBlueprint.value)
+      blueprints.value = upsertBlueprint(blueprints.value, saved)
+      return saved
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to create plugin blueprint'
+      throw err
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function uploadIcon(slot: PluginBlueprintIconSlot, file: File) {
+    if (!activeBlueprint.value) return null
+    isSaving.value = true
+    error.value = null
+    try {
+      const updated = await apiClient.value.uploadIcon(activeBlueprint.value.id, slot, file)
+      activeBlueprint.value = cloneBlueprint(updated)
+      savedSnapshot.value = snapshot(activeBlueprint.value)
+      blueprints.value = upsertBlueprint(blueprints.value, updated)
+      return updated
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to upload plugin icon'
       throw err
     } finally {
       isSaving.value = false
@@ -293,8 +384,10 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     isSaving.value = true
     error.value = null
     try {
+      const currentVersions = versions.value
       const rolledBack = await apiClient.value.rollback(activeBlueprint.value.id, { snapshotId })
       setActiveBlueprint(rolledBack)
+      versions.value = currentVersions
       blueprints.value = upsertBlueprint(blueprints.value, rolledBack)
       return rolledBack
     } catch (err) {
@@ -556,6 +649,7 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     isTesting,
     error,
     isDirty,
+    isNewBlueprint,
     canUndo,
     canRedo,
     lastTestResult,
@@ -564,10 +658,13 @@ export const usePluginCreatorStore = defineStore('plugin-creator', () => {
     lastRelease,
     setApiClient,
     setActiveBlueprint,
+    createLocalDraft,
     listBlueprints,
     createBlueprint,
     loadBlueprint,
     saveDraft,
+    saveNewBlueprint,
+    uploadIcon,
     runMethodTest,
     loadVersions,
     generatePreview,

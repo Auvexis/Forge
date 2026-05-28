@@ -141,6 +141,9 @@ function forwardUpdateRequest(methodId: string, payload: Partial<PluginBlueprint
 .plugin-creator-node-settings {
   height: 100%;
   overflow: auto;
+  box-sizing: border-box;
+  padding-right: 12px;
+  scrollbar-gutter: stable;
   background: var(--sailor-bg-base);
   color: var(--sailor-text-primary);
 }

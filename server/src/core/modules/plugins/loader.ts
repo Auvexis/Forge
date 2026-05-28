@@ -65,6 +65,18 @@ function buildSailorManifestSchema(): any {
           defaultModel: { type: "string", minLength: 1, maxLength: 200 },
           defaultBaseUrl: { type: "string", format: "uri" },
           credentialPluginId: { type: "string", minLength: 1, maxLength: 120 },
+          thinking: {
+            type: "object",
+            required: ["enabled"],
+            additionalProperties: false,
+            properties: {
+              enabled: { type: "boolean" },
+              request: {
+                type: "object",
+                additionalProperties: true,
+              },
+            },
+          },
         },
         if: {
           properties: { enabled: { const: true } },

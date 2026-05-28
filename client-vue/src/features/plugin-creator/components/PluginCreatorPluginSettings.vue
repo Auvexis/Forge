@@ -58,42 +58,25 @@
       />
     </div>
 
-    <div class="plugin-creator-plugin-settings__grid">
-      <div class="plugin-creator-icon-field">
-        <BaseInput
-          :model-value="blueprint?.icons.icon ?? ''"
-          type="url"
-          label="Icon"
-          placeholder="https://example.com/icon.svg"
-          @update:model-value="updateIcons('icon', String($event))"
-        />
+    <div class="plugin-creator-plugin-settings__icon-grid">
+      <div v-for="field in iconFields" :key="field.slot" class="plugin-creator-icon-field">
         <span class="plugin-creator-icon-preview">
-          <img v-if="blueprint?.icons.icon" :src="blueprint.icons.icon" alt="" />
+          <img v-if="iconPreview(field.slot)" :src="iconPreview(field.slot)" alt="" />
         </span>
-      </div>
-      <div class="plugin-creator-icon-field">
-        <BaseInput
-          :model-value="blueprint?.icons.iconDark ?? ''"
-          type="url"
-          label="Dark icon"
-          placeholder="https://example.com/icon-dark.svg"
-          @update:model-value="updateIcons('iconDark', String($event))"
-        />
-        <span class="plugin-creator-icon-preview">
-          <img v-if="blueprint?.icons.iconDark" :src="blueprint.icons.iconDark" alt="" />
-        </span>
-      </div>
-      <div class="plugin-creator-icon-field">
-        <BaseInput
-          :model-value="blueprint?.icons.iconLight ?? ''"
-          type="url"
-          label="Light icon"
-          placeholder="https://example.com/icon-light.svg"
-          @update:model-value="updateIcons('iconLight', String($event))"
-        />
-        <span class="plugin-creator-icon-preview">
-          <img v-if="blueprint?.icons.iconLight" :src="blueprint.icons.iconLight" alt="" />
-        </span>
+        <div class="plugin-creator-icon-field__body">
+          <label>
+            {{ field.label }}
+            <input type="file" accept=".svg,.png,.webp,.jpg,.jpeg,image/*" @change="uploadIcon(field.slot, $event)" />
+          </label>
+          <BaseInput
+            :model-value="blueprint?.icons[field.slot] ?? ''"
+            type="text"
+            :label="`${field.label} URL`"
+            placeholder="https://example.com/icon.svg"
+            @update:model-value="updateIcons(field.slot, String($event))"
+          />
+          <BaseButton type="button" variant="ghost" size="sm" @click="removeIcon(field.slot)">Remove</BaseButton>
+        </div>
       </div>
     </div>
 
@@ -107,12 +90,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, reactive } from 'vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import type {
   PluginBlueprint,
+  PluginBlueprintIconSlot,
   PluginBlueprintIcons,
   PluginBlueprintMetadata,
 } from '@/core/types/plugin-creator.types'
@@ -124,6 +109,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   updateMetadata: [payload: Partial<PluginBlueprintMetadata>]
   updateIcons: [payload: Partial<PluginBlueprintIcons>]
+  uploadIcon: [slot: PluginBlueprintIconSlot, file: File]
 }>()
 
 const categoryOptions = [
@@ -137,6 +123,12 @@ const categoryOptions = [
   'Utilities',
 ].map((category) => ({ label: category, value: category }))
 const tagsValue = computed(() => props.blueprint?.metadata.tags?.join(', ') ?? '')
+const localPreviews = reactive<Partial<Record<PluginBlueprintIconSlot, string>>>({})
+const iconFields: Array<{ slot: PluginBlueprintIconSlot; label: string }> = [
+  { slot: 'icon', label: 'Icon' },
+  { slot: 'iconDark', label: 'Dark icon' },
+  { slot: 'iconLight', label: 'Light icon' },
+]
 
 function updateMetadata(field: keyof PluginBlueprintMetadata, value: string) {
   emit('updateMetadata', { [field]: value.trim() || undefined })
@@ -144,6 +136,26 @@ function updateMetadata(field: keyof PluginBlueprintMetadata, value: string) {
 
 function updateIcons(field: keyof PluginBlueprintIcons, value: string) {
   emit('updateIcons', { [field]: value.trim() || undefined })
+}
+
+function uploadIcon(slot: PluginBlueprintIconSlot, event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  if (localPreviews[slot]) URL.revokeObjectURL(localPreviews[slot])
+  localPreviews[slot] = URL.createObjectURL(file)
+  emit('uploadIcon', slot, file)
+  input.value = ''
+}
+
+function removeIcon(slot: PluginBlueprintIconSlot) {
+  if (localPreviews[slot]) URL.revokeObjectURL(localPreviews[slot])
+  delete localPreviews[slot]
+  emit('updateIcons', { [slot]: undefined })
+}
+
+function iconPreview(slot: PluginBlueprintIconSlot) {
+  return localPreviews[slot] ?? props.blueprint?.icons[slot] ?? ''
 }
 
 function updateTags(value: string) {
@@ -174,11 +186,33 @@ function updateTags(value: string) {
   gap: 12px;
 }
 
+.plugin-creator-plugin-settings__icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
 .plugin-creator-icon-field {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 38px;
-  align-items: end;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: 6px;
+}
+
+.plugin-creator-icon-field__body {
+  display: grid;
   gap: 8px;
+}
+
+.plugin-creator-icon-field__body label {
+  display: grid;
+  gap: 6px;
+  color: var(--sailor-text-secondary);
+  font-size: 12px;
+  font-weight: 650;
 }
 
 .plugin-creator-icon-preview {

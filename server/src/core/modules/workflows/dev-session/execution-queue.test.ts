@@ -8,7 +8,7 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function job(id: string, sessionId = "session-1"): WorkflowJob {
+function job(id: string, sessionId = "session-1", payload: unknown = {}): WorkflowJob {
   return {
     id,
     sessionId,
@@ -17,7 +17,7 @@ function job(id: string, sessionId = "session-1"): WorkflowJob {
     executionId: `exec-${id}`,
     status: "queued",
     source: "manual",
-    payload: {},
+    payload,
     queuedAt: Date.now(),
   };
 }
@@ -97,5 +97,25 @@ describe("InMemoryExecutionQueue", () => {
 
     assert.deepEqual(completed, ["running"]);
     assert.ok(events.includes("job:cancelled:pending"));
+  });
+
+  it("includes the job payload in emitted lifecycle events", async () => {
+    const events: Array<{ type: string; data?: unknown }> = [];
+    const queue = new InMemoryExecutionQueue({
+      maxConcurrentPerSession: 1,
+      maxConcurrentGlobal: 1,
+      runJob: async () => {},
+      onEvent: (event) => events.push({ type: event.type, data: event.data }),
+    });
+
+    queue.enqueue(job("chat", "session-1", { message: "hello" }));
+    await queue.onIdle();
+
+    assert.deepEqual(
+      events
+        .filter((event) => event.type === "job:queued" || event.type === "job:start" || event.type === "job:success")
+        .map((event) => event.data),
+      [{ message: "hello" }, { message: "hello" }, { message: "hello" }],
+    );
   });
 });

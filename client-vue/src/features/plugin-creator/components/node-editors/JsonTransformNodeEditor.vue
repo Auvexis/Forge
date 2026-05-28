@@ -17,13 +17,6 @@
         placeholder="({ id: body.id, name: params.name })"
         @update:model-value="updateNodeData({ expression: String($event) })"
       />
-      <div class="json-transform-node-editor__quick">
-        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: 'previous' })">previous</button>
-        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: 'body' })">body</button>
-        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: '({ ...previous })' })">
-          object copy
-        </button>
-      </div>
     </NodeEditorSection>
 
     <NodeEditorSection
@@ -62,12 +55,6 @@ const preview = computed(() =>
 </script>
 
 <style scoped>
-.json-transform-node-editor__quick {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
 .json-transform-node-editor__preview {
   min-height: 120px;
   margin: 0;

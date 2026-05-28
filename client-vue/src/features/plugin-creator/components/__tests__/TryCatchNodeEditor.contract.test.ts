@@ -19,6 +19,9 @@ describe('TryCatchNodeEditor contract', () => {
     assert.match(source, /handle/)
     assert.match(source, /Add catch/)
     assert.match(source, /Fallback catch/)
+    assert.match(source, /BaseBadge/)
+    assert.match(source, /LucideIcon/)
+    assert.match(source, /name="x"/)
     assert.match(source, /updateNodeData/)
   })
 

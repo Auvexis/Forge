@@ -33,6 +33,9 @@ export interface AiModelNodeConfig {
   maxTokens?: number;
   credentialId?: string;
   baseUrl?: string;
+  thinkingEnabled?: boolean;
+  thinkingRequest?: Record<string, any>;
+  thinkingSupported?: boolean;
 }
 
 export interface AiMemoryNodeConfig {
@@ -83,6 +86,7 @@ export type AgentEventType =
   | "agent:model-start"
   | "agent:model-end"
   | "agent:output-delta"
+  | "agent:thinking-delta"
   | "agent:tool-start"
   | "agent:tool-end"
   | "agent:memory-read"
@@ -102,6 +106,7 @@ export interface AgentRunInput {
   approvalToken?: string;
   checkpointerDbPath?: string;
   userMessage: string;
+  contextMessages?: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
   triggerPayload: Record<string, any>;
   agent: AiAgentNodeConfig;
   model: AiModelNodeConfig;

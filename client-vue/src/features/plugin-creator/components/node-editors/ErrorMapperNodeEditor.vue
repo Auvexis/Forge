@@ -9,7 +9,6 @@
         <ErrorConditionEditor
           :mapping="mapping"
           @update="updateMapping(index, $event)"
-          @duplicate="duplicateMapping(index)"
           @remove="removeMapping(index)"
         />
       </div>
@@ -18,19 +17,13 @@
         Add error mapping
       </button>
     </NodeEditorSection>
-
-    <NodeEditorSection title="Latest Response" description="Status/body from the last test run.">
-      <BaseCodeEditor :model-value="latestResponse" language="json" height="180px" readonly />
-    </NodeEditorSection>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import ErrorConditionEditor from './ErrorConditionEditor.vue'
 import NodeEditorSection from './NodeEditorSection.vue'
-import { stringifyEditorValue } from './editorValueUtils'
 import { usePluginCreatorNodeEditorContext } from './usePluginCreatorNodeEditorContext'
 import type { PluginBlueprintErrorMapping } from '@/core/types/plugin-creator.types'
 import type { PluginCreatorNodeEditorEmits, PluginCreatorNodeEditorProps } from './types'
@@ -40,12 +33,6 @@ const emit = defineEmits<PluginCreatorNodeEditorEmits>()
 const { method, updateMethodPatch } = usePluginCreatorNodeEditorContext(props, emit)
 
 const mappings = computed(() => method.value?.errorMapping ?? [])
-const latestResponse = computed(() =>
-  stringifyEditorValue({
-    status: props.lastTestResult?.status ?? null,
-    body: props.lastTestResult?.body ?? null,
-  }),
-)
 
 function addMapping() {
   updateMethodPatch({
@@ -66,18 +53,6 @@ function updateMapping(index: number, payload: Partial<PluginBlueprintErrorMappi
     errorMapping: mappings.value.map((mapping, currentIndex) =>
       currentIndex === index ? { ...mapping, ...payload } : mapping,
     ),
-  })
-}
-
-function duplicateMapping(index: number) {
-  const mapping = mappings.value[index]
-  if (!mapping) return
-  updateMethodPatch({
-    errorMapping: [
-      ...mappings.value.slice(0, index + 1),
-      { ...mapping, id: `error_${Date.now()}` },
-      ...mappings.value.slice(index + 1),
-    ],
   })
 }
 

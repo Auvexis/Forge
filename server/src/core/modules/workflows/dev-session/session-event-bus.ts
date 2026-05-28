@@ -10,6 +10,7 @@ const workflowToSessionEvent: Partial<Record<WorkflowEvent["type"], SessionEvent
   "agent:model-start": "agent:model-start",
   "agent:model-end": "agent:model-end",
   "agent:output-delta": "agent:output-delta",
+  "agent:thinking-delta": "agent:thinking-delta",
   "agent:tool-start": "agent:tool-start",
   "agent:tool-end": "agent:tool-end",
   "agent:memory-read": "agent:memory-read",

@@ -155,4 +155,35 @@ describe("generateCompletePlugin", () => {
 
     assert.equal(fs.readFileSync(path.join(result.generatedDir, "assets", "icon.svg"), "utf8"), "<svg>icon</svg>\n");
   });
+
+  it("copies uploaded icon assets without duplicating the assets directory", () => {
+    const profilePaths = createProfilePaths();
+    const blueprint = createBlueprint();
+    blueprint.icons = {
+      icon: "assets/icons/icon.svg",
+      iconDark: "assets/icons/icon-dark.svg",
+      iconLight: "assets/icons/icon-light.svg",
+    };
+    const assetsIconsDir = path.join(
+      profilePaths.profileDir,
+      "plugin-creator",
+      "blueprints",
+      blueprint.id,
+      "assets",
+      "icons",
+    );
+    fs.mkdirSync(assetsIconsDir, { recursive: true });
+    fs.writeFileSync(path.join(assetsIconsDir, "icon.svg"), "<svg>icon</svg>\n", "utf8");
+    fs.writeFileSync(path.join(assetsIconsDir, "icon-dark.svg"), "<svg>dark</svg>\n", "utf8");
+    fs.writeFileSync(path.join(assetsIconsDir, "icon-light.svg"), "<svg>light</svg>\n", "utf8");
+
+    const result = generateCompletePlugin({ profilePaths, blueprint });
+
+    assert.equal(fs.existsSync(path.join(result.generatedDir, "assets", "icons", "icon.svg")), true);
+    assert.equal(fs.existsSync(path.join(result.generatedDir, "assets", "assets", "icons", "icon.svg")), false);
+    assert.equal(
+      JSON.parse(fs.readFileSync(path.join(result.generatedDir, "manifest.json"), "utf8")).metadata.icon,
+      "assets/icons/icon.svg",
+    );
+  });
 });

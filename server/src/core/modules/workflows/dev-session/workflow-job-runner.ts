@@ -62,15 +62,37 @@ export class WorkflowJobRunner {
   }
 
   async run(job: WorkflowJob, workflow: WorkflowItem): Promise<unknown> {
-    return this.executeWorkflowFromTrigger(
+    const result = await this.executeWorkflowFromTrigger(
       workflow,
       job.triggerNodeId,
       job.payload,
       job.executionId,
     );
+    if (isFailedWorkflowResult(result)) {
+      throw new Error(workflowFailureMessage(result));
+    }
+    return result;
   }
 
   cancel(job: WorkflowJob): void {
     this.cancelExecution(job.executionId);
   }
+}
+
+function isFailedWorkflowResult(result: unknown): boolean {
+  return Boolean(
+    result &&
+      typeof result === "object" &&
+      (result as { status?: unknown }).status === "FAILED",
+  );
+}
+
+function workflowFailureMessage(result: unknown): string {
+  if (!result || typeof result !== "object") return "Workflow execution failed";
+  const context = (result as { context?: unknown }).context;
+  if (!context || typeof context !== "object") return "Workflow execution failed";
+  const steps = (context as { steps?: unknown }).steps;
+  if (!steps || typeof steps !== "object") return "Workflow execution failed";
+  const error = (steps as { error?: unknown }).error;
+  return typeof error === "string" && error.trim() ? error : "Workflow execution failed";
 }

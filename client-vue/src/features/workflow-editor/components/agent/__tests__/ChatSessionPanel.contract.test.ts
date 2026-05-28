@@ -84,6 +84,34 @@ test('editor chat renders agent output deltas into one assistant message per exe
   assert.match(store, /recordEditorChatAgentEnd[\s\S]*id: streamAssistantMessageId\(ev\.executionId\)/)
 })
 
+test('editor chat renders thinking deltas and pending assistant state', () => {
+  const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
+  const store = read('src/features/workflow-editor/stores/execution.store.ts')
+
+  assert.match(source, /messageThinking/)
+  assert.match(source, /isPendingAssistantMessage/)
+  assert.match(source, /chat-session-panel__thinking/)
+  assert.match(source, /chat-session-panel__typing-dots/)
+  assert.match(source, /executionStore\.appendPendingEditorChatAssistantMessage/)
+  assert.match(store, /case 'agent:thinking-delta'/)
+  assert.match(store, /recordEditorChatAgentThinkingDelta\(ev\)/)
+  assert.match(store, /function appendEditorChatThinkingDelta/)
+  assert.match(store, /function appendPendingEditorChatAssistantMessage/)
+})
+
+test('chat session panel owns a custom invisible chat target selector', () => {
+  const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
+
+  assert.match(source, /chatTriggers\?: ChatPanelTrigger\[\]/)
+  assert.match(source, /selectedTriggerNodeId\?: string/)
+  assert.match(source, /defineEmits<\{/)
+  assert.match(source, /update:selectedTriggerNodeId/)
+  assert.match(source, /chat-session-panel__target-bar/)
+  assert.match(source, /chat-session-panel__target-select/)
+  assert.match(source, /selectChatTrigger/)
+  assert.doesNotMatch(source, /BaseSelect/)
+})
+
 test('editor chat keeps streaming status and error semantics consistent', () => {
   const store = read('src/features/workflow-editor/stores/execution.store.ts')
 

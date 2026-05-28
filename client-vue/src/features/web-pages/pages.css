@@ -229,11 +229,11 @@
 
 .web-page-chrome__save-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: var(--sailor-radius-full);
   background: currentColor;
-  color: var(--sailor-text-muted);
+  color: var(--sailor-bg-muted);
   transition: color 300ms var(--sailor-ease-standard), transform 300ms var(--sailor-ease-standard);
 }
 

@@ -17,6 +17,7 @@
           :blueprint="blueprint"
           @update-metadata="emit('updateMetadata', $event)"
           @update-icons="emit('updateIcons', $event)"
+          @upload-icon="(slot, file) => emit('uploadIcon', slot, file)"
         />
         <PluginCreatorTestPanel
           v-else-if="view === 'test'"
@@ -46,6 +47,7 @@ import type {
   PluginBlueprint,
   PluginBlueprintCredentialField,
   PluginBlueprintIcons,
+  PluginBlueprintIconSlot,
   PluginBlueprintInput,
   PluginBlueprintMetadata,
   PluginBlueprintMethod,
@@ -76,6 +78,7 @@ const emit = defineEmits<{
   close: []
   updateMetadata: [payload: Partial<PluginBlueprintMetadata>]
   updateIcons: [payload: Partial<PluginBlueprintIcons>]
+  uploadIcon: [slot: PluginBlueprintIconSlot, file: File]
   updateNode: [nodeId: string, payload: Partial<PluginBlueprintNode>]
   updateMethod: [methodId: string, payload: Partial<PluginBlueprintMethod>]
   updateInput: [methodId: string, inputName: string, payload: Partial<PluginBlueprintInput>]

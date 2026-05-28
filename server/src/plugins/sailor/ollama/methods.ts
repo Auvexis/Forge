@@ -29,7 +29,7 @@ export function createMethods(): Record<
     async chat(params, context) {
       const { messages, model: paramModel, system: paramSystem, jsonMode } = params;
       const host = getHost(context);
-      const model = paramModel || context?.credentials.model;
+      const model = paramModel;
       const system = paramSystem || context?.credentials.system;
 
       if (!model || !Array.isArray(messages)) {
@@ -54,10 +54,9 @@ export function createMethods(): Record<
     },
 
     async generate(params, context) {
-      const { prompt, system: paramSystem, jsonMode } = params;
+      const { prompt, model, system: paramSystem, jsonMode } = params;
 
       const host = getHost(context);
-      const model = context?.credentials.model;
       const defaultSystem = context?.credentials.system;
 
       // Parameter system prompt takes precedence over the default one
@@ -89,7 +88,7 @@ export function createMethods(): Record<
 
     async showModel(params, context) {
       const host = getHost(context);
-      const model = params.model || context?.credentials.model;
+      const model = params.model;
 
       if (!model) {
         throw new Error("Missing model");
@@ -109,7 +108,7 @@ export function createMethods(): Record<
 function getHost(context?: PluginContext): string {
   const host = context?.credentials.host;
   if (!host) {
-    throw new Error("Missing host");
+    return "http://localhost:11434";
   }
 
   return String(host).trim().replace(/\/+(api|v1)?\/?$/, "");

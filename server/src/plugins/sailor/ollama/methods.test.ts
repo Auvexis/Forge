@@ -31,11 +31,22 @@ describe("ollama plugin", () => {
   it("accepts optional API key credentials for cloud or protected Ollama hosts", () => {
     const schema = plugin.auth.credentialSchema ?? {};
 
-    assert.equal(schema.host.required, true);
+    assert.equal(schema.host.required, false);
     assert.equal(schema.host.placeholder, "http://localhost:11434");
-    assert.equal(schema.model.required, true);
+    assert.equal(schema.model, undefined);
     assert.equal(schema.api_key.required, false);
     assert.equal(schema.api_key.inputType, "password");
+  });
+
+  it("declares model as a method parameter instead of a base credential", () => {
+    const methods = plugin.manifest.methods;
+
+    assert.equal(methods.chat.parameters.properties!.model.type, "string");
+    assert.ok(methods.chat.parameters.required!.includes("model"));
+    assert.equal(methods.generate.parameters.properties!.model.type, "string");
+    assert.ok(methods.generate.parameters.required!.includes("model"));
+    assert.equal(methods.showModel.parameters.properties!.model.type, "string");
+    assert.ok(methods.showModel.parameters.required!.includes("model"));
   });
 
   it("calls local Ollama generate without Authorization", async () => {
@@ -44,13 +55,26 @@ describe("ollama plugin", () => {
 
     try {
       const result = await createMethods().generate(
-        { prompt: "hi" },
-        { credentials: { host: "http://localhost:11434", model: "llama3.2" } } as any,
+        { prompt: "hi", model: "llama3.2" },
+        { credentials: { host: "http://localhost:11434" } } as any,
       );
 
       assert.equal(result.done, true);
       assert.equal(calls[0].url, "http://localhost:11434/api/chat");
       assert.equal((calls[0].init.headers as Record<string, string>).Authorization, undefined);
+    } finally {
+      restore();
+    }
+  });
+
+  it("uses local Ollama host when host is not configured", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const restore = mockFetch(calls, { models: [] });
+
+    try {
+      await createMethods().listModels({}, { credentials: {} } as any);
+
+      assert.equal(calls[0].url, "http://localhost:11434/api/tags");
     } finally {
       restore();
     }

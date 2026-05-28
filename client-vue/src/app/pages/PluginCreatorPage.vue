@@ -82,6 +82,7 @@
         @close="isWorkspaceModalOpen = false"
         @update-metadata="store.updateMetadata"
         @update-icons="store.updateIcons"
+        @upload-icon="store.uploadIcon"
         @update-node="store.updateNode"
         @update-method="store.updateMethod"
         @update-input="store.updateMethodInput"
@@ -123,6 +124,7 @@
 import AppPage from '@/shared/components/layout/AppPage.vue'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import { useEventBus } from '@/shared/composables/useEventBus'
+import { useConfirm } from '@/shared/composables/useConfirm'
 import PluginCreatorHeader from '@/features/plugin-creator/components/PluginCreatorHeader.vue'
 import PluginCreatorCanvas from '@/features/plugin-creator/components/PluginCreatorCanvas.vue'
 import PluginCreatorFloatingToolbar from '@/features/plugin-creator/components/PluginCreatorFloatingToolbar.vue'
@@ -143,6 +145,7 @@ import type {
   PluginBlueprintPosition,
   PluginBlueprintNodeType,
   CreatePluginBlueprintPayload,
+  PluginBlueprintIconSlot,
   PluginCreatorTestMethodPayload,
 } from '@/core/types/plugin-creator.types'
 import { markRaw, nextTick, onMounted, ref } from 'vue'
@@ -155,6 +158,7 @@ const executionStore = usePluginCreatorExecutionStore()
 const appPanelStore = useAppPanelStore()
 const route = useRoute()
 const router = useRouter()
+const { confirm } = useConfirm()
 const canvasRef = ref<{
   deleteSelection: () => void
   zoomTo: (value: number) => void
@@ -165,13 +169,36 @@ const activeTool = ref<ToolbarTool>('cursor')
 const selectedNodeId = ref<string | null>(null)
 const isWorkspaceModalOpen = ref(false)
 const isCreatePluginModalOpen = ref(false)
+const isCreatePluginFirstSave = ref(false)
 const isNodeSettingsModalOpen = ref(false)
 const workspaceModalView = ref<PluginCreatorWorkspaceView>('metadata')
 const quickAddSourceId = ref<string | null>(null)
+const quickAddSourceHandle = ref<string | null>(null)
+const pendingInsertEdgeId = ref<string | null>(null)
+const pendingInsertSourceId = ref<string | null>(null)
+const pendingInsertTargetId = ref<string | null>(null)
+const pendingInsertTargetHandle = ref<string | null>(null)
 
 const quickAddBus = useEventBus<{ sourceId: string; sourceHandle?: string }>('node:quick-add')
 quickAddBus.on((payload) => {
+  quickAddSourceHandle.value = payload?.sourceHandle ?? null
   openAddBlocksPanel(payload?.sourceId ?? null)
+})
+
+const quickAddBetweenBus = useEventBus<{
+  edgeId: string
+  sourceId: string
+  targetId: string
+  sourceHandle?: string
+  targetHandle?: string
+}>('edge:quick-add-between')
+quickAddBetweenBus.on((payload) => {
+  pendingInsertEdgeId.value = payload.edgeId
+  pendingInsertSourceId.value = payload.sourceId
+  pendingInsertTargetId.value = payload.targetId
+  pendingInsertTargetHandle.value = payload.targetHandle ?? null
+  quickAddSourceHandle.value = payload.sourceHandle ?? null
+  openAddBlocksPanel(payload.sourceId)
 })
 
 const addItemBus = useEventBus<PluginCreatorAddItemType>('plugin-creator:add-item')
@@ -219,27 +246,31 @@ async function loadInitialBlueprint() {
     return blueprint
   }
 
-  const blueprint = await store.createBlueprint({
-    handle: 'my-api',
-    name: 'My API',
-    description: 'Low-code API plugin',
-    includeDefaultMethod: false,
-  })
-  await router.replace({ name: 'plugin-creator-detail', params: { pluginId: blueprint.id } })
-  void store.loadVersions()
+  const blueprint = store.createLocalDraft()
   selectDefaultNode()
   fitCanvasSoon()
   return blueprint
 }
 
 async function createNewPlugin() {
-  if (!confirmUnsavedChanges()) return
+  if (!(await confirmUnsavedChanges())) return
+  isCreatePluginFirstSave.value = false
   isCreatePluginModalOpen.value = true
 }
 
-async function createPluginFromModal(payload: CreatePluginBlueprintPayload) {
+async function createPluginFromModal(
+  payload: CreatePluginBlueprintPayload,
+  iconFiles: Partial<Record<PluginBlueprintIconSlot, File>> = {},
+) {
   isCreatePluginModalOpen.value = false
-  const blueprint = await store.createBlueprint(payload)
+  const blueprint = isCreatePluginFirstSave.value
+    ? await store.saveNewBlueprint(payload)
+    : await store.createBlueprint(payload)
+  isCreatePluginFirstSave.value = false
+  if (!blueprint) return
+  for (const [slot, file] of Object.entries(iconFiles) as Array<[PluginBlueprintIconSlot, File]>) {
+    await store.uploadIcon(slot, file)
+  }
   await router.replace({ name: 'plugin-creator-detail', params: { pluginId: blueprint.id } })
   void store.loadVersions()
   selectDefaultNode()
@@ -247,7 +278,7 @@ async function createPluginFromModal(payload: CreatePluginBlueprintPayload) {
 }
 
 async function openPluginBlueprint(blueprintId: string) {
-  if (blueprintId === store.activeBlueprint?.id || !confirmUnsavedChanges()) return
+  if (blueprintId === store.activeBlueprint?.id || !(await confirmUnsavedChanges())) return
 
   const blueprint = await store.loadBlueprint(blueprintId)
   await router.replace({ name: 'plugin-creator-detail', params: { pluginId: blueprint.id } })
@@ -276,7 +307,8 @@ async function exportActivePluginZip() {
 async function discardDraft() {
   const blueprintId = store.activeBlueprint?.id
   if (!blueprintId || !store.isDirty) return
-  if (!window.confirm('Discard unsaved plugin changes?')) return
+  const ok = await confirmDiscardDraft()
+  if (!ok) return
 
   await store.loadBlueprint(blueprintId)
   void store.loadVersions()
@@ -291,6 +323,9 @@ function selectDefaultNode() {
 
 function openAddBlocksPanel(sourceId: string | null = null) {
   quickAddSourceId.value = sourceId
+  if (!sourceId) {
+    clearQuickAddState()
+  }
   appPanelStore.openPanel({
     id: 'plugin-creator-add-blocks',
     title: 'Add Block',
@@ -358,20 +393,36 @@ function connectNodes(payload: {
   sourceHandle?: string
   targetHandle?: string
 }) {
-  store.addEdge({
-    id: `edge_${payload.source}_${payload.target}_${Date.now()}`,
-    ...payload,
-  })
+  addPluginCreatorEdge(payload)
   if (quickAddSourceId.value === payload.source) {
-    quickAddSourceId.value = null
+    clearQuickAddState()
     if (appPanelStore.panelId === 'plugin-creator-add-blocks') {
       appPanelStore.closePanel()
     }
   }
 }
 
+function addPluginCreatorEdge(payload: {
+  source: string
+  target: string
+  sourceHandle?: string
+  targetHandle?: string
+}) {
+  store.addEdge({
+    id: `edge_${payload.source}_${payload.target}_${Date.now()}`,
+    ...payload,
+  })
+}
+
 function addPluginCreatorBlock(type: PluginCreatorAddItemType) {
+  const sourceId = quickAddSourceId.value
+  const sourceHandle = quickAddSourceHandle.value
+  const insertEdgeId = pendingInsertEdgeId.value
+  const insertSourceId = pendingInsertSourceId.value
+  const insertTargetId = pendingInsertTargetId.value
+  const insertTargetHandle = pendingInsertTargetHandle.value
   const node = createNode(type)
+  prepareSpaceForNode(node.position, [sourceId, insertSourceId, insertTargetId].filter(Boolean) as string[])
   store.addNode(node)
   if (type === 'method') {
     addMethodFromNode(node)
@@ -379,10 +430,23 @@ function addPluginCreatorBlock(type: PluginCreatorAddItemType) {
   if (type === 'codeBlock' && methodIdFromNode(node)) {
     upsertNodeCodeBlock(node)
   }
-  if (quickAddSourceId.value) {
-    connectNodes({ source: quickAddSourceId.value, target: node.id })
-    quickAddSourceId.value = null
+  if (insertEdgeId && insertSourceId && insertTargetId) {
+    insertNodeBetween({
+      edgeId: insertEdgeId,
+      newNodeId: node.id,
+      sourceId: insertSourceId,
+      targetId: insertTargetId,
+      sourceHandle,
+      targetHandle: insertTargetHandle,
+    })
+  } else if (sourceId) {
+    addPluginCreatorEdge({
+      source: sourceId,
+      target: node.id,
+      sourceHandle: sourceHandle ?? undefined,
+    })
   }
+  clearQuickAddState()
   selectedNodeId.value = node.id
   closeAddBlocksPanel()
 }
@@ -391,13 +455,14 @@ function duplicateNode(nodeId: string) {
   const existing = store.activeBlueprint?.canvas.nodes[nodeId]
   if (!existing) return
   const id = `${existing.type}_${Date.now()}`
+  const position = resolveNodePositionOverlap({
+    x: existing.position.x + 40,
+    y: existing.position.y + 40,
+  }, [existing.id])
   store.addNode({
     ...existing,
     id,
-    position: {
-      x: existing.position.x + 40,
-      y: existing.position.y + 40,
-    },
+    position,
     data: { ...existing.data },
   })
   selectedNodeId.value = id
@@ -467,18 +532,7 @@ function createNode(type: PluginCreatorAddItemType): PluginBlueprintNode {
   const methodId = store.activeBlueprint?.methods[0]?.id
   const id = `${type}_${Date.now()}_${nodeCount}`
   const nodeMethodId = type === 'method' ? id : methodId
-  const sourceNode =
-    quickAddSourceId.value && store.activeBlueprint?.canvas.nodes[quickAddSourceId.value]
-  const center = canvasRef.value?.centerPosition() ?? { x: 260, y: 220 }
-  const position = sourceNode
-    ? {
-        x: sourceNode.position.x + 240,
-        y: sourceNode.position.y,
-      }
-    : {
-        x: Math.round(center.x - 80 + (nodeCount % 3) * 28),
-        y: Math.round(center.y - 48 + Math.floor(nodeCount % 3) * 28),
-      }
+  const position = getNewNodePosition(quickAddSourceId.value, pendingInsertTargetId.value)
 
   return {
     id,
@@ -491,6 +545,169 @@ function createNode(type: PluginCreatorAddItemType): PluginBlueprintNode {
       ...defaultNodeData(type),
     },
   }
+}
+
+const SNAP = 20
+const NODE_GAP_X = 300
+const NODE_PADDING = 28
+const DEFAULT_NODE_WIDTH = 210
+const DEFAULT_NODE_HEIGHT = 150
+
+function snap(value: number) {
+  return Math.round(value / SNAP) * SNAP
+}
+
+function getNewNodePosition(
+  sourceId: string | null,
+  targetId: string | null = null,
+): PluginBlueprintPosition {
+  const sourceNode = sourceId ? store.activeBlueprint?.canvas.nodes[sourceId] : null
+  const targetNode = targetId ? store.activeBlueprint?.canvas.nodes[targetId] : null
+
+  if (sourceNode && targetNode) {
+    const gap = targetNode.position.x - sourceNode.position.x
+    const x = gap >= NODE_GAP_X * 2
+      ? sourceNode.position.x + Math.round(gap / 2)
+      : sourceNode.position.x + NODE_GAP_X
+    return resolveNodePositionOverlap({ x: snap(x), y: snap(sourceNode.position.y) }, [
+      sourceNode.id,
+      targetNode.id,
+    ])
+  }
+
+  if (sourceNode) {
+    return resolveNodePositionOverlap(
+      { x: snap(sourceNode.position.x + NODE_GAP_X), y: snap(sourceNode.position.y) },
+      [sourceNode.id],
+    )
+  }
+
+  const center = canvasRef.value?.centerPosition() ?? { x: 260, y: 260 }
+  const nodeCount = Object.keys(store.activeBlueprint?.canvas.nodes ?? {}).length
+  return resolveNodePositionOverlap({
+    x: snap(center.x - 80 + (nodeCount % 3) * 32),
+    y: snap(center.y + 20 + Math.floor(nodeCount % 3) * 32),
+  })
+}
+
+function resolveNodePositionOverlap(
+  position: PluginBlueprintPosition,
+  ignoreIds: string[] = [],
+): PluginBlueprintPosition {
+  const blueprint = store.activeBlueprint
+  if (!blueprint) return position
+
+  const ignored = new Set(ignoreIds)
+  let candidate = { x: snap(position.x), y: snap(position.y) }
+  let attempts = 0
+
+  while (attempts < 24) {
+    const overlappingNode = Object.values(blueprint.canvas.nodes).find((node) => {
+      if (ignored.has(node.id)) return false
+      return rectsOverlap(candidate, node.position)
+    })
+
+    if (!overlappingNode) return candidate
+
+    const pushRight = overlappingNode.position.x + DEFAULT_NODE_WIDTH + NODE_PADDING
+    candidate = {
+      x: snap(Math.max(candidate.x, pushRight)),
+      y: candidate.y,
+    }
+    attempts += 1
+  }
+
+  return candidate
+}
+
+function rectsOverlap(a: PluginBlueprintPosition, b: PluginBlueprintPosition) {
+  return (
+    a.x < b.x + DEFAULT_NODE_WIDTH + NODE_PADDING &&
+    a.x + DEFAULT_NODE_WIDTH + NODE_PADDING > b.x &&
+    a.y < b.y + DEFAULT_NODE_HEIGHT + NODE_PADDING &&
+    a.y + DEFAULT_NODE_HEIGHT + NODE_PADDING > b.y
+  )
+}
+
+function prepareSpaceForNode(position: PluginBlueprintPosition, ignoreIds: string[] = []) {
+  const blueprint = store.activeBlueprint
+  if (!blueprint) return
+
+  const ignored = new Set(ignoreIds)
+  const hasCollision = Object.values(blueprint.canvas.nodes).some((node) => {
+    if (ignored.has(node.id)) return false
+    return rectsOverlap(position, node.position)
+  })
+
+  if (hasCollision) {
+    shiftNodesRightOf(position.x - NODE_PADDING, NODE_GAP_X, ignoreIds)
+  }
+}
+
+function shiftNodesRightOf(anchorX: number, amount: number, ignoreIds: string[] = []) {
+  const blueprint = store.activeBlueprint
+  if (!blueprint || amount <= 0) return
+
+  const ignored = new Set(ignoreIds)
+  for (const node of Object.values(blueprint.canvas.nodes)) {
+    if (ignored.has(node.id) || node.position.x < anchorX) continue
+    store.updateNode(node.id, {
+      position: {
+        x: snap(node.position.x + amount),
+        y: snap(node.position.y),
+      },
+    })
+  }
+}
+
+function insertNodeBetween(payload: {
+  edgeId: string
+  newNodeId: string
+  sourceId: string
+  targetId: string
+  sourceHandle?: string | null
+  targetHandle?: string | null
+}) {
+  const sourceNode = store.activeBlueprint?.canvas.nodes[payload.sourceId]
+  const targetNode = store.activeBlueprint?.canvas.nodes[payload.targetId]
+  if (!sourceNode || !targetNode) return
+
+  const currentGap = targetNode.position.x - sourceNode.position.x
+  if (currentGap < NODE_GAP_X * 2) {
+    shiftNodesRightOf(targetNode.position.x - 1, NODE_GAP_X, [payload.newNodeId, payload.sourceId])
+  }
+
+  const refreshedTarget = store.activeBlueprint?.canvas.nodes[payload.targetId] ?? targetNode
+  const targetGap = refreshedTarget.position.x - sourceNode.position.x
+  const nextPosition = resolveNodePositionOverlap(
+    {
+      x: snap(sourceNode.position.x + Math.min(NODE_GAP_X, Math.max(NODE_GAP_X, targetGap / 2))),
+      y: snap(sourceNode.position.y),
+    },
+    [payload.sourceId, payload.targetId, payload.newNodeId],
+  )
+
+  store.updateNode(payload.newNodeId, { position: nextPosition })
+  store.removeEdges([payload.edgeId])
+  addPluginCreatorEdge({
+    source: payload.sourceId,
+    target: payload.newNodeId,
+    sourceHandle: payload.sourceHandle ?? undefined,
+  })
+  addPluginCreatorEdge({
+    source: payload.newNodeId,
+    target: payload.targetId,
+    targetHandle: payload.targetHandle ?? undefined,
+  })
+}
+
+function clearQuickAddState() {
+  quickAddSourceId.value = null
+  quickAddSourceHandle.value = null
+  pendingInsertEdgeId.value = null
+  pendingInsertSourceId.value = null
+  pendingInsertTargetId.value = null
+  pendingInsertTargetHandle.value = null
 }
 
 function nodeLabel(type: PluginCreatorAddItemType) {
@@ -549,6 +766,11 @@ async function runMethodTestAndApplyTrace(payload: PluginCreatorTestMethodPayloa
 }
 
 async function saveDraft() {
+  if (store.isNewBlueprint) {
+    isCreatePluginFirstSave.value = true
+    isCreatePluginModalOpen.value = true
+    return
+  }
   await store.saveDraft()
 }
 
@@ -560,7 +782,14 @@ async function publishActiveBlueprint() {
 }
 
 async function rollbackToReleaseSnapshot(snapshotId: string) {
-  if (!window.confirm('Rollback this plugin to the selected snapshot?')) return
+  const ok = await confirm({
+    title: 'Rollback plugin',
+    message: 'Rollback this plugin to the selected snapshot? Current unsaved changes will be replaced.',
+    confirmText: 'Rollback',
+    cancelText: 'Cancel',
+    variant: 'warning',
+  })
+  if (!ok) return
   await store.rollbackToSnapshot(snapshotId)
   await store.loadVersions()
   selectDefaultNode()
@@ -578,8 +807,27 @@ function fitCanvasSoon() {
   })
 }
 
-function confirmUnsavedChanges() {
-  return !store.isDirty || window.confirm('Discard unsaved plugin changes?')
+async function confirmUnsavedChanges() {
+  if (!store.isDirty) return true
+  const ok = await confirm({
+    title: 'Unsaved changes',
+    message: 'This plugin has unsaved changes. Discard them and continue?',
+    confirmText: 'Discard changes',
+    cancelText: 'Stay here',
+    variant: 'warning',
+  })
+  return ok === true
+}
+
+async function confirmDiscardDraft() {
+  const ok = await confirm({
+    title: 'Discard draft changes',
+    message: 'Discard all unsaved plugin changes and reload the last saved draft?',
+    confirmText: 'Discard changes',
+    cancelText: 'Cancel',
+    variant: 'warning',
+  })
+  return ok === true
 }
 </script>
 

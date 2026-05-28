@@ -26,7 +26,9 @@
         />
       </div>
       <div class="key-value-table-editor__actions">
-        <button type="button" title="Remove" @click="removeItem(index)">Remove</button>
+        <button type="button" title="Remove" aria-label="Remove" @click="removeItem(index)">
+          <LucideIcon name="x" :size="14" />
+        </button>
       </div>
     </div>
     <button class="editor-add-btn" type="button" @click="addItem">
@@ -37,6 +39,7 @@
 
 <script setup lang="ts">
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import PluginCreatorExpressionInput from '../expressions/PluginCreatorExpressionInput.vue'
 import type { PluginBlueprintKeyValue } from '@/core/types/plugin-creator.types'
 
@@ -114,6 +117,11 @@ function removeItem(index: number) {
 }
 
 .key-value-table-editor__actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
   background: transparent;
@@ -122,7 +130,7 @@ function removeItem(index: number) {
   font: inherit;
   font-size: 11px;
   font-weight: 750;
-  padding: 8px 10px;
+  padding: 0;
 }
 
 .key-value-table-editor__actions button:hover {

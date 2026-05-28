@@ -1,4 +1,5 @@
 import { CredentialStore } from "../plugins/credential-store.ts";
+import { PluginManager } from "../plugins/manager.ts";
 import { AgentRuntimeError } from "./agent-errors.ts";
 import type { AiModelNodeConfig } from "./agent-types.ts";
 import {
@@ -51,7 +52,33 @@ export class AgentModelProviderRegistry {
       );
     }
 
-    return provider.createChatModel(config);
+    return provider.createChatModel(hydrateModelCapabilityConfig(config));
+  }
+}
+
+function hydrateModelCapabilityConfig(config: AiModelNodeConfig): AiModelNodeConfig {
+  const capability = getPluginChatModelCapability(config.pluginId);
+  if (!capability?.enabled || capability.adapter !== config.adapter) return config;
+  const thinking = capability.thinking;
+  if (!thinking) return config;
+  const thinkingRequest =
+    config.thinkingRequest && thinking.request
+      ? { ...thinking.request, ...config.thinkingRequest }
+      : config.thinkingRequest ?? thinking.request;
+
+  return {
+    ...config,
+    thinkingSupported: config.thinkingSupported ?? thinking.enabled === true,
+    thinkingRequest,
+  };
+}
+
+function getPluginChatModelCapability(pluginId: string): any | null {
+  try {
+    const plugin = PluginManager.getPlugin(pluginId);
+    return (plugin.manifest.metadata as any).agentCapabilities?.chatModel ?? null;
+  } catch {
+    return null;
   }
 }
 

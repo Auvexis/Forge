@@ -60,8 +60,8 @@
       description="Connect loop body steps from the canvas handle."
     >
       <div class="for-node-editor__branch">
-        <strong>Body branch</strong>
-        <span>Handle: body</span>
+        <BaseBadge variant="brand" size="sm" text="Body branch" />
+        <BaseBadge variant="outline" size="sm" text="body" />
       </div>
     </NodeEditorSection>
   </div>
@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import BaseBadge from '@/shared/components/base/BaseBadge.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import PluginCreatorExpressionInput from '../expressions/PluginCreatorExpressionInput.vue'
 import NodeEditorSection from './NodeEditorSection.vue'
@@ -112,25 +113,9 @@ function normalizeVariable(value: string) {
 }
 
 .for-node-editor__branch {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  column-gap: 8px;
-  row-gap: 2px;
-  padding: 2px 0;
-}
-
-.for-node-editor__branch::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: var(--sailor-radius-full);
-  background: rgb(59, 130, 246);
-  grid-row: span 2;
-}
-
-.for-node-editor__branch span {
-  color: var(--sailor-text-muted);
-  font-size: 12px;
+  gap: 8px;
 }
 </style>

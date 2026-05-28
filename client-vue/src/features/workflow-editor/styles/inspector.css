@@ -49,7 +49,7 @@
 
 .inspector-pane-header {
   height: 48px;
-  background: var(--inspector-bg-header);
+  /* background: var(--inspector-bg-header); */
   border-bottom: 1px solid var(--inspector-border);
   display: flex;
   align-items: center;

@@ -241,6 +241,9 @@ export interface AiModelNode extends WorkflowNodeBase {
   maxTokens?: number
   credentialId?: string
   baseUrl?: string
+  thinkingEnabled?: boolean
+  thinkingRequest?: Record<string, any>
+  thinkingSupported?: boolean
 }
 
 export interface AiMemoryNode extends WorkflowNodeBase {

@@ -29,6 +29,7 @@ export type WorkflowEventType =
   | 'agent:model-start'
   | 'agent:model-end'
   | 'agent:output-delta'
+  | 'agent:thinking-delta'
   | 'agent:tool-start'
   | 'agent:tool-end'
   | 'agent:memory-read'

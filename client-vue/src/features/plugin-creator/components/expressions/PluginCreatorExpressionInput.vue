@@ -12,32 +12,28 @@
       <span class="editor-code-snippet">steps</span>
     </div>
     <div class="editor-expression-control">
-      <input
-        :value="modelValue"
+      <BaseInput
+        class="plugin-creator-expression-input__field"
+        :model-value="modelValue"
         :placeholder="placeholder"
         spellcheck="false"
-        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+        @update:model-value="$emit('update:modelValue', String($event))"
       />
-      <PluginCreatorVariablePicker @select="$emit('update:modelValue', appendVariable($event))" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import PluginCreatorVariablePicker from './PluginCreatorVariablePicker.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 
-const props = withDefaults(
+withDefaults(
   defineProps<{ modelValue: string; label?: string; placeholder?: string; showHint?: boolean }>(),
   { showHint: true },
 )
 defineEmits<{ 'update:modelValue': [value: string] }>()
 
 const variableRoots = ['params', 'credentials', 'steps']
-
-function appendVariable(variableName: string) {
-  return props.modelValue ? `${props.modelValue} ${variableName}` : variableName
-}
 </script>
 
 <style scoped>
@@ -45,34 +41,28 @@ function appendVariable(variableName: string) {
   width: 100%;
 }
 
+.editor-field__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px 4px;
+}
+
 .editor-expression-control {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: stretch;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-surface);
-  overflow: visible;
+  width: 100%;
 }
 
-.editor-expression-control:focus-within {
-  border-color: var(--sailor-accent);
-}
-
-.editor-expression-control input {
-  height: 36px;
+.plugin-creator-expression-input__field {
   min-width: 0;
-  padding: 0 12px;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--sailor-text-primary);
+}
+
+:deep(.plugin-creator-expression-input__field .base-input-container) {
+  width: 100%;
+}
+
+:deep(.plugin-creator-expression-input__field .base-input) {
+  padding-right: 12px;
   font-family: var(--sailor-font-mono);
   font-size: 12px;
-}
-
-.editor-expression-control input::placeholder {
-  color: var(--sailor-text-muted);
-  opacity: 0.55;
 }
 </style>

@@ -14,8 +14,10 @@ describe('OutputNodeEditor contract', () => {
 
     assert.match(source, /v-for/)
     assert.match(source, /Add output/)
-    assert.match(source, /Remove/)
-    assert.match(source, /Duplicate/)
+    assert.match(source, /LucideIcon/)
+    assert.match(source, /name="x"/)
+    assert.doesNotMatch(source, />\s*Remove\s*</)
+    assert.doesNotMatch(source, /Duplicate/)
     assert.match(source, /source mode/)
     assert.match(source, /path/)
     assert.match(source, /expression/)

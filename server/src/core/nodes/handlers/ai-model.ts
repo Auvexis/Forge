@@ -4,13 +4,16 @@ import { createNodeHandler } from "../handler.ts";
 
 export const aiModelNodeHandler = createNodeHandler<AiModelNode>("ai-model", ({ node }) => {
   const legacyProvider = (node as unknown as { provider?: unknown }).provider;
+  const hasPluginModelIdentity = typeof node.pluginId === "string" || typeof node.adapter === "string";
 
   return validateAiModelConfig({
     type: "ai-model",
     name: node.name,
-    ...(typeof legacyProvider === "string"
-      ? { provider: legacyProvider }
-      : { pluginId: node.pluginId, adapter: node.adapter }),
+    ...(hasPluginModelIdentity
+      ? { pluginId: node.pluginId, adapter: node.adapter }
+      : typeof legacyProvider === "string"
+        ? { provider: legacyProvider }
+        : { pluginId: node.pluginId, adapter: node.adapter }),
     model: node.model,
     temperature: node.temperature,
     maxTokens: node.maxTokens,

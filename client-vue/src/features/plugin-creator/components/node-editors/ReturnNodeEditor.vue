@@ -11,15 +11,6 @@
         placeholder="previous"
         @update:model-value="updateNodeData({ valueExpression: String($event) })"
       />
-      <div class="return-node-editor__quick">
-        <button class="te-method-btn" type="button" @click="updateNodeData({ valueExpression: 'previous' })">
-          previous
-        </button>
-        <button class="te-method-btn" type="button" @click="updateNodeData({ valueExpression: 'params' })">params</button>
-        <button class="te-method-btn" type="button" @click="updateNodeData({ valueExpression: '({ ...previous })' })">
-          object literal
-        </button>
-      </div>
     </NodeEditorSection>
 
     <NodeEditorSection
@@ -46,12 +37,6 @@ const valueExpression = computed(() => String(node.value?.data.valueExpression ?
 </script>
 
 <style scoped>
-.return-node-editor__quick {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
 .return-node-editor__preview {
   min-height: 74px;
   margin: 0;

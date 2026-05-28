@@ -50,8 +50,16 @@ const aiModelSchema = z
     maxTokens: z.number().int().min(1).max(200000).optional(),
     credentialId: z.string().trim().min(1).max(160).optional(),
     baseUrl: z.string().url().optional(),
+    thinkingEnabled: z.boolean().optional(),
+    thinkingRequest: jsonObjectSchema.optional(),
+    thinkingSupported: z.boolean().optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    if (value.thinkingRequest) {
+      validateJsonPolicy(value.thinkingRequest, ["thinkingRequest"], context);
+    }
+  });
 
 const aiMemorySchema = z
   .object({

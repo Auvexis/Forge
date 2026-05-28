@@ -37,14 +37,17 @@ test('ai agent editor exposes prompt, limits, timeout, approvals, and output mod
   assert.match(inspector, /settingsAuthPluginId/)
 })
 
-test('ai model editor exposes plugin capability identity, model, temperature, token limits, and credentials', () => {
+test('ai model editor exposes plugin capability identity, model, generation labels, and base URL', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/AiModelEditor.vue')
 
-  for (const field of ['pluginId', 'adapter', 'model', 'temperature', 'maxTokens', 'credentialId']) {
+  for (const field of ['pluginId', 'adapter', 'model', 'temperature', 'maxTokens', 'baseUrl']) {
     assert.match(source, new RegExp(field))
   }
 
-  assert.match(source, /Credential/)
+  assert.match(source, /EditorField label="Temperature"/)
+  assert.match(source, /EditorField label="Max Tokens"/)
+  assert.doesNotMatch(source, /EditorField label="Credential"/)
+  assert.doesNotMatch(source, /credentialId/)
   assert.match(source, /Provider Plugin/)
   assert.match(source, /Adapter/)
   assert.doesNotMatch(source, /const PROVIDERS/)

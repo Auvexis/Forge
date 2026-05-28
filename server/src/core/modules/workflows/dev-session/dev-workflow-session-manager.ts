@@ -458,5 +458,6 @@ function workflowEventToSessionEvent(
   if (type === "node:start") return "node:start";
   if (type === "node:success") return "node:success";
   if (type === "node:failed") return "node:failed";
+  if (type.startsWith("agent:")) return type as SessionEvent["type"];
   return null;
 }

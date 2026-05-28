@@ -13,13 +13,13 @@
       :nodes-draggable="tool !== 'pan'"
       :nodes-connectable="true"
       :elements-selectable="tool !== 'pan'"
-      :selection-key-code="null"
       :delete-key-code="['Delete']"
       class="plugin-creator-canvas__flow"
       @init="onInit"
       @node-click="onNodeClick"
       @node-double-click="onNodeDoubleClick"
       @node-drag-stop="onNodeDragStop"
+      @nodes-change="onNodesChange"
       @connect="onConnect"
       @edges-change="onEdgesChange"
       @selection-drag-start="isCanvasSelecting = true"
@@ -253,6 +253,17 @@ function onNodeDragStop(event: { node?: Node; nodes?: Node[] }) {
   }
 }
 
+function onNodesChange(changes: Array<{ type: string; id?: string }>) {
+  if (isApplyingGraphSnapshot.value) return
+  const nodeIds = changes
+    .filter((change) => change.type === 'remove' && change.id)
+    .map((change) => change.id!)
+  if (nodeIds.length > 0) {
+    emit('delete-selected', nodeIds)
+    selectedNodeIds.value = selectedNodeIds.value.filter((nodeId) => !nodeIds.includes(nodeId))
+  }
+}
+
 function onConnect(connection: Connection) {
   if (!connection.source || !connection.target) return
   emit('connect-nodes', {
@@ -412,7 +423,7 @@ defineExpose({
 
 .canvas-empty-step {
   position: absolute;
-  top: 50%;
+  top: 55%;
   left: 50%;
   z-index: 20;
   display: flex;

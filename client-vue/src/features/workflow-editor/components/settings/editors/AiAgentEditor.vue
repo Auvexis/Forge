@@ -133,4 +133,11 @@ function toggleApprovalPolicy(sideEffect: AgentToolSideEffect) {
   border-color: var(--sailor-amber-400);
   background: rgba(245, 158, 11, 0.12);
 }
+
+.agent-auth-note {
+  margin: 0;
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+  line-height: 1.5;
+}
 </style>

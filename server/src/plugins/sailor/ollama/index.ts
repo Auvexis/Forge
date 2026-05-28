@@ -22,18 +22,10 @@ const OllamaPlugin: SailorPlugin = {
       host: {
         label: "Ollama Host",
         inputType: "text",
-        required: true,
+        required: false,
         type: "string",
-        description: "The URL where your Ollama server is running",
+        description: "Optional URL where your Ollama server is running. Defaults to local Ollama.",
         placeholder: "http://localhost:11434",
-      },
-      model: {
-        label: "Model",
-        inputType: "text",
-        required: true,
-        type: "string",
-        description: "The name of the model to use (e.g., llama3, mistral)",
-        placeholder: "llama3.2",
       },
       api_key: {
         label: "API Key",

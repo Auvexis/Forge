@@ -5,7 +5,10 @@ import type { TriggerNode, WorkflowTrigger } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 
 const props = defineProps<
-  NodeProps<TriggerNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
+  NodeProps<TriggerNode> & {
+    hasOutgoingConnection?: boolean
+    status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed'
+  }
 >()
 
 const triggerData = computed<WorkflowTrigger | undefined>(() => {
@@ -25,6 +28,7 @@ const chatTitle = computed(() => triggerData.value?.chatTitle || 'Chat Trigger')
     :selected="props.selected"
     :status="props.status"
     has-source
+    :has-outgoing-connection="props.hasOutgoingConnection"
     :title="chatTitle"
     :subtitle="`${chatSlug} | ${chatAuthMode}`"
     icon="message-circle"

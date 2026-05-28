@@ -32,7 +32,9 @@
         />
       </div>
       <div class="mapping-rows-editor__actions">
-        <button type="button" title="Remove" @click="removeMapping(index)">Remove</button>
+        <button type="button" title="Remove" aria-label="Remove" @click="removeMapping(index)">
+          <LucideIcon name="x" :size="14" />
+        </button>
       </div>
     </div>
     <button class="editor-add-btn" type="button" @click="addMapping">Add mapping</button>
@@ -43,6 +45,7 @@
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PluginBlueprintResponseMapping } from '@/core/types/plugin-creator.types'
 
 const props = defineProps<{
@@ -134,6 +137,11 @@ function removeMapping(index: number) {
 }
 
 .mapping-rows-editor__actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
   background: transparent;
@@ -142,7 +150,7 @@ function removeMapping(index: number) {
   font: inherit;
   font-size: 11px;
   font-weight: 750;
-  padding: 8px 10px;
+  padding: 0;
 }
 
 .mapping-rows-editor__actions button:hover {

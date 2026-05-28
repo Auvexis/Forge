@@ -14,8 +14,12 @@ describe('IfNodeEditor contract', () => {
 
     assert.match(source, /PluginCreatorExpressionInput/)
     assert.match(source, /Condition/)
-    assert.match(source, /True branch/)
-    assert.match(source, /False branch/)
+    assert.match(source, /BaseBadge/)
+    assert.match(source, /Then \(true\)/)
+    assert.match(source, /Else \(false\)/)
+    assert.doesNotMatch(source, /previous exists/i)
+    assert.doesNotMatch(source, /enabled param/i)
+    assert.doesNotMatch(source, /success status/i)
     assert.match(source, /updateNodeData/)
   })
 

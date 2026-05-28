@@ -32,21 +32,31 @@
       />
     </EditorField>
 
-    <EditorField label="Generation">
-      <div class="editor-grid">
-        <BaseInput
-          type="number"
-          :model-value="Number(node.data.temperature ?? 0.2)"
-          @update:model-value="updateNodeData({ temperature: Number($event) })"
-          placeholder="Temperature"
-        />
-        <BaseInput
-          type="number"
-          :model-value="Number(node.data.maxTokens ?? 0)"
-          @update:model-value="updateNodeData({ maxTokens: Number($event) || undefined })"
-          placeholder="Max tokens"
-        />
-      </div>
+    <EditorField label="Temperature">
+      <BaseInput
+        type="number"
+        :model-value="Number(node.data.temperature ?? 0.2)"
+        @update:model-value="updateNodeData({ temperature: Number($event) })"
+        placeholder="0.2"
+      />
+    </EditorField>
+
+    <EditorField label="Max Tokens">
+      <BaseInput
+        type="number"
+        :model-value="Number(node.data.maxTokens ?? 0)"
+        @update:model-value="updateNodeData({ maxTokens: Number($event) || undefined })"
+        placeholder="Optional"
+      />
+    </EditorField>
+
+    <EditorField label="Thinking">
+      <BaseSwitch
+        :model-value="Boolean(node.data.thinkingEnabled)"
+        :disabled="node.data.thinkingSupported === false"
+        label="Show model thinking when the provider streams it"
+        @update:model-value="updateNodeData({ thinkingEnabled: $event as boolean })"
+      />
     </EditorField>
 
     <EditorField label="Base URL">
@@ -57,13 +67,6 @@
       />
     </EditorField>
 
-    <EditorField label="Credential">
-      <BaseInput
-        :model-value="(node.data.credentialId as string) || ''"
-        @update:model-value="updateNodeData({ credentialId: ($event as string) || undefined })"
-        placeholder="Credential selector"
-      />
-    </EditorField>
   </div>
 </template>
 
@@ -71,15 +74,8 @@
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 
 defineProps<NodeEditorProps>()
 
 </script>
-
-<style scoped>
-.editor-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--sailor-space-2);
-}
-</style>

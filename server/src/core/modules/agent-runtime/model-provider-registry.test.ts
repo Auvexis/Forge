@@ -4,6 +4,7 @@ import { AgentRuntimeError } from "./agent-errors.ts";
 import { AgentModelProviderRegistry } from "./model-provider-registry.ts";
 import { OpenAiCompatibleProvider } from "./model-providers/openai-compatible-provider.ts";
 import type { AiModelNodeConfig } from "./agent-types.ts";
+import { PluginManager } from "../plugins/manager.ts";
 
 describe("agent model provider registry", () => {
   it("creates an OpenAI-compatible model for an arbitrary plugin id", async () => {
@@ -93,6 +94,126 @@ describe("agent model provider registry", () => {
     assert.equal((model as any).kind, "fake-model");
     assert.equal(created[0].configuration.baseURL, "http://localhost:11434/v1");
     assert.equal(created[0].apiKey, "sailor-local");
+  });
+
+  it("hydrates missing thinking metadata from the plugin chat model capability", async () => {
+    const created: any[] = [];
+    PluginManager.clearPlugins();
+    PluginManager.registerPlugin({
+      id: "sailor-ollama",
+      manifest: {
+        metadata: {
+          id: "sailor-ollama",
+          name: "Ollama",
+          version: "1.0.0",
+          description: "Ollama plugin",
+          category: "AI",
+          author: "Sailor",
+          agentCapabilities: {
+            chatModel: {
+              enabled: true,
+              adapter: "generic",
+              label: "Ollama Chat Model",
+              description: "Use Ollama as an agent chat model.",
+              defaultModel: "llama3.2",
+              thinking: {
+                enabled: true,
+                request: { reasoning_effort: "medium" },
+              },
+            },
+          },
+        },
+        methods: {},
+      },
+      auth: { type: "none" },
+      methods: {},
+    } as any);
+
+    try {
+      const registry = new AgentModelProviderRegistry({
+        credentialResolver: () => null,
+        createModel: (config) => {
+          created.push(config);
+          return { kind: "fake-model", config };
+        },
+      });
+
+      await registry.createChatModel({
+        ...modelConfig(),
+        pluginId: "sailor-ollama",
+        adapter: "generic",
+        model: "qwen3.5:4b",
+        baseUrl: "http://localhost:11434/v1",
+        credentialId: undefined,
+        thinkingEnabled: false,
+      });
+
+      assert.deepEqual(created[0].modelKwargs, { reasoning_effort: "none" });
+    } finally {
+      PluginManager.clearPlugins();
+    }
+  });
+
+  it("merges plugin thinking metadata into older saved model configs", async () => {
+    const created: any[] = [];
+    PluginManager.clearPlugins();
+    PluginManager.registerPlugin({
+      id: "sailor-ollama",
+      manifest: {
+        metadata: {
+          id: "sailor-ollama",
+          name: "Ollama",
+          version: "1.0.0",
+          description: "Ollama plugin",
+          category: "AI",
+          author: "Sailor",
+          agentCapabilities: {
+            chatModel: {
+              enabled: true,
+              adapter: "generic",
+              label: "Ollama Chat Model",
+              description: "Use Ollama as an agent chat model.",
+              defaultModel: "llama3.2",
+              thinking: {
+                enabled: true,
+                request: { reasoning_effort: "medium" },
+              },
+            },
+          },
+        },
+        methods: {},
+      },
+      auth: { type: "none" },
+      methods: {},
+    } as any);
+
+    try {
+      const registry = new AgentModelProviderRegistry({
+        credentialResolver: () => null,
+        createModel: (config) => {
+          created.push(config);
+          return { kind: "fake-model", config };
+        },
+      });
+
+      await registry.createChatModel({
+        ...modelConfig(),
+        pluginId: "sailor-ollama",
+        adapter: "generic",
+        model: "qwen3.5:4b",
+        baseUrl: "http://localhost:11434/v1",
+        credentialId: undefined,
+        thinkingEnabled: false,
+        thinkingRequest: { think: true },
+      });
+
+      assert.deepEqual(created[0].modelKwargs, {
+        reasoning_effort: "none",
+        think: false,
+      });
+    } finally {
+      PluginManager.clearPlugins();
+    }
   });
 
   it("rejects generic remote models without credentials", async () => {
@@ -187,6 +308,60 @@ describe("agent model provider registry", () => {
 
     assert.deepEqual(created[0].reasoning, { effort: "minimal" });
     assert.equal(created[0].verbosity, "low");
+  });
+
+  it("sends an explicit OpenAI-compatible thinking disable request when thinking is off", async () => {
+    const created: any[] = [];
+    const provider = new OpenAiCompatibleProvider({
+      adapter: "generic",
+      allowLocalNoAuth: true,
+      credentialResolver: () => null,
+      createModel: (config) => {
+        created.push(config);
+        return { kind: "fake-model" };
+      },
+    });
+
+    await provider.createChatModel({
+      ...modelConfig(),
+      pluginId: "sailor-ollama",
+      adapter: "generic",
+      model: "qwen3.5:4b",
+      baseUrl: "http://localhost:11434/v1",
+      credentialId: undefined,
+      thinkingSupported: true,
+      thinkingEnabled: false,
+      thinkingRequest: { reasoning_effort: "medium" },
+    });
+
+    assert.deepEqual(created[0].modelKwargs, { reasoning_effort: "none" });
+  });
+
+  it("still disables native Ollama-style thinking requests for compatible configs", async () => {
+    const created: any[] = [];
+    const provider = new OpenAiCompatibleProvider({
+      adapter: "generic",
+      allowLocalNoAuth: true,
+      credentialResolver: () => null,
+      createModel: (config) => {
+        created.push(config);
+        return { kind: "fake-model" };
+      },
+    });
+
+    await provider.createChatModel({
+      ...modelConfig(),
+      pluginId: "sailor-ollama",
+      adapter: "generic",
+      model: "qwen3.5:4b",
+      baseUrl: "http://localhost:11434/v1",
+      credentialId: undefined,
+      thinkingSupported: true,
+      thinkingEnabled: false,
+      thinkingRequest: { think: true },
+    });
+
+    assert.deepEqual(created[0].modelKwargs, { think: false });
   });
 
   it("does not expose API keys through JSON serialization", async () => {

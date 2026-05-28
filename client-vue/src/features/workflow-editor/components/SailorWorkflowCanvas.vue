@@ -820,7 +820,8 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     defaultData.memoryCount = 0
     defaultData.toolCount = 0
   } else if (type === 'ai-model') {
-    defaultData.provider = 'openai'
+    defaultData.pluginId = 'openai'
+    defaultData.adapter = 'openai-compatible'
     defaultData.model = 'gpt-4.1-mini'
     defaultData.temperature = 0.2
   } else if (type === 'ai-memory') {

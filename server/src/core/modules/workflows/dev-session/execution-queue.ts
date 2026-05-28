@@ -128,6 +128,7 @@ export class InMemoryExecutionQueue {
       jobId: job.id,
       source: job.source,
       timestamp: Date.now(),
+      data: job.payload,
       error,
     });
   }

@@ -27,17 +27,6 @@
         placeholder="previous.status"
         @update:model-value="updateNodeData({ expression: String($event) })"
       />
-      <div class="te-methods">
-        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: 'previous.status' })">
-          response status
-        </button>
-        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: 'params.type' })">
-          param type
-        </button>
-        <button class="te-method-btn" type="button" @click="updateNodeData({ expression: 'previous.body?.state' })">
-          body state
-        </button>
-      </div>
     </NodeEditorSection>
 
     <NodeEditorSection
@@ -218,9 +207,10 @@ function normalizeHandle(value: string, index: number) {
 
 <style scoped>
 .switch-node-editor__case-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 30px);
+  gap: 4px;
+  justify-content: end;
 }
 
 .switch-node-editor__case-actions button {
@@ -260,9 +250,9 @@ function normalizeHandle(value: string, index: number) {
 }
 
 .switch-node-editor__case {
-  grid-template-columns: 18px minmax(120px, 1fr) minmax(120px, 1fr) minmax(130px, 0.8fr) auto;
+  grid-template-columns: 18px minmax(120px, 1fr) minmax(150px, 1fr) minmax(130px, 0.8fr) minmax(88px, auto);
   display: grid;
-  align-items: center;
+  align-items: end;
   gap: 10px;
   padding: 12px;
   border: 1px solid var(--sailor-border-subtle);
@@ -282,11 +272,6 @@ function normalizeHandle(value: string, index: number) {
   font-family: var(--sailor-font-mono);
   font-size: 11px;
   white-space: nowrap;
-}
-
-.switch-node-editor__case-actions {
-  display: flex;
-  gap: 4px;
 }
 
 @media (max-width: 980px) {

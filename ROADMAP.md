@@ -27,17 +27,11 @@
    - OpenAI
    - Adicionar mais funcionalidades e metodos no Plugin Google Sheets.
 
-7. Criar utility nodes adicionais:
-   - Image Editor Utility Node: crop, resize, rotate e aspect ratio.
-  
-8. Plugin Creator:
-   Criar uma funcionalidade onde a pessoa pode criar o propio plugin dela no frontend com facilidade, sem precisar escrever muito codigo. A ideia é criar criador de plugin onde a pessoa pode conectar o sistema externo dela e criar um plugin, escolher handle, nome, icone(icon, iconDark, iconLight). Depois ela poderia criar cada metodo de forma intuitiva com seus parametros, colocaria a URL da API dela, testaria manualmente para ver o que retornava, depois ela mapeava o resultado do body, assim iria montando o manifest.json e methods.ts automaticamente, ela pegaria os possiveis erros e adicionaria uma exception para capturar aquele error. No fim, ela poderia salvar/descartar o plugin para ja começar a usar, se ela salvasse, iria salvar na pasta de plugins globais. Teria como salvar localmente no pc dela tambem ou criar um repositorio no github para salvar esse plugin, assim teria como ela mandar ou o arquivo ou o repositorio para outra pessoa testar o plugin que ela criou.
-
 9. Plugins Plus:
    - Playwright
    - Waha
 
-10. Start Guide por feature:
+11. Start Guide por feature:
    Criar um componente simples de guia inicial por ferramenta, sem traduzir a UI inteira. Cada feature passa uma lista de steps com preview e textos por idioma.
 
    ```ts
@@ -67,7 +61,6 @@
    ```vue
    <StartGuide
      feature-id="plugin-creator"
-     :version="1"
      :steps="pluginCreatorGuide"
      default-lang="en"
    />

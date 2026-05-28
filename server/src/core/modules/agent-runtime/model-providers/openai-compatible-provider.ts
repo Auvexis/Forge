@@ -54,6 +54,13 @@ export class OpenAiCompatibleProvider {
       modelConfig.reasoning = { effort: "minimal" };
       modelConfig.verbosity = "low";
     }
+    const thinkingRequest = modelThinkingRequest(config);
+    if (thinkingRequest) {
+      modelConfig.modelKwargs = {
+        ...(modelConfig.modelKwargs ?? {}),
+        ...thinkingRequest,
+      };
+    }
 
     if (config.baseUrl) {
       modelConfig.configuration = {
@@ -100,6 +107,28 @@ function clampTemperature(value: number): number {
 function normalizeTemperature(model: string, value: number): number | undefined {
   if (usesDefaultTemperatureOnly(model)) return undefined;
   return clampTemperature(value);
+}
+
+function modelThinkingRequest(config: AiModelNodeConfig): Record<string, any> | undefined {
+  if (!config.thinkingRequest) return undefined;
+  if (config.thinkingEnabled) return config.thinkingRequest;
+  if (config.thinkingSupported === false) return undefined;
+  return disableThinkingRequest(config.thinkingRequest);
+}
+
+function disableThinkingRequest(value: Record<string, any>): Record<string, any> {
+  return Object.fromEntries(
+    Object.entries(value).map(([key, entry]) => [key, disableThinkingValue(key, entry)]),
+  );
+}
+
+function disableThinkingValue(key: string, value: any): any {
+  if (key === "reasoning_effort" || key === "effort") return "none";
+  if (key === "think" || key === "enabled") return false;
+  if (typeof value === "boolean") return false;
+  if (Array.isArray(value)) return value.map((entry) => disableThinkingValue(key, entry));
+  if (value && typeof value === "object") return disableThinkingRequest(value);
+  return value;
 }
 
 function usesDefaultTemperatureOnly(model: string): boolean {

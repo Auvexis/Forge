@@ -121,7 +121,7 @@ export const useExecutionStore = defineStore('execution', () => {
     if (type === 'node:failed' || type === 'workflow:failed' || type === 'job:failed' || type === 'agent:error') return 'failed'
     if (type === 'node:retry') return 'retrying'
     if (type === 'workflow:cancelled' || type === 'job:cancelled') return 'cancelled'
-    if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created' || type === 'job:start' || type === 'agent:start' || type === 'agent:model-start' || type === 'agent:output-delta' || type === 'agent:tool-start') {
+    if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created' || type === 'job:start' || type === 'agent:start' || type === 'agent:model-start' || type === 'agent:output-delta' || type === 'agent:thinking-delta' || type === 'agent:tool-start') {
       return 'running'
     }
     return 'info'
@@ -153,6 +153,7 @@ export const useExecutionStore = defineStore('execution', () => {
     if (ev.type === 'agent:model-start') return 'Agent model call started'
     if (ev.type === 'agent:model-end') return 'Agent model call completed'
     if (ev.type === 'agent:output-delta') return 'Agent output delta'
+    if (ev.type === 'agent:thinking-delta') return 'Agent thinking delta'
     if (ev.type === 'agent:tool-start') return 'Agent tool call started'
     if (ev.type === 'agent:tool-end') return 'Agent tool call completed'
     if (ev.type === 'agent:memory-read') return 'Agent memory read'
@@ -218,12 +219,42 @@ export const useExecutionStore = defineStore('execution', () => {
     return `chat-assistant-stream:${executionId}:agent`
   }
 
+  function appendPendingEditorChatAssistantMessage(executionId: string, sessionId: string, timestamp = Date.now()) {
+    const id = streamAssistantMessageId(executionId)
+    const existing = (editorChatMessagesBySession[sessionId] ?? []).find((message) => message.id === id)
+    if (existing) return
+
+    appendEditorChatMessage({
+      id,
+      sessionId,
+      role: 'assistant',
+      content: { text: '', thinking: '', pending: true },
+      createdAt: new Date(timestamp).toISOString(),
+    })
+  }
+
   function appendEditorChatMessageDelta(executionId: string, sessionId: string, delta: string, timestamp: number) {
     if (!delta) return
 
     const id = streamAssistantMessageId(executionId)
     const existing = (editorChatMessagesBySession[sessionId] ?? []).find((message) => message.id === id)
-    const content = typeof existing?.content === 'string' ? `${existing.content}${delta}` : delta
+    const content = mergeAssistantChatContent(existing?.content, { textDelta: delta })
+
+    appendEditorChatMessage({
+      id,
+      sessionId,
+      role: 'assistant',
+      content,
+      createdAt: existing?.createdAt ?? new Date(timestamp).toISOString(),
+    })
+  }
+
+  function appendEditorChatThinkingDelta(executionId: string, sessionId: string, delta: string, timestamp: number) {
+    if (!delta) return
+
+    const id = streamAssistantMessageId(executionId)
+    const existing = (editorChatMessagesBySession[sessionId] ?? []).find((message) => message.id === id)
+    const content = mergeAssistantChatContent(existing?.content, { thinkingDelta: delta })
 
     appendEditorChatMessage({
       id,
@@ -285,6 +316,16 @@ export const useExecutionStore = defineStore('execution', () => {
     appendEditorChatMessageDelta(ev.executionId, chatSessionId, delta, ev.timestamp)
   }
 
+  function recordEditorChatAgentThinkingDelta(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || ev.type !== 'agent:thinking-delta' || !ev.executionId) return
+
+    const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
+    const delta = extractAgentDelta(ev.data)
+    if (!chatSessionId || !delta) return
+
+    appendEditorChatThinkingDelta(ev.executionId, chatSessionId, delta, ev.timestamp)
+  }
+
   function recordEditorChatAgentEnd(ev: WorkflowEvent) {
     if (ev.source !== 'chat' || ev.type !== 'agent:end' || !ev.executionId) return
 
@@ -292,11 +333,15 @@ export const useExecutionStore = defineStore('execution', () => {
     const output = extractAgentOutput(ev.data)
     if (!chatSessionId || output === undefined) return
 
+    const executionId = ev.executionId
+    const existing = (editorChatMessagesBySession[chatSessionId] ?? [])
+      .find((message) => message.id === streamAssistantMessageId(executionId))
+
     appendEditorChatMessage({
-      id: streamAssistantMessageId(ev.executionId),
+      id: streamAssistantMessageId(executionId),
       sessionId: chatSessionId,
       role: 'assistant',
-      content: output,
+      content: mergeAssistantChatContent(existing?.content, { text: output }),
       createdAt: new Date(ev.timestamp).toISOString(),
     })
   }
@@ -374,6 +419,32 @@ export const useExecutionStore = defineStore('execution', () => {
     if (!data || typeof data !== 'object') return undefined
     const delta = (data as Record<string, unknown>).delta
     return typeof delta === 'string' ? delta : undefined
+  }
+
+  function mergeAssistantChatContent(
+    content: unknown,
+    patch: { text?: unknown; textDelta?: string; thinkingDelta?: string },
+  ) {
+    const current = normalizeAssistantChatContent(content)
+    return {
+      text: patch.text !== undefined
+        ? (typeof patch.text === 'string' ? patch.text : JSON.stringify(patch.text))
+        : `${current.text}${patch.textDelta ?? ''}`,
+      thinking: `${current.thinking}${patch.thinkingDelta ?? ''}`,
+      pending: false,
+    }
+  }
+
+  function normalizeAssistantChatContent(content: unknown): { text: string; thinking: string } {
+    if (!content || typeof content !== 'object' || Array.isArray(content)) {
+      return { text: typeof content === 'string' ? content : '', thinking: '' }
+    }
+
+    const record = content as Record<string, unknown>
+    return {
+      text: typeof record.text === 'string' ? record.text : '',
+      thinking: typeof record.thinking === 'string' ? record.thinking : '',
+    }
   }
 
   function extractAgentError(data: unknown): string | undefined {
@@ -686,6 +757,14 @@ export const useExecutionStore = defineStore('execution', () => {
             }
             break
 
+          case 'agent:thinking-delta':
+            recordEditorChatAgentThinkingDelta(ev)
+            if (ev.nodeId) {
+              _patchNode(ev.nodeId, { status: 'running', startedAt: ev.timestamp })
+              _patchExecutionNode(ev.executionId, ev.nodeId, { status: 'running', startedAt: ev.timestamp })
+            }
+            break
+
           case 'agent:end':
             recordEditorChatAgentEnd(ev)
             if (ev.nodeId) {
@@ -920,6 +999,7 @@ export const useExecutionStore = defineStore('execution', () => {
     patchNodeStatus,
     appendEditorChatMessage,
     appendEditorChatMessageDelta,
+    appendPendingEditorChatAssistantMessage,
     registerEditorChatExecution,
   }
 })

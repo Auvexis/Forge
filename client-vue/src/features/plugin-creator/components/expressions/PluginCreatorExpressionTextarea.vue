@@ -18,26 +18,20 @@
         spellcheck="false"
         @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
       />
-      <PluginCreatorVariablePicker @select="$emit('update:modelValue', appendVariable($event))" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import PluginCreatorVariablePicker from './PluginCreatorVariablePicker.vue'
 
-const props = withDefaults(
+withDefaults(
   defineProps<{ modelValue: string; label: string; placeholder?: string; showHint?: boolean }>(),
   { showHint: true },
 )
 defineEmits<{ 'update:modelValue': [value: string] }>()
 
 const variableRoots = ['params', 'credentials', 'steps']
-
-function appendVariable(variableName: string) {
-  return props.modelValue ? `${props.modelValue} ${variableName}` : variableName
-}
 </script>
 
 <style scoped>
@@ -46,9 +40,7 @@ function appendVariable(variableName: string) {
 }
 
 .editor-expression-control {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
+  display: block;
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-md);
   background: var(--sailor-bg-surface);
@@ -60,6 +52,7 @@ function appendVariable(variableName: string) {
 }
 
 .editor-expression-control textarea {
+  width: 100%;
   min-height: 90px;
   resize: vertical;
   padding: 10px 12px;

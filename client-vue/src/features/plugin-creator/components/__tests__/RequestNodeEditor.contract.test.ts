@@ -15,13 +15,15 @@ describe('RequestNodeEditor contract', () => {
     assert.match(source, /requestPreview/)
   })
 
-  it('key-value table supports add remove duplicate and reorder actions', () => {
+  it('key-value table uses compact icon-only remove actions', () => {
     const source = fs.readFileSync(path.join(editorDir, 'KeyValueTableEditor.vue'), 'utf8')
 
-    assert.match(source, /Duplicate/)
-    assert.match(source, /Remove/)
-    assert.match(source, /Move up/)
-    assert.match(source, /Move down/)
+    assert.match(source, /LucideIcon/)
+    assert.match(source, /name="x"/)
+    assert.doesNotMatch(source, />\s*Remove\s*</)
+    assert.doesNotMatch(source, /Duplicate/)
+    assert.doesNotMatch(source, /Move up/)
+    assert.doesNotMatch(source, /Move down/)
     assert.match(source, /PluginCreatorExpressionInput/)
     assert.match(source, /empty/i)
   })

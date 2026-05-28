@@ -78,7 +78,8 @@ export class ChatTriggerService {
     this.assertPublicOriginAllowed(input, resolved);
     this.assertPublicRateLimit(input, resolved);
     const session = this.resolveSession(input, resolved, message);
-    const userMessage = this.messages.append({
+    const previousMessages = this.messages.listBySession(input.profileId, session.id);
+    this.messages.append({
       id: `msg_${randomUUID()}`,
       profileId: input.profileId,
       sessionId: session.id,
@@ -95,6 +96,7 @@ export class ChatTriggerService {
       sessionId: session.id,
       userId: input.userId,
       message,
+      messages: toContextMessages(previousMessages),
       metadata: input.metadata ?? {},
     };
     const execution = await this.workflowEngine.executeWorkflowFromTrigger(
@@ -102,13 +104,22 @@ export class ChatTriggerService {
       resolved.triggerNodeId,
       payload,
     );
+    assertSuccessfulChatExecution(execution);
+    const assistantResponse = extractAssistantResponse(execution);
+    if (assistantResponse !== null && assistantResponse !== undefined) {
+      this.messages.append({
+        id: `msg_${randomUUID()}`,
+        profileId: input.profileId,
+        sessionId: session.id,
+        role: "assistant",
+        content: assistantResponse,
+      });
+      this.sessions.touch(input.profileId, session.id);
+    }
 
     return {
       session,
-      messages: [...this.messages.listBySession(input.profileId, session.id), userMessage]
-        .filter((messageRecord, index, records) =>
-          records.findIndex((record) => record.id === messageRecord.id) === index,
-        ),
+      messages: this.messages.listBySession(input.profileId, session.id),
       execution,
     };
   }
@@ -234,4 +245,61 @@ export class ChatTriggerService {
 function createSessionTitle(message: string, workflow: WorkflowItem): string {
   const title = message.slice(0, 80).trim();
   return title || workflow.metadata.name;
+}
+
+function toContextMessages(messages: AgentChatMessage[]): Array<{ role: "user" | "assistant" | "tool" | "system"; content: string }> {
+  return messages
+    .map((message) => ({
+      role: message.role,
+      content: normalizeMessageContent(message.content),
+    }))
+    .filter((message) => message.content.trim());
+}
+
+function normalizeMessageContent(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (!content || typeof content !== "object" || Array.isArray(content)) return "";
+  const record = content as Record<string, unknown>;
+  if (typeof record.text === "string") return record.text;
+  if (typeof record.content === "string") return record.content;
+  return "";
+}
+
+function extractAssistantResponse(execution: unknown): unknown {
+  const steps = (execution as { context?: { steps?: Record<string, any> } })?.context?.steps;
+  if (!steps) return null;
+  const agentStep = Object.values(steps).find((step) => step?.output?.output !== undefined);
+  return agentStep?.output?.output ?? null;
+}
+
+function assertSuccessfulChatExecution(execution: unknown): void {
+  const record = execution as {
+    executionId?: unknown;
+    status?: unknown;
+    context?: { steps?: Record<string, any> };
+  };
+  if (record?.status !== "FAILED") return;
+
+  const executionId = typeof record.executionId === "string" ? record.executionId : "unknown";
+  const detail = extractWorkflowFailureDetail(record.context?.steps) ?? "Unknown workflow failure";
+  throw new AgentRuntimeError(
+    `Chat workflow execution ${executionId} failed: ${detail}`,
+    "AGENT_CHAT_WORKFLOW_FAILED",
+    `Chat workflow failed in execution ${executionId}: ${detail}`,
+    500,
+  );
+}
+
+function extractWorkflowFailureDetail(steps: Record<string, any> | undefined): string | null {
+  if (!steps) return null;
+  if (typeof steps.error === "string" && steps.error.trim()) return steps.error;
+
+  for (const [nodeId, step] of Object.entries(steps)) {
+    if (!step || typeof step !== "object") continue;
+    if (typeof step.error === "string" && step.error.trim()) {
+      return `${nodeId}: ${step.error}`;
+    }
+  }
+
+  return null;
 }

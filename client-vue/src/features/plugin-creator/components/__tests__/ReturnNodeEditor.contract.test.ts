@@ -6,7 +6,7 @@ import { describe, it } from 'node:test'
 const componentsDir = path.resolve('src/features/plugin-creator/components')
 
 describe('ReturnNodeEditor contract', () => {
-  it('edits return expression with quick values and preview', () => {
+  it('edits return expression without legacy quick value buttons', () => {
     const source = fs.readFileSync(
       path.join(componentsDir, 'node-editors/ReturnNodeEditor.vue'),
       'utf8',
@@ -16,8 +16,8 @@ describe('ReturnNodeEditor contract', () => {
     assert.match(source, /PluginCreatorExpressionInput/)
     assert.match(source, /valueExpression/)
     assert.match(source, /previous/)
-    assert.match(source, /params/)
-    assert.match(source, /\(\{ \.\.\.previous \}\)/)
+    assert.doesNotMatch(source, />\s*params\s*</)
+    assert.doesNotMatch(source, /\(\{ \.\.\.previous \}\)/)
     assert.match(source, /Final output preview/)
     assert.match(source, /updateNodeData/)
   })

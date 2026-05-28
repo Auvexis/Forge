@@ -41,8 +41,9 @@
       @update:model-value="updateMapping({ message: { type: 'static', value: String($event) } })"
     />
     <div class="error-condition-editor__actions">
-      <button type="button" title="Duplicate" @click="emit('duplicate')">Duplicate</button>
-      <button type="button" title="Remove" @click="emit('remove')">Remove</button>
+      <button type="button" title="Remove" aria-label="Remove" @click="emit('remove')">
+        <LucideIcon name="x" :size="14" />
+      </button>
     </div>
   </div>
 </template>
@@ -51,6 +52,7 @@
 import { computed } from 'vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type {
   PluginBlueprintErrorCondition,
   PluginBlueprintErrorMapping,
@@ -62,7 +64,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   update: [mapping: PluginBlueprintErrorMapping]
-  duplicate: []
   remove: []
 }>()
 
@@ -125,6 +126,11 @@ function normalizeValue(value: string) {
 }
 
 .error-condition-editor__actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-surface);
@@ -133,6 +139,6 @@ function normalizeValue(value: string) {
   font: inherit;
   font-size: 11px;
   font-weight: 650;
-  padding: 6px 8px;
+  padding: 0;
 }
 </style>

@@ -37,7 +37,6 @@ describe('PluginCreator node editor foundation', () => {
     assert.match(source, /<slot name="toolbar"/)
     assert.match(source, /<slot \/>/)
     assert.match(source, /eyebrow/)
-    assert.match(source, /editor-field/)
     assert.match(source, /LucideIcon/)
     assert.match(source, /node-editor-section--flush/)
     assert.doesNotMatch(source, /border-bottom:\s*1px solid var\(--sailor-border-subtle\)/)
@@ -64,16 +63,21 @@ describe('PluginCreator node editor foundation', () => {
     }
   })
 
-  it('uses a compact variable picker button instead of an always-open token dump', () => {
-    const source = fs.readFileSync(
-      path.resolve('src/features/plugin-creator/components/expressions/PluginCreatorVariablePicker.vue'),
+  it('does not render insert-variable buttons inside node editor expression fields', () => {
+    const inputSource = fs.readFileSync(
+      path.resolve('src/features/plugin-creator/components/expressions/PluginCreatorExpressionInput.vue'),
+      'utf8',
+    )
+    const textareaSource = fs.readFileSync(
+      path.resolve('src/features/plugin-creator/components/expressions/PluginCreatorExpressionTextarea.vue'),
       'utf8',
     )
 
-    assert.match(source, /plugin-creator-variable-picker__trigger/)
-    assert.match(source, /LucideIcon/)
-    assert.match(source, /v-if="isOpen"/)
-    assert.match(source, /plugin-creator-variable-picker__popover/)
+    for (const source of [inputSource, textareaSource]) {
+      assert.doesNotMatch(source, /PluginCreatorVariablePicker/)
+      assert.doesNotMatch(source, /Insert variable/)
+      assert.doesNotMatch(source, /plugin-creator-variable-picker/)
+    }
   })
 })
 
@@ -111,14 +115,14 @@ describe('PluginCreator focused node editors', () => {
     const source = readEditorFile('MethodNodeEditor.vue')
 
     assert.match(source, /usePluginCreatorNodeEditorContext/)
-    assert.match(source, /method-node-editor__summary/)
-    assert.match(source, /editor-hint/)
+    assert.match(source, /te-hint/)
     assert.match(source, /editor-code-snippet/)
     assert.match(source, /Inputs/)
     assert.match(source, /Credentials/)
     assert.match(source, /Method metadata/)
     assert.match(source, /Add input/)
     assert.match(source, /Add credential/)
+    assert.match(source, /method-node-editor__row-action/)
     assert.doesNotMatch(source, /PluginCreatorNodeEditorFields/)
   })
 })

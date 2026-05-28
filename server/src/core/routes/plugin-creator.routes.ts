@@ -15,6 +15,7 @@ import { PluginPublishService } from "../modules/plugin-creator/plugin-publish-s
 import { PluginExportService } from "../modules/plugin-creator/plugin-export-service.ts";
 import { parsePluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-validation.ts";
 import type { PluginBlueprint } from "../modules/plugin-creator/plugin-blueprint-types.ts";
+import type { PluginBlueprintIconSlot } from "../modules/plugin-creator/plugin-icon-asset-service.ts";
 import { generatePluginMethodsSource } from "../modules/plugin-creator/plugin-methods-generator.ts";
 
 export interface PluginCreatorRoutesOptions {
@@ -46,6 +47,8 @@ const rollbackSchema = z.object({
 const previewCodeSchema = z.object({
   blueprint: z.unknown(),
 });
+const iconSlots = new Set(["icon", "iconDark", "iconLight"]);
+const maxIconUploadBytes = 1024 * 1024;
 
 export default async function pluginCreatorRoutes(
   fastify: FastifyInstance,
@@ -212,6 +215,79 @@ export default async function pluginCreatorRoutes(
       return sendResponse(reply, {
         status_code: 400,
         message: "Failed to generate plugin creator preview",
+        error: message,
+        data: null,
+      });
+    }
+  });
+
+  fastify.post("/plugin-creator/blueprints/:id/assets/icons/:slot", async (req, reply) => {
+    const { id, slot } = req.params as { id: string; slot: string };
+    if (!iconSlots.has(slot)) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Invalid plugin creator icon slot",
+        error: "invalid_icon_slot",
+        data: null,
+      });
+    }
+
+    const multipartReq = req as typeof req & {
+      isMultipart?: () => boolean;
+      file?: (options?: unknown) => Promise<{
+        filename: string;
+        toBuffer: () => Promise<Buffer>;
+      } | undefined>;
+    };
+
+    if (!multipartReq.isMultipart?.()) {
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Expected multipart plugin icon upload",
+        error: "multipart_required",
+        data: null,
+      });
+    }
+
+    try {
+      const uploaded = await multipartReq.file?.({ limits: { fileSize: maxIconUploadBytes } });
+      if (!uploaded) {
+        return sendResponse(reply, {
+          status_code: 400,
+          message: "Missing plugin icon upload file",
+          error: "file_required",
+          data: null,
+        });
+      }
+
+      const buffer = await uploaded.toBuffer();
+      const blueprint = getEngine().uploadIconAsset({
+        blueprintId: id,
+        slot: slot as PluginBlueprintIconSlot,
+        filename: uploaded.filename,
+        buffer,
+      });
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Plugin creator icon uploaded",
+        error: null,
+        data: blueprint,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "unknown_error";
+      if (message === "blueprint_not_found") {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Plugin creator blueprint not found",
+          error: "blueprint_not_found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 400,
+        message: "Failed to upload plugin creator icon",
         error: message,
         data: null,
       });

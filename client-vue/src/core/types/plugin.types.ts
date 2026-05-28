@@ -51,6 +51,10 @@ export interface PluginAgentChatModelCapability {
   defaultModel?: string
   defaultBaseUrl?: string
   credentialPluginId?: string
+  thinking?: {
+    enabled: boolean
+    request?: Record<string, unknown>
+  }
 }
 
 export interface PluginAgentMemoryStoreCapability {

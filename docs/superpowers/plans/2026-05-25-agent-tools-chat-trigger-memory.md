@@ -2613,6 +2613,253 @@ git add feats-map/agent-tools-chat-trigger-memory.md docs/superpowers/plans/2026
 git commit -m "test: verify agent cluster ux"
 ```
 
+### Task 35: Workflow Editor Chat Status Bar Contracts
+
+**Files:**
+- Create: `client-vue/src/app/__tests__/WorkflowEditorStatusBar.contract.test.ts`
+- Create: `client-vue/src/features/workflow-editor/components/agent/__tests__/WorkflowChatBottomPanel.contract.test.ts`
+
+- [x] **Step 1: Write failing workflow page status bar tests**
+
+Tests must assert:
+- `WorkflowEditorPage.vue` imports `WorkflowChatBottomPanel`.
+- the status bar exposes `Chat` and `Execution` actions.
+- the chat action opens `workflow-chat-bottom-panel`.
+- the execution action still opens `workflow-execution-bottom-panel`.
+- active state is derived from `appPanelStore.panelId`.
+
+Run:
+
+```bash
+cd client-vue
+node --test src/app/__tests__/WorkflowEditorStatusBar.contract.test.ts
+```
+
+Expected: fail until the new status bar and chat panel wiring exist.
+
+- [x] **Step 2: Write failing chat panel contract tests**
+
+Tests must assert:
+- `WorkflowChatBottomPanel.vue` imports and renders `ChatSessionPanel`.
+- it accepts `chatSlug` and `title` props.
+- it renders an empty state when no slug exists.
+- it uses dense bottom-panel classes matching the execution panel style.
+
+Run:
+
+```bash
+cd client-vue
+node --test src/features/workflow-editor/components/agent/__tests__/WorkflowChatBottomPanel.contract.test.ts
+```
+
+Expected: fail until the component exists.
+
+### Task 36: Workflow Chat Bottom Panel
+
+**Files:**
+- Create: `client-vue/src/features/workflow-editor/components/agent/WorkflowChatBottomPanel.vue`
+- Modify: `client-vue/src/features/workflow-editor/components/agent/ChatSessionPanel.vue` only if layout hooks are required.
+
+- [x] **Step 1: Implement the chat bottom panel**
+
+Create a compact bottom-panel wrapper with:
+- header title `Chat`;
+- optional slug/session metadata;
+- empty state for missing slug;
+- `ChatSessionPanel` when `chatSlug` exists.
+
+- [x] **Step 2: Verify chat panel contract**
+
+Run:
+
+```bash
+cd client-vue
+node --test src/features/workflow-editor/components/agent/__tests__/WorkflowChatBottomPanel.contract.test.ts
+```
+
+Expected: pass.
+
+### Task 37: Workflow Status Bar Panel Switcher
+
+**Files:**
+- Modify: `client-vue/src/app/pages/WorkflowEditorPage.vue`
+- Modify: `client-vue/src/app/__tests__/WorkflowEditorStatusBar.contract.test.ts`
+
+- [x] **Step 1: Replace the single execution status button**
+
+Turn `.workflow-status-bar` into a multi-action bar with explicit `Chat` and `Execution` buttons. Keep it fixed at the bottom of `AppPage` content.
+
+- [x] **Step 2: Add chat panel opener**
+
+Add `openChatPanel()` using:
+
+```ts
+appPanelStore.openPanel({
+  id: 'workflow-chat-bottom-panel',
+  title: 'Chat',
+  component: markRaw(WorkflowChatBottomPanel),
+  props: {
+    chatSlug: activeChatSlug.value,
+    title: activeChatTitle.value || 'Agent Chat',
+  },
+  position: 'bottom',
+  width: 'xl',
+  resizable: true,
+  resizeSide: 'top',
+})
+```
+
+- [x] **Step 3: Add toggle behavior**
+
+Clicking the active status bar item closes the current panel. Clicking the inactive item opens that panel.
+
+- [x] **Step 4: Verify workflow page contract**
+
+Run:
+
+```bash
+cd client-vue
+node --test src/app/__tests__/WorkflowEditorStatusBar.contract.test.ts
+```
+
+Expected: pass.
+
+### Task 38: Chat Trigger Inspector Cleanup and Verification
+
+**Files:**
+- Modify: `client-vue/src/features/workflow-editor/components/settings/editors/ChatTriggerEditor.vue`
+- Modify: `client-vue/src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts`
+- Modify: `feats-map/agent-tools-chat-trigger-memory.md`
+
+- [x] **Step 1: Update editor contract**
+
+Tests must assert:
+- `ChatTriggerEditor.vue` no longer imports `ChatSessionPanel`.
+- it keeps chat slug/title/auth/session/rate limit fields.
+- it includes copy that points users to the status bar chat panel.
+
+Run:
+
+```bash
+cd client-vue
+node --test src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts
+```
+
+Expected: fail until the editor no longer embeds the chat session panel.
+
+- [x] **Step 2: Remove embedded chat session panel**
+
+Replace the inline `ChatSessionPanel` with a compact hint.
+
+- [x] **Step 3: Run focused frontend checks**
+
+Run:
+
+```bash
+cd client-vue
+node --test src/app/__tests__/WorkflowEditorStatusBar.contract.test.ts src/features/workflow-editor/components/agent/__tests__/WorkflowChatBottomPanel.contract.test.ts src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts src/features/workflow-editor/components/execution/__tests__/executionBottomPanel.contract.test.ts
+npm run type-check
+```
+
+Expected: pass.
+
+- [x] **Step 4: Update feature map**
+
+Mark Tasks 35-38 complete after focused checks pass.
+
+---
+
+# Follow-up: Chat Panel Polish and Agent Auth Settings
+
+## Task 39: Chat Panel Composer Polish, Ctrl+Enter, STT, and Toast Errors
+
+- [x] Add contract coverage for a custom inline composer, Ctrl+Enter submit, send/mic icons, Chrome `SpeechRecognition`/`webkitSpeechRecognition`, and global toast error reporting.
+- [x] Replace the generic textarea control with a modern composer shell.
+- [x] Add Chrome speech-to-text support with listening state and animation.
+- [x] Replace the generic `"Unable to send message."` copy with explanatory `ApiError`-aware messages and global toast errors.
+
+## Task 40: Plugin Auth Panels for AI Agent, Chat Model, Memory, and Tool Editors
+
+- [x] Add `PluginMenuAuth` coverage to the AI editor contracts.
+- [x] Render provider auth in the Chat Model editor for OpenAI/OpenRouter.
+- [x] Render selected plugin auth in the Tool editor.
+- [x] Add auth sections to Agent and Memory editors, with explanatory fallback copy when the node does not own plugin credentials.
+
+## Task 41: Verification
+
+- [x] `node --test src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts`
+- [x] `npm run type-check`
+- [x] `npm run build-only`
+
+## Task 42: Publish Dirty Chat Trigger Workflow Before Chat Send
+
+- [x] Add a regression contract that publishing from the Workflow Editor saves dirty changes before activating the production workflow.
+- [x] Update publish handling so generated/configured chat slugs are persisted before `/publish` runs.
+
+## Task 43: Preserve Agent Provider Error Details in Chat Failures
+
+- [x] Add a backend regression test proving converted agent runtime errors keep a sanitized public detail.
+- [x] Update `AgentRunner` so provider/configuration failures no longer collapse to only `"Agent execution failed"`.
+- [x] Verify chat route integration still passes.
+
+## Task 44: Chat Panel Layout and Composer Polish
+
+- [x] Add frontend contracts for a `lg` chat panel, composer-first layout, message-only scrolling, and auto-scroll hooks.
+- [x] Move the chat composer above the message list so it is visible immediately when the panel opens.
+- [x] Make the message list the only scrollable region and auto-scroll it after new messages render.
+- [x] Restyle the composer as a compact modern chat input with integrated icon actions.
+- [x] Run focused contracts, type-check, and production build.
+
+## Task 45: Editor Chat Sends to Active Dev Session
+
+- [x] Add regression contracts for passing workflow, trigger node, and dev session context from the Workflow Editor chat panel.
+- [x] Route Chat panel sends into the active Run dev session when the Chat trigger is waiting.
+- [x] Keep the published `/agent-chat/:slug/messages` route as the fallback when no Run session is active.
+- [x] Allow the dev-session trigger execution route to enqueue Chat triggers as `source: "chat"`.
+- [x] Use a `chat_`-prefixed editor session id so Agent memory/checkpointer validation accepts Run-session chat sends.
+- [x] Run focused contracts, frontend type-check/build, and server build.
+
+## Task 46: Editor Chat History and Run Response Sync
+
+- [x] Add contracts for shared editor chat state and dev-session chat event replay.
+- [x] Emit `trigger:received` for Chat trigger sends executed through the dev-session route.
+- [x] Include job payload data on dev-session job lifecycle events so Execution details are not empty.
+- [x] Store editor chat messages in the execution store instead of local component state.
+- [x] Append AI Agent node output back into the Chat panel from live `node:success` events.
+- [x] Preserve Chat history when closing and reopening the bottom panel during the active Run session.
+- [x] Run focused contracts, frontend type-check/build, and server build.
+
+## Task 47: Left Chat Panel Layout
+
+- [x] Move the Workflow Editor Chat panel from the bottom dock to the left side panel.
+- [x] Resize the left Chat panel from its right edge.
+- [x] Keep Execution in the bottom panel.
+- [x] Move the Chat composer to the bottom of the Chat panel.
+- [x] Run focused contracts, frontend type-check, and production build.
+
+## Task 48: Chat Panel Receives Agent End Output
+
+- [x] Forward `agent:*` events through the dev-session stream.
+- [x] Include `output` in the `agent:end` payload.
+- [x] Append `agent:end.output` to the editor Chat history for Chat-triggered dev-session runs.
+- [x] Keep `node:success` as a fallback source for AI Agent output.
+- [x] Run focused frontend/backend contracts, frontend type-check/build, and server build.
+
+## Task 49: Move Agent Plugin Auth to Node Settings
+
+- [x] Remove `PluginMenuAuth` from the main AI Agent, Chat Model, Memory, and Tool editors.
+- [x] Render plugin authorization in the Node Settings tab beside the Node Identifier controls.
+- [x] Resolve settings auth from `pluginId`, and from Chat Model provider when needed.
+- [x] Keep the selected-plugin empty state for generic plugin nodes.
+- [x] Run focused editor contracts, frontend type-check, and production build.
+
+## Task 50: Model Provider Uses Plugin Auth Credentials
+
+- [x] Add a regression test for Chat Model nodes configured through `PluginMenuAuth` without a manual `credentialId`.
+- [x] Fall back to the model provider plugin id (`openai`, `openrouter`) when resolving model credentials.
+- [x] Preserve explicit `credentialId` support when it has usable credentials.
+- [x] Run focused model provider tests and server build.
+
 ---
 
 ## Safety Checklist

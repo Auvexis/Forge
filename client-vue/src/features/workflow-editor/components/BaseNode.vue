@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue'
-import { Position } from '@vue-flow/core'
+import { Position, useVueFlow } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseHandle from './BaseHandle.vue'
 import NodeShimmer from './nodes/NodeShimmer.vue'
@@ -41,6 +41,12 @@ const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
 const quickAddBus = useEventBus('node:quick-add')
 const toast = useToast()
+const { edges } = useVueFlow()
+
+const allEdges = computed(() => [
+  ...edges.value,
+  ...(workflowStore.activeWorkflow?.edges ?? []),
+])
 
 const isEditingId = ref(false)
 const editedId = ref('')
@@ -97,8 +103,7 @@ const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!pro
 const hasOutgoingConnection = computed(() => {
   if (typeof props.hasOutgoingConnection === 'boolean') return props.hasOutgoingConnection
   if (!props.id) return false
-  if (!workflowStore.activeWorkflow) return false
-  return workflowStore.activeWorkflow.edges.some((e) => e.source === props.id)
+  return allEdges.value.some((e) => e.source === props.id)
 })
 
 const onQuickAdd = () => {
@@ -150,9 +155,11 @@ const onQuickAdd = () => {
       class="sailor-base-node__quick-add"
       title="Add connected node"
       @click.stop="onQuickAdd"
+      @dblclick.stop.prevent
+      @pointerdown.stop
     >
       <div class="sailor-base-node__quick-add-cable"></div>
-      <button class="sailor-base-node__quick-add-btn">
+      <button class="sailor-base-node__quick-add-btn" type="button">
         <LucideIcon name="plus" :size="11" />
       </button>
     </div>
@@ -363,7 +370,8 @@ const onQuickAdd = () => {
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  z-index: 5;
+  z-index: 5000;
+  pointer-events: all;
 }
 
 .sailor-base-node__quick-add-cable {

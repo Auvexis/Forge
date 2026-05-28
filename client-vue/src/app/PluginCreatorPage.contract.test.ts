@@ -6,13 +6,15 @@ import { describe, it } from 'node:test'
 const pagePath = path.resolve('src/app/pages/PluginCreatorPage.vue')
 
 describe('PluginCreatorPage contract', () => {
-  it('initializes a usable draft workspace when the route opens', () => {
+  it('initializes a usable local draft workspace when the route opens empty', () => {
     const source = fs.readFileSync(pagePath, 'utf8')
 
     assert.match(source, /useRoute/)
     assert.match(source, /onMounted/)
     assert.match(source, /loadInitialBlueprint/)
-    assert.match(source, /includeDefaultMethod:\s*false/)
+    assert.match(source, /store\.createLocalDraft\(\)/)
+    const loadInitialBody = functionBody(source, 'loadInitialBlueprint')
+    assert.doesNotMatch(loadInitialBody, /store\.createBlueprint\(/)
   })
 
   it('wires header and floating toolbar lifecycle actions to the store', () => {
@@ -58,6 +60,9 @@ describe('PluginCreatorPage contract', () => {
 
     assert.match(source, /PluginCreatorCreatePluginModal/)
     assert.match(source, /isCreatePluginModalOpen/)
+    assert.match(source, /isCreatePluginFirstSave/)
+    assert.match(source, /store\.isNewBlueprint/)
+    assert.match(source, /store\.saveNewBlueprint/)
     assert.doesNotMatch(source, /window\.prompt/)
     assert.doesNotMatch(modal, /includeDefaultMethod:\s*true/)
     assert.match(modal, /includeDefaultMethod:\s*false/)
@@ -67,6 +72,20 @@ describe('PluginCreatorPage contract', () => {
     }
     assert.match(modal, /plugin-creator-icon-preview/)
     assert.match(modal, /type="url"/)
+  })
+
+  it('uses AppConfirmPanel via useConfirm instead of native plugin creator alerts', () => {
+    const source = fs.readFileSync(pagePath, 'utf8')
+
+    assert.match(source, /useConfirm/)
+    assert.match(source, /const \{ confirm \} = useConfirm\(\)/)
+    assert.match(source, /async function confirmUnsavedChanges/)
+    assert.match(source, /await confirm\(/)
+    assert.match(source, /Unsaved changes/)
+    assert.match(source, /Discard changes/)
+    assert.doesNotMatch(source, /window\.confirm/)
+    assert.doesNotMatch(source, /\bconfirm\('/)
+    assert.doesNotMatch(source, /\balert\(/)
   })
 
   it('uses the shared app page and app panel instead of a local add sidebar', () => {
@@ -110,6 +129,10 @@ describe('PluginCreatorPage contract', () => {
 function functionBody(source: string, functionName: string) {
   const start = source.indexOf(`function ${functionName}`)
   assert.notEqual(start, -1)
-  const nextFunction = source.indexOf('\nfunction ', start + 1)
+  const nextRegularFunction = source.indexOf('\nfunction ', start + 1)
+  const nextAsyncFunction = source.indexOf('\nasync function ', start + 1)
+  const nextFunction = [nextRegularFunction, nextAsyncFunction]
+    .filter((index) => index !== -1)
+    .sort((left, right) => left - right)[0]
   return source.slice(start, nextFunction === -1 ? source.length : nextFunction)
 }

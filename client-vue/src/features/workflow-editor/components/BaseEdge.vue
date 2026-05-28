@@ -5,12 +5,15 @@
     :style="computedStyle"
     :path="pathData[0]"
     :marker-end="props.selected ? 'url(#sailor-arrow-selected)' : `url(#sailor-arrow-${edgeStatus})`"
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
   />
 
   <!-- ── Floating elements ── -->
   <EdgeLabelRenderer>
     <!-- Toolbar ABOVE the edge midpoint -->
     <div
+      v-if="!isAgentConfigEdge"
       class="nodrag nopan sailor-edge-toolbar"
       :class="{ 'sailor-edge-toolbar--visible': !isMultiSelection && (isHovered || selected) }"
       :style="{
@@ -51,14 +54,13 @@
 
     <!-- Invisible wider hover zone spanning toolbar + label area -->
     <div
+      v-if="!isAgentConfigEdge"
       class="nodrag nopan sailor-edge-hover-zone"
       :style="{
-        pointerEvents: 'all',
+        pointerEvents: 'none',
         position: 'absolute',
         transform: `translate(-50%, -50%) translate(${pathData[1]}px,${pathData[2]}px)`,
       }"
-      @mouseenter="isHovered = true"
-      @mouseleave="isHovered = false"
     />
 
     <!-- Label BELOW the edge midpoint -->
@@ -89,6 +91,10 @@ const props = defineProps<EdgeProps>()
 
 const { removeEdges, getNodes, getSelectedNodes, viewport } = useVueFlow()
 const executionStore = useExecutionStore()
+const AGENT_CONFIG_TARGET_HANDLES = new Set(['chatModel', 'memory', 'tool'])
+const isAgentConfigEdge = computed(() =>
+  AGENT_CONFIG_TARGET_HANDLES.has(String(props.targetHandleId ?? props.data?.targetHandle ?? '')),
+)
 
 const isMultiSelection = computed(() => getSelectedNodes.value.length >= 2)
 const toolbarScale = computed(() => {
@@ -98,7 +104,21 @@ const toolbarScale = computed(() => {
 
 // ── Path ─────────────────────────────────────────────────────────────────────
 
+function agentConfigBezierPath(sx: number, sy: number, tx: number, ty: number): [string, number, number] {
+  const verticalGap = Math.abs(sy - ty)
+  const pull = Math.min(180, Math.max(72, verticalGap * 0.55))
+  const sourcePull = sy > ty ? -pull : pull
+  const targetPull = ty > sy ? -pull : pull
+  const path = `M ${sx} ${sy} C ${sx} ${sy + sourcePull}, ${tx} ${ty + targetPull}, ${tx} ${ty}`
+
+  return [path, (sx + tx) / 2, (sy + ty) / 2]
+}
+
 const pathData = computed(() => {
+  if (isAgentConfigEdge.value) {
+    return agentConfigBezierPath(props.sourceX, props.sourceY, props.targetX, props.targetY)
+  }
+
   const [path, lx, ly] = routedBezierPath(
     props.sourceX, props.sourceY,
     props.targetX, props.targetY,
@@ -164,6 +184,7 @@ const computedStyle = computed(() => ({
   ...props.style,
   stroke: strokeColor.value,
   strokeWidth: edgeStatus.value !== 'idle' ? 3 : 2,
+  strokeDasharray: isAgentConfigEdge.value ? '6 6' : props.style?.strokeDasharray,
   transition: 'stroke 0.3s ease, stroke-width 0.3s ease',
 }))
 

@@ -855,24 +855,40 @@ export default async function workflowsRoutes(
     }
 
     const triggerEntry = getTriggerEntry(session.workflow, triggerNodeId);
-    if (!triggerEntry || triggerEntry.disabled || triggerEntry.trigger.type !== "manual") {
+    if (
+      !triggerEntry ||
+      triggerEntry.disabled ||
+      (triggerEntry.trigger.type !== "manual" && triggerEntry.trigger.type !== "chat")
+    ) {
       return sendResponse(reply, {
         status_code: 400,
-        message: "Manual trigger not available for this dev session",
+        message: "Manual or chat trigger not available for this dev session",
         error: "Bad Request",
         data: null,
       });
     }
 
+    const source = triggerEntry.trigger.type === "chat" ? "chat" : "manual";
     const job = devWorkflowSessionRuntime.manager.enqueueJob(sessionId, {
       triggerNodeId,
-      source: "manual",
+      source,
       payload: body.payload ?? {},
+    });
+    devWorkflowSessionRuntime.eventBus.emitSessionEvent({
+      type: "trigger:received",
+      sessionId,
+      workflowId: session.workflowId,
+      executionId: job.executionId,
+      triggerNodeId,
+      jobId: job.id,
+      source,
+      timestamp: Date.now(),
+      data: body.payload ?? {},
     });
 
     return sendResponse(reply, {
       status_code: 202,
-      message: "Manual trigger queued",
+      message: source === "chat" ? "Chat trigger queued" : "Manual trigger queued",
       error: null,
       data: {
         sessionId,

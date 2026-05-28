@@ -12,14 +12,8 @@
         @update:model-value="updateNodeData({ errorVariable: normalizeVariable(String($event)) })"
       />
       <div class="try-catch-node-editor__branches">
-        <div>
-          <strong>Try branch</strong>
-          <span>Handle: try</span>
-        </div>
-        <div>
-          <strong>Fallback catch</strong>
-          <span>Handle: catch</span>
-        </div>
+        <BaseBadge variant="success" size="sm" text="Try branch" />
+        <BaseBadge variant="warning" size="sm" text="Fallback catch" />
       </div>
     </NodeEditorSection>
 
@@ -32,17 +26,20 @@
           <div class="try-catch-node-editor__case-head">
             <strong>Catch {{ index + 1 }}</strong>
             <div class="try-catch-node-editor__case-actions">
-              <button type="button" :disabled="index === 0" @click="moveCatch(index, -1)">
-                Up
+              <button type="button" title="Move up" :disabled="index === 0" @click="moveCatch(index, -1)">
+                <LucideIcon name="chevron-up" :size="14" />
               </button>
               <button
                 type="button"
+                title="Move down"
                 :disabled="index === catchCases.length - 1"
                 @click="moveCatch(index, 1)"
               >
-                Down
+                <LucideIcon name="chevron-down" :size="14" />
               </button>
-              <button type="button" @click="removeCatch(index)">Remove</button>
+              <button type="button" title="Remove" aria-label="Remove" @click="removeCatch(index)">
+                <LucideIcon name="x" :size="14" />
+              </button>
             </div>
           </div>
           <BaseInput
@@ -79,7 +76,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import BaseBadge from '@/shared/components/base/BaseBadge.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import NodeEditorSection from './NodeEditorSection.vue'
 import { usePluginCreatorNodeEditorContext } from './usePluginCreatorNodeEditorContext'
 import type { PluginCreatorNodeEditorEmits, PluginCreatorNodeEditorProps } from './types'
@@ -194,15 +193,18 @@ function normalizeHandle(value: string, index: number) {
 }
 
 .try-catch-node-editor__case-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-surface);
   color: var(--sailor-text-primary);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 6px 8px;
+  padding: 0;
 }
 
 .try-catch-node-editor__case-actions button:disabled {
@@ -216,7 +218,6 @@ function normalizeHandle(value: string, index: number) {
   gap: 10px;
 }
 
-.try-catch-node-editor__branches > div,
 .try-catch-node-editor__case,
 .try-catch-node-editor__empty {
   display: flex;
@@ -235,7 +236,6 @@ function normalizeHandle(value: string, index: number) {
   gap: 12px;
 }
 
-.try-catch-node-editor__branches span,
 .try-catch-node-editor__empty {
   color: var(--sailor-text-muted);
   font-size: 12px;

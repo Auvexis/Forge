@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { selectToolbarRunTrigger, shouldRenderLegacyTriggerNode } from '../workflowRunTrigger.ts'
+import {
+  listWorkflowChatTriggers,
+  selectToolbarRunTrigger,
+  shouldRenderLegacyTriggerNode,
+} from '../workflowRunTrigger.ts'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 
 function makeWorkflow(nodes: WorkflowItem['nodes']): WorkflowItem {
@@ -68,6 +72,37 @@ describe('workflow run trigger selection', () => {
     assert.equal(result?.triggerNodeId, 'trigger_chat')
     assert.equal(result?.trigger.type, 'chat')
     assert.equal(result?.runMode, 'chat-panel')
+  })
+
+  it('lists every enabled chat trigger for the chat panel selector', () => {
+    const workflow = makeWorkflow({
+      trigger_chat_a: {
+        type: 'trigger',
+        name: 'Support',
+        trigger: { type: 'chat', chatSlug: 'support-chat', chatTitle: 'Support' },
+      },
+      trigger_chat_b: {
+        type: 'trigger',
+        name: 'Sales',
+        trigger: { type: 'chat', chatSlug: 'sales-chat', chatTitle: 'Sales' },
+      },
+      trigger_chat_disabled: {
+        type: 'trigger',
+        name: 'Disabled',
+        disabled: true,
+        trigger: { type: 'chat', chatSlug: 'disabled-chat' },
+      },
+    })
+
+    const result = listWorkflowChatTriggers(workflow)
+
+    assert.deepEqual(
+      result.map((entry) => [entry.triggerNodeId, entry.chatSlug, entry.title]),
+      [
+        ['trigger_chat_a', 'support-chat', 'Support'],
+        ['trigger_chat_b', 'sales-chat', 'Sales'],
+      ],
+    )
   })
 
   it('falls back to the legacy virtual trigger when there are no real trigger nodes', () => {

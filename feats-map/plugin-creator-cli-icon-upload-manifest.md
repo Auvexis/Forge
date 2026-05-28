@@ -6,6 +6,8 @@
 
 **Rules:** plugin nao acessa nada fora da propria pasta. Manifest nao deve permitir `C:/...`, `/home/...`, `file://...` ou `../...`.
 
+**Implementation status:** backend upload/validation/generator, frontend API/store/UI/icon rendering, server template and Sailor CLI template/release convention implemented. Automated file tests, server build, client type-check and CLI tests passed. Manual QA checklist still needs an app run.
+
 ---
 
 ## Files
