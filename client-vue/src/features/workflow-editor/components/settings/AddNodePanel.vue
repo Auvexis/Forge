@@ -230,6 +230,8 @@ const props = defineProps<{
   agentConfigHandle?: 'chatModel' | 'memory' | 'tool'
 }>()
 
+const SUPPORTED_CHAT_MODEL_ADAPTERS = new Set(['openai-compatible', 'generic'])
+
 // ── State ────────────────────────────────────────────────────────────────────
 
 type ViewMode = 'categories' | 'actions'
@@ -470,10 +472,15 @@ const filteredIntegrationPlugins = computed(() =>
 )
 
 const agentChatModelPlugins = computed(() =>
-  filteredPlugins.value.filter((plugin) =>
-    plugin.manifest.metadata.agentCapabilities?.chatModel?.enabled === true &&
-    plugin.manifest.metadata.agentCapabilities.chatModel.adapter === 'openai-compatible',
-  ),
+  filteredPlugins.value.filter((plugin) => {
+    const manifest = plugin.manifest
+    const adapter = manifest.metadata.agentCapabilities?.chatModel?.adapter
+    return (
+      manifest.metadata.agentCapabilities?.chatModel?.enabled === true &&
+      Boolean(adapter) &&
+      SUPPORTED_CHAT_MODEL_ADAPTERS.has(adapter)
+    )
+  }),
 )
 
 const agentMemoryStorePlugins = computed(() =>

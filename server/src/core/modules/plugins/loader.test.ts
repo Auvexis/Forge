@@ -179,6 +179,26 @@ describe("loadPlugins", () => {
     assert.deepEqual(errors, []);
   });
 
+  it("accepts generic plugin-level chat model agent capabilities", () => {
+    const errors = validateManifest(
+      createValidManifest({
+        agentCapabilities: {
+          chatModel: {
+            enabled: true,
+            adapter: "generic",
+            label: "Generic Chat Model",
+            description: "Provides chat completions through a configurable compatible API endpoint.",
+            defaultModel: "llama3.2",
+            defaultBaseUrl: "http://localhost:11434/v1",
+            credentialPluginId: "sailor-ollama",
+          },
+        },
+      }),
+    );
+
+    assert.deepEqual(errors, []);
+  });
+
   it("rejects enabled chat model agent capabilities missing required display metadata", () => {
     const errors = validateManifest(
       createValidManifest({
@@ -212,8 +232,8 @@ describe("loadPlugins", () => {
     );
 
     assert.ok(
-      errors.some((error) => error.includes("openai-compatible")),
-      `Expected an error mentioning openai-compatible, got: ${errors.join("; ")}`,
+      errors.some((error) => error.includes("openai-compatible") && error.includes("generic")),
+      `Expected an error mentioning openai-compatible and generic, got: ${errors.join("; ")}`,
     );
   });
 

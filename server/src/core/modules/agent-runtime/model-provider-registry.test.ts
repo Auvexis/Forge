@@ -71,6 +71,50 @@ describe("agent model provider registry", () => {
     assert.equal(created[0].configuration.baseURL, "https://generic.example.test/v1");
   });
 
+  it("creates generic local models without stored credentials", async () => {
+    const created: any[] = [];
+    const registry = new AgentModelProviderRegistry({
+      credentialResolver: () => null,
+      createModel: (config) => {
+        created.push(config);
+        return { kind: "fake-model", config };
+      },
+    });
+
+    const model = await registry.createChatModel({
+      ...modelConfig(),
+      pluginId: "sailor-ollama",
+      adapter: "generic",
+      model: "llama3.2",
+      baseUrl: "http://localhost:11434/v1",
+      credentialId: undefined,
+    });
+
+    assert.equal((model as any).kind, "fake-model");
+    assert.equal(created[0].configuration.baseURL, "http://localhost:11434/v1");
+    assert.equal(created[0].apiKey, "sailor-local");
+  });
+
+  it("rejects generic remote models without credentials", async () => {
+    const registry = new AgentModelProviderRegistry({
+      credentialResolver: () => null,
+      createModel: () => ({ kind: "fake-model" }),
+    });
+
+    await assert.rejects(
+      registry.createChatModel({
+        ...modelConfig(),
+        pluginId: "generic-cloud",
+        adapter: "generic",
+        baseUrl: "https://llm.example.test/v1",
+        credentialId: undefined,
+      }),
+      (error) =>
+        error instanceof AgentRuntimeError &&
+        error.code === "AGENT_MODEL_CREDENTIAL_MISSING",
+    );
+  });
+
   it("rejects unknown adapters", async () => {
     const registry = new AgentModelProviderRegistry({
       credentialResolver: () => ({ api_key: "sk-test" }),

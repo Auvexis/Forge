@@ -29,6 +29,21 @@ describe("agent runtime validation", () => {
     assert.equal(model.adapter, "openai-compatible");
   });
 
+  it("accepts generic AI model adapter configs", () => {
+    const model = validateAiModelConfig({
+      ...validModel(),
+      pluginId: "sailor-ollama",
+      adapter: "generic",
+      model: "llama3.2",
+      baseUrl: "http://localhost:11434/v1",
+      credentialId: undefined,
+    });
+
+    assert.equal(model.pluginId, "sailor-ollama");
+    assert.equal(model.adapter, "generic");
+    assert.equal(model.baseUrl, "http://localhost:11434/v1");
+  });
+
   it("normalizes legacy OpenAI model configs", () => {
     const model = validateAiModelConfig(legacyModel("openai"));
 

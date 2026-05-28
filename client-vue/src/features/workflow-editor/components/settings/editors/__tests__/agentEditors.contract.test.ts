@@ -64,17 +64,20 @@ test('frontend agent runtime types expose plugin capability and generic model co
   assert.match(pluginTypes, /chatModel/)
   assert.match(pluginTypes, /memoryStore/)
   assert.match(pluginTypes, /AgentModelAdapter/)
+  assert.match(pluginTypes, /'openai-compatible' \| 'generic'/)
   assert.match(pluginTypes, /searchMethodId/)
   assert.match(pluginTypes, /putMethodId/)
 
   assert.match(workflowTypes, /pluginId/)
   assert.match(workflowTypes, /adapter/)
   assert.match(workflowTypes, /AgentModelAdapter/)
+  assert.match(workflowTypes, /'openai-compatible' \| 'generic'/)
   assert.doesNotMatch(workflowTypes, /provider\?: 'openai' \| 'openrouter'/)
 
   assert.match(agentTypes, /pluginId/)
   assert.match(agentTypes, /adapter/)
   assert.match(agentTypes, /AgentModelAdapter/)
+  assert.match(agentTypes, /'openai-compatible' \| 'generic'/)
   assert.doesNotMatch(agentTypes, /provider\?: 'openai' \| 'openrouter'/)
 })
 

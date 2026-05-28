@@ -28,7 +28,7 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 
 - [x] Task 1: Streaming Event Contract
 - [x] Task 2: Generic Streamable Model Interface
-- [ ] Task 2A: Generic Configurable Chat Model Adapter
+- [x] Task 2A: Generic Configurable Chat Model Adapter
 - [ ] Task 2B: Ollama Chat Model Capability
 - [ ] Task 2C: Ollama Plugin Methods And Cloud Credentials
 - [ ] Task 3: Agent Graph Text Streaming
@@ -102,25 +102,25 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - Test: `client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts`
 
 **Steps**
-- [ ] Add failing tests proving manifests can expose `adapter: "generic"` for `chatModel`.
-- [ ] Add failing tests proving AI Model nodes accept `adapter: "generic"`.
-- [ ] Define `AgentModelAdapter = "openai-compatible" | "generic"` across server/shared/client types.
-- [ ] Keep `openai-compatible` behavior unchanged.
-- [ ] Implement `generic` as configurable OpenAI-compatible chat transport:
+- [x] Add failing tests proving manifests can expose `adapter: "generic"` for `chatModel`.
+- [x] Add failing tests proving AI Model nodes accept `adapter: "generic"`.
+- [x] Define `AgentModelAdapter = "openai-compatible" | "generic"` across server/shared/client types.
+- [x] Keep `openai-compatible` behavior unchanged.
+- [x] Implement `generic` as configurable OpenAI-compatible chat transport:
   - requires `model`
   - accepts `baseUrl`
   - accepts optional `credentialId`
   - uses plugin credentials fallback
   - supports local API-key-free endpoints when manifest/node marks auth as optional
-- [ ] Add safe credential behavior:
+- [x] Add safe credential behavior:
   - if API key exists, pass it
   - if API key is missing and endpoint allows local/no-auth, use a non-secret placeholder only when the underlying client requires one
   - never serialize real credentials
-- [ ] Do not add plugin-id branches for OpenAI, OpenRouter, or Ollama.
-- [ ] Run:
+- [x] Do not add plugin-id branches for OpenAI, OpenRouter, or Ollama.
+- [x] Run:
   - `cd server; node --test src/core/modules/agent-runtime/agent-validation.test.ts src/core/modules/workflows/workflow-validation.test.ts src/core/modules/plugins/loader.test.ts src/core/modules/agent-runtime/model-provider-registry.test.ts src/shared/models/workflow-agent-types.test.ts`
   - `cd client-vue; node --test src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts`
-- [ ] Commit:
+- [x] Commit:
   - `git add server/src/core/modules/agent-runtime/agent-types.ts server/src/shared/models/workflow-types.ts server/src/core/modules/agent-runtime/agent-validation.ts server/src/core/modules/workflows/workflow-validation.ts server/src/core/modules/plugins/loader.ts server/src/core/modules/agent-runtime/model-provider-registry.ts server/src/core/modules/agent-runtime/model-providers/openai-compatible-provider.ts client-vue/src/core/types/plugin.types.ts client-vue/src/core/types/workflow.types.ts client-vue/src/features/agent-runtime/types/agent.types.ts server/src/core/modules/agent-runtime/agent-validation.test.ts server/src/core/modules/workflows/workflow-validation.test.ts server/src/core/modules/plugins/loader.test.ts server/src/core/modules/agent-runtime/model-provider-registry.test.ts server/src/shared/models/workflow-agent-types.test.ts client-vue/src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts`
   - `git commit -m "feat: add generic chat model adapter"`
 

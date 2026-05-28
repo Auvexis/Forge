@@ -8,16 +8,21 @@ export type AgentCredentialResolver = (
 
 export interface OpenAiCompatibleProviderOptions {
   credentialResolver: AgentCredentialResolver;
+  adapter?: string;
+  allowLocalNoAuth?: boolean;
   createModel?: (config: Record<string, any>) => unknown;
 }
 
 export class OpenAiCompatibleProvider {
-  public readonly adapter = "openai-compatible";
+  public readonly adapter: string;
   private readonly credentialResolver: AgentCredentialResolver;
+  private readonly allowLocalNoAuth: boolean;
   private readonly createModel: (config: Record<string, any>) => unknown;
 
   constructor(options: OpenAiCompatibleProviderOptions) {
+    this.adapter = options.adapter ?? "openai-compatible";
     this.credentialResolver = options.credentialResolver;
+    this.allowLocalNoAuth = options.allowLocalNoAuth ?? false;
     this.createModel = options.createModel ?? ((config) => new ChatOpenAI(config));
   }
 
@@ -25,7 +30,9 @@ export class OpenAiCompatibleProvider {
     const credentials = this.resolveCredentials(config);
     const apiKey = credentials?.api_key ?? credentials?.apiKey ?? credentials?.token;
 
-    if (!apiKey) {
+    const effectiveApiKey = apiKey ?? (this.allowLocalNoAuth && isLocalBaseUrl(config.baseUrl) ? "sailor-local" : undefined);
+
+    if (!effectiveApiKey) {
       throw new AgentRuntimeError(
         `Missing model credentials for ${config.pluginId}`,
         "AGENT_MODEL_CREDENTIAL_MISSING",
@@ -36,10 +43,17 @@ export class OpenAiCompatibleProvider {
 
     const modelConfig: Record<string, any> = {
       model: config.model,
-      temperature: clampTemperature(config.temperature),
       maxTokens: config.maxTokens,
-      apiKey,
+      apiKey: effectiveApiKey,
     };
+    const temperature = normalizeTemperature(config.model, config.temperature);
+    if (temperature !== undefined) {
+      modelConfig.temperature = temperature;
+    }
+    if (usesLowLatencyReasoningDefaults(config.model)) {
+      modelConfig.reasoning = { effort: "minimal" };
+      modelConfig.verbosity = "low";
+    }
 
     if (config.baseUrl) {
       modelConfig.configuration = {
@@ -48,7 +62,7 @@ export class OpenAiCompatibleProvider {
     }
 
     const model = this.createModel(modelConfig);
-    return hideSecretConfig(model, apiKey);
+    return hideSecretConfig(model, effectiveApiKey);
   }
 
   private resolveCredentials(
@@ -67,10 +81,35 @@ function hasApiKey(credentials: Record<string, string> | null | undefined): bool
   return Boolean(credentials?.api_key ?? credentials?.apiKey ?? credentials?.token);
 }
 
+function isLocalBaseUrl(baseUrl: string | undefined): boolean {
+  if (!baseUrl) return false;
+  try {
+    const url = new URL(baseUrl);
+    return ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function clampTemperature(value: number): number {
   if (value < 0) return 0;
   if (value > 2) return 2;
   return value;
+}
+
+function normalizeTemperature(model: string, value: number): number | undefined {
+  if (usesDefaultTemperatureOnly(model)) return undefined;
+  return clampTemperature(value);
+}
+
+function usesDefaultTemperatureOnly(model: string): boolean {
+  const normalized = model.toLowerCase();
+  return /(^|[/:])gpt-5(?:-|$)/.test(normalized);
+}
+
+function usesLowLatencyReasoningDefaults(model: string): boolean {
+  const normalized = model.toLowerCase();
+  return /(^|[/:])gpt-5-nano(?:-|$)/.test(normalized);
 }
 
 function hideSecretConfig(model: unknown, apiKey: string): unknown {

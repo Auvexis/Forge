@@ -14,6 +14,7 @@ export interface AgentModelProvider {
 export interface AgentModelProviderRegistryOptions {
   providers?: AgentModelProvider[];
   credentialResolver?: AgentCredentialResolver;
+  createModel?: (config: Record<string, any>) => unknown;
 }
 
 export class AgentModelProviderRegistry {
@@ -23,7 +24,18 @@ export class AgentModelProviderRegistry {
     const credentialResolver = options.credentialResolver ?? defaultCredentialResolver;
     const providers =
       options.providers ??
-      [new OpenAiCompatibleProvider({ credentialResolver })];
+      [
+        new OpenAiCompatibleProvider({
+          credentialResolver,
+          createModel: options.createModel,
+        }),
+        new OpenAiCompatibleProvider({
+          adapter: "generic",
+          credentialResolver,
+          allowLocalNoAuth: true,
+          createModel: options.createModel,
+        }),
+      ];
 
     for (const provider of providers) {
       this.providers.set(provider.adapter, provider);
