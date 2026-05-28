@@ -28,8 +28,13 @@ function sanitizeValue(value: unknown): unknown {
     return value.map((item) => sanitizeValue(item));
   }
 
+  const record = value as Record<string, unknown>;
+  if (typeof record.delta === "string") {
+    return { delta: truncateAgentText(record.delta) };
+  }
+
   return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+    Object.entries(record).map(([key, item]) => [
       key,
       SECRET_KEY_PATTERN.test(key) ? REDACTED : sanitizeValue(item),
     ]),

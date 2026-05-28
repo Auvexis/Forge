@@ -5,6 +5,7 @@ import Fastify from "fastify";
 import { createMigrationEngine } from "../../database/migration-engine.ts";
 import { AgentRunner } from "./agent-runner.ts";
 import { sanitizeAgentEventPayload } from "./agent-event-sanitizer.ts";
+import { AGENT_LIMITS } from "./agent-limits.ts";
 import { executePluginAgentTool } from "./plugin-tool-executor.ts";
 import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
 import { assertMemoryWriteAllowed } from "./memory/agent-memory-policy.ts";
@@ -73,6 +74,19 @@ describe("agent runtime security hardening", () => {
         output: { authorization: "[REDACTED]", value: "visible" },
       },
     );
+  });
+
+  it("keeps only sanitized text delta for streamed agent output events", () => {
+    const sanitized = sanitizeAgentEventPayload({
+      delta: `hello ${"x".repeat(AGENT_LIMITS.maxEventBodyChars + 1)}`,
+      apiKey: "sk-live-secret",
+      rawChunk: { provider: "test", tokenLogprobs: [1, 2, 3] },
+    });
+
+    assert.deepEqual(Object.keys(sanitized as Record<string, unknown>), ["delta"]);
+    assert.match((sanitized as { delta: string }).delta, /^hello /);
+    assert.match((sanitized as { delta: string }).delta, /truncated/);
+    assert.doesNotMatch(JSON.stringify(sanitized), /sk-live-secret|tokenLogprobs|rawChunk/);
   });
 
   it("rejects chat session ids from another profile", async () => {

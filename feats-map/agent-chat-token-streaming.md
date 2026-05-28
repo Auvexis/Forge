@@ -32,7 +32,7 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - [x] Task 2B: Ollama Chat Model Capability
 - [x] Task 2C: Ollama Plugin Methods And Cloud Credentials
 - [x] Task 3: Agent Graph Text Streaming
-- [ ] Task 4: Runtime Event Sanitizing And Dev Session Forwarding
+- [x] Task 4: Runtime Event Sanitizing And Dev Session Forwarding
 - [ ] Task 5: Frontend Incremental Chat Message Rendering
 - [ ] Task 6: Status And Error Semantics
 - [ ] Task 7: Verification And Smoke
@@ -213,14 +213,14 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - Test: `server/src/core/modules/workflows/dev-session/session-event-bus.test.ts`
 
 **Steps**
-- [ ] Add failing sanitizer test: `agent:output-delta` keeps text delta but strips secrets/large unsafe payloads.
-- [ ] Add failing session bus test: delta event includes `executionId`, `nodeId`, `source: "chat"` when forwarded from a chat job.
+- [x] Add failing sanitizer test: `agent:output-delta` keeps text delta but strips secrets/large unsafe payloads.
+- [x] Add failing session bus test: delta event includes `executionId`, `nodeId`, `source: "chat"` when forwarded from a chat job.
 - [ ] Use payload shape:
   - `{ delta: string }`
-- [ ] Do not include provider metadata, raw chunks, credentials, or token logprobs.
-- [ ] Run:
+- [x] Do not include provider metadata, raw chunks, credentials, or token logprobs.
+- [x] Run:
   - `cd server; node --test src/core/modules/agent-runtime/agent-security.test.ts src/core/modules/workflows/dev-session/session-event-bus.test.ts`
-- [ ] Commit:
+- [x] Commit:
   - `git add server/src/core/modules/agent-runtime/agent-event-sanitizer.ts server/src/core/modules/workflows/dev-session/session-event-bus.ts server/src/core/modules/agent-runtime/agent-security.test.ts server/src/core/modules/workflows/dev-session/session-event-bus.test.ts`
   - `git commit -m "feat: safely forward agent stream deltas"`
 
