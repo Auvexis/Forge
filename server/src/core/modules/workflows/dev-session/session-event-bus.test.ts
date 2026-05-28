@@ -68,6 +68,36 @@ describe("SessionEventBus", () => {
     }]);
   });
 
+  it("maps agent output delta events to session events with generic payload", () => {
+    const bus = new SessionEventBus();
+    const received: unknown[] = [];
+    const workflowEvent: WorkflowEvent = {
+      type: "agent:output-delta",
+      executionId: "exec-1",
+      workflowId: "wf-1",
+      nodeId: "agent-1",
+      timestamp: Date.now(),
+      data: { delta: "Hel" },
+    };
+
+    bus.onSession("session-1", (event) => received.push(event));
+    bus.emitWorkflowEvent({ ...job(), source: "chat" }, workflowEvent);
+
+    assert.deepEqual(received, [{
+      type: "agent:output-delta",
+      sessionId: "session-1",
+      workflowId: "wf-1",
+      executionId: "exec-1",
+      triggerNodeId: "trigger-a",
+      nodeId: "agent-1",
+      jobId: "job-1",
+      source: "chat",
+      timestamp: workflowEvent.timestamp,
+      data: { delta: "Hel" },
+      error: undefined,
+    }]);
+  });
+
   it("replays buffered session events to late subscribers", () => {
     const bus = new SessionEventBus({ replayLimit: 3 });
     const received: string[] = [];

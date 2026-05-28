@@ -1,4 +1,5 @@
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
+import type { AgentEventType } from "../../agent-runtime/agent-types.ts";
 
 export type DevWorkflowSessionStatus =
   | "starting"
@@ -66,6 +67,7 @@ export type SessionEventType =
   | "node:start"
   | "node:success"
   | "node:failed"
+  | AgentEventType
   | "job:success"
   | "job:failed"
   | "job:cancelled"

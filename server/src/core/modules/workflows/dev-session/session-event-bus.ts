@@ -6,6 +6,18 @@ const workflowToSessionEvent: Partial<Record<WorkflowEvent["type"], SessionEvent
   "node:start": "node:start",
   "node:success": "node:success",
   "node:failed": "node:failed",
+  "agent:start": "agent:start",
+  "agent:model-start": "agent:model-start",
+  "agent:model-end": "agent:model-end",
+  "agent:output-delta": "agent:output-delta",
+  "agent:tool-start": "agent:tool-start",
+  "agent:tool-end": "agent:tool-end",
+  "agent:memory-read": "agent:memory-read",
+  "agent:memory-write": "agent:memory-write",
+  "agent:approval-created": "agent:approval-created",
+  "agent:approval-resumed": "agent:approval-resumed",
+  "agent:error": "agent:error",
+  "agent:end": "agent:end",
 };
 
 export class SessionEventBus extends EventEmitter {
