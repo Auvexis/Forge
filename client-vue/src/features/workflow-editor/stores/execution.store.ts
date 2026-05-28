@@ -121,7 +121,7 @@ export const useExecutionStore = defineStore('execution', () => {
     if (type === 'node:failed' || type === 'workflow:failed' || type === 'job:failed' || type === 'agent:error') return 'failed'
     if (type === 'node:retry') return 'retrying'
     if (type === 'workflow:cancelled' || type === 'job:cancelled') return 'cancelled'
-    if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created' || type === 'job:start' || type === 'agent:start' || type === 'agent:model-start' || type === 'agent:tool-start') {
+    if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created' || type === 'job:start' || type === 'agent:start' || type === 'agent:model-start' || type === 'agent:output-delta' || type === 'agent:tool-start') {
       return 'running'
     }
     return 'info'
@@ -152,6 +152,7 @@ export const useExecutionStore = defineStore('execution', () => {
     if (ev.type === 'agent:start') return 'Agent started'
     if (ev.type === 'agent:model-start') return 'Agent model call started'
     if (ev.type === 'agent:model-end') return 'Agent model call completed'
+    if (ev.type === 'agent:output-delta') return 'Agent output delta'
     if (ev.type === 'agent:tool-start') return 'Agent tool call started'
     if (ev.type === 'agent:tool-end') return 'Agent tool call completed'
     if (ev.type === 'agent:memory-read') return 'Agent memory read'
@@ -324,7 +325,9 @@ export const useExecutionStore = defineStore('execution', () => {
     if (!chatSessionId) return
 
     appendEditorChatMessage({
-      id: `chat-assistant-error:${ev.executionId}:agent-error`,
+      id: hasStreamAssistantMessageForExecution(chatSessionId, ev.executionId)
+        ? streamAssistantMessageId(ev.executionId)
+        : `chat-assistant-error:${ev.executionId}:agent-error`,
       sessionId: chatSessionId,
       role: 'assistant',
       content: `Chat run failed. ${extractAgentError(ev.data) ?? ev.error ?? 'Agent execution failed.'}`,
@@ -351,6 +354,12 @@ export const useExecutionStore = defineStore('execution', () => {
   function hasAssistantMessageForExecution(chatSessionId: string, executionId: string): boolean {
     return (editorChatMessagesBySession[chatSessionId] ?? []).some((message) =>
       message.role === 'assistant' && message.id.includes(executionId),
+    )
+  }
+
+  function hasStreamAssistantMessageForExecution(chatSessionId: string, executionId: string): boolean {
+    return (editorChatMessagesBySession[chatSessionId] ?? []).some((message) =>
+      message.role === 'assistant' && message.id === streamAssistantMessageId(executionId),
     )
   }
 
@@ -671,6 +680,10 @@ export const useExecutionStore = defineStore('execution', () => {
 
           case 'agent:output-delta':
             recordEditorChatAgentOutputDelta(ev)
+            if (ev.nodeId) {
+              _patchNode(ev.nodeId, { status: 'running', startedAt: ev.timestamp })
+              _patchExecutionNode(ev.executionId, ev.nodeId, { status: 'running', startedAt: ev.timestamp })
+            }
             break
 
           case 'agent:end':

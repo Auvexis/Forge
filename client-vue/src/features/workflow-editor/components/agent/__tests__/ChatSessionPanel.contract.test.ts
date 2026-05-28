@@ -84,6 +84,17 @@ test('editor chat renders agent output deltas into one assistant message per exe
   assert.match(store, /recordEditorChatAgentEnd[\s\S]*id: streamAssistantMessageId\(ev\.executionId\)/)
 })
 
+test('editor chat keeps streaming status and error semantics consistent', () => {
+  const store = read('src/features/workflow-editor/stores/execution.store.ts')
+
+  assert.match(store, /case 'agent:model-start':[\s\S]*patchConnectedAgentConfigNode\(ev\.nodeId, 'chatModel', \{[\s\S]*status: 'running'/)
+  assert.match(store, /case 'agent:output-delta':[\s\S]*_patchNode\(ev\.nodeId, \{ status: 'running', startedAt: ev\.timestamp \}\)/)
+  assert.match(store, /case 'agent:output-delta':[\s\S]*_patchExecutionNode\(ev\.executionId, ev\.nodeId, \{ status: 'running', startedAt: ev\.timestamp \}\)/)
+  assert.match(store, /function hasStreamAssistantMessageForExecution/)
+  assert.match(store, /recordEditorChatAgentFailure[\s\S]*hasStreamAssistantMessageForExecution\(chatSessionId, ev\.executionId\)[\s\S]*streamAssistantMessageId\(ev\.executionId\)/)
+  assert.match(store, /recordEditorChatJobSuccess[\s\S]*hasAssistantMessageForExecution\(chatSessionId, ev\.executionId\)/)
+})
+
 test('chat session panel renders user and assistant messages', () => {
   const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
 

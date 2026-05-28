@@ -477,7 +477,7 @@ const agentChatModelPlugins = computed(() =>
     const adapter = manifest.metadata.agentCapabilities?.chatModel?.adapter
     return (
       manifest.metadata.agentCapabilities?.chatModel?.enabled === true &&
-      Boolean(adapter) &&
+      typeof adapter === 'string' &&
       SUPPORTED_CHAT_MODEL_ADAPTERS.has(adapter)
     )
   }),

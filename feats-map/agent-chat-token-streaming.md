@@ -34,7 +34,7 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - [x] Task 3: Agent Graph Text Streaming
 - [x] Task 4: Runtime Event Sanitizing And Dev Session Forwarding
 - [x] Task 5: Frontend Incremental Chat Message Rendering
-- [ ] Task 6: Status And Error Semantics
+- [x] Task 6: Status And Error Semantics
 - [ ] Task 7: Verification And Smoke
 
 ## Task 1: Streaming Event Contract
@@ -248,18 +248,20 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 ## Task 6: Status And Error Semantics
 
 **Files**
+- Modify: `client-vue/src/core/types/execution.types.ts`
+- Modify: `client-vue/src/features/workflow-editor/components/settings/AddNodePanel.vue`
 - Modify: `client-vue/src/features/workflow-editor/stores/execution.store.ts`
 - Test: `client-vue/src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
 
 **Steps**
-- [ ] Add failing test: Chat Model node becomes `running` on `agent:model-start`.
-- [ ] Add failing test: Agent node stays `running` while deltas arrive.
-- [ ] Add failing test: `agent:error` finalizes streamed assistant message as an error without fallback message.
-- [ ] Ensure `job:success` never adds "not connected" fallback if any stream message exists for execution.
-- [ ] Run:
+- [x] Add failing test: Chat Model node becomes `running` on `agent:model-start`.
+- [x] Add failing test: Agent node stays `running` while deltas arrive.
+- [x] Add failing test: `agent:error` finalizes streamed assistant message as an error without fallback message.
+- [x] Ensure `job:success` never adds "not connected" fallback if any stream message exists for execution.
+- [x] Run:
   - `cd client-vue; node --test src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
   - `cd client-vue; npm run type-check`
-- [ ] Commit:
+- [x] Commit:
   - `git add client-vue/src/features/workflow-editor/stores/execution.store.ts client-vue/src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
   - `git commit -m "fix: keep streaming chat status consistent"`
 
