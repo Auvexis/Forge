@@ -215,7 +215,7 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 **Steps**
 - [x] Add failing sanitizer test: `agent:output-delta` keeps text delta but strips secrets/large unsafe payloads.
 - [x] Add failing session bus test: delta event includes `executionId`, `nodeId`, `source: "chat"` when forwarded from a chat job.
-- [ ] Use payload shape:
+- [x] Use payload shape:
   - `{ delta: string }`
 - [x] Do not include provider metadata, raw chunks, credentials, or token logprobs.
 - [x] Run:
@@ -271,13 +271,13 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - Modify: `feats-map/agent-chat-token-streaming.md`
 
 **Steps**
-- [ ] Run backend focused tests:
+- [x] Run backend focused tests:
   - `cd server; node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts src/core/modules/agent-runtime/agent-runner.test.ts src/core/modules/agent-runtime/model-provider-registry.test.ts src/core/modules/workflows/dev-session/session-event-bus.test.ts`
-- [ ] Run backend build:
+- [x] Run backend build:
   - `cd server; npm run build`
-- [ ] Run frontend focused tests:
+- [x] Run frontend focused tests:
   - `cd client-vue; node --test src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
-- [ ] Run frontend type/build:
+- [x] Run frontend type/build:
   - `cd client-vue; npm run type-check`
   - `cd client-vue; npm run build-only`
 - [ ] Manual smoke:
@@ -287,7 +287,8 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
   - Confirm assistant text appears incrementally before final `agent:end`.
   - Confirm no duplicate final response.
   - Confirm Tools Agent with at least one tool still runs with current non-streaming behavior.
-- [ ] Mark completed tasks in this file.
+- [ ] Not run in this environment: requires an interactive running Sailor app with a configured Chat Trigger -> AI Agent -> Chat Model workflow and local/cloud model access.
+- [x] Mark completed tasks in this file.
 - [ ] Commit:
   - `git add feats-map/agent-chat-token-streaming.md`
   - `git commit -m "docs: track agent chat token streaming rollout"`
