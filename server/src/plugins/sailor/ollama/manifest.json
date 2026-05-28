@@ -23,6 +23,79 @@
     }
   },
   "methods": {
+    "listModels": {
+      "metadata": {
+        "label": "List Models",
+        "description": "List models available from the configured Ollama host."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "ollama_list_models",
+        "description": "List models available from the configured Ollama host.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "chat": {
+      "metadata": {
+        "label": "Chat",
+        "description": "Send chat messages to Ollama."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Override the configured model.",
+            "x-input-type": "text"
+          },
+          "messages": {
+            "type": "array",
+            "description": "Chat messages with role and content.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": { "type": "string" },
+                "content": { "type": "string" }
+              }
+            }
+          },
+          "system": {
+            "type": "string",
+            "description": "Override the default system instructions.",
+            "x-input-type": "textarea"
+          },
+          "jsonMode": {
+            "type": "boolean",
+            "description": "Return the response in JSON format.",
+            "default": false,
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "messages"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "ollama_chat",
+        "description": "Send chat messages to Ollama.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
     "generate": {
       "metadata": {
         "label": "Generate",
@@ -114,6 +187,33 @@
         "enabled": true,
         "name": "ollama_generate",
         "description": "Generate content using Ollama.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "showModel": {
+      "metadata": {
+        "label": "Show Model",
+        "description": "Show details for an Ollama model."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Override the configured model.",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "ollama_show_model",
+        "description": "Show details for an Ollama model.",
         "sideEffect": "read",
         "requiresApproval": false,
         "timeoutMs": 30000

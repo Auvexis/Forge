@@ -16,32 +16,64 @@ export function createMethods(): Record<
   (params: any, context?: PluginContext) => Promise<any>
 > {
   return {
+    async listModels(_params, context) {
+      const host = getHost(context);
+      const response = await fetch(`${host}/api/tags`, {
+        method: "GET",
+        headers: ollamaHeaders(context),
+      });
+
+      return parseOllamaResponse(response);
+    },
+
+    async chat(params, context) {
+      const { messages, model: paramModel, system: paramSystem, jsonMode } = params;
+      const host = getHost(context);
+      const model = paramModel || context?.credentials.model;
+      const system = paramSystem || context?.credentials.system;
+
+      if (!model || !Array.isArray(messages)) {
+        throw new Error("Missing model or messages");
+      }
+
+      const response = await fetch(`${host}/api/chat`, {
+        method: "POST",
+        headers: ollamaHeaders(context),
+        body: JSON.stringify({
+          model,
+          messages: [
+            ...(system ? [{ role: "system", content: system }] : []),
+            ...messages,
+          ],
+          stream: false,
+          format: jsonMode ? "json" : undefined,
+        }),
+      });
+
+      return parseOllamaResponse(response);
+    },
+
     async generate(params, context) {
       const { prompt, system: paramSystem, jsonMode } = params;
 
-      const host = context?.credentials.host;
+      const host = getHost(context);
       const model = context?.credentials.model;
       const defaultSystem = context?.credentials.system;
 
       // Parameter system prompt takes precedence over the default one
       const system = paramSystem || defaultSystem;
 
-      if (!prompt || !host || !model) {
-        throw new Error("Missing prompt, host or model");
+      if (!prompt || !model) {
+        throw new Error("Missing prompt or model");
       }
 
       const response = await fetch(`${host}/api/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: ollamaHeaders(context),
         body: JSON.stringify({
           model,
           messages: [
-            {
-              role: "system",
-              content: system,
-            },
+            ...(system ? [{ role: "system", content: system }] : []),
             {
               role: "user",
               content: prompt,
@@ -52,13 +84,49 @@ export function createMethods(): Record<
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Ollama API error: ${response.statusText}`);
+      return parseOllamaResponse(response);
+    },
+
+    async showModel(params, context) {
+      const host = getHost(context);
+      const model = params.model || context?.credentials.model;
+
+      if (!model) {
+        throw new Error("Missing model");
       }
 
-      const data = await response.json();
+      const response = await fetch(`${host}/api/show`, {
+        method: "POST",
+        headers: ollamaHeaders(context),
+        body: JSON.stringify({ model }),
+      });
 
-      return data;
+      return parseOllamaResponse(response);
     },
   };
+}
+
+function getHost(context?: PluginContext): string {
+  const host = context?.credentials.host;
+  if (!host) {
+    throw new Error("Missing host");
+  }
+
+  return String(host).trim().replace(/\/+(api|v1)?\/?$/, "");
+}
+
+function ollamaHeaders(context?: PluginContext): Record<string, string> {
+  const apiKey = context?.credentials.api_key ?? context?.credentials.apiKey ?? context?.credentials.token;
+  return {
+    "Content-Type": "application/json",
+    ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+  };
+}
+
+async function parseOllamaResponse(response: Response): Promise<unknown> {
+  if (!response.ok) {
+    throw new Error(`Ollama API error: ${response.statusText}`);
+  }
+
+  return response.json();
 }

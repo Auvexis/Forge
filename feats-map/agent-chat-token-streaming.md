@@ -30,7 +30,7 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - [x] Task 2: Generic Streamable Model Interface
 - [x] Task 2A: Generic Configurable Chat Model Adapter
 - [x] Task 2B: Ollama Chat Model Capability
-- [ ] Task 2C: Ollama Plugin Methods And Cloud Credentials
+- [x] Task 2C: Ollama Plugin Methods And Cloud Credentials
 - [ ] Task 3: Agent Graph Text Streaming
 - [ ] Task 4: Runtime Event Sanitizing And Dev Session Forwarding
 - [ ] Task 5: Frontend Incremental Chat Message Rendering
@@ -163,21 +163,21 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - Test: `server/src/plugins/sailor/ollama/methods.test.ts`
 
 **Steps**
-- [ ] Add failing tests for Ollama local requests without `Authorization`.
-- [ ] Add failing tests for Ollama cloud/protected requests with `Authorization: Bearer <api_key>`.
-- [ ] Add/normalize helper methods:
+- [x] Add failing tests for Ollama local requests without `Authorization`.
+- [x] Add failing tests for Ollama cloud/protected requests with `Authorization: Bearer <api_key>`.
+- [x] Add/normalize helper methods:
   - `listModels` -> `GET /api/tags`
   - `chat` -> `POST /api/chat`
   - `generate` -> keep existing behavior, but normalize host/api key handling
   - optional `showModel` -> `POST /api/show`
-- [ ] Keep plugin generic and isolated: no imports from Core, engines, or other plugins.
-- [ ] Normalize host paths:
+- [x] Keep plugin generic and isolated: no imports from Core, engines, or other plugins.
+- [x] Normalize host paths:
   - native Ollama methods use `/api/...`
   - Chat Model adapter uses `/v1/...`
-- [ ] Add response schemas for new methods.
-- [ ] Run:
+- [x] Add response schemas for new methods.
+- [x] Run:
   - `cd server; node --test src/plugins/sailor/ollama/methods.test.ts`
-- [ ] Commit:
+- [x] Commit:
   - `git add server/src/plugins/sailor/ollama/methods.ts server/src/plugins/sailor/ollama/manifest.json server/src/plugins/sailor/ollama/methods.test.ts`
   - `git commit -m "feat: improve ollama plugin methods"`
 
