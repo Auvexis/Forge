@@ -229,6 +229,30 @@ describe("agent runner", () => {
     assert.deepEqual(events, ["agent:start", "agent:end"]);
   });
 
+  it("forwards graph stream delta events before agent:end", async () => {
+    const events: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: fakeModelRegistry(),
+      graphBuilder: (input) => ({
+        async invoke() {
+          input.onEvent?.({ type: "agent:output-delta", payload: { delta: "hel" } });
+          input.onEvent?.({ type: "agent:output-delta", payload: { delta: "lo" } });
+          return successResult("hello");
+        },
+      }),
+      emitEvent: (event) => events.push(event.type),
+    });
+
+    await runner.run(runInput());
+
+    assert.deepEqual(events, [
+      "agent:start",
+      "agent:output-delta",
+      "agent:output-delta",
+      "agent:end",
+    ]);
+  });
+
   it("converts thrown errors into AgentRuntimeError", async () => {
     const runner = new AgentRunner({
       modelRegistry: fakeModelRegistry(),

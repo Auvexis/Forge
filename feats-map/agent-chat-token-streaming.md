@@ -31,7 +31,7 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - [x] Task 2A: Generic Configurable Chat Model Adapter
 - [x] Task 2B: Ollama Chat Model Capability
 - [x] Task 2C: Ollama Plugin Methods And Cloud Credentials
-- [ ] Task 3: Agent Graph Text Streaming
+- [x] Task 3: Agent Graph Text Streaming
 - [ ] Task 4: Runtime Event Sanitizing And Dev Session Forwarding
 - [ ] Task 5: Frontend Incremental Chat Message Rendering
 - [ ] Task 6: Status And Error Semantics
@@ -189,18 +189,18 @@ Expanded scope: keep OpenAI and OpenRouter working, add a generic configurable c
 - Test: `server/src/core/modules/agent-runtime/agent-runner.test.ts`
 
 **Steps**
-- [ ] Add failing test: text agent with no tools emits two `agent:output-delta` events before `agent:end`.
-- [ ] Add failing test: agent with tools uses existing non-streaming path.
-- [ ] Add failing test: JSON output mode uses existing non-streaming path.
-- [ ] Implement `canStreamTextResponse(agent, tools)`:
+- [x] Add failing test: text agent with no tools emits two `agent:output-delta` events before `agent:end`.
+- [x] Add failing test: agent with tools uses existing non-streaming path.
+- [x] Add failing test: JSON output mode uses existing non-streaming path.
+- [x] Implement `canStreamTextResponse(agent, tools)`:
   - `agent.outputMode === "text"`
   - `tools.length === 0`
   - model has `stream`
-- [ ] In stream path, accumulate deltas into final text, return same `AgentRunResult` shape.
-- [ ] Keep existing `invoke()` path for tool calls and JSON output.
-- [ ] Run:
+- [x] In stream path, accumulate deltas into final text, return same `AgentRunResult` shape.
+- [x] Keep existing `invoke()` path for tool calls and JSON output.
+- [x] Run:
   - `cd server; node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts src/core/modules/agent-runtime/agent-runner.test.ts`
-- [ ] Commit:
+- [x] Commit:
   - `git add server/src/core/modules/agent-runtime/agent-graph-builder.ts server/src/core/modules/agent-runtime/agent-graph-builder.test.ts server/src/core/modules/agent-runtime/agent-runner.test.ts`
   - `git commit -m "feat: stream text agent output"`
 

@@ -20,10 +20,12 @@ describe("agent graph builder", () => {
   });
 
   it("consumes streamable model text chunks as a final text response", async () => {
+    const events: Array<{ type: string; payload?: unknown }> = [];
     const graph = buildAgentGraph({
       agent: agentConfig(),
       model: fakeStreamModel(["hel", { content: "lo" }]),
       tools: [],
+      onEvent: (event) => events.push(event),
     });
 
     const result = await graph.invoke({ userMessage: "hello" });
@@ -32,6 +34,18 @@ describe("agent graph builder", () => {
     assert.equal(result.output, "hello");
     assert.equal(result.iterationCount, 1);
     assert.equal(result.toolCallCount, 0);
+    assert.deepEqual(events.map((event) => event.type), [
+      "agent:model-start",
+      "agent:output-delta",
+      "agent:output-delta",
+      "agent:model-end",
+    ]);
+    assert.deepEqual(events.map((event) => event.payload), [
+      { iteration: 1 },
+      { delta: "hel" },
+      { delta: "lo" },
+      { iteration: 1, toolCallCount: 0 },
+    ]);
   });
 
   it("extracts stream deltas from generic and LangChain chunk shapes", () => {
@@ -62,6 +76,21 @@ describe("agent graph builder", () => {
     assert.equal(result.iterationCount, 2);
     assert.equal(result.toolCallCount, 1);
     assert.deepEqual(tool.calls, [{ query: "sailor" }]);
+  });
+
+  it("uses invoke instead of stream when tools are configured", async () => {
+    const model = fakeStreamModel(["stream should not run"], { invokeContent: "done" });
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [fakeTool("lookup", async () => ({ ok: true }))],
+    });
+
+    const result = await graph.invoke({ userMessage: "hello" });
+
+    assert.equal(result.output, "done");
+    assert.equal(model.invokeCalls.length, 1);
+    assert.equal(model.streamCalls.length, 0);
   });
 
   it("includes short-term memory checkpointer config when provided", async () => {
@@ -127,6 +156,21 @@ describe("agent graph builder", () => {
     await assert.rejects(invalidGraph.invoke({ userMessage: "json" }), /schema/i);
   });
 
+  it("uses invoke instead of stream for JSON output mode", async () => {
+    const model = fakeStreamModel(["bad partial json"], { invokeContent: JSON.stringify({ answer: "ok" }) });
+    const graph = buildAgentGraph({
+      agent: agentConfig({ outputMode: "json" }),
+      model,
+      tools: [],
+    });
+
+    const result = await graph.invoke({ userMessage: "json" });
+
+    assert.deepEqual(result.output, { answer: "ok" });
+    assert.equal(model.invokeCalls.length, 1);
+    assert.equal(model.streamCalls.length, 0);
+  });
+
   it("emits model and tool events through injected callbacks", async () => {
     const events: string[] = [];
     const graph = buildAgentGraph({
@@ -177,14 +221,16 @@ function fakeModel(responses: Array<{ content: string; toolCalls?: unknown[] }>)
   };
 }
 
-function fakeStreamModel(chunks: unknown[]) {
+function fakeStreamModel(chunks: unknown[], options: { invokeContent?: string } = {}) {
   return {
-    calls: [] as unknown[],
-    async invoke(_messages: unknown[]) {
-      throw new Error("invoke should not be used for streamable text responses");
+    invokeCalls: [] as unknown[],
+    streamCalls: [] as unknown[],
+    async invoke(messages: unknown[]) {
+      this.invokeCalls.push(messages);
+      return { content: options.invokeContent ?? "" };
     },
     async *stream(messages: unknown[]) {
-      this.calls.push(messages);
+      this.streamCalls.push(messages);
       for (const chunk of chunks) {
         yield chunk;
       }

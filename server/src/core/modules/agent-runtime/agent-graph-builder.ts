@@ -83,7 +83,10 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
           input.onEvent?.({ type: "agent:model-start", payload: { iteration } });
           let content = "";
           for await (const chunk of model.stream(messages)) {
-            content += extractStreamDelta(chunk);
+            const delta = extractStreamDelta(chunk);
+            if (!delta) continue;
+            content += delta;
+            input.onEvent?.({ type: "agent:output-delta", payload: { delta } });
           }
           input.onEvent?.({
             type: "agent:model-end",
