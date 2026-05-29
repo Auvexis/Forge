@@ -36,7 +36,7 @@ export interface AgentGraphMessage {
   role: "system" | "user" | "assistant" | "tool";
   content: string;
   name?: string;
-  toolCallId?: string;
+  tool_call_id?: string;
 }
 
 interface StreamableModel {
@@ -169,7 +169,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
           messages.push({
             role: "tool",
             name: tool.name,
-            toolCallId: toolCall.id,
+            tool_call_id: toolCall.id,
             content: stringifyToolResult(result),
           });
         }

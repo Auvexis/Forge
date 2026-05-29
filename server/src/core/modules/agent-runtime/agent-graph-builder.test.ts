@@ -134,12 +134,13 @@ describe("agent graph builder", () => {
   it("builds a graph that executes requested tools", async () => {
     const toolCalls = [{ id: "call_1", name: "lookup", args: { query: "sailor" } }];
     const tool = fakeTool("lookup", async (args) => ({ result: `found ${args.query}` }));
+    const model = fakeModel([
+      { content: "", toolCalls },
+      { content: "tool result applied" },
+    ]);
     const graph = buildAgentGraph({
       agent: agentConfig(),
-      model: fakeModel([
-        { content: "", toolCalls },
-        { content: "tool result applied" },
-      ]),
+      model,
       tools: [tool],
     });
 
@@ -150,6 +151,10 @@ describe("agent graph builder", () => {
     assert.equal(result.iterationCount, 2);
     assert.equal(result.toolCallCount, 1);
     assert.deepEqual(tool.calls, [{ query: "sailor" }]);
+    const secondModelCall = model.calls[1] as Array<Record<string, unknown>>;
+    const toolMessage = secondModelCall.find((message) => message.role === "tool");
+    assert.equal(toolMessage?.tool_call_id, "call_1");
+    assert.equal(Object.hasOwn(toolMessage ?? {}, "toolCallId"), false);
   });
 
   it("binds tool schemas to models that support function calling", async () => {
