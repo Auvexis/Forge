@@ -53,10 +53,11 @@ export async function executePluginAgentTool(input: {
     return result;
   } catch (error) {
     if (error instanceof AgentRuntimeError) throw error;
+    const detail = safeErrorMessage(error);
     throw new AgentRuntimeError(
-      `Agent tool ${input.definition.name} failed`,
+      `Agent tool ${input.definition.name} failed: ${detail}`,
       "AGENT_TOOL_EXECUTION_FAILED",
-      "Agent tool execution failed",
+      `Agent tool ${input.definition.name} failed: ${detail}`,
       502,
     );
   }
@@ -94,6 +95,11 @@ function assertPayloadWithinLimits(payload: unknown): void {
       400,
     );
   }
+}
+
+function safeErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.replace(/\s+/g, " ").trim() || "Unknown error";
 }
 
 function inspectJson(value: unknown, depth = 0): { depth: number; keys: number } {

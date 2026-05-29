@@ -834,6 +834,11 @@ export const useExecutionStore = defineStore('execution', () => {
 
           case 'agent:error':
             recordEditorChatAgentFailure(ev)
+            patchConnectedAgentConfigNode(ev.nodeId, 'tool', {
+              status: 'failed',
+              error: extractAgentError(ev.data) ?? ev.error,
+              endedAt: ev.timestamp,
+            })
             patchConnectedAgentConfigNode(ev.nodeId, 'chatModel', {
               status: 'failed',
               error: extractAgentError(ev.data) ?? ev.error,

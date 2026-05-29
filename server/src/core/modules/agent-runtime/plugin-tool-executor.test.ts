@@ -67,7 +67,7 @@ describe("plugin tool executor", () => {
       executePluginAgentTool({
         definition: definition({ requiresApproval: true }),
         configuredTool: configuredTool({ requiresApproval: true }),
-        args: { title: "Bug" },
+        args: { owner: "acme", title: "Bug" },
         executionId: "exec_1",
         workflowId: "workflow_1",
         nodeId: "agent_1",
@@ -123,14 +123,15 @@ describe("plugin tool executor", () => {
       executePluginAgentTool({
         definition: definition({ requiresApproval: false, sideEffect: "read" }),
         configuredTool: configuredTool({ requiresApproval: false, sideEffect: "read" }),
-        args: { title: "Bug" },
+        args: { owner: "acme", title: "Bug" },
         executionId: "exec_1",
         workflowId: "workflow_1",
         nodeId: "agent_1",
       }),
       (error) =>
         error instanceof AgentRuntimeError &&
-        error.code === "AGENT_TOOL_EXECUTION_FAILED",
+        error.code === "AGENT_TOOL_EXECUTION_FAILED" &&
+        /provider exploded/.test(error.publicMessage),
     );
   });
 });

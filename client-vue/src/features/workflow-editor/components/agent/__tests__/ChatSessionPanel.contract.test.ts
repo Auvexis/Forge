@@ -136,6 +136,16 @@ test('editor chat stops pending assistant loading when an agent approval is requ
   assert.match(store, /patchConnectedAgentConfigNode\(ev\.nodeId, 'tool'/)
 })
 
+test('editor chat marks connected tool failed when an approved agent tool fails', () => {
+  const store = read('src/features/workflow-editor/stores/execution.store.ts')
+  const errorCase = store.slice(
+    store.indexOf("case 'agent:error':"),
+    store.indexOf("case 'agent:approval-created':"),
+  )
+
+  assert.match(errorCase, /patchConnectedAgentConfigNode\(ev\.nodeId, 'tool', \{[\s\S]*status: 'failed'/)
+})
+
 test('editor chat renders approval accept and decline actions inline', () => {
   const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
 
