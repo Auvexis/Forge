@@ -338,7 +338,7 @@ export const useExecutionStore = defineStore('execution', () => {
       .find((message) => message.id === streamAssistantMessageId(executionId))
 
     appendEditorChatMessage({
-      id: streamAssistantMessageId(executionId),
+      id: streamAssistantMessageId(ev.executionId),
       sessionId: chatSessionId,
       role: 'assistant',
       content: mergeAssistantChatContent(existing?.content, { text: output }),
@@ -377,6 +377,32 @@ export const useExecutionStore = defineStore('execution', () => {
       role: 'assistant',
       content: `Chat run failed. ${extractAgentError(ev.data) ?? ev.error ?? 'Agent execution failed.'}`,
       createdAt: new Date(ev.timestamp).toISOString(),
+    })
+  }
+
+  function recordEditorChatApprovalCreated(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || ev.type !== 'agent:approval-created' || !ev.executionId) return
+
+    const executionId = ev.executionId
+    const chatSessionId = editorChatSessionIdByExecution[executionId]
+    if (!chatSessionId) return
+
+    const toolName = approvalPayloadValue(ev.data, 'toolName') || 'agent tool'
+    const approvalId = approvalPayloadValue(ev.data, 'approvalId')
+    const existing = (editorChatMessagesBySession[chatSessionId] ?? [])
+      .find((message) => message.id === streamAssistantMessageId(executionId))
+
+    appendEditorChatMessage({
+      id: streamAssistantMessageId(executionId),
+      sessionId: chatSessionId,
+      role: 'assistant',
+      content: {
+        text: `Tool approval required for ${toolName}. Review the approval panel to continue.`,
+        thinking: normalizeAssistantChatContent(existing?.content).thinking,
+        pending: false,
+        approvalId,
+      },
+      createdAt: existing?.createdAt ?? new Date(ev.timestamp).toISOString(),
     })
   }
 
@@ -454,6 +480,12 @@ export const useExecutionStore = defineStore('execution', () => {
     if (typeof record.error === 'string') return record.error
     if (typeof record.code === 'string') return record.code
     return undefined
+  }
+
+  function approvalPayloadValue(data: unknown, key: string): string {
+    if (!data || typeof data !== 'object') return ''
+    const value = (data as Record<string, unknown>)[key]
+    return typeof value === 'string' ? value : ''
   }
 
   function isAiAgentNode(nodeId: string | undefined): boolean {
@@ -799,6 +831,24 @@ export const useExecutionStore = defineStore('execution', () => {
             patchConnectedAgentConfigNode(ev.nodeId, 'chatModel', {
               status: 'failed',
               error: extractAgentError(ev.data) ?? ev.error,
+              endedAt: ev.timestamp,
+            })
+            break
+
+          case 'agent:approval-created':
+            recordEditorChatApprovalCreated(ev)
+            if (ev.nodeId) {
+              const patch = {
+                status: 'waiting',
+                output: ev.data,
+                endedAt: ev.timestamp,
+              } satisfies Partial<NodeExecutionState>
+              _patchNode(ev.nodeId, patch)
+              _patchExecutionNode(ev.executionId, ev.nodeId, patch)
+            }
+            patchConnectedAgentConfigNode(ev.nodeId, 'tool', {
+              status: 'waiting',
+              output: ev.data,
               endedAt: ev.timestamp,
             })
             break

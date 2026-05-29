@@ -123,6 +123,17 @@ test('editor chat keeps streaming status and error semantics consistent', () => 
   assert.match(store, /recordEditorChatJobSuccess[\s\S]*hasAssistantMessageForExecution\(chatSessionId, ev\.executionId\)/)
 })
 
+test('editor chat stops pending assistant loading when an agent approval is requested', () => {
+  const store = read('src/features/workflow-editor/stores/execution.store.ts')
+
+  assert.match(store, /function recordEditorChatApprovalCreated/)
+  assert.match(store, /case 'agent:approval-created':[\s\S]*recordEditorChatApprovalCreated\(ev\)/)
+  assert.match(store, /Tool approval required/)
+  assert.match(store, /approvalId/)
+  assert.match(store, /status: 'waiting'/)
+  assert.match(store, /patchConnectedAgentConfigNode\(ev\.nodeId, 'tool'/)
+})
+
 test('chat session panel renders user and assistant messages', () => {
   const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
 
