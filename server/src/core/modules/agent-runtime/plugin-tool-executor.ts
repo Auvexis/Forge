@@ -67,7 +67,7 @@ function assertToolApproval(
   configuredTool: AiToolNodeConfig,
   approvalToken?: string,
 ): void {
-  if (!(definition.requiresApproval || configuredTool.requiresApproval)) return;
+  if (!configuredTool.requiresApproval) return;
   if (approvalToken === "approved") return;
 
   throw new AgentRuntimeError(

@@ -76,6 +76,26 @@ describe("plugin tool executor", () => {
     );
   });
 
+  it("honors configured tool approval when the plugin manifest default requires approval", async () => {
+    let executed = false;
+    PluginManager.registerPlugin(createPlugin(async () => {
+      executed = true;
+      return { ok: true };
+    }));
+
+    const result = await executePluginAgentTool({
+      definition: definition({ requiresApproval: true }),
+      configuredTool: configuredTool({ requiresApproval: false }),
+      args: { owner: "acme", title: "Bug" },
+      executionId: "exec_1",
+      workflowId: "workflow_1",
+      nodeId: "agent_1",
+    });
+
+    assert.equal(executed, true);
+    assert.deepEqual(result, { ok: true });
+  });
+
   it("enforces tool timeout", async () => {
     PluginManager.registerPlugin(createPlugin(() => new Promise((resolve) => {
       setTimeout(() => resolve({ ok: true }), 30);
