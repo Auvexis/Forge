@@ -78,6 +78,9 @@ export type PluginMemoryExecutor = (
 interface GraphTool {
   name: string;
   description: string;
+  pluginId?: string;
+  pluginName?: string;
+  requiresApproval: boolean;
   inputSchema: Record<string, any>;
   invoke(args: unknown): Promise<unknown>;
 }
@@ -133,6 +136,7 @@ export class AgentRunner {
         tools: this.createGraphTools(input, validated.tools, toolDefinitions),
         memory: validated.memory,
         checkpointer,
+        approvalToken: input.approvalToken,
         onEvent: (event) => this.eventEmitter(event, input),
       });
       const result = await graph.invoke({
@@ -228,6 +232,9 @@ export class AgentRunner {
     return definitions.map((definition, index) => ({
       name: definition.name,
       description: definition.description,
+      pluginId: definition.pluginId,
+      pluginName: definition.pluginName ?? definition.pluginId,
+      requiresApproval: configs[index]?.requiresApproval ?? definition.requiresApproval,
       inputSchema: definition.inputSchema,
       invoke: async (args: unknown) =>
         executePluginAgentTool({

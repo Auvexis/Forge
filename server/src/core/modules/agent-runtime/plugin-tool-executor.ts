@@ -1,6 +1,5 @@
 import { PluginExecutor } from "../plugins/executor.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
-import { emitAgentEvent } from "./agent-event-bus.ts";
 import { AGENT_LIMITS } from "./agent-limits.ts";
 import type { AiToolNodeConfig } from "./agent-types.ts";
 import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
@@ -21,34 +20,12 @@ export async function executePluginAgentTool(input: {
   assertPayloadWithinLimits(params);
   assertToolApproval(input.definition, input.configuredTool, params, input.approvalToken);
 
-  emitAgentEvent({
-    workflowId: input.workflowId,
-    executionId: input.executionId,
-    nodeId: input.nodeId,
-    type: "agent:tool-start",
-    payload: {
-      tool: input.definition.name,
-      input: params,
-    },
-  });
-
   try {
     const result = await withTimeout(
       PluginExecutor.execute(input.definition.pluginId, input.definition.methodId, params),
       input.configuredTool.timeoutMs ?? input.definition.timeoutMs,
       input.definition.name,
     );
-
-    emitAgentEvent({
-      workflowId: input.workflowId,
-      executionId: input.executionId,
-      nodeId: input.nodeId,
-      type: "agent:tool-end",
-      payload: {
-        tool: input.definition.name,
-        output: result,
-      },
-    });
 
     return result;
   } catch (error) {

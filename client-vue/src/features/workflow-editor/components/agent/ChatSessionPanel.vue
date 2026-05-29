@@ -1,46 +1,69 @@
 <template>
   <section class="chat-session-panel">
     <div ref="messagesEl" class="chat-session-panel__messages">
-      <article
-        v-for="message in displayedMessages"
-        :key="message.id"
-        class="chat-session-panel__message"
-        :data-role="message.role"
-      >
-        <div class="chat-session-panel__avatar" aria-hidden="true">
-          <LucideIcon :name="message.role === 'user' ? 'user' : 'bot'" :size="17" />
-        </div>
-        <div class="chat-session-panel__message-copy">
-          <strong>{{ formatRole(message.role) }}</strong>
-          <div v-if="messageThinking(message.content)" class="chat-session-panel__thinking">
-            {{ messageThinking(message.content) }}
+      <TransitionGroup name="chat-message" tag="div" class="chat-session-panel__message-list">
+        <article
+          v-for="message in displayedMessages"
+          :key="message.id"
+          class="chat-session-panel__message"
+          :data-role="message.role"
+        >
+          <div class="chat-session-panel__avatar" aria-hidden="true">
+            <LucideIcon :name="message.role === 'user' ? 'user' : 'bot'" :size="17" />
           </div>
-          <div v-if="isPendingAssistantMessage(message)" class="chat-session-panel__typing-dots" aria-label="Agent is thinking">
-            <span />
-            <span />
-            <span />
-          </div>
-          <p v-else>{{ messageContent(message.content) }}</p>
-          <div v-if="approvalActions(message.content)" class="chat-session-panel__approval-actions">
-            <button
-              type="button"
-              class="chat-session-panel__approval-button"
-              :disabled="approvalPendingId === approvalActions(message.content)?.approvalId"
-              @click="rejectChatApproval(approvalActions(message.content)!)"
+          <div class="chat-session-panel__message-copy">
+            <strong>{{ formatRole(message.role) }}</strong>
+            <div
+              v-if="isToolStatusContent(message.content)"
+              class="chat-session-panel__tool-status"
+              :class="`chat-session-panel__tool-status--${message.content.status}`"
             >
-              Decline
-            </button>
-            <button
-              type="button"
-              class="chat-session-panel__approval-button chat-session-panel__approval-button--primary"
-              :disabled="approvalPendingId === approvalActions(message.content)?.approvalId"
-              @click="approveChatApproval(approvalActions(message.content)!)"
-            >
-              Accept
-            </button>
+              <div class="chat-session-panel__tool-status-copy">
+                <span>{{ formatToolStatusLabel(message.content) }}</span>
+                <p>{{ formatToolStatusMessage(message.content) }}</p>
+              </div>
+              <div
+                v-if="message.content.status === 'pending' || message.content.status === 'running'"
+                class="chat-session-panel__tool-dots"
+                aria-hidden="true"
+              >
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+            <template v-else>
+              <div v-if="messageThinking(message.content)" class="chat-session-panel__thinking">
+                {{ messageThinking(message.content) }}
+              </div>
+              <div v-if="isPendingAssistantMessage(message)" class="chat-session-panel__typing-dots" aria-label="Agent is thinking">
+                <span />
+                <span />
+                <span />
+              </div>
+              <p v-else>{{ messageContent(message.content) }}</p>
+              <div v-if="approvalActions(message.content)" class="chat-session-panel__approval-actions">
+                <button
+                  type="button"
+                  class="chat-session-panel__approval-button"
+                  :disabled="approvalPendingId === approvalActions(message.content)?.approvalId"
+                  @click="rejectChatApproval(approvalActions(message.content)!)"
+                >
+                  Decline
+                </button>
+                <button
+                  type="button"
+                  class="chat-session-panel__approval-button chat-session-panel__approval-button--primary"
+                  :disabled="approvalPendingId === approvalActions(message.content)?.approvalId"
+                  @click="approveChatApproval(approvalActions(message.content)!)"
+                >
+                  Accept
+                </button>
+              </div>
+            </template>
           </div>
-        </div>
-      </article>
+        </article>
+      </TransitionGroup>
 
       <div v-if="!displayedMessages.length" class="chat-session-panel__empty">No messages yet.</div>
     </div>
@@ -204,6 +227,7 @@ const displayedMessagesScrollKey = computed(() => JSON.stringify(displayedMessag
   text: messageContent(message.content),
   thinking: messageThinking(message.content),
   pending: isPendingAssistantMessage(message),
+  toolStatus: isToolStatusContent(message.content) ? message.content.status : '',
   approvalId: approvalActions(message.content)?.approvalId ?? '',
 }))))
 const currentWorkflowRevision = computed(() => {
@@ -258,6 +282,17 @@ type ChatApprovalAction = {
   approvalId: string
   executionId: string
   toolName: string
+}
+
+type EditorChatToolStatus = {
+  kind: 'toolStatus'
+  executionId: string
+  callId?: string
+  toolName: string
+  pluginName?: string
+  status: 'pending' | 'running' | 'success' | 'failed'
+  requiresApproval?: boolean
+  error?: string
 }
 
 let activeRecognition: BrowserSpeechRecognition | null = null
@@ -546,7 +581,8 @@ function buildDevSessionHistory(chatSessionId: string) {
   return (executionStore.editorChatMessagesBySession[chatSessionId] ?? [])
     .filter((message) =>
       (message.role === 'user' || message.role === 'assistant') &&
-      !isPendingAssistantMessage(message),
+      !isPendingAssistantMessage(message) &&
+      !isToolStatusContent(message.content),
     )
     .map((message) => ({
       role: message.role,
@@ -557,6 +593,7 @@ function buildDevSessionHistory(chatSessionId: string) {
 }
 
 function messageContent(content: unknown) {
+  if (isToolStatusContent(content)) return ''
   if (isChatContentRecord(content)) {
     return content.text || ''
   }
@@ -578,6 +615,7 @@ function approvalActions(content: unknown): ChatApprovalAction | null {
 }
 
 function messageThinking(content: unknown) {
+  if (isToolStatusContent(content)) return ''
   return isChatContentRecord(content) ? content.thinking || '' : ''
 }
 
@@ -598,6 +636,53 @@ function isChatContentRecord(content: unknown): content is {
   approvalContinuation?: unknown
 } {
   return Boolean(content && typeof content === 'object' && !Array.isArray(content))
+}
+
+function isToolStatusContent(content: unknown): content is EditorChatToolStatus {
+  return Boolean(content && typeof content === 'object' && !Array.isArray(content) && (content as { kind?: unknown }).kind === 'toolStatus')
+}
+
+function formatToolStatusLabel(status: EditorChatToolStatus) {
+  const locale = detectChatLocale(lastUserMessageText())
+  if (status.status === 'success') return locale === 'pt' ? 'Ferramenta concluida' : 'Tool completed'
+  if (status.status === 'failed') return locale === 'pt' ? 'Ferramenta falhou' : 'Tool failed'
+  if (status.status === 'running') return locale === 'pt' ? 'Executando ferramenta' : 'Running tool'
+  return locale === 'pt' ? 'Ferramenta solicitada' : 'Tool requested'
+}
+
+function formatToolStatusMessage(status: EditorChatToolStatus) {
+  const locale = detectChatLocale(lastUserMessageText())
+  const tool = status.pluginName ? `${status.toolName} (${status.pluginName})` : status.toolName
+
+  if (locale === 'pt') {
+    if (status.status === 'success') return `Pronto, usei ${tool} com sucesso.`
+    if (status.status === 'failed') return `Nao consegui concluir ${tool}${status.error ? `: ${status.error}` : '.'}`
+    if (status.status === 'running') return `Estou executando ${tool} agora.`
+    return status.requiresApproval
+      ? `Perfeito, para isso vou usar ${tool}. Estou aguardando sua aprovacao.`
+      : `Perfeito, para isso vou usar ${tool}.`
+  }
+
+  if (status.status === 'success') return `Done, I used ${tool} successfully.`
+  if (status.status === 'failed') return `I could not finish ${tool}${status.error ? `: ${status.error}` : '.'}`
+  if (status.status === 'running') return `I am running ${tool} now.`
+  return status.requiresApproval
+    ? `Perfect, I will use ${tool} for that. I am waiting for your approval.`
+    : `Perfect, I will use ${tool} for that.`
+}
+
+function lastUserMessageText() {
+  return [...displayedMessages.value]
+    .reverse()
+    .find((message) => message.role === 'user')
+    ?.content
+}
+
+function detectChatLocale(value: unknown): 'pt' | 'en' {
+  const text = typeof value === 'string' ? value.toLowerCase() : ''
+  return /[ãõçáéíóúâêô]|\b(voce|você|qual|pode|poderia|enviar|mensagem|piada|para|meu|minha|bom dia|boa noite)\b/.test(text)
+    ? 'pt'
+    : 'en'
 }
 
 function formatRole(role: AgentChatMessageRole) {
@@ -711,9 +796,14 @@ function formatRole(role: AgentChatMessageRole) {
   flex: 1;
   min-height: 0;
   flex-direction: column;
-  gap: var(--sailor-space-4);
   overflow-y: auto;
   padding-right: var(--sailor-space-1);
+}
+
+.chat-session-panel__message-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-4);
 }
 
 .chat-session-panel__message {
@@ -794,6 +884,92 @@ function formatRole(role: AgentChatMessageRole) {
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.chat-session-panel__tool-status {
+  position: relative;
+  display: flex;
+  width: min(420px, 100%);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sailor-space-3);
+  overflow: hidden;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  padding: 8px 10px;
+}
+
+.chat-session-panel__tool-status--pending,
+.chat-session-panel__tool-status--running {
+  border-color: color-mix(in srgb, var(--sailor-amber-400) 34%, var(--sailor-border));
+}
+
+.chat-session-panel__tool-status--pending::before,
+.chat-session-panel__tool-status--running::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--sailor-amber-400) 12%, transparent) 46%,
+    transparent 100%
+  );
+  animation: chat-tool-shimmer 1.6s ease-in-out infinite;
+  content: '';
+  pointer-events: none;
+}
+
+.chat-session-panel__tool-status--success {
+  border-color: color-mix(in srgb, var(--sailor-green-400) 34%, var(--sailor-border));
+}
+
+.chat-session-panel__tool-status--failed {
+  border-color: color-mix(in srgb, var(--sailor-red-400, #ef4444) 38%, var(--sailor-border));
+}
+
+.chat-session-panel__tool-status-copy {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-session-panel__tool-status-copy span {
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-xs);
+  font-weight: 700;
+}
+
+.chat-session-panel__tool-status-copy p {
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
+  line-height: 1.35;
+}
+
+.chat-session-panel__tool-dots {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-session-panel__tool-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--sailor-amber-400);
+  animation: chat-typing-bounce 0.9s ease-in-out infinite;
+}
+
+.chat-session-panel__tool-dots span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.chat-session-panel__tool-dots span:nth-child(3) {
+  animation-delay: 0.24s;
 }
 
 .chat-session-panel__typing-dots {
@@ -962,6 +1138,19 @@ function formatRole(role: AgentChatMessageRole) {
   color: var(--sailor-text-error);
 }
 
+.chat-message-enter-active,
+.chat-message-leave-active {
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.chat-message-enter-from,
+.chat-message-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
 @keyframes chat-listening-pulse {
   from {
     opacity: 0.8;
@@ -971,6 +1160,16 @@ function formatRole(role: AgentChatMessageRole) {
   to {
     opacity: 0;
     transform: scale(1.2);
+  }
+}
+
+@keyframes chat-tool-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
   }
 }
 

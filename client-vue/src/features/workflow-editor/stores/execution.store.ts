@@ -40,6 +40,7 @@ export const useExecutionStore = defineStore('execution', () => {
   const editorChatMessagesBySession = reactive<Record<string, AgentChatMessage[]>>({})
   const editorChatSessionIdByExecution = reactive<Record<string, string>>({})
   const agentFailuresByExecution = new Set<string>()
+  const lastSuccessfulToolByExecution = new Map<string, EditorChatToolStatus>()
   /** Tracks which trigger node IDs are of type 'manual' — used to decide reset target after job ends */
   const manualTriggerNodeIds = new Set<string>()
 
@@ -116,12 +117,23 @@ export const useExecutionStore = defineStore('execution', () => {
     for (const key of Object.keys(activeJobs)) delete activeJobs[key]
   }
 
+  type EditorChatToolStatus = {
+    kind: 'toolStatus'
+    executionId: string
+    callId?: string
+    toolName: string
+    pluginName?: string
+    status: 'pending' | 'running' | 'success' | 'failed'
+    requiresApproval?: boolean
+    error?: string
+  }
+
   function timelineStatusFor(type: string): ExecutionTimelineEvent['status'] {
     if (type === 'node:success' || type === 'workflow:success' || type === 'trigger:data' || type === 'job:success' || type === 'agent:end' || type === 'agent:model-end' || type === 'agent:tool-end') return 'success'
     if (type === 'node:failed' || type === 'workflow:failed' || type === 'job:failed' || type === 'agent:error') return 'failed'
     if (type === 'node:retry') return 'retrying'
     if (type === 'workflow:cancelled' || type === 'job:cancelled') return 'cancelled'
-    if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created' || type === 'job:start' || type === 'agent:start' || type === 'agent:model-start' || type === 'agent:output-delta' || type === 'agent:thinking-delta' || type === 'agent:tool-start') {
+    if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created' || type === 'job:start' || type === 'agent:start' || type === 'agent:model-start' || type === 'agent:output-delta' || type === 'agent:thinking-delta' || type === 'agent:tool-intent' || type === 'agent:tool-start') {
       return 'running'
     }
     return 'info'
@@ -152,6 +164,7 @@ export const useExecutionStore = defineStore('execution', () => {
     if (ev.type === 'agent:start') return 'Agent started'
     if (ev.type === 'agent:model-start') return 'Agent model call started'
     if (ev.type === 'agent:model-end') return 'Agent model call completed'
+    if (ev.type === 'agent:tool-intent') return 'Agent tool call requested'
     if (ev.type === 'agent:output-delta') return 'Agent output delta'
     if (ev.type === 'agent:thinking-delta') return 'Agent thinking delta'
     if (ev.type === 'agent:tool-start') return 'Agent tool call started'
@@ -265,6 +278,20 @@ export const useExecutionStore = defineStore('execution', () => {
     })
   }
 
+  function toolStatusMessageId(status: EditorChatToolStatus) {
+    return `chat-tool-status:${status.executionId}:${status.callId ?? status.toolName}`
+  }
+
+  function upsertEditorChatToolStatus(chatSessionId: string, status: EditorChatToolStatus, timestamp: number) {
+    appendEditorChatMessage({
+      id: toolStatusMessageId(status),
+      sessionId: chatSessionId,
+      role: 'assistant',
+      content: status,
+      createdAt: new Date(timestamp).toISOString(),
+    })
+  }
+
   function registerEditorChatExecution(executionId: string, chatSessionId: string) {
     editorChatSessionIdByExecution[executionId] = chatSessionId
   }
@@ -326,12 +353,48 @@ export const useExecutionStore = defineStore('execution', () => {
     appendEditorChatThinkingDelta(ev.executionId, chatSessionId, delta, ev.timestamp)
   }
 
+  function recordEditorChatToolIntent(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || ev.type !== 'agent:tool-intent' || !ev.executionId) return
+
+    const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
+    if (!chatSessionId) return
+
+    const tool = extractToolStatusPayload(ev, 'pending')
+    upsertEditorChatToolStatus(chatSessionId, tool, ev.timestamp)
+  }
+
+  function recordEditorChatToolStart(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || ev.type !== 'agent:tool-start' || !ev.executionId) return
+
+    const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
+    if (!chatSessionId) return
+
+    const tool = extractToolStatusPayload(ev, 'running')
+    upsertEditorChatToolStatus(chatSessionId, tool, ev.timestamp)
+  }
+
+  function recordEditorChatToolEnd(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || ev.type !== 'agent:tool-end' || !ev.executionId) return
+
+    const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
+    if (!chatSessionId) return
+
+    const eventStatus = toolPayloadValue(ev.data, 'status') === 'failed' ? 'failed' : 'success'
+    const tool = extractToolStatusPayload(ev, eventStatus)
+    upsertEditorChatToolStatus(chatSessionId, tool, ev.timestamp)
+    if (eventStatus === 'success') lastSuccessfulToolByExecution.set(ev.executionId, tool)
+  }
+
   function recordEditorChatAgentEnd(ev: WorkflowEvent) {
     if (ev.source !== 'chat' || ev.type !== 'agent:end' || !ev.executionId) return
 
     const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
     const output = extractAgentOutput(ev.data)
     if (!chatSessionId || output === undefined) return
+    if (isEmptyAgentOutput(output)) {
+      appendToolCompletionMessage(chatSessionId, ev.executionId, ev.timestamp)
+      return
+    }
 
     const executionId = ev.executionId
     const existing = (editorChatMessagesBySession[chatSessionId] ?? [])
@@ -425,9 +488,35 @@ export const useExecutionStore = defineStore('execution', () => {
     })
   }
 
+  function appendToolCompletionMessage(chatSessionId: string, executionId: string, timestamp: number) {
+    const tool = lastSuccessfulToolByExecution.get(executionId)
+    if (!tool || hasAssistantTextForExecution(chatSessionId, executionId)) return
+
+    appendEditorChatMessage({
+      id: streamAssistantMessageId(executionId),
+      sessionId: chatSessionId,
+      role: 'assistant',
+      content: {
+        text: formatToolCompletionMessage(tool, detectChatLocale(lastUserMessageText(chatSessionId))),
+        pending: false,
+      },
+      createdAt: new Date(timestamp).toISOString(),
+    })
+  }
+
   function hasAssistantMessageForExecution(chatSessionId: string, executionId: string): boolean {
     return (editorChatMessagesBySession[chatSessionId] ?? []).some((message) =>
-      message.role === 'assistant' && message.id.includes(executionId),
+      message.role === 'assistant' && message.id.includes(executionId) && !isToolStatusContent(message.content),
+    )
+  }
+
+  function hasAssistantTextForExecution(chatSessionId: string, executionId: string): boolean {
+    return (editorChatMessagesBySession[chatSessionId] ?? []).some((message) =>
+      message.role === 'assistant' &&
+      message.id.includes(executionId) &&
+      !isToolStatusContent(message.content) &&
+      !isApprovalContinuationContent(message.content) &&
+      Boolean(messageContentText(message.content).trim()),
     )
   }
 
@@ -442,6 +531,10 @@ export const useExecutionStore = defineStore('execution', () => {
     const record = data as Record<string, unknown>
     if ('output' in record) return record.output
     return undefined
+  }
+
+  function isEmptyAgentOutput(output: unknown): boolean {
+    return output === '' || output === null || (typeof output === 'object' && output !== null && !Array.isArray(output) && Object.keys(output).length === 0)
   }
 
   function extractAgentDelta(data: unknown): string | undefined {
@@ -464,6 +557,62 @@ export const useExecutionStore = defineStore('execution', () => {
       thinking: `${current.thinking}${patch.thinkingDelta ?? ''}`,
       pending: false,
     }
+  }
+
+  function extractToolStatusPayload(ev: WorkflowEvent, status: EditorChatToolStatus['status']): EditorChatToolStatus {
+    return {
+      kind: 'toolStatus',
+      executionId: ev.executionId ?? '',
+      callId: toolPayloadValue(ev.data, 'callId'),
+      toolName: toolPayloadValue(ev.data, 'name') || toolPayloadValue(ev.data, 'tool') || 'agent tool',
+      pluginName: toolPayloadValue(ev.data, 'pluginName'),
+      status,
+      requiresApproval: toolPayloadBoolean(ev.data, 'requiresApproval'),
+      error: toolPayloadValue(ev.data, 'error') || ev.error,
+    }
+  }
+
+  function toolPayloadValue(data: unknown, key: string): string {
+    if (!data || typeof data !== 'object') return ''
+    const value = (data as Record<string, unknown>)[key]
+    return typeof value === 'string' ? value : ''
+  }
+
+  function toolPayloadBoolean(data: unknown, key: string): boolean | undefined {
+    if (!data || typeof data !== 'object') return undefined
+    const value = (data as Record<string, unknown>)[key]
+    return typeof value === 'boolean' ? value : undefined
+  }
+
+  function formatToolCompletionMessage(tool: EditorChatToolStatus, locale: 'pt' | 'en' = 'en'): string {
+    if (locale === 'pt') {
+      return `Pronto, usei ${tool.toolName}${tool.pluginName ? ` do plugin ${tool.pluginName}` : ''} com sucesso. Quer executar mais alguma acao?`
+    }
+
+    return `Done, I used ${tool.toolName}${tool.pluginName ? ` from ${tool.pluginName}` : ''} successfully. Do you want to run another action?`
+  }
+
+  function lastUserMessageText(chatSessionId: string): unknown {
+    return [...(editorChatMessagesBySession[chatSessionId] ?? [])]
+      .reverse()
+      .find((message) => message.role === 'user')
+      ?.content
+  }
+
+  function detectChatLocale(value: unknown): 'pt' | 'en' {
+    const text = typeof value === 'string' ? value.toLowerCase() : ''
+    return /[ãõçáéíóúâêô]|\b(voce|você|qual|pode|poderia|enviar|mensagem|piada|para|meu|minha|bom dia|boa noite)\b/.test(text)
+      ? 'pt'
+      : 'en'
+  }
+
+  function messageContentText(content: unknown): string {
+    if (isToolStatusContent(content)) return ''
+    if (content && typeof content === 'object' && !Array.isArray(content)) {
+      const text = (content as Record<string, unknown>).text
+      return typeof text === 'string' ? text : ''
+    }
+    return typeof content === 'string' ? content : ''
   }
 
   function normalizeAssistantChatContent(content: unknown): { text: string; thinking: string; approvalContinuation: boolean } {
@@ -492,6 +641,14 @@ export const useExecutionStore = defineStore('execution', () => {
     if (!data || typeof data !== 'object') return ''
     const value = (data as Record<string, unknown>)[key]
     return typeof value === 'string' ? value : ''
+  }
+
+  function isToolStatusContent(content: unknown): content is EditorChatToolStatus {
+    return Boolean(content && typeof content === 'object' && !Array.isArray(content) && (content as { kind?: unknown }).kind === 'toolStatus')
+  }
+
+  function isApprovalContinuationContent(content: unknown): boolean {
+    return Boolean(content && typeof content === 'object' && !Array.isArray(content) && (content as { approvalContinuation?: unknown }).approvalContinuation === true)
   }
 
   function isAiAgentNode(nodeId: string | undefined): boolean {
@@ -538,6 +695,7 @@ export const useExecutionStore = defineStore('execution', () => {
     for (const key of Object.keys(triggerStatuses)) delete triggerStatuses[key]
     for (const key of Object.keys(nodeStatusesByExecution)) delete nodeStatusesByExecution[key]
     agentFailuresByExecution.clear()
+    lastSuccessfulToolByExecution.clear()
     manualTriggerNodeIds.clear()
   }
 
@@ -801,6 +959,34 @@ export const useExecutionStore = defineStore('execution', () => {
               _patchNode(ev.nodeId, { status: 'running', startedAt: ev.timestamp })
               _patchExecutionNode(ev.executionId, ev.nodeId, { status: 'running', startedAt: ev.timestamp })
             }
+            break
+
+          case 'agent:tool-intent':
+            recordEditorChatToolIntent(ev)
+            patchConnectedAgentConfigNode(ev.nodeId, 'tool', {
+              status: 'waiting',
+              output: ev.data,
+              startedAt: ev.timestamp,
+            })
+            break
+
+          case 'agent:tool-start':
+            recordEditorChatToolStart(ev)
+            patchConnectedAgentConfigNode(ev.nodeId, 'tool', {
+              status: 'running',
+              output: ev.data,
+              startedAt: ev.timestamp,
+            })
+            break
+
+          case 'agent:tool-end':
+            recordEditorChatToolEnd(ev)
+            patchConnectedAgentConfigNode(ev.nodeId, 'tool', {
+              status: toolPayloadValue(ev.data, 'status') === 'failed' ? 'failed' : 'success',
+              output: ev.data,
+              error: toolPayloadValue(ev.data, 'error') || ev.error,
+              endedAt: ev.timestamp,
+            })
             break
 
           case 'agent:end':

@@ -1,5 +1,5 @@
 import { Ajv } from "ajv/dist/ajv.js";
-import { AgentRuntimeError } from "./agent-errors.ts";
+import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import type {
   AgentEventType,
   AgentRunResult,
@@ -13,6 +13,7 @@ export interface BuildAgentGraphInput {
   tools: unknown[];
   memory?: AiMemoryNodeConfig;
   checkpointer?: unknown;
+  approvalToken?: string;
   onEvent?: (event: AgentGraphEvent) => void;
 }
 
@@ -53,6 +54,9 @@ interface InvokableTool {
   name: string;
   description?: string;
   inputSchema?: Record<string, any>;
+  pluginId?: string;
+  pluginName?: string;
+  requiresApproval?: boolean;
   invoke(args: unknown): Promise<unknown>;
 }
 
@@ -156,16 +160,21 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             );
           }
 
-          input.onEvent?.({
-            type: "agent:tool-start",
-            payload: { name: tool.name, callId: toolCall.id },
-          });
-          const result = await tool.invoke(toolCall.args);
+          emitToolIntent(input, tool, toolCall);
+          if (shouldExecuteToolImmediately(input, tool)) {
+            emitToolStart(input, tool, toolCall);
+          }
+
+          let result: unknown;
+          try {
+            result = await tool.invoke(toolCall.args);
+          } catch (error) {
+            if (error instanceof AgentToolApprovalRequiredError) throw error;
+            emitToolEnd(input, tool, toolCall, { status: "failed", error: safeErrorMessage(error) });
+            throw error;
+          }
           toolCallCount += 1;
-          input.onEvent?.({
-            type: "agent:tool-end",
-            payload: { name: tool.name, callId: toolCall.id },
-          });
+          emitToolEnd(input, tool, toolCall, { status: "success", output: result });
           messages.push({
             role: "tool",
             name: tool.name,
@@ -192,6 +201,63 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
       );
     },
   };
+}
+
+function shouldExecuteToolImmediately(input: BuildAgentGraphInput, tool: InvokableTool): boolean {
+  return tool.requiresApproval !== true || input.approvalToken === "approved";
+}
+
+function emitToolIntent(
+  input: BuildAgentGraphInput,
+  tool: InvokableTool,
+  toolCall: AgentToolCall,
+): void {
+  input.onEvent?.({
+    type: "agent:tool-intent",
+    payload: {
+      name: tool.name,
+      callId: toolCall.id,
+      input: toolCall.args,
+      pluginId: tool.pluginId,
+      pluginName: tool.pluginName,
+      requiresApproval: tool.requiresApproval === true,
+    },
+  });
+}
+
+function emitToolStart(
+  input: BuildAgentGraphInput,
+  tool: InvokableTool,
+  toolCall: AgentToolCall,
+): void {
+  input.onEvent?.({
+    type: "agent:tool-start",
+    payload: {
+      name: tool.name,
+      callId: toolCall.id,
+      input: toolCall.args,
+      pluginId: tool.pluginId,
+      pluginName: tool.pluginName,
+    },
+  });
+}
+
+function emitToolEnd(
+  input: BuildAgentGraphInput,
+  tool: InvokableTool,
+  toolCall: AgentToolCall,
+  result: { status: "success"; output: unknown } | { status: "failed"; error: string },
+): void {
+  input.onEvent?.({
+    type: "agent:tool-end",
+    payload: {
+      name: tool.name,
+      callId: toolCall.id,
+      pluginId: tool.pluginId,
+      pluginName: tool.pluginName,
+      ...result,
+    },
+  });
 }
 
 function asModel(value: unknown): InvokableModel {
@@ -469,4 +535,9 @@ function parseOutput(agent: AiAgentNodeConfig, content: string): string | Record
 
 function stringifyToolResult(value: unknown): string {
   return typeof value === "string" ? value : JSON.stringify(value);
+}
+
+function safeErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.replace(/\s+/g, " ").trim() || "Unknown error";
 }

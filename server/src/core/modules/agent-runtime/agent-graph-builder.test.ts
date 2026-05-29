@@ -328,11 +328,73 @@ describe("agent graph builder", () => {
     assert.deepEqual(events, [
       "agent:model-start",
       "agent:model-end",
+      "agent:tool-intent",
       "agent:tool-start",
       "agent:tool-end",
       "agent:model-start",
       "agent:model-end",
     ]);
+  });
+
+  it("emits one structured tool lifecycle around each requested tool", async () => {
+    const events: Array<{ type: string; payload?: any }> = [];
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model: fakeModel([
+        { content: "", toolCalls: [{ id: "call_1", name: "lookup", args: { query: "sailor" } }] },
+        { content: "done" },
+      ]),
+      approvalToken: "approved",
+      tools: [{
+        ...fakeTool("lookup", async () => ({ ok: true })),
+        pluginId: "search-plugin",
+        pluginName: "Search Plugin",
+        requiresApproval: true,
+      }],
+      onEvent: (event) => events.push(event),
+    });
+
+    await graph.invoke({ userMessage: "lookup sailor" });
+
+    assert.deepEqual(
+      events
+        .filter((event) => event.type.startsWith("agent:tool-"))
+        .map((event) => [event.type, event.payload]),
+      [
+        [
+          "agent:tool-intent",
+          {
+            name: "lookup",
+            callId: "call_1",
+            input: { query: "sailor" },
+            pluginId: "search-plugin",
+            pluginName: "Search Plugin",
+            requiresApproval: true,
+          },
+        ],
+        [
+          "agent:tool-start",
+          {
+            name: "lookup",
+            callId: "call_1",
+            input: { query: "sailor" },
+            pluginId: "search-plugin",
+            pluginName: "Search Plugin",
+          },
+        ],
+        [
+          "agent:tool-end",
+          {
+            name: "lookup",
+            callId: "call_1",
+            output: { ok: true },
+            pluginId: "search-plugin",
+            pluginName: "Search Plugin",
+            status: "success",
+          },
+        ],
+      ],
+    );
   });
 });
 

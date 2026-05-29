@@ -5,6 +5,7 @@ export interface SailorAgentToolDefinition {
   name: string;
   description: string;
   pluginId: string;
+  pluginName?: string;
   methodId: string;
   inputSchema: Record<string, any>;
   sideEffect: AgentToolSideEffect;
@@ -29,7 +30,7 @@ export function listPluginAgentTools(): SailorAgentToolDefinition[] {
       const methodManifest = (plugin.manifest.methods as Record<string, any>)[methodId];
       if (!methodManifest?.agentTool?.enabled) continue;
       if (typeof plugin.methods?.[methodId] !== "function") continue;
-      tools.push(toToolDefinition(plugin.id, methodId, methodManifest));
+      tools.push(toToolDefinition(plugin.id, plugin.manifest.metadata.name, methodId, methodManifest));
     }
   }
 
@@ -50,11 +51,12 @@ export function resolvePluginAgentTool(
     throw new Error(`Agent tool is missing a runtime method: ${pluginId}.${methodId}`);
   }
 
-  return toToolDefinition(plugin.id, methodId, methodManifest);
+  return toToolDefinition(plugin.id, plugin.manifest.metadata.name, methodId, methodManifest);
 }
 
 function toToolDefinition(
   pluginId: string,
+  pluginName: string | undefined,
   methodId: string,
   methodManifest: Record<string, any>,
 ): SailorAgentToolDefinition {
@@ -63,6 +65,7 @@ function toToolDefinition(
     name: normalizeToolName(metadata.name ?? `${pluginId}_${methodId}`),
     description: metadata.description ?? methodManifest.metadata?.description ?? methodId,
     pluginId,
+    pluginName,
     methodId,
     inputSchema: methodManifest.parameters ?? { type: "object", properties: {} },
     sideEffect: metadata.sideEffect ?? "read",

@@ -57,6 +57,37 @@ describe("agent runner", () => {
     assert.deepEqual(calls, ["model:gpt-test", "tools:1"]);
   });
 
+  it("passes plugin metadata into graph tools", async () => {
+    const graphTools: Array<{ pluginId?: string; pluginName?: string }> = [];
+    const runner = new AgentRunner({
+      modelRegistry: fakeModelRegistry(),
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [
+          toolDefinition("discord_send_message", {
+            pluginId: "discord",
+            pluginName: "Discord",
+          }),
+        ],
+      },
+      graphBuilder: (input) => {
+        graphTools.push(...input.tools as Array<{ pluginId?: string; pluginName?: string }>);
+        return {
+          async invoke() {
+            return successResult("ok");
+          },
+        };
+      },
+    });
+
+    await runner.run({ ...runInput(), tools: [toolConfig({ pluginId: "discord" })] });
+
+    assert.deepEqual(graphTools.map((tool) => ({
+      pluginId: tool.pluginId,
+      pluginName: tool.pluginName,
+    })), [{ pluginId: "discord", pluginName: "Discord" }]);
+  });
+
   it("creates a checkpointer only when a session id exists", async () => {
     const createdFor: string[] = [];
     const runner = new AgentRunner({

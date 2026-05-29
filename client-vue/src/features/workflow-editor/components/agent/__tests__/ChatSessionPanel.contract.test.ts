@@ -166,6 +166,27 @@ test('approval accept keeps chat streaming through session events', () => {
   assert.doesNotMatch(source, /extractApprovalExecutionOutput/)
 })
 
+test('chat session panel renders animated agent tool status rows', () => {
+  const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
+
+  assert.match(source, /TransitionGroup/)
+  assert.match(source, /isToolStatusContent/)
+  assert.match(source, /formatToolStatusMessage/)
+  assert.match(source, /detectChatLocale/)
+  assert.match(source, /chat-session-panel__tool-status/)
+  assert.match(source, /chat-session-panel__tool-status--running/)
+  assert.match(source, /chat-session-panel__tool-dots/)
+  assert.match(source, /@keyframes chat-tool-shimmer/)
+  assert.match(source, /chat-message-enter-active/)
+})
+
+test('chat session panel excludes transient tool status rows from llm history', () => {
+  const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
+
+  assert.match(source, /!isToolStatusContent\(message\.content\)/)
+  assert.match(source, /messageContent[\s\S]*isToolStatusContent/)
+})
+
 test('chat session panel autoscrolls when streamed content changes', () => {
   const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
 

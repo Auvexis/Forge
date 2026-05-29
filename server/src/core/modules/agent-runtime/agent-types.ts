@@ -87,6 +87,7 @@ export type AgentEventType =
   | "agent:model-end"
   | "agent:output-delta"
   | "agent:thinking-delta"
+  | "agent:tool-intent"
   | "agent:tool-start"
   | "agent:tool-end"
   | "agent:memory-read"
