@@ -46,10 +46,13 @@ interface StreamableModel {
 interface InvokableModel {
   invoke(messages: AgentGraphMessage[]): Promise<unknown>;
   stream?: (messages: AgentGraphMessage[]) => AsyncIterable<unknown> | Promise<AsyncIterable<unknown>> | unknown;
+  bindTools?: (tools: unknown[]) => InvokableModel;
 }
 
 interface InvokableTool {
   name: string;
+  description?: string;
+  inputSchema?: Record<string, any>;
   invoke(args: unknown): Promise<unknown>;
 }
 
@@ -62,9 +65,9 @@ interface AgentToolCall {
 const ajv = new Ajv({ allErrors: true, strict: false });
 
 export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
-  const model = asModel(input.model);
-  const tools = new Map(input.tools.map((tool) => {
-    const invokable = asTool(tool);
+  const configuredTools = input.tools.map(asTool);
+  const model = bindModelTools(asModel(input.model), configuredTools);
+  const tools = new Map(configuredTools.map((invokable) => {
     return [invokable.name, invokable];
   }));
 
@@ -229,6 +232,22 @@ function asTool(value: unknown): InvokableTool {
     );
   }
   return candidate as InvokableTool;
+}
+
+function bindModelTools(model: InvokableModel, tools: InvokableTool[]): InvokableModel {
+  if (tools.length === 0 || typeof model.bindTools !== "function") return model;
+  return model.bindTools(tools.map(toModelToolDefinition));
+}
+
+function toModelToolDefinition(tool: InvokableTool): Record<string, any> {
+  return {
+    type: "function",
+    function: {
+      name: tool.name,
+      description: tool.description ?? tool.name,
+      parameters: tool.inputSchema ?? { type: "object", properties: {} },
+    },
+  };
 }
 
 function extractContent(response: unknown): string {

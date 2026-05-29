@@ -4,7 +4,7 @@ import {
   type BuildAgentGraphInput,
   buildAgentGraph,
 } from "./agent-graph-builder.ts";
-import { AgentRuntimeError } from "./agent-errors.ts";
+import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import { emitAgentEvent } from "./agent-event-bus.ts";
 import { AGENT_LIMITS } from "./agent-limits.ts";
 import {
@@ -39,7 +39,6 @@ export interface AgentRunnerOptions {
   toolRegistry?: Pick<AgentToolRegistry, "listAvailableTools" | "resolveConfiguredTools">;
   memoryStore?: AgentMemoryAccess;
   pluginMemoryExecutor?: PluginMemoryExecutor;
-  approvalService?: AgentApprovalAccess;
   graphBuilder?: (input: BuildAgentGraphInput) => {
     invoke(input: {
       userMessage: string;
@@ -76,20 +75,10 @@ export type PluginMemoryExecutor = (
   params: Record<string, unknown>,
 ) => Promise<unknown>;
 
-export interface AgentApprovalAccess {
-  create(input: {
-    id: string;
-    profileId: string;
-    workflowId: string;
-    executionId: string;
-    sessionId?: string;
-    toolName: string;
-    request: unknown;
-  }): { id: string };
-}
-
 interface GraphTool {
   name: string;
+  description: string;
+  inputSchema: Record<string, any>;
   invoke(args: unknown): Promise<unknown>;
 }
 
@@ -98,7 +87,6 @@ export class AgentRunner {
   private readonly toolRegistry: Pick<AgentToolRegistry, "listAvailableTools" | "resolveConfiguredTools">;
   private readonly memoryStore?: AgentMemoryAccess;
   private readonly pluginMemoryExecutor: PluginMemoryExecutor;
-  private readonly approvalService?: AgentApprovalAccess;
   private readonly graphBuilder: NonNullable<AgentRunnerOptions["graphBuilder"]>;
   private readonly checkpointerFactory: NonNullable<AgentRunnerOptions["checkpointerFactory"]>;
   private readonly eventEmitter: NonNullable<AgentRunnerOptions["emitEvent"]>;
@@ -108,7 +96,6 @@ export class AgentRunner {
     this.toolRegistry = options.toolRegistry ?? new AgentToolRegistry();
     this.memoryStore = options.memoryStore;
     this.pluginMemoryExecutor = options.pluginMemoryExecutor ?? defaultPluginMemoryExecutor;
-    this.approvalService = options.approvalService;
     this.graphBuilder = options.graphBuilder ?? buildAgentGraph;
     this.checkpointerFactory = options.checkpointerFactory ?? defaultCheckpointerFactory;
     this.eventEmitter = options.emitEvent ?? defaultEventEmitter;
@@ -121,11 +108,6 @@ export class AgentRunner {
     try {
       const model = await this.modelRegistry.createChatModel(validated.model);
       const toolDefinitions = this.toolRegistry.resolveConfiguredTools(validated.tools);
-      const waitingApproval = this.createWaitingApprovalIfNeeded(input, toolDefinitions);
-      if (waitingApproval) {
-        this.eventEmitter({ type: "agent:end", payload: { status: "waiting-approval" } }, input);
-        return waitingApproval;
-      }
 
       const namespace = buildMemoryNamespace({
         scope: validated.memory?.scope ?? "none",
@@ -163,6 +145,7 @@ export class AgentRunner {
       this.eventEmitter({ type: "agent:end", payload: { status: result.status, output: result.output } }, input);
       return result;
     } catch (error) {
+      if (error instanceof AgentToolApprovalRequiredError) throw error;
       this.eventEmitter({ type: "agent:error", payload: serializeErrorPayload(error) }, input);
       if (error instanceof AgentRuntimeError) throw error;
       const detail = safeErrorMessage(error);
@@ -177,38 +160,6 @@ export class AgentRunner {
 
   listTools(): SailorAgentToolDefinition[] {
     return this.toolRegistry.listAvailableTools();
-  }
-
-  private createWaitingApprovalIfNeeded(
-    input: AgentRunInput,
-    definitions: SailorAgentToolDefinition[],
-  ): AgentRunResult | null {
-    if (input.approvalToken === "approved") return null;
-
-    const sensitiveTool = definitions.find((definition) => definition.requiresApproval);
-    if (!sensitiveTool) return null;
-
-    const approval = this.approvalService?.create({
-      id: `approval_${randomUUID()}`,
-      profileId: input.profileId,
-      workflowId: input.workflowId,
-      executionId: input.executionId,
-      sessionId: input.sessionId,
-      toolName: sensitiveTool.name,
-      request: {
-        pluginId: sensitiveTool.pluginId,
-        methodId: sensitiveTool.methodId,
-        sideEffect: sensitiveTool.sideEffect,
-      },
-    });
-
-    return {
-      status: "waiting-approval",
-      output: "",
-      toolCallCount: 0,
-      iterationCount: 0,
-      approvalId: approval?.id,
-    };
   }
 
   private async readMemory(
@@ -276,6 +227,8 @@ export class AgentRunner {
   ): GraphTool[] {
     return definitions.map((definition, index) => ({
       name: definition.name,
+      description: definition.description,
+      inputSchema: definition.inputSchema,
       invoke: async (args: unknown) =>
         executePluginAgentTool({
           definition,

@@ -40,6 +40,7 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     userMessage: String(triggerPayload.message ?? triggerPayload.text ?? ""),
     contextMessages: toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages),
     triggerPayload,
+    approvalToken: optionalString(triggerPayload.approvalToken ?? triggerPayload.approval_token),
     agent: agentConfig,
     model: toModelConfig(model),
     memory: memory ? toMemoryConfig(memory) : undefined,

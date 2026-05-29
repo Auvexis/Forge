@@ -152,6 +152,47 @@ describe("agent graph builder", () => {
     assert.deepEqual(tool.calls, [{ query: "sailor" }]);
   });
 
+  it("binds tool schemas to models that support function calling", async () => {
+    const model = fakeToolBindingModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "lookup", args: { query: "sailor" } }] },
+      { content: "tool result applied" },
+    ]);
+    const tool = fakeTool("lookup", async (args) => ({ result: `found ${args.query}` }));
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [{
+        ...tool,
+        description: "Search indexed records.",
+        inputSchema: {
+          type: "object",
+          required: ["query"],
+          properties: {
+            query: { type: "string" },
+          },
+        },
+      }],
+    });
+
+    const result = await graph.invoke({ userMessage: "lookup sailor" });
+
+    assert.equal(result.output, "tool result applied");
+    assert.deepEqual(model.boundTools, [{
+      type: "function",
+      function: {
+        name: "lookup",
+        description: "Search indexed records.",
+        parameters: {
+          type: "object",
+          required: ["query"],
+          properties: {
+            query: { type: "string" },
+          },
+        },
+      },
+    }]);
+  });
+
   it("uses invoke instead of stream when tools are configured", async () => {
     const model = fakeStreamModel(["stream should not run"], { invokeContent: "done" });
     const graph = buildAgentGraph({
@@ -293,6 +334,19 @@ function fakeModel(responses: Array<{ content: string; toolCalls?: unknown[] }>)
       return responses[Math.min(index++, responses.length - 1)];
     },
   };
+}
+
+function fakeToolBindingModel(responses: Array<{ content: string; toolCalls?: unknown[] }>) {
+  const model = fakeModel(responses) as ReturnType<typeof fakeModel> & {
+    boundTools: unknown[];
+    bindTools: (tools: unknown[]) => ReturnType<typeof fakeModel>;
+  };
+  model.boundTools = [];
+  model.bindTools = (tools) => {
+    model.boundTools = tools;
+    return model;
+  };
+  return model;
 }
 
 function fakeStreamModel(chunks: unknown[], options: { invokeContent?: string } = {}) {

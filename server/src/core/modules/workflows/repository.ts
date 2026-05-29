@@ -19,6 +19,8 @@ function getWorkflowDatabase(): Database.Database {
 }
 
 export const WorkflowRepository = {
+  database: () => getWorkflowDatabase(),
+
   saveWorkflow: (workflow: WorkflowItem) => {
     const stmt = getWorkflowDatabase().prepare(
       `INSERT INTO workflows (id, name, description, version, is_active, is_public, is_draft, created_at, published_at, definition)
@@ -256,6 +258,17 @@ export const WorkflowRepository = {
       ...row,
       context_state: JSON.parse(row.context_state),
     }));
+  },
+
+  getWorkflowExecutionById: (executionId: string) => {
+    const row = getWorkflowDatabase()
+      .prepare(`SELECT * FROM workflow_executions WHERE id = ?`)
+      .get(executionId) as any;
+    if (!row) return null;
+    return {
+      ...row,
+      context_state: JSON.parse(row.context_state),
+    };
   },
 
   // ──────────── Listen for Event payload storage ────────────

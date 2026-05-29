@@ -5,6 +5,9 @@ import Database from "better-sqlite3";
 
 import { createMigrationEngine } from "../../database/migration-engine.ts";
 import { resetAppDatabaseProvider, setAppDatabaseProvider } from "../app/app-repository.ts";
+import { AgentToolApprovalRequiredError } from "../agent-runtime/agent-errors.ts";
+import { AgentApprovalService } from "../agent-runtime/agent-approval-service.ts";
+import { AgentRuntimeService } from "../agent-runtime/agent-runtime-service.ts";
 import { WorkflowEngine } from "./executor.ts";
 import {
   resetWorkflowDatabaseProvider,
@@ -66,6 +69,8 @@ function baseWorkflow(): WorkflowItem {
 }
 
 describe("WorkflowEngine trigger entry execution", () => {
+  const originalRunAgent = AgentRuntimeService.runAgent;
+
   beforeEach(async () => {
     appDb = await createMigratedDb("app");
     db = await createMigratedDb("workflows");
@@ -74,6 +79,7 @@ describe("WorkflowEngine trigger entry execution", () => {
   });
 
   afterEach(() => {
+    AgentRuntimeService.runAgent = originalRunAgent;
     resetAppDatabaseProvider();
     resetWorkflowDatabaseProvider();
     appDb?.close();
@@ -303,5 +309,140 @@ describe("WorkflowEngine trigger entry execution", () => {
       ),
       /disabled/,
     );
+  });
+
+  it("pauses agent workflow when a called tool needs approval", async () => {
+    const wf = baseWorkflow();
+    wf.nodes.agent = {
+      type: "ai-agent",
+      name: "Agent",
+      prompt: "Help",
+      maxIterations: 3,
+      maxToolCalls: 3,
+      timeoutMs: 30000,
+      requireApprovalForSideEffects: ["external-message"],
+      outputMode: "text",
+    };
+    wf.nodes.model = {
+      type: "ai-model",
+      name: "Model",
+      pluginId: "openai",
+      adapter: "openai-compatible",
+      model: "gpt-test",
+      temperature: 0,
+    };
+    wf.nodes.tool = {
+      type: "ai-tool",
+      name: "Discord Send",
+      pluginId: "discord",
+      methodId: "sendMessage",
+      timeoutMs: 30000,
+      requiresApproval: true,
+      sideEffect: "external-message",
+    };
+    wf.edges = [
+      { id: "trigger-agent", source: "trigger_a", target: "agent" },
+      { id: "model-agent", source: "model", target: "agent" },
+      { id: "tool-agent", source: "tool", target: "agent" },
+    ];
+    WorkflowRepository.saveWorkflow(wf);
+    AgentRuntimeService.runAgent = async () => {
+      throw new AgentToolApprovalRequiredError({
+        toolName: "discord_send_message",
+        sideEffect: "external-message",
+        args: { channelId: "123", content: "Ship it" },
+      });
+    };
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      wf,
+      "trigger_a",
+      { profileId: "profile_a", sessionId: "chat_1", message: "send discord" },
+      "exec_waiting_approval",
+    );
+
+    const approval = db!
+      .prepare(`SELECT * FROM agent_tool_approvals WHERE execution_id = ?`)
+      .get("exec_waiting_approval") as any;
+
+    assert.equal(result.status, "WAITING_APPROVAL");
+    assert.equal(result.context.steps.agent.status, "WAITING_APPROVAL");
+    assert.equal(approval.profile_id, "profile_a");
+    assert.equal(approval.session_id, "chat_1");
+    assert.equal(approval.tool_name, "discord_send_message");
+    assert.equal(JSON.parse(approval.request_json).nodeId, "agent");
+  });
+
+  it("resumes a waiting approval execution from the paused agent node", async () => {
+    const wf = baseWorkflow();
+    wf.nodes.agent = {
+      type: "ai-agent",
+      name: "Agent",
+      prompt: "Help",
+      maxIterations: 3,
+      maxToolCalls: 3,
+      timeoutMs: 30000,
+      requireApprovalForSideEffects: ["external-message"],
+      outputMode: "text",
+    };
+    wf.nodes.model = {
+      type: "ai-model",
+      name: "Model",
+      pluginId: "openai",
+      adapter: "openai-compatible",
+      model: "gpt-test",
+      temperature: 0,
+    };
+    wf.nodes.tool = {
+      type: "ai-tool",
+      name: "Discord Send",
+      pluginId: "discord",
+      methodId: "sendMessage",
+      timeoutMs: 30000,
+      requiresApproval: true,
+      sideEffect: "external-message",
+    };
+    wf.edges = [
+      { id: "trigger-agent", source: "trigger_a", target: "agent" },
+      { id: "model-agent", source: "model", target: "agent" },
+      { id: "tool-agent", source: "tool", target: "agent" },
+      { id: "agent-after", source: "agent", target: "set_b" },
+    ];
+    WorkflowRepository.saveWorkflow(wf);
+    AgentRuntimeService.runAgent = async (input) => {
+      if (input.approvalToken === "approved") {
+        return {
+          status: "success",
+          output: "sent",
+          toolCallCount: 1,
+          iterationCount: 2,
+        };
+      }
+
+      throw new AgentToolApprovalRequiredError({
+        toolName: "discord_send_message",
+        sideEffect: "external-message",
+        args: { channelId: "123", content: "Ship it" },
+      });
+    };
+
+    await WorkflowEngine.executeWorkflowFromTrigger(
+      wf,
+      "trigger_a",
+      { profileId: "profile_a", sessionId: "chat_1", message: "send discord" },
+      "exec_resume_approval",
+    );
+    const approvalService = new AgentApprovalService(db!);
+    const approvalRow = db!
+      .prepare(`SELECT id FROM agent_tool_approvals WHERE execution_id = ?`)
+      .get("exec_resume_approval") as { id: string };
+    const approval = approvalService.resolve("profile_a", approvalRow.id, { status: "approved" })!;
+
+    const resumed = await WorkflowEngine.resumeExecutionAfterAgentApproval(approval);
+
+    assert.equal(resumed.status, "SUCCESS");
+    assert.equal(resumed.executionId, "exec_resume_approval");
+    assert.equal(resumed.context.steps.agent.output.output, "sent");
+    assert.equal(resumed.context.steps.set_b.output.branch, "b");
   });
 });

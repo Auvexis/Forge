@@ -16,6 +16,7 @@ export interface WorkflowEvent {
     | "workflow:success"
     | "workflow:failed"
     | "workflow:cancelled"
+    | "workflow:waiting-approval"
     | "temporary-form:created"
     | AgentEventType;
   nodeId?: string;

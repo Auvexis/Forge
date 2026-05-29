@@ -219,33 +219,27 @@ describe("agent runner", () => {
     assert.equal(calls[1].params.value, "store this memory");
   });
 
-  it("returns waiting-approval when a sensitive configured tool needs approval", async () => {
+  it("does not block the model just because a configured tool may require approval", async () => {
+    let graphInvoked = false;
     const runner = new AgentRunner({
       modelRegistry: fakeModelRegistry(),
       toolRegistry: {
         listAvailableTools: () => [],
         resolveConfiguredTools: () => [toolDefinition("send_email", { requiresApproval: true })],
       },
-      approvalService: {
-        create(input) {
-          assert.equal(input.toolName, "send_email");
-          return { id: "approval_1" };
+      graphBuilder: () => ({
+        async invoke() {
+          graphInvoked = true;
+          return successResult("No email needed.");
         },
-      },
-      graphBuilder: () => {
-        throw new Error("graph should wait for approval first");
-      },
+      }),
     });
 
     const result = await runner.run({ ...runInput(), tools: [toolConfig({ requiresApproval: true })] });
 
-    assert.deepEqual(result, {
-      status: "waiting-approval",
-      output: "",
-      toolCallCount: 0,
-      iterationCount: 0,
-      approvalId: "approval_1",
-    });
+    assert.equal(graphInvoked, true);
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "No email needed.");
   });
 
   it("emits agent:start and agent:end around successful runs", async () => {

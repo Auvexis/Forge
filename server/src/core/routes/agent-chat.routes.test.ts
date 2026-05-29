@@ -146,7 +146,16 @@ describe("agent chat routes", () => {
       toolName: "send_email",
       request: { to: "a@example.com" },
     });
-    const app = await buildApp({ getActiveProfileId: () => "profile_a" });
+    const app = await buildApp({
+      getActiveProfileId: () => "profile_a",
+      workflowEngine: {
+        resumeExecutionAfterAgentApproval: async (approval) => ({
+          executionId: approval.executionId,
+          status: "SUCCESS",
+          context: null,
+        }),
+      },
+    });
 
     const wrongExecution = await app.inject({
       method: "POST",
@@ -162,6 +171,38 @@ describe("agent chat routes", () => {
     });
     assert.equal(approved.statusCode, 200);
     assert.equal(approved.json().data.status, "approved");
+  });
+
+  it("approval approve endpoint resumes workflow with the resolved approval", async () => {
+    const approvals = new AgentApprovalService(db!);
+    approvals.create({
+      id: "approval_resume",
+      profileId: "profile_a",
+      workflowId: "workflow_1",
+      executionId: "exec_resume",
+      toolName: "send_email",
+      request: { nodeId: "agent" },
+    });
+    let resumedStatus: string | undefined;
+    const app = await buildApp({
+      getActiveProfileId: () => "profile_a",
+      workflowEngine: {
+        resumeExecutionAfterAgentApproval: async (approval) => {
+          resumedStatus = approval.status;
+          return { executionId: approval.executionId, status: "SUCCESS", context: { steps: {} } };
+        },
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-approvals/approval_resume/approve",
+      payload: { executionId: "exec_resume" },
+    });
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(resumedStatus, "approved");
+    assert.equal(response.json().data.execution.status, "SUCCESS");
   });
 });
 

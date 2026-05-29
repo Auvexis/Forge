@@ -16,6 +16,26 @@ export class AgentRuntimeError extends Error {
   }
 }
 
+export interface AgentToolApprovalRequest {
+  toolName: string;
+  sideEffect: string;
+  args: Record<string, unknown>;
+}
+
+export class AgentToolApprovalRequiredError extends AgentRuntimeError {
+  public readonly approvalRequest: AgentToolApprovalRequest;
+
+  constructor(request: AgentToolApprovalRequest) {
+    super(
+      `Agent tool ${request.toolName} requires approval`,
+      "AGENT_TOOL_APPROVAL_REQUIRED",
+      "Agent tool requires approval",
+      409,
+    );
+    this.approvalRequest = request;
+  }
+}
+
 export function serializeAgentError(error: unknown): { code: string; message: string } {
   if (error instanceof AgentRuntimeError) {
     return { code: error.code, message: error.publicMessage };

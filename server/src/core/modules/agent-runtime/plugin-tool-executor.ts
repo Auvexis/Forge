@@ -1,5 +1,5 @@
 import { PluginExecutor } from "../plugins/executor.ts";
-import { AgentRuntimeError } from "./agent-errors.ts";
+import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import { emitAgentEvent } from "./agent-event-bus.ts";
 import { AGENT_LIMITS } from "./agent-limits.ts";
 import type { AiToolNodeConfig } from "./agent-types.ts";
@@ -19,7 +19,7 @@ export async function executePluginAgentTool(input: {
     ...(input.args ?? {}),
   };
   assertPayloadWithinLimits(params);
-  assertToolApproval(input.definition, input.configuredTool, input.approvalToken);
+  assertToolApproval(input.definition, input.configuredTool, params, input.approvalToken);
 
   emitAgentEvent({
     workflowId: input.workflowId,
@@ -65,17 +65,17 @@ export async function executePluginAgentTool(input: {
 function assertToolApproval(
   definition: SailorAgentToolDefinition,
   configuredTool: AiToolNodeConfig,
+  args: Record<string, unknown>,
   approvalToken?: string,
 ): void {
   if (!configuredTool.requiresApproval) return;
   if (approvalToken === "approved") return;
 
-  throw new AgentRuntimeError(
-    `Agent tool ${definition.name} requires approval`,
-    "AGENT_TOOL_APPROVAL_REQUIRED",
-    "Agent tool requires approval",
-    409,
-  );
+  throw new AgentToolApprovalRequiredError({
+    toolName: definition.name,
+    sideEffect: configuredTool.sideEffect ?? definition.sideEffect,
+    args,
+  });
 }
 
 function assertPayloadWithinLimits(payload: unknown): void {

@@ -157,25 +157,32 @@ describe("agent runtime security hardening", () => {
     );
   });
 
-  it("returns waiting approval for destructive tools without approval", async () => {
+  it("does not request approval until a destructive tool is actually called", async () => {
+    let graphInvoked = false;
     const runner = new AgentRunner({
       modelRegistry: { createChatModel: async () => ({}) as any },
       toolRegistry: {
         listAvailableTools: () => [],
         resolveConfiguredTools: () => [toolDefinition({ sideEffect: "delete", requiresApproval: true })],
       },
-      approvalService: {
-        create: () => ({ id: "approval_1" }),
-      },
-      graphBuilder: () => {
-        throw new Error("graph must not run before approval");
-      },
+      graphBuilder: () => ({
+        async invoke() {
+          graphInvoked = true;
+          return {
+            status: "success",
+            output: "No tool needed.",
+            toolCallCount: 0,
+            iterationCount: 1,
+          };
+        },
+      }),
     });
 
     const result = await runner.run(runInput({ tools: [toolConfig({ sideEffect: "delete", requiresApproval: true })] }));
 
-    assert.equal(result.status, "waiting-approval");
-    assert.equal(result.approvalId, "approval_1");
+    assert.equal(graphInvoked, true);
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "No tool needed.");
   });
 
   it("rejects raw thread_id in chat request bodies", async () => {

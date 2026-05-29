@@ -8,12 +8,14 @@ import { AgentRuntimeService } from "../modules/agent-runtime/agent-runtime-serv
 import { ChatTriggerService, type SendChatMessageInput } from "../modules/agent-runtime/chat/chat-trigger-service.ts";
 import { AgentMemoryStore } from "../modules/agent-runtime/memory/agent-memory-store.ts";
 import { AgentApprovalService } from "../modules/agent-runtime/agent-approval-service.ts";
+import { WorkflowEngine } from "../modules/workflows/executor.ts";
 
 export interface AgentChatRoutesOptions {
   db?: Database.Database;
   getActiveProfileId?: () => string;
   chatService?: Pick<ChatTriggerService, "sendMessage" | "getSession" | "listMessages">;
   runtimeService?: Pick<typeof AgentRuntimeService, "listTools">;
+  workflowEngine?: Pick<typeof WorkflowEngine, "resumeExecutionAfterAgentApproval">;
 }
 
 const CHAT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -28,6 +30,7 @@ export default async function agentChatRoutes(
     (() => activeProfileRuntime.activeProfileService.getActiveProfile()?.id ?? "default");
   const chatService = options.chatService ?? new ChatTriggerService({ db });
   const runtimeService = options.runtimeService ?? AgentRuntimeService;
+  const workflowEngine = options.workflowEngine ?? WorkflowEngine;
   const memoryStore = new AgentMemoryStore(db);
   const approvalService = new AgentApprovalService(db);
 
@@ -165,7 +168,7 @@ export default async function agentChatRoutes(
     return resolveApproval(req.params as { approvalId: string }, req.body, "rejected", reply);
   });
 
-  function resolveApproval(
+  async function resolveApproval(
     params: { approvalId: string },
     body: unknown,
     status: "approved" | "rejected",
@@ -182,11 +185,15 @@ export default async function agentChatRoutes(
       status,
       decision: body,
     });
+    const execution = resolved && status === "approved"
+      ? await workflowEngine.resumeExecutionAfterAgentApproval(resolved)
+      : null;
+
     return sendResponse(reply, {
       status_code: 200,
       message: `Agent approval ${status}`,
       error: null,
-      data: resolved,
+      data: resolved ? { ...resolved, execution } : null,
     });
   }
 }

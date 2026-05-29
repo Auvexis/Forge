@@ -1,4 +1,10 @@
 import { InternalEventBus } from "../events/internal-event-bus.ts";
+import {
+  AgentApprovalService,
+  type AgentToolApproval,
+} from "../agent-runtime/agent-approval-service.ts";
+import { AgentToolApprovalRequiredError } from "../agent-runtime/agent-errors.ts";
+import { emitAgentEvent } from "../agent-runtime/agent-event-bus.ts";
 import { PluginExecutor } from "../plugins/executor.ts";
 import { PendingWebhookResponseRegistry } from "./pending-webhook-registry.ts";
 import { CancellationRegistry } from "./cancellation-registry.ts";
@@ -40,6 +46,12 @@ export { sanitizeContextForLogging } from "./execution-context.ts";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const utilityNodeRegistry = createUtilityNodeRegistry();
+
+class WorkflowWaitingApprovalError extends Error {
+  constructor(public readonly approvalId: string) {
+    super("Workflow is waiting for agent tool approval");
+  }
+}
 
 async function executePluginNode(
   node: PluginNode,
@@ -226,8 +238,13 @@ export const WorkflowEngine = {
 
       status = "SUCCESS";
     } catch (error: any) {
-      status = "FAILED";
-      context.steps.error = error.message;
+      if (error instanceof WorkflowWaitingApprovalError) {
+        status = "WAITING_APPROVAL";
+        context.steps.pendingApprovalId = error.approvalId;
+      } else {
+        status = "FAILED";
+        context.steps.error = error.message;
+      }
     } finally {
       workflowEventBus.emitWorkflowEvent({
         executionId: execId,
@@ -237,7 +254,9 @@ export const WorkflowEngine = {
             ? "workflow:success"
             : status === "CANCELLED"
               ? "workflow:cancelled"
-              : "workflow:failed",
+              : status === "WAITING_APPROVAL"
+                ? "workflow:waiting-approval"
+                : "workflow:failed",
         timestamp: Date.now(),
       });
 
@@ -246,7 +265,7 @@ export const WorkflowEngine = {
         workflow.metadata.id,
         status,
         startTime,
-        Date.now(),
+        status === "WAITING_APPROVAL" ? null : Date.now(),
         sanitizeContextForLogging(context),
       );
 
@@ -254,6 +273,53 @@ export const WorkflowEngine = {
     }
 
     return { executionId: execId, status, context };
+  },
+
+  resumeExecutionAfterAgentApproval: async (
+    approval: AgentToolApproval,
+  ): Promise<any> => {
+    if (approval.status !== "approved") {
+      return { executionId: approval.executionId, status: "CANCELLED", context: null };
+    }
+
+    const workflow = WorkflowRepository.getWorkflowById(approval.workflowId);
+    if (!workflow) throw new Error(`Workflow "${approval.workflowId}" was not found`);
+
+    const execution = WorkflowRepository.getWorkflowExecutionById(approval.executionId);
+    if (!execution) throw new Error(`Execution "${approval.executionId}" was not found`);
+
+    const request = approval.request as { nodeId?: unknown };
+    const nodeId = typeof request.nodeId === "string" ? request.nodeId : "";
+    if (!nodeId || !workflow.nodes[nodeId]) {
+      throw new Error("Agent approval is missing a resumable node id");
+    }
+
+    const context = execution.context_state as WorkflowExecutionContext;
+    context.trigger = {
+      ...(context.trigger ?? {}),
+      approvalToken: "approved",
+      approvalId: approval.id,
+    };
+    const startTime = Number(execution.start_time ?? Date.now());
+
+    workflowEventBus.emitWorkflowEvent({
+      executionId: approval.executionId,
+      workflowId: approval.workflowId,
+      type: "agent:approval-resumed",
+      nodeId,
+      timestamp: Date.now(),
+      data: { approvalId: approval.id },
+    });
+
+    return continueWorkflowExecution({
+      workflow,
+      triggerNodeId: findTriggerNodeForExecution(workflow, context),
+      context,
+      executionId: approval.executionId,
+      startTime,
+      initialQueue: [nodeId],
+      executed: successfulStepIds(context, nodeId),
+    });
   },
 
   executeSingleNode: async (
@@ -297,6 +363,154 @@ export const WorkflowEngine = {
   },
 };
 
+async function continueWorkflowExecution(input: {
+  workflow: WorkflowItem;
+  triggerNodeId: string;
+  context: WorkflowExecutionContext;
+  executionId: string;
+  startTime: number;
+  initialQueue: string[];
+  executed: Set<string>;
+}): Promise<any> {
+  const {
+    workflow,
+    triggerNodeId,
+    context,
+    executionId,
+    startTime,
+    initialQueue,
+    executed,
+  } = input;
+  let status = "RUNNING";
+
+  try {
+    assertNoAgentConfigNodeCycles(workflow);
+    const { adjList } = createGraph(workflow);
+    const reachable = collectReachableNodeIds(triggerNodeId, adjList);
+    const branchInDegree = createBranchInDegree(reachable, adjList, triggerNodeId);
+    const queue = [...initialQueue];
+
+    const enqueueTarget = (targetId: string) => {
+      if (!reachable.has(targetId)) return;
+      branchInDegree[targetId]--;
+      const targetNode = workflow.nodes[targetId];
+      const isWaitAny =
+        targetNode?.type === "merge" && (targetNode as MergeNode).mode === "wait-any";
+
+      if (isWaitAny) {
+        if (!executed.has(targetId) && !queue.includes(targetId)) queue.push(targetId);
+        return;
+      }
+
+      if (branchInDegree[targetId] <= 0) queue.push(targetId);
+    };
+
+    while (queue.length > 0) {
+      const nodeId = queue.shift()!;
+      if (executed.has(nodeId)) continue;
+
+      if (CancellationRegistry.consume(executionId)) {
+        status = "CANCELLED";
+        break;
+      }
+
+      executed.add(nodeId);
+
+      const node = workflow.nodes[nodeId];
+      if (!node || node.type === "trigger" || node.disabled === true || isAgentConfigNode(node)) {
+        for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
+        continue;
+      }
+
+      recordNodeStart(context, nodeId);
+      emitNodeStart(workflow.metadata.id, executionId, nodeId);
+
+      await executeWithRetry({
+        nodeId,
+        node,
+        context,
+        workflow,
+        executionId,
+      });
+
+      if (node.type === "event") {
+        enqueueMatchingEventListeners(
+          workflow,
+          nodeId,
+          context,
+          executed,
+          queue,
+          adjList,
+          reachable,
+          branchInDegree,
+        );
+      }
+
+      const output = context.steps[nodeId]?.output;
+      for (const edge of adjList[nodeId] || []) {
+        if (shouldReleaseEdge(node, edge, output)) enqueueTarget(edge.target);
+      }
+    }
+
+    if (status === "RUNNING") status = "SUCCESS";
+  } catch (error: any) {
+    if (error instanceof WorkflowWaitingApprovalError) {
+      status = "WAITING_APPROVAL";
+      context.steps.pendingApprovalId = error.approvalId;
+    } else {
+      status = "FAILED";
+      context.steps.error = error.message;
+    }
+  } finally {
+    workflowEventBus.emitWorkflowEvent({
+      executionId,
+      workflowId: workflow.metadata.id,
+      type:
+        status === "SUCCESS"
+          ? "workflow:success"
+          : status === "CANCELLED"
+            ? "workflow:cancelled"
+            : status === "WAITING_APPROVAL"
+              ? "workflow:waiting-approval"
+              : "workflow:failed",
+      timestamp: Date.now(),
+    });
+
+    WorkflowRepository.saveExecutionLog(
+      executionId,
+      workflow.metadata.id,
+      status,
+      startTime,
+      status === "WAITING_APPROVAL" ? null : Date.now(),
+      sanitizeContextForLogging(context),
+    );
+
+    notifyPluginExecutionEnd(executionId, status);
+  }
+
+  return { executionId, status, context };
+}
+
+function successfulStepIds(context: WorkflowExecutionContext, pausedNodeId: string): Set<string> {
+  return new Set(
+    Object.entries(context.steps ?? {})
+      .filter(([nodeId, step]) => nodeId !== pausedNodeId && step?.status === "SUCCESS")
+      .map(([nodeId]) => nodeId),
+  );
+}
+
+function findTriggerNodeForExecution(
+  workflow: WorkflowItem,
+  context: WorkflowExecutionContext,
+): string {
+  const triggerStep = Object.entries(context.steps ?? {}).find(([, step]) => {
+    return step?.status === "SUCCESS" && step?.output === context.trigger;
+  });
+  if (triggerStep?.[0]) return triggerStep[0];
+
+  return Object.entries(workflow.nodes).find(([, node]) => node.type === "trigger")?.[0] ?? "trigger";
+}
+
 async function executeWithRetry(input: {
   nodeId: string;
   node: WorkflowNode;
@@ -323,6 +537,24 @@ async function executeWithRetry(input: {
       emitNodeSuccess(workflow.metadata.id, executionId, nodeId, result, node);
       return;
     } catch (error: any) {
+      if (error instanceof AgentToolApprovalRequiredError) {
+        const approvalId = createAgentApprovalForPausedNode({
+          error,
+          nodeId,
+          context,
+          workflow,
+          executionId,
+        });
+        context.steps[nodeId] = {
+          ...(context.steps[nodeId] ?? {}),
+          status: "WAITING_APPROVAL",
+          approvalId,
+          endedAt: Date.now(),
+          attempts: attempts + 1,
+        };
+        throw new WorkflowWaitingApprovalError(approvalId);
+      }
+
       attempts++;
       lastError = error instanceof Error ? error : new Error(String(error));
       context.steps[nodeId] = {
@@ -395,6 +627,53 @@ function enqueueMatchingEventListeners(
       queue.push(listenerId);
     }
   }
+}
+
+function createAgentApprovalForPausedNode(input: {
+  error: AgentToolApprovalRequiredError;
+  nodeId: string;
+  context: WorkflowExecutionContext;
+  workflow: WorkflowItem;
+  executionId: string;
+}): string {
+  const approvalId = `approval_${crypto.randomUUID()}`;
+  const triggerPayload = input.context.trigger ?? {};
+  const profileId = String(triggerPayload.profileId ?? triggerPayload.profile_id ?? "default");
+  const sessionId = optionalString(triggerPayload.sessionId ?? triggerPayload.session_id);
+  const request = {
+    ...input.error.approvalRequest,
+    nodeId: input.nodeId,
+  };
+
+  new AgentApprovalService(WorkflowRepository.database()).create({
+    id: approvalId,
+    profileId,
+    workflowId: input.workflow.metadata.id,
+    executionId: input.executionId,
+    sessionId,
+    toolName: input.error.approvalRequest.toolName,
+    request,
+  });
+
+  emitAgentEvent({
+    workflowId: input.workflow.metadata.id,
+    executionId: input.executionId,
+    nodeId: input.nodeId,
+    type: "agent:approval-created",
+    payload: {
+      approvalId,
+      executionId: input.executionId,
+      toolName: input.error.approvalRequest.toolName,
+      sideEffect: input.error.approvalRequest.sideEffect,
+      args: input.error.approvalRequest.args,
+    },
+  });
+
+  return approvalId;
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value : undefined;
 }
 
 function addReachableListenerBranch(
