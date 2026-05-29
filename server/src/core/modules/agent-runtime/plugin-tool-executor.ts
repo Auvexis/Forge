@@ -15,8 +15,8 @@ export async function executePluginAgentTool(input: {
   nodeId: string;
 }): Promise<unknown> {
   const params = {
-    ...(input.configuredTool.inputDefaults ?? {}),
     ...(input.args ?? {}),
+    ...(input.configuredTool.inputDefaults ?? {}),
   };
   assertPayloadWithinLimits(params);
   assertToolApproval(input.definition, input.configuredTool, params, input.approvalToken);

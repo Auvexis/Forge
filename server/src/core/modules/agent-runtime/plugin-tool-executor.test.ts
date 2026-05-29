@@ -43,6 +43,26 @@ describe("plugin tool executor", () => {
     assert.deepEqual(result, { ok: true });
   });
 
+  it("keeps configured input defaults when model args include the same field", async () => {
+    let received: Record<string, any> | null = null;
+    PluginManager.registerPlugin(createPlugin(async (params) => {
+      received = params;
+      return { ok: true };
+    }));
+
+    await executePluginAgentTool({
+      definition: definition(),
+      configuredTool: configuredTool({ inputDefaults: { owner: "configured-owner" } }),
+      args: { owner: "model-owner", title: "Bug" },
+      approvalToken: "approved",
+      executionId: "exec_1",
+      workflowId: "workflow_1",
+      nodeId: "agent_1",
+    });
+
+    assert.deepEqual(received, { owner: "configured-owner", title: "Bug" });
+  });
+
   it("rejects unsafe payload shape before executing", async () => {
     PluginManager.registerPlugin(createPlugin(async () => ({ ok: true })));
 
