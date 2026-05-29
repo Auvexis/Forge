@@ -43,5 +43,12 @@
     "dotenv": "^17.4.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "@rushstack/node-core-library": "5.23.1",
+    "@rushstack/terminal": "0.24.0",
+    "@rushstack/ts-command-line": "5.3.9",
+    "ajv": "^8.20.0",
+    "uuid": "11.1.1"
   }
 }
