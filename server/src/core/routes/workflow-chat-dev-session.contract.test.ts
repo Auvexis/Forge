@@ -17,10 +17,12 @@ test("dev session trigger execution route accepts chat triggers as editor input"
   assert.match(source, /triggerEntry\.trigger\.type !== "manual" && triggerEntry\.trigger\.type !== "chat"/);
   assert.match(source, /const source = triggerEntry\.trigger\.type === "chat" \? "chat" : "manual"/);
   assert.match(source, /source,/);
+  assert.match(source, /withActiveProfilePayload/);
+  assert.match(source, /profileId: payload\.profileId \?\? activeProfileId/);
   assert.match(source, /emitSessionEvent\(\{/);
   assert.match(source, /type: "trigger:received"/);
   assert.match(source, /executionId: job\.executionId/);
-  assert.match(source, /data: body\.payload \?\? \{\}/);
+  assert.match(source, /data: payload/);
   assert.match(source, /message: source === "chat" \? "Chat trigger queued" : "Manual trigger queued"/);
   assert.match(manager, /type\.startsWith\("agent:"\)/);
   assert.match(agentRunner, /type: "agent:end", payload: \{ status: result\.status, output: result\.output \}/);

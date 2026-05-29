@@ -174,27 +174,31 @@ export default async function agentChatRoutes(
     status: "approved" | "rejected",
     reply: FastifyReply,
   ) {
-    const profileId = getProfileId();
-    const executionId = (body as { executionId?: string } | undefined)?.executionId;
-    const approval = approvalService.getById(profileId, params.approvalId);
-    if (!approval || approval.executionId !== executionId) {
-      return sendResponse(reply, notFound("Agent approval not found"));
+    try {
+      const profileId = getProfileId();
+      const executionId = (body as { executionId?: string } | undefined)?.executionId;
+      const approval = approvalService.getById(profileId, params.approvalId);
+      if (!approval || approval.executionId !== executionId) {
+        return sendResponse(reply, notFound("Agent approval not found"));
+      }
+
+      const resolved = approvalService.resolve(profileId, params.approvalId, {
+        status,
+        decision: body,
+      });
+      const execution = resolved && status === "approved"
+        ? await workflowEngine.resumeExecutionAfterAgentApproval(resolved)
+        : null;
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: `Agent approval ${status}`,
+        error: null,
+        data: resolved ? { ...resolved, execution } : null,
+      });
+    } catch (error) {
+      return sendAgentError(reply, toApprovalResolutionError(error));
     }
-
-    const resolved = approvalService.resolve(profileId, params.approvalId, {
-      status,
-      decision: body,
-    });
-    const execution = resolved && status === "approved"
-      ? await workflowEngine.resumeExecutionAfterAgentApproval(resolved)
-      : null;
-
-    return sendResponse(reply, {
-      status_code: 200,
-      message: `Agent approval ${status}`,
-      error: null,
-      data: resolved ? { ...resolved, execution } : null,
-    });
   }
 }
 
@@ -228,6 +232,17 @@ function sendAgentError(reply: FastifyReply, error: unknown) {
     error: serialized.message,
     data: null,
   });
+}
+
+function toApprovalResolutionError(error: unknown): AgentRuntimeError {
+  if (error instanceof AgentRuntimeError) return error;
+  const message = error instanceof Error ? error.message : String(error);
+  return new AgentRuntimeError(
+    `Agent approval resolution failed: ${message}`,
+    "AGENT_APPROVAL_RESOLUTION_FAILED",
+    `Agent approval resolution failed: ${message}`,
+    409,
+  );
 }
 
 function notFound(message: string): ApiResponse<null> {

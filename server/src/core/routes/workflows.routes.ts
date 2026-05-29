@@ -252,6 +252,14 @@ export default async function workflowsRoutes(
   const sendResponse = <T>(reply: FastifyReply, response: ApiResponse<T>) => {
     return reply.code(response.status_code).send(response);
   };
+  const withActiveProfilePayload = (payload: Record<string, any> = {}) => {
+    const activeProfileId =
+      activeProfileRuntime.activeProfileService.getActiveProfile()?.id ?? "default";
+    return {
+      ...payload,
+      profileId: payload.profileId ?? activeProfileId,
+    };
+  };
 
   // ──────────── Webhook Ingress ─ TEST MODE (draft / unpublished) ────────────
   // Executes synchronously and returns the full context state.
@@ -791,7 +799,7 @@ export default async function workflowsRoutes(
       }
 
       const session = await devWorkflowSessionRuntime.manager.createSession(workflow, {
-        initialPayload: body.payload ?? {},
+        initialPayload: withActiveProfilePayload(body.payload ?? {}),
         initialTriggerNodeId: body.triggerNodeId,
       });
       const triggers = listTriggerEntries(workflow)
@@ -869,10 +877,11 @@ export default async function workflowsRoutes(
     }
 
     const source = triggerEntry.trigger.type === "chat" ? "chat" : "manual";
+    const payload = withActiveProfilePayload(body.payload ?? {});
     const job = devWorkflowSessionRuntime.manager.enqueueJob(sessionId, {
       triggerNodeId,
       source,
-      payload: body.payload ?? {},
+      payload,
     });
     devWorkflowSessionRuntime.eventBus.emitSessionEvent({
       type: "trigger:received",
@@ -883,7 +892,7 @@ export default async function workflowsRoutes(
       jobId: job.id,
       source,
       timestamp: Date.now(),
-      data: body.payload ?? {},
+      data: payload,
     });
 
     return sendResponse(reply, {

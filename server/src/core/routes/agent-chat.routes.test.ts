@@ -204,6 +204,36 @@ describe("agent chat routes", () => {
     assert.equal(resumedStatus, "approved");
     assert.equal(response.json().data.execution.status, "SUCCESS");
   });
+
+  it("approval endpoints return structured errors when resolution fails", async () => {
+    const approvals = new AgentApprovalService(db!);
+    approvals.create({
+      id: "approval_error",
+      profileId: "profile_a",
+      workflowId: "workflow_1",
+      executionId: "exec_error",
+      toolName: "send_email",
+      request: { nodeId: "agent" },
+    });
+    const app = await buildApp({
+      getActiveProfileId: () => "profile_a",
+      workflowEngine: {
+        resumeExecutionAfterAgentApproval: async () => {
+          throw new Error("Execution exec_error was not found");
+        },
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-approvals/approval_error/approve",
+      payload: { executionId: "exec_error" },
+    });
+
+    assert.equal(response.statusCode, 409);
+    assert.match(response.json().error, /Execution exec_error was not found/);
+    assert.doesNotMatch(JSON.stringify(response.json()), /stack/i);
+  });
 });
 
 async function buildApp(options: Partial<Parameters<typeof agentChatRoutes>[1]> = {}) {
