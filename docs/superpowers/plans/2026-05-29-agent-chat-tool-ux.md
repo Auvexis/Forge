@@ -28,7 +28,7 @@
 - Modify: `server/src/core/modules/agent-runtime/agent-graph-builder.ts`
 - Test: `server/src/core/modules/agent-runtime/__tests__/agent-graph-builder.contract.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add a contract test that checks the graph builder emits a tool intent event before approval or execution, a tool start event when execution begins, and a tool end event with success or failure.
 
@@ -47,13 +47,13 @@ test('agent graph emits tool lifecycle events around tool execution', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- --runInBand server/src/core/modules/agent-runtime/__tests__/agent-graph-builder.contract.test.ts`
 
 Expected: FAIL because the new lifecycle event names and emit helpers are missing.
 
-- [ ] **Step 3: Add event types**
+- [x] **Step 3: Add event types**
 
 Add these event variants to the existing agent runtime event union:
 
@@ -85,7 +85,7 @@ type AgentToolLifecycleEvent =
     }
 ```
 
-- [ ] **Step 4: Emit lifecycle events**
+- [x] **Step 4: Emit lifecycle events**
 
 In `agent-graph-builder.ts`, emit intent as soon as a model tool call is selected, before approval wait or direct execution. Emit start immediately before invoking the tool. Emit end in both the success path and the catch path.
 
@@ -100,13 +100,13 @@ emit({
 })
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `npm test -- --runInBand server/src/core/modules/agent-runtime/__tests__/agent-graph-builder.contract.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/core/modules/agent-runtime/agent-types.ts server/src/core/modules/agent-runtime/agent-graph-builder.ts server/src/core/modules/agent-runtime/__tests__/agent-graph-builder.contract.test.ts
@@ -119,7 +119,7 @@ git commit -m "feat: emit agent tool lifecycle events"
 - Modify: `server/src/core/modules/agent-runtime/agent-runner.ts`
 - Test: `server/src/core/modules/agent-runtime/__tests__/agent-runner.contract.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add a contract test that asserts graph tools include plugin identity fields.
 
@@ -133,13 +133,13 @@ test('agent runner passes plugin metadata into graph tools', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- --runInBand server/src/core/modules/agent-runtime/__tests__/agent-runner.contract.test.ts`
 
 Expected: FAIL if plugin metadata is not propagated.
 
-- [ ] **Step 3: Add metadata to graph tools**
+- [x] **Step 3: Add metadata to graph tools**
 
 When converting connected workflow tool nodes into graph tools, preserve `pluginId` and a human-readable plugin name when the node has that metadata. Do not infer a plugin from the tool name alone.
 
@@ -154,13 +154,13 @@ const graphTool: GraphTool = {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm test -- --runInBand server/src/core/modules/agent-runtime/__tests__/agent-runner.contract.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/core/modules/agent-runtime/agent-runner.ts server/src/core/modules/agent-runtime/__tests__/agent-runner.contract.test.ts
@@ -173,7 +173,7 @@ git commit -m "feat: include plugin metadata in agent tools"
 - Modify: `client-vue/src/features/workflow-editor/stores/execution.store.ts`
 - Test: `client-vue/src/features/workflow-editor/stores/__tests__/execution.store.contract.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add a contract test that checks event handlers append and update tool status chat records.
 
@@ -189,13 +189,13 @@ test('execution store maps agent tool lifecycle events to chat tool status messa
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `node --test src/features/workflow-editor/stores/__tests__/execution.store.contract.test.ts`
 
 Expected: FAIL because tool lifecycle chat records are not handled yet.
 
-- [ ] **Step 3: Add chat record shape**
+- [x] **Step 3: Add chat record shape**
 
 Add a transient assistant-side record shape that does not pollute LLM history:
 
@@ -211,17 +211,17 @@ type EditorChatToolStatus = {
 }
 ```
 
-- [ ] **Step 4: Map lifecycle events**
+- [x] **Step 4: Map lifecycle events**
 
 On `agent:tool-intent`, append a pending row. On `agent:tool-start`, update it to running. On `agent:tool-end`, update it to success or failed. Keep the existing pending assistant message for the model response separate.
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `node --test src/features/workflow-editor/stores/__tests__/execution.store.contract.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add client-vue/src/features/workflow-editor/stores/execution.store.ts client-vue/src/features/workflow-editor/stores/__tests__/execution.store.contract.test.ts
@@ -234,7 +234,7 @@ git commit -m "feat: track agent tool status in chat"
 - Modify: `client-vue/src/features/workflow-editor/components/agent/ChatSessionPanel.vue`
 - Test: `client-vue/src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add a contract test for the tool status row, shimmer, dots, and transition classes.
 
@@ -251,13 +251,13 @@ test('chat session panel renders animated agent tool status rows', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `node --test src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
 
 Expected: FAIL because the new status UI is absent.
 
-- [ ] **Step 3: Render localized pre-tool and running states**
+- [x] **Step 3: Render localized pre-tool and running states**
 
 Render a compact assistant status row:
 
@@ -272,17 +272,17 @@ function formatToolStatus(status: EditorChatToolStatus, lastUserMessage: string)
 
 Use locale templates only for UI chrome. Do not add a Portuguese-only system prompt to the LLM.
 
-- [ ] **Step 4: Add subtle animation**
+- [x] **Step 4: Add subtle animation**
 
 Add CSS for a low-intensity shimmer and three dots while status is `pending` or `running`. Add a small opacity/translate transition for incoming messages.
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `node --test src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add client-vue/src/features/workflow-editor/components/agent/ChatSessionPanel.vue client-vue/src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts
@@ -296,7 +296,7 @@ git commit -m "feat: animate agent tool status in chat"
 - Modify: `client-vue/src/features/workflow-editor/components/agent/ChatSessionPanel.vue`
 - Test: `client-vue/src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add a contract test that ensures a completed tool run does not leave the chat stuck on approval text and has a fallback completion message when no model text arrives.
 
@@ -311,13 +311,13 @@ test('chat session panel can show a final tool completion message after approval
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `node --test src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
 
 Expected: FAIL until completion fallback is implemented.
 
-- [ ] **Step 3: Add completion fallback**
+- [x] **Step 3: Add completion fallback**
 
 When `agent:tool-end` succeeds and the following `agent:end` contains no assistant text, append a localized assistant message:
 
@@ -327,17 +327,17 @@ const message = locale === 'pt'
   : `Done, I used ${toolName}${pluginName ? ` from ${pluginName}` : ''} successfully. Do you want to run another action?`
 ```
 
-- [ ] **Step 4: Keep failures visible**
+- [x] **Step 4: Keep failures visible**
 
 For failed tool runs, keep the failed status row and show the existing toast/error path. Do not generate a fake success message.
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `node --test src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add client-vue/src/features/workflow-editor/stores/execution.store.ts client-vue/src/features/workflow-editor/components/agent/ChatSessionPanel.vue client-vue/src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts
@@ -349,19 +349,19 @@ git commit -m "feat: finish approved tool runs in chat"
 **Files:**
 - No new files.
 
-- [ ] **Step 1: Run focused backend tests**
+- [x] **Step 1: Run focused backend tests**
 
 Run: `npm test -- --runInBand server/src/core/modules/agent-runtime/__tests__/agent-graph-builder.contract.test.ts server/src/core/modules/agent-runtime/__tests__/agent-runner.contract.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 2: Run focused frontend tests**
+- [x] **Step 2: Run focused frontend tests**
 
 Run from `client-vue`: `node --test src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts src/features/workflow-editor/stores/__tests__/execution.store.contract.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 3: Run type checks**
+- [x] **Step 3: Run type checks**
 
 Run from `client-vue`: `npm run type-check`
 
@@ -371,7 +371,7 @@ Expected: PASS.
 
 Open the editor, ask the agent to use Discord, confirm the chat shows a pre-tool message, approval buttons, animated running status after accept, success status after the Discord API response, and a final assistant success message. Repeat with a tool that does not require approval.
 
-- [ ] **Step 5: Commit verification notes if docs changed**
+- [x] **Step 5: Commit verification notes if docs changed**
 
 ```bash
 git status --short
