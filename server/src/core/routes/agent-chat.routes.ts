@@ -24,15 +24,13 @@ export default async function agentChatRoutes(
   fastify: FastifyInstance,
   options: AgentChatRoutesOptions = {},
 ) {
-  const db = options.db ?? WorkflowRepository.database();
+  const getDb = () => options.db ?? WorkflowRepository.database();
   const getProfileId =
     options.getActiveProfileId ??
     (() => activeProfileRuntime.activeProfileService.getActiveProfile()?.id ?? "default");
-  const chatService = options.chatService ?? new ChatTriggerService({ db });
+  const getChatService = () => options.chatService ?? new ChatTriggerService({ db: getDb() });
   const runtimeService = options.runtimeService ?? AgentRuntimeService;
   const workflowEngine = options.workflowEngine ?? WorkflowEngine;
-  const memoryStore = new AgentMemoryStore(db);
-  const approvalService = new AgentApprovalService(db);
 
   fastify.post("/agent-chat/:chatSlug/messages", async (req, reply) => {
     try {
@@ -58,7 +56,7 @@ export default async function agentChatRoutes(
         );
       }
 
-      const result = await chatService.sendMessage({
+      const result = await getChatService().sendMessage({
         profileId: getProfileId(),
         chatSlug,
         message,
@@ -86,6 +84,7 @@ export default async function agentChatRoutes(
   fastify.get("/agent-chat/sessions/:sessionId/messages", async (req, reply) => {
     const { sessionId } = req.params as { sessionId: string };
     const profileId = getProfileId();
+    const chatService = getChatService();
     const session = chatService.getSession(profileId, sessionId);
     if (!session) return sendResponse(reply, notFound("Chat session not found"));
 
@@ -121,7 +120,7 @@ export default async function agentChatRoutes(
       status_code: 200,
       message: "Agent memory fetched",
       error: null,
-      data: listProfileMemory(db, getProfileId()),
+      data: listProfileMemory(getDb(), getProfileId()),
     });
   });
 
@@ -129,7 +128,7 @@ export default async function agentChatRoutes(
     try {
       const body = req.body as { namespace?: string; key?: string; value?: unknown; source?: string };
       const profileId = getProfileId();
-      const record = memoryStore.put({
+      const record = new AgentMemoryStore(getDb()).put({
         id: `memory_${crypto.randomUUID()}`,
         profileId,
         namespace: String(body.namespace ?? `profile:${profileId}`),
@@ -150,7 +149,7 @@ export default async function agentChatRoutes(
 
   fastify.delete("/agent-memory/:memoryId", async (req, reply) => {
     const { memoryId } = req.params as { memoryId: string };
-    const deleted = deleteProfileMemoryById(db, getProfileId(), memoryId);
+    const deleted = deleteProfileMemoryById(getDb(), getProfileId(), memoryId);
     if (!deleted) return sendResponse(reply, notFound("Agent memory not found"));
     return sendResponse(reply, {
       status_code: 200,
@@ -177,6 +176,7 @@ export default async function agentChatRoutes(
     try {
       const profileId = getProfileId();
       const executionId = (body as { executionId?: string } | undefined)?.executionId;
+      const approvalService = new AgentApprovalService(getDb());
       const approval = approvalService.getById(profileId, params.approvalId);
       if (!approval || approval.executionId !== executionId) {
         return sendResponse(reply, notFound("Agent approval not found"));

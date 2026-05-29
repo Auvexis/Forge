@@ -8,6 +8,7 @@ import { createMigrationEngine } from "../database/migration-engine.ts";
 import { AgentMemoryStore } from "../modules/agent-runtime/memory/agent-memory-store.ts";
 import { AgentApprovalService } from "../modules/agent-runtime/agent-approval-service.ts";
 import { AgentRuntimeError } from "../modules/agent-runtime/agent-errors.ts";
+import { resetWorkflowDatabaseProvider, setWorkflowDatabaseProvider } from "../modules/workflows/repository.ts";
 import type { SailorAgentToolDefinition } from "../modules/agent-runtime/plugin-tool-adapter.ts";
 import agentChatRoutes from "./agent-chat.routes.ts";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
@@ -243,6 +244,41 @@ describe("agent chat routes", () => {
     assert.match(source, /options\.db \?\? WorkflowRepository\.database\(\)/);
     assert.doesNotMatch(source, /options\.db \?\? DatabaseManager\.workflows/);
   });
+
+  it("approval endpoints resolve against the current workflow database per request", async () => {
+    const closedDb = new Database(":memory:");
+    await createMigrationEngine(closedDb, "workflows").up();
+    setWorkflowDatabaseProvider(() => closedDb);
+    const app = await buildAppWithoutDb();
+    closedDb.close();
+
+    const liveDb = new Database(":memory:");
+    liveDb.pragma("foreign_keys = ON");
+    await createMigrationEngine(liveDb, "workflows").up();
+    setWorkflowDatabaseProvider(() => liveDb);
+    new AgentApprovalService(liveDb).create({
+      id: "approval_live",
+      profileId: "profile_a",
+      workflowId: "workflow_1",
+      executionId: "exec_live",
+      toolName: "send_email",
+      request: { nodeId: "agent" },
+    });
+
+    try {
+      const response = await app.inject({
+        method: "POST",
+        url: "/agent-approvals/approval_live/reject",
+        payload: { executionId: "exec_live" },
+      });
+
+      assert.equal(response.statusCode, 200);
+      assert.equal(response.json().data.status, "rejected");
+    } finally {
+      liveDb.close();
+      resetWorkflowDatabaseProvider();
+    }
+  });
 });
 
 async function buildApp(options: Partial<Parameters<typeof agentChatRoutes>[1]> = {}) {
@@ -260,6 +296,32 @@ async function buildApp(options: Partial<Parameters<typeof agentChatRoutes>[1]> 
       listMessages: () => [],
     },
     runtimeService: { listTools: () => [] },
+    ...options,
+  });
+  return app;
+}
+
+async function buildAppWithoutDb(options: Partial<Parameters<typeof agentChatRoutes>[1]> = {}) {
+  const app = Fastify({ logger: false });
+  await app.register(agentChatRoutes, {
+    getActiveProfileId: () => "profile_a",
+    chatService: {
+      sendMessage: async () => ({
+        session: session("chat_1"),
+        messages: [],
+        execution: { status: "SUCCESS" },
+      }),
+      getSession: () => null,
+      listMessages: () => [],
+    },
+    runtimeService: { listTools: () => [] },
+    workflowEngine: {
+      resumeExecutionAfterAgentApproval: async (approval: any) => ({
+        executionId: approval.executionId,
+        status: "SUCCESS",
+        context: null,
+      }),
+    },
     ...options,
   });
   return app;

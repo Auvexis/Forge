@@ -84,11 +84,16 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
       for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
         input.onEvent?.({ type: "agent:model-start", payload: { iteration } });
 
+        let assistantContent = "";
+        let toolCalls: AgentToolCall[] = [];
+        let usedStream = false;
+
         if (canAttemptStreamTextResponse(input.agent, model, tools)) {
           const stream = await resolveModelStream(model, messages);
           if (stream) {
-            let content = "";
+            const streamedToolCalls: AgentToolCall[] = [];
             for await (const chunk of stream) {
+              streamedToolCalls.push(...extractCompleteToolCalls(chunk));
               const thinkingDelta = extractThinkingDelta(chunk);
               if (thinkingDelta) {
                 input.onEvent?.({ type: "agent:thinking-delta", payload: { delta: thinkingDelta } });
@@ -96,25 +101,25 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
 
               const delta = extractStreamDelta(chunk);
               if (!delta) continue;
-              content += delta;
-              input.onEvent?.({ type: "agent:output-delta", payload: { delta } });
+              assistantContent += delta;
+              if (streamedToolCalls.length === 0) {
+                input.onEvent?.({ type: "agent:output-delta", payload: { delta } });
+              }
             }
-            input.onEvent?.({
-              type: "agent:model-end",
-              payload: { iteration, toolCallCount: 0 },
-            });
-            return {
-              status: "success",
-              output: content,
-              iterationCount: iteration,
-              toolCallCount,
-            };
+
+            if (assistantContent || streamedToolCalls.length > 0) {
+              toolCalls = streamedToolCalls;
+              usedStream = true;
+            }
           }
         }
 
-        const modelResponse = await model.invoke(messages);
-        const assistantContent = extractContent(modelResponse);
-        const toolCalls = extractToolCalls(modelResponse);
+        if (!usedStream) {
+          const modelResponse = await model.invoke(messages);
+          assistantContent = extractContent(modelResponse);
+          toolCalls = extractToolCalls(modelResponse);
+        }
+
         input.onEvent?.({
           type: "agent:model-end",
           payload: { iteration, toolCallCount: toolCalls.length },
@@ -204,9 +209,9 @@ function asModel(value: unknown): InvokableModel {
 function canAttemptStreamTextResponse(
   agent: AiAgentNodeConfig,
   model: InvokableModel,
-  tools: Map<string, InvokableTool>,
+  _tools: Map<string, InvokableTool>,
 ): model is InvokableModel & StreamableModel {
-  return agent.outputMode === "text" && tools.size === 0 && typeof model.stream === "function";
+  return agent.outputMode === "text" && typeof model.stream === "function";
 }
 
 async function resolveModelStream(
@@ -375,6 +380,14 @@ function extractToolCalls(response: unknown): AgentToolCall[] {
     candidate?.toolCalls ?? candidate?.tool_calls ?? candidate?.additional_kwargs?.tool_calls ?? [];
 
   return toolCalls.map((toolCall, index) => normalizeToolCall(toolCall, index));
+}
+
+function extractCompleteToolCalls(response: unknown): AgentToolCall[] {
+  try {
+    return extractToolCalls(response);
+  } catch {
+    return [];
+  }
 }
 
 function normalizeToolCall(toolCall: unknown, index: number): AgentToolCall {

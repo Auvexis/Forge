@@ -193,8 +193,8 @@ describe("agent graph builder", () => {
     }]);
   });
 
-  it("uses invoke instead of stream when tools are configured", async () => {
-    const model = fakeStreamModel(["stream should not run"], { invokeContent: "done" });
+  it("streams text responses when tools are configured but no tool call is emitted", async () => {
+    const model = fakeStreamModel(["he", { content: "llo" }], { invokeContent: "done" });
     const graph = buildAgentGraph({
       agent: agentConfig(),
       model,
@@ -203,9 +203,29 @@ describe("agent graph builder", () => {
 
     const result = await graph.invoke({ userMessage: "hello" });
 
+    assert.equal(result.output, "hello");
+    assert.equal(model.invokeCalls.length, 0);
+    assert.equal(model.streamCalls.length, 1);
+  });
+
+  it("executes complete tool calls emitted by streamable models", async () => {
+    const tool = fakeTool("lookup", async () => ({ result: "found sailor" }));
+    const model = fakeSequentialStreamModel([
+      [{ toolCalls: [{ id: "call_1", name: "lookup", args: { query: "sailor" } }] }],
+      ["done"],
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+    });
+
+    const result = await graph.invoke({ userMessage: "lookup sailor" });
+
     assert.equal(result.output, "done");
-    assert.equal(model.invokeCalls.length, 1);
-    assert.equal(model.streamCalls.length, 0);
+    assert.equal(result.toolCallCount, 1);
+    assert.deepEqual(tool.calls, [{ query: "sailor" }]);
+    assert.equal(model.streamCalls.length, 2);
   });
 
   it("includes short-term memory checkpointer config when provided", async () => {
@@ -396,6 +416,25 @@ function fakeBadStreamModel(options: { invokeContent?: string } = {}) {
     stream(messages: unknown[]) {
       this.streamCalls.push(messages);
       return undefined;
+    },
+  };
+}
+
+function fakeSequentialStreamModel(chunksByCall: unknown[][]) {
+  let index = 0;
+  return {
+    invokeCalls: [] as unknown[],
+    streamCalls: [] as unknown[],
+    async invoke(messages: unknown[]) {
+      this.invokeCalls.push(messages);
+      return { content: "" };
+    },
+    async *stream(messages: unknown[]) {
+      this.streamCalls.push(messages);
+      const chunks = chunksByCall[Math.min(index++, chunksByCall.length - 1)] ?? [];
+      for (const chunk of chunks) {
+        yield chunk;
+      }
     },
   };
 }
