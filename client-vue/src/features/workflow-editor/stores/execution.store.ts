@@ -279,7 +279,11 @@ export const useExecutionStore = defineStore('execution', () => {
   }
 
   function toolStatusMessageId(status: EditorChatToolStatus) {
-    return `chat-tool-status:${status.executionId}:${status.callId ?? status.toolName}`
+    return `chat-tool-status:${status.executionId}:${status.toolName}`
+  }
+
+  function toolCompletionMessageId(executionId: string) {
+    return `chat-assistant-tool-completion:${executionId}`
   }
 
   function upsertEditorChatToolStatus(chatSessionId: string, status: EditorChatToolStatus, timestamp: number) {
@@ -400,6 +404,11 @@ export const useExecutionStore = defineStore('execution', () => {
     const existing = (editorChatMessagesBySession[chatSessionId] ?? [])
       .find((message) => message.id === streamAssistantMessageId(executionId))
 
+    if (isApprovalContinuationContent(existing?.content)) {
+      appendFinalAssistantMessage(chatSessionId, executionId, output, ev.timestamp)
+      return
+    }
+
     appendEditorChatMessage({
       id: streamAssistantMessageId(ev.executionId),
       sessionId: chatSessionId,
@@ -493,11 +502,24 @@ export const useExecutionStore = defineStore('execution', () => {
     if (!tool || hasAssistantTextForExecution(chatSessionId, executionId)) return
 
     appendEditorChatMessage({
-      id: streamAssistantMessageId(executionId),
+      id: toolCompletionMessageId(executionId),
       sessionId: chatSessionId,
       role: 'assistant',
       content: {
         text: formatToolCompletionMessage(tool, detectChatLocale(lastUserMessageText(chatSessionId))),
+        pending: false,
+      },
+      createdAt: new Date(timestamp).toISOString(),
+    })
+  }
+
+  function appendFinalAssistantMessage(chatSessionId: string, executionId: string, output: unknown, timestamp: number) {
+    appendEditorChatMessage({
+      id: toolCompletionMessageId(executionId),
+      sessionId: chatSessionId,
+      role: 'assistant',
+      content: {
+        text: typeof output === 'string' ? output : JSON.stringify(output),
         pending: false,
       },
       createdAt: new Date(timestamp).toISOString(),

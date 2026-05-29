@@ -27,12 +27,36 @@ test('execution store maps agent tool lifecycle events to transient chat status 
   assert.match(source, /extractToolStatusPayload\(ev, eventStatus\)/)
 })
 
-test('execution store appends a fallback tool completion message only when model output is empty', () => {
+test('execution store updates one tool status row across approval resume events', () => {
   const source = read('src/features/workflow-editor/stores/execution.store.ts')
 
+  assert.match(source, /function toolStatusMessageId/)
+  assert.match(source, /chat-tool-status:\$\{status\.executionId\}:\$\{status\.toolName\}/)
+  assert.doesNotMatch(source, /chat-tool-status:\$\{status\.executionId\}:\$\{status\.callId/)
+})
+
+test('execution store appends a fallback tool completion message only when model output is empty', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+  const completionBlock = source.slice(
+    source.indexOf('function appendToolCompletionMessage'),
+    source.indexOf('function appendFinalAssistantMessage'),
+  )
+
   assert.match(source, /appendToolCompletionMessage/)
+  assert.match(source, /toolCompletionMessageId/)
+  assert.match(source, /chat-assistant-tool-completion:\$\{executionId\}/)
+  assert.doesNotMatch(completionBlock, /id: streamAssistantMessageId\(executionId\)/)
+  assert.match(completionBlock, /id: toolCompletionMessageId\(executionId\)/)
   assert.match(source, /lastSuccessfulToolByExecution/)
   assert.match(source, /hasAssistantTextForExecution/)
   assert.match(source, /isApprovalContinuationContent/)
   assert.match(source, /formatToolCompletionMessage/)
+})
+
+test('execution store keeps approval continuation and appends final agent text below it', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+
+  assert.match(source, /isApprovalContinuationContent\(existing\?\.content\)/)
+  assert.match(source, /appendFinalAssistantMessage/)
+  assert.match(source, /toolCompletionMessageId\(executionId\)/)
 })
