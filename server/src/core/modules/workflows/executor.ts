@@ -48,8 +48,11 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const utilityNodeRegistry = createUtilityNodeRegistry();
 
 class WorkflowWaitingApprovalError extends Error {
-  constructor(public readonly approvalId: string) {
+  public readonly approvalId: string;
+
+  constructor(approvalId: string) {
     super("Workflow is waiting for agent tool approval");
+    this.approvalId = approvalId;
   }
 }
 
