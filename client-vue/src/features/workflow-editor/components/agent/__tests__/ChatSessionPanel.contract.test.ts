@@ -166,6 +166,23 @@ test('approval accept keeps chat streaming through session events', () => {
   assert.doesNotMatch(source, /extractApprovalExecutionOutput/)
 })
 
+test('approval decline clears pending tool status and waiting node states', () => {
+  const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
+
+  assert.match(source, /rejectEditorChatToolApproval/)
+  assert.match(source, /approval\.executionId/)
+  assert.match(source, /approval\.toolName/)
+})
+
+test('chat session panel renders final tool replies inside the tool status message', () => {
+  const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
+
+  assert.match(source, /visibleMessages/)
+  assert.match(source, /toolStatusCompletionText\(message\.content\)/)
+  assert.match(source, /chat-session-panel__tool-final-reply/)
+  assert.match(source, /isToolCompletionMessage/)
+})
+
 test('chat session panel renders animated agent tool status rows', () => {
   const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
 

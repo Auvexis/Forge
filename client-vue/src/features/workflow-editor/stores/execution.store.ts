@@ -305,6 +305,43 @@ export const useExecutionStore = defineStore('execution', () => {
     })
   }
 
+  function removeEditorChatToolStatus(chatSessionId: string, executionId: string, toolName: string) {
+    const existing = editorChatMessagesBySession[chatSessionId] ?? []
+    editorChatMessagesBySession[chatSessionId] = existing.filter((message) =>
+      !(
+        isToolStatusContent(message.content) &&
+        message.content.executionId === executionId &&
+        message.content.toolName === toolName
+      ),
+    )
+  }
+
+  function clearExecutionWaitingState(executionId: string) {
+    for (const [jobId, job] of Object.entries(activeJobs)) {
+      if (job.executionId !== executionId) continue
+      if (job.triggerNodeId) {
+        _patchNode(job.triggerNodeId, { status: 'idle', endedAt: Date.now() })
+        delete triggerStatuses[job.triggerNodeId]
+      }
+      delete activeJobs[jobId]
+    }
+
+    const executionStatuses = nodeStatusesByExecution[executionId] ?? {}
+    for (const [nodeId, state] of Object.entries(executionStatuses)) {
+      if (state.status !== 'waiting' && state.status !== 'running' && state.status !== 'retrying') continue
+
+      const patch = { status: 'idle' as const, endedAt: Date.now() }
+      _patchNode(nodeId, patch)
+      _patchExecutionNode(executionId, nodeId, patch)
+      delete triggerStatuses[nodeId]
+    }
+  }
+
+  function rejectEditorChatToolApproval(input: { sessionId: string; executionId: string; toolName: string }) {
+    removeEditorChatToolStatus(input.sessionId, input.executionId, input.toolName)
+    clearExecutionWaitingState(input.executionId)
+  }
+
   function registerEditorChatExecution(executionId: string, chatSessionId: string) {
     editorChatSessionIdByExecution[executionId] = chatSessionId
   }
@@ -1275,6 +1312,7 @@ export const useExecutionStore = defineStore('execution', () => {
     resetNodeStatuses,
     setTriggerRunning,
     patchNodeStatus,
+    rejectEditorChatToolApproval,
     appendEditorChatMessage,
     appendEditorChatMessageDelta,
     appendPendingEditorChatAssistantMessage,

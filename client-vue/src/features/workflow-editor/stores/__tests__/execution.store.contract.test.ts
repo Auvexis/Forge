@@ -72,3 +72,13 @@ test('execution store redirects post-approval stream deltas below the tool statu
   assert.match(deltaBlock, /assistantStreamTargetMessageId\(executionId, sessionId\)/)
   assert.doesNotMatch(deltaBlock, /id = streamAssistantMessageId\(executionId\)/)
 })
+
+test('execution store exposes approval decline cleanup for tool chat and node statuses', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+
+  assert.match(source, /function rejectEditorChatToolApproval/)
+  assert.match(source, /removeEditorChatToolStatus/)
+  assert.match(source, /clearExecutionWaitingState/)
+  assert.match(source, /job\.triggerNodeId/)
+  assert.match(source, /rejectEditorChatToolApproval,/)
+})

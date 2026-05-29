@@ -3,7 +3,7 @@
     <div ref="messagesEl" class="chat-session-panel__messages">
       <TransitionGroup name="chat-message" tag="div" class="chat-session-panel__message-list">
         <article
-          v-for="message in displayedMessages"
+          v-for="message in visibleMessages"
           :key="message.id"
           class="chat-session-panel__message"
           :data-role="message.role"
@@ -13,25 +13,32 @@
           </div>
           <div class="chat-session-panel__message-copy">
             <strong>{{ formatRole(message.role) }}</strong>
-            <div
-              v-if="isToolStatusContent(message.content)"
-              class="chat-session-panel__tool-status"
-              :class="`chat-session-panel__tool-status--${message.content.status}`"
-            >
-              <div class="chat-session-panel__tool-status-copy">
-                <span>{{ formatToolStatusLabel(message.content) }}</span>
-                <p>{{ formatToolStatusMessage(message.content) }}</p>
+            <template v-if="isToolStatusContent(message.content)">
+              <div
+                class="chat-session-panel__tool-status"
+                :class="`chat-session-panel__tool-status--${message.content.status}`"
+              >
+                <div class="chat-session-panel__tool-status-copy">
+                  <span>{{ formatToolStatusLabel(message.content) }}</span>
+                  <p>{{ formatToolStatusMessage(message.content) }}</p>
+                </div>
+                <div
+                  v-if="message.content.status === 'pending' || message.content.status === 'running'"
+                  class="chat-session-panel__tool-dots"
+                  aria-hidden="true"
+                >
+                  <span />
+                  <span />
+                  <span />
+                </div>
               </div>
               <div
-                v-if="message.content.status === 'pending' || message.content.status === 'running'"
-                class="chat-session-panel__tool-dots"
-                aria-hidden="true"
+                v-if="toolStatusCompletionText(message.content)"
+                class="chat-session-panel__tool-final-reply"
               >
-                <span />
-                <span />
-                <span />
+                <p>{{ toolStatusCompletionText(message.content) }}</p>
               </div>
-            </div>
+            </template>
             <template v-else>
               <div v-if="messageThinking(message.content)" class="chat-session-panel__thinking">
                 {{ messageThinking(message.content) }}
@@ -221,6 +228,9 @@ const displayedMessages = computed(() => {
   if (!canSendToDevSession.value || !displayedDevChatSessionId.value) return messages.value
   return executionStore.editorChatMessagesBySession[displayedDevChatSessionId.value] ?? []
 })
+const visibleMessages = computed(() =>
+  displayedMessages.value.filter((message) => !isToolCompletionMessage(message)),
+)
 const displayedMessagesScrollKey = computed(() => JSON.stringify(displayedMessages.value.map((message) => ({
   id: message.id,
   role: message.role,
@@ -484,6 +494,13 @@ async function rejectChatApproval(approval: ChatApprovalAction) {
       executionId: approval.executionId,
     })
     updateApprovalChatMessage(approval, `Declined ${approval.toolName}.`)
+    if (canSendToDevSession.value && sessionId.value) {
+      executionStore.rejectEditorChatToolApproval({
+        sessionId: sessionId.value,
+        executionId: approval.executionId,
+        toolName: approval.toolName,
+      })
+    }
   } catch (error) {
     safeError.value = formatSendError(error)
     toast.error(safeError.value, 'Approval failed')
@@ -640,6 +657,17 @@ function isChatContentRecord(content: unknown): content is {
 
 function isToolStatusContent(content: unknown): content is EditorChatToolStatus {
   return Boolean(content && typeof content === 'object' && !Array.isArray(content) && (content as { kind?: unknown }).kind === 'toolStatus')
+}
+
+function isToolCompletionMessage(message: AgentChatMessage) {
+  return message.role === 'assistant' && message.id.startsWith('chat-assistant-tool-completion:')
+}
+
+function toolStatusCompletionText(status: EditorChatToolStatus) {
+  const completion = displayedMessages.value.find((message) =>
+    message.id === `chat-assistant-tool-completion:${status.executionId}`,
+  )
+  return completion ? messageContent(completion.content) : ''
 }
 
 function formatToolStatusLabel(status: EditorChatToolStatus) {
@@ -946,6 +974,13 @@ function formatRole(role: AgentChatMessageRole) {
   color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
   line-height: 1.35;
+}
+
+.chat-session-panel__tool-final-reply {
+  width: min(420px, 100%);
+  border-left: 1px solid color-mix(in srgb, var(--sailor-green-400) 34%, var(--sailor-border));
+  margin-top: var(--sailor-space-2);
+  padding-left: var(--sailor-space-3);
 }
 
 .chat-session-panel__tool-dots {

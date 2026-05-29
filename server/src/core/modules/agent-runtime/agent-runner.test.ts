@@ -88,6 +88,44 @@ describe("agent runner", () => {
     })), [{ pluginId: "discord", pluginName: "Discord" }]);
   });
 
+  it("removes configured default inputs from graph tool required schema", async () => {
+    const graphTools: Array<{ inputSchema?: any; description?: string }> = [];
+    const runner = new AgentRunner({
+      modelRegistry: fakeModelRegistry(),
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [
+          toolDefinition("discord_send_message", {
+            inputSchema: {
+              type: "object",
+              properties: {
+                channelId: { type: "string" },
+                content: { type: "string" },
+              },
+              required: ["channelId", "content"],
+            },
+          }),
+        ],
+      },
+      graphBuilder: (input) => {
+        graphTools.push(...input.tools as Array<{ inputSchema?: any; description?: string }>);
+        return {
+          async invoke() {
+            return successResult("ok");
+          },
+        };
+      },
+    });
+
+    await runner.run({
+      ...runInput(),
+      tools: [toolConfig({ inputDefaults: { channelId: "1234567890" } })],
+    });
+
+    assert.deepEqual(graphTools[0]?.inputSchema?.required, ["content"]);
+    assert.match(graphTools[0]?.description ?? "", /channelId is already configured/i);
+  });
+
   it("creates a checkpointer only when a session id exists", async () => {
     const createdFor: string[] = [];
     const runner = new AgentRunner({

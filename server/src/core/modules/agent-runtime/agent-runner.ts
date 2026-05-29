@@ -231,11 +231,14 @@ export class AgentRunner {
   ): GraphTool[] {
     return definitions.map((definition, index) => ({
       name: definition.name,
-      description: definition.description,
+      description: describeConfiguredDefaults(
+        definition.description,
+        configs[index]?.inputDefaults,
+      ),
       pluginId: definition.pluginId,
       pluginName: definition.pluginName ?? definition.pluginId,
       requiresApproval: configs[index]?.requiresApproval ?? definition.requiresApproval,
-      inputSchema: definition.inputSchema,
+      inputSchema: schemaWithoutConfiguredDefaults(definition.inputSchema, configs[index]?.inputDefaults),
       invoke: async (args: unknown) =>
         executePluginAgentTool({
           definition,
@@ -248,6 +251,30 @@ export class AgentRunner {
         }),
     }));
   }
+}
+
+function schemaWithoutConfiguredDefaults(
+  schema: Record<string, any>,
+  defaults: Record<string, any> | undefined,
+): Record<string, any> {
+  const defaultKeys = Object.keys(defaults ?? {}).filter((key) => defaults?.[key] !== undefined);
+  if (defaultKeys.length === 0 || !Array.isArray(schema.required)) return schema;
+
+  return {
+    ...schema,
+    required: schema.required.filter((key: unknown) => typeof key !== "string" || !defaultKeys.includes(key)),
+  };
+}
+
+function describeConfiguredDefaults(
+  description: string,
+  defaults: Record<string, any> | undefined,
+): string {
+  const defaultKeys = Object.keys(defaults ?? {}).filter((key) => defaults?.[key] !== undefined);
+  if (defaultKeys.length === 0) return description;
+
+  const details = defaultKeys.map((key) => `${key} is already configured`).join("; ");
+  return `${description} ${details}.`;
 }
 
 function validateRunInput(input: AgentRunInput): AgentRunInput {
