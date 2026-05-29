@@ -578,6 +578,16 @@ function updateApprovalChatMessage(
   }
 
   if (canSendToDevSession.value && targetSessionId) {
+    if (options.approvalContinuation === true) {
+      executionStore.approveEditorChatToolApproval({
+        sessionId: targetSessionId,
+        executionId: approval.executionId,
+        approvalId: approval.approvalId,
+        toolName: approval.toolName,
+      })
+      return
+    }
+
     executionStore.appendEditorChatMessage({
       id: `chat-assistant-stream:${approval.executionId}:agent`,
       sessionId: targetSessionId,

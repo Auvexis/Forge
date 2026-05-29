@@ -57,6 +57,7 @@ test('execution store keeps approval continuation and appends final agent text b
   const source = read('src/features/workflow-editor/stores/execution.store.ts')
 
   assert.match(source, /isApprovalContinuationContent\(existing\?\.content\)/)
+  assert.match(source, /approvedToolExecutions\.has\(executionId\)/)
   assert.match(source, /appendFinalAssistantMessage/)
   assert.match(source, /toolCompletionMessageId\(executionId\)/)
 })
@@ -71,6 +72,28 @@ test('execution store redirects post-approval stream deltas below the tool statu
   assert.match(source, /function assistantStreamTargetMessageId/)
   assert.match(deltaBlock, /assistantStreamTargetMessageId\(executionId, sessionId\)/)
   assert.doesNotMatch(deltaBlock, /id = streamAssistantMessageId\(executionId\)/)
+})
+
+test('execution store keeps approval messages outside the streaming assistant id', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+  const approvalBlock = source.slice(
+    source.indexOf('function recordEditorChatApprovalCreated'),
+    source.indexOf('function recordEditorChatJobSuccess'),
+  )
+
+  assert.match(source, /function approvalMessageId/)
+  assert.match(approvalBlock, /id: approvalMessageId\(executionId, approvalId\)/)
+  assert.doesNotMatch(approvalBlock, /id: streamAssistantMessageId\(executionId\)/)
+})
+
+test('execution store routes approved tool streams by execution id state', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+
+  assert.match(source, /approvedToolExecutions/)
+  assert.match(source, /function approveEditorChatToolApproval/)
+  assert.match(source, /approvedToolExecutions\.add\(input\.executionId\)/)
+  assert.match(source, /approvedToolExecutions\.has\(executionId\)/)
+  assert.match(source, /approveEditorChatToolApproval,/)
 })
 
 test('execution store exposes approval decline cleanup for tool chat and node statuses', () => {

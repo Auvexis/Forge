@@ -41,6 +41,7 @@ export const useExecutionStore = defineStore('execution', () => {
   const editorChatSessionIdByExecution = reactive<Record<string, string>>({})
   const agentFailuresByExecution = new Set<string>()
   const lastSuccessfulToolByExecution = new Map<string, EditorChatToolStatus>()
+  const approvedToolExecutions = new Set<string>()
   /** Tracks which trigger node IDs are of type 'manual' — used to decide reset target after job ends */
   const manualTriggerNodeIds = new Set<string>()
 
@@ -232,13 +233,22 @@ export const useExecutionStore = defineStore('execution', () => {
     return `chat-assistant-stream:${executionId}:agent`
   }
 
+  function approvalMessageId(executionId: string, approvalId: string) {
+    return `chat-assistant-approval:${executionId}:${approvalId || 'pending'}`
+  }
+
   function assistantStreamTargetMessageId(executionId: string, sessionId: string) {
     const streamMessage = (editorChatMessagesBySession[sessionId] ?? [])
       .find((message) => message.id === streamAssistantMessageId(executionId))
 
-    return isApprovalContinuationContent(streamMessage?.content)
+    return approvedToolExecutions.has(executionId) || isApprovalContinuationContent(streamMessage?.content)
       ? toolCompletionMessageId(executionId)
       : streamAssistantMessageId(executionId)
+  }
+
+  function removeEditorChatMessage(chatSessionId: string, messageId: string) {
+    editorChatMessagesBySession[chatSessionId] = (editorChatMessagesBySession[chatSessionId] ?? [])
+      .filter((message) => message.id !== messageId)
   }
 
   function appendPendingEditorChatAssistantMessage(executionId: string, sessionId: string, timestamp = Date.now()) {
@@ -339,7 +349,32 @@ export const useExecutionStore = defineStore('execution', () => {
 
   function rejectEditorChatToolApproval(input: { sessionId: string; executionId: string; toolName: string }) {
     removeEditorChatToolStatus(input.sessionId, input.executionId, input.toolName)
+    approvedToolExecutions.delete(input.executionId)
     clearExecutionWaitingState(input.executionId)
+  }
+
+  function approveEditorChatToolApproval(input: {
+    sessionId: string
+    executionId: string
+    approvalId: string
+    toolName: string
+  }) {
+    approvedToolExecutions.add(input.executionId)
+    appendEditorChatMessage({
+      id: approvalMessageId(input.executionId, input.approvalId),
+      sessionId: input.sessionId,
+      role: 'assistant',
+      content: {
+        text: `Approved ${input.toolName}. Waiting for the agent response...`,
+        pending: false,
+        approvalId: input.approvalId,
+        executionId: input.executionId,
+        toolName: input.toolName,
+        resolved: true,
+        approvalContinuation: true,
+      },
+    })
+    removeEditorChatMessage(input.sessionId, streamAssistantMessageId(input.executionId))
   }
 
   function registerEditorChatExecution(executionId: string, chatSessionId: string) {
@@ -450,7 +485,7 @@ export const useExecutionStore = defineStore('execution', () => {
     const existing = (editorChatMessagesBySession[chatSessionId] ?? [])
       .find((message) => message.id === streamAssistantMessageId(executionId))
 
-    if (isApprovalContinuationContent(existing?.content)) {
+    if (approvedToolExecutions.has(executionId) || isApprovalContinuationContent(existing?.content)) {
       appendFinalAssistantMessage(chatSessionId, executionId, output, ev.timestamp)
       return
     }
@@ -511,7 +546,7 @@ export const useExecutionStore = defineStore('execution', () => {
       .find((message) => message.id === streamAssistantMessageId(executionId))
 
     appendEditorChatMessage({
-      id: streamAssistantMessageId(executionId),
+      id: approvalMessageId(executionId, approvalId),
       sessionId: chatSessionId,
       role: 'assistant',
       content: {
@@ -525,6 +560,7 @@ export const useExecutionStore = defineStore('execution', () => {
       },
       createdAt: existing?.createdAt ?? new Date(ev.timestamp).toISOString(),
     })
+    removeEditorChatMessage(chatSessionId, streamAssistantMessageId(executionId))
   }
 
   function recordEditorChatJobSuccess(ev: WorkflowEvent) {
@@ -1312,6 +1348,7 @@ export const useExecutionStore = defineStore('execution', () => {
     resetNodeStatuses,
     setTriggerRunning,
     patchNodeStatus,
+    approveEditorChatToolApproval,
     rejectEditorChatToolApproval,
     appendEditorChatMessage,
     appendEditorChatMessageDelta,

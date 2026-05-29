@@ -163,6 +163,7 @@ test('approval accept keeps chat streaming through session events', () => {
   const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
 
   assert.match(source, /Approved .* Waiting for the agent response/)
+  assert.match(source, /approveEditorChatToolApproval/)
   assert.doesNotMatch(source, /extractApprovalExecutionOutput/)
 })
 
