@@ -176,7 +176,7 @@ describe("agent chat routes", () => {
     assert.equal(approved.json().data.status, "approved");
   });
 
-  it("approval approve endpoint resumes workflow with the resolved approval", async () => {
+  it("approval approve endpoint resolves immediately and resumes workflow in the background", async () => {
     const approvals = new AgentApprovalService(db!);
     approvals.create({
       id: "approval_resume",
@@ -205,10 +205,10 @@ describe("agent chat routes", () => {
 
     assert.equal(response.statusCode, 200);
     assert.equal(resumedStatus, "approved");
-    assert.equal(response.json().data.execution.status, "SUCCESS");
+    assert.equal(response.json().data.execution, null);
   });
 
-  it("approval endpoints return structured errors when resolution fails", async () => {
+  it("approval approve endpoint does not block on resume failures", async () => {
     const approvals = new AgentApprovalService(db!);
     approvals.create({
       id: "approval_error",
@@ -233,8 +233,9 @@ describe("agent chat routes", () => {
       payload: { executionId: "exec_error" },
     });
 
-    assert.equal(response.statusCode, 409);
-    assert.match(response.json().error, /Execution exec_error was not found/);
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.json().data.status, "approved");
+    assert.equal(response.json().data.execution, null);
     assert.doesNotMatch(JSON.stringify(response.json()), /stack/i);
   });
 

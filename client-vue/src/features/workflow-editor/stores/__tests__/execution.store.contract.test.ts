@@ -92,8 +92,20 @@ test('execution store routes approved tool streams by execution id state', () =>
   assert.match(source, /approvedToolExecutions/)
   assert.match(source, /function approveEditorChatToolApproval/)
   assert.match(source, /approvedToolExecutions\.add\(input\.executionId\)/)
+  assert.match(source, /removeEditorChatMessage\(input\.sessionId, approvalMessageId\(input\.executionId, input\.approvalId\)\)/)
   assert.match(source, /approvedToolExecutions\.has\(executionId\)/)
   assert.match(source, /approveEditorChatToolApproval,/)
+})
+
+test('execution store preserves streamed approved tool completion at agent end', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+  const agentEndBlock = source.slice(
+    source.indexOf('function recordEditorChatAgentEnd'),
+    source.indexOf('function recordEditorChatJobFailure'),
+  )
+
+  assert.match(source, /hasToolCompletionTextForExecution/)
+  assert.match(agentEndBlock, /hasToolCompletionTextForExecution\(chatSessionId, executionId\)/)
 })
 
 test('execution store exposes approval decline cleanup for tool chat and node statuses', () => {

@@ -360,20 +360,7 @@ export const useExecutionStore = defineStore('execution', () => {
     toolName: string
   }) {
     approvedToolExecutions.add(input.executionId)
-    appendEditorChatMessage({
-      id: approvalMessageId(input.executionId, input.approvalId),
-      sessionId: input.sessionId,
-      role: 'assistant',
-      content: {
-        text: `Approved ${input.toolName}. Waiting for the agent response...`,
-        pending: false,
-        approvalId: input.approvalId,
-        executionId: input.executionId,
-        toolName: input.toolName,
-        resolved: true,
-        approvalContinuation: true,
-      },
-    })
+    removeEditorChatMessage(input.sessionId, approvalMessageId(input.executionId, input.approvalId))
     removeEditorChatMessage(input.sessionId, streamAssistantMessageId(input.executionId))
   }
 
@@ -486,6 +473,7 @@ export const useExecutionStore = defineStore('execution', () => {
       .find((message) => message.id === streamAssistantMessageId(executionId))
 
     if (approvedToolExecutions.has(executionId) || isApprovalContinuationContent(existing?.content)) {
+      if (hasToolCompletionTextForExecution(chatSessionId, executionId)) return
       appendFinalAssistantMessage(chatSessionId, executionId, output, ev.timestamp)
       return
     }
@@ -627,6 +615,14 @@ export const useExecutionStore = defineStore('execution', () => {
   function hasStreamAssistantMessageForExecution(chatSessionId: string, executionId: string): boolean {
     return (editorChatMessagesBySession[chatSessionId] ?? []).some((message) =>
       message.role === 'assistant' && message.id === streamAssistantMessageId(executionId),
+    )
+  }
+
+  function hasToolCompletionTextForExecution(chatSessionId: string, executionId: string): boolean {
+    return (editorChatMessagesBySession[chatSessionId] ?? []).some((message) =>
+      message.role === 'assistant' &&
+      message.id === toolCompletionMessageId(executionId) &&
+      Boolean(messageContentText(message.content).trim()),
     )
   }
 

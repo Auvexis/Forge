@@ -186,15 +186,17 @@ export default async function agentChatRoutes(
         status,
         decision: body,
       });
-      const execution = resolved && status === "approved"
-        ? await workflowEngine.resumeExecutionAfterAgentApproval(resolved)
-        : null;
+      if (resolved && status === "approved") {
+        void workflowEngine.resumeExecutionAfterAgentApproval(resolved).catch((error) => {
+          fastify.log.error({ err: error, approvalId: resolved.id }, "Agent approval resume failed");
+        });
+      }
 
       return sendResponse(reply, {
         status_code: 200,
         message: `Agent approval ${status}`,
         error: null,
-        data: resolved ? { ...resolved, execution } : null,
+        data: resolved ? { ...resolved, execution: null } : null,
       });
     } catch (error) {
       return sendAgentError(reply, toApprovalResolutionError(error));

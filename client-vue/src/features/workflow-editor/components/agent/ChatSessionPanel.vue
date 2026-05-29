@@ -473,11 +473,7 @@ async function approveChatApproval(approval: ChatApprovalAction) {
     await agentChatApi.approveToolCall(approval.approvalId, {
       executionId: approval.executionId,
     })
-    updateApprovalChatMessage(
-      approval,
-      `Approved ${approval.toolName}. Waiting for the agent response...`,
-      { approvalContinuation: true },
-    )
+    resolveApprovedToolMessage(approval)
   } catch (error) {
     safeError.value = formatSendError(error)
     toast.error(safeError.value, 'Approval failed')
@@ -601,6 +597,24 @@ function updateApprovalChatMessage(
     approvalActions(message.content)?.approvalId === approval.approvalId
       ? { ...message, content }
       : message,
+  )
+}
+
+function resolveApprovedToolMessage(approval: ChatApprovalAction) {
+  if (canSendToDevSession.value && sessionId.value) {
+    executionStore.approveEditorChatToolApproval({
+      sessionId: sessionId.value,
+      executionId: approval.executionId,
+      approvalId: approval.approvalId,
+      toolName: approval.toolName,
+    })
+    return
+  }
+
+  updateApprovalChatMessage(
+    approval,
+    `Approved ${approval.toolName}. Waiting for the agent response...`,
+    { approvalContinuation: true },
   )
 }
 
