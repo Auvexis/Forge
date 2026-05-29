@@ -60,3 +60,15 @@ test('execution store keeps approval continuation and appends final agent text b
   assert.match(source, /appendFinalAssistantMessage/)
   assert.match(source, /toolCompletionMessageId\(executionId\)/)
 })
+
+test('execution store redirects post-approval stream deltas below the tool status row', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+  const deltaBlock = source.slice(
+    source.indexOf('function appendEditorChatMessageDelta'),
+    source.indexOf('function appendEditorChatThinkingDelta'),
+  )
+
+  assert.match(source, /function assistantStreamTargetMessageId/)
+  assert.match(deltaBlock, /assistantStreamTargetMessageId\(executionId, sessionId\)/)
+  assert.doesNotMatch(deltaBlock, /id = streamAssistantMessageId\(executionId\)/)
+})

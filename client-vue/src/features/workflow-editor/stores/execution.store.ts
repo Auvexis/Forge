@@ -232,6 +232,15 @@ export const useExecutionStore = defineStore('execution', () => {
     return `chat-assistant-stream:${executionId}:agent`
   }
 
+  function assistantStreamTargetMessageId(executionId: string, sessionId: string) {
+    const streamMessage = (editorChatMessagesBySession[sessionId] ?? [])
+      .find((message) => message.id === streamAssistantMessageId(executionId))
+
+    return isApprovalContinuationContent(streamMessage?.content)
+      ? toolCompletionMessageId(executionId)
+      : streamAssistantMessageId(executionId)
+  }
+
   function appendPendingEditorChatAssistantMessage(executionId: string, sessionId: string, timestamp = Date.now()) {
     const id = streamAssistantMessageId(executionId)
     const existing = (editorChatMessagesBySession[sessionId] ?? []).find((message) => message.id === id)
@@ -249,7 +258,7 @@ export const useExecutionStore = defineStore('execution', () => {
   function appendEditorChatMessageDelta(executionId: string, sessionId: string, delta: string, timestamp: number) {
     if (!delta) return
 
-    const id = streamAssistantMessageId(executionId)
+    const id = assistantStreamTargetMessageId(executionId, sessionId)
     const existing = (editorChatMessagesBySession[sessionId] ?? []).find((message) => message.id === id)
     const content = mergeAssistantChatContent(existing?.content, { textDelta: delta })
 
@@ -265,7 +274,7 @@ export const useExecutionStore = defineStore('execution', () => {
   function appendEditorChatThinkingDelta(executionId: string, sessionId: string, delta: string, timestamp: number) {
     if (!delta) return
 
-    const id = streamAssistantMessageId(executionId)
+    const id = assistantStreamTargetMessageId(executionId, sessionId)
     const existing = (editorChatMessagesBySession[sessionId] ?? []).find((message) => message.id === id)
     const content = mergeAssistantChatContent(existing?.content, { thinkingDelta: delta })
 

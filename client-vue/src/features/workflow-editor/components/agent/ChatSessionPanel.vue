@@ -1145,7 +1145,16 @@ function formatRole(role: AgentChatMessageRole) {
     transform 140ms ease;
 }
 
-.chat-message-enter-from,
+.chat-message-enter-from[data-role="assistant"] {
+  opacity: 0;
+  transform: translate(-10px, 10px);
+}
+
+.chat-message-enter-from[data-role="user"] {
+  opacity: 0;
+  transform: translate(10px, 10px);
+}
+
 .chat-message-leave-to {
   opacity: 0;
   transform: translateY(4px);

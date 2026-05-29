@@ -180,6 +180,15 @@ test('chat session panel renders animated agent tool status rows', () => {
   assert.match(source, /chat-message-enter-active/)
 })
 
+test('chat session panel animates incoming messages from each speaker side', () => {
+  const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
+
+  assert.match(source, /chat-message-enter-from\[data-role="assistant"\]/)
+  assert.match(source, /translate\(-10px,\s*10px\)/)
+  assert.match(source, /chat-message-enter-from\[data-role="user"\]/)
+  assert.match(source, /translate\(10px,\s*10px\)/)
+})
+
 test('chat session panel excludes transient tool status rows from llm history', () => {
   const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
 
