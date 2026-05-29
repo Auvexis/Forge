@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import Database from "better-sqlite3";
 import Fastify from "fastify";
 import { createMigrationEngine } from "../database/migration-engine.ts";
@@ -233,6 +235,13 @@ describe("agent chat routes", () => {
     assert.equal(response.statusCode, 409);
     assert.match(response.json().error, /Execution exec_error was not found/);
     assert.doesNotMatch(JSON.stringify(response.json()), /stack/i);
+  });
+
+  it("approval endpoints use the active workflow database when no test database is injected", () => {
+    const source = readFileSync(resolve(import.meta.dirname, "agent-chat.routes.ts"), "utf8");
+
+    assert.match(source, /options\.db \?\? WorkflowRepository\.database\(\)/);
+    assert.doesNotMatch(source, /options\.db \?\? DatabaseManager\.workflows/);
   });
 });
 

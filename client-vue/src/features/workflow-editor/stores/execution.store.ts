@@ -458,21 +458,24 @@ export const useExecutionStore = defineStore('execution', () => {
     return {
       text: patch.text !== undefined
         ? (typeof patch.text === 'string' ? patch.text : JSON.stringify(patch.text))
-        : `${current.text}${patch.textDelta ?? ''}`,
+        : current.approvalContinuation && patch.textDelta !== undefined
+          ? patch.textDelta
+          : `${current.text}${patch.textDelta ?? ''}`,
       thinking: `${current.thinking}${patch.thinkingDelta ?? ''}`,
       pending: false,
     }
   }
 
-  function normalizeAssistantChatContent(content: unknown): { text: string; thinking: string } {
+  function normalizeAssistantChatContent(content: unknown): { text: string; thinking: string; approvalContinuation: boolean } {
     if (!content || typeof content !== 'object' || Array.isArray(content)) {
-      return { text: typeof content === 'string' ? content : '', thinking: '' }
+      return { text: typeof content === 'string' ? content : '', thinking: '', approvalContinuation: false }
     }
 
     const record = content as Record<string, unknown>
     return {
       text: typeof record.text === 'string' ? record.text : '',
       thinking: typeof record.thinking === 'string' ? record.thinking : '',
+      approvalContinuation: record.approvalContinuation === true,
     }
   }
 

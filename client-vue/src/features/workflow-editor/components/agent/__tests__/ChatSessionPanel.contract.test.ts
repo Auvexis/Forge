@@ -149,6 +149,21 @@ test('editor chat renders approval accept and decline actions inline', () => {
   assert.match(source, />\s*Decline\s*</)
 })
 
+test('approval accept keeps chat streaming through session events', () => {
+  const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
+
+  assert.match(source, /Approved .* Waiting for the agent response/)
+  assert.doesNotMatch(source, /extractApprovalExecutionOutput/)
+})
+
+test('chat session panel autoscrolls when streamed content changes', () => {
+  const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
+
+  assert.match(source, /displayedMessagesScrollKey/)
+  assert.match(source, /JSON\.stringify\(displayedMessages\.value\.map/)
+  assert.match(source, /watch\(\s*displayedMessagesScrollKey/)
+})
+
 test('chat session panel renders user and assistant messages', () => {
   const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
 

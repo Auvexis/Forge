@@ -198,6 +198,14 @@ const displayedMessages = computed(() => {
   if (!canSendToDevSession.value || !displayedDevChatSessionId.value) return messages.value
   return executionStore.editorChatMessagesBySession[displayedDevChatSessionId.value] ?? []
 })
+const displayedMessagesScrollKey = computed(() => JSON.stringify(displayedMessages.value.map((message) => ({
+  id: message.id,
+  role: message.role,
+  text: messageContent(message.content),
+  thinking: messageThinking(message.content),
+  pending: isPendingAssistantMessage(message),
+  approvalId: approvalActions(message.content)?.approvalId ?? '',
+}))))
 const currentWorkflowRevision = computed(() => {
   const workflow = workflowStore.activeWorkflow
   return JSON.stringify({
@@ -219,7 +227,7 @@ watch(
 )
 
 watch(
-  () => displayedMessages.value.length,
+  displayedMessagesScrollKey,
   () => {
     void scrollMessagesToBottom()
   },
@@ -397,12 +405,13 @@ async function approveChatApproval(approval: ChatApprovalAction) {
   approvalPendingId.value = approval.approvalId
   safeError.value = ''
   try {
-    const result = await agentChatApi.approveToolCall(approval.approvalId, {
+    await agentChatApi.approveToolCall(approval.approvalId, {
       executionId: approval.executionId,
     })
     updateApprovalChatMessage(
       approval,
-      extractApprovalExecutionOutput(result) ?? `Approved ${approval.toolName}.`,
+      `Approved ${approval.toolName}. Waiting for the agent response...`,
+      { approvalContinuation: true },
     )
   } catch (error) {
     safeError.value = formatSendError(error)
@@ -479,7 +488,11 @@ function appendAssistantResponse(assistantResponse: unknown) {
   ]
 }
 
-function updateApprovalChatMessage(approval: ChatApprovalAction, text: unknown) {
+function updateApprovalChatMessage(
+  approval: ChatApprovalAction,
+  text: unknown,
+  options: { approvalContinuation?: boolean } = {},
+) {
   const targetSessionId = sessionId.value
   const content = {
     text: typeof text === 'string' ? text : JSON.stringify(text),
@@ -488,6 +501,7 @@ function updateApprovalChatMessage(approval: ChatApprovalAction, text: unknown) 
     executionId: approval.executionId,
     toolName: approval.toolName,
     resolved: true,
+    approvalContinuation: options.approvalContinuation === true,
   }
 
   if (canSendToDevSession.value && targetSessionId) {
@@ -542,14 +556,6 @@ function approvalActions(content: unknown): ChatApprovalAction | null {
   }
 }
 
-function extractApprovalExecutionOutput(result: unknown): unknown {
-  const execution = (result as { execution?: unknown } | undefined)?.execution
-  const steps = (execution as { context?: { steps?: Record<string, any> } } | undefined)?.context?.steps
-  if (!steps) return undefined
-  const agentStep = Object.values(steps).find((step) => step?.output?.output !== undefined)
-  return agentStep?.output?.output
-}
-
 function messageThinking(content: unknown) {
   return isChatContentRecord(content) ? content.thinking || '' : ''
 }
@@ -568,6 +574,7 @@ function isChatContentRecord(content: unknown): content is {
   executionId?: unknown
   toolName?: unknown
   resolved?: unknown
+  approvalContinuation?: unknown
 } {
   return Boolean(content && typeof content === 'object' && !Array.isArray(content))
 }

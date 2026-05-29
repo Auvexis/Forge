@@ -1,7 +1,6 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
 import type Database from "better-sqlite3";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
-import { DatabaseManager } from "../database/index.ts";
 import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
 import { AgentRuntimeError, serializeAgentError } from "../modules/agent-runtime/agent-errors.ts";
 import { AgentRuntimeService } from "../modules/agent-runtime/agent-runtime-service.ts";
@@ -9,6 +8,7 @@ import { ChatTriggerService, type SendChatMessageInput } from "../modules/agent-
 import { AgentMemoryStore } from "../modules/agent-runtime/memory/agent-memory-store.ts";
 import { AgentApprovalService } from "../modules/agent-runtime/agent-approval-service.ts";
 import { WorkflowEngine } from "../modules/workflows/executor.ts";
+import { WorkflowRepository } from "../modules/workflows/repository.ts";
 
 export interface AgentChatRoutesOptions {
   db?: Database.Database;
@@ -24,7 +24,7 @@ export default async function agentChatRoutes(
   fastify: FastifyInstance,
   options: AgentChatRoutesOptions = {},
 ) {
-  const db = options.db ?? DatabaseManager.workflows;
+  const db = options.db ?? WorkflowRepository.database();
   const getProfileId =
     options.getActiveProfileId ??
     (() => activeProfileRuntime.activeProfileService.getActiveProfile()?.id ?? "default");
