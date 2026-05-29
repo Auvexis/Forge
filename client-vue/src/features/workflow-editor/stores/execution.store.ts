@@ -401,6 +401,9 @@ export const useExecutionStore = defineStore('execution', () => {
         thinking: normalizeAssistantChatContent(existing?.content).thinking,
         pending: false,
         approvalId,
+        executionId,
+        toolName,
+        sideEffect: approvalPayloadValue(ev.data, 'sideEffect'),
       },
       createdAt: existing?.createdAt ?? new Date(ev.timestamp).toISOString(),
     })

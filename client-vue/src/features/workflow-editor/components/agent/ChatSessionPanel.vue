@@ -21,6 +21,24 @@
             <span />
           </div>
           <p v-else>{{ messageContent(message.content) }}</p>
+          <div v-if="approvalActions(message.content)" class="chat-session-panel__approval-actions">
+            <button
+              type="button"
+              class="chat-session-panel__approval-button"
+              :disabled="approvalPendingId === approvalActions(message.content)?.approvalId"
+              @click="rejectChatApproval(approvalActions(message.content)!)"
+            >
+              Decline
+            </button>
+            <button
+              type="button"
+              class="chat-session-panel__approval-button chat-session-panel__approval-button--primary"
+              :disabled="approvalPendingId === approvalActions(message.content)?.approvalId"
+              @click="approveChatApproval(approvalActions(message.content)!)"
+            >
+              Accept
+            </button>
+          </div>
         </div>
       </article>
 
@@ -147,6 +165,7 @@ const messages = ref<AgentChatMessage[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
 const isListening = ref(false)
 const targetMenuOpen = ref(false)
+const approvalPendingId = ref<string | null>(null)
 const toast = useToast()
 const executionStore = useExecutionStore()
 const workflowStore = useWorkflowStore()
@@ -224,6 +243,12 @@ type BrowserSpeechRecognition = {
   onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null
   start: () => void
   stop: () => void
+}
+
+type ChatApprovalAction = {
+  approvalId: string
+  executionId: string
+  toolName: string
 }
 
 let activeRecognition: BrowserSpeechRecognition | null = null
@@ -368,6 +393,41 @@ function selectChatTrigger(triggerNodeId: string) {
   emit('update:selectedTriggerNodeId', triggerNodeId)
 }
 
+async function approveChatApproval(approval: ChatApprovalAction) {
+  approvalPendingId.value = approval.approvalId
+  safeError.value = ''
+  try {
+    const result = await agentChatApi.approveToolCall(approval.approvalId, {
+      executionId: approval.executionId,
+    })
+    updateApprovalChatMessage(
+      approval,
+      extractApprovalExecutionOutput(result) ?? `Approved ${approval.toolName}.`,
+    )
+  } catch (error) {
+    safeError.value = formatSendError(error)
+    toast.error(safeError.value, 'Approval failed')
+  } finally {
+    approvalPendingId.value = null
+  }
+}
+
+async function rejectChatApproval(approval: ChatApprovalAction) {
+  approvalPendingId.value = approval.approvalId
+  safeError.value = ''
+  try {
+    await agentChatApi.rejectToolCall(approval.approvalId, {
+      executionId: approval.executionId,
+    })
+    updateApprovalChatMessage(approval, `Declined ${approval.toolName}.`)
+  } catch (error) {
+    safeError.value = formatSendError(error)
+    toast.error(safeError.value, 'Approval failed')
+  } finally {
+    approvalPendingId.value = null
+  }
+}
+
 async function scrollMessagesToBottom() {
   await nextTick()
   const el = messagesEl.value
@@ -419,6 +479,34 @@ function appendAssistantResponse(assistantResponse: unknown) {
   ]
 }
 
+function updateApprovalChatMessage(approval: ChatApprovalAction, text: unknown) {
+  const targetSessionId = sessionId.value
+  const content = {
+    text: typeof text === 'string' ? text : JSON.stringify(text),
+    pending: false,
+    approvalId: approval.approvalId,
+    executionId: approval.executionId,
+    toolName: approval.toolName,
+    resolved: true,
+  }
+
+  if (canSendToDevSession.value && targetSessionId) {
+    executionStore.appendEditorChatMessage({
+      id: `chat-assistant-stream:${approval.executionId}:agent`,
+      sessionId: targetSessionId,
+      role: 'assistant',
+      content,
+    })
+    return
+  }
+
+  messages.value = messages.value.map((message) =>
+    approvalActions(message.content)?.approvalId === approval.approvalId
+      ? { ...message, content }
+      : message,
+  )
+}
+
 function buildDevSessionHistory(chatSessionId: string) {
   return (executionStore.editorChatMessagesBySession[chatSessionId] ?? [])
     .filter((message) =>
@@ -440,6 +528,28 @@ function messageContent(content: unknown) {
   return typeof content === 'string' ? content : JSON.stringify(content)
 }
 
+function approvalActions(content: unknown): ChatApprovalAction | null {
+  if (!isChatContentRecord(content) || content.resolved === true) return null
+  if (typeof content.approvalId !== 'string' || !content.approvalId) return null
+  if (typeof content.executionId !== 'string' || !content.executionId) return null
+
+  return {
+    approvalId: content.approvalId,
+    executionId: content.executionId,
+    toolName: typeof content.toolName === 'string' && content.toolName
+      ? content.toolName
+      : 'agent tool',
+  }
+}
+
+function extractApprovalExecutionOutput(result: unknown): unknown {
+  const execution = (result as { execution?: unknown } | undefined)?.execution
+  const steps = (execution as { context?: { steps?: Record<string, any> } } | undefined)?.context?.steps
+  if (!steps) return undefined
+  const agentStep = Object.values(steps).find((step) => step?.output?.output !== undefined)
+  return agentStep?.output?.output
+}
+
 function messageThinking(content: unknown) {
   return isChatContentRecord(content) ? content.thinking || '' : ''
 }
@@ -450,7 +560,15 @@ function isPendingAssistantMessage(message: AgentChatMessage) {
   return typeof message.content === 'string' && message.content === '' && message.id.startsWith('chat-assistant-stream:')
 }
 
-function isChatContentRecord(content: unknown): content is { text?: string; thinking?: string; pending?: boolean } {
+function isChatContentRecord(content: unknown): content is {
+  text?: string
+  thinking?: string
+  pending?: boolean
+  approvalId?: unknown
+  executionId?: unknown
+  toolName?: unknown
+  resolved?: unknown
+} {
   return Boolean(content && typeof content === 'object' && !Array.isArray(content))
 }
 
@@ -671,6 +789,37 @@ function formatRole(role: AgentChatMessageRole) {
 
 .chat-session-panel__typing-dots span:nth-child(3) {
   animation-delay: 0.24s;
+}
+
+.chat-session-panel__approval-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sailor-space-2);
+  margin-top: var(--sailor-space-1);
+}
+
+.chat-session-panel__approval-button {
+  min-width: 72px;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-secondary);
+  cursor: pointer;
+  font-size: var(--sailor-text-xs);
+  font-weight: 700;
+  line-height: 1;
+  padding: 7px 10px;
+}
+
+.chat-session-panel__approval-button--primary {
+  border-color: var(--sailor-border-strong);
+  background: var(--sailor-bg-inverse);
+  color: var(--sailor-text-inverse);
+}
+
+.chat-session-panel__approval-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 
 .chat-session-panel__composer {

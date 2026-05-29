@@ -130,8 +130,23 @@ test('editor chat stops pending assistant loading when an agent approval is requ
   assert.match(store, /case 'agent:approval-created':[\s\S]*recordEditorChatApprovalCreated\(ev\)/)
   assert.match(store, /Tool approval required/)
   assert.match(store, /approvalId/)
+  assert.match(store, /executionId/)
+  assert.match(store, /toolName/)
   assert.match(store, /status: 'waiting'/)
   assert.match(store, /patchConnectedAgentConfigNode\(ev\.nodeId, 'tool'/)
+})
+
+test('editor chat renders approval accept and decline actions inline', () => {
+  const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
+
+  assert.match(source, /approvalActions/)
+  assert.match(source, /approveChatApproval/)
+  assert.match(source, /rejectChatApproval/)
+  assert.match(source, /approveToolCall\(/)
+  assert.match(source, /rejectToolCall\(/)
+  assert.match(source, /executionId: approval\.executionId/)
+  assert.match(source, />\s*Accept\s*</)
+  assert.match(source, />\s*Decline\s*</)
 })
 
 test('chat session panel renders user and assistant messages', () => {
