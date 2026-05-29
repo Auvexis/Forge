@@ -49,7 +49,7 @@ export interface DevWorkflowSessionManagerOptions {
     workflow: WorkflowItem,
     options?: { mode?: "prod" | "test" },
   ) => Promise<void>;
-  runWorkflowJob?: (job: WorkflowJob, workflow: WorkflowItem) => Promise<void>;
+  runWorkflowJob?: (job: WorkflowJob, workflow: WorkflowItem) => Promise<unknown>;
   onEvent?: (event: SessionEvent) => void;
 }
 
@@ -99,15 +99,40 @@ export class DevWorkflowSessionManager {
       runJob: async (job) => {
         const session = this.sessions.get(job.sessionId);
         if (!session) return;
+        let waitingForApproval = false;
+        let resolveApprovalCompletion: (() => void) | undefined;
+        let rejectApprovalCompletion: ((error: Error) => void) | undefined;
+        const approvalCompletion = new Promise<void>((resolve, reject) => {
+          resolveApprovalCompletion = resolve;
+          rejectApprovalCompletion = reject;
+        });
         const unsubscribe = workflowEventBus.onExecution(job.executionId, (event) => {
           this.emitWorkflowEvent(job, event);
-        });
-        try {
-          if (this.runWorkflowJob) {
-            await this.runWorkflowJob(job, session.workflow);
+          if (event.type === "workflow:waiting-approval") {
+            waitingForApproval = true;
             return;
           }
-          await this.runner.run(job, session.workflow);
+
+          if (!waitingForApproval) return;
+          if (event.type === "workflow:success" || event.type === "workflow:cancelled") {
+            resolveApprovalCompletion?.();
+          }
+          if (event.type === "workflow:failed") {
+            rejectApprovalCompletion?.(new Error(event.error ?? "Workflow execution failed"));
+          }
+        });
+        try {
+          let result: unknown;
+          if (this.runWorkflowJob) {
+            result = await this.runWorkflowJob(job, session.workflow);
+          } else {
+            result = await this.runner.run(job, session.workflow);
+          }
+
+          if (waitingForApproval || isWaitingApprovalResult(result)) {
+            waitingForApproval = true;
+            await approvalCompletion;
+          }
         } finally {
           unsubscribe();
         }
@@ -450,6 +475,14 @@ export class DevWorkflowSessionManager {
       error: event.error,
     });
   }
+}
+
+function isWaitingApprovalResult(result: unknown): boolean {
+  return Boolean(
+    result &&
+      typeof result === "object" &&
+      (result as { status?: unknown }).status === "WAITING_APPROVAL",
+  );
 }
 
 function workflowEventToSessionEvent(

@@ -122,6 +122,61 @@ describe("DevWorkflowSessionManager", () => {
     assert.ok(events.includes("session:stopped:session_1"));
   });
 
+  it("keeps forwarding workflow events while a job waits for agent approval", async () => {
+    const events: string[] = [];
+    let waitingExecutionId = "";
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_1`,
+      onEvent: (event) => events.push(event.type),
+      runWorkflowJob: async (job) => {
+        waitingExecutionId = job.executionId;
+        workflowEventBus.emitWorkflowEvent({
+          type: "agent:approval-created",
+          executionId: job.executionId,
+          workflowId: job.workflowId,
+          nodeId: "agent",
+          timestamp: Date.now(),
+          data: { approvalId: "approval_1" },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          type: "workflow:waiting-approval",
+          executionId: job.executionId,
+          workflowId: job.workflowId,
+          timestamp: Date.now(),
+        });
+        return { status: "WAITING_APPROVAL" };
+      },
+    });
+    const session = await manager.createSession(workflow());
+
+    manager.enqueueJob(session.id, {
+      triggerNodeId: "trigger",
+      source: "chat",
+      payload: {},
+    });
+    await waitFor(() => events.includes("agent:approval-created"));
+    assert.equal(events.includes("job:success"), false);
+
+    workflowEventBus.emitWorkflowEvent({
+      type: "agent:tool-start",
+      executionId: waitingExecutionId,
+      workflowId: session.workflowId,
+      nodeId: "agent",
+      timestamp: Date.now(),
+      data: { tool: "discord_send_message" },
+    });
+    workflowEventBus.emitWorkflowEvent({
+      type: "workflow:success",
+      executionId: waitingExecutionId,
+      workflowId: session.workflowId,
+      timestamp: Date.now(),
+    });
+    await manager.onIdle();
+
+    assert.ok(events.includes("agent:tool-start"));
+    assert.ok(events.includes("job:success"));
+  });
+
   it("does not enqueue manual triggers when a session starts without a requested trigger", async () => {
     const ran: string[] = [];
     const manager = new DevWorkflowSessionManager({
@@ -496,3 +551,11 @@ describe("DevWorkflowSessionManager", () => {
     assert.equal(manager.getSession(session.id), null);
   });
 });
+
+async function waitFor(predicate: () => boolean): Promise<void> {
+  for (let i = 0; i < 20; i += 1) {
+    if (predicate()) return;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+  assert.fail("condition was not met");
+}
