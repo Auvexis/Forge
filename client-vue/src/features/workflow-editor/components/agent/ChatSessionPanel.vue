@@ -234,6 +234,7 @@ watch(
 )
 
 type BrowserSpeechRecognitionEvent = {
+  resultIndex?: number
   results: ArrayLike<{
     isFinal?: boolean
     0?: {
@@ -260,6 +261,7 @@ type ChatApprovalAction = {
 }
 
 let activeRecognition: BrowserSpeechRecognition | null = null
+let keepRecognitionAlive = false
 
 async function sendCurrentMessage() {
   const message = draft.value.trim()
@@ -341,6 +343,7 @@ async function ensureFreshDevSession() {
 
 function startSpeechToText() {
   if (isListening.value && activeRecognition) {
+    keepRecognitionAlive = false
     activeRecognition.stop()
     return
   }
@@ -353,13 +356,17 @@ function startSpeechToText() {
 
   const recognition = new Recognition()
   activeRecognition = recognition
-  recognition.continuous = false
+  keepRecognitionAlive = true
+  recognition.continuous = true
   recognition.interimResults = false
   recognition.lang = navigator.language || 'en-US'
   isListening.value = true
 
   recognition.onresult = (event) => {
+    const resultIndex = event.resultIndex ?? 0
     const transcript = Array.from(event.results)
+      .slice(resultIndex)
+      .filter((result) => result.isFinal !== false)
       .map((result) => result[0]?.transcript?.trim() ?? '')
       .filter(Boolean)
       .join(' ')
@@ -368,12 +375,25 @@ function startSpeechToText() {
   }
 
   recognition.onerror = (event) => {
+    if (event.error && event.error !== 'no-speech') {
+      keepRecognitionAlive = false
+    }
+
     safeError.value = event.error
       ? `Speech recognition stopped: ${event.error}.`
       : 'Speech recognition stopped before receiving audio.'
   }
 
   recognition.onend = () => {
+    if (keepRecognitionAlive && activeRecognition === recognition) {
+      try {
+        recognition.start()
+        return
+      } catch {
+        keepRecognitionAlive = false
+      }
+    }
+
     isListening.value = false
     activeRecognition = null
   }
@@ -466,6 +486,7 @@ function formatSendError(error: unknown) {
 }
 
 onBeforeUnmount(() => {
+  keepRecognitionAlive = false
   activeRecognition?.stop()
 })
 

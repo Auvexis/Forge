@@ -240,6 +240,16 @@ test('chat session panel supports chrome speech to text with listening state', (
   assert.match(source, /name="mic/)
 })
 
+test('chat session panel keeps speech to text active until user toggles it off', () => {
+  const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
+
+  assert.match(source, /recognition\.continuous = true/)
+  assert.match(source, /keepRecognitionAlive/)
+  assert.match(source, /event\.resultIndex/)
+  assert.match(source, /activeRecognition\.stop\(\)/)
+  assert.match(source, /keepRecognitionAlive = false/)
+})
+
 test('chat session panel reports explanatory send errors in global toast', () => {
   const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
 
