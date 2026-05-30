@@ -93,6 +93,13 @@ export class ChatSessionRepository {
       .prepare(`UPDATE agent_chat_sessions SET updated_at = ? WHERE profile_id = ? AND id = ?`)
       .run(new Date().toISOString(), profileId, id);
   }
+
+  delete(profileId: string, id: string): boolean {
+    const result = this.db
+      .prepare(`DELETE FROM agent_chat_sessions WHERE profile_id = ? AND id = ?`)
+      .run(profileId, id);
+    return result.changes > 0;
+  }
 }
 
 interface ChatSessionRow {
