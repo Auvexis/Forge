@@ -219,6 +219,9 @@ export interface WaitFormNode extends WorkflowNodeBase {
 
 export interface AiAgentNode extends WorkflowNodeBase {
   type: "ai-agent";
+  agentDisplayName?: string;
+  agentEmoji?: string;
+  agentDescription?: string;
   prompt: string;
   maxIterations: number;
   maxToolCalls: number;
