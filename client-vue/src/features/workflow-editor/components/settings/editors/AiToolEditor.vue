@@ -112,14 +112,6 @@
       </div>
     </div>
 
-    <EditorField label="Side Effect">
-      <BaseSelect
-        :model-value="(node.data.sideEffect as string) || 'read'"
-        :options="SIDE_EFFECTS"
-        @update:model-value="updateNodeData({ sideEffect: $event as string })"
-      />
-    </EditorField>
-
     <EditorField label="Approval">
       <BaseSwitch
         :model-value="Boolean(node.data.requiresApproval)"
@@ -156,15 +148,6 @@ const props = defineProps<NodeEditorProps>()
 
 const { data: plugins, execute: executePlugins } = useApi(pluginsApi.getAll, [])
 executePlugins()
-
-const SIDE_EFFECTS = [
-  { value: 'read', label: 'Read' },
-  { value: 'write', label: 'Write' },
-  { value: 'delete', label: 'Delete' },
-  { value: 'external-message', label: 'External Message' },
-  { value: 'external-payment', label: 'External Payment' },
-  { value: 'filesystem', label: 'Filesystem' },
-]
 
 const selectedPlugin = computed(() => {
   const pluginId = props.node.data.pluginId

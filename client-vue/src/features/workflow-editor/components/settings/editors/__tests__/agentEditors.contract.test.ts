@@ -22,14 +22,19 @@ test('editor registry maps AI workflow nodes to dedicated editors', () => {
   assert.match(source, /'ai-tool': AiToolEditor/)
 })
 
-test('ai agent editor exposes prompt, limits, timeout, approvals, and output mode', () => {
+test('ai agent editor exposes prompt, labeled vertical limits, timeout, and output mode without approval policy controls', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/AiAgentEditor.vue')
   const inspector = read('src/features/workflow-editor/components/settings/NodeInspectorModal.vue')
 
-  for (const field of ['prompt', 'maxIterations', 'maxToolCalls', 'timeoutMs', 'outputMode', 'requireApprovalForSideEffects']) {
+  for (const field of ['prompt', 'maxIterations', 'maxToolCalls', 'timeoutMs', 'outputMode']) {
     assert.match(source, new RegExp(field))
   }
 
+  assert.match(source, /Max Iterations/)
+  assert.match(source, /Max Tool Calls/)
+  assert.match(source, /editor-limit-stack/)
+  assert.doesNotMatch(source, /Approval Policy/)
+  assert.doesNotMatch(source, /requireApprovalForSideEffects/)
   assert.match(source, /ExpressionTextarea/)
   assert.match(source, /BaseSelect/)
   assert.doesNotMatch(source, /PluginMenuAuth/)
@@ -103,7 +108,7 @@ test('ai memory editor exposes long-term scope toggles and retrieval limits only
   assert.doesNotMatch(source, /PluginMenuAuth/)
 })
 
-test('ai tool editor configures the selected tool instead of re-opening the tool picker', () => {
+test('ai tool editor configures the selected tool without exposing side effect metadata', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/AiToolEditor.vue')
 
   for (const field of ['pluginId', 'methodId', 'descriptionOverride', 'inputDefaults', 'sideEffect', 'requiresApproval', 'timeoutMs']) {
@@ -128,6 +133,8 @@ test('ai tool editor configures the selected tool instead of re-opening the tool
   assert.match(source, /ExpressionTextarea/)
   assert.match(source, /BaseCodeEditor/)
   assert.match(source, /BaseSwitch/)
+  assert.doesNotMatch(source, /EditorField label="Side Effect"/)
+  assert.doesNotMatch(source, /const SIDE_EFFECTS/)
   assert.match(source, /<style scoped>/)
   assert.match(source, /\.pe-param-card/)
   assert.match(source, /\.pe-param-label/)

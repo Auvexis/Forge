@@ -173,7 +173,7 @@ const stepTitle = computed(() => props.data?.name || 'AI Agent')
   position: absolute;
   top: 19px;
   left: 50%;
-  z-index: 2110;
+  z-index: 5100;
   width: 72px;
   pointer-events: none;
   transform: translateX(-50%);

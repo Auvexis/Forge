@@ -90,7 +90,7 @@ test('ai agent node exposes clickable diamond config handles with contextual qui
   assert.match(source, /target-handle-id="tool"/)
   assert.match(source, /always-visible/)
   assert.match(source, /pointer-events:\s*all/)
-  assert.match(source, /z-index:\s*2110/)
+  assert.match(source, /z-index:\s*5100/)
   assert.match(source, /grid-template-columns:\s*repeat\(3,\s*1fr\)/)
   assert.match(source, /width:\s*236px/)
   assert.match(source, /height:\s*86px/)
@@ -144,14 +144,15 @@ test('ai memory node shows memory scope', () => {
   assert.doesNotMatch(source, /has-target/)
 })
 
-test('ai tool node shows plugin, method, and side effect policy', () => {
+test('ai tool node shows plugin and method without a side effect badge', () => {
   const source = read('src/features/workflow-editor/components/nodes/AiToolNode.vue')
 
   assert.match(source, /NodeProps<AiToolNode>/)
   assert.match(source, /pluginId/)
   assert.match(source, /methodId/)
-  assert.match(source, /sideEffect/)
-  assert.match(source, /requiresApproval/)
+  assert.doesNotMatch(source, /sideEffect/)
+  assert.doesNotMatch(source, /requiresApproval/)
+  assert.doesNotMatch(source, /ai-tool-node__badge/)
   assert.match(source, /apiRequest/)
   assert.match(source, /watch/)
   assert.match(source, /loadPluginAppearance/)

@@ -26,14 +26,14 @@ Fix Tools Agent child-node runtime snapshots, remove redundant editor controls, 
 
 ### Task 2: Simplify Tools Agent Editors
 
-- [ ] Add failing frontend contracts for removed Approval Policy and Side Effect controls.
-- [ ] Add failing frontend contracts for labeled vertical Execution Limits.
-- [ ] Add failing frontend contract for config handle labels above Quick Add.
-- [ ] Remove Approval Policy UI from Tools Agent editor.
-- [ ] Render labeled Max Iterations and Max Tool Calls inputs vertically.
-- [ ] Remove Side Effect selector and node badge from Tool UI.
-- [ ] Raise handle-label z-index above Quick Add.
-- [ ] Run focused frontend tests and type-check.
+- [x] Add failing frontend contracts for removed Approval Policy and Side Effect controls.
+- [x] Add failing frontend contracts for labeled vertical Execution Limits.
+- [x] Add failing frontend contract for config handle labels above Quick Add.
+- [x] Remove Approval Policy UI from Tools Agent editor.
+- [x] Render labeled Max Iterations and Max Tool Calls inputs vertically.
+- [x] Remove Side Effect selector and node badge from Tool UI.
+- [x] Raise handle-label z-index above Quick Add.
+- [x] Run focused frontend tests and type-check.
 - [ ] Commit with `feat: simplify tools agent configuration ux`.
 
 ### Task 3: Fix Messaging Trigger Ignore Bots

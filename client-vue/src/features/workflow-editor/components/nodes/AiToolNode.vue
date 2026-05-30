@@ -16,8 +16,6 @@ const props = defineProps<
 const stepTitle = computed(() => props.data?.name || 'AI Tool')
 const pluginId = computed(() => props.data?.pluginId || 'plugin')
 const methodId = computed(() => props.data?.methodId || 'method')
-const sideEffect = computed(() => props.data?.sideEffect || 'read')
-const requiresApproval = computed(() => props.data?.requiresApproval ?? false)
 const subtitle = computed(() => `${pluginId.value} / ${methodId.value}`)
 
 const pluginIcon = ref('box')
@@ -66,9 +64,6 @@ watch(() => pluginId.value, loadPluginAppearance, { immediate: true })
       width="82px"
       height="82px"
     />
-    <span class="ai-tool-node__badge" :class="{ 'requires-approval': requiresApproval }">
-      {{ sideEffect }}
-    </span>
     <BaseHandle id="source" type="source" :position="Position.Top" variant="diamond" />
   </div>
 </template>
@@ -91,27 +86,4 @@ watch(() => pluginId.value, loadPluginAppearance, { immediate: true })
   pointer-events: all;
 }
 
-.ai-tool-node__badge {
-  position: absolute;
-  top: 64px;
-  left: 50%;
-  z-index: 2;
-  max-width: 84px;
-  padding: 2px 6px;
-  color: var(--sailor-text-muted);
-  font-size: 10px;
-  line-height: 1.2;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 6px;
-  transform: translateX(-50%);
-}
-
-.ai-tool-node__badge.requires-approval {
-  color: var(--sailor-amber-300, #fcd34d);
-  border-color: rgba(245, 158, 11, 0.45);
-}
 </style>
