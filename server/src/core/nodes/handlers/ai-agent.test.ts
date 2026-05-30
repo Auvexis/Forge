@@ -293,11 +293,15 @@ describe("AI workflow node handlers", () => {
   it("does not forward chat transcript to plugin-backed long-term memory", async () => {
     const registry = createUtilityNodeRegistry();
     const fixture = workflowFixture();
+    const memory = fixture.nodes.memory;
+    if (memory.type !== "ai-memory") {
+      throw new Error("Invalid AI memory fixture");
+    }
     const workflow = workflowFixture({
       nodes: {
         ...fixture.nodes,
         memory: {
-          ...fixture.nodes.memory,
+          ...memory,
           adapter: "plugin-memory-store",
           pluginId: "sailor-postgresql",
           searchMethodId: "searchAgentMemory",
