@@ -6,6 +6,7 @@ import { WorkflowRepository } from "../modules/workflows/repository.ts";
 import { getTriggerEntry, getTriggerWebhookPath } from "../modules/workflows/workflow-triggers.ts";
 import { evaluatePluginTriggerFilters } from "../modules/workflows/plugin-trigger-filter.ts";
 import { TriggerListenerRegistry } from "../modules/workflows/trigger-listener-registry.ts";
+import { devWorkflowSessionRuntime } from "../modules/workflows/dev-session/runtime.ts";
 import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
 
 interface PluginEventWorkflowStore {
@@ -34,6 +35,7 @@ interface PluginEventsRoutesOptions {
   workflows?: PluginEventWorkflowStore;
   engine?: PluginEventEngine;
   normalizer?: PluginEventNormalizer;
+  devSessions?: PluginEventDevSessions;
 }
 
 const defaultNormalizer: PluginEventNormalizer = async ({ rawPayload }) => {
@@ -71,6 +73,7 @@ export default async function pluginEventsRoutes(
   const workflows = options.workflows ?? WorkflowRepository;
   const engine = options.engine ?? WorkflowEngine;
   const normalize = options.normalizer ?? defaultNormalizer;
+  const devSessions = options.devSessions ?? devWorkflowSessionRuntime.manager;
   const acceptedEventKeys = new Set<string>();
 
   async function handlePluginEvent(req: FastifyRequest, reply: FastifyReply) {
@@ -81,7 +84,8 @@ export default async function pluginEventsRoutes(
       triggerName: string;
     };
 
-    const workflow = workflows.getWorkflowById(workflowId);
+    const devTrigger = devSessions.findPluginTrigger(workflowId, triggerNodeId, pluginId, triggerName);
+    const workflow = workflows.getWorkflowById(workflowId) ?? devTrigger?.workflow;
     if (!workflow) {
       return reply.code(404).send({ error: "Plugin event trigger not found" });
     }
@@ -135,10 +139,6 @@ export default async function pluginEventsRoutes(
       return reply.code(200).send({ ok: true });
     }
 
-    if (!workflow.metadata.isActive) {
-      return reply.code(404).send({ error: "Plugin event trigger not found" });
-    }
-
     const key = dedupeKey(pluginId, triggerName, normalizedPayload);
     if (key && acceptedEventKeys.has(key)) {
       return reply.code(202).send({
@@ -147,6 +147,26 @@ export default async function pluginEventsRoutes(
       });
     }
     if (key) acceptedEventKeys.add(key);
+
+    if (
+      devTrigger &&
+      devSessions.enqueuePluginEvent(
+        workflowId,
+        triggerNodeId,
+        pluginId,
+        triggerName,
+        normalizedPayload,
+      )
+    ) {
+      return reply.code(202).send({
+        status: "accepted",
+        mode: "dev-session",
+      });
+    }
+
+    if (!workflow.metadata.isActive) {
+      return reply.code(404).send({ error: "Plugin event trigger not found" });
+    }
 
     workflows.saveLastTriggerPayload(workflowId, normalizedPayload);
 
@@ -178,4 +198,20 @@ export default async function pluginEventsRoutes(
       );
     },
   );
+}
+
+interface PluginEventDevSessions {
+  findPluginTrigger(
+    workflowId: string,
+    triggerNodeId: string,
+    pluginId: string,
+    triggerName: string,
+  ): { workflow: WorkflowItem; triggerNodeId: string } | null;
+  enqueuePluginEvent(
+    workflowId: string,
+    triggerNodeId: string,
+    pluginId: string,
+    triggerName: string,
+    payload: unknown,
+  ): boolean;
 }

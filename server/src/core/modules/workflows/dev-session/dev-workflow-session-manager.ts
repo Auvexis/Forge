@@ -4,6 +4,7 @@ import { cancelTemporaryFormSessionsByExecution } from "../../forms/temporary-fo
 import { CancellationRegistry } from "../cancellation-registry.ts";
 import { workflowEventBus, type WorkflowEvent } from "../event-bus.ts";
 import {
+  getTriggerEntry,
   getTriggerFormPublicId,
   getTriggerWebhookPath,
   listPluginTriggers,
@@ -24,6 +25,11 @@ export interface EnqueueDevWorkflowJobInput {
   triggerNodeId: string;
   source: WorkflowJobSource;
   payload: unknown;
+}
+
+export interface DevSessionPluginTrigger {
+  workflow: WorkflowItem;
+  triggerNodeId: string;
 }
 
 export interface CreateDevWorkflowSessionOptions {
@@ -212,6 +218,51 @@ export class DevWorkflowSessionManager {
         this.enqueueExternalJob(session, entry.id, source, payload);
         return true;
       }
+    }
+
+    return false;
+  }
+
+  findPluginTrigger(
+    workflowId: string,
+    triggerNodeId: string,
+    pluginId: string,
+    triggerName: string,
+  ): DevSessionPluginTrigger | null {
+    for (const session of this.sessions.values()) {
+      if (session.status !== "running" || session.workflowId !== workflowId) continue;
+
+      const entry = getTriggerEntry(session.workflow, triggerNodeId);
+      if (
+        !entry ||
+        entry.disabled ||
+        entry.trigger.type !== "plugin" ||
+        entry.trigger.pluginId !== pluginId ||
+        entry.trigger.triggerName !== triggerName
+      ) {
+        continue;
+      }
+
+      return { workflow: session.workflow, triggerNodeId: entry.id };
+    }
+
+    return null;
+  }
+
+  enqueuePluginEvent(
+    workflowId: string,
+    triggerNodeId: string,
+    pluginId: string,
+    triggerName: string,
+    payload: unknown,
+  ): boolean {
+    for (const session of this.sessions.values()) {
+      if (session.status !== "running" || session.workflowId !== workflowId) continue;
+
+      const matched = this.findPluginTrigger(workflowId, triggerNodeId, pluginId, triggerName);
+      if (!matched) continue;
+
+      return this.enqueueExternalJob(session, matched.triggerNodeId, "plugin", payload);
     }
 
     return false;

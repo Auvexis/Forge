@@ -237,6 +237,55 @@ describe("plugin event routes", () => {
     TriggerListenerRegistry.remove("wh_wf_1_triggerA");
     await app.close();
   });
+
+  it("enqueues plugin events for an active dev session without requiring a persisted workflow", async () => {
+    const draftWorkflow = workflow();
+    draftWorkflow.metadata.isActive = false;
+    draftWorkflow.metadata.isDraft = true;
+    const queued: Record<string, unknown>[] = [];
+    const app = Fastify({ logger: false });
+    await app.register(pluginEventsRoutes, {
+      workflows: {
+        getWorkflowById: () => null,
+        saveLastTriggerPayload: () => {},
+      },
+      engine: {
+        executeWorkflowFromTrigger: async () => {
+          throw new Error("Production engine should not execute a dev-session event");
+        },
+      },
+      devSessions: {
+        findPluginTrigger: () => ({ workflow: draftWorkflow, triggerNodeId: "triggerA" }),
+        enqueuePluginEvent: (
+          _workflowId: string,
+          _triggerNodeId: string,
+          _pluginId: string,
+          _triggerName: string,
+          payload: unknown,
+        ) => {
+          queued.push(payload as Record<string, unknown>);
+          return true;
+        },
+      },
+      normalizer: async () => ({ eventId: "evt-dev", text: "hello dev session" }),
+    });
+
+    const body = { update_id: "evt-dev" };
+    const response = await app.inject({
+      method: "POST",
+      url: "/plugin-events/wf-1/triggerA/telegram/onMessage",
+      payload: body,
+      headers: {
+        "x-sailor-signature": sign(body, "secret"),
+      },
+    });
+
+    assert.equal(response.statusCode, 202, response.body);
+    assert.equal(JSON.parse(response.body).mode, "dev-session");
+    assert.deepEqual(queued, [{ eventId: "evt-dev", text: "hello dev session" }]);
+
+    await app.close();
+  });
 });
 
 function sign(payload: unknown, secret: string): string {
