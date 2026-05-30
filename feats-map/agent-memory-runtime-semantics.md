@@ -98,9 +98,9 @@ Tool approval persistence is separate from conversational memory. Approval rows 
 **Files:**
 - Modify: `feats-map/agent-memory-runtime-semantics.md`
 
-- [ ] **Step 1: Run server agent runtime tests**
-- [ ] **Step 2: Run `npm run build` from `server/`**
-- [ ] **Step 3: Run frontend contract tests**
-- [ ] **Step 4: Run `npm run type-check` from `client-vue/`**
-- [ ] **Step 5: Mark completed tasks in this file**
-- [ ] **Step 6: Commit with `docs: close agent memory runtime semantics tasks`**
+- [x] **Step 1: Run server agent runtime tests**
+- [x] **Step 2: Run `npm run build` from `server/`**
+- [x] **Step 3: Run frontend contract tests**
+- [x] **Step 4: Run `npm run type-check` from `client-vue/`**
+- [x] **Step 5: Mark completed tasks in this file**
+- [x] **Step 6: Commit with `docs: close agent memory runtime semantics tasks`**
