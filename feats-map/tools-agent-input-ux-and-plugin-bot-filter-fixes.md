@@ -16,12 +16,12 @@ Fix Tools Agent child-node runtime snapshots, remove redundant editor controls, 
 
 ### Task 1: Emit Initial Agent Config Snapshots
 
-- [ ] Add failing backend tests for `agent:config-snapshot`.
-- [ ] Add the event type and emit inherited input before model execution.
-- [ ] Forward the event through Dev Session SSE.
-- [ ] Add failing frontend contract tests for patching all connected config nodes.
-- [ ] Patch all connected config nodes from the snapshot.
-- [ ] Run focused tests.
+- [x] Add failing backend tests for `agent:config-snapshot`.
+- [x] Add the event type and emit inherited input before model execution.
+- [x] Forward the event through Dev Session SSE.
+- [x] Add failing frontend contract tests for patching all connected config nodes.
+- [x] Patch all connected config nodes from the snapshot.
+- [x] Run focused tests.
 - [ ] Commit with `fix: propagate agent input snapshots to config nodes`.
 
 ### Task 2: Simplify Tools Agent Editors
@@ -53,4 +53,3 @@ Fix Tools Agent child-node runtime snapshots, remove redundant editor controls, 
 - [ ] Run `git diff --check`.
 - [ ] Mark tasks completed.
 - [ ] Commit with `docs: close tools agent and bot filter tasks`.
-

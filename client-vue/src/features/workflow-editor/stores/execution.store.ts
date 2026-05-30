@@ -132,6 +132,7 @@ export const useExecutionStore = defineStore('execution', () => {
     if (ev.type === 'trigger:data') return 'Trigger payload received'
     if (ev.type === 'temporary-form:created') return `${ev.nodeId} waiting for form`
     if (ev.type === 'agent:start') return 'Agent started'
+    if (ev.type === 'agent:config-snapshot') return 'Agent config input propagated'
     if (ev.type === 'agent:model-start') return 'Agent model call started'
     if (ev.type === 'agent:model-end') return 'Agent model call completed'
     if (ev.type === 'agent:tool-intent') return 'Agent tool call requested'
@@ -758,6 +759,27 @@ export const useExecutionStore = defineStore('execution', () => {
     _patchNode(edge.source, patch)
   }
 
+  function patchConnectedAgentConfigNodes(
+    agentNodeId: string | undefined,
+    targetHandle: 'chatModel' | 'memory' | 'tool',
+    patch: Partial<NodeExecutionState>,
+  ) {
+    if (!agentNodeId) return
+    const workflow = useWorkflowStore().activeWorkflow
+    for (const edge of workflow?.edges.filter((candidate) =>
+      candidate.target === agentNodeId && candidate.targetHandle === targetHandle,
+    ) ?? []) {
+      _patchNode(edge.source, patch)
+    }
+  }
+
+  function patchAgentConfigSnapshot(ev: WorkflowEvent) {
+    const patch = { input: agentPayloadValue(ev.data, 'input') }
+    patchConnectedAgentConfigNodes(ev.nodeId, 'chatModel', patch)
+    patchConnectedAgentConfigNodes(ev.nodeId, 'memory', patch)
+    patchConnectedAgentConfigNodes(ev.nodeId, 'tool', patch)
+  }
+
   // ── Actions ──────────────────────────────────────────────────────────────
 
   /** Clears all node execution state and resets the workflow status. */
@@ -827,8 +849,12 @@ export const useExecutionStore = defineStore('execution', () => {
         const ev = JSON.parse(rawEvt.data as string) as WorkflowEvent
         recordTimelineEvent(ev)
 
-        switch (ev.type) {
-          case 'trigger:data':
+            switch (ev.type) {
+              case 'agent:config-snapshot':
+                patchAgentConfigSnapshot(ev)
+                break
+
+              case 'trigger:data':
             _patchNode(ev.nodeId ?? 'trigger', {
               status: 'success',
               output: ev.data,
@@ -951,8 +977,12 @@ export const useExecutionStore = defineStore('execution', () => {
         const ev = JSON.parse(rawEvt.data as string) as WorkflowEvent
         recordTimelineEvent(ev)
 
-        switch (ev.type) {
-          case 'session:start':
+            switch (ev.type) {
+              case 'agent:config-snapshot':
+                patchAgentConfigSnapshot(ev)
+                break
+
+              case 'session:start':
           case 'session:ready':
             sessionStatus.value = 'running'
             break

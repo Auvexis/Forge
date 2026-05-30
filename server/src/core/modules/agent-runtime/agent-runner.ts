@@ -93,6 +93,17 @@ export class AgentRunner {
   async run(input: AgentRunInput): Promise<AgentRunResult> {
     const validated = validateRunInput(input);
     this.eventEmitter({ type: "agent:start", payload: { sessionId: input.sessionId } }, input);
+    this.eventEmitter({
+      type: "agent:config-snapshot",
+      payload: {
+        input: {
+          triggerPayload: input.triggerPayload,
+          userMessage: input.userMessage,
+          ...(input.sessionId ? { sessionId: input.sessionId } : {}),
+          ...(input.userId ? { userId: input.userId } : {}),
+        },
+      },
+    }, input);
 
     try {
       const model = await this.modelRegistry.createChatModel(validated.model);

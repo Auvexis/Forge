@@ -7,6 +7,7 @@ const workflowToSessionEvent: Partial<Record<WorkflowEvent["type"], SessionEvent
   "node:success": "node:success",
   "node:failed": "node:failed",
   "agent:start": "agent:start",
+  "agent:config-snapshot": "agent:config-snapshot",
   "agent:model-start": "agent:model-start",
   "agent:model-end": "agent:model-end",
   "agent:output-delta": "agent:output-delta",

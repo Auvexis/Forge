@@ -204,7 +204,7 @@ describe("agent runner", () => {
       }),
     });
 
-    assert.deepEqual(events, ["agent:start", "agent:end"]);
+    assert.deepEqual(events, ["agent:start", "agent:config-snapshot", "agent:end"]);
   });
 
   it("reads and writes plugin-backed memory through configured plugin methods", async () => {
@@ -281,7 +281,35 @@ describe("agent runner", () => {
 
     await runner.run(runInput());
 
-    assert.deepEqual(events, ["agent:start", "agent:end"]);
+    assert.deepEqual(events, ["agent:start", "agent:config-snapshot", "agent:end"]);
+  });
+
+  it("emits inherited workflow input for connected config node snapshots", async () => {
+    const events: Array<{ type: string; payload?: unknown }> = [];
+    const runner = new AgentRunner({
+      modelRegistry: fakeModelRegistry(),
+      graphBuilder: fakeGraphBuilder(),
+      emitEvent: (event) => events.push(event),
+    });
+
+    await runner.run({
+      ...runInput(),
+      sessionId: "chat_session_1",
+      userId: "user_1",
+      triggerPayload: { text: "hello", channelId: "channel_1" },
+    });
+
+    assert.deepEqual(events[1], {
+      type: "agent:config-snapshot",
+      payload: {
+        input: {
+          triggerPayload: { text: "hello", channelId: "channel_1" },
+          userMessage: "hello",
+          sessionId: "chat_session_1",
+          userId: "user_1",
+        },
+      },
+    });
   });
 
   it("forwards graph stream delta events before agent:end", async () => {
@@ -302,6 +330,7 @@ describe("agent runner", () => {
 
     assert.deepEqual(events, [
       "agent:start",
+      "agent:config-snapshot",
       "agent:output-delta",
       "agent:output-delta",
       "agent:end",

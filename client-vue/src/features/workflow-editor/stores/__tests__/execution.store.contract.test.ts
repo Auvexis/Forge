@@ -142,3 +142,12 @@ test('execution store records input and output snapshots for agent config nodes'
   assert.match(source, /case 'agent:memory-read':[\s\S]*case 'agent:memory-write':[\s\S]*patchConnectedAgentConfigNode\(ev\.nodeId, 'memory'/)
   assert.match(source, /case 'agent:tool-start':[\s\S]*input: agentPayloadValue\(ev\.data, 'input'\)/)
 })
+
+test('execution store propagates inherited agent input to every connected config node', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+
+  assert.match(source, /case 'agent:config-snapshot':/)
+  assert.match(source, /patchConnectedAgentConfigNodes\(ev\.nodeId, 'chatModel'/)
+  assert.match(source, /patchConnectedAgentConfigNodes\(ev\.nodeId, 'memory'/)
+  assert.match(source, /patchConnectedAgentConfigNodes\(ev\.nodeId, 'tool'/)
+})

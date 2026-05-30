@@ -26,6 +26,7 @@ export type WorkflowEventType =
   | 'workflow:cancelled'
   | 'temporary-form:created'
   | 'agent:start'
+  | 'agent:config-snapshot'
   | 'agent:model-start'
   | 'agent:model-end'
   | 'agent:output-delta'
