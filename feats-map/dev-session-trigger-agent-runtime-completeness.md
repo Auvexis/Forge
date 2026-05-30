@@ -31,11 +31,11 @@ Restore Dev Session trigger forwarding, make agent config nodes expose correct r
 
 ### Task 4: Agent Template Context
 
-- [ ] Inspect interpolation support for agent system prompt and tool instruction/defaults.
-- [ ] Add failing tests for supported variable/env interpolation.
-- [ ] Implement missing interpolation through core workflow context only.
-- [ ] Document supported trigger types for AI Agent nodes.
-- [ ] Commit Task 4.
+- [x] Inspect interpolation support for agent system prompt and tool instruction/defaults.
+- [x] Add failing tests for supported variable/env interpolation.
+- [x] Implement missing interpolation through core workflow context only.
+- [x] Document supported trigger types for AI Agent nodes.
+- [x] Commit Task 4.
 
 ### Task 5: Manual Clear Only
 
@@ -44,3 +44,10 @@ Restore Dev Session trigger forwarding, make agent config nodes expose correct r
 - [x] Keep toolbar Clear Execution as the explicit reset path.
 - [x] Run focused tests and type-checks.
 - [x] Commit Task 5.
+
+## Runtime Notes
+
+- AI Agent nodes accept chat, plugin, webhook, form, cron, and manual triggers.
+- Agent input prefers `message` or `text`, then `body.message` or `body.text`, then the serialized trigger payload.
+- System Prompt, Tool Instructions, and configured Tool Parameter Defaults support `{{ trigger.* }}`, `{{ steps.* }}`, `{{ variables.* }}`, and `{{ env.* }}`.
+- AI Model and Memory identity/configuration fields remain explicit settings; they are not runtime template surfaces.

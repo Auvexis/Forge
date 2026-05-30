@@ -27,7 +27,7 @@
     </EditorField>
 
     <EditorField label="Tool Instructions">
-      <BaseTextarea
+      <ExpressionTextarea
         :model-value="(node.data.descriptionOverride as string) || ''"
         :rows="5"
         placeholder="Tell the agent when to use this tool, what it should accomplish, and any constraints it must follow."
@@ -149,7 +149,6 @@ import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import ExpressionInput from '../expressions/ExpressionInput.vue'
 import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
 

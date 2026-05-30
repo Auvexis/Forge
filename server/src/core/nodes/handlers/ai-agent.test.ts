@@ -256,6 +256,75 @@ describe("AI workflow node handlers", () => {
     assert.deepEqual(runCall.triggerPayload, context.trigger);
   });
 
+  it("interpolates workflow context into the agent prompt and configured tool inputs", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture();
+    const agent = workflow.nodes.agent;
+    const tool = workflow.nodes.tool;
+    if (agent.type !== "ai-agent" || tool.type !== "ai-tool") {
+      throw new Error("Invalid AI workflow fixture");
+    }
+    agent.prompt = "Help {{ trigger.customer }} using {{ variables.course }} from {{ env.CLASSROOM }}";
+    tool.descriptionOverride = "Send the answer for {{ trigger.customer }}";
+    tool.inputDefaults = {
+      channelId: "{{ env.DISCORD_CHANNEL }}",
+      summary: "{{ steps.prepare.output.summary }}",
+    };
+    const context = contextFixture({
+      trigger: { customer: "Andre", message: "Hello" },
+      steps: { prepare: { output: { summary: "if-else" } } },
+      variables: { course: "Programming" },
+      env: { CLASSROOM: "Night Class", DISCORD_CHANNEL: "channel-1" },
+    });
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "ok",
+        toolCallCount: 0,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", agent, workflow, context));
+
+    assert.ok(received);
+    const runCall = received as AgentRunInput;
+    assert.equal(runCall.agent.prompt, "Help Andre using Programming from Night Class");
+    assert.equal(runCall.tools[0].descriptionOverride, "Send the answer for Andre");
+    assert.deepEqual(runCall.tools[0].inputDefaults, {
+      channelId: "channel-1",
+      summary: "if-else",
+    });
+  });
+
+  it("accepts webhook-style trigger payloads as agent input", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture();
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "ok",
+        toolCallCount: 0,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", workflow.nodes.agent, workflow, contextFixture({
+        trigger: { body: { text: "Webhook lesson request" } },
+      })));
+
+    assert.ok(received);
+    assert.equal((received as AgentRunInput).userMessage, "Webhook lesson request");
+  });
+
   it("fails clearly when no model node is connected", async () => {
     const registry = createUtilityNodeRegistry();
     const workflow = workflowFixture({

@@ -16,11 +16,12 @@ import type {
 } from "../../../shared/models/workflow-types.ts";
 import { createNodeHandler } from "../handler.ts";
 import type { NodeHandlerInput } from "../types.ts";
+import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
 
 type AgentConfigNode = AiModelNode | AiMemoryNode | AiToolNode;
 
 export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", async (input) => {
-  const agentConfig = toAgentConfig(input.node);
+  const agentConfig = toAgentConfig(input.node, input.context);
   const connected = findConnectedConfigNodes(input);
   const model = connected.find((node): node is AiModelNode => node.type === "ai-model");
   if (!model) {
@@ -37,14 +38,14 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     nodeId: input.nodeId,
     sessionId: optionalString(triggerPayload.sessionId ?? triggerPayload.session_id),
     userId: optionalString(triggerPayload.userId ?? triggerPayload.user_id),
-    userMessage: String(triggerPayload.message ?? triggerPayload.text ?? ""),
+    userMessage: toUserMessage(triggerPayload),
     contextMessages: toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages),
     triggerPayload,
     approvalToken: optionalString(triggerPayload.approvalToken ?? triggerPayload.approval_token),
     agent: agentConfig,
     model: toModelConfig(model),
     memory: memory ? toMemoryConfig(memory) : undefined,
-    tools: tools.map(toToolConfig),
+    tools: tools.map((tool) => toToolConfig(tool, input.context)),
   };
 
   return AgentRuntimeService.runAgent(runInput);
@@ -69,11 +70,11 @@ function isAgentConfigNode(node: WorkflowNode | undefined): node is AgentConfigN
   return node?.type === "ai-model" || node?.type === "ai-memory" || node?.type === "ai-tool";
 }
 
-function toAgentConfig(node: AiAgentNode): AiAgentNodeConfig {
+function toAgentConfig(node: AiAgentNode, context: NodeHandlerInput["context"]): AiAgentNodeConfig {
   return {
     type: "ai-agent",
     name: node.name,
-    prompt: node.prompt,
+    prompt: String(TemplateEngine.evaluate(node.prompt, context, { escape: "prompt" })),
     maxIterations: node.maxIterations,
     maxToolCalls: node.maxToolCalls,
     timeoutMs: node.timeoutMs,
@@ -122,22 +123,35 @@ function toMemoryConfig(node: AiMemoryNode): AiMemoryNodeConfig {
   };
 }
 
-function toToolConfig(node: AiToolNode): AiToolNodeConfig {
+function toToolConfig(node: AiToolNode, context: NodeHandlerInput["context"]): AiToolNodeConfig {
   return {
     type: "ai-tool",
     name: node.name,
     pluginId: node.pluginId,
     methodId: node.methodId,
-    descriptionOverride: node.descriptionOverride,
+    descriptionOverride: node.descriptionOverride
+      ? String(TemplateEngine.evaluate(node.descriptionOverride, context, { escape: "prompt" }))
+      : undefined,
     timeoutMs: node.timeoutMs,
     requiresApproval: node.requiresApproval,
     sideEffect: node.sideEffect,
-    inputDefaults: node.inputDefaults,
+    inputDefaults: node.inputDefaults
+      ? TemplateEngine.evaluate(node.inputDefaults, context) as Record<string, any>
+      : undefined,
   };
 }
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function toUserMessage(triggerPayload: Record<string, any>): string {
+  const body = triggerPayload.body && typeof triggerPayload.body === "object"
+    ? triggerPayload.body as Record<string, unknown>
+    : {};
+  const direct = triggerPayload.message ?? triggerPayload.text ?? body.message ?? body.text;
+  if (direct !== undefined && direct !== null) return String(direct);
+  return JSON.stringify(triggerPayload);
 }
 
 function toContextMessages(value: unknown): AgentRunInput["contextMessages"] {
