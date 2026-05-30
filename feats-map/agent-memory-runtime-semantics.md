@@ -44,11 +44,11 @@ Tool approval persistence is separate from conversational memory. Approval rows 
 - Create: `server/src/core/modules/agent-runtime/memory/agent-memory-mode.ts`
 - Create: `server/src/core/modules/agent-runtime/memory/agent-memory-mode.test.ts`
 
-- [ ] **Step 1: Write failing tests for stateless, SQLite short-term, legacy SQLite, and PostgreSQL long-term modes**
-- [ ] **Step 2: Run `node --test src/core/modules/agent-runtime/memory/agent-memory-mode.test.ts` from `server/` and confirm RED**
-- [ ] **Step 3: Implement `resolveAgentMemoryMode`, `usesShortTermMemory`, and `usesLongTermMemory`**
-- [ ] **Step 4: Run the focused test and confirm GREEN**
-- [ ] **Step 5: Commit with `feat: define agent memory runtime modes`**
+- [x] **Step 1: Write failing tests for stateless, SQLite short-term, legacy SQLite, and PostgreSQL long-term modes**
+- [x] **Step 2: Run `node --test src/core/modules/agent-runtime/memory/agent-memory-mode.test.ts` from `server/` and confirm RED**
+- [x] **Step 3: Implement `resolveAgentMemoryMode`, `usesShortTermMemory`, and `usesLongTermMemory`**
+- [x] **Step 4: Run the focused test and confirm GREEN**
+- [x] **Step 5: Commit with `feat: define agent memory runtime modes`**
 
 ### Task 2: Make Agent Runner Memory Opt-In
 
@@ -104,4 +104,3 @@ Tool approval persistence is separate from conversational memory. Approval rows 
 - [ ] **Step 4: Run `npm run type-check` from `client-vue/`**
 - [ ] **Step 5: Mark completed tasks in this file**
 - [ ] **Step 6: Commit with `docs: close agent memory runtime semantics tasks`**
-
