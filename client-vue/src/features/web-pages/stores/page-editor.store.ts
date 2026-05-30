@@ -29,6 +29,7 @@ export interface PageDragIntent {
 export const usePageEditorStore = defineStore('web-page-editor', () => {
   const blocks = ref<PageBlock[]>([])
   const selectedBlockId = ref<string | null>(null)
+  const selectedBlockIds = ref<string[]>([])
   const selectedTarget = ref<PageEditorSelection>({ type: 'none' })
   const dragIntent = ref<PageDragIntent | null>(null)
   const collapsedBlockIds = ref<Record<string, boolean>>({})
@@ -38,6 +39,11 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
 
   const selectedBlock = computed(() =>
     selectedBlockId.value ? findTreeBlock(blocks.value, selectedBlockId.value)?.block ?? null : null,
+  )
+  const selectedBlocks = computed(() =>
+    selectedBlockIds.value
+      .map((id) => findTreeBlock(blocks.value, id)?.block ?? null)
+      .filter((block): block is PageBlock => !!block),
   )
   const isDirty = computed(() => snapshot(blocks.value) !== savedSnapshot.value)
   const canUndo = computed(() => undoStack.value.length > 0)
@@ -49,26 +55,47 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     undoStack.value = []
     redoStack.value = []
     selectedBlockId.value = null
+    selectedBlockIds.value = []
     selectedTarget.value = { type: 'none' }
   }
 
   function selectBlock(blockId: string | null) {
     selectedBlockId.value = blockId
+    selectedBlockIds.value = blockId ? [blockId] : []
     selectedTarget.value = blockId ? { type: 'block', blockId } : { type: 'none' }
+  }
+
+  function selectBlockRange(blockId: string) {
+    const block = findTreeBlock(blocks.value, blockId)?.block
+    if (!block) return
+    const current = selectedBlocks.value
+    const sameType = current.length === 0 || current.every((item) => item.tag === block.tag)
+    if (!sameType) {
+      selectBlock(blockId)
+      return
+    }
+    selectedBlockIds.value = selectedBlockIds.value.includes(blockId)
+      ? selectedBlockIds.value.filter((id) => id !== blockId)
+      : [...selectedBlockIds.value, blockId]
+    selectedBlockId.value = selectedBlockIds.value.at(-1) ?? null
+    selectedTarget.value = selectedBlockId.value ? { type: 'block', blockId: selectedBlockId.value } : { type: 'none' }
   }
 
   function selectPage() {
     selectedBlockId.value = null
+    selectedBlockIds.value = []
     selectedTarget.value = { type: 'page' }
   }
 
   function selectBody() {
     selectedBlockId.value = null
+    selectedBlockIds.value = []
     selectedTarget.value = { type: 'body' }
   }
 
   function clearSelection() {
     selectedBlockId.value = null
+    selectedBlockIds.value = []
     selectedTarget.value = { type: 'none' }
   }
 
@@ -161,6 +188,10 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     })
   }
 
+  function patchSelectedBlocks(patch: Partial<PageBlock>) {
+    for (const blockId of selectedBlockIds.value) patchBlock(blockId, patch)
+  }
+
   function undo() {
     const previous = undoStack.value.pop()
     if (!previous) return
@@ -188,15 +219,18 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
   return {
     blocks,
     selectedBlockId,
+    selectedBlockIds,
     selectedTarget,
     dragIntent,
     collapsedBlockIds,
     selectedBlock,
+    selectedBlocks,
     isDirty,
     canUndo,
     canRedo,
     setBlocks,
     selectBlock,
+    selectBlockRange,
     selectPage,
     selectBody,
     clearSelection,
@@ -211,6 +245,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     duplicateBlock,
     renameBlockId,
     patchBlock,
+    patchSelectedBlocks,
     undo,
     redo,
     markSaved,

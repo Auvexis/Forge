@@ -77,8 +77,11 @@ export const useWorkflowStore = defineStore('workflow', () => {
   })
   const canUndo = computed(() => undoStack.value.length > 0)
   const canRedo = computed(() => redoStack.value.length > 0)
+  const isPersistedWorkflow = computed(() =>
+    Boolean(activeWorkflow.value && (_serverUpdatedAt.value || activeWorkflow.value.metadata.isDraft === false)),
+  )
   const isAutosaveEnabled = computed(
-    () => activeWorkflow.value?.metadata.autosaveEnabled === true,
+    () => activeWorkflow.value?.metadata.autosaveEnabled === true && isPersistedWorkflow.value,
   )
   const draftStorageKey = computed(() =>
     activeWorkflow.value ? `sailor.workflow-draft.${activeWorkflow.value.metadata.id}` : null,
@@ -187,6 +190,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const saveApi = useApi(workflowsApi.update)
   async function saveActiveWorkflow(options: { silent?: boolean; autosave?: boolean } = {}) {
     if (!activeWorkflow.value) return
+    if (options.autosave && !isPersistedWorkflow.value) return
 
     try {
       autosaveStatus.value = options.autosave ? 'saving' : autosaveStatus.value
@@ -272,6 +276,11 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   function setAutosaveEnabled(enabled: boolean) {
     if (!activeWorkflow.value) return
+    if (enabled && !isPersistedWorkflow.value) {
+      activeWorkflow.value.metadata.autosaveEnabled = false
+      autosaveStatus.value = 'idle'
+      return
+    }
     activeWorkflow.value.metadata.autosaveEnabled = enabled
     if (!enabled && autosaveTimer) {
       window.clearTimeout(autosaveTimer)
@@ -359,6 +368,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     canUndo,
     canRedo,
     isAutosaveEnabled,
+    isPersistedWorkflow,
     graphUpdateTrigger,
     isSaving: saveApi.loading,
     setActiveWorkflow,

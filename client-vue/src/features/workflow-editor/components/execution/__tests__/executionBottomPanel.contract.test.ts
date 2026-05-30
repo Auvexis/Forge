@@ -76,4 +76,11 @@ describe('execution bottom panel runtime detail view', () => {
     assert.match(source, /currentProfile\?\.id/)
     assert.match(source, /workflowsApi\.getExecutions\(workflowId,\s*currentProfileId/)
   })
+
+  it('shows newest executions from top to bottom', () => {
+    assert.match(source, /sortedHistoryRuns/)
+    assert.match(source, /startedAt/)
+    assert.match(source, /b\.startedAt - a\.startedAt/)
+    assert.match(source, /v-for="run in sortedHistoryRuns"/)
+  })
 })

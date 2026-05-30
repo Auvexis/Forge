@@ -99,6 +99,7 @@ const statusClasses = computed(() => {
 })
 
 const showToolbar = computed(() => !!props.id && props.id !== 'trigger' && !!props.selected)
+const isDisabled = computed(() => !!props.id && workflowStore.activeWorkflow?.nodes[props.id]?.disabled === true)
 
 const hasOutgoingConnection = computed(() => {
   if (typeof props.hasOutgoingConnection === 'boolean') return props.hasOutgoingConnection
@@ -116,7 +117,7 @@ const onQuickAdd = () => {
 <template>
   <div 
     class="sailor-base-node"
-    :class="[{ 'is-selected': selected }, statusClasses]" 
+    :class="[{ 'is-selected': selected, 'is-disabled': isDisabled }, statusClasses]"
     :style="{ 
       '--node-tint': props.bg, 
       '--node-custom-border': props.borderColor,
@@ -259,6 +260,11 @@ const onQuickAdd = () => {
 
 .sailor-base-node.is-failed {
   border-color: var(--sailor-red-400);
+}
+
+.sailor-base-node.is-disabled {
+  opacity: 0.45;
+  filter: grayscale(0.8) brightness(0.65);
 }
 
 /* ─── Icon area ─────────────────────────────────────────────── */

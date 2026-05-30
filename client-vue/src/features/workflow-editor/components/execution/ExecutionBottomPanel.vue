@@ -29,7 +29,7 @@
     <div class="ebp-body" :class="{ 'ebp-body--history': showHistory }">
       <aside v-if="showHistory" class="ebp-history-list">
         <button
-          v-for="run in historyRuns"
+          v-for="run in sortedHistoryRuns"
           :key="run.id"
           class="ebp-history-run"
           :class="{ 'ebp-history-run--active': run.id === selectedHistoryRunId }"
@@ -139,6 +139,9 @@ const activeEvents = computed(() => {
 const selectedHistoryRun = computed(() =>
   historyRuns.value.find((run) => run.id === selectedHistoryRunId.value) ?? null,
 )
+const sortedHistoryRuns = computed(() =>
+  [...historyRuns.value].sort((a, b) => b.startedAt - a.startedAt),
+)
 
 const historyEvents = computed<PanelEvent[]>(() =>
   selectedHistoryRun.value ? executionLogToEvents(selectedHistoryRun.value) : [],
@@ -176,7 +179,7 @@ async function loadHistory() {
   historyLoading.value = true
   try {
     historyRuns.value = await workflowsApi.getExecutions(workflowId, currentProfileId.value)
-    selectedHistoryRunId.value = historyRuns.value[0]?.id ?? null
+    selectedHistoryRunId.value = sortedHistoryRuns.value[0]?.id ?? null
   } finally {
     historyLoading.value = false
   }

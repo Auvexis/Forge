@@ -21,19 +21,21 @@
         :class="`web-page-drop-arrow--${dropIntent.dropEdge ?? 'center'}`"
       />
     </span>
-    <div
-      v-if="!readonly"
-      class="web-page-block-toolbar"
-      :class="{ 'web-page-block-toolbar--visible': isToolbarVisible }"
-      @click.stop
-    >
-      <BaseButton variant="ghost" size="sm" icon-left="copy" @click="$emit('duplicate-block', block.id)">
-        Duplicate
-      </BaseButton>
-      <BaseButton variant="ghost" size="sm" icon-left="trash-2" @click="$emit('delete-block', block.id)">
-        Delete
-      </BaseButton>
-    </div>
+    <Teleport to="body">
+      <div
+        v-if="!readonly && isToolbarVisible"
+        class="web-page-block-toolbar web-page-block-toolbar--visible"
+        :style="toolbarPosition"
+        @click.stop
+      >
+        <BaseButton variant="ghost" size="sm" icon-left="copy" @click="$emit('duplicate-block', block.id)">
+          Duplicate
+        </BaseButton>
+        <BaseButton variant="ghost" size="sm" icon-left="trash-2" @click="$emit('delete-block', block.id)">
+          Delete
+        </BaseButton>
+      </div>
+    </Teleport>
     <component
       :is="renderTag"
       v-bind="blockAttributes"
@@ -85,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
@@ -149,19 +151,27 @@ const customCssRule = computed(() => {
 })
 const customCssStyleEl = ref<HTMLStyleElement | null>(null)
 const lastDragIntentKey = ref('')
+const toolbarPosition = ref<Record<string, string>>({})
 
 onMounted(() => {
   updateCustomCssStyle()
+  updateToolbarPosition()
+  window.addEventListener('scroll', updateToolbarPosition, true)
+  window.addEventListener('resize', updateToolbarPosition)
 })
 
 onBeforeUnmount(() => {
   customCssStyleEl.value?.remove()
   customCssStyleEl.value = null
+  window.removeEventListener('scroll', updateToolbarPosition, true)
+  window.removeEventListener('resize', updateToolbarPosition)
 })
 
 watch(customCssRule, () => {
   updateCustomCssStyle()
 })
+
+watch(isToolbarVisible, () => nextTick(updateToolbarPosition))
 
 watch(
   () => props.dropIntent,
@@ -184,6 +194,18 @@ function updateCustomCssStyle() {
   }
 
   customCssStyleEl.value.textContent = customCssRule.value
+}
+
+function updateToolbarPosition() {
+  const element = document.querySelector(`.${blockClass(props.block.id)}`) as HTMLElement | null
+  const rect = element?.getBoundingClientRect()
+  if (!rect) return
+  toolbarPosition.value = {
+    position: 'fixed',
+    top: `${Math.max(8, rect.top - 36)}px`,
+    left: `${rect.left}px`,
+    zIndex: '10000',
+  }
 }
 
 function onDragStart(event: DragEvent) {

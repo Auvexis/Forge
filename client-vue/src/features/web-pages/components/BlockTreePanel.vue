@@ -43,6 +43,7 @@
           <BlockTreePanel
             :blocks="blocks"
             :selected-block-id="selectedBlockId"
+            :selected-block-ids="selectedBlockIds"
             @select="$emit('select', $event)"
             @add-page="$emit('add-page')"
             @delete-block="$emit('delete-block', $event)"
@@ -56,13 +57,13 @@
     <div v-for="block in pages.length ? [] : blocks" :key="block.id" class="web-page-tree__node">
       <div
         class="web-page-tree__item"
-        :class="{ 'web-page-tree__item--selected': block.id === selectedBlockId }"
+        :class="{ 'web-page-tree__item--selected': selectedBlockIds.includes(block.id) || block.id === selectedBlockId }"
         draggable="true"
         role="treeitem"
         @dragstart="onDragStart($event, block.id)"
         @dragover.prevent="onDragOver($event)"
         @drop.prevent="onDrop($event, block)"
-        @click="$emit('select', block.id)"
+        @click="selectTreeBlock($event, block.id)"
       >
         <button
           type="button"
@@ -122,6 +123,7 @@
         <BlockTreePanel
           :blocks="block.children"
           :selected-block-id="selectedBlockId"
+          :selected-block-ids="selectedBlockIds"
           @select="$emit('select', $event)"
           @add-page="$emit('add-page')"
           @delete-block="$emit('delete-block', $event)"
@@ -146,11 +148,13 @@ import { usePageEditorStore } from '../stores/page-editor.store.ts'
 const props = withDefaults(defineProps<{
   blocks: PageBlock[]
   selectedBlockId: string | null
+  selectedBlockIds?: string[]
   pages?: SailorPageSummary[]
   activePageId?: string
 }>(), {
   pages: () => [],
   activePageId: undefined,
+  selectedBlockIds: () => [],
 })
 
 const editorStore = usePageEditorStore()
@@ -188,6 +192,14 @@ function togglePage(pageId: string) {
     ...collapsedPageIds.value,
     [pageId]: !collapsedPageIds.value[pageId],
   }
+}
+
+function selectTreeBlock(event: MouseEvent, blockId: string) {
+  if (event.shiftKey) {
+    editorStore.selectBlockRange(blockId)
+    return
+  }
+  emit('select', blockId)
 }
 
 function startBlockIdEdit(blockId: string) {

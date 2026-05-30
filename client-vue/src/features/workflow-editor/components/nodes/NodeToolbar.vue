@@ -11,6 +11,15 @@
       <LucideIcon name="copy-plus" :size="13" />
     </button>
 
+    <button
+      class="nt-btn"
+      title="Disable node"
+      :aria-label="isNodeDisabled ? 'Enable node' : 'Disable node'"
+      @click="toggleDisabled"
+    >
+      <LucideIcon :name="isNodeDisabled ? 'eye-off' : 'ban'" :size="13" />
+    </button>
+
     <!-- Delete -->
     <button class="nt-btn nt-btn--danger" title="Delete node" @click="deleteNode">
       <LucideIcon name="trash-2" :size="13" />
@@ -37,7 +46,7 @@ const { removeNodes, getNodes, addNodes, getSelectedNodes, viewport } = useVueFl
 const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const panelStore = useAppPanelStore()
-const toolbarBus = useEventBus<{ action: 'duplicate' | 'delete'; nodeId: string }>(
+const toolbarBus = useEventBus<{ action: 'duplicate' | 'delete' | 'disable'; nodeId: string }>(
   'node:toolbar-action',
 )
 
@@ -50,6 +59,7 @@ const toolbarScale = computed(() => {
 // nodeStatuses is Record<string, NodeExecutionState>; with noUncheckedIndexedAccess the
 // lookup can return undefined — the computed value reflects that correctly.
 const nodeState = computed(() => executionStore.nodeStatuses[props.nodeId])
+const isNodeDisabled = computed(() => workflowStore.activeWorkflow?.nodes[props.nodeId]?.disabled === true)
 
 // ── Actions ────────────────────────────────────────────────────────────────
 
@@ -95,6 +105,13 @@ function deleteNode() {
   )
 
   panelStore.closePanel()
+}
+
+function toggleDisabled() {
+  toolbarBus.emit({ action: 'disable', nodeId: props.nodeId })
+  const node = workflowStore.activeWorkflow?.nodes[props.nodeId]
+  if (!node) return
+  node.disabled = !node.disabled
 }
 </script>
 

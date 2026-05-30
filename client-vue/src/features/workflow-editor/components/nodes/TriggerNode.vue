@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, markRaw } from 'vue'
+import { computed, markRaw, onMounted, ref, watch } from 'vue'
 import { useVueFlow, type NodeProps } from '@vue-flow/core'
 import type { TriggerNode, WorkflowTrigger } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
@@ -16,6 +16,11 @@ import RunWorkflowPanel from '../execution/RunWorkflowPanel.vue'
 import NodeShimmer from './NodeShimmer.vue'
 import NodeToolbar from './NodeToolbar.vue'
 import ChatTriggerNode from './ChatTriggerNode.vue'
+import { apiRequest } from '@/core/api/client'
+import { ENDPOINTS } from '@/core/api/endpoints'
+import { useTheme } from '@/shared/composables/useTheme'
+import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
+import type { PluginSummary } from '@/core/types/plugin.types'
 
 defineOptions({ inheritAttrs: false })
 
@@ -28,6 +33,10 @@ const executionStore = useExecutionStore()
 const panelStore = useAppPanelStore()
 const toast = useToast()
 const { edges } = useVueFlow()
+const { isDark } = useTheme()
+const selectedPlugin = ref<PluginSummary | null>(null)
+const pluginIcon = ref('plug')
+const pluginIconColor = ref('var(--sailor-node-plugin-icon)')
 
 const triggerData = computed<WorkflowTrigger | undefined>(() => {
   const data = props.data as unknown as TriggerNode | WorkflowTrigger
@@ -72,12 +81,12 @@ const triggerConfig = computed(() => {
       borderColor: 'rgba(236,72,153,0.45)',
     },
     plugin: {
-      icon: 'plug',
+      icon: pluginIcon.value,
       title: 'Plugin Trigger',
-      subtitle: null,
-      color: 'rgb(99, 179, 237)',
-      bg: 'rgba(99,179,237,0.12)',
-      borderColor: 'rgba(99,179,237,0.4)',
+      subtitle: pluginTriggerEventLabel.value,
+      color: pluginIconColor.value,
+      bg: 'var(--sailor-node-plugin-bg)',
+      borderColor: 'var(--sailor-node-plugin-border)',
     },
     chat: {
       icon: 'message-circle',
@@ -104,7 +113,17 @@ const nodeTitle = computed(() => {
   if (type === 'form') {
     return triggerData.value?.formSlug ?? 'Form'
   }
+  if (type === 'plugin') {
+    return selectedPlugin.value?.manifest.metadata.name ?? 'Plugin Trigger'
+  }
   return triggerConfig.value.title
+})
+
+const pluginTriggerEventLabel = computed(() => {
+  if (triggerData.value?.type !== 'plugin') return null
+  const triggerName = triggerData.value.triggerName
+  const manifest = triggerName ? selectedPlugin.value?.manifest.triggers?.[triggerName] : null
+  return manifest?.metadata?.label || 'On Message'
 })
 
 const effectiveStatus = computed<'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed'>(() => {
@@ -122,6 +141,30 @@ const showToolbar = computed(() => {
 })
 
 const isChatTrigger = computed(() => triggerData.value?.type === 'chat')
+const isDisabled = computed(() => props.data?.disabled === true || store.activeWorkflow?.nodes[props.id]?.disabled === true)
+
+async function loadSelectedPlugin() {
+  const pluginId = triggerData.value?.type === 'plugin' ? triggerData.value.pluginId : undefined
+  selectedPlugin.value = null
+  pluginIcon.value = 'plug'
+  pluginIconColor.value = 'var(--sailor-node-plugin-icon)'
+  if (!pluginId) return
+
+  try {
+    const plugin = await apiRequest<PluginSummary>(ENDPOINTS.PLUGIN_BY_ID(pluginId))
+    selectedPlugin.value = plugin
+    pluginIcon.value = resolvePluginIcon(plugin.manifest.metadata, {
+      isDark: isDark.value,
+      fallback: 'plug',
+    })
+    pluginIconColor.value = plugin.manifest.metadata.style?.iconColor ?? 'var(--sailor-node-plugin-icon)'
+  } catch (err) {
+    console.warn(`Failed to load plugin trigger icon for ${pluginId}`, err)
+  }
+}
+
+onMounted(loadSelectedPlugin)
+watch(() => [triggerData.value?.pluginId, triggerData.value?.triggerName, isDark.value], loadSelectedPlugin)
 
 const onExecuteWorkflow = async () => {
   const workflow = store.activeWorkflow
@@ -192,6 +235,7 @@ const onQuickAdd = () => {
     class="trigger-node"
     :class="[
       { 'is-selected': props.selected },
+      { 'is-disabled': isDisabled },
       effectiveStatus !== 'idle' ? `is-${effectiveStatus}` : '',
     ]"
     :style="{ '--trigger-border': triggerConfig.borderColor, '--node-tint': triggerConfig.bg }"
@@ -262,6 +306,9 @@ const onQuickAdd = () => {
     </span>
     <span v-else-if="triggerData?.type === 'form'" class="trigger-node__label-subtitle">
       Form submission
+    </span>
+    <span v-else-if="triggerData?.type === 'plugin'" class="trigger-node__label-subtitle">
+      {{ pluginTriggerEventLabel ?? 'On Message' }}
     </span>
   </div>
   </template>
@@ -339,6 +386,11 @@ const onQuickAdd = () => {
 
 .trigger-node.is-failed {
   border-color: var(--sailor-red-400);
+}
+
+.trigger-node.is-disabled {
+  opacity: 0.45;
+  filter: grayscale(0.8) brightness(0.65);
 }
 
 /* ─── Shimmer clip (isolates overflow without breaking the execute-btn) ─── */

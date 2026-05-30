@@ -7,6 +7,7 @@
     :marker-end="props.selected ? 'url(#sailor-arrow-selected)' : `url(#sailor-arrow-${edgeStatus})`"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
+    @dblclick.stop="startEditLabel"
   />
 
   <!-- ── Floating elements ── -->
@@ -30,22 +31,6 @@
         <LucideIcon name="plus" :size="13" />
       </button>
 
-      <!-- Edit label -->
-      <template v-if="isEditingLabel">
-        <input
-          ref="labelInputRef"
-          class="sailor-edge-label-input"
-          v-model="labelDraft"
-          placeholder="Label…"
-          @keydown.enter.stop="commitLabel"
-          @keydown.escape.stop="cancelLabel"
-          @blur="commitLabel"
-        />
-      </template>
-      <button v-else class="sailor-edge-btn" @click.stop="startEditLabel" title="Edit label">
-        <LucideIcon name="tag" :size="13" />
-      </button>
-
       <!-- Delete -->
       <button class="sailor-edge-btn sailor-edge-btn--danger" @click.stop="onDelete" title="Delete connection">
         <LucideIcon name="trash" :size="13" />
@@ -63,17 +48,40 @@
       }"
     />
 
-    <!-- Label BELOW the edge midpoint -->
     <div
-      v-if="edgeLabel"
-      class="nodrag nopan sailor-edge-label"
+      v-if="edgeItemCountLabel"
+      class="nodrag nopan sailor-edge-item-count"
       :style="{
         position: 'absolute',
-        transform: `translate(-50%, 14px) translate(${pathData[1]}px,${pathData[2]}px)`,
+        transform: `translate(-50%, calc(-100% - 42px)) translate(${pathData[1]}px,${pathData[2]}px)`,
         pointerEvents: 'none',
       }"
     >
-      {{ edgeLabel }}
+      {{ edgeItemCountLabel }}
+    </div>
+
+    <!-- Inline label on the edge midpoint -->
+    <div
+      v-if="edgeLabel || isEditingLabel"
+      class="nodrag nopan sailor-edge-label-shell"
+      :style="{
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${pathData[1]}px,${pathData[2]}px)`,
+        pointerEvents: isEditingLabel ? 'all' : 'none',
+      }"
+      @dblclick.stop="startEditLabel"
+    >
+      <input
+        v-if="isEditingLabel"
+        ref="labelInputRef"
+        class="sailor-edge-label-input"
+        v-model="labelDraft"
+        placeholder="Label..."
+        @keydown.enter.stop="commitLabel"
+        @keydown.escape.stop="cancelLabel"
+        @blur="commitLabel"
+      />
+      <span v-else class="sailor-edge-label">{{ edgeLabel }}</span>
     </div>
   </EdgeLabelRenderer>
 </template>
@@ -215,6 +223,12 @@ function onQuickAdd() {
 // ── Label editing ─────────────────────────────────────────────────────────────
 
 const edgeLabel      = computed(() => props.label as string | undefined)
+const edgeItemCountLabel = computed(() => {
+  const output = executionStore.nodeStatuses[props.source]?.output
+  const count = countItems(output)
+  if (count === null) return ''
+  return `${count} ${count === 1 ? 'item' : 'items'}`
+})
 const isEditingLabel = ref(false)
 const labelDraft     = ref('')
 const labelInputRef  = ref<HTMLInputElement | null>(null)
@@ -235,6 +249,16 @@ function commitLabel() {
 
 function cancelLabel() {
   isEditingLabel.value = false
+}
+
+function countItems(output: unknown): number | null {
+  if (Array.isArray(output)) return output.length
+  if (output && typeof output === 'object') {
+    const value = output as Record<string, unknown>
+    if (Array.isArray(value.items)) return value.items.length
+    if (Array.isArray(value.data)) return value.data.length
+  }
+  return null
 }
 </script>
 
@@ -288,7 +312,21 @@ function cancelLabel() {
 }
 
 /* ── Label (below midpoint) ───────────────────────────────────────── */
+.sailor-edge-item-count {
+  z-index: 1997;
+  color: var(--sailor-text-muted);
+  font-family: var(--sailor-font-mono);
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.sailor-edge-label-shell {
+  z-index: 1998;
+}
+
 .sailor-edge-label {
+  display: inline-flex;
   font-size: 13px;
   font-weight: 500;
   line-height: 1;

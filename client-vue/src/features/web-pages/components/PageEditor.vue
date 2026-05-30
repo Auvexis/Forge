@@ -34,6 +34,7 @@
         :active-page-id="pagesStore.activePage?.id"
         :blocks="editorStore.blocks"
         :selected-block-id="editorStore.selectedBlockId"
+        :selected-block-ids="editorStore.selectedBlockIds"
         @add-page="addPageBelowCanvas"
         @select-page="selectTreePage"
         @select="editorStore.selectBlock"
@@ -144,23 +145,26 @@
         @patch="patchBodyStyles"
       />
       <template v-if="editorStore.selectedTarget.type === 'block' && editorStore.selectedBlock">
+        <p v-if="editorStore.selectedBlockIds.length > 1 && selectedBlocksSameType" class="web-page-editor__batch">
+          Editing {{ editorStore.selectedBlockIds.length }} {{ editorStore.selectedBlock.tag }} elements
+        </p>
         <FormImportPanel v-if="editorStore.selectedBlock.tag === 'form'" @insert="insertImportedForm" />
         <BlockContentPanel
           :block="editorStore.selectedBlock"
-          @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
+          @patch="patchSelectedOrSingleBlock"
           @upload-image="uploadImageForSelectedBlock"
         />
         <BlockAdvancedPanel
           :block="editorStore.selectedBlock"
-          @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
+          @patch="patchSelectedOrSingleBlock"
         />
         <BlockStylePanel
           :block="editorStore.selectedBlock"
-          @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
+          @patch="patchSelectedOrSingleBlock"
         />
         <BlockActionPanel
           :block="editorStore.selectedBlock"
-          @patch="editorStore.patchBlock(editorStore.selectedBlock!.id, $event)"
+          @patch="patchSelectedOrSingleBlock"
         />
       </template>
       <p v-if="editorStore.selectedTarget.type === 'none'" class="web-page-editor__empty">Select a page, body, or block.</p>
@@ -230,6 +234,10 @@ const activeCodeContent = computed(() => {
   return sitesStore.activeSite?.files.find((file) => file.path === activeCodeFile.value?.path)?.content ?? activeCodeFile.value.content ?? ''
 })
 const isActiveCodeFileReadonly = computed(() => activeCodeFile.value?.path.endsWith('.html') ?? false)
+const selectedBlocksSameType = computed(() => {
+  const selected = editorStore.selectedBlocks
+  return selected.length > 1 && selected.every((block) => block.tag === selected[0]?.tag)
+})
 
 const bodyStyleBlock = computed<PageBlock>(() => ({
   id: 'body',
@@ -266,6 +274,14 @@ function closeCodeCanvas() {
   activeCodeFile.value = null
 }
 
+function patchSelectedOrSingleBlock(patch: Partial<PageBlock>) {
+  if (selectedBlocksSameType.value) {
+    editorStore.patchSelectedBlocks(patch)
+    return
+  }
+  if (editorStore.selectedBlock) editorStore.patchBlock(editorStore.selectedBlock.id, patch)
+}
+
 function deleteCodeFile(path: string) {
   if (!sitesStore.deleteFile(path)) return
   if (activeCodeFile.value?.path === path) closeCodeCanvas()
@@ -278,13 +294,72 @@ function updateActiveCodeContent(value: string) {
 
 function renderGeneratedHtml(filePath: string) {
   const slug = filePath.replace(/^pages\//, '').replace(/\.html$/, '')
-  const page = pagesStore.pages.find((item) => item.slug === slug)
+  const page = pagesStore.activePage?.slug === slug
+    ? pagesStore.activePage
+    : pagesStore.pages.find((item) => item.slug === slug)
   if (!page) return '<!doctype html>\n<html><body></body></html>'
-  return `<!doctype html>\n<html>\n<head>\n  <title>${escapeHtml(page.title)}</title>\n</head>\n<body>\n  <!-- Generated preview for ${escapeHtml(page.title)} -->\n</body>\n</html>`
+  const blocks = 'blocks' in page ? page.blocks : []
+  const css = [
+    renderGeneratedPageCss(blocks),
+    ...(sitesStore.activeSite?.files ?? [])
+      .filter((file) => file.kind === 'file' && file.path.startsWith('css/') && file.path.endsWith('.css'))
+      .map((file) => file.content ?? ''),
+  ].filter(Boolean).join('\n')
+  const js = [
+    renderGeneratedPageJs(blocks),
+    ...(sitesStore.activeSite?.files ?? [])
+      .filter((file) => file.kind === 'file' && file.path.startsWith('js/') && file.path.endsWith('.js'))
+      .map((file) => file.content ?? ''),
+  ].filter(Boolean).join('\n')
+
+  const scriptOpen = '<script>'
+  const scriptClose = '<' + '/script>'
+  const safeJs = js.replace(new RegExp('<' + '/script', 'gi'), '<\\/script')
+  return `<!doctype html>\n<html>\n<head>\n  <title>${escapeHtml(page.title)}</title>\n  <style>${css}</style>\n</head>\n<body>\n${blocks.map(renderGeneratedBlockHtml).join('\n')}\n${js ? `${scriptOpen}${safeJs}${scriptClose}` : ''}\n</body>\n</html>`
 }
 
 function escapeHtml(value: string) {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function renderGeneratedBlockHtml(block: PageBlock): string {
+  const tag = block.tag === 'text' ? 'span' : block.tag === 'image' ? 'img' : block.tag
+  const className = ['sailor-page-block', blockClass(block.id), block.className].filter(Boolean).join(' ')
+  const attrs = [
+    `class="${escapeHtml(className)}"`,
+    block.elementId ? `id="${escapeHtml(block.elementId)}"` : '',
+    ...Object.entries(block.attributes ?? {}).map(([key, value]) => `${key}="${escapeHtml(String(value))}"`),
+  ].filter(Boolean).join(' ')
+  if (block.tag === 'image') return `<img ${attrs} src="${escapeHtml(String(block.props?.src ?? ''))}" alt="${escapeHtml(String(block.props?.alt ?? ''))}">`
+  if (block.tag === 'input') return `<input ${attrs} name="${escapeHtml(String(block.props?.name ?? ''))}" placeholder="${escapeHtml(String(block.props?.placeholder ?? ''))}">`
+  const text = ['text', 'button', 'link'].includes(block.tag) ? escapeHtml(String(block.props?.text ?? '')) : ''
+  return `<${tag} ${attrs}>${text}${(block.children ?? []).map(renderGeneratedBlockHtml).join('')}</${tag}>`
+}
+
+function renderGeneratedPageCss(blocks: PageBlock[]): string {
+  return blocks.flatMap((block) => {
+    const declarations = Object.entries(block.styles ?? {})
+      .map(([key, value]) => `${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}: ${value};`)
+      .join(' ')
+    const ownCss = [
+      declarations ? `.${blockClass(block.id)} { ${declarations} }` : '',
+      block.customCss?.includes('{') ? block.customCss : block.customCss ? `.${blockClass(block.id)} { ${block.customCss} }` : '',
+    ].filter(Boolean)
+    return [...ownCss, ...renderGeneratedPageCss(block.children ?? []).split('\n').filter(Boolean)]
+  }).join('\n')
+}
+
+function renderGeneratedPageJs(blocks: PageBlock[]): string {
+  return blocks.flatMap((block) => {
+    const script = block.customJs
+      ? `;(() => { const element = document.querySelector('.${blockClass(block.id)}'); const block = element; ${block.customJs} })();`
+      : ''
+    return [script, renderGeneratedPageJs(block.children ?? [])].filter(Boolean)
+  }).join('\n')
+}
+
+function blockClass(id: string) {
+  return `sailor-block-${String(id).replace(/[^a-zA-Z0-9_-]/g, '_')}`
 }
 
 function closeLeftPanel() {

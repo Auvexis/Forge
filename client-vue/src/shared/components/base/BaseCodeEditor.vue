@@ -55,6 +55,7 @@ const editorEl = ref<HTMLElement | null>(null)
 const { resolvedTheme } = useTheme()
 let editor: monaco.editor.IStandaloneCodeEditor | null = null
 let isApplyingExternalValue = false
+let cssCompletionProvider: monaco.IDisposable | null = null
 
 const configureMonaco = () => {
   ;(self as any).MonacoEnvironment = {
@@ -190,6 +191,27 @@ const configureMonaco = () => {
       'minimap.background': '#FAFAFB',
     },
   })
+
+  if (!cssCompletionProvider) {
+    cssCompletionProvider = monaco.languages.registerCompletionItemProvider('css', {
+      provideCompletionItems: () => ({
+        suggestions: [
+          ':hover',
+          ':focus',
+          ':active',
+          ':disabled',
+          ':focus-visible',
+          '::before',
+          '::after',
+        ].map((selector) => ({
+          label: selector,
+          kind: monaco.languages.CompletionItemKind.Keyword,
+          insertText: selector,
+          range: undefined as any,
+        })),
+      }),
+    })
+  }
 }
 
 const monacoTheme = () => `sailor-${resolvedTheme.value}`

@@ -24,6 +24,7 @@
         :active-page-id="activePageId"
         :blocks="blocks"
         :selected-block-id="selectedBlockId"
+        :selected-block-ids="selectedBlockIds"
         @add-page="$emit('add-page')"
         @select-page="$emit('select-page', $event)"
         @select="$emit('select', $event)"
@@ -61,6 +62,7 @@ defineProps<{
   activePageId?: string
   blocks: PageBlock[]
   selectedBlockId: string | null
+  selectedBlockIds?: string[]
 }>()
 
 defineEmits<{
