@@ -187,7 +187,10 @@ export class AgentRunner {
         })) ?? [];
     this.eventEmitter({
       type: "agent:memory-read",
-      payload: { namespace, count: records.length },
+      payload: {
+        input: { namespace, limit: memory.maxRetrievedMemories },
+        output: { namespace, count: records.length, records },
+      },
     }, input);
 
     return records.map((record) => ({
@@ -220,7 +223,10 @@ export class AgentRunner {
     return Promise.resolve(write).then(() => {
       this.eventEmitter({
         type: "agent:memory-write",
-        payload: { namespace, key: `agent:${input.nodeId}:last-output` },
+        payload: {
+          input: putInput,
+          output: { namespace, key: `agent:${input.nodeId}:last-output` },
+        },
       }, input);
     });
   }

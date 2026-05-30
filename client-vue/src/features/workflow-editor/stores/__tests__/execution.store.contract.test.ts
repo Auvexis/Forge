@@ -133,3 +133,12 @@ test('execution store preserves node statuses until explicit clear execution', (
   assert.doesNotMatch(source, /clearNodeStatusLater/)
   assert.match(source, /function resetNodeStatuses\(\)/)
 })
+
+test('execution store records input and output snapshots for agent config nodes', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+
+  assert.match(source, /case 'agent:model-start':[\s\S]*input: agentPayloadValue\(ev\.data, 'input'\)/)
+  assert.match(source, /case 'agent:model-end':[\s\S]*output: agentPayloadValue\(ev\.data, 'output'\) \?\? ev\.data/)
+  assert.match(source, /case 'agent:memory-read':[\s\S]*case 'agent:memory-write':[\s\S]*patchConnectedAgentConfigNode\(ev\.nodeId, 'memory'/)
+  assert.match(source, /case 'agent:tool-start':[\s\S]*input: agentPayloadValue\(ev\.data, 'input'\)/)
+})

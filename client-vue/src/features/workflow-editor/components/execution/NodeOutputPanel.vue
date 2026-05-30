@@ -16,6 +16,8 @@
 
     <!-- Body -->
     <div class="nop-body">
+      <JsonViewer v-if="nodeState?.input !== undefined" :data="nodeState.input" title="Input" />
+
       <!-- Running state -->
       <div v-if="nodeState?.status === 'running'" class="nop-state-banner nop-state-banner--running">
         <LucideIcon name="loader-2" :size="14" class="nop-spin" />
@@ -44,6 +46,7 @@
         <div v-if="nodeState.error" class="nop-error-block">
           <pre class="nop-error-text">{{ nodeState.error }}</pre>
         </div>
+        <JsonViewer v-if="nodeState.output !== undefined" :data="nodeState.output" title="Output" />
       </template>
 
       <!-- Idle / no result -->

@@ -23,11 +23,11 @@ Restore Dev Session trigger forwarding, make agent config nodes expose correct r
 
 ### Task 3: Agent Config Input And Output
 
-- [ ] Inspect current execution context and node state propagation.
-- [ ] Add failing tests for agent config node input/output snapshots.
-- [ ] Expose input/output on Chat Model, Memory, and called Tool nodes.
-- [ ] Run focused backend/frontend tests.
-- [ ] Commit Task 3.
+- [x] Inspect current execution context and node state propagation.
+- [x] Add failing tests for agent config node input/output snapshots.
+- [x] Expose input/output on Chat Model, Memory, and called Tool nodes.
+- [x] Run focused backend/frontend tests.
+- [x] Commit Task 3.
 
 ### Task 4: Agent Template Context
 

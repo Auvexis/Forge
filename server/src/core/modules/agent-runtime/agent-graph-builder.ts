@@ -87,7 +87,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
       let toolCallCount = 0;
 
       for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
-        input.onEvent?.({ type: "agent:model-start", payload: { iteration } });
+        input.onEvent?.({ type: "agent:model-start", payload: { iteration, input: { messages } } });
 
         let assistantContent = "";
         let toolCalls: AgentToolCall[] = [];
@@ -127,7 +127,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
 
         input.onEvent?.({
           type: "agent:model-end",
-          payload: { iteration, toolCallCount: toolCalls.length },
+          payload: { iteration, toolCallCount: toolCalls.length, output: assistantContent },
         });
 
         if (toolCalls.length === 0) {

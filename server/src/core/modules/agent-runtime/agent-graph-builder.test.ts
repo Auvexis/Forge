@@ -41,10 +41,18 @@ describe("agent graph builder", () => {
       "agent:model-end",
     ]);
     assert.deepEqual(events.map((event) => event.payload), [
-      { iteration: 1 },
+      {
+        iteration: 1,
+        input: {
+          messages: [
+            { role: "system", content: "You are helpful." },
+            { role: "user", content: "hello" },
+          ],
+        },
+      },
       { delta: "hel" },
       { delta: "lo" },
-      { iteration: 1, toolCallCount: 0 },
+      { iteration: 1, toolCallCount: 0, output: "hello" },
     ]);
   });
 

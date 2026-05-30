@@ -706,6 +706,11 @@ export const useExecutionStore = defineStore('execution', () => {
     return undefined
   }
 
+  function agentPayloadValue(data: unknown, key: string): unknown {
+    if (!data || typeof data !== 'object') return undefined
+    return (data as Record<string, unknown>)[key]
+  }
+
   function approvalPayloadValue(data: unknown, key: string): string {
     if (!data || typeof data !== 'object') return ''
     const value = (data as Record<string, unknown>)[key]
@@ -1036,6 +1041,7 @@ export const useExecutionStore = defineStore('execution', () => {
             recordEditorChatToolIntent(ev)
             patchConnectedAgentConfigNode(ev.nodeId, 'tool', {
               status: 'waiting',
+              input: agentPayloadValue(ev.data, 'input'),
               output: ev.data,
               startedAt: ev.timestamp,
             }, ev.data)
@@ -1045,6 +1051,7 @@ export const useExecutionStore = defineStore('execution', () => {
             recordEditorChatToolStart(ev)
             patchConnectedAgentConfigNode(ev.nodeId, 'tool', {
               status: 'running',
+              input: agentPayloadValue(ev.data, 'input'),
               output: ev.data,
               startedAt: ev.timestamp,
             }, ev.data)
@@ -1076,6 +1083,7 @@ export const useExecutionStore = defineStore('execution', () => {
           case 'agent:model-start':
             patchConnectedAgentConfigNode(ev.nodeId, 'chatModel', {
               status: 'running',
+              input: agentPayloadValue(ev.data, 'input'),
               startedAt: ev.timestamp,
             })
             break
@@ -1083,7 +1091,17 @@ export const useExecutionStore = defineStore('execution', () => {
           case 'agent:model-end':
             patchConnectedAgentConfigNode(ev.nodeId, 'chatModel', {
               status: 'success',
-              output: ev.data,
+              output: agentPayloadValue(ev.data, 'output') ?? ev.data,
+              endedAt: ev.timestamp,
+            })
+            break
+
+          case 'agent:memory-read':
+          case 'agent:memory-write':
+            patchConnectedAgentConfigNode(ev.nodeId, 'memory', {
+              status: 'success',
+              input: agentPayloadValue(ev.data, 'input'),
+              output: agentPayloadValue(ev.data, 'output') ?? ev.data,
               endedAt: ev.timestamp,
             })
             break

@@ -61,6 +61,7 @@ export type NodeExecutionStatus = 'idle' | 'waiting' | 'running' | 'retrying' | 
 
 export interface NodeExecutionState {
   status: NodeExecutionStatus
+  input?: unknown
   output?: unknown
   error?: string
   startedAt?: number
