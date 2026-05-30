@@ -111,6 +111,12 @@ The trigger payload sent into workflow execution includes:
 
 The agent checkpointer uses the validated Sailor `sessionId` as the LangGraph thread id.
 
+## Published Agent Directory
+
+The global Agent Panel discovers published agents from active, non-draft workflows in a profile scope. An entry is eligible when a Chat Trigger with a `chatSlug` can reach an AI Agent node and that agent has a connected AI Model node.
+
+Each published agent entry uses `profileId:workflowId:triggerNodeId:agentNodeId` as its stable key. The panel executes that selected agent instead of treating a workflow as an ambiguous fan-out.
+
 ## Debugging Agent Runs
 
 Use the workflow execution panel and Agent Trace section. Agent events are emitted as `agent:*` timeline events:

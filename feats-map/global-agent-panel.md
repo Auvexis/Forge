@@ -15,7 +15,7 @@ Goal: build a global published-agent chat panel so users can talk to agents from
 
 ## Task Map
 
-- [ ] Task 1: Backend Agent Directory Discovery
+- [x] Task 1: Backend Agent Directory Discovery
 - [ ] Task 2: Agent Node Public Metadata
 - [ ] Task 3: Agent-Scoped Chat Session Schema
 - [ ] Task 4: Agent Panel Chat Service
