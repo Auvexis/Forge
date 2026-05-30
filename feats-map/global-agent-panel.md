@@ -19,7 +19,7 @@ Goal: build a global published-agent chat panel so users can talk to agents from
 - [x] Task 2: Agent Node Public Metadata
 - [x] Task 3: Agent-Scoped Chat Session Schema
 - [x] Task 4: Agent Panel Chat Service
-- [ ] Task 5: Agent Panel Routes
+- [x] Task 5: Agent Panel Routes
 - [ ] Task 6: Published-Agent Execution Targeting
 - [ ] Task 7: Frontend API Contracts and Types
 - [ ] Task 8: Agent Metadata Editor UI
