@@ -71,9 +71,10 @@ function isTruthyFilter(value: unknown): boolean {
 
 function isBotPayload(payload: Record<string, unknown>): boolean {
   return Boolean(
-    payload.bot ||
+      payload.bot ||
       payload.isBot ||
       payload.authorBot ||
+      payload.authorIsBot ||
       payload.userIsBot ||
       (payload.author && typeof payload.author === "object" && "bot" in payload.author && (payload.author as any).bot),
   );

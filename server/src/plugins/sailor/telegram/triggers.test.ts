@@ -48,6 +48,18 @@ describe("telegram triggers", () => {
     assert.equal(payload.text, "/start demo");
   });
 
+  it("normalizes bot senders to the shared isBot field", () => {
+    const payload = normalizeTelegramEvent("onMessage", {
+      update_id: 13,
+      message: {
+        message_id: 23,
+        from: { id: 43, is_bot: true },
+      },
+    });
+
+    assert.equal(payload.isBot, true);
+  });
+
   it("normalizes callback query updates", () => {
     const payload = normalizeTelegramEvent("onCallbackQuery", {
       update_id: 12,

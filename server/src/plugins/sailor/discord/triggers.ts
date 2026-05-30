@@ -9,7 +9,7 @@ interface MessagingTriggerPayload {
   text?: string;
   command?: string;
   emoji?: string;
-  authorIsBot?: boolean;
+  isBot?: boolean;
   raw: unknown;
 }
 
@@ -39,7 +39,7 @@ export function normalizeDiscordEvent(triggerName: string, raw: any): MessagingT
     text: typeof raw?.content === "string" ? raw.content : undefined,
     command,
     emoji: toOptionalString(emoji),
-    authorIsBot: typeof raw?.author?.bot === "boolean" ? raw.author.bot : undefined,
+    isBot: typeof raw?.author?.bot === "boolean" ? raw.author.bot : undefined,
     raw,
   };
 }

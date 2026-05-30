@@ -7,11 +7,13 @@ export interface MessagingTriggerPayload {
   userId?: string;
   text?: string;
   command?: string;
+  isBot?: boolean;
   raw: unknown;
 }
 
 export function normalizeTelegramEvent(triggerName: string, raw: any): MessagingTriggerPayload {
   const message = raw?.message ?? raw?.callback_query?.message;
+  const actor = raw?.message?.from ?? raw?.callback_query?.from;
   const text = raw?.message?.text ?? raw?.callback_query?.data;
   const command = triggerName === "onCommand" && typeof text === "string"
     ? text.trim().split(/\s+/)[0]
@@ -26,6 +28,7 @@ export function normalizeTelegramEvent(triggerName: string, raw: any): Messaging
     raw,
   };
   if (command) payload.command = command;
+  if (typeof actor?.is_bot === "boolean") payload.isBot = actor.is_bot;
   return payload;
 }
 

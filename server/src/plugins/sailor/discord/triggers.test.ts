@@ -33,6 +33,16 @@ describe("discord triggers", () => {
     assert.equal(payload.userId, "user-2");
   });
 
+  it("normalizes bot authors to the shared isBot field", () => {
+    const payload = normalizeDiscordEvent("onMessage", {
+      id: "msg-bot",
+      author: { id: "bot-1", bot: true },
+    });
+
+    assert.equal(payload.isBot, true);
+    assert.equal("authorIsBot" in payload, false);
+  });
+
   it("connects to Discord Gateway and forwards normalized message events", async () => {
     const originalFetch = globalThis.fetch;
     const originalWebSocket = globalThis.WebSocket;
@@ -88,7 +98,7 @@ describe("discord triggers", () => {
         channelId: "chan-1",
         userId: "user-1",
         text: "hello",
-        authorIsBot: false,
+        isBot: false,
         raw: {
           id: "msg-1",
           channel_id: "chan-1",

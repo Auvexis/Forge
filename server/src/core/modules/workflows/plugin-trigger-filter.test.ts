@@ -66,4 +66,13 @@ describe("evaluatePluginTriggerFilters", () => {
       reason: "bot event ignored",
     });
   });
+
+  it("ignores normalized and legacy Discord bot payloads", () => {
+    for (const payload of [{ isBot: true }, { authorIsBot: true }]) {
+      assert.deepEqual(
+        evaluatePluginTriggerFilters({ ignoreBots: true }, payload),
+        { accepted: false, reason: "bot event ignored" },
+      );
+    }
+  });
 });

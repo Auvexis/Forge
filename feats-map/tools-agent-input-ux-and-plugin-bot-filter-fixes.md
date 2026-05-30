@@ -38,10 +38,10 @@ Fix Tools Agent child-node runtime snapshots, remove redundant editor controls, 
 
 ### Task 3: Fix Messaging Trigger Ignore Bots
 
-- [ ] Add failing normalizer tests for Discord, Telegram, and Slack `isBot`.
-- [ ] Normalize Discord `author.bot`, Telegram `from.is_bot`, and Slack bot metadata to `isBot`.
-- [ ] Add core filter regression coverage for normalized `isBot`.
-- [ ] Run messaging trigger and core filter tests.
+- [x] Add failing normalizer tests for Discord, Telegram, and Slack `isBot`.
+- [x] Normalize Discord `author.bot`, Telegram `from.is_bot`, and Slack bot metadata to `isBot`.
+- [x] Add core filter regression coverage for normalized `isBot`.
+- [x] Run messaging trigger and core filter tests.
 - [ ] Commit with `fix: normalize messaging trigger bot metadata`.
 
 ### Task 4: Verify

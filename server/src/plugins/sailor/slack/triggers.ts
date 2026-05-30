@@ -7,6 +7,7 @@ interface MessagingTriggerPayload {
   userId?: string;
   text?: string;
   command?: string;
+  isBot?: boolean;
   raw: unknown;
 }
 
@@ -23,8 +24,15 @@ export function normalizeSlackEvent(triggerName: string, raw: any): MessagingTri
     userId: toOptionalString(event?.user),
     text: typeof event?.text === "string" ? event.text : undefined,
     command,
+    isBot: isSlackBotEvent(event),
     raw,
   };
+}
+
+function isSlackBotEvent(event: any): boolean | undefined {
+  return event?.subtype === "bot_message" || event?.bot_id || event?.bot_profile
+    ? true
+    : undefined;
 }
 
 export function createNoopWebhookTrigger(): PluginTriggerHooks {

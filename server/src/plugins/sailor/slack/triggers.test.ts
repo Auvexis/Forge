@@ -37,4 +37,17 @@ describe("slack triggers", () => {
     assert.equal(payload.eventId, "evt-2");
     assert.equal(payload.text, "<@BOT> help");
   });
+
+  it("normalizes bot messages to the shared isBot field", () => {
+    const payload = normalizeSlackEvent("onMessage", {
+      event_id: "evt-bot",
+      event: {
+        subtype: "bot_message",
+        bot_id: "B1",
+        text: "automated",
+      },
+    });
+
+    assert.equal(payload.isBot, true);
+  });
 });
