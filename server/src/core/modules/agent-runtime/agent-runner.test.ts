@@ -126,7 +126,7 @@ describe("agent runner", () => {
     assert.match(graphTools[0]?.description ?? "", /channelId is already configured/i);
   });
 
-  it("creates a checkpointer only when a session id exists", async () => {
+  it("does not create a checkpointer for a stateless run even when a session id exists", async () => {
     const createdFor: string[] = [];
     const runner = new AgentRunner({
       modelRegistry: fakeModelRegistry(),
@@ -140,97 +140,71 @@ describe("agent runner", () => {
     await runner.run(runInput());
     await runner.run({ ...runInput(), sessionId: "chat_session_1" });
 
+    assert.deepEqual(createdFor, []);
+  });
+
+  it("creates a checkpointer for SQLite short-term memory only when a session id exists", async () => {
+    const createdFor: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: fakeModelRegistry(),
+      graphBuilder: fakeGraphBuilder(),
+      checkpointerFactory: async (input) => {
+        createdFor.push(input.sessionId);
+        return { thread: input.sessionId };
+      },
+    });
+
+    await runner.run({ ...runInput(), memory: memoryConfig({ adapter: "sailor-internal", scope: "session" }) });
+    await runner.run({
+      ...runInput(),
+      sessionId: "chat_session_1",
+      memory: memoryConfig({ adapter: "sailor-internal", scope: "session" }),
+    });
+
     assert.deepEqual(createdFor, ["chat_session_1"]);
   });
 
-  it("reads long-term memory before the model call", async () => {
-    const contextCounts: number[] = [];
+  it("does not create a SQLite checkpointer for plugin-backed long-term memory", async () => {
+    const createdFor: string[] = [];
     const runner = new AgentRunner({
       modelRegistry: fakeModelRegistry(),
-      memoryStore: {
-        search: (input) => {
-          assert.equal(input.namespace, "profile:profile_1");
-          return [{ key: "preference", value: "likes concise answers" }];
-        },
-        put: () => undefined,
+      graphBuilder: fakeGraphBuilder(),
+      pluginMemoryExecutor: async () => [],
+      checkpointerFactory: async (input) => {
+        createdFor.push(input.sessionId);
+        return { thread: input.sessionId };
       },
-      graphBuilder: (input) => ({
-        async invoke(run) {
-          contextCounts.push(run.contextMessages?.length ?? 0);
-          return successResult("ok");
-        },
-      }),
-    });
-
-    await runner.run({ ...runInput(), memory: memoryConfig({ scope: "profile" }) });
-
-    assert.deepEqual(contextCounts, [1]);
-  });
-
-  it("passes short-term chat history after long-term memory context", async () => {
-    const contextMessages: Array<Array<{ role: string; content: string }>> = [];
-    const runner = new AgentRunner({
-      modelRegistry: fakeModelRegistry(),
-      memoryStore: {
-        search: () => [{ key: "preference", value: "likes concise answers" }],
-        put: () => undefined,
-      },
-      graphBuilder: () => ({
-        async invoke(run) {
-          contextMessages.push(run.contextMessages ?? []);
-          return successResult("ok");
-        },
-      }),
     });
 
     await runner.run({
       ...runInput(),
-      memory: memoryConfig({ scope: "profile" }),
-      contextMessages: [
-        { role: "user", content: "Boa noite" },
-        { role: "assistant", content: "Boa noite! Como posso ajudar?" },
-      ],
+      sessionId: "chat_session_1",
+      memory: pluginMemoryConfig(),
     });
 
-    assert.deepEqual(contextMessages[0], [
-      { role: "system", content: "Memory preference: likes concise answers" },
-      { role: "user", content: "Boa noite" },
-      { role: "assistant", content: "Boa noite! Como posso ajudar?" },
-    ]);
+    assert.deepEqual(createdFor, []);
   });
 
-  it("writes long-term memory only through policy", async () => {
-    const writes: unknown[] = [];
+  it("does not read or write long-term records for SQLite short-term memory", async () => {
+    const events: string[] = [];
     const runner = new AgentRunner({
       modelRegistry: fakeModelRegistry(),
-      memoryStore: {
-        search: () => [],
-        put: (input) => {
-          writes.push(input.value);
-          return undefined;
-        },
-      },
       graphBuilder: fakeGraphBuilder({ output: "safe memory" }),
+      emitEvent: (event) => events.push(event.type),
     });
 
-    await runner.run({ ...runInput(), memory: memoryConfig({ writeEnabled: true }) });
-    assert.deepEqual(writes, ["safe memory"]);
-
-    const secretRunner = new AgentRunner({
-      modelRegistry: fakeModelRegistry(),
-      memoryStore: {
-        search: () => [],
-        put: () => {
-          throw new Error("put must not be reached");
-        },
-      },
-      graphBuilder: fakeGraphBuilder({ output: "apiKey=sk-live-secret-value" }),
+    await runner.run({
+      ...runInput(),
+      sessionId: "chat_session_1",
+      memory: memoryConfig({
+        adapter: "sailor-internal",
+        scope: "profile",
+        readEnabled: true,
+        writeEnabled: true,
+      }),
     });
 
-    await assert.rejects(
-      secretRunner.run({ ...runInput(), memory: memoryConfig({ writeEnabled: true }) }),
-      /secret/i,
-    );
+    assert.deepEqual(events, ["agent:start", "agent:end"]);
   });
 
   it("reads and writes plugin-backed memory through configured plugin methods", async () => {
@@ -238,14 +212,6 @@ describe("agent runner", () => {
     const contextMessages: string[] = [];
     const runner = new AgentRunner({
       modelRegistry: fakeModelRegistry(),
-      memoryStore: {
-        search: () => {
-          throw new Error("internal memory store should not be used");
-        },
-        put: () => {
-          throw new Error("internal memory store should not be used");
-        },
-      },
       pluginMemoryExecutor: async (pluginId: string, methodId: string, params: Record<string, unknown>) => {
         calls.push({ pluginId, methodId, params });
         if (methodId === "searchAgentMemory") {
@@ -263,13 +229,7 @@ describe("agent runner", () => {
 
     await runner.run({
       ...runInput(),
-      memory: memoryConfig({
-        adapter: "plugin-memory-store",
-        pluginId: "sailor-postgresql",
-        searchMethodId: "searchAgentMemory",
-        putMethodId: "putAgentMemory",
-        writeEnabled: true,
-      } as Partial<AiMemoryNodeConfig>),
+      memory: pluginMemoryConfig({ writeEnabled: true }),
     });
 
     assert.equal(contextMessages[0], "Memory tone: friendly");
@@ -421,6 +381,16 @@ function memoryConfig(overrides: Partial<AiMemoryNodeConfig> = {}): AiMemoryNode
     maxMemoryChars: 4000,
     ...overrides,
   };
+}
+
+function pluginMemoryConfig(overrides: Partial<AiMemoryNodeConfig> = {}): AiMemoryNodeConfig {
+  return memoryConfig({
+    adapter: "plugin-memory-store",
+    pluginId: "sailor-postgresql",
+    searchMethodId: "searchAgentMemory",
+    putMethodId: "putAgentMemory",
+    ...overrides,
+  });
 }
 
 function toolConfig(overrides: Partial<AiToolNodeConfig> = {}): AiToolNodeConfig {

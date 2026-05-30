@@ -56,13 +56,13 @@ Tool approval persistence is separate from conversational memory. Approval rows 
 - Modify: `server/src/core/modules/agent-runtime/agent-runner.ts`
 - Modify: `server/src/core/modules/agent-runtime/agent-runner.test.ts`
 
-- [ ] **Step 1: Replace the automatic checkpointer test with failing tests proving no Memory is stateless and SQLite Memory activates checkpoints only with `sessionId`**
-- [ ] **Step 2: Add a failing test proving PostgreSQL long-term memory does not create a SQLite checkpointer**
-- [ ] **Step 3: Update long-term tests to prove only plugin-backed memory reads and writes records**
-- [ ] **Step 4: Run `node --test src/core/modules/agent-runtime/agent-runner.test.ts` from `server/` and confirm RED**
-- [ ] **Step 5: Update Agent Runner to apply the central memory mode policy**
-- [ ] **Step 6: Run the focused test and confirm GREEN**
-- [ ] **Step 7: Commit with `fix: make agent memory persistence opt in`**
+- [x] **Step 1: Replace the automatic checkpointer test with failing tests proving no Memory is stateless and SQLite Memory activates checkpoints only with `sessionId`**
+- [x] **Step 2: Add a failing test proving PostgreSQL long-term memory does not create a SQLite checkpointer**
+- [x] **Step 3: Update long-term tests to prove only plugin-backed memory reads and writes records**
+- [x] **Step 4: Run `node --test src/core/modules/agent-runtime/agent-runner.test.ts` from `server/` and confirm RED**
+- [x] **Step 5: Update Agent Runner to apply the central memory mode policy**
+- [x] **Step 6: Run the focused test and confirm GREEN**
+- [x] **Step 7: Commit with `fix: make agent memory persistence opt in`**
 
 ### Task 3: Gate Chat Transcript Context Behind SQLite Memory
 

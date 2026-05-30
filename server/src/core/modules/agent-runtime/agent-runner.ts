@@ -33,11 +33,14 @@ import {
   assertMemoryWriteAllowed,
   buildMemoryNamespace,
 } from "./memory/agent-memory-policy.ts";
+import {
+  usesLongTermMemory,
+  usesShortTermMemory,
+} from "./memory/agent-memory-mode.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
   toolRegistry?: Pick<AgentToolRegistry, "listAvailableTools" | "resolveConfiguredTools">;
-  memoryStore?: AgentMemoryAccess;
   pluginMemoryExecutor?: PluginMemoryExecutor;
   graphBuilder?: (input: BuildAgentGraphInput) => {
     invoke(input: {
@@ -51,22 +54,6 @@ export interface AgentRunnerOptions {
     dbPath?: string;
   }) => Promise<unknown>;
   emitEvent?: (event: AgentGraphEvent, input: AgentRunInput) => void;
-}
-
-export interface AgentMemoryAccess {
-  search(input: {
-    profileId: string;
-    namespace: string;
-    limit?: number;
-  }): Array<Pick<AgentMemoryRecord, "key" | "value">> | Promise<Array<Pick<AgentMemoryRecord, "key" | "value">>>;
-  put(input: {
-    id: string;
-    profileId: string;
-    namespace: string;
-    key: string;
-    value: unknown;
-    source: string;
-  }): unknown | Promise<unknown>;
 }
 
 export type PluginMemoryExecutor = (
@@ -89,7 +76,6 @@ interface GraphTool {
 export class AgentRunner {
   private readonly modelRegistry: Pick<AgentModelProviderRegistry, "createChatModel">;
   private readonly toolRegistry: Pick<AgentToolRegistry, "listAvailableTools" | "resolveConfiguredTools">;
-  private readonly memoryStore?: AgentMemoryAccess;
   private readonly pluginMemoryExecutor: PluginMemoryExecutor;
   private readonly graphBuilder: NonNullable<AgentRunnerOptions["graphBuilder"]>;
   private readonly checkpointerFactory: NonNullable<AgentRunnerOptions["checkpointerFactory"]>;
@@ -98,7 +84,6 @@ export class AgentRunner {
   constructor(options: AgentRunnerOptions = {}) {
     this.modelRegistry = options.modelRegistry ?? new AgentModelProviderRegistry();
     this.toolRegistry = options.toolRegistry ?? new AgentToolRegistry();
-    this.memoryStore = options.memoryStore;
     this.pluginMemoryExecutor = options.pluginMemoryExecutor ?? defaultPluginMemoryExecutor;
     this.graphBuilder = options.graphBuilder ?? buildAgentGraph;
     this.checkpointerFactory = options.checkpointerFactory ?? defaultCheckpointerFactory;
@@ -112,19 +97,20 @@ export class AgentRunner {
     try {
       const model = await this.modelRegistry.createChatModel(validated.model);
       const toolDefinitions = this.toolRegistry.resolveConfiguredTools(validated.tools);
+      const longTermMemory = usesLongTermMemory(validated.memory) ? validated.memory : undefined;
 
       const namespace = buildMemoryNamespace({
-        scope: validated.memory?.scope ?? "none",
+        scope: longTermMemory?.scope ?? "none",
         profileId: input.profileId,
         workflowId: input.workflowId,
         userId: input.userId,
       });
-      const memoryMessages = await this.readMemory(input, validated.memory, namespace);
+      const memoryMessages = await this.readMemory(input, longTermMemory, namespace);
       const contextMessages = [
         ...memoryMessages,
         ...(validated.contextMessages ?? []),
       ];
-      const checkpointer = input.sessionId
+      const checkpointer = usesShortTermMemory(validated.memory) && input.sessionId
         ? await this.checkpointerFactory({
             sessionId: input.sessionId,
             dbPath: input.checkpointerDbPath,
@@ -146,7 +132,7 @@ export class AgentRunner {
         contextMessages,
       });
 
-      await this.writeMemory(input, validated.memory, namespace, result.output);
+      await this.writeMemory(input, longTermMemory, namespace, result.output);
       this.eventEmitter({ type: "agent:end", payload: { status: result.status, output: result.output } }, input);
       return result;
     } catch (error) {
@@ -172,19 +158,13 @@ export class AgentRunner {
     memory: AgentRunInput["memory"],
     namespace: string | null,
   ): Promise<Array<{ role: "system"; content: string }>> {
-    if (!memory?.readEnabled || !namespace) return [];
+    if (!memory?.readEnabled || !namespace || !isPluginMemoryConfig(memory)) return [];
 
-    const records = isPluginMemoryConfig(memory)
-      ? normalizePluginMemoryRecords(await this.pluginMemoryExecutor(memory.pluginId, memory.searchMethodId, {
-          profileId: input.profileId,
-          namespace,
-          limit: memory.maxRetrievedMemories,
-        }))
-      : (await this.memoryStore?.search({
-          profileId: input.profileId,
-          namespace,
-          limit: memory.maxRetrievedMemories,
-        })) ?? [];
+    const records = normalizePluginMemoryRecords(await this.pluginMemoryExecutor(memory.pluginId, memory.searchMethodId, {
+      profileId: input.profileId,
+      namespace,
+      limit: memory.maxRetrievedMemories,
+    }));
     this.eventEmitter({
       type: "agent:memory-read",
       payload: {
@@ -205,7 +185,7 @@ export class AgentRunner {
     namespace: string | null,
     output: AgentRunResult["output"],
   ): Promise<void> {
-    if (!memory?.writeEnabled || !namespace) return Promise.resolve();
+    if (!memory?.writeEnabled || !namespace || !isPluginMemoryConfig(memory)) return Promise.resolve();
 
     assertMemoryWriteAllowed({ memory, namespace, value: output });
     const putInput = {
@@ -217,9 +197,7 @@ export class AgentRunner {
       source: `workflow:${input.workflowId}`,
     };
 
-    const write = isPluginMemoryConfig(memory)
-      ? this.pluginMemoryExecutor(memory.pluginId, memory.putMethodId, putInput)
-      : this.memoryStore?.put(putInput);
+    const write = this.pluginMemoryExecutor(memory.pluginId, memory.putMethodId, putInput);
     return Promise.resolve(write).then(() => {
       this.eventEmitter({
         type: "agent:memory-write",
