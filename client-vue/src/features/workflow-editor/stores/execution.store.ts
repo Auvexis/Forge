@@ -43,7 +43,6 @@ export const useExecutionStore = defineStore('execution', () => {
   const lastSuccessfulToolByExecution = new Map<string, EditorChatToolStatus>()
   const approvedToolExecutions = new Set<string>()
   /** Tracks which trigger node IDs are of type 'manual' — used to decide reset target after job ends */
-  const manualTriggerNodeIds = new Set<string>()
 
   /** Last known overall workflow execution outcome */
   const workflowStatus = ref<WorkflowExecutionStatus | null>(null)
@@ -51,7 +50,6 @@ export const useExecutionStore = defineStore('execution', () => {
 
   // Internal EventSource — intentionally non-reactive (DOM object)
   let _es: EventSource | null = null
-  const clearStatusTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
   // ── Derived ──────────────────────────────────────────────────────────────
 
@@ -64,7 +62,6 @@ export const useExecutionStore = defineStore('execution', () => {
    * In-place mutation on the reactive record triggers per-key tracking.
    */
   function _patchNode(nodeId: string, patch: Partial<NodeExecutionState>) {
-    if (patch.status && patch.status !== 'idle') clearNodeStatusTimer(nodeId)
     const prev = nodeStatuses[nodeId]
     nodeStatuses[nodeId] = prev ? { ...prev, ...patch } : { status: 'idle' as const, ...patch }
   }
@@ -79,35 +76,7 @@ export const useExecutionStore = defineStore('execution', () => {
     }
   }
 
-  function clearNodeStatusTimer(nodeId: string) {
-    const timer = clearStatusTimers.get(nodeId)
-    if (timer) clearTimeout(timer)
-    clearStatusTimers.delete(nodeId)
-  }
-
-  function clearNodeStatusLater(nodeId: string, expectedStatus: NodeExecutionState['status'], delayMs = 1800, resetTo: NodeExecutionState['status'] = 'idle') {
-    clearNodeStatusTimer(nodeId)
-    clearStatusTimers.set(
-      nodeId,
-      setTimeout(() => {
-        const current = nodeStatuses[nodeId]
-        if (current?.status === expectedStatus) {
-          nodeStatuses[nodeId] = { ...current, status: resetTo }
-        }
-        if (resetTo === 'waiting') {
-          triggerStatuses[nodeId] = 'waiting'
-        } else {
-          delete triggerStatuses[nodeId]
-        }
-        clearStatusTimers.delete(nodeId)
-      }, delayMs),
-    )
-  }
-
   function clearTransientNodeStatuses() {
-    for (const timer of clearStatusTimers.values()) clearTimeout(timer)
-    clearStatusTimers.clear()
-
     for (const [nodeId, state] of Object.entries(nodeStatuses)) {
       if (state?.status === 'waiting' || state?.status === 'running' || state?.status === 'retrying') {
         nodeStatuses[nodeId] = { ...state, status: 'idle' }
@@ -764,16 +733,24 @@ export const useExecutionStore = defineStore('execution', () => {
     agentNodeId: string | undefined,
     targetHandle: 'chatModel' | 'memory' | 'tool',
     patch: Partial<NodeExecutionState>,
+    eventData?: unknown,
   ) {
     if (!agentNodeId) return
     const workflow = useWorkflowStore().activeWorkflow
-    const edge = workflow?.edges.find((edge) =>
+    const edges = workflow?.edges.filter((edge) =>
       edge.target === agentNodeId && edge.targetHandle === targetHandle,
     )
+    const event = eventData && typeof eventData === 'object' ? eventData as Record<string, unknown> : {}
+    const edge = targetHandle === 'tool'
+      ? edges?.find((candidate) => {
+          const node = workflow?.nodes[candidate.source]
+          return node?.type === 'ai-tool' &&
+            (!event.pluginId || node.pluginId === event.pluginId) &&
+            (!event.methodId || node.methodId === event.methodId)
+        }) ?? edges?.[0]
+      : edges?.[0]
     if (!edge) return
     _patchNode(edge.source, patch)
-    if (patch.status === 'success') clearNodeStatusLater(edge.source, 'success')
-    if (patch.status === 'failed') clearNodeStatusLater(edge.source, 'failed', 3000)
   }
 
   // ── Actions ──────────────────────────────────────────────────────────────
@@ -784,8 +761,6 @@ export const useExecutionStore = defineStore('execution', () => {
     for (const key of Object.keys(nodeStatuses)) {
       delete nodeStatuses[key]
     }
-    for (const timer of clearStatusTimers.values()) clearTimeout(timer)
-    clearStatusTimers.clear()
     workflowStatus.value = null
     sessionStatus.value = null
     activeSessionId.value = null
@@ -796,7 +771,6 @@ export const useExecutionStore = defineStore('execution', () => {
     for (const key of Object.keys(nodeStatusesByExecution)) delete nodeStatusesByExecution[key]
     agentFailuresByExecution.clear()
     lastSuccessfulToolByExecution.clear()
-    manualTriggerNodeIds.clear()
   }
 
   /** Marks the trigger node as 'running' (e.g. waiting for a form submission). */
@@ -808,7 +782,6 @@ export const useExecutionStore = defineStore('execution', () => {
     for (const [nodeId, state] of Object.entries(nodeStatuses)) {
       if (state?.status === 'running' && nodeId.startsWith('trigger')) {
         _patchNode(nodeId, { status: 'success', endedAt: timestamp })
-        clearNodeStatusLater(nodeId, 'success')
       }
     }
   }
@@ -1026,7 +999,6 @@ export const useExecutionStore = defineStore('execution', () => {
               } satisfies Partial<NodeExecutionState>
               _patchNode(ev.nodeId, patch)
               _patchExecutionNode(ev.executionId, ev.nodeId, patch)
-              clearNodeStatusLater(ev.nodeId, 'success')
             }
             break
 
@@ -1041,7 +1013,6 @@ export const useExecutionStore = defineStore('execution', () => {
               _patchNode(ev.nodeId, patch)
               _patchExecutionNode(ev.executionId, ev.nodeId, patch)
               toastError(ev.error ?? `Node "${ev.nodeId}" failed`, 'Node execution failed')
-              clearNodeStatusLater(ev.nodeId, 'failed', 3000)
             }
               break
 
@@ -1067,7 +1038,7 @@ export const useExecutionStore = defineStore('execution', () => {
               status: 'waiting',
               output: ev.data,
               startedAt: ev.timestamp,
-            })
+            }, ev.data)
             break
 
           case 'agent:tool-start':
@@ -1076,7 +1047,7 @@ export const useExecutionStore = defineStore('execution', () => {
               status: 'running',
               output: ev.data,
               startedAt: ev.timestamp,
-            })
+            }, ev.data)
             break
 
           case 'agent:tool-end':
@@ -1086,7 +1057,7 @@ export const useExecutionStore = defineStore('execution', () => {
               output: ev.data,
               error: toolPayloadValue(ev.data, 'error') || ev.error,
               endedAt: ev.timestamp,
-            })
+            }, ev.data)
             break
 
           case 'agent:end':
@@ -1099,7 +1070,6 @@ export const useExecutionStore = defineStore('execution', () => {
               } satisfies Partial<NodeExecutionState>
               _patchNode(ev.nodeId, patch)
               _patchExecutionNode(ev.executionId, ev.nodeId, patch)
-              clearNodeStatusLater(ev.nodeId, 'success')
             }
             break
 
@@ -1124,7 +1094,7 @@ export const useExecutionStore = defineStore('execution', () => {
               status: 'failed',
               error: extractAgentError(ev.data) ?? ev.error,
               endedAt: ev.timestamp,
-            })
+            }, ev.data)
             patchConnectedAgentConfigNode(ev.nodeId, 'chatModel', {
               status: 'failed',
               error: extractAgentError(ev.data) ?? ev.error,
@@ -1147,26 +1117,22 @@ export const useExecutionStore = defineStore('execution', () => {
               status: 'waiting',
               output: ev.data,
               endedAt: ev.timestamp,
-            })
+            }, ev.data)
             break
 
           case 'job:success':
             recordEditorChatJobSuccess(ev)
             if (ev.triggerNodeId) {
-              const isManual = manualTriggerNodeIds.has(ev.triggerNodeId)
               triggerStatuses[ev.triggerNodeId] = 'success'
               _patchNode(ev.triggerNodeId, { status: 'success', endedAt: ev.timestamp })
-              clearNodeStatusLater(ev.triggerNodeId, 'success', 1800, isManual ? 'idle' : 'waiting')
             }
             break
 
           case 'job:failed':
             recordEditorChatJobFailure(ev)
             if (ev.triggerNodeId) {
-              const isManual = manualTriggerNodeIds.has(ev.triggerNodeId)
               triggerStatuses[ev.triggerNodeId] = 'failed'
               _patchNode(ev.triggerNodeId, { status: 'failed', error: ev.error, endedAt: ev.timestamp })
-              clearNodeStatusLater(ev.triggerNodeId, 'failed', 3000, isManual ? 'idle' : 'waiting')
             }
             toastError(ev.error ?? 'Workflow job failed', 'Job failed')
             break
@@ -1225,7 +1191,6 @@ export const useExecutionStore = defineStore('execution', () => {
       // • Non-manual (webhook/cron/event/plugin): waiting for their external event → show 'waiting' (purple)
       for (const trigger of result.triggers) {
         if (trigger.type === 'manual') {
-          manualTriggerNodeIds.add(trigger.triggerNodeId)
           if (trigger.triggerNodeId === triggerNodeId) {
             triggerStatuses[trigger.triggerNodeId] = 'running'
             _patchNode(trigger.triggerNodeId, { status: 'running', startedAt: Date.now() })
@@ -1261,7 +1226,6 @@ export const useExecutionStore = defineStore('execution', () => {
     const { error: toastError } = useToast()
     isExecuting.value = true
     try {
-      manualTriggerNodeIds.add(triggerNodeId)
       triggerStatuses[triggerNodeId] = 'running'
       _patchNode(triggerNodeId, { status: 'running', startedAt: Date.now() })
       const result = await workflowsApi.executeDevSessionTrigger(sessionId, triggerNodeId, payload)
@@ -1269,7 +1233,6 @@ export const useExecutionStore = defineStore('execution', () => {
     } catch {
       triggerStatuses[triggerNodeId] = 'failed'
       _patchNode(triggerNodeId, { status: 'failed', endedAt: Date.now() })
-      clearNodeStatusLater(triggerNodeId, 'failed', 3000, 'idle')
       toastError('Failed to execute trigger')
       throw new Error('Trigger execution failed')
     } finally {

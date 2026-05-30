@@ -117,3 +117,19 @@ test('execution store exposes approval decline cleanup for tool chat and node st
   assert.match(source, /job\.triggerNodeId/)
   assert.match(source, /rejectEditorChatToolApproval,/)
 })
+
+test('execution store routes agent tool status to the matching connected tool node', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+
+  assert.match(source, /node\?\.type === 'ai-tool'/)
+  assert.match(source, /node\.pluginId === event\.pluginId/)
+  assert.match(source, /node\.methodId === event\.methodId/)
+  assert.match(source, /patchConnectedAgentConfigNode\(ev\.nodeId, 'tool', \{[\s\S]*\}, ev\.data\)/)
+})
+
+test('execution store preserves node statuses until explicit clear execution', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+
+  assert.doesNotMatch(source, /clearNodeStatusLater/)
+  assert.match(source, /function resetNodeStatuses\(\)/)
+})

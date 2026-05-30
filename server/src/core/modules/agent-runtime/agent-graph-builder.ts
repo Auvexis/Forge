@@ -56,6 +56,7 @@ interface InvokableTool {
   inputSchema?: Record<string, any>;
   pluginId?: string;
   pluginName?: string;
+  methodId?: string;
   requiresApproval?: boolean;
   invoke(args: unknown): Promise<unknown>;
 }
@@ -220,6 +221,7 @@ function emitToolIntent(
       input: toolCall.args,
       pluginId: tool.pluginId,
       pluginName: tool.pluginName,
+      ...(tool.methodId ? { methodId: tool.methodId } : {}),
       requiresApproval: tool.requiresApproval === true,
     },
   });
@@ -238,6 +240,7 @@ function emitToolStart(
       input: toolCall.args,
       pluginId: tool.pluginId,
       pluginName: tool.pluginName,
+      ...(tool.methodId ? { methodId: tool.methodId } : {}),
     },
   });
 }
@@ -255,6 +258,7 @@ function emitToolEnd(
       callId: toolCall.id,
       pluginId: tool.pluginId,
       pluginName: tool.pluginName,
+      ...(tool.methodId ? { methodId: tool.methodId } : {}),
       ...result,
     },
   });

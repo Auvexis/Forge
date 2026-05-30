@@ -16,10 +16,10 @@ Restore Dev Session trigger forwarding, make agent config nodes expose correct r
 
 ### Task 2: Multi-tool Status
 
-- [ ] Add failing frontend contract for tool status routing by called tool node.
-- [ ] Update connected agent tool status patching for the matching tool node.
-- [ ] Run focused frontend tests.
-- [ ] Commit Task 2.
+- [x] Add failing frontend contract for tool status routing by called tool node.
+- [x] Update connected agent tool status patching for the matching tool node.
+- [x] Run focused frontend tests.
+- [x] Commit Task 2.
 
 ### Task 3: Agent Config Input And Output
 
@@ -39,8 +39,8 @@ Restore Dev Session trigger forwarding, make agent config nodes expose correct r
 
 ### Task 5: Manual Clear Only
 
-- [ ] Add failing tests that completed node states do not auto-reset.
-- [ ] Remove automatic status reset after success/failure.
-- [ ] Keep toolbar Clear Execution as the explicit reset path.
-- [ ] Run focused tests and type-checks.
-- [ ] Commit Task 5.
+- [x] Add failing tests that completed node states do not auto-reset.
+- [x] Remove automatic status reset after success/failure.
+- [x] Keep toolbar Clear Execution as the explicit reset path.
+- [x] Run focused tests and type-checks.
+- [x] Commit Task 5.

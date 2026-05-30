@@ -80,6 +80,7 @@ interface GraphTool {
   description: string;
   pluginId?: string;
   pluginName?: string;
+  methodId?: string;
   requiresApproval: boolean;
   inputSchema: Record<string, any>;
   invoke(args: unknown): Promise<unknown>;
@@ -237,6 +238,7 @@ export class AgentRunner {
       ),
       pluginId: definition.pluginId,
       pluginName: definition.pluginName ?? definition.pluginId,
+      methodId: definition.methodId,
       requiresApproval: configs[index]?.requiresApproval ?? definition.requiresApproval,
       inputSchema: schemaWithoutConfiguredDefaults(definition.inputSchema, configs[index]?.inputDefaults),
       invoke: async (args: unknown) =>
