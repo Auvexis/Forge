@@ -14,7 +14,7 @@ import { AgentPanelChatService } from "./agent-panel-chat-service.ts";
 describe("agent panel chat service", () => {
   let appDb: Database.Database | null = null;
   let workflowDb: Database.Database | null = null;
-  const executions: Array<{ workflowId: string; triggerNodeId: string; payload: any }> = [];
+  const executions: Array<{ workflowId: string; triggerNodeId: string; payload: any; options: any }> = [];
 
   beforeEach(async () => {
     executions.length = 0;
@@ -58,6 +58,7 @@ describe("agent panel chat service", () => {
     await service.sendMessage({ profileId: "profile_a", sessionId: session.id, message: "What did I ask?" });
 
     assert.equal(executions[1].payload.targetAgentNodeId, "agent");
+    assert.equal(executions[1].options.targetNodeId, "agent");
     assert.deepEqual(executions[1].payload.messages.map((message: any) => message.role), ["user", "assistant"]);
   });
 
@@ -81,8 +82,14 @@ describe("agent panel chat service", () => {
       db: workflowDb!,
       workflowRepository: WorkflowRepository,
       workflowEngine: {
-        executeWorkflowFromTrigger: async (workflow: WorkflowItem, triggerNodeId: string, payload: any) => {
-          executions.push({ workflowId: workflow.metadata.id, triggerNodeId, payload });
+        executeWorkflowFromTrigger: async (
+          workflow: WorkflowItem,
+          triggerNodeId: string,
+          payload: any,
+          _executionId?: string,
+          options?: { targetNodeId?: string },
+        ) => {
+          executions.push({ workflowId: workflow.metadata.id, triggerNodeId, payload, options });
           return {
             executionId: `exec_${executions.length}`,
             status: "SUCCESS",

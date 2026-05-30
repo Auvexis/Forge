@@ -141,6 +141,8 @@ export class AgentPanelChatService {
       agent.workflow,
       agent.summary.triggerNodeId,
       payload,
+      undefined,
+      { targetNodeId: agent.summary.agentNodeId },
     );
     assertSuccessfulChatExecution(execution);
 

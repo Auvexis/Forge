@@ -113,6 +113,7 @@ export const WorkflowEngine = {
     triggerNodeId: string,
     triggerPayload: any,
     executionId?: string,
+    options: { targetNodeId?: string } = {},
   ): Promise<any> => {
     const triggerEntry = getTriggerEntry(workflow, triggerNodeId);
     if (!triggerEntry) {
@@ -156,7 +157,9 @@ export const WorkflowEngine = {
     try {
       assertNoAgentConfigNodeCycles(workflow);
       const { adjList } = createGraph(workflow);
-      const reachable = collectReachableNodeIds(triggerNodeId, adjList);
+      const reachable = options.targetNodeId
+        ? collectNodesOnPathsToTarget(triggerNodeId, options.targetNodeId, adjList)
+        : collectReachableNodeIds(triggerNodeId, adjList);
       const branchInDegree = createBranchInDegree(reachable, adjList, triggerNodeId);
       const queue: string[] = [];
       const executed = new Set<string>();
@@ -234,6 +237,11 @@ export const WorkflowEngine = {
         }
 
         const output = context.steps[nodeId]?.output;
+        if (options.targetNodeId && nodeId === options.targetNodeId) {
+          queue.length = 0;
+          continue;
+        }
+
         for (const edge of adjList[nodeId] || []) {
           if (shouldReleaseEdge(node, edge, output)) enqueueTarget(edge.target);
         }
@@ -721,6 +729,38 @@ function collectReachableNodeIds(
     }
   }
 
+  return reachable;
+}
+
+function collectNodesOnPathsToTarget(
+  triggerNodeId: string,
+  targetNodeId: string,
+  adjList: Record<string, WorkflowItem["edges"]>,
+): Set<string> {
+  const reachable = new Set<string>();
+
+  const visit = (nodeId: string, path: string[], visiting: Set<string>): boolean => {
+    if (visiting.has(nodeId)) return false;
+    const nextPath = [...path, nodeId];
+    if (nodeId === targetNodeId) {
+      for (const pathNodeId of nextPath) reachable.add(pathNodeId);
+      return true;
+    }
+
+    visiting.add(nodeId);
+    let foundTarget = false;
+    for (const edge of adjList[nodeId] || []) {
+      if (visit(edge.target, nextPath, visiting)) foundTarget = true;
+    }
+    visiting.delete(nodeId);
+
+    if (foundTarget) {
+      for (const pathNodeId of nextPath) reachable.add(pathNodeId);
+    }
+    return foundTarget;
+  };
+
+  visit(triggerNodeId, [], new Set<string>());
   return reachable;
 }
 

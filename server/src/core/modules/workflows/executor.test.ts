@@ -373,6 +373,71 @@ describe("WorkflowEngine trigger entry execution", () => {
     assert.equal(JSON.parse(approval.request_json).nodeId, "agent");
   });
 
+  it("targets one published agent and skips sibling agents", async () => {
+    const wf = baseWorkflow();
+    wf.nodes = {
+      chat_trigger: {
+        type: "trigger",
+        name: "Chat",
+        trigger: { type: "chat", chatSlug: "support-agent" },
+      },
+      agent_one: {
+        type: "ai-agent",
+        name: "Agent One",
+        prompt: "Help one",
+        maxIterations: 3,
+        maxToolCalls: 3,
+        timeoutMs: 30000,
+        requireApprovalForSideEffects: ["external-message"],
+        outputMode: "text",
+      },
+      agent_two: {
+        type: "ai-agent",
+        name: "Agent Two",
+        prompt: "Help two",
+        maxIterations: 3,
+        maxToolCalls: 3,
+        timeoutMs: 30000,
+        requireApprovalForSideEffects: ["external-message"],
+        outputMode: "text",
+      },
+      model: {
+        type: "ai-model",
+        name: "Model",
+        pluginId: "openai",
+        adapter: "openai-compatible",
+        model: "gpt-test",
+        temperature: 0,
+      },
+    };
+    wf.edges = [
+      { id: "trigger-agent-one", source: "chat_trigger", target: "agent_one" },
+      { id: "trigger-agent-two", source: "chat_trigger", target: "agent_two" },
+      { id: "model-agent-one", source: "model", target: "agent_one" },
+      { id: "model-agent-two", source: "model", target: "agent_two" },
+    ];
+    WorkflowRepository.saveWorkflow(wf);
+    AgentRuntimeService.runAgent = async (input) => ({
+      status: "success",
+      output: input.nodeId,
+      toolCallCount: 0,
+      iterationCount: 1,
+    });
+
+    const executeFromTrigger = WorkflowEngine.executeWorkflowFromTrigger as any;
+    const result = await executeFromTrigger(
+      wf,
+      "chat_trigger",
+      { profileId: "profile_a", message: "Hello" },
+      "exec_target_agent",
+      { targetNodeId: "agent_two" },
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.equal(result.context.steps.agent_one, undefined);
+    assert.equal(result.context.steps.agent_two.status, "SUCCESS");
+  });
+
   it("resumes a waiting approval execution from the paused agent node", async () => {
     const wf = baseWorkflow();
     wf.nodes.agent = {
