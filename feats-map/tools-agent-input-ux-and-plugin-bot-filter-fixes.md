@@ -46,10 +46,10 @@ Fix Tools Agent child-node runtime snapshots, remove redundant editor controls, 
 
 ### Task 4: Verify
 
-- [ ] Run server agent, workflow, plugin trigger, and messaging plugin tests.
-- [ ] Run `npm run build` from `server/`.
-- [ ] Run frontend workflow editor contract tests.
-- [ ] Run `npm run type-check` from `client-vue/`.
-- [ ] Run `git diff --check`.
-- [ ] Mark tasks completed.
-- [ ] Commit with `docs: close tools agent and bot filter tasks`.
+- [x] Run server agent, workflow, plugin trigger, and messaging plugin tests.
+- [x] Run `npm run build` from `server/`.
+- [x] Run frontend workflow editor contract tests.
+- [x] Run `npm run type-check` from `client-vue/`.
+- [x] Run `git diff --check`.
+- [x] Mark tasks completed.
+- [x] Commit with `docs: close tools agent and bot filter tasks`.
