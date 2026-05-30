@@ -84,7 +84,7 @@ test('frontend agent runtime types expose plugin capability and generic model co
   assert.doesNotMatch(agentTypes, /provider\?: 'openai' \| 'openrouter'/)
 })
 
-test('ai memory editor exposes scope, read and write toggles, and retrieval limits', () => {
+test('ai memory editor exposes long-term scope toggles and retrieval limits only for plugin memory', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/AiMemoryEditor.vue')
   const picker = read('src/features/workflow-editor/components/agent/AgentMemoryScopePicker.vue')
 
@@ -97,6 +97,8 @@ test('ai memory editor exposes scope, read and write toggles, and retrieval limi
   assert.match(source, /Adapter/)
   assert.match(source, /searchMethodId/)
   assert.match(source, /putMethodId/)
+  assert.match(source, /isLongTermMemory/)
+  assert.match(source, /v-if="isLongTermMemory"/)
   assert.match(picker, /BaseSwitch/)
   assert.doesNotMatch(source, /PluginMenuAuth/)
 })

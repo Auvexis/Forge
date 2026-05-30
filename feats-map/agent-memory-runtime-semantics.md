@@ -86,12 +86,12 @@ Tool approval persistence is separate from conversational memory. Approval rows 
 - Modify: `client-vue/src/features/workflow-editor/components/agent/__tests__/AgentMemory.contract.test.ts`
 - Modify: `client-vue/src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts`
 
-- [ ] **Step 1: Add failing contract tests for short-term and long-term editor branches**
-- [ ] **Step 2: Run focused frontend contract tests and confirm RED**
-- [ ] **Step 3: Show fixed session semantics for SQLite Memory and long-term scope/retrieval controls for PostgreSQL Memory**
-- [ ] **Step 4: Show `short-term memory` or `long-term memory` in the canvas node subtitle**
-- [ ] **Step 5: Run focused frontend contract tests and confirm GREEN**
-- [ ] **Step 6: Commit with `feat: clarify agent memory adapter semantics`**
+- [x] **Step 1: Add failing contract tests for short-term and long-term editor branches**
+- [x] **Step 2: Run focused frontend contract tests and confirm RED**
+- [x] **Step 3: Show fixed session semantics for SQLite Memory and long-term scope/retrieval controls for PostgreSQL Memory**
+- [x] **Step 4: Show `short-term memory` or `long-term memory` in the canvas node subtitle**
+- [x] **Step 5: Run focused frontend contract tests and confirm GREEN**
+- [x] **Step 6: Commit with `feat: clarify agent memory adapter semantics`**
 
 ### Task 5: Verify The Full Change
 

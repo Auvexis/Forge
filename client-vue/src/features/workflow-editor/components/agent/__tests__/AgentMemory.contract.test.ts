@@ -51,3 +51,20 @@ test('ai memory editor uses memory scope picker without auto-opening admin ui', 
   assert.match(source, /<AgentMemoryScopePicker/)
   assert.doesNotMatch(source, /AgentMemoryAdminPanel/)
 })
+
+test('ai memory editor separates SQLite short-term controls from plugin long-term controls', () => {
+  const source = read('src/features/workflow-editor/components/settings/editors/AiMemoryEditor.vue')
+
+  assert.match(source, /isLongTermMemory/)
+  assert.match(source, /Short-term session memory/)
+  assert.match(source, /Long-term plugin memory/)
+  assert.match(source, /v-if="isLongTermMemory"/)
+})
+
+test('ai memory canvas node shows short-term or long-term semantics', () => {
+  const source = read('src/features/workflow-editor/components/nodes/AiMemoryNode.vue')
+
+  assert.match(source, /isLongTermMemory/)
+  assert.match(source, /long-term memory/)
+  assert.match(source, /short-term memory/)
+})

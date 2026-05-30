@@ -8,7 +8,14 @@
       />
     </EditorField>
 
-    <EditorField label="Scope">
+    <EditorField label="Mode">
+      <BaseInput
+        :model-value="isLongTermMemory ? 'Long-term plugin memory' : 'Short-term session memory'"
+        disabled
+      />
+    </EditorField>
+
+    <EditorField v-if="isLongTermMemory" label="Scope">
       <AgentMemoryScopePicker
         :scope="((node.data.scope as string) || 'session') as AgentMemoryScope"
         :read-enabled="Boolean(node.data.readEnabled)"
@@ -35,7 +42,7 @@
       />
     </EditorField>
 
-    <EditorField v-if="node.data.searchMethodId || node.data.putMethodId" label="Plugin Methods">
+    <EditorField v-if="isLongTermMemory && (node.data.searchMethodId || node.data.putMethodId)" label="Plugin Methods">
       <div class="editor-grid">
         <BaseInput
           :model-value="(node.data.searchMethodId as string) || ''"
@@ -50,7 +57,7 @@
       </div>
     </EditorField>
 
-    <EditorField label="Retrieval Limits">
+    <EditorField v-if="isLongTermMemory" label="Retrieval Limits">
       <div class="editor-grid">
         <BaseInput
           type="number"
@@ -70,13 +77,16 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import AgentMemoryScopePicker from '../../agent/AgentMemoryScopePicker.vue'
 import type { AgentMemoryScope } from '@/features/agent-runtime/types/agent.types'
 
-defineProps<NodeEditorProps>()
+const props = defineProps<NodeEditorProps>()
+
+const isLongTermMemory = computed(() => props.node.data.adapter === 'plugin-memory-store')
 </script>
 
 <style scoped>

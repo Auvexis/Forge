@@ -16,7 +16,8 @@ const props = defineProps<
 const stepTitle = computed(() => props.data?.name || 'AI Memory')
 const scope = computed(() => props.data?.scope || 'session')
 const provider = computed(() => (props.data as any)?.provider || 'sqlite')
-const subtitle = computed(() => `${scope.value} memory`)
+const isLongTermMemory = computed(() => props.data?.adapter === 'plugin-memory-store')
+const subtitle = computed(() => isLongTermMemory.value ? `${scope.value} long-term memory` : 'short-term memory')
 const pluginId = computed(() => (props.data as any)?.pluginId || provider.value)
 const defaultMemoryIcon = computed(() => {
   if (pluginId.value === 'sailor-postgresql') return 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/postgresql.svg'
