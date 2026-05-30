@@ -3,6 +3,7 @@ import {
   type DevWorkflowSessionManagerOptions,
 } from "./dev-workflow-session-manager.ts";
 import { devSessionEventBus, SessionEventBus } from "./session-event-bus.ts";
+import { activeProfileRuntime } from "../../../profiles/active-profile-runtime.ts";
 
 export interface DevWorkflowSessionRuntime {
   manager: DevWorkflowSessionManager;
@@ -26,6 +27,8 @@ export function createDevWorkflowSessionRuntime(
 
 export const devWorkflowSessionRuntime: DevWorkflowSessionRuntime = (() => {
   const manager = new DevWorkflowSessionManager({
+    runWithProfile: (profileId, callback) =>
+      activeProfileRuntime.profileScopeRunner.runWithProfile(profileId, callback),
     onEvent: (event) => devSessionEventBus.emitSessionEvent(event),
   });
 

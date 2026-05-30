@@ -801,6 +801,7 @@ export default async function workflowsRoutes(
       const session = await devWorkflowSessionRuntime.manager.createSession(workflow, {
         initialPayload: withActiveProfilePayload(body.payload ?? {}),
         initialTriggerNodeId: body.triggerNodeId,
+        profileId: activeProfileRuntime.activeProfileService.getActiveProfile()?.id ?? "default",
       });
       const triggers = listTriggerEntries(workflow)
         .filter((entry) => !entry.disabled)

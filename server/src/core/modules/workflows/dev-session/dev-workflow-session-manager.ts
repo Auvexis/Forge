@@ -35,6 +35,7 @@ export interface DevSessionPluginTrigger {
 export interface CreateDevWorkflowSessionOptions {
   initialPayload?: unknown;
   initialTriggerNodeId?: string;
+  profileId?: string;
 }
 
 export interface DevWorkflowSessionManagerOptions {
@@ -49,14 +50,15 @@ export interface DevWorkflowSessionManagerOptions {
   ) => { stop: () => void };
   activatePluginTriggers?: (
     workflow: WorkflowItem,
-    options?: { mode?: "prod" | "test" },
+    options?: { mode?: "prod" | "test"; profileId?: string },
   ) => Promise<void>;
   deactivatePluginTriggers?: (
     workflow: WorkflowItem,
-    options?: { mode?: "prod" | "test" },
+    options?: { mode?: "prod" | "test"; profileId?: string },
   ) => Promise<void>;
   runWorkflowJob?: (job: WorkflowJob, workflow: WorkflowItem) => Promise<unknown>;
   onEvent?: (event: SessionEvent) => void;
+  runWithProfile?: <T>(profileId: string, callback: () => T) => T;
 }
 
 function defaultCreateId(prefix: "session" | "job" | "exec"): string {
@@ -127,7 +129,7 @@ export class DevWorkflowSessionManager {
             rejectApprovalCompletion?.(new Error(event.error ?? "Workflow execution failed"));
           }
         });
-        try {
+        const execute = async () => {
           let result: unknown;
           if (this.runWorkflowJob) {
             result = await this.runWorkflowJob(job, session.workflow);
@@ -138,6 +140,13 @@ export class DevWorkflowSessionManager {
           if (waitingForApproval || isWaitingApprovalResult(result)) {
             waitingForApproval = true;
             await approvalCompletion;
+          }
+        };
+        try {
+          if (session.profileId && this.options.runWithProfile) {
+            await this.options.runWithProfile(session.profileId, execute);
+          } else {
+            await execute();
           }
         } finally {
           unsubscribe();
@@ -158,6 +167,7 @@ export class DevWorkflowSessionManager {
     const session: DevWorkflowSession = {
       id: this.createIdFn("session"),
       workflowId: workflow.metadata.id,
+      profileId: options.profileId,
       workflow,
       status: "starting",
       createdAt: now,
@@ -454,10 +464,16 @@ export class DevWorkflowSessionManager {
     session.triggerRuntimes.push({
       triggerNodeId: "plugin-lifecycle",
       type: "plugin",
-      teardown: () => this.deactivatePluginTriggers(session.workflow, { mode: "test" }),
+      teardown: () => this.deactivatePluginTriggers(session.workflow, {
+        mode: "test",
+        profileId: session.profileId,
+      }),
     });
 
-    await this.activatePluginTriggers(session.workflow, { mode: "test" });
+    await this.activatePluginTriggers(session.workflow, {
+      mode: "test",
+      profileId: session.profileId,
+    });
   }
 
   private emitSessionEvent(

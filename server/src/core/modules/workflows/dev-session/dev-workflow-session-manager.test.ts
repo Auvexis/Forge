@@ -69,6 +69,29 @@ describe("DevWorkflowSessionManager", () => {
     assert.deepEqual(ran, ["job_1"]);
   });
 
+  it("runs queued jobs inside the session profile scope", async () => {
+    const scopes: string[] = [];
+    const manager = new DevWorkflowSessionManager({
+      createId: (prefix) => `${prefix}_1`,
+      runWithProfile: (profileId, callback) => {
+        scopes.push(profileId);
+        return callback();
+      },
+      runWorkflowJob: async () => undefined,
+    });
+    const session = await manager.createSession(workflow(), { profileId: "andre" });
+
+    manager.enqueueJob(session.id, {
+      triggerNodeId: "trigger",
+      source: "manual",
+      payload: {},
+    });
+    await manager.onIdle();
+
+    assert.equal(session.profileId, "andre");
+    assert.deepEqual(scopes, ["andre"]);
+  });
+
   it("stops sessions with idempotent trigger teardown and removes the session", async () => {
     let teardownCalls = 0;
     const manager = new DevWorkflowSessionManager({
@@ -412,6 +435,36 @@ describe("DevWorkflowSessionManager", () => {
     assert.deepEqual(ran, ['plugin_a:plugin:{"message":"hi"}']);
     assert.equal(deactivated, 1);
     assert.deepEqual(modes, ["test", "test"]);
+  });
+
+  it("passes the session profile into plugin trigger lifecycle setup", async () => {
+    const profileIds: Array<string | undefined> = [];
+    const manager = new DevWorkflowSessionManager({
+      activatePluginTriggers: async (_workflow, options) => {
+        profileIds.push(options?.profileId);
+      },
+      deactivatePluginTriggers: async (_workflow, options) => {
+        profileIds.push(options?.profileId);
+      },
+    });
+    const wf = workflow();
+    wf.nodes = {
+      plugin_a: {
+        type: "trigger",
+        name: "Plugin A",
+        trigger: {
+          type: "plugin",
+          pluginId: "sailor.test",
+          triggerName: "message",
+          webhookPath: "plugin-hook",
+        },
+      },
+    };
+
+    const session = await manager.createSession(wf, { profileId: "andre" });
+    await manager.stopSession(session.id, "stop");
+
+    assert.deepEqual(profileIds, ["andre", "andre"]);
   });
 
   it("emits session ready only after plugin trigger setup completes", async () => {

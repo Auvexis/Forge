@@ -16,6 +16,7 @@ export interface AgentChatRoutesOptions {
   chatService?: Pick<ChatTriggerService, "sendMessage" | "getSession" | "listMessages">;
   runtimeService?: Pick<typeof AgentRuntimeService, "listTools">;
   workflowEngine?: Pick<typeof WorkflowEngine, "resumeExecutionAfterAgentApproval">;
+  runWithProfile?: <T>(profileId: string, callback: () => T) => T;
 }
 
 const CHAT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -31,6 +32,10 @@ export default async function agentChatRoutes(
   const getChatService = () => options.chatService ?? new ChatTriggerService({ db: getDb() });
   const runtimeService = options.runtimeService ?? AgentRuntimeService;
   const workflowEngine = options.workflowEngine ?? WorkflowEngine;
+  const runWithProfile = options.runWithProfile ??
+    (options.db
+      ? ((_profileId, callback) => callback())
+      : ((profileId, callback) => activeProfileRuntime.profileScopeRunner.runWithProfile(profileId, callback)));
 
   fastify.post("/agent-chat/:chatSlug/messages", async (req, reply) => {
     try {
@@ -187,7 +192,9 @@ export default async function agentChatRoutes(
         decision: body,
       });
       if (resolved && status === "approved") {
-        void workflowEngine.resumeExecutionAfterAgentApproval(resolved).catch((error) => {
+        void runWithProfile(resolved.profileId, () =>
+          workflowEngine.resumeExecutionAfterAgentApproval(resolved),
+        ).catch((error) => {
           fastify.log.error({ err: error, approvalId: resolved.id }, "Agent approval resume failed");
         });
       }

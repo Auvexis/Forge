@@ -208,6 +208,42 @@ describe("agent chat routes", () => {
     assert.equal(response.json().data.execution, null);
   });
 
+  it("approval resume runs inside a fresh profile scope", async () => {
+    const approvals = new AgentApprovalService(db!);
+    approvals.create({
+      id: "approval_profile_scope",
+      profileId: "profile_a",
+      workflowId: "workflow_1",
+      executionId: "exec_profile_scope",
+      toolName: "send_email",
+      request: { nodeId: "agent" },
+    });
+    const scopes: string[] = [];
+    const app = await buildApp({
+      getActiveProfileId: () => "profile_a",
+      runWithProfile: (profileId, callback) => {
+        scopes.push(profileId);
+        return callback();
+      },
+      workflowEngine: {
+        resumeExecutionAfterAgentApproval: async (approval) => ({
+          executionId: approval.executionId,
+          status: "SUCCESS",
+          context: null,
+        }),
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-approvals/approval_profile_scope/approve",
+      payload: { executionId: "exec_profile_scope" },
+    });
+
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(scopes, ["profile_a"]);
+  });
+
   it("approval approve endpoint does not block on resume failures", async () => {
     const approvals = new AgentApprovalService(db!);
     approvals.create({

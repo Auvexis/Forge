@@ -42,6 +42,7 @@ export interface WorkflowJob {
 export interface DevWorkflowSession {
   id: string;
   workflowId: string;
+  profileId?: string;
   workflow: WorkflowItem;
   status: DevWorkflowSessionStatus;
   createdAt: number;
