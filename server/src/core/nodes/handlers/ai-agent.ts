@@ -17,6 +17,7 @@ import type {
 import { createNodeHandler } from "../handler.ts";
 import type { NodeHandlerInput } from "../types.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
+import { usesShortTermMemory } from "../../modules/agent-runtime/memory/agent-memory-mode.ts";
 
 type AgentConfigNode = AiModelNode | AiMemoryNode | AiToolNode;
 
@@ -31,20 +32,24 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
   const memory = connected.find((node): node is AiMemoryNode => node.type === "ai-memory");
   const tools = connected.filter((node): node is AiToolNode => node.type === "ai-tool");
   const triggerPayload = input.context.trigger ?? {};
+  const sessionId = optionalString(triggerPayload.sessionId ?? triggerPayload.session_id);
+  const memoryConfig = memory ? toMemoryConfig(memory) : undefined;
   const runInput: AgentRunInput = {
     profileId: String(triggerPayload.profileId ?? triggerPayload.profile_id ?? "default"),
     workflowId: input.workflow.metadata.id,
     executionId: input.executionId,
     nodeId: input.nodeId,
-    sessionId: optionalString(triggerPayload.sessionId ?? triggerPayload.session_id),
+    sessionId,
     userId: optionalString(triggerPayload.userId ?? triggerPayload.user_id),
     userMessage: toUserMessage(triggerPayload),
-    contextMessages: toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages),
+    contextMessages: usesShortTermMemory(memoryConfig) && sessionId
+      ? toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages)
+      : undefined,
     triggerPayload,
     approvalToken: optionalString(triggerPayload.approvalToken ?? triggerPayload.approval_token),
     agent: agentConfig,
     model: toModelConfig(model),
-    memory: memory ? toMemoryConfig(memory) : undefined,
+    memory: memoryConfig,
     tools: tools.map((tool) => toToolConfig(tool, input.context)),
   };
 

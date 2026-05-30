@@ -256,6 +256,109 @@ describe("AI workflow node handlers", () => {
     assert.deepEqual(runCall.triggerPayload, context.trigger);
   });
 
+  it("does not forward trigger history without a connected memory node", async () => {
+    const registry = createUtilityNodeRegistry();
+    const fixture = workflowFixture();
+    const { memory: _memory, ...nodes } = fixture.nodes;
+    const workflow = workflowFixture({
+      nodes,
+      edges: fixture.edges.filter((edge) => edge.source !== "memory"),
+    });
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "ok",
+        toolCallCount: 0,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", workflow.nodes.agent, workflow, contextFixture({
+        trigger: {
+          profileId: "profile_1",
+          message: "Hello",
+          sessionId: "chat_session_1",
+          messages: [{ role: "user", content: "Previous message" }],
+        },
+      })));
+
+    assert.ok(received);
+    assert.equal((received as AgentRunInput).contextMessages, undefined);
+  });
+
+  it("does not forward chat transcript to plugin-backed long-term memory", async () => {
+    const registry = createUtilityNodeRegistry();
+    const fixture = workflowFixture();
+    const workflow = workflowFixture({
+      nodes: {
+        ...fixture.nodes,
+        memory: {
+          ...fixture.nodes.memory,
+          adapter: "plugin-memory-store",
+          pluginId: "sailor-postgresql",
+          searchMethodId: "searchAgentMemory",
+          putMethodId: "putAgentMemory",
+        },
+      },
+    });
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "ok",
+        toolCallCount: 0,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", workflow.nodes.agent, workflow, contextFixture({
+        trigger: {
+          profileId: "profile_1",
+          message: "Hello",
+          sessionId: "chat_session_1",
+          messages: [{ role: "user", content: "Previous message" }],
+        },
+      })));
+
+    assert.ok(received);
+    assert.equal((received as AgentRunInput).contextMessages, undefined);
+  });
+
+  it("does not forward SQLite history when the trigger has no session id", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture();
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "ok",
+        toolCallCount: 0,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", workflow.nodes.agent, workflow, contextFixture({
+        trigger: {
+          profileId: "profile_1",
+          message: "Hello",
+          messages: [{ role: "user", content: "Previous message" }],
+        },
+      })));
+
+    assert.ok(received);
+    assert.equal((received as AgentRunInput).contextMessages, undefined);
+  });
+
   it("interpolates workflow context into the agent prompt and configured tool inputs", async () => {
     const registry = createUtilityNodeRegistry();
     const workflow = workflowFixture();

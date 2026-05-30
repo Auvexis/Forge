@@ -70,13 +70,13 @@ Tool approval persistence is separate from conversational memory. Approval rows 
 - Modify: `server/src/core/nodes/handlers/ai-agent.ts`
 - Modify: `server/src/core/nodes/handlers/ai-agent.test.ts`
 
-- [ ] **Step 1: Add a failing handler test proving a workflow without Memory does not forward trigger history**
-- [ ] **Step 2: Add a failing handler test proving PostgreSQL Memory does not implicitly forward chat transcript**
-- [ ] **Step 3: Keep the existing SQLite handler coverage and make its adapter explicit**
-- [ ] **Step 4: Run `node --test src/core/nodes/handlers/ai-agent.test.ts` from `server/` and confirm RED**
-- [ ] **Step 5: Forward `contextMessages` only when the connected Memory config resolves to short-term**
-- [ ] **Step 6: Run the focused test and confirm GREEN**
-- [ ] **Step 7: Commit with `fix: gate agent chat history behind sqlite memory`**
+- [x] **Step 1: Add a failing handler test proving a workflow without Memory does not forward trigger history**
+- [x] **Step 2: Add a failing handler test proving PostgreSQL Memory does not implicitly forward chat transcript**
+- [x] **Step 3: Keep the existing SQLite handler coverage and make its adapter explicit**
+- [x] **Step 4: Run `node --test src/core/nodes/handlers/ai-agent.test.ts` from `server/` and confirm RED**
+- [x] **Step 5: Forward `contextMessages` only when the connected Memory config resolves to short-term**
+- [x] **Step 6: Run the focused test and confirm GREEN**
+- [x] **Step 7: Commit with `fix: gate agent chat history behind sqlite memory`**
 
 ### Task 4: Clarify Memory Semantics In The Editor
 
