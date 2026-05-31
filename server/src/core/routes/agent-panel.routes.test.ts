@@ -16,6 +16,11 @@ describe("agent panel routes", () => {
       listSessions: async () => [session("chat_1")],
       createSession: async () => session("chat_new"),
       listMessages: async () => [message("msg_1", "chat_1")],
+      sendFirstMessage: async () => ({
+        session: session("chat_first"),
+        messages: [message("msg_first", "chat_first")],
+        execution: { status: "SUCCESS" },
+      }),
       sendMessage: async () => ({
         session: session("chat_1"),
         messages: [message("msg_1", "chat_1")],
@@ -41,6 +46,13 @@ describe("agent panel routes", () => {
       payload: { title: "Support" },
     });
     assertEnvelope(created, 201, "Agent panel session created");
+
+    const firstSent = await app.inject({
+      method: "POST",
+      url: `/agent-panel/agents/${agentKey}/messages`,
+      payload: { message: "Hello first" },
+    });
+    assertEnvelope(firstSent, 200, "Agent panel message sent");
 
     const messages = await app.inject({ method: "GET", url: "/agent-panel/sessions/chat_1/messages" });
     assertEnvelope(messages, 200, "Agent panel messages fetched");

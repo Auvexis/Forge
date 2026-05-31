@@ -13,7 +13,7 @@
           class="agent-chat-view__icon-button"
           :disabled="!store.selectedAgentKey"
           title="New chat"
-          @click="store.createSession()"
+          @click="store.openDraftSession()"
         >
           <LucideIcon name="plus" :size="16" />
         </button>
@@ -60,7 +60,7 @@
     </header>
 
     <div v-if="!store.selectedAgent" class="agent-chat-view__empty">Select an agent.</div>
-    <div v-else-if="!store.selectedSession" class="agent-chat-view__empty">Create a chat.</div>
+    <div v-else-if="!store.hasOpenChat" class="agent-chat-view__empty">Select a chat.</div>
     <template v-else>
       <div class="agent-chat-view__messages">
         <article

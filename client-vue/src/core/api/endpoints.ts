@@ -126,6 +126,8 @@ export const ENDPOINTS = {
   AGENT_PANEL_AGENTS: '/agent-panel/agents',
   AGENT_PANEL_AGENT_SESSIONS: (agentKey: string) =>
     `/agent-panel/agents/${encodeURIComponent(agentKey)}/sessions`,
+  AGENT_PANEL_AGENT_MESSAGES: (agentKey: string) =>
+    `/agent-panel/agents/${encodeURIComponent(agentKey)}/messages`,
   AGENT_PANEL_SESSION_MESSAGES: (sessionId: string) =>
     `/agent-panel/sessions/${encodeURIComponent(sessionId)}/messages`,
   AGENT_PANEL_SESSION: (sessionId: string) =>

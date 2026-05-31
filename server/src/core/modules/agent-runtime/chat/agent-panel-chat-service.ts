@@ -27,6 +27,12 @@ export interface SendAgentPanelMessageInput {
   message: string;
 }
 
+export interface SendFirstAgentPanelMessageInput {
+  profileId: string;
+  agentKey: string;
+  message: string;
+}
+
 export interface DeleteAgentPanelSessionInput {
   profileId: string;
   sessionId: string;
@@ -90,6 +96,27 @@ export class AgentPanelChatService {
     const session = this.sessions.getById(input.profileId, input.sessionId);
     if (!session) return [];
     return this.messages.listBySession(input.profileId, input.sessionId);
+  }
+
+  async sendFirstMessage(
+    input: SendFirstAgentPanelMessageInput,
+  ): Promise<{ session: AgentChatSession; messages: AgentChatMessage[]; execution: unknown }> {
+    const message = input.message.trim();
+    if (!input.profileId.trim() || !input.agentKey.trim() || !message) {
+      throw new AgentRuntimeError(
+        "Invalid agent panel message input",
+        "AGENT_PANEL_INPUT_INVALID",
+        "Invalid agent panel message",
+        400,
+      );
+    }
+
+    const session = await this.createSession({
+      profileId: input.profileId,
+      agentKey: input.agentKey,
+      title: createSessionTitle(message),
+    });
+    return this.sendMessage({ profileId: input.profileId, sessionId: session.id, message });
   }
 
   async sendMessage(
@@ -272,12 +299,29 @@ function assertSuccessfulChatExecution(execution: unknown): void {
   if (record?.status !== "FAILED") return;
 
   const executionId = typeof record.executionId === "string" ? record.executionId : "unknown";
+  const detail = extractWorkflowFailureDetail(record.context?.steps) ?? "Unknown workflow failure";
   throw new AgentRuntimeError(
-    `Agent panel workflow execution ${executionId} failed`,
+    `Agent panel workflow execution ${executionId} failed: ${detail}`,
     "AGENT_PANEL_WORKFLOW_FAILED",
-    `Agent panel workflow failed in execution ${executionId}`,
+    `Agent panel workflow failed in execution ${executionId}: ${detail}`,
     500,
   );
+}
+
+function extractWorkflowFailureDetail(steps: Record<string, any> | undefined): string | null {
+  if (!steps) return null;
+  for (const [nodeId, step] of Object.entries(steps)) {
+    const error = step?.error;
+    if (typeof error === "string" && error.trim()) return `${nodeId}: ${error.trim()}`;
+    if (error instanceof Error && error.message.trim()) return `${nodeId}: ${error.message.trim()}`;
+  }
+  return null;
+}
+
+function createSessionTitle(message: string): string {
+  const title = message.replace(/\s+/g, " ").trim();
+  if (!title) return "New chat";
+  return title.length > 48 ? `${title.slice(0, 45)}...` : title;
 }
 
 export { buildPublishedAgentKey };

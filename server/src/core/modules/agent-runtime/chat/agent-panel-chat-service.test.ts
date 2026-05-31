@@ -62,6 +62,36 @@ describe("agent panel chat service", () => {
     assert.deepEqual(executions[1].payload.messages.map((message: any) => message.role), ["user", "assistant"]);
   });
 
+  it("creates the session only when the first draft message is sent", async () => {
+    const service = serviceFixture();
+
+    const result = await service.sendFirstMessage({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      message: "Start support",
+    });
+
+    assert.equal(result.session.agentKey, "profile_a:workflow_agent:chat_trigger:agent");
+    assert.equal(result.session.title, "Start support");
+    assert.deepEqual(result.messages.map((message) => message.role), ["user", "assistant"]);
+    assert.equal(executions[0].payload.sessionId, result.session.id);
+    assert.equal(executions[0].payload.targetAgentNodeId, "agent");
+  });
+
+  it("includes the workflow step failure detail in agent panel errors", async () => {
+    const service = failingServiceFixture();
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+
+    await assert.rejects(
+      service.sendMessage({ profileId: "profile_a", sessionId: session.id, message: "Break" }),
+      /agent: Invalid AI agent config/,
+    );
+  });
+
   it("deletes a session and its transcript", async () => {
     const service = serviceFixture();
     const session = await service.createSession({
@@ -146,6 +176,24 @@ describe("agent panel chat service", () => {
             },
           };
         },
+      },
+    });
+  }
+
+  function failingServiceFixture(): AgentPanelChatService {
+    return new AgentPanelChatService({
+      db: workflowDb!,
+      workflowRepository: WorkflowRepository,
+      workflowEngine: {
+        executeWorkflowFromTrigger: async () => ({
+          executionId: "exec_failed",
+          status: "FAILED",
+          context: {
+            steps: {
+              agent: { error: "Invalid AI agent config" },
+            },
+          },
+        }),
       },
     });
   }

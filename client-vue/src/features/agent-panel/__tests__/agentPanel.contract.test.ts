@@ -23,7 +23,7 @@ describe('agent panel modal contract', () => {
     assert.match(modal, /AgentDirectoryList/)
     assert.doesNotMatch(modal, /AgentSessionList/)
     assert.match(chat, /agent-chat-view__floating-menu/)
-    assert.match(chat, /createSession/)
+    assert.match(chat, /openDraftSession/)
     assert.match(chat, /selectSession/)
     assert.match(chat, /deleteSession/)
   })
@@ -38,7 +38,7 @@ describe('agent panel modal contract', () => {
 
     assert.match(directory, /agent\.emoji/)
     assert.match(directory, /agent\.workflowName/)
-    assert.match(chat, /createSession/)
+    assert.match(chat, /openDraftSession/)
     assert.match(chat, /deleteSession/)
     assert.match(store, /loadSessions/)
   })
@@ -56,6 +56,24 @@ describe('agent panel modal contract', () => {
     assert.match(composer, /Ctrl\+Enter|ctrl\.enter/)
     assert.match(store, /sendMessage/)
     assert.match(store, /agentPanelApi\.sendMessage/)
+  })
+
+  it('opens unsaved draft chats and persists only on first prompt', () => {
+    const view = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const api = readFileSync('src/core/api/agent-panel.api.ts', 'utf8')
+    const endpoints = readFileSync('src/core/api/endpoints.ts', 'utf8')
+
+    assert.match(view, /hasOpenChat/)
+    assert.match(view, /openDraftSession/)
+    assert.doesNotMatch(view, /Create a chat\./)
+    assert.match(store, /draftSessionOpen/)
+    assert.match(store, /hasOpenChat/)
+    assert.match(store, /openDraftSession/)
+    assert.match(store, /sendFirstMessage/)
+    assert.match(store, /agentPanelApi\.sendFirstMessage/)
+    assert.match(api, /sendFirstMessage/)
+    assert.match(endpoints, /AGENT_PANEL_AGENT_MESSAGES/)
   })
 
   it('session delete exposes memory cleanup choices with dangerous confirmation', () => {

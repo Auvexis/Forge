@@ -11,7 +11,13 @@ export interface AgentPanelRoutesOptions {
   getActiveProfileId?: () => string;
   service?: Pick<
     AgentPanelChatService,
-    "listAgents" | "listSessions" | "createSession" | "listMessages" | "sendMessage" | "deleteSession"
+    | "listAgents"
+    | "listSessions"
+    | "createSession"
+    | "listMessages"
+    | "sendFirstMessage"
+    | "sendMessage"
+    | "deleteSession"
   >;
 }
 
@@ -69,6 +75,31 @@ export default async function agentPanelRoutes(
           agentKey,
           title: stringOrUndefined(body?.title),
         }),
+      });
+    } catch (error) {
+      return sendAgentError(reply, error);
+    }
+  });
+
+  fastify.post("/agent-panel/agents/:agentKey/messages", async (req, reply) => {
+    try {
+      const { agentKey } = req.params as { agentKey: string };
+      const body = req.body as { message?: unknown } | undefined;
+      const message = String(body?.message ?? "").trim();
+      if (!message) {
+        throw new AgentRuntimeError(
+          "Invalid agent panel message",
+          "AGENT_PANEL_INPUT_INVALID",
+          "Invalid agent panel message",
+          400,
+        );
+      }
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Agent panel message sent",
+        error: null,
+        data: await getService().sendFirstMessage({ profileId: getProfileId(), agentKey, message }),
       });
     } catch (error) {
       return sendAgentError(reply, error);

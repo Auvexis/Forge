@@ -25,6 +25,12 @@ export const agentPanelApi = {
   listMessages: (sessionId: string) =>
     apiRequest<AgentChatMessage[]>(ENDPOINTS.AGENT_PANEL_SESSION_MESSAGES(sessionId)),
 
+  sendFirstMessage: (agentKey: string, payload: SendAgentPanelMessagePayload) =>
+    apiRequest<AgentPanelMessageResult>(ENDPOINTS.AGENT_PANEL_AGENT_MESSAGES(agentKey), {
+      method: 'POST',
+      body: payload,
+    }),
+
   sendMessage: (sessionId: string, payload: SendAgentPanelMessagePayload) =>
     apiRequest<AgentPanelMessageResult>(ENDPOINTS.AGENT_PANEL_SESSION_MESSAGES(sessionId), {
       method: 'POST',
