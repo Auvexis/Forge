@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make Global Agent Chat feel alive by showing contextual progress messages before/during tool calls and a concise completion summary at the end.
+**Goal:** Make Global Agent Chat feel alive by showing a full progress cycle for every tool call and a concise completion summary at the end.
 
-**Architecture:** Keep the source of truth in existing agent runtime events. `agent-panel.routes.ts` will translate existing `agent:tool-intent`, `agent:tool-start`, `agent:tool-end`, and `agent:end` events into Agent Panel stream events. The Vue store will convert those stream events into assistant progress messages, while final answer streaming remains unchanged.
+**Architecture:** Keep the source of truth in existing agent runtime events. `agent-panel.routes.ts` will translate each `agent:tool-intent`, `agent:tool-start`, and `agent:tool-end` into one lifecycle row for that exact tool invocation: "vou usar X para..." > running > "usei X com sucesso" or failure. The Vue store will keep one progress message per tool invocation using a stable `toolCallId`, so agents that call multiple tools, or the same tool more than once, render every cycle in order while final answer streaming remains unchanged.
 
 **Tech Stack:** Fastify SSE, existing `workflowEventBus`, Vue 3 + Pinia, existing Agent Panel contract tests with `node:test`.
 
@@ -12,8 +12,8 @@
 
 ## File Map
 
-- Modify `server/src/core/routes/agent-panel.routes.ts`: add stream event mapping for tool progress and completion summary.
-- Modify `server/src/core/routes/agent-panel.routes.test.ts`: prove SSE sends progress events in order.
+- Modify `server/src/core/routes/agent-panel.routes.ts`: add stream event mapping for every tool invocation and completion summary.
+- Modify `server/src/core/routes/agent-panel.routes.test.ts`: prove SSE sends multiple tool progress cycles in order.
 - Modify `client-vue/src/features/agent-panel/types/agent-panel.types.ts`: add typed stream events and progress content shape.
 - Modify `client-vue/src/features/agent-panel/stores/agentPanel.store.ts`: upsert progress messages from stream events.
 - Modify `client-vue/src/features/agent-panel/components/AgentChatView.vue`: render progress timeline/status rows inside chat.
@@ -22,18 +22,18 @@
 
 ---
 
-### Task 1: Backend Stream Progress Events
+### Task 1: Backend Stream Progress Events Per Tool Call
 
 **Files:**
 - Modify: `server/src/core/routes/agent-panel.routes.ts`
 - Test: `server/src/core/routes/agent-panel.routes.test.ts`
 
-- [ ] **Step 1: Write failing test for tool progress stream**
+- [ ] **Step 1: Write failing test for multiple tool progress cycles**
 
-Add a test that emits tool lifecycle events during `sendMessage` and expects SSE events before `done`:
+Add a test that emits two tool lifecycle cycles during `sendMessage` and expects each tool to produce `planned` > `running` > `success` before `done`:
 
 ```ts
-it("streams tool progress events before done", async () => {
+it("streams one progress cycle for every tool call before done", async () => {
   const app = await buildApp({
     sendMessage: async (input: { executionId?: string }) => {
       assert.ok(input.executionId);
@@ -44,8 +44,10 @@ it("streams tool progress events before done", async () => {
         type: "agent:tool-intent",
         timestamp: Date.now(),
         data: {
-          name: "send_email",
-          pluginName: "Gmail",
+          callId: "tool_call_1",
+          name: "search_contacts",
+          pluginName: "Contacts",
+          reason: "encontrar o destinatario correto",
           requiresApproval: false,
         },
       });
@@ -56,6 +58,46 @@ it("streams tool progress events before done", async () => {
         type: "agent:tool-start",
         timestamp: Date.now(),
         data: {
+          callId: "tool_call_1",
+          name: "search_contacts",
+          pluginName: "Contacts",
+        },
+      });
+      workflowEventBus.emitWorkflowEvent({
+        executionId: input.executionId,
+        workflowId: "workflow_agent",
+        nodeId: "agent",
+        type: "agent:tool-end",
+        timestamp: Date.now(),
+        data: {
+          callId: "tool_call_1",
+          name: "search_contacts",
+          pluginName: "Contacts",
+          status: "success",
+        },
+      });
+      workflowEventBus.emitWorkflowEvent({
+        executionId: input.executionId,
+        workflowId: "workflow_agent",
+        nodeId: "agent",
+        type: "agent:tool-intent",
+        timestamp: Date.now(),
+        data: {
+          callId: "tool_call_2",
+          name: "send_email",
+          pluginName: "Gmail",
+          reason: "enviar a mensagem para o contato encontrado",
+          requiresApproval: false,
+        },
+      });
+      workflowEventBus.emitWorkflowEvent({
+        executionId: input.executionId,
+        workflowId: "workflow_agent",
+        nodeId: "agent",
+        type: "agent:tool-start",
+        timestamp: Date.now(),
+        data: {
+          callId: "tool_call_2",
           name: "send_email",
           pluginName: "Gmail",
         },
@@ -67,6 +109,7 @@ it("streams tool progress events before done", async () => {
         type: "agent:tool-end",
         timestamp: Date.now(),
         data: {
+          callId: "tool_call_2",
           name: "send_email",
           pluginName: "Gmail",
           status: "success",
@@ -95,10 +138,27 @@ it("streams tool progress events before done", async () => {
   });
 
   const events = parseStreamEvents(response.body);
-  assert.deepEqual(
-    events.filter((event) => event.type === "progress").map((event) => event.status),
-    ["planned", "running", "success"],
-  );
+  const progressEvents = events.filter((event) => event.type === "progress");
+  assert.deepEqual(progressEvents.map((event) => event.tool?.toolCallId), [
+    "tool_call_1",
+    "tool_call_1",
+    "tool_call_1",
+    "tool_call_2",
+    "tool_call_2",
+    "tool_call_2",
+  ]);
+  assert.deepEqual(progressEvents.map((event) => event.status), [
+    "planned",
+    "running",
+    "success",
+    "planned",
+    "running",
+    "success",
+  ]);
+  assert.match(progressEvents[0]?.message ?? "", /Vou usar search_contacts .*encontrar o destinatario correto/);
+  assert.match(progressEvents[2]?.message ?? "", /Usei search_contacts com sucesso/);
+  assert.match(progressEvents[3]?.message ?? "", /Vou usar send_email .*enviar a mensagem/);
+  assert.match(progressEvents[5]?.message ?? "", /Usei send_email com sucesso/);
   assert.equal(events.at(-1)?.type, "done");
 });
 ```
@@ -146,9 +206,12 @@ Add helpers:
 ```ts
 function extractToolProgress(event: WorkflowEvent) {
   const data = event.data as Record<string, unknown> | undefined;
+  const callId = typeof data?.callId === "string" ? data.callId : undefined;
+  const toolCallId = typeof data?.toolCallId === "string" ? data.toolCallId : callId ?? `${event.nodeId}:${event.timestamp}:${typeof data?.name === "string" ? data.name : "agent-tool"}`;
   const name = typeof data?.name === "string" ? data.name : "agent tool";
   const pluginName = typeof data?.pluginName === "string" ? data.pluginName : undefined;
-  return { name, pluginName };
+  const reason = typeof data?.reason === "string" ? data.reason : "processar esta etapa";
+  return { toolCallId, name, pluginName, reason };
 }
 
 function extractToolStatus(event: WorkflowEvent): string {
@@ -159,10 +222,10 @@ function extractToolStatus(event: WorkflowEvent): string {
 function formatToolProgressMessage(event: WorkflowEvent, status: "planned" | "running" | "success" | "failed"): string {
   const tool = extractToolProgress(event);
   const label = tool.pluginName ? `${tool.name} (${tool.pluginName})` : tool.name;
-  if (status === "planned") return `Vou usar ${label}.`;
+  if (status === "planned") return `Vou usar ${label} para ${tool.reason}.`;
   if (status === "running") return `Executando ${label} agora.`;
-  if (status === "success") return `Conclui ${label}.`;
-  return `Nao consegui concluir ${label}.`;
+  if (status === "success") return `Usei ${label} com sucesso.`;
+  return `Nao consegui usar ${label}.`;
 }
 ```
 
@@ -194,9 +257,11 @@ Add assertions:
 
 ```ts
 assert.match(types, /type: 'progress'/);
+assert.match(types, /toolCallId: string/);
 assert.match(store, /appendAgentProgressMessage/);
 assert.match(store, /event\.type === 'progress'/);
 assert.match(store, /kind: 'agentProgress'/);
+assert.match(store, /event\.tool\?\.toolCallId/);
 ```
 
 - [ ] **Step 2: Run frontend contract red**
@@ -217,8 +282,10 @@ export interface AgentPanelProgressContent {
   status: AgentPanelProgressStatus;
   message: string;
   tool?: {
+    toolCallId: string;
     name: string;
     pluginName?: string;
+    reason?: string;
   };
 }
 ```
@@ -235,7 +302,7 @@ In `agentPanel.store.ts`:
 
 ```ts
 function appendAgentProgressMessage(sessionId: string, event: Extract<AgentPanelStreamEvent, { type: 'progress' }>) {
-  const toolKey = event.tool?.name ?? 'agent-tool';
+  const toolKey = event.tool?.toolCallId ?? `${event.tool?.name ?? 'agent-tool'}-${Date.now()}`;
   const id = `local-agent-progress-${sessionId}-${toolKey}`;
   const existing = messages.value.find((message) => message.id === id);
   const content = {
@@ -406,38 +473,41 @@ git commit -m "feat: render agent panel progress messages"
 
 - [ ] **Step 1: Write failing backend test**
 
-Add a route test where one tool succeeds and final answer exists. Assert an event:
+Add a route test where multiple tools succeed and final answer exists. Assert an event:
 
 ```ts
 assert.ok(events.some((event) =>
   event.type === "summary" &&
   /Conclui/.test(event.message) &&
+  /search_contacts/.test(event.message) &&
   /send_email/.test(event.message)
 ));
 ```
 
 - [ ] **Step 2: Implement summary event**
 
-Track successful tools in route scope:
+Track successful tool invocations in route scope:
 
 ```ts
-const completedTools: string[] = [];
+const completedToolCalls: Array<{ toolCallId: string; name: string }> = [];
 ```
 
 On `agent:tool-end` success:
 
 ```ts
-completedTools.push(extractToolProgress(event).name);
+const tool = extractToolProgress(event);
+completedToolCalls.push({ toolCallId: tool.toolCallId, name: tool.name });
 ```
 
 Before `done`:
 
 ```ts
-if (completedTools.length > 0) {
+if (completedToolCalls.length > 0) {
+  const toolNames = completedToolCalls.map((tool) => tool.name);
   writeStreamEvent(reply, {
     type: "summary",
-    message: `Conclui ${completedTools.join(", ")} e preparei a resposta final.`,
-    tools: completedTools,
+    message: `Conclui ${toolNames.join(", ")} e preparei a resposta final.`,
+    tools: completedToolCalls,
   });
 }
 ```
@@ -447,7 +517,7 @@ if (completedTools.length > 0) {
 Extend stream event:
 
 ```ts
-| { type: 'summary'; message: string; tools: string[] }
+| { type: 'summary'; message: string; tools: Array<{ toolCallId: string; name: string }> }
 ```
 
 Store:
@@ -457,7 +527,7 @@ if (event.type === 'summary') appendAgentProgressMessage(selectedSessionId.value
   type: 'progress',
   status: 'success',
   message: event.message,
-  tool: { name: 'summary' },
+  tool: { toolCallId: `summary-${Date.now()}`, name: 'summary' },
 });
 ```
 
@@ -503,8 +573,10 @@ Open `http://localhost:23802`, open Global Agent, send a message that uses a too
 
 - user message appears immediately
 - assistant shows typing dots
-- assistant shows "Vou usar..." before tool execution
-- running tool row updates to completed/failed
+- for every tool call, assistant shows "Vou usar..." before execution
+- each running tool row updates to completed/failed without overwriting other tool rows
+- when the agent calls two different tools, both cycles stay visible in chronological order
+- when the agent calls the same tool twice, both invocations stay visible as separate progress rows
 - final answer streams
 - completion summary appears before/near final answer
 
