@@ -110,6 +110,7 @@ export interface AgentRunInput {
   userMessage: string;
   contextMessages?: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
   triggerPayload: Record<string, any>;
+  skipFinalResponseAfterToolUse?: boolean;
   agent: AiAgentNodeConfig;
   model: AiModelNodeConfig;
   memory?: AiMemoryNodeConfig;

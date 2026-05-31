@@ -79,8 +79,31 @@ describe("agent panel chat service", () => {
     await service.sendMessage({ profileId: "profile_a", sessionId: session.id, message: "What did I ask?" });
 
     assert.equal(executions[1].payload.targetAgentNodeId, "agent");
+    assert.equal(executions[1].payload.skipFinalResponseAfterToolUse, true);
     assert.equal(executions[1].options.targetNodeId, "agent");
     assert.deepEqual(executions[1].payload.messages.map((message: any) => message.role), ["user", "assistant"]);
+  });
+
+  it("does not persist an empty assistant message when the runtime skips the final response", async () => {
+    const service = serviceFixture({
+      executionOutput: "",
+      toolCalls: [{ toolCallId: "call_1", name: "discord_send_message", status: "success" }],
+    });
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+
+    const result = await service.sendMessage({
+      profileId: "profile_a",
+      sessionId: session.id,
+      message: "Enviar resumo",
+    });
+
+    assert.deepEqual(result.messages.map((message) => ({ role: message.role, content: message.content })), [
+      { role: "user", content: "Enviar resumo" },
+    ]);
   });
 
   it("uses a caller-provided execution id for stream subscriptions", async () => {
@@ -193,7 +216,10 @@ describe("agent panel chat service", () => {
     assert.deepEqual(listMemoryKeys(), ["agent:other-agent:last-output"]);
   });
 
-  function serviceFixture(): AgentPanelChatService {
+  function serviceFixture(fixtureOptions: {
+    executionOutput?: unknown;
+    toolCalls?: Array<Record<string, unknown>>;
+  } = {}): AgentPanelChatService {
     return new AgentPanelChatService({
       db: workflowDb!,
       workflowRepository: WorkflowRepository,
@@ -211,7 +237,14 @@ describe("agent panel chat service", () => {
             status: "SUCCESS",
             context: {
               steps: {
-                agent: { output: { output: `Assistant reply ${executions.length}` } },
+                agent: {
+                  output: {
+                    output: Object.hasOwn(fixtureOptions, "executionOutput")
+                      ? fixtureOptions.executionOutput
+                      : `Assistant reply ${executions.length}`,
+                    ...(fixtureOptions.toolCalls ? { toolCalls: fixtureOptions.toolCalls } : {}),
+                  },
+                },
               },
             },
           };

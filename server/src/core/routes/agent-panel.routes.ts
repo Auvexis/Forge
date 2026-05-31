@@ -26,6 +26,9 @@ export interface AgentPanelRoutesOptions {
 type AgentPanelScope = "current" | "global";
 type MemoryMode = DeleteAgentPanelSessionInput["memoryMode"];
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
+const TOOL_PROGRESS_INITIAL_DELAY_MS = 350;
+const TOOL_PROGRESS_STEP_DELAY_MS = 420;
+const TOOL_PROGRESS_INTRO_DELTA = "Vou cuidar disso agora.";
 const pendingAgentPanelStreams = new Map<string, PendingAgentPanelStream>();
 
 interface PendingAgentPanelStream {
@@ -295,15 +298,31 @@ async function streamAgentPanelMessage(
   const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
   let nativeDeltaCount = 0;
   let sawToolActivity = false;
+  let sentToolIntro = false;
+  let progressEventCount = 0;
+  let progressQueue = Promise.resolve();
   const completedToolCalls: ToolProgress[] = [];
+  const queueProgressEvent = (event: Record<string, unknown>) => {
+    progressQueue = progressQueue.then(async () => {
+      await delay(progressEventCount === 0 ? TOOL_PROGRESS_INITIAL_DELAY_MS : TOOL_PROGRESS_STEP_DELAY_MS);
+      progressEventCount += 1;
+      writeStreamEvent(reply, event);
+    });
+  };
+  const markToolActivity = () => {
+    sawToolActivity = true;
+    if (sentToolIntro) return;
+    sentToolIntro = true;
+    writeStreamEvent(reply, { type: "delta", delta: TOOL_PROGRESS_INTRO_DELTA });
+  };
   const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
     if (event.type === "agent:thinking-delta") {
       const delta = extractAgentDelta(event);
       if (delta) writeStreamEvent(reply, { type: "thinking", delta });
     }
     if (event.type === "agent:tool-intent") {
-      sawToolActivity = true;
-      writeStreamEvent(reply, {
+      markToolActivity();
+      queueProgressEvent({
         type: "progress",
         status: "planned",
         message: formatToolProgressMessage(event, "planned"),
@@ -311,8 +330,8 @@ async function streamAgentPanelMessage(
       });
     }
     if (event.type === "agent:tool-start") {
-      sawToolActivity = true;
-      writeStreamEvent(reply, {
+      markToolActivity();
+      queueProgressEvent({
         type: "progress",
         status: "running",
         message: formatToolProgressMessage(event, "running"),
@@ -320,10 +339,10 @@ async function streamAgentPanelMessage(
       });
     }
     if (event.type === "agent:tool-end") {
-      sawToolActivity = true;
+      markToolActivity();
       const status = extractToolStatus(event) === "failed" ? "failed" : "success";
       const tool = extractToolProgress(event);
-      writeStreamEvent(reply, {
+      queueProgressEvent({
         type: "progress",
         status,
         message: formatToolProgressMessage(event, status),
@@ -362,17 +381,19 @@ async function streamAgentPanelMessage(
     if (completedToolCalls.length === 0) {
       const fallbackToolCalls = extractCompletedToolCallsFromResult(result);
       for (const tool of fallbackToolCalls) {
-        writeToolProgressLifecycle(reply, tool);
+        markToolActivity();
+        writeToolProgressLifecycle(queueProgressEvent, tool);
         if (tool.status === "success") completedToolCalls.push(tool);
       }
     }
+    await progressQueue;
     if (nativeDeltaCount === 0 && completedToolCalls.length === 0) {
       await writeFallbackDeltas(reply, splitAssistantMessageForStream(result));
     }
     if (completedToolCalls.length > 0) {
       writeStreamEvent(reply, {
         type: "summary",
-        message: `Usei estas ferramentas: ${completedToolCalls.map((tool) => tool.name).join(", ")}. Resposta final pronta.`,
+        message: `Usei estas ferramentas: ${completedToolCalls.map((tool) => tool.name).join(", ")}.`,
         tools: completedToolCalls,
       });
     }
@@ -478,12 +499,12 @@ function formatToolProgressMessageFromTool(tool: ToolProgress, status: ToolProgr
   return `Nao consegui usar ${label}.`;
 }
 
-function writeToolProgressLifecycle(reply: FastifyReply, tool: ToolProgress): void {
+function writeToolProgressLifecycle(writeProgressEvent: (event: Record<string, unknown>) => void, tool: ToolProgress): void {
   const statuses: ToolProgressStatus[] = tool.status === "failed"
     ? ["planned", "running", "failed"]
     : ["planned", "running", "success"];
   for (const status of statuses) {
-    writeStreamEvent(reply, {
+    writeProgressEvent({
       type: "progress",
       status,
       message: formatToolProgressMessageFromTool(tool, status),

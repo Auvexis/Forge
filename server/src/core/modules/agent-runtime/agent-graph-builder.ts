@@ -15,6 +15,7 @@ export interface BuildAgentGraphInput {
   memory?: AiMemoryNodeConfig;
   checkpointer?: unknown;
   approvalToken?: string;
+  skipFinalResponseAfterToolUse?: boolean;
   onEvent?: (event: AgentGraphEvent) => void;
 }
 
@@ -190,6 +191,16 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             tool_call_id: toolCall.id,
             content: stringifyToolResult(result),
           });
+        }
+
+        if (input.skipFinalResponseAfterToolUse && completedToolCalls.length > 0) {
+          return {
+            status: "success",
+            output: "",
+            iterationCount: iteration,
+            toolCallCount,
+            toolCalls: completedToolCalls,
+          };
         }
 
         if (iteration >= input.agent.maxIterations) {

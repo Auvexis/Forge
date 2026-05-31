@@ -153,6 +153,7 @@ describe('agent panel modal contract', () => {
     assert.match(store, /appendOptimisticUserMessage/)
     assert.match(store, /appendStreamingAssistantMessage/)
     assert.match(store, /appendPendingAssistantMessage/)
+    assert.match(store, /appendPendingAssistantMessage\(selectedSessionId\.value\)[\s\S]*for await/)
     assert.match(store, /appendStreamingAssistantThinking/)
     assert.match(store, /agentPanelApi\.sendMessageStream/)
     assert.match(store, /for await \(const event of agentPanelApi\.sendMessageStream/)
@@ -259,6 +260,8 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /agent-chat-view__message--grouped/)
     assert.match(chat, /v-if="!isGroupedWithPrevious\(message, index\)"/)
     assert.match(chat, /\.agent-chat-view__message--grouped/)
+    assert.doesNotMatch(chat, /margin-top:\s*calc\(var\(--sailor-space-3\) \* -1\)/)
+    assert.match(chat, /\.agent-chat-view__progress \{[\s\S]*font-size: var\(--sailor-text-sm\)/)
   })
 
   it('keeps chat messages and tool status rows visually plain', () => {

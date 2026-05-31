@@ -172,6 +172,7 @@ export class AgentPanelChatService {
       sessionId: session.id,
       message,
       messages: toContextMessages(previousMessages),
+      skipFinalResponseAfterToolUse: true,
       metadata: { surface: "agent-panel" },
     };
     const execution = await this.workflowEngine.executeWorkflowFromTrigger(
@@ -184,7 +185,7 @@ export class AgentPanelChatService {
     assertSuccessfulChatExecution(execution);
 
     const assistantResponse = extractAssistantResponse(execution, agent.summary.agentNodeId);
-    if (assistantResponse !== null && assistantResponse !== undefined) {
+    if (hasAssistantResponse(assistantResponse)) {
       this.messages.append({
         id: `msg_${randomUUID()}`,
         profileId: input.profileId,
@@ -290,6 +291,12 @@ function normalizeMessageContent(content: unknown): string {
   if (typeof record.text === "string") return record.text;
   if (typeof record.content === "string") return record.content;
   return "";
+}
+
+function hasAssistantResponse(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  return true;
 }
 
 function extractAssistantResponse(execution: unknown, agentNodeId: string): unknown {

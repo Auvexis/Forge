@@ -530,7 +530,7 @@ void ['transcript-only', 'session', 'all-agent-memory']
 }
 
 .agent-chat-view__message--grouped {
-  margin-top: calc(var(--sailor-space-3) * -1);
+  margin-top: var(--sailor-space-1);
 }
 
 .agent-chat-view__role {
@@ -613,8 +613,8 @@ void ['transcript-only', 'session', 'all-agent-memory']
   background: transparent;
   padding: 0;
   color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-  line-height: 1.4;
+  font-size: var(--sailor-text-sm);
+  line-height: 1.5;
 }
 
 .agent-chat-view__progress--running svg {

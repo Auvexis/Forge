@@ -170,6 +170,35 @@ describe("agent graph builder", () => {
     assert.equal(Object.hasOwn(toolMessage ?? {}, "toolCallId"), false);
   });
 
+  it("can stop after tool execution without asking the model for a final answer", async () => {
+    const toolCalls = [{ id: "call_1", name: "send_message", args: { text: "done" } }];
+    const tool = fakeTool("send_message", async (args) => ({ sent: true, args }));
+    const model = fakeModel([
+      { content: "", toolCalls },
+      { content: "expensive final answer that should not be generated" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+      skipFinalResponseAfterToolUse: true,
+    });
+
+    const result = await graph.invoke({ userMessage: "send it" });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "");
+    assert.equal(result.iterationCount, 1);
+    assert.equal(result.toolCallCount, 1);
+    assert.deepEqual(result.toolCalls, [{
+      toolCallId: "call_1",
+      name: "send_message",
+      status: "success",
+    }]);
+    assert.equal(model.calls.length, 1);
+    assert.deepEqual(tool.calls, [{ text: "done" }]);
+  });
+
   it("yields after tool lifecycle events before invoking and continuing", async () => {
     const toolCalls = [{ id: "call_1", name: "lookup", args: { query: "sailor" } }];
     const model = fakeModel([

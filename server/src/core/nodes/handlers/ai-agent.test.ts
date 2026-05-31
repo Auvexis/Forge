@@ -259,6 +259,34 @@ describe("AI workflow node handlers", () => {
     assert.deepEqual(runCall.triggerPayload, context.trigger);
   });
 
+  it("passes the panel skip-final-response flag to the agent runtime", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture();
+    const context = contextFixture({
+      trigger: {
+        profileId: "profile_1",
+        message: "Use the tools",
+        skipFinalResponseAfterToolUse: true,
+      },
+    });
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "",
+        toolCallCount: 1,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", workflow.nodes.agent, workflow, context));
+
+    assert.equal((received as AgentRunInput | null)?.skipFinalResponseAfterToolUse, true);
+  });
+
   it("does not forward trigger history without a connected memory node", async () => {
     const registry = createUtilityNodeRegistry();
     const fixture = workflowFixture();

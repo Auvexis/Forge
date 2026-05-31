@@ -203,9 +203,10 @@ describe("agent panel routes", () => {
     });
     const events = parseStreamEvents(response.body);
 
-    assert.deepEqual(events.map((event) => event.type), ["start", "progress", "progress", "summary", "done"]);
-    assert.equal(events[1]?.status, "running");
-    assert.equal(events[2]?.status, "success");
+    assert.deepEqual(events.map((event) => event.type), ["start", "delta", "progress", "progress", "summary", "done"]);
+    assert.match(events[1]?.delta ?? "", /cuidar disso/i);
+    assert.equal(events[2]?.status, "running");
+    assert.equal(events[3]?.status, "success");
     assert.equal(events.at(-1)?.type, "done");
   });
 
@@ -313,14 +314,20 @@ describe("agent panel routes", () => {
       },
     });
 
+    const startedAt = Date.now();
     const response = await app.inject({
       method: "POST",
       url: "/agent-panel/sessions/chat_1/messages/stream",
       payload: { message: "Enviar email" },
     });
+    const durationMs = Date.now() - startedAt;
 
     const events = parseStreamEvents(response.body);
     const progressEvents = events.filter((event) => event.type === "progress");
+    const firstDeltaIndex = events.findIndex((event) => event.type === "delta");
+    const firstProgressIndex = events.findIndex((event) => event.type === "progress");
+    assert.ok(firstDeltaIndex > 0 && firstDeltaIndex < firstProgressIndex);
+    assert.ok(durationMs >= 1000, `expected spaced progress events, got ${durationMs}ms`);
     assert.deepEqual(progressEvents.map((event) => event.tool?.toolCallId), [
       "tool_call_1",
       "tool_call_1",
@@ -343,7 +350,9 @@ describe("agent panel routes", () => {
     assert.match(progressEvents[3]?.message ?? "", /Vou usar send_email .*enviar a mensagem/);
     assert.equal(progressEvents[3]?.tool?.pluginId, "gmail");
     assert.match(progressEvents[5]?.message ?? "", /Usei send_email com sucesso/);
-    assert.equal(events.some((event) => event.type === "delta"), false);
+    assert.deepEqual(events.filter((event) => event.type === "delta").map((event) => event.delta), [
+      "Vou cuidar disso agora.",
+    ]);
     assert.ok(events.some((event) =>
       event.type === "summary" &&
       /Usei estas ferramentas/.test(event.message ?? "") &&
@@ -423,7 +432,9 @@ describe("agent panel routes", () => {
       "success",
     ]);
     assert.equal(progressEvents.filter((event) => /com sucesso/.test(event.message ?? "")).length, 2);
-    assert.equal(events.some((event) => event.type === "delta"), false);
+    assert.deepEqual(events.filter((event) => event.type === "delta").map((event) => event.delta), [
+      "Vou cuidar disso agora.",
+    ]);
     assert.ok(events.find((event) =>
       event.type === "summary" &&
       /discord_send_message/.test(event.message ?? "") &&
@@ -490,6 +501,7 @@ function assertEnvelope(response: Awaited<ReturnType<ReturnType<typeof Fastify>[
 
 function parseStreamEvents(body: string): Array<{
   type: string;
+  delta?: string;
   status?: string;
   message?: string;
   tool?: { toolCallId?: string; pluginId?: string };

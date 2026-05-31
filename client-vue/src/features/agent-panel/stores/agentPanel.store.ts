@@ -192,7 +192,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     }
     messages.value = [
       ...messages.value.filter((message) =>
-        message.id !== id && message.id !== `local-assistant-stream-${sessionId}`,
+        message.id !== id,
       ),
       {
         id,
@@ -260,6 +260,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         remapLocalSessionMessages(localSessionId, session.id)
       }
 
+      appendPendingAssistantMessage(selectedSessionId.value)
       let result = null as Awaited<ReturnType<typeof agentPanelApi.sendMessage>> | null
       for await (const event of agentPanelApi.sendMessageStream(selectedSessionId.value, { message: text })) {
         if (event.type === 'start') appendPendingAssistantMessage(selectedSessionId.value)

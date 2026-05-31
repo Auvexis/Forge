@@ -135,6 +135,7 @@ export class AgentRunner {
         memory: validated.memory,
         checkpointer,
         approvalToken: input.approvalToken,
+        skipFinalResponseAfterToolUse: input.skipFinalResponseAfterToolUse,
         onEvent: (event) => this.eventEmitter(event, input),
       });
       const result = await graph.invoke({

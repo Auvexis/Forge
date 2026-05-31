@@ -46,6 +46,7 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
       ? toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages)
       : undefined,
     triggerPayload,
+    skipFinalResponseAfterToolUse: triggerPayload.skipFinalResponseAfterToolUse === true,
     approvalToken: optionalString(triggerPayload.approvalToken ?? triggerPayload.approval_token),
     agent: agentConfig,
     model: toModelConfig(model),
