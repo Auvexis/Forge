@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make Global Agent Chat feel alive by showing a full progress cycle for every tool call and a concise completion summary at the end.
+**Goal:** Make Global Agent Chat feel alive by showing a full progress cycle for every tool call and a definitive final summary with every tool used.
 
-**Architecture:** Keep the source of truth in existing agent runtime events. `agent-panel.routes.ts` will translate each `agent:tool-intent`, `agent:tool-start`, and `agent:tool-end` into one lifecycle row for that exact tool invocation: "vou usar X para..." > running > "usei X com sucesso" or failure. The Vue store will keep one progress message per tool invocation using a stable `toolCallId`, so agents that call multiple tools, or the same tool more than once, render every cycle in order while final answer streaming remains unchanged.
+**Architecture:** Keep the source of truth in existing agent runtime events. `agent-panel.routes.ts` will translate each `agent:tool-intent`, `agent:tool-start`, and `agent:tool-end` into one lifecycle row for that exact tool invocation: "vou usar X para..." > running > "usei X com sucesso" or failure. The Vue store will keep one progress message per tool invocation using a stable `toolCallId`, and one final `agentSummary` message listing every tool call. Plugin icons stay frontend-owned: stream events include `pluginId`/`pluginName`, and `AgentChatView.vue` resolves the icon through the existing plugin catalog plus `resolvePluginIcon`.
 
 **Tech Stack:** Fastify SSE, existing `workflowEventBus`, Vue 3 + Pinia, existing Agent Panel contract tests with `node:test`.
 
@@ -12,11 +12,11 @@
 
 ## File Map
 
-- Modify `server/src/core/routes/agent-panel.routes.ts`: add stream event mapping for every tool invocation and completion summary.
+- Modify `server/src/core/routes/agent-panel.routes.ts`: add stream event mapping for every tool invocation and definitive final tool summary.
 - Modify `server/src/core/routes/agent-panel.routes.test.ts`: prove SSE sends multiple tool progress cycles in order.
 - Modify `client-vue/src/features/agent-panel/types/agent-panel.types.ts`: add typed stream events and progress content shape.
 - Modify `client-vue/src/features/agent-panel/stores/agentPanel.store.ts`: upsert progress messages from stream events.
-- Modify `client-vue/src/features/agent-panel/components/AgentChatView.vue`: render progress timeline/status rows inside chat.
+- Modify `client-vue/src/features/agent-panel/components/AgentChatView.vue`: render progress timeline/status rows and final tool summary inside chat, with plugin icons.
 - Modify `client-vue/src/features/agent-panel/__tests__/agentPanel.contract.test.ts`: lock frontend contract.
 - Create/update `feats-map/global-agent-chat-dynamic-progress-plan-2026-05-31.md`: task tracker.
 
@@ -46,6 +46,7 @@ it("streams one progress cycle for every tool call before done", async () => {
         data: {
           callId: "tool_call_1",
           name: "search_contacts",
+          pluginId: "contacts",
           pluginName: "Contacts",
           reason: "encontrar o destinatario correto",
           requiresApproval: false,
@@ -60,6 +61,7 @@ it("streams one progress cycle for every tool call before done", async () => {
         data: {
           callId: "tool_call_1",
           name: "search_contacts",
+          pluginId: "contacts",
           pluginName: "Contacts",
         },
       });
@@ -72,6 +74,7 @@ it("streams one progress cycle for every tool call before done", async () => {
         data: {
           callId: "tool_call_1",
           name: "search_contacts",
+          pluginId: "contacts",
           pluginName: "Contacts",
           status: "success",
         },
@@ -85,6 +88,7 @@ it("streams one progress cycle for every tool call before done", async () => {
         data: {
           callId: "tool_call_2",
           name: "send_email",
+          pluginId: "gmail",
           pluginName: "Gmail",
           reason: "enviar a mensagem para o contato encontrado",
           requiresApproval: false,
@@ -99,6 +103,7 @@ it("streams one progress cycle for every tool call before done", async () => {
         data: {
           callId: "tool_call_2",
           name: "send_email",
+          pluginId: "gmail",
           pluginName: "Gmail",
         },
       });
@@ -111,6 +116,7 @@ it("streams one progress cycle for every tool call before done", async () => {
         data: {
           callId: "tool_call_2",
           name: "send_email",
+          pluginId: "gmail",
           pluginName: "Gmail",
           status: "success",
         },
@@ -156,8 +162,10 @@ it("streams one progress cycle for every tool call before done", async () => {
     "success",
   ]);
   assert.match(progressEvents[0]?.message ?? "", /Vou usar search_contacts .*encontrar o destinatario correto/);
+  assert.equal(progressEvents[0]?.tool?.pluginId, "contacts");
   assert.match(progressEvents[2]?.message ?? "", /Usei search_contacts com sucesso/);
   assert.match(progressEvents[3]?.message ?? "", /Vou usar send_email .*enviar a mensagem/);
+  assert.equal(progressEvents[3]?.tool?.pluginId, "gmail");
   assert.match(progressEvents[5]?.message ?? "", /Usei send_email com sucesso/);
   assert.equal(events.at(-1)?.type, "done");
 });
@@ -209,9 +217,10 @@ function extractToolProgress(event: WorkflowEvent) {
   const callId = typeof data?.callId === "string" ? data.callId : undefined;
   const toolCallId = typeof data?.toolCallId === "string" ? data.toolCallId : callId ?? `${event.nodeId}:${event.timestamp}:${typeof data?.name === "string" ? data.name : "agent-tool"}`;
   const name = typeof data?.name === "string" ? data.name : "agent tool";
+  const pluginId = typeof data?.pluginId === "string" ? data.pluginId : undefined;
   const pluginName = typeof data?.pluginName === "string" ? data.pluginName : undefined;
   const reason = typeof data?.reason === "string" ? data.reason : "processar esta etapa";
-  return { toolCallId, name, pluginName, reason };
+  return { toolCallId, name, pluginId, pluginName, reason };
 }
 
 function extractToolStatus(event: WorkflowEvent): string {
@@ -258,6 +267,7 @@ Add assertions:
 ```ts
 assert.match(types, /type: 'progress'/);
 assert.match(types, /toolCallId: string/);
+assert.match(types, /pluginId\?: string/);
 assert.match(store, /appendAgentProgressMessage/);
 assert.match(store, /event\.type === 'progress'/);
 assert.match(store, /kind: 'agentProgress'/);
@@ -284,6 +294,7 @@ export interface AgentPanelProgressContent {
   tool?: {
     toolCallId: string;
     name: string;
+    pluginId?: string;
     pluginName?: string;
     reason?: string;
   };
@@ -351,10 +362,11 @@ git commit -m "feat: model agent panel progress messages"
 
 ---
 
-### Task 3: Progress UI In Global Agent Chat
+### Task 3: Progress UI With Plugin Icons In Global Agent Chat
 
 **Files:**
 - Modify: `client-vue/src/features/agent-panel/components/AgentChatView.vue`
+- Modify: `client-vue/src/features/agent-panel/__tests__/agentPanel.contract.test.ts`
 - Test: `client-vue/src/features/agent-panel/__tests__/agentPanel.contract.test.ts`
 
 - [ ] **Step 1: Write failing render contract**
@@ -366,6 +378,10 @@ assert.match(chat, /isAgentProgressContent/);
 assert.match(chat, /agent-chat-view__progress/);
 assert.match(chat, /agent-chat-view__progress--running/);
 assert.match(chat, /progressMessage/);
+assert.match(chat, /resolvePluginIcon/);
+assert.match(chat, /pluginsApi\.getAll/);
+assert.match(chat, /pluginIconName/);
+assert.match(chat, /agent-chat-view__plugin-icon/);
 ```
 
 - [ ] **Step 2: Run contract red**
@@ -384,7 +400,9 @@ In the message template, before thinking/text:
   class="agent-chat-view__progress"
   :class="`agent-chat-view__progress--${message.content.status}`"
 >
-  <LucideIcon :name="progressIcon(message.content.status)" :size="14" />
+  <span class="agent-chat-view__plugin-icon" :title="message.content.tool?.pluginName ?? message.content.tool?.name">
+    <LucideIcon :name="pluginIconName(message.content.tool?.pluginId, progressIcon(message.content.status))" :size="14" />
+  </span>
   <span>{{ progressMessage(message.content) }}</span>
 </div>
 ```
@@ -392,6 +410,21 @@ In the message template, before thinking/text:
 Add helpers:
 
 ```ts
+import { onMounted, ref } from 'vue'
+import { pluginsApi } from '@/core/api/plugins.api'
+import type { PluginSummary } from '@/core/types/plugin.types'
+import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
+
+const plugins = ref<PluginSummary[]>([])
+
+onMounted(async () => {
+  try {
+    plugins.value = await pluginsApi.getAll()
+  } catch {
+    plugins.value = []
+  }
+})
+
 function isAgentProgressContent(content: unknown): content is AgentPanelProgressContent {
   return Boolean(content && typeof content === 'object' && !Array.isArray(content) && (content as { kind?: unknown }).kind === 'agentProgress');
 }
@@ -405,6 +438,13 @@ function progressIcon(status: AgentPanelProgressContent['status']): string {
   if (status === 'failed') return 'triangle-alert';
   if (status === 'running') return 'loader-circle';
   return 'wrench';
+}
+
+function pluginIconName(pluginId: string | undefined, fallback: string): string {
+  if (!pluginId) return fallback;
+  const plugin = plugins.value.find((candidate) => candidate.id === pluginId || candidate.manifest.metadata.id === pluginId);
+  if (!plugin) return fallback;
+  return resolvePluginIcon(plugin.manifest.metadata, { fallback });
 }
 ```
 
@@ -441,6 +481,16 @@ Add CSS:
   color: var(--sailor-danger);
 }
 
+.agent-chat-view__plugin-icon {
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 5px;
+  background: var(--sailor-bg-surface);
+}
+
 @keyframes agent-progress-spin {
   to {
     transform: rotate(360deg);
@@ -463,12 +513,13 @@ git commit -m "feat: render agent panel progress messages"
 
 ---
 
-### Task 4: Final Completion Summary
+### Task 4: Definitive Final Tool Summary
 
 **Files:**
 - Modify: `server/src/core/routes/agent-panel.routes.ts`
 - Modify: `client-vue/src/features/agent-panel/types/agent-panel.types.ts`
 - Modify: `client-vue/src/features/agent-panel/stores/agentPanel.store.ts`
+- Modify: `client-vue/src/features/agent-panel/components/AgentChatView.vue`
 - Test: backend and frontend contract tests.
 
 - [ ] **Step 1: Write failing backend test**
@@ -478,7 +529,7 @@ Add a route test where multiple tools succeed and final answer exists. Assert an
 ```ts
 assert.ok(events.some((event) =>
   event.type === "summary" &&
-  /Conclui/.test(event.message) &&
+  /Usei estas ferramentas/.test(event.message) &&
   /search_contacts/.test(event.message) &&
   /send_email/.test(event.message)
 ));
@@ -489,14 +540,19 @@ assert.ok(events.some((event) =>
 Track successful tool invocations in route scope:
 
 ```ts
-const completedToolCalls: Array<{ toolCallId: string; name: string }> = [];
+const completedToolCalls: Array<{ toolCallId: string; name: string; pluginId?: string; pluginName?: string }> = [];
 ```
 
 On `agent:tool-end` success:
 
 ```ts
 const tool = extractToolProgress(event);
-completedToolCalls.push({ toolCallId: tool.toolCallId, name: tool.name });
+completedToolCalls.push({
+  toolCallId: tool.toolCallId,
+  name: tool.name,
+  pluginId: tool.pluginId,
+  pluginName: tool.pluginName,
+});
 ```
 
 Before `done`:
@@ -506,32 +562,142 @@ if (completedToolCalls.length > 0) {
   const toolNames = completedToolCalls.map((tool) => tool.name);
   writeStreamEvent(reply, {
     type: "summary",
-    message: `Conclui ${toolNames.join(", ")} e preparei a resposta final.`,
+    message: `Usei estas ferramentas: ${toolNames.join(", ")}. Resposta final pronta.`,
     tools: completedToolCalls,
   });
 }
 ```
 
-- [ ] **Step 3: Add frontend type and store handling**
+- [ ] **Step 3: Add frontend summary type and store handling**
 
 Extend stream event:
 
 ```ts
-| { type: 'summary'; message: string; tools: Array<{ toolCallId: string; name: string }> }
+export interface AgentPanelSummaryTool {
+  toolCallId: string;
+  name: string;
+  pluginId?: string;
+  pluginName?: string;
+}
+
+export interface AgentPanelSummaryContent {
+  kind: 'agentSummary';
+  message: string;
+  tools: AgentPanelSummaryTool[];
+}
+
+| { type: 'summary'; message: string; tools: AgentPanelSummaryTool[] }
 ```
 
 Store:
 
 ```ts
-if (event.type === 'summary') appendAgentProgressMessage(selectedSessionId.value, {
-  type: 'progress',
-  status: 'success',
-  message: event.message,
-  tool: { toolCallId: `summary-${Date.now()}`, name: 'summary' },
-});
+function appendAgentSummaryMessage(sessionId: string, event: Extract<AgentPanelStreamEvent, { type: 'summary' }>) {
+  const id = `local-agent-summary-${sessionId}`;
+  const content: AgentPanelSummaryContent = {
+    kind: 'agentSummary',
+    message: event.message,
+    tools: event.tools,
+  };
+  messages.value = [
+    ...messages.value.filter((message) => message.id !== id),
+    {
+      id,
+      profileId: '',
+      sessionId,
+      role: 'assistant',
+      content,
+      createdAt: new Date().toISOString(),
+      entrance: 'assistant',
+    } as AgentChatMessage,
+  ];
+}
+
+if (event.type === 'summary') appendAgentSummaryMessage(selectedSessionId.value, event);
 ```
 
-- [ ] **Step 4: Run tests**
+- [ ] **Step 4: Render definitive summary with plugin icons**
+
+In `AgentChatView.vue`, render summary content before normal text:
+
+```vue
+<div v-if="isAgentSummaryContent(message.content)" class="agent-chat-view__summary">
+  <strong>{{ message.content.message }}</strong>
+  <ul class="agent-chat-view__summary-tools">
+    <li v-for="tool in message.content.tools" :key="tool.toolCallId">
+      <span class="agent-chat-view__plugin-icon" :title="tool.pluginName ?? tool.name">
+        <LucideIcon :name="pluginIconName(tool.pluginId, 'box')" :size="14" />
+      </span>
+      <span>{{ tool.pluginName ? `${tool.name} (${tool.pluginName})` : tool.name }}</span>
+    </li>
+  </ul>
+</div>
+```
+
+Add helper:
+
+```ts
+function isAgentSummaryContent(content: unknown): content is AgentPanelSummaryContent {
+  return Boolean(content && typeof content === 'object' && !Array.isArray(content) && (content as { kind?: unknown }).kind === 'agentSummary');
+}
+```
+
+Update `messageText()` to return empty string for summary content.
+
+- [ ] **Step 5: Add summary styling**
+
+Add CSS:
+
+```css
+.agent-chat-view__summary {
+  grid-column: 2;
+  display: grid;
+  width: min(100%, 520px);
+  gap: var(--sailor-space-2);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-elevated);
+  padding: 10px 12px;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
+}
+
+.agent-chat-view__summary-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sailor-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agent-chat-view__summary-tools li {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-xs);
+  padding: 4px 7px;
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
+}
+```
+
+- [ ] **Step 6: Add summary UI contract**
+
+Add assertions:
+
+```ts
+assert.match(chat, /isAgentSummaryContent/);
+assert.match(chat, /agent-chat-view__summary/);
+assert.match(chat, /agent-chat-view__summary-tools/);
+assert.match(chat, /pluginIconName\(tool\.pluginId/);
+assert.match(store, /appendAgentSummaryMessage/);
+assert.match(store, /kind: 'agentSummary'/);
+```
+
+- [ ] **Step 7: Run tests**
 
 Run:
 
@@ -542,10 +708,10 @@ cd ../client-vue && node --test src/features/agent-panel/__tests__/agentPanel.co
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit summary**
+- [ ] **Step 8: Commit summary**
 
 ```bash
-git add server/src/core/routes/agent-panel.routes.ts server/src/core/routes/agent-panel.routes.test.ts client-vue/src/features/agent-panel/types/agent-panel.types.ts client-vue/src/features/agent-panel/stores/agentPanel.store.ts client-vue/src/features/agent-panel/__tests__/agentPanel.contract.test.ts
+git add server/src/core/routes/agent-panel.routes.ts server/src/core/routes/agent-panel.routes.test.ts client-vue/src/features/agent-panel/types/agent-panel.types.ts client-vue/src/features/agent-panel/stores/agentPanel.store.ts client-vue/src/features/agent-panel/components/AgentChatView.vue client-vue/src/features/agent-panel/__tests__/agentPanel.contract.test.ts
 git commit -m "feat: summarize agent panel tool work"
 ```
 
@@ -574,11 +740,13 @@ Open `http://localhost:23802`, open Global Agent, send a message that uses a too
 - user message appears immediately
 - assistant shows typing dots
 - for every tool call, assistant shows "Vou usar..." before execution
+- every "Vou usar...", "Executando...", and "Usei..." row shows the plugin icon when `pluginId` is known
 - each running tool row updates to completed/failed without overwriting other tool rows
 - when the agent calls two different tools, both cycles stay visible in chronological order
 - when the agent calls the same tool twice, both invocations stay visible as separate progress rows
 - final answer streams
-- completion summary appears before/near final answer
+- definitive completion summary appears before/near final answer
+- completion summary says every tool the agent used and renders each plugin icon beside its tool name
 
 - [ ] **Step 3: Mark feat-map complete**
 
