@@ -23,7 +23,7 @@ Goal: build a global published-agent chat panel so users can talk to agents from
 - [x] Task 6: Published-Agent Execution Targeting
 - [x] Task 7: Frontend API Contracts and Types
 - [x] Task 8: Agent Metadata Editor UI
-- [ ] Task 9: Global Agent Panel Shell
+- [x] Task 9: Global Agent Panel Shell
 - [ ] Task 10: Agent List and Session List UI
 - [ ] Task 11: Chat Composer and Message Stream UX
 - [ ] Task 12: Session Delete and Memory Cleanup UX

@@ -52,6 +52,15 @@ export const sidebarSections: SidebarSection[] = [
         route: '/pages',
       },
       {
+        id: 'agents',
+        label: 'Agents',
+        pageLabel: 'Agents',
+        description: 'Chat with published workflow agents across your profile.',
+        icon: 'bot',
+        accent: '#f59e0b',
+        route: '/agents',
+      },
+      {
         id: 'monitoring',
         label: 'Monitoring',
         description: 'Monitor uptime, jobs, services, automations, and system health.',
