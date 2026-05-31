@@ -8,6 +8,29 @@
       />
     </EditorField>
 
+    <EditorField label="Agent Emoji">
+      <ProfileAvatarPicker
+        :model-value="(node.data.agentEmoji as string) || '🤖'"
+        @update:model-value="updateNodeData({ agentEmoji: $event })"
+      />
+    </EditorField>
+
+    <EditorField label="Public Agent Name">
+      <BaseInput
+        :model-value="(node.data.agentDisplayName as string) || (node.data.name as string) || ''"
+        placeholder="Support Agent"
+        @update:model-value="updateNodeData({ agentDisplayName: ($event as string) || undefined })"
+      />
+    </EditorField>
+
+    <EditorField label="Public Description">
+      <BaseTextarea
+        :model-value="(node.data.agentDescription as string) || ''"
+        placeholder="What this agent helps with"
+        @update:model-value="updateNodeData({ agentDescription: ($event as string) || undefined })"
+      />
+    </EditorField>
+
     <EditorField label="System Prompt">
       <ExpressionTextarea
         :model-value="(node.data.prompt as string) || ''"
@@ -62,6 +85,8 @@ import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
+import ProfileAvatarPicker from '@/features/profiles/components/ProfileAvatarPicker.vue'
 import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
 
 defineProps<NodeEditorProps>()
