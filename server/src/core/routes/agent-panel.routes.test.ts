@@ -282,6 +282,12 @@ describe("agent panel routes", () => {
     assert.match(progressEvents[3]?.message ?? "", /Vou usar send_email .*enviar a mensagem/);
     assert.equal(progressEvents[3]?.tool?.pluginId, "gmail");
     assert.match(progressEvents[5]?.message ?? "", /Usei send_email com sucesso/);
+    assert.ok(events.some((event) =>
+      event.type === "summary" &&
+      /Usei estas ferramentas/.test(event.message ?? "") &&
+      /search_contacts/.test(event.message ?? "") &&
+      /send_email/.test(event.message ?? "")
+    ));
     assert.equal(events.at(-1)?.type, "done");
   });
 
@@ -346,6 +352,7 @@ function parseStreamEvents(body: string): Array<{
   status?: string;
   message?: string;
   tool?: { toolCallId?: string; pluginId?: string };
+  tools?: Array<{ toolCallId?: string; pluginId?: string }>;
 }> {
   return body
     .split("\n\n")

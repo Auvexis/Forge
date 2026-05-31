@@ -47,6 +47,19 @@ export interface AgentPanelProgressContent {
   }
 }
 
+export interface AgentPanelSummaryTool {
+  toolCallId: string
+  name: string
+  pluginId?: string
+  pluginName?: string
+}
+
+export interface AgentPanelSummaryContent {
+  kind: 'agentSummary'
+  message: string
+  tools: AgentPanelSummaryTool[]
+}
+
 export type AgentPanelStreamEvent =
   | { type: 'start' }
   | { type: 'thinking'; delta: string }
@@ -57,5 +70,6 @@ export type AgentPanelStreamEvent =
       message: string
       tool?: AgentPanelProgressContent['tool']
     }
+  | { type: 'summary'; message: string; tools: AgentPanelSummaryTool[] }
   | { type: 'done'; result: AgentPanelMessageResult }
   | { type: 'error'; code?: string; message: string }

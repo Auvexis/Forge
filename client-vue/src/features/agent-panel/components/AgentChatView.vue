@@ -81,7 +81,21 @@
             {{ messageThinking(message.content) }}
           </div>
           <div
-            v-if="isAgentProgressContent(message.content)"
+            v-if="isAgentSummaryContent(message.content)"
+            class="agent-chat-view__summary"
+          >
+            <strong>{{ message.content.message }}</strong>
+            <ul class="agent-chat-view__summary-tools">
+              <li v-for="tool in message.content.tools" :key="tool.toolCallId">
+                <span class="agent-chat-view__plugin-icon" :title="tool.pluginName ?? tool.name">
+                  <LucideIcon :name="pluginIconName(tool.pluginId, 'box')" :size="14" />
+                </span>
+                <span>{{ tool.pluginName ? `${tool.name} (${tool.pluginName})` : tool.name }}</span>
+              </li>
+            </ul>
+          </div>
+          <div
+            v-else-if="isAgentProgressContent(message.content)"
             class="agent-chat-view__progress"
             :class="`agent-chat-view__progress--${message.content.status}`"
           >
@@ -126,7 +140,10 @@ import { useProfileStore } from '@/shared/stores/profile.store'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 import type { AgentChatMessage } from '@/features/agent-runtime/types/agent.types'
-import type { AgentPanelProgressContent } from '@/features/agent-panel/types/agent-panel.types'
+import type {
+  AgentPanelProgressContent,
+  AgentPanelSummaryContent,
+} from '@/features/agent-panel/types/agent-panel.types'
 import type { PluginSummary } from '@/core/types/plugin.types'
 
 const store = useAgentPanelStore()
@@ -166,6 +183,7 @@ async function deleteSession(sessionId: string) {
 }
 
 function messageText(content: unknown): string {
+  if (isAgentSummaryContent(content)) return ''
   if (isAgentProgressContent(content)) return ''
   if (typeof content === 'string') return content
   if (!content || typeof content !== 'object' || Array.isArray(content)) return ''
@@ -181,6 +199,15 @@ function isAgentProgressContent(content: unknown): content is AgentPanelProgress
       typeof content === 'object' &&
       !Array.isArray(content) &&
       (content as { kind?: unknown }).kind === 'agentProgress',
+  )
+}
+
+function isAgentSummaryContent(content: unknown): content is AgentPanelSummaryContent {
+  return Boolean(
+    content &&
+      typeof content === 'object' &&
+      !Array.isArray(content) &&
+      (content as { kind?: unknown }).kind === 'agentSummary',
   )
 }
 
@@ -565,6 +592,41 @@ void ['transcript-only', 'session', 'all-agent-memory']
   place-items: center;
   border-radius: 5px;
   background: var(--sailor-bg-surface);
+}
+
+.agent-chat-view__summary {
+  grid-column: 2;
+  display: grid;
+  width: min(100%, 520px);
+  gap: var(--sailor-space-2);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-elevated);
+  padding: 10px 12px;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
+  line-height: 1.4;
+}
+
+.agent-chat-view__summary-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sailor-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agent-chat-view__summary-tools li {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-xs);
+  padding: 4px 7px;
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
 }
 
 .agent-chat-view__empty {

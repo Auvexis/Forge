@@ -7,6 +7,6 @@ Objetivo: deixar o Global Agent Chat mais vivo, com mensagens de progresso antes
 - [x] Renderizar um ciclo completo por ferramenta: vai usar > usando > usou com sucesso/erro.
 - [x] Preservar multiplas ferramentas em ordem, sem sobrescrever chamadas repetidas da mesma tool.
 - [x] Mostrar icone do plugin em cada etapa do ciclo da ferramenta.
-- [ ] Renderizar mensagem final definitiva com todas as ferramentas usadas e icones dos plugins.
+- [x] Renderizar mensagem final definitiva com todas as ferramentas usadas e icones dos plugins.
 - [x] Criar testes contrato backend/frontend antes da implementacao.
 - [ ] Validar build server/client e fluxo visual.

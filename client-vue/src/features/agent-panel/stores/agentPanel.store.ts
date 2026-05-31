@@ -5,6 +5,7 @@ import { useToast } from '@/shared/composables/useToast'
 import type { AgentChatMessage, AgentChatSession } from '@/features/agent-runtime/types/agent.types'
 import type {
   AgentPanelProgressContent,
+  AgentPanelSummaryContent,
   AgentPanelStreamEvent,
   PublishedAgentSummary,
 } from '@/features/agent-panel/types/agent-panel.types'
@@ -179,6 +180,30 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     ]
   }
 
+  function appendAgentSummaryMessage(
+    sessionId: string,
+    event: Extract<AgentPanelStreamEvent, { type: 'summary' }>,
+  ) {
+    const id = `local-agent-summary-${sessionId}`
+    const content: AgentPanelSummaryContent = {
+      kind: 'agentSummary',
+      message: event.message,
+      tools: event.tools,
+    }
+    messages.value = [
+      ...messages.value.filter((message) => message.id !== id),
+      {
+        id,
+        profileId: '',
+        sessionId,
+        role: 'assistant',
+        content,
+        createdAt: new Date().toISOString(),
+        entrance: 'assistant',
+      } as AgentChatMessage,
+    ]
+  }
+
   function upsertStreamingAssistantMessage(
     sessionId: string,
     patch: { textDelta?: string; thinkingDelta?: string; pending?: boolean },
@@ -239,13 +264,14 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         if (event.type === 'thinking') appendStreamingAssistantThinking(selectedSessionId.value, event.delta)
         if (event.type === 'delta') appendStreamingAssistantMessage(selectedSessionId.value, event.delta)
         if (event.type === 'progress') appendAgentProgressMessage(selectedSessionId.value, event)
+        if (event.type === 'summary') appendAgentSummaryMessage(selectedSessionId.value, event)
         if (event.type === 'error') throw new Error(event.message)
         if (event.type === 'done') result = event.result
       }
       if (!result) throw new Error('Agent message failed')
       draftSessionOpen.value = false
       selectedSessionId.value = result.session.id
-      messages.value = mergeServerMessagesWithLocalProgress(result.messages)
+      messages.value = mergeServerMessagesWithLocalAgentEvents(result.messages)
       sessions.value = [result.session, ...sessions.value.filter((session) => session.id !== result.session.id)]
     } catch (err) {
       chatError.value = err instanceof Error ? err.message : 'Agent message failed'
@@ -289,9 +315,11 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     }
   }
 
-  function mergeServerMessagesWithLocalProgress(serverMessages: AgentChatMessage[]) {
-    const localProgress = messages.value.filter((message) => isAgentProgressContent(message.content))
-    return [...serverMessages, ...localProgress]
+  function mergeServerMessagesWithLocalAgentEvents(serverMessages: AgentChatMessage[]) {
+    const localAgentEvents = messages.value.filter((message) =>
+      isAgentProgressContent(message.content) || isAgentSummaryContent(message.content),
+    )
+    return [...serverMessages, ...localAgentEvents]
   }
 
   function isAgentProgressContent(content: unknown): content is AgentPanelProgressContent {
@@ -300,6 +328,15 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         typeof content === 'object' &&
         !Array.isArray(content) &&
         (content as { kind?: unknown }).kind === 'agentProgress',
+    )
+  }
+
+  function isAgentSummaryContent(content: unknown): content is AgentPanelSummaryContent {
+    return Boolean(
+      content &&
+        typeof content === 'object' &&
+        !Array.isArray(content) &&
+        (content as { kind?: unknown }).kind === 'agentSummary',
     )
   }
 
@@ -336,6 +373,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     appendStreamingAssistantMessage,
     appendStreamingAssistantThinking,
     appendAgentProgressMessage,
+    appendAgentSummaryMessage,
     sendMessage,
   }
 })

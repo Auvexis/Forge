@@ -171,6 +171,7 @@ export default async function agentPanelRoutes(
 
     const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
     let nativeDeltaCount = 0;
+    const completedToolCalls: ToolProgress[] = [];
     const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
       if (event.type === "agent:thinking-delta") {
         const delta = extractAgentDelta(event);
@@ -194,12 +195,14 @@ export default async function agentPanelRoutes(
       }
       if (event.type === "agent:tool-end") {
         const status = extractToolStatus(event) === "failed" ? "failed" : "success";
+        const tool = extractToolProgress(event);
         writeStreamEvent(reply, {
           type: "progress",
           status,
           message: formatToolProgressMessage(event, status),
-          tool: extractToolProgress(event),
+          tool,
         });
+        if (status === "success") completedToolCalls.push(tool);
       }
       if (event.type === "agent:output-delta") {
         const delta = extractAgentDelta(event);
@@ -231,6 +234,13 @@ export default async function agentPanelRoutes(
       });
       if (nativeDeltaCount === 0) {
         await writeFallbackDeltas(reply, splitAssistantMessageForStream(result));
+      }
+      if (completedToolCalls.length > 0) {
+        writeStreamEvent(reply, {
+          type: "summary",
+          message: `Usei estas ferramentas: ${completedToolCalls.map((tool) => tool.name).join(", ")}. Resposta final pronta.`,
+          tools: completedToolCalls,
+        });
       }
       writeStreamEvent(reply, { type: "done", result });
     } catch (error) {

@@ -192,6 +192,21 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /agent-chat-view__plugin-icon/)
   })
 
+  it('renders definitive agent tool summaries with plugin icons', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
+
+    assert.match(types, /type: 'summary'/)
+    assert.match(types, /AgentPanelSummaryContent/)
+    assert.match(chat, /isAgentSummaryContent/)
+    assert.match(chat, /agent-chat-view__summary/)
+    assert.match(chat, /agent-chat-view__summary-tools/)
+    assert.match(chat, /pluginIconName\(tool\.pluginId/)
+    assert.match(store, /appendAgentSummaryMessage/)
+    assert.match(store, /kind: 'agentSummary'/)
+  })
+
   it('animates user and assistant messages from their side of the chat', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 
