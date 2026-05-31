@@ -179,6 +179,19 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /agent-chat-typing-bounce/)
   })
 
+  it('renders agent progress rows with plugin icons from the plugin catalog', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /isAgentProgressContent/)
+    assert.match(chat, /agent-chat-view__progress/)
+    assert.match(chat, /agent-chat-view__progress--running/)
+    assert.match(chat, /progressMessage/)
+    assert.match(chat, /resolvePluginIcon/)
+    assert.match(chat, /pluginsApi\.getAll/)
+    assert.match(chat, /pluginIconName/)
+    assert.match(chat, /agent-chat-view__plugin-icon/)
+  })
+
   it('animates user and assistant messages from their side of the chat', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 

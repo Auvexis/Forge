@@ -81,7 +81,23 @@
             {{ messageThinking(message.content) }}
           </div>
           <div
-            v-if="isPendingAssistantMessage(message)"
+            v-if="isAgentProgressContent(message.content)"
+            class="agent-chat-view__progress"
+            :class="`agent-chat-view__progress--${message.content.status}`"
+          >
+            <span
+              class="agent-chat-view__plugin-icon"
+              :title="message.content.tool?.pluginName ?? message.content.tool?.name"
+            >
+              <LucideIcon
+                :name="pluginIconName(message.content.tool?.pluginId, progressIcon(message.content.status))"
+                :size="14"
+              />
+            </span>
+            <span>{{ progressMessage(message.content) }}</span>
+          </div>
+          <div
+            v-else-if="isPendingAssistantMessage(message)"
             class="agent-chat-view__typing-dots"
             aria-label="Agent is thinking"
           >
@@ -89,7 +105,7 @@
             <span />
             <span />
           </div>
-          <p v-else>{{ messageText(message.content) }}</p>
+          <p v-else-if="messageText(message.content)">{{ messageText(message.content) }}</p>
         </article>
         <div v-if="!store.messages.length" class="agent-chat-view__empty agent-chat-view__empty--inline">
           No messages yet.
@@ -101,23 +117,36 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { pluginsApi } from '@/core/api/plugins.api'
 import AgentChatComposer from '@/features/agent-panel/components/AgentChatComposer.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import { useProfileStore } from '@/shared/stores/profile.store'
 import { useConfirm } from '@/shared/composables/useConfirm'
+import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 import type { AgentChatMessage } from '@/features/agent-runtime/types/agent.types'
+import type { AgentPanelProgressContent } from '@/features/agent-panel/types/agent-panel.types'
+import type { PluginSummary } from '@/core/types/plugin.types'
 
 const store = useAgentPanelStore()
 const profileStore = useProfileStore()
 const { confirm } = useConfirm()
 const historyOpen = ref(false)
 const dangerousMemoryMode = 'all-agent-memory'
+const plugins = ref<PluginSummary[]>([])
 
 const workflowRoute = computed(() =>
   store.selectedAgent ? `/workflows/${encodeURIComponent(store.selectedAgent.workflowId)}` : '/workflows',
 )
+
+onMounted(async () => {
+  try {
+    plugins.value = await pluginsApi.getAll()
+  } catch {
+    plugins.value = []
+  }
+})
 
 function selectSession(sessionId: string) {
   historyOpen.value = false
@@ -137,12 +166,42 @@ async function deleteSession(sessionId: string) {
 }
 
 function messageText(content: unknown): string {
+  if (isAgentProgressContent(content)) return ''
   if (typeof content === 'string') return content
   if (!content || typeof content !== 'object' || Array.isArray(content)) return ''
   const record = content as Record<string, unknown>
   if (typeof record.text === 'string') return record.text
   if (typeof record.content === 'string') return record.content
   return JSON.stringify(content)
+}
+
+function isAgentProgressContent(content: unknown): content is AgentPanelProgressContent {
+  return Boolean(
+    content &&
+      typeof content === 'object' &&
+      !Array.isArray(content) &&
+      (content as { kind?: unknown }).kind === 'agentProgress',
+  )
+}
+
+function progressMessage(content: AgentPanelProgressContent): string {
+  return content.message
+}
+
+function progressIcon(status: AgentPanelProgressContent['status']): string {
+  if (status === 'success') return 'check'
+  if (status === 'failed') return 'triangle-alert'
+  if (status === 'running') return 'loader-circle'
+  return 'wrench'
+}
+
+function pluginIconName(pluginId: string | undefined, fallback: string): string {
+  if (!pluginId) return fallback
+  const plugin = plugins.value.find(
+    (candidate) => candidate.id === pluginId || candidate.manifest.metadata.id === pluginId,
+  )
+  if (!plugin) return fallback
+  return resolvePluginIcon(plugin.manifest.metadata, { fallback })
 }
 
 function messageThinking(content: unknown): string {
@@ -470,6 +529,44 @@ void ['transcript-only', 'session', 'all-agent-memory']
   animation-delay: 0.24s;
 }
 
+.agent-chat-view__progress {
+  grid-column: 2;
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-elevated);
+  padding: 8px 10px;
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
+  line-height: 1.4;
+}
+
+.agent-chat-view__progress--running svg {
+  animation: agent-progress-spin 0.9s linear infinite;
+}
+
+.agent-chat-view__progress--success {
+  color: var(--sailor-success);
+}
+
+.agent-chat-view__progress--failed {
+  color: var(--sailor-danger);
+}
+
+.agent-chat-view__plugin-icon {
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 5px;
+  background: var(--sailor-bg-surface);
+}
+
 .agent-chat-view__empty {
   display: grid;
   flex: 1;
@@ -515,6 +612,12 @@ void ['transcript-only', 'session', 'all-agent-memory']
   40% {
     opacity: 1;
     transform: translateY(-3px);
+  }
+}
+
+@keyframes agent-progress-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
