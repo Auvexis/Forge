@@ -77,6 +77,52 @@ describe("agent panel chat service", () => {
     assert.deepEqual(await service.listMessages({ profileId: "profile_a", sessionId: session.id }), []);
   });
 
+  it("delete transcript-only does not delete agent memories", async () => {
+    const service = serviceFixture();
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+    insertMemory(`session:${session.id}`, "agent:agent:last-output");
+
+    await service.deleteSession({ profileId: "profile_a", sessionId: session.id, memoryMode: "transcript-only" });
+
+    assert.equal(countMemories(), 1);
+  });
+
+  it("delete session deletes only session scoped memory", async () => {
+    const service = serviceFixture();
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+    insertMemory(`session:${session.id}`, "agent:agent:last-output");
+    insertMemory("workflow:profile_a:workflow_agent", "agent:agent:last-output");
+
+    await service.deleteSession({ profileId: "profile_a", sessionId: session.id, memoryMode: "session" });
+
+    assert.deepEqual(listMemoryNamespaces(), ["workflow:profile_a:workflow_agent"]);
+  });
+
+  it("delete all-agent-memory deletes session and agent-scoped long-term memories", async () => {
+    const service = serviceFixture();
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+    insertMemory(`session:${session.id}`, "agent:agent:last-output");
+    insertMemory("workflow:profile_a:workflow_agent", "agent:agent:last-output");
+    insertMemory("profile:profile_a", "agent:agent:last-output");
+    insertMemory("profile:profile_a", "agent:other-agent:last-output");
+
+    await service.deleteSession({ profileId: "profile_a", sessionId: session.id, memoryMode: "all-agent-memory" });
+
+    assert.deepEqual(listMemoryKeys(), ["agent:other-agent:last-output"]);
+  });
+
   function serviceFixture(): AgentPanelChatService {
     return new AgentPanelChatService({
       db: workflowDb!,
@@ -102,6 +148,38 @@ describe("agent panel chat service", () => {
         },
       },
     });
+  }
+
+  function insertMemory(namespace: string, key: string): void {
+    const now = new Date(0).toISOString();
+    workflowDb!
+      .prepare(`
+        INSERT INTO agent_memories
+          (id, profile_id, namespace, memory_key, value_json, source, created_at, updated_at)
+        VALUES (?, 'profile_a', ?, ?, '{}', 'workflow:workflow_agent', ?, ?)
+      `)
+      .run(`memory_${namespace}_${key}`, namespace, key, now, now);
+  }
+
+  function countMemories(): number {
+    const row = workflowDb!.prepare(`SELECT COUNT(*) AS total FROM agent_memories`).get() as { total: number };
+    return row.total;
+  }
+
+  function listMemoryNamespaces(): string[] {
+    return (
+      workflowDb!
+        .prepare(`SELECT namespace FROM agent_memories ORDER BY namespace`)
+        .all() as Array<{ namespace: string }>
+    ).map((row) => row.namespace);
+  }
+
+  function listMemoryKeys(): string[] {
+    return (
+      workflowDb!
+        .prepare(`SELECT memory_key FROM agent_memories ORDER BY memory_key`)
+        .all() as Array<{ memory_key: string }>
+    ).map((row) => row.memory_key);
   }
 });
 

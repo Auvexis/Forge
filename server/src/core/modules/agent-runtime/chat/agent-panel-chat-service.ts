@@ -167,8 +167,11 @@ export class AgentPanelChatService {
 
   async deleteSession(input: DeleteAgentPanelSessionInput): Promise<void> {
     const session = this.resolveSession(input.profileId, input.sessionId);
-    if (input.memoryMode === "session" || input.memoryMode === "all-agent-memory") {
+    if (input.memoryMode === "session") {
       this.deleteMemoryNamespace(input.profileId, `session:${session.id}`);
+    }
+    if (input.memoryMode === "all-agent-memory") {
+      this.deleteAgentScopedMemories(input.profileId, session);
     }
     this.sessions.delete(input.profileId, input.sessionId);
   }
@@ -219,6 +222,18 @@ export class AgentPanelChatService {
     this.db
       .prepare(`DELETE FROM agent_memories WHERE profile_id = ? AND namespace = ?`)
       .run(profileId, namespace);
+  }
+
+  private deleteAgentScopedMemories(profileId: string, session: AgentChatSession): void {
+    if (!session.agentNodeId) return;
+    this.db
+      .prepare(`
+        DELETE FROM agent_memories
+        WHERE profile_id = ?
+          AND source = ?
+          AND memory_key = ?
+      `)
+      .run(profileId, `workflow:${session.workflowId}`, `agent:${session.agentNodeId}:last-output`);
   }
 }
 

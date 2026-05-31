@@ -27,7 +27,7 @@ export class ChatMessageRepository {
   }
 
   append(input: AppendChatMessageInput): AgentChatMessage {
-    const createdAt = new Date().toISOString();
+    const createdAt = this.nextCreatedAt(input.profileId, input.sessionId);
     this.db
       .prepare(`
         INSERT INTO agent_chat_messages
@@ -55,6 +55,20 @@ export class ChatMessageRepository {
       `)
       .all(profileId, sessionId) as ChatMessageRow[];
     return rows.map(toChatMessage);
+  }
+
+  private nextCreatedAt(profileId: string, sessionId: string): string {
+    const row = this.db
+      .prepare(`
+        SELECT MAX(created_at) AS created_at
+        FROM agent_chat_messages
+        WHERE profile_id = ? AND session_id = ?
+      `)
+      .get(profileId, sessionId) as { created_at: string | null } | undefined;
+    const now = new Date();
+    const previousTime = row?.created_at ? Date.parse(row.created_at) : NaN;
+    if (!Number.isFinite(previousTime) || now.getTime() > previousTime) return now.toISOString();
+    return new Date(previousTime + 1).toISOString();
   }
 }
 

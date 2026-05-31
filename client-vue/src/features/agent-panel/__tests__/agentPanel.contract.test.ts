@@ -48,4 +48,16 @@ describe('agent panel page contract', () => {
     assert.match(store, /sendMessage/)
     assert.match(store, /agentPanelApi\.sendMessage/)
   })
+
+  it('session delete exposes memory cleanup choices with dangerous confirmation', () => {
+    const sessions = readFileSync(
+      'src/features/agent-panel/components/AgentSessionList.vue',
+      'utf8',
+    )
+
+    assert.match(sessions, /transcript-only/)
+    assert.match(sessions, /session/)
+    assert.match(sessions, /all-agent-memory/)
+    assert.match(sessions, /dangerousMemoryMode/)
+  })
 })
