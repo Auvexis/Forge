@@ -12,6 +12,10 @@ Objetivo: deixar o Global Agent Chat mais vivo, com mensagens de progresso antes
 - [x] Inserir mensagens locais de progresso antes da resposta final do assistente no merge com mensagens persistidas.
 - [x] Forcar flush por evento SSE para evitar progresso acumulado ate o final da execucao.
 - [x] Remover background, padding e borda das mensagens/status do chat para renderizacao plain.
+- [x] Fazer o runtime ceder o event loop entre eventos de ferramenta e execucao da tool para o SSE aparecer em tempo real.
+- [x] Adicionar auto-scroll no Global Agent Chat.
+- [x] Adicionar transicao suave quando mensagens/status novos entram embaixo.
+- [x] Atualizar o Global Agent quando profile ou workflow ativo mudar.
 - [x] Criar testes contrato backend/frontend antes da implementacao.
 - [ ] Validar build server/client e fluxo visual.
 
@@ -25,3 +29,4 @@ Objetivo: deixar o Global Agent Chat mais vivo, com mensagens de progresso antes
 - [ ] Browser smoke for a real tool lifecycle is still pending: the local agent response stayed pending after a safe read-only prompt, so no live `Vou usar`/`Executando`/summary cycle was produced in this environment.
 - [x] Regression tests for missed live tool events: `cd server && node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts src/core/routes/agent-panel.routes.test.ts`
 - [x] SSE flush and plain chat contract tests: `cd server && node --test src/core/routes/agent-panel.routes.test.ts`; `cd client-vue && node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts`
+- [x] Runtime yield, auto-scroll, transition, and global refresh tests: `cd server && node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts`; `cd client-vue && node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts`

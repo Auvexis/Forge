@@ -157,6 +157,31 @@ describe('agent panel modal contract', () => {
     assert.match(types, /type: 'thinking'/)
   })
 
+  it('auto-scrolls the transcript and animates message reflow on new steps', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /ref="messagesEl"/)
+    assert.match(chat, /TransitionGroup\s+name="agent-chat-message"/)
+    assert.match(chat, /displayedMessagesScrollKey/)
+    assert.match(chat, /watch\(\s*displayedMessagesScrollKey/)
+    assert.match(chat, /scrollMessagesToBottom/)
+    assert.match(chat, /scrollTo\(\{[\s\S]*behavior: 'smooth'/)
+    assert.match(chat, /\.agent-chat-message-move/)
+  })
+
+  it('refreshes global agents when the profile or active workflow metadata changes', () => {
+    const modal = readFileSync('src/features/agent-panel/components/AppGlobalAgentPanel.vue', 'utf8')
+
+    assert.match(modal, /useAgentPanelStore/)
+    assert.match(modal, /useProfileStore/)
+    assert.match(modal, /useWorkflowStore/)
+    assert.match(modal, /watch\(/)
+    assert.match(modal, /currentProfile\?\.name/)
+    assert.match(modal, /currentProfile\?\.avatarEmoji/)
+    assert.match(modal, /activeWorkflow\?\.metadata\.name/)
+    assert.match(modal, /agentStore\.loadAgents\('global'\)/)
+  })
+
   it('models progress stream events as one assistant message per tool status', () => {
     const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')

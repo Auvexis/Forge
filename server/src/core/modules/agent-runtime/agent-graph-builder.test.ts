@@ -170,6 +170,42 @@ describe("agent graph builder", () => {
     assert.equal(Object.hasOwn(toolMessage ?? {}, "toolCallId"), false);
   });
 
+  it("yields after tool lifecycle events before invoking and continuing", async () => {
+    const toolCalls = [{ id: "call_1", name: "lookup", args: { query: "sailor" } }];
+    const model = fakeModel([
+      { content: "", toolCalls },
+      { content: "tool result applied" },
+    ]);
+    let startEventFlushed = false;
+    let endEventFlushed = false;
+    const tool = fakeTool("lookup", async () => {
+      assert.equal(startEventFlushed, true);
+      return { result: "found sailor" };
+    });
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+      onEvent(event) {
+        if (event.type === "agent:tool-start") {
+          queueMicrotask(() => {
+            startEventFlushed = true;
+          });
+        }
+        if (event.type === "agent:tool-end") {
+          queueMicrotask(() => {
+            endEventFlushed = true;
+          });
+        }
+        if (event.type === "agent:model-start" && (event.payload as { iteration?: number })?.iteration === 2) {
+          assert.equal(endEventFlushed, true);
+        }
+      },
+    });
+
+    await graph.invoke({ userMessage: "lookup sailor" });
+  });
+
   it("binds tool schemas to models that support function calling", async () => {
     const model = fakeToolBindingModel([
       { content: "", toolCalls: [{ id: "call_1", name: "lookup", args: { query: "sailor" } }] },

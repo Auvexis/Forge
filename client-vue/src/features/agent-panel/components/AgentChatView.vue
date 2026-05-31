@@ -65,62 +65,64 @@
     <div v-if="!store.selectedAgent" class="agent-chat-view__empty">Select an agent.</div>
     <div v-else-if="!store.hasOpenChat" class="agent-chat-view__empty">Select a chat.</div>
     <template v-else>
-      <div class="agent-chat-view__messages">
-        <article
-          v-for="message in store.messages"
-          :key="message.id"
-          class="agent-chat-view__message"
-          :class="[`agent-chat-view__message--${message.role}`, entranceClass(message)]"
-        >
-          <span class="agent-chat-view__avatar">{{ messageAvatar(message) }}</span>
-          <span class="agent-chat-view__role">
-            <strong>{{ messageDisplayName(message) }}</strong>
-            <time>{{ formatMessageTime(message) }}</time>
-          </span>
-          <div v-if="messageThinking(message.content)" class="agent-chat-view__thinking">
-            {{ messageThinking(message.content) }}
-          </div>
-          <div
-            v-if="isAgentSummaryContent(message.content)"
-            class="agent-chat-view__summary"
+      <div ref="messagesEl" class="agent-chat-view__messages">
+        <TransitionGroup name="agent-chat-message" tag="div" class="agent-chat-view__message-list">
+          <article
+            v-for="message in store.messages"
+            :key="message.id"
+            class="agent-chat-view__message"
+            :class="[`agent-chat-view__message--${message.role}`, entranceClass(message)]"
           >
-            <strong>{{ message.content.message }}</strong>
-            <ul class="agent-chat-view__summary-tools">
-              <li v-for="tool in message.content.tools" :key="tool.toolCallId">
-                <span class="agent-chat-view__plugin-icon" :title="tool.pluginName ?? tool.name">
-                  <LucideIcon :name="pluginIconName(tool.pluginId, 'box')" :size="14" />
-                </span>
-                <span>{{ tool.pluginName ? `${tool.name} (${tool.pluginName})` : tool.name }}</span>
-              </li>
-            </ul>
-          </div>
-          <div
-            v-else-if="isAgentProgressContent(message.content)"
-            class="agent-chat-view__progress"
-            :class="`agent-chat-view__progress--${message.content.status}`"
-          >
-            <span
-              class="agent-chat-view__plugin-icon"
-              :title="message.content.tool?.pluginName ?? message.content.tool?.name"
-            >
-              <LucideIcon
-                :name="pluginIconName(message.content.tool?.pluginId, progressIcon(message.content.status))"
-                :size="14"
-              />
+            <span class="agent-chat-view__avatar">{{ messageAvatar(message) }}</span>
+            <span class="agent-chat-view__role">
+              <strong>{{ messageDisplayName(message) }}</strong>
+              <time>{{ formatMessageTime(message) }}</time>
             </span>
-            <span>{{ progressMessage(message.content) }}</span>
-          </div>
-          <div
-            v-else-if="isPendingAssistantMessage(message)"
-            class="agent-chat-view__typing-dots"
-            aria-label="Agent is thinking"
-          >
-            <span />
-            <span />
-            <span />
-          </div>
-          <p v-else-if="messageText(message.content)">{{ messageText(message.content) }}</p>
-        </article>
+            <div v-if="messageThinking(message.content)" class="agent-chat-view__thinking">
+              {{ messageThinking(message.content) }}
+            </div>
+            <div
+              v-if="isAgentSummaryContent(message.content)"
+              class="agent-chat-view__summary"
+            >
+              <strong>{{ message.content.message }}</strong>
+              <ul class="agent-chat-view__summary-tools">
+                <li v-for="tool in message.content.tools" :key="tool.toolCallId">
+                  <span class="agent-chat-view__plugin-icon" :title="tool.pluginName ?? tool.name">
+                    <LucideIcon :name="pluginIconName(tool.pluginId, 'box')" :size="14" />
+                  </span>
+                  <span>{{ tool.pluginName ? `${tool.name} (${tool.pluginName})` : tool.name }}</span>
+                </li>
+              </ul>
+            </div>
+            <div
+              v-else-if="isAgentProgressContent(message.content)"
+              class="agent-chat-view__progress"
+              :class="`agent-chat-view__progress--${message.content.status}`"
+            >
+              <span
+                class="agent-chat-view__plugin-icon"
+                :title="message.content.tool?.pluginName ?? message.content.tool?.name"
+              >
+                <LucideIcon
+                  :name="pluginIconName(message.content.tool?.pluginId, progressIcon(message.content.status))"
+                  :size="14"
+                />
+              </span>
+              <span>{{ progressMessage(message.content) }}</span>
+            </div>
+            <div
+              v-else-if="isPendingAssistantMessage(message)"
+              class="agent-chat-view__typing-dots"
+              aria-label="Agent is thinking"
+            >
+              <span />
+              <span />
+              <span />
+            </div>
+            <p v-else-if="messageText(message.content)">{{ messageText(message.content) }}</p>
+          </article>
+        </TransitionGroup>
         <div v-if="!store.messages.length" class="agent-chat-view__empty agent-chat-view__empty--inline">
           No messages yet.
         </div>
@@ -131,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { pluginsApi } from '@/core/api/plugins.api'
 import AgentChatComposer from '@/features/agent-panel/components/AgentChatComposer.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
@@ -152,10 +154,16 @@ const { confirm } = useConfirm()
 const historyOpen = ref(false)
 const dangerousMemoryMode = 'all-agent-memory'
 const plugins = ref<PluginSummary[]>([])
+const messagesEl = ref<HTMLElement | null>(null)
 
 const workflowRoute = computed(() =>
   store.selectedAgent ? `/workflows/${encodeURIComponent(store.selectedAgent.workflowId)}` : '/workflows',
 )
+const displayedMessagesScrollKey = computed(() => JSON.stringify(store.messages.map((message) => ({
+  id: message.id,
+  role: message.role,
+  content: message.content,
+}))))
 
 onMounted(async () => {
   try {
@@ -164,6 +172,14 @@ onMounted(async () => {
     plugins.value = []
   }
 })
+
+watch(
+  displayedMessagesScrollKey,
+  () => {
+    void scrollMessagesToBottom()
+  },
+  { flush: 'post' },
+)
 
 function selectSession(sessionId: string) {
   historyOpen.value = false
@@ -274,6 +290,14 @@ function entranceClass(message: AgentChatMessage): string {
   if (entrance === 'user') return 'agent-chat-view__message--enter-user'
   if (entrance === 'assistant') return 'agent-chat-view__message--enter-assistant'
   return ''
+}
+
+async function scrollMessagesToBottom() {
+  await nextTick()
+  messagesEl.value?.scrollTo({
+    top: messagesEl.value.scrollHeight,
+    behavior: 'smooth',
+  })
 }
 
 void dangerousMemoryMode
@@ -452,9 +476,14 @@ void ['transcript-only', 'session', 'all-agent-memory']
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  gap: var(--sailor-space-4);
   overflow: auto;
   padding: var(--sailor-space-4);
+}
+
+.agent-chat-view__message-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-4);
 }
 
 .agent-chat-view__message {
@@ -640,6 +669,24 @@ void ['transcript-only', 'session', 'all-agent-memory']
 .agent-chat-view__empty--inline {
   flex: 0;
   padding: var(--sailor-space-4);
+}
+
+.agent-chat-message-move,
+.agent-chat-message-enter-active,
+.agent-chat-message-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.agent-chat-message-enter-from {
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+}
+
+.agent-chat-message-leave-to {
+  opacity: 0;
+  transform: translate3d(0, -8px, 0);
 }
 
 @keyframes agent-message-in-user {

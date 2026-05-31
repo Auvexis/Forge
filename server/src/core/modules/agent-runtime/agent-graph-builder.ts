@@ -165,8 +165,10 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
           }
 
           emitToolIntent(input, tool, toolCall);
+          await yieldToEventLoop();
           if (shouldExecuteToolImmediately(input, tool)) {
             emitToolStart(input, tool, toolCall);
+            await yieldToEventLoop();
           }
 
           let result: unknown;
@@ -181,6 +183,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
           toolCallCount += 1;
           emitToolEnd(input, tool, toolCall, { status: "success", output: result });
           completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "success"));
+          await yieldToEventLoop();
           messages.push({
             role: "tool",
             name: tool.name,
@@ -207,6 +210,10 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
       );
     },
   };
+}
+
+function yieldToEventLoop(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
 }
 
 function toAgentRunToolCall(
