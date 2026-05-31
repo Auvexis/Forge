@@ -37,13 +37,16 @@
           <span>{{ store.sessions.length }}</span>
         </header>
         <div v-if="!store.sessions.length" class="agent-chat-view__menu-state">No chats yet.</div>
-        <button
+        <div
           v-for="session in store.sessions"
           :key="session.id"
-          type="button"
+          role="button"
+          tabindex="0"
           class="agent-chat-view__session-row"
           :class="{ 'agent-chat-view__session-row--active': session.id === store.selectedSessionId }"
           @click="selectSession(session.id)"
+          @keydown.enter.prevent="selectSession(session.id)"
+          @keydown.space.prevent="selectSession(session.id)"
         >
           <span>{{ session.title }}</span>
           <small>{{ formatSessionDate(session.updatedAt) }}</small>
@@ -55,7 +58,7 @@
           >
             <LucideIcon name="trash-2" :size="14" />
           </button>
-        </button>
+        </div>
       </div>
     </header>
 
@@ -63,6 +66,9 @@
     <div v-else-if="!store.hasOpenChat" class="agent-chat-view__empty">Select a chat.</div>
     <template v-else>
       <div class="agent-chat-view__messages">
+        <div v-if="store.chatError" class="agent-chat-view__chat-error">
+          {{ store.chatError }}
+        </div>
         <article
           v-for="message in store.messages"
           :key="message.id"
@@ -406,5 +412,13 @@ void ['transcript-only', 'session', 'all-agent-memory']
 .agent-chat-view__empty--inline {
   flex: 0;
   padding: var(--sailor-space-4);
+}
+
+.agent-chat-view__chat-error {
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  padding: var(--sailor-space-3);
+  color: var(--sailor-text-error);
+  font-size: var(--sailor-text-sm);
 }
 </style>

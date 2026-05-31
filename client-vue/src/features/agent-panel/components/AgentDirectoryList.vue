@@ -11,8 +11,8 @@
     </header>
 
     <div v-if="store.loading" class="agent-directory-list__state">Loading agents...</div>
-    <div v-else-if="store.error" class="agent-directory-list__state agent-directory-list__state--error">
-      {{ store.error }}
+    <div v-else-if="store.directoryError" class="agent-directory-list__state agent-directory-list__state--error">
+      {{ store.directoryError }}
     </div>
     <div v-else-if="!store.agents.length" class="agent-directory-list__state">
       No published agents.

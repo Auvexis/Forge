@@ -14,6 +14,8 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   const loading = ref(false)
   const sending = ref(false)
   const error = ref('')
+  const directoryError = ref('')
+  const chatError = ref('')
 
   const selectedAgent = computed(
     () => agents.value.find((agent) => agent.key === selectedAgentKey.value) ?? null,
@@ -26,15 +28,17 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   async function loadAgents(scope: 'current' | 'global' = 'current') {
     loading.value = true
     error.value = ''
+    directoryError.value = ''
     try {
       agents.value = await agentPanelApi.listAgents(scope)
       selectedAgentKey.value = selectedAgentKey.value || agents.value[0]?.key || ''
-      if (selectedAgentKey.value) await loadSessions(selectedAgentKey.value)
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load agents'
+      directoryError.value = err instanceof Error ? err.message : 'Failed to load agents'
+      error.value = directoryError.value
     } finally {
       loading.value = false
     }
+    if (!directoryError.value && selectedAgentKey.value) await loadSessions(selectedAgentKey.value)
   }
 
   async function selectAgent(agentKey: string) {
@@ -53,11 +57,17 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       messages.value = []
       return
     }
-    sessions.value = await agentPanelApi.listSessions(agentKey)
-    selectedSessionId.value = sessions.value[0]?.id ?? ''
-    draftSessionOpen.value = !selectedSessionId.value
-    messages.value = []
-    if (selectedSessionId.value) await loadMessages(selectedSessionId.value)
+    try {
+      chatError.value = ''
+      sessions.value = await agentPanelApi.listSessions(agentKey)
+      selectedSessionId.value = sessions.value[0]?.id ?? ''
+      draftSessionOpen.value = !selectedSessionId.value
+      messages.value = []
+      if (selectedSessionId.value) await loadMessages(selectedSessionId.value)
+    } catch (err) {
+      chatError.value = err instanceof Error ? err.message : 'Failed to load chats'
+      error.value = chatError.value
+    }
   }
 
   async function selectSession(sessionId: string) {
@@ -99,6 +109,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     if (!selectedSessionId.value && !draftSessionOpen.value) return
 
     sending.value = true
+    chatError.value = ''
     error.value = ''
     try {
       const result = selectedSessionId.value
@@ -109,7 +120,8 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       messages.value = result.messages
       sessions.value = [result.session, ...sessions.value.filter((session) => session.id !== result.session.id)]
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Agent message failed'
+      chatError.value = err instanceof Error ? err.message : 'Agent message failed'
+      error.value = chatError.value
     } finally {
       sending.value = false
     }
@@ -125,6 +137,8 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     loading,
     sending,
     error,
+    directoryError,
+    chatError,
     selectedAgent,
     selectedSession,
     hasOpenChat,

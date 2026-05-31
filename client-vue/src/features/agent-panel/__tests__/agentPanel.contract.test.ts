@@ -100,4 +100,20 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /messageAvatar/)
     assert.match(chat, /sailor-text-secondary/)
   })
+
+  it('keeps chat execution errors out of the agents list and avoids nested buttons', () => {
+    const directory = readFileSync(
+      'src/features/agent-panel/components/AgentDirectoryList.vue',
+      'utf8',
+    )
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+
+    assert.match(directory, /directoryError/)
+    assert.doesNotMatch(directory, /store\.error/)
+    assert.match(chat, /chatError/)
+    assert.match(store, /directoryError/)
+    assert.match(store, /chatError/)
+    assert.doesNotMatch(chat, /<button[^>]*\\s+v-for="session in store\\.sessions"[\\s\\S]*<button/)
+  })
 })
