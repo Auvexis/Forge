@@ -294,6 +294,7 @@ async function streamAgentPanelMessage(
 
   const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
   let nativeDeltaCount = 0;
+  let sawToolActivity = false;
   const completedToolCalls: ToolProgress[] = [];
   const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
     if (event.type === "agent:thinking-delta") {
@@ -301,6 +302,7 @@ async function streamAgentPanelMessage(
       if (delta) writeStreamEvent(reply, { type: "thinking", delta });
     }
     if (event.type === "agent:tool-intent") {
+      sawToolActivity = true;
       writeStreamEvent(reply, {
         type: "progress",
         status: "planned",
@@ -309,6 +311,7 @@ async function streamAgentPanelMessage(
       });
     }
     if (event.type === "agent:tool-start") {
+      sawToolActivity = true;
       writeStreamEvent(reply, {
         type: "progress",
         status: "running",
@@ -317,21 +320,20 @@ async function streamAgentPanelMessage(
       });
     }
     if (event.type === "agent:tool-end") {
+      sawToolActivity = true;
       const status = extractToolStatus(event) === "failed" ? "failed" : "success";
       const tool = extractToolProgress(event);
-      if (status === "failed") {
-        writeStreamEvent(reply, {
-          type: "progress",
-          status,
-          message: formatToolProgressMessage(event, status),
-          tool,
-        });
-      }
+      writeStreamEvent(reply, {
+        type: "progress",
+        status,
+        message: formatToolProgressMessage(event, status),
+        tool,
+      });
       if (status === "success") completedToolCalls.push(tool);
     }
     if (event.type === "agent:output-delta") {
       const delta = extractAgentDelta(event);
-      if (delta) {
+      if (delta && !sawToolActivity) {
         nativeDeltaCount += 1;
         writeStreamEvent(reply, { type: "delta", delta });
       }
@@ -364,7 +366,7 @@ async function streamAgentPanelMessage(
         if (tool.status === "success") completedToolCalls.push(tool);
       }
     }
-    if (nativeDeltaCount === 0) {
+    if (nativeDeltaCount === 0 && completedToolCalls.length === 0) {
       await writeFallbackDeltas(reply, splitAssistantMessageForStream(result));
     }
     if (completedToolCalls.length > 0) {
@@ -479,7 +481,7 @@ function formatToolProgressMessageFromTool(tool: ToolProgress, status: ToolProgr
 function writeToolProgressLifecycle(reply: FastifyReply, tool: ToolProgress): void {
   const statuses: ToolProgressStatus[] = tool.status === "failed"
     ? ["planned", "running", "failed"]
-    : ["planned", "running"];
+    : ["planned", "running", "success"];
   for (const status of statuses) {
     writeStreamEvent(reply, {
       type: "progress",

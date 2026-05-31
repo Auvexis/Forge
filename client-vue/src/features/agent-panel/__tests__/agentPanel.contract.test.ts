@@ -246,7 +246,19 @@ describe('agent panel modal contract', () => {
     assert.match(store, /mergeServerMessagesWithStableLocalTurn/)
     assert.match(store, /local-user-/)
     assert.match(store, /local-assistant-stream-/)
+    assert.match(store, /previousLocalMessages/)
+    assert.match(store, /messages\.value\.slice\(0, localTurnStart\)/)
     assert.doesNotMatch(store, /messages\.value = mergeServerMessagesWithLocalAgentEvents\(result\.messages\)/)
+  })
+
+  it('groups consecutive assistant messages under the first avatar and name', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /v-for="\([^"]*message[^"]*, index\) in store\.messages"/)
+    assert.match(chat, /isGroupedWithPrevious\(message, index\)/)
+    assert.match(chat, /agent-chat-view__message--grouped/)
+    assert.match(chat, /v-if="!isGroupedWithPrevious\(message, index\)"/)
+    assert.match(chat, /\.agent-chat-view__message--grouped/)
   })
 
   it('keeps chat messages and tool status rows visually plain', () => {

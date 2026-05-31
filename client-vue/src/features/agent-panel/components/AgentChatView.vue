@@ -68,13 +68,19 @@
       <div ref="messagesEl" class="agent-chat-view__messages">
         <TransitionGroup name="agent-chat-message" tag="div" class="agent-chat-view__message-list">
           <article
-            v-for="message in store.messages"
+            v-for="(message, index) in store.messages"
             :key="message.id"
             class="agent-chat-view__message"
-            :class="[`agent-chat-view__message--${message.role}`, entranceClass(message)]"
+            :class="[
+              `agent-chat-view__message--${message.role}`,
+              entranceClass(message),
+              { 'agent-chat-view__message--grouped': isGroupedWithPrevious(message, index) },
+            ]"
           >
-            <span class="agent-chat-view__avatar">{{ messageAvatar(message) }}</span>
-            <span class="agent-chat-view__role">
+            <span v-if="!isGroupedWithPrevious(message, index)" class="agent-chat-view__avatar">
+              {{ messageAvatar(message) }}
+            </span>
+            <span v-if="!isGroupedWithPrevious(message, index)" class="agent-chat-view__role">
               <strong>{{ messageDisplayName(message) }}</strong>
               <time>{{ formatMessageTime(message) }}</time>
             </span>
@@ -258,6 +264,12 @@ function isPendingAssistantMessage(message: AgentChatMessage): boolean {
   const content = message.content
   if (!content || typeof content !== 'object' || Array.isArray(content)) return false
   return (content as Record<string, unknown>).pending === true && !messageText(content)
+}
+
+function isGroupedWithPrevious(message: AgentChatMessage, index: number): boolean {
+  if (index <= 0 || message.role !== 'assistant') return false
+  const previous = store.messages[index - 1]
+  return Boolean(previous && previous.role === 'assistant')
 }
 
 function messageDisplayName(message: AgentChatMessage): string {
@@ -515,6 +527,10 @@ void ['transcript-only', 'session', 'all-agent-memory']
 .agent-chat-view__message--tool,
 .agent-chat-view__message--system {
   align-self: flex-start;
+}
+
+.agent-chat-view__message--grouped {
+  margin-top: calc(var(--sailor-space-3) * -1);
 }
 
 .agent-chat-view__role {

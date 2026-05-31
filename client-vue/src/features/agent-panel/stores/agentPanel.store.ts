@@ -191,7 +191,9 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       tools: event.tools,
     }
     messages.value = [
-      ...messages.value.filter((message) => message.id !== id),
+      ...messages.value.filter((message) =>
+        message.id !== id && message.id !== `local-assistant-stream-${sessionId}`,
+      ),
       {
         id,
         profileId: '',
@@ -325,16 +327,8 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       .slice(localTurnStart)
       .filter((message) => message.sessionId === sessionId)
       .map(finalizeLocalAssistantMessage)
-    const localUser = stableLocalTurn.find((message) => message.role === 'user')
-    const localUserText = localUser ? normalizeMessageText(localUser.content) : ''
-    const serverTurnStart = findLastMessageIndex(serverMessages, (message) =>
-      message.sessionId === sessionId &&
-      message.role === 'user' &&
-      normalizeMessageText(message.content) === localUserText,
-    )
-
-    if (serverTurnStart < 0) return [...serverMessages, ...stableLocalTurn]
-    return [...serverMessages.slice(0, serverTurnStart), ...stableLocalTurn]
+    const previousLocalMessages = messages.value.slice(0, localTurnStart)
+    return [...previousLocalMessages, ...stableLocalTurn]
   }
 
   function finalizeLocalAssistantMessage(message: AgentChatMessage): AgentChatMessage {
