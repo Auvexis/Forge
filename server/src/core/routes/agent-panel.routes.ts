@@ -170,6 +170,7 @@ export default async function agentPanelRoutes(
     writeStreamEvent(reply, { type: "start" });
 
     const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
+    let nativeDeltaCount = 0;
     const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
       if (event.type === "agent:thinking-delta") {
         const delta = extractAgentDelta(event);
@@ -177,7 +178,10 @@ export default async function agentPanelRoutes(
       }
       if (event.type === "agent:output-delta") {
         const delta = extractAgentDelta(event);
-        if (delta) writeStreamEvent(reply, { type: "delta", delta });
+        if (delta) {
+          nativeDeltaCount += 1;
+          writeStreamEvent(reply, { type: "delta", delta });
+        }
       }
       if (event.type === "agent:error") {
         writeStreamEvent(reply, {
@@ -200,6 +204,9 @@ export default async function agentPanelRoutes(
         message,
         executionId,
       });
+      if (nativeDeltaCount === 0) {
+        await writeFallbackDeltas(reply, splitAssistantMessageForStream(result));
+      }
       writeStreamEvent(reply, { type: "done", result });
     } catch (error) {
       const serialized = error instanceof AgentRuntimeError
@@ -280,6 +287,46 @@ function extractAgentError(event: WorkflowEvent): string | null {
   if (typeof data?.message === "string" && data.message.trim()) return data.message.trim();
   if (typeof data?.error === "string" && data.error.trim()) return data.error.trim();
   return null;
+}
+
+function splitAssistantMessageForStream(result: unknown): string[] {
+  const text = latestAssistantMessageText(result);
+  if (!text) return [];
+
+  const chunks = text.match(/.{1,18}(?:\s+|$)|\S+/g) ?? [text];
+  return chunks.map((chunk) => chunk).filter(Boolean);
+}
+
+async function writeFallbackDeltas(reply: FastifyReply, deltas: string[]): Promise<void> {
+  for (const delta of deltas) {
+    writeStreamEvent(reply, { type: "delta", delta });
+    await delay(30);
+  }
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function latestAssistantMessageText(result: unknown): string {
+  if (!result || typeof result !== "object") return "";
+  const messages = (result as { messages?: unknown }).messages;
+  if (!Array.isArray(messages)) return "";
+
+  const assistant = [...messages].reverse().find((message) => {
+    return Boolean(message && typeof message === "object" && (message as { role?: unknown }).role === "assistant");
+  });
+  if (!assistant || typeof assistant !== "object") return "";
+  return normalizeMessageContent((assistant as { content?: unknown }).content);
+}
+
+function normalizeMessageContent(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (!content || typeof content !== "object" || Array.isArray(content)) return "";
+  const record = content as Record<string, unknown>;
+  if (typeof record.text === "string") return record.text;
+  if (typeof record.content === "string") return record.content;
+  return "";
 }
 
 function safeErrorMessage(error: unknown): string {

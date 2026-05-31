@@ -147,6 +147,44 @@ describe("agent panel routes", () => {
     assert.deepEqual(events.map((event) => event.type), ["start", "thinking", "delta", "delta", "done"]);
     assert.deepEqual(events.map((event) => event.delta).filter(Boolean), ["thinking ", "hel", "lo"]);
   });
+
+  it("streams the final assistant message in chunks when the model did not emit native deltas", async () => {
+    const app = await buildApp({
+      sendMessage: async () => ({
+        session: session("chat_1"),
+        messages: [
+          message("msg_user", "chat_1"),
+          {
+            ...message("msg_assistant", "chat_1"),
+            role: "assistant" as const,
+            content: "Hello there, this response should not arrive as one big blob.",
+          },
+        ],
+        execution: { status: "SUCCESS" },
+      }),
+    });
+
+    const startedAt = Date.now();
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Hello" },
+    });
+    const elapsedMs = Date.now() - startedAt;
+    const events = response.body
+      .split("\n\n")
+      .filter((chunk) => chunk.startsWith("data:"))
+      .map((chunk) => JSON.parse(chunk.slice("data:".length).trim()) as { type: string; delta?: string });
+    const deltaEvents = events.filter((event) => event.type === "delta");
+
+    assert.ok(deltaEvents.length > 2);
+    assert.ok(elapsedMs >= 50);
+    assert.equal(
+      deltaEvents.map((event) => event.delta ?? "").join(""),
+      "Hello there, this response should not arrive as one big blob.",
+    );
+    assert.equal(events.at(-1)?.type, "done");
+  });
 });
 
 async function buildApp(service: Partial<AgentPanelChatService>) {
