@@ -54,30 +54,30 @@ onMounted(() => {
   min-height: 0;
   min-width: 0;
   flex-direction: column;
-  border-right: 1px solid rgba(15, 23, 42, 0.08);
-  background: #ffffff;
+  border-right: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-surface);
 }
 
 .agent-directory-list__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 18px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-4);
+  border-bottom: 1px solid var(--sailor-border);
 }
 
 .agent-directory-list__header h2 {
   margin: 0;
-  color: #111827;
-  font-size: 16px;
-  font-weight: 700;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-base);
+  font-weight: var(--sailor-font-bold);
 }
 
 .agent-directory-list__header p {
   margin: 4px 0 0;
-  color: #64748b;
-  font-size: 12px;
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
 }
 
 .agent-directory-list__refresh {
@@ -85,40 +85,40 @@ onMounted(() => {
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 8px;
-  background: #ffffff;
-  color: #334155;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-secondary);
   cursor: pointer;
 }
 
 .agent-directory-list__state {
-  padding: 18px;
-  color: #64748b;
-  font-size: 13px;
+  padding: var(--sailor-space-4);
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-sm);
 }
 
 .agent-directory-list__state--error {
-  color: #b91c1c;
+  color: var(--sailor-text-error);
 }
 
 .agent-directory-list__item {
   display: flex;
   width: 100%;
   align-items: center;
-  gap: 12px;
+  gap: var(--sailor-space-3);
   border: 0;
   border-left: 3px solid transparent;
   background: transparent;
-  padding: 12px 15px;
+  padding: var(--sailor-space-3) var(--sailor-space-4);
   text-align: left;
   cursor: pointer;
 }
 
 .agent-directory-list__item:hover,
 .agent-directory-list__item--active {
-  border-left-color: #f59e0b;
-  background: #fff7ed;
+  border-left-color: var(--sailor-accent);
+  background: var(--sailor-button-ghost-hover);
 }
 
 .agent-directory-list__emoji {
@@ -127,8 +127,8 @@ onMounted(() => {
   height: 38px;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 8px;
-  background: #f8fafc;
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-elevated);
   font-size: 22px;
 }
 
@@ -147,17 +147,17 @@ onMounted(() => {
 }
 
 .agent-directory-list__copy strong {
-  color: #111827;
-  font-size: 14px;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
 }
 
 .agent-directory-list__copy span {
-  color: #475569;
-  font-size: 12px;
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
 }
 
 .agent-directory-list__copy small {
-  color: #94a3b8;
-  font-size: 11px;
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
 }
 </style>

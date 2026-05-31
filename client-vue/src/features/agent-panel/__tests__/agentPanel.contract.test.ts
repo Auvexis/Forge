@@ -2,18 +2,30 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 
-describe('agent panel page contract', () => {
-  it('registers the global agents route and page', () => {
+describe('agent panel modal contract', () => {
+  it('mounts the global agent panel as a BaseModal overlay instead of a page route', () => {
+    const app = readFileSync('src/app/App.vue', 'utf8')
     const router = readFileSync('src/app/router.ts', 'utf8')
-    assert.match(router, /AgentPanelPage/)
-    assert.match(router, /path:\s*['"]\/agents['"]/)
+    const modal = readFileSync('src/features/agent-panel/components/AppGlobalAgentPanel.vue', 'utf8')
+
+    assert.match(app, /AppGlobalAgentPanel/)
+    assert.match(modal, /BaseModal/)
+    assert.match(modal, /AgentDirectoryList/)
+    assert.match(modal, /AgentChatView/)
+    assert.doesNotMatch(router, /AgentPanelPage/)
+    assert.doesNotMatch(router, /path:\s*['"]\/agents['"]/)
   })
 
-  it('renders three product columns', () => {
-    const page = readFileSync('src/app/pages/AgentPanelPage.vue', 'utf8')
-    assert.match(page, /AgentDirectoryList/)
-    assert.match(page, /AgentSessionList/)
-    assert.match(page, /AgentChatView/)
+  it('keeps only one aside and opens chat history from a floating chat menu', () => {
+    const modal = readFileSync('src/features/agent-panel/components/AppGlobalAgentPanel.vue', 'utf8')
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(modal, /AgentDirectoryList/)
+    assert.doesNotMatch(modal, /AgentSessionList/)
+    assert.match(chat, /agent-chat-view__floating-menu/)
+    assert.match(chat, /createSession/)
+    assert.match(chat, /selectSession/)
+    assert.match(chat, /deleteSession/)
   })
 
   it('agent and session lists expose expected actions', () => {
@@ -21,16 +33,13 @@ describe('agent panel page contract', () => {
       'src/features/agent-panel/components/AgentDirectoryList.vue',
       'utf8',
     )
-    const sessions = readFileSync(
-      'src/features/agent-panel/components/AgentSessionList.vue',
-      'utf8',
-    )
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
 
     assert.match(directory, /agent\.emoji/)
     assert.match(directory, /agent\.workflowName/)
-    assert.match(sessions, /createSession/)
-    assert.match(sessions, /deleteSession/)
+    assert.match(chat, /createSession/)
+    assert.match(chat, /deleteSession/)
     assert.match(store, /loadSessions/)
   })
 
@@ -50,14 +59,27 @@ describe('agent panel page contract', () => {
   })
 
   it('session delete exposes memory cleanup choices with dangerous confirmation', () => {
-    const sessions = readFileSync(
-      'src/features/agent-panel/components/AgentSessionList.vue',
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /useConfirm/)
+    assert.match(chat, /transcript-only/)
+    assert.match(chat, /session/)
+    assert.match(chat, /all-agent-memory/)
+    assert.match(chat, /dangerousMemoryMode/)
+  })
+
+  it('uses theme tokens and renders message identity with timestamps', () => {
+    const directory = readFileSync(
+      'src/features/agent-panel/components/AgentDirectoryList.vue',
       'utf8',
     )
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 
-    assert.match(sessions, /transcript-only/)
-    assert.match(sessions, /session/)
-    assert.match(sessions, /all-agent-memory/)
-    assert.match(sessions, /dangerousMemoryMode/)
+    assert.doesNotMatch(`${directory}\n${chat}`, /#[0-9a-fA-F]{3,8}/)
+    assert.doesNotMatch(`${directory}\n${chat}`, /rgba?\(/)
+    assert.match(chat, /formatMessageTime/)
+    assert.match(chat, /messageDisplayName/)
+    assert.match(chat, /messageAvatar/)
+    assert.match(chat, /sailor-text-secondary/)
   })
 })

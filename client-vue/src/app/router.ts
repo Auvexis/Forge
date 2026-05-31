@@ -36,12 +36,6 @@ const router = createRouter({
       meta: { title: 'Pages' },
     },
     {
-      path: '/agents',
-      name: 'agents',
-      component: () => import('@/app/pages/AgentPanelPage.vue'),
-      meta: { title: 'Agents' },
-    },
-    {
       path: '/forms-test/:formId',
       name: 'form-test',
       component: () => import('@/app/pages/FormPage.vue'),

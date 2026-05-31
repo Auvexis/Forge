@@ -159,6 +159,7 @@
       <AppGlobalSettings />
       <ProfileSettingsPanel v-model="isProfileSettingsOpen" />
       <AppGlobalAutomationMonitor />
+      <AppGlobalAgentPanel />
       <ExternalPluginInstaller
         :is-open="isPluginInstallerOpen"
         @close="isPluginInstallerOpen = false"
@@ -186,6 +187,8 @@ import SidebarGlobalPanel from '@/shared/components/layout/SidebarGlobalPanel.vu
 import AppGlobalSettings from '@/shared/components/layout/AppGlobalSettings.vue'
 import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import CommandPaletteHost from '@/features/command-palette/components/CommandPaletteHost.vue'
+import AppGlobalAgentPanel from '@/features/agent-panel/components/AppGlobalAgentPanel.vue'
+import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
@@ -208,6 +211,7 @@ import AppGlobalAutomationMonitor, {
 
 const settingsStore = useSettingsStore()
 const appUiStore = useAppUiStore()
+const agentPanelUi = useAgentPanelUiStore()
 const commandPaletteStore = useCommandPaletteStore()
 const route = useRoute()
 const isPublicRoute = computed(() => route.meta.public === true)
@@ -251,6 +255,7 @@ function handleUiIntent(event: Event) {
   if (intent?.type === 'monitoring.open') {
     if (!isAutomationMonitorOpen.value) toggleAutomationMonitor()
   }
+  if (intent?.type === 'agent-panel.open') agentPanelUi.open()
 }
 
 function handleProfileIntent() {

@@ -58,7 +58,7 @@ export const sidebarSections: SidebarSection[] = [
         description: 'Chat with published workflow agents across your profile.',
         icon: 'bot',
         accent: '#f59e0b',
-        route: '/agents',
+        intent: { type: 'agent-panel.open' },
       },
       {
         id: 'monitoring',

@@ -23,11 +23,25 @@ describe("app command providers", () => {
         .map((command) => command.id),
       [
         "nav.home",
+        "agent-panel.open",
         "nav.settings",
         "nav.universe",
         "nav.workflows",
       ],
     );
+  });
+
+  it("returns a UI intent for opening the global agent panel", async () => {
+    const registry = new CommandRegistry();
+    registry.registerProvider(navigationCommandProvider);
+
+    const entry = await registry.find("agent-panel.open", {});
+
+    assert.deepEqual(await entry?.handler.execute({}, {}), {
+      ok: true,
+      message: "Agent panel opened",
+      uiIntent: { type: "agent-panel.open" },
+    });
   });
 
   it("returns typed UI intents for production panel commands", async () => {

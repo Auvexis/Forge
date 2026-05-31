@@ -107,8 +107,8 @@ async function confirmDeleteSession() {
   min-height: 0;
   min-width: 0;
   flex-direction: column;
-  border-right: 1px solid rgba(15, 23, 42, 0.08);
-  background: #fbfcfe;
+  border-right: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-surface);
 }
 
 .agent-session-list__header {
@@ -117,12 +117,12 @@ async function confirmDeleteSession() {
   justify-content: space-between;
   gap: 12px;
   padding: 18px;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-bottom: 1px solid var(--sailor-border);
 }
 
 .agent-session-list__header h2 {
   margin: 0;
-  color: #111827;
+  color: var(--sailor-text-primary);
   font-size: 16px;
   font-weight: 700;
 }
@@ -130,7 +130,7 @@ async function confirmDeleteSession() {
 .agent-session-list__header p {
   overflow: hidden;
   margin: 4px 0 0;
-  color: #64748b;
+  color: var(--sailor-text-secondary);
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -141,10 +141,10 @@ async function confirmDeleteSession() {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--sailor-border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #334155;
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-secondary);
   cursor: pointer;
 }
 
@@ -160,7 +160,7 @@ async function confirmDeleteSession() {
 
 .agent-session-list__state {
   padding: 18px;
-  color: #64748b;
+  color: var(--sailor-text-secondary);
   font-size: 13px;
 }
 
@@ -172,8 +172,8 @@ async function confirmDeleteSession() {
 
 .agent-session-list__row:hover,
 .agent-session-list__row--active {
-  border-left-color: #0ea5e9;
-  background: #f0f9ff;
+  border-left-color: var(--sailor-accent);
+  background: var(--sailor-button-ghost-hover);
 }
 
 .agent-session-list__select {
@@ -190,7 +190,7 @@ async function confirmDeleteSession() {
 
 .agent-session-list__title {
   overflow: hidden;
-  color: #111827;
+  color: var(--sailor-text-primary);
   font-size: 14px;
   font-weight: 600;
   text-overflow: ellipsis;
@@ -198,7 +198,7 @@ async function confirmDeleteSession() {
 }
 
 .agent-session-list__date {
-  color: #94a3b8;
+  color: var(--sailor-text-muted);
   font-size: 12px;
 }
 
@@ -219,16 +219,16 @@ async function confirmDeleteSession() {
 
 .agent-session-list__delete-menu {
   margin: auto 12px 12px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--sailor-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--sailor-bg-elevated);
   padding: 12px;
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 18px 44px var(--sailor-border-strong);
 }
 
 .agent-session-list__delete-menu h3 {
   margin: 0 0 10px;
-  color: #111827;
+  color: var(--sailor-text-primary);
   font-size: 14px;
 }
 
@@ -237,12 +237,12 @@ async function confirmDeleteSession() {
   align-items: center;
   gap: 8px;
   margin-top: 8px;
-  color: #334155;
+  color: var(--sailor-text-secondary);
   font-size: 13px;
 }
 
 .agent-session-list__confirm {
-  color: #b91c1c;
+  color: var(--sailor-text-error);
 }
 
 .agent-session-list__delete-actions {
@@ -253,19 +253,19 @@ async function confirmDeleteSession() {
 }
 
 .agent-session-list__delete-actions button {
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--sailor-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--sailor-bg-elevated);
   padding: 7px 10px;
-  color: #334155;
+  color: var(--sailor-text-secondary);
   font: inherit;
   cursor: pointer;
 }
 
 .agent-session-list__delete-actions button:last-child {
-  border-color: #dc2626;
-  background: #dc2626;
-  color: #ffffff;
+  border-color: var(--sailor-red-600);
+  background: var(--sailor-red-600);
+  color: var(--sailor-bg-elevated);
 }
 
 .agent-session-list__delete-actions button:disabled {
@@ -273,3 +273,4 @@ async function confirmDeleteSession() {
   opacity: 0.45;
 }
 </style>
+
