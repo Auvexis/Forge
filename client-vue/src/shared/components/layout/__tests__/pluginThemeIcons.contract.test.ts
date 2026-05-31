@@ -18,6 +18,26 @@ const commandPaletteRowSource = readFileSync(
   'utf8',
 )
 
+const pluginNodeSource = readFileSync(
+  fileURLToPath(
+    new URL(
+      '../../../../features/workflow-editor/components/nodes/PluginNode.vue',
+      import.meta.url,
+    ),
+  ),
+  'utf8',
+)
+
+const aiModelNodeSource = readFileSync(
+  fileURLToPath(
+    new URL(
+      '../../../../features/workflow-editor/components/nodes/AiModelNode.vue',
+      import.meta.url,
+    ),
+  ),
+  'utf8',
+)
+
 describe('plugin theme icons', () => {
   it('resolves credentials plugin icons through the theme-aware plugin icon resolver', () => {
     assert.match(globalSettingsSource, /import \{ resolvePluginIcon \}/)
@@ -33,5 +53,15 @@ describe('plugin theme icons', () => {
     assert.match(commandPaletteRowSource, /const \{ isDark \} = useTheme\(\)/)
     assert.match(commandPaletteRowSource, /const commandIcon = computed/)
     assert.match(commandPaletteRowSource, /:name="commandIcon"/)
+  })
+
+  it('refreshes canvas plugin icons when the active theme changes', () => {
+    for (const source of [pluginNodeSource, aiModelNodeSource]) {
+      assert.match(source, /const \{ isDark \} = useTheme\(\)/)
+      assert.match(source, /watch\(/)
+      assert.match(source, /\(\) => isDark\.value/)
+      assert.match(source, /loadPluginAppearance/)
+      assert.match(source, /resolvePluginIcon/)
+    }
   })
 })

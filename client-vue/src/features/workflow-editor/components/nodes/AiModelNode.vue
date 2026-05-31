@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Position, type NodeProps } from '@vue-flow/core'
 import type { AiModelNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
@@ -25,7 +25,11 @@ const customBorder = ref<string | undefined>(undefined)
 const customIconColor = ref<string | undefined>(undefined)
 const { isDark } = useTheme()
 
-onMounted(async () => {
+async function loadPluginAppearance() {
+  pluginIcon.value = defaultPluginIcon
+  customBg.value = undefined
+  customBorder.value = undefined
+  customIconColor.value = undefined
   if (!pluginId.value) return
 
   try {
@@ -41,7 +45,10 @@ onMounted(async () => {
     pluginIcon.value = defaultPluginIcon
     console.warn(`Failed to load model plugin icon for ${pluginId.value}`, err)
   }
-})
+}
+
+watch(() => pluginId.value, loadPluginAppearance, { immediate: true })
+watch(() => isDark.value, loadPluginAppearance)
 </script>
 
 <template>

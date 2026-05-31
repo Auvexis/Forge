@@ -47,6 +47,7 @@ async function loadPluginAppearance(currentPluginId: string) {
 }
 
 watch(() => pluginId.value, loadPluginAppearance, { immediate: true })
+watch(() => isDark.value, () => loadPluginAppearance(pluginId.value))
 </script>
 
 <template>

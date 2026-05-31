@@ -9,10 +9,13 @@
           :data-role="message.role"
         >
           <div class="chat-session-panel__avatar" aria-hidden="true">
-            <LucideIcon :name="message.role === 'user' ? 'user' : 'bot'" :size="17" />
+            {{ messageAvatar(message) }}
           </div>
           <div class="chat-session-panel__message-copy">
-            <strong>{{ formatRole(message.role) }}</strong>
+            <strong>
+              <span>{{ messageDisplayName(message) }}</span>
+              <time>{{ formatMessageTime(message) }}</time>
+            </strong>
             <template v-if="isToolStatusContent(message.content)">
               <div
                 class="chat-session-panel__tool-status"
@@ -160,13 +163,14 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { agentChatApi } from '@/core/api/agent-chat.api'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { ApiError } from '@/core/types/api.types'
 import type { AgentChatMessage, AgentChatMessageRole } from '@/features/agent-runtime/types/agent.types'
 import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
+import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
+import { useProfileStore } from '@/shared/stores/profile.store'
 import { useToast } from '@/shared/composables/useToast'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
@@ -174,6 +178,8 @@ export interface ChatPanelTrigger {
   triggerNodeId: string
   chatSlug?: string
   title?: string
+  agentDisplayName?: string
+  agentEmoji?: string
 }
 
 const props = withDefaults(
@@ -206,7 +212,8 @@ const isListening = ref(false)
 const targetMenuOpen = ref(false)
 const approvalPendingId = ref<string | null>(null)
 const toast = useToast()
-const router = useRouter()
+const agentPanelUi = useAgentPanelUiStore()
+const profileStore = useProfileStore()
 const executionStore = useExecutionStore()
 const workflowStore = useWorkflowStore()
 const sessionWorkflowRevision = ref<string | undefined>()
@@ -341,7 +348,7 @@ async function sendCurrentMessage() {
 }
 
 function openPublishedAgentPanel() {
-  void router.push('/agents')
+  agentPanelUi.open()
 }
 
 async function sendDevSessionMessage(message: string) {
@@ -726,6 +733,25 @@ function detectChatLocale(value: unknown): 'pt' | 'en' {
 function formatRole(role: AgentChatMessageRole) {
   return role.charAt(0).toUpperCase() + role.slice(1)
 }
+
+function messageDisplayName(message: AgentChatMessage) {
+  if (message.role === 'user') return profileStore.currentProfile?.name ?? 'User'
+  if (message.role === 'assistant') return selectedTrigger.value?.agentDisplayName || selectedTrigger.value?.title || 'Assistant'
+  return formatRole(message.role)
+}
+
+function messageAvatar(message: AgentChatMessage) {
+  if (message.role === 'user') return profileStore.currentProfile?.avatarEmoji ?? 'U'
+  if (message.role === 'assistant') return selectedTrigger.value?.agentEmoji || '🤖'
+  return '•'
+}
+
+function formatMessageTime(message: AgentChatMessage) {
+  const raw = (message as { createdAt?: string; timestamp?: string }).createdAt ?? (message as { timestamp?: string }).timestamp
+  const date = raw ? new Date(raw) : new Date()
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(date)
+}
 </script>
 
 <style scoped>
@@ -942,9 +968,18 @@ function formatRole(role: AgentChatMessageRole) {
 }
 
 .chat-session-panel__message-copy strong {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sailor-space-2);
   color: var(--sailor-text-primary);
   font-size: var(--sailor-text-sm);
   font-weight: 700;
+}
+
+.chat-session-panel__message-copy time {
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
+  font-weight: var(--sailor-font-medium);
 }
 
 .chat-session-panel__message-copy p {

@@ -2,7 +2,7 @@
 import type { NodeProps } from '@vue-flow/core'
 import type { PluginNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { apiRequest } from '@/core/api/client'
 import { ENDPOINTS } from '@/core/api/endpoints'
 import { useTheme } from '@/shared/composables/useTheme'
@@ -22,8 +22,14 @@ const customBorder = ref<string | undefined>(undefined)
 const customIconColor = ref<string | undefined>(undefined)
 const { isDark } = useTheme()
 
-onMounted(async () => {
+async function loadPluginAppearance() {
   const pid = props.data?.pluginId
+  pluginIcon.value = 'box'
+  customBg.value = undefined
+  customBorder.value = undefined
+  customIconColor.value = undefined
+  displayPluginId.value = undefined
+
   if (pid) {
     try {
       const plugin = await apiRequest<any>(ENDPOINTS.PLUGIN_BY_ID(pid))
@@ -44,7 +50,10 @@ onMounted(async () => {
       console.warn(`Failed to load plugin icon for ${pid}`, err)
     }
   }
-})
+}
+
+watch(() => props.data?.pluginId, loadPluginAppearance, { immediate: true })
+watch(() => isDark.value, loadPluginAppearance)
 
 // Computar os parâmetros restritos a 3 (design React)
 const paramEntries = computed(() => {

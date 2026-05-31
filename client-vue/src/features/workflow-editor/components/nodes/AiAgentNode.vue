@@ -5,7 +5,6 @@ import type { AiAgentNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
 import QuickAddButton from '../QuickAddButton.vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = defineProps<
   NodeProps<AiAgentNode> & {
@@ -14,7 +13,8 @@ const props = defineProps<
   }
 >()
 
-const stepTitle = computed(() => props.data?.name || 'AI Agent')
+const displayTitle = computed(() => props.data?.agentDisplayName || props.data?.name || 'AI Agent')
+const displayAvatar = computed(() => props.data?.agentEmoji || '🤖')
 </script>
 
 <template>
@@ -35,10 +35,10 @@ const stepTitle = computed(() => props.data?.name || 'AI Agent')
       <template #icon>
         <div class="ai-agent-node__card-content">
           <div class="ai-agent-node__icon">
-            <LucideIcon name="bot" :size="36" />
+            <span>{{ displayAvatar }}</span>
           </div>
           <div class="ai-agent-node__copy">
-            <span class="ai-agent-node__title" :title="stepTitle">{{ stepTitle }}</span>
+            <span class="ai-agent-node__title" :title="displayTitle">{{ displayTitle }}</span>
             <span class="ai-agent-node__subtitle">Tools Agent</span>
           </div>
         </div>
@@ -110,6 +110,7 @@ const stepTitle = computed(() => props.data?.name || 'AI Agent')
   width: 36px;
   height: 36px;
   color: var(--sailor-text-muted);
+  font-size: 28px;
   flex-shrink: 0;
 }
 

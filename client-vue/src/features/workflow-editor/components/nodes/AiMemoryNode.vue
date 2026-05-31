@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Position, type NodeProps } from '@vue-flow/core'
 import type { AiMemoryNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
@@ -31,7 +31,12 @@ const customBorder = ref<string | undefined>(undefined)
 const customIconColor = ref<string | undefined>(undefined)
 const { isDark } = useTheme()
 
-onMounted(async () => {
+async function loadPluginAppearance() {
+  pluginIcon.value = defaultMemoryIcon.value
+  customBg.value = undefined
+  customBorder.value = undefined
+  customIconColor.value = undefined
+
   try {
     const plugin = await apiRequest<any>(ENDPOINTS.PLUGIN_BY_ID(pluginId.value))
     const metadata = plugin?.manifest?.metadata
@@ -45,7 +50,10 @@ onMounted(async () => {
     pluginIcon.value = defaultMemoryIcon.value
     console.warn(`Failed to load memory plugin icon for ${pluginId.value}`, err)
   }
-})
+}
+
+watch(() => pluginId.value, loadPluginAppearance, { immediate: true })
+watch(() => isDark.value, loadPluginAppearance)
 </script>
 
 <template>
