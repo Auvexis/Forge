@@ -117,6 +117,14 @@ The global Agent Panel discovers published agents from active, non-draft workflo
 
 Each published agent entry uses `profileId:workflowId:triggerNodeId:agentNodeId` as its stable key. The panel executes that selected agent instead of treating a workflow as an ambiguous fan-out.
 
+## Global Agent Panel
+
+The global Agent Panel is the production chat surface for published agents. The Workflow Editor chat remains scoped to Dev Sessions and points users to `/agents` for published conversations.
+
+The panel discovers published agents from active workflows. An agent is eligible when a Chat Trigger with a chat slug reaches an AI Agent that has a connected AI Model.
+
+Chat sessions store transcript history. Transcript is not long-term memory. Long-term memory is still controlled by AI Memory nodes and their configured scope. Deleting a chat deletes the transcript and can optionally delete session-scoped memory or explicitly delete long-term records written by that selected agent.
+
 ## Debugging Agent Runs
 
 Use the workflow execution panel and Agent Trace section. Agent events are emitted as `agent:*` timeline events:
