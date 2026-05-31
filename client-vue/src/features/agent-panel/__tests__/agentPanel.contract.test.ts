@@ -78,12 +78,14 @@ describe('agent panel modal contract', () => {
 
   it('session delete exposes memory cleanup choices with dangerous confirmation', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const confirmPanel = readFileSync('src/shared/components/layout/AppConfirmPanel.vue', 'utf8')
 
     assert.match(chat, /useConfirm/)
     assert.match(chat, /transcript-only/)
     assert.match(chat, /session/)
     assert.match(chat, /all-agent-memory/)
     assert.match(chat, /dangerousMemoryMode/)
+    assert.match(confirmPanel, /z-index:\s*10001/)
   })
 
   it('uses theme tokens and renders message identity with timestamps', () => {

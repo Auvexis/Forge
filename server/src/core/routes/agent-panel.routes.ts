@@ -25,6 +25,7 @@ export interface AgentPanelRoutesOptions {
 
 type AgentPanelScope = "current" | "global";
 type MemoryMode = DeleteAgentPanelSessionInput["memoryMode"];
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
 
 export default async function agentPanelRoutes(
   fastify: FastifyInstance,
@@ -254,6 +255,7 @@ function writeStreamHeaders(reply: FastifyReply): void {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
     Connection: "keep-alive",
+    "Access-Control-Allow-Origin": CLIENT_ORIGIN,
     "Access-Control-Allow-Credentials": "true",
   });
 }

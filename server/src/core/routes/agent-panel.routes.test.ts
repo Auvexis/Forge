@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import Fastify from "fastify";
 import agentPanelRoutes from "./agent-panel.routes.ts";
@@ -66,6 +67,7 @@ describe("agent panel routes", () => {
 
     const routes = app.printRoutes();
     assert.match(routes, /agent-panel\/[\s\S]*sessions\/[\s\S]*:sessionId[\s\S]*\/messages[\s\S]*\/stream/);
+    assert.match(readFileSync("src/core/routes/agent-panel.routes.ts", "utf8"), /Access-Control-Allow-Origin/);
 
     const deleted = await app.inject({
       method: "DELETE",
