@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
-import { DatabaseManager } from "../../../database/index.ts";
 import { AgentRuntimeError } from "../agent-errors.ts";
 import {
   buildPublishedAgentKey,
@@ -41,9 +40,13 @@ export interface DeleteAgentPanelSessionInput {
 
 export interface AgentPanelChatServiceOptions {
   db?: Database.Database;
-  workflowRepository?: Pick<typeof WorkflowRepository, "getActiveWorkflows" | "getWorkflows">;
+  workflowRepository?: AgentPanelWorkflowRepository;
   workflowEngine?: Pick<typeof WorkflowEngine, "executeWorkflowFromTrigger">;
 }
+
+type AgentPanelWorkflowRepository = Pick<typeof WorkflowRepository, "getActiveWorkflows" | "getWorkflows"> & {
+  database?: () => Database.Database;
+};
 
 interface ResolvedPublishedAgent {
   summary: PublishedAgentSummary;
@@ -58,10 +61,10 @@ export class AgentPanelChatService {
   private readonly workflowEngine: Pick<typeof WorkflowEngine, "executeWorkflowFromTrigger">;
 
   constructor(options: AgentPanelChatServiceOptions = {}) {
-    this.db = options.db ?? DatabaseManager.workflows;
+    this.workflowRepository = options.workflowRepository ?? WorkflowRepository;
+    this.db = options.db ?? resolveWorkflowDatabase(this.workflowRepository);
     this.sessions = new ChatSessionRepository(this.db);
     this.messages = new ChatMessageRepository(this.db);
-    this.workflowRepository = options.workflowRepository ?? WorkflowRepository;
     this.workflowEngine = options.workflowEngine ?? WorkflowEngine;
   }
 
@@ -325,3 +328,7 @@ function createSessionTitle(message: string): string {
 }
 
 export { buildPublishedAgentKey };
+
+function resolveWorkflowDatabase(repository: AgentPanelWorkflowRepository): Database.Database {
+  return repository.database?.() ?? WorkflowRepository.database();
+}

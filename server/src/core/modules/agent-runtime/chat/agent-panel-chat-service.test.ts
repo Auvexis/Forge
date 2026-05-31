@@ -46,6 +46,21 @@ describe("agent panel chat service", () => {
     assert.equal(session.agentKey, "profile_a:workflow_agent:chat_trigger:agent");
   });
 
+  it("uses the active profile workflow database for panel sessions by default", async () => {
+    const service = new AgentPanelChatService();
+
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+
+    const row = workflowDb!
+      .prepare(`SELECT id FROM agent_chat_sessions WHERE id = ?`)
+      .get(session.id) as { id: string } | undefined;
+    assert.equal(row?.id, session.id);
+  });
+
   it("sends messages with targetAgentNodeId and previous transcript", async () => {
     const service = serviceFixture();
     const session = await service.createSession({
