@@ -130,6 +130,8 @@ export const ENDPOINTS = {
     `/agent-panel/agents/${encodeURIComponent(agentKey)}/messages`,
   AGENT_PANEL_SESSION_MESSAGES: (sessionId: string) =>
     `/agent-panel/sessions/${encodeURIComponent(sessionId)}/messages`,
+  AGENT_PANEL_SESSION_MESSAGES_STREAM: (sessionId: string) =>
+    `/agent-panel/sessions/${encodeURIComponent(sessionId)}/messages/stream`,
   AGENT_PANEL_SESSION: (sessionId: string) =>
     `/agent-panel/sessions/${encodeURIComponent(sessionId)}`,
   AGENT_TOOLS: '/agent-tools',

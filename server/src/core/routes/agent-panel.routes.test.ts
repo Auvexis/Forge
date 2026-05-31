@@ -64,6 +64,9 @@ describe("agent panel routes", () => {
     });
     assertEnvelope(sent, 200, "Agent panel message sent");
 
+    const routes = app.printRoutes();
+    assert.match(routes, /agent-panel\/[\s\S]*sessions\/[\s\S]*:sessionId[\s\S]*\/messages[\s\S]*\/stream/);
+
     const deleted = await app.inject({
       method: "DELETE",
       url: "/agent-panel/sessions/chat_1?memoryMode=session",

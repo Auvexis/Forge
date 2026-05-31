@@ -24,12 +24,14 @@ export interface SendAgentPanelMessageInput {
   profileId: string;
   sessionId: string;
   message: string;
+  executionId?: string;
 }
 
 export interface SendFirstAgentPanelMessageInput {
   profileId: string;
   agentKey: string;
   message: string;
+  executionId?: string;
 }
 
 export interface DeleteAgentPanelSessionInput {
@@ -119,7 +121,12 @@ export class AgentPanelChatService {
       agentKey: input.agentKey,
       title: createSessionTitle(message),
     });
-    return this.sendMessage({ profileId: input.profileId, sessionId: session.id, message });
+    return this.sendMessage({
+      profileId: input.profileId,
+      sessionId: session.id,
+      message,
+      executionId: input.executionId,
+    });
   }
 
   async sendMessage(
@@ -171,7 +178,7 @@ export class AgentPanelChatService {
       agent.workflow,
       agent.summary.triggerNodeId,
       payload,
-      undefined,
+      input.executionId,
       { targetNodeId: agent.summary.agentNodeId },
     );
     assertSuccessfulChatExecution(execution);

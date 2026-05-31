@@ -14,7 +14,13 @@ import { AgentPanelChatService } from "./agent-panel-chat-service.ts";
 describe("agent panel chat service", () => {
   let appDb: Database.Database | null = null;
   let workflowDb: Database.Database | null = null;
-  const executions: Array<{ workflowId: string; triggerNodeId: string; payload: any; options: any }> = [];
+  const executions: Array<{
+    workflowId: string;
+    triggerNodeId: string;
+    payload: any;
+    executionId: string | undefined;
+    options: any;
+  }> = [];
 
   beforeEach(async () => {
     executions.length = 0;
@@ -75,6 +81,25 @@ describe("agent panel chat service", () => {
     assert.equal(executions[1].payload.targetAgentNodeId, "agent");
     assert.equal(executions[1].options.targetNodeId, "agent");
     assert.deepEqual(executions[1].payload.messages.map((message: any) => message.role), ["user", "assistant"]);
+  });
+
+  it("uses a caller-provided execution id for stream subscriptions", async () => {
+    const service = serviceFixture();
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+
+    const result = await service.sendMessage({
+      profileId: "profile_a",
+      sessionId: session.id,
+      message: "Stream this",
+      executionId: "exec_agent_panel_stream",
+    });
+
+    assert.equal((result.execution as { executionId?: string }).executionId, "exec_agent_panel_stream");
+    assert.equal(executions[0].executionId, "exec_agent_panel_stream");
   });
 
   it("creates the session only when the first draft message is sent", async () => {
@@ -177,12 +202,12 @@ describe("agent panel chat service", () => {
           workflow: WorkflowItem,
           triggerNodeId: string,
           payload: any,
-          _executionId?: string,
+          executionId?: string,
           options?: { targetNodeId?: string },
         ) => {
-          executions.push({ workflowId: workflow.metadata.id, triggerNodeId, payload, options });
+          executions.push({ workflowId: workflow.metadata.id, triggerNodeId, payload, executionId, options });
           return {
-            executionId: `exec_${executions.length}`,
+            executionId: executionId ?? `exec_${executions.length}`,
             status: "SUCCESS",
             context: {
               steps: {

@@ -31,3 +31,8 @@ export interface AgentPanelMessageResult {
   messages: AgentChatMessage[]
   execution: unknown
 }
+
+export type AgentPanelStreamEvent =
+  | { type: 'delta'; delta: string }
+  | { type: 'done'; result: AgentPanelMessageResult }
+  | { type: 'error'; code?: string; message: string }

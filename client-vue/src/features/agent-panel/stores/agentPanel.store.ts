@@ -114,19 +114,79 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     if (selectedSessionId.value) await loadMessages(selectedSessionId.value)
   }
 
+  function appendOptimisticUserMessage(sessionId: string, text: string) {
+    messages.value = [
+      ...messages.value,
+      {
+        id: `local-user-${Date.now()}`,
+        profileId: '',
+        sessionId,
+        role: 'user',
+        content: text,
+        createdAt: new Date().toISOString(),
+        entrance: 'user',
+      } as AgentChatMessage,
+    ]
+  }
+
+  function appendStreamingAssistantMessage(sessionId: string, delta = '') {
+    const existing = messages.value.find((message) => message.id === `local-assistant-stream-${sessionId}`)
+    if (existing) {
+      existing.content = `${normalizeMessageText(existing.content)}${delta}`
+      return
+    }
+
+    messages.value = [
+      ...messages.value,
+      {
+        id: `local-assistant-stream-${sessionId}`,
+        profileId: '',
+        sessionId,
+        role: 'assistant',
+        content: delta,
+        createdAt: new Date().toISOString(),
+        entrance: 'assistant',
+      } as AgentChatMessage,
+    ]
+  }
+
+  function remapLocalSessionMessages(fromSessionId: string, toSessionId: string) {
+    messages.value = messages.value.map((message) => (
+      message.sessionId === fromSessionId
+        ? { ...message, sessionId: toSessionId, id: message.id.replace(fromSessionId, toSessionId) }
+        : message
+    ))
+  }
+
   async function sendMessage(message: string) {
     const text = message.trim()
     if (!text || sending.value || (!selectedAgentKey.value && !selectedSessionId.value)) return
     if (!selectedSessionId.value && !draftSessionOpen.value) return
 
     const { error: toastError } = useToast()
+    const localSessionId = selectedSessionId.value || `draft-${Date.now()}`
+    appendOptimisticUserMessage(localSessionId, text)
     sending.value = true
     chatError.value = ''
     error.value = ''
     try {
-      const result = selectedSessionId.value
-        ? await agentPanelApi.sendMessage(selectedSessionId.value, { message: text })
-        : await agentPanelApi.sendFirstMessage(selectedAgentKey.value, { message: text })
+      if (!selectedSessionId.value) {
+        const session = await agentPanelApi.createSession(selectedAgentKey.value, {
+          title: createSessionTitle(text),
+        })
+        draftSessionOpen.value = false
+        selectedSessionId.value = session.id
+        sessions.value = [session, ...sessions.value.filter((candidate) => candidate.id !== session.id)]
+        remapLocalSessionMessages(localSessionId, session.id)
+      }
+
+      let result = null as Awaited<ReturnType<typeof agentPanelApi.sendMessage>> | null
+      for await (const event of agentPanelApi.sendMessageStream(selectedSessionId.value, { message: text })) {
+        if (event.type === 'delta') appendStreamingAssistantMessage(selectedSessionId.value, event.delta)
+        if (event.type === 'error') throw new Error(event.message)
+        if (event.type === 'done') result = event.result
+      }
+      if (!result) throw new Error('Agent message failed')
       draftSessionOpen.value = false
       selectedSessionId.value = result.session.id
       messages.value = result.messages
@@ -138,6 +198,20 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     } finally {
       sending.value = false
     }
+  }
+
+  function normalizeMessageText(content: unknown): string {
+    if (typeof content === 'string') return content
+    if (!content || typeof content !== 'object' || Array.isArray(content)) return ''
+    const record = content as Record<string, unknown>
+    if (typeof record.text === 'string') return record.text
+    if (typeof record.content === 'string') return record.content
+    return ''
+  }
+
+  function createSessionTitle(message: string): string {
+    const title = message.replace(/\s+/g, ' ').trim()
+    return title.length > 48 ? `${title.slice(0, 45)}...` : title || 'New chat'
   }
 
   return {
@@ -163,6 +237,8 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     openDraftSession,
     createSession,
     deleteSession,
+    appendOptimisticUserMessage,
+    appendStreamingAssistantMessage,
     sendMessage,
   }
 })

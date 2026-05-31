@@ -1,7 +1,9 @@
+import { randomUUID } from "node:crypto";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
 import { AgentRuntimeError, serializeAgentError } from "../modules/agent-runtime/agent-errors.ts";
+import { workflowEventBus, type WorkflowEvent } from "../modules/workflows/event-bus.ts";
 import {
   AgentPanelChatService,
   type DeleteAgentPanelSessionInput,
@@ -145,6 +147,70 @@ export default async function agentPanelRoutes(
     }
   });
 
+  fastify.post("/agent-panel/sessions/:sessionId/messages/stream", async (req, reply) => {
+    const { sessionId } = req.params as { sessionId: string };
+    const body = req.body as { message?: unknown } | undefined;
+    const message = String(body?.message ?? "").trim();
+    if (!message) {
+      return sendAgentError(
+        reply,
+        new AgentRuntimeError(
+          "Invalid agent panel message",
+          "AGENT_PANEL_INPUT_INVALID",
+          "Invalid agent panel message",
+          400,
+        ),
+      );
+    }
+
+    reply.hijack();
+    writeStreamHeaders(reply);
+    reply.raw.write(": connected\n\n");
+
+    const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
+    const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
+      if (event.type === "agent:output-delta") {
+        const delta = extractAgentDelta(event);
+        if (delta) writeStreamEvent(reply, { type: "delta", delta });
+      }
+      if (event.type === "agent:error") {
+        writeStreamEvent(reply, {
+          type: "error",
+          message: extractAgentError(event) ?? event.error ?? "Agent execution failed",
+        });
+      }
+    });
+    const heartbeat = setInterval(() => reply.raw.write(": heartbeat\n\n"), 15000);
+
+    req.raw.on("close", () => {
+      unsubscribe();
+      clearInterval(heartbeat);
+    });
+
+    try {
+      const result = await getService().sendMessage({
+        profileId: getProfileId(),
+        sessionId,
+        message,
+        executionId,
+      });
+      writeStreamEvent(reply, { type: "done", result });
+    } catch (error) {
+      const serialized = error instanceof AgentRuntimeError
+        ? serializeAgentError(error)
+        : { code: "AGENT_RUNTIME_ERROR", message: safeErrorMessage(error) };
+      writeStreamEvent(reply, { type: "error", ...serialized });
+    } finally {
+      unsubscribe();
+      clearInterval(heartbeat);
+      setTimeout(() => reply.raw.end(), 100);
+    }
+
+    return new Promise((resolve) => {
+      req.raw.on("close", resolve);
+    });
+  });
+
   fastify.delete("/agent-panel/sessions/:sessionId", async (req, reply) => {
     try {
       const { sessionId } = req.params as { sessionId: string };
@@ -181,6 +247,31 @@ function sendAgentError(reply: FastifyReply, error: unknown) {
     error: serialized.message,
     data: null,
   });
+}
+
+function writeStreamHeaders(reply: FastifyReply): void {
+  reply.raw.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+    "Access-Control-Allow-Credentials": "true",
+  });
+}
+
+function writeStreamEvent(reply: FastifyReply, event: Record<string, unknown>): void {
+  reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
+}
+
+function extractAgentDelta(event: WorkflowEvent): string {
+  const data = event.data as { delta?: unknown } | undefined;
+  return typeof data?.delta === "string" ? data.delta : "";
+}
+
+function extractAgentError(event: WorkflowEvent): string | null {
+  const data = event.data as { message?: unknown; error?: unknown } | undefined;
+  if (typeof data?.message === "string" && data.message.trim()) return data.message.trim();
+  if (typeof data?.error === "string" && data.error.trim()) return data.error.trim();
+  return null;
 }
 
 function safeErrorMessage(error: unknown): string {

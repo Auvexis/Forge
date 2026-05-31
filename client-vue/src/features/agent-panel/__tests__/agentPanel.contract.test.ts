@@ -70,8 +70,8 @@ describe('agent panel modal contract', () => {
     assert.match(store, /draftSessionOpen/)
     assert.match(store, /hasOpenChat/)
     assert.match(store, /openDraftSession/)
-    assert.match(store, /sendFirstMessage/)
-    assert.match(store, /agentPanelApi\.sendFirstMessage/)
+    assert.match(store, /agentPanelApi\.createSession/)
+    assert.match(store, /agentPanelApi\.sendMessageStream/)
     assert.match(api, /sendFirstMessage/)
     assert.match(endpoints, /AGENT_PANEL_AGENT_MESSAGES/)
   })
@@ -135,5 +135,29 @@ describe('agent panel modal contract', () => {
     assert.match(store, /toastError\(chatError\.value, 'Agent execution failed'\)/)
     assert.doesNotMatch(chat, /agent-chat-view__chat-error/)
     assert.doesNotMatch(chat, /store\.chatError/)
+  })
+
+  it('streams agent panel sends with optimistic user messages', () => {
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const api = readFileSync('src/core/api/agent-panel.api.ts', 'utf8')
+    const endpoints = readFileSync('src/core/api/endpoints.ts', 'utf8')
+
+    assert.match(endpoints, /AGENT_PANEL_SESSION_MESSAGES_STREAM/)
+    assert.match(api, /sendMessageStream/)
+    assert.match(store, /appendOptimisticUserMessage/)
+    assert.match(store, /appendStreamingAssistantMessage/)
+    assert.match(store, /agentPanelApi\.sendMessageStream/)
+    assert.match(store, /for await \(const event of agentPanelApi\.sendMessageStream/)
+  })
+
+  it('animates user and assistant messages from their side of the chat', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /agent-chat-view__message--enter-user/)
+    assert.match(chat, /agent-chat-view__message--enter-assistant/)
+    assert.match(chat, /agent-message-in-user/)
+    assert.match(chat, /agent-message-in-assistant/)
+    assert.match(chat, /translate3d\(18px, 18px, 0\)/)
+    assert.match(chat, /translate3d\(-18px, 18px, 0\)/)
   })
 })

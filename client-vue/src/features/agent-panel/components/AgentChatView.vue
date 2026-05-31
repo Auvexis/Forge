@@ -70,7 +70,7 @@
           v-for="message in store.messages"
           :key="message.id"
           class="agent-chat-view__message"
-          :class="`agent-chat-view__message--${message.role}`"
+          :class="[`agent-chat-view__message--${message.role}`, entranceClass(message)]"
         >
           <span class="agent-chat-view__avatar">{{ messageAvatar(message) }}</span>
           <span class="agent-chat-view__role">
@@ -156,6 +156,13 @@ function formatSessionDate(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ''
   return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date)
+}
+
+function entranceClass(message: AgentChatMessage): string {
+  const entrance = (message as AgentChatMessage & { entrance?: string }).entrance
+  if (entrance === 'user') return 'agent-chat-view__message--enter-user'
+  if (entrance === 'assistant') return 'agent-chat-view__message--enter-assistant'
+  return ''
 }
 
 void dangerousMemoryMode
@@ -346,6 +353,14 @@ void ['transcript-only', 'session', 'all-agent-memory']
   gap: var(--sailor-space-1) var(--sailor-space-2);
 }
 
+.agent-chat-view__message--enter-user {
+  animation: agent-message-in-user 180ms ease-out both;
+}
+
+.agent-chat-view__message--enter-assistant {
+  animation: agent-message-in-assistant 180ms ease-out both;
+}
+
 .agent-chat-view__message--user {
   align-self: flex-end;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -409,6 +424,28 @@ void ['transcript-only', 'session', 'all-agent-memory']
 .agent-chat-view__empty--inline {
   flex: 0;
   padding: var(--sailor-space-4);
+}
+
+@keyframes agent-message-in-user {
+  from {
+    opacity: 0;
+    transform: translate3d(18px, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes agent-message-in-assistant {
+  from {
+    opacity: 0;
+    transform: translate3d(-18px, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 </style>
