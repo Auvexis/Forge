@@ -8,6 +8,8 @@ Objetivo: deixar o Global Agent Chat mais vivo, com mensagens de progresso antes
 - [x] Preservar multiplas ferramentas em ordem, sem sobrescrever chamadas repetidas da mesma tool.
 - [x] Mostrar icone do plugin em cada etapa do ciclo da ferramenta.
 - [x] Renderizar mensagem final definitiva com todas as ferramentas usadas e icones dos plugins.
+- [x] Persistir chamadas de ferramenta no resultado final e reconstruir progresso quando eventos SSE ao vivo forem perdidos.
+- [x] Inserir mensagens locais de progresso antes da resposta final do assistente no merge com mensagens persistidas.
 - [x] Criar testes contrato backend/frontend antes da implementacao.
 - [ ] Validar build server/client e fluxo visual.
 
@@ -19,3 +21,4 @@ Objetivo: deixar o Global Agent Chat mais vivo, com mensagens de progresso antes
 - [x] Client build: `cd client-vue && npm run build`
 - [x] Browser smoke opened `http://localhost:23802`, selected `Default`, opened Global Agent panel, and confirmed the published agent chat renders.
 - [ ] Browser smoke for a real tool lifecycle is still pending: the local agent response stayed pending after a safe read-only prompt, so no live `Vou usar`/`Executando`/summary cycle was produced in this environment.
+- [x] Regression tests for missed live tool events: `cd server && node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts src/core/routes/agent-panel.routes.test.ts`

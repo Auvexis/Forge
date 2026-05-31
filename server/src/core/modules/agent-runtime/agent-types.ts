@@ -120,6 +120,15 @@ export interface AgentRunResult {
   status: AgentRunStatus;
   output: string | Record<string, any>;
   toolCallCount: number;
+  toolCalls?: AgentRunToolCall[];
   iterationCount: number;
   approvalId?: string;
+}
+
+export interface AgentRunToolCall {
+  toolCallId: string;
+  name: string;
+  pluginId?: string;
+  pluginName?: string;
+  status: "success" | "failed";
 }

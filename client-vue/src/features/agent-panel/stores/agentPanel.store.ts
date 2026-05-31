@@ -319,7 +319,19 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     const localAgentEvents = messages.value.filter((message) =>
       isAgentProgressContent(message.content) || isAgentSummaryContent(message.content),
     )
-    return [...serverMessages, ...localAgentEvents]
+    if (localAgentEvents.length === 0) return serverMessages
+
+    const lastAssistantIndex = [...serverMessages]
+      .reverse()
+      .findIndex((message) => message.role === 'assistant')
+    if (lastAssistantIndex < 0) return [...serverMessages, ...localAgentEvents]
+
+    const insertAt = serverMessages.length - lastAssistantIndex - 1
+    return [
+      ...serverMessages.slice(0, insertAt),
+      ...localAgentEvents,
+      ...serverMessages.slice(insertAt),
+    ]
   }
 
   function isAgentProgressContent(content: unknown): content is AgentPanelProgressContent {

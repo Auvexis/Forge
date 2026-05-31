@@ -232,6 +232,13 @@ export default async function agentPanelRoutes(
         message,
         executionId,
       });
+      if (completedToolCalls.length === 0) {
+        const fallbackToolCalls = extractCompletedToolCallsFromResult(result);
+        for (const tool of fallbackToolCalls) {
+          writeToolProgressLifecycle(reply, tool);
+          if (tool.status === "success") completedToolCalls.push(tool);
+        }
+      }
       if (nativeDeltaCount === 0) {
         await writeFallbackDeltas(reply, splitAssistantMessageForStream(result));
       }
@@ -332,6 +339,7 @@ interface ToolProgress {
   pluginId?: string;
   pluginName?: string;
   reason?: string;
+  status?: "success" | "failed";
 }
 
 function extractToolProgress(event: WorkflowEvent): ToolProgress {
@@ -353,12 +361,72 @@ function extractToolStatus(event: WorkflowEvent): string {
 }
 
 function formatToolProgressMessage(event: WorkflowEvent, status: ToolProgressStatus): string {
-  const tool = extractToolProgress(event);
+  return formatToolProgressMessageFromTool(extractToolProgress(event), status);
+}
+
+function formatToolProgressMessageFromTool(tool: ToolProgress, status: ToolProgressStatus): string {
   const label = tool.name;
   if (status === "planned") return `Vou usar ${label} para ${tool.reason}.`;
   if (status === "running") return `Executando ${label} agora.`;
   if (status === "success") return `Usei ${label} com sucesso.`;
   return `Nao consegui usar ${label}.`;
+}
+
+function writeToolProgressLifecycle(reply: FastifyReply, tool: ToolProgress): void {
+  const statuses: ToolProgressStatus[] = tool.status === "failed"
+    ? ["planned", "running", "failed"]
+    : ["planned", "running", "success"];
+  for (const status of statuses) {
+    writeStreamEvent(reply, {
+      type: "progress",
+      status,
+      message: formatToolProgressMessageFromTool(tool, status),
+      tool,
+    });
+  }
+}
+
+function extractCompletedToolCallsFromResult(result: unknown): ToolProgress[] {
+  if (!result || typeof result !== "object") return [];
+  const execution = (result as { execution?: unknown }).execution;
+  if (!execution || typeof execution !== "object") return [];
+  const context = (execution as { context?: unknown }).context;
+  if (!context || typeof context !== "object") return [];
+  const steps = (context as { steps?: unknown }).steps;
+  if (!steps || typeof steps !== "object" || Array.isArray(steps)) return [];
+
+  for (const step of Object.values(steps as Record<string, unknown>)) {
+    if (!step || typeof step !== "object") continue;
+    const output = (step as { output?: unknown }).output;
+    if (!output || typeof output !== "object") continue;
+    const toolCalls = (output as { toolCalls?: unknown }).toolCalls;
+    if (!Array.isArray(toolCalls)) continue;
+    return toolCalls.map(normalizeResultToolProgress).filter((tool): tool is ToolProgress => Boolean(tool));
+  }
+
+  return [];
+}
+
+function normalizeResultToolProgress(value: unknown): ToolProgress | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as Record<string, unknown>;
+  const toolCallId = typeof record.toolCallId === "string"
+    ? record.toolCallId
+    : typeof record.callId === "string"
+      ? record.callId
+      : "";
+  const name = typeof record.name === "string" ? record.name : "";
+  if (!toolCallId || !name) return null;
+
+  const status = record.status === "failed" ? "failed" : "success";
+  return {
+    toolCallId,
+    name,
+    ...(typeof record.pluginId === "string" ? { pluginId: record.pluginId } : {}),
+    ...(typeof record.pluginName === "string" ? { pluginName: record.pluginName } : {}),
+    ...(typeof record.reason === "string" ? { reason: record.reason } : { reason: "processar esta etapa" }),
+    status,
+  };
 }
 
 function splitAssistantMessageForStream(result: unknown): string[] {

@@ -170,6 +170,8 @@ describe('agent panel modal contract', () => {
     assert.match(store, /event\.tool\?\.toolCallId/)
     assert.match(store, /event\.status/)
     assert.match(store, /local-agent-progress-\$\{sessionId\}-\$\{toolKey\}-\$\{event\.status\}/)
+    assert.match(store, /mergeServerMessagesWithLocalAgentEvents/)
+    assert.match(store, /lastAssistantIndex/)
   })
 
   it('renders global agent pending loading dots like workflow editor chat', () => {

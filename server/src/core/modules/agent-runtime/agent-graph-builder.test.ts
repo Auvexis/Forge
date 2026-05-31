@@ -158,6 +158,11 @@ describe("agent graph builder", () => {
     assert.equal(result.output, "tool result applied");
     assert.equal(result.iterationCount, 2);
     assert.equal(result.toolCallCount, 1);
+    assert.deepEqual(result.toolCalls, [{
+      toolCallId: "call_1",
+      name: "lookup",
+      status: "success",
+    }]);
     assert.deepEqual(tool.calls, [{ query: "sailor" }]);
     const secondModelCall = model.calls[1] as Array<Record<string, unknown>>;
     const toolMessage = secondModelCall.find((message) => message.role === "tool");

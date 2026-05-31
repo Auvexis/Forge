@@ -3,6 +3,7 @@ import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-error
 import type {
   AgentEventType,
   AgentRunResult,
+  AgentRunToolCall,
   AiAgentNodeConfig,
   AiMemoryNodeConfig,
 } from "./agent-types.ts";
@@ -85,6 +86,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
         { role: "user", content: invokeInput.userMessage },
       ];
       let toolCallCount = 0;
+      const completedToolCalls: AgentRunToolCall[] = [];
 
       for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
         input.onEvent?.({ type: "agent:model-start", payload: { iteration, input: { messages } } });
@@ -136,6 +138,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             output: parseOutput(input.agent, assistantContent),
             iterationCount: iteration,
             toolCallCount,
+            ...(completedToolCalls.length > 0 ? { toolCalls: completedToolCalls } : {}),
           };
         }
 
@@ -172,10 +175,12 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
           } catch (error) {
             if (error instanceof AgentToolApprovalRequiredError) throw error;
             emitToolEnd(input, tool, toolCall, { status: "failed", error: safeErrorMessage(error) });
+            completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "failed"));
             throw error;
           }
           toolCallCount += 1;
           emitToolEnd(input, tool, toolCall, { status: "success", output: result });
+          completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "success"));
           messages.push({
             role: "tool",
             name: tool.name,
@@ -201,6 +206,20 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
         400,
       );
     },
+  };
+}
+
+function toAgentRunToolCall(
+  tool: InvokableTool,
+  toolCall: AgentToolCall,
+  status: AgentRunToolCall["status"],
+): AgentRunToolCall {
+  return {
+    toolCallId: toolCall.id,
+    name: tool.name,
+    ...(tool.pluginId ? { pluginId: tool.pluginId } : {}),
+    ...(tool.pluginName ? { pluginName: tool.pluginName } : {}),
+    status,
   };
 }
 

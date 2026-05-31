@@ -291,6 +291,83 @@ describe("agent panel routes", () => {
     assert.equal(events.at(-1)?.type, "done");
   });
 
+  it("streams fallback progress from the final execution when live tool events were missed", async () => {
+    const app = await buildApp({
+      sendMessage: async () => ({
+        session: session("chat_1"),
+        messages: [
+          message("msg_user", "chat_1"),
+          {
+            ...message("msg_assistant", "chat_1"),
+            role: "assistant" as const,
+            content: "Tudo enviado.",
+          },
+        ],
+        execution: {
+          status: "SUCCESS",
+          context: {
+            steps: {
+              agent: {
+                output: {
+                  output: "Tudo enviado.",
+                  toolCallCount: 2,
+                  toolCalls: [
+                    {
+                      toolCallId: "tool_call_1",
+                      name: "discord_send_message",
+                      pluginId: "discord",
+                      pluginName: "Discord",
+                      status: "success",
+                    },
+                    {
+                      toolCallId: "tool_call_2",
+                      name: "google_gmail_send_message",
+                      pluginId: "google-gmail",
+                      pluginName: "Gmail",
+                      status: "success",
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      }),
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Enviar piada" },
+    });
+
+    const events = parseStreamEvents(response.body);
+    const progressEvents = events.filter((event) => event.type === "progress");
+
+    assert.deepEqual(progressEvents.map((event) => event.tool?.toolCallId), [
+      "tool_call_1",
+      "tool_call_1",
+      "tool_call_1",
+      "tool_call_2",
+      "tool_call_2",
+      "tool_call_2",
+    ]);
+    assert.deepEqual(progressEvents.map((event) => event.status), [
+      "planned",
+      "running",
+      "success",
+      "planned",
+      "running",
+      "success",
+    ]);
+    assert.ok(events.find((event) =>
+      event.type === "summary" &&
+      /discord_send_message/.test(event.message ?? "") &&
+      /google_gmail_send_message/.test(event.message ?? "")
+    ));
+    assert.equal(events.at(-1)?.type, "done");
+  });
+
   it("streams the final assistant message in chunks when the model did not emit native deltas", async () => {
     const app = await buildApp({
       sendMessage: async () => ({
