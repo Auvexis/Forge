@@ -148,6 +148,143 @@ describe("agent panel routes", () => {
     assert.deepEqual(events.map((event) => event.delta).filter(Boolean), ["thinking ", "hel", "lo"]);
   });
 
+  it("streams one progress cycle for every tool call before done", async () => {
+    const app = await buildApp({
+      sendMessage: async (input: { executionId?: string }) => {
+        assert.ok(input.executionId);
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-intent",
+          timestamp: Date.now(),
+          data: {
+            callId: "tool_call_1",
+            name: "search_contacts",
+            pluginId: "contacts",
+            pluginName: "Contacts",
+            reason: "encontrar o destinatario correto",
+            requiresApproval: false,
+          },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-start",
+          timestamp: Date.now(),
+          data: {
+            callId: "tool_call_1",
+            name: "search_contacts",
+            pluginId: "contacts",
+            pluginName: "Contacts",
+          },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-end",
+          timestamp: Date.now(),
+          data: {
+            callId: "tool_call_1",
+            name: "search_contacts",
+            pluginId: "contacts",
+            pluginName: "Contacts",
+            status: "success",
+          },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-intent",
+          timestamp: Date.now(),
+          data: {
+            callId: "tool_call_2",
+            name: "send_email",
+            pluginId: "gmail",
+            pluginName: "Gmail",
+            reason: "enviar a mensagem para o contato encontrado",
+            requiresApproval: false,
+          },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-start",
+          timestamp: Date.now(),
+          data: {
+            callId: "tool_call_2",
+            name: "send_email",
+            pluginId: "gmail",
+            pluginName: "Gmail",
+          },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-end",
+          timestamp: Date.now(),
+          data: {
+            callId: "tool_call_2",
+            name: "send_email",
+            pluginId: "gmail",
+            pluginName: "Gmail",
+            status: "success",
+          },
+        });
+
+        return {
+          session: session("chat_1"),
+          messages: [
+            message("msg_user", "chat_1"),
+            {
+              ...message("msg_assistant", "chat_1"),
+              role: "assistant" as const,
+              content: "Email enviado.",
+            },
+          ],
+          execution: { status: "SUCCESS" },
+        };
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Enviar email" },
+    });
+
+    const events = parseStreamEvents(response.body);
+    const progressEvents = events.filter((event) => event.type === "progress");
+    assert.deepEqual(progressEvents.map((event) => event.tool?.toolCallId), [
+      "tool_call_1",
+      "tool_call_1",
+      "tool_call_1",
+      "tool_call_2",
+      "tool_call_2",
+      "tool_call_2",
+    ]);
+    assert.deepEqual(progressEvents.map((event) => event.status), [
+      "planned",
+      "running",
+      "success",
+      "planned",
+      "running",
+      "success",
+    ]);
+    assert.match(progressEvents[0]?.message ?? "", /Vou usar search_contacts .*encontrar o destinatario correto/);
+    assert.equal(progressEvents[0]?.tool?.pluginId, "contacts");
+    assert.match(progressEvents[2]?.message ?? "", /Usei search_contacts com sucesso/);
+    assert.match(progressEvents[3]?.message ?? "", /Vou usar send_email .*enviar a mensagem/);
+    assert.equal(progressEvents[3]?.tool?.pluginId, "gmail");
+    assert.match(progressEvents[5]?.message ?? "", /Usei send_email com sucesso/);
+    assert.equal(events.at(-1)?.type, "done");
+  });
+
   it("streams the final assistant message in chunks when the model did not emit native deltas", async () => {
     const app = await buildApp({
       sendMessage: async () => ({
@@ -202,6 +339,18 @@ function assertEnvelope(response: Awaited<ReturnType<ReturnType<typeof Fastify>[
   assert.equal(body.status_code, status);
   assert.equal(body.message, messageText);
   assert.equal(body.error, null);
+}
+
+function parseStreamEvents(body: string): Array<{
+  type: string;
+  status?: string;
+  message?: string;
+  tool?: { toolCallId?: string; pluginId?: string };
+}> {
+  return body
+    .split("\n\n")
+    .filter((chunk) => chunk.startsWith("data:"))
+    .map((chunk) => JSON.parse(chunk.slice("data:".length).trim()));
 }
 
 function session(id: string) {

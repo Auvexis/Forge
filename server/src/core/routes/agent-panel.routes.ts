@@ -176,6 +176,31 @@ export default async function agentPanelRoutes(
         const delta = extractAgentDelta(event);
         if (delta) writeStreamEvent(reply, { type: "thinking", delta });
       }
+      if (event.type === "agent:tool-intent") {
+        writeStreamEvent(reply, {
+          type: "progress",
+          status: "planned",
+          message: formatToolProgressMessage(event, "planned"),
+          tool: extractToolProgress(event),
+        });
+      }
+      if (event.type === "agent:tool-start") {
+        writeStreamEvent(reply, {
+          type: "progress",
+          status: "running",
+          message: formatToolProgressMessage(event, "running"),
+          tool: extractToolProgress(event),
+        });
+      }
+      if (event.type === "agent:tool-end") {
+        const status = extractToolStatus(event) === "failed" ? "failed" : "success";
+        writeStreamEvent(reply, {
+          type: "progress",
+          status,
+          message: formatToolProgressMessage(event, status),
+          tool: extractToolProgress(event),
+        });
+      }
       if (event.type === "agent:output-delta") {
         const delta = extractAgentDelta(event);
         if (delta) {
@@ -287,6 +312,43 @@ function extractAgentError(event: WorkflowEvent): string | null {
   if (typeof data?.message === "string" && data.message.trim()) return data.message.trim();
   if (typeof data?.error === "string" && data.error.trim()) return data.error.trim();
   return null;
+}
+
+type ToolProgressStatus = "planned" | "running" | "success" | "failed";
+
+interface ToolProgress {
+  toolCallId: string;
+  name: string;
+  pluginId?: string;
+  pluginName?: string;
+  reason?: string;
+}
+
+function extractToolProgress(event: WorkflowEvent): ToolProgress {
+  const data = event.data as Record<string, unknown> | undefined;
+  const callId = typeof data?.callId === "string" ? data.callId : undefined;
+  const toolCallId = typeof data?.toolCallId === "string"
+    ? data.toolCallId
+    : callId ?? `${event.nodeId}:${event.timestamp}:${typeof data?.name === "string" ? data.name : "agent-tool"}`;
+  const name = typeof data?.name === "string" ? data.name : "agent tool";
+  const pluginId = typeof data?.pluginId === "string" ? data.pluginId : undefined;
+  const pluginName = typeof data?.pluginName === "string" ? data.pluginName : undefined;
+  const reason = typeof data?.reason === "string" ? data.reason : "processar esta etapa";
+  return { toolCallId, name, pluginId, pluginName, reason };
+}
+
+function extractToolStatus(event: WorkflowEvent): string {
+  const data = event.data as Record<string, unknown> | undefined;
+  return typeof data?.status === "string" ? data.status : "";
+}
+
+function formatToolProgressMessage(event: WorkflowEvent, status: ToolProgressStatus): string {
+  const tool = extractToolProgress(event);
+  const label = tool.name;
+  if (status === "planned") return `Vou usar ${label} para ${tool.reason}.`;
+  if (status === "running") return `Executando ${label} agora.`;
+  if (status === "success") return `Usei ${label} com sucesso.`;
+  return `Nao consegui usar ${label}.`;
 }
 
 function splitAssistantMessageForStream(result: unknown): string[] {
