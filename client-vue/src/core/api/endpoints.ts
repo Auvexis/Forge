@@ -85,6 +85,7 @@ export const ENDPOINTS = {
 
   // Plugin OAuth
   PLUGIN_AUTH_CONNECT: (id: string) => `/plugins/${encodeURIComponent(id)}/auth/connect`,
+  PLUGIN_AUTH_CONNECT_OPEN: (id: string) => `/plugins/${encodeURIComponent(id)}/auth/connect/open`,
   PLUGIN_AUTH_DISCONNECT: (id: string) => `/plugins/${encodeURIComponent(id)}/auth/disconnect`,
 
   // Plugin Dynamic Options (for x-dynamic-options in manifests)
@@ -122,6 +123,13 @@ export const ENDPOINTS = {
     `/agent-chat/${encodeURIComponent(chatSlug)}/messages`,
   AGENT_CHAT_SESSION_MESSAGES: (sessionId: string) =>
     `/agent-chat/sessions/${encodeURIComponent(sessionId)}/messages`,
+  AGENT_PANEL_AGENTS: '/agent-panel/agents',
+  AGENT_PANEL_AGENT_SESSIONS: (agentKey: string) =>
+    `/agent-panel/agents/${encodeURIComponent(agentKey)}/sessions`,
+  AGENT_PANEL_SESSION_MESSAGES: (sessionId: string) =>
+    `/agent-panel/sessions/${encodeURIComponent(sessionId)}/messages`,
+  AGENT_PANEL_SESSION: (sessionId: string) =>
+    `/agent-panel/sessions/${encodeURIComponent(sessionId)}`,
   AGENT_TOOLS: '/agent-tools',
   AGENT_MEMORY: '/agent-memory',
   AGENT_MEMORY_BY_ID: (memoryId: string) => `/agent-memory/${encodeURIComponent(memoryId)}`,
