@@ -15,4 +15,22 @@ describe('agent panel page contract', () => {
     assert.match(page, /AgentSessionList/)
     assert.match(page, /AgentChatView/)
   })
+
+  it('agent and session lists expose expected actions', () => {
+    const directory = readFileSync(
+      'src/features/agent-panel/components/AgentDirectoryList.vue',
+      'utf8',
+    )
+    const sessions = readFileSync(
+      'src/features/agent-panel/components/AgentSessionList.vue',
+      'utf8',
+    )
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+
+    assert.match(directory, /agent\.emoji/)
+    assert.match(directory, /agent\.workflowName/)
+    assert.match(sessions, /createSession/)
+    assert.match(sessions, /deleteSession/)
+    assert.match(store, /loadSessions/)
+  })
 })
