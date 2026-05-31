@@ -143,13 +143,27 @@ describe('agent panel modal contract', () => {
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
     const api = readFileSync('src/core/api/agent-panel.api.ts', 'utf8')
     const endpoints = readFileSync('src/core/api/endpoints.ts', 'utf8')
+    const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
 
     assert.match(endpoints, /AGENT_PANEL_SESSION_MESSAGES_STREAM/)
     assert.match(api, /sendMessageStream/)
     assert.match(store, /appendOptimisticUserMessage/)
     assert.match(store, /appendStreamingAssistantMessage/)
+    assert.match(store, /appendPendingAssistantMessage/)
+    assert.match(store, /appendStreamingAssistantThinking/)
     assert.match(store, /agentPanelApi\.sendMessageStream/)
     assert.match(store, /for await \(const event of agentPanelApi\.sendMessageStream/)
+    assert.match(types, /type: 'start'/)
+    assert.match(types, /type: 'thinking'/)
+  })
+
+  it('renders global agent pending loading dots like workflow editor chat', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /agent-chat-view__thinking/)
+    assert.match(chat, /agent-chat-view__typing-dots/)
+    assert.match(chat, /isPendingAssistantMessage/)
+    assert.match(chat, /agent-chat-typing-bounce/)
   })
 
   it('animates user and assistant messages from their side of the chat', () => {

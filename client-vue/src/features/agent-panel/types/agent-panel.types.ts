@@ -33,6 +33,8 @@ export interface AgentPanelMessageResult {
 }
 
 export type AgentPanelStreamEvent =
+  | { type: 'start' }
+  | { type: 'thinking'; delta: string }
   | { type: 'delta'; delta: string }
   | { type: 'done'; result: AgentPanelMessageResult }
   | { type: 'error'; code?: string; message: string }

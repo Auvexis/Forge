@@ -77,7 +77,19 @@
             <strong>{{ messageDisplayName(message) }}</strong>
             <time>{{ formatMessageTime(message) }}</time>
           </span>
-          <p>{{ messageText(message.content) }}</p>
+          <div v-if="messageThinking(message.content)" class="agent-chat-view__thinking">
+            {{ messageThinking(message.content) }}
+          </div>
+          <div
+            v-if="isPendingAssistantMessage(message)"
+            class="agent-chat-view__typing-dots"
+            aria-label="Agent is thinking"
+          >
+            <span />
+            <span />
+            <span />
+          </div>
+          <p v-else>{{ messageText(message.content) }}</p>
         </article>
         <div v-if="!store.messages.length" class="agent-chat-view__empty agent-chat-view__empty--inline">
           No messages yet.
@@ -131,6 +143,19 @@ function messageText(content: unknown): string {
   if (typeof record.text === 'string') return record.text
   if (typeof record.content === 'string') return record.content
   return JSON.stringify(content)
+}
+
+function messageThinking(content: unknown): string {
+  if (!content || typeof content !== 'object' || Array.isArray(content)) return ''
+  const thinking = (content as Record<string, unknown>).thinking
+  return typeof thinking === 'string' ? thinking : ''
+}
+
+function isPendingAssistantMessage(message: AgentChatMessage): boolean {
+  if (message.role !== 'assistant') return false
+  const content = message.content
+  if (!content || typeof content !== 'object' || Array.isArray(content)) return false
+  return (content as Record<string, unknown>).pending === true && !messageText(content)
 }
 
 function messageDisplayName(message: AgentChatMessage): string {
@@ -395,7 +420,9 @@ void ['transcript-only', 'session', 'all-agent-memory']
   font-weight: var(--sailor-font-medium);
 }
 
-.agent-chat-view__message p {
+.agent-chat-view__message p,
+.agent-chat-view__thinking,
+.agent-chat-view__typing-dots {
   grid-column: 2;
   margin: 0;
   border: 1px solid var(--sailor-border);
@@ -411,6 +438,36 @@ void ['transcript-only', 'session', 'all-agent-memory']
 .agent-chat-view__message--user p {
   grid-column: 1;
   background: var(--sailor-bg-elevated);
+}
+
+.agent-chat-view__thinking {
+  margin-bottom: var(--sailor-space-1);
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+}
+
+.agent-chat-view__typing-dots {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 4px;
+  min-height: 18px;
+}
+
+.agent-chat-view__typing-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--sailor-text-muted);
+  animation: agent-chat-typing-bounce 0.9s ease-in-out infinite;
+}
+
+.agent-chat-view__typing-dots span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.agent-chat-view__typing-dots span:nth-child(3) {
+  animation-delay: 0.24s;
 }
 
 .agent-chat-view__empty {
@@ -445,6 +502,19 @@ void ['transcript-only', 'session', 'all-agent-memory']
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes agent-chat-typing-bounce {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
   }
 }
 

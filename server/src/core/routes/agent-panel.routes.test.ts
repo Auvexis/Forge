@@ -5,6 +5,7 @@ import Fastify from "fastify";
 import agentPanelRoutes from "./agent-panel.routes.ts";
 import type { AgentPanelChatService } from "../modules/agent-runtime/chat/agent-panel-chat-service.ts";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
+import { workflowEventBus } from "../modules/workflows/event-bus.ts";
 
 describe("agent panel routes", () => {
   it("exposes agent panel endpoints with API envelopes", async () => {
@@ -95,6 +96,56 @@ describe("agent panel routes", () => {
     assert.equal(response.statusCode, 500);
     assert.match(String(body.message), /Ollama connection refused/);
     assert.match(String(body.error), /Ollama connection refused/);
+  });
+
+  it("streams pending, thinking, and output deltas before done", async () => {
+    const app = await buildApp({
+      sendMessage: async (input: { executionId?: string }) => {
+        assert.ok(input.executionId);
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:thinking-delta",
+          timestamp: Date.now(),
+          data: { delta: "thinking " },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:output-delta",
+          timestamp: Date.now(),
+          data: { delta: "hel" },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:output-delta",
+          timestamp: Date.now(),
+          data: { delta: "lo" },
+        });
+        return {
+          session: session("chat_1"),
+          messages: [message("msg_1", "chat_1")],
+          execution: { status: "SUCCESS" },
+        };
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Hello" },
+    });
+    const events = response.body
+      .split("\n\n")
+      .filter((chunk) => chunk.startsWith("data:"))
+      .map((chunk) => JSON.parse(chunk.slice("data:".length).trim()) as { type: string; delta?: string });
+
+    assert.deepEqual(events.map((event) => event.type), ["start", "thinking", "delta", "delta", "done"]);
+    assert.deepEqual(events.map((event) => event.delta).filter(Boolean), ["thinking ", "hel", "lo"]);
   });
 });
 

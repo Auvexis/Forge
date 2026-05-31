@@ -167,9 +167,14 @@ export default async function agentPanelRoutes(
     reply.hijack();
     writeStreamHeaders(reply);
     reply.raw.write(": connected\n\n");
+    writeStreamEvent(reply, { type: "start" });
 
     const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
     const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
+      if (event.type === "agent:thinking-delta") {
+        const delta = extractAgentDelta(event);
+        if (delta) writeStreamEvent(reply, { type: "thinking", delta });
+      }
       if (event.type === "agent:output-delta") {
         const delta = extractAgentDelta(event);
         if (delta) writeStreamEvent(reply, { type: "delta", delta });
@@ -257,6 +262,7 @@ function writeStreamHeaders(reply: FastifyReply): void {
     Connection: "keep-alive",
     "Access-Control-Allow-Origin": CLIENT_ORIGIN,
     "Access-Control-Allow-Credentials": "true",
+    "X-Accel-Buffering": "no",
   });
 }
 

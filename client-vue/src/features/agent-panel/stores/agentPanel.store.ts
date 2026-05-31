@@ -129,10 +129,27 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     ]
   }
 
+  function appendPendingAssistantMessage(sessionId: string) {
+    upsertStreamingAssistantMessage(sessionId, { pending: true })
+  }
+
   function appendStreamingAssistantMessage(sessionId: string, delta = '') {
+    if (!delta) return
+    upsertStreamingAssistantMessage(sessionId, { textDelta: delta, pending: false })
+  }
+
+  function appendStreamingAssistantThinking(sessionId: string, delta = '') {
+    if (!delta) return
+    upsertStreamingAssistantMessage(sessionId, { thinkingDelta: delta, pending: false })
+  }
+
+  function upsertStreamingAssistantMessage(
+    sessionId: string,
+    patch: { textDelta?: string; thinkingDelta?: string; pending?: boolean },
+  ) {
     const existing = messages.value.find((message) => message.id === `local-assistant-stream-${sessionId}`)
     if (existing) {
-      existing.content = `${normalizeMessageText(existing.content)}${delta}`
+      existing.content = mergeAssistantContent(existing.content, patch)
       return
     }
 
@@ -143,7 +160,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         profileId: '',
         sessionId,
         role: 'assistant',
-        content: delta,
+        content: mergeAssistantContent(null, patch),
         createdAt: new Date().toISOString(),
         entrance: 'assistant',
       } as AgentChatMessage,
@@ -182,6 +199,8 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
       let result = null as Awaited<ReturnType<typeof agentPanelApi.sendMessage>> | null
       for await (const event of agentPanelApi.sendMessageStream(selectedSessionId.value, { message: text })) {
+        if (event.type === 'start') appendPendingAssistantMessage(selectedSessionId.value)
+        if (event.type === 'thinking') appendStreamingAssistantThinking(selectedSessionId.value, event.delta)
         if (event.type === 'delta') appendStreamingAssistantMessage(selectedSessionId.value, event.delta)
         if (event.type === 'error') throw new Error(event.message)
         if (event.type === 'done') result = event.result
@@ -207,6 +226,30 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     if (typeof record.text === 'string') return record.text
     if (typeof record.content === 'string') return record.content
     return ''
+  }
+
+  function normalizeAssistantContent(content: unknown): { text: string; thinking: string; pending: boolean } {
+    if (!content || typeof content !== 'object' || Array.isArray(content)) {
+      return { text: typeof content === 'string' ? content : '', thinking: '', pending: false }
+    }
+    const record = content as Record<string, unknown>
+    return {
+      text: typeof record.text === 'string' ? record.text : '',
+      thinking: typeof record.thinking === 'string' ? record.thinking : '',
+      pending: record.pending === true,
+    }
+  }
+
+  function mergeAssistantContent(
+    content: unknown,
+    patch: { textDelta?: string; thinkingDelta?: string; pending?: boolean },
+  ) {
+    const current = normalizeAssistantContent(content)
+    return {
+      text: `${current.text}${patch.textDelta ?? ''}`,
+      thinking: `${current.thinking}${patch.thinkingDelta ?? ''}`,
+      pending: patch.pending ?? current.pending,
+    }
   }
 
   function createSessionTitle(message: string): string {
@@ -237,8 +280,10 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     openDraftSession,
     createSession,
     deleteSession,
+    appendPendingAssistantMessage,
     appendOptimisticUserMessage,
     appendStreamingAssistantMessage,
+    appendStreamingAssistantThinking,
     sendMessage,
   }
 })
