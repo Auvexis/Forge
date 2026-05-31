@@ -76,6 +76,7 @@
     </div>
 
     <div v-if="selectedTrigger?.chatSlug" class="chat-session-panel__target-bar">
+      <span class="chat-session-panel__target-kind">Dev Session</span>
       <button
         type="button"
         class="chat-session-panel__target-select"
@@ -106,12 +107,19 @@
       </div>
     </div>
 
+    <div v-if="!canSendToDevSession" class="chat-session-panel__published-boundary">
+      <span>Published agent chat lives in the global panel.</span>
+      <button type="button" @click="openPublishedAgentPanel">
+        Open published agent panel
+      </button>
+    </div>
+
     <form class="chat-session-panel__composer" @submit.prevent="sendCurrentMessage">
       <div class="chat-session-panel__composer-shell">
         <textarea
           v-model="draft"
           class="chat-session-panel__input"
-          :disabled="pending"
+          :disabled="pending || !canSendToDevSession"
           placeholder="Ask the agent..."
           aria-label="Chat message"
           rows="2"
@@ -123,7 +131,7 @@
             type="button"
             class="chat-session-panel__icon-button"
             :class="{ 'chat-session-panel__icon-button--listening': isListening }"
-            :disabled="pending || !speechSupported"
+            :disabled="pending || !speechSupported || !canSendToDevSession"
             :title="speechSupported ? 'Dictate with Chrome speech recognition' : 'Speech recognition is not available'"
             aria-label="Dictate message"
             @click="startSpeechToText"
@@ -152,6 +160,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { agentChatApi } from '@/core/api/agent-chat.api'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { ApiError } from '@/core/types/api.types'
@@ -197,11 +206,11 @@ const isListening = ref(false)
 const targetMenuOpen = ref(false)
 const approvalPendingId = ref<string | null>(null)
 const toast = useToast()
+const router = useRouter()
 const executionStore = useExecutionStore()
 const workflowStore = useWorkflowStore()
 const sessionWorkflowRevision = ref<string | undefined>()
 
-const canSend = computed(() => draft.value.trim().length > 0)
 const fallbackTrigger = computed<ChatPanelTrigger | null>(() => {
   if (!props.chatSlug) return null
   return {
@@ -222,6 +231,7 @@ const activeChatSlug = computed(() => selectedTrigger.value?.chatSlug ?? props.c
 const canSendToDevSession = computed(
   () => Boolean(props.workflowId && activeTriggerNodeId.value && props.devSessionId),
 )
+const canSend = computed(() => canSendToDevSession.value && draft.value.trim().length > 0)
 const devChatSessionId = computed(() => props.devSessionId ? `chat_dev_${props.devSessionId}` : undefined)
 const displayedDevChatSessionId = computed(() => canSendToDevSession.value ? sessionId.value : undefined)
 const displayedMessages = computed(() => {
@@ -321,22 +331,17 @@ async function sendCurrentMessage() {
       return
     }
 
-    const result = await agentChatApi.sendMessage(activeChatSlug.value, {
-      message,
-      sessionId: sessionId.value,
-    })
-
-    sessionId.value = result.session.id
-    messages.value = result.messages
-    appendAssistantResponse(result.assistantResponse)
-    draft.value = ''
-    await scrollMessagesToBottom()
+    safeError.value = 'Open published agent panel to chat with published agents.'
   } catch (error) {
     safeError.value = formatSendError(error)
     toast.error(safeError.value, 'Chat message failed')
   } finally {
     pending.value = false
   }
+}
+
+function openPublishedAgentPanel() {
+  void router.push('/agents')
 }
 
 async function sendDevSessionMessage(message: string) {
@@ -537,25 +542,6 @@ onBeforeUnmount(() => {
   keepRecognitionAlive = false
   activeRecognition?.stop()
 })
-
-function appendAssistantResponse(assistantResponse: unknown) {
-  if (assistantResponse === undefined || assistantResponse === null) return
-
-  const lastMessage = messages.value[messages.value.length - 1]
-  if (lastMessage?.role === 'assistant') return
-
-  messages.value = [
-    ...messages.value,
-    {
-      id: `assistant-${Date.now()}`,
-      profileId: '',
-      sessionId: sessionId.value ?? '',
-      role: 'assistant',
-      content: assistantResponse,
-      createdAt: new Date().toISOString(),
-    },
-  ]
-}
 
 function updateApprovalChatMessage(
   approval: ChatApprovalAction,
@@ -763,7 +749,19 @@ function formatRole(role: AgentChatMessageRole) {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
+  gap: var(--sailor-space-2);
   min-height: 18px;
+}
+
+.chat-session-panel__target-kind {
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 5px;
+  text-transform: uppercase;
 }
 
 .chat-session-panel__target-select {
@@ -841,6 +839,33 @@ function formatRole(role: AgentChatMessageRole) {
 
 .chat-session-panel__empty {
   color: var(--sailor-text-muted);
+}
+
+.chat-session-panel__published-boundary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sailor-space-2);
+  border: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-surface);
+  padding: 8px 10px;
+}
+
+.chat-session-panel__published-boundary span {
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+}
+
+.chat-session-panel__published-boundary button {
+  border: 1px solid var(--sailor-border-strong);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-inverse);
+  color: var(--sailor-text-inverse);
+  cursor: pointer;
+  font-size: var(--sailor-text-xs);
+  font-weight: 700;
+  padding: 7px 10px;
 }
 
 .chat-session-panel__messages {

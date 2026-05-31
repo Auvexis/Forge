@@ -9,11 +9,12 @@ function read(relativePath: string): string {
   return readFileSync(resolve(root, relativePath), 'utf8')
 }
 
-test('chat session panel sends messages through agent chat api', () => {
+test('chat session panel keeps published chat out of the workflow editor', () => {
   const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
 
-  assert.match(source, /agentChatApi/)
-  assert.match(source, /sendMessage\(/)
+  assert.match(source, /Dev Session/)
+  assert.doesNotMatch(source, /agentChatApi\.sendMessage\(activeChatSlug/)
+  assert.match(source, /Open published agent panel/)
   assert.match(source, /sendCurrentMessage/)
 })
 
@@ -227,7 +228,7 @@ test('chat session panel renders user and assistant messages', () => {
 
   assert.match(source, /messages/)
   assert.match(source, /message\.role/)
-  assert.match(source, /assistantResponse/)
+  assert.match(source, /visibleMessages/)
   assert.match(source, /chat-session-panel__avatar/)
   assert.match(source, /message\.role === 'user' \? 'user' : 'bot'/)
   assert.match(source, /chat-session-panel__message-copy/)
@@ -240,7 +241,7 @@ test('chat session panel preserves session id for follow-up messages', () => {
   const source = read('src/features/workflow-editor/components/agent/ChatSessionPanel.vue')
 
   assert.match(source, /sessionId/)
-  assert.match(source, /result\.session\.id/)
+  assert.match(source, /localSessionId/)
   assert.match(source, /sessionId: sessionId\.value/)
 })
 
