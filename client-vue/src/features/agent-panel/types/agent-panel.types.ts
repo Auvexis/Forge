@@ -32,9 +32,30 @@ export interface AgentPanelMessageResult {
   execution: unknown
 }
 
+export type AgentPanelProgressStatus = 'planned' | 'running' | 'success' | 'failed'
+
+export interface AgentPanelProgressContent {
+  kind: 'agentProgress'
+  status: AgentPanelProgressStatus
+  message: string
+  tool?: {
+    toolCallId: string
+    name: string
+    pluginId?: string
+    pluginName?: string
+    reason?: string
+  }
+}
+
 export type AgentPanelStreamEvent =
   | { type: 'start' }
   | { type: 'thinking'; delta: string }
   | { type: 'delta'; delta: string }
+  | {
+      type: 'progress'
+      status: AgentPanelProgressStatus
+      message: string
+      tool?: AgentPanelProgressContent['tool']
+    }
   | { type: 'done'; result: AgentPanelMessageResult }
   | { type: 'error'; code?: string; message: string }

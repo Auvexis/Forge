@@ -3,7 +3,11 @@ import { defineStore } from 'pinia'
 import { agentPanelApi } from '@/core/api/agent-panel.api'
 import { useToast } from '@/shared/composables/useToast'
 import type { AgentChatMessage, AgentChatSession } from '@/features/agent-runtime/types/agent.types'
-import type { PublishedAgentSummary } from '@/features/agent-panel/types/agent-panel.types'
+import type {
+  AgentPanelProgressContent,
+  AgentPanelStreamEvent,
+  PublishedAgentSummary,
+} from '@/features/agent-panel/types/agent-panel.types'
 
 export const useAgentPanelStore = defineStore('agent-panel', () => {
   const agents = ref<PublishedAgentSummary[]>([])
@@ -143,6 +147,38 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     upsertStreamingAssistantMessage(sessionId, { thinkingDelta: delta, pending: false })
   }
 
+  function appendAgentProgressMessage(
+    sessionId: string,
+    event: Extract<AgentPanelStreamEvent, { type: 'progress' }>,
+  ) {
+    const toolKey = event.tool?.toolCallId ?? `${event.tool?.name ?? 'agent-tool'}-${Date.now()}`
+    const id = `local-agent-progress-${sessionId}-${toolKey}`
+    const content: AgentPanelProgressContent = {
+      kind: 'agentProgress',
+      status: event.status,
+      message: event.message,
+      tool: event.tool,
+    }
+    const existing = messages.value.find((message) => message.id === id)
+    if (existing) {
+      existing.content = content
+      return
+    }
+
+    messages.value = [
+      ...messages.value,
+      {
+        id,
+        profileId: '',
+        sessionId,
+        role: 'assistant',
+        content,
+        createdAt: new Date().toISOString(),
+        entrance: 'assistant',
+      } as AgentChatMessage,
+    ]
+  }
+
   function upsertStreamingAssistantMessage(
     sessionId: string,
     patch: { textDelta?: string; thinkingDelta?: string; pending?: boolean },
@@ -202,13 +238,14 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         if (event.type === 'start') appendPendingAssistantMessage(selectedSessionId.value)
         if (event.type === 'thinking') appendStreamingAssistantThinking(selectedSessionId.value, event.delta)
         if (event.type === 'delta') appendStreamingAssistantMessage(selectedSessionId.value, event.delta)
+        if (event.type === 'progress') appendAgentProgressMessage(selectedSessionId.value, event)
         if (event.type === 'error') throw new Error(event.message)
         if (event.type === 'done') result = event.result
       }
       if (!result) throw new Error('Agent message failed')
       draftSessionOpen.value = false
       selectedSessionId.value = result.session.id
-      messages.value = result.messages
+      messages.value = mergeServerMessagesWithLocalProgress(result.messages)
       sessions.value = [result.session, ...sessions.value.filter((session) => session.id !== result.session.id)]
     } catch (err) {
       chatError.value = err instanceof Error ? err.message : 'Agent message failed'
@@ -252,6 +289,20 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     }
   }
 
+  function mergeServerMessagesWithLocalProgress(serverMessages: AgentChatMessage[]) {
+    const localProgress = messages.value.filter((message) => isAgentProgressContent(message.content))
+    return [...serverMessages, ...localProgress]
+  }
+
+  function isAgentProgressContent(content: unknown): content is AgentPanelProgressContent {
+    return Boolean(
+      content &&
+        typeof content === 'object' &&
+        !Array.isArray(content) &&
+        (content as { kind?: unknown }).kind === 'agentProgress',
+    )
+  }
+
   function createSessionTitle(message: string): string {
     const title = message.replace(/\s+/g, ' ').trim()
     return title.length > 48 ? `${title.slice(0, 45)}...` : title || 'New chat'
@@ -284,6 +335,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     appendOptimisticUserMessage,
     appendStreamingAssistantMessage,
     appendStreamingAssistantThinking,
+    appendAgentProgressMessage,
     sendMessage,
   }
 })

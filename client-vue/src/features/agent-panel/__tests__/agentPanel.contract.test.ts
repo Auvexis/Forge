@@ -157,6 +157,19 @@ describe('agent panel modal contract', () => {
     assert.match(types, /type: 'thinking'/)
   })
 
+  it('models progress stream events as upserted assistant progress messages', () => {
+    const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+
+    assert.match(types, /type: 'progress'/)
+    assert.match(types, /toolCallId: string/)
+    assert.match(types, /pluginId\?: string/)
+    assert.match(store, /appendAgentProgressMessage/)
+    assert.match(store, /event\.type === 'progress'/)
+    assert.match(store, /kind: 'agentProgress'/)
+    assert.match(store, /event\.tool\?\.toolCallId/)
+  })
+
   it('renders global agent pending loading dots like workflow editor chat', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 
