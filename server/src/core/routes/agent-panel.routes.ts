@@ -313,7 +313,9 @@ async function streamAgentPanelMessage(
     sawToolActivity = true;
     if (sentToolIntro) return;
     sentToolIntro = true;
-    writeStreamEvent(reply, { type: "delta", delta: formatToolIntroMessage(input.message, progressLanguage) });
+    progressQueue = progressQueue.then(() =>
+      writeIntroDeltas(reply, splitTextForDeltas(formatToolIntroMessage(input.message, progressLanguage), 28)),
+    );
   };
   const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
     if (event.type === "agent:thinking-delta") {
@@ -553,7 +555,7 @@ function formatToolSummaryMessage(tools: ToolProgress[], language: ProgressLangu
 function detectProgressLanguage(message: string): ProgressLanguage {
   const normalized = message.toLowerCase();
   if (/[ãõáàâéêíóôúç]/i.test(message)) return "pt";
-  if (/\b(envie|enviar|mande|manda|tambem|também|para|sobre|resumo|piada|email|e-mail)\b/.test(normalized)) {
+  if (/\b(envie|enviar|mande|manda|tambem|também|para|sobre|resumo|piada)\b/.test(normalized)) {
     return "pt";
   }
   return "en";
@@ -615,6 +617,18 @@ async function writeFallbackDeltas(reply: FastifyReply, deltas: string[]): Promi
     writeStreamEvent(reply, { type: "delta", delta });
     await delay(30);
   }
+}
+
+async function writeIntroDeltas(reply: FastifyReply, deltas: string[]): Promise<void> {
+  for (const delta of deltas) {
+    writeStreamEvent(reply, { type: "delta", delta });
+    await delay(80);
+  }
+}
+
+function splitTextForDeltas(text: string, maxLength: number): string[] {
+  const chunks = text.match(new RegExp(`.{1,${maxLength}}(?:\\s+|$)|\\S+`, "g")) ?? [text];
+  return chunks.map((chunk) => chunk).filter(Boolean);
 }
 
 function delay(ms: number): Promise<void> {

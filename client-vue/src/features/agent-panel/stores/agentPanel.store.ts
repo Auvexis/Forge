@@ -155,7 +155,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     event: Extract<AgentPanelStreamEvent, { type: 'progress' }>,
   ) {
     const toolKey = event.tool?.toolCallId ?? `${event.tool?.name ?? 'agent-tool'}-${Date.now()}`
-    const id = `local-agent-progress-${sessionId}-${toolKey}-${event.status}`
+    const id = `local-agent-progress-${currentAssistantTurnId(sessionId)}-${toolKey}-${event.status}`
     const content: AgentPanelProgressContent = {
       kind: 'agentProgress',
       status: event.status,
@@ -186,7 +186,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     sessionId: string,
     event: Extract<AgentPanelStreamEvent, { type: 'summary' }>,
   ) {
-    const id = `local-agent-summary-${sessionId}`
+    const id = `local-agent-summary-${currentAssistantTurnId(sessionId)}`
     const content: AgentPanelSummaryContent = {
       kind: 'agentSummary',
       message: event.message,
@@ -236,6 +236,11 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
   function createAssistantStreamId(sessionId: string): string {
     return `local-assistant-stream-${sessionId}-${Date.now()}`
+  }
+
+  function currentAssistantTurnId(sessionId: string): string {
+    activeAssistantStreamId.value = activeAssistantStreamId.value || createAssistantStreamId(sessionId)
+    return activeAssistantStreamId.value
   }
 
   function remapLocalSessionMessages(fromSessionId: string, toSessionId: string) {

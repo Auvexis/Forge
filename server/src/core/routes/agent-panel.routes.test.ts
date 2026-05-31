@@ -203,10 +203,16 @@ describe("agent panel routes", () => {
     });
     const events = parseStreamEvents(response.body);
 
-    assert.deepEqual(events.map((event) => event.type), ["start", "delta", "progress", "progress", "summary", "done"]);
-    assert.match(events[1]?.delta ?? "", /^Perfect, .*Hello/);
-    assert.equal(events[2]?.status, "running");
-    assert.equal(events[3]?.status, "success");
+    assert.deepEqual(events.filter((event) => event.type !== "delta").map((event) => event.type), [
+      "start",
+      "progress",
+      "progress",
+      "summary",
+      "done",
+    ]);
+    assert.match(events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""), /^Perfect, .*Hello/);
+    assert.equal(events.find((event) => event.type === "progress")?.status, "running");
+    assert.equal(events.filter((event) => event.type === "progress")[1]?.status, "success");
     assert.equal(events.at(-1)?.type, "done");
   });
 
@@ -350,9 +356,10 @@ describe("agent panel routes", () => {
     assert.match(progressEvents[3]?.message ?? "", /Vou usar send_email .*enviar a mensagem/);
     assert.equal(progressEvents[3]?.tool?.pluginId, "gmail");
     assert.match(progressEvents[5]?.message ?? "", /Usei send_email com sucesso/);
-    assert.deepEqual(events.filter((event) => event.type === "delta").map((event) => event.delta), [
+    assert.equal(
+      events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""),
       "Perfeito, vou cuidar disso agora: Enviar email",
-    ]);
+    );
     assert.ok(events.some((event) =>
       event.type === "summary" &&
       /Usei estas ferramentas/.test(event.message ?? "") &&
@@ -396,9 +403,11 @@ describe("agent panel routes", () => {
       payload: { message: 'Can you send a joke about "bananas" on my Discord?' },
     });
     const events = parseStreamEvents(response.body);
+    const deltaEvents = events.filter((event) => event.type === "delta");
 
-    assert.match(events.find((event) => event.type === "delta")?.delta ?? "", /^Perfect, /);
-    assert.match(events.find((event) => event.type === "delta")?.delta ?? "", /bananas/);
+    assert.ok(deltaEvents.length > 1);
+    assert.match(deltaEvents.map((event) => event.delta ?? "").join(""), /^Perfect, /);
+    assert.match(deltaEvents.map((event) => event.delta ?? "").join(""), /bananas/);
     assert.match(events.find((event) => event.type === "progress")?.message ?? "", /^Running discord_send_message now\./);
     assert.match(events.find((event) => event.type === "summary")?.message ?? "", /^Used these tools: discord_send_message\./);
   });
@@ -473,9 +482,10 @@ describe("agent panel routes", () => {
       "success",
     ]);
     assert.equal(progressEvents.filter((event) => /com sucesso/.test(event.message ?? "")).length, 2);
-    assert.deepEqual(events.filter((event) => event.type === "delta").map((event) => event.delta), [
+    assert.equal(
+      events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""),
       "Perfeito, vou cuidar disso agora: Enviar piada",
-    ]);
+    );
     assert.ok(events.find((event) =>
       event.type === "summary" &&
       /discord_send_message/.test(event.message ?? "") &&
