@@ -26,6 +26,14 @@ export interface AgentPanelRoutesOptions {
 type AgentPanelScope = "current" | "global";
 type MemoryMode = DeleteAgentPanelSessionInput["memoryMode"];
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
+const pendingAgentPanelStreams = new Map<string, PendingAgentPanelStream>();
+
+interface PendingAgentPanelStream {
+  profileId: string;
+  sessionId: string;
+  message: string;
+  createdAt: number;
+}
 
 export default async function agentPanelRoutes(
   fastify: FastifyInstance,
@@ -148,6 +156,64 @@ export default async function agentPanelRoutes(
     }
   });
 
+  fastify.post("/agent-panel/sessions/:sessionId/messages/stream/start", async (req, reply) => {
+    try {
+      const { sessionId } = req.params as { sessionId: string };
+      const body = req.body as { message?: unknown } | undefined;
+      const message = String(body?.message ?? "").trim();
+      if (!message) {
+        throw new AgentRuntimeError(
+          "Invalid agent panel message",
+          "AGENT_PANEL_INPUT_INVALID",
+          "Invalid agent panel message",
+          400,
+        );
+      }
+
+      const streamId = `agent_panel_stream_${Date.now()}_${randomUUID().slice(0, 8)}`;
+      pendingAgentPanelStreams.set(streamId, {
+        profileId: getProfileId(),
+        sessionId,
+        message,
+        createdAt: Date.now(),
+      });
+      prunePendingAgentPanelStreams();
+
+      return sendResponse(reply, {
+        status_code: 202,
+        message: "Agent panel stream started",
+        error: null,
+        data: { streamId },
+      });
+    } catch (error) {
+      return sendAgentError(reply, error);
+    }
+  });
+
+  fastify.get("/agent-panel/sessions/:sessionId/messages/streams/:streamId", async (req, reply) => {
+    const { sessionId, streamId } = req.params as { sessionId: string; streamId: string };
+    const pending = pendingAgentPanelStreams.get(streamId);
+    pendingAgentPanelStreams.delete(streamId);
+    if (!pending || pending.sessionId !== sessionId) {
+      return sendAgentError(
+        reply,
+        new AgentRuntimeError(
+          "Agent panel stream not found",
+          "AGENT_PANEL_STREAM_NOT_FOUND",
+          "Agent panel stream not found",
+          404,
+        ),
+      );
+    }
+
+    return streamAgentPanelMessage(req, reply, {
+      profileId: pending.profileId,
+      sessionId,
+      message: pending.message,
+      service: getService(),
+    });
+  });
+
   fastify.post("/agent-panel/sessions/:sessionId/messages/stream", async (req, reply) => {
     const { sessionId } = req.params as { sessionId: string };
     const body = req.body as { message?: unknown } | undefined;
@@ -164,106 +230,11 @@ export default async function agentPanelRoutes(
       );
     }
 
-    reply.hijack();
-    writeStreamHeaders(reply);
-    reply.raw.write(": connected\n\n");
-    flushStreamEvent(reply);
-    writeStreamEvent(reply, { type: "start" });
-
-    const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
-    let nativeDeltaCount = 0;
-    const completedToolCalls: ToolProgress[] = [];
-    const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
-      if (event.type === "agent:thinking-delta") {
-        const delta = extractAgentDelta(event);
-        if (delta) writeStreamEvent(reply, { type: "thinking", delta });
-      }
-      if (event.type === "agent:tool-intent") {
-        writeStreamEvent(reply, {
-          type: "progress",
-          status: "planned",
-          message: formatToolProgressMessage(event, "planned"),
-          tool: extractToolProgress(event),
-        });
-      }
-      if (event.type === "agent:tool-start") {
-        writeStreamEvent(reply, {
-          type: "progress",
-          status: "running",
-          message: formatToolProgressMessage(event, "running"),
-          tool: extractToolProgress(event),
-        });
-      }
-      if (event.type === "agent:tool-end") {
-        const status = extractToolStatus(event) === "failed" ? "failed" : "success";
-        const tool = extractToolProgress(event);
-        writeStreamEvent(reply, {
-          type: "progress",
-          status,
-          message: formatToolProgressMessage(event, status),
-          tool,
-        });
-        if (status === "success") completedToolCalls.push(tool);
-      }
-      if (event.type === "agent:output-delta") {
-        const delta = extractAgentDelta(event);
-        if (delta) {
-          nativeDeltaCount += 1;
-          writeStreamEvent(reply, { type: "delta", delta });
-        }
-      }
-      if (event.type === "agent:error") {
-        writeStreamEvent(reply, {
-          type: "error",
-          message: extractAgentError(event) ?? event.error ?? "Agent execution failed",
-        });
-      }
-    });
-    const heartbeat = setInterval(() => reply.raw.write(": heartbeat\n\n"), 15000);
-
-    req.raw.on("close", () => {
-      unsubscribe();
-      clearInterval(heartbeat);
-    });
-
-    try {
-      const result = await getService().sendMessage({
-        profileId: getProfileId(),
-        sessionId,
-        message,
-        executionId,
-      });
-      if (completedToolCalls.length === 0) {
-        const fallbackToolCalls = extractCompletedToolCallsFromResult(result);
-        for (const tool of fallbackToolCalls) {
-          writeToolProgressLifecycle(reply, tool);
-          if (tool.status === "success") completedToolCalls.push(tool);
-        }
-      }
-      if (nativeDeltaCount === 0) {
-        await writeFallbackDeltas(reply, splitAssistantMessageForStream(result));
-      }
-      if (completedToolCalls.length > 0) {
-        writeStreamEvent(reply, {
-          type: "summary",
-          message: `Usei estas ferramentas: ${completedToolCalls.map((tool) => tool.name).join(", ")}. Resposta final pronta.`,
-          tools: completedToolCalls,
-        });
-      }
-      writeStreamEvent(reply, { type: "done", result });
-    } catch (error) {
-      const serialized = error instanceof AgentRuntimeError
-        ? serializeAgentError(error)
-        : { code: "AGENT_RUNTIME_ERROR", message: safeErrorMessage(error) };
-      writeStreamEvent(reply, { type: "error", ...serialized });
-    } finally {
-      unsubscribe();
-      clearInterval(heartbeat);
-      setTimeout(() => reply.raw.end(), 100);
-    }
-
-    return new Promise((resolve) => {
-      req.raw.on("close", resolve);
+    return streamAgentPanelMessage(req, reply, {
+      profileId: getProfileId(),
+      sessionId,
+      message,
+      service: getService(),
     });
   });
 
@@ -303,6 +274,126 @@ function sendAgentError(reply: FastifyReply, error: unknown) {
     error: serialized.message,
     data: null,
   });
+}
+
+async function streamAgentPanelMessage(
+  req: { raw: { on: (event: "close", listener: () => void) => unknown } },
+  reply: FastifyReply,
+  input: {
+    profileId: string;
+    sessionId: string;
+    message: string;
+    service: Pick<AgentPanelChatService, "sendMessage">;
+  },
+) {
+  reply.hijack();
+  writeStreamHeaders(reply);
+  reply.raw.write(": connected\n\n");
+  flushStreamEvent(reply);
+  writeStreamEvent(reply, { type: "start" });
+
+  const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
+  let nativeDeltaCount = 0;
+  const completedToolCalls: ToolProgress[] = [];
+  const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
+    if (event.type === "agent:thinking-delta") {
+      const delta = extractAgentDelta(event);
+      if (delta) writeStreamEvent(reply, { type: "thinking", delta });
+    }
+    if (event.type === "agent:tool-intent") {
+      writeStreamEvent(reply, {
+        type: "progress",
+        status: "planned",
+        message: formatToolProgressMessage(event, "planned"),
+        tool: extractToolProgress(event),
+      });
+    }
+    if (event.type === "agent:tool-start") {
+      writeStreamEvent(reply, {
+        type: "progress",
+        status: "running",
+        message: formatToolProgressMessage(event, "running"),
+        tool: extractToolProgress(event),
+      });
+    }
+    if (event.type === "agent:tool-end") {
+      const status = extractToolStatus(event) === "failed" ? "failed" : "success";
+      const tool = extractToolProgress(event);
+      writeStreamEvent(reply, {
+        type: "progress",
+        status,
+        message: formatToolProgressMessage(event, status),
+        tool,
+      });
+      if (status === "success") completedToolCalls.push(tool);
+    }
+    if (event.type === "agent:output-delta") {
+      const delta = extractAgentDelta(event);
+      if (delta) {
+        nativeDeltaCount += 1;
+        writeStreamEvent(reply, { type: "delta", delta });
+      }
+    }
+    if (event.type === "agent:error") {
+      writeStreamEvent(reply, {
+        type: "error",
+        message: extractAgentError(event) ?? event.error ?? "Agent execution failed",
+      });
+    }
+  });
+  const heartbeat = setInterval(() => reply.raw.write(": heartbeat\n\n"), 15000);
+
+  req.raw.on("close", () => {
+    unsubscribe();
+    clearInterval(heartbeat);
+  });
+
+  try {
+    const result = await input.service.sendMessage({
+      profileId: input.profileId,
+      sessionId: input.sessionId,
+      message: input.message,
+      executionId,
+    });
+    if (completedToolCalls.length === 0) {
+      const fallbackToolCalls = extractCompletedToolCallsFromResult(result);
+      for (const tool of fallbackToolCalls) {
+        writeToolProgressLifecycle(reply, tool);
+        if (tool.status === "success") completedToolCalls.push(tool);
+      }
+    }
+    if (nativeDeltaCount === 0) {
+      await writeFallbackDeltas(reply, splitAssistantMessageForStream(result));
+    }
+    if (completedToolCalls.length > 0) {
+      writeStreamEvent(reply, {
+        type: "summary",
+        message: `Usei estas ferramentas: ${completedToolCalls.map((tool) => tool.name).join(", ")}. Resposta final pronta.`,
+        tools: completedToolCalls,
+      });
+    }
+    writeStreamEvent(reply, { type: "done", result });
+  } catch (error) {
+    const serialized = error instanceof AgentRuntimeError
+      ? serializeAgentError(error)
+      : { code: "AGENT_RUNTIME_ERROR", message: safeErrorMessage(error) };
+    writeStreamEvent(reply, { type: "error", ...serialized });
+  } finally {
+    unsubscribe();
+    clearInterval(heartbeat);
+    setTimeout(() => reply.raw.end(), 100);
+  }
+
+  return new Promise((resolve) => {
+    req.raw.on("close", () => resolve(undefined));
+  });
+}
+
+function prunePendingAgentPanelStreams(): void {
+  const expiresBefore = Date.now() - 60000;
+  for (const [streamId, pending] of pendingAgentPanelStreams) {
+    if (pending.createdAt < expiresBefore) pendingAgentPanelStreams.delete(streamId);
+  }
 }
 
 function writeStreamHeaders(reply: FastifyReply): void {

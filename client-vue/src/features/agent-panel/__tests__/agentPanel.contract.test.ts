@@ -146,7 +146,10 @@ describe('agent panel modal contract', () => {
     const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
 
     assert.match(endpoints, /AGENT_PANEL_SESSION_MESSAGES_STREAM/)
+    assert.match(endpoints, /AGENT_PANEL_SESSION_MESSAGES_STREAM_START/)
     assert.match(api, /sendMessageStream/)
+    assert.match(api, /EventSource/)
+    assert.match(api, /startMessageStream/)
     assert.match(store, /appendOptimisticUserMessage/)
     assert.match(store, /appendStreamingAssistantMessage/)
     assert.match(store, /appendPendingAssistantMessage/)
@@ -167,6 +170,7 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /scrollMessagesToBottom/)
     assert.match(chat, /scrollTo\(\{[\s\S]*behavior: 'smooth'/)
     assert.match(chat, /\.agent-chat-message-move/)
+    assert.match(chat, /\.agent-chat-message-leave-active[\s\S]*display: none/)
   })
 
   it('refreshes global agents when the profile or active workflow metadata changes', () => {

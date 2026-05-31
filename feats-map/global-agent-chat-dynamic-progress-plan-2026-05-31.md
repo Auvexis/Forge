@@ -16,8 +16,10 @@ Objetivo: deixar o Global Agent Chat mais vivo, com mensagens de progresso antes
 - [x] Adicionar auto-scroll no Global Agent Chat.
 - [x] Adicionar transicao suave quando mensagens/status novos entram embaixo.
 - [x] Atualizar o Global Agent quando profile ou workflow ativo mudar.
+- [x] Trocar o stream do Agent Panel para `POST start` + `EventSource GET`, evitando buffering do `fetch`.
+- [x] Remover animacao visual de saida para evitar mensagem duplicada temporaria.
 - [x] Criar testes contrato backend/frontend antes da implementacao.
-- [ ] Validar build server/client e fluxo visual.
+- [x] Validar build server/client e fluxo visual.
 
 ## Verification notes
 
@@ -30,3 +32,4 @@ Objetivo: deixar o Global Agent Chat mais vivo, com mensagens de progresso antes
 - [x] Regression tests for missed live tool events: `cd server && node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts src/core/routes/agent-panel.routes.test.ts`
 - [x] SSE flush and plain chat contract tests: `cd server && node --test src/core/routes/agent-panel.routes.test.ts`; `cd client-vue && node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts`
 - [x] Runtime yield, auto-scroll, transition, and global refresh tests: `cd server && node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts`; `cd client-vue && node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts`
+- [x] EventSource stream regression: `cd server && node --test src/core/routes/agent-panel.routes.test.ts`; `cd client-vue && node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts`

@@ -672,11 +672,14 @@ void ['transcript-only', 'session', 'all-agent-memory']
 }
 
 .agent-chat-message-move,
-.agent-chat-message-enter-active,
-.agent-chat-message-leave-active {
+.agent-chat-message-enter-active {
   transition:
     opacity 180ms ease,
     transform 180ms ease;
+}
+
+.agent-chat-message-leave-active {
+  display: none;
 }
 
 .agent-chat-message-enter-from {

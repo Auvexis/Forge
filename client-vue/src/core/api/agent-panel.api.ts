@@ -40,7 +40,7 @@ export const agentPanelApi = {
     }),
 
   sendMessageStream: (sessionId: string, payload: SendAgentPanelMessagePayload) =>
-    streamAgentPanelEvents(ENDPOINTS.AGENT_PANEL_SESSION_MESSAGES_STREAM(sessionId), payload),
+    streamAgentPanelEvents(sessionId, payload),
 
   deleteSession: (sessionId: string, payload: DeleteAgentPanelSessionPayload) =>
     apiRequest<null>(ENDPOINTS.AGENT_PANEL_SESSION(sessionId), {
@@ -49,47 +49,59 @@ export const agentPanelApi = {
     }),
 }
 
-async function* streamAgentPanelEvents(
-  path: string,
+async function startMessageStream(
+  sessionId: string,
   payload: SendAgentPanelMessagePayload,
-): AsyncGenerator<AgentPanelStreamEvent> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+): Promise<{ streamId: string }> {
+  return apiRequest<{ streamId: string }>(ENDPOINTS.AGENT_PANEL_SESSION_MESSAGES_STREAM_START(sessionId), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: payload,
   })
-
-  if (!response.ok || !response.body) {
-    throw new Error(`Agent message failed (${response.status})`)
-  }
-
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-
-  while (true) {
-    const { value, done } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const chunks = buffer.split('\n\n')
-    buffer = chunks.pop() ?? ''
-
-    for (const chunk of chunks) {
-      const event = parseStreamEvent(chunk)
-      if (event) yield event
-    }
-  }
-
-  const event = parseStreamEvent(buffer)
-  if (event) yield event
 }
 
-function parseStreamEvent(chunk: string): AgentPanelStreamEvent | null {
-  const data = chunk
-    .split('\n')
-    .filter((line) => line.startsWith('data:'))
-    .map((line) => line.slice(5).trim())
-    .join('')
-  if (!data) return null
-  return JSON.parse(data) as AgentPanelStreamEvent
+async function* streamAgentPanelEvents(
+  sessionId: string,
+  payload: SendAgentPanelMessagePayload,
+): AsyncGenerator<AgentPanelStreamEvent> {
+  const { streamId } = await startMessageStream(sessionId, payload)
+  const eventSource = new EventSource(`${API_BASE_URL}${ENDPOINTS.AGENT_PANEL_SESSION_MESSAGES_STREAM_EVENTS(sessionId, streamId)}`)
+  const queue: AgentPanelStreamEvent[] = []
+  let notify: (() => void) | null = null
+  let closed = false
+
+  eventSource.onmessage = (message) => {
+    queue.push(JSON.parse(message.data) as AgentPanelStreamEvent)
+    notify?.()
+    notify = null
+  }
+  eventSource.onerror = () => {
+    if (!closed) {
+      queue.push({ type: 'error', message: 'Agent stream connection failed' })
+    }
+    closed = true
+    notify?.()
+    notify = null
+    eventSource.close()
+  }
+
+  try {
+    while (!closed || queue.length > 0) {
+      if (queue.length === 0) {
+        await new Promise<void>((resolve) => {
+          notify = resolve
+        })
+        continue
+      }
+
+      const event = queue.shift()!
+      if (event.type === 'done' || event.type === 'error') {
+        closed = true
+        eventSource.close()
+      }
+      yield event
+    }
+  } finally {
+    closed = true
+    eventSource.close()
+  }
 }

@@ -68,6 +68,7 @@ describe("agent panel routes", () => {
 
     const routes = app.printRoutes();
     assert.match(routes, /agent-panel\/[\s\S]*sessions\/[\s\S]*:sessionId[\s\S]*\/messages[\s\S]*\/stream/);
+    assert.match(routes, /agent-panel\/[\s\S]*sessions\/[\s\S]*:sessionId[\s\S]*\/messages[\s\S]*\/stream[\s\S]*s\/[\s\S]*:streamId/);
     const routeSource = readFileSync("src/core/routes/agent-panel.routes.ts", "utf8");
     assert.match(routeSource, /Access-Control-Allow-Origin/);
     assert.match(routeSource, /flushHeaders/);
@@ -149,6 +150,62 @@ describe("agent panel routes", () => {
 
     assert.deepEqual(events.map((event) => event.type), ["start", "thinking", "delta", "delta", "done"]);
     assert.deepEqual(events.map((event) => event.delta).filter(Boolean), ["thinking ", "hel", "lo"]);
+  });
+
+  it("starts agent panel streams with POST and reads them through EventSource-compatible GET", async () => {
+    const app = await buildApp({
+      sendMessage: async (input: { executionId?: string }) => {
+        assert.ok(input.executionId);
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-start",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "send_discord", pluginId: "discord" },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-end",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "send_discord", pluginId: "discord", status: "success" },
+        });
+        return {
+          session: session("chat_1"),
+          messages: [
+            message("msg_user", "chat_1"),
+            {
+              ...message("msg_assistant", "chat_1"),
+              role: "assistant" as const,
+              content: "Done.",
+            },
+          ],
+          execution: { status: "SUCCESS" },
+        };
+      },
+    });
+
+    const started = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream/start",
+      payload: { message: "Hello" },
+    });
+    const streamId = (started.json<ApiResponse<{ streamId: string }>>().data?.streamId ?? "");
+
+    assert.equal(started.statusCode, 202);
+    assert.ok(streamId.startsWith("agent_panel_stream_"));
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/agent-panel/sessions/chat_1/messages/streams/${streamId}`,
+    });
+    const events = parseStreamEvents(response.body);
+
+    assert.deepEqual(events.map((event) => event.type), ["start", "progress", "progress", "delta", "summary", "done"]);
+    assert.equal(events[1]?.status, "running");
+    assert.equal(events.at(-1)?.type, "done");
   });
 
   it("streams one progress cycle for every tool call before done", async () => {
