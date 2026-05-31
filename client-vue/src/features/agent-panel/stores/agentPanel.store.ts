@@ -84,6 +84,28 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     if (selectedSessionId.value) await loadMessages(selectedSessionId.value)
   }
 
+  async function sendMessage(message: string) {
+    const text = message.trim()
+    if (!text || !selectedSessionId.value || sending.value) return
+
+    sending.value = true
+    error.value = ''
+    try {
+      const result = await agentPanelApi.sendMessage(selectedSessionId.value, { message: text })
+      messages.value = result.messages
+      const sessionIndex = sessions.value.findIndex((session) => session.id === result.session.id)
+      if (sessionIndex >= 0) {
+        sessions.value = sessions.value.map((session, index) =>
+          index === sessionIndex ? result.session : session,
+        )
+      }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Agent message failed'
+    } finally {
+      sending.value = false
+    }
+  }
+
   return {
     agents,
     sessions,
@@ -102,5 +124,6 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     loadMessages,
     createSession,
     deleteSession,
+    sendMessage,
   }
 })

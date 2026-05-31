@@ -33,4 +33,19 @@ describe('agent panel page contract', () => {
     assert.match(sessions, /deleteSession/)
     assert.match(store, /loadSessions/)
   })
+
+  it('chat view renders messages and sends through the agent panel api', () => {
+    const view = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const composer = readFileSync(
+      'src/features/agent-panel/components/AgentChatComposer.vue',
+      'utf8',
+    )
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+
+    assert.match(view, /selectedAgent/)
+    assert.match(view, /messages/)
+    assert.match(composer, /Ctrl\+Enter|ctrl\.enter/)
+    assert.match(store, /sendMessage/)
+    assert.match(store, /agentPanelApi\.sendMessage/)
+  })
 })
