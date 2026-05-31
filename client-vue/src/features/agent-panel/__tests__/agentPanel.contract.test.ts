@@ -111,7 +111,7 @@ describe('agent panel modal contract', () => {
 
     assert.match(directory, /directoryError/)
     assert.doesNotMatch(directory, /store\.error/)
-    assert.match(chat, /chatError/)
+    assert.doesNotMatch(chat, /store\.chatError/)
     assert.match(store, /directoryError/)
     assert.match(store, /chatError/)
     assert.doesNotMatch(chat, /<button[^>]*\\s+v-for="session in store\\.sessions"[\\s\\S]*<button/)
@@ -125,5 +125,15 @@ describe('agent panel modal contract', () => {
     assert.match(store, /loadSessions[\s\S]*clearChatError\(\)/)
     assert.match(store, /selectSession[\s\S]*clearChatError\(\)/)
     assert.match(store, /openDraftSession[\s\S]*clearChatError\(\)/)
+  })
+
+  it('shows agent send failures through the global toast instead of the chat transcript', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+
+    assert.match(store, /useToast/)
+    assert.match(store, /toastError\(chatError\.value, 'Agent execution failed'\)/)
+    assert.doesNotMatch(chat, /agent-chat-view__chat-error/)
+    assert.doesNotMatch(chat, /store\.chatError/)
   })
 })

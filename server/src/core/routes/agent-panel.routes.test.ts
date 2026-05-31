@@ -72,6 +72,25 @@ describe("agent panel routes", () => {
 
     assert.deepEqual(calls, ["listAgents:current", "listAgents:global"]);
   });
+
+  it("returns useful detail for unexpected agent panel send errors", async () => {
+    const app = await buildApp({
+      sendMessage: async () => {
+        throw new Error("Ollama connection refused");
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages",
+      payload: { message: "Hello" },
+    });
+    const body = response.json() as ApiResponse<unknown>;
+
+    assert.equal(response.statusCode, 500);
+    assert.match(String(body.message), /Ollama connection refused/);
+    assert.match(String(body.error), /Ollama connection refused/);
+  });
 });
 
 async function buildApp(service: Partial<AgentPanelChatService>) {

@@ -66,9 +66,6 @@
     <div v-else-if="!store.hasOpenChat" class="agent-chat-view__empty">Select a chat.</div>
     <template v-else>
       <div class="agent-chat-view__messages">
-        <div v-if="store.chatError" class="agent-chat-view__chat-error">
-          {{ store.chatError }}
-        </div>
         <article
           v-for="message in store.messages"
           :key="message.id"
@@ -414,11 +411,4 @@ void ['transcript-only', 'session', 'all-agent-memory']
   padding: var(--sailor-space-4);
 }
 
-.agent-chat-view__chat-error {
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  padding: var(--sailor-space-3);
-  color: var(--sailor-text-error);
-  font-size: var(--sailor-text-sm);
-}
 </style>

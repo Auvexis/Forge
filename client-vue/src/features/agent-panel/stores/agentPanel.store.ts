@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { agentPanelApi } from '@/core/api/agent-panel.api'
+import { useToast } from '@/shared/composables/useToast'
 import type { AgentChatMessage, AgentChatSession } from '@/features/agent-runtime/types/agent.types'
 import type { PublishedAgentSummary } from '@/features/agent-panel/types/agent-panel.types'
 
@@ -118,6 +119,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     if (!text || sending.value || (!selectedAgentKey.value && !selectedSessionId.value)) return
     if (!selectedSessionId.value && !draftSessionOpen.value) return
 
+    const { error: toastError } = useToast()
     sending.value = true
     chatError.value = ''
     error.value = ''
@@ -132,6 +134,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     } catch (err) {
       chatError.value = err instanceof Error ? err.message : 'Agent message failed'
       error.value = chatError.value
+      toastError(chatError.value, 'Agent execution failed')
     } finally {
       sending.value = false
     }

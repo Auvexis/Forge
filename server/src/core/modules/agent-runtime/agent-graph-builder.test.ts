@@ -304,6 +304,32 @@ describe("agent graph builder", () => {
     await assert.rejects(invalidGraph.invoke({ userMessage: "json" }), /schema/i);
   });
 
+  it("adds strict JSON response instructions for JSON output mode", async () => {
+    const model = fakeModel([{ content: JSON.stringify({ answer: "ok" }) }]);
+    const graph = buildAgentGraph({
+      agent: agentConfig({ outputMode: "json" }),
+      model,
+      tools: [],
+    });
+
+    await graph.invoke({ userMessage: "json" });
+
+    const messages = model.calls[0] as Array<{ role: string; content: string }>;
+    assert.match(messages[0].content, /Return only one valid JSON object/i);
+  });
+
+  it("parses JSON output wrapped in a markdown json fence", async () => {
+    const graph = buildAgentGraph({
+      agent: agentConfig({ outputMode: "json" }),
+      model: fakeModel([{ content: "```json\n{\"answer\":\"ok\"}\n```" }]),
+      tools: [],
+    });
+
+    const result = await graph.invoke({ userMessage: "json" });
+
+    assert.deepEqual(result.output, { answer: "ok" });
+  });
+
   it("uses invoke instead of stream for JSON output mode", async () => {
     const model = fakeStreamModel(["bad partial json"], { invokeContent: JSON.stringify({ answer: "ok" }) });
     const graph = buildAgentGraph({

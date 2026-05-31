@@ -80,7 +80,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
     checkpointer: input.checkpointer,
     async invoke(invokeInput: AgentGraphInvokeInput): Promise<AgentRunResult> {
       const messages: AgentGraphMessage[] = [
-        { role: "system", content: input.agent.prompt },
+        { role: "system", content: systemPromptForAgent(input.agent) },
         ...(invokeInput.contextMessages ?? []),
         { role: "user", content: invokeInput.userMessage },
       ];
@@ -503,7 +503,7 @@ function parseOutput(agent: AiAgentNodeConfig, content: string): string | Record
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(content);
+    parsed = JSON.parse(normalizeJsonOutputContent(content));
   } catch {
     throw new AgentRuntimeError(
       "Agent JSON output could not be parsed",
@@ -535,6 +535,24 @@ function parseOutput(agent: AiAgentNodeConfig, content: string): string | Record
   }
 
   return parsed as Record<string, any>;
+}
+
+function systemPromptForAgent(agent: AiAgentNodeConfig): string {
+  if (agent.outputMode !== "json") return agent.prompt;
+  const schemaInstruction = agent.outputSchema
+    ? ` It must satisfy this JSON Schema: ${JSON.stringify(agent.outputSchema)}.`
+    : "";
+  return [
+    agent.prompt,
+    "Return only one valid JSON object. Do not include markdown fences, prose, code comments, or extra text.",
+    schemaInstruction.trim(),
+  ].filter(Boolean).join("\n\n");
+}
+
+function normalizeJsonOutputContent(content: string): string {
+  const trimmed = content.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return (fenced?.[1] ?? trimmed).trim();
 }
 
 function stringifyToolResult(value: unknown): string {

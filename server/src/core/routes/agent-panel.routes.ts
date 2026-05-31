@@ -171,7 +171,9 @@ function sendResponse<T>(reply: FastifyReply, response: ApiResponse<T>) {
 }
 
 function sendAgentError(reply: FastifyReply, error: unknown) {
-  const serialized = serializeAgentError(error);
+  const serialized = error instanceof AgentRuntimeError
+    ? serializeAgentError(error)
+    : { code: "AGENT_RUNTIME_ERROR", message: safeErrorMessage(error) };
   const statusCode = error instanceof AgentRuntimeError ? error.statusCode : 500;
   return sendResponse(reply, {
     status_code: statusCode,
@@ -179,6 +181,11 @@ function sendAgentError(reply: FastifyReply, error: unknown) {
     error: serialized.message,
     data: null,
   });
+}
+
+function safeErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.replace(/\s+/g, " ").trim() || "Agent execution failed";
 }
 
 function normalizeMemoryMode(value: unknown): MemoryMode {
