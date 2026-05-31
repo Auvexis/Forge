@@ -211,6 +211,15 @@ describe('agent panel modal contract', () => {
     assert.match(store, /kind: 'agentSummary'/)
   })
 
+  it('keeps chat messages and tool status rows visually plain', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /\.agent-chat-view__message p,[\s\S]*border: 0;[\s\S]*background: transparent;[\s\S]*padding: 0;/)
+    assert.match(chat, /\.agent-chat-view__progress \{[\s\S]*border: 0;[\s\S]*background: transparent;[\s\S]*padding: 0;/)
+    assert.match(chat, /\.agent-chat-view__summary \{[\s\S]*border: 0;[\s\S]*background: transparent;[\s\S]*padding: 0;/)
+    assert.match(chat, /\.agent-chat-view__summary-tools li \{[\s\S]*border: 0;[\s\S]*padding: 0;/)
+  })
+
   it('animates user and assistant messages from their side of the chat', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 

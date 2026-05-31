@@ -167,6 +167,7 @@ export default async function agentPanelRoutes(
     reply.hijack();
     writeStreamHeaders(reply);
     reply.raw.write(": connected\n\n");
+    flushStreamEvent(reply);
     writeStreamEvent(reply, { type: "start" });
 
     const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
@@ -305,6 +306,7 @@ function sendAgentError(reply: FastifyReply, error: unknown) {
 }
 
 function writeStreamHeaders(reply: FastifyReply): void {
+  reply.raw.socket?.setNoDelay?.(true);
   reply.raw.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
@@ -313,10 +315,19 @@ function writeStreamHeaders(reply: FastifyReply): void {
     "Access-Control-Allow-Credentials": "true",
     "X-Accel-Buffering": "no",
   });
+  if (reply.raw.socket) {
+    reply.raw.flushHeaders();
+  }
 }
 
 function writeStreamEvent(reply: FastifyReply, event: Record<string, unknown>): void {
   reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
+  flushStreamEvent(reply);
+}
+
+function flushStreamEvent(reply: FastifyReply): void {
+  if (!reply.raw.socket) return;
+  (reply.raw as FastifyReply["raw"] & { flush?: () => void }).flush?.();
 }
 
 function extractAgentDelta(event: WorkflowEvent): string {

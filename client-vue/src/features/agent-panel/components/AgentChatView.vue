@@ -511,10 +511,10 @@ void ['transcript-only', 'session', 'all-agent-memory']
 .agent-chat-view__typing-dots {
   grid-column: 2;
   margin: 0;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  padding: 10px 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
   color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-sm);
   line-height: 1.5;
@@ -523,7 +523,7 @@ void ['transcript-only', 'session', 'all-agent-memory']
 
 .agent-chat-view__message--user p {
   grid-column: 1;
-  background: var(--sailor-bg-elevated);
+  background: transparent;
 }
 
 .agent-chat-view__thinking {
@@ -563,10 +563,10 @@ void ['transcript-only', 'session', 'all-agent-memory']
   max-width: 100%;
   align-items: center;
   gap: var(--sailor-space-2);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-  padding: 8px 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
   color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
   line-height: 1.4;
@@ -591,7 +591,7 @@ void ['transcript-only', 'session', 'all-agent-memory']
   flex: 0 0 auto;
   place-items: center;
   border-radius: 5px;
-  background: var(--sailor-bg-surface);
+  background: transparent;
 }
 
 .agent-chat-view__summary {
@@ -599,10 +599,10 @@ void ['transcript-only', 'session', 'all-agent-memory']
   display: grid;
   width: min(100%, 520px);
   gap: var(--sailor-space-2);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-  padding: 10px 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
   color: var(--sailor-text-primary);
   font-size: var(--sailor-text-sm);
   line-height: 1.4;
@@ -622,9 +622,9 @@ void ['transcript-only', 'session', 'all-agent-memory']
   min-width: 0;
   align-items: center;
   gap: var(--sailor-space-2);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-xs);
-  padding: 4px 7px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
   color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
 }

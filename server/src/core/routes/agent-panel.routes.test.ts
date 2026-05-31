@@ -68,7 +68,10 @@ describe("agent panel routes", () => {
 
     const routes = app.printRoutes();
     assert.match(routes, /agent-panel\/[\s\S]*sessions\/[\s\S]*:sessionId[\s\S]*\/messages[\s\S]*\/stream/);
-    assert.match(readFileSync("src/core/routes/agent-panel.routes.ts", "utf8"), /Access-Control-Allow-Origin/);
+    const routeSource = readFileSync("src/core/routes/agent-panel.routes.ts", "utf8");
+    assert.match(routeSource, /Access-Control-Allow-Origin/);
+    assert.match(routeSource, /flushHeaders/);
+    assert.match(routeSource, /flushStreamEvent/);
 
     const deleted = await app.inject({
       method: "DELETE",
