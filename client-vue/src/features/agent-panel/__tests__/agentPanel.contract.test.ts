@@ -116,4 +116,14 @@ describe('agent panel modal contract', () => {
     assert.match(store, /chatError/)
     assert.doesNotMatch(chat, /<button[^>]*\\s+v-for="session in store\\.sessions"[\\s\\S]*<button/)
   })
+
+  it('clears stale chat errors when opening another chat context', () => {
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+
+    assert.match(store, /function clearChatError/)
+    assert.match(store, /selectAgent[\s\S]*clearChatError\(\)/)
+    assert.match(store, /loadSessions[\s\S]*clearChatError\(\)/)
+    assert.match(store, /selectSession[\s\S]*clearChatError\(\)/)
+    assert.match(store, /openDraftSession[\s\S]*clearChatError\(\)/)
+  })
 })

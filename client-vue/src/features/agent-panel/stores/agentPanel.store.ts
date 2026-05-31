@@ -25,10 +25,16 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   )
   const hasOpenChat = computed(() => Boolean(selectedAgent.value && (draftSessionOpen.value || selectedSession.value)))
 
+  function clearChatError() {
+    chatError.value = ''
+    if (error.value && error.value !== directoryError.value) error.value = ''
+  }
+
   async function loadAgents(scope: 'current' | 'global' = 'current') {
     loading.value = true
     error.value = ''
     directoryError.value = ''
+    clearChatError()
     try {
       agents.value = await agentPanelApi.listAgents(scope)
       selectedAgentKey.value = selectedAgentKey.value || agents.value[0]?.key || ''
@@ -42,6 +48,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   }
 
   async function selectAgent(agentKey: string) {
+    clearChatError()
     selectedAgentKey.value = agentKey
     selectedSessionId.value = ''
     draftSessionOpen.value = false
@@ -50,6 +57,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   }
 
   async function loadSessions(agentKey = selectedAgentKey.value) {
+    clearChatError()
     if (!agentKey) {
       sessions.value = []
       selectedSessionId.value = ''
@@ -71,6 +79,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   }
 
   async function selectSession(sessionId: string) {
+    clearChatError()
     selectedSessionId.value = sessionId
     draftSessionOpen.value = false
     await loadMessages(sessionId)
@@ -82,6 +91,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
   function openDraftSession() {
     if (!selectedAgentKey.value) return
+    clearChatError()
     selectedSessionId.value = ''
     draftSessionOpen.value = true
     messages.value = []
