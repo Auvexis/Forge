@@ -22,6 +22,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   const error = ref('')
   const directoryError = ref('')
   const chatError = ref('')
+  const activeAssistantStreamId = ref('')
 
   const selectedAgent = computed(
     () => agents.value.find((agent) => agent.key === selectedAgentKey.value) ?? null,
@@ -135,6 +136,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   }
 
   function appendPendingAssistantMessage(sessionId: string) {
+    activeAssistantStreamId.value = activeAssistantStreamId.value || createAssistantStreamId(sessionId)
     upsertStreamingAssistantMessage(sessionId, { pending: true })
   }
 
@@ -210,7 +212,9 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     sessionId: string,
     patch: { textDelta?: string; thinkingDelta?: string; pending?: boolean },
   ) {
-    const existing = messages.value.find((message) => message.id === `local-assistant-stream-${sessionId}`)
+    const id = activeAssistantStreamId.value || createAssistantStreamId(sessionId)
+    activeAssistantStreamId.value = id
+    const existing = messages.value.find((message) => message.id === id)
     if (existing) {
       existing.content = mergeAssistantContent(existing.content, patch)
       return
@@ -219,7 +223,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     messages.value = [
       ...messages.value,
       {
-        id: `local-assistant-stream-${sessionId}`,
+        id,
         profileId: '',
         sessionId,
         role: 'assistant',
@@ -228,6 +232,10 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         entrance: 'assistant',
       } as AgentChatMessage,
     ]
+  }
+
+  function createAssistantStreamId(sessionId: string): string {
+    return `local-assistant-stream-${sessionId}-${Date.now()}`
   }
 
   function remapLocalSessionMessages(fromSessionId: string, toSessionId: string) {
@@ -245,6 +253,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
     const { error: toastError } = useToast()
     const localSessionId = selectedSessionId.value || `draft-${Date.now()}`
+    activeAssistantStreamId.value = ''
     appendOptimisticUserMessage(localSessionId, text)
     sending.value = true
     chatError.value = ''
@@ -281,6 +290,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       error.value = chatError.value
       toastError(chatError.value, 'Agent execution failed')
     } finally {
+      activeAssistantStreamId.value = ''
       sending.value = false
     }
   }

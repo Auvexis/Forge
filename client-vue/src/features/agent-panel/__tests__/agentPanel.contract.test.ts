@@ -154,6 +154,8 @@ describe('agent panel modal contract', () => {
     assert.match(store, /appendStreamingAssistantMessage/)
     assert.match(store, /appendPendingAssistantMessage/)
     assert.match(store, /appendPendingAssistantMessage\(selectedSessionId\.value\)[\s\S]*for await/)
+    assert.doesNotMatch(store, /id:\s*`local-assistant-stream-\$\{sessionId\}`/)
+    assert.match(store, /activeAssistantStreamId/)
     assert.match(store, /appendStreamingAssistantThinking/)
     assert.match(store, /agentPanelApi\.sendMessageStream/)
     assert.match(store, /for await \(const event of agentPanelApi\.sendMessageStream/)

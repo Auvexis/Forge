@@ -204,7 +204,7 @@ describe("agent panel routes", () => {
     const events = parseStreamEvents(response.body);
 
     assert.deepEqual(events.map((event) => event.type), ["start", "delta", "progress", "progress", "summary", "done"]);
-    assert.match(events[1]?.delta ?? "", /cuidar disso/i);
+    assert.match(events[1]?.delta ?? "", /^Perfect, .*Hello/);
     assert.equal(events[2]?.status, "running");
     assert.equal(events[3]?.status, "success");
     assert.equal(events.at(-1)?.type, "done");
@@ -351,7 +351,7 @@ describe("agent panel routes", () => {
     assert.equal(progressEvents[3]?.tool?.pluginId, "gmail");
     assert.match(progressEvents[5]?.message ?? "", /Usei send_email com sucesso/);
     assert.deepEqual(events.filter((event) => event.type === "delta").map((event) => event.delta), [
-      "Vou cuidar disso agora.",
+      "Perfeito, vou cuidar disso agora: Enviar email",
     ]);
     assert.ok(events.some((event) =>
       event.type === "summary" &&
@@ -360,6 +360,47 @@ describe("agent panel routes", () => {
       /send_email/.test(event.message ?? "")
     ));
     assert.equal(events.at(-1)?.type, "done");
+  });
+
+  it("streams English contextual intro and tool progress when the user message is English", async () => {
+    const app = await buildApp({
+      sendMessage: async (input: { executionId?: string }) => {
+        assert.ok(input.executionId);
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-start",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "discord_send_message", pluginId: "discord" },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-end",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "discord_send_message", pluginId: "discord", status: "success" },
+        });
+        return {
+          session: session("chat_1"),
+          messages: [message("msg_user", "chat_1")],
+          execution: { status: "SUCCESS" },
+        };
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: 'Can you send a joke about "bananas" on my Discord?' },
+    });
+    const events = parseStreamEvents(response.body);
+
+    assert.match(events.find((event) => event.type === "delta")?.delta ?? "", /^Perfect, /);
+    assert.match(events.find((event) => event.type === "delta")?.delta ?? "", /bananas/);
+    assert.match(events.find((event) => event.type === "progress")?.message ?? "", /^Running discord_send_message now\./);
+    assert.match(events.find((event) => event.type === "summary")?.message ?? "", /^Used these tools: discord_send_message\./);
   });
 
   it("streams fallback progress from the final execution when live tool events were missed", async () => {
@@ -433,7 +474,7 @@ describe("agent panel routes", () => {
     ]);
     assert.equal(progressEvents.filter((event) => /com sucesso/.test(event.message ?? "")).length, 2);
     assert.deepEqual(events.filter((event) => event.type === "delta").map((event) => event.delta), [
-      "Vou cuidar disso agora.",
+      "Perfeito, vou cuidar disso agora: Enviar piada",
     ]);
     assert.ok(events.find((event) =>
       event.type === "summary" &&
