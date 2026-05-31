@@ -11,7 +11,6 @@ export interface PublishedAgentSummary {
   chatTitle: string;
   name: string;
   emoji: string;
-  description: string;
   modelNodeId: string;
 }
 
@@ -59,7 +58,6 @@ function listWorkflowAgents(profileId: string, workflow: WorkflowItem): Publishe
         chatTitle: stringValue(node.trigger.chatTitle) ?? node.name,
         name: publicAgentName(agentNode),
         emoji: publicAgentEmoji(agentNode),
-        description: publicAgentDescription(agentNode),
         modelNodeId,
       });
     }
@@ -105,10 +103,6 @@ function publicAgentName(node: WorkflowNode): string {
 
 function publicAgentEmoji(node: WorkflowNode): string {
   return stringValue((node as unknown as Record<string, unknown>).agentEmoji) ?? "\u{1F916}";
-}
-
-function publicAgentDescription(node: WorkflowNode): string {
-  return stringValue((node as unknown as Record<string, unknown>).agentDescription) ?? "";
 }
 
 function stringValue(value: unknown): string | null {

@@ -79,9 +79,6 @@ function toAgentConfig(node: AiAgentNode, context: NodeHandlerInput["context"]):
   return {
     type: "ai-agent",
     name: node.name,
-    agentDisplayName: node.agentDisplayName,
-    agentEmoji: node.agentEmoji,
-    agentDescription: node.agentDescription,
     prompt: String(TemplateEngine.evaluate(node.prompt, context, { escape: "prompt" })),
     maxIterations: node.maxIterations,
     maxToolCalls: node.maxToolCalls,

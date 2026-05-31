@@ -90,9 +90,9 @@ describe("AI workflow node handlers", () => {
     assert.equal(runCall.model.pluginId, "openai");
     assert.equal(runCall.model.adapter, "openai-compatible");
     assert.equal(runCall.model.model, "gpt-test");
-    assert.equal(runCall.agent.agentDisplayName, "Support Agent");
-    assert.equal(runCall.agent.agentEmoji, "\u{1F916}");
-    assert.equal(runCall.agent.agentDescription, "Answers support questions.");
+    assert.equal("agentDisplayName" in runCall.agent, false);
+    assert.equal("agentEmoji" in runCall.agent, false);
+    assert.equal("agentDescription" in runCall.agent, false);
     assert.equal(runCall.memory?.scope, "profile");
     assert.equal(runCall.tools.length, 1);
     assert.equal(runCall.tools[0].methodId, "lookup");
@@ -511,7 +511,6 @@ function workflowFixture(overrides: Partial<WorkflowItem> = {}): WorkflowItem {
         name: "Agent",
         agentDisplayName: "Support Agent",
         agentEmoji: "\u{1F916}",
-        agentDescription: "Answers support questions.",
         prompt: "You are helpful.",
         maxIterations: 4,
         maxToolCalls: 4,

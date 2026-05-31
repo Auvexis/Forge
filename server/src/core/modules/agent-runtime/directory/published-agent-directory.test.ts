@@ -110,7 +110,6 @@ function workflowFixture(overrides: Partial<WorkflowItem> = {}): WorkflowItem {
         name: "Agent",
         agentDisplayName: "Support Agent",
         agentEmoji: "\u{1F916}",
-        agentDescription: "Answers support questions.",
         prompt: "Help users.",
         maxIterations: 4,
         maxToolCalls: 4,

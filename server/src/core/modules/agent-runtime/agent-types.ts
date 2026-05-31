@@ -14,9 +14,6 @@ export type AgentToolSideEffect =
 export interface AiAgentNodeConfig {
   type: "ai-agent";
   name: string;
-  agentDisplayName?: string;
-  agentEmoji?: string;
-  agentDescription?: string;
   prompt: string;
   maxIterations: number;
   maxToolCalls: number;

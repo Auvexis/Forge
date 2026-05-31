@@ -11,7 +11,6 @@ export interface PublishedAgentSummary {
   chatTitle: string
   name: string
   emoji: string
-  description: string
   modelNodeId: string
 }
 
