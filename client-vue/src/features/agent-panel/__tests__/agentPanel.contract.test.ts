@@ -199,8 +199,8 @@ describe('agent panel modal contract', () => {
     assert.match(store, /event\.tool\?\.toolCallId/)
     assert.match(store, /event\.status/)
     assert.match(store, /local-agent-progress-\$\{sessionId\}-\$\{toolKey\}-\$\{event\.status\}/)
-    assert.match(store, /mergeServerMessagesWithLocalAgentEvents/)
-    assert.match(store, /lastAssistantIndex/)
+    assert.match(store, /mergeServerMessagesWithStableLocalTurn/)
+    assert.match(store, /findLastMessageIndex/)
   })
 
   it('renders global agent pending loading dots like workflow editor chat', () => {
@@ -238,6 +238,15 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /pluginIconName\(tool\.pluginId/)
     assert.match(store, /appendAgentSummaryMessage/)
     assert.match(store, /kind: 'agentSummary'/)
+  })
+
+  it('keeps the streamed user and assistant messages stable when the final server result arrives', () => {
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+
+    assert.match(store, /mergeServerMessagesWithStableLocalTurn/)
+    assert.match(store, /local-user-/)
+    assert.match(store, /local-assistant-stream-/)
+    assert.doesNotMatch(store, /messages\.value = mergeServerMessagesWithLocalAgentEvents\(result\.messages\)/)
   })
 
   it('keeps chat messages and tool status rows visually plain', () => {

@@ -270,6 +270,9 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       if (!node.prompt || typeof node.prompt !== "string") {
         return `AI Agent node "${nodeId}" must have a prompt string`;
       }
+      if (node.inputMessage !== undefined && typeof node.inputMessage !== "string") {
+        return `AI Agent node "${nodeId}" inputMessage must be a string`;
+      }
       if (typeof node.maxIterations !== "number" || node.maxIterations < 1) {
         return `AI Agent node "${nodeId}" must have maxIterations >= 1`;
       }

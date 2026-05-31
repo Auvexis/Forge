@@ -271,7 +271,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       if (!result) throw new Error('Agent message failed')
       draftSessionOpen.value = false
       selectedSessionId.value = result.session.id
-      messages.value = mergeServerMessagesWithLocalAgentEvents(result.messages)
+      messages.value = mergeServerMessagesWithStableLocalTurn(result.messages, result.session.id)
       sessions.value = [result.session, ...sessions.value.filter((session) => session.id !== result.session.id)]
     } catch (err) {
       chatError.value = err instanceof Error ? err.message : 'Agent message failed'
@@ -315,23 +315,50 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     }
   }
 
-  function mergeServerMessagesWithLocalAgentEvents(serverMessages: AgentChatMessage[]) {
-    const localAgentEvents = messages.value.filter((message) =>
-      isAgentProgressContent(message.content) || isAgentSummaryContent(message.content),
+  function mergeServerMessagesWithStableLocalTurn(serverMessages: AgentChatMessage[], sessionId: string) {
+    const localTurnStart = findLastMessageIndex(messages.value, (message) =>
+      message.sessionId === sessionId && message.id.startsWith('local-user-'),
     )
-    if (localAgentEvents.length === 0) return serverMessages
+    if (localTurnStart < 0) return serverMessages
 
-    const lastAssistantIndex = [...serverMessages]
-      .reverse()
-      .findIndex((message) => message.role === 'assistant')
-    if (lastAssistantIndex < 0) return [...serverMessages, ...localAgentEvents]
+    const stableLocalTurn = messages.value
+      .slice(localTurnStart)
+      .filter((message) => message.sessionId === sessionId)
+      .map(finalizeLocalAssistantMessage)
+    const localUser = stableLocalTurn.find((message) => message.role === 'user')
+    const localUserText = localUser ? normalizeMessageText(localUser.content) : ''
+    const serverTurnStart = findLastMessageIndex(serverMessages, (message) =>
+      message.sessionId === sessionId &&
+      message.role === 'user' &&
+      normalizeMessageText(message.content) === localUserText,
+    )
 
-    const insertAt = serverMessages.length - lastAssistantIndex - 1
-    return [
-      ...serverMessages.slice(0, insertAt),
-      ...localAgentEvents,
-      ...serverMessages.slice(insertAt),
-    ]
+    if (serverTurnStart < 0) return [...serverMessages, ...stableLocalTurn]
+    return [...serverMessages.slice(0, serverTurnStart), ...stableLocalTurn]
+  }
+
+  function finalizeLocalAssistantMessage(message: AgentChatMessage): AgentChatMessage {
+    if (!message.id.startsWith('local-assistant-stream-')) return message
+    const content = normalizeAssistantContent(message.content)
+    return {
+      ...message,
+      content: {
+        text: content.text,
+        thinking: content.thinking,
+        pending: false,
+      },
+    }
+  }
+
+  function findLastMessageIndex(
+    items: AgentChatMessage[],
+    predicate: (message: AgentChatMessage) => boolean,
+  ): number {
+    for (let index = items.length - 1; index >= 0; index -= 1) {
+      const message = items[index]
+      if (message && predicate(message)) return index
+    }
+    return -1
   }
 
   function isAgentProgressContent(content: unknown): content is AgentPanelProgressContent {

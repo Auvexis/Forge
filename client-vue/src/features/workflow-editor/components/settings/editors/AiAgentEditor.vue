@@ -31,6 +31,14 @@
       />
     </EditorField>
 
+    <EditorField label="User Input">
+      <ExpressionTextarea
+        :model-value="(node.data.inputMessage as string) || ''"
+        @update:model-value="updateNodeData({ inputMessage: ($event as string) || undefined })"
+        placeholder="Responda a mensagem do node anterior: {{ steps.trigger_01.output.webhook.text }}"
+      />
+    </EditorField>
+
     <EditorField label="Execution Limits">
       <div class="editor-limit-stack">
         <label class="editor-limit-field">

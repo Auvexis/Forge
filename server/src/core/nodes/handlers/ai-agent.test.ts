@@ -411,6 +411,45 @@ describe("AI workflow node handlers", () => {
     });
   });
 
+  it("uses configured agent input message as the user message for non-chat triggers", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture();
+    const agent = workflow.nodes.agent;
+    if (agent.type !== "ai-agent") {
+      throw new Error("Invalid AI workflow fixture");
+    }
+    agent.inputMessage = "Responda a essa mensagem atual: {{ steps.trigger_01.output.webhook.text }}";
+    const context = contextFixture({
+      trigger: { source: "manual" },
+      steps: {
+        trigger_01: {
+          output: {
+            webhook: {
+              text: "Mensagem do node anterior",
+            },
+          },
+        },
+      },
+    });
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "ok",
+        toolCallCount: 0,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", agent, workflow, context));
+
+    assert.ok(received);
+    assert.equal((received as AgentRunInput).userMessage, "Responda a essa mensagem atual: Mensagem do node anterior");
+  });
+
   it("accepts webhook-style trigger payloads as agent input", async () => {
     const registry = createUtilityNodeRegistry();
     const workflow = workflowFixture();

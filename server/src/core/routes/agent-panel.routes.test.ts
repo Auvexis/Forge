@@ -203,7 +203,7 @@ describe("agent panel routes", () => {
     });
     const events = parseStreamEvents(response.body);
 
-    assert.deepEqual(events.map((event) => event.type), ["start", "progress", "progress", "delta", "summary", "done"]);
+    assert.deepEqual(events.map((event) => event.type), ["start", "progress", "delta", "summary", "done"]);
     assert.equal(events[1]?.status, "running");
     assert.equal(events.at(-1)?.type, "done");
   });
@@ -323,25 +323,20 @@ describe("agent panel routes", () => {
     assert.deepEqual(progressEvents.map((event) => event.tool?.toolCallId), [
       "tool_call_1",
       "tool_call_1",
-      "tool_call_1",
-      "tool_call_2",
       "tool_call_2",
       "tool_call_2",
     ]);
     assert.deepEqual(progressEvents.map((event) => event.status), [
       "planned",
       "running",
-      "success",
       "planned",
       "running",
-      "success",
     ]);
     assert.match(progressEvents[0]?.message ?? "", /Vou usar search_contacts .*encontrar o destinatario correto/);
     assert.equal(progressEvents[0]?.tool?.pluginId, "contacts");
-    assert.match(progressEvents[2]?.message ?? "", /Usei search_contacts com sucesso/);
-    assert.match(progressEvents[3]?.message ?? "", /Vou usar send_email .*enviar a mensagem/);
-    assert.equal(progressEvents[3]?.tool?.pluginId, "gmail");
-    assert.match(progressEvents[5]?.message ?? "", /Usei send_email com sucesso/);
+    assert.match(progressEvents[2]?.message ?? "", /Vou usar send_email .*enviar a mensagem/);
+    assert.equal(progressEvents[2]?.tool?.pluginId, "gmail");
+    assert.equal(progressEvents.some((event) => /com sucesso/.test(event.message ?? "")), false);
     assert.ok(events.some((event) =>
       event.type === "summary" &&
       /Usei estas ferramentas/.test(event.message ?? "") &&
@@ -407,19 +402,16 @@ describe("agent panel routes", () => {
     assert.deepEqual(progressEvents.map((event) => event.tool?.toolCallId), [
       "tool_call_1",
       "tool_call_1",
-      "tool_call_1",
-      "tool_call_2",
       "tool_call_2",
       "tool_call_2",
     ]);
     assert.deepEqual(progressEvents.map((event) => event.status), [
       "planned",
       "running",
-      "success",
       "planned",
       "running",
-      "success",
     ]);
+    assert.equal(progressEvents.some((event) => /com sucesso/.test(event.message ?? "")), false);
     assert.ok(events.find((event) =>
       event.type === "summary" &&
       /discord_send_message/.test(event.message ?? "") &&

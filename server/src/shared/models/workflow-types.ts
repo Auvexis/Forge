@@ -222,6 +222,7 @@ export interface AiAgentNode extends WorkflowNodeBase {
   agentDisplayName?: string;
   agentEmoji?: string;
   prompt: string;
+  inputMessage?: string;
   maxIterations: number;
   maxToolCalls: number;
   timeoutMs: number;

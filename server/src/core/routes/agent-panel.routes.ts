@@ -319,12 +319,14 @@ async function streamAgentPanelMessage(
     if (event.type === "agent:tool-end") {
       const status = extractToolStatus(event) === "failed" ? "failed" : "success";
       const tool = extractToolProgress(event);
-      writeStreamEvent(reply, {
-        type: "progress",
-        status,
-        message: formatToolProgressMessage(event, status),
-        tool,
-      });
+      if (status === "failed") {
+        writeStreamEvent(reply, {
+          type: "progress",
+          status,
+          message: formatToolProgressMessage(event, status),
+          tool,
+        });
+      }
       if (status === "success") completedToolCalls.push(tool);
     }
     if (event.type === "agent:output-delta") {
@@ -477,7 +479,7 @@ function formatToolProgressMessageFromTool(tool: ToolProgress, status: ToolProgr
 function writeToolProgressLifecycle(reply: FastifyReply, tool: ToolProgress): void {
   const statuses: ToolProgressStatus[] = tool.status === "failed"
     ? ["planned", "running", "failed"]
-    : ["planned", "running", "success"];
+    : ["planned", "running"];
   for (const status of statuses) {
     writeStreamEvent(reply, {
       type: "progress",

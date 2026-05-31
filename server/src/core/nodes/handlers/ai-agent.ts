@@ -41,7 +41,7 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     nodeId: input.nodeId,
     sessionId,
     userId: optionalString(triggerPayload.userId ?? triggerPayload.user_id),
-    userMessage: toUserMessage(triggerPayload),
+    userMessage: toUserMessage(input.node, input.context, triggerPayload),
     contextMessages: usesShortTermMemory(memoryConfig) && sessionId
       ? toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages)
       : undefined,
@@ -150,7 +150,16 @@ function optionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
 }
 
-function toUserMessage(triggerPayload: Record<string, any>): string {
+function toUserMessage(
+  node: AiAgentNode,
+  context: NodeHandlerInput["context"],
+  triggerPayload: Record<string, any>,
+): string {
+  if (node.inputMessage && typeof node.inputMessage === "string") {
+    const configuredMessage = String(TemplateEngine.evaluate(node.inputMessage, context)).trim();
+    if (configuredMessage) return configuredMessage;
+  }
+
   const body = triggerPayload.body && typeof triggerPayload.body === "object"
     ? triggerPayload.body as Record<string, unknown>
     : {};
