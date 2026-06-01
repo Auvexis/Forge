@@ -48,9 +48,6 @@
             variant="ghost"
             @click="selectWorkflow(workflow)"
           >
-            <span class="gam-workflow__status">
-              <span class="gam-status-dot" :class="statusClass(workflow.lastExecution?.status)" />
-            </span>
             <span class="gam-workflow__copy">
               <strong>{{ workflow.name }}</strong>
               <small>{{ workflow.profileName ?? workflow.profileId ?? 'Global' }}</small>
@@ -394,13 +391,6 @@ function statusToEvent(status: string): RuntimeEvent['status'] {
   return 'failed'
 }
 
-function statusClass(status?: string) {
-  if (status === 'RUNNING') return 'gam-status-dot--running'
-  if (status === 'SUCCESS') return 'gam-status-dot--success'
-  if (status === 'FAILED' || status === 'ERROR') return 'gam-status-dot--failed'
-  return ''
-}
-
 function triggerLabel(type: ProductionWorkflowStatus['triggerType']): string {
   const labels: Record<string, string> = {
     webhook: 'Webhook',
@@ -563,6 +553,7 @@ onUnmounted(() => {
   display: block;
   font-size: var(--sailor-text-base);
   font-weight: var(--sailor-font-semibold);
+  line-height: 1.15;
 }
 
 .gam-eyebrow {
@@ -574,9 +565,9 @@ onUnmounted(() => {
 }
 
 .gam-icon-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--sailor-radius-full);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--sailor-radius-md);
   color: var(--sailor-text-muted);
 }
 
@@ -621,7 +612,7 @@ onUnmounted(() => {
   display: grid;
   width: 100%;
   min-width: 0;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--sailor-space-2);
   padding: var(--sailor-space-2);
@@ -632,17 +623,6 @@ onUnmounted(() => {
   background: var(--sailor-button-ghost-hover);
 }
 
-.gam-workflow__status {
-  display: grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-bg-base);
-}
-
-.gam-status-dot,
 .gam-event__dot {
   width: 8px;
   height: 8px;
@@ -650,17 +630,14 @@ onUnmounted(() => {
   background: var(--sailor-text-muted);
 }
 
-.gam-status-dot--running,
 .gam-event--running .gam-event__dot {
   background: var(--sailor-amber-400);
 }
 
-.gam-status-dot--success,
 .gam-event--success .gam-event__dot {
   background: var(--sailor-green-400);
 }
 
-.gam-status-dot--failed,
 .gam-event--failed .gam-event__dot {
   background: var(--sailor-red-400);
 }
@@ -694,7 +671,7 @@ onUnmounted(() => {
 .gam-main-title {
   display: grid;
   min-width: 0;
-  gap: var(--sailor-space-1);
+  gap: 0;
 }
 
 .gam-main-eyebrow-row {
@@ -702,6 +679,10 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--sailor-space-2);
   min-width: 0;
+}
+
+.gam-main-eyebrow-row .gam-eyebrow {
+  line-height: 34px;
 }
 
 .gam-main-meta {
