@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :is-open="ui.isOpen" max-width="1120px" height="82vh" @close="ui.close">
+  <BaseModal :is-open="ui.isOpen" max-width="1320px" height="82vh" @close="ui.close">
     <section class="global-agent-panel" aria-label="Global agent panel">
       <AgentDirectoryList />
       <AgentChatView />

@@ -35,7 +35,7 @@
       <ExpressionTextarea
         :model-value="(node.data.inputMessage as string) || ''"
         @update:model-value="updateNodeData({ inputMessage: ($event as string) || undefined })"
-        placeholder="Responda a mensagem do node anterior: {{ steps.trigger_01.output.webhook.text }}"
+        placeholder="Enter your input here..."
       />
     </EditorField>
 

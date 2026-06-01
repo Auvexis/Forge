@@ -8,27 +8,22 @@
       </span>
 
       <div class="agent-chat-view__actions">
-        <button
-          type="button"
-          class="agent-chat-view__icon-button"
+        <BaseButton
+          size="icon"
+          variant="ghost"
+          icon-left="plus"
           :disabled="!store.selectedAgentKey"
           title="New chat"
           @click="store.openDraftSession()"
-        >
-          <LucideIcon name="plus" :size="16" />
-        </button>
-        <button
-          type="button"
-          class="agent-chat-view__icon-button"
+        />
+        <BaseButton
+          size="icon"
+          variant="ghost"
+          icon-left="history"
           :disabled="!store.selectedAgentKey"
           title="Chat history"
           @click="historyOpen = !historyOpen"
-        >
-          <LucideIcon name="history" :size="16" />
-        </button>
-        <router-link class="agent-chat-view__icon-button" :to="workflowRoute" title="Open workflow">
-          <LucideIcon name="external-link" :size="16" />
-        </router-link>
+        />
       </div>
 
       <div v-if="historyOpen" class="agent-chat-view__floating-menu" role="dialog">
@@ -153,6 +148,7 @@ import type {
   AgentPanelSummaryContent,
 } from '@/features/agent-panel/types/agent-panel.types'
 import type { PluginSummary } from '@/core/types/plugin.types'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 const store = useAgentPanelStore()
 const profileStore = useProfileStore()
@@ -162,9 +158,6 @@ const dangerousMemoryMode = 'all-agent-memory'
 const plugins = ref<PluginSummary[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
 
-const workflowRoute = computed(() =>
-  store.selectedAgent ? `/workflows/${encodeURIComponent(store.selectedAgent.workflowId)}` : '/workflows',
-)
 const displayedMessagesScrollKey = computed(() => JSON.stringify(store.messages.map((message) => ({
   id: message.id,
   role: message.role,
@@ -331,7 +324,7 @@ void ['transcript-only', 'session', 'all-agent-memory']
   display: flex;
   align-items: center;
   gap: var(--sailor-space-3);
-  padding: var(--sailor-space-4);
+  padding: var(--sailor-space-2);
   border-bottom: 1px solid var(--sailor-border);
 }
 
@@ -346,9 +339,9 @@ void ['transcript-only', 'session', 'all-agent-memory']
 }
 
 .agent-chat-view__emoji {
-  width: 40px;
-  height: 40px;
-  font-size: 22px;
+  width: 35px;
+  height: 35px;
+  font-size: 20px;
 }
 
 .agent-chat-view__avatar {
@@ -360,7 +353,6 @@ void ['transcript-only', 'session', 'all-agent-memory']
 .agent-chat-view__identity {
   display: grid;
   min-width: 0;
-  gap: 3px;
 }
 
 .agent-chat-view__identity strong,

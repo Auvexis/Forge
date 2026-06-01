@@ -117,11 +117,15 @@
         Waiting for authorization. Return here after finishing in the new tab.
       </p>
 
-      <button
+      <a
         v-if="pluginStatus.status === 'configured'"
+        :href="pluginStatus.oauth_public_url_required ? undefined : authConnectUrl"
+        target="_blank"
+        rel="noopener noreferrer"
         class="auth-btn auth-btn--secondary auth-btn--full"
-        @click="handleConnect"
-        :disabled="authLoading || pluginStatus.oauth_public_url_required"
+        :class="{ 'auth-btn--disabled': authLoading || pluginStatus.oauth_public_url_required }"
+        :aria-disabled="authLoading || pluginStatus.oauth_public_url_required"
+        @click="handleOAuthLinkClick"
       >
         <LucideIcon v-if="authLoading" name="loader-2" size="16" class="animate-spin mr-2" />
         <template v-else>
@@ -130,7 +134,7 @@
            <LucideIcon v-else name="external-link" size="16" class="mr-2" />
         </template>
         {{ pluginStatus.oauth_ui?.buttonText || 'Connect with OAuth2' }}
-      </button>
+      </a>
 
       <button
         v-if="awaitingOAuthReturn"
@@ -169,10 +173,11 @@ const {
   saving,
   authLoading,
   awaitingOAuthReturn,
+  authConnectUrl,
   loadStatus,
   isLocked,
   handleSaveCredentials,
-  handleConnect,
+  markOAuthOpened,
   handleDisconnect,
   checkConnection
 } = usePluginAuth(() => props.pluginId)
@@ -188,6 +193,12 @@ watch(
     loadStatus()
   },
 )
+
+function handleOAuthLinkClick(event: MouseEvent) {
+  if (!markOAuthOpened()) {
+    event.preventDefault()
+  }
+}
 </script>
 
 <style scoped>
@@ -349,6 +360,12 @@ watch(
 .auth-btn--primary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.auth-btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .auth-btn--secondary {

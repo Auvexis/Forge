@@ -31,14 +31,14 @@
             <input type="text" class="ftm-preview-input" tabindex="0" />
           </div>
           <div class="ftm-preview-field">
-            <label class="ftm-preview-label">Experiência <span style="color: #ef4444">*</span></label>
+            <label class="ftm-preview-label">Experience <span style="color: #ef4444">*</span></label>
             <label class="ftm-preview-radio">
               <input type="radio" name="preview-exp" tabindex="0" checked />
-              <span>2 Anos</span>
+              <span>2 Years</span>
             </label>
             <label class="ftm-preview-radio">
               <input type="radio" name="preview-exp" tabindex="0" />
-              <span>4 Anos</span>
+              <span>4 Years</span>
             </label>
           </div>
           <button type="button" class="ftm-preview-button">

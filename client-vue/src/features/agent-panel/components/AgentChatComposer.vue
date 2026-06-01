@@ -8,6 +8,7 @@
       :disabled="sending"
       @keydown.ctrl.enter.prevent="submit"
     ></textarea>
+
     <button type="submit" class="agent-chat-composer__send" :disabled="sending || !draft.trim()">
       <LucideIcon name="send" :size="16" />
     </button>
@@ -71,7 +72,7 @@ function submit() {
   place-items: center;
   align-self: end;
   border: 0;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--sailor-radius-full);
   background: var(--sailor-bg-inverse);
   color: var(--sailor-text-inverse);
   cursor: pointer;

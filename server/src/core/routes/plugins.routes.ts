@@ -68,6 +68,58 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     return destination;
   }
 
+  async function createOAuthConnectUrl(pluginId: string): Promise<string> {
+    const plugin = PluginManager.getPlugin(pluginId);
+
+    if (plugin.auth.type !== "oauth2") {
+      throw new Error("Plugin does not support OAuth2");
+    }
+
+    const provider = plugin.auth as OAuth2Provider;
+    const storedCredentials = CredentialStore.getCredentials(pluginId) ?? {};
+    let credentials = Vault.mergeWithStored(
+      pluginId,
+      provider.credentialSchema,
+      storedCredentials,
+    );
+
+    credentials = Vault.resolveEnvExpressions(credentials);
+
+    if (!credentials || Object.keys(credentials).length === 0) {
+      throw new Error("Credentials not found. Please configure Client ID/Secret first.");
+    }
+
+    const redirectUri = PluginManager.getRedirectUri(pluginId);
+    if (PluginManager.isLocalRedirectUri(redirectUri)) {
+      throw new Error("Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.");
+    }
+
+    if (isDeclarativeOAuth2Auth(provider)) {
+      const state = randomUUID();
+      const result = await OAuth2Service.createAuthorizationUrl({
+        auth: provider,
+        credentials,
+        redirectUri,
+        state,
+      });
+
+      oauth2SessionStore.save({
+        state,
+        pluginId,
+        redirectUri,
+        codeVerifier: result.codeVerifier,
+        ttlMs: OAUTH2_AUTH_SESSION_TTL_MS,
+      });
+      return result.url;
+    }
+
+    if (isLegacyOAuth2Auth(provider)) {
+      return provider.getAuthUrl(credentials, redirectUri);
+    }
+
+    throw new Error("Invalid OAuth2 provider contract");
+  }
+
   /**
    * Get all plugins (with status)
    */
@@ -650,78 +702,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     const { pluginId } = req.params as { pluginId: string };
 
     try {
-      const plugin = PluginManager.getPlugin(pluginId);
-
-      if (plugin.auth.type !== "oauth2") {
-        return sendResponse(reply, {
-          status_code: 400,
-          message: "Plugin does not support OAuth2",
-          error: null,
-          data: null,
-        });
-      }
-
-      // Merge stored credentials with ENV vault (ENV takes precedence)
-      const provider = plugin.auth as OAuth2Provider;
-      const storedCredentials = CredentialStore.getCredentials(pluginId) ?? {};
-      let credentials = Vault.mergeWithStored(
-        pluginId,
-        provider.credentialSchema,
-        storedCredentials,
-      );
-
-      // Resolve global variables
-      credentials = Vault.resolveEnvExpressions(credentials);
-
-      if (!credentials || Object.keys(credentials).length === 0) {
-        return sendResponse(reply, {
-          status_code: 400,
-          message:
-            "Credentials not found. Please configure Client ID/Secret first.",
-          error: null,
-          data: null,
-        });
-      }
-
-      const redirectUri = PluginManager.getRedirectUri(pluginId);
-      if (PluginManager.isLocalRedirectUri(redirectUri)) {
-        return sendResponse(reply, {
-          status_code: 400,
-          message: "Public URL required before starting OAuth2",
-          error:
-            "Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.",
-          data: null,
-        });
-      }
-
-      let url: string;
-      if (isDeclarativeOAuth2Auth(provider)) {
-        const state = randomUUID();
-        const result = await OAuth2Service.createAuthorizationUrl({
-          auth: provider,
-          credentials,
-          redirectUri,
-          state,
-        });
-
-        oauth2SessionStore.save({
-          state,
-          pluginId,
-          redirectUri,
-          codeVerifier: result.codeVerifier,
-          ttlMs: OAUTH2_AUTH_SESSION_TTL_MS,
-        });
-        url = result.url;
-      } else if (isLegacyOAuth2Auth(provider)) {
-        url = await provider.getAuthUrl(credentials, redirectUri);
-      } else {
-        return sendResponse(reply, {
-          status_code: 400,
-          message: "Invalid OAuth2 provider contract",
-          error: "oauth2_provider_contract_invalid",
-          data: null,
-        });
-      }
+      const url = await createOAuthConnectUrl(pluginId);
 
       return sendResponse(reply, {
         status_code: 200,
@@ -736,6 +717,20 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         error: error.message,
         data: null,
       });
+    }
+  });
+
+  fastify.get("/plugins/:pluginId/auth/connect/open", async (req, reply) => {
+    const { pluginId } = req.params as { pluginId: string };
+
+    try {
+      const url = await createOAuthConnectUrl(pluginId);
+      return reply.redirect(url);
+    } catch (error: any) {
+      return reply
+        .code(400)
+        .type("text/html; charset=utf-8")
+        .send(`<p>OAuth connection failed: ${escapeHtml(error.message ?? String(error))}</p>`);
     }
   });
 

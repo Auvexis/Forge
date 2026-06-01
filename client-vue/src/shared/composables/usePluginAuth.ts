@@ -1,4 +1,4 @@
-import { ref, watch, type Ref, toValue, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, type Ref, toValue, onMounted, onUnmounted } from 'vue'
 import { pluginsApi } from '@/core/api/plugins.api'
 import type { PluginStatusResponse } from '@/core/types/plugin.types'
 import { useToast } from '@/shared/composables/useToast'
@@ -38,6 +38,11 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
     return (pluginStatus.value?.locked_fields ?? []).includes(key)
   }
 
+  const authConnectUrl = computed(() => {
+    const id = getPluginId()
+    return id ? pluginsApi.getAuthOpenUrl(id) : ''
+  })
+
   const handleSaveCredentials = async () => {
     const id = getPluginId()
     if (!id) return
@@ -63,18 +68,23 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
       return
     }
 
-    authLoading.value = true
-    try {
-      const data = await pluginsApi.getAuthUrl(id)
-      if (data?.url) {
-        window.open(data.url, '_blank', 'noopener,noreferrer')
-        awaitingOAuthReturn.value = true
-      }
-    } catch (err) {
-      console.error(err)
-    } finally {
-      authLoading.value = false
+    const opened = window.open(pluginsApi.getAuthOpenUrl(id), '_blank', 'noopener,noreferrer')
+    if (!opened) {
+      window.location.assign(pluginsApi.getAuthOpenUrl(id))
     }
+    awaitingOAuthReturn.value = true
+  }
+
+  const markOAuthOpened = () => {
+    if (pluginStatus.value?.oauth_public_url_required) {
+      toast.error(
+        'Public URL required',
+        'Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.',
+      )
+      return false
+    }
+    awaitingOAuthReturn.value = true
+    return true
   }
 
   const handleDisconnect = async () => {
@@ -124,10 +134,12 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
     saving,
     authLoading,
     awaitingOAuthReturn,
+    authConnectUrl,
     loadStatus,
     isLocked,
     handleSaveCredentials,
     handleConnect,
+    markOAuthOpened,
     handleDisconnect,
     checkConnection
   }

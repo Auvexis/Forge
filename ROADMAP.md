@@ -1,37 +1,20 @@
-# Roadmap
+Futuras Features:
 
-1. Criar `@sailor/sdk` minimo com tipos, contratos e validacao de manifest.
+1. Melhorar/Testar todas as features do Sailor Pages, verificar se está ativando Workflow Corretamente.
 
-2. Criar sailor CLI (`npx sailor`) com:
-   - `sailor create plugin`
-   - `sailor build`
-   - `sailor release`
+2. Global Agent Chat
 
-3. Criar plugin canario para validar fluxo externo completo.
-   - 1: PostgreSQL plugin.
-   - 2: Supabase plugin.
+3. Adicionar um sistema de git para os workflows
 
-4. Adicionar suporte a varios perfis, cada um com configuracao, workflows e plugins instalados.
+4. Arrumar UI da Sidebar e outras partes do Sistema.
 
-5. Adicionar painel global para ver automacoes rodando em tempo real em qualquer parte do sistema.
+5. Install Plugin no Comand Palette abrir o Plugin Instaler.
 
-6. Expandir catalogo de plugins:
-   - Discord
-   - Slack
-   - GitHub
-   - Notion
-   - Trello
-   - Jira
-   - Google Calendar
-   - OpenRouter
-   - OpenAI
-   - Adicionar mais funcionalidades e metodos no Plugin Google Sheets.
+6. Atualizar categorias pre-definidas no Schema JSON de Plugins e Depois separar cada Plugin/Utility Plugin em categorias do Add Node Panel no Frontend, Adicionar botão de filtra categoria do lado do input Search, Adicionar botão de colapsar/expandir categoria.
 
-9. Plugins Plus:
-   - Playwright
-   - Waha
+7. Atualizar o Sailor SDK/Sailor CLI para o Schema JSON de Manifest Atual do backend do Sailor.
 
-11. Start Guide por feature:
+99. Start Guide por feature:
    Criar um componente simples de guia inicial por ferramenta, sem traduzir a UI inteira. Cada feature passa uma lista de steps com preview e textos por idioma.
 
    ```ts
@@ -65,10 +48,3 @@
      default-lang="en"
    />
    ```
-
-12. Agent Tools foundation:
-   - Chat Trigger.
-   - AI Agent / Model / Memory / Tool nodes.
-   - Plugin method tool adapter.
-   - Persistent short-term and long-term memory.
-   - Tool approvals and execution trace.

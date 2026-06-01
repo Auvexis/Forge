@@ -3,11 +3,15 @@
     <header class="agent-directory-list__header">
       <div>
         <h2>Agents</h2>
-        <p>{{ store.agents.length }} published</p>
+        <p>{{ store.agents.length }} {{ store.agents.length > 2 || store.agents.length == 0 ? 'Agents' : 'Agent' }}</p>
       </div>
-      <button type="button" class="agent-directory-list__refresh" @click="store.loadAgents()">
-        <LucideIcon name="refresh-cw" :size="16" />
-      </button>
+
+      <BaseButton
+      @click="store.loadAgents()"
+      :size="'icon'"
+      :icon-left="'refresh-cw'"
+      :variant="'ghost'"
+      />
     </header>
 
     <div v-if="store.loading" class="agent-directory-list__state">Loading agents...</div>
@@ -40,6 +44,7 @@
 import { onMounted } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 const store = useAgentPanelStore()
 
@@ -110,14 +115,14 @@ onMounted(() => {
   border: 0;
   border-left: 3px solid transparent;
   background: transparent;
-  padding: var(--sailor-space-3) var(--sailor-space-4);
+  padding: var(--sailor-space-1) var(--sailor-space-2);
   text-align: left;
   cursor: pointer;
 }
 
 .agent-directory-list__item:hover,
 .agent-directory-list__item--active {
-  border-left-color: var(--sailor-accent);
+  border-left-color: var(--sailor-text-primary);
   background: var(--sailor-button-ghost-hover);
 }
 
