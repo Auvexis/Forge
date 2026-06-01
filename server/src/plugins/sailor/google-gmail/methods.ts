@@ -1,5 +1,6 @@
 import { google } from "googleapis";
 import type { PluginContext } from "@auvexis/sailor-sdk";
+import { buffer as readStreamBuffer } from "node:stream/consumers";
 
 // ──────────── Constants ────────────
 
@@ -86,6 +87,12 @@ interface MimeMessageParams {
     mimeType: string;
     contentBase64: string;
   }>;
+}
+
+interface GmailAttachment {
+  filename: string;
+  mimeType: string;
+  contentBase64: string;
 }
 
 /**
@@ -227,35 +234,7 @@ export function createGoogleGmailMethods() {
     ) => {
       const gmail = getGmailClient(context!);
 
-      const normalizedAttachments = params.attachments?.map((att: any) => {
-        if (!att) return null;
-        if (Buffer.isBuffer(att)) {
-          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att.toString("base64") };
-        }
-        if (att.type === "Buffer" && Array.isArray(att.data)) {
-          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: Buffer.from(att.data).toString("base64") };
-        }
-        if (att.buffer) {
-          const buf = Buffer.isBuffer(att.buffer) ? att.buffer : (att.buffer.type === "Buffer" && Array.isArray(att.buffer.data) ? Buffer.from(att.buffer.data) : null);
-          if (buf) {
-            return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: buf.toString("base64") };
-          }
-        }
-        if (att.content) {
-          const buf = Buffer.isBuffer(att.content) ? att.content : (att.content.type === "Buffer" && Array.isArray(att.content.data) ? Buffer.from(att.content.data) : null);
-          if (buf) {
-            return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: buf.toString("base64") };
-          }
-        }
-        if (typeof att === "string") {
-          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att };
-        }
-        return {
-          filename: att.filename || "attachment.bin",
-          mimeType: att.mimetype || att.mimeType || "application/octet-stream",
-          contentBase64: att.contentBase64 || ""
-        };
-      }).filter(Boolean) as { filename: string; mimeType: string; contentBase64: string }[];
+      const normalizedAttachments = await normalizeGmailAttachments(params.attachments);
 
       const message = buildMimeMessage({
         to: params.to,
@@ -333,35 +312,7 @@ export function createGoogleGmailMethods() {
     ) => {
       const gmail = getGmailClient(context!);
 
-      const normalizedAttachments = params.attachments?.map((att: any) => {
-        if (!att) return null;
-        if (Buffer.isBuffer(att)) {
-          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att.toString("base64") };
-        }
-        if (att.type === "Buffer" && Array.isArray(att.data)) {
-          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: Buffer.from(att.data).toString("base64") };
-        }
-        if (att.buffer) {
-          const buf = Buffer.isBuffer(att.buffer) ? att.buffer : (att.buffer.type === "Buffer" && Array.isArray(att.buffer.data) ? Buffer.from(att.buffer.data) : null);
-          if (buf) {
-            return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: buf.toString("base64") };
-          }
-        }
-        if (att.content) {
-          const buf = Buffer.isBuffer(att.content) ? att.content : (att.content.type === "Buffer" && Array.isArray(att.content.data) ? Buffer.from(att.content.data) : null);
-          if (buf) {
-            return { filename: att.filename || "attachment.bin", mimeType: att.mimetype || att.mimeType || "application/octet-stream", contentBase64: buf.toString("base64") };
-          }
-        }
-        if (typeof att === "string") {
-          return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att };
-        }
-        return {
-          filename: att.filename || "attachment.bin",
-          mimeType: att.mimetype || att.mimeType || "application/octet-stream",
-          contentBase64: att.contentBase64 || ""
-        };
-      }).filter(Boolean) as { filename: string; mimeType: string; contentBase64: string }[];
+      const normalizedAttachments = await normalizeGmailAttachments(params.attachments);
 
       const message = buildMimeMessage({
         to: params.to,
@@ -433,4 +384,44 @@ export function createGoogleGmailMethods() {
       return response.data;
     },
   };
+}
+
+export async function normalizeGmailAttachments(attachments?: any[]): Promise<GmailAttachment[] | undefined> {
+  if (!attachments?.length) return undefined;
+
+  const normalized = await Promise.all(attachments.map(normalizeGmailAttachment));
+  return normalized.filter(Boolean) as GmailAttachment[];
+}
+
+async function normalizeGmailAttachment(att: any): Promise<GmailAttachment | null> {
+  if (!att) return null;
+  if (Buffer.isBuffer(att)) {
+    return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att.toString("base64") };
+  }
+  if (att.type === "Buffer" && Array.isArray(att.data)) {
+    return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: Buffer.from(att.data).toString("base64") };
+  }
+  if (typeof att === "string") {
+    return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att };
+  }
+
+  const filename = att.filename || att.fileName || "attachment.bin";
+  const mimeType = att.mimetype || att.mimeType || "application/octet-stream";
+  const content = att.content ?? att.buffer ?? att.contentBase64;
+  const contentBase64 = await attachmentContentToBase64(content);
+
+  return { filename, mimeType, contentBase64 };
+}
+
+async function attachmentContentToBase64(content: any): Promise<string> {
+  if (!content) return "";
+  if (typeof content === "string") return content;
+  if (Buffer.isBuffer(content)) return content.toString("base64");
+  if (content.type === "Buffer" && Array.isArray(content.data)) return Buffer.from(content.data).toString("base64");
+  if (isReadableLike(content)) return (await readStreamBuffer(content)).toString("base64");
+  return "";
+}
+
+function isReadableLike(value: unknown): value is NodeJS.ReadableStream {
+  return Boolean(value && typeof value === "object" && typeof (value as { pipe?: unknown }).pipe === "function");
 }
