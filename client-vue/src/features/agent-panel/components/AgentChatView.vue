@@ -118,17 +118,21 @@
         </TransitionGroup>
 
         <div v-else class="agent-chat-view__prompt-stage">
-          <AgentChatComposer mode="hero" :sending="store.sending" @send="store.sendMessage" />
+          <Transition name="agent-chat-composer-shift" appear>
+            <AgentChatComposer mode="hero" :sending="store.sending" @send="store.sendMessage" />
+          </Transition>
           <p>Centra may display inaccurate info, so please double check the response.</p>
         </div>
       </div>
 
-      <AgentChatComposer
-        v-if="store.messages.length"
-        mode="dock"
-        :sending="store.sending"
-        @send="store.sendMessage"
-      />
+      <Transition name="agent-chat-composer-shift" appear>
+        <AgentChatComposer
+          v-if="store.messages.length"
+          mode="dock"
+          :sending="store.sending"
+          @send="store.sendMessage"
+        />
+      </Transition>
     </template>
   </section>
 </template>
@@ -647,6 +651,20 @@ async function scrollMessagesToBottom() {
   place-items: center;
   color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-sm);
+}
+
+.agent-chat-composer-shift-enter-active,
+.agent-chat-composer-shift-leave-active {
+  transition:
+    opacity var(--sailor-duration-slow) var(--sailor-ease-standard),
+    transform var(--sailor-duration-slow) var(--sailor-ease-standard),
+    width var(--sailor-duration-slow) var(--sailor-ease-standard);
+}
+
+.agent-chat-composer-shift-enter-from,
+.agent-chat-composer-shift-leave-to {
+  opacity: 0;
+  transform: translateY(18px) scale(0.98);
 }
 
 .agent-chat-message-move,

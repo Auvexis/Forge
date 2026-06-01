@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :is-open="ui.isOpen" max-width="1240px" height="86vh" @close="ui.close">
+  <BaseModal :is-open="ui.isOpen" max-width="1380px" height="86vh" @close="ui.close">
     <section class="global-agent-panel" aria-label="Global agent panel">
       <AgentDirectoryList />
       <AgentSessionList />
@@ -50,7 +50,7 @@ watch(
 
 .global-agent-panel {
   display: grid;
-  grid-template-columns: 68px 216px minmax(0, 1fr);
+  grid-template-columns: 68px 256px minmax(0, 1fr);
   min-height: 0;
   height: 100%;
   overflow: hidden;
@@ -61,7 +61,7 @@ watch(
 
 @media (max-width: 820px) {
   .global-agent-panel {
-    grid-template-columns: 60px minmax(190px, 34vw) minmax(0, 1fr);
+    grid-template-columns: 60px minmax(220px, 36vw) minmax(0, 1fr);
   }
 }
 </style>

@@ -467,8 +467,45 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   }
 
   function createSessionTitle(message: string): string {
-    const title = message.replace(/\s+/g, ' ').trim()
-    return title.length > 48 ? `${title.slice(0, 45)}...` : title || 'New chat'
+    const cleaned = message
+      .replace(/https?:\/\/\S+/gi, '')
+      .replace(/[^\p{L}\p{N}\s'-]/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (!cleaned) return 'New chat'
+
+    const stopWords = new Set([
+      'a',
+      'an',
+      'and',
+      'as',
+      'de',
+      'do',
+      'da',
+      'das',
+      'dos',
+      'e',
+      'em',
+      'for',
+      'me',
+      'o',
+      'os',
+      'para',
+      'por',
+      'the',
+      'to',
+      'um',
+      'uma',
+      'what',
+      'with',
+      'you',
+    ])
+    const words = cleaned
+      .split(' ')
+      .filter((word) => word.length > 2 && !stopWords.has(word.toLowerCase()))
+      .slice(0, 6)
+    const title = (words.length ? words : cleaned.split(' ').slice(0, 6)).join(' ')
+    return title.length > 42 ? `${title.slice(0, 39).trim()}...` : title
   }
 
   return {

@@ -1,11 +1,13 @@
 <template>
   <form class="agent-chat-composer" :class="`agent-chat-composer--${mode}`" @submit.prevent="submit">
     <textarea
+      ref="textareaRef"
       v-model="draft"
       class="agent-chat-composer__input"
       :rows="mode === 'hero' ? 1 : 2"
       placeholder="What are the best open opportunities by company size?"
       :disabled="sending"
+      @input="resizeTextarea"
       @keydown.ctrl.enter.prevent="submit"
     ></textarea>
 
@@ -42,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 withDefaults(
@@ -60,6 +62,7 @@ const emit = defineEmits<{
 }>()
 
 const draft = ref('')
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const isListening = ref(false)
 const speechSupported = computed(() => getSpeechRecognitionCtor() !== null)
 let activeRecognition: BrowserSpeechRecognition | null = null
@@ -91,6 +94,7 @@ function submit() {
   if (!message) return
   emit('send', message)
   draft.value = ''
+  void nextTick(resizeTextarea)
 }
 
 function startSpeechToText() {
@@ -156,7 +160,19 @@ function getSpeechRecognitionCtor(): (new () => BrowserSpeechRecognition) | null
 
 function appendTranscript(transcript: string) {
   draft.value = [draft.value.trim(), transcript.trim()].filter(Boolean).join(' ')
+  void nextTick(resizeTextarea)
 }
+
+function resizeTextarea() {
+  const textarea = textareaRef.value
+  if (!textarea) return
+  textarea.style.height = 'auto'
+  textarea.style.height = `${Math.min(textarea.scrollHeight, 180)}px`
+}
+
+watch(() => draft.value, () => {
+  void nextTick(resizeTextarea)
+})
 
 onBeforeUnmount(() => {
   keepRecognitionAlive = false
@@ -195,7 +211,8 @@ onBeforeUnmount(() => {
 .agent-chat-composer__input {
   min-height: 28px;
   max-height: 180px;
-  resize: vertical;
+  resize: none;
+  overflow-y: auto;
   border: 0;
   background: transparent;
   padding: 0;
