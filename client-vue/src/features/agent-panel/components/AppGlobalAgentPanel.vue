@@ -1,11 +1,8 @@
 <template>
   <BaseModal :is-open="ui.isOpen" max-width="1320px" height="82vh" @close="ui.close">
-    <section
-      class="global-agent-panel"
-      :class="{ 'global-agent-panel--collapsed': agentStore.directoryCollapsed }"
-      aria-label="Global agent panel"
-    >
+    <section class="global-agent-panel" aria-label="Global agent panel">
       <AgentDirectoryList />
+      <AgentSessionList />
       <AgentChatView />
     </section>
   </BaseModal>
@@ -15,6 +12,7 @@
 import { watch } from 'vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import AgentDirectoryList from '@/features/agent-panel/components/AgentDirectoryList.vue'
+import AgentSessionList from '@/features/agent-panel/components/AgentSessionList.vue'
 import AgentChatView from '@/features/agent-panel/components/AgentChatView.vue'
 import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
@@ -46,25 +44,16 @@ watch(
 <style scoped>
 .global-agent-panel {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  grid-template-columns: 62px 220px minmax(0, 1fr);
   min-height: 0;
   height: 100%;
   overflow: hidden;
-  background: var(--sailor-bg-base);
-  transition: grid-template-columns var(--sailor-duration-base) var(--sailor-ease-standard);
-}
-
-.global-agent-panel--collapsed {
-  grid-template-columns: 72px minmax(0, 1fr);
+  background: var(--sailor-bg-inverse);
 }
 
 @media (max-width: 820px) {
   .global-agent-panel {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .global-agent-panel--collapsed {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: 58px minmax(176px, 36vw) minmax(0, 1fr);
   }
 }
 </style>

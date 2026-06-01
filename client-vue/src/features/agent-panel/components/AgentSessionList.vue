@@ -1,40 +1,67 @@
 <template>
   <aside class="agent-session-list" aria-label="Agent chat sessions">
     <header class="agent-session-list__header">
-      <div>
-        <h2>Chats</h2>
-        <p>{{ selectedAgentName }}</p>
-      </div>
-      <button
-        type="button"
-        class="agent-session-list__new"
-        :disabled="!store.selectedAgentKey"
-        @click="store.createSession()"
-      >
-        <LucideIcon name="plus" :size="16" />
-      </button>
+      <h2>Chat</h2>
+      <BaseButton
+        title="Search chats"
+        size="icon"
+        icon-left="search"
+        variant="ghost"
+        @click="searchOpen = !searchOpen"
+      />
     </header>
 
-    <div v-if="!store.selectedAgentKey" class="agent-session-list__state">Select an agent.</div>
-    <div v-else-if="!store.sessions.length" class="agent-session-list__state">No chats yet.</div>
+    <BaseInput
+      v-if="searchOpen"
+      v-model="sessionSearch"
+      class="agent-session-list__search"
+      icon-left="search"
+      placeholder="Search chats"
+      aria-label="Search chats"
+    />
 
-    <div
-      v-for="session in store.sessions"
-      :key="session.id"
-      class="agent-session-list__row"
-      :class="{ 'agent-session-list__row--active': session.id === store.selectedSessionId }"
+    <BaseButton
+      class="agent-session-list__new"
+      :disabled="!store.selectedAgentKey"
+      icon-left="plus"
+      icon-right="sparkles"
+      variant="primary"
+      full-width
+      @click="store.createSession()"
     >
-      <button type="button" class="agent-session-list__select" @click="store.selectSession(session.id)">
-        <span class="agent-session-list__title">{{ session.title }}</span>
-        <span class="agent-session-list__date">{{ formatSessionDate(session.updatedAt) }}</span>
-      </button>
-      <button
-        type="button"
-        class="agent-session-list__delete"
-        @click="openDeleteMenu(session.id)"
+      New Chat
+    </BaseButton>
+
+    <div class="agent-session-list__meta">
+      <span>{{ store.selectedAgent?.name ?? 'No agent selected' }}</span>
+      <small>{{ filteredSessions.length }} chats</small>
+    </div>
+
+    <div v-if="!store.selectedAgentKey" class="agent-session-list__state">Select an agent.</div>
+    <div v-else-if="!filteredSessions.length" class="agent-session-list__state">
+      {{ sessionSearch.trim() ? 'No chats match this search.' : 'No chats yet.' }}
+    </div>
+
+    <div class="agent-session-list__rows">
+      <div
+        v-for="session in filteredSessions"
+        :key="session.id"
+        class="agent-session-list__row"
+        :class="{ 'agent-session-list__row--active': session.id === store.selectedSessionId }"
       >
-        <LucideIcon name="trash-2" :size="14" />
-      </button>
+        <button type="button" class="agent-session-list__select" @click="store.selectSession(session.id)">
+          <span class="agent-session-list__title">{{ session.title }}</span>
+          <span class="agent-session-list__date">{{ formatSessionDate(session.updatedAt) }}</span>
+        </button>
+        <button
+          type="button"
+          class="agent-session-list__delete"
+          title="Delete chat"
+          @click="openDeleteMenu(session.id)"
+        >
+          <LucideIcon name="ellipsis" :size="15" />
+        </button>
+      </div>
     </div>
 
     <div v-if="deleteSessionId" class="agent-session-list__delete-menu" role="dialog">
@@ -48,10 +75,10 @@
         <span>Confirm all agent memory deletion</span>
       </label>
       <div class="agent-session-list__delete-actions">
-        <button type="button" @click="closeDeleteMenu">Cancel</button>
-        <button type="button" :disabled="deleteBlocked" @click="confirmDeleteSession">
+        <BaseButton type="button" size="sm" variant="ghost" @click="closeDeleteMenu">Cancel</BaseButton>
+        <BaseButton type="button" size="sm" variant="danger" :disabled="deleteBlocked" @click="confirmDeleteSession">
           Delete
-        </button>
+        </BaseButton>
       </div>
     </div>
   </aside>
@@ -61,9 +88,12 @@
 import { computed, ref } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 
 const store = useAgentPanelStore()
-const selectedAgentName = computed(() => store.selectedAgent?.name ?? 'No agent selected')
+const searchOpen = ref(false)
+const sessionSearch = ref('')
 const dangerousMemoryMode = 'all-agent-memory'
 const deleteSessionId = ref('')
 const selectedMemoryMode = ref<'transcript-only' | 'session' | typeof dangerousMemoryMode>('session')
@@ -76,6 +106,11 @@ const memoryOptions = [
 const deleteBlocked = computed(
   () => selectedMemoryMode.value === dangerousMemoryMode && !confirmedDangerousDelete.value,
 )
+const filteredSessions = computed(() => {
+  const query = sessionSearch.value.trim().toLowerCase()
+  if (!query) return store.sessions
+  return store.sessions.filter((session) => session.title.toLowerCase().includes(query))
+})
 
 function formatSessionDate(value: string) {
   const date = new Date(value)
@@ -107,138 +142,157 @@ async function confirmDeleteSession() {
   min-height: 0;
   min-width: 0;
   flex-direction: column;
-  border-right: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
+  gap: var(--sailor-space-3);
+  border-right: 1px solid rgba(12, 17, 29, 0.08);
+  background: #ffffff;
+  padding: var(--sailor-space-4) var(--sailor-space-3);
 }
 
 .agent-session-list__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 18px;
-  border-bottom: 1px solid var(--sailor-border);
+  gap: var(--sailor-space-2);
 }
 
 .agent-session-list__header h2 {
   margin: 0;
-  color: var(--sailor-text-primary);
-  font-size: 16px;
-  font-weight: 700;
+  color: #0b1220;
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
 }
 
-.agent-session-list__header p {
+.agent-session-list__header :deep(.base-button) {
+  width: 28px;
+  height: 28px;
+  color: #475467;
+}
+
+.agent-session-list__search {
+  width: 100%;
+}
+
+.agent-session-list__new :deep(.base-button),
+.agent-session-list__new {
+  height: 30px;
+  border-color: #061025;
+  border-radius: var(--sailor-radius-full);
+  background: #061025;
+  color: #ffffff;
+  font-size: var(--sailor-text-xs);
+  box-shadow: 0 10px 18px rgba(6, 16, 37, 0.18);
+}
+
+.agent-session-list__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(12, 17, 29, 0.08);
+  padding-top: var(--sailor-space-3);
+  color: #667085;
+  font-size: 11px;
+}
+
+.agent-session-list__meta span {
   overflow: hidden;
-  margin: 4px 0 0;
-  color: var(--sailor-text-secondary);
-  font-size: 12px;
+  color: #98a2b3;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.agent-session-list__new,
-.agent-session-list__delete {
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: 8px;
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-secondary);
-  cursor: pointer;
-}
-
-.agent-session-list__new {
-  width: 34px;
-  height: 34px;
-}
-
-.agent-session-list__new:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
 .agent-session-list__state {
-  padding: 18px;
-  color: var(--sailor-text-secondary);
-  font-size: 13px;
+  color: #667085;
+  font-size: var(--sailor-text-xs);
+  line-height: 1.4;
+}
+
+.agent-session-list__rows {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  overflow: auto;
 }
 
 .agent-session-list__row {
   position: relative;
-  border-left: 3px solid transparent;
-  background: transparent;
+  border-radius: var(--sailor-radius-md);
 }
 
 .agent-session-list__row:hover,
 .agent-session-list__row--active {
-  border-left-color: var(--sailor-accent);
-  background: var(--sailor-button-ghost-hover);
+  background: #f4f7fb;
 }
 
 .agent-session-list__select {
   display: grid;
   width: 100%;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 4px 10px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
   border: 0;
   background: transparent;
-  padding: 12px 44px 12px 12px;
+  padding: 8px 34px 8px 8px;
   text-align: left;
   cursor: pointer;
 }
 
 .agent-session-list__title {
   overflow: hidden;
-  color: var(--sailor-text-primary);
-  font-size: 14px;
-  font-weight: 600;
+  color: #111827;
+  font-size: 11px;
+  font-weight: var(--sailor-font-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .agent-session-list__date {
-  color: var(--sailor-text-muted);
-  font-size: 12px;
+  color: #98a2b3;
+  font-size: 10px;
 }
 
 .agent-session-list__delete {
   position: absolute;
   top: 50%;
-  right: 12px;
-  width: 28px;
-  height: 28px;
+  right: 6px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 0;
+  border-radius: var(--sailor-radius-full);
+  background: transparent;
+  color: #98a2b3;
+  cursor: pointer;
   transform: translateY(-50%);
-  opacity: 0;
 }
 
-.agent-session-list__row:hover .agent-session-list__delete,
-.agent-session-list__delete:focus-visible {
-  opacity: 1;
+.agent-session-list__delete:hover {
+  background: #e8eef8;
+  color: #0b1220;
 }
 
 .agent-session-list__delete-menu {
-  margin: auto 12px 12px;
-  border: 1px solid var(--sailor-border);
-  border-radius: 8px;
-  background: var(--sailor-bg-elevated);
-  padding: 12px;
-  box-shadow: 0 18px 44px var(--sailor-border-strong);
+  border: 1px solid rgba(12, 17, 29, 0.08);
+  border-radius: var(--sailor-radius-lg);
+  background: #ffffff;
+  padding: var(--sailor-space-3);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
 }
 
 .agent-session-list__delete-menu h3 {
-  margin: 0 0 10px;
-  color: var(--sailor-text-primary);
-  font-size: 14px;
+  margin: 0 0 var(--sailor-space-2);
+  color: #0b1220;
+  font-size: var(--sailor-text-sm);
 }
 
 .agent-session-list__delete-menu label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  color: var(--sailor-text-secondary);
-  font-size: 13px;
+  gap: var(--sailor-space-2);
+  margin-top: var(--sailor-space-2);
+  color: #475467;
+  font-size: var(--sailor-text-xs);
 }
 
 .agent-session-list__confirm {
@@ -248,29 +302,7 @@ async function confirmDeleteSession() {
 .agent-session-list__delete-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.agent-session-list__delete-actions button {
-  border: 1px solid var(--sailor-border);
-  border-radius: 8px;
-  background: var(--sailor-bg-elevated);
-  padding: 7px 10px;
-  color: var(--sailor-text-secondary);
-  font: inherit;
-  cursor: pointer;
-}
-
-.agent-session-list__delete-actions button:last-child {
-  border-color: var(--sailor-red-600);
-  background: var(--sailor-red-600);
-  color: var(--sailor-bg-elevated);
-}
-
-.agent-session-list__delete-actions button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
+  gap: var(--sailor-space-2);
+  margin-top: var(--sailor-space-3);
 }
 </style>
-

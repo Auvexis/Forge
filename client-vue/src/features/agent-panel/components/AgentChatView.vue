@@ -1,59 +1,32 @@
 <template>
-  <section class="agent-chat-view" aria-label="Agent chat">
+  <section
+    class="agent-chat-view"
+    :class="{ 'agent-chat-view--empty-thread': store.hasOpenChat && !store.messages.length }"
+    aria-label="Agent chat"
+  >
     <header v-if="store.selectedAgent" class="agent-chat-view__header">
-      <span class="agent-chat-view__emoji">{{ store.selectedAgent.emoji }}</span>
-      <span class="agent-chat-view__identity">
-        <strong>{{ store.selectedAgent.name }}</strong>
-        <span>{{ store.selectedAgent.workflowName }} · {{ store.selectedAgent.profileId }}</span>
-      </span>
-
-      <div class="agent-chat-view__actions">
-        <BaseButton
-          size="icon"
-          variant="ghost"
-          icon-left="plus"
-          :disabled="!store.selectedAgentKey"
-          title="New chat"
-          @click="store.openDraftSession()"
-        />
-        <BaseButton
-          size="icon"
-          variant="ghost"
-          icon-left="history"
-          :disabled="!store.selectedAgentKey"
-          title="Chat history"
-          @click="historyOpen = !historyOpen"
-        />
+      <div class="agent-chat-view__identity">
+        <span class="agent-chat-view__emoji">{{ store.selectedAgent.emoji }}</span>
+        <span>
+          <strong>{{ store.selectedAgent.name }}</strong>
+          <small>{{ store.selectedAgent.workflowName }}</small>
+        </span>
       </div>
 
-      <div v-if="historyOpen" class="agent-chat-view__floating-menu" role="dialog">
-        <header>
-          <strong>Chats</strong>
-          <span>{{ store.sessions.length }}</span>
-        </header>
-        <div v-if="!store.sessions.length" class="agent-chat-view__menu-state">No chats yet.</div>
-        <div
-          v-for="session in store.sessions"
-          :key="session.id"
-          role="button"
-          tabindex="0"
-          class="agent-chat-view__session-row"
-          :class="{ 'agent-chat-view__session-row--active': session.id === store.selectedSessionId }"
-          @click="selectSession(session.id)"
-          @keydown.enter.prevent="selectSession(session.id)"
-          @keydown.space.prevent="selectSession(session.id)"
+      <div class="agent-chat-view__actions">
+        <BaseButton size="sm" variant="outline" icon-right="settings" title="Configuration">
+          Configuration
+        </BaseButton>
+        <BaseButton
+          size="sm"
+          variant="primary"
+          icon-right="sparkles"
+          :disabled="!store.selectedAgentKey"
+          title="New Chat"
+          @click="store.openDraftSession()"
         >
-          <span>{{ session.title }}</span>
-          <small>{{ formatSessionDate(session.updatedAt) }}</small>
-          <button
-            type="button"
-            class="agent-chat-view__session-delete"
-            title="Delete chat"
-            @click.stop="deleteSession(session.id)"
-          >
-            <LucideIcon name="trash-2" :size="14" />
-          </button>
-        </div>
+          New Chat
+        </BaseButton>
       </div>
     </header>
 
@@ -61,7 +34,12 @@
     <div v-else-if="!store.hasOpenChat" class="agent-chat-view__empty">Select a chat.</div>
     <template v-else>
       <div ref="messagesEl" class="agent-chat-view__messages">
-        <TransitionGroup name="agent-chat-message" tag="div" class="agent-chat-view__message-list">
+        <TransitionGroup
+          v-if="store.messages.length"
+          name="agent-chat-message"
+          tag="div"
+          class="agent-chat-view__message-list"
+        >
           <article
             v-for="(message, index) in store.messages"
             :key="message.id"
@@ -82,10 +60,7 @@
             <div v-if="messageThinking(message.content)" class="agent-chat-view__thinking">
               {{ messageThinking(message.content) }}
             </div>
-            <div
-              v-if="isAgentSummaryContent(message.content)"
-              class="agent-chat-view__summary"
-            >
+            <div v-if="isAgentSummaryContent(message.content)" class="agent-chat-view__summary">
               <strong>{{ message.content.message }}</strong>
               <ul class="agent-chat-view__summary-tools">
                 <li v-for="tool in message.content.tools" :key="tool.toolCallId">
@@ -139,11 +114,19 @@
             <p v-else-if="messageText(message.content)">{{ messageText(message.content) }}</p>
           </article>
         </TransitionGroup>
-        <div v-if="!store.messages.length" class="agent-chat-view__empty agent-chat-view__empty--inline">
-          No messages yet.
+
+        <div v-else class="agent-chat-view__prompt-stage">
+          <AgentChatComposer mode="hero" :sending="store.sending" @send="store.sendMessage" />
+          <p>Centra may display inaccurate info, so please double check the response.</p>
         </div>
       </div>
-      <AgentChatComposer :sending="store.sending" @send="store.sendMessage" />
+
+      <AgentChatComposer
+        v-if="store.messages.length"
+        mode="dock"
+        :sending="store.sending"
+        @send="store.sendMessage"
+      />
     </template>
   </section>
 </template>
@@ -155,7 +138,6 @@ import AgentChatComposer from '@/features/agent-panel/components/AgentChatCompos
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import { useProfileStore } from '@/shared/stores/profile.store'
-import { useConfirm } from '@/shared/composables/useConfirm'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 import type { AgentChatMessage } from '@/features/agent-runtime/types/agent.types'
 import type {
@@ -167,9 +149,6 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 const store = useAgentPanelStore()
 const profileStore = useProfileStore()
-const { confirm } = useConfirm()
-const historyOpen = ref(false)
-const dangerousMemoryMode = 'all-agent-memory'
 const plugins = ref<PluginSummary[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
 
@@ -194,23 +173,6 @@ watch(
   },
   { flush: 'post' },
 )
-
-function selectSession(sessionId: string) {
-  historyOpen.value = false
-  void store.selectSession(sessionId)
-}
-
-async function deleteSession(sessionId: string) {
-  const first = await confirm({
-    title: 'Delete chat',
-    message: 'Delete chat and session memory?',
-    confirmText: 'Delete',
-    variant: 'danger',
-  })
-  if (!first) return
-
-  await store.deleteSession(sessionId, 'session')
-}
 
 function messageText(content: unknown): string {
   if (isAgentSummaryContent(content)) return ''
@@ -319,8 +281,8 @@ function messageDisplayName(message: AgentChatMessage): string {
 
 function messageAvatar(message: AgentChatMessage): string {
   if (message.role === 'user') return profileStore.currentProfile?.avatarEmoji ?? 'U'
-  if (message.role === 'assistant') return store.selectedAgent?.emoji ?? '🤖'
-  return '•'
+  if (message.role === 'assistant') return store.selectedAgent?.emoji ?? 'AI'
+  return '*'
 }
 
 function formatMessageTime(message: AgentChatMessage): string {
@@ -328,12 +290,6 @@ function formatMessageTime(message: AgentChatMessage): string {
   const date = raw ? new Date(raw) : new Date()
   if (Number.isNaN(date.getTime())) return ''
   return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(date)
-}
-
-function formatSessionDate(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date)
 }
 
 function entranceClass(message: AgentChatMessage): string {
@@ -350,9 +306,6 @@ async function scrollMessagesToBottom() {
     behavior: 'smooth',
   })
 }
-
-void dangerousMemoryMode
-void ['transcript-only', 'session', 'all-agent-memory']
 </script>
 
 <style scoped>
@@ -362,16 +315,50 @@ void ['transcript-only', 'session', 'all-agent-memory']
   min-height: 0;
   min-width: 0;
   flex-direction: column;
-  background: var(--sailor-bg-base);
+  background: #f7f7f8;
+  color: #0b1220;
 }
 
 .agent-chat-view__header {
   position: relative;
   display: flex;
+  min-height: 66px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sailor-space-4);
+  background: #ffffff;
+  padding: var(--sailor-space-4) var(--sailor-space-6);
+}
+
+.agent-chat-view__identity {
+  display: inline-flex;
+  min-width: 0;
   align-items: center;
   gap: var(--sailor-space-3);
-  padding: var(--sailor-space-2);
-  border-bottom: 1px solid var(--sailor-border);
+}
+
+.agent-chat-view__identity span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.agent-chat-view__identity strong,
+.agent-chat-view__identity small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-chat-view__identity strong {
+  color: #0b1220;
+  font-size: 12px;
+  font-weight: var(--sailor-font-semibold);
+}
+
+.agent-chat-view__identity small {
+  color: #667085;
+  font-size: 10px;
 }
 
 .agent-chat-view__emoji,
@@ -379,43 +366,21 @@ void ['transcript-only', 'session', 'all-agent-memory']
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
+  border: 1px solid rgba(12, 17, 29, 0.08);
+  border-radius: var(--sailor-radius-full);
+  background: #ffffff;
 }
 
 .agent-chat-view__emoji {
-  width: 35px;
-  height: 35px;
-  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  font-size: 17px;
 }
 
 .agent-chat-view__avatar {
-  width: 30px;
-  height: 30px;
-  font-size: var(--sailor-text-base);
-}
-
-.agent-chat-view__identity {
-  display: grid;
-  min-width: 0;
-}
-
-.agent-chat-view__identity strong,
-.agent-chat-view__identity span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.agent-chat-view__identity strong {
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-base);
-}
-
-.agent-chat-view__identity span {
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  width: 28px;
+  height: 28px;
+  font-size: var(--sailor-text-sm);
 }
 
 .agent-chat-view__actions {
@@ -425,100 +390,23 @@ void ['transcript-only', 'session', 'all-agent-memory']
   margin-left: auto;
 }
 
-.agent-chat-view__icon-button {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-secondary);
-  cursor: pointer;
+.agent-chat-view__actions :deep(.base-button) {
+  height: 28px;
+  border-radius: var(--sailor-radius-full);
+  font-size: 11px;
 }
 
-.agent-chat-view__icon-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
+.agent-chat-view__actions :deep(.base-button--outline) {
+  border-color: rgba(12, 17, 29, 0.08);
+  background: #ffffff;
+  color: #0b1220;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
 }
 
-.agent-chat-view__floating-menu {
-  position: absolute;
-  top: calc(100% + var(--sailor-space-2));
-  right: var(--sailor-space-4);
-  z-index: var(--sailor-z-overlay);
-  display: flex;
-  width: min(340px, calc(100% - var(--sailor-space-8)));
-  max-height: min(420px, 70vh);
-  flex-direction: column;
-  gap: var(--sailor-space-1);
-  overflow: auto;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-  padding: var(--sailor-space-2);
-  box-shadow: var(--sailor-shadow-lg);
-}
-
-.agent-chat-view__floating-menu header {
-  display: flex;
-  justify-content: space-between;
-  padding: var(--sailor-space-2);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-}
-
-.agent-chat-view__menu-state {
-  padding: var(--sailor-space-3);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-sm);
-}
-
-.agent-chat-view__session-row {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: var(--sailor-space-2);
-  border: 0;
-  border-radius: var(--sailor-radius-sm);
-  background: transparent;
-  padding: var(--sailor-space-2);
-  color: var(--sailor-text-primary);
-  text-align: left;
-  cursor: pointer;
-}
-
-.agent-chat-view__session-row:hover,
-.agent-chat-view__session-row--active {
-  background: var(--sailor-button-ghost-hover);
-}
-
-.agent-chat-view__session-row span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.agent-chat-view__session-row small {
-  color: var(--sailor-text-muted);
-}
-
-.agent-chat-view__session-delete {
-  display: grid;
-  width: 26px;
-  height: 26px;
-  place-items: center;
-  border: 0;
-  border-radius: var(--sailor-radius-sm);
-  background: transparent;
-  color: var(--sailor-text-muted);
-  cursor: pointer;
-}
-
-.agent-chat-view__session-delete:hover {
-  background: var(--sailor-button-danger-hover);
-  color: var(--sailor-button-danger-active-text);
+.agent-chat-view__actions :deep(.base-button--primary) {
+  border-color: #061025;
+  background: #061025;
+  color: #ffffff;
 }
 
 .agent-chat-view__messages {
@@ -527,18 +415,40 @@ void ['transcript-only', 'session', 'all-agent-memory']
   flex: 1;
   flex-direction: column;
   overflow: auto;
-  padding: var(--sailor-space-4);
+  padding: var(--sailor-space-6);
+}
+
+.agent-chat-view--empty-thread .agent-chat-view__messages {
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 18vh;
+}
+
+.agent-chat-view__prompt-stage {
+  display: grid;
+  width: min(100%, 545px);
+  gap: var(--sailor-space-4);
+  justify-items: center;
+}
+
+.agent-chat-view__prompt-stage p {
+  margin: 0;
+  color: #667085;
+  font-size: 10px;
+  text-align: center;
 }
 
 .agent-chat-view__message-list {
   display: flex;
+  width: min(100%, 760px);
   flex-direction: column;
-  gap: var(--sailor-space-4);
+  gap: var(--sailor-space-5);
+  margin: 0 auto;
 }
 
 .agent-chat-view__message {
   display: grid;
-  max-width: min(720px, 90%);
+  max-width: min(680px, 92%);
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--sailor-space-1) var(--sailor-space-2);
 }
@@ -575,7 +485,7 @@ void ['transcript-only', 'session', 'all-agent-memory']
   display: inline-flex;
   align-items: baseline;
   gap: var(--sailor-space-2);
-  color: var(--sailor-text-primary);
+  color: #0b1220;
   font-size: var(--sailor-text-xs);
   font-weight: var(--sailor-font-bold);
 }
@@ -585,7 +495,7 @@ void ['transcript-only', 'session', 'all-agent-memory']
 }
 
 .agent-chat-view__role time {
-  color: var(--sailor-text-secondary);
+  color: #98a2b3;
   font-weight: var(--sailor-font-medium);
 }
 
@@ -595,19 +505,19 @@ void ['transcript-only', 'session', 'all-agent-memory']
 .agent-chat-view__typing-dots {
   grid-column: 2;
   margin: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  padding: 0;
-  color: var(--sailor-text-secondary);
+  color: #344054;
   font-size: var(--sailor-text-sm);
-  line-height: 1.5;
+  line-height: 1.55;
   white-space: pre-wrap;
 }
 
 .agent-chat-view__message--user p {
   grid-column: 1;
-  background: transparent;
+  border-radius: var(--sailor-radius-lg);
+  background: #ffffff;
+  padding: var(--sailor-space-3);
+  color: #0b1220;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
 }
 
 .agent-chat-view__waiting {
@@ -624,7 +534,7 @@ void ['transcript-only', 'session', 'all-agent-memory']
   gap: var(--sailor-space-1);
   margin: 0;
   padding: 0;
-  color: var(--sailor-text-muted);
+  color: #667085;
   font-size: var(--sailor-text-xs);
   list-style: none;
 }
@@ -633,19 +543,19 @@ void ['transcript-only', 'session', 'all-agent-memory']
   display: block;
   width: fit-content;
   max-width: 100%;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
+  border: 1px solid rgba(12, 17, 29, 0.08);
+  border-radius: var(--sailor-radius-full);
+  background: #ffffff;
   padding: var(--sailor-space-1) var(--sailor-space-2);
-  color: var(--sailor-text-secondary);
+  color: #344054;
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 
 .agent-chat-view__waiting-option:hover:not(:disabled) {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-text-primary);
+  background: #f4f7fb;
+  color: #0b1220;
 }
 
 .agent-chat-view__waiting-option:disabled {
@@ -655,7 +565,7 @@ void ['transcript-only', 'session', 'all-agent-memory']
 
 .agent-chat-view__thinking {
   margin-bottom: var(--sailor-space-1);
-  color: var(--sailor-text-muted);
+  color: #98a2b3;
   font-size: var(--sailor-text-xs);
 }
 
@@ -670,8 +580,8 @@ void ['transcript-only', 'session', 'all-agent-memory']
 .agent-chat-view__typing-dots span {
   width: 5px;
   height: 5px;
-  border-radius: 999px;
-  background: var(--sailor-text-muted);
+  border-radius: var(--sailor-radius-full);
+  background: #98a2b3;
   animation: agent-chat-typing-bounce 0.9s ease-in-out infinite;
 }
 
@@ -683,20 +593,20 @@ void ['transcript-only', 'session', 'all-agent-memory']
   animation-delay: 0.24s;
 }
 
-.agent-chat-view__progress {
+.agent-chat-view__progress,
+.agent-chat-view__summary {
   grid-column: 2;
+  color: #344054;
+  font-size: var(--sailor-text-sm);
+  line-height: 1.5;
+}
+
+.agent-chat-view__progress {
   display: inline-flex;
   width: fit-content;
   max-width: 100%;
   align-items: center;
   gap: var(--sailor-space-2);
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  padding: 0;
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-sm);
-  line-height: 1.5;
 }
 
 .agent-chat-view__progress--running svg {
@@ -704,11 +614,11 @@ void ['transcript-only', 'session', 'all-agent-memory']
 }
 
 .agent-chat-view__progress--success {
-  color: var(--sailor-success);
+  color: var(--sailor-green-600);
 }
 
 .agent-chat-view__progress--failed {
-  color: var(--sailor-danger);
+  color: var(--sailor-red-600);
 }
 
 .agent-chat-view__plugin-icon {
@@ -717,22 +627,12 @@ void ['transcript-only', 'session', 'all-agent-memory']
   height: 18px;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 5px;
-  background: transparent;
 }
 
 .agent-chat-view__summary {
-  grid-column: 2;
   display: grid;
   width: min(100%, 520px);
   gap: var(--sailor-space-2);
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  padding: 0;
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
-  line-height: 1.4;
 }
 
 .agent-chat-view__summary-tools {
@@ -749,10 +649,7 @@ void ['transcript-only', 'session', 'all-agent-memory']
   min-width: 0;
   align-items: center;
   gap: var(--sailor-space-2);
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  color: var(--sailor-text-secondary);
+  color: #667085;
   font-size: var(--sailor-text-xs);
 }
 
@@ -760,13 +657,8 @@ void ['transcript-only', 'session', 'all-agent-memory']
   display: grid;
   flex: 1;
   place-items: center;
-  color: var(--sailor-text-secondary);
+  color: #667085;
   font-size: var(--sailor-text-sm);
-}
-
-.agent-chat-view__empty--inline {
-  flex: 0;
-  padding: var(--sailor-space-4);
 }
 
 .agent-chat-message-move,
@@ -831,4 +723,13 @@ void ['transcript-only', 'session', 'all-agent-memory']
   }
 }
 
+@media (max-width: 820px) {
+  .agent-chat-view__header {
+    padding: var(--sailor-space-3);
+  }
+
+  .agent-chat-view__actions :deep(.base-button__label) {
+    display: none;
+  }
+}
 </style>

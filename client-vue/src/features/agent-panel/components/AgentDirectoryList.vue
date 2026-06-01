@@ -1,52 +1,25 @@
 <template>
-  <aside
-    class="agent-directory-list"
-    :class="{ 'agent-directory-list--collapsed': store.directoryCollapsed }"
-    aria-label="Published agents"
-  >
-    <header class="agent-directory-list__header">
-      <div v-if="!store.directoryCollapsed">
-        <h2>Agents</h2>
-        <p>{{ store.filteredAgents.length }} {{ store.filteredAgents.length > 2 || store.filteredAgents.length == 0 ? 'Agents' : 'Agent' }}</p>
-      </div>
+  <aside class="agent-directory-list" aria-label="Published agents">
+    <div class="agent-directory-list__brand" aria-hidden="true" />
 
-      <div class="agent-directory-list__header-actions">
-        <BaseButton
-          :title="store.directoryCollapsed ? 'Expand agents' : 'Collapse agents'"
-          :size="'icon'"
-          :icon-left="store.directoryCollapsed ? 'panel-left-open' : 'panel-left-close'"
-          :variant="'ghost'"
-          @click="store.toggleDirectoryCollapsed()"
-        />
-        <BaseButton
-          v-if="!store.directoryCollapsed"
-          title="Refresh agents"
-          :size="'icon'"
-          :icon-left="'refresh-cw'"
-          :variant="'ghost'"
-          @click="store.loadAgents(store.agentScope)"
-        />
-      </div>
-    </header>
+    <div class="agent-directory-list__tools">
+      <BaseButton
+        title="Search agents"
+        size="icon"
+        icon-left="search"
+        variant="ghost"
+        @click="searchOpen = !searchOpen"
+      />
+      <BaseButton
+        :title="store.agentScope === 'global' ? 'Showing global agents' : 'Showing profile agents'"
+        size="icon"
+        :icon-left="store.agentScope === 'global' ? 'globe-2' : 'user-round'"
+        variant="ghost"
+        @click="toggleScope"
+      />
+    </div>
 
-    <div v-if="!store.directoryCollapsed" class="agent-directory-list__tools">
-      <div class="agent-directory-list__scope" role="tablist" aria-label="Agent scope">
-        <button
-          type="button"
-          :class="{ 'agent-directory-list__scope-button--active': store.agentScope === 'global' }"
-          @click="store.setAgentScope('global')"
-        >
-          Global
-        </button>
-        <button
-          type="button"
-          :class="{ 'agent-directory-list__scope-button--active': store.agentScope === 'current' }"
-          @click="store.setAgentScope('current')"
-        >
-          Perfil
-        </button>
-      </div>
-
+    <div v-if="searchOpen" class="agent-directory-list__search">
       <BaseInput
         v-model="store.agentSearch"
         icon-left="search"
@@ -55,224 +28,142 @@
       />
     </div>
 
-    <div v-if="store.loading" class="agent-directory-list__state">Loading agents...</div>
-    <div v-else-if="store.directoryError" class="agent-directory-list__state agent-directory-list__state--error">
-      {{ store.directoryError }}
+    <div class="agent-directory-list__agents" aria-label="Agent list">
+      <div v-if="store.loading" class="agent-directory-list__state">...</div>
+      <div v-else-if="store.directoryError" class="agent-directory-list__state">!</div>
+      <button
+        v-for="agent in store.filteredAgents"
+        :key="agent.key"
+        type="button"
+        class="agent-directory-list__item"
+        :class="{ 'agent-directory-list__item--active': agent.key === store.selectedAgentKey }"
+        :title="`${agent.name} - ${agent.workflowName}`"
+        @click="store.selectAgent(agent.key)"
+      >
+        <span class="agent-directory-list__emoji">{{ agent.emoji }}</span>
+      </button>
+      <div v-if="!store.loading && !store.directoryError && !store.filteredAgents.length" class="agent-directory-list__state">
+        0
+      </div>
     </div>
-    <div v-else-if="!store.filteredAgents.length" class="agent-directory-list__state">
-      {{ store.agentSearch.trim() ? 'No agents match this search.' : 'No published agents.' }}
-    </div>
-
-    <button
-      v-for="agent in store.filteredAgents"
-      :key="agent.key"
-      type="button"
-      class="agent-directory-list__item"
-      :class="{ 'agent-directory-list__item--active': agent.key === store.selectedAgentKey }"
-      :title="store.directoryCollapsed ? `${agent.name} - ${agent.workflowName}` : undefined"
-      @click="store.selectAgent(agent.key)"
-    >
-      <span class="agent-directory-list__emoji">{{ agent.emoji }}</span>
-      <span v-if="!store.directoryCollapsed" class="agent-directory-list__copy">
-        <strong>{{ agent.name }}</strong>
-        <span>{{ agent.workflowName }}</span>
-        <small>{{ agent.profileId }}</small>
-      </span>
-    </button>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 
 const store = useAgentPanelStore()
+const searchOpen = ref(false)
 
 onMounted(() => {
   if (!store.agents.length) void store.loadAgents()
 })
+
+function toggleScope() {
+  void store.setAgentScope(store.agentScope === 'global' ? 'current' : 'global')
+}
 </script>
 
 <style scoped>
 .agent-directory-list {
+  position: relative;
   display: flex;
   min-height: 0;
   min-width: 0;
   flex-direction: column;
-  border-right: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
-  overflow: hidden;
-  transition: width var(--sailor-duration-base) var(--sailor-ease-standard);
-}
-
-.agent-directory-list--collapsed {
   align-items: center;
-}
-
-.agent-directory-list__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: var(--sailor-space-3);
-  padding: var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border);
+  border-right: 1px solid rgba(12, 17, 29, 0.08);
+  background: #fbfcff;
+  padding: var(--sailor-space-4) var(--sailor-space-2);
 }
 
-.agent-directory-list--collapsed .agent-directory-list__header {
-  width: 100%;
-  justify-content: center;
-  padding: var(--sailor-space-2);
+.agent-directory-list__brand {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--sailor-radius-full);
+  background: linear-gradient(180deg, #9bbdff 0%, #3869dc 100%);
+  box-shadow: 0 8px 18px rgba(56, 105, 220, 0.24);
 }
 
-.agent-directory-list__header-actions {
-  display: inline-flex;
+.agent-directory-list__tools,
+.agent-directory-list__agents {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--sailor-space-1);
-}
-
-.agent-directory-list__header h2 {
-  margin: 0;
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-base);
-  font-weight: var(--sailor-font-bold);
-}
-
-.agent-directory-list__header p {
-  margin: 4px 0 0;
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-}
-
-.agent-directory-list__tools {
-  display: grid;
   gap: var(--sailor-space-2);
-  padding: var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-width: 0 0 1px;
+  width: 100%;
 }
 
-.agent-directory-list__scope {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2px;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-  padding: 2px;
+.agent-directory-list__tools :deep(.base-button),
+.agent-directory-list__item {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--sailor-radius-full);
 }
 
-.agent-directory-list__scope button {
-  min-width: 0;
-  border: 0;
-  border-radius: calc(var(--sailor-radius-sm) - 2px);
-  background: transparent;
-  padding: var(--sailor-space-1) var(--sailor-space-2);
-  color: var(--sailor-text-secondary);
-  font: inherit;
-  font-size: var(--sailor-text-xs);
-  cursor: pointer;
+.agent-directory-list__tools :deep(.base-button) {
+  color: #526071;
 }
 
-.agent-directory-list__scope button:hover,
-.agent-directory-list__scope-button--active {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-text-primary);
+.agent-directory-list__tools :deep(.base-button:hover) {
+  background: #eef3ff;
+  color: #0b1220;
 }
 
-.agent-directory-list__state {
-  padding: var(--sailor-space-4);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-sm);
-}
-
-.agent-directory-list--collapsed .agent-directory-list__state {
+.agent-directory-list__search {
+  position: absolute;
+  top: var(--sailor-space-12);
+  left: calc(100% + var(--sailor-space-2));
+  z-index: var(--sailor-z-dropdown);
+  width: 220px;
+  border: 1px solid rgba(12, 17, 29, 0.08);
+  border-radius: var(--sailor-radius-lg);
+  background: #ffffff;
   padding: var(--sailor-space-2);
-  writing-mode: vertical-rl;
-  text-align: center;
-}
-
-.agent-directory-list__state--error {
-  color: var(--sailor-text-error);
+  box-shadow: 0 16px 42px rgba(15, 23, 42, 0.12);
 }
 
 .agent-directory-list__item {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: var(--sailor-space-3);
-  border: 0;
-  border-left: 3px solid transparent;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
   background: transparent;
-  padding: var(--sailor-space-1) var(--sailor-space-2);
-  text-align: left;
+  padding: 0;
   cursor: pointer;
-}
-
-.agent-directory-list--collapsed .agent-directory-list__item {
-  width: 100%;
-  justify-content: center;
-  border-left-width: 0;
-  border-right: 3px solid transparent;
-  padding: var(--sailor-space-2) 0;
 }
 
 .agent-directory-list__item:hover,
 .agent-directory-list__item--active {
-  border-left-color: var(--sailor-text-primary);
-  background: var(--sailor-button-ghost-hover);
-}
-
-.agent-directory-list--collapsed .agent-directory-list__item:hover,
-.agent-directory-list--collapsed .agent-directory-list__item--active {
-  border-right-color: var(--sailor-text-primary);
-  border-left-color: transparent;
+  background: #061025;
+  box-shadow: 0 10px 24px rgba(6, 16, 37, 0.18);
 }
 
 .agent-directory-list__emoji {
   display: grid;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
   place-items: center;
-  border: 1px solid var(--sailor-border);
+  border: 1px solid rgba(12, 17, 29, 0.08);
   border-radius: var(--sailor-radius-full);
-  background: var(--sailor-bg-elevated);
-  font-size: 22px;
+  background: #ffffff;
+  font-size: 15px;
 }
 
-.agent-directory-list--collapsed .agent-directory-list__emoji {
-  width: 42px;
-  height: 42px;
+.agent-directory-list__item--active .agent-directory-list__emoji,
+.agent-directory-list__item:hover .agent-directory-list__emoji {
+  border-color: transparent;
 }
 
-.agent-directory-list__copy {
+.agent-directory-list__state {
   display: grid;
-  min-width: 0;
-  gap: 3px;
-}
-
-.agent-directory-list__copy strong,
-.agent-directory-list__copy span,
-.agent-directory-list__copy small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.agent-directory-list__copy strong {
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
-}
-
-.agent-directory-list__copy span {
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-}
-
-.agent-directory-list__copy small {
-  color: var(--sailor-text-muted);
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: #98a2b3;
   font-size: var(--sailor-text-xs);
 }
 </style>
