@@ -62,6 +62,13 @@ export class AgentBinaryRefStore {
     return stored;
   }
 
+  disposeAll(): void {
+    for (const stored of this.refs.values()) {
+      destroyReadableLike(stored.value);
+    }
+    this.refs.clear();
+  }
+
   private pruneExpired(): void {
     for (const [ref, stored] of this.refs) {
       if (this.isExpired(stored)) this.refs.delete(ref);
@@ -70,5 +77,13 @@ export class AgentBinaryRefStore {
 
   private isExpired(stored: StoredAgentBinaryRef): boolean {
     return this.now() - stored.createdAt > this.ttlMs;
+  }
+}
+
+function destroyReadableLike(value: unknown): void {
+  if (!value || typeof value !== "object") return;
+  const candidate = value as { destroy?: unknown };
+  if (typeof candidate.destroy === "function") {
+    candidate.destroy();
   }
 }

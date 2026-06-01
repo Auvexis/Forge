@@ -100,55 +100,65 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
       const completedToolCalls: AgentRunToolCall[] = [];
       const toolHistory = new Map<string, ToolResultSummary>();
 
-      for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
-        input.onEvent?.({ type: "agent:model-start", payload: { iteration, input: { messages } } });
+      try {
+        for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
+          input.onEvent?.({ type: "agent:model-start", payload: { iteration, input: { messages } } });
 
-        let assistantContent = "";
-        let toolCalls: AgentToolCall[] = [];
-        let usedStream = false;
+          let assistantContent = "";
+          let toolCalls: AgentToolCall[] = [];
+          let usedStream = false;
 
-        if (canAttemptStreamTextResponse(input.agent, model, tools)) {
-          const stream = await resolveModelStream(model, messages);
-          if (stream) {
-            const streamedToolCalls: AgentToolCall[] = [];
-            for await (const chunk of stream) {
-              streamedToolCalls.push(...extractCompleteToolCalls(chunk));
-              const thinkingDelta = extractThinkingDelta(chunk);
-              if (thinkingDelta) {
-                input.onEvent?.({ type: "agent:thinking-delta", payload: { delta: thinkingDelta } });
+          if (canAttemptStreamTextResponse(input.agent, model, tools)) {
+            const stream = await resolveModelStream(model, messages);
+            if (stream) {
+              const streamedToolCalls: AgentToolCall[] = [];
+              for await (const chunk of stream) {
+                streamedToolCalls.push(...extractCompleteToolCalls(chunk));
+                const thinkingDelta = extractThinkingDelta(chunk);
+                if (thinkingDelta) {
+                  input.onEvent?.({ type: "agent:thinking-delta", payload: { delta: thinkingDelta } });
+                }
+
+                const delta = extractStreamDelta(chunk);
+                if (!delta) continue;
+                assistantContent += delta;
+                if (streamedToolCalls.length === 0) {
+                  input.onEvent?.({ type: "agent:output-delta", payload: { delta } });
+                }
               }
 
-              const delta = extractStreamDelta(chunk);
-              if (!delta) continue;
-              assistantContent += delta;
-              if (streamedToolCalls.length === 0) {
-                input.onEvent?.({ type: "agent:output-delta", payload: { delta } });
+              if (assistantContent || streamedToolCalls.length > 0) {
+                toolCalls = streamedToolCalls;
+                usedStream = true;
               }
-            }
-
-            if (assistantContent || streamedToolCalls.length > 0) {
-              toolCalls = streamedToolCalls;
-              usedStream = true;
             }
           }
-        }
 
-        if (!usedStream) {
-          const modelResponse = await model.invoke(messages);
-          assistantContent = extractContent(modelResponse);
-          toolCalls = extractToolCalls(modelResponse);
-        }
+          if (!usedStream) {
+            const modelResponse = await model.invoke(messages);
+            assistantContent = extractContent(modelResponse);
+            toolCalls = extractToolCalls(modelResponse);
+          }
 
-        input.onEvent?.({
-          type: "agent:model-end",
-          payload: { iteration, toolCallCount: toolCalls.length, output: assistantContent },
-        });
+          input.onEvent?.({
+            type: "agent:model-end",
+            payload: { iteration, toolCallCount: toolCalls.length, output: assistantContent },
+          });
 
-        if (toolCalls.length === 0) {
-          const parsedOutput = parseOutput(input.agent, assistantContent);
-          if (isWaitingUserOutput(parsedOutput)) {
+          if (toolCalls.length === 0) {
+            const parsedOutput = parseOutput(input.agent, assistantContent);
+            if (isWaitingUserOutput(parsedOutput)) {
+              return {
+                status: "waiting-user",
+                output: parsedOutput,
+                iterationCount: iteration,
+                toolCallCount,
+                ...(completedToolCalls.length > 0 ? { toolCalls: completedToolCalls } : {}),
+              };
+            }
+
             return {
-              status: "waiting-user",
+              status: "success",
               output: parsedOutput,
               iterationCount: iteration,
               toolCallCount,
@@ -156,118 +166,112 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             };
           }
 
-          return {
-            status: "success",
-            output: parsedOutput,
-            iterationCount: iteration,
-            toolCallCount,
-            ...(completedToolCalls.length > 0 ? { toolCalls: completedToolCalls } : {}),
-          };
-        }
+          messages.push({ role: "assistant", content: assistantContent });
 
-        messages.push({ role: "assistant", content: assistantContent });
+          for (const toolCall of toolCalls) {
+            if (toolCallCount >= input.agent.maxToolCalls) {
+              throw new AgentRuntimeError(
+                "Agent exceeded max tool calls",
+                "AGENT_MAX_TOOL_CALLS_EXCEEDED",
+                "Agent exceeded the maximum number of tool calls",
+                400,
+              );
+            }
 
-        for (const toolCall of toolCalls) {
-          if (toolCallCount >= input.agent.maxToolCalls) {
-            throw new AgentRuntimeError(
-              "Agent exceeded max tool calls",
-              "AGENT_MAX_TOOL_CALLS_EXCEEDED",
-              "Agent exceeded the maximum number of tool calls",
-              400,
-            );
-          }
+            const tool = tools.get(toolCall.name);
+            if (!tool) {
+              throw new AgentRuntimeError(
+                `Unknown agent tool: ${toolCall.name}`,
+                "AGENT_TOOL_UNKNOWN",
+                "Agent requested an unavailable tool",
+                400,
+              );
+            }
 
-          const tool = tools.get(toolCall.name);
-          if (!tool) {
-            throw new AgentRuntimeError(
-              `Unknown agent tool: ${toolCall.name}`,
-              "AGENT_TOOL_UNKNOWN",
-              "Agent requested an unavailable tool",
-              400,
-            );
-          }
-
-          emitToolIntent(input, tool, toolCall);
-          await yieldToEventLoop();
-          if (shouldExecuteToolImmediately(input, tool)) {
-            emitToolStart(input, tool, toolCall);
+            emitToolIntent(input, tool, toolCall);
             await yieldToEventLoop();
+            if (shouldExecuteToolImmediately(input, tool)) {
+              emitToolStart(input, tool, toolCall);
+              await yieldToEventLoop();
+            }
+
+            let result: unknown;
+            const resolvedArgs = resolveBinaryRefsInToolArgs(toolCall.args, binaryRefs);
+            const toolSignature = toolCallSignature(toolCall.name, resolvedArgs);
+            const previousResult = toolHistory.get(toolSignature);
+            if (previousResult && shouldStopRepeatedToolCall(previousResult.resultClass)) {
+              return {
+                status: "waiting-user",
+                output: waitingUserOutputForRepeatedTool(toolCall.name, previousResult),
+                iterationCount: iteration,
+                toolCallCount,
+                ...(completedToolCalls.length > 0 ? { toolCalls: completedToolCalls } : {}),
+              };
+            }
+
+            try {
+              result = await tool.invoke(resolvedArgs);
+            } catch (error) {
+              if (error instanceof AgentToolApprovalRequiredError) throw error;
+              const errorMessage = safeErrorMessage(error);
+              emitToolEnd(input, tool, toolCall, { status: "failed", error: errorMessage });
+              completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "failed"));
+              toolHistory.set(toolSignature, { resultClass: "failed" });
+              if (isUnrecoverablePermissionOrCredentialError(errorMessage)) {
+                toolCallCount += 1;
+                return {
+                  status: "waiting-user",
+                  output: waitingUserOutputForUnrecoverableToolError(toolCall.name, errorMessage),
+                  iterationCount: iteration,
+                  toolCallCount,
+                  toolCalls: completedToolCalls,
+                };
+              }
+              throw error;
+            }
+            toolCallCount += 1;
+            const modelSafeResult = sanitizeToolResultForModel(result, toolCall.id, binaryRefs);
+            toolHistory.set(toolSignature, summarizeToolResult(modelSafeResult));
+            emitToolEnd(input, tool, toolCall, { status: "success", output: modelSafeResult });
+            completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "success"));
+            await yieldToEventLoop();
+            messages.push({
+              role: "tool",
+              name: tool.name,
+              tool_call_id: toolCall.id,
+              content: stringifyToolResult(modelSafeResult),
+            });
           }
 
-          let result: unknown;
-          const resolvedArgs = resolveBinaryRefsInToolArgs(toolCall.args, binaryRefs);
-          const toolSignature = toolCallSignature(toolCall.name, resolvedArgs);
-          const previousResult = toolHistory.get(toolSignature);
-          if (previousResult && shouldStopRepeatedToolCall(previousResult.resultClass)) {
+          if (input.skipFinalResponseAfterToolUse && completedToolCalls.length > 0) {
             return {
-              status: "waiting-user",
-              output: waitingUserOutputForRepeatedTool(toolCall.name, previousResult),
+              status: "success",
+              output: "",
               iterationCount: iteration,
               toolCallCount,
-              ...(completedToolCalls.length > 0 ? { toolCalls: completedToolCalls } : {}),
+              toolCalls: completedToolCalls,
             };
           }
 
-          try {
-            result = await tool.invoke(resolvedArgs);
-          } catch (error) {
-            if (error instanceof AgentToolApprovalRequiredError) throw error;
-            const errorMessage = safeErrorMessage(error);
-            emitToolEnd(input, tool, toolCall, { status: "failed", error: errorMessage });
-            completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "failed"));
-            toolHistory.set(toolSignature, { resultClass: "failed" });
-            if (isUnrecoverablePermissionOrCredentialError(errorMessage)) {
-              toolCallCount += 1;
-              return {
-                status: "waiting-user",
-                output: waitingUserOutputForUnrecoverableToolError(toolCall.name, errorMessage),
-                iterationCount: iteration,
-                toolCallCount,
-                toolCalls: completedToolCalls,
-              };
-            }
-            throw error;
+          if (iteration >= input.agent.maxIterations) {
+            throw new AgentRuntimeError(
+              "Agent exceeded max iterations while resolving tool calls",
+              "AGENT_MAX_ITERATIONS_EXCEEDED",
+              "Agent exceeded the maximum number of iterations",
+              400,
+            );
           }
-          toolCallCount += 1;
-          const modelSafeResult = sanitizeToolResultForModel(result, toolCall.id, binaryRefs);
-          toolHistory.set(toolSignature, summarizeToolResult(modelSafeResult));
-          emitToolEnd(input, tool, toolCall, { status: "success", output: modelSafeResult });
-          completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "success"));
-          await yieldToEventLoop();
-          messages.push({
-            role: "tool",
-            name: tool.name,
-            tool_call_id: toolCall.id,
-            content: stringifyToolResult(modelSafeResult),
-          });
         }
 
-        if (input.skipFinalResponseAfterToolUse && completedToolCalls.length > 0) {
-          return {
-            status: "success",
-            output: "",
-            iterationCount: iteration,
-            toolCallCount,
-            toolCalls: completedToolCalls,
-          };
-        }
-
-        if (iteration >= input.agent.maxIterations) {
-          throw new AgentRuntimeError(
-            "Agent exceeded max iterations while resolving tool calls",
-            "AGENT_MAX_ITERATIONS_EXCEEDED",
-            "Agent exceeded the maximum number of iterations",
-            400,
-          );
-        }
+        throw new AgentRuntimeError(
+          "Agent exceeded max iterations",
+          "AGENT_MAX_ITERATIONS_EXCEEDED",
+          "Agent exceeded the maximum number of iterations",
+          400,
+        );
+      } finally {
+        binaryRefs.disposeAll();
       }
-
-      throw new AgentRuntimeError(
-        "Agent exceeded max iterations",
-        "AGENT_MAX_ITERATIONS_EXCEEDED",
-        "Agent exceeded the maximum number of iterations",
-        400,
-      );
     },
   };
 }

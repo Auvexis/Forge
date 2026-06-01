@@ -377,6 +377,16 @@ function assertSuccessfulChatExecution(execution: unknown): void {
     status?: unknown;
     context?: { steps?: Record<string, any> };
   };
+  if (record?.status === "WAITING_APPROVAL") {
+    const executionId = typeof record.executionId === "string" ? record.executionId : "unknown";
+    const approvalId = extractPendingApprovalId(record.context?.steps);
+    throw new AgentRuntimeError(
+      `Agent panel workflow execution ${executionId} is waiting for tool approval${approvalId ? ` (${approvalId})` : ""}`,
+      "AGENT_PANEL_WAITING_APPROVAL",
+      "Agent tool requires approval before continuing",
+      409,
+    );
+  }
   if (record?.status !== "FAILED") return;
 
   const executionId = typeof record.executionId === "string" ? record.executionId : "unknown";
@@ -387,6 +397,17 @@ function assertSuccessfulChatExecution(execution: unknown): void {
     `Agent panel workflow failed in execution ${executionId}: ${detail}`,
     500,
   );
+}
+
+function extractPendingApprovalId(steps: Record<string, any> | undefined): string | null {
+  if (!steps) return null;
+  const direct = steps.pendingApprovalId;
+  if (typeof direct === "string" && direct.trim()) return direct.trim();
+  for (const step of Object.values(steps)) {
+    const approvalId = step?.approvalId;
+    if (typeof approvalId === "string" && approvalId.trim()) return approvalId.trim();
+  }
+  return null;
 }
 
 function extractWorkflowFailureDetail(steps: Record<string, any> | undefined): string | null {

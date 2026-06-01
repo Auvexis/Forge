@@ -324,6 +324,41 @@ describe("agent graph builder", () => {
     });
   });
 
+  it("destroys unread binary refs when the agent stops after a download", async () => {
+    let destroyed = false;
+    const readable = {
+      pipe() {
+        return this;
+      },
+      on() {
+        return this;
+      },
+      destroy() {
+        destroyed = true;
+      },
+    };
+    const download = fakeTool("download", async () => ({
+      download: {
+        fileName: "curriculo.pdf",
+        mimeType: "application/pdf",
+        content: readable,
+      },
+    }));
+    const model = fakeModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "download", args: { fileId: "file_1" } }] },
+      { content: "downloaded" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [download],
+    });
+
+    await graph.invoke({ userMessage: "download resume" });
+
+    assert.equal(destroyed, true);
+  });
+
   it("returns waiting-user when the model asks a structured follow-up question", async () => {
     const model = fakeModel([{
       content: JSON.stringify({

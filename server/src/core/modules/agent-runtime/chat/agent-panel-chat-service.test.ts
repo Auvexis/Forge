@@ -239,6 +239,20 @@ describe("agent panel chat service", () => {
     );
   });
 
+  it("treats waiting approval executions as incomplete instead of successful chat turns", async () => {
+    const service = waitingApprovalServiceFixture();
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+
+    await assert.rejects(
+      service.sendMessage({ profileId: "profile_a", sessionId: session.id, message: "Send email" }),
+      /approval/i,
+    );
+  });
+
   it("deletes a session and its transcript", async () => {
     const service = serviceFixture();
     const session = await service.createSession({
@@ -348,6 +362,35 @@ describe("agent panel chat service", () => {
           context: {
             steps: {
               agent: { error: "Invalid AI agent config" },
+            },
+          },
+        }),
+      },
+    });
+  }
+
+  function waitingApprovalServiceFixture(): AgentPanelChatService {
+    return new AgentPanelChatService({
+      db: workflowDb!,
+      workflowRepository: WorkflowRepository,
+      workflowEngine: {
+        executeWorkflowFromTrigger: async () => ({
+          executionId: "exec_waiting_approval",
+          status: "WAITING_APPROVAL",
+          context: {
+            steps: {
+              agent: {
+                status: "WAITING_APPROVAL",
+                approvalId: "approval_1",
+                output: {
+                  output: "",
+                  toolCalls: [
+                    { toolCallId: "call_1", name: "google_drive_list_files", status: "success" },
+                    { toolCallId: "call_2", name: "google_drive_download_file", status: "success" },
+                  ],
+                },
+              },
+              pendingApprovalId: "approval_1",
             },
           },
         }),
