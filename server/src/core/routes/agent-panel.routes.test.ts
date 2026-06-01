@@ -216,6 +216,63 @@ describe("agent panel routes", () => {
     assert.equal(events.at(-1)?.type, "done");
   });
 
+  it("streams final assistant output deltas even after tool activity", async () => {
+    const app = await buildApp({
+      sendMessage: async (input: { executionId?: string }) => {
+        assert.ok(input.executionId);
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-start",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "lookup_customer", pluginId: "crm" },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-end",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "lookup_customer", pluginId: "crm", status: "success" },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:output-delta",
+          timestamp: Date.now(),
+          data: { delta: "Final answer after tool." },
+        });
+        return {
+          session: session("chat_1"),
+          messages: [
+            message("msg_user", "chat_1"),
+            {
+              ...message("msg_assistant", "chat_1"),
+              role: "assistant" as const,
+              content: "Final answer after tool.",
+            },
+          ],
+          execution: { status: "SUCCESS" },
+        };
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Hello" },
+    });
+    const events = parseStreamEvents(response.body);
+
+    assert.match(
+      events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""),
+      /Final answer after tool\./,
+    );
+    assert.equal(events.at(-1)?.type, "done");
+  });
+
   it("streams one progress cycle for every tool call before done", async () => {
     const app = await buildApp({
       sendMessage: async (input: { executionId?: string }) => {

@@ -354,7 +354,7 @@ async function streamAgentPanelMessage(
     }
     if (event.type === "agent:output-delta") {
       const delta = extractAgentDelta(event);
-      if (delta && !sawToolActivity) {
+      if (delta) {
         nativeDeltaCount += 1;
         writeStreamEvent(reply, { type: "delta", delta });
       }

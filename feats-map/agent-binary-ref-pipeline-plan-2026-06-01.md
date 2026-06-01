@@ -122,12 +122,12 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 - Testar: `server/src/core/routes/agent-panel.routes.test.ts`
 - Testar: `client-vue/src/features/agent-panel/__tests__/agentPanel.contract.test.ts`
 
-- [ ] Criar teste falhando garantindo que um turno com tool activity e resposta final normal do assistant mostre/preserve a resposta final, nao apenas progresso/summary.
-- [ ] Confirmar a falha atual: deltas finais sao ignorados depois de `sawToolActivity` ou o merge do frontend mantem a mensagem local antiga.
-- [ ] Ajustar backend e/ou merge do frontend para trocar a mensagem local pelo assistant final persistido quando o run terminar.
-- [ ] Preservar o comportamento especial de `waiting-user` no mesmo fluxo.
-- [ ] Rodar `node --test src/core/routes/agent-panel.routes.test.ts` dentro de `server`.
-- [ ] Rodar `node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts` dentro de `client-vue`.
+- [x] Criar teste falhando garantindo que um turno com tool activity e resposta final normal do assistant mostre/preserve a resposta final, nao apenas progresso/summary.
+- [x] Confirmar a falha atual: deltas finais sao ignorados depois de `sawToolActivity` ou o merge do frontend mantem a mensagem local antiga.
+- [x] Ajustar backend e/ou merge do frontend para trocar a mensagem local pelo assistant final persistido quando o run terminar.
+- [x] Preservar o comportamento especial de `waiting-user` no mesmo fluxo.
+- [x] Rodar `node --test src/core/routes/agent-panel.routes.test.ts` dentro de `server`.
+- [x] Rodar `node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts` dentro de `client-vue`.
 
 #### Bug 3: Opcoes de waiting-user somem do contexto do proximo turno
 

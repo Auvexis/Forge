@@ -340,10 +340,11 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     if (localTurnStart < 0) return serverMessages
 
     const waitingUserMessage = latestServerWaitingUserMessage(serverMessages, sessionId)
+    const finalAssistantMessage = latestServerFinalAssistantMessage(serverMessages, sessionId)
     const stableLocalTurn = messages.value
       .slice(localTurnStart)
       .filter((message) => message.sessionId === sessionId)
-      .map((message) => finalizeLocalAssistantMessage(message, waitingUserMessage))
+      .map((message) => finalizeLocalAssistantMessage(message, waitingUserMessage, finalAssistantMessage))
     const previousLocalMessages = messages.value.slice(0, localTurnStart)
     return [...previousLocalMessages, ...stableLocalTurn]
   }
@@ -351,6 +352,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   function finalizeLocalAssistantMessage(
     message: AgentChatMessage,
     waitingUserMessage?: AgentChatMessage,
+    finalAssistantMessage?: AgentChatMessage,
   ): AgentChatMessage {
     if (!message.id.startsWith('local-assistant-stream-')) return message
     if (waitingUserMessage && isWaitingUserContent(waitingUserMessage.content)) {
@@ -361,13 +363,15 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       }
     }
     const content = normalizeAssistantContent(message.content)
+    const finalText = finalAssistantMessage ? normalizeMessageText(finalAssistantMessage.content) : ''
     return {
       ...message,
       content: {
-        text: content.text,
+        text: finalText || content.text,
         thinking: content.thinking,
         pending: false,
       },
+      createdAt: finalAssistantMessage?.createdAt ?? message.createdAt,
     }
   }
 
@@ -379,6 +383,18 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       message.sessionId === sessionId &&
       message.role === 'assistant' &&
       isWaitingUserContent(message.content),
+    )
+  }
+
+  function latestServerFinalAssistantMessage(
+    serverMessages: AgentChatMessage[],
+    sessionId: string,
+  ): AgentChatMessage | undefined {
+    return [...serverMessages].reverse().find((message) =>
+      message.sessionId === sessionId &&
+      message.role === 'assistant' &&
+      !isWaitingUserContent(message.content) &&
+      Boolean(normalizeMessageText(message.content)),
     )
   }
 

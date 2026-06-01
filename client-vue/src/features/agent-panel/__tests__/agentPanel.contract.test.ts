@@ -269,6 +269,15 @@ describe('agent panel modal contract', () => {
     assert.doesNotMatch(store, /messages\.value = mergeServerMessagesWithLocalAgentEvents\(result\.messages\)/)
   })
 
+  it('replaces the local streamed assistant text with the final server assistant response', () => {
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+
+    assert.match(store, /latestServerFinalAssistantMessage/)
+    assert.match(store, /finalAssistantMessage/)
+    assert.match(store, /normalizeMessageText\(finalAssistantMessage\.content\)/)
+    assert.match(store, /content:\s*\{[\s\S]*text:\s*finalText/)
+  })
+
   it('groups consecutive assistant messages under the first avatar and name', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 
