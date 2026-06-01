@@ -57,8 +57,9 @@ function assertToolApproval(
 }
 
 function assertPayloadWithinLimits(payload: unknown): void {
-  const stats = inspectJson(payload);
-  const bytes = Buffer.byteLength(JSON.stringify(payload), "utf8");
+  const measurablePayload = toMeasurablePayload(payload);
+  const stats = inspectJson(measurablePayload);
+  const bytes = Buffer.byteLength(JSON.stringify(measurablePayload), "utf8");
 
   if (
     stats.depth > AGENT_LIMITS.maxJsonDepth ||
@@ -72,6 +73,36 @@ function assertPayloadWithinLimits(payload: unknown): void {
       400,
     );
   }
+}
+
+function toMeasurablePayload(value: unknown, seen = new WeakSet<object>()): unknown {
+  if (Buffer.isBuffer(value)) {
+    return { type: "Buffer", size: value.byteLength };
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  if (typeof (value as any).pipe === "function") {
+    return { type: "Readable" };
+  }
+
+  if (seen.has(value)) {
+    return { type: "Circular" };
+  }
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    return value.map((item) => toMeasurablePayload(item, seen));
+  }
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+      key,
+      toMeasurablePayload(item, seen),
+    ]),
+  );
 }
 
 function safeErrorMessage(error: unknown): string {

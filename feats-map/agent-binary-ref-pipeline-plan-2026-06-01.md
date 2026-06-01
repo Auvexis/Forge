@@ -76,7 +76,7 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 - [x] Permitir no maximo 1 ou 2 tentativas de recuperacao automatica antes de perguntar ao usuario.
 - [x] Adicionar testes de loop guard: mesma tool + mesmos args nao roda infinitamente.
 - [x] Adicionar teste de parada: resultado vazio repetido vira `waiting-user`, nao nova tool call.
-- [ ] Adicionar teste de parada: erro de permissao/credencial para o turno com mensagem clara.
+- [x] Adicionar teste de parada: erro de permissao/credencial para o turno com mensagem clara.
 
 ### 6. Hardening De Auto-controle
 
@@ -99,6 +99,80 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 - [x] Rodar build do client-vue se houver ajuste visual no chat.
 - [x] Atualizar este arquivo marcando tasks concluidas durante a implementacao.
 - [x] Fazer commit por task/bloco coerente.
+
+### 7. Bugfixes Pos-Review
+
+#### Bug 1: Binary ref resolvido ainda pode estourar limite no executor de plugin
+
+**Arquivos:**
+- Modificar: `server/src/core/modules/agent-runtime/plugin-tool-executor.ts`
+- Testar: `server/src/core/modules/agent-runtime/plugin-tool-executor.test.ts`
+
+- [x] Criar teste falhando em `plugin-tool-executor.test.ts` onde a tool recebe um `Buffer` grande vindo de ref resolvida e o executor nao rejeita por `AGENT_LIMITS.maxToolPayloadBytes`.
+- [x] Garantir que o teste falhe antes da correcao com erro de payload grande ou validacao indevida.
+- [x] Refatorar a validacao de payload para medir objetos binarios como referencia/metadata, sem serializar o conteudo inteiro do `Buffer`.
+- [x] Se a validacao de schema bloquear `Buffer` em parametro de arquivo, ajustar o ponto minimo para aceitar `Buffer`/file-like apenas em parametros declarados como arquivo.
+- [x] Rodar `node --test src/core/modules/agent-runtime/plugin-tool-executor.test.ts` dentro de `server`.
+
+#### Bug 2: Global Agent Panel pode esconder resposta final depois das tools
+
+**Arquivos:**
+- Modificar: `server/src/core/routes/agent-panel.routes.ts`
+- Modificar: `client-vue/src/features/agent-panel/stores/agentPanel.store.ts`
+- Testar: `server/src/core/routes/agent-panel.routes.test.ts`
+- Testar: `client-vue/src/features/agent-panel/__tests__/agentPanel.contract.test.ts`
+
+- [ ] Criar teste falhando garantindo que um turno com tool activity e resposta final normal do assistant mostre/preserve a resposta final, nao apenas progresso/summary.
+- [ ] Confirmar a falha atual: deltas finais sao ignorados depois de `sawToolActivity` ou o merge do frontend mantem a mensagem local antiga.
+- [ ] Ajustar backend e/ou merge do frontend para trocar a mensagem local pelo assistant final persistido quando o run terminar.
+- [ ] Preservar o comportamento especial de `waiting-user` no mesmo fluxo.
+- [ ] Rodar `node --test src/core/routes/agent-panel.routes.test.ts` dentro de `server`.
+- [ ] Rodar `node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts` dentro de `client-vue`.
+
+#### Bug 3: Opcoes de waiting-user somem do contexto do proximo turno
+
+**Arquivos:**
+- Modificar: `server/src/core/modules/agent-runtime/chat/agent-panel-chat-service.ts`
+- Testar: `server/src/core/modules/agent-runtime/chat/agent-panel-chat-service.test.ts`
+
+- [ ] Criar teste falhando onde uma mensagem anterior `waiting-user` com `options` entra no historico e o payload enviado ao Agent Runner ainda contem essas opcoes.
+- [ ] Confirmar que o normalizador atual reduz o conteudo para texto simples e perde `options`.
+- [ ] Ajustar a normalizacao para preservar `text`, `waitingUser`, `reason` e `options` em formato enxuto/serializavel.
+- [ ] Garantir que conteudo pesado dentro de options continue sanitizado ou representado por metadata/ref, sem jogar base64/buffer no prompt.
+- [ ] Rodar `node --test src/core/modules/agent-runtime/chat/agent-panel-chat-service.test.ts` dentro de `server`.
+
+#### Bug 4: Regex de permissao/credencial esta ampla demais
+
+**Arquivos:**
+- Modificar: `server/src/core/modules/agent-runtime/agent-graph-builder.ts`
+- Testar: `server/src/core/modules/agent-runtime/agent-graph-builder.test.ts`
+
+- [ ] Criar teste falhando provando que erro comum com palavra parecida, como `Author not found`, nao vira `waiting-user`.
+- [ ] Manter teste cobrindo que `Unauthorized`, `Forbidden`, `Missing credentials`, `API key` e `OAuth token` continuam virando `waiting-user`.
+- [ ] Trocar o regex amplo por matcher com limites de palavra e termos explicitos.
+- [ ] Rodar `node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts` dentro de `server`.
+
+#### Bug 5: Adapter de plugin quebra com manifest legado sem `metadata`
+
+**Arquivos:**
+- Modificar: `server/src/core/modules/agent-runtime/plugin-tool-adapter.ts`
+- Testar: `server/src/core/modules/agent-runtime/plugin-tool-adapter.test.ts`
+- Testar: `server/src/core/routes/agent-chat-workflow.integration.test.ts`
+
+- [ ] Criar teste falhando para plugin com `manifest.name` top-level e sem `manifest.metadata`.
+- [ ] Confirmar que o erro atual tenta ler `manifest.metadata.name`.
+- [ ] Implementar fallback `manifest.metadata?.name ?? manifest.name ?? plugin.id` nos pontos de listagem/resolucao de tools.
+- [ ] Rodar `node --test src/core/modules/agent-runtime/plugin-tool-adapter.test.ts` dentro de `server`.
+- [ ] Rodar `node --test src/core/routes/agent-chat-workflow.integration.test.ts` dentro de `server`.
+
+#### Verificacao Do Bloco
+
+- [ ] Rodar suite focada do backend: `node --test src/core/modules/agent-runtime/plugin-tool-executor.test.ts src/core/modules/agent-runtime/plugin-tool-adapter.test.ts src/core/modules/agent-runtime/agent-graph-builder.test.ts src/core/modules/agent-runtime/chat/agent-panel-chat-service.test.ts src/core/routes/agent-chat-workflow.integration.test.ts src/core/routes/agent-panel.routes.test.ts`.
+- [ ] Rodar suite focada do frontend: `node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts`.
+- [ ] Rodar build do `server`.
+- [ ] Rodar build do `client-vue` se o store/frontend for alterado.
+- [ ] Atualizar este plano marcando as tasks concluidas.
+- [ ] Fazer commit somente dos arquivos alterados neste bloco, sem `git add .`.
 
 ## Riscos
 

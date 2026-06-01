@@ -11,13 +11,16 @@ import {
   setCredentialsDatabaseProvider,
 } from "../plugins/credential-store.ts";
 import { PluginManager } from "../plugins/manager.ts";
+import { clearValidatorCache } from "../plugins/validator.ts";
 import { AgentRuntimeError } from "./agent-errors.ts";
+import { AGENT_LIMITS } from "./agent-limits.ts";
 import { executePluginAgentTool } from "./plugin-tool-executor.ts";
 import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
 
 describe("plugin tool executor", () => {
   afterEach(() => {
     PluginManager.clearPlugins();
+    clearValidatorCache();
     resetCredentialsDatabaseProvider();
     resetAppDatabaseProvider();
   });
@@ -78,6 +81,39 @@ describe("plugin tool executor", () => {
       }),
       /payload/i,
     );
+  });
+
+  it("allows large Buffer values for file parameters without counting raw bytes as JSON payload", async () => {
+    const file = Buffer.alloc(AGENT_LIMITS.maxToolPayloadBytes + 1, "a");
+    let received: Record<string, any> | null = null;
+    PluginManager.registerPlugin(createPlugin(async (params) => {
+      received = params;
+      return { ok: true };
+    }, {
+      upload: { "x-input-type": "file" },
+    }));
+
+    const result = await executePluginAgentTool({
+      definition: definition({
+        inputSchema: {
+          type: "object",
+          properties: {
+            upload: { "x-input-type": "file" } as any,
+          },
+          required: ["upload"],
+        },
+        requiresApproval: false,
+        sideEffect: "read",
+      }),
+      configuredTool: configuredTool({ requiresApproval: false, sideEffect: "read" }),
+      args: { upload: file },
+      executionId: "exec_1",
+      workflowId: "workflow_1",
+      nodeId: "agent_1",
+    });
+
+    assert.deepEqual(result, { ok: true });
+    assert.equal(received?.upload, file);
   });
 
   it("rejects side-effect tools without approval", async () => {
@@ -229,7 +265,13 @@ function configuredTool(overrides: Record<string, any> = {}) {
   } as any;
 }
 
-function createPlugin(method: (params: Record<string, any>) => Promise<unknown>): SailorPlugin {
+function createPlugin(
+  method: (params: Record<string, any>) => Promise<unknown>,
+  properties: Record<string, any> = {
+    owner: { type: "string" },
+    title: { type: "string" },
+  },
+): SailorPlugin {
   setupCredentialsDb();
   return {
     id: "github",
@@ -252,11 +294,8 @@ function createPlugin(method: (params: Record<string, any>) => Promise<unknown>)
           metadata: { label: "Create issue", description: "Create issue." },
           parameters: {
             type: "object",
-            properties: {
-              owner: { type: "string" },
-              title: { type: "string" },
-            },
-            required: ["owner", "title"],
+            properties,
+            required: Object.keys(properties),
           },
           responseSchema: { type: "object" },
         },
