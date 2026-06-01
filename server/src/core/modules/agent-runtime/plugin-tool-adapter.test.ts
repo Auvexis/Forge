@@ -56,6 +56,21 @@ describe("plugin tool adapter", () => {
     assert.equal(tool.methodId, "createIssue");
   });
 
+  it("supports legacy manifests with top-level plugin name and no metadata", () => {
+    const legacyManifest = createManifest();
+    legacyManifest.name = "Legacy GitHub";
+    delete legacyManifest.metadata;
+    PluginManager.registerPlugin(createPlugin({
+      manifest: legacyManifest,
+    } as Partial<SailorPlugin>));
+
+    const [listed] = listPluginAgentTools();
+    const resolved = resolvePluginAgentTool("github", "createIssue");
+
+    assert.equal(listed.pluginName, "Legacy GitHub");
+    assert.equal(resolved.pluginName, "Legacy GitHub");
+  });
+
   it("uses configured tool descriptions as agent-facing instructions", () => {
     PluginManager.registerPlugin(createPlugin());
 

@@ -159,11 +159,11 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 - Testar: `server/src/core/modules/agent-runtime/plugin-tool-adapter.test.ts`
 - Testar: `server/src/core/routes/agent-chat-workflow.integration.test.ts`
 
-- [ ] Criar teste falhando para plugin com `manifest.name` top-level e sem `manifest.metadata`.
-- [ ] Confirmar que o erro atual tenta ler `manifest.metadata.name`.
-- [ ] Implementar fallback `manifest.metadata?.name ?? manifest.name ?? plugin.id` nos pontos de listagem/resolucao de tools.
-- [ ] Rodar `node --test src/core/modules/agent-runtime/plugin-tool-adapter.test.ts` dentro de `server`.
-- [ ] Rodar `node --test src/core/routes/agent-chat-workflow.integration.test.ts` dentro de `server`.
+- [x] Criar teste falhando para plugin com `manifest.name` top-level e sem `manifest.metadata`.
+- [x] Confirmar que o erro atual tenta ler `manifest.metadata.name`.
+- [x] Implementar fallback `manifest.metadata?.name ?? manifest.name ?? plugin.id` nos pontos de listagem/resolucao de tools.
+- [x] Rodar `node --test src/core/modules/agent-runtime/plugin-tool-adapter.test.ts` dentro de `server`.
+- [x] Rodar `node --test src/core/routes/agent-chat-workflow.integration.test.ts` dentro de `server`.
 
 #### Verificacao Do Bloco
 

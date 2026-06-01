@@ -30,7 +30,7 @@ export function listPluginAgentTools(): SailorAgentToolDefinition[] {
       const methodManifest = (plugin.manifest.methods as Record<string, any>)[methodId];
       if (!methodManifest?.agentTool?.enabled) continue;
       if (typeof plugin.methods?.[methodId] !== "function") continue;
-      tools.push(toToolDefinition(plugin.id, plugin.manifest.metadata.name, methodId, methodManifest));
+      tools.push(toToolDefinition(plugin.id, pluginDisplayName(plugin), methodId, methodManifest));
     }
   }
 
@@ -51,7 +51,11 @@ export function resolvePluginAgentTool(
     throw new Error(`Agent tool is missing a runtime method: ${pluginId}.${methodId}`);
   }
 
-  return toToolDefinition(plugin.id, plugin.manifest.metadata.name, methodId, methodManifest);
+  return toToolDefinition(plugin.id, pluginDisplayName(plugin), methodId, methodManifest);
+}
+
+function pluginDisplayName(plugin: { id: string; manifest: Record<string, any> }): string {
+  return plugin.manifest.metadata?.name ?? plugin.manifest.name ?? plugin.id;
 }
 
 function toToolDefinition(
