@@ -50,9 +50,17 @@
           >
             <span class="gam-workflow__copy">
               <strong>{{ workflow.name }}</strong>
-              <small>{{ workflow.profileName ?? workflow.profileId ?? 'Global' }}</small>
+              <small>
+                <span>{{ workflow.profileName ?? workflow.profileId ?? 'Global' }}</span>
+                <span>{{ workflowRunLabel(workflow) }}</span>
+              </small>
             </span>
-            <code>{{ triggerLabel(workflow.triggerType) }}</code>
+            <span class="gam-workflow__badges">
+              <code>{{ triggerLabel(workflow.triggerType) }}</code>
+              <span :class="`gam-workflow__state gam-workflow__state--${workflowState(workflow)}`">
+                {{ workflow.lastExecution ? execLabel(workflow.lastExecution.status) : 'No runs' }}
+              </span>
+            </span>
           </BaseButton>
         </div>
       </aside>
@@ -418,8 +426,24 @@ function execLabel(status: string): string {
   return labels[status] ?? status
 }
 
+function workflowState(workflow: ProductionWorkflowStatus): 'running' | 'success' | 'failed' | 'idle' {
+  if (workflow.lastExecution?.status === 'RUNNING') return 'running'
+  if (workflow.lastExecution?.status === 'SUCCESS') return 'success'
+  if (workflow.lastExecution?.status === 'FAILED' || workflow.lastExecution?.status === 'ERROR') return 'failed'
+  return 'idle'
+}
+
+function workflowRunLabel(workflow: ProductionWorkflowStatus): string {
+  if (!workflow.lastExecution) return workflow.publishedAt ? `Published ${formatDate(workflow.publishedAt)}` : 'Published'
+  return `Last run ${formatTime(workflow.lastExecution.startTime)}`
+}
+
 function formatTime(timestamp: number): string {
   return new Date(timestamp).toLocaleTimeString()
+}
+
+function formatDate(value: string): string {
+  return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
 function toggleEventDetails(eventId: string) {
@@ -592,7 +616,10 @@ onUnmounted(() => {
 }
 
 .gam-workflow-list {
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  gap: var(--sailor-space-2);
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
@@ -602,7 +629,7 @@ onUnmounted(() => {
 .gam-workflow {
   width: 100%;
   height: auto;
-  min-height: 58px;
+  min-height: 64px;
   justify-content: stretch;
   border-radius: var(--sailor-radius-md);
   padding: 0;
@@ -612,10 +639,10 @@ onUnmounted(() => {
   display: grid;
   width: 100%;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
   gap: var(--sailor-space-2);
-  padding: var(--sailor-space-2);
+  padding: var(--sailor-space-3);
   text-align: left;
 }
 
@@ -645,7 +672,7 @@ onUnmounted(() => {
 .gam-workflow__copy {
   display: grid;
   min-width: 0;
-  gap: 2px;
+  gap: var(--sailor-space-1);
 }
 
 .gam-workflow__copy strong {
@@ -653,11 +680,60 @@ onUnmounted(() => {
   font-weight: var(--sailor-font-semibold);
 }
 
+.gam-workflow__copy small {
+  display: flex;
+  min-width: 0;
+  gap: var(--sailor-space-2);
+}
+
+.gam-workflow__copy small span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gam-workflow__copy small span + span::before {
+  content: "/";
+  margin-right: var(--sailor-space-2);
+  color: var(--sailor-border-strong);
+}
+
+.gam-workflow__badges {
+  display: grid;
+  justify-items: end;
+  gap: var(--sailor-space-1);
+}
+
 .gam-workflow code,
 .gam-event code {
   color: var(--sailor-text-muted);
   font-family: var(--sailor-font-mono);
   font-size: 10px;
+}
+
+.gam-workflow__state {
+  max-width: 80px;
+  overflow: hidden;
+  padding: 2px 7px;
+  border-radius: var(--sailor-radius-full);
+  background: var(--sailor-bg-base);
+  color: var(--sailor-text-muted);
+  font-size: 10px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gam-workflow__state--running {
+  color: var(--sailor-amber-400);
+}
+
+.gam-workflow__state--success {
+  color: var(--sailor-green-400);
+}
+
+.gam-workflow__state--failed {
+  color: var(--sailor-red-400);
 }
 
 .gam-main {
