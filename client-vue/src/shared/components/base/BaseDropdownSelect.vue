@@ -182,9 +182,18 @@ onUnmounted(() => {
 }
 
 .base-dropdown-select__option-meta {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-full);
+  background: var(--sailor-bg-base);
   color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-xs);
+  font-size: 11px;
   font-weight: var(--sailor-font-semibold);
+  line-height: 1;
 }
 
 .base-dropdown-select__option-copy {

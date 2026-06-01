@@ -81,16 +81,22 @@ let keepRecognitionAlive = false
 let speechBaseDraft = ''
 let speechFinalTranscript = ''
 
-const defaultSpeechLanguage: BaseDropdownSelectOption = { value: 'en-US', shortLabel: 'EN-US', label: 'English US', meta: 'US' }
+const defaultSpeechLanguage: BaseDropdownSelectOption = {
+  value: 'en-US',
+  shortLabel: 'EN-US',
+  label: 'English US',
+  description: 'en-US',
+  meta: 'US',
+}
 const speechLanguages: BaseDropdownSelectOption[] = [
   defaultSpeechLanguage,
-  { value: 'pt-BR', shortLabel: 'PT-BR', label: 'Portuguese Brazil', meta: 'BR' },
-  { value: 'es-ES', shortLabel: 'ES', label: 'Spanish', meta: 'ES' },
-  { value: 'fr-FR', shortLabel: 'FR', label: 'French', meta: 'FR' },
-  { value: 'de-DE', shortLabel: 'DE', label: 'German', meta: 'DE' },
-  { value: 'it-IT', shortLabel: 'IT', label: 'Italian', meta: 'IT' },
-  { value: 'ja-JP', shortLabel: 'JA', label: 'Japanese', meta: 'JP' },
-  { value: 'zh-CN', shortLabel: 'ZH', label: 'Chinese Mandarin', meta: 'CN' },
+  { value: 'pt-BR', shortLabel: 'PT-BR', label: 'Portuguese Brazil', description: 'pt-BR', meta: 'BR' },
+  { value: 'es-ES', shortLabel: 'ES', label: 'Spanish', description: 'es-ES', meta: 'ES' },
+  { value: 'fr-FR', shortLabel: 'FR', label: 'French', description: 'fr-FR', meta: 'FR' },
+  { value: 'de-DE', shortLabel: 'DE', label: 'German', description: 'de-DE', meta: 'DE' },
+  { value: 'it-IT', shortLabel: 'IT', label: 'Italian', description: 'it-IT', meta: 'IT' },
+  { value: 'ja-JP', shortLabel: 'JA', label: 'Japanese', description: 'ja-JP', meta: 'JP' },
+  { value: 'zh-CN', shortLabel: 'ZH', label: 'Chinese Mandarin', description: 'zh-CN', meta: 'CN' },
 ]
 
 const selectedSpeechLanguage = computed(() =>
