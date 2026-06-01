@@ -67,6 +67,8 @@ const isListening = ref(false)
 const speechSupported = computed(() => getSpeechRecognitionCtor() !== null)
 let activeRecognition: BrowserSpeechRecognition | null = null
 let keepRecognitionAlive = false
+let speechBaseDraft = ''
+let speechFinalTranscript = ''
 
 type BrowserSpeechRecognitionEvent = {
   resultIndex?: number
@@ -110,21 +112,24 @@ function startSpeechToText() {
   const recognition = new Recognition()
   activeRecognition = recognition
   keepRecognitionAlive = true
+  speechBaseDraft = draft.value.trim()
+  speechFinalTranscript = ''
   recognition.continuous = true
-  recognition.interimResults = false
+  recognition.interimResults = true
   recognition.lang = navigator.language || 'en-US'
   isListening.value = true
 
   recognition.onresult = (event) => {
     const resultIndex = event.resultIndex ?? 0
-    const transcript = Array.from(event.results)
-      .slice(resultIndex)
-      .filter((result) => result.isFinal !== false)
-      .map((result) => result[0]?.transcript?.trim() ?? '')
-      .filter(Boolean)
-      .join(' ')
+    let interimTranscript = ''
+    for (const result of Array.from(event.results).slice(resultIndex)) {
+      const transcript = result[0]?.transcript?.trim() ?? ''
+      if (!transcript) continue
+      if (result.isFinal) speechFinalTranscript = [speechFinalTranscript, transcript].filter(Boolean).join(' ')
+      else interimTranscript = [interimTranscript, transcript].filter(Boolean).join(' ')
+    }
 
-    if (transcript) appendTranscript(transcript)
+    setTranscriptPreview(interimTranscript)
   }
 
   recognition.onerror = (event) => {
@@ -143,6 +148,8 @@ function startSpeechToText() {
 
     isListening.value = false
     activeRecognition = null
+    speechBaseDraft = ''
+    speechFinalTranscript = ''
   }
 
   recognition.start()
@@ -158,8 +165,12 @@ function getSpeechRecognitionCtor(): (new () => BrowserSpeechRecognition) | null
   return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition ?? null
 }
 
-function appendTranscript(transcript: string) {
-  draft.value = [draft.value.trim(), transcript.trim()].filter(Boolean).join(' ')
+function setTranscriptPreview(interimTranscript = '') {
+  draft.value = [
+    speechBaseDraft,
+    speechFinalTranscript.trim(),
+    interimTranscript.trim(),
+  ].filter(Boolean).join(' ')
   void nextTick(resizeTextarea)
 }
 

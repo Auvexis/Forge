@@ -46,15 +46,14 @@
           class="agent-directory-list__item"
           :class="{ 'agent-directory-list__item--active': agent.key === store.selectedAgentKey }"
           :aria-label="`${agent.name} - ${agent.workflowName}`"
+          @mouseenter="showAgentHint(agent.key, $event)"
+          @mouseleave="hideAgentHint"
+          @focus="showAgentHint(agent.key, $event)"
+          @blur="hideAgentHint"
           @click="store.selectAgent(agent.key)"
         >
           <span class="agent-directory-list__emoji">{{ agent.emoji }}</span>
         </BaseButton>
-        <div class="agent-directory-list__hint surface" role="tooltip">
-          <span class="agent-directory-list__hint-avatar">{{ agent.emoji }}</span>
-          <strong>{{ agent.name }}</strong>
-          <span>{{ agent.workflowName }}</span>
-        </div>
       </div>
       <div v-if="!store.loading && !store.directoryError && !store.filteredAgents.length" class="agent-directory-list__state">
         0
@@ -71,6 +70,21 @@
         @click="store.toggleDirectoryCollapsed()"
       />
     </footer>
+
+    <Teleport to="body">
+      <Transition name="agent-directory-hint">
+        <div
+          v-if="activeHintAgent"
+          class="agent-directory-list__hint surface"
+          :style="hintStyle"
+          role="tooltip"
+        >
+          <span class="agent-directory-list__hint-avatar">{{ activeHintAgent.emoji }}</span>
+          <strong>{{ activeHintAgent.name }}</strong>
+          <span>{{ activeHintAgent.workflowName }}</span>
+        </div>
+      </Transition>
+    </Teleport>
   </aside>
 </template>
 
@@ -84,6 +98,19 @@ const store = useAgentPanelStore()
 const profileStore = useProfileStore()
 const profileMenuOpen = ref(false)
 const currentProfileAvatar = computed(() => profileStore.currentProfile?.avatarEmoji ?? '⛵')
+const activeHintAgentKey = ref('')
+const hintAnchorRect = ref<DOMRect | null>(null)
+const activeHintAgent = computed(() =>
+  store.filteredAgents.find((agent) => agent.key === activeHintAgentKey.value) ?? null,
+)
+const hintStyle = computed(() => {
+  const rect = hintAnchorRect.value
+  if (!rect) return {}
+  return {
+    left: `${rect.right + 12}px`,
+    top: `${rect.top + rect.height / 2}px`,
+  }
+})
 
 onMounted(() => {
   if (!store.agents.length) void store.loadAgents()
@@ -97,6 +124,17 @@ async function switchProfile(profileId: string) {
   }
   await profileStore.switchProfile(profileId)
   profileMenuOpen.value = false
+}
+
+function showAgentHint(agentKey: string, event: MouseEvent | FocusEvent) {
+  const target = event.currentTarget as HTMLElement | null
+  hintAnchorRect.value = target?.getBoundingClientRect() ?? null
+  activeHintAgentKey.value = agentKey
+}
+
+function hideAgentHint() {
+  activeHintAgentKey.value = ''
+  hintAnchorRect.value = null
 }
 </script>
 
@@ -226,9 +264,7 @@ async function switchProfile(profileId: string) {
 }
 
 .agent-directory-list__hint {
-  position: absolute;
-  top: 50%;
-  left: calc(100% + var(--sailor-space-3));
+  position: fixed;
   z-index: var(--sailor-z-tooltip);
   display: grid;
   width: 210px;
@@ -241,18 +277,21 @@ async function switchProfile(profileId: string) {
   padding: var(--sailor-space-3);
   color: var(--sailor-text-primary);
   box-shadow: var(--sailor-shadow-lg);
-  opacity: 0;
   pointer-events: none;
-  transform: translate(-8px, -50%);
+  transform: translate(0, -50%);
+}
+
+.agent-directory-hint-enter-active,
+.agent-directory-hint-leave-active {
   transition:
     opacity var(--sailor-duration-base) var(--sailor-ease-standard),
     transform var(--sailor-duration-base) var(--sailor-ease-standard);
 }
 
-.agent-directory-list__hint-wrapper:hover .agent-directory-list__hint,
-.agent-directory-list__hint-wrapper:focus-within .agent-directory-list__hint {
-  opacity: 1;
-  transform: translate(0, -50%);
+.agent-directory-hint-enter-from,
+.agent-directory-hint-leave-to {
+  opacity: 0;
+  transform: translate(-8px, -50%);
 }
 
 .agent-directory-list__hint-avatar {

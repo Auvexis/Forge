@@ -20,7 +20,7 @@
           icon-right="sparkles"
           :disabled="!store.selectedAgentKey"
           title="New Chat"
-          @click="store.openDraftSession()"
+          @click="startNewChat"
         >
           New Chat
         </BaseButton>
@@ -124,7 +124,7 @@
 
       <Transition name="agent-chat-composer-shift" appear>
         <AgentChatComposer
-          v-if="store.messages.length"
+          v-if="store.messages.length && !composerRetiring"
           mode="dock"
           :sending="store.sending"
           @send="store.sendMessage"
@@ -154,6 +154,7 @@ const store = useAgentPanelStore()
 const profileStore = useProfileStore()
 const plugins = ref<PluginSummary[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
+const composerRetiring = ref(false)
 
 const displayedMessagesScrollKey = computed(() => JSON.stringify(store.messages.map((message) => ({
   id: message.id,
@@ -308,6 +309,20 @@ async function scrollMessagesToBottom() {
     top: messagesEl.value.scrollHeight,
     behavior: 'smooth',
   })
+}
+
+async function startNewChat() {
+  if (!store.selectedAgentKey) return
+  if (!store.messages.length) {
+    store.openDraftSession()
+    return
+  }
+
+  composerRetiring.value = true
+  await new Promise((resolve) => window.setTimeout(resolve, 240))
+  store.openDraftSession()
+  await nextTick()
+  composerRetiring.value = false
 }
 </script>
 
