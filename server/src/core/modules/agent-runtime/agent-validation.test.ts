@@ -114,23 +114,15 @@ describe("agent runtime validation", () => {
     );
   });
 
-  it("rejects agent iteration and tool call limits above policy", () => {
-    assert.throws(
-      () =>
-        validateAiAgentConfig({
-          ...validAgent(),
-          maxIterations: AGENT_LIMITS.maxIterations + 1,
-        }),
-      /maxIterations/i,
-    );
-    assert.throws(
-      () =>
-        validateAiAgentConfig({
-          ...validAgent(),
-          maxToolCalls: AGENT_LIMITS.maxToolCalls + 1,
-        }),
-      /maxToolCalls/i,
-    );
+  it("accepts user-defined agent iteration and tool call limits above defaults", () => {
+    const agent = validateAiAgentConfig({
+      ...validAgent(),
+      maxIterations: 16,
+      maxToolCalls: 30,
+    });
+
+    assert.equal(agent.maxIterations, 16);
+    assert.equal(agent.maxToolCalls, 30);
   });
 
   it("rejects tool side effects outside the allowlist", () => {

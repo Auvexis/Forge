@@ -2,8 +2,6 @@ export const AGENT_LIMITS = {
   maxPromptChars: 12000,
   maxUserMessageChars: 24000,
   maxSystemMessageChars: 12000,
-  maxIterations: 12,
-  maxToolCalls: 20,
   maxToolPayloadBytes: 256_000,
   maxToolResultBytes: 512_000,
   maxJsonDepth: 8,
