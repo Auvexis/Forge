@@ -1,6 +1,6 @@
 <template>
   <aside class="agent-directory-list" aria-label="Published agents">
-    <div class="agent-directory-list__brand" aria-hidden="true" />
+    <ProfileSwitcher class="agent-directory-list__profile" collapsed />
 
     <div class="agent-directory-list__agents" aria-label="Agent list">
       <div v-if="store.loading" class="agent-directory-list__state">...</div>
@@ -38,6 +38,7 @@
 import { onMounted } from 'vue'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import ProfileSwitcher from '@/shared/components/layout/ProfileSwitcher.vue'
 
 const store = useAgentPanelStore()
 
@@ -60,12 +61,9 @@ onMounted(() => {
   padding: var(--sailor-space-4) var(--sailor-space-3);
 }
 
-.agent-directory-list__brand {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--sailor-radius-full);
-  background: linear-gradient(180deg, var(--sailor-blue-400) 0%, var(--sailor-blue-500) 100%);
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--sailor-blue-500) 24%, transparent);
+.agent-directory-list__profile {
+  width: 30px;
+  height: 30px;
 }
 
 .agent-directory-list__agents {
@@ -96,9 +94,8 @@ onMounted(() => {
 
 .agent-directory-list__item:hover,
 .agent-directory-list__item--active {
-  background: var(--sailor-button-primary-bg);
-  color: var(--sailor-button-primary-text);
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--sailor-bg-inverse) 18%, transparent);
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-text-primary);
 }
 
 .agent-directory-list__emoji {
@@ -114,7 +111,7 @@ onMounted(() => {
 
 .agent-directory-list__item--active .agent-directory-list__emoji,
 .agent-directory-list__item:hover .agent-directory-list__emoji {
-  border-color: transparent;
+  border-color: var(--sailor-border-strong);
 }
 
 .agent-directory-list__state {

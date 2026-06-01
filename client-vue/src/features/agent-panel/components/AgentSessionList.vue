@@ -150,6 +150,8 @@ async function confirmDeleteSession() {
   align-items: center;
   justify-content: space-between;
   gap: var(--sailor-space-2);
+  min-width: 0;
+  overflow: visible;
 }
 
 .agent-session-list__header h2 {
@@ -166,30 +168,31 @@ async function confirmDeleteSession() {
 }
 
 .agent-session-list__search-shell {
-  display: grid;
+  display: flex;
   width: 28px;
-  grid-template-columns: 28px 0fr;
   align-items: center;
   justify-content: end;
   gap: var(--sailor-space-2);
-  overflow: hidden;
-  transition:
-    width var(--sailor-duration-slow) var(--sailor-ease-standard),
-    grid-template-columns var(--sailor-duration-slow) var(--sailor-ease-standard);
+  overflow: visible;
+  transition: width var(--sailor-duration-slow) var(--sailor-ease-standard);
 }
 
 .agent-session-list__search-shell--open {
-  width: min(150px, 100%);
-  grid-template-columns: 28px 1fr;
+  width: min(168px, calc(100% - 44px));
 }
 
 .agent-session-list__search {
+  width: 0;
   min-width: 0;
   opacity: 0;
-  transition: opacity var(--sailor-duration-base) var(--sailor-ease-standard);
+  overflow: hidden;
+  transition:
+    width var(--sailor-duration-slow) var(--sailor-ease-standard),
+    opacity var(--sailor-duration-base) var(--sailor-ease-standard);
 }
 
 .agent-session-list__search-shell--open .agent-session-list__search {
+  width: 132px;
   opacity: 1;
 }
 

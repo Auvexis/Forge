@@ -10,9 +10,6 @@
     ></textarea>
 
     <div class="agent-chat-composer__toolbar">
-      <BaseButton type="button" class="agent-chat-composer__utility" variant="outline" size="sm" icon-right="chevron-down">
-        Select Source
-      </BaseButton>
       <span class="agent-chat-composer__spacer" />
       <BaseButton type="button" class="agent-chat-composer__utility" variant="outline" size="sm" icon-left="paperclip">
         Attach
@@ -183,7 +180,7 @@ onBeforeUnmount(() => {
   border-radius: var(--sailor-radius-xl);
   background: var(--agent-chat-composer-surface);
   padding: var(--sailor-space-4);
-  box-shadow: 0 18px 38px var(--agent-chat-composer-shadow);
+  box-shadow: var(--sailor-shadow-sm);
 }
 
 .agent-chat-composer--dock {
@@ -197,8 +194,8 @@ onBeforeUnmount(() => {
 
 .agent-chat-composer__input {
   min-height: 28px;
-  max-height: 140px;
-  resize: none;
+  max-height: 180px;
+  resize: vertical;
   border: 0;
   background: transparent;
   padding: 0;
@@ -230,7 +227,6 @@ onBeforeUnmount(() => {
   position: relative;
   height: 26px;
   border-radius: var(--sailor-radius-full);
-  box-shadow: 0 6px 14px var(--agent-chat-composer-shadow);
   font-size: 12px;
 }
 
