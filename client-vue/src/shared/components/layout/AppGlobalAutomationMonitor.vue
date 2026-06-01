@@ -8,74 +8,83 @@
     <section class="gam-shell">
       <aside class="gam-sidebar">
         <header class="gam-header">
-          <div>
+          <div class="gam-title">
+            <span class="gam-header-icon">
+              <LucideIcon name="activity" :size="17" />
+            </span>
             <span class="gam-eyebrow">Monitoring</span>
             <strong>Automations</strong>
           </div>
-          <button class="gam-icon-btn" type="button" title="Close" @click="isAutomationMonitorOpen = false">
-            <LucideIcon name="x" :size="16" />
-          </button>
+          <BaseButton
+            class="gam-icon-btn"
+            type="button"
+            size="icon"
+            variant="ghost"
+            icon-left="x"
+            title="Close"
+            @click="isAutomationMonitorOpen = false"
+          />
         </header>
 
         <div class="gam-profile">
-          <button class="gam-profile-btn" type="button" @click="isProfileMenuOpen = !isProfileMenuOpen">
-            <LucideIcon name="user-round" :size="15" />
-            <span>{{ selectedProfileLabel }}</span>
-            <LucideIcon name="chevron-down" :size="14" />
-          </button>
-          <div v-if="isProfileMenuOpen" class="gam-profile-menu">
-            <button
-              v-for="profile in profileOptions"
-              :key="profile.id ?? 'global'"
-              type="button"
-              :class="{ 'gam-profile-menu__item--active': profile.id === selectedProfileId }"
-              class="gam-profile-menu__item"
-              @click="selectProfile(profile.id)"
-            >
-              <span>{{ profile.label }}</span>
-              <small>{{ profile.count }}</small>
-            </button>
-          </div>
+          <BaseDropdownSelect
+            v-model="selectedProfileValue"
+            :options="profileSelectOptions"
+            direction="down"
+            icon-left="user-round"
+            trigger-class="gam-profile-trigger"
+            menu-class="gam-profile-menu"
+          />
         </div>
 
         <div class="gam-sidebar-metrics" aria-label="Automation runtime summary">
-          <div>
+          <div class="gam-metric">
             <span>Running</span>
             <strong>{{ runningCount }}</strong>
           </div>
-          <div>
+          <div class="gam-metric">
             <span>Failed</span>
             <strong>{{ failedCount }}</strong>
           </div>
-          <div>
+          <div class="gam-metric">
             <span>Published</span>
             <strong>{{ filteredWorkflows.length }}</strong>
           </div>
         </div>
 
         <div class="gam-tools">
-          <button class="gam-tool-btn" type="button" :disabled="loading" @click="refreshLiveData">
-            <LucideIcon name="refresh-cw" :size="14" :class="{ 'gam-spin': loading }" />
-            <span>Refresh</span>
-          </button>
+          <BaseButton
+            class="gam-tool-btn"
+            type="button"
+            variant="outline"
+            size="sm"
+            :disabled="loading"
+            icon-left="refresh-cw"
+            @click="refreshLiveData"
+          >
+            Refresh
+          </BaseButton>
         </div>
 
         <div class="gam-workflow-list">
-          <button
+          <BaseButton
             v-for="workflow in filteredWorkflows"
             :key="workflowKey(workflow)"
             class="gam-workflow"
             :class="{ 'gam-workflow--active': workflowKey(workflow) === selectedWorkflowKey }"
             type="button"
+            variant="ghost"
             @click="selectWorkflow(workflow)"
           >
-            <span class="gam-status-dot" :class="statusClass(workflow.lastExecution?.status)" />
+            <span class="gam-workflow__status">
+              <span class="gam-status-dot" :class="statusClass(workflow.lastExecution?.status)" />
+            </span>
             <span class="gam-workflow__copy">
               <strong>{{ workflow.name }}</strong>
               <small>{{ workflow.profileName ?? workflow.profileId ?? 'Global' }}</small>
             </span>
             <code>{{ triggerLabel(workflow.triggerType) }}</code>
-          </button>
+          </BaseButton>
         </div>
       </aside>
 
@@ -99,18 +108,19 @@
 
         <template v-else>
           <div class="gam-tabs">
-            <button
+            <BaseButton
               v-for="tab in triggerTabs"
               :key="tab.id"
               class="gam-tab"
               :class="{ 'gam-tab--active': tab.id === activeTriggerTabId }"
               type="button"
+              variant="ghost"
               @click="activeTriggerTabId = tab.id"
             >
               <LucideIcon :name="tab.id === 'all' ? 'list-tree' : 'radio'" :size="13" />
               <span>{{ tab.label }}</span>
               <small>{{ tab.events.length }}</small>
-            </button>
+            </BaseButton>
           </div>
 
           <div class="gam-execution-body">
@@ -119,14 +129,24 @@
               <span>No execution events yet.</span>
             </div>
 
-            <div v-else class="gam-timeline">
+            <TransitionGroup
+              v-else
+              name="gam-event-list"
+              tag="div"
+              class="gam-timeline"
+            >
               <article
                 v-for="event in activeTriggerEvents"
                 :key="event.id"
                 class="gam-event"
                 :class="`gam-event--${event.status}`"
               >
-                <button class="gam-event-row" type="button" @click="toggleEventDetails(event.id)">
+                <BaseButton
+                  class="gam-event-row"
+                  type="button"
+                  variant="ghost"
+                  @click="toggleEventDetails(event.id)"
+                >
                   <LucideIcon
                     name="chevron-right"
                     :size="13"
@@ -140,14 +160,16 @@
                   </div>
                   <code v-if="event.nodeId">{{ event.nodeId }}</code>
                   <span v-if="event.error" class="gam-event__error">{{ event.error }}</span>
-                </button>
-                <div v-if="expandedEventIds.has(event.id)" class="gam-event-detail">
-                  <pre v-if="event.error">{{ event.error }}</pre>
-                  <pre v-else-if="event.body">{{ formatJson(event.body) }}</pre>
-                  <span v-else>No body data for this step.</span>
-                </div>
+                </BaseButton>
+                <Transition name="gam-event-detail">
+                  <div v-if="expandedEventIds.has(event.id)" class="gam-event-detail">
+                    <pre v-if="event.error">{{ event.error }}</pre>
+                    <pre v-else-if="event.body">{{ formatJson(event.body) }}</pre>
+                    <span v-else>No body data for this step.</span>
+                  </div>
+                </Transition>
               </article>
-            </div>
+            </TransitionGroup>
           </div>
         </template>
       </main>
@@ -167,6 +189,8 @@ export function toggleAutomationMonitor() {
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, watch } from 'vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { workflowsApi, type ProductionWorkflowStatus } from '@/core/api/workflows.api'
@@ -193,7 +217,6 @@ const selectedProfileId = ref<string | null>(null)
 const selectedWorkflowKey = ref<string | null>(null)
 const selectedExecutions = ref<ExecutionLog[]>([])
 const activeTriggerTabId = ref('all')
-const isProfileMenuOpen = ref(false)
 const expandedEventIds = ref(new Set<string>())
 
 const profileNameById = computed(() =>
@@ -221,6 +244,11 @@ const selectedProfileLabel = computed(() => {
   return profileNameById.value[selectedProfileId.value] ?? selectedProfileId.value
 })
 
+const selectedProfileValue = computed({
+  get: () => selectedProfileId.value ?? 'global',
+  set: (value: string) => selectProfile(value === 'global' ? null : value),
+})
+
 const profileOptions = computed(() => {
   const counts = new Map<string | null, number>()
   counts.set(null, workflows.value.length)
@@ -238,6 +266,16 @@ const profileOptions = computed(() => {
     })),
   ]
 })
+
+const profileSelectOptions = computed<BaseDropdownSelectOption[]>(() =>
+  profileOptions.value.map((profile) => ({
+    value: profile.id ?? 'global',
+    label: profile.label,
+    shortLabel: profile.label,
+    description: `${profile.count} published`,
+    meta: profile.id ? 'P' : 'G',
+  })),
+)
 
 const runningCount = computed(
   () => filteredWorkflows.value.filter((workflow) => workflow.lastExecution?.status === 'RUNNING').length,
@@ -282,7 +320,6 @@ function workflowKey(workflow: ProductionWorkflowStatus): string {
 
 function selectProfile(profileId: string | null) {
   selectedProfileId.value = profileId
-  isProfileMenuOpen.value = false
   ensureSelectedWorkflow()
 }
 
@@ -446,11 +483,19 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+:deep(.base-modal-container) {
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-xl);
+  background: var(--sailor-bg-surface);
+}
+
 .gam-shell {
   display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
+  grid-template-columns: 324px minmax(0, 1fr);
   height: 100%;
   min-height: 0;
+  overflow: hidden;
+  border-radius: var(--sailor-radius-xl);
   background: var(--sailor-bg-surface);
   color: var(--sailor-text-primary);
 }
@@ -459,8 +504,9 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
   border-right: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-base);
+  background: color-mix(in srgb, var(--sailor-bg-surface) 82%, var(--sailor-bg-base));
 }
 
 .gam-header,
@@ -469,116 +515,99 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: var(--sailor-space-3);
-  min-height: 68px;
-  padding: 0 var(--sailor-space-4);
+  min-height: 72px;
+  padding: 0 var(--sailor-space-5);
   border-bottom: 1px solid var(--sailor-border);
+}
+
+.gam-title {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 1px var(--sailor-space-3);
+  align-items: center;
+  min-width: 0;
+}
+
+.gam-header-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  grid-row: 1 / span 2;
+  place-items: center;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-full);
+  background: var(--sailor-bg-base);
+  color: var(--sailor-text-primary);
+}
+
+.gam-header strong,
+.gam-main-header h2,
+.gam-workflow__copy strong,
+.gam-event__copy strong {
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .gam-header strong,
 .gam-main-header h2 {
   display: block;
-  margin: 0;
-  font-size: var(--sailor-text-lg);
-  font-weight: 650;
+  font-size: var(--sailor-text-base);
+  font-weight: var(--sailor-font-semibold);
 }
 
 .gam-eyebrow {
   display: block;
   color: var(--sailor-text-muted);
   font-size: 10px;
+  line-height: 1.2;
   text-transform: uppercase;
 }
 
-.gam-icon-btn,
-.gam-tool-btn,
-.gam-profile-btn,
-.gam-profile-menu__item,
-.gam-workflow,
-.gam-tab {
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
-
 .gam-icon-btn {
-  display: grid;
-  place-items: center;
   width: 30px;
   height: 30px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--sailor-radius-full);
   color: var(--sailor-text-muted);
 }
 
-.gam-icon-btn:hover,
-.gam-tool-btn:hover,
-.gam-profile-btn:hover,
-.gam-workflow:hover {
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-}
-
 .gam-profile {
-  position: relative;
   padding: var(--sailor-space-3) var(--sailor-space-4);
   border-bottom: 1px solid var(--sailor-border-muted);
 }
 
-.gam-profile-btn,
-.gam-tool-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--sailor-space-2);
+.gam-profile :deep(.base-dropdown-select) {
   width: 100%;
-  min-height: 34px;
-  padding: 0 var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
 }
 
-.gam-profile-btn span {
+.gam-profile-trigger {
+  width: 100%;
+  height: 34px;
+  justify-content: flex-start;
+  border-radius: var(--sailor-radius-full);
+}
+
+.gam-profile-trigger :deep(.base-button__label) {
   flex: 1;
+  min-width: 0;
   text-align: left;
-}
-
-.gam-profile-menu {
-  position: absolute;
-  z-index: 2;
-  top: calc(100% - var(--sailor-space-2));
-  left: var(--sailor-space-4);
-  right: var(--sailor-space-4);
-  padding: var(--sailor-space-1);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  box-shadow: var(--sailor-shadow-lg);
-}
-
-.gam-profile-menu__item {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  padding: var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
-  text-align: left;
-}
-
-.gam-profile-menu__item--active,
-.gam-profile-menu__item:hover {
-  background: var(--sailor-bg-base);
 }
 
 .gam-sidebar-metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  border-bottom: 1px solid var(--sailor-border);
-  background: var(--sailor-border-muted);
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-3) var(--sailor-space-4);
+  border-bottom: 1px solid var(--sailor-border-muted);
 }
 
-.gam-sidebar-metrics div {
-  padding: var(--sailor-space-3);
+.gam-metric {
+  min-width: 0;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
   background: var(--sailor-bg-base);
+  padding: var(--sailor-space-3);
 }
 
 .gam-sidebar-metrics span,
@@ -593,6 +622,8 @@ onUnmounted(() => {
   display: block;
   margin-top: var(--sailor-space-1);
   font-family: var(--sailor-font-mono);
+  font-size: var(--sailor-text-lg);
+  font-weight: var(--sailor-font-semibold);
 }
 
 .gam-tools {
@@ -600,33 +631,66 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--sailor-border-muted);
 }
 
+.gam-tool-btn {
+  width: 100%;
+  border-radius: var(--sailor-radius-full);
+}
+
+.gam-tool-btn :deep(svg) {
+  transition: transform var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+
+.gam-tool-btn:disabled :deep(svg) {
+  animation: gam-spin 800ms linear infinite;
+}
+
 .gam-workflow-list {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: var(--sailor-space-2);
 }
 
 .gam-workflow {
+  width: 100%;
+  height: auto;
+  min-height: 58px;
+  justify-content: stretch;
+  border-radius: var(--sailor-radius-md);
+  padding: 0;
+}
+
+.gam-workflow :deep(.base-button__label) {
   display: grid;
-  grid-template-columns: 10px minmax(0, 1fr) auto;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--sailor-space-2);
-  width: 100%;
-  min-height: 52px;
-  padding: 0 var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border-muted);
+  padding: var(--sailor-space-2);
   text-align: left;
 }
 
 .gam-workflow--active {
-  background: var(--sailor-bg-surface);
+  background: var(--sailor-button-ghost-hover);
+}
+
+.gam-workflow__status {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-full);
+  background: var(--sailor-bg-base);
 }
 
 .gam-status-dot,
 .gam-event__dot {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--sailor-radius-full);
   background: var(--sailor-text-muted);
 }
 
@@ -646,16 +710,14 @@ onUnmounted(() => {
 }
 
 .gam-workflow__copy {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   min-width: 0;
+  gap: 2px;
 }
 
-.gam-workflow__copy strong,
-.gam-workflow__copy small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.gam-workflow__copy strong {
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
 }
 
 .gam-workflow code,
@@ -670,49 +732,60 @@ onUnmounted(() => {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  background: var(--sailor-bg-surface);
 }
 
 .gam-main-meta {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--sailor-space-2);
 }
 
 .gam-main-meta span {
-  padding: 3px 8px;
+  padding: 4px 9px;
   border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--sailor-radius-full);
+  background: var(--sailor-bg-base);
 }
 
 .gam-empty {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--sailor-space-2);
   height: 100%;
   color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-sm);
 }
 
 .gam-tabs {
   display: flex;
-  min-height: 38px;
+  min-height: 46px;
+  gap: var(--sailor-space-2);
   border-bottom: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-base);
   overflow-x: auto;
+  padding: var(--sailor-space-2) var(--sailor-space-5);
 }
 
 .gam-tab {
+  min-width: 126px;
+  height: 30px;
+  border-radius: var(--sailor-radius-full);
+  color: var(--sailor-text-muted);
+}
+
+.gam-tab :deep(.base-button__label) {
   display: inline-flex;
+  min-width: 0;
   align-items: center;
   gap: var(--sailor-space-2);
-  min-width: 130px;
-  padding: 0 var(--sailor-space-3);
-  border-right: 1px solid var(--sailor-border);
-  color: var(--sailor-text-muted);
 }
 
 .gam-tab--active {
   color: var(--sailor-text-primary);
-  background: var(--sailor-bg-surface);
+  background: var(--sailor-button-ghost-hover);
 }
 
 .gam-tab span {
@@ -727,40 +800,47 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   overflow: auto;
+  padding: var(--sailor-space-5);
 }
 
 .gam-timeline {
   display: flex;
   flex-direction: column;
+  gap: var(--sailor-space-2);
 }
 
 .gam-event {
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid var(--sailor-border-muted);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
+  background: var(--sailor-bg-base);
+  overflow: hidden;
 }
 
 .gam-event-row {
-  display: grid;
-  grid-template-columns: 14px 12px minmax(0, 1fr) minmax(120px, auto) minmax(0, 260px);
-  align-items: center;
-  gap: var(--sailor-space-3);
-  min-height: 38px;
-  padding: 0 var(--sailor-space-4);
-  border: 0;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
+  width: 100%;
+  height: auto;
+  min-height: 44px;
+  justify-content: stretch;
+  border-radius: 0;
+  padding: 0;
 }
 
-.gam-event-row:hover {
-  background: var(--sailor-bg-base);
+.gam-event-row :deep(.base-button__label) {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 14px 12px minmax(0, 1fr) minmax(96px, auto) minmax(0, 240px);
+  align-items: center;
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-3);
+  text-align: left;
 }
 
 .gam-event__chevron {
   color: var(--sailor-text-muted);
-  transition: transform 160ms ease;
+  transition: transform var(--sailor-duration-base) var(--sailor-ease-standard);
 }
 
 .gam-event__chevron--open {
@@ -773,10 +853,8 @@ onUnmounted(() => {
 
 .gam-event__copy strong {
   display: block;
-  overflow: hidden;
   font-size: var(--sailor-text-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: var(--sailor-font-semibold);
 }
 
 .gam-event__error {
@@ -788,9 +866,9 @@ onUnmounted(() => {
 }
 
 .gam-event-detail {
-  padding: var(--sailor-space-3) var(--sailor-space-4) var(--sailor-space-3) 54px;
+  padding: var(--sailor-space-3) var(--sailor-space-4) var(--sailor-space-4) 54px;
   border-top: 1px solid var(--sailor-border-muted);
-  background: var(--sailor-bg-base);
+  background: var(--sailor-bg-surface);
 }
 
 .gam-event-detail pre {
@@ -812,9 +890,49 @@ onUnmounted(() => {
   animation: gam-spin 800ms linear infinite;
 }
 
+.gam-event-list-enter-active,
+.gam-event-list-leave-active,
+.gam-event-detail-enter-active,
+.gam-event-detail-leave-active {
+  transition:
+    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
+    transform var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+
+.gam-event-list-enter-from,
+.gam-event-list-leave-to,
+.gam-event-detail-enter-from,
+.gam-event-detail-leave-to {
+  opacity: 0;
+  transform: translateY(var(--sailor-space-2));
+}
+
+.gam-event-list-move {
+  transition: transform var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+
 @keyframes gam-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 880px) {
+  .gam-shell {
+    grid-template-columns: minmax(240px, 34vw) minmax(0, 1fr);
+  }
+
+  .gam-sidebar-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .gam-event-row :deep(.base-button__label) {
+    grid-template-columns: 14px 12px minmax(0, 1fr);
+  }
+
+  .gam-event-row code,
+  .gam-event__error {
+    display: none;
   }
 }
 </style>
