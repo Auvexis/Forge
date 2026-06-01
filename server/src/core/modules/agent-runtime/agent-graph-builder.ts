@@ -70,6 +70,8 @@ interface AgentToolCall {
   args: unknown;
 }
 
+type ToolResultClass = "success" | "empty" | "ambiguous" | "failed" | "needs_user";
+
 const ajv = new Ajv({ allErrors: true, strict: false });
 const LARGE_BASE64_MIN_CHARS = 64_000;
 
@@ -91,6 +93,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
       ];
       let toolCallCount = 0;
       const completedToolCalls: AgentRunToolCall[] = [];
+      const toolHistory = new Map<string, ToolResultClass>();
 
       for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
         input.onEvent?.({ type: "agent:model-start", payload: { iteration, input: { messages } } });
@@ -137,9 +140,20 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
         });
 
         if (toolCalls.length === 0) {
+          const parsedOutput = parseOutput(input.agent, assistantContent);
+          if (isWaitingUserOutput(parsedOutput)) {
+            return {
+              status: "waiting-user",
+              output: parsedOutput,
+              iterationCount: iteration,
+              toolCallCount,
+              ...(completedToolCalls.length > 0 ? { toolCalls: completedToolCalls } : {}),
+            };
+          }
+
           return {
             status: "success",
-            output: parseOutput(input.agent, assistantContent),
+            output: parsedOutput,
             iterationCount: iteration,
             toolCallCount,
             ...(completedToolCalls.length > 0 ? { toolCalls: completedToolCalls } : {}),
@@ -177,16 +191,30 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
 
           let result: unknown;
           const resolvedArgs = resolveBinaryRefsInToolArgs(toolCall.args, binaryRefs);
+          const toolSignature = toolCallSignature(toolCall.name, resolvedArgs);
+          const previousResultClass = toolHistory.get(toolSignature);
+          if (previousResultClass && shouldStopRepeatedToolCall(previousResultClass)) {
+            return {
+              status: "waiting-user",
+              output: waitingUserOutputForRepeatedTool(toolCall.name, previousResultClass),
+              iterationCount: iteration,
+              toolCallCount,
+              ...(completedToolCalls.length > 0 ? { toolCalls: completedToolCalls } : {}),
+            };
+          }
+
           try {
             result = await tool.invoke(resolvedArgs);
           } catch (error) {
             if (error instanceof AgentToolApprovalRequiredError) throw error;
             emitToolEnd(input, tool, toolCall, { status: "failed", error: safeErrorMessage(error) });
             completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "failed"));
+            toolHistory.set(toolSignature, "failed");
             throw error;
           }
           toolCallCount += 1;
           const modelSafeResult = sanitizeToolResultForModel(result, toolCall.id, binaryRefs);
+          toolHistory.set(toolSignature, classifyToolResult(modelSafeResult));
           emitToolEnd(input, tool, toolCall, { status: "success", output: modelSafeResult });
           completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "success"));
           await yieldToEventLoop();
@@ -541,7 +569,7 @@ function parseToolArguments(value: string | undefined): unknown {
 }
 
 function parseOutput(agent: AiAgentNodeConfig, content: string): string | Record<string, any> {
-  if (agent.outputMode === "text") return content;
+  if (agent.outputMode === "text") return parseStructuredTextOutput(content) ?? content;
 
   let parsed: unknown;
   try {
@@ -577,6 +605,105 @@ function parseOutput(agent: AiAgentNodeConfig, content: string): string | Record
   }
 
   return parsed as Record<string, any>;
+}
+
+function parseStructuredTextOutput(content: string): Record<string, any> | null {
+  const trimmed = content.trim();
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return null;
+  try {
+    const parsed = JSON.parse(trimmed);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed as Record<string, any>
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function isWaitingUserOutput(output: unknown): output is Record<string, any> {
+  if (!output || typeof output !== "object" || Array.isArray(output)) return false;
+  const record = output as Record<string, unknown>;
+  const status = record.status ?? record.state;
+  return status === "waiting-user" &&
+    typeof record.question === "string" &&
+    record.question.trim().length > 0;
+}
+
+function toolCallSignature(name: string, args: unknown): string {
+  return `${name}:${stableStringify(args)}`;
+}
+
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  if (Buffer.isBuffer(value)) return `"[Buffer:${value.length}]"`;
+  if (isReadableLike(value)) return '"[Readable]"';
+  if (value && typeof value === "object" && !Buffer.isBuffer(value) && !isReadableLike(value)) {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function classifyToolResult(value: unknown): ToolResultClass {
+  if (containsWaitingUserMarker(value)) return "needs_user";
+  if (containsEmptyResultArray(value)) return "empty";
+  if (containsAmbiguousResultArray(value)) return "ambiguous";
+  return "success";
+}
+
+function shouldStopRepeatedToolCall(resultClass: ToolResultClass): boolean {
+  return resultClass === "empty" ||
+    resultClass === "ambiguous" ||
+    resultClass === "failed" ||
+    resultClass === "needs_user";
+}
+
+function waitingUserOutputForRepeatedTool(toolName: string, resultClass: ToolResultClass): Record<string, any> {
+  const reason = resultClass === "empty"
+    ? "not_found"
+    : resultClass === "ambiguous"
+      ? "ambiguous_result"
+      : "needs_user";
+  const question = resultClass === "empty"
+    ? "Nao encontrei resultado para essa busca. Quer tentar outro nome ou ajustar os criterios?"
+    : resultClass === "ambiguous"
+      ? "Encontrei mais de uma opcao. Qual delas devo usar?"
+      : "Preciso de mais informacoes para continuar. Como voce quer prosseguir?";
+  return {
+    status: "waiting-user",
+    reason,
+    question,
+    repeatedTool: toolName,
+  };
+}
+
+function containsWaitingUserMarker(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  return (value as Record<string, unknown>).status === "waiting-user";
+}
+
+function containsEmptyResultArray(value: unknown): boolean {
+  return findResultArray(value, (items) => items.length === 0);
+}
+
+function containsAmbiguousResultArray(value: unknown): boolean {
+  return findResultArray(value, (items) => items.length > 1);
+}
+
+function findResultArray(value: unknown, predicate: (items: unknown[]) => boolean): boolean {
+  if (!value || typeof value !== "object") return false;
+  if (Array.isArray(value)) return false;
+  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+    if (Array.isArray(item) && isResultCollectionKey(key) && predicate(item)) return true;
+    if (item && typeof item === "object" && findResultArray(item, predicate)) return true;
+  }
+  return false;
+}
+
+function isResultCollectionKey(key: string): boolean {
+  return ["files", "items", "results", "options"].includes(key);
 }
 
 function systemPromptForAgent(agent: AiAgentNodeConfig): string {

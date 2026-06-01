@@ -172,7 +172,7 @@ export class AgentPanelChatService {
       sessionId: session.id,
       message,
       messages: toContextMessages(previousMessages),
-      skipFinalResponseAfterToolUse: true,
+      skipFinalResponseAfterToolUse: false,
       metadata: { surface: "agent-panel" },
     };
     const execution = await this.workflowEngine.executeWorkflowFromTrigger(
@@ -191,7 +191,7 @@ export class AgentPanelChatService {
         profileId: input.profileId,
         sessionId: session.id,
         role: "assistant",
-        content: assistantResponse,
+        content: normalizeAssistantResponseForMessage(assistantResponse),
       });
       this.sessions.touch(input.profileId, session.id);
     }
@@ -297,6 +297,28 @@ function hasAssistantResponse(value: unknown): boolean {
   if (value === null || value === undefined) return false;
   if (typeof value === "string") return value.trim().length > 0;
   return true;
+}
+
+function normalizeAssistantResponseForMessage(value: unknown): unknown {
+  if (!isWaitingUserResponse(value)) return value;
+  return {
+    text: value.question.trim(),
+    waitingUser: true,
+    ...(typeof value.reason === "string" ? { reason: value.reason } : {}),
+    ...(Array.isArray(value.options) ? { options: value.options } : {}),
+  };
+}
+
+function isWaitingUserResponse(value: unknown): value is {
+  question: string;
+  reason?: string;
+  options?: unknown[];
+} {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return record.status === "waiting-user" &&
+    typeof record.question === "string" &&
+    record.question.trim().length > 0;
 }
 
 function extractAssistantResponse(execution: unknown, agentNodeId: string): unknown {

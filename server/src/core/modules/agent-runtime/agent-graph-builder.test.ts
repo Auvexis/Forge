@@ -324,6 +324,58 @@ describe("agent graph builder", () => {
     });
   });
 
+  it("returns waiting-user when the model asks a structured follow-up question", async () => {
+    const model = fakeModel([{
+      content: JSON.stringify({
+        status: "waiting-user",
+        reason: "not_found",
+        question: "Nao encontrei esse arquivo. Quer tentar outro nome?",
+        options: [],
+      }),
+    }]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [],
+    });
+
+    const result = await graph.invoke({ userMessage: "busque video.mp4" });
+
+    assert.equal(result.status, "waiting-user");
+    assert.deepEqual(result.output, {
+      status: "waiting-user",
+      reason: "not_found",
+      question: "Nao encontrei esse arquivo. Quer tentar outro nome?",
+      options: [],
+    });
+  });
+
+  it("stops repeated empty tool calls and asks the user instead of looping", async () => {
+    const tool = fakeTool("drive_search", async () => ({ files: [] }));
+    const repeatedCall = { name: "drive_search", args: { query: "video.mp4" } };
+    const model = fakeModel([
+      { content: "", toolCalls: [{ id: "call_1", ...repeatedCall }] },
+      { content: "", toolCalls: [{ id: "call_2", ...repeatedCall }] },
+      { content: "should not be reached" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+    });
+
+    const result = await graph.invoke({ userMessage: "busque video.mp4" });
+
+    assert.equal(result.status, "waiting-user");
+    assert.deepEqual(result.output, {
+      status: "waiting-user",
+      reason: "not_found",
+      question: "Nao encontrei resultado para essa busca. Quer tentar outro nome ou ajustar os criterios?",
+      repeatedTool: "drive_search",
+    });
+    assert.equal(tool.calls.length, 1);
+  });
+
   it("can stop after tool execution without asking the model for a final answer", async () => {
     const toolCalls = [{ id: "call_1", name: "send_message", args: { text: "done" } }];
     const tool = fakeTool("send_message", async (args) => ({ sent: true, args }));

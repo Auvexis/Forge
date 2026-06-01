@@ -245,6 +245,15 @@ describe('agent panel modal contract', () => {
     assert.match(store, /kind: 'agentSummary'/)
   })
 
+  it('renders waiting-user questions with selectable option labels', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /isWaitingUserContent/)
+    assert.match(chat, /agent-chat-view__waiting-options/)
+    assert.match(chat, /waitingUserOptions/)
+    assert.match(chat, /waitingOptionLabel/)
+  })
+
   it('keeps the streamed user and assistant messages stable when the final server result arrives', () => {
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
 

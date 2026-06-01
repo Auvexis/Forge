@@ -121,6 +121,14 @@
               <span />
               <span />
             </div>
+            <div v-else-if="isWaitingUserContent(message.content)" class="agent-chat-view__waiting">
+              <p>{{ messageText(message.content) }}</p>
+              <ul v-if="waitingUserOptions(message.content).length" class="agent-chat-view__waiting-options">
+                <li v-for="option in waitingUserOptions(message.content)" :key="waitingOptionLabel(option)">
+                  {{ waitingOptionLabel(option) }}
+                </li>
+              </ul>
+            </div>
             <p v-else-if="messageText(message.content)">{{ messageText(message.content) }}</p>
           </article>
         </TransitionGroup>
@@ -224,6 +232,31 @@ function isAgentSummaryContent(content: unknown): content is AgentPanelSummaryCo
       !Array.isArray(content) &&
       (content as { kind?: unknown }).kind === 'agentSummary',
   )
+}
+
+function isWaitingUserContent(content: unknown): boolean {
+  return Boolean(
+    content &&
+      typeof content === 'object' &&
+      !Array.isArray(content) &&
+      (content as { waitingUser?: unknown }).waitingUser === true,
+  )
+}
+
+function waitingUserOptions(content: unknown): unknown[] {
+  if (!isWaitingUserContent(content)) return []
+  const options = (content as { options?: unknown }).options
+  return Array.isArray(options) ? options : []
+}
+
+function waitingOptionLabel(option: unknown): string {
+  if (typeof option === 'string') return option
+  if (!option || typeof option !== 'object' || Array.isArray(option)) return String(option)
+  const record = option as Record<string, unknown>
+  const name = typeof record.name === 'string' ? record.name : ''
+  const id = typeof record.id === 'string' ? record.id : ''
+  if (name && id) return `${name} (${id})`
+  return name || id || JSON.stringify(option)
 }
 
 function progressMessage(content: AgentPanelProgressContent): string {
@@ -544,6 +577,7 @@ void ['transcript-only', 'session', 'all-agent-memory']
 }
 
 .agent-chat-view__message p,
+.agent-chat-view__waiting,
 .agent-chat-view__thinking,
 .agent-chat-view__typing-dots {
   grid-column: 2;
@@ -561,6 +595,25 @@ void ['transcript-only', 'session', 'all-agent-memory']
 .agent-chat-view__message--user p {
   grid-column: 1;
   background: transparent;
+}
+
+.agent-chat-view__waiting {
+  display: grid;
+  gap: var(--sailor-space-2);
+}
+
+.agent-chat-view__waiting p {
+  grid-column: auto;
+}
+
+.agent-chat-view__waiting-options {
+  display: grid;
+  gap: var(--sailor-space-1);
+  margin: 0;
+  padding: 0;
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+  list-style: none;
 }
 
 .agent-chat-view__thinking {

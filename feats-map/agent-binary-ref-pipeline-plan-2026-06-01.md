@@ -53,39 +53,39 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 
 ### 2. Multi-step No Global Agent Chat
 
-- [ ] Validar comportamento com `skipFinalResponseAfterToolUse`; decidir se Global Agent Chat deve permitir multi-step antes de parar.
-- [ ] Criar testes falhando para multi-step no Global Agent Chat: tool 1 retorna resultado, LLM recebe resultado e escolhe tool 2 no mesmo turno.
-- [ ] Refatorar Global Agent Chat para permitir multi-step quando o agente precisar continuar depois de uma tool.
-- [ ] Garantir que progresso/summary do chat global mostre cada tool executada no mesmo turno.
-- [ ] Garantir que o chat global ainda finalize rapido quando houver apenas uma tool terminal e nenhuma proxima acao.
+- [x] Validar comportamento com `skipFinalResponseAfterToolUse`; decidir se Global Agent Chat deve permitir multi-step antes de parar.
+- [x] Criar testes falhando para multi-step no Global Agent Chat: tool 1 retorna resultado, LLM recebe resultado e escolhe tool 2 no mesmo turno.
+- [x] Refatorar Global Agent Chat para permitir multi-step quando o agente precisar continuar depois de uma tool.
+- [x] Garantir que progresso/summary do chat global mostre cada tool executada no mesmo turno.
+- [x] Garantir que o chat global ainda finalize rapido quando houver apenas uma tool terminal e nenhuma proxima acao.
 
 ### 3. Waiting-user Simples
 
-- [ ] Criar contrato de `waiting-user` para quando faltar dado critico, houver resultado ambiguo ou nada for encontrado.
-- [ ] Criar testes falhando para `waiting-user`: busca retorna 0 itens e agente pergunta ao usuario em vez de continuar tentando.
-- [ ] Criar testes falhando para `waiting-user`: busca retorna varios itens sem criterio claro e agente pede escolha do usuario.
-- [ ] Implementar resposta/estado `waiting-user` no Agent Run Result e no fluxo do chat global.
-- [ ] Exibir pergunta/opcoes no frontend do Global Agent Chat sem quebrar historico de mensagens.
-- [ ] Garantir que a resposta do usuario continue a mesma sessao e preserve contexto/opcoes anteriores.
+- [x] Criar contrato de `waiting-user` para quando faltar dado critico, houver resultado ambiguo ou nada for encontrado.
+- [x] Criar testes falhando para `waiting-user`: busca retorna 0 itens e agente pergunta ao usuario em vez de continuar tentando.
+- [x] Criar testes falhando para `waiting-user`: busca retorna varios itens sem criterio claro e agente pede escolha do usuario.
+- [x] Implementar resposta/estado `waiting-user` no Agent Run Result e no fluxo do chat global.
+- [x] Exibir pergunta/opcoes no frontend do Global Agent Chat sem quebrar historico de mensagens.
+- [x] Garantir que a resposta do usuario continue a mesma sessao e preserve contexto/opcoes anteriores.
 
 ### 4. Loop Guard / Parada Inteligente
 
-- [ ] Criar loop guard por assinatura de tool call: `toolName + argsHash + resultClass`.
-- [ ] Bloquear repeticao da mesma tool com mesmos args quando o resultado anterior foi `not_found`, erro irrecuperavel ou ambiguidade.
-- [ ] Definir classificacao leve de resultado: `success`, `empty`, `ambiguous`, `failed`, `needs_user`.
-- [ ] Permitir no maximo 1 ou 2 tentativas de recuperacao automatica antes de perguntar ao usuario.
-- [ ] Adicionar testes de loop guard: mesma tool + mesmos args nao roda infinitamente.
-- [ ] Adicionar teste de parada: resultado vazio repetido vira `waiting-user`, nao nova tool call.
+- [x] Criar loop guard por assinatura de tool call: `toolName + argsHash + resultClass`.
+- [x] Bloquear repeticao da mesma tool com mesmos args quando o resultado anterior foi `not_found`, erro irrecuperavel ou ambiguidade.
+- [x] Definir classificacao leve de resultado: `success`, `empty`, `ambiguous`, `failed`, `needs_user`.
+- [x] Permitir no maximo 1 ou 2 tentativas de recuperacao automatica antes de perguntar ao usuario.
+- [x] Adicionar testes de loop guard: mesma tool + mesmos args nao roda infinitamente.
+- [x] Adicionar teste de parada: resultado vazio repetido vira `waiting-user`, nao nova tool call.
 - [ ] Adicionar teste de parada: erro de permissao/credencial para o turno com mensagem clara.
 
 ### 5. Verificacao E Fechamento
 
 - [x] Rodar testes focados do agent runtime.
-- [ ] Rodar testes focados do Global Agent Chat frontend/backend.
-- [ ] Rodar build do server.
-- [ ] Rodar build do client-vue se houver ajuste visual no chat.
-- [ ] Atualizar este arquivo marcando tasks concluidas durante a implementacao.
-- [ ] Fazer commit por task/bloco coerente.
+- [x] Rodar testes focados do Global Agent Chat frontend/backend.
+- [x] Rodar build do server.
+- [x] Rodar build do client-vue se houver ajuste visual no chat.
+- [x] Atualizar este arquivo marcando tasks concluidas durante a implementacao.
+- [x] Fazer commit por task/bloco coerente.
 
 ## Riscos
 

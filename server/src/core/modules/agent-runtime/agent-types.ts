@@ -79,6 +79,7 @@ export type AgentRunStatus =
   | "success"
   | "failed"
   | "cancelled"
+  | "waiting-user"
   | "waiting-approval";
 
 export type AgentEventType =
