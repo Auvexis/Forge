@@ -14,9 +14,6 @@
       </div>
 
       <div class="agent-chat-view__actions">
-        <BaseButton size="sm" variant="outline" icon-right="settings" title="Configuration">
-          Configuration
-        </BaseButton>
         <BaseButton
           size="sm"
           variant="primary"

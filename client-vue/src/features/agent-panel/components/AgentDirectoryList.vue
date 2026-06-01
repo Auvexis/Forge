@@ -1,6 +1,35 @@
 <template>
   <aside class="agent-directory-list" aria-label="Published agents">
-    <ProfileSwitcher class="agent-directory-list__profile" collapsed />
+    <div class="agent-directory-list__profile-wrap">
+      <BaseButton
+        type="button"
+        size="icon"
+        variant="ghost"
+        class="agent-directory-list__profile"
+        title="Switch profile"
+        @click="profileMenuOpen = !profileMenuOpen"
+      >
+        <span>{{ currentProfileAvatar }}</span>
+      </BaseButton>
+
+      <Transition name="agent-profile-menu">
+        <div v-if="profileMenuOpen" class="agent-directory-list__profile-menu" role="menu">
+          <BaseButton
+            v-for="profile in profileStore.sortedProfiles"
+            :key="profile.id"
+            type="button"
+            class="agent-directory-list__profile-option"
+            :class="{ 'agent-directory-list__profile-option--active': profile.id === profileStore.currentProfile?.id }"
+            variant="ghost"
+            full-width
+            @click="switchProfile(profile.id)"
+          >
+            <span>{{ profile.avatarEmoji }}</span>
+            <strong>{{ profile.name }}</strong>
+          </BaseButton>
+        </div>
+      </Transition>
+    </div>
 
     <div class="agent-directory-list__agents" aria-label="Agent list">
       <div v-if="store.loading" class="agent-directory-list__state">...</div>
@@ -31,20 +60,44 @@
         0
       </div>
     </div>
+
+    <footer class="agent-directory-list__footer">
+      <BaseButton
+        type="button"
+        size="icon"
+        variant="ghost"
+        :icon-left="store.directoryCollapsed ? 'panel-right' : 'panel-left'"
+        :title="store.directoryCollapsed ? 'Expand chat history' : 'Collapse chat history'"
+        @click="store.toggleDirectoryCollapsed()"
+      />
+    </footer>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
+import { useProfileStore } from '@/shared/stores/profile.store'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
-import ProfileSwitcher from '@/shared/components/layout/ProfileSwitcher.vue'
 
 const store = useAgentPanelStore()
+const profileStore = useProfileStore()
+const profileMenuOpen = ref(false)
+const currentProfileAvatar = computed(() => profileStore.currentProfile?.avatarEmoji ?? '⛵')
 
 onMounted(() => {
   if (!store.agents.length) void store.loadAgents()
+  if (!profileStore.profiles.length && !profileStore.isLoading) void profileStore.loadProfiles()
 })
+
+async function switchProfile(profileId: string) {
+  if (profileId === profileStore.currentProfile?.id) {
+    profileMenuOpen.value = false
+    return
+  }
+  await profileStore.switchProfile(profileId)
+  profileMenuOpen.value = false
+}
 </script>
 
 <style scoped>
@@ -61,9 +114,54 @@ onMounted(() => {
   padding: var(--sailor-space-4) var(--sailor-space-3);
 }
 
+.agent-directory-list__profile-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
 .agent-directory-list__profile {
   width: 30px;
   height: 30px;
+  border-radius: var(--sailor-radius-full);
+}
+
+.agent-directory-list__profile-menu {
+  position: absolute;
+  top: calc(100% + var(--sailor-space-2));
+  left: 0;
+  z-index: var(--sailor-z-overlay);
+  display: grid;
+  width: 220px;
+  gap: var(--sailor-space-1);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-lg);
+  background: var(--sailor-bg-surface);
+  padding: var(--sailor-space-2);
+  box-shadow: var(--sailor-shadow-lg);
+}
+
+.agent-directory-list__profile-option {
+  justify-content: flex-start;
+}
+
+.agent-directory-list__profile-option :deep(.base-button__label) {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--sailor-space-2);
+}
+
+.agent-directory-list__profile-option strong {
+  overflow: hidden;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-directory-list__profile-option--active {
+  background: var(--sailor-button-ghost-hover);
 }
 
 .agent-directory-list__agents {
@@ -72,6 +170,10 @@ onMounted(() => {
   align-items: center;
   gap: var(--sailor-space-2);
   width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .agent-directory-list__item {
@@ -174,5 +276,25 @@ onMounted(() => {
   color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
   text-align: center;
+}
+
+.agent-directory-list__footer {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding-top: var(--sailor-space-2);
+}
+
+.agent-profile-menu-enter-active,
+.agent-profile-menu-leave-active {
+  transition:
+    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
+    transform var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+
+.agent-profile-menu-enter-from,
+.agent-profile-menu-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
 }
 </style>

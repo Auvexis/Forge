@@ -1,6 +1,10 @@
 <template>
   <BaseModal :is-open="ui.isOpen" max-width="1380px" height="86vh" @close="ui.close">
-    <section class="global-agent-panel" aria-label="Global agent panel">
+    <section
+      class="global-agent-panel"
+      :class="{ 'global-agent-panel--history-collapsed': agentStore.directoryCollapsed }"
+      aria-label="Global agent panel"
+    >
       <AgentDirectoryList />
       <AgentSessionList />
       <AgentChatView />
@@ -57,11 +61,35 @@ watch(
   border-radius: var(--sailor-radius-xl);
   background: var(--sailor-bg-surface);
   color: var(--sailor-text-primary);
+  transition: grid-template-columns var(--sailor-duration-slow) var(--sailor-ease-standard);
+}
+
+.global-agent-panel--history-collapsed {
+  grid-template-columns: 68px 0 minmax(0, 1fr);
+}
+
+.global-agent-panel :deep(.agent-session-list) {
+  transition:
+    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
+    padding var(--sailor-duration-slow) var(--sailor-ease-standard),
+    border-color var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+
+.global-agent-panel--history-collapsed :deep(.agent-session-list) {
+  overflow: hidden;
+  border-right-color: transparent;
+  padding-inline: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 @media (max-width: 820px) {
   .global-agent-panel {
     grid-template-columns: 60px minmax(220px, 36vw) minmax(0, 1fr);
+  }
+
+  .global-agent-panel--history-collapsed {
+    grid-template-columns: 60px 0 minmax(0, 1fr);
   }
 }
 </style>

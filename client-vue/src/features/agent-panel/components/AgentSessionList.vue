@@ -13,18 +13,6 @@
       </div>
     </header>
 
-    <BaseButton
-      class="agent-session-list__new"
-      :disabled="!store.selectedAgentKey"
-      icon-left="plus"
-      icon-right="sparkles"
-      variant="primary"
-      full-width
-      @click="store.createSession()"
-    >
-      New Chat
-    </BaseButton>
-
     <div v-if="!store.selectedAgentKey" class="agent-session-list__state">Select an agent.</div>
     <div v-else-if="!sessionGroups.length" class="agent-session-list__state">
       {{ sessionSearch.trim() ? 'No chats match this search.' : 'No chats yet.' }}
@@ -139,8 +127,14 @@ const openMenuSession = computed(() =>
 const menuStyle = computed(() => {
   const rect = menuAnchorRect.value
   if (!rect) return {}
+  const menuWidth = 136
+  const viewportWidth = globalThis.window?.innerWidth ?? 0
+  const centeredLeft = rect.left + rect.width / 2 - menuWidth / 2
+  const left = viewportWidth
+    ? Math.min(viewportWidth - menuWidth - 8, Math.max(8, centeredLeft))
+    : Math.max(8, centeredLeft)
   return {
-    left: `${Math.max(8, rect.right - 136)}px`,
+    left: `${left}px`,
     top: `${Math.max(8, rect.top - 44)}px`,
   }
 })
@@ -232,21 +226,6 @@ async function deleteSession(sessionId: string) {
   right: var(--sailor-space-2);
   color: var(--sailor-text-muted);
   pointer-events: none;
-}
-
-.agent-session-list__new {
-  display: inline-flex;
-  width: 100%;
-  min-width: 0;
-  height: 36px;
-  justify-content: center;
-  border-color: var(--sailor-button-primary-border);
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-button-primary-bg);
-  color: var(--sailor-button-primary-text);
-  font-size: var(--sailor-text-xs);
-  white-space: nowrap;
-  box-shadow: var(--sailor-shadow-sm);
 }
 
 .agent-session-list__state {
