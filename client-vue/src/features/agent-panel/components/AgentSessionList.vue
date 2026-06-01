@@ -32,10 +32,7 @@
       New Chat
     </BaseButton>
 
-    <div class="agent-session-list__meta">
-      <span>{{ store.selectedAgent?.name ?? 'No agent selected' }}</span>
-      <small>{{ filteredSessions.length }} chats</small>
-    </div>
+    <div class="agent-session-list__saved">Saved</div>
 
     <div v-if="!store.selectedAgentKey" class="agent-session-list__state">Select an agent.</div>
     <div v-else-if="!filteredSessions.length" class="agent-session-list__state">
@@ -145,7 +142,7 @@ async function confirmDeleteSession() {
   gap: var(--sailor-space-3);
   border-right: 1px solid rgba(12, 17, 29, 0.08);
   background: #ffffff;
-  padding: var(--sailor-space-4) var(--sailor-space-3);
+  padding: var(--sailor-space-5) var(--sailor-space-4);
 }
 
 .agent-session-list__header {
@@ -172,32 +169,26 @@ async function confirmDeleteSession() {
   width: 100%;
 }
 
-.agent-session-list__new :deep(.base-button),
 .agent-session-list__new {
-  height: 30px;
+  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  justify-content: center;
   border-color: #061025;
   border-radius: var(--sailor-radius-full);
   background: #061025;
   color: #ffffff;
   font-size: var(--sailor-text-xs);
+  white-space: nowrap;
   box-shadow: 0 10px 18px rgba(6, 16, 37, 0.18);
 }
 
-.agent-session-list__meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.agent-session-list__saved {
   border-top: 1px solid rgba(12, 17, 29, 0.08);
-  padding-top: var(--sailor-space-3);
-  color: #667085;
-  font-size: 11px;
-}
-
-.agent-session-list__meta span {
-  overflow: hidden;
+  padding-top: var(--sailor-space-4);
   color: #98a2b3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 11px;
 }
 
 .agent-session-list__state {
@@ -211,7 +202,7 @@ async function confirmDeleteSession() {
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--sailor-space-1);
   overflow: auto;
 }
 
@@ -232,7 +223,7 @@ async function confirmDeleteSession() {
   gap: 3px;
   border: 0;
   background: transparent;
-  padding: 8px 34px 8px 8px;
+  padding: 9px 34px 9px 10px;
   text-align: left;
   cursor: pointer;
 }
@@ -240,7 +231,7 @@ async function confirmDeleteSession() {
 .agent-session-list__title {
   overflow: hidden;
   color: #111827;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: var(--sailor-font-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -248,7 +239,7 @@ async function confirmDeleteSession() {
 
 .agent-session-list__date {
   color: #98a2b3;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .agent-session-list__delete {

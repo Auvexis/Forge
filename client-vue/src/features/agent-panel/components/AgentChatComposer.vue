@@ -62,23 +62,23 @@ function submit() {
 <style scoped>
 .agent-chat-composer {
   display: flex;
-  width: min(100%, 545px);
+  width: min(100%, 724px);
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--sailor-space-3);
   border: 1px solid rgba(12, 17, 29, 0.12);
   border-radius: var(--sailor-radius-xl);
   background: #ffffff;
-  padding: var(--sailor-space-3);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  padding: var(--sailor-space-4);
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
 }
 
 .agent-chat-composer--dock {
-  width: min(100%, 760px);
-  margin: 0 auto var(--sailor-space-4);
+  width: min(100% - var(--sailor-space-12), 760px);
+  margin: 0 auto var(--sailor-space-5);
 }
 
 .agent-chat-composer--hero {
-  width: min(100%, 545px);
+  width: min(100%, 724px);
 }
 
 .agent-chat-composer__input {
@@ -90,7 +90,7 @@ function submit() {
   padding: 0;
   color: #0b1220;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -120,10 +120,10 @@ function submit() {
   border: 1px solid rgba(12, 17, 29, 0.08);
   border-radius: var(--sailor-radius-full);
   background: #ffffff;
-  padding: 0 var(--sailor-space-2);
+  padding: 0 var(--sailor-space-3);
   color: #0b1220;
   font: inherit;
-  font-size: 11px;
+  font-size: 12px;
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
   cursor: pointer;
 }
@@ -137,10 +137,10 @@ function submit() {
   border: 0;
   border-radius: var(--sailor-radius-full);
   background: #061025;
-  padding: 0 var(--sailor-space-3);
+  padding: 0 var(--sailor-space-4);
   color: #ffffff;
   font: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: var(--sailor-font-semibold);
   cursor: pointer;
 }

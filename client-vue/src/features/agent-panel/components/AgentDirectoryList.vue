@@ -2,32 +2,6 @@
   <aside class="agent-directory-list" aria-label="Published agents">
     <div class="agent-directory-list__brand" aria-hidden="true" />
 
-    <div class="agent-directory-list__tools">
-      <BaseButton
-        title="Search agents"
-        size="icon"
-        icon-left="search"
-        variant="ghost"
-        @click="searchOpen = !searchOpen"
-      />
-      <BaseButton
-        :title="store.agentScope === 'global' ? 'Showing global agents' : 'Showing profile agents'"
-        size="icon"
-        :icon-left="store.agentScope === 'global' ? 'globe-2' : 'user-round'"
-        variant="ghost"
-        @click="toggleScope"
-      />
-    </div>
-
-    <div v-if="searchOpen" class="agent-directory-list__search">
-      <BaseInput
-        v-model="store.agentSearch"
-        icon-left="search"
-        placeholder="Search agents"
-        aria-label="Search agents"
-      />
-    </div>
-
     <div class="agent-directory-list__agents" aria-label="Agent list">
       <div v-if="store.loading" class="agent-directory-list__state">...</div>
       <div v-else-if="store.directoryError" class="agent-directory-list__state">!</div>
@@ -50,21 +24,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
-import BaseButton from '@/shared/components/base/BaseButton.vue'
-import BaseInput from '@/shared/components/base/BaseInput.vue'
 
 const store = useAgentPanelStore()
-const searchOpen = ref(false)
 
 onMounted(() => {
   if (!store.agents.length) void store.loadAgents()
 })
-
-function toggleScope() {
-  void store.setAgentScope(store.agentScope === 'global' ? 'current' : 'global')
-}
 </script>
 
 <style scoped>
@@ -75,10 +42,10 @@ function toggleScope() {
   min-width: 0;
   flex-direction: column;
   align-items: center;
-  gap: var(--sailor-space-3);
+  gap: var(--sailor-space-5);
   border-right: 1px solid rgba(12, 17, 29, 0.08);
-  background: #fbfcff;
-  padding: var(--sailor-space-4) var(--sailor-space-2);
+  background: #f8fafc;
+  padding: var(--sailor-space-4) var(--sailor-space-3);
 }
 
 .agent-directory-list__brand {
@@ -89,7 +56,6 @@ function toggleScope() {
   box-shadow: 0 8px 18px rgba(56, 105, 220, 0.24);
 }
 
-.agent-directory-list__tools,
 .agent-directory-list__agents {
   display: flex;
   flex-direction: column;
@@ -98,33 +64,10 @@ function toggleScope() {
   width: 100%;
 }
 
-.agent-directory-list__tools :deep(.base-button),
 .agent-directory-list__item {
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--sailor-radius-full);
-}
-
-.agent-directory-list__tools :deep(.base-button) {
-  color: #526071;
-}
-
-.agent-directory-list__tools :deep(.base-button:hover) {
-  background: #eef3ff;
-  color: #0b1220;
-}
-
-.agent-directory-list__search {
-  position: absolute;
-  top: var(--sailor-space-12);
-  left: calc(100% + var(--sailor-space-2));
-  z-index: var(--sailor-z-dropdown);
-  width: 220px;
-  border: 1px solid rgba(12, 17, 29, 0.08);
-  border-radius: var(--sailor-radius-lg);
-  background: #ffffff;
-  padding: var(--sailor-space-2);
-  box-shadow: 0 16px 42px rgba(15, 23, 42, 0.12);
 }
 
 .agent-directory-list__item {
@@ -144,13 +87,13 @@ function toggleScope() {
 
 .agent-directory-list__emoji {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   border: 1px solid rgba(12, 17, 29, 0.08);
   border-radius: var(--sailor-radius-full);
   background: #ffffff;
-  font-size: 15px;
+  font-size: 17px;
 }
 
 .agent-directory-list__item--active .agent-directory-list__emoji,

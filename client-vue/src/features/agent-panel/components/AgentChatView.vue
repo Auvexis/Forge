@@ -315,19 +315,19 @@ async function scrollMessagesToBottom() {
   min-height: 0;
   min-width: 0;
   flex-direction: column;
-  background: #f7f7f8;
+  background: #ffffff;
   color: #0b1220;
 }
 
 .agent-chat-view__header {
   position: relative;
   display: flex;
-  min-height: 66px;
+  min-height: 68px;
   align-items: center;
   justify-content: space-between;
   gap: var(--sailor-space-4);
   background: #ffffff;
-  padding: var(--sailor-space-4) var(--sailor-space-6);
+  padding: var(--sailor-space-4) var(--sailor-space-8);
 }
 
 .agent-chat-view__identity {
@@ -415,13 +415,16 @@ async function scrollMessagesToBottom() {
   flex: 1;
   flex-direction: column;
   overflow: auto;
-  padding: var(--sailor-space-6);
+  margin: 0 var(--sailor-space-8) var(--sailor-space-5);
+  border-radius: var(--sailor-radius-sm);
+  background: #f7f7f8;
+  padding: var(--sailor-space-8);
 }
 
 .agent-chat-view--empty-thread .agent-chat-view__messages {
   justify-content: center;
   align-items: center;
-  padding-bottom: 18vh;
+  padding-bottom: 16vh;
 }
 
 .agent-chat-view__prompt-stage {
@@ -440,7 +443,7 @@ async function scrollMessagesToBottom() {
 
 .agent-chat-view__message-list {
   display: flex;
-  width: min(100%, 760px);
+  width: min(100%, 820px);
   flex-direction: column;
   gap: var(--sailor-space-5);
   margin: 0 auto;
@@ -448,7 +451,7 @@ async function scrollMessagesToBottom() {
 
 .agent-chat-view__message {
   display: grid;
-  max-width: min(680px, 92%);
+  max-width: min(700px, 92%);
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--sailor-space-1) var(--sailor-space-2);
 }
@@ -505,7 +508,7 @@ async function scrollMessagesToBottom() {
 .agent-chat-view__typing-dots {
   grid-column: 2;
   margin: 0;
-  color: #344054;
+  color: #475467;
   font-size: var(--sailor-text-sm);
   line-height: 1.55;
   white-space: pre-wrap;
@@ -514,10 +517,10 @@ async function scrollMessagesToBottom() {
 .agent-chat-view__message--user p {
   grid-column: 1;
   border-radius: var(--sailor-radius-lg);
-  background: #ffffff;
-  padding: var(--sailor-space-3);
+  background: transparent;
+  padding: 0;
   color: #0b1220;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  box-shadow: none;
 }
 
 .agent-chat-view__waiting {
