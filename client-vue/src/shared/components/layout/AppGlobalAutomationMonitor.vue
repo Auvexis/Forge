@@ -49,17 +49,14 @@
             @click="selectWorkflow(workflow)"
           >
             <span class="gam-workflow__copy">
-              <strong>{{ workflow.name }}</strong>
+              <span class="gam-workflow__title">
+                <strong>{{ workflow.name }}</strong>
+                <BaseBadge variant="outline" size="sm" :text="triggerLabel(workflow.triggerType)" />
+              </span>
               <small>
                 <span>{{ workflow.profileName ?? workflow.profileId ?? 'Global' }}</span>
                 <span>{{ workflowRunLabel(workflow) }}</span>
               </small>
-            </span>
-            <span class="gam-workflow__badges">
-              <code>{{ triggerLabel(workflow.triggerType) }}</code>
-              <span :class="`gam-workflow__state gam-workflow__state--${workflowState(workflow)}`">
-                {{ workflow.lastExecution ? execLabel(workflow.lastExecution.status) : 'No runs' }}
-              </span>
             </span>
           </BaseButton>
         </div>
@@ -185,6 +182,7 @@ export function toggleAutomationMonitor() {
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, watch } from 'vue'
+import BaseBadge from '@/shared/components/base/BaseBadge.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
@@ -426,15 +424,10 @@ function execLabel(status: string): string {
   return labels[status] ?? status
 }
 
-function workflowState(workflow: ProductionWorkflowStatus): 'running' | 'success' | 'failed' | 'idle' {
-  if (workflow.lastExecution?.status === 'RUNNING') return 'running'
-  if (workflow.lastExecution?.status === 'SUCCESS') return 'success'
-  if (workflow.lastExecution?.status === 'FAILED' || workflow.lastExecution?.status === 'ERROR') return 'failed'
-  return 'idle'
-}
-
 function workflowRunLabel(workflow: ProductionWorkflowStatus): string {
-  if (!workflow.lastExecution) return workflow.publishedAt ? `Published ${formatDate(workflow.publishedAt)}` : 'Published'
+  if (!workflow.lastExecution) {
+    return `${workflow.publishedAt ? `Published ${formatDate(workflow.publishedAt)}` : 'Published'} / No runs`
+  }
   return `Last run ${formatTime(workflow.lastExecution.startTime)}`
 }
 
@@ -639,7 +632,7 @@ onUnmounted(() => {
   display: grid;
   width: 100%;
   min-width: 0;
-  grid-template-columns: minmax(0, 1fr) max-content;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: var(--sailor-space-2);
   padding: var(--sailor-space-3);
@@ -675,7 +668,22 @@ onUnmounted(() => {
   gap: var(--sailor-space-1);
 }
 
+.gam-workflow__title {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  min-width: 0;
+}
+
+.gam-workflow__title :deep(.base-badge) {
+  flex: 0 0 auto;
+  height: 18px;
+  padding-inline: var(--sailor-space-2);
+  font-size: 10px;
+}
+
 .gam-workflow__copy strong {
+  min-width: 0;
   font-size: var(--sailor-text-sm);
   font-weight: var(--sailor-font-semibold);
 }
@@ -698,42 +706,10 @@ onUnmounted(() => {
   color: var(--sailor-border-strong);
 }
 
-.gam-workflow__badges {
-  display: grid;
-  justify-items: end;
-  gap: var(--sailor-space-1);
-}
-
-.gam-workflow code,
 .gam-event code {
   color: var(--sailor-text-muted);
   font-family: var(--sailor-font-mono);
   font-size: 10px;
-}
-
-.gam-workflow__state {
-  max-width: 80px;
-  overflow: hidden;
-  padding: 2px 7px;
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-bg-base);
-  color: var(--sailor-text-muted);
-  font-size: 10px;
-  line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.gam-workflow__state--running {
-  color: var(--sailor-amber-400);
-}
-
-.gam-workflow__state--success {
-  color: var(--sailor-green-400);
-}
-
-.gam-workflow__state--failed {
-  color: var(--sailor-red-400);
 }
 
 .gam-main {
