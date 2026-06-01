@@ -38,36 +38,6 @@
           </div>
         </header>
 
-        <div class="gam-profile">
-          <BaseDropdownSelect
-            v-model="selectedProfileValue"
-            :options="profileSelectOptions"
-            direction="down"
-            icon-left="user-round"
-            trigger-class="gam-profile-trigger"
-            menu-class="gam-profile-menu"
-          />
-        </div>
-
-        <div class="gam-sidebar-metrics" aria-label="Automation runtime summary">
-          <div class="gam-metric">
-            <span>Running</span>
-            <strong>{{ runningCount }}</strong>
-          </div>
-          <div class="gam-metric">
-            <span>Failed</span>
-            <strong>{{ failedCount }}</strong>
-          </div>
-          <div class="gam-metric">
-            <span>Published</span>
-            <strong>{{ filteredWorkflows.length }}</strong>
-          </div>
-        </div>
-
-        <div class="gam-tools">
-          <span>Live status refreshes automatically.</span>
-        </div>
-
         <div class="gam-workflow-list">
           <BaseButton
             v-for="workflow in filteredWorkflows"
@@ -92,14 +62,33 @@
 
       <main class="gam-main">
         <header class="gam-main-header">
-          <div>
-            <span class="gam-eyebrow">Realtime workflow view</span>
+          <div class="gam-main-title">
+            <div class="gam-main-eyebrow-row">
+              <span class="gam-eyebrow">Realtime workflow view</span>
+              <BaseDropdownSelect
+                v-model="selectedProfileValue"
+                :options="profileSelectOptions"
+                direction="down"
+                icon-left="user-round"
+                trigger-class="gam-profile-trigger"
+                menu-class="gam-profile-menu"
+              />
+            </div>
             <h2>{{ selectedWorkflow?.name ?? 'Select a workflow' }}</h2>
           </div>
-          <div v-if="selectedWorkflow" class="gam-main-meta">
-            <span>{{ selectedWorkflow.profileName ?? selectedWorkflow.profileId ?? 'Global' }}</span>
-            <span>{{ triggerLabel(selectedWorkflow.triggerType) }}</span>
-            <span>{{ selectedWorkflow.lastExecution ? execLabel(selectedWorkflow.lastExecution.status) : 'No runs' }}</span>
+          <div class="gam-main-meta" aria-label="Automation runtime summary">
+            <span>
+              <small>Running</small>
+              <strong>{{ runningCount }}</strong>
+            </span>
+            <span>
+              <small>Failed</small>
+              <strong>{{ failedCount }}</strong>
+            </span>
+            <span>
+              <small>Published</small>
+              <strong>{{ filteredWorkflows.length }}</strong>
+            </span>
           </div>
         </header>
 
@@ -591,17 +580,8 @@ onUnmounted(() => {
   color: var(--sailor-text-muted);
 }
 
-.gam-profile {
-  padding: var(--sailor-space-3) var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border-muted);
-}
-
-.gam-profile :deep(.base-dropdown-select) {
-  width: 100%;
-}
-
 .gam-profile-trigger {
-  width: 100%;
+  width: 150px;
   height: 34px;
   justify-content: flex-start;
   border-radius: var(--sailor-radius-full);
@@ -613,47 +593,11 @@ onUnmounted(() => {
   text-align: left;
 }
 
-.gam-sidebar-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-3) var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border-muted);
-}
-
-.gam-metric {
-  min-width: 0;
-  border: 0;
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-base);
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-}
-
-.gam-sidebar-metrics span,
 .gam-main-meta,
 .gam-workflow small,
 .gam-event small {
   color: var(--sailor-text-muted);
   font-size: var(--sailor-text-xs);
-}
-
-.gam-sidebar-metrics strong {
-  display: block;
-  margin-top: var(--sailor-space-1);
-  font-family: var(--sailor-font-mono);
-  font-size: var(--sailor-text-lg);
-  font-weight: var(--sailor-font-semibold);
-}
-
-.gam-tools {
-  padding: var(--sailor-space-3) var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border-muted);
-}
-
-.gam-tools span {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
-  line-height: 1.4;
 }
 
 .gam-workflow-list {
@@ -747,6 +691,19 @@ onUnmounted(() => {
   background: var(--sailor-bg-surface);
 }
 
+.gam-main-title {
+  display: grid;
+  min-width: 0;
+  gap: var(--sailor-space-1);
+}
+
+.gam-main-eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  min-width: 0;
+}
+
 .gam-main-meta {
   display: flex;
   flex-wrap: wrap;
@@ -755,10 +712,27 @@ onUnmounted(() => {
 }
 
 .gam-main-meta span {
-  padding: 4px 9px;
-  border: 1px solid var(--sailor-border);
+  display: grid;
+  min-width: 74px;
+  gap: 1px;
+  padding: 4px 10px;
+  border: 0;
   border-radius: var(--sailor-radius-full);
   background: var(--sailor-bg-base);
+}
+
+.gam-main-meta small {
+  color: var(--sailor-text-muted);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.gam-main-meta strong {
+  color: var(--sailor-text-primary);
+  font-family: var(--sailor-font-mono);
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
+  line-height: 1.1;
 }
 
 .gam-empty {
@@ -947,9 +921,6 @@ onUnmounted(() => {
 
 .gam-sidebar--collapsed .gam-eyebrow,
 .gam-sidebar--collapsed .gam-title strong,
-.gam-sidebar--collapsed .gam-profile,
-.gam-sidebar--collapsed .gam-sidebar-metrics,
-.gam-sidebar--collapsed .gam-tools,
 .gam-sidebar--collapsed .gam-workflow-list {
   display: none;
 }
@@ -967,8 +938,19 @@ onUnmounted(() => {
     grid-template-columns: 72px minmax(0, 1fr);
   }
 
-  .gam-sidebar-metrics {
-    grid-template-columns: 1fr;
+  .gam-main-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-block: var(--sailor-space-3);
+  }
+
+  .gam-main-meta {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .gam-profile-trigger {
+    width: 136px;
   }
 
   .gam-event-row :deep(.base-button__label) {

@@ -36,7 +36,7 @@ describe('global automation monitor shell', () => {
     const source = readFileSync(monitorPath, 'utf8')
 
     assert.match(source, /gam-sidebar/)
-    assert.match(source, /gam-sidebar-metrics/)
+    assert.match(source, /gam-main-meta/)
     assert.match(source, /gam-main/)
     assert.match(source, /triggerTabs/)
     assert.match(source, /activeTriggerEvents/)
