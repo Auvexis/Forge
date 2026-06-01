@@ -1,6 +1,10 @@
 <template>
   <BaseModal :is-open="ui.isOpen" max-width="1320px" height="82vh" @close="ui.close">
-    <section class="global-agent-panel" aria-label="Global agent panel">
+    <section
+      class="global-agent-panel"
+      :class="{ 'global-agent-panel--collapsed': agentStore.directoryCollapsed }"
+      aria-label="Global agent panel"
+    >
       <AgentDirectoryList />
       <AgentChatView />
     </section>
@@ -33,7 +37,7 @@ watch(
     workflowStore.activeWorkflow?.metadata.updatedAt,
   ] as const,
   ([isOpen]) => {
-    if (isOpen) void agentStore.loadAgents('global')
+    if (isOpen) void agentStore.loadAgents(agentStore.agentScope)
   },
   { immediate: true },
 )
@@ -47,10 +51,19 @@ watch(
   height: 100%;
   overflow: hidden;
   background: var(--sailor-bg-base);
+  transition: grid-template-columns var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+
+.global-agent-panel--collapsed {
+  grid-template-columns: 72px minmax(0, 1fr);
 }
 
 @media (max-width: 820px) {
   .global-agent-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .global-agent-panel--collapsed {
     grid-template-columns: minmax(0, 1fr);
   }
 }

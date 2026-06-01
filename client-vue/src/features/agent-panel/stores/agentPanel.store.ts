@@ -10,6 +10,8 @@ import type {
   PublishedAgentSummary,
 } from '@/features/agent-panel/types/agent-panel.types'
 
+type AgentPanelScope = 'current' | 'global'
+
 export const useAgentPanelStore = defineStore('agent-panel', () => {
   const agents = ref<PublishedAgentSummary[]>([])
   const sessions = ref<AgentChatSession[]>([])
@@ -23,10 +25,26 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   const directoryError = ref('')
   const chatError = ref('')
   const activeAssistantStreamId = ref('')
+  const agentScope = ref<AgentPanelScope>('global')
+  const agentSearch = ref('')
+  const directoryCollapsed = ref(false)
 
   const selectedAgent = computed(
     () => agents.value.find((agent) => agent.key === selectedAgentKey.value) ?? null,
   )
+  const filteredAgents = computed(() => {
+    const query = agentSearch.value.trim().toLowerCase()
+    if (!query) return agents.value
+    return agents.value.filter((agent) =>
+      [
+        agent.name,
+        agent.workflowName,
+        agent.profileId,
+        agent.chatTitle,
+        agent.chatSlug,
+      ].some((value) => value.toLowerCase().includes(query)),
+    )
+  })
   const selectedSession = computed(
     () => sessions.value.find((session) => session.id === selectedSessionId.value) ?? null,
   )
@@ -37,14 +55,17 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     if (error.value && error.value !== directoryError.value) error.value = ''
   }
 
-  async function loadAgents(scope: 'current' | 'global' = 'current') {
+  async function loadAgents(scope: AgentPanelScope = agentScope.value) {
     loading.value = true
     error.value = ''
     directoryError.value = ''
     clearChatError()
+    agentScope.value = scope
     try {
       agents.value = await agentPanelApi.listAgents(scope)
-      selectedAgentKey.value = selectedAgentKey.value || agents.value[0]?.key || ''
+      selectedAgentKey.value = agents.value.some((agent) => agent.key === selectedAgentKey.value)
+        ? selectedAgentKey.value
+        : agents.value[0]?.key || ''
     } catch (err) {
       directoryError.value = err instanceof Error ? err.message : 'Failed to load agents'
       error.value = directoryError.value
@@ -105,6 +126,15 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   }
 
   const createSession = openDraftSession
+
+  async function setAgentScope(scope: AgentPanelScope) {
+    if (agentScope.value === scope && agents.value.length) return
+    await loadAgents(scope)
+  }
+
+  function toggleDirectoryCollapsed() {
+    directoryCollapsed.value = !directoryCollapsed.value
+  }
 
   async function deleteSession(
     sessionId: string,
@@ -443,6 +473,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
   return {
     agents,
+    filteredAgents,
     sessions,
     messages,
     selectedAgentKey,
@@ -453,10 +484,14 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     error,
     directoryError,
     chatError,
+    agentScope,
+    agentSearch,
+    directoryCollapsed,
     selectedAgent,
     selectedSession,
     hasOpenChat,
     loadAgents,
+    setAgentScope,
     selectAgent,
     loadSessions,
     selectSession,
@@ -464,6 +499,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     openDraftSession,
     createSession,
     deleteSession,
+    toggleDirectoryCollapsed,
     appendPendingAssistantMessage,
     appendOptimisticUserMessage,
     appendStreamingAssistantMessage,
