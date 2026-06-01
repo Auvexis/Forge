@@ -5,8 +5,8 @@
     height="86vh"
     @close="isAutomationMonitorOpen = false"
   >
-    <section class="gam-shell">
-      <aside class="gam-sidebar">
+    <section class="gam-shell" :class="{ 'gam-shell--sidebar-collapsed': sidebarCollapsed }">
+      <aside class="gam-sidebar" :class="{ 'gam-sidebar--collapsed': sidebarCollapsed }">
         <header class="gam-header">
           <div class="gam-title">
             <span class="gam-header-icon">
@@ -15,15 +15,27 @@
             <span class="gam-eyebrow">Monitoring</span>
             <strong>Automations</strong>
           </div>
-          <BaseButton
-            class="gam-icon-btn"
-            type="button"
-            size="icon"
-            variant="ghost"
-            icon-left="x"
-            title="Close"
-            @click="isAutomationMonitorOpen = false"
-          />
+          <div class="gam-header-actions">
+            <BaseButton
+              class="gam-icon-btn"
+              type="button"
+              size="icon"
+              variant="ghost"
+              icon-left="refresh-cw"
+              :disabled="loading"
+              title="Refresh"
+              @click="refreshLiveData"
+            />
+            <BaseButton
+              class="gam-icon-btn"
+              type="button"
+              size="icon"
+              variant="ghost"
+              :icon-left="sidebarCollapsed ? 'panel-right' : 'panel-left'"
+              :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+              @click="sidebarCollapsed = !sidebarCollapsed"
+            />
+          </div>
         </header>
 
         <div class="gam-profile">
@@ -53,17 +65,7 @@
         </div>
 
         <div class="gam-tools">
-          <BaseButton
-            class="gam-tool-btn"
-            type="button"
-            variant="outline"
-            size="sm"
-            :disabled="loading"
-            icon-left="refresh-cw"
-            @click="refreshLiveData"
-          >
-            Refresh
-          </BaseButton>
+          <span>Live status refreshes automatically.</span>
         </div>
 
         <div class="gam-workflow-list">
@@ -212,6 +214,7 @@ interface RuntimeEvent {
 const toast = useToast()
 const profileStore = useProfileStore()
 const loading = ref(false)
+const sidebarCollapsed = ref(false)
 const workflows = ref<ProductionWorkflowStatus[]>([])
 const selectedProfileId = ref<string | null>(null)
 const selectedWorkflowKey = ref<string | null>(null)
@@ -221,6 +224,10 @@ const expandedEventIds = ref(new Set<string>())
 
 const profileNameById = computed(() =>
   Object.fromEntries(profileStore.profiles.map((profile) => [profile.id, profile.name])),
+)
+
+const profileAvatarById = computed(() =>
+  Object.fromEntries(profileStore.profiles.map((profile) => [profile.id, profile.avatarEmoji])),
 )
 
 const enrichedWorkflows = computed(() =>
@@ -238,11 +245,6 @@ const filteredWorkflows = computed(() => {
 const selectedWorkflow = computed(() =>
   filteredWorkflows.value.find((workflow) => workflowKey(workflow) === selectedWorkflowKey.value) ?? null,
 )
-
-const selectedProfileLabel = computed(() => {
-  if (!selectedProfileId.value) return 'Global'
-  return profileNameById.value[selectedProfileId.value] ?? selectedProfileId.value
-})
 
 const selectedProfileValue = computed({
   get: () => selectedProfileId.value ?? 'global',
@@ -273,7 +275,7 @@ const profileSelectOptions = computed<BaseDropdownSelectOption[]>(() =>
     label: profile.label,
     shortLabel: profile.label,
     description: `${profile.count} published`,
-    meta: profile.id ? 'P' : 'G',
+    meta: profile.id ? profileAvatarById.value[profile.id] ?? 'P' : 'G',
   })),
 )
 
@@ -421,6 +423,7 @@ function triggerLabel(type: ProductionWorkflowStatus['triggerType']): string {
     plugin: 'Plugin',
     form: 'Form',
     'webhook-form': 'Form',
+    chat: 'Chat',
     subworkflow: 'Sub-workflow',
   }
   return labels[type] ?? type
@@ -498,6 +501,11 @@ onUnmounted(() => {
   border-radius: var(--sailor-radius-xl);
   background: var(--sailor-bg-surface);
   color: var(--sailor-text-primary);
+  transition: grid-template-columns var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+
+.gam-shell--sidebar-collapsed {
+  grid-template-columns: 76px minmax(0, 1fr);
 }
 
 .gam-sidebar {
@@ -507,6 +515,11 @@ onUnmounted(() => {
   min-width: 0;
   border-right: 1px solid var(--sailor-border);
   background: color-mix(in srgb, var(--sailor-bg-surface) 82%, var(--sailor-bg-base));
+  transition: background var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+
+.gam-sidebar--collapsed {
+  overflow: hidden;
 }
 
 .gam-header,
@@ -534,10 +547,16 @@ onUnmounted(() => {
   height: 34px;
   grid-row: 1 / span 2;
   place-items: center;
-  border: 1px solid var(--sailor-border);
+  border: 0;
   border-radius: var(--sailor-radius-full);
   background: var(--sailor-bg-base);
   color: var(--sailor-text-primary);
+}
+
+.gam-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-1);
 }
 
 .gam-header strong,
@@ -604,10 +623,10 @@ onUnmounted(() => {
 
 .gam-metric {
   min-width: 0;
-  border: 1px solid var(--sailor-border);
+  border: 0;
   border-radius: var(--sailor-radius-md);
   background: var(--sailor-bg-base);
-  padding: var(--sailor-space-3);
+  padding: var(--sailor-space-2) var(--sailor-space-3);
 }
 
 .gam-sidebar-metrics span,
@@ -631,17 +650,10 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--sailor-border-muted);
 }
 
-.gam-tool-btn {
-  width: 100%;
-  border-radius: var(--sailor-radius-full);
-}
-
-.gam-tool-btn :deep(svg) {
-  transition: transform var(--sailor-duration-base) var(--sailor-ease-standard);
-}
-
-.gam-tool-btn:disabled :deep(svg) {
-  animation: gam-spin 800ms linear infinite;
+.gam-tools span {
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+  line-height: 1.4;
 }
 
 .gam-workflow-list {
@@ -800,20 +812,20 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: var(--sailor-space-5);
+  padding: var(--sailor-space-3) var(--sailor-space-5);
 }
 
 .gam-timeline {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--sailor-space-1);
 }
 
 .gam-event {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
+  border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-base);
   overflow: hidden;
 }
@@ -821,7 +833,7 @@ onUnmounted(() => {
 .gam-event-row {
   width: 100%;
   height: auto;
-  min-height: 44px;
+  min-height: 36px;
   justify-content: stretch;
   border-radius: 0;
   padding: 0;
@@ -833,8 +845,8 @@ onUnmounted(() => {
   min-width: 0;
   grid-template-columns: 14px 12px minmax(0, 1fr) minmax(96px, auto) minmax(0, 240px);
   align-items: center;
-  gap: var(--sailor-space-3);
-  padding: var(--sailor-space-3);
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-2) var(--sailor-space-3);
   text-align: left;
 }
 
@@ -866,7 +878,7 @@ onUnmounted(() => {
 }
 
 .gam-event-detail {
-  padding: var(--sailor-space-3) var(--sailor-space-4) var(--sailor-space-4) 54px;
+  padding: var(--sailor-space-3) var(--sailor-space-4) var(--sailor-space-4) 48px;
   border-top: 1px solid var(--sailor-border-muted);
   background: var(--sailor-bg-surface);
 }
@@ -917,9 +929,42 @@ onUnmounted(() => {
   }
 }
 
+.gam-sidebar--collapsed .gam-header {
+  min-height: 100%;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: var(--sailor-space-4) var(--sailor-space-3);
+}
+
+.gam-sidebar--collapsed .gam-title {
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
+.gam-sidebar--collapsed .gam-header-icon {
+  grid-row: auto;
+}
+
+.gam-sidebar--collapsed .gam-eyebrow,
+.gam-sidebar--collapsed .gam-title strong,
+.gam-sidebar--collapsed .gam-profile,
+.gam-sidebar--collapsed .gam-sidebar-metrics,
+.gam-sidebar--collapsed .gam-tools,
+.gam-sidebar--collapsed .gam-workflow-list {
+  display: none;
+}
+
+.gam-sidebar--collapsed .gam-header-actions {
+  flex-direction: column;
+}
+
 @media (max-width: 880px) {
   .gam-shell {
     grid-template-columns: minmax(240px, 34vw) minmax(0, 1fr);
+  }
+
+  .gam-shell--sidebar-collapsed {
+    grid-template-columns: 72px minmax(0, 1fr);
   }
 
   .gam-sidebar-metrics {

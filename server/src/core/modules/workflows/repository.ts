@@ -1,4 +1,5 @@
 import { DatabaseManager } from "../../database/index.ts";
+import { listTriggerEntries } from "./workflow-triggers.ts";
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 import type Database from "better-sqlite3";
 
@@ -170,10 +171,12 @@ export const WorkflowRepository = {
 
     return rows.map((row) => {
       const def = JSON.parse(row.definition) as WorkflowItem;
+      const triggerEntries = listTriggerEntries(def);
+      const primaryTrigger = triggerEntries.find((entry) => !entry.disabled) ?? triggerEntries[0];
       return {
         id: row.id as string,
         name: row.name as string,
-        triggerType: def.trigger.type,
+        triggerType: primaryTrigger?.trigger.type ?? def.trigger.type,
         publishedAt: row.published_at as string | null,
         lastExecution: row.exec_id
           ? {
