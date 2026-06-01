@@ -33,14 +33,14 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 
 ### 0. Preparacao
 
-- [ ] Mapear fluxo atual completo: `agent-graph-builder`, `plugin-tool-executor`, `PluginExecutor`, sanitizacao de eventos e Global Agent Chat.
-- [ ] Separar escopo em 4 blocos: Binary Ref Pipeline, Multi-step no Global Agent Chat, Waiting-user simples e Loop Guard/parada inteligente.
+- [x] Mapear fluxo atual completo: `agent-graph-builder`, `plugin-tool-executor`, `PluginExecutor`, sanitizacao de eventos e Global Agent Chat.
+- [x] Separar escopo em 4 blocos: Binary Ref Pipeline, Multi-step no Global Agent Chat, Waiting-user simples e Loop Guard/parada inteligente.
 
 ### 1. Binary Ref Pipeline
 
-- [ ] Criar testes falhando para sanitizar resultado pesado antes de enviar para LLM.
-- [ ] Criar tipo utilitario `AgentBinaryRef` e store temporario no runtime do agente.
-- [ ] Implementar sanitizacao de tool result: Buffer, Readable, base64 grande e objetos grandes viram ref + metadata.
+- [x] Criar testes falhando para sanitizar resultado pesado antes de enviar para LLM.
+- [x] Criar tipo utilitario `AgentBinaryRef` e store temporario no runtime do agente.
+- [x] Implementar sanitizacao de tool result: Buffer, Readable, base64 grande e objetos grandes viram ref + metadata.
 - [ ] Garantir que `stringifyToolResult` envie para a LLM apenas payload leve.
 - [ ] Criar testes falhando para resolver ref em args antes de executar proxima tool.
 - [ ] Implementar resolucao recursiva de refs nos argumentos da tool.

@@ -170,6 +170,46 @@ describe("agent graph builder", () => {
     assert.equal(Object.hasOwn(toolMessage ?? {}, "toolCallId"), false);
   });
 
+  it("sends binary tool results to the model as lightweight refs", async () => {
+    const toolCalls = [{ id: "call_1", name: "download", args: { fileId: "video_1" } }];
+    const file = Buffer.from("video");
+    const tool = fakeTool("download", async () => ({
+      download: {
+        fileName: "video.mp4",
+        mimeType: "video/mp4",
+        content: file,
+      },
+    }));
+    const model = fakeModel([
+      { content: "", toolCalls },
+      { content: "uploaded" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+    });
+
+    await graph.invoke({ userMessage: "download video" });
+
+    const secondModelCall = model.calls[1] as Array<Record<string, unknown>>;
+    const toolMessage = secondModelCall.find((message) => message.role === "tool");
+    const toolContent = JSON.parse(String(toolMessage?.content));
+
+    assert.deepEqual(toolContent, {
+      download: {
+        fileName: "video.mp4",
+        mimeType: "video/mp4",
+        content: {
+          type: "Buffer",
+          ref: "agent-ref://call_1/download/content",
+          size: 5,
+          mimeType: "video/mp4",
+        },
+      },
+    });
+  });
+
   it("can stop after tool execution without asking the model for a final answer", async () => {
     const toolCalls = [{ id: "call_1", name: "send_message", args: { text: "done" } }];
     const tool = fakeTool("send_message", async (args) => ({ sent: true, args }));

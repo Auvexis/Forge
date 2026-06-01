@@ -1,4 +1,5 @@
 import { Ajv } from "ajv/dist/ajv.js";
+import { AgentBinaryRefStore } from "./agent-binary-ref-store.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import type {
   AgentEventType,
@@ -81,6 +82,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
   return {
     checkpointer: input.checkpointer,
     async invoke(invokeInput: AgentGraphInvokeInput): Promise<AgentRunResult> {
+      const binaryRefs = new AgentBinaryRefStore();
       const messages: AgentGraphMessage[] = [
         { role: "system", content: systemPromptForAgent(input.agent) },
         ...(invokeInput.contextMessages ?? []),
@@ -189,7 +191,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             role: "tool",
             name: tool.name,
             tool_call_id: toolCall.id,
-            content: stringifyToolResult(result),
+            content: stringifyToolResult(sanitizeToolResultForModel(result, toolCall.id, binaryRefs)),
           });
         }
 
@@ -590,6 +592,60 @@ function normalizeJsonOutputContent(content: string): string {
   const trimmed = content.trim();
   const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
   return (fenced?.[1] ?? trimmed).trim();
+}
+
+function sanitizeToolResultForModel(
+  value: unknown,
+  toolCallId: string,
+  binaryRefs: AgentBinaryRefStore,
+  path: string[] = [],
+  inheritedMimeType?: string,
+): unknown {
+  if (Buffer.isBuffer(value)) {
+    return binaryRefs.put({
+      toolCallId,
+      path: path.join("/"),
+      type: "Buffer",
+      value,
+      size: value.length,
+      mimeType: inheritedMimeType,
+    });
+  }
+
+  if (isReadableLike(value)) {
+    return binaryRefs.put({
+      toolCallId,
+      path: path.join("/"),
+      type: "Readable",
+      value,
+      mimeType: inheritedMimeType,
+    });
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item, index) =>
+      sanitizeToolResultForModel(item, toolCallId, binaryRefs, [...path, String(index)], inheritedMimeType)
+    );
+  }
+
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const mimeType = typeof record.mimeType === "string" ? record.mimeType : inheritedMimeType;
+    return Object.fromEntries(
+      Object.entries(record).map(([key, item]) => [
+        key,
+        sanitizeToolResultForModel(item, toolCallId, binaryRefs, [...path, key], mimeType),
+      ]),
+    );
+  }
+
+  return value;
+}
+
+function isReadableLike(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as { pipe?: unknown; on?: unknown };
+  return typeof candidate.pipe === "function" && typeof candidate.on === "function";
 }
 
 function stringifyToolResult(value: unknown): string {
