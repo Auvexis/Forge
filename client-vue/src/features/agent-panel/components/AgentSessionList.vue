@@ -70,27 +70,35 @@
                 class="agent-session-list__more"
                 title="Chat actions"
                 icon-left="ellipsis"
-                @click.stop="toggleSessionMenu(session.id)"
+                @click.stop="toggleSessionMenu(session.id, $event)"
               />
-              <Transition name="agent-session-menu">
-                <div v-if="openMenuSessionId === session.id" class="agent-session-list__menu" role="menu">
-                  <BaseButton
-                    type="button"
-                    size="sm"
-                    variant="danger"
-                    icon-left="trash-2"
-                    full-width
-                    @click="deleteSession(session.id)"
-                  >
-                    Delete chat
-                  </BaseButton>
-                </div>
-              </Transition>
             </div>
           </TransitionGroup>
         </Transition>
       </section>
     </div>
+
+    <Teleport to="body">
+      <Transition name="agent-session-menu">
+        <div
+          v-if="openMenuSession"
+          class="agent-session-list__menu"
+          :style="menuStyle"
+          role="menu"
+        >
+          <BaseButton
+            type="button"
+            size="sm"
+            variant="danger"
+            icon-left="trash-2"
+            full-width
+            @click="deleteSession(openMenuSession.id)"
+          >
+            Delete chat
+          </BaseButton>
+        </div>
+      </Transition>
+    </Teleport>
   </aside>
 </template>
 
@@ -104,6 +112,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 const store = useAgentPanelStore()
 const sessionSearch = ref('')
 const openMenuSessionId = ref('')
+const menuAnchorRect = ref<DOMRect | null>(null)
 const collapsedGroups = ref(new Set<string>())
 const filteredSessions = computed(() => {
   const query = sessionSearch.value.trim().toLowerCase()
@@ -124,6 +133,17 @@ const sessionGroups = computed(() => {
   }
   return Array.from(groups.values())
 })
+const openMenuSession = computed(() =>
+  store.sessions.find((session) => session.id === openMenuSessionId.value) ?? null,
+)
+const menuStyle = computed(() => {
+  const rect = menuAnchorRect.value
+  if (!rect) return {}
+  return {
+    left: `${Math.max(8, rect.right - 136)}px`,
+    top: `${Math.max(8, rect.top - 44)}px`,
+  }
+})
 
 function toggleGroup(key: string) {
   const next = new Set(collapsedGroups.value)
@@ -132,8 +152,16 @@ function toggleGroup(key: string) {
   collapsedGroups.value = next
 }
 
-function toggleSessionMenu(sessionId: string) {
-  openMenuSessionId.value = openMenuSessionId.value === sessionId ? '' : sessionId
+function toggleSessionMenu(sessionId: string, event: MouseEvent) {
+  if (openMenuSessionId.value === sessionId) {
+    openMenuSessionId.value = ''
+    menuAnchorRect.value = null
+    return
+  }
+
+  const target = event.currentTarget as HTMLElement | null
+  menuAnchorRect.value = target?.getBoundingClientRect() ?? null
+  openMenuSessionId.value = sessionId
 }
 
 async function deleteSession(sessionId: string) {
@@ -307,10 +335,8 @@ async function deleteSession(sessionId: string) {
 }
 
 .agent-session-list__menu {
-  position: absolute;
-  right: 4px;
-  bottom: calc(100% + var(--sailor-space-1));
-  z-index: var(--sailor-z-overlay);
+  position: fixed;
+  z-index: 99999;
   width: 136px;
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-md);
