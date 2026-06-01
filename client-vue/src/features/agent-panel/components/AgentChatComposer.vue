@@ -16,45 +16,14 @@
       <BaseButton type="button" class="agent-chat-composer__utility" variant="outline" size="sm" icon-left="paperclip">
         Attach
       </BaseButton>
-      <div ref="languagePickerRef" class="agent-chat-composer__language-picker">
-        <BaseButton
-          type="button"
-          class="agent-chat-composer__language-trigger"
-          variant="outline"
-          size="sm"
-          icon-left="languages"
-          :icon-right="languageMenuOpen ? 'chevron-down' : 'chevron-up'"
-          :title="`Speech language: ${selectedSpeechLanguage.label}`"
-          @click="toggleLanguageMenu"
-        >
-          {{ selectedSpeechLanguage.shortLabel }}
-        </BaseButton>
-
-        <Transition name="agent-language-menu">
-          <div
-            v-if="languageMenuOpen"
-            class="agent-chat-composer__language-menu"
-            role="menu"
-          >
-            <BaseButton
-              v-for="language in speechLanguages"
-              :key="language.value"
-              type="button"
-              class="agent-chat-composer__language-option"
-              :class="{ 'agent-chat-composer__language-option--active': language.value === speechLanguage }"
-              variant="ghost"
-              full-width
-              @click="selectSpeechLanguage(language.value)"
-            >
-              <span>{{ language.flag }}</span>
-              <span>
-                <strong>{{ language.label }}</strong>
-                <small>{{ language.value }}</small>
-              </span>
-            </BaseButton>
-          </div>
-        </Transition>
-      </div>
+      <BaseDropdownSelect
+        v-model="speechLanguage"
+        :options="speechLanguages"
+        icon-left="languages"
+        trigger-class="agent-chat-composer__language-trigger"
+        :title="`Speech language: ${selectedSpeechLanguage.label}`"
+        @update:model-value="stopSpeechRecognition"
+      />
       <BaseButton
         type="button"
         class="agent-chat-composer__utility"
@@ -83,8 +52,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
 import { useLocalStorage } from '@/shared/composables/useLocalStorage'
 
 withDefaults(
@@ -103,33 +73,24 @@ const emit = defineEmits<{
 
 const draft = ref('')
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
-const languagePickerRef = ref<HTMLElement | null>(null)
 const isListening = ref(false)
-const languageMenuOpen = ref(false)
 const speechSupported = computed(() => getSpeechRecognitionCtor() !== null)
-const speechLanguage = useLocalStorage('sailor:agent-chat:speech-language', 'pt-BR')
+const speechLanguage = useLocalStorage('sailor:agent-chat:speech-language', 'en-US')
 let activeRecognition: BrowserSpeechRecognition | null = null
 let keepRecognitionAlive = false
 let speechBaseDraft = ''
 let speechFinalTranscript = ''
 
-type SpeechLanguage = {
-  value: string
-  shortLabel: string
-  label: string
-  flag: string
-}
-
-const defaultSpeechLanguage: SpeechLanguage = { value: 'pt-BR', shortLabel: 'PT-BR', label: 'Português Brasil', flag: 'BR' }
-const speechLanguages: SpeechLanguage[] = [
+const defaultSpeechLanguage: BaseDropdownSelectOption = { value: 'en-US', shortLabel: 'EN-US', label: 'English US', meta: 'US' }
+const speechLanguages: BaseDropdownSelectOption[] = [
   defaultSpeechLanguage,
-  { value: 'en-US', shortLabel: 'EN-US', label: 'English US', flag: 'US' },
-  { value: 'es-ES', shortLabel: 'ES', label: 'Español', flag: 'ES' },
-  { value: 'fr-FR', shortLabel: 'FR', label: 'Français', flag: 'FR' },
-  { value: 'de-DE', shortLabel: 'DE', label: 'Deutsch', flag: 'DE' },
-  { value: 'it-IT', shortLabel: 'IT', label: 'Italiano', flag: 'IT' },
-  { value: 'ja-JP', shortLabel: 'JA', label: '日本語', flag: 'JP' },
-  { value: 'zh-CN', shortLabel: 'ZH', label: '中文', flag: 'CN' },
+  { value: 'pt-BR', shortLabel: 'PT-BR', label: 'Portuguese Brazil', meta: 'BR' },
+  { value: 'es-ES', shortLabel: 'ES', label: 'Spanish', meta: 'ES' },
+  { value: 'fr-FR', shortLabel: 'FR', label: 'French', meta: 'FR' },
+  { value: 'de-DE', shortLabel: 'DE', label: 'German', meta: 'DE' },
+  { value: 'it-IT', shortLabel: 'IT', label: 'Italian', meta: 'IT' },
+  { value: 'ja-JP', shortLabel: 'JA', label: 'Japanese', meta: 'JP' },
+  { value: 'zh-CN', shortLabel: 'ZH', label: 'Chinese Mandarin', meta: 'CN' },
 ]
 
 const selectedSpeechLanguage = computed(() =>
@@ -240,22 +201,10 @@ function setTranscriptPreview(interimTranscript = '') {
   void nextTick(resizeTextarea)
 }
 
-function toggleLanguageMenu() {
-  languageMenuOpen.value = !languageMenuOpen.value
-}
-
-function selectSpeechLanguage(language: string) {
-  speechLanguage.value = language
-  languageMenuOpen.value = false
+function stopSpeechRecognition() {
   if (!activeRecognition) return
   keepRecognitionAlive = false
   activeRecognition.stop()
-}
-
-function handleOutsideClick(event: MouseEvent) {
-  const target = event.target as Node | null
-  if (!target || languagePickerRef.value?.contains(target)) return
-  languageMenuOpen.value = false
 }
 
 function resizeTextarea() {
@@ -267,14 +216,6 @@ function resizeTextarea() {
 
 watch(() => draft.value, () => {
   void nextTick(resizeTextarea)
-})
-
-onMounted(() => {
-  document.addEventListener('click', handleOutsideClick)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleOutsideClick)
 })
 
 onBeforeUnmount(() => {
@@ -350,74 +291,9 @@ onBeforeUnmount(() => {
   font-size: 12px;
 }
 
-.agent-chat-composer__language-picker {
-  position: relative;
-  flex: 0 0 auto;
-}
-
 .agent-chat-composer__language-trigger {
   height: 26px;
-  border-radius: var(--sailor-radius-full);
   font-size: 12px;
-}
-
-.agent-chat-composer__language-menu {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + var(--sailor-space-2));
-  z-index: var(--sailor-z-overlay);
-  display: grid;
-  width: 190px;
-  max-height: 256px;
-  gap: var(--sailor-space-1);
-  overflow-y: auto;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-lg);
-  background: var(--sailor-bg-surface);
-  padding: var(--sailor-space-2);
-  box-shadow: var(--sailor-shadow-lg);
-}
-
-.agent-chat-composer__language-option {
-  justify-content: flex-start;
-  height: auto;
-  min-height: 38px;
-  padding-block: var(--sailor-space-2);
-  text-align: left;
-}
-
-.agent-chat-composer__language-option :deep(.base-button__label) {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: var(--sailor-space-2);
-}
-
-.agent-chat-composer__language-option span:last-child {
-  display: grid;
-  min-width: 0;
-  gap: 1px;
-}
-
-.agent-chat-composer__language-option strong,
-.agent-chat-composer__language-option small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.agent-chat-composer__language-option strong {
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-xs);
-}
-
-.agent-chat-composer__language-option small {
-  color: var(--sailor-text-muted);
-  font-size: 10px;
-}
-
-.agent-chat-composer__language-option--active {
-  background: var(--sailor-button-ghost-hover);
 }
 
 .agent-chat-composer__utility--listening {
@@ -452,16 +328,4 @@ onBeforeUnmount(() => {
   }
 }
 
-.agent-language-menu-enter-active,
-.agent-language-menu-leave-active {
-  transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
-    transform var(--sailor-duration-base) var(--sailor-ease-standard);
-}
-
-.agent-language-menu-enter-from,
-.agent-language-menu-leave-to {
-  opacity: 0;
-  transform: translateY(var(--sailor-space-2));
-}
 </style>
