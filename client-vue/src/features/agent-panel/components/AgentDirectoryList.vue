@@ -38,6 +38,10 @@
         v-for="agent in store.filteredAgents"
         :key="agent.key"
         class="agent-directory-list__hint-wrapper"
+        @mouseenter="showAgentHint(agent.key, $event)"
+        @mouseleave="hideAgentHint"
+        @focusin="showAgentHint(agent.key, $event)"
+        @focusout="hideAgentHint"
       >
         <BaseButton
           type="button"
@@ -46,10 +50,6 @@
           class="agent-directory-list__item"
           :class="{ 'agent-directory-list__item--active': agent.key === store.selectedAgentKey }"
           :aria-label="`${agent.name} - ${agent.workflowName}`"
-          @mouseenter="showAgentHint(agent.key, $event)"
-          @mouseleave="hideAgentHint"
-          @focus="showAgentHint(agent.key, $event)"
-          @blur="hideAgentHint"
           @click="store.selectAgent(agent.key)"
         >
           <span class="agent-directory-list__emoji">{{ agent.emoji }}</span>
@@ -221,6 +221,14 @@ function hideAgentHint() {
   border-radius: var(--sailor-radius-full);
 }
 
+.agent-directory-list__item :deep(.base-button__label) {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  line-height: 1;
+}
+
 .agent-directory-list__hint-wrapper {
   position: relative;
   display: grid;
@@ -247,6 +255,7 @@ function hideAgentHint() {
   border-radius: var(--sailor-radius-full);
   background: var(--sailor-bg-base);
   font-size: 17px;
+  line-height: 1;
 }
 
 .agent-directory-list__item--active .agent-directory-list__emoji,
@@ -265,7 +274,7 @@ function hideAgentHint() {
 
 .agent-directory-list__hint {
   position: fixed;
-  z-index: var(--sailor-z-tooltip);
+  z-index: calc(9999 + var(--sailor-z-tooltip));
   display: grid;
   width: 210px;
   min-height: 126px;
