@@ -705,7 +705,7 @@ function waitingUserOutputForRepeatedTool(toolName: string, result: ToolResultSu
 }
 
 function waitingUserOutputForUnrecoverableToolError(toolName: string, errorMessage: string): Record<string, any> {
-  const reason = /credential|api[_ -]?key|token/i.test(errorMessage)
+  const reason = isCredentialError(errorMessage)
     ? "credential_required"
     : "permission_required";
   return {
@@ -717,7 +717,17 @@ function waitingUserOutputForUnrecoverableToolError(toolName: string, errorMessa
 }
 
 function isUnrecoverablePermissionOrCredentialError(message: string): boolean {
-  return /(credential|unauthori[sz]ed|forbidden|permission|api[_ -]?key|token|oauth|auth)/i.test(message);
+  return isCredentialError(message) ||
+    /\bunauthori[sz]ed\b/i.test(message) ||
+    /\bforbidden\b/i.test(message) ||
+    /\bpermissions?\b/i.test(message);
+}
+
+function isCredentialError(message: string): boolean {
+  return /\bcredentials?\b/i.test(message) ||
+    /\bapi[\s_-]?key\b/i.test(message) ||
+    /\boauth(?:\s+token)?\b/i.test(message) ||
+    /\btokens?\b/i.test(message);
 }
 
 function containsWaitingUserMarker(value: unknown): boolean {

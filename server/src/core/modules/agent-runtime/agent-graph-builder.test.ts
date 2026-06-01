@@ -415,6 +415,52 @@ describe("agent graph builder", () => {
     });
   });
 
+  it("does not treat ordinary words containing auth as permission errors", async () => {
+    const tool = fakeTool("book_lookup", async () => {
+      throw new Error("Author not found");
+    });
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model: fakeModel([
+        { content: "", toolCalls: [{ id: "call_1", name: "book_lookup", args: { title: "Sailor" } }] },
+      ]),
+      tools: [tool],
+    });
+
+    await assert.rejects(
+      () => graph.invoke({ userMessage: "find author" }),
+      /Author not found/,
+    );
+  });
+
+  it("keeps explicit permission and credential errors as waiting-user", async () => {
+    const cases = [
+      { message: "Unauthorized", reason: "permission_required" },
+      { message: "Forbidden", reason: "permission_required" },
+      { message: "Missing credentials", reason: "credential_required" },
+      { message: "API key missing", reason: "credential_required" },
+      { message: "OAuth token expired", reason: "credential_required" },
+    ];
+
+    for (const item of cases) {
+      const tool = fakeTool(`access_check_${item.reason}_${item.message.replace(/\W+/g, "_")}`, async () => {
+        throw new Error(item.message);
+      });
+      const graph = buildAgentGraph({
+        agent: agentConfig(),
+        model: fakeModel([
+          { content: "", toolCalls: [{ id: "call_1", name: tool.name, args: {} }] },
+        ]),
+        tools: [tool],
+      });
+
+      const result = await graph.invoke({ userMessage: "check access" });
+
+      assert.equal(result.status, "waiting-user");
+      assert.equal(result.output.reason, item.reason);
+    }
+  });
+
   it("keeps ordinary tool failures as runtime errors", async () => {
     const tool = fakeTool("unstable_tool", async () => {
       throw new Error("temporary network timeout");

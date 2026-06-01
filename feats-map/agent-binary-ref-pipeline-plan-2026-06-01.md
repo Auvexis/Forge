@@ -147,10 +147,10 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 - Modificar: `server/src/core/modules/agent-runtime/agent-graph-builder.ts`
 - Testar: `server/src/core/modules/agent-runtime/agent-graph-builder.test.ts`
 
-- [ ] Criar teste falhando provando que erro comum com palavra parecida, como `Author not found`, nao vira `waiting-user`.
-- [ ] Manter teste cobrindo que `Unauthorized`, `Forbidden`, `Missing credentials`, `API key` e `OAuth token` continuam virando `waiting-user`.
-- [ ] Trocar o regex amplo por matcher com limites de palavra e termos explicitos.
-- [ ] Rodar `node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts` dentro de `server`.
+- [x] Criar teste falhando provando que erro comum com palavra parecida, como `Author not found`, nao vira `waiting-user`.
+- [x] Manter teste cobrindo que `Unauthorized`, `Forbidden`, `Missing credentials`, `API key` e `OAuth token` continuam virando `waiting-user`.
+- [x] Trocar o regex amplo por matcher com limites de palavra e termos explicitos.
+- [x] Rodar `node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts` dentro de `server`.
 
 #### Bug 5: Adapter de plugin quebra com manifest legado sem `metadata`
 
