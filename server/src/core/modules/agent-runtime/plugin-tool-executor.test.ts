@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { Readable } from "node:stream";
 import { afterEach, describe, it } from "node:test";
 import type { SailorPlugin } from "@auvexis/sailor-sdk";
 import Database from "better-sqlite3";
@@ -12,7 +13,7 @@ import {
 } from "../plugins/credential-store.ts";
 import { PluginManager } from "../plugins/manager.ts";
 import { clearValidatorCache } from "../plugins/validator.ts";
-import { AgentRuntimeError } from "./agent-errors.ts";
+import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import { AGENT_LIMITS } from "./agent-limits.ts";
 import { executePluginAgentTool } from "./plugin-tool-executor.ts";
 import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
@@ -129,6 +130,37 @@ describe("plugin tool executor", () => {
         nodeId: "agent_1",
       }),
       /approval/i,
+    );
+  });
+
+  it("does not include raw binary values in approval requests", async () => {
+    PluginManager.registerPlugin(createPlugin(async () => ({ ok: true })));
+    const stream = Readable.from(Buffer.alloc(1024, "a"));
+
+    await assert.rejects(
+      executePluginAgentTool({
+        definition: definition({ requiresApproval: true }),
+        configuredTool: configuredTool({ requiresApproval: true }),
+        args: {
+          owner: "acme",
+          title: "Bug",
+          attachment: {
+            content: stream,
+            buffer: Buffer.alloc(2048, "b"),
+          },
+        },
+        executionId: "exec_1",
+        workflowId: "workflow_1",
+        nodeId: "agent_1",
+      }),
+      (error) => {
+        assert.ok(error instanceof AgentToolApprovalRequiredError);
+        assert.deepEqual(error.approvalRequest.args.attachment, {
+          content: { type: "Readable" },
+          buffer: { type: "Buffer", size: 2048 },
+        });
+        return true;
+      },
     );
   });
 

@@ -106,6 +106,38 @@ describe("agent panel chat service", () => {
     ]);
   });
 
+  it("returns a lightweight execution summary instead of the full workflow context", async () => {
+    const largeBase64 = Buffer.alloc(256_000, "a").toString("base64");
+    const service = serviceFixture({
+      executionOutput: "Arquivo enviado.",
+      toolCalls: [{ toolCallId: "call_1", name: "google_drive_download_file", status: "success" }],
+      extraStepOutput: {
+        download: {
+          output: {
+            fileName: "curriculo.pdf",
+            contentBase64: largeBase64,
+          },
+        },
+      },
+    });
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+
+    const result = await service.sendMessage({
+      profileId: "profile_a",
+      sessionId: session.id,
+      message: "Enviar curriculo",
+    });
+
+    const serialized = JSON.stringify(result.execution);
+    assert.ok(serialized.length < 4000);
+    assert.doesNotMatch(serialized, /contentBase64/);
+    assert.doesNotMatch(serialized, new RegExp(largeBase64.slice(0, 64)));
+  });
+
   it("persists waiting-user output as a readable assistant question with options", async () => {
     const service = serviceFixture({
       executionOutput: {
@@ -317,6 +349,7 @@ describe("agent panel chat service", () => {
   function serviceFixture(fixtureOptions: {
     executionOutput?: unknown;
     toolCalls?: Array<Record<string, unknown>>;
+    extraStepOutput?: Record<string, unknown>;
   } = {}): AgentPanelChatService {
     return new AgentPanelChatService({
       db: workflowDb!,
@@ -335,6 +368,7 @@ describe("agent panel chat service", () => {
             status: "SUCCESS",
             context: {
               steps: {
+                ...(fixtureOptions.extraStepOutput ?? {}),
                 agent: {
                   output: {
                     output: Object.hasOwn(fixtureOptions, "executionOutput")

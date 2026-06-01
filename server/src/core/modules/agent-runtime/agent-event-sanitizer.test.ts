@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { Readable } from "node:stream";
 import { describe, it } from "node:test";
 import { AGENT_LIMITS } from "./agent-limits.ts";
 import { sanitizeAgentEventPayload, truncateAgentText } from "./agent-event-sanitizer.ts";
@@ -38,6 +39,23 @@ describe("agent event sanitizer", () => {
       tool: "github_create_issue",
       input: { title: "Bug", labels: ["bug"] },
       output: { issueNumber: 123 },
+    });
+  });
+
+  it("replaces binary and stream values with lightweight metadata", () => {
+    const stream = Readable.from(Buffer.alloc(1024, "a"));
+    const sanitized = sanitizeAgentEventPayload({
+      args: {
+        buffer: Buffer.alloc(2048, "b"),
+        stream,
+      },
+    });
+
+    assert.deepEqual(sanitized, {
+      args: {
+        buffer: { type: "Buffer", size: 2048 },
+        stream: { type: "Readable" },
+      },
     });
   });
 

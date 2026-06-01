@@ -1,4 +1,5 @@
 import type Database from "better-sqlite3";
+import { sanitizeAgentEventPayload } from "./agent-event-sanitizer.ts";
 
 export type AgentApprovalStatus = "pending" | "approved" | "rejected";
 
@@ -35,6 +36,7 @@ export class AgentApprovalService {
 
   create(input: CreateAgentApprovalInput): AgentToolApproval {
     const createdAt = new Date().toISOString();
+    const request = sanitizeAgentEventPayload(input.request);
     this.db
       .prepare(`
         INSERT INTO agent_tool_approvals
@@ -48,13 +50,14 @@ export class AgentApprovalService {
         input.executionId,
         input.sessionId ?? null,
         input.toolName,
-        JSON.stringify(input.request),
+        JSON.stringify(request),
         "pending",
         createdAt,
       );
 
     return {
       ...input,
+      request,
       status: "pending",
       createdAt,
     };

@@ -199,7 +199,7 @@ export class AgentPanelChatService {
     return {
       session: this.resolveSession(input.profileId, session.id),
       messages: this.messages.listBySession(input.profileId, session.id),
-      execution,
+      execution: toAgentPanelExecutionSummary(execution),
     };
   }
 
@@ -369,6 +369,42 @@ function extractAssistantResponse(execution: unknown, agentNodeId: string): unkn
   return steps[agentNodeId]?.output?.output ??
     Object.values(steps).find((step) => step?.output?.output !== undefined)?.output?.output ??
     null;
+}
+
+function toAgentPanelExecutionSummary(execution: unknown): unknown {
+  if (!execution || typeof execution !== "object") return execution;
+  const record = execution as {
+    executionId?: unknown;
+    status?: unknown;
+    context?: { steps?: Record<string, any> };
+  };
+  const steps = record.context?.steps;
+  return {
+    executionId: record.executionId,
+    status: record.status,
+    ...(steps ? { context: { steps: summarizeExecutionSteps(steps) } } : {}),
+  };
+}
+
+function summarizeExecutionSteps(steps: Record<string, any>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(steps).map(([nodeId, step]) => [
+      nodeId,
+      summarizeExecutionStep(step),
+    ]),
+  );
+}
+
+function summarizeExecutionStep(step: unknown): unknown {
+  if (!step || typeof step !== "object" || Array.isArray(step)) return step;
+  const record = step as Record<string, unknown>;
+  const output = record.output as Record<string, unknown> | undefined;
+  return {
+    ...(typeof record.status === "string" ? { status: record.status } : {}),
+    ...(typeof record.error === "string" ? { error: record.error } : {}),
+    ...(typeof record.approvalId === "string" ? { approvalId: record.approvalId } : {}),
+    ...(output && Array.isArray(output.toolCalls) ? { output: { toolCalls: output.toolCalls } } : {}),
+  };
 }
 
 function assertSuccessfulChatExecution(execution: unknown): void {

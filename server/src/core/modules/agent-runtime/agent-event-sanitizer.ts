@@ -15,17 +15,30 @@ export function truncateAgentText(
   return `${value.slice(0, maxChars)}[truncated ${value.length - maxChars} chars]`;
 }
 
-function sanitizeValue(value: unknown): unknown {
+function sanitizeValue(value: unknown, seen = new WeakSet<object>()): unknown {
   if (typeof value === "string") {
     return truncateAgentText(value);
+  }
+
+  if (Buffer.isBuffer(value)) {
+    return { type: "Buffer", size: value.byteLength };
   }
 
   if (!value || typeof value !== "object") {
     return value;
   }
 
+  if (isReadableLike(value)) {
+    return { type: "Readable" };
+  }
+
+  if (seen.has(value)) {
+    return { type: "Circular" };
+  }
+  seen.add(value);
+
   if (Array.isArray(value)) {
-    return value.map((item) => sanitizeValue(item));
+    return value.map((item) => sanitizeValue(item, seen));
   }
 
   const record = value as Record<string, unknown>;
@@ -36,7 +49,13 @@ function sanitizeValue(value: unknown): unknown {
   return Object.fromEntries(
     Object.entries(record).map(([key, item]) => [
       key,
-      SECRET_KEY_PATTERN.test(key) ? REDACTED : sanitizeValue(item),
+      SECRET_KEY_PATTERN.test(key) ? REDACTED : sanitizeValue(item, seen),
     ]),
   );
+}
+
+function isReadableLike(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as { pipe?: unknown; on?: unknown };
+  return typeof candidate.pipe === "function" && typeof candidate.on === "function";
 }

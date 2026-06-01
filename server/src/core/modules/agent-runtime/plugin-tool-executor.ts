@@ -1,5 +1,6 @@
 import { PluginExecutor } from "../plugins/executor.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
+import { sanitizeAgentEventPayload } from "./agent-event-sanitizer.ts";
 import { AGENT_LIMITS } from "./agent-limits.ts";
 import type { AiToolNodeConfig } from "./agent-types.ts";
 import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
@@ -52,7 +53,7 @@ function assertToolApproval(
   throw new AgentToolApprovalRequiredError({
     toolName: definition.name,
     sideEffect: configuredTool.sideEffect ?? definition.sideEffect,
-    args,
+    args: sanitizeAgentEventPayload(args) as Record<string, unknown>,
   });
 }
 
