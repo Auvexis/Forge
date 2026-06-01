@@ -275,22 +275,64 @@ export class AgentPanelChatService {
   }
 }
 
-function toContextMessages(messages: AgentChatMessage[]): Array<{ role: "user" | "assistant" | "tool" | "system"; content: string }> {
+function toContextMessages(messages: AgentChatMessage[]): Array<{ role: "user" | "assistant" | "tool" | "system"; content: unknown }> {
   return messages
     .map((message) => ({
       role: message.role,
       content: normalizeMessageContent(message.content),
     }))
-    .filter((message) => message.content.trim());
+    .filter((message) => hasContextContent(message.content));
 }
 
-function normalizeMessageContent(content: unknown): string {
+function normalizeMessageContent(content: unknown): unknown {
   if (typeof content === "string") return content;
   if (!content || typeof content !== "object" || Array.isArray(content)) return "";
   const record = content as Record<string, unknown>;
+  if (record.waitingUser === true) {
+    const text = typeof record.text === "string"
+      ? record.text
+      : typeof record.content === "string"
+        ? record.content
+        : "";
+    return {
+      text,
+      waitingUser: true,
+      ...(typeof record.reason === "string" ? { reason: record.reason } : {}),
+      ...(Array.isArray(record.options) ? { options: sanitizeContextValue(record.options) } : {}),
+    };
+  }
   if (typeof record.text === "string") return record.text;
   if (typeof record.content === "string") return record.content;
   return "";
+}
+
+function hasContextContent(content: unknown): boolean {
+  if (typeof content === "string") return content.trim().length > 0;
+  return Boolean(content && typeof content === "object" && !Array.isArray(content));
+}
+
+function sanitizeContextValue(value: unknown): unknown {
+  if (Buffer.isBuffer(value)) {
+    return { type: "Buffer", size: value.byteLength };
+  }
+
+  if (typeof value === "string") {
+    return value.length > 8000 ? `${value.slice(0, 8000)}[truncated ${value.length - 8000} chars]` : value;
+  }
+
+  if (!value || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value.map((item) => sanitizeContextValue(item));
+
+  if (typeof (value as any).pipe === "function") {
+    return { type: "Readable" };
+  }
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+      key,
+      sanitizeContextValue(item),
+    ]),
+  );
 }
 
 function hasAssistantResponse(value: unknown): boolean {

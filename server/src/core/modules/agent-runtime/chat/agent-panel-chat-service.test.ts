@@ -147,6 +147,49 @@ describe("agent panel chat service", () => {
     ]);
   });
 
+  it("preserves waiting-user options in the next agent runner history payload", async () => {
+    const service = serviceFixture({
+      executionOutput: {
+        status: "waiting-user",
+        reason: "ambiguous_result",
+        question: "Encontrei varios arquivos. Qual devo usar?",
+        options: [
+          { id: "file_1", name: "video.mp4" },
+          { id: "file_2", name: "video-final.mp4" },
+        ],
+      },
+    });
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+
+    await service.sendMessage({
+      profileId: "profile_a",
+      sessionId: session.id,
+      message: "Suba o mp4",
+    });
+    await service.sendMessage({
+      profileId: "profile_a",
+      sessionId: session.id,
+      message: "Use video-final.mp4",
+    });
+
+    assert.deepEqual(executions[1].payload.messages[1], {
+      role: "assistant",
+      content: {
+        text: "Encontrei varios arquivos. Qual devo usar?",
+        waitingUser: true,
+        reason: "ambiguous_result",
+        options: [
+          { id: "file_1", name: "video.mp4" },
+          { id: "file_2", name: "video-final.mp4" },
+        ],
+      },
+    });
+  });
+
   it("uses a caller-provided execution id for stream subscriptions", async () => {
     const service = serviceFixture();
     const session = await service.createSession({

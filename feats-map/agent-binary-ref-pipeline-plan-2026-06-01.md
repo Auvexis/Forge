@@ -135,11 +135,11 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 - Modificar: `server/src/core/modules/agent-runtime/chat/agent-panel-chat-service.ts`
 - Testar: `server/src/core/modules/agent-runtime/chat/agent-panel-chat-service.test.ts`
 
-- [ ] Criar teste falhando onde uma mensagem anterior `waiting-user` com `options` entra no historico e o payload enviado ao Agent Runner ainda contem essas opcoes.
-- [ ] Confirmar que o normalizador atual reduz o conteudo para texto simples e perde `options`.
-- [ ] Ajustar a normalizacao para preservar `text`, `waitingUser`, `reason` e `options` em formato enxuto/serializavel.
-- [ ] Garantir que conteudo pesado dentro de options continue sanitizado ou representado por metadata/ref, sem jogar base64/buffer no prompt.
-- [ ] Rodar `node --test src/core/modules/agent-runtime/chat/agent-panel-chat-service.test.ts` dentro de `server`.
+- [x] Criar teste falhando onde uma mensagem anterior `waiting-user` com `options` entra no historico e o payload enviado ao Agent Runner ainda contem essas opcoes.
+- [x] Confirmar que o normalizador atual reduz o conteudo para texto simples e perde `options`.
+- [x] Ajustar a normalizacao para preservar `text`, `waitingUser`, `reason` e `options` em formato enxuto/serializavel.
+- [x] Garantir que conteudo pesado dentro de options continue sanitizado ou representado por metadata/ref, sem jogar base64/buffer no prompt.
+- [x] Rodar `node --test src/core/modules/agent-runtime/chat/agent-panel-chat-service.test.ts` dentro de `server`.
 
 #### Bug 4: Regex de permissao/credencial esta ampla demais
 
