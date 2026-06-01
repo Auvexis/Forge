@@ -210,6 +210,120 @@ describe("agent graph builder", () => {
     });
   });
 
+  it("resolves binary refs in later tool args before invoking the next tool", async () => {
+    const file = Buffer.from("video");
+    const download = fakeTool("download", async () => ({
+      download: {
+        fileName: "video.mp4",
+        mimeType: "video/mp4",
+        content: file,
+      },
+    }));
+    const upload = fakeTool("upload", async () => ({ ok: true }));
+    const model = fakeModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "download", args: { fileId: "video_1" } }] },
+      {
+        content: "",
+        toolCalls: [{
+          id: "call_2",
+          name: "upload",
+          args: {
+            title: "video",
+            content: { ref: "agent-ref://call_1/download/content" },
+            mimeType: "video/mp4",
+          },
+        }],
+      },
+      { content: "done" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [download, upload],
+    });
+
+    await graph.invoke({ userMessage: "download and upload video" });
+
+    assert.equal((upload.calls[0] as { content?: unknown }).content, file);
+  });
+
+  it("emits lightweight refs instead of raw binary tool outputs", async () => {
+    const events: Array<{ type: string; payload?: unknown }> = [];
+    const file = Buffer.from("video");
+    const tool = fakeTool("download", async () => ({
+      download: {
+        fileName: "video.mp4",
+        mimeType: "video/mp4",
+        content: file,
+      },
+    }));
+    const model = fakeModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "download", args: { fileId: "video_1" } }] },
+      { content: "done" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+      onEvent: (event) => events.push(event),
+    });
+
+    await graph.invoke({ userMessage: "download video" });
+
+    const toolEnd = events.find((event) => event.type === "agent:tool-end");
+    assert.deepEqual((toolEnd?.payload as { output?: unknown }).output, {
+      download: {
+        fileName: "video.mp4",
+        mimeType: "video/mp4",
+        content: {
+          type: "Buffer",
+          ref: "agent-ref://call_1/download/content",
+          size: 5,
+          mimeType: "video/mp4",
+        },
+      },
+    });
+  });
+
+  it("stores large base64 tool results behind refs before sending them to the model", async () => {
+    const contentBase64 = Buffer.alloc(192_000, "a").toString("base64");
+    const tool = fakeTool("download", async () => ({
+      download: {
+        fileName: "video.mp4",
+        mimeType: "video/mp4",
+        contentBase64,
+      },
+    }));
+    const model = fakeModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "download", args: { fileId: "video_1" } }] },
+      { content: "done" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+    });
+
+    await graph.invoke({ userMessage: "download video" });
+
+    const secondModelCall = model.calls[1] as Array<Record<string, unknown>>;
+    const toolMessage = secondModelCall.find((message) => message.role === "tool");
+    const toolContent = JSON.parse(String(toolMessage?.content));
+
+    assert.deepEqual(toolContent, {
+      download: {
+        fileName: "video.mp4",
+        mimeType: "video/mp4",
+        contentBase64: {
+          type: "Base64",
+          ref: "agent-ref://call_1/download/contentBase64",
+          size: contentBase64.length,
+          mimeType: "video/mp4",
+        },
+      },
+    });
+  });
+
   it("can stop after tool execution without asking the model for a final answer", async () => {
     const toolCalls = [{ id: "call_1", name: "send_message", args: { text: "done" } }];
     const tool = fakeTool("send_message", async (args) => ({ sent: true, args }));

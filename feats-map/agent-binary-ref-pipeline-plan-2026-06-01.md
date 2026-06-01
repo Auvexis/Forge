@@ -41,15 +41,15 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 - [x] Criar testes falhando para sanitizar resultado pesado antes de enviar para LLM.
 - [x] Criar tipo utilitario `AgentBinaryRef` e store temporario no runtime do agente.
 - [x] Implementar sanitizacao de tool result: Buffer, Readable, base64 grande e objetos grandes viram ref + metadata.
-- [ ] Garantir que `stringifyToolResult` envie para a LLM apenas payload leve.
-- [ ] Criar testes falhando para resolver ref em args antes de executar proxima tool.
-- [ ] Implementar resolucao recursiva de refs nos argumentos da tool.
-- [ ] Integrar resolucao em `executePluginAgentTool` ou no wrapper de `createGraphTools`, antes de chamar `PluginExecutor`.
-- [ ] Garantir compatibilidade com `x-input-type: file` no `PluginExecutor`, mantendo unwrap existente.
-- [ ] Ajustar eventos/progress para nunca vazar arquivo pesado no stream do Global Agent Chat.
-- [ ] Adicionar caso de teste: Drive-like download retorna arquivo pesado, proxima tool recebe Buffer real via ref.
-- [ ] Adicionar caso de teste: LLM recebe apenas `{ type, ref, size, mimeType }`.
-- [ ] Adicionar limite/TTL para refs temporarias por execution/session.
+- [x] Garantir que `stringifyToolResult` envie para a LLM apenas payload leve.
+- [x] Criar testes falhando para resolver ref em args antes de executar proxima tool.
+- [x] Implementar resolucao recursiva de refs nos argumentos da tool.
+- [x] Integrar resolucao em `executePluginAgentTool` ou no wrapper de `createGraphTools`, antes de chamar `PluginExecutor`.
+- [x] Garantir compatibilidade com `x-input-type: file` no `PluginExecutor`, mantendo unwrap existente.
+- [x] Ajustar eventos/progress para nunca vazar arquivo pesado no stream do Global Agent Chat.
+- [x] Adicionar caso de teste: Drive-like download retorna arquivo pesado, proxima tool recebe Buffer real via ref.
+- [x] Adicionar caso de teste: LLM recebe apenas `{ type, ref, size, mimeType }`.
+- [x] Adicionar limite/TTL para refs temporarias por execution/session.
 
 ### 2. Multi-step No Global Agent Chat
 
@@ -80,7 +80,7 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 
 ### 5. Verificacao E Fechamento
 
-- [ ] Rodar testes focados do agent runtime.
+- [x] Rodar testes focados do agent runtime.
 - [ ] Rodar testes focados do Global Agent Chat frontend/backend.
 - [ ] Rodar build do server.
 - [ ] Rodar build do client-vue se houver ajuste visual no chat.

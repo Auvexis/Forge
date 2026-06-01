@@ -71,6 +71,7 @@ interface AgentToolCall {
 }
 
 const ajv = new Ajv({ allErrors: true, strict: false });
+const LARGE_BASE64_MIN_CHARS = 64_000;
 
 export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
   const configuredTools = input.tools.map(asTool);
@@ -175,8 +176,9 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
           }
 
           let result: unknown;
+          const resolvedArgs = resolveBinaryRefsInToolArgs(toolCall.args, binaryRefs);
           try {
-            result = await tool.invoke(toolCall.args);
+            result = await tool.invoke(resolvedArgs);
           } catch (error) {
             if (error instanceof AgentToolApprovalRequiredError) throw error;
             emitToolEnd(input, tool, toolCall, { status: "failed", error: safeErrorMessage(error) });
@@ -184,14 +186,15 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             throw error;
           }
           toolCallCount += 1;
-          emitToolEnd(input, tool, toolCall, { status: "success", output: result });
+          const modelSafeResult = sanitizeToolResultForModel(result, toolCall.id, binaryRefs);
+          emitToolEnd(input, tool, toolCall, { status: "success", output: modelSafeResult });
           completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "success"));
           await yieldToEventLoop();
           messages.push({
             role: "tool",
             name: tool.name,
             tool_call_id: toolCall.id,
-            content: stringifyToolResult(sanitizeToolResultForModel(result, toolCall.id, binaryRefs)),
+            content: stringifyToolResult(modelSafeResult),
           });
         }
 
@@ -622,6 +625,17 @@ function sanitizeToolResultForModel(
     });
   }
 
+  if (typeof value === "string" && shouldStoreStringAsBase64Ref(value, path)) {
+    return binaryRefs.put({
+      toolCallId,
+      path: path.join("/"),
+      type: "Base64",
+      value,
+      size: value.length,
+      mimeType: inheritedMimeType,
+    });
+  }
+
   if (Array.isArray(value)) {
     return value.map((item, index) =>
       sanitizeToolResultForModel(item, toolCallId, binaryRefs, [...path, String(index)], inheritedMimeType)
@@ -640,6 +654,36 @@ function sanitizeToolResultForModel(
   }
 
   return value;
+}
+
+function shouldStoreStringAsBase64Ref(value: string, path: string[]): boolean {
+  if (value.length < LARGE_BASE64_MIN_CHARS) return false;
+  const key = path[path.length - 1]?.toLowerCase() ?? "";
+  if (!key.includes("base64")) return false;
+  return /^[A-Za-z0-9+/=\s]+$/.test(value);
+}
+
+function resolveBinaryRefsInToolArgs(value: unknown, binaryRefs: AgentBinaryRefStore): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => resolveBinaryRefsInToolArgs(item, binaryRefs));
+  }
+
+  if (!value || typeof value !== "object" || Buffer.isBuffer(value) || isReadableLike(value)) {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+  if (typeof record.ref === "string") {
+    const stored = binaryRefs.get(record.ref);
+    if (stored) return stored.value;
+  }
+
+  return Object.fromEntries(
+    Object.entries(record).map(([key, item]) => [
+      key,
+      resolveBinaryRefsInToolArgs(item, binaryRefs),
+    ]),
+  );
 }
 
 function isReadableLike(value: unknown): boolean {
