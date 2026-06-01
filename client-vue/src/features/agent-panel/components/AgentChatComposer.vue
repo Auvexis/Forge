@@ -10,30 +10,43 @@
     ></textarea>
 
     <div class="agent-chat-composer__toolbar">
-      <button type="button" class="agent-chat-composer__utility">
+      <BaseButton type="button" class="agent-chat-composer__utility" variant="outline" size="sm" icon-right="chevron-down">
         Select Source
-        <LucideIcon name="chevron-down" :size="12" />
-      </button>
+      </BaseButton>
       <span class="agent-chat-composer__spacer" />
-      <button type="button" class="agent-chat-composer__utility">
-        <LucideIcon name="paperclip" :size="13" />
+      <BaseButton type="button" class="agent-chat-composer__utility" variant="outline" size="sm" icon-left="paperclip">
         Attach
-      </button>
-      <button type="button" class="agent-chat-composer__utility">
-        <LucideIcon name="mic" :size="13" />
+      </BaseButton>
+      <BaseButton
+        type="button"
+        class="agent-chat-composer__utility"
+        :class="{ 'agent-chat-composer__utility--listening': isListening }"
+        variant="outline"
+        size="sm"
+        :icon-left="isListening ? 'mic-off' : 'mic'"
+        :disabled="sending || !speechSupported"
+        :title="speechSupported ? 'Dictate with Chrome speech recognition' : 'Speech recognition is not available'"
+        @click="startSpeechToText"
+      >
         Voice
-      </button>
-      <button type="submit" class="agent-chat-composer__send" :disabled="sending || !draft.trim()">
-        <LucideIcon name="arrow-up" :size="14" />
+      </BaseButton>
+      <BaseButton
+        type="submit"
+        class="agent-chat-composer__send"
+        variant="primary"
+        size="sm"
+        icon-left="arrow-up"
+        :disabled="sending || !draft.trim()"
+      >
         Send
-      </button>
+      </BaseButton>
     </div>
   </form>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 withDefaults(
   defineProps<{
@@ -50,6 +63,31 @@ const emit = defineEmits<{
 }>()
 
 const draft = ref('')
+const isListening = ref(false)
+const speechSupported = computed(() => getSpeechRecognitionCtor() !== null)
+let activeRecognition: BrowserSpeechRecognition | null = null
+let keepRecognitionAlive = false
+
+type BrowserSpeechRecognitionEvent = {
+  resultIndex?: number
+  results: ArrayLike<{
+    isFinal?: boolean
+    0?: {
+      transcript?: string
+    }
+  }>
+}
+
+type BrowserSpeechRecognition = {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  onend: (() => void) | null
+  onerror: ((event: { error?: string }) => void) | null
+  onresult: ((event: BrowserSpeechRecognitionEvent) => void) | null
+  start: () => void
+  stop: () => void
+}
 
 function submit() {
   const message = draft.value.trim()
@@ -57,19 +95,95 @@ function submit() {
   emit('send', message)
   draft.value = ''
 }
+
+function startSpeechToText() {
+  if (isListening.value && activeRecognition) {
+    keepRecognitionAlive = false
+    activeRecognition.stop()
+    return
+  }
+
+  const Recognition = getSpeechRecognitionCtor()
+  if (!Recognition) return
+
+  const recognition = new Recognition()
+  activeRecognition = recognition
+  keepRecognitionAlive = true
+  recognition.continuous = true
+  recognition.interimResults = false
+  recognition.lang = navigator.language || 'en-US'
+  isListening.value = true
+
+  recognition.onresult = (event) => {
+    const resultIndex = event.resultIndex ?? 0
+    const transcript = Array.from(event.results)
+      .slice(resultIndex)
+      .filter((result) => result.isFinal !== false)
+      .map((result) => result[0]?.transcript?.trim() ?? '')
+      .filter(Boolean)
+      .join(' ')
+
+    if (transcript) appendTranscript(transcript)
+  }
+
+  recognition.onerror = (event) => {
+    if (event.error && event.error !== 'no-speech') keepRecognitionAlive = false
+  }
+
+  recognition.onend = () => {
+    if (keepRecognitionAlive && activeRecognition === recognition) {
+      try {
+        recognition.start()
+        return
+      } catch {
+        keepRecognitionAlive = false
+      }
+    }
+
+    isListening.value = false
+    activeRecognition = null
+  }
+
+  recognition.start()
+}
+
+function getSpeechRecognitionCtor(): (new () => BrowserSpeechRecognition) | null {
+  if (typeof window === 'undefined') return null
+  const speechWindow = window as typeof window & {
+    SpeechRecognition?: new () => BrowserSpeechRecognition
+    webkitSpeechRecognition?: new () => BrowserSpeechRecognition
+  }
+
+  return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition ?? null
+}
+
+function appendTranscript(transcript: string) {
+  draft.value = [draft.value.trim(), transcript.trim()].filter(Boolean).join(' ')
+}
+
+onBeforeUnmount(() => {
+  keepRecognitionAlive = false
+  activeRecognition?.stop()
+  activeRecognition = null
+})
 </script>
 
 <style scoped>
 .agent-chat-composer {
+  --agent-chat-composer-surface: var(--sailor-bg-base);
+  --agent-chat-composer-text: var(--sailor-text-primary);
+  --agent-chat-composer-border: var(--sailor-border-strong);
+  --agent-chat-composer-shadow: color-mix(in srgb, var(--sailor-bg-inverse) 8%, transparent);
+
   display: flex;
   width: min(100%, 724px);
   flex-direction: column;
   gap: var(--sailor-space-3);
-  border: 1px solid rgba(12, 17, 29, 0.12);
+  border: 1px solid var(--agent-chat-composer-border);
   border-radius: var(--sailor-radius-xl);
-  background: #ffffff;
+  background: var(--agent-chat-composer-surface);
   padding: var(--sailor-space-4);
-  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 38px var(--agent-chat-composer-shadow);
 }
 
 .agent-chat-composer--dock {
@@ -88,7 +202,7 @@ function submit() {
   border: 0;
   background: transparent;
   padding: 0;
-  color: #0b1220;
+  color: var(--agent-chat-composer-text);
   font: inherit;
   font-size: 13px;
   line-height: 1.45;
@@ -99,7 +213,7 @@ function submit() {
 }
 
 .agent-chat-composer__input::placeholder {
-  color: #0b1220;
+  color: color-mix(in srgb, var(--agent-chat-composer-text) 78%, transparent);
 }
 
 .agent-chat-composer__toolbar {
@@ -113,40 +227,42 @@ function submit() {
 }
 
 .agent-chat-composer__utility {
-  display: inline-flex;
-  height: 24px;
-  align-items: center;
-  gap: 5px;
-  border: 1px solid rgba(12, 17, 29, 0.08);
+  position: relative;
+  height: 26px;
   border-radius: var(--sailor-radius-full);
-  background: #ffffff;
-  padding: 0 var(--sailor-space-3);
-  color: #0b1220;
-  font: inherit;
+  box-shadow: 0 6px 14px var(--agent-chat-composer-shadow);
   font-size: 12px;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
-  cursor: pointer;
+}
+
+.agent-chat-composer__utility--listening {
+  color: var(--sailor-text-warning);
+}
+
+.agent-chat-composer__utility--listening::after {
+  position: absolute;
+  inset: -5px;
+  border: 1px solid color-mix(in srgb, var(--sailor-amber-400) 45%, transparent);
+  border-radius: var(--sailor-radius-full);
+  animation: agent-chat-listening-pulse 1.2s ease-out infinite;
+  content: '';
 }
 
 .agent-chat-composer__send {
-  display: inline-flex;
   height: 28px;
-  align-items: center;
-  gap: 6px;
   align-self: end;
-  border: 0;
   border-radius: var(--sailor-radius-full);
-  background: #061025;
-  padding: 0 var(--sailor-space-4);
-  color: #ffffff;
-  font: inherit;
   font-size: 12px;
-  font-weight: var(--sailor-font-semibold);
-  cursor: pointer;
 }
 
-.agent-chat-composer__send:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
+@keyframes agent-chat-listening-pulse {
+  from {
+    opacity: 0.8;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.2);
+  }
 }
 </style>

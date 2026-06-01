@@ -43,9 +43,9 @@ watch(
 
 <style scoped>
 :deep(.base-modal-container) {
-  border: 1px solid rgba(12, 17, 29, 0.08);
+  border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-xl);
-  background: #ffffff;
+  background: var(--sailor-bg-surface);
 }
 
 .global-agent-panel {
@@ -55,8 +55,8 @@ watch(
   height: 100%;
   overflow: hidden;
   border-radius: var(--sailor-radius-xl);
-  background: #ffffff;
-  color: #0b1220;
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
 }
 
 @media (max-width: 820px) {

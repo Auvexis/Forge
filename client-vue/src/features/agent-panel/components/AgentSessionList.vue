@@ -2,23 +2,23 @@
   <aside class="agent-session-list" aria-label="Agent chat sessions">
     <header class="agent-session-list__header">
       <h2>Chat</h2>
-      <BaseButton
-        title="Search chats"
-        size="icon"
-        icon-left="search"
-        variant="ghost"
-        @click="searchOpen = !searchOpen"
-      />
+      <div class="agent-session-list__search-shell" :class="{ 'agent-session-list__search-shell--open': searchOpen }">
+        <BaseButton
+          title="Search chats"
+          size="icon"
+          icon-left="search"
+          variant="ghost"
+          @click="searchOpen = !searchOpen"
+        />
+        <BaseInput
+          v-model="sessionSearch"
+          class="agent-session-list__search"
+          icon-left="search"
+          placeholder="Search chats"
+          aria-label="Search chats"
+        />
+      </div>
     </header>
-
-    <BaseInput
-      v-if="searchOpen"
-      v-model="sessionSearch"
-      class="agent-session-list__search"
-      icon-left="search"
-      placeholder="Search chats"
-      aria-label="Search chats"
-    />
 
     <BaseButton
       class="agent-session-list__new"
@@ -46,18 +46,19 @@
         class="agent-session-list__row"
         :class="{ 'agent-session-list__row--active': session.id === store.selectedSessionId }"
       >
-        <button type="button" class="agent-session-list__select" @click="store.selectSession(session.id)">
+        <BaseButton type="button" class="agent-session-list__select" variant="ghost" @click="store.selectSession(session.id)">
           <span class="agent-session-list__title">{{ session.title }}</span>
           <span class="agent-session-list__date">{{ formatSessionDate(session.updatedAt) }}</span>
-        </button>
-        <button
+        </BaseButton>
+        <BaseButton
           type="button"
+          size="icon"
+          variant="ghost"
           class="agent-session-list__delete"
           title="Delete chat"
+          icon-left="ellipsis"
           @click="openDeleteMenu(session.id)"
-        >
-          <LucideIcon name="ellipsis" :size="15" />
-        </button>
+        />
       </div>
     </div>
 
@@ -83,7 +84,6 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
@@ -140,8 +140,8 @@ async function confirmDeleteSession() {
   min-width: 0;
   flex-direction: column;
   gap: var(--sailor-space-3);
-  border-right: 1px solid rgba(12, 17, 29, 0.08);
-  background: #ffffff;
+  border-right: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-surface);
   padding: var(--sailor-space-5) var(--sailor-space-4);
 }
 
@@ -154,7 +154,7 @@ async function confirmDeleteSession() {
 
 .agent-session-list__header h2 {
   margin: 0;
-  color: #0b1220;
+  color: var(--sailor-text-primary);
   font-size: var(--sailor-text-sm);
   font-weight: var(--sailor-font-semibold);
 }
@@ -162,11 +162,39 @@ async function confirmDeleteSession() {
 .agent-session-list__header :deep(.base-button) {
   width: 28px;
   height: 28px;
-  color: #475467;
+  color: var(--sailor-text-secondary);
+}
+
+.agent-session-list__search-shell {
+  display: grid;
+  width: 28px;
+  grid-template-columns: 28px 0fr;
+  align-items: center;
+  justify-content: end;
+  gap: var(--sailor-space-2);
+  overflow: hidden;
+  transition:
+    width var(--sailor-duration-slow) var(--sailor-ease-standard),
+    grid-template-columns var(--sailor-duration-slow) var(--sailor-ease-standard);
+}
+
+.agent-session-list__search-shell--open {
+  width: min(150px, 100%);
+  grid-template-columns: 28px 1fr;
 }
 
 .agent-session-list__search {
-  width: 100%;
+  min-width: 0;
+  opacity: 0;
+  transition: opacity var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+
+.agent-session-list__search-shell--open .agent-session-list__search {
+  opacity: 1;
+}
+
+.agent-session-list__search :deep(.base-input-container) {
+  height: 28px;
 }
 
 .agent-session-list__new {
@@ -175,24 +203,24 @@ async function confirmDeleteSession() {
   min-width: 0;
   height: 36px;
   justify-content: center;
-  border-color: #061025;
+  border-color: var(--sailor-button-primary-border);
   border-radius: var(--sailor-radius-full);
-  background: #061025;
-  color: #ffffff;
+  background: var(--sailor-button-primary-bg);
+  color: var(--sailor-button-primary-text);
   font-size: var(--sailor-text-xs);
   white-space: nowrap;
-  box-shadow: 0 10px 18px rgba(6, 16, 37, 0.18);
+  box-shadow: var(--sailor-shadow-sm);
 }
 
 .agent-session-list__saved {
-  border-top: 1px solid rgba(12, 17, 29, 0.08);
+  border-top: 1px solid var(--sailor-border);
   padding-top: var(--sailor-space-4);
-  color: #98a2b3;
+  color: var(--sailor-text-muted);
   font-size: 11px;
 }
 
 .agent-session-list__state {
-  color: #667085;
+  color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
   line-height: 1.4;
 }
@@ -213,24 +241,31 @@ async function confirmDeleteSession() {
 
 .agent-session-list__row:hover,
 .agent-session-list__row--active {
-  background: #f4f7fb;
+  background: var(--sailor-button-ghost-hover);
 }
 
 .agent-session-list__select {
   display: grid;
   width: 100%;
+  height: auto;
+  justify-content: stretch;
   grid-template-columns: minmax(0, 1fr);
   gap: 3px;
-  border: 0;
-  background: transparent;
   padding: 9px 34px 9px 10px;
   text-align: left;
-  cursor: pointer;
+}
+
+.agent-session-list__select :deep(.base-button__label) {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  justify-items: start;
+  gap: 3px;
 }
 
 .agent-session-list__title {
   overflow: hidden;
-  color: #111827;
+  color: var(--sailor-text-primary);
   font-size: 12px;
   font-weight: var(--sailor-font-medium);
   text-overflow: ellipsis;
@@ -238,7 +273,7 @@ async function confirmDeleteSession() {
 }
 
 .agent-session-list__date {
-  color: #98a2b3;
+  color: var(--sailor-text-muted);
   font-size: 11px;
 }
 
@@ -246,34 +281,29 @@ async function confirmDeleteSession() {
   position: absolute;
   top: 50%;
   right: 6px;
-  display: grid;
   width: 24px;
   height: 24px;
-  place-items: center;
-  border: 0;
   border-radius: var(--sailor-radius-full);
-  background: transparent;
-  color: #98a2b3;
-  cursor: pointer;
+  color: var(--sailor-text-muted);
   transform: translateY(-50%);
 }
 
 .agent-session-list__delete:hover {
-  background: #e8eef8;
-  color: #0b1220;
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-text-primary);
 }
 
 .agent-session-list__delete-menu {
-  border: 1px solid rgba(12, 17, 29, 0.08);
+  border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-lg);
-  background: #ffffff;
+  background: var(--sailor-bg-surface);
   padding: var(--sailor-space-3);
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+  box-shadow: var(--sailor-shadow-lg);
 }
 
 .agent-session-list__delete-menu h3 {
   margin: 0 0 var(--sailor-space-2);
-  color: #0b1220;
+  color: var(--sailor-text-primary);
   font-size: var(--sailor-text-sm);
 }
 
@@ -282,7 +312,7 @@ async function confirmDeleteSession() {
   align-items: center;
   gap: var(--sailor-space-2);
   margin-top: var(--sailor-space-2);
-  color: #475467;
+  color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
 }
 

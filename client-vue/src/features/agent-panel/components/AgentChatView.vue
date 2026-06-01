@@ -100,14 +100,16 @@
               <p>{{ messageText(message.content) }}</p>
               <ul v-if="waitingUserOptions(message.content).length" class="agent-chat-view__waiting-options">
                 <li v-for="option in waitingUserOptions(message.content)" :key="waitingOptionLabel(option)">
-                  <button
+                  <BaseButton
                     type="button"
                     class="agent-chat-view__waiting-option"
+                    variant="outline"
+                    size="sm"
                     :disabled="store.sending"
                     @click="sendWaitingUserOption(option)"
                   >
                     {{ waitingOptionLabel(option) }}
-                  </button>
+                  </BaseButton>
                 </li>
               </ul>
             </div>
@@ -315,8 +317,8 @@ async function scrollMessagesToBottom() {
   min-height: 0;
   min-width: 0;
   flex-direction: column;
-  background: #ffffff;
-  color: #0b1220;
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
 }
 
 .agent-chat-view__header {
@@ -326,7 +328,7 @@ async function scrollMessagesToBottom() {
   align-items: center;
   justify-content: space-between;
   gap: var(--sailor-space-4);
-  background: #ffffff;
+  background: var(--sailor-bg-surface);
   padding: var(--sailor-space-4) var(--sailor-space-8);
 }
 
@@ -351,13 +353,13 @@ async function scrollMessagesToBottom() {
 }
 
 .agent-chat-view__identity strong {
-  color: #0b1220;
+  color: var(--sailor-text-primary);
   font-size: 12px;
   font-weight: var(--sailor-font-semibold);
 }
 
 .agent-chat-view__identity small {
-  color: #667085;
+  color: var(--sailor-text-secondary);
   font-size: 10px;
 }
 
@@ -366,9 +368,9 @@ async function scrollMessagesToBottom() {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgba(12, 17, 29, 0.08);
+  border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-full);
-  background: #ffffff;
+  background: var(--sailor-bg-base);
 }
 
 .agent-chat-view__emoji {
@@ -397,16 +399,13 @@ async function scrollMessagesToBottom() {
 }
 
 .agent-chat-view__actions :deep(.base-button--outline) {
-  border-color: rgba(12, 17, 29, 0.08);
-  background: #ffffff;
-  color: #0b1220;
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--sailor-shadow-sm);
 }
 
 .agent-chat-view__actions :deep(.base-button--primary) {
-  border-color: #061025;
-  background: #061025;
-  color: #ffffff;
+  border-color: var(--sailor-button-primary-border);
+  background: var(--sailor-button-primary-bg);
+  color: var(--sailor-button-primary-text);
 }
 
 .agent-chat-view__messages {
@@ -417,7 +416,6 @@ async function scrollMessagesToBottom() {
   overflow: auto;
   margin: 0 var(--sailor-space-8) var(--sailor-space-5);
   border-radius: var(--sailor-radius-sm);
-  background: #f7f7f8;
   padding: var(--sailor-space-8);
 }
 
@@ -436,7 +434,7 @@ async function scrollMessagesToBottom() {
 
 .agent-chat-view__prompt-stage p {
   margin: 0;
-  color: #667085;
+  color: var(--sailor-text-secondary);
   font-size: 10px;
   text-align: center;
 }
@@ -488,7 +486,7 @@ async function scrollMessagesToBottom() {
   display: inline-flex;
   align-items: baseline;
   gap: var(--sailor-space-2);
-  color: #0b1220;
+  color: var(--sailor-text-primary);
   font-size: var(--sailor-text-xs);
   font-weight: var(--sailor-font-bold);
 }
@@ -498,7 +496,7 @@ async function scrollMessagesToBottom() {
 }
 
 .agent-chat-view__role time {
-  color: #98a2b3;
+  color: var(--sailor-text-muted);
   font-weight: var(--sailor-font-medium);
 }
 
@@ -508,7 +506,7 @@ async function scrollMessagesToBottom() {
 .agent-chat-view__typing-dots {
   grid-column: 2;
   margin: 0;
-  color: #475467;
+  color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-sm);
   line-height: 1.55;
   white-space: pre-wrap;
@@ -519,7 +517,7 @@ async function scrollMessagesToBottom() {
   border-radius: var(--sailor-radius-lg);
   background: transparent;
   padding: 0;
-  color: #0b1220;
+  color: var(--sailor-text-primary);
   box-shadow: none;
 }
 
@@ -537,38 +535,25 @@ async function scrollMessagesToBottom() {
   gap: var(--sailor-space-1);
   margin: 0;
   padding: 0;
-  color: #667085;
+  color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
   list-style: none;
 }
 
 .agent-chat-view__waiting-option {
-  display: block;
   width: fit-content;
   max-width: 100%;
-  border: 1px solid rgba(12, 17, 29, 0.08);
   border-radius: var(--sailor-radius-full);
-  background: #ffffff;
-  padding: var(--sailor-space-1) var(--sailor-space-2);
-  color: #344054;
-  font: inherit;
   text-align: left;
-  cursor: pointer;
 }
 
 .agent-chat-view__waiting-option:hover:not(:disabled) {
-  background: #f4f7fb;
-  color: #0b1220;
-}
-
-.agent-chat-view__waiting-option:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
+  color: var(--sailor-text-primary);
 }
 
 .agent-chat-view__thinking {
   margin-bottom: var(--sailor-space-1);
-  color: #98a2b3;
+  color: var(--sailor-text-muted);
   font-size: var(--sailor-text-xs);
 }
 
@@ -584,7 +569,7 @@ async function scrollMessagesToBottom() {
   width: 5px;
   height: 5px;
   border-radius: var(--sailor-radius-full);
-  background: #98a2b3;
+  background: var(--sailor-text-muted);
   animation: agent-chat-typing-bounce 0.9s ease-in-out infinite;
 }
 
@@ -599,7 +584,7 @@ async function scrollMessagesToBottom() {
 .agent-chat-view__progress,
 .agent-chat-view__summary {
   grid-column: 2;
-  color: #344054;
+  color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-sm);
   line-height: 1.5;
 }
@@ -652,7 +637,7 @@ async function scrollMessagesToBottom() {
   min-width: 0;
   align-items: center;
   gap: var(--sailor-space-2);
-  color: #667085;
+  color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
 }
 
@@ -660,7 +645,7 @@ async function scrollMessagesToBottom() {
   display: grid;
   flex: 1;
   place-items: center;
-  color: #667085;
+  color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-sm);
 }
 
