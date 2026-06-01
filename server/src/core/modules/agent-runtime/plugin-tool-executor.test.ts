@@ -85,9 +85,9 @@ describe("plugin tool executor", () => {
 
   it("allows large Buffer values for file parameters without counting raw bytes as JSON payload", async () => {
     const file = Buffer.alloc(AGENT_LIMITS.maxToolPayloadBytes + 1, "a");
-    let received: Record<string, any> | null = null;
+    const received: Array<{ upload?: Buffer }> = [];
     PluginManager.registerPlugin(createPlugin(async (params) => {
-      received = params;
+      received.push(params);
       return { ok: true };
     }, {
       upload: { "x-input-type": "file" },
@@ -113,7 +113,7 @@ describe("plugin tool executor", () => {
     });
 
     assert.deepEqual(result, { ok: true });
-    assert.equal(received?.upload, file);
+    assert.equal(received[0]?.upload, file);
   });
 
   it("rejects side-effect tools without approval", async () => {

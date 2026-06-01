@@ -167,12 +167,12 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 
 #### Verificacao Do Bloco
 
-- [ ] Rodar suite focada do backend: `node --test src/core/modules/agent-runtime/plugin-tool-executor.test.ts src/core/modules/agent-runtime/plugin-tool-adapter.test.ts src/core/modules/agent-runtime/agent-graph-builder.test.ts src/core/modules/agent-runtime/chat/agent-panel-chat-service.test.ts src/core/routes/agent-chat-workflow.integration.test.ts src/core/routes/agent-panel.routes.test.ts`.
-- [ ] Rodar suite focada do frontend: `node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts`.
-- [ ] Rodar build do `server`.
-- [ ] Rodar build do `client-vue` se o store/frontend for alterado.
-- [ ] Atualizar este plano marcando as tasks concluidas.
-- [ ] Fazer commit somente dos arquivos alterados neste bloco, sem `git add .`.
+- [x] Rodar suite focada do backend: `node --test src/core/modules/agent-runtime/plugin-tool-executor.test.ts src/core/modules/agent-runtime/plugin-tool-adapter.test.ts src/core/modules/agent-runtime/agent-graph-builder.test.ts src/core/modules/agent-runtime/chat/agent-panel-chat-service.test.ts src/core/routes/agent-chat-workflow.integration.test.ts src/core/routes/agent-panel.routes.test.ts`.
+- [x] Rodar suite focada do frontend: `node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts`.
+- [x] Rodar build do `server`.
+- [x] Rodar build do `client-vue` se o store/frontend for alterado.
+- [x] Atualizar este plano marcando as tasks concluidas.
+- [x] Fazer commit somente dos arquivos alterados neste bloco, sem `git add .`.
 
 ## Riscos
 

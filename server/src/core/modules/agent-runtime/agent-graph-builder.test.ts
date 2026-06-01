@@ -457,7 +457,7 @@ describe("agent graph builder", () => {
       const result = await graph.invoke({ userMessage: "check access" });
 
       assert.equal(result.status, "waiting-user");
-      assert.equal(result.output.reason, item.reason);
+      assert.equal((result.output as Record<string, unknown>).reason, item.reason);
     }
   });
 
