@@ -250,6 +250,8 @@ describe('agent panel modal contract', () => {
 
     assert.match(chat, /isWaitingUserContent/)
     assert.match(chat, /agent-chat-view__waiting-options/)
+    assert.match(chat, /type="button"/)
+    assert.match(chat, /sendWaitingUserOption/)
     assert.match(chat, /waitingUserOptions/)
     assert.match(chat, /waitingOptionLabel/)
   })
@@ -262,6 +264,8 @@ describe('agent panel modal contract', () => {
     assert.match(store, /local-assistant-stream-/)
     assert.match(store, /previousLocalMessages/)
     assert.match(store, /messages\.value\.slice\(0, localTurnStart\)/)
+    assert.match(store, /latestServerWaitingUserMessage/)
+    assert.match(store, /isWaitingUserContent/)
     assert.doesNotMatch(store, /messages\.value = mergeServerMessagesWithLocalAgentEvents\(result\.messages\)/)
   })
 

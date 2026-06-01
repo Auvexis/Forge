@@ -72,6 +72,11 @@ interface AgentToolCall {
 
 type ToolResultClass = "success" | "empty" | "ambiguous" | "failed" | "needs_user";
 
+interface ToolResultSummary {
+  resultClass: ToolResultClass;
+  options?: unknown[];
+}
+
 const ajv = new Ajv({ allErrors: true, strict: false });
 const LARGE_BASE64_MIN_CHARS = 64_000;
 
@@ -93,7 +98,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
       ];
       let toolCallCount = 0;
       const completedToolCalls: AgentRunToolCall[] = [];
-      const toolHistory = new Map<string, ToolResultClass>();
+      const toolHistory = new Map<string, ToolResultSummary>();
 
       for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
         input.onEvent?.({ type: "agent:model-start", payload: { iteration, input: { messages } } });
@@ -192,11 +197,11 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
           let result: unknown;
           const resolvedArgs = resolveBinaryRefsInToolArgs(toolCall.args, binaryRefs);
           const toolSignature = toolCallSignature(toolCall.name, resolvedArgs);
-          const previousResultClass = toolHistory.get(toolSignature);
-          if (previousResultClass && shouldStopRepeatedToolCall(previousResultClass)) {
+          const previousResult = toolHistory.get(toolSignature);
+          if (previousResult && shouldStopRepeatedToolCall(previousResult.resultClass)) {
             return {
               status: "waiting-user",
-              output: waitingUserOutputForRepeatedTool(toolCall.name, previousResultClass),
+              output: waitingUserOutputForRepeatedTool(toolCall.name, previousResult),
               iterationCount: iteration,
               toolCallCount,
               ...(completedToolCalls.length > 0 ? { toolCalls: completedToolCalls } : {}),
@@ -207,14 +212,25 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             result = await tool.invoke(resolvedArgs);
           } catch (error) {
             if (error instanceof AgentToolApprovalRequiredError) throw error;
-            emitToolEnd(input, tool, toolCall, { status: "failed", error: safeErrorMessage(error) });
+            const errorMessage = safeErrorMessage(error);
+            emitToolEnd(input, tool, toolCall, { status: "failed", error: errorMessage });
             completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "failed"));
-            toolHistory.set(toolSignature, "failed");
+            toolHistory.set(toolSignature, { resultClass: "failed" });
+            if (isUnrecoverablePermissionOrCredentialError(errorMessage)) {
+              toolCallCount += 1;
+              return {
+                status: "waiting-user",
+                output: waitingUserOutputForUnrecoverableToolError(toolCall.name, errorMessage),
+                iterationCount: iteration,
+                toolCallCount,
+                toolCalls: completedToolCalls,
+              };
+            }
             throw error;
           }
           toolCallCount += 1;
           const modelSafeResult = sanitizeToolResultForModel(result, toolCall.id, binaryRefs);
-          toolHistory.set(toolSignature, classifyToolResult(modelSafeResult));
+          toolHistory.set(toolSignature, summarizeToolResult(modelSafeResult));
           emitToolEnd(input, tool, toolCall, { status: "success", output: modelSafeResult });
           completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "success"));
           await yieldToEventLoop();
@@ -326,8 +342,8 @@ function emitToolEnd(
     payload: {
       name: tool.name,
       callId: toolCall.id,
-      pluginId: tool.pluginId,
-      pluginName: tool.pluginName,
+      ...(tool.pluginId ? { pluginId: tool.pluginId } : {}),
+      ...(tool.pluginName ? { pluginName: tool.pluginName } : {}),
       ...(tool.methodId ? { methodId: tool.methodId } : {}),
       ...result,
     },
@@ -646,6 +662,14 @@ function stableStringify(value: unknown): string {
   return JSON.stringify(value);
 }
 
+function summarizeToolResult(value: unknown): ToolResultSummary {
+  const resultClass = classifyToolResult(value);
+  return {
+    resultClass,
+    ...(resultClass === "ambiguous" ? { options: findResultOptions(value) ?? undefined } : {}),
+  };
+}
+
 function classifyToolResult(value: unknown): ToolResultClass {
   if (containsWaitingUserMarker(value)) return "needs_user";
   if (containsEmptyResultArray(value)) return "empty";
@@ -660,15 +684,15 @@ function shouldStopRepeatedToolCall(resultClass: ToolResultClass): boolean {
     resultClass === "needs_user";
 }
 
-function waitingUserOutputForRepeatedTool(toolName: string, resultClass: ToolResultClass): Record<string, any> {
-  const reason = resultClass === "empty"
+function waitingUserOutputForRepeatedTool(toolName: string, result: ToolResultSummary): Record<string, any> {
+  const reason = result.resultClass === "empty"
     ? "not_found"
-    : resultClass === "ambiguous"
+    : result.resultClass === "ambiguous"
       ? "ambiguous_result"
       : "needs_user";
-  const question = resultClass === "empty"
+  const question = result.resultClass === "empty"
     ? "Nao encontrei resultado para essa busca. Quer tentar outro nome ou ajustar os criterios?"
-    : resultClass === "ambiguous"
+    : result.resultClass === "ambiguous"
       ? "Encontrei mais de uma opcao. Qual delas devo usar?"
       : "Preciso de mais informacoes para continuar. Como voce quer prosseguir?";
   return {
@@ -676,7 +700,24 @@ function waitingUserOutputForRepeatedTool(toolName: string, resultClass: ToolRes
     reason,
     question,
     repeatedTool: toolName,
+    ...(result.options?.length ? { options: result.options } : {}),
   };
+}
+
+function waitingUserOutputForUnrecoverableToolError(toolName: string, errorMessage: string): Record<string, any> {
+  const reason = /credential|api[_ -]?key|token/i.test(errorMessage)
+    ? "credential_required"
+    : "permission_required";
+  return {
+    status: "waiting-user",
+    reason,
+    question: "Preciso de permissao ou credenciais validas para continuar. Ajuste o acesso e me avise para tentar novamente.",
+    repeatedTool: toolName,
+  };
+}
+
+function isUnrecoverablePermissionOrCredentialError(message: string): boolean {
+  return /(credential|unauthori[sz]ed|forbidden|permission|api[_ -]?key|token|oauth|auth)/i.test(message);
 }
 
 function containsWaitingUserMarker(value: unknown): boolean {
@@ -690,6 +731,18 @@ function containsEmptyResultArray(value: unknown): boolean {
 
 function containsAmbiguousResultArray(value: unknown): boolean {
   return findResultArray(value, (items) => items.length > 1);
+}
+
+function findResultOptions(value: unknown): unknown[] | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+    if (Array.isArray(item) && isResultCollectionKey(key) && item.length > 1) return item;
+    if (item && typeof item === "object") {
+      const nested = findResultOptions(item);
+      if (nested) return nested;
+    }
+  }
+  return null;
 }
 
 function findResultArray(value: unknown, predicate: (items: unknown[]) => boolean): boolean {

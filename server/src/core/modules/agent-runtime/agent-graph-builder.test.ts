@@ -376,6 +376,94 @@ describe("agent graph builder", () => {
     assert.equal(tool.calls.length, 1);
   });
 
+  it("turns unrecoverable permission and credential tool errors into waiting-user", async () => {
+    const events: Array<{ type: string; payload?: unknown }> = [];
+    const tool = fakeTool("youtube_upload", async () => {
+      throw new Error("Missing credentials for YouTube");
+    });
+    const model = fakeModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "youtube_upload", args: { title: "video" } }] },
+      { content: "should not be reached" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+      onEvent: (event) => events.push(event),
+    });
+
+    const result = await graph.invoke({ userMessage: "upload video" });
+
+    assert.equal(result.status, "waiting-user");
+    assert.deepEqual(result.output, {
+      status: "waiting-user",
+      reason: "credential_required",
+      question: "Preciso de permissao ou credenciais validas para continuar. Ajuste o acesso e me avise para tentar novamente.",
+      repeatedTool: "youtube_upload",
+    });
+    assert.deepEqual(result.toolCalls, [{
+      toolCallId: "call_1",
+      name: "youtube_upload",
+      status: "failed",
+    }]);
+    const toolEnd = events.find((event) => event.type === "agent:tool-end");
+    assert.deepEqual(toolEnd?.payload, {
+      name: "youtube_upload",
+      callId: "call_1",
+      status: "failed",
+      error: "Missing credentials for YouTube",
+    });
+  });
+
+  it("keeps ordinary tool failures as runtime errors", async () => {
+    const tool = fakeTool("unstable_tool", async () => {
+      throw new Error("temporary network timeout");
+    });
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model: fakeModel([
+        { content: "", toolCalls: [{ id: "call_1", name: "unstable_tool", args: {} }] },
+      ]),
+      tools: [tool],
+    });
+
+    await assert.rejects(
+      () => graph.invoke({ userMessage: "try tool" }),
+      /temporary network timeout/,
+    );
+  });
+
+  it("returns ambiguous repeated tool results as waiting-user with selectable options", async () => {
+    const files = [
+      { id: "file_1", name: "video final.mp4" },
+      { id: "file_2", name: "video draft.mp4" },
+    ];
+    const tool = fakeTool("drive_search", async () => ({ files }));
+    const repeatedCall = { name: "drive_search", args: { query: "video.mp4" } };
+    const model = fakeModel([
+      { content: "", toolCalls: [{ id: "call_1", ...repeatedCall }] },
+      { content: "", toolCalls: [{ id: "call_2", ...repeatedCall }] },
+      { content: "should not be reached" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+    });
+
+    const result = await graph.invoke({ userMessage: "busque video.mp4" });
+
+    assert.equal(result.status, "waiting-user");
+    assert.deepEqual(result.output, {
+      status: "waiting-user",
+      reason: "ambiguous_result",
+      question: "Encontrei mais de uma opcao. Qual delas devo usar?",
+      repeatedTool: "drive_search",
+      options: files,
+    });
+    assert.equal(tool.calls.length, 1);
+  });
+
   it("can stop after tool execution without asking the model for a final answer", async () => {
     const toolCalls = [{ id: "call_1", name: "send_message", args: { text: "done" } }];
     const tool = fakeTool("send_message", async (args) => ({ sent: true, args }));

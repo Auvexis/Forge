@@ -78,6 +78,19 @@ Tambem melhorar o auto-controle do agente para multi-step, perguntas ao usuario 
 - [x] Adicionar teste de parada: resultado vazio repetido vira `waiting-user`, nao nova tool call.
 - [ ] Adicionar teste de parada: erro de permissao/credencial para o turno com mensagem clara.
 
+### 6. Hardening De Auto-controle
+
+- [x] Criar teste falhando para erro de permissao/credencial virar `waiting-user` sem quebrar o turno.
+- [x] Implementar classificacao de erro irrecuperavel: `permission`, `credential`, `unauthorized`, `forbidden`.
+- [x] Emitir `agent:tool-end` failed leve e retornar pergunta clara ao usuario nesses erros.
+- [x] Garantir que erro normal de tool continue falhando como antes.
+- [x] Criar teste falhando para resultado ambiguo com `files/items/results/options` retornar opcoes ao usuario.
+- [x] Implementar `waiting-user` automatico para ambiguidade quando a mesma busca retorna varias opcoes.
+- [x] Preservar opcoes originais no payload `waiting-user` sem vazar conteudo pesado.
+- [x] Criar contrato frontend para renderizar opcoes como botoes acionaveis, nao apenas lista.
+- [x] Implementar clique em opcao preenchendo/enviando uma resposta curta para continuar a sessao.
+- [x] Rodar testes/builds focados e fazer commit do bloco.
+
 ### 5. Verificacao E Fechamento
 
 - [x] Rodar testes focados do agent runtime.

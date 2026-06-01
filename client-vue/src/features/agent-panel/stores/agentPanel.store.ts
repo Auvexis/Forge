@@ -339,16 +339,27 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     )
     if (localTurnStart < 0) return serverMessages
 
+    const waitingUserMessage = latestServerWaitingUserMessage(serverMessages, sessionId)
     const stableLocalTurn = messages.value
       .slice(localTurnStart)
       .filter((message) => message.sessionId === sessionId)
-      .map(finalizeLocalAssistantMessage)
+      .map((message) => finalizeLocalAssistantMessage(message, waitingUserMessage))
     const previousLocalMessages = messages.value.slice(0, localTurnStart)
     return [...previousLocalMessages, ...stableLocalTurn]
   }
 
-  function finalizeLocalAssistantMessage(message: AgentChatMessage): AgentChatMessage {
+  function finalizeLocalAssistantMessage(
+    message: AgentChatMessage,
+    waitingUserMessage?: AgentChatMessage,
+  ): AgentChatMessage {
     if (!message.id.startsWith('local-assistant-stream-')) return message
+    if (waitingUserMessage && isWaitingUserContent(waitingUserMessage.content)) {
+      return {
+        ...message,
+        content: waitingUserMessage.content,
+        createdAt: waitingUserMessage.createdAt,
+      }
+    }
     const content = normalizeAssistantContent(message.content)
     return {
       ...message,
@@ -358,6 +369,26 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         pending: false,
       },
     }
+  }
+
+  function latestServerWaitingUserMessage(
+    serverMessages: AgentChatMessage[],
+    sessionId: string,
+  ): AgentChatMessage | undefined {
+    return [...serverMessages].reverse().find((message) =>
+      message.sessionId === sessionId &&
+      message.role === 'assistant' &&
+      isWaitingUserContent(message.content),
+    )
+  }
+
+  function isWaitingUserContent(content: unknown): boolean {
+    return Boolean(
+      content &&
+        typeof content === 'object' &&
+        !Array.isArray(content) &&
+        (content as { waitingUser?: unknown }).waitingUser === true,
+    )
   }
 
   function findLastMessageIndex(

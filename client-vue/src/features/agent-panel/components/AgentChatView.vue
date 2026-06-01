@@ -125,7 +125,14 @@
               <p>{{ messageText(message.content) }}</p>
               <ul v-if="waitingUserOptions(message.content).length" class="agent-chat-view__waiting-options">
                 <li v-for="option in waitingUserOptions(message.content)" :key="waitingOptionLabel(option)">
-                  {{ waitingOptionLabel(option) }}
+                  <button
+                    type="button"
+                    class="agent-chat-view__waiting-option"
+                    :disabled="store.sending"
+                    @click="sendWaitingUserOption(option)"
+                  >
+                    {{ waitingOptionLabel(option) }}
+                  </button>
                 </li>
               </ul>
             </div>
@@ -257,6 +264,12 @@ function waitingOptionLabel(option: unknown): string {
   const id = typeof record.id === 'string' ? record.id : ''
   if (name && id) return `${name} (${id})`
   return name || id || JSON.stringify(option)
+}
+
+function sendWaitingUserOption(option: unknown) {
+  const label = waitingOptionLabel(option)
+  if (!label) return
+  void store.sendMessage(`Use ${label}`)
 }
 
 function progressMessage(content: AgentPanelProgressContent): string {
@@ -614,6 +627,30 @@ void ['transcript-only', 'session', 'all-agent-memory']
   color: var(--sailor-text-muted);
   font-size: var(--sailor-text-xs);
   list-style: none;
+}
+
+.agent-chat-view__waiting-option {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-elevated);
+  padding: var(--sailor-space-1) var(--sailor-space-2);
+  color: var(--sailor-text-secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.agent-chat-view__waiting-option:hover:not(:disabled) {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-text-primary);
+}
+
+.agent-chat-view__waiting-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .agent-chat-view__thinking {
