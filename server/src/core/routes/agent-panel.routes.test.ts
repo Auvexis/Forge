@@ -152,6 +152,45 @@ describe("agent panel routes", () => {
     assert.deepEqual(events.map((event) => event.delta).filter(Boolean), ["thinking ", "hel", "lo"]);
   });
 
+  it("streams approval requests so the global agent chat can confirm or decline", async () => {
+    const app = await buildApp({
+      sendMessage: async (input: { executionId?: string }) => {
+        assert.ok(input.executionId);
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:approval-created",
+          timestamp: Date.now(),
+          data: {
+            approvalId: "approval_1",
+            executionId: input.executionId,
+            toolName: "google_gmail_send_message",
+            sideEffect: "external-message",
+          },
+        });
+        return {
+          session: session("chat_1"),
+          messages: [message("msg_user", "chat_1")],
+          execution: { status: "WAITING_APPROVAL" },
+        };
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Enviar email" },
+    });
+    const events = parseStreamEvents(response.body);
+    const approval = events.find((event) => event.type === "approval");
+
+    assert.equal(approval?.approvalId, "approval_1");
+    assert.equal(approval?.executionId?.startsWith("exec_agent_panel_"), true);
+    assert.equal(approval?.toolName, "google_gmail_send_message");
+    assert.equal(events.at(-1)?.type, "done");
+  });
+
   it("starts agent panel streams with POST and reads them through EventSource-compatible GET", async () => {
     const app = await buildApp({
       sendMessage: async (input: { executionId?: string }) => {
@@ -210,7 +249,7 @@ describe("agent panel routes", () => {
       "summary",
       "done",
     ]);
-    assert.match(events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""), /^Perfect, .*Hello/);
+    assert.equal(events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""), "I'll run the needed steps.");
     assert.equal(events.find((event) => event.type === "progress")?.status, "running");
     assert.equal(events.filter((event) => event.type === "progress")[1]?.status, "success");
     assert.equal(events.at(-1)?.type, "done");
@@ -415,14 +454,10 @@ describe("agent panel routes", () => {
     assert.match(progressEvents[5]?.message ?? "", /Usei send_email com sucesso/);
     assert.equal(
       events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""),
-      "Perfeito, vou cuidar disso agora: Enviar email",
+      "Vou executar as etapas necessarias.",
     );
-    assert.ok(events.some((event) =>
-      event.type === "summary" &&
-      /Usei estas ferramentas/.test(event.message ?? "") &&
-      /search_contacts/.test(event.message ?? "") &&
-      /send_email/.test(event.message ?? "")
-    ));
+    const summary = events.find((event) => event.type === "summary");
+    assert.deepEqual(summary?.tools?.map((tool) => tool.toolCallId), ["tool_call_1", "tool_call_2"]);
     assert.equal(events.at(-1)?.type, "done");
   });
 
@@ -462,9 +497,7 @@ describe("agent panel routes", () => {
     const events = parseStreamEvents(response.body);
     const deltaEvents = events.filter((event) => event.type === "delta");
 
-    assert.ok(deltaEvents.length > 1);
-    assert.match(deltaEvents.map((event) => event.delta ?? "").join(""), /^Perfect, /);
-    assert.match(deltaEvents.map((event) => event.delta ?? "").join(""), /bananas/);
+    assert.equal(deltaEvents.map((event) => event.delta ?? "").join(""), "I'll run the needed steps.");
     assert.match(events.find((event) => event.type === "progress")?.message ?? "", /^Running discord_send_message now\./);
     assert.match(events.find((event) => event.type === "summary")?.message ?? "", /^Used these tools: discord_send_message\./);
   });
@@ -541,7 +574,7 @@ describe("agent panel routes", () => {
     assert.equal(progressEvents.filter((event) => /com sucesso/.test(event.message ?? "")).length, 2);
     assert.equal(
       events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""),
-      "Perfeito, vou cuidar disso agora: Enviar piada",
+      "Vou executar as etapas necessarias.",
     );
     assert.ok(events.find((event) =>
       event.type === "summary" &&
@@ -612,6 +645,9 @@ function parseStreamEvents(body: string): Array<{
   delta?: string;
   status?: string;
   message?: string;
+  approvalId?: string;
+  executionId?: string;
+  toolName?: string;
   tool?: { toolCallId?: string; pluginId?: string };
   tools?: Array<{ toolCallId?: string; pluginId?: string }>;
 }> {

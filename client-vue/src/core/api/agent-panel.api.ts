@@ -9,7 +9,11 @@ import type {
   PublishedAgentSummary,
   SendAgentPanelMessagePayload,
 } from '@/features/agent-panel/types/agent-panel.types'
-import type { AgentChatMessage, AgentChatSession } from '@/features/agent-runtime/types/agent.types'
+import type {
+  AgentApprovalDecisionPayload,
+  AgentChatMessage,
+  AgentChatSession,
+} from '@/features/agent-runtime/types/agent.types'
 
 export const agentPanelApi = {
   listAgents: (scope: 'current' | 'global' = 'current') =>
@@ -41,6 +45,18 @@ export const agentPanelApi = {
 
   sendMessageStream: (sessionId: string, payload: SendAgentPanelMessagePayload) =>
     streamAgentPanelEvents(sessionId, payload),
+
+  approveToolCall: (approvalId: string, payload: AgentApprovalDecisionPayload) =>
+    apiRequest(ENDPOINTS.AGENT_APPROVAL_APPROVE(approvalId), {
+      method: 'POST',
+      body: payload,
+    }),
+
+  rejectToolCall: (approvalId: string, payload: AgentApprovalDecisionPayload) =>
+    apiRequest(ENDPOINTS.AGENT_APPROVAL_REJECT(approvalId), {
+      method: 'POST',
+      body: payload,
+    }),
 
   deleteSession: (sessionId: string, payload: DeleteAgentPanelSessionPayload) =>
     apiRequest<null>(ENDPOINTS.AGENT_PANEL_SESSION(sessionId), {

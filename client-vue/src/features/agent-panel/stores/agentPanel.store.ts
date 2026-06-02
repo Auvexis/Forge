@@ -5,6 +5,7 @@ import { useToast } from '@/shared/composables/useToast'
 import { mergeServerMessagesWithStableLocalTurn as mergeStableLocalTurn } from './agentPanelMessageMerge'
 import type { AgentChatMessage, AgentChatSession } from '@/features/agent-runtime/types/agent.types'
 import type {
+  AgentPanelApprovalContent,
   AgentPanelProgressContent,
   AgentPanelSummaryContent,
   AgentPanelStreamEvent,
@@ -26,6 +27,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   const directoryError = ref('')
   const chatError = ref('')
   const activeAssistantStreamId = ref('')
+  const approvalPendingId = ref('')
   const agentScope = ref<AgentPanelScope>('global')
   const agentSearch = ref('')
   const directoryCollapsed = ref(false)
@@ -239,6 +241,33 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     ]
   }
 
+  function appendAgentApprovalMessage(
+    sessionId: string,
+    event: Extract<AgentPanelStreamEvent, { type: 'approval' }>,
+  ) {
+    const id = `local-agent-approval-${event.approvalId}`
+    const content: AgentPanelApprovalContent = {
+      kind: 'agentApproval',
+      approvalId: event.approvalId,
+      executionId: event.executionId,
+      toolName: event.toolName,
+      sideEffect: event.sideEffect,
+      message: event.message,
+    }
+    messages.value = [
+      ...messages.value.filter((message) => message.id !== id),
+      {
+        id,
+        profileId: '',
+        sessionId,
+        role: 'assistant',
+        content,
+        createdAt: new Date().toISOString(),
+        entrance: 'assistant',
+      } as AgentChatMessage,
+    ]
+  }
+
   function upsertStreamingAssistantMessage(
     sessionId: string,
     patch: { textDelta?: string; thinkingDelta?: string; pending?: boolean },
@@ -313,6 +342,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         if (event.type === 'delta') appendStreamingAssistantMessage(selectedSessionId.value, event.delta)
         if (event.type === 'progress') appendAgentProgressMessage(selectedSessionId.value, event)
         if (event.type === 'summary') appendAgentSummaryMessage(selectedSessionId.value, event)
+        if (event.type === 'approval') appendAgentApprovalMessage(selectedSessionId.value, event)
         if (event.type === 'error') throw new Error(event.message)
         if (event.type === 'done') result = event.result
       }
@@ -328,6 +358,34 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     } finally {
       activeAssistantStreamId.value = ''
       sending.value = false
+    }
+  }
+
+  async function approveApproval(approval: AgentPanelApprovalContent) {
+    if (!selectedSessionId.value || approvalPendingId.value) return
+    approvalPendingId.value = approval.approvalId
+    try {
+      await agentPanelApi.approveToolCall(approval.approvalId, {
+        executionId: approval.executionId,
+        reason: 'Approved from global agent chat',
+      })
+      await loadMessages(selectedSessionId.value)
+    } finally {
+      approvalPendingId.value = ''
+    }
+  }
+
+  async function rejectApproval(approval: AgentPanelApprovalContent) {
+    if (!selectedSessionId.value || approvalPendingId.value) return
+    approvalPendingId.value = approval.approvalId
+    try {
+      await agentPanelApi.rejectToolCall(approval.approvalId, {
+        executionId: approval.executionId,
+        reason: 'Declined from global agent chat',
+      })
+      await loadMessages(selectedSessionId.value)
+    } finally {
+      approvalPendingId.value = ''
     }
   }
 
@@ -440,6 +498,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     agentScope,
     agentSearch,
     directoryCollapsed,
+    approvalPendingId,
     selectedAgent,
     selectedSession,
     hasOpenChat,
@@ -459,6 +518,9 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     appendStreamingAssistantThinking,
     appendAgentProgressMessage,
     appendAgentSummaryMessage,
+    appendAgentApprovalMessage,
+    approveApproval,
+    rejectApproval,
     sendMessage,
   }
 })

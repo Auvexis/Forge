@@ -256,6 +256,25 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /waitingOptionLabel/)
   })
 
+  it('renders global agent approval actions and resolves them through the approval api', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const api = readFileSync('src/core/api/agent-panel.api.ts', 'utf8')
+    const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
+
+    assert.match(types, /type: 'approval'/)
+    assert.match(chat, /isAgentApprovalContent/)
+    assert.match(chat, /Confirm/)
+    assert.match(chat, /Decline/)
+    assert.match(chat, /approveAgentApproval/)
+    assert.match(chat, /rejectAgentApproval/)
+    assert.match(store, /appendAgentApprovalMessage/)
+    assert.match(store, /approveApproval/)
+    assert.match(store, /rejectApproval/)
+    assert.match(api, /approveToolCall/)
+    assert.match(api, /rejectToolCall/)
+  })
+
   it('keeps the streamed user and assistant messages stable when the final server result arrives', () => {
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
 

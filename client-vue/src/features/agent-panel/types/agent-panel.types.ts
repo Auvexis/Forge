@@ -60,6 +60,15 @@ export interface AgentPanelSummaryContent {
   tools: AgentPanelSummaryTool[]
 }
 
+export interface AgentPanelApprovalContent {
+  kind: 'agentApproval'
+  approvalId: string
+  executionId: string
+  toolName: string
+  sideEffect?: string
+  message: string
+}
+
 export type AgentPanelStreamEvent =
   | { type: 'start' }
   | { type: 'thinking'; delta: string }
@@ -71,5 +80,13 @@ export type AgentPanelStreamEvent =
       tool?: AgentPanelProgressContent['tool']
     }
   | { type: 'summary'; message: string; tools: AgentPanelSummaryTool[] }
+  | {
+      type: 'approval'
+      approvalId: string
+      executionId: string
+      toolName: string
+      sideEffect?: string
+      message: string
+    }
   | { type: 'done'; result: AgentPanelMessageResult }
   | { type: 'error'; code?: string; message: string }

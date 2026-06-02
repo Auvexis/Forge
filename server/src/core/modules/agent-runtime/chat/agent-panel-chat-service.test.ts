@@ -101,9 +101,65 @@ describe("agent panel chat service", () => {
       message: "Enviar resumo",
     });
 
-    assert.deepEqual(result.messages.map((message) => ({ role: message.role, content: message.content })), [
-      { role: "user", content: "Enviar resumo" },
+    assert.deepEqual(result.messages.map((message) => message.role), [
+      "user",
+      "assistant",
+      "assistant",
+      "assistant",
+      "assistant",
     ]);
+    assert.equal(result.messages.some((message) => message.content === ""), false);
+  });
+
+  it("persists tool progress and summary messages so steps survive reloads", async () => {
+    const service = serviceFixture({
+      executionOutput: "Email enviado.",
+      toolCalls: [
+        {
+          toolCallId: "call_1",
+          name: "google_drive_list_files",
+          pluginId: "google-drive",
+          pluginName: "Google Drive",
+          status: "success",
+        },
+        {
+          toolCallId: "call_2",
+          name: "google_gmail_send_message",
+          pluginId: "google-gmail",
+          pluginName: "Gmail",
+          status: "success",
+        },
+      ],
+    });
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+
+    await service.sendMessage({
+      profileId: "profile_a",
+      sessionId: session.id,
+      message: "Enviar curriculo",
+    });
+
+    const messages = await service.listMessages({ profileId: "profile_a", sessionId: session.id });
+    const assistantContents = messages
+      .filter((message) => message.role === "assistant")
+      .map((message) => message.content as any);
+    const progress = assistantContents.filter((content) => content.kind === "agentProgress");
+    const summary = assistantContents.find((content) => content.kind === "agentSummary");
+
+    assert.deepEqual(progress.map((content) => `${content.tool.toolCallId}:${content.status}`), [
+      "call_1:planned",
+      "call_1:running",
+      "call_1:success",
+      "call_2:planned",
+      "call_2:running",
+      "call_2:success",
+    ]);
+    assert.equal(summary?.tools.length, 2);
+    assert.equal(assistantContents.at(-1)?.text ?? assistantContents.at(-1), "Email enviado.");
   });
 
   it("returns a lightweight execution summary instead of the full workflow context", async () => {
@@ -271,7 +327,7 @@ describe("agent panel chat service", () => {
     );
   });
 
-  it("treats waiting approval executions as incomplete instead of successful chat turns", async () => {
+  it("returns waiting approval executions as incomplete chat turns", async () => {
     const service = waitingApprovalServiceFixture();
     const session = await service.createSession({
       profileId: "profile_a",
@@ -279,10 +335,22 @@ describe("agent panel chat service", () => {
       title: "Support chat",
     });
 
-    await assert.rejects(
-      service.sendMessage({ profileId: "profile_a", sessionId: session.id, message: "Send email" }),
-      /approval/i,
-    );
+    const result = await service.sendMessage({ profileId: "profile_a", sessionId: session.id, message: "Send email" });
+
+    assert.equal((result.execution as { status?: string }).status, "WAITING_APPROVAL");
+    assert.deepEqual(result.messages.map((message) => message.role), [
+      "user",
+      "assistant",
+      "assistant",
+      "assistant",
+      "assistant",
+      "assistant",
+      "assistant",
+      "assistant",
+      "assistant",
+    ]);
+    assert.equal((result.messages.at(-1)?.content as any).kind, "agentApproval");
+    assert.equal((result.messages.at(-1)?.content as any).approvalId, "approval_1");
   });
 
   it("deletes a session and its transcript", async () => {

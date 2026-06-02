@@ -185,6 +185,13 @@ export class AgentPanelChatService {
     assertSuccessfulChatExecution(execution);
 
     const assistantResponse = extractAssistantResponse(execution, agent.summary.agentNodeId);
+    const toolCalls = extractToolCalls(execution, agent.summary.agentNodeId);
+    if (toolCalls.length > 0) {
+      appendToolProgressMessages(this.messages, input.profileId, session.id, toolCalls);
+      appendToolSummaryMessage(this.messages, input.profileId, session.id, toolCalls);
+    }
+    appendApprovalMessageIfWaiting(this.messages, input.profileId, session.id, execution);
+
     if (hasAssistantResponse(assistantResponse)) {
       this.messages.append({
         id: `msg_${randomUUID()}`,
@@ -371,6 +378,129 @@ function extractAssistantResponse(execution: unknown, agentNodeId: string): unkn
     null;
 }
 
+function extractToolCalls(execution: unknown, agentNodeId: string): Array<Record<string, unknown>> {
+  const steps = (execution as { context?: { steps?: Record<string, any> } })?.context?.steps;
+  if (!steps) return [];
+  const direct = steps[agentNodeId]?.output?.toolCalls;
+  if (Array.isArray(direct)) return direct.filter(isRecord);
+  for (const step of Object.values(steps)) {
+    const toolCalls = step?.output?.toolCalls;
+    if (Array.isArray(toolCalls)) return toolCalls.filter(isRecord);
+  }
+  return [];
+}
+
+function appendToolProgressMessages(
+  repository: ChatMessageRepository,
+  profileId: string,
+  sessionId: string,
+  toolCalls: Array<Record<string, unknown>>,
+): void {
+  for (const tool of toolCalls) {
+    for (const status of progressStatusesForTool(tool)) {
+      repository.append({
+        id: `msg_${randomUUID()}`,
+        profileId,
+        sessionId,
+        role: "assistant",
+        content: {
+          kind: "agentProgress",
+          status,
+          message: formatPersistedToolProgressMessage(tool, status),
+          tool: normalizePersistedTool(tool),
+        },
+      });
+    }
+  }
+}
+
+function appendToolSummaryMessage(
+  repository: ChatMessageRepository,
+  profileId: string,
+  sessionId: string,
+  toolCalls: Array<Record<string, unknown>>,
+): void {
+  repository.append({
+    id: `msg_${randomUUID()}`,
+    profileId,
+    sessionId,
+    role: "assistant",
+    content: {
+      kind: "agentSummary",
+      message: `Usei estas ferramentas: ${toolCalls.map(toolName).join(", ")}.`,
+      tools: toolCalls.map(normalizePersistedTool),
+    },
+  });
+}
+
+function appendApprovalMessageIfWaiting(
+  repository: ChatMessageRepository,
+  profileId: string,
+  sessionId: string,
+  execution: unknown,
+): void {
+  const record = execution as {
+    executionId?: unknown;
+    status?: unknown;
+    context?: { steps?: Record<string, any> };
+  };
+  if (record.status !== "WAITING_APPROVAL") return;
+  const approvalId = extractPendingApprovalId(record.context?.steps);
+  if (!approvalId) return;
+
+  repository.append({
+    id: `msg_${randomUUID()}`,
+    profileId,
+    sessionId,
+    role: "assistant",
+    content: {
+      kind: "agentApproval",
+      approvalId,
+      executionId: typeof record.executionId === "string" ? record.executionId : "",
+      toolName: "agent tool",
+      message: "Aprovacao necessaria para continuar.",
+    },
+  });
+}
+
+function progressStatusesForTool(tool: Record<string, unknown>): Array<"planned" | "running" | "success" | "failed"> {
+  return tool.status === "failed"
+    ? ["planned", "running", "failed"]
+    : ["planned", "running", "success"];
+}
+
+function formatPersistedToolProgressMessage(
+  tool: Record<string, unknown>,
+  status: "planned" | "running" | "success" | "failed",
+): string {
+  const name = toolName(tool);
+  if (status === "planned") return `Vou usar ${name} para processar esta etapa.`;
+  if (status === "running") return `Executando ${name} agora.`;
+  if (status === "success") return `Usei ${name} com sucesso.`;
+  return `Nao consegui usar ${name}.`;
+}
+
+function normalizePersistedTool(tool: Record<string, unknown>): Record<string, unknown> {
+  return {
+    toolCallId: typeof tool.toolCallId === "string"
+      ? tool.toolCallId
+      : typeof tool.callId === "string"
+        ? tool.callId
+        : toolName(tool),
+    name: toolName(tool),
+    ...(typeof tool.pluginId === "string" ? { pluginId: tool.pluginId } : {}),
+    ...(typeof tool.pluginName === "string" ? { pluginName: tool.pluginName } : {}),
+  };
+}
+
+function toolName(tool: Record<string, unknown>): string {
+  return typeof tool.name === "string" && tool.name.trim() ? tool.name.trim() : "agent tool";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
 function toAgentPanelExecutionSummary(execution: unknown): unknown {
   if (!execution || typeof execution !== "object") return execution;
   const record = execution as {
@@ -413,16 +543,6 @@ function assertSuccessfulChatExecution(execution: unknown): void {
     status?: unknown;
     context?: { steps?: Record<string, any> };
   };
-  if (record?.status === "WAITING_APPROVAL") {
-    const executionId = typeof record.executionId === "string" ? record.executionId : "unknown";
-    const approvalId = extractPendingApprovalId(record.context?.steps);
-    throw new AgentRuntimeError(
-      `Agent panel workflow execution ${executionId} is waiting for tool approval${approvalId ? ` (${approvalId})` : ""}`,
-      "AGENT_PANEL_WAITING_APPROVAL",
-      "Agent tool requires approval before continuing",
-      409,
-    );
-  }
   if (record?.status !== "FAILED") return;
 
   const executionId = typeof record.executionId === "string" ? record.executionId : "unknown";

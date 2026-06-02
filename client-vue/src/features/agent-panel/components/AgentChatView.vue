@@ -93,6 +93,29 @@
               <span />
               <span />
             </div>
+            <div v-else-if="isAgentApprovalContent(message.content)" class="agent-chat-view__approval">
+              <p>{{ message.content.message }}</p>
+              <div class="agent-chat-view__approval-actions">
+                <BaseButton
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  :disabled="store.approvalPendingId === message.content.approvalId"
+                  @click="rejectAgentApproval(message.content)"
+                >
+                  Decline
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  :disabled="store.approvalPendingId === message.content.approvalId"
+                  @click="approveAgentApproval(message.content)"
+                >
+                  Confirm
+                </BaseButton>
+              </div>
+            </div>
             <div v-else-if="isWaitingUserContent(message.content)" class="agent-chat-view__waiting">
               <p>{{ messageText(message.content) }}</p>
               <ul v-if="waitingUserOptions(message.content).length" class="agent-chat-view__waiting-options">
@@ -144,6 +167,7 @@ import { useProfileStore } from '@/shared/stores/profile.store'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 import type { AgentChatMessage } from '@/features/agent-runtime/types/agent.types'
 import type {
+  AgentPanelApprovalContent,
   AgentPanelProgressContent,
   AgentPanelSummaryContent,
 } from '@/features/agent-panel/types/agent-panel.types'
@@ -207,6 +231,15 @@ function isAgentSummaryContent(content: unknown): content is AgentPanelSummaryCo
   )
 }
 
+function isAgentApprovalContent(content: unknown): content is AgentPanelApprovalContent {
+  return Boolean(
+    content &&
+      typeof content === 'object' &&
+      !Array.isArray(content) &&
+      (content as { kind?: unknown }).kind === 'agentApproval',
+  )
+}
+
 function isWaitingUserContent(content: unknown): boolean {
   return Boolean(
     content &&
@@ -236,6 +269,14 @@ function sendWaitingUserOption(option: unknown) {
   const label = waitingOptionLabel(option)
   if (!label) return
   void store.sendMessage(`Use ${label}`)
+}
+
+function approveAgentApproval(approval: AgentPanelApprovalContent) {
+  void store.approveApproval(approval)
+}
+
+function rejectAgentApproval(approval: AgentPanelApprovalContent) {
+  void store.rejectApproval(approval)
 }
 
 function progressMessage(content: AgentPanelProgressContent): string {
@@ -535,6 +576,7 @@ async function startNewChat() {
   padding: 0;
   color: var(--sailor-text-primary);
   box-shadow: none;
+  text-align: right;
 }
 
 .agent-chat-view__waiting {
@@ -544,6 +586,24 @@ async function startNewChat() {
 
 .agent-chat-view__waiting p {
   grid-column: auto;
+}
+
+.agent-chat-view__approval {
+  display: grid;
+  grid-column: 2;
+  gap: var(--sailor-space-2);
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-sm);
+}
+
+.agent-chat-view__approval p {
+  grid-column: auto;
+}
+
+.agent-chat-view__approval-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--sailor-space-2);
 }
 
 .agent-chat-view__waiting-options {

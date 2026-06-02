@@ -238,10 +238,20 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             toolCallCount += 1;
             const modelSafeResult = sanitizeToolResultForModel(result, toolCall.id, binaryRefs);
             const compactResult = compactToolResultForModel(modelSafeResult);
-            toolHistory.set(toolSignature, summarizeToolResult(compactResult));
+            const toolSummary = summarizeToolResult(compactResult);
+            toolHistory.set(toolSignature, toolSummary);
             emitToolEnd(input, tool, toolCall, { status: "success", output: compactResult });
             completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "success"));
             await yieldToEventLoop();
+            if (shouldAskUserAfterToolResult(toolSummary.resultClass)) {
+              return {
+                status: "waiting-user",
+                output: waitingUserOutputForRepeatedTool(toolCall.name, toolSummary),
+                iterationCount: iteration,
+                toolCallCount,
+                toolCalls: completedToolCalls,
+              };
+            }
             messages.push({
               role: "tool",
               name: tool.name,
@@ -692,6 +702,12 @@ function shouldStopRepeatedToolCall(resultClass: ToolResultClass): boolean {
   return resultClass === "empty" ||
     resultClass === "ambiguous" ||
     resultClass === "failed" ||
+    resultClass === "needs_user";
+}
+
+function shouldAskUserAfterToolResult(resultClass: ToolResultClass): boolean {
+  return resultClass === "empty" ||
+    resultClass === "ambiguous" ||
     resultClass === "needs_user";
 }
 

@@ -352,6 +352,13 @@ async function streamAgentPanelMessage(
       });
       if (status === "success") completedToolCalls.push(tool);
     }
+    if (event.type === "agent:approval-created") {
+      markToolActivity();
+      writeStreamEvent(reply, {
+        type: "approval",
+        ...extractApprovalProgress(event, progressLanguage),
+      });
+    }
     if (event.type === "agent:output-delta") {
       const delta = extractAgentDelta(event);
       if (delta) {
@@ -494,6 +501,23 @@ function extractToolStatus(event: WorkflowEvent): string {
   return typeof data?.status === "string" ? data.status : "";
 }
 
+function extractApprovalProgress(event: WorkflowEvent, language: ProgressLanguage): Record<string, unknown> {
+  const data = event.data as Record<string, unknown> | undefined;
+  const toolName = typeof data?.toolName === "string" ? data.toolName : "agent tool";
+  const approvalId = typeof data?.approvalId === "string" ? data.approvalId : "";
+  const executionId = typeof data?.executionId === "string" ? data.executionId : event.executionId;
+  const sideEffect = typeof data?.sideEffect === "string" ? data.sideEffect : undefined;
+  return {
+    approvalId,
+    executionId,
+    toolName,
+    ...(sideEffect ? { sideEffect } : {}),
+    message: language === "en"
+      ? `Approval required for ${toolName}.`
+      : `Aprovacao necessaria para ${toolName}.`,
+  };
+}
+
 function formatToolProgressMessage(
   event: WorkflowEvent,
   status: ToolProgressStatus,
@@ -540,10 +564,9 @@ function writeToolProgressLifecycle(
 }
 
 function formatToolIntroMessage(userMessage: string, language: ProgressLanguage): string {
-  const request = userMessage.replace(/\s+/g, " ").trim();
-  const clipped = request.length > 120 ? `${request.slice(0, 117)}...` : request;
-  if (language === "en") return `Perfect, I'll handle this now: ${clipped}`;
-  return `Perfeito, vou cuidar disso agora: ${clipped}`;
+  void userMessage;
+  if (language === "en") return "I'll run the needed steps.";
+  return "Vou executar as etapas necessarias.";
 }
 
 function formatToolSummaryMessage(tools: ToolProgress[], language: ProgressLanguage): string {

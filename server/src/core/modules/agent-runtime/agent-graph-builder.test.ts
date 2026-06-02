@@ -325,14 +325,14 @@ describe("agent graph builder", () => {
   });
 
   it("compacts large non-binary tool results before sending them to the model", async () => {
-    const files = Array.from({ length: 120 }, (_, index) => ({
+    const logs = Array.from({ length: 120 }, (_, index) => ({
       id: `file_${index}`,
       name: `curriculo-${index}.pdf`,
       mimeType: "application/pdf",
       webViewLink: `https://drive.example/files/${index}`,
       description: "x".repeat(4_000),
     }));
-    const tool = fakeTool("google_drive_list_files", async () => ({ files }));
+    const tool = fakeTool("google_drive_list_files", async () => ({ logs }));
     const model = fakeModel([
       { content: "", toolCalls: [{ id: "call_1", name: "google_drive_list_files", args: { query: "curriculo fullstack" } }] },
       { content: "done" },
@@ -575,6 +575,36 @@ describe("agent graph builder", () => {
       options: files,
     });
     assert.equal(tool.calls.length, 1);
+  });
+
+  it("returns waiting-user immediately when a tool result has multiple options", async () => {
+    const files = [
+      { id: "file_1", name: "curriculo antigo.pdf" },
+      { id: "file_2", name: "curriculo fullstack.pdf" },
+    ];
+    const search = fakeTool("search_files", async () => ({ files }));
+    const download = fakeTool("download_file", async () => ({ ok: true }));
+    const model = fakeModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "search_files", args: { query: "curriculo" } }] },
+      { content: "", toolCalls: [{ id: "call_2", name: "download_file", args: { fileId: "file_1" } }] },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [search, download],
+    });
+
+    const result = await graph.invoke({ userMessage: "procure meu curriculo" });
+
+    assert.equal(result.status, "waiting-user");
+    assert.deepEqual(result.output, {
+      status: "waiting-user",
+      reason: "ambiguous_result",
+      question: "Encontrei mais de uma opcao. Qual delas devo usar?",
+      repeatedTool: "search_files",
+      options: files,
+    });
+    assert.equal(download.calls.length, 0);
   });
 
   it("can stop after tool execution without asking the model for a final answer", async () => {
