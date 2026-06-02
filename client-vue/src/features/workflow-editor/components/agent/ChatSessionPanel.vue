@@ -26,7 +26,7 @@
                   <p>{{ formatToolStatusMessage(message.content) }}</p>
                 </div>
                 <div
-                  v-if="message.content.status === 'pending' || message.content.status === 'running'"
+                  v-if="message.content.status === 'pending' || message.content.status === 'running' || message.content.status === 'retrying'"
                   class="chat-session-panel__tool-dots"
                   aria-hidden="true"
                 >
@@ -317,7 +317,7 @@ type EditorChatToolStatus = {
   callId?: string
   toolName: string
   pluginName?: string
-  status: 'pending' | 'running' | 'success' | 'failed'
+  status: 'pending' | 'running' | 'retrying' | 'success' | 'failed'
   requiresApproval?: boolean
   error?: string
 }
@@ -688,46 +688,23 @@ function toolStatusCompletionText(status: EditorChatToolStatus) {
 }
 
 function formatToolStatusLabel(status: EditorChatToolStatus) {
-  const locale = detectChatLocale(lastUserMessageText())
-  if (status.status === 'success') return locale === 'pt' ? 'Ferramenta concluida' : 'Tool completed'
-  if (status.status === 'failed') return locale === 'pt' ? 'Ferramenta falhou' : 'Tool failed'
-  if (status.status === 'running') return locale === 'pt' ? 'Executando ferramenta' : 'Running tool'
-  return locale === 'pt' ? 'Ferramenta solicitada' : 'Tool requested'
+  if (status.status === 'success') return 'Tool completed'
+  if (status.status === 'failed') return 'Tool failed'
+  if (status.status === 'retrying') return 'Retrying tool'
+  if (status.status === 'running') return 'Using tool'
+  return 'Tool planned'
 }
 
 function formatToolStatusMessage(status: EditorChatToolStatus) {
-  const locale = detectChatLocale(lastUserMessageText())
   const tool = status.pluginName ? `${status.toolName} (${status.pluginName})` : status.toolName
 
-  if (locale === 'pt') {
-    if (status.status === 'success') return `Pronto, usei ${tool} com sucesso.`
-    if (status.status === 'failed') return `Nao consegui concluir ${tool}${status.error ? `: ${status.error}` : '.'}`
-    if (status.status === 'running') return `Estou executando ${tool} agora.`
-    return status.requiresApproval
-      ? `Perfeito, para isso vou usar ${tool}. Estou aguardando sua aprovacao.`
-      : `Perfeito, para isso vou usar ${tool}.`
-  }
-
-  if (status.status === 'success') return `Done, I used ${tool} successfully.`
-  if (status.status === 'failed') return `I could not finish ${tool}${status.error ? `: ${status.error}` : '.'}`
-  if (status.status === 'running') return `I am running ${tool} now.`
+  if (status.status === 'success') return `${tool} completed.`
+  if (status.status === 'failed') return `${tool} failed${status.error ? `: ${status.error}` : '.'}`
+  if (status.status === 'retrying') return `Retrying ${tool}.`
+  if (status.status === 'running') return `Using ${tool}.`
   return status.requiresApproval
-    ? `Perfect, I will use ${tool} for that. I am waiting for your approval.`
-    : `Perfect, I will use ${tool} for that.`
-}
-
-function lastUserMessageText() {
-  return [...displayedMessages.value]
-    .reverse()
-    .find((message) => message.role === 'user')
-    ?.content
-}
-
-function detectChatLocale(value: unknown): 'pt' | 'en' {
-  const text = typeof value === 'string' ? value.toLowerCase() : ''
-  return /[ãõçáéíóúâêô]|\b(voce|você|qual|pode|poderia|enviar|mensagem|piada|para|meu|minha|bom dia|boa noite)\b/.test(text)
-    ? 'pt'
-    : 'en'
+    ? `Preparing to use ${tool}. Waiting for approval.`
+    : `Preparing to use ${tool}.`
 }
 
 function formatRole(role: AgentChatMessageRole) {
@@ -1013,12 +990,14 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__tool-status--pending,
-.chat-session-panel__tool-status--running {
+.chat-session-panel__tool-status--running,
+.chat-session-panel__tool-status--retrying {
   border-color: color-mix(in srgb, var(--sailor-amber-400) 34%, var(--sailor-border));
 }
 
 .chat-session-panel__tool-status--pending::before,
-.chat-session-panel__tool-status--running::before {
+.chat-session-panel__tool-status--running::before,
+.chat-session-panel__tool-status--retrying::before {
   position: absolute;
   inset: 0;
   background: linear-gradient(

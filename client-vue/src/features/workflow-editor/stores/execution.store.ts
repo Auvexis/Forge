@@ -93,7 +93,7 @@ export const useExecutionStore = defineStore('execution', () => {
     callId?: string
     toolName: string
     pluginName?: string
-    status: 'pending' | 'running' | 'success' | 'failed'
+    status: 'pending' | 'running' | 'retrying' | 'success' | 'failed'
     requiresApproval?: boolean
     error?: string
   }
@@ -101,7 +101,7 @@ export const useExecutionStore = defineStore('execution', () => {
   function timelineStatusFor(type: string): ExecutionTimelineEvent['status'] {
     if (type === 'node:success' || type === 'workflow:success' || type === 'trigger:data' || type === 'job:success' || type === 'agent:end' || type === 'agent:model-end' || type === 'agent:tool-end') return 'success'
     if (type === 'node:failed' || type === 'workflow:failed' || type === 'job:failed' || type === 'agent:error') return 'failed'
-    if (type === 'node:retry') return 'retrying'
+    if (type === 'node:retry' || type === 'agent:tool-retry') return 'retrying'
     if (type === 'workflow:cancelled' || type === 'job:cancelled') return 'cancelled'
     if (type === 'node:start' || type === 'workflow:start' || type === 'temporary-form:created' || type === 'job:start' || type === 'agent:start' || type === 'agent:model-start' || type === 'agent:output-delta' || type === 'agent:thinking-delta' || type === 'agent:tool-intent' || type === 'agent:tool-start') {
       return 'running'
@@ -139,6 +139,7 @@ export const useExecutionStore = defineStore('execution', () => {
     if (ev.type === 'agent:output-delta') return 'Agent output delta'
     if (ev.type === 'agent:thinking-delta') return 'Agent thinking delta'
     if (ev.type === 'agent:tool-start') return 'Agent tool call started'
+    if (ev.type === 'agent:tool-retry') return 'Agent tool call retrying'
     if (ev.type === 'agent:tool-end') return 'Agent tool call completed'
     if (ev.type === 'agent:memory-read') return 'Agent memory read'
     if (ev.type === 'agent:memory-write') return 'Agent memory write'
@@ -412,6 +413,16 @@ export const useExecutionStore = defineStore('execution', () => {
     if (!chatSessionId) return
 
     const tool = extractToolStatusPayload(ev, 'running')
+    upsertEditorChatToolStatus(chatSessionId, tool, ev.timestamp)
+  }
+
+  function recordEditorChatToolRetry(ev: WorkflowEvent) {
+    if (ev.source !== 'chat' || ev.type !== 'agent:tool-retry' || !ev.executionId) return
+
+    const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
+    if (!chatSessionId) return
+
+    const tool = extractToolStatusPayload(ev, 'retrying')
     upsertEditorChatToolStatus(chatSessionId, tool, ev.timestamp)
   }
 
@@ -1081,6 +1092,16 @@ export const useExecutionStore = defineStore('execution', () => {
             recordEditorChatToolStart(ev)
             patchConnectedAgentConfigNode(ev.nodeId, 'tool', {
               status: 'running',
+              input: agentPayloadValue(ev.data, 'input'),
+              output: ev.data,
+              startedAt: ev.timestamp,
+            }, ev.data)
+            break
+
+          case 'agent:tool-retry':
+            recordEditorChatToolRetry(ev)
+            patchConnectedAgentConfigNode(ev.nodeId, 'tool', {
+              status: 'retrying',
               input: agentPayloadValue(ev.data, 'input'),
               output: ev.data,
               startedAt: ev.timestamp,

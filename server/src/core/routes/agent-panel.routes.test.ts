@@ -249,7 +249,7 @@ describe("agent panel routes", () => {
       "summary",
       "done",
     ]);
-    assert.equal(events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""), "I'll run the needed steps.");
+    assert.equal(events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""), "Preparing to use the required tools.");
     assert.equal(events.find((event) => event.type === "progress")?.status, "running");
     assert.equal(events.filter((event) => event.type === "progress")[1]?.status, "success");
     assert.equal(events.at(-1)?.type, "done");
@@ -446,15 +446,17 @@ describe("agent panel routes", () => {
       "running",
       "success",
     ]);
-    assert.match(progressEvents[0]?.message ?? "", /Vou usar search_contacts .*encontrar o destinatario correto/);
+    assert.equal(progressEvents[0]?.message, "Preparing to use search_contacts.");
     assert.equal(progressEvents[0]?.tool?.pluginId, "contacts");
-    assert.match(progressEvents[2]?.message ?? "", /Usei search_contacts com sucesso/);
-    assert.match(progressEvents[3]?.message ?? "", /Vou usar send_email .*enviar a mensagem/);
+    assert.equal(progressEvents[1]?.message, "Using search_contacts.");
+    assert.equal(progressEvents[2]?.message, "search_contacts completed.");
+    assert.equal(progressEvents[3]?.message, "Preparing to use send_email.");
     assert.equal(progressEvents[3]?.tool?.pluginId, "gmail");
-    assert.match(progressEvents[5]?.message ?? "", /Usei send_email com sucesso/);
+    assert.equal(progressEvents[4]?.message, "Using send_email.");
+    assert.equal(progressEvents[5]?.message, "send_email completed.");
     assert.equal(
       events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""),
-      "Vou executar as etapas necessarias.",
+      "Preparing to use the required tools.",
     );
     const summary = events.find((event) => event.type === "summary");
     assert.deepEqual(summary?.tools?.map((tool) => tool.toolCallId), ["tool_call_1", "tool_call_2"]);
@@ -510,7 +512,7 @@ describe("agent panel routes", () => {
     const progressEvents = parseStreamEvents(response.body).filter((event) => event.type === "progress");
 
     assert.deepEqual(progressEvents.map((event) => event.status), ["running", "retrying", "success"]);
-    assert.match(progressEvents[1]?.message ?? "", /Nao encontrei o arquivo, vou tentar novamente/);
+    assert.equal(progressEvents[1]?.message, "Retrying google_drive_list_files.");
   });
 
   it("streams English contextual intro and tool progress when the user message is English", async () => {
@@ -549,9 +551,9 @@ describe("agent panel routes", () => {
     const events = parseStreamEvents(response.body);
     const deltaEvents = events.filter((event) => event.type === "delta");
 
-    assert.equal(deltaEvents.map((event) => event.delta ?? "").join(""), "I'll run the needed steps.");
-    assert.match(events.find((event) => event.type === "progress")?.message ?? "", /^Running discord_send_message now\./);
-    assert.match(events.find((event) => event.type === "summary")?.message ?? "", /^Used these tools: discord_send_message\./);
+    assert.equal(deltaEvents.map((event) => event.delta ?? "").join(""), "Preparing to use the required tools.");
+    assert.equal(events.find((event) => event.type === "progress")?.message, "Using discord_send_message.");
+    assert.equal(events.find((event) => event.type === "summary")?.message, "Tools used: discord_send_message.");
   });
 
   it("streams fallback progress from the final execution when live tool events were missed", async () => {
@@ -623,10 +625,10 @@ describe("agent panel routes", () => {
       "running",
       "success",
     ]);
-    assert.equal(progressEvents.filter((event) => /com sucesso/.test(event.message ?? "")).length, 2);
+    assert.equal(progressEvents.filter((event) => /completed\./.test(event.message ?? "")).length, 2);
     assert.equal(
       events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""),
-      "Vou executar as etapas necessarias.",
+      "Preparing to use the required tools.",
     );
     assert.ok(events.find((event) =>
       event.type === "summary" &&

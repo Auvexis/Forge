@@ -196,6 +196,7 @@ describe('agent panel modal contract', () => {
   it('models progress stream events as one assistant message per tool status', () => {
     const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const merge = readFileSync('src/features/agent-panel/stores/agentPanelMessageMerge.ts', 'utf8')
 
     assert.match(types, /type: 'progress'/)
     assert.match(types, /toolCallId: string/)
@@ -207,7 +208,16 @@ describe('agent panel modal contract', () => {
     assert.match(store, /event\.status/)
     assert.match(store, /local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-\$\{toolKey\}-\$\{event\.status\}/)
     assert.match(store, /mergeServerMessagesWithStableLocalTurn/)
-    assert.match(store, /findLastMessageIndex/)
+    assert.match(merge, /findLastMessageIndex/)
+  })
+
+  it('renders global agent tool progress with backend-provided deterministic EN-US text', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /progressMessage\(message\.content\)/)
+    assert.match(chat, /content\.message/)
+    assert.match(chat, /agent-chat-view__progress--retrying/)
+    assert.doesNotMatch(chat, /Vou usar|Usei|I'll use|Used .* successfully/)
   })
 
   it('renders global agent pending loading dots like workflow editor chat', () => {
@@ -295,24 +305,27 @@ describe('agent panel modal contract', () => {
 
   it('keeps the streamed user and assistant messages stable when the final server result arrives', () => {
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const merge = readFileSync('src/features/agent-panel/stores/agentPanelMessageMerge.ts', 'utf8')
 
     assert.match(store, /mergeServerMessagesWithStableLocalTurn/)
-    assert.match(store, /local-user-/)
-    assert.match(store, /local-assistant-stream-/)
-    assert.match(store, /previousLocalMessages/)
-    assert.match(store, /messages\.value\.slice\(0, localTurnStart\)/)
-    assert.match(store, /latestServerWaitingUserMessage/)
-    assert.match(store, /isWaitingUserContent/)
+    assert.match(merge, /local-user-/)
+    assert.match(merge, /local-assistant-stream-/)
+    assert.match(merge, /previousLocalMessages/)
+    assert.match(merge, /localMessages\.slice\(0, localTurnStart\)/)
+    assert.match(merge, /latestServerWaitingUserMessage/)
+    assert.match(merge, /isWaitingUserContent/)
     assert.doesNotMatch(store, /messages\.value = mergeServerMessagesWithLocalAgentEvents\(result\.messages\)/)
   })
 
   it('replaces the local streamed assistant text with the final server assistant response', () => {
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const merge = readFileSync('src/features/agent-panel/stores/agentPanelMessageMerge.ts', 'utf8')
 
-    assert.match(store, /latestServerFinalAssistantMessage/)
-    assert.match(store, /finalAssistantMessage/)
-    assert.match(store, /normalizeMessageText\(finalAssistantMessage\.content\)/)
-    assert.match(store, /content:\s*\{[\s\S]*text:\s*finalText/)
+    assert.match(merge, /latestCurrentTurnServerFinalAssistantMessage/)
+    assert.match(merge, /finalAssistantMessage/)
+    assert.match(merge, /normalizeMessageText\(finalAssistantMessage\.content\)/)
+    assert.match(merge, /content:\s*\{[\s\S]*text:\s*finalText/)
+    assert.match(store, /mergeServerMessagesWithStableLocalTurn/)
   })
 
   it('groups consecutive assistant messages under the first avatar and name', () => {

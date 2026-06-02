@@ -295,7 +295,6 @@ async function streamAgentPanelMessage(
   writeStreamEvent(reply, { type: "start" });
 
   const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
-  const progressLanguage = detectProgressLanguage(input.message);
   let nativeDeltaCount = 0;
   let sawToolActivity = false;
   let sentToolIntro = false;
@@ -314,7 +313,7 @@ async function streamAgentPanelMessage(
     if (sentToolIntro) return;
     sentToolIntro = true;
     progressQueue = progressQueue.then(() =>
-      writeIntroDeltas(reply, splitTextForDeltas(formatToolIntroMessage(input.message, progressLanguage), 28)),
+      writeIntroDeltas(reply, splitTextForDeltas(formatToolIntroMessage(), 28)),
     );
   };
   const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
@@ -327,8 +326,8 @@ async function streamAgentPanelMessage(
       queueProgressEvent({
         type: "progress",
         status: "planned",
-        message: formatToolProgressMessage(event, "planned", progressLanguage),
-        tool: extractToolProgress(event, progressLanguage),
+        message: formatToolProgressMessage(event, "planned"),
+        tool: extractToolProgress(event),
       });
     }
     if (event.type === "agent:tool-start") {
@@ -336,8 +335,8 @@ async function streamAgentPanelMessage(
       queueProgressEvent({
         type: "progress",
         status: "running",
-        message: formatToolProgressMessage(event, "running", progressLanguage),
-        tool: extractToolProgress(event, progressLanguage),
+        message: formatToolProgressMessage(event, "running"),
+        tool: extractToolProgress(event),
       });
     }
     if (event.type === "agent:tool-retry") {
@@ -345,18 +344,18 @@ async function streamAgentPanelMessage(
       queueProgressEvent({
         type: "progress",
         status: "retrying",
-        message: formatToolProgressMessage(event, "retrying", progressLanguage),
-        tool: extractToolProgress(event, progressLanguage),
+        message: formatToolProgressMessage(event, "retrying"),
+        tool: extractToolProgress(event),
       });
     }
     if (event.type === "agent:tool-end") {
       markToolActivity();
       const status = extractToolStatus(event) === "failed" ? "failed" : "success";
-      const tool = extractToolProgress(event, progressLanguage);
+      const tool = extractToolProgress(event);
       queueProgressEvent({
         type: "progress",
         status,
-        message: formatToolProgressMessage(event, status, progressLanguage),
+        message: formatToolProgressMessage(event, status),
         tool,
       });
       if (status === "success") completedToolCalls.push(tool);
@@ -365,7 +364,7 @@ async function streamAgentPanelMessage(
       markToolActivity();
       writeStreamEvent(reply, {
         type: "approval",
-        ...extractApprovalProgress(event, progressLanguage),
+        ...extractApprovalProgress(event),
       });
     }
     if (event.type === "agent:output-delta") {
@@ -400,7 +399,7 @@ async function streamAgentPanelMessage(
       const fallbackToolCalls = extractCompletedToolCallsFromResult(result);
       for (const tool of fallbackToolCalls) {
         markToolActivity();
-        writeToolProgressLifecycle(queueProgressEvent, tool, progressLanguage);
+        writeToolProgressLifecycle(queueProgressEvent, tool);
         if (tool.status === "success") completedToolCalls.push(tool);
       }
     }
@@ -411,7 +410,7 @@ async function streamAgentPanelMessage(
     if (completedToolCalls.length > 0) {
       writeStreamEvent(reply, {
         type: "summary",
-        message: formatToolSummaryMessage(completedToolCalls, progressLanguage),
+        message: formatToolSummaryMessage(completedToolCalls),
         tools: completedToolCalls,
       });
     }
@@ -477,7 +476,6 @@ function extractAgentError(event: WorkflowEvent): string | null {
 }
 
 type ToolProgressStatus = "planned" | "running" | "retrying" | "success" | "failed";
-type ProgressLanguage = "en" | "pt";
 
 interface ToolProgress {
   toolCallId: string;
@@ -488,7 +486,7 @@ interface ToolProgress {
   status?: "success" | "failed";
 }
 
-function extractToolProgress(event: WorkflowEvent, language: ProgressLanguage): ToolProgress {
+function extractToolProgress(event: WorkflowEvent): ToolProgress {
   const data = event.data as Record<string, unknown> | undefined;
   const callId = typeof data?.callId === "string" ? data.callId : undefined;
   const toolCallId = typeof data?.toolCallId === "string"
@@ -497,11 +495,7 @@ function extractToolProgress(event: WorkflowEvent, language: ProgressLanguage): 
   const name = typeof data?.name === "string" ? data.name : "agent tool";
   const pluginId = typeof data?.pluginId === "string" ? data.pluginId : undefined;
   const pluginName = typeof data?.pluginName === "string" ? data.pluginName : undefined;
-  const reason = typeof data?.reason === "string"
-    ? data.reason
-    : language === "en"
-      ? "process this step"
-      : "processar esta etapa";
+  const reason = typeof data?.reason === "string" ? data.reason : undefined;
   return { toolCallId, name, pluginId, pluginName, reason };
 }
 
@@ -510,7 +504,7 @@ function extractToolStatus(event: WorkflowEvent): string {
   return typeof data?.status === "string" ? data.status : "";
 }
 
-function extractApprovalProgress(event: WorkflowEvent, language: ProgressLanguage): Record<string, unknown> {
+function extractApprovalProgress(event: WorkflowEvent): Record<string, unknown> {
   const data = event.data as Record<string, unknown> | undefined;
   const toolName = typeof data?.toolName === "string" ? data.toolName : "agent tool";
   const approvalId = typeof data?.approvalId === "string" ? data.approvalId : "";
@@ -521,45 +515,32 @@ function extractApprovalProgress(event: WorkflowEvent, language: ProgressLanguag
     executionId,
     toolName,
     ...(sideEffect ? { sideEffect } : {}),
-    message: language === "en"
-      ? `Approval required for ${toolName}.`
-      : `Aprovacao necessaria para ${toolName}.`,
+    message: `Approval required for ${toolName}.`,
   };
 }
 
 function formatToolProgressMessage(
   event: WorkflowEvent,
   status: ToolProgressStatus,
-  language: ProgressLanguage,
 ): string {
-  return formatToolProgressMessageFromTool(extractToolProgress(event, language), status, language);
+  return formatToolProgressMessageFromTool(extractToolProgress(event), status);
 }
 
 function formatToolProgressMessageFromTool(
   tool: ToolProgress,
   status: ToolProgressStatus,
-  language: ProgressLanguage,
 ): string {
   const label = tool.name;
-  if (language === "en") {
-    if (status === "planned") return `I'll use ${label} to ${tool.reason}.`;
-    if (status === "running") return `Running ${label} now.`;
-    if (status === "retrying") return tool.reason ?? `I did not find it with ${label}. I will try again.`;
-    if (status === "success") return `Used ${label} successfully.`;
-    return `Could not use ${label}.`;
-  }
-
-  if (status === "planned") return `Vou usar ${label} para ${tool.reason}.`;
-  if (status === "running") return `Executando ${label} agora.`;
-  if (status === "retrying") return tool.reason ?? `Eu nao encontrei com ${label}, vou tentar novamente.`;
-  if (status === "success") return `Usei ${label} com sucesso.`;
-  return `Nao consegui usar ${label}.`;
+  if (status === "planned") return `Preparing to use ${label}.`;
+  if (status === "running") return `Using ${label}.`;
+  if (status === "retrying") return `Retrying ${label}.`;
+  if (status === "success") return `${label} completed.`;
+  return `${label} failed.`;
 }
 
 function writeToolProgressLifecycle(
   writeProgressEvent: (event: Record<string, unknown>) => void,
   tool: ToolProgress,
-  language: ProgressLanguage,
 ): void {
   const statuses: ToolProgressStatus[] = tool.status === "failed"
     ? ["planned", "running", "failed"]
@@ -568,31 +549,19 @@ function writeToolProgressLifecycle(
     writeProgressEvent({
       type: "progress",
       status,
-      message: formatToolProgressMessageFromTool(tool, status, language),
+      message: formatToolProgressMessageFromTool(tool, status),
       tool,
     });
   }
 }
 
-function formatToolIntroMessage(userMessage: string, language: ProgressLanguage): string {
-  void userMessage;
-  if (language === "en") return "I'll run the needed steps.";
-  return "Vou executar as etapas necessarias.";
+function formatToolIntroMessage(): string {
+  return "Preparing to use the required tools.";
 }
 
-function formatToolSummaryMessage(tools: ToolProgress[], language: ProgressLanguage): string {
+function formatToolSummaryMessage(tools: ToolProgress[]): string {
   const names = tools.map((tool) => tool.name).join(", ");
-  if (language === "en") return `Used these tools: ${names}.`;
-  return `Usei estas ferramentas: ${names}.`;
-}
-
-function detectProgressLanguage(message: string): ProgressLanguage {
-  const normalized = message.toLowerCase();
-  if (/[ãõáàâéêíóôúç]/i.test(message)) return "pt";
-  if (/\b(envie|enviar|mande|manda|tambem|também|para|sobre|resumo|piada)\b/.test(normalized)) {
-    return "pt";
-  }
-  return "en";
+  return `Tools used: ${names}.`;
 }
 
 function extractCompletedToolCallsFromResult(result: unknown): ToolProgress[] {

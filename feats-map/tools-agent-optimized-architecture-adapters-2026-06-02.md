@@ -405,6 +405,33 @@ Resultado: modelos com `invokeJson` agora usam planner compacto sem `bindTools`,
 
 Resultado: manifest aceita `agentTool.instructions`, o adapter preserva essa metadata, o parameterizer ve instructions da tool escolhida, defaults configurados saem de `required` e `properties`, e o loop compacto expõe telemetry `compact-json` sem usar `invoke`/`bindTools`.
 
+### Tasks Do Bloco Global Agent Chat + Chat Panel
+
+- [x] Criar testes vermelhos para progress EN-US deterministico no stream do Global Agent Chat.
+- [x] Remover deteccao de idioma dos steps do Global Agent Chat.
+- [x] Emitir `Preparing to use`, `Using`, `Retrying`, `completed` e `failed` no stream global.
+- [x] Criar testes vermelhos para `agent:tool-retry` no type/store do frontend.
+- [x] Tratar `agent:tool-retry` no Chat Panel com status `retrying`.
+- [x] Atualizar connected tool node para `retrying` durante retry.
+- [x] Criar testes vermelhos para ChatSessionPanel com status `retrying`.
+- [x] Remover textos dinamicos/localizados de tool step no ChatSessionPanel.
+- [x] Rodar testes/builds focados de server e client.
+- [x] Commitar somente arquivos deste bloco.
+
+### Verificacao Do Bloco Global Agent Chat + Chat Panel
+
+- [x] `server`: teste vermelho confirmou que o stream global ainda emitia texto dinamico/localizado.
+- [x] `client-vue`: teste vermelho confirmou que `agent:tool-retry` nao estava no contrato frontend.
+- [x] `client-vue`: teste vermelho confirmou que o Chat Panel ainda renderizava status dinamico/localizado.
+- [x] `client-vue`: teste vermelho confirmou que o Global Agent Panel ainda montava a lista lateral fixa de sessoes.
+- [x] `server`: `node --test src/core/routes/agent-panel.routes.test.ts`
+- [x] `client-vue`: `node --test src/features/workflow-editor/stores/__tests__/execution.store.contract.test.ts src/features/workflow-editor/components/agent/__tests__/ChatSessionPanel.contract.test.ts src/features/agent-panel/__tests__/agentPanel.contract.test.ts`
+- [x] `server`: `npm run build`
+- [x] `client-vue`: `npm run build`
+- [x] Browser in-app: `http://127.0.0.1:5176/` carregou a tela inicial `Sailor` sem overlay e sem erros/warnings no console.
+
+Resultado: Global Agent Chat e Chat Panel agora mostram steps deterministico em EN-US, `agent:tool-retry` aparece como retry, tool nodes conectados recebem status `retrying`, e o Global Agent Panel usa uma lista lateral a menos com historico no menu do chat.
+
 ## Riscos
 
 - Trocar tool-calling LangChain de uma vez pode quebrar OpenAI/OpenRouter.

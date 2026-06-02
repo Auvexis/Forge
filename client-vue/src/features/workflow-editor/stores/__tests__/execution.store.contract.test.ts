@@ -14,16 +14,20 @@ test('execution store maps agent tool lifecycle events to transient chat status 
   const types = read('src/core/types/execution.types.ts')
 
   assert.match(types, /'agent:tool-intent'/)
+  assert.match(types, /'agent:tool-retry'/)
   assert.match(source, /type EditorChatToolStatus/)
   assert.match(source, /kind: 'toolStatus'/)
   assert.match(source, /recordEditorChatToolIntent/)
   assert.match(source, /recordEditorChatToolStart/)
+  assert.match(source, /recordEditorChatToolRetry/)
   assert.match(source, /recordEditorChatToolEnd/)
   assert.match(source, /case 'agent:tool-intent'/)
   assert.match(source, /case 'agent:tool-start'/)
+  assert.match(source, /case 'agent:tool-retry'/)
   assert.match(source, /case 'agent:tool-end'/)
   assert.match(source, /status: 'pending'/)
   assert.match(source, /status: 'running'/)
+  assert.match(source, /status: 'retrying'/)
   assert.match(source, /extractToolStatusPayload\(ev, eventStatus\)/)
 })
 
@@ -141,6 +145,7 @@ test('execution store records input and output snapshots for agent config nodes'
   assert.match(source, /case 'agent:model-end':[\s\S]*output: agentPayloadValue\(ev\.data, 'output'\) \?\? ev\.data/)
   assert.match(source, /case 'agent:memory-read':[\s\S]*case 'agent:memory-write':[\s\S]*patchConnectedAgentConfigNode\(ev\.nodeId, 'memory'/)
   assert.match(source, /case 'agent:tool-start':[\s\S]*input: agentPayloadValue\(ev\.data, 'input'\)/)
+  assert.match(source, /case 'agent:tool-retry':[\s\S]*status: 'retrying'/)
 })
 
 test('execution store propagates inherited agent input to every connected config node', () => {
