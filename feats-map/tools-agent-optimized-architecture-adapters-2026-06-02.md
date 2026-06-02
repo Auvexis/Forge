@@ -314,18 +314,18 @@ Atualizar `google_drive_download_file`:
 
 ### 2. Tool Catalog Compact
 
-- [ ] Criar `AgentToolCatalogService`.
-- [ ] Gerar catalogo sem schemas completos.
+- [x] Criar `AgentToolCatalogService`.
+- [x] Gerar catalogo sem schemas completos.
 - [ ] Incluir `instructions` em `agentTool` metadata.
-- [ ] Criar testes para garantir que catalogo nao inclui payload pesado/default sensivel.
-- [ ] Integrar no Agent Runner/Graph sem quebrar tools atuais.
+- [x] Criar testes para garantir que catalogo nao inclui payload pesado/default sensivel.
+- [x] Integrar no Agent Runner/Graph sem quebrar tools atuais.
 
 ### 3. Schema Sob Demanda
 
-- [ ] Criar resolver de schema por `toolName`.
+- [x] Criar resolver de schema por `toolName`.
 - [ ] Remover defaults configurados do schema visivel ao modelo.
-- [ ] Validar parametros com AJV antes do executor.
-- [ ] Criar retry para erro de schema sem executar tool.
+- [x] Validar parametros com AJV antes do executor.
+- [x] Criar retry para erro de schema sem executar tool.
 
 ### 4. Adapter JSON Estruturado
 
@@ -341,11 +341,11 @@ Atualizar `google_drive_download_file`:
 
 ### 5. Planner + Parameterizer
 
-- [ ] Separar loop atual em planner e parameterizer.
-- [ ] Planner escolhe tool/ask/final usando catalogo compacto.
-- [ ] Parameterizer recebe apenas schema da tool escolhida.
-- [ ] Executor recebe apenas JSON validado pelo backend.
-- [ ] Preservar binary refs entre tool calls.
+- [x] Separar loop atual em planner e parameterizer para modelos com `invokeJson`.
+- [x] Planner escolhe tool/ask/final usando catalogo compacto.
+- [x] Parameterizer recebe apenas schema da tool escolhida.
+- [x] Executor recebe apenas JSON validado pelo backend.
+- [x] Preservar binary refs entre tool calls.
 
 ### 6. Retry Inteligente
 
@@ -359,7 +359,7 @@ Atualizar `google_drive_download_file`:
 
 - [ ] Remover texto dinamico da LLM para steps intermediarios.
 - [ ] Centralizar formatter EN-US.
-- [ ] Garantir Global Agent Chat renderiza planned/running/retrying/success/failed.
+- [x] Garantir Global Agent Chat renderiza planned/running/retrying/success/failed.
 - [ ] LLM gera apenas intro/final.
 
 ### 8. Verificacao
@@ -383,6 +383,15 @@ Atualizar `google_drive_download_file`:
 - [ ] `client-vue`: `node --test src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts`
 
 Nota: o teste frontend acima falhou em assercao antiga sobre texto `node anterior` no `AiAgentEditor.vue`, nao relacionada ao adapter Ollama. O build do client passou.
+
+### Verificacao Do Bloco Planner Compacto Ollama
+
+- [x] `server`: `node --test src/core/modules/agent-runtime/agent-graph-builder.test.ts src/core/modules/agent-runtime/agent-tool-catalog.test.ts src/core/modules/agent-runtime/model-adapters/ollama-adapter.test.ts`
+- [x] `server`: `node --test src/core/modules/agent-runtime/agent-runner.test.ts src/core/modules/agent-runtime/model-provider-registry.test.ts src/core/modules/agent-runtime/agent-validation.test.ts`
+- [x] `server`: `node --test src/core/routes/agent-panel.routes.test.ts`
+- [x] `server`: `npm run build`
+
+Resultado: modelos com `invokeJson` agora usam planner compacto sem `bindTools`, parameterizer com schema de uma tool, validacao AJV antes da execucao e refs compactas entre tool calls.
 
 ## Riscos
 

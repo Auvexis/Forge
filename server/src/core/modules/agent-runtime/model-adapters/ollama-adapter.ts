@@ -59,11 +59,17 @@ export class OllamaAdapter implements AgentModelAdapter {
 
   createChatModel(input: Omit<AgentModelInvokeInput, "messages">): {
     invoke(messages: AgentModelMessage[]): Promise<{ content: string }>;
+    invokeJson<T extends object>(
+      jsonInput: { messages: AgentModelMessage[] },
+      schema?: Record<string, any>,
+    ): Promise<T>;
   } {
     return {
       invoke: async (messages) => ({
         content: await this.invokeText({ ...input, messages }),
       }),
+      invokeJson: async (jsonInput, schema) =>
+        this.invokeJson({ ...input, messages: jsonInput.messages }, schema),
     };
   }
 

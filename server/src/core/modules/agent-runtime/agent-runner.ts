@@ -68,6 +68,7 @@ interface GraphTool {
   pluginId?: string;
   pluginName?: string;
   methodId?: string;
+  sideEffect?: SailorAgentToolDefinition["sideEffect"];
   requiresApproval: boolean;
   inputSchema: Record<string, any>;
   invoke(args: unknown): Promise<unknown>;
@@ -235,6 +236,7 @@ export class AgentRunner {
       pluginId: definition.pluginId,
       pluginName: definition.pluginName ?? definition.pluginId,
       methodId: definition.methodId,
+      sideEffect: configs[index]?.sideEffect ?? definition.sideEffect,
       requiresApproval: configs[index]?.requiresApproval ?? definition.requiresApproval,
       inputSchema: schemaWithoutConfiguredDefaults(definition.inputSchema, configs[index]?.inputDefaults),
       invoke: async (args: unknown) =>

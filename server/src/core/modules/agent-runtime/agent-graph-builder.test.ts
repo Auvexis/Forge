@@ -852,6 +852,144 @@ describe("agent graph builder", () => {
     ].sort());
   });
 
+  it("uses compact JSON planning models without binding all tool schemas", async () => {
+    const model = fakeJsonPlanningModel([
+      { action: "call_tool", toolName: "google_drive_list_files", reason: "Find the requested file." },
+      { query: "curriculo.pdf" },
+      { action: "final", message: "I found the file." },
+    ]);
+    const list = {
+      ...fakeTool("google_drive_list_files", async (args) => ({ files: [{ id: "file_1", name: args.query }] })),
+      description: "List files and folders in Google Drive.",
+      pluginName: "Google Drive",
+      inputSchema: {
+        type: "object",
+        required: ["query"],
+        properties: {
+          query: { type: "string" },
+        },
+        additionalProperties: false,
+      },
+    };
+    const download = {
+      ...fakeTool("google_drive_download_file", async () => ({ ok: true })),
+      description: "Download a file from Google Drive.",
+      pluginName: "Google Drive",
+      inputSchema: {
+        type: "object",
+        required: ["fileId"],
+        properties: {
+          fileId: { type: "string" },
+        },
+      },
+    };
+
+    const graph = buildAgentGraph({
+      agent: agentConfig({ maxIterations: 3 }),
+      model,
+      tools: [list, download],
+    });
+
+    const result = await graph.invoke({ userMessage: "Find my curriculo.pdf in Drive" });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "I found the file.");
+    assert.deepEqual(list.calls, [{ query: "curriculo.pdf" }]);
+    assert.equal(model.bindToolsCalled, false);
+
+    const plannerMessages = model.jsonCalls[0].messages.map((message: any) => message.content).join("\n");
+    const parameterizerMessages = model.jsonCalls[1].messages.map((message: any) => message.content).join("\n");
+
+    assert.match(plannerMessages, /google_drive_list_files/);
+    assert.match(plannerMessages, /google_drive_download_file/);
+    assert.doesNotMatch(plannerMessages, /"required"/);
+    assert.doesNotMatch(plannerMessages, /"properties"/);
+    assert.match(parameterizerMessages, /google_drive_list_files/);
+    assert.match(parameterizerMessages, /"required"/);
+    assert.doesNotMatch(parameterizerMessages, /google_drive_download_file[\s\S]*"required"/);
+  });
+
+  it("retries JSON parameter generation once when args fail the selected tool schema", async () => {
+    const model = fakeJsonPlanningModel([
+      { action: "call_tool", toolName: "lookup", reason: "Search records." },
+      { wrong: "sailor" },
+      { query: "sailor" },
+      { action: "final", message: "done" },
+    ]);
+    const tool = {
+      ...fakeTool("lookup", async (args) => ({ result: args.query })),
+      description: "Search records.",
+      inputSchema: {
+        type: "object",
+        required: ["query"],
+        properties: { query: { type: "string" } },
+        additionalProperties: false,
+      },
+    };
+    const events: Array<{ type: string; payload?: any }> = [];
+    const graph = buildAgentGraph({
+      agent: agentConfig({ maxIterations: 3 }),
+      model,
+      tools: [tool],
+      onEvent: (event) => events.push(event),
+    });
+
+    await graph.invoke({ userMessage: "lookup sailor" });
+
+    assert.deepEqual(tool.calls, [{ query: "sailor" }]);
+    assert.equal(model.jsonCalls.length, 4);
+    assert.equal(events.some((event) => event.type === "agent:tool-retry" && /invalid tool parameters/i.test(event.payload.reason)), true);
+  });
+
+  it("passes compact previous tool results to later JSON parameter generation", async () => {
+    const file = Buffer.from("pdf");
+    const model = fakeJsonPlanningModel([
+      { action: "call_tool", toolName: "download", reason: "Download the selected file." },
+      { fileId: "file_1" },
+      { action: "call_tool", toolName: "send_email", reason: "Email the downloaded file." },
+      { to: "vaurvik@gmail.com", attachments: [{ ref: "agent-ref://tool_call_1/download/content" }] },
+      { action: "final", message: "sent" },
+    ]);
+    const download = {
+      ...fakeTool("download", async () => ({
+        download: {
+          fileName: "curriculo.pdf",
+          mimeType: "application/pdf",
+          content: file,
+        },
+      })),
+      inputSchema: {
+        type: "object",
+        required: ["fileId"],
+        properties: { fileId: { type: "string" } },
+      },
+    };
+    const sendEmail = {
+      ...fakeTool("send_email", async () => ({ ok: true })),
+      inputSchema: {
+        type: "object",
+        required: ["to", "attachments"],
+        properties: {
+          to: { type: "string" },
+          attachments: { type: "array" },
+        },
+      },
+    };
+    const graph = buildAgentGraph({
+      agent: agentConfig({ maxIterations: 4, maxToolCalls: 4 }),
+      model,
+      tools: [download, sendEmail],
+    });
+
+    await graph.invoke({ userMessage: "download curriculo.pdf and email it to vaurvik@gmail.com" });
+
+    const emailParameterizerMessages = model.jsonCalls[3].messages.map((message: any) => message.content).join("\n");
+    assert.match(emailParameterizerMessages, /agent-ref:\/\/tool_call_1\/download\/content/);
+    assert.equal((sendEmail.calls[0] as { attachments?: Array<{ ref?: string }> }).attachments?.[0]?.ref, undefined);
+    assert.equal(Buffer.isBuffer((sendEmail.calls[0] as { attachments?: unknown[] }).attachments?.[0]), true);
+    assert.equal((sendEmail.calls[0] as { attachments?: Buffer[] }).attachments?.[0], file);
+  });
+
   it("uses invoke instead of streaming when tools are configured", async () => {
     const model = fakeStreamModel(["he", { content: "llo" }], { invokeContent: "done" });
     const graph = buildAgentGraph({
@@ -1194,6 +1332,25 @@ function fakeToolBindingModel(responses: Array<{ content: string; toolCalls?: un
     return model;
   };
   return model;
+}
+
+function fakeJsonPlanningModel(responses: unknown[]) {
+  let index = 0;
+  return {
+    jsonCalls: [] as any[],
+    bindToolsCalled: false,
+    async invoke(messages: unknown[]) {
+      return { content: "" };
+    },
+    async invokeJson(input: { messages: unknown[] }) {
+      this.jsonCalls.push(input);
+      return responses[Math.min(index++, responses.length - 1)];
+    },
+    bindTools() {
+      this.bindToolsCalled = true;
+      return this;
+    },
+  };
 }
 
 function fakeStreamModel(chunks: unknown[], options: { invokeContent?: string } = {}) {
