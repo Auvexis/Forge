@@ -275,6 +275,7 @@ describe('agent panel modal contract', () => {
     const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
 
     assert.match(types, /type: 'approval'/)
+    assert.match(types, /type: 'waiting-approval'/)
     assert.match(chat, /isAgentApprovalContent/)
     assert.match(chat, /Confirm/)
     assert.match(chat, /Decline/)
@@ -285,6 +286,8 @@ describe('agent panel modal contract', () => {
     assert.match(store, /rejectApproval/)
     assert.match(api, /approveToolCall/)
     assert.match(api, /rejectToolCall/)
+    assert.match(api, /event\.type === 'done' \|\| event\.type === 'waiting-approval' \|\| event\.type === 'error'/)
+    assert.match(store, /event\.type === 'done' \|\| event\.type === 'waiting-approval'/)
   })
 
   it('keeps local chat steps when resolving approval actions', () => {

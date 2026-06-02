@@ -152,10 +152,18 @@ describe("agent panel routes", () => {
     assert.deepEqual(events.map((event) => event.delta).filter(Boolean), ["thinking ", "hel", "lo"]);
   });
 
-  it("streams approval requests so the global agent chat can confirm or decline", async () => {
+  it("streams approval requests as a waiting terminal state without a tool summary", async () => {
     const app = await buildApp({
       sendMessage: async (input: { executionId?: string }) => {
         assert.ok(input.executionId);
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-end",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "google_drive_download_file", pluginId: "google-drive", status: "success" },
+        });
         workflowEventBus.emitWorkflowEvent({
           executionId: input.executionId,
           workflowId: "workflow_agent",
@@ -188,7 +196,10 @@ describe("agent panel routes", () => {
     assert.equal(approval?.approvalId, "approval_1");
     assert.equal(approval?.executionId?.startsWith("exec_agent_panel_"), true);
     assert.equal(approval?.toolName, "google_gmail_send_message");
-    assert.equal(events.at(-1)?.type, "done");
+    assert.equal(events.some((event) => event.type === "summary"), false);
+    assert.equal(events.some((event) => event.type === "done"), false);
+    assert.equal(events.at(-1)?.type, "waiting-approval");
+    assert.equal(events.at(-1)?.result?.execution?.status, "WAITING_APPROVAL");
   });
 
   it("starts agent panel streams with POST and reads them through EventSource-compatible GET", async () => {
@@ -702,6 +713,7 @@ function parseStreamEvents(body: string): Array<{
   approvalId?: string;
   executionId?: string;
   toolName?: string;
+  result?: { execution?: { status?: string } };
   tool?: { toolCallId?: string; pluginId?: string };
   tools?: Array<{ toolCallId?: string; pluginId?: string }>;
 }> {

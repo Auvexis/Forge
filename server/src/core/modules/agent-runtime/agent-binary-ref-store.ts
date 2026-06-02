@@ -3,6 +3,7 @@ export interface AgentBinaryRef {
   ref: string;
   size?: number;
   mimeType?: string;
+  fileName?: string;
 }
 
 export interface StoredAgentBinaryRef extends AgentBinaryRef {
@@ -29,6 +30,7 @@ export class AgentBinaryRefStore {
     value: unknown;
     size?: number;
     mimeType?: string;
+    fileName?: string;
   }): AgentBinaryRef {
     this.pruneExpired();
     if (this.refs.size >= this.maxRefs) {
@@ -44,6 +46,7 @@ export class AgentBinaryRefStore {
       ref,
       ...(input.size !== undefined ? { size: input.size } : {}),
       ...(input.mimeType ? { mimeType: input.mimeType } : {}),
+      ...(input.fileName ? { fileName: input.fileName } : {}),
     };
 
     this.refs.set(ref, {

@@ -370,7 +370,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         if (event.type === 'summary') appendAgentSummaryMessage(selectedSessionId.value, event)
         if (event.type === 'approval') appendAgentApprovalMessage(selectedSessionId.value, event)
         if (event.type === 'error') throw new Error(event.message)
-        if (event.type === 'done') result = event.result
+        if (event.type === 'done' || event.type === 'waiting-approval') result = event.result
       }
       if (!result) throw new Error('Agent message failed')
       draftSessionOpen.value = false

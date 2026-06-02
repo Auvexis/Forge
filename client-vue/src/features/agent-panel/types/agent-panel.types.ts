@@ -95,4 +95,5 @@ export type AgentPanelStreamEvent =
       message: string
     }
   | { type: 'done'; result: AgentPanelMessageResult }
+  | { type: 'waiting-approval'; result: AgentPanelMessageResult }
   | { type: 'error'; code?: string; message: string }

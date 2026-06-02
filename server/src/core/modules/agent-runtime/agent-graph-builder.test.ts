@@ -211,6 +211,7 @@ describe("agent graph builder", () => {
           ref: "agent-ref://call_1/download/content",
           size: 5,
           mimeType: "video/mp4",
+          fileName: "video.mp4",
         },
       },
     });
@@ -286,6 +287,7 @@ describe("agent graph builder", () => {
           ref: "agent-ref://call_1/download/content",
           size: 5,
           mimeType: "video/mp4",
+          fileName: "video.mp4",
         },
       },
     });
@@ -325,6 +327,7 @@ describe("agent graph builder", () => {
           ref: "agent-ref://call_1/download/contentBase64",
           size: contentBase64.length,
           mimeType: "video/mp4",
+          fileName: "video.mp4",
         },
       },
     });
@@ -952,13 +955,13 @@ describe("agent graph builder", () => {
     assert.equal(events.some((event) => event.type === "agent:tool-retry" && /invalid tool parameters/i.test(event.payload.reason)), true);
   });
 
-  it("passes compact previous tool results to later JSON parameter generation", async () => {
+  it("resolves file binary refs in later JSON tool args with filename and mimeType", async () => {
     const file = Buffer.from("pdf");
     const model = fakeJsonPlanningModel([
       { action: "call_tool", toolName: "download", reason: "Download the selected file." },
       { fileId: "file_1" },
       { action: "call_tool", toolName: "send_email", reason: "Email the downloaded file." },
-      { to: "vaurvik@gmail.com", attachments: [{ ref: "agent-ref://tool_call_1/download/content" }] },
+      { to: "vaurvik@gmail.com", attachments: ["agent-ref://tool_call_1/download/content"] },
       { action: "final", message: "sent" },
     ]);
     const download = {
@@ -996,9 +999,11 @@ describe("agent graph builder", () => {
 
     const emailParameterizerMessages = model.jsonCalls[3].messages.map((message: any) => message.content).join("\n");
     assert.match(emailParameterizerMessages, /agent-ref:\/\/tool_call_1\/download\/content/);
-    assert.equal((sendEmail.calls[0] as { attachments?: Array<{ ref?: string }> }).attachments?.[0]?.ref, undefined);
-    assert.equal(Buffer.isBuffer((sendEmail.calls[0] as { attachments?: unknown[] }).attachments?.[0]), true);
-    assert.equal((sendEmail.calls[0] as { attachments?: Buffer[] }).attachments?.[0], file);
+    const attachment = (sendEmail.calls[0] as { attachments?: Array<Record<string, unknown>> }).attachments?.[0];
+    assert.equal(attachment?.ref, undefined);
+    assert.equal(attachment?.filename, "curriculo.pdf");
+    assert.equal(attachment?.mimeType, "application/pdf");
+    assert.equal(attachment?.content, file);
   });
 
   it("uses invoke instead of streaming when tools are configured", async () => {

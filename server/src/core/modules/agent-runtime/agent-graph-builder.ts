@@ -1331,6 +1331,7 @@ function sanitizeToolResultForModel(
   binaryRefs: AgentBinaryRefStore,
   path: string[] = [],
   inheritedMimeType?: string,
+  inheritedFileName?: string,
 ): unknown {
   if (Buffer.isBuffer(value)) {
     return binaryRefs.put({
@@ -1340,6 +1341,7 @@ function sanitizeToolResultForModel(
       value,
       size: value.length,
       mimeType: inheritedMimeType,
+      fileName: inheritedFileName,
     });
   }
 
@@ -1350,6 +1352,7 @@ function sanitizeToolResultForModel(
       type: "Readable",
       value,
       mimeType: inheritedMimeType,
+      fileName: inheritedFileName,
     });
   }
 
@@ -1361,22 +1364,28 @@ function sanitizeToolResultForModel(
       value,
       size: value.length,
       mimeType: inheritedMimeType,
+      fileName: inheritedFileName,
     });
   }
 
   if (Array.isArray(value)) {
     return value.map((item, index) =>
-      sanitizeToolResultForModel(item, toolCallId, binaryRefs, [...path, String(index)], inheritedMimeType)
+      sanitizeToolResultForModel(item, toolCallId, binaryRefs, [...path, String(index)], inheritedMimeType, inheritedFileName)
     );
   }
 
   if (value && typeof value === "object") {
     const record = value as Record<string, unknown>;
     const mimeType = typeof record.mimeType === "string" ? record.mimeType : inheritedMimeType;
+    const fileName = typeof record.fileName === "string"
+      ? record.fileName
+      : typeof record.filename === "string"
+        ? record.filename
+        : inheritedFileName;
     return Object.fromEntries(
       Object.entries(record).map(([key, item]) => [
         key,
-        sanitizeToolResultForModel(item, toolCallId, binaryRefs, [...path, key], mimeType),
+        sanitizeToolResultForModel(item, toolCallId, binaryRefs, [...path, key], mimeType, fileName),
       ]),
     );
   }
@@ -1441,6 +1450,11 @@ function shouldStoreStringAsBase64Ref(value: string, path: string[]): boolean {
 }
 
 function resolveBinaryRefsInToolArgs(value: unknown, binaryRefs: AgentBinaryRefStore): unknown {
+  if (typeof value === "string" && value.startsWith("agent-ref://")) {
+    const stored = binaryRefs.get(value);
+    if (stored) return resolveStoredBinaryRef(stored);
+  }
+
   if (Array.isArray(value)) {
     return value.map((item) => resolveBinaryRefsInToolArgs(item, binaryRefs));
   }
@@ -1452,7 +1466,17 @@ function resolveBinaryRefsInToolArgs(value: unknown, binaryRefs: AgentBinaryRefS
   const record = value as Record<string, unknown>;
   if (typeof record.ref === "string") {
     const stored = binaryRefs.get(record.ref);
-    if (stored) return stored.value;
+    if (stored) {
+      if (typeof record.fileName === "string" || typeof record.filename === "string") {
+        return resolveStoredBinaryRef({
+          ...stored,
+          ...(typeof record.mimeType === "string" ? { mimeType: record.mimeType } : {}),
+          ...(typeof record.fileName === "string" ? { fileName: record.fileName } : {}),
+          ...(typeof record.filename === "string" ? { fileName: record.filename } : {}),
+        });
+      }
+      return stored.value;
+    }
   }
 
   return Object.fromEntries(
@@ -1461,6 +1485,19 @@ function resolveBinaryRefsInToolArgs(value: unknown, binaryRefs: AgentBinaryRefS
       resolveBinaryRefsInToolArgs(item, binaryRefs),
     ]),
   );
+}
+
+function resolveStoredBinaryRef(stored: {
+  value: unknown;
+  mimeType?: string;
+  fileName?: string;
+}): unknown {
+  if (!stored.fileName) return stored.value;
+  return {
+    filename: stored.fileName,
+    ...(stored.mimeType ? { mimeType: stored.mimeType } : {}),
+    content: stored.value,
+  };
 }
 
 function isReadableLike(value: unknown): boolean {

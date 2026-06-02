@@ -110,7 +110,7 @@ async function* streamAgentPanelEvents(
       }
 
       const event = queue.shift()!
-      if (event.type === 'done' || event.type === 'error') {
+      if (event.type === 'done' || event.type === 'waiting-approval' || event.type === 'error') {
         closed = true
         eventSource.close()
       }

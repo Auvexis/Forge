@@ -395,6 +395,11 @@ async function streamAgentPanelMessage(
       message: input.message,
       executionId,
     });
+    if (isWaitingApprovalResult(result)) {
+      await progressQueue;
+      writeStreamEvent(reply, { type: "waiting-approval", result });
+      return;
+    }
     if (completedToolCalls.length === 0) {
       const fallbackToolCalls = extractCompletedToolCallsFromResult(result);
       for (const tool of fallbackToolCalls) {
@@ -672,4 +677,14 @@ function normalizeMemoryMode(value: unknown): MemoryMode {
 
 function stringOrUndefined(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function isWaitingApprovalResult(result: unknown): boolean {
+  if (!result || typeof result !== "object") return false;
+  const execution = (result as { execution?: unknown }).execution;
+  return Boolean(
+    execution &&
+      typeof execution === "object" &&
+      (execution as { status?: unknown }).status === "WAITING_APPROVAL",
+  );
 }
