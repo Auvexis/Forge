@@ -780,6 +780,38 @@ describe("agent graph builder", () => {
     }]);
   });
 
+  it("binds only relevant tools for the current user request when many tools are configured", async () => {
+    const model = fakeToolBindingModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "google_gmail_send_message", args: { to: "a@b.com", subject: "ok", body: "ok" } }] },
+      { content: "ok" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [
+        fakeToolWithMetadata("discord_send_message", "Send a Discord channel message.", "Discord"),
+        fakeToolWithMetadata("google_drive_list_files", "List files and folders in Google Drive.", "Google Drive"),
+        fakeToolWithMetadata("google_drive_download_file", "Download a file from Google Drive.", "Google Drive"),
+        fakeToolWithMetadata("google_gmail_send_message", "Send an email message with attachments.", "Google Gmail"),
+        fakeToolWithMetadata("google_sheets_create_spreadsheet", "Create a Google Sheets spreadsheet.", "Google Sheets"),
+        fakeToolWithMetadata("youtube_upload_video", "Upload a video to YouTube.", "YouTube"),
+        fakeToolWithMetadata("slack_send_message", "Send a Slack message.", "Slack"),
+        fakeToolWithMetadata("notion_create_page", "Create a Notion page.", "Notion"),
+        fakeToolWithMetadata("trello_create_card", "Create a Trello card.", "Trello"),
+      ],
+    });
+
+    await graph.invoke({
+      userMessage: "busque o arquivo andresimoes-estagiario-ti.pdf no Google Drive, baixe e envie por email",
+    });
+
+    assert.deepEqual(model.bindCalls[0]?.map(boundToolName), [
+      "google_drive_download_file",
+      "google_drive_list_files",
+      "google_gmail_send_message",
+    ]);
+  });
+
   it("uses invoke instead of streaming when tools are configured", async () => {
     const model = fakeStreamModel(["he", { content: "llo" }], { invokeContent: "done" });
     const graph = buildAgentGraph({
@@ -846,6 +878,50 @@ describe("agent graph builder", () => {
     );
     assert.equal(model.streamCalls.length, 0);
     assert.doesNotMatch(JSON.stringify(events), /Parece que/);
+  });
+
+  it("continues after a premature final answer when the requested email send was not executed", async () => {
+    const list = fakeTool("google_drive_list_files", async () => ({ files: [{ id: "file_1", name: "andresimoes.pdf" }] }));
+    const download = fakeTool("google_drive_download_file", async () => ({
+      download: {
+        fileName: "andresimoes.pdf",
+        mimeType: "application/pdf",
+        content: Buffer.from("pdf"),
+      },
+    }));
+    const gmail = fakeTool("google_gmail_send_message", async () => ({ id: "email_1" }));
+    const model = fakeModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "google_drive_list_files", args: { query: "andresimoes.pdf" } }] },
+      { content: "", toolCalls: [{ id: "call_2", name: "google_drive_download_file", args: { fileId: "file_1" } }] },
+      { content: "Arquivo baixado com sucesso. Agora vou envia-lo por email." },
+      {
+        content: "",
+        toolCalls: [{
+          id: "call_3",
+          name: "google_gmail_send_message",
+          args: {
+            to: "vaurvik@gmail.com",
+            subject: "andresimoes.pdf",
+            body: "Segue em anexo.",
+            attachments: [{ ref: "agent-ref://call_2/download/content" }],
+          },
+        }],
+      },
+      { content: "Email enviado." },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig({ maxIterations: 6, maxToolCalls: 6 }),
+      model,
+      tools: [list, download, gmail],
+    });
+
+    const result = await graph.invoke({
+      userMessage: "busque andresimoes.pdf no Google Drive, baixe e envie por email para vaurvik@gmail.com",
+    });
+
+    assert.equal(result.output, "Email enviado.");
+    assert.equal(gmail.calls.length, 1);
+    assert.equal((gmail.calls[0] as { attachments?: unknown[] }).attachments?.length, 1);
   });
 
   it("includes short-term memory checkpointer config when provided", async () => {
@@ -1067,11 +1143,14 @@ function fakeModel(responses: Array<{ content: string; toolCalls?: unknown[] }>)
 function fakeToolBindingModel(responses: Array<{ content: string; toolCalls?: unknown[] }>) {
   const model = fakeModel(responses) as ReturnType<typeof fakeModel> & {
     boundTools: unknown[];
+    bindCalls: unknown[][];
     bindTools: (tools: unknown[]) => ReturnType<typeof fakeModel>;
   };
   model.boundTools = [];
+  model.bindCalls = [];
   model.bindTools = (tools) => {
     model.boundTools = tools;
+    model.bindCalls.push(tools);
     return model;
   };
   return model;
@@ -1179,4 +1258,17 @@ function fakeTool(name: string, invoke: (args: any) => Promise<unknown>) {
       return invoke(args);
     },
   };
+}
+
+function fakeToolWithMetadata(name: string, description: string, pluginName: string) {
+  return {
+    ...fakeTool(name, async () => ({ ok: true })),
+    description,
+    pluginName,
+    inputSchema: { type: "object", properties: {} },
+  };
+}
+
+function boundToolName(value: unknown): string {
+  return String((value as { function?: { name?: unknown } }).function?.name ?? "");
 }

@@ -85,10 +85,11 @@ const MAX_MODEL_ARRAY_ITEMS = 25;
 const MAX_MODEL_OBJECT_KEYS = 80;
 const MAX_MODEL_STRING_CHARS = 600;
 const MAX_MODEL_RESULT_DEPTH = 8;
+const MAX_ACTIVE_MODEL_TOOLS = 8;
 
 export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
   const configuredTools = input.tools.map(asTool);
-  const model = bindModelTools(asModel(input.model), configuredTools);
+  const baseModel = asModel(input.model);
   const tools = new Map(configuredTools.map((invokable) => {
     return [invokable.name, invokable];
   }));
@@ -113,8 +114,11 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
           let assistantContent = "";
           let toolCalls: AgentToolCall[] = [];
           let usedStream = false;
+          const activeTools = selectActiveModelTools(configuredTools, messages, completedToolCalls);
+          const model = bindModelTools(baseModel, activeTools);
+          const activeToolMap = new Map(activeTools.map((invokable) => [invokable.name, invokable]));
 
-          if (canAttemptStreamTextResponse(input.agent, model, tools)) {
+          if (canAttemptStreamTextResponse(input.agent, model, activeToolMap)) {
             const stream = await resolveModelStream(model, messages);
             if (stream) {
               const streamedToolCalls: AgentToolCall[] = [];
@@ -159,6 +163,13 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
           });
 
           if (toolCalls.length === 0) {
+            const unmetIntentReminder = reminderForUnmetToolIntent(invokeInput.userMessage, completedToolCalls, configuredTools);
+            if (unmetIntentReminder) {
+              messages.push({ role: "assistant", content: assistantContent });
+              messages.push({ role: "system", content: unmetIntentReminder });
+              continue;
+            }
+
             const parsedOutput = parseOutput(input.agent, assistantContent);
             if (isWaitingUserOutput(parsedOutput)) {
               return {
@@ -484,6 +495,148 @@ function asTool(value: unknown): InvokableTool {
 function bindModelTools(model: InvokableModel, tools: InvokableTool[]): InvokableModel {
   if (tools.length === 0 || typeof model.bindTools !== "function") return model;
   return model.bindTools(tools.map(toModelToolDefinition));
+}
+
+function selectActiveModelTools(
+  tools: InvokableTool[],
+  messages: AgentGraphMessage[],
+  completedToolCalls: AgentRunToolCall[],
+): InvokableTool[] {
+  if (tools.length <= MAX_ACTIVE_MODEL_TOOLS) return tools;
+
+  const requestText = normalizeToolSearchText(messages
+    .filter((message) => message.role === "user" || message.role === "system")
+    .map((message) => message.content)
+    .join(" "));
+  const completedNames = new Set(completedToolCalls.map((toolCall) => toolCall.name));
+  const scored = tools
+    .map((tool, index) => ({
+      tool,
+      index,
+      score: toolRelevanceScore(tool, requestText, completedNames),
+    }))
+    .filter((entry) => entry.score > 0)
+    .sort((left, right) => right.score - left.score || left.tool.name.localeCompare(right.tool.name));
+
+  if (scored.length === 0) return tools.slice(0, MAX_ACTIVE_MODEL_TOOLS);
+  return scored.slice(0, MAX_ACTIVE_MODEL_TOOLS).map((entry) => entry.tool);
+}
+
+function toolRelevanceScore(
+  tool: InvokableTool,
+  requestText: string,
+  completedNames: Set<string>,
+): number {
+  let score = completedNames.has(tool.name) ? 6 : 0;
+  const haystack = normalizeToolSearchText([
+    tool.name,
+    tool.description ?? "",
+    tool.pluginId ?? "",
+    tool.pluginName ?? "",
+    tool.methodId ?? "",
+  ].join(" "));
+  for (const token of new Set(haystack.split(" ").filter(isUsefulToolSearchToken))) {
+    if (requestText.includes(token)) score += token.length >= 6 ? 2 : 1;
+  }
+
+  for (const [needle, bonus] of toolIntentBonuses(tool)) {
+    if (requestText.includes(needle)) score += bonus;
+  }
+
+  return score;
+}
+
+function toolIntentBonuses(tool: InvokableTool): Array<[string, number]> {
+  const text = normalizeToolSearchText([
+    tool.name,
+    tool.description ?? "",
+    tool.pluginId ?? "",
+    tool.pluginName ?? "",
+    tool.methodId ?? "",
+  ].join(" "));
+  const bonuses: Array<[string, number]> = [];
+  if (text.includes("drive")) bonuses.push(["drive", 5], ["arquivo", 2], ["pdf", 2]);
+  if (text.includes("gmail") || text.includes("email")) bonuses.push(["email", 5], ["envie", 3], ["enviar", 3], ["send", 2]);
+  if (text.includes("download")) bonuses.push(["baixe", 5], ["baixar", 5], ["download", 4]);
+  if (text.includes("list")) bonuses.push(["busque", 4], ["buscar", 4], ["procure", 4], ["listar", 3]);
+  if (text.includes("upload")) bonuses.push(["upload", 4]);
+  if (text.includes("youtube")) bonuses.push(["youtube", 5], ["video", 3]);
+  if (text.includes("discord")) bonuses.push(["discord", 5]);
+  if (text.includes("sheet")) bonuses.push(["sheets", 5], ["planilha", 5]);
+  return bonuses;
+}
+
+function normalizeToolSearchText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9@._-]+/g, " ")
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function reminderForUnmetToolIntent(
+  userMessage: string,
+  completedToolCalls: AgentRunToolCall[],
+  tools: InvokableTool[],
+): string | null {
+  const requestText = normalizeToolSearchText(userMessage);
+  const completedNames = new Set(completedToolCalls.map((toolCall) => toolCall.name));
+  const emailTool = tools.find((tool) =>
+    isEmailSendTool(tool) &&
+    !completedNames.has(tool.name)
+  );
+  if (emailTool && hasEmailSendIntent(requestText)) {
+    return [
+      `The user requested an email send, but ${emailTool.name} has not been called yet.`,
+      "Do not provide a final answer until the email send tool is called, approval is requested, or you need missing information from the user.",
+      "Use the downloaded file reference from previous tool results as the attachment when available.",
+    ].join(" ");
+  }
+
+  return null;
+}
+
+function isEmailSendTool(tool: InvokableTool): boolean {
+  const text = normalizeToolSearchText([
+    tool.name,
+    tool.description ?? "",
+    tool.pluginId ?? "",
+    tool.pluginName ?? "",
+    tool.methodId ?? "",
+  ].join(" "));
+  return (text.includes("gmail") || text.includes("email")) &&
+    (text.includes("send") || text.includes("message"));
+}
+
+function hasEmailSendIntent(requestText: string): boolean {
+  return requestText.includes("email") &&
+    (
+      requestText.includes("envie") ||
+      requestText.includes("enviar") ||
+      requestText.includes("mande") ||
+      requestText.includes("mandar") ||
+      requestText.includes("send")
+    );
+}
+
+function isUsefulToolSearchToken(token: string): boolean {
+  return token.length >= 3 &&
+    !new Set([
+      "google",
+      "with",
+      "from",
+      "the",
+      "and",
+      "for",
+      "message",
+      "file",
+      "files",
+      "create",
+      "send",
+    ]).has(token);
 }
 
 function toModelToolDefinition(tool: InvokableTool): Record<string, any> {
