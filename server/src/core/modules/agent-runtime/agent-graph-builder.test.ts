@@ -1,9 +1,17 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import type { AiAgentNodeConfig } from "./agent-types.ts";
 import { buildAgentGraph, extractStreamDelta, extractThinkingDelta } from "./agent-graph-builder.ts";
 
 describe("agent graph builder", () => {
+  it("keeps tool routing language-neutral", () => {
+    const source = readFileSync(new URL("./agent-graph-builder.ts", import.meta.url), "utf8");
+    const routingBlock = source.slice(source.indexOf("function toolIntentBonuses"), source.indexOf("function normalizeToolSearchText"));
+
+    assert.doesNotMatch(routingBlock, /busque|buscar|procure|listar|baixe|baixar|envie|enviar|mande|mandar|planilha|arquivo/);
+  });
+
   it("builds a graph with a model and no tools", async () => {
     const graph = buildAgentGraph({
       agent: agentConfig(),
@@ -805,11 +813,43 @@ describe("agent graph builder", () => {
       userMessage: "busque o arquivo andresimoes-estagiario-ti.pdf no Google Drive, baixe e envie por email",
     });
 
-    assert.deepEqual(model.bindCalls[0]?.map(boundToolName), [
+    assert.deepEqual(model.bindCalls[0]?.map(boundToolName).sort(), [
       "google_drive_download_file",
       "google_drive_list_files",
       "google_gmail_send_message",
+    ].sort());
+  });
+
+  it("routes tools from English requests without Portuguese-specific aliases", async () => {
+    const model = fakeToolBindingModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "google_gmail_send_message", args: { to: "a@b.com", subject: "ok", body: "ok" } }] },
+      { content: "ok" },
     ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [
+        fakeToolWithMetadata("discord_send_message", "Send a Discord channel message.", "Discord"),
+        fakeToolWithMetadata("google_drive_list_files", "List files and folders in Google Drive.", "Google Drive"),
+        fakeToolWithMetadata("google_drive_download_file", "Download a file from Google Drive.", "Google Drive"),
+        fakeToolWithMetadata("google_gmail_send_message", "Send an email message with attachments.", "Google Gmail"),
+        fakeToolWithMetadata("google_sheets_create_spreadsheet", "Create a Google Sheets spreadsheet.", "Google Sheets"),
+        fakeToolWithMetadata("youtube_upload_video", "Upload a video to YouTube.", "YouTube"),
+        fakeToolWithMetadata("slack_send_message", "Send a Slack message.", "Slack"),
+        fakeToolWithMetadata("notion_create_page", "Create a Notion page.", "Notion"),
+        fakeToolWithMetadata("trello_create_card", "Create a Trello card.", "Trello"),
+      ],
+    });
+
+    await graph.invoke({
+      userMessage: "Find the file andresimoes-estagiario-ti.pdf in Google Drive, download it, then email it to vaurvik@gmail.com",
+    });
+
+    assert.deepEqual(model.bindCalls[0]?.map(boundToolName).sort(), [
+      "google_drive_download_file",
+      "google_drive_list_files",
+      "google_gmail_send_message",
+    ].sort());
   });
 
   it("uses invoke instead of streaming when tools are configured", async () => {

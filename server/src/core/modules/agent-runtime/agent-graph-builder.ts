@@ -555,14 +555,14 @@ function toolIntentBonuses(tool: InvokableTool): Array<[string, number]> {
     tool.methodId ?? "",
   ].join(" "));
   const bonuses: Array<[string, number]> = [];
-  if (text.includes("drive")) bonuses.push(["drive", 5], ["arquivo", 2], ["pdf", 2]);
-  if (text.includes("gmail") || text.includes("email")) bonuses.push(["email", 5], ["envie", 3], ["enviar", 3], ["send", 2]);
-  if (text.includes("download")) bonuses.push(["baixe", 5], ["baixar", 5], ["download", 4]);
-  if (text.includes("list")) bonuses.push(["busque", 4], ["buscar", 4], ["procure", 4], ["listar", 3]);
+  if (text.includes("drive")) bonuses.push(["drive", 5], ["pdf", 2], ["document", 2]);
+  if (text.includes("gmail") || text.includes("email")) bonuses.push(["email", 5], ["mail", 4], ["send", 2]);
+  if (text.includes("download")) bonuses.push(["download", 5], ["retrieve", 3], ["fetch", 3]);
+  if (text.includes("list")) bonuses.push(["find", 4], ["search", 4], ["list", 4], ["lookup", 3]);
   if (text.includes("upload")) bonuses.push(["upload", 4]);
   if (text.includes("youtube")) bonuses.push(["youtube", 5], ["video", 3]);
   if (text.includes("discord")) bonuses.push(["discord", 5]);
-  if (text.includes("sheet")) bonuses.push(["sheets", 5], ["planilha", 5]);
+  if (text.includes("sheet")) bonuses.push(["sheet", 5], ["sheets", 5], ["spreadsheet", 5]);
   return bonuses;
 }
 
@@ -612,13 +612,13 @@ function isEmailSendTool(tool: InvokableTool): boolean {
 }
 
 function hasEmailSendIntent(requestText: string): boolean {
-  return requestText.includes("email") &&
+  if (/[^\s@]+@[^\s@]+\.[^\s@]+/.test(requestText)) return true;
+  return (requestText.includes("email") || requestText.includes("mail")) &&
     (
-      requestText.includes("envie") ||
-      requestText.includes("enviar") ||
-      requestText.includes("mande") ||
-      requestText.includes("mandar") ||
-      requestText.includes("send")
+      requestText.includes("send") ||
+      requestText.includes("sent") ||
+      requestText.includes("deliver") ||
+      requestText.includes("forward")
     );
 }
 
