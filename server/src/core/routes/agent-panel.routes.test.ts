@@ -461,6 +461,58 @@ describe("agent panel routes", () => {
     assert.equal(events.at(-1)?.type, "done");
   });
 
+  it("streams a retry progress message before retrying a tool", async () => {
+    const app = await buildApp({
+      sendMessage: async (input: { executionId?: string }) => {
+        assert.ok(input.executionId);
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-start",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "google_drive_list_files", pluginId: "google-drive" },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-retry",
+          timestamp: Date.now(),
+          data: {
+            callId: "tool_call_1",
+            name: "google_drive_list_files",
+            pluginId: "google-drive",
+            reason: "Nao encontrei o arquivo, vou tentar novamente",
+          },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-end",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "google_drive_list_files", pluginId: "google-drive", status: "success" },
+        });
+        return {
+          session: session("chat_1"),
+          messages: [message("msg_user", "chat_1")],
+          execution: { status: "SUCCESS" },
+        };
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Busque meu curriculo" },
+    });
+    const progressEvents = parseStreamEvents(response.body).filter((event) => event.type === "progress");
+
+    assert.deepEqual(progressEvents.map((event) => event.status), ["running", "retrying", "success"]);
+    assert.match(progressEvents[1]?.message ?? "", /Nao encontrei o arquivo, vou tentar novamente/);
+  });
+
   it("streams English contextual intro and tool progress when the user message is English", async () => {
     const app = await buildApp({
       sendMessage: async (input: { executionId?: string }) => {

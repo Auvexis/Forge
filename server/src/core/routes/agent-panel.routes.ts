@@ -340,6 +340,15 @@ async function streamAgentPanelMessage(
         tool: extractToolProgress(event, progressLanguage),
       });
     }
+    if (event.type === "agent:tool-retry") {
+      markToolActivity();
+      queueProgressEvent({
+        type: "progress",
+        status: "retrying",
+        message: formatToolProgressMessage(event, "retrying", progressLanguage),
+        tool: extractToolProgress(event, progressLanguage),
+      });
+    }
     if (event.type === "agent:tool-end") {
       markToolActivity();
       const status = extractToolStatus(event) === "failed" ? "failed" : "success";
@@ -467,7 +476,7 @@ function extractAgentError(event: WorkflowEvent): string | null {
   return null;
 }
 
-type ToolProgressStatus = "planned" | "running" | "success" | "failed";
+type ToolProgressStatus = "planned" | "running" | "retrying" | "success" | "failed";
 type ProgressLanguage = "en" | "pt";
 
 interface ToolProgress {
@@ -535,12 +544,14 @@ function formatToolProgressMessageFromTool(
   if (language === "en") {
     if (status === "planned") return `I'll use ${label} to ${tool.reason}.`;
     if (status === "running") return `Running ${label} now.`;
+    if (status === "retrying") return tool.reason ?? `I did not find it with ${label}. I will try again.`;
     if (status === "success") return `Used ${label} successfully.`;
     return `Could not use ${label}.`;
   }
 
   if (status === "planned") return `Vou usar ${label} para ${tool.reason}.`;
   if (status === "running") return `Executando ${label} agora.`;
+  if (status === "retrying") return tool.reason ?? `Eu nao encontrei com ${label}, vou tentar novamente.`;
   if (status === "success") return `Usei ${label} com sucesso.`;
   return `Nao consegui usar ${label}.`;
 }

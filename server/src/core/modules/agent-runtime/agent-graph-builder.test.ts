@@ -356,11 +356,16 @@ describe("agent graph builder", () => {
 
   it("destroys unread binary refs when the agent stops after a download", async () => {
     let destroyed = false;
+    let paused = false;
     const readable = {
       pipe() {
         return this;
       },
       on() {
+        return this;
+      },
+      pause() {
+        paused = true;
         return this;
       },
       destroy() {
@@ -386,6 +391,7 @@ describe("agent graph builder", () => {
 
     await graph.invoke({ userMessage: "download resume" });
 
+    assert.equal(paused, true);
     assert.equal(destroyed, true);
   });
 
@@ -576,6 +582,7 @@ describe("agent graph builder", () => {
   });
 
   it("retries a transient tool failure before returning success", async () => {
+    const events: Array<{ type: string; payload?: unknown }> = [];
     let attempts = 0;
     const tool = fakeTool("google_drive_list_files", async () => {
       attempts += 1;
@@ -589,6 +596,7 @@ describe("agent graph builder", () => {
         { content: "found" },
       ]),
       tools: [tool],
+      onEvent: (event) => events.push(event),
     });
 
     const result = await graph.invoke({ userMessage: "procure meu curriculo" });
@@ -600,6 +608,12 @@ describe("agent graph builder", () => {
       name: "google_drive_list_files",
       status: "success",
     }]);
+    assert.deepEqual(events.find((event) => event.type === "agent:tool-retry")?.payload, {
+      name: "google_drive_list_files",
+      callId: "call_1",
+      input: { query: "andre fullstack" },
+      reason: "A ferramenta falhou, vou tentar novamente",
+    });
   });
 
   it("emits lightweight model-start metadata instead of full message history", async () => {

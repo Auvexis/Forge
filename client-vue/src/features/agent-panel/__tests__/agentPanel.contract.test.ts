@@ -275,6 +275,22 @@ describe('agent panel modal contract', () => {
     assert.match(api, /rejectToolCall/)
   })
 
+  it('keeps local chat steps when resolving approval actions', () => {
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const approveBlock = store.slice(
+      store.indexOf('async function approveApproval'),
+      store.indexOf('async function rejectApproval'),
+    )
+    const rejectBlock = store.slice(
+      store.indexOf('async function rejectApproval'),
+      store.indexOf('function normalizeAssistantContent'),
+    )
+
+    assert.doesNotMatch(approveBlock, /loadMessages\(/)
+    assert.doesNotMatch(rejectBlock, /loadMessages\(/)
+    assert.match(store, /markApprovalResolved/)
+  })
+
   it('keeps the streamed user and assistant messages stable when the final server result arrives', () => {
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
 

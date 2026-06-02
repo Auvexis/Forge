@@ -91,6 +91,7 @@ export type AgentEventType =
   | "agent:thinking-delta"
   | "agent:tool-intent"
   | "agent:tool-start"
+  | "agent:tool-retry"
   | "agent:tool-end"
   | "agent:memory-read"
   | "agent:memory-write"

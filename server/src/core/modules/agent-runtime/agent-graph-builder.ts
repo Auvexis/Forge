@@ -201,6 +201,11 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
               );
             }
 
+            if (completedToolCalls.some((completed) => completed.name === tool.name)) {
+              emitToolRetry(input, tool, toolCall, "Nao encontrei o arquivo, vou tentar novamente");
+              await yieldToEventLoop();
+            }
+
             emitToolIntent(input, tool, toolCall);
             await yieldToEventLoop();
             if (shouldExecuteToolImmediately(input, tool)) {
@@ -223,7 +228,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             }
 
             try {
-              result = await invokeToolWithRetry(tool, resolvedArgs);
+              result = await invokeToolWithRetry(input, tool, toolCall, resolvedArgs);
             } catch (error) {
               if (error instanceof AgentToolApprovalRequiredError) throw error;
               const errorMessage = safeErrorMessage(error);
@@ -304,11 +309,17 @@ function yieldToEventLoop(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-async function invokeToolWithRetry(tool: InvokableTool, args: unknown): Promise<unknown> {
+async function invokeToolWithRetry(
+  input: BuildAgentGraphInput,
+  tool: InvokableTool,
+  toolCall: AgentToolCall,
+  args: unknown,
+): Promise<unknown> {
   try {
     return await tool.invoke(args);
   } catch (error) {
     if (error instanceof AgentToolApprovalRequiredError || !isRetryableToolError(error)) throw error;
+    emitToolRetry(input, tool, toolCall, "A ferramenta falhou, vou tentar novamente");
     await delay(250);
     return tool.invoke(args);
   }
@@ -380,6 +391,26 @@ function emitToolStart(
       input: toolCall.args,
       pluginId: tool.pluginId,
       pluginName: tool.pluginName,
+      ...(tool.methodId ? { methodId: tool.methodId } : {}),
+    },
+  });
+}
+
+function emitToolRetry(
+  input: BuildAgentGraphInput,
+  tool: InvokableTool,
+  toolCall: AgentToolCall,
+  reason: string,
+): void {
+  input.onEvent?.({
+    type: "agent:tool-retry",
+    payload: {
+      name: tool.name,
+      callId: toolCall.id,
+      input: toolCall.args,
+      reason,
+      ...(tool.pluginId ? { pluginId: tool.pluginId } : {}),
+      ...(tool.pluginName ? { pluginName: tool.pluginName } : {}),
       ...(tool.methodId ? { methodId: tool.methodId } : {}),
     },
   });

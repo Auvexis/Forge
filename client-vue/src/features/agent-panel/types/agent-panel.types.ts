@@ -32,7 +32,7 @@ export interface AgentPanelMessageResult {
   execution: unknown
 }
 
-export type AgentPanelProgressStatus = 'planned' | 'running' | 'success' | 'failed'
+export type AgentPanelProgressStatus = 'planned' | 'running' | 'retrying' | 'success' | 'failed'
 
 export interface AgentPanelProgressContent {
   kind: 'agentProgress'
@@ -67,6 +67,7 @@ export interface AgentPanelApprovalContent {
   toolName: string
   sideEffect?: string
   message: string
+  decision?: 'approved' | 'rejected'
 }
 
 export interface AgentPanelErrorContent {

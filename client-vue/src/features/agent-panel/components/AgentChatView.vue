@@ -97,6 +97,7 @@
               <p>{{ message.content.message }}</p>
               <div class="agent-chat-view__approval-actions">
                 <BaseButton
+                  v-if="!message.content.decision"
                   type="button"
                   variant="outline"
                   size="sm"
@@ -106,6 +107,7 @@
                   Decline
                 </BaseButton>
                 <BaseButton
+                  v-if="!message.content.decision"
                   type="button"
                   variant="primary"
                   size="sm"
@@ -300,6 +302,7 @@ function progressMessage(content: AgentPanelProgressContent): string {
 function progressIcon(status: AgentPanelProgressContent['status']): string {
   if (status === 'success') return 'check'
   if (status === 'failed') return 'triangle-alert'
+  if (status === 'retrying') return 'rotate-cw'
   if (status === 'running') return 'loader-circle'
   return 'wrench'
 }

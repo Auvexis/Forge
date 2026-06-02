@@ -268,6 +268,32 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     ]
   }
 
+  function markApprovalResolved(approval: AgentPanelApprovalContent, decision: 'approved' | 'rejected') {
+    messages.value = messages.value.map((message) => {
+      if (
+        !message.content ||
+        typeof message.content !== 'object' ||
+        Array.isArray(message.content) ||
+        (message.content as { kind?: unknown }).kind !== 'agentApproval' ||
+        (message.content as { approvalId?: unknown }).approvalId !== approval.approvalId
+      ) {
+        return message
+      }
+
+      const content = message.content as AgentPanelApprovalContent
+      return {
+        ...message,
+        content: {
+          ...content,
+          decision,
+          message: decision === 'approved'
+            ? 'Aprovacao confirmada. Continuando a execucao.'
+            : 'Aprovacao recusada. Execucao interrompida.',
+        },
+      }
+    })
+  }
+
   function upsertStreamingAssistantMessage(
     sessionId: string,
     patch: { textDelta?: string; thinkingDelta?: string; pending?: boolean },
@@ -369,7 +395,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         executionId: approval.executionId,
         reason: 'Approved from global agent chat',
       })
-      await loadMessages(selectedSessionId.value)
+      markApprovalResolved(approval, 'approved')
     } finally {
       approvalPendingId.value = ''
     }
@@ -383,7 +409,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         executionId: approval.executionId,
         reason: 'Declined from global agent chat',
       })
-      await loadMessages(selectedSessionId.value)
+      markApprovalResolved(approval, 'rejected')
     } finally {
       approvalPendingId.value = ''
     }

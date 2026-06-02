@@ -34,6 +34,9 @@ export class AgentBinaryRefStore {
     if (this.refs.size >= this.maxRefs) {
       throw new Error("Agent binary ref limit exceeded");
     }
+    if (input.type === "Readable") {
+      pauseReadableLike(input.value);
+    }
 
     const ref = `agent-ref://${input.toolCallId}/${input.path}`;
     const lightweight: AgentBinaryRef = {
@@ -85,5 +88,13 @@ function destroyReadableLike(value: unknown): void {
   const candidate = value as { destroy?: unknown };
   if (typeof candidate.destroy === "function") {
     candidate.destroy();
+  }
+}
+
+function pauseReadableLike(value: unknown): void {
+  if (!value || typeof value !== "object") return;
+  const candidate = value as { pause?: unknown };
+  if (typeof candidate.pause === "function") {
+    candidate.pause();
   }
 }
