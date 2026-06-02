@@ -169,9 +169,11 @@ describe('agent panel modal contract', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 
     assert.match(chat, /ref="messagesEl"/)
-    assert.match(chat, /TransitionGroup\s+name="agent-chat-message"/)
+    assert.match(chat, /<TransitionGroup[\s\S]*name="agent-chat-message"/)
     assert.match(chat, /displayedMessagesScrollKey/)
     assert.match(chat, /watch\(\s*displayedMessagesScrollKey/)
+    assert.doesNotMatch(chat, /JSON\.stringify\(store\.messages\.map/)
+    assert.match(chat, /messageContentScrollVersion/)
     assert.match(chat, /scrollMessagesToBottom/)
     assert.match(chat, /scrollTo\(\{[\s\S]*behavior: 'smooth'/)
     assert.match(chat, /\.agent-chat-message-move/)

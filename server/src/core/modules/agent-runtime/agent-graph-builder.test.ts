@@ -780,7 +780,7 @@ describe("agent graph builder", () => {
     }]);
   });
 
-  it("streams text responses when tools are configured but no tool call is emitted", async () => {
+  it("uses invoke instead of streaming when tools are configured", async () => {
     const model = fakeStreamModel(["he", { content: "llo" }], { invokeContent: "done" });
     const graph = buildAgentGraph({
       agent: agentConfig(),
@@ -790,16 +790,18 @@ describe("agent graph builder", () => {
 
     const result = await graph.invoke({ userMessage: "hello" });
 
-    assert.equal(result.output, "hello");
-    assert.equal(model.invokeCalls.length, 0);
-    assert.equal(model.streamCalls.length, 1);
+    assert.equal(result.output, "done");
+    assert.equal(model.invokeCalls.length, 1);
+    assert.equal(model.streamCalls.length, 0);
   });
 
-  it("executes complete tool calls emitted by streamable models", async () => {
+  it("keeps streamable models on invoke path while tools are configured", async () => {
     const tool = fakeTool("lookup", async () => ({ result: "found sailor" }));
-    const model = fakeSequentialStreamModel([
-      [{ toolCalls: [{ id: "call_1", name: "lookup", args: { query: "sailor" } }] }],
-      ["done"],
+    const model = fakeStreamInvokeModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "lookup", args: { query: "sailor" } }] },
+      { content: "done" },
+    ], [
+      [{ content: "stream should not run" }],
     ]);
     const graph = buildAgentGraph({
       agent: agentConfig(),
@@ -812,18 +814,21 @@ describe("agent graph builder", () => {
     assert.equal(result.output, "done");
     assert.equal(result.toolCallCount, 1);
     assert.deepEqual(tool.calls, [{ query: "sailor" }]);
-    assert.equal(model.streamCalls.length, 2);
+    assert.equal(model.invokeCalls.length, 2);
+    assert.equal(model.streamCalls.length, 0);
   });
 
-  it("does not emit assistant text deltas from a streamed response that also requests tools", async () => {
+  it("does not emit assistant text deltas before tool execution when tools are configured", async () => {
     const events: Array<{ type: string; payload?: unknown }> = [];
     const tool = fakeTool("google_drive_list_files", async () => ({ matched: true }));
-    const model = fakeSequentialStreamModel([
+    const model = fakeStreamInvokeModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "google_drive_list_files", args: { query: "curriculo" } }] },
+      { content: "done" },
+    ], [
       [
         "Parece que nao ha arquivos no seu Google Drive.",
         { toolCalls: [{ id: "call_1", name: "google_drive_list_files", args: { query: "curriculo" } }] },
       ],
-      ["done"],
     ]);
     const graph = buildAgentGraph({
       agent: agentConfig(),
@@ -837,8 +842,9 @@ describe("agent graph builder", () => {
     assert.equal(result.output, "done");
     assert.deepEqual(
       events.filter((event) => event.type === "agent:output-delta").map((event) => event.payload),
-      [{ delta: "done" }],
+      [],
     );
+    assert.equal(model.streamCalls.length, 0);
     assert.doesNotMatch(JSON.stringify(events), /Parece que/);
   });
 
@@ -1134,6 +1140,29 @@ function fakeSequentialStreamModel(chunksByCall: unknown[][]) {
     async *stream(messages: unknown[]) {
       this.streamCalls.push(messages);
       const chunks = chunksByCall[Math.min(index++, chunksByCall.length - 1)] ?? [];
+      for (const chunk of chunks) {
+        yield chunk;
+      }
+    },
+  };
+}
+
+function fakeStreamInvokeModel(
+  responses: Array<{ content: string; toolCalls?: unknown[] }>,
+  chunksByCall: unknown[][],
+) {
+  let invokeIndex = 0;
+  let streamIndex = 0;
+  return {
+    invokeCalls: [] as unknown[],
+    streamCalls: [] as unknown[],
+    async invoke(messages: unknown[]) {
+      this.invokeCalls.push(messages);
+      return responses[Math.min(invokeIndex++, responses.length - 1)];
+    },
+    async *stream(messages: unknown[]) {
+      this.streamCalls.push(messages);
+      const chunks = chunksByCall[Math.min(streamIndex++, chunksByCall.length - 1)] ?? [];
       for (const chunk of chunks) {
         yield chunk;
       }

@@ -186,11 +186,9 @@ const plugins = ref<PluginSummary[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
 const composerRetiring = ref(false)
 
-const displayedMessagesScrollKey = computed(() => JSON.stringify(store.messages.map((message) => ({
-  id: message.id,
-  role: message.role,
-  content: message.content,
-}))))
+const displayedMessagesScrollKey = computed(() => store.messages
+  .map((message) => `${message.id}:${message.role}:${messageContentScrollVersion(message.content)}`)
+  .join('|'))
 
 onMounted(async () => {
   try {
@@ -217,6 +215,20 @@ function messageText(content: unknown): string {
   if (typeof record.text === 'string') return record.text
   if (typeof record.content === 'string') return record.content
   return JSON.stringify(content)
+}
+
+function messageContentScrollVersion(content: unknown): string {
+  if (typeof content === 'string') return `text:${content.length}`
+  if (!content || typeof content !== 'object' || Array.isArray(content)) return String(content)
+  const record = content as Record<string, unknown>
+  const text = typeof record.text === 'string' ? record.text.length : 0
+  const thinking = typeof record.thinking === 'string' ? record.thinking.length : 0
+  const kind = typeof record.kind === 'string' ? record.kind : ''
+  const status = typeof record.status === 'string' ? record.status : ''
+  const decision = typeof record.decision === 'string' ? record.decision : ''
+  const pending = record.pending === true ? 'pending' : ''
+  const options = Array.isArray(record.options) ? record.options.length : 0
+  return `${kind}:${status}:${decision}:${pending}:${text}:${thinking}:${options}`
 }
 
 function isAgentProgressContent(content: unknown): content is AgentPanelProgressContent {

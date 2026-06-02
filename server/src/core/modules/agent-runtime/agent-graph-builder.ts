@@ -450,8 +450,9 @@ function asModel(value: unknown): InvokableModel {
 function canAttemptStreamTextResponse(
   agent: AiAgentNodeConfig,
   model: InvokableModel,
-  _tools: Map<string, InvokableTool>,
+  tools: Map<string, InvokableTool>,
 ): model is InvokableModel & StreamableModel {
+  if (tools.size > 0) return false;
   return agent.outputMode === "text" && typeof model.stream === "function";
 }
 
