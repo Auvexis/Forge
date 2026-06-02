@@ -676,6 +676,7 @@ function normalizeMessageContent(content: unknown): string {
   const record = content as Record<string, unknown>;
   if (typeof record.text === "string") return record.text;
   if (typeof record.content === "string") return record.content;
+  if (typeof record.message === "string") return record.message;
   return "";
 }
 

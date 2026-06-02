@@ -69,6 +69,11 @@ export interface AgentPanelApprovalContent {
   message: string
 }
 
+export interface AgentPanelErrorContent {
+  kind: 'agentError'
+  message: string
+}
+
 export type AgentPanelStreamEvent =
   | { type: 'start' }
   | { type: 'thinking'; delta: string }

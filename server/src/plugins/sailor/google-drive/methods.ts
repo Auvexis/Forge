@@ -81,7 +81,7 @@ export function createGoogleDriveMethods() {
       const queryParts: string[] = [];
 
       if (params.query?.trim()) {
-        queryParts.push(params.query.trim());
+        queryParts.push(normalizeDriveListQuery(params.query));
       }
 
       if (params.showMimeFilter && params.mimeTypeFilter?.trim()) {
@@ -381,4 +381,24 @@ export function createGoogleDriveMethods() {
       return { ...file.data, trashed: false };
     },
   };
+}
+
+export function normalizeDriveListQuery(query: string): string {
+  const trimmed = query.trim();
+  if (!trimmed) return "";
+  if (looksLikeDriveQuery(trimmed)) return trimmed;
+
+  const terms = trimmed
+    .split(/\s+/)
+    .map((term) => term.replace(/['\\]/g, "").trim())
+    .filter(Boolean)
+    .slice(0, 8);
+
+  if (terms.length === 0) return "";
+  return terms.map((term) => `name contains '${term}'`).join(" and ");
+}
+
+function looksLikeDriveQuery(query: string): boolean {
+  return /\b(name|fullText|mimeType|modifiedTime|createdTime|trashed|parents|starred|sharedWithMe)\b\s*(=|!=|<|>|<=|>=|contains|in|has)/i
+    .test(query);
 }

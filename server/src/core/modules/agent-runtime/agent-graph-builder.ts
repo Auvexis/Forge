@@ -108,7 +108,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
 
       try {
         for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
-          input.onEvent?.({ type: "agent:model-start", payload: { iteration, input: { messages } } });
+          input.onEvent?.({ type: "agent:model-start", payload: { iteration, input: summarizeModelInput(messages) } });
 
           let assistantContent = "";
           let toolCalls: AgentToolCall[] = [];
@@ -216,7 +216,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             }
 
             try {
-              result = await tool.invoke(resolvedArgs);
+              result = await invokeToolWithRetry(tool, resolvedArgs);
             } catch (error) {
               if (error instanceof AgentToolApprovalRequiredError) throw error;
               const errorMessage = safeErrorMessage(error);
@@ -295,6 +295,32 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
 
 function yieldToEventLoop(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve));
+}
+
+async function invokeToolWithRetry(tool: InvokableTool, args: unknown): Promise<unknown> {
+  try {
+    return await tool.invoke(args);
+  } catch (error) {
+    if (error instanceof AgentToolApprovalRequiredError || !isRetryableToolError(error)) throw error;
+    await delay(250);
+    return tool.invoke(args);
+  }
+}
+
+function isRetryableToolError(error: unknown): boolean {
+  const message = safeErrorMessage(error).toLowerCase();
+  return /\b(invalid value|timeout|timed out|temporar|network|econnreset|etimedout|429|500|502|503|504)\b/.test(message);
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function summarizeModelInput(messages: AgentGraphMessage[]): Record<string, unknown> {
+  return {
+    messageCount: messages.length,
+    roles: messages.map((message) => message.role),
+  };
 }
 
 function toAgentRunToolCall(

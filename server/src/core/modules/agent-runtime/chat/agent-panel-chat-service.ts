@@ -182,7 +182,6 @@ export class AgentPanelChatService {
       input.executionId,
       { targetNodeId: agent.summary.agentNodeId },
     );
-    assertSuccessfulChatExecution(execution);
 
     const assistantResponse = extractAssistantResponse(execution, agent.summary.agentNodeId);
     const toolCalls = extractToolCalls(execution, agent.summary.agentNodeId);
@@ -191,6 +190,15 @@ export class AgentPanelChatService {
       appendToolSummaryMessage(this.messages, input.profileId, session.id, toolCalls);
     }
     appendApprovalMessageIfWaiting(this.messages, input.profileId, session.id, execution);
+
+    if (isFailedExecution(execution)) {
+      const detail = extractWorkflowFailureDetail((execution as { context?: { steps?: Record<string, any> } }).context?.steps);
+      if (toolCalls.some((tool) => tool.status === "failed")) {
+        appendAgentErrorMessage(this.messages, input.profileId, session.id, detail ?? "Agent tool failed");
+      } else {
+        assertSuccessfulChatExecution(execution);
+      }
+    }
 
     if (hasAssistantResponse(assistantResponse)) {
       this.messages.append({
@@ -463,6 +471,24 @@ function appendApprovalMessageIfWaiting(
   });
 }
 
+function appendAgentErrorMessage(
+  repository: ChatMessageRepository,
+  profileId: string,
+  sessionId: string,
+  detail: string,
+): void {
+  repository.append({
+    id: `msg_${randomUUID()}`,
+    profileId,
+    sessionId,
+    role: "assistant",
+    content: {
+      kind: "agentError",
+      message: `Nao consegui concluir esta etapa: ${detail}.`,
+    },
+  });
+}
+
 function progressStatusesForTool(tool: Record<string, unknown>): Array<"planned" | "running" | "success" | "failed"> {
   return tool.status === "failed"
     ? ["planned", "running", "failed"]
@@ -553,6 +579,10 @@ function assertSuccessfulChatExecution(execution: unknown): void {
     `Agent panel workflow failed in execution ${executionId}: ${detail}`,
     500,
   );
+}
+
+function isFailedExecution(execution: unknown): boolean {
+  return (execution as { status?: unknown })?.status === "FAILED";
 }
 
 function extractPendingApprovalId(steps: Record<string, any> | undefined): string | null {

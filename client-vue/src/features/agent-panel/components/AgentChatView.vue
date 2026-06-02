@@ -116,6 +116,9 @@
                 </BaseButton>
               </div>
             </div>
+            <p v-else-if="isAgentErrorContent(message.content)" class="agent-chat-view__error">
+              {{ message.content.message }}
+            </p>
             <div v-else-if="isWaitingUserContent(message.content)" class="agent-chat-view__waiting">
               <p>{{ messageText(message.content) }}</p>
               <ul v-if="waitingUserOptions(message.content).length" class="agent-chat-view__waiting-options">
@@ -168,6 +171,7 @@ import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 import type { AgentChatMessage } from '@/features/agent-runtime/types/agent.types'
 import type {
   AgentPanelApprovalContent,
+  AgentPanelErrorContent,
   AgentPanelProgressContent,
   AgentPanelSummaryContent,
 } from '@/features/agent-panel/types/agent-panel.types'
@@ -237,6 +241,16 @@ function isAgentApprovalContent(content: unknown): content is AgentPanelApproval
       typeof content === 'object' &&
       !Array.isArray(content) &&
       (content as { kind?: unknown }).kind === 'agentApproval',
+  )
+}
+
+function isAgentErrorContent(content: unknown): content is AgentPanelErrorContent {
+  return Boolean(
+    content &&
+      typeof content === 'object' &&
+      !Array.isArray(content) &&
+      (content as { kind?: unknown }).kind === 'agentError' &&
+      typeof (content as { message?: unknown }).message === 'string',
   )
 }
 

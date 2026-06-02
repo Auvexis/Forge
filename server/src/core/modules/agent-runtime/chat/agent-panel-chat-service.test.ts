@@ -327,6 +327,37 @@ describe("agent panel chat service", () => {
     );
   });
 
+  it("persists failed tool progress and a readable assistant error when a tool execution fails", async () => {
+    const service = failingToolServiceFixture();
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+
+    const result = await service.sendMessage({
+      profileId: "profile_a",
+      sessionId: session.id,
+      message: "Busque meu curriculo",
+    });
+
+    assert.equal((result.execution as { status?: string }).status, "FAILED");
+    assert.deepEqual(result.messages.map((message) => message.role), [
+      "user",
+      "assistant",
+      "assistant",
+      "assistant",
+      "assistant",
+      "assistant",
+    ]);
+    const contents = result.messages.map((message) => message.content as any);
+    assert.deepEqual(contents.slice(1, 4).map((content) => content.status), ["planned", "running", "failed"]);
+    assert.equal(contents[4].kind, "agentSummary");
+    assert.equal(contents.at(-1).kind, "agentError");
+    assert.match(contents.at(-1).message, /google_drive_list_files/i);
+    assert.match(contents.at(-1).message, /Invalid Value/i);
+  });
+
   it("returns waiting approval executions as incomplete chat turns", async () => {
     const service = waitingApprovalServiceFixture();
     const session = await service.createSession({
@@ -464,6 +495,32 @@ describe("agent panel chat service", () => {
           context: {
             steps: {
               agent: { error: "Invalid AI agent config" },
+            },
+          },
+        }),
+      },
+    });
+  }
+
+  function failingToolServiceFixture(): AgentPanelChatService {
+    return new AgentPanelChatService({
+      db: workflowDb!,
+      workflowRepository: WorkflowRepository,
+      workflowEngine: {
+        executeWorkflowFromTrigger: async () => ({
+          executionId: "exec_tool_failed",
+          status: "FAILED",
+          context: {
+            steps: {
+              agent: {
+                error: "Agent tool google_drive_list_files failed: Invalid Value",
+                output: {
+                  output: "",
+                  toolCalls: [
+                    { toolCallId: "call_1", name: "google_drive_list_files", status: "failed" },
+                  ],
+                },
+              },
             },
           },
         }),

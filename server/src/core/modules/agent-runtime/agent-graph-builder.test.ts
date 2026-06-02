@@ -44,10 +44,8 @@ describe("agent graph builder", () => {
       {
         iteration: 1,
         input: {
-          messages: [
-            { role: "system", content: "You are helpful." },
-            { role: "user", content: "hello" },
-          ],
+          messageCount: 2,
+          roles: ["system", "user"],
         },
       },
       { delta: "hel" },
@@ -575,6 +573,61 @@ describe("agent graph builder", () => {
       options: files,
     });
     assert.equal(tool.calls.length, 1);
+  });
+
+  it("retries a transient tool failure before returning success", async () => {
+    let attempts = 0;
+    const tool = fakeTool("google_drive_list_files", async () => {
+      attempts += 1;
+      if (attempts === 1) throw new Error("Invalid Value");
+      return { files: [{ id: "file_1", name: "andre fullstack.pdf" }] };
+    });
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model: fakeModel([
+        { content: "", toolCalls: [{ id: "call_1", name: "google_drive_list_files", args: { query: "andre fullstack" } }] },
+        { content: "found" },
+      ]),
+      tools: [tool],
+    });
+
+    const result = await graph.invoke({ userMessage: "procure meu curriculo" });
+
+    assert.equal(result.status, "success");
+    assert.equal(attempts, 2);
+    assert.deepEqual(result.toolCalls, [{
+      toolCallId: "call_1",
+      name: "google_drive_list_files",
+      status: "success",
+    }]);
+  });
+
+  it("emits lightweight model-start metadata instead of full message history", async () => {
+    const events: Array<{ type: string; payload?: unknown }> = [];
+    const largeHistory = "x".repeat(250_000);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model: fakeModel([{ content: "ok" }]),
+      tools: [],
+      onEvent: (event) => events.push(event),
+    });
+
+    await graph.invoke({
+      userMessage: "hello",
+      contextMessages: [{ role: "assistant", content: largeHistory }],
+    });
+
+    const modelStart = events.find((event) => event.type === "agent:model-start");
+    const serialized = JSON.stringify(modelStart?.payload);
+    assert.ok(serialized.length < 400);
+    assert.doesNotMatch(serialized, /x{100}/);
+    assert.deepEqual(modelStart?.payload, {
+      iteration: 1,
+      input: {
+        messageCount: 3,
+        roles: ["system", "assistant", "user"],
+      },
+    });
   });
 
   it("returns waiting-user immediately when a tool result has multiple options", async () => {
