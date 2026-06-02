@@ -143,15 +143,40 @@ interface AgentModelAdapter {
 
 Providers:
 
-- `openai-compatible`: usa tool calling quando confiavel; usa JSON schema/response_format quando disponivel.
-- `openrouter`: continua OpenAI-compatible, mas permite `response_format`/JSON mode quando suportado.
-- `ollama`: provider proprio, usando `/api/chat` com `format: "json"` ou schema quando suportado.
+- `openai`: provider proprio para OpenAI, usando Responses/Chat Completions com structured output quando disponivel.
+- `openrouter`: provider proprio para OpenRouter, usando API OpenAI-compatible, mas com regras/propriedades especificas do OpenRouter.
+- `ollama`: provider proprio para Ollama, usando `/api/chat` com `format: "json"` ou schema quando suportado.
+
+Nao usar mais `generic` como adapter principal do Agent Runtime.
+
+Pasta proposta:
+
+```text
+server/src/core/modules/agent-runtime/model-adapters/
+  agent-model-adapter.ts
+  openai-adapter.ts
+  openrouter-adapter.ts
+  ollama-adapter.ts
+  adapter-registry.ts
+```
+
+Cada adapter deve encapsular:
+
+- auth/credential shape
+- base URL default
+- chamada texto
+- chamada JSON
+- tool/planner JSON
+- normalizacao de erro
+- suporte a thinking/reasoning
+- limites/quirks do provider
 
 Meta:
 
 - O runtime nao deve depender de LangChain para JSON critico.
 - LangChain pode ficar para chat streaming/texto.
 - JSON de parametros deve passar por endpoint/adaptador deterministico.
+- Novos providers entram adicionando arquivo novo em `model-adapters/`, sem alterar o loop do Agent.
 
 ### 5. Planner Output
 
@@ -288,9 +313,12 @@ Atualizar `google_drive_download_file`:
 
 ### 4. Adapter JSON Estruturado
 
-- [ ] Criar contrato `AgentModelAdapter` com `invokeJson`.
-- [ ] Implementar adapter Ollama usando `/api/chat` e `format: "json"`.
-- [ ] Adaptar OpenAI/OpenRouter via OpenAI-compatible JSON mode/response_format quando possivel.
+- [ ] Criar pasta `server/src/core/modules/agent-runtime/model-adapters/`.
+- [ ] Criar contrato `AgentModelAdapter` com `invokeText`, `invokeJson` e `invokeToolPlan`.
+- [ ] Implementar `ollama-adapter.ts` usando `/api/chat` e `format: "json"`.
+- [ ] Implementar `openrouter-adapter.ts` separado do OpenAI, mesmo usando API OpenAI-compatible.
+- [ ] Implementar `openai-adapter.ts` separado para OpenAI.
+- [ ] Remover dependencia de `generic` como adapter principal no Tools Agent.
 - [ ] Criar fallback parser estrito para providers sem schema nativo.
 - [ ] Testar `invokeJson` retornando objeto valido e rejeitando texto/prosa.
 
@@ -339,8 +367,8 @@ Atualizar `google_drive_download_file`:
 
 1. Corrigir Google Drive export.
 2. Parar de mandar schemas de todas as tools para Ollama.
-3. Criar planner compacto sem `bindTools`.
-4. Adicionar `invokeJson` para Ollama/OpenAI-compatible.
+3. Criar pasta `model-adapters/` com adapters separados para Ollama, OpenRouter e OpenAI.
+4. Criar planner compacto sem `bindTools`.
 5. Criar parameterizer JSON para uma tool por vez.
 6. Executar chain pelo backend com refs e steps deterministico.
 
