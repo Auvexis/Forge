@@ -23,6 +23,7 @@ describe("plugin tool adapter", () => {
     assert.equal(tools[0].pluginId, "github");
     assert.equal(tools[0].methodId, "createIssue");
     assert.equal(tools[0].inputSchema.properties.title.type, "string");
+    assert.equal(tools[0].instructions, "Use after confirming the repository owner and name.");
     assert.equal(tools[0].sideEffect, "write");
     assert.equal(tools[0].requiresApproval, true);
   });
@@ -165,6 +166,7 @@ function createManifest(agentToolOverrides: Record<string, unknown> = {}) {
             enabled: true,
             name: "github_create_issue",
             description: "Create a GitHub issue in an allowed repository.",
+            instructions: "Use after confirming the repository owner and name.",
             sideEffect: "write",
             requiresApproval: true,
             timeoutMs: 30000,

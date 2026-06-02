@@ -65,6 +65,7 @@ export type PluginMemoryExecutor = (
 interface GraphTool {
   name: string;
   description: string;
+  instructions?: string;
   pluginId?: string;
   pluginName?: string;
   methodId?: string;
@@ -233,6 +234,7 @@ export class AgentRunner {
         definition.description,
         configs[index]?.inputDefaults,
       ),
+      ...(definition.instructions ? { instructions: definition.instructions } : {}),
       pluginId: definition.pluginId,
       pluginName: definition.pluginName ?? definition.pluginId,
       methodId: definition.methodId,
@@ -258,11 +260,19 @@ function schemaWithoutConfiguredDefaults(
   defaults: Record<string, any> | undefined,
 ): Record<string, any> {
   const defaultKeys = Object.keys(defaults ?? {}).filter((key) => defaults?.[key] !== undefined);
-  if (defaultKeys.length === 0 || !Array.isArray(schema.required)) return schema;
+  if (defaultKeys.length === 0) return schema;
 
+  const properties = schema.properties && typeof schema.properties === "object" && !Array.isArray(schema.properties)
+    ? Object.fromEntries(
+        Object.entries(schema.properties).filter(([key]) => !defaultKeys.includes(key)),
+      )
+    : schema.properties;
   return {
     ...schema,
-    required: schema.required.filter((key: unknown) => typeof key !== "string" || !defaultKeys.includes(key)),
+    ...(properties ? { properties } : {}),
+    ...(Array.isArray(schema.required)
+      ? { required: schema.required.filter((key: unknown) => typeof key !== "string" || !defaultKeys.includes(key)) }
+      : {}),
   };
 }
 

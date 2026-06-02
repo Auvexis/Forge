@@ -883,11 +883,13 @@ describe("agent graph builder", () => {
         },
       },
     };
+    const events: Array<{ type: string; payload?: unknown }> = [];
 
     const graph = buildAgentGraph({
       agent: agentConfig({ maxIterations: 3 }),
       model,
       tools: [list, download],
+      onEvent: (event) => events.push(event),
     });
 
     const result = await graph.invoke({ userMessage: "Find my curriculo.pdf in Drive" });
@@ -896,10 +898,19 @@ describe("agent graph builder", () => {
     assert.equal(result.output, "I found the file.");
     assert.deepEqual(list.calls, [{ query: "curriculo.pdf" }]);
     assert.equal(model.bindToolsCalled, false);
+    assert.equal(model.invokeCalls.length, 0);
 
     const plannerMessages = model.jsonCalls[0].messages.map((message: any) => message.content).join("\n");
     const parameterizerMessages = model.jsonCalls[1].messages.map((message: any) => message.content).join("\n");
 
+    assert.deepEqual(events.find((event) => event.type === "agent:model-start")?.payload, {
+      iteration: 1,
+      mode: "compact-json",
+      input: {
+        messageCount: 2,
+        roles: ["system", "user"],
+      },
+    });
     assert.match(plannerMessages, /google_drive_list_files/);
     assert.match(plannerMessages, /google_drive_download_file/);
     assert.doesNotMatch(plannerMessages, /"required"/);
@@ -1338,8 +1349,10 @@ function fakeJsonPlanningModel(responses: unknown[]) {
   let index = 0;
   return {
     jsonCalls: [] as any[],
+    invokeCalls: [] as unknown[],
     bindToolsCalled: false,
     async invoke(messages: unknown[]) {
+      this.invokeCalls.push(messages);
       return { content: "" };
     },
     async invokeJson(input: { messages: unknown[] }) {

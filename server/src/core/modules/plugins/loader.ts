@@ -140,6 +140,11 @@ function buildSailorManifestSchema(): any {
         minLength: 20,
         maxLength: 1000,
       },
+      instructions: {
+        type: "string",
+        minLength: 1,
+        maxLength: 2000,
+      },
       sideEffect: { enum: agentToolSideEffects },
       requiresApproval: { type: "boolean" },
       timeoutMs: {

@@ -4,6 +4,7 @@ import type { AgentToolSideEffect } from "./agent-types.ts";
 export interface SailorAgentToolDefinition {
   name: string;
   description: string;
+  instructions?: string;
   pluginId: string;
   pluginName?: string;
   methodId: string;
@@ -17,6 +18,7 @@ interface AgentToolManifestMetadata {
   enabled?: boolean;
   name?: string;
   description?: string;
+  instructions?: string;
   sideEffect?: AgentToolSideEffect;
   requiresApproval?: boolean;
   timeoutMs?: number;
@@ -68,6 +70,7 @@ function toToolDefinition(
   return {
     name: normalizeToolName(metadata.name ?? `${pluginId}_${methodId}`),
     description: metadata.description ?? methodManifest.metadata?.description ?? methodId,
+    ...(metadata.instructions?.trim() ? { instructions: metadata.instructions.trim() } : {}),
     pluginId,
     pluginName,
     methodId,

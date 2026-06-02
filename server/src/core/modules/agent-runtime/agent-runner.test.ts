@@ -123,6 +123,7 @@ describe("agent runner", () => {
     });
 
     assert.deepEqual(graphTools[0]?.inputSchema?.required, ["content"]);
+    assert.deepEqual(Object.keys(graphTools[0]?.inputSchema?.properties ?? {}), ["content"]);
     assert.match(graphTools[0]?.description ?? "", /channelId is already configured/i);
   });
 

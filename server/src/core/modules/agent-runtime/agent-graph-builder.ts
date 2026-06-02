@@ -62,6 +62,7 @@ interface JsonPlanningModel extends InvokableModel {
 interface InvokableTool {
   name: string;
   description?: string;
+  instructions?: string;
   inputSchema?: Record<string, any>;
   pluginId?: string;
   pluginName?: string;
@@ -377,7 +378,7 @@ async function invokeCompactJsonToolLoop(input: CompactJsonToolLoopInput): Promi
   for (let iteration = 1; iteration <= input.graphInput.agent.maxIterations; iteration += 1) {
     input.graphInput.onEvent?.({
       type: "agent:model-start",
-      payload: { iteration, input: summarizeModelInput(input.messages) },
+      payload: { iteration, mode: "compact-json", input: summarizeModelInput(input.messages) },
     });
 
     const plan = await input.model.invokeJson<CompactToolPlan>({
@@ -583,6 +584,7 @@ function buildToolParameterMessages(
         `Generate JSON parameters for exactly one tool: ${tool.name}.`,
         `Reason: ${plan.reason ?? ""}`,
         `Tool description: ${tool.description ?? tool.name}`,
+        tool.instructions ? `Tool instructions: ${tool.instructions}` : "",
         `Tool schema: ${JSON.stringify(tool.inputSchema ?? { type: "object", properties: {} })}`,
         lastError ? `Previous parameter error: ${lastError}` : "",
         "Return only one JSON object with parameters for this tool.",

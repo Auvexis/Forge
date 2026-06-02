@@ -219,6 +219,23 @@ describe("loadPlugins", () => {
     assert.deepEqual(errors, []);
   });
 
+  it("accepts agent tool instructions metadata", () => {
+    const manifest = createValidManifest();
+    (manifest.methods.ping as any).agentTool = {
+      enabled: true,
+      name: "sdk_ping",
+      description: "Ping the SDK contract plugin from an agent workflow.",
+      instructions: "Use this only for fast connectivity checks.",
+      sideEffect: "read",
+      requiresApproval: false,
+      timeoutMs: 30000,
+    };
+
+    const errors = validateManifest(manifest);
+
+    assert.deepEqual(errors, []);
+  });
+
   it("rejects enabled chat model agent capabilities missing required display metadata", () => {
     const errors = validateManifest(
       createValidManifest({

@@ -316,14 +316,14 @@ Atualizar `google_drive_download_file`:
 
 - [x] Criar `AgentToolCatalogService`.
 - [x] Gerar catalogo sem schemas completos.
-- [ ] Incluir `instructions` em `agentTool` metadata.
+- [x] Incluir `instructions` em `agentTool` metadata.
 - [x] Criar testes para garantir que catalogo nao inclui payload pesado/default sensivel.
 - [x] Integrar no Agent Runner/Graph sem quebrar tools atuais.
 
 ### 3. Schema Sob Demanda
 
 - [x] Criar resolver de schema por `toolName`.
-- [ ] Remover defaults configurados do schema visivel ao modelo.
+- [x] Remover defaults configurados do schema visivel ao modelo.
 - [x] Validar parametros com AJV antes do executor.
 - [x] Criar retry para erro de schema sem executar tool.
 
@@ -346,6 +346,7 @@ Atualizar `google_drive_download_file`:
 - [x] Parameterizer recebe apenas schema da tool escolhida.
 - [x] Executor recebe apenas JSON validado pelo backend.
 - [x] Preservar binary refs entre tool calls.
+- [x] Evitar `invoke`/`bindTools` no loop compacto Ollama.
 
 ### 6. Retry Inteligente
 
@@ -369,8 +370,8 @@ Atualizar `google_drive_download_file`:
 - [ ] Rodar testes do plugin Google Drive.
 - [x] Rodar build do `server`.
 - [x] Rodar build do `client-vue` se alterar contrato visual.
-- [ ] Atualizar este plano conforme cada task for concluida.
-- [ ] Commitar por bloco coerente, sem `git add .`.
+- [x] Atualizar este plano conforme cada task for concluida.
+- [x] Commitar por bloco coerente, sem `git add .`.
 
 ### Verificacao Do Bloco Ollama Adapter
 
@@ -392,6 +393,17 @@ Nota: o teste frontend acima falhou em assercao antiga sobre texto `node anterio
 - [x] `server`: `npm run build`
 
 Resultado: modelos com `invokeJson` agora usam planner compacto sem `bindTools`, parameterizer com schema de uma tool, validacao AJV antes da execucao e refs compactas entre tool calls.
+
+### Verificacao Do Bloco Metadata/Defaults/Telemetry
+
+- [x] `server`: teste vermelho confirmou que `agentTool.instructions` era rejeitado pelo loader.
+- [x] `server`: teste vermelho confirmou que `instructions` nao chegava no adapter de plugin.
+- [x] `server`: teste vermelho confirmou que defaults configurados ainda ficavam em `properties`.
+- [x] `server`: teste vermelho confirmou falta de `mode: "compact-json"` no evento `agent:model-start`.
+- [x] `server`: `node --test src/core/modules/agent-runtime/plugin-tool-adapter.test.ts src/core/modules/agent-runtime/agent-runner.test.ts src/core/modules/plugins/loader.test.ts src/core/modules/agent-runtime/agent-graph-builder.test.ts`
+- [x] `server`: `npm run build`
+
+Resultado: manifest aceita `agentTool.instructions`, o adapter preserva essa metadata, o parameterizer ve instructions da tool escolhida, defaults configurados saem de `required` e `properties`, e o loop compacto expõe telemetry `compact-json` sem usar `invoke`/`bindTools`.
 
 ## Riscos
 
