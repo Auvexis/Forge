@@ -199,6 +199,26 @@ describe("loadPlugins", () => {
     assert.deepEqual(errors, []);
   });
 
+  it("accepts native Ollama plugin-level chat model agent capabilities", () => {
+    const errors = validateManifest(
+      createValidManifest({
+        agentCapabilities: {
+          chatModel: {
+            enabled: true,
+            adapter: "ollama",
+            label: "Ollama Chat Model",
+            description: "Provides chat completions through the native Ollama API endpoint.",
+            defaultModel: "llama3.2",
+            defaultBaseUrl: "http://localhost:11434",
+            credentialPluginId: "sailor-ollama",
+          },
+        },
+      }),
+    );
+
+    assert.deepEqual(errors, []);
+  });
+
   it("rejects enabled chat model agent capabilities missing required display metadata", () => {
     const errors = validateManifest(
       createValidManifest({
@@ -232,8 +252,8 @@ describe("loadPlugins", () => {
     );
 
     assert.ok(
-      errors.some((error) => error.includes("openai-compatible") && error.includes("generic")),
-      `Expected an error mentioning openai-compatible and generic, got: ${errors.join("; ")}`,
+      errors.some((error) => error.includes("openai-compatible") && error.includes("generic") && error.includes("ollama")),
+      `Expected an error mentioning supported adapters, got: ${errors.join("; ")}`,
     );
   });
 
@@ -241,7 +261,7 @@ describe("loadPlugins", () => {
     const expectedAdapters: Record<string, string> = {
       openai: "openai-compatible",
       openrouter: "openai-compatible",
-      ollama: "generic",
+      ollama: "ollama",
     };
 
     for (const [pluginId, adapter] of Object.entries(expectedAdapters)) {

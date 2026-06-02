@@ -6,6 +6,7 @@ import {
   OpenAiCompatibleProvider,
   type AgentCredentialResolver,
 } from "./model-providers/openai-compatible-provider.ts";
+import { OllamaModelProvider } from "./model-adapters/ollama-model-provider.ts";
 
 export interface AgentModelProvider {
   adapter: string;
@@ -35,6 +36,9 @@ export class AgentModelProviderRegistry {
           credentialResolver,
           allowLocalNoAuth: true,
           createModel: options.createModel,
+        }),
+        new OllamaModelProvider({
+          credentialResolver,
         }),
       ];
 

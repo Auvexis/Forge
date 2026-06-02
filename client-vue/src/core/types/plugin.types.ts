@@ -40,7 +40,7 @@ export interface PluginStatusResponse {
 
 // ── Plugin Metadata ──────────────────────────────────────────
 
-export type AgentModelAdapter = 'openai-compatible' | 'generic'
+export type AgentModelAdapter = 'openai-compatible' | 'generic' | 'ollama'
 export type AgentMemoryAdapter = 'sailor-internal' | 'plugin-memory-store'
 
 export interface PluginAgentChatModelCapability {

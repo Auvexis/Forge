@@ -230,7 +230,7 @@ const props = defineProps<{
   agentConfigHandle?: 'chatModel' | 'memory' | 'tool'
 }>()
 
-const SUPPORTED_CHAT_MODEL_ADAPTERS = new Set(['openai-compatible', 'generic'])
+const SUPPORTED_CHAT_MODEL_ADAPTERS = new Set(['openai-compatible', 'generic', 'ollama'])
 
 // ── State ────────────────────────────────────────────────────────────────────
 

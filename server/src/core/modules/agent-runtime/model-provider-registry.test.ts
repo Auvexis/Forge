@@ -96,6 +96,24 @@ describe("agent model provider registry", () => {
     assert.equal(created[0].apiKey, "sailor-local");
   });
 
+  it("creates native Ollama local models without stored credentials", async () => {
+    const registry = new AgentModelProviderRegistry({
+      credentialResolver: () => null,
+    });
+
+    const model = await registry.createChatModel({
+      ...modelConfig(),
+      pluginId: "sailor-ollama",
+      adapter: "ollama",
+      model: "llama3.2",
+      baseUrl: "http://localhost:11434",
+      credentialId: undefined,
+    });
+
+    assert.equal(typeof (model as any).invoke, "function");
+    assert.equal(typeof (model as any).bindTools, "undefined");
+  });
+
   it("hydrates missing thinking metadata from the plugin chat model capability", async () => {
     const created: any[] = [];
     PluginManager.clearPlugins();

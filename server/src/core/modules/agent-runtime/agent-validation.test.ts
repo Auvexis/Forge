@@ -44,6 +44,21 @@ describe("agent runtime validation", () => {
     assert.equal(model.baseUrl, "http://localhost:11434/v1");
   });
 
+  it("accepts native Ollama AI model adapter configs", () => {
+    const model = validateAiModelConfig({
+      ...validModel(),
+      pluginId: "sailor-ollama",
+      adapter: "ollama",
+      model: "llama3.2",
+      baseUrl: "http://localhost:11434",
+      credentialId: undefined,
+    });
+
+    assert.equal(model.pluginId, "sailor-ollama");
+    assert.equal(model.adapter, "ollama");
+    assert.equal(model.baseUrl, "http://localhost:11434");
+  });
+
   it("normalizes legacy OpenAI model configs", () => {
     const model = validateAiModelConfig(legacyModel("openai"));
 

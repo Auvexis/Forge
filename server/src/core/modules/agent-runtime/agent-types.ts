@@ -1,7 +1,7 @@
 export type AgentMemoryScope = "none" | "session" | "workflow" | "profile" | "user";
 export type AgentMemoryAdapter = "sailor-internal" | "plugin-memory-store";
 
-export type AgentModelAdapter = "openai-compatible" | "generic";
+export type AgentModelAdapter = "openai-compatible" | "generic" | "ollama";
 
 export type AgentToolSideEffect =
   | "read"

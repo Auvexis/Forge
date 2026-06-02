@@ -51,6 +51,16 @@ O erro de Drive nao e bug de schema da LLM apenas. E bug de operacao:
 
 ## Decisao Recomendada
 
+Regras obrigatorias de implementacao:
+
+- Seguir clean code, clean architecture e SRP.
+- Cada modulo novo deve ter uma responsabilidade clara.
+- Nada de codigo espaguete no loop do Agent.
+- Adapter nao deve conhecer tools/plugins alem do contrato recebido.
+- Runtime nao deve ter `if provider === ...` espalhado.
+- Remover codigo antigo quando a nova arquitetura substituir de fato o comportamento.
+- Manter legado apenas como ponte temporaria e documentada.
+
 Criar uma arquitetura em 3 fases leves:
 
 1. **Planner leve**
@@ -148,6 +158,12 @@ Providers:
 - `ollama`: provider proprio para Ollama, usando `/api/chat` com `format: "json"` ou schema quando suportado.
 
 Nao usar mais `generic` como adapter principal do Agent Runtime.
+
+Recorte de implementacao:
+
+- Primeiro implementar e validar apenas `ollama`.
+- OpenAI/OpenRouter ficam para depois, quando o Ollama provar ganho real de performance/UX.
+- `generic` continua aceito temporariamente para workflows antigos, mas nao sera usado em novos configs Ollama.
 
 Pasta proposta:
 
@@ -313,14 +329,15 @@ Atualizar `google_drive_download_file`:
 
 ### 4. Adapter JSON Estruturado
 
-- [ ] Criar pasta `server/src/core/modules/agent-runtime/model-adapters/`.
-- [ ] Criar contrato `AgentModelAdapter` com `invokeText`, `invokeJson` e `invokeToolPlan`.
-- [ ] Implementar `ollama-adapter.ts` usando `/api/chat` e `format: "json"`.
-- [ ] Implementar `openrouter-adapter.ts` separado do OpenAI, mesmo usando API OpenAI-compatible.
-- [ ] Implementar `openai-adapter.ts` separado para OpenAI.
-- [ ] Remover dependencia de `generic` como adapter principal no Tools Agent.
+- [x] Criar pasta `server/src/core/modules/agent-runtime/model-adapters/`.
+- [x] Criar contrato `AgentModelAdapter` com `invokeText`, `invokeJson` e `invokeToolPlan`.
+- [x] Implementar `ollama-adapter.ts` usando `/api/chat` e `format: "json"`.
+- [x] Registrar `ollama` no `AgentModelProviderRegistry`.
+- [x] Atualizar manifest/capability do plugin Ollama para adapter `ollama`.
+- [x] Manter `generic` como compatibilidade temporaria para configs antigas.
+- [ ] Adiar `openrouter-adapter.ts` e `openai-adapter.ts` ate o Ollama estar validado.
 - [ ] Criar fallback parser estrito para providers sem schema nativo.
-- [ ] Testar `invokeJson` retornando objeto valido e rejeitando texto/prosa.
+- [x] Testar `invokeJson` retornando objeto valido e rejeitando texto/prosa.
 
 ### 5. Planner + Parameterizer
 
@@ -347,13 +364,25 @@ Atualizar `google_drive_download_file`:
 
 ### 8. Verificacao
 
-- [ ] Rodar testes focados do `agent-runtime`.
+- [x] Rodar testes focados do `agent-runtime`.
 - [ ] Rodar testes focados de `agent-panel.routes`.
 - [ ] Rodar testes do plugin Google Drive.
-- [ ] Rodar build do `server`.
-- [ ] Rodar build do `client-vue` se alterar contrato visual.
+- [x] Rodar build do `server`.
+- [x] Rodar build do `client-vue` se alterar contrato visual.
 - [ ] Atualizar este plano conforme cada task for concluida.
 - [ ] Commitar por bloco coerente, sem `git add .`.
+
+### Verificacao Do Bloco Ollama Adapter
+
+- [x] `server`: `node --test src/core/modules/agent-runtime/model-adapters/ollama-adapter.test.ts`
+- [x] `server`: `node --test src/core/modules/agent-runtime/agent-validation.test.ts`
+- [x] `server`: `node --test src/core/modules/agent-runtime/model-provider-registry.test.ts`
+- [x] `server`: `node --test src/core/modules/plugins/loader.test.ts src/plugins/sailor/ollama/methods.test.ts src/shared/models/workflow-agent-types.test.ts src/core/modules/workflows/workflow-validation.test.ts`
+- [x] `server`: `npm run build`
+- [x] `client-vue`: `npm run build`
+- [ ] `client-vue`: `node --test src/features/workflow-editor/components/settings/editors/__tests__/agentEditors.contract.test.ts`
+
+Nota: o teste frontend acima falhou em assercao antiga sobre texto `node anterior` no `AiAgentEditor.vue`, nao relacionada ao adapter Ollama. O build do client passou.
 
 ## Riscos
 
@@ -367,7 +396,7 @@ Atualizar `google_drive_download_file`:
 
 1. Corrigir Google Drive export.
 2. Parar de mandar schemas de todas as tools para Ollama.
-3. Criar pasta `model-adapters/` com adapters separados para Ollama, OpenRouter e OpenAI.
+3. Criar pasta `model-adapters/` com adapter Ollama primeiro.
 4. Criar planner compacto sem `bindTools`.
 5. Criar parameterizer JSON para uma tool por vez.
 6. Executar chain pelo backend com refs e steps deterministico.

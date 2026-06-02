@@ -5,7 +5,7 @@ import plugin from "./index.ts";
 import { createMethods } from "./methods.ts";
 
 describe("ollama plugin", () => {
-  it("declares a generic chat model capability for local Ollama", () => {
+  it("declares a native chat model capability for local Ollama", () => {
     const metadata = plugin.manifest.metadata as typeof plugin.manifest.metadata & {
       agentCapabilities?: {
         chatModel?: {
@@ -22,7 +22,7 @@ describe("ollama plugin", () => {
     assert.equal(plugin.id, "sailor-ollama");
     assert.equal(plugin.manifest.metadata.id, "sailor-ollama");
     assert.equal(capability?.enabled, true);
-    assert.equal(capability?.adapter, "generic");
+    assert.equal(capability?.adapter, "ollama");
     assert.equal(capability?.defaultModel, "llama3.2");
     assert.equal(capability?.defaultBaseUrl, "http://localhost:11434/v1");
     assert.equal(capability?.credentialPluginId, "sailor-ollama");

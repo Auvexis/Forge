@@ -13,7 +13,7 @@
     "agentCapabilities": {
       "chatModel": {
         "enabled": true,
-        "adapter": "generic",
+        "adapter": "ollama",
         "label": "Ollama Chat Model",
         "description": "Use local or cloud Ollama models as an Agent Chat Model through a configurable compatible endpoint.",
         "defaultModel": "llama3.2",

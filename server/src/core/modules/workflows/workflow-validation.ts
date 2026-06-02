@@ -293,8 +293,12 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
         if (!modelNode.pluginId || typeof modelNode.pluginId !== "string") {
           return `AI Model node "${nodeId}" must have pluginId`;
         }
-        if (modelNode.adapter !== "openai-compatible" && modelNode.adapter !== "generic") {
-          return `AI Model node "${nodeId}" must have a supported adapter: openai-compatible or generic`;
+        if (
+          modelNode.adapter !== "openai-compatible" &&
+          modelNode.adapter !== "generic" &&
+          modelNode.adapter !== "ollama"
+        ) {
+          return `AI Model node "${nodeId}" must have a supported adapter: openai-compatible, generic, or ollama`;
         }
         return !modelNode.model || typeof modelNode.model !== "string"
           ? `AI Model node "${nodeId}" must have a model string`

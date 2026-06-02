@@ -105,6 +105,23 @@ describe("workflow validation", () => {
     assert.equal(error, null);
   });
 
+  it("accepts native Ollama AI model nodes with pluginId and adapter", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        model: {
+          type: "ai-model",
+          name: "Ollama Model",
+          pluginId: "sailor-ollama",
+          adapter: "ollama",
+          model: "llama3.2",
+          temperature: 0,
+        },
+      },
+    }));
+
+    assert.equal(error, null);
+  });
+
   it("accepts legacy OpenAI provider AI model nodes during migration", () => {
     const error = validateWorkflowDefinition(baseWorkflow({
       nodes: {
@@ -171,6 +188,7 @@ describe("workflow validation", () => {
 
     assert.match(error ?? "", /supported adapter/i);
     assert.match(error ?? "", /openai-compatible/);
+    assert.match(error ?? "", /ollama/);
   });
 
   it("accepts plugin-backed AI memory nodes with plugin method ids", () => {

@@ -34,7 +34,7 @@ describe("workflow AI node contracts", () => {
   });
 
   it("defines AI model nodes with plugin capability identity", () => {
-    assert.match(source, /export type AgentModelAdapter = "openai-compatible" \| "generic"/);
+    assert.match(source, /export type AgentModelAdapter = "openai-compatible" \| "generic" \| "ollama"/);
     assert.match(source, /export interface AiModelNode[\s\S]*pluginId: string/);
     assert.match(source, /export interface AiModelNode[\s\S]*adapter: AgentModelAdapter/);
     assert.doesNotMatch(source, /provider: "openai" \| "openrouter"/);

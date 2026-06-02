@@ -44,7 +44,7 @@ const aiModelSchema = z
     type: z.literal("ai-model"),
     name: z.string().trim().min(1).max(120),
     pluginId: z.string().trim().min(1).max(120),
-    adapter: z.enum(["openai-compatible", "generic"]),
+    adapter: z.enum(["openai-compatible", "generic", "ollama"]),
     model: z.string().trim().min(1).max(160),
     temperature: z.number().min(0).max(2),
     maxTokens: z.number().int().min(1).max(200000).optional(),
