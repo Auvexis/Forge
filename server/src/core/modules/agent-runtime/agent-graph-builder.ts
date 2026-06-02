@@ -118,6 +118,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             const stream = await resolveModelStream(model, messages);
             if (stream) {
               const streamedToolCalls: AgentToolCall[] = [];
+              const bufferedOutputDeltas: string[] = [];
               for await (const chunk of stream) {
                 streamedToolCalls.push(...extractCompleteToolCalls(chunk));
                 const thinkingDelta = extractThinkingDelta(chunk);
@@ -128,9 +129,15 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
                 const delta = extractStreamDelta(chunk);
                 if (!delta) continue;
                 assistantContent += delta;
-                if (streamedToolCalls.length === 0) {
+                bufferedOutputDeltas.push(delta);
+              }
+
+              if (streamedToolCalls.length === 0) {
+                for (const delta of bufferedOutputDeltas) {
                   input.onEvent?.({ type: "agent:output-delta", payload: { delta } });
                 }
+              } else {
+                assistantContent = "";
               }
 
               if (assistantContent || streamedToolCalls.length > 0) {

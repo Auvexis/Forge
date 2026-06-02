@@ -801,6 +801,33 @@ describe("agent graph builder", () => {
     assert.equal(model.streamCalls.length, 2);
   });
 
+  it("does not emit assistant text deltas from a streamed response that also requests tools", async () => {
+    const events: Array<{ type: string; payload?: unknown }> = [];
+    const tool = fakeTool("google_drive_list_files", async () => ({ matched: true }));
+    const model = fakeSequentialStreamModel([
+      [
+        "Parece que nao ha arquivos no seu Google Drive.",
+        { toolCalls: [{ id: "call_1", name: "google_drive_list_files", args: { query: "curriculo" } }] },
+      ],
+      ["done"],
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+      onEvent: (event) => events.push(event),
+    });
+
+    const result = await graph.invoke({ userMessage: "procure meu curriculo" });
+
+    assert.equal(result.output, "done");
+    assert.deepEqual(
+      events.filter((event) => event.type === "agent:output-delta").map((event) => event.payload),
+      [{ delta: "done" }],
+    );
+    assert.doesNotMatch(JSON.stringify(events), /Parece que/);
+  });
+
   it("includes short-term memory checkpointer config when provided", async () => {
     const checkpointer = { tag: "profile-db-checkpointer" };
     const graph = buildAgentGraph({
