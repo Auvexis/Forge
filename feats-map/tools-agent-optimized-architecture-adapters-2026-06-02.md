@@ -10,6 +10,8 @@ O Tools Agent ainda deixa a LLM carregar responsabilidade demais:
 - Retry atual repete a mesma chamada em alguns casos, sem deixar a LLM corrigir parametros.
 - Ollama usa adapter `generic` via OpenAI-compatible, mas nao existe metodo interno claro para JSON estruturado.
 - `google_drive_download_file` falha em Google Docs Editors files porque Drive exige export, nao download binario.
+- Com mais de 10 tools conectadas, o Ollama recebe tool schemas/contexto demais e a GPU trava antes da primeira resposta.
+- Cada step do Tools Agent pode disparar nova inferencia do modelo; o Workflow Editor executa nodes direto, sem LLM entre steps.
 
 Erro atual:
 
@@ -19,7 +21,28 @@ Only files with binary content can be downloaded. Use Export with Docs Editors f
 
 ## Diagnostico
 
-Esse erro nao e bug de schema da LLM apenas. E bug de operacao:
+Existem dois problemas separados.
+
+### Diagnostico De Performance
+
+O travamento do computador vem do loop do agente, nao das tools em si:
+
+- Workflow manual: Drive search -> Drive download -> Gmail send roda por executor deterministico.
+- Tools Agent: modelo decide tool, gera parametros, recebe resultado, decide proxima tool, gera parametros de novo.
+- Com muitas tools, o runtime ainda passa definicoes/schema de tools para o modelo.
+- Ollama local precisa processar esse contexto em GPU/CPU antes de qualquer mensagem aparecer.
+- Quando cada step chama o modelo novamente, a GPU sobe para 100%.
+- Resultados compactados ajudam, mas nao resolvem se o gargalo principal for schema/tool calling + reinferencia.
+
+Conclusao:
+
+- O Tools Agent esta usando a LLM como orquestrador e roteador de dados.
+- O Workflow Editor usa o backend como orquestrador e so executa plugins.
+- A arquitetura nova precisa deixar o backend orquestrar e deixar a LLM apenas escolher plano/parametros pequenos.
+
+### Diagnostico Do Drive
+
+O erro de Drive nao e bug de schema da LLM apenas. E bug de operacao:
 
 - Arquivos binarios do Drive usam `files.get({ alt: "media" })`.
 - Google Docs, Sheets e Slides usam `files.export`.
@@ -28,12 +51,13 @@ Esse erro nao e bug de schema da LLM apenas. E bug de operacao:
 
 ## Decisao Recomendada
 
-Criar uma arquitetura em 2 fases:
+Criar uma arquitetura em 3 fases leves:
 
 1. **Planner leve**
    - Modelo ve catalogo compacto: `name`, `description`, `instructions`, `sideEffect`, `pluginName`.
    - Sem schema completo de todas as tools.
    - Retorna JSON com proxima acao: `tool_name`, `reason`, `needs_schema`.
+   - Deve rodar com prompt pequeno e sem bindTools pesado.
 
 2. **Parameterizer sob demanda**
    - Backend injeta apenas o schema da tool escolhida.
@@ -46,6 +70,7 @@ Criar uma arquitetura em 2 fases:
    - Backend emite steps fixos em EN-US.
    - LLM nao escreve mais "I will use", "using", "success".
    - LLM escreve apenas mensagem inicial e final.
+   - Tool result fica em ref/contexto backend; modelo ve so resumo minimo.
 
 ## Arquitetura Proposta
 
@@ -313,10 +338,11 @@ Atualizar `google_drive_download_file`:
 ## MVP
 
 1. Corrigir Google Drive export.
-2. Adicionar `invokeJson` para Ollama/OpenAI-compatible.
-3. Criar parameterizer JSON para tool selecionada.
-4. Manter planner atual por tool calling enquanto migra.
-5. Depois substituir por planner leve com catalogo compacto.
+2. Parar de mandar schemas de todas as tools para Ollama.
+3. Criar planner compacto sem `bindTools`.
+4. Adicionar `invokeJson` para Ollama/OpenAI-compatible.
+5. Criar parameterizer JSON para uma tool por vez.
+6. Executar chain pelo backend com refs e steps deterministico.
 
 ## Minha Correcao Na Proposta
 
