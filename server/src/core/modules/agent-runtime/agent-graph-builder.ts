@@ -1,6 +1,7 @@
 import { Ajv } from "ajv/dist/ajv.js";
 import { AgentBinaryRefStore } from "./agent-binary-ref-store.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
+import { AGENT_LIMITS } from "./agent-limits.ts";
 import type {
   AgentEventType,
   AgentRunResult,
@@ -79,6 +80,11 @@ interface ToolResultSummary {
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 const LARGE_BASE64_MIN_CHARS = 64_000;
+const MAX_MODEL_TOOL_RESULT_BYTES = Math.min(AGENT_LIMITS.maxToolResultBytes, 64_000);
+const MAX_MODEL_ARRAY_ITEMS = 25;
+const MAX_MODEL_OBJECT_KEYS = 80;
+const MAX_MODEL_STRING_CHARS = 600;
+const MAX_MODEL_RESULT_DEPTH = 8;
 
 export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
   const configuredTools = input.tools.map(asTool);
@@ -231,15 +237,16 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             }
             toolCallCount += 1;
             const modelSafeResult = sanitizeToolResultForModel(result, toolCall.id, binaryRefs);
-            toolHistory.set(toolSignature, summarizeToolResult(modelSafeResult));
-            emitToolEnd(input, tool, toolCall, { status: "success", output: modelSafeResult });
+            const compactResult = compactToolResultForModel(modelSafeResult);
+            toolHistory.set(toolSignature, summarizeToolResult(compactResult));
+            emitToolEnd(input, tool, toolCall, { status: "success", output: compactResult });
             completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "success"));
             await yieldToEventLoop();
             messages.push({
               role: "tool",
               name: tool.name,
               tool_call_id: toolCall.id,
-              content: stringifyToolResult(modelSafeResult),
+              content: stringifyToolResult(compactResult),
             });
           }
 
@@ -848,6 +855,55 @@ function sanitizeToolResultForModel(
   }
 
   return value;
+}
+
+function compactToolResultForModel(value: unknown): unknown {
+  const compacted = compactToolResultValue(value);
+  const serialized = JSON.stringify(compacted);
+  if (!serialized || Buffer.byteLength(serialized, "utf8") <= MAX_MODEL_TOOL_RESULT_BYTES) {
+    return compacted;
+  }
+
+  return {
+    __truncated: true,
+    reason: "Tool result too large for model context",
+    preview: truncateModelString(serialized, MAX_MODEL_STRING_CHARS * 4),
+  };
+}
+
+function compactToolResultValue(value: unknown, depth = 0): unknown {
+  if (typeof value === "string") return truncateModelString(value, MAX_MODEL_STRING_CHARS);
+  if (!value || typeof value !== "object") return value;
+  if (Buffer.isBuffer(value) || isReadableLike(value)) return "[binary omitted]";
+  if (depth >= MAX_MODEL_RESULT_DEPTH) return "[object depth limit]";
+
+  if (Array.isArray(value)) {
+    const items = value
+      .slice(0, MAX_MODEL_ARRAY_ITEMS)
+      .map((item) => compactToolResultValue(item, depth + 1));
+    if (value.length > MAX_MODEL_ARRAY_ITEMS) {
+      items.push({ __truncatedItems: value.length - MAX_MODEL_ARRAY_ITEMS });
+    }
+    return items;
+  }
+
+  const entries = Object.entries(value as Record<string, unknown>);
+  const compacted = Object.fromEntries(
+    entries
+      .slice(0, MAX_MODEL_OBJECT_KEYS)
+      .map(([key, item]) => [key, compactToolResultValue(item, depth + 1)]),
+  );
+
+  if (entries.length > MAX_MODEL_OBJECT_KEYS) {
+    compacted.__truncatedKeys = entries.length - MAX_MODEL_OBJECT_KEYS;
+  }
+
+  return compacted;
+}
+
+function truncateModelString(value: string, maxChars: number): string {
+  if (value.length <= maxChars) return value;
+  return `${value.slice(0, maxChars)}...[truncated ${value.length - maxChars} chars]`;
 }
 
 function shouldStoreStringAsBase64Ref(value: string, path: string[]): boolean {

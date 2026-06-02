@@ -324,6 +324,38 @@ describe("agent graph builder", () => {
     });
   });
 
+  it("compacts large non-binary tool results before sending them to the model", async () => {
+    const files = Array.from({ length: 120 }, (_, index) => ({
+      id: `file_${index}`,
+      name: `curriculo-${index}.pdf`,
+      mimeType: "application/pdf",
+      webViewLink: `https://drive.example/files/${index}`,
+      description: "x".repeat(4_000),
+    }));
+    const tool = fakeTool("google_drive_list_files", async () => ({ files }));
+    const model = fakeModel([
+      { content: "", toolCalls: [{ id: "call_1", name: "google_drive_list_files", args: { query: "curriculo fullstack" } }] },
+      { content: "done" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+    });
+
+    await graph.invoke({ userMessage: "procure meu curriculo" });
+
+    const secondModelCall = model.calls[1] as Array<Record<string, unknown>>;
+    const toolMessage = secondModelCall.find((message) => message.role === "tool");
+    const toolContent = String(toolMessage?.content);
+
+    assert.ok(Buffer.byteLength(toolContent, "utf8") < 70_000);
+    assert.match(toolContent, /"__truncatedItems":95/);
+    assert.match(toolContent, /curriculo-0\.pdf/);
+    assert.doesNotMatch(toolContent, /curriculo-119\.pdf/);
+    assert.doesNotMatch(toolContent, /x{1000}/);
+  });
+
   it("destroys unread binary refs when the agent stops after a download", async () => {
     let destroyed = false;
     const readable = {
