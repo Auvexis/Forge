@@ -158,11 +158,11 @@ describe('agent panel modal contract', () => {
     assert.match(store, /activeAssistantStreamId/)
     assert.match(store, /const id = `local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-/)
     assert.match(store, /const id = `local-agent-summary-\$\{currentAssistantTurnId\(sessionId\)\}`/)
-    assert.match(store, /appendStreamingAssistantThinking/)
     assert.match(store, /agentPanelApi\.sendMessageStream/)
     assert.match(store, /for await \(const event of agentPanelApi\.sendMessageStream/)
     assert.match(types, /type: 'start'/)
-    assert.match(types, /type: 'thinking'/)
+    assert.doesNotMatch(types, /type: 'thinking'/)
+    assert.doesNotMatch(store, /event\.type === 'thinking'/)
   })
 
   it('auto-scrolls the transcript and animates message reflow on new steps', () => {
@@ -223,10 +223,34 @@ describe('agent panel modal contract', () => {
   it('renders global agent pending loading dots like workflow editor chat', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 
-    assert.match(chat, /agent-chat-view__thinking/)
     assert.match(chat, /agent-chat-view__typing-dots/)
     assert.match(chat, /isPendingAssistantMessage/)
     assert.match(chat, /agent-chat-typing-bounce/)
+    assert.doesNotMatch(chat, /messageThinking/)
+    assert.doesNotMatch(chat, /agent-chat-view__thinking/)
+  })
+
+  it('lets users cancel an active global agent execution from the composer', () => {
+    const composer = readFileSync(
+      'src/features/agent-panel/components/AgentChatComposer.vue',
+      'utf8',
+    )
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const api = readFileSync('src/core/api/agent-panel.api.ts', 'utf8')
+    const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
+
+    assert.match(types, /type: 'start'; executionId: string/)
+    assert.match(api, /cancelExecution/)
+    assert.match(api, /ENDPOINTS\.CANCEL_EXECUTION/)
+    assert.match(store, /activeExecutionId/)
+    assert.match(store, /cancelActiveExecution/)
+    assert.match(store, /agentPanelApi\.cancelExecution\(activeExecutionId\.value\)/)
+    assert.match(store, /event\.type === 'start'[\s\S]*activeExecutionId\.value = event\.executionId/)
+    assert.match(composer, /cancelable/)
+    assert.match(composer, /emit\('cancel'\)/)
+    assert.match(composer, /Stop|Cancel/)
+    assert.match(chat, /@cancel="store\.cancelActiveExecution"/)
   })
 
   it('renders agent progress rows with plugin icons from the plugin catalog', () => {
@@ -284,10 +308,31 @@ describe('agent panel modal contract', () => {
     assert.match(store, /appendAgentApprovalMessage/)
     assert.match(store, /approveApproval/)
     assert.match(store, /rejectApproval/)
-    assert.match(api, /approveToolCall/)
+    assert.match(api, /approveToolCallStream/)
     assert.match(api, /rejectToolCall/)
+    assert.match(api, /STREAM_EXECUTION/)
+    assert.match(api, /eventSource\.onopen/)
     assert.match(api, /event\.type === 'done' \|\| event\.type === 'waiting-approval' \|\| event\.type === 'error'/)
     assert.match(store, /event\.type === 'done' \|\| event\.type === 'waiting-approval'/)
+  })
+
+  it('continues global agent progress from the approved execution stream', () => {
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const api = readFileSync('src/core/api/agent-panel.api.ts', 'utf8')
+    const approveBlock = store.slice(
+      store.indexOf('async function approveApproval'),
+      store.indexOf('async function rejectApproval'),
+    )
+
+    assert.match(approveBlock, /for await \(const event of agentPanelApi\.approveToolCallStream/)
+    assert.match(approveBlock, /appendAgentProgressMessage/)
+    assert.match(approveBlock, /appendAgentSummaryMessage/)
+    assert.match(approveBlock, /appendAgentApprovalMessage/)
+    assert.match(approveBlock, /appendStreamingAssistantMessage/)
+    assert.match(approveBlock, /sawApprovalOutput/)
+    assert.match(approveBlock, /event\.type === 'approval-complete'/)
+    assert.match(api, /agent:approval-created/)
+    assert.match(api, /workflow:waiting-approval/)
   })
 
   it('keeps local chat steps when resolving approval actions', () => {

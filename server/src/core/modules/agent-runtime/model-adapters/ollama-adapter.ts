@@ -10,6 +10,7 @@ type FetchLike = (url: string | URL, init?: RequestInit) => Promise<Response>;
 
 export interface OllamaAdapterOptions {
   fetch?: FetchLike;
+  keepAlive?: string | number;
 }
 
 interface OllamaChatResponse {
@@ -21,9 +22,11 @@ interface OllamaChatResponse {
 
 export class OllamaAdapter implements AgentModelAdapter {
   private readonly fetch: FetchLike;
+  private readonly keepAlive?: string | number;
 
   constructor(options: OllamaAdapterOptions = {}) {
     this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis);
+    this.keepAlive = options.keepAlive ?? process.env.SAILOR_OLLAMA_KEEP_ALIVE;
   }
 
   async invokeText(input: AgentModelInvokeInput): Promise<string> {
@@ -58,18 +61,19 @@ export class OllamaAdapter implements AgentModelAdapter {
   }
 
   createChatModel(input: Omit<AgentModelInvokeInput, "messages">): {
-    invoke(messages: AgentModelMessage[]): Promise<{ content: string }>;
+    invoke(messages: AgentModelMessage[], options?: { signal?: AbortSignal }): Promise<{ content: string }>;
     invokeJson<T extends object>(
       jsonInput: { messages: AgentModelMessage[] },
       schema?: Record<string, any>,
+      options?: { signal?: AbortSignal },
     ): Promise<T>;
   } {
     return {
-      invoke: async (messages) => ({
-        content: await this.invokeText({ ...input, messages }),
+      invoke: async (messages, options) => ({
+        content: await this.invokeText({ ...input, messages, abortSignal: options?.signal ?? input.abortSignal }),
       }),
-      invokeJson: async (jsonInput, schema) =>
-        this.invokeJson({ ...input, messages: jsonInput.messages }, schema),
+      invokeJson: async (jsonInput, schema, options) =>
+        this.invokeJson({ ...input, messages: jsonInput.messages, abortSignal: options?.signal ?? input.abortSignal }, schema),
     };
   }
 
@@ -77,10 +81,12 @@ export class OllamaAdapter implements AgentModelAdapter {
     const response = await this.fetch(`${normalizeOllamaHost(input.baseUrl)}/api/chat`, {
       method: "POST",
       headers: ollamaHeaders(input.credentials),
+      signal: input.abortSignal,
       body: JSON.stringify({
         model: input.model,
         messages: input.messages.map(toOllamaMessage),
         stream: false,
+        ...(this.keepAlive !== undefined ? { keep_alive: this.keepAlive } : {}),
         ...(format ? { format } : {}),
         ...(input.temperature !== undefined ? { options: { temperature: input.temperature } } : {}),
       }),

@@ -125,12 +125,70 @@ describe("plugin tool executor", () => {
         definition: definition({ requiresApproval: true }),
         configuredTool: configuredTool({ requiresApproval: true }),
         args: { owner: "acme", title: "Bug" },
+        executionId: "exec_requires_approval",
+        workflowId: "workflow_1",
+        nodeId: "agent_1",
+      }),
+      /approval/i,
+    );
+  });
+
+  it("rejects approval tokens scoped to a different tool", async () => {
+    let executed = false;
+    PluginManager.registerPlugin(createPlugin(async () => {
+      executed = true;
+      return { ok: true };
+    }));
+
+    await assert.rejects(
+      executePluginAgentTool({
+        definition: definition({ name: "google_gmail_send_message", requiresApproval: true }),
+        configuredTool: configuredTool({ requiresApproval: true }),
+        args: { owner: "acme", title: "Bug" },
+        approvalToken: "approved",
+        approvalToolName: "discord_send_message",
         executionId: "exec_1",
         workflowId: "workflow_1",
         nodeId: "agent_1",
       }),
       /approval/i,
     );
+    assert.equal(executed, false);
+  });
+
+  it("replays an already completed side-effect tool in the same execution without sending it again", async () => {
+    let executions = 0;
+    PluginManager.registerPlugin(createPlugin(async () => {
+      executions += 1;
+      return { ok: true, id: "sent_1" };
+    }));
+    const toolDefinition = definition({ name: "discord_send_message", requiresApproval: true });
+    const toolConfig = configuredTool({ requiresApproval: true });
+
+    const first = await executePluginAgentTool({
+      definition: toolDefinition,
+      configuredTool: toolConfig,
+      args: { owner: "acme", title: "Piada" },
+      approvalToken: "approved",
+      approvalToolName: "discord_send_message",
+      executionId: "exec_replay",
+      workflowId: "workflow_1",
+      nodeId: "agent_1",
+    });
+    const replay = await executePluginAgentTool({
+      definition: toolDefinition,
+      configuredTool: toolConfig,
+      args: { owner: "acme", title: "Piada" },
+      approvalToken: "approved",
+      approvalToolName: "google_gmail_send_message",
+      executionId: "exec_replay",
+      workflowId: "workflow_1",
+      nodeId: "agent_1",
+    });
+
+    assert.deepEqual(first, { ok: true, id: "sent_1" });
+    assert.deepEqual(replay, first);
+    assert.equal(executions, 1);
   });
 
   it("does not include raw binary values in approval requests", async () => {

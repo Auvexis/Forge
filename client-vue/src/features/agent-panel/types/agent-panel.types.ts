@@ -76,8 +76,7 @@ export interface AgentPanelErrorContent {
 }
 
 export type AgentPanelStreamEvent =
-  | { type: 'start' }
-  | { type: 'thinking'; delta: string }
+  | { type: 'start'; executionId: string }
   | { type: 'delta'; delta: string }
   | {
       type: 'progress'
@@ -96,4 +95,5 @@ export type AgentPanelStreamEvent =
     }
   | { type: 'done'; result: AgentPanelMessageResult }
   | { type: 'waiting-approval'; result: AgentPanelMessageResult }
+  | { type: 'approval-complete' }
   | { type: 'error'; code?: string; message: string }

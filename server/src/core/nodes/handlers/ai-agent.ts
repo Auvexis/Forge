@@ -18,6 +18,7 @@ import { createNodeHandler } from "../handler.ts";
 import type { NodeHandlerInput } from "../types.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
 import { usesShortTermMemory } from "../../modules/agent-runtime/memory/agent-memory-mode.ts";
+import { CancellationRegistry } from "../../modules/workflows/cancellation-registry.ts";
 
 type AgentConfigNode = AiModelNode | AiMemoryNode | AiToolNode;
 
@@ -48,6 +49,8 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     triggerPayload,
     skipFinalResponseAfterToolUse: triggerPayload.skipFinalResponseAfterToolUse === true,
     approvalToken: optionalString(triggerPayload.approvalToken ?? triggerPayload.approval_token),
+    approvalToolName: optionalString(triggerPayload.approvalToolName ?? triggerPayload.approval_tool_name),
+    abortSignal: CancellationRegistry.signal(input.executionId),
     agent: agentConfig,
     model: toModelConfig(model),
     memory: memoryConfig,

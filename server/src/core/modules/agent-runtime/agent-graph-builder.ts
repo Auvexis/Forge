@@ -18,6 +18,8 @@ export interface BuildAgentGraphInput {
   memory?: AiMemoryNodeConfig;
   checkpointer?: unknown;
   approvalToken?: string;
+  approvalToolName?: string;
+  abortSignal?: AbortSignal;
   skipFinalResponseAfterToolUse?: boolean;
   onEvent?: (event: AgentGraphEvent) => void;
 }
@@ -50,13 +52,21 @@ interface StreamableModel {
 }
 
 interface InvokableModel {
-  invoke(messages: AgentGraphMessage[]): Promise<unknown>;
-  stream?: (messages: AgentGraphMessage[]) => AsyncIterable<unknown> | Promise<AsyncIterable<unknown>> | unknown;
+  invoke(messages: AgentGraphMessage[], options?: ModelInvocationOptions): Promise<unknown>;
+  stream?: (messages: AgentGraphMessage[], options?: ModelInvocationOptions) => AsyncIterable<unknown> | Promise<AsyncIterable<unknown>> | unknown;
   bindTools?: (tools: unknown[]) => InvokableModel;
 }
 
 interface JsonPlanningModel extends InvokableModel {
-  invokeJson<T extends object>(input: { messages: AgentGraphMessage[] }, schema?: Record<string, any>): Promise<T>;
+  invokeJson<T extends object>(
+    input: { messages: AgentGraphMessage[] },
+    schema?: Record<string, any>,
+    options?: ModelInvocationOptions,
+  ): Promise<T>;
+}
+
+interface ModelInvocationOptions {
+  signal?: AbortSignal;
 }
 
 interface InvokableTool {
@@ -174,17 +184,12 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
           const activeToolMap = new Map(activeTools.map((invokable) => [invokable.name, invokable]));
 
           if (canAttemptStreamTextResponse(input.agent, model, activeToolMap)) {
-            const stream = await resolveModelStream(model, messages);
+            const stream = await resolveModelStream(model, messages, modelInvocationOptions(input));
             if (stream) {
               const streamedToolCalls: AgentToolCall[] = [];
               const bufferedOutputDeltas: string[] = [];
               for await (const chunk of stream) {
                 streamedToolCalls.push(...extractCompleteToolCalls(chunk));
-                const thinkingDelta = extractThinkingDelta(chunk);
-                if (thinkingDelta) {
-                  input.onEvent?.({ type: "agent:thinking-delta", payload: { delta: thinkingDelta } });
-                }
-
                 const delta = extractStreamDelta(chunk);
                 if (!delta) continue;
                 assistantContent += delta;
@@ -207,7 +212,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
           }
 
           if (!usedStream) {
-            const modelResponse = await model.invoke(messages);
+            const modelResponse = await model.invoke(messages, modelInvocationOptions(input));
             assistantContent = extractContent(modelResponse);
             toolCalls = extractToolCalls(modelResponse);
           }
@@ -383,7 +388,7 @@ async function invokeCompactJsonToolLoop(input: CompactJsonToolLoopInput): Promi
 
     const plan = await input.model.invokeJson<CompactToolPlan>({
       messages: buildCompactPlannerMessages(input.graphInput.agent, input.invokeInput, input.configuredTools, toolResults),
-    }, TOOL_PLAN_SCHEMA);
+    }, TOOL_PLAN_SCHEMA, modelInvocationOptions(input.graphInput));
 
     input.graphInput.onEvent?.({
       type: "agent:model-end",
@@ -527,7 +532,7 @@ async function generateValidatedToolArgs(
   for (let attempt = 1; attempt <= 2; attempt += 1) {
     const args = await input.model.invokeJson<Record<string, any>>({
       messages: buildToolParameterMessages(input.graphInput.agent, input.invokeInput, tool, plan, toolResults, lastError),
-    }, tool.inputSchema ?? { type: "object", properties: {} });
+    }, tool.inputSchema ?? { type: "object", properties: {} }, modelInvocationOptions(input.graphInput));
     const error = validateToolArgsAgainstSchema(tool, args);
     if (!error) return args;
     lastError = error;
@@ -656,7 +661,12 @@ function toAgentRunToolCall(
 }
 
 function shouldExecuteToolImmediately(input: BuildAgentGraphInput, tool: InvokableTool): boolean {
-  return tool.requiresApproval !== true || input.approvalToken === "approved";
+  return tool.requiresApproval !== true || isToolApprovedForCurrentResume(input, tool);
+}
+
+function isToolApprovedForCurrentResume(input: BuildAgentGraphInput, tool: InvokableTool): boolean {
+  if (input.approvalToken !== "approved") return false;
+  return !input.approvalToolName || input.approvalToolName === tool.name;
 }
 
 function emitToolIntent(
@@ -763,9 +773,14 @@ function canAttemptStreamTextResponse(
 async function resolveModelStream(
   model: InvokableModel & StreamableModel,
   messages: AgentGraphMessage[],
+  options?: ModelInvocationOptions,
 ): Promise<AsyncIterable<unknown> | null> {
-  const stream = await model.stream(messages);
+  const stream = await model.stream(messages, options);
   return isAsyncIterable(stream) ? stream : null;
+}
+
+function modelInvocationOptions(input: BuildAgentGraphInput): ModelInvocationOptions | undefined {
+  return input.abortSignal ? { signal: input.abortSignal } : undefined;
 }
 
 function isAsyncIterable(value: unknown): value is AsyncIterable<unknown> {
@@ -972,65 +987,6 @@ export function extractStreamDelta(chunk: unknown): string {
 function extractStreamContentValue(content: unknown): string {
   if (typeof content === "string") return content;
   if (Array.isArray(content)) return content.map(extractStreamContentBlockText).join("");
-  return "";
-}
-
-export function extractThinkingDelta(chunk: unknown): string {
-  if (!chunk || typeof chunk !== "object") return "";
-  const record = chunk as Record<string, unknown>;
-
-  for (const key of ["thinking", "reasoning", "reasoning_content"]) {
-    if (typeof record[key] === "string") return record[key] as string;
-  }
-
-  for (const key of ["additional_kwargs", "response_metadata"]) {
-    const nested = record[key];
-    if (!nested || typeof nested !== "object") continue;
-    const nestedRecord = nested as Record<string, unknown>;
-    for (const nestedKey of ["thinking", "reasoning", "reasoning_content"]) {
-      if (typeof nestedRecord[nestedKey] === "string") return nestedRecord[nestedKey] as string;
-    }
-  }
-
-  const messageThinking = extractThinkingNestedRecord(record.message);
-  if (messageThinking) return messageThinking;
-
-  if (Array.isArray(record.choices)) {
-    const choicesThinking = record.choices
-      .map((choice) => {
-        if (!choice || typeof choice !== "object") return "";
-        const choiceRecord = choice as Record<string, unknown>;
-        return extractThinkingNestedRecord(choiceRecord.delta) || extractThinkingNestedRecord(choiceRecord.message);
-      })
-      .join("");
-    if (choicesThinking) return choicesThinking;
-  }
-
-  if (Array.isArray(record.content)) {
-    return record.content.map(extractThinkingContentBlockText).join("");
-  }
-
-  return "";
-}
-
-function extractThinkingNestedRecord(value: unknown): string {
-  if (!value || typeof value !== "object") return "";
-  const record = value as Record<string, unknown>;
-  for (const key of ["thinking", "reasoning", "reasoning_content"]) {
-    if (typeof record[key] === "string") return record[key] as string;
-  }
-  return "";
-}
-
-function extractThinkingContentBlockText(item: unknown): string {
-  if (!item || typeof item !== "object") return "";
-  const block = item as { type?: string; text?: unknown; content?: unknown };
-  if ((block.type === "reasoning" || block.type === "thinking") && typeof block.text === "string") {
-    return block.text;
-  }
-  if ((block.type === "reasoning" || block.type === "thinking") && typeof block.content === "string") {
-    return block.content;
-  }
   return "";
 }
 
@@ -1449,10 +1405,10 @@ function shouldStoreStringAsBase64Ref(value: string, path: string[]): boolean {
   return /^[A-Za-z0-9+/=\s]+$/.test(value);
 }
 
-function resolveBinaryRefsInToolArgs(value: unknown, binaryRefs: AgentBinaryRefStore): unknown {
+function resolveBinaryRefsInToolArgs(value: unknown, binaryRefs: AgentBinaryRefStore, keyHint = ""): unknown {
   if (typeof value === "string" && value.startsWith("agent-ref://")) {
     const stored = binaryRefs.get(value);
-    if (stored) return resolveStoredBinaryRef(stored);
+    if (stored) return shouldResolveAgentRefAsRawValue(keyHint) ? stored.value : resolveStoredBinaryRef(stored);
   }
 
   if (Array.isArray(value)) {
@@ -1482,9 +1438,14 @@ function resolveBinaryRefsInToolArgs(value: unknown, binaryRefs: AgentBinaryRefS
   return Object.fromEntries(
     Object.entries(record).map(([key, item]) => [
       key,
-      resolveBinaryRefsInToolArgs(item, binaryRefs),
+      resolveBinaryRefsInToolArgs(item, binaryRefs, key),
     ]),
   );
+}
+
+function shouldResolveAgentRefAsRawValue(keyHint: string): boolean {
+  const key = keyHint.trim().toLowerCase();
+  return key === "content" || key === "buffer" || key === "data" || key === "contentbase64";
 }
 
 function resolveStoredBinaryRef(stored: {

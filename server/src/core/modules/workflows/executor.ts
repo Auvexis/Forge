@@ -249,7 +249,9 @@ export const WorkflowEngine = {
 
       status = "SUCCESS";
     } catch (error: any) {
-      if (error instanceof WorkflowWaitingApprovalError) {
+      if (CancellationRegistry.isCancelled(execId)) {
+        status = "CANCELLED";
+      } else if (error instanceof WorkflowWaitingApprovalError) {
         status = "WAITING_APPROVAL";
         context.steps.pendingApprovalId = error.approvalId;
       } else {
@@ -281,6 +283,7 @@ export const WorkflowEngine = {
       );
 
       notifyPluginExecutionEnd(execId, status);
+      if (status !== "WAITING_APPROVAL") CancellationRegistry.clear(execId);
     }
 
     return { executionId: execId, status, context };
@@ -310,6 +313,7 @@ export const WorkflowEngine = {
       ...(context.trigger ?? {}),
       approvalToken: "approved",
       approvalId: approval.id,
+      approvalToolName: approval.toolName,
     };
     const startTime = Number(execution.start_time ?? Date.now());
 
@@ -319,7 +323,7 @@ export const WorkflowEngine = {
       type: "agent:approval-resumed",
       nodeId,
       timestamp: Date.now(),
-      data: { approvalId: approval.id },
+      data: { approvalId: approval.id, toolName: approval.toolName },
     });
 
     return continueWorkflowExecution({
@@ -465,7 +469,9 @@ async function continueWorkflowExecution(input: {
 
     if (status === "RUNNING") status = "SUCCESS";
   } catch (error: any) {
-    if (error instanceof WorkflowWaitingApprovalError) {
+    if (CancellationRegistry.isCancelled(executionId)) {
+      status = "CANCELLED";
+    } else if (error instanceof WorkflowWaitingApprovalError) {
       status = "WAITING_APPROVAL";
       context.steps.pendingApprovalId = error.approvalId;
     } else {
@@ -497,6 +503,7 @@ async function continueWorkflowExecution(input: {
     );
 
     notifyPluginExecutionEnd(executionId, status);
+    if (status !== "WAITING_APPROVAL") CancellationRegistry.clear(executionId);
   }
 
   return { executionId, status, context };

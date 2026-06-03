@@ -87,9 +87,6 @@
               <strong>{{ messageDisplayName(message) }}</strong>
               <time>{{ formatMessageTime(message) }}</time>
             </span>
-            <div v-if="messageThinking(message.content)" class="agent-chat-view__thinking">
-              {{ messageThinking(message.content) }}
-            </div>
             <div v-if="isAgentSummaryContent(message.content)" class="agent-chat-view__summary">
               <strong>{{ message.content.message }}</strong>
               <ul class="agent-chat-view__summary-tools">
@@ -120,7 +117,7 @@
             <div
               v-else-if="isPendingAssistantMessage(message)"
               class="agent-chat-view__typing-dots"
-              aria-label="Agent is thinking"
+              aria-label="Agent is responding"
             >
               <span />
               <span />
@@ -177,7 +174,13 @@
 
         <div v-else class="agent-chat-view__prompt-stage">
           <Transition name="agent-chat-composer-shift" appear>
-            <AgentChatComposer mode="hero" :sending="store.sending" @send="store.sendMessage" />
+            <AgentChatComposer
+              mode="hero"
+              :sending="store.sending"
+              :cancelable="Boolean(store.activeExecutionId)"
+              @send="store.sendMessage"
+              @cancel="store.cancelActiveExecution"
+            />
           </Transition>
           <p>Centra may display inaccurate info, so please double check the response.</p>
         </div>
@@ -188,7 +191,9 @@
           v-if="store.messages.length && !composerRetiring"
           mode="dock"
           :sending="store.sending"
+          :cancelable="Boolean(store.activeExecutionId)"
           @send="store.sendMessage"
+          @cancel="store.cancelActiveExecution"
         />
       </Transition>
     </template>
@@ -258,13 +263,12 @@ function messageContentScrollVersion(content: unknown): string {
   if (!content || typeof content !== 'object' || Array.isArray(content)) return String(content)
   const record = content as Record<string, unknown>
   const text = typeof record.text === 'string' ? record.text.length : 0
-  const thinking = typeof record.thinking === 'string' ? record.thinking.length : 0
   const kind = typeof record.kind === 'string' ? record.kind : ''
   const status = typeof record.status === 'string' ? record.status : ''
   const decision = typeof record.decision === 'string' ? record.decision : ''
   const pending = record.pending === true ? 'pending' : ''
   const options = Array.isArray(record.options) ? record.options.length : 0
-  return `${kind}:${status}:${decision}:${pending}:${text}:${thinking}:${options}`
+  return `${kind}:${status}:${decision}:${pending}:${text}:${options}`
 }
 
 function isAgentProgressContent(content: unknown): content is AgentPanelProgressContent {
@@ -362,12 +366,6 @@ function pluginIconName(pluginId: string | undefined, fallback: string): string 
   )
   if (!plugin) return fallback
   return resolvePluginIcon(plugin.manifest.metadata, { fallback })
-}
-
-function messageThinking(content: unknown): string {
-  if (!content || typeof content !== 'object' || Array.isArray(content)) return ''
-  const thinking = (content as Record<string, unknown>).thinking
-  return typeof thinking === 'string' ? thinking : ''
 }
 
 function isPendingAssistantMessage(message: AgentChatMessage): boolean {
@@ -698,7 +696,6 @@ async function deleteSession(sessionId: string) {
 
 .agent-chat-view__message p,
 .agent-chat-view__waiting,
-.agent-chat-view__thinking,
 .agent-chat-view__typing-dots {
   grid-column: 2;
   margin: 0;
@@ -764,12 +761,6 @@ async function deleteSession(sessionId: string) {
 
 .agent-chat-view__waiting-option:hover:not(:disabled) {
   color: var(--sailor-text-primary);
-}
-
-.agent-chat-view__thinking {
-  margin-bottom: var(--sailor-space-1);
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
 }
 
 .agent-chat-view__typing-dots {

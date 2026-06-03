@@ -39,7 +39,6 @@ function finalizeLocalAssistantMessage(
     ...message,
     content: {
       text: finalText || content.text,
-      thinking: content.thinking,
       pending: false,
     },
     createdAt: finalAssistantMessage?.createdAt ?? message.createdAt,
@@ -83,14 +82,13 @@ function normalizeMessageText(content: unknown): string {
   return ''
 }
 
-function normalizeAssistantContent(content: unknown): { text: string; thinking: string; pending: boolean } {
+function normalizeAssistantContent(content: unknown): { text: string; pending: boolean } {
   if (!content || typeof content !== 'object' || Array.isArray(content)) {
-    return { text: typeof content === 'string' ? content : '', thinking: '', pending: false }
+    return { text: typeof content === 'string' ? content : '', pending: false }
   }
   const record = content as Record<string, unknown>
   return {
     text: typeof record.text === 'string' ? record.text : '',
-    thinking: typeof record.thinking === 'string' ? record.thinking : '',
     pending: record.pending === true,
   }
 }

@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { PluginExecutor } from "../plugins/executor.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import { sanitizeAgentEventPayload } from "./agent-event-sanitizer.ts";
@@ -5,11 +6,15 @@ import { AGENT_LIMITS } from "./agent-limits.ts";
 import type { AiToolNodeConfig } from "./agent-types.ts";
 import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
 
+const completedSideEffectToolResults = new Map<string, unknown>();
+const MAX_COMPLETED_SIDE_EFFECT_TOOL_RESULTS = 1000;
+
 export async function executePluginAgentTool(input: {
   definition: SailorAgentToolDefinition;
   configuredTool: AiToolNodeConfig;
   args: Record<string, any>;
   approvalToken?: string;
+  approvalToolName?: string;
   executionId: string;
   workflowId: string;
   nodeId: string;
@@ -19,7 +24,11 @@ export async function executePluginAgentTool(input: {
     ...(input.configuredTool.inputDefaults ?? {}),
   };
   assertPayloadWithinLimits(params);
-  assertToolApproval(input.definition, input.configuredTool, params, input.approvalToken);
+  const replayKey = completedSideEffectReplayKey(input.definition, input.configuredTool, input.executionId, params);
+  if (replayKey && completedSideEffectToolResults.has(replayKey)) {
+    return completedSideEffectToolResults.get(replayKey);
+  }
+  assertToolApproval(input.definition, input.configuredTool, params, input.approvalToken, input.approvalToolName);
 
   try {
     const result = await withTimeout(
@@ -28,6 +37,7 @@ export async function executePluginAgentTool(input: {
       input.definition.name,
     );
 
+    if (replayKey) rememberCompletedSideEffectToolResult(replayKey, result);
     return result;
   } catch (error) {
     if (error instanceof AgentRuntimeError) throw error;
@@ -41,14 +51,40 @@ export async function executePluginAgentTool(input: {
   }
 }
 
+function completedSideEffectReplayKey(
+  definition: SailorAgentToolDefinition,
+  configuredTool: AiToolNodeConfig,
+  executionId: string,
+  params: Record<string, unknown>,
+): string | null {
+  if (!configuredTool.requiresApproval) return null;
+  const serialized = stableStringify({
+    executionId,
+    pluginId: definition.pluginId,
+    methodId: definition.methodId,
+    toolName: definition.name,
+    params: toMeasurablePayload(params),
+  });
+  return crypto.createHash("sha256").update(serialized).digest("hex");
+}
+
+function rememberCompletedSideEffectToolResult(key: string, result: unknown): void {
+  if (completedSideEffectToolResults.size >= MAX_COMPLETED_SIDE_EFFECT_TOOL_RESULTS) {
+    const oldest = completedSideEffectToolResults.keys().next().value as string | undefined;
+    if (oldest) completedSideEffectToolResults.delete(oldest);
+  }
+  completedSideEffectToolResults.set(key, result);
+}
+
 function assertToolApproval(
   definition: SailorAgentToolDefinition,
   configuredTool: AiToolNodeConfig,
   args: Record<string, unknown>,
   approvalToken?: string,
+  approvalToolName?: string,
 ): void {
   if (!configuredTool.requiresApproval) return;
-  if (approvalToken === "approved") return;
+  if (approvalToken === "approved" && (!approvalToolName || approvalToolName === definition.name)) return;
 
   throw new AgentToolApprovalRequiredError({
     toolName: definition.name,
@@ -103,6 +139,20 @@ function toMeasurablePayload(value: unknown, seen = new WeakSet<object>()): unkn
       key,
       toMeasurablePayload(item, seen),
     ]),
+  );
+}
+
+function stableStringify(value: unknown): string {
+  return JSON.stringify(sortJsonValue(value));
+}
+
+function sortJsonValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortJsonValue);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, item]) => [key, sortJsonValue(item)]),
   );
 }
 

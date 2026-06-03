@@ -108,6 +108,8 @@ export interface AgentRunInput {
   sessionId?: string;
   userId?: string;
   approvalToken?: string;
+  approvalToolName?: string;
+  abortSignal?: AbortSignal;
   checkpointerDbPath?: string;
   userMessage: string;
   contextMessages?: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;

@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import type { AiAgentNodeConfig } from "./agent-types.ts";
-import { buildAgentGraph, extractStreamDelta, extractThinkingDelta } from "./agent-graph-builder.ts";
+import { AgentToolApprovalRequiredError } from "./agent-errors.ts";
+import { buildAgentGraph, extractStreamDelta } from "./agent-graph-builder.ts";
 
 describe("agent graph builder", () => {
   it("keeps tool routing language-neutral", () => {
@@ -62,7 +63,7 @@ describe("agent graph builder", () => {
     ]);
   });
 
-  it("emits thinking deltas from stream chunks before output deltas", async () => {
+  it("ignores thinking deltas from stream chunks", async () => {
     const events: Array<{ type: string; payload?: unknown }> = [];
     const graph = buildAgentGraph({
       agent: agentConfig(),
@@ -79,11 +80,10 @@ describe("agent graph builder", () => {
     assert.equal(result.output, "answer");
     assert.deepEqual(events.map((event) => event.type), [
       "agent:model-start",
-      "agent:thinking-delta",
       "agent:output-delta",
       "agent:model-end",
     ]);
-    assert.deepEqual(events[1].payload, { delta: "thinking " });
+    assert.deepEqual(events[1].payload, { delta: "answer" });
   });
 
   it("consumes promised stream iterables from LangChain-compatible models", async () => {
@@ -131,18 +131,6 @@ describe("agent graph builder", () => {
     assert.equal(extractStreamDelta({ content: [{ text: "hi" }, { type: "image", url: "x" }] }), "hi");
     assert.equal(extractStreamDelta({ content: [{ type: "text", text: "" }] }), "");
     assert.equal(extractStreamDelta({ notContent: "ignored" }), "");
-  });
-
-  it("extracts thinking deltas from provider-specific chunk shapes", () => {
-    assert.equal(extractThinkingDelta({ thinking: "hmm" }), "hmm");
-    assert.equal(extractThinkingDelta({ reasoning: "hmm" }), "hmm");
-    assert.equal(extractThinkingDelta({ reasoning_content: "hmm" }), "hmm");
-    assert.equal(extractThinkingDelta({ additional_kwargs: { reasoning_content: "hmm" } }), "hmm");
-    assert.equal(extractThinkingDelta({ response_metadata: { reasoning: "hmm" } }), "hmm");
-    assert.equal(extractThinkingDelta({ message: { thinking: "hmm" } }), "hmm");
-    assert.equal(extractThinkingDelta({ choices: [{ delta: { reasoning: "hmm" } }] }), "hmm");
-    assert.equal(extractThinkingDelta({ content: [{ type: "reasoning", text: "hmm" }] }), "hmm");
-    assert.equal(extractThinkingDelta({ content: "answer" }), "");
   });
 
   it("builds a graph that executes requested tools", async () => {
@@ -1006,6 +994,61 @@ describe("agent graph builder", () => {
     assert.equal(attachment?.content, file);
   });
 
+  it("resolves binary refs inside attachment content fields as raw file content", async () => {
+    const file = Buffer.from("pdf");
+    const model = fakeJsonPlanningModel([
+      { action: "call_tool", toolName: "download", reason: "Download the selected file." },
+      { fileId: "file_1" },
+      { action: "call_tool", toolName: "send_email", reason: "Email the downloaded file." },
+      {
+        to: "vaurvik@gmail.com",
+        attachments: [{
+          filename: "curriculo.pdf",
+          mimeType: "application/pdf",
+          content: "agent-ref://tool_call_1/download/content",
+        }],
+      },
+      { action: "final", message: "sent" },
+    ]);
+    const download = {
+      ...fakeTool("download", async () => ({
+        download: {
+          fileName: "curriculo.pdf",
+          mimeType: "application/pdf",
+          content: file,
+        },
+      })),
+      inputSchema: {
+        type: "object",
+        required: ["fileId"],
+        properties: { fileId: { type: "string" } },
+      },
+    };
+    const sendEmail = {
+      ...fakeTool("send_email", async () => ({ ok: true })),
+      inputSchema: {
+        type: "object",
+        required: ["to", "attachments"],
+        properties: {
+          to: { type: "string" },
+          attachments: { type: "array" },
+        },
+      },
+    };
+    const graph = buildAgentGraph({
+      agent: agentConfig({ maxIterations: 4, maxToolCalls: 4 }),
+      model,
+      tools: [download, sendEmail],
+    });
+
+    await graph.invoke({ userMessage: "download curriculo.pdf and email it to vaurvik@gmail.com" });
+
+    const attachment = (sendEmail.calls[0] as { attachments?: Array<Record<string, unknown>> }).attachments?.[0];
+    assert.equal(attachment?.filename, "curriculo.pdf");
+    assert.equal(attachment?.mimeType, "application/pdf");
+    assert.equal(attachment?.content, file);
+  });
+
   it("uses invoke instead of streaming when tools are configured", async () => {
     const model = fakeStreamModel(["he", { content: "llo" }], { invokeContent: "done" });
     const graph = buildAgentGraph({
@@ -1116,6 +1159,72 @@ describe("agent graph builder", () => {
     assert.equal(result.output, "Email enviado.");
     assert.equal(gmail.calls.length, 1);
     assert.equal((gmail.calls[0] as { attachments?: unknown[] }).attachments?.length, 1);
+  });
+
+  it("scopes approval resume to the approved tool instead of approving every later side-effect tool", async () => {
+    const discord = {
+      ...fakeTool("discord_send_message", async () => ({ ok: true })),
+      requiresApproval: true,
+      sideEffect: "external-message" as const,
+      inputSchema: {
+        type: "object",
+        required: ["message"],
+        properties: { message: { type: "string" } },
+      },
+    };
+    const gmail = {
+      ...fakeTool("google_gmail_send_message", async () => {
+        throw new AgentToolApprovalRequiredError({
+          toolName: "google_gmail_send_message",
+          sideEffect: "external-message",
+          args: { to: "vaurvik@gmail.com", body: "Piada por email" },
+        });
+      }),
+      requiresApproval: true,
+      sideEffect: "external-message" as const,
+      inputSchema: {
+        type: "object",
+        required: ["to", "body"],
+        properties: {
+          to: { type: "string" },
+          body: { type: "string" },
+        },
+      },
+    };
+    const model = fakeJsonPlanningModel([
+      { action: "call_tool", toolName: "discord_send_message", reason: "Send the first joke." },
+      { message: "Piada no Discord" },
+      { action: "call_tool", toolName: "google_gmail_send_message", reason: "Send the second joke." },
+      { to: "vaurvik@gmail.com", body: "Piada por email" },
+      { action: "final", message: "sent" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig({ maxIterations: 4, maxToolCalls: 4 }),
+      model,
+      tools: [discord, gmail],
+      approvalToken: "approved",
+      approvalToolName: "discord_send_message",
+      onEvent: (event) => events.push(event),
+    });
+    const events: Array<{ type: string; payload?: any }> = [];
+
+    await assert.rejects(
+      graph.invoke({ userMessage: "envie uma piada no Discord, e depois outra para email" }),
+      (error) => {
+        assert.ok(error instanceof AgentToolApprovalRequiredError);
+        assert.equal(error.approvalRequest.toolName, "google_gmail_send_message");
+        return true;
+      },
+    );
+    assert.equal(discord.calls.length, 1);
+    assert.equal(gmail.calls.length, 1);
+    assert.equal(
+      events.some((event) =>
+        event.type === "agent:tool-start" &&
+        event.payload?.name === "google_gmail_send_message"
+      ),
+      false,
+    );
   });
 
   it("includes short-term memory checkpointer config when provided", async () => {

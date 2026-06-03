@@ -114,7 +114,7 @@ describe("agent model provider registry", () => {
     assert.equal(typeof (model as any).bindTools, "undefined");
   });
 
-  it("hydrates missing thinking metadata from the plugin chat model capability", async () => {
+  it("ignores plugin thinking metadata for agent chat model capability", async () => {
     const created: any[] = [];
     PluginManager.clearPlugins();
     PluginManager.registerPlugin({
@@ -166,13 +166,13 @@ describe("agent model provider registry", () => {
         thinkingEnabled: false,
       });
 
-      assert.deepEqual(created[0].modelKwargs, { reasoning_effort: "none" });
+      assert.equal(Object.hasOwn(created[0], "modelKwargs"), false);
     } finally {
       PluginManager.clearPlugins();
     }
   });
 
-  it("merges plugin thinking metadata into older saved model configs", async () => {
+  it("does not merge plugin thinking metadata into older saved model configs", async () => {
     const created: any[] = [];
     PluginManager.clearPlugins();
     PluginManager.registerPlugin({
@@ -225,10 +225,7 @@ describe("agent model provider registry", () => {
         thinkingRequest: { think: true },
       });
 
-      assert.deepEqual(created[0].modelKwargs, {
-        reasoning_effort: "none",
-        think: false,
-      });
+      assert.equal(Object.hasOwn(created[0], "modelKwargs"), false);
     } finally {
       PluginManager.clearPlugins();
     }
@@ -328,7 +325,7 @@ describe("agent model provider registry", () => {
     assert.equal(created[0].verbosity, "low");
   });
 
-  it("sends an explicit OpenAI-compatible thinking disable request when thinking is off", async () => {
+  it("omits OpenAI-compatible thinking requests from model config", async () => {
     const created: any[] = [];
     const provider = new OpenAiCompatibleProvider({
       adapter: "generic",
@@ -352,10 +349,10 @@ describe("agent model provider registry", () => {
       thinkingRequest: { reasoning_effort: "medium" },
     });
 
-    assert.deepEqual(created[0].modelKwargs, { reasoning_effort: "none" });
+    assert.equal(Object.hasOwn(created[0], "modelKwargs"), false);
   });
 
-  it("still disables native Ollama-style thinking requests for compatible configs", async () => {
+  it("omits native Ollama-style thinking requests from compatible model config", async () => {
     const created: any[] = [];
     const provider = new OpenAiCompatibleProvider({
       adapter: "generic",
@@ -379,7 +376,7 @@ describe("agent model provider registry", () => {
       thinkingRequest: { think: true },
     });
 
-    assert.deepEqual(created[0].modelKwargs, { think: false });
+    assert.equal(Object.hasOwn(created[0], "modelKwargs"), false);
   });
 
   it("does not expose API keys through JSON serialization", async () => {

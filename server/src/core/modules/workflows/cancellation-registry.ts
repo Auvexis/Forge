@@ -12,6 +12,7 @@
  */
 
 const cancelledIds = new Set<string>();
+const abortControllers = new Map<string, AbortController>();
 
 export const CancellationRegistry = {
   /**
@@ -20,6 +21,7 @@ export const CancellationRegistry = {
    */
   cancel(executionId: string): void {
     cancelledIds.add(executionId);
+    abortControllers.get(executionId)?.abort();
   },
 
   /**
@@ -36,9 +38,30 @@ export const CancellationRegistry = {
    */
   consume(executionId: string): boolean {
     if (cancelledIds.has(executionId)) {
-      cancelledIds.delete(executionId);
+      this.clear(executionId);
       return true;
     }
     return false;
+  },
+
+  /**
+   * Returns an AbortSignal tied to the execution. Model adapters use this
+   * to stop in-flight LLM requests as soon as cancellation is requested.
+   */
+  signal(executionId: string): AbortSignal {
+    let controller = abortControllers.get(executionId);
+    if (!controller) {
+      controller = new AbortController();
+      abortControllers.set(executionId, controller);
+    }
+    return controller.signal;
+  },
+
+  /**
+   * Remove all cancellation state for a finished execution.
+   */
+  clear(executionId: string): void {
+    cancelledIds.delete(executionId);
+    abortControllers.delete(executionId);
   },
 };

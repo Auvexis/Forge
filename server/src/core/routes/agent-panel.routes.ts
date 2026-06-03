@@ -288,13 +288,13 @@ async function streamAgentPanelMessage(
     service: Pick<AgentPanelChatService, "sendMessage">;
   },
 ) {
+  const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
   reply.hijack();
   writeStreamHeaders(reply);
   reply.raw.write(": connected\n\n");
   flushStreamEvent(reply);
-  writeStreamEvent(reply, { type: "start" });
+  writeStreamEvent(reply, { type: "start", executionId });
 
-  const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
   let nativeDeltaCount = 0;
   let sawToolActivity = false;
   let sentToolIntro = false;
@@ -317,10 +317,6 @@ async function streamAgentPanelMessage(
     );
   };
   const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
-    if (event.type === "agent:thinking-delta") {
-      const delta = extractAgentDelta(event);
-      if (delta) writeStreamEvent(reply, { type: "thinking", delta });
-    }
     if (event.type === "agent:tool-intent") {
       markToolActivity();
       queueProgressEvent({

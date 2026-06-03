@@ -1,12 +1,12 @@
 <template>
-  <form class="agent-chat-composer" :class="`agent-chat-composer--${mode}`" @submit.prevent="submit">
+  <form class="agent-chat-composer" :class="`agent-chat-composer--${props.mode}`" @submit.prevent="submit">
     <textarea
       ref="textareaRef"
       v-model="draft"
       class="agent-chat-composer__input"
-      :rows="mode === 'hero' ? 1 : 2"
+      :rows="props.mode === 'hero' ? 1 : 2"
       placeholder="What are the best open opportunities by company size?"
-      :disabled="sending"
+      :disabled="props.sending"
       @input="resizeTextarea"
       @keydown.ctrl.enter.prevent="submit"
     ></textarea>
@@ -31,21 +31,22 @@
         variant="outline"
         size="sm"
         :icon-left="isListening ? 'mic-off' : 'mic'"
-        :disabled="sending || !speechSupported"
+        :disabled="props.sending || !speechSupported"
         :title="speechSupported ? 'Dictate with Chrome speech recognition' : 'Speech recognition is not available'"
         @click="startSpeechToText"
       >
         Voice
       </BaseButton>
       <BaseButton
-        type="submit"
+        :type="props.sending && props.cancelable ? 'button' : 'submit'"
         class="agent-chat-composer__send"
-        variant="primary"
+        :variant="props.sending && props.cancelable ? 'outline' : 'primary'"
         size="sm"
-        icon-left="arrow-up"
-        :disabled="sending || !draft.trim()"
+        :icon-left="props.sending && props.cancelable ? 'square' : 'arrow-up'"
+        :disabled="props.sending ? !props.cancelable : !draft.trim()"
+        @click="props.sending && props.cancelable ? emit('cancel') : undefined"
       >
-        Send
+        {{ props.sending && props.cancelable ? 'Stop' : 'Send' }}
       </BaseButton>
     </div>
   </form>
@@ -57,19 +58,24 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
 import { useLocalStorage } from '@/shared/composables/useLocalStorage'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     sending: boolean
+    cancelable?: boolean
     mode?: 'dock' | 'hero'
   }>(),
   {
+    cancelable: false,
     mode: 'dock',
   },
 )
 
 const emit = defineEmits<{
   send: [message: string]
+  cancel: []
 }>()
+
+const propsSending = computed(() => props.sending)
 
 const draft = ref('')
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
@@ -125,6 +131,7 @@ type BrowserSpeechRecognition = {
 }
 
 function submit() {
+  if (propsSending.value) return
   const message = draft.value.trim()
   if (!message) return
   emit('send', message)

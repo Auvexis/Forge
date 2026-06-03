@@ -102,18 +102,10 @@ describe("agent panel routes", () => {
     assert.match(String(body.error), /Ollama connection refused/);
   });
 
-  it("streams pending, thinking, and output deltas before done", async () => {
+  it("streams pending start and output deltas before done", async () => {
     const app = await buildApp({
       sendMessage: async (input: { executionId?: string }) => {
         assert.ok(input.executionId);
-        workflowEventBus.emitWorkflowEvent({
-          executionId: input.executionId,
-          workflowId: "workflow_agent",
-          nodeId: "agent",
-          type: "agent:thinking-delta",
-          timestamp: Date.now(),
-          data: { delta: "thinking " },
-        });
         workflowEventBus.emitWorkflowEvent({
           executionId: input.executionId,
           workflowId: "workflow_agent",
@@ -146,10 +138,12 @@ describe("agent panel routes", () => {
     const events = response.body
       .split("\n\n")
       .filter((chunk) => chunk.startsWith("data:"))
-      .map((chunk) => JSON.parse(chunk.slice("data:".length).trim()) as { type: string; delta?: string });
+      .map((chunk) => JSON.parse(chunk.slice("data:".length).trim()) as { type: string; delta?: string; executionId?: string });
 
-    assert.deepEqual(events.map((event) => event.type), ["start", "thinking", "delta", "delta", "done"]);
-    assert.deepEqual(events.map((event) => event.delta).filter(Boolean), ["thinking ", "hel", "lo"]);
+    assert.deepEqual(events.map((event) => event.type), ["start", "delta", "delta", "done"]);
+    assert.equal(typeof events[0].executionId, "string");
+    assert.match(events[0].executionId ?? "", /^exec_agent_panel_/);
+    assert.deepEqual(events.map((event) => event.delta).filter(Boolean), ["hel", "lo"]);
   });
 
   it("streams approval requests as a waiting terminal state without a tool summary", async () => {

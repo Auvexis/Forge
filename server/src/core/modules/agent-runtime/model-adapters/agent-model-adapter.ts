@@ -14,6 +14,7 @@ export interface AgentModelInvokeInput {
   maxTokens?: number;
   thinkingEnabled?: boolean;
   thinkingRequest?: Record<string, any>;
+  abortSignal?: AbortSignal;
 }
 
 export interface AgentToolPlan {

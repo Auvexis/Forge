@@ -23,8 +23,6 @@ export class OllamaModelProvider implements AgentModelProvider {
       credentials: this.resolveCredentials(config) ?? undefined,
       temperature: config.temperature,
       maxTokens: config.maxTokens,
-      thinkingEnabled: config.thinkingEnabled,
-      thinkingRequest: config.thinkingRequest,
     });
   }
 

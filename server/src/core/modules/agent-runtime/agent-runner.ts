@@ -137,6 +137,8 @@ export class AgentRunner {
         memory: validated.memory,
         checkpointer,
         approvalToken: input.approvalToken,
+        approvalToolName: input.approvalToolName,
+        abortSignal: input.abortSignal,
         skipFinalResponseAfterToolUse: input.skipFinalResponseAfterToolUse,
         onEvent: (event) => this.eventEmitter(event, input),
       });
@@ -247,6 +249,7 @@ export class AgentRunner {
           configuredTool: configs[index],
           args: normalizeToolArgs(args),
           approvalToken: input.approvalToken,
+          approvalToolName: input.approvalToolName,
           executionId: input.executionId,
           workflowId: input.workflowId,
           nodeId: input.nodeId,

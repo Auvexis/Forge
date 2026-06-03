@@ -23,6 +23,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   const draftSessionOpen = ref(false)
   const loading = ref(false)
   const sending = ref(false)
+  const activeExecutionId = ref('')
   const error = ref('')
   const directoryError = ref('')
   const chatError = ref('')
@@ -178,11 +179,6 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     upsertStreamingAssistantMessage(sessionId, { textDelta: delta, pending: false })
   }
 
-  function appendStreamingAssistantThinking(sessionId: string, delta = '') {
-    if (!delta) return
-    upsertStreamingAssistantMessage(sessionId, { thinkingDelta: delta, pending: false })
-  }
-
   function appendAgentProgressMessage(
     sessionId: string,
     event: Extract<AgentPanelStreamEvent, { type: 'progress' }>,
@@ -287,8 +283,8 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
           ...content,
           decision,
           message: decision === 'approved'
-            ? 'Aprovacao confirmada. Continuando a execucao.'
-            : 'Aprovacao recusada. Execucao interrompida.',
+            ? 'Approval confirmed. Continuing execution.'
+            : 'Approval rejected. Execution interrupted.',
         },
       }
     })
@@ -296,7 +292,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
   function upsertStreamingAssistantMessage(
     sessionId: string,
-    patch: { textDelta?: string; thinkingDelta?: string; pending?: boolean },
+    patch: { textDelta?: string; pending?: boolean },
   ) {
     const id = activeAssistantStreamId.value || createAssistantStreamId(sessionId)
     activeAssistantStreamId.value = id
@@ -363,8 +359,10 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       appendPendingAssistantMessage(selectedSessionId.value)
       let result = null as Awaited<ReturnType<typeof agentPanelApi.sendMessage>> | null
       for await (const event of agentPanelApi.sendMessageStream(selectedSessionId.value, { message: text })) {
-        if (event.type === 'start') appendPendingAssistantMessage(selectedSessionId.value)
-        if (event.type === 'thinking') appendStreamingAssistantThinking(selectedSessionId.value, event.delta)
+        if (event.type === 'start') {
+          activeExecutionId.value = event.executionId
+          appendPendingAssistantMessage(selectedSessionId.value)
+        }
         if (event.type === 'delta') appendStreamingAssistantMessage(selectedSessionId.value, event.delta)
         if (event.type === 'progress') appendAgentProgressMessage(selectedSessionId.value, event)
         if (event.type === 'summary') appendAgentSummaryMessage(selectedSessionId.value, event)
@@ -383,19 +381,56 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       toastError(chatError.value, 'Agent execution failed')
     } finally {
       activeAssistantStreamId.value = ''
+      activeExecutionId.value = ''
       sending.value = false
+    }
+  }
+
+  async function cancelActiveExecution() {
+    if (!sending.value || !activeExecutionId.value) return
+    try {
+      await agentPanelApi.cancelExecution(activeExecutionId.value)
+      appendStreamingAssistantMessage(selectedSessionId.value, 'Cancelled.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to cancel agent execution'
+      chatError.value = message
+      error.value = message
+      useToast().error(message, 'Agent cancellation failed')
+    } finally {
+      activeExecutionId.value = ''
+      sending.value = false
+      activeAssistantStreamId.value = ''
     }
   }
 
   async function approveApproval(approval: AgentPanelApprovalContent) {
     if (!selectedSessionId.value || approvalPendingId.value) return
+    const sessionId = selectedSessionId.value
     approvalPendingId.value = approval.approvalId
     try {
-      await agentPanelApi.approveToolCall(approval.approvalId, {
+      let sawApprovalOutput = false
+      let sawFollowupApproval = false
+      markApprovalResolved(approval, 'approved')
+      for await (const event of agentPanelApi.approveToolCallStream(approval.approvalId, {
         executionId: approval.executionId,
         reason: 'Approved from global agent chat',
-      })
-      markApprovalResolved(approval, 'approved')
+      })) {
+        if (event.type === 'progress') appendAgentProgressMessage(sessionId, event)
+        if (event.type === 'summary') appendAgentSummaryMessage(sessionId, event)
+        if (event.type === 'approval') {
+          sawFollowupApproval = true
+          appendAgentApprovalMessage(sessionId, event)
+        }
+        if (event.type === 'delta') {
+          sawApprovalOutput = true
+          appendStreamingAssistantMessage(sessionId, event.delta)
+        }
+        if (event.type === 'error') throw new Error(event.message)
+        if (event.type === 'approval-complete') {
+          if (!sawApprovalOutput && !sawFollowupApproval) appendStreamingAssistantMessage(sessionId, 'Concluido.')
+          break
+        }
+      }
     } finally {
       approvalPendingId.value = ''
     }
@@ -415,26 +450,24 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     }
   }
 
-  function normalizeAssistantContent(content: unknown): { text: string; thinking: string; pending: boolean } {
+  function normalizeAssistantContent(content: unknown): { text: string; pending: boolean } {
     if (!content || typeof content !== 'object' || Array.isArray(content)) {
-      return { text: typeof content === 'string' ? content : '', thinking: '', pending: false }
+      return { text: typeof content === 'string' ? content : '', pending: false }
     }
     const record = content as Record<string, unknown>
     return {
       text: typeof record.text === 'string' ? record.text : '',
-      thinking: typeof record.thinking === 'string' ? record.thinking : '',
       pending: record.pending === true,
     }
   }
 
   function mergeAssistantContent(
     content: unknown,
-    patch: { textDelta?: string; thinkingDelta?: string; pending?: boolean },
+    patch: { textDelta?: string; pending?: boolean },
   ) {
     const current = normalizeAssistantContent(content)
     return {
       text: `${current.text}${patch.textDelta ?? ''}`,
-      thinking: `${current.thinking}${patch.thinkingDelta ?? ''}`,
       pending: patch.pending ?? current.pending,
     }
   }
@@ -518,6 +551,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     draftSessionOpen,
     loading,
     sending,
+    activeExecutionId,
     error,
     directoryError,
     chatError,
@@ -541,12 +575,12 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     appendPendingAssistantMessage,
     appendOptimisticUserMessage,
     appendStreamingAssistantMessage,
-    appendStreamingAssistantThinking,
     appendAgentProgressMessage,
     appendAgentSummaryMessage,
     appendAgentApprovalMessage,
     approveApproval,
     rejectApproval,
     sendMessage,
+    cancelActiveExecution,
   }
 })

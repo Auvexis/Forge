@@ -32,7 +32,45 @@ describe("OllamaAdapter", () => {
     assert.equal(requests[0].url, "http://localhost:11434/api/chat");
     assert.equal(requests[0].body.format, "json");
     assert.equal(requests[0].body.stream, false);
+    assert.equal(Object.hasOwn(requests[0].body, "keep_alive"), false);
     assert.deepEqual(requests[0].body.messages, [{ role: "user", content: "Return file args" }]);
+  });
+
+  it("allows Ollama keep_alive to be configured for model residency", async () => {
+    const requests: Array<{ body: any }> = [];
+    const adapter = new OllamaAdapter({
+      keepAlive: "30s",
+      fetch: async (_url, init) => {
+        requests.push({ body: JSON.parse(String(init?.body)) });
+        return response({ message: { content: "{\"ok\":true}" } });
+      },
+    });
+
+    await adapter.invokeJson({
+      model: "llama3.2",
+      messages: [{ role: "user", content: "json" }],
+    });
+
+    assert.equal(requests[0].body.keep_alive, "30s");
+  });
+
+  it("passes abort signals to Ollama chat requests", async () => {
+    const controller = new AbortController();
+    const signals: Array<AbortSignal | null | undefined> = [];
+    const adapter = new OllamaAdapter({
+      fetch: async (_url, init) => {
+        signals.push(init?.signal);
+        return response({ message: { content: "{\"ok\":true}" } });
+      },
+    });
+
+    await adapter.invokeJson({
+      model: "llama3.2",
+      messages: [{ role: "user", content: "json" }],
+      abortSignal: controller.signal,
+    });
+
+    assert.equal(signals[0], controller.signal);
   });
 
   it("sends bearer auth only when credentials provide an api key", async () => {
