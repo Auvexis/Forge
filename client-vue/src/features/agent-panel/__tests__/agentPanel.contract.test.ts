@@ -294,6 +294,8 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /agent-chat-view__waiting-options/)
     assert.match(chat, /type="button"/)
     assert.match(chat, /sendWaitingUserOption/)
+    assert.match(chat, /sendWaitingUserRetry/)
+    assert.match(chat, /Try another query/)
     assert.match(chat, /waitingUserOptions/)
     assert.match(chat, /waitingOptionLabel/)
   })

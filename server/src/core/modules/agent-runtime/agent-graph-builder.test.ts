@@ -446,6 +446,34 @@ describe("agent graph builder", () => {
     assert.equal(tool.calls.length, 1);
   });
 
+  it("stops repeated successful search results and asks the user how to continue", async () => {
+    const files = [{ id: "file_1", name: "curriculo estagiario.pdf" }];
+    const tool = fakeTool("drive_search", async () => ({ files }));
+    const repeatedCall = { name: "drive_search", args: { query: "curriculo estagiario pdf" } };
+    const model = fakeModel([
+      { content: "", toolCalls: [{ id: "call_1", ...repeatedCall }] },
+      { content: "", toolCalls: [{ id: "call_2", ...repeatedCall }] },
+      { content: "should not be reached" },
+    ]);
+    const graph = buildAgentGraph({
+      agent: agentConfig(),
+      model,
+      tools: [tool],
+    });
+
+    const result = await graph.invoke({ userMessage: "busque meu curriculo pdf de estagiario" });
+
+    assert.equal(result.status, "waiting-user");
+    assert.deepEqual(result.output, {
+      status: "waiting-user",
+      reason: "same_result",
+      question: "Encontrei o mesmo resultado de novo. Quer usar uma opcao encontrada ou tentar outra busca?",
+      repeatedTool: "drive_search",
+      options: files,
+    });
+    assert.equal(tool.calls.length, 1);
+  });
+
   it("turns unrecoverable permission and credential tool errors into waiting-user", async () => {
     const events: Array<{ type: string; payload?: unknown }> = [];
     const tool = fakeTool("youtube_upload", async () => {

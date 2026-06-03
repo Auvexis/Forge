@@ -288,7 +288,7 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             const resolvedArgs = resolveBinaryRefsInToolArgs(toolCall.args, binaryRefs);
             const toolSignature = toolCallSignature(toolCall.name, resolvedArgs);
             const previousResult = toolHistory.get(toolSignature);
-            if (previousResult && shouldStopRepeatedToolCall(previousResult.resultClass)) {
+            if (previousResult && shouldStopRepeatedToolCall(previousResult)) {
               return {
                 status: "waiting-user",
                 output: waitingUserOutputForRepeatedTool(toolCall.name, previousResult),
@@ -448,7 +448,7 @@ async function invokeCompactJsonToolLoop(input: CompactJsonToolLoopInput): Promi
     const resolvedArgs = resolveBinaryRefsInToolArgs(toolCall.args, input.binaryRefs);
     const toolSignature = toolCallSignature(tool.name, resolvedArgs);
     const previousResult = input.toolHistory.get(toolSignature);
-    if (previousResult && shouldStopRepeatedToolCall(previousResult.resultClass)) {
+    if (previousResult && shouldStopRepeatedToolCall(previousResult)) {
       return {
         status: "waiting-user",
         output: waitingUserOutputForRepeatedTool(tool.name, previousResult),
@@ -625,7 +625,7 @@ async function invokeToolWithRetry(
   } catch (error) {
     if (error instanceof AgentToolApprovalRequiredError || !isRetryableToolError(error)) throw error;
     emitToolRetry(input, tool, toolCall, "A ferramenta falhou, vou tentar novamente");
-    await delay(250);
+    await yieldToEventLoop();
     return tool.invoke(args);
   }
 }
@@ -633,10 +633,6 @@ async function invokeToolWithRetry(
 function isRetryableToolError(error: unknown): boolean {
   const message = safeErrorMessage(error).toLowerCase();
   return /\b(invalid value|timeout|timed out|temporar|network|econnreset|etimedout|429|500|502|503|504)\b/.test(message);
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function summarizeModelInput(messages: AgentGraphMessage[]): Record<string, unknown> {
@@ -1156,7 +1152,9 @@ function summarizeToolResult(value: unknown): ToolResultSummary {
   const resultClass = classifyToolResult(value);
   return {
     resultClass,
-    ...(resultClass === "ambiguous" ? { options: findResultOptions(value) ?? undefined } : {}),
+    ...(resultClass === "ambiguous" || resultClass === "success"
+      ? { options: findResultOptions(value, resultClass === "success" ? 1 : 2) ?? undefined }
+      : {}),
   };
 }
 
@@ -1167,11 +1165,12 @@ function classifyToolResult(value: unknown): ToolResultClass {
   return "success";
 }
 
-function shouldStopRepeatedToolCall(resultClass: ToolResultClass): boolean {
-  return resultClass === "empty" ||
-    resultClass === "ambiguous" ||
-    resultClass === "failed" ||
-    resultClass === "needs_user";
+function shouldStopRepeatedToolCall(result: ToolResultSummary): boolean {
+  return (result.resultClass === "success" && Boolean(result.options?.length)) ||
+    result.resultClass === "empty" ||
+    result.resultClass === "ambiguous" ||
+    result.resultClass === "failed" ||
+    result.resultClass === "needs_user";
 }
 
 function shouldAskUserAfterToolResult(resultClass: ToolResultClass): boolean {
@@ -1185,12 +1184,16 @@ function waitingUserOutputForRepeatedTool(toolName: string, result: ToolResultSu
     ? "not_found"
     : result.resultClass === "ambiguous"
       ? "ambiguous_result"
-      : "needs_user";
+      : result.resultClass === "success"
+        ? "same_result"
+        : "needs_user";
   const question = result.resultClass === "empty"
     ? "Nao encontrei resultado para essa busca. Quer tentar outro nome ou ajustar os criterios?"
     : result.resultClass === "ambiguous"
       ? "Encontrei mais de uma opcao. Qual delas devo usar?"
-      : "Preciso de mais informacoes para continuar. Como voce quer prosseguir?";
+      : result.resultClass === "success"
+        ? "Encontrei o mesmo resultado de novo. Quer usar uma opcao encontrada ou tentar outra busca?"
+        : "Preciso de mais informacoes para continuar. Como voce quer prosseguir?";
   return {
     status: "waiting-user",
     reason,
@@ -1239,12 +1242,12 @@ function containsAmbiguousResultArray(value: unknown): boolean {
   return findResultArray(value, (items) => items.length > 1);
 }
 
-function findResultOptions(value: unknown): unknown[] | null {
+function findResultOptions(value: unknown, minItems = 2): unknown[] | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
-    if (Array.isArray(item) && isResultCollectionKey(key) && item.length > 1) return item;
+    if (Array.isArray(item) && isResultCollectionKey(key) && item.length >= minItems) return item;
     if (item && typeof item === "object") {
-      const nested = findResultOptions(item);
+      const nested = findResultOptions(item, minItems);
       if (nested) return nested;
     }
   }

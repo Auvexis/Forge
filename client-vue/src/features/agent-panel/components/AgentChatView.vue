@@ -167,6 +167,16 @@
                   </BaseButton>
                 </li>
               </ul>
+              <BaseButton
+                type="button"
+                class="agent-chat-view__waiting-retry"
+                variant="outline"
+                size="sm"
+                :disabled="store.sending"
+                @click="sendWaitingUserRetry(message.content)"
+              >
+                Try another query
+              </BaseButton>
             </div>
             <p v-else-if="messageText(message.content)">{{ messageText(message.content) }}</p>
           </article>
@@ -337,6 +347,18 @@ function sendWaitingUserOption(option: unknown) {
   const label = waitingOptionLabel(option)
   if (!label) return
   void store.sendMessage(`Use ${label}`)
+}
+
+function sendWaitingUserRetry(content: unknown) {
+  const repeatedTool = waitingUserRepeatedTool(content)
+  const suffix = repeatedTool ? ` for ${repeatedTool}` : ''
+  void store.sendMessage(`Try another search query${suffix}.`)
+}
+
+function waitingUserRepeatedTool(content: unknown): string {
+  if (!isWaitingUserContent(content)) return ''
+  const repeatedTool = (content as { repeatedTool?: unknown }).repeatedTool
+  return typeof repeatedTool === 'string' ? repeatedTool : ''
 }
 
 function approveAgentApproval(approval: AgentPanelApprovalContent) {
@@ -761,6 +783,11 @@ async function deleteSession(sessionId: string) {
 
 .agent-chat-view__waiting-option:hover:not(:disabled) {
   color: var(--sailor-text-primary);
+}
+
+.agent-chat-view__waiting-retry {
+  width: fit-content;
+  border-radius: var(--sailor-radius-full);
 }
 
 .agent-chat-view__typing-dots {
