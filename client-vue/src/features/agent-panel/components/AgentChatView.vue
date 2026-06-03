@@ -112,7 +112,12 @@
                   :size="14"
                 />
               </span>
-              <span>{{ progressMessage(message.content) }}</span>
+              <span
+                class="agent-chat-view__status-text"
+                :class="{ 'agent-chat-view__status-text--shimmer': isShimmeringProgress(message.content) }"
+              >
+                {{ progressMessage(message.content) }}
+              </span>
             </div>
             <div
               v-else-if="isPendingAssistantMessage(message)"
@@ -256,6 +261,16 @@ const messagesEl = ref<HTMLElement | null>(null)
 const composerRetiring = ref(false)
 const historyMenuOpen = ref(false)
 const { confirm } = useConfirm()
+const AGENT_PROGRESS_MESSAGES = [
+  'Thinking',
+  'Generating Plan',
+  'Choosing the best tools',
+  'Generating parameters',
+  'Executing',
+  'Success',
+  'Analyzing errors',
+  'Creating new parameters',
+] as const
 
 const displayedMessagesScrollKey = computed(() => store.messages
   .map((message) => `${message.id}:${message.role}:${messageContentScrollVersion(message.content)}`)
@@ -413,7 +428,16 @@ function isAgentChoiceSelected(choice: AgentPanelChoiceContent, option: AgentPan
 }
 
 function progressMessage(content: AgentPanelProgressContent): string {
+  if ((AGENT_PROGRESS_MESSAGES as readonly string[]).includes(content.message)) return content.message
+  if (content.status === 'success') return 'Success'
+  if (content.status === 'planned' && content.tool) return 'Generating parameters'
+  if (content.status === 'running' && content.tool) return 'Executing'
+  if (content.status === 'retrying') return 'Creating new parameters'
   return content.message
+}
+
+function isShimmeringProgress(content: AgentPanelProgressContent): boolean {
+  return content.status === 'planned' || content.status === 'running' || content.status === 'retrying'
 }
 
 function progressIcon(status: AgentPanelProgressContent['status']): string {
@@ -921,6 +945,23 @@ async function deleteSession(sessionId: string) {
   color: var(--sailor-text-secondary);
 }
 
+.agent-chat-view__status-text {
+  color: inherit;
+}
+
+.agent-chat-view__status-text--shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--sailor-text-secondary),
+    var(--sailor-text-primary),
+    var(--sailor-text-secondary)
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: agent-chat-status-shimmer 1.4s var(--sailor-ease-standard) infinite;
+}
+
 .agent-chat-view__plugin-icon {
   display: inline-grid;
   width: 18px;
@@ -1033,6 +1074,15 @@ async function deleteSession(sessionId: string) {
   40% {
     opacity: 1;
     transform: translateY(-3px);
+  }
+}
+
+@keyframes agent-chat-status-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
   }
 }
 

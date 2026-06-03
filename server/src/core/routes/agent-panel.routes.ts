@@ -334,6 +334,38 @@ async function streamAgentPanelMessage(
     );
   };
   const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
+    if (event.type === "agent:thinking") {
+      const message = extractAgentStatusMessage(event);
+      if (message) {
+        queueProgressEvent({
+          type: "progress",
+          status: "running",
+          message,
+        });
+      }
+    }
+    if (event.type === "agent:plan-end") {
+      queueProgressEvent({
+        type: "progress",
+        status: "planned",
+        message: "Generating parameters",
+      });
+      queueProgressEvent({
+        type: "progress",
+        status: "running",
+        message: "Executing",
+      });
+    }
+    if (event.type === "agent:repair-start") {
+      const message = extractAgentStatusMessage(event);
+      if (message) {
+        queueProgressEvent({
+          type: "progress",
+          status: "retrying",
+          message,
+        });
+      }
+    }
     if (event.type === "agent:tool-intent") {
       markToolActivity();
       queueProgressEvent({
@@ -520,6 +552,11 @@ function extractAgentError(event: WorkflowEvent): string | null {
   if (typeof data?.message === "string" && data.message.trim()) return data.message.trim();
   if (typeof data?.error === "string" && data.error.trim()) return data.error.trim();
   return null;
+}
+
+function extractAgentStatusMessage(event: WorkflowEvent): string {
+  const data = event.data as { message?: unknown } | undefined;
+  return typeof data?.message === "string" ? data.message.trim() : "";
 }
 
 type ToolProgressStatus = "planned" | "running" | "retrying" | "success" | "failed";

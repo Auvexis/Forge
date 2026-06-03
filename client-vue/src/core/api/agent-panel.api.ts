@@ -244,6 +244,20 @@ function mapWorkflowEventToAgentPanelEvents(
   workflowEvent: WorkflowStreamEvent,
   completedTools: NonNullable<Extract<AgentPanelStreamEvent, { type: 'summary' }>['tools']>,
 ): AgentPanelStreamEvent[] {
+  if (workflowEvent.type === 'agent:thinking') {
+    const message = typeof workflowEvent.data?.message === 'string' ? workflowEvent.data.message.trim() : ''
+    return message ? [{ type: 'progress', status: 'running', message }] : []
+  }
+  if (workflowEvent.type === 'agent:plan-end') {
+    return [
+      { type: 'progress', status: 'planned', message: 'Generating parameters' },
+      { type: 'progress', status: 'running', message: 'Executing' },
+    ]
+  }
+  if (workflowEvent.type === 'agent:repair-start') {
+    const message = typeof workflowEvent.data?.message === 'string' ? workflowEvent.data.message.trim() : ''
+    return message ? [{ type: 'progress', status: 'retrying', message }] : []
+  }
   if (workflowEvent.type === 'agent:approval-created') {
     return [{
       type: 'approval',

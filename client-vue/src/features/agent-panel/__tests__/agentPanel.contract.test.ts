@@ -220,6 +220,39 @@ describe('agent panel modal contract', () => {
     assert.doesNotMatch(chat, /Vou usar|Usei|I'll use|Used .* successfully/)
   })
 
+  it('renders persisted agent progress statuses with shimmering running text', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const api = readFileSync('src/core/api/agent-panel.api.ts', 'utf8')
+    const progressBlock = chat.slice(
+      chat.indexOf('function progressMessage'),
+      chat.indexOf('function progressIcon'),
+    )
+
+    for (const label of [
+      'Thinking',
+      'Generating Plan',
+      'Choosing the best tools',
+      'Generating parameters',
+      'Executing',
+      'Success',
+      'Analyzing errors',
+      'Creating new parameters',
+    ]) {
+      assert.match(chat, new RegExp(label))
+    }
+
+    assert.match(chat, /agent-chat-view__status-text/)
+    assert.match(chat, /agent-chat-status-shimmer/)
+    assert.match(chat, /isShimmeringProgress/)
+    assert.match(chat, /var\(--sailor-text-secondary\)/)
+    assert.match(store, /isAgentProgressContent/)
+    assert.match(api, /agent:thinking/)
+    assert.match(api, /agent:plan-end/)
+    assert.match(api, /agent:repair-start/)
+    assert.doesNotMatch(progressBlock, /store\.sending/)
+  })
+
   it('renders global agent pending loading dots like workflow editor chat', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 

@@ -241,7 +241,7 @@ Arquivos ja criados:
 
 ## Task 13 - Frontend Progress UX
 
-- [ ] Renderizar mensagens:
+- [x] Renderizar mensagens:
   - `Thinking`
   - `Generating Plan`
   - `Choosing the best tools`
@@ -250,12 +250,12 @@ Arquivos ja criados:
   - `Success`
   - `Analyzing errors`
   - `Creating new parameters`
-- [ ] Usar `agentProgress` persistido.
-- [ ] Nao depender de pending local para progress real.
-- [ ] Stop continua visivel durante execucao.
-- [ ] Ao trocar/fechar chat, mensagens persistidas voltam iguais.
-- [ ] Testar contract.
-- [ ] Commitar.
+- [x] Usar `agentProgress` persistido.
+- [x] Nao depender de pending local para progress real.
+- [x] Stop continua visivel durante execucao.
+- [x] Ao trocar/fechar chat, mensagens persistidas voltam iguais.
+- [x] Testar contract.
+- [x] Commitar.
 
 ## Task 14 - Final Response
 
