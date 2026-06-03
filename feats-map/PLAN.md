@@ -6,6 +6,15 @@ Rules:
 - Trabalhar em `dev`.
 - Fazer TDD por task.
 - Commitar ao fim de cada fatia.
+- Refazer o Tools Agent de verdade, nao adaptar a arquitetura antiga com remendos.
+- Excluir arquivos, funcoes, testes e caminhos mortos da arquitetura antiga assim que o novo fluxo substituir o uso.
+- Nao deixar resquicios do loop antigo `LLM -> tool -> LLM -> tool` em caminho de producao.
+- Nao manter codigo duplicado "por garantia"; se nao for usado pelo novo fluxo ou por compatibilidade explicita, remover.
+- Seguir clean code, SRP e nomes claros; cada modulo novo deve ter responsabilidade unica.
+- Preferir contratos pequenos e testaveis: generator, executor, repairer, choice detector, chat file store.
+- Nao criar abstracao antes da necessidade real, mas separar fronteiras quando reduz risco ou complexidade.
+- Nao usar heuristica fragil quando o manifest puder declarar o comportamento.
+- Erros devem ser classificados de forma deterministica antes de chamar LLM para repair.
 - Nao criar acoplamento especifico de Drive/Gmail/Discord no Core.
 - Plugins continuam genericos e nao importam Core/Engines.
 - Manifest dos plugins deve guiar schema, selection, approval e UI.
