@@ -20,6 +20,7 @@ export interface CreateAgentPanelSessionPayload {
 
 export interface SendAgentPanelMessagePayload {
   message: string
+  selectedValue?: unknown
 }
 
 export interface DeleteAgentPanelSessionPayload {
@@ -70,6 +71,22 @@ export interface AgentPanelApprovalContent {
   decision?: 'approved' | 'rejected'
 }
 
+export interface AgentPanelChoiceOption {
+  label: string
+  value: unknown
+  item?: unknown
+}
+
+export interface AgentPanelChoiceContent {
+  kind: 'agentChoice'
+  status: 'waiting-user'
+  reason: 'ambiguous_result'
+  question: string
+  repeatedTool: string
+  options: AgentPanelChoiceOption[]
+  selectedValue?: unknown
+}
+
 export interface AgentPanelErrorContent {
   kind: 'agentError'
   message: string
@@ -93,6 +110,7 @@ export type AgentPanelStreamEvent =
       sideEffect?: string
       message: string
     }
+  | Omit<AgentPanelChoiceContent, 'kind'> & { type: 'choice' }
   | { type: 'done'; result: AgentPanelMessageResult }
   | { type: 'waiting-approval'; result: AgentPanelMessageResult }
   | { type: 'approval-complete' }

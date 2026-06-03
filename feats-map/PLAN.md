@@ -230,14 +230,14 @@ Arquivos ja criados:
 
 ## Task 12 - Frontend Choice UI
 
-- [ ] Adicionar tipo `AgentPanelChoiceContent`.
-- [ ] Adicionar stream event `choice`.
-- [ ] Renderizar card de escolha no chat.
-- [ ] Ao clicar opcao, enviar continuation com valor selecionado.
-- [ ] Nao enviar texto fake tipo `Use X` como prompt novo.
-- [ ] Persistir decisao escolhida no card.
-- [ ] Testar contract no `agentPanel.contract.test.ts`.
-- [ ] Commitar.
+- [x] Adicionar tipo `AgentPanelChoiceContent`.
+- [x] Adicionar stream event `choice`.
+- [x] Renderizar card de escolha no chat.
+- [x] Ao clicar opcao, enviar continuation com valor selecionado.
+- [x] Nao enviar texto fake tipo `Use X` como prompt novo.
+- [x] Persistir decisao escolhida no card.
+- [x] Testar contract no `agentPanel.contract.test.ts`.
+- [x] Commitar.
 
 ## Task 13 - Frontend Progress UX
 

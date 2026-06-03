@@ -148,6 +148,24 @@
                 </BaseButton>
               </div>
             </div>
+            <div v-else-if="isAgentChoiceContent(message.content)" class="agent-chat-view__choice">
+              <p>{{ message.content.question }}</p>
+              <ul class="agent-chat-view__choice-options">
+                <li v-for="option in message.content.options" :key="agentChoiceOptionKey(option)">
+                  <BaseButton
+                    type="button"
+                    class="agent-chat-view__choice-option"
+                    :class="{ 'agent-chat-view__choice-option--selected': isAgentChoiceSelected(message.content, option) }"
+                    variant="outline"
+                    size="sm"
+                    :disabled="store.sending || message.content.selectedValue !== undefined"
+                    @click="sendAgentChoiceOption(message.content, option)"
+                  >
+                    {{ option.label }}
+                  </BaseButton>
+                </li>
+              </ul>
+            </div>
             <p v-else-if="isAgentErrorContent(message.content)" class="agent-chat-view__error">
               {{ message.content.message }}
             </p>
@@ -221,6 +239,8 @@ import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 import type { AgentChatMessage } from '@/features/agent-runtime/types/agent.types'
 import type {
   AgentPanelApprovalContent,
+  AgentPanelChoiceContent,
+  AgentPanelChoiceOption,
   AgentPanelErrorContent,
   AgentPanelProgressContent,
   AgentPanelSummaryContent,
@@ -260,6 +280,7 @@ watch(
 function messageText(content: unknown): string {
   if (isAgentSummaryContent(content)) return ''
   if (isAgentProgressContent(content)) return ''
+  if (isAgentChoiceContent(content)) return ''
   if (typeof content === 'string') return content
   if (!content || typeof content !== 'object' || Array.isArray(content)) return ''
   const record = content as Record<string, unknown>
@@ -308,6 +329,16 @@ function isAgentApprovalContent(content: unknown): content is AgentPanelApproval
   )
 }
 
+function isAgentChoiceContent(content: unknown): content is AgentPanelChoiceContent {
+  return Boolean(
+    content &&
+      typeof content === 'object' &&
+      !Array.isArray(content) &&
+      (content as { kind?: unknown }).kind === 'agentChoice' &&
+      Array.isArray((content as { options?: unknown }).options),
+  )
+}
+
 function isAgentErrorContent(content: unknown): content is AgentPanelErrorContent {
   return Boolean(
     content &&
@@ -346,7 +377,7 @@ function waitingOptionLabel(option: unknown): string {
 function sendWaitingUserOption(option: unknown) {
   const label = waitingOptionLabel(option)
   if (!label) return
-  void store.sendMessage(`Use ${label}`)
+  void store.sendMessage(label)
 }
 
 function sendWaitingUserRetry(content: unknown) {
@@ -367,6 +398,18 @@ function approveAgentApproval(approval: AgentPanelApprovalContent) {
 
 function rejectAgentApproval(approval: AgentPanelApprovalContent) {
   void store.rejectApproval(approval)
+}
+
+function sendAgentChoiceOption(choice: AgentPanelChoiceContent, option: AgentPanelChoiceOption) {
+  void store.continueAgentChoice(choice, option)
+}
+
+function agentChoiceOptionKey(option: AgentPanelChoiceOption): string {
+  return `${option.label}:${JSON.stringify(option.value)}`
+}
+
+function isAgentChoiceSelected(choice: AgentPanelChoiceContent, option: AgentPanelChoiceOption): boolean {
+  return choice.selectedValue !== undefined && JSON.stringify(choice.selectedValue) === JSON.stringify(option.value)
 }
 
 function progressMessage(content: AgentPanelProgressContent): string {
@@ -756,6 +799,38 @@ async function deleteSession(sessionId: string) {
 
 .agent-chat-view__approval p {
   grid-column: auto;
+}
+
+.agent-chat-view__choice {
+  display: grid;
+  grid-column: 2;
+  gap: var(--sailor-space-2);
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-sm);
+}
+
+.agent-chat-view__choice p {
+  grid-column: auto;
+}
+
+.agent-chat-view__choice-options {
+  display: grid;
+  gap: var(--sailor-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agent-chat-view__choice-option {
+  width: fit-content;
+  max-width: 100%;
+  border-radius: var(--sailor-radius-full);
+  text-align: left;
+}
+
+.agent-chat-view__choice-option--selected {
+  border-color: var(--sailor-border-strong);
+  color: var(--sailor-text-primary);
 }
 
 .agent-chat-view__approval-actions {

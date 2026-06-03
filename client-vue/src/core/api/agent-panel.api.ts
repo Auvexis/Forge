@@ -40,7 +40,7 @@ export const agentPanelApi = {
   sendMessage: (sessionId: string, payload: SendAgentPanelMessagePayload) =>
     apiRequest<AgentPanelMessageResult>(ENDPOINTS.AGENT_PANEL_SESSION_MESSAGES(sessionId), {
       method: 'POST',
-      body: payload,
+      body: agentPanelMessageBody(payload),
     }),
 
   sendMessageStream: (
@@ -83,9 +83,16 @@ async function startMessageStream(
 ): Promise<{ streamId: string }> {
   return apiRequest<{ streamId: string }>(ENDPOINTS.AGENT_PANEL_SESSION_MESSAGES_STREAM_START(sessionId), {
     method: 'POST',
-    body: payload,
+    body: agentPanelMessageBody(payload),
     signal: options.signal,
   })
+}
+
+function agentPanelMessageBody(payload: SendAgentPanelMessagePayload) {
+  return {
+    message: payload.message,
+    ...(payload.selectedValue !== undefined ? { selectedValue: payload.selectedValue } : {}),
+  }
 }
 
 async function* streamAgentPanelEvents(

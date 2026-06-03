@@ -313,6 +313,27 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /waitingOptionLabel/)
   })
 
+  it('renders explicit agent choice cards and continues with the selected value only', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
+    const api = readFileSync('src/core/api/agent-panel.api.ts', 'utf8')
+
+    assert.match(types, /AgentPanelChoiceContent/)
+    assert.match(types, /type: 'choice'/)
+    assert.match(types, /selectedValue\?: unknown/)
+    assert.match(chat, /isAgentChoiceContent/)
+    assert.match(chat, /agent-chat-view__choice/)
+    assert.match(chat, /sendAgentChoiceOption/)
+    assert.match(store, /appendAgentChoiceMessage/)
+    assert.match(store, /event\.type === 'choice'/)
+    assert.match(store, /continueAgentChoice/)
+    assert.match(store, /markChoiceResolved/)
+    assert.match(api, /selectedValue/)
+    assert.doesNotMatch(chat, /store\.sendMessage\(`Use \$\{label\}`\)/)
+    assert.doesNotMatch(chat, /sendWaitingUserOption\(option\)[\s\S]*Use /)
+  })
+
   it('renders global agent approval actions and resolves them through the approval api', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')

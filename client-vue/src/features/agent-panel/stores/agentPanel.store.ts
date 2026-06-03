@@ -6,6 +6,8 @@ import { mergeServerMessagesWithStableLocalTurn as mergeStableLocalTurn } from '
 import type { AgentChatMessage, AgentChatSession } from '@/features/agent-runtime/types/agent.types'
 import type {
   AgentPanelApprovalContent,
+  AgentPanelChoiceContent,
+  AgentPanelChoiceOption,
   AgentPanelProgressContent,
   AgentPanelSummaryContent,
   AgentPanelStreamEvent,
@@ -155,7 +157,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     if (selectedSessionId.value) await loadMessages(selectedSessionId.value)
   }
 
-  function appendOptimisticUserMessage(sessionId: string, text: string) {
+  function appendOptimisticUserMessage(sessionId: string, content: unknown) {
     messages.value = [
       ...messages.value,
       {
@@ -163,7 +165,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         profileId: '',
         sessionId,
         role: 'user',
-        content: text,
+        content,
         createdAt: new Date().toISOString(),
         entrance: 'user',
       } as AgentChatMessage,
@@ -265,6 +267,34 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     ]
   }
 
+  function appendAgentChoiceMessage(
+    sessionId: string,
+    event: Extract<AgentPanelStreamEvent, { type: 'choice' }>,
+  ) {
+    const id = `local-agent-choice-${currentAssistantTurnId(sessionId)}-${event.repeatedTool}`
+    const content: AgentPanelChoiceContent = {
+      kind: 'agentChoice',
+      status: event.status,
+      reason: event.reason,
+      question: event.question,
+      repeatedTool: event.repeatedTool,
+      options: event.options,
+      selectedValue: event.selectedValue,
+    }
+    messages.value = [
+      ...messages.value.filter((message) => message.id !== id),
+      {
+        id,
+        profileId: '',
+        sessionId,
+        role: 'assistant',
+        content,
+        createdAt: new Date().toISOString(),
+        entrance: 'assistant',
+      } as AgentChatMessage,
+    ]
+  }
+
   function markApprovalResolved(approval: AgentPanelApprovalContent, decision: 'approved' | 'rejected') {
     messages.value = messages.value.map((message) => {
       if (
@@ -286,6 +316,28 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
           message: decision === 'approved'
             ? 'Approval confirmed. Continuing execution.'
             : 'Approval rejected. Execution interrupted.',
+        },
+      }
+    })
+  }
+
+  function markChoiceResolved(choice: AgentPanelChoiceContent, option: AgentPanelChoiceOption) {
+    messages.value = messages.value.map((message) => {
+      if (
+        !message.content ||
+        typeof message.content !== 'object' ||
+        Array.isArray(message.content) ||
+        (message.content as { kind?: unknown }).kind !== 'agentChoice' ||
+        (message.content as { repeatedTool?: unknown }).repeatedTool !== choice.repeatedTool
+      ) {
+        return message
+      }
+
+      return {
+        ...message,
+        content: {
+          ...(message.content as AgentPanelChoiceContent),
+          selectedValue: option.value,
         },
       }
     })
@@ -392,6 +444,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         if (event.type === 'progress') appendAgentProgressMessage(selectedSessionId.value, event)
         if (event.type === 'summary') appendAgentSummaryMessage(selectedSessionId.value, event)
         if (event.type === 'approval') appendAgentApprovalMessage(selectedSessionId.value, event)
+        if (event.type === 'choice') appendAgentChoiceMessage(selectedSessionId.value, event)
         if (event.type === 'error') throw new Error(event.message)
         if (event.type === 'done' || event.type === 'waiting-approval') result = event.result
       }
@@ -487,6 +540,64 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       markApprovalResolved(approval, 'rejected')
     } finally {
       approvalPendingId.value = ''
+    }
+  }
+
+  async function continueAgentChoice(choice: AgentPanelChoiceContent, option: AgentPanelChoiceOption) {
+    if (!selectedSessionId.value || sending.value) return
+    const { error: toastError } = useToast()
+    const sessionId = selectedSessionId.value
+    const message = option.label.trim() || String(option.value ?? '').trim()
+    if (!message) return
+
+    markChoiceResolved(choice, option)
+    appendOptimisticUserMessage(sessionId, {
+      kind: 'agentChoiceDecision',
+      text: message,
+      repeatedTool: choice.repeatedTool,
+      selectedValue: option.value,
+      label: message,
+    })
+    sending.value = true
+    activeAssistantStreamId.value = ''
+    activeStreamAbortController = new AbortController()
+    chatError.value = ''
+    error.value = ''
+
+    try {
+      appendPendingAssistantMessage(sessionId)
+      let result = null as Awaited<ReturnType<typeof agentPanelApi.sendMessage>> | null
+      for await (const event of agentPanelApi.sendMessageStream(
+        sessionId,
+        { message, selectedValue: option.value },
+        { signal: activeStreamAbortController.signal },
+      )) {
+        if (event.type === 'start') {
+          activeExecutionId.value = event.executionId
+          appendPendingAssistantMessage(sessionId)
+        }
+        if (event.type === 'delta') appendStreamingAssistantMessage(sessionId, event.delta)
+        if (event.type === 'progress') appendAgentProgressMessage(sessionId, event)
+        if (event.type === 'summary') appendAgentSummaryMessage(sessionId, event)
+        if (event.type === 'approval') appendAgentApprovalMessage(sessionId, event)
+        if (event.type === 'choice') appendAgentChoiceMessage(sessionId, event)
+        if (event.type === 'error') throw new Error(event.message)
+        if (event.type === 'done' || event.type === 'waiting-approval') result = event.result
+      }
+      if (!result) throw new Error('Agent choice continuation failed')
+      messages.value = mergeStableLocalTurn(messages.value, result.messages, result.session.id)
+      sessions.value = [result.session, ...sessions.value.filter((session) => session.id !== result.session.id)]
+    } catch (err) {
+      if (activeStreamAbortController?.signal.aborted) return
+      clearActiveAssistantPlaceholder()
+      chatError.value = err instanceof Error ? err.message : 'Agent choice continuation failed'
+      error.value = chatError.value
+      toastError(chatError.value, 'Agent execution failed')
+    } finally {
+      activeStreamAbortController = null
+      activeAssistantStreamId.value = ''
+      activeExecutionId.value = ''
+      sending.value = false
     }
   }
 
@@ -618,8 +729,10 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     appendAgentProgressMessage,
     appendAgentSummaryMessage,
     appendAgentApprovalMessage,
+    appendAgentChoiceMessage,
     approveApproval,
     rejectApproval,
+    continueAgentChoice,
     sendMessage,
     cancelActiveExecution,
     disposeActiveExecution,
