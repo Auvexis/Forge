@@ -60,29 +60,29 @@ Arquivos ja criados:
 
 ## Task 2 - Agent Plan Generator
 
-- [ ] Criar `agent-plan-generator.test.ts`.
-- [ ] Criar contrato `AgentPlanModel`.
-- [ ] Criar `AgentPlanGenerator`.
-- [ ] O generator deve chamar modelo uma vez para gerar plano completo.
-- [ ] Plano deve conter:
+- [x] Criar `agent-plan-generator.test.ts`.
+- [x] Criar contrato `AgentPlanModel`.
+- [x] Criar `AgentPlanGenerator`.
+- [x] O generator deve chamar modelo uma vez para gerar plano completo.
+- [x] Plano deve conter:
   - `steps[].id`
   - `steps[].toolName`
   - `steps[].params`
   - `steps[].reason`
-- [ ] Prompt deve usar catalogo compacto das tools conectadas.
-- [ ] Prompt deve instruir refs para outputs anteriores:
+- [x] Prompt deve usar catalogo compacto das tools conectadas.
+- [x] Prompt deve instruir refs para outputs anteriores:
   - `$steps.<stepId>`
   - `$steps.<stepId>.<field>`
   - `$steps.<stepId>[0].<field>`
-- [ ] Validar plano contra tools conectadas antes de executar.
-- [ ] Rejeitar tool inexistente.
-- [ ] Rejeitar plano vazio quando existem tools necessarias.
-- [ ] Emitir/salvar mensagens:
+- [x] Validar plano contra tools conectadas antes de executar.
+- [x] Rejeitar tool inexistente.
+- [x] Rejeitar plano vazio quando existem tools necessarias.
+- [x] Emitir/salvar mensagens:
   - `Thinking`
   - `Generating Plan`
   - `Choosing the best tools`
-- [ ] Rodar teste focado.
-- [ ] Commitar.
+- [x] Rodar teste focado.
+- [x] Commitar.
 
 ## Task 3 - Agent Plan Repairer
 
