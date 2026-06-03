@@ -39,16 +39,19 @@ export interface AgentPlanEvent {
     | "agent:tool-start"
     | "agent:tool-end"
     | "agent:tool-retry"
+    | "agent:approval-created"
     | "agent:error";
   payload?: Record<string, any>;
 }
 
 export interface AgentPlanExecutionResult {
-  status: "success" | "failed" | "waiting-user";
+  status: "success" | "failed" | "waiting-user" | "waiting-approval" | "cancelled";
   output: unknown;
   toolCallCount: number;
   iterationCount: number;
   toolCalls?: AgentRunToolCall[];
+  approvalId?: string;
+  outputs?: Record<string, unknown>;
 }
 
 export interface AgentStepRepair {

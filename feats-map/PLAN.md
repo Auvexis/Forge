@@ -130,20 +130,20 @@ Arquivos ja criados:
 
 ## Task 5 - Approval No Executor Novo
 
-- [ ] Criar teste: step com `requiresApproval` pausa antes de `invoke`.
-- [ ] Criar resultado `waiting-approval`.
-- [ ] Criar/emitir approval request com:
+- [x] Criar teste: step com `requiresApproval` pausa antes de `invoke`.
+- [x] Criar resultado `waiting-approval`.
+- [x] Criar/emitir approval request com:
   - `approvalId`
   - `executionId`
   - `toolName`
   - `sideEffect`
   - args sanitizados
-- [ ] Approval aprovado continua do mesmo step.
-- [ ] Approval rejeitado encerra sem executar.
-- [ ] Nao repetir steps anteriores.
-- [ ] Persistir card `agentApproval`.
-- [ ] Rodar testes focados.
-- [ ] Commitar.
+- [x] Approval aprovado continua do mesmo step.
+- [x] Approval rejeitado encerra sem executar.
+- [x] Nao repetir steps anteriores.
+- [x] Persistir card `agentApproval`.
+- [x] Rodar testes focados.
+- [x] Commitar.
 
 ## Task 6 - AgentRunner Usa Plano Novo
 

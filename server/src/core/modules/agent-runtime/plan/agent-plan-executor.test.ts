@@ -104,6 +104,86 @@ describe("agent plan executor", () => {
     assert.equal(result.status, "success");
     assert.deepEqual(calls, [{ fileId: "" }, { fileId: "file_1" }]);
   });
+
+  it("pauses approval tools before invoke and persists an approval card", async () => {
+    let invoked = false;
+    const events: string[] = [];
+    const messages: unknown[] = [];
+
+    const result = await executeAgentPlan({
+      plan: { steps: [{ id: "send", toolName: "send_email", params: { to: "a@b.com", attachment: Buffer.from("pdf") } }] },
+      tools: [
+        tool("send_email", async () => {
+          invoked = true;
+          return { ok: true };
+        }, { requiresApproval: true, sideEffect: "external-message" }),
+      ],
+      executionId: "exec_1",
+      createApprovalRequest: async () => ({ approvalId: "approval_1" }),
+      saveMessage: (message) => messages.push(message),
+      emitEvent: (event) => events.push(event.type),
+    });
+
+    assert.equal(invoked, false);
+    assert.equal(result.status, "waiting-approval");
+    assert.equal(result.approvalId, "approval_1");
+    assert.equal((result.output as any).executionId, "exec_1");
+    assert.equal((result.output as any).toolName, "send_email");
+    assert.deepEqual((result.output as any).args.attachment, { type: "buffer", bytes: 3 });
+    assert.deepEqual(events, ["agent:tool-intent", "agent:approval-created"]);
+    assert.equal((messages[0] as any).kind, "agentApproval");
+  });
+
+  it("continues approved approval tools from the same step without repeating previous steps", async () => {
+    const calls: string[] = [];
+
+    const result = await executeAgentPlan({
+      plan: {
+        steps: [
+          { id: "search", toolName: "search", params: { query: "CV" } },
+          { id: "send", toolName: "send_email", params: { fileId: "$steps.search[0].id" } },
+        ],
+      },
+      tools: [
+        tool("search", async () => {
+          calls.push("search");
+          return [{ id: "file_2" }];
+        }),
+        tool("send_email", async (args) => {
+          calls.push(`send:${(args as any).fileId}`);
+          return { id: "email_1" };
+        }, { requiresApproval: true, sideEffect: "external-message" }),
+      ],
+      approval: {
+        status: "approved",
+        toolName: "send_email",
+        stepId: "send",
+        outputs: { search: [{ id: "file_1" }] },
+      },
+      emitEvent: () => undefined,
+    });
+
+    assert.equal(result.status, "success");
+    assert.deepEqual(calls, ["send:file_1"]);
+  });
+
+  it("ends rejected approvals without invoking the tool", async () => {
+    let invoked = false;
+    const result = await executeAgentPlan({
+      plan: { steps: [{ id: "send", toolName: "send_email", params: { to: "a@b.com" } }] },
+      tools: [
+        tool("send_email", async () => {
+          invoked = true;
+          return { ok: true };
+        }, { requiresApproval: true, sideEffect: "external-message" }),
+      ],
+      approval: { status: "rejected", toolName: "send_email", stepId: "send" },
+      emitEvent: () => undefined,
+    });
+
+    assert.equal(invoked, false);
+    assert.equal(result.status, "cancelled");
+  });
 });
 
 function tool(

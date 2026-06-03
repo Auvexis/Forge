@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "../agent-errors.ts";
 import { detectAgentChoice } from "./agent-choice-detector.ts";
 import type {
@@ -13,6 +14,15 @@ export interface ExecuteAgentPlanInput {
   plan: AgentPlan;
   tools: AgentPlanTool[];
   emitEvent: (event: AgentPlanEvent) => void;
+  executionId?: string;
+  approval?: {
+    status: "approved" | "rejected";
+    toolName?: string;
+    stepId?: string;
+    outputs?: Record<string, unknown>;
+  };
+  createApprovalRequest?: (request: AgentPlanApprovalRequest) => Promise<{ approvalId: string }> | { approvalId: string };
+  saveMessage?: (message: Record<string, unknown>) => void | Promise<void>;
   repairStep?: (input: {
     plan: AgentPlan;
     step: AgentPlanStep;
@@ -22,13 +32,22 @@ export interface ExecuteAgentPlanInput {
   }) => Promise<AgentStepRepair>;
 }
 
+export interface AgentPlanApprovalRequest {
+  approvalId: string;
+  executionId?: string;
+  toolName: string;
+  sideEffect?: string;
+  args: Record<string, unknown>;
+}
+
 export async function executeAgentPlan(input: ExecuteAgentPlanInput): Promise<AgentPlanExecutionResult> {
   const tools = new Map(input.tools.map((tool) => [tool.name, tool]));
-  const outputs: Record<string, unknown> = {};
+  const outputs: Record<string, unknown> = { ...(input.approval?.outputs ?? {}) };
   const toolCalls: NonNullable<AgentPlanExecutionResult["toolCalls"]> = [];
   let toolCallCount = 0;
 
-  for (const step of input.plan.steps) {
+  const startIndex = resolveStartIndex(input);
+  for (const step of input.plan.steps.slice(startIndex)) {
     const tool = tools.get(step.toolName);
     if (!tool) {
       throw new AgentRuntimeError(
@@ -42,6 +61,8 @@ export async function executeAgentPlan(input: ExecuteAgentPlanInput): Promise<Ag
     const toolCallId = `tool_call_${toolCallCount + 1}`;
     emitToolEvent(input, "agent:tool-intent", tool, toolCallId, "planned", step.reason);
     const params = resolveRefs(step.params, outputs);
+    const approvalResult = await requestApprovalIfNeeded(input, step, tool, params, outputs);
+    if (approvalResult) return approvalResult;
     emitToolEvent(input, "agent:tool-start", tool, toolCallId, "running", step.reason);
 
     let result: unknown;
@@ -77,6 +98,7 @@ export async function executeAgentPlan(input: ExecuteAgentPlanInput): Promise<Ag
         toolCallCount,
         iterationCount: 1,
         toolCalls,
+        outputs,
       };
     }
   }
@@ -87,7 +109,85 @@ export async function executeAgentPlan(input: ExecuteAgentPlanInput): Promise<Ag
     toolCallCount,
     iterationCount: 1,
     toolCalls,
+    outputs,
   };
+}
+
+function resolveStartIndex(input: ExecuteAgentPlanInput): number {
+  if (!input.approval?.stepId) return 0;
+  const index = input.plan.steps.findIndex((step) => step.id === input.approval?.stepId);
+  return index >= 0 ? index : 0;
+}
+
+async function requestApprovalIfNeeded(
+  input: ExecuteAgentPlanInput,
+  step: AgentPlanStep,
+  tool: AgentPlanTool,
+  params: unknown,
+  outputs: Record<string, unknown>,
+): Promise<AgentPlanExecutionResult | null> {
+  if (!tool.requiresApproval) return null;
+
+  if (input.approval?.status === "rejected" && isApprovalForStep(input, step, tool)) {
+    return {
+      status: "cancelled",
+      output: { reason: "approval_rejected", toolName: tool.name },
+      toolCallCount: 0,
+      iterationCount: 1,
+      toolCalls: [],
+      outputs,
+    };
+  }
+
+  if (input.approval?.status === "approved" && isApprovalForStep(input, step, tool)) return null;
+
+  const approvalId = `approval_${randomUUID()}`;
+  const request = {
+    approvalId,
+    executionId: input.executionId,
+    toolName: tool.name,
+    sideEffect: tool.sideEffect,
+    args: sanitizeApprovalArgs(params),
+  };
+  const created = await input.createApprovalRequest?.(request);
+  const persistedApprovalId = created?.approvalId ?? approvalId;
+  const payload = { ...request, approvalId: persistedApprovalId };
+
+  input.emitEvent({ type: "agent:approval-created", payload });
+  await input.saveMessage?.({ kind: "agentApproval", ...payload });
+
+  return {
+    status: "waiting-approval",
+    output: payload,
+    approvalId: persistedApprovalId,
+    toolCallCount: 0,
+    iterationCount: 1,
+    toolCalls: [],
+    outputs,
+  };
+}
+
+function isApprovalForStep(
+  input: ExecuteAgentPlanInput,
+  step: AgentPlanStep,
+  tool: AgentPlanTool,
+): boolean {
+  return (!input.approval?.toolName || input.approval.toolName === tool.name) &&
+    (!input.approval?.stepId || input.approval.stepId === step.id);
+}
+
+function sanitizeApprovalArgs(params: unknown): Record<string, unknown> {
+  if (!params || typeof params !== "object" || Array.isArray(params)) return {};
+  return sanitizeValue(params) as Record<string, unknown>;
+}
+
+function sanitizeValue(value: unknown): unknown {
+  if (Buffer.isBuffer(value)) return { type: "buffer", bytes: value.byteLength };
+  if (Array.isArray(value)) return value.map(sanitizeValue);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, sanitizeValue(item)]),
+  );
 }
 
 async function tryRepairStep(
