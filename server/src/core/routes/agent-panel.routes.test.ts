@@ -539,6 +539,78 @@ describe("agent panel routes", () => {
     assert.equal(progressEvents[1]?.message, "Retrying google_drive_list_files.");
   });
 
+  it("persists stream errors immediately", async () => {
+    const persisted: unknown[] = [];
+    const app = await buildApp({
+      sendMessage: async (input: { executionId?: string }) => {
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId ?? "exec_1",
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:error",
+          timestamp: Date.now(),
+          data: { message: "Tool failed" },
+        });
+        return {
+          session: session("chat_1"),
+          messages: [message("msg_user", "chat_1")],
+          execution: { status: "FAILED" },
+        };
+      },
+      appendStreamAssistantMessage: async (_input: unknown, content: unknown) => {
+        persisted.push(content);
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Break" },
+    });
+    const events = parseStreamEvents(response.body);
+
+    assert.equal(events.some((event) => event.type === "error" && event.message === "Tool failed"), true);
+    assert.equal((persisted[0] as any).kind, "agentError");
+    assert.equal((persisted[0] as any).message, "Tool failed");
+  });
+
+  it("persists waiting-user choices from stream results", async () => {
+    const persisted: unknown[] = [];
+    const app = await buildApp({
+      sendMessage: async () => ({
+        session: session("chat_1"),
+        messages: [
+          message("msg_user", "chat_1"),
+          {
+            ...message("msg_choice", "chat_1"),
+            role: "assistant",
+            content: {
+              text: "Qual arquivo devo usar?",
+              waitingUser: true,
+              reason: "ambiguous_result",
+              options: [{ label: "A.pdf", value: "file_1" }],
+            },
+          },
+        ],
+        execution: { status: "SUCCESS" },
+      }),
+      appendStreamAssistantMessage: async (_input: unknown, content: unknown) => {
+        persisted.push(content);
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Escolher arquivo" },
+    });
+    const events = parseStreamEvents(response.body);
+    const choice = events.find((event) => event.type === "choice");
+
+    assert.equal(choice?.question, "Qual arquivo devo usar?");
+    assert.equal((persisted.find((item: any) => item?.kind === "agentChoice") as any)?.reason, "ambiguous_result");
+  });
+
   it("streams English contextual intro and tool progress when the user message is English", async () => {
     const app = await buildApp({
       sendMessage: async (input: { executionId?: string }) => {
@@ -727,6 +799,8 @@ function parseStreamEvents(body: string): Array<{
   executionId?: string;
   toolName?: string;
   result?: { execution?: { status?: string } };
+  question?: string;
+  options?: Array<unknown>;
   tool?: { toolCallId?: string; pluginId?: string };
   tools?: Array<{ toolCallId?: string; pluginId?: string }>;
 }> {

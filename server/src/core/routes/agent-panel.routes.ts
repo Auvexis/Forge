@@ -393,9 +393,14 @@ async function streamAgentPanelMessage(
       }
     }
     if (event.type === "agent:error") {
+      const message = extractAgentError(event) ?? event.error ?? "Agent execution failed";
       writeStreamEvent(reply, {
         type: "error",
-        message: extractAgentError(event) ?? event.error ?? "Agent execution failed",
+        message,
+      });
+      persistStreamAssistantMessage({
+        kind: "agentError",
+        message,
       });
     }
   });
@@ -421,6 +426,11 @@ async function streamAgentPanelMessage(
       await persistenceQueue;
       writeStreamEvent(reply, { type: "waiting-approval", result });
       return;
+    }
+    const choice = extractChoiceFromResult(result);
+    if (choice) {
+      writeStreamEvent(reply, { type: "choice", ...choice });
+      persistStreamAssistantMessage({ kind: "agentChoice", ...choice });
     }
     if (completedToolCalls.length === 0) {
       const fallbackToolCalls = extractCompletedToolCallsFromResult(result);
@@ -454,6 +464,8 @@ async function streamAgentPanelMessage(
       ? serializeAgentError(error)
       : { code: "AGENT_RUNTIME_ERROR", message: safeErrorMessage(error) };
     writeStreamEvent(reply, { type: "error", ...serialized });
+    persistStreamAssistantMessage({ kind: "agentError", message: serialized.message, code: serialized.code });
+    await persistenceQueue;
   } finally {
     streamFinished = true;
     unsubscribe();
@@ -683,6 +695,31 @@ function latestAssistantMessageText(result: unknown): string {
   });
   if (!assistant || typeof assistant !== "object") return "";
   return normalizeMessageContent((assistant as { content?: unknown }).content);
+}
+
+function extractChoiceFromResult(result: unknown): Record<string, unknown> | null {
+  if (!result || typeof result !== "object") return null;
+  const messages = (result as { messages?: unknown }).messages;
+  if (!Array.isArray(messages)) return null;
+  const assistant = [...messages].reverse().find((message) => {
+    return Boolean(message && typeof message === "object" && (message as { role?: unknown }).role === "assistant");
+  });
+  if (!assistant || typeof assistant !== "object") return null;
+  const content = (assistant as { content?: unknown }).content;
+  if (!content || typeof content !== "object" || Array.isArray(content)) return null;
+  const record = content as Record<string, unknown>;
+  if (record.waitingUser !== true && record.kind !== "agentChoice") return null;
+  const question = typeof record.text === "string"
+    ? record.text
+    : typeof record.question === "string"
+      ? record.question
+      : "";
+  if (!question.trim()) return null;
+  return {
+    question,
+    ...(typeof record.reason === "string" ? { reason: record.reason } : {}),
+    ...(Array.isArray(record.options) ? { options: record.options } : {}),
+  };
 }
 
 function normalizeMessageContent(content: unknown): string {

@@ -219,14 +219,14 @@ Arquivos ja criados:
 
 ## Task 11 - Agent Panel Stream Persistido
 
-- [ ] Atualizar `agent-panel.routes.ts` para persistir todo evento de UX.
-- [ ] Progress salvo no arquivo de chat imediatamente.
-- [ ] Approval salvo no arquivo de chat imediatamente.
-- [ ] Choice salvo no arquivo de chat imediatamente.
-- [ ] Erro salvo no arquivo de chat imediatamente.
-- [ ] Fechar painel e reabrir deve recarregar tudo do `chat.json`.
-- [ ] Testar SSE + persistencia.
-- [ ] Commitar.
+- [x] Atualizar `agent-panel.routes.ts` para persistir todo evento de UX.
+- [x] Progress salvo no arquivo de chat imediatamente.
+- [x] Approval salvo no arquivo de chat imediatamente.
+- [x] Choice salvo no arquivo de chat imediatamente.
+- [x] Erro salvo no arquivo de chat imediatamente.
+- [x] Fechar painel e reabrir deve recarregar tudo do `chat.json`.
+- [x] Testar SSE + persistencia.
+- [x] Commitar.
 
 ## Task 12 - Frontend Choice UI
 
