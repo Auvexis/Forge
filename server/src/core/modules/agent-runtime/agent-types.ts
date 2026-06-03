@@ -97,6 +97,11 @@ export type AgentEventType =
   | "agent:memory-write"
   | "agent:approval-created"
   | "agent:approval-resumed"
+  | "agent:thinking"
+  | "agent:plan-start"
+  | "agent:plan-end"
+  | "agent:repair-start"
+  | "agent:repair-end"
   | "agent:error"
   | "agent:end";
 

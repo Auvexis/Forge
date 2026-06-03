@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
 import { AgentRuntimeError } from "./agent-errors.ts";
 import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
 import type {
@@ -11,6 +11,11 @@ import type {
   AiToolNodeConfig,
 } from "./agent-types.ts";
 import { AgentRunner } from "./agent-runner.ts";
+import { PluginManager } from "../plugins/manager.ts";
+
+afterEach(() => {
+  PluginManager.clearPlugins();
+});
 
 describe("agent runner", () => {
   it("validates run input before execution", async () => {
@@ -270,6 +275,92 @@ describe("agent runner", () => {
     assert.equal(graphInvoked, true);
     assert.equal(result.status, "success");
     assert.equal(result.output, "No email needed.");
+  });
+
+  it("uses the deterministic plan runtime by default without model calls between tools", async () => {
+    const calls: string[] = [];
+    const modelCalls: string[] = [];
+    const events: string[] = [];
+    PluginManager.registerPlugin({
+      id: "plugin",
+      auth: { type: "none" } as any,
+      manifest: {
+        metadata: {
+          id: "plugin",
+          name: "Plugin",
+          description: "Plugin",
+          icon: "plug",
+          category: "test",
+          author: "Sailor",
+          version: "1.0.0",
+        },
+        methods: {
+          lookup: {
+            metadata: { label: "Lookup", description: "Lookup" },
+            parameters: { type: "object", properties: { query: { type: "string" } } },
+            responseSchema: { type: "object" },
+          },
+          send: {
+            metadata: { label: "Send", description: "Send" },
+            parameters: { type: "object", properties: { value: { type: "string" } } },
+            responseSchema: { type: "object" },
+          },
+        },
+      } as any,
+      methods: {
+        lookup: async () => {
+          calls.push(`tool:${modelCalls.length}:lookup`);
+          return { value: "found" };
+        },
+        send: async (params: any) => {
+          calls.push(`tool:${modelCalls.length}:send:${params.value}`);
+          return { ok: true };
+        },
+      },
+    });
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async invokeJson() {
+              modelCalls.push("plan");
+              return {
+                steps: [
+                  { id: "lookup", toolName: "lookup", params: { query: "hello" }, reason: "Lookup value." },
+                  { id: "send", toolName: "send", params: { value: "$steps.lookup.value" }, reason: "Send value." },
+                ],
+              };
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [
+          toolDefinition("lookup", { methodId: "lookup" }),
+          toolDefinition("send", { methodId: "send" }),
+        ],
+      },
+      toolExecutor: async (input) => {
+        const method = PluginManager.getPlugin(input.definition.pluginId).methods[input.definition.methodId];
+        return method(input.args, {});
+      },
+      emitEvent: (event) => events.push(event.type),
+    });
+
+    const result = await runner.run({ ...runInput(), tools: [toolConfig({ methodId: "lookup" }), toolConfig({ methodId: "send" })] });
+
+    assert.equal(result.status, "success");
+    assert.deepEqual(modelCalls, ["plan"]);
+    assert.deepEqual(calls, ["tool:1:lookup", "tool:1:send:found"]);
+    assert.deepEqual(events.filter((event) => event.startsWith("agent:plan") || event === "agent:thinking"), [
+      "agent:thinking",
+      "agent:plan-start",
+      "agent:thinking",
+      "agent:thinking",
+      "agent:thinking",
+      "agent:plan-end",
+    ]);
   });
 
   it("emits agent:start and agent:end around successful runs", async () => {

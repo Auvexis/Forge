@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import {
   type AgentGraphEvent,
   type BuildAgentGraphInput,
-  buildAgentGraph,
 } from "./agent-graph-builder.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import { emitAgentEvent } from "./agent-event-bus.ts";
@@ -37,6 +36,9 @@ import {
   usesLongTermMemory,
   usesShortTermMemory,
 } from "./memory/agent-memory-mode.ts";
+import { generateAgentPlan } from "./plan/agent-plan-generator.ts";
+import { executeAgentPlan } from "./plan/agent-plan-executor.ts";
+import { createAgentPlanRepairer } from "./plan/agent-plan-repairer.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -53,6 +55,7 @@ export interface AgentRunnerOptions {
     sessionId: string;
     dbPath?: string;
   }) => Promise<unknown>;
+  toolExecutor?: typeof executePluginAgentTool;
   emitEvent?: (event: AgentGraphEvent, input: AgentRunInput) => void;
 }
 
@@ -72,6 +75,8 @@ interface GraphTool {
   sideEffect?: SailorAgentToolDefinition["sideEffect"];
   requiresApproval: boolean;
   inputSchema: Record<string, any>;
+  timeoutMs: number;
+  selection?: SailorAgentToolDefinition["selection"];
   invoke(args: unknown): Promise<unknown>;
 }
 
@@ -79,16 +84,18 @@ export class AgentRunner {
   private readonly modelRegistry: Pick<AgentModelProviderRegistry, "createChatModel">;
   private readonly toolRegistry: Pick<AgentToolRegistry, "listAvailableTools" | "resolveConfiguredTools">;
   private readonly pluginMemoryExecutor: PluginMemoryExecutor;
-  private readonly graphBuilder: NonNullable<AgentRunnerOptions["graphBuilder"]>;
+  private readonly graphBuilder?: AgentRunnerOptions["graphBuilder"];
   private readonly checkpointerFactory: NonNullable<AgentRunnerOptions["checkpointerFactory"]>;
+  private readonly toolExecutor: NonNullable<AgentRunnerOptions["toolExecutor"]>;
   private readonly eventEmitter: NonNullable<AgentRunnerOptions["emitEvent"]>;
 
   constructor(options: AgentRunnerOptions = {}) {
     this.modelRegistry = options.modelRegistry ?? new AgentModelProviderRegistry();
     this.toolRegistry = options.toolRegistry ?? new AgentToolRegistry();
     this.pluginMemoryExecutor = options.pluginMemoryExecutor ?? defaultPluginMemoryExecutor;
-    this.graphBuilder = options.graphBuilder ?? buildAgentGraph;
+    this.graphBuilder = options.graphBuilder;
     this.checkpointerFactory = options.checkpointerFactory ?? defaultCheckpointerFactory;
+    this.toolExecutor = options.toolExecutor ?? executePluginAgentTool;
     this.eventEmitter = options.emitEvent ?? defaultEventEmitter;
   }
 
@@ -130,23 +137,22 @@ export class AgentRunner {
           })
         : undefined;
 
-      const graph = this.graphBuilder({
-        agent: validated.agent,
-        model,
-        tools: this.createGraphTools(input, validated.tools, toolDefinitions),
-        memory: validated.memory,
-        checkpointer,
-        approvalToken: input.approvalToken,
-        approvalToolName: input.approvalToolName,
-        abortSignal: input.abortSignal,
-        skipFinalResponseAfterToolUse: input.skipFinalResponseAfterToolUse,
-        onEvent: (event) => this.eventEmitter(event, input),
-      });
-      const result = await graph.invoke({
-        userMessage: input.userMessage,
-        sessionId: input.sessionId,
-        contextMessages,
-      });
+      const tools = this.createGraphTools(input, validated.tools, toolDefinitions);
+      const result = this.graphBuilder
+        ? await this.runLegacyGraph({
+            input,
+            validated,
+            model,
+            tools,
+            checkpointer,
+            contextMessages,
+          })
+        : await this.runPlanRuntime({
+            input,
+            model,
+            tools,
+            contextMessages,
+          });
 
       await this.writeMemory(input, longTermMemory, namespace, result.output);
       this.eventEmitter({ type: "agent:end", payload: { status: result.status, output: result.output } }, input);
@@ -243,8 +249,10 @@ export class AgentRunner {
       sideEffect: configs[index]?.sideEffect ?? definition.sideEffect,
       requiresApproval: configs[index]?.requiresApproval ?? definition.requiresApproval,
       inputSchema: schemaWithoutConfiguredDefaults(definition.inputSchema, configs[index]?.inputDefaults),
+      timeoutMs: configs[index]?.timeoutMs ?? definition.timeoutMs,
+      selection: definition.selection,
       invoke: async (args: unknown) =>
-        executePluginAgentTool({
+        this.toolExecutor({
           definition,
           configuredTool: configs[index],
           args: normalizeToolArgs(args),
@@ -256,6 +264,129 @@ export class AgentRunner {
         }),
     }));
   }
+
+  private async runLegacyGraph(input: {
+    input: AgentRunInput;
+    validated: AgentRunInput;
+    model: unknown;
+    tools: GraphTool[];
+    checkpointer: unknown;
+    contextMessages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
+  }): Promise<AgentRunResult> {
+    const graph = this.graphBuilder!({
+      agent: input.validated.agent,
+      model: input.model,
+      tools: input.tools,
+      memory: input.validated.memory,
+      checkpointer: input.checkpointer,
+      approvalToken: input.input.approvalToken,
+      approvalToolName: input.input.approvalToolName,
+      abortSignal: input.input.abortSignal,
+      skipFinalResponseAfterToolUse: input.input.skipFinalResponseAfterToolUse,
+      onEvent: (event) => this.eventEmitter(event, input.input),
+    });
+    return graph.invoke({
+      userMessage: input.input.userMessage,
+      sessionId: input.input.sessionId,
+      contextMessages: input.contextMessages,
+    });
+  }
+
+  private async runPlanRuntime(input: {
+    input: AgentRunInput;
+    model: unknown;
+    tools: GraphTool[];
+    contextMessages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
+  }): Promise<AgentRunResult> {
+    const model = toPlanModel(input.model);
+    this.eventEmitter({ type: "agent:thinking", payload: {} } as AgentGraphEvent, input.input);
+    this.eventEmitter({ type: "agent:plan-start", payload: {} } as AgentGraphEvent, input.input);
+    const plan = await generateAgentPlan({
+      model,
+      userMessage: input.input.userMessage,
+      tools: input.tools,
+      saveMessage: (message) => {
+        this.eventEmitter({ type: "agent:thinking", payload: { message } } as AgentGraphEvent, input.input);
+      },
+    });
+    this.eventEmitter({ type: "agent:plan-end", payload: { steps: plan.steps.length } } as AgentGraphEvent, input.input);
+
+    const repairer = createAgentPlanRepairer({
+      model,
+      saveMessage: (message) => {
+        this.eventEmitter({ type: "agent:repair-start", payload: { message } } as AgentGraphEvent, input.input);
+      },
+    });
+    const result = await executeAgentPlan({
+      plan,
+      tools: input.tools,
+      executionId: input.input.executionId,
+      approval: input.input.approvalToken
+        ? {
+            status: input.input.approvalToken === "approved" ? "approved" : "rejected",
+            toolName: input.input.approvalToolName,
+          }
+        : undefined,
+      emitEvent: (event) => this.eventEmitter(event as AgentGraphEvent, input.input),
+      repairStep: async (repairInput) => {
+        this.eventEmitter({ type: "agent:repair-start", payload: { stepId: repairInput.step.id } } as AgentGraphEvent, input.input);
+        const repair = await repairer.repairStep(repairInput);
+        this.eventEmitter({ type: "agent:repair-end", payload: { stepId: repairInput.step.id, repaired: Boolean(repair) } } as AgentGraphEvent, input.input);
+        return repair ?? { params: repairInput.step.params };
+      },
+    });
+
+    return {
+      status: result.status === "cancelled" ? "cancelled" : result.status,
+      output: result.output as AgentRunResult["output"],
+      toolCallCount: result.toolCallCount,
+      iterationCount: result.iterationCount,
+      toolCalls: result.toolCalls,
+      approvalId: result.approvalId,
+    };
+  }
+}
+
+function toPlanModel(model: unknown) {
+  const candidate = model as {
+    invokeJson?: <T extends object>(
+      input: { messages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }> },
+      schema?: Record<string, any>,
+    ) => Promise<T>;
+  };
+  if (typeof candidate.invokeJson !== "function") {
+    throw new AgentRuntimeError(
+      "Agent model does not support structured plan generation",
+      "AGENT_MODEL_PLAN_UNSUPPORTED",
+      "Agent model cannot generate a structured tool plan",
+      500,
+    );
+  }
+
+  return {
+    generatePlan: (input: { messages: any[]; schema: Record<string, any> }) =>
+      candidate.invokeJson!(input, input.schema),
+    repairPlanStep: (input: {
+      plan: unknown;
+      step: unknown;
+      error: unknown;
+      outputs: Record<string, unknown>;
+      schema: Record<string, any>;
+    }) =>
+      candidate.invokeJson!(
+        {
+          messages: [
+            { role: "system", content: "Return JSON only with { params }. Repair only the failed tool parameters." },
+            { role: "user", content: JSON.stringify(input) },
+          ],
+        },
+        {
+          type: "object",
+          required: ["params"],
+          properties: { params: { type: "object" } },
+        },
+      ),
+  };
 }
 
 function schemaWithoutConfiguredDefaults(

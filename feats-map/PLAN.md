@@ -147,23 +147,23 @@ Arquivos ja criados:
 
 ## Task 6 - AgentRunner Usa Plano Novo
 
-- [ ] Atualizar testes de `agent-runner.test.ts`.
-- [ ] `AgentRunner` deve resolver model/tools/memory como hoje.
-- [ ] Default runner usa:
+- [x] Atualizar testes de `agent-runner.test.ts`.
+- [x] `AgentRunner` deve resolver model/tools/memory como hoje.
+- [x] Default runner usa:
   - `AgentPlanGenerator`
   - `AgentPlanExecutor`
   - `AgentPlanRepairer`
-- [ ] Remover default para `buildAgentGraph`.
-- [ ] Manter seam de teste apenas se necessario.
-- [ ] Emitir eventos de UX:
+- [x] Remover default para `buildAgentGraph`.
+- [x] Manter seam de teste apenas se necessario.
+- [x] Emitir eventos de UX:
   - `agent:thinking`
   - `agent:plan-start`
   - `agent:plan-end`
   - `agent:repair-start`
   - `agent:repair-end`
-- [ ] Garantir que nao existe LLM entre tools em teste.
-- [ ] Rodar `agent-runner.test.ts`.
-- [ ] Commitar.
+- [x] Garantir que nao existe LLM entre tools em teste.
+- [x] Rodar `agent-runner.test.ts`.
+- [x] Commitar.
 
 ## Task 7 - Remover Loop Antigo
 
