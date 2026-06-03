@@ -25,6 +25,7 @@ export interface SendAgentPanelMessageInput {
   sessionId: string;
   message: string;
   executionId?: string;
+  skipPersistedToolMessages?: boolean;
 }
 
 export interface SendFirstAgentPanelMessageInput {
@@ -101,6 +102,21 @@ export class AgentPanelChatService {
     const session = this.sessions.getById(input.profileId, input.sessionId);
     if (!session) return [];
     return this.messages.listBySession(input.profileId, input.sessionId);
+  }
+
+  async appendStreamAssistantMessage(
+    input: { profileId: string; sessionId: string },
+    content: unknown,
+  ): Promise<void> {
+    const session = this.resolveSession(input.profileId, input.sessionId);
+    this.messages.append({
+      id: `msg_${randomUUID()}`,
+      profileId: input.profileId,
+      sessionId: session.id,
+      role: "assistant",
+      content,
+    });
+    this.sessions.touch(input.profileId, session.id);
   }
 
   async sendFirstMessage(
@@ -185,11 +201,13 @@ export class AgentPanelChatService {
 
     const assistantResponse = extractAssistantResponse(execution, agent.summary.agentNodeId);
     const toolCalls = extractToolCalls(execution, agent.summary.agentNodeId);
-    if (toolCalls.length > 0) {
+    if (!input.skipPersistedToolMessages && toolCalls.length > 0) {
       appendToolProgressMessages(this.messages, input.profileId, session.id, toolCalls);
       appendToolSummaryMessage(this.messages, input.profileId, session.id, toolCalls);
     }
-    appendApprovalMessageIfWaiting(this.messages, input.profileId, session.id, execution);
+    if (!input.skipPersistedToolMessages) {
+      appendApprovalMessageIfWaiting(this.messages, input.profileId, session.id, execution);
+    }
 
     if (isFailedExecution(execution)) {
       const detail = extractWorkflowFailureDetail((execution as { context?: { steps?: Record<string, any> } }).context?.steps);

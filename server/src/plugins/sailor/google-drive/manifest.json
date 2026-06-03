@@ -20,10 +20,10 @@
         "properties": {
           "pageSize": {
             "type": "integer",
-            "description": "Number of files to return (1–1000). Default is 30.",
-            "default": 30,
+            "description": "Number of files to return (1-100). Default is 10.",
+            "default": 10,
             "minimum": 1,
-            "maximum": 1000,
+            "maximum": 100,
             "x-input-type": "number",
             "x-label": "Page Size"
           },
@@ -320,7 +320,7 @@
     "downloadFile": {
       "metadata": {
         "label": "Download file",
-        "description": "Download a file from Google Drive."
+        "description": "Download a binary file from Google Drive or export a Google Docs Editors file."
       },
       "parameters": {
         "type": "object",
@@ -361,7 +361,7 @@
       "agentTool": {
         "enabled": true,
         "name": "google_drive_download_file",
-        "description": "Download a file from Google Drive.",
+        "description": "Download a binary file from Google Drive or export a Google Docs Editors file.",
         "sideEffect": "read",
         "requiresApproval": false,
         "timeoutMs": 30000

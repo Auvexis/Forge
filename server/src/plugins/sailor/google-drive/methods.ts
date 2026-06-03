@@ -30,6 +30,34 @@ function getDriveClient(context: PluginContext) {
 /** Standard field list for file objects — consistent across all methods */
 const FILE_FIELDS = "id, name, mimeType, size, modifiedTime, parents, trashed";
 
+interface GoogleDriveMethodsOptions {
+  driveClient?: any;
+}
+
+interface GoogleAppsExportSpec {
+  mimeType: string;
+  extension: string;
+}
+
+const GOOGLE_APPS_EXPORTS: Record<string, GoogleAppsExportSpec> = {
+  "application/vnd.google-apps.document": {
+    mimeType: "application/pdf",
+    extension: ".pdf",
+  },
+  "application/vnd.google-apps.presentation": {
+    mimeType: "application/pdf",
+    extension: ".pdf",
+  },
+  "application/vnd.google-apps.drawing": {
+    mimeType: "application/pdf",
+    extension: ".pdf",
+  },
+  "application/vnd.google-apps.spreadsheet": {
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    extension: ".xlsx",
+  },
+};
+
 // ──────────── Buffer Resolution ────────────
 
 /**
@@ -63,7 +91,9 @@ function resolveFileBuffer(content: Buffer | string): Buffer {
 
 // ──────────── Methods ────────────
 
-export function createGoogleDriveMethods() {
+export function createGoogleDriveMethods(options: GoogleDriveMethodsOptions = {}) {
+  const resolveDriveClient = (context?: PluginContext) => options.driveClient ?? getDriveClient(context!);
+
   return {
     listFiles: async (
       params: {
@@ -75,7 +105,7 @@ export function createGoogleDriveMethods() {
       },
       context?: PluginContext,
     ) => {
-      const driveClient = getDriveClient(context!);
+      const driveClient = resolveDriveClient(context);
 
       // Build the query string — combining user query and mimeType filter
       const queryParts: string[] = [];
@@ -95,7 +125,7 @@ export function createGoogleDriveMethods() {
 
       const response = await driveClient.files.list({
         fields: `files(${FILE_FIELDS})`,
-        pageSize: Math.min(params.pageSize || 30, 1000),
+        pageSize: Math.min(params.pageSize || 10, 100),
         q: queryParts.join(" and "),
         orderBy: params.orderBy || "modifiedTime desc",
       });
@@ -107,7 +137,7 @@ export function createGoogleDriveMethods() {
       params: { fileId: string },
       context?: PluginContext,
     ) => {
-      const driveClient = getDriveClient(context!);
+      const driveClient = resolveDriveClient(context);
 
       if (!params.fileId?.trim()) {
         throw new Error("'fileId' is required and cannot be empty.");
@@ -125,7 +155,7 @@ export function createGoogleDriveMethods() {
       params: { folderId: string },
       context?: PluginContext,
     ) => {
-      const driveClient = getDriveClient(context!);
+      const driveClient = resolveDriveClient(context);
 
       if (!params.folderId?.trim()) {
         throw new Error("'folderId' is required and cannot be empty.");
@@ -161,7 +191,7 @@ export function createGoogleDriveMethods() {
       },
       context?: PluginContext,
     ) => {
-      const driveClient = getDriveClient(context!);
+      const driveClient = resolveDriveClient(context);
 
       if (!params.files || params.files.length === 0) {
         throw new Error("At least one file is required in the 'files' array.");
@@ -208,7 +238,7 @@ export function createGoogleDriveMethods() {
       params: { fileId: string },
       context?: PluginContext,
     ) => {
-      const driveClient = getDriveClient(context!);
+      const driveClient = resolveDriveClient(context);
 
       if (!params.fileId?.trim()) {
         throw new Error("'fileId' is required and cannot be empty.");
@@ -218,6 +248,22 @@ export function createGoogleDriveMethods() {
         fileId: params.fileId.trim(),
         fields: "name, mimeType",
       });
+
+      const exportSpec = googleAppsExportForMime(metadata.data.mimeType);
+      if (exportSpec) {
+        const response = await driveClient.files.export(
+          { fileId: params.fileId.trim(), mimeType: exportSpec.mimeType },
+          { responseType: "stream" },
+        );
+
+        return {
+          download: {
+            fileName: ensureFileExtension(metadata.data.name ?? params.fileId.trim(), exportSpec.extension),
+            mimeType: exportSpec.mimeType,
+            content: response.data,
+          },
+        };
+      }
 
       const response = await driveClient.files.get(
         { fileId: params.fileId.trim(), alt: "media" },
@@ -234,7 +280,7 @@ export function createGoogleDriveMethods() {
     },
 
     deleteFile: async (params: { fileId: string }, context?: PluginContext) => {
-      const driveClient = getDriveClient(context!);
+      const driveClient = resolveDriveClient(context);
 
       if (!params.fileId?.trim()) {
         throw new Error("'fileId' is required and cannot be empty.");
@@ -261,7 +307,7 @@ export function createGoogleDriveMethods() {
       params: { name: string; parentId?: string },
       context?: PluginContext,
     ) => {
-      const driveClient = getDriveClient(context!);
+      const driveClient = resolveDriveClient(context);
 
       if (!params.name?.trim()) {
         throw new Error("'name' is required and cannot be empty.");
@@ -283,7 +329,7 @@ export function createGoogleDriveMethods() {
       params: { folderId: string },
       context?: PluginContext,
     ) => {
-      const driveClient = getDriveClient(context!);
+      const driveClient = resolveDriveClient(context);
 
       if (!params.folderId?.trim()) {
         throw new Error("'folderId' is required and cannot be empty.");
@@ -310,7 +356,7 @@ export function createGoogleDriveMethods() {
       params: { fileId: string; parentId: string },
       context?: PluginContext,
     ) => {
-      const driveClient = getDriveClient(context!);
+      const driveClient = resolveDriveClient(context);
 
       if (!params.fileId?.trim() || !params.parentId?.trim()) {
         throw new Error("'fileId' and 'parentId' are both required.");
@@ -334,7 +380,7 @@ export function createGoogleDriveMethods() {
       params: { fileId: string; parentId: string },
       context?: PluginContext,
     ) => {
-      const driveClient = getDriveClient(context!);
+      const driveClient = resolveDriveClient(context);
 
       if (!params.fileId?.trim() || !params.parentId?.trim()) {
         throw new Error("'fileId' and 'parentId' are both required.");
@@ -358,7 +404,7 @@ export function createGoogleDriveMethods() {
       params: { fileId: string },
       context?: PluginContext,
     ) => {
-      const driveClient = getDriveClient(context!);
+      const driveClient = resolveDriveClient(context);
 
       if (!params.fileId?.trim()) {
         throw new Error("'fileId' is required and cannot be empty.");
@@ -396,6 +442,15 @@ export function normalizeDriveListQuery(query: string): string {
 
   if (terms.length === 0) return "";
   return terms.map((term) => `name contains '${term}'`).join(" and ");
+}
+
+function googleAppsExportForMime(mimeType: unknown): GoogleAppsExportSpec | null {
+  return typeof mimeType === "string" ? GOOGLE_APPS_EXPORTS[mimeType] ?? null : null;
+}
+
+function ensureFileExtension(fileName: string, extension: string): string {
+  const trimmed = fileName.trim() || "download";
+  return trimmed.toLowerCase().endsWith(extension.toLowerCase()) ? trimmed : `${trimmed}${extension}`;
 }
 
 function looksLikeDriveQuery(query: string): boolean {

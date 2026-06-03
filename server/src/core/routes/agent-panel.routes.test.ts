@@ -103,6 +103,7 @@ describe("agent panel routes", () => {
   });
 
   it("streams pending start and output deltas before done", async () => {
+    const persisted: unknown[] = [];
     const app = await buildApp({
       sendMessage: async (input: { executionId?: string }) => {
         assert.ok(input.executionId);
@@ -128,6 +129,9 @@ describe("agent panel routes", () => {
           execution: { status: "SUCCESS" },
         };
       },
+      appendStreamAssistantMessage: async (_input: unknown, content: unknown) => {
+        persisted.push(content);
+      },
     });
 
     const response = await app.inject({
@@ -144,6 +148,7 @@ describe("agent panel routes", () => {
     assert.equal(typeof events[0].executionId, "string");
     assert.match(events[0].executionId ?? "", /^exec_agent_panel_/);
     assert.deepEqual(events.map((event) => event.delta).filter(Boolean), ["hel", "lo"]);
+    assert.deepEqual(persisted, [{ text: "hel" }, { text: "lo" }]);
   });
 
   it("streams approval requests as a waiting terminal state without a tool summary", async () => {
@@ -318,6 +323,7 @@ describe("agent panel routes", () => {
   });
 
   it("streams one progress cycle for every tool call before done", async () => {
+    const persisted: unknown[] = [];
     const app = await buildApp({
       sendMessage: async (input: { executionId?: string }) => {
         assert.ok(input.executionId);
@@ -419,6 +425,9 @@ describe("agent panel routes", () => {
           execution: { status: "SUCCESS" },
         };
       },
+      appendStreamAssistantMessage: async (_input: unknown, content: unknown) => {
+        persisted.push(content);
+      },
     });
 
     const startedAt = Date.now();
@@ -434,7 +443,7 @@ describe("agent panel routes", () => {
     const firstDeltaIndex = events.findIndex((event) => event.type === "delta");
     const firstProgressIndex = events.findIndex((event) => event.type === "progress");
     assert.ok(firstDeltaIndex > 0 && firstDeltaIndex < firstProgressIndex);
-    assert.ok(durationMs >= 1000, `expected spaced progress events, got ${durationMs}ms`);
+    assert.ok(durationMs < 1000, `expected fast progress events, got ${durationMs}ms`);
     assert.deepEqual(progressEvents.map((event) => event.tool?.toolCallId), [
       "tool_call_1",
       "tool_call_1",
@@ -465,6 +474,8 @@ describe("agent panel routes", () => {
     );
     const summary = events.find((event) => event.type === "summary");
     assert.deepEqual(summary?.tools?.map((tool) => tool.toolCallId), ["tool_call_1", "tool_call_2"]);
+    assert.equal(persisted.some((content: any) => content?.kind === "agentProgress"), true);
+    assert.equal(persisted.some((content: any) => content?.kind === "agentSummary"), true);
     assert.equal(events.at(-1)?.type, "done");
   });
 

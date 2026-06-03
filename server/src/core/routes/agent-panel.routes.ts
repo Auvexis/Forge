@@ -19,6 +19,7 @@ export interface AgentPanelRoutesOptions {
     | "listMessages"
     | "sendFirstMessage"
     | "sendMessage"
+    | "appendStreamAssistantMessage"
     | "deleteSession"
   >;
 }
@@ -26,8 +27,8 @@ export interface AgentPanelRoutesOptions {
 type AgentPanelScope = "current" | "global";
 type MemoryMode = DeleteAgentPanelSessionInput["memoryMode"];
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
-const TOOL_PROGRESS_INITIAL_DELAY_MS = 350;
-const TOOL_PROGRESS_STEP_DELAY_MS = 420;
+const TOOL_PROGRESS_INITIAL_DELAY_MS = 80;
+const TOOL_PROGRESS_STEP_DELAY_MS = 120;
 const pendingAgentPanelStreams = new Map<string, PendingAgentPanelStream>();
 
 interface PendingAgentPanelStream {
@@ -285,7 +286,7 @@ async function streamAgentPanelMessage(
     profileId: string;
     sessionId: string;
     message: string;
-    service: Pick<AgentPanelChatService, "sendMessage">;
+    service: Pick<AgentPanelChatService, "sendMessage"> & Partial<Pick<AgentPanelChatService, "appendStreamAssistantMessage">>;
   },
 ) {
   const executionId = `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
@@ -300,12 +301,30 @@ async function streamAgentPanelMessage(
   let sentToolIntro = false;
   let progressEventCount = 0;
   let progressQueue = Promise.resolve();
+  let persistenceQueue = Promise.resolve();
   const completedToolCalls: ToolProgress[] = [];
+  const persistStreamAssistantMessage = (content: unknown) => {
+    if (!input.service.appendStreamAssistantMessage) return;
+    persistenceQueue = persistenceQueue
+      .then(() => input.service.appendStreamAssistantMessage?.({
+        profileId: input.profileId,
+        sessionId: input.sessionId,
+      }, content))
+      .then(() => undefined, () => undefined);
+  };
   const queueProgressEvent = (event: Record<string, unknown>) => {
     progressQueue = progressQueue.then(async () => {
       await delay(progressEventCount === 0 ? TOOL_PROGRESS_INITIAL_DELAY_MS : TOOL_PROGRESS_STEP_DELAY_MS);
       progressEventCount += 1;
       writeStreamEvent(reply, event);
+      if (event.type === "progress") {
+        persistStreamAssistantMessage({
+          kind: "agentProgress",
+          status: event.status,
+          message: event.message,
+          tool: event.tool,
+        });
+      }
     });
   };
   const markToolActivity = () => {
@@ -362,12 +381,17 @@ async function streamAgentPanelMessage(
         type: "approval",
         ...extractApprovalProgress(event),
       });
+      persistStreamAssistantMessage({
+        kind: "agentApproval",
+        ...extractApprovalProgress(event),
+      });
     }
     if (event.type === "agent:output-delta") {
       const delta = extractAgentDelta(event);
       if (delta) {
         nativeDeltaCount += 1;
         writeStreamEvent(reply, { type: "delta", delta });
+        persistStreamAssistantMessage({ text: delta });
       }
     }
     if (event.type === "agent:error") {
@@ -390,9 +414,11 @@ async function streamAgentPanelMessage(
       sessionId: input.sessionId,
       message: input.message,
       executionId,
+      skipPersistedToolMessages: Boolean(input.service.appendStreamAssistantMessage),
     });
     if (isWaitingApprovalResult(result)) {
       await progressQueue;
+      await persistenceQueue;
       writeStreamEvent(reply, { type: "waiting-approval", result });
       return;
     }
@@ -409,12 +435,19 @@ async function streamAgentPanelMessage(
       await writeFallbackDeltas(reply, splitAssistantMessageForStream(result));
     }
     if (completedToolCalls.length > 0) {
-      writeStreamEvent(reply, {
+      const summaryEvent = {
         type: "summary",
         message: formatToolSummaryMessage(completedToolCalls),
         tools: completedToolCalls,
+      };
+      writeStreamEvent(reply, summaryEvent);
+      persistStreamAssistantMessage({
+        kind: "agentSummary",
+        message: summaryEvent.message,
+        tools: summaryEvent.tools,
       });
     }
+    await persistenceQueue;
     writeStreamEvent(reply, { type: "done", result });
   } catch (error) {
     const serialized = error instanceof AgentRuntimeError
@@ -619,14 +652,14 @@ function splitAssistantMessageForStream(result: unknown): string[] {
 async function writeFallbackDeltas(reply: FastifyReply, deltas: string[]): Promise<void> {
   for (const delta of deltas) {
     writeStreamEvent(reply, { type: "delta", delta });
-    await delay(30);
+    await delay(15);
   }
 }
 
 async function writeIntroDeltas(reply: FastifyReply, deltas: string[]): Promise<void> {
   for (const delta of deltas) {
     writeStreamEvent(reply, { type: "delta", delta });
-    await delay(80);
+    await delay(20);
   }
 }
 
