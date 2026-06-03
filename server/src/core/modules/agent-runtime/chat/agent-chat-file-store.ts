@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { AgentChatMessage, AppendChatMessageInput } from "./chat-message-repository.ts";
 import type { AgentChatSession, CreateChatSessionInput } from "./chat-session-repository.ts";
+import { resolveAgentChatDir } from "./agent-chat-paths.ts";
 
 export interface AgentChatFileStoreOptions {
   profilesDir: string;
@@ -147,7 +148,7 @@ export class AgentChatFileStore {
   }
 
   private chatDir(profileId: string, sessionId: string): string {
-    return path.join(this.profileDir(profileId), "chats", sessionId);
+    return resolveAgentChatDir({ profilesDir: this.profilesDir, profileId, chatId: sessionId });
   }
 
   private profileDir(profileId: string): string {

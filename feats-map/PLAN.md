@@ -209,13 +209,13 @@ Arquivos ja criados:
 
 ## Task 10 - Short Term Memory Por Chat
 
-- [ ] Resolver caminho de memory:
+- [x] Resolver caminho de memory:
   - `profiles/<profileId>/chats/<chatId>/memory.sqlite`
-- [ ] Quando memory adapter for `sailor-internal`, passar esse caminho no `AgentRunInput.checkpointerDbPath`.
-- [ ] Garantir que cada chat tem memory isolada.
-- [ ] Delete chat com `memoryMode=session` remove `memory.sqlite`.
-- [ ] Testar isolamento entre dois chats.
-- [ ] Commitar.
+- [x] Quando memory adapter for `sailor-internal`, passar esse caminho no `AgentRunInput.checkpointerDbPath`.
+- [x] Garantir que cada chat tem memory isolada.
+- [x] Delete chat com `memoryMode=session` remove `memory.sqlite`.
+- [x] Testar isolamento entre dois chats.
+- [x] Commitar.
 
 ## Task 11 - Agent Panel Stream Persistido
 

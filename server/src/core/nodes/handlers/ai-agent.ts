@@ -19,6 +19,8 @@ import type { NodeHandlerInput } from "../types.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
 import { usesShortTermMemory } from "../../modules/agent-runtime/memory/agent-memory-mode.ts";
 import { CancellationRegistry } from "../../modules/workflows/cancellation-registry.ts";
+import { sailorHomePaths } from "../../runtime/sailor-home.ts";
+import { resolveAgentChatMemoryPath } from "../../modules/agent-runtime/chat/agent-chat-paths.ts";
 
 type AgentConfigNode = AiModelNode | AiMemoryNode | AiToolNode;
 
@@ -35,8 +37,9 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
   const triggerPayload = input.context.trigger ?? {};
   const sessionId = optionalString(triggerPayload.sessionId ?? triggerPayload.session_id);
   const memoryConfig = memory ? toMemoryConfig(memory) : undefined;
+  const profileId = String(triggerPayload.profileId ?? triggerPayload.profile_id ?? "default");
   const runInput: AgentRunInput = {
-    profileId: String(triggerPayload.profileId ?? triggerPayload.profile_id ?? "default"),
+    profileId,
     workflowId: input.workflow.metadata.id,
     executionId: input.executionId,
     nodeId: input.nodeId,
@@ -46,6 +49,7 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     contextMessages: usesShortTermMemory(memoryConfig) && sessionId
       ? toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages)
       : undefined,
+    checkpointerDbPath: resolveCheckpointerDbPath(profileId, sessionId, memoryConfig),
     triggerPayload,
     skipFinalResponseAfterToolUse: triggerPayload.skipFinalResponseAfterToolUse === true,
     approvalToken: optionalString(triggerPayload.approvalToken ?? triggerPayload.approval_token),
@@ -73,6 +77,19 @@ function findConnectedConfigNodes(input: NodeHandlerInput<AiAgentNode>): AgentCo
     .filter((edge) => edge.target === input.nodeId)
     .map((edge) => input.workflow.nodes[edge.source])
     .filter((node): node is AgentConfigNode => isAgentConfigNode(node));
+}
+
+function resolveCheckpointerDbPath(
+  profileId: string,
+  sessionId: string | undefined,
+  memory: AiMemoryNodeConfig | undefined,
+): string | undefined {
+  if (!sessionId || !usesShortTermMemory(memory) || memory?.adapter !== "sailor-internal") return undefined;
+  return resolveAgentChatMemoryPath({
+    profilesDir: sailorHomePaths.profilesDir,
+    profileId,
+    chatId: sessionId,
+  });
 }
 
 function isAgentConfigNode(node: WorkflowNode | undefined): node is AgentConfigNode {

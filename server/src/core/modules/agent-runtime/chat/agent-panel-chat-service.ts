@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import fs from "node:fs";
 import type Database from "better-sqlite3";
 import { AgentRuntimeError } from "../agent-errors.ts";
 import {
@@ -11,6 +12,7 @@ import { ChatMessageRepository } from "./chat-message-repository.ts";
 import type { AgentChatSession } from "./chat-session-repository.ts";
 import { ChatSessionRepository } from "./chat-session-repository.ts";
 import { AgentChatFileStore } from "./agent-chat-file-store.ts";
+import { resolveAgentChatMemoryPath } from "./agent-chat-paths.ts";
 import { WorkflowEngine } from "../../workflows/executor.ts";
 import { WorkflowRepository } from "../../workflows/repository.ts";
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
@@ -45,6 +47,7 @@ export interface DeleteAgentPanelSessionInput {
 
 export interface AgentPanelChatServiceOptions {
   db?: Database.Database;
+  profilesDir?: string;
   chatFileStore?: AgentChatFileStore;
   workflowRepository?: AgentPanelWorkflowRepository;
   workflowEngine?: Pick<typeof WorkflowEngine, "executeWorkflowFromTrigger">;
@@ -61,6 +64,7 @@ interface ResolvedPublishedAgent {
 
 export class AgentPanelChatService {
   private readonly db: Database.Database;
+  private readonly profilesDir: string;
   private readonly sessions: Pick<ChatSessionRepository, "create" | "getById" | "listByAgentKey" | "touch" | "delete">;
   private readonly messages: Pick<ChatMessageRepository, "append" | "listBySession">;
   private readonly workflowRepository: Pick<typeof WorkflowRepository, "getActiveWorkflows" | "getWorkflows">;
@@ -69,11 +73,12 @@ export class AgentPanelChatService {
   constructor(options: AgentPanelChatServiceOptions = {}) {
     this.workflowRepository = options.workflowRepository ?? WorkflowRepository;
     this.db = options.db ?? resolveWorkflowDatabase(this.workflowRepository);
+    this.profilesDir = options.profilesDir ?? sailorHomePaths.profilesDir;
     if (options.db) {
       this.sessions = new ChatSessionRepository(this.db);
       this.messages = new ChatMessageRepository(this.db);
     } else {
-      const fileStore = options.chatFileStore ?? new AgentChatFileStore({ profilesDir: sailorHomePaths.profilesDir });
+      const fileStore = options.chatFileStore ?? new AgentChatFileStore({ profilesDir: this.profilesDir });
       this.sessions = fileStore;
       this.messages = fileStore;
     }
@@ -249,6 +254,7 @@ export class AgentPanelChatService {
     const session = this.resolveSession(input.profileId, input.sessionId);
     if (input.memoryMode === "session") {
       this.deleteMemoryNamespace(input.profileId, `session:${session.id}`);
+      deleteSessionMemoryFile(this.profilesDir, input.profileId, session.id);
     }
     if (input.memoryMode === "all-agent-memory") {
       this.deleteAgentScopedMemories(input.profileId, session);
@@ -637,6 +643,17 @@ function createSessionTitle(message: string): string {
   const title = message.replace(/\s+/g, " ").trim();
   if (!title) return "New chat";
   return title.length > 48 ? `${title.slice(0, 45)}...` : title;
+}
+
+function deleteSessionMemoryFile(profilesDir: string, profileId: string, sessionId: string): void {
+  const memoryPath = resolveAgentChatMemoryPath({
+    profilesDir,
+    profileId,
+    chatId: sessionId,
+  });
+  if (fs.existsSync(memoryPath)) {
+    fs.rmSync(memoryPath, { force: true });
+  }
 }
 
 export { buildPublishedAgentKey };

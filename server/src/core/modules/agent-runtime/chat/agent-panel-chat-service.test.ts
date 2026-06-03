@@ -421,18 +421,23 @@ describe("agent panel chat service", () => {
   });
 
   it("delete session deletes only session scoped memory", async () => {
-    const service = serviceFixture();
+    const profilesDir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "sailor-memory-")), "profiles");
+    const service = serviceFixture({ profilesDir });
     const session = await service.createSession({
       profileId: "profile_a",
       agentKey: "profile_a:workflow_agent:chat_trigger:agent",
       title: "Support chat",
     });
+    const memoryPath = path.join(profilesDir, "profile_a", "chats", session.id, "memory.sqlite");
+    fs.mkdirSync(path.dirname(memoryPath), { recursive: true });
+    fs.writeFileSync(memoryPath, "sqlite");
     insertMemory(`session:${session.id}`, "agent:agent:last-output");
     insertMemory("workflow:profile_a:workflow_agent", "agent:agent:last-output");
 
     await service.deleteSession({ profileId: "profile_a", sessionId: session.id, memoryMode: "session" });
 
     assert.deepEqual(listMemoryNamespaces(), ["workflow:profile_a:workflow_agent"]);
+    assert.equal(fs.existsSync(memoryPath), false);
   });
 
   it("delete all-agent-memory deletes session and agent-scoped long-term memories", async () => {
@@ -456,9 +461,11 @@ describe("agent panel chat service", () => {
     executionOutput?: unknown;
     toolCalls?: Array<Record<string, unknown>>;
     extraStepOutput?: Record<string, unknown>;
+    profilesDir?: string;
   } = {}): AgentPanelChatService {
     return new AgentPanelChatService({
       db: workflowDb!,
+      profilesDir: fixtureOptions.profilesDir,
       workflowRepository: WorkflowRepository,
       workflowEngine: {
         executeWorkflowFromTrigger: async (

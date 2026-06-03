@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { afterEach, describe, it } from "node:test";
 import { AgentRuntimeService } from "../../modules/agent-runtime/agent-runtime-service.ts";
 import type { AgentRunInput } from "../../modules/agent-runtime/agent-types.ts";
@@ -257,6 +258,47 @@ describe("AI workflow node handlers", () => {
       { role: "assistant", content: "Boa noite! Como posso ajudar?" },
     ]);
     assert.deepEqual(runCall.triggerPayload, context.trigger);
+  });
+
+  it("passes chat-scoped memory sqlite path for sailor internal session memory", async () => {
+    const registry = createUtilityNodeRegistry();
+    const fixture = workflowFixture();
+    const memory = fixture.nodes.memory;
+    if (memory.type !== "ai-memory") throw new Error("Invalid memory fixture");
+    const workflow = workflowFixture({
+      nodes: {
+        ...fixture.nodes,
+        memory: {
+          ...memory,
+          adapter: "sailor-internal",
+          scope: "session",
+        },
+      },
+    });
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "ok",
+        toolCallCount: 0,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", workflow.nodes.agent, workflow, contextFixture({
+        trigger: {
+          profileId: "profile_1",
+          message: "Hello",
+          sessionId: "chat_session_1",
+        },
+      })));
+
+    const dbPath = (received as AgentRunInput).checkpointerDbPath ?? "";
+    assert.equal(path.basename(dbPath), "memory.sqlite");
+    assert.match(dbPath.replace(/\\/g, "/"), /profiles\/profile_1\/chats\/chat_session_1\/memory\.sqlite$/);
   });
 
   it("passes the panel skip-final-response flag to the agent runtime", async () => {
