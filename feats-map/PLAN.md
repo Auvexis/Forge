@@ -259,17 +259,17 @@ Arquivos ja criados:
 
 ## Task 14 - Final Response
 
-- [ ] Criar gerador de resposta final.
-- [ ] Input:
+- [x] Criar gerador de resposta final.
+- [x] Input:
   - pedido do usuario
   - plano executado
   - outputs resumidos
   - errors/choices/approvals
-- [ ] Output: texto curto em linguagem natural.
-- [ ] Se `skipFinalResponseAfterToolUse` true, nao gerar final.
-- [ ] Persistir resposta final.
-- [ ] Testar.
-- [ ] Commitar.
+- [x] Output: texto curto em linguagem natural.
+- [x] Se `skipFinalResponseAfterToolUse` true, nao gerar final.
+- [x] Persistir resposta final.
+- [x] Testar.
+- [x] Commitar.
 
 ## Task 15 - Limpeza Da Arquitetura Antiga
 

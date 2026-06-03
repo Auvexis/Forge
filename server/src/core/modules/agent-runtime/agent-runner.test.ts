@@ -331,6 +331,10 @@ describe("agent runner", () => {
                 ],
               };
             },
+            async generateFinalResponse() {
+              modelCalls.push("final");
+              return "Sent the found value.";
+            },
           };
         },
       },
@@ -351,7 +355,8 @@ describe("agent runner", () => {
     const result = await runner.run({ ...runInput(), tools: [toolConfig({ methodId: "lookup" }), toolConfig({ methodId: "send" })] });
 
     assert.equal(result.status, "success");
-    assert.deepEqual(modelCalls, ["plan"]);
+    assert.equal(result.output, "Sent the found value.");
+    assert.deepEqual(modelCalls, ["plan", "final"]);
     assert.deepEqual(calls, ["tool:1:lookup", "tool:1:send:found"]);
     assert.deepEqual(events.filter((event) => event.startsWith("agent:plan") || event === "agent:thinking"), [
       "agent:thinking",
@@ -361,6 +366,43 @@ describe("agent runner", () => {
       "agent:thinking",
       "agent:plan-end",
     ]);
+  });
+
+  it("skips final response generation when tool callers request raw output", async () => {
+    const modelCalls: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async invokeJson() {
+              modelCalls.push("plan");
+              return {
+                steps: [
+                  { id: "lookup", toolName: "lookup", params: {}, reason: "Lookup value." },
+                ],
+              };
+            },
+            async generateFinalResponse() {
+              modelCalls.push("final");
+              return "Should not happen.";
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [toolDefinition("lookup")],
+      },
+      toolExecutor: async () => ({ value: "raw" }),
+    });
+
+    const result = await runner.run({
+      ...runInput({ skipFinalResponseAfterToolUse: true }),
+      tools: [toolConfig()],
+    });
+
+    assert.deepEqual(modelCalls, ["plan"]);
+    assert.deepEqual(result.output, { lookup: { value: "raw" } });
   });
 
   it("emits agent:start and agent:end around successful runs", async () => {

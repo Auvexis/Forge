@@ -39,6 +39,7 @@ import {
 import { generateAgentPlan } from "./plan/agent-plan-generator.ts";
 import { executeAgentPlan } from "./plan/agent-plan-executor.ts";
 import { createAgentPlanRepairer } from "./plan/agent-plan-repairer.ts";
+import { generateAgentFinalResponse } from "./plan/agent-final-response-generator.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -335,15 +336,38 @@ export class AgentRunner {
         return repair ?? { params: repairInput.step.params };
       },
     });
+    const output = await this.finalOutputForPlanRun({
+      input: input.input,
+      model,
+      plan,
+      result,
+    });
 
     return {
       status: result.status === "cancelled" ? "cancelled" : result.status,
-      output: result.output as AgentRunResult["output"],
+      output,
       toolCallCount: result.toolCallCount,
       iterationCount: result.iterationCount,
       toolCalls: result.toolCalls,
       approvalId: result.approvalId,
     };
+  }
+
+  private async finalOutputForPlanRun(input: {
+    input: AgentRunInput;
+    model: ReturnType<typeof toPlanModel>;
+    plan: Awaited<ReturnType<typeof generateAgentPlan>>;
+    result: Awaited<ReturnType<typeof executeAgentPlan>>;
+  }): Promise<AgentRunResult["output"]> {
+    if (input.input.skipFinalResponseAfterToolUse) return input.result.output as AgentRunResult["output"];
+    if (input.result.status !== "success") return input.result.output as AgentRunResult["output"];
+
+    return generateAgentFinalResponse({
+      model: input.model,
+      userMessage: input.input.userMessage,
+      plan: input.plan,
+      execution: input.result,
+    });
   }
 }
 
@@ -351,6 +375,11 @@ function toPlanModel(model: unknown) {
   const candidate = model as {
     generatePlan?: (input: { messages: any[]; schema: Record<string, any> }) => Promise<any>;
     repairPlanStep?: (input: { messages: any[] }, schema?: Record<string, any>) => Promise<any>;
+    generateFinalResponse?: (input: { messages: any[] }) => Promise<string>;
+    invoke?: (
+      messages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>,
+      options?: { signal?: AbortSignal },
+    ) => Promise<{ content?: unknown } | string>;
     invokeJson?: <T extends object>(
       input: { messages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }> },
       schema?: Record<string, any>,
@@ -391,6 +420,20 @@ function toPlanModel(model: unknown) {
           ? candidate.repairPlanStep({ messages }, schema)
           : candidate.invokeJson!({ messages }, schema);
       },
+    generateFinalResponse: async (input: { messages: any[] }) => {
+      if (typeof candidate.generateFinalResponse === "function") return candidate.generateFinalResponse(input);
+      if (typeof candidate.invoke === "function") {
+        const response = await candidate.invoke(input.messages);
+        if (typeof response === "string") return response;
+        return typeof response?.content === "string" ? response.content : "";
+      }
+      throw new AgentRuntimeError(
+        "Agent model does not support final response generation",
+        "AGENT_MODEL_FINAL_UNSUPPORTED",
+        "Agent model cannot generate a final response",
+        500,
+      );
+    },
   };
 }
 
