@@ -113,20 +113,20 @@ Arquivos ja criados:
 
 ## Task 4 - Manifest Selection
 
-- [ ] Atualizar schema do loader para aceitar `agentTool.selection`.
-- [ ] Tipar em `SailorAgentToolDefinition`.
-- [ ] Propagar selection em `plugin-tool-adapter.ts`.
-- [ ] Propagar selection em `AgentToolRegistry.resolveConfiguredTools`.
-- [ ] Adicionar selection no Google Drive `listFiles`:
+- [x] Atualizar schema do loader para aceitar `agentTool.selection`.
+- [x] Tipar em `SailorAgentToolDefinition`.
+- [x] Propagar selection em `plugin-tool-adapter.ts`.
+- [x] Propagar selection em `AgentToolRegistry.resolveConfiguredTools`.
+- [x] Adicionar selection no Google Drive `listFiles`:
   - `path: "$"`
   - `labelFields: ["name"]`
   - `valueField: "id"`
   - `mode: "single"`
-- [ ] Adicionar teste de loader aceitando selection.
-- [ ] Adicionar teste de adapter propagando selection.
-- [ ] Sem heuristica por array sem manifest.
-- [ ] Rodar testes de loader/adapter/choice detector.
-- [ ] Commitar.
+- [x] Adicionar teste de loader aceitando selection.
+- [x] Adicionar teste de adapter propagando selection.
+- [x] Sem heuristica por array sem manifest.
+- [x] Rodar testes de loader/adapter/choice detector.
+- [x] Commitar.
 
 ## Task 5 - Approval No Executor Novo
 

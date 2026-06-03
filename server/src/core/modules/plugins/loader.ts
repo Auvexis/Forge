@@ -152,6 +152,21 @@ function buildSailorManifestSchema(): any {
         minimum: 1000,
         maximum: 120000,
       },
+      selection: {
+        type: "object",
+        required: ["path", "labelFields", "valueField", "mode"],
+        additionalProperties: false,
+        properties: {
+          path: { type: "string", minLength: 1 },
+          labelFields: {
+            type: "array",
+            minItems: 1,
+            items: { type: "string", minLength: 1 },
+          },
+          valueField: { type: "string", minLength: 1 },
+          mode: { enum: ["single", "multiple"] },
+        },
+      },
     },
     if: {
       properties: { enabled: { const: true } },

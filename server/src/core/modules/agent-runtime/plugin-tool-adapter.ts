@@ -1,5 +1,6 @@
 import { PluginManager } from "../plugins/manager.ts";
 import type { AgentToolSideEffect } from "./agent-types.ts";
+import type { AgentToolSelection } from "./plan/agent-plan-types.ts";
 
 export interface SailorAgentToolDefinition {
   name: string;
@@ -12,6 +13,7 @@ export interface SailorAgentToolDefinition {
   sideEffect: AgentToolSideEffect;
   requiresApproval: boolean;
   timeoutMs: number;
+  selection?: AgentToolSelection;
 }
 
 interface AgentToolManifestMetadata {
@@ -22,6 +24,7 @@ interface AgentToolManifestMetadata {
   sideEffect?: AgentToolSideEffect;
   requiresApproval?: boolean;
   timeoutMs?: number;
+  selection?: AgentToolSelection;
 }
 
 export function listPluginAgentTools(): SailorAgentToolDefinition[] {
@@ -78,6 +81,7 @@ function toToolDefinition(
     sideEffect: metadata.sideEffect ?? "read",
     requiresApproval: metadata.requiresApproval ?? metadata.sideEffect !== "read",
     timeoutMs: metadata.timeoutMs ?? 30000,
+    ...(metadata.selection ? { selection: metadata.selection } : {}),
   };
 }
 

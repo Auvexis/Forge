@@ -108,7 +108,15 @@
         "description": "List files and folders in Google Drive with optional filtering and sorting.",
         "sideEffect": "read",
         "requiresApproval": false,
-        "timeoutMs": 30000
+        "timeoutMs": 30000,
+        "selection": {
+          "path": "$",
+          "labelFields": [
+            "name"
+          ],
+          "valueField": "id",
+          "mode": "single"
+        }
       }
     },
     "getFileMetadata": {

@@ -95,6 +95,41 @@ describe("plugin tool adapter", () => {
     );
   });
 
+  it("propagates manifest selection metadata through adapter and registry", () => {
+    PluginManager.registerPlugin(createPlugin({
+      manifest: createManifest({
+        selection: {
+          path: "$",
+          labelFields: ["name"],
+          valueField: "id",
+          mode: "single",
+        },
+      }),
+    } as Partial<SailorPlugin>));
+
+    const [listed] = listPluginAgentTools();
+    const registry = new AgentToolRegistry();
+    const [resolved] = registry.resolveConfiguredTools([
+      {
+        type: "ai-tool",
+        name: "Create issue",
+        pluginId: "github",
+        methodId: "createIssue",
+        timeoutMs: 30000,
+        requiresApproval: true,
+        sideEffect: "write",
+      },
+    ]);
+
+    assert.deepEqual(listed.selection, {
+      path: "$",
+      labelFields: ["name"],
+      valueField: "id",
+      mode: "single",
+    });
+    assert.deepEqual(resolved.selection, listed.selection);
+  });
+
   it("rejects write/delete configured tools when policy requires approval", () => {
     PluginManager.registerPlugin(createPlugin({
       manifest: createManifest({
