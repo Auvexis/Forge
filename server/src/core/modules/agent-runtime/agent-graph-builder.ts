@@ -2,7 +2,6 @@ import { Ajv } from "ajv/dist/ajv.js";
 import { AgentBinaryRefStore } from "./agent-binary-ref-store.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import { AGENT_LIMITS } from "./agent-limits.ts";
-import { buildAgentToolCatalog } from "./agent-tool-catalog.ts";
 import type {
   AgentEventType,
   AgentRunResult,
@@ -57,14 +56,6 @@ interface InvokableModel {
   bindTools?: (tools: unknown[]) => InvokableModel;
 }
 
-interface JsonPlanningModel extends InvokableModel {
-  invokeJson<T extends object>(
-    input: { messages: AgentGraphMessage[] },
-    schema?: Record<string, any>,
-    options?: ModelInvocationOptions,
-  ): Promise<T>;
-}
-
 interface ModelInvocationOptions {
   signal?: AbortSignal;
 }
@@ -95,27 +86,6 @@ interface ToolResultSummary {
   options?: unknown[];
 }
 
-interface CompactToolPlan {
-  action: "call_tool" | "ask_user" | "final";
-  toolName?: string;
-  reason?: string;
-  question?: string;
-  options?: unknown[];
-  message?: string;
-}
-
-interface CompactJsonToolLoopInput {
-  graphInput: BuildAgentGraphInput;
-  invokeInput: AgentGraphInvokeInput;
-  model: JsonPlanningModel;
-  tools: Map<string, InvokableTool>;
-  configuredTools: InvokableTool[];
-  messages: AgentGraphMessage[];
-  binaryRefs: AgentBinaryRefStore;
-  completedToolCalls: AgentRunToolCall[];
-  toolHistory: Map<string, ToolResultSummary>;
-}
-
 const ajv = new Ajv({ allErrors: true, strict: false });
 const LARGE_BASE64_MIN_CHARS = 64_000;
 const MAX_MODEL_TOOL_RESULT_BYTES = Math.min(AGENT_LIMITS.maxToolResultBytes, 64_000);
@@ -124,19 +94,6 @@ const MAX_MODEL_OBJECT_KEYS = 80;
 const MAX_MODEL_STRING_CHARS = 600;
 const MAX_MODEL_RESULT_DEPTH = 8;
 const MAX_ACTIVE_MODEL_TOOLS = 8;
-const TOOL_PLAN_SCHEMA = {
-  type: "object",
-  required: ["action"],
-  properties: {
-    action: { enum: ["call_tool", "ask_user", "final"] },
-    toolName: { type: "string" },
-    reason: { type: "string" },
-    question: { type: "string" },
-    options: { type: "array" },
-    message: { type: "string" },
-  },
-  additionalProperties: false,
-};
 
 export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
   const configuredTools = input.tools.map(asTool);
@@ -159,20 +116,6 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
       const toolHistory = new Map<string, ToolResultSummary>();
 
       try {
-        if (configuredTools.length > 0 && isJsonPlanningModel(baseModel)) {
-          return await invokeCompactJsonToolLoop({
-            graphInput: input,
-            invokeInput,
-            model: baseModel,
-            tools,
-            configuredTools,
-            messages,
-            binaryRefs,
-            completedToolCalls,
-            toolHistory,
-          });
-        }
-
         for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
           input.onEvent?.({ type: "agent:model-start", payload: { iteration, input: summarizeModelInput(messages) } });
 
@@ -376,245 +319,6 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
   };
 }
 
-async function invokeCompactJsonToolLoop(input: CompactJsonToolLoopInput): Promise<AgentRunResult> {
-  let toolCallCount = 0;
-  const toolResults: AgentGraphMessage[] = [];
-
-  for (let iteration = 1; iteration <= input.graphInput.agent.maxIterations; iteration += 1) {
-    input.graphInput.onEvent?.({
-      type: "agent:model-start",
-      payload: { iteration, mode: "compact-json", input: summarizeModelInput(input.messages) },
-    });
-
-    const plan = await input.model.invokeJson<CompactToolPlan>({
-      messages: buildCompactPlannerMessages(input.graphInput.agent, input.invokeInput, input.configuredTools, toolResults),
-    }, TOOL_PLAN_SCHEMA, modelInvocationOptions(input.graphInput));
-
-    input.graphInput.onEvent?.({
-      type: "agent:model-end",
-      payload: { iteration, toolCallCount: plan.action === "call_tool" ? 1 : 0, output: plan.message ?? "" },
-    });
-
-    if (plan.action === "final") {
-      return {
-        status: "success",
-        output: parseOutput(input.graphInput.agent, plan.message ?? ""),
-        iterationCount: iteration,
-        toolCallCount,
-        ...(input.completedToolCalls.length > 0 ? { toolCalls: input.completedToolCalls } : {}),
-      };
-    }
-
-    if (plan.action === "ask_user") {
-      return {
-        status: "waiting-user",
-        output: {
-          status: "waiting-user",
-          reason: "needs_user",
-          question: plan.question ?? "I need more information to continue.",
-          ...(plan.options?.length ? { options: plan.options } : {}),
-        },
-        iterationCount: iteration,
-        toolCallCount,
-        ...(input.completedToolCalls.length > 0 ? { toolCalls: input.completedToolCalls } : {}),
-      };
-    }
-
-    const toolName = plan.toolName;
-    const tool = toolName ? input.tools.get(toolName) : undefined;
-    if (!toolName || !tool) {
-      throw new AgentRuntimeError(
-        `Unknown agent tool: ${toolName ?? ""}`,
-        "AGENT_TOOL_UNKNOWN",
-        "Agent requested an unavailable tool",
-        400,
-      );
-    }
-
-    if (toolCallCount >= input.graphInput.agent.maxToolCalls) {
-      throw new AgentRuntimeError(
-        "Agent exceeded max tool calls",
-        "AGENT_MAX_TOOL_CALLS_EXCEEDED",
-        "Agent exceeded the maximum number of tool calls",
-        400,
-      );
-    }
-
-    const plannedToolCall: AgentToolCall = {
-      id: `tool_call_${toolCallCount + 1}`,
-      name: tool.name,
-      args: {},
-    };
-    emitToolIntent(input.graphInput, tool, plannedToolCall);
-    await yieldToEventLoop();
-
-    const toolCall: AgentToolCall = {
-      ...plannedToolCall,
-      args: await generateValidatedToolArgs(input, tool, plan, toolResults),
-    };
-    const resolvedArgs = resolveBinaryRefsInToolArgs(toolCall.args, input.binaryRefs);
-    const toolSignature = toolCallSignature(tool.name, resolvedArgs);
-    const previousResult = input.toolHistory.get(toolSignature);
-    if (previousResult && shouldStopRepeatedToolCall(previousResult)) {
-      return {
-        status: "waiting-user",
-        output: waitingUserOutputForRepeatedTool(tool.name, previousResult),
-        iterationCount: iteration,
-        toolCallCount,
-        ...(input.completedToolCalls.length > 0 ? { toolCalls: input.completedToolCalls } : {}),
-      };
-    }
-
-    if (shouldExecuteToolImmediately(input.graphInput, tool)) {
-      emitToolStart(input.graphInput, tool, toolCall);
-      await yieldToEventLoop();
-    }
-
-    let result: unknown;
-    try {
-      result = await invokeToolWithRetry(input.graphInput, tool, toolCall, resolvedArgs);
-    } catch (error) {
-      if (error instanceof AgentToolApprovalRequiredError) throw error;
-      const errorMessage = safeErrorMessage(error);
-      emitToolEnd(input.graphInput, tool, toolCall, { status: "failed", error: errorMessage });
-      input.completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "failed"));
-      input.toolHistory.set(toolSignature, { resultClass: "failed" });
-      if (isUnrecoverablePermissionOrCredentialError(errorMessage)) {
-        toolCallCount += 1;
-        return {
-          status: "waiting-user",
-          output: waitingUserOutputForUnrecoverableToolError(tool.name, errorMessage),
-          iterationCount: iteration,
-          toolCallCount,
-          toolCalls: input.completedToolCalls,
-        };
-      }
-      throw error;
-    }
-
-    toolCallCount += 1;
-    const modelSafeResult = sanitizeToolResultForModel(result, toolCall.id, input.binaryRefs);
-    const compactResult = compactToolResultForModel(modelSafeResult);
-    const toolSummary = summarizeToolResult(compactResult);
-    input.toolHistory.set(toolSignature, toolSummary);
-    emitToolEnd(input.graphInput, tool, toolCall, { status: "success", output: compactResult });
-    input.completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "success"));
-    await yieldToEventLoop();
-
-    if (shouldAskUserAfterToolResult(toolSummary.resultClass)) {
-      return {
-        status: "waiting-user",
-        output: waitingUserOutputForRepeatedTool(tool.name, toolSummary),
-        iterationCount: iteration,
-        toolCallCount,
-        toolCalls: input.completedToolCalls,
-      };
-    }
-
-    toolResults.push({
-      role: "tool",
-      name: tool.name,
-      tool_call_id: toolCall.id,
-      content: stringifyToolResult(compactResult),
-    });
-  }
-
-  throw new AgentRuntimeError(
-    "Agent exceeded max iterations",
-    "AGENT_MAX_ITERATIONS_EXCEEDED",
-    "Agent exceeded the maximum number of iterations",
-    400,
-  );
-}
-
-async function generateValidatedToolArgs(
-  input: CompactJsonToolLoopInput,
-  tool: InvokableTool,
-  plan: CompactToolPlan,
-  toolResults: AgentGraphMessage[],
-): Promise<unknown> {
-  let lastError = "";
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
-    const args = await input.model.invokeJson<Record<string, any>>({
-      messages: buildToolParameterMessages(input.graphInput.agent, input.invokeInput, tool, plan, toolResults, lastError),
-    }, tool.inputSchema ?? { type: "object", properties: {} }, modelInvocationOptions(input.graphInput));
-    const error = validateToolArgsAgainstSchema(tool, args);
-    if (!error) return args;
-    lastError = error;
-    emitToolRetry(input.graphInput, tool, { id: `tool_call_pending_${attempt}`, name: tool.name, args }, "Invalid tool parameters. Retrying with the selected tool schema.");
-  }
-
-  throw new AgentRuntimeError(
-    `Model returned invalid tool parameters for ${tool.name}: ${lastError}`,
-    "AGENT_TOOL_ARGS_INVALID",
-    "Model returned invalid tool parameters",
-    400,
-  );
-}
-
-function buildCompactPlannerMessages(
-  agent: AiAgentNodeConfig,
-  invokeInput: AgentGraphInvokeInput,
-  tools: InvokableTool[],
-  toolResults: AgentGraphMessage[],
-): AgentGraphMessage[] {
-  return [
-    {
-      role: "system",
-      content: [
-        agent.prompt,
-        "Plan the next agent action using this compact tool catalog.",
-        "Return JSON only with action: call_tool, ask_user, or final.",
-        "For call_tool, return only toolName and reason. Do not generate tool parameters here.",
-        `Tools: ${JSON.stringify(buildAgentToolCatalog(tools))}`,
-      ].join("\n\n"),
-    },
-    ...(invokeInput.contextMessages ?? []),
-    { role: "user", content: invokeInput.userMessage },
-    ...toolResults.map((message) => ({
-      role: "system" as const,
-      content: `Previous tool result from ${message.name}: ${message.content}`,
-    })),
-  ];
-}
-
-function buildToolParameterMessages(
-  agent: AiAgentNodeConfig,
-  invokeInput: AgentGraphInvokeInput,
-  tool: InvokableTool,
-  plan: CompactToolPlan,
-  toolResults: AgentGraphMessage[],
-  lastError: string,
-): AgentGraphMessage[] {
-  return [
-    {
-      role: "system",
-      content: [
-        agent.prompt,
-        `Generate JSON parameters for exactly one tool: ${tool.name}.`,
-        `Reason: ${plan.reason ?? ""}`,
-        `Tool description: ${tool.description ?? tool.name}`,
-        tool.instructions ? `Tool instructions: ${tool.instructions}` : "",
-        `Tool schema: ${JSON.stringify(tool.inputSchema ?? { type: "object", properties: {} })}`,
-        lastError ? `Previous parameter error: ${lastError}` : "",
-        "Return only one JSON object with parameters for this tool.",
-      ].filter(Boolean).join("\n\n"),
-    },
-    ...(invokeInput.contextMessages ?? []),
-    { role: "user", content: invokeInput.userMessage },
-    ...toolResults.map((message) => ({
-      role: "system" as const,
-      content: `Previous tool result from ${message.name}: ${message.content}`,
-    })),
-  ];
-}
-
-function validateToolArgsAgainstSchema(tool: InvokableTool, args: unknown): string {
-  const validate = ajv.compile(tool.inputSchema ?? { type: "object", properties: {} });
-  if (validate(args)) return "";
-  return ajv.errorsText(validate.errors);
-}
-
 function yieldToEventLoop(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve));
 }
@@ -756,10 +460,6 @@ function asModel(value: unknown): InvokableModel {
     );
   }
   return value as InvokableModel;
-}
-
-function isJsonPlanningModel(value: InvokableModel): value is JsonPlanningModel {
-  return typeof (value as Partial<JsonPlanningModel>).invokeJson === "function";
 }
 
 function canAttemptStreamTextResponse(

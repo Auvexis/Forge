@@ -167,14 +167,14 @@ Arquivos ja criados:
 
 ## Task 7 - Remover Loop Antigo
 
-- [ ] Remover `invokeCompactJsonToolLoop`.
-- [ ] Remover parameterizacao por LLM a cada tool.
-- [ ] Remover retry baseado em nova chamada de modelo por tool.
-- [ ] Remover hacks de repeated search do graph antigo quando substituidos por choice detector.
-- [ ] Manter somente utilitarios ainda usados ou mover para plan modules.
-- [ ] Ajustar testes antigos para novo contrato.
-- [ ] Rodar `agent-graph-builder.test.ts` ou remover testes obsoletos com substitutos no plan executor.
-- [ ] Commitar.
+- [x] Remover `invokeCompactJsonToolLoop`.
+- [x] Remover parameterizacao por LLM a cada tool.
+- [x] Remover retry baseado em nova chamada de modelo por tool.
+- [x] Remover hacks de repeated search do graph antigo quando substituidos por choice detector.
+- [x] Manter somente utilitarios ainda usados ou mover para plan modules.
+- [x] Ajustar testes antigos para novo contrato.
+- [x] Rodar `agent-graph-builder.test.ts` ou remover testes obsoletos com substitutos no plan executor.
+- [x] Commitar.
 
 ## Task 8 - Ollama Adapter Novo
 
