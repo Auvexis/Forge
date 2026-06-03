@@ -440,9 +440,16 @@ async function invokeCompactJsonToolLoop(input: CompactJsonToolLoopInput): Promi
       );
     }
 
-    const toolCall: AgentToolCall = {
+    const plannedToolCall: AgentToolCall = {
       id: `tool_call_${toolCallCount + 1}`,
       name: tool.name,
+      args: {},
+    };
+    emitToolIntent(input.graphInput, tool, plannedToolCall);
+    await yieldToEventLoop();
+
+    const toolCall: AgentToolCall = {
+      ...plannedToolCall,
       args: await generateValidatedToolArgs(input, tool, plan, toolResults),
     };
     const resolvedArgs = resolveBinaryRefsInToolArgs(toolCall.args, input.binaryRefs);
@@ -458,8 +465,6 @@ async function invokeCompactJsonToolLoop(input: CompactJsonToolLoopInput): Promi
       };
     }
 
-    emitToolIntent(input.graphInput, tool, toolCall);
-    await yieldToEventLoop();
     if (shouldExecuteToolImmediately(input.graphInput, tool)) {
       emitToolStart(input.graphInput, tool, toolCall);
       await yieldToEventLoop();

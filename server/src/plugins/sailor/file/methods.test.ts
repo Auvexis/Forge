@@ -22,4 +22,26 @@ describe("sailor file plugin methods", () => {
       format: "base64",
     });
   });
+
+  it("converts nested download file objects by reading their content field", async () => {
+    const file = Buffer.from("pdf");
+
+    const result = await createMethods().convertFile({
+      input: {
+        download: {
+          fileName: "andresimoes-curriculo-estagio.pdf",
+          mimeType: "application/pdf",
+          content: file,
+        },
+      },
+      fromFormat: "buffer",
+      toFormat: "base64",
+    });
+
+    assert.deepEqual(result, {
+      result: file.toString("base64"),
+      sizeBytes: file.length,
+      format: "base64",
+    });
+  });
 });

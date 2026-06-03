@@ -150,5 +150,7 @@ function extractFileContent(input: any): any {
   if (input.buffer) return input.buffer;
   if (input.content) return input.content;
   if (input.file) return input.file;
+  if (input.download) return extractFileContent(input.download);
+  if (input.result) return extractFileContent(input.result);
   return input;
 }

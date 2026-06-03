@@ -1127,6 +1127,58 @@ describe("agent graph builder", () => {
     assert.equal((convertFile.calls[0] as { input?: unknown }).input, file);
   });
 
+  it("emits compact JSON tool intent before slow parameter generation", async () => {
+    let releaseParameterizer!: () => void;
+    let jsonCallCount = 0;
+    const events: string[] = [];
+    const model = {
+      async invoke() {
+        return { content: "" };
+      },
+      async invokeJson() {
+        jsonCallCount += 1;
+        if (jsonCallCount === 1) {
+          events.push("planner-called");
+          return { action: "call_tool", toolName: "download", reason: "Download the selected file." };
+        }
+        if (jsonCallCount === 2) {
+          events.push("parameterizer-started");
+          await new Promise<void>((resolve) => {
+            releaseParameterizer = resolve;
+          });
+          events.push("parameterizer-finished");
+          return { fileId: "file_1" };
+        }
+        return { action: "final", message: "done" };
+      },
+    };
+    const download = {
+      ...fakeTool("download", async () => ({ ok: true })),
+      inputSchema: {
+        type: "object",
+        required: ["fileId"],
+        properties: { fileId: { type: "string" } },
+      },
+    };
+    const graph = buildAgentGraph({
+      agent: agentConfig({ maxIterations: 2, maxToolCalls: 1 }),
+      model,
+      tools: [download],
+      onEvent(event) {
+        if (event.type === "agent:tool-intent") events.push("tool-intent");
+      },
+    });
+
+    const invocation = graph.invoke({ userMessage: "download curriculo.pdf" });
+    for (let attempt = 0; attempt < 5 && !events.includes("parameterizer-started"); attempt += 1) {
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+
+    assert.deepEqual(events, ["planner-called", "tool-intent", "parameterizer-started"]);
+    releaseParameterizer();
+    await invocation;
+  });
+
   it("uses invoke instead of streaming when tools are configured", async () => {
     const model = fakeStreamModel(["he", { content: "llo" }], { invokeContent: "done" });
     const graph = buildAgentGraph({
