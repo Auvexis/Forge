@@ -27,8 +27,6 @@ export interface AgentPanelRoutesOptions {
 type AgentPanelScope = "current" | "global";
 type MemoryMode = DeleteAgentPanelSessionInput["memoryMode"];
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
-const TOOL_PROGRESS_INITIAL_DELAY_MS = 80;
-const TOOL_PROGRESS_STEP_DELAY_MS = 120;
 const pendingAgentPanelStreams = new Map<string, PendingAgentPanelStream>();
 
 interface PendingAgentPanelStream {
@@ -314,7 +312,6 @@ async function streamAgentPanelMessage(
   };
   const queueProgressEvent = (event: Record<string, unknown>) => {
     progressQueue = progressQueue.then(async () => {
-      await delay(progressEventCount === 0 ? TOOL_PROGRESS_INITIAL_DELAY_MS : TOOL_PROGRESS_STEP_DELAY_MS);
       progressEventCount += 1;
       writeStreamEvent(reply, event);
       if (event.type === "progress") {

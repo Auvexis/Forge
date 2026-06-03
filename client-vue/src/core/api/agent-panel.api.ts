@@ -43,8 +43,11 @@ export const agentPanelApi = {
       body: payload,
     }),
 
-  sendMessageStream: (sessionId: string, payload: SendAgentPanelMessagePayload) =>
-    streamAgentPanelEvents(sessionId, payload),
+  sendMessageStream: (
+    sessionId: string,
+    payload: SendAgentPanelMessagePayload,
+    options: { signal?: AbortSignal } = {},
+  ) => streamAgentPanelEvents(sessionId, payload, options),
 
   approveToolCallStream: (approvalId: string, payload: AgentApprovalDecisionPayload) =>
     streamApprovalContinuation(approvalId, payload),
@@ -76,22 +79,31 @@ export const agentPanelApi = {
 async function startMessageStream(
   sessionId: string,
   payload: SendAgentPanelMessagePayload,
+  options: { signal?: AbortSignal } = {},
 ): Promise<{ streamId: string }> {
   return apiRequest<{ streamId: string }>(ENDPOINTS.AGENT_PANEL_SESSION_MESSAGES_STREAM_START(sessionId), {
     method: 'POST',
     body: payload,
+    signal: options.signal,
   })
 }
 
 async function* streamAgentPanelEvents(
   sessionId: string,
   payload: SendAgentPanelMessagePayload,
+  options: { signal?: AbortSignal } = {},
 ): AsyncGenerator<AgentPanelStreamEvent> {
-  const { streamId } = await startMessageStream(sessionId, payload)
+  const { streamId } = await startMessageStream(sessionId, payload, options)
   const eventSource = new EventSource(`${API_BASE_URL}${ENDPOINTS.AGENT_PANEL_SESSION_MESSAGES_STREAM_EVENTS(sessionId, streamId)}`)
   const queue: AgentPanelStreamEvent[] = []
   let notify: (() => void) | null = null
   let closed = false
+  const abortStream = () => {
+    closed = true
+    notify?.()
+    notify = null
+    eventSource.close()
+  }
 
   eventSource.onmessage = (message) => {
     const event = JSON.parse(message.data) as AgentPanelStreamEvent
@@ -109,6 +121,7 @@ async function* streamAgentPanelEvents(
     notify = null
     eventSource.close()
   }
+  options.signal?.addEventListener('abort', abortStream, { once: true })
 
   try {
     while (!closed || queue.length > 0) {
@@ -128,6 +141,7 @@ async function* streamAgentPanelEvents(
     }
   } finally {
     closed = true
+    options.signal?.removeEventListener('abort', abortStream)
     eventSource.close()
   }
 }

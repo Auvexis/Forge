@@ -863,13 +863,14 @@ function toolIntentBonuses(tool: InvokableTool): Array<[string, number]> {
     tool.methodId ?? "",
   ].join(" "));
   const bonuses: Array<[string, number]> = [];
-  if (text.includes("drive")) bonuses.push(["drive", 5], ["pdf", 2], ["document", 2]);
-  if (text.includes("gmail") || text.includes("email")) bonuses.push(["email", 5], ["mail", 4], ["send", 2]);
+  if (text.includes("file") || text.includes("folder")) bonuses.push(["file", 3], ["files", 3], ["document", 2], ["pdf", 2]);
+  if (text.includes("email") || text.includes("mail")) bonuses.push(["email", 5], ["mail", 4]);
+  if (text.includes("send") || text.includes("message")) bonuses.push(["send", 3], ["sent", 2], ["deliver", 2], ["forward", 2], ["message", 2]);
   if (text.includes("download")) bonuses.push(["download", 5], ["retrieve", 3], ["fetch", 3]);
   if (text.includes("list")) bonuses.push(["find", 4], ["search", 4], ["list", 4], ["lookup", 3]);
   if (text.includes("upload")) bonuses.push(["upload", 4]);
-  if (text.includes("youtube")) bonuses.push(["youtube", 5], ["video", 3]);
-  if (text.includes("discord")) bonuses.push(["discord", 5]);
+  if (text.includes("video")) bonuses.push(["video", 3]);
+  if (text.includes("channel")) bonuses.push(["channel", 3]);
   if (text.includes("sheet")) bonuses.push(["sheet", 5], ["sheets", 5], ["spreadsheet", 5]);
   return bonuses;
 }
@@ -892,22 +893,22 @@ function reminderForUnmetToolIntent(
 ): string | null {
   const requestText = normalizeToolSearchText(userMessage);
   const completedNames = new Set(completedToolCalls.map((toolCall) => toolCall.name));
-  const emailTool = tools.find((tool) =>
-    isEmailSendTool(tool) &&
+  const pendingSideEffectTool = tools.find((tool) =>
+    isRequestedSideEffectTool(tool, requestText) &&
     !completedNames.has(tool.name)
   );
-  if (emailTool && hasEmailSendIntent(requestText)) {
+  if (pendingSideEffectTool) {
     return [
-      `The user requested an email send, but ${emailTool.name} has not been called yet.`,
-      "Do not provide a final answer until the email send tool is called, approval is requested, or you need missing information from the user.",
-      "Use the downloaded file reference from previous tool results as the attachment when available.",
+      `The user requested an external action, but ${pendingSideEffectTool.name} has not been called yet.`,
+      "Do not provide a final answer until the requested side-effect tool is called, approval is requested, or you need missing information from the user.",
+      "Use relevant file references from previous tool results when the selected tool accepts them.",
     ].join(" ");
   }
 
   return null;
 }
 
-function isEmailSendTool(tool: InvokableTool): boolean {
+function isRequestedSideEffectTool(tool: InvokableTool, requestText: string): boolean {
   const text = normalizeToolSearchText([
     tool.name,
     tool.description ?? "",
@@ -915,19 +916,20 @@ function isEmailSendTool(tool: InvokableTool): boolean {
     tool.pluginName ?? "",
     tool.methodId ?? "",
   ].join(" "));
-  return (text.includes("gmail") || text.includes("email")) &&
-    (text.includes("send") || text.includes("message"));
-}
-
-function hasEmailSendIntent(requestText: string): boolean {
-  if (/[^\s@]+@[^\s@]+\.[^\s@]+/.test(requestText)) return true;
-  return (requestText.includes("email") || requestText.includes("mail")) &&
-    (
-      requestText.includes("send") ||
-      requestText.includes("sent") ||
-      requestText.includes("deliver") ||
-      requestText.includes("forward")
-    );
+  const looksLikeExternalAction =
+    Boolean(tool.sideEffect || tool.requiresApproval) ||
+    text.includes("send") ||
+    text.includes("message") ||
+    text.includes("email") ||
+    text.includes("mail") ||
+    text.includes("create") ||
+    text.includes("update") ||
+    text.includes("delete") ||
+    text.includes("upload");
+  if (!looksLikeExternalAction) return false;
+  if (toolIntentBonuses(tool).some(([needle]) => requestText.includes(needle))) return true;
+  const requestTokens = new Set(requestText.split(" "));
+  return text.split(" ").filter(isUsefulToolSearchToken).some((token) => requestTokens.has(token));
 }
 
 function isUsefulToolSearchToken(token: string): boolean {

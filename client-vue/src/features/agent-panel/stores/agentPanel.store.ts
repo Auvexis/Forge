@@ -32,6 +32,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   const agentScope = ref<AgentPanelScope>('global')
   const agentSearch = ref('')
   const directoryCollapsed = ref(false)
+  let activeStreamAbortController: AbortController | null = null
 
   const selectedAgent = computed(
     () => agents.value.find((agent) => agent.key === selectedAgentKey.value) ?? null,
@@ -343,6 +344,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     activeAssistantStreamId.value = ''
     appendOptimisticUserMessage(localSessionId, text)
     sending.value = true
+    activeStreamAbortController = new AbortController()
     chatError.value = ''
     error.value = ''
     try {
@@ -358,7 +360,11 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
       appendPendingAssistantMessage(selectedSessionId.value)
       let result = null as Awaited<ReturnType<typeof agentPanelApi.sendMessage>> | null
-      for await (const event of agentPanelApi.sendMessageStream(selectedSessionId.value, { message: text })) {
+      for await (const event of agentPanelApi.sendMessageStream(
+        selectedSessionId.value,
+        { message: text },
+        { signal: activeStreamAbortController.signal },
+      )) {
         if (event.type === 'start') {
           activeExecutionId.value = event.executionId
           appendPendingAssistantMessage(selectedSessionId.value)
@@ -376,10 +382,12 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       messages.value = mergeStableLocalTurn(messages.value, result.messages, result.session.id)
       sessions.value = [result.session, ...sessions.value.filter((session) => session.id !== result.session.id)]
     } catch (err) {
+      if (activeStreamAbortController?.signal.aborted) return
       chatError.value = err instanceof Error ? err.message : 'Agent message failed'
       error.value = chatError.value
       toastError(chatError.value, 'Agent execution failed')
     } finally {
+      activeStreamAbortController = null
       activeAssistantStreamId.value = ''
       activeExecutionId.value = ''
       sending.value = false
@@ -387,9 +395,11 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   }
 
   async function cancelActiveExecution() {
-    if (!sending.value || !activeExecutionId.value) return
+    if (!sending.value) return
+    const executionId = activeExecutionId.value
+    activeStreamAbortController?.abort()
     try {
-      await agentPanelApi.cancelExecution(activeExecutionId.value)
+      if (executionId) await agentPanelApi.cancelExecution(executionId)
       appendStreamingAssistantMessage(selectedSessionId.value, 'Cancelled.')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to cancel agent execution'

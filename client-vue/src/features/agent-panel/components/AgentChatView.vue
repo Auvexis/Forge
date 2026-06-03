@@ -177,7 +177,7 @@
             <AgentChatComposer
               mode="hero"
               :sending="store.sending"
-              :cancelable="Boolean(store.activeExecutionId)"
+              :cancelable="store.sending"
               @send="store.sendMessage"
               @cancel="store.cancelActiveExecution"
             />
@@ -191,7 +191,7 @@
           v-if="store.messages.length && !composerRetiring"
           mode="dock"
           :sending="store.sending"
-          :cancelable="Boolean(store.activeExecutionId)"
+          :cancelable="store.sending"
           @send="store.sendMessage"
           @cancel="store.cancelActiveExecution"
         />

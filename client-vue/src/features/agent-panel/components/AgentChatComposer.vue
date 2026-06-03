@@ -38,15 +38,15 @@
         Voice
       </BaseButton>
       <BaseButton
-        :type="props.sending && props.cancelable ? 'button' : 'submit'"
+        :type="props.sending ? 'button' : 'submit'"
         class="agent-chat-composer__send"
-        :variant="props.sending && props.cancelable ? 'outline' : 'primary'"
+        :variant="props.sending ? 'outline' : 'primary'"
         size="sm"
-        :icon-left="props.sending && props.cancelable ? 'square' : 'arrow-up'"
-        :disabled="props.sending ? !props.cancelable : !draft.trim()"
-        @click="props.sending && props.cancelable ? emit('cancel') : undefined"
+        :icon-left="props.sending ? 'square' : 'arrow-up'"
+        :disabled="props.sending ? false : !draft.trim()"
+        @click="props.sending ? emit('cancel') : undefined"
       >
-        {{ props.sending && props.cancelable ? 'Stop' : 'Send' }}
+        {{ props.sending ? 'Stop' : 'Send' }}
       </BaseButton>
     </div>
   </form>
@@ -65,7 +65,7 @@ const props = withDefaults(
     mode?: 'dock' | 'hero'
   }>(),
   {
-    cancelable: false,
+    cancelable: true,
     mode: 'dock',
   },
 )
