@@ -3,8 +3,8 @@ import type {
   AgentModelAdapter,
   AgentModelInvokeInput,
   AgentModelMessage,
-  AgentToolPlan,
 } from "./agent-model-adapter.ts";
+import type { AgentPlan, AgentStepRepair } from "../plan/agent-plan-types.ts";
 
 type FetchLike = (url: string | URL, init?: RequestInit) => Promise<Response>;
 
@@ -56,8 +56,16 @@ export class OllamaAdapter implements AgentModelAdapter {
     }
   }
 
-  invokeToolPlan(input: AgentModelInvokeInput, schema?: Record<string, any>): Promise<AgentToolPlan> {
-    return this.invokeJson<AgentToolPlan>(input, schema);
+  generatePlan(input: AgentModelInvokeInput, schema?: Record<string, any>): Promise<AgentPlan> {
+    return this.invokeJson<AgentPlan>(input, schema);
+  }
+
+  repairPlanStep(input: AgentModelInvokeInput, schema?: Record<string, any>): Promise<AgentStepRepair> {
+    return this.invokeJson<AgentStepRepair>(input, schema);
+  }
+
+  generateFinalResponse(input: AgentModelInvokeInput): Promise<string> {
+    return this.invokeText(input);
   }
 
   createChatModel(input: Omit<AgentModelInvokeInput, "messages">): {
@@ -67,6 +75,20 @@ export class OllamaAdapter implements AgentModelAdapter {
       schema?: Record<string, any>,
       options?: { signal?: AbortSignal },
     ): Promise<T>;
+    generatePlan(
+      planInput: { messages: AgentModelMessage[] },
+      schema?: Record<string, any>,
+      options?: { signal?: AbortSignal },
+    ): Promise<AgentPlan>;
+    repairPlanStep(
+      repairInput: { messages: AgentModelMessage[] },
+      schema?: Record<string, any>,
+      options?: { signal?: AbortSignal },
+    ): Promise<AgentStepRepair>;
+    generateFinalResponse(
+      finalInput: { messages: AgentModelMessage[] },
+      options?: { signal?: AbortSignal },
+    ): Promise<string>;
   } {
     return {
       invoke: async (messages, options) => ({
@@ -74,6 +96,12 @@ export class OllamaAdapter implements AgentModelAdapter {
       }),
       invokeJson: async (jsonInput, schema, options) =>
         this.invokeJson({ ...input, messages: jsonInput.messages, abortSignal: options?.signal ?? input.abortSignal }, schema),
+      generatePlan: async (planInput, schema, options) =>
+        this.generatePlan({ ...input, messages: planInput.messages, abortSignal: options?.signal ?? input.abortSignal }, schema),
+      repairPlanStep: async (repairInput, schema, options) =>
+        this.repairPlanStep({ ...input, messages: repairInput.messages, abortSignal: options?.signal ?? input.abortSignal }, schema),
+      generateFinalResponse: async (finalInput, options) =>
+        this.generateFinalResponse({ ...input, messages: finalInput.messages, abortSignal: options?.signal ?? input.abortSignal }),
     };
   }
 

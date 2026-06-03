@@ -178,17 +178,17 @@ Arquivos ja criados:
 
 ## Task 8 - Ollama Adapter Novo
 
-- [ ] Atualizar `agent-model-adapter.ts`.
-- [ ] Adicionar metodos:
+- [x] Atualizar `agent-model-adapter.ts`.
+- [x] Adicionar metodos:
   - `generatePlan`
   - `repairPlanStep`
   - `generateFinalResponse`
-- [ ] Refatorar `ollama-adapter.ts` para esses metodos.
-- [ ] Remover semantica de `invokeToolPlan` do loop antigo.
-- [ ] Testar JSON invalido em cada chamada.
-- [ ] Testar schema format enviado ao Ollama.
-- [ ] Rodar `ollama-adapter.test.ts`.
-- [ ] Commitar.
+- [x] Refatorar `ollama-adapter.ts` para esses metodos.
+- [x] Remover semantica de `invokeToolPlan` do loop antigo.
+- [x] Testar JSON invalido em cada chamada.
+- [x] Testar schema format enviado ao Ollama.
+- [x] Rodar `ollama-adapter.test.ts`.
+- [x] Commitar.
 
 ## Task 9 - Chat File Store
 

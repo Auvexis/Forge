@@ -1,3 +1,5 @@
+import type { AgentPlan, AgentStepRepair } from "../plan/agent-plan-types.ts";
+
 export interface AgentModelMessage {
   role: "system" | "user" | "assistant" | "tool";
   content: string;
@@ -17,17 +19,10 @@ export interface AgentModelInvokeInput {
   abortSignal?: AbortSignal;
 }
 
-export interface AgentToolPlan {
-  action: "call_tool" | "ask_user" | "final";
-  toolName?: string;
-  reason?: string;
-  question?: string;
-  options?: unknown[];
-  message?: string;
-}
-
 export interface AgentModelAdapter {
   invokeText(input: AgentModelInvokeInput): Promise<string>;
   invokeJson<T extends object>(input: AgentModelInvokeInput, schema?: Record<string, any>): Promise<T>;
-  invokeToolPlan(input: AgentModelInvokeInput, schema?: Record<string, any>): Promise<AgentToolPlan>;
+  generatePlan(input: AgentModelInvokeInput, schema?: Record<string, any>): Promise<AgentPlan>;
+  repairPlanStep(input: AgentModelInvokeInput, schema?: Record<string, any>): Promise<AgentStepRepair>;
+  generateFinalResponse(input: AgentModelInvokeInput): Promise<string>;
 }

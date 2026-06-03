@@ -349,12 +349,14 @@ export class AgentRunner {
 
 function toPlanModel(model: unknown) {
   const candidate = model as {
+    generatePlan?: (input: { messages: any[]; schema: Record<string, any> }) => Promise<any>;
+    repairPlanStep?: (input: { messages: any[] }, schema?: Record<string, any>) => Promise<any>;
     invokeJson?: <T extends object>(
       input: { messages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }> },
       schema?: Record<string, any>,
     ) => Promise<T>;
   };
-  if (typeof candidate.invokeJson !== "function") {
+  if (typeof candidate.generatePlan !== "function" && typeof candidate.invokeJson !== "function") {
     throw new AgentRuntimeError(
       "Agent model does not support structured plan generation",
       "AGENT_MODEL_PLAN_UNSUPPORTED",
@@ -365,7 +367,9 @@ function toPlanModel(model: unknown) {
 
   return {
     generatePlan: (input: { messages: any[]; schema: Record<string, any> }) =>
-      candidate.invokeJson!(input, input.schema),
+      typeof candidate.generatePlan === "function"
+        ? candidate.generatePlan(input)
+        : candidate.invokeJson!(input, input.schema),
     repairPlanStep: (input: {
       plan: unknown;
       step: unknown;
@@ -373,19 +377,20 @@ function toPlanModel(model: unknown) {
       outputs: Record<string, unknown>;
       schema: Record<string, any>;
     }) =>
-      candidate.invokeJson!(
-        {
-          messages: [
-            { role: "system", content: "Return JSON only with { params }. Repair only the failed tool parameters." },
-            { role: "user", content: JSON.stringify(input) },
-          ],
-        },
-        {
+      {
+        const messages = [
+          { role: "system", content: "Return JSON only with { params }. Repair only the failed tool parameters." },
+          { role: "user", content: JSON.stringify(input) },
+        ];
+        const schema = {
           type: "object",
           required: ["params"],
           properties: { params: { type: "object" } },
-        },
-      ),
+        };
+        return typeof candidate.repairPlanStep === "function"
+          ? candidate.repairPlanStep({ messages }, schema)
+          : candidate.invokeJson!({ messages }, schema);
+      },
   };
 }
 
