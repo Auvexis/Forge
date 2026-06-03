@@ -230,6 +230,15 @@ describe('agent panel modal contract', () => {
     assert.doesNotMatch(chat, /agent-chat-view__thinking/)
   })
 
+  it('keeps global agent chat idle on the GPU after progress rows are rendered', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const modal = readFileSync('src/shared/components/base/BaseModal.vue', 'utf8')
+
+    assert.doesNotMatch(chat, /agent-progress-spin/)
+    assert.doesNotMatch(chat, /agent-chat-view__progress--running svg[\s\S]*animation:/)
+    assert.doesNotMatch(modal, /backdrop-filter/)
+  })
+
   it('lets users cancel an active global agent execution from the composer', () => {
     const composer = readFileSync(
       'src/features/agent-panel/components/AgentChatComposer.vue',

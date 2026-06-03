@@ -91,17 +91,14 @@ export function createMethods() {
       const from = params.fromFormat || "utf8";
       const to = params.toFormat || "base64";
 
+      const input = extractFileContent(params.input);
       let buf: Buffer;
-      if (from === "buffer" && Buffer.isBuffer(params.input)) {
-        buf = params.input;
-      } else if (from === "buffer" && params.input && params.input.type === "Buffer" && Array.isArray(params.input.data)) {
-        // Handle JSON serialized buffers
-        buf = Buffer.from(params.input.data);
-      } else if (from === "buffer" && params.input && params.input.buffer && Buffer.isBuffer(params.input.buffer)) {
-        // Handle trigger object format from forms
-        buf = params.input.buffer;
-      } else if (typeof params.input === "string") {
-        buf = Buffer.from(params.input, from as BufferEncoding);
+      if (from === "buffer" && Buffer.isBuffer(input)) {
+        buf = input;
+      } else if (from === "buffer" && input && input.type === "Buffer" && Array.isArray(input.data)) {
+        buf = Buffer.from(input.data);
+      } else if (typeof input === "string") {
+        buf = Buffer.from(input, from as BufferEncoding);
       } else {
         throw new Error("Invalid input or format. Input must be a string or Buffer.");
       }
@@ -145,4 +142,13 @@ export function createMethods() {
       };
     }
   };
+}
+
+function extractFileContent(input: any): any {
+  if (!input || typeof input !== "object" || Buffer.isBuffer(input)) return input;
+  if (input.type === "Buffer" && Array.isArray(input.data)) return input;
+  if (input.buffer) return input.buffer;
+  if (input.content) return input.content;
+  if (input.file) return input.file;
+  return input;
 }

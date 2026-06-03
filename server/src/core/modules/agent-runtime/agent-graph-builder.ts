@@ -1450,7 +1450,11 @@ function resolveBinaryRefsInToolArgs(value: unknown, binaryRefs: AgentBinaryRefS
 
 function shouldResolveAgentRefAsRawValue(keyHint: string): boolean {
   const key = keyHint.trim().toLowerCase();
-  return key === "content" || key === "buffer" || key === "data" || key === "contentbase64";
+  return key === "input" ||
+    key === "content" ||
+    key === "buffer" ||
+    key === "data" ||
+    key === "contentbase64";
 }
 
 function resolveStoredBinaryRef(stored: {

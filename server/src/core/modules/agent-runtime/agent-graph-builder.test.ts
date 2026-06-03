@@ -1077,6 +1077,56 @@ describe("agent graph builder", () => {
     assert.equal(attachment?.content, file);
   });
 
+  it("resolves binary refs in generic input fields as raw file content", async () => {
+    const file = Buffer.from("pdf");
+    const model = fakeJsonPlanningModel([
+      { action: "call_tool", toolName: "download", reason: "Download the selected file." },
+      { fileId: "file_1" },
+      { action: "call_tool", toolName: "convert_file", reason: "Convert the downloaded file." },
+      {
+        input: "agent-ref://tool_call_1/download/content",
+        fromFormat: "buffer",
+        toFormat: "base64",
+      },
+      { action: "final", message: "converted" },
+    ]);
+    const download = {
+      ...fakeTool("download", async () => ({
+        download: {
+          fileName: "curriculo.pdf",
+          mimeType: "application/pdf",
+          content: file,
+        },
+      })),
+      inputSchema: {
+        type: "object",
+        required: ["fileId"],
+        properties: { fileId: { type: "string" } },
+      },
+    };
+    const convertFile = {
+      ...fakeTool("convert_file", async () => ({ ok: true })),
+      inputSchema: {
+        type: "object",
+        required: ["input", "toFormat"],
+        properties: {
+          input: { type: ["string", "object"] },
+          fromFormat: { type: "string" },
+          toFormat: { type: "string" },
+        },
+      },
+    };
+    const graph = buildAgentGraph({
+      agent: agentConfig({ maxIterations: 5 }),
+      model,
+      tools: [download, convertFile],
+    });
+
+    await graph.invoke({ userMessage: "download curriculo.pdf and convert it" });
+
+    assert.equal((convertFile.calls[0] as { input?: unknown }).input, file);
+  });
+
   it("uses invoke instead of streaming when tools are configured", async () => {
     const model = fakeStreamModel(["he", { content: "llo" }], { invokeContent: "done" });
     const graph = buildAgentGraph({

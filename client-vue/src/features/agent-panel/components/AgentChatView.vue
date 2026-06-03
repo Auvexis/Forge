@@ -833,17 +833,17 @@ async function deleteSession(sessionId: string) {
   padding: 0;
 }
 
-.agent-chat-view__progress--running svg,
-.agent-chat-view__progress--retrying svg {
-  animation: agent-progress-spin 0.9s linear infinite;
-}
-
 .agent-chat-view__progress--success {
   color: var(--sailor-green-600);
 }
 
 .agent-chat-view__progress--failed {
   color: var(--sailor-red-600);
+}
+
+.agent-chat-view__progress--running,
+.agent-chat-view__progress--retrying {
+  color: var(--sailor-text-secondary);
 }
 
 .agent-chat-view__plugin-icon {
@@ -958,12 +958,6 @@ async function deleteSession(sessionId: string) {
   40% {
     opacity: 1;
     transform: translateY(-3px);
-  }
-}
-
-@keyframes agent-progress-spin {
-  to {
-    transform: rotate(360deg);
   }
 }
 
