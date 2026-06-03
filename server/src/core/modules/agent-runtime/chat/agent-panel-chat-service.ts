@@ -10,9 +10,11 @@ import type { AgentChatMessage } from "./chat-message-repository.ts";
 import { ChatMessageRepository } from "./chat-message-repository.ts";
 import type { AgentChatSession } from "./chat-session-repository.ts";
 import { ChatSessionRepository } from "./chat-session-repository.ts";
+import { AgentChatFileStore } from "./agent-chat-file-store.ts";
 import { WorkflowEngine } from "../../workflows/executor.ts";
 import { WorkflowRepository } from "../../workflows/repository.ts";
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
+import { sailorHomePaths } from "../../../runtime/sailor-home.ts";
 
 export interface CreateAgentPanelSessionInput {
   profileId: string;
@@ -43,6 +45,7 @@ export interface DeleteAgentPanelSessionInput {
 
 export interface AgentPanelChatServiceOptions {
   db?: Database.Database;
+  chatFileStore?: AgentChatFileStore;
   workflowRepository?: AgentPanelWorkflowRepository;
   workflowEngine?: Pick<typeof WorkflowEngine, "executeWorkflowFromTrigger">;
 }
@@ -58,16 +61,22 @@ interface ResolvedPublishedAgent {
 
 export class AgentPanelChatService {
   private readonly db: Database.Database;
-  private readonly sessions: ChatSessionRepository;
-  private readonly messages: ChatMessageRepository;
+  private readonly sessions: Pick<ChatSessionRepository, "create" | "getById" | "listByAgentKey" | "touch" | "delete">;
+  private readonly messages: Pick<ChatMessageRepository, "append" | "listBySession">;
   private readonly workflowRepository: Pick<typeof WorkflowRepository, "getActiveWorkflows" | "getWorkflows">;
   private readonly workflowEngine: Pick<typeof WorkflowEngine, "executeWorkflowFromTrigger">;
 
   constructor(options: AgentPanelChatServiceOptions = {}) {
     this.workflowRepository = options.workflowRepository ?? WorkflowRepository;
     this.db = options.db ?? resolveWorkflowDatabase(this.workflowRepository);
-    this.sessions = new ChatSessionRepository(this.db);
-    this.messages = new ChatMessageRepository(this.db);
+    if (options.db) {
+      this.sessions = new ChatSessionRepository(this.db);
+      this.messages = new ChatMessageRepository(this.db);
+    } else {
+      const fileStore = options.chatFileStore ?? new AgentChatFileStore({ profilesDir: sailorHomePaths.profilesDir });
+      this.sessions = fileStore;
+      this.messages = fileStore;
+    }
     this.workflowEngine = options.workflowEngine ?? WorkflowEngine;
   }
 

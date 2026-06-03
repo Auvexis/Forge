@@ -192,20 +192,20 @@ Arquivos ja criados:
 
 ## Task 9 - Chat File Store
 
-- [ ] Criar `AgentChatFileStore`.
-- [ ] Salvar chats em:
+- [x] Criar `AgentChatFileStore`.
+- [x] Salvar chats em:
   - `profiles/<profileId>/chats/<chatId>/chat.json`
-- [ ] Criar pasta do chat ao criar session.
-- [ ] Estrutura minima:
+- [x] Criar pasta do chat ao criar session.
+- [x] Estrutura minima:
   - `session`
   - `messages`
   - `executions`
   - `updatedAt`
-- [ ] Remover dependencia de `agent_chat_sessions` e `agent_chat_messages` para novos chats.
-- [ ] Nao precisa migrar chats antigos.
-- [ ] Delete chat remove pasta do chat.
-- [ ] Testar create/list/get/append/delete.
-- [ ] Commitar.
+- [x] Remover dependencia de `agent_chat_sessions` e `agent_chat_messages` para novos chats.
+- [x] Nao precisa migrar chats antigos.
+- [x] Delete chat remove pasta do chat.
+- [x] Testar create/list/get/append/delete.
+- [x] Commitar.
 
 ## Task 10 - Short Term Memory Por Chat
 

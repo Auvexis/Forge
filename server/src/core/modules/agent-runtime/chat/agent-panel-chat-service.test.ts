@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import Database from "better-sqlite3";
 import { createMigrationEngine } from "../../../database/migration-engine.ts";
@@ -10,6 +13,7 @@ import {
 } from "../../workflows/repository.ts";
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 import { AgentPanelChatService } from "./agent-panel-chat-service.ts";
+import { AgentChatFileStore } from "./agent-chat-file-store.ts";
 
 describe("agent panel chat service", () => {
   let appDb: Database.Database | null = null;
@@ -52,8 +56,10 @@ describe("agent panel chat service", () => {
     assert.equal(session.agentKey, "profile_a:workflow_agent:chat_trigger:agent");
   });
 
-  it("uses the active profile workflow database for panel sessions by default", async () => {
-    const service = new AgentPanelChatService();
+  it("uses the file store for panel sessions when no chat database is injected", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-panel-chat-"));
+    const store = new AgentChatFileStore({ profilesDir: path.join(root, "profiles") });
+    const service = new AgentPanelChatService({ chatFileStore: store });
 
     const session = await service.createSession({
       profileId: "profile_a",
@@ -64,7 +70,8 @@ describe("agent panel chat service", () => {
     const row = workflowDb!
       .prepare(`SELECT id FROM agent_chat_sessions WHERE id = ?`)
       .get(session.id) as { id: string } | undefined;
-    assert.equal(row?.id, session.id);
+    assert.equal(row, undefined);
+    assert.equal(store.getSession("profile_a", session.id)?.id, session.id);
   });
 
   it("sends messages with targetAgentNodeId and previous transcript", async () => {
