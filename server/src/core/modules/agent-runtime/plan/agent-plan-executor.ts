@@ -14,6 +14,7 @@ export interface ExecuteAgentPlanInput {
   tools: AgentPlanTool[];
   emitEvent: (event: AgentPlanEvent) => void;
   repairStep?: (input: {
+    plan: AgentPlan;
     step: AgentPlanStep;
     tool: AgentPlanTool;
     error: unknown;
@@ -97,7 +98,7 @@ async function tryRepairStep(
   outputs: Record<string, unknown>,
 ): Promise<AgentStepRepair | null> {
   if (!input.repairStep || !isParameterError(error)) return null;
-  return input.repairStep({ step, tool, error, outputs });
+  return input.repairStep({ plan: input.plan, step, tool, error, outputs });
 }
 
 function isParameterError(error: unknown): boolean {

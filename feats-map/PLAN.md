@@ -86,30 +86,30 @@ Arquivos ja criados:
 
 ## Task 3 - Agent Plan Repairer
 
-- [ ] Criar `agent-plan-repairer.test.ts`.
-- [ ] Criar `AgentPlanRepairer`.
-- [ ] Repairer recebe:
+- [x] Criar `agent-plan-repairer.test.ts`.
+- [x] Criar `AgentPlanRepairer`.
+- [x] Repairer recebe:
   - plano original
   - step que falhou
   - erro exato
   - outputs anteriores
   - schema da tool
-- [ ] Repairer retorna somente patch de params.
-- [ ] Repairer so roda para erro reparavel:
+- [x] Repairer retorna somente patch de params.
+- [x] Repairer so roda para erro reparavel:
   - schema/params invalidos
   - valor ausente
   - ref resolvida como `undefined`
-- [ ] Repairer nao roda para:
+- [x] Repairer nao roda para:
   - auth
   - permission
   - approval rejected
   - not found irreparavel
-- [ ] Limite: 1 repair por step.
-- [ ] Emitir/salvar:
+- [x] Limite: 1 repair por step.
+- [x] Emitir/salvar:
   - `Analyzing errors`
   - `Creating new parameters`
-- [ ] Rodar teste focado.
-- [ ] Commitar.
+- [x] Rodar teste focado.
+- [x] Commitar.
 
 ## Task 4 - Manifest Selection
 
