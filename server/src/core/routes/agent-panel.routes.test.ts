@@ -8,6 +8,14 @@ import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { workflowEventBus } from "../modules/workflows/event-bus.ts";
 
 describe("agent panel routes", () => {
+  it("cancels active stream executions when the client connection closes", () => {
+    const source = readFileSync("src/core/routes/agent-panel.routes.ts", "utf8");
+
+    assert.match(source, /CancellationRegistry\.cancel\(executionId\)/);
+    assert.match(source, /let streamFinished = false/);
+    assert.match(source, /if \(!streamFinished\) CancellationRegistry\.cancel\(executionId\)/);
+  });
+
   it("exposes agent panel endpoints with API envelopes", async () => {
     const calls: string[] = [];
     const app = await buildApp({

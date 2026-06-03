@@ -317,6 +317,25 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     ]
   }
 
+  function clearActiveAssistantPlaceholder() {
+    const streamId = activeAssistantStreamId.value
+    if (!streamId) return
+    messages.value = messages.value.filter((message) => {
+      if (message.id !== streamId) return true
+      const content = normalizeAssistantContent(message.content)
+      return Boolean(content.text.trim())
+    }).map((message) => {
+      if (message.id !== streamId) return message
+      return {
+        ...message,
+        content: {
+          ...normalizeAssistantContent(message.content),
+          pending: false,
+        },
+      }
+    })
+  }
+
   function createAssistantStreamId(sessionId: string): string {
     return `local-assistant-stream-${sessionId}-${Date.now()}`
   }
@@ -383,6 +402,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       sessions.value = [result.session, ...sessions.value.filter((session) => session.id !== result.session.id)]
     } catch (err) {
       if (activeStreamAbortController?.signal.aborted) return
+      clearActiveAssistantPlaceholder()
       chatError.value = err instanceof Error ? err.message : 'Agent message failed'
       error.value = chatError.value
       toastError(chatError.value, 'Agent execution failed')
@@ -407,10 +427,20 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       error.value = message
       useToast().error(message, 'Agent cancellation failed')
     } finally {
+      clearActiveAssistantPlaceholder()
       activeExecutionId.value = ''
       sending.value = false
       activeAssistantStreamId.value = ''
     }
+  }
+
+  function disposeActiveExecution() {
+    activeStreamAbortController?.abort()
+    clearActiveAssistantPlaceholder()
+    activeStreamAbortController = null
+    activeExecutionId.value = ''
+    sending.value = false
+    activeAssistantStreamId.value = ''
   }
 
   async function approveApproval(approval: AgentPanelApprovalContent) {
@@ -592,5 +622,6 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     rejectApproval,
     sendMessage,
     cancelActiveExecution,
+    disposeActiveExecution,
   }
 })

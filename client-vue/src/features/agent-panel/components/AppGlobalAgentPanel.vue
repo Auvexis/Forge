@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :is-open="ui.isOpen" max-width="1380px" height="86vh" @close="ui.close">
+  <BaseModal :is-open="ui.isOpen" max-width="1380px" height="86vh" @close="closePanel">
     <section
       class="global-agent-panel"
       aria-label="Global agent panel"
@@ -25,6 +25,11 @@ const agentStore = useAgentPanelStore()
 const profileStore = useProfileStore()
 const workflowStore = useWorkflowStore()
 
+function closePanel() {
+  agentStore.disposeActiveExecution()
+  ui.close()
+}
+
 watch(
   () => [
     ui.isOpen,
@@ -36,6 +41,7 @@ watch(
     workflowStore.activeWorkflow?.metadata.updatedAt,
   ] as const,
   ([isOpen]) => {
+    if (!isOpen) agentStore.disposeActiveExecution()
     if (isOpen) void agentStore.loadAgents('global')
   },
   { immediate: true },

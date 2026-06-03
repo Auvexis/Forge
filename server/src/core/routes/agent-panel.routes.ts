@@ -4,6 +4,7 @@ import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
 import { AgentRuntimeError, serializeAgentError } from "../modules/agent-runtime/agent-errors.ts";
 import { workflowEventBus, type WorkflowEvent } from "../modules/workflows/event-bus.ts";
+import { CancellationRegistry } from "../modules/workflows/cancellation-registry.ts";
 import {
   AgentPanelChatService,
   type DeleteAgentPanelSessionInput,
@@ -399,8 +400,10 @@ async function streamAgentPanelMessage(
     }
   });
   const heartbeat = setInterval(() => reply.raw.write(": heartbeat\n\n"), 15000);
+  let streamFinished = false;
 
   req.raw.on("close", () => {
+    if (!streamFinished) CancellationRegistry.cancel(executionId);
     unsubscribe();
     clearInterval(heartbeat);
   });
@@ -452,6 +455,7 @@ async function streamAgentPanelMessage(
       : { code: "AGENT_RUNTIME_ERROR", message: safeErrorMessage(error) };
     writeStreamEvent(reply, { type: "error", ...serialized });
   } finally {
+    streamFinished = true;
     unsubscribe();
     clearInterval(heartbeat);
     setTimeout(() => reply.raw.end(), 100);
