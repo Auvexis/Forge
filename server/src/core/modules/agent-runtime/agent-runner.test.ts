@@ -488,6 +488,42 @@ describe("agent runner", () => {
     assert.match(String(result.output), /Send email messages/);
   });
 
+  it("answers English tool availability questions without planning or executing tools", async () => {
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async invokeJson() {
+              throw new Error("Planner should not run for English tool catalog questions.");
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [
+          toolDefinition("google_drive_list_files", {
+            pluginName: "Google Drive",
+            description: "List Drive files",
+          }),
+        ],
+      },
+      toolExecutor: async () => {
+        throw new Error("Tool should not be called for English catalog questions.");
+      },
+    });
+
+    const result = await runner.run({
+      ...runInput({ userMessage: "Hi, what tools do you have available to use?" }),
+      tools: [toolConfig({ methodId: "listFiles" })],
+    });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.toolCallCount, 0);
+    assert.match(String(result.output), /Google Drive/);
+    assert.match(String(result.output), /List Drive files/);
+  });
+
   it("emits agent:start and agent:end around successful runs", async () => {
     const events: string[] = [];
     const runner = new AgentRunner({

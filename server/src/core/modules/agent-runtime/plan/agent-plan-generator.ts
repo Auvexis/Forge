@@ -39,7 +39,7 @@ function buildPlanPrompt(tools: AgentPlanTool[]): string {
   const catalog = tools.map((tool) => ({
     name: tool.name,
     description: tool.description,
-    inputSchema: compactSchema(tool.inputSchema),
+    instructions: tool.instructions ?? tool.description,
   }));
 
   return [
@@ -53,14 +53,6 @@ function buildPlanPrompt(tools: AgentPlanTool[]): string {
     "- $steps.<stepId>[0].<field>",
     JSON.stringify({ tools: catalog }),
   ].join("\n");
-}
-
-function compactSchema(schema: Record<string, any>): Record<string, any> {
-  return {
-    type: schema.type,
-    properties: schema.properties,
-    required: schema.required,
-  };
 }
 
 function validateGeneratedPlan(plan: AgentPlan, tools: AgentPlanTool[]): AgentPlan {

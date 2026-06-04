@@ -619,7 +619,9 @@ function isToolCatalogQuestion(message: string): boolean {
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase();
   const asksAboutTools = /\b(ferramentas?|tools?|acoes|capacidades|recursos)\b/.test(normalized);
-  const asksAccess = /\b(voce|vc|tem|acesso|pode|consegue|disponiveis?|lista|quais|qual)\b/.test(normalized);
+  const asksAccess =
+    /\b(voce|vc|tem|acesso|pode|consegue|disponiveis?|lista|quais|qual)\b/.test(normalized) ||
+    /\b(what|which|available|access|use|usable|can|do|have|list)\b/.test(normalized);
   return asksAboutTools && asksAccess;
 }
 

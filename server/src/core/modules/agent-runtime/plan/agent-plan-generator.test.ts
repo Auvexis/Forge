@@ -113,16 +113,41 @@ describe("agent plan generator", () => {
         !String(error.message).includes("trim is not a function"),
     );
   });
+
+  it("sends only tool names and instructions in the planner catalog", async () => {
+    let prompt = "";
+    await generateAgentPlan({
+      model: {
+        generatePlan: async (input) => {
+          prompt = input.messages.map((message) => message.content).join("\n");
+          return { steps: [] };
+        },
+      },
+      userMessage: "Find my files",
+      tools: [
+        tool("google_drive_list_files", "List Drive files", { query: { type: "string" } }, "Use this to list files."),
+      ],
+    });
+
+    assert.match(prompt, /google_drive_list_files/);
+    assert.match(prompt, /Use this to list files/);
+    assert.doesNotMatch(prompt, /inputSchema/);
+    assert.doesNotMatch(prompt, /properties/);
+    assert.doesNotMatch(prompt, /required/);
+    assert.doesNotMatch(prompt, /query/);
+  });
 });
 
 function tool(
   name: string,
   description = name,
   properties: Record<string, unknown> = {},
+  instructions?: string,
 ): AgentPlanTool {
   return {
     name,
     description,
+    instructions,
     pluginId: "plugin",
     methodId: name,
     inputSchema: { type: "object", properties },
