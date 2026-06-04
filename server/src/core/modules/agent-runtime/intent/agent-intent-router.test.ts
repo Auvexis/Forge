@@ -1,0 +1,108 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { routeAgentIntent, type AgentIntentModel } from "./agent-intent-router.ts";
+import type { AgentIntentTool } from "./agent-intent-router.ts";
+
+describe("agent intent router", () => {
+  it("routes greetings in any language to chat without tool planning", async () => {
+    const model: AgentIntentModel = {
+      routeIntent: async () => ({ mode: "chat", reason: "Greeting.", confidence: 0.95, answer: "Boa noite!" }),
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Boa noite!",
+      contextMessages: [],
+      tools: [],
+    });
+
+    assert.equal(decision.mode, "chat");
+    assert.equal(decision.answer, "Boa noite!");
+  });
+
+  it("routes external action requests to tool_plan", async () => {
+    const model: AgentIntentModel = {
+      routeIntent: async () => ({ mode: "tool_plan", reason: "Needs Drive and Gmail.", confidence: 0.91 }),
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Send my CV from Drive to email@example.com",
+      contextMessages: [],
+      tools: [tool("google_drive_list_files", "List files", "Find files in Drive", "read")],
+    });
+
+    assert.equal(decision.mode, "tool_plan");
+  });
+
+  it("does not send schemas or plugin internals to the router prompt", async () => {
+    let prompt = "";
+    const model: AgentIntentModel = {
+      routeIntent: async (input) => {
+        prompt = input.messages.map((message) => message.content).join("\n");
+        return { mode: "chat", reason: "Catalog question.", confidence: 0.9, answer: "Tools listed." };
+      },
+    };
+
+    await routeAgentIntent({
+      model,
+      userMessage: "What can you do?",
+      contextMessages: [{ role: "assistant", content: "Hello" }],
+      tools: [tool("drive", "Drive", "List files", "read", {
+        inputSchema: { properties: { query: { type: "string" } } },
+        manifest: { credentials: "secret" },
+      })],
+    });
+
+    assert.match(prompt, /drive/);
+    assert.match(prompt, /List files/);
+    assert.doesNotMatch(prompt, /inputSchema|properties|required|query|credential|manifest|secret/i);
+  });
+
+  it("falls back to chat when router confidence is low", async () => {
+    const model: AgentIntentModel = {
+      routeIntent: async () => ({ mode: "tool_plan", reason: "Unsure.", confidence: 0.2 }),
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Maybe later",
+      contextMessages: [],
+      tools: [tool("drive", "Drive", "List files", "read")],
+    });
+
+    assert.equal(decision.mode, "chat");
+  });
+
+  it("falls back to chat when the router returns invalid output", async () => {
+    const model: AgentIntentModel = {
+      routeIntent: async () => ({ nope: true }),
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Hola",
+      contextMessages: [],
+      tools: [],
+    });
+
+    assert.equal(decision.mode, "chat");
+    assert.match(decision.answer ?? "", /Hola/);
+  });
+});
+
+function tool(
+  name: string,
+  description: string,
+  instructions: string,
+  sideEffect: AgentIntentTool["sideEffect"],
+  extras: Record<string, unknown> = {},
+): AgentIntentTool {
+  return {
+    name,
+    description,
+    instructions,
+    sideEffect,
+    ...extras,
+  };
+}
