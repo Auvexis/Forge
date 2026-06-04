@@ -95,6 +95,14 @@ Resultado Task 2:
 - Backend build passou:
   - `cd server && npm run build`
 
+## Task 4 - Bugfix Loop Decision
+
+- [x] Criar teste reproduzindo resposta de loop com aliases comuns do modelo.
+- [x] Aceitar `tool_call`, `tool`, `arguments`, `input`, `final_answer` e `message`.
+- [x] Manter erro claro quando a decisao nao for parseavel.
+- [x] Rodar testes focados do loop/runner.
+- [x] Commitar.
+
 Proximas 5 tasks sugeridas:
 1. Finalizar `agent-panel.routes.ts` passando `executionMode` ate `AgentPanelChatService.sendMessage`.
 2. Atualizar `AgentPanelChatService` para colocar `executionMode` no trigger payload.

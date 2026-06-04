@@ -172,20 +172,53 @@ function normalizeDecision(decision: unknown): AgentLoopDecision {
     throw invalidDecision();
   }
   const value = decision as Record<string, unknown>;
-  if (value.action !== "tool" && value.action !== "final") throw invalidDecision();
-  if (value.action === "tool") {
-    if (typeof value.toolName !== "string" || !value.toolName.trim()) throw invalidDecision();
-    if (!value.params || typeof value.params !== "object" || Array.isArray(value.params)) throw invalidDecision();
+  const action = normalizeAction(value);
+  if (action !== "tool" && action !== "final") throw invalidDecision();
+  if (action === "final") {
+    return {
+      action,
+      response: firstString(value.response, value.final_answer, value.finalAnswer, value.message, value.content),
+      reason: firstString(value.reason, value.thought),
+    };
   }
+
+  const toolName = firstString(value.toolName, value.tool_name, value.tool, value.name);
+  const params = firstRecord(value.params, value.arguments, value.args, value.input);
+  if (!toolName || !params) throw invalidDecision();
+
   return {
-    action: value.action,
-    toolName: typeof value.toolName === "string" ? value.toolName : undefined,
-    params: value.params && typeof value.params === "object" && !Array.isArray(value.params)
-      ? value.params as Record<string, unknown>
-      : undefined,
-    response: typeof value.response === "string" ? value.response : undefined,
-    reason: typeof value.reason === "string" ? value.reason : undefined,
+    action,
+    toolName,
+    params,
+    reason: firstString(value.reason, value.thought),
   };
+}
+
+function normalizeAction(value: Record<string, unknown>): AgentLoopDecision["action"] | null {
+  if (value.action === "tool" || value.action === "final") return value.action;
+  if (value.type === "tool_call" || value.type === "tool" || value.tool || value.toolName || value.tool_name) {
+    return "tool";
+  }
+  if (
+    value.type === "final" ||
+    value.type === "answer" ||
+    typeof value.final_answer === "string" ||
+    typeof value.finalAnswer === "string" ||
+    typeof value.message === "string"
+  ) {
+    return "final";
+  }
+  return null;
+}
+
+function firstString(...values: unknown[]): string | undefined {
+  const value = values.find((item) => typeof item === "string" && item.trim());
+  return typeof value === "string" ? value.trim() : undefined;
+}
+
+function firstRecord(...values: unknown[]): Record<string, unknown> | undefined {
+  const value = values.find((item) => item && typeof item === "object" && !Array.isArray(item));
+  return value as Record<string, unknown> | undefined;
 }
 
 function invalidDecision(): AgentRuntimeError {

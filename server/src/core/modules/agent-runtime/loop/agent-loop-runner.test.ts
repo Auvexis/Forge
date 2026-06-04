@@ -57,6 +57,48 @@ describe("agent loop runner", () => {
     assert.match(modelPrompts[2] ?? "", /"type":"buffer"/);
     assert.doesNotMatch(modelPrompts[2] ?? "", /a{100}/);
   });
+
+  it("accepts common model aliases for loop tool and final decisions", async () => {
+    const decisions = [
+      {
+        type: "tool_call",
+        tool: "search_files",
+        arguments: { query: "andresimoes", mimeType: "application/pdf" },
+        thought: "Find the resume.",
+      },
+      {
+        final_answer: "Curriculo enviado.",
+      },
+    ];
+    const toolArgs: unknown[] = [];
+
+    const result = await runAgentLoop({
+      userMessage: "Procure pelo meu curriculo pdf chamado andresimoes no drive e depois baixe e envie por email para vaurvik@gmail.com",
+      contextMessages: [],
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+        },
+        async invokeJson() {
+          return decisions.shift() as any;
+        },
+        async generateFinalResponse() {
+          return "Curriculo enviado.";
+        },
+      },
+      tools: [
+        tool("search_files", async (args) => {
+          toolArgs.push(args);
+          return [{ id: "file_1", name: "andresimoes.pdf" }];
+        }),
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "Curriculo enviado.");
+    assert.deepEqual(toolArgs, [{ query: "andresimoes", mimeType: "application/pdf" }]);
+  });
 });
 
 function tool(name: string, invoke: AgentPlanTool["invoke"]): AgentPlanTool {
