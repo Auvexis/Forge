@@ -150,7 +150,9 @@ function buildLoopMessages(input: RunAgentLoopInput, history: AgentLoopHistoryIt
       content: [
         "Run the user's request one step at a time.",
         "Return JSON only.",
-        "Use action=tool to call one tool, or action=final to answer the user.",
+        "For a tool call, return exactly: {\"action\":\"tool\",\"toolName\":\"tool_name\",\"params\":{},\"reason\":\"short reason\"}.",
+        "For the final answer, return exactly: {\"action\":\"final\",\"response\":\"short answer\"}.",
+        "Call only one tool per response. After a tool result, decide the next tool or final answer.",
         "Do not include binary, base64, blob, or file contents in params.",
         "Use only these tools:",
         JSON.stringify(input.tools.map((tool) => ({
@@ -171,7 +173,7 @@ function normalizeDecision(decision: unknown): AgentLoopDecision {
   if (!decision || typeof decision !== "object" || Array.isArray(decision)) {
     throw invalidDecision();
   }
-  const value = decision as Record<string, unknown>;
+  const value = unwrapDecision(decision as Record<string, unknown>);
   const action = normalizeAction(value);
   if (action !== "tool" && action !== "final") throw invalidDecision();
   if (action === "final") {
@@ -182,8 +184,22 @@ function normalizeDecision(decision: unknown): AgentLoopDecision {
     };
   }
 
-  const toolName = firstString(value.toolName, value.tool_name, value.tool, value.name);
-  const params = firstRecord(value.params, value.arguments, value.args, value.input);
+  const functionCall = firstRecord(value.function, value.function_call);
+  const toolName = firstString(
+    value.toolName,
+    value.tool_name,
+    value.tool,
+    value.name,
+    functionCall?.name,
+  );
+  const params = firstRecord(
+    value.params,
+    value.parameters,
+    value.arguments,
+    value.args,
+    value.input,
+    parseJsonRecord(functionCall?.arguments),
+  );
   if (!toolName || !params) throw invalidDecision();
 
   return {
@@ -196,7 +212,15 @@ function normalizeDecision(decision: unknown): AgentLoopDecision {
 
 function normalizeAction(value: Record<string, unknown>): AgentLoopDecision["action"] | null {
   if (value.action === "tool" || value.action === "final") return value.action;
-  if (value.type === "tool_call" || value.type === "tool" || value.tool || value.toolName || value.tool_name) {
+  if (
+    value.type === "tool_call" ||
+    value.type === "tool" ||
+    value.tool ||
+    value.toolName ||
+    value.tool_name ||
+    value.function ||
+    value.function_call
+  ) {
     return "tool";
   }
   if (
@@ -211,6 +235,17 @@ function normalizeAction(value: Record<string, unknown>): AgentLoopDecision["act
   return null;
 }
 
+function unwrapDecision(value: Record<string, unknown>): Record<string, unknown> {
+  const step = firstRecord(firstArrayItem(value.steps));
+  if (step) return step;
+
+  const toolCall = firstRecord(firstArrayItem(value.tool_calls), firstArrayItem(value.toolCalls));
+  if (toolCall) return toolCall;
+
+  const nested = firstRecord(value.decision, value.next, value.next_action, value.tool_call, value.toolCall);
+  return nested ?? value;
+}
+
 function firstString(...values: unknown[]): string | undefined {
   const value = values.find((item) => typeof item === "string" && item.trim());
   return typeof value === "string" ? value.trim() : undefined;
@@ -219,6 +254,20 @@ function firstString(...values: unknown[]): string | undefined {
 function firstRecord(...values: unknown[]): Record<string, unknown> | undefined {
   const value = values.find((item) => item && typeof item === "object" && !Array.isArray(item));
   return value as Record<string, unknown> | undefined;
+}
+
+function firstArrayItem(value: unknown): unknown {
+  return Array.isArray(value) ? value[0] : undefined;
+}
+
+function parseJsonRecord(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== "string") return undefined;
+  try {
+    const parsed = JSON.parse(value);
+    return firstRecord(parsed);
+  } catch {
+    return undefined;
+  }
 }
 
 function invalidDecision(): AgentRuntimeError {

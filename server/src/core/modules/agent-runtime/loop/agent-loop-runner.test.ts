@@ -99,7 +99,87 @@ describe("agent loop runner", () => {
     assert.equal(result.output, "Curriculo enviado.");
     assert.deepEqual(toolArgs, [{ query: "andresimoes", mimeType: "application/pdf" }]);
   });
+
+  it("accepts plan-shaped step decisions in loop mode", async () => {
+    const decisions = [
+      {
+        steps: [
+          {
+            id: "search",
+            toolName: "search_files",
+            params: { query: "andresimoes", mimeType: "application/pdf" },
+            reason: "Find resume.",
+          },
+        ],
+      },
+      { message: "Curriculo encontrado." },
+    ];
+    const toolArgs: unknown[] = [];
+
+    const result = await runAgentLoop({
+      userMessage: "Procure meu curriculo",
+      contextMessages: [],
+      model: loopModel(decisions),
+      tools: [
+        tool("search_files", async (args) => {
+          toolArgs.push(args);
+          return [{ id: "file_1" }];
+        }),
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Curriculo encontrado.");
+    assert.deepEqual(toolArgs, [{ query: "andresimoes", mimeType: "application/pdf" }]);
+  });
+
+  it("accepts OpenAI-style tool_calls decisions in loop mode", async () => {
+    const decisions = [
+      {
+        tool_calls: [
+          {
+            function: {
+              name: "send_email",
+              arguments: JSON.stringify({ to: "vaurvik@gmail.com", subject: "Curriculo" }),
+            },
+          },
+        ],
+      },
+      { final_answer: "Email enviado." },
+    ];
+    const toolArgs: unknown[] = [];
+
+    const result = await runAgentLoop({
+      userMessage: "Envie email",
+      contextMessages: [],
+      model: loopModel(decisions),
+      tools: [
+        tool("send_email", async (args) => {
+          toolArgs.push(args);
+          return { ok: true };
+        }),
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Email enviado.");
+    assert.deepEqual(toolArgs, [{ to: "vaurvik@gmail.com", subject: "Curriculo" }]);
+  });
 });
+
+function loopModel(decisions: unknown[]) {
+  return {
+    async routeIntent() {
+      return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+    },
+    async invokeJson() {
+      return decisions.shift() as any;
+    },
+    async generateFinalResponse() {
+      return "Done.";
+    },
+  };
+}
 
 function tool(name: string, invoke: AgentPlanTool["invoke"]): AgentPlanTool {
   return {

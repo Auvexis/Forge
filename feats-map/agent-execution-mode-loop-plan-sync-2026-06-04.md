@@ -111,6 +111,14 @@ Resultado Task 2:
 - [x] Aplicar mesma regra em continuation de choice.
 - [x] Rodar testes frontend focados e commit.
 
+## Task 6 - Bugfix Loop Decision Formatos Reais
+
+- [x] Criar teste para resposta tipo plano `steps[]` no modo loop.
+- [x] Criar teste para resposta tipo OpenAI `tool_calls[]`.
+- [x] Aceitar `parameters` e `function.arguments`.
+- [x] Melhorar prompt do loop com exemplos JSON estritos.
+- [x] Rodar testes focados e commit.
+
 Proximas 5 tasks sugeridas:
 1. Finalizar `agent-panel.routes.ts` passando `executionMode` ate `AgentPanelChatService.sendMessage`.
 2. Atualizar `AgentPanelChatService` para colocar `executionMode` no trigger payload.
