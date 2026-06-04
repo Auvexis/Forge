@@ -771,6 +771,34 @@ describe("agent panel routes", () => {
     );
     assert.equal(events.at(-1)?.type, "done");
   });
+
+  it("streams chat intent responses without progress events", async () => {
+    const app = await buildApp({
+      sendMessage: async () => ({
+        session: session("chat_1"),
+        messages: [
+          message("msg_user", "chat_1"),
+          {
+            ...message("msg_assistant", "chat_1"),
+            role: "assistant" as const,
+            content: "Bonjour!",
+          },
+        ],
+        execution: { status: "SUCCESS", toolCallCount: 0 },
+      }),
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Bonjour" },
+    });
+    const events = parseStreamEvents(response.body);
+
+    assert.equal(events.some((event) => event.type === "progress"), false);
+    assert.equal(events.filter((event) => event.type === "delta").map((event) => event.delta ?? "").join(""), "Bonjour!");
+    assert.equal(events.at(-1)?.type, "done");
+  });
 });
 
 async function buildApp(service: Partial<AgentPanelChatService>) {

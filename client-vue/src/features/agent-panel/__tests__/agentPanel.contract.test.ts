@@ -316,6 +316,19 @@ describe('agent panel modal contract', () => {
     assert.match(store, /message: message/)
   })
 
+  it('keeps chat intent responses visually plain without progress shimmer', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const progressBlock = chat.match(/v-else-if="isAgentProgressContent\(message\.content\)"[\s\S]*?<\/div>/)?.[0] ?? ''
+    const pendingBlock = chat.match(/v-else-if="isPendingAssistantMessage\(message\)"[\s\S]*?<\/div>/)?.[0] ?? ''
+
+    assert.match(store, /event\.type === 'progress'/)
+    assert.match(progressBlock, /isShimmeringProgress\(message\.content\)/)
+    assert.match(progressBlock, /agent-chat-view__status-text--shimmer/)
+    assert.match(pendingBlock, /agent-chat-view__typing-dots/)
+    assert.doesNotMatch(pendingBlock, /agent-chat-view__status-text--shimmer/)
+  })
+
   it('renders agent progress rows with plugin icons from the plugin catalog', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 
