@@ -60,7 +60,7 @@ export async function executeAgentPlan(input: ExecuteAgentPlanInput): Promise<Ag
 
     const toolCallId = `tool_call_${toolCallCount + 1}`;
     emitToolEvent(input, "agent:tool-intent", tool, toolCallId, "planned", step.reason);
-    const params = sanitizeToolParams(resolveRefs(step.params, outputs), tool.inputSchema);
+    const params = sanitizeToolParams(resolveRefs(step.params, outputs, input.plan.steps), tool.inputSchema);
     const approvalResult = await requestApprovalIfNeeded(input, step, tool, params, outputs);
     if (approvalResult) return approvalResult;
     emitToolEvent(input, "agent:tool-start", tool, toolCallId, "running", step.reason);
@@ -78,7 +78,7 @@ export async function executeAgentPlan(input: ExecuteAgentPlanInput): Promise<Ag
       }
 
       emitToolEvent(input, "agent:tool-retry", tool, toolCallId, "retrying", "Creating new parameters.");
-      result = await tool.invoke(sanitizeToolParams(resolveRefs(repaired.params, outputs), tool.inputSchema));
+      result = await tool.invoke(sanitizeToolParams(resolveRefs(repaired.params, outputs, input.plan.steps), tool.inputSchema));
     }
 
     outputs[step.id] = result;
@@ -236,29 +236,29 @@ function isParameterError(error: unknown): boolean {
     (error.code === "AGENT_TOOL_ARGS_INVALID" || error.statusCode === 400);
 }
 
-function resolveRefs(value: unknown, outputs: Record<string, unknown>): unknown {
-  if (typeof value === "string" && value.startsWith("$steps.")) {
-    return resolveStepPath(value, outputs);
+function resolveRefs(value: unknown, outputs: Record<string, unknown>, steps: AgentPlanStep[]): unknown {
+  if (typeof value === "string" && value.startsWith("$steps")) {
+    return resolveStepPath(value, outputs, steps);
   }
 
-  if (Array.isArray(value)) return value.map((item) => resolveRefs(item, outputs));
+  if (Array.isArray(value)) return value.map((item) => resolveRefs(item, outputs, steps));
 
   if (!value || typeof value !== "object" || Buffer.isBuffer(value)) return value;
 
   return Object.fromEntries(
     Object.entries(value as Record<string, unknown>).map(([key, item]) => [
       key,
-      resolveRefs(item, outputs),
+      resolveRefs(item, outputs, steps),
     ]),
   );
 }
 
-function resolveStepPath(path: string, outputs: Record<string, unknown>): unknown {
+function resolveStepPath(path: string, outputs: Record<string, unknown>, steps: AgentPlanStep[]): unknown {
   const normalized = path
-    .replace(/^\$steps\./, "")
+    .replace(/^\$steps\.?/, "")
     .replace(/\[(\d+)\]/g, ".$1");
   const [stepId, ...parts] = normalized.split(".").filter(Boolean);
-  let current: unknown = outputs[stepId];
+  let current: unknown = outputs[resolveStepOutputKey(stepId, outputs, steps)];
   for (const part of parts) {
     if (Array.isArray(current)) {
       current = current[Number(part)];
@@ -268,6 +268,19 @@ function resolveStepPath(path: string, outputs: Record<string, unknown>): unknow
     current = (current as Record<string, unknown>)[part];
   }
   return current;
+}
+
+function resolveStepOutputKey(stepKey: string | undefined, outputs: Record<string, unknown>, steps: AgentPlanStep[]): string {
+  if (!stepKey) return "";
+  if (Object.prototype.hasOwnProperty.call(outputs, stepKey)) return stepKey;
+  if (!/^\d+$/.test(stepKey)) return stepKey;
+
+  const numericIndex = Number(stepKey);
+  const oneBasedStepId = steps[numericIndex - 1]?.id;
+  if (oneBasedStepId && Object.prototype.hasOwnProperty.call(outputs, oneBasedStepId)) return oneBasedStepId;
+
+  const zeroBasedStepId = steps[numericIndex]?.id;
+  return zeroBasedStepId ?? stepKey;
 }
 
 function emitToolEvent(

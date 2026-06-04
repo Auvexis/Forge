@@ -137,6 +137,40 @@ describe("agent plan executor", () => {
     assert.deepEqual(calls, [{ query: "andresimoes" }]);
   });
 
+  it("resolves one-based indexed step refs before invoking tools", async () => {
+    const calls: unknown[] = [];
+    const result = await executeAgentPlan({
+      plan: {
+        steps: [
+          {
+            id: "search",
+            toolName: "search",
+            params: { query: "andresimoes" },
+          },
+          {
+            id: "download",
+            toolName: "download",
+            params: { fileId: "$steps[1][0].id" },
+          },
+        ],
+      },
+      tools: [
+        tool("search", async (args) => {
+          calls.push(args);
+          return [{ id: "file_1" }];
+        }),
+        tool("download", async (args) => {
+          calls.push(args);
+          return { ok: true };
+        }),
+      ],
+      emitEvent: () => undefined,
+    });
+
+    assert.equal(result.status, "success");
+    assert.deepEqual(calls[1], { fileId: "file_1" });
+  });
+
   it("pauses approval tools before invoke and persists an approval card", async () => {
     let invoked = false;
     const events: string[] = [];
