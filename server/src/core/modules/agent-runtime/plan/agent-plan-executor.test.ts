@@ -105,6 +105,38 @@ describe("agent plan executor", () => {
     assert.deepEqual(calls, [{ fileId: "" }, { fileId: "file_1" }]);
   });
 
+  it("removes invalid optional enum params before invoking tools", async () => {
+    const calls: unknown[] = [];
+    const result = await executeAgentPlan({
+      plan: {
+        steps: [{
+          id: "search",
+          toolName: "search",
+          params: { query: "andresimoes", orderBy: "modified desc" },
+        }],
+      },
+      tools: [
+        tool("search", async (args) => {
+          calls.push(args);
+          return [{ id: "file_1" }];
+        }, {
+          inputSchema: {
+            type: "object",
+            properties: {
+              query: { type: "string" },
+              orderBy: { type: "string", enum: ["name", "modifiedTime desc"] },
+            },
+            required: ["query"],
+          },
+        }),
+      ],
+      emitEvent: () => undefined,
+    });
+
+    assert.equal(result.status, "success");
+    assert.deepEqual(calls, [{ query: "andresimoes" }]);
+  });
+
   it("pauses approval tools before invoke and persists an approval card", async () => {
     let invoked = false;
     const events: string[] = [];

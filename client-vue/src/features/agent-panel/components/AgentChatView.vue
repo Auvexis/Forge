@@ -112,12 +112,15 @@
                   :size="14"
                 />
               </span>
-              <span
-                class="agent-chat-view__status-text"
-                :class="{ 'agent-chat-view__status-text--shimmer': isShimmeringProgress(message.content) }"
-              >
-                {{ progressMessage(message.content) }}
-              </span>
+              <Transition name="agent-chat-status-swap" mode="out-in">
+                <span
+                  :key="progressMessage(message.content)"
+                  class="agent-chat-view__status-text"
+                  :class="{ 'agent-chat-view__status-text--shimmer': isShimmeringProgress(message.content) }"
+                >
+                  {{ progressMessage(message.content) }}
+                </span>
+              </Transition>
             </div>
             <div
               v-else-if="isPendingAssistantMessage(message)"
@@ -946,6 +949,7 @@ async function deleteSession(sessionId: string) {
 }
 
 .agent-chat-view__status-text {
+  display: inline-block;
   color: inherit;
 }
 
@@ -1040,6 +1044,23 @@ async function deleteSession(sessionId: string) {
 .agent-chat-message-leave-to {
   opacity: 0;
   transform: translate3d(0, -8px, 0);
+}
+
+.agent-chat-status-swap-enter-active,
+.agent-chat-status-swap-leave-active {
+  transition:
+    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
+    transform var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+
+.agent-chat-status-swap-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.agent-chat-status-swap-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
 @keyframes agent-message-in-user {

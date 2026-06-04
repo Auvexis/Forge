@@ -60,7 +60,7 @@ export async function executeAgentPlan(input: ExecuteAgentPlanInput): Promise<Ag
 
     const toolCallId = `tool_call_${toolCallCount + 1}`;
     emitToolEvent(input, "agent:tool-intent", tool, toolCallId, "planned", step.reason);
-    const params = resolveRefs(step.params, outputs);
+    const params = sanitizeToolParams(resolveRefs(step.params, outputs), tool.inputSchema);
     const approvalResult = await requestApprovalIfNeeded(input, step, tool, params, outputs);
     if (approvalResult) return approvalResult;
     emitToolEvent(input, "agent:tool-start", tool, toolCallId, "running", step.reason);
@@ -78,7 +78,7 @@ export async function executeAgentPlan(input: ExecuteAgentPlanInput): Promise<Ag
       }
 
       emitToolEvent(input, "agent:tool-retry", tool, toolCallId, "retrying", "Creating new parameters.");
-      result = await tool.invoke(resolveRefs(repaired.params, outputs));
+      result = await tool.invoke(sanitizeToolParams(resolveRefs(repaired.params, outputs), tool.inputSchema));
     }
 
     outputs[step.id] = result;
@@ -179,6 +179,36 @@ function isApprovalForStep(
 function sanitizeApprovalArgs(params: unknown): Record<string, unknown> {
   if (!params || typeof params !== "object" || Array.isArray(params)) return {};
   return sanitizeValue(params) as Record<string, unknown>;
+}
+
+function sanitizeToolParams(params: unknown, schema: unknown): unknown {
+  if (!params || typeof params !== "object" || Array.isArray(params) || !isSchemaObject(schema)) return params;
+  return sanitizeObjectParams(params as Record<string, unknown>, schema);
+}
+
+function sanitizeObjectParams(params: Record<string, unknown>, schema: Record<string, unknown>): Record<string, unknown> {
+  const properties = isRecord(schema.properties) ? schema.properties : {};
+  const required = new Set(Array.isArray(schema.required) ? schema.required.filter((key) => typeof key === "string") : []);
+  return Object.fromEntries(
+    Object.entries(params).flatMap(([key, value]) => {
+      const propertySchema = properties[key];
+      if (!isRecord(propertySchema)) return [[key, value]];
+      if (value === undefined && !required.has(key)) return [];
+      if (Array.isArray(propertySchema.enum) && !propertySchema.enum.includes(value) && !required.has(key)) return [];
+      if (isRecord(value) && isSchemaObject(propertySchema)) {
+        return [[key, sanitizeObjectParams(value as Record<string, unknown>, propertySchema)]];
+      }
+      return [[key, value]];
+    }),
+  );
+}
+
+function isSchemaObject(schema: unknown): schema is Record<string, unknown> {
+  return isRecord(schema) && (schema.type === "object" || isRecord(schema.properties));
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value) && !Buffer.isBuffer(value));
 }
 
 function sanitizeValue(value: unknown): unknown {

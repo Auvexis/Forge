@@ -193,7 +193,7 @@ describe('agent panel modal contract', () => {
     assert.match(modal, /agentStore\.loadAgents\('global'\)/)
   })
 
-  it('models progress stream events as one assistant message per tool status', () => {
+  it('models live progress stream events as one active assistant status message', () => {
     const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
     const merge = readFileSync('src/features/agent-panel/stores/agentPanelMessageMerge.ts', 'utf8')
@@ -204,9 +204,9 @@ describe('agent panel modal contract', () => {
     assert.match(store, /appendAgentProgressMessage/)
     assert.match(store, /event\.type === 'progress'/)
     assert.match(store, /kind: 'agentProgress'/)
-    assert.match(store, /event\.tool\?\.toolCallId/)
     assert.match(store, /event\.status/)
-    assert.match(store, /local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-\$\{toolKey\}-\$\{event\.status\}/)
+    assert.match(store, /local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-active/)
+    assert.doesNotMatch(store, /local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-\$\{toolKey\}-\$\{event\.status\}/)
     assert.match(store, /mergeServerMessagesWithStableLocalTurn/)
     assert.match(merge, /findLastMessageIndex/)
   })
@@ -340,6 +340,17 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /pluginsApi\.getAll/)
     assert.match(chat, /pluginIconName/)
     assert.match(chat, /agent-chat-view__plugin-icon/)
+  })
+
+  it('updates live agent progress in one animated status line', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+
+    assert.match(store, /local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-active/)
+    assert.doesNotMatch(store, /local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-\$\{toolKey\}-\$\{event\.status\}/)
+    assert.match(chat, /:key="progressMessage\(message\.content\)"/)
+    assert.match(chat, /agent-chat-status-swap-enter-active/)
+    assert.match(chat, /agent-chat-status-swap-enter-from/)
   })
 
   it('renders definitive agent tool summaries with plugin icons', () => {

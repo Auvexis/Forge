@@ -186,8 +186,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     sessionId: string,
     event: Extract<AgentPanelStreamEvent, { type: 'progress' }>,
   ) {
-    const toolKey = event.tool?.toolCallId ?? `${event.tool?.name ?? 'agent-tool'}-${Date.now()}`
-    const id = `local-agent-progress-${currentAssistantTurnId(sessionId)}-${toolKey}-${event.status}`
+    const id = `local-agent-progress-${currentAssistantTurnId(sessionId)}-active`
     const content: AgentPanelProgressContent = {
       kind: 'agentProgress',
       status: event.status,
