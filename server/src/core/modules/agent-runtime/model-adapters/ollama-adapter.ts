@@ -114,6 +114,7 @@ export class OllamaAdapter implements AgentModelAdapter {
         model: input.model,
         messages: input.messages.map(toOllamaMessage),
         stream: false,
+        think: input.thinkingEnabled === true,
         ...(this.keepAlive !== undefined ? { keep_alive: this.keepAlive } : {}),
         ...(format ? { format } : {}),
         ...(input.temperature !== undefined ? { options: { temperature: input.temperature } } : {}),

@@ -73,6 +73,41 @@ describe("OllamaAdapter", () => {
     assert.equal(signals[0], controller.signal);
   });
 
+  it("disables Ollama thinking by default on every chat request", async () => {
+    const requests: Array<{ body: any }> = [];
+    const adapter = new OllamaAdapter({
+      fetch: async (_url, init) => {
+        requests.push({ body: JSON.parse(String(init?.body)) });
+        return response({ message: { content: "done" } });
+      },
+    });
+
+    await adapter.invokeText({
+      model: "qwen3.5:4b",
+      messages: [{ role: "user", content: "Boa noite" }],
+    });
+
+    assert.equal(requests[0].body.think, false);
+  });
+
+  it("preserves Ollama thinking when explicitly enabled", async () => {
+    const requests: Array<{ body: any }> = [];
+    const adapter = new OllamaAdapter({
+      fetch: async (_url, init) => {
+        requests.push({ body: JSON.parse(String(init?.body)) });
+        return response({ message: { content: "done" } });
+      },
+    });
+
+    await adapter.invokeText({
+      model: "qwen3.5:4b",
+      messages: [{ role: "user", content: "Think deeply" }],
+      thinkingEnabled: true,
+    });
+
+    assert.equal(requests[0].body.think, true);
+  });
+
   it("sends bearer auth only when credentials provide an api key", async () => {
     const headers: Record<string, string>[] = [];
     const adapter = new OllamaAdapter({
