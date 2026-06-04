@@ -108,6 +108,41 @@ describe("agent intent router", () => {
     assert.equal(decision.answer, undefined);
     assert.ok(Date.now() - started < 100);
   });
+
+  it("falls back to tool_plan when routing stalls on a non-chat request with tools", async () => {
+    const model: AgentIntentModel = {
+      routeIntent: async () => new Promise(() => {}),
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Busque meu curriculo no Drive, baixe e envie por email",
+      contextMessages: [],
+      tools: [
+        tool("search_files", "Search files", "Find matching files", "read"),
+        tool("send_message", "Send a message", "Send external messages", "external-message"),
+      ],
+      timeoutMs: 5,
+    });
+
+    assert.equal(decision.mode, "tool_plan");
+  });
+
+  it("keeps simple conversation as chat when routing stalls", async () => {
+    const model: AgentIntentModel = {
+      routeIntent: async () => new Promise(() => {}),
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Boa noite!",
+      contextMessages: [],
+      tools: [tool("search_files", "Search files", "Find matching files", "read")],
+      timeoutMs: 5,
+    });
+
+    assert.equal(decision.mode, "chat");
+  });
 });
 
 function tool(

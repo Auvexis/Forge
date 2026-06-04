@@ -60,7 +60,7 @@ export async function routeAgentIntent(input: RouteAgentIntentInput): Promise<Ag
     ]);
     return normalizeIntentDecision(rawDecision, input.userMessage);
   } catch {
-    return fallbackChatDecision(input.userMessage);
+    return fallbackIntentDecision(input.userMessage, input.tools);
   } finally {
     if (timeout) clearTimeout(timeout);
   }
@@ -135,9 +135,42 @@ function fallbackChatDecision(userMessage: string): AgentIntentDecision {
   };
 }
 
+function fallbackIntentDecision(userMessage: string, tools: AgentIntentTool[]): AgentIntentDecision {
+  if (tools.length > 0 && !isSimpleConversation(userMessage)) {
+    return {
+      mode: "tool_plan",
+      reason: "Intent routing fallback selected tool planning for a non-chat request with configured tools.",
+      confidence: LOW_CONFIDENCE_THRESHOLD,
+    };
+  }
+  return fallbackChatDecision(userMessage);
+}
+
 function fallbackChatAnswer(userMessage: string): string {
   return userMessage.trim() ? "" : "How can I help?";
 }
+
+function isSimpleConversation(message: string): boolean {
+  const normalized = message
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!normalized) return true;
+  const words = normalized.split(" ").filter(Boolean);
+  if (words.length > 8) return false;
+
+  return SIMPLE_CHAT_PATTERNS.some((pattern) => pattern.test(normalized));
+}
+
+const SIMPLE_CHAT_PATTERNS = [
+  /^(oi|ola|opa|e ai|bom dia|boa tarde|boa noite|hello|hi|hey|hola|bonjour|ciao|hallo)( tudo bem)?$/,
+  /^(quem e voce|who are you|quien eres|qui es tu|que es tu)$/,
+  /^(obrigado|obrigada|valeu|thanks|thank you|gracias|merci)$/,
+  /^(sim|nao|ok|okay|beleza|certo|yes|no)$/,
+];
 
 function agentIntentJsonSchema(): Record<string, any> {
   return {
