@@ -44,7 +44,9 @@ describe("agent plan generator", () => {
         tool("google_drive_download_file", "Download a Drive file", { fileId: { type: "string" } }),
         tool("google_gmail_send_message", "Send a Gmail message", { to: { type: "string" } }),
       ],
-      saveMessage: (message) => savedMessages.push(message),
+      saveMessage: (message) => {
+        savedMessages.push(message);
+      },
     });
 
     assert.equal(prompts.length, 1);

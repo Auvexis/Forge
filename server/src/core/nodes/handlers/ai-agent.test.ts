@@ -296,7 +296,7 @@ describe("AI workflow node handlers", () => {
         },
       })));
 
-    const dbPath = (received as AgentRunInput).checkpointerDbPath ?? "";
+    const dbPath = (received as unknown as AgentRunInput).checkpointerDbPath ?? "";
     assert.equal(path.basename(dbPath), "memory.sqlite");
     assert.match(dbPath.replace(/\\/g, "/"), /profiles\/profile_1\/chats\/chat_session_1\/memory\.sqlite$/);
   });

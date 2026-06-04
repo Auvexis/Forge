@@ -120,7 +120,9 @@ describe("agent plan executor", () => {
       ],
       executionId: "exec_1",
       createApprovalRequest: async () => ({ approvalId: "approval_1" }),
-      saveMessage: (message) => messages.push(message),
+      saveMessage: (message) => {
+        messages.push(message);
+      },
       emitEvent: (event) => events.push(event.type),
     });
 

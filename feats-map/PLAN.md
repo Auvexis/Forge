@@ -284,18 +284,22 @@ Arquivos ja criados:
 
 ## Task 16 - Verificacao Final
 
-- [ ] Backend:
+- [x] Backend:
   - `node --test src/core/modules/agent-runtime/plan/*.test.ts`
   - `node --test src/core/modules/agent-runtime/agent-runner.test.ts`
   - `node --test src/core/routes/agent-panel.routes.test.ts`
   - `node --test src/core/routes/agent-chat.routes.test.ts`
-- [ ] Frontend:
+  - `node --test src/core/nodes/handlers/ai-agent.test.ts`
+- [x] Frontend:
   - `node --test src/features/agent-panel/__tests__/agentPanel.contract.test.ts`
-- [ ] Builds:
+- [x] Builds:
   - `cd server && npm run build`
   - `cd client-vue && npm run build`
-- [ ] Diff:
+- [x] Diff escopado:
+  - `git diff --check -- <arquivos da task>`
+- [ ] Diff global:
   - `git diff --check`
+  - Bloqueado por whitespace pre-existente fora do escopo em `ROADMAP.md` e `client-vue/src/app/App.vue`.
 - [ ] Manual:
   - pedir Drive list/download + Gmail send
   - confirmar progress imediato
@@ -303,4 +307,5 @@ Arquivos ja criados:
   - confirmar approval sem replay
   - confirmar escolha por opcoes quando Drive retorna varios arquivos
   - confirmar chat persiste ao fechar/reabrir
-- [ ] Commit final se houver ajustes.
+- [ ] Manual real nao executado nesta sessao por falta de credenciais/sessao Drive/Gmail.
+- [x] Commit final se houver ajustes.

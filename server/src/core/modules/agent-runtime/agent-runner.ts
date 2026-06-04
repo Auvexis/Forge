@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import {
   type AgentGraphEvent,
   type BuildAgentGraphInput,
+  type AgentGraphMessage,
 } from "./agent-graph-builder.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import { emitAgentEvent } from "./agent-event-bus.ts";
@@ -407,7 +408,7 @@ function toPlanModel(model: unknown) {
       schema: Record<string, any>;
     }) =>
       {
-        const messages = [
+        const messages: AgentGraphMessage[] = [
           { role: "system", content: "Return JSON only with { params }. Repair only the failed tool parameters." },
           { role: "user", content: JSON.stringify(input) },
         ];

@@ -56,6 +56,7 @@ export interface AgentPanelChatServiceOptions {
 type AgentPanelWorkflowRepository = Pick<typeof WorkflowRepository, "getActiveWorkflows" | "getWorkflows"> & {
   database?: () => Database.Database;
 };
+type AppendOnlyChatMessageRepository = Pick<ChatMessageRepository, "append">;
 
 interface ResolvedPublishedAgent {
   summary: PublishedAgentSummary;
@@ -432,7 +433,7 @@ function extractToolCalls(execution: unknown, agentNodeId: string): Array<Record
 }
 
 function appendToolProgressMessages(
-  repository: ChatMessageRepository,
+  repository: AppendOnlyChatMessageRepository,
   profileId: string,
   sessionId: string,
   toolCalls: Array<Record<string, unknown>>,
@@ -456,7 +457,7 @@ function appendToolProgressMessages(
 }
 
 function appendToolSummaryMessage(
-  repository: ChatMessageRepository,
+  repository: AppendOnlyChatMessageRepository,
   profileId: string,
   sessionId: string,
   toolCalls: Array<Record<string, unknown>>,
@@ -475,7 +476,7 @@ function appendToolSummaryMessage(
 }
 
 function appendApprovalMessageIfWaiting(
-  repository: ChatMessageRepository,
+  repository: AppendOnlyChatMessageRepository,
   profileId: string,
   sessionId: string,
   execution: unknown,
@@ -505,7 +506,7 @@ function appendApprovalMessageIfWaiting(
 }
 
 function appendAgentErrorMessage(
-  repository: ChatMessageRepository,
+  repository: AppendOnlyChatMessageRepository,
   profileId: string,
   sessionId: string,
   detail: string,

@@ -347,7 +347,7 @@ describe("agent runner", () => {
       },
       toolExecutor: async (input) => {
         const method = PluginManager.getPlugin(input.definition.pluginId).methods[input.definition.methodId];
-        return method(input.args, {});
+        return method(input.args, { credentials: {} });
       },
       emitEvent: (event) => events.push(event.type),
     });

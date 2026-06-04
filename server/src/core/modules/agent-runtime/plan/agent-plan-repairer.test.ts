@@ -18,7 +18,12 @@ describe("agent plan repairer", () => {
         return { params: { fileId: "file_1" } };
       },
     };
-    const repairer = createAgentPlanRepairer({ model, saveMessage: (message) => savedMessages.push(message) });
+    const repairer = createAgentPlanRepairer({
+      model,
+      saveMessage: (message) => {
+        savedMessages.push(message);
+      },
+    });
 
     const repair = await repairer.repairStep({
       plan: plan(),
