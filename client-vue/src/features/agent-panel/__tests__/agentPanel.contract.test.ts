@@ -391,11 +391,31 @@ describe('agent panel modal contract', () => {
     assert.match(types, /output\?: unknown/)
     assert.match(api, /data\?\.details/)
     assert.match(api, /nestedTool/)
-    assert.match(chat, /<details[\s\S]*agent-chat-view__progress-details/)
+    assert.match(chat, /agent-chat-view__progress-toggle/)
+    assert.match(chat, /agent-chat-view__progress-details/)
     assert.match(chat, /agent-chat-view__progress-detail/)
     assert.match(chat, /Params/)
     assert.match(chat, /Output/)
     assert.match(chat, /formatToolDetail/)
+  })
+
+  it('renders tool details with an inline lucide toggle and smooth expand transition', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /button[\s\S]*agent-chat-view__progress-toggle/)
+    assert.match(chat, /LucideIcon[\s\S]*chevron-down/)
+    assert.match(chat, /aria-expanded/)
+    assert.match(chat, /Transition[\s\S]*name="agent-chat-details"/)
+    assert.match(chat, /agent-chat-details-enter-active/)
+    assert.match(chat, /agent-chat-details-leave-active/)
+  })
+
+  it('settles only the latest active progress row on terminal stream errors', () => {
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+
+    assert.match(store, /function latestActiveProgressMessageId/)
+    assert.match(store, /candidate\.id !== latestActiveId/)
+    assert.doesNotMatch(store, /if \(!\['planned', 'running', 'retrying'\]\.includes\(candidate\.content\.status\)\) return candidate[\s\S]*status: 'failed'/)
   })
 
   it('renders definitive agent tool summaries with plugin icons', () => {

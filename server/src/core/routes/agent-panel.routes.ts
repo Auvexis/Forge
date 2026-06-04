@@ -640,7 +640,14 @@ function formatToolProgressMessage(
   event: WorkflowEvent,
   status: ToolProgressStatus,
 ): string {
+  const error = extractToolError(event);
+  if (status === "failed" && error) return `${extractToolProgress(event).name} failed: ${error}`;
   return formatToolProgressMessageFromTool(extractToolProgress(event), status);
+}
+
+function extractToolError(event: WorkflowEvent): string | undefined {
+  const data = event.data as Record<string, unknown> | undefined;
+  return typeof data?.error === "string" && data.error.trim() ? data.error.trim() : undefined;
 }
 
 function formatToolProgressMessageFromTool(

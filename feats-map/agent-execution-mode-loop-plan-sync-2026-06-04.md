@@ -143,6 +143,14 @@ Resultado Task 2:
 - [x] Renderizar step de tool persistente com details colapsavel no chat.
 - [x] Rodar testes focados e commit.
 
+## Task 10 - Retry Error Step E Timeline UX
+
+- [x] Mostrar erro vermelho do step antes do retry.
+- [x] Evitar que erro terminal sobrescreva todos os steps pendentes.
+- [x] Colocar botao expand/collapse com `LucideIcon` ao lado do texto do step.
+- [x] Adicionar transicao suave ao expand/collapse dos details.
+- [x] Rodar testes focados, builds e commit.
+
 Proximas 5 tasks sugeridas:
 1. Finalizar `agent-panel.routes.ts` passando `executionMode` ate `AgentPanelChatService.sendMessage`.
 2. Atualizar `AgentPanelChatService` para colocar `executionMode` no trigger payload.

@@ -121,26 +121,37 @@
                   {{ progressMessage(message.content) }}
                 </span>
               </Transition>
-              <details
+              <button
                 v-if="hasToolDetails(message.content)"
-                class="agent-chat-view__progress-details"
+                type="button"
+                class="agent-chat-view__progress-toggle"
+                :aria-expanded="isProgressDetailsOpen(message.id)"
+                aria-label="Toggle step details"
+                @click="toggleProgressDetails(message.id)"
               >
-                <summary>Details</summary>
+                <LucideIcon name="chevron-down" :size="14" />
+              </button>
+              <Transition name="agent-chat-details">
                 <div
-                  v-if="message.content.tool?.details?.params !== undefined"
-                  class="agent-chat-view__progress-detail"
+                  v-if="hasToolDetails(message.content) && isProgressDetailsOpen(message.id)"
+                  class="agent-chat-view__progress-details"
                 >
-                  <strong>Params</strong>
-                  <pre>{{ formatToolDetail(message.content.tool.details.params) }}</pre>
+                  <div
+                    v-if="message.content.tool?.details?.params !== undefined"
+                    class="agent-chat-view__progress-detail"
+                  >
+                    <strong>Params</strong>
+                    <pre>{{ formatToolDetail(message.content.tool.details.params) }}</pre>
+                  </div>
+                  <div
+                    v-if="message.content.tool?.details?.output !== undefined"
+                    class="agent-chat-view__progress-detail"
+                  >
+                    <strong>Output</strong>
+                    <pre>{{ formatToolDetail(message.content.tool.details.output) }}</pre>
+                  </div>
                 </div>
-                <div
-                  v-if="message.content.tool?.details?.output !== undefined"
-                  class="agent-chat-view__progress-detail"
-                >
-                  <strong>Output</strong>
-                  <pre>{{ formatToolDetail(message.content.tool.details.output) }}</pre>
-                </div>
-              </details>
+              </Transition>
             </div>
             <div
               v-else-if="isPendingAssistantMessage(message)"
@@ -287,6 +298,7 @@ const plugins = ref<PluginSummary[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
 const composerRetiring = ref(false)
 const historyMenuOpen = ref(false)
+const openProgressDetails = ref<Set<string>>(new Set())
 const { confirm } = useConfirm()
 const AGENT_PROGRESS_MESSAGES = [
   'Thinking',
@@ -479,6 +491,17 @@ function formatToolDetail(value: unknown): string {
   } catch {
     return String(value)
   }
+}
+
+function isProgressDetailsOpen(messageId: string): boolean {
+  return openProgressDetails.value.has(messageId)
+}
+
+function toggleProgressDetails(messageId: string) {
+  const next = new Set(openProgressDetails.value)
+  if (next.has(messageId)) next.delete(messageId)
+  else next.add(messageId)
+  openProgressDetails.value = next
 }
 
 function isShimmeringProgress(content: AgentPanelProgressContent): boolean {
@@ -968,7 +991,7 @@ async function deleteSession(sessionId: string) {
 
 .agent-chat-view__progress {
   display: inline-grid;
-  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-columns: 18px minmax(0, 1fr) auto;
   width: fit-content;
   max-width: min(100%, 560px);
   align-items: center;
@@ -1009,6 +1032,32 @@ async function deleteSession(sessionId: string) {
   animation: agent-chat-status-shimmer 1.4s var(--sailor-ease-standard) infinite;
 }
 
+.agent-chat-view__progress-toggle {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  place-items: center;
+  border: 0;
+  border-radius: var(--sailor-radius-sm);
+  background: transparent;
+  color: var(--sailor-text-muted);
+  padding: 0;
+}
+
+.agent-chat-view__progress-toggle:hover {
+  background: var(--sailor-bg-muted);
+  color: var(--sailor-text-secondary);
+}
+
+.agent-chat-view__progress-toggle svg {
+  transition: transform var(--sailor-duration-fast) var(--sailor-ease-standard);
+}
+
+.agent-chat-view__progress-toggle[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
 .agent-chat-view__plugin-icon {
   display: inline-grid;
   width: 18px;
@@ -1018,21 +1067,10 @@ async function deleteSession(sessionId: string) {
 }
 
 .agent-chat-view__progress-details {
-  grid-column: 2;
+  grid-column: 2 / span 2;
   width: min(100%, 520px);
   color: var(--sailor-text-muted);
   font-size: var(--sailor-text-xs);
-}
-
-.agent-chat-view__progress-details summary {
-  width: fit-content;
-  cursor: pointer;
-  color: var(--sailor-text-muted);
-  line-height: 1.4;
-}
-
-.agent-chat-view__progress-details summary:hover {
-  color: var(--sailor-text-secondary);
 }
 
 .agent-chat-view__progress-detail {
@@ -1060,6 +1098,29 @@ async function deleteSession(sessionId: string) {
   font-size: var(--sailor-text-xs);
   line-height: 1.5;
   white-space: pre-wrap;
+}
+
+.agent-chat-details-enter-active,
+.agent-chat-details-leave-active {
+  overflow: hidden;
+  transition:
+    opacity var(--sailor-duration-fast) var(--sailor-ease-standard),
+    transform var(--sailor-duration-fast) var(--sailor-ease-standard),
+    max-height var(--sailor-duration-standard) var(--sailor-ease-standard);
+}
+
+.agent-chat-details-enter-from,
+.agent-chat-details-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(calc(var(--sailor-space-1) * -1));
+}
+
+.agent-chat-details-enter-to,
+.agent-chat-details-leave-from {
+  max-height: 260px;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .agent-chat-view__summary {

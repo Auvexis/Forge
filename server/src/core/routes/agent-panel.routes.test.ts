@@ -504,6 +504,20 @@ describe("agent panel routes", () => {
           executionId: input.executionId,
           workflowId: "workflow_agent",
           nodeId: "agent",
+          type: "agent:tool-end",
+          timestamp: Date.now(),
+          data: {
+            callId: "tool_call_1",
+            name: "google_drive_list_files",
+            pluginId: "google-drive",
+            status: "failed",
+            error: "Validation failed for google-drive.listFiles",
+          },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
           type: "agent:tool-retry",
           timestamp: Date.now(),
           data: {
@@ -536,8 +550,9 @@ describe("agent panel routes", () => {
     });
     const progressEvents = parseStreamEvents(response.body).filter((event) => event.type === "progress");
 
-    assert.deepEqual(progressEvents.map((event) => event.status), ["running", "retrying", "success"]);
-    assert.equal(progressEvents[1]?.message, "Retrying google_drive_list_files.");
+    assert.deepEqual(progressEvents.map((event) => event.status), ["running", "failed", "retrying", "success"]);
+    assert.equal(progressEvents[1]?.message, "google_drive_list_files failed: Validation failed for google-drive.listFiles");
+    assert.equal(progressEvents[2]?.message, "Retrying google_drive_list_files.");
   });
 
   it("persists stream errors immediately", async () => {

@@ -66,6 +66,7 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
   const maxIterations = input.maxIterations ?? 6;
   const maxToolCalls = input.maxToolCalls ?? 6;
   let toolCallCount = 0;
+  let toolAttemptCount = 0;
 
   for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
     const decision = await readLoopDecision(input, history);
@@ -74,7 +75,7 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
       return success(decision.response ?? "", toolCallCount, iteration, toolCalls);
     }
 
-    if (toolCallCount >= maxToolCalls) {
+    if (toolAttemptCount >= maxToolCalls) {
       throw new AgentRuntimeError(
         "Agent loop exceeded the configured tool call limit",
         "AGENT_LOOP_TOOL_LIMIT_EXCEEDED",
@@ -93,7 +94,8 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
       );
     }
 
-    const toolCallId = `tool_call_${toolCallCount + 1}`;
+    toolAttemptCount += 1;
+    const toolCallId = `tool_call_${toolAttemptCount}`;
     const params = decision.params ?? {};
     input.emitEvent(toolEvent("agent:tool-intent", tool, toolCallId, "planned", decision.reason, undefined, {
       params: sanitizeAgentToolValue(params),
@@ -113,15 +115,26 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
     } catch (error) {
       if (error instanceof AgentToolApprovalRequiredError) throw error;
       history.push({ type: "tool_error", toolName: tool.name, error: safeErrorMessage(error) });
+      const repairable = isRepairableLoopError(error);
       input.emitEvent(toolEvent(
-        isRepairableLoopError(error) ? "agent:tool-retry" : "agent:tool-end",
+        "agent:tool-end",
         tool,
         toolCallId,
-        isRepairableLoopError(error) ? "retrying" : "failed",
+        "failed",
         decision.reason,
         safeErrorMessage(error),
       ));
-      if (!isRepairableLoopError(error)) {
+      if (repairable) {
+        input.emitEvent(toolEvent(
+          "agent:tool-retry",
+          tool,
+          toolCallId,
+          "retrying",
+          decision.reason,
+          safeErrorMessage(error),
+        ));
+      }
+      if (!repairable) {
         toolCalls.push(toToolCall(tool, toolCallId, "failed"));
         throw error;
       }

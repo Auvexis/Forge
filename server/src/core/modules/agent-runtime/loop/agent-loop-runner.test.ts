@@ -274,6 +274,51 @@ describe("agent loop runner", () => {
     assert.equal(result.output, "Arquivo baixado.");
     assert.deepEqual(calls, ["wrong_file.", "file_1"]);
   });
+
+  it("emits a failed tool step before retrying with a new tool call id", async () => {
+    const decisions = [
+      { action: "tool", toolName: "download_file", params: { fileId: "wrong_file." } },
+      { action: "tool", toolName: "download_file", params: { fileId: "file_1" } },
+      { action: "final", response: "Arquivo baixado." },
+    ];
+    const events: Array<{ type: string; payload?: Record<string, any> }> = [];
+
+    await runAgentLoop({
+      userMessage: "Baixe o arquivo",
+      contextMessages: [],
+      model: loopModel(decisions),
+      tools: [
+        tool("download_file", async (args) => {
+          const fileId = String((args as { fileId?: unknown }).fileId ?? "");
+          if (fileId !== "file_1") {
+            throw new AgentRuntimeError(
+              `Agent tool google_drive_download_file failed: File not found: ${fileId}`,
+              "AGENT_TOOL_EXECUTION_FAILED",
+              `Agent tool google_drive_download_file failed: File not found: ${fileId}`,
+              502,
+            );
+          }
+          return { ok: true };
+        }),
+      ],
+      emitEvent: (event) => events.push(event as typeof events[number]),
+    });
+
+    const toolEvents = events.filter((event) => event.type.startsWith("agent:tool-"));
+    assert.deepEqual(
+      toolEvents.map((event) => [event.type, event.payload?.status, event.payload?.tool?.toolCallId]),
+      [
+        ["agent:tool-intent", "planned", "tool_call_1"],
+        ["agent:tool-start", "running", "tool_call_1"],
+        ["agent:tool-end", "failed", "tool_call_1"],
+        ["agent:tool-retry", "retrying", "tool_call_1"],
+        ["agent:tool-intent", "planned", "tool_call_2"],
+        ["agent:tool-start", "running", "tool_call_2"],
+        ["agent:tool-end", "success", "tool_call_2"],
+      ],
+    );
+    assert.match(String(toolEvents[2]?.payload?.error), /File not found: wrong_file\./);
+  });
 });
 
 function loopModel(decisions: unknown[]) {

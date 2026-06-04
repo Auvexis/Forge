@@ -443,10 +443,10 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   function settleActiveProgressMessages(message = 'Cancelled.') {
     const streamId = activeAssistantStreamId.value
     if (!streamId) return
-    const prefix = `local-agent-progress-${streamId}-`
+    const latestActiveId = latestActiveProgressMessageId(streamId)
+    if (!latestActiveId) return
     messages.value = messages.value.map((candidate) => {
-      if (!candidate.id.startsWith(prefix) || !isAgentProgressContent(candidate.content)) return candidate
-      if (!['planned', 'running', 'retrying'].includes(candidate.content.status)) return candidate
+      if (candidate.id !== latestActiveId || !isAgentProgressContent(candidate.content)) return candidate
       return {
         ...candidate,
         content: {
@@ -456,6 +456,16 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         },
       } as AgentChatMessage
     })
+  }
+
+  function latestActiveProgressMessageId(streamId: string): string {
+    const prefix = `local-agent-progress-${streamId}-`
+    const latest = [...messages.value].reverse().find((candidate) =>
+      candidate.id.startsWith(prefix) &&
+      isAgentProgressContent(candidate.content) &&
+      ['planned', 'running', 'retrying'].includes(candidate.content.status),
+    )
+    return latest?.id ?? ''
   }
 
   function createAssistantStreamId(sessionId: string): string {
