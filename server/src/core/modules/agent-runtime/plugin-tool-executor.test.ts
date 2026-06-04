@@ -280,6 +280,37 @@ describe("plugin tool executor", () => {
         /provider exploded/.test(error.publicMessage),
     );
   });
+
+  it("classifies plugin parameter validation failures as repairable tool args errors", async () => {
+    PluginManager.registerPlugin(createPlugin(async () => ({ ok: true }), {
+      orderBy: { type: "string", enum: ["name", "createdTime"] },
+    }));
+
+    await assert.rejects(
+      executePluginAgentTool({
+        definition: definition({
+          inputSchema: {
+            type: "object",
+            properties: {
+              orderBy: { type: "string", enum: ["name", "createdTime"] },
+            },
+          },
+          requiresApproval: false,
+          sideEffect: "read",
+        }),
+        configuredTool: configuredTool({ requiresApproval: false, sideEffect: "read" }),
+        args: { orderBy: "invalid-order" },
+        executionId: "exec_1",
+        workflowId: "workflow_1",
+        nodeId: "agent_1",
+      }),
+      (error) =>
+        error instanceof AgentRuntimeError &&
+        error.code === "AGENT_TOOL_ARGS_INVALID" &&
+        error.statusCode === 400 &&
+        /Validation failed/.test(error.publicMessage),
+    );
+  });
 });
 
 function setupCredentialsDb(): void {

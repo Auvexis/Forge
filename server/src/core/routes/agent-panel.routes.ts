@@ -511,6 +511,7 @@ async function streamAgentPanelMessage(
     const serialized = error instanceof AgentRuntimeError
       ? serializeAgentError(error)
       : { code: "AGENT_RUNTIME_ERROR", message: safeErrorMessage(error) };
+    await progressQueue;
     writeStreamEvent(reply, { type: "error", ...serialized });
     persistStreamAssistantMessage({ kind: "agentError", message: serialized.message, code: serialized.code });
     await persistenceQueue;

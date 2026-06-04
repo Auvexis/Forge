@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import Fastify from "fastify";
 import agentPanelRoutes from "./agent-panel.routes.ts";
+import { AgentRuntimeError } from "../modules/agent-runtime/agent-errors.ts";
 import type { AgentPanelChatService } from "../modules/agent-runtime/chat/agent-panel-chat-service.ts";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { workflowEventBus } from "../modules/workflows/event-bus.ts";
@@ -572,6 +573,41 @@ describe("agent panel routes", () => {
     assert.equal(events.some((event) => event.type === "error" && event.message === "Tool failed"), true);
     assert.equal((persisted[0] as any).kind, "agentError");
     assert.equal((persisted[0] as any).message, "Tool failed");
+  });
+
+  it("flushes queued progress before a terminal stream error", async () => {
+    const app = await buildApp({
+      sendMessage: async (input: { executionId?: string }) => {
+        assert.ok(input.executionId);
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-start",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "google_drive_list_files", pluginId: "google-drive" },
+        });
+        throw new AgentRuntimeError(
+          "Agent tool google_drive_list_files failed: Validation failed",
+          "AGENT_TOOL_ARGS_INVALID",
+          "Agent tool google_drive_list_files failed: Validation failed",
+          400,
+        );
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Find resume" },
+    });
+    const events = parseStreamEvents(response.body);
+    const progressIndex = events.findIndex((event) => event.type === "progress");
+    const errorIndex = events.findIndex((event) => event.type === "error");
+
+    assert.ok(progressIndex >= 0);
+    assert.ok(errorIndex > progressIndex);
+    assert.equal(events[progressIndex]?.status, "running");
   });
 
   it("persists waiting-user choices from stream results", async () => {

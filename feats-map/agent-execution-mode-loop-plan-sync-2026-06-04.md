@@ -119,6 +119,14 @@ Resultado Task 2:
 - [x] Melhorar prompt do loop com exemplos JSON estritos.
 - [x] Rodar testes focados e commit.
 
+## Task 7 - Bugfix Retry E Live Progress
+
+- [x] Classificar erro de validacao de plugin como `AGENT_TOOL_ARGS_INVALID`.
+- [x] Fazer loop retry em erro de validacao de tool.
+- [x] Garantir que stream aguarda progress antes de emitir erro terminal.
+- [x] Rodar testes backend focados.
+- [x] Commitar.
+
 Proximas 5 tasks sugeridas:
 1. Finalizar `agent-panel.routes.ts` passando `executionMode` ate `AgentPanelChatService.sendMessage`.
 2. Atualizar `AgentPanelChatService` para colocar `executionMode` no trigger payload.

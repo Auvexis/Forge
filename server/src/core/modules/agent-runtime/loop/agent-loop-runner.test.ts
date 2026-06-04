@@ -165,6 +165,44 @@ describe("agent loop runner", () => {
     assert.equal(result.output, "Email enviado.");
     assert.deepEqual(toolArgs, [{ to: "vaurvik@gmail.com", subject: "Curriculo" }]);
   });
+
+  it("retries plugin validation failures before moving to the next tool", async () => {
+    const decisions = [
+      { action: "tool", toolName: "list_files", params: { orderBy: "invalid" } },
+      { action: "tool", toolName: "list_files", params: { orderBy: "name" } },
+      { action: "tool", toolName: "download_file", params: { fileId: "file_1" } },
+      { action: "final", response: "Arquivo baixado." },
+    ];
+    const calls: string[] = [];
+
+    const result = await runAgentLoop({
+      userMessage: "Baixe o arquivo",
+      contextMessages: [],
+      model: loopModel(decisions),
+      tools: [
+        tool("list_files", async (args) => {
+          calls.push(`list:${(args as any).orderBy}`);
+          if ((args as any).orderBy !== "name") {
+            throw new AgentRuntimeError(
+              "Validation failed for google-drive.listFiles",
+              "AGENT_TOOL_ARGS_INVALID",
+              "Validation failed for google-drive.listFiles",
+              400,
+            );
+          }
+          return [{ id: "file_1" }];
+        }),
+        tool("download_file", async (args) => {
+          calls.push(`download:${(args as any).fileId}`);
+          return { ok: true };
+        }),
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Arquivo baixado.");
+    assert.deepEqual(calls, ["list:invalid", "list:name", "download:file_1"]);
+  });
 });
 
 function loopModel(decisions: unknown[]) {

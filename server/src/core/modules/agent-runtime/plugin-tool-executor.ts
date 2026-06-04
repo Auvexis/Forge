@@ -42,6 +42,14 @@ export async function executePluginAgentTool(input: {
   } catch (error) {
     if (error instanceof AgentRuntimeError) throw error;
     const detail = safeErrorMessage(error);
+    if (isPluginValidationError(detail)) {
+      throw new AgentRuntimeError(
+        `Agent tool ${input.definition.name} failed: ${detail}`,
+        "AGENT_TOOL_ARGS_INVALID",
+        `Agent tool ${input.definition.name} failed: ${detail}`,
+        400,
+      );
+    }
     throw new AgentRuntimeError(
       `Agent tool ${input.definition.name} failed: ${detail}`,
       "AGENT_TOOL_EXECUTION_FAILED",
@@ -49,6 +57,10 @@ export async function executePluginAgentTool(input: {
       502,
     );
   }
+}
+
+function isPluginValidationError(message: string): boolean {
+  return /^Validation failed for\b/i.test(message);
 }
 
 function completedSideEffectReplayKey(
