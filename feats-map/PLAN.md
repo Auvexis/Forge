@@ -273,14 +273,14 @@ Arquivos ja criados:
 
 ## Task 15 - Limpeza Da Arquitetura Antiga
 
-- [ ] Rodar busca:
+- [x] Rodar busca:
   - `rg -n "invokeCompactJsonToolLoop|generateValidatedToolArgs|buildCompactPlannerMessages|buildToolParameterMessages|toolHistory|shouldStopRepeatedToolCall" server/src/core`
-- [ ] Remover codigo morto.
-- [ ] Remover testes obsoletos que validam comportamento antigo.
-- [ ] Garantir que nenhum fluxo de producao chama LLM entre tools.
-- [ ] Garantir que Core nao tem regra especifica de plugin.
-- [ ] Rodar testes focados.
-- [ ] Commitar.
+- [x] Remover codigo morto.
+- [x] Remover testes obsoletos que validam comportamento antigo.
+- [x] Garantir que nenhum fluxo de producao chama LLM entre tools.
+- [x] Garantir que Core nao tem regra especifica de plugin.
+- [x] Rodar testes focados.
+- [x] Commitar.
 
 ## Task 16 - Verificacao Final
 

@@ -113,7 +113,6 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
       ];
       let toolCallCount = 0;
       const completedToolCalls: AgentRunToolCall[] = [];
-      const toolHistory = new Map<string, ToolResultSummary>();
 
       try {
         for (let iteration = 1; iteration <= input.agent.maxIterations; iteration += 1) {
@@ -229,17 +228,6 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
 
             let result: unknown;
             const resolvedArgs = resolveBinaryRefsInToolArgs(toolCall.args, binaryRefs);
-            const toolSignature = toolCallSignature(toolCall.name, resolvedArgs);
-            const previousResult = toolHistory.get(toolSignature);
-            if (previousResult && shouldStopRepeatedToolCall(previousResult)) {
-              return {
-                status: "waiting-user",
-                output: waitingUserOutputForRepeatedTool(toolCall.name, previousResult),
-                iterationCount: iteration,
-                toolCallCount,
-                ...(completedToolCalls.length > 0 ? { toolCalls: completedToolCalls } : {}),
-              };
-            }
 
             try {
               result = await invokeToolWithRetry(input, tool, toolCall, resolvedArgs);
@@ -248,7 +236,6 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
               const errorMessage = safeErrorMessage(error);
               emitToolEnd(input, tool, toolCall, { status: "failed", error: errorMessage });
               completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "failed"));
-              toolHistory.set(toolSignature, { resultClass: "failed" });
               if (isUnrecoverablePermissionOrCredentialError(errorMessage)) {
                 toolCallCount += 1;
                 return {
@@ -265,14 +252,13 @@ export function buildAgentGraph(input: BuildAgentGraphInput): AgentGraph {
             const modelSafeResult = sanitizeToolResultForModel(result, toolCall.id, binaryRefs);
             const compactResult = compactToolResultForModel(modelSafeResult);
             const toolSummary = summarizeToolResult(compactResult);
-            toolHistory.set(toolSignature, toolSummary);
             emitToolEnd(input, tool, toolCall, { status: "success", output: compactResult });
             completedToolCalls.push(toAgentRunToolCall(tool, toolCall, "success"));
             await yieldToEventLoop();
             if (shouldAskUserAfterToolResult(toolSummary.resultClass)) {
               return {
                 status: "waiting-user",
-                output: waitingUserOutputForRepeatedTool(toolCall.name, toolSummary),
+                output: waitingUserOutputForToolResult(toolCall.name, toolSummary),
                 iterationCount: iteration,
                 toolCallCount,
                 toolCalls: completedToolCalls,
@@ -636,7 +622,6 @@ function isRequestedSideEffectTool(tool: InvokableTool, requestText: string): bo
 function isUsefulToolSearchToken(token: string): boolean {
   return token.length >= 3 &&
     !new Set([
-      "google",
       "with",
       "from",
       "the",
@@ -836,23 +821,6 @@ function isWaitingUserOutput(output: unknown): output is Record<string, any> {
     record.question.trim().length > 0;
 }
 
-function toolCallSignature(name: string, args: unknown): string {
-  return `${name}:${stableStringify(args)}`;
-}
-
-function stableStringify(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
-  if (Buffer.isBuffer(value)) return `"[Buffer:${value.length}]"`;
-  if (isReadableLike(value)) return '"[Readable]"';
-  if (value && typeof value === "object" && !Buffer.isBuffer(value) && !isReadableLike(value)) {
-    return `{${Object.entries(value as Record<string, unknown>)
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`)
-      .join(",")}}`;
-  }
-  return JSON.stringify(value);
-}
-
 function summarizeToolResult(value: unknown): ToolResultSummary {
   const resultClass = classifyToolResult(value);
   return {
@@ -870,21 +838,13 @@ function classifyToolResult(value: unknown): ToolResultClass {
   return "success";
 }
 
-function shouldStopRepeatedToolCall(result: ToolResultSummary): boolean {
-  return (result.resultClass === "success" && Boolean(result.options?.length)) ||
-    result.resultClass === "empty" ||
-    result.resultClass === "ambiguous" ||
-    result.resultClass === "failed" ||
-    result.resultClass === "needs_user";
-}
-
 function shouldAskUserAfterToolResult(resultClass: ToolResultClass): boolean {
   return resultClass === "empty" ||
     resultClass === "ambiguous" ||
     resultClass === "needs_user";
 }
 
-function waitingUserOutputForRepeatedTool(toolName: string, result: ToolResultSummary): Record<string, any> {
+function waitingUserOutputForToolResult(toolName: string, result: ToolResultSummary): Record<string, any> {
   const reason = result.resultClass === "empty"
     ? "not_found"
     : result.resultClass === "ambiguous"
