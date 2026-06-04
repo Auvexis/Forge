@@ -97,6 +97,22 @@ describe("agent plan generator", () => {
     assert.deepEqual(savedMessages, []);
   });
 
+  it("rejects an empty plan when a tool plan is required", async () => {
+    await assert.rejects(
+      () => generateAgentPlan({
+        model: { generatePlan: async () => ({ steps: [] }) },
+        userMessage: "Baixe meu curriculo no Drive e envie por email",
+        tools: [
+          tool("google_drive_list_files", "List Drive files", { query: { type: "string" } }),
+          tool("google_gmail_send_message", "Send Gmail messages", { to: { type: "string" } }),
+        ],
+        requireToolPlan: true,
+      }),
+      (error) => error instanceof AgentRuntimeError &&
+        error.code === "AGENT_PLAN_EMPTY_FOR_TOOL_INTENT",
+    );
+  });
+
   it("rejects non-string step ids as an invalid plan without throwing raw type errors", async () => {
     await assert.rejects(
       () => generateAgentPlan({
@@ -114,7 +130,7 @@ describe("agent plan generator", () => {
     );
   });
 
-  it("sends only tool names and instructions in the planner catalog", async () => {
+  it("sends compact parameter hints without raw schemas in the planner catalog", async () => {
     let prompt = "";
     await generateAgentPlan({
       model: {
@@ -125,16 +141,21 @@ describe("agent plan generator", () => {
       },
       userMessage: "Find my files",
       tools: [
-        tool("google_drive_list_files", "List Drive files", { query: { type: "string" } }, "Use this to list files."),
+        tool("google_drive_list_files", "List Drive files", {
+          query: { type: "string", description: "Drive query" },
+          pageSize: { type: "integer" },
+        }, "Use this to list files."),
       ],
     });
 
     assert.match(prompt, /google_drive_list_files/);
     assert.match(prompt, /Use this to list files/);
+    assert.match(prompt, /"params"/);
+    assert.match(prompt, /"name":"query"/);
+    assert.match(prompt, /"type":"string"/);
+    assert.match(prompt, /"required":false/);
     assert.doesNotMatch(prompt, /inputSchema/);
     assert.doesNotMatch(prompt, /properties/);
-    assert.doesNotMatch(prompt, /required/);
-    assert.doesNotMatch(prompt, /query/);
   });
 });
 

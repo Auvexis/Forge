@@ -689,6 +689,59 @@ describe("agent runner", () => {
     assert.deepEqual(modelCalls, ["intent", "plan", "final"]);
   });
 
+  it("rejects empty plans after a tool_plan intent before final response", async () => {
+    const modelCalls: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async routeIntent() {
+              modelCalls.push("intent");
+              return { mode: "tool_plan", reason: "Needs Drive and Gmail.", confidence: 0.94 };
+            },
+            async invokeJson() {
+              modelCalls.push("plan");
+              return { steps: [] };
+            },
+            async generateFinalResponse() {
+              modelCalls.push("final");
+              return "No tools used.";
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [
+          toolDefinition("google_drive_list_files"),
+          toolDefinition("google_drive_download_file"),
+          toolDefinition("google_gmail_send_message"),
+        ],
+      },
+      toolExecutor: async () => {
+        throw new Error("Tool should not run when the plan is empty.");
+      },
+    });
+
+    await assert.rejects(
+      runner.run({
+        ...runInput({
+          userMessage: "Busque meu curriculo andresimoes no Drive, baixe e envie para vaurvik@gmail.com",
+        }),
+        tools: [
+          toolConfig({ methodId: "listFiles" }),
+          toolConfig({ methodId: "downloadFile" }),
+          toolConfig({ methodId: "sendMessage" }),
+        ],
+      }),
+      (error) => error instanceof AgentRuntimeError &&
+        error.code === "AGENT_PLAN_EMPTY_FOR_TOOL_INTENT" &&
+        /empty tool plan/i.test(error.message),
+    );
+
+    assert.deepEqual(modelCalls, ["intent", "plan"]);
+  });
+
   it("emits agent:start and agent:end around successful runs", async () => {
     const events: string[] = [];
     const runner = new AgentRunner({

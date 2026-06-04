@@ -351,6 +351,7 @@ export class AgentRunner {
       saveMessage: (message) => {
         this.eventEmitter({ type: "agent:thinking", payload: { message } } as AgentGraphEvent, input.input);
       },
+      requireToolPlan: true,
     });
     if (plan.steps.length > 0) {
       this.eventEmitter({ type: "agent:plan-start", payload: {} } as AgentGraphEvent, input.input);

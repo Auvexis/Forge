@@ -14,6 +14,7 @@ export interface GenerateAgentPlanInput {
   userMessage: string;
   tools: AgentPlanTool[];
   saveMessage?: (message: string) => void | Promise<void>;
+  requireToolPlan?: boolean;
 }
 
 export async function generateAgentPlan(input: GenerateAgentPlanInput): Promise<AgentPlan> {
@@ -26,6 +27,14 @@ export async function generateAgentPlan(input: GenerateAgentPlanInput): Promise<
   });
 
   const validatedPlan = validateGeneratedPlan(plan, input.tools);
+  if (input.requireToolPlan && validatedPlan.steps.length === 0) {
+    throw new AgentRuntimeError(
+      "Agent generated an empty tool plan for a request that requires tools",
+      "AGENT_PLAN_EMPTY_FOR_TOOL_INTENT",
+      "Agent could not create a tool plan for this request",
+      400,
+    );
+  }
   if (validatedPlan.steps.length > 0) {
     await saveProgress(input, "Thinking");
     await saveProgress(input, "Generating Plan");
@@ -40,6 +49,7 @@ function buildPlanPrompt(tools: AgentPlanTool[]): string {
     name: tool.name,
     description: tool.description,
     instructions: tool.instructions ?? tool.description,
+    params: summarizeToolParams(tool.inputSchema),
   }));
 
   return [
@@ -53,6 +63,27 @@ function buildPlanPrompt(tools: AgentPlanTool[]): string {
     "- $steps.<stepId>[0].<field>",
     JSON.stringify({ tools: catalog }),
   ].join("\n");
+}
+
+function summarizeToolParams(schema: Record<string, any>): Array<{ name: string; type: string; required: boolean }> {
+  const properties = schema?.properties;
+  if (!properties || typeof properties !== "object" || Array.isArray(properties)) return [];
+  const required = new Set(Array.isArray(schema.required) ? schema.required.filter((item) => typeof item === "string") : []);
+
+  return Object.entries(properties)
+    .slice(0, 12)
+    .map(([name, value]) => ({
+      name,
+      type: summarizeParamType(value),
+      required: required.has(name),
+    }));
+}
+
+function summarizeParamType(value: unknown): string {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return "unknown";
+  const type = (value as { type?: unknown }).type;
+  if (Array.isArray(type)) return type.filter((item) => typeof item === "string").join("|") || "unknown";
+  return typeof type === "string" ? type : "unknown";
 }
 
 function validateGeneratedPlan(plan: AgentPlan, tools: AgentPlanTool[]): AgentPlan {
