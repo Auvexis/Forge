@@ -732,6 +732,83 @@ describe("agent runner", () => {
     assert.deepEqual(modelCalls, ["intent", "plan", "final"]);
   });
 
+  it("falls back to a text plan when structured planning returns invalid JSON", async () => {
+    const modelCalls: string[] = [];
+    const toolCalls: Array<{ name: string; args: unknown }> = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async routeIntent() {
+              modelCalls.push("intent");
+              return "TOOL_PLAN";
+            },
+            async generatePlan() {
+              modelCalls.push("plan-json");
+              throw new AgentRuntimeError(
+                "Ollama returned invalid JSON",
+                "AGENT_MODEL_JSON_INVALID",
+                "Model returned invalid JSON",
+                502,
+              );
+            },
+            async invoke() {
+              modelCalls.push("plan-text");
+              return {
+                content: [
+                  "STEP search",
+                  "TOOL search_files",
+                  "PARAM query=andresimoes",
+                  "REASON Find the requested file.",
+                  "ENDSTEP",
+                  "STEP send",
+                  "TOOL send_message",
+                  "PARAM to=vaurvik@gmail.com",
+                  "PARAM attachment=$steps.search",
+                  "REASON Send the file.",
+                  "ENDSTEP",
+                ].join("\n"),
+              };
+            },
+            async generateFinalResponse() {
+              modelCalls.push("final");
+              return "Arquivo enviado.";
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [
+          toolDefinition("search_files", {
+            inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+          }),
+          toolDefinition("send_message", {
+            inputSchema: {
+              type: "object",
+              properties: { to: { type: "string" }, attachment: { type: "string" } },
+              required: ["to"],
+            },
+          }),
+        ],
+      },
+      toolExecutor: async (input) => {
+        toolCalls.push({ name: input.definition.name, args: input.args });
+        return input.definition.name === "search_files" ? { id: "file_1" } : { ok: true };
+      },
+    });
+
+    const result = await runner.run({
+      ...runInput({ userMessage: "Busque o arquivo andresimoes e envie por email" }),
+      tools: [toolConfig({ methodId: "search" }), toolConfig({ methodId: "send" })],
+    });
+
+    assert.equal(result.output, "Arquivo enviado.");
+    assert.deepEqual(modelCalls, ["intent", "plan-json", "plan-text", "final"]);
+    assert.deepEqual(toolCalls.map((call) => call.name), ["search_files", "send_message"]);
+    assert.deepEqual(toolCalls[0]?.args, { query: "andresimoes" });
+  });
+
   it("rejects empty plans after a tool_plan intent before final response", async () => {
     const modelCalls: string[] = [];
     const runner = new AgentRunner({
