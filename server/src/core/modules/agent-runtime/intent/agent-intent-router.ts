@@ -21,6 +21,7 @@ export interface AgentIntentModel {
   routeIntent(input: {
     messages: AgentModelMessage[];
     schema: Record<string, any>;
+    signal?: AbortSignal;
   }): Promise<unknown>;
 }
 
@@ -29,23 +30,39 @@ export interface RouteAgentIntentInput {
   userMessage: string;
   contextMessages: AgentModelMessage[];
   tools: AgentIntentTool[];
+  timeoutMs?: number;
 }
 
 const LOW_CONFIDENCE_THRESHOLD = 0.65;
+const DEFAULT_INTENT_TIMEOUT_MS = 700;
 
 export async function routeAgentIntent(input: RouteAgentIntentInput): Promise<AgentIntentDecision> {
+  const abortController = new AbortController();
+  const timeoutMs = input.timeoutMs ?? DEFAULT_INTENT_TIMEOUT_MS;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
   try {
-    const rawDecision = await input.model.routeIntent({
-      messages: [
-        { role: "system", content: buildIntentPrompt(input.tools) },
-        ...input.contextMessages.slice(-6),
-        { role: "user", content: input.userMessage },
-      ],
-      schema: agentIntentJsonSchema(),
-    });
+    const rawDecision = await Promise.race([
+      input.model.routeIntent({
+        messages: [
+          { role: "system", content: buildIntentPrompt(input.tools) },
+          ...compactContext(input.contextMessages),
+          { role: "user", content: input.userMessage },
+        ],
+        schema: agentIntentJsonSchema(),
+        signal: abortController.signal,
+      }),
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => {
+          abortController.abort();
+          reject(new Error("Intent routing timed out"));
+        }, timeoutMs);
+      }),
+    ]);
     return normalizeIntentDecision(rawDecision, input.userMessage);
   } catch {
     return fallbackChatDecision(input.userMessage);
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
 }
 
@@ -53,7 +70,7 @@ function buildIntentPrompt(tools: AgentIntentTool[]): string {
   const catalog = tools.map((tool) => ({
     name: tool.name,
     description: tool.description,
-    instructions: tool.instructions ?? tool.description,
+    instructions: truncate(tool.instructions ?? tool.description, 240),
     sideEffect: tool.sideEffect,
   }));
 
@@ -65,6 +82,18 @@ function buildIntentPrompt(tools: AgentIntentTool[]): string {
     "If unsure, choose chat.",
     JSON.stringify({ tools: catalog }),
   ].join("\n");
+}
+
+function compactContext(messages: AgentModelMessage[]): AgentModelMessage[] {
+  return messages.slice(-2).map((message) => ({
+    ...message,
+    content: truncate(message.content, 320),
+  }));
+}
+
+function truncate(value: string, maxChars: number): string {
+  const trimmed = value.trim();
+  return trimmed.length > maxChars ? `${trimmed.slice(0, maxChars)}...` : trimmed;
 }
 
 function normalizeIntentDecision(rawDecision: unknown, userMessage: string): AgentIntentDecision {
@@ -90,7 +119,6 @@ function normalizeIntentDecision(rawDecision: unknown, userMessage: string): Age
       mode: "chat",
       reason: `Low confidence intent fallback: ${reason}`,
       confidence,
-      answer: fallbackChatAnswer(userMessage),
     };
   }
 
@@ -98,17 +126,17 @@ function normalizeIntentDecision(rawDecision: unknown, userMessage: string): Age
 }
 
 function fallbackChatDecision(userMessage: string): AgentIntentDecision {
+  const answer = fallbackChatAnswer(userMessage);
   return {
     mode: "chat",
     reason: "Intent routing fallback.",
     confidence: 0,
-    answer: fallbackChatAnswer(userMessage),
+    ...(answer ? { answer } : {}),
   };
 }
 
 function fallbackChatAnswer(userMessage: string): string {
-  const trimmed = userMessage.trim();
-  return trimmed ? `I can help with that: ${trimmed}` : "How can I help?";
+  return userMessage.trim() ? "" : "How can I help?";
 }
 
 function agentIntentJsonSchema(): Record<string, any> {

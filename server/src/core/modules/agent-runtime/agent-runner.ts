@@ -322,9 +322,22 @@ export class AgentRunner {
       tools: input.tools,
     });
     if (intent.mode === "chat") {
+      const output = intent.answer?.trim() || await generateAgentFinalResponse({
+        model,
+        userMessage: input.input.userMessage,
+        plan: { steps: [] },
+        execution: {
+          status: "success",
+          output: "",
+          outputs: {},
+          toolCalls: [],
+          toolCallCount: 0,
+          iterationCount: 1,
+        },
+      });
       return {
         status: "success",
-        output: intent.answer?.trim() || input.input.userMessage,
+        output,
         toolCallCount: 0,
         iterationCount: 1,
         toolCalls: [],
@@ -405,7 +418,7 @@ export class AgentRunner {
 
 function toPlanModel(model: unknown) {
   const candidate = model as {
-    routeIntent?: (input: { messages: any[]; schema: Record<string, any> }) => Promise<unknown>;
+    routeIntent?: (input: { messages: any[]; schema: Record<string, any>; signal?: AbortSignal }) => Promise<unknown>;
     generatePlan?: (input: { messages: any[]; schema: Record<string, any> }) => Promise<any>;
     repairPlanStep?: (input: { messages: any[] }, schema?: Record<string, any>) => Promise<any>;
     generateFinalResponse?: (input: { messages: any[] }) => Promise<string>;
@@ -416,6 +429,7 @@ function toPlanModel(model: unknown) {
     invokeJson?: <T extends object>(
       input: { messages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }> },
       schema?: Record<string, any>,
+      options?: { signal?: AbortSignal },
     ) => Promise<T>;
   };
   if (typeof candidate.generatePlan !== "function" && typeof candidate.invokeJson !== "function") {
@@ -428,14 +442,14 @@ function toPlanModel(model: unknown) {
   }
 
   return {
-    routeIntent: async (input: { messages: any[]; schema: Record<string, any> }) => {
+    routeIntent: async (input: { messages: any[]; schema: Record<string, any>; signal?: AbortSignal }) => {
       if (typeof candidate.routeIntent === "function") return candidate.routeIntent(input);
-      if (typeof candidate.invokeJson === "function") return candidate.invokeJson(input, input.schema);
       if (typeof candidate.invoke === "function") {
-        const response = await candidate.invoke(input.messages);
+        const response = await candidate.invoke(input.messages, { signal: input.signal });
         const content = typeof response === "string" ? response : response?.content;
-        return JSON.parse(typeof content === "string" ? content : "");
+        return parseModelJsonObject(typeof content === "string" ? content : "");
       }
+      if (typeof candidate.invokeJson === "function") return candidate.invokeJson(input, input.schema, { signal: input.signal });
       throw new AgentRuntimeError(
         "Agent model does not support intent routing",
         "AGENT_MODEL_INTENT_UNSUPPORTED",
@@ -483,6 +497,16 @@ function toPlanModel(model: unknown) {
       );
     },
   };
+}
+
+function parseModelJsonObject(content: string): Record<string, unknown> {
+  const trimmed = content.trim();
+  const jsonText = trimmed.match(/\{[\s\S]*\}/)?.[0] ?? trimmed;
+  const parsed = JSON.parse(jsonText);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Expected JSON object");
+  }
+  return parsed as Record<string, unknown>;
 }
 
 function schemaWithoutConfiguredDefaults(

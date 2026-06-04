@@ -87,7 +87,26 @@ describe("agent intent router", () => {
     });
 
     assert.equal(decision.mode, "chat");
-    assert.match(decision.answer ?? "", /Hola/);
+    assert.equal(decision.answer, undefined);
+  });
+
+  it("falls back to chat quickly when the router stalls", async () => {
+    const started = Date.now();
+    const model: AgentIntentModel = {
+      routeIntent: async () => new Promise(() => {}),
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Quem e voce?",
+      contextMessages: [],
+      tools: [],
+      timeoutMs: 5,
+    });
+
+    assert.equal(decision.mode, "chat");
+    assert.equal(decision.answer, undefined);
+    assert.ok(Date.now() - started < 100);
   });
 });
 

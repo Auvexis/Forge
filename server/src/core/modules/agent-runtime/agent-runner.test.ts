@@ -575,6 +575,82 @@ describe("agent runner", () => {
     assert.deepEqual(events.filter((event) => event === "agent:thinking" || event.startsWith("agent:plan")), []);
   });
 
+  it("answers chat naturally when the intent router falls back without an answer", async () => {
+    const modelCalls: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async routeIntent() {
+              modelCalls.push("intent");
+              return { mode: "chat", reason: "Router fallback.", confidence: 0 };
+            },
+            async invokeJson() {
+              throw new Error("Planner should not run for chat fallback.");
+            },
+            async generateFinalResponse() {
+              modelCalls.push("final");
+              return "Sou o Allen, seu agente aqui no Sailor.";
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [toolDefinition("lookup")],
+      },
+      toolExecutor: async () => {
+        throw new Error("Tool should not run for chat fallback.");
+      },
+    });
+
+    const result = await runner.run({
+      ...runInput({ userMessage: "Quem e voce?" }),
+      tools: [toolConfig()],
+    });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "Sou o Allen, seu agente aqui no Sailor.");
+    assert.equal(result.toolCallCount, 0);
+    assert.deepEqual(modelCalls, ["intent", "final"]);
+    assert.doesNotMatch(String(result.output), /I can help with that/i);
+  });
+
+  it("routes intent through plain model invoke before structured JSON mode", async () => {
+    const modelCalls: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async invoke() {
+              modelCalls.push("invoke");
+              return { content: '{"mode":"chat","reason":"Plain classification.","confidence":0.96,"answer":"Oi!"}' };
+            },
+            async invokeJson() {
+              modelCalls.push("json");
+              return { steps: [] };
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [toolDefinition("lookup")],
+      },
+      toolExecutor: async () => {
+        throw new Error("Tool should not run for chat intent.");
+      },
+    });
+
+    const result = await runner.run({
+      ...runInput({ userMessage: "Ola" }),
+      tools: [toolConfig()],
+    });
+
+    assert.equal(result.output, "Oi!");
+    assert.deepEqual(modelCalls, ["invoke"]);
+  });
+
   it("routes tool_plan intent into the deterministic planner", async () => {
     const modelCalls: string[] = [];
     const runner = new AgentRunner({
