@@ -61,6 +61,7 @@ describe("agent plan generator", () => {
       "Choosing the best tools",
     ]);
     assert.match(prompts[0], /google_drive_list_files/);
+    assert.match(prompts[0], /Return steps: \[\] when no tool is needed/);
     assert.match(prompts[0], /\$steps\.<stepId>\[0\]\.<field>/);
   });
 
@@ -80,15 +81,36 @@ describe("agent plan generator", () => {
     );
   });
 
-  it("rejects empty plans when tools are available for the request", async () => {
+  it("accepts an empty plan as a no-tool chat response without progress messages", async () => {
+    const savedMessages: string[] = [];
+
+    const plan = await generateAgentPlan({
+      model: { generatePlan: async () => ({ steps: [] }) },
+      userMessage: "Boa noite!",
+      tools: [tool("google_drive_list_files")],
+      saveMessage: (message) => {
+        savedMessages.push(message);
+      },
+    });
+
+    assert.deepEqual(plan.steps, []);
+    assert.deepEqual(savedMessages, []);
+  });
+
+  it("rejects non-string step ids as an invalid plan without throwing raw type errors", async () => {
     await assert.rejects(
       () => generateAgentPlan({
-        model: { generatePlan: async () => ({ steps: [] }) },
+        model: {
+          generatePlan: async () => ({
+            steps: [{ id: 1 as any, toolName: "google_drive_list_files", params: {}, reason: "Search." }],
+          }),
+        },
         userMessage: "Search files",
         tools: [tool("google_drive_list_files")],
       }),
       (error) => error instanceof AgentRuntimeError &&
-        error.code === "AGENT_PLAN_EMPTY",
+        error.code === "AGENT_PLAN_INVALID" &&
+        !String(error.message).includes("trim is not a function"),
     );
   });
 });

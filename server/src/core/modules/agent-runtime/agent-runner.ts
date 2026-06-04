@@ -301,8 +301,6 @@ export class AgentRunner {
     contextMessages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
   }): Promise<AgentRunResult> {
     const model = toPlanModel(input.model);
-    this.eventEmitter({ type: "agent:thinking", payload: {} } as AgentGraphEvent, input.input);
-    this.eventEmitter({ type: "agent:plan-start", payload: {} } as AgentGraphEvent, input.input);
     const plan = await generateAgentPlan({
       model,
       userMessage: input.input.userMessage,
@@ -311,7 +309,10 @@ export class AgentRunner {
         this.eventEmitter({ type: "agent:thinking", payload: { message } } as AgentGraphEvent, input.input);
       },
     });
-    this.eventEmitter({ type: "agent:plan-end", payload: { steps: plan.steps.length } } as AgentGraphEvent, input.input);
+    if (plan.steps.length > 0) {
+      this.eventEmitter({ type: "agent:plan-start", payload: {} } as AgentGraphEvent, input.input);
+      this.eventEmitter({ type: "agent:plan-end", payload: { steps: plan.steps.length } } as AgentGraphEvent, input.input);
+    }
 
     const repairer = createAgentPlanRepairer({
       model,

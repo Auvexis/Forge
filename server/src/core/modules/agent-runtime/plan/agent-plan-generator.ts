@@ -17,10 +17,6 @@ export interface GenerateAgentPlanInput {
 }
 
 export async function generateAgentPlan(input: GenerateAgentPlanInput): Promise<AgentPlan> {
-  await saveProgress(input, "Thinking");
-  await saveProgress(input, "Generating Plan");
-  await saveProgress(input, "Choosing the best tools");
-
   const plan = await input.model.generatePlan({
     messages: [
       { role: "system", content: buildPlanPrompt(input.tools) },
@@ -29,7 +25,14 @@ export async function generateAgentPlan(input: GenerateAgentPlanInput): Promise<
     schema: agentPlanJsonSchema(),
   });
 
-  return validateGeneratedPlan(plan, input.tools);
+  const validatedPlan = validateGeneratedPlan(plan, input.tools);
+  if (validatedPlan.steps.length > 0) {
+    await saveProgress(input, "Thinking");
+    await saveProgress(input, "Generating Plan");
+    await saveProgress(input, "Choosing the best tools");
+  }
+
+  return validatedPlan;
 }
 
 function buildPlanPrompt(tools: AgentPlanTool[]): string {
@@ -42,6 +45,7 @@ function buildPlanPrompt(tools: AgentPlanTool[]): string {
   return [
     "Generate one complete deterministic tool execution plan.",
     "Return JSON only with steps[].id, steps[].toolName, steps[].params, steps[].reason.",
+    "Return steps: [] when no tool is needed for the user request.",
     "Use only tools from this compact catalog.",
     "Use refs for previous outputs when needed:",
     "- $steps.<stepId>",
@@ -69,15 +73,6 @@ function validateGeneratedPlan(plan: AgentPlan, tools: AgentPlanTool[]): AgentPl
     );
   }
 
-  if (plan.steps.length === 0 && tools.length > 0) {
-    throw new AgentRuntimeError(
-      "Model returned an empty agent plan",
-      "AGENT_PLAN_EMPTY",
-      "Agent could not choose tools for this request",
-      400,
-    );
-  }
-
   const availableToolNames = new Set(tools.map((tool) => tool.name));
   const stepIds = new Set<string>();
   for (const step of plan.steps) {
@@ -96,8 +91,11 @@ function validatePlanStep(
   if (!step || typeof step !== "object") {
     throwPlanInvalid("Agent plan step is invalid");
   }
-  if (!step.id?.trim() || stepIds.has(step.id)) {
+  if (typeof step.id !== "string" || !step.id.trim() || stepIds.has(step.id)) {
     throwPlanInvalid("Agent plan step id is missing or duplicated");
+  }
+  if (typeof step.toolName !== "string" || !step.toolName.trim()) {
+    throwPlanInvalid("Agent plan step toolName is required");
   }
   if (!availableToolNames.has(step.toolName)) {
     throw new AgentRuntimeError(

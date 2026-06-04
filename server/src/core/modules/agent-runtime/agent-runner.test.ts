@@ -360,10 +360,9 @@ describe("agent runner", () => {
     assert.deepEqual(calls, ["tool:1:lookup", "tool:1:send:found"]);
     assert.deepEqual(events.filter((event) => event.startsWith("agent:plan") || event === "agent:thinking"), [
       "agent:thinking",
+      "agent:thinking",
+      "agent:thinking",
       "agent:plan-start",
-      "agent:thinking",
-      "agent:thinking",
-      "agent:thinking",
       "agent:plan-end",
     ]);
   });
@@ -403,6 +402,45 @@ describe("agent runner", () => {
 
     assert.deepEqual(modelCalls, ["plan"]);
     assert.deepEqual(result.output, { lookup: { value: "raw" } });
+  });
+
+  it("answers simple chat turns without emitting tool planning progress when the plan is empty", async () => {
+    const events: string[] = [];
+    const modelCalls: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async invokeJson() {
+              modelCalls.push("plan");
+              return { steps: [] };
+            },
+            async generateFinalResponse() {
+              modelCalls.push("final");
+              return "Boa noite!";
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [toolDefinition("lookup")],
+      },
+      toolExecutor: async () => {
+        throw new Error("Tool should not be called for an empty plan.");
+      },
+      emitEvent: (event) => events.push(event.type),
+    });
+
+    const result = await runner.run({
+      ...runInput({ userMessage: "Boa noite!" }),
+      tools: [toolConfig()],
+    });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "Boa noite!");
+    assert.deepEqual(modelCalls, ["plan", "final"]);
+    assert.deepEqual(events.filter((event) => event === "agent:thinking" || event.startsWith("agent:plan")), []);
   });
 
   it("emits agent:start and agent:end around successful runs", async () => {

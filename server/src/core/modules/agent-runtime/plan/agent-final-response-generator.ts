@@ -22,6 +22,7 @@ export async function generateAgentFinalResponse(input: GenerateAgentFinalRespon
         content: [
           "Write a short natural language final response for the user.",
           "Use only the executed plan summary and tool outputs.",
+          "If no tool was needed, answer the user's chat message naturally.",
           "Do not expose raw JSON unless the user asked for it.",
           "Keep it concise.",
         ].join("\n"),
