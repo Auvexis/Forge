@@ -305,6 +305,17 @@ describe('agent panel modal contract', () => {
     assert.doesNotMatch(chat, /:cancelable="Boolean\(store\.activeExecutionId\)"/)
   })
 
+  it('settles animated global agent progress rows when an execution is cancelled or disposed', () => {
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+
+    assert.match(store, /settleActiveProgressMessages/)
+    assert.match(store, /cancelActiveExecution[\s\S]*settleActiveProgressMessages\(/)
+    assert.match(store, /disposeActiveExecution[\s\S]*settleActiveProgressMessages\(/)
+    assert.match(store, /status: 'failed'/)
+    assert.match(store, /settleActiveProgressMessages\(message = 'Cancelled\.'\)/)
+    assert.match(store, /message: message/)
+  })
+
   it('renders agent progress rows with plugin icons from the plugin catalog', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 

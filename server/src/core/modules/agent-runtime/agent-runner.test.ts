@@ -59,7 +59,7 @@ describe("agent runner", () => {
     const result = await runner.run({ ...runInput(), tools: [toolConfig()] });
 
     assert.equal(result.status, "success");
-    assert.deepEqual(calls, ["model:gpt-test", "tools:1"]);
+    assert.deepEqual(calls, ["tools:1", "model:gpt-test"]);
   });
 
   it("passes plugin metadata into graph tools", async () => {
@@ -441,6 +441,51 @@ describe("agent runner", () => {
     assert.equal(result.output, "Boa noite!");
     assert.deepEqual(modelCalls, ["plan", "final"]);
     assert.deepEqual(events.filter((event) => event === "agent:thinking" || event.startsWith("agent:plan")), []);
+  });
+
+  it("answers tool catalog questions without planning or executing tools", async () => {
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async invokeJson() {
+              throw new Error("Planner should not run for tool catalog questions.");
+            },
+            async generateFinalResponse() {
+              throw new Error("Final model should not run for tool catalog questions.");
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [
+          toolDefinition("google_drive_list_files", {
+            pluginName: "Google Drive",
+            description: "List Drive files",
+          }),
+          toolDefinition("google_gmail_send_message", {
+            pluginName: "Gmail",
+            description: "Send email messages",
+          }),
+        ],
+      },
+      toolExecutor: async () => {
+        throw new Error("Tool should not be called for catalog questions.");
+      },
+    });
+
+    const result = await runner.run({
+      ...runInput({ userMessage: "Quais ferramentas você tem acesso?" }),
+      tools: [toolConfig({ methodId: "listFiles" }), toolConfig({ methodId: "sendMessage" })],
+    });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.toolCallCount, 0);
+    assert.match(String(result.output), /Google Drive/);
+    assert.match(String(result.output), /List Drive files/);
+    assert.match(String(result.output), /Gmail/);
+    assert.match(String(result.output), /Send email messages/);
   });
 
   it("emits agent:start and agent:end around successful runs", async () => {

@@ -388,6 +388,24 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     })
   }
 
+  function settleActiveProgressMessages(message = 'Cancelled.') {
+    const streamId = activeAssistantStreamId.value
+    if (!streamId) return
+    const prefix = `local-agent-progress-${streamId}-`
+    messages.value = messages.value.map((candidate) => {
+      if (!candidate.id.startsWith(prefix) || !isAgentProgressContent(candidate.content)) return candidate
+      if (!['planned', 'running', 'retrying'].includes(candidate.content.status)) return candidate
+      return {
+        ...candidate,
+        content: {
+          ...candidate.content,
+          status: 'failed',
+          message: message,
+        },
+      } as AgentChatMessage
+    })
+  }
+
   function createAssistantStreamId(sessionId: string): string {
     return `local-assistant-stream-${sessionId}-${Date.now()}`
   }
@@ -480,6 +498,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       error.value = message
       useToast().error(message, 'Agent cancellation failed')
     } finally {
+      settleActiveProgressMessages()
       clearActiveAssistantPlaceholder()
       activeExecutionId.value = ''
       sending.value = false
@@ -489,6 +508,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
   function disposeActiveExecution() {
     activeStreamAbortController?.abort()
+    settleActiveProgressMessages()
     clearActiveAssistantPlaceholder()
     activeStreamAbortController = null
     activeExecutionId.value = ''

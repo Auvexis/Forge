@@ -117,8 +117,21 @@ export class AgentRunner {
     }, input);
 
     try {
-      const model = await this.modelRegistry.createChatModel(validated.model);
       const toolDefinitions = this.toolRegistry.resolveConfiguredTools(validated.tools);
+      if (!this.graphBuilder && isToolCatalogQuestion(input.userMessage)) {
+        const output = formatConfiguredToolsAnswer(toolDefinitions);
+        const result: AgentRunResult = {
+          status: "success",
+          output,
+          toolCallCount: 0,
+          iterationCount: 1,
+          toolCalls: [],
+        };
+        this.eventEmitter({ type: "agent:end", payload: { status: result.status, output: result.output } }, input);
+        return result;
+      }
+
+      const model = await this.modelRegistry.createChatModel(validated.model);
       const longTermMemory = usesLongTermMemory(validated.memory) ? validated.memory : undefined;
 
       const namespace = buildMemoryNamespace({
@@ -598,4 +611,24 @@ function serializeErrorPayload(error: unknown): Record<string, string> {
 function safeErrorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
   return message.replace(/\s+/g, " ").trim() || "Unknown error";
+}
+
+function isToolCatalogQuestion(message: string): boolean {
+  const normalized = message
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+  const asksAboutTools = /\b(ferramentas?|tools?|acoes|capacidades|recursos)\b/.test(normalized);
+  const asksAccess = /\b(voce|vc|tem|acesso|pode|consegue|disponiveis?|lista|quais|qual)\b/.test(normalized);
+  return asksAboutTools && asksAccess;
+}
+
+function formatConfiguredToolsAnswer(tools: SailorAgentToolDefinition[]): string {
+  if (!tools.length) return "Nao tenho ferramentas configuradas para este agente no momento.";
+
+  const lines = tools.map((tool) => {
+    const owner = tool.pluginName ? `${tool.pluginName}: ` : "";
+    return `- ${owner}${tool.description || tool.name}`;
+  });
+  return ["Tenho acesso a estas ferramentas configuradas:", ...lines].join("\n");
 }
