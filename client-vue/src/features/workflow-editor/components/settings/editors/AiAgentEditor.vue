@@ -39,6 +39,14 @@
       />
     </EditorField>
 
+    <EditorField label="Execution Mode">
+      <BaseSelect
+        :model-value="(node.data.executionMode as string) || 'loop'"
+        :options="EXECUTION_MODES"
+        @update:model-value="updateNodeData({ executionMode: $event as string })"
+      />
+    </EditorField>
+
     <EditorField label="Execution Limits">
       <div class="editor-limit-stack">
         <label class="editor-limit-field">
@@ -93,6 +101,11 @@ defineProps<NodeEditorProps>()
 const OUTPUT_MODES = [
   { value: 'text', label: 'Text' },
   { value: 'json', label: 'JSON' },
+]
+
+const EXECUTION_MODES = [
+  { value: 'loop', label: 'Loop' },
+  { value: 'plan', label: 'Plan' },
 ]
 
 </script>

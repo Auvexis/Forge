@@ -11,7 +11,9 @@ import {
 
 describe("agent runtime validation", () => {
   it("accepts valid agent, model, memory, tool, and chat trigger configs", () => {
-    assert.equal(validateAiAgentConfig(validAgent()).type, "ai-agent");
+    const agent = validateAiAgentConfig(validAgent());
+    assert.equal(agent.type, "ai-agent");
+    assert.equal(agent.executionMode, "loop");
     assert.equal(validateAiModelConfig(validModel()).type, "ai-model");
     assert.equal(validateAiMemoryConfig(validMemory()).type, "ai-memory");
     assert.equal(validateAiToolConfig(validTool()).type, "ai-tool");
@@ -138,6 +140,15 @@ describe("agent runtime validation", () => {
 
     assert.equal(agent.maxIterations, 16);
     assert.equal(agent.maxToolCalls, 30);
+  });
+
+  it("accepts plan execution mode when explicitly configured", () => {
+    const agent = validateAiAgentConfig({
+      ...validAgent(),
+      executionMode: "plan",
+    });
+
+    assert.equal(agent.executionMode, "plan");
   });
 
   it("rejects tool side effects outside the allowlist", () => {

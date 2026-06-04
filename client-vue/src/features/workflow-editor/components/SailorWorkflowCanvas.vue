@@ -805,6 +805,7 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     ]
   } else if (type === 'ai-agent') {
     defaultData.prompt = 'You are a helpful workflow agent. Use tools only when needed.'
+    defaultData.executionMode = 'loop'
     defaultData.maxIterations = 8
     defaultData.maxToolCalls = 12
     defaultData.timeoutMs = 180000

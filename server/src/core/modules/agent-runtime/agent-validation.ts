@@ -25,6 +25,7 @@ const aiAgentSchema = z
     type: z.literal("ai-agent"),
     name: z.string().trim().min(1).max(120),
     prompt: z.string().trim().min(1).max(AGENT_LIMITS.maxPromptChars),
+    executionMode: z.enum(["loop", "plan"]).default("loop"),
     maxIterations: z.number().int().min(1),
     maxToolCalls: z.number().int().min(0),
     timeoutMs: z.number().int().min(1000).max(AGENT_LIMITS.maxAgentTimeoutMs),

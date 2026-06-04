@@ -28,6 +28,7 @@ export interface SendAgentPanelMessageInput {
   profileId: string;
   sessionId: string;
   message: string;
+  executionMode?: "loop" | "plan";
   executionId?: string;
   skipPersistedToolMessages?: boolean;
 }
@@ -36,6 +37,7 @@ export interface SendFirstAgentPanelMessageInput {
   profileId: string;
   agentKey: string;
   message: string;
+  executionMode?: "loop" | "plan";
   executionId?: string;
 }
 
@@ -156,6 +158,7 @@ export class AgentPanelChatService {
       profileId: input.profileId,
       sessionId: session.id,
       message,
+      executionMode: input.executionMode,
       executionId: input.executionId,
     });
   }
@@ -202,6 +205,7 @@ export class AgentPanelChatService {
       targetAgentNodeId: agent.summary.agentNodeId,
       sessionId: session.id,
       message,
+      executionMode: input.executionMode,
       messages: toContextMessages(previousMessages),
       skipFinalResponseAfterToolUse: false,
       metadata: { surface: "agent-panel" },

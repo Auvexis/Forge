@@ -92,6 +92,7 @@ function agentPanelMessageBody(payload: SendAgentPanelMessagePayload) {
   return {
     message: payload.message,
     ...(payload.selectedValue !== undefined ? { selectedValue: payload.selectedValue } : {}),
+    ...(payload.executionMode ? { executionMode: payload.executionMode } : {}),
   }
 }
 

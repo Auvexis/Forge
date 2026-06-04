@@ -1,5 +1,5 @@
 import { AgentRuntimeService } from "../../modules/agent-runtime/agent-runtime-service.ts";
-import { validateAiModelConfig } from "../../modules/agent-runtime/agent-validation.ts";
+import { validateAiAgentConfig, validateAiModelConfig } from "../../modules/agent-runtime/agent-validation.ts";
 import type {
   AgentRunInput,
   AiAgentNodeConfig,
@@ -97,17 +97,18 @@ function isAgentConfigNode(node: WorkflowNode | undefined): node is AgentConfigN
 }
 
 function toAgentConfig(node: AiAgentNode, context: NodeHandlerInput["context"]): AiAgentNodeConfig {
-  return {
+  return validateAiAgentConfig({
     type: "ai-agent",
     name: node.name,
     prompt: String(TemplateEngine.evaluate(node.prompt, context, { escape: "prompt" })),
+    executionMode: node.executionMode,
     maxIterations: node.maxIterations,
     maxToolCalls: node.maxToolCalls,
     timeoutMs: node.timeoutMs,
     requireApprovalForSideEffects: node.requireApprovalForSideEffects,
     outputMode: node.outputMode,
     outputSchema: node.outputSchema,
-  };
+  });
 }
 
 function toModelConfig(node: AiModelNode): AiModelNodeConfig {

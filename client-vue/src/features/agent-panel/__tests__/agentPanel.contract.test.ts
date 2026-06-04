@@ -165,6 +165,29 @@ describe('agent panel modal contract', () => {
     assert.doesNotMatch(store, /event\.type === 'thinking'/)
   })
 
+  it('syncs agent execution mode between the global composer and workflow agent node', () => {
+    const composer = readFileSync('src/features/agent-panel/components/AgentChatComposer.vue', 'utf8')
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const api = readFileSync('src/core/api/agent-panel.api.ts', 'utf8')
+    const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
+
+    assert.match(types, /executionMode: 'loop' \| 'plan'/)
+    assert.match(types, /executionMode\?: 'loop' \| 'plan'/)
+    assert.match(composer, /BaseDropdownSelect/)
+    assert.match(composer, /EXECUTION_MODE_OPTIONS/)
+    assert.match(composer, /value: 'loop'/)
+    assert.match(composer, /value: 'plan'/)
+    assert.match(composer, /update:execution-mode/)
+    assert.match(chat, /:execution-mode="store\.selectedExecutionMode"/)
+    assert.match(chat, /@update:execution-mode="store\.setSelectedExecutionMode"/)
+    assert.match(store, /selectedExecutionMode/)
+    assert.match(store, /workflowsApi\.getById/)
+    assert.match(store, /workflow\.nodes\[agent\.agentNodeId\]/)
+    assert.match(store, /saveActiveWorkflow/)
+    assert.match(api, /executionMode: payload\.executionMode/)
+  })
+
   it('auto-scrolls the transcript and animates message reflow on new steps', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 

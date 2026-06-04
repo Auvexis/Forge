@@ -34,6 +34,7 @@ interface PendingAgentPanelStream {
   profileId: string;
   sessionId: string;
   message: string;
+  executionMode?: "loop" | "plan";
   createdAt: number;
 }
 
@@ -97,7 +98,7 @@ export default async function agentPanelRoutes(
   fastify.post("/agent-panel/agents/:agentKey/messages", async (req, reply) => {
     try {
       const { agentKey } = req.params as { agentKey: string };
-      const body = req.body as { message?: unknown } | undefined;
+      const body = req.body as { message?: unknown; executionMode?: unknown } | undefined;
       const message = String(body?.message ?? "").trim();
       if (!message) {
         throw new AgentRuntimeError(
@@ -112,7 +113,12 @@ export default async function agentPanelRoutes(
         status_code: 200,
         message: "Agent panel message sent",
         error: null,
-        data: await getService().sendFirstMessage({ profileId: getProfileId(), agentKey, message }),
+        data: await getService().sendFirstMessage({
+          profileId: getProfileId(),
+          agentKey,
+          message,
+          executionMode: normalizeExecutionMode(body?.executionMode),
+        }),
       });
     } catch (error) {
       return sendAgentError(reply, error);
@@ -136,7 +142,7 @@ export default async function agentPanelRoutes(
   fastify.post("/agent-panel/sessions/:sessionId/messages", async (req, reply) => {
     try {
       const { sessionId } = req.params as { sessionId: string };
-      const body = req.body as { message?: unknown } | undefined;
+      const body = req.body as { message?: unknown; executionMode?: unknown } | undefined;
       const message = String(body?.message ?? "").trim();
       if (!message) {
         throw new AgentRuntimeError(
@@ -151,7 +157,12 @@ export default async function agentPanelRoutes(
         status_code: 200,
         message: "Agent panel message sent",
         error: null,
-        data: await getService().sendMessage({ profileId: getProfileId(), sessionId, message }),
+        data: await getService().sendMessage({
+          profileId: getProfileId(),
+          sessionId,
+          message,
+          executionMode: normalizeExecutionMode(body?.executionMode),
+        }),
       });
     } catch (error) {
       return sendAgentError(reply, error);
@@ -161,7 +172,7 @@ export default async function agentPanelRoutes(
   fastify.post("/agent-panel/sessions/:sessionId/messages/stream/start", async (req, reply) => {
     try {
       const { sessionId } = req.params as { sessionId: string };
-      const body = req.body as { message?: unknown } | undefined;
+      const body = req.body as { message?: unknown; executionMode?: unknown } | undefined;
       const message = String(body?.message ?? "").trim();
       if (!message) {
         throw new AgentRuntimeError(
@@ -177,6 +188,7 @@ export default async function agentPanelRoutes(
         profileId: getProfileId(),
         sessionId,
         message,
+        executionMode: normalizeExecutionMode(body?.executionMode),
         createdAt: Date.now(),
       });
       prunePendingAgentPanelStreams();
@@ -212,13 +224,14 @@ export default async function agentPanelRoutes(
       profileId: pending.profileId,
       sessionId,
       message: pending.message,
+      executionMode: pending.executionMode,
       service: getService(),
     });
   });
 
   fastify.post("/agent-panel/sessions/:sessionId/messages/stream", async (req, reply) => {
     const { sessionId } = req.params as { sessionId: string };
-    const body = req.body as { message?: unknown } | undefined;
+    const body = req.body as { message?: unknown; executionMode?: unknown } | undefined;
     const message = String(body?.message ?? "").trim();
     if (!message) {
       return sendAgentError(
@@ -236,6 +249,7 @@ export default async function agentPanelRoutes(
       profileId: getProfileId(),
       sessionId,
       message,
+      executionMode: normalizeExecutionMode(body?.executionMode),
       service: getService(),
     });
   });
@@ -285,6 +299,7 @@ async function streamAgentPanelMessage(
     profileId: string;
     sessionId: string;
     message: string;
+    executionMode?: "loop" | "plan";
     service: Pick<AgentPanelChatService, "sendMessage"> & Partial<Pick<AgentPanelChatService, "appendStreamAssistantMessage">>;
   },
 ) {
@@ -450,6 +465,7 @@ async function streamAgentPanelMessage(
       profileId: input.profileId,
       sessionId: input.sessionId,
       message: input.message,
+      executionMode: input.executionMode,
       executionId,
       skipPersistedToolMessages: Boolean(input.service.appendStreamAssistantMessage),
     });
@@ -777,6 +793,11 @@ function safeErrorMessage(error: unknown): string {
 function normalizeMemoryMode(value: unknown): MemoryMode {
   if (value === "transcript-only" || value === "all-agent-memory") return value;
   return "session";
+}
+
+function normalizeExecutionMode(value: unknown): "loop" | "plan" | undefined {
+  if (value === "loop" || value === "plan") return value;
+  return undefined;
 }
 
 function stringOrUndefined(value: unknown): string | undefined {

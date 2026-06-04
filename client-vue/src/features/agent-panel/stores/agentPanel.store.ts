@@ -1,7 +1,9 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { agentPanelApi } from '@/core/api/agent-panel.api'
+import { workflowsApi } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
+import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 import { mergeServerMessagesWithStableLocalTurn as mergeStableLocalTurn } from './agentPanelMessageMerge'
 import type { AgentChatMessage, AgentChatSession } from '@/features/agent-runtime/types/agent.types'
 import type {
@@ -39,6 +41,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   const selectedAgent = computed(
     () => agents.value.find((agent) => agent.key === selectedAgentKey.value) ?? null,
   )
+  const selectedExecutionMode = computed(() => selectedAgent.value?.executionMode ?? 'loop')
   const filteredAgents = computed(() => {
     const query = agentSearch.value.trim().toLowerCase()
     if (!query) return agents.value
@@ -89,6 +92,25 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     draftSessionOpen.value = false
     messages.value = []
     await loadSessions(agentKey)
+  }
+
+  async function setSelectedExecutionMode(mode: 'loop' | 'plan') {
+    if (!selectedAgent.value || selectedAgent.value.executionMode === mode) return
+    const agent = selectedAgent.value
+    const workflowStore = useWorkflowStore()
+    if (workflowStore.activeWorkflow?.metadata.id === agent.workflowId) {
+      workflowStore.updateNodeData(agent.agentNodeId, { executionMode: mode })
+      await workflowStore.saveActiveWorkflow({ silent: true })
+    } else {
+      const workflow = await workflowsApi.getById(agent.workflowId)
+      const node = workflow.nodes[agent.agentNodeId]
+      if (!node || node.type !== 'ai-agent') return
+      node.executionMode = mode
+      await workflowsApi.update(workflow.metadata.id, workflow)
+    }
+    agents.value = agents.value.map((candidate) =>
+      candidate.key === agent.key ? { ...candidate, executionMode: mode } : candidate,
+    )
   }
 
   async function loadSessions(agentKey = selectedAgentKey.value) {
@@ -450,7 +472,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       let result = null as Awaited<ReturnType<typeof agentPanelApi.sendMessage>> | null
       for await (const event of agentPanelApi.sendMessageStream(
         selectedSessionId.value,
-        { message: text },
+        { message: text, executionMode: selectedExecutionMode.value },
         { signal: activeStreamAbortController.signal },
       )) {
         if (event.type === 'start') {
@@ -588,7 +610,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       let result = null as Awaited<ReturnType<typeof agentPanelApi.sendMessage>> | null
       for await (const event of agentPanelApi.sendMessageStream(
         sessionId,
-        { message, selectedValue: option.value },
+        { message, selectedValue: option.value, executionMode: selectedExecutionMode.value },
         { signal: activeStreamAbortController.signal },
       )) {
         if (event.type === 'start') {
@@ -730,11 +752,13 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     directoryCollapsed,
     approvalPendingId,
     selectedAgent,
+    selectedExecutionMode,
     selectedSession,
     hasOpenChat,
     loadAgents,
     setAgentScope,
     selectAgent,
+    setSelectedExecutionMode,
     loadSessions,
     selectSession,
     loadMessages,

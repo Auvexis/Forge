@@ -25,6 +25,7 @@ export type AgentMemoryScope = "none" | "session" | "workflow" | "profile" | "us
 export type AgentMemoryAdapter = "sailor-internal" | "plugin-memory-store";
 
 export type AgentModelAdapter = "openai-compatible" | "generic" | "ollama";
+export type AgentExecutionMode = "loop" | "plan";
 
 export type AgentToolSideEffect =
   | "read"
@@ -223,6 +224,7 @@ export interface AiAgentNode extends WorkflowNodeBase {
   agentEmoji?: string;
   prompt: string;
   inputMessage?: string;
+  executionMode?: AgentExecutionMode;
   maxIterations: number;
   maxToolCalls: number;
   timeoutMs: number;

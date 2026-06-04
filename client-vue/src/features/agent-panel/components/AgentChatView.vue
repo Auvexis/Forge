@@ -214,8 +214,10 @@
               mode="hero"
               :sending="store.sending"
               :cancelable="store.sending"
+              :execution-mode="store.selectedExecutionMode"
               @send="store.sendMessage"
               @cancel="store.cancelActiveExecution"
+              @update:execution-mode="store.setSelectedExecutionMode"
             />
           </Transition>
           <p>Centra may display inaccurate info, so please double check the response.</p>
@@ -228,8 +230,10 @@
           mode="dock"
           :sending="store.sending"
           :cancelable="store.sending"
+          :execution-mode="store.selectedExecutionMode"
           @send="store.sendMessage"
           @cancel="store.cancelActiveExecution"
+          @update:execution-mode="store.setSelectedExecutionMode"
         />
       </Transition>
     </template>

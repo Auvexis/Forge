@@ -1093,6 +1093,7 @@ function agentConfig(overrides: Partial<AiAgentNodeConfig> = {}): AiAgentNodeCon
     requireApprovalForSideEffects: ["write", "delete", "external-message", "external-payment"],
     outputMode: "text",
     ...overrides,
+    executionMode: overrides.executionMode ?? "loop",
   };
 }
 

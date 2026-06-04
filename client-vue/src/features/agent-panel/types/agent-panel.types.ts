@@ -12,6 +12,7 @@ export interface PublishedAgentSummary {
   name: string
   emoji: string
   modelNodeId: string
+  executionMode: 'loop' | 'plan'
 }
 
 export interface CreateAgentPanelSessionPayload {
@@ -21,6 +22,7 @@ export interface CreateAgentPanelSessionPayload {
 export interface SendAgentPanelMessagePayload {
   message: string
   selectedValue?: unknown
+  executionMode?: 'loop' | 'plan'
 }
 
 export interface DeleteAgentPanelSessionPayload {

@@ -24,6 +24,14 @@
         :title="`Speech language: ${selectedSpeechLanguage.label}`"
         @update:model-value="stopSpeechRecognition"
       />
+      <BaseDropdownSelect
+        :model-value="props.executionMode"
+        :options="EXECUTION_MODE_OPTIONS"
+        icon-left="route"
+        trigger-class="agent-chat-composer__mode-trigger"
+        :title="`Execution mode: ${selectedExecutionMode.label}`"
+        @update:model-value="emit('update:execution-mode', $event as 'loop' | 'plan')"
+      />
       <BaseButton
         type="button"
         class="agent-chat-composer__utility"
@@ -63,16 +71,19 @@ const props = withDefaults(
     sending: boolean
     cancelable?: boolean
     mode?: 'dock' | 'hero'
+    executionMode?: 'loop' | 'plan'
   }>(),
   {
     cancelable: true,
     mode: 'dock',
+    executionMode: 'loop',
   },
 )
 
 const emit = defineEmits<{
   send: [message: string]
   cancel: []
+  'update:execution-mode': [mode: 'loop' | 'plan']
 }>()
 
 const propsSending = computed(() => props.sending)
@@ -104,9 +115,17 @@ const speechLanguages: BaseDropdownSelectOption[] = [
   { value: 'ja-JP', shortLabel: 'JA', label: 'Japanese', description: 'ja-JP', meta: 'JP' },
   { value: 'zh-CN', shortLabel: 'ZH', label: 'Chinese Mandarin', description: 'zh-CN', meta: 'CN' },
 ]
+const EXECUTION_MODE_OPTIONS: BaseDropdownSelectOption[] = [
+  { value: 'loop', shortLabel: 'Loop', label: 'Loop', description: 'Run tools step by step' },
+  { value: 'plan', shortLabel: 'Plan', label: 'Plan', description: 'Generate a plan first' },
+]
+const DEFAULT_EXECUTION_MODE_OPTION = EXECUTION_MODE_OPTIONS[0] as BaseDropdownSelectOption
 
 const selectedSpeechLanguage = computed(() =>
   speechLanguages.find((language) => language.value === speechLanguage.value) ?? defaultSpeechLanguage,
+)
+const selectedExecutionMode = computed(() =>
+  EXECUTION_MODE_OPTIONS.find((mode) => mode.value === props.executionMode) ?? DEFAULT_EXECUTION_MODE_OPTION,
 )
 
 type BrowserSpeechRecognitionEvent = {
@@ -305,6 +324,11 @@ onBeforeUnmount(() => {
 }
 
 .agent-chat-composer__language-trigger {
+  height: 26px;
+  font-size: 12px;
+}
+
+.agent-chat-composer__mode-trigger {
   height: 26px;
   font-size: 12px;
 }

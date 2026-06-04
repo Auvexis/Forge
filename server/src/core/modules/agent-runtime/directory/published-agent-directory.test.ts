@@ -16,6 +16,7 @@ describe("published agent directory", () => {
       chatSlug: agent.chatSlug,
       name: agent.name,
       emoji: agent.emoji,
+      executionMode: agent.executionMode,
     })), [{
       key: "profile_a:workflow_agent:chat_trigger:agent",
       profileId: "profile_a",
@@ -25,6 +26,7 @@ describe("published agent directory", () => {
       chatSlug: "support-agent",
       name: "Support Agent",
       emoji: "\u{1F916}",
+      executionMode: "loop",
     }]);
   });
 

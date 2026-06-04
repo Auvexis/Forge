@@ -12,6 +12,7 @@ export interface PublishedAgentSummary {
   name: string;
   emoji: string;
   modelNodeId: string;
+  executionMode: "loop" | "plan";
 }
 
 export function listPublishedAgentsForProfile(
@@ -59,6 +60,7 @@ function listWorkflowAgents(profileId: string, workflow: WorkflowItem): Publishe
         name: publicAgentName(agentNode),
         emoji: publicAgentEmoji(agentNode),
         modelNodeId,
+        executionMode: publicAgentExecutionMode(agentNode),
       });
     }
   }
@@ -103,6 +105,10 @@ function publicAgentName(node: WorkflowNode): string {
 
 function publicAgentEmoji(node: WorkflowNode): string {
   return stringValue((node as unknown as Record<string, unknown>).agentEmoji) ?? "\u{1F916}";
+}
+
+function publicAgentExecutionMode(node: WorkflowNode): "loop" | "plan" {
+  return (node as unknown as Record<string, unknown>).executionMode === "plan" ? "plan" : "loop";
 }
 
 function stringValue(value: unknown): string | null {

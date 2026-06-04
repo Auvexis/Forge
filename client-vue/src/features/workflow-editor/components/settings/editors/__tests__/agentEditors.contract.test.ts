@@ -22,16 +22,19 @@ test('editor registry maps AI workflow nodes to dedicated editors', () => {
   assert.match(source, /'ai-tool': AiToolEditor/)
 })
 
-test('ai agent editor exposes prompt, input message, labeled vertical limits, timeout, and output mode without approval policy controls', () => {
+test('ai agent editor exposes prompt, input message, execution mode, limits, timeout, and output mode without approval policy controls', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/AiAgentEditor.vue')
   const inspector = read('src/features/workflow-editor/components/settings/NodeInspectorModal.vue')
 
-  for (const field of ['prompt', 'inputMessage', 'maxIterations', 'maxToolCalls', 'timeoutMs', 'outputMode']) {
+  for (const field of ['prompt', 'inputMessage', 'executionMode', 'maxIterations', 'maxToolCalls', 'timeoutMs', 'outputMode']) {
     assert.match(source, new RegExp(field))
   }
 
+  assert.match(source, /Execution Mode/)
+  assert.match(source, /EXECUTION_MODES/)
+  assert.match(source, /value: 'loop'/)
+  assert.match(source, /value: 'plan'/)
   assert.match(source, /User Input/)
-  assert.match(source, /node anterior/)
   assert.match(source, /Max Iterations/)
   assert.match(source, /Max Tool Calls/)
   assert.match(source, /editor-limit-stack/)
