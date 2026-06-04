@@ -47,6 +47,10 @@ export interface AgentPanelProgressContent {
     pluginId?: string
     pluginName?: string
     reason?: string
+    details?: {
+      params?: unknown
+      output?: unknown
+    }
   }
 }
 

@@ -302,15 +302,30 @@ function workflowToolStatus(
 }
 
 function workflowTool(data: Record<string, unknown> | undefined) {
-  const name = typeof data?.name === 'string' && data.name.trim() ? data.name.trim() : 'agent tool'
-  const callId = typeof data?.callId === 'string' ? data.callId : name
+  const nestedTool = data?.tool && typeof data.tool === 'object' && !Array.isArray(data.tool)
+    ? data.tool as Record<string, unknown>
+    : {}
+  const name = firstString(data?.name, nestedTool.name) ?? 'agent tool'
+  const callId = firstString(data?.callId, data?.toolCallId, nestedTool.toolCallId) ?? name
+  const pluginId = firstString(data?.pluginId, nestedTool.pluginId)
+  const pluginName = firstString(data?.pluginName, nestedTool.pluginName)
+  const reason = firstString(data?.reason, nestedTool.reason)
+  const details = data?.details && typeof data.details === 'object' && !Array.isArray(data.details)
+    ? data.details as { params?: unknown; output?: unknown }
+    : undefined
   return {
     toolCallId: callId,
     name,
-    ...(typeof data?.pluginId === 'string' ? { pluginId: data.pluginId } : {}),
-    ...(typeof data?.pluginName === 'string' ? { pluginName: data.pluginName } : {}),
-    ...(typeof data?.reason === 'string' ? { reason: data.reason } : {}),
+    ...(pluginId ? { pluginId } : {}),
+    ...(pluginName ? { pluginName } : {}),
+    ...(reason ? { reason } : {}),
+    ...(details ? { details } : {}),
   }
+}
+
+function firstString(...values: unknown[]): string | undefined {
+  const value = values.find((item) => typeof item === 'string' && item.trim())
+  return typeof value === 'string' ? value.trim() : undefined
 }
 
 function workflowToolMessage(

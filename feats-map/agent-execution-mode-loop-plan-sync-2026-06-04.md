@@ -135,6 +135,14 @@ Resultado Task 2:
 - [x] Rodar testes focados e build backend.
 - [x] Commitar.
 
+## Task 9 - Tool Steps Dinamicos
+
+- [x] Fazer loop retry para `File not found` de tool.
+- [x] Incluir params sanitizados nos eventos `agent:tool-intent/start`.
+- [x] Incluir output sanitizado nos eventos `agent:tool-end`.
+- [x] Renderizar step de tool persistente com details colapsavel no chat.
+- [x] Rodar testes focados e commit.
+
 Proximas 5 tasks sugeridas:
 1. Finalizar `agent-panel.routes.ts` passando `executionMode` ate `AgentPanelChatService.sendMessage`.
 2. Atualizar `AgentPanelChatService` para colocar `executionMode` no trigger payload.

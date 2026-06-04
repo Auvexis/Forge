@@ -585,19 +585,35 @@ interface ToolProgress {
   pluginName?: string;
   reason?: string;
   status?: "success" | "failed";
+  details?: {
+    params?: unknown;
+    output?: unknown;
+  };
 }
 
 function extractToolProgress(event: WorkflowEvent): ToolProgress {
   const data = event.data as Record<string, unknown> | undefined;
+  const nestedTool = data?.tool && typeof data.tool === "object" && !Array.isArray(data.tool)
+    ? data.tool as Record<string, unknown>
+    : {};
   const callId = typeof data?.callId === "string" ? data.callId : undefined;
+  const nestedCallId = typeof nestedTool.toolCallId === "string" ? nestedTool.toolCallId : undefined;
   const toolCallId = typeof data?.toolCallId === "string"
     ? data.toolCallId
-    : callId ?? `${event.nodeId}:${event.timestamp}:${typeof data?.name === "string" ? data.name : "agent-tool"}`;
-  const name = typeof data?.name === "string" ? data.name : "agent tool";
-  const pluginId = typeof data?.pluginId === "string" ? data.pluginId : undefined;
-  const pluginName = typeof data?.pluginName === "string" ? data.pluginName : undefined;
-  const reason = typeof data?.reason === "string" ? data.reason : undefined;
-  return { toolCallId, name, pluginId, pluginName, reason };
+    : nestedCallId ?? callId ?? `${event.nodeId}:${event.timestamp}:${typeof data?.name === "string" ? data.name : "agent-tool"}`;
+  const name = firstString(data?.name, nestedTool.name) ?? "agent tool";
+  const pluginId = firstString(data?.pluginId, nestedTool.pluginId);
+  const pluginName = firstString(data?.pluginName, nestedTool.pluginName);
+  const reason = firstString(data?.reason, nestedTool.reason);
+  const details = data?.details && typeof data.details === "object" && !Array.isArray(data.details)
+    ? data.details as ToolProgress["details"]
+    : undefined;
+  return { toolCallId, name, pluginId, pluginName, reason, ...(details ? { details } : {}) };
+}
+
+function firstString(...values: unknown[]): string | undefined {
+  const value = values.find((item) => typeof item === "string" && item.trim());
+  return typeof value === "string" ? value.trim() : undefined;
 }
 
 function extractToolStatus(event: WorkflowEvent): string {

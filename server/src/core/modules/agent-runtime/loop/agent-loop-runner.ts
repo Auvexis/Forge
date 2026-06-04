@@ -94,15 +94,22 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
     }
 
     const toolCallId = `tool_call_${toolCallCount + 1}`;
-    input.emitEvent(toolEvent("agent:tool-intent", tool, toolCallId, "planned", decision.reason));
-    input.emitEvent(toolEvent("agent:tool-start", tool, toolCallId, "running", decision.reason));
+    const params = decision.params ?? {};
+    input.emitEvent(toolEvent("agent:tool-intent", tool, toolCallId, "planned", decision.reason, undefined, {
+      params: sanitizeAgentToolValue(params),
+    }));
+    input.emitEvent(toolEvent("agent:tool-start", tool, toolCallId, "running", decision.reason, undefined, {
+      params: sanitizeAgentToolValue(params),
+    }));
 
     try {
-      const result = await tool.invoke(decision.params ?? {});
+      const result = await tool.invoke(params);
       toolCallCount += 1;
       history.push({ type: "tool_result", toolName: tool.name, result });
       toolCalls.push(toToolCall(tool, toolCallId, "success"));
-      input.emitEvent(toolEvent("agent:tool-end", tool, toolCallId, "success", decision.reason));
+      input.emitEvent(toolEvent("agent:tool-end", tool, toolCallId, "success", decision.reason, undefined, {
+        output: sanitizeAgentToolValue(result),
+      }));
     } catch (error) {
       if (error instanceof AgentToolApprovalRequiredError) throw error;
       history.push({ type: "tool_error", toolName: tool.name, error: safeErrorMessage(error) });
@@ -313,12 +320,18 @@ function isInvalidJsonModelError(error: unknown): boolean {
 
 function isRepairableLoopError(error: unknown): boolean {
   if (!(error instanceof AgentRuntimeError)) return false;
+  if (isRepairableFileNotFound(error)) return true;
   if (error.statusCode === 401 || error.statusCode === 403 || error.statusCode === 404) return false;
   return [
     "AGENT_TOOL_ARGS_INVALID",
     "AGENT_TOOL_PARAM_MISSING",
     "AGENT_TOOL_REF_UNRESOLVED",
   ].includes(error.code) || error.statusCode === 400;
+}
+
+function isRepairableFileNotFound(error: AgentRuntimeError): boolean {
+  return /Agent tool .+ failed: File not found:/i.test(error.publicMessage) ||
+    /Agent tool .+ failed: File not found:/i.test(error.message);
 }
 
 function summarizeToolParams(schema: Record<string, any>): Array<{ name: string; type: string; required: boolean }> {
@@ -354,6 +367,7 @@ function toolEvent(
   status: string,
   reason?: string,
   error?: string,
+  details?: Record<string, unknown>,
 ): AgentGraphEvent {
   return {
     type,
@@ -368,6 +382,7 @@ function toolEvent(
         pluginName: tool.pluginName,
         reason,
       },
+      ...(details ? { details } : {}),
     },
   } as AgentGraphEvent;
 }

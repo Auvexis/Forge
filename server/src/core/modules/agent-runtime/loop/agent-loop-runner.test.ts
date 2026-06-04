@@ -240,6 +240,40 @@ describe("agent loop runner", () => {
     assert.equal(decisionCalls, 2);
     assert.match(prompts[1] ?? "", /Previous response was invalid JSON/);
   });
+
+  it("retries file not found tool errors with new parameters", async () => {
+    const decisions = [
+      { action: "tool", toolName: "download_file", params: { fileId: "wrong_file." } },
+      { action: "tool", toolName: "download_file", params: { fileId: "file_1" } },
+      { action: "final", response: "Arquivo baixado." },
+    ];
+    const calls: string[] = [];
+
+    const result = await runAgentLoop({
+      userMessage: "Baixe o arquivo",
+      contextMessages: [],
+      model: loopModel(decisions),
+      tools: [
+        tool("download_file", async (args) => {
+          const fileId = String((args as { fileId?: unknown }).fileId ?? "");
+          calls.push(fileId);
+          if (fileId !== "file_1") {
+            throw new AgentRuntimeError(
+              `Agent tool google_drive_download_file failed: File not found: ${fileId}`,
+              "AGENT_TOOL_EXECUTION_FAILED",
+              `Agent tool google_drive_download_file failed: File not found: ${fileId}`,
+              502,
+            );
+          }
+          return { ok: true };
+        }),
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Arquivo baixado.");
+    assert.deepEqual(calls, ["wrong_file.", "file_1"]);
+  });
 });
 
 function loopModel(decisions: unknown[]) {

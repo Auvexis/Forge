@@ -159,7 +159,8 @@ describe('agent panel modal contract', () => {
     assert.match(store, /appendPendingAssistantMessage\(selectedSessionId\.value\)[\s\S]*for await/)
     assert.doesNotMatch(store, /id:\s*`local-assistant-stream-\$\{sessionId\}`/)
     assert.match(store, /activeAssistantStreamId/)
-    assert.match(store, /const id = `local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-/)
+    assert.match(store, /function progressMessageId/)
+    assert.match(store, /local-agent-progress-\$\{turnId\}-active/)
     assert.match(store, /const id = `local-agent-summary-\$\{currentAssistantTurnId\(sessionId\)\}`/)
     assert.match(store, /agentPanelApi\.sendMessageStream/)
     assert.match(store, /for await \(const event of agentPanelApi\.sendMessageStream/)
@@ -219,7 +220,7 @@ describe('agent panel modal contract', () => {
     assert.match(modal, /agentStore\.loadAgents\('global'\)/)
   })
 
-  it('models live progress stream events as one active assistant status message', () => {
+  it('models live progress stream events with one active status and persistent tool steps', () => {
     const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
     const merge = readFileSync('src/features/agent-panel/stores/agentPanelMessageMerge.ts', 'utf8')
@@ -231,8 +232,8 @@ describe('agent panel modal contract', () => {
     assert.match(store, /event\.type === 'progress'/)
     assert.match(store, /kind: 'agentProgress'/)
     assert.match(store, /event\.status/)
-    assert.match(store, /local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-active/)
-    assert.doesNotMatch(store, /local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-\$\{toolKey\}-\$\{event\.status\}/)
+    assert.match(store, /local-agent-progress-\$\{turnId\}-active/)
+    assert.match(store, /local-agent-progress-\$\{turnId\}-\$\{event\.tool\.toolCallId\}-\$\{event\.status\}/)
     assert.match(store, /mergeServerMessagesWithStableLocalTurn/)
     assert.match(merge, /findLastMessageIndex/)
   })
@@ -368,15 +369,33 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /agent-chat-view__plugin-icon/)
   })
 
-  it('updates live agent progress in one animated status line', () => {
+  it('updates non-tool progress in one animated status line and keeps tool steps persistent', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
 
-    assert.match(store, /local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-active/)
-    assert.doesNotMatch(store, /local-agent-progress-\$\{currentAssistantTurnId\(sessionId\)\}-\$\{toolKey\}-\$\{event\.status\}/)
+    assert.match(store, /local-agent-progress-\$\{turnId\}-active/)
+    assert.match(store, /function progressMessageId/)
+    assert.match(store, /local-agent-progress-\$\{turnId\}-\$\{event\.tool\.toolCallId\}-\$\{event\.status\}/)
     assert.match(chat, /:key="progressMessage\(message\.content\)"/)
     assert.match(chat, /agent-chat-status-swap-enter-active/)
     assert.match(chat, /agent-chat-status-swap-enter-from/)
+  })
+
+  it('renders tool progress details as expandable params and output blocks', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
+    const api = readFileSync('src/core/api/agent-panel.api.ts', 'utf8')
+
+    assert.match(types, /details\?:/)
+    assert.match(types, /params\?: unknown/)
+    assert.match(types, /output\?: unknown/)
+    assert.match(api, /data\?\.details/)
+    assert.match(api, /nestedTool/)
+    assert.match(chat, /<details[\s\S]*agent-chat-view__progress-details/)
+    assert.match(chat, /agent-chat-view__progress-detail/)
+    assert.match(chat, /Params/)
+    assert.match(chat, /Output/)
+    assert.match(chat, /formatToolDetail/)
   })
 
   it('renders definitive agent tool summaries with plugin icons', () => {

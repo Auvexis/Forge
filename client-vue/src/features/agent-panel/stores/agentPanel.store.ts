@@ -209,7 +209,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     sessionId: string,
     event: Extract<AgentPanelStreamEvent, { type: 'progress' }>,
   ) {
-    const id = `local-agent-progress-${currentAssistantTurnId(sessionId)}-active`
+    const id = progressMessageId(sessionId, event)
     const content: AgentPanelProgressContent = {
       kind: 'agentProgress',
       status: event.status,
@@ -234,6 +234,15 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         entrance: 'assistant',
       } as AgentChatMessage,
     ]
+  }
+
+  function progressMessageId(
+    sessionId: string,
+    event: Extract<AgentPanelStreamEvent, { type: 'progress' }>,
+  ): string {
+    const turnId = currentAssistantTurnId(sessionId)
+    if (!event.tool) return `local-agent-progress-${turnId}-active`
+    return `local-agent-progress-${turnId}-${event.tool.toolCallId}-${event.status}`
   }
 
   function appendAgentSummaryMessage(

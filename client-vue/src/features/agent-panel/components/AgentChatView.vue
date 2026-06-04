@@ -121,6 +121,26 @@
                   {{ progressMessage(message.content) }}
                 </span>
               </Transition>
+              <details
+                v-if="hasToolDetails(message.content)"
+                class="agent-chat-view__progress-details"
+              >
+                <summary>Details</summary>
+                <div
+                  v-if="message.content.tool?.details?.params !== undefined"
+                  class="agent-chat-view__progress-detail"
+                >
+                  <strong>Params</strong>
+                  <pre>{{ formatToolDetail(message.content.tool.details.params) }}</pre>
+                </div>
+                <div
+                  v-if="message.content.tool?.details?.output !== undefined"
+                  class="agent-chat-view__progress-detail"
+                >
+                  <strong>Output</strong>
+                  <pre>{{ formatToolDetail(message.content.tool.details.output) }}</pre>
+                </div>
+              </details>
             </div>
             <div
               v-else-if="isPendingAssistantMessage(message)"
@@ -321,7 +341,11 @@ function messageContentScrollVersion(content: unknown): string {
   const decision = typeof record.decision === 'string' ? record.decision : ''
   const pending = record.pending === true ? 'pending' : ''
   const options = Array.isArray(record.options) ? record.options.length : 0
-  return `${kind}:${status}:${decision}:${pending}:${text}:${options}`
+  const tool = record.tool && typeof record.tool === 'object' && !Array.isArray(record.tool)
+    ? record.tool as { details?: unknown }
+    : undefined
+  const details = tool?.details === undefined ? 0 : formatToolDetail(tool.details).length
+  return `${kind}:${status}:${decision}:${pending}:${text}:${options}:${details}`
 }
 
 function isAgentProgressContent(content: unknown): content is AgentPanelProgressContent {
@@ -435,12 +459,26 @@ function isAgentChoiceSelected(choice: AgentPanelChoiceContent, option: AgentPan
 }
 
 function progressMessage(content: AgentPanelProgressContent): string {
+  if (content.tool) return content.message
   if ((AGENT_PROGRESS_MESSAGES as readonly string[]).includes(content.message)) return content.message
   if (content.status === 'success') return 'Success'
   if (content.status === 'planned' && content.tool) return 'Generating parameters'
   if (content.status === 'running' && content.tool) return 'Executing'
   if (content.status === 'retrying') return 'Creating new parameters'
   return content.message
+}
+
+function hasToolDetails(content: AgentPanelProgressContent): boolean {
+  return content.tool?.details?.params !== undefined || content.tool?.details?.output !== undefined
+}
+
+function formatToolDetail(value: unknown): string {
+  if (typeof value === 'string') return value
+  try {
+    return JSON.stringify(value, null, 2)
+  } catch {
+    return String(value)
+  }
 }
 
 function isShimmeringProgress(content: AgentPanelProgressContent): boolean {
@@ -929,11 +967,12 @@ async function deleteSession(sessionId: string) {
 }
 
 .agent-chat-view__progress {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: 18px minmax(0, 1fr);
   width: fit-content;
-  max-width: 100%;
+  max-width: min(100%, 560px);
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--sailor-space-1) var(--sailor-space-2);
   border: 0;
   background: transparent;
   padding: 0;
@@ -976,6 +1015,51 @@ async function deleteSession(sessionId: string) {
   height: 18px;
   flex: 0 0 auto;
   place-items: center;
+}
+
+.agent-chat-view__progress-details {
+  grid-column: 2;
+  width: min(100%, 520px);
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+}
+
+.agent-chat-view__progress-details summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--sailor-text-muted);
+  line-height: 1.4;
+}
+
+.agent-chat-view__progress-details summary:hover {
+  color: var(--sailor-text-secondary);
+}
+
+.agent-chat-view__progress-detail {
+  display: grid;
+  gap: var(--sailor-space-1);
+  margin-top: var(--sailor-space-2);
+}
+
+.agent-chat-view__progress-detail strong {
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
+  font-weight: var(--sailor-font-semibold);
+}
+
+.agent-chat-view__progress-detail pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: 0;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-base);
+  padding: var(--sailor-space-2);
+  color: var(--sailor-text-secondary);
+  font-family: var(--sailor-font-mono);
+  font-size: var(--sailor-text-xs);
+  line-height: 1.5;
+  white-space: pre-wrap;
 }
 
 .agent-chat-view__summary {
