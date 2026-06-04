@@ -103,6 +103,14 @@ Resultado Task 2:
 - [x] Rodar testes focados do loop/runner.
 - [x] Commitar.
 
+## Task 5 - Bugfix Erro Local No Chat
+
+- [x] Criar contrato para erro de stream encerrar progress local.
+- [x] Inserir `agentError` local imediatamente quando stream retorna erro.
+- [x] Marcar progress `planned/running/retrying` como `failed` no catch.
+- [x] Aplicar mesma regra em continuation de choice.
+- [x] Rodar testes frontend focados e commit.
+
 Proximas 5 tasks sugeridas:
 1. Finalizar `agent-panel.routes.ts` passando `executionMode` ate `AgentPanelChatService.sendMessage`.
 2. Atualizar `AgentPanelChatService` para colocar `executionMode` no trigger payload.

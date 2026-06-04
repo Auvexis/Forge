@@ -10,6 +10,7 @@ import type {
   AgentPanelApprovalContent,
   AgentPanelChoiceContent,
   AgentPanelChoiceOption,
+  AgentPanelErrorContent,
   AgentPanelProgressContent,
   AgentPanelSummaryContent,
   AgentPanelStreamEvent,
@@ -316,6 +317,27 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     ]
   }
 
+  function appendAgentErrorMessage(sessionId: string, message: string) {
+    const streamId = currentAssistantTurnId(sessionId)
+    const id = `local-agent-error-${streamId}`
+    const content: AgentPanelErrorContent = {
+      kind: 'agentError',
+      message,
+    }
+    messages.value = [
+      ...messages.value.filter((candidate) => candidate.id !== id),
+      {
+        id,
+        profileId: '',
+        sessionId,
+        role: 'assistant',
+        content,
+        createdAt: new Date().toISOString(),
+        entrance: 'assistant',
+      } as AgentChatMessage,
+    ]
+  }
+
   function markApprovalResolved(approval: AgentPanelApprovalContent, decision: 'approved' | 'rejected') {
     messages.value = messages.value.map((message) => {
       if (
@@ -496,6 +518,8 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       if (activeStreamAbortController?.signal.aborted) return
       clearActiveAssistantPlaceholder()
       chatError.value = err instanceof Error ? err.message : 'Agent message failed'
+      settleActiveProgressMessages(chatError.value)
+      appendAgentErrorMessage(selectedSessionId.value || localSessionId, chatError.value)
       error.value = chatError.value
       toastError(chatError.value, 'Agent execution failed')
     } finally {
@@ -632,6 +656,8 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       if (activeStreamAbortController?.signal.aborted) return
       clearActiveAssistantPlaceholder()
       chatError.value = err instanceof Error ? err.message : 'Agent choice continuation failed'
+      settleActiveProgressMessages(chatError.value)
+      appendAgentErrorMessage(sessionId, chatError.value)
       error.value = chatError.value
       toastError(chatError.value, 'Agent execution failed')
     } finally {
@@ -772,8 +798,9 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     appendAgentProgressMessage,
     appendAgentSummaryMessage,
     appendAgentApprovalMessage,
-    appendAgentChoiceMessage,
-    approveApproval,
+      appendAgentChoiceMessage,
+      appendAgentErrorMessage,
+      approveApproval,
     rejectApproval,
     continueAgentChoice,
     sendMessage,
