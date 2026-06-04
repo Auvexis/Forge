@@ -75,11 +75,11 @@ function buildIntentPrompt(tools: AgentIntentTool[]): string {
   }));
 
   return [
-    "Classify the user message as chat or tool_plan.",
-    "Return strict JSON with mode, reason, confidence, and optional answer.",
+    "Classify the user message as CHAT or TOOL_PLAN.",
+    "Return exactly one token: CHAT or TOOL_PLAN.",
     "Use chat for greetings, questions, explanations, or tool catalog questions.",
     "Use tool_plan only when the user asks to read, create, update, send, delete, download, upload, or otherwise operate with a tool.",
-    "If unsure, choose chat.",
+    "If unsure, return CHAT.",
     JSON.stringify({ tools: catalog }),
   ].join("\n");
 }
@@ -97,6 +97,18 @@ function truncate(value: string, maxChars: number): string {
 }
 
 function normalizeIntentDecision(rawDecision: unknown, userMessage: string): AgentIntentDecision {
+  if (typeof rawDecision === "string") {
+    const plainMode = parsePlainIntentMode(rawDecision);
+    if (plainMode) {
+      return {
+        mode: plainMode,
+        reason: "Intent router returned a plain classification.",
+        confidence: 0.9,
+      };
+    }
+    return fallbackChatDecision(userMessage);
+  }
+
   if (!rawDecision || typeof rawDecision !== "object" || Array.isArray(rawDecision)) {
     return fallbackChatDecision(userMessage);
   }
@@ -125,6 +137,13 @@ function normalizeIntentDecision(rawDecision: unknown, userMessage: string): Age
   return { mode, reason, confidence, answer };
 }
 
+function parsePlainIntentMode(value: string): AgentIntentMode | null {
+  const normalized = value.toLowerCase().replace(/[\s-]+/g, "_");
+  if (normalized.includes("tool_plan")) return "tool_plan";
+  if (normalized.includes("chat")) return "chat";
+  return null;
+}
+
 function fallbackChatDecision(userMessage: string): AgentIntentDecision {
   const answer = fallbackChatAnswer(userMessage);
   return {
@@ -136,7 +155,7 @@ function fallbackChatDecision(userMessage: string): AgentIntentDecision {
 }
 
 function fallbackIntentDecision(userMessage: string, tools: AgentIntentTool[]): AgentIntentDecision {
-  if (tools.length > 0 && !isSimpleConversation(userMessage)) {
+  if (tools.length > 0 && shouldFallbackToToolPlan(userMessage)) {
     return {
       mode: "tool_plan",
       reason: "Intent routing fallback selected tool planning for a non-chat request with configured tools.",
@@ -146,18 +165,17 @@ function fallbackIntentDecision(userMessage: string, tools: AgentIntentTool[]): 
   return fallbackChatDecision(userMessage);
 }
 
+function shouldFallbackToToolPlan(message: string): boolean {
+  if (isSimpleConversation(message)) return false;
+  return hasActionCue(normalizeMessage(message));
+}
+
 function fallbackChatAnswer(userMessage: string): string {
   return userMessage.trim() ? "" : "How can I help?";
 }
 
 function isSimpleConversation(message: string): boolean {
-  const normalized = message
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s]/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  const normalized = normalizeMessage(message);
   if (!normalized) return true;
   const words = normalized.split(" ").filter(Boolean);
   if (words.length > 8) return false;
@@ -165,9 +183,24 @@ function isSimpleConversation(message: string): boolean {
   return SIMPLE_CHAT_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
+function normalizeMessage(message: string): string {
+  return message
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/['’]/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function hasActionCue(normalized: string): boolean {
+  return /\b(send|sent|email|mail|download|upload|create|update|delete|remove|move|copy|search|find|list|read|fetch|get|open|share|post|publish|write|save|run|execute|call|use|envie|enviar|manda|mande|mandar|email|baixe|baixar|busque|buscar|procure|procurar|liste|listar|leia|ler|crie|criar|atualize|atualizar|delete|deletar|remova|remover|mova|mover|copie|copiar|salve|salvar|execute|executar|use|usar)\b/.test(normalized);
+}
+
 const SIMPLE_CHAT_PATTERNS = [
   /^(oi|ola|opa|e ai|bom dia|boa tarde|boa noite|hello|hi|hey|hola|bonjour|ciao|hallo)( tudo bem)?$/,
-  /^(quem e voce|who are you|quien eres|qui es tu|que es tu)$/,
+  /^(quem e voce|who are you|whos you|who is you|quien eres|qui es tu|que es tu)$/,
   /^(obrigado|obrigada|valeu|thanks|thank you|gracias|merci)$/,
   /^(sim|nao|ok|okay|beleza|certo|yes|no)$/,
 ];

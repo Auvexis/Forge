@@ -630,6 +630,10 @@ describe("agent runner", () => {
               modelCalls.push("json");
               return { steps: [] };
             },
+            async generateFinalResponse() {
+              modelCalls.push("final");
+              return "Oi!";
+            },
           };
         },
       },
@@ -648,7 +652,46 @@ describe("agent runner", () => {
     });
 
     assert.equal(result.output, "Oi!");
-    assert.deepEqual(modelCalls, ["invoke"]);
+    assert.deepEqual(modelCalls, ["invoke", "final"]);
+  });
+
+  it("routes plain text chat intent without parsing JSON from model invoke", async () => {
+    const modelCalls: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async invoke() {
+              modelCalls.push("invoke");
+              return { content: "CHAT" };
+            },
+            async invokeJson() {
+              modelCalls.push("json");
+              return { steps: [] };
+            },
+            async generateFinalResponse() {
+              modelCalls.push("final");
+              return "I'm Allen.";
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [toolDefinition("lookup")],
+      },
+      toolExecutor: async () => {
+        throw new Error("Tool should not run for chat intent.");
+      },
+    });
+
+    const result = await runner.run({
+      ...runInput({ userMessage: "Who's you?" }),
+      tools: [toolConfig()],
+    });
+
+    assert.equal(result.output, "I'm Allen.");
+    assert.deepEqual(modelCalls, ["invoke", "final"]);
   });
 
   it("routes tool_plan intent into the deterministic planner", async () => {

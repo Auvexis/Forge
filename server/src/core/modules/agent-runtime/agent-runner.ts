@@ -448,7 +448,7 @@ function toPlanModel(model: unknown) {
       if (typeof candidate.invoke === "function") {
         const response = await candidate.invoke(input.messages, { signal: input.signal });
         const content = typeof response === "string" ? response : response?.content;
-        return parseModelJsonObject(typeof content === "string" ? content : "");
+        return typeof content === "string" ? content : "";
       }
       if (typeof candidate.invokeJson === "function") return candidate.invokeJson(input, input.schema, { signal: input.signal });
       throw new AgentRuntimeError(
@@ -498,16 +498,6 @@ function toPlanModel(model: unknown) {
       );
     },
   };
-}
-
-function parseModelJsonObject(content: string): Record<string, unknown> {
-  const trimmed = content.trim();
-  const jsonText = trimmed.match(/\{[\s\S]*\}/)?.[0] ?? trimmed;
-  const parsed = JSON.parse(jsonText);
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error("Expected JSON object");
-  }
-  return parsed as Record<string, unknown>;
 }
 
 function schemaWithoutConfiguredDefaults(

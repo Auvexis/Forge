@@ -35,6 +35,51 @@ describe("agent intent router", () => {
     assert.equal(decision.mode, "tool_plan");
   });
 
+  it("accepts plain text chat classifications", async () => {
+    const model: AgentIntentModel = {
+      routeIntent: async () => "CHAT",
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Who's you?",
+      contextMessages: [],
+      tools: [tool("search_files", "Search files", "Find matching files", "read")],
+    });
+
+    assert.equal(decision.mode, "chat");
+  });
+
+  it("accepts plain text tool classifications", async () => {
+    const model: AgentIntentModel = {
+      routeIntent: async () => "TOOL_PLAN",
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Send my CV by email",
+      contextMessages: [],
+      tools: [tool("send_message", "Send a message", "Send external messages", "external-message")],
+    });
+
+    assert.equal(decision.mode, "tool_plan");
+  });
+
+  it("accepts explanatory text containing a tool_plan classification", async () => {
+    const model: AgentIntentModel = {
+      routeIntent: async () => "This should be TOOL_PLAN because it needs an email tool.",
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Email the downloaded file",
+      contextMessages: [],
+      tools: [tool("send_message", "Send a message", "Send external messages", "external-message")],
+    });
+
+    assert.equal(decision.mode, "tool_plan");
+  });
+
   it("does not send schemas or plugin internals to the router prompt", async () => {
     let prompt = "";
     const model: AgentIntentModel = {
@@ -138,6 +183,27 @@ describe("agent intent router", () => {
       userMessage: "Boa noite!",
       contextMessages: [],
       tools: [tool("search_files", "Search files", "Find matching files", "read")],
+      timeoutMs: 5,
+    });
+
+    assert.equal(decision.mode, "chat");
+  });
+
+  it("keeps short identity questions as chat when routing returns invalid JSON with tools", async () => {
+    const model: AgentIntentModel = {
+      routeIntent: async () => {
+        throw new Error("Model returned invalid JSON");
+      },
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Who's you?",
+      contextMessages: [],
+      tools: [
+        tool("search_files", "Search files", "Find matching files", "read"),
+        tool("send_message", "Send a message", "Send external messages", "external-message"),
+      ],
       timeoutMs: 5,
     });
 
