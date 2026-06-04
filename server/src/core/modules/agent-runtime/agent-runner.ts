@@ -41,6 +41,7 @@ import { generateAgentPlan } from "./plan/agent-plan-generator.ts";
 import { executeAgentPlan } from "./plan/agent-plan-executor.ts";
 import { createAgentPlanRepairer } from "./plan/agent-plan-repairer.ts";
 import { generateAgentFinalResponse } from "./plan/agent-final-response-generator.ts";
+import { routeAgentIntent } from "./intent/agent-intent-router.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -314,6 +315,22 @@ export class AgentRunner {
     contextMessages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
   }): Promise<AgentRunResult> {
     const model = toPlanModel(input.model);
+    const intent = await routeAgentIntent({
+      model,
+      userMessage: input.input.userMessage,
+      contextMessages: input.contextMessages,
+      tools: input.tools,
+    });
+    if (intent.mode === "chat") {
+      return {
+        status: "success",
+        output: intent.answer?.trim() || input.input.userMessage,
+        toolCallCount: 0,
+        iterationCount: 1,
+        toolCalls: [],
+      };
+    }
+
     const plan = await generateAgentPlan({
       model,
       userMessage: input.input.userMessage,
@@ -388,6 +405,7 @@ export class AgentRunner {
 
 function toPlanModel(model: unknown) {
   const candidate = model as {
+    routeIntent?: (input: { messages: any[]; schema: Record<string, any> }) => Promise<unknown>;
     generatePlan?: (input: { messages: any[]; schema: Record<string, any> }) => Promise<any>;
     repairPlanStep?: (input: { messages: any[] }, schema?: Record<string, any>) => Promise<any>;
     generateFinalResponse?: (input: { messages: any[] }) => Promise<string>;
@@ -410,6 +428,21 @@ function toPlanModel(model: unknown) {
   }
 
   return {
+    routeIntent: async (input: { messages: any[]; schema: Record<string, any> }) => {
+      if (typeof candidate.routeIntent === "function") return candidate.routeIntent(input);
+      if (typeof candidate.invokeJson === "function") return candidate.invokeJson(input, input.schema);
+      if (typeof candidate.invoke === "function") {
+        const response = await candidate.invoke(input.messages);
+        const content = typeof response === "string" ? response : response?.content;
+        return JSON.parse(typeof content === "string" ? content : "");
+      }
+      throw new AgentRuntimeError(
+        "Agent model does not support intent routing",
+        "AGENT_MODEL_INTENT_UNSUPPORTED",
+        "Agent model cannot route intent",
+        500,
+      );
+    },
     generatePlan: (input: { messages: any[]; schema: Record<string, any> }) =>
       typeof candidate.generatePlan === "function"
         ? candidate.generatePlan(input)

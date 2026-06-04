@@ -322,6 +322,10 @@ describe("agent runner", () => {
       modelRegistry: {
         async createChatModel() {
           return {
+            async routeIntent() {
+              modelCalls.push("intent");
+              return { mode: "tool_plan", reason: "Needs lookup and send.", confidence: 0.9 };
+            },
             async invokeJson() {
               modelCalls.push("plan");
               return {
@@ -356,8 +360,8 @@ describe("agent runner", () => {
 
     assert.equal(result.status, "success");
     assert.equal(result.output, "Sent the found value.");
-    assert.deepEqual(modelCalls, ["plan", "final"]);
-    assert.deepEqual(calls, ["tool:1:lookup", "tool:1:send:found"]);
+    assert.deepEqual(modelCalls, ["intent", "plan", "final"]);
+    assert.deepEqual(calls, ["tool:2:lookup", "tool:2:send:found"]);
     assert.deepEqual(events.filter((event) => event.startsWith("agent:plan") || event === "agent:thinking"), [
       "agent:thinking",
       "agent:thinking",
@@ -373,6 +377,10 @@ describe("agent runner", () => {
       modelRegistry: {
         async createChatModel() {
           return {
+            async routeIntent() {
+              modelCalls.push("intent");
+              return { mode: "tool_plan", reason: "Needs lookup.", confidence: 0.9 };
+            },
             async invokeJson() {
               modelCalls.push("plan");
               return {
@@ -400,7 +408,7 @@ describe("agent runner", () => {
       tools: [toolConfig()],
     });
 
-    assert.deepEqual(modelCalls, ["plan"]);
+    assert.deepEqual(modelCalls, ["intent", "plan"]);
     assert.deepEqual(result.output, { lookup: { value: "raw" } });
   });
 
@@ -411,6 +419,10 @@ describe("agent runner", () => {
       modelRegistry: {
         async createChatModel() {
           return {
+            async routeIntent() {
+              modelCalls.push("intent");
+              return { mode: "chat", reason: "Greeting.", confidence: 0.95, answer: "Boa noite!" };
+            },
             async invokeJson() {
               modelCalls.push("plan");
               return { steps: [] };
@@ -439,7 +451,7 @@ describe("agent runner", () => {
 
     assert.equal(result.status, "success");
     assert.equal(result.output, "Boa noite!");
-    assert.deepEqual(modelCalls, ["plan", "final"]);
+    assert.deepEqual(modelCalls, ["intent"]);
     assert.deepEqual(events.filter((event) => event === "agent:thinking" || event.startsWith("agent:plan")), []);
   });
 
@@ -522,6 +534,83 @@ describe("agent runner", () => {
     assert.equal(result.toolCallCount, 0);
     assert.match(String(result.output), /Google Drive/);
     assert.match(String(result.output), /List Drive files/);
+  });
+
+  it("routes chat intent without planning or tool execution", async () => {
+    const modelCalls: string[] = [];
+    const events: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async routeIntent() {
+              modelCalls.push("intent");
+              return { mode: "chat", reason: "Greeting.", confidence: 0.98, answer: "Bonjour!" };
+            },
+            async invokeJson() {
+              throw new Error("Planner should not run for chat intent.");
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [toolDefinition("lookup")],
+      },
+      toolExecutor: async () => {
+        throw new Error("Tool should not run for chat intent.");
+      },
+      emitEvent: (event) => events.push(event.type),
+    });
+
+    const result = await runner.run({
+      ...runInput({ userMessage: "Bonjour" }),
+      tools: [toolConfig()],
+    });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "Bonjour!");
+    assert.equal(result.toolCallCount, 0);
+    assert.deepEqual(modelCalls, ["intent"]);
+    assert.deepEqual(events.filter((event) => event === "agent:thinking" || event.startsWith("agent:plan")), []);
+  });
+
+  it("routes tool_plan intent into the deterministic planner", async () => {
+    const modelCalls: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async routeIntent() {
+              modelCalls.push("intent");
+              return { mode: "tool_plan", reason: "Needs lookup.", confidence: 0.88 };
+            },
+            async invokeJson() {
+              modelCalls.push("plan");
+              return { steps: [{ id: "lookup", toolName: "lookup", params: {}, reason: "Lookup." }] };
+            },
+            async generateFinalResponse() {
+              modelCalls.push("final");
+              return "Found it.";
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [toolDefinition("lookup")],
+      },
+      toolExecutor: async () => ({ ok: true }),
+    });
+
+    const result = await runner.run({
+      ...runInput({ userMessage: "Find it" }),
+      tools: [toolConfig()],
+    });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "Found it.");
+    assert.deepEqual(modelCalls, ["intent", "plan", "final"]);
   });
 
   it("emits agent:start and agent:end around successful runs", async () => {
