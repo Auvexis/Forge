@@ -1,0 +1,303 @@
+import { AgentRuntimeError, AgentToolApprovalRequiredError } from "../agent-errors.ts";
+import type { AgentGraphEvent } from "../agent-graph-builder.ts";
+import type { AgentRunResult } from "../agent-types.ts";
+import { generateAgentFinalResponse } from "../plan/agent-final-response-generator.ts";
+import type { AgentPlan, AgentPlanTool } from "../plan/agent-plan-types.ts";
+import type { AgentModelMessage } from "../model-adapters/agent-model-adapter.ts";
+import { routeAgentIntent } from "../intent/agent-intent-router.ts";
+import {
+  sanitizeAgentToolValue,
+  serializeAgentLoopHistory,
+  type AgentLoopHistoryItem,
+} from "./agent-tool-result-sanitizer.ts";
+
+export interface AgentLoopModel {
+  routeIntent(input: {
+    messages: AgentModelMessage[];
+    schema: Record<string, any>;
+    signal?: AbortSignal;
+  }): Promise<unknown>;
+  invokeJson<T extends object>(input: {
+    messages: AgentModelMessage[];
+    schema: Record<string, any>;
+  }): Promise<T>;
+  generateFinalResponse(input: { messages: AgentModelMessage[] }): Promise<string>;
+}
+
+export interface RunAgentLoopInput {
+  model: AgentLoopModel;
+  userMessage: string;
+  contextMessages: AgentModelMessage[];
+  tools: AgentPlanTool[];
+  maxIterations?: number;
+  maxToolCalls?: number;
+  skipFinalResponseAfterToolUse?: boolean;
+  emitEvent: (event: AgentGraphEvent) => void;
+}
+
+interface AgentLoopDecision {
+  action: "tool" | "final";
+  toolName?: string;
+  params?: Record<string, unknown>;
+  response?: string;
+  reason?: string;
+}
+
+export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunResult> {
+  const intent = await routeAgentIntent({
+    model: input.model,
+    userMessage: input.userMessage,
+    contextMessages: input.contextMessages,
+    tools: input.tools,
+  });
+  if (intent.mode === "chat") {
+    const output = intent.answer?.trim() || await generateAgentFinalResponse({
+      model: input.model,
+      userMessage: input.userMessage,
+      plan: emptyPlan(),
+      execution: emptyExecution(),
+    });
+    return success(output, 0, 1, []);
+  }
+
+  const tools = new Map(input.tools.map((tool) => [tool.name, tool]));
+  const history: AgentLoopHistoryItem[] = [];
+  const toolCalls: NonNullable<AgentRunResult["toolCalls"]> = [];
+  const maxIterations = input.maxIterations ?? 6;
+  const maxToolCalls = input.maxToolCalls ?? 6;
+  let toolCallCount = 0;
+
+  for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
+    const decision = normalizeDecision(await input.model.invokeJson<AgentLoopDecision>({
+      messages: buildLoopMessages(input, history),
+      schema: loopDecisionSchema(),
+    }));
+
+    if (decision.action === "final") {
+      return success(decision.response ?? "", toolCallCount, iteration, toolCalls);
+    }
+
+    if (toolCallCount >= maxToolCalls) {
+      throw new AgentRuntimeError(
+        "Agent loop exceeded the configured tool call limit",
+        "AGENT_LOOP_TOOL_LIMIT_EXCEEDED",
+        "Agent exceeded the tool call limit",
+        400,
+      );
+    }
+
+    const tool = decision.toolName ? tools.get(decision.toolName) : undefined;
+    if (!tool) {
+      throw new AgentRuntimeError(
+        `Unknown agent loop tool: ${decision.toolName ?? ""}`,
+        "AGENT_TOOL_UNKNOWN",
+        "Agent requested an unavailable tool",
+        400,
+      );
+    }
+
+    const toolCallId = `tool_call_${toolCallCount + 1}`;
+    input.emitEvent(toolEvent("agent:tool-intent", tool, toolCallId, "planned", decision.reason));
+    input.emitEvent(toolEvent("agent:tool-start", tool, toolCallId, "running", decision.reason));
+
+    try {
+      const result = await tool.invoke(decision.params ?? {});
+      toolCallCount += 1;
+      history.push({ type: "tool_result", toolName: tool.name, result });
+      toolCalls.push(toToolCall(tool, toolCallId, "success"));
+      input.emitEvent(toolEvent("agent:tool-end", tool, toolCallId, "success", decision.reason));
+    } catch (error) {
+      if (error instanceof AgentToolApprovalRequiredError) throw error;
+      history.push({ type: "tool_error", toolName: tool.name, error: safeErrorMessage(error) });
+      input.emitEvent(toolEvent(
+        isRepairableLoopError(error) ? "agent:tool-retry" : "agent:tool-end",
+        tool,
+        toolCallId,
+        isRepairableLoopError(error) ? "retrying" : "failed",
+        decision.reason,
+        safeErrorMessage(error),
+      ));
+      if (!isRepairableLoopError(error)) {
+        toolCalls.push(toToolCall(tool, toolCallId, "failed"));
+        throw error;
+      }
+    }
+  }
+
+  const output = input.skipFinalResponseAfterToolUse
+    ? sanitizeAgentToolValue(history.filter((item) => item.type === "tool_result").at(-1)?.result)
+    : await generateAgentFinalResponse({
+        model: input.model,
+        userMessage: input.userMessage,
+        plan: emptyPlan(),
+        execution: {
+          status: "success",
+          output: sanitizeAgentToolValue(history),
+          toolCallCount,
+          iterationCount: maxIterations,
+          toolCalls,
+          outputs: { loop: sanitizeAgentToolValue(history) },
+        },
+      });
+
+  return success(output as AgentRunResult["output"], toolCallCount, maxIterations, toolCalls);
+}
+
+function buildLoopMessages(input: RunAgentLoopInput, history: AgentLoopHistoryItem[]): AgentModelMessage[] {
+  return [
+    {
+      role: "system",
+      content: [
+        "Run the user's request one step at a time.",
+        "Return JSON only.",
+        "Use action=tool to call one tool, or action=final to answer the user.",
+        "Do not include binary, base64, blob, or file contents in params.",
+        "Use only these tools:",
+        JSON.stringify(input.tools.map((tool) => ({
+          name: tool.name,
+          description: tool.description,
+          instructions: tool.instructions ?? tool.description,
+          params: summarizeToolParams(tool.inputSchema),
+        }))),
+      ].join("\n"),
+    },
+    ...input.contextMessages,
+    { role: "user", content: input.userMessage },
+    { role: "system", content: `History:\n${serializeAgentLoopHistory(history) || "EMPTY"}` },
+  ];
+}
+
+function normalizeDecision(decision: unknown): AgentLoopDecision {
+  if (!decision || typeof decision !== "object" || Array.isArray(decision)) {
+    throw invalidDecision();
+  }
+  const value = decision as Record<string, unknown>;
+  if (value.action !== "tool" && value.action !== "final") throw invalidDecision();
+  if (value.action === "tool") {
+    if (typeof value.toolName !== "string" || !value.toolName.trim()) throw invalidDecision();
+    if (!value.params || typeof value.params !== "object" || Array.isArray(value.params)) throw invalidDecision();
+  }
+  return {
+    action: value.action,
+    toolName: typeof value.toolName === "string" ? value.toolName : undefined,
+    params: value.params && typeof value.params === "object" && !Array.isArray(value.params)
+      ? value.params as Record<string, unknown>
+      : undefined,
+    response: typeof value.response === "string" ? value.response : undefined,
+    reason: typeof value.reason === "string" ? value.reason : undefined,
+  };
+}
+
+function invalidDecision(): AgentRuntimeError {
+  return new AgentRuntimeError(
+    "Model returned an invalid loop decision",
+    "AGENT_LOOP_DECISION_INVALID",
+    "Agent generated an invalid loop decision",
+    400,
+  );
+}
+
+function isRepairableLoopError(error: unknown): boolean {
+  if (!(error instanceof AgentRuntimeError)) return false;
+  if (error.statusCode === 401 || error.statusCode === 403 || error.statusCode === 404) return false;
+  return [
+    "AGENT_TOOL_ARGS_INVALID",
+    "AGENT_TOOL_PARAM_MISSING",
+    "AGENT_TOOL_REF_UNRESOLVED",
+  ].includes(error.code) || error.statusCode === 400;
+}
+
+function summarizeToolParams(schema: Record<string, any>): Array<{ name: string; type: string; required: boolean }> {
+  const properties = schema?.properties;
+  if (!properties || typeof properties !== "object" || Array.isArray(properties)) return [];
+  const required = new Set(Array.isArray(schema.required) ? schema.required.filter((item) => typeof item === "string") : []);
+  return Object.entries(properties).slice(0, 12).map(([name, value]) => ({
+    name,
+    type: typeof (value as { type?: unknown })?.type === "string" ? String((value as { type?: unknown }).type) : "unknown",
+    required: required.has(name),
+  }));
+}
+
+function loopDecisionSchema(): Record<string, any> {
+  return {
+    type: "object",
+    required: ["action"],
+    properties: {
+      action: { type: "string", enum: ["tool", "final"] },
+      toolName: { type: "string" },
+      params: { type: "object" },
+      response: { type: "string" },
+      reason: { type: "string" },
+    },
+  };
+}
+
+function toolEvent(
+  type: AgentGraphEvent["type"],
+  tool: AgentPlanTool,
+  toolCallId: string,
+  status: string,
+  reason?: string,
+  error?: string,
+): AgentGraphEvent {
+  return {
+    type,
+    payload: {
+      status,
+      reason,
+      ...(error ? { error } : {}),
+      tool: {
+        toolCallId,
+        name: tool.name,
+        pluginId: tool.pluginId,
+        pluginName: tool.pluginName,
+        reason,
+      },
+    },
+  } as AgentGraphEvent;
+}
+
+function toToolCall(tool: AgentPlanTool, toolCallId: string, status: "success" | "failed") {
+  return {
+    toolCallId,
+    name: tool.name,
+    ...(tool.pluginId ? { pluginId: tool.pluginId } : {}),
+    ...(tool.pluginName ? { pluginName: tool.pluginName } : {}),
+    status,
+  };
+}
+
+function emptyPlan(): AgentPlan {
+  return { steps: [] };
+}
+
+function emptyExecution() {
+  return {
+    status: "success" as const,
+    output: "",
+    outputs: {},
+    toolCalls: [],
+    toolCallCount: 0,
+    iterationCount: 1,
+  };
+}
+
+function success(
+  output: AgentRunResult["output"],
+  toolCallCount: number,
+  iterationCount: number,
+  toolCalls: NonNullable<AgentRunResult["toolCalls"]>,
+): AgentRunResult {
+  return {
+    status: "success",
+    output,
+    toolCallCount,
+    iterationCount,
+    toolCalls,
+  };
+}
+
+function safeErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.replace(/\s+/g, " ").trim() || "Unknown error";
+}

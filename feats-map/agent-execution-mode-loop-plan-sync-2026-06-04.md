@@ -28,13 +28,21 @@ Rules:
 
 ## Task 2 - Runtime Loop Separado
 
-- [ ] Criar `agent-loop-runner.ts`.
-- [ ] Criar `agent-plan-runner.ts` para isolar o modo atual.
-- [ ] Criar serializer textual compacto por linhas.
-- [ ] Criar sanitizer que oculta Buffer/base64/blob/arquivos grandes.
-- [ ] Fazer `AgentRunner` escolher loop ou plan por `agent.executionMode`.
-- [ ] Testar retry por erro reparavel no loop.
-- [ ] Garantir que triggers webhook/cron/plugin usam default `loop`.
+- [x] Criar `agent-loop-runner.ts`.
+- [x] Criar `agent-plan-runner.ts` para isolar o modo atual.
+- [x] Criar serializer textual compacto por linhas.
+- [x] Criar sanitizer que oculta Buffer/base64/blob/arquivos grandes.
+- [x] Fazer `AgentRunner` escolher loop ou plan por `agent.executionMode`.
+- [x] Testar retry por erro reparavel no loop.
+- [x] Garantir que triggers webhook/cron/plugin usam default `loop`.
+
+### Fatia Atual - 5 Tasks
+
+- [x] Criar testes vermelhos para selecao `loop | plan` no `AgentRunner`.
+- [x] Criar testes vermelhos para serializer/sanitizer textual do modo loop.
+- [x] Implementar `agent-plan-runner.ts` isolando o fluxo plan atual.
+- [x] Implementar `agent-loop-runner.ts` com retry simples por erro reparavel.
+- [x] Ligar `AgentRunner` no modo correto e verificar default `loop`.
 
 ## Task 3 - Verificacao
 
@@ -76,6 +84,16 @@ Ultimo resultado de testes:
 - Builds passaram:
   - `cd server && npm run build`
   - `cd client-vue && npm run build`
+
+Resultado Task 2:
+- Runtime `plan` isolado em `server/src/core/modules/agent-runtime/plan/agent-plan-runner.ts`.
+- Runtime `loop` criado em `server/src/core/modules/agent-runtime/loop/agent-loop-runner.ts`.
+- Serializer/sanitizer criado em `server/src/core/modules/agent-runtime/loop/agent-tool-result-sanitizer.ts`.
+- `AgentRunner` escolhe `plan` somente quando `agent.executionMode === "plan"`; default validado continua `loop`.
+- Testes focados passaram:
+  - `node --test src/core/modules/agent-runtime/agent-runner.test.ts src/core/modules/agent-runtime/loop/agent-tool-result-sanitizer.test.ts src/core/modules/agent-runtime/loop/agent-loop-runner.test.ts src/core/modules/agent-runtime/plan/agent-plan-generator.test.ts src/core/modules/agent-runtime/plan/agent-plan-executor.test.ts src/core/modules/agent-runtime/plan/agent-plan-repairer.test.ts src/core/modules/agent-runtime/plan/agent-final-response-generator.test.ts src/core/modules/agent-runtime/intent/agent-intent-router.test.ts`
+- Backend build passou:
+  - `cd server && npm run build`
 
 Proximas 5 tasks sugeridas:
 1. Finalizar `agent-panel.routes.ts` passando `executionMode` ate `AgentPanelChatService.sendMessage`.

@@ -277,7 +277,7 @@ describe("agent runner", () => {
     assert.equal(result.output, "No email needed.");
   });
 
-  it("uses the deterministic plan runtime by default without model calls between tools", async () => {
+  it("uses the deterministic plan runtime in plan mode without model calls between tools", async () => {
     const calls: string[] = [];
     const modelCalls: string[] = [];
     const events: string[] = [];
@@ -356,7 +356,10 @@ describe("agent runner", () => {
       emitEvent: (event) => events.push(event.type),
     });
 
-    const result = await runner.run({ ...runInput(), tools: [toolConfig({ methodId: "lookup" }), toolConfig({ methodId: "send" })] });
+    const result = await runner.run({
+      ...runInput({ agent: agentConfig({ executionMode: "plan" }) }),
+      tools: [toolConfig({ methodId: "lookup" }), toolConfig({ methodId: "send" })],
+    });
 
     assert.equal(result.status, "success");
     assert.equal(result.output, "Sent the found value.");
@@ -369,6 +372,55 @@ describe("agent runner", () => {
       "agent:plan-start",
       "agent:plan-end",
     ]);
+  });
+
+  it("uses loop mode by default for tool execution", async () => {
+    const modelCalls: string[] = [];
+    const toolCalls: unknown[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async routeIntent() {
+              modelCalls.push("intent");
+              return { mode: "tool_plan", reason: "Needs lookup.", confidence: 0.9 };
+            },
+            async invokeJson() {
+              modelCalls.push("loop");
+              return modelCalls.filter((call) => call === "loop").length === 1
+                ? { action: "tool", toolName: "lookup", params: { query: "hello" }, reason: "Lookup." }
+                : { action: "final", response: "Found it.", reason: "Done." };
+            },
+            async generatePlan() {
+              modelCalls.push("plan");
+              return { steps: [] };
+            },
+            async generateFinalResponse() {
+              modelCalls.push("final");
+              return "Found it.";
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [toolDefinition("lookup")],
+      },
+      toolExecutor: async (input) => {
+        toolCalls.push(input.args);
+        return { value: "found" };
+      },
+    });
+
+    const result = await runner.run({
+      ...runInput(),
+      tools: [toolConfig()],
+    });
+
+    assert.equal(result.status, "success");
+    assert.equal(result.output, "Found it.");
+    assert.deepEqual(modelCalls, ["intent", "loop", "loop"]);
+    assert.deepEqual(toolCalls, [{ query: "hello" }]);
   });
 
   it("skips final response generation when tool callers request raw output", async () => {
@@ -404,7 +456,10 @@ describe("agent runner", () => {
     });
 
     const result = await runner.run({
-      ...runInput({ skipFinalResponseAfterToolUse: true }),
+      ...runInput({
+        agent: agentConfig({ executionMode: "plan" }),
+        skipFinalResponseAfterToolUse: true,
+      }),
       tools: [toolConfig()],
     });
 
@@ -723,7 +778,10 @@ describe("agent runner", () => {
     });
 
     const result = await runner.run({
-      ...runInput({ userMessage: "Find it" }),
+      ...runInput({
+        agent: agentConfig({ executionMode: "plan" }),
+        userMessage: "Find it",
+      }),
       tools: [toolConfig()],
     });
 
@@ -799,7 +857,10 @@ describe("agent runner", () => {
     });
 
     const result = await runner.run({
-      ...runInput({ userMessage: "Busque o arquivo andresimoes e envie por email" }),
+      ...runInput({
+        agent: agentConfig({ executionMode: "plan" }),
+        userMessage: "Busque o arquivo andresimoes e envie por email",
+      }),
       tools: [toolConfig({ methodId: "search" }), toolConfig({ methodId: "send" })],
     });
 
@@ -846,6 +907,7 @@ describe("agent runner", () => {
     await assert.rejects(
       runner.run({
         ...runInput({
+          agent: agentConfig({ executionMode: "plan" }),
           userMessage: "Busque meu curriculo andresimoes no Drive, baixe e envie para vaurvik@gmail.com",
         }),
         tools: [
