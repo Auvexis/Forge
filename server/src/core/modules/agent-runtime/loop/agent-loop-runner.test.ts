@@ -203,6 +203,43 @@ describe("agent loop runner", () => {
     assert.equal(result.output, "Arquivo baixado.");
     assert.deepEqual(calls, ["list:invalid", "list:name", "download:file_1"]);
   });
+
+  it("retries loop decisions once when the model returns invalid JSON", async () => {
+    let decisionCalls = 0;
+    const prompts: string[] = [];
+
+    const result = await runAgentLoop({
+      userMessage: "Finalize",
+      contextMessages: [],
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs final decision.", confidence: 0.9 };
+        },
+        async invokeJson(input) {
+          decisionCalls += 1;
+          prompts.push(input.messages.map((message) => message.content).join("\n"));
+          if (decisionCalls === 1) {
+            throw new AgentRuntimeError(
+              "Ollama returned invalid JSON",
+              "AGENT_MODEL_JSON_INVALID",
+              "Model returned invalid JSON",
+              502,
+            );
+          }
+          return { action: "final", response: "Pronto." } as any;
+        },
+        async generateFinalResponse() {
+          return "Pronto.";
+        },
+      },
+      tools: [tool("noop", async () => ({ ok: true }))],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Pronto.");
+    assert.equal(decisionCalls, 2);
+    assert.match(prompts[1] ?? "", /Previous response was invalid JSON/);
+  });
 });
 
 function loopModel(decisions: unknown[]) {

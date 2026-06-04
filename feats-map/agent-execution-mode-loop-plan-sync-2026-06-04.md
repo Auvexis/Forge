@@ -127,6 +127,14 @@ Resultado Task 2:
 - [x] Rodar testes backend focados.
 - [x] Commitar.
 
+## Task 8 - Bugfix Invalid JSON No Loop
+
+- [x] Criar teste para retry quando modelo retorna JSON invalido na decisao do loop.
+- [x] Rechamar decisao do loop uma vez com instrucao JSON mais estrita.
+- [x] Melhorar schema/prompt do loop para reduzir JSON malformado no Ollama.
+- [x] Rodar testes focados e build backend.
+- [x] Commitar.
+
 Proximas 5 tasks sugeridas:
 1. Finalizar `agent-panel.routes.ts` passando `executionMode` ate `AgentPanelChatService.sendMessage`.
 2. Atualizar `AgentPanelChatService` para colocar `executionMode` no trigger payload.

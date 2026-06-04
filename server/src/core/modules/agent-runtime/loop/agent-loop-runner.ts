@@ -68,10 +68,7 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
   let toolCallCount = 0;
 
   for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
-    const decision = normalizeDecision(await input.model.invokeJson<AgentLoopDecision>({
-      messages: buildLoopMessages(input, history),
-      schema: loopDecisionSchema(),
-    }));
+    const decision = await readLoopDecision(input, history);
 
     if (decision.action === "final") {
       return success(decision.response ?? "", toolCallCount, iteration, toolCalls);
@@ -141,6 +138,37 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
       });
 
   return success(output as AgentRunResult["output"], toolCallCount, maxIterations, toolCalls);
+}
+
+async function readLoopDecision(
+  input: RunAgentLoopInput,
+  history: AgentLoopHistoryItem[],
+): Promise<AgentLoopDecision> {
+  const messages = buildLoopMessages(input, history);
+  try {
+    return normalizeDecision(await input.model.invokeJson<AgentLoopDecision>({
+      messages,
+      schema: loopDecisionSchema(),
+    }));
+  } catch (error) {
+    if (!isInvalidJsonModelError(error)) throw error;
+    return normalizeDecision(await input.model.invokeJson<AgentLoopDecision>({
+      messages: [
+        ...messages,
+        {
+          role: "system",
+          content: [
+            "Previous response was invalid JSON.",
+            "Return only one valid minified JSON object.",
+            "No markdown. No comments. No trailing commas.",
+            "Tool call: {\"action\":\"tool\",\"toolName\":\"tool_name\",\"params\":{},\"reason\":\"short reason\"}",
+            "Final answer: {\"action\":\"final\",\"response\":\"short answer\"}",
+          ].join("\n"),
+        },
+      ],
+      schema: loopDecisionSchema(),
+    }));
+  }
 }
 
 function buildLoopMessages(input: RunAgentLoopInput, history: AgentLoopHistoryItem[]): AgentModelMessage[] {
@@ -279,6 +307,10 @@ function invalidDecision(): AgentRuntimeError {
   );
 }
 
+function isInvalidJsonModelError(error: unknown): boolean {
+  return error instanceof AgentRuntimeError && error.code === "AGENT_MODEL_JSON_INVALID";
+}
+
 function isRepairableLoopError(error: unknown): boolean {
   if (!(error instanceof AgentRuntimeError)) return false;
   if (error.statusCode === 401 || error.statusCode === 403 || error.statusCode === 404) return false;
@@ -303,6 +335,7 @@ function summarizeToolParams(schema: Record<string, any>): Array<{ name: string;
 function loopDecisionSchema(): Record<string, any> {
   return {
     type: "object",
+    additionalProperties: false,
     required: ["action"],
     properties: {
       action: { type: "string", enum: ["tool", "final"] },
