@@ -285,3 +285,10 @@ Resultado Task 2:
 - [x] Forcar `tool_plan` quando heuristica local encontra verbo de tool e tools conectadas.
 - [x] Manter perguntas simples e catalogo de tools como chat direto.
 - [x] Rodar testes focados, build e commit.
+
+## Task 27 - Status Visivel Entre Steps Do Loop
+
+- [x] Criar teste para emitir status enquanto o loop espera a proxima decisao do modelo.
+- [x] Emitir `agent:thinking` antes de cada decisao do loop.
+- [x] Garantir que o stream persiste/renderiza o status com shimmer existente.
+- [x] Rodar testes focados, build e commit.

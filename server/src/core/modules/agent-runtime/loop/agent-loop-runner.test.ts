@@ -583,6 +583,34 @@ describe("agent loop runner", () => {
     assert.match(String(toolEvents[2]?.payload?.error), /File not found: wrong_file\./);
   });
 
+  it("emits thinking progress while waiting for the next loop decision", async () => {
+    const events: Array<{ type: string; payload?: Record<string, any> }> = [];
+
+    await runAgentLoop({
+      userMessage: "Download then upload the file",
+      contextMessages: [],
+      model: loopModel([
+        { action: "tool", toolName: "download_file", params: { fileId: "file_1" } },
+        { action: "tool", toolName: "upload_file", params: { fileId: "file_1" } },
+        { action: "final", response: "Done." },
+      ]),
+      tools: [
+        tool("download_file", async () => ({ ok: true })),
+        tool("upload_file", async () => ({ ok: true })),
+      ],
+      emitEvent: (event) => events.push(event as typeof events[number]),
+    });
+
+    const types = events.map((event) => event.type);
+    const firstToolEnd = types.indexOf("agent:tool-end");
+    const secondThinking = types.indexOf("agent:thinking", firstToolEnd + 1);
+    const secondToolIntent = types.indexOf("agent:tool-intent", firstToolEnd + 1);
+    assert.ok(firstToolEnd >= 0);
+    assert.ok(secondThinking > firstToolEnd);
+    assert.ok(secondToolIntent > secondThinking);
+    assert.equal(events[secondThinking]?.payload?.message, "Thinking");
+  });
+
   it("executes an approved side-effect tool directly with the saved approval args", async () => {
     let invoked = 0;
     let decisionCalls = 0;

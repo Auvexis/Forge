@@ -133,6 +133,7 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
   }
 
   for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
+    input.emitEvent({ type: "agent:thinking", payload: { message: "Thinking" } } as AgentGraphEvent);
     const decision = await readLoopDecision({ ...input, modelCallTimeoutMs }, history);
 
     if (decision.action === "final") {
