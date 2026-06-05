@@ -216,7 +216,7 @@ async function withTimeout<T>(
             new AgentRuntimeError(
               `Agent tool ${toolName} timed out`,
               "AGENT_TOOL_TIMEOUT",
-              "Agent tool timed out",
+              `Agent tool ${toolName} timed out`,
               504,
             ),
           );

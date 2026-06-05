@@ -346,3 +346,11 @@ Resultado Task 2:
 - [x] Evitar `Using` duplicado antes do approval ser confirmado.
 - [x] Ajustar UI para spinner apenas em status sem tool e troca animada de labels.
 - [x] Rodar testes focados, build e commit.
+
+## Task 35 - Loop Params De Mensagem E Timeout Claro
+
+- [x] Criar teste para prompt do loop orientar ordem do usuario e anexos somente quando explicitamente pedidos.
+- [x] Criar teste para timeout de tool expor nome da tool na mensagem publica.
+- [x] Atualizar instrucao generica do loop sem acoplar Gmail/Drive/YouTube.
+- [x] Atualizar timeout generico do executor de plugin.
+- [x] Rodar testes focados, build e commit.

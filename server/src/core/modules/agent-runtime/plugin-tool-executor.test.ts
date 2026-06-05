@@ -260,6 +260,27 @@ describe("plugin tool executor", () => {
     );
   });
 
+  it("includes the tool name in timeout public errors", async () => {
+    PluginManager.registerPlugin(createPlugin(() => new Promise((resolve) => {
+      setTimeout(() => resolve({ ok: true }), 30);
+    })));
+
+    await assert.rejects(
+      executePluginAgentTool({
+        definition: definition({ name: "google_gmail_send_message", timeoutMs: 1, requiresApproval: false, sideEffect: "read" }),
+        configuredTool: configuredTool({ timeoutMs: 1, requiresApproval: false, sideEffect: "read" }),
+        args: { owner: "acme", title: "Bug" },
+        executionId: "exec_1",
+        workflowId: "workflow_1",
+        nodeId: "agent_1",
+      }),
+      (error) =>
+        error instanceof AgentRuntimeError &&
+        error.code === "AGENT_TOOL_TIMEOUT" &&
+        error.publicMessage === "Agent tool google_gmail_send_message timed out",
+    );
+  });
+
   it("wraps plugin failures in a structured agent error", async () => {
     PluginManager.registerPlugin(createPlugin(async () => {
       throw new Error("provider exploded");

@@ -466,8 +466,11 @@ function buildLoopMessages(input: RunAgentLoopInput, history: AgentLoopHistoryIt
         "For a tool call, return exactly: {\"action\":\"tool\",\"toolName\":\"tool_name\",\"params\":{},\"reason\":\"short reason\"}.",
         "For the final answer, return exactly: {\"action\":\"final\",\"response\":\"short answer\"}.",
         "Call only one tool per response. After a tool result, decide the next tool or final answer.",
+        "Follow the user's requested order for operations whenever the request gives an order.",
         "Do not include binary, base64, blob, or file contents in params.",
         "When history contains an agent-file:// ref, pass that ref object to the next tool instead of inventing file ids or attachment content.",
+        "Only attach a file to a message when the user explicitly asks that message to include, send, or attach the file.",
+        "For notification or status messages, send text only unless the user explicitly asks for an attachment.",
         "Do not return a final answer until every requested operation has a successful tool result.",
         "Use only these tools:",
         JSON.stringify(input.tools.map((tool) => ({

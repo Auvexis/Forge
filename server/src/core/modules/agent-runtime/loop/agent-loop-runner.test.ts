@@ -494,6 +494,9 @@ describe("agent loop runner", () => {
     assert.match(prompts[0] ?? "", /Order By/);
     assert.match(prompts[0] ?? "", /select/);
     assert.match(prompts[0] ?? "", /binary/);
+    assert.match(prompts[0] ?? "", /Follow the user's requested order/i);
+    assert.match(prompts[0] ?? "", /Only attach/i);
+    assert.match(prompts[0] ?? "", /notification/i);
   });
 
   it("does not hide model provider failures after a successful tool result", async () => {
