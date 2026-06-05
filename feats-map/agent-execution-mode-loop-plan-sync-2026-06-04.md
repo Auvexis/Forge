@@ -1,12 +1,12 @@
 # Agent Execution Mode Loop Plan Sync - 2026-06-04
 
-Goal: adicionar modo de execucao `loop | plan` no Tools Agent, com default `loop`, sincronizado entre editor e Global Agent Chat.
+Goal: adicionar modo de execucao `loop | plan` no Tools Agent, sincronizado entre editor e Global Agent Chat.
 
 Rules:
 - Trabalhar em `dev`.
 - Fazer TDD antes da implementacao.
 - Commitar ao fim da fatia.
-- Default do Tools Agent deve ser `loop`.
+- Default inicial foi `loop`, mas a Task 29 mudou o default para `plan` por estabilidade em approvals e fluxos multi-step.
 - Composer do Global Agent Chat e editor do Tools Agent devem ler/escrever o mesmo campo do node.
 - Separar caminho de runtime loop e plan em arquivos proprios.
 - Nao enviar binarios grandes para LLM no modo loop.
@@ -299,4 +299,12 @@ Resultado Task 2:
 - [x] Bloquear repeticao generica de ferramenta read/fetch ja concluida e orientar o modelo a consumir o output anterior.
 - [x] Ajustar UI para status nao-tool trocar na mesma linha com animacao vertical.
 - [x] Fazer icone Lucide de loading girar durante status running/retrying.
+- [x] Rodar testes focados, build e commit.
+
+## Task 29 - Plan Default E Approval Deterministico
+
+- [x] Criar teste para `plan` pausar approval via WorkflowEngine com resumeState contendo plano, step e outputs.
+- [x] Retomar approval do `plan` sem regenerar plano e sem repetir steps anteriores.
+- [x] Trocar default de Tools Agent/Global Agent para `plan`.
+- [x] Garantir que pedidos com duas chamadas da mesma tool continuam no plano deterministico.
 - [x] Rodar testes focados, build e commit.

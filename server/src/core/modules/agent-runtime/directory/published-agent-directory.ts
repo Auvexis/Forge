@@ -108,7 +108,7 @@ function publicAgentEmoji(node: WorkflowNode): string {
 }
 
 function publicAgentExecutionMode(node: WorkflowNode): "loop" | "plan" {
-  return (node as unknown as Record<string, unknown>).executionMode === "plan" ? "plan" : "loop";
+  return (node as unknown as Record<string, unknown>).executionMode === "loop" ? "loop" : "plan";
 }
 
 function stringValue(value: unknown): string | null {

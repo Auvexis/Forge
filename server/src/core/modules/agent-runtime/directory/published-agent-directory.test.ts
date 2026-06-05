@@ -26,7 +26,7 @@ describe("published agent directory", () => {
       chatSlug: "support-agent",
       name: "Support Agent",
       emoji: "\u{1F916}",
-      executionMode: "loop",
+      executionMode: "plan",
     }]);
   });
 

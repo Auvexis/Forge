@@ -172,13 +172,29 @@ async function requestApprovalIfNeeded(
   if (input.approval?.status === "approved" && isApprovalForStep(input, step, tool)) return null;
 
   const approvalId = `approval_${randomUUID()}`;
+  const resumeState = {
+    plan: input.plan,
+    stepId: step.id,
+    outputs,
+  };
   const request = {
     approvalId,
     executionId: input.executionId,
     toolName: tool.name,
     sideEffect: tool.sideEffect,
     args: sanitizeApprovalArgs(params),
+    resumeState,
   };
+
+  if (!input.createApprovalRequest) {
+    throw new AgentToolApprovalRequiredError({
+      toolName: tool.name,
+      sideEffect: tool.sideEffect ?? "write",
+      args: sanitizeApprovalArgs(params),
+      resumeState,
+    });
+  }
+
   const created = await input.createApprovalRequest?.(request);
   const persistedApprovalId = created?.approvalId ?? approvalId;
   const payload = { ...request, approvalId: persistedApprovalId };

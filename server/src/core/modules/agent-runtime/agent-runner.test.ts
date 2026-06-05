@@ -374,7 +374,7 @@ describe("agent runner", () => {
     ]);
   });
 
-  it("uses loop mode by default for tool execution", async () => {
+  it("uses loop mode when explicitly configured for tool execution", async () => {
     const modelCalls: string[] = [];
     const toolCalls: unknown[] = [];
     const runner = new AgentRunner({
@@ -413,7 +413,7 @@ describe("agent runner", () => {
     });
 
     const result = await runner.run({
-      ...runInput(),
+      ...runInput({ agent: agentConfig({ executionMode: "loop" }) }),
       tools: [toolConfig()],
     });
 
@@ -507,6 +507,76 @@ describe("agent runner", () => {
 
     assert.equal(toolCalls, 1);
     assert.equal(repairCalls, 0);
+  });
+
+  it("resumes plan approval from saved plan state without regenerating the plan", async () => {
+    const modelCalls: string[] = [];
+    const toolCalls: Array<{ name: string; args: unknown }> = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async routeIntent() {
+              modelCalls.push("intent");
+              return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+            },
+            async invokeJson() {
+              modelCalls.push("plan");
+              return { steps: [] };
+            },
+            async generateFinalResponse() {
+              modelCalls.push("final");
+              return "Done.";
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [
+          toolDefinition("search"),
+          toolDefinition("send_email", { requiresApproval: true, sideEffect: "external-message" }),
+          toolDefinition("upload_video", { sideEffect: "write" }),
+        ],
+      },
+      toolExecutor: async (input) => {
+        toolCalls.push({ name: input.definition.name, args: input.args });
+        return input.definition.name === "upload_video"
+          ? { url: "https://youtube.example/video" }
+          : { sent: true };
+      },
+    });
+
+    const plan = {
+      steps: [
+        { id: "search", toolName: "search", params: { query: "video" } },
+        { id: "send_notice", toolName: "send_email", params: { to: "user@example.com" } },
+        { id: "upload", toolName: "upload_video", params: { fileId: "$steps.search[0].id" } },
+      ],
+    };
+    const result = await runner.run({
+      ...runInput({
+        agent: agentConfig({ executionMode: "plan" }),
+        approvalToken: "approved",
+        approvalToolName: "send_email",
+        approvalToolArgs: { to: "user@example.com" },
+        approvalToolResumeState: {
+          plan,
+          stepId: "send_notice",
+          outputs: { search: [{ id: "file_1" }] },
+        },
+      }),
+      tools: [
+        toolConfig({ methodId: "search" }),
+        toolConfig({ methodId: "send_email", requiresApproval: true, sideEffect: "external-message" }),
+        toolConfig({ methodId: "upload_video", sideEffect: "write" }),
+      ],
+    });
+
+    assert.equal(result.status, "success");
+    assert.deepEqual(modelCalls, ["final"]);
+    assert.deepEqual(toolCalls.map((call) => call.name), ["send_email", "upload_video"]);
+    assert.deepEqual(toolCalls[1]?.args, { fileId: "file_1" });
   });
 
   it("answers simple chat turns without emitting tool planning progress when the plan is empty", async () => {
@@ -1080,7 +1150,7 @@ function agentConfig(overrides: Partial<AiAgentNodeConfig> = {}): AiAgentNodeCon
     requireApprovalForSideEffects: ["write", "delete", "external-message", "external-payment"],
     outputMode: "text",
     ...overrides,
-    executionMode: overrides.executionMode ?? "loop",
+    executionMode: overrides.executionMode ?? "plan",
   };
 }
 

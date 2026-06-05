@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { AgentRuntimeError } from "../agent-errors.ts";
+import { AgentRuntimeError, AgentToolApprovalRequiredError } from "../agent-errors.ts";
 import { executeAgentPlan } from "./agent-plan-executor.ts";
 import type { AgentPlan, AgentPlanTool } from "./agent-plan-types.ts";
 
@@ -260,6 +260,67 @@ describe("agent plan executor", () => {
 
     assert.equal(result.status, "success");
     assert.deepEqual(calls, ["send:file_1"]);
+  });
+
+  it("executes repeated tool names as distinct plan steps", async () => {
+    const calls: unknown[] = [];
+
+    const result = await executeAgentPlan({
+      plan: {
+        steps: [
+          { id: "notice", toolName: "send_email", params: { stage: "notice" } },
+          { id: "final", toolName: "send_email", params: { stage: "final", previous: "$steps.notice.id" } },
+        ],
+      },
+      tools: [
+        tool("send_email", async (args) => {
+          calls.push(args);
+          return { id: `email_${calls.length}` };
+        }),
+      ],
+      emitEvent: () => undefined,
+    });
+
+    assert.equal(result.status, "success");
+    assert.deepEqual(calls, [
+      { stage: "notice" },
+      { stage: "final", previous: "email_1" },
+    ]);
+  });
+
+  it("throws workflow approval with plan resume state when no approval store is injected", async () => {
+    const plan: AgentPlan = {
+      steps: [
+        { id: "search", toolName: "search", params: { query: "video" } },
+        { id: "send_notice", toolName: "send_email", params: { to: "user@example.com" } },
+        { id: "upload", toolName: "upload_video", params: { file: "$steps.search[0].id" } },
+      ],
+    };
+
+    await assert.rejects(
+      () => executeAgentPlan({
+        plan,
+        tools: [
+          tool("search", async () => [{ id: "file_1" }]),
+          tool("send_email", async () => ({ sent: true }), {
+            requiresApproval: true,
+            sideEffect: "external-message",
+          }),
+          tool("upload_video", async () => ({ url: "https://youtube.example/video" }), {
+            sideEffect: "write",
+          }),
+        ],
+        emitEvent: () => undefined,
+      }),
+      (error) => {
+        assert.ok(error instanceof AgentToolApprovalRequiredError);
+        assert.equal(error.approvalRequest.toolName, "send_email");
+        assert.deepEqual((error.approvalRequest.resumeState as any).outputs.search, [{ id: "file_1" }]);
+        assert.equal((error.approvalRequest.resumeState as any).stepId, "send_notice");
+        assert.deepEqual((error.approvalRequest.resumeState as any).plan, plan);
+        return true;
+      },
+    );
   });
 
   it("ends rejected approvals without invoking the tool", async () => {

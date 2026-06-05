@@ -76,7 +76,7 @@ const props = withDefaults(
   {
     cancelable: true,
     mode: 'dock',
-    executionMode: 'loop',
+    executionMode: 'plan',
   },
 )
 
@@ -116,8 +116,8 @@ const speechLanguages: BaseDropdownSelectOption[] = [
   { value: 'zh-CN', shortLabel: 'ZH', label: 'Chinese Mandarin', description: 'zh-CN', meta: 'CN' },
 ]
 const EXECUTION_MODE_OPTIONS: BaseDropdownSelectOption[] = [
-  { value: 'loop', shortLabel: 'Loop', label: 'Loop', description: 'Run tools step by step' },
   { value: 'plan', shortLabel: 'Plan', label: 'Plan', description: 'Generate a plan first' },
+  { value: 'loop', shortLabel: 'Loop', label: 'Loop', description: 'Run tools step by step' },
 ]
 const DEFAULT_EXECUTION_MODE_OPTION = EXECUTION_MODE_OPTIONS[0] as BaseDropdownSelectOption
 

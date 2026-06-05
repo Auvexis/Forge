@@ -32,8 +32,8 @@ test('ai agent editor exposes prompt, input message, execution mode, limits, tim
 
   assert.match(source, /Execution Mode/)
   assert.match(source, /EXECUTION_MODES/)
-  assert.match(source, /value: 'loop'/)
-  assert.match(source, /value: 'plan'/)
+  assert.match(source, /node\.data\.executionMode as string\) \|\| 'plan'/)
+  assert.match(source, /const EXECUTION_MODES[\s\S]*value: 'plan'[\s\S]*value: 'loop'/)
   assert.match(source, /User Input/)
   assert.match(source, /Max Iterations/)
   assert.match(source, /Max Tool Calls/)
