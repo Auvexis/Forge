@@ -128,7 +128,7 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
     }
 
     const displayParams = decision.params ?? {};
-    const successfulToolCallKey = createSuccessfulToolCallKey(tool.name, displayParams);
+    const successfulToolCallKey = createSuccessfulToolCallKey(tool, displayParams);
     const missingFileRefError = approvalMissingAvailableFileRef(tool, displayParams, history);
     if (missingFileRefError) {
       history.push({
@@ -501,8 +501,15 @@ function shouldResolveFileRefsBeforeInvoke(tool: AgentPlanTool): boolean {
   return tool.requiresApproval !== true;
 }
 
-function createSuccessfulToolCallKey(toolName: string, params: Record<string, unknown>): string {
-  return `${toolName}:${stableStringify(sanitizeAgentToolValue(params))}`;
+function createSuccessfulToolCallKey(tool: AgentPlanTool, params: Record<string, unknown>): string {
+  return `${tool.name}:${stableStringify(sanitizeAgentToolValue(schemaParamsOnly(tool, params)))}`;
+}
+
+function schemaParamsOnly(tool: AgentPlanTool, params: Record<string, unknown>): Record<string, unknown> {
+  const properties = tool.inputSchema?.properties;
+  if (!properties || typeof properties !== "object" || Array.isArray(properties)) return params;
+  const allowed = new Set(Object.keys(properties));
+  return Object.fromEntries(Object.entries(params).filter(([key]) => allowed.has(key)));
 }
 
 function approvalMissingAvailableFileRef(

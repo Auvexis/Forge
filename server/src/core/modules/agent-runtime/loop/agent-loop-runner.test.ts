@@ -349,6 +349,41 @@ describe("agent loop runner", () => {
     assert.match(prompts[2] ?? "", /already succeeded with the same params/i);
   });
 
+  it("does not execute the same successful tool call when only extra non-schema params changed", async () => {
+    const decisions = [
+      {
+        action: "tool",
+        toolName: "download_file",
+        params: { fileId: "file_1", reason: "Download the selected file." },
+      },
+      { action: "tool", toolName: "download_file", params: { fileId: "file_1" } },
+      { action: "final", response: "Arquivo baixado." },
+    ];
+    let downloads = 0;
+
+    await runAgentLoop({
+      userMessage: "Baixe o arquivo",
+      contextMessages: [],
+      model: loopModel(decisions),
+      tools: [
+        {
+          ...tool("download_file", async () => {
+            downloads += 1;
+            return { ok: true };
+          }),
+          inputSchema: {
+            type: "object",
+            properties: { fileId: { type: "string" } },
+            required: ["fileId"],
+          },
+        },
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(downloads, 1);
+  });
+
   it("includes enum default and description in loop tool parameter summaries", async () => {
     const prompts: string[] = [];
 

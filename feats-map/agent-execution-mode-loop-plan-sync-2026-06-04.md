@@ -255,3 +255,10 @@ Resultado Task 2:
 - [x] Permitir nova decisao do modelo com o ref correto antes de pedir approval.
 - [x] Manter regra generica para parametros tipo file/attachment, sem Drive/Gmail especifico.
 - [x] Rodar testes focados, build e commit.
+
+## Task 23 - Duplicado Deve Ignorar Params Fora Do Schema
+
+- [x] Criar teste para mesma tool com mesmo parametro real e campo extra nao executar de novo.
+- [x] Gerar chave de sucesso usando apenas propriedades declaradas no `inputSchema`.
+- [x] Manter fallback para params completos quando a tool nao declarar properties.
+- [x] Rodar testes focados, build e commit.
