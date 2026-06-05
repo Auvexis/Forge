@@ -207,3 +207,12 @@ Resultado Task 2:
 - [x] Manter refs pequenas no request de approval para continuar depois.
 - [x] Resolver refs para stream real somente na execucao aprovada.
 - [x] Rodar testes focados, builds e commit.
+
+## Task 17 - Pos-Approval Persistente E Cleanup De Cache
+
+- [x] Criar teste para approval resolvido nao voltar como pendente ao reabrir chat.
+- [x] Persistir mensagem/summary final da continuation aprovada no historico do chat.
+- [x] Evitar duplicar card de approval pendente quando ja existe resolucao aprovada/rejeitada.
+- [x] Criar teste para cleanup de `cache/files` depois de sucesso final.
+- [x] Limpar refs de arquivo persistentes quando a execucao aprovada concluir com sucesso.
+- [x] Rodar testes focados, builds e commit.

@@ -7,6 +7,7 @@ import { AgentRuntimeService } from "../modules/agent-runtime/agent-runtime-serv
 import { ChatTriggerService, type SendChatMessageInput } from "../modules/agent-runtime/chat/chat-trigger-service.ts";
 import { AgentMemoryStore } from "../modules/agent-runtime/memory/agent-memory-store.ts";
 import { AgentApprovalService } from "../modules/agent-runtime/agent-approval-service.ts";
+import { AgentPanelChatService } from "../modules/agent-runtime/chat/agent-panel-chat-service.ts";
 import { WorkflowEngine } from "../modules/workflows/executor.ts";
 import { WorkflowRepository } from "../modules/workflows/repository.ts";
 
@@ -16,6 +17,7 @@ export interface AgentChatRoutesOptions {
   chatService?: Pick<ChatTriggerService, "sendMessage" | "getSession" | "listMessages">;
   runtimeService?: Pick<typeof AgentRuntimeService, "listTools">;
   workflowEngine?: Pick<typeof WorkflowEngine, "resumeExecutionAfterAgentApproval">;
+  agentPanelService?: Pick<AgentPanelChatService, "appendApprovalContinuationResult">;
   runWithProfile?: <T>(profileId: string, callback: () => T) => T;
 }
 
@@ -32,6 +34,7 @@ export default async function agentChatRoutes(
   const getChatService = () => options.chatService ?? new ChatTriggerService({ db: getDb() });
   const runtimeService = options.runtimeService ?? AgentRuntimeService;
   const workflowEngine = options.workflowEngine ?? WorkflowEngine;
+  const getAgentPanelService = () => options.agentPanelService ?? new AgentPanelChatService({ db: getDb() });
   const runWithProfile = options.runWithProfile ??
     (options.db
       ? ((_profileId, callback) => callback())
@@ -192,9 +195,17 @@ export default async function agentChatRoutes(
         decision: body,
       });
       if (resolved && status === "approved") {
-        void runWithProfile(resolved.profileId, () =>
-          workflowEngine.resumeExecutionAfterAgentApproval(resolved),
-        ).catch((error) => {
+        void runWithProfile(resolved.profileId, async () => {
+          const execution = await workflowEngine.resumeExecutionAfterAgentApproval(resolved);
+          if (resolved.sessionId) {
+            await getAgentPanelService().appendApprovalContinuationResult({
+              profileId: resolved.profileId,
+              sessionId: resolved.sessionId,
+              approvalId: resolved.id,
+              execution,
+            });
+          }
+        }).catch((error) => {
           fastify.log.error({ err: error, approvalId: resolved.id }, "Agent approval resume failed");
         });
       }

@@ -391,6 +391,83 @@ describe("agent panel chat service", () => {
     assert.equal((result.messages.at(-1)?.content as any).approvalId, "approval_1");
   });
 
+  it("hydrates resolved approval messages so they do not reopen pending actions", async () => {
+    const service = waitingApprovalServiceFixture();
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+    await service.sendMessage({ profileId: "profile_a", sessionId: session.id, message: "Send email" });
+    workflowDb!
+      .prepare(`
+        INSERT INTO agent_tool_approvals
+          (id, profile_id, workflow_id, execution_id, session_id, tool_name, request_json, status, created_at)
+        VALUES ('approval_1', 'profile_a', 'workflow_agent', 'exec_waiting_approval', ?, 'send_email', '{}', 'pending', ?)
+      `)
+      .run(session.id, new Date().toISOString());
+    workflowDb!
+      .prepare(`
+        UPDATE agent_tool_approvals
+        SET status = 'approved', decision_json = '{}', resolved_at = ?
+        WHERE id = 'approval_1'
+      `)
+      .run(new Date().toISOString());
+
+    const messages = await service.listMessages({ profileId: "profile_a", sessionId: session.id });
+    const approval = messages.find((message) => (message.content as any)?.kind === "agentApproval");
+
+    assert.equal((approval?.content as any).decision, "approved");
+    assert.equal((approval?.content as any).message, "Approval confirmed. Continuing execution.");
+  });
+
+  it("persists approved continuation tool progress and summary for reloads", async () => {
+    const service = serviceFixture();
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+    await service.appendStreamAssistantMessage(
+      { profileId: "profile_a", sessionId: session.id },
+      {
+        kind: "agentApproval",
+        approvalId: "approval_1",
+        executionId: "exec_approval",
+        toolName: "send_email",
+        message: "Approval required for send_email.",
+      },
+    );
+
+    await service.appendApprovalContinuationResult({
+      profileId: "profile_a",
+      sessionId: session.id,
+      approvalId: "approval_1",
+      execution: {
+        executionId: "exec_approval",
+        status: "SUCCESS",
+        context: {
+          steps: {
+            agent: {
+              output: {
+                output: "",
+                toolCalls: [
+                  { toolCallId: "tool_call_1", name: "send_email", pluginId: "mail", status: "success" },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const contents = (await service.listMessages({ profileId: "profile_a", sessionId: session.id }))
+      .map((message) => message.content as any);
+
+    assert.equal(contents.find((content) => content.kind === "agentApproval")?.decision, "approved");
+    assert.equal(contents.some((content) => content.kind === "agentSummary" && content.tools[0].name === "send_email"), true);
+  });
+
   it("deletes a session and its transcript", async () => {
     const service = serviceFixture();
     const session = await service.createSession({

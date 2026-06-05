@@ -330,22 +330,33 @@ export class AgentRunner {
       });
     }
 
-    return runAgentLoop({
-      model: toAgentRuntimeModel(input.model),
-      userMessage: input.input.userMessage,
-      contextMessages: input.contextMessages,
-      tools: input.tools,
-      maxIterations: input.validated.agent.maxIterations,
-      maxToolCalls: input.validated.agent.maxToolCalls,
-      skipFinalResponseAfterToolUse: input.input.skipFinalResponseAfterToolUse,
-      fileRefStore: new AgentFileRefStore({
-        rootDir: resolveAgentFileCacheDir(input.input),
-      }),
-      approvedTool: input.input.approvalToken === "approved" && input.input.approvalToolName && input.input.approvalToolArgs
-        ? { toolName: input.input.approvalToolName, params: input.input.approvalToolArgs }
-        : undefined,
-      emitEvent: (event) => this.eventEmitter(event, input.input),
+    const fileRefStore = new AgentFileRefStore({
+      rootDir: resolveAgentFileCacheDir(input.input),
     });
+
+    try {
+      const result = await runAgentLoop({
+        model: toAgentRuntimeModel(input.model),
+        userMessage: input.input.userMessage,
+        contextMessages: input.contextMessages,
+        tools: input.tools,
+        maxIterations: input.validated.agent.maxIterations,
+        maxToolCalls: input.validated.agent.maxToolCalls,
+        skipFinalResponseAfterToolUse: input.input.skipFinalResponseAfterToolUse,
+        fileRefStore,
+        approvedTool: input.input.approvalToken === "approved" && input.input.approvalToolName && input.input.approvalToolArgs
+          ? { toolName: input.input.approvalToolName, params: input.input.approvalToolArgs }
+          : undefined,
+        emitEvent: (event) => this.eventEmitter(event, input.input),
+      });
+      fileRefStore.cleanupAll();
+      return result;
+    } catch (error) {
+      if (!(error instanceof AgentToolApprovalRequiredError)) {
+        fileRefStore.cleanupAll();
+      }
+      throw error;
+    }
   }
 }
 

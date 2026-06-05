@@ -60,4 +60,21 @@ describe("agent file ref store", () => {
     assert.equal(typeof args.attachments[0].content.pipe, "function");
     assert.equal(args.contentBase64, Buffer.from("pdf-content").toString("base64"));
   });
+
+  it("cleans stored file refs and metadata after a terminal success", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-agent-files-"));
+    const store = new AgentFileRefStore({ rootDir: root });
+    await store.put({
+      toolCallId: "tool_call_1",
+      path: "download/content",
+      fileName: "andresimoes.pdf",
+      mimeType: "application/pdf",
+      value: Buffer.from("pdf-content"),
+    });
+
+    assert.ok(fs.readdirSync(root).length > 0);
+    store.cleanupAll();
+
+    assert.deepEqual(fs.existsSync(root) ? fs.readdirSync(root) : [], []);
+  });
 });

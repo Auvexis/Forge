@@ -15,6 +15,7 @@ import { AgentChatFileStore } from "./agent-chat-file-store.ts";
 import { resolveAgentChatMemoryPath } from "./agent-chat-paths.ts";
 import { WorkflowEngine } from "../../workflows/executor.ts";
 import { WorkflowRepository } from "../../workflows/repository.ts";
+import { AgentApprovalService } from "../agent-approval-service.ts";
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 import { sailorHomePaths } from "../../../runtime/sailor-home.ts";
 
@@ -118,7 +119,10 @@ export class AgentPanelChatService {
   async listMessages(input: { profileId: string; sessionId: string }): Promise<AgentChatMessage[]> {
     const session = this.sessions.getById(input.profileId, input.sessionId);
     if (!session) return [];
-    return this.messages.listBySession(input.profileId, input.sessionId);
+    return this.hydrateResolvedApprovals(
+      input.profileId,
+      this.messages.listBySession(input.profileId, input.sessionId),
+    );
   }
 
   async appendStreamAssistantMessage(
@@ -133,6 +137,53 @@ export class AgentPanelChatService {
       role: "assistant",
       content,
     });
+    this.sessions.touch(input.profileId, session.id);
+  }
+
+  async appendApprovalContinuationResult(input: {
+    profileId: string;
+    sessionId: string;
+    approvalId: string;
+    execution: unknown;
+  }): Promise<void> {
+    const session = this.resolveSession(input.profileId, input.sessionId);
+    if (!this.resolveApprovalStatus(input.profileId, input.approvalId)) {
+      appendResolvedApprovalMarkerIfNeeded(
+        this.messages,
+        input.profileId,
+        session.id,
+        input.approvalId,
+        "approved",
+        this.messages.listBySession(input.profileId, session.id),
+      );
+    }
+
+    const agentNodeId = session.agentNodeId ?? "";
+    const toolCalls = extractToolCalls(input.execution, agentNodeId);
+    if (toolCalls.length > 0) {
+      appendToolProgressMessages(this.messages, input.profileId, session.id, toolCalls);
+      appendToolSummaryMessage(this.messages, input.profileId, session.id, toolCalls);
+    }
+
+    if (isFailedExecution(input.execution)) {
+      const detail = extractWorkflowFailureDetail((input.execution as { context?: { steps?: Record<string, any> } }).context?.steps);
+      if (toolCalls.some((tool) => tool.status === "failed")) {
+        appendAgentErrorMessage(this.messages, input.profileId, session.id, detail ?? "Agent tool failed");
+      } else {
+        assertSuccessfulChatExecution(input.execution);
+      }
+    }
+
+    const assistantResponse = extractAssistantResponse(input.execution, agentNodeId);
+    if (hasAssistantResponse(assistantResponse)) {
+      this.messages.append({
+        id: `msg_${randomUUID()}`,
+        profileId: input.profileId,
+        sessionId: session.id,
+        role: "assistant",
+        content: normalizeAssistantResponseForMessage(assistantResponse),
+      });
+    }
     this.sessions.touch(input.profileId, session.id);
   }
 
@@ -250,7 +301,7 @@ export class AgentPanelChatService {
 
     return {
       session: this.resolveSession(input.profileId, session.id),
-      messages: this.messages.listBySession(input.profileId, session.id),
+      messages: await this.listMessages({ profileId: input.profileId, sessionId: session.id }),
       execution: toAgentPanelExecutionSummary(execution),
     };
   }
@@ -325,6 +376,39 @@ export class AgentPanelChatService {
           AND memory_key = ?
       `)
       .run(profileId, `workflow:${session.workflowId}`, `agent:${session.agentNodeId}:last-output`);
+  }
+
+  private hydrateResolvedApprovals(profileId: string, messages: AgentChatMessage[]): AgentChatMessage[] {
+    const explicitStatuses = new Map<string, "approved" | "rejected">();
+    for (const message of messages) {
+      const content = message.content;
+      if (!isAgentApprovalContent(content)) continue;
+      if (content.decision === "approved" || content.decision === "rejected") {
+        explicitStatuses.set(content.approvalId, content.decision);
+      }
+    }
+
+    const approvalService = new AgentApprovalService(this.db);
+    return messages.map((message) => {
+      const content = message.content;
+      if (!isAgentApprovalContent(content) || content.decision) return message;
+      const status = explicitStatuses.get(content.approvalId) ??
+        approvalService.getById(profileId, content.approvalId)?.status;
+      if (status !== "approved" && status !== "rejected") return message;
+      return {
+        ...message,
+        content: {
+          ...content,
+          decision: status,
+          message: approvalResolutionMessage(status),
+        },
+      };
+    });
+  }
+
+  private resolveApprovalStatus(profileId: string, approvalId: string): "approved" | "rejected" | null {
+    const approval = new AgentApprovalService(this.db).getById(profileId, approvalId);
+    return approval?.status === "approved" || approval?.status === "rejected" ? approval.status : null;
   }
 }
 
@@ -525,6 +609,55 @@ function appendAgentErrorMessage(
       message: `Nao consegui concluir esta etapa: ${detail}.`,
     },
   });
+}
+
+function appendResolvedApprovalMarkerIfNeeded(
+  repository: AppendOnlyChatMessageRepository,
+  profileId: string,
+  sessionId: string,
+  approvalId: string,
+  decision: "approved" | "rejected",
+  messages: AgentChatMessage[],
+): void {
+  const alreadyMarked = messages.some((message) => {
+    const content = message.content;
+    return isAgentApprovalContent(content) &&
+      content.approvalId === approvalId &&
+      content.decision === decision;
+  });
+  if (alreadyMarked) return;
+
+  repository.append({
+    id: `msg_${randomUUID()}`,
+    profileId,
+    sessionId,
+    role: "assistant",
+    content: {
+      kind: "agentApproval",
+      approvalId,
+      decision,
+      message: approvalResolutionMessage(decision),
+    },
+  });
+}
+
+function isAgentApprovalContent(value: unknown): value is {
+  kind: "agentApproval";
+  approvalId: string;
+  decision?: "approved" | "rejected";
+  message?: string;
+} {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  return record.kind === "agentApproval" &&
+    typeof record.approvalId === "string" &&
+    record.approvalId.trim().length > 0;
+}
+
+function approvalResolutionMessage(decision: "approved" | "rejected"): string {
+  return decision === "approved"
+    ? "Approval confirmed. Continuing execution."
+    : "Approval rejected. Execution interrupted.";
 }
 
 function progressStatusesForTool(tool: Record<string, unknown>): Array<"planned" | "running" | "success" | "failed"> {

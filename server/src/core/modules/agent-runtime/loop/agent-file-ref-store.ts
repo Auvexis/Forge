@@ -83,6 +83,11 @@ export class AgentFileRefStore {
     return { ...toPublicRef(meta), filePath: meta.filePath };
   }
 
+  cleanupAll(): void {
+    if (!fs.existsSync(this.rootDir)) return;
+    fs.rmSync(this.rootDir, { recursive: true, force: true });
+  }
+
   private metaPath(id: string): string {
     return path.join(this.rootDir, `${id}.json`);
   }
