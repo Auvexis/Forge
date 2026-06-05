@@ -232,3 +232,10 @@ Resultado Task 2:
 - [x] Registrar instrucao no historico para o modelo usar o output anterior e seguir para o proximo step.
 - [x] Manter `maxRetriesPerTool` restrito a erros reparaveis, nao a sucessos duplicados.
 - [x] Rodar testes focados, build e commit.
+
+## Task 20 - Fallback Deterministico Quando Ollama Falha Entre Steps
+
+- [x] Criar teste vermelho para erro `AGENT_MODEL_PROVIDER_ERROR` apos resultado unico selecionavel.
+- [x] Inferir proxima tool obrigatoria usando `selection` do output anterior e `inputSchema` da proxima tool.
+- [x] Executar fallback somente quando houver uma unica opcao clara, sem regra especifica de plugin.
+- [x] Rodar testes focados, build e commit.
