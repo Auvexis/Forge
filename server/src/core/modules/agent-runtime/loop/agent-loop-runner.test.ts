@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { AgentRuntimeError } from "../agent-errors.ts";
+import { AgentRuntimeError, AgentToolApprovalRequiredError } from "../agent-errors.ts";
 import { runAgentLoop } from "./agent-loop-runner.ts";
 import type { AgentPlanTool } from "../plan/agent-plan-types.ts";
 import { AgentFileRefStore } from "./agent-file-ref-store.ts";
@@ -477,7 +477,7 @@ describe("agent loop runner", () => {
             return { sent: true };
           }),
           sideEffect: "external-message",
-          requiresApproval: true,
+          requiresApproval: false,
         },
       ],
       emitEvent: () => {},
@@ -487,6 +487,76 @@ describe("agent loop runner", () => {
     assert.equal(sendArgs[0].attachments[0].filename, "report.pdf");
     assert.equal(sendArgs[0].attachments[0].mimeType, "application/pdf");
     assert.equal(typeof sendArgs[0].attachments[0].content.pipe, "function");
+  });
+
+  it("keeps file refs unresolved in approval requests and resolves them after approval", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loop-approval-files-"));
+    const store = new AgentFileRefStore({ rootDir: root });
+    const ref = await store.put({
+      toolCallId: "tool_call_download",
+      path: "download/content",
+      fileName: "andresimoes.pdf",
+      mimeType: "application/pdf",
+      value: Buffer.from("pdf"),
+    });
+    let approvalArgs: any;
+    let approvedArgs: any;
+
+    await assert.rejects(
+      () => runAgentLoop({
+        userMessage: "Send the downloaded file",
+        contextMessages: [],
+        model: loopModel([
+          { action: "tool", toolName: "send_file", params: { attachments: [ref] } },
+        ]),
+        fileRefStore: store,
+        tools: [
+          {
+            ...tool("send_file", async (args) => {
+              approvalArgs = args;
+              throw new AgentToolApprovalRequiredError({
+                toolName: "send_file",
+                sideEffect: "external-message",
+                args: args as Record<string, unknown>,
+              });
+            }),
+            sideEffect: "external-message",
+            requiresApproval: true,
+          },
+        ],
+        emitEvent: () => {},
+      }),
+      AgentToolApprovalRequiredError,
+    );
+
+    assert.equal(approvalArgs.attachments[0].ref, ref.ref);
+    assert.notEqual(approvalArgs.attachments[0].content?.type, "Readable");
+
+    await runAgentLoop({
+      userMessage: "Send the downloaded file",
+      contextMessages: [],
+      model: loopModel([]),
+      fileRefStore: store,
+      approvedTool: {
+        toolName: "send_file",
+        params: { attachments: [ref] },
+      },
+      tools: [
+        {
+          ...tool("send_file", async (args) => {
+            approvedArgs = args;
+            return { sent: true };
+          }),
+          sideEffect: "external-message",
+          requiresApproval: true,
+        },
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(approvedArgs.attachments[0].filename, "andresimoes.pdf");
+    assert.equal(approvedArgs.attachments[0].mimeType, "application/pdf");
+    assert.equal(typeof approvedArgs.attachments[0].content.pipe, "function");
   });
 
   it("fails clearly when the model insists on finalizing with required tools still pending", async () => {

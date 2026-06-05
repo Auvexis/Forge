@@ -125,11 +125,13 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
 
     toolAttemptCount += 1;
     const toolCallId = `tool_call_${toolAttemptCount}`;
-    const params = resolveAgentFileRefsInToolArgs({
-      store: input.fileRefStore,
-      value: decision.params ?? {},
-    }) as Record<string, unknown>;
     const displayParams = decision.params ?? {};
+    const params = shouldResolveFileRefsBeforeInvoke(tool)
+      ? resolveAgentFileRefsInToolArgs({
+          store: input.fileRefStore,
+          value: displayParams,
+        }) as Record<string, unknown>
+      : displayParams;
     input.emitEvent(toolEvent("agent:tool-intent", tool, toolCallId, "planned", decision.reason, undefined, {
       params: sanitizeAgentToolValue(displayParams),
     }));
@@ -462,6 +464,10 @@ function isRepairableLoopError(error: unknown): boolean {
 function isRepairableFileNotFound(error: AgentRuntimeError): boolean {
   return /Agent tool .+ failed: File not found:/i.test(error.publicMessage) ||
     /Agent tool .+ failed: File not found:/i.test(error.message);
+}
+
+function shouldResolveFileRefsBeforeInvoke(tool: AgentPlanTool): boolean {
+  return tool.requiresApproval !== true;
 }
 
 function inferRequiredTools(userMessage: string, tools: AgentPlanTool[]): AgentPlanTool[] {

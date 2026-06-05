@@ -199,3 +199,11 @@ Resultado Task 2:
 3. Resolver file refs antes da invocacao de plugin, incluindo continuation de approval.
 4. Comecar Task 13 com teste vermelho para final prematuro depois de `google_drive_list_files`.
 5. Corrigir o loop para continuar ate `downloadFile` + `google_gmail_send_message` ou erro real.
+
+## Task 16 - Approval Deve Persistir File Ref, Nao Stream Sanitizado
+
+- [x] Criar teste reproduzindo approval com attachment virando `{ type: "Readable" }`.
+- [x] Nao resolver `agent-file://` antes de uma tool que ainda vai pedir approval.
+- [x] Manter refs pequenas no request de approval para continuar depois.
+- [x] Resolver refs para stream real somente na execucao aprovada.
+- [x] Rodar testes focados, builds e commit.
