@@ -242,7 +242,7 @@ describe('agent panel modal contract', () => {
   it('renders global agent tool progress with backend-provided deterministic EN-US text', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 
-    assert.match(chat, /progressMessage\(message\.content\)/)
+    assert.match(chat, /activeStatusMessage\(message\.content\)/)
     assert.match(chat, /content\.message/)
     assert.match(chat, /agent-chat-view__progress--retrying/)
     assert.doesNotMatch(chat, /Vou usar|Usei|I'll use|Used .* successfully/)
@@ -378,7 +378,7 @@ describe('agent panel modal contract', () => {
     assert.match(store, /function progressMessageId/)
     assert.match(store, /local-agent-progress-\$\{turnId\}-\$\{event\.tool\.toolCallId\}-\$\{event\.status\}/)
     assert.match(chat, /agent-chat-view__status-viewport/)
-    assert.match(chat, /:key="progressMessage\(message\.content\)"/)
+    assert.match(chat, /:key="activeStatusMessage\(message\.content\)"/)
     assert.match(chat, /agent-chat-status-swap-enter-active/)
     assert.match(chat, /agent-chat-status-swap-enter-from/)
   })
@@ -391,6 +391,25 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /\.agent-chat-view__status-viewport\s*\{[\s\S]*overflow: hidden/)
     assert.match(chat, /\.agent-chat-view__plugin-icon--spin[\s\S]*animation: agent-chat-icon-spin/)
     assert.match(chat, /@keyframes agent-chat-icon-spin/)
+  })
+
+  it('keeps transient status local and removes it when a durable tool step arrives', () => {
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(store, /function removeActiveProgressMessage/)
+    assert.match(store, /if \(event\.tool\) removeActiveProgressMessage\(sessionId\)/)
+    assert.match(store, /appendAgentSummaryMessage[\s\S]*removeActiveProgressMessage\(sessionId\)/)
+    assert.match(store, /appendAgentApprovalMessage[\s\S]*removeActiveProgressMessage\(sessionId\)/)
+    assert.match(store, /appendAgentErrorMessage[\s\S]*removeActiveProgressMessage\(sessionId\)/)
+    assert.match(chat, /activeStatusMessage\(message\.content\)/)
+    assert.match(chat, /statusCycleIndex/)
+  })
+
+  it('spins only transient status icons and keeps plugin step icons stable', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /return !content\.tool && \(content\.status === 'running' \|\| content\.status === 'retrying'\)/)
   })
 
   it('renders tool progress details as expandable params and output blocks', () => {

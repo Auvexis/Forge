@@ -330,7 +330,7 @@ async function streamAgentPanelMessage(
     progressQueue = progressQueue.then(async () => {
       progressEventCount += 1;
       writeStreamEvent(reply, event);
-      if (event.type === "progress") {
+      if (event.type === "progress" && isToolProgressEvent(event)) {
         persistStreamAssistantMessage({
           kind: "agentProgress",
           status: event.status,
@@ -525,6 +525,10 @@ async function streamAgentPanelMessage(
   return new Promise((resolve) => {
     req.raw.on("close", () => resolve(undefined));
   });
+}
+
+function isToolProgressEvent(event: Record<string, unknown>): boolean {
+  return Boolean(event.tool && typeof event.tool === "object" && !Array.isArray(event.tool));
 }
 
 function prunePendingAgentPanelStreams(): void {

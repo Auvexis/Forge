@@ -337,3 +337,12 @@ Resultado Task 2:
 - [x] Criar fallback generico para escolher a proxima tool obrigatoria quando a decisao JSON falha duas vezes.
 - [x] Manter erro visivel quando nao houver parametros minimos seguros.
 - [x] Rodar testes focados, build e commit.
+
+## Task 34 - Loop Approval E Status Visual Limpos
+
+- [x] Criar testes para status nao-tool ser transitorio e erro detalhado aparecer no chat sem reabrir.
+- [x] Nao persistir `agentProgress` sem tool no arquivo do chat.
+- [x] Remover status ativo sem tool quando chega step de tool, summary, approval ou erro.
+- [x] Evitar `Using` duplicado antes do approval ser confirmado.
+- [x] Ajustar UI para spinner apenas em status sem tool e troca animada de labels.
+- [x] Rodar testes focados, build e commit.

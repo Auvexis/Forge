@@ -228,9 +228,11 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
     input.emitEvent(toolEvent("agent:tool-intent", tool, toolCallId, "planned", decision.reason, undefined, {
       params: sanitizeAgentToolValue(displayParams),
     }));
-    input.emitEvent(toolEvent("agent:tool-start", tool, toolCallId, "running", decision.reason, undefined, {
-      params: sanitizeAgentToolValue(displayParams),
-    }));
+    if (!tool.requiresApproval) {
+      input.emitEvent(toolEvent("agent:tool-start", tool, toolCallId, "running", decision.reason, undefined, {
+        params: sanitizeAgentToolValue(displayParams),
+      }));
+    }
 
     try {
       const result = await tool.invoke(params);

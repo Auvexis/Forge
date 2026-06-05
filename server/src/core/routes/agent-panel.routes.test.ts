@@ -168,6 +168,14 @@ describe("agent panel routes", () => {
           executionId: input.executionId,
           workflowId: "workflow_agent",
           nodeId: "agent",
+          type: "agent:tool-intent",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_2", name: "google_gmail_send_message", pluginId: "google-gmail" },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
           type: "agent:tool-end",
           timestamp: Date.now(),
           data: { callId: "tool_call_1", name: "google_drive_download_file", pluginId: "google-drive", status: "success" },
@@ -206,8 +214,71 @@ describe("agent panel routes", () => {
     assert.equal(approval?.toolName, "google_gmail_send_message");
     assert.equal(events.some((event) => event.type === "summary"), false);
     assert.equal(events.some((event) => event.type === "done"), false);
+    assert.equal(events.some((event) =>
+      event.type === "progress" &&
+      event.status === "running" &&
+      event.tool?.toolCallId === "tool_call_2"
+    ), false);
     assert.equal(events.at(-1)?.type, "waiting-approval");
     assert.equal(events.at(-1)?.result?.execution?.status, "WAITING_APPROVAL");
+  });
+
+  it("keeps non-tool thinking progress transient and persists only tool steps", async () => {
+    const persisted: unknown[] = [];
+    const app = await buildApp({
+      sendMessage: async (input: { executionId?: string }) => {
+        assert.ok(input.executionId);
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:thinking",
+          timestamp: Date.now(),
+          data: { message: "Thinking" },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-start",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "google_drive_list_files", pluginId: "google-drive" },
+        });
+        workflowEventBus.emitWorkflowEvent({
+          executionId: input.executionId,
+          workflowId: "workflow_agent",
+          nodeId: "agent",
+          type: "agent:tool-end",
+          timestamp: Date.now(),
+          data: { callId: "tool_call_1", name: "google_drive_list_files", pluginId: "google-drive", status: "success" },
+        });
+        return {
+          session: session("chat_1"),
+          messages: [message("msg_user", "chat_1")],
+          execution: { status: "SUCCESS" },
+        };
+      },
+      appendStreamAssistantMessage: async (_input: unknown, content: unknown) => {
+        persisted.push(content);
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-panel/sessions/chat_1/messages/stream",
+      payload: { message: "Find file" },
+    });
+    const events = parseStreamEvents(response.body);
+
+    assert.equal(events.some((event) => event.type === "progress" && !event.tool && event.message === "Thinking"), true);
+    assert.equal(
+      persisted.some((content: any) => content?.kind === "agentProgress" && !content.tool),
+      false,
+    );
+    assert.equal(
+      persisted.some((content: any) => content?.kind === "agentProgress" && content.tool?.name === "google_drive_list_files"),
+      true,
+    );
   });
 
   it("starts agent panel streams with POST and reads them through EventSource-compatible GET", async () => {

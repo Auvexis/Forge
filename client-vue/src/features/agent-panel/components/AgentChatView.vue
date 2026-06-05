@@ -116,11 +116,11 @@
               <span class="agent-chat-view__status-viewport">
                 <Transition name="agent-chat-status-swap" mode="out-in">
                   <span
-                    :key="progressMessage(message.content)"
+                    :key="activeStatusMessage(message.content)"
                     class="agent-chat-view__status-text"
                     :class="{ 'agent-chat-view__status-text--shimmer': isShimmeringProgress(message.content) }"
                   >
-                    {{ progressMessage(message.content) }}
+                    {{ activeStatusMessage(message.content) }}
                   </span>
                 </Transition>
               </span>
@@ -275,7 +275,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { pluginsApi } from '@/core/api/plugins.api'
 import AgentChatComposer from '@/features/agent-panel/components/AgentChatComposer.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
@@ -302,6 +302,7 @@ const messagesEl = ref<HTMLElement | null>(null)
 const composerRetiring = ref(false)
 const historyMenuOpen = ref(false)
 const openProgressDetails = ref<Set<string>>(new Set())
+const statusCycleIndex = ref(0)
 const { confirm } = useConfirm()
 const AGENT_PROGRESS_MESSAGES = [
   'Thinking',
@@ -313,17 +314,26 @@ const AGENT_PROGRESS_MESSAGES = [
   'Analyzing errors',
   'Creating new parameters',
 ] as const
+const TRANSIENT_STATUS_MESSAGES = ['Thinking', 'Generating', 'Planning', 'Choosing the best tools'] as const
+let statusCycleTimer: number | null = null
 
 const displayedMessagesScrollKey = computed(() => store.messages
   .map((message) => `${message.id}:${message.role}:${messageContentScrollVersion(message.content)}`)
   .join('|'))
 
 onMounted(async () => {
+  statusCycleTimer = window.setInterval(() => {
+    statusCycleIndex.value = (statusCycleIndex.value + 1) % TRANSIENT_STATUS_MESSAGES.length
+  }, 1400)
   try {
     plugins.value = await pluginsApi.getAll()
   } catch {
     plugins.value = []
   }
+})
+
+onBeforeUnmount(() => {
+  if (statusCycleTimer !== null) window.clearInterval(statusCycleTimer)
 })
 
 watch(
@@ -483,6 +493,11 @@ function progressMessage(content: AgentPanelProgressContent): string {
   return content.message
 }
 
+function activeStatusMessage(content: AgentPanelProgressContent): string {
+  if (content.tool || !isShimmeringProgress(content)) return progressMessage(content)
+  return TRANSIENT_STATUS_MESSAGES[statusCycleIndex.value] ?? 'Thinking'
+}
+
 function hasToolDetails(content: AgentPanelProgressContent): boolean {
   return content.tool?.details?.params !== undefined || content.tool?.details?.output !== undefined
 }
@@ -512,7 +527,7 @@ function isShimmeringProgress(content: AgentPanelProgressContent): boolean {
 }
 
 function isSpinningProgress(content: AgentPanelProgressContent): boolean {
-  return content.status === 'running' || content.status === 'retrying'
+  return !content.tool && (content.status === 'running' || content.status === 'retrying')
 }
 
 function progressIcon(status: AgentPanelProgressContent['status']): string {

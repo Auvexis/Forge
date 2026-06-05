@@ -797,6 +797,42 @@ describe("agent loop runner", () => {
     );
   });
 
+  it("does not emit running progress for approval tools before the user approves", async () => {
+    const events: Array<{ type: string; payload?: Record<string, any> }> = [];
+
+    await assert.rejects(
+      () => runAgentLoop({
+        userMessage: "Send an email",
+        contextMessages: [],
+        model: loopModel([
+          { action: "tool", toolName: "send_email", params: { to: "user@example.com" } },
+        ]),
+        tools: [
+          {
+            ...tool("send_email", async (args) => {
+              throw new AgentToolApprovalRequiredError({
+                toolName: "send_email",
+                sideEffect: "external-message",
+                args: args as Record<string, unknown>,
+              });
+            }),
+            sideEffect: "external-message",
+            requiresApproval: true,
+          },
+        ],
+        emitEvent: (event) => events.push(event as any),
+      }),
+      AgentToolApprovalRequiredError,
+    );
+
+    assert.deepEqual(
+      events
+        .filter((event) => event.type.startsWith("agent:tool-"))
+        .map((event) => [event.type, event.payload?.status]),
+      [["agent:tool-intent", "planned"]],
+    );
+  });
+
   it("continues the loop after approving a side-effect tool that is not the final requested step", async () => {
     const calls: string[] = [];
     let firstApprovalRequest: AgentToolApprovalRequiredError["approvalRequest"] | null = null;

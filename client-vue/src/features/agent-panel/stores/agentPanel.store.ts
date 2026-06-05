@@ -209,6 +209,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     sessionId: string,
     event: Extract<AgentPanelStreamEvent, { type: 'progress' }>,
   ) {
+    if (event.tool) removeActiveProgressMessage(sessionId)
     const id = progressMessageId(sessionId, event)
     const content: AgentPanelProgressContent = {
       kind: 'agentProgress',
@@ -245,10 +246,16 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     return `local-agent-progress-${turnId}-${event.tool.toolCallId}-${event.status}`
   }
 
+  function removeActiveProgressMessage(sessionId: string) {
+    const id = `local-agent-progress-${currentAssistantTurnId(sessionId)}-active`
+    messages.value = messages.value.filter((message) => message.id !== id)
+  }
+
   function appendAgentSummaryMessage(
     sessionId: string,
     event: Extract<AgentPanelStreamEvent, { type: 'summary' }>,
   ) {
+    removeActiveProgressMessage(sessionId)
     const id = `local-agent-summary-${currentAssistantTurnId(sessionId)}`
     const content: AgentPanelSummaryContent = {
       kind: 'agentSummary',
@@ -275,6 +282,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     sessionId: string,
     event: Extract<AgentPanelStreamEvent, { type: 'approval' }>,
   ) {
+    removeActiveProgressMessage(sessionId)
     const id = `local-agent-approval-${event.approvalId}`
     const content: AgentPanelApprovalContent = {
       kind: 'agentApproval',
@@ -302,6 +310,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     sessionId: string,
     event: Extract<AgentPanelStreamEvent, { type: 'choice' }>,
   ) {
+    removeActiveProgressMessage(sessionId)
     const id = `local-agent-choice-${currentAssistantTurnId(sessionId)}-${event.repeatedTool}`
     const content: AgentPanelChoiceContent = {
       kind: 'agentChoice',
@@ -327,6 +336,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   }
 
   function appendAgentErrorMessage(sessionId: string, message: string) {
+    removeActiveProgressMessage(sessionId)
     const streamId = currentAssistantTurnId(sessionId)
     const id = `local-agent-error-${streamId}`
     const content: AgentPanelErrorContent = {
