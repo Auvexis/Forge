@@ -42,7 +42,7 @@ export function toAgentRuntimeModel(model: unknown) {
         500,
       );
     },
-    invokeJson: async <T extends object>(input: { messages: any[]; schema: Record<string, any> }): Promise<T> => {
+    invokeJson: async <T extends object>(input: { messages: any[]; schema: Record<string, any>; signal?: AbortSignal }): Promise<T> => {
       if (typeof candidate.invokeJson !== "function") {
         throw new AgentRuntimeError(
           "Agent model does not support structured loop decisions",
@@ -51,7 +51,7 @@ export function toAgentRuntimeModel(model: unknown) {
           500,
         );
       }
-      return candidate.invokeJson<T>(input, input.schema);
+      return candidate.invokeJson<T>(input, input.schema, { signal: input.signal });
     },
     generatePlan: async (input: { messages: any[]; schema: Record<string, any> }) => {
       try {

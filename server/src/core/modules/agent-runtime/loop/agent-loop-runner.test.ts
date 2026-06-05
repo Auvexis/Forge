@@ -485,6 +485,59 @@ describe("agent loop runner", () => {
     assert.deepEqual(calls, ["list"]);
   });
 
+  it("times out a stalled loop model decision after a successful tool result", async () => {
+    let decisionCalls = 0;
+    let secondDecisionSignal: AbortSignal | undefined;
+
+    await assert.rejects(
+      () => runAgentLoop({
+        userMessage: "Procure o arquivo, baixe e envie por email para vaurvik@gmail.com",
+        contextMessages: [],
+        modelCallTimeoutMs: 5,
+        model: {
+          async routeIntent() {
+            return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+          },
+          async invokeJson(input) {
+            decisionCalls += 1;
+            if (decisionCalls === 1) {
+              return { action: "tool", toolName: "download_file", params: { fileId: "file_1" } } as any;
+            }
+            secondDecisionSignal = input.signal;
+            return new Promise((_resolve, reject) => {
+              input.signal?.addEventListener("abort", () => reject(new Error("aborted by signal")), { once: true });
+              setTimeout(() => reject(new Error("missing loop decision timeout")), 25);
+            }) as Promise<any>;
+          },
+          async generateFinalResponse() {
+            return "Done.";
+          },
+        },
+        tools: [
+          {
+            ...tool("download_file", async () => ({ ok: true })),
+            inputSchema: {
+              type: "object",
+              properties: { fileId: { type: "string" } },
+              required: ["fileId"],
+            },
+          },
+          {
+            ...tool("send_email", async () => ({ sent: true })),
+            sideEffect: "external-message",
+            requiresApproval: true,
+          },
+        ],
+        emitEvent: () => {},
+      }),
+      (error) =>
+        error instanceof AgentRuntimeError &&
+        error.code === "AGENT_LOOP_DECISION_TIMEOUT",
+    );
+
+    assert.equal(secondDecisionSignal?.aborted, true);
+  });
+
   it("emits a failed tool step before retrying with a new tool call id", async () => {
     const decisions = [
       { action: "tool", toolName: "download_file", params: { fileId: "wrong_file." } },

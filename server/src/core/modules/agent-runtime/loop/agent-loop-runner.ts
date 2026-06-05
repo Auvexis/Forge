@@ -25,6 +25,7 @@ export interface AgentLoopModel {
   invokeJson<T extends object>(input: {
     messages: AgentModelMessage[];
     schema: Record<string, any>;
+    signal?: AbortSignal;
   }): Promise<T>;
   generateFinalResponse(input: { messages: AgentModelMessage[] }): Promise<string>;
 }
@@ -37,6 +38,8 @@ export interface RunAgentLoopInput {
   maxIterations?: number;
   maxToolCalls?: number;
   maxRetriesPerTool?: number;
+  modelCallTimeoutMs?: number;
+  abortSignal?: AbortSignal;
   skipFinalResponseAfterToolUse?: boolean;
   fileRefStore?: AgentFileRefStore;
   approvedTool?: {
@@ -83,13 +86,14 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
   const maxIterations = input.maxIterations ?? 6;
   const maxToolCalls = input.maxToolCalls ?? 6;
   const maxRetriesPerTool = input.maxRetriesPerTool ?? 3;
+  const modelCallTimeoutMs = input.modelCallTimeoutMs ?? 30000;
   const retryCounts = new Map<string, number>();
   const successfulToolCallKeys = new Set<string>();
   let toolCallCount = 0;
   let toolAttemptCount = 0;
 
   for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
-    const decision = await readLoopDecision(input, history);
+    const decision = await readLoopDecision({ ...input, modelCallTimeoutMs }, history);
 
     if (decision.action === "final") {
       const unmetTools = unmetRequiredTools(requiredTools, toolCalls);
@@ -309,34 +313,62 @@ async function runApprovedTool(
 }
 
 async function readLoopDecision(
-  input: RunAgentLoopInput,
+  input: RunAgentLoopInput & { modelCallTimeoutMs: number },
   history: AgentLoopHistoryItem[],
 ): Promise<AgentLoopDecision> {
   const messages = buildLoopMessages(input, history);
   try {
-    return normalizeDecision(await input.model.invokeJson<AgentLoopDecision>({
-      messages,
-      schema: loopDecisionSchema(),
-    }));
+    return normalizeDecision(await invokeLoopDecisionJson(input, messages));
   } catch (error) {
     if (!isInvalidJsonModelError(error)) throw error;
-    return normalizeDecision(await input.model.invokeJson<AgentLoopDecision>({
-      messages: [
-        ...messages,
-        {
-          role: "system",
-          content: [
-            "Previous response was invalid JSON.",
-            "Return only one valid minified JSON object.",
-            "No markdown. No comments. No trailing commas.",
-            "Tool call: {\"action\":\"tool\",\"toolName\":\"tool_name\",\"params\":{},\"reason\":\"short reason\"}",
-            "Final answer: {\"action\":\"final\",\"response\":\"short answer\"}",
-          ].join("\n"),
-        },
-      ],
-      schema: loopDecisionSchema(),
-    }));
+    return normalizeDecision(await invokeLoopDecisionJson(input, [
+      ...messages,
+      {
+        role: "system",
+        content: [
+          "Previous response was invalid JSON.",
+          "Return only one valid minified JSON object.",
+          "No markdown. No comments. No trailing commas.",
+          "Tool call: {\"action\":\"tool\",\"toolName\":\"tool_name\",\"params\":{},\"reason\":\"short reason\"}",
+          "Final answer: {\"action\":\"final\",\"response\":\"short answer\"}",
+        ].join("\n"),
+      },
+    ]));
   }
+}
+
+function invokeLoopDecisionJson(
+  input: RunAgentLoopInput & { modelCallTimeoutMs: number },
+  messages: AgentModelMessage[],
+): Promise<AgentLoopDecision> {
+  const controller = new AbortController();
+  const abortFromParent = () => controller.abort(input.abortSignal?.reason);
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  if (input.abortSignal?.aborted) abortFromParent();
+  else input.abortSignal?.addEventListener("abort", abortFromParent, { once: true });
+
+  const modelPromise = input.model.invokeJson<AgentLoopDecision>({
+    messages,
+    schema: loopDecisionSchema(),
+    signal: controller.signal,
+  });
+
+  return new Promise((resolve, reject) => {
+    timeout = setTimeout(() => {
+      controller.abort(new Error("Agent loop model decision timed out"));
+      reject(new AgentRuntimeError(
+        "Agent loop model decision timed out",
+        "AGENT_LOOP_DECISION_TIMEOUT",
+        "Agent model decision timed out",
+        502,
+      ));
+    }, input.modelCallTimeoutMs);
+
+    modelPromise.then(resolve, reject).finally(() => {
+      if (timeout) clearTimeout(timeout);
+      input.abortSignal?.removeEventListener("abort", abortFromParent);
+    });
+  });
 }
 
 function buildLoopMessages(input: RunAgentLoopInput, history: AgentLoopHistoryItem[]): AgentModelMessage[] {

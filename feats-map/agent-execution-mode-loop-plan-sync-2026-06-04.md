@@ -262,3 +262,11 @@ Resultado Task 2:
 - [x] Gerar chave de sucesso usando apenas propriedades declaradas no `inputSchema`.
 - [x] Manter fallback para params completos quando a tool nao declarar properties.
 - [x] Rodar testes focados, build e commit.
+
+## Task 24 - Loop Nao Pode Ficar RUNNING Entre Tools
+
+- [x] Criar teste para decisao do modelo pendurada depois de tool bem-sucedida.
+- [x] Passar `AbortSignal` para `invokeJson` do loop via adapter runtime.
+- [x] Aplicar timeout por decisao do loop para transformar hang em erro visivel.
+- [x] Propagar `abortSignal` e `timeoutMs` do agente para o loop.
+- [x] Rodar testes focados, build e commit.

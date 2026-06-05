@@ -344,6 +344,8 @@ export class AgentRunner {
         maxIterations: input.validated.agent.maxIterations,
         maxToolCalls: input.validated.agent.maxToolCalls,
         maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
+        modelCallTimeoutMs: Math.min(input.validated.agent.timeoutMs, AGENT_LIMITS.defaultToolTimeoutMs),
+        abortSignal: input.input.abortSignal,
         skipFinalResponseAfterToolUse: input.input.skipFinalResponseAfterToolUse,
         fileRefStore,
         approvedTool: input.input.approvalToken === "approved" && input.input.approvalToolName && input.input.approvalToolArgs
