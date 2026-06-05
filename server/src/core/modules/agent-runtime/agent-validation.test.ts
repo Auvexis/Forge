@@ -136,10 +136,29 @@ describe("agent runtime validation", () => {
       ...validAgent(),
       maxIterations: 16,
       maxToolCalls: 30,
+      maxRetriesPerTool: 100,
     });
 
     assert.equal(agent.maxIterations, 16);
     assert.equal(agent.maxToolCalls, 30);
+    assert.equal(agent.maxRetriesPerTool, 100);
+  });
+
+  it("defaults agent max retries per tool to three", () => {
+    const agent = validateAiAgentConfig(validAgent());
+
+    assert.equal(agent.maxRetriesPerTool, 3);
+  });
+
+  it("rejects agent max retries per tool above one hundred", () => {
+    assert.throws(
+      () =>
+        validateAiAgentConfig({
+          ...validAgent(),
+          maxRetriesPerTool: 101,
+        }),
+      /maxRetriesPerTool/i,
+    );
   });
 
   it("accepts plan execution mode when explicitly configured", () => {

@@ -138,6 +138,26 @@ describe("workflow validation", () => {
     assert.equal(error, null);
   });
 
+  it("rejects AI agent retry limits above one hundred", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        agent: {
+          type: "ai-agent",
+          name: "Agent",
+          prompt: "Help users.",
+          maxIterations: 8,
+          maxToolCalls: 12,
+          maxRetriesPerTool: 101,
+          timeoutMs: 180000,
+          requireApprovalForSideEffects: ["write"],
+          outputMode: "text",
+        },
+      },
+    }));
+
+    assert.match(error ?? "", /maxRetriesPerTool/);
+  });
+
   it("rejects unsupported legacy AI model providers with migration guidance", () => {
     const error = validateWorkflowDefinition(baseWorkflow({
       nodes: {

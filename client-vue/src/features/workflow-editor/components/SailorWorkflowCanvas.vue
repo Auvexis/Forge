@@ -808,6 +808,7 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     defaultData.executionMode = 'loop'
     defaultData.maxIterations = 8
     defaultData.maxToolCalls = 12
+    defaultData.maxRetriesPerTool = 3
     defaultData.timeoutMs = 180000
     defaultData.requireApprovalForSideEffects = [
       'write',

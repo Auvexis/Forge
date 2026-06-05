@@ -276,8 +276,12 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       if (typeof node.maxIterations !== "number" || node.maxIterations < 1) {
         return `AI Agent node "${nodeId}" must have maxIterations >= 1`;
       }
-      return typeof node.maxToolCalls !== "number" || node.maxToolCalls < 0
-        ? `AI Agent node "${nodeId}" must have maxToolCalls >= 0`
+      if (typeof node.maxToolCalls !== "number" || node.maxToolCalls < 0) {
+        return `AI Agent node "${nodeId}" must have maxToolCalls >= 0`;
+      }
+      return node.maxRetriesPerTool !== undefined &&
+        (typeof node.maxRetriesPerTool !== "number" || node.maxRetriesPerTool < 0 || node.maxRetriesPerTool > 100)
+        ? `AI Agent node "${nodeId}" must have maxRetriesPerTool between 0 and 100`
         : null;
     case "ai-model":
       {

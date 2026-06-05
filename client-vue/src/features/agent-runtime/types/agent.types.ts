@@ -21,6 +21,7 @@ export interface AiAgentNodeConfig {
   executionMode: AgentExecutionMode
   maxIterations: number
   maxToolCalls: number
+  maxRetriesPerTool: number
   timeoutMs: number
   requireApprovalForSideEffects: AgentToolSideEffect[]
   outputMode: 'text' | 'json'

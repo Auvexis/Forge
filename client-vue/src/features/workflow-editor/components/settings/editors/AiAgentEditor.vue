@@ -65,6 +65,16 @@
             @update:model-value="updateNodeData({ maxToolCalls: Number($event) })"
           />
         </label>
+        <label class="editor-limit-field">
+          <span>Maximum Retries Per Tool/Step</span>
+          <BaseInput
+            type="number"
+            min="0"
+            max="100"
+            :model-value="Number(node.data.maxRetriesPerTool ?? 3)"
+            @update:model-value="updateNodeData({ maxRetriesPerTool: Number($event) })"
+          />
+        </label>
       </div>
     </EditorField>
 

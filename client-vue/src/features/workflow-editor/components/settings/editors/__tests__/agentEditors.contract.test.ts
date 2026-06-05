@@ -26,7 +26,7 @@ test('ai agent editor exposes prompt, input message, execution mode, limits, tim
   const source = read('src/features/workflow-editor/components/settings/editors/AiAgentEditor.vue')
   const inspector = read('src/features/workflow-editor/components/settings/NodeInspectorModal.vue')
 
-  for (const field of ['prompt', 'inputMessage', 'executionMode', 'maxIterations', 'maxToolCalls', 'timeoutMs', 'outputMode']) {
+  for (const field of ['prompt', 'inputMessage', 'executionMode', 'maxIterations', 'maxToolCalls', 'maxRetriesPerTool', 'timeoutMs', 'outputMode']) {
     assert.match(source, new RegExp(field))
   }
 
@@ -37,6 +37,7 @@ test('ai agent editor exposes prompt, input message, execution mode, limits, tim
   assert.match(source, /User Input/)
   assert.match(source, /Max Iterations/)
   assert.match(source, /Max Tool Calls/)
+  assert.match(source, /Maximum Retries Per Tool\/Step/)
   assert.match(source, /editor-limit-stack/)
   assert.doesNotMatch(source, /Approval Policy/)
   assert.doesNotMatch(source, /requireApprovalForSideEffects/)
@@ -89,6 +90,7 @@ test('frontend agent runtime types expose plugin capability and generic model co
   assert.match(workflowTypes, /pluginId/)
   assert.match(workflowTypes, /adapter/)
   assert.match(workflowTypes, /inputMessage\?: string/)
+  assert.match(workflowTypes, /maxRetriesPerTool\?: number/)
   assert.match(workflowTypes, /AgentModelAdapter/)
   assert.match(workflowTypes, /'openai-compatible' \| 'generic' \| 'ollama'/)
   assert.doesNotMatch(workflowTypes, /agentDescription/)
@@ -96,6 +98,7 @@ test('frontend agent runtime types expose plugin capability and generic model co
 
   assert.match(agentTypes, /pluginId/)
   assert.match(agentTypes, /adapter/)
+  assert.match(agentTypes, /maxRetriesPerTool: number/)
   assert.match(agentTypes, /AgentModelAdapter/)
   assert.match(agentTypes, /'openai-compatible' \| 'generic' \| 'ollama'/)
   assert.doesNotMatch(agentTypes, /agentDisplayName/)

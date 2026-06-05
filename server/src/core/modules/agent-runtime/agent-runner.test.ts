@@ -467,6 +467,48 @@ describe("agent runner", () => {
     assert.deepEqual(result.output, { lookup: { value: "raw" } });
   });
 
+  it("passes max retries per tool from the agent config into plan execution", async () => {
+    let toolCalls = 0;
+    let repairCalls = 0;
+    const runner = new AgentRunner({
+      modelRegistry: {
+        async createChatModel() {
+          return {
+            async routeIntent() {
+              return { mode: "tool_plan", reason: "Needs lookup.", confidence: 0.9 };
+            },
+            async invokeJson() {
+              return { steps: [{ id: "lookup", toolName: "lookup", params: {}, reason: "Lookup." }] };
+            },
+            async repairPlanStep() {
+              repairCalls += 1;
+              return { params: { q: "fixed" } };
+            },
+          };
+        },
+      },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => [toolDefinition("lookup")],
+      },
+      toolExecutor: async () => {
+        toolCalls += 1;
+        throw new AgentRuntimeError("Missing q", "AGENT_TOOL_ARGS_INVALID", "Missing q", 400);
+      },
+    });
+
+    await assert.rejects(
+      runner.run({
+        ...runInput({ agent: agentConfig({ executionMode: "plan", maxRetriesPerTool: 0 }) }),
+        tools: [toolConfig()],
+      }),
+      /Missing q/,
+    );
+
+    assert.equal(toolCalls, 1);
+    assert.equal(repairCalls, 0);
+  });
+
   it("answers simple chat turns without emitting tool planning progress when the plan is empty", async () => {
     const events: string[] = [];
     const modelCalls: string[] = [];
@@ -1033,6 +1075,7 @@ function agentConfig(overrides: Partial<AiAgentNodeConfig> = {}): AiAgentNodeCon
     prompt: "You are helpful.",
     maxIterations: 4,
     maxToolCalls: 4,
+    maxRetriesPerTool: 3,
     timeoutMs: 30000,
     requireApprovalForSideEffects: ["write", "delete", "external-message", "external-payment"],
     outputMode: "text",

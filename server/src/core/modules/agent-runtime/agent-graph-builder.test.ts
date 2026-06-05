@@ -1089,6 +1089,7 @@ function agentConfig(overrides: Partial<AiAgentNodeConfig> = {}): AiAgentNodeCon
     prompt: "You are helpful.",
     maxIterations: 4,
     maxToolCalls: 4,
+    maxRetriesPerTool: 3,
     timeoutMs: 30000,
     requireApprovalForSideEffects: ["write", "delete", "external-message", "external-payment"],
     outputMode: "text",

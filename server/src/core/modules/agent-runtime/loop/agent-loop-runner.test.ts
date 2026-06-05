@@ -208,6 +208,38 @@ describe("agent loop runner", () => {
     assert.deepEqual(calls, ["list:invalid", "list:name", "download:file_1"]);
   });
 
+  it("does not retry repairable tool errors when max retries per tool is zero", async () => {
+    const decisions = [
+      { action: "tool", toolName: "list_files", params: { orderBy: "invalid" } },
+      { action: "tool", toolName: "list_files", params: { orderBy: "name" } },
+    ];
+    const calls: string[] = [];
+
+    await assert.rejects(
+      () => runAgentLoop({
+        userMessage: "Liste arquivos",
+        contextMessages: [],
+        maxRetriesPerTool: 0,
+        model: loopModel(decisions),
+        tools: [
+          tool("list_files", async (args) => {
+            calls.push(`list:${(args as any).orderBy}`);
+            throw new AgentRuntimeError(
+              "Validation failed",
+              "AGENT_TOOL_ARGS_INVALID",
+              "Validation failed",
+              400,
+            );
+          }),
+        ],
+        emitEvent: () => {},
+      }),
+      /Validation failed/,
+    );
+
+    assert.deepEqual(calls, ["list:invalid"]);
+  });
+
   it("retries loop decisions once when the model returns invalid JSON", async () => {
     let decisionCalls = 0;
     const prompts: string[] = [];

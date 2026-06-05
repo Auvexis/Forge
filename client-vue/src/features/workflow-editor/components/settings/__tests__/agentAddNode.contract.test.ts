@@ -116,6 +116,7 @@ test('ai node defaults are safe and backend-compatible', () => {
   assert.match(canvas, /defaultData\.prompt = 'You are a helpful workflow agent\. Use tools only when needed\.'/)
   assert.match(canvas, /defaultData\.maxIterations = 8/)
   assert.match(canvas, /defaultData\.maxToolCalls = 12/)
+  assert.match(canvas, /defaultData\.maxRetriesPerTool = 3/)
   assert.match(canvas, /defaultData\.timeoutMs = 180000/)
   assert.match(canvas, /defaultData\.requireApprovalForSideEffects = \[/)
   assert.match(canvas, /'write'/)

@@ -28,6 +28,7 @@ const aiAgentSchema = z
     executionMode: z.enum(["loop", "plan"]).default("loop"),
     maxIterations: z.number().int().min(1),
     maxToolCalls: z.number().int().min(0),
+    maxRetriesPerTool: z.number().int().min(0).max(AGENT_LIMITS.maxRetriesPerTool).default(AGENT_LIMITS.defaultMaxRetriesPerTool),
     timeoutMs: z.number().int().min(1000).max(AGENT_LIMITS.maxAgentTimeoutMs),
     requireApprovalForSideEffects: z.array(sideEffectSchema).max(sideEffectSchema.options.length),
     outputMode: z.enum(["text", "json"]),

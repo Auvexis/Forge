@@ -13,6 +13,7 @@ export interface RunAgentPlanRuntimeInput {
   model: unknown;
   tools: AgentPlanTool[];
   contextMessages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
+  maxRetriesPerTool: number;
   emitEvent: (event: AgentGraphEvent) => void;
 }
 
@@ -70,6 +71,7 @@ export async function runAgentPlanRuntime(input: RunAgentPlanRuntimeInput): Prom
   const result = await executeAgentPlan({
     plan,
     tools: input.tools,
+    maxRetriesPerStep: input.maxRetriesPerTool,
     executionId: input.input.executionId,
     approval: input.input.approvalToken
       ? {

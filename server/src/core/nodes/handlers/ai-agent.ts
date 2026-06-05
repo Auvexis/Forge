@@ -105,6 +105,7 @@ function toAgentConfig(node: AiAgentNode, context: NodeHandlerInput["context"]):
     executionMode: node.executionMode,
     maxIterations: node.maxIterations,
     maxToolCalls: node.maxToolCalls,
+    maxRetriesPerTool: node.maxRetriesPerTool,
     timeoutMs: node.timeoutMs,
     requireApprovalForSideEffects: node.requireApprovalForSideEffects,
     outputMode: node.outputMode,

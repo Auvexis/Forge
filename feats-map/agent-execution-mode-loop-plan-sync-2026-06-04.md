@@ -216,3 +216,12 @@ Resultado Task 2:
 - [x] Criar teste para cleanup de `cache/files` depois de sucesso final.
 - [x] Limpar refs de arquivo persistentes quando a execucao aprovada concluir com sucesso.
 - [x] Rodar testes focados, builds e commit.
+
+## Task 18 - Maximum Retries Per Tool/Step
+
+- [x] Adicionar `maxRetriesPerTool` no config do AI Agent com default 3, minimo 0 e maximo 100.
+- [x] Mostrar campo no editor do Tools Agent dentro de Execution Limits.
+- [x] Propagar o valor do node para AgentRunner.
+- [x] Fazer Plan Executor respeitar o limite por step.
+- [x] Fazer Loop Runner respeitar o limite por tool/error.
+- [x] Rodar testes focados, builds e commit.

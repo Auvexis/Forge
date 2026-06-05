@@ -326,6 +326,7 @@ export class AgentRunner {
         model: input.model,
         tools: input.tools,
         contextMessages: input.contextMessages,
+        maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
         emitEvent: (event) => this.eventEmitter(event, input.input),
       });
     }
@@ -342,6 +343,7 @@ export class AgentRunner {
         tools: input.tools,
         maxIterations: input.validated.agent.maxIterations,
         maxToolCalls: input.validated.agent.maxToolCalls,
+        maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
         skipFinalResponseAfterToolUse: input.input.skipFinalResponseAfterToolUse,
         fileRefStore,
         approvedTool: input.input.approvalToken === "approved" && input.input.approvalToolName && input.input.approvalToolArgs

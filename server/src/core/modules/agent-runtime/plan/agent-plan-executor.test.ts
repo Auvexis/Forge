@@ -105,6 +105,33 @@ describe("agent plan executor", () => {
     assert.deepEqual(calls, [{ fileId: "" }, { fileId: "file_1" }]);
   });
 
+  it("does not repair parameter errors when max retries per step is zero", async () => {
+    const calls: unknown[] = [];
+    let repairCalls = 0;
+
+    await assert.rejects(
+      () => executeAgentPlan({
+        plan: { steps: [{ id: "download", toolName: "download", params: { fileId: "" } }] },
+        tools: [
+          tool("download", async (args) => {
+            calls.push(args);
+            throw new AgentRuntimeError("fileId required", "AGENT_TOOL_ARGS_INVALID", "Invalid tool params", 400);
+          }),
+        ],
+        maxRetriesPerStep: 0,
+        repairStep: async () => {
+          repairCalls += 1;
+          return { params: { fileId: "file_1" } };
+        },
+        emitEvent: () => undefined,
+      }),
+      /fileId required/,
+    );
+
+    assert.deepEqual(calls, [{ fileId: "" }]);
+    assert.equal(repairCalls, 0);
+  });
+
   it("removes invalid optional enum params before invoking tools", async () => {
     const calls: unknown[] = [];
     const result = await executeAgentPlan({

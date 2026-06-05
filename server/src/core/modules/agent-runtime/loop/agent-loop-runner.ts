@@ -36,6 +36,7 @@ export interface RunAgentLoopInput {
   tools: AgentPlanTool[];
   maxIterations?: number;
   maxToolCalls?: number;
+  maxRetriesPerTool?: number;
   skipFinalResponseAfterToolUse?: boolean;
   fileRefStore?: AgentFileRefStore;
   approvedTool?: {
@@ -81,6 +82,8 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
   const requiredTools = inferRequiredTools(input.userMessage, input.tools);
   const maxIterations = input.maxIterations ?? 6;
   const maxToolCalls = input.maxToolCalls ?? 6;
+  const maxRetriesPerTool = input.maxRetriesPerTool ?? 3;
+  const retryCounts = new Map<string, number>();
   let toolCallCount = 0;
   let toolAttemptCount = 0;
 
@@ -147,6 +150,7 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
         value: result,
       });
       toolCallCount += 1;
+      retryCounts.delete(tool.name);
       history.push({ type: "tool_result", toolName: tool.name, result: modelSafeResult });
       toolCalls.push(toToolCall(tool, toolCallId, "success"));
       input.emitEvent(toolEvent("agent:tool-end", tool, toolCallId, "success", decision.reason, undefined, {
@@ -156,6 +160,8 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
       if (error instanceof AgentToolApprovalRequiredError) throw error;
       history.push({ type: "tool_error", toolName: tool.name, error: safeErrorMessage(error) });
       const repairable = isRepairableLoopError(error);
+      const retryCount = retryCounts.get(tool.name) ?? 0;
+      const retryAllowed = repairable && retryCount < maxRetriesPerTool;
       input.emitEvent(toolEvent(
         "agent:tool-end",
         tool,
@@ -164,7 +170,8 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
         decision.reason,
         safeErrorMessage(error),
       ));
-      if (repairable) {
+      if (retryAllowed) {
+        retryCounts.set(tool.name, retryCount + 1);
         input.emitEvent(toolEvent(
           "agent:tool-retry",
           tool,
@@ -174,7 +181,7 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
           safeErrorMessage(error),
         ));
       }
-      if (!repairable) {
+      if (!retryAllowed) {
         toolCalls.push(toToolCall(tool, toolCallId, "failed"));
         throw error;
       }

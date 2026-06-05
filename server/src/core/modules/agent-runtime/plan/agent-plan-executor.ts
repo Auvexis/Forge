@@ -14,6 +14,7 @@ export interface ExecuteAgentPlanInput {
   plan: AgentPlan;
   tools: AgentPlanTool[];
   emitEvent: (event: AgentPlanEvent) => void;
+  maxRetriesPerStep?: number;
   executionId?: string;
   approval?: {
     status: "approved" | "rejected";
@@ -65,21 +66,7 @@ export async function executeAgentPlan(input: ExecuteAgentPlanInput): Promise<Ag
     if (approvalResult) return approvalResult;
     emitToolEvent(input, "agent:tool-start", tool, toolCallId, "running", step.reason);
 
-    let result: unknown;
-    try {
-      result = await tool.invoke(params);
-    } catch (error) {
-      if (error instanceof AgentToolApprovalRequiredError) throw error;
-      const repaired = await tryRepairStep(input, step, tool, error, outputs);
-      if (!repaired) {
-        emitToolEvent(input, "agent:tool-end", tool, toolCallId, "failed", step.reason, safeErrorMessage(error));
-        toolCalls.push(toToolCall(tool, toolCallId, "failed"));
-        throw error;
-      }
-
-      emitToolEvent(input, "agent:tool-retry", tool, toolCallId, "retrying", "Creating new parameters.");
-      result = await tool.invoke(sanitizeToolParams(resolveRefs(repaired.params, outputs, input.plan.steps), tool.inputSchema));
-    }
+    const result = await invokeStepWithRetries(input, step, tool, toolCallId, params, outputs, toolCalls);
 
     outputs[step.id] = result;
     toolCallCount += 1;
@@ -111,6 +98,49 @@ export async function executeAgentPlan(input: ExecuteAgentPlanInput): Promise<Ag
     toolCalls,
     outputs,
   };
+}
+
+async function invokeStepWithRetries(
+  input: ExecuteAgentPlanInput,
+  step: AgentPlanStep,
+  tool: AgentPlanTool,
+  toolCallId: string,
+  initialParams: unknown,
+  outputs: Record<string, unknown>,
+  toolCalls: NonNullable<AgentPlanExecutionResult["toolCalls"]>,
+): Promise<unknown> {
+  const maxRetries = input.maxRetriesPerStep ?? 3;
+  let params = initialParams;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+    try {
+      return await tool.invoke(params);
+    } catch (error) {
+      if (error instanceof AgentToolApprovalRequiredError) throw error;
+      if (attempt >= maxRetries) {
+        emitToolEvent(input, "agent:tool-end", tool, toolCallId, "failed", step.reason, safeErrorMessage(error));
+        toolCalls.push(toToolCall(tool, toolCallId, "failed"));
+        throw error;
+      }
+
+      const repaired = await tryRepairStep(input, step, tool, error, outputs);
+      if (!repaired) {
+        emitToolEvent(input, "agent:tool-end", tool, toolCallId, "failed", step.reason, safeErrorMessage(error));
+        toolCalls.push(toToolCall(tool, toolCallId, "failed"));
+        throw error;
+      }
+
+      emitToolEvent(input, "agent:tool-retry", tool, toolCallId, "retrying", "Creating new parameters.");
+      params = sanitizeToolParams(resolveRefs(repaired.params, outputs, input.plan.steps), tool.inputSchema);
+    }
+  }
+
+  throw new AgentRuntimeError(
+    `Agent plan step exceeded retry limit: ${step.id}`,
+    "AGENT_PLAN_RETRY_LIMIT_EXCEEDED",
+    "Agent plan step exceeded retry limit",
+    400,
+  );
 }
 
 function resolveStartIndex(input: ExecuteAgentPlanInput): number {
