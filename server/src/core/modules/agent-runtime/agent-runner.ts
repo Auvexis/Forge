@@ -349,7 +349,11 @@ export class AgentRunner {
         skipFinalResponseAfterToolUse: input.input.skipFinalResponseAfterToolUse,
         fileRefStore,
         approvedTool: input.input.approvalToken === "approved" && input.input.approvalToolName && input.input.approvalToolArgs
-          ? { toolName: input.input.approvalToolName, params: input.input.approvalToolArgs }
+          ? {
+              toolName: input.input.approvalToolName,
+              params: input.input.approvalToolArgs,
+              resumeState: input.input.approvalToolResumeState,
+            }
           : undefined,
         emitEvent: (event) => this.eventEmitter(event, input.input),
       });

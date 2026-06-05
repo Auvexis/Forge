@@ -58,7 +58,11 @@ export async function routeAgentIntent(input: RouteAgentIntentInput): Promise<Ag
         }, timeoutMs);
       }),
     ]);
-    return normalizeIntentDecision(rawDecision, input.userMessage);
+    return enforceLocalToolIntent(
+      normalizeIntentDecision(rawDecision, input.userMessage),
+      input.userMessage,
+      input.tools,
+    );
   } catch {
     return fallbackIntentDecision(input.userMessage, input.tools);
   } finally {
@@ -163,6 +167,20 @@ function fallbackIntentDecision(userMessage: string, tools: AgentIntentTool[]): 
     };
   }
   return fallbackChatDecision(userMessage);
+}
+
+function enforceLocalToolIntent(
+  decision: AgentIntentDecision,
+  userMessage: string,
+  tools: AgentIntentTool[],
+): AgentIntentDecision {
+  if (decision.mode === "tool_plan") return decision;
+  if (tools.length === 0 || !shouldFallbackToToolPlan(userMessage)) return decision;
+  return {
+    mode: "tool_plan",
+    reason: "Local action detection selected tool planning for a non-chat request with configured tools.",
+    confidence: Math.max(decision.confidence, LOW_CONFIDENCE_THRESHOLD),
+  };
 }
 
 function shouldFallbackToToolPlan(message: string): boolean {

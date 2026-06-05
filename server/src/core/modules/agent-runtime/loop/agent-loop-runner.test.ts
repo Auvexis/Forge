@@ -638,6 +638,122 @@ describe("agent loop runner", () => {
     );
   });
 
+  it("continues the loop after approving a side-effect tool that is not the final requested step", async () => {
+    const calls: string[] = [];
+    let firstApprovalRequest: AgentToolApprovalRequiredError["approvalRequest"] | null = null;
+    let finalApprovalStage = "";
+    let noticeApprovalRequested = false;
+
+    await assert.rejects(
+      () => runAgentLoop({
+        userMessage: "Download the video, send a notice email, upload it, then send the video link by email",
+        contextMessages: [],
+        model: loopModel([
+          { action: "tool", toolName: "download_file", params: { fileId: "video_1" } },
+          { action: "tool", toolName: "send_email", params: { stage: "notice", to: "user@example.com" } },
+        ]),
+        tools: [
+          tool("download_file", async () => {
+            calls.push("download");
+            return { file: { ref: "agent-file://video" } };
+          }),
+          {
+            ...tool("send_email", async (args) => {
+              const stage = String((args as any).stage);
+              calls.push(`send:${stage}`);
+              if (stage === "notice" && !noticeApprovalRequested) {
+                noticeApprovalRequested = true;
+                throw new AgentToolApprovalRequiredError({
+                  toolName: "send_email",
+                  sideEffect: "external-message",
+                  args: args as Record<string, unknown>,
+                });
+              }
+              if (stage === "final") {
+                throw new AgentToolApprovalRequiredError({
+                  toolName: "send_email",
+                  sideEffect: "external-message",
+                  args: args as Record<string, unknown>,
+                });
+              }
+              return { sent: true, stage };
+            }),
+            sideEffect: "external-message",
+            requiresApproval: true,
+          },
+          tool("upload_video", async () => {
+            calls.push("upload");
+            return { url: "https://youtube.example/video" };
+          }),
+        ],
+        emitEvent: () => {},
+      }),
+      (error) => {
+        firstApprovalRequest = error instanceof AgentToolApprovalRequiredError ? error.approvalRequest : null;
+        return Boolean(firstApprovalRequest);
+      },
+    );
+
+    const resumeState = (firstApprovalRequest as any)?.resumeState;
+    assert.ok(resumeState, "first approval should include loop resume state");
+
+    await assert.rejects(
+      () => runAgentLoop({
+        userMessage: "Download the video, send a notice email, upload it, then send the video link by email",
+        contextMessages: [],
+        model: loopModel([
+          { action: "tool", toolName: "upload_video", params: { file: { ref: "agent-file://video" } } },
+          {
+            action: "tool",
+            toolName: "send_email",
+            params: { stage: "final", to: "user@example.com", body: "https://youtube.example/video" },
+          },
+        ]),
+        approvedTool: {
+          toolName: "send_email",
+          params: firstApprovalRequest!.args,
+          resumeState,
+        },
+        tools: [
+          tool("download_file", async () => {
+            calls.push("download-again");
+            return {};
+          }),
+          {
+            ...tool("send_email", async (args) => {
+              const stage = String((args as any).stage);
+              calls.push(`send:${stage}`);
+              if (stage === "final") {
+                throw new AgentToolApprovalRequiredError({
+                  toolName: "send_email",
+                  sideEffect: "external-message",
+                  args: args as Record<string, unknown>,
+                });
+              }
+              return { sent: true, stage };
+            }),
+            sideEffect: "external-message",
+            requiresApproval: true,
+          },
+          tool("upload_video", async () => {
+            calls.push("upload");
+            return { url: "https://youtube.example/video" };
+          }),
+        ],
+        emitEvent: () => {},
+      }),
+      (error) => {
+        finalApprovalStage = error instanceof AgentToolApprovalRequiredError
+          ? String(error.approvalRequest.args.stage ?? "")
+          : "";
+        return Boolean(finalApprovalStage);
+      },
+    );
+
+    assert.deepEqual(calls, ["download", "send:notice", "send:notice", "upload", "send:final"]);
+    assert.equal(finalApprovalStage, "final");
+  });
+
   it("does not accept a final answer before requested tools are completed", async () => {
     const decisions = [
       { action: "tool", toolName: "google_drive_list_files", params: { q: "andresimoes" } },

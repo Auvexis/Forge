@@ -270,3 +270,18 @@ Resultado Task 2:
 - [x] Aplicar timeout por decisao do loop para transformar hang em erro visivel.
 - [x] Propagar `abortSignal` e `timeoutMs` do agente para o loop.
 - [x] Rodar testes focados, build e commit.
+
+## Task 25 - Approval No Meio Do Loop Deve Continuar
+
+- [x] Criar teste para workflow `download -> email approval -> upload -> email approval` continuar apos primeira approval.
+- [x] Persistir estado generico do loop no request de approval.
+- [x] Retomar historico, toolCalls e guard de duplicados depois da approval.
+- [x] Manter compatibilidade com approvals antigas sem estado.
+- [x] Rodar testes focados, build e commit.
+
+## Task 26 - Intent Forte Com Tools Nao Pode Virar Chat
+
+- [x] Criar teste para pedido multi-tool em PT com Drive/Gmail/YouTube nao responder que nao ha ferramentas.
+- [x] Forcar `tool_plan` quando heuristica local encontra verbo de tool e tools conectadas.
+- [x] Manter perguntas simples e catalogo de tools como chat direto.
+- [x] Rodar testes focados, build e commit.

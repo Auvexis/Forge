@@ -55,6 +55,7 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     approvalToken: optionalString(triggerPayload.approvalToken ?? triggerPayload.approval_token),
     approvalToolName: optionalString(triggerPayload.approvalToolName ?? triggerPayload.approval_tool_name),
     approvalToolArgs: optionalRecord(triggerPayload.approvalToolArgs ?? triggerPayload.approval_tool_args),
+    approvalToolResumeState: triggerPayload.approvalToolResumeState ?? triggerPayload.approval_tool_resume_state,
     abortSignal: CancellationRegistry.signal(input.executionId),
     agent: agentConfig,
     model: toModelConfig(model),

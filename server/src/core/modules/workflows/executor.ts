@@ -315,6 +315,7 @@ export const WorkflowEngine = {
       approvalId: approval.id,
       approvalToolName: approval.toolName,
       approvalToolArgs: approvalRequestArgs(approval.request),
+      approvalToolResumeState: approvalRequestResumeState(approval.request),
     };
     const startTime = Number(execution.start_time ?? Date.now());
 
@@ -654,6 +655,11 @@ function approvalRequestArgs(request: unknown): Record<string, any> | undefined 
   return args && typeof args === "object" && !Array.isArray(args)
     ? args as Record<string, any>
     : undefined;
+}
+
+function approvalRequestResumeState(request: unknown): unknown {
+  if (!request || typeof request !== "object" || Array.isArray(request)) return undefined;
+  return (request as { resumeState?: unknown }).resumeState;
 }
 
 function createAgentApprovalForPausedNode(input: {

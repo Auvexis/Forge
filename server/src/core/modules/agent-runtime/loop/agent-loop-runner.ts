@@ -45,6 +45,7 @@ export interface RunAgentLoopInput {
   approvedTool?: {
     toolName: string;
     params: Record<string, unknown>;
+    resumeState?: unknown;
   };
   emitEvent: (event: AgentGraphEvent) => void;
 }
@@ -57,40 +58,79 @@ interface AgentLoopDecision {
   reason?: string;
 }
 
+interface AgentLoopResumeState {
+  history: AgentLoopHistoryItem[];
+  toolCalls: NonNullable<AgentRunResult["toolCalls"]>;
+  successfulToolCallKeys: string[];
+  toolCallCount: number;
+  toolAttemptCount: number;
+}
+
 export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunResult> {
   const tools = new Map(input.tools.map((tool) => [tool.name, tool]));
-  if (input.approvedTool) {
+  const resumeState = normalizeLoopResumeState(input.approvedTool?.resumeState);
+  if (input.approvedTool && !resumeState) {
     const result = await runApprovedTool(input, tools, input.approvedTool);
     return success(result.output, result.toolCallCount, 1, result.toolCalls);
   }
 
-  const intent = await routeAgentIntent({
-    model: input.model,
-    userMessage: input.userMessage,
-    contextMessages: input.contextMessages,
-    tools: input.tools,
-  });
-  if (intent.mode === "chat") {
-    const output = intent.answer?.trim() || await generateAgentFinalResponse({
+  if (!resumeState) {
+    const intent = await routeAgentIntent({
       model: input.model,
       userMessage: input.userMessage,
-      plan: emptyPlan(),
-      execution: emptyExecution(),
+      contextMessages: input.contextMessages,
+      tools: input.tools,
     });
-    return success(output, 0, 1, []);
+    if (intent.mode === "chat") {
+      const output = intent.answer?.trim() || await generateAgentFinalResponse({
+        model: input.model,
+        userMessage: input.userMessage,
+        plan: emptyPlan(),
+        execution: emptyExecution(),
+      });
+      return success(output, 0, 1, []);
+    }
   }
 
-  const history: AgentLoopHistoryItem[] = [];
-  const toolCalls: NonNullable<AgentRunResult["toolCalls"]> = [];
+  const history: AgentLoopHistoryItem[] = [...(resumeState?.history ?? [])];
+  const toolCalls: NonNullable<AgentRunResult["toolCalls"]> = [...(resumeState?.toolCalls ?? [])];
   const requiredTools = inferRequiredTools(input.userMessage, input.tools);
   const maxIterations = input.maxIterations ?? 6;
   const maxToolCalls = input.maxToolCalls ?? 6;
   const maxRetriesPerTool = input.maxRetriesPerTool ?? 3;
   const modelCallTimeoutMs = input.modelCallTimeoutMs ?? 30000;
   const retryCounts = new Map<string, number>();
-  const successfulToolCallKeys = new Set<string>();
-  let toolCallCount = 0;
-  let toolAttemptCount = 0;
+  const successfulToolCallKeys = new Set(resumeState?.successfulToolCallKeys ?? []);
+  let toolCallCount = resumeState?.toolCallCount ?? 0;
+  let toolAttemptCount = resumeState?.toolAttemptCount ?? 0;
+
+  if (input.approvedTool && resumeState) {
+    if (toolAttemptCount >= maxToolCalls) {
+      throw new AgentRuntimeError(
+        "Agent loop exceeded the configured tool call limit",
+        "AGENT_LOOP_TOOL_LIMIT_EXCEEDED",
+        "Agent exceeded the tool call limit",
+        400,
+      );
+    }
+    const approvedResult = await runApprovedTool(
+      input,
+      tools,
+      input.approvedTool,
+      `tool_call_${toolAttemptCount + 1}`,
+    );
+    toolAttemptCount += 1;
+    toolCallCount += approvedResult.toolCallCount;
+    history.push({
+      type: "tool_result",
+      toolName: input.approvedTool.toolName,
+      result: approvedResult.historyResult,
+    });
+    toolCalls.push(...approvedResult.toolCalls);
+    if (approvedResult.tool) {
+      successfulToolCallKeys.add(createSuccessfulToolCallKey(approvedResult.tool, input.approvedTool.params));
+    }
+  }
 
   for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
     const decision = await readLoopDecision({ ...input, modelCallTimeoutMs }, history);
@@ -185,7 +225,16 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
         output: sanitizeAgentToolValue(modelSafeResult),
       }));
     } catch (error) {
-      if (error instanceof AgentToolApprovalRequiredError) throw error;
+      if (error instanceof AgentToolApprovalRequiredError) {
+        attachLoopResumeState(error, {
+          history,
+          toolCalls,
+          successfulToolCallKeys: [...successfulToolCallKeys],
+          toolCallCount,
+          toolAttemptCount,
+        });
+        throw error;
+      }
       history.push({ type: "tool_error", toolName: tool.name, error: safeErrorMessage(error) });
       const repairable = isRepairableLoopError(error);
       const retryCount = retryCounts.get(tool.name) ?? 0;
@@ -249,10 +298,13 @@ async function runApprovedTool(
   input: RunAgentLoopInput,
   tools: Map<string, AgentPlanTool>,
   approvedTool: NonNullable<RunAgentLoopInput["approvedTool"]>,
+  toolCallId = "tool_call_1",
 ): Promise<{
   output: AgentRunResult["output"];
   toolCallCount: number;
   toolCalls: NonNullable<AgentRunResult["toolCalls"]>;
+  historyResult: unknown;
+  tool: AgentPlanTool;
 }> {
   const tool = tools.get(approvedTool.toolName);
   if (!tool) {
@@ -264,7 +316,6 @@ async function runApprovedTool(
     );
   }
 
-  const toolCallId = "tool_call_1";
   const params = resolveAgentFileRefsInToolArgs({
     store: input.fileRefStore,
     value: approvedTool.params,
@@ -304,6 +355,8 @@ async function runApprovedTool(
           }) as AgentRunResult["output"],
       toolCallCount: 1,
       toolCalls: [toToolCall(tool, toolCallId, "success")],
+      historyResult: modelSafeResult,
+      tool,
     };
   } catch (error) {
     if (error instanceof AgentToolApprovalRequiredError) throw error;
@@ -559,6 +612,89 @@ function approvalMissingAvailableFileRef(
     `Use this agent-file:// ref in the file or attachment params: ${refs.join(", ")}.`,
     "Do not use raw file ids, web links, filenames, or MIME metadata as attachment content.",
   ].join(" ");
+}
+
+function attachLoopResumeState(
+  error: AgentToolApprovalRequiredError,
+  state: AgentLoopResumeState,
+): void {
+  error.approvalRequest.resumeState = {
+    history: sanitizeLoopHistoryForResume(state.history),
+    toolCalls: state.toolCalls.map((toolCall) => ({ ...toolCall })),
+    successfulToolCallKeys: [...state.successfulToolCallKeys],
+    toolCallCount: state.toolCallCount,
+    toolAttemptCount: state.toolAttemptCount,
+  };
+}
+
+function normalizeLoopResumeState(value: unknown): AgentLoopResumeState | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  return {
+    history: normalizeLoopHistory(record.history),
+    toolCalls: normalizeResumeToolCalls(record.toolCalls),
+    successfulToolCallKeys: Array.isArray(record.successfulToolCallKeys)
+      ? record.successfulToolCallKeys.filter((item): item is string => typeof item === "string")
+      : [],
+    toolCallCount: safeResumeCount(record.toolCallCount),
+    toolAttemptCount: safeResumeCount(record.toolAttemptCount),
+  };
+}
+
+function sanitizeLoopHistoryForResume(history: AgentLoopHistoryItem[]): AgentLoopHistoryItem[] {
+  return history.map((item) => {
+    if (item.type === "tool_result") {
+      return {
+        type: "tool_result",
+        toolName: item.toolName,
+        result: sanitizeAgentToolValue(item.result),
+      };
+    }
+    return {
+      type: "tool_error",
+      toolName: item.toolName,
+      error: item.error,
+    };
+  });
+}
+
+function normalizeLoopHistory(value: unknown): AgentLoopHistoryItem[] {
+  if (!Array.isArray(value)) return [];
+  const history: AgentLoopHistoryItem[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const record = item as Record<string, unknown>;
+    const toolName = typeof record.toolName === "string" ? record.toolName : "";
+    if (!toolName) continue;
+    if (record.type === "tool_result") {
+      history.push({ type: "tool_result", toolName, result: record.result });
+    } else if (record.type === "tool_error" && typeof record.error === "string") {
+      history.push({ type: "tool_error", toolName, error: record.error });
+    }
+  }
+  return history;
+}
+
+function normalizeResumeToolCalls(value: unknown): NonNullable<AgentRunResult["toolCalls"]> {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+    const record = item as Record<string, unknown>;
+    if (typeof record.toolCallId !== "string" || typeof record.name !== "string") return [];
+    const status = record.status === "failed" ? "failed" : record.status === "success" ? "success" : null;
+    if (!status) return [];
+    return [{
+      toolCallId: record.toolCallId,
+      name: record.name,
+      ...(typeof record.pluginId === "string" ? { pluginId: record.pluginId } : {}),
+      ...(typeof record.pluginName === "string" ? { pluginName: record.pluginName } : {}),
+      status,
+    }];
+  });
+}
+
+function safeResumeCount(value: unknown): number {
+  return Number.isInteger(value) && Number(value) >= 0 ? Number(value) : 0;
 }
 
 function collectAgentFileRefs(history: AgentLoopHistoryItem[]): string[] {

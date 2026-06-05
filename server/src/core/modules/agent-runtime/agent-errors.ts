@@ -20,6 +20,7 @@ export interface AgentToolApprovalRequest {
   toolName: string;
   sideEffect: string;
   args: Record<string, unknown>;
+  resumeState?: unknown;
 }
 
 export class AgentToolApprovalRequiredError extends AgentRuntimeError {

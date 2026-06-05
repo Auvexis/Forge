@@ -173,6 +173,31 @@ describe("agent intent router", () => {
     assert.equal(decision.mode, "tool_plan");
   });
 
+  it("overrides a confident chat decision for clear multi-tool action requests with tools", async () => {
+    const model: AgentIntentModel = {
+      routeIntent: async () => ({
+        mode: "chat",
+        reason: "Incorrectly says tools are unavailable.",
+        confidence: 0.95,
+        answer: "Nao ha ferramentas disponiveis.",
+      }),
+    };
+
+    const decision = await routeAgentIntent({
+      model,
+      userMessage: "Busque meu video no Drive, baixe, envie email, poste no YouTube e envie o link",
+      contextMessages: [],
+      tools: [
+        tool("google_drive_list_files", "Search files", "Find matching files", "read"),
+        tool("google_gmail_send_message", "Send email", "Send external email", "external-message"),
+        tool("google_youtube_upload_video", "Upload video", "Upload a video to YouTube", "external-message"),
+      ],
+    });
+
+    assert.equal(decision.mode, "tool_plan");
+    assert.equal(decision.answer, undefined);
+  });
+
   it("keeps simple conversation as chat when routing stalls", async () => {
     const model: AgentIntentModel = {
       routeIntent: async () => new Promise(() => {}),

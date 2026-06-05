@@ -476,6 +476,7 @@ describe("WorkflowEngine trigger entry execution", () => {
     WorkflowRepository.saveWorkflow(wf);
     AgentRuntimeService.runAgent = async (input) => {
       if (input.approvalToken === "approved") {
+        assert.deepEqual(input.approvalToolResumeState, { marker: "loop-state" });
         return {
           status: "success",
           output: "sent",
@@ -488,6 +489,7 @@ describe("WorkflowEngine trigger entry execution", () => {
         toolName: "discord_send_message",
         sideEffect: "external-message",
         args: { channelId: "123", content: "Ship it" },
+        resumeState: { marker: "loop-state" },
       });
     };
 
