@@ -183,6 +183,15 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
       });
       continue;
     }
+    const repeatedCompletedReadError = completedReadToolReplayError(tool, requiredTools, toolCalls, history);
+    if (repeatedCompletedReadError) {
+      history.push({
+        type: "tool_error",
+        toolName: tool.name,
+        error: repeatedCompletedReadError,
+      });
+      continue;
+    }
     if (successfulToolCallKeys.has(successfulToolCallKey)) {
       history.push({
         type: "tool_error",
@@ -613,6 +622,40 @@ function approvalMissingAvailableFileRef(
     `Use this agent-file:// ref in the file or attachment params: ${refs.join(", ")}.`,
     "Do not use raw file ids, web links, filenames, or MIME metadata as attachment content.",
   ].join(" ");
+}
+
+function completedReadToolReplayError(
+  tool: AgentPlanTool,
+  requiredTools: AgentPlanTool[],
+  toolCalls: NonNullable<AgentRunResult["toolCalls"]>,
+  history: AgentLoopHistoryItem[],
+): string | null {
+  if (!isReadTool(tool)) return null;
+  if (!hasSuccessfulToolResult(history, tool.name)) return null;
+  if (!hasPendingSideEffectTool(requiredTools, toolCalls)) return null;
+
+  return [
+    `Tool ${tool.name} already completed successfully.`,
+    "Use the previous tool result from history and continue with the next pending side-effect tool.",
+    "Do not repeat completed read/download/search steps unless the previous result failed.",
+  ].join(" ");
+}
+
+function isReadTool(tool: AgentPlanTool): boolean {
+  return tool.sideEffect === "read" || (!tool.sideEffect && !tool.requiresApproval);
+}
+
+function hasSuccessfulToolResult(history: AgentLoopHistoryItem[], toolName: string): boolean {
+  return history.some((item) => item.type === "tool_result" && item.toolName === toolName);
+}
+
+function hasPendingSideEffectTool(
+  requiredTools: AgentPlanTool[],
+  toolCalls: NonNullable<AgentRunResult["toolCalls"]>,
+): boolean {
+  return unmetRequiredTools(requiredTools, toolCalls).some((tool) =>
+    tool.requiresApproval || Boolean(tool.sideEffect && tool.sideEffect !== "read")
+  );
 }
 
 function attachLoopResumeState(

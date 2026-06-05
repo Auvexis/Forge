@@ -782,6 +782,118 @@ describe("agent loop runner", () => {
     assert.equal(finalApprovalStage, "final");
   });
 
+  it("does not replay a completed read tool after approval when a pending side-effect can use its result", async () => {
+    const calls: string[] = [];
+    let firstApprovalRequest: AgentToolApprovalRequiredError["approvalRequest"] | null = null;
+
+    await assert.rejects(
+      () => runAgentLoop({
+        userMessage: "Download the video, send a notice email, upload the video, then send the link",
+        contextMessages: [],
+        model: loopModel([
+          { action: "tool", toolName: "download_video", params: { fileId: "video_1" } },
+          { action: "tool", toolName: "send_email", params: { stage: "notice" } },
+        ]),
+        tools: [
+          {
+            ...tool("download_video", async () => {
+              calls.push("download");
+              return { file: { ref: "agent-file://video" } };
+            }),
+            sideEffect: "read",
+          },
+          {
+            ...tool("send_email", async (args) => {
+              calls.push(`email:${String((args as any).stage)}`);
+              throw new AgentToolApprovalRequiredError({
+                toolName: "send_email",
+                sideEffect: "external-message",
+                args: args as Record<string, unknown>,
+              });
+            }),
+            sideEffect: "external-message",
+            requiresApproval: true,
+          },
+          {
+            ...tool("upload_video", async () => {
+              calls.push("upload");
+              return { url: "https://youtube.example/video" };
+            }),
+            sideEffect: "write",
+          },
+        ],
+        emitEvent: () => {},
+      }),
+      (error) => {
+        firstApprovalRequest = error instanceof AgentToolApprovalRequiredError ? error.approvalRequest : null;
+        return Boolean(firstApprovalRequest);
+      },
+    );
+
+    const prompts: string[] = [];
+    const result = await runAgentLoop({
+      userMessage: "Download the video, send a notice email, upload the video, then send the link",
+      contextMessages: [],
+      approvedTool: {
+        toolName: "send_email",
+        params: firstApprovalRequest!.args,
+        resumeState: (firstApprovalRequest as any).resumeState,
+      },
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+        },
+        async invokeJson(input) {
+          prompts.push(input.messages.map((message) => message.content).join("\n"));
+          if (prompts.length === 1) {
+            return {
+              action: "tool",
+              toolName: "download_video",
+              params: { fileId: "video_1", reason: "Download the video again before upload." },
+            } as any;
+          }
+          if (prompts.length === 2) {
+            return { action: "tool", toolName: "upload_video", params: { file: { ref: "agent-file://video" } } } as any;
+          }
+          return { action: "final", response: "Uploaded." } as any;
+        },
+        async generateFinalResponse() {
+          return "Uploaded.";
+        },
+      },
+      tools: [
+        {
+          ...tool("download_video", async () => {
+            calls.push("download-again");
+            return { file: { ref: "agent-file://video-again" } };
+          }),
+          sideEffect: "read",
+        },
+        {
+          ...tool("send_email", async (args) => {
+            calls.push(`email:${String((args as any).stage)}`);
+            return { sent: true };
+          }),
+          sideEffect: "external-message",
+          requiresApproval: true,
+        },
+        {
+          ...tool("upload_video", async () => {
+            calls.push("upload");
+            return { url: "https://youtube.example/video" };
+          }),
+          sideEffect: "write",
+        },
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Uploaded.");
+    assert.deepEqual(calls, ["download", "email:notice", "email:notice", "upload"]);
+    assert.match(prompts[1] ?? "", /already completed/i);
+    assert.match(prompts[1] ?? "", /use the previous tool result/i);
+  });
+
   it("does not accept a final answer before requested tools are completed", async () => {
     const decisions = [
       { action: "tool", toolName: "google_drive_list_files", params: { q: "andresimoes" } },

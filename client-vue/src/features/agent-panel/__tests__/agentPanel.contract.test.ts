@@ -376,9 +376,20 @@ describe('agent panel modal contract', () => {
     assert.match(store, /local-agent-progress-\$\{turnId\}-active/)
     assert.match(store, /function progressMessageId/)
     assert.match(store, /local-agent-progress-\$\{turnId\}-\$\{event\.tool\.toolCallId\}-\$\{event\.status\}/)
+    assert.match(chat, /agent-chat-view__status-viewport/)
     assert.match(chat, /:key="progressMessage\(message\.content\)"/)
     assert.match(chat, /agent-chat-status-swap-enter-active/)
     assert.match(chat, /agent-chat-status-swap-enter-from/)
+  })
+
+  it('spins running progress icons and clips status swap in a single line', () => {
+    const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+
+    assert.match(chat, /:class="\{ 'agent-chat-view__plugin-icon--spin': isSpinningProgress\(message\.content\) \}"/)
+    assert.match(chat, /function isSpinningProgress/)
+    assert.match(chat, /\.agent-chat-view__status-viewport\s*\{[\s\S]*overflow: hidden/)
+    assert.match(chat, /\.agent-chat-view__plugin-icon--spin[\s\S]*animation: agent-chat-icon-spin/)
+    assert.match(chat, /@keyframes agent-chat-icon-spin/)
   })
 
   it('renders tool progress details as expandable params and output blocks', () => {

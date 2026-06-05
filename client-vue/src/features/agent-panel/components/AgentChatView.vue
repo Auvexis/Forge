@@ -105,6 +105,7 @@
             >
               <span
                 class="agent-chat-view__plugin-icon"
+                :class="{ 'agent-chat-view__plugin-icon--spin': isSpinningProgress(message.content) }"
                 :title="message.content.tool?.pluginName ?? message.content.tool?.name"
               >
                 <LucideIcon
@@ -112,15 +113,17 @@
                   :size="14"
                 />
               </span>
-              <Transition name="agent-chat-status-swap" mode="out-in">
-                <span
-                  :key="progressMessage(message.content)"
-                  class="agent-chat-view__status-text"
-                  :class="{ 'agent-chat-view__status-text--shimmer': isShimmeringProgress(message.content) }"
-                >
-                  {{ progressMessage(message.content) }}
-                </span>
-              </Transition>
+              <span class="agent-chat-view__status-viewport">
+                <Transition name="agent-chat-status-swap" mode="out-in">
+                  <span
+                    :key="progressMessage(message.content)"
+                    class="agent-chat-view__status-text"
+                    :class="{ 'agent-chat-view__status-text--shimmer': isShimmeringProgress(message.content) }"
+                  >
+                    {{ progressMessage(message.content) }}
+                  </span>
+                </Transition>
+              </span>
               <button
                 v-if="hasToolDetails(message.content)"
                 type="button"
@@ -506,6 +509,10 @@ function toggleProgressDetails(messageId: string) {
 
 function isShimmeringProgress(content: AgentPanelProgressContent): boolean {
   return content.status === 'planned' || content.status === 'running' || content.status === 'retrying'
+}
+
+function isSpinningProgress(content: AgentPanelProgressContent): boolean {
+  return content.status === 'running' || content.status === 'retrying'
 }
 
 function progressIcon(status: AgentPanelProgressContent['status']): string {
@@ -1019,6 +1026,14 @@ async function deleteSession(sessionId: string) {
   color: inherit;
 }
 
+.agent-chat-view__status-viewport {
+  display: inline-grid;
+  min-width: 0;
+  min-height: 20px;
+  align-items: center;
+  overflow: hidden;
+}
+
 .agent-chat-view__status-text--shimmer {
   background: linear-gradient(
     90deg,
@@ -1064,6 +1079,10 @@ async function deleteSession(sessionId: string) {
   height: 18px;
   flex: 0 0 auto;
   place-items: center;
+}
+
+.agent-chat-view__plugin-icon--spin {
+  animation: agent-chat-icon-spin 0.9s linear infinite;
 }
 
 .agent-chat-view__progress-details {
@@ -1253,6 +1272,15 @@ async function deleteSession(sessionId: string) {
   }
   to {
     background-position: -200% 0;
+  }
+}
+
+@keyframes agent-chat-icon-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 

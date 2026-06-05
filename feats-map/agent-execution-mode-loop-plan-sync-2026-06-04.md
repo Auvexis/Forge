@@ -292,3 +292,11 @@ Resultado Task 2:
 - [x] Emitir `agent:thinking` antes de cada decisao do loop.
 - [x] Garantir que o stream persiste/renderiza o status com shimmer existente.
 - [x] Rodar testes focados, build e commit.
+
+## Task 28 - Evitar Replay De Download E Melhorar Status Live
+
+- [x] Criar teste para nao repetir uma tool de leitura/download ja concluida apos approval quando ainda ha side-effect pendente.
+- [x] Bloquear repeticao generica de ferramenta read/fetch ja concluida e orientar o modelo a consumir o output anterior.
+- [x] Ajustar UI para status nao-tool trocar na mesma linha com animacao vertical.
+- [x] Fazer icone Lucide de loading girar durante status running/retrying.
+- [x] Rodar testes focados, build e commit.
