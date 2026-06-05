@@ -225,3 +225,10 @@ Resultado Task 2:
 - [x] Fazer Plan Executor respeitar o limite por step.
 - [x] Fazer Loop Runner respeitar o limite por tool/error.
 - [x] Rodar testes focados, builds e commit.
+
+## Task 19 - Guard Contra Tool De Sucesso Duplicada No Loop
+
+- [x] Criar teste vermelho para tool ja concluida nao executar de novo com mesmos params.
+- [x] Registrar instrucao no historico para o modelo usar o output anterior e seguir para o proximo step.
+- [x] Manter `maxRetriesPerTool` restrito a erros reparaveis, nao a sucessos duplicados.
+- [x] Rodar testes focados, build e commit.

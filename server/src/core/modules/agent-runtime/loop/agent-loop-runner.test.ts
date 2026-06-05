@@ -311,6 +311,44 @@ describe("agent loop runner", () => {
     assert.deepEqual(calls, ["wrong_file.", "file_1"]);
   });
 
+  it("does not execute the same successful tool call with identical params twice", async () => {
+    const decisions = [
+      { action: "tool", toolName: "download_file", params: { fileId: "file_1" } },
+      { action: "tool", toolName: "download_file", params: { fileId: "file_1" } },
+      { action: "final", response: "Arquivo baixado." },
+    ];
+    const prompts: string[] = [];
+    let downloads = 0;
+
+    const result = await runAgentLoop({
+      userMessage: "Baixe o arquivo",
+      contextMessages: [],
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+        },
+        async invokeJson(input) {
+          prompts.push(input.messages.map((message) => message.content).join("\n"));
+          return decisions.shift() as any;
+        },
+        async generateFinalResponse() {
+          return "Arquivo baixado.";
+        },
+      },
+      tools: [
+        tool("download_file", async () => {
+          downloads += 1;
+          return { ok: true, id: "file_1" };
+        }),
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Arquivo baixado.");
+    assert.equal(downloads, 1);
+    assert.match(prompts[2] ?? "", /already succeeded with the same params/i);
+  });
+
   it("emits a failed tool step before retrying with a new tool call id", async () => {
     const decisions = [
       { action: "tool", toolName: "download_file", params: { fileId: "wrong_file." } },

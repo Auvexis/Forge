@@ -84,6 +84,7 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
   const maxToolCalls = input.maxToolCalls ?? 6;
   const maxRetriesPerTool = input.maxRetriesPerTool ?? 3;
   const retryCounts = new Map<string, number>();
+  const successfulToolCallKeys = new Set<string>();
   let toolCallCount = 0;
   let toolAttemptCount = 0;
 
@@ -126,9 +127,22 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
       );
     }
 
+    const displayParams = decision.params ?? {};
+    const successfulToolCallKey = createSuccessfulToolCallKey(tool.name, displayParams);
+    if (successfulToolCallKeys.has(successfulToolCallKey)) {
+      history.push({
+        type: "tool_error",
+        toolName: tool.name,
+        error: [
+          `Tool ${tool.name} already succeeded with the same params.`,
+          "Use the previous tool result from history and continue with the next required tool or final answer.",
+        ].join(" "),
+      });
+      continue;
+    }
+
     toolAttemptCount += 1;
     const toolCallId = `tool_call_${toolAttemptCount}`;
-    const displayParams = decision.params ?? {};
     const params = shouldResolveFileRefsBeforeInvoke(tool)
       ? resolveAgentFileRefsInToolArgs({
           store: input.fileRefStore,
@@ -151,6 +165,7 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
       });
       toolCallCount += 1;
       retryCounts.delete(tool.name);
+      successfulToolCallKeys.add(successfulToolCallKey);
       history.push({ type: "tool_result", toolName: tool.name, result: modelSafeResult });
       toolCalls.push(toToolCall(tool, toolCallId, "success"));
       input.emitEvent(toolEvent("agent:tool-end", tool, toolCallId, "success", decision.reason, undefined, {
@@ -475,6 +490,23 @@ function isRepairableFileNotFound(error: AgentRuntimeError): boolean {
 
 function shouldResolveFileRefsBeforeInvoke(tool: AgentPlanTool): boolean {
   return tool.requiresApproval !== true;
+}
+
+function createSuccessfulToolCallKey(toolName: string, params: Record<string, unknown>): string {
+  return `${toolName}:${stableStringify(sanitizeAgentToolValue(params))}`;
+}
+
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
+  }
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`);
+    return `{${entries.join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 
 function inferRequiredTools(userMessage: string, tools: AgentPlanTool[]): AgentPlanTool[] {
