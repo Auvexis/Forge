@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { describe, it } from "node:test";
 import { AgentRuntimeError } from "../agent-errors.ts";
 import { runAgentLoop } from "./agent-loop-runner.ts";
 import type { AgentPlanTool } from "../plan/agent-plan-types.ts";
+import { AgentFileRefStore } from "./agent-file-ref-store.ts";
 
 describe("agent loop runner", () => {
   it("retries a repairable tool error with compact sanitized history", async () => {
@@ -372,6 +376,139 @@ describe("agent loop runner", () => {
         ["agent:tool-start", "running", "tool_call_1"],
         ["agent:tool-end", "success", "tool_call_1"],
       ],
+    );
+  });
+
+  it("does not accept a final answer before requested tools are completed", async () => {
+    const decisions = [
+      { action: "tool", toolName: "google_drive_list_files", params: { q: "andresimoes" } },
+      { action: "final", response: "Email sent with the curriculum PDF to vaurvik@gmail.com" },
+      { action: "tool", toolName: "google_drive_download_file", params: { fileId: "file_1" } },
+      {
+        action: "tool",
+        toolName: "google_gmail_send_message",
+        params: {
+          to: "vaurvik@gmail.com",
+          attachments: [{ ref: "agent-file://will-be-filled-by-model" }],
+        },
+      },
+      { action: "final", response: "Email enviado." },
+    ];
+    const calls: string[] = [];
+    const prompts: string[] = [];
+
+    const result = await runAgentLoop({
+      userMessage: "Procure pelo meu curriculo pdf chamado andresimoes no drive e depois baixe e envie por email para vaurvik@gmail.com",
+      contextMessages: [],
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+        },
+        async invokeJson(input) {
+          prompts.push(input.messages.map((message) => message.content).join("\n"));
+          return decisions.shift() as any;
+        },
+        async generateFinalResponse() {
+          return "Email enviado.";
+        },
+      },
+      tools: [
+        tool("google_drive_list_files", async () => {
+          calls.push("list");
+          return { files: [{ id: "file_1", name: "andresimoes.pdf" }] };
+        }),
+        tool("google_drive_download_file", async () => {
+          calls.push("download");
+          return { download: { fileName: "andresimoes.pdf", mimeType: "application/pdf", content: Buffer.from("pdf") } };
+        }),
+        {
+          ...tool("google_gmail_send_message", async () => {
+            calls.push("send");
+            return { sent: true };
+          }),
+          sideEffect: "external-message",
+          requiresApproval: true,
+        },
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Email enviado.");
+    assert.deepEqual(calls, ["list", "download", "send"]);
+    assert.match(prompts[2] ?? "", /not complete/i);
+    assert.match(prompts[2] ?? "", /google_gmail_send_message/);
+  });
+
+  it("passes cached file refs from one tool result into the next tool args", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loop-files-"));
+    let ref = "";
+    let sent = false;
+    const sendArgs: any[] = [];
+
+    const result = await runAgentLoop({
+      userMessage: "Download the report and send it",
+      contextMessages: [],
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+        },
+        async invokeJson(input) {
+          const prompt = input.messages.map((message) => message.content).join("\n");
+          const match = prompt.match(/agent-file:\/\/[a-f0-9-]+/i);
+          if (sent) return { action: "final", response: "Sent." } as any;
+          if (!ref && !match) return { action: "tool", toolName: "download_file", params: { fileId: "file_1" } } as any;
+          ref = match?.[0] ?? ref;
+          if (ref) return { action: "tool", toolName: "send_file", params: { attachments: [{ ref }] } } as any;
+          return { action: "final", response: "Done." } as any;
+        },
+        async generateFinalResponse() {
+          return "Sent.";
+        },
+      },
+      fileRefStore: new AgentFileRefStore({ rootDir: root }),
+      tools: [
+        tool("download_file", async () => ({
+          download: { fileName: "report.pdf", mimeType: "application/pdf", content: Buffer.from("pdf") },
+        })),
+        {
+          ...tool("send_file", async (args) => {
+            sendArgs.push(args);
+            sent = true;
+            return { sent: true };
+          }),
+          sideEffect: "external-message",
+          requiresApproval: true,
+        },
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Sent.");
+    assert.equal(sendArgs[0].attachments[0].filename, "report.pdf");
+    assert.equal(sendArgs[0].attachments[0].mimeType, "application/pdf");
+    assert.equal(typeof sendArgs[0].attachments[0].content.pipe, "function");
+  });
+
+  it("fails clearly when the model insists on finalizing with required tools still pending", async () => {
+    await assert.rejects(
+      () => runAgentLoop({
+        userMessage: "Send an email to vaurvik@gmail.com",
+        contextMessages: [],
+        maxIterations: 2,
+        model: loopModel([
+          { action: "final", response: "Email sent." },
+          { action: "final", response: "Email sent." },
+        ]),
+        tools: [
+          {
+            ...tool("send_email", async () => ({ sent: true })),
+            sideEffect: "external-message",
+            requiresApproval: true,
+          },
+        ],
+        emitEvent: () => {},
+      }),
+      /required tools/i,
     );
   });
 });

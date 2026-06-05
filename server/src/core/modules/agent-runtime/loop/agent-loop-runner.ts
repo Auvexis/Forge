@@ -10,6 +10,11 @@ import {
   serializeAgentLoopHistory,
   type AgentLoopHistoryItem,
 } from "./agent-tool-result-sanitizer.ts";
+import {
+  type AgentFileRefStore,
+  resolveAgentFileRefsInToolArgs,
+  storeAgentFileRefsInToolResult,
+} from "./agent-file-ref-store.ts";
 
 export interface AgentLoopModel {
   routeIntent(input: {
@@ -32,6 +37,7 @@ export interface RunAgentLoopInput {
   maxIterations?: number;
   maxToolCalls?: number;
   skipFinalResponseAfterToolUse?: boolean;
+  fileRefStore?: AgentFileRefStore;
   approvedTool?: {
     toolName: string;
     params: Record<string, unknown>;
@@ -72,6 +78,7 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
 
   const history: AgentLoopHistoryItem[] = [];
   const toolCalls: NonNullable<AgentRunResult["toolCalls"]> = [];
+  const requiredTools = inferRequiredTools(input.userMessage, input.tools);
   const maxIterations = input.maxIterations ?? 6;
   const maxToolCalls = input.maxToolCalls ?? 6;
   let toolCallCount = 0;
@@ -81,6 +88,19 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
     const decision = await readLoopDecision(input, history);
 
     if (decision.action === "final") {
+      const unmetTools = unmetRequiredTools(requiredTools, toolCalls);
+      if (unmetTools.length > 0) {
+        history.push({
+          type: "tool_error",
+          toolName: "agent_loop",
+          error: [
+            "Request is not complete yet.",
+            `Still need to use: ${unmetTools.map((tool) => tool.name).join(", ")}.`,
+            "Continue with the next required tool instead of final answer.",
+          ].join(" "),
+        });
+        continue;
+      }
       return success(decision.response ?? "", toolCallCount, iteration, toolCalls);
     }
 
@@ -105,21 +125,30 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
 
     toolAttemptCount += 1;
     const toolCallId = `tool_call_${toolAttemptCount}`;
-    const params = decision.params ?? {};
+    const params = resolveAgentFileRefsInToolArgs({
+      store: input.fileRefStore,
+      value: decision.params ?? {},
+    }) as Record<string, unknown>;
+    const displayParams = decision.params ?? {};
     input.emitEvent(toolEvent("agent:tool-intent", tool, toolCallId, "planned", decision.reason, undefined, {
-      params: sanitizeAgentToolValue(params),
+      params: sanitizeAgentToolValue(displayParams),
     }));
     input.emitEvent(toolEvent("agent:tool-start", tool, toolCallId, "running", decision.reason, undefined, {
-      params: sanitizeAgentToolValue(params),
+      params: sanitizeAgentToolValue(displayParams),
     }));
 
     try {
       const result = await tool.invoke(params);
+      const modelSafeResult = await storeAgentFileRefsInToolResult({
+        store: input.fileRefStore,
+        toolCallId,
+        value: result,
+      });
       toolCallCount += 1;
-      history.push({ type: "tool_result", toolName: tool.name, result });
+      history.push({ type: "tool_result", toolName: tool.name, result: modelSafeResult });
       toolCalls.push(toToolCall(tool, toolCallId, "success"));
       input.emitEvent(toolEvent("agent:tool-end", tool, toolCallId, "success", decision.reason, undefined, {
-        output: sanitizeAgentToolValue(result),
+        output: sanitizeAgentToolValue(modelSafeResult),
       }));
     } catch (error) {
       if (error instanceof AgentToolApprovalRequiredError) throw error;
@@ -148,6 +177,16 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
         throw error;
       }
     }
+  }
+
+  const unmetTools = unmetRequiredTools(requiredTools, toolCalls);
+  if (unmetTools.length > 0) {
+    throw new AgentRuntimeError(
+      `Agent loop ended with required tools still pending: ${unmetTools.map((tool) => tool.name).join(", ")}`,
+      "AGENT_LOOP_REQUIRED_TOOLS_PENDING",
+      "Agent could not complete all required tool steps",
+      400,
+    );
   }
 
   const output = input.skipFinalResponseAfterToolUse
@@ -189,6 +228,10 @@ async function runApprovedTool(
   }
 
   const toolCallId = "tool_call_1";
+  const params = resolveAgentFileRefsInToolArgs({
+    store: input.fileRefStore,
+    value: approvedTool.params,
+  }) as Record<string, unknown>;
   input.emitEvent(toolEvent("agent:tool-intent", tool, toolCallId, "planned", "Approved by user.", undefined, {
     params: sanitizeAgentToolValue(approvedTool.params),
   }));
@@ -197,24 +240,29 @@ async function runApprovedTool(
   }));
 
   try {
-    const result = await tool.invoke(approvedTool.params);
+    const result = await tool.invoke(params);
+    const modelSafeResult = await storeAgentFileRefsInToolResult({
+      store: input.fileRefStore,
+      toolCallId,
+      value: result,
+    });
     input.emitEvent(toolEvent("agent:tool-end", tool, toolCallId, "success", "Approved by user.", undefined, {
-      output: sanitizeAgentToolValue(result),
+      output: sanitizeAgentToolValue(modelSafeResult),
     }));
     return {
       output: input.skipFinalResponseAfterToolUse
-        ? sanitizeAgentToolValue(result) as AgentRunResult["output"]
+        ? sanitizeAgentToolValue(modelSafeResult) as AgentRunResult["output"]
         : await generateAgentFinalResponse({
             model: input.model,
             userMessage: input.userMessage,
             plan: emptyPlan(),
             execution: {
               status: "success",
-              output: sanitizeAgentToolValue(result),
+              output: sanitizeAgentToolValue(modelSafeResult),
               toolCallCount: 1,
               iterationCount: 1,
               toolCalls: [toToolCall(tool, toolCallId, "success")],
-              outputs: { [tool.name]: sanitizeAgentToolValue(result) },
+              outputs: { [tool.name]: sanitizeAgentToolValue(modelSafeResult) },
             },
           }) as AgentRunResult["output"],
       toolCallCount: 1,
@@ -269,6 +317,8 @@ function buildLoopMessages(input: RunAgentLoopInput, history: AgentLoopHistoryIt
         "For the final answer, return exactly: {\"action\":\"final\",\"response\":\"short answer\"}.",
         "Call only one tool per response. After a tool result, decide the next tool or final answer.",
         "Do not include binary, base64, blob, or file contents in params.",
+        "When history contains an agent-file:// ref, pass that ref object to the next tool instead of inventing file ids or attachment content.",
+        "Do not return a final answer until every requested operation has a successful tool result.",
         "Use only these tools:",
         JSON.stringify(input.tools.map((tool) => ({
           name: tool.name,
@@ -412,6 +462,99 @@ function isRepairableLoopError(error: unknown): boolean {
 function isRepairableFileNotFound(error: AgentRuntimeError): boolean {
   return /Agent tool .+ failed: File not found:/i.test(error.publicMessage) ||
     /Agent tool .+ failed: File not found:/i.test(error.message);
+}
+
+function inferRequiredTools(userMessage: string, tools: AgentPlanTool[]): AgentPlanTool[] {
+  const requestText = normalizeSearchText(userMessage);
+  if (!requestText) return [];
+  const required = tools.filter((tool) => requiredToolScore(tool, requestText) >= 5);
+  const hasRequiredSideEffect = required.some((tool) => Boolean(tool.sideEffect && tool.sideEffect !== "read") || tool.requiresApproval);
+  if (!hasRequiredSideEffect) return required;
+
+  const prerequisiteReads = tools.filter((tool) =>
+    !required.includes(tool) &&
+    (tool.sideEffect === "read" || !tool.sideEffect) &&
+    requiredToolScore(tool, requestText) >= 4
+  );
+  return [...prerequisiteReads, ...required];
+}
+
+function unmetRequiredTools(
+  requiredTools: AgentPlanTool[],
+  toolCalls: NonNullable<AgentRunResult["toolCalls"]>,
+): AgentPlanTool[] {
+  const completed = new Set(
+    toolCalls
+      .filter((toolCall) => toolCall.status === "success")
+      .map((toolCall) => toolCall.name),
+  );
+  return requiredTools.filter((tool) => !completed.has(tool.name));
+}
+
+function requiredToolScore(tool: AgentPlanTool, requestText: string): number {
+  const toolText = normalizeSearchText([
+    tool.name,
+    tool.description,
+    tool.instructions ?? "",
+    tool.pluginId ?? "",
+    tool.pluginName ?? "",
+    tool.methodId ?? "",
+  ].join(" "));
+  const toolTokens = new Set(toolText.split(" ").filter(isUsefulToolToken));
+  const requestTokens = new Set(requestText.split(" ").filter(Boolean));
+  let score = 0;
+  for (const token of toolTokens) {
+    if (requestTokens.has(token)) score += token.length >= 6 ? 2 : 1;
+  }
+  for (const [action, aliases] of Object.entries(toolActionAliases())) {
+    if (!aliases.some((alias) => requestText.includes(alias))) continue;
+    if (toolText.includes(action) || aliases.some((alias) => toolText.includes(alias))) score += 5;
+  }
+  if ((tool.sideEffect && tool.sideEffect !== "read") || tool.requiresApproval) {
+    if (/\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b/i.test(requestText)) score += 4;
+    if (requestText.includes("send") || requestText.includes("envie") || requestText.includes("enviar")) score += 2;
+  }
+  return score;
+}
+
+function toolActionAliases(): Record<string, string[]> {
+  return {
+    list: ["list", "find", "search", "lookup", "procure", "procurar", "busque", "buscar", "liste", "listar"],
+    download: ["download", "baixar", "baixe", "fetch", "retrieve"],
+    send: ["send", "sent", "email", "mail", "message", "envie", "enviar", "mande", "mandar"],
+    upload: ["upload", "subir", "enviar"],
+    create: ["create", "criar", "crie"],
+    update: ["update", "atualizar", "atualize"],
+    delete: ["delete", "remove", "deletar", "remover"],
+  };
+}
+
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9@._-]+/g, " ")
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isUsefulToolToken(token: string): boolean {
+  return token.length >= 3 &&
+    !new Set([
+      "google",
+      "tool",
+      "with",
+      "from",
+      "para",
+      "this",
+      "that",
+      "file",
+      "files",
+      "message",
+      "method",
+    ]).has(token);
 }
 
 function summarizeToolParams(schema: Record<string, any>): Array<{ name: string; type: string; required: boolean }> {

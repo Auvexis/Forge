@@ -15,6 +15,7 @@ import { AgentToolRegistry } from "./agent-tool-registry.ts";
 import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
 import { executePluginAgentTool } from "./plugin-tool-executor.ts";
 import { PluginExecutor } from "../plugins/executor.ts";
+import { sailorHomePaths } from "../../runtime/sailor-home.ts";
 import type {
   AgentRunInput,
   AgentRunResult,
@@ -40,6 +41,11 @@ import {
 import { toAgentRuntimeModel } from "./agent-runtime-model.ts";
 import { runAgentLoop } from "./loop/agent-loop-runner.ts";
 import { runAgentPlanRuntime } from "./plan/agent-plan-runner.ts";
+import { AgentFileRefStore } from "./loop/agent-file-ref-store.ts";
+import {
+  resolveAgentChatFileCacheDir,
+  resolveAgentExecutionFileCacheDir,
+} from "./chat/agent-chat-paths.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -332,6 +338,9 @@ export class AgentRunner {
       maxIterations: input.validated.agent.maxIterations,
       maxToolCalls: input.validated.agent.maxToolCalls,
       skipFinalResponseAfterToolUse: input.input.skipFinalResponseAfterToolUse,
+      fileRefStore: new AgentFileRefStore({
+        rootDir: resolveAgentFileCacheDir(input.input),
+      }),
       approvedTool: input.input.approvalToken === "approved" && input.input.approvalToolName && input.input.approvalToolArgs
         ? { toolName: input.input.approvalToolName, params: input.input.approvalToolArgs }
         : undefined,
@@ -521,4 +530,19 @@ function formatConfiguredToolsAnswer(tools: SailorAgentToolDefinition[]): string
     return `- ${owner}${tool.description || tool.name}`;
   });
   return ["Tenho acesso a estas ferramentas configuradas:", ...lines].join("\n");
+}
+
+function resolveAgentFileCacheDir(input: AgentRunInput): string {
+  if (input.sessionId) {
+    return resolveAgentChatFileCacheDir({
+      profilesDir: sailorHomePaths.profilesDir,
+      profileId: input.profileId,
+      chatId: input.sessionId,
+    });
+  }
+  return resolveAgentExecutionFileCacheDir({
+    profilesDir: sailorHomePaths.profilesDir,
+    profileId: input.profileId,
+    executionId: input.executionId,
+  });
 }

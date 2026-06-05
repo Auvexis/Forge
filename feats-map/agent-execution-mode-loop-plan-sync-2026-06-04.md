@@ -161,36 +161,36 @@ Resultado Task 2:
 
 ## Task 12 - File Ref Cache Para Attachments
 
-- [ ] Fazer download de plugin virar file ref local persistente no cache do chat.
-- [ ] Ensinar loop a mostrar refs de arquivo para o modelo em vez de metadado fake.
-- [ ] Resolver refs de arquivo antes de chamar tools como Gmail.
-- [ ] Garantir approval usa refs persistentes, nao Buffer/base64 bruto.
-- [ ] Rodar testes focados, builds e commit.
+- [x] Fazer download de plugin virar file ref local persistente no cache do chat.
+- [x] Ensinar loop a mostrar refs de arquivo para o modelo em vez de metadado fake.
+- [x] Resolver refs de arquivo antes de chamar tools como Gmail.
+- [x] Garantir approval usa refs persistentes, nao Buffer/base64 bruto.
+- [x] Rodar testes focados, builds e commit.
 
 ## Task 13 - Guard Contra Final Prematuro No Loop
 
-- [ ] Criar teste reproduzindo `listFiles` concluido e resposta final falsa antes de `downloadFile` + `sendMessage`.
-- [ ] Extrair objetivos obrigatorios da intencao do usuario em passos textuais simples, sem buzz words fixas.
-- [ ] Bloquear `final` do modelo quando ainda faltam tools obrigatorias para cumprir a intencao.
-- [ ] Fazer o loop pedir pro modelo continuar com a proxima tool quando tentar finalizar cedo.
-- [ ] Mostrar erro claro se o modelo insistir em finalizar sem cumprir os objetivos.
-- [ ] Rodar testes focados, builds e commit.
+- [x] Criar teste reproduzindo `listFiles` concluido e resposta final falsa antes de `downloadFile` + `sendMessage`.
+- [x] Extrair objetivos obrigatorios da intencao do usuario em passos textuais simples, sem buzz words fixas.
+- [x] Bloquear `final` do modelo quando ainda faltam tools obrigatorias para cumprir a intencao.
+- [x] Fazer o loop pedir pro modelo continuar com a proxima tool quando tentar finalizar cedo.
+- [x] Mostrar erro claro se o modelo insistir em finalizar sem cumprir os objetivos.
+- [x] Rodar testes focados, builds e commit.
 
 ## Task 14 - Continuidade Real Entre Outputs De Tools
 
-- [ ] Garantir que output de `google_drive_list_files` alimenta selecao real de arquivo do proximo step.
-- [ ] Garantir que output/cache de `google_drive_download_file` alimenta attachment real do Gmail.
-- [ ] Evitar que o modelo invente ids, filenames ou attachments quando existe output de tool anterior.
-- [ ] Sanitizar outputs grandes sem esconder refs pequenas e uteis para a proxima tool.
-- [ ] Rodar testes focados, builds e commit.
+- [x] Garantir que output de `google_drive_list_files` alimenta selecao real de arquivo do proximo step.
+- [x] Garantir que output/cache de `google_drive_download_file` alimenta attachment real do Gmail.
+- [x] Evitar que o modelo invente ids, filenames ou attachments quando existe output de tool anterior.
+- [x] Sanitizar outputs grandes sem esconder refs pequenas e uteis para a proxima tool.
+- [x] Rodar testes focados, builds e commit.
 
 ## Task 15 - Timeline Final Correta
 
-- [ ] Nao renderizar mensagem final antes de todos os steps obrigatorios terminarem.
-- [ ] Persistir `downloadFile` e `sendMessage` na timeline junto com `listFiles`.
-- [ ] Mostrar "completed" apenas quando a ultima tool obrigatoria tiver sucesso confirmado.
-- [ ] Se uma tool falhar depois de retry, finalizar com erro, nao com resposta positiva.
-- [ ] Rodar testes focados, builds e commit.
+- [x] Nao renderizar mensagem final antes de todos os steps obrigatorios terminarem.
+- [x] Persistir `downloadFile` e `sendMessage` na timeline junto com `listFiles`.
+- [x] Mostrar "completed" apenas quando a ultima tool obrigatoria tiver sucesso confirmado.
+- [x] Se uma tool falhar depois de retry, finalizar com erro, nao com resposta positiva.
+- [x] Rodar testes focados, builds e commit.
 
 ## Proximas 5 Tasks Sugeridas
 
