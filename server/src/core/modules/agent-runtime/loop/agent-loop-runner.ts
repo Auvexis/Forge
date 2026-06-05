@@ -819,19 +819,49 @@ function inferRequiredTools(userMessage: string, tools: AgentPlanTool[]): AgentP
     (tool.sideEffect === "read" || !tool.sideEffect) &&
     requiredToolScore(tool, requestText) >= 4
   );
-  return [...prerequisiteReads, ...required];
+  return [
+    ...prerequisiteReads,
+    ...required.flatMap((tool) => Array.from({ length: requiredToolOccurrenceCount(tool, requestText) }, () => tool)),
+  ];
 }
 
 function unmetRequiredTools(
   requiredTools: AgentPlanTool[],
   toolCalls: NonNullable<AgentRunResult["toolCalls"]>,
 ): AgentPlanTool[] {
-  const completed = new Set(
-    toolCalls
-      .filter((toolCall) => toolCall.status === "success")
-      .map((toolCall) => toolCall.name),
-  );
-  return requiredTools.filter((tool) => !completed.has(tool.name));
+  const completed = new Map<string, number>();
+  for (const toolCall of toolCalls) {
+    if (toolCall.status !== "success") continue;
+    completed.set(toolCall.name, (completed.get(toolCall.name) ?? 0) + 1);
+  }
+  const used = new Map<string, number>();
+  return requiredTools.filter((tool) => {
+    const current = used.get(tool.name) ?? 0;
+    used.set(tool.name, current + 1);
+    return current >= (completed.get(tool.name) ?? 0);
+  });
+}
+
+function requiredToolOccurrenceCount(tool: AgentPlanTool, requestText: string): number {
+  if (!tool.requiresApproval && (!tool.sideEffect || tool.sideEffect === "read")) return 1;
+  const toolText = normalizeSearchText([
+    tool.name,
+    tool.description,
+    tool.instructions ?? "",
+    tool.pluginId ?? "",
+    tool.pluginName ?? "",
+    tool.methodId ?? "",
+  ].join(" "));
+  if (!toolActionAliases().send.some((alias) => toolText.includes(alias))) return 1;
+  return Math.max(1, Math.min(3, countSendActionMentions(requestText)));
+}
+
+function countSendActionMentions(requestText: string): number {
+  const explicitMessages = requestText.match(/\b(email|mail|message|mensagem|mensagens)\b/g)?.length ?? 0;
+  const anotherMessage = /\b(another|new|novo|nova|segundo|segunda|final)\s+(email|mail|message|mensagem)\b/.test(requestText)
+    ? 1
+    : 0;
+  return Math.max(explicitMessages, explicitMessages > 0 ? anotherMessage + 1 : 0);
 }
 
 function requiredToolScore(tool: AgentPlanTool, requestText: string): number {

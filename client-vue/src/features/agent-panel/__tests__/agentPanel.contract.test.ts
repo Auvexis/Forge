@@ -427,6 +427,8 @@ describe('agent panel modal contract', () => {
 
     assert.match(store, /function latestActiveProgressMessageId/)
     assert.match(store, /candidate\.id !== latestActiveId/)
+    assert.match(store, /terminalProgressToolCallIds/)
+    assert.match(store, /completedToolCallIds\.has\(candidate\.content\.tool\.toolCallId\)/)
     assert.doesNotMatch(store, /if \(!\['planned', 'running', 'retrying'\]\.includes\(candidate\.content\.status\)\) return candidate[\s\S]*status: 'failed'/)
   })
 

@@ -315,3 +315,10 @@ Resultado Task 2:
 - [x] Manter `plan` disponivel e com approval resume deterministico.
 - [x] Atualizar contratos backend/frontend para default `loop`.
 - [x] Rodar testes focados, build e commit.
+
+## Task 31 - Loop Multi-Step Com Tool Repetida E Timeout Limpo
+
+- [x] Criar teste para pedido com dois emails exigir duas execucoes da mesma tool.
+- [x] Fazer o guard de objetivos contar ocorrencias obrigatorias, nao apenas nomes unicos.
+- [x] Garantir que upload concluido nao seja sobrescrito por timeout de decisao posterior.
+- [x] Rodar testes focados, build e commit.

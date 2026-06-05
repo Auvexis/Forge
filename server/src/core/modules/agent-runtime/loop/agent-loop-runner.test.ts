@@ -782,6 +782,70 @@ describe("agent loop runner", () => {
     assert.equal(finalApprovalStage, "final");
   });
 
+  it("requires repeated side-effect tool executions when the request asks twice for the same action", async () => {
+    const decisions = [
+      { action: "tool", toolName: "download_file", params: { fileId: "video_1" } },
+      { action: "tool", toolName: "send_email", params: { stage: "notice" } },
+      { action: "tool", toolName: "upload_video", params: { file: { ref: "agent-file://video" } } },
+      { action: "final", response: "Video posted." },
+      { action: "tool", toolName: "send_email", params: { stage: "final", body: "https://youtube.example/video" } },
+      { action: "final", response: "Video posted and final email sent." },
+    ];
+    const calls: string[] = [];
+    const prompts: string[] = [];
+
+    const result = await runAgentLoop({
+      userMessage: [
+        "Download the video from Drive,",
+        "send an email warning the user to wait,",
+        "upload the video to YouTube,",
+        "then send another email with the posted video link.",
+      ].join(" "),
+      contextMessages: [],
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+        },
+        async invokeJson(input) {
+          prompts.push(input.messages.map((message) => message.content).join("\n"));
+          return decisions.shift() as any;
+        },
+        async generateFinalResponse() {
+          return "Done.";
+        },
+      },
+      tools: [
+        {
+          ...tool("download_file", async () => {
+            calls.push("download");
+            return { file: { ref: "agent-file://video" } };
+          }),
+          sideEffect: "read",
+        },
+        {
+          ...tool("send_email", async (args) => {
+            calls.push(`email:${String((args as any).stage)}`);
+            return { sent: true };
+          }),
+          sideEffect: "external-message",
+          requiresApproval: false,
+        },
+        {
+          ...tool("upload_video", async () => {
+            calls.push("upload");
+            return { url: "https://youtube.example/video" };
+          }),
+          sideEffect: "write",
+        },
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Video posted and final email sent.");
+    assert.deepEqual(calls, ["download", "email:notice", "upload", "email:final"]);
+    assert.match(prompts[4] ?? "", /Still need to use: send_email/i);
+  });
+
   it("does not replay a completed read tool after approval when a pending side-effect can use its result", async () => {
     const calls: string[] = [];
     let firstApprovalRequest: AgentToolApprovalRequiredError["approvalRequest"] | null = null;

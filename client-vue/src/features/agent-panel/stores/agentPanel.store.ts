@@ -460,12 +460,25 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
   function latestActiveProgressMessageId(streamId: string): string {
     const prefix = `local-agent-progress-${streamId}-`
+    const completedToolCallIds = terminalProgressToolCallIds(prefix)
     const latest = [...messages.value].reverse().find((candidate) =>
       candidate.id.startsWith(prefix) &&
       isAgentProgressContent(candidate.content) &&
+      (!candidate.content.tool?.toolCallId || !completedToolCallIds.has(candidate.content.tool.toolCallId)) &&
       ['planned', 'running', 'retrying'].includes(candidate.content.status),
     )
     return latest?.id ?? ''
+  }
+
+  function terminalProgressToolCallIds(prefix: string): Set<string> {
+    const ids = new Set<string>()
+    for (const candidate of messages.value) {
+      if (!candidate.id.startsWith(prefix) || !isAgentProgressContent(candidate.content)) continue
+      if (!['success', 'failed'].includes(candidate.content.status)) continue
+      const toolCallId = candidate.content.tool?.toolCallId
+      if (toolCallId) ids.add(toolCallId)
+    }
+    return ids
   }
 
   function createAssistantStreamId(sessionId: string): string {
