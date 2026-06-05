@@ -13,7 +13,7 @@ describe("agent runtime validation", () => {
   it("accepts valid agent, model, memory, tool, and chat trigger configs", () => {
     const agent = validateAiAgentConfig(validAgent());
     assert.equal(agent.type, "ai-agent");
-    assert.equal(agent.executionMode, "plan");
+    assert.equal(agent.executionMode, "loop");
     assert.equal(validateAiModelConfig(validModel()).type, "ai-model");
     assert.equal(validateAiMemoryConfig(validMemory()).type, "ai-memory");
     assert.equal(validateAiToolConfig(validTool()).type, "ai-tool");

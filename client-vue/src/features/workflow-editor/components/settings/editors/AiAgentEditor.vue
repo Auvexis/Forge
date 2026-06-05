@@ -41,7 +41,7 @@
 
     <EditorField label="Execution Mode">
       <BaseSelect
-        :model-value="(node.data.executionMode as string) || 'plan'"
+        :model-value="(node.data.executionMode as string) || 'loop'"
         :options="EXECUTION_MODES"
         @update:model-value="updateNodeData({ executionMode: $event as string })"
       />
@@ -114,8 +114,8 @@ const OUTPUT_MODES = [
 ]
 
 const EXECUTION_MODES = [
-  { value: 'plan', label: 'Plan' },
   { value: 'loop', label: 'Loop' },
+  { value: 'plan', label: 'Plan' },
 ]
 
 </script>

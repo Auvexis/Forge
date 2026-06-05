@@ -42,7 +42,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   const selectedAgent = computed(
     () => agents.value.find((agent) => agent.key === selectedAgentKey.value) ?? null,
   )
-  const selectedExecutionMode = computed(() => selectedAgent.value?.executionMode ?? 'plan')
+  const selectedExecutionMode = computed(() => selectedAgent.value?.executionMode ?? 'loop')
   const filteredAgents = computed(() => {
     const query = agentSearch.value.trim().toLowerCase()
     if (!query) return agents.value
