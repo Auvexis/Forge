@@ -322,3 +322,10 @@ Resultado Task 2:
 - [x] Fazer o guard de objetivos contar ocorrencias obrigatorias, nao apenas nomes unicos.
 - [x] Garantir que upload concluido nao seja sobrescrito por timeout de decisao posterior.
 - [x] Rodar testes focados, build e commit.
+
+## Task 32 - Retry De Timeout Na Decisao Do Loop
+
+- [x] Criar teste para timeout de decisao apos upload tentar novamente e continuar para email final.
+- [x] Rechamar decisao uma vez com instrucao curta quando `AGENT_LOOP_DECISION_TIMEOUT`.
+- [x] Manter erro visivel se a segunda tentativa tambem travar.
+- [x] Rodar testes focados, build e commit.

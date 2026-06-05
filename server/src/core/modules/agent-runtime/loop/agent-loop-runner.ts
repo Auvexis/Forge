@@ -383,18 +383,25 @@ async function readLoopDecision(
   try {
     return normalizeDecision(await invokeLoopDecisionJson(input, messages));
   } catch (error) {
-    if (!isInvalidJsonModelError(error)) throw error;
-    return normalizeDecision(await invokeLoopDecisionJson(input, [
-      ...messages,
-      {
-        role: "system",
-        content: [
+    if (!isInvalidJsonModelError(error) && !isLoopDecisionTimeout(error)) throw error;
+    const retryReason = isLoopDecisionTimeout(error)
+      ? [
+          "Previous loop decision timed out.",
+          "Continue from the history. Do not repeat completed tools.",
+          "Return only one valid minified JSON object for the next required tool or final answer.",
+        ]
+      : [
           "Previous response was invalid JSON.",
           "Return only one valid minified JSON object.",
           "No markdown. No comments. No trailing commas.",
           "Tool call: {\"action\":\"tool\",\"toolName\":\"tool_name\",\"params\":{},\"reason\":\"short reason\"}",
           "Final answer: {\"action\":\"final\",\"response\":\"short answer\"}",
-        ].join("\n"),
+        ];
+    return normalizeDecision(await invokeLoopDecisionJson(input, [
+      ...messages,
+      {
+        role: "system",
+        content: retryReason.join("\n"),
       },
     ]));
   }
@@ -574,6 +581,10 @@ function invalidDecision(): AgentRuntimeError {
 
 function isInvalidJsonModelError(error: unknown): boolean {
   return error instanceof AgentRuntimeError && error.code === "AGENT_MODEL_JSON_INVALID";
+}
+
+function isLoopDecisionTimeout(error: unknown): boolean {
+  return error instanceof AgentRuntimeError && error.code === "AGENT_LOOP_DECISION_TIMEOUT";
 }
 
 function isRepairableLoopError(error: unknown): boolean {
@@ -857,11 +868,7 @@ function requiredToolOccurrenceCount(tool: AgentPlanTool, requestText: string): 
 }
 
 function countSendActionMentions(requestText: string): number {
-  const explicitMessages = requestText.match(/\b(email|mail|message|mensagem|mensagens)\b/g)?.length ?? 0;
-  const anotherMessage = /\b(another|new|novo|nova|segundo|segunda|final)\s+(email|mail|message|mensagem)\b/.test(requestText)
-    ? 1
-    : 0;
-  return Math.max(explicitMessages, explicitMessages > 0 ? anotherMessage + 1 : 0);
+  return requestText.match(/\b(email|mail|message|mensagem|mensagens)\b/g)?.length ?? 0;
 }
 
 function requiredToolScore(tool: AgentPlanTool, requestText: string): number {

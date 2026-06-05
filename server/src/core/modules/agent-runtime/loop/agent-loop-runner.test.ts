@@ -538,6 +538,68 @@ describe("agent loop runner", () => {
     assert.equal(secondDecisionSignal?.aborted, true);
   });
 
+  it("retries a timed out loop decision once after a successful tool result", async () => {
+    let decisionCalls = 0;
+    const calls: string[] = [];
+    const prompts: string[] = [];
+
+    const result = await runAgentLoop({
+      userMessage: "Upload the video, then send another email with the posted video link.",
+      contextMessages: [],
+      modelCallTimeoutMs: 5,
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+        },
+        async invokeJson(input) {
+          decisionCalls += 1;
+          prompts.push(input.messages.map((message) => message.content).join("\n"));
+          if (decisionCalls === 1) {
+            return { action: "tool", toolName: "upload_video", params: { file: { ref: "agent-file://video" } } } as any;
+          }
+          if (decisionCalls === 2) {
+            return new Promise((_resolve, reject) => {
+              input.signal?.addEventListener("abort", () => reject(new Error("aborted by signal")), { once: true });
+              setTimeout(() => reject(new Error("missing loop decision timeout")), 25);
+            }) as Promise<any>;
+          }
+          if (decisionCalls === 3) {
+            return {
+              action: "tool",
+              toolName: "send_email",
+              params: { to: "user@example.com", body: "https://youtube.example/video" },
+            } as any;
+          }
+          return { action: "final", response: "Video uploaded and email sent." } as any;
+        },
+        async generateFinalResponse() {
+          return "Done.";
+        },
+      },
+      tools: [
+        {
+          ...tool("upload_video", async () => {
+            calls.push("upload");
+            return { url: "https://youtube.example/video" };
+          }),
+          sideEffect: "write",
+        },
+        {
+          ...tool("send_email", async () => {
+            calls.push("email");
+            return { sent: true };
+          }),
+          sideEffect: "external-message",
+        },
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Video uploaded and email sent.");
+    assert.deepEqual(calls, ["upload", "email"]);
+    assert.match(prompts[2] ?? "", /Previous loop decision timed out/i);
+  });
+
   it("emits a failed tool step before retrying with a new tool call id", async () => {
     const decisions = [
       { action: "tool", toolName: "download_file", params: { fileId: "wrong_file." } },
