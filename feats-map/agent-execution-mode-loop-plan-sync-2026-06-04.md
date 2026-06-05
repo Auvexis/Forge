@@ -329,3 +329,11 @@ Resultado Task 2:
 - [x] Rechamar decisao uma vez com instrucao curta quando `AGENT_LOOP_DECISION_TIMEOUT`.
 - [x] Manter erro visivel se a segunda tentativa tambem travar.
 - [x] Rodar testes focados, build e commit.
+
+## Task 33 - Loop JSON Invalido Com Fallback De Decisao
+
+- [x] Criar teste para JSON invalido repetido apos download continuar com proxima tool obrigatoria.
+- [x] Incluir metadados uteis do schema (`x-label`, `x-input-type`, `format`) no resumo dos params.
+- [x] Criar fallback generico para escolher a proxima tool obrigatoria quando a decisao JSON falha duas vezes.
+- [x] Manter erro visivel quando nao houver parametros minimos seguros.
+- [x] Rodar testes focados, build e commit.

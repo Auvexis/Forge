@@ -134,7 +134,20 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
 
   for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
     input.emitEvent({ type: "agent:thinking", payload: { message: "Thinking" } } as AgentGraphEvent);
-    const decision = await readLoopDecision({ ...input, modelCallTimeoutMs }, history);
+    let decision: AgentLoopDecision;
+    try {
+      decision = await readLoopDecision({ ...input, modelCallTimeoutMs }, history);
+    } catch (error) {
+      const fallbackDecision = fallbackLoopDecision({
+        error,
+        userMessage: input.userMessage,
+        requiredTools,
+        toolCalls,
+        history,
+      });
+      if (!fallbackDecision) throw error;
+      decision = fallbackDecision;
+    }
 
     if (decision.action === "final") {
       const unmetTools = unmetRequiredTools(requiredTools, toolCalls);
@@ -587,6 +600,154 @@ function isLoopDecisionTimeout(error: unknown): boolean {
   return error instanceof AgentRuntimeError && error.code === "AGENT_LOOP_DECISION_TIMEOUT";
 }
 
+function fallbackLoopDecision(input: {
+  error: unknown;
+  userMessage: string;
+  requiredTools: AgentPlanTool[];
+  toolCalls: NonNullable<AgentRunResult["toolCalls"]>;
+  history: AgentLoopHistoryItem[];
+}): AgentLoopDecision | null {
+  if (!isInvalidJsonModelError(input.error) && !isLoopDecisionTimeout(input.error)) return null;
+  const tool = unmetRequiredTools(input.requiredTools, input.toolCalls)[0];
+  if (!tool) return null;
+  const params = inferFallbackToolParams(tool, input.userMessage, input.history);
+  if (!hasRequiredFallbackParams(tool, params)) return null;
+  return {
+    action: "tool",
+    toolName: tool.name,
+    params,
+    reason: "Fallback after model decision failure.",
+  };
+}
+
+function inferFallbackToolParams(
+  tool: AgentPlanTool,
+  userMessage: string,
+  history: AgentLoopHistoryItem[],
+): Record<string, unknown> {
+  const params: Record<string, unknown> = {};
+  const properties = tool.inputSchema?.properties;
+  if (!properties || typeof properties !== "object" || Array.isArray(properties)) return params;
+  const email = extractFirstEmail(userMessage);
+  const file = latestFileLikeResult(history);
+  const url = latestUrlResult(history);
+
+  for (const [name, schema] of Object.entries(properties)) {
+    const property = schema as Record<string, unknown>;
+    const hint = normalizeSearchText([
+      name,
+      property.description,
+      property["x-label"],
+      property["x-input-type"],
+      property.format,
+    ].filter((item) => typeof item === "string").join(" "));
+    const type = typeof property.type === "string" ? property.type : "";
+
+    if (email && isEmailParamHint(hint)) {
+      params[name] = email;
+      continue;
+    }
+    if (file && isFileParamHint(hint, property)) {
+      params[name] = type === "array" ? [file] : file;
+      continue;
+    }
+    if (url && isUrlParamHint(hint)) {
+      params[name] = url;
+      continue;
+    }
+  }
+
+  return params;
+}
+
+function hasRequiredFallbackParams(tool: AgentPlanTool, params: Record<string, unknown>): boolean {
+  const required = Array.isArray(tool.inputSchema?.required)
+    ? tool.inputSchema.required.filter((item): item is string => typeof item === "string")
+    : [];
+  return required.every((key) => params[key] !== undefined && params[key] !== null && params[key] !== "");
+}
+
+function isEmailParamHint(hint: string): boolean {
+  return /\b(to|email|mail|recipient|destinatario|para)\b/.test(hint);
+}
+
+function isUrlParamHint(hint: string): boolean {
+  return /\b(url|link|body|message|content|texto|mensagem)\b/.test(hint);
+}
+
+function isFileParamHint(hint: string, schema: Record<string, unknown>): boolean {
+  return isFileLikeParamName(hint) ||
+    hint.includes("attachment") ||
+    hint.includes("upload") ||
+    hint.includes("media") ||
+    schema.format === "binary";
+}
+
+function extractFirstEmail(value: string): string {
+  return value.match(/\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b/i)?.[0] ?? "";
+}
+
+function latestFileLikeResult(history: AgentLoopHistoryItem[]): unknown {
+  for (const item of [...history].reverse()) {
+    if (item.type !== "tool_result") continue;
+    const found = findFileLikeValue(item.result);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
+function findFileLikeValue(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Buffer.isBuffer(value)) return undefined;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findFileLikeValue(item);
+      if (found !== undefined) return found;
+    }
+    return undefined;
+  }
+  const record = value as Record<string, unknown>;
+  if (typeof record.ref === "string" && record.ref.startsWith("agent-file://")) return record;
+  if (
+    (typeof record.fileName === "string" || typeof record.filename === "string") &&
+    (record.content !== undefined || record.ref !== undefined)
+  ) {
+    return record;
+  }
+  for (const item of Object.values(record)) {
+    const found = findFileLikeValue(item);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
+function latestUrlResult(history: AgentLoopHistoryItem[]): string {
+  for (const item of [...history].reverse()) {
+    if (item.type !== "tool_result") continue;
+    const found = findUrlValue(item.result);
+    if (found) return found;
+  }
+  return "";
+}
+
+function findUrlValue(value: unknown): string {
+  if (typeof value === "string") {
+    return /^https?:\/\//i.test(value) ? value : "";
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findUrlValue(item);
+      if (found) return found;
+    }
+    return "";
+  }
+  if (!value || typeof value !== "object") return "";
+  for (const item of Object.values(value as Record<string, unknown>)) {
+    const found = findUrlValue(item);
+    if (found) return found;
+  }
+  return "";
+}
+
 function isRepairableLoopError(error: unknown): boolean {
   if (!(error instanceof AgentRuntimeError)) return false;
   if (isRepairableFileNotFound(error)) return true;
@@ -944,6 +1105,9 @@ function summarizeToolParams(schema: Record<string, any>): Array<{
   description?: string;
   default?: unknown;
   enum?: unknown[];
+  label?: string;
+  inputType?: string;
+  format?: string;
 }> {
   const properties = schema?.properties;
   if (!properties || typeof properties !== "object" || Array.isArray(properties)) return [];
@@ -965,6 +1129,15 @@ function summarizeToolParams(schema: Record<string, any>): Array<{
       ...(param?.default !== undefined ? { default: sanitizeAgentToolValue(param.default) } : {}),
       ...(Array.isArray(param?.enum)
         ? { enum: param.enum.slice(0, 20).map((item) => sanitizeAgentToolValue(item)) }
+        : {}),
+      ...(typeof (param as Record<string, unknown>)?.["x-label"] === "string"
+        ? { label: String((param as Record<string, unknown>)["x-label"]).slice(0, 120) }
+        : {}),
+      ...(typeof (param as Record<string, unknown>)?.["x-input-type"] === "string"
+        ? { inputType: String((param as Record<string, unknown>)["x-input-type"]).slice(0, 80) }
+        : {}),
+      ...(typeof (param as Record<string, unknown>)?.format === "string"
+        ? { format: String((param as Record<string, unknown>).format).slice(0, 80) }
         : {}),
     };
   });

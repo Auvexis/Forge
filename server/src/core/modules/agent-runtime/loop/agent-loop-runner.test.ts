@@ -277,6 +277,69 @@ describe("agent loop runner", () => {
     assert.match(prompts[1] ?? "", /Previous response was invalid JSON/);
   });
 
+  it("falls back to the next required tool when repeated invalid JSON follows a useful tool result", async () => {
+    let decisionCalls = 0;
+    const calls: string[] = [];
+
+    const result = await runAgentLoop({
+      userMessage: "Download the report and send an email to user@example.com",
+      contextMessages: [],
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+        },
+        async invokeJson() {
+          decisionCalls += 1;
+          if (decisionCalls === 1) {
+            return { action: "tool", toolName: "download_file", params: { fileId: "file_1" } } as any;
+          }
+          if (decisionCalls <= 3) {
+            throw new AgentRuntimeError(
+              "Ollama returned invalid JSON",
+              "AGENT_MODEL_JSON_INVALID",
+              "Model returned invalid JSON",
+              502,
+            );
+          }
+          return { action: "final", response: "Sent." } as any;
+        },
+        async generateFinalResponse() {
+          return "Sent.";
+        },
+      },
+      tools: [
+        {
+          ...tool("download_file", async () => {
+            calls.push("download");
+            return { download: { fileName: "report.pdf", mimeType: "application/pdf", content: Buffer.from("pdf") } };
+          }),
+          sideEffect: "read",
+        },
+        {
+          ...tool("send_email", async (args) => {
+            calls.push(`send:${(args as any).to}`);
+            assert.equal((args as any).attachments[0].fileName, "report.pdf");
+            return { sent: true };
+          }),
+          sideEffect: "external-message",
+          requiresApproval: false,
+          inputSchema: {
+            type: "object",
+            properties: {
+              to: { type: "string", format: "email", "x-label": "To" },
+              attachments: { type: "array", "x-label": "Attachments", "x-input-type": "file" },
+            },
+            required: ["to"],
+          },
+        },
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Sent.");
+    assert.deepEqual(calls, ["download", "send:user@example.com"]);
+  });
+
   it("retries file not found tool errors with new parameters", async () => {
     const decisions = [
       { action: "tool", toolName: "download_file", params: { fileId: "wrong_file." } },
@@ -413,7 +476,10 @@ describe("agent loop runner", () => {
                 description: "Sort order for the results.",
                 default: "modifiedTime desc",
                 enum: ["name", "modifiedTime desc", "createdTime desc", "size desc"],
+                "x-label": "Order By",
+                "x-input-type": "select",
               },
+              content: { type: "string", format: "binary", "x-label": "Content" },
             },
           },
         },
@@ -425,6 +491,9 @@ describe("agent loop runner", () => {
     assert.match(prompts[0] ?? "", /modifiedTime desc/);
     assert.match(prompts[0] ?? "", /createdTime desc/);
     assert.match(prompts[0] ?? "", /size desc/);
+    assert.match(prompts[0] ?? "", /Order By/);
+    assert.match(prompts[0] ?? "", /select/);
+    assert.match(prompts[0] ?? "", /binary/);
   });
 
   it("does not hide model provider failures after a successful tool result", async () => {
