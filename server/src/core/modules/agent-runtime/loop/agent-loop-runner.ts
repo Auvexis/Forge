@@ -32,6 +32,10 @@ export interface RunAgentLoopInput {
   maxIterations?: number;
   maxToolCalls?: number;
   skipFinalResponseAfterToolUse?: boolean;
+  approvedTool?: {
+    toolName: string;
+    params: Record<string, unknown>;
+  };
   emitEvent: (event: AgentGraphEvent) => void;
 }
 
@@ -44,6 +48,12 @@ interface AgentLoopDecision {
 }
 
 export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunResult> {
+  const tools = new Map(input.tools.map((tool) => [tool.name, tool]));
+  if (input.approvedTool) {
+    const result = await runApprovedTool(input, tools, input.approvedTool);
+    return success(result.output, result.toolCallCount, 1, result.toolCalls);
+  }
+
   const intent = await routeAgentIntent({
     model: input.model,
     userMessage: input.userMessage,
@@ -60,7 +70,6 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
     return success(output, 0, 1, []);
   }
 
-  const tools = new Map(input.tools.map((tool) => [tool.name, tool]));
   const history: AgentLoopHistoryItem[] = [];
   const toolCalls: NonNullable<AgentRunResult["toolCalls"]> = [];
   const maxIterations = input.maxIterations ?? 6;
@@ -158,6 +167,64 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
       });
 
   return success(output as AgentRunResult["output"], toolCallCount, maxIterations, toolCalls);
+}
+
+async function runApprovedTool(
+  input: RunAgentLoopInput,
+  tools: Map<string, AgentPlanTool>,
+  approvedTool: NonNullable<RunAgentLoopInput["approvedTool"]>,
+): Promise<{
+  output: AgentRunResult["output"];
+  toolCallCount: number;
+  toolCalls: NonNullable<AgentRunResult["toolCalls"]>;
+}> {
+  const tool = tools.get(approvedTool.toolName);
+  if (!tool) {
+    throw new AgentRuntimeError(
+      `Unknown approved agent loop tool: ${approvedTool.toolName}`,
+      "AGENT_TOOL_UNKNOWN",
+      "Agent approval referenced an unavailable tool",
+      400,
+    );
+  }
+
+  const toolCallId = "tool_call_1";
+  input.emitEvent(toolEvent("agent:tool-intent", tool, toolCallId, "planned", "Approved by user.", undefined, {
+    params: sanitizeAgentToolValue(approvedTool.params),
+  }));
+  input.emitEvent(toolEvent("agent:tool-start", tool, toolCallId, "running", "Approved by user.", undefined, {
+    params: sanitizeAgentToolValue(approvedTool.params),
+  }));
+
+  try {
+    const result = await tool.invoke(approvedTool.params);
+    input.emitEvent(toolEvent("agent:tool-end", tool, toolCallId, "success", "Approved by user.", undefined, {
+      output: sanitizeAgentToolValue(result),
+    }));
+    return {
+      output: input.skipFinalResponseAfterToolUse
+        ? sanitizeAgentToolValue(result) as AgentRunResult["output"]
+        : await generateAgentFinalResponse({
+            model: input.model,
+            userMessage: input.userMessage,
+            plan: emptyPlan(),
+            execution: {
+              status: "success",
+              output: sanitizeAgentToolValue(result),
+              toolCallCount: 1,
+              iterationCount: 1,
+              toolCalls: [toToolCall(tool, toolCallId, "success")],
+              outputs: { [tool.name]: sanitizeAgentToolValue(result) },
+            },
+          }) as AgentRunResult["output"],
+      toolCallCount: 1,
+      toolCalls: [toToolCall(tool, toolCallId, "success")],
+    };
+  } catch (error) {
+    if (error instanceof AgentToolApprovalRequiredError) throw error;
+    input.emitEvent(toolEvent("agent:tool-end", tool, toolCallId, "failed", "Approved by user.", safeErrorMessage(error)));
+    throw error;
+  }
 }
 
 async function readLoopDecision(

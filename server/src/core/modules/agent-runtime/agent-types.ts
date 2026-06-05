@@ -116,6 +116,7 @@ export interface AgentRunInput {
   userId?: string;
   approvalToken?: string;
   approvalToolName?: string;
+  approvalToolArgs?: Record<string, any>;
   abortSignal?: AbortSignal;
   checkpointerDbPath?: string;
   userMessage: string;

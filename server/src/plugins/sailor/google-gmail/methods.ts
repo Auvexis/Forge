@@ -408,7 +408,13 @@ async function normalizeGmailAttachment(att: any): Promise<GmailAttachment | nul
   const filename = att.filename || att.fileName || "attachment.bin";
   const mimeType = att.mimetype || att.mimeType || "application/octet-stream";
   const content = att.content ?? att.buffer ?? att.contentBase64;
+  if (!content) {
+    throw new Error(`Attachment '${filename}' has no content. Provide content, buffer, or contentBase64.`);
+  }
   const contentBase64 = await attachmentContentToBase64(content);
+  if (!contentBase64) {
+    throw new Error(`Attachment '${filename}' has empty content.`);
+  }
 
   return { filename, mimeType, contentBase64 };
 }

@@ -54,6 +54,7 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     skipFinalResponseAfterToolUse: triggerPayload.skipFinalResponseAfterToolUse === true,
     approvalToken: optionalString(triggerPayload.approvalToken ?? triggerPayload.approval_token),
     approvalToolName: optionalString(triggerPayload.approvalToolName ?? triggerPayload.approval_tool_name),
+    approvalToolArgs: optionalRecord(triggerPayload.approvalToolArgs ?? triggerPayload.approval_tool_args),
     abortSignal: CancellationRegistry.signal(input.executionId),
     agent: agentConfig,
     model: toModelConfig(model),
@@ -170,6 +171,12 @@ function toToolConfig(node: AiToolNode, context: NodeHandlerInput["context"]): A
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function optionalRecord(value: unknown): Record<string, any> | undefined {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, any>
+    : undefined;
 }
 
 function toUserMessage(

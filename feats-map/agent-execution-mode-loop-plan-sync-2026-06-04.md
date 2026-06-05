@@ -151,9 +151,51 @@ Resultado Task 2:
 - [x] Adicionar transicao suave ao expand/collapse dos details.
 - [x] Rodar testes focados, builds e commit.
 
-Proximas 5 tasks sugeridas:
-1. Finalizar `agent-panel.routes.ts` passando `executionMode` ate `AgentPanelChatService.sendMessage`.
-2. Atualizar `AgentPanelChatService` para colocar `executionMode` no trigger payload.
-3. Rodar e corrigir testes focados de tipos/editor/composer/default.
-4. Commitar Task 1 completa.
-5. Comecar Task 2 criando `agent-tool-result-sanitizer.ts` com testes.
+## Task 11 - Approval Continuation Sem Falso Sucesso
+
+- [x] Criar teste para approval-complete sem resultado nao escrever `Concluido.`.
+- [x] Fazer approval stream exigir `done`/`waiting-approval`/delta real antes de mensagem final.
+- [x] Mostrar erro claro quando continuation de approval falhar ou nao retornar resultado.
+- [x] Rodar testes focados e builds.
+- [x] Commitar.
+
+## Task 12 - File Ref Cache Para Attachments
+
+- [ ] Fazer download de plugin virar file ref local persistente no cache do chat.
+- [ ] Ensinar loop a mostrar refs de arquivo para o modelo em vez de metadado fake.
+- [ ] Resolver refs de arquivo antes de chamar tools como Gmail.
+- [ ] Garantir approval usa refs persistentes, nao Buffer/base64 bruto.
+- [ ] Rodar testes focados, builds e commit.
+
+## Task 13 - Guard Contra Final Prematuro No Loop
+
+- [ ] Criar teste reproduzindo `listFiles` concluido e resposta final falsa antes de `downloadFile` + `sendMessage`.
+- [ ] Extrair objetivos obrigatorios da intencao do usuario em passos textuais simples, sem buzz words fixas.
+- [ ] Bloquear `final` do modelo quando ainda faltam tools obrigatorias para cumprir a intencao.
+- [ ] Fazer o loop pedir pro modelo continuar com a proxima tool quando tentar finalizar cedo.
+- [ ] Mostrar erro claro se o modelo insistir em finalizar sem cumprir os objetivos.
+- [ ] Rodar testes focados, builds e commit.
+
+## Task 14 - Continuidade Real Entre Outputs De Tools
+
+- [ ] Garantir que output de `google_drive_list_files` alimenta selecao real de arquivo do proximo step.
+- [ ] Garantir que output/cache de `google_drive_download_file` alimenta attachment real do Gmail.
+- [ ] Evitar que o modelo invente ids, filenames ou attachments quando existe output de tool anterior.
+- [ ] Sanitizar outputs grandes sem esconder refs pequenas e uteis para a proxima tool.
+- [ ] Rodar testes focados, builds e commit.
+
+## Task 15 - Timeline Final Correta
+
+- [ ] Nao renderizar mensagem final antes de todos os steps obrigatorios terminarem.
+- [ ] Persistir `downloadFile` e `sendMessage` na timeline junto com `listFiles`.
+- [ ] Mostrar "completed" apenas quando a ultima tool obrigatoria tiver sucesso confirmado.
+- [ ] Se uma tool falhar depois de retry, finalizar com erro, nao com resposta positiva.
+- [ ] Rodar testes focados, builds e commit.
+
+## Proximas 5 Tasks Sugeridas
+
+1. Comecar Task 12 com teste vermelho para attachment fake sem cache persistente.
+2. Implementar file ref cache por chat/sessao em AppData/macOS/Linux.
+3. Resolver file refs antes da invocacao de plugin, incluindo continuation de approval.
+4. Comecar Task 13 com teste vermelho para final prematuro depois de `google_drive_list_files`.
+5. Corrigir o loop para continuar ate `downloadFile` + `google_gmail_send_message` ou erro real.

@@ -319,6 +319,61 @@ describe("agent loop runner", () => {
     );
     assert.match(String(toolEvents[2]?.payload?.error), /File not found: wrong_file\./);
   });
+
+  it("executes an approved side-effect tool directly with the saved approval args", async () => {
+    let invoked = 0;
+    let decisionCalls = 0;
+    const events: Array<{ type: string; payload?: Record<string, any> }> = [];
+
+    const result = await runAgentLoop({
+      userMessage: "Envie o email",
+      contextMessages: [],
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs approved tool.", confidence: 0.9 };
+        },
+        async invokeJson() {
+          decisionCalls += 1;
+          return { action: "final", response: "Done without sending." } as any;
+        },
+        async generateFinalResponse() {
+          return "Email enviado.";
+        },
+      },
+      tools: [
+        tool("google_gmail_send_message", async (args) => {
+          invoked += 1;
+          assert.deepEqual(args, {
+            to: "vaurvik@gmail.com",
+            subject: "Curriculo",
+            attachment: { fileId: "file_1" },
+          });
+          return { sent: true, id: "gmail_1" };
+        }),
+      ],
+      approvedTool: {
+        toolName: "google_gmail_send_message",
+        params: {
+          to: "vaurvik@gmail.com",
+          subject: "Curriculo",
+          attachment: { fileId: "file_1" },
+        },
+      },
+      emitEvent: (event) => events.push(event as typeof events[number]),
+    });
+
+    assert.equal(invoked, 1);
+    assert.equal(decisionCalls, 0);
+    assert.equal(result.toolCallCount, 1);
+    assert.deepEqual(
+      events.map((event) => [event.type, event.payload?.status, event.payload?.tool?.toolCallId]),
+      [
+        ["agent:tool-intent", "planned", "tool_call_1"],
+        ["agent:tool-start", "running", "tool_call_1"],
+        ["agent:tool-end", "success", "tool_call_1"],
+      ],
+    );
+  });
 });
 
 function loopModel(decisions: unknown[]) {

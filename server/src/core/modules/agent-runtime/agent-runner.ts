@@ -332,6 +332,9 @@ export class AgentRunner {
       maxIterations: input.validated.agent.maxIterations,
       maxToolCalls: input.validated.agent.maxToolCalls,
       skipFinalResponseAfterToolUse: input.input.skipFinalResponseAfterToolUse,
+      approvedTool: input.input.approvalToken === "approved" && input.input.approvalToolName && input.input.approvalToolArgs
+        ? { toolName: input.input.approvalToolName, params: input.input.approvalToolArgs }
+        : undefined,
       emitEvent: (event) => this.eventEmitter(event, input.input),
     });
   }

@@ -587,16 +587,23 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     try {
       let sawApprovalOutput = false
       let sawFollowupApproval = false
+      let sawApprovalResult = false
       markApprovalResolved(approval, 'approved')
       for await (const event of agentPanelApi.approveToolCallStream(approval.approvalId, {
         executionId: approval.executionId,
         reason: 'Approved from global agent chat',
       })) {
         if (event.type === 'progress') appendAgentProgressMessage(sessionId, event)
-        if (event.type === 'summary') appendAgentSummaryMessage(sessionId, event)
+        if (event.type === 'summary') {
+          sawApprovalResult = true
+          appendAgentSummaryMessage(sessionId, event)
+        }
         if (event.type === 'approval') {
           sawFollowupApproval = true
           appendAgentApprovalMessage(sessionId, event)
+        }
+        if (event.type === 'done' || event.type === 'waiting-approval') {
+          sawApprovalResult = true
         }
         if (event.type === 'delta') {
           sawApprovalOutput = true
@@ -604,7 +611,9 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         }
         if (event.type === 'error') throw new Error(event.message)
         if (event.type === 'approval-complete') {
-          if (!sawApprovalOutput && !sawFollowupApproval) appendStreamingAssistantMessage(sessionId, 'Concluido.')
+          if (!sawApprovalOutput && !sawFollowupApproval && !sawApprovalResult) {
+            throw new Error('Agent approval finished without a confirmed result')
+          }
           break
         }
       }

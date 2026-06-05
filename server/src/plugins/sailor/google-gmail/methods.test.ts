@@ -21,4 +21,17 @@ describe("google gmail methods", () => {
       },
     ]);
   });
+
+  it("rejects attachment metadata without real content", async () => {
+    await assert.rejects(
+      () => normalizeGmailAttachments([
+        {
+          filename: "andresimoes-jr-backend.pdf",
+          mimeType: "application/pdf",
+          fileId: "drive_file_1",
+        },
+      ]),
+      /content/i,
+    );
+  });
 });

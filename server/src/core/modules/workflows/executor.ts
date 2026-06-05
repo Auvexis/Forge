@@ -314,6 +314,7 @@ export const WorkflowEngine = {
       approvalToken: "approved",
       approvalId: approval.id,
       approvalToolName: approval.toolName,
+      approvalToolArgs: approvalRequestArgs(approval.request),
     };
     const startTime = Number(execution.start_time ?? Date.now());
 
@@ -645,6 +646,14 @@ function enqueueMatchingEventListeners(
       queue.push(listenerId);
     }
   }
+}
+
+function approvalRequestArgs(request: unknown): Record<string, any> | undefined {
+  if (!request || typeof request !== "object" || Array.isArray(request)) return undefined;
+  const args = (request as { args?: unknown }).args;
+  return args && typeof args === "object" && !Array.isArray(args)
+    ? args as Record<string, any>
+    : undefined;
 }
 
 function createAgentApprovalForPausedNode(input: {

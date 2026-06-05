@@ -510,6 +510,18 @@ describe('agent panel modal contract', () => {
     assert.match(api, /workflow:waiting-approval/)
   })
 
+  it('does not claim approval completion without real output or follow-up events', () => {
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const approveBlock = store.slice(
+      store.indexOf('async function approveApproval'),
+      store.indexOf('async function rejectApproval'),
+    )
+
+    assert.doesNotMatch(approveBlock, /Concluido|Concluded/)
+    assert.match(approveBlock, /sawApprovalResult/)
+    assert.match(approveBlock, /Agent approval finished without a confirmed result/)
+  })
+
   it('keeps local chat steps when resolving approval actions', () => {
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
     const approveBlock = store.slice(
