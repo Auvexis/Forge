@@ -129,6 +129,15 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
 
     const displayParams = decision.params ?? {};
     const successfulToolCallKey = createSuccessfulToolCallKey(tool.name, displayParams);
+    const missingFileRefError = approvalMissingAvailableFileRef(tool, displayParams, history);
+    if (missingFileRefError) {
+      history.push({
+        type: "tool_error",
+        toolName: tool.name,
+        error: missingFileRefError,
+      });
+      continue;
+    }
     if (successfulToolCallKeys.has(successfulToolCallKey)) {
       history.push({
         type: "tool_error",
@@ -494,6 +503,76 @@ function shouldResolveFileRefsBeforeInvoke(tool: AgentPlanTool): boolean {
 
 function createSuccessfulToolCallKey(toolName: string, params: Record<string, unknown>): string {
   return `${toolName}:${stableStringify(sanitizeAgentToolValue(params))}`;
+}
+
+function approvalMissingAvailableFileRef(
+  tool: AgentPlanTool,
+  params: Record<string, unknown>,
+  history: AgentLoopHistoryItem[],
+): string | null {
+  if (!tool.requiresApproval) return null;
+  if (containsAgentFileRef(params)) return null;
+  if (!containsFileLikeParam(params)) return null;
+  const refs = collectAgentFileRefs(history);
+  if (refs.length === 0) return null;
+  return [
+    "There is an already downloaded file available in history.",
+    `Use this agent-file:// ref in the file or attachment params: ${refs.join(", ")}.`,
+    "Do not use raw file ids, web links, filenames, or MIME metadata as attachment content.",
+  ].join(" ");
+}
+
+function collectAgentFileRefs(history: AgentLoopHistoryItem[]): string[] {
+  const refs = new Set<string>();
+  for (const item of history) {
+    if (item.type === "tool_result") collectAgentFileRefsFromValue(item.result, refs);
+  }
+  return [...refs];
+}
+
+function collectAgentFileRefsFromValue(value: unknown, refs: Set<string>): void {
+  if (typeof value === "string") {
+    if (value.startsWith("agent-file://")) refs.add(value);
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) collectAgentFileRefsFromValue(item, refs);
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+  for (const item of Object.values(value as Record<string, unknown>)) {
+    collectAgentFileRefsFromValue(item, refs);
+  }
+}
+
+function containsAgentFileRef(value: unknown): boolean {
+  if (typeof value === "string") return value.startsWith("agent-file://");
+  if (Array.isArray(value)) return value.some(containsAgentFileRef);
+  if (!value || typeof value !== "object") return false;
+  return Object.values(value as Record<string, unknown>).some(containsAgentFileRef);
+}
+
+function containsFileLikeParam(value: unknown, keyHint = ""): boolean {
+  if (Array.isArray(value)) return value.some((item) => containsFileLikeParam(item, keyHint));
+  if (!value || typeof value !== "object") return false;
+  return Object.entries(value as Record<string, unknown>).some(([key, item]) => {
+    const normalized = normalizeSearchText(key || keyHint);
+    if (isFileLikeParamName(normalized)) return true;
+    return containsFileLikeParam(item, key);
+  });
+}
+
+function isFileLikeParamName(normalizedName: string): boolean {
+  return [
+    "attachment",
+    "attachments",
+    "file",
+    "files",
+    "document",
+    "documents",
+    "media",
+    "contentbase64",
+  ].some((token) => normalizedName === token || normalizedName.endsWith(token));
 }
 
 function stableStringify(value: unknown): string {

@@ -730,6 +730,85 @@ describe("agent loop runner", () => {
     assert.equal(typeof approvedArgs.attachments[0].content.pipe, "function");
   });
 
+  it("rejects approval params that ignore an available file ref before requesting approval", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loop-approval-ref-guard-"));
+    const prompts: string[] = [];
+    let ref = "";
+    let approvalArgs: any;
+    const decisions: unknown[] = [
+      { action: "tool", toolName: "download_file", params: { fileId: "drive_file_1" } },
+      {
+        action: "tool",
+        toolName: "send_file",
+        params: {
+          to: "vaurvik@gmail.com",
+          attachments: [{ fileId: "drive_file_1", mimeType: "application/pdf" }],
+        },
+      },
+      () => ({
+        action: "tool",
+        toolName: "send_file",
+        params: {
+          to: "vaurvik@gmail.com",
+          attachments: [{ ref }],
+        },
+      }),
+    ];
+
+    await assert.rejects(
+      () => runAgentLoop({
+        userMessage: "Download the report and send it by email",
+        contextMessages: [],
+        fileRefStore: new AgentFileRefStore({ rootDir: root }),
+        model: {
+          async routeIntent() {
+            return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+          },
+          async invokeJson(input) {
+            const prompt = input.messages.map((message) => message.content).join("\n");
+            prompts.push(prompt);
+            ref = prompt.match(/agent-file:\/\/[a-f0-9-]+/i)?.[0] ?? ref;
+            const decision = decisions.shift();
+            return typeof decision === "function" ? (decision as () => unknown)() as any : decision as any;
+          },
+          async generateFinalResponse() {
+            return "Done.";
+          },
+        },
+        tools: [
+          tool("download_file", async () => ({
+            download: { fileName: "report.pdf", mimeType: "application/pdf", content: Buffer.from("pdf") },
+          })),
+          {
+            ...tool("send_file", async (args) => {
+              approvalArgs = args;
+              throw new AgentToolApprovalRequiredError({
+                toolName: "send_file",
+                sideEffect: "external-message",
+                args: args as Record<string, unknown>,
+              });
+            }),
+            sideEffect: "external-message",
+            requiresApproval: true,
+            inputSchema: {
+              type: "object",
+              properties: {
+                to: { type: "string" },
+                attachments: { type: "array" },
+              },
+            },
+          },
+        ],
+        emitEvent: () => {},
+      }),
+      AgentToolApprovalRequiredError,
+    );
+
+    assert.equal(approvalArgs.attachments[0].ref, ref);
+    assert.match(prompts[2] ?? "", /already downloaded file/i);
+    assert.match(prompts[2] ?? "", /agent-file:\/\//i);
+  });
+
   it("fails clearly when the model insists on finalizing with required tools still pending", async () => {
     await assert.rejects(
       () => runAgentLoop({

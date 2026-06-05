@@ -247,3 +247,11 @@ Resultado Task 2:
 - [x] Criar teste garantindo que `AGENT_MODEL_PROVIDER_ERROR` continua visivel.
 - [x] Atualizar resumo de params sem mandar schema gigante.
 - [x] Rodar testes focados, build e commit.
+
+## Task 22 - Ref Obrigatorio Antes De Approval Com Arquivo Baixado
+
+- [x] Criar teste para params de approval com attachment sem `agent-file://` serem recusados antes do approval.
+- [x] Registrar erro no historico orientando usar o ref real ja baixado.
+- [x] Permitir nova decisao do modelo com o ref correto antes de pedir approval.
+- [x] Manter regra generica para parametros tipo file/attachment, sem Drive/Gmail especifico.
+- [x] Rodar testes focados, build e commit.
