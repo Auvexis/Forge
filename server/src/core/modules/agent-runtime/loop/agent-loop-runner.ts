@@ -54,11 +54,6 @@ interface AgentLoopDecision {
   reason?: string;
 }
 
-interface SuccessfulLoopToolResult {
-  tool: AgentPlanTool;
-  result: unknown;
-}
-
 export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunResult> {
   const tools = new Map(input.tools.map((tool) => [tool.name, tool]));
   if (input.approvedTool) {
@@ -90,25 +85,11 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
   const maxRetriesPerTool = input.maxRetriesPerTool ?? 3;
   const retryCounts = new Map<string, number>();
   const successfulToolCallKeys = new Set<string>();
-  const successfulToolResults: SuccessfulLoopToolResult[] = [];
   let toolCallCount = 0;
   let toolAttemptCount = 0;
 
   for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
-    let decision: AgentLoopDecision;
-    try {
-      decision = await readLoopDecision(input, history);
-    } catch (error) {
-      const fallbackDecision = isModelProviderError(error)
-        ? inferDeterministicNextDecision({
-            requiredTools,
-            toolCalls,
-            successfulToolResults,
-          })
-        : null;
-      if (!fallbackDecision) throw error;
-      decision = fallbackDecision;
-    }
+    const decision = await readLoopDecision(input, history);
 
     if (decision.action === "final") {
       const unmetTools = unmetRequiredTools(requiredTools, toolCalls);
@@ -185,7 +166,6 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
       toolCallCount += 1;
       retryCounts.delete(tool.name);
       successfulToolCallKeys.add(successfulToolCallKey);
-      successfulToolResults.push({ tool, result: modelSafeResult });
       history.push({ type: "tool_result", toolName: tool.name, result: modelSafeResult });
       toolCalls.push(toToolCall(tool, toolCallId, "success"));
       input.emitEvent(toolEvent("agent:tool-end", tool, toolCallId, "success", decision.reason, undefined, {
@@ -492,10 +472,6 @@ function isInvalidJsonModelError(error: unknown): boolean {
   return error instanceof AgentRuntimeError && error.code === "AGENT_MODEL_JSON_INVALID";
 }
 
-function isModelProviderError(error: unknown): boolean {
-  return error instanceof AgentRuntimeError && error.code === "AGENT_MODEL_PROVIDER_ERROR";
-}
-
 function isRepairableLoopError(error: unknown): boolean {
   if (!(error instanceof AgentRuntimeError)) return false;
   if (isRepairableFileNotFound(error)) return true;
@@ -518,63 +494,6 @@ function shouldResolveFileRefsBeforeInvoke(tool: AgentPlanTool): boolean {
 
 function createSuccessfulToolCallKey(toolName: string, params: Record<string, unknown>): string {
   return `${toolName}:${stableStringify(sanitizeAgentToolValue(params))}`;
-}
-
-function inferDeterministicNextDecision(input: {
-  requiredTools: AgentPlanTool[];
-  toolCalls: NonNullable<AgentRunResult["toolCalls"]>;
-  successfulToolResults: SuccessfulLoopToolResult[];
-}): AgentLoopDecision | null {
-  const nextTool = unmetRequiredTools(input.requiredTools, input.toolCalls).find((tool) => !tool.requiresApproval);
-  if (!nextTool) return null;
-  const lastResult = input.successfulToolResults.at(-1);
-  if (!lastResult?.tool.selection) return null;
-  const selected = readSelectionPath(lastResult.result, lastResult.tool.selection.path);
-  if (!Array.isArray(selected) || selected.length !== 1) return null;
-  const selectedItem = selected[0];
-  const selectedValue = readRecordField(selectedItem, lastResult.tool.selection.valueField);
-  if (selectedValue === undefined) return null;
-  const params = paramsFromSelectedValue(nextTool, lastResult.tool.selection.valueField, selectedValue);
-  if (!params) return null;
-  return {
-    action: "tool",
-    toolName: nextTool.name,
-    params,
-    reason: "Continuing with the only selectable result after the model provider failed.",
-  };
-}
-
-function paramsFromSelectedValue(
-  tool: AgentPlanTool,
-  sourceFieldName: string,
-  value: unknown,
-): Record<string, unknown> | null {
-  const properties = tool.inputSchema?.properties;
-  if (!properties || typeof properties !== "object" || Array.isArray(properties)) return null;
-  const required = Array.isArray(tool.inputSchema.required)
-    ? tool.inputSchema.required.filter((item): item is string => typeof item === "string")
-    : [];
-  const propertyNames = Object.keys(properties);
-  const normalizedSource = normalizeSearchText(sourceFieldName);
-  const target = required.find((name) => normalizeSearchText(name) === normalizedSource) ??
-    required.find((name) => normalizeSearchText(name).endsWith(normalizedSource)) ??
-    propertyNames.find((name) => normalizeSearchText(name) === normalizedSource) ??
-    propertyNames.find((name) => normalizeSearchText(name).endsWith(normalizedSource));
-  return target ? { [target]: value } : null;
-}
-
-function readSelectionPath(value: unknown, path: string): unknown {
-  if (path === "$") return value;
-  const parts = path.replace(/^\$\.?/, "").split(".").filter(Boolean);
-  return parts.reduce((current, part) => {
-    if (!current || typeof current !== "object") return undefined;
-    return (current as Record<string, unknown>)[part];
-  }, value);
-}
-
-function readRecordField(value: unknown, fieldName: string): unknown {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
-  return (value as Record<string, unknown>)[fieldName];
 }
 
 function stableStringify(value: unknown): string {
@@ -683,15 +602,37 @@ function isUsefulToolToken(token: string): boolean {
     ]).has(token);
 }
 
-function summarizeToolParams(schema: Record<string, any>): Array<{ name: string; type: string; required: boolean }> {
+function summarizeToolParams(schema: Record<string, any>): Array<{
+  name: string;
+  type: string;
+  required: boolean;
+  description?: string;
+  default?: unknown;
+  enum?: unknown[];
+}> {
   const properties = schema?.properties;
   if (!properties || typeof properties !== "object" || Array.isArray(properties)) return [];
   const required = new Set(Array.isArray(schema.required) ? schema.required.filter((item) => typeof item === "string") : []);
-  return Object.entries(properties).slice(0, 12).map(([name, value]) => ({
-    name,
-    type: typeof (value as { type?: unknown })?.type === "string" ? String((value as { type?: unknown }).type) : "unknown",
-    required: required.has(name),
-  }));
+  return Object.entries(properties).slice(0, 12).map(([name, value]) => {
+    const param = value as {
+      type?: unknown;
+      description?: unknown;
+      default?: unknown;
+      enum?: unknown;
+    };
+    return {
+      name,
+      type: typeof param?.type === "string" ? String(param.type) : "unknown",
+      required: required.has(name),
+      ...(typeof param?.description === "string" && param.description.trim()
+        ? { description: param.description.trim().slice(0, 240) }
+        : {}),
+      ...(param?.default !== undefined ? { default: sanitizeAgentToolValue(param.default) } : {}),
+      ...(Array.isArray(param?.enum)
+        ? { enum: param.enum.slice(0, 20).map((item) => sanitizeAgentToolValue(item)) }
+        : {}),
+    };
+  });
 }
 
 function loopDecisionSchema(): Record<string, any> {

@@ -349,61 +349,105 @@ describe("agent loop runner", () => {
     assert.match(prompts[2] ?? "", /already succeeded with the same params/i);
   });
 
-  it("continues with a deterministic next tool when the model provider fails after one selectable result", async () => {
-    let decisionCalls = 0;
-    const calls: string[] = [];
+  it("includes enum default and description in loop tool parameter summaries", async () => {
+    const prompts: string[] = [];
 
-    const result = await runAgentLoop({
-      userMessage: "Procure o arquivo backend e baixe",
+    await runAgentLoop({
+      userMessage: "Continue",
       contextMessages: [],
       model: {
         async routeIntent() {
           return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
         },
-        async invokeJson() {
-          decisionCalls += 1;
-          if (decisionCalls === 1) {
-            return { action: "tool", toolName: "list_files", params: { query: "backend" } } as any;
-          }
-          if (decisionCalls === 2) {
-            throw new AgentRuntimeError(
-              "Ollama API error: 500 Internal Server Error",
-              "AGENT_MODEL_PROVIDER_ERROR",
-              "Ollama model request failed",
-              502,
-            );
-          }
-          return { action: "final", response: "Arquivo baixado." } as any;
+        async invokeJson(input) {
+          prompts.push(input.messages.map((message) => message.content).join("\n"));
+          return { action: "final", response: "Done." } as any;
         },
         async generateFinalResponse() {
-          return "Arquivo baixado.";
+          return "Done.";
         },
       },
       tools: [
         {
-          ...tool("list_files", async () => {
-            calls.push("list");
-            return [{ id: "file_1", name: "andresimoes-jr-backend.pdf" }];
-          }),
-          selection: { path: "$", labelFields: ["name"], valueField: "id", mode: "single" },
-        },
-        {
-          ...tool("download_file", async (args) => {
-            calls.push(`download:${(args as any).fileId}`);
-            return { ok: true };
-          }),
+          ...tool("list_files", async () => []),
           inputSchema: {
             type: "object",
-            required: ["fileId"],
-            properties: { fileId: { type: "string" } },
+            properties: {
+              orderBy: {
+                type: "string",
+                description: "Sort order for the results.",
+                default: "modifiedTime desc",
+                enum: ["name", "modifiedTime desc", "createdTime desc", "size desc"],
+              },
+            },
           },
         },
       ],
       emitEvent: () => {},
     });
 
-    assert.equal(result.output, "Arquivo baixado.");
-    assert.deepEqual(calls, ["list", "download:file_1"]);
+    assert.match(prompts[0] ?? "", /Sort order for the results\./);
+    assert.match(prompts[0] ?? "", /modifiedTime desc/);
+    assert.match(prompts[0] ?? "", /createdTime desc/);
+    assert.match(prompts[0] ?? "", /size desc/);
+  });
+
+  it("does not hide model provider failures after a successful tool result", async () => {
+    let decisionCalls = 0;
+    const calls: string[] = [];
+
+    await assert.rejects(
+      () => runAgentLoop({
+        userMessage: "Procure o arquivo backend e baixe",
+        contextMessages: [],
+        model: {
+          async routeIntent() {
+            return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+          },
+          async invokeJson() {
+            decisionCalls += 1;
+            if (decisionCalls === 1) {
+              return { action: "tool", toolName: "list_files", params: { query: "backend" } } as any;
+            }
+            throw new AgentRuntimeError(
+              "Ollama API error: 500 Internal Server Error",
+              "AGENT_MODEL_PROVIDER_ERROR",
+              "Ollama model request failed",
+              502,
+            );
+          },
+          async generateFinalResponse() {
+            return "Arquivo baixado.";
+          },
+        },
+        tools: [
+          {
+            ...tool("list_files", async () => {
+              calls.push("list");
+              return [{ id: "file_1", name: "andresimoes-jr-backend.pdf" }];
+            }),
+            selection: { path: "$", labelFields: ["name"], valueField: "id", mode: "single" },
+          },
+          {
+            ...tool("download_file", async (args) => {
+              calls.push(`download:${(args as any).fileId}`);
+              return { ok: true };
+            }),
+            inputSchema: {
+              type: "object",
+              required: ["fileId"],
+              properties: { fileId: { type: "string" } },
+            },
+          },
+        ],
+        emitEvent: () => {},
+      }),
+      (error) =>
+        error instanceof AgentRuntimeError &&
+        error.code === "AGENT_MODEL_PROVIDER_ERROR",
+    );
+
+    assert.deepEqual(calls, ["list"]);
   });
 
   it("emits a failed tool step before retrying with a new tool call id", async () => {

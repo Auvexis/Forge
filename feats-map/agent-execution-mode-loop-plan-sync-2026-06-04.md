@@ -239,3 +239,11 @@ Resultado Task 2:
 - [x] Inferir proxima tool obrigatoria usando `selection` do output anterior e `inputSchema` da proxima tool.
 - [x] Executar fallback somente quando houver uma unica opcao clara, sem regra especifica de plugin.
 - [x] Rodar testes focados, build e commit.
+
+## Task 21 - Param Schema Rico No Loop Sem Fallback De Provider
+
+- [x] Remover fallback deterministico para erro real do provider.
+- [x] Criar teste para `enum`, `default` e `description` aparecerem no prompt de tools.
+- [x] Criar teste garantindo que `AGENT_MODEL_PROVIDER_ERROR` continua visivel.
+- [x] Atualizar resumo de params sem mandar schema gigante.
+- [x] Rodar testes focados, build e commit.
