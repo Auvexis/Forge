@@ -36,6 +36,8 @@ import { inferAssignedPath, inferEventListenerPaths, inferWaitFormOutputPaths } 
 import { buildEventListenerOutputPathsFromStatuses } from '../nodeInspectorPreview'
 import { useWorkflowStore } from '../../../stores/workflow.store'
 import { useExecutionStore } from '../../../stores/execution.store'
+import { useTheme } from '@/shared/composables/useTheme'
+import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 
 const props = defineProps<{
   paramKey: string
@@ -44,6 +46,7 @@ const props = defineProps<{
 }>()
 
 const executionStore = useExecutionStore()
+const { isDark } = useTheme()
 
 const emit = defineEmits<{
   (e: 'inject', paramKey: string, path: string): void
@@ -414,11 +417,9 @@ const iconsMap = computed(() => {
     if ('pluginId' in upData) {
       const pluginNodeData = upData as PluginNode
       const upPlugin = plugins.value?.find((p) => p.id === pluginNodeData.pluginId)
-      if (upPlugin?.manifest.metadata.icon) {
-        map[`steps.${upNode.id}`] = upPlugin.manifest.metadata.icon
-      } else {
-        map[`steps.${upNode.id}`] = 'puzzle'
-      }
+      map[`steps.${upNode.id}`] = upPlugin
+        ? resolvePluginIcon(upPlugin.manifest.metadata, { isDark: isDark.value, fallback: 'puzzle' })
+        : 'puzzle'
     } else {
       map[`steps.${upNode.id}`] = upNode.type ? (typeIcons[upNode.type] || 'settings') : 'settings'
     }

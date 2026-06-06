@@ -38,6 +38,16 @@ const aiModelNodeSource = readFileSync(
   'utf8',
 )
 
+const variableTreeSource = readFileSync(
+  fileURLToPath(
+    new URL(
+      '../../../../features/workflow-editor/components/settings/editors/VariableTree.vue',
+      import.meta.url,
+    ),
+  ),
+  'utf8',
+)
+
 describe('plugin theme icons', () => {
   it('resolves credentials plugin icons through the theme-aware plugin icon resolver', () => {
     assert.match(globalSettingsSource, /import \{ resolvePluginIcon \}/)
@@ -63,5 +73,13 @@ describe('plugin theme icons', () => {
       assert.match(source, /loadPluginAppearance/)
       assert.match(source, /resolvePluginIcon/)
     }
+  })
+
+  it('resolves variable tree plugin icons through the theme-aware plugin icon resolver', () => {
+    assert.match(variableTreeSource, /import \{ useTheme \}/)
+    assert.match(variableTreeSource, /import \{ resolvePluginIcon \}/)
+    assert.match(variableTreeSource, /const \{ isDark \} = useTheme\(\)/)
+    assert.match(variableTreeSource, /resolvePluginIcon\(upPlugin\.manifest\.metadata, \{ isDark: isDark\.value, fallback: 'puzzle' \}\)/)
+    assert.doesNotMatch(variableTreeSource, /upPlugin\.manifest\.metadata\.icon/)
   })
 })

@@ -14,7 +14,7 @@ Tasks:
 - [x] Task 3: Disable Workflow Editor status bar Chat button outside Dev Session.
 - [x] Task 4: Add Chat Trigger "Open in Chat" action gated by Dev Session and preselect target agent.
 - [x] Task 5: Fix AddNodePanel methods view scrolling after selecting a plugin.
-- [ ] Task 6: Fix VariableTree plugin icons to use theme-aware icon resolution.
+- [x] Task 6: Fix VariableTree plugin icons to use theme-aware icon resolution.
 - [ ] Task 7: Add predefined plugin categories to SDK schema/types, update CLI template/prompts, and update server dependency.
 - [ ] Task 8: Group Add Node Panel plugins by category with category filter and collapse/expand controls.
 - [ ] Task 9: Run focused tests/build checks and record any blocked publish/install steps.
