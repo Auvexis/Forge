@@ -19,7 +19,7 @@
 - Do not break `ollama` or `generic` adapters.
 - Do not log API keys, prompts with secrets, binary data, buffers, base64, blobs, or file contents.
 - After each task passes, mark it complete here and commit.
-- Only these 3 tasks are in scope for this batch.
+- Work in batches of 3 tasks.
 
 ## Files
 
@@ -332,3 +332,120 @@ Procure meu arquivo no Drive, baixe e envie por email.
 ```
 
 Expected result: stronger OpenAI models produce fewer invalid JSON decisions, but the loop runtime must still keep retries, schema validation, approval, file refs, and cleanup generic.
+
+---
+
+## Batch 2
+
+### Task 4: Align OpenAI Request Shape With Responses API
+
+**Files:**
+- Modify: `server/src/core/modules/agent-runtime/model-adapters/openai-adapter.ts`
+- Modify: `server/src/core/modules/agent-runtime/model-adapters/openai-adapter.test.ts`
+
+- [x] **Step 1: Write failing tests for system instructions and tool history**
+
+Add tests proving:
+
+```text
+system messages are merged into the Responses API `instructions` field.
+tool messages are flattened into readable user input, not sent as role "tool".
+assistant/user messages stay in request order.
+```
+
+- [x] **Step 2: Run adapter tests and confirm red**
+
+Run:
+
+```powershell
+cd server
+node --test src/core/modules/agent-runtime/model-adapters/openai-adapter.test.ts
+```
+
+Expected: FAIL until the adapter emits `instructions` and normalized tool history.
+
+- [x] **Step 3: Implement request normalization**
+
+Keep this generic:
+
+```text
+No plugin-specific tool names.
+No provider-specific prompt hacks outside the adapter.
+No binary/file contents in request logs.
+```
+
+- [x] **Step 4: Run adapter tests**
+
+Run:
+
+```powershell
+cd server
+node --test src/core/modules/agent-runtime/model-adapters/openai-adapter.test.ts
+```
+
+Expected: PASS.
+
+---
+
+### Task 5: Update OpenAI Plugin Capability Copy
+
+**Files:**
+- Modify: `server/src/plugins/sailor/openai/manifest.json`
+- Modify: `server/src/core/modules/plugins/loader.test.ts`
+
+- [x] **Step 1: Write/adjust manifest contract**
+
+Assert the internal OpenAI chat model capability describes the Responses API, not old Chat Completions behavior.
+
+- [x] **Step 2: Update manifest copy**
+
+Change only metadata/capability copy. Do not change method behavior in this task.
+
+- [x] **Step 3: Run plugin loader tests**
+
+Run:
+
+```powershell
+cd server
+node --test src/core/modules/plugins/loader.test.ts
+```
+
+Expected: PASS.
+
+---
+
+### Task 6: Final Backend Verification For Batch 2
+
+**Files:**
+- Modify: `feats-map/openai-adapter-rewrite-2026-06-06.md`
+
+- [x] **Step 1: Run focused backend tests**
+
+Run:
+
+```powershell
+cd server
+node --test src/core/modules/agent-runtime/model-adapters/openai-adapter.test.ts src/core/modules/agent-runtime/model-provider-registry.test.ts src/core/modules/plugins/loader.test.ts
+```
+
+Expected: PASS.
+
+- [x] **Step 2: Run TypeScript build**
+
+Run:
+
+```powershell
+cd server
+npm run build
+```
+
+Expected: PASS.
+
+- [x] **Step 3: Mark Batch 2 complete and commit**
+
+Run:
+
+```powershell
+git add feats-map/openai-adapter-rewrite-2026-06-06.md server/src/core/modules/agent-runtime/model-adapters/openai-adapter.ts server/src/core/modules/agent-runtime/model-adapters/openai-adapter.test.ts server/src/plugins/sailor/openai/manifest.json server/src/core/modules/plugins/loader.test.ts
+git commit -m "fix: align openai adapter responses contract"
+```

@@ -64,6 +64,59 @@ describe("OpenAiAdapter", () => {
     });
   });
 
+  it("moves system messages into instructions and preserves non-system order", async () => {
+    const calls: Array<{ body: any }> = [];
+    const adapter = new OpenAiAdapter({
+      fetch: async (_url, init) => {
+        calls.push({ body: JSON.parse(String(init?.body)) });
+        return response({ output_text: "ok" });
+      },
+    });
+
+    await adapter.invokeText({
+      model: "gpt-4.1-mini",
+      credentials: { api_key: "sk-test" },
+      messages: [
+        { role: "system", content: "You are concise." },
+        { role: "user", content: "first" },
+        { role: "assistant", content: "second" },
+        { role: "user", content: "third" },
+      ],
+    });
+
+    assert.equal(calls[0].body.instructions, "You are concise.");
+    assert.deepEqual(calls[0].body.input, [
+      { role: "user", content: "first" },
+      { role: "assistant", content: "second" },
+      { role: "user", content: "third" },
+    ]);
+  });
+
+  it("flattens tool messages into user-readable input instead of sending role tool", async () => {
+    const calls: Array<{ body: any }> = [];
+    const adapter = new OpenAiAdapter({
+      fetch: async (_url, init) => {
+        calls.push({ body: JSON.parse(String(init?.body)) });
+        return response({ output_text: "ok" });
+      },
+    });
+
+    await adapter.invokeText({
+      model: "gpt-4.1-mini",
+      credentials: { api_key: "sk-test" },
+      messages: [
+        { role: "user", content: "Find file" },
+        { role: "tool", name: "drive_search", content: "[{\"name\":\"file.pdf\"}]" },
+      ],
+    });
+
+    assert.deepEqual(calls[0].body.input, [
+      { role: "user", content: "Find file" },
+      { role: "user", content: "Tool result from drive_search:\n[{\"name\":\"file.pdf\"}]" },
+    ]);
+    assert.equal(calls[0].body.input.some((message: any) => message.role === "tool"), false);
+  });
+
   it("uses JSON object mode when no schema is provided", async () => {
     const calls: Array<{ body: any }> = [];
     const adapter = new OpenAiAdapter({

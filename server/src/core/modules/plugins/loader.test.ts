@@ -313,6 +313,15 @@ describe("loadPlugins", () => {
     }
   });
 
+  it("describes the internal OpenAI agent chat model as Responses API based", () => {
+    const manifest = readInternalManifest("openai");
+    const chatModel = manifest.metadata.agentCapabilities?.chatModel;
+
+    assert.equal(chatModel?.adapter, "openai-compatible");
+    assert.match(chatModel.description, /Responses API/i);
+    assert.doesNotMatch(chatModel.description, /chat completions/i);
+  });
+
   it("accepts enabled plugin-level memory store agent capabilities", () => {
     const errors = validateManifest(
       createValidManifest({

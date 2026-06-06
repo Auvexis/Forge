@@ -173,10 +173,14 @@ function createResponseBody(
   input: AgentModelInvokeInput,
   format?: "json" | Record<string, any>,
 ): Record<string, any> {
+  const normalizedMessages = normalizeMessages(input.messages);
   const body: Record<string, any> = {
     model: input.model,
-    input: input.messages.map(toOpenAiInputMessage),
+    input: normalizedMessages.input,
   };
+  if (normalizedMessages.instructions) {
+    body.instructions = normalizedMessages.instructions;
+  }
 
   const temperature = normalizeTemperature(input.model, input.temperature);
   if (temperature !== undefined) {
@@ -201,10 +205,38 @@ function createResponseBody(
   return body;
 }
 
-function toOpenAiInputMessage(message: AgentModelMessage): { role: string; content: string } {
+function normalizeMessages(messages: AgentModelMessage[]): {
+  instructions?: string;
+  input: Array<{ role: string; content: string }>;
+} {
+  const instructions = messages
+    .filter((message) => message.role === "system")
+    .map((message) => message.content.trim())
+    .filter(Boolean)
+    .join("\n\n");
+
   return {
-    role: message.role === "tool" ? "user" : message.role,
-    content: message.name ? `${message.name}: ${message.content}` : message.content,
+    ...(instructions ? { instructions } : {}),
+    input: messages
+      .filter((message) => message.role !== "system")
+      .map(toOpenAiInputMessage),
+  };
+}
+
+function toOpenAiInputMessage(message: AgentModelMessage): { role: string; content: string } {
+  if (message.role === "tool") {
+    const name = message.name?.trim();
+    return {
+      role: "user",
+      content: name
+        ? `Tool result from ${name}:\n${message.content}`
+        : `Tool result:\n${message.content}`,
+    };
+  }
+
+  return {
+    role: message.role,
+    content: message.content,
   };
 }
 

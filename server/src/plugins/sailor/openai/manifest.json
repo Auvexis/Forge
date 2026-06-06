@@ -15,7 +15,7 @@
         "enabled": true,
         "adapter": "openai-compatible",
         "label": "OpenAI Chat Model",
-        "description": "Use OpenAI-compatible chat completions as an Agent Chat Model.",
+        "description": "Use the OpenAI Responses API as an Agent Chat Model.",
         "defaultModel": "gpt-4.1-mini",
         "defaultBaseUrl": "https://api.openai.com/v1",
         "credentialPluginId": "openai",
