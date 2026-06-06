@@ -1,5 +1,40 @@
 <template>
-  <form class="agent-chat-composer" :class="`agent-chat-composer--${props.mode}`" @submit.prevent="submit">
+  <form
+    class="agent-chat-composer"
+    :class="[`agent-chat-composer--${props.mode}`, { 'agent-chat-composer--dragging': draggingFiles }]"
+    @submit.prevent="submit"
+    @dragenter.prevent="draggingFiles = true"
+    @dragover.prevent="draggingFiles = true"
+    @dragleave.prevent="draggingFiles = false"
+    @drop.prevent="handleDrop"
+  >
+    <div v-if="pendingAttachments.length" class="agent-chat-composer__attachments" aria-label="Attached files">
+      <div
+        v-for="attachment in pendingAttachments"
+        :key="attachment.id"
+        class="agent-chat-composer__attachment"
+      >
+        <img
+          v-if="isImageAttachment(attachment) && attachment.previewUrl"
+          class="agent-chat-composer__attachment-preview"
+          :src="attachment.previewUrl"
+          :alt="attachment.name"
+        />
+        <span v-else class="agent-chat-composer__attachment-icon">
+          <LucideIcon :name="attachmentIcon(attachment)" :size="18" />
+        </span>
+        <span class="agent-chat-composer__attachment-name">{{ attachment.name }}</span>
+        <button
+          type="button"
+          class="agent-chat-composer__attachment-remove"
+          aria-label="Remove attachment"
+          @click="removeAttachment(attachment.id)"
+        >
+          <LucideIcon name="x" :size="12" />
+        </button>
+      </div>
+    </div>
+
     <textarea
       ref="textareaRef"
       v-model="draft"
@@ -9,11 +44,27 @@
       :disabled="props.sending"
       @input="resizeTextarea"
       @keydown.ctrl.enter.prevent="submit"
+      @paste="handlePaste"
     ></textarea>
 
     <div class="agent-chat-composer__toolbar">
       <span class="agent-chat-composer__spacer" />
-      <BaseButton type="button" class="agent-chat-composer__utility" variant="outline" size="sm" icon-left="paperclip">
+      <input
+        ref="fileInputRef"
+        class="agent-chat-composer__file-input"
+        type="file"
+        multiple
+        @change="handleFileInput"
+      />
+      <BaseButton
+        type="button"
+        class="agent-chat-composer__utility"
+        variant="outline"
+        size="sm"
+        icon-left="paperclip"
+        :disabled="props.sending"
+        @click="fileInputRef?.click()"
+      >
         Attach
       </BaseButton>
       <BaseDropdownSelect
@@ -21,6 +72,7 @@
         :options="speechLanguages"
         icon-left="languages"
         trigger-class="agent-chat-composer__language-trigger"
+        :disabled="props.sending || !speechSupported"
         :title="`Speech language: ${selectedSpeechLanguage.label}`"
         @update:model-value="stopSpeechRecognition"
       />
@@ -51,7 +103,7 @@
         :variant="props.sending ? 'outline' : 'primary'"
         size="sm"
         :icon-left="props.sending ? 'square' : 'arrow-up'"
-        :disabled="props.sending ? false : !draft.trim()"
+        :disabled="props.sending ? false : !draft.trim() && !pendingAttachments.length"
         @click="props.sending ? emit('cancel') : undefined"
       >
         {{ props.sending ? 'Stop' : 'Send' }}
@@ -65,6 +117,8 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
 import { useLocalStorage } from '@/shared/composables/useLocalStorage'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import type { AgentPanelPendingAttachment } from '@/features/agent-panel/types/agent-panel.types'
 
 const props = withDefaults(
   defineProps<{
@@ -81,7 +135,7 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  send: [message: string]
+  send: [message: string, attachments: AgentPanelPendingAttachment[]]
   cancel: []
   'update:execution-mode': [mode: 'loop' | 'plan']
 }>()
@@ -90,6 +144,9 @@ const propsSending = computed(() => props.sending)
 
 const draft = ref('')
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const pendingAttachments = ref<AgentPanelPendingAttachment[]>([])
+const draggingFiles = ref(false)
 const isListening = ref(false)
 const speechSupported = computed(() => getSpeechRecognitionCtor() !== null)
 const speechLanguage = useLocalStorage('sailor:agent-chat:speech-language', 'en-US')
@@ -152,10 +209,68 @@ type BrowserSpeechRecognition = {
 function submit() {
   if (propsSending.value) return
   const message = draft.value.trim()
-  if (!message) return
-  emit('send', message)
+  if (!message && !pendingAttachments.value.length) return
+  const attachments = [...pendingAttachments.value]
+  emit('send', message, attachments)
   draft.value = ''
+  pendingAttachments.value = []
   void nextTick(resizeTextarea)
+}
+
+function handleFileInput(event: Event) {
+  const input = event.target as HTMLInputElement | null
+  addFiles(input?.files)
+  if (input) input.value = ''
+}
+
+function handleDrop(event: DragEvent) {
+  draggingFiles.value = false
+  addFiles(event.dataTransfer?.files)
+}
+
+function handlePaste(event: ClipboardEvent) {
+  const files = Array.from(event.clipboardData?.files ?? [])
+  const imageFiles = files.filter((file) => file.type.startsWith('image/'))
+  if (!imageFiles.length) return
+  addFiles(imageFiles)
+}
+
+function addFiles(files: FileList | File[] | undefined | null) {
+  const nextFiles = Array.from(files ?? [])
+  if (!nextFiles.length) return
+  pendingAttachments.value = [
+    ...pendingAttachments.value,
+    ...nextFiles.map((file) => ({
+      id: `${Date.now()}-${cryptoRandomId()}`,
+      file,
+      name: file.name || 'pasted-image.png',
+      mimeType: file.type || 'application/octet-stream',
+      size: file.size,
+      ...(file.type.startsWith('image/') ? { previewUrl: URL.createObjectURL(file) } : {}),
+    })),
+  ]
+}
+
+function removeAttachment(id: string) {
+  const attachment = pendingAttachments.value.find((item) => item.id === id)
+  if (attachment?.previewUrl) URL.revokeObjectURL(attachment.previewUrl)
+  pendingAttachments.value = pendingAttachments.value.filter((item) => item.id !== id)
+}
+
+function isImageAttachment(attachment: AgentPanelPendingAttachment): boolean {
+  return attachment.mimeType.startsWith('image/')
+}
+
+function attachmentIcon(attachment: AgentPanelPendingAttachment): string {
+  if (attachment.mimeType.includes('pdf')) return 'file-text'
+  if (attachment.mimeType.startsWith('video/')) return 'file-video'
+  if (attachment.mimeType.startsWith('audio/')) return 'file-audio'
+  return 'file'
+}
+
+function cryptoRandomId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
+  return Math.random().toString(36).slice(2)
 }
 
 function startSpeechToText() {
@@ -254,6 +369,9 @@ onBeforeUnmount(() => {
   keepRecognitionAlive = false
   activeRecognition?.stop()
   activeRecognition = null
+  pendingAttachments.value.forEach((attachment) => {
+    if (attachment.previewUrl) URL.revokeObjectURL(attachment.previewUrl)
+  })
 })
 </script>
 
@@ -282,6 +400,72 @@ onBeforeUnmount(() => {
 
 .agent-chat-composer--hero {
   width: min(100%, 724px);
+}
+
+.agent-chat-composer--dragging {
+  border-color: var(--sailor-border-focus);
+}
+
+.agent-chat-composer__attachments {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: var(--sailor-space-2);
+}
+
+.agent-chat-composer__attachment {
+  position: relative;
+  display: grid;
+  width: 72px;
+  gap: var(--sailor-space-1);
+  justify-items: center;
+  color: var(--sailor-text-secondary);
+  font-size: 10px;
+}
+
+.agent-chat-composer__attachment-preview,
+.agent-chat-composer__attachment-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-muted);
+}
+
+.agent-chat-composer__attachment-preview {
+  object-fit: cover;
+}
+
+.agent-chat-composer__attachment-name {
+  width: 100%;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-chat-composer__attachment-remove {
+  position: absolute;
+  top: -5px;
+  right: 8px;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-full);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.agent-chat-composer__attachment-remove:hover {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-text-primary);
 }
 
 .agent-chat-composer__input {
@@ -314,6 +498,10 @@ onBeforeUnmount(() => {
 
 .agent-chat-composer__spacer {
   flex: 1;
+}
+
+.agent-chat-composer__file-input {
+  display: none;
 }
 
 .agent-chat-composer__utility {

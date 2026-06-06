@@ -5,6 +5,7 @@
       aria-label="Global agent panel"
     >
       <AgentDirectoryList />
+      <AgentSessionList />
       <AgentChatView />
     </section>
   </BaseModal>
@@ -14,6 +15,7 @@
 import { watch } from 'vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import AgentDirectoryList from '@/features/agent-panel/components/AgentDirectoryList.vue'
+import AgentSessionList from '@/features/agent-panel/components/AgentSessionList.vue'
 import AgentChatView from '@/features/agent-panel/components/AgentChatView.vue'
 import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
@@ -66,7 +68,7 @@ watch(
 
 .global-agent-panel {
   display: grid;
-  grid-template-columns: 68px minmax(0, 1fr);
+  grid-template-columns: 68px 256px minmax(0, 1fr);
   min-height: 0;
   height: 100%;
   overflow: hidden;
@@ -77,7 +79,7 @@ watch(
 
 @media (max-width: 820px) {
   .global-agent-panel {
-    grid-template-columns: 60px minmax(0, 1fr);
+    grid-template-columns: 60px minmax(220px, 36vw) minmax(0, 1fr);
   }
 }
 </style>

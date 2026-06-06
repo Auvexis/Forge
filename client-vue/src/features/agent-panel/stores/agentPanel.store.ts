@@ -8,6 +8,7 @@ import { mergeServerMessagesWithStableLocalTurn as mergeStableLocalTurn } from '
 import type { AgentChatMessage, AgentChatSession } from '@/features/agent-runtime/types/agent.types'
 import type {
   AgentPanelApprovalContent,
+  AgentPanelPendingAttachment,
   AgentPanelChoiceContent,
   AgentPanelChoiceOption,
   AgentPanelErrorContent,
@@ -221,6 +222,13 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         entrance: 'user',
       } as AgentChatMessage,
     ]
+  }
+
+  async function uploadMessageAttachments(sessionId: string, attachments: AgentPanelPendingAttachment[] = []) {
+    if (!attachments.length) return []
+    return Promise.all(attachments.map((attachment) =>
+      agentPanelApi.uploadAttachment(sessionId, attachment.file),
+    ))
   }
 
   function appendPendingAssistantMessage(sessionId: string) {
@@ -536,15 +544,15 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     ))
   }
 
-  async function sendMessage(message: string) {
+  async function sendMessage(message: string, attachments: AgentPanelPendingAttachment[] = []) {
     const text = message.trim()
-    if (!text || sending.value || (!selectedAgentKey.value && !selectedSessionId.value)) return
+    if ((!text && !attachments.length) || sending.value || (!selectedAgentKey.value && !selectedSessionId.value)) return
     if (!selectedSessionId.value && !draftSessionOpen.value) return
 
     const { error: toastError } = useToast()
     const localSessionId = selectedSessionId.value || `draft-${Date.now()}`
     activeAssistantStreamId.value = ''
-    appendOptimisticUserMessage(localSessionId, text)
+    appendOptimisticUserMessage(localSessionId, optimisticUserContent(text, attachments))
     sending.value = true
     activeStreamAbortController = new AbortController()
     chatError.value = ''
@@ -560,11 +568,12 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
         remapLocalSessionMessages(localSessionId, session.id)
       }
 
+      const uploadedAttachments = await uploadMessageAttachments(selectedSessionId.value, attachments)
       appendPendingAssistantMessage(selectedSessionId.value)
       let result = null as Awaited<ReturnType<typeof agentPanelApi.sendMessage>> | null
       for await (const event of agentPanelApi.sendMessageStream(
         selectedSessionId.value,
-        { message: text, executionMode: selectedExecutionMode.value },
+        { message: text || attachments.map((attachment) => attachment.name).join(', '), attachments: uploadedAttachments, executionMode: selectedExecutionMode.value },
         { signal: activeStreamAbortController.signal },
       )) {
         if (event.type === 'start') {
@@ -597,6 +606,18 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       activeAssistantStreamId.value = ''
       activeExecutionId.value = ''
       sending.value = false
+    }
+  }
+
+  function optimisticUserContent(text: string, attachments: AgentPanelPendingAttachment[]): unknown {
+    if (!attachments.length) return text
+    return {
+      text,
+      attachments: attachments.map((attachment) => ({
+        fileName: attachment.name,
+        mimeType: attachment.mimeType,
+        bytes: attachment.size,
+      })),
     }
   }
 
@@ -885,6 +906,7 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       approveApproval,
     rejectApproval,
     continueAgentChoice,
+    uploadMessageAttachments,
     sendMessage,
     cancelActiveExecution,
     disposeActiveExecution,

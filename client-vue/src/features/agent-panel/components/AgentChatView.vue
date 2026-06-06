@@ -14,39 +14,6 @@
       </div>
 
       <div class="agent-chat-view__actions">
-        <div class="agent-chat-view__floating-menu">
-          <BaseButton
-            size="sm"
-            variant="outline"
-            icon-left="messages-square"
-            :disabled="!store.selectedAgentKey"
-            title="Chat history"
-            @click="historyMenuOpen = !historyMenuOpen"
-          >
-            History
-          </BaseButton>
-          <div v-if="historyMenuOpen" class="agent-chat-view__history-menu">
-            <button
-              v-for="session in store.sessions"
-              :key="session.id"
-              type="button"
-              class="agent-chat-view__history-option"
-              :class="{ 'agent-chat-view__history-option--active': session.id === store.selectedSessionId }"
-              @click="selectSession(session.id)"
-            >
-              <span>{{ session.title || 'Untitled chat' }}</span>
-              <small>{{ formatMessageTime(session as unknown as AgentChatMessage) }}</small>
-            </button>
-            <button
-              v-if="store.selectedSessionId"
-              type="button"
-              class="agent-chat-view__history-delete"
-              @click="deleteSession(store.selectedSessionId)"
-            >
-              Delete chat
-            </button>
-          </div>
-        </div>
         <BaseButton
           size="sm"
           variant="primary"
@@ -300,7 +267,6 @@ const profileStore = useProfileStore()
 const plugins = ref<PluginSummary[]>([])
 const messagesEl = ref<HTMLElement | null>(null)
 const composerRetiring = ref(false)
-const historyMenuOpen = ref(false)
 const openProgressDetails = ref<Set<string>>(new Set())
 const statusCycleIndex = ref(0)
 const { confirm } = useConfirm()
@@ -608,11 +574,6 @@ async function startNewChat() {
   composerRetiring.value = false
 }
 
-async function selectSession(sessionId: string) {
-  historyMenuOpen.value = false
-  await store.selectSession(sessionId)
-}
-
 async function deleteSession(sessionId: string) {
   const dangerousMemoryMode = 'transcript-only'
   const memoryModeOptions = ['session', 'transcript-only', 'all-agent-memory']
@@ -625,7 +586,6 @@ async function deleteSession(sessionId: string) {
   })
   if (!accepted) return
   await store.deleteSession(sessionId, dangerousMemoryMode)
-  historyMenuOpen.value = false
 }
 </script>
 
@@ -709,60 +669,6 @@ async function deleteSession(sessionId: string) {
   align-items: center;
   gap: var(--sailor-space-2);
   margin-left: auto;
-}
-
-.agent-chat-view__floating-menu {
-  position: relative;
-}
-
-.agent-chat-view__history-menu {
-  position: absolute;
-  top: calc(100% + var(--sailor-space-2));
-  right: 0;
-  z-index: var(--sailor-z-raised);
-  display: grid;
-  width: min(320px, 72vw);
-  max-height: 360px;
-  overflow: auto;
-  border: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-elevated);
-  box-shadow: var(--sailor-shadow-lg);
-}
-
-.agent-chat-view__history-option,
-.agent-chat-view__history-delete {
-  display: grid;
-  gap: 2px;
-  border: 0;
-  background: transparent;
-  color: var(--sailor-text-secondary);
-  cursor: pointer;
-  padding: 8px 10px;
-  text-align: left;
-}
-
-.agent-chat-view__history-option:hover,
-.agent-chat-view__history-option--active {
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-}
-
-.agent-chat-view__history-option span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.agent-chat-view__history-option small,
-.agent-chat-view__history-delete {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
-}
-
-.agent-chat-view__history-delete {
-  border-top: 1px solid var(--sailor-border);
-  color: var(--sailor-red-600);
-  font-weight: var(--sailor-font-semibold);
 }
 
 .agent-chat-view__actions :deep(.base-button) {

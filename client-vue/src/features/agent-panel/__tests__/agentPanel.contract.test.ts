@@ -16,15 +16,20 @@ describe('agent panel modal contract', () => {
     assert.doesNotMatch(router, /path:\s*['"]\/agents['"]/)
   })
 
-  it('keeps only one aside and opens chat history from a floating chat menu', () => {
+  it('renders chat history as a dedicated dated aside and removes the header history menu', () => {
     const modal = readFileSync('src/features/agent-panel/components/AppGlobalAgentPanel.vue', 'utf8')
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
+    const sessions = readFileSync('src/features/agent-panel/components/AgentSessionList.vue', 'utf8')
 
     assert.match(modal, /AgentDirectoryList/)
-    assert.doesNotMatch(modal, /AgentSessionList/)
-    assert.match(chat, /agent-chat-view__floating-menu/)
+    assert.match(modal, /AgentSessionList/)
+    assert.match(modal, /grid-template-columns:\s*68px\s+256px\s+minmax\(0,\s*1fr\)/)
+    assert.match(sessions, /sessionGroups/)
+    assert.match(sessions, /createdAt/)
+    assert.match(sessions, /agent-session-list__new/)
+    assert.doesNotMatch(chat, /agent-chat-view__floating-menu/)
+    assert.doesNotMatch(chat, /historyMenuOpen/)
     assert.match(chat, /openDraftSession/)
-    assert.match(chat, /selectSession/)
     assert.match(chat, /deleteSession/)
   })
 
@@ -56,6 +61,34 @@ describe('agent panel modal contract', () => {
     assert.match(composer, /Ctrl\+Enter|ctrl\.enter/)
     assert.match(store, /sendMessage/)
     assert.match(store, /agentPanelApi\.sendMessage/)
+  })
+
+  it('supports composer file attachments, drag/drop, pasted images, and speech language support gating', () => {
+    const composer = readFileSync(
+      'src/features/agent-panel/components/AgentChatComposer.vue',
+      'utf8',
+    )
+    const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
+    const api = readFileSync('src/core/api/agent-panel.api.ts', 'utf8')
+    const endpoints = readFileSync('src/core/api/endpoints.ts', 'utf8')
+    const types = readFileSync('src/features/agent-panel/types/agent-panel.types.ts', 'utf8')
+
+    assert.match(composer, /pendingAttachments/)
+    assert.match(composer, /@drop\.prevent/)
+    assert.match(composer, /@dragover\.prevent/)
+    assert.match(composer, /@paste/)
+    assert.match(composer, /clipboardData/)
+    assert.match(composer, /LucideIcon/)
+    assert.match(composer, /URL\.createObjectURL/)
+    assert.match(composer, /isImageAttachment/)
+    assert.match(composer, /:disabled="props\.sending \|\| !speechSupported"/)
+    assert.match(composer, /send: \[message: string, attachments: AgentPanelPendingAttachment\[\]\]/)
+    assert.match(store, /uploadMessageAttachments/)
+    assert.match(store, /attachments/)
+    assert.match(api, /uploadAttachment/)
+    assert.match(endpoints, /AGENT_PANEL_SESSION_ATTACHMENTS/)
+    assert.match(types, /AgentPanelAttachmentRef/)
+    assert.match(types, /AgentPanelPendingAttachment/)
   })
 
   it('opens unsaved draft chats and persists only on first prompt', () => {

@@ -13,6 +13,18 @@
       </div>
     </header>
 
+    <BaseButton
+      class="agent-session-list__new"
+      :disabled="!store.selectedAgentKey"
+      icon-left="plus"
+      icon-right="sparkles"
+      variant="primary"
+      full-width
+      @click="store.createSession()"
+    >
+      New Chat
+    </BaseButton>
+
     <div v-if="!store.selectedAgentKey" class="agent-session-list__state">Select an agent.</div>
     <div v-else-if="!sessionGroups.length" class="agent-session-list__state">
       {{ sessionSearch.trim() ? 'No chats match this search.' : 'No chats yet.' }}
@@ -36,10 +48,8 @@
         </BaseButton>
 
         <Transition name="agent-session-group">
-          <TransitionGroup
+          <div
             v-if="!collapsedGroups.has(group.key)"
-            name="agent-session-row"
-            tag="div"
             class="agent-session-list__group-rows"
           >
             <div
@@ -61,7 +71,7 @@
                 @click.stop="toggleSessionMenu(session.id, $event)"
               />
             </div>
-          </TransitionGroup>
+          </div>
         </Transition>
       </section>
     </div>
@@ -228,6 +238,21 @@ async function deleteSession(sessionId: string) {
   pointer-events: none;
 }
 
+.agent-session-list__new {
+  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  justify-content: center;
+  border-color: var(--sailor-button-primary-border);
+  border-radius: var(--sailor-radius-full);
+  background: var(--sailor-button-primary-bg);
+  color: var(--sailor-button-primary-text);
+  font-size: var(--sailor-text-xs);
+  white-space: nowrap;
+  box-shadow: var(--sailor-shadow-sm);
+}
+
 .agent-session-list__state {
   color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
@@ -262,12 +287,23 @@ async function deleteSession(sessionId: string) {
 
 .agent-session-list__row {
   position: relative;
+  z-index: 1;
   border-radius: var(--sailor-radius-md);
+  background: transparent;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .agent-session-list__row:hover,
 .agent-session-list__row--active {
   background: var(--sailor-button-ghost-hover);
+}
+
+.agent-session-list__row--active {
+  background: var(--sailor-button-ghost-active);
 }
 
 .agent-session-list__select {
@@ -295,6 +331,7 @@ async function deleteSession(sessionId: string) {
   font-weight: var(--sailor-font-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
+  width: 100%;
 }
 
 .agent-session-list__more {

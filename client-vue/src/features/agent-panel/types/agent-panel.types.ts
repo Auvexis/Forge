@@ -21,8 +21,25 @@ export interface CreateAgentPanelSessionPayload {
 
 export interface SendAgentPanelMessagePayload {
   message: string
+  attachments?: AgentPanelAttachmentRef[]
   selectedValue?: unknown
   executionMode?: 'loop' | 'plan'
+}
+
+export interface AgentPanelAttachmentRef {
+  id: string
+  fileName: string
+  mimeType?: string
+  bytes: number
+}
+
+export interface AgentPanelPendingAttachment {
+  id: string
+  file: File
+  name: string
+  mimeType: string
+  size: number
+  previewUrl?: string
 }
 
 export interface DeleteAgentPanelSessionPayload {

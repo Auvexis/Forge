@@ -14,6 +14,7 @@ import {
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 import { AgentPanelChatService } from "./agent-panel-chat-service.ts";
 import { AgentChatFileStore } from "./agent-chat-file-store.ts";
+import { resolveAgentChatFileCacheDir } from "./agent-chat-paths.ts";
 
 describe("agent panel chat service", () => {
   let appDb: Database.Database | null = null;
@@ -116,6 +117,75 @@ describe("agent panel chat service", () => {
     assert.equal(executions[1].payload.skipFinalResponseAfterToolUse, false);
     assert.equal(executions[1].options.targetNodeId, "agent");
     assert.deepEqual(executions[1].payload.messages.map((message: any) => message.role), ["user", "assistant"]);
+  });
+
+  it("passes uploaded chat attachments as opaque agent file refs and cleans chat cache after success", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-panel-attachments-"));
+    const service = serviceFixture({ profilesDir: path.join(root, "profiles") });
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+    const attachment = await service.cacheAttachment({
+      profileId: "profile_a",
+      sessionId: session.id,
+      fileName: "video.mp4",
+      mimeType: "video/mp4",
+      content: Buffer.from("video bytes"),
+    });
+
+    await service.sendMessage({
+      profileId: "profile_a",
+      sessionId: session.id,
+      message: "Upload this to YouTube",
+      attachments: [attachment],
+      executionId: "exec_upload_success",
+    });
+
+    assert.equal(executions[0].payload.attachments[0].fileName, "video.mp4");
+    assert.equal(executions[0].payload.attachments[0].mimeType, "video/mp4");
+    assert.match(executions[0].payload.attachments[0].ref, /^agent-file:\/\//);
+    assert.equal("filePath" in executions[0].payload.attachments[0], false);
+    assert.equal(fs.existsSync(resolveAgentChatFileCacheDir({
+      profilesDir: path.join(root, "profiles"),
+      profileId: "profile_a",
+      chatId: session.id,
+    })), false);
+  });
+
+  it("cleans uploaded chat attachment cache after failed agent execution", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-panel-attachments-failed-"));
+    const service = failingServiceFixture({ profilesDir: path.join(root, "profiles") });
+    const session = await service.createSession({
+      profileId: "profile_a",
+      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
+      title: "Support chat",
+    });
+    const attachment = await service.cacheAttachment({
+      profileId: "profile_a",
+      sessionId: session.id,
+      fileName: "broken.png",
+      mimeType: "image/png",
+      content: Buffer.from("png"),
+    });
+
+    await assert.rejects(
+      service.sendMessage({
+        profileId: "profile_a",
+        sessionId: session.id,
+        message: "Use this image",
+        attachments: [attachment],
+        executionId: "exec_upload_failed",
+      }),
+      /Invalid AI agent config/,
+    );
+
+    assert.equal(fs.existsSync(resolveAgentChatFileCacheDir({
+      profilesDir: path.join(root, "profiles"),
+      profileId: "profile_a",
+      chatId: session.id,
+    })), false);
   });
 
   it("does not persist an empty assistant message when the runtime skips the final response", async () => {
@@ -602,9 +672,10 @@ describe("agent panel chat service", () => {
     });
   }
 
-  function failingServiceFixture(): AgentPanelChatService {
+  function failingServiceFixture(fixtureOptions: { profilesDir?: string } = {}): AgentPanelChatService {
     return new AgentPanelChatService({
       db: workflowDb!,
+      profilesDir: fixtureOptions.profilesDir,
       workflowRepository: WorkflowRepository,
       workflowEngine: {
         executeWorkflowFromTrigger: async () => ({

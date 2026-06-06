@@ -13,6 +13,10 @@ import { ChatMessageRepository } from "./chat-message-repository.ts";
 import type { AgentChatSession } from "./chat-session-repository.ts";
 import { ChatSessionRepository } from "./chat-session-repository.ts";
 import { AgentChatFileStore } from "./agent-chat-file-store.ts";
+import {
+  AgentPanelChatAttachmentCache,
+  type AgentPanelAttachmentRef,
+} from "./agent-panel-chat-attachment-cache.ts";
 import { resolveAgentChatMemoryPath } from "./agent-chat-paths.ts";
 import { WorkflowEngine } from "../../workflows/executor.ts";
 import { WorkflowRepository } from "../../workflows/repository.ts";
@@ -30,6 +34,7 @@ export interface SendAgentPanelMessageInput {
   profileId: string;
   sessionId: string;
   message: string;
+  attachments?: AgentPanelAttachmentRef[];
   executionMode?: "loop" | "plan";
   executionId?: string;
   skipPersistedToolMessages?: boolean;
@@ -76,6 +81,7 @@ export class AgentPanelChatService {
   private readonly messages: Pick<ChatMessageRepository, "append" | "listBySession">;
   private readonly workflowRepository: Pick<typeof WorkflowRepository, "getActiveWorkflows" | "getWorkflows" | "getWorkflowById">;
   private readonly workflowEngine: Pick<typeof WorkflowEngine, "executeWorkflowFromTrigger">;
+  private readonly attachmentCache: AgentPanelChatAttachmentCache;
 
   constructor(options: AgentPanelChatServiceOptions = {}) {
     this.workflowRepository = options.workflowRepository ?? WorkflowRepository;
@@ -90,6 +96,7 @@ export class AgentPanelChatService {
       this.messages = fileStore;
     }
     this.workflowEngine = options.workflowEngine ?? WorkflowEngine;
+    this.attachmentCache = new AgentPanelChatAttachmentCache({ profilesDir: this.profilesDir });
   }
 
   async listAgents(input: { profileId?: string; scope: AgentPanelAgentScope; workflowId?: string }): Promise<PublishedAgentSummary[]> {
@@ -147,6 +154,17 @@ export class AgentPanelChatService {
       content,
     });
     this.sessions.touch(input.profileId, session.id);
+  }
+
+  async cacheAttachment(input: {
+    profileId: string;
+    sessionId: string;
+    fileName: string;
+    mimeType?: string;
+    content: unknown;
+  }): Promise<AgentPanelAttachmentRef> {
+    this.resolveSession(input.profileId, input.sessionId);
+    return this.attachmentCache.put(input);
   }
 
   async appendApprovalContinuationResult(input: {
@@ -248,12 +266,31 @@ export class AgentPanelChatService {
 
     const agent = this.resolveAgent(input.profileId, session.agentKey);
     const previousMessages = this.messages.listBySession(input.profileId, session.id);
+    const executionId = input.executionId ?? `exec_agent_panel_${Date.now()}_${randomUUID().slice(0, 8)}`;
+    const materializedAttachments = await this.attachmentCache.materializeForExecution({
+      profileId: input.profileId,
+      sessionId: session.id,
+      executionId,
+      attachments: input.attachments,
+    });
+    const userContent = materializedAttachments.length
+      ? {
+          text: message,
+          attachments: materializedAttachments.map((attachment) => ({
+            ref: attachment.ref,
+            fileName: attachment.fileName,
+            mimeType: attachment.mimeType,
+            bytes: attachment.bytes,
+          })),
+        }
+      : message;
+
     this.messages.append({
       id: `msg_${randomUUID()}`,
       profileId: input.profileId,
       sessionId: session.id,
       role: "user",
-      content: message,
+      content: userContent,
     });
     this.sessions.touch(input.profileId, session.id);
 
@@ -266,53 +303,69 @@ export class AgentPanelChatService {
       sessionId: session.id,
       message,
       executionMode: input.executionMode,
+      ...(materializedAttachments.length
+        ? {
+            attachments: materializedAttachments.map((attachment) => ({
+              ref: attachment.ref,
+              fileName: attachment.fileName,
+              mimeType: attachment.mimeType,
+              bytes: attachment.bytes,
+            })),
+          }
+        : {}),
       messages: toContextMessages(previousMessages),
       skipFinalResponseAfterToolUse: false,
       metadata: { surface: "agent-panel" },
     };
-    const execution = await this.workflowEngine.executeWorkflowFromTrigger(
-      agent.workflow,
-      agent.summary.triggerNodeId,
-      payload,
-      input.executionId,
-      { targetNodeId: agent.summary.agentNodeId },
-    );
+    try {
+      const execution = await this.workflowEngine.executeWorkflowFromTrigger(
+        agent.workflow,
+        agent.summary.triggerNodeId,
+        payload,
+        executionId,
+        { targetNodeId: agent.summary.agentNodeId },
+      );
 
-    const assistantResponse = extractAssistantResponse(execution, agent.summary.agentNodeId);
-    const toolCalls = extractToolCalls(execution, agent.summary.agentNodeId);
-    if (!input.skipPersistedToolMessages && toolCalls.length > 0) {
-      appendToolProgressMessages(this.messages, input.profileId, session.id, toolCalls);
-      appendToolSummaryMessage(this.messages, input.profileId, session.id, toolCalls);
-    }
-    if (!input.skipPersistedToolMessages) {
-      appendApprovalMessageIfWaiting(this.messages, input.profileId, session.id, execution);
-    }
+      const assistantResponse = extractAssistantResponse(execution, agent.summary.agentNodeId);
+      const toolCalls = extractToolCalls(execution, agent.summary.agentNodeId);
+      if (!input.skipPersistedToolMessages && toolCalls.length > 0) {
+        appendToolProgressMessages(this.messages, input.profileId, session.id, toolCalls);
+        appendToolSummaryMessage(this.messages, input.profileId, session.id, toolCalls);
+      }
+      if (!input.skipPersistedToolMessages) {
+        appendApprovalMessageIfWaiting(this.messages, input.profileId, session.id, execution);
+      }
 
-    if (isFailedExecution(execution)) {
-      const detail = extractWorkflowFailureDetail((execution as { context?: { steps?: Record<string, any> } }).context?.steps);
-      if (toolCalls.some((tool) => tool.status === "failed")) {
-        appendAgentErrorMessage(this.messages, input.profileId, session.id, detail ?? "Agent tool failed");
-      } else {
-        assertSuccessfulChatExecution(execution);
+      if (isFailedExecution(execution)) {
+        const detail = extractWorkflowFailureDetail((execution as { context?: { steps?: Record<string, any> } }).context?.steps);
+        if (toolCalls.some((tool) => tool.status === "failed")) {
+          appendAgentErrorMessage(this.messages, input.profileId, session.id, detail ?? "Agent tool failed");
+        } else {
+          assertSuccessfulChatExecution(execution);
+        }
+      }
+
+      if (hasAssistantResponse(assistantResponse)) {
+        this.messages.append({
+          id: `msg_${randomUUID()}`,
+          profileId: input.profileId,
+          sessionId: session.id,
+          role: "assistant",
+          content: normalizeAssistantResponseForMessage(assistantResponse),
+        });
+        this.sessions.touch(input.profileId, session.id);
+      }
+
+      return {
+        session: this.resolveSession(input.profileId, session.id),
+        messages: await this.listMessages({ profileId: input.profileId, sessionId: session.id }),
+        execution: toAgentPanelExecutionSummary(execution),
+      };
+    } finally {
+      if (materializedAttachments.length > 0) {
+        this.attachmentCache.cleanupSessionCache(input.profileId, session.id);
       }
     }
-
-    if (hasAssistantResponse(assistantResponse)) {
-      this.messages.append({
-        id: `msg_${randomUUID()}`,
-        profileId: input.profileId,
-        sessionId: session.id,
-        role: "assistant",
-        content: normalizeAssistantResponseForMessage(assistantResponse),
-      });
-      this.sessions.touch(input.profileId, session.id);
-    }
-
-    return {
-      session: this.resolveSession(input.profileId, session.id),
-      messages: await this.listMessages({ profileId: input.profileId, sessionId: session.id }),
-      execution: toAgentPanelExecutionSummary(execution),
-    };
   }
 
   async deleteSession(input: DeleteAgentPanelSessionInput): Promise<void> {

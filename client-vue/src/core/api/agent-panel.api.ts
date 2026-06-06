@@ -3,6 +3,7 @@ import { ENDPOINTS } from './endpoints.ts'
 import { API_BASE_URL } from '@/core/constants/app'
 import type {
   AgentPanelMessageResult,
+  AgentPanelAttachmentRef,
   AgentPanelStreamEvent,
   CreateAgentPanelSessionPayload,
   DeleteAgentPanelSessionPayload,
@@ -38,6 +39,15 @@ export const agentPanelApi = {
 
   listMessages: (sessionId: string) =>
     apiRequest<AgentChatMessage[]>(ENDPOINTS.AGENT_PANEL_SESSION_MESSAGES(sessionId)),
+
+  uploadAttachment: (sessionId: string, file: File) => {
+    const body = new FormData()
+    body.append('file', file, file.name)
+    return apiRequest<AgentPanelAttachmentRef>(ENDPOINTS.AGENT_PANEL_SESSION_ATTACHMENTS(sessionId), {
+      method: 'POST',
+      body,
+    })
+  },
 
   sendFirstMessage: (agentKey: string, payload: SendAgentPanelMessagePayload) =>
     apiRequest<AgentPanelMessageResult>(ENDPOINTS.AGENT_PANEL_AGENT_MESSAGES(agentKey), {
@@ -99,6 +109,7 @@ async function startMessageStream(
 function agentPanelMessageBody(payload: SendAgentPanelMessagePayload) {
   return {
     message: payload.message,
+    ...(payload.attachments?.length ? { attachments: payload.attachments } : {}),
     ...(payload.selectedValue !== undefined ? { selectedValue: payload.selectedValue } : {}),
     ...(payload.executionMode ? { executionMode: payload.executionMode } : {}),
   }

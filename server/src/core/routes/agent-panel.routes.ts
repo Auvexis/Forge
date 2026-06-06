@@ -21,6 +21,7 @@ export interface AgentPanelRoutesOptions {
     | "sendFirstMessage"
     | "sendMessage"
     | "appendStreamAssistantMessage"
+    | "cacheAttachment"
     | "deleteSession"
   >;
 }
@@ -34,9 +35,12 @@ interface PendingAgentPanelStream {
   profileId: string;
   sessionId: string;
   message: string;
+  attachments?: AgentPanelAttachmentPayload[];
   executionMode?: "loop" | "plan";
   createdAt: number;
 }
+
+type AgentPanelAttachmentPayload = { id: string; fileName: string; mimeType?: string; bytes: number };
 
 export default async function agentPanelRoutes(
   fastify: FastifyInstance,
@@ -143,10 +147,40 @@ export default async function agentPanelRoutes(
     }
   });
 
+  fastify.post("/agent-panel/sessions/:sessionId/attachments", async (req, reply) => {
+    try {
+      const { sessionId } = req.params as { sessionId: string };
+      const file = await (req as any).file();
+      if (!file) {
+        throw new AgentRuntimeError(
+          "Agent panel attachment is missing",
+          "AGENT_PANEL_ATTACHMENT_MISSING",
+          "Attachment is missing",
+          400,
+        );
+      }
+
+      return sendResponse(reply, {
+        status_code: 201,
+        message: "Agent panel attachment cached",
+        error: null,
+        data: await getService().cacheAttachment({
+          profileId: getProfileId(),
+          sessionId,
+          fileName: file.filename,
+          mimeType: file.mimetype,
+          content: file.file,
+        }),
+      });
+    } catch (error) {
+      return sendAgentError(reply, error);
+    }
+  });
+
   fastify.post("/agent-panel/sessions/:sessionId/messages", async (req, reply) => {
     try {
       const { sessionId } = req.params as { sessionId: string };
-      const body = req.body as { message?: unknown; executionMode?: unknown } | undefined;
+      const body = req.body as { message?: unknown; attachments?: unknown; executionMode?: unknown } | undefined;
       const message = String(body?.message ?? "").trim();
       if (!message) {
         throw new AgentRuntimeError(
@@ -165,6 +199,7 @@ export default async function agentPanelRoutes(
           profileId: getProfileId(),
           sessionId,
           message,
+          attachments: normalizeAttachments(body?.attachments),
           executionMode: normalizeExecutionMode(body?.executionMode),
         }),
       });
@@ -176,7 +211,7 @@ export default async function agentPanelRoutes(
   fastify.post("/agent-panel/sessions/:sessionId/messages/stream/start", async (req, reply) => {
     try {
       const { sessionId } = req.params as { sessionId: string };
-      const body = req.body as { message?: unknown; executionMode?: unknown } | undefined;
+      const body = req.body as { message?: unknown; attachments?: unknown; executionMode?: unknown } | undefined;
       const message = String(body?.message ?? "").trim();
       if (!message) {
         throw new AgentRuntimeError(
@@ -192,6 +227,7 @@ export default async function agentPanelRoutes(
         profileId: getProfileId(),
         sessionId,
         message,
+        attachments: normalizeAttachments(body?.attachments),
         executionMode: normalizeExecutionMode(body?.executionMode),
         createdAt: Date.now(),
       });
@@ -228,6 +264,7 @@ export default async function agentPanelRoutes(
       profileId: pending.profileId,
       sessionId,
       message: pending.message,
+      attachments: pending.attachments,
       executionMode: pending.executionMode,
       service: getService(),
     });
@@ -235,7 +272,7 @@ export default async function agentPanelRoutes(
 
   fastify.post("/agent-panel/sessions/:sessionId/messages/stream", async (req, reply) => {
     const { sessionId } = req.params as { sessionId: string };
-    const body = req.body as { message?: unknown; executionMode?: unknown } | undefined;
+    const body = req.body as { message?: unknown; attachments?: unknown; executionMode?: unknown } | undefined;
     const message = String(body?.message ?? "").trim();
     if (!message) {
       return sendAgentError(
@@ -253,6 +290,7 @@ export default async function agentPanelRoutes(
       profileId: getProfileId(),
       sessionId,
       message,
+      attachments: normalizeAttachments(body?.attachments),
       executionMode: normalizeExecutionMode(body?.executionMode),
       service: getService(),
     });
@@ -303,6 +341,7 @@ async function streamAgentPanelMessage(
     profileId: string;
     sessionId: string;
     message: string;
+    attachments?: AgentPanelAttachmentPayload[];
     executionMode?: "loop" | "plan";
     service: Pick<AgentPanelChatService, "sendMessage"> & Partial<Pick<AgentPanelChatService, "appendStreamAssistantMessage">>;
   },
@@ -469,6 +508,7 @@ async function streamAgentPanelMessage(
       profileId: input.profileId,
       sessionId: input.sessionId,
       message: input.message,
+      attachments: input.attachments,
       executionMode: input.executionMode,
       executionId,
       skipPersistedToolMessages: Boolean(input.service.appendStreamAssistantMessage),
@@ -839,6 +879,25 @@ function normalizeAgentPanelScope(value: unknown): AgentPanelScope {
 
 function stringOrUndefined(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function normalizeAttachments(value: unknown): AgentPanelAttachmentPayload[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const attachments = value
+    .map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+      const record = item as Record<string, unknown>;
+      if (typeof record.id !== "string" || typeof record.fileName !== "string") return null;
+      const bytes = typeof record.bytes === "number" ? record.bytes : Number(record.bytes);
+      return {
+        id: record.id,
+        fileName: record.fileName,
+        ...(typeof record.mimeType === "string" ? { mimeType: record.mimeType } : {}),
+        bytes: Number.isFinite(bytes) ? bytes : 0,
+      };
+    })
+    .filter((item): item is AgentPanelAttachmentPayload => Boolean(item));
+  return attachments.length ? attachments : undefined;
 }
 
 function isWaitingApprovalResult(result: unknown): boolean {
