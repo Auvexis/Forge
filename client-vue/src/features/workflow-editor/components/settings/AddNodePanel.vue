@@ -673,6 +673,7 @@ const goBack = () => {
 /* ── Content scroll area ── */
 .add-node-content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: var(--sailor-space-3);
   display: flex;

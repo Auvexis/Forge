@@ -141,6 +141,13 @@ test('chat trigger is configured through the normal trigger node, not an AI pale
   assert.doesNotMatch(panel, /type: 'chat-trigger'/)
 })
 
+test('add node panel keeps the plugin methods view scrollable inside the panel', () => {
+  const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+
+  assert.match(panel, /\.add-node-panel\s*\{[\s\S]*overflow: hidden;/)
+  assert.match(panel, /\.add-node-content\s*\{[\s\S]*min-height: 0;[\s\S]*overflow-y: auto;/)
+})
+
 test('node inspector previews summarize provider, memory, tools, and chat trigger', () => {
   const source = read('src/features/workflow-editor/components/settings/nodeInspectorPreview.ts')
 
