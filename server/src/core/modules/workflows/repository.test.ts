@@ -5,7 +5,9 @@ import Database from "better-sqlite3";
 import { createMigrationEngine } from "../../database/migration-engine.ts";
 import {
   resetWorkflowDatabaseProvider,
+  resetWorkflowGitSnapshotWriter,
   setWorkflowDatabaseProvider,
+  setWorkflowGitSnapshotWriter,
   WorkflowRepository,
 } from "./repository.ts";
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
@@ -38,6 +40,7 @@ function workflow(id: string, name: string): WorkflowItem {
 describe("WorkflowRepository", () => {
   afterEach(() => {
     resetWorkflowDatabaseProvider();
+    resetWorkflowGitSnapshotWriter();
   });
 
   it("uses the active database provider so workflows stay isolated by profile", async () => {
@@ -63,5 +66,19 @@ describe("WorkflowRepository", () => {
 
     profileA.close();
     profileB.close();
+  });
+
+  it("records a workflow git snapshot whenever a workflow is saved", async () => {
+    const db = await createWorkflowDb();
+    const snapshots: WorkflowItem[] = [];
+    setWorkflowDatabaseProvider(() => db);
+    setWorkflowGitSnapshotWriter((item) => snapshots.push(item));
+
+    const saved = workflow("wf-git", "Git Saved");
+    WorkflowRepository.saveWorkflow(saved);
+
+    assert.equal(snapshots.length, 1);
+    assert.equal(snapshots[0]?.metadata.id, "wf-git");
+    db.close();
   });
 });

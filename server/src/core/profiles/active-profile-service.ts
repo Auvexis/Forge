@@ -5,7 +5,10 @@ import type { ProfileDatabaseManager } from "./profile-database-manager.ts";
 import type { ProfileId, ProfileSummary } from "./profile-types.ts";
 import type { ProfileStore } from "./profile-store.ts";
 import { setAppDatabaseProvider } from "../modules/app/app-repository.ts";
-import { setWorkflowDatabaseProvider } from "../modules/workflows/repository.ts";
+import {
+  setWorkflowDatabaseProvider,
+  setWorkflowGitSnapshotDataDir,
+} from "../modules/workflows/repository.ts";
 import {
   setCredentialsDatabaseProvider,
 } from "../modules/plugins/credential-store.ts";
@@ -137,6 +140,7 @@ export class ActiveProfileService {
       profileId: profile.id,
     });
     this.databaseManager.open(profilePaths);
+    setWorkflowGitSnapshotDataDir(profilePaths.dataDir);
     this.configureProfileRepositories(this.databaseManager);
     await this.migrate(profile, profilePaths);
     await this.loadProfilePluginSettings(profile, profilePaths);
@@ -150,6 +154,7 @@ export class ActiveProfileService {
       profileId: profile.id,
     });
     this.databaseManager.open(profilePaths);
+    setWorkflowGitSnapshotDataDir(profilePaths.dataDir);
     this.configureProfileRepositories(this.databaseManager);
     await this.migrate(profile, profilePaths);
     await this.loadProfilePluginSettings(profile, profilePaths);

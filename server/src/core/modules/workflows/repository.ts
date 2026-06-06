@@ -1,11 +1,14 @@
 import { DatabaseManager } from "../../database/index.ts";
 import { listTriggerEntries } from "./workflow-triggers.ts";
+import { WorkflowGitSnapshotService } from "./workflow-git-snapshot-service.ts";
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 import type Database from "better-sqlite3";
 
 type WorkflowDatabaseProvider = () => Database.Database;
+type WorkflowGitSnapshotWriter = (workflow: WorkflowItem) => void;
 
 let workflowDatabaseProvider: WorkflowDatabaseProvider = () => DatabaseManager.workflows;
+let workflowGitSnapshotWriter: WorkflowGitSnapshotWriter | null = null;
 
 export function setWorkflowDatabaseProvider(provider: WorkflowDatabaseProvider): void {
   workflowDatabaseProvider = provider;
@@ -15,8 +18,29 @@ export function resetWorkflowDatabaseProvider(): void {
   workflowDatabaseProvider = () => DatabaseManager.workflows;
 }
 
+export function setWorkflowGitSnapshotDataDir(dataDir: string): void {
+  const service = new WorkflowGitSnapshotService({ dataDir });
+  workflowGitSnapshotWriter = (workflow) => service.save(workflow);
+}
+
+export function setWorkflowGitSnapshotWriter(writer: WorkflowGitSnapshotWriter | null): void {
+  workflowGitSnapshotWriter = writer;
+}
+
+export function resetWorkflowGitSnapshotWriter(): void {
+  workflowGitSnapshotWriter = null;
+}
+
 function getWorkflowDatabase(): Database.Database {
   return workflowDatabaseProvider();
+}
+
+function saveWorkflowGitSnapshot(workflow: WorkflowItem): void {
+  try {
+    workflowGitSnapshotWriter?.(workflow);
+  } catch (error) {
+    console.warn("[SAILOR | WORKFLOWS]: Failed to save workflow git snapshot", error);
+  }
 }
 
 export const WorkflowRepository = {
@@ -48,6 +72,7 @@ export const WorkflowRepository = {
       workflow.metadata.publishedAt || null,
       JSON.stringify(workflow)
     );
+    saveWorkflowGitSnapshot(workflow);
     return workflow;
   },
 
@@ -114,6 +139,7 @@ export const WorkflowRepository = {
       id
     );
 
+    saveWorkflowGitSnapshot(workflow);
     return workflow;
   },
 
@@ -137,6 +163,7 @@ export const WorkflowRepository = {
       id
     );
 
+    saveWorkflowGitSnapshot(workflow);
     return workflow;
   },
 
