@@ -15,7 +15,7 @@ function plugin(id: string, triggerName: string, calls: string[]): SailorPlugin 
         id,
         name: id,
         description: id,
-        category: "test",
+        category: "Utilities",
         author: "SAILOR",
         version: "1.0.0",
       },

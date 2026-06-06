@@ -148,6 +148,22 @@ test('add node panel keeps the plugin methods view scrollable inside the panel',
   assert.match(panel, /\.add-node-content\s*\{[\s\S]*min-height: 0;[\s\S]*overflow-y: auto;/)
 })
 
+test('add node panel groups plugin choices by category with filter and collapse controls', () => {
+  const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+
+  assert.match(panel, /PLUGIN_CATEGORIES/)
+  assert.match(panel, /selectedCategory/)
+  assert.match(panel, /categoryFilterOpen/)
+  assert.match(panel, /pluginCategory\(plugin\)/)
+  assert.match(panel, /utilityPluginGroups/)
+  assert.match(panel, /integrationPluginGroups/)
+  assert.match(panel, /toggleCategory\('utility'/)
+  assert.match(panel, /toggleCategory\('integration'/)
+  assert.match(panel, /add-node-category-filter-btn/)
+  assert.match(panel, /add-node-category-toggle/)
+  assert.match(panel, /add-node-category-group/)
+})
+
 test('node inspector previews summarize provider, memory, tools, and chat trigger', () => {
   const source = read('src/features/workflow-editor/components/settings/nodeInspectorPreview.ts')
 

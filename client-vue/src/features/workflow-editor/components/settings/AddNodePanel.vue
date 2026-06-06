@@ -10,13 +10,35 @@
 
     <!-- Search -->
     <div class="add-node-search-wrapper">
-      <BaseInput
-        ref="searchInput"
-        v-model="search"
-        icon-left="search"
-        :placeholder="searchPlaceholder"
-        autofocus
-      />
+      <div class="add-node-search-row">
+        <BaseInput
+          ref="searchInput"
+          v-model="search"
+          icon-left="search"
+          :placeholder="searchPlaceholder"
+          autofocus
+        />
+        <button
+          class="add-node-category-filter-btn"
+          type="button"
+          @click="categoryFilterOpen = !categoryFilterOpen"
+        >
+          <LucideIcon name="list-filter" :size="14" />
+          <span>{{ selectedCategoryLabel }}</span>
+        </button>
+        <div v-if="categoryFilterOpen" class="add-node-category-menu">
+          <button
+            v-for="category in categoryFilterOptions"
+            :key="category"
+            class="add-node-category-option"
+            :class="{ 'add-node-category-option--active': selectedCategory === category }"
+            type="button"
+            @click="selectCategoryFilter(category)"
+          >
+            {{ category }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Content -->
@@ -50,24 +72,46 @@
               </div>
             </button>
 
-            <!-- Utility plugins -->
-            <button
-              v-for="plugin in filteredUtilityPlugins"
-              :key="plugin.id"
-              class="add-node-item"
-              style="position: relative; z-index: 1"
-              @click="selectPlugin(plugin.id)"
-            >
-              <div class="add-node-item-icon-well" :style="{ backgroundColor: plugin.manifest.metadata.style?.bgColor || 'var(--sailor-bg-surface)', borderColor: plugin.manifest.metadata.style?.borderColor || 'var(--sailor-border)' }">
-                <LucideIcon :name="pluginIcon(plugin)" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--sailor-text-muted)'" />
-              </div>
-              <div class="add-node-item-info">
-                <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
-                <span class="add-node-item-desc">{{ plugin.manifest.metadata.description }}</span>
-              </div>
-              <LucideIcon name="chevron-right" :size="14" class="add-node-item-chevron" />
-            </button>
           </BaseWoobyMenu>
+
+          <!-- Utility plugins -->
+          <div
+            v-for="group in utilityPluginGroups"
+            :key="`utility-${group.category}`"
+            class="add-node-category-group"
+          >
+            <button
+              class="add-node-category-toggle"
+              type="button"
+              @click="toggleCategory('utility', group.category)"
+            >
+              <LucideIcon :name="isCategoryCollapsed('utility', group.category) ? 'chevron-right' : 'chevron-down'" :size="14" />
+              <span>{{ group.category }}</span>
+              <code>{{ group.plugins.length }}</code>
+            </button>
+            <BaseWoobyMenu
+              v-if="!isCategoryCollapsed('utility', group.category)"
+              tag="div"
+              class="add-node-list"
+            >
+              <button
+                v-for="plugin in group.plugins"
+                :key="plugin.id"
+                class="add-node-item"
+                style="position: relative; z-index: 1"
+                @click="selectPlugin(plugin.id)"
+              >
+                <div class="add-node-item-icon-well" :style="{ backgroundColor: plugin.manifest.metadata.style?.bgColor || 'var(--sailor-bg-surface)', borderColor: plugin.manifest.metadata.style?.borderColor || 'var(--sailor-border)' }">
+                  <LucideIcon :name="pluginIcon(plugin)" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--sailor-text-muted)'" />
+                </div>
+                <div class="add-node-item-info">
+                  <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
+                  <span class="add-node-item-desc">{{ plugin.manifest.metadata.description }}</span>
+                </div>
+                <LucideIcon name="chevron-right" :size="14" class="add-node-item-chevron" />
+              </button>
+            </BaseWoobyMenu>
+          </div>
         </div>
 
         <!-- AI -->
@@ -99,24 +143,45 @@
             <LucideIcon name="blocks" :size="32" class="add-node-empty-icon" />
             <p>No integrations found.</p>
           </div>
-          <BaseWoobyMenu v-else tag="div" class="add-node-list">
-            <button
-              v-for="plugin in filteredIntegrationPlugins"
-              :key="plugin.id"
-              class="add-node-item"
-              style="position: relative; z-index: 1"
-              @click="selectPlugin(plugin.id)"
+          <div v-else class="add-node-category-stack">
+            <div
+              v-for="group in integrationPluginGroups"
+              :key="`integration-${group.category}`"
+              class="add-node-category-group"
             >
-              <div class="add-node-item-icon-well add-node-item-icon-well--plugin">
-                <LucideIcon :name="pluginIcon(plugin)" :size="18" class="add-node-plugin-img" />
-              </div>
-              <div class="add-node-item-info">
-                <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
-                <span class="add-node-item-desc">{{ plugin.manifest.metadata.description }}</span>
-              </div>
-              <LucideIcon name="chevron-right" :size="14" class="add-node-item-chevron" />
-            </button>
-          </BaseWoobyMenu>
+              <button
+                class="add-node-category-toggle"
+                type="button"
+                @click="toggleCategory('integration', group.category)"
+              >
+                <LucideIcon :name="isCategoryCollapsed('integration', group.category) ? 'chevron-right' : 'chevron-down'" :size="14" />
+                <span>{{ group.category }}</span>
+                <code>{{ group.plugins.length }}</code>
+              </button>
+              <BaseWoobyMenu
+                v-if="!isCategoryCollapsed('integration', group.category)"
+                tag="div"
+                class="add-node-list"
+              >
+                <button
+                  v-for="plugin in group.plugins"
+                  :key="plugin.id"
+                  class="add-node-item"
+                  style="position: relative; z-index: 1"
+                  @click="selectPlugin(plugin.id)"
+                >
+                  <div class="add-node-item-icon-well add-node-item-icon-well--plugin">
+                    <LucideIcon :name="pluginIcon(plugin)" :size="18" class="add-node-plugin-img" />
+                  </div>
+                  <div class="add-node-item-info">
+                    <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
+                    <span class="add-node-item-desc">{{ plugin.manifest.metadata.description }}</span>
+                  </div>
+                  <LucideIcon name="chevron-right" :size="14" class="add-node-item-chevron" />
+                </button>
+              </BaseWoobyMenu>
+            </div>
+          </div>
         </div>
 
         <div v-if="isAgentModelContext" class="add-node-section">
@@ -221,7 +286,7 @@ import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { useTheme } from '@/shared/composables/useTheme'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
-import type { PluginSummary } from '@/core/types/plugin.types'
+import { PLUGIN_CATEGORIES, type PluginSummary } from '@/core/types/plugin.types'
 
 const props = defineProps<{
   onAddLogicNode?: (type: WorkflowNodeType, defaults?: Record<string, unknown>) => void
@@ -240,6 +305,9 @@ const selectedPluginId = ref<string | null>(null)
 const search = ref('')
 const searchInput = ref<InstanceType<typeof BaseInput>>()
 const { isDark } = useTheme()
+const categoryFilterOpen = ref(false)
+const selectedCategory = ref<'All' | string>('All')
+const collapsedCategories = ref(new Set<string>())
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
@@ -432,6 +500,8 @@ const searchPlaceholder = computed(() => {
   if (isAgentToolContext.value) return 'Search tools...'
   return 'Search components...'
 })
+const selectedCategoryLabel = computed(() => selectedCategory.value === 'All' ? 'All' : selectedCategory.value)
+const categoryFilterOptions = computed(() => ['All', ...PLUGIN_CATEGORIES])
 
 const isAgentModelContext = computed(() => props.agentConfigHandle === 'chatModel')
 const isAgentMemoryContext = computed(() => props.agentConfigHandle === 'memory')
@@ -454,13 +524,15 @@ const filteredAgentMemoryPresets = computed(() =>
 
 const filteredPlugins = computed(() =>
   (plugins.value ?? []).filter((p) =>
-    p.manifest.metadata.name.toLowerCase().includes(search.value.toLowerCase()),
+    p.manifest.metadata.name.toLowerCase().includes(search.value.toLowerCase()) &&
+    (selectedCategory.value === 'All' || pluginCategory(p) === selectedCategory.value),
   ),
 )
 
 const filteredUtilityPlugins = computed(() =>
   filteredPlugins.value.filter((p) => p.manifest.metadata.utility === true)
 )
+const utilityPluginGroups = computed(() => groupPluginsByCategory(filteredUtilityPlugins.value))
 
 const pluginHasAgentTools = (plugin: PluginSummary) =>
   Object.values(plugin.manifest.methods).some((method) => method.agentTool?.enabled === true)
@@ -470,6 +542,7 @@ const filteredIntegrationPlugins = computed(() =>
     ? filteredPlugins.value.filter(pluginHasAgentTools)
     : filteredPlugins.value.filter((p) => p.manifest.metadata.utility !== true)
 )
+const integrationPluginGroups = computed(() => groupPluginsByCategory(filteredIntegrationPlugins.value))
 
 const agentChatModelPlugins = computed(() =>
   filteredPlugins.value.filter((plugin) => {
@@ -500,6 +573,42 @@ const filteredMethods = computed(() => {
 
 const pluginIcon = (plugin: PluginSummary) =>
   resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
+
+const pluginCategory = (plugin: PluginSummary) => {
+  const category = plugin.manifest.metadata.category
+  return PLUGIN_CATEGORIES.includes(category as (typeof PLUGIN_CATEGORIES)[number])
+    ? category
+    : 'Other'
+}
+
+const groupPluginsByCategory = (items: PluginSummary[]) =>
+  PLUGIN_CATEGORIES
+    .map((category) => ({
+      category,
+      plugins: items.filter((plugin) => pluginCategory(plugin) === category),
+    }))
+    .filter((group) => group.plugins.length > 0)
+
+const categoryCollapseKey = (scope: 'utility' | 'integration', category: string) => `${scope}:${category}`
+
+const isCategoryCollapsed = (scope: 'utility' | 'integration', category: string) =>
+  collapsedCategories.value.has(categoryCollapseKey(scope, category))
+
+const toggleCategory = (scope: 'utility' | 'integration', category: string) => {
+  const next = new Set(collapsedCategories.value)
+  const key = categoryCollapseKey(scope, category)
+  if (next.has(key)) {
+    next.delete(key)
+  } else {
+    next.add(key)
+  }
+  collapsedCategories.value = next
+}
+
+const selectCategoryFilter = (category: string) => {
+  selectedCategory.value = category
+  categoryFilterOpen.value = false
+}
 
 const presetPlugin = (def: AddNodeDefinition) =>
   (plugins.value ?? []).find((plugin) =>
@@ -630,9 +739,73 @@ const goBack = () => {
 
 /* ── Search ── */
 .add-node-search-wrapper {
+  position: relative;
   padding: var(--sailor-space-3) var(--sailor-space-4);
   border-bottom: 1px solid var(--sailor-border);
   flex-shrink: 0;
+}
+
+.add-node-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sailor-space-2);
+  align-items: center;
+}
+
+.add-node-category-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sailor-space-1);
+  height: 32px;
+  max-width: 132px;
+  padding: 0 var(--sailor-space-2);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-node-category-filter-btn span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.add-node-category-menu {
+  position: absolute;
+  right: var(--sailor-space-4);
+  top: calc(100% - var(--sailor-space-2));
+  z-index: 20;
+  display: flex;
+  min-width: 156px;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sailor-space-1);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-elevated);
+  box-shadow: var(--sailor-shadow-lg);
+}
+
+.add-node-category-option {
+  padding: var(--sailor-space-2);
+  border: 0;
+  border-radius: var(--sailor-radius-sm);
+  background: transparent;
+  color: var(--sailor-text-secondary);
+  font: inherit;
+  font-size: var(--sailor-text-xs);
+  text-align: left;
+  cursor: pointer;
+}
+
+.add-node-category-option:hover,
+.add-node-category-option--active {
+  background: var(--sailor-bg-overlay);
+  color: var(--sailor-text-primary);
 }
 
 .add-node-search-inner {
@@ -702,6 +875,41 @@ const goBack = () => {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.add-node-category-stack,
+.add-node-category-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-1);
+}
+
+.add-node-category-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-1);
+  width: 100%;
+  padding: var(--sailor-space-1) var(--sailor-space-1);
+  border: 0;
+  border-radius: var(--sailor-radius-sm);
+  background: transparent;
+  color: var(--sailor-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.add-node-category-toggle:hover {
+  background: var(--sailor-bg-overlay);
+  color: var(--sailor-text-primary);
+}
+
+.add-node-category-toggle code {
+  margin-left: auto;
+  color: var(--sailor-text-muted);
+  font-size: 10px;
 }
 
 /* ── Item ── */

@@ -43,6 +43,19 @@ export interface PluginStatusResponse {
 export type AgentModelAdapter = 'openai-compatible' | 'generic' | 'ollama'
 export type AgentMemoryAdapter = 'sailor-internal' | 'plugin-memory-store'
 
+export const PLUGIN_CATEGORIES = [
+  'AI',
+  'Communication',
+  'Database',
+  'Development',
+  'Google',
+  'Productivity',
+  'Utilities',
+  'Other',
+] as const
+
+export type PluginCategory = (typeof PLUGIN_CATEGORIES)[number]
+
 export interface PluginAgentChatModelCapability {
   enabled: boolean
   adapter?: AgentModelAdapter
@@ -78,7 +91,7 @@ export interface PluginMetadata {
   icon: string
   iconLight?: string
   iconDark?: string
-  category: string
+  category: PluginCategory | string
   author: string
   version: string
   repository: string
