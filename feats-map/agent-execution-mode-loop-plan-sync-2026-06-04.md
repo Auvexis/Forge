@@ -354,3 +354,10 @@ Resultado Task 2:
 - [x] Atualizar instrucao generica do loop sem acoplar Gmail/Drive/YouTube.
 - [x] Atualizar timeout generico do executor de plugin.
 - [x] Rodar testes focados, build e commit.
+
+## Task 36 - Resolver Agent File Ref Dentro De Content
+
+- [x] Criar teste para attachment com `content: { type: "file", ref: "agent-file://..." }` virar stream real.
+- [x] Corrigir resolvedor generico de file refs sem acoplar Gmail/Drive.
+- [x] Garantir filename/mimeType preservados do objeto pai ou do ref.
+- [x] Rodar testes focados, build e commit.

@@ -174,6 +174,21 @@ function resolveFileRefs(store: AgentFileRefStore, value: unknown, keyHint = "")
     };
   }
 
+  const nestedContent = record.content;
+  if (nestedContent && typeof nestedContent === "object" && !Array.isArray(nestedContent)) {
+    const nestedRecord = nestedContent as Record<string, unknown>;
+    if (typeof nestedRecord.ref === "string" && nestedRecord.ref.startsWith("agent-file://")) {
+      const stored = store.resolve(nestedRecord.ref);
+      return {
+        filename: firstString(record.fileName, record.filename, nestedRecord.fileName, nestedRecord.filename, stored.fileName) ?? "attachment.bin",
+        ...(firstString(record.mimeType, record.mimetype, nestedRecord.mimeType, nestedRecord.mimetype, stored.mimeType)
+          ? { mimeType: firstString(record.mimeType, record.mimetype, nestedRecord.mimeType, nestedRecord.mimetype, stored.mimeType) }
+          : {}),
+        content: fs.createReadStream(stored.filePath),
+      };
+    }
+  }
+
   return Object.fromEntries(
     Object.entries(record).map(([key, item]) => [
       key,
