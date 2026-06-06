@@ -8,9 +8,14 @@ describe("agent runtime dependency policy", () => {
 
     assert.ok(dependencies["@langchain/core"]);
     assert.ok(dependencies["@langchain/langgraph"]);
-    assert.ok(dependencies["@langchain/openai"]);
     assert.ok(dependencies["@langchain/langgraph-checkpoint-sqlite"]);
     assert.match(dependencies["@langchain/core"], /^\^?\d+\.\d+\.\d+|latest$/);
     assert.match(dependencies["@langchain/langgraph"], /^\^?\d+\.\d+\.\d+|latest$/);
+  });
+
+  it("does not require LangChain OpenAI for the first-class OpenAI adapter", () => {
+    const dependencies = packageJson.dependencies as Record<string, string>;
+
+    assert.equal(Object.hasOwn(dependencies, "@langchain/openai"), false);
   });
 });

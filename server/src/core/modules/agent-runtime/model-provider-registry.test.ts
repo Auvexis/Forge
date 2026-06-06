@@ -2,19 +2,22 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { AgentRuntimeError } from "./agent-errors.ts";
 import { AgentModelProviderRegistry } from "./model-provider-registry.ts";
-import { OpenAiCompatibleProvider } from "./model-providers/openai-compatible-provider.ts";
+import { OpenAiModelProvider } from "./model-adapters/openai-model-provider.ts";
 import type { AiModelNodeConfig } from "./agent-types.ts";
 import { PluginManager } from "../plugins/manager.ts";
 
 describe("agent model provider registry", () => {
-  it("creates an OpenAI-compatible model for an arbitrary plugin id", async () => {
+  it("registers the first-class OpenAI model provider for openai-compatible configs", async () => {
     const registry = new AgentModelProviderRegistry({
       credentialResolver: () => ({ api_key: "sk-test" }),
+      fetch: async () => response({ output_text: "ok" }),
     });
 
     const model = await registry.createChatModel(modelConfig());
 
-    assert.ok(model);
+    assert.equal(typeof (model as any).invoke, "function");
+    assert.equal(typeof (model as any).invokeJson, "function");
+    assert.equal(typeof (model as any).generateFinalResponse, "function");
   });
 
   it("uses credential id first and falls back to plugin credentials when unusable", async () => {
@@ -26,6 +29,7 @@ describe("agent model provider registry", () => {
         if (credentialId === "generic-ai") return credentials({ apiKey: "sk-plugin" });
         return null;
       },
+      fetch: async () => response({ output_text: "ok" }),
     });
 
     const model = await registry.createChatModel(modelConfig());
@@ -41,6 +45,7 @@ describe("agent model provider registry", () => {
         resolvedIds.push(credentialId);
         return credentialId === "generic-ai" ? { api_key: "sk-plugin" } : null;
       },
+      fetch: async () => response({ output_text: "ok" }),
     });
 
     const model = await registry.createChatModel({
@@ -53,12 +58,12 @@ describe("agent model provider registry", () => {
   });
 
   it("uses config base URL for OpenAI-compatible models without plugin-specific branches", async () => {
-    const created: any[] = [];
-    const provider = new OpenAiCompatibleProvider({
+    const requests: Array<{ url: string }> = [];
+    const provider = new OpenAiModelProvider({
       credentialResolver: () => ({ api_key: "or-test" }),
-      createModel: (config) => {
-        created.push(config);
-        return { kind: "fake-model", config };
+      fetch: async (url) => {
+        requests.push({ url: String(url) });
+        return response({ output_text: "ok" });
       },
     });
 
@@ -68,17 +73,21 @@ describe("agent model provider registry", () => {
       baseUrl: "https://generic.example.test/v1",
     });
 
-    assert.equal((model as any).kind, "fake-model");
-    assert.equal(created[0].configuration.baseURL, "https://generic.example.test/v1");
+    await (model as any).invoke([{ role: "user", content: "hello" }]);
+
+    assert.equal(requests[0].url, "https://generic.example.test/v1/responses");
   });
 
   it("creates generic local models without stored credentials", async () => {
-    const created: any[] = [];
+    const requests: Array<{ url: string; headers: Record<string, string> }> = [];
     const registry = new AgentModelProviderRegistry({
       credentialResolver: () => null,
-      createModel: (config) => {
-        created.push(config);
-        return { kind: "fake-model", config };
+      fetch: async (url, init) => {
+        requests.push({
+          url: String(url),
+          headers: init?.headers as Record<string, string>,
+        });
+        return response({ output_text: "ok" });
       },
     });
 
@@ -91,14 +100,16 @@ describe("agent model provider registry", () => {
       credentialId: undefined,
     });
 
-    assert.equal((model as any).kind, "fake-model");
-    assert.equal(created[0].configuration.baseURL, "http://localhost:11434/v1");
-    assert.equal(created[0].apiKey, "sailor-local");
+    await (model as any).invoke([{ role: "user", content: "hello" }]);
+
+    assert.equal(requests[0].url, "http://localhost:11434/v1/responses");
+    assert.equal(requests[0].headers.Authorization, "Bearer sailor-local");
   });
 
   it("creates native Ollama local models without stored credentials", async () => {
     const registry = new AgentModelProviderRegistry({
       credentialResolver: () => null,
+      fetch: async () => response({ output_text: "ok" }),
     });
 
     const model = await registry.createChatModel({
@@ -115,7 +126,7 @@ describe("agent model provider registry", () => {
   });
 
   it("ignores plugin thinking metadata for agent chat model capability", async () => {
-    const created: any[] = [];
+    const requests: Array<{ body: any }> = [];
     PluginManager.clearPlugins();
     PluginManager.registerPlugin({
       id: "sailor-ollama",
@@ -150,13 +161,13 @@ describe("agent model provider registry", () => {
     try {
       const registry = new AgentModelProviderRegistry({
         credentialResolver: () => null,
-        createModel: (config) => {
-          created.push(config);
-          return { kind: "fake-model", config };
+        fetch: async (_url, init) => {
+          requests.push({ body: JSON.parse(String(init?.body)) });
+          return response({ output_text: "ok" });
         },
       });
 
-      await registry.createChatModel({
+      const model = await registry.createChatModel({
         ...modelConfig(),
         pluginId: "sailor-ollama",
         adapter: "generic",
@@ -166,14 +177,17 @@ describe("agent model provider registry", () => {
         thinkingEnabled: false,
       });
 
-      assert.equal(Object.hasOwn(created[0], "modelKwargs"), false);
+      await (model as any).invoke([{ role: "user", content: "hello" }]);
+
+      assert.equal("think" in requests[0].body, false);
+      assert.equal("thinking" in requests[0].body, false);
     } finally {
       PluginManager.clearPlugins();
     }
   });
 
   it("does not merge plugin thinking metadata into older saved model configs", async () => {
-    const created: any[] = [];
+    const requests: Array<{ body: any }> = [];
     PluginManager.clearPlugins();
     PluginManager.registerPlugin({
       id: "sailor-ollama",
@@ -208,13 +222,13 @@ describe("agent model provider registry", () => {
     try {
       const registry = new AgentModelProviderRegistry({
         credentialResolver: () => null,
-        createModel: (config) => {
-          created.push(config);
-          return { kind: "fake-model", config };
+        fetch: async (_url, init) => {
+          requests.push({ body: JSON.parse(String(init?.body)) });
+          return response({ output_text: "ok" });
         },
       });
 
-      await registry.createChatModel({
+      const model = await registry.createChatModel({
         ...modelConfig(),
         pluginId: "sailor-ollama",
         adapter: "generic",
@@ -225,7 +239,10 @@ describe("agent model provider registry", () => {
         thinkingRequest: { think: true },
       });
 
-      assert.equal(Object.hasOwn(created[0], "modelKwargs"), false);
+      await (model as any).invoke([{ role: "user", content: "hello" }]);
+
+      assert.equal("think" in requests[0].body, false);
+      assert.equal("thinking" in requests[0].body, false);
     } finally {
       PluginManager.clearPlugins();
     }
@@ -234,7 +251,7 @@ describe("agent model provider registry", () => {
   it("rejects generic remote models without credentials", async () => {
     const registry = new AgentModelProviderRegistry({
       credentialResolver: () => null,
-      createModel: () => ({ kind: "fake-model" }),
+      fetch: async () => response({ output_text: "ok" }),
     });
 
     await assert.rejects(
@@ -254,6 +271,7 @@ describe("agent model provider registry", () => {
   it("rejects unknown adapters", async () => {
     const registry = new AgentModelProviderRegistry({
       credentialResolver: () => ({ api_key: "sk-test" }),
+      fetch: async () => response({ output_text: "ok" }),
     });
 
     await assert.rejects(
@@ -269,6 +287,7 @@ describe("agent model provider registry", () => {
   it("rejects missing credentials", async () => {
     const registry = new AgentModelProviderRegistry({
       credentialResolver: () => null,
+      fetch: async () => response({ output_text: "ok" }),
     });
 
     await assert.rejects(
@@ -280,64 +299,67 @@ describe("agent model provider registry", () => {
   });
 
   it("clamps temperature to the supported range", async () => {
-    const created: any[] = [];
-    const provider = new OpenAiCompatibleProvider({
+    const requests: Array<{ body: any }> = [];
+    const provider = new OpenAiModelProvider({
       credentialResolver: () => ({ api_key: "sk-test" }),
-      createModel: (config) => {
-        created.push(config);
-        return { kind: "fake-model" };
+      fetch: async (_url, init) => {
+        requests.push({ body: JSON.parse(String(init?.body)) });
+        return response({ output_text: "ok" });
       },
     });
 
-    await provider.createChatModel({ ...modelConfig(), temperature: 99 });
+    const model = await provider.createChatModel({ ...modelConfig(), temperature: 99 });
+    await (model as any).invoke([{ role: "user", content: "hello" }]);
 
-    assert.equal(created[0].temperature, 2);
+    assert.equal(requests[0].body.temperature, 2);
   });
 
   it("omits temperature for OpenAI default-temperature-only models", async () => {
-    const created: any[] = [];
-    const provider = new OpenAiCompatibleProvider({
+    const requests: Array<{ body: any }> = [];
+    const provider = new OpenAiModelProvider({
       credentialResolver: () => ({ api_key: "sk-test" }),
-      createModel: (config) => {
-        created.push(config);
-        return { kind: "fake-model" };
+      fetch: async (_url, init) => {
+        requests.push({ body: JSON.parse(String(init?.body)) });
+        return response({ output_text: "ok" });
       },
     });
 
-    await provider.createChatModel({ ...modelConfig(), model: "gpt-5-nano", temperature: 0.2 });
+    const model = await provider.createChatModel({ ...modelConfig(), model: "gpt-5-nano", temperature: 0.2 });
+    await (model as any).invoke([{ role: "user", content: "hello" }]);
 
-    assert.equal(Object.hasOwn(created[0], "temperature"), false);
+    assert.equal(Object.hasOwn(requests[0].body, "temperature"), false);
   });
 
   it("uses low-latency defaults for GPT-5 nano chat models", async () => {
-    const created: any[] = [];
-    const provider = new OpenAiCompatibleProvider({
+    const requests: Array<{ body: any }> = [];
+    const provider = new OpenAiModelProvider({
       credentialResolver: () => ({ api_key: "sk-test" }),
-      createModel: (config) => {
-        created.push(config);
-        return { kind: "fake-model" };
+      fetch: async (_url, init) => {
+        requests.push({ body: JSON.parse(String(init?.body)) });
+        return response({ output_text: "ok" });
       },
     });
 
-    await provider.createChatModel({ ...modelConfig(), model: "gpt-5-nano" });
+    const model = await provider.createChatModel({ ...modelConfig(), model: "gpt-5-nano" });
+    await (model as any).invoke([{ role: "user", content: "hello" }]);
 
-    assert.deepEqual(created[0].reasoning, { effort: "minimal" });
-    assert.equal(created[0].verbosity, "low");
+    assert.deepEqual(requests[0].body.reasoning, { effort: "minimal" });
+    assert.equal(requests[0].body.text.verbosity, "low");
   });
 
   it("omits OpenAI-compatible thinking requests from model config", async () => {
-    const created: any[] = [];
-    const provider = new OpenAiCompatibleProvider({
+    const requests: Array<{ body: any }> = [];
+    const provider = new OpenAiModelProvider({
       adapter: "generic",
       allowLocalNoAuth: true,
       credentialResolver: () => null,
-      createModel: (config) => {
-        created.push(config);
-        return { kind: "fake-model" };
+      fetch: async (_url, init) => {
+        requests.push({ body: JSON.parse(String(init?.body)) });
+        return response({ output_text: "ok" });
       },
     });
 
-    await provider.createChatModel({
+    const model = await provider.createChatModel({
       ...modelConfig(),
       pluginId: "sailor-ollama",
       adapter: "generic",
@@ -349,22 +371,25 @@ describe("agent model provider registry", () => {
       thinkingRequest: { reasoning_effort: "medium" },
     });
 
-    assert.equal(Object.hasOwn(created[0], "modelKwargs"), false);
+    await (model as any).invoke([{ role: "user", content: "hello" }]);
+
+    assert.equal("reasoning_effort" in requests[0].body, false);
+    assert.equal("think" in requests[0].body, false);
   });
 
   it("omits native Ollama-style thinking requests from compatible model config", async () => {
-    const created: any[] = [];
-    const provider = new OpenAiCompatibleProvider({
+    const requests: Array<{ body: any }> = [];
+    const provider = new OpenAiModelProvider({
       adapter: "generic",
       allowLocalNoAuth: true,
       credentialResolver: () => null,
-      createModel: (config) => {
-        created.push(config);
-        return { kind: "fake-model" };
+      fetch: async (_url, init) => {
+        requests.push({ body: JSON.parse(String(init?.body)) });
+        return response({ output_text: "ok" });
       },
     });
 
-    await provider.createChatModel({
+    const model = await provider.createChatModel({
       ...modelConfig(),
       pluginId: "sailor-ollama",
       adapter: "generic",
@@ -376,13 +401,15 @@ describe("agent model provider registry", () => {
       thinkingRequest: { think: true },
     });
 
-    assert.equal(Object.hasOwn(created[0], "modelKwargs"), false);
+    await (model as any).invoke([{ role: "user", content: "hello" }]);
+
+    assert.equal("think" in requests[0].body, false);
   });
 
   it("does not expose API keys through JSON serialization", async () => {
-    const provider = new OpenAiCompatibleProvider({
+    const provider = new OpenAiModelProvider({
       credentialResolver: () => ({ api_key: "sk-secret-value" }),
-      createModel: (config) => ({ publicConfig: config }),
+      fetch: async () => response({ output_text: "ok" }),
     });
 
     const model = await provider.createChatModel(modelConfig());
@@ -406,4 +433,14 @@ function modelConfig(): AiModelNodeConfig {
 
 function credentials(values: Record<string, string>): Record<string, string> {
   return values;
+}
+
+function response(body: unknown): Response {
+  return {
+    ok: true,
+    status: 200,
+    statusText: "OK",
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+  } as Response;
 }

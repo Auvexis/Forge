@@ -1,6 +1,6 @@
 import type { AiModelNodeConfig } from "../agent-types.ts";
 import type { AgentModelProvider } from "../model-provider-registry.ts";
-import type { AgentCredentialResolver } from "../model-providers/openai-compatible-provider.ts";
+import type { AgentCredentialResolver } from "./openai-model-provider.ts";
 import { OllamaAdapter } from "./ollama-adapter.ts";
 
 export class OllamaModelProvider implements AgentModelProvider {

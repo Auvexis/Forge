@@ -2,9 +2,10 @@ import { CredentialStore } from "../plugins/credential-store.ts";
 import { AgentRuntimeError } from "./agent-errors.ts";
 import type { AiModelNodeConfig } from "./agent-types.ts";
 import {
-  OpenAiCompatibleProvider,
   type AgentCredentialResolver,
-} from "./model-providers/openai-compatible-provider.ts";
+  OpenAiModelProvider,
+} from "./model-adapters/openai-model-provider.ts";
+import type { FetchLike } from "./model-adapters/openai-adapter.ts";
 import { OllamaModelProvider } from "./model-adapters/ollama-model-provider.ts";
 
 export interface AgentModelProvider {
@@ -15,7 +16,7 @@ export interface AgentModelProvider {
 export interface AgentModelProviderRegistryOptions {
   providers?: AgentModelProvider[];
   credentialResolver?: AgentCredentialResolver;
-  createModel?: (config: Record<string, any>) => unknown;
+  fetch?: FetchLike;
 }
 
 export class AgentModelProviderRegistry {
@@ -26,15 +27,15 @@ export class AgentModelProviderRegistry {
     const providers =
       options.providers ??
       [
-        new OpenAiCompatibleProvider({
+        new OpenAiModelProvider({
           credentialResolver,
-          createModel: options.createModel,
+          fetch: options.fetch,
         }),
-        new OpenAiCompatibleProvider({
+        new OpenAiModelProvider({
           adapter: "generic",
           credentialResolver,
           allowLocalNoAuth: true,
-          createModel: options.createModel,
+          fetch: options.fetch,
         }),
         new OllamaModelProvider({
           credentialResolver,
