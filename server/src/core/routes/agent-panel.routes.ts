@@ -25,7 +25,7 @@ export interface AgentPanelRoutesOptions {
   >;
 }
 
-type AgentPanelScope = "current" | "global";
+type AgentPanelScope = "current" | "global" | "dev-session";
 type MemoryMode = DeleteAgentPanelSessionInput["memoryMode"];
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
 const pendingAgentPanelStreams = new Map<string, PendingAgentPanelStream>();
@@ -49,13 +49,17 @@ export default async function agentPanelRoutes(
 
   fastify.get("/agent-panel/agents", async (req, reply) => {
     try {
-      const query = req.query as { scope?: AgentPanelScope };
-      const scope = query.scope === "global" ? "global" : "current";
+      const query = req.query as { scope?: AgentPanelScope; workflowId?: string };
+      const scope = normalizeAgentPanelScope(query.scope);
       return sendResponse(reply, {
         status_code: 200,
         message: "Agent panel agents fetched",
         error: null,
-        data: await getService().listAgents({ profileId: getProfileId(), scope }),
+        data: await getService().listAgents({
+          profileId: getProfileId(),
+          scope,
+          workflowId: stringOrUndefined(query.workflowId),
+        }),
       });
     } catch (error) {
       return sendAgentError(reply, error);
@@ -826,6 +830,11 @@ function normalizeMemoryMode(value: unknown): MemoryMode {
 function normalizeExecutionMode(value: unknown): "loop" | "plan" | undefined {
   if (value === "loop" || value === "plan") return value;
   return undefined;
+}
+
+function normalizeAgentPanelScope(value: unknown): AgentPanelScope {
+  if (value === "global" || value === "dev-session") return value;
+  return "current";
 }
 
 function stringOrUndefined(value: unknown): string | undefined {

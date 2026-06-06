@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { listPublishedAgentsForProfile } from "./published-agent-directory.ts";
+import { listWorkflowDevSessionAgentsForProfile, listPublishedAgentsForProfile } from "./published-agent-directory.ts";
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 
 describe("published agent directory", () => {
@@ -50,6 +50,28 @@ describe("published agent directory", () => {
     });
 
     assert.equal(listPublishedAgentsForProfile("profile_a", [draft, inactive, noSlug, noModel, unreachable]).length, 0);
+  });
+
+  it("lists draft workflow agents for a dev session scope", () => {
+    const draft = workflowFixture({ metadata: { ...workflowFixture().metadata, isDraft: true, isActive: false } });
+
+    const agents = listWorkflowDevSessionAgentsForProfile("profile_a", draft);
+
+    assert.deepEqual(agents.map((agent) => ({
+      key: agent.key,
+      workflowId: agent.workflowId,
+      triggerNodeId: agent.triggerNodeId,
+      agentNodeId: agent.agentNodeId,
+      chatSlug: agent.chatSlug,
+      name: agent.name,
+    })), [{
+      key: "profile_a:workflow_agent:chat_trigger:agent",
+      workflowId: "workflow_agent",
+      triggerNodeId: "chat_trigger",
+      agentNodeId: "agent",
+      chatSlug: "support-agent",
+      name: "Support Agent",
+    }]);
   });
 
   it("lists multiple reachable agents from one published workflow", () => {

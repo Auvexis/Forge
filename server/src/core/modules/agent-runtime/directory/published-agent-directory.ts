@@ -22,6 +22,13 @@ export function listPublishedAgentsForProfile(
   return workflows.flatMap((workflow) => listWorkflowAgents(profileId, workflow));
 }
 
+export function listWorkflowDevSessionAgentsForProfile(
+  profileId: string,
+  workflow: WorkflowItem,
+): PublishedAgentSummary[] {
+  return listWorkflowAgents(profileId, workflow, { includeDrafts: true });
+}
+
 export function buildPublishedAgentKey(
   profileId: string,
   workflowId: string,
@@ -31,8 +38,12 @@ export function buildPublishedAgentKey(
   return [profileId, workflowId, triggerNodeId, agentNodeId].join(":");
 }
 
-function listWorkflowAgents(profileId: string, workflow: WorkflowItem): PublishedAgentSummary[] {
-  if (!workflow.metadata.isActive || workflow.metadata.isDraft) return [];
+function listWorkflowAgents(
+  profileId: string,
+  workflow: WorkflowItem,
+  options: { includeDrafts?: boolean } = {},
+): PublishedAgentSummary[] {
+  if (!options.includeDrafts && (!workflow.metadata.isActive || workflow.metadata.isDraft)) return [];
 
   const adjacency = buildAdjacency(workflow.edges);
   const agents: PublishedAgentSummary[] = [];

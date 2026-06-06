@@ -56,6 +56,33 @@ describe("agent panel chat service", () => {
     assert.equal(session.agentKey, "profile_a:workflow_agent:chat_trigger:agent");
   });
 
+  it("lists only agents from the requested draft workflow for dev session scope", async () => {
+    const draftWorkflow = workflowFixture({
+      metadata: { ...workflowFixture().metadata, id: "workflow_draft", isActive: false, isDraft: true },
+    });
+    WorkflowRepository.saveWorkflow(draftWorkflow);
+    const otherWorkflow = workflowFixture({
+      metadata: { ...workflowFixture().metadata, id: "workflow_other", name: "Other Workflow" },
+    });
+    WorkflowRepository.saveWorkflow(otherWorkflow);
+
+    const agents = await serviceFixture().listAgents({
+      profileId: "profile_a",
+      scope: "dev-session",
+      workflowId: "workflow_draft",
+    });
+
+    assert.deepEqual(agents.map((agent) => ({
+      workflowId: agent.workflowId,
+      workflowName: agent.workflowName,
+      agentNodeId: agent.agentNodeId,
+    })), [{
+      workflowId: "workflow_draft",
+      workflowName: "Agent Workflow",
+      agentNodeId: "agent",
+    }]);
+  });
+
   it("uses the file store for panel sessions when no chat database is injected", async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-panel-chat-"));
     const store = new AgentChatFileStore({ profilesDir: path.join(root, "profiles") });

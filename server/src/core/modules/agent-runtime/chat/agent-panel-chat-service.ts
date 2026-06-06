@@ -4,6 +4,7 @@ import type Database from "better-sqlite3";
 import { AgentRuntimeError } from "../agent-errors.ts";
 import {
   buildPublishedAgentKey,
+  listWorkflowDevSessionAgentsForProfile,
   listPublishedAgentsForProfile,
   type PublishedAgentSummary,
 } from "../directory/published-agent-directory.ts";
@@ -56,7 +57,9 @@ export interface AgentPanelChatServiceOptions {
   workflowEngine?: Pick<typeof WorkflowEngine, "executeWorkflowFromTrigger">;
 }
 
-type AgentPanelWorkflowRepository = Pick<typeof WorkflowRepository, "getActiveWorkflows" | "getWorkflows"> & {
+type AgentPanelAgentScope = "current" | "global" | "dev-session";
+
+type AgentPanelWorkflowRepository = Pick<typeof WorkflowRepository, "getActiveWorkflows" | "getWorkflows" | "getWorkflowById"> & {
   database?: () => Database.Database;
 };
 type AppendOnlyChatMessageRepository = Pick<ChatMessageRepository, "append">;
@@ -71,7 +74,7 @@ export class AgentPanelChatService {
   private readonly profilesDir: string;
   private readonly sessions: Pick<ChatSessionRepository, "create" | "getById" | "listByAgentKey" | "touch" | "delete">;
   private readonly messages: Pick<ChatMessageRepository, "append" | "listBySession">;
-  private readonly workflowRepository: Pick<typeof WorkflowRepository, "getActiveWorkflows" | "getWorkflows">;
+  private readonly workflowRepository: Pick<typeof WorkflowRepository, "getActiveWorkflows" | "getWorkflows" | "getWorkflowById">;
   private readonly workflowEngine: Pick<typeof WorkflowEngine, "executeWorkflowFromTrigger">;
 
   constructor(options: AgentPanelChatServiceOptions = {}) {
@@ -89,8 +92,14 @@ export class AgentPanelChatService {
     this.workflowEngine = options.workflowEngine ?? WorkflowEngine;
   }
 
-  async listAgents(input: { profileId?: string; scope: "current" | "global" }): Promise<PublishedAgentSummary[]> {
+  async listAgents(input: { profileId?: string; scope: AgentPanelAgentScope; workflowId?: string }): Promise<PublishedAgentSummary[]> {
     const profileId = input.profileId ?? "default";
+    if (input.scope === "dev-session") {
+      const workflowId = input.workflowId?.trim();
+      const workflow = workflowId ? this.workflowRepository.getWorkflowById(workflowId) : null;
+      return workflow ? listWorkflowDevSessionAgentsForProfile(profileId, workflow) : [];
+    }
+
     const workflows = input.scope === "global"
       ? this.workflowRepository.getWorkflows()
       : this.workflowRepository.getActiveWorkflows();
@@ -335,10 +344,17 @@ export class AgentPanelChatService {
     this.assertProfileOwnsAgentKey(profileId, agentKey);
     const workflows = this.workflowRepository.getActiveWorkflows();
     const summaries = listPublishedAgentsForProfile(profileId, workflows);
-    const summary = summaries.find((agent) => agent.key === agentKey);
-    const workflow = summary
-      ? workflows.find((candidate) => candidate.metadata.id === summary.workflowId)
+    let summary = summaries.find((agent) => agent.key === agentKey);
+    let workflow = summary
+      ? workflows.find((candidate) => candidate.metadata.id === summary?.workflowId)
       : null;
+    if (!summary || !workflow) {
+      const devWorkflow = this.workflowRepository.getWorkflows()
+        .find((candidate) => agentKey.startsWith(`${profileId}:${candidate.metadata.id}:`));
+      const devSummaries = devWorkflow ? listWorkflowDevSessionAgentsForProfile(profileId, devWorkflow) : [];
+      summary = devSummaries.find((agent) => agent.key === agentKey);
+      workflow = summary ? devWorkflow ?? null : null;
+    }
     if (!summary || !workflow) {
       throw new AgentRuntimeError(
         `Published agent not found for key ${agentKey}`,
@@ -347,7 +363,8 @@ export class AgentPanelChatService {
         404,
       );
     }
-    return { summary, workflow };
+    const resolvedSummary = summary;
+    return { summary: resolvedSummary, workflow };
   }
 
   private assertProfileOwnsAgentKey(profileId: string, agentKey: string): void {
