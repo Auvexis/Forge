@@ -10,9 +10,10 @@ import WorkflowEditorChrome from '@/features/workflow-editor/components/ui/chrom
 import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/WorkflowSettingsPanel.vue'
 import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/WorkflowVariablesModal.vue'
 import ExecutionBottomPanel from '@/features/workflow-editor/components/execution/ExecutionBottomPanel.vue'
-import WorkflowChatBottomPanel from '@/features/workflow-editor/components/agent/WorkflowChatBottomPanel.vue'
 import AppPage from '@/shared/components/layout/AppPage.vue'
 import { useAppPanelStore } from '@/shared/stores/app-panel.store'
+import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
+import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import { useApi } from '@/shared/composables/useApi'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { useToast } from '@/shared/composables/useToast'
@@ -32,6 +33,8 @@ const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const commandPaletteStore = useCommandPaletteStore()
 const appPanelStore = useAppPanelStore()
+const agentPanelUi = useAgentPanelUiStore()
+const agentPanelStore = useAgentPanelStore()
 
 // Composables
 const { closeWorkflow, exportWorkflow } = useWorkflowActions()
@@ -99,14 +102,7 @@ const activeChatTriggerNodeId = computed(() => selectedChatTriggerEntry.value.no
 const activeWorkflowId = computed(() => workflowStore.activeWorkflow?.metadata.id)
 const activeDevSessionId = computed(() => executionStore.activeSessionId ?? undefined)
 const activeDevSessionStatus = computed(() => executionStore.sessionStatus)
-const activeChatDevSessionId = computed(() =>
-  activeDevSessionStatus.value === 'running' ? activeDevSessionId.value : undefined,
-)
-const activeChatPanelMode = computed(() => (activeChatDevSessionId.value ? 'Run session' : 'Published route'))
-const activeChatPanelTitle = computed(() => {
-  const base = activeChatTitle.value || 'Agent Chat'
-  return activeChatPanelMode.value === 'Run session' ? `${base} - Run session` : base
-})
+const canOpenDevChat = computed(() => activeDevSessionStatus.value === 'running' && !!activeWorkflowId.value)
 const activeChatSlug = computed(() => {
   const trigger = activeChatTrigger.value as Record<string, unknown> | undefined
   if (trigger?.type !== 'chat') return ''
@@ -117,9 +113,7 @@ const activeChatTitle = computed(() => {
   const trigger = activeChatTrigger.value as Record<string, unknown> | undefined
   return typeof trigger?.chatTitle === 'string' ? trigger.chatTitle.trim() : ''
 })
-const isChatPanelOpen = computed(
-  () => appPanelStore.isOpen && appPanelStore.panelId === 'workflow-chat-bottom-panel',
-)
+const isDevChatOpen = computed(() => agentPanelUi.isOpen && agentPanelStore.agentScope === 'dev-session')
 const isExecutionPanelOpen = computed(
   () => appPanelStore.isOpen && appPanelStore.panelId === 'workflow-execution-bottom-panel',
 )
@@ -173,6 +167,7 @@ function handleUiIntent(e: Event) {
   if (intent?.type === 'workflow-settings.open') showSettings.value = true
   if (intent?.type === 'workflow-variables.open') showVariables.value = true
   if (intent?.type === 'workflow-logs.open') openExecutionPanel()
+  if (intent?.type === 'workflow-chat.open') openDevSessionChat(intent.triggerNodeId)
 }
 
 function openExecutionPanel() {
@@ -187,37 +182,25 @@ function openExecutionPanel() {
   })
 }
 
-function openChatPanel() {
-  appPanelStore.openPanel({
-    id: 'workflow-chat-bottom-panel',
-    title: 'Chat',
-    component: markRaw(WorkflowChatBottomPanel),
-    props: {
-      chatTriggers: activeChatTriggers.value,
-      chatSlug: activeChatSlug.value,
-      title: activeChatPanelTitle.value,
-      workflowId: activeWorkflowId.value,
-      triggerNodeId: activeChatTriggerNodeId.value,
-      devSessionId: activeChatDevSessionId.value,
-      selectedTriggerNodeId: activeChatTriggerNodeId.value,
-      'onUpdate:selectedTriggerNodeId': (triggerNodeId: string) => {
-        selectedChatTriggerNodeId.value = triggerNodeId
-      },
-    },
-    position: 'left',
-    width: 'lg',
-    resizable: true,
-    resizeSide: 'right',
+function openDevSessionChat(targetTriggerNodeId?: string) {
+  if (targetTriggerNodeId) selectedChatTriggerNodeId.value = targetTriggerNodeId
+  if (!canOpenDevChat.value || !activeWorkflowId.value) return
+  agentPanelStore.prepareDevSession({
+    scope: 'dev-session',
+    workflowId: activeWorkflowId.value,
+    triggerNodeId: activeChatTriggerNodeId.value,
   })
+  agentPanelUi.open()
 }
 
 function toggleChatPanel() {
-  if (isChatPanelOpen.value) {
-    appPanelStore.closePanel()
+  if (!canOpenDevChat.value) return
+  if (isDevChatOpen.value) {
+    agentPanelUi.close()
     return
   }
 
-  openChatPanel()
+  openDevSessionChat()
 }
 
 function toggleExecutionPanel() {
@@ -236,11 +219,6 @@ function openCommandPalette() {
     activeExecutionId: executionStore.activeExecutionId ?? undefined,
   })
 }
-
-watch([activeChatSlug, activeChatTitle, activeChatTriggerNodeId, activeChatDevSessionId, activeChatTriggers], () => {
-  if (!isChatPanelOpen.value) return
-  openChatPanel()
-})
 
 watch(
   activeChatTriggers,
@@ -432,13 +410,14 @@ watch(
     <div class="workflow-status-bar" role="toolbar" aria-label="Workflow panels">
       <button
         class="workflow-status-bar__button"
-        :class="{ 'workflow-status-bar__button--active': isChatPanelOpen }"
+        :class="{ 'workflow-status-bar__button--active': isDevChatOpen }"
         type="button"
+        :disabled="!canOpenDevChat"
         @click="toggleChatPanel"
       >
-        <span class="workflow-status-bar__dot" :class="{ 'is-active': !!activeChatSlug }" />
+        <span class="workflow-status-bar__dot" :class="{ 'is-active': canOpenDevChat }" />
         <span>Chat</span>
-        <code>{{ selectedChatSlug || 'not configured' }}</code>
+        <code>{{ canOpenDevChat ? (selectedChatSlug || 'dev session') : 'dev session only' }}</code>
       </button>
 
       <button
@@ -494,6 +473,11 @@ watch(
 .workflow-status-bar__button--active {
   color: var(--sailor-text-primary);
   background: var(--sailor-bg-surface);
+}
+
+.workflow-status-bar__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .workflow-status-bar__dot {

@@ -199,11 +199,15 @@ test('trigger editor exposes chat as a normal trigger type and renders chat sett
   assert.match(trigger, /<EditorField label="Trigger Type">/)
 })
 
-test('chat trigger editor points users to the status bar chat panel instead of embedding chat', () => {
+test('chat trigger editor opens the dev session global chat without embedding chat', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/ChatTriggerEditor.vue')
 
   assert.doesNotMatch(source, /import ChatSessionPanel/)
   assert.doesNotMatch(source, /<ChatSessionPanel/)
-  assert.match(source, /workflow status bar/)
-  assert.match(source, /Open the Chat panel/)
+  assert.match(source, /Open in Chat/)
+  assert.match(source, /useExecutionStore/)
+  assert.match(source, /canOpenInChat/)
+  assert.match(source, /:disabled="!canOpenInChat"/)
+  assert.match(source, /workflow-chat\.open/)
+  assert.match(source, /triggerNodeId: props\.node\.id/)
 })

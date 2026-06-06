@@ -11,6 +11,7 @@ import { useAppUiStore } from '@/shared/stores/app-ui.store'
 import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
+import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import { useTheme } from '@/shared/composables/useTheme'
 import { useToast } from '@/shared/composables/useToast'
 import type { CommandDescriptor, CommandExecutionContext } from '../types/command-palette.types'
@@ -28,6 +29,7 @@ const appUiStore = useAppUiStore()
 const sidebarStore = useSidebarPanelStore()
 const settingsStore = useSettingsStore()
 const agentPanelUi = useAgentPanelUiStore()
+const agentPanelStore = useAgentPanelStore()
 const { toggle: toggleTheme } = useTheme()
 const toast = useToast()
 const searchInput = ref<{ focus: () => void } | null>(null)
@@ -293,7 +295,10 @@ function applyUiIntent(intent: { type: string; target?: string; payload?: Record
     return
   }
   if (type === 'settings.open') settingsStore.open()
-  if (type === 'agent-panel.open') agentPanelUi.open()
+  if (type === 'agent-panel.open') {
+    agentPanelStore.clearDevSessionContext()
+    agentPanelUi.open()
+  }
   if (type === 'production-panel.open') {
     if (!isAutomationMonitorOpen.value) toggleAutomationMonitor()
   }

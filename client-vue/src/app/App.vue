@@ -166,6 +166,7 @@
       />
     </template>
   </AppShell>
+
   <template v-if="!isPublicRoute">
     <CommandPaletteHost />
     <AppToaster />
@@ -189,6 +190,7 @@ import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import CommandPaletteHost from '@/features/command-palette/components/CommandPaletteHost.vue'
 import AppGlobalAgentPanel from '@/features/agent-panel/components/AppGlobalAgentPanel.vue'
 import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
+import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
@@ -212,6 +214,7 @@ import AppGlobalAutomationMonitor, {
 const settingsStore = useSettingsStore()
 const appUiStore = useAppUiStore()
 const agentPanelUi = useAgentPanelUiStore()
+const agentPanelStore = useAgentPanelStore()
 const commandPaletteStore = useCommandPaletteStore()
 const route = useRoute()
 const isPublicRoute = computed(() => route.meta.public === true)
@@ -255,7 +258,10 @@ function handleUiIntent(event: Event) {
   if (intent?.type === 'monitoring.open') {
     if (!isAutomationMonitorOpen.value) toggleAutomationMonitor()
   }
-  if (intent?.type === 'agent-panel.open') agentPanelUi.open()
+  if (intent?.type === 'agent-panel.open') {
+    agentPanelStore.clearDevSessionContext()
+    agentPanelUi.open()
+  }
 }
 
 function handleProfileIntent() {

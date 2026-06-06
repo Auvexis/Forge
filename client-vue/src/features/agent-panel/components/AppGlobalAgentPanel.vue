@@ -39,10 +39,19 @@ watch(
     workflowStore.activeWorkflow?.metadata.id,
     workflowStore.activeWorkflow?.metadata.name,
     workflowStore.activeWorkflow?.metadata.updatedAt,
+    agentStore.devSessionContext?.workflowId,
+    agentStore.devSessionContext?.triggerNodeId,
+    agentStore.devSessionContext?.agentNodeId,
   ] as const,
   ([isOpen]) => {
     if (!isOpen) agentStore.disposeActiveExecution()
-    if (isOpen) void agentStore.loadAgents('global')
+    if (!isOpen) return
+    const devContext = agentStore.devSessionContext
+    if (devContext) {
+      void agentStore.loadAgents('dev-session', devContext)
+      return
+    }
+    void agentStore.loadAgents('global')
   },
   { immediate: true },
 )

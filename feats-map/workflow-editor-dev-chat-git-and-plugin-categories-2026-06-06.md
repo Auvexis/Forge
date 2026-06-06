@@ -11,8 +11,8 @@ Rules:
 Tasks:
 - [ ] Task 1: Add profile data workflow git snapshot service in server.
 - [x] Task 2: Replace Workflow Editor chat bottom panel with Global Agent Chat modal scoped to Dev Session workflow agents.
-- [ ] Task 3: Disable Workflow Editor status bar Chat button outside Dev Session.
-- [ ] Task 4: Add Chat Trigger "Open in Chat" action gated by Dev Session and preselect target agent.
+- [x] Task 3: Disable Workflow Editor status bar Chat button outside Dev Session.
+- [x] Task 4: Add Chat Trigger "Open in Chat" action gated by Dev Session and preselect target agent.
 - [ ] Task 5: Fix AddNodePanel methods view scrolling after selecting a plugin.
 - [ ] Task 6: Fix VariableTree plugin icons to use theme-aware icon resolution.
 - [ ] Task 7: Add predefined plugin categories to SDK schema/types, update CLI template/prompts, and update server dependency.

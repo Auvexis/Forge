@@ -55,22 +55,35 @@
     </EditorField>
 
     <div class="chat-trigger-editor__panel-hint">
-      <strong>Open the Chat panel from the workflow status bar.</strong>
-      <span>Use this inspector to configure the trigger, then test messages from the bottom Chat panel.</span>
+      <div>
+        <strong>Open this trigger in the Dev Session chat.</strong>
+        <span>Configure the trigger here, then test messages while the workflow session is running.</span>
+      </div>
+      <button
+        class="chat-trigger-editor__open-chat"
+        type="button"
+        :disabled="!canOpenInChat"
+        @click="openInChat"
+      >
+        Open in Chat
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import { useExecutionStore } from '@/features/workflow-editor'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 
 const props = defineProps<NodeEditorProps>()
+const executionStore = useExecutionStore()
 
 const publicChatWarning = computed(() => props.node.data.chatAuthMode === 'public')
+const canOpenInChat = computed(() => executionStore.sessionStatus === 'running')
 
 onMounted(() => {
   if (typeof props.node.data.chatSlug === 'string' && props.node.data.chatSlug.trim()) return
@@ -87,6 +100,17 @@ function generateChatSlug(): string {
     .slice(0, 8)
 
   return `chat-${suffix || Math.random().toString(36).slice(2, 10)}`
+}
+
+function openInChat(): void {
+  if (!canOpenInChat.value) return
+
+  window.dispatchEvent(new CustomEvent('sailor:command-palette:intent', {
+    detail: {
+      type: 'workflow-chat.open',
+      triggerNodeId: props.node.id,
+    },
+  }))
 }
 
 const AUTH_MODES = [
@@ -135,12 +159,20 @@ const SESSION_MODES = [
 
 .chat-trigger-editor__panel-hint {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--sailor-space-1);
   padding: var(--sailor-space-3);
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-overlay);
+}
+
+.chat-trigger-editor__panel-hint > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--sailor-space-1);
 }
 
 .chat-trigger-editor__panel-hint strong,
@@ -155,5 +187,28 @@ const SESSION_MODES = [
 
 .chat-trigger-editor__panel-hint span {
   color: var(--sailor-text-muted);
+}
+
+.chat-trigger-editor__open-chat {
+  flex: 0 0 auto;
+  height: 32px;
+  padding: 0 var(--sailor-space-3);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chat-trigger-editor__open-chat:hover:not(:disabled) {
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
+}
+
+.chat-trigger-editor__open-chat:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 </style>

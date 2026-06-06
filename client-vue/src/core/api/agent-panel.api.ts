@@ -16,8 +16,16 @@ import type {
 } from '@/features/agent-runtime/types/agent.types'
 
 export const agentPanelApi = {
-  listAgents: (scope: 'current' | 'global' = 'current') =>
-    apiRequest<PublishedAgentSummary[]>(ENDPOINTS.AGENT_PANEL_AGENTS, { params: { scope } }),
+  listAgents: (
+    scope: 'current' | 'global' | 'dev-session' = 'current',
+    options: { workflowId?: string } = {},
+  ) =>
+    apiRequest<PublishedAgentSummary[]>(ENDPOINTS.AGENT_PANEL_AGENTS, {
+      params: {
+        scope,
+        ...(options.workflowId ? { workflowId: options.workflowId } : {}),
+      },
+    }),
 
   listSessions: (agentKey: string) =>
     apiRequest<AgentChatSession[]>(ENDPOINTS.AGENT_PANEL_AGENT_SESSIONS(agentKey)),
