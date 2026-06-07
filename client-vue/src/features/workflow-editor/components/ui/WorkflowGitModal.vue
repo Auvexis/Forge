@@ -22,6 +22,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'commit', message: string): void
+  (e: 'restore', hash: string): void
 }>()
 
 const latestSnapshot = ref<WorkflowGitSnapshotFile | null>(null)
@@ -57,6 +58,7 @@ const commitMessage = computed(() => {
   return body ? `${title}\n\n${body}` : title
 })
 const canCommit = computed(() => commitMessage.value.length > 0 && !props.isCommitting)
+const canRestore = computed(() => selectedSnapshotHash.value.length > 0 && !props.isCommitting)
 const diffStats = computed(() => ({
   added: diffLines.value.filter((line) => line.type === 'added').length,
   removed: diffLines.value.filter((line) => line.type === 'removed').length,
@@ -118,6 +120,11 @@ async function loadSelectedSnapshot(hash: string) {
 function requestCommit() {
   if (!canCommit.value) return
   emit('commit', commitMessage.value)
+}
+
+function requestRestore() {
+  if (!canRestore.value) return
+  emit('restore', selectedSnapshotHash.value)
 }
 
 function tokenizeJsonLine(line: string): JsonToken[] {
@@ -232,6 +239,15 @@ function tokenizeJsonLine(line: string): JsonToken[] {
             >
               <LucideIcon name="check" :size="14" />
               <span>Commit to workflow.json</span>
+            </button>
+            <button
+              class="workflow-git-modal__restore-button"
+              type="button"
+              :disabled="!canRestore"
+              @click="requestRestore"
+            >
+              <LucideIcon name="rotate-ccw" :size="14" />
+              <span>Restore version</span>
             </button>
           </div>
         </aside>
@@ -480,25 +496,41 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--sailor-focus-ring) 28%, transparent);
 }
 
-.workflow-git-modal__commit-button {
+.workflow-git-modal__commit-button,
+.workflow-git-modal__restore-button {
   height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--sailor-space-2);
-  border: 1px solid color-mix(in srgb, var(--sailor-blue-400) 62%, transparent);
   border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-blue-500);
-  color: white;
   font-size: 12px;
   font-weight: var(--sailor-font-semibold);
+}
+
+.workflow-git-modal__commit-button {
+  border: 1px solid color-mix(in srgb, var(--sailor-blue-400) 62%, transparent);
+  background: var(--sailor-blue-500);
+  color: white;
 }
 
 .workflow-git-modal__commit-button:hover:not(:disabled) {
   background: var(--sailor-blue-400);
 }
 
-.workflow-git-modal__commit-button:disabled {
+.workflow-git-modal__restore-button {
+  border: 1px solid var(--sailor-border-subtle);
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
+}
+
+.workflow-git-modal__restore-button:hover:not(:disabled) {
+  border-color: var(--sailor-border-strong);
+  background: var(--sailor-button-ghost-hover);
+}
+
+.workflow-git-modal__commit-button:disabled,
+.workflow-git-modal__restore-button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }

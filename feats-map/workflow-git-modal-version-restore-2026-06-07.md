@@ -12,9 +12,9 @@
 - [x] Run targeted test and commit.
 
 ### Task 2: Restore Action in Modal
-- [ ] Update contract test to require modal `restore` emit and a Restore button disabled when no selected snapshot exists.
-- [ ] Update `WorkflowEditorPage.vue` to handle `@restore`, confirm, call `workflowsApi.restoreGitSnapshot`, update active workflow, reload Git status, refresh modal.
-- [ ] Run targeted test and commit.
+- [x] Update contract test to require modal `restore` emit and a Restore button disabled when no selected snapshot exists.
+- [x] Update `WorkflowEditorPage.vue` to handle `@restore`, confirm, call `workflowsApi.restoreGitSnapshot`, update active workflow, reload Git status, refresh modal.
+- [x] Run targeted test and commit.
 
 ### Task 3: Verification
 - [ ] Run frontend status/modal contract test.

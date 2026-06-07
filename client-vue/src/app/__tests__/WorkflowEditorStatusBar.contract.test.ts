@@ -125,3 +125,21 @@ test('workflow git modal exposes committed version selection', () => {
   assert.match(source, /snapshot\.message/)
   assert.match(source, /loadSelectedSnapshot/)
 })
+
+test('workflow git modal restores selected committed versions', () => {
+  const modal = read('src/features/workflow-editor/components/ui/WorkflowGitModal.vue')
+  const page = read('src/app/pages/WorkflowEditorPage.vue')
+
+  assert.match(modal, /\(e: 'restore', hash: string\): void/)
+  assert.match(modal, /requestRestore/)
+  assert.match(modal, /workflow-git-modal__restore-button/)
+  assert.match(modal, />\s*Restore version\s*</)
+  assert.match(modal, /:disabled="!canRestore"/)
+  assert.match(modal, /emit\('restore', selectedSnapshotHash\.value\)/)
+
+  assert.match(page, /handleRestoreGitSnapshot/)
+  assert.match(page, /confirm\(/)
+  assert.match(page, /workflowsApi\.restoreGitSnapshot/)
+  assert.match(page, /workflowStore\.setActiveWorkflow\(restored\)/)
+  assert.match(page, /@restore="handleRestoreGitSnapshot"/)
+})

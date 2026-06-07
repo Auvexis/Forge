@@ -250,6 +250,30 @@ async function handleCommitGitSnapshot(message: string) {
   }
 }
 
+async function handleRestoreGitSnapshot(hash: string) {
+  const active = workflowStore.activeWorkflow
+  if (!active) return
+
+  const confirmed = await confirm({
+    title: 'Restore workflow version',
+    message: 'This will replace the current workflow with the selected committed version. Continue?',
+    confirmText: 'Restore',
+    cancelText: 'Cancel',
+    variant: 'warning',
+  })
+  if (!confirmed) return
+
+  try {
+    const restored = await workflowsApi.restoreGitSnapshot(active.metadata.id, hash)
+    workflowStore.setActiveWorkflow(restored)
+    await loadWorkflowGitStatus(restored.metadata.id)
+    gitModalRefreshKey.value += 1
+    toast.success('Workflow version restored')
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : 'Failed to restore workflow version')
+  }
+}
+
 async function handleCopyGitRepoPath() {
   const repoPath = gitStatus.value?.repoPath
   if (!repoPath) {
@@ -580,6 +604,7 @@ watch(
       :refresh-key="gitModalRefreshKey"
       @close="isGitModalOpen = false"
       @commit="handleCommitGitSnapshot"
+      @restore="handleRestoreGitSnapshot"
     />
 
     <WorkflowSettingsPanel :is-open="showSettings" @close="showSettings = false" />
