@@ -127,17 +127,17 @@ Mitigacao:
 
 ### Batch 2 - Publish e instalacao no Sailor
 
-- [ ] Task 4: Publicar nova versao do SDK.
+- [x] Task 4: Publicar nova versao do SDK.
   - Confirmar login/registry.
   - Rodar `npm publish --access public`.
   - Confirmar pacote publicado.
 
-- [ ] Task 5: Atualizar `server/` para nova versao.
+- [x] Task 5: Atualizar `server/` para nova versao.
   - Instalar `@auvexis/sailor-sdk@2.0.0`.
   - Atualizar `server/package.json` e `server/package-lock.json`.
   - Rodar build/typecheck do server.
 
-- [ ] Task 6: Atualizar contratos backend que leem categoria.
+- [x] Task 6: Atualizar contratos backend que leem categoria.
   - Command palette: keywords e description devem usar `metadata.categories`.
   - Testes do command palette.
   - Testes de loader/agent-runtime com manifests fake.
@@ -145,16 +145,16 @@ Mitigacao:
 
 ### Batch 3 - Migrar plugins padrao
 
-- [ ] Task 7: Migrar `server/src/plugins/sailor/**/manifest.json`.
+- [x] Task 7: Migrar `server/src/plugins/sailor/**/manifest.json`.
   - Remover `category`.
   - Adicionar `categories`.
   - Usar o mapeamento inicial acima.
 
-- [ ] Task 8: Migrar template de plugin.
+- [x] Task 8: Migrar template de plugin.
   - `server/src/plugins/_template/manifest.json`.
   - Qualquer doc/template que mostre `category`.
 
-- [ ] Task 9: Validar plugins internos.
+- [x] Task 9: Validar plugins internos.
   - Rodar testes de loader.
   - Rodar testes de plugin installer/preview.
   - Rodar build do server.
@@ -162,17 +162,17 @@ Mitigacao:
 
 ### Batch 4 - Frontend
 
-- [ ] Task 10: Atualizar tipos locais do frontend.
+- [x] Task 10: Atualizar tipos locais do frontend.
   - `client-vue/src/core/types/plugin.types.ts`.
   - Trocar `category` por `categories`.
   - Atualizar `PLUGIN_CATEGORIES` para as 7 categorias finais.
 
-- [ ] Task 11: Atualizar telas que usam categoria.
+- [x] Task 11: Atualizar telas que usam categoria.
   - `AddNodePanel.vue`: plugin aparece em todas as categorias onde pertence.
   - `pluginUniverseMapper.ts`: universo deve lidar com multiplas categorias.
   - Qualquer filtro/search deve procurar em `categories`.
 
-- [ ] Task 12: Atualizar testes frontend.
+- [x] Task 12: Atualizar testes frontend.
   - Contratos do AddNodePanel.
   - Contratos do Universe se existirem.
   - Rodar `npm run type-check` e teste alvo.

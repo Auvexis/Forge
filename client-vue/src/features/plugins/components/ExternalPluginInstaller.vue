@@ -262,7 +262,7 @@ const emptyManifest: PluginManifest = {
     name: '',
     description: '',
     icon: 'package',
-    category: '',
+    categories: [],
     author: '',
     version: '',
     repository: '',

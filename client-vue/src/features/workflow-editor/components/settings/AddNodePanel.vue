@@ -525,7 +525,7 @@ const filteredAgentMemoryPresets = computed(() =>
 const filteredPlugins = computed(() =>
   (plugins.value ?? []).filter((p) =>
     p.manifest.metadata.name.toLowerCase().includes(search.value.toLowerCase()) &&
-    (selectedCategory.value === 'All' || pluginCategory(p) === selectedCategory.value),
+    (selectedCategory.value === 'All' || pluginCategories(p).includes(selectedCategory.value)),
   ),
 )
 
@@ -574,18 +574,16 @@ const filteredMethods = computed(() => {
 const pluginIcon = (plugin: PluginSummary) =>
   resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
 
-const pluginCategory = (plugin: PluginSummary) => {
-  const category = plugin.manifest.metadata.category
-  return PLUGIN_CATEGORIES.includes(category as (typeof PLUGIN_CATEGORIES)[number])
-    ? category
-    : 'Other'
-}
+const pluginCategories = (plugin: PluginSummary) =>
+  plugin.manifest.metadata.categories.filter((category) =>
+    PLUGIN_CATEGORIES.includes(category as (typeof PLUGIN_CATEGORIES)[number]),
+  )
 
 const groupPluginsByCategory = (items: PluginSummary[]) =>
   PLUGIN_CATEGORIES
     .map((category) => ({
       category,
-      plugins: items.filter((plugin) => pluginCategory(plugin) === category),
+      plugins: items.filter((plugin) => pluginCategories(plugin).includes(category)),
     }))
     .filter((group) => group.plugins.length > 0)
 

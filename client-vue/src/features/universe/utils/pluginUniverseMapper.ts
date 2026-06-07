@@ -88,13 +88,14 @@ export function mapPluginsToUniverse(plugins: PluginSummary[]): UniversePluginMa
     const metadata = plugin.manifest.metadata
     const iconValue = resolvePluginIcon(metadata, { isDark: true, fallback: 'blocks' })
     const color = getNodeColor(plugin, index)
+    const primaryCategory = metadata.categories[0] ?? 'Apps'
 
     return {
       id: plugin.id,
       plugin,
       label: metadata.name,
       description: metadata.description,
-      category: metadata.category || 'Integrations',
+      category: primaryCategory,
       status: plugin.status.status,
       icon: {
         kind: isImageIcon(iconValue) ? 'image' : 'lucide',
@@ -117,9 +118,9 @@ export function mapPluginsToUniverse(plugins: PluginSummary[]): UniversePluginMa
     }
   })
 
-  const categories = Array.from(new Set(nodes.map((n) => n.category))).sort((a, b) =>
-    a.localeCompare(b),
-  )
+  const categories = Array.from(
+    new Set(sorted.flatMap((plugin) => plugin.manifest.metadata.categories)),
+  ).sort((a, b) => a.localeCompare(b))
 
   return {
     nodes,

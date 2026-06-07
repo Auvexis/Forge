@@ -45,13 +45,12 @@ export type AgentMemoryAdapter = 'sailor-internal' | 'plugin-memory-store'
 
 export const PLUGIN_CATEGORIES = [
   'AI',
-  'Communication',
-  'Database',
-  'Development',
-  'Google',
-  'Productivity',
-  'Utilities',
-  'Other',
+  'Core',
+  'Flow',
+  'Data transformation',
+  'Apps',
+  'Files',
+  'Developer',
 ] as const
 
 export type PluginCategory = (typeof PLUGIN_CATEGORIES)[number]
@@ -91,7 +90,7 @@ export interface PluginMetadata {
   icon: string
   iconLight?: string
   iconDark?: string
-  category: PluginCategory | string
+  categories: readonly (PluginCategory | string)[]
   author: string
   version: string
   repository: string
