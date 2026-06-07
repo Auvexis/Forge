@@ -66,6 +66,34 @@ test('picker categories count plugins in every declared category', () => {
   assert.equal(items.find((item) => item.category === 'Developer')?.count, 1)
 })
 
+test('picker categories stay visible when search matches an item inside them', () => {
+  const items = buildPickerCategoryItems({
+    plugins: [
+      plugin({
+        id: 'youtube',
+        manifest: {
+          metadata: {
+            id: 'youtube',
+            name: 'YouTube',
+            description: 'Manage videos and channels',
+            icon: 'youtube',
+            categories: ['Apps'],
+            author: 'Test',
+            version: '1.0.0',
+            repository: '',
+          },
+          methods: {},
+        },
+      }),
+    ],
+    presets: [],
+    search: 'youtube',
+  })
+
+  assert.deepEqual(items.map((item) => item.category), ['Apps'])
+  assert.equal(items[0]?.count, 1)
+})
+
 test('second column includes presets and plugins for the selected category', () => {
   const presets: AddNodePickerPreset[] = [
     {

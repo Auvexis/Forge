@@ -309,7 +309,11 @@ const categoryItems = computed(() =>
   }),
 )
 
-const activeCategory = computed(() => selectedCategory.value || categoryItems.value[0]?.category || null)
+const activeCategory = computed(() => {
+  const categories = categoryItems.value.map((item) => item.category)
+  if (selectedCategory.value && categories.includes(selectedCategory.value)) return selectedCategory.value
+  return categoryItems.value[0]?.category ?? null
+})
 
 const secondColumnItems = computed(() =>
   buildPickerSecondColumnItems({

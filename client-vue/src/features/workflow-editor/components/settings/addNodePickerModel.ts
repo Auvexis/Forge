@@ -108,19 +108,29 @@ export function buildPickerCategoryItems(options: {
 }): AddNodePickerCategoryItem[] {
   return ADD_NODE_PICKER_CATEGORIES.map((category) => {
     const meta = CATEGORY_META[category]
-    const pluginCount = options.plugins.filter((plugin) => pluginCategories(plugin).includes(category)).length
-    const presetCount = options.presets.filter((preset) => preset.categories.includes(category)).length
+    const plugins = options.plugins.filter((plugin) =>
+      pluginCategories(plugin).includes(category) &&
+      matchesSearch(
+        options.search,
+        category,
+        meta.description,
+        plugin.manifest.metadata.name,
+        plugin.manifest.metadata.description,
+      ),
+    )
+    const presets = options.presets.filter((preset) =>
+      preset.categories.includes(category) &&
+      matchesSearch(options.search, category, meta.description, preset.label, preset.description),
+    )
 
     return {
       category,
       label: category,
       description: meta.description,
       icon: meta.icon,
-      count: pluginCount + presetCount,
+      count: plugins.length + presets.length,
     }
-  }).filter((item) =>
-    item.count > 0 && matchesSearch(options.search, item.label, item.description),
-  )
+  }).filter((item) => item.count > 0)
 }
 
 export function buildPickerSecondColumnItems(options: {

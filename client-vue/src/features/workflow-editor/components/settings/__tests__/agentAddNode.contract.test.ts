@@ -136,7 +136,7 @@ test('add node panel keeps the plugin methods view scrollable inside the panel',
   assert.match(panel, /\.add-node-content\s*\{[\s\S]*min-height: 0;[\s\S]*overflow-y: auto;[\s\S]*overflow-x: hidden;[\s\S]*overscroll-behavior: contain;/)
 })
 
-test('add node panel groups plugin choices by category with filter and collapse controls', () => {
+test('add node panel renders the floating picker and removes the old category/actions flow', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
   assert.match(panel, /buildPickerCategoryItems/)
@@ -144,6 +144,7 @@ test('add node panel groups plugin choices by category with filter and collapse 
   assert.match(panel, /buildPickerActionItems/)
   assert.match(panel, /selectedCategory/)
   assert.match(panel, /selectedPickerItemId/)
+  assert.match(panel, /categories\.includes\(selectedCategory\.value\)/)
   assert.match(panel, /add-node-picker-shell/)
   assert.match(panel, /add-node-picker-grid/)
   assert.match(panel, /add-node-picker-column/)

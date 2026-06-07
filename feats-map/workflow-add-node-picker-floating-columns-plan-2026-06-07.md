@@ -234,19 +234,19 @@ Isso evita mexer no canvas agora.
 
 ### Batch 3 - Contextos e verificacao
 
-- [ ] Task 7: Ajustar contextos de agente.
+- [x] Task 7: Ajustar contextos de agente.
   - Chat model mostra providers compativeis.
   - Memory mostra presets e memory stores.
   - Tool mostra plugins/actions agent-enabled.
 
-- [ ] Task 8: Testar integracao visual e funcional.
+- [x] Task 8: Testar integracao visual e funcional.
   - Add logic node.
   - Add plugin node.
   - Add agent tool node.
   - Busca.
   - Scroll das 3 colunas.
 
-- [ ] Task 9: Rodar verificacoes.
+- [x] Task 9: Rodar verificacoes.
   - Testes alvo.
   - `npm run type-check`.
   - `npm run build`.
