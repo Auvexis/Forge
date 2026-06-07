@@ -69,3 +69,15 @@ test('workflow editor status bar shows workflow git snapshot state', () => {
   assert.match(source, /workflow-status-bar__button--git/)
   assert.match(source, /<LucideIcon name="git-branch"/)
 })
+
+test('workflow editor status bar opens the workflow git changes viewer', () => {
+  const source = read('src/app/pages/WorkflowEditorPage.vue')
+
+  assert.match(source, /WorkflowGitChangesWindow/)
+  assert.match(source, /isGitChangesWindowOpen = ref\(false\)/)
+  assert.match(source, /toggleGitChangesWindow/)
+  assert.match(source, /workflow-status-bar__button--changes/)
+  assert.match(source, />\s*Changes\s*</)
+  assert.match(source, /<LucideIcon name="git-compare-arrows"/)
+  assert.match(source, /v-if="isGitChangesWindowOpen && workflowStore\.activeWorkflow"/)
+})

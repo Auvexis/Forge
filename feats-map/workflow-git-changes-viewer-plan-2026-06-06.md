@@ -16,19 +16,19 @@ O usuário abre pelo Status Bar, vê o `workflow.json` raw, acompanha mudanças 
 Fazer em etapas. Não colocar restore, histórico, diff raw e live diff tudo numa task só.
 
 ## Task Set 1 - Base do Viewer
-- [ ] Task 1: Criar componente `WorkflowGitChangesWindow.vue`.
+- [x] Task 1: Criar componente `WorkflowGitChangesWindow.vue`.
   - Usa `BaseFloatingWindow.vue`.
   - Abre/fecha pelo estado controlado em `WorkflowEditorPage.vue`.
   - Tem header com título `Changes`.
   - Tem toolbar vazia inicialmente com botões desabilitados.
 
-- [ ] Task 2: Adicionar botão na Status Bar.
+- [x] Task 2: Adicionar botão na Status Bar.
   - Botão `Changes` ou `Snapshots`.
   - Ícone Lucide: `git-compare-arrows` ou `history`.
   - Clique abre/fecha a floating window.
   - Estado ativo quando o painel está aberto.
 
-- [ ] Task 3: Mostrar `workflow.json` raw em tempo real.
+- [x] Task 3: Mostrar `workflow.json` raw em tempo real.
   - Computed serializa `workflowStore.activeWorkflow` com `JSON.stringify(workflow, null, 2)`.
   - Enquanto o usuário edita nodes/edges/settings, o texto atualiza.
   - Scroll próprio dentro do painel.
