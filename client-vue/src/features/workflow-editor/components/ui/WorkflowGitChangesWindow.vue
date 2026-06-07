@@ -14,16 +14,9 @@ const props = defineProps<{
   workflow: WorkflowItem
 }>()
 
-const emit = defineEmits<{
-  (e: 'restore', hash: string): void
-}>()
-
-const snapshots = ref<WorkflowGitSnapshotSummary[]>([])
-const selectedSnapshotHash = ref('')
-const selectedSnapshot = ref<WorkflowGitSnapshotFile | null>(null)
+const latestSnapshot = ref<WorkflowGitSnapshotFile | null>(null)
 const isLoadingSnapshots = ref(false)
 const snapshotError = ref('')
-const viewerMode = ref<'raw' | 'diff'>('raw')
 const debouncedDiffLines = ref<WorkflowGitDiffLine[]>([])
 let diffTimer: number | null = null
 
@@ -32,25 +25,21 @@ interface JsonToken {
   type: 'key' | 'string' | 'number' | 'boolean' | 'null' | 'punctuation' | 'plain'
 }
 
-const snapshotOptions = computed(() => snapshots.value)
-const hasSnapshotOptions = computed(() => snapshotOptions.value.length > 0)
 const liveWorkflowJson = computed(() => JSON.stringify(props.workflow, null, 2))
-const rawWorkflowJson = computed(() =>
-  selectedSnapshot.value?.rawWorkflowJson ?? liveWorkflowJson.value,
-)
-const renderRawJsonLines = computed(() => rawWorkflowJson.value.split('\n').map(tokenizeJsonLine))
-const baseDiffJson = computed(() => selectedSnapshot.value?.rawWorkflowJson ?? liveWorkflowJson.value)
-const viewerLabel = computed(() =>
-  selectedSnapshot.value ? `snapshot ${selectedSnapshot.value.hash}` : 'live workflow',
-)
-const hasUnsavedChanges = computed(() => baseDiffJson.value !== liveWorkflowJson.value)
+const latestWorkflowJson = computed(() => latestSnapshot.value?.rawWorkflowJson ?? '')
+const hasLatestCommit = computed(() => latestSnapshot.value !== null)
+const hasUnsavedChanges = computed(() => latestWorkflowJson.value !== liveWorkflowJson.value)
+const latestCommitLabel = computed(() => {
+  if (!latestSnapshot.value) return 'No commits yet'
+  return `Live vs ${latestSnapshot.value.hash.slice(0, 7)}`
+})
 const diffStats = computed(() => ({
   added: debouncedDiffLines.value.filter((line) => line.type === 'added').length,
   removed: debouncedDiffLines.value.filter((line) => line.type === 'removed').length,
   modified: debouncedDiffLines.value.filter((line) => line.type === 'modified').length,
 }))
 
-onMounted(loadSnapshots)
+onMounted(loadLatestSnapshot)
 onBeforeUnmount(() => {
   if (diffTimer) window.clearTimeout(diffTimer)
 })
@@ -58,68 +47,40 @@ onBeforeUnmount(() => {
 watch(
   () => props.workflow.metadata.id,
   () => {
-    selectedSnapshotHash.value = ''
-    selectedSnapshot.value = null
-    void loadSnapshots()
+    latestSnapshot.value = null
+    void loadLatestSnapshot()
   },
 )
 
-watch(selectedSnapshotHash, (hash) => {
-  void loadSelectedSnapshot(hash)
-})
-
 watch(
-  [baseDiffJson, liveWorkflowJson],
+  [latestWorkflowJson, liveWorkflowJson],
   () => scheduleDiffUpdate(),
   { immediate: true },
 )
 
-async function loadSnapshots() {
+async function loadLatestSnapshot() {
   isLoadingSnapshots.value = true
   snapshotError.value = ''
   try {
-    snapshots.value = await workflowsApi.listGitSnapshots(props.workflow.metadata.id)
+    const snapshots: WorkflowGitSnapshotSummary[] = await workflowsApi.listGitSnapshots(props.workflow.metadata.id)
+    const latest = snapshots[0]
+    latestSnapshot.value = latest
+      ? await workflowsApi.getGitSnapshot(props.workflow.metadata.id, latest.hash)
+      : null
   } catch (error) {
-    snapshots.value = []
-    snapshotError.value = error instanceof Error ? error.message : 'Failed to load snapshots'
+    latestSnapshot.value = null
+    snapshotError.value = error instanceof Error ? error.message : 'Failed to load latest commit'
   } finally {
     isLoadingSnapshots.value = false
   }
 }
 
-async function loadSelectedSnapshot(hash: string) {
-  if (!hash) {
-    selectedSnapshot.value = null
-    return
-  }
-
-  snapshotError.value = ''
-  try {
-    selectedSnapshot.value = await workflowsApi.getGitSnapshot(props.workflow.metadata.id, hash)
-  } catch (error) {
-    selectedSnapshot.value = null
-    snapshotError.value = error instanceof Error ? error.message : 'Failed to load snapshot'
-  }
-}
-
-function formatSnapshotDate(value: string) {
-  if (!value) return 'unknown date'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleString()
-}
-
 function scheduleDiffUpdate() {
   if (diffTimer) window.clearTimeout(diffTimer)
   diffTimer = window.setTimeout(() => {
-    debouncedDiffLines.value = buildWorkflowJsonDiff(baseDiffJson.value, liveWorkflowJson.value)
+    debouncedDiffLines.value = buildWorkflowJsonDiff(latestWorkflowJson.value, liveWorkflowJson.value)
     diffTimer = null
   }, 120)
-}
-
-function requestRestore() {
-  if (!selectedSnapshotHash.value) return
-  emit('restore', selectedSnapshotHash.value)
 }
 
 function tokenizeJsonLine(line: string): JsonToken[] {
@@ -156,59 +117,18 @@ function tokenizeJsonLine(line: string): JsonToken[] {
     subtitle="workflow.json"
     aria-label="Workflow changes viewer"
     storage-key="workflow-git-changes-window"
-    :default-width="720"
-    :default-height="520"
+    :default-width="760"
+    :default-height="560"
     :min-width="460"
     :min-height="280"
   >
     <div class="workflow-git-changes-window">
-      <div class="workflow-git-changes-window__toolbar" role="toolbar" aria-label="Workflow git changes actions">
-        <button class="workflow-git-changes-window__toolbar-button" type="button" disabled title="Available in the snapshots phase">
-          <LucideIcon name="git-commit-horizontal" :size="13" />
-          <span>Create Snapshot</span>
-        </button>
-        <button
-          class="workflow-git-changes-window__toolbar-button"
-          type="button"
-          :disabled="!selectedSnapshotHash"
-          title="Restore selected snapshot"
-          @click="requestRestore"
-        >
-          <LucideIcon name="rotate-ccw" :size="13" />
-          <span>Restore</span>
-        </button>
-        <div class="workflow-git-changes-window__mode" role="group" aria-label="Viewer mode">
-          <button
-            class="workflow-git-changes-window__toolbar-button"
-            type="button"
-            :class="{ 'workflow-git-changes-window__mode-button--active': viewerMode === 'raw' }"
-            @click="viewerMode = 'raw'"
-          >
-            Raw
-          </button>
-          <button
-            class="workflow-git-changes-window__toolbar-button"
-            type="button"
-            :class="{ 'workflow-git-changes-window__mode-button--active': viewerMode === 'diff' }"
-            @click="viewerMode = 'diff'"
-          >
-            Diff
-          </button>
+      <div class="workflow-git-changes-window__summary">
+        <div class="workflow-git-changes-window__summary-main">
+          <LucideIcon name="git-compare-arrows" :size="14" />
+          <span>{{ latestCommitLabel }}</span>
+          <span v-if="hasUnsavedChanges" class="workflow-git-changes-window__dirty">Live changes</span>
         </div>
-        <label class="workflow-git-changes-window__snapshot-select">
-          <LucideIcon name="history" :size="13" />
-          <span>Snapshots</span>
-          <select v-model="selectedSnapshotHash" :disabled="isLoadingSnapshots">
-            <option value="">{{ isLoadingSnapshots ? 'Loading snapshots...' : 'Live workflow' }}</option>
-            <option
-              v-for="snapshot in snapshotOptions"
-              :key="snapshot.hash"
-              :value="snapshot.hash"
-            >
-              {{ snapshot.shortHash }} · {{ formatSnapshotDate(snapshot.committedAt) }} · {{ snapshot.message }}
-            </option>
-          </select>
-        </label>
         <div class="workflow-git-changes-window__stats" aria-label="Diff summary">
           <span class="workflow-git-changes-window__stat workflow-git-changes-window__stat--added">
             +{{ diffStats.added }}
@@ -224,30 +144,20 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 
       <div
         class="workflow-git-changes-window__viewer"
-        :class="{ 'workflow-git-changes-window__viewer--empty': !hasSnapshotOptions && !isLoadingSnapshots && viewerMode === 'diff' }"
+        :class="{ 'workflow-git-changes-window__viewer--empty': !hasLatestCommit && !isLoadingSnapshots }"
       >
         <div class="workflow-git-changes-window__viewer-meta">
-          <span class="workflow-git-changes-window__viewer-label">{{ viewerLabel }}</span>
-          <span v-if="isLoadingSnapshots">Loading snapshots...</span>
-          <span v-else-if="!hasSnapshotOptions">No snapshots yet</span>
-          <span v-if="hasUnsavedChanges" class="workflow-git-changes-window__dirty">Unsaved changes</span>
+          <span>{{ latestCommitLabel }}</span>
+          <span v-if="isLoadingSnapshots">Loading latest commit...</span>
+          <span v-else-if="!hasLatestCommit">No commits yet</span>
           <span v-if="snapshotError" class="workflow-git-changes-window__error">{{ snapshotError }}</span>
         </div>
-        <div v-if="!hasSnapshotOptions && !isLoadingSnapshots && viewerMode === 'diff'" class="workflow-git-changes-window__empty">
+
+        <div v-if="!hasLatestCommit && !isLoadingSnapshots" class="workflow-git-changes-window__empty">
           <LucideIcon name="history" :size="18" />
-          <span>No snapshots yet</span>
+          <span>No commits yet</span>
         </div>
-        <pre class="workflow-git-changes-window__raw" v-if="viewerMode === 'raw'"><code>
-          <span
-            v-for="(tokens, lineIndex) in renderRawJsonLines"
-            :key="lineIndex"
-            class="workflow-git-changes-window__raw-line"
-          ><span
-            v-for="(token, tokenIndex) in tokens"
-            :key="tokenIndex"
-            :class="`json-token json-token--${token.type}`"
-          >{{ token.value }}</span></span>
-        </code></pre>
+
         <div v-else class="workflow-git-changes-window__diff" role="table" aria-label="Workflow JSON diff">
           <div
             v-for="(line, index) in debouncedDiffLines"
@@ -284,84 +194,28 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   gap: var(--sailor-space-2);
 }
 
-.workflow-git-changes-window__toolbar {
+.workflow-git-changes-window__summary {
   flex: 0 0 auto;
+  min-height: 32px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 28px;
-  border-bottom: 1px solid var(--sailor-border);
+  justify-content: space-between;
+  gap: var(--sailor-space-3);
   padding: 0 2px 8px;
+  border-bottom: 1px solid var(--sailor-border);
 }
 
-.workflow-git-changes-window__toolbar-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 26px;
-  padding: 0 8px;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
-  font-size: 11px;
-  transition:
-    background var(--sailor-duration-fast) var(--sailor-ease-standard),
-    border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    color var(--sailor-duration-fast) var(--sailor-ease-standard);
-}
-
-.workflow-git-changes-window__toolbar-button:not(:disabled):hover {
-  border-color: var(--sailor-border-strong);
-  background: var(--sailor-button-ghost-hover);
-}
-
-.workflow-git-changes-window__mode {
-  display: inline-flex;
-  align-items: center;
-  height: 26px;
-  overflow: hidden;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: 6px;
-}
-
-.workflow-git-changes-window__mode button {
-  height: 100%;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.workflow-git-changes-window__mode-button--active {
-  background: var(--sailor-bg-surface) !important;
-  color: var(--sailor-text-primary);
-}
-
-.workflow-git-changes-window__snapshot-select {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 240px;
-  height: 26px;
-  padding: 0 8px;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: 6px;
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
-  font-size: 11px;
-}
-
-.workflow-git-changes-window__snapshot-select select {
+.workflow-git-changes-window__summary-main {
   min-width: 0;
-  flex: 1;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sailor-text-secondary);
+  font-size: 12px;
 }
 
 .workflow-git-changes-window__stats {
-  margin-left: auto;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -398,11 +252,6 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   color: var(--sailor-status-running-text);
 }
 
-.workflow-git-changes-window__toolbar button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
 .workflow-git-changes-window__viewer {
   min-height: 0;
   flex: 1;
@@ -433,12 +282,16 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   font-size: 11px;
 }
 
-.workflow-git-changes-window__viewer-label {
-  color: var(--sailor-text-secondary);
-}
-
 .workflow-git-changes-window__dirty {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px solid var(--sailor-status-running-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-status-running-bg);
   color: var(--sailor-status-running-text);
+  font-size: 11px;
 }
 
 .workflow-git-changes-window__error {
@@ -454,23 +307,6 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   gap: var(--sailor-space-2);
   color: var(--sailor-text-muted);
   font-size: 12px;
-}
-
-.workflow-git-changes-window__raw {
-  min-width: max-content;
-  margin: 0;
-  padding: 8px 0;
-  color: var(--sailor-text-primary);
-  font-family: var(--sailor-font-mono);
-  font-size: 11px;
-  line-height: 1.55;
-  white-space: pre;
-}
-
-.workflow-git-changes-window__raw-line {
-  display: block;
-  min-height: 20px;
-  padding: 0 14px;
 }
 
 .workflow-git-changes-window__diff {

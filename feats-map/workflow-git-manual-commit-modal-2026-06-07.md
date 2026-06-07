@@ -66,11 +66,11 @@ git commit -m "feat: make workflow git commits manual"
 - Modify: `client-vue/src/features/workflow-editor/components/ui/__tests__/WorkflowGitChangesWindow.contract.test.ts`
 - Modify: `client-vue/src/app/pages/WorkflowEditorPage.vue`
 
-- [ ] **Step 1: Write failing component test**
+- [x] **Step 1: Write failing component test**
 
 Update contract test so it expects no toolbar actions, no snapshot selector, no restore button, and only a diff comparing current live workflow JSON against the latest commit.
 
-- [ ] **Step 2: Run component test to verify RED**
+- [x] **Step 2: Run component test to verify RED**
 
 Run:
 
@@ -80,11 +80,11 @@ npm --prefix client-vue test -- src/features/workflow-editor/components/ui/__tes
 
 Expected: FAIL because the old toolbar and restore UX still exist.
 
-- [ ] **Step 3: Simplify component**
+- [x] **Step 3: Simplify component**
 
 Keep `BaseFloatingWindow`, remove toolbar/select/raw/restore controls, auto-load the latest snapshot, and render the existing green/red diff rows as a live preview.
 
-- [ ] **Step 4: Run targeted tests and commit**
+- [x] **Step 4: Run targeted tests and commit**
 
 Run:
 

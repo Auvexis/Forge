@@ -15,39 +15,32 @@ test('workflow git changes window uses a floating window shell', () => {
   assert.match(source, /aria-label="Workflow changes viewer"/)
 })
 
-test('workflow git changes window exposes disabled git toolbar actions', () => {
-  assert.match(source, /workflow-git-changes-window__toolbar/)
-  assert.match(source, />\s*Create Snapshot\s*</)
-  assert.match(source, />\s*Snapshots\s*</)
-  assert.match(source, />\s*Diff\s*</)
-  assert.match(source, /disabled/)
+test('workflow git changes window is a preview helper without git actions', () => {
+  assert.doesNotMatch(source, /workflow-git-changes-window__toolbar/)
+  assert.doesNotMatch(source, />\s*Create Snapshot\s*</)
+  assert.doesNotMatch(source, />\s*Snapshots\s*</)
+  assert.doesNotMatch(source, />\s*Restore\s*</)
+  assert.doesNotMatch(source, /<select/)
+  assert.doesNotMatch(source, /viewerMode/)
 })
 
-test('workflow git changes window renders raw workflow json', () => {
-  assert.match(source, /rawWorkflowJson/)
+test('workflow git changes window compares live workflow json with latest commit', () => {
+  assert.match(source, /latestSnapshot/)
+  assert.match(source, /latestCommitLabel/)
   assert.match(source, /JSON\.stringify\(props\.workflow, null, 2\)/)
-  assert.match(source, /<pre class="workflow-git-changes-window__raw"/)
-})
-
-test('workflow git changes window loads and displays git snapshots', () => {
   assert.match(source, /workflowsApi\.listGitSnapshots/)
   assert.match(source, /workflowsApi\.getGitSnapshot/)
-  assert.match(source, /snapshotOptions/)
-  assert.match(source, /selectedSnapshotHash/)
-  assert.match(source, /<select/)
-  assert.match(source, /snapshot\.shortHash/)
-  assert.match(source, /snapshot\.committedAt/)
+  assert.doesNotMatch(source, /<pre class="workflow-git-changes-window__raw"/)
 })
 
 test('workflow git changes window supports live diff mode', () => {
   assert.match(source, /buildWorkflowJsonDiff/)
-  assert.match(source, /viewerMode/)
   assert.match(source, /debouncedDiffLines/)
   assert.match(source, /window\.setTimeout/)
   assert.match(source, /workflow-git-changes-window__line--added/)
   assert.match(source, /workflow-git-changes-window__line--removed/)
   assert.match(source, /workflow-git-changes-window__line--modified/)
-  assert.match(source, /Unsaved changes/)
+  assert.match(source, /Live changes/)
 })
 
 test('workflow git changes window has polished diff indicators', () => {
@@ -63,7 +56,6 @@ test('workflow git changes window has polished diff indicators', () => {
 
 test('workflow git changes window applies a JSON syntax theme without v-html', () => {
   assert.match(source, /tokenizeJsonLine/)
-  assert.match(source, /renderRawJsonLines/)
   assert.match(source, /json-token--key/)
   assert.match(source, /json-token--string/)
   assert.match(source, /json-token--number/)
@@ -75,16 +67,8 @@ test('workflow git changes window applies a JSON syntax theme without v-html', (
 test('workflow git changes window has loading empty and error states', () => {
   assert.match(source, /workflow-git-changes-window__empty/)
   assert.match(source, /isLoadingSnapshots/)
-  assert.match(source, /No snapshots yet/)
+  assert.match(source, /No commits yet/)
   assert.match(source, /snapshotError/)
   assert.match(source, /workflow-git-changes-window__viewer--empty/)
-  assert.match(source, /workflow-git-changes-window__toolbar-button/)
-})
-
-test('workflow git changes window confirms and emits restored snapshots', () => {
-  assert.match(source, /defineEmits/)
-  assert.match(source, /\(e: 'restore', hash: string\): void/)
-  assert.match(source, /Restore/)
-  assert.match(source, /selectedSnapshotHash/)
-  assert.match(source, /emit\('restore', selectedSnapshotHash\.value\)/)
+  assert.doesNotMatch(source, /defineEmits/)
 })
