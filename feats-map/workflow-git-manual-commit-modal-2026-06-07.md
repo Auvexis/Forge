@@ -143,7 +143,7 @@ git commit -m "feat: add workflow git commit modal"
 
 ### Final Verification
 
-- [ ] Run backend workflow Git tests.
-- [ ] Run frontend Git API/component/status bar tests.
+- [x] Run backend workflow Git tests.
+- [x] Run frontend Git API/component/status bar tests.
 - [ ] Start the frontend/backend if available and visually check the Changes Viewer and Git modal.
-- [ ] Report any tests or browser checks that could not run.
+- [x] Report any tests or browser checks that could not run.

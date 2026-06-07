@@ -126,7 +126,9 @@ describe("WorkflowRepository", () => {
     const db = await createWorkflowDb();
     const snapshots: WorkflowItem[] = [];
     setWorkflowDatabaseProvider(() => db);
-    setWorkflowGitSnapshotWriter((item) => snapshots.push(item));
+    setWorkflowGitSnapshotWriter((item) => {
+      snapshots.push(item);
+    });
     setWorkflowGitSnapshotFileReader((_workflowId, hash) => ({
       hash,
       rawWorkflowJson: JSON.stringify(workflow("old-id", "Old Version")),
