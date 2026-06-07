@@ -37,6 +37,11 @@ const viewerLabel = computed(() =>
   selectedSnapshot.value ? `snapshot ${selectedSnapshot.value.hash}` : 'live workflow',
 )
 const hasUnsavedChanges = computed(() => baseDiffJson.value !== liveWorkflowJson.value)
+const diffStats = computed(() => ({
+  added: debouncedDiffLines.value.filter((line) => line.type === 'added').length,
+  removed: debouncedDiffLines.value.filter((line) => line.type === 'removed').length,
+  modified: debouncedDiffLines.value.filter((line) => line.type === 'modified').length,
+}))
 
 onMounted(loadSnapshots)
 onBeforeUnmount(() => {
@@ -167,6 +172,17 @@ function requestRestore() {
             </option>
           </select>
         </label>
+        <div class="workflow-git-changes-window__stats" aria-label="Diff summary">
+          <span class="workflow-git-changes-window__stat workflow-git-changes-window__stat--added">
+            +{{ diffStats.added }}
+          </span>
+          <span class="workflow-git-changes-window__stat workflow-git-changes-window__stat--removed">
+            -{{ diffStats.removed }}
+          </span>
+          <span class="workflow-git-changes-window__stat workflow-git-changes-window__stat--modified">
+            ~{{ diffStats.modified }}
+          </span>
+        </div>
       </div>
 
       <div class="workflow-git-changes-window__viewer">
@@ -184,8 +200,8 @@ function requestRestore() {
             :class="`workflow-git-changes-window__line--${line.type}`"
             role="row"
           >
-            <span class="workflow-git-changes-window__line-number">{{ line.oldLineNumber ?? '' }}</span>
-            <span class="workflow-git-changes-window__line-number">{{ line.newLineNumber ?? '' }}</span>
+            <span class="workflow-git-changes-window__gutter workflow-git-changes-window__line-number">{{ line.oldLineNumber ?? '' }}</span>
+            <span class="workflow-git-changes-window__gutter workflow-git-changes-window__line-number">{{ line.newLineNumber ?? '' }}</span>
             <span class="workflow-git-changes-window__line-marker">
               {{ line.type === 'added' ? '+' : line.type === 'removed' ? '-' : line.type === 'modified' ? '~' : ' ' }}
             </span>
@@ -212,8 +228,8 @@ function requestRestore() {
   align-items: center;
   gap: 6px;
   min-height: 28px;
-  border-bottom: 1px solid var(--sailor-border-muted);
-  padding-bottom: 8px;
+  border-bottom: 1px solid var(--sailor-border);
+  padding: 0 2px 8px;
 }
 
 .workflow-git-changes-window__toolbar button {
@@ -273,6 +289,44 @@ function requestRestore() {
   font: inherit;
 }
 
+.workflow-git-changes-window__stats {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.workflow-git-changes-window__stat {
+  min-width: 38px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--sailor-radius-sm);
+  font-family: var(--sailor-font-mono);
+  font-size: 11px;
+  font-weight: var(--sailor-font-semibold);
+}
+
+.workflow-git-changes-window__stat--added {
+  border-color: var(--sailor-status-success-border);
+  background: var(--sailor-status-success-bg);
+  color: var(--sailor-status-success-text);
+}
+
+.workflow-git-changes-window__stat--removed {
+  border-color: var(--sailor-status-error-border);
+  background: var(--sailor-status-error-bg);
+  color: var(--sailor-status-error-text);
+}
+
+.workflow-git-changes-window__stat--modified {
+  border-color: var(--sailor-status-running-border);
+  background: var(--sailor-status-running-bg);
+  color: var(--sailor-status-running-text);
+}
+
 .workflow-git-changes-window__toolbar button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
@@ -282,9 +336,10 @@ function requestRestore() {
   min-height: 0;
   flex: 1;
   overflow: auto;
-  border: 1px solid var(--sailor-border-muted);
+  border: 1px solid var(--sailor-border);
   border-radius: 6px;
   background: var(--sailor-bg-base);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 .workflow-git-changes-window__viewer-meta {
@@ -329,15 +384,23 @@ function requestRestore() {
 }
 
 .workflow-git-changes-window__line--added {
-  background: color-mix(in srgb, var(--sailor-green-400) 18%, transparent);
+  background: color-mix(in srgb, var(--sailor-green-400) 16%, transparent);
+  box-shadow: inset 3px 0 0 var(--sailor-green-400);
 }
 
 .workflow-git-changes-window__line--removed {
-  background: color-mix(in srgb, var(--sailor-red-400) 18%, transparent);
+  background: color-mix(in srgb, var(--sailor-red-400) 16%, transparent);
+  box-shadow: inset 3px 0 0 var(--sailor-red-400);
 }
 
 .workflow-git-changes-window__line--modified {
-  background: color-mix(in srgb, var(--sailor-yellow-400) 18%, transparent);
+  background: color-mix(in srgb, var(--sailor-amber-400) 16%, transparent);
+  box-shadow: inset 3px 0 0 var(--sailor-amber-400);
+}
+
+.workflow-git-changes-window__gutter {
+  border-right: 1px solid var(--sailor-border-muted);
+  background: color-mix(in srgb, var(--sailor-bg-surface) 72%, transparent);
 }
 
 .workflow-git-changes-window__line-number {

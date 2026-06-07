@@ -50,6 +50,17 @@ test('workflow git changes window supports live diff mode', () => {
   assert.match(source, /Unsaved changes/)
 })
 
+test('workflow git changes window has polished diff indicators', () => {
+  assert.match(source, /diffStats/)
+  assert.match(source, /workflow-git-changes-window__stat--added/)
+  assert.match(source, /workflow-git-changes-window__stat--removed/)
+  assert.match(source, /workflow-git-changes-window__stat--modified/)
+  assert.match(source, /var\(--sailor-status-success-bg\)/)
+  assert.match(source, /var\(--sailor-status-error-bg\)/)
+  assert.match(source, /var\(--sailor-status-running-bg\)/)
+  assert.match(source, /workflow-git-changes-window__gutter/)
+})
+
 test('workflow git changes window confirms and emits restored snapshots', () => {
   assert.match(source, /defineEmits/)
   assert.match(source, /\(e: 'restore', hash: string\): void/)
