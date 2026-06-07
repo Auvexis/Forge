@@ -109,7 +109,8 @@ const hasOutgoingConnection = computed(() => {
 
 const onQuickAdd = (event: MouseEvent) => {
   if (props.id) {
-    quickAddBus.emit({ sourceId: props.id, clientX: event.clientX, clientY: event.clientY })
+    const anchorRect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+    quickAddBus.emit({ sourceId: props.id, clientX: event.clientX, clientY: event.clientY, anchorRect })
   }
 }
 </script>

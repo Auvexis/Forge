@@ -38,6 +38,7 @@ const hasConnection = computed(() =>
 )
 
 const onQuickAdd = (event: MouseEvent) => {
+  const anchorRect = (event.currentTarget as HTMLElement).getBoundingClientRect()
   if (props.mode === 'agent-config') {
     quickAddBus.emit({
       targetId: props.nodeId,
@@ -45,6 +46,7 @@ const onQuickAdd = (event: MouseEvent) => {
       agentConfigHandle: props.targetHandleId ?? props.handleId,
       clientX: event.clientX,
       clientY: event.clientY,
+      anchorRect,
     })
     return
   }
@@ -54,6 +56,7 @@ const onQuickAdd = (event: MouseEvent) => {
     sourceHandle: props.handleId,
     clientX: event.clientX,
     clientY: event.clientY,
+    anchorRect,
   })
 }
 </script>

@@ -257,10 +257,11 @@ let quickAddTargetHandle: string | null = null
 let quickAddAgentConfigHandle: 'chatModel' | 'memory' | 'tool' | null = null
 
 const AGENT_CONFIG_HANDLES = ['chatModel', 'memory', 'tool'] as const
-type AddNodePickerAnchor = { clientX?: number; clientY?: number }
+type AddNodePickerAnchorRect = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'>
+type AddNodePickerAnchor = { clientX?: number; clientY?: number; anchorRect?: AddNodePickerAnchorRect }
 
-const ADD_NODE_PICKER_WIDTH = 920
-const ADD_NODE_PICKER_HEIGHT = 620
+const ADD_NODE_PICKER_WIDTH = 584
+const ADD_NODE_PICKER_HEIGHT = 398
 const ADD_NODE_PICKER_MARGIN = 12
 
 const addNodePickerOverlay = ref<{
@@ -279,6 +280,7 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function getAddNodePickerPosition(anchor?: AddNodePickerAnchor | null): { left: number; top: number } {
+  const anchorRect = anchor?.anchorRect
   const fallback = {
     clientX: window.innerWidth / 2,
     clientY: window.innerHeight / 2,
@@ -288,11 +290,15 @@ function getAddNodePickerPosition(anchor?: AddNodePickerAnchor | null): { left: 
       ? { clientX: anchor.clientX, clientY: anchor.clientY }
       : fallback
   const maxLeft = window.innerWidth - ADD_NODE_PICKER_WIDTH - ADD_NODE_PICKER_MARGIN
-  const maxTop = window.innerHeight - ADD_NODE_PICKER_HEIGHT - ADD_NODE_PICKER_MARGIN
+  const bottomAlignedTop = window.innerHeight - ADD_NODE_PICKER_HEIGHT - ADD_NODE_PICKER_MARGIN
+  const preferredTop = anchorRect ? anchorRect.top : point.clientY - 24
+  const preferredRight = anchorRect ? anchorRect.right + ADD_NODE_PICKER_MARGIN : point.clientX + ADD_NODE_PICKER_MARGIN
+  const preferredLeft = anchorRect ? anchorRect.left - ADD_NODE_PICKER_WIDTH - ADD_NODE_PICKER_MARGIN : point.clientX - ADD_NODE_PICKER_WIDTH - ADD_NODE_PICKER_MARGIN
+  const left = preferredRight <= maxLeft ? preferredRight : preferredLeft
 
   return {
-    left: clamp(point.clientX + ADD_NODE_PICKER_MARGIN, ADD_NODE_PICKER_MARGIN, maxLeft),
-    top: clamp(point.clientY - 24, ADD_NODE_PICKER_MARGIN, maxTop),
+    left: clamp(left, ADD_NODE_PICKER_MARGIN, maxLeft),
+    top: clamp(preferredTop, ADD_NODE_PICKER_MARGIN, bottomAlignedTop),
   }
 }
 
@@ -313,6 +319,7 @@ quickAddBus.on((payload: {
   agentConfigHandle?: 'chatModel' | 'memory' | 'tool'
   clientX?: number
   clientY?: number
+  anchorRect?: AddNodePickerAnchorRect
 }) => {
   quickAddSourceHandle = payload.sourceHandle ?? null
   quickAddTargetId = payload.targetId ?? null
@@ -337,6 +344,7 @@ quickAddBetweenBus.on((payload: {
   targetHandle?: string
   clientX?: number
   clientY?: number
+  anchorRect?: AddNodePickerAnchorRect
 }) => {
   pendingInsertEdgeId       = payload.edgeId
   pendingInsertSourceId     = payload.sourceId
@@ -373,6 +381,19 @@ const openAddNodePanel = (
     ...position,
     agentConfigHandle: quickAddAgentConfigHandle,
   }
+}
+
+const openAddNodePanelFromEvent = (
+  event: MouseEvent,
+  sourceId?: string | null,
+  agentConfigHandle?: 'chatModel' | 'memory' | 'tool' | null,
+) => {
+  const anchorRect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  openAddNodePanel(sourceId, agentConfigHandle, {
+    clientX: event.clientX,
+    clientY: event.clientY,
+    anchorRect,
+  })
 }
 
 // ── Run / Stop ────────────────────────────────────────────────────────────
@@ -1392,7 +1413,7 @@ defineExpose({
         v-if="isWorkflowEmpty"
         class="canvas-empty-step nodrag nopan"
         type="button"
-        @click.stop="(event) => openAddNodePanel(null, null, event)"
+        @click.stop="(event) => openAddNodePanelFromEvent(event, null, null)"
       >
         <span class="canvas-empty-step__box">
           <LucideIcon name="plus" :size="34" />

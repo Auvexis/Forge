@@ -25,7 +25,6 @@ test('add node panel exposes only the root AI Agent outside contextual agent qui
   assert.doesNotMatch(aiNodesDefinition, /label: 'AI Tool'/)
 
   assert.doesNotMatch(source, /label: 'Chat Trigger'/)
-  assert.match(source, /filteredAiNodes/)
   assert.match(source, /props\.onAddLogicNode\?\.\(item\.preset\.nodeType, item\.preset\.defaults\)/)
 })
 
@@ -69,7 +68,7 @@ test('add node panel supports contextual agent quick-add presets', () => {
   assert.match(source, /if \(isAgentToolContext\.value\) return \(plugins\.value \?\? \[\]\)\.filter\(pluginHasAgentTools\)/)
   assert.match(source, /agentConfigHandle: props\.agentConfigHandle/)
   assert.match(source, /buildPickerActionItems/)
-  assert.match(source, /add-node-picker-grid/)
+  assert.match(source, /add-node-cascade/)
 })
 
 test('canvas connects contextual quick-add nodes into agent config handles', () => {
@@ -132,8 +131,8 @@ test('add node panel keeps the plugin methods view scrollable inside the panel',
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
   assert.match(panel, /<div class="add-node-content" @wheel\.stop>/)
-  assert.match(panel, /\.add-node-panel\s*\{[\s\S]*overflow: hidden;/)
-  assert.match(panel, /\.add-node-content\s*\{[\s\S]*min-height: 0;[\s\S]*overflow-y: auto;[\s\S]*overflow-x: hidden;[\s\S]*overscroll-behavior: contain;/)
+  assert.match(panel, /\.add-node-panel\s*\{[\s\S]*overflow: visible;/)
+  assert.match(panel, /\.add-node-cascade__scroller\s*\{[\s\S]*min-height: 0;[\s\S]*overflow-y: auto;[\s\S]*overflow-x: hidden;[\s\S]*overscroll-behavior: contain;/)
 })
 
 test('add node panel renders the floating picker and removes the old category/actions flow', () => {
@@ -142,13 +141,19 @@ test('add node panel renders the floating picker and removes the old category/ac
   assert.match(panel, /buildPickerCategoryItems/)
   assert.match(panel, /buildPickerSecondColumnItems/)
   assert.match(panel, /buildPickerActionItems/)
-  assert.match(panel, /selectedCategory/)
-  assert.match(panel, /selectedPickerItemId/)
-  assert.match(panel, /categories\.includes\(selectedCategory\.value\)/)
-  assert.match(panel, /add-node-picker-shell/)
-  assert.match(panel, /add-node-picker-grid/)
-  assert.match(panel, /add-node-picker-column/)
-  assert.match(panel, /add-node-picker-column__scroller/)
+  assert.match(panel, /hoveredCategory/)
+  assert.match(panel, /methodSubmenuPlugin/)
+  assert.match(panel, /categories\.includes\(hoveredCategory\.value\)/)
+  assert.match(panel, /add-node-cascade/)
+  assert.match(panel, /add-node-cascade__primary/)
+  assert.match(panel, /add-node-cascade__secondary/)
+  assert.match(panel, /add-node-cascade__methods/)
+  assert.match(panel, /@mouseenter="hoverCategory\(item\.category\)"/)
+  assert.match(panel, /openMethodSubmenu\(item\.plugin\)/)
+  assert.match(panel, /addSinglePluginMethod\(item\.plugin\)/)
+  assert.doesNotMatch(panel, /add-node-picker-grid/)
+  assert.doesNotMatch(panel, /title="Actions"/)
+  assert.doesNotMatch(panel, /add-node-search-wrapper/)
   assert.doesNotMatch(panel, /categoryFilterOpen/)
   assert.doesNotMatch(panel, /toggleCategory/)
   assert.doesNotMatch(panel, /view === 'actions'/)
@@ -166,6 +171,8 @@ test('workflow canvas opens add node picker as cursor anchored canvas overlay', 
   assert.match(canvas, /<div\s+v-if="addNodePickerOverlay"/)
   assert.match(canvas, /<AddNodePanel/)
   assert.match(canvas, /closeAddNodePicker/)
+  assert.match(canvas, /anchorRect/)
+  assert.match(canvas, /bottomAlignedTop/)
   assert.doesNotMatch(canvas, /panelStore\.togglePanel\(\{\s*id: 'add-node-panel'/)
 
   assert.match(baseNode, /clientX: event\.clientX/)

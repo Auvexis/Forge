@@ -1,29 +1,15 @@
 <template>
   <div class="add-node-panel">
-    <div class="add-node-search-wrapper">
-      <BaseInput
-        ref="searchInput"
-        v-model="search"
-        icon-left="search"
-        :placeholder="searchPlaceholder"
-        autofocus
-      />
-    </div>
-
     <div class="add-node-content" @wheel.stop>
       <div v-if="pluginsLoading" class="add-node-loading">
         <LucideIcon name="loader-2" :size="20" class="add-node-spinner" />
         <span>Loading plugins...</span>
       </div>
 
-      <div v-else class="add-node-picker-shell">
-        <div class="add-node-picker-grid">
-          <AddNodePickerColumn
-            title="Add to workflow"
-            :count="categoryItems.length"
-            :empty="categoryItems.length === 0"
-            empty-label="No categories found."
-          >
+      <div v-else class="add-node-cascade">
+        <section class="add-node-cascade__primary">
+          <header class="add-node-cascade__header">Add to workflow</header>
+          <div class="add-node-cascade__scroller">
             <AddNodePickerItem
               v-for="item in categoryItems"
               :key="item.category"
@@ -33,44 +19,63 @@
               :count="item.count"
               :active="activeCategory === item.category"
               chevron
-              @click="selectCategory(item.category)"
+              @mouseenter="hoverCategory(item.category)"
+              @focus="hoverCategory(item.category)"
             />
-          </AddNodePickerColumn>
+            <div v-if="categoryItems.length === 0" class="add-node-cascade__empty">
+              No categories found.
+            </div>
+          </div>
+        </section>
 
-          <AddNodePickerColumn
-            :title="activeCategory || 'Plugins'"
-            :count="secondColumnItems.length"
-            :empty="secondColumnItems.length === 0"
-            empty-label="No plugins or presets found."
+        <Transition name="add-node-secondary">
+          <section
+            v-if="activeCategory"
+            class="add-node-cascade__secondary"
+            @mouseenter="keepSecondaryOpen"
           >
-            <AddNodePickerItem
-              v-for="item in secondColumnItems"
-              :key="item.id"
-              :label="item.label"
-              :description="item.description"
-              :icon="item.kind === 'plugin' ? pluginIcon(item.plugin) : item.icon"
-              :active="selectedPickerItemId === item.id"
-              :chevron="item.kind === 'plugin'"
-              @click="selectSecondColumnItem(item)"
-            />
-          </AddNodePickerColumn>
+            <header class="add-node-cascade__header">{{ activeCategory }}</header>
+            <div class="add-node-cascade__scroller">
+              <AddNodePickerItem
+                v-for="item in secondColumnItems"
+                :key="item.id"
+                :label="item.label"
+                :description="item.description"
+                :icon="item.kind === 'plugin' ? pluginIcon(item.plugin) : item.icon"
+                :active="methodSubmenuPlugin?.id === item.id.replace('plugin:', '')"
+                :chevron="item.kind === 'plugin' && pluginNeedsMethodSubmenu(item.plugin)"
+                @click="selectSecondColumnItem(item)"
+              />
+              <div v-if="secondColumnItems.length === 0" class="add-node-cascade__empty">
+                No plugins or presets found.
+              </div>
+            </div>
 
-          <AddNodePickerColumn
-            title="Actions"
-            :count="thirdColumnItems.length"
-            :empty="!selectedPluginForActions || thirdColumnItems.length === 0"
-            :empty-label="selectedPluginForActions ? 'No actions found.' : 'Select a plugin.'"
-          >
-            <AddNodePickerItem
-              v-for="item in thirdColumnItems"
-              :key="item.id"
-              :label="item.label"
-              :description="item.description"
-              icon="workflow"
-              @click="addPluginAction(item.methodKey, item.label)"
-            />
-          </AddNodePickerColumn>
-        </div>
+            <Transition name="add-node-methods">
+              <div v-if="methodSubmenuPlugin" class="add-node-cascade__methods">
+                <header class="add-node-cascade__header">
+                  <button class="add-node-cascade__back" type="button" @click="closeMethodSubmenu">
+                    <LucideIcon name="chevron-left" :size="14" />
+                  </button>
+                  <span>{{ methodSubmenuPlugin.manifest.metadata.name }}</span>
+                </header>
+                <div class="add-node-cascade__scroller">
+                  <AddNodePickerItem
+                    v-for="item in methodSubmenuItems"
+                    :key="item.id"
+                    :label="item.label"
+                    :description="item.description"
+                    icon="workflow"
+                    @click="addPluginAction(methodSubmenuPlugin, item.methodKey, item.label)"
+                  />
+                  <div v-if="methodSubmenuItems.length === 0" class="add-node-cascade__empty">
+                    No actions found.
+                  </div>
+                </div>
+              </div>
+            </Transition>
+          </section>
+        </Transition>
       </div>
     </div>
   </div>
@@ -82,11 +87,9 @@ import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import type { PluginCategory, PluginSummary } from '@/core/types/plugin.types'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
-import BaseInput from '@/shared/components/base/BaseInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useTheme } from '@/shared/composables/useTheme'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
-import AddNodePickerColumn from './AddNodePickerColumn.vue'
 import AddNodePickerItem from './AddNodePickerItem.vue'
 import {
   buildPickerActionItems,
@@ -106,152 +109,38 @@ const props = defineProps<{
 const SUPPORTED_CHAT_MODEL_ADAPTERS = new Set(['openai-compatible', 'generic', 'ollama'])
 
 const search = ref('')
-const selectedCategory = ref<PluginCategory | null>(null)
-const selectedPickerItemId = ref<string | null>(null)
-const searchInput = ref<InstanceType<typeof BaseInput>>()
+const hoveredCategory = ref<PluginCategory | null>(null)
+const methodSubmenuPlugin = ref<PluginSummary | null>(null)
 const { isDark } = useTheme()
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
 
 onMounted(() => {
   loadPlugins()
-  searchInput.value?.focus()
 })
 
 const isAgentModelContext = computed(() => props.agentConfigHandle === 'chatModel')
 const isAgentMemoryContext = computed(() => props.agentConfigHandle === 'memory')
 const isAgentToolContext = computed(() => props.agentConfigHandle === 'tool')
 
-const searchPlaceholder = computed(() => {
-  if (isAgentModelContext.value) return 'Search chat models...'
-  if (isAgentMemoryContext.value) return 'Search memory...'
-  if (isAgentToolContext.value) return 'Search tools...'
-  return 'Search components...'
-})
-
 const LOGIC_NODES: AddNodePickerPreset[] = [
-  {
-    id: 'trigger',
-    nodeType: 'trigger' as WorkflowNodeType,
-    label: 'Trigger',
-    description: 'Add another workflow entry point',
-    icon: 'zap',
-    categories: ['Core'],
-  },
-  {
-    id: 'code',
-    nodeType: 'code' as WorkflowNodeType,
-    label: 'Code Block',
-    description: 'Run custom JavaScript in a sandbox',
-    icon: 'code-2',
-    categories: ['Core', 'Developer'],
-  },
-  {
-    id: 'http',
-    nodeType: 'http' as WorkflowNodeType,
-    label: 'HTTP Request',
-    description: 'Send an HTTP request to an external API',
-    icon: 'globe',
-    categories: ['Core', 'Developer'],
-  },
-  {
-    id: 'if',
-    nodeType: 'if' as WorkflowNodeType,
-    label: 'If / Else',
-    description: 'Branch the flow based on a condition',
-    icon: 'git-branch',
-    categories: ['Flow'],
-  },
-  {
-    id: 'switch',
-    nodeType: 'switch' as WorkflowNodeType,
-    label: 'Switch',
-    description: 'Route to multiple paths based on a value',
-    icon: 'git-branch-plus',
-    categories: ['Flow'],
-  },
-  {
-    id: 'loop',
-    nodeType: 'loop' as WorkflowNodeType,
-    label: 'Loop / ForEach',
-    description: 'Iterate over a collection item by item',
-    icon: 'repeat',
-    categories: ['Flow'],
-  },
-  {
-    id: 'merge',
-    nodeType: 'merge' as WorkflowNodeType,
-    label: 'Merge',
-    description: 'Merge parallel flows into a single path',
-    icon: 'merge',
-    categories: ['Flow'],
-  },
-  {
-    id: 'split-in-batches',
-    nodeType: 'split-in-batches' as WorkflowNodeType,
-    label: 'Split In Batches',
-    description: 'Split an array into batches and process each one',
-    icon: 'layers',
-    categories: ['Flow', 'Data transformation'],
-  },
-  {
-    id: 'set',
-    nodeType: 'set' as WorkflowNodeType,
-    label: 'Set Fields',
-    description: 'Set or rename fields without JavaScript',
-    icon: 'sliders-horizontal',
-    categories: ['Data transformation', 'Core'],
-  },
-  {
-    id: 'event',
-    nodeType: 'event' as WorkflowNodeType,
-    label: 'Event Emitter',
-    description: 'Publish an event to trigger other flows',
-    icon: 'zap',
-    categories: ['Core'],
-  },
-  {
-    id: 'event-listener',
-    nodeType: 'event-listener' as WorkflowNodeType,
-    label: 'Event Listener',
-    description: 'Wait for an event to trigger a sub-flow',
-    icon: 'target',
-    categories: ['Core', 'Flow'],
-  },
-  {
-    id: 'subworkflow',
-    nodeType: 'subworkflow' as WorkflowNodeType,
-    label: 'Sub-Workflow',
-    description: 'Call another workflow as a sub-step',
-    icon: 'layers',
-    categories: ['Flow'],
-  },
-  {
-    id: 'respond-webhook',
-    nodeType: 'respond-webhook' as WorkflowNodeType,
-    label: 'Respond to Webhook',
-    description: 'Respond to the HTTP caller with a custom status and body',
-    icon: 'send',
-    categories: ['Core'],
-  },
-  {
-    id: 'wait-form',
-    nodeType: 'wait-form' as WorkflowNodeType,
-    label: 'Wait for Form',
-    description: 'Create a temporary form and continue after submission',
-    icon: 'clipboard-list',
-    categories: ['Flow'],
-  },
+  { id: 'trigger', nodeType: 'trigger' as WorkflowNodeType, label: 'Trigger', description: 'Add another workflow entry point', icon: 'zap', categories: ['Core'] },
+  { id: 'code', nodeType: 'code' as WorkflowNodeType, label: 'Code Block', description: 'Run custom JavaScript in a sandbox', icon: 'code-2', categories: ['Core', 'Developer'] },
+  { id: 'http', nodeType: 'http' as WorkflowNodeType, label: 'HTTP Request', description: 'Send an HTTP request to an external API', icon: 'globe', categories: ['Core', 'Developer'] },
+  { id: 'if', nodeType: 'if' as WorkflowNodeType, label: 'If / Else', description: 'Branch the flow based on a condition', icon: 'git-branch', categories: ['Flow'] },
+  { id: 'switch', nodeType: 'switch' as WorkflowNodeType, label: 'Switch', description: 'Route to multiple paths based on a value', icon: 'git-branch-plus', categories: ['Flow'] },
+  { id: 'loop', nodeType: 'loop' as WorkflowNodeType, label: 'Loop / ForEach', description: 'Iterate over a collection item by item', icon: 'repeat', categories: ['Flow'] },
+  { id: 'merge', nodeType: 'merge' as WorkflowNodeType, label: 'Merge', description: 'Merge parallel flows into a single path', icon: 'merge', categories: ['Flow'] },
+  { id: 'split-in-batches', nodeType: 'split-in-batches' as WorkflowNodeType, label: 'Split In Batches', description: 'Split an array into batches and process each one', icon: 'layers', categories: ['Flow', 'Data transformation'] },
+  { id: 'set', nodeType: 'set' as WorkflowNodeType, label: 'Set Fields', description: 'Set or rename fields without JavaScript', icon: 'sliders-horizontal', categories: ['Data transformation', 'Core'] },
+  { id: 'event', nodeType: 'event' as WorkflowNodeType, label: 'Event Emitter', description: 'Publish an event to trigger other flows', icon: 'zap', categories: ['Core'] },
+  { id: 'event-listener', nodeType: 'event-listener' as WorkflowNodeType, label: 'Event Listener', description: 'Wait for an event to trigger a sub-flow', icon: 'target', categories: ['Core', 'Flow'] },
+  { id: 'subworkflow', nodeType: 'subworkflow' as WorkflowNodeType, label: 'Sub-Workflow', description: 'Call another workflow as a sub-step', icon: 'layers', categories: ['Flow'] },
+  { id: 'respond-webhook', nodeType: 'respond-webhook' as WorkflowNodeType, label: 'Respond to Webhook', description: 'Respond to the HTTP caller with a custom status and body', icon: 'send', categories: ['Core'] },
+  { id: 'wait-form', nodeType: 'wait-form' as WorkflowNodeType, label: 'Wait for Form', description: 'Create a temporary form and continue after submission', icon: 'clipboard-list', categories: ['Flow'] },
 ]
 
 const AI_NODES: AddNodePickerPreset[] = [
-  {
-    id: 'ai-agent',
-    nodeType: 'ai-agent' as WorkflowNodeType,
-    label: 'AI Agent',
-    description: 'Run a governed agent with tools and memory',
-    icon: 'bot',
-    categories: ['AI'],
-  },
+  { id: 'ai-agent', nodeType: 'ai-agent' as WorkflowNodeType, label: 'AI Agent', description: 'Run a governed agent with tools and memory', icon: 'bot', categories: ['AI'] },
 ]
 
 const AGENT_MEMORY_PRESETS: AddNodePickerPreset[] = [
@@ -297,10 +186,6 @@ const pickerPresets = computed(() => {
   return [...LOGIC_NODES, ...AI_NODES]
 })
 
-const filteredAiNodes = computed(() =>
-  AI_NODES.filter((node) => node.label.toLowerCase().includes(search.value.toLowerCase())),
-)
-
 const categoryItems = computed(() =>
   buildPickerCategoryItems({
     plugins: pickerPlugins.value,
@@ -311,8 +196,8 @@ const categoryItems = computed(() =>
 
 const activeCategory = computed(() => {
   const categories = categoryItems.value.map((item) => item.category)
-  if (selectedCategory.value && categories.includes(selectedCategory.value)) return selectedCategory.value
-  return categoryItems.value[0]?.category ?? null
+  if (hoveredCategory.value && categories.includes(hoveredCategory.value)) return hoveredCategory.value
+  return null
 })
 
 const secondColumnItems = computed(() =>
@@ -324,18 +209,9 @@ const secondColumnItems = computed(() =>
   }),
 )
 
-const selectedSecondColumnItem = computed(() =>
-  secondColumnItems.value.find((item) => item.id === selectedPickerItemId.value) ?? null,
-)
-
-const selectedPluginForActions = computed(() => {
-  const item = selectedSecondColumnItem.value
-  return item?.kind === 'plugin' ? item.plugin : null
-})
-
-const thirdColumnItems = computed(() =>
+const methodSubmenuItems = computed(() =>
   buildPickerActionItems({
-    plugin: selectedPluginForActions.value,
+    plugin: methodSubmenuPlugin.value,
     agentConfigHandle: props.agentConfigHandle,
     search: search.value,
   }),
@@ -344,26 +220,62 @@ const thirdColumnItems = computed(() =>
 const pluginIcon = (plugin: PluginSummary) =>
   resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
 
-const selectCategory = (category: PluginCategory) => {
-  selectedCategory.value = category
-  selectedPickerItemId.value = null
+const hoverCategory = (category: PluginCategory) => {
+  if (hoveredCategory.value !== category) methodSubmenuPlugin.value = null
+  hoveredCategory.value = category
+}
+
+const keepSecondaryOpen = () => {
+  hoveredCategory.value = activeCategory.value
+}
+
+const pluginActionItems = (plugin: PluginSummary) =>
+  buildPickerActionItems({
+    plugin,
+    agentConfigHandle: props.agentConfigHandle,
+    search: search.value,
+  })
+
+const pluginNeedsMethodSubmenu = (plugin: PluginSummary) => pluginActionItems(plugin).length > 1
+
+const openMethodSubmenu = (plugin: PluginSummary) => {
+  methodSubmenuPlugin.value = plugin
+}
+
+const closeMethodSubmenu = () => {
+  methodSubmenuPlugin.value = null
+}
+
+const addSinglePluginMethod = (plugin: PluginSummary) => {
+  const action = pluginActionItems(plugin)[0]
+  if (!action) return
+  addPluginAction(plugin, action.methodKey, action.label)
 }
 
 const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
-  selectedPickerItemId.value = item.id
   if (item.kind === 'preset') {
     props.onAddLogicNode?.(item.preset.nodeType, item.preset.defaults)
     return
   }
 
-  if (isAgentModelContext.value) addAgentModelNode(item.plugin)
-  if (isAgentMemoryContext.value) addAgentMemoryNode(item.plugin)
+  if (isAgentModelContext.value) {
+    addAgentModelNode(item.plugin)
+    return
+  }
+  if (isAgentMemoryContext.value) {
+    addAgentMemoryNode(item.plugin)
+    return
+  }
+
+  if (pluginNeedsMethodSubmenu(item.plugin)) {
+    openMethodSubmenu(item.plugin)
+    return
+  }
+
+  addSinglePluginMethod(item.plugin)
 }
 
-const addPluginAction = (methodKey: string, label: string) => {
-  const plugin = selectedPluginForActions.value
-  if (!plugin) return
-
+const addPluginAction = (plugin: PluginSummary, methodKey: string, label: string) => {
   if (isAgentToolContext.value) {
     props.onAddAgentToolNode?.(plugin.id, methodKey, label)
     return
@@ -415,12 +327,37 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 
 <style scoped>
 .add-node-panel {
+  --anp-column-width: 288px;
+  --anp-panel-height: min(398px, calc(100vh - 32px));
+  position: relative;
+  width: var(--anp-column-width);
+  min-width: var(--anp-column-width);
+  height: var(--anp-panel-height);
+  overflow: visible;
+}
+
+.add-node-content,
+.add-node-cascade,
+.add-node-cascade__primary,
+.add-node-cascade__secondary {
+  height: 100%;
+  min-height: 0;
+}
+
+.add-node-content {
+  overflow: visible;
+}
+
+.add-node-cascade {
+  position: relative;
+}
+
+.add-node-cascade__primary,
+.add-node-cascade__secondary,
+.add-node-cascade__methods {
   display: flex;
+  width: var(--anp-column-width);
   flex-direction: column;
-  min-width: min(920px, calc(100vw - 48px));
-  max-width: calc(100vw - 48px);
-  height: min(620px, calc(100vh - 120px));
-  max-height: calc(100vh - 120px);
   overflow: hidden;
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-md);
@@ -428,65 +365,55 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   box-shadow: var(--sailor-shadow-lg);
 }
 
-.add-node-search-wrapper {
-  padding: var(--sailor-space-3);
-  border-bottom: 1px solid var(--sailor-border);
-  flex-shrink: 0;
+.add-node-cascade__primary {
+  position: relative;
 }
 
-.add-node-content {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  overscroll-behavior: contain;
+.add-node-cascade__secondary {
+  position: absolute;
+  top: 20px;
+  left: calc(100% + var(--sailor-space-2));
 }
 
-.add-node-picker-shell {
-  height: 100%;
-  min-height: 0;
+.add-node-cascade__methods {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
 }
 
-.add-node-picker-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(240px, 286px));
-  height: 100%;
-  min-height: 0;
-}
-
-:deep(.add-node-picker-column) {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex-direction: column;
-  border-right: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-elevated);
-}
-
-:deep(.add-node-picker-column:last-child) {
-  border-right: 0;
-}
-
-:deep(.add-node-picker-column__header) {
+.add-node-cascade__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--sailor-space-2);
   height: 38px;
+  flex: 0 0 auto;
   padding: 0 var(--sailor-space-3);
   border-bottom: 1px solid var(--sailor-border);
-  color: var(--sailor-text-muted);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
+  font-weight: 600;
 }
 
-:deep(.add-node-picker-column__header code) {
+.add-node-cascade__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--sailor-radius-sm);
+  background: transparent;
   color: var(--sailor-text-muted);
-  font-size: 10px;
+  cursor: pointer;
 }
 
-:deep(.add-node-picker-column__scroller) {
+.add-node-cascade__back:hover {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-text-primary);
+}
+
+.add-node-cascade__scroller {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -495,11 +422,11 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   padding: var(--sailor-space-2);
 }
 
-:deep(.add-node-picker-column__empty) {
+.add-node-cascade__empty {
   display: flex;
+  min-height: 120px;
   align-items: center;
   justify-content: center;
-  min-height: 120px;
   color: var(--sailor-text-muted);
   font-size: var(--sailor-text-sm);
 }
@@ -574,16 +501,38 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 
 .add-node-loading {
   display: flex;
-  height: 100%;
+  width: var(--anp-column-width);
+  height: var(--anp-panel-height);
   align-items: center;
   justify-content: center;
   gap: var(--sailor-space-2);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
+  background: var(--sailor-bg-elevated);
   color: var(--sailor-text-muted);
   font-size: var(--sailor-text-sm);
+  box-shadow: var(--sailor-shadow-lg);
 }
 
 .add-node-spinner {
   animation: spin 1s linear infinite;
+}
+
+.add-node-secondary-enter-active,
+.add-node-secondary-leave-active,
+.add-node-methods-enter-active,
+.add-node-methods-leave-active {
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+
+.add-node-secondary-enter-from,
+.add-node-secondary-leave-to,
+.add-node-methods-enter-from,
+.add-node-methods-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
 }
 
 @keyframes spin {
@@ -592,19 +541,14 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 720px) {
   .add-node-panel {
-    min-width: min(360px, calc(100vw - 32px));
+    --anp-column-width: min(288px, calc(100vw - 32px));
   }
 
-  .add-node-picker-grid {
-    grid-template-columns: 1fr;
-  }
-
-  :deep(.add-node-picker-column) {
-    min-height: 220px;
-    border-right: 0;
-    border-bottom: 1px solid var(--sailor-border);
+  .add-node-cascade__secondary {
+    left: 0;
+    top: calc(100% + var(--sailor-space-2));
   }
 }
 </style>

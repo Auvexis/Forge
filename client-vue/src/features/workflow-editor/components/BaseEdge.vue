@@ -211,6 +211,7 @@ function onDelete() {
 const quickAddBetweenBus = useEventBus('edge:quick-add-between')
 
 function onQuickAdd(event: MouseEvent) {
+  const anchorRect = (event.currentTarget as HTMLElement).getBoundingClientRect()
   quickAddBetweenBus.emit({
     edgeId: props.id,
     sourceId: props.source,
@@ -219,6 +220,7 @@ function onQuickAdd(event: MouseEvent) {
     targetHandle: props.targetHandleId ?? props.data?.targetHandle,
     clientX: event.clientX,
     clientY: event.clientY,
+    anchorRect,
   })
 }
 
