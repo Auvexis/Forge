@@ -690,6 +690,36 @@ export default async function workflowsRoutes(
 
   // ──────────── Save or Update a workflow ────────────
 
+  fastify.get("/workflows/:workflowId/git/status", async (req, reply) => {
+    const { workflowId } = req.params as { workflowId: string };
+
+    try {
+      const workflow = WorkflowRepository.getWorkflowById(workflowId);
+      if (!workflow) {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Workflow not found",
+          error: "Not Found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Workflow git status fetched successfully",
+        error: null,
+        data: WorkflowRepository.getWorkflowGitSnapshotStatus(workflowId),
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to fetch workflow git status",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
   fastify.post("/workflows", async (req, reply) => {
     try {
       const workflow = req.body as WorkflowItem;

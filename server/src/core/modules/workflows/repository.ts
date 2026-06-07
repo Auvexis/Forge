@@ -1,14 +1,19 @@
 import { DatabaseManager } from "../../database/index.ts";
 import { listTriggerEntries } from "./workflow-triggers.ts";
-import { WorkflowGitSnapshotService } from "./workflow-git-snapshot-service.ts";
+import {
+  WorkflowGitSnapshotService,
+  type WorkflowGitSnapshotStatus,
+} from "./workflow-git-snapshot-service.ts";
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 import type Database from "better-sqlite3";
 
 type WorkflowDatabaseProvider = () => Database.Database;
 type WorkflowGitSnapshotWriter = (workflow: WorkflowItem) => void;
+type WorkflowGitSnapshotStatusReader = (workflowId: string) => WorkflowGitSnapshotStatus;
 
 let workflowDatabaseProvider: WorkflowDatabaseProvider = () => DatabaseManager.workflows;
 let workflowGitSnapshotWriter: WorkflowGitSnapshotWriter | null = null;
+let workflowGitSnapshotStatusReader: WorkflowGitSnapshotStatusReader | null = null;
 
 export function setWorkflowDatabaseProvider(provider: WorkflowDatabaseProvider): void {
   workflowDatabaseProvider = provider;
@@ -21,14 +26,20 @@ export function resetWorkflowDatabaseProvider(): void {
 export function setWorkflowGitSnapshotDataDir(dataDir: string): void {
   const service = new WorkflowGitSnapshotService({ dataDir });
   workflowGitSnapshotWriter = (workflow) => service.save(workflow);
+  workflowGitSnapshotStatusReader = (workflowId) => service.status(workflowId);
 }
 
 export function setWorkflowGitSnapshotWriter(writer: WorkflowGitSnapshotWriter | null): void {
   workflowGitSnapshotWriter = writer;
 }
 
+export function setWorkflowGitSnapshotStatusReader(reader: WorkflowGitSnapshotStatusReader | null): void {
+  workflowGitSnapshotStatusReader = reader;
+}
+
 export function resetWorkflowGitSnapshotWriter(): void {
   workflowGitSnapshotWriter = null;
+  workflowGitSnapshotStatusReader = null;
 }
 
 function getWorkflowDatabase(): Database.Database {
@@ -43,8 +54,21 @@ function saveWorkflowGitSnapshot(workflow: WorkflowItem): void {
   }
 }
 
+function getWorkflowGitSnapshotStatus(workflowId: string): WorkflowGitSnapshotStatus {
+  return workflowGitSnapshotStatusReader?.(workflowId) ?? {
+    available: false,
+    state: "missing",
+    repoPath: "",
+    branch: null,
+    latestCommit: null,
+    error: null,
+  };
+}
+
 export const WorkflowRepository = {
   database: () => getWorkflowDatabase(),
+
+  getWorkflowGitSnapshotStatus,
 
   saveWorkflow: (workflow: WorkflowItem) => {
     const stmt = getWorkflowDatabase().prepare(

@@ -59,4 +59,53 @@ describe("WorkflowGitSnapshotService", () => {
     ]);
     assert.equal(commands.every((command) => command.cwd === repoDir), true);
   });
+
+  it("reports workflow git status with branch and latest commit metadata", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-status-"));
+    const repoDir = path.join(root, "workflows-git", "wf-demo");
+    fs.mkdirSync(path.join(repoDir, ".git"), { recursive: true });
+    const service = new WorkflowGitSnapshotService({
+      dataDir: root,
+      runGit: (args) => {
+        const command = args.join(" ");
+        if (command === "rev-parse --abbrev-ref HEAD") return { status: 0, stdout: "main\n", stderr: "" };
+        if (command === "log -1 --format=%H%x00%h%x00%cI%x00%s") {
+          return {
+            status: 0,
+            stdout: "abc123def\u0000abc123d\u00002026-06-06T10:00:00-03:00\u0000Save workflow Demo\n",
+            stderr: "",
+          };
+        }
+        return { status: 0, stdout: "", stderr: "" };
+      },
+    });
+
+    assert.deepEqual(service.status("wf/demo"), {
+      available: true,
+      state: "ready",
+      repoPath: repoDir,
+      branch: "main",
+      latestCommit: {
+        hash: "abc123def",
+        shortHash: "abc123d",
+        committedAt: "2026-06-06T10:00:00-03:00",
+        message: "Save workflow Demo",
+      },
+      error: null,
+    });
+  });
+
+  it("reports a missing workflow git repository without throwing", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-missing-"));
+    const service = new WorkflowGitSnapshotService({ dataDir: root });
+
+    assert.deepEqual(service.status("wf-missing"), {
+      available: false,
+      state: "missing",
+      repoPath: path.join(root, "workflows-git", "wf-missing"),
+      branch: null,
+      latestCommit: null,
+      error: null,
+    });
+  });
 });

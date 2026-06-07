@@ -15,6 +15,20 @@ export interface WorkflowGitSnapshotServiceOptions {
   runGit?: (args: string[], options: { cwd: string }) => GitRunResult;
 }
 
+export interface WorkflowGitSnapshotStatus {
+  available: boolean;
+  state: "missing" | "ready" | "no-commits" | "error";
+  repoPath: string;
+  branch: string | null;
+  latestCommit: {
+    hash: string;
+    shortHash: string;
+    committedAt: string;
+    message: string;
+  } | null;
+  error: string | null;
+}
+
 export class WorkflowGitSnapshotService {
   private readonly dataDir: string;
   private readonly runGit: NonNullable<WorkflowGitSnapshotServiceOptions["runGit"]>;
@@ -41,6 +55,66 @@ export class WorkflowGitSnapshotService {
     if (diff.status === 0) return;
 
     this.git(["commit", "-m", `Save workflow ${workflow.metadata.name}`], repoDir);
+  }
+
+  status(workflowId: string): WorkflowGitSnapshotStatus {
+    const repoDir = this.repoDir(workflowId);
+    if (!fs.existsSync(path.join(repoDir, ".git"))) {
+      return {
+        available: false,
+        state: "missing",
+        repoPath: repoDir,
+        branch: null,
+        latestCommit: null,
+        error: null,
+      };
+    }
+
+    try {
+      const branch = this.git(["rev-parse", "--abbrev-ref", "HEAD"], repoDir).stdout?.trim() || null;
+      const log = this.git(["log", "-1", "--format=%H%x00%h%x00%cI%x00%s"], repoDir, {
+        allowedStatuses: [0, 128],
+      });
+
+      if (log.status === 128 || !log.stdout?.trim()) {
+        return {
+          available: true,
+          state: "no-commits",
+          repoPath: repoDir,
+          branch,
+          latestCommit: null,
+          error: null,
+        };
+      }
+
+      const [hash, shortHash, committedAt, message] = log.stdout.trim().split("\u0000");
+      return {
+        available: true,
+        state: "ready",
+        repoPath: repoDir,
+        branch,
+        latestCommit: {
+          hash: hash ?? "",
+          shortHash: shortHash ?? "",
+          committedAt: committedAt ?? "",
+          message: message ?? "",
+        },
+        error: null,
+      };
+    } catch (error) {
+      return {
+        available: false,
+        state: "error",
+        repoPath: repoDir,
+        branch: null,
+        latestCommit: null,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  private repoDir(workflowId: string): string {
+    return path.join(this.dataDir, "workflows-git", safeWorkflowDirectoryName(workflowId));
   }
 
   private git(
