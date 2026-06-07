@@ -106,19 +106,19 @@ Mitigacao:
 
 ### Batch 1 - SDK contract
 
-- [ ] Task 1: Atualizar testes do `sailor-sdk` primeiro.
+- [x] Task 1: Atualizar testes do `sailor-sdk` primeiro.
   - `test/sdk.test.ts` deve exigir `metadata.categories`.
   - Deve rejeitar `metadata.category`.
   - Deve rejeitar categoria fora da lista.
   - Deve rejeitar array vazio.
 
-- [ ] Task 2: Atualizar tipos e schema do `sailor-sdk`.
+- [x] Task 2: Atualizar tipos e schema do `sailor-sdk`.
   - `src/plugin-categories.ts` com as 7 categorias finais.
   - `src/types.ts` com `PluginMetadata.categories: SailorPluginCategory[]`.
   - `src/manifest-schema.ts` exigindo `categories`.
   - `category` deve virar propriedade invalida.
 
-- [ ] Task 3: Atualizar README/versionamento do SDK.
+- [x] Task 3: Atualizar README/versionamento do SDK.
   - Documentar breaking change.
   - Adicionar migration guide curto.
   - Bump de versao recomendado: `2.0.0`.
