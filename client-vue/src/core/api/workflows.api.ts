@@ -151,6 +151,12 @@ export const workflowsApi = {
   getGitSnapshot: (id: string, hash: string) =>
     apiRequest<WorkflowGitSnapshotFile>(ENDPOINTS.WORKFLOW_GIT_SNAPSHOT(id, hash)),
 
+  /** Restore a workflow from a git snapshot */
+  restoreGitSnapshot: (id: string, hash: string) =>
+    apiRequest<WorkflowItem>(ENDPOINTS.WORKFLOW_GIT_SNAPSHOT_RESTORE(id, hash), {
+      method: 'POST',
+    }),
+
   /** Get a workflow schema (includes resolved plugin definitions) */
   getSchema: (id: string) => apiRequest<unknown>(ENDPOINTS.WORKFLOW_SCHEMA(id)),
 

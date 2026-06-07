@@ -14,6 +14,10 @@ const props = defineProps<{
   workflow: WorkflowItem
 }>()
 
+const emit = defineEmits<{
+  (e: 'restore', hash: string): void
+}>()
+
 const snapshots = ref<WorkflowGitSnapshotSummary[]>([])
 const selectedSnapshotHash = ref('')
 const selectedSnapshot = ref<WorkflowGitSnapshotFile | null>(null)
@@ -100,6 +104,11 @@ function scheduleDiffUpdate() {
     diffTimer = null
   }, 120)
 }
+
+function requestRestore() {
+  if (!selectedSnapshotHash.value) return
+  emit('restore', selectedSnapshotHash.value)
+}
 </script>
 
 <template>
@@ -118,6 +127,15 @@ function scheduleDiffUpdate() {
         <button type="button" disabled title="Available in the snapshots phase">
           <LucideIcon name="git-commit-horizontal" :size="13" />
           <span>Create Snapshot</span>
+        </button>
+        <button
+          type="button"
+          :disabled="!selectedSnapshotHash"
+          title="Restore selected snapshot"
+          @click="requestRestore"
+        >
+          <LucideIcon name="rotate-ccw" :size="13" />
+          <span>Restore</span>
         </button>
         <div class="workflow-git-changes-window__mode" role="group" aria-label="Viewer mode">
           <button

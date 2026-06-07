@@ -230,6 +230,25 @@ async function handleCopyGitRepoPath() {
   toast.success('Git repo path copied')
 }
 
+async function handleRestoreGitSnapshot(hash: string) {
+  const active = workflowStore.activeWorkflow
+  if (!active) return
+
+  const confirmed = await confirm({
+    title: 'Restore snapshot',
+    message: 'This will replace the current workflow with the selected snapshot. Continue?',
+    confirmText: 'Restore',
+    cancelText: 'Cancel',
+    variant: 'warning',
+  })
+  if (!confirmed) return
+
+  const restored = await workflowsApi.restoreGitSnapshot(active.metadata.id, hash)
+  workflowStore.setActiveWorkflow(restored)
+  await loadWorkflowGitStatus(restored.metadata.id)
+  toast.success('Workflow snapshot restored')
+}
+
 function handleUiIntent(e: Event) {
   const intent = (e as CustomEvent).detail
   if (intent?.type === 'workflow-settings.open') showSettings.value = true
@@ -538,6 +557,7 @@ watch(
     <WorkflowGitChangesWindow
       v-if="isGitChangesWindowOpen && workflowStore.activeWorkflow"
       :workflow="workflowStore.activeWorkflow"
+      @restore="handleRestoreGitSnapshot"
     />
 
     <WorkflowSettingsPanel :is-open="showSettings" @close="showSettings = false" />

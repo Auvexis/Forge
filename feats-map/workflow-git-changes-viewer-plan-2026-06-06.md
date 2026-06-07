@@ -70,19 +70,19 @@ Fazer em etapas. Não colocar restore, histórico, diff raw e live diff tudo num
   - Mostrar badge `Unsaved changes` quando atual difere do snapshot/base salvo.
 
 ## Task Set 4 - Restore e Segurança
-- [ ] Task 10: Backend restaurar snapshot.
+- [x] Task 10: Backend restaurar snapshot.
   - Endpoint: `POST /workflows/:workflowId/git/snapshots/:hash/restore`.
   - Lê `workflow.json` do commit.
   - Mantém o mesmo `workflowId`.
   - Salva no repositório atual.
   - Gera novo snapshot depois do restore.
 
-- [ ] Task 11: Frontend confirmar restore.
+- [x] Task 11: Frontend confirmar restore.
   - Modal de confirmação.
   - Texto claro: restaurar substitui o workflow atual.
   - Se workflow estiver dirty, pedir confirmação extra ou salvar snapshot antes.
 
-- [ ] Task 12: Atualizar editor após restore.
+- [x] Task 12: Atualizar editor após restore.
   - Atualiza `workflowStore.setActiveWorkflow(restored)`.
   - Recarrega Git status/snapshots.
   - Mostra toast de sucesso.

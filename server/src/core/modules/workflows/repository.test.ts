@@ -6,6 +6,7 @@ import { createMigrationEngine } from "../../database/migration-engine.ts";
 import {
   resetWorkflowDatabaseProvider,
   resetWorkflowGitSnapshotWriter,
+  setWorkflowGitSnapshotFileReader,
   setWorkflowDatabaseProvider,
   setWorkflowGitSnapshotWriter,
   WorkflowRepository,
@@ -79,6 +80,27 @@ describe("WorkflowRepository", () => {
 
     assert.equal(snapshots.length, 1);
     assert.equal(snapshots[0]?.metadata.id, "wf-git");
+    db.close();
+  });
+
+  it("restores a workflow git snapshot while preserving the current workflow id", async () => {
+    const db = await createWorkflowDb();
+    const snapshots: WorkflowItem[] = [];
+    setWorkflowDatabaseProvider(() => db);
+    setWorkflowGitSnapshotWriter((item) => snapshots.push(item));
+    setWorkflowGitSnapshotFileReader((_workflowId, hash) => ({
+      hash,
+      rawWorkflowJson: JSON.stringify(workflow("old-id", "Old Version")),
+      workflow: workflow("old-id", "Old Version"),
+    }));
+    WorkflowRepository.saveWorkflow(workflow("wf-current", "Current Version"));
+
+    const restored = WorkflowRepository.restoreWorkflowGitSnapshot("wf-current", "abc123def");
+
+    assert.equal(restored.metadata.id, "wf-current");
+    assert.equal(restored.metadata.name, "Old Version");
+    assert.equal(WorkflowRepository.getWorkflowById("wf-current")?.metadata.name, "Old Version");
+    assert.equal(snapshots.at(-1)?.metadata.name, "Old Version");
     db.close();
   });
 });

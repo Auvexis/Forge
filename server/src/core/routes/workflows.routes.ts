@@ -780,6 +780,36 @@ export default async function workflowsRoutes(
     }
   });
 
+  fastify.post("/workflows/:workflowId/git/snapshots/:hash/restore", async (req, reply) => {
+    const { workflowId, hash } = req.params as { workflowId: string; hash: string };
+
+    try {
+      const workflow = WorkflowRepository.getWorkflowById(workflowId);
+      if (!workflow) {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Workflow not found",
+          error: "Not Found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Workflow git snapshot restored successfully",
+        error: null,
+        data: WorkflowRepository.restoreWorkflowGitSnapshot(workflowId, hash),
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to restore workflow git snapshot",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
   fastify.post("/workflows", async (req, reply) => {
     try {
       const workflow = req.body as WorkflowItem;

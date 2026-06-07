@@ -49,3 +49,11 @@ test('workflow git changes window supports live diff mode', () => {
   assert.match(source, /workflow-git-changes-window__line--modified/)
   assert.match(source, /Unsaved changes/)
 })
+
+test('workflow git changes window confirms and emits restored snapshots', () => {
+  assert.match(source, /defineEmits/)
+  assert.match(source, /\(e: 'restore', hash: string\): void/)
+  assert.match(source, /Restore/)
+  assert.match(source, /selectedSnapshotHash/)
+  assert.match(source, /emit\('restore', selectedSnapshotHash\.value\)/)
+})

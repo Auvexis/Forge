@@ -45,6 +45,10 @@ export function setWorkflowGitSnapshotStatusReader(reader: WorkflowGitSnapshotSt
   workflowGitSnapshotStatusReader = reader;
 }
 
+export function setWorkflowGitSnapshotFileReader(reader: WorkflowGitSnapshotFileReader | null): void {
+  workflowGitSnapshotFileReader = reader;
+}
+
 export function resetWorkflowGitSnapshotWriter(): void {
   workflowGitSnapshotWriter = null;
   workflowGitSnapshotStatusReader = null;
@@ -86,12 +90,26 @@ function readWorkflowGitSnapshot(workflowId: string, hash: string): WorkflowGitS
   return workflowGitSnapshotFileReader(workflowId, hash);
 }
 
+function restoreWorkflowGitSnapshot(workflowId: string, hash: string): WorkflowItem {
+  const snapshot = readWorkflowGitSnapshot(workflowId, hash);
+  const restored: WorkflowItem = {
+    ...snapshot.workflow,
+    metadata: {
+      ...snapshot.workflow.metadata,
+      id: workflowId,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+  return WorkflowRepository.saveWorkflow(restored);
+}
+
 export const WorkflowRepository = {
   database: () => getWorkflowDatabase(),
 
   getWorkflowGitSnapshotStatus,
   listWorkflowGitSnapshots,
   readWorkflowGitSnapshot,
+  restoreWorkflowGitSnapshot,
 
   saveWorkflow: (workflow: WorkflowItem) => {
     const stmt = getWorkflowDatabase().prepare(

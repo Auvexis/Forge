@@ -19,4 +19,6 @@ test('workflows api exposes git snapshot endpoints', () => {
   assert.match(api, /WorkflowGitSnapshotFile/)
   assert.match(api, /listGitSnapshots/)
   assert.match(api, /getGitSnapshot/)
+  assert.match(endpoints, /WORKFLOW_GIT_SNAPSHOT_RESTORE/)
+  assert.match(api, /restoreGitSnapshot/)
 })
