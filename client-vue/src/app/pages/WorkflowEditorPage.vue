@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { workflowsApi } from '@/core/api/workflows.api'
+import { workflowsApi, type WorkflowGitSnapshotStatus } from '@/core/api/workflows.api'
 import {
   useWorkflowActions,
   useWorkflowStore,
@@ -23,6 +23,7 @@ import { computed, onMounted, onBeforeUnmount, watch, ref, markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 import { listWorkflowChatTriggers } from '@/features/workflow-editor/utils/workflowRunTrigger'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -73,6 +74,8 @@ const canvasRef = ref<InstanceType<typeof SailorWorkflowCanvas> | null>(null)
 const showSettings = ref(false)
 const showVariables = ref(false)
 const selectedChatTriggerNodeId = ref('')
+const gitStatus = ref<WorkflowGitSnapshotStatus | null>(null)
+const isGitStatusLoading = ref(false)
 const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
 const activeChatTriggers = computed(() => {
   const workflow = workflowStore.activeWorkflow
@@ -117,6 +120,22 @@ const isDevChatOpen = computed(() => agentPanelUi.isOpen && agentPanelStore.agen
 const isExecutionPanelOpen = computed(
   () => appPanelStore.isOpen && appPanelStore.panelId === 'workflow-execution-bottom-panel',
 )
+const gitStatusLabel = computed(() => {
+  if (isGitStatusLoading.value) return 'loading'
+  if (!gitStatus.value) return 'not loaded'
+  if (gitStatus.value.state === 'ready') return gitStatus.value.latestCommit?.shortHash ?? 'synced'
+  if (gitStatus.value.state === 'no-commits') return 'no commits'
+  if (gitStatus.value.state === 'error') return 'error'
+  return 'no snapshot'
+})
+const gitStatusTitle = computed(() => {
+  if (!gitStatus.value) return 'Git snapshot status is not loaded yet'
+  if (gitStatus.value.error) return gitStatus.value.error
+  if (gitStatus.value.latestCommit) {
+    return `${gitStatus.value.branch ?? 'HEAD'} ${gitStatus.value.latestCommit.shortHash}: ${gitStatus.value.latestCommit.message}`
+  }
+  return gitStatus.value.repoPath || 'Git snapshot repository not created yet'
+})
 
 let workflow: WorkflowItem | null = null
 const { data: workflows, execute: fetchWorkflow } = useApi(workflowsApi.getAll)
@@ -144,6 +163,7 @@ async function initWorkflow() {
     }
     useWorkflowStore().setActiveWorkflow(newWorkflow)
     useWorkflowStore().recoverDraft(newWorkflow.metadata.id)
+    gitStatus.value = null
     return
   }
 
@@ -160,6 +180,30 @@ async function initWorkflow() {
 
   useWorkflowStore().setActiveWorkflow(workflow)
   useWorkflowStore().recoverDraft(workflow.metadata.id)
+  await loadWorkflowGitStatus(workflow.metadata.id)
+}
+
+async function loadWorkflowGitStatus(targetWorkflowId = workflowStore.activeWorkflow?.metadata.id) {
+  if (!targetWorkflowId) {
+    gitStatus.value = null
+    return
+  }
+
+  isGitStatusLoading.value = true
+  try {
+    gitStatus.value = await workflowsApi.getGitStatus(targetWorkflowId)
+  } catch (error) {
+    gitStatus.value = {
+      available: false,
+      state: 'error',
+      repoPath: '',
+      branch: null,
+      latestCommit: null,
+      error: error instanceof Error ? error.message : 'Failed to load git status',
+    }
+  } finally {
+    isGitStatusLoading.value = false
+  }
 }
 
 function handleUiIntent(e: Event) {
@@ -265,6 +309,7 @@ watch(
 
 async function handleSaveWorkflow() {
   await workflowStore.saveActiveWorkflow()
+  await loadWorkflowGitStatus()
   // If we are on the root /workflows path (in-memory draft), update the URL to the new ID
   if (route.path === '/workflows' && workflowStore.activeWorkflow) {
     router.replace(`/workflows/${workflowStore.activeWorkflow.metadata.id}`)
@@ -290,6 +335,7 @@ async function handleCreateWorkflow() {
 
   const created = await createWorkflowApi(newWorkflow)
   workflowStore.setActiveWorkflow(created)
+  await loadWorkflowGitStatus(created.metadata.id)
   router.replace(`/workflows/${created.metadata.id}`)
 }
 
@@ -306,6 +352,7 @@ function handleImportWorkflow() {
     workflow.metadata.isDraft = true
     const created = await createWorkflowApi(workflow)
     workflowStore.setActiveWorkflow(created)
+    await loadWorkflowGitStatus(created.metadata.id)
     router.replace(`/workflows/${created.metadata.id}`)
   }
   input.click()
@@ -334,6 +381,7 @@ async function handlePublishWorkflow() {
     : await workflowsApi.publish(workflowToPublish.metadata.id)
 
   workflowStore.setActiveWorkflow(updated)
+  await loadWorkflowGitStatus(updated.metadata.id)
   toast.success(isPublished ? 'Workflow unpublished' : 'Workflow published')
 }
 
@@ -429,6 +477,18 @@ watch(
         <span class="workflow-status-bar__dot" :class="{ 'is-active': executionStore.hasActiveExecution }" />
         <span>Execution</span>
         <code>{{ executionStore.timeline.length }} events</code>
+      </button>
+
+      <button
+        class="workflow-status-bar__button workflow-status-bar__button--git"
+        :class="{ 'workflow-status-bar__button--active': gitStatus?.state === 'ready' }"
+        type="button"
+        :title="gitStatusTitle"
+        @click="loadWorkflowGitStatus()"
+      >
+        <LucideIcon name="git-branch" :size="13" />
+        <span>Git</span>
+        <code>{{ gitStatusLabel }}</code>
       </button>
     </div>
 

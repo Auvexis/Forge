@@ -69,6 +69,20 @@ export interface DevWorkflowTriggerExecutionResponse {
   triggerNodeId: string
 }
 
+export interface WorkflowGitSnapshotStatus {
+  available: boolean
+  state: 'missing' | 'ready' | 'no-commits' | 'error'
+  repoPath: string
+  branch: string | null
+  latestCommit: {
+    hash: string
+    shortHash: string
+    committedAt: string
+    message: string
+  } | null
+  error: string | null
+}
+
 // ── Server response shape (snake_case from SQLite row) ────────
 
 /**
@@ -111,6 +125,10 @@ export const workflowsApi = {
 
   /** Get a specific workflow by ID */
   getById: (id: string) => apiRequest<WorkflowItem>(ENDPOINTS.WORKFLOW_BY_ID(id)),
+
+  /** Get the workflow's local git snapshot status */
+  getGitStatus: (id: string) =>
+    apiRequest<WorkflowGitSnapshotStatus>(ENDPOINTS.WORKFLOW_GIT_STATUS(id)),
 
   /** Get a workflow schema (includes resolved plugin definitions) */
   getSchema: (id: string) => apiRequest<unknown>(ENDPOINTS.WORKFLOW_SCHEMA(id)),

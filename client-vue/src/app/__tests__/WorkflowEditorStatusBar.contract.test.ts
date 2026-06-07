@@ -57,3 +57,15 @@ test('workflow editor saves dirty changes before publishing chat trigger workflo
   assert.match(source, /const workflowToPublish = workflowStore\.activeWorkflow/)
   assert.match(source, /workflowsApi\.publish\(workflowToPublish\.metadata\.id\)/)
 })
+
+test('workflow editor status bar shows workflow git snapshot state', () => {
+  const source = read('src/app/pages/WorkflowEditorPage.vue')
+
+  assert.match(source, /WorkflowGitSnapshotStatus/)
+  assert.match(source, /gitStatus = ref<WorkflowGitSnapshotStatus \| null>/)
+  assert.match(source, /loadWorkflowGitStatus/)
+  assert.match(source, /workflowsApi\.getGitStatus/)
+  assert.match(source, /gitStatusLabel/)
+  assert.match(source, /workflow-status-bar__button--git/)
+  assert.match(source, /<LucideIcon name="git-branch"/)
+})
