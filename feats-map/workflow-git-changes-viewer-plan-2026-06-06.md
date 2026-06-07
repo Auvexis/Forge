@@ -34,13 +34,13 @@ Fazer em etapas. Não colocar restore, histórico, diff raw e live diff tudo num
   - Scroll próprio dentro do painel.
 
 ## Task Set 2 - Snapshots Git
-- [ ] Task 4: Backend listar snapshots.
+- [x] Task 4: Backend listar snapshots.
   - Adicionar método no `WorkflowGitSnapshotService`.
   - Usar `git log --format`.
   - Retornar `hash`, `shortHash`, `committedAt`, `message`.
   - Endpoint: `GET /workflows/:workflowId/git/snapshots`.
 
-- [ ] Task 5: Backend ler arquivo de snapshot.
+- [x] Task 5: Backend ler arquivo de snapshot.
   - Usar `git show <hash>:workflow.json`.
   - Validar se commit existe.
   - Retornar workflow JSON raw e parsed.

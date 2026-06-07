@@ -108,4 +108,63 @@ describe("WorkflowGitSnapshotService", () => {
       error: null,
     });
   });
+
+  it("lists workflow git snapshots from the repository log", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-list-"));
+    const repoDir = path.join(root, "workflows-git", "wf-list");
+    fs.mkdirSync(path.join(repoDir, ".git"), { recursive: true });
+    const service = new WorkflowGitSnapshotService({
+      dataDir: root,
+      runGit: (args) => {
+        if (args.join(" ") === "log --format=%H%x00%h%x00%cI%x00%s") {
+          return {
+            status: 0,
+            stdout: [
+              "abc123def\u0000abc123d\u00002026-06-06T10:00:00-03:00\u0000Save workflow Demo",
+              "def456abc\u0000def456a\u00002026-06-06T09:00:00-03:00\u0000Save workflow Demo",
+            ].join("\n"),
+            stderr: "",
+          };
+        }
+        return { status: 0, stdout: "", stderr: "" };
+      },
+    });
+
+    assert.deepEqual(service.listSnapshots("wf-list"), [
+      {
+        hash: "abc123def",
+        shortHash: "abc123d",
+        committedAt: "2026-06-06T10:00:00-03:00",
+        message: "Save workflow Demo",
+      },
+      {
+        hash: "def456abc",
+        shortHash: "def456a",
+        committedAt: "2026-06-06T09:00:00-03:00",
+        message: "Save workflow Demo",
+      },
+    ]);
+  });
+
+  it("reads workflow json from a git snapshot", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-read-"));
+    const repoDir = path.join(root, "workflows-git", "wf-read");
+    fs.mkdirSync(path.join(repoDir, ".git"), { recursive: true });
+    const snapshotWorkflow = workflow("wf-read", "Snapshot Version");
+    const service = new WorkflowGitSnapshotService({
+      dataDir: root,
+      runGit: (args) => {
+        if (args.join(" ") === "show abc123def:workflow.json") {
+          return { status: 0, stdout: JSON.stringify(snapshotWorkflow), stderr: "" };
+        }
+        return { status: 0, stdout: "", stderr: "" };
+      },
+    });
+
+    assert.deepEqual(service.readSnapshot("wf-read", "abc123def"), {
+      hash: "abc123def",
+      rawWorkflowJson: JSON.stringify(snapshotWorkflow),
+      workflow: snapshotWorkflow,
+    });
+  });
 });

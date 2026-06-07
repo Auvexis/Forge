@@ -29,6 +29,19 @@ export interface WorkflowGitSnapshotStatus {
   error: string | null;
 }
 
+export interface WorkflowGitSnapshotSummary {
+  hash: string;
+  shortHash: string;
+  committedAt: string;
+  message: string;
+}
+
+export interface WorkflowGitSnapshotFile {
+  hash: string;
+  rawWorkflowJson: string;
+  workflow: WorkflowItem;
+}
+
 export class WorkflowGitSnapshotService {
   private readonly dataDir: string;
   private readonly runGit: NonNullable<WorkflowGitSnapshotServiceOptions["runGit"]>;
@@ -113,6 +126,46 @@ export class WorkflowGitSnapshotService {
     }
   }
 
+  listSnapshots(workflowId: string): WorkflowGitSnapshotSummary[] {
+    const repoDir = this.repoDir(workflowId);
+    if (!fs.existsSync(path.join(repoDir, ".git"))) return [];
+
+    const log = this.git(["log", "--format=%H%x00%h%x00%cI%x00%s"], repoDir, {
+      allowedStatuses: [0, 128],
+    });
+    if (log.status === 128 || !log.stdout?.trim()) return [];
+
+    return log.stdout
+      .trim()
+      .split("\n")
+      .filter(Boolean)
+      .map((line) => {
+        const [hash, shortHash, committedAt, message] = line.split("\u0000");
+        return {
+          hash: hash ?? "",
+          shortHash: shortHash ?? "",
+          committedAt: committedAt ?? "",
+          message: message ?? "",
+        };
+      });
+  }
+
+  readSnapshot(workflowId: string, hash: string): WorkflowGitSnapshotFile {
+    const safeHash = validateCommitHash(hash);
+    const repoDir = this.repoDir(workflowId);
+    if (!fs.existsSync(path.join(repoDir, ".git"))) {
+      throw new Error("Workflow git repository not found");
+    }
+
+    const result = this.git(["show", `${safeHash}:workflow.json`], repoDir);
+    const rawWorkflowJson = result.stdout ?? "";
+    return {
+      hash: safeHash,
+      rawWorkflowJson,
+      workflow: JSON.parse(rawWorkflowJson) as WorkflowItem,
+    };
+  }
+
   private repoDir(workflowId: string): string {
     return path.join(this.dataDir, "workflows-git", safeWorkflowDirectoryName(workflowId));
   }
@@ -147,4 +200,12 @@ function defaultRunGit(args: string[], options: { cwd: string }): GitRunResult {
 function safeWorkflowDirectoryName(workflowId: string): string {
   const safe = workflowId.trim().replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
   return safe || "workflow";
+}
+
+function validateCommitHash(hash: string): string {
+  const safe = hash.trim();
+  if (!/^[a-f0-9]{4,40}$/i.test(safe)) {
+    throw new Error("Invalid workflow git snapshot hash");
+  }
+  return safe;
 }

@@ -720,6 +720,66 @@ export default async function workflowsRoutes(
     }
   });
 
+  fastify.get("/workflows/:workflowId/git/snapshots", async (req, reply) => {
+    const { workflowId } = req.params as { workflowId: string };
+
+    try {
+      const workflow = WorkflowRepository.getWorkflowById(workflowId);
+      if (!workflow) {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Workflow not found",
+          error: "Not Found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Workflow git snapshots fetched successfully",
+        error: null,
+        data: WorkflowRepository.listWorkflowGitSnapshots(workflowId),
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to fetch workflow git snapshots",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
+  fastify.get("/workflows/:workflowId/git/snapshots/:hash", async (req, reply) => {
+    const { workflowId, hash } = req.params as { workflowId: string; hash: string };
+
+    try {
+      const workflow = WorkflowRepository.getWorkflowById(workflowId);
+      if (!workflow) {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Workflow not found",
+          error: "Not Found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Workflow git snapshot fetched successfully",
+        error: null,
+        data: WorkflowRepository.readWorkflowGitSnapshot(workflowId, hash),
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to fetch workflow git snapshot",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
   fastify.post("/workflows", async (req, reply) => {
     try {
       const workflow = req.body as WorkflowItem;
