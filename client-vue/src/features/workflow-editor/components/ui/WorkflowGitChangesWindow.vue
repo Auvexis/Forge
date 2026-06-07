@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
   workflowsApi,
   type WorkflowGitSnapshotFile,
   type WorkflowGitSnapshotSummary,
 } from '@/core/api/workflows.api'
 import type { WorkflowItem } from '@/core/types/workflow.types'
+import { buildWorkflowJsonDiff, type WorkflowGitDiffLine } from '@/features/workflow-editor/utils/workflowGitDiff'
 import BaseFloatingWindow from '@/shared/components/base/BaseFloatingWindow.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
@@ -18,16 +19,25 @@ const selectedSnapshotHash = ref('')
 const selectedSnapshot = ref<WorkflowGitSnapshotFile | null>(null)
 const isLoadingSnapshots = ref(false)
 const snapshotError = ref('')
+const viewerMode = ref<'raw' | 'diff'>('raw')
+const debouncedDiffLines = ref<WorkflowGitDiffLine[]>([])
+let diffTimer: number | null = null
 
 const snapshotOptions = computed(() => snapshots.value)
+const liveWorkflowJson = computed(() => JSON.stringify(props.workflow, null, 2))
 const rawWorkflowJson = computed(() =>
-  selectedSnapshot.value?.rawWorkflowJson ?? JSON.stringify(props.workflow, null, 2),
+  selectedSnapshot.value?.rawWorkflowJson ?? liveWorkflowJson.value,
 )
+const baseDiffJson = computed(() => selectedSnapshot.value?.rawWorkflowJson ?? liveWorkflowJson.value)
 const viewerLabel = computed(() =>
   selectedSnapshot.value ? `snapshot ${selectedSnapshot.value.hash}` : 'live workflow',
 )
+const hasUnsavedChanges = computed(() => baseDiffJson.value !== liveWorkflowJson.value)
 
 onMounted(loadSnapshots)
+onBeforeUnmount(() => {
+  if (diffTimer) window.clearTimeout(diffTimer)
+})
 
 watch(
   () => props.workflow.metadata.id,
@@ -41,6 +51,12 @@ watch(
 watch(selectedSnapshotHash, (hash) => {
   void loadSelectedSnapshot(hash)
 })
+
+watch(
+  [baseDiffJson, liveWorkflowJson],
+  () => scheduleDiffUpdate(),
+  { immediate: true },
+)
 
 async function loadSnapshots() {
   isLoadingSnapshots.value = true
@@ -76,6 +92,14 @@ function formatSnapshotDate(value: string) {
   if (Number.isNaN(date.getTime())) return value
   return date.toLocaleString()
 }
+
+function scheduleDiffUpdate() {
+  if (diffTimer) window.clearTimeout(diffTimer)
+  diffTimer = window.setTimeout(() => {
+    debouncedDiffLines.value = buildWorkflowJsonDiff(baseDiffJson.value, liveWorkflowJson.value)
+    diffTimer = null
+  }, 120)
+}
 </script>
 
 <template>
@@ -95,6 +119,22 @@ function formatSnapshotDate(value: string) {
           <LucideIcon name="git-commit-horizontal" :size="13" />
           <span>Create Snapshot</span>
         </button>
+        <div class="workflow-git-changes-window__mode" role="group" aria-label="Viewer mode">
+          <button
+            type="button"
+            :class="{ 'workflow-git-changes-window__mode-button--active': viewerMode === 'raw' }"
+            @click="viewerMode = 'raw'"
+          >
+            Raw
+          </button>
+          <button
+            type="button"
+            :class="{ 'workflow-git-changes-window__mode-button--active': viewerMode === 'diff' }"
+            @click="viewerMode = 'diff'"
+          >
+            Diff
+          </button>
+        </div>
         <label class="workflow-git-changes-window__snapshot-select">
           <LucideIcon name="history" :size="13" />
           <span>Snapshots</span>
@@ -109,18 +149,31 @@ function formatSnapshotDate(value: string) {
             </option>
           </select>
         </label>
-        <button type="button" disabled title="Available in the diff phase">
-          <LucideIcon name="git-compare-arrows" :size="13" />
-          <span>Diff</span>
-        </button>
       </div>
 
       <div class="workflow-git-changes-window__viewer">
         <div class="workflow-git-changes-window__viewer-meta">
           <span>{{ viewerLabel }}</span>
+          <span v-if="hasUnsavedChanges">Unsaved changes</span>
           <span v-if="snapshotError">{{ snapshotError }}</span>
         </div>
-        <pre class="workflow-git-changes-window__raw"><code>{{ rawWorkflowJson }}</code></pre>
+        <pre class="workflow-git-changes-window__raw" v-if="viewerMode === 'raw'"><code>{{ rawWorkflowJson }}</code></pre>
+        <div v-else class="workflow-git-changes-window__diff" role="table" aria-label="Workflow JSON diff">
+          <div
+            v-for="(line, index) in debouncedDiffLines"
+            :key="`${index}-${line.type}`"
+            class="workflow-git-changes-window__line"
+            :class="`workflow-git-changes-window__line--${line.type}`"
+            role="row"
+          >
+            <span class="workflow-git-changes-window__line-number">{{ line.oldLineNumber ?? '' }}</span>
+            <span class="workflow-git-changes-window__line-number">{{ line.newLineNumber ?? '' }}</span>
+            <span class="workflow-git-changes-window__line-marker">
+              {{ line.type === 'added' ? '+' : line.type === 'removed' ? '-' : line.type === 'modified' ? '~' : ' ' }}
+            </span>
+            <code class="workflow-git-changes-window__line-code">{{ line.content }}</code>
+          </div>
+        </div>
       </div>
     </div>
   </BaseFloatingWindow>
@@ -156,6 +209,27 @@ function formatSnapshotDate(value: string) {
   background: var(--sailor-bg-elevated);
   color: var(--sailor-text-primary);
   font-size: 11px;
+}
+
+.workflow-git-changes-window__mode {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  overflow: hidden;
+  border: 1px solid var(--sailor-border-subtle);
+  border-radius: 6px;
+}
+
+.workflow-git-changes-window__mode button {
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.workflow-git-changes-window__mode-button--active {
+  background: var(--sailor-bg-surface) !important;
+  color: var(--sailor-text-primary);
 }
 
 .workflow-git-changes-window__snapshot-select {
@@ -218,6 +292,51 @@ function formatSnapshotDate(value: string) {
   font-family: var(--sailor-font-mono);
   font-size: 11px;
   line-height: 1.55;
+  white-space: pre;
+}
+
+.workflow-git-changes-window__diff {
+  min-width: max-content;
+  padding: 8px 0;
+  font-family: var(--sailor-font-mono);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.workflow-git-changes-window__line {
+  display: grid;
+  grid-template-columns: 48px 48px 24px minmax(360px, 1fr);
+  min-height: 20px;
+  color: var(--sailor-text-primary);
+}
+
+.workflow-git-changes-window__line--added {
+  background: color-mix(in srgb, var(--sailor-green-400) 18%, transparent);
+}
+
+.workflow-git-changes-window__line--removed {
+  background: color-mix(in srgb, var(--sailor-red-400) 18%, transparent);
+}
+
+.workflow-git-changes-window__line--modified {
+  background: color-mix(in srgb, var(--sailor-yellow-400) 18%, transparent);
+}
+
+.workflow-git-changes-window__line-number {
+  padding: 0 8px;
+  color: var(--sailor-text-muted);
+  text-align: right;
+  user-select: none;
+}
+
+.workflow-git-changes-window__line-marker {
+  color: var(--sailor-text-muted);
+  text-align: center;
+  user-select: none;
+}
+
+.workflow-git-changes-window__line-code {
+  padding: 0 12px 0 0;
   white-space: pre;
 }
 </style>

@@ -52,19 +52,19 @@ Fazer em etapas. Não colocar restore, histórico, diff raw e live diff tudo num
   - Ao selecionar snapshot, mostra o `workflow.json` daquela versão.
 
 ## Task Set 3 - Diff Viewer
-- [ ] Task 7: Criar util de diff.
+- [x] Task 7: Criar util de diff.
   - Comparar `workflow.json` atual contra snapshot selecionado.
   - Usar biblioteca existente se já existir no projeto; se não, adicionar uma dependência leve e focada.
   - Produzir linhas com tipo: `added`, `removed`, `modified`, `unchanged`.
 
-- [ ] Task 8: Renderizar diff visual.
+- [x] Task 8: Renderizar diff visual.
   - Linhas verdes para adicionadas.
   - Linhas vermelhas para deletadas.
   - Linhas alteradas com destaque discreto.
   - Numeração de linhas.
   - Modo raw/diff via segmented control.
 
-- [ ] Task 9: Live diff enquanto edita.
+- [x] Task 9: Live diff enquanto edita.
   - Se painel aberto e snapshot selecionado, recalcular diff quando `activeWorkflow` mudar.
   - Debounce curto para não travar edição.
   - Mostrar badge `Unsaved changes` quando atual difere do snapshot/base salvo.

@@ -38,3 +38,14 @@ test('workflow git changes window loads and displays git snapshots', () => {
   assert.match(source, /snapshot\.shortHash/)
   assert.match(source, /snapshot\.committedAt/)
 })
+
+test('workflow git changes window supports live diff mode', () => {
+  assert.match(source, /buildWorkflowJsonDiff/)
+  assert.match(source, /viewerMode/)
+  assert.match(source, /debouncedDiffLines/)
+  assert.match(source, /window\.setTimeout/)
+  assert.match(source, /workflow-git-changes-window__line--added/)
+  assert.match(source, /workflow-git-changes-window__line--removed/)
+  assert.match(source, /workflow-git-changes-window__line--modified/)
+  assert.match(source, /Unsaved changes/)
+})
