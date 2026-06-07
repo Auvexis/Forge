@@ -111,3 +111,17 @@ test('workflow git modal uses BaseModal and exposes commit UI', () => {
   assert.match(source, /workflowsApi\.listGitSnapshots/)
   assert.match(source, /workflowsApi\.getGitSnapshot/)
 })
+
+test('workflow git modal exposes committed version selection', () => {
+  const source = read('src/features/workflow-editor/components/ui/WorkflowGitModal.vue')
+
+  assert.match(source, /snapshots = ref<WorkflowGitSnapshotSummary\[\]>/)
+  assert.match(source, /selectedSnapshotHash = ref/)
+  assert.match(source, /selectedSnapshotLabel/)
+  assert.match(source, /workflow-git-modal__version-select/)
+  assert.match(source, /<select/)
+  assert.match(source, /v-model="selectedSnapshotHash"/)
+  assert.match(source, /snapshot\.shortHash/)
+  assert.match(source, /snapshot\.message/)
+  assert.match(source, /loadSelectedSnapshot/)
+})

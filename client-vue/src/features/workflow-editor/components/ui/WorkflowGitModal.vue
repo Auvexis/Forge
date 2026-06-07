@@ -25,6 +25,8 @@ const emit = defineEmits<{
 }>()
 
 const latestSnapshot = ref<WorkflowGitSnapshotFile | null>(null)
+const snapshots = ref<WorkflowGitSnapshotSummary[]>([])
+const selectedSnapshotHash = ref('')
 const isLoadingSnapshots = ref(false)
 const snapshotError = ref('')
 const summary = ref('')
@@ -44,6 +46,11 @@ const changedLines = computed(() => diffLines.value.filter((line) => line.type !
 const changedFileCount = computed(() => (changedLines.value.length > 0 ? 1 : 0))
 const commitHash = computed(() => props.gitStatus?.latestCommit?.shortHash ?? 'no commits')
 const branchLabel = computed(() => props.gitStatus?.branch ?? 'HEAD')
+const selectedSnapshotLabel = computed(() => {
+  const selected = snapshots.value.find((snapshot) => snapshot.hash === selectedSnapshotHash.value)
+  if (!selected) return 'Latest commit'
+  return `${selected.shortHash} ${selected.message}`
+})
 const commitMessage = computed(() => {
   const title = summary.value.trim()
   const body = description.value.trim()
@@ -66,6 +73,10 @@ watch(
   { immediate: true },
 )
 
+watch(selectedSnapshotHash, (hash) => {
+  void loadSelectedSnapshot(hash)
+})
+
 function resetCommitInputs() {
   summary.value = `Update ${props.workflow.metadata.name}`
   description.value = ''
@@ -75,8 +86,9 @@ async function loadLatestSnapshot() {
   isLoadingSnapshots.value = true
   snapshotError.value = ''
   try {
-    const snapshots: WorkflowGitSnapshotSummary[] = await workflowsApi.listGitSnapshots(props.workflow.metadata.id)
-    const latest = snapshots[0]
+    snapshots.value = await workflowsApi.listGitSnapshots(props.workflow.metadata.id)
+    const latest = snapshots.value[0]
+    selectedSnapshotHash.value = latest?.hash ?? ''
     latestSnapshot.value = latest
       ? await workflowsApi.getGitSnapshot(props.workflow.metadata.id, latest.hash)
       : null
@@ -85,6 +97,21 @@ async function loadLatestSnapshot() {
     snapshotError.value = error instanceof Error ? error.message : 'Failed to load latest commit'
   } finally {
     isLoadingSnapshots.value = false
+  }
+}
+
+async function loadSelectedSnapshot(hash: string) {
+  if (!hash) {
+    latestSnapshot.value = null
+    return
+  }
+
+  snapshotError.value = ''
+  try {
+    latestSnapshot.value = await workflowsApi.getGitSnapshot(props.workflow.metadata.id, hash)
+  } catch (error) {
+    latestSnapshot.value = null
+    snapshotError.value = error instanceof Error ? error.message : 'Failed to load selected commit'
   }
 }
 
@@ -141,6 +168,22 @@ function tokenizeJsonLine(line: string): JsonToken[] {
             <strong>{{ commitHash }}</strong>
           </div>
         </div>
+        <label class="workflow-git-modal__version-select">
+          <LucideIcon name="history" :size="15" />
+          <div>
+            <span>Version</span>
+            <select v-model="selectedSnapshotHash" :disabled="isLoadingSnapshots || snapshots.length === 0">
+              <option value="">{{ isLoadingSnapshots ? 'Loading versions...' : 'No commits yet' }}</option>
+              <option
+                v-for="snapshot in snapshots"
+                :key="snapshot.hash"
+                :value="snapshot.hash"
+              >
+                {{ snapshot.shortHash }} - {{ snapshot.message }}
+              </option>
+            </select>
+          </div>
+        </label>
         <button class="workflow-git-modal__icon-button" type="button" title="Close" @click="emit('close')">
           <LucideIcon name="x" :size="15" />
         </button>
@@ -198,6 +241,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
             <div>
               <LucideIcon name="file-json" :size="14" />
               <span>workflow.json</span>
+              <small>{{ selectedSnapshotLabel }}</small>
             </div>
             <div class="workflow-git-modal__stats" aria-label="Diff summary">
               <span class="workflow-git-modal__stat workflow-git-modal__stat--added">+{{ diffStats.added }}</span>
@@ -257,14 +301,15 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 .workflow-git-modal__topbar {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) 32px;
+  grid-template-columns: minmax(170px, 1fr) minmax(150px, 0.8fr) minmax(130px, 0.7fr) minmax(220px, 1.2fr) 32px;
   gap: var(--sailor-space-3);
   padding: var(--sailor-space-3);
   border-bottom: 1px solid var(--sailor-border);
   background: var(--sailor-bg-surface);
 }
 
-.workflow-git-modal__repo-card {
+.workflow-git-modal__repo-card,
+.workflow-git-modal__version-select {
   min-width: 0;
   height: 46px;
   display: flex;
@@ -277,6 +322,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 }
 
 .workflow-git-modal__repo-card span,
+.workflow-git-modal__version-select span,
 .workflow-git-modal__commit-box label span {
   display: block;
   color: var(--sailor-text-muted);
@@ -290,6 +336,21 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.workflow-git-modal__version-select select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--sailor-text-primary);
+  font: inherit;
+  font-size: 12px;
+}
+
+.workflow-git-modal__version-select div {
+  min-width: 0;
+  flex: 1;
 }
 
 .workflow-git-modal__icon-button {
@@ -466,6 +527,11 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   display: inline-flex;
   align-items: center;
   gap: var(--sailor-space-2);
+}
+
+.workflow-git-modal__filebar small {
+  color: var(--sailor-text-muted);
+  font-size: 11px;
 }
 
 .workflow-git-modal__stat {
