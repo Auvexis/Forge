@@ -199,17 +199,17 @@ Isso evita mexer no canvas agora.
 
 ### Batch 1 - Model e contratos
 
-- [ ] Task 1: Criar testes do model do picker.
+- [x] Task 1: Criar testes do model do picker.
   - Categoria usa `metadata.categories`.
   - Plugin com varias categorias aparece em todas.
   - Actions respeitam `agentConfigHandle === 'tool'`.
 
-- [ ] Task 2: Criar `addNodePickerModel.ts`.
+- [x] Task 2: Criar `addNodePickerModel.ts`.
   - Gerar categorias.
   - Gerar itens da segunda coluna.
   - Gerar actions da terceira coluna.
 
-- [ ] Task 3: Atualizar contratos do `AddNodePanel`.
+- [x] Task 3: Atualizar contratos do `AddNodePanel`.
   - Exigir layout em 3 colunas.
   - Exigir scroll independente.
   - Exigir tokens/classes novas.
@@ -217,16 +217,16 @@ Isso evita mexer no canvas agora.
 
 ### Batch 2 - UI flutuante em colunas
 
-- [ ] Task 4: Criar componentes internos do picker.
+- [x] Task 4: Criar componentes internos do picker.
   - `AddNodePickerColumn.vue`.
   - `AddNodePickerItem.vue`.
 
-- [ ] Task 5: Refatorar `AddNodePanel.vue`.
+- [x] Task 5: Refatorar `AddNodePanel.vue`.
   - Usar layout em colunas.
   - Manter props/callbacks atuais.
   - Remover view antiga de categoria/action quando nao for mais usada.
 
-- [ ] Task 6: Estilizar com `tokens.css`.
+- [x] Task 6: Estilizar com `tokens.css`.
   - Fundo, borda, shadow, hover, selected.
   - Scrollbar discreta por coluna.
   - Responsivo.

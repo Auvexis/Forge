@@ -1,292 +1,100 @@
 <template>
-  <div class="add-node-panel" style="padding: 0 !important">
-    <!-- Back header (shown when inside a plugin's actions) -->
-    <div v-if="view === 'actions' && selectedPlugin" class="add-node-back-header">
-      <button class="add-node-back-btn" @click="goBack">
-        <LucideIcon name="chevron-left" :size="16" />
-        <span>{{ selectedPlugin.manifest.metadata.name }}</span>
-      </button>
-    </div>
-
-    <!-- Search -->
+  <div class="add-node-panel">
     <div class="add-node-search-wrapper">
-      <div class="add-node-search-row">
-        <BaseInput
-          ref="searchInput"
-          v-model="search"
-          icon-left="search"
-          :placeholder="searchPlaceholder"
-          autofocus
-        />
-        <button
-          class="add-node-category-filter-btn"
-          type="button"
-          @click="categoryFilterOpen = !categoryFilterOpen"
-        >
-          <LucideIcon name="list-filter" :size="14" />
-          <span>{{ selectedCategoryLabel }}</span>
-        </button>
-        <div v-if="categoryFilterOpen" class="add-node-category-menu">
-          <button
-            v-for="category in categoryFilterOptions"
-            :key="category"
-            class="add-node-category-option"
-            :class="{ 'add-node-category-option--active': selectedCategory === category }"
-            type="button"
-            @click="selectCategoryFilter(category)"
-          >
-            {{ category }}
-          </button>
-        </div>
-      </div>
+      <BaseInput
+        ref="searchInput"
+        v-model="search"
+        icon-left="search"
+        :placeholder="searchPlaceholder"
+        autofocus
+      />
     </div>
 
-    <!-- Content -->
-    <div class="add-node-content">
-      <!-- Loading -->
+    <div class="add-node-content" @wheel.stop>
       <div v-if="pluginsLoading" class="add-node-loading">
         <LucideIcon name="loader-2" :size="20" class="add-node-spinner" />
         <span>Loading plugins...</span>
       </div>
 
-      <!-- View: Categories (default) -->
-      <template v-else-if="view === 'categories'">
-        <!-- Logic and utilities -->
-        <div v-if="!isAgentContext" class="add-node-section">
-          <p class="add-node-section-label">Logic and Utilities</p>
-          <BaseWoobyMenu tag="div" class="add-node-list">
-            <!-- Core flow nodes -->
-            <button
-              v-for="def in filteredLogicNodes"
-              :key="def.type"
-              class="add-node-item"
-              style="position: relative; z-index: 1"
-              @click="props.onAddLogicNode?.(def.type, def.defaults)"
-            >
-              <div class="add-node-item-icon-well" :style="{ backgroundColor: presetBgColor(def), borderColor: presetBorderColor(def) }">
-                <LucideIcon :name="presetIcon(def)" :size="16" :color="presetIconColor(def)" />
-              </div>
-              <div class="add-node-item-info">
-                <span class="add-node-item-label">{{ def.label }}</span>
-                <span class="add-node-item-desc">{{ def.description }}</span>
-              </div>
-            </button>
-
-          </BaseWoobyMenu>
-
-          <!-- Utility plugins -->
-          <div
-            v-for="group in utilityPluginGroups"
-            :key="`utility-${group.category}`"
-            class="add-node-category-group"
+      <div v-else class="add-node-picker-shell">
+        <div class="add-node-picker-grid">
+          <AddNodePickerColumn
+            title="Add to workflow"
+            :count="categoryItems.length"
+            :empty="categoryItems.length === 0"
+            empty-label="No categories found."
           >
-            <button
-              class="add-node-category-toggle"
-              type="button"
-              @click="toggleCategory('utility', group.category)"
-            >
-              <LucideIcon :name="isCategoryCollapsed('utility', group.category) ? 'chevron-right' : 'chevron-down'" :size="14" />
-              <span>{{ group.category }}</span>
-              <code>{{ group.plugins.length }}</code>
-            </button>
-            <BaseWoobyMenu
-              v-if="!isCategoryCollapsed('utility', group.category)"
-              tag="div"
-              class="add-node-list"
-            >
-              <button
-                v-for="plugin in group.plugins"
-                :key="plugin.id"
-                class="add-node-item"
-                style="position: relative; z-index: 1"
-                @click="selectPlugin(plugin.id)"
-              >
-                <div class="add-node-item-icon-well" :style="{ backgroundColor: plugin.manifest.metadata.style?.bgColor || 'var(--sailor-bg-surface)', borderColor: plugin.manifest.metadata.style?.borderColor || 'var(--sailor-border)' }">
-                  <LucideIcon :name="pluginIcon(plugin)" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--sailor-text-muted)'" />
-                </div>
-                <div class="add-node-item-info">
-                  <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
-                  <span class="add-node-item-desc">{{ plugin.manifest.metadata.description }}</span>
-                </div>
-                <LucideIcon name="chevron-right" :size="14" class="add-node-item-chevron" />
-              </button>
-            </BaseWoobyMenu>
-          </div>
-        </div>
+            <AddNodePickerItem
+              v-for="item in categoryItems"
+              :key="item.category"
+              :label="item.label"
+              :description="item.description"
+              :icon="item.icon"
+              :count="item.count"
+              :active="activeCategory === item.category"
+              chevron
+              @click="selectCategory(item.category)"
+            />
+          </AddNodePickerColumn>
 
-        <!-- AI -->
-        <div v-if="!isAgentContext" class="add-node-section">
-          <p class="add-node-section-label">AI</p>
-          <BaseWoobyMenu tag="div" class="add-node-list">
-            <button
-              v-for="def in filteredAiNodes"
-              :key="def.label"
-              class="add-node-item"
-              style="position: relative; z-index: 1"
-              @click="props.onAddLogicNode?.(def.type, def.defaults)"
-            >
-              <div class="add-node-item-icon-well" :style="{ backgroundColor: presetBgColor(def), borderColor: presetBorderColor(def) }">
-                <LucideIcon :name="presetIcon(def)" :size="16" :color="presetIconColor(def)" />
-              </div>
-              <div class="add-node-item-info">
-                <span class="add-node-item-label">{{ def.label }}</span>
-                <span class="add-node-item-desc">{{ def.description }}</span>
-              </div>
-            </button>
-          </BaseWoobyMenu>
-        </div>
-
-        <!-- Integrations / Plugins -->
-        <div v-if="!isAgentModelContext && !isAgentMemoryContext" class="add-node-section">
-          <p class="add-node-section-label">{{ isAgentToolContext ? 'Tools' : 'Integrations' }}</p>
-          <div v-if="filteredIntegrationPlugins.length === 0" class="add-node-empty">
-            <LucideIcon name="blocks" :size="32" class="add-node-empty-icon" />
-            <p>No integrations found.</p>
-          </div>
-          <div v-else class="add-node-category-stack">
-            <div
-              v-for="group in integrationPluginGroups"
-              :key="`integration-${group.category}`"
-              class="add-node-category-group"
-            >
-              <button
-                class="add-node-category-toggle"
-                type="button"
-                @click="toggleCategory('integration', group.category)"
-              >
-                <LucideIcon :name="isCategoryCollapsed('integration', group.category) ? 'chevron-right' : 'chevron-down'" :size="14" />
-                <span>{{ group.category }}</span>
-                <code>{{ group.plugins.length }}</code>
-              </button>
-              <BaseWoobyMenu
-                v-if="!isCategoryCollapsed('integration', group.category)"
-                tag="div"
-                class="add-node-list"
-              >
-                <button
-                  v-for="plugin in group.plugins"
-                  :key="plugin.id"
-                  class="add-node-item"
-                  style="position: relative; z-index: 1"
-                  @click="selectPlugin(plugin.id)"
-                >
-                  <div class="add-node-item-icon-well add-node-item-icon-well--plugin">
-                    <LucideIcon :name="pluginIcon(plugin)" :size="18" class="add-node-plugin-img" />
-                  </div>
-                  <div class="add-node-item-info">
-                    <span class="add-node-item-label">{{ plugin.manifest.metadata.name }}</span>
-                    <span class="add-node-item-desc">{{ plugin.manifest.metadata.description }}</span>
-                  </div>
-                  <LucideIcon name="chevron-right" :size="14" class="add-node-item-chevron" />
-                </button>
-              </BaseWoobyMenu>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="isAgentModelContext" class="add-node-section">
-          <p class="add-node-section-label">Chat Models</p>
-          <BaseWoobyMenu tag="div" class="add-node-list">
-            <button
-              v-for="plugin in agentChatModelPlugins"
-              :key="plugin.id"
-              class="add-node-item"
-              style="position: relative; z-index: 1"
-              @click="addAgentModelNode(plugin)"
-            >
-              <div class="add-node-item-icon-well" :style="{ backgroundColor: plugin.manifest.metadata.style?.bgColor || 'var(--sailor-bg-surface)', borderColor: plugin.manifest.metadata.style?.borderColor || 'var(--sailor-border)' }">
-                <LucideIcon :name="pluginIcon(plugin)" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--sailor-text-muted)'" />
-              </div>
-              <div class="add-node-item-info">
-                <span class="add-node-item-label">{{ capabilityLabel(plugin, 'chatModel') }}</span>
-                <span class="add-node-item-desc">{{ capabilityDescription(plugin, 'chatModel') }}</span>
-              </div>
-            </button>
-            <div v-if="agentChatModelPlugins.length === 0" class="add-node-empty" style="position: relative; z-index: 1">
-              <p>No chat models found.</p>
-            </div>
-          </BaseWoobyMenu>
-        </div>
-
-        <div v-if="isAgentMemoryContext" class="add-node-section">
-          <p class="add-node-section-label">Memory</p>
-          <BaseWoobyMenu tag="div" class="add-node-list">
-            <button
-              v-for="def in filteredAgentMemoryPresets"
-              :key="def.label"
-              class="add-node-item"
-              style="position: relative; z-index: 1"
-              @click="props.onAddLogicNode?.(def.type, def.defaults)"
-            >
-              <div class="add-node-item-icon-well" :style="{ backgroundColor: presetBgColor(def), borderColor: presetBorderColor(def) }">
-                <LucideIcon :name="presetIcon(def)" :size="16" :color="presetIconColor(def)" />
-              </div>
-              <div class="add-node-item-info">
-                <span class="add-node-item-label">{{ def.label }}</span>
-                <span class="add-node-item-desc">{{ def.description }}</span>
-              </div>
-            </button>
-            <button
-              v-for="plugin in agentMemoryStorePlugins"
-              :key="plugin.id"
-              class="add-node-item"
-              style="position: relative; z-index: 1"
-              @click="addAgentMemoryNode(plugin)"
-            >
-              <div class="add-node-item-icon-well" :style="{ backgroundColor: plugin.manifest.metadata.style?.bgColor || 'var(--sailor-bg-surface)', borderColor: plugin.manifest.metadata.style?.borderColor || 'var(--sailor-border)' }">
-                <LucideIcon :name="pluginIcon(plugin)" :size="16" :color="plugin.manifest.metadata.style?.iconColor || 'var(--sailor-text-muted)'" />
-              </div>
-              <div class="add-node-item-info">
-                <span class="add-node-item-label">{{ capabilityLabel(plugin, 'memoryStore') }}</span>
-                <span class="add-node-item-desc">{{ capabilityDescription(plugin, 'memoryStore') }}</span>
-              </div>
-            </button>
-          </BaseWoobyMenu>
-        </div>
-      </template>
-
-      <!-- View: Actions (plugin selected) -->
-      <template v-else-if="view === 'actions' && selectedPlugin">
-        <BaseWoobyMenu tag="div" class="add-node-list">
-          <button
-            v-for="[methodKey, methodVal] in filteredMethods"
-            :key="methodKey"
-            class="add-node-item"
-            style="position: relative; z-index: 1"
-            @click="
-              isAgentToolContext
-                ? props.onAddAgentToolNode?.(selectedPluginId!, methodKey, methodVal.metadata.label || methodKey)
-                : props.onAddPluginNode?.(selectedPluginId!, methodKey, methodVal.metadata.label || methodKey)
-            "
+          <AddNodePickerColumn
+            :title="activeCategory || 'Plugins'"
+            :count="secondColumnItems.length"
+            :empty="secondColumnItems.length === 0"
+            empty-label="No plugins or presets found."
           >
-            <div class="add-node-item-icon-well add-node-item-icon-well--plugin">
-              <LucideIcon name="workflow" :size="16" />
-            </div>
-            <div class="add-node-item-info">
-              <span class="add-node-item-label">{{ methodVal.metadata.label || methodKey }}</span>
-              <span class="add-node-item-desc">{{ methodVal.metadata.description }}</span>
-            </div>
-          </button>
-          <div v-if="filteredMethods.length === 0" class="add-node-empty" style="position: relative; z-index: 1">
-            <p>No actions found.</p>
-          </div>
-        </BaseWoobyMenu>
-      </template>
+            <AddNodePickerItem
+              v-for="item in secondColumnItems"
+              :key="item.id"
+              :label="item.label"
+              :description="item.description"
+              :icon="item.kind === 'plugin' ? pluginIcon(item.plugin) : item.icon"
+              :active="selectedPickerItemId === item.id"
+              :chevron="item.kind === 'plugin'"
+              @click="selectSecondColumnItem(item)"
+            />
+          </AddNodePickerColumn>
+
+          <AddNodePickerColumn
+            title="Actions"
+            :count="thirdColumnItems.length"
+            :empty="!selectedPluginForActions || thirdColumnItems.length === 0"
+            :empty-label="selectedPluginForActions ? 'No actions found.' : 'Select a plugin.'"
+          >
+            <AddNodePickerItem
+              v-for="item in thirdColumnItems"
+              :key="item.id"
+              :label="item.label"
+              :description="item.description"
+              icon="workflow"
+              @click="addPluginAction(item.methodKey, item.label)"
+            />
+          </AddNodePickerColumn>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
+import type { PluginCategory, PluginSummary } from '@/core/types/plugin.types'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useTheme } from '@/shared/composables/useTheme'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
-import { PLUGIN_CATEGORIES, type PluginSummary } from '@/core/types/plugin.types'
+import AddNodePickerColumn from './AddNodePickerColumn.vue'
+import AddNodePickerItem from './AddNodePickerItem.vue'
+import {
+  buildPickerActionItems,
+  buildPickerCategoryItems,
+  buildPickerSecondColumnItems,
+  type AddNodePickerPreset,
+  type AddNodePickerSecondColumnItem,
+} from './addNodePickerModel'
 
 const props = defineProps<{
   onAddLogicNode?: (type: WorkflowNodeType, defaults?: Record<string, unknown>) => void
@@ -297,20 +105,11 @@ const props = defineProps<{
 
 const SUPPORTED_CHAT_MODEL_ADAPTERS = new Set(['openai-compatible', 'generic', 'ollama'])
 
-// ── State ────────────────────────────────────────────────────────────────────
-
-type ViewMode = 'categories' | 'actions'
-const view = ref<ViewMode>('categories')
-const selectedPluginId = ref<string | null>(null)
 const search = ref('')
+const selectedCategory = ref<PluginCategory | null>(null)
+const selectedPickerItemId = ref<string | null>(null)
 const searchInput = ref<InstanceType<typeof BaseInput>>()
 const { isDark } = useTheme()
-const categoryFilterOpen = ref(false)
-const selectedCategory = ref<'All' | string>('All')
-const collapsedCategories = ref(new Set<string>())
-
-// ── Data ─────────────────────────────────────────────────────────────────────
-
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
 
 onMounted(() => {
@@ -318,340 +117,262 @@ onMounted(() => {
   searchInput.value?.focus()
 })
 
-const selectedPlugin = computed(
-  () => plugins.value?.find((p) => p.id === selectedPluginId.value) ?? null,
-)
-
-// ── Logic Nodes Definitions ───────────────────────────────────────────────────
-
-interface AddNodeDefinition {
-  type: WorkflowNodeType
-  label: string
-  description: string
-  icon: string
-  color: string
-  bgColor: string
-  borderColor: string
-  pluginId?: string
-  defaults?: Record<string, unknown>
-}
-
-const LOGIC_NODES: AddNodeDefinition[] = [
-  {
-    type: 'trigger' as WorkflowNodeType,
-    label: 'Trigger',
-    description: 'Add another workflow entry point',
-    icon: 'zap',
-    color: 'rgb(245, 158, 11)',
-    bgColor: 'rgba(245, 158, 11, 0.12)',
-    borderColor: 'rgba(245, 158, 11, 0.35)',
-  },
-  {
-    type: 'code' as WorkflowNodeType,
-    label: 'Code Block',
-    description: 'Run custom JavaScript in a sandbox',
-    icon: 'code-2',
-    color: 'var(--sailor-node-codeblock-icon)',
-    bgColor: 'var(--sailor-node-codeblock-bg)',
-    borderColor: 'var(--sailor-node-codeblock-border)',
-  },
-  {
-    type: 'if' as WorkflowNodeType,
-    label: 'If / Else',
-    description: 'Branch the flow based on a condition',
-    icon: 'git-branch',
-    color: 'var(--sailor-node-if-icon)',
-    bgColor: 'var(--sailor-node-if-bg)',
-    borderColor: 'var(--sailor-node-if-border)',
-  },
-  {
-    type: 'loop' as WorkflowNodeType,
-    label: 'Loop / ForEach',
-    description: 'Iterate over a collection item by item',
-    icon: 'repeat',
-    color: 'var(--sailor-node-loop-icon)',
-    bgColor: 'var(--sailor-node-loop-bg)',
-    borderColor: 'var(--sailor-node-loop-border)',
-  },
-  {
-    type: 'subworkflow' as WorkflowNodeType,
-    label: 'Sub-Workflow',
-    description: 'Call another workflow as a sub-step',
-    icon: 'layers',
-    color: 'var(--sailor-node-subworkflow-icon)',
-    bgColor: 'var(--sailor-node-subworkflow-bg)',
-    borderColor: 'var(--sailor-node-subworkflow-border)',
-  },
-  {
-    type: 'http' as WorkflowNodeType,
-    label: 'HTTP Request',
-    description: 'Send an HTTP request to an external API',
-    icon: 'globe',
-    color: 'var(--sailor-node-http-icon)',
-    bgColor: 'var(--sailor-node-http-bg)',
-    borderColor: 'var(--sailor-node-http-border)',
-  },
-  {
-    type: 'event' as WorkflowNodeType,
-    label: 'Event Emitter',
-    description: 'Publish an event to trigger other flows',
-    icon: 'zap',
-    color: 'var(--sailor-node-event-icon)',
-    bgColor: 'var(--sailor-node-event-bg)',
-    borderColor: 'var(--sailor-node-event-border)',
-  },
-  {
-    type: 'event-listener' as WorkflowNodeType,
-    label: 'Event Listener',
-    description: 'Wait for an event to trigger a sub-flow',
-    icon: 'target',
-    color: 'var(--sailor-node-event-listener-icon)',
-    bgColor: 'var(--sailor-node-event-listener-bg)',
-    borderColor: 'var(--sailor-node-event-listener-border)',
-  },
-  {
-    type: 'set' as WorkflowNodeType,
-    label: 'Set Fields',
-    description: 'Set or rename fields without JavaScript',
-    icon: 'sliders-horizontal',
-    color: 'var(--sailor-node-set-icon)',
-    bgColor: 'var(--sailor-node-set-bg)',
-    borderColor: 'var(--sailor-node-set-border)',
-  },
-  {
-    type: 'switch' as WorkflowNodeType,
-    label: 'Switch',
-    description: 'Route to multiple paths based on a value',
-    icon: 'git-branch-plus',
-    color: 'var(--sailor-node-switch-icon)',
-    bgColor: 'var(--sailor-node-switch-bg)',
-    borderColor: 'var(--sailor-node-switch-border)',
-  },
-  {
-    type: 'merge' as WorkflowNodeType,
-    label: 'Merge',
-    description: 'Merge parallel flows into a single path',
-    icon: 'merge',
-    color: 'var(--sailor-node-merge-icon)',
-    bgColor: 'var(--sailor-node-merge-bg)',
-    borderColor: 'var(--sailor-node-merge-border)',
-  },
-  {
-    type: 'split-in-batches' as WorkflowNodeType,
-    label: 'Split In Batches',
-    description: 'Split an array into batches and process each one',
-    icon: 'layers',
-    color: 'var(--sailor-node-split-icon)',
-    bgColor: 'var(--sailor-node-split-bg)',
-    borderColor: 'var(--sailor-node-split-border)',
-  },
-  {
-    type: 'respond-webhook' as WorkflowNodeType,
-    label: 'Respond to Webhook',
-    description: 'Respond to the HTTP caller with a custom status and body',
-    icon: 'send',
-    color: 'var(--sailor-node-respond-webhook-icon)',
-    bgColor: 'var(--sailor-node-respond-webhook-bg)',
-    borderColor: 'var(--sailor-node-respond-webhook-border)',
-  },
-  {
-    type: 'wait-form' as WorkflowNodeType,
-    label: 'Wait for Form',
-    description: 'Create a temporary form and continue after submission',
-    icon: 'clipboard-list',
-    color: '#22c55e',
-    bgColor: 'rgba(34, 197, 94, 0.12)',
-    borderColor: 'rgba(34, 197, 94, 0.35)',
-  },
-]
-
-const AI_NODES: AddNodeDefinition[] = [
-  {
-    type: 'ai-agent' as WorkflowNodeType,
-    label: 'AI Agent',
-    description: 'Run a governed agent with tools and memory',
-    icon: 'bot',
-    color: 'rgb(14, 165, 233)',
-    bgColor: 'rgba(14, 165, 233, 0.12)',
-    borderColor: 'rgba(14, 165, 233, 0.35)',
-  },
-]
-
-const AGENT_MEMORY_PRESETS: AddNodeDefinition[] = [
-  {
-    type: 'ai-memory' as WorkflowNodeType,
-    label: 'SQLite Memory',
-    description: 'Store short-term agent memory in SQLite',
-    icon: 'database',
-    color: 'var(--sailor-node-plugin-icon)',
-    bgColor: 'var(--sailor-node-plugin-bg)',
-    borderColor: 'var(--sailor-node-plugin-border)',
-    pluginId: 'sqlite',
-    defaults: { name: 'SQLite Memory', adapter: 'sailor-internal', scope: 'session' },
-  },
-]
-
-// ── Computed ─────────────────────────────────────────────────────────────────
+const isAgentModelContext = computed(() => props.agentConfigHandle === 'chatModel')
+const isAgentMemoryContext = computed(() => props.agentConfigHandle === 'memory')
+const isAgentToolContext = computed(() => props.agentConfigHandle === 'tool')
 
 const searchPlaceholder = computed(() => {
-  if (view.value === 'actions') return 'Search actions...'
   if (isAgentModelContext.value) return 'Search chat models...'
   if (isAgentMemoryContext.value) return 'Search memory...'
   if (isAgentToolContext.value) return 'Search tools...'
   return 'Search components...'
 })
-const selectedCategoryLabel = computed(() => selectedCategory.value === 'All' ? 'All' : selectedCategory.value)
-const categoryFilterOptions = computed(() => ['All', ...PLUGIN_CATEGORIES])
 
-const isAgentModelContext = computed(() => props.agentConfigHandle === 'chatModel')
-const isAgentMemoryContext = computed(() => props.agentConfigHandle === 'memory')
-const isAgentToolContext = computed(() => props.agentConfigHandle === 'tool')
-const isAgentContext = computed(() =>
-  isAgentModelContext.value || isAgentMemoryContext.value || isAgentToolContext.value,
-)
+const LOGIC_NODES: AddNodePickerPreset[] = [
+  {
+    id: 'trigger',
+    nodeType: 'trigger' as WorkflowNodeType,
+    label: 'Trigger',
+    description: 'Add another workflow entry point',
+    icon: 'zap',
+    categories: ['Core'],
+  },
+  {
+    id: 'code',
+    nodeType: 'code' as WorkflowNodeType,
+    label: 'Code Block',
+    description: 'Run custom JavaScript in a sandbox',
+    icon: 'code-2',
+    categories: ['Core', 'Developer'],
+  },
+  {
+    id: 'http',
+    nodeType: 'http' as WorkflowNodeType,
+    label: 'HTTP Request',
+    description: 'Send an HTTP request to an external API',
+    icon: 'globe',
+    categories: ['Core', 'Developer'],
+  },
+  {
+    id: 'if',
+    nodeType: 'if' as WorkflowNodeType,
+    label: 'If / Else',
+    description: 'Branch the flow based on a condition',
+    icon: 'git-branch',
+    categories: ['Flow'],
+  },
+  {
+    id: 'switch',
+    nodeType: 'switch' as WorkflowNodeType,
+    label: 'Switch',
+    description: 'Route to multiple paths based on a value',
+    icon: 'git-branch-plus',
+    categories: ['Flow'],
+  },
+  {
+    id: 'loop',
+    nodeType: 'loop' as WorkflowNodeType,
+    label: 'Loop / ForEach',
+    description: 'Iterate over a collection item by item',
+    icon: 'repeat',
+    categories: ['Flow'],
+  },
+  {
+    id: 'merge',
+    nodeType: 'merge' as WorkflowNodeType,
+    label: 'Merge',
+    description: 'Merge parallel flows into a single path',
+    icon: 'merge',
+    categories: ['Flow'],
+  },
+  {
+    id: 'split-in-batches',
+    nodeType: 'split-in-batches' as WorkflowNodeType,
+    label: 'Split In Batches',
+    description: 'Split an array into batches and process each one',
+    icon: 'layers',
+    categories: ['Flow', 'Data transformation'],
+  },
+  {
+    id: 'set',
+    nodeType: 'set' as WorkflowNodeType,
+    label: 'Set Fields',
+    description: 'Set or rename fields without JavaScript',
+    icon: 'sliders-horizontal',
+    categories: ['Data transformation', 'Core'],
+  },
+  {
+    id: 'event',
+    nodeType: 'event' as WorkflowNodeType,
+    label: 'Event Emitter',
+    description: 'Publish an event to trigger other flows',
+    icon: 'zap',
+    categories: ['Core'],
+  },
+  {
+    id: 'event-listener',
+    nodeType: 'event-listener' as WorkflowNodeType,
+    label: 'Event Listener',
+    description: 'Wait for an event to trigger a sub-flow',
+    icon: 'target',
+    categories: ['Core', 'Flow'],
+  },
+  {
+    id: 'subworkflow',
+    nodeType: 'subworkflow' as WorkflowNodeType,
+    label: 'Sub-Workflow',
+    description: 'Call another workflow as a sub-step',
+    icon: 'layers',
+    categories: ['Flow'],
+  },
+  {
+    id: 'respond-webhook',
+    nodeType: 'respond-webhook' as WorkflowNodeType,
+    label: 'Respond to Webhook',
+    description: 'Respond to the HTTP caller with a custom status and body',
+    icon: 'send',
+    categories: ['Core'],
+  },
+  {
+    id: 'wait-form',
+    nodeType: 'wait-form' as WorkflowNodeType,
+    label: 'Wait for Form',
+    description: 'Create a temporary form and continue after submission',
+    icon: 'clipboard-list',
+    categories: ['Flow'],
+  },
+]
 
-const filteredLogicNodes = computed(() =>
-  LOGIC_NODES.filter((n) => n.label.toLowerCase().includes(search.value.toLowerCase())),
-)
+const AI_NODES: AddNodePickerPreset[] = [
+  {
+    id: 'ai-agent',
+    nodeType: 'ai-agent' as WorkflowNodeType,
+    label: 'AI Agent',
+    description: 'Run a governed agent with tools and memory',
+    icon: 'bot',
+    categories: ['AI'],
+  },
+]
 
-const filteredAiNodes = computed(() =>
-  AI_NODES.filter((n) => n.label.toLowerCase().includes(search.value.toLowerCase())),
-)
-
-const filteredAgentMemoryPresets = computed(() =>
-  AGENT_MEMORY_PRESETS.filter((n) => n.label.toLowerCase().includes(search.value.toLowerCase())),
-)
-
-const filteredPlugins = computed(() =>
-  (plugins.value ?? []).filter((p) =>
-    p.manifest.metadata.name.toLowerCase().includes(search.value.toLowerCase()) &&
-    (selectedCategory.value === 'All' || pluginCategories(p).includes(selectedCategory.value)),
-  ),
-)
-
-const filteredUtilityPlugins = computed(() =>
-  filteredPlugins.value.filter((p) => p.manifest.metadata.utility === true)
-)
-const utilityPluginGroups = computed(() => groupPluginsByCategory(filteredUtilityPlugins.value))
-
-const pluginHasAgentTools = (plugin: PluginSummary) =>
-  Object.values(plugin.manifest.methods).some((method) => method.agentTool?.enabled === true)
-
-const filteredIntegrationPlugins = computed(() =>
-  isAgentToolContext.value
-    ? filteredPlugins.value.filter(pluginHasAgentTools)
-    : filteredPlugins.value.filter((p) => p.manifest.metadata.utility !== true)
-)
-const integrationPluginGroups = computed(() => groupPluginsByCategory(filteredIntegrationPlugins.value))
+const AGENT_MEMORY_PRESETS: AddNodePickerPreset[] = [
+  {
+    id: 'sqlite-memory',
+    nodeType: 'ai-memory' as WorkflowNodeType,
+    label: 'SQLite Memory',
+    description: 'Store short-term agent memory in SQLite',
+    icon: 'database',
+    categories: ['AI', 'Core'],
+    defaults: { name: 'SQLite Memory', adapter: 'sailor-internal', scope: 'session' },
+  },
+]
 
 const agentChatModelPlugins = computed(() =>
-  filteredPlugins.value.filter((plugin) => {
-    const manifest = plugin.manifest
-    const adapter = manifest.metadata.agentCapabilities?.chatModel?.adapter
-    return (
-      manifest.metadata.agentCapabilities?.chatModel?.enabled === true &&
-      typeof adapter === 'string' &&
-      SUPPORTED_CHAT_MODEL_ADAPTERS.has(adapter)
-    )
+  (plugins.value ?? []).filter((plugin) => {
+    const capability = plugin.manifest.metadata.agentCapabilities?.chatModel
+    const adapter = capability?.adapter
+    return capability?.enabled === true && typeof adapter === 'string' && SUPPORTED_CHAT_MODEL_ADAPTERS.has(adapter)
   }),
 )
 
 const agentMemoryStorePlugins = computed(() =>
-  filteredPlugins.value.filter((plugin) =>
+  (plugins.value ?? []).filter((plugin) =>
     plugin.manifest.metadata.agentCapabilities?.memoryStore?.enabled === true &&
     plugin.manifest.metadata.agentCapabilities.memoryStore.adapter === 'plugin-memory-store',
   ),
 )
 
-const filteredMethods = computed(() => {
-  if (!selectedPlugin.value) return []
-  return Object.entries(selectedPlugin.value.manifest.methods).filter(([key, methodVal]) =>
-    (methodVal.metadata.label || key).toLowerCase().includes(search.value.toLowerCase()) &&
-    (!isAgentToolContext.value || methodVal.agentTool?.enabled === true),
-  )
+const pluginHasAgentTools = (plugin: PluginSummary) =>
+  Object.values(plugin.manifest.methods).some((method) => method.agentTool?.enabled === true)
+
+const pickerPlugins = computed(() => {
+  if (isAgentModelContext.value) return agentChatModelPlugins.value
+  if (isAgentMemoryContext.value) return agentMemoryStorePlugins.value
+  if (isAgentToolContext.value) return (plugins.value ?? []).filter(pluginHasAgentTools)
+  return plugins.value ?? []
 })
+
+const pickerPresets = computed(() => {
+  if (isAgentModelContext.value || isAgentToolContext.value) return []
+  if (isAgentMemoryContext.value) return AGENT_MEMORY_PRESETS
+  return [...LOGIC_NODES, ...AI_NODES]
+})
+
+const filteredAiNodes = computed(() =>
+  AI_NODES.filter((node) => node.label.toLowerCase().includes(search.value.toLowerCase())),
+)
+
+const categoryItems = computed(() =>
+  buildPickerCategoryItems({
+    plugins: pickerPlugins.value,
+    presets: pickerPresets.value,
+    search: search.value,
+  }),
+)
+
+const activeCategory = computed(() => selectedCategory.value || categoryItems.value[0]?.category || null)
+
+const secondColumnItems = computed(() =>
+  buildPickerSecondColumnItems({
+    category: activeCategory.value,
+    plugins: pickerPlugins.value,
+    presets: pickerPresets.value,
+    search: search.value,
+  }),
+)
+
+const selectedSecondColumnItem = computed(() =>
+  secondColumnItems.value.find((item) => item.id === selectedPickerItemId.value) ?? null,
+)
+
+const selectedPluginForActions = computed(() => {
+  const item = selectedSecondColumnItem.value
+  return item?.kind === 'plugin' ? item.plugin : null
+})
+
+const thirdColumnItems = computed(() =>
+  buildPickerActionItems({
+    plugin: selectedPluginForActions.value,
+    agentConfigHandle: props.agentConfigHandle,
+    search: search.value,
+  }),
+)
 
 const pluginIcon = (plugin: PluginSummary) =>
   resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
 
-const pluginCategories = (plugin: PluginSummary) =>
-  plugin.manifest.metadata.categories.filter((category) =>
-    PLUGIN_CATEGORIES.includes(category as (typeof PLUGIN_CATEGORIES)[number]),
-  )
-
-const groupPluginsByCategory = (items: PluginSummary[]) =>
-  PLUGIN_CATEGORIES
-    .map((category) => ({
-      category,
-      plugins: items.filter((plugin) => pluginCategories(plugin).includes(category)),
-    }))
-    .filter((group) => group.plugins.length > 0)
-
-const categoryCollapseKey = (scope: 'utility' | 'integration', category: string) => `${scope}:${category}`
-
-const isCategoryCollapsed = (scope: 'utility' | 'integration', category: string) =>
-  collapsedCategories.value.has(categoryCollapseKey(scope, category))
-
-const toggleCategory = (scope: 'utility' | 'integration', category: string) => {
-  const next = new Set(collapsedCategories.value)
-  const key = categoryCollapseKey(scope, category)
-  if (next.has(key)) {
-    next.delete(key)
-  } else {
-    next.add(key)
-  }
-  collapsedCategories.value = next
-}
-
-const selectCategoryFilter = (category: string) => {
+const selectCategory = (category: PluginCategory) => {
   selectedCategory.value = category
-  categoryFilterOpen.value = false
+  selectedPickerItemId.value = null
 }
 
-const presetPlugin = (def: AddNodeDefinition) =>
-  (plugins.value ?? []).find((plugin) =>
-    plugin.id === def.pluginId || plugin.manifest.metadata.id === def.pluginId,
-  )
+const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
+  selectedPickerItemId.value = item.id
+  if (item.kind === 'preset') {
+    props.onAddLogicNode?.(item.preset.nodeType, item.preset.defaults)
+    return
+  }
 
-const presetIcon = (def: AddNodeDefinition) => {
-  const plugin = presetPlugin(def)
-  if (!plugin) return def.icon
-  return resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: def.icon })
+  if (isAgentModelContext.value) addAgentModelNode(item.plugin)
+  if (isAgentMemoryContext.value) addAgentMemoryNode(item.plugin)
 }
 
-const presetBgColor = (def: AddNodeDefinition) =>
-  presetPlugin(def)?.manifest.metadata.style?.bgColor || def.bgColor
+const addPluginAction = (methodKey: string, label: string) => {
+  const plugin = selectedPluginForActions.value
+  if (!plugin) return
 
-const presetBorderColor = (def: AddNodeDefinition) =>
-  presetPlugin(def)?.manifest.metadata.style?.borderColor || def.borderColor || 'transparent'
+  if (isAgentToolContext.value) {
+    props.onAddAgentToolNode?.(plugin.id, methodKey, label)
+    return
+  }
 
-const presetIconColor = (def: AddNodeDefinition) =>
-  presetPlugin(def)?.manifest.metadata.style?.iconColor || def.color
+  props.onAddPluginNode?.(plugin.id, methodKey, label)
+}
 
 const chatModelCapability = (plugin: PluginSummary) =>
   plugin.manifest.metadata.agentCapabilities?.chatModel
 
 const memoryStoreCapability = (plugin: PluginSummary) =>
   plugin.manifest.metadata.agentCapabilities?.memoryStore
-
-const capabilityLabel = (plugin: PluginSummary, capabilityType: 'chatModel' | 'memoryStore') => {
-  const fallback = capabilityType === 'chatModel' ? 'Chat Model' : 'Memory'
-  const capability = capabilityType === 'chatModel' ? chatModelCapability(plugin) : memoryStoreCapability(plugin)
-  return capability?.label || `${plugin.manifest.metadata.name} ${fallback}`
-}
-
-const capabilityDescription = (plugin: PluginSummary, capabilityType: 'chatModel' | 'memoryStore') => {
-  const capability = capabilityType === 'chatModel' ? chatModelCapability(plugin) : memoryStoreCapability(plugin)
-  return capability?.description || plugin.manifest.metadata.description
-}
-
-// ── Actions ───────────────────────────────────────────────────────────────────
-
-const selectPlugin = (id: string) => {
-  selectedPluginId.value = id
-  view.value = 'actions'
-  search.value = ''
-}
 
 const addAgentModelNode = (plugin: PluginSummary) => {
   const capability = chatModelCapability(plugin)
@@ -686,315 +407,175 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
     maxMemoryChars: 4000,
   })
 }
-
-const goBack = () => {
-  view.value = 'categories'
-  selectedPluginId.value = null
-  search.value = ''
-}
-
-// Used by parent (AppPanel header back button is not available) — exposed via provide/inject pattern
-// Instead we emit nothing: the back button sits on the panel header via slot
-
 </script>
 
 <style scoped>
 .add-node-panel {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-width: min(920px, calc(100vw - 48px));
+  max-width: calc(100vw - 48px);
+  height: min(620px, calc(100vh - 120px));
+  max-height: calc(100vh - 120px);
   overflow: hidden;
-}
-
-/* ── Back header ── */
-.add-node-back-header {
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  border-bottom: 1px solid var(--sailor-border);
-  flex-shrink: 0;
-}
-
-.add-node-back-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--sailor-space-1);
-  background: transparent;
-  border: none;
-  border-radius: var(--sailor-radius-sm);
-  padding: var(--sailor-space-1) var(--sailor-space-2);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: var(--sailor-text-sm);
-  font-weight: 500;
-  color: var(--sailor-text-muted);
-  transition: all var(--sailor-duration-fast);
-  margin-left: -4px;
-}
-
-.add-node-back-btn:hover {
-  color: var(--sailor-text-primary);
-  background-color: var(--sailor-bg-overlay);
-}
-
-/* ── Search ── */
-.add-node-search-wrapper {
-  position: relative;
-  padding: var(--sailor-space-3) var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border);
-  flex-shrink: 0;
-}
-
-.add-node-search-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--sailor-space-2);
-  align-items: center;
-}
-
-.add-node-category-filter-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sailor-space-1);
-  height: 32px;
-  max-width: 132px;
-  padding: 0 var(--sailor-space-2);
   border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.add-node-category-filter-btn span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.add-node-category-menu {
-  position: absolute;
-  right: var(--sailor-space-4);
-  top: calc(100% - var(--sailor-space-2));
-  z-index: 20;
-  display: flex;
-  min-width: 156px;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--sailor-space-1);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--sailor-radius-md);
   background: var(--sailor-bg-elevated);
   box-shadow: var(--sailor-shadow-lg);
 }
 
-.add-node-category-option {
-  padding: var(--sailor-space-2);
-  border: 0;
-  border-radius: var(--sailor-radius-sm);
-  background: transparent;
-  color: var(--sailor-text-secondary);
-  font: inherit;
-  font-size: var(--sailor-text-xs);
-  text-align: left;
-  cursor: pointer;
+.add-node-search-wrapper {
+  padding: var(--sailor-space-3);
+  border-bottom: 1px solid var(--sailor-border);
+  flex-shrink: 0;
 }
 
-.add-node-category-option:hover,
-.add-node-category-option--active {
-  background: var(--sailor-bg-overlay);
-  color: var(--sailor-text-primary);
-}
-
-.add-node-search-inner {
-  position: relative;
-}
-
-.add-node-search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--sailor-text-muted);
-  pointer-events: none;
-}
-
-.add-node-search-input {
-  width: 100%;
-  background-color: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
-  padding: 6px 12px 6px 32px;
-  font-size: var(--sailor-text-sm);
-  font-family: inherit;
-  color: var(--sailor-text-primary);
-  outline: none;
-  transition: border-color var(--sailor-duration-fast);
-  box-sizing: border-box;
-}
-
-.add-node-search-input::placeholder {
-  color: var(--sailor-text-muted);
-}
-
-.add-node-search-input:focus {
-  border-color: var(--sailor-accent);
-}
-
-/* ── Content scroll area ── */
 .add-node-content {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: var(--sailor-space-3);
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.add-node-picker-shell {
+  height: 100%;
+  min-height: 0;
+}
+
+.add-node-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(240px, 286px));
+  height: 100%;
+  min-height: 0;
+}
+
+:deep(.add-node-picker-column) {
   display: flex;
+  min-width: 0;
+  min-height: 0;
   flex-direction: column;
-  gap: var(--sailor-space-4);
+  border-right: 1px solid var(--sailor-border);
+  background: var(--sailor-bg-elevated);
 }
 
-/* ── Section ── */
-.add-node-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sailor-space-2);
+:deep(.add-node-picker-column:last-child) {
+  border-right: 0;
 }
 
-.add-node-section-label {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--sailor-text-muted);
-  padding: 0 var(--sailor-space-1);
-}
-
-/* ── List ── */
-.add-node-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.add-node-category-stack,
-.add-node-category-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sailor-space-1);
-}
-
-.add-node-category-toggle {
+:deep(.add-node-picker-column__header) {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-1);
-  width: 100%;
-  padding: var(--sailor-space-1) var(--sailor-space-1);
-  border: 0;
-  border-radius: var(--sailor-radius-sm);
-  background: transparent;
+  justify-content: space-between;
+  height: 38px;
+  padding: 0 var(--sailor-space-3);
+  border-bottom: 1px solid var(--sailor-border);
   color: var(--sailor-text-muted);
   font-size: 10px;
   font-weight: 700;
-  text-transform: uppercase;
   letter-spacing: 0.08em;
-  cursor: pointer;
+  text-transform: uppercase;
 }
 
-.add-node-category-toggle:hover {
-  background: var(--sailor-bg-overlay);
-  color: var(--sailor-text-primary);
-}
-
-.add-node-category-toggle code {
-  margin-left: auto;
+:deep(.add-node-picker-column__header code) {
   color: var(--sailor-text-muted);
   font-size: 10px;
 }
 
-/* ── Item ── */
-.add-node-item {
+:deep(.add-node-picker-column__scroller) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: var(--sailor-space-2);
+}
+
+:deep(.add-node-picker-column__empty) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-sm);
+}
+
+:deep(.add-node-picker-item) {
   display: flex;
   align-items: center;
   gap: var(--sailor-space-3);
   width: 100%;
-  padding: var(--sailor-space-2) var(--sailor-space-2);
+  min-height: 58px;
+  padding: var(--sailor-space-2);
+  border: 0;
+  border-radius: var(--sailor-radius-sm);
   background: transparent;
-  border: none;
-  border-radius: var(--sailor-radius-md);
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
   color: var(--sailor-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.add-node-item:active {
-  background-color: var(--sailor-bg-muted);
+:deep(.add-node-picker-item:hover),
+:deep(.add-node-picker-item--active) {
+  background: var(--sailor-button-ghost-hover);
 }
 
-/* ── Icon Well ── */
-.add-node-item-icon-well {
-  width: 32px;
-  height: 32px;
-  display: flex;
+:deep(.add-node-picker-item__icon) {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--sailor-radius-sm);
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
   border: 1px solid var(--sailor-border);
-  flex-shrink: 0;
-}
-
-.add-node-item-icon-well--plugin {
-  background-color: var(--sailor-bg-surface);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
   color: var(--sailor-text-muted);
 }
 
-.add-node-plugin-img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  border-radius: 2px;
-}
-
-/* ── Item Info ── */
-.add-node-item-info {
+:deep(.add-node-picker-item__body) {
   display: flex;
-  flex-direction: column;
-  flex: 1;
   min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.add-node-item-label {
-  font-size: var(--sailor-text-sm);
-  font-weight: 500;
-  color: var(--sailor-text-primary);
-  line-height: 1.3;
-}
-
-.add-node-item-desc {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+:deep(.add-node-picker-item__label) {
   overflow: hidden;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
+  font-weight: 600;
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.4;
-  margin-top: 1px;
 }
 
-.add-node-item-chevron {
+:deep(.add-node-picker-item__description) {
+  display: -webkit-box;
+  overflow: hidden;
   color: var(--sailor-text-muted);
-  flex-shrink: 0;
-  opacity: 0.5;
+  font-size: var(--sailor-text-xs);
+  line-height: 1.25;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
-/* ── States ── */
+:deep(.add-node-picker-item__count),
+:deep(.add-node-picker-item__chevron) {
+  flex: 0 0 auto;
+  color: var(--sailor-text-muted);
+}
+
 .add-node-loading {
   display: flex;
-  flex-direction: column;
+  height: 100%;
   align-items: center;
   justify-content: center;
   gap: var(--sailor-space-2);
-  padding: var(--sailor-space-8) 0;
   color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  font-size: var(--sailor-text-sm);
 }
 
 .add-node-spinner {
@@ -1007,18 +588,19 @@ const goBack = () => {
   }
 }
 
-.add-node-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-8) 0;
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-sm);
-}
+@media (max-width: 860px) {
+  .add-node-panel {
+    min-width: min(360px, calc(100vw - 32px));
+  }
 
-.add-node-empty-icon {
-  opacity: 0.2;
+  .add-node-picker-grid {
+    grid-template-columns: 1fr;
+  }
+
+  :deep(.add-node-picker-column) {
+    min-height: 220px;
+    border-right: 0;
+    border-bottom: 1px solid var(--sailor-border);
+  }
 }
 </style>

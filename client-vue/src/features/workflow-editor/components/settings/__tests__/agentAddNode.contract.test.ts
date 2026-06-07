@@ -12,7 +12,7 @@ function read(relativePath: string): string {
 test('add node panel exposes only the root AI Agent outside contextual agent quick-add', () => {
   const source = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
-  assert.match(source, /const AI_NODES(?:: AddNodeDefinition\[\])? = \[/)
+  assert.match(source, /const AI_NODES(?:: AddNodePickerPreset\[\])? = \[/)
   assert.match(source, /AI/)
 
   assert.match(source, /label: 'AI Agent'/)
@@ -26,7 +26,7 @@ test('add node panel exposes only the root AI Agent outside contextual agent qui
 
   assert.doesNotMatch(source, /label: 'Chat Trigger'/)
   assert.match(source, /filteredAiNodes/)
-  assert.match(source, /onAddLogicNode\?\.\(def\.type, def\.defaults\)/)
+  assert.match(source, /props\.onAddLogicNode\?\.\(item\.preset\.nodeType, item\.preset\.defaults\)/)
 })
 
 test('add node panel supports contextual agent quick-add presets', () => {
@@ -37,19 +37,16 @@ test('add node panel supports contextual agent quick-add presets', () => {
   assert.doesNotMatch(source, /provider: 'openai'/)
   assert.doesNotMatch(source, /provider: 'openrouter'/)
   assert.match(source, /agentChatModelPlugins/)
-  assert.match(source, /manifest\.metadata\.agentCapabilities\?\.chatModel\?\.enabled === true/)
+  assert.match(source, /capability\?\.enabled === true/)
   assert.match(source, /SUPPORTED_CHAT_MODEL_ADAPTERS/)
-  assert.match(source, /const adapter = manifest\.metadata\.agentCapabilities\?\.chatModel\?\.adapter/)
+  assert.match(source, /const adapter = capability\?\.adapter/)
   assert.match(source, /SUPPORTED_CHAT_MODEL_ADAPTERS\.has\(adapter\)/)
-  assert.match(source, /addAgentModelNode\(plugin\)/)
+  assert.match(source, /addAgentModelNode\(item\.plugin\)/)
   assert.match(source, /pluginId: capability\.credentialPluginId \|\| plugin\.manifest\.metadata\.id/)
   assert.match(source, /adapter: capability\.adapter/)
   assert.match(source, /model: capability\.defaultModel/)
   assert.match(source, /baseUrl: capability\.defaultBaseUrl/)
-  assert.match(
-    source,
-    /v-for="plugin in agentChatModelPlugins"[\s\S]*pluginIcon\(plugin\)[\s\S]*capabilityLabel\(plugin, 'chatModel'\)/,
-  )
+  assert.match(source, /if \(isAgentModelContext\.value\) return agentChatModelPlugins\.value/)
   assert.match(source, /AGENT_MEMORY_PRESETS/)
   assert.match(source, /SQLite Memory/)
   assert.doesNotMatch(source, /label: 'PostgreSQL Memory'/)
@@ -57,32 +54,22 @@ test('add node panel supports contextual agent quick-add presets', () => {
   assert.match(source, /agentMemoryStorePlugins/)
   assert.match(source, /manifest\.metadata\.agentCapabilities\?\.memoryStore\?\.enabled === true/)
   assert.match(source, /manifest\.metadata\.agentCapabilities\.memoryStore\.adapter === 'plugin-memory-store'/)
-  assert.match(source, /addAgentMemoryNode\(plugin\)/)
+  assert.match(source, /addAgentMemoryNode\(item\.plugin\)/)
   assert.match(source, /pluginId: plugin\.manifest\.metadata\.id/)
   assert.match(source, /adapter: capability\.adapter/)
   assert.match(source, /searchMethodId: capability\.searchMethodId/)
   assert.match(source, /putMethodId: capability\.putMethodId/)
-  assert.match(
-    source,
-    /v-for="plugin in agentMemoryStorePlugins"[\s\S]*pluginIcon\(plugin\)[\s\S]*capabilityLabel\(plugin, 'memoryStore'\)/,
-  )
-  assert.match(source, /presetPlugin/)
-  assert.match(source, /presetIcon/)
-  assert.match(source, /presetBgColor/)
-  assert.match(source, /presetBorderColor/)
-  assert.match(source, /presetIconColor/)
+  assert.match(source, /if \(isAgentMemoryContext\.value\) return agentMemoryStorePlugins\.value/)
+  assert.match(source, /pickerPresets/)
+  assert.match(source, /buildPickerSecondColumnItems/)
   assert.match(source, /isAgentModelContext/)
   assert.match(source, /isAgentMemoryContext/)
   assert.match(source, /isAgentToolContext/)
   assert.match(source, /pluginHasAgentTools/)
-  assert.match(source, /filteredIntegrationPlugins/)
-  assert.match(
-    source,
-    /isAgentToolContext\.value\s*\?\s*filteredPlugins\.value\.filter\(pluginHasAgentTools\)/,
-  )
-  assert.match(source, /methodVal\.agentTool\?\.enabled === true/)
-  assert.match(source, /<div v-if="!isAgentContext" class="add-node-section">[\s\S]*filteredUtilityPlugins/)
-  assert.match(source, /<p class="add-node-section-label">\{\{ isAgentToolContext \? 'Tools' : 'Integrations' \}\}<\/p>/)
+  assert.match(source, /if \(isAgentToolContext\.value\) return \(plugins\.value \?\? \[\]\)\.filter\(pluginHasAgentTools\)/)
+  assert.match(source, /agentConfigHandle: props\.agentConfigHandle/)
+  assert.match(source, /buildPickerActionItems/)
+  assert.match(source, /add-node-picker-grid/)
 })
 
 test('canvas connects contextual quick-add nodes into agent config handles', () => {
@@ -144,25 +131,27 @@ test('chat trigger is configured through the normal trigger node, not an AI pale
 test('add node panel keeps the plugin methods view scrollable inside the panel', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
+  assert.match(panel, /<div class="add-node-content" @wheel\.stop>/)
   assert.match(panel, /\.add-node-panel\s*\{[\s\S]*overflow: hidden;/)
-  assert.match(panel, /\.add-node-content\s*\{[\s\S]*min-height: 0;[\s\S]*overflow-y: auto;/)
+  assert.match(panel, /\.add-node-content\s*\{[\s\S]*min-height: 0;[\s\S]*overflow-y: auto;[\s\S]*overflow-x: hidden;[\s\S]*overscroll-behavior: contain;/)
 })
 
 test('add node panel groups plugin choices by category with filter and collapse controls', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
-  assert.match(panel, /PLUGIN_CATEGORIES/)
+  assert.match(panel, /buildPickerCategoryItems/)
+  assert.match(panel, /buildPickerSecondColumnItems/)
+  assert.match(panel, /buildPickerActionItems/)
   assert.match(panel, /selectedCategory/)
-  assert.match(panel, /categoryFilterOpen/)
-  assert.match(panel, /pluginCategories\(plugin\)/)
-  assert.match(panel, /pluginCategories\(p\)\.includes\(selectedCategory\.value\)/)
-  assert.match(panel, /utilityPluginGroups/)
-  assert.match(panel, /integrationPluginGroups/)
-  assert.match(panel, /toggleCategory\('utility'/)
-  assert.match(panel, /toggleCategory\('integration'/)
-  assert.match(panel, /add-node-category-filter-btn/)
-  assert.match(panel, /add-node-category-toggle/)
-  assert.match(panel, /add-node-category-group/)
+  assert.match(panel, /selectedPickerItemId/)
+  assert.match(panel, /add-node-picker-shell/)
+  assert.match(panel, /add-node-picker-grid/)
+  assert.match(panel, /add-node-picker-column/)
+  assert.match(panel, /add-node-picker-column__scroller/)
+  assert.doesNotMatch(panel, /categoryFilterOpen/)
+  assert.doesNotMatch(panel, /toggleCategory/)
+  assert.doesNotMatch(panel, /view === 'actions'/)
+  assert.doesNotMatch(panel, /goBack/)
 })
 
 test('node inspector previews summarize provider, memory, tools, and chat trigger', () => {
