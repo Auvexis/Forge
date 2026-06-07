@@ -23,7 +23,10 @@ describe('agent panel modal contract', () => {
 
     assert.match(modal, /AgentDirectoryList/)
     assert.match(modal, /AgentSessionList/)
+    assert.match(modal, /global-agent-panel--history-collapsed/)
+    assert.match(modal, /agentStore\.directoryCollapsed/)
     assert.match(modal, /grid-template-columns:\s*68px\s+256px\s+minmax\(0,\s*1fr\)/)
+    assert.match(modal, /grid-template-columns:\s*68px\s+0\s+minmax\(0,\s*1fr\)/)
     assert.match(sessions, /sessionGroups/)
     assert.match(sessions, /createdAt/)
     assert.match(sessions, /agent-session-list__new/)

@@ -12,3 +12,6 @@ Add safe file attachments to the global agent chat, restore the session history 
 - [x] Wire backend chat attachment refs into the agent runtime payload without exposing real file paths to plugins.
 - [x] Clean cached chat attachment files after success, error, and cancellation.
 - [x] Run targeted tests, type-check, and build.
+
+## Follow-up Fixes
+- [x] Wire the first aside collapse button to the global agent panel grid so chat history actually collapses and expands.

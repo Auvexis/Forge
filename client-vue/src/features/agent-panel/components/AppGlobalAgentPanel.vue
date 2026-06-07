@@ -2,6 +2,7 @@
   <BaseModal :is-open="ui.isOpen" max-width="1380px" height="86vh" @close="closePanel">
     <section
       class="global-agent-panel"
+      :class="{ 'global-agent-panel--history-collapsed': agentStore.directoryCollapsed }"
       aria-label="Global agent panel"
     >
       <AgentDirectoryList />
@@ -75,11 +76,29 @@ watch(
   border-radius: var(--sailor-radius-md);
   background: var(--sailor-bg-surface);
   color: var(--sailor-text-primary);
+  transition: grid-template-columns var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+
+.global-agent-panel--history-collapsed {
+  grid-template-columns: 68px 0 minmax(0, 1fr);
+}
+
+.global-agent-panel--history-collapsed :deep(.agent-session-list) {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-right: 0;
+  padding-inline: 0;
+  pointer-events: none;
 }
 
 @media (max-width: 820px) {
   .global-agent-panel {
     grid-template-columns: 60px minmax(220px, 36vw) minmax(0, 1fr);
+  }
+
+  .global-agent-panel--history-collapsed {
+    grid-template-columns: 60px 0 minmax(0, 1fr);
   }
 }
 </style>
