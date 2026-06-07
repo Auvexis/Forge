@@ -27,11 +27,17 @@ const viewerMode = ref<'raw' | 'diff'>('raw')
 const debouncedDiffLines = ref<WorkflowGitDiffLine[]>([])
 let diffTimer: number | null = null
 
+interface JsonToken {
+  value: string
+  type: 'key' | 'string' | 'number' | 'boolean' | 'null' | 'punctuation' | 'plain'
+}
+
 const snapshotOptions = computed(() => snapshots.value)
 const liveWorkflowJson = computed(() => JSON.stringify(props.workflow, null, 2))
 const rawWorkflowJson = computed(() =>
   selectedSnapshot.value?.rawWorkflowJson ?? liveWorkflowJson.value,
 )
+const renderRawJsonLines = computed(() => rawWorkflowJson.value.split('\n').map(tokenizeJsonLine))
 const baseDiffJson = computed(() => selectedSnapshot.value?.rawWorkflowJson ?? liveWorkflowJson.value)
 const viewerLabel = computed(() =>
   selectedSnapshot.value ? `snapshot ${selectedSnapshot.value.hash}` : 'live workflow',
@@ -114,6 +120,33 @@ function requestRestore() {
   if (!selectedSnapshotHash.value) return
   emit('restore', selectedSnapshotHash.value)
 }
+
+function tokenizeJsonLine(line: string): JsonToken[] {
+  const tokens: JsonToken[] = []
+  const pattern = /("(?:\\.|[^"\\])*"(?=\s*:))|("(?:\\.|[^"\\])*")|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false)\b|\bnull\b|([{}[\]:,])/g
+  let index = 0
+  for (const match of line.matchAll(pattern)) {
+    const start = match.index ?? 0
+    if (start > index) {
+      tokens.push({ value: line.slice(index, start), type: 'plain' })
+    }
+
+    const value = match[0]
+    if (match[1]) tokens.push({ value, type: 'key' })
+    else if (match[2]) tokens.push({ value, type: 'string' })
+    else if (match[3]) tokens.push({ value, type: 'number' })
+    else if (match[4]) tokens.push({ value, type: 'boolean' })
+    else if (value === 'null') tokens.push({ value, type: 'null' })
+    else tokens.push({ value, type: 'punctuation' })
+    index = start + value.length
+  }
+
+  if (index < line.length) {
+    tokens.push({ value: line.slice(index), type: 'plain' })
+  }
+
+  return tokens.length ? tokens : [{ value: line, type: 'plain' }]
+}
 </script>
 
 <template>
@@ -191,7 +224,17 @@ function requestRestore() {
           <span v-if="hasUnsavedChanges">Unsaved changes</span>
           <span v-if="snapshotError">{{ snapshotError }}</span>
         </div>
-        <pre class="workflow-git-changes-window__raw" v-if="viewerMode === 'raw'"><code>{{ rawWorkflowJson }}</code></pre>
+        <pre class="workflow-git-changes-window__raw" v-if="viewerMode === 'raw'"><code>
+          <span
+            v-for="(tokens, lineIndex) in renderRawJsonLines"
+            :key="lineIndex"
+            class="workflow-git-changes-window__raw-line"
+          ><span
+            v-for="(token, tokenIndex) in tokens"
+            :key="tokenIndex"
+            :class="`json-token json-token--${token.type}`"
+          >{{ token.value }}</span></span>
+        </code></pre>
         <div v-else class="workflow-git-changes-window__diff" role="table" aria-label="Workflow JSON diff">
           <div
             v-for="(line, index) in debouncedDiffLines"
@@ -205,7 +248,13 @@ function requestRestore() {
             <span class="workflow-git-changes-window__line-marker">
               {{ line.type === 'added' ? '+' : line.type === 'removed' ? '-' : line.type === 'modified' ? '~' : ' ' }}
             </span>
-            <code class="workflow-git-changes-window__line-code">{{ line.content }}</code>
+            <code class="workflow-git-changes-window__line-code">
+              <span
+                v-for="(token, tokenIndex) in tokenizeJsonLine(line.content)"
+                :key="tokenIndex"
+                :class="`json-token json-token--${token.type}`"
+              >{{ token.value }}</span>
+            </code>
           </div>
         </div>
       </div>
@@ -360,12 +409,18 @@ function requestRestore() {
 .workflow-git-changes-window__raw {
   min-width: max-content;
   margin: 0;
-  padding: 12px 14px;
+  padding: 8px 0;
   color: var(--sailor-text-primary);
   font-family: var(--sailor-font-mono);
   font-size: 11px;
   line-height: 1.55;
   white-space: pre;
+}
+
+.workflow-git-changes-window__raw-line {
+  display: block;
+  min-height: 20px;
+  padding: 0 14px;
 }
 
 .workflow-git-changes-window__diff {
@@ -419,5 +474,30 @@ function requestRestore() {
 .workflow-git-changes-window__line-code {
   padding: 0 12px 0 0;
   white-space: pre;
+}
+
+.json-token--key {
+  color: var(--sailor-blue-400);
+}
+
+.json-token--string {
+  color: var(--sailor-green-400);
+}
+
+.json-token--number {
+  color: var(--sailor-amber-400);
+}
+
+.json-token--boolean,
+.json-token--null {
+  color: var(--sailor-color-4);
+}
+
+.json-token--punctuation {
+  color: var(--sailor-text-secondary);
+}
+
+.json-token--plain {
+  color: var(--sailor-text-muted);
 }
 </style>

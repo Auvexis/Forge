@@ -61,6 +61,17 @@ test('workflow git changes window has polished diff indicators', () => {
   assert.match(source, /workflow-git-changes-window__gutter/)
 })
 
+test('workflow git changes window applies a JSON syntax theme without v-html', () => {
+  assert.match(source, /tokenizeJsonLine/)
+  assert.match(source, /renderRawJsonLines/)
+  assert.match(source, /json-token--key/)
+  assert.match(source, /json-token--string/)
+  assert.match(source, /json-token--number/)
+  assert.match(source, /json-token--boolean/)
+  assert.match(source, /json-token--null/)
+  assert.doesNotMatch(source, /v-html/)
+})
+
 test('workflow git changes window confirms and emits restored snapshots', () => {
   assert.match(source, /defineEmits/)
   assert.match(source, /\(e: 'restore', hash: string\): void/)

@@ -10,7 +10,7 @@ Melhorar o visual do Changes Viewer usando `tokens.css`, tema de JSON e diff mai
   - Adicionar chips de contagem: added, removed, modified.
   - Deixar linhas added/removed/modified bem visiveis.
 
-- [ ] Task 2: Adicionar tema de JSON.
+- [x] Task 2: Adicionar tema de JSON.
   - Tokenizar linhas JSON sem `v-html`.
   - Cores para key, string, number, boolean/null e punctuation.
   - Usar o mesmo renderer no raw e no diff.
