@@ -107,9 +107,9 @@ const hasOutgoingConnection = computed(() => {
   return allEdges.value.some((e) => e.source === props.id)
 })
 
-const onQuickAdd = () => {
+const onQuickAdd = (event: MouseEvent) => {
   if (props.id) {
-    quickAddBus.emit({ sourceId: props.id })
+    quickAddBus.emit({ sourceId: props.id, clientX: event.clientX, clientY: event.clientY })
   }
 }
 </script>

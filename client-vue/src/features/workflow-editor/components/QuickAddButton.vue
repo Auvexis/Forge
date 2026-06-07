@@ -37,17 +37,24 @@ const hasConnection = computed(() =>
     : allEdges.value.some(isSourceHandleConnected),
 )
 
-const onQuickAdd = () => {
+const onQuickAdd = (event: MouseEvent) => {
   if (props.mode === 'agent-config') {
     quickAddBus.emit({
       targetId: props.nodeId,
       targetHandle: props.targetHandleId ?? props.handleId,
       agentConfigHandle: props.targetHandleId ?? props.handleId,
+      clientX: event.clientX,
+      clientY: event.clientY,
     })
     return
   }
 
-  quickAddBus.emit({ sourceId: props.nodeId, sourceHandle: props.handleId })
+  quickAddBus.emit({
+    sourceId: props.nodeId,
+    sourceHandle: props.handleId,
+    clientX: event.clientX,
+    clientY: event.clientY,
+  })
 }
 </script>
 

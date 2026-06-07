@@ -81,7 +81,7 @@ test('canvas connects contextual quick-add nodes into agent config handles', () 
   assert.match(canvas, /connectAgentConfigNode/)
   assert.match(canvas, /targetHandle: targetHandle/)
   assert.match(canvas, /sourceHandle: 'source'/)
-  assert.match(canvas, /onAddAgentToolNode/)
+  assert.match(canvas, /on-add-agent-tool-node/)
 })
 
 test('canvas auto-arranges agent config nodes with model and memory on the left and tools in a grid', () => {
@@ -153,6 +153,24 @@ test('add node panel renders the floating picker and removes the old category/ac
   assert.doesNotMatch(panel, /toggleCategory/)
   assert.doesNotMatch(panel, /view === 'actions'/)
   assert.doesNotMatch(panel, /goBack/)
+})
+
+test('workflow canvas opens add node picker as cursor anchored canvas overlay', () => {
+  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const baseNode = read('src/features/workflow-editor/components/BaseNode.vue')
+  const quickAddButton = read('src/features/workflow-editor/components/QuickAddButton.vue')
+  const baseEdge = read('src/features/workflow-editor/components/BaseEdge.vue')
+
+  assert.match(canvas, /addNodePickerOverlay/)
+  assert.match(canvas, /openAddNodePanel[\s\S]*anchor\?: AddNodePickerAnchor/)
+  assert.match(canvas, /<div\s+v-if="addNodePickerOverlay"/)
+  assert.match(canvas, /<AddNodePanel/)
+  assert.match(canvas, /closeAddNodePicker/)
+  assert.doesNotMatch(canvas, /panelStore\.togglePanel\(\{\s*id: 'add-node-panel'/)
+
+  assert.match(baseNode, /clientX: event\.clientX/)
+  assert.match(quickAddButton, /clientX: event\.clientX/)
+  assert.match(baseEdge, /clientX: event\.clientX/)
 })
 
 test('node inspector previews summarize provider, memory, tools, and chat trigger', () => {

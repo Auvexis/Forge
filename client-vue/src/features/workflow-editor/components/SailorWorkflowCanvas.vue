@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, markRaw, computed, onBeforeUnmount, nextTick } from 'vue'
+import { ref, watch, computed, onBeforeUnmount, nextTick } from 'vue'
 import { VueFlow } from '@vue-flow/core'
 import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection, VueFlowStore } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
@@ -27,7 +27,6 @@ import BaseEdge from './BaseEdge.vue'
 import NodeGroupSelectionBox from './NodeGroupSelectionBox.vue'
 import { Background } from '@vue-flow/background'
 
-import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import { useNodeInspectorStore } from '../stores/node-inspector.store'
 import NodeInspectorModal from './settings/NodeInspectorModal.vue'
 import AddNodePanel from './settings/AddNodePanel.vue'
@@ -43,7 +42,6 @@ import { shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
 
 // Stores
 const workflowStore = useWorkflowStore()
-const panelStore = useAppPanelStore()
 const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
 const vueFlowStore = ref<VueFlowStore | null>(null)
@@ -259,6 +257,48 @@ let quickAddTargetHandle: string | null = null
 let quickAddAgentConfigHandle: 'chatModel' | 'memory' | 'tool' | null = null
 
 const AGENT_CONFIG_HANDLES = ['chatModel', 'memory', 'tool'] as const
+type AddNodePickerAnchor = { clientX?: number; clientY?: number }
+
+const ADD_NODE_PICKER_WIDTH = 920
+const ADD_NODE_PICKER_HEIGHT = 620
+const ADD_NODE_PICKER_MARGIN = 12
+
+const addNodePickerOverlay = ref<{
+  left: number
+  top: number
+  agentConfigHandle: 'chatModel' | 'memory' | 'tool' | null
+} | null>(null)
+
+const addNodePickerStyle = computed(() => ({
+  left: `${addNodePickerOverlay.value?.left ?? ADD_NODE_PICKER_MARGIN}px`,
+  top: `${addNodePickerOverlay.value?.top ?? ADD_NODE_PICKER_MARGIN}px`,
+}))
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), Math.max(min, max))
+}
+
+function getAddNodePickerPosition(anchor?: AddNodePickerAnchor | null): { left: number; top: number } {
+  const fallback = {
+    clientX: window.innerWidth / 2,
+    clientY: window.innerHeight / 2,
+  }
+  const point =
+    typeof anchor?.clientX === 'number' && typeof anchor.clientY === 'number'
+      ? { clientX: anchor.clientX, clientY: anchor.clientY }
+      : fallback
+  const maxLeft = window.innerWidth - ADD_NODE_PICKER_WIDTH - ADD_NODE_PICKER_MARGIN
+  const maxTop = window.innerHeight - ADD_NODE_PICKER_HEIGHT - ADD_NODE_PICKER_MARGIN
+
+  return {
+    left: clamp(point.clientX + ADD_NODE_PICKER_MARGIN, ADD_NODE_PICKER_MARGIN, maxLeft),
+    top: clamp(point.clientY - 24, ADD_NODE_PICKER_MARGIN, maxTop),
+  }
+}
+
+function closeAddNodePicker() {
+  addNodePickerOverlay.value = null
+}
 
 function isAgentConfigHandle(handle: string | null | undefined): handle is 'chatModel' | 'memory' | 'tool' {
   return AGENT_CONFIG_HANDLES.includes(handle as 'chatModel' | 'memory' | 'tool')
@@ -271,12 +311,14 @@ quickAddBus.on((payload: {
   targetId?: string
   targetHandle?: string
   agentConfigHandle?: 'chatModel' | 'memory' | 'tool'
+  clientX?: number
+  clientY?: number
 }) => {
   quickAddSourceHandle = payload.sourceHandle ?? null
   quickAddTargetId = payload.targetId ?? null
   quickAddTargetHandle = payload.targetHandle ?? null
   quickAddAgentConfigHandle = payload.agentConfigHandle ?? null
-  openAddNodePanel(payload.sourceId, payload.agentConfigHandle)
+  openAddNodePanel(payload.sourceId, payload.agentConfigHandle, payload)
 })
 
 // ── Insert node between two connected nodes (edge toolbar quick-add) ──────────
@@ -293,6 +335,8 @@ quickAddBetweenBus.on((payload: {
   targetId: string
   sourceHandle?: string
   targetHandle?: string
+  clientX?: number
+  clientY?: number
 }) => {
   pendingInsertEdgeId       = payload.edgeId
   pendingInsertSourceId     = payload.sourceId
@@ -302,7 +346,7 @@ quickAddBetweenBus.on((payload: {
   quickAddTargetId          = null
   quickAddTargetHandle      = null
   quickAddAgentConfigHandle = null
-  openAddNodePanel(payload.sourceId)
+  openAddNodePanel(payload.sourceId, null, payload)
 })
 
 // ── Update edge label from toolbar ────────────────────────────────────────────
@@ -319,23 +363,16 @@ edgeLabelBus.on((payload: { edgeId: string; label: string }) => {
 const openAddNodePanel = (
   sourceId?: string | null,
   agentConfigHandle?: 'chatModel' | 'memory' | 'tool' | null,
+  anchor?: AddNodePickerAnchor | null,
 ) => {
   quickAddSourceId = sourceId || null
   quickAddAgentConfigHandle = agentConfigHandle ?? null
+  const position = getAddNodePickerPosition(anchor)
 
-  panelStore.togglePanel({
-    id: 'add-node-panel',
-    title: 'Add Node',
-    component: markRaw(AddNodePanel),
-    props: {
-      onAddLogicNode: addLogicNode,
-      onAddPluginNode: addPluginNode,
-      onAddAgentToolNode: addAgentToolNode,
-      agentConfigHandle: quickAddAgentConfigHandle ?? undefined,
-    },
-    position: 'right',
-    width: 'md',
-  })
+  addNodePickerOverlay.value = {
+    ...position,
+    agentConfigHandle: quickAddAgentConfigHandle,
+  }
 }
 
 // ── Run / Stop ────────────────────────────────────────────────────────────
@@ -898,7 +935,7 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     pendingInsertTargetHandle = null
   }
 
-  panelStore.closePanel()
+  closeAddNodePicker()
 }
 
 const addPluginNode = (pluginId: string, action: string, actionName: string) => {
@@ -953,7 +990,7 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
     pendingInsertTargetHandle = null
   }
 
-  panelStore.closePanel()
+  closeAddNodePicker()
 }
 
 const addAgentToolNode = (pluginId: string, action: string, actionName: string) => {
@@ -1144,7 +1181,7 @@ const onConnectEnd = (...args: unknown[]) => {
     quickAddTargetId = pending.nodeId
     quickAddTargetHandle = pending.handleId
     quickAddAgentConfigHandle = isAgentConfigHandle(pending.handleId) ? pending.handleId : null
-    openAddNodePanel(null, quickAddAgentConfigHandle)
+    openAddNodePanel(null, quickAddAgentConfigHandle, event instanceof MouseEvent ? event : null)
     return
   }
 
@@ -1152,7 +1189,7 @@ const onConnectEnd = (...args: unknown[]) => {
   quickAddTargetId = null
   quickAddTargetHandle = null
   quickAddAgentConfigHandle = null
-  openAddNodePanel(pending.nodeId)
+  openAddNodePanel(pending.nodeId, null, event instanceof MouseEvent ? event : null)
 }
 
 const onConnect = (connection: Connection) => {
@@ -1355,7 +1392,7 @@ defineExpose({
         v-if="isWorkflowEmpty"
         class="canvas-empty-step nodrag nopan"
         type="button"
-        @click.stop="openAddNodePanel()"
+        @click.stop="(event) => openAddNodePanel(null, null, event)"
       >
         <span class="canvas-empty-step__box">
           <LucideIcon name="plus" :size="34" />
@@ -1470,6 +1507,26 @@ defineExpose({
       </template>
     </VueFlow>
 
+    <div
+      v-if="addNodePickerOverlay"
+      class="add-node-picker-overlay nodrag nopan"
+      @pointerdown.self="closeAddNodePicker"
+    >
+      <div
+        class="add-node-picker-overlay__window"
+        :style="addNodePickerStyle"
+        @click.stop
+        @pointerdown.stop
+      >
+        <AddNodePanel
+          :on-add-logic-node="addLogicNode"
+          :on-add-plugin-node="addPluginNode"
+          :on-add-agent-tool-node="addAgentToolNode"
+          :agent-config-handle="addNodePickerOverlay.agentConfigHandle ?? undefined"
+        />
+      </div>
+    </div>
+
     <!-- Node Inspector Immersive Modal -->
     <NodeInspectorModal />
   </div>
@@ -1479,6 +1536,17 @@ defineExpose({
 .sailor-workflow-canvas {
   width: 100%;
   height: 100%;
+}
+
+.add-node-picker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: auto;
+}
+
+.add-node-picker-overlay__window {
+  position: fixed;
 }
 
 .canvas-empty-step {
