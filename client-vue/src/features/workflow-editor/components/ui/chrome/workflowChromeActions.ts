@@ -62,6 +62,15 @@ export const workflowChromeMenus: WorkflowChromeMenu[] = [
     ],
   },
   {
+    id: 'git',
+    label: 'Git',
+    items: [
+      { id: 'git.create-snapshot', label: 'Create Snapshot', icon: 'git-commit-horizontal' },
+      { id: 'git.refresh-status', label: 'Refresh Status', icon: 'refresh-cw' },
+      { id: 'git.copy-repo-path', label: 'Copy Repo Path', icon: 'copy' },
+    ],
+  },
+  {
     id: 'help',
     label: 'Help',
     items: [

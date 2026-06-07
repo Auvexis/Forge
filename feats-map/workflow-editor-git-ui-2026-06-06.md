@@ -6,7 +6,7 @@ Mostrar a feature Git no Workflow Editor sem transformar isso em uma tela Git co
 ## Tasks
 - [x] Task 1: Expor status Git do workflow no backend.
 - [x] Task 2: Mostrar estado Git na Status Bar do Workflow Editor.
-- [ ] Task 3: Adicionar menu Git no Chrome do Workflow Editor.
+- [x] Task 3: Adicionar menu Git no Chrome do Workflow Editor.
 
 ## Notes
 - Usar branch `dev`.

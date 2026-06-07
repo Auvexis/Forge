@@ -24,6 +24,9 @@ export type WorkflowChromeCommandId =
   | 'run.stop'
   | 'run.clean-execution'
   | 'run.publish'
+  | 'git.create-snapshot'
+  | 'git.refresh-status'
+  | 'git.copy-repo-path'
   | 'help.shortcuts'
   | 'help.docs'
   | 'help.about'
@@ -36,7 +39,7 @@ export interface WorkflowChromeMenuItem {
 }
 
 export interface WorkflowChromeMenu {
-  id: 'file' | 'edit' | 'view' | 'select' | 'go' | 'run' | 'help'
+  id: 'file' | 'edit' | 'view' | 'select' | 'go' | 'run' | 'git' | 'help'
   label: string
   items: WorkflowChromeMenuItem[]
 }

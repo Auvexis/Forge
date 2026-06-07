@@ -206,6 +206,28 @@ async function loadWorkflowGitStatus(targetWorkflowId = workflowStore.activeWork
   }
 }
 
+async function handleCreateGitSnapshot() {
+  if (!workflowStore.activeWorkflow || !route.params.id) {
+    toast.error('Save workflow before creating git snapshots')
+    return
+  }
+
+  await workflowStore.saveActiveWorkflow()
+  await loadWorkflowGitStatus()
+  toast.success('Git snapshot updated')
+}
+
+async function handleCopyGitRepoPath() {
+  const repoPath = gitStatus.value?.repoPath
+  if (!repoPath) {
+    toast.error('Git repository is not available yet')
+    return
+  }
+
+  await navigator.clipboard.writeText(repoPath)
+  toast.success('Git repo path copied')
+}
+
 function handleUiIntent(e: Event) {
   const intent = (e as CustomEvent).detail
   if (intent?.type === 'workflow-settings.open') showSettings.value = true
@@ -419,6 +441,7 @@ watch(
         :can-undo="workflowStore.canUndo"
         :can-redo="workflowStore.canRedo"
         :has-execution-state="hasExecutionState"
+        :git-repo-path="gitStatus?.repoPath"
         @save="handleSaveWorkflow()"
         @toggle-autosave="workflowStore.setAutosaveEnabled($event)"
         @undo="workflowStore.undo()"
@@ -445,6 +468,9 @@ watch(
         @fit-view="canvasRef?.fitWorkflowView()"
         @command-palette="openCommandPalette()"
         @publish="handlePublishWorkflow()"
+        @git-create-snapshot="handleCreateGitSnapshot()"
+        @git-refresh-status="loadWorkflowGitStatus()"
+        @git-copy-repo-path="handleCopyGitRepoPath()"
       />
     </template>
 

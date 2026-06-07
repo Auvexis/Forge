@@ -18,7 +18,7 @@ describe('workflow chrome actions', () => {
   it('defines only supported top-level menus in the intended order', () => {
     assert.deepEqual(
       workflowChromeMenus.map((menu) => menu.id),
-      ['file', 'edit', 'view', 'select', 'go', 'run', 'help'],
+      ['file', 'edit', 'view', 'select', 'go', 'run', 'git', 'help'],
     )
   })
 
@@ -65,5 +65,18 @@ describe('workflow chrome actions', () => {
     assert.match(chromeSource, /\(e: 'clean-execution'\): void/)
     assert.match(chromeSource, /'run\.clean-execution': \(\) => emit\('clean-execution'\)/)
     assert.doesNotMatch(canvasSource, /EditorControlsDock/)
+  })
+
+  it('exposes workflow git commands from the chrome menu', () => {
+    const gitMenu = workflowChromeMenus.find((menu) => menu.id === 'git')
+
+    assert.deepEqual(
+      gitMenu?.items.map((item) => item.id),
+      ['git.create-snapshot', 'git.refresh-status', 'git.copy-repo-path'],
+    )
+    assert.match(chromeSource, /\(e: 'git-create-snapshot'\): void/)
+    assert.match(chromeSource, /\(e: 'git-refresh-status'\): void/)
+    assert.match(chromeSource, /\(e: 'git-copy-repo-path'\): void/)
+    assert.match(chromeSource, /'git\.create-snapshot': \(\) => emit\('git-create-snapshot'\)/)
   })
 })

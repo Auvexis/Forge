@@ -23,6 +23,7 @@ const props = defineProps<{
   canUndo?: boolean
   canRedo?: boolean
   hasExecutionState?: boolean
+  gitRepoPath?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -52,6 +53,9 @@ const emit = defineEmits<{
   (e: 'fit-view'): void
   (e: 'command-palette'): void
   (e: 'publish'): void
+  (e: 'git-create-snapshot'): void
+  (e: 'git-refresh-status'): void
+  (e: 'git-copy-repo-path'): void
 }>()
 
 const route = useRoute()
@@ -72,6 +76,13 @@ const disabledMenuReasons = computed<Partial<Record<WorkflowChromeCommandId, str
   ...(isUnsavedDraft.value || !props.workflow
     ? { 'run.publish': 'Save workflow before publishing' }
     : {}),
+  ...(isUnsavedDraft.value || !props.workflow
+    ? {
+        'git.create-snapshot': 'Save workflow before creating git snapshots',
+        'git.refresh-status': 'Save workflow before checking git status',
+      }
+    : {}),
+  ...(!props.gitRepoPath ? { 'git.copy-repo-path': 'Git repository is not available yet' } : {}),
 }))
 
 function handleCommand(id: WorkflowChromeCommandId) {
@@ -101,6 +112,9 @@ function handleCommand(id: WorkflowChromeCommandId) {
     'run.stop': () => emit('stop'),
     'run.clean-execution': () => emit('clean-execution'),
     'run.publish': () => emit('publish'),
+    'git.create-snapshot': () => emit('git-create-snapshot'),
+    'git.refresh-status': () => emit('git-refresh-status'),
+    'git.copy-repo-path': () => emit('git-copy-repo-path'),
   }
 
   handlers[id]?.()
