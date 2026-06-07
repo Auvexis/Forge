@@ -8,6 +8,7 @@ import {
 } from '@/features/workflow-editor'
 import WorkflowEditorChrome from '@/features/workflow-editor/components/ui/chrome/WorkflowEditorChrome.vue'
 import WorkflowGitChangesWindow from '@/features/workflow-editor/components/ui/WorkflowGitChangesWindow.vue'
+import WorkflowGitModal from '@/features/workflow-editor/components/ui/WorkflowGitModal.vue'
 import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/WorkflowSettingsPanel.vue'
 import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/WorkflowVariablesModal.vue'
 import ExecutionBottomPanel from '@/features/workflow-editor/components/execution/ExecutionBottomPanel.vue'
@@ -78,6 +79,9 @@ const selectedChatTriggerNodeId = ref('')
 const gitStatus = ref<WorkflowGitSnapshotStatus | null>(null)
 const isGitStatusLoading = ref(false)
 const isGitChangesWindowOpen = ref(false)
+const isGitModalOpen = ref(false)
+const isGitCommitting = ref(false)
+const gitModalRefreshKey = ref(0)
 const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
 const activeChatTriggers = computed(() => {
   const workflow = workflowStore.activeWorkflow
@@ -214,9 +218,36 @@ async function handleCreateGitSnapshot() {
     return
   }
 
-  await workflowStore.saveActiveWorkflow()
-  await loadWorkflowGitStatus()
-  toast.success('Git snapshot updated')
+  await handleCommitGitSnapshot(`Update ${workflowStore.activeWorkflow.metadata.name}`)
+}
+
+function openGitModal() {
+  isGitModalOpen.value = true
+  void loadWorkflowGitStatus()
+}
+
+async function handleCommitGitSnapshot(message: string) {
+  const active = workflowStore.activeWorkflow
+  if (!active || !route.params.id) {
+    toast.error('Save workflow before committing')
+    return
+  }
+
+  isGitCommitting.value = true
+  try {
+    await workflowStore.saveActiveWorkflow()
+    const current = workflowStore.activeWorkflow
+    if (!current) return
+
+    const result = await workflowsApi.commitGitSnapshot(current.metadata.id, message)
+    gitStatus.value = result.status
+    gitModalRefreshKey.value += 1
+    toast.success(result.committed ? 'Workflow committed' : 'No workflow changes to commit')
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : 'Failed to commit workflow')
+  } finally {
+    isGitCommitting.value = false
+  }
 }
 
 async function handleCopyGitRepoPath() {
@@ -516,7 +547,7 @@ watch(
         :class="{ 'workflow-status-bar__button--active': gitStatus?.state === 'ready' }"
         type="button"
         :title="gitStatusTitle"
-        @click="loadWorkflowGitStatus()"
+        @click="openGitModal"
       >
         <LucideIcon name="git-branch" :size="13" />
         <span>Git</span>
@@ -538,6 +569,17 @@ watch(
     <WorkflowGitChangesWindow
       v-if="isGitChangesWindowOpen && workflowStore.activeWorkflow"
       :workflow="workflowStore.activeWorkflow"
+    />
+
+    <WorkflowGitModal
+      v-if="workflowStore.activeWorkflow"
+      :is-open="isGitModalOpen"
+      :workflow="workflowStore.activeWorkflow"
+      :git-status="gitStatus"
+      :is-committing="isGitCommitting"
+      :refresh-key="gitModalRefreshKey"
+      @close="isGitModalOpen = false"
+      @commit="handleCommitGitSnapshot"
     />
 
     <WorkflowSettingsPanel :is-open="showSettings" @close="showSettings = false" />

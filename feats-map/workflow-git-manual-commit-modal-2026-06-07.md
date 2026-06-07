@@ -105,11 +105,11 @@ git commit -m "feat: simplify workflow git changes preview"
 - Modify: `client-vue/src/app/pages/WorkflowEditorPage.vue`
 - Modify: `client-vue/src/app/__tests__/WorkflowEditorStatusBar.contract.test.ts`
 
-- [ ] **Step 1: Write failing page/modal tests**
+- [x] **Step 1: Write failing page/modal tests**
 
 Add tests proving the `Git *hash*` status button opens a modal and the modal exposes commit message/description controls plus a commit button.
 
-- [ ] **Step 2: Run tests to verify RED**
+- [x] **Step 2: Run tests to verify RED**
 
 Run:
 
@@ -119,15 +119,15 @@ npm --prefix client-vue test -- src/app/__tests__/WorkflowEditorStatusBar.contra
 
 Expected: FAIL because the button only refreshes Git status and the modal does not exist.
 
-- [ ] **Step 3: Implement `WorkflowGitModal.vue`**
+- [x] **Step 3: Implement `WorkflowGitModal.vue`**
 
 Use `BaseModal.vue`, tokens, Lucide icons, a left changes sidebar, a main diff panel, and commit controls inspired by the first reference image. The modal emits a manual commit message to the page.
 
-- [ ] **Step 4: Wire status bar commit flow**
+- [x] **Step 4: Wire status bar commit flow**
 
 Change the status bar Git button to open the modal. On commit, save the live workflow once, call `workflowsApi.commitGitSnapshot`, reload Git status, and refresh the modal diff state.
 
-- [ ] **Step 5: Run targeted tests and commit**
+- [x] **Step 5: Run targeted tests and commit**
 
 Run:
 

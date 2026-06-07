@@ -62,12 +62,17 @@ test('workflow editor status bar shows workflow git snapshot state', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
   assert.match(source, /WorkflowGitSnapshotStatus/)
+  assert.match(source, /WorkflowGitModal/)
   assert.match(source, /gitStatus = ref<WorkflowGitSnapshotStatus \| null>/)
+  assert.match(source, /isGitModalOpen = ref\(false\)/)
   assert.match(source, /loadWorkflowGitStatus/)
   assert.match(source, /workflowsApi\.getGitStatus/)
   assert.match(source, /gitStatusLabel/)
   assert.match(source, /workflow-status-bar__button--git/)
   assert.match(source, /<LucideIcon name="git-branch"/)
+  assert.match(source, /openGitModal/)
+  assert.match(source, /@click="openGitModal"/)
+  assert.match(source, /<WorkflowGitModal/)
 })
 
 test('workflow editor status bar opens the workflow git changes viewer', () => {
@@ -82,12 +87,27 @@ test('workflow editor status bar opens the workflow git changes viewer', () => {
   assert.match(source, /v-if="isGitChangesWindowOpen && workflowStore\.activeWorkflow"/)
 })
 
-test('workflow editor restores git snapshots from the changes viewer', () => {
+test('workflow editor commits workflow git snapshots manually from the git modal', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
-  assert.match(source, /handleRestoreGitSnapshot/)
-  assert.match(source, /confirm\(/)
-  assert.match(source, /workflowsApi\.restoreGitSnapshot/)
-  assert.match(source, /workflowStore\.setActiveWorkflow\(restored\)/)
-  assert.match(source, /@restore="handleRestoreGitSnapshot"/)
+  assert.match(source, /handleCommitGitSnapshot/)
+  assert.match(source, /await workflowStore\.saveActiveWorkflow\(\)/)
+  assert.match(source, /workflowsApi\.commitGitSnapshot/)
+  assert.match(source, /@commit="handleCommitGitSnapshot"/)
+})
+
+test('workflow git modal uses BaseModal and exposes commit UI', () => {
+  const source = read('src/features/workflow-editor/components/ui/WorkflowGitModal.vue')
+
+  assert.match(source, /BaseModal/)
+  assert.match(source, /workflow-git-modal__sidebar/)
+  assert.match(source, /workflow-git-modal__diff/)
+  assert.match(source, /workflow-git-modal__summary-input/)
+  assert.match(source, /workflow-git-modal__description-input/)
+  assert.match(source, />\s*Commit to workflow\.json\s*</)
+  assert.match(source, /defineEmits/)
+  assert.match(source, /\(e: 'commit', message: string\): void/)
+  assert.match(source, /buildWorkflowJsonDiff/)
+  assert.match(source, /workflowsApi\.listGitSnapshots/)
+  assert.match(source, /workflowsApi\.getGitSnapshot/)
 })
