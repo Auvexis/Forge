@@ -28,3 +28,13 @@ test('workflow git changes window renders raw workflow json', () => {
   assert.match(source, /JSON\.stringify\(props\.workflow, null, 2\)/)
   assert.match(source, /<pre class="workflow-git-changes-window__raw"/)
 })
+
+test('workflow git changes window loads and displays git snapshots', () => {
+  assert.match(source, /workflowsApi\.listGitSnapshots/)
+  assert.match(source, /workflowsApi\.getGitSnapshot/)
+  assert.match(source, /snapshotOptions/)
+  assert.match(source, /selectedSnapshotHash/)
+  assert.match(source, /<select/)
+  assert.match(source, /snapshot\.shortHash/)
+  assert.match(source, /snapshot\.committedAt/)
+})

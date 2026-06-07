@@ -18,6 +18,9 @@ export const ENDPOINTS = {
   WORKFLOWS: '/workflows',
   WORKFLOW_BY_ID: (id: string) => `/workflows/${encodeURIComponent(id)}`,
   WORKFLOW_GIT_STATUS: (id: string) => `/workflows/${encodeURIComponent(id)}/git/status`,
+  WORKFLOW_GIT_SNAPSHOTS: (id: string) => `/workflows/${encodeURIComponent(id)}/git/snapshots`,
+  WORKFLOW_GIT_SNAPSHOT: (id: string, hash: string) =>
+    `/workflows/${encodeURIComponent(id)}/git/snapshots/${encodeURIComponent(hash)}`,
   WORKFLOW_SCHEMA: (id: string) => `/workflows/${encodeURIComponent(id)}/schema`,
   WORKFLOW_PUBLISH: (id: string) => `/workflows/${encodeURIComponent(id)}/publish`,
   WORKFLOW_UNPUBLISH: (id: string) => `/workflows/${encodeURIComponent(id)}/unpublish`,

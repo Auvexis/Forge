@@ -83,6 +83,19 @@ export interface WorkflowGitSnapshotStatus {
   error: string | null
 }
 
+export interface WorkflowGitSnapshotSummary {
+  hash: string
+  shortHash: string
+  committedAt: string
+  message: string
+}
+
+export interface WorkflowGitSnapshotFile {
+  hash: string
+  rawWorkflowJson: string
+  workflow: WorkflowItem
+}
+
 // ── Server response shape (snake_case from SQLite row) ────────
 
 /**
@@ -129,6 +142,14 @@ export const workflowsApi = {
   /** Get the workflow's local git snapshot status */
   getGitStatus: (id: string) =>
     apiRequest<WorkflowGitSnapshotStatus>(ENDPOINTS.WORKFLOW_GIT_STATUS(id)),
+
+  /** List the workflow's local git snapshots */
+  listGitSnapshots: (id: string) =>
+    apiRequest<WorkflowGitSnapshotSummary[]>(ENDPOINTS.WORKFLOW_GIT_SNAPSHOTS(id)),
+
+  /** Read a workflow.json file from a git snapshot */
+  getGitSnapshot: (id: string, hash: string) =>
+    apiRequest<WorkflowGitSnapshotFile>(ENDPOINTS.WORKFLOW_GIT_SNAPSHOT(id, hash)),
 
   /** Get a workflow schema (includes resolved plugin definitions) */
   getSchema: (id: string) => apiRequest<unknown>(ENDPOINTS.WORKFLOW_SCHEMA(id)),

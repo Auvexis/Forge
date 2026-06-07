@@ -46,7 +46,7 @@ Fazer em etapas. Não colocar restore, histórico, diff raw e live diff tudo num
   - Retornar workflow JSON raw e parsed.
   - Endpoint: `GET /workflows/:workflowId/git/snapshots/:hash`.
 
-- [ ] Task 6: Frontend carregar snapshots no painel.
+- [x] Task 6: Frontend carregar snapshots no painel.
   - Select/lista no topo.
   - Mostra data + short hash + mensagem.
   - Ao selecionar snapshot, mostra o `workflow.json` daquela versão.
