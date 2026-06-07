@@ -72,6 +72,15 @@ test('workflow git changes window applies a JSON syntax theme without v-html', (
   assert.doesNotMatch(source, /v-html/)
 })
 
+test('workflow git changes window has loading empty and error states', () => {
+  assert.match(source, /workflow-git-changes-window__empty/)
+  assert.match(source, /isLoadingSnapshots/)
+  assert.match(source, /No snapshots yet/)
+  assert.match(source, /snapshotError/)
+  assert.match(source, /workflow-git-changes-window__viewer--empty/)
+  assert.match(source, /workflow-git-changes-window__toolbar-button/)
+})
+
 test('workflow git changes window confirms and emits restored snapshots', () => {
   assert.match(source, /defineEmits/)
   assert.match(source, /\(e: 'restore', hash: string\): void/)

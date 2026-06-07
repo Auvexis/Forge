@@ -33,6 +33,7 @@ interface JsonToken {
 }
 
 const snapshotOptions = computed(() => snapshots.value)
+const hasSnapshotOptions = computed(() => snapshotOptions.value.length > 0)
 const liveWorkflowJson = computed(() => JSON.stringify(props.workflow, null, 2))
 const rawWorkflowJson = computed(() =>
   selectedSnapshot.value?.rawWorkflowJson ?? liveWorkflowJson.value,
@@ -162,11 +163,12 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   >
     <div class="workflow-git-changes-window">
       <div class="workflow-git-changes-window__toolbar" role="toolbar" aria-label="Workflow git changes actions">
-        <button type="button" disabled title="Available in the snapshots phase">
+        <button class="workflow-git-changes-window__toolbar-button" type="button" disabled title="Available in the snapshots phase">
           <LucideIcon name="git-commit-horizontal" :size="13" />
           <span>Create Snapshot</span>
         </button>
         <button
+          class="workflow-git-changes-window__toolbar-button"
           type="button"
           :disabled="!selectedSnapshotHash"
           title="Restore selected snapshot"
@@ -177,6 +179,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
         </button>
         <div class="workflow-git-changes-window__mode" role="group" aria-label="Viewer mode">
           <button
+            class="workflow-git-changes-window__toolbar-button"
             type="button"
             :class="{ 'workflow-git-changes-window__mode-button--active': viewerMode === 'raw' }"
             @click="viewerMode = 'raw'"
@@ -184,6 +187,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
             Raw
           </button>
           <button
+            class="workflow-git-changes-window__toolbar-button"
             type="button"
             :class="{ 'workflow-git-changes-window__mode-button--active': viewerMode === 'diff' }"
             @click="viewerMode = 'diff'"
@@ -195,7 +199,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
           <LucideIcon name="history" :size="13" />
           <span>Snapshots</span>
           <select v-model="selectedSnapshotHash" :disabled="isLoadingSnapshots">
-            <option value="">Live workflow</option>
+            <option value="">{{ isLoadingSnapshots ? 'Loading snapshots...' : 'Live workflow' }}</option>
             <option
               v-for="snapshot in snapshotOptions"
               :key="snapshot.hash"
@@ -218,11 +222,20 @@ function tokenizeJsonLine(line: string): JsonToken[] {
         </div>
       </div>
 
-      <div class="workflow-git-changes-window__viewer">
+      <div
+        class="workflow-git-changes-window__viewer"
+        :class="{ 'workflow-git-changes-window__viewer--empty': !hasSnapshotOptions && !isLoadingSnapshots && viewerMode === 'diff' }"
+      >
         <div class="workflow-git-changes-window__viewer-meta">
-          <span>{{ viewerLabel }}</span>
-          <span v-if="hasUnsavedChanges">Unsaved changes</span>
-          <span v-if="snapshotError">{{ snapshotError }}</span>
+          <span class="workflow-git-changes-window__viewer-label">{{ viewerLabel }}</span>
+          <span v-if="isLoadingSnapshots">Loading snapshots...</span>
+          <span v-else-if="!hasSnapshotOptions">No snapshots yet</span>
+          <span v-if="hasUnsavedChanges" class="workflow-git-changes-window__dirty">Unsaved changes</span>
+          <span v-if="snapshotError" class="workflow-git-changes-window__error">{{ snapshotError }}</span>
+        </div>
+        <div v-if="!hasSnapshotOptions && !isLoadingSnapshots && viewerMode === 'diff'" class="workflow-git-changes-window__empty">
+          <LucideIcon name="history" :size="18" />
+          <span>No snapshots yet</span>
         </div>
         <pre class="workflow-git-changes-window__raw" v-if="viewerMode === 'raw'"><code>
           <span
@@ -268,7 +281,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--sailor-space-2);
 }
 
 .workflow-git-changes-window__toolbar {
@@ -281,17 +294,26 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   padding: 0 2px 8px;
 }
 
-.workflow-git-changes-window__toolbar button {
+.workflow-git-changes-window__toolbar-button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 26px;
   padding: 0 8px;
   border: 1px solid var(--sailor-border-subtle);
-  border-radius: 6px;
+  border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-elevated);
   color: var(--sailor-text-primary);
   font-size: 11px;
+  transition:
+    background var(--sailor-duration-fast) var(--sailor-ease-standard),
+    border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
+    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+}
+
+.workflow-git-changes-window__toolbar-button:not(:disabled):hover {
+  border-color: var(--sailor-border-strong);
+  background: var(--sailor-button-ghost-hover);
 }
 
 .workflow-git-changes-window__mode {
@@ -391,6 +413,11 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
+.workflow-git-changes-window__viewer--empty {
+  display: flex;
+  flex-direction: column;
+}
+
 .workflow-git-changes-window__viewer-meta {
   position: sticky;
   top: 0;
@@ -404,6 +431,29 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   background: var(--sailor-bg-base);
   color: var(--sailor-text-muted);
   font-size: 11px;
+}
+
+.workflow-git-changes-window__viewer-label {
+  color: var(--sailor-text-secondary);
+}
+
+.workflow-git-changes-window__dirty {
+  color: var(--sailor-status-running-text);
+}
+
+.workflow-git-changes-window__error {
+  color: var(--sailor-status-error-text);
+}
+
+.workflow-git-changes-window__empty {
+  flex: 1;
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--sailor-space-2);
+  color: var(--sailor-text-muted);
+  font-size: 12px;
 }
 
 .workflow-git-changes-window__raw {
