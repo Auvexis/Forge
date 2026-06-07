@@ -34,6 +34,9 @@ describe("WorkflowGitSnapshotService", () => {
       dataDir: root,
       runGit: (args, options) => {
         commands.push({ args, cwd: options.cwd });
+        if (args.join(" ") === "init") {
+          fs.mkdirSync(path.join(options.cwd, ".git"), { recursive: true });
+        }
         if (args.join(" ") === "diff --cached --quiet") {
           return { status: 1, stdout: "", stderr: "" };
         }
@@ -41,7 +44,7 @@ describe("WorkflowGitSnapshotService", () => {
       },
     });
 
-    service.save(workflow("wf:demo/one", "Demo"));
+    const result = service.save(workflow("wf:demo/one", "Demo"), "Manual checkpoint");
 
     const repoDir = path.join(root, "workflows-git", "wf-demo-one");
     assert.equal(fs.existsSync(path.join(repoDir, "workflow.json")), true);
@@ -55,9 +58,38 @@ describe("WorkflowGitSnapshotService", () => {
       ["config", "user.email", "workflow-git@sailor.local"],
       ["add", "workflow.json"],
       ["diff", "--cached", "--quiet"],
-      ["commit", "-m", "Save workflow Demo"],
+      ["commit", "-m", "Manual checkpoint"],
+      ["rev-parse", "--abbrev-ref", "HEAD"],
+      ["log", "-1", "--format=%H%x00%h%x00%cI%x00%s"],
     ]);
     assert.equal(commands.every((command) => command.cwd === repoDir), true);
+    assert.equal(result.committed, true);
+  });
+
+  it("returns an unchanged commit result when workflow json has no staged diff", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-clean-"));
+    const service = new WorkflowGitSnapshotService({
+      dataDir: root,
+      runGit: (args, options) => {
+        const command = args.join(" ");
+        if (command === "init") fs.mkdirSync(path.join(options.cwd, ".git"), { recursive: true });
+        if (command === "diff --cached --quiet") return { status: 0, stdout: "", stderr: "" };
+        if (command === "rev-parse --abbrev-ref HEAD") return { status: 0, stdout: "main\n", stderr: "" };
+        if (command === "log -1 --format=%H%x00%h%x00%cI%x00%s") {
+          return {
+            status: 0,
+            stdout: "abc123def\u0000abc123d\u00002026-06-07T00:00:00.000Z\u0000Existing checkpoint\n",
+            stderr: "",
+          };
+        }
+        return { status: 0, stdout: "", stderr: "" };
+      },
+    });
+
+    const result = service.save(workflow("wf-clean", "Clean"), "No-op checkpoint");
+
+    assert.equal(result.committed, false);
+    assert.equal(result.status.latestCommit?.message, "Existing checkpoint");
   });
 
   it("reports workflow git status with branch and latest commit metadata", () => {

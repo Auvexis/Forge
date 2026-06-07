@@ -69,17 +69,56 @@ describe("WorkflowRepository", () => {
     profileB.close();
   });
 
-  it("records a workflow git snapshot whenever a workflow is saved", async () => {
+  it("does not record workflow git snapshots during regular save, publish, or unpublish", async () => {
     const db = await createWorkflowDb();
     const snapshots: WorkflowItem[] = [];
     setWorkflowDatabaseProvider(() => db);
-    setWorkflowGitSnapshotWriter((item) => snapshots.push(item));
+    setWorkflowGitSnapshotWriter((item) => {
+      snapshots.push(item);
+    });
 
     const saved = workflow("wf-git", "Git Saved");
     WorkflowRepository.saveWorkflow(saved);
+    WorkflowRepository.publishWorkflow(saved.metadata.id);
+    WorkflowRepository.unpublishWorkflow(saved.metadata.id);
 
-    assert.equal(snapshots.length, 1);
-    assert.equal(snapshots[0]?.metadata.id, "wf-git");
+    assert.equal(snapshots.length, 0);
+    db.close();
+  });
+
+  it("records a workflow git snapshot only when commit is requested explicitly", async () => {
+    const db = await createWorkflowDb();
+    const commits: { workflow: WorkflowItem; message: string | undefined }[] = [];
+    setWorkflowDatabaseProvider(() => db);
+    setWorkflowGitSnapshotWriter((item, message) => {
+      commits.push({ workflow: item, message });
+      return {
+        committed: true,
+        status: {
+          available: true,
+          state: "ready",
+          repoPath: "/tmp/wf-git",
+          branch: "main",
+          latestCommit: {
+            hash: "abc123def",
+            shortHash: "abc123d",
+            committedAt: "2026-06-07T00:00:00.000Z",
+            message: message ?? "",
+          },
+          error: null,
+        },
+      };
+    });
+
+    const saved = workflow("wf-git", "Git Saved");
+    WorkflowRepository.saveWorkflow(saved);
+    const result = WorkflowRepository.commitWorkflowGitSnapshot(saved.metadata.id, "Manual checkpoint");
+
+    assert.equal(commits.length, 1);
+    assert.equal(commits[0]?.workflow.metadata.id, "wf-git");
+    assert.equal(commits[0]?.message, "Manual checkpoint");
+    assert.equal(result.committed, true);
+    assert.equal(result.status.latestCommit?.message, "Manual checkpoint");
     db.close();
   });
 
@@ -100,7 +139,7 @@ describe("WorkflowRepository", () => {
     assert.equal(restored.metadata.id, "wf-current");
     assert.equal(restored.metadata.name, "Old Version");
     assert.equal(WorkflowRepository.getWorkflowById("wf-current")?.metadata.name, "Old Version");
-    assert.equal(snapshots.at(-1)?.metadata.name, "Old Version");
+    assert.equal(snapshots.length, 0);
     db.close();
   });
 });

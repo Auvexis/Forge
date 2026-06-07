@@ -23,6 +23,7 @@ export const ENDPOINTS = {
     `/workflows/${encodeURIComponent(id)}/git/snapshots/${encodeURIComponent(hash)}`,
   WORKFLOW_GIT_SNAPSHOT_RESTORE: (id: string, hash: string) =>
     `/workflows/${encodeURIComponent(id)}/git/snapshots/${encodeURIComponent(hash)}/restore`,
+  WORKFLOW_GIT_COMMIT: (id: string) => `/workflows/${encodeURIComponent(id)}/git/commit`,
   WORKFLOW_SCHEMA: (id: string) => `/workflows/${encodeURIComponent(id)}/schema`,
   WORKFLOW_PUBLISH: (id: string) => `/workflows/${encodeURIComponent(id)}/publish`,
   WORKFLOW_UNPUBLISH: (id: string) => `/workflows/${encodeURIComponent(id)}/unpublish`,

@@ -750,6 +750,37 @@ export default async function workflowsRoutes(
     }
   });
 
+  fastify.post("/workflows/:workflowId/git/commit", async (req, reply) => {
+    const { workflowId } = req.params as { workflowId: string };
+    const { message } = (req.body ?? {}) as { message?: string };
+
+    try {
+      const workflow = WorkflowRepository.getWorkflowById(workflowId);
+      if (!workflow) {
+        return sendResponse(reply, {
+          status_code: 404,
+          message: "Workflow not found",
+          error: "Not Found",
+          data: null,
+        });
+      }
+
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Workflow git commit completed successfully",
+        error: null,
+        data: WorkflowRepository.commitWorkflowGitSnapshot(workflowId, message),
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to commit workflow git snapshot",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
   fastify.get("/workflows/:workflowId/git/snapshots/:hash", async (req, reply) => {
     const { workflowId, hash } = req.params as { workflowId: string; hash: string };
 

@@ -42,6 +42,11 @@ export interface WorkflowGitSnapshotFile {
   workflow: WorkflowItem;
 }
 
+export interface WorkflowGitCommitResult {
+  committed: boolean;
+  status: WorkflowGitSnapshotStatus;
+}
+
 export class WorkflowGitSnapshotService {
   private readonly dataDir: string;
   private readonly runGit: NonNullable<WorkflowGitSnapshotServiceOptions["runGit"]>;
@@ -51,7 +56,7 @@ export class WorkflowGitSnapshotService {
     this.runGit = options.runGit ?? defaultRunGit;
   }
 
-  save(workflow: WorkflowItem): void {
+  save(workflow: WorkflowItem, message?: string): WorkflowGitCommitResult {
     const repoDir = path.join(this.dataDir, "workflows-git", safeWorkflowDirectoryName(workflow.metadata.id));
     fs.mkdirSync(repoDir, { recursive: true });
 
@@ -65,9 +70,18 @@ export class WorkflowGitSnapshotService {
     this.git(["add", "workflow.json"], repoDir);
 
     const diff = this.git(["diff", "--cached", "--quiet"], repoDir, { allowedStatuses: [0, 1] });
-    if (diff.status === 0) return;
+    if (diff.status === 0) {
+      return {
+        committed: false,
+        status: this.status(workflow.metadata.id),
+      };
+    }
 
-    this.git(["commit", "-m", `Save workflow ${workflow.metadata.name}`], repoDir);
+    this.git(["commit", "-m", normalizeCommitMessage(message, workflow)], repoDir);
+    return {
+      committed: true,
+      status: this.status(workflow.metadata.id),
+    };
   }
 
   status(workflowId: string): WorkflowGitSnapshotStatus {
@@ -208,4 +222,9 @@ function validateCommitHash(hash: string): string {
     throw new Error("Invalid workflow git snapshot hash");
   }
   return safe;
+}
+
+function normalizeCommitMessage(message: string | undefined, workflow: WorkflowItem): string {
+  const clean = message?.trim();
+  return clean || `Save workflow ${workflow.metadata.name}`;
 }

@@ -96,6 +96,11 @@ export interface WorkflowGitSnapshotFile {
   workflow: WorkflowItem
 }
 
+export interface WorkflowGitCommitResult {
+  committed: boolean
+  status: WorkflowGitSnapshotStatus
+}
+
 // ── Server response shape (snake_case from SQLite row) ────────
 
 /**
@@ -155,6 +160,13 @@ export const workflowsApi = {
   restoreGitSnapshot: (id: string, hash: string) =>
     apiRequest<WorkflowItem>(ENDPOINTS.WORKFLOW_GIT_SNAPSHOT_RESTORE(id, hash), {
       method: 'POST',
+    }),
+
+  /** Commit the current saved workflow.json to the local workflow git repository */
+  commitGitSnapshot: (id: string, message: string) =>
+    apiRequest<WorkflowGitCommitResult>(ENDPOINTS.WORKFLOW_GIT_COMMIT(id), {
+      method: 'POST',
+      body: { message },
     }),
 
   /** Get a workflow schema (includes resolved plugin definitions) */

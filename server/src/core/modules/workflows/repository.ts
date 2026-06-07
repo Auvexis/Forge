@@ -2,6 +2,7 @@ import { DatabaseManager } from "../../database/index.ts";
 import { listTriggerEntries } from "./workflow-triggers.ts";
 import {
   WorkflowGitSnapshotService,
+  type WorkflowGitCommitResult,
   type WorkflowGitSnapshotFile,
   type WorkflowGitSnapshotSummary,
   type WorkflowGitSnapshotStatus,
@@ -10,7 +11,7 @@ import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 import type Database from "better-sqlite3";
 
 type WorkflowDatabaseProvider = () => Database.Database;
-type WorkflowGitSnapshotWriter = (workflow: WorkflowItem) => void;
+type WorkflowGitSnapshotWriter = (workflow: WorkflowItem, message?: string) => WorkflowGitCommitResult | void;
 type WorkflowGitSnapshotStatusReader = (workflowId: string) => WorkflowGitSnapshotStatus;
 type WorkflowGitSnapshotListReader = (workflowId: string) => WorkflowGitSnapshotSummary[];
 type WorkflowGitSnapshotFileReader = (workflowId: string, hash: string) => WorkflowGitSnapshotFile;
@@ -31,7 +32,7 @@ export function resetWorkflowDatabaseProvider(): void {
 
 export function setWorkflowGitSnapshotDataDir(dataDir: string): void {
   const service = new WorkflowGitSnapshotService({ dataDir });
-  workflowGitSnapshotWriter = (workflow) => service.save(workflow);
+  workflowGitSnapshotWriter = (workflow, message) => service.save(workflow, message);
   workflowGitSnapshotStatusReader = (workflowId) => service.status(workflowId);
   workflowGitSnapshotListReader = (workflowId) => service.listSnapshots(workflowId);
   workflowGitSnapshotFileReader = (workflowId, hash) => service.readSnapshot(workflowId, hash);
@@ -60,14 +61,6 @@ function getWorkflowDatabase(): Database.Database {
   return workflowDatabaseProvider();
 }
 
-function saveWorkflowGitSnapshot(workflow: WorkflowItem): void {
-  try {
-    workflowGitSnapshotWriter?.(workflow);
-  } catch (error) {
-    console.warn("[SAILOR | WORKFLOWS]: Failed to save workflow git snapshot", error);
-  }
-}
-
 function getWorkflowGitSnapshotStatus(workflowId: string): WorkflowGitSnapshotStatus {
   return workflowGitSnapshotStatusReader?.(workflowId) ?? {
     available: false,
@@ -76,6 +69,23 @@ function getWorkflowGitSnapshotStatus(workflowId: string): WorkflowGitSnapshotSt
     branch: null,
     latestCommit: null,
     error: null,
+  };
+}
+
+function commitWorkflowGitSnapshot(workflowId: string, message?: string): WorkflowGitCommitResult {
+  if (!workflowGitSnapshotWriter) {
+    throw new Error("Workflow git snapshot writer is not configured");
+  }
+
+  const workflow = WorkflowRepository.getWorkflowById(workflowId);
+  if (!workflow) {
+    throw new Error("Workflow not found");
+  }
+
+  const result = workflowGitSnapshotWriter(workflow, message);
+  return result ?? {
+    committed: false,
+    status: getWorkflowGitSnapshotStatus(workflowId),
   };
 }
 
@@ -107,6 +117,7 @@ export const WorkflowRepository = {
   database: () => getWorkflowDatabase(),
 
   getWorkflowGitSnapshotStatus,
+  commitWorkflowGitSnapshot,
   listWorkflowGitSnapshots,
   readWorkflowGitSnapshot,
   restoreWorkflowGitSnapshot,
@@ -137,7 +148,6 @@ export const WorkflowRepository = {
       workflow.metadata.publishedAt || null,
       JSON.stringify(workflow)
     );
-    saveWorkflowGitSnapshot(workflow);
     return workflow;
   },
 
@@ -204,7 +214,6 @@ export const WorkflowRepository = {
       id
     );
 
-    saveWorkflowGitSnapshot(workflow);
     return workflow;
   },
 
@@ -228,7 +237,6 @@ export const WorkflowRepository = {
       id
     );
 
-    saveWorkflowGitSnapshot(workflow);
     return workflow;
   },
 
