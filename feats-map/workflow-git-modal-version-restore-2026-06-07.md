@@ -17,7 +17,7 @@
 - [x] Run targeted test and commit.
 
 ### Task 3: Verification
-- [ ] Run frontend status/modal contract test.
-- [ ] Run `npm run type-check` in `client-vue`.
-- [ ] Run `npm run build` in `client-vue`.
-- [ ] Report any browser check that could not run.
+- [x] Run frontend status/modal contract test.
+- [x] Run `npm run type-check` in `client-vue`.
+- [x] Run `npm run build` in `client-vue`.
+- [x] Report any browser check that could not run.
