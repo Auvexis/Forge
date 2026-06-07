@@ -6,7 +6,9 @@
     "icon": "assets/icons/icon.svg",
     "iconDark": "assets/icons/icon-dark.svg",
     "iconLight": "assets/icons/icon-light.svg",
-    "category": "Productivity",
+    "categories": [
+      "Apps"
+    ],
     "author": "Your Name or Org",
     "version": "1.0.0",
     "repository": "https://github.com/yourusername/my-plugin",

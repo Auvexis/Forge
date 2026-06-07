@@ -4,7 +4,10 @@
     "name": "Date & Time",
     "description": "Format, parse and manipulate dates and timestamps using dayjs.",
     "icon": "calendar-clock",
-    "category": "Utilities",
+    "categories": [
+      "Core",
+      "Data transformation"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "utility": true,

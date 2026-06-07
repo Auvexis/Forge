@@ -4,7 +4,9 @@
     "name": "Slack",
     "description": "Send, update, delete, list, react, open conversations, and upload files through Slack Web API.",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/slack.svg",
-    "category": "Communication",
+    "categories": [
+      "Apps"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor"

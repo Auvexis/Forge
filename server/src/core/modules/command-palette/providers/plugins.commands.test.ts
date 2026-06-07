@@ -18,7 +18,7 @@ function oauthPlugin(id = "generic-oauth"): SailorPlugin {
         icon: "plug",
         iconLight: "plug-light.svg",
         iconDark: "plug-dark.svg",
-        category: "Utilities",
+        categories: ["Core"],
         author: "Test",
         version: "1.0.0",
         repository: "",

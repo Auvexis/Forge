@@ -4,7 +4,9 @@
     "name": "Discord",
     "description": "Send, edit, delete, fetch, and react to Discord messages with a bot token.",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/discord.svg",
-    "category": "Communication",
+    "categories": [
+      "Apps"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor"

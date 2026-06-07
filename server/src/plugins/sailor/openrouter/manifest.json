@@ -4,9 +4,11 @@
     "name": "OpenRouter",
     "description": "Call OpenRouter models for chat, JSON extraction, routing, comparison, and summaries.",
     "icon": "https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@latest/dark/openrouter.png",
-    "iconLight": "https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@latest/dark/openrouter.png",
     "iconDark": "https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@latest/light/openrouter.png",
-    "category": "AI",
+    "iconLight": "https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@latest/dark/openrouter.png",
+    "categories": [
+      "AI"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor",

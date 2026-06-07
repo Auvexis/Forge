@@ -4,7 +4,10 @@
     "name": "PostgreSQL",
     "description": "Connect to PostgreSQL databases running locally, in Docker, or on hosted providers.",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/postgresql.svg",
-    "category": "Database",
+    "categories": [
+      "Developer",
+      "Data transformation"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor",

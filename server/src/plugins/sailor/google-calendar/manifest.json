@@ -4,7 +4,9 @@
     "name": "Google Calendar",
     "description": "List calendars, manage events, and query free/busy availability.",
     "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/google-calendar.svg",
-    "category": "Google",
+    "categories": [
+      "Apps"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor"

@@ -179,7 +179,7 @@ function createManifest(agentToolOverrides: Record<string, unknown> = {}) {
         name: "GitHub",
         description: "GitHub integration",
         icon: "icon.svg",
-        category: "Development",
+        categories: ["Developer"],
         author: "Sailor",
         version: "1.0.0",
       },

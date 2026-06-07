@@ -12,7 +12,7 @@ const validManifest = {
     name: "Preview Plugin",
     description: "Preview only",
     icon: "plug",
-    category: "Utilities",
+    categories: ["Core"],
     author: "SAILOR",
     version: "1.0.0",
     repository: "",

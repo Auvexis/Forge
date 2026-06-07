@@ -59,13 +59,17 @@ function pluginStatus(plugin: SailorPlugin, services: PluginCommandServices): Pl
   return services.getPluginStatus(plugin.id, plugin.auth.type, pluginCredentialSchema(plugin));
 }
 
+function pluginCategoryLabels(plugin: SailorPlugin): string[] {
+  return [...plugin.manifest.metadata.categories];
+}
+
 function pluginKeywords(plugin: SailorPlugin, extra: string[] = []): string[] {
   const metadata = plugin.manifest.metadata;
   return [
     plugin.id,
     metadata.id,
     metadata.name,
-    metadata.category,
+    ...pluginCategoryLabels(plugin),
     metadata.description,
     ...extra,
   ].filter(Boolean);
@@ -190,7 +194,7 @@ function pluginEntryCommand(plugin: SailorPlugin): CommandHandler {
         id: `plugin.entry.${plugin.id}`,
         group: "plugin",
         label: plugin.manifest.metadata.name,
-        description: `${plugin.manifest.metadata.category} · ${status}`,
+        description: `${pluginCategoryLabels(plugin).join(", ")} · ${status}`,
         keywords: pluginKeywords(plugin, ["plugin"]),
         ...pluginIconFields(plugin),
         availability: { enabled: true },

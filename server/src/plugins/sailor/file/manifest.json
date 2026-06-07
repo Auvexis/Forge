@@ -4,7 +4,10 @@
     "name": "Read / Write File",
     "description": "Read and write files in a sandboxed workspace directory. Path traversal is blocked.",
     "icon": "file-text",
-    "category": "Utilities",
+    "categories": [
+      "Files",
+      "Core"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "utility": true,

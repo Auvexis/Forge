@@ -36,7 +36,7 @@ function writeRelease(root: string): string {
       name: "Github Tools",
       description: "Tools",
       icon: "plug",
-      category: "dev",
+      categories: ["Developer"],
       author: "SAILOR",
       version: "1.0.0",
       repository: "https://github.com/acme/github-tools",

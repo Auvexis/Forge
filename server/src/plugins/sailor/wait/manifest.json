@@ -4,7 +4,10 @@
     "name": "Wait / Sleep",
     "description": "Pause workflow execution for a specified duration without blocking the event loop.",
     "icon": "timer",
-    "category": "Utilities",
+    "categories": [
+      "Flow",
+      "Core"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "utility": true,

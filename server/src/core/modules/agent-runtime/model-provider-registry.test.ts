@@ -136,7 +136,7 @@ describe("agent model provider registry", () => {
           name: "Ollama",
           version: "1.0.0",
           description: "Ollama plugin",
-          category: "AI",
+          categories: ["AI"],
           author: "Sailor",
           agentCapabilities: {
             chatModel: {
@@ -197,7 +197,7 @@ describe("agent model provider registry", () => {
           name: "Ollama",
           version: "1.0.0",
           description: "Ollama plugin",
-          category: "AI",
+          categories: ["AI"],
           author: "Sailor",
           agentCapabilities: {
             chatModel: {

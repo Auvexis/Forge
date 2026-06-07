@@ -4,9 +4,11 @@
     "name": "OpenAI",
     "description": "Use OpenAI Responses, Chat Completions, structured outputs, classification, summaries, extraction, and image generation.",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/openai-light.svg",
-    "iconLight": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/openai-light.svg",
     "iconDark": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/openai.svg",
-    "category": "AI",
+    "iconLight": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/openai-light.svg",
+    "categories": [
+      "AI"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor",

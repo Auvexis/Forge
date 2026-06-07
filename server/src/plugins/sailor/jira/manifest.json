@@ -4,7 +4,10 @@
     "name": "Jira",
     "description": "Search and manage Jira Cloud projects, issues, comments, transitions, and assignees.",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/jira.svg",
-    "category": "Productivity",
+    "categories": [
+      "Apps",
+      "Developer"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor"

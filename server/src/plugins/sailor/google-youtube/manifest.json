@@ -4,7 +4,9 @@
     "name": "Google YouTube",
     "description": "Allows the AI to interact with YouTube to search, upload, and manage videos, channels, comments, playlists, and subscriptions.",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/youtube.svg",
-    "category": "Google",
+    "categories": [
+      "Apps"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor"

@@ -290,7 +290,7 @@ describe("agent runner", () => {
           name: "Plugin",
           description: "Plugin",
           icon: "plug",
-          category: "test",
+          categories: ["Core"],
           author: "Sailor",
           version: "1.0.0",
         },

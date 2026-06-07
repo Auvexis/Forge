@@ -4,7 +4,9 @@
     "name": "Google Gmail",
     "description": "Integration with Google Gmail API to manage emails, threads, drafts, and labels.",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gmail.svg",
-    "category": "Communication",
+    "categories": [
+      "Apps"
+    ],
     "author": "Sailor",
     "version": "1.1.0",
     "repository": "https://github.com/sailor/google-gmail"

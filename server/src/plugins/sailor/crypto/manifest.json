@@ -4,7 +4,10 @@
     "name": "Crypto / Hash",
     "description": "Generate hashes, HMACs, UUIDs and encode/decode Base64 using Node.js built-in crypto.",
     "icon": "shield-check",
-    "category": "Utilities",
+    "categories": [
+      "Core",
+      "Data transformation"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "utility": true,

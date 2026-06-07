@@ -4,7 +4,9 @@
     "name": "Trello",
     "description": "Manage boards, lists, cards, comments, and checklist items.",
     "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/trello.svg",
-    "category": "Productivity",
+    "categories": [
+      "Apps"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor"

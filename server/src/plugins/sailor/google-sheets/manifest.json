@@ -4,7 +4,10 @@
     "name": "Google Sheets",
     "description": "List, read, append, update, clear, create, delete, find, and upsert rows in Google Sheets.",
     "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/google-sheets.svg",
-    "category": "Google",
+    "categories": [
+      "Apps",
+      "Data transformation"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor"

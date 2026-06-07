@@ -4,7 +4,9 @@
     "name": "Telegram",
     "description": "Send messages, files, photos, and polls via a Telegram Bot. Supports webhooks for receiving user updates.",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/telegram.svg",
-    "category": "Communication",
+    "categories": [
+      "Apps"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor"

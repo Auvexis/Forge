@@ -4,7 +4,9 @@
     "name": "Compare Datasets",
     "description": "Compare two arrays and return their intersection, difference or union based on a match key.",
     "icon": "diff",
-    "category": "Utilities",
+    "categories": [
+      "Data transformation"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "utility": true,

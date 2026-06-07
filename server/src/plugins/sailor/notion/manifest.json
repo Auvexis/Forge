@@ -4,9 +4,12 @@
     "name": "Notion",
     "description": "Search, read, create, and update Notion pages, databases, and blocks.",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/notion-light.svg",
-    "iconLight": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/notion-light.svg",
     "iconDark": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/notion.svg",
-    "category": "Productivity",
+    "iconLight": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/notion-light.svg",
+    "categories": [
+      "Apps",
+      "Files"
+    ],
     "author": "Sailor",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/sailor"
