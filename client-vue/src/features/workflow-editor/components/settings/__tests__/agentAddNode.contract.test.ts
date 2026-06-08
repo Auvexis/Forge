@@ -174,6 +174,9 @@ test('workflow canvas opens add node picker as cursor anchored canvas overlay', 
   assert.match(canvas, /closeAddNodePicker/)
   assert.match(canvas, /anchorRect/)
   assert.match(canvas, /bottomAlignedTop/)
+  assert.match(canvas, /secondarySide/)
+  assert.match(canvas, /ADD_NODE_PICKER_CASCADE_WIDTH/)
+  assert.match(canvas, /:secondary-side="addNodePickerOverlay\.secondarySide"/)
   assert.doesNotMatch(canvas, /panelStore\.togglePanel\(\{\s*id: 'add-node-panel'/)
 
   assert.match(baseNode, /clientX: event\.clientX/)
@@ -181,6 +184,20 @@ test('workflow canvas opens add node picker as cursor anchored canvas overlay', 
   assert.match(baseEdge, /clientX: event\.clientX/)
   assert.match(triggerNode, /clientX: event\.clientX/)
   assert.match(triggerNode, /anchorRect/)
+})
+
+test('add node panel supports focused global fuzzy search in the primary panel', () => {
+  const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+
+  assert.match(panel, /searchInput/)
+  assert.match(panel, /searchInput\.value\?\.focus\(\)/)
+  assert.match(panel, /matchesFuzzyLetters/)
+  assert.match(panel, /isSearching/)
+  assert.match(panel, /globalSearchItems/)
+  assert.match(panel, /selectGlobalSearchItem/)
+  assert.match(panel, /add-node-cascade__search/)
+  assert.match(panel, /secondarySide/)
+  assert.match(panel, /add-node-panel--secondary-left/)
 })
 
 test('node inspector previews summarize provider, memory, tools, and chat trigger', () => {

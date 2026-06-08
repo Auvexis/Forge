@@ -1,5 +1,8 @@
 <template>
-  <div class="add-node-panel">
+  <div
+    class="add-node-panel"
+    :class="{ 'add-node-panel--secondary-left': secondarySide === 'left' }"
+  >
     <div class="add-node-content" @wheel.stop>
       <div v-if="pluginsLoading" class="add-node-loading">
         <LucideIcon name="loader-2" :size="20" class="add-node-spinner" />
@@ -8,23 +11,48 @@
 
       <div v-else class="add-node-cascade">
         <section class="add-node-cascade__primary">
-          <header class="add-node-cascade__header">Add to workflow</header>
-          <div class="add-node-cascade__scroller">
-            <AddNodePickerItem
-              v-for="item in categoryItems"
-              :key="item.category"
-              :label="item.label"
-              :description="item.description"
-              :icon="item.icon"
-              :count="item.count"
-              :active="activeCategory === item.category"
-              chevron
-              @mouseenter="hoverCategory(item.category)"
-              @focus="hoverCategory(item.category)"
+          <header class="add-node-cascade__header add-node-cascade__header--search">
+            <span>Add to workflow</span>
+            <BaseInput
+              ref="searchInput"
+              v-model="search"
+              class="add-node-cascade__search"
+              icon-left="search"
+              placeholder="Search"
             />
-            <div v-if="categoryItems.length === 0" class="add-node-cascade__empty">
-              No categories found.
-            </div>
+          </header>
+          <div class="add-node-cascade__scroller">
+            <template v-if="isSearching">
+              <AddNodePickerItem
+                v-for="item in globalSearchItems"
+                :key="item.id"
+                :label="item.label"
+                :description="item.description"
+                :icon="item.kind === 'plugin' ? pluginIcon(item.plugin) : item.icon"
+                :chevron="item.kind === 'plugin' && pluginNeedsMethodSubmenu(item.plugin)"
+                @click="selectGlobalSearchItem(item)"
+              />
+              <div v-if="globalSearchItems.length === 0" class="add-node-cascade__empty">
+                No nodes found.
+              </div>
+            </template>
+            <template v-else>
+              <AddNodePickerItem
+                v-for="item in categoryItems"
+                :key="item.category"
+                :label="item.label"
+                :description="item.description"
+                :icon="item.icon"
+                :count="item.count"
+                :active="activeCategory === item.category"
+                chevron
+                @mouseenter="hoverCategory(item.category)"
+                @focus="hoverCategory(item.category)"
+              />
+              <div v-if="categoryItems.length === 0" class="add-node-cascade__empty">
+                No categories found.
+              </div>
+            </template>
           </div>
         </section>
 
@@ -87,6 +115,7 @@ import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import type { PluginCategory, PluginSummary } from '@/core/types/plugin.types'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useTheme } from '@/shared/composables/useTheme'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
@@ -104,11 +133,13 @@ const props = defineProps<{
   onAddPluginNode?: (pluginId: string, action: string, actionName: string) => void
   onAddAgentToolNode?: (pluginId: string, action: string, actionName: string) => void
   agentConfigHandle?: 'chatModel' | 'memory' | 'tool'
+  secondarySide?: 'right' | 'left'
 }>()
 
 const SUPPORTED_CHAT_MODEL_ADAPTERS = new Set(['openai-compatible', 'generic', 'ollama'])
 
 const search = ref('')
+const searchInput = ref<InstanceType<typeof BaseInput>>()
 const hoveredCategory = ref<PluginCategory | null>(null)
 const methodSubmenuPlugin = ref<PluginSummary | null>(null)
 const { isDark } = useTheme()
@@ -116,7 +147,10 @@ const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(
 
 onMounted(() => {
   loadPlugins()
+  searchInput.value?.focus()
 })
+
+const secondarySide = computed(() => props.secondarySide ?? 'right')
 
 const isAgentModelContext = computed(() => props.agentConfigHandle === 'chatModel')
 const isAgentMemoryContext = computed(() => props.agentConfigHandle === 'memory')
@@ -186,11 +220,25 @@ const pickerPresets = computed(() => {
   return [...LOGIC_NODES, ...AI_NODES]
 })
 
+const normalizedSearch = computed(() => search.value.trim().toLowerCase())
+const isSearching = computed(() => normalizedSearch.value.length > 0)
+
+const matchesFuzzyLetters = (value: string, query: string) => {
+  const haystack = value.toLowerCase()
+  let cursor = 0
+  for (const char of query.toLowerCase()) {
+    cursor = haystack.indexOf(char, cursor)
+    if (cursor === -1) return false
+    cursor += 1
+  }
+  return true
+}
+
 const categoryItems = computed(() =>
   buildPickerCategoryItems({
     plugins: pickerPlugins.value,
     presets: pickerPresets.value,
-    search: search.value,
+    search: isSearching.value ? undefined : search.value,
   }),
 )
 
@@ -213,9 +261,43 @@ const methodSubmenuItems = computed(() =>
   buildPickerActionItems({
     plugin: methodSubmenuPlugin.value,
     agentConfigHandle: props.agentConfigHandle,
-    search: search.value,
+    search: '',
   }),
 )
+
+const globalSearchItems = computed(() => {
+  const query = normalizedSearch.value
+  if (!query) return []
+
+  const presets = pickerPresets.value
+    .filter((preset) => matchesFuzzyLetters(`${preset.label} ${preset.description}`, query))
+    .map((preset): AddNodePickerSecondColumnItem => ({
+      kind: 'preset',
+      id: `preset:${preset.id}`,
+      preset,
+      label: preset.label,
+      description: preset.description,
+      icon: preset.icon,
+    }))
+
+  const plugins = pickerPlugins.value
+    .filter((plugin) =>
+      matchesFuzzyLetters(
+        `${plugin.manifest.metadata.name} ${plugin.manifest.metadata.description}`,
+        query,
+      ),
+    )
+    .map((plugin): AddNodePickerSecondColumnItem => ({
+      kind: 'plugin',
+      id: `plugin:${plugin.id}`,
+      plugin,
+      label: plugin.manifest.metadata.name,
+      description: plugin.manifest.metadata.description,
+      icon: plugin.manifest.metadata.icon || 'box',
+    }))
+
+  return [...presets, ...plugins]
+})
 
 const pluginIcon = (plugin: PluginSummary) =>
   resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
@@ -233,7 +315,7 @@ const pluginActionItems = (plugin: PluginSummary) =>
   buildPickerActionItems({
     plugin,
     agentConfigHandle: props.agentConfigHandle,
-    search: search.value,
+    search: '',
   })
 
 const pluginNeedsMethodSubmenu = (plugin: PluginSummary) => pluginActionItems(plugin).length > 1
@@ -273,6 +355,14 @@ const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
   }
 
   addSinglePluginMethod(item.plugin)
+}
+
+const selectGlobalSearchItem = (item: AddNodePickerSecondColumnItem) => {
+  if (item.kind === 'plugin') {
+    const category = item.plugin.manifest.metadata.categories[0] as PluginCategory | undefined
+    if (category) hoverCategory(category)
+  }
+  selectSecondColumnItem(item)
 }
 
 const addPluginAction = (plugin: PluginSummary, methodKey: string, label: string) => {
@@ -328,7 +418,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 <style scoped>
 .add-node-panel {
   --anp-column-width: 288px;
-  --anp-panel-height: min(398px, calc(100vh - 32px));
+  --anp-panel-height: min(458px, calc(100vh - 32px));
   position: relative;
   width: var(--anp-column-width);
   min-width: var(--anp-column-width);
@@ -371,14 +461,20 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 
 .add-node-cascade__secondary {
   position: absolute;
-  top: 20px;
+  top: 0;
   left: calc(100% + var(--sailor-space-2));
+}
+
+.add-node-panel--secondary-left .add-node-cascade__secondary {
+  right: calc(100% + var(--sailor-space-2));
+  left: auto;
 }
 
 .add-node-cascade__methods {
   position: absolute;
   inset: 0;
   z-index: 2;
+  border: none;
 }
 
 .add-node-cascade__header {
@@ -392,6 +488,29 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   color: var(--sailor-text-primary);
   font-size: var(--sailor-text-sm);
   font-weight: 600;
+}
+
+.add-node-cascade__header--search {
+  justify-content: space-between;
+}
+
+.add-node-cascade__header--search > span {
+  flex: 0 0 auto;
+}
+
+.add-node-cascade__search {
+  width: 126px;
+  flex: 0 0 auto;
+}
+
+.add-node-cascade__search :deep(.base-input-container) {
+  min-height: 26px;
+}
+
+.add-node-cascade__search :deep(.base-input) {
+  height: 26px;
+  min-height: 26px;
+  font-size: var(--sailor-text-xs);
 }
 
 .add-node-cascade__back {
@@ -497,6 +616,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 :deep(.add-node-picker-item__chevron) {
   flex: 0 0 auto;
   color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-sm);
 }
 
 .add-node-loading {

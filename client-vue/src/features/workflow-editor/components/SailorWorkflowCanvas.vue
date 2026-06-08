@@ -259,14 +259,18 @@ let quickAddAgentConfigHandle: 'chatModel' | 'memory' | 'tool' | null = null
 const AGENT_CONFIG_HANDLES = ['chatModel', 'memory', 'tool'] as const
 type AddNodePickerAnchorRect = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'>
 type AddNodePickerAnchor = { clientX?: number; clientY?: number; anchorRect?: AddNodePickerAnchorRect }
+type AddNodePickerSecondarySide = 'right' | 'left'
 
-const ADD_NODE_PICKER_WIDTH = 584
-const ADD_NODE_PICKER_HEIGHT = 398
+const ADD_NODE_PICKER_COLUMN_WIDTH = 288
+const ADD_NODE_PICKER_GAP = 8
+const ADD_NODE_PICKER_CASCADE_WIDTH = ADD_NODE_PICKER_COLUMN_WIDTH * 2 + ADD_NODE_PICKER_GAP
+const ADD_NODE_PICKER_HEIGHT = 458
 const ADD_NODE_PICKER_MARGIN = 12
 
 const addNodePickerOverlay = ref<{
   left: number
   top: number
+  secondarySide: AddNodePickerSecondarySide
   agentConfigHandle: 'chatModel' | 'memory' | 'tool' | null
 } | null>(null)
 
@@ -279,7 +283,7 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), Math.max(min, max))
 }
 
-function getAddNodePickerPosition(anchor?: AddNodePickerAnchor | null): { left: number; top: number } {
+function getAddNodePickerPosition(anchor?: AddNodePickerAnchor | null): { left: number; top: number; secondarySide: AddNodePickerSecondarySide } {
   const anchorRect = anchor?.anchorRect
   const fallback = {
     clientX: window.innerWidth / 2,
@@ -289,16 +293,27 @@ function getAddNodePickerPosition(anchor?: AddNodePickerAnchor | null): { left: 
     typeof anchor?.clientX === 'number' && typeof anchor.clientY === 'number'
       ? { clientX: anchor.clientX, clientY: anchor.clientY }
       : fallback
-  const maxLeft = window.innerWidth - ADD_NODE_PICKER_WIDTH - ADD_NODE_PICKER_MARGIN
+  const rightSpace = anchorRect ? window.innerWidth - anchorRect.right : window.innerWidth - point.clientX
+  const leftSpace = anchorRect ? anchorRect.left : point.clientX
+  const secondarySide: AddNodePickerSecondarySide =
+    rightSpace >= ADD_NODE_PICKER_CASCADE_WIDTH || rightSpace >= leftSpace ? 'right' : 'left'
+  const rightPrimaryMin = ADD_NODE_PICKER_MARGIN
+  const rightPrimaryMax = window.innerWidth - ADD_NODE_PICKER_CASCADE_WIDTH - ADD_NODE_PICKER_MARGIN
+  const leftPrimaryMin = ADD_NODE_PICKER_MARGIN + ADD_NODE_PICKER_COLUMN_WIDTH + ADD_NODE_PICKER_GAP
+  const leftPrimaryMax = window.innerWidth - ADD_NODE_PICKER_COLUMN_WIDTH - ADD_NODE_PICKER_MARGIN
   const bottomAlignedTop = window.innerHeight - ADD_NODE_PICKER_HEIGHT - ADD_NODE_PICKER_MARGIN
   const preferredTop = anchorRect ? anchorRect.top : point.clientY - 24
   const preferredRight = anchorRect ? anchorRect.right + ADD_NODE_PICKER_MARGIN : point.clientX + ADD_NODE_PICKER_MARGIN
-  const preferredLeft = anchorRect ? anchorRect.left - ADD_NODE_PICKER_WIDTH - ADD_NODE_PICKER_MARGIN : point.clientX - ADD_NODE_PICKER_WIDTH - ADD_NODE_PICKER_MARGIN
-  const left = preferredRight <= maxLeft ? preferredRight : preferredLeft
+  const preferredLeft = anchorRect ? anchorRect.left - ADD_NODE_PICKER_COLUMN_WIDTH - ADD_NODE_PICKER_MARGIN : point.clientX - ADD_NODE_PICKER_COLUMN_WIDTH - ADD_NODE_PICKER_MARGIN
+  const left =
+    secondarySide === 'right'
+      ? clamp(preferredRight, rightPrimaryMin, rightPrimaryMax)
+      : clamp(preferredLeft, leftPrimaryMin, leftPrimaryMax)
 
   return {
-    left: clamp(left, ADD_NODE_PICKER_MARGIN, maxLeft),
+    left,
     top: clamp(preferredTop, ADD_NODE_PICKER_MARGIN, bottomAlignedTop),
+    secondarySide,
   }
 }
 
@@ -1544,6 +1559,7 @@ defineExpose({
           :on-add-plugin-node="addPluginNode"
           :on-add-agent-tool-node="addAgentToolNode"
           :agent-config-handle="addNodePickerOverlay.agentConfigHandle ?? undefined"
+          :secondary-side="addNodePickerOverlay.secondarySide"
         />
       </div>
     </div>
