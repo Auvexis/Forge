@@ -8,6 +8,7 @@ import {
 } from '@/core/api/workflows.api'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 import { buildWorkflowJsonDiff, type WorkflowGitDiffLine } from '@/features/workflow-editor/utils/workflowGitDiff'
+import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
@@ -50,7 +51,26 @@ const branchLabel = computed(() => props.gitStatus?.branch ?? 'HEAD')
 const selectedSnapshotLabel = computed(() => {
   const selected = snapshots.value.find((snapshot) => snapshot.hash === selectedSnapshotHash.value)
   if (!selected) return 'Latest commit'
-  return `${selected.shortHash} ${selected.message}`
+  return `${selected.shortHash} - ${selected.message}`
+})
+const versionOptions = computed<BaseDropdownSelectOption[]>(() => {
+  if (snapshots.value.length === 0) {
+    return [{
+      value: '',
+      label: isLoadingSnapshots.value ? 'Loading versions...' : 'No commits yet',
+      shortLabel: isLoadingSnapshots.value ? 'Loading versions...' : 'No commits yet',
+      description: 'Create a commit to restore versions',
+      meta: '--',
+    }]
+  }
+
+  return snapshots.value.map((snapshot) => ({
+    value: snapshot.hash,
+    label: snapshot.message,
+    shortLabel: `${snapshot.shortHash} - ${snapshot.message}`,
+    description: formatSnapshotDate(snapshot.committedAt),
+    meta: snapshot.shortHash,
+  }))
 })
 const commitMessage = computed(() => {
   const title = summary.value.trim()
@@ -127,6 +147,17 @@ function requestRestore() {
   emit('restore', selectedSnapshotHash.value)
 }
 
+function formatSnapshotDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
 function tokenizeJsonLine(line: string): JsonToken[] {
   const tokens: JsonToken[] = []
   const pattern = /("(?:\\.|[^"\\])*"(?=\s*:))|("(?:\\.|[^"\\])*")|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false)\b|\bnull\b|([{}[\]:,])/g
@@ -175,22 +206,39 @@ function tokenizeJsonLine(line: string): JsonToken[] {
             <strong>{{ commitHash }}</strong>
           </div>
         </div>
-        <label class="workflow-git-modal__version-select">
+        <div class="workflow-git-modal__version-select">
           <LucideIcon name="history" :size="15" />
           <div>
             <span>Version</span>
-            <select v-model="selectedSnapshotHash" :disabled="isLoadingSnapshots || snapshots.length === 0">
-              <option value="">{{ isLoadingSnapshots ? 'Loading versions...' : 'No commits yet' }}</option>
-              <option
-                v-for="snapshot in snapshots"
-                :key="snapshot.hash"
-                :value="snapshot.hash"
-              >
-                {{ snapshot.shortHash }} - {{ snapshot.message }}
-              </option>
-            </select>
+            <BaseDropdownSelect
+              v-model="selectedSnapshotHash"
+              :options="versionOptions"
+              :disabled="isLoadingSnapshots || snapshots.length === 0"
+              class="workflow-git-modal__version-dropdown"
+              trigger-class="workflow-git-modal__version-trigger"
+              menu-class="workflow-git-modal__version-menu"
+              icon-left=""
+              open-icon="chevron-down"
+              close-icon="chevron-up"
+              direction="down"
+            >
+              <template #trigger="{ option }">
+                <span class="workflow-git-modal__version-trigger-copy">
+                  {{ option?.shortLabel ?? 'No commits yet' }}
+                </span>
+              </template>
+              <template #option="{ option, selected }">
+                <span class="workflow-git-modal__version-option" :class="{ 'workflow-git-modal__version-option--active': selected }">
+                  <span class="workflow-git-modal__version-option-hash">{{ option.meta }}</span>
+                  <span class="workflow-git-modal__version-option-copy">
+                    <strong>{{ option.label }}</strong>
+                    <small>{{ option.description }}</small>
+                  </span>
+                </span>
+              </template>
+            </BaseDropdownSelect>
           </div>
-        </label>
+        </div>
         <button class="workflow-git-modal__icon-button" type="button" title="Close" @click="emit('close')">
           <LucideIcon name="x" :size="15" />
         </button>
@@ -354,19 +402,86 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   white-space: nowrap;
 }
 
-.workflow-git-modal__version-select select {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  background: transparent;
-  color: var(--sailor-text-primary);
-  font: inherit;
-  font-size: 12px;
-}
-
 .workflow-git-modal__version-select div {
   min-width: 0;
   flex: 1;
+}
+
+.workflow-git-modal__version-dropdown {
+  width: 100%;
+}
+
+.workflow-git-modal__version-dropdown :deep(.workflow-git-modal__version-trigger) {
+  width: 100%;
+  height: 20px;
+  min-height: 20px;
+  justify-content: space-between;
+  border: 0;
+  border-radius: var(--sailor-radius-sm);
+  background: transparent;
+  padding: 0;
+  color: var(--sailor-text-primary);
+  font-size: 12px;
+  font-weight: var(--sailor-font-semibold);
+}
+
+.workflow-git-modal__version-dropdown :deep(.workflow-git-modal__version-trigger:hover) {
+  background: transparent;
+  color: var(--sailor-text-primary);
+}
+
+.workflow-git-modal__version-trigger-copy {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-git-modal__version-dropdown :deep(.workflow-git-modal__version-menu) {
+  left: auto;
+  right: 0;
+  width: 330px;
+  max-height: 360px;
+  border-radius: var(--sailor-radius-md);
+  background: var(--sailor-bg-elevated);
+}
+
+.workflow-git-modal__version-option {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sailor-space-2);
+  width: 100%;
+  min-width: 0;
+}
+
+.workflow-git-modal__version-option-hash {
+  color: var(--sailor-blue-400);
+  font-family: var(--sailor-font-mono);
+  font-size: 11px;
+  font-weight: var(--sailor-font-semibold);
+}
+
+.workflow-git-modal__version-option-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.workflow-git-modal__version-option-copy strong,
+.workflow-git-modal__version-option-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-git-modal__version-option-copy strong {
+  color: var(--sailor-text-primary);
+  font-size: 12px;
+}
+
+.workflow-git-modal__version-option-copy small {
+  color: var(--sailor-text-muted);
+  font-size: 10px;
 }
 
 .workflow-git-modal__icon-button {

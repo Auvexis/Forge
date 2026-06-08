@@ -115,14 +115,18 @@ test('workflow git modal uses BaseModal and exposes commit UI', () => {
 test('workflow git modal exposes committed version selection', () => {
   const source = read('src/features/workflow-editor/components/ui/WorkflowGitModal.vue')
 
+  assert.match(source, /BaseDropdownSelect/)
   assert.match(source, /snapshots = ref<WorkflowGitSnapshotSummary\[\]>/)
   assert.match(source, /selectedSnapshotHash = ref/)
   assert.match(source, /selectedSnapshotLabel/)
+  assert.match(source, /versionOptions/)
+  assert.match(source, /workflow-git-modal__version-option/)
   assert.match(source, /workflow-git-modal__version-select/)
-  assert.match(source, /<select/)
+  assert.doesNotMatch(source, /<select/)
   assert.match(source, /v-model="selectedSnapshotHash"/)
   assert.match(source, /snapshot\.shortHash/)
   assert.match(source, /snapshot\.message/)
+  assert.match(source, /formatSnapshotDate/)
   assert.match(source, /loadSelectedSnapshot/)
 })
 
@@ -142,4 +146,8 @@ test('workflow git modal restores selected committed versions', () => {
   assert.match(page, /workflowsApi\.restoreGitSnapshot/)
   assert.match(page, /workflowStore\.setActiveWorkflow\(restored\)/)
   assert.match(page, /@restore="handleRestoreGitSnapshot"/)
+
+  const store = read('src/features/workflow-editor/stores/workflow.store.ts')
+  assert.match(store, /function setActiveWorkflow\(workflow: WorkflowItem\)/)
+  assert.match(store, /graphUpdateTrigger\.value\+\+/)
 })

@@ -98,6 +98,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     redoStack.value = []
     autosaveStatus.value = 'idle'
     conflictMessage.value = null
+    graphUpdateTrigger.value++
     suppressHistory = false
   }
 
