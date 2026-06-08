@@ -180,6 +180,16 @@ export class WorkflowGitSnapshotService {
     };
   }
 
+  deleteRepository(workflowId: string): void {
+    const repoDir = path.resolve(this.repoDir(workflowId));
+    const workflowsGitDir = path.resolve(this.dataDir, "workflows-git");
+    const relative = path.relative(workflowsGitDir, repoDir);
+    if (relative.startsWith("..") || path.isAbsolute(relative)) {
+      throw new Error("Invalid workflow git repository path");
+    }
+    fs.rmSync(repoDir, { recursive: true, force: true });
+  }
+
   private repoDir(workflowId: string): string {
     return path.join(this.dataDir, "workflows-git", safeWorkflowDirectoryName(workflowId));
   }

@@ -141,6 +141,18 @@ describe("WorkflowGitSnapshotService", () => {
     });
   });
 
+  it("removes a workflow git repository folder", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-delete-"));
+    const repoDir = path.join(root, "workflows-git", "wf-delete");
+    fs.mkdirSync(path.join(repoDir, ".git"), { recursive: true });
+    fs.writeFileSync(path.join(repoDir, "workflow.json"), "{}", "utf8");
+    const service = new WorkflowGitSnapshotService({ dataDir: root });
+
+    service.deleteRepository("wf-delete");
+
+    assert.equal(fs.existsSync(repoDir), false);
+  });
+
   it("lists workflow git snapshots from the repository log", () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-list-"));
     const repoDir = path.join(root, "workflows-git", "wf-list");

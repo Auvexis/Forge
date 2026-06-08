@@ -15,12 +15,14 @@ type WorkflowGitSnapshotWriter = (workflow: WorkflowItem, message?: string) => W
 type WorkflowGitSnapshotStatusReader = (workflowId: string) => WorkflowGitSnapshotStatus;
 type WorkflowGitSnapshotListReader = (workflowId: string) => WorkflowGitSnapshotSummary[];
 type WorkflowGitSnapshotFileReader = (workflowId: string, hash: string) => WorkflowGitSnapshotFile;
+type WorkflowGitSnapshotRepositoryDeleter = (workflowId: string) => void;
 
 let workflowDatabaseProvider: WorkflowDatabaseProvider = () => DatabaseManager.workflows;
 let workflowGitSnapshotWriter: WorkflowGitSnapshotWriter | null = null;
 let workflowGitSnapshotStatusReader: WorkflowGitSnapshotStatusReader | null = null;
 let workflowGitSnapshotListReader: WorkflowGitSnapshotListReader | null = null;
 let workflowGitSnapshotFileReader: WorkflowGitSnapshotFileReader | null = null;
+let workflowGitSnapshotRepositoryDeleter: WorkflowGitSnapshotRepositoryDeleter | null = null;
 
 export function setWorkflowDatabaseProvider(provider: WorkflowDatabaseProvider): void {
   workflowDatabaseProvider = provider;
@@ -36,6 +38,7 @@ export function setWorkflowGitSnapshotDataDir(dataDir: string): void {
   workflowGitSnapshotStatusReader = (workflowId) => service.status(workflowId);
   workflowGitSnapshotListReader = (workflowId) => service.listSnapshots(workflowId);
   workflowGitSnapshotFileReader = (workflowId, hash) => service.readSnapshot(workflowId, hash);
+  workflowGitSnapshotRepositoryDeleter = (workflowId) => service.deleteRepository(workflowId);
 }
 
 export function setWorkflowGitSnapshotWriter(writer: WorkflowGitSnapshotWriter | null): void {
@@ -50,11 +53,16 @@ export function setWorkflowGitSnapshotFileReader(reader: WorkflowGitSnapshotFile
   workflowGitSnapshotFileReader = reader;
 }
 
+export function setWorkflowGitSnapshotRepositoryDeleter(deleter: WorkflowGitSnapshotRepositoryDeleter | null): void {
+  workflowGitSnapshotRepositoryDeleter = deleter;
+}
+
 export function resetWorkflowGitSnapshotWriter(): void {
   workflowGitSnapshotWriter = null;
   workflowGitSnapshotStatusReader = null;
   workflowGitSnapshotListReader = null;
   workflowGitSnapshotFileReader = null;
+  workflowGitSnapshotRepositoryDeleter = null;
 }
 
 function getWorkflowDatabase(): Database.Database {
@@ -183,6 +191,7 @@ export const WorkflowRepository = {
   deleteWorkflow: (id: string) => {
     const stmt = getWorkflowDatabase().prepare(`DELETE FROM workflows WHERE id = ?`);
     stmt.run(id);
+    workflowGitSnapshotRepositoryDeleter?.(id);
   },
 
   deleteWorkflowExecutions: (workflowId: string) => {

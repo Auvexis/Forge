@@ -8,6 +8,7 @@ import {
   resetWorkflowGitSnapshotWriter,
   setWorkflowGitSnapshotFileReader,
   setWorkflowDatabaseProvider,
+  setWorkflowGitSnapshotRepositoryDeleter,
   setWorkflowGitSnapshotWriter,
   WorkflowRepository,
 } from "./repository.ts";
@@ -142,6 +143,22 @@ describe("WorkflowRepository", () => {
     assert.equal(restored.metadata.name, "Old Version");
     assert.equal(WorkflowRepository.getWorkflowById("wf-current")?.metadata.name, "Old Version");
     assert.equal(snapshots.length, 0);
+    db.close();
+  });
+
+  it("deletes the workflow git repository folder when deleting a workflow", async () => {
+    const db = await createWorkflowDb();
+    const deletedWorkflowIds: string[] = [];
+    setWorkflowDatabaseProvider(() => db);
+    setWorkflowGitSnapshotRepositoryDeleter((workflowId) => {
+      deletedWorkflowIds.push(workflowId);
+    });
+    WorkflowRepository.saveWorkflow(workflow("wf-delete", "Delete Me"));
+
+    WorkflowRepository.deleteWorkflow("wf-delete");
+
+    assert.equal(WorkflowRepository.getWorkflowById("wf-delete"), null);
+    assert.deepEqual(deletedWorkflowIds, ["wf-delete"]);
     db.close();
   });
 });
