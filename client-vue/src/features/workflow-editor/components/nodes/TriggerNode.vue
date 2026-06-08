@@ -218,9 +218,15 @@ const hasOutgoingConnection = computed(() => {
   )
 })
 
-const onQuickAdd = () => {
+const onQuickAdd = (event: MouseEvent) => {
   if (!props.id) return
-  useEventBus('node:quick-add').emit({ sourceId: props.id })
+  const anchorRect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  useEventBus('node:quick-add').emit({
+    sourceId: props.id,
+    clientX: event.clientX,
+    clientY: event.clientY,
+    anchorRect,
+  })
 }
 </script>
 

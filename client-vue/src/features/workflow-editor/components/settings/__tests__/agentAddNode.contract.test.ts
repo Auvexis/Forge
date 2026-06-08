@@ -165,6 +165,7 @@ test('workflow canvas opens add node picker as cursor anchored canvas overlay', 
   const baseNode = read('src/features/workflow-editor/components/BaseNode.vue')
   const quickAddButton = read('src/features/workflow-editor/components/QuickAddButton.vue')
   const baseEdge = read('src/features/workflow-editor/components/BaseEdge.vue')
+  const triggerNode = read('src/features/workflow-editor/components/nodes/TriggerNode.vue')
 
   assert.match(canvas, /addNodePickerOverlay/)
   assert.match(canvas, /openAddNodePanel[\s\S]*anchor\?: AddNodePickerAnchor/)
@@ -178,6 +179,8 @@ test('workflow canvas opens add node picker as cursor anchored canvas overlay', 
   assert.match(baseNode, /clientX: event\.clientX/)
   assert.match(quickAddButton, /clientX: event\.clientX/)
   assert.match(baseEdge, /clientX: event\.clientX/)
+  assert.match(triggerNode, /clientX: event\.clientX/)
+  assert.match(triggerNode, /anchorRect/)
 })
 
 test('node inspector previews summarize provider, memory, tools, and chat trigger', () => {
