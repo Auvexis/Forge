@@ -24,6 +24,7 @@ describe("app command providers", () => {
       [
         "nav.home",
         "agent-panel.open",
+        "guide-book.open",
         "nav.settings",
         "nav.universe",
         "nav.workflows",
@@ -41,6 +42,19 @@ describe("app command providers", () => {
       ok: true,
       message: "Agent panel opened",
       uiIntent: { type: "agent-panel.open" },
+    });
+  });
+
+  it("returns a UI intent for opening the guide book", async () => {
+    const registry = new CommandRegistry();
+    registry.registerProvider(navigationCommandProvider);
+
+    const entry = await registry.find("guide-book.open", {});
+
+    assert.deepEqual(await entry?.handler.execute({}, {}), {
+      ok: true,
+      message: "Guide Book opened",
+      uiIntent: { type: "guide-book.open" },
     });
   });
 

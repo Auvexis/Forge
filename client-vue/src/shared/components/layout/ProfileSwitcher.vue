@@ -29,7 +29,6 @@
       </div>
     </template>
 
-    <!-- Items are now direct children of BaseWoobyMenu → pill tracks correctly -->
     <AppDropdownItem
       v-for="action in actions"
       :key="action.id"

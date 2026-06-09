@@ -4,7 +4,7 @@
     :class="{ 'add-node-panel--secondary-left': secondarySide === 'left' }"
   >
     <div class="add-node-content" @wheel.stop>
-      <div v-if="pluginsLoading" class="add-node-loading">
+      <div v-if="isLoading" class="add-node-loading">
         <LucideIcon name="loader-2" :size="20" class="add-node-spinner" />
         <span>Loading plugins...</span>
       </div>
@@ -29,6 +29,7 @@
                 :label="item.label"
                 :description="item.description"
                 :icon="item.kind === 'plugin' ? pluginIcon(item.plugin) : item.icon"
+                :style-meta="item.kind === 'plugin' ? undefined : item.preset.style"
                 :chevron="item.kind === 'plugin' && pluginNeedsMethodSubmenu(item.plugin)"
                 @click="selectGlobalSearchItem(item)"
               />
@@ -70,6 +71,7 @@
                 :label="item.label"
                 :description="item.description"
                 :icon="item.kind === 'plugin' ? pluginIcon(item.plugin) : item.icon"
+                :style-meta="item.kind === 'plugin' ? undefined : item.preset.style"
                 :active="methodSubmenuPlugin?.id === item.id.replace('plugin:', '')"
                 :chevron="item.kind === 'plugin' && pluginNeedsMethodSubmenu(item.plugin)"
                 @click="selectSecondColumnItem(item)"
@@ -82,9 +84,12 @@
             <Transition name="add-node-methods">
               <div v-if="methodSubmenuPlugin" class="add-node-cascade__methods">
                 <header class="add-node-cascade__header">
-                  <button class="add-node-cascade__back" type="button" @click="closeMethodSubmenu">
-                    <LucideIcon name="chevron-left" :size="14" />
-                  </button>
+                  <BaseButton
+                    icon-left="chevron-left"
+                    variant="ghost"
+                    size="icon"
+                    @click="closeMethodSubmenu"
+                  />
                   <span>{{ methodSubmenuPlugin.manifest.metadata.name }}</span>
                 </header>
                 <div class="add-node-cascade__scroller">
@@ -113,6 +118,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
+import { workflowNodesApi } from '@/core/api/workflowNodes.api'
 import type { PluginCategory, PluginSummary } from '@/core/types/plugin.types'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
@@ -124,9 +130,11 @@ import {
   buildPickerActionItems,
   buildPickerCategoryItems,
   buildPickerSecondColumnItems,
+  catalogItemsToPickerPresets,
   type AddNodePickerPreset,
   type AddNodePickerSecondColumnItem,
 } from './addNodePickerModel'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 const props = defineProps<{
   onAddLogicNode?: (type: WorkflowNodeType, defaults?: Record<string, unknown>) => void
@@ -144,34 +152,24 @@ const hoveredCategory = ref<PluginCategory | null>(null)
 const methodSubmenuPlugin = ref<PluginSummary | null>(null)
 const { isDark } = useTheme()
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
+const {
+  data: workflowNodeCatalog,
+  loading: workflowNodeCatalogLoading,
+  execute: loadWorkflowNodeCatalog,
+} = useApi(workflowNodesApi.getCatalog)
 
 onMounted(() => {
   loadPlugins()
+  loadWorkflowNodeCatalog()
   searchInput.value?.focus()
 })
 
 const secondarySide = computed(() => props.secondarySide ?? 'right')
+const isLoading = computed(() => pluginsLoading.value || workflowNodeCatalogLoading.value)
 
 const isAgentModelContext = computed(() => props.agentConfigHandle === 'chatModel')
 const isAgentMemoryContext = computed(() => props.agentConfigHandle === 'memory')
 const isAgentToolContext = computed(() => props.agentConfigHandle === 'tool')
-
-const LOGIC_NODES: AddNodePickerPreset[] = [
-  { id: 'trigger', nodeType: 'trigger' as WorkflowNodeType, label: 'Trigger', description: 'Add another workflow entry point', icon: 'zap', categories: ['Core'] },
-  { id: 'code', nodeType: 'code' as WorkflowNodeType, label: 'Code Block', description: 'Run custom JavaScript in a sandbox', icon: 'code-2', categories: ['Core', 'Developer'] },
-  { id: 'http', nodeType: 'http' as WorkflowNodeType, label: 'HTTP Request', description: 'Send an HTTP request to an external API', icon: 'globe', categories: ['Core', 'Developer'] },
-  { id: 'if', nodeType: 'if' as WorkflowNodeType, label: 'If / Else', description: 'Branch the flow based on a condition', icon: 'git-branch', categories: ['Flow'] },
-  { id: 'switch', nodeType: 'switch' as WorkflowNodeType, label: 'Switch', description: 'Route to multiple paths based on a value', icon: 'git-branch-plus', categories: ['Flow'] },
-  { id: 'loop', nodeType: 'loop' as WorkflowNodeType, label: 'Loop / ForEach', description: 'Iterate over a collection item by item', icon: 'repeat', categories: ['Flow'] },
-  { id: 'merge', nodeType: 'merge' as WorkflowNodeType, label: 'Merge', description: 'Merge parallel flows into a single path', icon: 'merge', categories: ['Flow'] },
-  { id: 'split-in-batches', nodeType: 'split-in-batches' as WorkflowNodeType, label: 'Split In Batches', description: 'Split an array into batches and process each one', icon: 'layers', categories: ['Flow', 'Data transformation'] },
-  { id: 'set', nodeType: 'set' as WorkflowNodeType, label: 'Set Fields', description: 'Set or rename fields without JavaScript', icon: 'sliders-horizontal', categories: ['Data transformation', 'Core'] },
-  { id: 'event', nodeType: 'event' as WorkflowNodeType, label: 'Event Emitter', description: 'Publish an event to trigger other flows', icon: 'zap', categories: ['Core'] },
-  { id: 'event-listener', nodeType: 'event-listener' as WorkflowNodeType, label: 'Event Listener', description: 'Wait for an event to trigger a sub-flow', icon: 'target', categories: ['Core', 'Flow'] },
-  { id: 'subworkflow', nodeType: 'subworkflow' as WorkflowNodeType, label: 'Sub-Workflow', description: 'Call another workflow as a sub-step', icon: 'layers', categories: ['Flow'] },
-  { id: 'respond-webhook', nodeType: 'respond-webhook' as WorkflowNodeType, label: 'Respond to Webhook', description: 'Respond to the HTTP caller with a custom status and body', icon: 'send', categories: ['Core'] },
-  { id: 'wait-form', nodeType: 'wait-form' as WorkflowNodeType, label: 'Wait for Form', description: 'Create a temporary form and continue after submission', icon: 'clipboard-list', categories: ['Flow'] },
-]
 
 const AI_NODES: AddNodePickerPreset[] = [
   { id: 'ai-agent', nodeType: 'ai-agent' as WorkflowNodeType, label: 'AI Agent', description: 'Run a governed agent with tools and memory', icon: 'bot', categories: ['AI'] },
@@ -217,7 +215,10 @@ const pickerPlugins = computed(() => {
 const pickerPresets = computed(() => {
   if (isAgentModelContext.value || isAgentToolContext.value) return []
   if (isAgentMemoryContext.value) return AGENT_MEMORY_PRESETS
-  return [...LOGIC_NODES, ...AI_NODES]
+  return [
+    ...catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? []),
+    ...AI_NODES,
+  ]
 })
 
 const normalizedSearch = computed(() => search.value.trim().toLowerCase())
@@ -480,8 +481,8 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 .add-node-cascade__header {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
-  height: 38px;
+  gap: var(--sailor-space-4);
+  height: 48px;
   flex: 0 0 auto;
   padding: 0 var(--sailor-space-3);
   border-bottom: 1px solid var(--sailor-border);
@@ -517,8 +518,8 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
   border-radius: var(--sailor-radius-sm);
@@ -579,9 +580,10 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   height: 32px;
   flex: 0 0 auto;
   border: 1px solid var(--sailor-border);
+  border-color: var(--node-icon-border, var(--sailor-border));
   border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-muted);
+  background: var(--node-icon-bg, var(--sailor-bg-surface));
+  color: var(--node-icon-color, var(--sailor-text-muted));
 }
 
 :deep(.add-node-picker-item__body) {

@@ -94,7 +94,7 @@
   --sailor-bg-surface: rgb(15, 15, 15);
   --sailor-bg-elevated: var(--sailor-gray-850);
   --sailor-bg-overlay: var(--sailor-gray-800);
-  --sailor-bg-muted: var(--sailor-gray-700);
+  --sailor-bg-muted: var(--sailor-gray-850);
   --sailor-bg-subtle: var(--sailor-gray-600);
   --sailor-bg-inverse: rgba(251, 251, 251, 0.991);
 

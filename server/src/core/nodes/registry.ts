@@ -1,22 +1,5 @@
 import type { WorkflowNodeType } from "../../shared/models/workflow-types.ts";
-import { aiAgentNodeHandler } from "./handlers/ai-agent.ts";
-import { aiMemoryNodeHandler } from "./handlers/ai-memory.ts";
-import { aiModelNodeHandler } from "./handlers/ai-model.ts";
-import { aiToolNodeHandler } from "./handlers/ai-tool.ts";
-import { codeNodeHandler } from "./handlers/code.ts";
-import { eventListenerNodeHandler } from "./handlers/event-listener.ts";
-import { eventNodeHandler } from "./handlers/event.ts";
-import { httpNodeHandler } from "./handlers/http.ts";
-import { ifNodeHandler } from "./handlers/if.ts";
-import { loopNodeHandler } from "./handlers/loop.ts";
-import { mergeNodeHandler } from "./handlers/merge.ts";
-import { respondWebhookNodeHandler } from "./handlers/respond-webhook.ts";
-import { setNodeHandler } from "./handlers/set.ts";
-import { splitInBatchesNodeHandler } from "./handlers/split-in-batches.ts";
-import { subWorkflowNodeHandler } from "./handlers/subworkflow.ts";
-import { switchNodeHandler } from "./handlers/switch.ts";
-import { triggerNodeHandler } from "./handlers/trigger.ts";
-import { waitFormNodeHandler } from "./handlers/wait-form.ts";
+import { sailorCoreUtilityNodes } from "../utility-nodes/sailor-core/index.ts";
 export { createNodeHandler } from "./handler.ts";
 import type { NodeHandler, UtilityNodeType } from "./types.ts";
 
@@ -53,47 +36,8 @@ export class NodeHandlerRegistry {
   }
 }
 
-const utilityNodeTypes: UtilityNodeType[] = [
-  "code",
-  "if",
-  "loop",
-  "subworkflow",
-  "trigger",
-  "http",
-  "event",
-  "event-listener",
-  "set",
-  "switch",
-  "merge",
-  "split-in-batches",
-  "respond-webhook",
-  "wait-form",
-  "ai-agent",
-  "ai-model",
-  "ai-memory",
-  "ai-tool",
-];
-
-const defaultUtilityHandlers: NodeHandler[] = [
-  codeNodeHandler,
-  ifNodeHandler,
-  loopNodeHandler,
-  subWorkflowNodeHandler,
-  triggerNodeHandler,
-  httpNodeHandler,
-  eventNodeHandler,
-  eventListenerNodeHandler,
-  setNodeHandler,
-  switchNodeHandler,
-  mergeNodeHandler,
-  splitInBatchesNodeHandler,
-  respondWebhookNodeHandler,
-  waitFormNodeHandler,
-  aiAgentNodeHandler,
-  aiModelNodeHandler,
-  aiMemoryNodeHandler,
-  aiToolNodeHandler,
-];
+const utilityNodeTypes = sailorCoreUtilityNodes.map((node) => node.manifest.type);
+const defaultUtilityHandlers: NodeHandler[] = sailorCoreUtilityNodes.map((node) => node.handler);
 
 export function createUtilityNodeRegistry(
   handlers: NodeHandler[] = defaultUtilityHandlers,

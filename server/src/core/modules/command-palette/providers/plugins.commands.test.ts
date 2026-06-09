@@ -187,7 +187,7 @@ describe("plugins command provider", () => {
     assert.deepEqual(result.refreshHints, ["plugins"]);
   });
 
-  it("exposes install and uninstall as disabled until a generic registry API exists", async () => {
+  it("opens the external installer and keeps uninstall disabled until a generic uninstall API exists", async () => {
     const context: CommandExecutionContext = {
       services: {
         plugins: {
@@ -199,7 +199,16 @@ describe("plugins command provider", () => {
     const { registry, executor } = build(context);
 
     const commands = await registry.list(context);
-    assert.equal(commands.find((command) => command.id === "plugin.install")?.availability.enabled, false);
+    const installCommand = commands.find((command) => command.id === "plugin.install");
+    assert.equal(installCommand?.availability.enabled, true);
+    assert.equal(
+      installCommand?.description,
+      "Open the Plugin Installer for repository URLs or local plugin folders",
+    );
+    assert.deepEqual(await executor.execute("plugin.install", context, {}), {
+      ok: true,
+      uiIntent: { type: "plugin-installer.open" },
+    });
 
     const entryResult = await executor.execute("plugin.entry.generic-oauth", context, {});
     const uninstallCommand = entryResult.drilldown?.type === "list"

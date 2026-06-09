@@ -1,5 +1,6 @@
 import { VALID_NODE_TYPES } from "./workflow-validation.ts";
 import type { SailorPlugin } from "@auvexis/sailor-sdk";
+import { getUtilityNodeCatalogItem } from "../../utility-nodes/utility-node-catalog.ts";
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 
 export interface WorkflowSchemaDependencies {
@@ -17,6 +18,16 @@ export function buildWorkflowSchema(
       type: node.type,
       name: node.name,
     };
+
+    if (node.type !== "plugin") {
+      const catalogItem = getUtilityNodeCatalogItem(node.type as any);
+      if (catalogItem) {
+        baseSchema.nodeLabel = catalogItem.label;
+        baseSchema.nodeIcon = catalogItem.style.icon;
+        baseSchema.nodeCategory = catalogItem.category;
+        baseSchema.nodeStyle = catalogItem.style;
+      }
+    }
 
     switch (node.type) {
       case "plugin":

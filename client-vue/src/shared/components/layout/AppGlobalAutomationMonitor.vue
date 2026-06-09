@@ -38,7 +38,9 @@
           </div>
         </header>
 
-        <div class="gam-workflow-list">
+        <div
+          class="gam-workflow-list"
+        >
           <BaseButton
             v-for="workflow in filteredWorkflows"
             :key="workflowKey(workflow)"
@@ -100,7 +102,9 @@
         </div>
 
         <template v-else>
-          <div class="gam-tabs">
+          <div
+            class="gam-tabs"
+          >
             <BaseButton
               v-for="tab in triggerTabs"
               :key="tab.id"
@@ -122,17 +126,18 @@
               <span>No execution events yet.</span>
             </div>
 
-            <TransitionGroup
+            <div
               v-else
-              name="gam-event-list"
-              tag="div"
               class="gam-timeline"
             >
               <article
                 v-for="event in activeTriggerEvents"
                 :key="event.id"
                 class="gam-event"
-                :class="`gam-event--${event.status}`"
+                :class="[
+                  `gam-event--${event.status}`,
+                  { 'gam-event--expanded': expandedEventIds.has(event.id) },
+                ]"
               >
                 <BaseButton
                   class="gam-event-row"
@@ -162,7 +167,7 @@
                   </div>
                 </Transition>
               </article>
-            </TransitionGroup>
+            </div>
           </div>
         </template>
       </main>
@@ -484,7 +489,7 @@ onUnmounted(() => {
 <style scoped>
 :deep(.base-modal-container) {
   border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-xl);
+  border-radius: var(--sailor-radius-md);
   background: var(--sailor-bg-surface);
 }
 
@@ -494,7 +499,7 @@ onUnmounted(() => {
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  border-radius: var(--sailor-radius-xl);
+  border-radius: var(--sailor-radius-md);
   background: var(--sailor-bg-surface);
   color: var(--sailor-text-primary);
   transition: grid-template-columns var(--sailor-duration-base) var(--sailor-ease-standard);
@@ -544,8 +549,6 @@ onUnmounted(() => {
   grid-row: 1 / span 2;
   place-items: center;
   border: 0;
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-bg-base);
   color: var(--sailor-text-primary);
 }
 
@@ -620,12 +623,26 @@ onUnmounted(() => {
 }
 
 .gam-workflow {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: auto;
   min-height: 64px;
   justify-content: stretch;
   border-radius: var(--sailor-radius-md);
+  background: transparent;
   padding: 0;
+}
+
+.gam-workflow:hover,
+.gam-workflow:active {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-button-ghost-hover-text);
+}
+
+.gam-workflow--active {
+  background: var(--sailor-button-ghost-active);
+  color: var(--sailor-button-ghost-active-text);
 }
 
 .gam-workflow :deep(.base-button__label) {
@@ -635,12 +652,8 @@ onUnmounted(() => {
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: var(--sailor-space-2);
-  padding: var(--sailor-space-3);
+  padding: var(--sailor-space-2);
   text-align: left;
-}
-
-.gam-workflow--active {
-  background: var(--sailor-button-ghost-hover);
 }
 
 .gam-event__dot {
@@ -751,7 +764,6 @@ onUnmounted(() => {
   padding: 4px 10px;
   border: 0;
   border-radius: var(--sailor-radius-full);
-  background: var(--sailor-bg-base);
 }
 
 .gam-main-meta small {
@@ -763,8 +775,8 @@ onUnmounted(() => {
 .gam-main-meta strong {
   color: var(--sailor-text-primary);
   font-family: var(--sailor-font-mono);
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-semibold);
+  font-size: var(--sailor-text-base);
+  font-weight: var(--sailor-font-medium);
   line-height: 1.1;
 }
 
@@ -781,18 +793,26 @@ onUnmounted(() => {
 
 .gam-tabs {
   display: flex;
-  min-height: 46px;
-  gap: var(--sailor-space-2);
+  min-height: 36px;
   border-bottom: 1px solid var(--sailor-border);
   overflow-x: auto;
-  padding: var(--sailor-space-2) var(--sailor-space-5);
+  padding: var(--sailor-space-1);
 }
 
 .gam-tab {
-  min-width: 126px;
-  height: 30px;
-  border-radius: var(--sailor-radius-full);
+  position: relative;
+  z-index: 1;
+  min-width: 50px;
+  height: 100%;
+  border-radius: var(--sailor-radius-sm);
+  background: transparent;
   color: var(--sailor-text-muted);
+}
+
+.gam-tab:hover,
+.gam-tab:active {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-button-ghost-hover-text);
 }
 
 .gam-tab :deep(.base-button__label) {
@@ -804,7 +824,7 @@ onUnmounted(() => {
 
 .gam-tab--active {
   color: var(--sailor-text-primary);
-  background: var(--sailor-button-ghost-hover);
+  background: var(--sailor-button-ghost-active);
 }
 
 .gam-tab span {
@@ -819,21 +839,21 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: var(--sailor-space-3) var(--sailor-space-5);
+  padding: var(--sailor-space-2);
 }
 
 .gam-timeline {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-1);
 }
 
 .gam-event {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-base);
+  background: transparent;
   overflow: hidden;
 }
 
@@ -842,8 +862,15 @@ onUnmounted(() => {
   height: auto;
   min-height: 36px;
   justify-content: stretch;
-  border-radius: 0;
+  border-radius: var(--sailor-radius-sm);
+  background: transparent;
   padding: 0;
+}
+
+.gam-event-row:hover,
+.gam-event-row:active {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-button-ghost-hover-text);
 }
 
 .gam-event-row :deep(.base-button__label) {

@@ -1,5 +1,6 @@
 import type { PluginCategory, PluginSummary } from '@/core/types/plugin.types'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
+import type { WorkflowNodeCatalogItem, WorkflowNodeStyle } from '@/core/types/workflow-node-catalog.types'
 
 export type AddNodePickerContext = 'chatModel' | 'memory' | 'tool'
 
@@ -21,6 +22,7 @@ export interface AddNodePickerPreset {
   categories: readonly PluginCategory[]
   nodeType: WorkflowNodeType
   defaults?: Record<string, unknown>
+  style?: WorkflowNodeStyle
 }
 
 export interface AddNodePickerCategoryItem {
@@ -54,6 +56,18 @@ export interface AddNodePickerActionItem {
   methodKey: string
   label: string
   description: string
+}
+
+export function catalogItemsToPickerPresets(items: readonly WorkflowNodeCatalogItem[]): AddNodePickerPreset[] {
+  return items.map((item) => ({
+    id: item.type,
+    nodeType: item.type,
+    label: item.label,
+    description: item.description,
+    icon: item.style.icon,
+    categories: [item.category as PluginCategory],
+    style: item.style,
+  }))
 }
 
 const CATEGORY_META: Record<PluginCategory, { description: string; icon: string }> = {

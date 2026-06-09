@@ -70,14 +70,6 @@ const router = createRouter({
       redirect: '/universe',
     },
     {
-      path: '/plugin-creator',
-      redirect: '/workflows',
-    },
-    {
-      path: '/plugin-creator/:pluginId',
-      redirect: '/workflows',
-    },
-    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/app/pages/NotFoundPage.vue'),

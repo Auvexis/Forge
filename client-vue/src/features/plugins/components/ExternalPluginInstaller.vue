@@ -216,6 +216,7 @@ import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useProfileStore } from '@/shared/stores/profile.store'
+import { useStartGuide } from '@/shared/start-guide/useStartGuide'
 import {
   buildPluginInstallTargetOptions,
   describePluginInstallTarget,
@@ -223,7 +224,7 @@ import {
   profileInstallTargetValue,
 } from './pluginInstallTargetOptions'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     isOpen?: boolean
   }>(),
@@ -245,6 +246,7 @@ interface UploadFileEntry {
 
 const repositoryUrl = ref('')
 const profileStore = useProfileStore()
+const startGuide = useStartGuide()
 const installTarget = ref('profile:default')
 const preview = ref<ExternalPluginPreview | null>(null)
 const result = ref<ExternalPluginInstallResult | null>(null)
@@ -292,6 +294,13 @@ onMounted(async () => {
     await profileStore.loadProfiles()
   }
 })
+
+watch(
+  () => props.isOpen,
+  (isOpen) => {
+    if (isOpen) startGuide.openIfNeeded('plugin-external-installer')
+  },
+)
 
 watch(
   () => profileStore.currentProfile?.id,
@@ -454,6 +463,10 @@ async function collectDroppedEntryFiles(entry: unknown, parentPath: string): Pro
 </script>
 
 <style scoped>
+:deep(.base-modal-container) {
+  border-radius: var(--sailor-radius-md);
+}
+
 .plugin-installer-modal {
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);

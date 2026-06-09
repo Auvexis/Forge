@@ -7,8 +7,8 @@
   /* Backgrounds */
   --inspector-bg-backdrop: rgba(0, 0, 0, 0.046);
   --inspector-bg-modal: var(--sailor-bg-surface);
-  --inspector-bg-pane: var(--sailor-bg-elevated);
-  --inspector-bg-header: var(--sailor-bg-elevated);
+  --inspector-bg-pane: var(--sailor-bg-surface);
+  --inspector-bg-header: var(--sailor-bg-surface);
   
   /* Borders */
   --inspector-border: var(--sailor-border);

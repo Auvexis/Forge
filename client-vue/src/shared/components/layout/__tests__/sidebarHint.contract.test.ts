@@ -1,21 +1,31 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
-const source = readFileSync(resolve(currentDir, '../SidebarHint.vue'), 'utf8')
+const layoutDir = resolve(currentDir, '..')
+const appSource = readFileSync(resolve(currentDir, '../../../../app/App.vue'), 'utf8')
+const appHintSource = readFileSync(resolve(currentDir, '../../hints/AppHint.vue'), 'utf8')
+const sidebarHintsSource = readFileSync(resolve(layoutDir, 'sidebarHints.ts'), 'utf8')
 
-describe('sidebar hint positioning contract', () => {
-  it('refreshes its anchor rect while visible when the viewport or sidebar layout changes', () => {
-    assert.match(source, /window\.addEventListener\('resize'/)
-    assert.match(source, /ResizeObserver/)
-    assert.match(source, /updatePosition/)
+describe('sidebar hint migration contract', () => {
+  it('removes the sidebar-only hint component and uses generic AppHint', () => {
+    assert.equal(existsSync(resolve(layoutDir, 'SidebarHint.vue')), false)
+    assert.doesNotMatch(appSource, /SidebarHint/)
+    assert.match(appSource, /AppHint/)
   })
 
-  it('positions from cached reactive coordinates instead of a stale computed DOM read', () => {
-    assert.match(source, /const anchorRect = ref/)
-    assert.doesNotMatch(source, /wrapperRef\.value\.getBoundingClientRect\(\)[\s\S]*return \{/)
+  it('keeps hover positioning behavior in the generic hint component', () => {
+    assert.match(appHintSource, /window\.addEventListener\('resize'/)
+    assert.match(appHintSource, /ResizeObserver/)
+    assert.match(appHintSource, /updatePosition/)
+  })
+
+  it('stores sidebar hint copy outside navigation metadata', () => {
+    assert.match(sidebarHintsSource, /sidebarHintById/)
+    assert.match(sidebarHintsSource, /workflows/)
+    assert.match(sidebarHintsSource, /docs/)
   })
 })

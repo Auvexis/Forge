@@ -88,7 +88,9 @@ const handleClick = (e: MouseEvent) => {
   text-align: left;
   border: none;
   cursor: pointer;
-  transition: color var(--sailor-duration-fast) var(--sailor-ease-standard);
+  transition:
+    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
+    color var(--sailor-duration-fast) var(--sailor-ease-standard);
   user-select: none;
   font-size: var(--sailor-text-sm);
   font-family: inherit;
@@ -100,6 +102,16 @@ const handleClick = (e: MouseEvent) => {
 }
 
 .app-dropdown-item--danger {
+  color: var(--sailor-text-error);
+}
+
+.app-dropdown-item:hover:not(:disabled) {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-button-ghost-hover-text);
+}
+
+.app-dropdown-item--danger:hover:not(:disabled) {
+  background: var(--sailor-status-error-bg);
   color: var(--sailor-text-error);
 }
 

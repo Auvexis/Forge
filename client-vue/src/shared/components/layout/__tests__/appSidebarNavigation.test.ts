@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
+import { readFileSync } from 'node:fs'
 
 import {
   sidebarChromeLayout,
   sidebarActivityItems,
   sidebarSections,
-  sidebarMainUsesWoobyMenu,
   sidebarMainActiveStyle,
   sidebarPageLabelForPath,
   sidebarReferenceSpacing,
@@ -67,6 +67,19 @@ describe('app sidebar navigation', () => {
     )
   })
 
+  it('opens the guide book from the docs activity item', () => {
+    const docs = sidebarActivityItems.find((item) => item.id === 'docs')
+
+    assert.equal(docs?.label, 'Guide Book')
+    assert.deepEqual(docs?.intent, { type: 'guide-book.open' })
+  })
+
+  it('keeps media assets out of navigation metadata', () => {
+    const source = readFileSync(new URL('../appSidebarNavigation.ts', import.meta.url), 'utf8')
+
+    assert.doesNotMatch(source, /\.(gif|png|jpe?g|webp)['"]/)
+  })
+
   it('returns the active sidebar width token for expanded and collapsed states', () => {
     assert.equal(sidebarWidthForState(false), 'var(--sailor-sidebar-expanded)')
     assert.equal(sidebarWidthForState(true), 'var(--sailor-sidebar-width)')
@@ -74,10 +87,6 @@ describe('app sidebar navigation', () => {
 
   it('uses a wider expanded sidebar token for the suite layout', () => {
     assert.equal(sidebarWidthForState(false, { expandedPx: 288 }), '288px')
-  })
-
-  it('keeps suite app links outside WoobyMenu to avoid stretched active backgrounds', () => {
-    assert.equal(sidebarMainUsesWoobyMenu, false)
   })
 
   it('keeps topbar and sidebar separators from crossing each other', () => {

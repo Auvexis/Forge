@@ -118,8 +118,19 @@
 
 .cp-results {
   max-height: min(440px, 58vh);
+  min-height: 0;
   overflow: auto;
   padding: 8px;
+  overscroll-behavior: contain;
+}
+
+.cp-result-group {
+  display: grid;
+}
+
+.cp-result-group__rows {
+  display: grid;
+  gap: 0;
 }
 
 .cp-group {
@@ -148,8 +159,13 @@
   z-index: 1;
 }
 
+.cp-row:hover:not(:disabled) {
+  background: var(--sailor-button-ghost-hover);
+  border-color: transparent;
+}
+
 .cp-row--active {
-  background: transparent;
+  background: var(--sailor-button-ghost-active);
   border-color: transparent;
 }
 

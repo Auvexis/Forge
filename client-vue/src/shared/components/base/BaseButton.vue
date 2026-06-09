@@ -1,15 +1,37 @@
 <template>
+  <AppHint v-if="hint" :hint="hint">
+    <button
+      :class="buttonClass"
+      :disabled="disabled || loading"
+      v-bind="$attrs"
+    >
+      <span v-if="loading" class="base-button__icon-left">
+        <LucideIcon name="loader-2" class="spin" :size="iconSize" />
+      </span>
+      <span v-else-if="iconLeft || $slots.left" class="base-button__icon-left">
+        <slot name="left">
+          <LucideIcon v-if="iconLeft" :name="iconLeft" :size="iconSize" />
+        </slot>
+      </span>
+
+      <span v-if="$slots.default" class="base-button__label">
+        <slot />
+      </span>
+
+      <span v-if="(iconRight || $slots.right) && !loading" class="base-button__icon-right">
+        <slot name="right">
+          <LucideIcon v-if="iconRight" :name="iconRight" :size="iconSize" />
+        </slot>
+      </span>
+    </button>
+  </AppHint>
+
   <button
-    :class="[
-      'base-button',
-      `base-button--${variant}`,
-      `base-button--${size}`,
-      { 'base-button--full': fullWidth },
-    ]"
+    v-else
+    :class="buttonClass"
     :disabled="disabled || loading"
     v-bind="$attrs"
   >
-    <!-- Left Icon (or Loader) -->
     <span v-if="loading" class="base-button__icon-left">
       <LucideIcon name="loader-2" class="spin" :size="iconSize" />
     </span>
@@ -19,12 +41,10 @@
       </slot>
     </span>
 
-    <!-- Label -->
     <span v-if="$slots.default" class="base-button__label">
       <slot />
     </span>
 
-    <!-- Right Icon -->
     <span v-if="(iconRight || $slots.right) && !loading" class="base-button__icon-right">
       <slot name="right">
         <LucideIcon v-if="iconRight" :name="iconRight" :size="iconSize" />
@@ -36,6 +56,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import AppHint from '@/shared/components/hints/AppHint.vue'
+import type { ButtonHint } from '@/shared/components/hints/AppHint.types'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dashed'
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon' | 'checkbox'
@@ -49,6 +71,7 @@ const props = withDefaults(
     fullWidth?: boolean
     iconLeft?: string
     iconRight?: string
+    hint?: ButtonHint
   }>(),
   {
     variant: 'secondary',
@@ -58,6 +81,13 @@ const props = withDefaults(
     fullWidth: false,
   },
 )
+
+const buttonClass = computed(() => [
+  'base-button',
+  `base-button--${props.variant}`,
+  `base-button--${props.size}`,
+  { 'base-button--full': props.fullWidth },
+])
 
 const iconSize = computed(() => {
   if (props.size === 'sm') return 14

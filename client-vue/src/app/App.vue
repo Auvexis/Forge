@@ -24,15 +24,11 @@
               @toggle-collapsed="isSidebarCollapsed = !isSidebarCollapsed"
             >
               <template v-if="isSidebarCollapsed" #header-extra>
-                <SidebarHint
-                  :title="activityById.search.label"
-                  :description="activityById.search.description"
-                  :icon="activityById.search.icon"
-                >
+                <AppHint :hint="hintFor(activityById.search.hintId ?? activityById.search.id)">
                   <button class="nav-link sidebar-activity-link" @click="openGlobalCommandPalette">
                     <LucideIcon :name="activityById.search.icon" :size="16" />
                   </button>
-                </SidebarHint>
+                </AppHint>
               </template>
               <section
                 v-for="section in sidebarSections"
@@ -41,12 +37,10 @@
               >
                 <span class="sidebar-section__label">{{ section.label }}</span>
                 <div class="sidebar-section__items">
-                  <SidebarHint
+                  <AppHint
                     v-for="item in section.items"
                     :key="item.id"
-                    :title="item.label"
-                    :description="item.description"
-                    :icon="item.icon"
+                    :hint="hintFor(item.hintId ?? item.id)"
                   >
                     <router-link
                       v-if="item.route"
@@ -70,71 +64,52 @@
                       <LucideIcon :name="item.icon" :size="18" />
                       <span class="suite-nav-link__label">{{ item.label }}</span>
                     </button>
-                  </SidebarHint>
+                  </AppHint>
                 </div>
               </section>
 
               <template #footer>
-                <BaseWoobyMenu
-                  tag="div"
-                  class="sidebar-footer-links"
-                  active-selector=".nav-link--active"
-                >
-                  <SidebarHint
-                    :title="activityById.search.label"
-                    :description="activityById.search.description"
-                    :icon="activityById.search.icon"
-                  >
+                <div class="sidebar-footer-links">
+                  <AppHint :hint="hintFor(activityById.search.hintId ?? activityById.search.id)">
                     <button
                       class="nav-link sidebar-activity-link"
                       @click="openGlobalCommandPalette"
                     >
                       <LucideIcon :name="activityById.search.icon" :size="16" />
                     </button>
-                  </SidebarHint>
+                  </AppHint>
 
-                  <SidebarHint
-                    :title="activityById.monitor.label"
-                    :description="activityById.monitor.description"
-                    :icon="activityById.monitor.icon"
-                  >
+                  <AppHint :hint="hintFor(activityById.monitor.hintId ?? activityById.monitor.id)">
                     <button
                       class="nav-link sidebar-activity-link"
                       :class="{ 'nav-link--active': isAutomationMonitorOpen }"
-                      @click="toggleAutomationMonitor"
+                      @click="handleSidebarActivityClick(activityById.monitor)"
                     >
                       <LucideIcon :name="activityById.monitor.icon" :size="16" />
                     </button>
-                  </SidebarHint>
+                  </AppHint>
 
-                  <SidebarHint
-                    :title="activityById.docs.label"
-                    :description="activityById.docs.description"
-                    :icon="activityById.docs.icon"
-                  >
-                    <a
-                      href="https://docs.sailor.dev"
-                      target="_blank"
+                  <AppHint :hint="hintFor(activityById.docs.hintId ?? activityById.docs.id)">
+                    <button
+                      type="button"
                       class="nav-link sidebar-activity-link"
+                      :class="{ 'nav-link--active': startGuide.controller.isGuideBookOpen }"
+                      @click="handleSidebarActivityClick(activityById.docs)"
                     >
                       <LucideIcon :name="activityById.docs.icon" :size="16" />
-                    </a>
-                  </SidebarHint>
+                    </button>
+                  </AppHint>
 
-                  <SidebarHint
-                    :title="activityById.settings.label"
-                    :description="activityById.settings.description"
-                    :icon="activityById.settings.icon"
-                  >
+                  <AppHint :hint="hintFor(activityById.settings.hintId ?? activityById.settings.id)">
                     <button
                       class="nav-link sidebar-activity-link"
                       :class="{ 'nav-link--active': settingsStore.isOpen }"
-                      @click="settingsStore.toggle"
+                      @click="handleSidebarActivityClick(activityById.settings)"
                     >
                       <LucideIcon :name="activityById.settings.icon" :size="16" />
                     </button>
-                  </SidebarHint>
-                </BaseWoobyMenu>
+                  </AppHint>
+                </div>
               </template>
             </AppSidebar>
           </div>
@@ -160,6 +135,8 @@
       <ProfileSettingsPanel v-model="isProfileSettingsOpen" />
       <AppGlobalAutomationMonitor />
       <AppGlobalAgentPanel />
+      <StartGuideHost />
+      <GuideBookHost />
       <ExternalPluginInstaller
         :is-open="isPluginInstallerOpen"
         @close="isPluginInstallerOpen = false"
@@ -180,13 +157,12 @@ import { useRoute } from 'vue-router'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
 import AppTopbar from '@/shared/components/layout/AppTopbar.vue'
-import SidebarHint from '@/shared/components/layout/SidebarHint.vue'
+import AppHint from '@/shared/components/hints/AppHint.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
 import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import SidebarGlobalPanel from '@/shared/components/layout/SidebarGlobalPanel.vue'
 import AppGlobalSettings from '@/shared/components/layout/AppGlobalSettings.vue'
-import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import CommandPaletteHost from '@/features/command-palette/components/CommandPaletteHost.vue'
 import AppGlobalAgentPanel from '@/features/agent-panel/components/AppGlobalAgentPanel.vue'
 import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
@@ -194,6 +170,9 @@ import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.sto
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
+import { useStartGuide } from '@/shared/start-guide/useStartGuide'
+import StartGuideHost from '@/shared/start-guide/StartGuideHost.vue'
+import GuideBookHost from '@/shared/start-guide/GuideBookHost.vue'
 import ExternalPluginInstaller from '@/features/plugins/components/ExternalPluginInstaller.vue'
 import ProfileSelectionPage from '@/features/profiles/components/ProfileSelectionPage.vue'
 import ProfileSettingsPanel from '@/features/profiles/components/ProfileSettingsPanel.vue'
@@ -206,6 +185,7 @@ import {
   type SidebarNavIntent,
   type SidebarNavItem,
 } from '@/shared/components/layout/appSidebarNavigation'
+import { sidebarHintById } from '@/shared/components/layout/sidebarHints'
 import AppGlobalAutomationMonitor, {
   isAutomationMonitorOpen,
   toggleAutomationMonitor,
@@ -216,6 +196,7 @@ const appUiStore = useAppUiStore()
 const agentPanelUi = useAgentPanelUiStore()
 const agentPanelStore = useAgentPanelStore()
 const commandPaletteStore = useCommandPaletteStore()
+const startGuide = useStartGuide()
 const route = useRoute()
 const isPublicRoute = computed(() => route.meta.public === true)
 const isSidebarCollapsed = ref(false)
@@ -242,6 +223,22 @@ function handleSidebarNavClick(item: SidebarNavItem) {
   dispatchSidebarNavIntent(item)
 }
 
+function handleSidebarActivityClick(item: (typeof sidebarActivityItems)[number]) {
+  if (item.id === 'search') {
+    openGlobalCommandPalette()
+    return
+  }
+  if (item.id === 'settings') {
+    settingsStore.toggle()
+    return
+  }
+  dispatchSidebarNavIntent(item)
+}
+
+function hintFor(id: string) {
+  return sidebarHintById[id as keyof typeof sidebarHintById]
+}
+
 function isSidebarNavItemActive(item: SidebarNavItem) {
   if (item.route) return route.path.startsWith(item.route)
   if (item.intent?.type === 'monitoring.open') return isAutomationMonitorOpen.value
@@ -262,6 +259,7 @@ function handleUiIntent(event: Event) {
     agentPanelStore.clearDevSessionContext()
     agentPanelUi.open()
   }
+  if (intent?.type === 'guide-book.open') startGuide.openGuideBook()
 }
 
 function handleProfileIntent() {

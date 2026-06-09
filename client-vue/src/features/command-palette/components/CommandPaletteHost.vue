@@ -305,6 +305,12 @@ function applyUiIntent(intent: { type: string; target?: string; payload?: Record
   if (type === 'production-panel.close') {
     if (isAutomationMonitorOpen.value) toggleAutomationMonitor()
   }
+  if (type === 'plugin-installer.open') {
+    window.dispatchEvent(new CustomEvent('sailor:command-palette:intent', { detail: intent }))
+  }
+  if (type === 'guide-book.open') {
+    window.dispatchEvent(new CustomEvent('sailor:command-palette:intent', { detail: intent }))
+  }
   if (type === 'universe.enter') appUiStore.enterUniverseMode()
   if (type === 'universe.exit') appUiStore.quitUniverseMode()
   if (type === 'plugin.open') {

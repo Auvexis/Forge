@@ -23,9 +23,7 @@
         class="app-dropdown-menu__items custom-scrollbar"
         :style="maxHeight ? { maxHeight, overflowY: 'auto', overflowX: 'hidden' } : {}"
       >
-        <BaseWoobyMenu>
-          <slot></slot>
-        </BaseWoobyMenu>
+        <slot></slot>
       </div>
     </div>
   </AppPopover>
@@ -34,7 +32,6 @@
 <script setup lang="ts">
 import { ref, provide } from 'vue'
 import AppPopover from '../AppPopover.vue'
-import BaseWoobyMenu from '../../base/BaseWoobyMenu.vue'
 
 withDefaults(
   defineProps<{

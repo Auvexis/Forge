@@ -7,6 +7,7 @@ export interface SidebarNavItem {
   description: string
   icon: string
   accent: SidebarAccent
+  hintId?: string
   route?: string
   intent?: SidebarNavIntent
 }
@@ -27,6 +28,8 @@ export interface SidebarActivityItem {
   label: string
   description: string
   icon: string
+  hintId?: string
+  intent?: SidebarNavIntent
 }
 
 export const sidebarSections: SidebarSection[] = [
@@ -40,6 +43,7 @@ export const sidebarSections: SidebarSection[] = [
         description: 'Create, edit, and manage your automated workflows visually.',
         icon: 'workflow',
         accent: '#34d399',
+        hintId: 'workflows',
         route: '/workflows',
       },
       {
@@ -49,6 +53,7 @@ export const sidebarSections: SidebarSection[] = [
         description: 'Create and publish profile-scoped workflow-connected sites.',
         icon: 'panel-top',
         accent: '#60a5fa',
+        hintId: 'pages',
         route: '/pages',
       },
       {
@@ -58,6 +63,7 @@ export const sidebarSections: SidebarSection[] = [
         description: 'Chat with published workflow agents across your profile.',
         icon: 'bot',
         accent: '#f59e0b',
+        hintId: 'agents',
         intent: { type: 'agent-panel.open' },
       },
       {
@@ -66,6 +72,7 @@ export const sidebarSections: SidebarSection[] = [
         description: 'Monitor uptime, jobs, services, automations, and system health.',
         icon: 'activity',
         accent: '#10b981',
+        hintId: 'monitoring',
         intent: { type: 'monitoring.open' },
       },
       {
@@ -75,6 +82,7 @@ export const sidebarSections: SidebarSection[] = [
           'Explore your node ecosystem in an immersive 3D space for integrations and dependencies.',
         icon: 'orbit',
         accent: '#8a52ff',
+        hintId: 'universe',
         route: '/universe',
       },
     ],
@@ -88,6 +96,7 @@ export const sidebarSections: SidebarSection[] = [
         description: 'Install plugins from the external repository or local files.',
         icon: 'package',
         accent: '#8a52ff',
+        hintId: 'plugin-external-installer',
         intent: { type: 'plugin-installer.open' },
       },
     ],
@@ -100,28 +109,32 @@ export const sidebarActivityItems: SidebarActivityItem[] = [
     label: 'Search',
     description: 'Open the command palette to find workflows, commands, and actions.',
     icon: 'search',
+    hintId: 'search',
   },
   {
     id: 'monitor',
     label: 'Run and Debug',
     description: 'View workflow executions, active runs, and recent errors.',
     icon: 'activity',
+    hintId: 'monitor',
   },
   {
     id: 'docs',
-    label: 'Documentation',
-    description: 'Read the official documentation for building and operating workflows.',
-    icon: 'book',
+    label: 'Guide Book',
+    description: 'Browse and replay Sailor guides for tools, pages, and workflows.',
+    icon: 'book-open',
+    hintId: 'docs',
+    intent: { type: 'guide-book.open' },
   },
   {
     id: 'settings',
     label: 'Settings',
     description: 'Manage preferences, credentials, environment variables, and connections.',
     icon: 'settings',
+    hintId: 'settings',
   },
 ]
 
-export const sidebarMainUsesWoobyMenu = false
 
 export const sidebarMainActiveStyle = {
   hidesInheritedBeforeIndicator: true,
@@ -162,7 +175,7 @@ export function sidebarPageLabelForPath(path: string): string {
   return activeItem?.pageLabel ?? activeItem?.label ?? 'Sailor'
 }
 
-export function dispatchSidebarNavIntent(item: SidebarNavItem): boolean {
+export function dispatchSidebarNavIntent(item: { intent?: SidebarNavIntent }): boolean {
   if (!item.intent) return false
 
   window.dispatchEvent(new CustomEvent('sailor:command-palette:intent', { detail: item.intent }))

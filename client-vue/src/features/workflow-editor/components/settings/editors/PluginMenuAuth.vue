@@ -257,6 +257,7 @@ function handleOAuthLinkClick(event: MouseEvent) {
 .plugin-auth__section {
   display: flex;
   flex-direction: column;
+  gap: 5px;
 }
 
 .plugin-auth__form {

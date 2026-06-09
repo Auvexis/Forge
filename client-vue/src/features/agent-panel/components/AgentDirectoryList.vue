@@ -13,7 +13,11 @@
       </BaseButton>
 
       <Transition name="agent-profile-menu">
-        <div v-if="profileMenuOpen" class="agent-directory-list__profile-menu" role="menu">
+        <div
+          v-if="profileMenuOpen"
+          class="agent-directory-list__profile-menu"
+          role="menu"
+        >
           <BaseButton
             v-for="profile in profileStore.sortedProfiles"
             :key="profile.id"
@@ -31,13 +35,17 @@
       </Transition>
     </div>
 
-    <div class="agent-directory-list__agents" aria-label="Agent list">
+    <div
+      class="agent-directory-list__agents"
+      aria-label="Agent list"
+    >
       <div v-if="store.loading" class="agent-directory-list__state">...</div>
       <div v-else-if="store.directoryError" class="agent-directory-list__state">!</div>
       <div
         v-for="agent in store.filteredAgents"
         :key="agent.key"
         class="agent-directory-list__hint-wrapper"
+        :class="{ 'agent-directory-list__hint-wrapper--active': agent.key === store.selectedAgentKey }"
         @mouseenter="showAgentHint(agent.key, $event)"
         @mouseleave="hideAgentHint"
         @focusin="showAgentHint(agent.key, $event)"
@@ -180,7 +188,21 @@ function hideAgentHint() {
 }
 
 .agent-directory-list__profile-option {
+  position: relative;
+  z-index: 1;
   justify-content: flex-start;
+  background: transparent;
+}
+
+.agent-directory-list__profile-option:hover,
+.agent-directory-list__profile-option:active {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-button-ghost-hover-text);
+}
+
+.agent-directory-list__profile-option--active {
+  background: var(--sailor-button-ghost-active);
+  color: var(--sailor-button-ghost-active-text);
 }
 
 .agent-directory-list__profile-option :deep(.base-button__label) {
@@ -196,10 +218,6 @@ function hideAgentHint() {
   font-size: var(--sailor-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.agent-directory-list__profile-option--active {
-  background: var(--sailor-button-ghost-hover);
 }
 
 .agent-directory-list__agents {
@@ -231,9 +249,11 @@ function hideAgentHint() {
 
 .agent-directory-list__hint-wrapper {
   position: relative;
+  z-index: 1;
   display: grid;
   place-items: center;
-  width: 100%;
+  width: 42px;
+  height: 42px;
 }
 
 .agent-directory-list__item {
@@ -241,8 +261,13 @@ function hideAgentHint() {
 }
 
 .agent-directory-list__item:hover,
-.agent-directory-list__item--active {
+.agent-directory-list__item:active {
   background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-text-primary);
+}
+
+.agent-directory-list__item--active {
+  background: var(--sailor-button-ghost-active);
   color: var(--sailor-text-primary);
 }
 
@@ -251,9 +276,6 @@ function hideAgentHint() {
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-bg-base);
   font-size: 17px;
   line-height: 1;
 }

@@ -12,11 +12,9 @@
         </div>
 
         <!-- Vertical nav -->
-        <BaseWoobyMenu
-          tag="nav"
+        <nav
           class="gs-nav"
           style="position: relative"
-          active-selector=".gs-nav__item--active"
         >
           <BaseButton
             v-for="(tab, index) in tabs"
@@ -27,7 +25,6 @@
             style="
               position: relative;
               z-index: 1;
-              background: transparent;
               justify-content: flex-start;
               width: 100%;
             "
@@ -38,7 +35,7 @@
             </template>
             <span class="gs-nav__label">{{ tab.label }}</span>
           </BaseButton>
-        </BaseWoobyMenu>
+        </nav>
       </aside>
 
       <!-- ── Right Content ───────────────────────────────────────── -->
@@ -558,7 +555,6 @@ import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseMiniMenu from '@/shared/components/base/BaseMiniMenu.vue'
-import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 import { usePluginAuth } from '@/shared/composables/usePluginAuth'
 import { useToast } from '@/shared/composables/useToast'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'

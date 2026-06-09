@@ -2,17 +2,11 @@ Futuras Features:
 
 1. Melhorar/Testar todas as features do Sailor Pages, verificar se está ativando Workflow Corretamente.
 
-2. Global Agent Chat
+4. Arrumar UI da Sidebar e outras partes do Sistema. (MANUAL)
 
-3. Adicionar um sistema de git para os workflows
-
-4. Arrumar UI da Sidebar e outras partes do Sistema.
-
-5. Install Plugin no Comand Palette abrir o Plugin Instaler.
-
-6. Atualizar categorias pre-definidas no Schema JSON de Plugins e Depois separar cada Plugin/Utility Plugin em categorias do Add Node Panel no Frontend, Adicionar botão de filtra categoria do lado do input Search, Adicionar botão de colapsar/expandir categoria.
-
-7. Atualizar o Sailor SDK/Sailor CLI para o Schema JSON de Manifest Atual do backend do Sailor.
+<!-- IMPORTANTE -->
+5. ADICIONAR NOVOS NODES (Dataset, Embeddings, Vector Stores, Retriever)
+<!-- IMPORTANTE -->
 
 99. Start Guide por feature:
    Criar um componente simples de guia inicial por ferramenta, sem traduzir a UI inteira. Cada feature passa uma lista de steps com preview e textos por idioma.

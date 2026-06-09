@@ -291,18 +291,21 @@ function disconnectPluginCommand(plugin: SailorPlugin): CommandHandler {
   };
 }
 
-function disabledInstallCommand(): CommandHandler {
+function installPluginCommand(): CommandHandler {
   return {
     describe: (): CommandDescriptor => ({
       id: "plugin.install",
       group: "plugin",
       label: "Install Plugin",
-      description: "Plugin install is disabled until a generic registry API exists",
-      keywords: ["install plugin", "marketplace"],
+      description: "Open the Plugin Installer for repository URLs or local plugin folders",
+      keywords: ["install plugin", "plugin installer", "external plugin", "repository", "local folder"],
       icon: "download",
-      availability: { enabled: false, reason: "No generic plugin install API exists yet" },
+      availability: { enabled: true },
     }),
-    execute: () => ({ ok: false, message: "Plugin install is not available" }),
+    execute: () => ({
+      ok: true,
+      uiIntent: { type: "plugin-installer.open" },
+    }),
   };
 }
 
@@ -321,7 +324,7 @@ export const pluginsCommandProvider: CommandProvider = {
   commands: (context) => {
     const services = pluginServices(context);
     return [
-      disabledInstallCommand(),
+      installPluginCommand(),
       ...services.listPlugins().flatMap(pluginCommands),
     ];
   },

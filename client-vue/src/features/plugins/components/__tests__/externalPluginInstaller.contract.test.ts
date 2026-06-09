@@ -40,4 +40,17 @@ describe('external plugin installer modal contract', () => {
     assert.match(appSource, /<ExternalPluginInstaller\s+:is-open="isPluginInstallerOpen"/)
     assert.doesNotMatch(appSource, /openPanel\(\{\s*title: 'Plugin Installer'/)
   })
+
+  it('auto-opens its start guide through the shared tutorial utility', () => {
+    const registrySource = readFileSync(
+      resolve(currentDir, '../../../../shared/start-guide/startGuide.registry.ts'),
+      'utf8',
+    )
+
+    assert.match(installerSource, /useStartGuide/)
+    assert.match(installerSource, /watch\(\s*\(\) => props\.isOpen/)
+    assert.match(installerSource, /openIfNeeded\('plugin-external-installer'\)/)
+    assert.match(registrySource, /'plugin-external-installer'/)
+    assert.match(registrySource, /category: 'plugins'/)
+  })
 })

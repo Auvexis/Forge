@@ -6,6 +6,7 @@ import {
   buildPickerActionItems,
   buildPickerCategoryItems,
   buildPickerSecondColumnItems,
+  catalogItemsToPickerPresets,
   type AddNodePickerPreset,
 } from '../addNodePickerModel.ts'
 
@@ -165,4 +166,40 @@ test('tool context action column keeps only agent-enabled methods', () => {
   const items = buildPickerActionItems({ plugin: github, agentConfigHandle: 'tool' })
 
   assert.deepEqual(items.map((item) => item.methodKey), ['createIssue'])
+})
+
+test('catalog items map to utility picker presets with style metadata', () => {
+  const presets = catalogItemsToPickerPresets([
+    {
+      type: 'code',
+      label: 'Code Block',
+      description: 'Run code',
+      category: 'Developer',
+      packId: 'sailor-core',
+      packName: 'Sailor Core',
+      style: {
+        icon: 'code-2',
+        iconColor: '#60a5fa',
+        bgColor: '#eff6ff',
+        borderColor: '#93c5fd',
+      },
+    },
+  ])
+
+  assert.deepEqual(presets, [
+    {
+      id: 'code',
+      nodeType: 'code',
+      label: 'Code Block',
+      description: 'Run code',
+      icon: 'code-2',
+      categories: ['Developer'],
+      style: {
+        icon: 'code-2',
+        iconColor: '#60a5fa',
+        bgColor: '#eff6ff',
+        borderColor: '#93c5fd',
+      },
+    },
+  ])
 })

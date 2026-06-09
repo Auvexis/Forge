@@ -458,7 +458,6 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   color: var(--sailor-blue-400);
   font-family: var(--sailor-font-mono);
   font-size: 11px;
-  font-weight: var(--sailor-font-semibold);
 }
 
 .workflow-git-modal__version-option-copy {
@@ -482,6 +481,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 .workflow-git-modal__version-option-copy small {
   color: var(--sailor-text-muted);
   font-size: 10px;
+  margin-left: 8px;
 }
 
 .workflow-git-modal__icon-button {
@@ -558,7 +558,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 
 .workflow-git-modal__file--active,
 .workflow-git-modal__file:hover {
-  border-color: var(--sailor-border-subtle);
+  border-color: var(--sailor-border-strong);
   background: var(--sailor-bg-elevated);
   color: var(--sailor-text-primary);
 }
@@ -624,13 +624,12 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 }
 
 .workflow-git-modal__commit-button {
-  border: 1px solid color-mix(in srgb, var(--sailor-blue-400) 62%, transparent);
-  background: var(--sailor-blue-500);
-  color: white;
+  background: var(--sailor-button-primary-bg);
+  color: var(--sailor-button-primary-text);
 }
 
 .workflow-git-modal__commit-button:hover:not(:disabled) {
-  background: var(--sailor-blue-400);
+  background: var(--sailor-button-primary-hover);
 }
 
 .workflow-git-modal__restore-button {
@@ -690,7 +689,6 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   border-radius: var(--sailor-radius-sm);
   font-family: var(--sailor-font-mono);
   font-size: 11px;
-  font-weight: var(--sailor-font-semibold);
 }
 
 .workflow-git-modal__stat--added {

@@ -28,6 +28,19 @@ test('add node panel exposes only the root AI Agent outside contextual agent qui
   assert.match(source, /props\.onAddLogicNode\?\.\(item\.preset\.nodeType, item\.preset\.defaults\)/)
 })
 
+test('add node panel gets utility presets from the backend workflow node catalog', () => {
+  const source = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+  const model = read('src/features/workflow-editor/components/settings/addNodePickerModel.ts')
+
+  assert.match(source, /workflowNodesApi/)
+  assert.match(source, /loadWorkflowNodeCatalog/)
+  assert.match(source, /catalogItemsToPickerPresets/)
+  assert.doesNotMatch(source, /const LOGIC_NODES/)
+  assert.match(model, /catalogItemsToPickerPresets/)
+  assert.match(model, /WorkflowNodeCatalogItem/)
+  assert.match(model, /style: item\.style/)
+})
+
 test('add node panel supports contextual agent quick-add presets', () => {
   const source = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
@@ -119,9 +132,11 @@ test('ai node defaults are safe and backend-compatible', () => {
 
 test('chat trigger is configured through the normal trigger node, not an AI palette item', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+  const model = read('src/features/workflow-editor/components/settings/addNodePickerModel.ts')
 
-  assert.match(panel, /label: 'Trigger'/)
-  assert.match(panel, /description: 'Add another workflow entry point'/)
+  assert.match(panel, /catalogItemsToPickerPresets/)
+  assert.match(model, /id: item\.type/)
+  assert.match(model, /nodeType: item\.type/)
   assert.doesNotMatch(panel, /label: 'Chat Trigger'/)
   assert.doesNotMatch(panel, /trigger: \{\s*type: 'chat'/)
   assert.doesNotMatch(panel, /type: 'chat-trigger'/)

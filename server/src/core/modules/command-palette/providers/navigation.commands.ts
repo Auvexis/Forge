@@ -94,11 +94,31 @@ function openAgentPanelCommand(): CommandHandler {
   };
 }
 
+function openGuideBookCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "guide-book.open",
+      group: "navigation",
+      label: "Open Guide Book",
+      description: "Browse and replay Sailor guides for tools, pages, and workflows",
+      keywords: ["guide", "tutorial", "docs", "help", "start guide"],
+      icon: "book-open",
+      availability: { enabled: true },
+    }),
+    execute: () => ({
+      ok: true,
+      message: "Guide Book opened",
+      uiIntent: { type: "guide-book.open" },
+    }),
+  };
+}
+
 export const navigationCommandProvider: CommandProvider = {
   id: "navigation",
   order: 10,
   commands: [
     openAgentPanelCommand(),
+    openGuideBookCommand(),
     navigationCommand({
       id: "nav.home",
       label: "Home",

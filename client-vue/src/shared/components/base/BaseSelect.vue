@@ -33,14 +33,10 @@
 
     <Teleport to="body">
       <Transition name="fade-down">
-        <BaseWoobyMenu
+        <div
           v-if="isOpen"
           ref="dropdownRef"
-          tag="div"
-          position="absolute"
           class="base-select-dropdown"
-          active-selector=".base-select-option--selected"
-          overflow="auto"
           :style="dropdownStyle"
           @click.stop
         >
@@ -49,7 +45,6 @@
             :key="option.value"
             class="base-select-option"
             :class="{ 'base-select-option--selected': option.value === modelValue }"
-            style="position: relative; z-index: 1; background: transparent;"
             @click.stop="selectOption(option)"
           >
             <LucideIcon v-if="option.icon" :name="option.icon" :size="16" class="option-icon text-muted" />
@@ -60,7 +55,7 @@
           <div v-if="!options.length" class="base-select-empty" style="position: relative; z-index: 1;">
             No options available
           </div>
-        </BaseWoobyMenu>
+        </div>
       </Transition>
     </Teleport>
 
@@ -73,7 +68,6 @@
 import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue'
 import { generateId } from '@/shared/utils/id'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import BaseWoobyMenu from '@/shared/components/base/BaseWoobyMenu.vue'
 
 export interface SelectOption {
   value: string | number
@@ -111,7 +105,7 @@ const id = computed(() => props.id || generateId('select'))
 
 const isOpen = ref(false)
 const wrapperRef = ref<HTMLElement | null>(null)
-const dropdownRef = ref<InstanceType<typeof BaseWoobyMenu> | null>(null)
+const dropdownRef = ref<HTMLElement | null>(null)
 const dropdownStyle = ref<Record<string, string>>({})
 
 const selectedOption = computed(() => {
@@ -164,11 +158,10 @@ const selectOption = (option: SelectOption) => {
 
 const handleClickOutside = (e: MouseEvent) => {
   const target = e.target as Node
-  const dropdownEl = dropdownRef.value?.$el as HTMLElement | undefined
   if (
     wrapperRef.value &&
     !wrapperRef.value.contains(target) &&
-    !dropdownEl?.contains(target)
+    !dropdownRef.value?.contains(target)
   ) {
     closeDropdown()
   }
@@ -283,6 +276,8 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-select-option {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: var(--sailor-space-2);
@@ -290,7 +285,21 @@ defineOptions({ inheritAttrs: false })
   font-size: var(--sailor-text-sm);
   color: var(--sailor-text-primary);
   border-radius: var(--sailor-radius-sm);
+  background: transparent;
   cursor: pointer;
+  transition:
+    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
+    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+}
+
+.base-select-option:hover {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-button-ghost-hover-text);
+}
+
+.base-select-option--selected {
+  background: var(--sailor-button-ghost-active);
+  color: var(--sailor-button-ghost-active-text);
 }
 
 .base-select-empty {

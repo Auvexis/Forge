@@ -43,6 +43,10 @@ describe('global app panel resize', () => {
     assert.match(appPanelSource, /--app-panel-resized-width/)
   })
 
+  it('lets panel body children own their internal scroll regions', () => {
+    assert.match(appPanelSource, /\.app-panel__body\s*\{[\s\S]*flex: 1;[\s\S]*min-height: 0;[\s\S]*overflow-y: auto;/)
+  })
+
   it('opens the workflow execution panel as top-resizable', () => {
     assert.match(workflowPageSource, /id: 'workflow-execution-bottom-panel'/)
     assert.match(workflowPageSource, /resizable: true/)

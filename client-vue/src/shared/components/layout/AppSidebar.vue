@@ -62,21 +62,11 @@ const { logoSrc } = useTheme()
   border-top-width: 0;
   border-bottom-width: 0;
   border-left-width: 0;
+  border-right: 1px solid var(--sailor-border);
   z-index: var(--sailor-z-raised);
   flex-shrink: 0;
   background-color: var(--sailor-sidebar-bg);
   transition: width var(--sailor-duration-base) var(--sailor-ease-standard);
-}
-
-.app-sidebar::before {
-  content: '';
-  position: absolute;
-  top: 49px;
-  right: 0;
-  bottom: 0;
-  width: 1px;
-  background: var(--sailor-sidebar-border);
-  pointer-events: none;
 }
 
 .app-sidebar__header {
@@ -92,8 +82,8 @@ const { logoSrc } = useTheme()
 .app-sidebar__header::after {
   content: '';
   position: absolute;
-  left: 23px;
-  right: 23px;
+  left: 0;
+  right: 0;
   bottom: 0;
   height: 1px;
   border-radius: var(--sailor-radius-full);

@@ -35,6 +35,6 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: hidden; /* App Pages handle their own scrolling */
+  overflow: hidden;
 }
 </style>
