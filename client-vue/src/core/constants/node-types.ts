@@ -24,6 +24,12 @@ export const VALID_NODE_TYPES = new Set<WorkflowNodeType>([
   'ai-model',
   'ai-memory',
   'ai-tool',
+  'text-dataset',
+  'file-dataset',
+  'database-dataset',
+  'embeddings',
+  'vector-store',
+  'retriever',
 ])
 
 // Node type visual metadata — color and category hints.
@@ -125,6 +131,36 @@ export const NODE_TYPE_META: Record<
   'ai-tool': {
     label: 'AI Tool',
     color: 'rgb(244, 63, 94)',
+    category: 'ai',
+  },
+  'text-dataset': {
+    label: 'Text Dataset',
+    color: 'var(--sailor-node-set-icon)',
+    category: 'data',
+  },
+  'file-dataset': {
+    label: 'File Dataset',
+    color: 'var(--sailor-node-http-icon)',
+    category: 'data',
+  },
+  'database-dataset': {
+    label: 'Database Dataset',
+    color: 'var(--sailor-node-plugin-icon)',
+    category: 'data',
+  },
+  embeddings: {
+    label: 'Embeddings',
+    color: 'rgb(14, 165, 233)',
+    category: 'ai',
+  },
+  'vector-store': {
+    label: 'Vector Store',
+    color: 'var(--sailor-node-merge-icon)',
+    category: 'ai',
+  },
+  retriever: {
+    label: 'Retriever',
+    color: 'var(--sailor-node-if-icon)',
     category: 'ai',
   },
 }

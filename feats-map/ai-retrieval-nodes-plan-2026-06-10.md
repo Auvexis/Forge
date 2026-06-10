@@ -170,9 +170,9 @@ Notes:
 
 ## Frontend Tasks
 
-- [ ] Add node components for Text Dataset, File Dataset, Database Dataset, Embeddings, Vector Store, and Retriever.
-- [ ] Add editors for each new node.
-- [ ] Add provider-specific config sections for Pinecone and Qdrant.
+- [x] Add node components for Text Dataset, File Dataset, Database Dataset, Embeddings, Vector Store, and Retriever.
+- [x] Add editors for each new node.
+- [x] Add provider-specific config sections for Pinecone and Qdrant.
 - [ ] Add mode selector: local/cloud/self-hosted where applicable.
 - [ ] Add Dataset chunking switch using `BaseSwitch.vue` for contextual overlap.
 - [ ] Add credential picker for cloud/self-hosted configs.

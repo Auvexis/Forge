@@ -23,6 +23,12 @@ import AiAgentNode from './nodes/AiAgentNode.vue'
 import AiModelNode from './nodes/AiModelNode.vue'
 import AiMemoryNode from './nodes/AiMemoryNode.vue'
 import AiToolNode from './nodes/AiToolNode.vue'
+import TextDatasetNode from './nodes/TextDatasetNode.vue'
+import FileDatasetNode from './nodes/FileDatasetNode.vue'
+import DatabaseDatasetNode from './nodes/DatabaseDatasetNode.vue'
+import EmbeddingsNode from './nodes/EmbeddingsNode.vue'
+import VectorStoreNode from './nodes/VectorStoreNode.vue'
+import RetrieverNode from './nodes/RetrieverNode.vue'
 import BaseEdge from './BaseEdge.vue'
 import NodeGroupSelectionBox from './NodeGroupSelectionBox.vue'
 import { Background } from '@vue-flow/background'
@@ -1520,6 +1526,36 @@ defineExpose({
       <!-- WAIT FORM Node -->
       <template #node-wait-form="nodeProps">
         <WaitFormNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
+      </template>
+
+      <!-- TEXT DATASET Node -->
+      <template #node-text-dataset="nodeProps">
+        <TextDatasetNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
+      </template>
+
+      <!-- FILE DATASET Node -->
+      <template #node-file-dataset="nodeProps">
+        <FileDatasetNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
+      </template>
+
+      <!-- DATABASE DATASET Node -->
+      <template #node-database-dataset="nodeProps">
+        <DatabaseDatasetNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
+      </template>
+
+      <!-- EMBEDDINGS Node -->
+      <template #node-embeddings="nodeProps">
+        <EmbeddingsNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
+      </template>
+
+      <!-- VECTOR STORE Node -->
+      <template #node-vector-store="nodeProps">
+        <VectorStoreNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
+      </template>
+
+      <!-- RETRIEVER Node -->
+      <template #node-retriever="nodeProps">
+        <RetrieverNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
       </template>
 
       <!-- AI AGENT Node -->

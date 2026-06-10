@@ -25,6 +25,12 @@ import AiAgentEditor from './AiAgentEditor.vue'
 import AiModelEditor from './AiModelEditor.vue'
 import AiMemoryEditor from './AiMemoryEditor.vue'
 import AiToolEditor from './AiToolEditor.vue'
+import TextDatasetEditor from './TextDatasetEditor.vue'
+import FileDatasetEditor from './FileDatasetEditor.vue'
+import DatabaseDatasetEditor from './DatabaseDatasetEditor.vue'
+import EmbeddingsEditor from './EmbeddingsEditor.vue'
+import VectorStoreEditor from './VectorStoreEditor.vue'
+import RetrieverEditor from './RetrieverEditor.vue'
 
 export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', Component>> = {
   plugin: PluginEditor,
@@ -46,6 +52,12 @@ export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', 
   'ai-model': AiModelEditor,
   'ai-memory': AiMemoryEditor,
   'ai-tool': AiToolEditor,
+  'text-dataset': TextDatasetEditor,
+  'file-dataset': FileDatasetEditor,
+  'database-dataset': DatabaseDatasetEditor,
+  embeddings: EmbeddingsEditor,
+  'vector-store': VectorStoreEditor,
+  retriever: RetrieverEditor,
 }
 
 export type { NodeEditorProps } from './types'
