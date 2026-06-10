@@ -38,7 +38,13 @@ export type AgentMemoryAdapter = 'sailor-internal' | 'plugin-memory-store'
 export type AgentModelAdapter = 'openai-compatible' | 'generic' | 'ollama'
 export type AgentExecutionMode = 'loop' | 'plan'
 export type DatasetSourceType = 'text' | 'file' | 'database'
-export type VectorDistanceMetric = 'cosine' | 'dotproduct' | 'euclidean'
+export type VectorDistanceMetric = 'cosine' | 'dot' | 'euclidean'
+export type VectorStoreMethodId =
+  | 'ensureCollection'
+  | 'upsertDocuments'
+  | 'querySimilar'
+  | 'deleteDocuments'
+  | 'describeCollection'
 
 export type AgentToolSideEffect =
   | 'read'
@@ -285,15 +291,75 @@ export interface AiToolNode extends WorkflowNodeBase {
 }
 
 export interface DatasetItem {
-  id?: string
+  id: string
   text: string
-  metadata?: Record<string, any>
+  metadata: Record<string, any>
+  raw?: any
 }
 
 export interface DatasetOutput {
-  sourceType: DatasetSourceType
   items: DatasetItem[]
-  metadata?: Record<string, any>
+  count: number
+  sourceType: DatasetSourceType
+}
+
+export interface VectorDocument {
+  id: string
+  text: string
+  vector: number[]
+  metadata: Record<string, any>
+}
+
+export interface VectorQuery {
+  text?: string
+  vector?: number[]
+  topK: number
+  filter?: Record<string, any>
+  scoreThreshold?: number
+}
+
+export interface VectorSearchResult {
+  id: string
+  text: string
+  score: number
+  metadata: Record<string, any>
+}
+
+export interface VectorCollectionInfo {
+  name: string
+  dimension: number
+  metric: VectorDistanceMetric
+  documentCount?: number
+}
+
+export interface VectorStoreProviderConfig {
+  collectionName: string
+  dimension: number
+  metric: VectorDistanceMetric
+  config: Record<string, any>
+}
+
+export interface VectorStoreEnsureCollectionInput {
+  store: VectorStoreProviderConfig
+}
+
+export interface VectorStoreUpsertDocumentsInput {
+  store: VectorStoreProviderConfig
+  documents: VectorDocument[]
+}
+
+export interface VectorStoreQuerySimilarInput {
+  store: VectorStoreProviderConfig
+  query: VectorQuery
+}
+
+export interface VectorStoreDeleteDocumentsInput {
+  store: VectorStoreProviderConfig
+  ids: string[]
+}
+
+export interface VectorStoreDescribeCollectionInput {
+  store: VectorStoreProviderConfig
 }
 
 export interface DatasetChunkingConfig {

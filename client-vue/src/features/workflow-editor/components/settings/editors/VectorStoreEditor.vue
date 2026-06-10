@@ -39,7 +39,7 @@
       <BaseInput
         :model-value="(node.data.metric as string) || 'cosine'"
         @update:model-value="updateNodeData({ metric: ($event as string) || 'cosine' })"
-        placeholder="cosine, dotproduct, euclidean"
+        placeholder="cosine, dot, euclidean"
       />
     </EditorField>
 
@@ -128,8 +128,8 @@
       <EditorField v-if="isRemoteMode" label="Host">
         <div class="editor-hint">Use the full URL for Qdrant cloud or self-hosted endpoints.</div>
         <BaseInput
-          :model-value="config.host || ''"
-          @update:model-value="updateConfig({ host: $event as string })"
+          :model-value="config.url || ''"
+          @update:model-value="updateConfig({ url: $event as string })"
           placeholder="https://cluster.region.cloud.qdrant.io"
         />
       </EditorField>
@@ -137,8 +137,8 @@
       <EditorField v-if="!isRemoteMode" label="Local Host">
         <div class="editor-hint">Use the full URL for local Qdrant, including protocol and port.</div>
         <BaseInput
-          :model-value="config.localHost || ''"
-          @update:model-value="updateConfig({ localHost: $event as string })"
+          :model-value="config.url || ''"
+          @update:model-value="updateConfig({ url: $event as string })"
           placeholder="http://localhost:6333"
         />
       </EditorField>

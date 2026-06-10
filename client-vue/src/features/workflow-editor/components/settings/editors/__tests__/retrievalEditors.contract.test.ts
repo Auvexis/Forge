@@ -46,6 +46,7 @@ test('vector store editor exposes Pinecone and Qdrant provider config sections',
   assert.match(source, /localHost/)
   assert.match(source, /namespace/)
   assert.match(source, /host/)
+  assert.match(source, /config\.url/)
   assert.match(source, /self-hosted/)
   assert.match(source, /preferGrpc/)
   assert.match(source, /tls/)
@@ -61,6 +62,16 @@ test('vector store editor uses mode selectors for local, cloud, and self-hosted 
   assert.match(source, /value: 'local'/)
   assert.match(source, /value: 'cloud'/)
   assert.match(source, /value: 'self-hosted'/)
+})
+
+test('vector store editor writes Qdrant endpoint fields to config.url expected by the plugin', () => {
+  const source = read('src/features/workflow-editor/components/settings/editors/VectorStoreEditor.vue')
+  const qdrantSection = source.slice(source.indexOf(`<template v-if="pluginId === 'sailor-qdrant'">`))
+
+  assert.match(qdrantSection, /:model-value="config\.url \|\| ''"/)
+  assert.match(qdrantSection, /updateConfig\(\{ url: \$event as string \}\)/)
+  assert.doesNotMatch(qdrantSection, /updateConfig\(\{ host:/)
+  assert.doesNotMatch(qdrantSection, /updateConfig\(\{ localHost:/)
 })
 
 test('dataset editors use BaseSwitch for contextual overlap carry-over', () => {

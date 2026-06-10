@@ -505,6 +505,12 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   'ai-model': 'AI Model',
   'ai-memory': 'AI Memory',
   'ai-tool': 'AI Tool',
+  'text-dataset': 'Text Dataset',
+  'file-dataset': 'File Dataset',
+  'database-dataset': 'Database Dataset',
+  'embeddings': 'Embeddings',
+  'vector-store': 'Vector Store',
+  'retriever': 'Retriever',
 }
 
 const AGENT_CONFIG_TOOLS_PER_ROW = 4
@@ -813,6 +819,16 @@ const generateNodeId = (prefix: string) => {
   return newId
 }
 
+function createDefaultDatasetChunking() {
+  return {
+    enabled: false,
+    chunkSize: 1000,
+    chunkOverlap: 120,
+    contextualOverlapEnabled: false,
+    maxPreviousContextChars: 300,
+  }
+}
+
 const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, unknown> = {}) => {
   if (!workflowStore.activeWorkflow) return
 
@@ -918,6 +934,48 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     defaultData.requiresApproval = true
     defaultData.sideEffect = 'write'
     defaultData.inputDefaults = {}
+  } else if (type === 'text-dataset') {
+    defaultData.text = ''
+    defaultData.format = 'plain-text'
+    defaultData.chunking = createDefaultDatasetChunking()
+    defaultData.metadata = {}
+  } else if (type === 'file-dataset') {
+    defaultData.filePath = '/path/to/file.md'
+    defaultData.format = 'markdown'
+    defaultData.chunking = createDefaultDatasetChunking()
+    defaultData.metadata = {}
+  } else if (type === 'database-dataset') {
+    defaultData.pluginId = 'sailor-postgresql'
+    defaultData.methodId = 'query'
+    defaultData.query = 'select id, body from documents limit 100'
+    defaultData.textColumns = ['body']
+    defaultData.metadataColumns = ['id']
+    defaultData.limit = 100
+    defaultData.chunking = createDefaultDatasetChunking()
+  } else if (type === 'embeddings') {
+    defaultData.pluginId = 'sailor-openai'
+    defaultData.methodId = 'createEmbeddings'
+    defaultData.model = 'text-embedding-3-small'
+    defaultData.dimension = 1536
+    defaultData.input = 'steps.text-dataset_1.output.items'
+    defaultData.batchSize = 64
+  } else if (type === 'vector-store') {
+    defaultData.pluginId = 'sailor-qdrant'
+    defaultData.ensureCollectionMethodId = 'ensureCollection'
+    defaultData.upsertMethodId = 'upsertDocuments'
+    defaultData.queryMethodId = 'querySimilar'
+    defaultData.deleteMethodId = 'deleteDocuments'
+    defaultData.describeMethodId = 'describeCollection'
+    defaultData.collectionName = 'documents'
+    defaultData.dimension = 1536
+    defaultData.metric = 'cosine'
+    defaultData.config = { mode: 'local', url: 'http://localhost:6333' }
+  } else if (type === 'retriever') {
+    defaultData.query = 'trigger.body.question'
+    defaultData.topK = 5
+    defaultData.outputMode = 'context'
+    defaultData.maxContextChars = 8000
+    defaultData.filter = {}
   } else if (type === 'trigger') {
     defaultData.trigger = shouldAdoptLegacyTrigger
       ? { ...workflowStore.activeWorkflow.trigger, ui: undefined }
