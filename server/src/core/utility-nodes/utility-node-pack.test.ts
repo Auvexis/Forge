@@ -53,6 +53,12 @@ describe("Utility node pack contract", () => {
       "ai-model",
       "ai-memory",
       "ai-tool",
+      "text-dataset",
+      "file-dataset",
+      "database-dataset",
+      "embeddings",
+      "vector-store",
+      "retriever",
     ] as const) {
       const node = sailorCoreUtilityNodePack.nodes[type];
       assert.ok(node, `${type} manifest`);

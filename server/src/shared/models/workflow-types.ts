@@ -34,6 +34,12 @@ export type AgentModelAdapter = "openai-compatible" | "generic" | "ollama";
 export type AgentExecutionMode = "loop" | "plan";
 export type DatasetSourceType = "text" | "file" | "database";
 export type VectorDistanceMetric = "cosine" | "dot" | "euclidean";
+export type VectorStoreMethodId =
+  | "ensureCollection"
+  | "upsertDocuments"
+  | "querySimilar"
+  | "deleteDocuments"
+  | "describeCollection";
 
 export type AgentToolSideEffect =
   | "read"
@@ -83,6 +89,36 @@ export interface VectorCollectionInfo {
   dimension: number;
   metric: VectorDistanceMetric;
   documentCount?: number;
+}
+
+export interface VectorStoreProviderConfig {
+  collectionName: string;
+  dimension: number;
+  metric: VectorDistanceMetric;
+  config: Record<string, any>;
+}
+
+export interface VectorStoreEnsureCollectionInput {
+  store: VectorStoreProviderConfig;
+}
+
+export interface VectorStoreUpsertDocumentsInput {
+  store: VectorStoreProviderConfig;
+  documents: VectorDocument[];
+}
+
+export interface VectorStoreQuerySimilarInput {
+  store: VectorStoreProviderConfig;
+  query: VectorQuery;
+}
+
+export interface VectorStoreDeleteDocumentsInput {
+  store: VectorStoreProviderConfig;
+  ids: string[];
+}
+
+export interface VectorStoreDescribeCollectionInput {
+  store: VectorStoreProviderConfig;
 }
 
 // ──────────── Retry Policy ────────────

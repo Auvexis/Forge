@@ -11,6 +11,14 @@ import { ifNodeHandler } from "../../nodes/handlers/if.ts";
 import { loopNodeHandler } from "../../nodes/handlers/loop.ts";
 import { mergeNodeHandler } from "../../nodes/handlers/merge.ts";
 import { respondWebhookNodeHandler } from "../../nodes/handlers/respond-webhook.ts";
+import {
+  databaseDatasetNodeHandler,
+  embeddingsNodeHandler,
+  fileDatasetNodeHandler,
+  retrieverNodeHandler,
+  textDatasetNodeHandler,
+  vectorStoreNodeHandler,
+} from "../../nodes/handlers/retrieval.ts";
 import { setNodeHandler } from "../../nodes/handlers/set.ts";
 import { splitInBatchesNodeHandler } from "../../nodes/handlers/split-in-batches.ts";
 import { subWorkflowNodeHandler } from "../../nodes/handlers/subworkflow.ts";
@@ -44,6 +52,12 @@ const handlers: NodeHandler[] = [
   aiModelNodeHandler,
   aiMemoryNodeHandler,
   aiToolNodeHandler,
+  textDatasetNodeHandler,
+  fileDatasetNodeHandler,
+  databaseDatasetNodeHandler,
+  embeddingsNodeHandler,
+  vectorStoreNodeHandler,
+  retrieverNodeHandler,
 ];
 
 export const sailorCoreUtilityNodes: SailorCoreUtilityNode[] = handlers.map((handler) => {

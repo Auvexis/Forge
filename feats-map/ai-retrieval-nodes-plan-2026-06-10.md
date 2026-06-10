@@ -158,9 +158,9 @@ Notes:
 - [x] Define generic dataset output contract with `items`, `count`, `sourceType`, `text`, `metadata`, and `raw`.
 - [x] Add shared vector retrieval types.
 - [x] Add workflow node types for `text-dataset`, `file-dataset`, `database-dataset`, `embeddings`, `vector-store`, and `retriever`.
-- [ ] Add utility catalog entries for the new nodes.
-- [ ] Add handlers with failing tests first.
-- [ ] Add vector store provider contract tests.
+- [x] Add utility catalog entries for the new nodes.
+- [x] Add handlers with failing tests first.
+- [x] Add vector store provider contract tests.
 - [ ] Add Pinecone plugin manifest and methods.
 - [ ] Add Pinecone local/cloud config validation tests.
 - [ ] Add Qdrant plugin manifest and methods.
