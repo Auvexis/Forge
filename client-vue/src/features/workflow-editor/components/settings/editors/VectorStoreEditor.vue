@@ -17,6 +17,7 @@
     </EditorField>
 
     <EditorField label="Collection">
+      <div class="editor-hint">Collection or index name. Keep it stable to avoid duplicate vector data.</div>
       <BaseInput
         :model-value="(node.data.collectionName as string) || ''"
         @update:model-value="updateNodeData({ collectionName: $event as string })"
@@ -25,6 +26,7 @@
     </EditorField>
 
     <EditorField label="Dimension">
+      <div class="editor-hint">Must match the embedding dimension used when documents are indexed.</div>
       <BaseInput
         type="number"
         :model-value="String(node.data.dimension ?? '')"
@@ -73,6 +75,7 @@
       </EditorField>
 
       <EditorField v-if="isRemoteMode" label="Host">
+        <div class="editor-hint">Use the full URL for the Pinecone index host.</div>
         <BaseInput
           :model-value="config.host || ''"
           @update:model-value="updateConfig({ host: $event as string })"
@@ -81,6 +84,7 @@
       </EditorField>
 
       <EditorField v-if="!isRemoteMode" label="Local Host">
+        <div class="editor-hint">Use the full URL for the local Pinecone-compatible endpoint.</div>
         <BaseInput
           :model-value="config.localHost || ''"
           @update:model-value="updateConfig({ localHost: $event as string })"
@@ -89,6 +93,7 @@
       </EditorField>
 
       <EditorField label="Namespace">
+        <div class="editor-hint">Namespace keeps tenants or environments separated inside the same index.</div>
         <BaseInput
           :model-value="config.namespace || ''"
           @update:model-value="updateConfig({ namespace: $event as string })"
@@ -121,6 +126,7 @@
       </EditorField>
 
       <EditorField v-if="isRemoteMode" label="Host">
+        <div class="editor-hint">Use the full URL for Qdrant cloud or self-hosted endpoints.</div>
         <BaseInput
           :model-value="config.host || ''"
           @update:model-value="updateConfig({ host: $event as string })"
@@ -129,6 +135,7 @@
       </EditorField>
 
       <EditorField v-if="!isRemoteMode" label="Local Host">
+        <div class="editor-hint">Use the full URL for local Qdrant, including protocol and port.</div>
         <BaseInput
           :model-value="config.localHost || ''"
           @update:model-value="updateConfig({ localHost: $event as string })"

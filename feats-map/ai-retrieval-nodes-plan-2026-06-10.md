@@ -176,8 +176,8 @@ Notes:
 - [x] Add mode selector: local/cloud/self-hosted where applicable.
 - [x] Add Dataset chunking switch using `BaseSwitch.vue` for contextual overlap.
 - [x] Add credential picker for cloud/self-hosted configs.
-- [ ] Add validation hints for dimension, collection/index name, namespace, URL, topK, and score threshold.
-- [ ] Add Add Node picker coverage.
+- [x] Add validation hints for dimension, collection/index name, namespace, URL, topK, and score threshold.
+- [x] Add Add Node picker coverage.
 
 ## Test Strategy
 

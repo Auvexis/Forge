@@ -83,6 +83,25 @@ test('vector store editor can select and manage plugin credentials for cloud and
   assert.match(source, /Manage Credentials/)
 })
 
+test('retrieval editors show validation hints for vector config and search limits', () => {
+  const vectorStore = read('src/features/workflow-editor/components/settings/editors/VectorStoreEditor.vue')
+  const embeddings = read('src/features/workflow-editor/components/settings/editors/EmbeddingsEditor.vue')
+  const retriever = read('src/features/workflow-editor/components/settings/editors/RetrieverEditor.vue')
+
+  for (const hint of [
+    'Must match the embedding dimension',
+    'Collection or index name',
+    'Namespace keeps tenants or environments separated',
+    'Use the full URL',
+  ]) {
+    assert.match(vectorStore, new RegExp(hint))
+  }
+
+  assert.match(embeddings, /Must match the vector store dimension/)
+  assert.match(retriever, /Must be greater than 0/)
+  assert.match(retriever, /Score threshold is optional/)
+})
+
 test('embeddings and retriever editors expose retrieval controls', () => {
   const embeddings = read('src/features/workflow-editor/components/settings/editors/EmbeddingsEditor.vue')
   const retriever = read('src/features/workflow-editor/components/settings/editors/RetrieverEditor.vue')

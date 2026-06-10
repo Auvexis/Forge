@@ -203,3 +203,58 @@ test('catalog items map to utility picker presets with style metadata', () => {
     },
   ])
 })
+
+test('catalog retrieval nodes appear as picker presets in their catalog categories', () => {
+  const presets = catalogItemsToPickerPresets([
+    {
+      type: 'text-dataset',
+      label: 'Text Dataset',
+      description: 'Load text items',
+      category: 'Data transformation',
+      packId: 'sailor-core',
+      packName: 'Sailor Core',
+      style: {
+        icon: 'text',
+        iconColor: '#0ea5e9',
+        bgColor: '#ecfeff',
+        borderColor: '#67e8f9',
+      },
+    },
+    {
+      type: 'vector-store',
+      label: 'Vector Store',
+      description: 'Upsert and query vectors',
+      category: 'AI',
+      packId: 'sailor-core',
+      packName: 'Sailor Core',
+      style: {
+        icon: 'database-zap',
+        iconColor: '#8b5cf6',
+        bgColor: '#f5f3ff',
+        borderColor: '#c4b5fd',
+      },
+    },
+    {
+      type: 'retriever',
+      label: 'Retriever',
+      description: 'Fetch relevant vector matches',
+      category: 'AI',
+      packId: 'sailor-core',
+      packName: 'Sailor Core',
+      style: {
+        icon: 'search',
+        iconColor: '#f97316',
+        bgColor: '#fff7ed',
+        borderColor: '#fdba74',
+      },
+    },
+  ])
+
+  assert.deepEqual(presets.map((preset) => preset.nodeType), ['text-dataset', 'vector-store', 'retriever'])
+  assert.equal(buildPickerCategoryItems({ plugins: [], presets }).find((item) => item.category === 'AI')?.count, 2)
+  assert.equal(buildPickerCategoryItems({ plugins: [], presets }).find((item) => item.category === 'Data transformation')?.count, 1)
+  assert.deepEqual(
+    buildPickerSecondColumnItems({ category: 'AI', plugins: [], presets }).map((item) => item.id),
+    ['preset:vector-store', 'preset:retriever'],
+  )
+})

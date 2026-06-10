@@ -33,6 +33,7 @@
     </EditorField>
 
     <EditorField label="Dimension">
+      <div class="editor-hint">Must match the vector store dimension for search to work correctly.</div>
       <BaseInput
         type="number"
         :model-value="String(node.data.dimension ?? '')"

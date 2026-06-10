@@ -18,6 +18,7 @@
     </EditorField>
 
     <EditorField label="Top K">
+      <div class="editor-hint">Must be greater than 0. Start small to keep context focused.</div>
       <BaseInput
         type="number"
         :model-value="String(node.data.topK ?? 5)"
@@ -27,6 +28,7 @@
     </EditorField>
 
     <EditorField label="Score Threshold">
+      <div class="editor-hint">Score threshold is optional. Use it to drop weak vector matches.</div>
       <BaseInput
         type="number"
         :model-value="String(node.data.scoreThreshold ?? '')"
