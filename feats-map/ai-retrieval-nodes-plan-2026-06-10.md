@@ -161,9 +161,9 @@ Notes:
 - [x] Add utility catalog entries for the new nodes.
 - [x] Add handlers with failing tests first.
 - [x] Add vector store provider contract tests.
-- [ ] Add Pinecone plugin manifest and methods.
-- [ ] Add Pinecone local/cloud config validation tests.
-- [ ] Add Qdrant plugin manifest and methods.
+- [x] Add Pinecone plugin manifest and methods.
+- [x] Add Pinecone local/cloud config validation tests.
+- [x] Add Qdrant plugin manifest and methods.
 - [ ] Add Qdrant local/cloud/self-hosted config validation tests.
 - [ ] Add Dataset to Split In Batches compatibility tests.
 - [ ] Add retriever-to-agent integration tests.
