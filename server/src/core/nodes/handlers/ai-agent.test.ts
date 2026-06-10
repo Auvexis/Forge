@@ -260,6 +260,57 @@ describe("AI workflow node handlers", () => {
     assert.deepEqual(runCall.triggerPayload, context.trigger);
   });
 
+  it("adds connected retriever output as agent context", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture({
+      nodes: {
+        ...workflowFixture().nodes,
+        retriever: {
+          type: "retriever",
+          name: "Retriever",
+          query: "{{ trigger.message }}",
+          topK: 2,
+          outputMode: "context",
+          maxContextChars: 4000,
+        },
+      },
+      edges: [
+        ...workflowFixture().edges,
+        { id: "retriever-agent", source: "retriever", target: "agent" },
+      ],
+    });
+    const context = contextFixture({
+      steps: {
+        retriever: {
+          output: {
+            context: "Use Sailor retrieval context.",
+            items: [{ text: "Use Sailor retrieval context.", score: 0.92 }],
+          },
+        },
+      },
+    });
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return {
+        status: "success",
+        output: "ok",
+        toolCallCount: 0,
+        iterationCount: 1,
+      };
+    };
+
+    await registry
+      .get("ai-agent")
+      .execute(handlerInput("agent", workflow.nodes.agent, workflow, context));
+
+    assert.ok(received);
+    const runCall = received as AgentRunInput;
+    assert.deepEqual(runCall.contextMessages, [
+      { role: "system", content: "Retrieved context:\nUse Sailor retrieval context." },
+    ]);
+  });
+
   it("passes chat-scoped memory sqlite path for sailor internal session memory", async () => {
     const registry = createUtilityNodeRegistry();
     const fixture = workflowFixture();

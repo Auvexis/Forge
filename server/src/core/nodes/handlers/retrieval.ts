@@ -10,15 +10,9 @@ import type {
 import { createNodeHandler } from "../handler.ts";
 
 export const textDatasetNodeHandler = createNodeHandler<TextDatasetNode>("text-dataset", ({ node, nodeId }) => {
-  const text = node.text.trim();
-  const items = text
-    ? [{
-        id: `${nodeId}:0`,
-        text,
-        metadata: node.metadata ?? {},
-        raw: text,
-      }]
-    : [];
+  const items = node.format === "json-array"
+    ? jsonArrayToItems(node.text, nodeId, node.metadata ?? {})
+    : plainTextToItems(node.text, nodeId, node.metadata ?? {});
 
   return {
     items,
@@ -32,6 +26,60 @@ export const textDatasetNodeHandler = createNodeHandler<TextDatasetNode>("text-d
   outputs: [{ id: "default", label: "Items" }],
   errors: ["Invalid text dataset"],
 });
+
+function plainTextToItems(
+  value: string,
+  nodeId: string,
+  metadata: Record<string, any>,
+): DatasetOutput["items"] {
+  const text = value.trim();
+  return text
+    ? [{
+        id: `${nodeId}:0`,
+        text,
+        metadata,
+        raw: text,
+      }]
+    : [];
+}
+
+function jsonArrayToItems(
+  value: string,
+  nodeId: string,
+  baseMetadata: Record<string, any>,
+): DatasetOutput["items"] {
+  const parsed = JSON.parse(value);
+  if (!Array.isArray(parsed)) {
+    throw new Error("Text Dataset json-array format must parse to an array.");
+  }
+
+  return parsed.map((entry, index) => {
+    const record = entry && typeof entry === "object" && !Array.isArray(entry)
+      ? entry as Record<string, any>
+      : { value: entry };
+    const id = String(record.id ?? record.key ?? `${nodeId}:${index}`);
+    const text = String(record.text ?? record.body ?? record.content ?? record.value ?? "");
+    const {
+      id: _id,
+      key: _key,
+      text: _text,
+      body: _body,
+      content: _content,
+      value: _value,
+      ...metadata
+    } = record;
+
+    return {
+      id,
+      text,
+      metadata: {
+        ...baseMetadata,
+        ...metadata,
+      },
+      raw: entry,
+    };
+  });
+}
 
 export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-dataset", ({ node }) => ({
   sourceType: "file",

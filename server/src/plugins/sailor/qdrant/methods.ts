@@ -17,6 +17,9 @@ interface QdrantConfig {
   url: string;
   collectionName: string;
   apiKey?: string;
+  preferGrpc: boolean;
+  tls: boolean;
+  timeoutMs: number;
 }
 
 export function normalizeQdrantConfig(
@@ -43,6 +46,9 @@ export function normalizeQdrantConfig(
     url,
     collectionName: store.collectionName,
     apiKey,
+    preferGrpc: config.preferGrpc === true,
+    tls: config.tls === true,
+    timeoutMs: normalizeTimeout(config.timeoutMs),
   };
 }
 
@@ -147,6 +153,12 @@ function toQdrantDistance(metric: VectorStoreProviderConfig["metric"]): "Cosine"
   if (metric === "dot") return "Dot";
   if (metric === "euclidean") return "Euclid";
   return "Cosine";
+}
+
+function normalizeTimeout(value: unknown): number {
+  const parsed = Number(value ?? 30000);
+  if (!Number.isFinite(parsed) || parsed < 1000) return 30000;
+  return Math.trunc(parsed);
 }
 
 async function qdrantRequest(

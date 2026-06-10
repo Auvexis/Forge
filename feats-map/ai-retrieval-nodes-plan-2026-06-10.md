@@ -164,9 +164,9 @@ Notes:
 - [x] Add Pinecone plugin manifest and methods.
 - [x] Add Pinecone local/cloud config validation tests.
 - [x] Add Qdrant plugin manifest and methods.
-- [ ] Add Qdrant local/cloud/self-hosted config validation tests.
-- [ ] Add Dataset to Split In Batches compatibility tests.
-- [ ] Add retriever-to-agent integration tests.
+- [x] Add Qdrant local/cloud/self-hosted config validation tests.
+- [x] Add Dataset to Split In Batches compatibility tests.
+- [x] Add retriever-to-agent integration tests.
 
 ## Frontend Tasks
 

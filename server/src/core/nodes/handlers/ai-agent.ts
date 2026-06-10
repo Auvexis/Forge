@@ -11,6 +11,7 @@ import type {
   AiAgentNode,
   AiMemoryNode,
   AiModelNode,
+  RetrieverNode,
   AiToolNode,
   WorkflowNode,
 } from "../../../shared/models/workflow-types.ts";
@@ -22,7 +23,7 @@ import { CancellationRegistry } from "../../modules/workflows/cancellation-regis
 import { sailorHomePaths } from "../../runtime/sailor-home.ts";
 import { resolveAgentChatMemoryPath } from "../../modules/agent-runtime/chat/agent-chat-paths.ts";
 
-type AgentConfigNode = AiModelNode | AiMemoryNode | AiToolNode;
+type AgentConfigNode = AiModelNode | AiMemoryNode | AiToolNode | RetrieverNode;
 
 export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", async (input) => {
   const agentConfig = toAgentConfig(input.node, input.context);
@@ -34,9 +35,16 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
 
   const memory = connected.find((node): node is AiMemoryNode => node.type === "ai-memory");
   const tools = connected.filter((node): node is AiToolNode => node.type === "ai-tool");
+  const retrievers = connected.filter((node): node is RetrieverNode => node.type === "retriever");
   const triggerPayload = input.context.trigger ?? {};
   const sessionId = optionalString(triggerPayload.sessionId ?? triggerPayload.session_id);
   const memoryConfig = memory ? toMemoryConfig(memory) : undefined;
+  const contextMessages = [
+    ...(usesShortTermMemory(memoryConfig) && sessionId
+      ? toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages) ?? []
+      : []),
+    ...toRetrieverContextMessages(input, retrievers),
+  ];
   const profileId = String(triggerPayload.profileId ?? triggerPayload.profile_id ?? "default");
   const runInput: AgentRunInput = {
     profileId,
@@ -46,9 +54,7 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     sessionId,
     userId: optionalString(triggerPayload.userId ?? triggerPayload.user_id),
     userMessage: toUserMessage(input.node, input.context, triggerPayload),
-    contextMessages: usesShortTermMemory(memoryConfig) && sessionId
-      ? toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages)
-      : undefined,
+    contextMessages: contextMessages.length > 0 ? contextMessages : undefined,
     checkpointerDbPath: resolveCheckpointerDbPath(profileId, sessionId, memoryConfig),
     triggerPayload,
     skipFinalResponseAfterToolUse: triggerPayload.skipFinalResponseAfterToolUse === true,
@@ -68,7 +74,7 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
   description: "Runs a Sailor AI Agent with connected model, memory, and tool configuration nodes.",
   execution: "external-io",
   sideEffects: ["network", "workflow-dispatch"],
-  inputs: ["trigger", "ai-model", "ai-memory", "ai-tool"],
+  inputs: ["trigger", "ai-model", "ai-memory", "ai-tool", "retriever"],
   outputs: [{ id: "default", label: "Output" }],
   errors: ["Missing AI model", "Agent runtime failed"],
   usesExternalIO: true,
@@ -95,7 +101,10 @@ function resolveCheckpointerDbPath(
 }
 
 function isAgentConfigNode(node: WorkflowNode | undefined): node is AgentConfigNode {
-  return node?.type === "ai-model" || node?.type === "ai-memory" || node?.type === "ai-tool";
+  return node?.type === "ai-model" ||
+    node?.type === "ai-memory" ||
+    node?.type === "ai-tool" ||
+    node?.type === "retriever";
 }
 
 function toAgentConfig(node: AiAgentNode, context: NodeHandlerInput["context"]): AiAgentNodeConfig {
@@ -169,6 +178,48 @@ function toToolConfig(node: AiToolNode, context: NodeHandlerInput["context"]): A
       ? TemplateEngine.evaluate(node.inputDefaults, context) as Record<string, any>
       : undefined,
   };
+}
+
+function toRetrieverContextMessages(
+  input: NodeHandlerInput<AiAgentNode>,
+  retrievers: RetrieverNode[],
+): NonNullable<AgentRunInput["contextMessages"]> {
+  const messages: NonNullable<AgentRunInput["contextMessages"]> = [];
+
+  for (const retriever of retrievers) {
+    const sourceId = Object.entries(input.workflow.nodes)
+      .find(([, node]) => node === retriever)?.[0];
+    if (!sourceId) continue;
+
+    const output = input.context.steps[sourceId]?.output;
+    const context = output && typeof output === "object"
+      ? (output as Record<string, any>).context
+      : undefined;
+    const content = typeof context === "string" && context.trim()
+      ? context.trim()
+      : retrieverItemsToContext(output);
+
+    if (content) {
+      messages.push({ role: "system", content: `Retrieved context:\n${content}` });
+    }
+  }
+
+  return messages;
+}
+
+function retrieverItemsToContext(output: unknown): string {
+  if (!output || typeof output !== "object" || Array.isArray(output)) return "";
+  const items = (output as Record<string, unknown>).items;
+  if (!Array.isArray(items)) return "";
+
+  return items
+    .map((item) => {
+      if (!item || typeof item !== "object") return "";
+      const text = (item as Record<string, unknown>).text;
+      return typeof text === "string" ? text.trim() : "";
+    })
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 function optionalString(value: unknown): string | undefined {

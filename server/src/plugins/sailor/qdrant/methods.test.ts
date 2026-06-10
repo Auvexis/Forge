@@ -49,6 +49,31 @@ describe("qdrant vector store plugin", () => {
     assert.equal(config.apiKey, "qd-key");
   });
 
+  it("validates self-hosted mode with optional API key and transport flags", () => {
+    const config = normalizeQdrantConfig(
+      {
+        collectionName: "docs",
+        dimension: 3,
+        metric: "dot",
+        config: {
+          mode: "self-hosted",
+          url: "https://qdrant.internal",
+          preferGrpc: true,
+          tls: true,
+          timeoutMs: 45000,
+        },
+      },
+      { credentials: { apiKey: "self-hosted-key" } } as any,
+    );
+
+    assert.equal(config.mode, "self-hosted");
+    assert.equal(config.url, "https://qdrant.internal");
+    assert.equal(config.apiKey, "self-hosted-key");
+    assert.equal(config.preferGrpc, true);
+    assert.equal(config.tls, true);
+    assert.equal(config.timeoutMs, 45000);
+  });
+
   it("creates collections through the Qdrant collections API", async () => {
     const calls: Array<{ url: string; init: RequestInit }> = [];
     const methods = createQdrantMethods(async (url, init) => {
