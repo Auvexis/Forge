@@ -50,23 +50,29 @@
     </EditorField>
 
     <EditorField v-if="pluginId === 'sailor-pinecone'" label="Pinecone Mode">
-      <BaseInput
+      <BaseSelect
         :model-value="config.mode || 'cloud'"
-        @update:model-value="updateConfig({ mode: ($event as string) || 'cloud' })"
-        placeholder="cloud or local"
+        :options="PINECONE_MODES"
+        @update:model-value="updateConfig({ mode: $event as string })"
       />
     </EditorField>
 
     <template v-if="pluginId === 'sailor-pinecone'">
-      <EditorField label="API Key">
-        <BaseInput
-          :model-value="config.apiKey || ''"
-          @update:model-value="updateConfig({ apiKey: $event as string })"
-          placeholder="Pinecone API key"
-        />
+      <EditorField v-if="isRemoteMode" label="Credential">
+        <div class="vector-store-credential-row">
+          <BaseSelect
+            :model-value="config.apiKeyCredentialId || ''"
+            :options="credentialOptions"
+            placeholder="Select saved Pinecone credential"
+            @update:model-value="updateConfig({ apiKeyCredentialId: $event as string })"
+          />
+          <BaseButton size="sm" variant="outline" icon-left="lock-keyhole" @click="settingsStore.openCredentialsFor(pluginId)">
+            Manage Credentials
+          </BaseButton>
+        </div>
       </EditorField>
 
-      <EditorField label="Host">
+      <EditorField v-if="isRemoteMode" label="Host">
         <BaseInput
           :model-value="config.host || ''"
           @update:model-value="updateConfig({ host: $event as string })"
@@ -74,7 +80,7 @@
         />
       </EditorField>
 
-      <EditorField label="Local Host">
+      <EditorField v-if="!isRemoteMode" label="Local Host">
         <BaseInput
           :model-value="config.localHost || ''"
           @update:model-value="updateConfig({ localHost: $event as string })"
@@ -92,15 +98,29 @@
     </template>
 
     <EditorField v-if="pluginId === 'sailor-qdrant'" label="Qdrant Mode">
-      <BaseInput
+      <BaseSelect
         :model-value="config.mode || 'cloud'"
-        @update:model-value="updateConfig({ mode: ($event as string) || 'cloud' })"
-        placeholder="cloud, local, self-hosted"
+        :options="QDRANT_MODES"
+        @update:model-value="updateConfig({ mode: $event as string })"
       />
     </EditorField>
 
     <template v-if="pluginId === 'sailor-qdrant'">
-      <EditorField label="Host">
+      <EditorField v-if="isRemoteMode" label="Credential">
+        <div class="vector-store-credential-row">
+          <BaseSelect
+            :model-value="config.apiKeyCredentialId || ''"
+            :options="credentialOptions"
+            placeholder="Select saved Qdrant credential"
+            @update:model-value="updateConfig({ apiKeyCredentialId: $event as string })"
+          />
+          <BaseButton size="sm" variant="outline" icon-left="lock-keyhole" @click="settingsStore.openCredentialsFor(pluginId)">
+            Manage Credentials
+          </BaseButton>
+        </div>
+      </EditorField>
+
+      <EditorField v-if="isRemoteMode" label="Host">
         <BaseInput
           :model-value="config.host || ''"
           @update:model-value="updateConfig({ host: $event as string })"
@@ -108,19 +128,11 @@
         />
       </EditorField>
 
-      <EditorField label="Local Host">
+      <EditorField v-if="!isRemoteMode" label="Local Host">
         <BaseInput
           :model-value="config.localHost || ''"
           @update:model-value="updateConfig({ localHost: $event as string })"
           placeholder="http://localhost:6333"
-        />
-      </EditorField>
-
-      <EditorField label="API Key">
-        <BaseInput
-          :model-value="config.apiKey || ''"
-          @update:model-value="updateConfig({ apiKey: $event as string })"
-          placeholder="Qdrant API key"
         />
       </EditorField>
 
@@ -153,16 +165,49 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import { useSettingsStore } from '@/shared/stores/settings.store'
 
 const props = defineProps<NodeEditorProps>()
+const settingsStore = useSettingsStore()
 
 const pluginId = computed(() => (props.node.data.pluginId as string) || 'sailor-qdrant')
 const config = computed<Record<string, any>>(() => ((props.node.data.config as Record<string, any> | undefined) ?? {}))
+const isRemoteMode = computed(() => ['cloud', 'self-hosted'].includes((config.value.mode as string) || 'cloud'))
+const credentialOptions = computed(() => {
+  const credential = settingsStore.credentials[pluginId.value]
+  return [
+    { value: '', label: 'No credential selected' },
+    ...(credential
+      ? [{ value: credential.plugin_id, label: `${pluginId.value} saved credential` }]
+      : []),
+  ]
+})
+
+const PINECONE_MODES = [
+  { value: 'cloud', label: 'Cloud' },
+  { value: 'local', label: 'Local' },
+]
+
+const QDRANT_MODES = [
+  { value: 'cloud', label: 'Cloud' },
+  { value: 'local', label: 'Local' },
+  { value: 'self-hosted', label: 'Self-hosted' },
+]
+
+onMounted(() => {
+  void settingsStore.fetchCredential(pluginId.value)
+})
+
+watch(pluginId, (nextPluginId) => {
+  void settingsStore.fetchCredential(nextPluginId)
+})
 
 function updateProvider(nextPluginId: string) {
   props.updateNodeData({
@@ -178,3 +223,12 @@ function updateConfig(patch: Record<string, any>) {
   props.updateNodeData({ config: { ...config.value, ...patch } })
 }
 </script>
+
+<style scoped>
+.vector-store-credential-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--sailor-space-2);
+  align-items: center;
+}
+</style>

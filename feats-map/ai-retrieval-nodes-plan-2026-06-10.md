@@ -173,9 +173,9 @@ Notes:
 - [x] Add node components for Text Dataset, File Dataset, Database Dataset, Embeddings, Vector Store, and Retriever.
 - [x] Add editors for each new node.
 - [x] Add provider-specific config sections for Pinecone and Qdrant.
-- [ ] Add mode selector: local/cloud/self-hosted where applicable.
-- [ ] Add Dataset chunking switch using `BaseSwitch.vue` for contextual overlap.
-- [ ] Add credential picker for cloud/self-hosted configs.
+- [x] Add mode selector: local/cloud/self-hosted where applicable.
+- [x] Add Dataset chunking switch using `BaseSwitch.vue` for contextual overlap.
+- [x] Add credential picker for cloud/self-hosted configs.
 - [ ] Add validation hints for dimension, collection/index name, namespace, URL, topK, and score threshold.
 - [ ] Add Add Node picker coverage.
 

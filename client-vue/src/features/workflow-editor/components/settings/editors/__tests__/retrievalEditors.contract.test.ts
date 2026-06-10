@@ -52,6 +52,37 @@ test('vector store editor exposes Pinecone and Qdrant provider config sections',
   assert.match(source, /timeoutMs/)
 })
 
+test('vector store editor uses mode selectors for local, cloud, and self-hosted provider modes', () => {
+  const source = read('src/features/workflow-editor/components/settings/editors/VectorStoreEditor.vue')
+
+  assert.match(source, /BaseSelect/)
+  assert.match(source, /PINECONE_MODES/)
+  assert.match(source, /QDRANT_MODES/)
+  assert.match(source, /value: 'local'/)
+  assert.match(source, /value: 'cloud'/)
+  assert.match(source, /value: 'self-hosted'/)
+})
+
+test('dataset editors use BaseSwitch for contextual overlap carry-over', () => {
+  for (const editor of ['TextDatasetEditor', 'FileDatasetEditor', 'DatabaseDatasetEditor']) {
+    const source = read(`src/features/workflow-editor/components/settings/editors/${editor}.vue`)
+    assert.match(source, /BaseSwitch/)
+    assert.match(source, /contextualOverlapEnabled/)
+    assert.match(source, /Carry previous chunk context/)
+  }
+})
+
+test('vector store editor can select and manage plugin credentials for cloud and self-hosted modes', () => {
+  const source = read('src/features/workflow-editor/components/settings/editors/VectorStoreEditor.vue')
+
+  assert.match(source, /useSettingsStore/)
+  assert.match(source, /fetchCredential/)
+  assert.match(source, /openCredentialsFor/)
+  assert.match(source, /apiKeyCredentialId/)
+  assert.match(source, /credentialOptions/)
+  assert.match(source, /Manage Credentials/)
+})
+
 test('embeddings and retriever editors expose retrieval controls', () => {
   const embeddings = read('src/features/workflow-editor/components/settings/editors/EmbeddingsEditor.vue')
   const retriever = read('src/features/workflow-editor/components/settings/editors/RetrieverEditor.vue')
