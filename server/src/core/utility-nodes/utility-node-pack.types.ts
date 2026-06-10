@@ -22,7 +22,7 @@ export interface UtilityNodePack {
   name: string;
   description: string;
   version: string;
-  nodes: Record<UtilityNodeType, UtilityNodeManifestEntry>;
+  nodes: Partial<Record<UtilityNodeType, UtilityNodeManifestEntry>>;
 }
 
 export interface UtilityNodeCatalogItem extends UtilityNodeManifestEntry {

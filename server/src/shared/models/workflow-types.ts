@@ -19,13 +19,21 @@ export type WorkflowNodeType =
   | "ai-agent"
   | "ai-model"
   | "ai-memory"
-  | "ai-tool";
+  | "ai-tool"
+  | "text-dataset"
+  | "file-dataset"
+  | "database-dataset"
+  | "embeddings"
+  | "vector-store"
+  | "retriever";
 
 export type AgentMemoryScope = "none" | "session" | "workflow" | "profile" | "user";
 export type AgentMemoryAdapter = "sailor-internal" | "plugin-memory-store";
 
 export type AgentModelAdapter = "openai-compatible" | "generic" | "ollama";
 export type AgentExecutionMode = "loop" | "plan";
+export type DatasetSourceType = "text" | "file" | "database";
+export type VectorDistanceMetric = "cosine" | "dot" | "euclidean";
 
 export type AgentToolSideEffect =
   | "read"
@@ -34,6 +42,48 @@ export type AgentToolSideEffect =
   | "external-message"
   | "external-payment"
   | "filesystem";
+
+export interface DatasetItem {
+  id: string;
+  text: string;
+  metadata: Record<string, any>;
+  raw?: any;
+}
+
+export interface DatasetOutput {
+  items: DatasetItem[];
+  count: number;
+  sourceType: DatasetSourceType;
+}
+
+export interface VectorDocument {
+  id: string;
+  text: string;
+  vector: number[];
+  metadata: Record<string, any>;
+}
+
+export interface VectorQuery {
+  text?: string;
+  vector?: number[];
+  topK: number;
+  filter?: Record<string, any>;
+  scoreThreshold?: number;
+}
+
+export interface VectorSearchResult {
+  id: string;
+  text: string;
+  score: number;
+  metadata: Record<string, any>;
+}
+
+export interface VectorCollectionInfo {
+  name: string;
+  dimension: number;
+  metric: VectorDistanceMetric;
+  documentCount?: number;
+}
 
 // ──────────── Retry Policy ────────────
 
@@ -272,6 +322,76 @@ export interface AiToolNode extends WorkflowNodeBase {
   inputDefaults?: Record<string, any>;
 }
 
+export interface DatasetChunkingConfig {
+  enabled: boolean;
+  chunkSize: number;
+  chunkOverlap: number;
+  contextualOverlapEnabled: boolean;
+  maxPreviousContextChars?: number;
+}
+
+export interface TextDatasetNode extends WorkflowNodeBase {
+  type: "text-dataset";
+  text: string;
+  format: "plain-text" | "json-array";
+  chunking: DatasetChunkingConfig;
+  metadata?: Record<string, any>;
+}
+
+export interface FileDatasetNode extends WorkflowNodeBase {
+  type: "file-dataset";
+  filePath?: string;
+  fileUrl?: string;
+  format: "txt" | "markdown" | "json" | "csv";
+  chunking: DatasetChunkingConfig;
+  metadata?: Record<string, any>;
+}
+
+export interface DatabaseDatasetNode extends WorkflowNodeBase {
+  type: "database-dataset";
+  pluginId: string;
+  methodId: string;
+  query: string;
+  textColumns: string[];
+  metadataColumns?: string[];
+  limit?: number;
+  chunking: DatasetChunkingConfig;
+}
+
+export interface EmbeddingsNode extends WorkflowNodeBase {
+  type: "embeddings";
+  pluginId: string;
+  methodId: string;
+  model: string;
+  dimension?: number;
+  input: string;
+  batchSize?: number;
+}
+
+export interface VectorStoreNode extends WorkflowNodeBase {
+  type: "vector-store";
+  pluginId: string;
+  ensureCollectionMethodId: string;
+  upsertMethodId: string;
+  queryMethodId: string;
+  deleteMethodId?: string;
+  describeMethodId?: string;
+  collectionName: string;
+  dimension: number;
+  metric: VectorDistanceMetric;
+  config: Record<string, any>;
+}
+
+export interface RetrieverNode extends WorkflowNodeBase {
+  type: "retriever";
+  query: string;
+  topK: number;
+  scoreThreshold?: number;
+  outputMode: "items" | "context";
+  maxContextChars?: number;
+  filter?: Record<string, any>;
+}
+
 // ──────────── Discriminated Union ────────────
 
 export type WorkflowNode =
@@ -293,7 +413,13 @@ export type WorkflowNode =
   | AiAgentNode
   | AiModelNode
   | AiMemoryNode
-  | AiToolNode;
+  | AiToolNode
+  | TextDatasetNode
+  | FileDatasetNode
+  | DatabaseDatasetNode
+  | EmbeddingsNode
+  | VectorStoreNode
+  | RetrieverNode;
 
 // ──────────── Edges ────────────
 

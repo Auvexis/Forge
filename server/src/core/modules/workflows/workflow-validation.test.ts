@@ -31,6 +31,12 @@ describe("workflow validation", () => {
     assert.equal(VALID_NODE_TYPES.has("plugin"), true);
     assert.equal(VALID_NODE_TYPES.has("respond-webhook"), true);
     assert.equal(VALID_NODE_TYPES.has("wait-form"), true);
+    assert.equal(VALID_NODE_TYPES.has("text-dataset"), true);
+    assert.equal(VALID_NODE_TYPES.has("file-dataset"), true);
+    assert.equal(VALID_NODE_TYPES.has("database-dataset"), true);
+    assert.equal(VALID_NODE_TYPES.has("embeddings"), true);
+    assert.equal(VALID_NODE_TYPES.has("vector-store"), true);
+    assert.equal(VALID_NODE_TYPES.has("retriever"), true);
   });
 
   it("accepts a minimal valid workflow definition", () => {
@@ -120,6 +126,78 @@ describe("workflow validation", () => {
     }));
 
     assert.equal(error, null);
+  });
+
+  it("accepts generic text dataset nodes for non-AI data workflows", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        dataset: {
+          type: "text-dataset",
+          name: "Dataset",
+          text: "one\ntwo\nthree",
+          format: "plain-text",
+          chunking: {
+            enabled: true,
+            chunkSize: 800,
+            chunkOverlap: 120,
+            contextualOverlapEnabled: true,
+            maxPreviousContextChars: 240,
+          },
+        },
+      },
+    }));
+
+    assert.equal(error, null);
+  });
+
+  it("accepts generic vector store and retriever nodes without provider-specific validation", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        store: {
+          type: "vector-store",
+          name: "Vector Store",
+          pluginId: "vector-provider",
+          ensureCollectionMethodId: "ensureCollection",
+          upsertMethodId: "upsertDocuments",
+          queryMethodId: "querySimilar",
+          collectionName: "docs",
+          dimension: 1536,
+          metric: "cosine",
+          config: { mode: "cloud" },
+        },
+        retriever: {
+          type: "retriever",
+          name: "Retriever",
+          query: "{{ trigger.query }}",
+          topK: 5,
+          outputMode: "context",
+          maxContextChars: 4000,
+        },
+      },
+    }));
+
+    assert.equal(error, null);
+  });
+
+  it("rejects invalid retrieval node config", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        store: {
+          type: "vector-store",
+          name: "Broken Store",
+          pluginId: "vector-provider",
+          ensureCollectionMethodId: "ensureCollection",
+          upsertMethodId: "upsertDocuments",
+          queryMethodId: "querySimilar",
+          collectionName: "docs",
+          dimension: 0,
+          metric: "cosine",
+          config: {},
+        },
+      },
+    }));
+
+    assert.match(error ?? "", /dimension/);
   });
 
   it("accepts legacy OpenAI provider AI model nodes during migration", () => {

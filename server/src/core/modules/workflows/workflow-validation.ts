@@ -20,6 +20,12 @@ export const VALID_NODE_TYPES = new Set([
   "ai-model",
   "ai-memory",
   "ai-tool",
+  "text-dataset",
+  "file-dataset",
+  "database-dataset",
+  "embeddings",
+  "vector-store",
+  "retriever",
 ]);
 
 const VALID_FORM_FIELD_TYPES = new Set([
@@ -179,6 +185,44 @@ function isValidWaitFormExpiration(value: unknown): boolean {
   return Number.isFinite(numericValue) && numericValue >= 1;
 }
 
+function validateChunkingConfig(
+  chunking: unknown,
+  label: string,
+): string | null {
+  if (!chunking || typeof chunking !== "object") {
+    return `${label} must have chunking config`;
+  }
+
+  const config = chunking as Record<string, unknown>;
+  if (typeof config.enabled !== "boolean") {
+    return `${label} chunking.enabled must be boolean`;
+  }
+  if (typeof config.chunkSize !== "number" || config.chunkSize < 1) {
+    return `${label} chunking.chunkSize must be >= 1`;
+  }
+  if (typeof config.chunkOverlap !== "number" || config.chunkOverlap < 0) {
+    return `${label} chunking.chunkOverlap must be >= 0`;
+  }
+  if (config.chunkOverlap >= config.chunkSize) {
+    return `${label} chunking.chunkOverlap must be smaller than chunkSize`;
+  }
+  if (typeof config.contextualOverlapEnabled !== "boolean") {
+    return `${label} chunking.contextualOverlapEnabled must be boolean`;
+  }
+  if (
+    config.maxPreviousContextChars !== undefined &&
+    (typeof config.maxPreviousContextChars !== "number" || config.maxPreviousContextChars < 0)
+  ) {
+    return `${label} chunking.maxPreviousContextChars must be >= 0`;
+  }
+
+  return null;
+}
+
+function isValidVectorMetric(value: unknown): boolean {
+  return value === "cosine" || value === "dot" || value === "euclidean";
+}
+
 function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): string | null {
   switch (node.type) {
     case "plugin":
@@ -335,7 +379,72 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       )
         ? `AI Tool node "${nodeId}" must have a valid sideEffect`
         : null;
+    case "text-dataset":
+      if (!node.text || typeof node.text !== "string") {
+        return `Text Dataset node "${nodeId}" must have text`;
+      }
+      if (node.format !== "plain-text" && node.format !== "json-array") {
+        return `Text Dataset node "${nodeId}" must have format plain-text or json-array`;
+      }
+      return validateChunkingConfig(node.chunking, `Text Dataset node "${nodeId}"`);
+    case "file-dataset":
+      if (!node.filePath && !node.fileUrl) {
+        return `File Dataset node "${nodeId}" must have filePath or fileUrl`;
+      }
+      if (!["txt", "markdown", "json", "csv"].includes(node.format)) {
+        return `File Dataset node "${nodeId}" must have a supported format`;
+      }
+      return validateChunkingConfig(node.chunking, `File Dataset node "${nodeId}"`);
+    case "database-dataset":
+      if (!node.pluginId || !node.methodId) {
+        return `Database Dataset node "${nodeId}" must have pluginId and methodId`;
+      }
+      if (!node.query || typeof node.query !== "string") {
+        return `Database Dataset node "${nodeId}" must have query`;
+      }
+      if (!Array.isArray(node.textColumns) || node.textColumns.length === 0) {
+        return `Database Dataset node "${nodeId}" must have textColumns`;
+      }
+      return validateChunkingConfig(node.chunking, `Database Dataset node "${nodeId}"`);
+    case "embeddings":
+      if (!node.pluginId || !node.methodId) {
+        return `Embeddings node "${nodeId}" must have pluginId and methodId`;
+      }
+      if (!node.model || typeof node.model !== "string") {
+        return `Embeddings node "${nodeId}" must have model`;
+      }
+      return !node.input || typeof node.input !== "string"
+        ? `Embeddings node "${nodeId}" must have input`
+        : null;
+    case "vector-store":
+      if (!node.pluginId || !node.ensureCollectionMethodId || !node.upsertMethodId || !node.queryMethodId) {
+        return `Vector Store node "${nodeId}" must have pluginId and vector store method ids`;
+      }
+      if (!node.collectionName || typeof node.collectionName !== "string") {
+        return `Vector Store node "${nodeId}" must have collectionName`;
+      }
+      if (typeof node.dimension !== "number" || node.dimension < 1) {
+        return `Vector Store node "${nodeId}" must have dimension >= 1`;
+      }
+      if (!isValidVectorMetric(node.metric)) {
+        return `Vector Store node "${nodeId}" must have metric cosine, dot, or euclidean`;
+      }
+      return !node.config || typeof node.config !== "object" || Array.isArray(node.config)
+        ? `Vector Store node "${nodeId}" must have config object`
+        : null;
+    case "retriever":
+      if (!node.query || typeof node.query !== "string") {
+        return `Retriever node "${nodeId}" must have query`;
+      }
+      if (typeof node.topK !== "number" || node.topK < 1) {
+        return `Retriever node "${nodeId}" must have topK >= 1`;
+      }
+      return node.outputMode !== "items" && node.outputMode !== "context"
+        ? `Retriever node "${nodeId}" must have outputMode items or context`
+        : null;
     case "trigger":
       return validateTriggerConfig(node.trigger ?? { type: "manual" }, `Trigger node "${nodeId}"`);
   }
+
+  return `Node "${nodeId}" has unsupported type`;
 }

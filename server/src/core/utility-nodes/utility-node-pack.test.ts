@@ -25,6 +25,7 @@ describe("Utility node pack contract", () => {
     assert.match(types, /borderColor: string/);
     assert.match(types, /export interface UtilityNodeManifestEntry/);
     assert.match(types, /export interface UtilityNodePack/);
+    assert.match(types, /nodes: Partial<Record<UtilityNodeType, UtilityNodeManifestEntry>>/);
     assert.match(types, /export interface UtilityNodeCatalogItem/);
     assert.match(types, /UtilityNodeType/);
     assert.match(helper, /export function defineUtilityNodePack/);
@@ -54,6 +55,7 @@ describe("Utility node pack contract", () => {
       "ai-tool",
     ] as const) {
       const node = sailorCoreUtilityNodePack.nodes[type];
+      assert.ok(node, `${type} manifest`);
       assert.equal(node.type, type);
       assert.ok(node.label.length > 0, `${type} label`);
       assert.ok(node.description.length > 0, `${type} description`);
