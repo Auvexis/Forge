@@ -41,6 +41,20 @@ test('add node panel gets utility presets from the backend workflow node catalog
   assert.match(model, /style: item\.style/)
 })
 
+test('add node panel keeps trigger as a fixed top-level action and searchable preset', () => {
+  const source = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+
+  assert.match(source, /const TRIGGER_PRESET(?:: AddNodePickerPreset)? = \{/)
+  assert.match(source, /nodeType: 'trigger'/)
+  assert.match(source, /showQuickTrigger/)
+  assert.match(source, /class="add-node-cascade__quick-section"/)
+  assert.match(source, /class="add-node-cascade__section-label">Trigger/)
+  assert.match(source, /@click="addQuickTrigger"/)
+  assert.match(source, /props\.onAddLogicNode\?\.\('trigger' as WorkflowNodeType/)
+  assert.match(source, /const searchablePresets/)
+  assert.match(source, /TRIGGER_PRESET,[\s\S]*pickerPresets\.value\.filter\(\(preset\) => preset\.nodeType !== 'trigger'\)/)
+})
+
 test('add node panel supports contextual agent quick-add presets', () => {
   const source = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
@@ -213,6 +227,14 @@ test('add node panel supports focused global fuzzy search in the primary panel',
   assert.match(panel, /add-node-cascade__search/)
   assert.match(panel, /secondarySide/)
   assert.match(panel, /add-node-panel--secondary-left/)
+})
+
+test('add node panel primary column animates in from the left with fade-in', () => {
+  const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+
+  assert.match(panel, /\.add-node-cascade__primary\s*\{[\s\S]*animation: add-node-primary-in/)
+  assert.match(panel, /@keyframes add-node-primary-in\s*\{[\s\S]*opacity: 0;[\s\S]*transform: translateX\(-12px\);[\s\S]*opacity: 1;[\s\S]*transform: translateX\(0\);/)
+  assert.match(panel, /@media \(prefers-reduced-motion: reduce\)/)
 })
 
 test('node inspector previews summarize provider, memory, tools, and chat trigger', () => {

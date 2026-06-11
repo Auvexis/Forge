@@ -38,6 +38,17 @@
               </div>
             </template>
             <template v-else>
+              <div v-if="showQuickTrigger" class="add-node-cascade__quick-section">
+                <div class="add-node-cascade__section-label">Trigger</div>
+                <AddNodePickerItem
+                  :label="TRIGGER_PRESET.label"
+                  :description="TRIGGER_PRESET.description"
+                  :icon="TRIGGER_PRESET.icon"
+                  :style-meta="TRIGGER_PRESET.style"
+                  @click="addQuickTrigger"
+                />
+              </div>
+
               <AddNodePickerItem
                 v-for="item in categoryItems"
                 :key="item.category"
@@ -170,10 +181,28 @@ const isLoading = computed(() => pluginsLoading.value || workflowNodeCatalogLoad
 const isAgentModelContext = computed(() => props.agentConfigHandle === 'chatModel')
 const isAgentMemoryContext = computed(() => props.agentConfigHandle === 'memory')
 const isAgentToolContext = computed(() => props.agentConfigHandle === 'tool')
+const showQuickTrigger = computed(() =>
+  !isAgentModelContext.value && !isAgentMemoryContext.value && !isAgentToolContext.value,
+)
 
 const AI_NODES: AddNodePickerPreset[] = [
   { id: 'ai-agent', nodeType: 'ai-agent' as WorkflowNodeType, label: 'AI Agent', description: 'Run a governed agent with tools and memory', icon: 'bot', categories: ['AI'] },
 ]
+
+const TRIGGER_PRESET: AddNodePickerPreset = {
+  id: 'trigger',
+  nodeType: 'trigger' as WorkflowNodeType,
+  label: 'Trigger',
+  description: 'Add another workflow entry point',
+  icon: 'zap',
+  categories: ['Core'],
+  style: {
+    icon: 'zap',
+    iconColor: '#facc15',
+    bgColor: '#fef9c3',
+    borderColor: '#fde047',
+  },
+}
 
 const AGENT_MEMORY_PRESETS: AddNodePickerPreset[] = [
   {
@@ -218,6 +247,14 @@ const pickerPresets = computed(() => {
   return [
     ...catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? []),
     ...AI_NODES,
+  ]
+})
+
+const searchablePresets = computed(() => {
+  if (!showQuickTrigger.value) return pickerPresets.value
+  return [
+    TRIGGER_PRESET,
+    ...pickerPresets.value.filter((preset) => preset.nodeType !== 'trigger'),
   ]
 })
 
@@ -270,7 +307,7 @@ const globalSearchItems = computed(() => {
   const query = normalizedSearch.value
   if (!query) return []
 
-  const presets = pickerPresets.value
+  const presets = searchablePresets.value
     .filter((preset) => matchesFuzzyLetters(`${preset.label} ${preset.description}`, query))
     .map((preset): AddNodePickerSecondColumnItem => ({
       kind: 'preset',
@@ -327,6 +364,10 @@ const openMethodSubmenu = (plugin: PluginSummary) => {
 
 const closeMethodSubmenu = () => {
   methodSubmenuPlugin.value = null
+}
+
+const addQuickTrigger = () => {
+  props.onAddLogicNode?.('trigger' as WorkflowNodeType, TRIGGER_PRESET.defaults)
 }
 
 const addSinglePluginMethod = (plugin: PluginSummary) => {
@@ -458,6 +499,8 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 
 .add-node-cascade__primary {
   position: relative;
+  animation: add-node-primary-in 0.18s ease-out both;
+  transform-origin: left center;
 }
 
 .add-node-cascade__secondary {
@@ -540,6 +583,21 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   overflow-x: hidden;
   overscroll-behavior: contain;
   padding: var(--sailor-space-2);
+}
+
+.add-node-cascade__quick-section {
+  margin-bottom: var(--sailor-space-2);
+  padding-bottom: var(--sailor-space-2);
+  border-bottom: 1px solid var(--sailor-border);
+}
+
+.add-node-cascade__section-label {
+  padding: var(--sailor-space-1) var(--sailor-space-2) var(--sailor-space-2);
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .add-node-cascade__empty {
@@ -660,6 +718,24 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes add-node-primary-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .add-node-cascade__primary {
+    animation: none;
   }
 }
 
