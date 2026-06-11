@@ -3,6 +3,11 @@ import { listUtilityNodeCatalogItems } from "../utility-nodes/utility-node-catal
 
 export default async function workflowNodeCatalogRoutes(fastify: FastifyInstance) {
   fastify.get("/workflow-nodes/catalog", async () => ({
-    nodes: listUtilityNodeCatalogItems(),
+    status_code: 200,
+    message: "Workflow node catalog fetched successfully",
+    error: null,
+    data: {
+      nodes: listUtilityNodeCatalogItems(),
+    },
   }));
 }

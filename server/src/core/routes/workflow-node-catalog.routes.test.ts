@@ -14,10 +14,18 @@ describe("workflow node catalog routes", () => {
     });
 
     assert.equal(response.statusCode, 200);
-    const body = response.json() as { nodes: Array<Record<string, any>> };
-    const code = body.nodes.find((node) => node.type === "code");
+    const body = response.json() as {
+      status_code: number;
+      message: string;
+      error: null;
+      data: { nodes: Array<Record<string, any>> };
+    };
+    const code = body.data.nodes.find((node) => node.type === "code");
 
     assert.ok(code);
+    assert.equal(body.status_code, 200);
+    assert.equal(body.error, null);
+    assert.match(body.message, /catalog/i);
     assert.equal(code.label, "Code Block");
     assert.equal(code.packId, "sailor-core");
     assert.equal(typeof code.description, "string");
