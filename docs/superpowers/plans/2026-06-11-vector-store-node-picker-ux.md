@@ -16,7 +16,7 @@
 - Modify: `client-vue/src/features/workflow-editor/components/settings/addNodePickerModel.ts`
 - Modify: `client-vue/src/features/workflow-editor/components/settings/__tests__/addNodePickerModel.test.ts`
 
-- [ ] **Step 1: Expand the failing picker filter test**
+- [x] **Step 1: Expand the failing picker filter test**
 
 Update the existing default picker test to supply all configuration-only presets and assert that only root nodes remain:
 
@@ -34,7 +34,7 @@ const visibleTypes = filterDefaultPickerPresets([
 assert.deepEqual(visibleTypes, ['ai-agent', 'vector-store'])
 ```
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run:
 
@@ -45,7 +45,7 @@ node --test src/features/workflow-editor/components/settings/__tests__/addNodePi
 
 Expected: FAIL because `ai-model`, `ai-memory`, `ai-tool`, and `embeddings` are still returned.
 
-- [ ] **Step 3: Implement the configuration-only filter**
+- [x] **Step 3: Implement the configuration-only filter**
 
 Use one explicit set in `addNodePickerModel.ts`:
 
@@ -63,11 +63,11 @@ export function filterDefaultPickerPresets(presets: readonly AddNodePickerPreset
 }
 ```
 
-- [ ] **Step 4: Run the focused picker tests and verify GREEN**
+- [x] **Step 4: Run the focused picker tests and verify GREEN**
 
 Run the command from Step 2. Expected: all picker model tests pass.
 
-- [ ] **Step 5: Commit the picker change**
+- [x] **Step 5: Commit the picker change**
 
 ```powershell
 git add client-vue/src/features/workflow-editor/components/settings/addNodePickerModel.ts client-vue/src/features/workflow-editor/components/settings/__tests__/addNodePickerModel.test.ts
@@ -82,7 +82,7 @@ git commit -m "fix: hide contextual nodes from default picker"
 - Modify: `client-vue/src/features/workflow-editor/components/nodes/VectorStoreNode.vue`
 - Modify: `client-vue/src/features/workflow-editor/components/nodes/__tests__/retrievalNodes.contract.test.ts`
 
-- [ ] **Step 1: Write failing Vector Store structure assertions**
+- [x] **Step 1: Write failing Vector Store structure assertions**
 
 Extend the Vector Store contract test to require:
 
@@ -100,7 +100,7 @@ assert.match(source, /<template #icon>/)
 
 Also remove the old generic-shell expectation that requires `icon="database-zap"` directly on Vector Store.
 
-- [ ] **Step 2: Run the contract test and verify RED**
+- [x] **Step 2: Run the contract test and verify RED**
 
 Run:
 
@@ -111,7 +111,7 @@ node --test src/features/workflow-editor/components/nodes/__tests__/retrievalNod
 
 Expected: FAIL because Vector Store has no contextual quick-add controls or plugin appearance loading.
 
-- [ ] **Step 3: Load provider appearance**
+- [x] **Step 3: Load provider appearance**
 
 In `VectorStoreNode.vue`, follow the existing AI Tool pattern:
 
@@ -141,7 +141,7 @@ async function loadPluginAppearance() {
 
 Catch request failures, keep the fallback, and watch both `pluginId` and theme.
 
-- [ ] **Step 4: Implement the card and contextual handles**
+- [x] **Step 4: Implement the card and contextual handles**
 
 Render a `236x100` `BaseNode` with a custom icon slot and two lower controls:
 
@@ -179,7 +179,7 @@ Render a `236x100` `BaseNode` with a custom icon slot and two lower controls:
 
 Use the AI Agent spacing pattern with two columns and preserve BaseNode's normal right-side quick-add.
 
-- [ ] **Step 5: Run focused node and picker tests**
+- [x] **Step 5: Run focused node and picker tests**
 
 ```powershell
 cd client-vue
@@ -188,7 +188,7 @@ node --test src/features/workflow-editor/components/nodes/__tests__/retrievalNod
 
 Expected: all tests pass.
 
-- [ ] **Step 6: Commit the Vector Store node change**
+- [x] **Step 6: Commit the Vector Store node change**
 
 ```powershell
 git add client-vue/src/features/workflow-editor/components/nodes/VectorStoreNode.vue client-vue/src/features/workflow-editor/components/nodes/__tests__/retrievalNodes.contract.test.ts
@@ -202,7 +202,7 @@ git commit -m "feat: align vector store with agent config ux"
 **Files:**
 - Modify only if QA reveals a regression.
 
-- [ ] **Step 1: Run the focused frontend matrix**
+- [x] **Step 1: Run the focused frontend matrix**
 
 ```powershell
 cd client-vue
@@ -211,7 +211,7 @@ node --test src/features/workflow-editor/components/settings/__tests__/addNodePi
 
 Expected: 0 failures.
 
-- [ ] **Step 2: Run the production build**
+- [x] **Step 2: Run the production build**
 
 ```powershell
 cd client-vue
@@ -220,15 +220,15 @@ npm run build
 
 Expected: type-check and Vite build complete successfully.
 
-- [ ] **Step 3: Start local services for QA**
+- [x] **Step 3: Start local services for QA**
 
 Start the server on `23801` and client on `23802`, then open `http://localhost:23802/workflows`.
 
-- [ ] **Step 4: Verify the default picker**
+- [x] **Step 4: Verify the default picker**
 
 Confirm the AI category includes `AI Agent` and `Vector Store`, and excludes `AI Model`, `AI Memory`, `AI Tool`, `Embeddings`, and `Retriever`.
 
-- [ ] **Step 5: Verify Vector Store rendering and quick-add**
+- [x] **Step 5: Verify Vector Store rendering and quick-add**
 
 Add Pinecone or Qdrant Vector Store and confirm:
 
@@ -238,10 +238,15 @@ Add Pinecone or Qdrant Vector Store and confirm:
 - Embedding and Document controls are visible below;
 - both contextual quick-add buttons open the correct restricted picker.
 
-- [ ] **Step 6: Stop QA Node processes**
+- [x] **Step 6: Stop QA Node processes**
 
 Stop the server and client Node processes after browser verification.
 
-- [ ] **Step 7: Commit any QA-only correction**
+- [x] **Step 7: Commit any QA-only correction**
 
 If QA required a correction, stage only its files and commit with a focused message. Otherwise, record that no additional commit was necessary.
+
+Browser QA found that the Embedding contextual picker was empty when no installed
+plugin exposed an embedding method. The picker now falls back to the catalog
+`Embeddings` config node in that case, while retaining direct provider choices when
+compatible plugins are available.

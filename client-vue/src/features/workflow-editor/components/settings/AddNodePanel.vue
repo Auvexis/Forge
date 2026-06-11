@@ -272,7 +272,11 @@ const pickerPlugins = computed(() => {
 })
 
 const pickerPresets = computed(() => {
-  if (isEmbeddingContext.value) return []
+  if (isEmbeddingContext.value) {
+    if (pickerPlugins.value.length > 0) return []
+    return catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? [])
+      .filter((preset) => preset.nodeType === 'embeddings')
+  }
   if (isDocumentContext.value) {
     const datasetTypes = ['text-dataset', 'file-dataset', 'database-dataset']
     return catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? [])

@@ -133,6 +133,8 @@ test('embedding quick-add uses a vector config context separate from agent confi
 
   assert.match(panel, /vectorConfigHandle\?: 'embedding' \| 'document'/)
   assert.match(panel, /buildEmbeddingProviderItems/)
+  assert.match(panel, /pickerPlugins\.value\.length > 0/)
+  assert.match(panel, /preset\.nodeType === 'embeddings'/)
   assert.match(panel, /onAddLogicNode\?\.\('embeddings'/)
   assert.match(canvas, /vectorConfigHandle: 'embedding' \| 'document' \| null/)
   assert.match(canvas, /:vector-config-handle="addNodePickerOverlay\.vectorConfigHandle \?\? undefined"/)
