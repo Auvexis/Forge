@@ -293,13 +293,17 @@ test('catalog retrieval nodes appear as picker presets in their catalog categori
   )
 })
 
-test('default picker can omit the deprecated retriever preset while keeping vector store', () => {
+test('default picker hides contextual AI and vector configuration nodes', () => {
   const presets: AddNodePickerPreset[] = [
+    { id: 'ai-agent', nodeType: 'ai-agent', label: 'AI Agent', description: '', icon: 'bot', categories: ['AI'] },
+    { id: 'ai-model', nodeType: 'ai-model', label: 'AI Model', description: '', icon: 'brain', categories: ['AI'] },
+    { id: 'ai-memory', nodeType: 'ai-memory', label: 'AI Memory', description: '', icon: 'database', categories: ['AI'] },
+    { id: 'ai-tool', nodeType: 'ai-tool', label: 'AI Tool', description: '', icon: 'wrench', categories: ['AI'] },
+    { id: 'embeddings', nodeType: 'embeddings', label: 'Embeddings', description: '', icon: 'scan-text', categories: ['AI'] },
     { id: 'vector-store', nodeType: 'vector-store', label: 'Vector Store', description: '', icon: 'database', categories: ['AI'] },
     { id: 'retriever', nodeType: 'retriever', label: 'Retriever', description: '', icon: 'search', categories: ['AI'] },
   ]
-  const visibleTypes = filterDefaultPickerPresets(presets)
+  const visibleTypes = filterDefaultPickerPresets(presets).map((preset) => preset.nodeType)
 
-  assert.deepEqual(visibleTypes.map((preset) => preset.nodeType), ['vector-store'])
-  assert.equal(visibleTypes.some((preset) => preset.nodeType === 'retriever'), false)
+  assert.deepEqual(visibleTypes, ['ai-agent', 'vector-store'])
 })

@@ -66,6 +66,14 @@ const VECTOR_STORE_METHODS = [
   'describeCollection',
 ] as const
 
+const CONTEXTUAL_ONLY_NODE_TYPES = new Set<WorkflowNodeType>([
+  'ai-model',
+  'ai-memory',
+  'ai-tool',
+  'embeddings',
+  'retriever',
+])
+
 export function isVectorStoreProvider(plugin: PluginSummary): boolean {
   return VECTOR_STORE_METHODS.every((methodKey) => methodKey in plugin.manifest.methods)
 }
@@ -129,7 +137,7 @@ export function catalogItemsToPickerPresets(items: readonly WorkflowNodeCatalogI
 }
 
 export function filterDefaultPickerPresets(presets: readonly AddNodePickerPreset[]): AddNodePickerPreset[] {
-  return presets.filter((preset) => preset.nodeType !== 'retriever')
+  return presets.filter((preset) => !CONTEXTUAL_ONLY_NODE_TYPES.has(preset.nodeType))
 }
 
 const CATEGORY_META: Record<PluginCategory, { description: string; icon: string }> = {
