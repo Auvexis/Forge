@@ -1311,7 +1311,7 @@ const onConnect = (connection: Connection) => {
   //    Com v-model:edges, o VueFlow NÃO adiciona automaticamente ao @connect.
   vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
 
-  if (newEdge.targetHandle && ['chatModel', 'memory', 'tool'].includes(newEdge.targetHandle)) {
+  if (newEdge.targetHandle && ['chatModel', 'memory', 'tool', 'embedding', 'document'].includes(newEdge.targetHandle)) {
     arrangeAgentConfigNodes(newEdge.target)
   }
 }

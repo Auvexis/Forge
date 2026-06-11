@@ -176,15 +176,15 @@
 - Test: `server/src/shared/models/workflow-retrieval-types.test.ts`
 
 **Steps:**
-- [ ] Add handles to `VectorStoreNode.vue`:
+- [x] Add handles to `VectorStoreNode.vue`:
   - target `target` on left for normal flow
   - target `embedding` below/left
   - target `document` below/right
   - source `source` on right
-- [ ] Add labels near handles:
+- [x] Add labels near handles:
   - `Embedding`
   - `Document`
-- [ ] Add frontend types for vector store config counts:
+- [x] Add frontend types for vector store config counts:
 
   ```ts
   embeddingCount?: number
@@ -192,11 +192,11 @@
   retrievalMode?: 'index' | 'query' | 'index-and-query'
   ```
 
-- [ ] Add backend shared types with same fields.
-- [ ] Add tests that Vector Store exposes `embedding` and `document` handles.
-- [ ] Add tests that canvas recognizes those handles as config handles, not normal sequential edges.
-- [ ] Run focused frontend/backend tests.
-- [ ] Commit:
+- [x] Add backend shared types with same fields.
+- [x] Add tests that Vector Store exposes `embedding` and `document` handles.
+- [x] Add tests that canvas recognizes those handles as config handles, not normal sequential edges.
+- [x] Run focused frontend/backend tests.
+- [x] Commit:
 
   ```powershell
   git add client-vue/src/core/types/workflow.types.ts server/src/shared/models/workflow-types.ts client-vue/src/features/workflow-editor/components/nodes/VectorStoreNode.vue client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue client-vue/src/features/workflow-editor/components/nodes/__tests__/retrievalNodes.contract.test.ts client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts server/src/shared/models/workflow-retrieval-types.test.ts

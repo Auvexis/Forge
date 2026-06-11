@@ -110,6 +110,12 @@ test('canvas connects contextual quick-add nodes into agent config handles', () 
   assert.match(canvas, /on-add-agent-tool-node/)
 })
 
+test('canvas recognizes vector store handles as configuration edges', () => {
+  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+
+  assert.match(canvas, /\['chatModel', 'memory', 'tool', 'embedding', 'document'\]/)
+})
+
 test('canvas auto-arranges agent config nodes with model and memory on the left and tools in a grid', () => {
   const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
 

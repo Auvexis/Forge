@@ -418,6 +418,9 @@ export interface EmbeddingsNode extends WorkflowNodeBase {
 
 export interface VectorStoreNode extends WorkflowNodeBase {
   type: 'vector-store'
+  embeddingCount?: number
+  documentCount?: number
+  retrievalMode?: 'index' | 'query' | 'index-and-query'
   pluginId: string
   ensureCollectionMethodId: string
   upsertMethodId: string

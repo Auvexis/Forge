@@ -103,3 +103,13 @@ test('retrieval node components use their catalog colors instead of generic node
     for (const color of colors) assert.match(source, new RegExp(color))
   }
 })
+
+test('vector store exposes embedding and document configuration handles', () => {
+  const source = read('src/features/workflow-editor/components/nodes/VectorStoreNode.vue')
+
+  assert.match(source, /id="embedding" type="target"/)
+  assert.match(source, /id="document" type="target"/)
+  assert.match(source, /id="source" type="source"/)
+  assert.match(source, />Embedding</)
+  assert.match(source, />Document</)
+})

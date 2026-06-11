@@ -57,4 +57,10 @@ describe("workflow retrieval node contracts", () => {
     assert.match(source, /\| VectorStoreNode/);
     assert.match(source, /\| RetrieverNode/);
   });
+
+  it("defines vector store configuration counts and retrieval mode", () => {
+    assert.match(source, /embeddingCount\?: number/);
+    assert.match(source, /documentCount\?: number/);
+    assert.match(source, /retrievalMode\?: "index" \| "query" \| "index-and-query"/);
+  });
 });
