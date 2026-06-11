@@ -8,7 +8,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 const props = defineProps<{
   nodeId: string
   handleId: string
-  mode?: 'source' | 'agent-config'
+  mode?: 'source' | 'agent-config' | 'vector-config'
   targetHandleId?: string
   alwaysVisible?: boolean
   direction?: 'right' | 'down'
@@ -32,7 +32,7 @@ const isSourceHandleConnected = (edge: { source?: string; sourceHandle?: string 
 }
 
 const hasConnection = computed(() =>
-  props.mode === 'agent-config'
+  props.mode === 'agent-config' || props.mode === 'vector-config'
     ? allEdges.value.some((e) => e.target === props.nodeId && e.targetHandle === props.targetHandleId)
     : allEdges.value.some(isSourceHandleConnected),
 )
@@ -44,6 +44,18 @@ const onQuickAdd = (event: MouseEvent) => {
       targetId: props.nodeId,
       targetHandle: props.targetHandleId ?? props.handleId,
       agentConfigHandle: props.targetHandleId ?? props.handleId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      anchorRect,
+    })
+    return
+  }
+
+  if (props.mode === 'vector-config') {
+    quickAddBus.emit({
+      targetId: props.nodeId,
+      targetHandle: props.targetHandleId ?? props.handleId,
+      vectorConfigHandle: props.targetHandleId ?? props.handleId,
       clientX: event.clientX,
       clientY: event.clientY,
       anchorRect,

@@ -76,7 +76,6 @@ test('retrieval node components render typed BaseNode shells', () => {
     ['FileDatasetNode', 'FileDatasetNode', 'file-text'],
     ['DatabaseDatasetNode', 'DatabaseDatasetNode', 'table-2'],
     ['EmbeddingsNode', 'EmbeddingsNode', 'scan-text'],
-    ['VectorStoreNode', 'VectorStoreNode', 'database-zap'],
     ['RetrieverNode', 'RetrieverNode', 'search'],
   ]) {
     const source = read(`src/features/workflow-editor/components/nodes/${componentName}.vue`)
@@ -93,7 +92,6 @@ test('retrieval node components use their catalog colors instead of generic node
     FileDatasetNode: ['#2563eb', '#eff6ff', '#93c5fd'],
     DatabaseDatasetNode: ['#7c3aed', '#f5f3ff', '#c4b5fd'],
     EmbeddingsNode: ['#db2777', '#fdf2f8', '#f9a8d4'],
-    VectorStoreNode: ['#0891b2', '#ecfeff', '#67e8f9'],
     RetrieverNode: ['#65a30d', '#f7fee7', '#bef264'],
   }
 
@@ -106,10 +104,25 @@ test('retrieval node components use their catalog colors instead of generic node
 
 test('vector store exposes embedding and document configuration handles', () => {
   const source = read('src/features/workflow-editor/components/nodes/VectorStoreNode.vue')
+  const quickAdd = read('src/features/workflow-editor/components/QuickAddButton.vue')
 
   assert.match(source, /id="embedding" type="target"/)
   assert.match(source, /id="document" type="target"/)
-  assert.match(source, /id="source" type="source"/)
   assert.match(source, />Embedding</)
   assert.match(source, />Document</)
+  assert.match(source, /QuickAddButton/)
+  assert.match(source, /handle-id="embedding"/)
+  assert.match(source, /handle-id="document"/)
+  assert.match(source, /mode="vector-config"/)
+  assert.match(source, /width="236px"/)
+  assert.match(source, /height="100px"/)
+  assert.match(source, /resolvePluginIcon/)
+  assert.match(source, /ENDPOINTS\.PLUGIN_BY_ID/)
+  assert.match(source, /customBg/)
+  assert.match(source, /customBorder/)
+  assert.match(source, /customIconColor/)
+  assert.match(source, /database-zap/)
+  assert.match(source, /<template #icon>/)
+  assert.match(quickAdd, /'source' \| 'agent-config' \| 'vector-config'/)
+  assert.match(quickAdd, /vectorConfigHandle:/)
 })
