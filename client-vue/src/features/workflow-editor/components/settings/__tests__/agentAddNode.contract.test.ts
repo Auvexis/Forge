@@ -138,6 +138,13 @@ test('embedding quick-add uses a vector config context separate from agent confi
   assert.match(canvas, /:vector-config-handle="addNodePickerOverlay\.vectorConfigHandle \?\? undefined"/)
 })
 
+test('document quick-add exposes only dataset utility nodes', () => {
+  const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+
+  assert.match(panel, /isDocumentContext/)
+  assert.match(panel, /\['text-dataset', 'file-dataset', 'database-dataset'\]/)
+})
+
 test('canvas auto-arranges agent config nodes with model and memory on the left and tools in a grid', () => {
   const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
 

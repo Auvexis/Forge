@@ -36,6 +36,11 @@ export interface NodeHandlerInput<TNode extends WorkflowNode = WorkflowNode> {
 }
 
 export interface NodeHandlerServices {
+  executePluginMethod?: (
+    pluginId: string,
+    methodId: string,
+    params: Record<string, any>,
+  ) => Promise<any>;
   executeNode: (input: Omit<NodeHandlerInput, "services">) => Promise<any>;
   executeWorkflow: (
     workflow: WorkflowItem,

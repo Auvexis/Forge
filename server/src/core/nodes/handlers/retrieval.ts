@@ -8,6 +8,7 @@ import type {
   VectorStoreNode,
 } from "../../../shared/models/workflow-types.ts";
 import { createNodeHandler } from "../handler.ts";
+import type { NodeHandlerInput } from "../types.ts";
 
 export const textDatasetNodeHandler = createNodeHandler<TextDatasetNode>("text-dataset", ({ node, nodeId }) => {
   const items = node.format === "json-array"
@@ -129,16 +130,34 @@ function decodeFileContent(content: string): string {
   return Buffer.from(encoded, "base64").toString("utf8");
 }
 
-export const databaseDatasetNodeHandler = createNodeHandler<DatabaseDatasetNode>("database-dataset", ({ node }) => ({
-  sourceType: "database",
-  pluginId: node.pluginId,
-  methodId: node.methodId,
-  query: node.query,
-  textColumns: node.textColumns,
-  metadataColumns: node.metadataColumns ?? [],
-  limit: node.limit,
-  chunking: node.chunking,
-}), {
+export const databaseDatasetNodeHandler = createNodeHandler<DatabaseDatasetNode>("database-dataset", async ({ node, nodeId, services }) => {
+  if (!services.executePluginMethod) {
+    return {
+      sourceType: "database",
+      pluginId: node.pluginId,
+      methodId: node.methodId,
+      query: node.query,
+      textColumns: node.textColumns,
+      metadataColumns: node.metadataColumns ?? [],
+      limit: node.limit,
+      chunking: node.chunking,
+    };
+  }
+
+  const result = await services.executePluginMethod(node.pluginId, node.methodId, {
+    query: node.query,
+    limit: node.limit,
+  });
+  const rows = Array.isArray(result) ? result : Array.isArray(result?.rows) ? result.rows : [];
+  const items = rows.map((row: Record<string, any>, index: number) => ({
+    id: String(row.id ?? row.key ?? `${nodeId}:${index}`),
+    text: node.textColumns.map((column) => String(row[column] ?? "")).filter(Boolean).join("\n"),
+    metadata: Object.fromEntries((node.metadataColumns ?? []).map((column) => [column, row[column]])),
+    raw: row,
+  }));
+
+  return { items, count: items.length, sourceType: "database" } satisfies DatasetOutput;
+}, {
   description: "Defines a database dataset source through a provider plugin.",
   execution: "stateless",
   sideEffects: ["none"],
@@ -161,28 +180,106 @@ export const embeddingsNodeHandler = createNodeHandler<EmbeddingsNode>("embeddin
   errors: ["Invalid embeddings config"],
 });
 
-export const vectorStoreNodeHandler = createNodeHandler<VectorStoreNode>("vector-store", ({ node }) => ({
-  pluginId: node.pluginId,
-  methods: {
-    ensureCollection: node.ensureCollectionMethodId,
-    upsertDocuments: node.upsertMethodId,
-    querySimilar: node.queryMethodId,
-    deleteDocuments: node.deleteMethodId,
-    describeCollection: node.describeMethodId,
-  },
-  store: {
+export const vectorStoreNodeHandler = createNodeHandler<VectorStoreNode>("vector-store", async (input) => {
+  const { node, nodeId, workflow, context, services } = input;
+  const store = {
     collectionName: node.collectionName,
     dimension: node.dimension,
     metric: node.metric,
     config: node.config,
-  },
-}), {
+  };
+  const baseOutput = {
+    pluginId: node.pluginId,
+    methods: {
+      ensureCollection: node.ensureCollectionMethodId,
+      upsertDocuments: node.upsertMethodId,
+      querySimilar: node.queryMethodId,
+      deleteDocuments: node.deleteMethodId,
+      describeCollection: node.describeMethodId,
+    },
+    store,
+  };
+
+  const documentEdge = workflow.edges.find((edge) =>
+    edge.target === nodeId && edge.targetHandle === "document"
+  );
+  const embeddingEdge = workflow.edges.find((edge) =>
+    edge.target === nodeId && edge.targetHandle === "embedding"
+  );
+  if (!documentEdge || !embeddingEdge) return baseOutput;
+  if (!services.executePluginMethod) throw new Error("Vector Store requires plugin execution services.");
+
+  const datasetOutput = context.steps[documentEdge.source]?.output ?? await executeConfigSource(input, documentEdge.source);
+  const items = Array.isArray(datasetOutput?.items) ? datasetOutput.items : [];
+  const embeddingNode = workflow.nodes[embeddingEdge.source];
+  if (embeddingNode?.type !== "embeddings") throw new Error("Vector Store embedding handle requires an Embeddings node.");
+
+  const embeddingResult = await services.executePluginMethod(
+    embeddingNode.pluginId,
+    embeddingNode.methodId,
+    {
+      model: embeddingNode.model,
+      input: items.map((item: any) => item.text),
+      dimension: embeddingNode.dimension,
+      batchSize: embeddingNode.batchSize,
+    },
+  );
+  const vectors = extractVectors(embeddingResult);
+  if (vectors.length !== items.length) {
+    throw new Error(`Embedding provider returned ${vectors.length} vectors for ${items.length} documents.`);
+  }
+
+  const documents = items.map((item: any, index: number) => ({
+    id: String(item.id ?? `${documentEdge.source}:${index}`),
+    text: String(item.text ?? ""),
+    vector: vectors[index],
+    metadata: item.metadata ?? {},
+  }));
+  await services.executePluginMethod(node.pluginId, node.ensureCollectionMethodId, { store });
+  const upsertResult = await services.executePluginMethod(node.pluginId, node.upsertMethodId, {
+    store,
+    documents,
+  });
+
+  return {
+    ...baseOutput,
+    indexedCount: Number(upsertResult?.upsertedCount ?? documents.length),
+    documents,
+  };
+}, {
   description: "Defines a provider-neutral vector store for indexing and retrieval.",
   execution: "stateless",
   sideEffects: ["none"],
   outputs: [{ id: "default", label: "Vector Store" }],
   errors: ["Invalid vector store config"],
 });
+
+async function executeConfigSource(
+  input: NodeHandlerInput<VectorStoreNode>,
+  sourceId: string,
+): Promise<any> {
+  const sourceNode = input.workflow.nodes[sourceId];
+  if (!sourceNode) throw new Error(`Vector Store config source ${sourceId} was not found.`);
+  return input.services.executeNode({
+    nodeId: sourceId,
+    node: sourceNode,
+    context: input.context,
+    workflow: input.workflow,
+    edges: input.edges,
+    executionId: input.executionId,
+  });
+}
+
+function extractVectors(result: any): number[][] {
+  const values = Array.isArray(result)
+    ? result
+    : Array.isArray(result?.vectors)
+      ? result.vectors
+      : Array.isArray(result?.data)
+        ? result.data.map((item: any) => item?.embedding ?? item?.vector)
+        : [];
+  return values.filter((value: unknown) => Array.isArray(value));
+}
 
 export const retrieverNodeHandler = createNodeHandler<RetrieverNode>("retriever", ({ node }) => ({
   query: node.query,

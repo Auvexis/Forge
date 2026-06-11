@@ -80,6 +80,7 @@ function createNodeServices(
   executionId: string,
 ): NodeHandlerServices {
   return {
+    executePluginMethod: PluginExecutor.execute,
     executeNode: dispatchNode,
     executeWorkflow: WorkflowEngine.executeWorkflow,
     getWorkflowById: WorkflowRepository.getWorkflowById,

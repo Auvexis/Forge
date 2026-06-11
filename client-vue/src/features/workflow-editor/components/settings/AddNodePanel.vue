@@ -202,6 +202,7 @@ const isAgentModelContext = computed(() => props.agentConfigHandle === 'chatMode
 const isAgentMemoryContext = computed(() => props.agentConfigHandle === 'memory')
 const isAgentToolContext = computed(() => props.agentConfigHandle === 'tool')
 const isEmbeddingContext = computed(() => props.vectorConfigHandle === 'embedding')
+const isDocumentContext = computed(() => props.vectorConfigHandle === 'document')
 const showQuickTrigger = computed(() =>
   !isAgentModelContext.value && !isAgentMemoryContext.value && !isAgentToolContext.value,
 )
@@ -256,6 +257,7 @@ const pluginHasAgentTools = (plugin: PluginSummary) =>
   Object.values(plugin.manifest.methods).some((method) => method.agentTool?.enabled === true)
 
 const pickerPlugins = computed(() => {
+  if (isDocumentContext.value) return []
   if (isEmbeddingContext.value) {
     return [...new Map(
       buildEmbeddingProviderItems({ plugins: plugins.value ?? [] })
@@ -270,6 +272,11 @@ const pickerPlugins = computed(() => {
 
 const pickerPresets = computed(() => {
   if (isEmbeddingContext.value) return []
+  if (isDocumentContext.value) {
+    const datasetTypes = ['text-dataset', 'file-dataset', 'database-dataset']
+    return catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? [])
+      .filter((preset) => datasetTypes.includes(preset.nodeType))
+  }
   if (isAgentModelContext.value || isAgentToolContext.value) return []
   if (isAgentMemoryContext.value) return AGENT_MEMORY_PRESETS
   return [

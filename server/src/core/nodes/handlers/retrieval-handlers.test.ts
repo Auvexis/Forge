@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import { createUtilityNodeRegistry } from "../registry.ts";
 import type { WorkflowExecutionContext } from "../types.ts";
+import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 
 describe("retrieval utility node handlers", () => {
   it("registers first-party retrieval handlers with explicit metadata", () => {
@@ -209,9 +210,96 @@ describe("retrieval utility node handlers", () => {
     assert.deepEqual(result.items.map((item: any) => item.text), ["# First", "Second"]);
     assert.deepEqual(result.items.map((item: any) => item.id), ["files:0", "files:1"]);
   });
+
+  it("vector store indexes connected dataset documents with connected embedding config", async () => {
+    const calls: Array<{ pluginId: string; methodId: string; params: Record<string, any> }> = [];
+    const workflow = workflowFixture();
+    workflow.nodes = {
+      dataset: {
+        type: "text-dataset",
+        name: "Dataset",
+        text: "hello",
+        format: "plain-text",
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+      embeddings: {
+        type: "embeddings",
+        name: "Embeddings",
+        pluginId: "embedding-provider",
+        methodId: "createEmbeddings",
+        model: "embedding-model",
+        dimension: 3,
+        input: "",
+      },
+      vector: {
+        type: "vector-store",
+        name: "Vector",
+        pluginId: "vector-provider",
+        ensureCollectionMethodId: "ensureCollection",
+        upsertMethodId: "upsertDocuments",
+        queryMethodId: "querySimilar",
+        collectionName: "documents",
+        dimension: 3,
+        metric: "cosine",
+        config: {},
+      },
+    };
+    workflow.edges = [
+      { id: "dataset-vector", source: "dataset", target: "vector", targetHandle: "document" },
+      { id: "embedding-vector", source: "embeddings", target: "vector", targetHandle: "embedding" },
+    ];
+
+    const result = await createUtilityNodeRegistry().get("vector-store").execute({
+      nodeId: "vector",
+      executionId: "exec-1",
+      workflow,
+      edges: workflow.edges,
+      context: {
+        trigger: {},
+        variables: {},
+        steps: {
+          dataset: {
+            output: {
+              items: [{ id: "doc-1", text: "hello", metadata: { source: "test" } }],
+              count: 1,
+              sourceType: "text",
+            },
+          },
+        },
+      },
+      services: {
+        executePluginMethod: async (
+          pluginId: string,
+          methodId: string,
+          params: Record<string, any>,
+        ) => {
+          calls.push({ pluginId, methodId, params });
+          if (pluginId === "embedding-provider") return { vectors: [[0.1, 0.2, 0.3]] };
+          if (methodId === "upsertDocuments") return { upsertedCount: 1 };
+          return { ok: true };
+        },
+      } as any,
+      node: workflow.nodes.vector,
+    });
+
+    assert.deepEqual(calls.map((call) => `${call.pluginId}:${call.methodId}`), [
+      "embedding-provider:createEmbeddings",
+      "vector-provider:ensureCollection",
+      "vector-provider:upsertDocuments",
+    ]);
+    const upsertedDocument = calls[2]?.params.documents[0] as Record<string, any>;
+    assert.equal(upsertedDocument.text, "hello");
+    assert.deepEqual(upsertedDocument.vector, [0.1, 0.2, 0.3]);
+    assert.equal(result.indexedCount, 1);
+  });
 });
 
-function workflowFixture() {
+function workflowFixture(): WorkflowItem {
   return {
     metadata: {
       id: "wf-1",

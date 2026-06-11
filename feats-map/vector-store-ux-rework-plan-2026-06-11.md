@@ -291,20 +291,20 @@
 - Test: `client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts`
 
 **Steps:**
-- [ ] Quick-add from `document` handle shows:
+- [x] Quick-add from `document` handle shows:
   - Text Dataset
   - File Dataset
   - Database Dataset
-- [ ] Connecting dataset to Vector Store document handle feeds documents to vector store.
-- [ ] Vector Store handler collects document input from connected dataset output.
-- [ ] Vector Store handler collects embedding config from connected embedding node.
-- [ ] Handler calls provider methods generically:
+- [x] Connecting dataset to Vector Store document handle feeds documents to vector store.
+- [x] Vector Store handler collects document input from connected dataset output.
+- [x] Vector Store handler collects embedding config from connected embedding node.
+- [x] Handler calls provider methods generically:
   - ensure collection
   - embed documents
   - upsert documents
-- [ ] Add backend test for Dataset -> Vector Store(Document) + Embedding -> Vector Store(Embedding).
-- [ ] Run focused tests.
-- [ ] Commit:
+- [x] Add backend test for Dataset -> Vector Store(Document) + Embedding -> Vector Store(Embedding).
+- [x] Run focused tests.
+- [x] Commit:
 
   ```powershell
   git add client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue server/src/core/nodes/handlers/retrieval.ts server/src/core/modules/workflows/executor.ts server/src/core/nodes/handlers/retrieval-handlers.test.ts server/src/core/modules/workflows/executor.test.ts client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts
