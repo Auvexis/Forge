@@ -139,6 +139,51 @@ describe("workflow executor AI config-node traversal", () => {
     assert.equal(result.context.steps.unusedModel, undefined);
   });
 
+  it("does not execute embeddings connected to a vector store config handle as a workflow step", async () => {
+    const workflow = workflowFixture({
+      nodes: {
+        ...workflowFixture().nodes,
+        embeddings: {
+          type: "embeddings",
+          name: "Embeddings",
+          pluginId: "embedding-provider",
+          methodId: "createEmbeddings",
+          model: "embedding-model",
+          dimension: 1536,
+          input: "",
+        },
+        vector: {
+          type: "vector-store",
+          name: "Vector Store",
+          pluginId: "vector-provider",
+          ensureCollectionMethodId: "ensureCollection",
+          upsertMethodId: "upsertDocuments",
+          queryMethodId: "querySimilar",
+          collectionName: "documents",
+          dimension: 1536,
+          metric: "cosine",
+          config: {},
+        },
+      },
+      edges: [
+        { id: "trigger-embeddings", source: "trigger", target: "embeddings" },
+        { id: "embeddings-vector", source: "embeddings", target: "vector", targetHandle: "embedding" },
+      ],
+    });
+    WorkflowRepository.saveWorkflow(workflow);
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      workflow,
+      "trigger",
+      triggerPayload(),
+      "exec_vector_embedding_config",
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.equal(result.context.steps.embeddings, undefined);
+    assert.ok(result.context.steps.vector?.output);
+  });
+
   it("fails AI config cycles before executing workflow steps", async () => {
     let runAgentCalled = false;
     AgentRuntimeService.runAgent = async () => {

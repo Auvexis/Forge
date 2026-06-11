@@ -156,6 +156,7 @@ import {
   buildPickerActionItems,
   buildPickerCategoryItems,
   buildPickerSecondColumnItems,
+  buildEmbeddingProviderItems,
   buildVectorStoreProviderItems,
   catalogItemsToPickerPresets,
   isVectorStoreProvider,
@@ -169,6 +170,7 @@ const props = defineProps<{
   onAddPluginNode?: (pluginId: string, action: string, actionName: string) => void
   onAddAgentToolNode?: (pluginId: string, action: string, actionName: string) => void
   agentConfigHandle?: 'chatModel' | 'memory' | 'tool'
+  vectorConfigHandle?: 'embedding' | 'document'
   secondarySide?: 'right' | 'left'
 }>()
 
@@ -199,6 +201,7 @@ const isLoading = computed(() => pluginsLoading.value || workflowNodeCatalogLoad
 const isAgentModelContext = computed(() => props.agentConfigHandle === 'chatModel')
 const isAgentMemoryContext = computed(() => props.agentConfigHandle === 'memory')
 const isAgentToolContext = computed(() => props.agentConfigHandle === 'tool')
+const isEmbeddingContext = computed(() => props.vectorConfigHandle === 'embedding')
 const showQuickTrigger = computed(() =>
   !isAgentModelContext.value && !isAgentMemoryContext.value && !isAgentToolContext.value,
 )
@@ -253,6 +256,12 @@ const pluginHasAgentTools = (plugin: PluginSummary) =>
   Object.values(plugin.manifest.methods).some((method) => method.agentTool?.enabled === true)
 
 const pickerPlugins = computed(() => {
+  if (isEmbeddingContext.value) {
+    return [...new Map(
+      buildEmbeddingProviderItems({ plugins: plugins.value ?? [] })
+        .map((item) => [item.plugin.id, item.plugin]),
+    ).values()]
+  }
   if (isAgentModelContext.value) return agentChatModelPlugins.value
   if (isAgentMemoryContext.value) return agentMemoryStorePlugins.value
   if (isAgentToolContext.value) return (plugins.value ?? []).filter(pluginHasAgentTools)
@@ -260,6 +269,7 @@ const pickerPlugins = computed(() => {
 })
 
 const pickerPresets = computed(() => {
+  if (isEmbeddingContext.value) return []
   if (isAgentModelContext.value || isAgentToolContext.value) return []
   if (isAgentMemoryContext.value) return AGENT_MEMORY_PRESETS
   return [
@@ -414,6 +424,11 @@ const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
     return
   }
 
+  if (isEmbeddingContext.value) {
+    addEmbeddingNode(item.plugin)
+    return
+  }
+
   if (isAgentModelContext.value) {
     addAgentModelNode(item.plugin)
     return
@@ -429,6 +444,22 @@ const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
   }
 
   addSinglePluginMethod(item.plugin)
+}
+
+const addEmbeddingNode = (plugin: PluginSummary) => {
+  const provider = buildEmbeddingProviderItems({ plugins: [plugin] })[0]
+  if (!provider) return
+
+  const properties = plugin.manifest.methods[provider.methodKey]?.parameters.properties ?? {}
+  props.onAddLogicNode?.('embeddings', {
+    name: `${plugin.manifest.metadata.name} Embeddings`,
+    pluginId: plugin.id,
+    methodId: provider.methodKey,
+    model: String(properties.model?.default ?? ''),
+    dimension: Number(properties.dimension?.default ?? 1536),
+    input: '',
+    batchSize: Number(properties.batchSize?.default ?? 64),
+  })
 }
 
 const addVectorStoreNode = (plugin: PluginSummary) => {

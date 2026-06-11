@@ -265,13 +265,13 @@
 - Test: `server/src/core/modules/workflows/agent-config-node-execution.test.ts`
 
 **Steps:**
-- [ ] Add a `vectorConfigHandle?: 'embedding' | 'document'` overlay context, separate from `agentConfigHandle`.
-- [ ] Quick-add from Vector Store `embedding` handle opens embedding providers only.
-- [ ] Select provider creates `embeddings` config node connected to `vector-store.embedding`.
-- [ ] Executor treats `embeddings` connected to Vector Store as config dependency, not normal step output.
-- [ ] Keep plugin boundary generic: embeddings node stores `pluginId`, `methodId`, `model`, `dimension`.
-- [ ] Run focused tests.
-- [ ] Commit:
+- [x] Add a `vectorConfigHandle?: 'embedding' | 'document'` overlay context, separate from `agentConfigHandle`.
+- [x] Quick-add from Vector Store `embedding` handle opens embedding providers only.
+- [x] Select provider creates `embeddings` config node connected to `vector-store.embedding`.
+- [x] Executor treats `embeddings` connected to Vector Store as config dependency, not normal step output.
+- [x] Keep plugin boundary generic: embeddings node stores `pluginId`, `methodId`, `model`, `dimension`.
+- [x] Run focused tests.
+- [x] Commit:
 
   ```powershell
   git add client-vue/src/features/workflow-editor/components/nodes/EmbeddingsNode.vue client-vue/src/features/workflow-editor/components/settings/AddNodePanel.vue client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue server/src/core/modules/workflows/executor.ts client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts server/src/core/modules/workflows/agent-config-node-execution.test.ts

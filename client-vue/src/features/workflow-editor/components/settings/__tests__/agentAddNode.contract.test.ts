@@ -127,6 +127,17 @@ test('vector store picker creates a provider-configured utility node instead of 
   assert.doesNotMatch(canvas, /defaultData\.pluginId = 'sailor-qdrant'/)
 })
 
+test('embedding quick-add uses a vector config context separate from agent config', () => {
+  const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+
+  assert.match(panel, /vectorConfigHandle\?: 'embedding' \| 'document'/)
+  assert.match(panel, /buildEmbeddingProviderItems/)
+  assert.match(panel, /onAddLogicNode\?\.\('embeddings'/)
+  assert.match(canvas, /vectorConfigHandle: 'embedding' \| 'document' \| null/)
+  assert.match(canvas, /:vector-config-handle="addNodePickerOverlay\.vectorConfigHandle \?\? undefined"/)
+})
+
 test('canvas auto-arranges agent config nodes with model and memory on the left and tools in a grid', () => {
   const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
 

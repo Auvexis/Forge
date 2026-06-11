@@ -90,6 +90,32 @@ export function buildVectorStoreProviderItems(options: {
     }))
 }
 
+export function buildEmbeddingProviderItems(options: {
+  plugins: readonly PluginSummary[]
+  search?: string
+}): Array<{ id: string; plugin: PluginSummary; methodKey: string; label: string; description: string }> {
+  return options.plugins.flatMap((plugin) =>
+    Object.entries(plugin.manifest.methods)
+      .filter(([methodKey, method]) =>
+        /embed/i.test(`${methodKey} ${method.metadata.label} ${method.metadata.description}`),
+      )
+      .filter(([methodKey, method]) => matchesSearch(
+        options.search,
+        plugin.manifest.metadata.name,
+        methodKey,
+        method.metadata.label,
+        method.metadata.description,
+      ))
+      .map(([methodKey, method]) => ({
+        id: `embedding-provider:${plugin.id}:${methodKey}`,
+        plugin,
+        methodKey,
+        label: plugin.manifest.metadata.name,
+        description: method.metadata.description,
+      })),
+  )
+}
+
 export function catalogItemsToPickerPresets(items: readonly WorkflowNodeCatalogItem[]): AddNodePickerPreset[] {
   return items.map((item) => ({
     id: item.type,

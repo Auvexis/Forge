@@ -261,6 +261,7 @@ let quickAddSourceHandle: string | null = null
 let quickAddTargetId: string | null = null
 let quickAddTargetHandle: string | null = null
 let quickAddAgentConfigHandle: 'chatModel' | 'memory' | 'tool' | null = null
+let quickAddVectorConfigHandle: 'embedding' | 'document' | null = null
 
 const AGENT_CONFIG_HANDLES = ['chatModel', 'memory', 'tool'] as const
 type AddNodePickerAnchorRect = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'>
@@ -278,6 +279,7 @@ const addNodePickerOverlay = ref<{
   top: number
   secondarySide: AddNodePickerSecondarySide
   agentConfigHandle: 'chatModel' | 'memory' | 'tool' | null
+  vectorConfigHandle: 'embedding' | 'document' | null
 } | null>(null)
 
 const addNodePickerStyle = computed(() => ({
@@ -331,6 +333,10 @@ function isAgentConfigHandle(handle: string | null | undefined): handle is 'chat
   return AGENT_CONFIG_HANDLES.includes(handle as 'chatModel' | 'memory' | 'tool')
 }
 
+function isVectorConfigHandle(handle: string | null | undefined): handle is 'embedding' | 'document' {
+  return handle === 'embedding' || handle === 'document'
+}
+
 const quickAddBus = useEventBus('node:quick-add')
 quickAddBus.on((payload: {
   sourceId?: string
@@ -338,6 +344,7 @@ quickAddBus.on((payload: {
   targetId?: string
   targetHandle?: string
   agentConfigHandle?: 'chatModel' | 'memory' | 'tool'
+  vectorConfigHandle?: 'embedding' | 'document'
   clientX?: number
   clientY?: number
   anchorRect?: AddNodePickerAnchorRect
@@ -346,7 +353,8 @@ quickAddBus.on((payload: {
   quickAddTargetId = payload.targetId ?? null
   quickAddTargetHandle = payload.targetHandle ?? null
   quickAddAgentConfigHandle = payload.agentConfigHandle ?? null
-  openAddNodePanel(payload.sourceId, payload.agentConfigHandle, payload)
+  quickAddVectorConfigHandle = payload.vectorConfigHandle ?? null
+  openAddNodePanel(payload.sourceId, payload.agentConfigHandle, payload, payload.vectorConfigHandle)
 })
 
 // ── Insert node between two connected nodes (edge toolbar quick-add) ──────────
@@ -393,14 +401,17 @@ const openAddNodePanel = (
   sourceId?: string | null,
   agentConfigHandle?: 'chatModel' | 'memory' | 'tool' | null,
   anchor?: AddNodePickerAnchor | null,
+  vectorConfigHandle?: 'embedding' | 'document' | null,
 ) => {
   quickAddSourceId = sourceId || null
   quickAddAgentConfigHandle = agentConfigHandle ?? null
+  quickAddVectorConfigHandle = vectorConfigHandle ?? null
   const position = getAddNodePickerPosition(anchor)
 
   addNodePickerOverlay.value = {
     ...position,
     agentConfigHandle: quickAddAgentConfigHandle,
+    vectorConfigHandle: quickAddVectorConfigHandle,
   }
 }
 
@@ -841,6 +852,7 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
   quickAddTargetId = null
   quickAddTargetHandle = null
   quickAddAgentConfigHandle = null
+  quickAddVectorConfigHandle = null
 
   const id = generateNodeId(type)
   const backupAgentConfigHandle = isAgentConfigHandle(backupTargetHandle) ? backupTargetHandle : null
@@ -1281,7 +1293,13 @@ const onConnectEnd = (...args: unknown[]) => {
     quickAddTargetId = pending.nodeId
     quickAddTargetHandle = pending.handleId
     quickAddAgentConfigHandle = isAgentConfigHandle(pending.handleId) ? pending.handleId : null
-    openAddNodePanel(null, quickAddAgentConfigHandle, event instanceof MouseEvent ? event : null)
+    quickAddVectorConfigHandle = isVectorConfigHandle(pending.handleId) ? pending.handleId : null
+    openAddNodePanel(
+      null,
+      quickAddAgentConfigHandle,
+      event instanceof MouseEvent ? event : null,
+      quickAddVectorConfigHandle,
+    )
     return
   }
 
@@ -1653,6 +1671,7 @@ defineExpose({
           :on-add-plugin-node="addPluginNode"
           :on-add-agent-tool-node="addAgentToolNode"
           :agent-config-handle="addNodePickerOverlay.agentConfigHandle ?? undefined"
+          :vector-config-handle="addNodePickerOverlay.vectorConfigHandle ?? undefined"
           :secondary-side="addNodePickerOverlay.secondarySide"
         />
       </div>

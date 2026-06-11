@@ -207,7 +207,7 @@ export const WorkflowEngine = {
         executed.add(nodeId);
 
         const node = workflow.nodes[nodeId];
-        if (!node || node.type === "trigger" || node.disabled === true || isAgentConfigNode(node)) {
+        if (!node || node.type === "trigger" || node.disabled === true || isWorkflowConfigNode(workflow, nodeId, node)) {
           for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
           continue;
         }
@@ -434,7 +434,7 @@ async function continueWorkflowExecution(input: {
       executed.add(nodeId);
 
       const node = workflow.nodes[nodeId];
-      if (!node || node.type === "trigger" || node.disabled === true || isAgentConfigNode(node)) {
+      if (!node || node.type === "trigger" || node.disabled === true || isWorkflowConfigNode(workflow, nodeId, node)) {
         for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
         continue;
       }
@@ -807,6 +807,17 @@ function createBranchInDegree(
 
 function isAgentConfigNode(node: WorkflowNode | undefined): boolean {
   return node?.type === "ai-model" || node?.type === "ai-memory" || node?.type === "ai-tool";
+}
+
+function isWorkflowConfigNode(
+  workflow: WorkflowItem,
+  nodeId: string,
+  node: WorkflowNode | undefined,
+): boolean {
+  if (isAgentConfigNode(node)) return true;
+  return node?.type === "embeddings" && workflow.edges.some((edge) =>
+    edge.source === nodeId && edge.targetHandle === "embedding"
+  );
 }
 
 function assertNoAgentConfigNodeCycles(workflow: WorkflowItem): void {
