@@ -133,6 +133,82 @@ describe("retrieval utility node handlers", () => {
     assert.deepEqual(dataset.items[0].metadata, { source: "json", status: "new" });
     assert.deepEqual(split, { batches: 2, totalItems: 2 });
   });
+
+  it("file dataset decodes an uploaded base64 file into a dataset item", async () => {
+    const handler = createUtilityNodeRegistry().get("file-dataset");
+    const result = await handler.execute({
+      nodeId: "files",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {} as any,
+      node: {
+        type: "file-dataset",
+        name: "Files",
+        files: [{
+          filename: "notes.txt",
+          content: Buffer.from("hello from upload").toString("base64"),
+          mimeType: "text/plain",
+          size: 17,
+        }],
+        format: "auto",
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.equal(result.count, 1);
+    assert.equal(result.items[0].text, "hello from upload");
+    assert.deepEqual(result.items[0].metadata, {
+      filename: "notes.txt",
+      mimeType: "text/plain",
+      size: 17,
+    });
+  });
+
+  it("file dataset emits one dataset item per configured file", async () => {
+    const handler = createUtilityNodeRegistry().get("file-dataset");
+    const result = await handler.execute({
+      nodeId: "files",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {} as any,
+      node: {
+        type: "file-dataset",
+        name: "Files",
+        files: [
+          {
+            filename: "first.md",
+            content: Buffer.from("# First").toString("base64"),
+            mimeType: "text/markdown",
+          },
+          {
+            filename: "second.txt",
+            content: Buffer.from("Second").toString("base64"),
+            mimeType: "text/plain",
+          },
+        ],
+        format: "auto",
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.equal(result.count, 2);
+    assert.deepEqual(result.items.map((item: any) => item.text), ["# First", "Second"]);
+    assert.deepEqual(result.items.map((item: any) => item.id), ["files:0", "files:1"]);
+  });
 });
 
 function workflowFixture() {

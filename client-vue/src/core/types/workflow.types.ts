@@ -378,11 +378,19 @@ export interface TextDatasetNode extends WorkflowNodeBase {
   metadata?: Record<string, any>
 }
 
+export type FileDatasetFile = string | {
+  filename: string
+  content: string
+  mimeType?: string
+  size?: number
+}
+
 export interface FileDatasetNode extends WorkflowNodeBase {
   type: 'file-dataset'
+  files?: FileDatasetFile[]
   filePath?: string
   fileUrl?: string
-  format: 'txt' | 'markdown' | 'json' | 'csv'
+  format: 'txt' | 'markdown' | 'json' | 'csv' | 'auto'
   chunking: DatasetChunkingConfig
   metadata?: Record<string, any>
 }

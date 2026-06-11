@@ -8,19 +8,10 @@
       />
     </EditorField>
 
-    <EditorField label="File Path">
-      <BaseInput
-        :model-value="(node.data.filePath as string) || ''"
-        @update:model-value="updateNodeData({ filePath: ($event as string) || undefined })"
-        placeholder="/data/docs/file.md"
-      />
-    </EditorField>
-
-    <EditorField label="File URL">
-      <BaseInput
-        :model-value="(node.data.fileUrl as string) || ''"
-        @update:model-value="updateNodeData({ fileUrl: ($event as string) || undefined })"
-        placeholder="Uploaded file URL"
+    <EditorField label="Files">
+      <FileDatasetFilesInput
+        :model-value="files"
+        @update:model-value="updateNodeData({ files: $event })"
       />
     </EditorField>
 
@@ -79,13 +70,23 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { DatasetChunkingConfig } from '@/core/types/workflow.types'
+import type { DatasetChunkingConfig, FileDatasetFile } from '@/core/types/workflow.types'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
+import FileDatasetFilesInput from './FileDatasetFilesInput.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 
 const props = defineProps<NodeEditorProps>()
+
+const files = computed<FileDatasetFile[]>(() => {
+  const configured = props.node.data.files as FileDatasetFile[] | undefined
+  if (configured?.length) return configured
+
+  const legacy = [props.node.data.filePath, props.node.data.fileUrl]
+    .filter((value): value is string => typeof value === 'string' && value.length > 0)
+  return legacy.length ? legacy : ['']
+})
 
 const defaultChunking: DatasetChunkingConfig = {
   enabled: false,

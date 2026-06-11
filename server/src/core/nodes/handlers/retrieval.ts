@@ -81,20 +81,53 @@ function jsonArrayToItems(
   });
 }
 
-export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-dataset", ({ node }) => ({
-  sourceType: "file",
-  filePath: node.filePath,
-  fileUrl: node.fileUrl,
-  format: node.format,
-  chunking: node.chunking,
-  metadata: node.metadata ?? {},
-}), {
+export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-dataset", ({ node, nodeId }) => {
+  const files = node.files?.length
+    ? node.files
+    : [node.filePath, node.fileUrl].filter((value): value is string => Boolean(value));
+  const items = files.map((file, index) => {
+    if (typeof file === "string") {
+      return {
+        id: `${nodeId}:${index}`,
+        text: file,
+        metadata: {
+          ...(node.metadata ?? {}),
+          source: file,
+        },
+        raw: file,
+      };
+    }
+
+    return {
+      id: `${nodeId}:${index}`,
+      text: decodeFileContent(file.content),
+      metadata: {
+        ...(node.metadata ?? {}),
+        filename: file.filename,
+        ...(file.mimeType ? { mimeType: file.mimeType } : {}),
+        ...(file.size !== undefined ? { size: file.size } : {}),
+      },
+      raw: file,
+    };
+  });
+
+  return {
+    items,
+    count: items.length,
+    sourceType: "file",
+  } satisfies DatasetOutput;
+}, {
   description: "Defines a file dataset source for downstream loading and chunking.",
   execution: "stateless",
   sideEffects: ["none"],
   outputs: [{ id: "default", label: "File Dataset" }],
   errors: ["Invalid file dataset"],
 });
+
+function decodeFileContent(content: string): string {
+  const encoded = content.includes(",") ? content.slice(content.indexOf(",") + 1) : content;
+  return Buffer.from(encoded, "base64").toString("utf8");
+}
 
 export const databaseDatasetNodeHandler = createNodeHandler<DatabaseDatasetNode>("database-dataset", ({ node }) => ({
   sourceType: "database",

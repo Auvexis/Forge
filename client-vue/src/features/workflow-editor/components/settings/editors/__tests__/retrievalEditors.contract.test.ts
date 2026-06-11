@@ -34,6 +34,15 @@ test('dataset editors expose chunking and contextual overlap controls', () => {
   }
 })
 
+test('file dataset editor uses the dedicated multiple files input', () => {
+  const source = read('src/features/workflow-editor/components/settings/editors/FileDatasetEditor.vue')
+
+  assert.match(source, /import FileDatasetFilesInput from '.\/FileDatasetFilesInput\.vue'/)
+  assert.match(source, /<FileDatasetFilesInput/)
+  assert.doesNotMatch(source, /EditorField label="File Path"/)
+  assert.doesNotMatch(source, /EditorField label="File URL"/)
+})
+
 test('vector store editor exposes Pinecone and Qdrant provider config sections', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/VectorStoreEditor.vue')
 
