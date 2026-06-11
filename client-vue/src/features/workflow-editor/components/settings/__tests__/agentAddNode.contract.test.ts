@@ -262,6 +262,7 @@ test('add node panel supports focused global fuzzy search in the primary panel',
   assert.match(panel, /add-node-cascade__search/)
   assert.match(panel, /secondarySide/)
   assert.match(panel, /add-node-panel--secondary-left/)
+  assert.match(panel, /else \{[\s\S]*item\.preset\.categories\[0\][\s\S]*hoverCategory\(category\)/)
 })
 
 test('add node panel primary column animates in from the left with fade-in', () => {

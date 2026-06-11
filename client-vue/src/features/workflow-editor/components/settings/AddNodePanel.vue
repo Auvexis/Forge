@@ -496,6 +496,9 @@ const selectGlobalSearchItem = (item: AddNodePickerSecondColumnItem) => {
   if (item.kind === 'plugin') {
     const category = item.plugin.manifest.metadata.categories[0] as PluginCategory | undefined
     if (category) hoverCategory(category)
+  } else {
+    const category = item.preset.categories[0]
+    if (category) hoverCategory(category)
   }
   selectSecondColumnItem(item)
 }

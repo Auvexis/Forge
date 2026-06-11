@@ -349,7 +349,7 @@
 ## Task 8: Full verification
 
 **Steps:**
-- [ ] Run backend focused retrieval tests:
+- [x] Run backend focused retrieval tests:
 
   ```powershell
   cd server
@@ -357,7 +357,7 @@
   npm run build
   ```
 
-- [ ] Run frontend focused tests:
+- [x] Run frontend focused tests:
 
   ```powershell
   cd client-vue
@@ -365,7 +365,7 @@
   npm run build
   ```
 
-- [ ] Manual QA:
+- [x] Manual QA:
   - Add Vector Store.
   - Pick Pinecone.
   - Add Embedding via `Embedding` handle.
@@ -374,4 +374,11 @@
   - Confirm utility nodes have unique visible icons/colors.
   - Confirm old Retriever workflow still opens.
 
-- [ ] Commit if any QA fixes are needed.
+- [x] Commit if any QA fixes are needed.
+
+  Browser QA confirmed the default picker hides Retriever, global search opens the
+  Vector Store provider submenu, Pinecone can be selected, the Vector Store handles
+  are visible, and retrieval nodes use distinct icons/colors. Canvas drag gestures
+  for the Embedding/Document quick-add paths were additionally covered by focused
+  contract tests because the browser automation could not reproduce those gestures
+  reliably.
