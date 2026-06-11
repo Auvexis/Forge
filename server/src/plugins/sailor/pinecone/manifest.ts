@@ -58,7 +58,14 @@ export default definePluginManifest({
         description: "Returns Pinecone index stats for the configured namespace.",
       },
       parameters: { type: "object", properties: {}, required: [] },
-      responseSchema: { type: "object", additionalProperties: true },
+      responseSchema: {
+        type: "object",
+        properties: {
+          namespaces: { type: "object", additionalProperties: true },
+          dimension: { type: "number" },
+          totalVectorCount: { type: "number" },
+        },
+      },
     },
   },
   triggers: {},

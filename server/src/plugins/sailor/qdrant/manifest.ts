@@ -58,7 +58,14 @@ export default definePluginManifest({
         description: "Returns Qdrant collection information.",
       },
       parameters: { type: "object", properties: {}, required: [] },
-      responseSchema: { type: "object", additionalProperties: true },
+      responseSchema: {
+        type: "object",
+        properties: {
+          status: { type: "string" },
+          result: { type: "object", additionalProperties: true },
+          time: { type: "number" },
+        },
+      },
     },
   },
   triggers: {},
