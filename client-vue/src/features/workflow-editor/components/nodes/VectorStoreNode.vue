@@ -27,9 +27,9 @@ const subtitle = computed(() => props.data?.collectionName || props.data?.plugin
     :title="stepTitle"
     :subtitle="subtitle"
     icon="database-zap"
-    color="var(--sailor-node-merge-icon)"
-    bg="var(--sailor-node-merge-bg)"
-    border-color="var(--sailor-node-merge-border)"
+    color="#0891b2"
+    bg="#ecfeff"
+    border-color="#67e8f9"
   >
     <BaseHandle id="store" type="source" :position="Position.Right" />
   </BaseNode>

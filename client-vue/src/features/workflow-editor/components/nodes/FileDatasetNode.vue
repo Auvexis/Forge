@@ -27,9 +27,9 @@ const subtitle = computed(() => props.data?.format || 'txt')
     :title="stepTitle"
     :subtitle="subtitle"
     icon="file-text"
-    color="var(--sailor-node-http-icon)"
-    bg="var(--sailor-node-http-bg)"
-    border-color="var(--sailor-node-http-border)"
+    color="#2563eb"
+    bg="#eff6ff"
+    border-color="#93c5fd"
   >
     <BaseHandle id="dataset" type="source" :position="Position.Right" />
   </BaseNode>

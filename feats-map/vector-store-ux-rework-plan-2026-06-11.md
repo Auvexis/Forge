@@ -143,11 +143,11 @@
 - Test: `client-vue/src/features/workflow-editor/components/nodes/__tests__/retrievalNodes.contract.test.ts`
 
 **Steps:**
-- [ ] Add failing test to assert retrieval node components do not use generic `--sailor-node-ai-*`, `--sailor-node-if-*`, or `--sailor-node-merge-*`.
-- [ ] Add explicit colors matching `server/src/core/utility-nodes/sailor-core/manifest.ts`.
-- [ ] Ensure icon is visible in dark/light themes.
-- [ ] Verify Database Dataset icon is not white/blank.
-- [ ] Run:
+- [x] Add failing test to assert retrieval node components do not use generic `--sailor-node-ai-*`, `--sailor-node-if-*`, or `--sailor-node-merge-*`.
+- [x] Add explicit colors matching `server/src/core/utility-nodes/sailor-core/manifest.ts`.
+- [x] Ensure icon is visible in dark/light themes.
+- [x] Verify Database Dataset icon is not white/blank.
+- [x] Run:
 
   ```powershell
   cd client-vue
@@ -155,7 +155,7 @@
   npm run build
   ```
 
-- [ ] Commit:
+- [x] Commit:
 
   ```powershell
   git add client-vue/src/features/workflow-editor/components/nodes/TextDatasetNode.vue client-vue/src/features/workflow-editor/components/nodes/FileDatasetNode.vue client-vue/src/features/workflow-editor/components/nodes/DatabaseDatasetNode.vue client-vue/src/features/workflow-editor/components/nodes/EmbeddingsNode.vue client-vue/src/features/workflow-editor/components/nodes/VectorStoreNode.vue client-vue/src/features/workflow-editor/components/nodes/RetrieverNode.vue client-vue/src/features/workflow-editor/components/nodes/__tests__/retrievalNodes.contract.test.ts

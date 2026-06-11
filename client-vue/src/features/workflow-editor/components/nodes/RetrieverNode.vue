@@ -27,9 +27,9 @@ const subtitle = computed(() => `${props.data?.topK ?? 5} results`)
     :title="stepTitle"
     :subtitle="subtitle"
     icon="search"
-    color="var(--sailor-node-if-icon)"
-    bg="var(--sailor-node-if-bg)"
-    border-color="var(--sailor-node-if-border)"
+    color="#65a30d"
+    bg="#f7fee7"
+    border-color="#bef264"
   >
     <BaseHandle id="retrieved" type="source" :position="Position.Right" />
   </BaseNode>

@@ -86,3 +86,20 @@ test('retrieval node components render typed BaseNode shells', () => {
     assert.match(source, new RegExp(`icon="${icon}"`))
   }
 })
+
+test('retrieval node components use their catalog colors instead of generic node tokens', () => {
+  const expectedColors = {
+    TextDatasetNode: ['#0f766e', '#f0fdfa', '#5eead4'],
+    FileDatasetNode: ['#2563eb', '#eff6ff', '#93c5fd'],
+    DatabaseDatasetNode: ['#7c3aed', '#f5f3ff', '#c4b5fd'],
+    EmbeddingsNode: ['#db2777', '#fdf2f8', '#f9a8d4'],
+    VectorStoreNode: ['#0891b2', '#ecfeff', '#67e8f9'],
+    RetrieverNode: ['#65a30d', '#f7fee7', '#bef264'],
+  }
+
+  for (const [componentName, colors] of Object.entries(expectedColors)) {
+    const source = read(`src/features/workflow-editor/components/nodes/${componentName}.vue`)
+    assert.doesNotMatch(source, /--sailor-node-(?:ai|if|merge)-/)
+    for (const color of colors) assert.match(source, new RegExp(color))
+  }
+})

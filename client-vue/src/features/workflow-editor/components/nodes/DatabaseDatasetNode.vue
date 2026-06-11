@@ -27,9 +27,9 @@ const subtitle = computed(() => props.data?.pluginId || 'database')
     :title="stepTitle"
     :subtitle="subtitle"
     icon="table-2"
-    color="var(--sailor-node-plugin-icon)"
-    bg="var(--sailor-node-plugin-bg)"
-    border-color="var(--sailor-node-plugin-border)"
+    color="#7c3aed"
+    bg="#f5f3ff"
+    border-color="#c4b5fd"
   >
     <BaseHandle id="dataset" type="source" :position="Position.Right" />
   </BaseNode>

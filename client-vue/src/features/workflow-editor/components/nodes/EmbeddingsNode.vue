@@ -27,9 +27,9 @@ const subtitle = computed(() => props.data?.model || props.data?.pluginId || 'mo
     :title="stepTitle"
     :subtitle="subtitle"
     icon="scan-text"
-    color="var(--sailor-node-ai-icon)"
-    bg="var(--sailor-node-ai-bg)"
-    border-color="var(--sailor-node-ai-border)"
+    color="#db2777"
+    bg="#fdf2f8"
+    border-color="#f9a8d4"
   >
     <BaseHandle id="vectors" type="source" :position="Position.Right" />
   </BaseNode>
