@@ -982,6 +982,12 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     defaultData.dimension = 1536
     defaultData.metric = 'cosine'
     defaultData.config = {}
+    defaultData.retrievalMode = 'index-and-query'
+    defaultData.query = ''
+    defaultData.topK = 5
+    defaultData.outputMode = 'context'
+    defaultData.maxContextChars = 8000
+    defaultData.filter = {}
   } else if (type === 'retriever') {
     defaultData.query = 'trigger.body.question'
     defaultData.topK = 5

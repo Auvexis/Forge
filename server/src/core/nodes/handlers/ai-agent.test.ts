@@ -311,6 +311,48 @@ describe("AI workflow node handlers", () => {
     ]);
   });
 
+  it("adds connected vector store output as agent context", async () => {
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return { status: "success", output: "ok", toolCallCount: 0, iterationCount: 1 };
+    };
+    const workflow = workflowFixture({
+      nodes: {
+        ...workflowFixture().nodes,
+        vector: {
+          type: "vector-store",
+          name: "Vector",
+          pluginId: "vector-provider",
+          ensureCollectionMethodId: "ensureCollection",
+          upsertMethodId: "upsertDocuments",
+          queryMethodId: "querySimilar",
+          collectionName: "documents",
+          dimension: 3,
+          metric: "cosine",
+          config: {},
+        },
+      },
+      edges: [
+        ...workflowFixture().edges,
+        { id: "vector-agent", source: "vector", target: "agent" },
+      ],
+    });
+    const context = contextFixture({
+      steps: {
+        vector: { output: { context: "Vector store context." } },
+      },
+    });
+
+    await createUtilityNodeRegistry().get("ai-agent")
+      .execute(handlerInput("agent", workflow.nodes.agent, workflow, context));
+
+    assert.ok(received);
+    assert.deepEqual((received as AgentRunInput).contextMessages, [
+      { role: "system", content: "Retrieved context:\nVector store context." },
+    ]);
+  });
+
   it("passes chat-scoped memory sqlite path for sailor internal session memory", async () => {
     const registry = createUtilityNodeRegistry();
     const fixture = workflowFixture();

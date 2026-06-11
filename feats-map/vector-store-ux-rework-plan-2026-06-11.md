@@ -325,19 +325,19 @@
 - Test: `client-vue/src/features/workflow-editor/components/settings/__tests__/addNodePickerModel.test.ts`
 
 **Steps:**
-- [ ] Keep old `retriever` node valid for existing workflows.
-- [ ] Hide `retriever` from default AddNodePanel.
-- [ ] Add retrieval settings inside `VectorStoreEditor.vue`:
+- [x] Keep old `retriever` node valid for existing workflows.
+- [x] Hide `retriever` from default AddNodePanel.
+- [x] Add retrieval settings inside `VectorStoreEditor.vue`:
   - query
   - topK
   - outputMode
   - maxContextChars
   - filter
-- [ ] Vector Store output can be used by AI Agent as retrieval context.
-- [ ] AI Agent still accepts old retriever output for backward compatibility.
-- [ ] Add tests proving old retriever workflows still validate.
-- [ ] Add tests proving new vector-store output can feed Agent context.
-- [ ] Commit:
+- [x] Vector Store output can be used by AI Agent as retrieval context.
+- [x] AI Agent still accepts old retriever output for backward compatibility.
+- [x] Add tests proving old retriever workflows still validate.
+- [x] Add tests proving new vector-store output can feed Agent context.
+- [x] Commit:
 
   ```powershell
   git add client-vue/src/features/workflow-editor/components/settings/addNodePickerModel.ts client-vue/src/features/workflow-editor/components/settings/AddNodePanel.vue client-vue/src/features/workflow-editor/components/settings/editors/VectorStoreEditor.vue server/src/core/modules/workflows/workflow-validation.ts server/src/core/nodes/handlers/retrieval.ts server/src/core/modules/workflows/workflow-validation.test.ts server/src/core/nodes/handlers/retrieval-handlers.test.ts client-vue/src/features/workflow-editor/components/settings/__tests__/addNodePickerModel.test.ts

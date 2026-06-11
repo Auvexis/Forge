@@ -128,6 +128,10 @@ export function catalogItemsToPickerPresets(items: readonly WorkflowNodeCatalogI
   }))
 }
 
+export function filterDefaultPickerPresets(presets: readonly AddNodePickerPreset[]): AddNodePickerPreset[] {
+  return presets.filter((preset) => preset.nodeType !== 'retriever')
+}
+
 const CATEGORY_META: Record<PluginCategory, { description: string; icon: string }> = {
   AI: {
     icon: 'bot',

@@ -417,6 +417,11 @@ export interface VectorStoreNode extends WorkflowNodeBase {
   embeddingCount?: number;
   documentCount?: number;
   retrievalMode?: "index" | "query" | "index-and-query";
+  query?: string;
+  topK?: number;
+  outputMode?: "items" | "context";
+  maxContextChars?: number;
+  filter?: Record<string, any>;
   pluginId: string;
   ensureCollectionMethodId: string;
   upsertMethodId: string;

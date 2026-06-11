@@ -159,6 +159,7 @@ import {
   buildEmbeddingProviderItems,
   buildVectorStoreProviderItems,
   catalogItemsToPickerPresets,
+  filterDefaultPickerPresets,
   isVectorStoreProvider,
   type AddNodePickerPreset,
   type AddNodePickerSecondColumnItem,
@@ -280,7 +281,7 @@ const pickerPresets = computed(() => {
   if (isAgentModelContext.value || isAgentToolContext.value) return []
   if (isAgentMemoryContext.value) return AGENT_MEMORY_PRESETS
   return [
-    ...catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? []),
+    ...filterDefaultPickerPresets(catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? [])),
     ...AI_NODES,
   ]
 })
@@ -462,7 +463,7 @@ const addEmbeddingNode = (plugin: PluginSummary) => {
     name: `${plugin.manifest.metadata.name} Embeddings`,
     pluginId: plugin.id,
     methodId: provider.methodKey,
-    model: String(properties.model?.default ?? ''),
+    model: String(properties.model?.default ?? 'default'),
     dimension: Number(properties.dimension?.default ?? 1536),
     input: '',
     batchSize: Number(properties.batchSize?.default ?? 64),
@@ -482,6 +483,12 @@ const addVectorStoreNode = (plugin: PluginSummary) => {
     dimension: 1536,
     metric: 'cosine',
     config: {},
+    retrievalMode: 'index-and-query',
+    query: '',
+    topK: 5,
+    outputMode: 'context',
+    maxContextChars: 8000,
+    filter: {},
   })
 }
 

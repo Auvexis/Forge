@@ -9,6 +9,7 @@ import type {
 } from "../../../shared/models/workflow-types.ts";
 import { createNodeHandler } from "../handler.ts";
 import type { NodeHandlerInput } from "../types.ts";
+import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
 
 export const textDatasetNodeHandler = createNodeHandler<TextDatasetNode>("text-dataset", ({ node, nodeId }) => {
   const items = node.format === "json-array"
@@ -206,46 +207,77 @@ export const vectorStoreNodeHandler = createNodeHandler<VectorStoreNode>("vector
   const embeddingEdge = workflow.edges.find((edge) =>
     edge.target === nodeId && edge.targetHandle === "embedding"
   );
-  if (!documentEdge || !embeddingEdge) return baseOutput;
+  const mode = node.retrievalMode ?? "index-and-query";
+  const query = node.query
+    ? String(TemplateEngine.evaluate(node.query, context)).trim()
+    : "";
+  const shouldIndex = mode !== "query" && Boolean(documentEdge);
+  const shouldQuery = mode !== "index" && Boolean(query);
+  if (!shouldIndex && !shouldQuery) return baseOutput;
+  if (!embeddingEdge) throw new Error("Vector Store indexing and queries require a connected Embeddings node.");
   if (!services.executePluginMethod) throw new Error("Vector Store requires plugin execution services.");
 
-  const datasetOutput = context.steps[documentEdge.source]?.output ?? await executeConfigSource(input, documentEdge.source);
-  const items = Array.isArray(datasetOutput?.items) ? datasetOutput.items : [];
   const embeddingNode = workflow.nodes[embeddingEdge.source];
   if (embeddingNode?.type !== "embeddings") throw new Error("Vector Store embedding handle requires an Embeddings node.");
+  const output: Record<string, any> = { ...baseOutput };
+  let collectionEnsured = false;
 
-  const embeddingResult = await services.executePluginMethod(
-    embeddingNode.pluginId,
-    embeddingNode.methodId,
-    {
-      model: embeddingNode.model,
-      input: items.map((item: any) => item.text),
-      dimension: embeddingNode.dimension,
-      batchSize: embeddingNode.batchSize,
-    },
-  );
-  const vectors = extractVectors(embeddingResult);
-  if (vectors.length !== items.length) {
-    throw new Error(`Embedding provider returned ${vectors.length} vectors for ${items.length} documents.`);
+  if (shouldIndex && documentEdge) {
+    const datasetOutput = context.steps[documentEdge.source]?.output ?? await executeConfigSource(input, documentEdge.source);
+    const items = Array.isArray(datasetOutput?.items) ? datasetOutput.items : [];
+    const vectors = await createEmbeddings(services.executePluginMethod, embeddingNode, items.map((item: any) => String(item.text ?? "")));
+    if (vectors.length !== items.length) {
+      throw new Error(`Embedding provider returned ${vectors.length} vectors for ${items.length} documents.`);
+    }
+
+    const documents = items.map((item: any, index: number) => ({
+      id: String(item.id ?? `${documentEdge.source}:${index}`),
+      text: String(item.text ?? ""),
+      vector: vectors[index],
+      metadata: item.metadata ?? {},
+    }));
+    await services.executePluginMethod(node.pluginId, node.ensureCollectionMethodId, { store });
+    collectionEnsured = true;
+    const upsertResult = await services.executePluginMethod(node.pluginId, node.upsertMethodId, {
+      store,
+      documents,
+    });
+    output.indexedCount = Number(upsertResult?.upsertedCount ?? documents.length);
+    output.documents = documents;
   }
 
-  const documents = items.map((item: any, index: number) => ({
-    id: String(item.id ?? `${documentEdge.source}:${index}`),
-    text: String(item.text ?? ""),
-    vector: vectors[index],
-    metadata: item.metadata ?? {},
-  }));
-  await services.executePluginMethod(node.pluginId, node.ensureCollectionMethodId, { store });
-  const upsertResult = await services.executePluginMethod(node.pluginId, node.upsertMethodId, {
-    store,
-    documents,
-  });
+  if (shouldQuery) {
+    const [queryVector] = await createEmbeddings(services.executePluginMethod, embeddingNode, [query]);
+    if (!queryVector) throw new Error("Embedding provider did not return a query vector.");
+    if (!collectionEnsured) {
+      await services.executePluginMethod(node.pluginId, node.ensureCollectionMethodId, { store });
+    }
+    const queryResult = await services.executePluginMethod(node.pluginId, node.queryMethodId, {
+      store,
+      query: {
+        text: query,
+        vector: queryVector,
+        topK: node.topK ?? 5,
+        filter: node.filter ?? {},
+      },
+    });
+    const items = Array.isArray(queryResult)
+      ? queryResult
+      : Array.isArray(queryResult?.items)
+        ? queryResult.items
+        : [];
+    output.items = items;
+    if ((node.outputMode ?? "context") === "context") {
+      const maxChars = node.maxContextChars ?? 8000;
+      output.context = items
+        .map((item: any) => String(item?.text ?? "").trim())
+        .filter(Boolean)
+        .join("\n\n")
+        .slice(0, maxChars);
+    }
+  }
 
-  return {
-    ...baseOutput,
-    indexedCount: Number(upsertResult?.upsertedCount ?? documents.length),
-    documents,
-  };
+  return output;
 }, {
   description: "Defines a provider-neutral vector store for indexing and retrieval.",
   execution: "stateless",
@@ -253,6 +285,20 @@ export const vectorStoreNodeHandler = createNodeHandler<VectorStoreNode>("vector
   outputs: [{ id: "default", label: "Vector Store" }],
   errors: ["Invalid vector store config"],
 });
+
+async function createEmbeddings(
+  executePluginMethod: NonNullable<NodeHandlerInput<VectorStoreNode>["services"]["executePluginMethod"]>,
+  node: EmbeddingsNode,
+  values: string[],
+): Promise<number[][]> {
+  const result = await executePluginMethod(node.pluginId, node.methodId, {
+    model: node.model,
+    input: values,
+    dimension: node.dimension,
+    batchSize: node.batchSize,
+  });
+  return extractVectors(result);
+}
 
 async function executeConfigSource(
   input: NodeHandlerInput<VectorStoreNode>,

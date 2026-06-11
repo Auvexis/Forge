@@ -62,6 +62,14 @@ test('vector store editor exposes Pinecone and Qdrant provider config sections',
   assert.match(source, /timeoutMs/)
 })
 
+test('vector store editor owns retrieval query and output settings', () => {
+  const source = read('src/features/workflow-editor/components/settings/editors/VectorStoreEditor.vue')
+
+  for (const field of ['query', 'topK', 'outputMode', 'maxContextChars', 'filter']) {
+    assert.match(source, new RegExp(field))
+  }
+})
+
 test('vector store editor uses mode selectors for local, cloud, and self-hosted provider modes', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/VectorStoreEditor.vue')
 

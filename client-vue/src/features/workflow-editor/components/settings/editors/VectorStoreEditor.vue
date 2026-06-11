@@ -43,6 +43,57 @@
       />
     </EditorField>
 
+    <EditorField label="Retrieval Mode">
+      <BaseSelect
+        :model-value="(node.data.retrievalMode as string) || 'index-and-query'"
+        :options="RETRIEVAL_MODES"
+        @update:model-value="updateNodeData({ retrievalMode: $event as string })"
+      />
+    </EditorField>
+
+    <EditorField label="Query">
+      <ExpressionTextarea
+        :model-value="(node.data.query as string) || ''"
+        @update:model-value="updateNodeData({ query: $event })"
+        placeholder="trigger.body.question"
+        spellcheck="false"
+      />
+    </EditorField>
+
+    <EditorField label="Top K">
+      <BaseInput
+        type="number"
+        :model-value="String(node.data.topK ?? 5)"
+        @update:model-value="updateNodeData({ topK: Number($event) || 5 })"
+        placeholder="5"
+      />
+    </EditorField>
+
+    <EditorField label="Output Mode">
+      <BaseSelect
+        :model-value="(node.data.outputMode as string) || 'context'"
+        :options="OUTPUT_MODES"
+        @update:model-value="updateNodeData({ outputMode: $event as string })"
+      />
+    </EditorField>
+
+    <EditorField label="Max Context Chars">
+      <BaseInput
+        type="number"
+        :model-value="String(node.data.maxContextChars ?? 8000)"
+        @update:model-value="updateNodeData({ maxContextChars: Number($event) || 8000 })"
+        placeholder="8000"
+      />
+    </EditorField>
+
+    <EditorField label="Filter">
+      <BaseInput
+        :model-value="filterJson"
+        @update:model-value="updateFilter($event as string)"
+        placeholder='{"tenantId":"demo"}'
+      />
+    </EditorField>
+
     <EditorField label="Methods">
       <BaseInput
         :model-value="(node.data.upsertMethodId as string) || ''"
@@ -179,6 +230,7 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 
 const props = defineProps<NodeEditorProps>()
@@ -186,6 +238,7 @@ const settingsStore = useSettingsStore()
 
 const pluginId = computed(() => (props.node.data.pluginId as string) || 'sailor-qdrant')
 const config = computed<Record<string, any>>(() => ((props.node.data.config as Record<string, any> | undefined) ?? {}))
+const filterJson = computed(() => JSON.stringify((props.node.data.filter as Record<string, any> | undefined) ?? {}))
 const isRemoteMode = computed(() => ['cloud', 'self-hosted'].includes((config.value.mode as string) || 'cloud'))
 const credentialOptions = computed(() => {
   const credential = settingsStore.credentials[pluginId.value]
@@ -208,6 +261,17 @@ const QDRANT_MODES = [
   { value: 'self-hosted', label: 'Self-hosted' },
 ]
 
+const RETRIEVAL_MODES = [
+  { value: 'index', label: 'Index only' },
+  { value: 'query', label: 'Query only' },
+  { value: 'index-and-query', label: 'Index and query' },
+]
+
+const OUTPUT_MODES = [
+  { value: 'context', label: 'Context' },
+  { value: 'items', label: 'Items' },
+]
+
 onMounted(() => {
   void settingsStore.fetchCredential(pluginId.value)
 })
@@ -228,6 +292,17 @@ function updateProvider(nextPluginId: string) {
 
 function updateConfig(patch: Record<string, any>) {
   props.updateNodeData({ config: { ...config.value, ...patch } })
+}
+
+function updateFilter(value: string) {
+  try {
+    const parsed = JSON.parse(value || '{}')
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      props.updateNodeData({ filter: parsed })
+    }
+  } catch {
+    // Keep the last valid filter while the user is editing JSON.
+  }
 }
 </script>
 

@@ -388,10 +388,10 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       }
       return validateChunkingConfig(node.chunking, `Text Dataset node "${nodeId}"`);
     case "file-dataset":
-      if (!node.filePath && !node.fileUrl) {
-        return `File Dataset node "${nodeId}" must have filePath or fileUrl`;
+      if ((!Array.isArray(node.files) || node.files.length === 0) && !node.filePath && !node.fileUrl) {
+        return `File Dataset node "${nodeId}" must have files, filePath, or fileUrl`;
       }
-      if (!["txt", "markdown", "json", "csv"].includes(node.format)) {
+      if (!["txt", "markdown", "json", "csv", "auto"].includes(node.format)) {
         return `File Dataset node "${nodeId}" must have a supported format`;
       }
       return validateChunkingConfig(node.chunking, `File Dataset node "${nodeId}"`);
@@ -413,7 +413,7 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       if (!node.model || typeof node.model !== "string") {
         return `Embeddings node "${nodeId}" must have model`;
       }
-      return !node.input || typeof node.input !== "string"
+      return typeof node.input !== "string"
         ? `Embeddings node "${nodeId}" must have input`
         : null;
     case "vector-store":
@@ -428,6 +428,21 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       }
       if (!isValidVectorMetric(node.metric)) {
         return `Vector Store node "${nodeId}" must have metric cosine, dot, or euclidean`;
+      }
+      if (node.retrievalMode && !["index", "query", "index-and-query"].includes(node.retrievalMode)) {
+        return `Vector Store node "${nodeId}" must have a valid retrievalMode`;
+      }
+      if (node.topK !== undefined && (typeof node.topK !== "number" || node.topK < 1)) {
+        return `Vector Store node "${nodeId}" must have topK >= 1`;
+      }
+      if (node.outputMode !== undefined && node.outputMode !== "items" && node.outputMode !== "context") {
+        return `Vector Store node "${nodeId}" must have outputMode items or context`;
+      }
+      if (node.maxContextChars !== undefined && (typeof node.maxContextChars !== "number" || node.maxContextChars < 1)) {
+        return `Vector Store node "${nodeId}" must have maxContextChars >= 1`;
+      }
+      if (node.filter !== undefined && (!node.filter || typeof node.filter !== "object" || Array.isArray(node.filter))) {
+        return `Vector Store node "${nodeId}" must have filter object`;
       }
       return !node.config || typeof node.config !== "object" || Array.isArray(node.config)
         ? `Vector Store node "${nodeId}" must have config object`

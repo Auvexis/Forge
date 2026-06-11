@@ -8,6 +8,7 @@ import {
   buildPickerSecondColumnItems,
   buildVectorStoreProviderItems,
   catalogItemsToPickerPresets,
+  filterDefaultPickerPresets,
   type AddNodePickerPreset,
 } from '../addNodePickerModel.ts'
 
@@ -290,4 +291,15 @@ test('catalog retrieval nodes appear as picker presets in their catalog categori
     buildPickerSecondColumnItems({ category: 'AI', plugins: [], presets }).map((item) => item.id),
     ['preset:vector-store', 'preset:retriever'],
   )
+})
+
+test('default picker can omit the deprecated retriever preset while keeping vector store', () => {
+  const presets: AddNodePickerPreset[] = [
+    { id: 'vector-store', nodeType: 'vector-store', label: 'Vector Store', description: '', icon: 'database', categories: ['AI'] },
+    { id: 'retriever', nodeType: 'retriever', label: 'Retriever', description: '', icon: 'search', categories: ['AI'] },
+  ]
+  const visibleTypes = filterDefaultPickerPresets(presets)
+
+  assert.deepEqual(visibleTypes.map((preset) => preset.nodeType), ['vector-store'])
+  assert.equal(visibleTypes.some((preset) => preset.nodeType === 'retriever'), false)
 })

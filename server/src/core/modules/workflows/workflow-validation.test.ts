@@ -179,6 +179,70 @@ describe("workflow validation", () => {
     assert.equal(error, null);
   });
 
+  it("accepts uploaded file datasets and embedding config nodes with empty direct input", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        files: {
+          type: "file-dataset",
+          name: "Files",
+          files: [{ filename: "guide.md", content: "U2FpbG9y" }],
+          format: "auto",
+          chunking: {
+            enabled: false,
+            chunkSize: 800,
+            chunkOverlap: 120,
+            contextualOverlapEnabled: false,
+            maxPreviousContextChars: 0,
+          },
+        },
+        embeddings: {
+          type: "embeddings",
+          name: "Embeddings",
+          pluginId: "embedding-provider",
+          methodId: "createEmbeddings",
+          model: "default",
+          input: "",
+        },
+      },
+    }));
+
+    assert.equal(error, null);
+  });
+
+  it("accepts vector store retrieval settings while preserving legacy retriever workflows", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        store: {
+          type: "vector-store",
+          name: "Vector Store",
+          pluginId: "vector-provider",
+          ensureCollectionMethodId: "ensureCollection",
+          upsertMethodId: "upsertDocuments",
+          queryMethodId: "querySimilar",
+          collectionName: "docs",
+          dimension: 1536,
+          metric: "cosine",
+          config: {},
+          retrievalMode: "query",
+          query: "{{ trigger.query }}",
+          topK: 5,
+          outputMode: "context",
+          maxContextChars: 4000,
+          filter: { tenantId: "demo" },
+        },
+        legacy: {
+          type: "retriever",
+          name: "Legacy Retriever",
+          query: "{{ trigger.query }}",
+          topK: 5,
+          outputMode: "context",
+        },
+      },
+    }));
+
+    assert.equal(error, null);
+  });
+
   it("rejects invalid retrieval node config", () => {
     const error = validateWorkflowDefinition(baseWorkflow({
       nodes: {

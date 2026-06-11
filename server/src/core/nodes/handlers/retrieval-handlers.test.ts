@@ -297,6 +297,69 @@ describe("retrieval utility node handlers", () => {
     assert.deepEqual(upsertedDocument.vector, [0.1, 0.2, 0.3]);
     assert.equal(result.indexedCount, 1);
   });
+
+  it("vector store queries similar documents and returns agent-ready context", async () => {
+    const calls: string[] = [];
+    const workflow = workflowFixture();
+    workflow.nodes = {
+      embeddings: {
+        type: "embeddings",
+        name: "Embeddings",
+        pluginId: "embedding-provider",
+        methodId: "createEmbeddings",
+        model: "embedding-model",
+        dimension: 3,
+        input: "",
+      },
+      vector: {
+        type: "vector-store",
+        name: "Vector",
+        pluginId: "vector-provider",
+        ensureCollectionMethodId: "ensureCollection",
+        upsertMethodId: "upsertDocuments",
+        queryMethodId: "querySimilar",
+        collectionName: "documents",
+        dimension: 3,
+        metric: "cosine",
+        config: {},
+        retrievalMode: "query",
+        query: "What is Sailor?",
+        topK: 3,
+        outputMode: "context",
+        maxContextChars: 100,
+        filter: {},
+      },
+    };
+    workflow.edges = [
+      { id: "embedding-vector", source: "embeddings", target: "vector", targetHandle: "embedding" },
+    ];
+
+    const result = await createUtilityNodeRegistry().get("vector-store").execute({
+      nodeId: "vector",
+      executionId: "exec-1",
+      workflow,
+      edges: workflow.edges,
+      context: { trigger: {}, variables: {}, steps: {} },
+      services: {
+        executePluginMethod: async (pluginId: string, methodId: string) => {
+          calls.push(`${pluginId}:${methodId}`);
+          if (pluginId === "embedding-provider") return { vectors: [[0.1, 0.2, 0.3]] };
+          if (methodId === "querySimilar") {
+            return [{ id: "doc-1", text: "Sailor builds workflows.", score: 0.9, metadata: {} }];
+          }
+          return { ok: true };
+        },
+      } as any,
+      node: workflow.nodes.vector,
+    });
+
+    assert.deepEqual(calls, [
+      "embedding-provider:createEmbeddings",
+      "vector-provider:ensureCollection",
+      "vector-provider:querySimilar",
+    ]);
+    assert.equal(result.context, "Sailor builds workflows.");
+  });
 });
 
 function workflowFixture(): WorkflowItem {
