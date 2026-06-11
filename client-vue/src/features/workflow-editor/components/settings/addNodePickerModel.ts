@@ -58,6 +58,38 @@ export interface AddNodePickerActionItem {
   description: string
 }
 
+const VECTOR_STORE_METHODS = [
+  'ensureCollection',
+  'upsertDocuments',
+  'querySimilar',
+  'deleteDocuments',
+  'describeCollection',
+] as const
+
+export function isVectorStoreProvider(plugin: PluginSummary): boolean {
+  return VECTOR_STORE_METHODS.every((methodKey) => methodKey in plugin.manifest.methods)
+}
+
+export function buildVectorStoreProviderItems(options: {
+  plugins: readonly PluginSummary[]
+  search?: string
+}): Array<{ id: string; plugin: PluginSummary; label: string; description: string; icon: string }> {
+  return options.plugins
+    .filter(isVectorStoreProvider)
+    .filter((plugin) => matchesSearch(
+      options.search,
+      plugin.manifest.metadata.name,
+      plugin.manifest.metadata.description,
+    ))
+    .map((plugin) => ({
+      id: `vector-store-provider:${plugin.id}`,
+      plugin,
+      label: plugin.manifest.metadata.name,
+      description: plugin.manifest.metadata.description,
+      icon: plugin.manifest.metadata.icon || 'database-zap',
+    }))
+}
+
 export function catalogItemsToPickerPresets(items: readonly WorkflowNodeCatalogItem[]): AddNodePickerPreset[] {
   return items.map((item) => ({
     id: item.type,

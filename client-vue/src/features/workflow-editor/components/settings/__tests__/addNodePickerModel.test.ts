@@ -6,6 +6,7 @@ import {
   buildPickerActionItems,
   buildPickerCategoryItems,
   buildPickerSecondColumnItems,
+  buildVectorStoreProviderItems,
   catalogItemsToPickerPresets,
   type AddNodePickerPreset,
 } from '../addNodePickerModel.ts'
@@ -65,6 +66,38 @@ test('picker categories count plugins in every declared category', () => {
 
   assert.equal(items.find((item) => item.category === 'Apps')?.count, 1)
   assert.equal(items.find((item) => item.category === 'Developer')?.count, 1)
+})
+
+test('vector store preset lists only plugins implementing the generic provider contract', () => {
+  const vectorProvider = plugin({
+    id: 'vector-provider',
+    manifest: {
+      metadata: {
+        id: 'vector-provider',
+        name: 'Vector Provider',
+        description: 'Stores vectors',
+        icon: 'database-zap',
+        categories: ['AI'],
+        author: 'Test',
+        version: '1.0.0',
+        repository: '',
+      },
+      methods: Object.fromEntries(
+        ['ensureCollection', 'upsertDocuments', 'querySimilar', 'deleteDocuments', 'describeCollection']
+          .map((methodKey) => [methodKey, {
+            metadata: { label: methodKey, description: methodKey },
+            parameters: { type: 'object' },
+            responseSchema: { type: 'object' },
+          }]),
+      ),
+    },
+  })
+
+  const items = buildVectorStoreProviderItems({
+    plugins: [vectorProvider, plugin({ id: 'regular-plugin' })],
+  })
+
+  assert.deepEqual(items.map((item) => item.plugin.id), ['vector-provider'])
 })
 
 test('picker categories stay visible when search matches an item inside them', () => {

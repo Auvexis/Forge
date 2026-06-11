@@ -215,15 +215,15 @@
 - Test: `client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts`
 
 **Steps:**
-- [ ] Add failing test: clicking Vector Store category/preset must list vector store providers, not plugin methods.
-- [ ] Detect vector store plugins by generic method contract:
+- [x] Add failing test: clicking Vector Store category/preset must list vector store providers, not plugin methods.
+- [x] Detect vector store plugins by generic method contract:
   - `ensureCollection`
   - `upsertDocuments`
   - `querySimilar`
   - `deleteDocuments`
   - `describeCollection`
-- [ ] Do not hardcode Pinecone/Qdrant in core UI.
-- [ ] Add picker flow:
+- [x] Do not hardcode Pinecone/Qdrant in core UI.
+- [x] Add picker flow:
 
   ```text
   AI
@@ -239,13 +239,13 @@
   -> creates vector-store node with pluginId=sailor-qdrant
   ```
 
-- [ ] Keep provider-specific defaults generic and sourced from plugin metadata/method contract where possible.
-- [ ] Add fallback only for generic defaults:
+- [x] Keep provider-specific defaults generic and sourced from plugin metadata/method contract where possible.
+- [x] Add fallback only for generic defaults:
   - collectionName
   - dimension
   - metric
-- [ ] Run tests/build.
-- [ ] Commit:
+- [x] Run tests/build.
+- [x] Commit:
 
   ```powershell
   git add client-vue/src/features/workflow-editor/components/settings/AddNodePanel.vue client-vue/src/features/workflow-editor/components/settings/addNodePickerModel.ts client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue client-vue/src/features/workflow-editor/components/settings/__tests__/addNodePickerModel.test.ts client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts

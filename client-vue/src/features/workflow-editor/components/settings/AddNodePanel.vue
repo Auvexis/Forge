@@ -93,7 +93,7 @@
             </div>
 
             <Transition name="add-node-methods">
-              <div v-if="methodSubmenuPlugin" class="add-node-cascade__methods">
+              <div v-if="methodSubmenuPlugin || vectorStoreProviderPickerOpen" class="add-node-cascade__methods">
                 <header class="add-node-cascade__header">
                   <BaseButton
                     icon-left="chevron-left"
@@ -101,20 +101,35 @@
                     size="icon"
                     @click="closeMethodSubmenu"
                   />
-                  <span>{{ methodSubmenuPlugin.manifest.metadata.name }}</span>
+                  <span>{{ vectorStoreProviderPickerOpen ? 'Vector Store' : methodSubmenuPlugin?.manifest.metadata.name }}</span>
                 </header>
                 <div class="add-node-cascade__scroller">
-                  <AddNodePickerItem
-                    v-for="item in methodSubmenuItems"
-                    :key="item.id"
-                    :label="item.label"
-                    :description="item.description"
-                    icon="workflow"
-                    @click="addPluginAction(methodSubmenuPlugin, item.methodKey, item.label)"
-                  />
-                  <div v-if="methodSubmenuItems.length === 0" class="add-node-cascade__empty">
-                    No actions found.
-                  </div>
+                  <template v-if="vectorStoreProviderPickerOpen">
+                    <AddNodePickerItem
+                      v-for="item in vectorStoreProviderItems"
+                      :key="item.id"
+                      :label="item.label"
+                      :description="item.description"
+                      :icon="pluginIcon(item.plugin)"
+                      @click="addVectorStoreNode(item.plugin)"
+                    />
+                    <div v-if="vectorStoreProviderItems.length === 0" class="add-node-cascade__empty">
+                      No vector store providers found.
+                    </div>
+                  </template>
+                  <template v-else-if="methodSubmenuPlugin">
+                    <AddNodePickerItem
+                      v-for="item in methodSubmenuItems"
+                      :key="item.id"
+                      :label="item.label"
+                      :description="item.description"
+                      icon="workflow"
+                      @click="addPluginAction(methodSubmenuPlugin, item.methodKey, item.label)"
+                    />
+                    <div v-if="methodSubmenuItems.length === 0" class="add-node-cascade__empty">
+                      No actions found.
+                    </div>
+                  </template>
                 </div>
               </div>
             </Transition>
@@ -141,7 +156,9 @@ import {
   buildPickerActionItems,
   buildPickerCategoryItems,
   buildPickerSecondColumnItems,
+  buildVectorStoreProviderItems,
   catalogItemsToPickerPresets,
+  isVectorStoreProvider,
   type AddNodePickerPreset,
   type AddNodePickerSecondColumnItem,
 } from './addNodePickerModel'
@@ -161,6 +178,7 @@ const search = ref('')
 const searchInput = ref<InstanceType<typeof BaseInput>>()
 const hoveredCategory = ref<PluginCategory | null>(null)
 const methodSubmenuPlugin = ref<PluginSummary | null>(null)
+const vectorStoreProviderPickerOpen = ref(false)
 const { isDark } = useTheme()
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
 const {
@@ -238,7 +256,7 @@ const pickerPlugins = computed(() => {
   if (isAgentModelContext.value) return agentChatModelPlugins.value
   if (isAgentMemoryContext.value) return agentMemoryStorePlugins.value
   if (isAgentToolContext.value) return (plugins.value ?? []).filter(pluginHasAgentTools)
-  return plugins.value ?? []
+  return (plugins.value ?? []).filter((plugin) => !isVectorStoreProvider(plugin))
 })
 
 const pickerPresets = computed(() => {
@@ -303,6 +321,10 @@ const methodSubmenuItems = computed(() =>
   }),
 )
 
+const vectorStoreProviderItems = computed(() =>
+  buildVectorStoreProviderItems({ plugins: plugins.value ?? [] }),
+)
+
 const globalSearchItems = computed(() => {
   const query = normalizedSearch.value
   if (!query) return []
@@ -341,7 +363,10 @@ const pluginIcon = (plugin: PluginSummary) =>
   resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
 
 const hoverCategory = (category: PluginCategory) => {
-  if (hoveredCategory.value !== category) methodSubmenuPlugin.value = null
+  if (hoveredCategory.value !== category) {
+    methodSubmenuPlugin.value = null
+    vectorStoreProviderPickerOpen.value = false
+  }
   hoveredCategory.value = category
 }
 
@@ -359,11 +384,13 @@ const pluginActionItems = (plugin: PluginSummary) =>
 const pluginNeedsMethodSubmenu = (plugin: PluginSummary) => pluginActionItems(plugin).length > 1
 
 const openMethodSubmenu = (plugin: PluginSummary) => {
+  vectorStoreProviderPickerOpen.value = false
   methodSubmenuPlugin.value = plugin
 }
 
 const closeMethodSubmenu = () => {
   methodSubmenuPlugin.value = null
+  vectorStoreProviderPickerOpen.value = false
 }
 
 const addQuickTrigger = () => {
@@ -378,6 +405,11 @@ const addSinglePluginMethod = (plugin: PluginSummary) => {
 
 const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
   if (item.kind === 'preset') {
+    if (item.preset.nodeType === 'vector-store') {
+      methodSubmenuPlugin.value = null
+      vectorStoreProviderPickerOpen.value = true
+      return
+    }
     props.onAddLogicNode?.(item.preset.nodeType, item.preset.defaults)
     return
   }
@@ -397,6 +429,22 @@ const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
   }
 
   addSinglePluginMethod(item.plugin)
+}
+
+const addVectorStoreNode = (plugin: PluginSummary) => {
+  props.onAddLogicNode?.('vector-store', {
+    name: `${plugin.manifest.metadata.name} Vector Store`,
+    pluginId: plugin.id,
+    ensureCollectionMethodId: 'ensureCollection',
+    upsertMethodId: 'upsertDocuments',
+    queryMethodId: 'querySimilar',
+    deleteMethodId: 'deleteDocuments',
+    describeMethodId: 'describeCollection',
+    collectionName: 'documents',
+    dimension: 1536,
+    metric: 'cosine',
+    config: {},
+  })
 }
 
 const selectGlobalSearchItem = (item: AddNodePickerSecondColumnItem) => {

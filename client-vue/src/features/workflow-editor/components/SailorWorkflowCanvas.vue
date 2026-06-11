@@ -960,7 +960,7 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     defaultData.input = 'steps.text-dataset_1.output.items'
     defaultData.batchSize = 64
   } else if (type === 'vector-store') {
-    defaultData.pluginId = 'sailor-qdrant'
+    defaultData.pluginId = ''
     defaultData.ensureCollectionMethodId = 'ensureCollection'
     defaultData.upsertMethodId = 'upsertDocuments'
     defaultData.queryMethodId = 'querySimilar'
@@ -969,7 +969,7 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     defaultData.collectionName = 'documents'
     defaultData.dimension = 1536
     defaultData.metric = 'cosine'
-    defaultData.config = { mode: 'local', url: 'http://localhost:6333' }
+    defaultData.config = {}
   } else if (type === 'retriever') {
     defaultData.query = 'trigger.body.question'
     defaultData.topK = 5

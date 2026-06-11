@@ -116,6 +116,17 @@ test('canvas recognizes vector store handles as configuration edges', () => {
   assert.match(canvas, /\['chatModel', 'memory', 'tool', 'embedding', 'document'\]/)
 })
 
+test('vector store picker creates a provider-configured utility node instead of a plugin action', () => {
+  const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+
+  assert.match(panel, /buildVectorStoreProviderItems/)
+  assert.match(panel, /item\.preset\.nodeType === 'vector-store'/)
+  assert.match(panel, /onAddLogicNode\?\.\('vector-store'/)
+  assert.match(panel, /ensureCollectionMethodId: 'ensureCollection'/)
+  assert.doesNotMatch(canvas, /defaultData\.pluginId = 'sailor-qdrant'/)
+})
+
 test('canvas auto-arranges agent config nodes with model and memory on the left and tools in a grid', () => {
   const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
 
