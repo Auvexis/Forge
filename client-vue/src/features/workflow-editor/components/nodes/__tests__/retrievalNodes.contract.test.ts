@@ -133,13 +133,23 @@ test('vector configuration children are circular and connect from the top', () =
   for (const componentName of ['EmbeddingsNode', 'TextDatasetNode', 'FileDatasetNode', 'DatabaseDatasetNode']) {
     const source = read(`src/features/workflow-editor/components/nodes/${componentName}.vue`)
     assert.match(source, /rounded="full"/)
-    assert.match(source, /output-position="top"/)
+    assert.match(source, /CONFIGURATION_SOURCE_HANDLER/)
     assert.match(source, /width="100px"/)
     assert.match(source, /height="100px"/)
-    assert.match(source, /has-source/)
+    assert.match(source, /:handlers="\[CONFIGURATION_SOURCE_HANDLER\]"/)
+    assert.doesNotMatch(source, /has-source/)
     assert.doesNotMatch(source, /BaseHandle/)
     assert.doesNotMatch(source, /has-target/)
   }
+})
+
+test('advanced handler definitions declare shape and connection-aware quick add behavior', () => {
+  const definitions = read('src/features/workflow-editor/layout/advancedNodeDefinitions.ts')
+
+  assert.match(definitions, /CONFIGURATION_SOURCE_HANDLER/)
+  assert.match(definitions, /id: 'source'[\s\S]*style: 'diamond'/)
+  assert.match(definitions, /id: 'tool'[\s\S]*quickAddAfterConnected: true/)
+  assert.match(definitions, /id: 'document'[\s\S]*quickAddAfterConnected: true/)
 })
 
 test('vector configuration edges use the shared dashed routing and hide ordinary tools', () => {

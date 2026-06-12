@@ -7,6 +7,7 @@ import { apiRequest } from '@/core/api/client'
 import { ENDPOINTS } from '@/core/api/endpoints'
 import { useTheme } from '@/shared/composables/useTheme'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
+import { CONFIGURATION_SOURCE_HANDLER } from '../../layout/advancedNodeDefinitions'
 
 const props = defineProps<
   NodeProps<AiModelNode> & { status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed' }
@@ -62,8 +63,7 @@ watch(() => isDark.value, loadPluginAppearance)
       :color="customIconColor || 'var(--sailor-node-plugin-icon)'"
       :bg="customBg || 'var(--sailor-node-plugin-bg)'"
       :border-color="customBorder || 'var(--sailor-node-plugin-border)'"
-      has-source
-      output-position="top"
+      :handlers="[CONFIGURATION_SOURCE_HANDLER]"
       rounded="full"
       width="100px"
       height="100px"

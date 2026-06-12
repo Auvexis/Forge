@@ -206,9 +206,9 @@ const onQuickAdd = (event: MouseEvent) => {
           :id="handler.id"
           :type="handler.type"
           :position="handler.position"
-          variant="diamond"
+          :variant="handler.style ?? 'circle'"
         />
-        <span>
+        <span v-if="handler.label">
           {{ handler.label }}<template v-if="handler.required">*</template>
         </span>
         <QuickAddButton
@@ -218,6 +218,7 @@ const onQuickAdd = (event: MouseEvent) => {
           :target-handle-id="handler.id"
           :mode="handler.quickAdd"
           :allowed-nodes="handler.allowedNodes"
+          :always-visible="handler.quickAddAfterConnected"
           :direction="handler.position === Position.Bottom ? 'down' : 'right'"
         />
       </div>
@@ -452,6 +453,11 @@ const onQuickAdd = (event: MouseEvent) => {
   inset: auto !important;
   margin: 0 auto;
   pointer-events: all;
+}
+
+.sailor-base-node__handler :deep(.qab-wrap--down) {
+  position: absolute;
+  top: 12px;
 }
 
 /* ─── Label (below card, outside the node box) ──────────────── */

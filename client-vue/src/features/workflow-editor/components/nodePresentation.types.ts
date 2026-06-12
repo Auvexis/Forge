@@ -4,6 +4,7 @@ export type NodeSide = 'top' | 'left' | 'bottom' | 'right'
 export type NodeRounding = 'sm' | 'md' | 'lg' | 'full'
 export type NodeBorderStyle = 'default' | 'dashed'
 export type NodeQuickAddMode = 'agent-config' | 'vector-config'
+export type NodeHandleStyle = 'circle' | 'diamond'
 
 export type AllowedNodeSelector =
   | `node:${string}`
@@ -18,7 +19,9 @@ export interface BaseNodeHandlerDefinition {
   label: string
   type: 'source' | 'target'
   position: Position
+  style?: NodeHandleStyle
   required?: boolean
   quickAdd?: NodeQuickAddMode
+  quickAddAfterConnected?: boolean
   allowedNodes: AllowedNodes
 }

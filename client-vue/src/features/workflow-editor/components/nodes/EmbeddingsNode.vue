@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { NodeProps } from '@vue-flow/core'
 import type { EmbeddingsNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
+import { CONFIGURATION_SOURCE_HANDLER } from '../../layout/advancedNodeDefinitions'
 
 const props = defineProps<
   NodeProps<EmbeddingsNode> & {
@@ -21,8 +22,7 @@ const subtitle = computed(() => props.data?.model || props.data?.pluginId || 'mo
     :selected="props.selected"
     :status="props.status"
     :has-outgoing-connection="props.hasOutgoingConnection"
-    has-source
-    output-position="top"
+    :handlers="[CONFIGURATION_SOURCE_HANDLER]"
     rounded="full"
     width="100px"
     height="100px"

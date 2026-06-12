@@ -25,6 +25,16 @@ test('BaseNode exposes configurable positions, rounding, border, and handlers', 
   assert.match(source, /BaseNodeHandlerDefinition/)
   assert.match(source, /handler\.required/)
   assert.match(source, /handler\.allowedNodes/)
+  assert.match(source, /handler\.style/)
+  assert.match(source, /handler\.quickAddAfterConnected/)
+  assert.match(source, /:variant="handler\.style \?\? 'circle'"/)
+  assert.match(source, /:always-visible="handler\.quickAddAfterConnected"/)
+})
+
+test('vertical handler quick add does not change the handle edge alignment', () => {
+  const source = read('BaseNode.vue')
+
+  assert.match(source, /\.sailor-base-node__handler :deep\(\.qab-wrap--down\)\s*\{[\s\S]*position: absolute;[\s\S]*top: 12px;/)
 })
 
 test('BaseNode maps all four sides to Vue Flow positions', () => {
