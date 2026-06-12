@@ -8,22 +8,6 @@
       />
     </EditorField>
 
-    <EditorField label="Provider Plugin">
-      <BaseInput
-        :model-value="(node.data.pluginId as string) || ''"
-        @update:model-value="updateNodeData({ pluginId: $event as string })"
-        placeholder="sailor-openai"
-      />
-    </EditorField>
-
-    <EditorField label="Method">
-      <BaseInput
-        :model-value="(node.data.methodId as string) || ''"
-        @update:model-value="updateNodeData({ methodId: $event as string })"
-        placeholder="create-embeddings"
-      />
-    </EditorField>
-
     <EditorField label="Model">
       <BaseInput
         :model-value="(node.data.model as string) || ''"

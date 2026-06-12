@@ -3,6 +3,8 @@ import test from 'node:test'
 
 import type { PluginSummary } from '@/core/types/plugin.types'
 import {
+  buildEmbeddingModelItems,
+  buildEmbeddingProviderItems,
   buildPickerActionItems,
   buildPickerCategoryItems,
   buildPickerSecondColumnItems,
@@ -99,6 +101,52 @@ test('vector store preset lists only plugins implementing the generic provider c
   })
 
   assert.deepEqual(items.map((item) => item.plugin.id), ['vector-provider'])
+})
+
+test('embedding picker exposes provider models first and their embedding methods second', () => {
+  const openai = plugin({
+    id: 'sailor-openai',
+    manifest: {
+      metadata: {
+        id: 'sailor-openai',
+        name: 'OpenAI',
+        description: 'OpenAI models',
+        icon: 'openai',
+        categories: ['AI'],
+        author: 'Test',
+        version: '1.0.0',
+        repository: '',
+      },
+      methods: {
+        createEmbeddings: {
+          metadata: { label: 'Create embeddings', description: 'Create document vectors' },
+          parameters: { type: 'object' },
+          responseSchema: { type: 'object' },
+        },
+        embedQuery: {
+          metadata: { label: 'Embed query', description: 'Create one query vector' },
+          parameters: { type: 'object' },
+          responseSchema: { type: 'object' },
+        },
+        listModels: {
+          metadata: { label: 'List models', description: 'List available models' },
+          parameters: { type: 'object' },
+          responseSchema: { type: 'object' },
+        },
+      },
+    },
+  })
+
+  assert.deepEqual(buildEmbeddingModelItems({ plugins: [openai] }).map((item) => item.label), [
+    'OpenAI Embedding Model',
+  ])
+  assert.deepEqual(
+    buildEmbeddingProviderItems({ plugins: [openai] }).map((item) => [item.methodKey, item.label]),
+    [
+      ['createEmbeddings', 'Create embeddings'],
+      ['embedQuery', 'Embed query'],
+    ],
+  )
 })
 
 test('picker categories stay visible when search matches an item inside them', () => {

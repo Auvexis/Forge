@@ -134,7 +134,10 @@ test('embeddings and retriever editors expose retrieval controls', () => {
   const embeddings = read('src/features/workflow-editor/components/settings/editors/EmbeddingsEditor.vue')
   const retriever = read('src/features/workflow-editor/components/settings/editors/RetrieverEditor.vue')
 
-  for (const field of ['pluginId', 'methodId', 'model', 'dimension', 'input', 'batchSize']) {
+  assert.doesNotMatch(embeddings, /label="Provider Plugin"/)
+  assert.doesNotMatch(embeddings, /label="Method"/)
+
+  for (const field of ['model', 'dimension', 'input', 'batchSize']) {
     assert.match(embeddings, new RegExp(field))
   }
 

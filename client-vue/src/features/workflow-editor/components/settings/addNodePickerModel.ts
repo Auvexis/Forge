@@ -118,10 +118,31 @@ export function buildEmbeddingProviderItems(options: {
         id: `embedding-provider:${plugin.id}:${methodKey}`,
         plugin,
         methodKey,
-        label: plugin.manifest.metadata.name,
+        label: method.metadata.label,
         description: method.metadata.description,
       })),
   )
+}
+
+export function buildEmbeddingModelItems(options: {
+  plugins: readonly PluginSummary[]
+  search?: string
+}): Array<{ id: string; plugin: PluginSummary; label: string; description: string; icon: string }> {
+  return options.plugins
+    .filter((plugin) => buildEmbeddingProviderItems({ plugins: [plugin] }).length > 0)
+    .filter((plugin) => matchesSearch(
+      options.search,
+      plugin.manifest.metadata.name,
+      `${plugin.manifest.metadata.name} Embedding Model`,
+      plugin.manifest.metadata.description,
+    ))
+    .map((plugin) => ({
+      id: `embedding-model:${plugin.id}`,
+      plugin,
+      label: `${plugin.manifest.metadata.name} Embedding Model`,
+      description: plugin.manifest.metadata.description,
+      icon: plugin.manifest.metadata.icon || 'scan-text',
+    }))
 }
 
 export function catalogItemsToPickerPresets(items: readonly WorkflowNodeCatalogItem[]): AddNodePickerPreset[] {

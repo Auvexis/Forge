@@ -108,6 +108,10 @@ test('embedding quick-add uses a vector config context separate from agent confi
 
   assert.match(panel, /handlerId\?: string/)
   assert.match(panel, /buildEmbeddingProviderItems/)
+  assert.match(panel, /buildEmbeddingModelItems/)
+  assert.match(panel, /isEmbeddingContext\.value[\s\S]*openMethodSubmenu\(item\.plugin\)/)
+  assert.match(panel, /addEmbeddingNode\(methodSubmenuPlugin, item\.methodKey\)/)
+  assert.match(panel, /Embedding Model/)
   assert.match(panel, /allowedNodeSelectorsPermitPlugin/)
   assert.match(panel, /onAddLogicNode\?\.\('embeddings'/)
   assert.match(canvas, /handlerId: string \| null/)

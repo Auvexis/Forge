@@ -101,7 +101,7 @@
                     size="icon"
                     @click="closeMethodSubmenu"
                   />
-                  <span>{{ vectorStoreProviderPickerOpen ? 'Vector Store' : methodSubmenuPlugin?.manifest.metadata.name }}</span>
+                  <span>{{ vectorStoreProviderPickerOpen ? 'Vector Store' : methodSubmenuTitle }}</span>
                 </header>
                 <div class="add-node-cascade__scroller">
                   <template v-if="vectorStoreProviderPickerOpen">
@@ -124,7 +124,9 @@
                       :label="item.label"
                       :description="item.description"
                       icon="workflow"
-                      @click="addPluginAction(methodSubmenuPlugin, item.methodKey, item.label)"
+                      @click="isEmbeddingContext
+                        ? addEmbeddingNode(methodSubmenuPlugin, item.methodKey)
+                        : addPluginAction(methodSubmenuPlugin, item.methodKey, item.label)"
                     />
                     <div v-if="methodSubmenuItems.length === 0" class="add-node-cascade__empty">
                       No actions found.
@@ -157,6 +159,7 @@ import {
   buildPickerActionItems,
   buildPickerCategoryItems,
   buildPickerSecondColumnItems,
+  buildEmbeddingModelItems,
   buildEmbeddingProviderItems,
   buildVectorStoreProviderItems,
   catalogItemsToPickerPresets,
@@ -305,22 +308,46 @@ const activeCategory = computed(() => {
   return null
 })
 
+const embeddingModelPresentation = (plugin: PluginSummary) =>
+  buildEmbeddingModelItems({ plugins: [plugin] })[0]
+
+const decorateEmbeddingModelItem = (item: AddNodePickerSecondColumnItem): AddNodePickerSecondColumnItem => {
+  if (!isEmbeddingContext.value || item.kind !== 'plugin') return item
+  const presentation = embeddingModelPresentation(item.plugin)
+  return presentation
+    ? { ...item, label: presentation.label, description: presentation.description, icon: presentation.icon }
+    : item
+}
+
 const secondColumnItems = computed(() =>
   buildPickerSecondColumnItems({
     category: activeCategory.value,
     plugins: pickerPlugins.value,
     presets: pickerPresets.value,
     search: search.value,
-  }),
+  }).map(decorateEmbeddingModelItem),
 )
 
-const methodSubmenuItems = computed(() =>
-  buildPickerActionItems({
+const methodSubmenuItems = computed(() => {
+  if (isEmbeddingContext.value) {
+    return buildEmbeddingProviderItems({
+      plugins: methodSubmenuPlugin.value ? [methodSubmenuPlugin.value] : [],
+    })
+  }
+  return buildPickerActionItems({
     plugin: methodSubmenuPlugin.value,
     agentConfigHandle: isAgentToolContext.value ? 'tool' : undefined,
     search: '',
-  }),
-)
+  })
+})
+
+const methodSubmenuTitle = computed(() => {
+  const plugin = methodSubmenuPlugin.value
+  if (!plugin) return ''
+  return isEmbeddingContext.value
+    ? `${plugin.manifest.metadata.name} Embedding Model`
+    : plugin.manifest.metadata.name
+})
 
 const vectorStoreProviderItems = computed(() =>
   buildVectorStoreProviderItems({ plugins: plugins.value ?? [] }),
@@ -344,7 +371,7 @@ const globalSearchItems = computed(() => {
   const plugins = pickerPlugins.value
     .filter((plugin) =>
       matchesFuzzyLetters(
-        `${plugin.manifest.metadata.name} ${plugin.manifest.metadata.description}`,
+        `${plugin.manifest.metadata.name}${isEmbeddingContext.value ? ' Embedding Model' : ''} ${plugin.manifest.metadata.description}`,
         query,
       ),
     )
@@ -356,6 +383,7 @@ const globalSearchItems = computed(() => {
       description: plugin.manifest.metadata.description,
       icon: plugin.manifest.metadata.icon || 'box',
     }))
+    .map(decorateEmbeddingModelItem)
 
   return [...presets, ...plugins]
 })
@@ -382,7 +410,10 @@ const pluginActionItems = (plugin: PluginSummary) =>
     search: '',
   })
 
-const pluginNeedsMethodSubmenu = (plugin: PluginSummary) => pluginActionItems(plugin).length > 1
+const pluginNeedsMethodSubmenu = (plugin: PluginSummary) =>
+  isEmbeddingContext.value
+    ? buildEmbeddingProviderItems({ plugins: [plugin] }).length > 0
+    : pluginActionItems(plugin).length > 1
 
 const openMethodSubmenu = (plugin: PluginSummary) => {
   vectorStoreProviderPickerOpen.value = false
@@ -416,7 +447,7 @@ const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
   }
 
   if (isEmbeddingContext.value) {
-    addEmbeddingNode(item.plugin)
+    openMethodSubmenu(item.plugin)
     return
   }
 
@@ -437,13 +468,14 @@ const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
   addSinglePluginMethod(item.plugin)
 }
 
-const addEmbeddingNode = (plugin: PluginSummary) => {
-  const provider = buildEmbeddingProviderItems({ plugins: [plugin] })[0]
+const addEmbeddingNode = (plugin: PluginSummary, methodKey: string) => {
+  const provider = buildEmbeddingProviderItems({ plugins: [plugin] })
+    .find((item) => item.methodKey === methodKey)
   if (!provider) return
 
   const properties = plugin.manifest.methods[provider.methodKey]?.parameters.properties ?? {}
   props.onAddLogicNode?.('embeddings', {
-    name: `${plugin.manifest.metadata.name} Embeddings`,
+    name: `${plugin.manifest.metadata.name} Embedding Model`,
     pluginId: plugin.id,
     methodId: provider.methodKey,
     model: String(properties.model?.default ?? 'default'),

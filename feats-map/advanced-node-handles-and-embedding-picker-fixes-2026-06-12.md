@@ -23,12 +23,12 @@
 
 ## Task 2: Selecionar Embedding Models por provider e metodo
 
-- [ ] Exibir plugins compativeis como `<Provider> Embedding Model`.
-- [ ] Abrir submenu com os metodos de embedding do provider selecionado.
-- [ ] Criar o node `embeddings` com `pluginId` e `methodId` escolhidos.
-- [ ] Preservar filtros por `allowedNodes` e busca contextual.
-- [ ] Adicionar e executar testes de regressao.
-- [ ] Commit da task.
+- [x] Exibir plugins compativeis como `<Provider> Embedding Model`.
+- [x] Abrir submenu com os metodos de embedding do provider selecionado.
+- [x] Criar o node `embeddings` com `pluginId` e `methodId` escolhidos.
+- [x] Preservar filtros por `allowedNodes` e busca contextual.
+- [x] Adicionar e executar testes de regressao.
+- [x] Commit da task.
 
 ## Verificacao
 
