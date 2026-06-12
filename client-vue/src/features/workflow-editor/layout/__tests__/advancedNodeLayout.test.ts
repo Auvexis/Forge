@@ -12,7 +12,7 @@ test('bottom handlers place circular children below and center them by handler i
     handlerCount: 3,
     siblingIndex: 0,
   }), {
-    x: 500 + 236 / 6 - ADVANCED_CHILD_SIZE / 2,
+    x: 500 + 236 / 2 - ADVANCED_CHILD_SIZE / 2 - (ADVANCED_CHILD_SIZE + ADVANCED_LAYOUT.crossGap),
     y: 200 + 100 + ADVANCED_LAYOUT.primaryGap,
   })
 })
@@ -23,6 +23,13 @@ test('repeated children use deterministic grid rows', () => {
 
   assert.equal(fifth.x, first.x)
   assert.equal(fifth.y, first.y + ADVANCED_CHILD_SIZE + ADVANCED_LAYOUT.rowGap)
+})
+
+test('adjacent handler tracks leave a full child gap without overlap', () => {
+  const first = getAdvancedChildPosition({ parent, side: 'bottom', handlerIndex: 0, handlerCount: 3, siblingIndex: 0 })
+  const second = getAdvancedChildPosition({ parent, side: 'bottom', handlerIndex: 1, handlerCount: 3, siblingIndex: 0 })
+
+  assert.equal(second.x - first.x, ADVANCED_CHILD_SIZE + ADVANCED_LAYOUT.crossGap)
 })
 
 test('top, left, and right handlers mirror the primary layout axis', () => {

@@ -141,3 +141,14 @@ test('vector configuration children are circular and connect from the top', () =
     assert.doesNotMatch(source, /has-target/)
   }
 })
+
+test('vector configuration edges use the shared dashed routing and hide ordinary tools', () => {
+  const source = read('src/features/workflow-editor/components/BaseEdge.vue')
+
+  assert.match(source, /CONFIGURATION_TARGET_HANDLES/)
+  assert.match(source, /isConfigurationEdge/)
+  assert.match(source, /configurationBezierPath/)
+  assert.match(source, /v-if="!isConfigurationEdge"/)
+  assert.match(source, /'embedding'/)
+  assert.match(source, /'document'/)
+})

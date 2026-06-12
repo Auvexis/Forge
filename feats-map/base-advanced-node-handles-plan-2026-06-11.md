@@ -750,7 +750,7 @@ git commit -m "refactor: migrate agent and vector nodes to advanced base"
 - Modify: `client-vue/src/features/workflow-editor/components/nodes/__tests__/retrievalNodes.contract.test.ts`
 - Modify only if QA finds defects: files from Tasks 2-6.
 
-- [ ] **Step 1: Write failing edge contracts**
+- [x] **Step 1: Write failing edge contracts**
 
 ```ts
 test('declared configuration edges use dashed presentation for Agent and Vector Store', () => {
@@ -764,11 +764,11 @@ test('declared configuration edges use dashed presentation for Agent and Vector 
 })
 ```
 
-- [ ] **Step 2: Run edge test and verify RED**
+- [x] **Step 2: Run edge test and verify RED**
 
 Run the two node contract files. Expected: FAIL because Vector Store config edges are not recognized as dashed config edges.
 
-- [ ] **Step 3: Generalize configuration-edge recognition**
+- [x] **Step 3: Generalize configuration-edge recognition**
 
 Replace Agent-only naming:
 
@@ -796,7 +796,7 @@ if (isConfigurationEdge.value) {
 
 Use configuration bezier routing and hide the ordinary edge toolbar for all configuration edges.
 
-- [ ] **Step 4: Run complete focused frontend matrix**
+- [x] **Step 4: Run complete focused frontend matrix**
 
 ```powershell
 cd client-vue
@@ -805,7 +805,7 @@ node --test src/features/workflow-editor/components/__tests__/baseNode.contract.
 
 Expected: 0 failures.
 
-- [ ] **Step 5: Run production build**
+- [x] **Step 5: Run production build**
 
 ```powershell
 cd client-vue
@@ -814,7 +814,7 @@ npm run build
 
 Expected: Vue type-check and Vite build complete successfully. Existing chunk-size warnings are acceptable; new errors are not.
 
-- [ ] **Step 6: Perform browser QA**
+- [x] **Step 6: Perform browser QA**
 
 Start server on `23801` and client on `23802`. Verify:
 
@@ -830,7 +830,7 @@ Start server on `23801` and client on `23802`. Verify:
 - Added children occupy deterministic non-overlapping positions.
 - Normal AddNodePanel continues hiding configuration-only nodes.
 
-- [ ] **Step 7: Stop all QA Node processes**
+- [x] **Step 7: Stop all QA Node processes**
 
 ```powershell
 Get-Process -Name node -ErrorAction SilentlyContinue | Stop-Process -Force
@@ -838,7 +838,7 @@ Get-Process -Name node -ErrorAction SilentlyContinue | Stop-Process -Force
 
 Verify no Node processes remain before reporting completion.
 
-- [ ] **Step 8: Commit edge and QA corrections**
+- [x] **Step 8: Commit edge and QA corrections**
 
 ```powershell
 git add client-vue/src/features/workflow-editor/components/BaseEdge.vue client-vue/src/features/workflow-editor/components/nodes/__tests__/agentNodes.contract.test.ts client-vue/src/features/workflow-editor/components/nodes/__tests__/retrievalNodes.contract.test.ts
@@ -847,17 +847,19 @@ git commit -m "feat: render configuration edges as dashed"
 
 If QA required corrections, include only the corrected files in this commit and describe them beneath this task before marking it complete.
 
+QA correction: adjacent handler tracks were originally distributed inside the parent width, causing 100px circular children to overlap. The layout now centers tracks around the parent using `ADVANCED_CHILD_SIZE + crossGap`, with a regression test covering adjacent handlers.
+
 ---
 
 ## Completion Criteria
 
-- [ ] `BaseNode` supports configurable positions, rounding, border style, icon/title/description, and arbitrary restricted handlers.
-- [ ] `BaseAdvancedNode` composes BaseNode and declares auto-organization.
-- [ ] `allowedNodes: []` denies all entries and hides quick-add; `'*'` permits all entries.
-- [ ] Namespaced node, preset, plugin, and capability selectors work from one pure matcher.
-- [ ] AI Agent and Vector Store use BaseAdvancedNode without duplicated handle layout CSS.
-- [ ] Their configuration children are circular with top target handles.
-- [ ] Configuration children auto-organize without continuous repositioning after manual drag.
-- [ ] Agent and Vector Store configuration edges are dashed.
-- [ ] Existing workflow JSON and handle IDs remain compatible.
-- [ ] Focused tests, type-check, production build, browser QA, and Node-process cleanup pass.
+- [x] `BaseNode` supports configurable positions, rounding, border style, icon/title/description, and arbitrary restricted handlers.
+- [x] `BaseAdvancedNode` composes BaseNode and declares auto-organization.
+- [x] `allowedNodes: []` denies all entries and hides quick-add; `'*'` permits all entries.
+- [x] Namespaced node, preset, plugin, and capability selectors work from one pure matcher.
+- [x] AI Agent and Vector Store use BaseAdvancedNode without duplicated handle layout CSS.
+- [x] Their configuration children are circular with top target handles.
+- [x] Configuration children auto-organize without continuous repositioning after manual drag.
+- [x] Agent and Vector Store configuration edges are dashed.
+- [x] Existing workflow JSON and handle IDs remain compatible.
+- [x] Focused tests, type-check, production build, browser QA, and Node-process cleanup pass.

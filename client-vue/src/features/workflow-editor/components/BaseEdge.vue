@@ -14,7 +14,7 @@
   <EdgeLabelRenderer>
     <!-- Toolbar ABOVE the edge midpoint -->
     <div
-      v-if="!isAgentConfigEdge"
+      v-if="!isConfigurationEdge"
       class="nodrag nopan sailor-edge-toolbar"
       :class="{ 'sailor-edge-toolbar--visible': !isMultiSelection && (isHovered || selected) }"
       :style="{
@@ -39,7 +39,7 @@
 
     <!-- Invisible wider hover zone spanning toolbar + label area -->
     <div
-      v-if="!isAgentConfigEdge"
+      v-if="!isConfigurationEdge"
       class="nodrag nopan sailor-edge-hover-zone"
       :style="{
         pointerEvents: 'none',
@@ -99,9 +99,9 @@ const props = defineProps<EdgeProps>()
 
 const { removeEdges, getNodes, getSelectedNodes, viewport } = useVueFlow()
 const executionStore = useExecutionStore()
-const AGENT_CONFIG_TARGET_HANDLES = new Set(['chatModel', 'memory', 'tool'])
-const isAgentConfigEdge = computed(() =>
-  AGENT_CONFIG_TARGET_HANDLES.has(String(props.targetHandleId ?? props.data?.targetHandle ?? '')),
+const CONFIGURATION_TARGET_HANDLES = new Set(['chatModel', 'memory', 'tool', 'embedding', 'document'])
+const isConfigurationEdge = computed(() =>
+  CONFIGURATION_TARGET_HANDLES.has(String(props.targetHandleId ?? props.data?.targetHandle ?? '')),
 )
 
 const isMultiSelection = computed(() => getSelectedNodes.value.length >= 2)
@@ -112,7 +112,7 @@ const toolbarScale = computed(() => {
 
 // ── Path ─────────────────────────────────────────────────────────────────────
 
-function agentConfigBezierPath(sx: number, sy: number, tx: number, ty: number): [string, number, number] {
+function configurationBezierPath(sx: number, sy: number, tx: number, ty: number): [string, number, number] {
   const verticalGap = Math.abs(sy - ty)
   const pull = Math.min(180, Math.max(72, verticalGap * 0.55))
   const sourcePull = sy > ty ? -pull : pull
@@ -123,8 +123,8 @@ function agentConfigBezierPath(sx: number, sy: number, tx: number, ty: number): 
 }
 
 const pathData = computed(() => {
-  if (isAgentConfigEdge.value) {
-    return agentConfigBezierPath(props.sourceX, props.sourceY, props.targetX, props.targetY)
+  if (isConfigurationEdge.value) {
+    return configurationBezierPath(props.sourceX, props.sourceY, props.targetX, props.targetY)
   }
 
   const [path, lx, ly] = routedBezierPath(
@@ -188,13 +188,21 @@ const strokeColor = computed(() => {
   }
 })
 
-const computedStyle = computed(() => ({
-  ...props.style,
-  stroke: strokeColor.value,
-  strokeWidth: edgeStatus.value !== 'idle' ? 3 : 2,
-  strokeDasharray: isAgentConfigEdge.value ? '6 6' : props.style?.strokeDasharray,
-  transition: 'stroke 0.3s ease, stroke-width 0.3s ease',
-}))
+const computedStyle = computed(() => {
+  const style = {
+    ...props.style,
+    stroke: strokeColor.value,
+    strokeWidth: edgeStatus.value !== 'idle' ? 3 : 2,
+    transition: 'stroke 0.3s ease, stroke-width 0.3s ease',
+  }
+
+  if (isConfigurationEdge.value) {
+    style.strokeDasharray = '6 6'
+    style.strokeLinecap = 'round'
+  }
+
+  return style
+})
 
 // ── Hover state ───────────────────────────────────────────────────────────────
 

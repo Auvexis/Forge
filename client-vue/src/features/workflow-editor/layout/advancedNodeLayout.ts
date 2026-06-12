@@ -30,9 +30,12 @@ export function getAdvancedChildPosition(input: AdvancedChildPositionInput): { x
   const row = Math.floor(input.siblingIndex / ADVANCED_LAYOUT.maxPerRow)
   const crossOffset = column * (ADVANCED_CHILD_SIZE + ADVANCED_LAYOUT.crossGap)
   const primaryOffset = row * (ADVANCED_CHILD_SIZE + ADVANCED_LAYOUT.rowGap)
+  const handlerOffset = (
+    handlerIndex - (handlerCount - 1) / 2
+  ) * (ADVANCED_CHILD_SIZE + ADVANCED_LAYOUT.crossGap)
 
   if (input.side === 'top' || input.side === 'bottom') {
-    const trackCenter = input.parent.x + ((handlerIndex + 0.5) / handlerCount) * input.parent.width
+    const trackCenter = input.parent.x + input.parent.width / 2 + handlerOffset
     return {
       x: trackCenter - ADVANCED_CHILD_SIZE / 2 + crossOffset,
       y: input.side === 'bottom'
@@ -41,7 +44,7 @@ export function getAdvancedChildPosition(input: AdvancedChildPositionInput): { x
     }
   }
 
-  const trackCenter = input.parent.y + ((handlerIndex + 0.5) / handlerCount) * input.parent.height
+  const trackCenter = input.parent.y + input.parent.height / 2 + handlerOffset
   return {
     x: input.side === 'right'
       ? input.parent.x + input.parent.width + ADVANCED_LAYOUT.primaryGap + primaryOffset
