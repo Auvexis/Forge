@@ -75,7 +75,7 @@
 
 ## Round 1: Contracts And Catalog UX
 
-### Task 1: Add canonical node capability and handle contracts
+### Task 1: Add canonical node capability and handle contracts [COMPLETE]
 
 **Files:**
 - Modify: `server/src/core/utility-nodes/utility-node-pack.types.ts`
@@ -86,7 +86,7 @@
 - Modify: `client-vue/src/core/types/workflow-node-catalog.types.ts`
 - Modify: `client-vue/src/core/api/__tests__/workflowNodes.api.contract.test.ts`
 
-- [ ] **Step 1: Write failing catalog contract tests**
+- [x] **Step 1: Write failing catalog contract tests**
 
 Add assertions that `ai-agent`, `vector-store`, `ai-model`, `embeddings`, datasets, and `ai-tool` expose roles, capabilities, presentation, and handles. Use the following expected shape as the contract:
 
@@ -134,7 +134,7 @@ assert.deepEqual(catalogByType.get("ai-agent")?.handles, [
 ]);
 ```
 
-- [ ] **Step 2: Run the tests and verify they fail**
+- [x] **Step 2: Run the tests and verify they fail**
 
 Run:
 
@@ -145,7 +145,7 @@ node --test src/core/utility-nodes/utility-node-pack.test.ts src/core/routes/wor
 
 Expected: FAIL because catalog entries do not yet expose `role`, `capabilities`, `handles`, or `presentation`.
 
-- [ ] **Step 3: Define the canonical server contracts**
+- [x] **Step 3: Define the canonical server contracts**
 
 Add these types to `utility-node-pack.types.ts`:
 
@@ -188,7 +188,7 @@ export interface UtilityNodePresentation {
 
 Extend `UtilityNodeManifestEntry` with required `role`, `capabilities`, `handles`, and `presentation` fields. In `define-utility-node-pack.ts`, reject duplicate handle IDs and reject `append` with `cardinality: "one"`.
 
-- [ ] **Step 4: Populate existing Sailor Core definitions**
+- [x] **Step 4: Populate existing Sailor Core definitions**
 
 Use these capability assignments:
 
@@ -205,11 +205,11 @@ embeddings: { role: "configuration", capabilities: ["embedding-model"] }
 
 All ordinary nodes use `capabilities: []`, `handles: []`, and `presentation.base: "standard"`. Configuration children expose one top source handle. AI Agent and Vector Store use the approved target handle contracts.
 
-- [ ] **Step 5: Mirror the serialized types in the frontend**
+- [x] **Step 5: Mirror the serialized types in the frontend**
 
 Extend `WorkflowNodeCatalogItem` with the same fields, using string positions at the API boundary. Do not import Vue Flow types into core API types.
 
-- [ ] **Step 6: Run focused tests and type checks**
+- [x] **Step 6: Run focused tests and type checks**
 
 Run:
 
@@ -224,7 +224,7 @@ npm run type-check
 
 Expected: all commands PASS.
 
-- [ ] **Step 7: Commit Task 1**
+- [x] **Step 7: Commit Task 1**
 
 ```powershell
 git add server/src/core/utility-nodes server/src/core/routes/workflow-node-catalog.routes.test.ts client-vue/src/core/types/workflow-node-catalog.types.ts client-vue/src/core/api/__tests__/workflowNodes.api.contract.test.ts

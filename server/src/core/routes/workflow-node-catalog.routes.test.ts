@@ -21,8 +21,10 @@ describe("workflow node catalog routes", () => {
       data: { nodes: Array<Record<string, any>> };
     };
     const code = body.data.nodes.find((node) => node.type === "code");
+    const agent = body.data.nodes.find((node) => node.type === "ai-agent");
 
     assert.ok(code);
+    if (!agent) throw new Error("AI Agent catalog entry was not found.");
     assert.equal(body.status_code, 200);
     assert.equal(body.error, null);
     assert.match(body.message, /catalog/i);
@@ -36,6 +38,10 @@ describe("workflow node catalog routes", () => {
     assert.equal(typeof code.style.borderColor, "string");
     assert.equal("execute" in code, false);
     assert.equal("handler" in code, false);
+    assert.equal(agent.role, "flow");
+    assert.deepEqual(agent.capabilities, []);
+    assert.equal(agent.presentation.base, "advanced");
+    assert.deepEqual(agent.handles.map((handle: any) => handle.id), ["chatModel", "memory", "tool"]);
 
     await app.close();
   });

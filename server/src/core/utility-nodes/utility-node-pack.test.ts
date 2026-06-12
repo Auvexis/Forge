@@ -27,6 +27,12 @@ describe("Utility node pack contract", () => {
     assert.match(types, /export interface UtilityNodePack/);
     assert.match(types, /nodes: Partial<Record<UtilityNodeType, UtilityNodeManifestEntry>>/);
     assert.match(types, /export interface UtilityNodeCatalogItem/);
+    assert.match(types, /export interface UtilityNodeHandleDefinition/);
+    assert.match(types, /export interface NodeCapabilitySelector/);
+    assert.match(types, /role: NodeRole/);
+    assert.match(types, /capabilities: string\[\]/);
+    assert.match(types, /handles: UtilityNodeHandleDefinition\[\]/);
+    assert.match(types, /presentation: UtilityNodePresentation/);
     assert.match(types, /UtilityNodeType/);
     assert.match(helper, /export function defineUtilityNodePack/);
   });
@@ -70,7 +76,33 @@ describe("Utility node pack contract", () => {
       assert.ok(node.style.iconColor.length > 0, `${type} iconColor`);
       assert.ok(node.style.bgColor.length > 0, `${type} bgColor`);
       assert.ok(node.style.borderColor.length > 0, `${type} borderColor`);
+      assert.ok(node.role === "flow" || node.role === "configuration", `${type} role`);
+      assert.ok(Array.isArray(node.capabilities), `${type} capabilities`);
+      assert.ok(Array.isArray(node.handles), `${type} handles`);
+      assert.ok(node.presentation.base === "standard" || node.presentation.base === "advanced", `${type} presentation`);
     }
+  });
+
+  it("declares reusable capability handles for AI Agent and Vector Store", () => {
+    assert.deepEqual(sailorCoreUtilityNodePack.nodes["ai-agent"]?.handles, [
+      {
+        id: "chatModel", label: "Chat Model", type: "target", position: "bottom", style: "diamond",
+        required: true, accepts: [{ capability: "chat-model" }], cardinality: "one",
+        connectionPolicy: "replace", quickAdd: "capability", quickAddAfterConnected: false,
+      },
+      {
+        id: "memory", label: "Memory", type: "target", position: "bottom", style: "diamond",
+        required: false, accepts: [{ capability: "memory-store" }], cardinality: "one",
+        connectionPolicy: "replace", quickAdd: "capability", quickAddAfterConnected: false,
+      },
+      {
+        id: "tool", label: "Tool", type: "target", position: "bottom", style: "diamond",
+        required: false, accepts: [{ capability: "agent-tool" }], cardinality: "many",
+        connectionPolicy: "append", quickAdd: "capability", quickAddAfterConnected: true,
+      },
+    ]);
+    assert.deepEqual(sailorCoreUtilityNodePack.nodes["vector-store"]?.capabilities, ["vector-store"]);
+    assert.deepEqual(sailorCoreUtilityNodePack.nodes.embeddings?.capabilities, ["embedding-model"]);
   });
 
   it("keeps Sailor Core manifest entries aligned with executable handlers", () => {

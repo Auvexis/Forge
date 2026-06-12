@@ -179,6 +179,12 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "AI Agent",
       description: "Run a governed agent with tools and memory.",
       category: "AI",
+      presentation: { base: "advanced", autoOrganize: true },
+      handles: [
+        { id: "chatModel", label: "Chat Model", type: "target", position: "bottom", style: "diamond", required: true, accepts: [{ capability: "chat-model" }], cardinality: "one", connectionPolicy: "replace", quickAdd: "capability", quickAddAfterConnected: false },
+        { id: "memory", label: "Memory", type: "target", position: "bottom", style: "diamond", required: false, accepts: [{ capability: "memory-store" }], cardinality: "one", connectionPolicy: "replace", quickAdd: "capability", quickAddAfterConnected: false },
+        { id: "tool", label: "Tool", type: "target", position: "bottom", style: "diamond", required: false, accepts: [{ capability: "agent-tool" }], cardinality: "many", connectionPolicy: "append", quickAdd: "capability", quickAddAfterConnected: true },
+      ],
       style: {
         icon: "bot",
         iconColor: "#f97316",
@@ -191,6 +197,10 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "AI Model",
       description: "Attach a chat model configuration to an AI Agent.",
       category: "AI",
+      role: "configuration",
+      capabilities: ["chat-model"],
+      presentation: { base: "standard", rounded: "full" },
+      handles: [{ id: "source", label: "", type: "source", position: "top", style: "diamond" }],
       style: {
         icon: "brain",
         iconColor: "#8b5cf6",
@@ -203,6 +213,10 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "AI Memory",
       description: "Attach a memory store configuration to an AI Agent.",
       category: "AI",
+      role: "configuration",
+      capabilities: ["memory-store"],
+      presentation: { base: "standard", rounded: "full" },
+      handles: [{ id: "source", label: "", type: "source", position: "top", style: "diamond" }],
       style: {
         icon: "database",
         iconColor: "#06b6d4",
@@ -215,6 +229,10 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "AI Tool",
       description: "Attach a callable tool configuration to an AI Agent.",
       category: "AI",
+      role: "configuration",
+      capabilities: ["agent-tool"],
+      presentation: { base: "standard", rounded: "full" },
+      handles: [{ id: "source", label: "", type: "source", position: "top", style: "diamond" }],
       style: {
         icon: "wrench",
         iconColor: "#64748b",
@@ -227,6 +245,10 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "Text Dataset",
       description: "Load text or JSON items as reusable workflow data.",
       category: "Data transformation",
+      role: "configuration",
+      capabilities: ["document-source"],
+      presentation: { base: "standard", rounded: "full" },
+      handles: [{ id: "source", label: "", type: "source", position: "top", style: "diamond" }],
       style: {
         icon: "text",
         iconColor: "#0f766e",
@@ -239,6 +261,10 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "File Dataset",
       description: "Load TXT, Markdown, JSON, or CSV files as workflow data.",
       category: "Data transformation",
+      role: "configuration",
+      capabilities: ["document-source"],
+      presentation: { base: "standard", rounded: "full" },
+      handles: [{ id: "source", label: "", type: "source", position: "top", style: "diamond" }],
       style: {
         icon: "file-text",
         iconColor: "#2563eb",
@@ -251,6 +277,10 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "Database Dataset",
       description: "Load database rows through a provider plugin as workflow data.",
       category: "Data transformation",
+      role: "configuration",
+      capabilities: ["document-source"],
+      presentation: { base: "standard", rounded: "full" },
+      handles: [{ id: "source", label: "", type: "source", position: "top", style: "diamond" }],
       style: {
         icon: "table-2",
         iconColor: "#7c3aed",
@@ -263,6 +293,10 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "Embeddings",
       description: "Create vectors from dataset items through an embedding provider plugin.",
       category: "AI",
+      role: "configuration",
+      capabilities: ["embedding-model"],
+      presentation: { base: "standard", rounded: "full" },
+      handles: [{ id: "source", label: "", type: "source", position: "top", style: "diamond" }],
       style: {
         icon: "scan-text",
         iconColor: "#db2777",
@@ -275,6 +309,12 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "Vector Store",
       description: "Configure a provider-backed vector collection for indexing and search.",
       category: "AI",
+      capabilities: ["vector-store"],
+      presentation: { base: "advanced", autoOrganize: true },
+      handles: [
+        { id: "embedding", label: "Embedding", type: "target", position: "bottom", style: "diamond", required: true, accepts: [{ capability: "embedding-model" }], cardinality: "one", connectionPolicy: "replace", quickAdd: "capability", quickAddAfterConnected: false },
+        { id: "document", label: "Document", type: "target", position: "bottom", style: "diamond", required: false, accepts: [{ capability: "document-source" }], cardinality: "many", connectionPolicy: "append", quickAdd: "capability", quickAddAfterConnected: true },
+      ],
       style: {
         icon: "database-zap",
         iconColor: "#0891b2",
@@ -287,6 +327,10 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "Retriever",
       description: "Retrieve relevant context from a configured vector store.",
       category: "AI",
+      role: "configuration",
+      capabilities: ["retriever"],
+      presentation: { base: "standard", rounded: "full" },
+      handles: [{ id: "source", label: "", type: "source", position: "top", style: "diamond" }],
       style: {
         icon: "search",
         iconColor: "#65a30d",
