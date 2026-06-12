@@ -71,14 +71,14 @@ test('add node panel filters contextual quick-add through allowed node selectors
   assert.doesNotMatch(panel, /pluginHasAgentTools/)
 })
 
-test('canvas connects contextual quick-add nodes into agent config handles', () => {
+test('canvas connects contextual quick-add nodes into advanced config handles', () => {
   const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
 
   assert.match(canvas, /quickAddTargetId/)
   assert.match(canvas, /quickAddTargetHandle/)
   assert.match(canvas, /quickAddHandlerId/)
   assert.match(canvas, /quickAddAllowedNodes/)
-  assert.match(canvas, /connectAgentConfigNode/)
+  assert.match(canvas, /connectAdvancedConfigNode/)
   assert.match(canvas, /targetHandle: targetHandle/)
   assert.match(canvas, /sourceHandle: 'source'/)
   assert.match(canvas, /on-add-agent-tool-node/)
@@ -87,7 +87,8 @@ test('canvas connects contextual quick-add nodes into agent config handles', () 
 test('canvas recognizes vector store handles as configuration edges', () => {
   const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
 
-  assert.match(canvas, /\['chatModel', 'memory', 'tool', 'embedding', 'document'\]/)
+  assert.match(canvas, /getAdvancedHandlerContext/)
+  assert.match(canvas, /getAdvancedNodeHandlers/)
 })
 
 test('vector store picker creates a provider-configured utility node instead of a plugin action', () => {
@@ -120,16 +121,17 @@ test('document quick-add exposes only dataset utility nodes', () => {
   assert.match(panel, /effectiveAllowedNodes/)
 })
 
-test('canvas auto-arranges agent config nodes with model and memory on the left and tools in a grid', () => {
+test('canvas auto-arranges advanced node children through the shared presentation registry', () => {
   const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
 
-  assert.match(canvas, /AGENT_CONFIG_TOOLS_PER_ROW = 4/)
-  assert.match(canvas, /getAgentConfigLayoutPosition/)
-  assert.match(canvas, /arrangeAgentConfigNodes/)
-  assert.match(canvas, /targetHandle === 'tool'/)
-  assert.match(canvas, /toolIndex % AGENT_CONFIG_TOOLS_PER_ROW/)
-  assert.match(canvas, /Math\.floor\(toolIndex \/ AGENT_CONFIG_TOOLS_PER_ROW\)/)
-  assert.match(canvas, /arrangeAgentConfigNodes\(targetId\)/)
+  assert.match(canvas, /getAdvancedChildPosition/)
+  assert.match(canvas, /getAdvancedNodeHandlers/)
+  assert.match(canvas, /getAdvancedConfigNodePosition/)
+  assert.match(canvas, /arrangeAdvancedConfigNodes/)
+  assert.match(canvas, /countHandlerChildren/)
+  assert.doesNotMatch(canvas, /AGENT_CONFIG_LAYOUT/)
+  assert.doesNotMatch(canvas, /getAgentConfigLayoutPosition/)
+  assert.doesNotMatch(canvas, /arrangeAgentConfigNodes/)
 })
 
 test('ai node defaults are safe and backend-compatible', () => {

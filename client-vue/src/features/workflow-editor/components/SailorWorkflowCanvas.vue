@@ -37,7 +37,9 @@ import { useNodeInspectorStore } from '../stores/node-inspector.store'
 import NodeInspectorModal from './settings/NodeInspectorModal.vue'
 import AddNodePanel from './settings/AddNodePanel.vue'
 import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
-import type { AllowedNodes } from './nodePresentation.types'
+import type { AllowedNodes, BaseNodeHandlerDefinition } from './nodePresentation.types'
+import { getAdvancedChildPosition } from '../layout/advancedNodeLayout'
+import { getAdvancedNodeHandlers, sideFromPosition } from '../layout/advancedNodeDefinitions'
 import { useEventBus } from '@/shared/composables/useEventBus'
 import { isCanvasSelecting } from '../composables/useCanvasSelecting'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
@@ -264,7 +266,6 @@ let quickAddTargetHandle: string | null = null
 let quickAddHandlerId: string | null = null
 let quickAddAllowedNodes: AllowedNodes = '*'
 
-const AGENT_CONFIG_HANDLES = ['chatModel', 'memory', 'tool'] as const
 const DEFAULT_ALLOWED_NODES_BY_HANDLER: Record<string, AllowedNodes> = {
   chatModel: ['capability:chat-model'],
   memory: ['preset:sqlite-memory', 'capability:memory-store'],
@@ -335,10 +336,6 @@ function getAddNodePickerPosition(anchor?: AddNodePickerAnchor | null): { left: 
 
 function closeAddNodePicker() {
   addNodePickerOverlay.value = null
-}
-
-function isAgentConfigHandle(handle: string | null | undefined): handle is 'chatModel' | 'memory' | 'tool' {
-  return AGENT_CONFIG_HANDLES.includes(handle as 'chatModel' | 'memory' | 'tool')
 }
 
 const quickAddBus = useEventBus('node:quick-add')
@@ -532,16 +529,6 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   'retriever': 'Retriever',
 }
 
-const AGENT_CONFIG_TOOLS_PER_ROW = 4
-const AGENT_CONFIG_LAYOUT = {
-  chatModelX: -165,
-  memoryX: 0,
-  toolsStartX: 165,
-  firstRowY: 265,
-  columnGap: 165,
-  rowGap: 185,
-}
-
 function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
   if (sourceId) {
     const nodes = vueFlowNodes.value as any[]
@@ -571,48 +558,44 @@ function hasNodeOutgoingConnection(nodeId: string): boolean {
   )
 }
 
-function getAgentConfigNodePosition(targetId: string | null, targetHandle: string | null): { x: number; y: number } {
-  if (!targetId) return getCenterPosition()
-
-  const targetNode = (vueFlowNodes.value as any[]).find((n) => n.id === targetId)
-  if (!targetNode) return getCenterPosition()
-
-  const toolIndex =
-    targetHandle === 'tool'
-      ? workflowStore.activeWorkflow?.edges.filter((edge) =>
-        edge.target === targetId && edge.targetHandle === 'tool',
-      ).length ?? 0
-      : 0
-
-  return getAgentConfigLayoutPosition(targetNode.position, targetHandle, toolIndex)
+function getAdvancedHandlerContext(targetId: string | null, targetHandle: string | null) {
+  if (!targetId || !targetHandle) return null
+  const targetNode = (vueFlowNodes.value as any[]).find((node) => node.id === targetId)
+  const handlers = getAdvancedNodeHandlers(targetNode?.data?.type ?? targetNode?.type)
+  const handlerIndex = handlers.findIndex((handler) => handler.id === targetHandle)
+  if (!targetNode || handlerIndex < 0) return null
+  return { targetNode, handlers, handler: handlers[handlerIndex]!, handlerIndex }
 }
 
-function getAgentConfigLayoutPosition(
-  agentPosition: { x: number; y: number },
-  targetHandle: string | null,
-  toolIndex = 0,
+function countHandlerChildren(targetId: string, targetHandle: string): number {
+  return workflowStore.activeWorkflow?.edges.filter((edge) =>
+    edge.target === targetId && edge.targetHandle === targetHandle,
+  ).length ?? 0
+}
+
+function getAdvancedConfigNodePosition(
+  targetId: string,
+  handler: BaseNodeHandlerDefinition,
+  handlerIndex: number,
+  handlerCount: number,
+  siblingIndex = countHandlerChildren(targetId, handler.id),
 ): { x: number; y: number } {
-  if (targetHandle === 'chatModel') {
-    return {
-      x: agentPosition.x + AGENT_CONFIG_LAYOUT.chatModelX,
-      y: agentPosition.y + AGENT_CONFIG_LAYOUT.firstRowY,
-    }
-  }
+  const targetNode = (vueFlowNodes.value as any[]).find((node) => node.id === targetId)
+  if (!targetNode) return getCenterPosition()
+  const renderedNode = vueFlowStore.value?.findNode(targetId)
 
-  if (targetHandle === 'memory') {
-    return {
-      x: agentPosition.x + AGENT_CONFIG_LAYOUT.memoryX,
-      y: agentPosition.y + AGENT_CONFIG_LAYOUT.firstRowY,
-    }
-  }
-
-  const col = toolIndex % AGENT_CONFIG_TOOLS_PER_ROW
-  const row = Math.floor(toolIndex / AGENT_CONFIG_TOOLS_PER_ROW)
-
-  return {
-    x: agentPosition.x + AGENT_CONFIG_LAYOUT.toolsStartX + col * AGENT_CONFIG_LAYOUT.columnGap,
-    y: agentPosition.y + AGENT_CONFIG_LAYOUT.firstRowY + row * AGENT_CONFIG_LAYOUT.rowGap,
-  }
+  return getAdvancedChildPosition({
+    parent: {
+      x: targetNode.position.x,
+      y: targetNode.position.y,
+      width: renderedNode?.dimensions?.width || 236,
+      height: renderedNode?.dimensions?.height || 100,
+    },
+    side: sideFromPosition(handler.position),
+    handlerIndex,
+    handlerCount,
+    siblingIndex,
+  })
 }
 
 function applyNodePosition(nodeId: string, position: { x: number; y: number }) {
@@ -629,27 +612,24 @@ function applyNodePosition(nodeId: string, position: { x: number; y: number }) {
   workflowStore.updateNodeData(nodeId, { ui })
 }
 
-function arrangeAgentConfigNodes(targetId: string) {
+function arrangeAdvancedConfigNodes(targetId: string) {
   if (!workflowStore.activeWorkflow) return
+  const targetNode = (vueFlowNodes.value as any[]).find((node) => node.id === targetId)
+  const handlers = getAdvancedNodeHandlers(targetNode?.data?.type ?? targetNode?.type)
 
-  const targetNode = (vueFlowNodes.value as any[]).find((n) => n.id === targetId)
-  if (!targetNode) return
-
-  for (const targetHandle of ['chatModel', 'memory']) {
-    const edge = workflowStore.activeWorkflow.edges.find((candidate) =>
-      candidate.target === targetId && candidate.targetHandle === targetHandle,
+  handlers.forEach((handler, handlerIndex) => {
+    const edges = workflowStore.activeWorkflow!.edges.filter((edge) =>
+      edge.target === targetId && edge.targetHandle === handler.id,
     )
-    if (!edge) continue
-
-    applyNodePosition(edge.source, getAgentConfigLayoutPosition(targetNode.position, targetHandle))
-  }
-
-  const toolEdges = workflowStore.activeWorkflow.edges.filter((edge) =>
-    edge.target === targetId && edge.targetHandle === 'tool',
-  )
-
-  toolEdges.forEach((edge, toolIndex) => {
-    applyNodePosition(edge.source, getAgentConfigLayoutPosition(targetNode.position, 'tool', toolIndex))
+    edges.forEach((edge, siblingIndex) => {
+      applyNodePosition(edge.source, getAdvancedConfigNodePosition(
+        targetId,
+        handler,
+        handlerIndex,
+        handlers.length,
+        siblingIndex,
+      ))
+    })
   })
 }
 
@@ -718,7 +698,7 @@ function autoConnectToTarget(sourceId: string, targetId: string, targetHandle?: 
   vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
 }
 
-function connectAgentConfigNode(sourceId: string, targetId: string, targetHandle: string) {
+function connectAdvancedConfigNode(sourceId: string, targetId: string, targetHandle: string) {
   if (!workflowStore.activeWorkflow) return
 
   const newEdge = {
@@ -731,7 +711,7 @@ function connectAgentConfigNode(sourceId: string, targetId: string, targetHandle
 
   workflowStore.activeWorkflow.edges.push(newEdge)
   vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
-  arrangeAgentConfigNodes(targetId)
+  arrangeAdvancedConfigNodes(targetId)
 }
 
 function insertNodeBetween(
@@ -863,11 +843,16 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
   quickAddAllowedNodes = '*'
 
   const id = generateNodeId(type)
-  const backupAgentConfigHandle = isAgentConfigHandle(backupTargetHandle) ? backupTargetHandle : null
-  const isAgentConfigTarget = Boolean(backupTargetId && backupAgentConfigHandle)
+  const advancedHandlerContext = getAdvancedHandlerContext(backupTargetId, backupTargetHandle)
+  const isAdvancedConfigTarget = Boolean(backupTargetId && advancedHandlerContext)
   let pos = getNewNodePosition(backupSourceId)
-  if (isAgentConfigTarget) {
-    pos = getAgentConfigNodePosition(backupTargetId, backupAgentConfigHandle)
+  if (backupTargetId && advancedHandlerContext) {
+    pos = getAdvancedConfigNodePosition(
+      backupTargetId,
+      advancedHandlerContext.handler,
+      advancedHandlerContext.handlerIndex,
+      advancedHandlerContext.handlers.length,
+    )
   } else if (backupTargetId) {
     pos = getIncomingNodePosition(backupTargetId)
   }
@@ -1042,8 +1027,8 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     data: newNode,
   })
 
-  if (isAgentConfigTarget && backupTargetId && backupAgentConfigHandle) {
-    connectAgentConfigNode(id, backupTargetId, backupAgentConfigHandle)
+  if (isAdvancedConfigTarget && backupTargetId && backupTargetHandle) {
+    connectAdvancedConfigNode(id, backupTargetId, backupTargetHandle)
   } else if (backupTargetId) {
     autoConnectToTarget(id, backupTargetId, backupTargetHandle)
     alignNodeCenters(id, backupTargetId)
@@ -1345,8 +1330,8 @@ const onConnect = (connection: Connection) => {
   //    Com v-model:edges, o VueFlow NÃO adiciona automaticamente ao @connect.
   vueFlowEdges.value.push({ ...newEdge, type: 'workflow-edge' })
 
-  if (newEdge.targetHandle && ['chatModel', 'memory', 'tool', 'embedding', 'document'].includes(newEdge.targetHandle)) {
-    arrangeAgentConfigNodes(newEdge.target)
+  if (getAdvancedHandlerContext(newEdge.target, newEdge.targetHandle ?? null)) {
+    arrangeAdvancedConfigNodes(newEdge.target)
   }
 }
 
