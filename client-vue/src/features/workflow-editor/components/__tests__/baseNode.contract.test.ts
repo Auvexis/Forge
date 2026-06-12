@@ -45,13 +45,12 @@ test('QuickAddButton emits generic handler metadata', () => {
   assert.doesNotMatch(source, /vectorConfigHandle:/)
 })
 
-test('workflow canvas keeps generic handler quick add compatible during migration', () => {
+test('workflow canvas carries generic handler quick add metadata', () => {
   const source = read('SailorWorkflowCanvas.vue')
 
   assert.match(source, /quickAddMode\?: 'agent-config' \| 'vector-config'/)
-  assert.match(source, /payload\.quickAddMode === 'agent-config'/)
-  assert.match(source, /payload\.quickAddMode === 'vector-config'/)
   assert.match(source, /payload\.handlerId/)
+  assert.match(source, /payload\.allowedNodes/)
 })
 
 test('BaseAdvancedNode composes BaseNode and declares automatic organization', () => {

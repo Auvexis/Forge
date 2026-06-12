@@ -1,4 +1,6 @@
 import type { AllowedNodes } from '../nodePresentation.types'
+import type { PluginSummary } from '@/core/types/plugin.types'
+import { buildEmbeddingProviderItems, isVectorStoreProvider } from './addNodePickerModel.ts'
 
 interface PresetCandidate {
   id: string
@@ -26,4 +28,21 @@ export function allowedNodeSelectorsPermitPlugin(
   return allowed.includes(`plugin:${plugin.id}`) || plugin.capabilities.some((capability) =>
     allowed.includes(`capability:${capability}`),
   )
+}
+
+export function pluginAllowedNodeCapabilities(plugin: PluginSummary): string[] {
+  const capabilities: string[] = []
+  const agent = plugin.manifest.metadata.agentCapabilities
+
+  if (agent?.chatModel?.enabled) capabilities.push('chat-model')
+  if (agent?.memoryStore?.enabled) capabilities.push('memory-store')
+  if (Object.values(plugin.manifest.methods).some((method) => method.agentTool?.enabled)) {
+    capabilities.push('agent-tool')
+  }
+  if (buildEmbeddingProviderItems({ plugins: [plugin] }).length > 0) {
+    capabilities.push('embedding-provider')
+  }
+  if (isVectorStoreProvider(plugin)) capabilities.push('vector-store-provider')
+
+  return capabilities
 }

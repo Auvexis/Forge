@@ -47,7 +47,7 @@ const onQuickAdd = (event: MouseEvent) => {
       targetHandle: props.targetHandleId ?? props.handleId,
       handlerId: props.targetHandleId ?? props.handleId,
       quickAddMode: props.mode,
-      allowedNodes: props.allowedNodes ?? [],
+      ...(props.allowedNodes === undefined ? {} : { allowedNodes: props.allowedNodes }),
       clientX: event.clientX,
       clientY: event.clientY,
       anchorRect,

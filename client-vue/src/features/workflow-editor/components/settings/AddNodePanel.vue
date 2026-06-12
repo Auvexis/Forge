@@ -147,6 +147,7 @@ import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowNodesApi } from '@/core/api/workflowNodes.api'
 import type { PluginCategory, PluginSummary } from '@/core/types/plugin.types'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
+import type { AllowedNodes } from '../nodePresentation.types'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useTheme } from '@/shared/composables/useTheme'
@@ -164,18 +165,21 @@ import {
   type AddNodePickerPreset,
   type AddNodePickerSecondColumnItem,
 } from './addNodePickerModel'
+import {
+  allowedNodeSelectorsPermitPlugin,
+  allowedNodeSelectorsPermitPreset,
+  pluginAllowedNodeCapabilities,
+} from './allowedNodeSelectors'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 const props = defineProps<{
   onAddLogicNode?: (type: WorkflowNodeType, defaults?: Record<string, unknown>) => void
   onAddPluginNode?: (pluginId: string, action: string, actionName: string) => void
   onAddAgentToolNode?: (pluginId: string, action: string, actionName: string) => void
-  agentConfigHandle?: 'chatModel' | 'memory' | 'tool'
-  vectorConfigHandle?: 'embedding' | 'document'
+  handlerId?: string
+  allowedNodes?: AllowedNodes
   secondarySide?: 'right' | 'left'
 }>()
-
-const SUPPORTED_CHAT_MODEL_ADAPTERS = new Set(['openai-compatible', 'generic', 'ollama'])
 
 const search = ref('')
 const searchInput = ref<InstanceType<typeof BaseInput>>()
@@ -199,14 +203,13 @@ onMounted(() => {
 const secondarySide = computed(() => props.secondarySide ?? 'right')
 const isLoading = computed(() => pluginsLoading.value || workflowNodeCatalogLoading.value)
 
-const isAgentModelContext = computed(() => props.agentConfigHandle === 'chatModel')
-const isAgentMemoryContext = computed(() => props.agentConfigHandle === 'memory')
-const isAgentToolContext = computed(() => props.agentConfigHandle === 'tool')
-const isEmbeddingContext = computed(() => props.vectorConfigHandle === 'embedding')
-const isDocumentContext = computed(() => props.vectorConfigHandle === 'document')
-const showQuickTrigger = computed(() =>
-  !isAgentModelContext.value && !isAgentMemoryContext.value && !isAgentToolContext.value,
-)
+const isContextualPicker = computed(() => !!props.handlerId)
+const isAgentModelContext = computed(() => props.handlerId === 'chatModel')
+const isAgentMemoryContext = computed(() => props.handlerId === 'memory')
+const isAgentToolContext = computed(() => props.handlerId === 'tool')
+const isEmbeddingContext = computed(() => props.handlerId === 'embedding')
+const showQuickTrigger = computed(() => !isContextualPicker.value)
+const effectiveAllowedNodes = computed<AllowedNodes>(() => props.allowedNodes ?? '*')
 
 const AI_NODES: AddNodePickerPreset[] = [
   { id: 'ai-agent', nodeType: 'ai-agent' as WorkflowNodeType, label: 'AI Agent', description: 'Run a governed agent with tools and memory', icon: 'bot', categories: ['AI'] },
@@ -239,55 +242,31 @@ const AGENT_MEMORY_PRESETS: AddNodePickerPreset[] = [
   },
 ]
 
-const agentChatModelPlugins = computed(() =>
-  (plugins.value ?? []).filter((plugin) => {
-    const capability = plugin.manifest.metadata.agentCapabilities?.chatModel
-    const adapter = capability?.adapter
-    return capability?.enabled === true && typeof adapter === 'string' && SUPPORTED_CHAT_MODEL_ADAPTERS.has(adapter)
-  }),
-)
-
-const agentMemoryStorePlugins = computed(() =>
-  (plugins.value ?? []).filter((plugin) =>
-    plugin.manifest.metadata.agentCapabilities?.memoryStore?.enabled === true &&
-    plugin.manifest.metadata.agentCapabilities.memoryStore.adapter === 'plugin-memory-store',
-  ),
-)
-
-const pluginHasAgentTools = (plugin: PluginSummary) =>
-  Object.values(plugin.manifest.methods).some((method) => method.agentTool?.enabled === true)
-
-const pickerPlugins = computed(() => {
-  if (isDocumentContext.value) return []
-  if (isEmbeddingContext.value) {
-    return [...new Map(
-      buildEmbeddingProviderItems({ plugins: plugins.value ?? [] })
-        .map((item) => [item.plugin.id, item.plugin]),
-    ).values()]
-  }
-  if (isAgentModelContext.value) return agentChatModelPlugins.value
-  if (isAgentMemoryContext.value) return agentMemoryStorePlugins.value
-  if (isAgentToolContext.value) return (plugins.value ?? []).filter(pluginHasAgentTools)
-  return (plugins.value ?? []).filter((plugin) => !isVectorStoreProvider(plugin))
-})
+const pickerPlugins = computed(() => (plugins.value ?? [])
+  .filter((plugin) => !isContextualPicker.value || allowedNodeSelectorsPermitPlugin(
+    effectiveAllowedNodes.value,
+    { id: plugin.id, capabilities: pluginAllowedNodeCapabilities(plugin) },
+  ))
+  .filter((plugin) => isContextualPicker.value || !isVectorStoreProvider(plugin)))
 
 const pickerPresets = computed(() => {
-  if (isEmbeddingContext.value) {
-    if (pickerPlugins.value.length > 0) return []
-    return catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? [])
-      .filter((preset) => preset.nodeType === 'embeddings')
+  const catalogPresets = catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? [])
+  const allPresets = [...catalogPresets, ...AI_NODES, ...AGENT_MEMORY_PRESETS]
+
+  if (!isContextualPicker.value) {
+    return [...filterDefaultPickerPresets(catalogPresets), ...AI_NODES]
   }
-  if (isDocumentContext.value) {
-    const datasetTypes = ['text-dataset', 'file-dataset', 'database-dataset']
-    return catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? [])
-      .filter((preset) => datasetTypes.includes(preset.nodeType))
+
+  const allowedPresets = allPresets.filter((preset) => allowedNodeSelectorsPermitPreset(
+    effectiveAllowedNodes.value,
+    { id: preset.id, nodeType: preset.nodeType },
+  ))
+
+  if (isEmbeddingContext.value && pickerPlugins.value.length > 0) {
+    return allowedPresets.filter((preset) => preset.nodeType !== 'embeddings')
   }
-  if (isAgentModelContext.value || isAgentToolContext.value) return []
-  if (isAgentMemoryContext.value) return AGENT_MEMORY_PRESETS
-  return [
-    ...filterDefaultPickerPresets(catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? [])),
-    ...AI_NODES,
-  ]
+
+  return allowedPresets
 })
 
 const searchablePresets = computed(() => {
@@ -338,7 +317,7 @@ const secondColumnItems = computed(() =>
 const methodSubmenuItems = computed(() =>
   buildPickerActionItems({
     plugin: methodSubmenuPlugin.value,
-    agentConfigHandle: props.agentConfigHandle,
+    agentConfigHandle: isAgentToolContext.value ? 'tool' : undefined,
     search: '',
   }),
 )
@@ -399,7 +378,7 @@ const keepSecondaryOpen = () => {
 const pluginActionItems = (plugin: PluginSummary) =>
   buildPickerActionItems({
     plugin,
-    agentConfigHandle: props.agentConfigHandle,
+    agentConfigHandle: isAgentToolContext.value ? 'tool' : undefined,
     search: '',
   })
 
