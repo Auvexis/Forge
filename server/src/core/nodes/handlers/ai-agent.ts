@@ -1,20 +1,12 @@
 import { AgentRuntimeService } from "../../modules/agent-runtime/agent-runtime-service.ts";
-import { validateAiAgentConfig, validateAiModelConfig } from "../../modules/agent-runtime/agent-validation.ts";
+import { validateAiAgentConfig } from "../../modules/agent-runtime/agent-validation.ts";
 import type {
   AgentRunInput,
   AiAgentNodeConfig,
   AiMemoryNodeConfig,
-  AiModelNodeConfig,
-  AiToolNodeConfig,
 } from "../../modules/agent-runtime/agent-types.ts";
 import type {
   AiAgentNode,
-  AiMemoryNode,
-  AiModelNode,
-  RetrieverNode,
-  VectorStoreNode,
-  AiToolNode,
-  WorkflowNode,
 } from "../../../shared/models/workflow-types.ts";
 import { createNodeHandler } from "../handler.ts";
 import type { NodeHandlerInput } from "../types.ts";
@@ -23,29 +15,22 @@ import { usesShortTermMemory } from "../../modules/agent-runtime/memory/agent-me
 import { CancellationRegistry } from "../../modules/workflows/cancellation-registry.ts";
 import { sailorHomePaths } from "../../runtime/sailor-home.ts";
 import { resolveAgentChatMemoryPath } from "../../modules/agent-runtime/chat/agent-chat-paths.ts";
-
-type AgentConfigNode = AiModelNode | AiMemoryNode | AiToolNode | RetrieverNode | VectorStoreNode;
+import type { AgentToolRef, ChatModelRef, MemoryRef } from "../../modules/ai-services/ai-service-types.ts";
+import { ConfigDependencyResolver } from "../dependencies/config-dependency-resolver.ts";
+import { createCoreCapabilityAdapterRegistry } from "../dependencies/core-capability-adapters.ts";
 
 export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", async (input) => {
   const agentConfig = toAgentConfig(input.node, input.context);
-  const connected = findConnectedConfigNodes(input);
-  const model = connected.find((node): node is AiModelNode => node.type === "ai-model");
-  if (!model) {
-    throw new Error("AI Agent requires one connected AI Model node");
-  }
-
-  const memory = connected.find((node): node is AiMemoryNode => node.type === "ai-memory");
-  const tools = connected.filter((node): node is AiToolNode => node.type === "ai-tool");
-  const retrievers = connected.filter((node): node is RetrieverNode => node.type === "retriever");
-  const vectorStores = connected.filter((node): node is VectorStoreNode => node.type === "vector-store");
+  const dependencies = await resolveDependencies(input);
+  const model = dependencies.getOne<ChatModelRef>("chatModel");
+  const memoryConfig = dependencies.getOptional<MemoryRef>("memory");
+  const tools = dependencies.getMany<AgentToolRef>("tool");
   const triggerPayload = input.context.trigger ?? {};
   const sessionId = optionalString(triggerPayload.sessionId ?? triggerPayload.session_id);
-  const memoryConfig = memory ? toMemoryConfig(memory) : undefined;
   const contextMessages = [
     ...(usesShortTermMemory(memoryConfig) && sessionId
       ? toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages) ?? []
       : []),
-    ...toRetrievalContextMessages(input, [...retrievers, ...vectorStores]),
   ];
   const profileId = String(triggerPayload.profileId ?? triggerPayload.profile_id ?? "default");
   const runInput: AgentRunInput = {
@@ -66,9 +51,9 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     approvalToolResumeState: triggerPayload.approvalToolResumeState ?? triggerPayload.approval_tool_resume_state,
     abortSignal: CancellationRegistry.signal(input.executionId),
     agent: agentConfig,
-    model: toModelConfig(model),
+    model: model.configuration,
     memory: memoryConfig,
-    tools: tools.map((tool) => toToolConfig(tool, input.context)),
+    tools,
   };
 
   return AgentRuntimeService.runAgent(runInput);
@@ -76,17 +61,15 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
   description: "Runs a Sailor AI Agent with connected model, memory, and tool configuration nodes.",
   execution: "external-io",
   sideEffects: ["network", "workflow-dispatch"],
-  inputs: ["trigger", "ai-model", "ai-memory", "ai-tool", "vector-store", "retriever"],
+  inputs: ["trigger", "ai-model", "ai-memory", "ai-tool"],
   outputs: [{ id: "default", label: "Output" }],
   errors: ["Missing AI model", "Agent runtime failed"],
   usesExternalIO: true,
 });
 
-function findConnectedConfigNodes(input: NodeHandlerInput<AiAgentNode>): AgentConfigNode[] {
-  return input.edges
-    .filter((edge) => edge.target === input.nodeId)
-    .map((edge) => input.workflow.nodes[edge.source])
-    .filter((node): node is AgentConfigNode => isAgentConfigNode(node));
+async function resolveDependencies(input: NodeHandlerInput<AiAgentNode>) {
+  if (input.services.resolveConfigDependencies) return input.services.resolveConfigDependencies(input.nodeId);
+  return new ConfigDependencyResolver(createCoreCapabilityAdapterRegistry()).resolveForNode(input, input.nodeId);
 }
 
 function resolveCheckpointerDbPath(
@@ -100,14 +83,6 @@ function resolveCheckpointerDbPath(
     profileId,
     chatId: sessionId,
   });
-}
-
-function isAgentConfigNode(node: WorkflowNode | undefined): node is AgentConfigNode {
-  return node?.type === "ai-model" ||
-    node?.type === "ai-memory" ||
-    node?.type === "ai-tool" ||
-    node?.type === "vector-store" ||
-    node?.type === "retriever";
 }
 
 function toAgentConfig(node: AiAgentNode, context: NodeHandlerInput["context"]): AiAgentNodeConfig {
@@ -124,105 +99,6 @@ function toAgentConfig(node: AiAgentNode, context: NodeHandlerInput["context"]):
     outputMode: node.outputMode,
     outputSchema: node.outputSchema,
   });
-}
-
-function toModelConfig(node: AiModelNode): AiModelNodeConfig {
-  const legacyProvider = (node as unknown as { provider?: unknown }).provider;
-  const hasPluginModelIdentity = typeof node.pluginId === "string" || typeof node.adapter === "string";
-
-  return validateAiModelConfig({
-    type: "ai-model",
-    name: node.name,
-    ...(hasPluginModelIdentity
-      ? { pluginId: node.pluginId, adapter: node.adapter }
-      : typeof legacyProvider === "string"
-        ? { provider: legacyProvider }
-        : { pluginId: node.pluginId, adapter: node.adapter }),
-    model: node.model,
-    temperature: node.temperature,
-    maxTokens: node.maxTokens,
-    credentialId: node.credentialId,
-    baseUrl: node.baseUrl,
-    thinkingEnabled: node.thinkingEnabled,
-    thinkingRequest: node.thinkingRequest,
-    thinkingSupported: node.thinkingSupported,
-  });
-}
-
-function toMemoryConfig(node: AiMemoryNode): AiMemoryNodeConfig {
-  return {
-    type: "ai-memory",
-    name: node.name,
-    scope: node.scope,
-    readEnabled: node.readEnabled,
-    writeEnabled: node.writeEnabled,
-    maxRetrievedMemories: node.maxRetrievedMemories,
-    maxMemoryChars: node.maxMemoryChars,
-    adapter: node.adapter,
-    pluginId: node.pluginId,
-    searchMethodId: node.searchMethodId,
-    putMethodId: node.putMethodId,
-  };
-}
-
-function toToolConfig(node: AiToolNode, context: NodeHandlerInput["context"]): AiToolNodeConfig {
-  return {
-    type: "ai-tool",
-    name: node.name,
-    pluginId: node.pluginId,
-    methodId: node.methodId,
-    descriptionOverride: node.descriptionOverride
-      ? String(TemplateEngine.evaluate(node.descriptionOverride, context, { escape: "prompt" }))
-      : undefined,
-    timeoutMs: node.timeoutMs,
-    requiresApproval: node.requiresApproval,
-    sideEffect: node.sideEffect,
-    inputDefaults: node.inputDefaults
-      ? TemplateEngine.evaluate(node.inputDefaults, context) as Record<string, any>
-      : undefined,
-  };
-}
-
-function toRetrievalContextMessages(
-  input: NodeHandlerInput<AiAgentNode>,
-  retrievalNodes: Array<RetrieverNode | VectorStoreNode>,
-): NonNullable<AgentRunInput["contextMessages"]> {
-  const messages: NonNullable<AgentRunInput["contextMessages"]> = [];
-
-  for (const retrievalNode of retrievalNodes) {
-    const sourceId = Object.entries(input.workflow.nodes)
-      .find(([, node]) => node === retrievalNode)?.[0];
-    if (!sourceId) continue;
-
-    const output = input.context.steps[sourceId]?.output;
-    const context = output && typeof output === "object"
-      ? (output as Record<string, any>).context
-      : undefined;
-    const content = typeof context === "string" && context.trim()
-      ? context.trim()
-      : retrieverItemsToContext(output);
-
-    if (content) {
-      messages.push({ role: "system", content: `Retrieved context:\n${content}` });
-    }
-  }
-
-  return messages;
-}
-
-function retrieverItemsToContext(output: unknown): string {
-  if (!output || typeof output !== "object" || Array.isArray(output)) return "";
-  const items = (output as Record<string, unknown>).items;
-  if (!Array.isArray(items)) return "";
-
-  return items
-    .map((item) => {
-      if (!item || typeof item !== "object") return "";
-      const text = (item as Record<string, unknown>).text;
-      return typeof text === "string" ? text.trim() : "";
-    })
-    .filter(Boolean)
-    .join("\n\n");
 }
 
 function optionalString(value: unknown): string | undefined {

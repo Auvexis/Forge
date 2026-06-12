@@ -31,7 +31,14 @@ export class ConfigDependencyResolver {
     const values = new Map<string, unknown[]>();
 
     for (const handle of definition.handles.filter((candidate) => candidate.type === "target" && candidate.accepts?.length)) {
-      const edges = execution.workflow.edges.filter((edge) => edge.target === nodeId && edge.targetHandle === handle.id);
+      const edges = execution.workflow.edges.filter((edge) => {
+        if (edge.target !== nodeId) return false;
+        if (edge.targetHandle) return edge.targetHandle === handle.id;
+        const source = execution.workflow.nodes[edge.source];
+        const sourceCapabilities = source ? this.definitionLookup(source.type)?.capabilities ?? [] : [];
+        const compatibleHandles = definition.handles.filter((candidate) => candidate.type === "target" && candidate.accepts?.some((selector) => sourceCapabilities.includes(selector.capability)));
+        return compatibleHandles.length === 1 && compatibleHandles[0].id === handle.id;
+      });
       this.validateCount(nodeId, handle, edges.length);
       const resolved: unknown[] = [];
       for (const edge of edges) {

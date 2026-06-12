@@ -260,7 +260,7 @@ describe("AI workflow node handlers", () => {
     assert.deepEqual(runCall.triggerPayload, context.trigger);
   });
 
-  it("adds connected retriever output as agent context", async () => {
+  it("ignores retrievers that are not connected through an accepted Agent handle", async () => {
     const registry = createUtilityNodeRegistry();
     const workflow = workflowFixture({
       nodes: {
@@ -306,12 +306,10 @@ describe("AI workflow node handlers", () => {
 
     assert.ok(received);
     const runCall = received as AgentRunInput;
-    assert.deepEqual(runCall.contextMessages, [
-      { role: "system", content: "Retrieved context:\nUse Sailor retrieval context." },
-    ]);
+    assert.equal(runCall.contextMessages, undefined);
   });
 
-  it("adds connected vector store output as agent context", async () => {
+  it("ignores vector stores that are not connected through an accepted Agent handle", async () => {
     let received: AgentRunInput | null = null;
     AgentRuntimeService.runAgent = async (input) => {
       received = input;
@@ -348,9 +346,7 @@ describe("AI workflow node handlers", () => {
       .execute(handlerInput("agent", workflow.nodes.agent, workflow, context));
 
     assert.ok(received);
-    assert.deepEqual((received as AgentRunInput).contextMessages, [
-      { role: "system", content: "Retrieved context:\nVector store context." },
-    ]);
+    assert.equal((received as AgentRunInput).contextMessages, undefined);
   });
 
   it("passes chat-scoped memory sqlite path for sailor internal session memory", async () => {
@@ -647,7 +643,7 @@ describe("AI workflow node handlers", () => {
       registry
         .get("ai-agent")
         .execute(handlerInput("agent", workflow.nodes.agent, workflow, contextFixture())),
-      /AI Agent requires one connected AI Model node/i,
+      /handle "chatModel" requires capability "chat-model"/i,
     );
   });
 });

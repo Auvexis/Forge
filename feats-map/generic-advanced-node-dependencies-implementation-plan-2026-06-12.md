@@ -546,7 +546,7 @@ Run the full server workflow test set. Confirm existing AI Agent and Vector Stor
 
 ## Round 3: Shared AI Services And Node Shells
 
-### Task 5: Add provider-neutral AI services and migrate existing consumers
+### Task 5: Add provider-neutral AI services and migrate existing consumers [COMPLETE]
 
 **Files:**
 - Create: `server/src/core/modules/ai-services/ai-service-types.ts`
@@ -560,7 +560,7 @@ Run the full server workflow test set. Confirm existing AI Agent and Vector Stor
 - Modify: `server/src/core/nodes/handlers/retrieval.ts`
 - Modify: `server/src/core/nodes/handlers/retrieval-handlers.test.ts`
 
-- [ ] **Step 1: Write failing service and migration tests**
+- [x] **Step 1: Write failing service and migration tests**
 
 Assert standardized references and results:
 
@@ -582,7 +582,7 @@ assert.deepEqual(await vectorStore.query(storeRef, embeddingRef, request), {
 
 AI Agent tests must assert it calls `getOne("chatModel")`, `getOptional("memory")`, and `getMany("tool")` rather than inspecting incoming edges.
 
-- [ ] **Step 2: Run tests and verify they fail**
+- [x] **Step 2: Run tests and verify they fail**
 
 ```powershell
 cd server
@@ -591,15 +591,15 @@ node --test src/core/modules/ai-services/ai-services.test.ts src/core/nodes/hand
 
 Expected: FAIL because services and adapters do not exist.
 
-- [ ] **Step 3: Define provider-neutral references**
+- [x] **Step 3: Define provider-neutral references**
 
 Define `ChatModelRef`, `EmbeddingModelRef`, `VectorStoreRef`, `RetrievedDocument`, `RetrievalResult`, `RetrieverRef`, `OutputParserRef`, and `AgentToolRef` exactly as approved in the design. Include optional diagnostic metadata but no provider-specific fields outside `configuration`.
 
-- [ ] **Step 4: Implement execution services**
+- [x] **Step 4: Implement execution services**
 
 Each service receives `executePluginMethod` in its constructor. Normalize provider return shapes inside services, not consumers. Preserve the current OpenAI-compatible agent adapter path by allowing `ChatModelExecutionService` to delegate to the existing model provider registry where needed.
 
-- [ ] **Step 5: Register core capability adapters**
+- [x] **Step 5: Register core capability adapters**
 
 Adapters:
 
@@ -610,11 +610,11 @@ Adapters:
 - `vector-store` -> `VectorStoreRef`, recursively requiring `embedding`
 - dataset nodes -> executable document-source references
 
-- [ ] **Step 6: Migrate AI Agent and Vector Store handlers**
+- [x] **Step 6: Migrate AI Agent and Vector Store handlers**
 
 AI Agent consumes resolved dependencies. Vector Store consumes resolved Embedding Model and document sources. Remove `workflow.edges.find`, concrete source-type checks, `createEmbeddings`, and `executeConfigSource` from the handlers once equivalent service coverage passes.
 
-- [ ] **Step 7: Run focused and compatibility tests**
+- [x] **Step 7: Run focused and compatibility tests**
 
 ```powershell
 cd server
@@ -624,7 +624,7 @@ npm run build
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit Task 5**
+- [x] **Step 8: Commit Task 5**
 
 ```powershell
 git add server/src/core/modules/ai-services server/src/core/nodes/dependencies/core-capability-adapters.ts server/src/core/nodes/handlers/ai-agent.ts server/src/core/nodes/handlers/ai-agent.test.ts server/src/core/nodes/handlers/retrieval.ts server/src/core/nodes/handlers/retrieval-handlers.test.ts

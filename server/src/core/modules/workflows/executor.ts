@@ -22,8 +22,8 @@ import {
   recordSuccessfulStep,
 } from "./execution-events.ts";
 import { createGraph, isConfigurationEdge, shouldReleaseEdge } from "./graph.ts";
-import { CapabilityAdapterRegistry } from "../../nodes/dependencies/capability-adapter-registry.ts";
 import { ConfigDependencyResolver } from "../../nodes/dependencies/config-dependency-resolver.ts";
+import { createCoreCapabilityAdapterRegistry } from "../../nodes/dependencies/core-capability-adapters.ts";
 import { notifyPluginExecutionEnd } from "./plugin-lifecycle.ts";
 import { WorkflowParser } from "./parser.ts";
 import { WorkflowRepository } from "./repository.ts";
@@ -82,7 +82,7 @@ function createNodeServices(
   executionId: string,
   context: WorkflowExecutionContext,
 ): NodeHandlerServices {
-  const dependencyResolver = new ConfigDependencyResolver(new CapabilityAdapterRegistry());
+  const dependencyResolver = new ConfigDependencyResolver(createCoreCapabilityAdapterRegistry());
   return {
     resolveConfigDependencies: (nodeId) => dependencyResolver.resolveForNode({
       nodeId,

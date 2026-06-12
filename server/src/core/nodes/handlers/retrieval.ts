@@ -8,8 +8,12 @@ import type {
   VectorStoreNode,
 } from "../../../shared/models/workflow-types.ts";
 import { createNodeHandler } from "../handler.ts";
-import type { NodeHandlerInput } from "../types.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
+import type { DocumentSourceRef, EmbeddingModelRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
+import { EmbeddingExecutionService } from "../../modules/ai-services/embedding-execution-service.ts";
+import { VectorStoreExecutionService } from "../../modules/ai-services/vector-store-execution-service.ts";
+import { ConfigDependencyResolver } from "../dependencies/config-dependency-resolver.ts";
+import { createCoreCapabilityAdapterRegistry } from "../dependencies/core-capability-adapters.ts";
 
 export const textDatasetNodeHandler = createNodeHandler<TextDatasetNode>("text-dataset", ({ node, nodeId }) => {
   const items = node.format === "json-array"
@@ -183,6 +187,11 @@ export const embeddingsNodeHandler = createNodeHandler<EmbeddingsNode>("embeddin
 
 export const vectorStoreNodeHandler = createNodeHandler<VectorStoreNode>("vector-store", async (input) => {
   const { node, nodeId, workflow, context, services } = input;
+  const dependencies = services.resolveConfigDependencies
+    ? await services.resolveConfigDependencies(nodeId)
+    : await new ConfigDependencyResolver(createCoreCapabilityAdapterRegistry()).resolveForNode(input, nodeId);
+  const embedding = dependencies.getOne<EmbeddingModelRef>("embedding");
+  const documentSources = dependencies.getMany<DocumentSourceRef>("document");
   const store = {
     collectionName: node.collectionName,
     dimension: node.dimension,
@@ -200,81 +209,34 @@ export const vectorStoreNodeHandler = createNodeHandler<VectorStoreNode>("vector
     },
     store,
   };
-
-  const documentEdge = workflow.edges.find((edge) =>
-    edge.target === nodeId && edge.targetHandle === "document"
-  );
-  const embeddingEdge = workflow.edges.find((edge) =>
-    edge.target === nodeId && edge.targetHandle === "embedding"
-  );
+  const storeRef: VectorStoreRef = {
+    providerId: node.pluginId,
+    methods: { ensureCollection: node.ensureCollectionMethodId, upsertDocuments: node.upsertMethodId, querySimilar: node.queryMethodId },
+    configuration: store,
+    embedding,
+  };
   const mode = node.retrievalMode ?? "index-and-query";
   const query = node.query
     ? String(TemplateEngine.evaluate(node.query, context)).trim()
     : "";
-  const shouldIndex = mode !== "query" && Boolean(documentEdge);
+  const shouldIndex = mode !== "query" && documentSources.length > 0;
   const shouldQuery = mode !== "index" && Boolean(query);
   if (!shouldIndex && !shouldQuery) return baseOutput;
-  if (!embeddingEdge) throw new Error("Vector Store indexing and queries require a connected Embeddings node.");
   if (!services.executePluginMethod) throw new Error("Vector Store requires plugin execution services.");
-
-  const embeddingNode = workflow.nodes[embeddingEdge.source];
-  if (embeddingNode?.type !== "embeddings") throw new Error("Vector Store embedding handle requires an Embeddings node.");
+  const embeddingService = new EmbeddingExecutionService(services.executePluginMethod);
+  const vectorStoreService = new VectorStoreExecutionService(services.executePluginMethod, embeddingService);
   const output: Record<string, any> = { ...baseOutput };
-  let collectionEnsured = false;
-
-  if (shouldIndex && documentEdge) {
-    const datasetOutput = context.steps[documentEdge.source]?.output ?? await executeConfigSource(input, documentEdge.source);
-    const items = Array.isArray(datasetOutput?.items) ? datasetOutput.items : [];
-    const vectors = await createEmbeddings(services.executePluginMethod, embeddingNode, items.map((item: any) => String(item.text ?? "")));
-    if (vectors.length !== items.length) {
-      throw new Error(`Embedding provider returned ${vectors.length} vectors for ${items.length} documents.`);
-    }
-
-    const documents = items.map((item: any, index: number) => ({
-      id: String(item.id ?? `${documentEdge.source}:${index}`),
-      text: String(item.text ?? ""),
-      vector: vectors[index],
-      metadata: item.metadata ?? {},
-    }));
-    await services.executePluginMethod(node.pluginId, node.ensureCollectionMethodId, { store });
-    collectionEnsured = true;
-    const upsertResult = await services.executePluginMethod(node.pluginId, node.upsertMethodId, {
-      store,
-      documents,
-    });
-    output.indexedCount = Number(upsertResult?.upsertedCount ?? documents.length);
-    output.documents = documents;
+  if (shouldIndex) {
+    const loaded = await Promise.all(documentSources.map((source) => source.load()));
+    const items = loaded.flatMap((datasetOutput) => Array.isArray(datasetOutput?.items) ? datasetOutput.items : []);
+    Object.assign(output, await vectorStoreService.index(storeRef, items));
   }
 
   if (shouldQuery) {
-    const [queryVector] = await createEmbeddings(services.executePluginMethod, embeddingNode, [query]);
-    if (!queryVector) throw new Error("Embedding provider did not return a query vector.");
-    if (!collectionEnsured) {
-      await services.executePluginMethod(node.pluginId, node.ensureCollectionMethodId, { store });
-    }
-    const queryResult = await services.executePluginMethod(node.pluginId, node.queryMethodId, {
-      store,
-      query: {
-        text: query,
-        vector: queryVector,
-        topK: node.topK ?? 5,
-        filter: node.filter ?? {},
-      },
-    });
-    const items = Array.isArray(queryResult)
-      ? queryResult
-      : Array.isArray(queryResult?.items)
-        ? queryResult.items
-        : [];
-    output.items = items;
-    if ((node.outputMode ?? "context") === "context") {
-      const maxChars = node.maxContextChars ?? 8000;
-      output.context = items
-        .map((item: any) => String(item?.text ?? "").trim())
-        .filter(Boolean)
-        .join("\n\n")
-        .slice(0, maxChars);
-    }
+    const result = await vectorStoreService.query(storeRef, { query, topK: node.topK ?? 5, filter: node.filter, maxContextChars: node.maxContextChars });
+    output.items = result.documents.map((document) => ({ id: document.id, text: document.content, score: document.score, metadata: document.metadata }));
+    if ((node.outputMode ?? "context") === "context") output.context = result.context;
+    output.metadata = result.metadata;
   }
 
   return output;
@@ -285,47 +247,6 @@ export const vectorStoreNodeHandler = createNodeHandler<VectorStoreNode>("vector
   outputs: [{ id: "default", label: "Vector Store" }],
   errors: ["Invalid vector store config"],
 });
-
-async function createEmbeddings(
-  executePluginMethod: NonNullable<NodeHandlerInput<VectorStoreNode>["services"]["executePluginMethod"]>,
-  node: EmbeddingsNode,
-  values: string[],
-): Promise<number[][]> {
-  const result = await executePluginMethod(node.pluginId, node.methodId, {
-    model: node.model,
-    input: values,
-    dimension: node.dimension,
-    batchSize: node.batchSize,
-  });
-  return extractVectors(result);
-}
-
-async function executeConfigSource(
-  input: NodeHandlerInput<VectorStoreNode>,
-  sourceId: string,
-): Promise<any> {
-  const sourceNode = input.workflow.nodes[sourceId];
-  if (!sourceNode) throw new Error(`Vector Store config source ${sourceId} was not found.`);
-  return input.services.executeNode({
-    nodeId: sourceId,
-    node: sourceNode,
-    context: input.context,
-    workflow: input.workflow,
-    edges: input.edges,
-    executionId: input.executionId,
-  });
-}
-
-function extractVectors(result: any): number[][] {
-  const values = Array.isArray(result)
-    ? result
-    : Array.isArray(result?.vectors)
-      ? result.vectors
-      : Array.isArray(result?.data)
-        ? result.data.map((item: any) => item?.embedding ?? item?.vector)
-        : [];
-  return values.filter((value: unknown) => Array.isArray(value));
-}
 
 export const retrieverNodeHandler = createNodeHandler<RetrieverNode>("retriever", ({ node }) => ({
   query: node.query,
