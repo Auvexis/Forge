@@ -542,7 +542,7 @@ git commit -m "refactor: drive quick add from allowed node selectors"
 - Modify: `client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue`
 - Modify: `client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts`
 
-- [ ] **Step 1: Write failing deterministic layout tests**
+- [x] **Step 1: Write failing deterministic layout tests**
 
 ```ts
 import assert from 'node:assert/strict'
@@ -568,7 +568,7 @@ test('repeated children use deterministic grid rows', () => {
 
 Use explicit constants in the test fixture matching the implementation constants below.
 
-- [ ] **Step 2: Run test and verify RED**
+- [x] **Step 2: Run test and verify RED**
 
 ```powershell
 cd client-vue
@@ -577,7 +577,7 @@ node --test src/features/workflow-editor/layout/__tests__/advancedNodeLayout.tes
 
 Expected: FAIL because the layout module does not exist.
 
-- [ ] **Step 3: Implement pure layout**
+- [x] **Step 3: Implement pure layout**
 
 Use exported constants and calculate positions without Vue state:
 
@@ -603,7 +603,7 @@ export function getAdvancedChildPosition(input: AdvancedChildPositionInput): { x
 
 Implement equivalent transforms for top, left, and right sides so the public API is complete.
 
-- [ ] **Step 4: Replace Agent-specific layout in Canvas**
+- [x] **Step 4: Replace Agent-specific layout in Canvas**
 
 Remove `AGENT_CONFIG_LAYOUT`, `getAgentConfigLayoutPosition`, and `arrangeAgentConfigNodes`. Add a generic call that receives parent handler definitions and existing sibling count:
 
@@ -622,7 +622,7 @@ function getAdvancedConfigNodePosition(
 
 Store node presentation declarations in a frontend registry keyed by workflow node type; do not put Vue `Position` values in persisted workflow JSON.
 
-- [ ] **Step 5: Run layout, canvas contracts, and type-check**
+- [x] **Step 5: Run layout, canvas contracts, and type-check**
 
 ```powershell
 cd client-vue
@@ -632,7 +632,7 @@ npm run type-check
 
 Expected: pass and no Agent-only layout constants remain.
 
-- [ ] **Step 6: Commit generic auto-layout**
+- [x] **Step 6: Commit generic auto-layout**
 
 ```powershell
 git add client-vue/src/features/workflow-editor/layout/advancedNodeLayout.ts client-vue/src/features/workflow-editor/layout/__tests__/advancedNodeLayout.test.ts client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts
@@ -656,7 +656,7 @@ git commit -m "refactor: generalize advanced node child layout"
 - Modify: `client-vue/src/features/workflow-editor/components/nodes/__tests__/agentNodes.contract.test.ts`
 - Modify: `client-vue/src/features/workflow-editor/components/nodes/__tests__/retrievalNodes.contract.test.ts`
 
-- [ ] **Step 1: Write failing migration contracts**
+- [x] **Step 1: Write failing migration contracts**
 
 Require both parent nodes to use BaseAdvancedNode and declare selectors:
 
@@ -678,7 +678,7 @@ assert.match(vector, /node:database-dataset/)
 
 For each child component assert `rounded="full"`, `input-position="top"`, equal `100px` dimensions, and removal of left-target positioning.
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 ```powershell
 cd client-vue
@@ -687,7 +687,7 @@ node --test src/features/workflow-editor/components/nodes/__tests__/agentNodes.c
 
 Expected: FAIL because parents still duplicate advanced markup and children are square/left-connected.
 
-- [ ] **Step 3: Migrate AI Agent declarations**
+- [x] **Step 3: Migrate AI Agent declarations**
 
 Use one computed definition:
 
@@ -701,7 +701,7 @@ const handlers: BaseNodeHandlerDefinition[] = [
 
 Render `BaseAdvancedNode` with `auto-organize`, existing avatar slot, title, and `Tools Agent` description. Delete duplicated handle and card CSS.
 
-- [ ] **Step 4: Migrate Vector Store declarations**
+- [x] **Step 4: Migrate Vector Store declarations**
 
 ```ts
 const handlers: BaseNodeHandlerDefinition[] = [
@@ -712,7 +712,7 @@ const handlers: BaseNodeHandlerDefinition[] = [
 
 Keep provider icon resolution and pass its rendered icon through `#icon-left`. Delete duplicated handle and card CSS.
 
-- [ ] **Step 5: Convert configuration children to circular top-input nodes**
+- [x] **Step 5: Convert configuration children to circular top-input nodes**
 
 For AI Model, AI Memory, AI Tool, Embeddings, and the three Dataset nodes:
 
@@ -729,11 +729,11 @@ For AI Model, AI Memory, AI Tool, Embeddings, and the three Dataset nodes:
 
 Ensure their primary icon remains centered and labels remain outside below. Preserve source handles only where workflow semantics require normal output.
 
-- [ ] **Step 6: Run focused tests and type-check**
+- [x] **Step 6: Run focused tests and type-check**
 
 Run Task 6 Step 2 and `npm run type-check`. Expected: pass.
 
-- [ ] **Step 7: Commit node migration**
+- [x] **Step 7: Commit node migration**
 
 ```powershell
 git add client-vue/src/features/workflow-editor/components/nodes/AiAgentNode.vue client-vue/src/features/workflow-editor/components/nodes/VectorStoreNode.vue client-vue/src/features/workflow-editor/components/nodes/AiModelNode.vue client-vue/src/features/workflow-editor/components/nodes/AiMemoryNode.vue client-vue/src/features/workflow-editor/components/nodes/AiToolNode.vue client-vue/src/features/workflow-editor/components/nodes/EmbeddingsNode.vue client-vue/src/features/workflow-editor/components/nodes/TextDatasetNode.vue client-vue/src/features/workflow-editor/components/nodes/FileDatasetNode.vue client-vue/src/features/workflow-editor/components/nodes/DatabaseDatasetNode.vue client-vue/src/features/workflow-editor/components/nodes/__tests__/agentNodes.contract.test.ts client-vue/src/features/workflow-editor/components/nodes/__tests__/retrievalNodes.contract.test.ts
