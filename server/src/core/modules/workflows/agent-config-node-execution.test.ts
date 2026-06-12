@@ -63,7 +63,7 @@ describe("workflow executor AI config-node traversal", () => {
     assert.deepEqual(result.context.steps.set.output, { answer: "hello" });
   });
 
-  it("does not execute AI model, memory, and tool config nodes as workflow steps", async () => {
+  it("executes config-capable nodes only when they are also reached by normal flow edges", async () => {
     let received: AgentRunInput | null = null;
     AgentRuntimeService.runAgent = async (input) => {
       received = input;
@@ -77,6 +77,7 @@ describe("workflow executor AI config-node traversal", () => {
     const workflow = workflowFixture({
       edges: [
         { id: "trigger-model", source: "trigger", target: "model" },
+        { id: "trigger-agent", source: "trigger", target: "agent" },
         { id: "model-agent", source: "model", target: "agent" },
         { id: "memory-agent", source: "memory", target: "agent" },
         { id: "tool-agent", source: "tool", target: "agent" },
@@ -92,7 +93,7 @@ describe("workflow executor AI config-node traversal", () => {
     );
 
     assert.equal(result.status, "SUCCESS");
-    assert.equal(result.context.steps.model, undefined);
+    assert.ok(result.context.steps.model);
     assert.equal(result.context.steps.memory, undefined);
     assert.equal(result.context.steps.tool, undefined);
     assert.ok(received);
@@ -139,7 +140,7 @@ describe("workflow executor AI config-node traversal", () => {
     assert.equal(result.context.steps.unusedModel, undefined);
   });
 
-  it("does not execute embeddings connected to a vector store config handle as a workflow step", async () => {
+  it("executes embeddings when they are reached through a normal flow edge", async () => {
     const workflow = workflowFixture({
       nodes: {
         ...workflowFixture().nodes,
@@ -167,6 +168,7 @@ describe("workflow executor AI config-node traversal", () => {
       },
       edges: [
         { id: "trigger-embeddings", source: "trigger", target: "embeddings" },
+        { id: "trigger-vector", source: "trigger", target: "vector" },
         { id: "embeddings-vector", source: "embeddings", target: "vector", targetHandle: "embedding" },
       ],
     });
@@ -180,11 +182,11 @@ describe("workflow executor AI config-node traversal", () => {
     );
 
     assert.equal(result.status, "SUCCESS");
-    assert.equal(result.context.steps.embeddings, undefined);
+    assert.ok(result.context.steps.embeddings);
     assert.ok(result.context.steps.vector?.output);
   });
 
-  it("fails AI config cycles before executing workflow steps", async () => {
+  it("does not classify arbitrary edges between configuration-role nodes as dependency cycles", async () => {
     let runAgentCalled = false;
     AgentRuntimeService.runAgent = async () => {
       runAgentCalled = true;
@@ -212,9 +214,8 @@ describe("workflow executor AI config-node traversal", () => {
       "exec_config_cycle",
     );
 
-    assert.equal(result.status, "FAILED");
-    assert.match(result.context.steps.error, /AI config node cycle/i);
-    assert.equal(runAgentCalled, false);
+    assert.equal(result.status, "SUCCESS");
+    assert.equal(runAgentCalled, true);
   });
 });
 

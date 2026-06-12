@@ -3,6 +3,21 @@ import type {
   WorkflowItem,
   WorkflowNode,
 } from "../../../shared/models/workflow-types.ts";
+import { getUtilityNodeCatalogItem } from "../../utility-nodes/utility-node-catalog.ts";
+
+export function isConfigurationEdge(workflow: WorkflowItem, edge: WorkflowEdge): boolean {
+  const target = workflow.nodes[edge.target];
+  const source = workflow.nodes[edge.source];
+  const targetDefinition = target && getUtilityNodeCatalogItem(target.type as any);
+  const sourceCapabilities = source ? getUtilityNodeCatalogItem(source.type as any)?.capabilities ?? [] : [];
+  const candidates = targetDefinition?.handles.filter((candidate) =>
+    candidate.type === "target" && candidate.accepts?.some((selector) => sourceCapabilities.includes(selector.capability))
+  ) ?? [];
+  const handle = edge.targetHandle
+    ? targetDefinition?.handles.find((candidate) => candidate.type === "target" && candidate.id === edge.targetHandle)
+    : candidates.length === 1 ? candidates[0] : undefined;
+  return Boolean(handle?.accepts?.length);
+}
 
 export function createGraph(workflow: WorkflowItem): {
   nodeIds: string[];
@@ -19,6 +34,7 @@ export function createGraph(workflow: WorkflowItem): {
   });
 
   for (const edge of workflow.edges) {
+    if (isConfigurationEdge(workflow, edge)) continue;
     if (inDegree[edge.target] !== undefined) {
       inDegree[edge.target]++;
       adjList[edge.source]?.push(edge);

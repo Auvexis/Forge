@@ -77,6 +77,37 @@ describe("workflow validation", () => {
     assert.match(error ?? "", /invalid name/);
   });
 
+  it("rejects missing required configuration handles on active flow nodes", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        agent: { type: "ai-agent", name: "Agent", prompt: "Help", maxIterations: 3, maxToolCalls: 3, timeoutMs: 30000, requireApprovalForSideEffects: [], outputMode: "text" },
+      },
+      edges: [{ id: "trigger-agent", source: "trigger", target: "agent" }],
+    }));
+    assert.match(error ?? "", /Node "agent" handle "chatModel" requires capability "chat-model"/);
+  });
+
+  it("rejects incompatible and excess configuration connections", () => {
+    const nodes = {
+      agent: { type: "ai-agent", name: "Agent", prompt: "Help", maxIterations: 3, maxToolCalls: 3, timeoutMs: 30000, requireApprovalForSideEffects: [], outputMode: "text" },
+      model: { type: "ai-model", name: "Model", pluginId: "openai", adapter: "openai-compatible", model: "gpt", temperature: 0 },
+      model2: { type: "ai-model", name: "Model 2", pluginId: "openai", adapter: "openai-compatible", model: "gpt", temperature: 0 },
+      embedding: { type: "embeddings", name: "Embedding", pluginId: "openai", methodId: "embed", model: "embed", input: "" },
+    } as any;
+    const incompatible = validateWorkflowDefinition(baseWorkflow({ nodes, edges: [
+      { id: "trigger-agent", source: "trigger", target: "agent" },
+      { id: "embedding-agent", source: "embedding", target: "agent", targetHandle: "chatModel" },
+    ] }));
+    assert.match(incompatible ?? "", /requires capability "chat-model".*provides \[embedding-model\]/);
+
+    const excess = validateWorkflowDefinition(baseWorkflow({ nodes, edges: [
+      { id: "trigger-agent", source: "trigger", target: "agent" },
+      { id: "model-agent", source: "model", target: "agent", targetHandle: "chatModel" },
+      { id: "model2-agent", source: "model2", target: "agent", targetHandle: "chatModel" },
+    ] }));
+    assert.match(excess ?? "", /handle "chatModel" accepts one connection but received 2/);
+  });
+
   it("rejects invalid form fields on real trigger nodes", () => {
     const error = validateWorkflowDefinition(baseWorkflow({
       nodes: {

@@ -1,4 +1,6 @@
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
+import { getUtilityNodeCatalogItem } from "../../utility-nodes/utility-node-catalog.ts";
+import { isConfigurationEdge } from "./graph.ts";
 
 export const VALID_NODE_TYPES = new Set([
   "plugin",
@@ -89,6 +91,9 @@ export function validateWorkflowDefinition(workflow: WorkflowItem): string | nul
     }
   }
 
+  const dependencyError = validateConfigurationDependencies(workflow);
+  if (dependencyError) return dependencyError;
+
   return null;
 }
 
@@ -129,6 +134,58 @@ function validateTriggerConfig(
     }
   }
 
+  return null;
+}
+
+function validateConfigurationDependencies(workflow: WorkflowItem): string | null {
+  for (const [nodeId, node] of Object.entries(workflow.nodes)) {
+    const definition = getUtilityNodeCatalogItem(node.type as any);
+    if (!definition) continue;
+    const activeFlowNode = workflow.edges.some((edge) =>
+      (edge.target === nodeId && !isConfigurationEdge(workflow, edge)) ||
+      (edge.source === nodeId && !isConfigurationEdge(workflow, edge))
+    );
+    for (const handle of definition.handles.filter((candidate) => candidate.type === "target" && candidate.accepts?.length)) {
+      const edges = workflow.edges.filter((edge) => edge.target === nodeId && edge.targetHandle === handle.id);
+      if (activeFlowNode && handle.required && edges.length === 0) {
+        return `Node "${nodeId}" handle "${handle.id}" requires capability "${handle.accepts?.[0]?.capability}"`;
+      }
+      if ((handle.cardinality ?? "one") === "one" && edges.length > 1) {
+        return `Node "${nodeId}" handle "${handle.id}" accepts one connection but received ${edges.length}`;
+      }
+      for (const edge of edges) {
+        const source = workflow.nodes[edge.source];
+        const sourceDefinition = source && getUtilityNodeCatalogItem(source.type as any);
+        const compatible = handle.accepts?.some((selector) => sourceDefinition?.capabilities.includes(selector.capability));
+        if (!compatible) {
+          return `Node "${nodeId}" handle "${handle.id}" requires capability "${handle.accepts?.[0]?.capability}" but node "${edge.source}" provides [${sourceDefinition?.capabilities.join(", ") ?? ""}]`;
+        }
+      }
+    }
+  }
+  return findConfigurationCycle(workflow);
+}
+
+function findConfigurationCycle(workflow: WorkflowItem): string | null {
+  const edges = workflow.edges.filter((edge) => isConfigurationEdge(workflow, edge));
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+  const visit = (nodeId: string, path: string[]): string | null => {
+    if (visiting.has(nodeId)) return `Configuration dependency cycle: ${[...path, nodeId].join(" -> ")}`;
+    if (visited.has(nodeId)) return null;
+    visiting.add(nodeId);
+    for (const edge of edges.filter((candidate) => candidate.source === nodeId)) {
+      const error = visit(edge.target, [...path, nodeId]);
+      if (error) return error;
+    }
+    visiting.delete(nodeId);
+    visited.add(nodeId);
+    return null;
+  };
+  for (const nodeId of Object.keys(workflow.nodes)) {
+    const error = visit(nodeId, []);
+    if (error) return error;
+  }
   return null;
 }
 

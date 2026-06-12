@@ -461,7 +461,7 @@ git add server/src/core/nodes/dependencies server/src/core/nodes/types.ts
 git commit -m "feat: add generic config dependency resolver"
 ```
 
-### Task 4: Make executor and workflow validation catalog-driven
+### Task 4: Make executor and workflow validation catalog-driven [COMPLETE]
 
 **Files:**
 - Modify: `server/src/core/modules/workflows/executor.ts`
@@ -470,7 +470,7 @@ git commit -m "feat: add generic config dependency resolver"
 - Modify: `server/src/core/modules/workflows/agent-config-node-execution.test.ts`
 - Modify: `server/src/core/modules/workflows/executor.test.ts`
 
-- [ ] **Step 1: Replace AI-specific tests with generic behavior tests**
+- [x] **Step 1: Replace AI-specific tests with generic behavior tests**
 
 Add tests proving:
 
@@ -481,7 +481,7 @@ Add tests proving:
 - Capability mismatches fail validation.
 - Nested cycles fail before provider invocation.
 
-- [ ] **Step 2: Run tests and verify current hardcoded behavior fails them**
+- [x] **Step 2: Run tests and verify current hardcoded behavior fails them**
 
 ```powershell
 cd server
@@ -490,7 +490,7 @@ node --test src/core/modules/workflows/agent-config-node-execution.test.ts src/c
 
 Expected: FAIL on generic classification and catalog-driven validation.
 
-- [ ] **Step 3: Replace concrete config-node classification**
+- [x] **Step 3: Replace concrete config-node classification**
 
 Delete `isAgentConfigNode` and the Embeddings/Vector Store special case. Add:
 
@@ -506,11 +506,11 @@ function isConfigurationEdge(workflow: WorkflowItem, edge: WorkflowEdge): boolea
 
 Traversal must ignore only configuration edges, not entire node types.
 
-- [ ] **Step 4: Construct resolver services per workflow execution**
+- [x] **Step 4: Construct resolver services per workflow execution**
 
 Instantiate one adapter registry and resolver for the execution. Bind `resolveConfigDependencies(nodeId)` into `NodeHandlerServices` so all handlers share cycle tracking and catalog lookup behavior.
 
-- [ ] **Step 5: Add catalog-based workflow validation**
+- [x] **Step 5: Add catalog-based workflow validation**
 
 After structural edge validation, validate every catalog target handle:
 
@@ -521,7 +521,7 @@ if (dependencyError) return dependencyError
 
 Return deterministic messages for missing required handles, excess connections, incompatible capabilities, unknown target handles, and cycles.
 
-- [ ] **Step 6: Run execution and validation regressions**
+- [x] **Step 6: Run execution and validation regressions**
 
 ```powershell
 cd server
@@ -531,7 +531,7 @@ npm run build
 
 Expected: PASS with no AI/Embeddings classification branch remaining.
 
-- [ ] **Step 7: Commit Task 4**
+- [x] **Step 7: Commit Task 4**
 
 ```powershell
 git add server/src/core/modules/workflows

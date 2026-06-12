@@ -21,7 +21,9 @@ import {
   recordNodeStart,
   recordSuccessfulStep,
 } from "./execution-events.ts";
-import { createGraph, shouldReleaseEdge } from "./graph.ts";
+import { createGraph, isConfigurationEdge, shouldReleaseEdge } from "./graph.ts";
+import { CapabilityAdapterRegistry } from "../../nodes/dependencies/capability-adapter-registry.ts";
+import { ConfigDependencyResolver } from "../../nodes/dependencies/config-dependency-resolver.ts";
 import { notifyPluginExecutionEnd } from "./plugin-lifecycle.ts";
 import { WorkflowParser } from "./parser.ts";
 import { WorkflowRepository } from "./repository.ts";
@@ -70,7 +72,7 @@ async function dispatchNode(input: Omit<NodeHandlerInput, "services">): Promise<
     return executePluginNode(input.node, input.context);
   }
 
-  const services = createNodeServices(input.workflow, input.executionId);
+  const services = createNodeServices(input.workflow, input.executionId, input.context);
   const handler = utilityNodeRegistry.get(input.node.type);
   return handler.execute({ ...input, services });
 }
@@ -78,8 +80,19 @@ async function dispatchNode(input: Omit<NodeHandlerInput, "services">): Promise<
 function createNodeServices(
   workflow: WorkflowItem,
   executionId: string,
+  context: WorkflowExecutionContext,
 ): NodeHandlerServices {
+  const dependencyResolver = new ConfigDependencyResolver(new CapabilityAdapterRegistry());
   return {
+    resolveConfigDependencies: (nodeId) => dependencyResolver.resolveForNode({
+      nodeId,
+      node: workflow.nodes[nodeId],
+      context,
+      workflow,
+      edges: workflow.edges,
+      executionId,
+      services: {} as NodeHandlerServices,
+    }, nodeId),
     executePluginMethod: PluginExecutor.execute,
     executeNode: dispatchNode,
     executeWorkflow: WorkflowEngine.executeWorkflow,
@@ -208,7 +221,7 @@ export const WorkflowEngine = {
         executed.add(nodeId);
 
         const node = workflow.nodes[nodeId];
-        if (!node || node.type === "trigger" || node.disabled === true || isWorkflowConfigNode(workflow, nodeId, node)) {
+        if (!node || node.type === "trigger" || node.disabled === true) {
           for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
           continue;
         }
@@ -435,7 +448,7 @@ async function continueWorkflowExecution(input: {
       executed.add(nodeId);
 
       const node = workflow.nodes[nodeId];
-      if (!node || node.type === "trigger" || node.disabled === true || isWorkflowConfigNode(workflow, nodeId, node)) {
+      if (!node || node.type === "trigger" || node.disabled === true) {
         for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
         continue;
       }
@@ -806,21 +819,6 @@ function createBranchInDegree(
   return inDegree;
 }
 
-function isAgentConfigNode(node: WorkflowNode | undefined): boolean {
-  return node?.type === "ai-model" || node?.type === "ai-memory" || node?.type === "ai-tool";
-}
-
-function isWorkflowConfigNode(
-  workflow: WorkflowItem,
-  nodeId: string,
-  node: WorkflowNode | undefined,
-): boolean {
-  if (isAgentConfigNode(node)) return true;
-  return node?.type === "embeddings" && workflow.edges.some((edge) =>
-    edge.source === nodeId && edge.targetHandle === "embedding"
-  );
-}
-
 function assertNoAgentConfigNodeCycles(workflow: WorkflowItem): void {
   const visiting = new Set<string>();
   const visited = new Set<string>();
@@ -834,14 +832,12 @@ function assertNoAgentConfigNodeCycles(workflow: WorkflowItem): void {
     visiting.add(nodeId);
     for (const edge of workflow.edges) {
       if (edge.source !== nodeId) continue;
-      if (!isAgentConfigNode(workflow.nodes[edge.target])) continue;
+      if (!isConfigurationEdge(workflow, edge)) continue;
       visit(edge.target, [...path, nodeId]);
     }
     visiting.delete(nodeId);
     visited.add(nodeId);
   };
 
-  for (const [nodeId, node] of Object.entries(workflow.nodes)) {
-    if (isAgentConfigNode(node)) visit(nodeId, []);
-  }
+  for (const nodeId of Object.keys(workflow.nodes)) visit(nodeId, []);
 }
