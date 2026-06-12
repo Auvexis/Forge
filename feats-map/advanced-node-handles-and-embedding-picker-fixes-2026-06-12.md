@@ -38,4 +38,4 @@
 - [x] Executar testes e build dos providers OpenAI/Ollama.
 - [x] Validar visualmente no Browser em desktop.
 - [x] Confirmar console sem novos erros relevantes no host correto.
-- [ ] Encerrar todos os processos Node iniciados para QA.
+- [x] Encerrar todos os processos Node iniciados para QA.
