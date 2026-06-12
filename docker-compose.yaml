@@ -1,0 +1,52 @@
+services:
+  sailor-server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: sailor-server
+    ports:
+      - "23801:23801"
+    environment:
+      - SAILOR_HOME=/app/.sailor
+    volumes:
+      - sailor_data:/app/.sailor
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:23801/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  sailor-client:
+    build:
+      context: ./client-vue
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:23801
+    container_name: sailor-client
+    ports:
+      - "23802:23802"
+    depends_on:
+      sailor-server:
+        condition: service_healthy
+    restart: always
+
+  sailor-postgres-canary:
+    image: postgres:16-alpine
+    container_name: sailor-postgres-canary
+    ports:
+      - "25432:5432"
+    environment:
+      - POSTGRES_DB=sailor_canary
+      - POSTGRES_USER=sailor
+      - POSTGRES_PASSWORD=sailor
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sailor -d sailor_canary"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - canary
+
+volumes:
+  sailor_data:

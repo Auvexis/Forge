@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" id="app-favicon" href="/LOGO_LIGHT.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sailor</title>
+    <!--
+      Anti-FOUC script: runs synchronously before ANYTHING renders.
+      Reads the stored theme preference and applies .dark or .light
+      to <html> so the browser never paints with the wrong theme.
+      This MUST stay inline and MUST be in <head> before any CSS link.
+    -->
+    <script>
+      ;(function () {
+        var stored = localStorage.getItem('sailor:theme')
+        var resolved = stored === 'light' ? 'light' : 'dark' // default: dark
+        if (stored === 'system') {
+          resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.classList.add(resolved)
+
+        // Set favicon based on resolved theme:
+        // dark theme  → LOGO_LIGHT.svg (light-colored logo on dark browser chrome)
+        // light theme → LOGO_DARK.svg  (dark-colored logo on light browser chrome)
+        function applyFavicon(theme) {
+          var favicon = document.getElementById('app-favicon')
+          if (favicon) {
+            favicon.href = theme === 'dark' ? '/LOGO_LIGHT.svg' : '/LOGO_DARK.svg'
+          }
+        }
+
+        applyFavicon(resolved)
+
+        // Keep favicon in sync when the OS preference changes and theme is set to 'system'
+        if (stored === 'system') {
+          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+            applyFavicon(e.matches ? 'dark' : 'light')
+          })
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

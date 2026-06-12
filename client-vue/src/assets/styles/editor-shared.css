@@ -1,0 +1,614 @@
+/* Shared styles for all node editor components */
+
+.editor-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-5);
+}
+
+/* ── Base input ── */
+.editor-input {
+  width: 100%;
+  background-color: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
+  padding: 8px 12px;
+  font-size: var(--sailor-text-sm);
+  font-family: inherit;
+  color: var(--sailor-text-primary);
+  outline: none;
+  transition: border-color var(--sailor-duration-fast);
+  box-sizing: border-box;
+}
+
+.editor-input:focus {
+  border-color: var(--sailor-accent);
+}
+
+.editor-input::placeholder {
+  color: var(--sailor-text-muted);
+  opacity: 0.5;
+}
+
+.editor-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.editor-input--bold {
+  font-weight: 600;
+}
+
+.editor-input--mono {
+  font-family: var(--sailor-font-mono);
+  font-size: var(--sailor-text-xs);
+}
+
+/* ── Textarea ── */
+.editor-textarea {
+  width: 100%;
+  min-height: 180px;
+  background-color: var(--sailor-bg-canvas);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-md);
+  padding: 10px 12px;
+  font-size: var(--sailor-text-sm);
+  font-family: var(--sailor-font-mono);
+  color: var(--sailor-text-primary);
+  outline: none;
+  resize: vertical;
+  line-height: 1.6;
+  box-sizing: border-box;
+  transition: border-color var(--sailor-duration-fast);
+}
+
+.editor-textarea:focus {
+  border-color: var(--sailor-accent);
+}
+
+.editor-textarea::placeholder {
+  color: var(--sailor-text-muted);
+  opacity: 0.4;
+}
+
+/* ── Select ── */
+.editor-select {
+  width: 100%;
+  background-color: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  padding: 8px 12px;
+  font-size: var(--sailor-text-sm);
+  font-family: inherit;
+  color: var(--sailor-text-primary);
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.editor-select:focus {
+  border-color: var(--sailor-accent);
+}
+
+/* ── Hint/tip banner ── */
+.editor-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-2) var(--sailor-space-3);
+  border-radius: var(--sailor-radius-md);
+  font-size: var(--sailor-text-xs);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.editor-hint--amber {
+  background-color: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  color: rgb(217, 119, 6);
+}
+
+.editor-hint--blue {
+  background-color: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  color: rgb(59, 130, 246);
+}
+
+.editor-hint--violet {
+  background-color: rgba(139, 92, 246, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  color: rgb(139, 92, 246);
+}
+
+.editor-hint--green {
+  background-color: rgba(133, 246, 92, 0.202);
+  border: 1px solid rgba(55, 155, 19, 0.42);
+  color: rgb(50, 50, 50);
+}
+
+/* ── Inline row (e.g. method + url) ── */
+.editor-row {
+  display: flex;
+  gap: var(--sailor-space-2);
+  align-items: stretch;
+}
+
+.editor-row--method {
+  flex: 0 0 90px;
+}
+
+.editor-row--grow {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Header list ── */
+.editor-header-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-2);
+}
+
+.editor-header-row {
+  display: flex;
+  gap: var(--sailor-space-2);
+  align-items: center;
+}
+
+.editor-header-row input {
+  flex: 1;
+}
+
+.editor-header-remove {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--sailor-text-muted);
+  padding: 4px;
+  border-radius: var(--sailor-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--sailor-duration-fast);
+}
+
+.editor-header-remove:hover {
+  color: var(--sailor-error, #f43f5e);
+}
+
+/* ── Collapsible section ── */
+.editor-collapsible-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  width: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  font-size: var(--sailor-text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sailor-text-muted);
+  font-family: inherit;
+}
+
+.editor-collapsible-trigger:hover {
+  color: var(--sailor-text-primary);
+}
+
+.editor-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sailor-space-1);
+  background: transparent;
+  border: 1px dashed var(--sailor-border);
+  border-radius: var(--sailor-radius-xl);
+  padding: 5px 10px;
+  height: 36px;
+  font-size: var(--sailor-text-xs);
+  font-family: inherit;
+  color: var(--sailor-text-muted);
+  cursor: pointer;
+  transition: all var(--sailor-duration-fast);
+  width: 100%;
+  justify-content: center;
+}
+
+.editor-add-btn:hover {
+  border-color: var(--sailor-accent);
+  color: var(--sailor-text-primary);
+}
+
+.editor-code-snippet {
+  font-size: 11px;
+  font-family: var(--sailor-font-mono);
+  background: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+/* ── Typography micro-utilities ─────────────────────────── */
+
+.text-mini {
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.text-micro {
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+.font-black {
+  font-weight: 900;
+}
+
+/* ── Trigger Editor ─────────────────────────────────────── */
+
+/* Layout */
+.te-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.te-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.te-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Labels / hints */
+.te-label {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sailor-text-muted);
+  margin-left: 4px;
+  display: block;
+}
+
+.te-label-sub {
+  font-size: 9px;
+  opacity: 0.5;
+  text-transform: none;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.te-hint {
+  font-size: 10px;
+  color: var(--sailor-text-muted);
+  margin-left: 4px;
+  font-style: italic;
+  opacity: 0.7;
+  line-height: 1.5;
+}
+
+/* ── Schema card (manual inputs list item) ── */
+.te-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background-color: var(--sailor-bg-base);
+  overflow: hidden;
+}
+
+.te-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--sailor-bg-surface);
+  margin: -12px -12px 4px;
+  padding: 12px;
+  border-bottom: 1px solid var(--sailor-border);
+}
+
+.te-key-input {
+  width: 180px;
+  height: 32px;
+  background-color: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  padding: 0 8px;
+  font-size: var(--sailor-text-xs);
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--sailor-text-primary);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--sailor-duration-fast);
+}
+.te-key-input:focus {
+  border-color: var(--sailor-gray-600);
+}
+.te-key-input::placeholder {
+  color: var(--sailor-text-muted);
+  opacity: 0.5;
+}
+
+.te-remove-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--sailor-radius-sm);
+  border: none;
+  background: transparent;
+  color: rgba(248, 113, 113, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--sailor-duration-fast);
+}
+.te-remove-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.te-card-row {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+  align-items: center;
+}
+
+/* Field-type select inside card row (smaller than default editor-select) */
+.te-type-select {
+  flex: 1;
+  height: 32px;
+  background-color: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  padding: 0 26px 0 8px;
+  font-size: var(--sailor-text-xs);
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--sailor-text-primary);
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: border-color var(--sailor-duration-fast);
+}
+.te-type-select:focus {
+  border-color: var(--sailor-accent);
+}
+
+.te-req-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  background-color: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  padding: 0 12px;
+  height: 32px;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  color: var(--sailor-text-muted);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.te-req-label input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ── Webhook section ── */
+
+.te-url-box {
+  flex: 1;
+  padding: 12px;
+  background-color: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  font-family: var(--sailor-font-mono);
+  font-size: 10px;
+  word-break: break-all;
+  color: var(--sailor-text-muted);
+  user-select: all;
+  line-height: 1.5;
+}
+
+.te-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.te-icon-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--sailor-radius-sm);
+  border: 1px solid var(--sailor-border);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--sailor-text-muted);
+  transition: background-color var(--sailor-duration-fast);
+}
+.te-icon-btn:hover {
+  background-color: var(--sailor-bg-elevated);
+}
+
+.te-methods {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.te-method-btn {
+  padding: 6px 12px;
+  border-radius: var(--sailor-radius-sm);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--sailor-border);
+  background-color: var(--sailor-bg-surface);
+  color: var(--sailor-text-muted);
+  cursor: pointer;
+  transition: all var(--sailor-duration-fast);
+  font-family: inherit;
+}
+.te-method-btn:hover {
+  background-color: var(--sailor-bg-elevated);
+  color: var(--sailor-text-secondary);
+}
+.te-method-btn--active {
+  background-color: var(--sailor-bg-elevated);
+  border-color: var(--sailor-border);
+  color: var(--sailor-brand-300);
+}
+.te-method-btn--active:hover {
+  background-color: var(--sailor-bg-elevated);
+  color: var(--sailor-brand-300);
+}
+
+/* Password input inside te-input-row */
+.te-password-input {
+  flex: 1;
+  height: 40px;
+  font-family: var(--sailor-font-mono);
+  background-color: var(--sailor-bg-surface);
+}
+
+/* ── Cron section ── */
+
+.te-cron-input {
+  height: 40px;
+  font-family: var(--sailor-font-mono);
+  background-color: var(--sailor-bg-surface);
+}
+
+.te-human-cron {
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 4px;
+  color: rgba(171, 132, 255, 0.8);
+}
+
+.te-info-blue {
+  padding: 8px;
+  background-color: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: var(--sailor-radius-sm);
+  font-size: 10px;
+  color: var(--sailor-blue-400);
+  line-height: 1.6;
+}
+
+.te-presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.te-preset-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 10px;
+  border-radius: var(--sailor-radius-sm);
+  border: 1px solid var(--sailor-border);
+  background-color: var(--sailor-bg-surface);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--sailor-duration-fast);
+  gap: 3px;
+  font-family: inherit;
+  color: var(--sailor-text-muted);
+}
+.te-preset-btn:hover {
+  background-color: var(--sailor-bg-elevated);
+  border-color: var(--sailor-border);
+}
+.te-preset-btn--active {
+  background-color: var(--sailor-bg-elevated);
+  border-color: var(--sailor-border);
+  color: var(--sailor-brand-300);
+}
+.te-preset-btn--active:hover {
+  background-color: var(--sailor-bg-elevated);
+}
+
+.te-preset-label {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: inherit;
+}
+
+.te-preset-value {
+  font-size: 9px;
+  font-family: var(--sailor-font-mono);
+  opacity: 0.7;
+  color: inherit;
+}
+
+/* ── Event section ── */
+
+.te-event-input {
+  height: 40px;
+  font-weight: 500;
+  font-family: var(--sailor-font-mono);
+  background-color: var(--sailor-bg-surface);
+  color: var(--sailor-text-secondary);
+  border-radius: var(--sailor-radius-sm);
+}
+
+.te-info-yellow {
+  padding: 12px;
+  background-color: rgba(234, 179, 8, 0.05);
+  border: 1px solid rgba(234, 179, 8, 0.2);
+  border-radius: var(--sailor-radius-sm);
+}
+
+.te-info-yellow__title {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sailor-amber-400);
+  margin-bottom: 4px;
+}
+
+.te-info-yellow__body {
+  font-size: 10px;
+  color: var(--sailor-text-muted);
+  line-height: 1.6;
+}

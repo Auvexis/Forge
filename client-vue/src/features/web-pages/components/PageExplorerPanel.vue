@@ -1,0 +1,85 @@
+<template>
+  <div class="web-page-explorer">
+    <div class="web-page-explorer__tabs" role="tablist">
+      <button
+        type="button"
+        :class="{ 'web-page-explorer__tab--active': activeTab === 'tree' }"
+        @click="activeTab = 'tree'"
+      >
+        Tree
+      </button>
+      <button
+        type="button"
+        :class="{ 'web-page-explorer__tab--active': activeTab === 'code' }"
+        @click="activeTab = 'code'"
+      >
+        Code
+      </button>
+    </div>
+
+    <div class="web-page-explorer__content">
+      <BlockTreePanel
+        v-if="activeTab === 'tree'"
+        :pages="pages"
+        :active-page-id="activePageId"
+        :blocks="blocks"
+        :selected-block-id="selectedBlockId"
+        :selected-block-ids="selectedBlockIds"
+        @add-page="$emit('add-page')"
+        @select-page="$emit('select-page', $event)"
+        @select="$emit('select', $event)"
+        @delete-page="$emit('delete-page', $event)"
+        @duplicate-page="$emit('duplicate-page', $event)"
+        @delete-block="$emit('delete-block', $event)"
+        @duplicate-block="$emit('duplicate-block', $event)"
+        @move-block="$emit('move-block', $event)"
+      />
+
+      <SiteFilesPanel
+        v-else
+        :site="site"
+        :pages="pages"
+        @open-file="$emit('open-file', $event)"
+        @create-file="$emit('create-file', $event)"
+        @create-folder="$emit('create-folder', $event)"
+        @upload-asset="$emit('upload-asset', $event)"
+        @delete-file="$emit('delete-file', $event)"
+      />
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { InsertPosition } from '../utils/blockTree.ts'
+import type { PageBlock, SailorPageSummary, SailorSite, SiteFile } from '../types/page.types.ts'
+import BlockTreePanel from './BlockTreePanel.vue'
+import SiteFilesPanel from './SiteFilesPanel.vue'
+
+defineProps<{
+  site: SailorSite | null
+  pages: SailorPageSummary[]
+  activePageId?: string
+  blocks: PageBlock[]
+  selectedBlockId: string | null
+  selectedBlockIds?: string[]
+}>()
+
+defineEmits<{
+  'add-page': []
+  select: [blockId: string]
+  'select-page': [pageId: string]
+  'delete-page': [pageId: string]
+  'duplicate-page': [pageId: string]
+  'delete-block': [blockId: string]
+  'duplicate-block': [blockId: string]
+  'move-block': [payload: { targetId: string; position: InsertPosition; draggedId: string }]
+  'open-file': [file: SiteFile]
+  'create-file': [path: string]
+  'create-folder': [path: string]
+  'upload-asset': [file: File]
+  'delete-file': [path: string]
+}>()
+
+const activeTab = ref<'tree' | 'code'>('tree')
+</script>

@@ -1,0 +1,963 @@
+{
+  "metadata": {
+    "id": "google-drive",
+    "name": "Google Drive",
+    "description": "Interact with Google Drive to upload, download, list, move, copy and manage files and folders.",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/google-drive.svg",
+    "categories": [
+      "Apps",
+      "Files"
+    ],
+    "author": "Sailor",
+    "version": "1.1.0",
+    "repository": "https://github.com/Auvexis/sailor"
+  },
+  "methods": {
+    "listFiles": {
+      "metadata": {
+        "label": "List Files",
+        "description": "List files and folders in Google Drive with optional filtering and sorting."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pageSize": {
+            "type": "integer",
+            "description": "Number of files to return (1-100). Default is 10.",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 100,
+            "x-input-type": "number",
+            "x-label": "Page Size"
+          },
+          "query": {
+            "type": "string",
+            "description": "Drive API query string (e.g. 'name contains \"report\"'). Trashed files are excluded automatically.",
+            "x-input-type": "text",
+            "x-label": "Search Query"
+          },
+          "orderBy": {
+            "type": "string",
+            "description": "Sort order for the results.",
+            "default": "modifiedTime desc",
+            "enum": [
+              "name",
+              "modifiedTime desc",
+              "createdTime desc",
+              "size desc"
+            ],
+            "x-input-type": "select",
+            "x-label": "Sort By"
+          },
+          "showMimeFilter": {
+            "type": "boolean",
+            "description": "Enable filtering by MIME type (e.g. show only PDFs or images).",
+            "default": false,
+            "x-input-type": "toggle",
+            "x-label": "Filter by File Type"
+          },
+          "mimeTypeFilter": {
+            "type": "string",
+            "description": "MIME type to filter by (e.g. 'application/pdf', 'image/jpeg', 'application/vnd.google-apps.spreadsheet').",
+            "x-input-type": "text",
+            "x-label": "MIME Type",
+            "x-visible-if": {
+              "field": "showMimeFilter",
+              "operator": "equals",
+              "value": true
+            }
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "parents": {
+              "type": "array",
+              "x-label": "Parents"
+            },
+            "id": {
+              "type": "string",
+              "x-label": "ID"
+            },
+            "name": {
+              "type": "string",
+              "x-label": "File Name"
+            },
+            "mimeType": {
+              "type": "string",
+              "x-label": "Mime Type"
+            },
+            "trashed": {
+              "type": "boolean",
+              "x-label": "Trashed"
+            },
+            "modifiedTime": {
+              "type": "string",
+              "x-label": "Last Modified"
+            },
+            "size": {
+              "type": "string",
+              "x-label": "File Size"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_list_files",
+        "description": "List files and folders in Google Drive with optional filtering and sorting.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000,
+        "selection": {
+          "path": "$",
+          "labelFields": [
+            "name"
+          ],
+          "valueField": "id",
+          "mode": "single"
+        }
+      }
+    },
+    "getFileMetadata": {
+      "metadata": {
+        "label": "Get file metadata",
+        "description": "Get metadata of a file or folder."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to retrieve.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "fileId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "ID"
+          },
+          "name": {
+            "type": "string",
+            "x-label": "File Name"
+          },
+          "mimeType": {
+            "type": "string",
+            "x-label": "Mime Type"
+          },
+          "trashed": {
+            "type": "boolean",
+            "x-label": "Trashed"
+          },
+          "parents": {
+            "type": "array",
+            "x-label": "Parents"
+          },
+          "modifiedTime": {
+            "type": "string",
+            "x-label": "Last Modified"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_get_file_metadata",
+        "description": "Get metadata of a file or folder.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "listFolderChildren": {
+      "metadata": {
+        "label": "List folder children",
+        "description": "List files/folders inside a specific folder."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "folderId": {
+            "type": "string",
+            "description": "The ID of the folder to list.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "folderId"
+        ]
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "parents": {
+              "type": "array",
+              "x-label": "Parents"
+            },
+            "id": {
+              "type": "string",
+              "x-label": "ID"
+            },
+            "name": {
+              "type": "string",
+              "x-label": "File Name"
+            },
+            "mimeType": {
+              "type": "string",
+              "x-label": "Mime Type"
+            },
+            "trashed": {
+              "type": "boolean",
+              "x-label": "Trashed"
+            },
+            "modifiedTime": {
+              "type": "string",
+              "x-label": "Last Modified"
+            },
+            "size": {
+              "type": "string",
+              "x-label": "File Size"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_list_folder_children",
+        "description": "List files/folders inside a specific folder.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "uploadFile": {
+      "metadata": {
+        "label": "Upload File",
+        "description": "Upload one or more files to Google Drive. Accepts files from the UI or binary data piped from a previous workflow step."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array",
+            "description": "List of files to upload. When connected to a workflow step that outputs a file (e.g. Drive Download, HTTP Request with binary response), the executor automatically provides the Buffer — no manual base64 encoding needed.",
+            "x-label": "Files",
+            "x-input-type": "files",
+            "items": {
+              "type": "object",
+              "properties": {
+                "filename": {
+                  "type": "string",
+                  "description": "File name including extension."
+                },
+                "mimeType": {
+                  "type": "string",
+                  "description": "MIME type (e.g. 'application/pdf'). Use 'application/octet-stream' if unknown."
+                },
+                "contentBase64": {
+                  "type": "string",
+                  "description": "Base64-encoded file content. Used for manual uploads. Omit when connecting a pipeline Buffer."
+                }
+              },
+              "required": [
+                "filename",
+                "mimeType"
+              ]
+            }
+          },
+          "parentId": {
+            "type": "string",
+            "description": "ID of the destination folder. Leave empty to upload to the root of My Drive.",
+            "x-input-type": "text",
+            "x-label": "Parent Folder ID (optional)"
+          }
+        },
+        "required": [
+          "files"
+        ]
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "x-label": "ID"
+            },
+            "name": {
+              "type": "string",
+              "x-label": "File Name"
+            },
+            "mimeType": {
+              "type": "string",
+              "x-label": "Mime Type"
+            },
+            "parents": {
+              "type": "array",
+              "x-label": "Parents"
+            },
+            "modifiedTime": {
+              "type": "string",
+              "x-label": "Last Modified"
+            },
+            "size": {
+              "type": "string",
+              "x-label": "File Size"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_upload_file",
+        "description": "Upload one or more files to Google Drive. Accepts files from the UI or binary data piped from a previous workflow step.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "downloadFile": {
+      "metadata": {
+        "label": "Download file",
+        "description": "Download a binary file from Google Drive or export a Google Docs Editors file."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to download.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "fileId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "download": {
+            "type": "object",
+            "x-label": "Download",
+            "properties": {
+              "fileName": {
+                "type": "string",
+                "x-label": "File Name"
+              },
+              "mimeType": {
+                "type": "string",
+                "x-label": "Mime Type"
+              },
+              "content": {
+                "type": "string",
+                "x-label": "Content (Binary)"
+              }
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_download_file",
+        "description": "Download a binary file from Google Drive or export a Google Docs Editors file.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "deleteFile": {
+      "metadata": {
+        "label": "Delete file",
+        "description": "Move a file to trash in Google Drive."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to delete.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "fileId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "ID"
+          },
+          "name": {
+            "type": "string",
+            "x-label": "File Name"
+          },
+          "mimeType": {
+            "type": "string",
+            "x-label": "Mime Type"
+          },
+          "trashed": {
+            "type": "boolean",
+            "x-label": "Trashed"
+          },
+          "parents": {
+            "type": "array",
+            "x-label": "Parents"
+          },
+          "modifiedTime": {
+            "type": "string",
+            "x-label": "Last Modified"
+          },
+          "size": {
+            "type": "string",
+            "x-label": "File Size"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_delete_file",
+        "description": "Move a file to trash in Google Drive.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "restoreFile": {
+      "metadata": {
+        "label": "Restore file",
+        "description": "Restore a trashed file from Google Drive."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to restore.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "fileId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "ID"
+          },
+          "name": {
+            "type": "string",
+            "x-label": "File Name"
+          },
+          "mimeType": {
+            "type": "string",
+            "x-label": "Mime Type"
+          },
+          "trashed": {
+            "type": "boolean",
+            "x-label": "Trashed"
+          },
+          "parents": {
+            "type": "array",
+            "x-label": "Parents"
+          },
+          "modifiedTime": {
+            "type": "string",
+            "x-label": "Last Modified"
+          },
+          "size": {
+            "type": "string",
+            "x-label": "File Size"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_restore_file",
+        "description": "Restore a trashed file from Google Drive.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "moveFile": {
+      "metadata": {
+        "label": "Move file",
+        "description": "Move a file to a different folder."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to move.",
+            "x-input-type": "text"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "The ID of the destination folder.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "fileId",
+          "parentId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "ID"
+          },
+          "name": {
+            "type": "string",
+            "x-label": "File Name"
+          },
+          "mimeType": {
+            "type": "string",
+            "x-label": "Mime Type"
+          },
+          "trashed": {
+            "type": "boolean",
+            "x-label": "Trashed"
+          },
+          "parents": {
+            "type": "array",
+            "x-label": "Parents"
+          },
+          "modifiedTime": {
+            "type": "string",
+            "x-label": "Last Modified"
+          },
+          "size": {
+            "type": "string",
+            "x-label": "File Size"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_move_file",
+        "description": "Move a file to a different folder.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "copyFile": {
+      "metadata": {
+        "label": "Copy file",
+        "description": "Copy a file to a different folder."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "description": "The ID of the file to copy.",
+            "x-input-type": "text"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "The ID of the destination folder.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "fileId",
+          "parentId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "ID"
+          },
+          "name": {
+            "type": "string",
+            "x-label": "File Name"
+          },
+          "mimeType": {
+            "type": "string",
+            "x-label": "Mime Type"
+          },
+          "trashed": {
+            "type": "boolean",
+            "x-label": "Trashed"
+          },
+          "parents": {
+            "type": "array",
+            "x-label": "Parents"
+          },
+          "modifiedTime": {
+            "type": "string",
+            "x-label": "Last Modified"
+          },
+          "size": {
+            "type": "string",
+            "x-label": "File Size"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_copy_file",
+        "description": "Copy a file to a different folder.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "createFolder": {
+      "metadata": {
+        "label": "Create folder",
+        "description": "Create a new folder in Google Drive."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name for the new folder.",
+            "x-input-type": "text"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "The ID of the parent folder (optional).",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "ID"
+          },
+          "name": {
+            "type": "string",
+            "x-label": "Folder Name"
+          },
+          "mimeType": {
+            "type": "string",
+            "x-label": "Mime Type"
+          },
+          "parents": {
+            "type": "array",
+            "x-label": "Parents"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_create_folder",
+        "description": "Create a new folder in Google Drive.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "deleteFolder": {
+      "metadata": {
+        "label": "Delete folder",
+        "description": "Move a folder to trash in Google Drive."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "folderId": {
+            "type": "string",
+            "description": "The ID of the folder to delete.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "folderId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "ID"
+          },
+          "name": {
+            "type": "string",
+            "x-label": "Folder Name"
+          },
+          "mimeType": {
+            "type": "string",
+            "x-label": "Mime Type"
+          },
+          "trashed": {
+            "type": "boolean",
+            "x-label": "Trashed"
+          },
+          "parents": {
+            "type": "array",
+            "x-label": "Parents"
+          },
+          "modifiedTime": {
+            "type": "string",
+            "x-label": "Last Modified"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_drive_delete_folder",
+        "description": "Move a folder to trash in Google Drive.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    }
+  },
+  "triggers": {
+    "onFileCreated": {
+      "metadata": {
+        "label": "On File Created",
+        "description": "Triggers when a file is created in Drive."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "folderId": {
+            "type": "string",
+            "description": "Optional Drive folder ID to watch.",
+            "x-label": "Folder ID",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Only accept this provider resource type. Example: issue, file, row, video, page.",
+            "x-label": "Resource Type",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onFileUpdated": {
+      "metadata": {
+        "label": "On File Updated",
+        "description": "Triggers when a Drive file is updated."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "folderId": {
+            "type": "string",
+            "description": "Optional Drive folder ID to watch.",
+            "x-label": "Folder ID",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Only accept this provider resource type. Example: issue, file, row, video, page.",
+            "x-label": "Resource Type",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onFolderChanged": {
+      "metadata": {
+        "label": "On Folder Changed",
+        "description": "Triggers when folder contents change."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "folderId": {
+            "type": "string",
+            "description": "Drive folder ID to watch.",
+            "x-label": "Folder ID",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Only accept this provider resource type. Example: issue, file, row, video, page.",
+            "x-label": "Resource Type",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "folderId"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    }
+  }
+}

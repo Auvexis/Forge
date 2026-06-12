@@ -1,0 +1,206 @@
+/* =============================================================
+   WorkflowsPage — Module CSS
+   Extracted from WorkflowsPage.vue <style scoped>.
+   All values reference tokens from tokens.css — no magic numbers.
+   ============================================================= */
+
+/* ── Brand badge (left trigger) ────────────────────────────────────────────── */
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: var(--sailor-radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--sailor-text-secondary);
+  cursor: pointer;
+}
+
+.brand-badge__icon {
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.brand-badge__title {
+  font-size: var(--sailor-text-sm);
+  font-weight: 500;
+}
+
+.brand-badge__count {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--sailor-font-mono);
+  padding: 1px 5px;
+  border-radius: 99px;
+  background: var(--sailor-bg-muted);
+  color: var(--sailor-text-muted);
+  line-height: 1.4;
+}
+
+.brand-badge__chevron {
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ── Search inside dropdown ────────────────────────────────────────────────── */
+
+.dock-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  margin: 4px 6px;
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-muted);
+  border: 1px solid var(--sailor-border);
+}
+
+/* ── Empty state ───────────────────────────────────────────────────────────── */
+
+.dock-empty {
+  padding: 8px 12px;
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+  font-style: italic;
+}
+
+/* ── Right section utils ───────────────────────────────────────────────────── */
+
+.dock-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--sailor-border);
+  flex-shrink: 0;
+}
+
+/* ── Last run badge ────────────────────────────────────────────────────────── */
+
+.last-run {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: var(--sailor-radius-sm);
+  border: 1px solid;
+  font-size: var(--sailor-text-xs);
+  font-weight: 500;
+}
+
+.last-run--success {
+  background: var(--sailor-status-success-bg);
+  border-color: var(--sailor-status-success-border);
+  color: var(--sailor-status-success-text);
+}
+
+.last-run--running {
+  background: var(--sailor-status-running-bg);
+  border-color: var(--sailor-status-running-border);
+  color: var(--sailor-status-running-text);
+}
+
+.last-run--error {
+  background: var(--sailor-status-error-bg);
+  border-color: var(--sailor-status-error-border);
+  color: var(--sailor-status-error-text);
+}
+
+/* ── View mode toggle ──────────────────────────────────────────────────────── */
+
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-muted);
+  border: 1px solid var(--sailor-border);
+}
+
+.view-toggle__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  border-radius: calc(var(--sailor-radius-sm) - 2px);
+  border: none;
+  background: transparent;
+  color: var(--sailor-text-muted);
+  cursor: pointer;
+  transition:
+    background var(--sailor-duration-fast) var(--sailor-ease-standard),
+    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+}
+
+.view-toggle__btn:hover {
+  color: var(--sailor-text-primary);
+  background: var(--sailor-bg-surface);
+}
+
+.view-toggle__btn--active {
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Animations ────────────────────────────────────────────────────────────── */
+
+.icon-pulse {
+  animation: workflows-pulse-fade 1.2s ease-in-out infinite;
+}
+
+@keyframes workflows-pulse-fade {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Helpers ───────────────────────────────────────────────────────────────── */
+
+.text-truncate {
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-item-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.dic-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* ── Status badges ─────────────────────────────────────────────────────────── */
+
+.workflow-badge {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: var(--sailor-radius-sm);
+  line-height: 1;
+}
+
+.workflow-badge--draft {
+  background: var(--sailor-status-draft-bg);
+  color: var(--sailor-status-draft-text);
+}
+
+.workflow-badge--published {
+  background: var(--sailor-status-success-bg);
+  color: var(--sailor-status-success-text);
+}
+
+.workflow-badge--inactive {
+  background: var(--sailor-status-inactive-bg);
+  color: var(--sailor-status-inactive-text);
+}

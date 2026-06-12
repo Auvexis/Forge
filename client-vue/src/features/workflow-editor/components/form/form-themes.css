@@ -1,0 +1,263 @@
+.form-theme-page {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 16px;
+  background: var(--form-page-background);
+  color: var(--form-field-color, var(--sailor-text-primary));
+  font-family: var(--form-font-family, var(--sailor-font-sans));
+  font-size: var(--form-base-size, 14px);
+}
+
+.form-theme-container {
+  width: 100%;
+  max-width: var(--form-container-max-width);
+  padding: var(--form-container-padding);
+  border: var(--form-container-border-width) solid var(--form-container-border-color);
+  border-radius: var(--form-container-radius);
+  background: var(--form-container-background);
+  box-shadow: var(--form-container-shadow);
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+/* 1. FLOATING: Centers perfectly horizontally and vertically using safe flex padding */
+.form-theme-page--floating::before,
+.form-theme-page--floating::after {
+  content: "";
+  flex: 1;
+}
+.form-theme-page--floating .form-theme-container {
+  flex: 0 0 auto;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+/* 2. CENTERED: Sits near the top, centered horizontally */
+.form-theme-page--centered {
+  padding-top: 48px;
+  padding-bottom: 64px;
+}
+.form-theme-page--centered .form-theme-container {
+  margin-top: 0;
+  margin-bottom: auto;
+}
+
+/* 3. FLAT: Minimal, no shadow, clean spacing from the top */
+.form-theme-page--flat {
+  padding-top: 64px;
+  padding-bottom: 64px;
+}
+.form-theme-page--flat .form-theme-container {
+  margin-top: 0;
+  margin-bottom: auto;
+}
+
+/* 4. FULL-WIDTH: Edge to edge, fills entire height with bottom padding for last element */
+.form-theme-page--full-width {
+  padding: 0;
+}
+.form-theme-page--full-width .form-theme-container {
+  max-width: 100%;
+  width: 100%;
+  flex: 1 0 auto;
+  min-height: 100vh;
+  border-radius: 0;
+  border: none;
+  margin: 0;
+  padding-bottom: 64px;
+}
+
+.form-renderer-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.form-renderer-badge {
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(236, 72, 153, 0.12);
+  color: rgb(244, 114, 182);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.form-renderer-header h1 {
+  margin: 0;
+  color: var(--form-title-color, var(--sailor-text-primary));
+  font-family: var(--form-title-font-family, var(--form-font-family));
+  font-size: 24px;
+}
+
+.form-renderer-header p {
+  margin: 0;
+  color: var(--form-subtitle-color, var(--sailor-text-secondary));
+  font-family: var(--form-subtitle-font-family, var(--form-font-family));
+  line-height: 1.5;
+}
+
+.form-renderer-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-field-spacing);
+}
+
+.form-renderer-submit {
+  width: var(--form-button-width);
+  border: 1px solid var(--form-button-border-color);
+  border-radius: var(--form-button-radius);
+  background: var(--form-button-background);
+  color: var(--form-button-color);
+  padding: 12px 18px;
+  font-family: var(--form-button-font-family, var(--form-font-family));
+  font-size: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.form-renderer-submit:hover:not(:disabled) {
+  background: var(--form-button-hover-background);
+}
+
+.form-renderer-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.form-renderer-error,
+.form-renderer-success {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.form-renderer-error {
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--sailor-red-400);
+}
+
+.form-renderer-success {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  background: rgba(52, 211, 153, 0.1);
+  color: var(--sailor-green-400);
+}
+
+.form-renderer-watching {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  color: #a78bfa;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.form-renderer-watching-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a78bfa;
+  flex-shrink: 0;
+  animation: form-renderer-pulse 1.4s ease-in-out infinite;
+}
+
+.form-renderer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: var(--form-font-weight, 600);
+  color: var(--sailor-text-secondary);
+}
+
+.form-renderer-field em {
+  color: var(--sailor-red-400);
+  font-style: normal;
+}
+
+.form-renderer-field-description {
+  margin-top: -3px;
+  color: var(--form-subtitle-color, var(--sailor-text-secondary));
+  font-family: var(--form-subtitle-font-family, var(--form-font-family));
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.form-renderer-field input,
+.form-renderer-field textarea,
+.form-renderer-field select {
+  width: 100%;
+  border: 1px solid var(--form-field-border-color);
+  border-radius: var(--form-field-radius);
+  background: var(--form-field-background);
+  color: var(--form-field-color);
+  padding: 10px 12px;
+  font-family: var(--form-input-font-family, var(--form-font-family));
+  font-size: inherit;
+  outline: none;
+}
+
+.form-renderer-field input:focus,
+.form-renderer-field textarea:focus,
+.form-renderer-field select:focus {
+  border-color: var(--form-field-focus-color);
+}
+
+.form-renderer-field textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.form-renderer-choice-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-renderer-choice-group--quiz {
+  gap: 10px;
+}
+
+.form-renderer-choice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid var(--form-field-border-color);
+  border-radius: var(--form-field-radius);
+  background: var(--form-field-background);
+  color: var(--form-field-color);
+  font-family: var(--form-input-font-family, var(--form-font-family));
+  font-size: inherit;
+  font-weight: 500;
+}
+
+.form-renderer-choice input {
+  width: auto;
+  flex: 0 0 auto;
+  accent-color: var(--form-field-focus-color);
+}
+
+@keyframes form-renderer-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.65); }
+}

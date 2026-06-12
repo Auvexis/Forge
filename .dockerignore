@@ -1,0 +1,11 @@
+**/node_modules/
+**/dist/
+**/.env
+**/.vscode/
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.db-journal
+app-assets/
+feats-map/
+DEFAULT_PROMPT.md

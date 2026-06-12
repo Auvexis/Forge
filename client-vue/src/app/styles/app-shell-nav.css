@@ -1,0 +1,174 @@
+/* =============================================================
+   App Shell Navigation — Module CSS
+   Extracted from App.vue <style scoped>.
+   Styles for the sidebar nav-link elements.
+   ============================================================= */
+
+/* ── Nav link (sidebar icon buttons) ──────────────────────── */
+
+.nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 36px;
+  border-radius: var(--sailor-radius-md);
+  color: var(--sailor-sidebar-text-muted);
+  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button.nav-link {
+  border: 0;
+  background: transparent;
+  font: inherit;
+}
+
+.suite-nav-link {
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 100%;
+  min-height: 24px;
+  gap: 8px;
+  padding: 0;
+  color: var(--sailor-sidebar-text-muted);
+}
+
+.suite-nav-link:hover,
+.suite-nav-link.nav-link--active {
+  background: transparent;
+  color: var(--sailor-sidebar-link-text);
+}
+
+.suite-nav-link.nav-link--active::before {
+  display: none;
+}
+
+.suite-nav-link svg,
+.sidebar-activity-link svg {
+  flex: 0 0 auto;
+}
+
+.suite-nav-link svg {
+  color: var(--suite-nav-accent);
+}
+
+.suite-nav-link__label {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--sailor-sidebar-link-text);
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-medium);
+}
+
+.suite-nav-link__label::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  border-radius: var(--sailor-radius-full);
+  background: currentColor;
+  opacity: 0;
+  transform: scaleX(0.72);
+  transform-origin: left;
+  transition:
+    opacity var(--sailor-duration-fast) var(--sailor-ease-standard),
+    transform var(--sailor-duration-fast) var(--sailor-ease-standard);
+}
+
+.suite-nav-link:hover .suite-nav-link__label::after,
+.suite-nav-link.nav-link--active .suite-nav-link__label::after {
+  opacity: 0.8;
+  transform: scaleX(1);
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: auto;
+  max-width: 100%;
+}
+
+.sidebar-section__label {
+  padding: 0;
+  color: var(--sailor-sidebar-text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.sidebar-section__items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 20px;
+  row-gap: 8px;
+  align-items: center;
+  justify-content: stretch;
+}
+
+.nav-link:hover {
+  color: var(--sailor-sidebar-link-text);
+}
+
+/* Active indicator bar on the left edge */
+.nav-link--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 16px;
+  background-color: var(--sailor-gray-200);
+  border-radius: 0 var(--sailor-radius-full) var(--sailor-radius-full) 0;
+}
+
+/* ── Sidebar footer links stack ──────────────────────────── */
+
+.sidebar-footer-links {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+  gap: var(--sailor-space-1);
+}
+
+.sidebar-activity-link {
+  width: 36px;
+  height: 34px;
+}
+
+.app-sidebar-area--collapsed .sidebar-section {
+  align-items: center;
+}
+
+.app-sidebar-area--collapsed .sidebar-section__label,
+.app-sidebar-area--collapsed .suite-nav-link__label {
+  display: none;
+}
+
+.app-sidebar-area--collapsed .sidebar-section__items {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.app-sidebar-area--collapsed .suite-nav-link {
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}
+
+.app-sidebar-area--collapsed .sidebar-footer-links {
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}

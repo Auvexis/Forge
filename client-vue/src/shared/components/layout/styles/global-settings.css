@@ -1,0 +1,387 @@
+/* =============================================================
+   AppGlobalSettings — Module CSS
+   Windows 11-style layout: fixed aside (left) + scrollable main (right).
+   All values reference tokens from tokens.css — no magic numbers.
+   ============================================================= */
+
+/* ─── Shell: two-column layout ──────────────────────────────────────────── */
+.gs-shell {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--sailor-bg-surface);
+}
+
+/* ─── Left Aside ─────────────────────────────────────────────────────────── */
+.gs-aside {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--sailor-bg-base);
+  border-right: 1px solid var(--sailor-border);
+  overflow: hidden;
+}
+
+/* Aside header: back button + title */
+.gs-aside__header {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-4) var(--sailor-space-3);
+  border-bottom: 1px solid var(--sailor-border);
+  flex-shrink: 0;
+}
+
+.gs-aside__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--sailor-duration-fast), color var(--sailor-duration-fast);
+  flex-shrink: 0;
+}
+
+.gs-aside__close:hover {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-button-ghost-hover-text);
+}
+
+.gs-aside__title {
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
+  color: var(--sailor-text-primary);
+  letter-spacing: -0.01em;
+}
+
+/* ─── Vertical Nav ───────────────────────────────────────────────────────── */
+.gs-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--sailor-space-3) var(--sailor-space-2);
+  flex: 1;
+}
+
+.gs-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-3);
+  width: 100%;
+  padding: 8px var(--sailor-space-3);
+  border-radius: var(--sailor-radius-sm);
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-medium);
+  color: var(--sailor-text-secondary);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  text-align: left;
+  transition:
+    background var(--sailor-duration-fast) var(--sailor-ease-standard),
+    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+}
+
+.gs-nav__item:hover {
+  background: var(--sailor-button-ghost-hover);
+  color: var(--sailor-button-ghost-hover-text);
+}
+
+.gs-nav__item--active {
+  background: var(--sailor-button-ghost-active);
+  color: var(--sailor-button-ghost-active-text);
+}
+
+.gs-nav__icon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.gs-nav__item--active .gs-nav__icon {
+  opacity: 1;
+}
+
+.gs-nav__label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Right Main ─────────────────────────────────────────────────────────── */
+.gs-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+.gs-main::-webkit-scrollbar { width: var(--sailor-scrollbar-width); }
+.gs-main::-webkit-scrollbar-track { background: var(--sailor-scrollbar-track); }
+.gs-main::-webkit-scrollbar-thumb {
+  background: var(--sailor-scrollbar-thumb);
+  border-radius: var(--sailor-radius-sm);
+}
+.gs-main::-webkit-scrollbar-thumb:hover {
+  background: var(--sailor-scrollbar-thumb-hover);
+}
+
+/* ─── Section ────────────────────────────────────────────────────────────── */
+.gs-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-6);
+  padding: var(--sailor-space-8) var(--sailor-space-8);
+  width: 100%;
+}
+
+/* Section heading group (title + desc) */
+.gs-section__head {
+  display: flex;
+  flex-direction: row;
+  gap: var(--sailor-space-1);
+  padding-bottom: var(--sailor-space-4);
+  border-bottom: 1px solid var(--sailor-border);
+}
+
+.gs-section__title {
+  font-size: var(--sailor-text-base);
+  font-weight: var(--sailor-font-semibold);
+  color: var(--sailor-text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.gs-section__desc {
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.gs-code {
+  font-family: var(--sailor-font-mono);
+  font-size: 11px;
+  background: var(--sailor-button-ghost-hover);
+  border: 1px solid var(--sailor-border);
+  border-radius: 3px;
+  padding: 2px 4px;
+  color: var(--sailor-text-secondary);
+}
+
+/* ─── Add variable card ──────────────────────────────────────────────────── */
+.gs-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-4);
+  background: var(--sailor-bg-muted);
+  border-radius: var(--sailor-radius-md);
+  border: 1px solid var(--sailor-border);
+}
+
+/* Two-column grid for key/value inputs */
+.gs-card__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sailor-space-3);
+}
+
+/* ─── State (loading / empty) ────────────────────────────────────────────── */
+.gs-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-8) 0;
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+}
+
+.gs-spin {
+  animation: gs-spin 1s linear infinite;
+}
+
+@keyframes gs-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Variable list ──────────────────────────────────────────────────────── */
+.gs-var-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-1);
+}
+
+.gs-var-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-2) var(--sailor-space-3);
+  background: var(--sailor-bg-muted);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  transition: border-color var(--sailor-duration-fast);
+}
+
+.gs-var-item:hover {
+  border-color: var(--sailor-border-strong);
+}
+
+.gs-var-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.gs-var-item__key {
+  font-family: var(--sailor-font-mono);
+  font-size: 11px;
+  font-weight: var(--sailor-font-semibold);
+  color: var(--sailor-accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gs-var-item__value {
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gs-var-item__desc {
+  font-size: 11px;
+  color: var(--sailor-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Preferences ────────────────────────────────────────────────────────── */
+.gs-pref-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-2);
+}
+
+.gs-pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sailor-space-4);
+  padding: var(--sailor-space-2) var(--sailor-space-4);
+  border-radius: var(--sailor-radius-sm);
+}
+
+.gs-pref-row__label {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-3);
+  flex-shrink: 0;
+  color: var(--sailor-text-secondary);
+  min-width: 0;
+}
+
+.gs-pref-row__name {
+  display: block;
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-medium);
+  color: var(--sailor-text-primary);
+  line-height: 1.2;
+}
+
+.gs-pref-row__hint {
+  display: block;
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+  margin-top: 1px;
+}
+
+/* Constrain the select width on pref rows */
+.gs-pref-row .base-select-wrapper {
+  width: 160px;
+  flex-shrink: 0;
+}
+
+/* ─── Credentials ────────────────────────────────────────────────────────── */
+.gs-cred-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-4);
+}
+
+.gs-cred-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-4);
+  background: var(--sailor-bg-muted);
+  border-radius: var(--sailor-radius-md);
+  border: 1px solid var(--sailor-border);
+}
+
+.gs-cred-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sailor-space-2);
+}
+
+.gs-cred-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  min-width: 0;
+}
+
+.gs-cred-card__name {
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
+  color: var(--sailor-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gs-cred-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: var(--sailor-font-semibold);
+  padding: 2px 6px;
+  border-radius: var(--sailor-radius-full);
+  white-space: nowrap;
+}
+
+.gs-cred-card__badge--ok {
+  background: var(--sailor-status-success-bg);
+  color: var(--sailor-status-success-text);
+}
+
+.gs-cred-card__badge--missing {
+  background: var(--sailor-status-draft-bg);
+  color: var(--sailor-text-muted);
+}
+
+.gs-cred-card__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-2);
+}

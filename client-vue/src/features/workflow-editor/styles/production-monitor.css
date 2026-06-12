@@ -1,0 +1,415 @@
+/* ProductionMonitorPanel — Module CSS
+Extracted from ProductionMonitorPanel.vue <style scoped>.
+============================================================= */
+
+.pm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────── */
+.pm-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sailor-space-3) var(--sailor-space-4);
+  border-bottom: 1px solid var(--sailor-border);
+  flex-shrink: 0;
+}
+
+.pm-count {
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+  font-weight: var(--sailor-font-medium);
+}
+
+.pm-refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-secondary);
+  transition: all var(--sailor-duration-fast);
+}
+
+.pm-refresh-btn:hover {
+  background: var(--sailor-bg-muted);
+  color: var(--sailor-text-primary);
+}
+
+.pm-refresh-btn--spinning svg {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── List ────────────────────────────────────────────────────── */
+.pm-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sailor-space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-2);
+}
+
+/* ── Card ────────────────────────────────────────────────────── */
+.pm-card {
+  background: var(--sailor-bg-surface);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  padding: var(--sailor-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color var(--sailor-duration-fast);
+}
+
+.pm-card:hover {
+  border-color: var(--sailor-border-hover, var(--sailor-border));
+}
+
+.pm-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sailor-space-2);
+}
+
+.pm-card__title-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pm-card__name {
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
+  color: var(--sailor-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Trigger badge ───────────────────────────────────────────── */
+.pm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--sailor-radius-sm);
+  width: fit-content;
+}
+
+.pm-badge--webhook {
+  background: color-mix(in srgb, var(--sailor-accent) 15%, transparent);
+  color: var(--sailor-accent);
+}
+
+.pm-badge--cron {
+  background: color-mix(in srgb, #a78bfa 15%, transparent);
+  color: #a78bfa;
+}
+
+.pm-badge--event {
+  background: color-mix(in srgb, #38bdf8 15%, transparent);
+  color: #38bdf8;
+}
+
+.pm-badge--manual {
+  background: var(--sailor-bg-muted);
+  color: var(--sailor-text-secondary);
+}
+
+.pm-badge--form {
+  background: color-mix(in srgb, #f472b6 15%, transparent);
+  color: #f472b6;
+}
+
+.pm-badge--plugin {
+  background: color-mix(in srgb, #fb923c 15%, transparent);
+  color: #fb923c;
+}
+
+.pm-badge--schedule {
+  background: color-mix(in srgb, #a78bfa 15%, transparent);
+  color: #a78bfa;
+}
+
+.pm-badge--webhook-form {
+  background: color-mix(in srgb, #34d399 15%, transparent);
+  color: #34d399;
+}
+
+.pm-badge--event-listener {
+  background: color-mix(in srgb, #38bdf8 15%, transparent);
+  color: #38bdf8;
+}
+
+.pm-badge--subworkflow {
+  background: color-mix(in srgb, #c084fc 15%, transparent);
+  color: #c084fc;
+}
+
+/* ── Execution status ────────────────────────────────────────── */
+.pm-card__exec {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pm-card__exec--none {
+  opacity: 0.5;
+}
+
+.pm-exec-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--sailor-text-muted);
+}
+
+.pm-exec-dot--success {
+  background: var(--sailor-green-500);
+}
+.pm-exec-dot--error {
+  background: var(--sailor-red-500);
+}
+.pm-exec-dot--running {
+  background: var(--sailor-amber-500);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.pm-exec-label {
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-secondary);
+  font-weight: var(--sailor-font-medium);
+}
+
+.pm-exec-time {
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+}
+
+.pm-card__published {
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+  margin-top: 2px;
+}
+
+/* ── Exec button variant ──────────────────────────────────── */
+.pm-card__exec--btn {
+  width: 100%;
+  text-align: left;
+  border-radius: var(--sailor-radius-sm);
+  padding: 3px 4px;
+  margin: 0 -4px;
+  transition: background-color var(--sailor-duration-fast);
+  cursor: pointer;
+}
+
+.pm-card__exec--btn:hover {
+  background-color: var(--sailor-bg-muted);
+}
+
+.pm-exec-chevron {
+  margin-left: auto;
+  color: var(--sailor-text-muted);
+  flex-shrink: 0;
+  transition: transform var(--sailor-duration-fast);
+}
+
+.pm-exec-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* ── Details dropdown ─────────────────────────────────────── */
+.pm-details {
+  border-top: 1px solid var(--sailor-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sailor-space-2);
+  overflow: hidden;
+}
+
+.pm-details__loading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--sailor-space-2);
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+}
+
+.pm-details__empty {
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+  padding: var(--sailor-space-2) 0;
+  font-style: italic;
+}
+
+/* ── Step accordion ───────────────────────────────────────── */
+.pm-step {
+  border-radius: var(--sailor-radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--sailor-border-subtle);
+}
+
+.pm-step__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px;
+  cursor: pointer;
+  background: var(--sailor-bg-base);
+  transition: background-color var(--sailor-duration-fast);
+}
+
+.pm-step__header:hover {
+  background-color: var(--sailor-bg-muted);
+}
+
+.pm-step__chevron {
+  color: var(--sailor-text-muted);
+  flex-shrink: 0;
+  transition: transform var(--sailor-duration-fast);
+}
+
+.pm-step__chevron--open {
+  transform: rotate(90deg);
+}
+
+.pm-step__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sailor-text-muted);
+  flex-shrink: 0;
+}
+
+.pm-step__dot--success { background: var(--sailor-green-500); }
+.pm-step__dot--error   { background: var(--sailor-red-500); }
+
+.pm-step__id {
+  font-size: var(--sailor-text-xs);
+  font-weight: 500;
+  color: var(--sailor-text-primary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pm-step__status {
+  font-size: 10px;
+  color: var(--sailor-text-muted);
+  flex-shrink: 0;
+}
+
+.pm-step__body {
+  border-top: 1px solid var(--sailor-border-subtle);
+  background: var(--sailor-bg-base);
+  padding: var(--sailor-space-2);
+}
+
+.pm-step__code {
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--sailor-text-secondary);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 160px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+.pm-step__code--error {
+  color: var(--sailor-red-400);
+}
+
+.pm-step__empty {
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+  font-style: italic;
+}
+
+/* ── Expand transition ────────────────────────────────────── */
+.pm-expand-enter-active,
+.pm-expand-leave-active {
+  transition: max-height var(--sailor-duration-normal) ease, opacity var(--sailor-duration-fast);
+  max-height: 500px;
+}
+
+.pm-expand-enter-from,
+.pm-expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* ── Spin util ────────────────────────────────────────────── */
+.pm-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
+.pm-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-8);
+  text-align: center;
+}
+
+.pm-empty__icon {
+  color: var(--sailor-text-muted);
+  opacity: 0.4;
+}
+
+.pm-empty__title {
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
+  color: var(--sailor-text-secondary);
+}
+
+.pm-empty__hint {
+  font-size: var(--sailor-text-xs);
+  color: var(--sailor-text-muted);
+  max-width: 200px;
+  line-height: 1.5;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+

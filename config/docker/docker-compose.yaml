@@ -1,9 +1,0 @@
-services:
-  forge:
-    build: ../../server
-    ports:
-      - "8032:8032"
-    volumes:
-      - ../../config/data:/app/config/data
-
-    

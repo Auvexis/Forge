@@ -1,23 +1,15 @@
-# Node.js Base Image
 FROM node:22-alpine
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+ENV SAILOR_HOME=/app/.sailor
+
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --frozen-lockfile
+RUN npm ci
 
-# Copy the rest of the application code
 COPY . .
 
-# Compile TypeScript to JavaScript
-RUN npx tsc
+EXPOSE 23801
 
-# Expose the port the app runs on
-EXPOSE 8032
-
-# Start the application
-CMD ["node", "dist/server.js"]
+CMD ["npx", "ts-node", "src/core/server.ts"]
