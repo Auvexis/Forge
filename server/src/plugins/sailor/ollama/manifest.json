@@ -52,6 +52,43 @@
         "timeoutMs": 30000
       }
     },
+    "createEmbeddings": {
+      "metadata": {
+        "label": "Create Embeddings",
+        "description": "Create embedding vectors with an Ollama embedding model."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "default": "nomic-embed-text",
+            "description": "The embedding model to use.",
+            "x-input-type": "text"
+          },
+          "input": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Texts to embed."
+          },
+          "dimension": {
+            "type": "number",
+            "default": 768,
+            "description": "Expected output vector dimension.",
+            "x-input-type": "number"
+          },
+          "batchSize": {
+            "type": "number",
+            "default": 64,
+            "x-input-type": "number"
+          }
+        },
+        "required": ["model", "input"]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
     "chat": {
       "metadata": {
         "label": "Chat",

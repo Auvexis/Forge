@@ -111,6 +111,29 @@ describe("ollama plugin", () => {
     assert.equal(typeof plugin.methods.chat, "function");
     assert.equal(typeof plugin.methods.showModel, "function");
   });
+
+  it("declares and creates embeddings through the configured Ollama host", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const restore = mockFetch(calls, { embeddings: [[0.1, 0.2]] });
+
+    try {
+      assert.ok(plugin.manifest.methods.createEmbeddings);
+      assert.equal(typeof plugin.methods.createEmbeddings, "function");
+
+      await createMethods().createEmbeddings(
+        { model: "nomic-embed-text", input: ["hello"] },
+        { credentials: { host: "http://localhost:11434" } } as any,
+      );
+
+      assert.equal(calls[0].url, "http://localhost:11434/api/embed");
+      assert.deepEqual(JSON.parse(String(calls[0].init.body)), {
+        model: "nomic-embed-text",
+        input: ["hello"],
+      });
+    } finally {
+      restore();
+    }
+  });
 });
 
 function mockFetch(calls: Array<{ url: string; init: RequestInit }>, body: unknown): () => void {

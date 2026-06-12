@@ -48,6 +48,15 @@ export function createOpenAiMethods() {
     listModels: async (_params: Record<string, never> = {}, context?: PluginContext) =>
       openAiApi(context!, "GET", "/v1/models"),
 
+    createEmbeddings: async (
+      params: { model: string; input: string | string[]; dimension?: number },
+      context?: PluginContext,
+    ) => openAiApi(context!, "POST", "/v1/embeddings", {
+      model: required(params.model, "model"),
+      input: params.input,
+      dimensions: params.dimension,
+    }),
+
     createResponse: async (
       params: { model: string; input: string | any[]; instructions?: string; temperature?: number; maxOutputTokens?: number },
       context?: PluginContext,

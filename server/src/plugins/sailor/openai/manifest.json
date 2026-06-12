@@ -49,6 +49,44 @@
         "timeoutMs": 30000
       }
     },
+    "createEmbeddings": {
+      "metadata": {
+        "label": "Create Embeddings",
+        "description": "Create embedding vectors with an OpenAI embedding model."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "default": "text-embedding-3-small",
+            "x-label": "Model",
+            "x-input-type": "text"
+          },
+          "input": {
+            "type": "array",
+            "items": { "type": "string" },
+            "x-label": "Input"
+          },
+          "dimension": {
+            "type": "number",
+            "default": 1536,
+            "x-label": "Dimension",
+            "x-input-type": "number"
+          },
+          "batchSize": {
+            "type": "number",
+            "default": 64,
+            "x-label": "Batch Size",
+            "x-input-type": "number"
+          }
+        },
+        "required": ["model", "input"]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
     "createResponse": {
       "metadata": {
         "label": "Create Response",

@@ -26,6 +26,24 @@ export function createMethods(): Record<
       return parseOllamaResponse(response);
     },
 
+    async createEmbeddings(params, context) {
+      const host = getHost(context);
+      const model = String(params.model ?? "").trim();
+      const input = params.input;
+
+      if (!model || (!Array.isArray(input) && typeof input !== "string")) {
+        throw new Error("Missing model or input");
+      }
+
+      const response = await fetch(`${host}/api/embed`, {
+        method: "POST",
+        headers: ollamaHeaders(context),
+        body: JSON.stringify({ model, input }),
+      });
+
+      return parseOllamaResponse(response);
+    },
+
     async chat(params, context) {
       const { messages, model: paramModel, system: paramSystem, jsonMode } = params;
       const host = getHost(context);

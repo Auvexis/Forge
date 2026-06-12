@@ -26,14 +26,16 @@
 - [x] Exibir plugins compativeis como `<Provider> Embedding Model`.
 - [x] Abrir submenu com os metodos de embedding do provider selecionado.
 - [x] Criar o node `embeddings` com `pluginId` e `methodId` escolhidos.
+- [x] Implementar e declarar `createEmbeddings` nos plugins OpenAI e Ollama.
 - [x] Preservar filtros por `allowedNodes` e busca contextual.
 - [x] Adicionar e executar testes de regressao.
 - [x] Commit da task.
 
 ## Verificacao
 
-- [ ] Executar testes frontend relacionados.
-- [ ] Executar type-check/build frontend.
-- [ ] Validar visualmente no Browser em desktop.
-- [ ] Confirmar console sem erros relevantes.
+- [x] Executar testes frontend relacionados.
+- [x] Executar type-check/build frontend.
+- [x] Executar testes e build dos providers OpenAI/Ollama.
+- [x] Validar visualmente no Browser em desktop.
+- [x] Confirmar console sem novos erros relevantes no host correto.
 - [ ] Encerrar todos os processos Node iniciados para QA.
