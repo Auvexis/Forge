@@ -360,7 +360,7 @@ Verify the global picker still hides configuration nodes, handle Quick Add shows
 
 ## Round 2: Generic Dependency Resolution
 
-### Task 3: Implement recursive configuration dependency resolution
+### Task 3: Implement recursive configuration dependency resolution [COMPLETE]
 
 **Files:**
 - Create: `server/src/core/nodes/dependencies/dependency-types.ts`
@@ -369,7 +369,7 @@ Verify the global picker still hides configuration nodes, handle Quick Add shows
 - Create: `server/src/core/nodes/dependencies/config-dependency-resolver.test.ts`
 - Modify: `server/src/core/nodes/types.ts`
 
-- [ ] **Step 1: Write failing resolver tests**
+- [x] **Step 1: Write failing resolver tests**
 
 Create fixtures covering required/optional handles, one/many cardinality, capability mismatch, explicit restriction, recursive resolution, and cycles. Assert errors include consumer node ID and handle ID:
 
@@ -385,7 +385,7 @@ await assert.rejects(
 )
 ```
 
-- [ ] **Step 2: Run the resolver test and verify it fails**
+- [x] **Step 2: Run the resolver test and verify it fails**
 
 ```powershell
 cd server
@@ -394,7 +394,7 @@ node --test src/core/nodes/dependencies/config-dependency-resolver.test.ts
 
 Expected: FAIL because resolver modules do not exist.
 
-- [ ] **Step 3: Define stable runtime contracts**
+- [x] **Step 3: Define stable runtime contracts**
 
 In `dependency-types.ts`, define:
 
@@ -419,11 +419,11 @@ export interface ResolvedConfigDependencies {
 }
 ```
 
-- [ ] **Step 4: Implement adapter registration**
+- [x] **Step 4: Implement adapter registration**
 
 The registry must reject duplicate capability registrations and return a clear error when no adapter supports a connected node.
 
-- [ ] **Step 5: Implement recursive resolver behavior**
+- [x] **Step 5: Implement recursive resolver behavior**
 
 For every target configuration handle:
 
@@ -436,7 +436,7 @@ For every target configuration handle:
 
 Do not execute a configuration node as a normal workflow step in this resolver.
 
-- [ ] **Step 6: Expose resolver through node services**
+- [x] **Step 6: Expose resolver through node services**
 
 Add to `NodeHandlerServices`:
 
@@ -444,7 +444,7 @@ Add to `NodeHandlerServices`:
 resolveConfigDependencies: (nodeId: string) => Promise<ResolvedConfigDependencies>;
 ```
 
-- [ ] **Step 7: Run focused and regression tests**
+- [x] **Step 7: Run focused and regression tests**
 
 ```powershell
 cd server
@@ -454,7 +454,7 @@ npm run build
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit Task 3**
+- [x] **Step 8: Commit Task 3**
 
 ```powershell
 git add server/src/core/nodes/dependencies server/src/core/nodes/types.ts

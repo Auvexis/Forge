@@ -13,6 +13,7 @@ import type {
 import type {
   WebhookPendingResponse,
 } from "../modules/workflows/pending-webhook-registry.ts";
+import type { ResolvedConfigDependencies } from "./dependencies/dependency-types.ts";
 
 export interface WorkflowExecutionContext {
   _workflowId?: string;
@@ -36,6 +37,7 @@ export interface NodeHandlerInput<TNode extends WorkflowNode = WorkflowNode> {
 }
 
 export interface NodeHandlerServices {
+  resolveConfigDependencies?: (nodeId: string) => Promise<ResolvedConfigDependencies>;
   executePluginMethod?: (
     pluginId: string,
     methodId: string,
