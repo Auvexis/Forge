@@ -29,6 +29,11 @@ import DatabaseDatasetNode from './nodes/DatabaseDatasetNode.vue'
 import EmbeddingsNode from './nodes/EmbeddingsNode.vue'
 import VectorStoreNode from './nodes/VectorStoreNode.vue'
 import RetrieverNode from './nodes/RetrieverNode.vue'
+import BasicLlmChainNode from './nodes/BasicLlmChainNode.vue'
+import StructuredJsonParserNode from './nodes/StructuredJsonParserNode.vue'
+import VectorStoreRetrieverNode from './nodes/VectorStoreRetrieverNode.vue'
+import QuestionAnswerChainNode from './nodes/QuestionAnswerChainNode.vue'
+import VectorStoreToolNode from './nodes/VectorStoreToolNode.vue'
 import BaseEdge from './BaseEdge.vue'
 import NodeGroupSelectionBox from './NodeGroupSelectionBox.vue'
 import { Background } from '@vue-flow/background'
@@ -527,6 +532,11 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   'embeddings': 'Embeddings',
   'vector-store': 'Vector Store',
   'retriever': 'Retriever',
+  'basic-llm-chain': 'Basic LLM Chain',
+  'structured-json-parser': 'Structured JSON Parser',
+  'vector-store-retriever': 'Vector Store Retriever',
+  'question-answer-chain': 'Question and Answer Chain',
+  'vector-store-tool': 'Vector Store Tool',
 }
 
 function getNewNodePosition(sourceId: string | null): { x: number; y: number } {
@@ -987,6 +997,25 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     defaultData.outputMode = 'context'
     defaultData.maxContextChars = 8000
     defaultData.filter = {}
+  } else if (type === 'basic-llm-chain') {
+    defaultData.prompt = 'Respond to the input.'
+    defaultData.input = 'trigger.body'
+  } else if (type === 'structured-json-parser') {
+    defaultData.schema = { type: 'object' }
+    defaultData.strict = true
+    defaultData.failurePolicy = 'error'
+  } else if (type === 'vector-store-retriever') {
+    defaultData.topK = 5
+    defaultData.maxContextChars = 8000
+    defaultData.filter = {}
+  } else if (type === 'question-answer-chain') {
+    defaultData.question = 'trigger.body.question'
+    defaultData.instructions = ''
+  } else if (type === 'vector-store-tool') {
+    defaultData.toolName = 'search_documents'
+    defaultData.description = 'Search relevant documents in the connected Vector Store.'
+    defaultData.topK = 5
+    defaultData.instructions = ''
   } else if (type === 'trigger') {
     defaultData.trigger = shouldAdoptLegacyTrigger
       ? { ...workflowStore.activeWorkflow.trigger, ui: undefined }
@@ -1633,6 +1662,26 @@ defineExpose({
       <!-- RETRIEVER Node -->
       <template #node-retriever="nodeProps">
         <RetrieverNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
+      </template>
+
+      <template #node-basic-llm-chain="nodeProps">
+        <BasicLlmChainNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
+      </template>
+
+      <template #node-structured-json-parser="nodeProps">
+        <StructuredJsonParserNode v-bind="nodeProps" />
+      </template>
+
+      <template #node-vector-store-retriever="nodeProps">
+        <VectorStoreRetrieverNode v-bind="nodeProps" />
+      </template>
+
+      <template #node-question-answer-chain="nodeProps">
+        <QuestionAnswerChainNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
+      </template>
+
+      <template #node-vector-store-tool="nodeProps">
+        <VectorStoreToolNode v-bind="nodeProps" />
       </template>
 
       <!-- AI AGENT Node -->

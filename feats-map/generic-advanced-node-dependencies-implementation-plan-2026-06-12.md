@@ -631,7 +631,7 @@ git add server/src/core/modules/ai-services server/src/core/nodes/dependencies/c
 git commit -m "refactor: share AI dependency execution services"
 ```
 
-### Task 6: Add typed shells, catalog entries, editors, and defaults for new nodes
+### Task 6: Add typed shells, catalog entries, editors, and defaults for new nodes [COMPLETE]
 
 **Files:**
 - Modify: `server/src/shared/models/workflow-types.ts`
@@ -652,7 +652,7 @@ git commit -m "refactor: share AI dependency execution services"
 - Modify: `client-vue/src/features/workflow-editor/components/settings/editors/index.ts`
 - Create: `client-vue/src/features/workflow-editor/components/nodes/__tests__/advancedAiNodes.contract.test.ts`
 
-- [ ] **Step 1: Write failing shared-type and frontend contract tests**
+- [x] **Step 1: Write failing shared-type and frontend contract tests**
 
 Test all five discriminants, canvas slots/defaults, editor registration, `BaseAdvancedNode` usage, and catalog handles. Required handle contracts:
 
@@ -664,7 +664,7 @@ question-answer-chain: model(chat-model, one), retriever(retriever, one)
 vector-store-tool: vectorStore(vector-store, one), model(chat-model, one), source provides agent-tool
 ```
 
-- [ ] **Step 2: Run tests and verify they fail**
+- [x] **Step 2: Run tests and verify they fail**
 
 ```powershell
 cd client-vue
@@ -675,7 +675,7 @@ node --test src/shared/models/workflow-agent-types.test.ts src/shared/models/wor
 
 Expected: FAIL because new types and components are absent.
 
-- [ ] **Step 3: Add shared node interfaces**
+- [x] **Step 3: Add shared node interfaces**
 
 Use these minimal persisted fields:
 
@@ -689,21 +689,21 @@ interface VectorStoreToolNode { type: "vector-store-tool"; toolName: string; des
 
 Mirror them exactly on server and client.
 
-- [ ] **Step 4: Add catalog entries and validation**
+- [x] **Step 4: Add catalog entries and validation**
 
 Declare each role, capability, handles, and advanced presentation in `manifest.ts`. Add field validation to `workflow-validation.ts`; dependency validation remains generic and must not add node-specific edge checks.
 
-- [ ] **Step 5: Build node components and editors**
+- [x] **Step 5: Build node components and editors**
 
 All five primary components use `BaseAdvancedNode` except the compact parser, which still uses `BaseAdvancedNode` with `rounded="full"`, fixed 100px dimensions, and a top diamond source handle. Components obtain handlers from the catalog adapter.
 
 Editors expose only persisted fields. Use the existing base inputs, code editor for JSON schema, and numeric controls.
 
-- [ ] **Step 6: Register canvas defaults**
+- [x] **Step 6: Register canvas defaults**
 
 Defaults must pass backend validation immediately. In particular, parser schema defaults to `{ "type": "object" }`, retriever/Vector Store Tool `topK` defaults to `5`, and chain input/question fields default to template expressions using the trigger payload.
 
-- [ ] **Step 7: Run frontend and server checks**
+- [x] **Step 7: Run frontend and server checks**
 
 ```powershell
 cd client-vue
@@ -716,7 +716,7 @@ npm run build
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit Task 6**
+- [x] **Step 8: Commit Task 6**
 
 ```powershell
 git add server/src/shared/models/workflow-types.ts server/src/core/utility-nodes/sailor-core/manifest.ts server/src/core/modules/workflows/workflow-validation.ts client-vue/src/core/types/workflow.types.ts client-vue/src/features/workflow-editor

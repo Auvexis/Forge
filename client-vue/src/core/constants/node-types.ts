@@ -30,6 +30,11 @@ export const VALID_NODE_TYPES = new Set<WorkflowNodeType>([
   'embeddings',
   'vector-store',
   'retriever',
+  'basic-llm-chain',
+  'structured-json-parser',
+  'vector-store-retriever',
+  'question-answer-chain',
+  'vector-store-tool',
 ])
 
 // Node type visual metadata — color and category hints.
@@ -161,6 +166,31 @@ export const NODE_TYPE_META: Record<
   retriever: {
     label: 'Retriever',
     color: 'var(--sailor-node-if-icon)',
+    category: 'ai',
+  },
+  'basic-llm-chain': {
+    label: 'Basic LLM Chain',
+    color: '#2563eb',
+    category: 'ai',
+  },
+  'structured-json-parser': {
+    label: 'Structured JSON Parser',
+    color: '#db2777',
+    category: 'ai',
+  },
+  'vector-store-retriever': {
+    label: 'Vector Store Retriever',
+    color: '#65a30d',
+    category: 'ai',
+  },
+  'question-answer-chain': {
+    label: 'Question and Answer Chain',
+    color: '#0891b2',
+    category: 'ai',
+  },
+  'vector-store-tool': {
+    label: 'Vector Store Tool',
+    color: '#ea580c',
     category: 'ai',
   },
 }

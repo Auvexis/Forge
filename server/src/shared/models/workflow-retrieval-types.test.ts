@@ -63,4 +63,12 @@ describe("workflow retrieval node contracts", () => {
     assert.match(source, /documentCount\?: number/);
     assert.match(source, /retrievalMode\?: "index" \| "query" \| "index-and-query"/);
   });
+
+  it("defines the vector store retriever contract", () => {
+    assert.match(source, /"vector-store-retriever"/);
+    assert.match(source, /export interface VectorStoreRetrieverNode/);
+    assert.match(source, /scoreThreshold\?: number/);
+    assert.match(source, /maxContextChars: number/);
+    assert.match(source, /\| VectorStoreRetrieverNode/);
+  });
 });

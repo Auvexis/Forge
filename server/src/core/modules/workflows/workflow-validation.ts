@@ -28,6 +28,11 @@ export const VALID_NODE_TYPES = new Set([
   "embeddings",
   "vector-store",
   "retriever",
+  "basic-llm-chain",
+  "structured-json-parser",
+  "vector-store-retriever",
+  "question-answer-chain",
+  "vector-store-tool",
 ]);
 
 const VALID_FORM_FIELD_TYPES = new Set([
@@ -513,6 +518,47 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       }
       return node.outputMode !== "items" && node.outputMode !== "context"
         ? `Retriever node "${nodeId}" must have outputMode items or context`
+        : null;
+    case "basic-llm-chain":
+      if (!node.prompt || typeof node.prompt !== "string") {
+        return `Basic LLM Chain node "${nodeId}" must have a prompt string`;
+      }
+      return !node.input || typeof node.input !== "string"
+        ? `Basic LLM Chain node "${nodeId}" must have an input string`
+        : null;
+    case "structured-json-parser":
+      if (!node.schema || typeof node.schema !== "object" || Array.isArray(node.schema)) {
+        return `Structured JSON Parser node "${nodeId}" must have a schema object`;
+      }
+      if (typeof node.strict !== "boolean") {
+        return `Structured JSON Parser node "${nodeId}" strict must be boolean`;
+      }
+      return node.failurePolicy !== "error"
+        ? `Structured JSON Parser node "${nodeId}" failurePolicy must be error`
+        : null;
+    case "vector-store-retriever":
+      if (typeof node.topK !== "number" || node.topK < 1) {
+        return `Vector Store Retriever node "${nodeId}" must have topK >= 1`;
+      }
+      if (typeof node.maxContextChars !== "number" || node.maxContextChars < 1) {
+        return `Vector Store Retriever node "${nodeId}" must have maxContextChars >= 1`;
+      }
+      return node.filter !== undefined && (!node.filter || typeof node.filter !== "object" || Array.isArray(node.filter))
+        ? `Vector Store Retriever node "${nodeId}" must have filter object`
+        : null;
+    case "question-answer-chain":
+      return !node.question || typeof node.question !== "string"
+        ? `Question and Answer Chain node "${nodeId}" must have a question string`
+        : null;
+    case "vector-store-tool":
+      if (!node.toolName || typeof node.toolName !== "string") {
+        return `Vector Store Tool node "${nodeId}" must have a toolName string`;
+      }
+      if (!node.description || typeof node.description !== "string") {
+        return `Vector Store Tool node "${nodeId}" must have a description string`;
+      }
+      return typeof node.topK !== "number" || node.topK < 1
+        ? `Vector Store Tool node "${nodeId}" must have topK >= 1`
         : null;
     case "trigger":
       return validateTriggerConfig(node.trigger ?? { type: "manual" }, `Trigger node "${nodeId}"`);

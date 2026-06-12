@@ -124,6 +124,23 @@ test('capability selectors allow only compatible plugins', () => {
   )
 })
 
+test('capability selectors allow only compatible catalog presets', () => {
+  assert.equal(
+    allowedNodeSelectorsPermitPreset(
+      ['capability:output-parser'],
+      { id: 'structured-json-parser', nodeType: 'structured-json-parser', capabilities: ['output-parser'] },
+    ),
+    true,
+  )
+  assert.equal(
+    allowedNodeSelectorsPermitPreset(
+      ['capability:output-parser'],
+      { id: 'basic-llm-chain', nodeType: 'basic-llm-chain', capabilities: [] },
+    ),
+    false,
+  )
+})
+
 test('plugin capabilities derive from manifests instead of plugin names', () => {
   assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'chat', chatModel: true })), ['chat-model'])
   assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'memory', memoryStore: true })), ['memory-store'])

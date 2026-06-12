@@ -19,6 +19,7 @@ const props = defineProps<{
 const { edges } = useVueFlow()
 const workflowStore = useWorkflowStore()
 const quickAddBus = useEventBus('node:quick-add')
+const isConfigurationQuickAdd = computed(() => props.mode !== undefined && props.mode !== 'source')
 
 const allEdges = computed(() => [
   ...edges.value,
@@ -34,14 +35,14 @@ const isSourceHandleConnected = (edge: { source?: string; sourceHandle?: string 
 }
 
 const hasConnection = computed(() =>
-  props.mode === 'agent-config' || props.mode === 'vector-config'
+  isConfigurationQuickAdd.value
     ? allEdges.value.some((e) => e.target === props.nodeId && e.targetHandle === props.targetHandleId)
     : allEdges.value.some(isSourceHandleConnected),
 )
 
 const onQuickAdd = (event: MouseEvent) => {
   const anchorRect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  if (props.mode === 'agent-config' || props.mode === 'vector-config') {
+  if (isConfigurationQuickAdd.value) {
     quickAddBus.emit({
       targetId: props.nodeId,
       targetHandle: props.targetHandleId ?? props.handleId,

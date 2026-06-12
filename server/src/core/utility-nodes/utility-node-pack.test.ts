@@ -105,11 +105,18 @@ describe("Utility node pack contract", () => {
     assert.deepEqual(sailorCoreUtilityNodePack.nodes.embeddings?.capabilities, ["embedding-model"]);
   });
 
-  it("keeps Sailor Core manifest entries aligned with executable handlers", () => {
+  it("keeps executable handlers aligned while planned advanced shells remain explicit", () => {
     const manifestTypes = Object.keys(sailorCoreUtilityNodePack.nodes).sort();
     const handlerTypes = sailorCoreUtilityNodes.map((node) => node.handler.type).sort();
+    const pendingHandlerTypes = [
+      "basic-llm-chain",
+      "question-answer-chain",
+      "structured-json-parser",
+      "vector-store-retriever",
+      "vector-store-tool",
+    ];
 
-    assert.deepEqual(handlerTypes, manifestTypes);
+    assert.deepEqual(handlerTypes, manifestTypes.filter((type) => !pendingHandlerTypes.includes(type)));
 
     const registry = createUtilityNodeRegistry();
     for (const utilityNode of sailorCoreUtilityNodes) {

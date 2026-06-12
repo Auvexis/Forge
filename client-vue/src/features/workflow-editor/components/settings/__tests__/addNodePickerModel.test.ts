@@ -259,6 +259,10 @@ test('catalog items map to utility picker presets with style metadata', () => {
       category: 'Developer',
       packId: 'sailor-core',
       packName: 'Sailor Core',
+      role: 'configuration',
+      capabilities: ['output-parser'],
+      handles: [],
+      presentation: { base: 'standard' },
       style: {
         icon: 'code-2',
         iconColor: '#60a5fa',
@@ -282,6 +286,8 @@ test('catalog items map to utility picker presets with style metadata', () => {
         bgColor: '#eff6ff',
         borderColor: '#93c5fd',
       },
+      role: 'configuration',
+      capabilities: ['output-parser'],
     },
   ])
 })

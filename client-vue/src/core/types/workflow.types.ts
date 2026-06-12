@@ -31,6 +31,11 @@ export type WorkflowNodeType =
   | 'embeddings'
   | 'vector-store'
   | 'retriever'
+  | 'basic-llm-chain'
+  | 'structured-json-parser'
+  | 'vector-store-retriever'
+  | 'question-answer-chain'
+  | 'vector-store-tool'
 
 export type AgentMemoryScope = 'none' | 'session' | 'workflow' | 'profile' | 'user'
 export type AgentMemoryAdapter = 'sailor-internal' | 'plugin-memory-store'
@@ -448,6 +453,42 @@ export interface RetrieverNode extends WorkflowNodeBase {
   filter?: Record<string, any>
 }
 
+export interface BasicLlmChainNode extends WorkflowNodeBase {
+  type: 'basic-llm-chain'
+  prompt: string
+  input: string
+}
+
+export interface StructuredJsonParserNode extends WorkflowNodeBase {
+  type: 'structured-json-parser'
+  schema: Record<string, unknown>
+  strict: boolean
+  failurePolicy: 'error'
+}
+
+export interface VectorStoreRetrieverNode extends WorkflowNodeBase {
+  type: 'vector-store-retriever'
+  topK: number
+  scoreThreshold?: number
+  filter?: Record<string, unknown>
+  maxContextChars: number
+}
+
+export interface QuestionAnswerChainNode extends WorkflowNodeBase {
+  type: 'question-answer-chain'
+  question: string
+  instructions?: string
+}
+
+export interface VectorStoreToolNode extends WorkflowNodeBase {
+  type: 'vector-store-tool'
+  toolName: string
+  description: string
+  topK: number
+  scoreThreshold?: number
+  instructions?: string
+}
+
 // ── Discriminated Union ──────────────────────────────────────
 
 export type WorkflowNode =
@@ -476,6 +517,11 @@ export type WorkflowNode =
   | EmbeddingsNode
   | VectorStoreNode
   | RetrieverNode
+  | BasicLlmChainNode
+  | StructuredJsonParserNode
+  | VectorStoreRetrieverNode
+  | QuestionAnswerChainNode
+  | VectorStoreToolNode
 
 // ── Edges ────────────────────────────────────────────────────
 

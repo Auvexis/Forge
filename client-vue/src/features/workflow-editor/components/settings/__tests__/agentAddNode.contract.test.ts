@@ -71,6 +71,15 @@ test('add node panel filters contextual quick-add through allowed node selectors
   assert.doesNotMatch(panel, /pluginHasAgentTools/)
 })
 
+test('capability quick-add preserves target handle context', () => {
+  const quickAdd = read('src/features/workflow-editor/components/QuickAddButton.vue')
+
+  assert.match(quickAdd, /isConfigurationQuickAdd/)
+  assert.match(quickAdd, /props\.mode !== 'source'/)
+  assert.match(quickAdd, /handlerId: props\.targetHandleId \?\? props\.handleId/)
+  assert.match(quickAdd, /allowedNodes: props\.allowedNodes/)
+})
+
 test('canvas connects contextual quick-add nodes into advanced config handles', () => {
   const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
 

@@ -24,6 +24,7 @@ export interface AddNodePickerPreset {
   defaults?: Record<string, unknown>
   style?: WorkflowNodeStyle
   role?: 'flow' | 'configuration'
+  capabilities?: readonly string[]
 }
 
 export interface AddNodePickerCategoryItem {
@@ -156,6 +157,7 @@ export function catalogItemsToPickerPresets(items: readonly WorkflowNodeCatalogI
     categories: [item.category as PluginCategory],
     style: item.style,
     role: item.role,
+    capabilities: item.capabilities,
   }))
 }
 

@@ -5,6 +5,7 @@ import { buildEmbeddingProviderItems, isVectorStoreProvider } from './addNodePic
 interface PresetCandidate {
   id: string
   nodeType: string
+  capabilities?: readonly string[]
 }
 
 interface PluginCandidate {
@@ -17,7 +18,9 @@ export function allowedNodeSelectorsPermitPreset(
   preset: PresetCandidate,
 ): boolean {
   if (allowed === '*') return true
-  return allowed.includes(`node:${preset.nodeType}`) || allowed.includes(`preset:${preset.id}`)
+  return allowed.includes(`node:${preset.nodeType}`) ||
+    allowed.includes(`preset:${preset.id}`) ||
+    Boolean(preset.capabilities?.some((capability) => allowed.includes(`capability:${capability}`)))
 }
 
 export function allowedNodeSelectorsPermitPlugin(

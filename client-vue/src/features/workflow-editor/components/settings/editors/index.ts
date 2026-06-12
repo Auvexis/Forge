@@ -31,6 +31,11 @@ import DatabaseDatasetEditor from './DatabaseDatasetEditor.vue'
 import EmbeddingsEditor from './EmbeddingsEditor.vue'
 import VectorStoreEditor from './VectorStoreEditor.vue'
 import RetrieverEditor from './RetrieverEditor.vue'
+import BasicLlmChainEditor from './BasicLlmChainEditor.vue'
+import StructuredJsonParserEditor from './StructuredJsonParserEditor.vue'
+import VectorStoreRetrieverEditor from './VectorStoreRetrieverEditor.vue'
+import QuestionAnswerChainEditor from './QuestionAnswerChainEditor.vue'
+import VectorStoreToolEditor from './VectorStoreToolEditor.vue'
 
 export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', Component>> = {
   plugin: PluginEditor,
@@ -58,6 +63,11 @@ export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', 
   embeddings: EmbeddingsEditor,
   'vector-store': VectorStoreEditor,
   retriever: RetrieverEditor,
+  'basic-llm-chain': BasicLlmChainEditor,
+  'structured-json-parser': StructuredJsonParserEditor,
+  'vector-store-retriever': VectorStoreRetrieverEditor,
+  'question-answer-chain': QuestionAnswerChainEditor,
+  'vector-store-tool': VectorStoreToolEditor,
 }
 
 export type { NodeEditorProps } from './types'

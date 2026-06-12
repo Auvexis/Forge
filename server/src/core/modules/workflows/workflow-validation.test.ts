@@ -37,6 +37,11 @@ describe("workflow validation", () => {
     assert.equal(VALID_NODE_TYPES.has("embeddings"), true);
     assert.equal(VALID_NODE_TYPES.has("vector-store"), true);
     assert.equal(VALID_NODE_TYPES.has("retriever"), true);
+    assert.equal(VALID_NODE_TYPES.has("basic-llm-chain"), true);
+    assert.equal(VALID_NODE_TYPES.has("structured-json-parser"), true);
+    assert.equal(VALID_NODE_TYPES.has("vector-store-retriever"), true);
+    assert.equal(VALID_NODE_TYPES.has("question-answer-chain"), true);
+    assert.equal(VALID_NODE_TYPES.has("vector-store-tool"), true);
   });
 
   it("accepts a minimal valid workflow definition", () => {
@@ -424,5 +429,34 @@ describe("workflow validation", () => {
     }));
 
     assert.match(error ?? "", /pluginId.*searchMethodId.*putMethodId|searchMethodId.*putMethodId/i);
+  });
+
+  it("accepts valid reusable advanced AI node fields", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        chain: { type: "basic-llm-chain", name: "Chain", prompt: "Answer", input: "trigger.body" },
+        parser: { type: "structured-json-parser", name: "Parser", schema: { type: "object" }, strict: true, failurePolicy: "error" },
+        retriever: { type: "vector-store-retriever", name: "Retriever", topK: 5, maxContextChars: 8000 },
+        qa: { type: "question-answer-chain", name: "Q&A", question: "trigger.body.question" },
+        tool: { type: "vector-store-tool", name: "Search", toolName: "search_docs", description: "Search documents", topK: 5 },
+      } as any,
+    }));
+
+    assert.equal(error, null);
+  });
+
+  it("rejects invalid reusable advanced AI node fields", () => {
+    const invalidNodes = [
+      { type: "basic-llm-chain", name: "Chain", prompt: "", input: "" },
+      { type: "structured-json-parser", name: "Parser", schema: [], strict: true, failurePolicy: "repair" },
+      { type: "vector-store-retriever", name: "Retriever", topK: 0, maxContextChars: 0 },
+      { type: "question-answer-chain", name: "Q&A", question: "" },
+      { type: "vector-store-tool", name: "Search", toolName: "", description: "", topK: 0 },
+    ];
+
+    for (const [index, node] of invalidNodes.entries()) {
+      const error = validateWorkflowDefinition(baseWorkflow({ nodes: { [`node-${index}`]: node } as any }));
+      assert.notEqual(error, null, `expected ${node.type} to be rejected`);
+    }
   });
 });

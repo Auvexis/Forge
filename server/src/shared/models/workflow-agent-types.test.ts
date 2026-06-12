@@ -39,4 +39,15 @@ describe("workflow AI node contracts", () => {
     assert.match(source, /export interface AiModelNode[\s\S]*adapter: AgentModelAdapter/);
     assert.doesNotMatch(source, /provider: "openai" \| "openrouter"/);
   });
+
+  it("defines reusable chain, parser, and vector tool node contracts", () => {
+    for (const nodeType of ["basic-llm-chain", "structured-json-parser", "question-answer-chain", "vector-store-tool"]) {
+      assert.match(source, new RegExp(`"${nodeType}"`));
+    }
+    for (const typeName of ["BasicLlmChainNode", "StructuredJsonParserNode", "QuestionAnswerChainNode", "VectorStoreToolNode"]) {
+      assert.match(source, new RegExp(`export interface ${typeName}`));
+      assert.match(source, new RegExp(`\\| ${typeName}`));
+    }
+    assert.match(source, /failurePolicy: "error"/);
+  });
 });

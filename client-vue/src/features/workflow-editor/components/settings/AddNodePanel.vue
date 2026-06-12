@@ -265,7 +265,7 @@ const pickerPresets = computed(() => {
 
   const allowedPresets = allPresets.filter((preset) => allowedNodeSelectorsPermitPreset(
     effectiveAllowedNodes.value,
-    { id: preset.id, nodeType: preset.nodeType },
+    { id: preset.id, nodeType: preset.nodeType, capabilities: preset.capabilities },
   ))
 
   if (isEmbeddingContext.value && pickerPlugins.value.length > 0) {
