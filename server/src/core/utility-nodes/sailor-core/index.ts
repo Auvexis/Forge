@@ -25,6 +25,8 @@ import { subWorkflowNodeHandler } from "../../nodes/handlers/subworkflow.ts";
 import { switchNodeHandler } from "../../nodes/handlers/switch.ts";
 import { triggerNodeHandler } from "../../nodes/handlers/trigger.ts";
 import { waitFormNodeHandler } from "../../nodes/handlers/wait-form.ts";
+import { basicLlmChainNodeHandler } from "../../nodes/handlers/basic-llm-chain.ts";
+import { structuredJsonParserNodeHandler } from "../../nodes/handlers/output-parser.ts";
 import type { UtilityNodeManifestEntry } from "../utility-node-pack.types.ts";
 import { sailorCoreUtilityNodePack } from "./manifest.ts";
 
@@ -58,6 +60,8 @@ const handlers: NodeHandler[] = [
   embeddingsNodeHandler,
   vectorStoreNodeHandler,
   retrieverNodeHandler,
+  basicLlmChainNodeHandler,
+  structuredJsonParserNodeHandler,
 ];
 
 export const sailorCoreUtilityNodes: SailorCoreUtilityNode[] = handlers.map((handler) => {

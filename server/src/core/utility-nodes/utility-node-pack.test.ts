@@ -109,9 +109,7 @@ describe("Utility node pack contract", () => {
     const manifestTypes = Object.keys(sailorCoreUtilityNodePack.nodes).sort();
     const handlerTypes = sailorCoreUtilityNodes.map((node) => node.handler.type).sort();
     const pendingHandlerTypes = [
-      "basic-llm-chain",
       "question-answer-chain",
-      "structured-json-parser",
       "vector-store-retriever",
       "vector-store-tool",
     ];

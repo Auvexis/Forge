@@ -1,7 +1,8 @@
-import type { AiMemoryNode, AiModelNode, AiToolNode, EmbeddingsNode, VectorStoreNode } from "../../../shared/models/workflow-types.ts";
+import type { AiMemoryNode, AiModelNode, AiToolNode, EmbeddingsNode, StructuredJsonParserNode, VectorStoreNode } from "../../../shared/models/workflow-types.ts";
 import { validateAiModelConfig } from "../../modules/agent-runtime/agent-validation.ts";
 import type { AiMemoryNodeConfig, AiToolNodeConfig } from "../../modules/agent-runtime/agent-types.ts";
-import type { ChatModelRef, DocumentSourceRef, EmbeddingModelRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
+import type { ChatModelRef, DocumentSourceRef, EmbeddingModelRef, OutputParserRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
+import { OutputParserExecutionService } from "../../modules/ai-services/output-parser-execution-service.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
 import { CapabilityAdapterRegistry } from "./capability-adapter-registry.ts";
 
@@ -19,6 +20,11 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
   registry.register({ capability: "embedding-model", supports: (node) => node.type === "embeddings", resolve: async (context, nodeId) => {
     const node = context.execution.workflow.nodes[nodeId] as EmbeddingsNode;
     return { providerId: node.pluginId, methodId: node.methodId, configuration: { model: node.model, dimension: node.dimension, batchSize: node.batchSize } } satisfies EmbeddingModelRef;
+  } });
+  registry.register({ capability: "output-parser", supports: (node) => node.type === "structured-json-parser", resolve: async (context, nodeId) => {
+    const node = context.execution.workflow.nodes[nodeId] as StructuredJsonParserNode;
+    const service = new OutputParserExecutionService(node.schema, node.strict);
+    return { parse: (value: string) => service.parse(value) } satisfies OutputParserRef;
   } });
   registry.register({ capability: "vector-store", supports: (node) => node.type === "vector-store", resolve: async (context, nodeId) => {
     const node = context.execution.workflow.nodes[nodeId] as VectorStoreNode;

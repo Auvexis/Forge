@@ -731,7 +731,7 @@ Open the editor and verify all five nodes render, only valid Quick Add candidate
 
 ## Round 4: Chains And Retrieval
 
-### Task 7: Implement Structured JSON Parser and Basic LLM Chain
+### Task 7: Implement Structured JSON Parser and Basic LLM Chain [COMPLETE]
 
 **Files:**
 - Create: `server/src/core/nodes/handlers/output-parser.ts`
@@ -742,7 +742,7 @@ Open the editor and verify all five nodes render, only valid Quick Add candidate
 - Modify: `server/src/core/nodes/dependencies/core-capability-adapters.ts`
 - Modify: `server/src/core/utility-nodes/sailor-core/index.ts`
 
-- [ ] **Step 1: Write failing parser tests**
+- [x] **Step 1: Write failing parser tests**
 
 Test fenced JSON extraction, valid schema, invalid schema, malformed JSON, and exact AJV error paths. The adapter must return:
 
@@ -752,7 +752,7 @@ const parser: OutputParserRef = {
 }
 ```
 
-- [ ] **Step 2: Write failing chain tests**
+- [x] **Step 2: Write failing chain tests**
 
 Cover model-only text output and parsed output:
 
@@ -766,7 +766,7 @@ assert.deepEqual(result, {
 
 Assert the chain requests `model` with `getOne` and parser with `getOptional`.
 
-- [ ] **Step 3: Run tests and verify they fail**
+- [x] **Step 3: Run tests and verify they fail**
 
 ```powershell
 cd server
@@ -775,7 +775,7 @@ node --test src/core/nodes/handlers/output-parser.test.ts src/core/nodes/handler
 
 Expected: FAIL because handlers and parser service do not exist.
 
-- [ ] **Step 4: Implement Structured JSON parsing**
+- [x] **Step 4: Implement Structured JSON parsing**
 
 Use AJV already installed in the server. Strip one optional Markdown JSON fence, parse JSON, validate against the persisted schema, and throw:
 
@@ -785,15 +785,15 @@ Structured JSON Parser validation failed at /field: must be string
 
 Do not add fallback repair behavior in this release.
 
-- [ ] **Step 5: Implement Basic LLM Chain**
+- [x] **Step 5: Implement Basic LLM Chain**
 
 Evaluate `prompt` and `input` with `TemplateEngine`, invoke `ChatModelExecutionService`, then optionally parse. Return raw text when no parser is connected; return `{ output, rawOutput, metadata }` when parsed.
 
-- [ ] **Step 6: Register handlers and parser adapter**
+- [x] **Step 6: Register handlers and parser adapter**
 
 Register both handlers in Sailor Core. The parser capability adapter resolves the parser node into `OutputParserRef`; Basic LLM Chain remains a normal flow node.
 
-- [ ] **Step 7: Run focused and build checks**
+- [x] **Step 7: Run focused and build checks**
 
 ```powershell
 cd server
@@ -803,7 +803,7 @@ npm run build
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit Task 7**
+- [x] **Step 8: Commit Task 7**
 
 ```powershell
 git add server/src/core/nodes/handlers/output-parser.ts server/src/core/nodes/handlers/output-parser.test.ts server/src/core/nodes/handlers/basic-llm-chain.ts server/src/core/nodes/handlers/basic-llm-chain.test.ts server/src/core/modules/ai-services/output-parser-execution-service.ts server/src/core/nodes/dependencies/core-capability-adapters.ts server/src/core/utility-nodes/sailor-core/index.ts
