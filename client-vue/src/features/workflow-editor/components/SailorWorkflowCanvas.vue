@@ -343,18 +343,31 @@ quickAddBus.on((payload: {
   sourceHandle?: string
   targetId?: string
   targetHandle?: string
+  handlerId?: string
+  quickAddMode?: 'agent-config' | 'vector-config'
   agentConfigHandle?: 'chatModel' | 'memory' | 'tool'
   vectorConfigHandle?: 'embedding' | 'document'
   clientX?: number
   clientY?: number
   anchorRect?: AddNodePickerAnchorRect
 }) => {
+  const genericAgentConfigHandle =
+    payload.quickAddMode === 'agent-config' && isAgentConfigHandle(payload.handlerId)
+      ? payload.handlerId
+      : null
+  const genericVectorConfigHandle =
+    payload.quickAddMode === 'vector-config' && isVectorConfigHandle(payload.handlerId)
+      ? payload.handlerId
+      : null
+  const agentConfigHandle = payload.agentConfigHandle ?? genericAgentConfigHandle
+  const vectorConfigHandle = payload.vectorConfigHandle ?? genericVectorConfigHandle
+
   quickAddSourceHandle = payload.sourceHandle ?? null
   quickAddTargetId = payload.targetId ?? null
   quickAddTargetHandle = payload.targetHandle ?? null
-  quickAddAgentConfigHandle = payload.agentConfigHandle ?? null
-  quickAddVectorConfigHandle = payload.vectorConfigHandle ?? null
-  openAddNodePanel(payload.sourceId, payload.agentConfigHandle, payload, payload.vectorConfigHandle)
+  quickAddAgentConfigHandle = agentConfigHandle
+  quickAddVectorConfigHandle = vectorConfigHandle
+  openAddNodePanel(payload.sourceId, agentConfigHandle, payload, vectorConfigHandle)
 })
 
 // ── Insert node between two connected nodes (edge toolbar quick-add) ──────────

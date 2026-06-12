@@ -3,6 +3,13 @@ import { computed, ref, nextTick } from 'vue'
 import { Position, useVueFlow } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseHandle from './BaseHandle.vue'
+import QuickAddButton from './QuickAddButton.vue'
+import type {
+  BaseNodeHandlerDefinition,
+  NodeBorderStyle,
+  NodeRounding,
+  NodeSide,
+} from './nodePresentation.types'
 import NodeShimmer from './nodes/NodeShimmer.vue'
 import NodeToolbar from './nodes/NodeToolbar.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
@@ -19,7 +26,9 @@ const props = defineProps<{
 
   title?: string
   subtitle?: string
+  description?: string
   icon?: string
+  iconLeft?: string
   color?: string
   bg?: string
   borderColor?: string
@@ -28,6 +37,11 @@ const props = defineProps<{
   hasTarget?: boolean
   hasSource?: boolean
   hasOutgoingConnection?: boolean
+  inputPosition?: NodeSide
+  outputPosition?: NodeSide
+  rounded?: NodeRounding
+  borderStyle?: NodeBorderStyle
+  handlers?: BaseNodeHandlerDefinition[]
 
   selected?: boolean
   status?: 'idle' | 'waiting' | 'running' | 'retrying' | 'success' | 'failed'
@@ -47,6 +61,26 @@ const allEdges = computed(() => [
   ...edges.value,
   ...(workflowStore.activeWorkflow?.edges ?? []),
 ])
+
+const positionBySide = {
+  top: Position.Top,
+  left: Position.Left,
+  bottom: Position.Bottom,
+  right: Position.Right,
+} as const
+
+const effectiveInputPosition = computed(() => positionBySide[props.inputPosition ?? 'left'])
+const effectiveOutputPosition = computed(() => positionBySide[props.outputPosition ?? 'right'])
+const handlerSides = computed(() =>
+  [Position.Top, Position.Right, Position.Bottom, Position.Left]
+    .map((position) => ({
+      position,
+      handlers: (props.handlers ?? []).filter((handler) => handler.position === position),
+    }))
+    .filter((side) => side.handlers.length > 0),
+)
+const handlerAllowsQuickAdd = (handler: BaseNodeHandlerDefinition) =>
+  !!handler.quickAdd && (handler.allowedNodes === '*' || handler.allowedNodes.length > 0)
 
 const isEditingId = ref(false)
 const editedId = ref('')
@@ -118,7 +152,12 @@ const onQuickAdd = (event: MouseEvent) => {
 <template>
   <div 
     class="sailor-base-node"
-    :class="[{ 'is-selected': selected, 'is-disabled': isDisabled }, statusClasses]"
+    :class="[
+      { 'is-selected': selected, 'is-disabled': isDisabled },
+      statusClasses,
+      `is-rounded-${props.rounded ?? 'lg'}`,
+      `is-border-${props.borderStyle ?? 'default'}`,
+    ]"
     :style="{ 
       '--node-tint': props.bg, 
       '--node-custom-border': props.borderColor,
@@ -133,11 +172,11 @@ const onQuickAdd = (event: MouseEvent) => {
     <div class="sailor-base-node__icon-wrap">
       <slot name="icon">
         <div
-          v-if="props.icon"
+          v-if="props.iconLeft || props.icon"
           class="sailor-base-node__icon-box"
           :style="{ color: props.color }"
         >
-          <LucideIcon :name="props.icon" :size="48" />
+          <LucideIcon :name="props.iconLeft || props.icon || 'box'" :size="48" />
         </div>
       </slot>
     </div>
@@ -148,8 +187,41 @@ const onQuickAdd = (event: MouseEvent) => {
     </div>
 
     <!-- AUTO HANDLES -->
-    <BaseHandle v-if="props.hasTarget" id="target" type="target" :position="Position.Left" />
-    <BaseHandle v-if="props.hasSource" id="source" type="source" :position="Position.Right" />
+    <BaseHandle v-if="props.hasTarget" id="target" type="target" :position="effectiveInputPosition" />
+    <BaseHandle v-if="props.hasSource" id="source" type="source" :position="effectiveOutputPosition" />
+
+    <div
+      v-for="side in handlerSides"
+      :key="side.position"
+      class="sailor-base-node__handlers"
+      :class="`is-position-${side.position}`"
+      :style="{ '--handler-count': side.handlers.length }"
+    >
+      <div
+        v-for="handler in side.handlers"
+        :key="handler.id"
+        class="sailor-base-node__handler"
+      >
+        <BaseHandle
+          :id="handler.id"
+          :type="handler.type"
+          :position="handler.position"
+          variant="diamond"
+        />
+        <span>
+          {{ handler.label }}<template v-if="handler.required">*</template>
+        </span>
+        <QuickAddButton
+          v-if="props.id && handlerAllowsQuickAdd(handler)"
+          :node-id="props.id"
+          :handle-id="handler.id"
+          :target-handle-id="handler.id"
+          :mode="handler.quickAdd"
+          :allowed-nodes="handler.allowedNodes"
+          :direction="handler.position === Position.Bottom ? 'down' : 'right'"
+        />
+      </div>
+    </div>
 
     <!-- Quick Add Cable (n8n style) -->
     <div
@@ -184,7 +256,7 @@ const onQuickAdd = (event: MouseEvent) => {
   <!-- Label area — outside the card, below it, like n8n -->
   <div class="sailor-base-node__label-area" @dblclick.stop="startEditingId">
     <slot name="label">
-      <div v-if="props.title || props.subtitle" class="sailor-base-node__label">
+      <div v-if="props.title || props.description || props.subtitle" class="sailor-base-node__label">
         <BaseInput
           v-if="isEditingId"
           ref="idInputRef"
@@ -198,8 +270,8 @@ const onQuickAdd = (event: MouseEvent) => {
         <span v-else class="sailor-base-node__label-title" :title="props.title">
           {{ props.title }}
         </span>
-        <span v-if="props.subtitle" class="sailor-base-node__label-subtitle">
-          {{ props.subtitle }}
+        <span v-if="props.description || props.subtitle" class="sailor-base-node__label-subtitle">
+          {{ props.description || props.subtitle }}
         </span>
       </div>
     </slot>
@@ -215,7 +287,6 @@ const onQuickAdd = (event: MouseEvent) => {
   background-color: var(--sailor-node-body);
   background-image: linear-gradient(var(--node-tint, transparent), var(--node-tint, transparent));
   border: 2px solid var(--node-custom-border, var(--sailor-node-border));
-  border-radius: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -226,6 +297,26 @@ const onQuickAdd = (event: MouseEvent) => {
   overflow: visible;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   cursor: pointer;
+}
+
+.sailor-base-node.is-rounded-sm {
+  border-radius: 4px;
+}
+
+.sailor-base-node.is-rounded-md {
+  border-radius: 8px;
+}
+
+.sailor-base-node.is-rounded-lg {
+  border-radius: 16px;
+}
+
+.sailor-base-node.is-rounded-full {
+  border-radius: 9999px;
+}
+
+.sailor-base-node.is-border-dashed {
+  border-style: dashed;
 }
 
 .sailor-base-node:hover {
@@ -296,6 +387,71 @@ const onQuickAdd = (event: MouseEvent) => {
 /* ─── Extra body slot (e.g. trigger details) ─────────────────── */
 .sailor-base-node__body {
   width: 100%;
+}
+
+.sailor-base-node__handlers {
+  position: absolute;
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  pointer-events: all;
+}
+
+.sailor-base-node__handlers.is-position-top,
+.sailor-base-node__handlers.is-position-bottom {
+  left: 0;
+  width: 100%;
+  grid-template-columns: repeat(var(--handler-count), minmax(0, 1fr));
+}
+
+.sailor-base-node__handlers.is-position-top {
+  top: 0;
+}
+
+.sailor-base-node__handlers.is-position-bottom {
+  bottom: 0;
+}
+
+.sailor-base-node__handlers.is-position-left,
+.sailor-base-node__handlers.is-position-right {
+  top: 0;
+  height: 100%;
+  grid-template-rows: repeat(var(--handler-count), minmax(0, 1fr));
+}
+
+.sailor-base-node__handlers.is-position-left {
+  left: 0;
+}
+
+.sailor-base-node__handlers.is-position-right {
+  right: 0;
+}
+
+.sailor-base-node__handler {
+  position: relative;
+  display: flex;
+  min-width: 64px;
+  flex-direction: column;
+  align-items: center;
+  color: var(--sailor-text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+.sailor-base-node__handler > span {
+  position: absolute;
+  top: 18px;
+  width: 76px;
+  pointer-events: none;
+}
+
+.sailor-base-node__handler :deep(.sailor-base-handle) {
+  position: relative !important;
+  inset: auto !important;
+  margin: 0 auto;
+  pointer-events: all;
 }
 
 /* ─── Label (below card, outside the node box) ──────────────── */

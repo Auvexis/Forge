@@ -1,0 +1,55 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import test from 'node:test'
+
+function read(relative: string) {
+  return readFileSync(fileURLToPath(new URL(`../${relative}`, import.meta.url)), 'utf8')
+}
+
+test('BaseNode exposes configurable positions, rounding, border, and handlers', () => {
+  const source = read('BaseNode.vue')
+
+  for (const prop of [
+    'inputPosition',
+    'outputPosition',
+    'rounded',
+    'borderStyle',
+    'iconLeft',
+    'description',
+    'handlers',
+  ]) {
+    assert.match(source, new RegExp(prop))
+  }
+
+  assert.match(source, /BaseNodeHandlerDefinition/)
+  assert.match(source, /handler\.required/)
+  assert.match(source, /handler\.allowedNodes/)
+})
+
+test('BaseNode maps all four sides to Vue Flow positions', () => {
+  const source = read('BaseNode.vue')
+
+  assert.match(source, /top: Position\.Top/)
+  assert.match(source, /left: Position\.Left/)
+  assert.match(source, /bottom: Position\.Bottom/)
+  assert.match(source, /right: Position\.Right/)
+})
+
+test('QuickAddButton emits generic handler metadata', () => {
+  const source = read('QuickAddButton.vue')
+
+  assert.match(source, /allowedNodes/)
+  assert.match(source, /handlerId/)
+  assert.doesNotMatch(source, /agentConfigHandle:/)
+  assert.doesNotMatch(source, /vectorConfigHandle:/)
+})
+
+test('workflow canvas keeps generic handler quick add compatible during migration', () => {
+  const source = read('SailorWorkflowCanvas.vue')
+
+  assert.match(source, /quickAddMode\?: 'agent-config' \| 'vector-config'/)
+  assert.match(source, /payload\.quickAddMode === 'agent-config'/)
+  assert.match(source, /payload\.quickAddMode === 'vector-config'/)
+  assert.match(source, /payload\.handlerId/)
+})

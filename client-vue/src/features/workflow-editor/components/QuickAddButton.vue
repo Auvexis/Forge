@@ -4,11 +4,13 @@ import { useVueFlow } from '@vue-flow/core'
 import { useEventBus } from '@/shared/composables/useEventBus'
 import { useWorkflowStore } from '../stores/workflow.store'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import type { AllowedNodes, NodeQuickAddMode } from './nodePresentation.types'
 
 const props = defineProps<{
   nodeId: string
   handleId: string
-  mode?: 'source' | 'agent-config' | 'vector-config'
+  mode?: 'source' | NodeQuickAddMode
+  allowedNodes?: AllowedNodes
   targetHandleId?: string
   alwaysVisible?: boolean
   direction?: 'right' | 'down'
@@ -39,23 +41,13 @@ const hasConnection = computed(() =>
 
 const onQuickAdd = (event: MouseEvent) => {
   const anchorRect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  if (props.mode === 'agent-config') {
+  if (props.mode === 'agent-config' || props.mode === 'vector-config') {
     quickAddBus.emit({
       targetId: props.nodeId,
       targetHandle: props.targetHandleId ?? props.handleId,
-      agentConfigHandle: props.targetHandleId ?? props.handleId,
-      clientX: event.clientX,
-      clientY: event.clientY,
-      anchorRect,
-    })
-    return
-  }
-
-  if (props.mode === 'vector-config') {
-    quickAddBus.emit({
-      targetId: props.nodeId,
-      targetHandle: props.targetHandleId ?? props.handleId,
-      vectorConfigHandle: props.targetHandleId ?? props.handleId,
+      handlerId: props.targetHandleId ?? props.handleId,
+      quickAddMode: props.mode,
+      allowedNodes: props.allowedNodes ?? [],
       clientX: event.clientX,
       clientY: event.clientY,
       anchorRect,
