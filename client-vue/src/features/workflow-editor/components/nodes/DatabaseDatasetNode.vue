@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Position, type NodeProps } from '@vue-flow/core'
+import type { NodeProps } from '@vue-flow/core'
 import type { DatabaseDatasetNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
-import BaseHandle from '../BaseHandle.vue'
 
 const props = defineProps<
   NodeProps<DatabaseDatasetNode> & {
@@ -22,15 +21,16 @@ const subtitle = computed(() => props.data?.pluginId || 'database')
     :selected="props.selected"
     :status="props.status"
     :has-outgoing-connection="props.hasOutgoingConnection"
-    has-target
     has-source
+    output-position="top"
+    rounded="full"
+    width="100px"
+    height="100px"
     :title="stepTitle"
     :subtitle="subtitle"
     icon="table-2"
     color="#7c3aed"
     bg="#f5f3ff"
     border-color="#c4b5fd"
-  >
-    <BaseHandle id="dataset" type="source" :position="Position.Right" />
-  </BaseNode>
+  />
 </template>

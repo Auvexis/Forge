@@ -39,7 +39,17 @@ const props = withDefaults(defineProps<{
     class="sailor-base-advanced-node"
     :data-auto-organize="props.autoOrganize ? 'true' : undefined"
   >
-    <BaseNode v-bind="$attrs" v-bind="props">
+    <BaseNode
+      v-bind="$attrs"
+      :id="props.id"
+      :handlers="props.handlers"
+      :input-position="props.inputPosition"
+      :output-position="props.outputPosition"
+      :rounded="props.rounded"
+      :border-style="props.borderStyle"
+      :width="props.width"
+      :height="props.height"
+    >
       <template #icon>
         <div class="sailor-base-advanced-node__content">
           <div class="sailor-base-advanced-node__icon">

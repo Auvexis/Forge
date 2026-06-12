@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { Position, type NodeProps } from '@vue-flow/core'
+import type { NodeProps } from '@vue-flow/core'
 import type { AiToolNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
-import BaseHandle from '../BaseHandle.vue'
 import { apiRequest } from '@/core/api/client'
 import { ENDPOINTS } from '@/core/api/endpoints'
 import { useTheme } from '@/shared/composables/useTheme'
@@ -62,20 +61,18 @@ watch(() => isDark.value, () => loadPluginAppearance(pluginId.value))
       :color="customIconColor || 'var(--sailor-node-plugin-icon)'"
       :bg="customBg || 'var(--sailor-node-plugin-bg)'"
       :border-color="customBorder || 'var(--sailor-node-plugin-border)'"
-      width="82px"
-      height="82px"
+      has-source
+      output-position="top"
+      rounded="full"
+      width="100px"
+      height="100px"
     />
-    <BaseHandle id="source" type="source" :position="Position.Top" variant="diamond" />
   </div>
 </template>
 
 <style scoped>
 .agent-config-node {
   position: relative;
-}
-
-.agent-config-node--round :deep(.sailor-base-node) {
-  border-radius: 9999px;
 }
 
 .agent-config-node :deep(.sailor-base-node__icon-box svg) {
