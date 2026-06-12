@@ -336,7 +336,7 @@ git commit -m "feat: add configurable handlers to base node"
 - Create: `client-vue/src/features/workflow-editor/components/BaseAdvancedNode.vue`
 - Modify: `client-vue/src/features/workflow-editor/components/__tests__/baseNode.contract.test.ts`
 
-- [ ] **Step 1: Add failing advanced-node contracts**
+- [x] **Step 1: Add failing advanced-node contracts**
 
 ```ts
 test('BaseAdvancedNode composes BaseNode and declares automatic organization', () => {
@@ -350,11 +350,11 @@ test('BaseAdvancedNode composes BaseNode and declares automatic organization', (
 })
 ```
 
-- [ ] **Step 2: Run test and verify RED**
+- [x] **Step 2: Run test and verify RED**
 
 Run Task 2's test command. Expected: FAIL because `BaseAdvancedNode.vue` does not exist.
 
-- [ ] **Step 3: Implement BaseAdvancedNode**
+- [x] **Step 3: Implement BaseAdvancedNode**
 
 Create a thin composition that forwards attrs and the handle API:
 
@@ -398,11 +398,11 @@ const props = withDefaults(defineProps<{
 
 Expose `data-auto-organize="true"` on the root when enabled so Canvas contracts can identify the declaration without letting the component mutate graph state.
 
-- [ ] **Step 4: Run test and type-check**
+- [x] **Step 4: Run test and type-check**
 
 Run Task 2 Step 7 commands. Expected: pass.
 
-- [ ] **Step 5: Commit BaseAdvancedNode**
+- [x] **Step 5: Commit BaseAdvancedNode**
 
 ```powershell
 git add client-vue/src/features/workflow-editor/components/BaseAdvancedNode.vue client-vue/src/features/workflow-editor/components/__tests__/baseNode.contract.test.ts
@@ -420,7 +420,7 @@ git commit -m "feat: add advanced workflow node primitive"
 - Modify: `client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue`
 - Modify: `client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts`
 
-- [ ] **Step 1: Add failing capability and panel contracts**
+- [x] **Step 1: Add failing capability and panel contracts**
 
 Test capability extraction from existing generic plugin metadata:
 
@@ -445,7 +445,7 @@ assert.doesNotMatch(panel, /agentConfigHandle\?:/)
 assert.doesNotMatch(panel, /vectorConfigHandle\?:/)
 ```
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 ```powershell
 cd client-vue
@@ -454,7 +454,7 @@ node --test src/features/workflow-editor/components/settings/__tests__/allowedNo
 
 Expected: FAIL because the picker still branches on Agent and Vector context fields.
 
-- [ ] **Step 3: Derive generic capabilities from PluginSummary**
+- [x] **Step 3: Derive generic capabilities from PluginSummary**
 
 Implement `pluginAllowedNodeCapabilities(plugin)` using existing manifest contracts:
 
@@ -473,7 +473,7 @@ export function pluginAllowedNodeCapabilities(plugin: PluginSummary): string[] {
 
 Keep this dependency direction picker-only; plugins remain unaware of workflow UI.
 
-- [ ] **Step 4: Replace contextual props with allowedNodes**
+- [x] **Step 4: Replace contextual props with allowedNodes**
 
 Change the panel prop to:
 
@@ -501,7 +501,7 @@ const pickerPresets = computed(() => allPresets.value.filter((preset) =>
 
 Preserve normal AddNodePanel behavior by passing `'*'` only for the unrestricted panel and continuing to apply `filterDefaultPickerPresets` there.
 
-- [ ] **Step 5: Carry generic handler context through Canvas**
+- [x] **Step 5: Carry generic handler context through Canvas**
 
 Replace Agent/Vector fields with:
 
@@ -521,11 +521,11 @@ const addNodePickerOverlay = ref<{
 Pass both values to `AddNodePanel`. Continue connecting the created node to
 `quickAddTargetId` and `quickAddTargetHandle`; no workflow edge format changes.
 
-- [ ] **Step 6: Run tests and type-check**
+- [x] **Step 6: Run tests and type-check**
 
 Run Task 4 Step 2, then `npm run type-check`. Expected: pass.
 
-- [ ] **Step 7: Commit generic contextual picker**
+- [x] **Step 7: Commit generic contextual picker**
 
 ```powershell
 git add client-vue/src/features/workflow-editor/components/settings/allowedNodeSelectors.ts client-vue/src/features/workflow-editor/components/settings/__tests__/allowedNodeSelectors.test.ts client-vue/src/features/workflow-editor/components/settings/AddNodePanel.vue client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue client-vue/src/features/workflow-editor/components/settings/__tests__/agentAddNode.contract.test.ts
