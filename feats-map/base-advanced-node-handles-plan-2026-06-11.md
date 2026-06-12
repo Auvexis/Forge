@@ -38,7 +38,7 @@
 - Create: `client-vue/src/features/workflow-editor/components/settings/allowedNodeSelectors.ts`
 - Create: `client-vue/src/features/workflow-editor/components/settings/__tests__/allowedNodeSelectors.test.ts`
 
-- [ ] **Step 1: Write failing selector tests**
+- [x] **Step 1: Write failing selector tests**
 
 Create tests covering wildcard, empty, node, preset, plugin, and capability selectors:
 
@@ -67,7 +67,7 @@ test('capability selectors allow only compatible plugins', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests and verify RED**
+- [x] **Step 2: Run tests and verify RED**
 
 Run:
 
@@ -78,7 +78,7 @@ node --test src/features/workflow-editor/components/settings/__tests__/allowedNo
 
 Expected: FAIL because the selector module does not exist.
 
-- [ ] **Step 3: Define shared presentation types**
+- [x] **Step 3: Define shared presentation types**
 
 Create `nodePresentation.types.ts`:
 
@@ -107,7 +107,7 @@ export interface BaseNodeHandlerDefinition {
 }
 ```
 
-- [ ] **Step 4: Implement pure selector matching**
+- [x] **Step 4: Implement pure selector matching**
 
 Create `allowedNodeSelectors.ts` with small picker-facing inputs:
 
@@ -136,11 +136,11 @@ export function allowedNodeSelectorsPermitPlugin(
 }
 ```
 
-- [ ] **Step 5: Run tests and verify GREEN**
+- [x] **Step 5: Run tests and verify GREEN**
 
 Run the command from Step 2. Expected: all selector tests pass.
 
-- [ ] **Step 6: Commit shared types and selectors**
+- [x] **Step 6: Commit shared types and selectors**
 
 ```powershell
 git add client-vue/src/features/workflow-editor/components/nodePresentation.types.ts client-vue/src/features/workflow-editor/components/settings/allowedNodeSelectors.ts client-vue/src/features/workflow-editor/components/settings/__tests__/allowedNodeSelectors.test.ts
@@ -156,7 +156,7 @@ git commit -m "feat: define node handles and allowed selectors"
 - Modify: `client-vue/src/features/workflow-editor/components/QuickAddButton.vue`
 - Create: `client-vue/src/features/workflow-editor/components/__tests__/baseNode.contract.test.ts`
 
-- [ ] **Step 1: Write failing BaseNode contract tests**
+- [x] **Step 1: Write failing BaseNode contract tests**
 
 Assert the new props, defaults, handler rendering, required marker, and allowed-node forwarding:
 
@@ -193,7 +193,7 @@ test('QuickAddButton emits generic handler metadata', () => {
 })
 ```
 
-- [ ] **Step 2: Run contract test and verify RED**
+- [x] **Step 2: Run contract test and verify RED**
 
 ```powershell
 cd client-vue
@@ -202,7 +202,7 @@ node --test src/features/workflow-editor/components/__tests__/baseNode.contract.
 
 Expected: FAIL because BaseNode does not expose the new API.
 
-- [ ] **Step 3: Add BaseNode props and normalized defaults**
+- [x] **Step 3: Add BaseNode props and normalized defaults**
 
 Extend props and computed values:
 
@@ -234,7 +234,7 @@ const effectiveOutputPosition = computed(() => positionBySide[props.outputPositi
 
 Keep `subtitle`, `icon`, `hasTarget`, and `hasSource` as compatibility props.
 
-- [ ] **Step 4: Render arbitrary handlers by side**
+- [x] **Step 4: Render arbitrary handlers by side**
 
 Group definitions by `Position`, render stable side containers, and use the definition directly:
 
@@ -269,7 +269,7 @@ const handlerAllowsQuickAdd = (handler: BaseNodeHandlerDefinition) =>
   !!handler.quickAdd && (handler.allowedNodes === '*' || handler.allowedNodes.length > 0)
 ```
 
-- [ ] **Step 5: Apply rounding and border classes**
+- [x] **Step 5: Apply rounding and border classes**
 
 Bind classes:
 
@@ -290,7 +290,7 @@ Define stable values:
 .is-border-dashed { border-style: dashed; }
 ```
 
-- [ ] **Step 6: Generalize QuickAddButton event payload**
+- [x] **Step 6: Generalize QuickAddButton event payload**
 
 Replace node-family fields with:
 
@@ -311,7 +311,7 @@ quickAddBus.emit({
 
 Keep source quick-add unchanged.
 
-- [ ] **Step 7: Run tests and type-check**
+- [x] **Step 7: Run tests and type-check**
 
 ```powershell
 cd client-vue
@@ -321,7 +321,7 @@ npm run type-check
 
 Expected: contract tests and type-check pass.
 
-- [ ] **Step 8: Commit BaseNode expansion**
+- [x] **Step 8: Commit BaseNode expansion**
 
 ```powershell
 git add client-vue/src/features/workflow-editor/components/BaseNode.vue client-vue/src/features/workflow-editor/components/QuickAddButton.vue client-vue/src/features/workflow-editor/components/__tests__/baseNode.contract.test.ts
