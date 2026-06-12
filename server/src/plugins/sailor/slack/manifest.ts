@@ -1,0 +1,744 @@
+﻿import { definePluginManifest } from "@auvexis/sailor-sdk";
+
+export default definePluginManifest({
+  "metadata": {
+    "id": "slack",
+    "name": "Slack",
+    "description": "Send, update, delete, list, react, open conversations, and upload files through Slack Web API.",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/slack.svg",
+    "categories": [
+      "Apps"
+    ],
+    "author": "Sailor",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/sailor"
+  },
+  "methods": {
+    "postMessage": {
+      "metadata": {
+        "label": "Post Message",
+        "description": "Sends a message to a Slack channel or conversation."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "text": {
+            "type": "string",
+            "description": "Message text.",
+            "x-label": "Message",
+            "x-input-type": "textarea"
+          },
+          "threadTs": {
+            "type": "string",
+            "description": "Optional parent message timestamp for threaded replies.",
+            "x-label": "Thread Timestamp",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "channel",
+          "text"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
+          "channel": {
+            "type": "string",
+            "x-label": "Channel"
+          },
+          "ts": {
+            "type": "string",
+            "x-label": "Timestamp"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_post_message",
+        "description": "Sends a message to a Slack channel or conversation.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "updateMessage": {
+      "metadata": {
+        "label": "Update Message",
+        "description": "Updates an existing Slack message."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "ts": {
+            "type": "string",
+            "description": "Slack message timestamp.",
+            "x-label": "Timestamp",
+            "x-input-type": "text"
+          },
+          "text": {
+            "type": "string",
+            "description": "New message text.",
+            "x-label": "Message",
+            "x-input-type": "textarea"
+          }
+        },
+        "required": [
+          "channel",
+          "ts",
+          "text"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
+          "channel": {
+            "type": "string",
+            "x-label": "Channel"
+          },
+          "ts": {
+            "type": "string",
+            "x-label": "Timestamp"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_update_message",
+        "description": "Updates an existing Slack message.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "deleteMessage": {
+      "metadata": {
+        "label": "Delete Message",
+        "description": "Deletes a Slack message. Requires explicit confirmation."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "ts": {
+            "type": "string",
+            "description": "Slack message timestamp.",
+            "x-label": "Timestamp",
+            "x-input-type": "text"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Must be enabled to delete the message.",
+            "default": false,
+            "x-label": "Confirm Delete",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "channel",
+          "ts",
+          "confirm"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "x-label": "Deleted"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_delete_message",
+        "description": "Deletes a Slack message. Requires explicit confirmation.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "listChannels": {
+      "metadata": {
+        "label": "List Channels",
+        "description": "Lists public and private channels accessible to the bot."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "type": "string",
+            "description": "Comma-separated conversation types.",
+            "default": "public_channel,private_channel",
+            "x-label": "Types",
+            "x-input-type": "text"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Maximum number of channels.",
+            "default": 200,
+            "minimum": 1,
+            "maximum": 1000,
+            "x-label": "Limit",
+            "x-input-type": "number"
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Pagination cursor.",
+            "x-label": "Cursor",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "x-label": "Channels"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_list_channels",
+        "description": "Lists public and private channels accessible to the bot.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "getChannelHistory": {
+      "metadata": {
+        "label": "Get Channel History",
+        "description": "Gets recent Slack messages from a channel or conversation."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Maximum number of messages.",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 1000,
+            "x-label": "Limit",
+            "x-input-type": "number"
+          },
+          "oldest": {
+            "type": "string",
+            "description": "Only messages after this timestamp.",
+            "x-label": "Oldest",
+            "x-input-type": "text"
+          },
+          "latest": {
+            "type": "string",
+            "description": "Only messages before this timestamp.",
+            "x-label": "Latest",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "channel"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "x-label": "Messages"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_get_channel_history",
+        "description": "Gets recent Slack messages from a channel or conversation.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "addReaction": {
+      "metadata": {
+        "label": "Add Reaction",
+        "description": "Adds an emoji reaction to a Slack message."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "ts": {
+            "type": "string",
+            "description": "Slack message timestamp.",
+            "x-label": "Timestamp",
+            "x-input-type": "text"
+          },
+          "emoji": {
+            "type": "string",
+            "description": "Emoji name, with or without colons.",
+            "x-label": "Emoji",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "channel",
+          "ts",
+          "emoji"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_add_reaction",
+        "description": "Adds an emoji reaction to a Slack message.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "openConversation": {
+      "metadata": {
+        "label": "Open Conversation",
+        "description": "Opens a DM or multi-person conversation with one or more users."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "string",
+            "description": "Comma-separated Slack user IDs.",
+            "x-label": "Users",
+            "x-input-type": "text"
+          },
+          "returnIm": {
+            "type": "boolean",
+            "description": "Return the IM channel when opening a single-user DM.",
+            "default": true,
+            "x-label": "Return IM",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "users"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
+          "channel": {
+            "type": "object",
+            "x-label": "Channel"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_open_conversation",
+        "description": "Opens a DM or multi-person conversation with one or more users.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "uploadFile": {
+      "metadata": {
+        "label": "Upload File",
+        "description": "Uploads a base64 file to Slack using the external upload flow."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Slack channel or conversation ID.",
+            "x-label": "Channel",
+            "x-input-type": "text"
+          },
+          "filename": {
+            "type": "string",
+            "description": "Filename shown in Slack.",
+            "x-label": "Filename",
+            "x-input-type": "text"
+          },
+          "contentBase64": {
+            "type": "string",
+            "description": "File content encoded as base64.",
+            "x-label": "Content Base64",
+            "x-input-type": "textarea"
+          },
+          "title": {
+            "type": "string",
+            "description": "Optional Slack file title.",
+            "x-label": "Title",
+            "x-input-type": "text"
+          },
+          "initialComment": {
+            "type": "string",
+            "description": "Optional comment posted with the uploaded file.",
+            "x-label": "Initial Comment",
+            "x-input-type": "textarea"
+          }
+        },
+        "required": [
+          "channel",
+          "filename",
+          "contentBase64"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "x-label": "OK"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "x-label": "Files"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "slack_upload_file",
+        "description": "Uploads a base64 file to Slack using the external upload flow.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    }
+  },
+  "triggers": {
+    "onMessage": {
+      "metadata": {
+        "label": "On Message",
+        "description": "Triggers when Slack sends a message event to this workflow."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
+          }
+        }
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onMention": {
+      "metadata": {
+        "label": "On Mention",
+        "description": "Triggers when the Slack app is mentioned."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
+          }
+        }
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onAppHomeOpened": {
+      "metadata": {
+        "label": "On App Home Opened",
+        "description": "Triggers when a user opens the Slack app home."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
+          }
+        }
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    }
+  }
+});

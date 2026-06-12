@@ -1,0 +1,125 @@
+﻿import { definePluginManifest } from "@auvexis/sailor-sdk";
+
+export default definePluginManifest({
+  "metadata": {
+    "id": "my-plugin",
+    "name": "My Plugin",
+    "description": "Short description of what this plugin does.",
+    "icon": "assets/icons/icon.svg",
+    "iconDark": "assets/icons/icon-dark.svg",
+    "iconLight": "assets/icons/icon-light.svg",
+    "categories": [
+      "Apps"
+    ],
+    "author": "Your Name or Org",
+    "version": "1.0.0",
+    "repository": "https://github.com/yourusername/my-plugin",
+    "agentCapabilities": {
+      "chatModel": {
+        "enabled": false
+      },
+      "memoryStore": {
+        "enabled": false,
+        "adapter": "plugin-memory-store",
+        "label": "My Plugin Memory",
+        "description": "Stores and retrieves agent memory through this plugin.",
+        "searchMethodId": "searchAgentMemory",
+        "putMethodId": "putAgentMemory"
+      }
+    }
+  },
+  "methods": {
+    "listItems": {
+      "metadata": {
+        "label": "List items",
+        "description": "Fetches a list of items."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query string.",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of results to return.",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100,
+            "x-input-type": "number"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "x-label": "ID"
+            },
+            "name": {
+              "type": "string",
+              "x-label": "Name"
+            },
+            "createdAt": {
+              "type": "string",
+              "x-label": "Created At"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": false,
+        "name": "my_plugin_list_items",
+        "description": "Allow an AI Agent to list items from this plugin when explicitly enabled.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "getItem": {
+      "metadata": {
+        "label": "Get item",
+        "description": "Gets a single item by ID."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The unique ID of the item.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "ID"
+          },
+          "name": {
+            "type": "string",
+            "x-label": "Name"
+          },
+          "description": {
+            "type": "string",
+            "x-label": "Description"
+          },
+          "createdAt": {
+            "type": "string",
+            "x-label": "Created At"
+          }
+        }
+      }
+    }
+  }
+});

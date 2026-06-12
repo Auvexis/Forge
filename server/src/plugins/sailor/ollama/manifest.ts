@@ -1,0 +1,247 @@
+﻿import { definePluginManifest } from "@auvexis/sailor-sdk";
+
+export default definePluginManifest({
+  "metadata": {
+    "id": "sailor-ollama",
+    "name": "Ollama",
+    "description": "Manage and use local LLMs with Ollama Plugin.",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ollama-dark.svg",
+    "iconDark": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ollama.svg",
+    "iconLight": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/ollama-dark.svg",
+    "categories": [
+      "AI"
+    ],
+    "author": "Sailor",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/sailor",
+    "agentCapabilities": {
+      "chatModel": {
+        "enabled": true,
+        "adapter": "ollama",
+        "label": "Ollama Chat Model",
+        "description": "Use local or cloud Ollama models as an Agent Chat Model through a configurable compatible endpoint.",
+        "defaultModel": "llama3.2",
+        "defaultBaseUrl": "http://localhost:11434/v1",
+        "credentialPluginId": "sailor-ollama",
+        "thinking": {
+          "enabled": true,
+          "request": {
+            "reasoning_effort": "medium"
+          }
+        }
+      }
+    }
+  },
+  "methods": {
+    "listModels": {
+      "metadata": {
+        "label": "List Models",
+        "description": "List models available from the configured Ollama host."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "ollama_list_models",
+        "description": "List models available from the configured Ollama host.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "chat": {
+      "metadata": {
+        "label": "Chat",
+        "description": "Send chat messages to Ollama."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "The model to use (e.g., llama3.2, mistral).",
+            "x-input-type": "text"
+          },
+          "messages": {
+            "type": "array",
+            "description": "Chat messages with role and content.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "type": "string"
+                },
+                "content": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "system": {
+            "type": "string",
+            "description": "Override the default system instructions.",
+            "x-input-type": "textarea"
+          },
+          "jsonMode": {
+            "type": "boolean",
+            "description": "Return the response in JSON format.",
+            "default": false,
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "model",
+          "messages"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "ollama_chat",
+        "description": "Send chat messages to Ollama.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "generate": {
+      "metadata": {
+        "label": "Generate",
+        "description": "Generate content using Ollama."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "The prompt to use for generation.",
+            "x-input-type": "textarea"
+          },
+          "model": {
+            "type": "string",
+            "description": "The model to use (e.g., llama3.2, mistral).",
+            "x-input-type": "text"
+          },
+          "system": {
+            "type": "string",
+            "description": "Override the default system instructions.",
+            "x-input-type": "textarea"
+          },
+          "jsonMode": {
+            "type": "boolean",
+            "description": "Return the response in JSON format.",
+            "default": false,
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "model",
+          "prompt"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "x-label": "Model"
+          },
+          "message": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "x-label": "Role"
+              },
+              "content": {
+                "type": "string",
+                "x-label": "Content"
+              }
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "x-label": "Created At"
+          },
+          "done": {
+            "type": "boolean",
+            "x-label": "Done"
+          },
+          "done_reason": {
+            "type": "string",
+            "x-label": "Done Reason"
+          },
+          "total_duration": {
+            "type": "number",
+            "x-label": "Total Duration"
+          },
+          "load_duration": {
+            "type": "number",
+            "x-label": "Load Duration"
+          },
+          "prompt_eval_count": {
+            "type": "number",
+            "x-label": "Prompt Eval Count"
+          },
+          "prompt_eval_duration": {
+            "type": "number",
+            "x-label": "Prompt Eval Duration"
+          },
+          "eval_count": {
+            "type": "number",
+            "x-label": "Eval Count"
+          },
+          "eval_duration": {
+            "type": "number",
+            "x-label": "Eval Duration"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "ollama_generate",
+        "description": "Generate content using Ollama.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "showModel": {
+      "metadata": {
+        "label": "Show Model",
+        "description": "Show details for an Ollama model."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "The model to inspect.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "ollama_show_model",
+        "description": "Show details for an Ollama model.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    }
+  }
+});

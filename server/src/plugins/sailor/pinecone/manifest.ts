@@ -5,7 +5,7 @@ export default definePluginManifest({
     id: "sailor-pinecone",
     name: "Pinecone",
     description: "Use Pinecone Cloud or Pinecone Local as a vector store provider.",
-    icon: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/pinecone.svg",
+    icon: "https://cdn.brandfetch.io/idCLuo1dQ8/w/178/h/178/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B",
     categories: ["AI", "Data transformation"],
     author: "Sailor",
     version: "1.0.0",

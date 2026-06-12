@@ -1,0 +1,192 @@
+﻿import { definePluginManifest } from "@auvexis/sailor-sdk";
+
+export default definePluginManifest({
+  "metadata": {
+    "id": "sailor-compare-datasets",
+    "name": "Compare Datasets",
+    "description": "Compare two arrays and return their intersection, difference or union based on a match key.",
+    "icon": "diff",
+    "categories": [
+      "Data transformation"
+    ],
+    "author": "Sailor",
+    "version": "1.0.0",
+    "utility": true,
+    "style": {
+      "icon": "diff",
+      "iconColor": "rgb(99, 102, 241)",
+      "bgColor": "rgba(99, 102, 241, 0.12)",
+      "borderColor": "rgba(99, 102, 241, 0.4)"
+    }
+  },
+  "methods": {
+    "intersect": {
+      "metadata": {
+        "label": "Intersect",
+        "description": "Return items that exist in BOTH listA and listB."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "listA": {
+            "type": "array",
+            "description": "First array.",
+            "x-input-type": "text"
+          },
+          "listB": {
+            "type": "array",
+            "description": "Second array.",
+            "x-input-type": "text"
+          },
+          "matchKey": {
+            "type": "string",
+            "description": "Field name for comparison (e.g. 'id').",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "listA",
+          "listB",
+          "matchKey"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "compare_datasets_intersect",
+        "description": "Return items that exist in BOTH listA and listB.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "difference": {
+      "metadata": {
+        "label": "Difference (A minus B)",
+        "description": "Return items exclusive to listA."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "listA": {
+            "type": "array",
+            "description": "Source array.",
+            "x-input-type": "text"
+          },
+          "listB": {
+            "type": "array",
+            "description": "Array to subtract.",
+            "x-input-type": "text"
+          },
+          "matchKey": {
+            "type": "string",
+            "description": "Field name for comparison.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "listA",
+          "listB",
+          "matchKey"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "compare_datasets_difference",
+        "description": "Return items exclusive to listA.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "union": {
+      "metadata": {
+        "label": "Union",
+        "description": "Return all unique items from both lists."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "listA": {
+            "type": "array",
+            "description": "First array.",
+            "x-input-type": "text"
+          },
+          "listB": {
+            "type": "array",
+            "description": "Second array.",
+            "x-input-type": "text"
+          },
+          "matchKey": {
+            "type": "string",
+            "description": "Field name for deduplication.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "listA",
+          "listB",
+          "matchKey"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "compare_datasets_union",
+        "description": "Return all unique items from both lists.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "symmetricDifference": {
+      "metadata": {
+        "label": "Symmetric Difference",
+        "description": "Return items exclusive to each list."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "listA": {
+            "type": "array",
+            "description": "First array.",
+            "x-input-type": "text"
+          },
+          "listB": {
+            "type": "array",
+            "description": "Second array.",
+            "x-input-type": "text"
+          },
+          "matchKey": {
+            "type": "string",
+            "description": "Field name for comparison.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "listA",
+          "listB",
+          "matchKey"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "compare_datasets_symmetric_difference",
+        "description": "Return items exclusive to each list.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    }
+  }
+});

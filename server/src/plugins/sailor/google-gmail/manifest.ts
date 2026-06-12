@@ -1,0 +1,777 @@
+﻿import { definePluginManifest } from "@auvexis/sailor-sdk";
+
+export default definePluginManifest({
+  "metadata": {
+    "id": "google-gmail",
+    "name": "Google Gmail",
+    "description": "Integration with Google Gmail API to manage emails, threads, drafts, and labels.",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/gmail.svg",
+    "categories": [
+      "Apps"
+    ],
+    "author": "Sailor",
+    "version": "1.1.0",
+    "repository": "https://github.com/sailor/google-gmail"
+  },
+  "methods": {
+    "listMessages": {
+      "metadata": {
+        "label": "List Messages",
+        "description": "Lists messages in the user's mailbox. Returns an array of message IDs."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Filter messages by a Gmail search query (same syntax as the Gmail search box, e.g. 'from:user@example.com is:unread').",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of messages to return (1â€“500). Default is 100.",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 500,
+            "x-input-type": "number",
+            "x-label": "Max Results"
+          },
+          "labelIds": {
+            "type": "string",
+            "description": "Comma-separated list of label IDs. Only return messages that have all specified labels.",
+            "x-label": "Label IDs (comma-separated)",
+            "x-input-type": "text"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "x-label": "Message ID"
+            },
+            "threadId": {
+              "type": "string",
+              "x-label": "Thread ID"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_list_messages",
+        "description": "Lists messages in the user's mailbox. Returns an array of message IDs.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "getMessage": {
+      "metadata": {
+        "label": "Get Message",
+        "description": "Retrieves a specific message by ID with its full content, headers, and body."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message to retrieve.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "format": {
+            "type": "string",
+            "description": "The format to return the message in. 'full' includes all headers and body. 'metadata' returns only headers. 'minimal' returns minimal data. 'raw' returns the raw RFC 2822 message.",
+            "default": "full",
+            "enum": [
+              "full",
+              "metadata",
+              "minimal",
+              "raw"
+            ],
+            "x-label": "Format",
+            "x-input-type": "select"
+          }
+        },
+        "required": [
+          "messageId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "threadId": {
+            "type": "string",
+            "x-label": "Thread ID"
+          },
+          "snippet": {
+            "type": "string",
+            "x-label": "Snippet"
+          },
+          "payload": {
+            "type": "object",
+            "x-label": "Payload"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_get_message",
+        "description": "Retrieves a specific message by ID with its full content, headers, and body.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "sendMessage": {
+      "metadata": {
+        "label": "Send Message",
+        "description": "Sends an email message. Supports plain text, HTML, and attachments."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "description": "Recipient email address. Formats accepted: 'user@example.com' or 'Display Name <user@example.com>'.",
+            "x-label": "To",
+            "x-input-type": "text"
+          },
+          "from": {
+            "type": "string",
+            "description": "Optional sender alias or display name (e.g. 'My Name <email@gmail.com>'). Defaults to the authenticated account.",
+            "x-label": "From (optional)",
+            "x-input-type": "text"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Email subject line. Unicode is fully supported.",
+            "x-label": "Subject",
+            "x-input-type": "text"
+          },
+          "body": {
+            "type": "string",
+            "description": "Email body. Accepts plain text or HTML. The Content-Type is automatically detected.",
+            "x-label": "Body",
+            "x-input-type": "textarea"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Optional list of file attachments. Each file must be base64-encoded.",
+            "x-label": "Attachments",
+            "x-input-type": "files",
+            "items": {
+              "type": [
+                "string",
+                "object"
+              ]
+            }
+          }
+        },
+        "required": [
+          "to",
+          "subject",
+          "body"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "threadId": {
+            "type": "string",
+            "x-label": "Thread ID"
+          },
+          "labelIds": {
+            "type": "array",
+            "x-label": "Labels",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_send_message",
+        "description": "Sends an email message. Supports plain text, HTML, and attachments.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "listLabels": {
+      "metadata": {
+        "label": "List Labels",
+        "description": "Lists all labels in the user's mailbox (system and user-defined)."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "x-label": "Label ID"
+            },
+            "name": {
+              "type": "string",
+              "x-label": "Label Name"
+            },
+            "type": {
+              "type": "string",
+              "x-label": "Type"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_list_labels",
+        "description": "Lists all labels in the user's mailbox (system and user-defined).",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "modifyMessageLabels": {
+      "metadata": {
+        "label": "Modify Message Labels",
+        "description": "Adds or removes labels from a specific message."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message to modify.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "addLabelIds": {
+            "type": "string",
+            "description": "Comma-separated list of label IDs to add (e.g. 'STARRED,IMPORTANT').",
+            "x-label": "Add Label IDs",
+            "x-input-type": "text"
+          },
+          "removeLabelIds": {
+            "type": "string",
+            "description": "Comma-separated list of label IDs to remove (e.g. 'UNREAD').",
+            "x-label": "Remove Label IDs",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "messageId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "threadId": {
+            "type": "string",
+            "x-label": "Thread ID"
+          },
+          "labelIds": {
+            "type": "array",
+            "x-label": "Labels",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_modify_message_labels",
+        "description": "Adds or removes labels from a specific message.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "listDrafts": {
+      "metadata": {
+        "label": "List Drafts",
+        "description": "Lists all drafts in the user's mailbox."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "x-label": "Draft ID"
+            },
+            "message": {
+              "type": "object",
+              "x-label": "Message"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_list_drafts",
+        "description": "Lists all drafts in the user's mailbox.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "createDraft": {
+      "metadata": {
+        "label": "Create Draft",
+        "description": "Creates a new draft message. The draft is saved but not sent."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "string",
+            "description": "Recipient email address. Formats accepted: 'user@example.com' or 'Display Name <user@example.com>'.",
+            "x-label": "To",
+            "x-input-type": "text"
+          },
+          "from": {
+            "type": "string",
+            "description": "Optional sender alias (e.g. 'My Name <email@gmail.com>').",
+            "x-label": "From (optional)",
+            "x-input-type": "text"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Email subject.",
+            "x-label": "Subject",
+            "x-input-type": "text"
+          },
+          "body": {
+            "type": "string",
+            "description": "Email body. Accepts plain text or HTML.",
+            "x-label": "Body",
+            "x-input-type": "textarea"
+          },
+          "attachments": {
+            "type": "array",
+            "description": "Optional list of file attachments.",
+            "x-label": "Attachments",
+            "x-input-type": "files",
+            "items": {
+              "type": [
+                "string",
+                "object"
+              ]
+            }
+          }
+        },
+        "required": [
+          "to",
+          "subject",
+          "body"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Draft ID"
+          },
+          "message": {
+            "type": "object",
+            "x-label": "Message"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_create_draft",
+        "description": "Creates a new draft message. The draft is saved but not sent.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "trashMessage": {
+      "metadata": {
+        "label": "Trash Message",
+        "description": "Moves a message to the trash. The message can be restored within 30 days."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message to move to trash.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "messageId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "threadId": {
+            "type": "string",
+            "x-label": "Thread ID"
+          },
+          "labelIds": {
+            "type": "array",
+            "x-label": "Labels",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_trash_message",
+        "description": "Moves a message to the trash. The message can be restored within 30 days.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "listThreads": {
+      "metadata": {
+        "label": "List Threads",
+        "description": "Lists email threads in the user's mailbox."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Gmail search query to filter threads.",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          },
+          "maxResults": {
+            "type": "integer",
+            "description": "Maximum number of threads to return (1â€“500). Default is 100.",
+            "default": 100,
+            "minimum": 1,
+            "maximum": 500,
+            "x-input-type": "number",
+            "x-label": "Max Results"
+          }
+        }
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "x-label": "Thread ID"
+            },
+            "snippet": {
+              "type": "string",
+              "x-label": "Snippet"
+            },
+            "historyId": {
+              "type": "string",
+              "x-label": "History ID"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_list_threads",
+        "description": "Lists email threads in the user's mailbox.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "getAttachment": {
+      "metadata": {
+        "label": "Get Attachment",
+        "description": "Downloads the binary data of a specific message attachment."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "description": "The ID of the message containing the attachment.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "attachmentId": {
+            "type": "string",
+            "description": "The ID of the attachment to download.",
+            "x-label": "Attachment ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "messageId",
+          "attachmentId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "attachmentId": {
+            "type": "string",
+            "x-label": "Attachment ID"
+          },
+          "size": {
+            "type": "number",
+            "x-label": "Size (bytes)"
+          },
+          "data": {
+            "type": "string",
+            "x-label": "Data (Base64)"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_gmail_get_attachment",
+        "description": "Downloads the binary data of a specific message attachment.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    }
+  },
+  "triggers": {
+    "onNewEmail": {
+      "metadata": {
+        "label": "On New Email",
+        "description": "Triggers when a new Gmail message is detected."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Optional Gmail search query, e.g. newer_than:1d.",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onEmailMatchingFilter": {
+      "metadata": {
+        "label": "On Email Matching Filter",
+        "description": "Triggers when a Gmail message matches a search filter."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Gmail search query used to match messages.",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onAttachmentReceived": {
+      "metadata": {
+        "label": "On Attachment Received",
+        "description": "Triggers when a Gmail message with attachments is detected."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Optional Gmail search query. has:attachment is applied by convention.",
+            "x-label": "Search Query",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          }
+        },
+        "required": []
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    }
+  }
+});

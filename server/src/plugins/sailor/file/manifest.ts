@@ -1,0 +1,257 @@
+﻿import { definePluginManifest } from "@auvexis/sailor-sdk";
+
+export default definePluginManifest({
+  "metadata": {
+    "id": "sailor-file",
+    "name": "Read / Write File",
+    "description": "Read and write files in a sandboxed workspace directory. Path traversal is blocked.",
+    "icon": "file-text",
+    "categories": [
+      "Files",
+      "Core"
+    ],
+    "author": "Sailor",
+    "version": "1.0.0",
+    "utility": true,
+    "style": {
+      "icon": "file-text",
+      "iconColor": "rgb(59, 130, 246)",
+      "bgColor": "rgba(59, 130, 246, 0.12)",
+      "borderColor": "rgba(59, 130, 246, 0.4)"
+    }
+  },
+  "methods": {
+    "readFile": {
+      "metadata": {
+        "label": "Read File",
+        "description": "Read a file from the sandbox as text or base64."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "File name (relative to workflow sandbox).",
+            "x-input-type": "text"
+          },
+          "encoding": {
+            "type": "string",
+            "description": "utf8 | base64 | hex. Default: utf8",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "filename"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_read_file",
+        "description": "Read a file from the sandbox as text or base64.",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "writeFile": {
+      "metadata": {
+        "label": "Write File",
+        "description": "Write data (text or base64) to a file in the sandbox."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "File name.",
+            "x-input-type": "text"
+          },
+          "content": {
+            "type": "string",
+            "description": "Content to write (string or base64).",
+            "x-input-type": "text"
+          },
+          "encoding": {
+            "type": "string",
+            "description": "utf8 | base64 | hex. Default: utf8",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "filename",
+          "content"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_write_file",
+        "description": "Write data (text or base64) to a file in the sandbox.",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "deleteFile": {
+      "metadata": {
+        "label": "Delete File",
+        "description": "Delete a file from the workflow sandbox."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "File name.",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "filename"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_delete_file",
+        "description": "Delete a file from the workflow sandbox.",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "listFiles": {
+      "metadata": {
+        "label": "List Files",
+        "description": "List files in the workflow sandbox directory."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_list_files",
+        "description": "List files in the workflow sandbox directory.",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "convertFile": {
+      "metadata": {
+        "label": "Convert File / Data",
+        "description": "Convert data between Buffer, Base64, Hex, or UTF-8 formats. Useful for formatting files from triggers or preparing them for API requests (like Telegram)."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": [
+              "string",
+              "object"
+            ],
+            "description": "The data to convert. Can be mapped from a previous step.",
+            "x-input-type": "textarea"
+          },
+          "fromFormat": {
+            "type": "string",
+            "description": "Input format. Default: utf8",
+            "x-input-type": "select",
+            "enum": [
+              "utf8",
+              "base64",
+              "hex",
+              "buffer"
+            ]
+          },
+          "toFormat": {
+            "type": "string",
+            "description": "Output format. Default: base64",
+            "x-input-type": "select",
+            "enum": [
+              "utf8",
+              "base64",
+              "hex",
+              "buffer"
+            ]
+          }
+        },
+        "required": [
+          "input",
+          "toFormat"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_convert_file",
+        "description": "Convert data between Buffer, Base64, Hex, or UTF-8 formats. Useful for formatting files from triggers or preparing them for API requests (like Telegram).",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "setFileMetadata": {
+      "metadata": {
+        "label": "Set File Metadata",
+        "description": "Wraps a raw Buffer or Base64 string into the Sailor standard file object ({ content, filename, mimeType }) so it can be safely sent via email or APIs."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": [
+              "string",
+              "object"
+            ],
+            "description": "The raw file data (Buffer or Base64).",
+            "x-label": "File Input",
+            "x-input-type": "file",
+            "format": "binary"
+          },
+          "filename": {
+            "type": "string",
+            "description": "The filename to assign (e.g. 'report.pdf').",
+            "x-label": "Filename",
+            "x-input-type": "text"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "The MIME type (e.g. 'application/pdf'). Defaults to 'application/octet-stream'.",
+            "x-label": "MIME Type",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "file",
+          "filename"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "file_set_file_metadata",
+        "description": "Wraps a raw Buffer or Base64 string into the Sailor standard file object ({ content, filename, mimeType }) so it can be safely sent via email or APIs.",
+        "sideEffect": "filesystem",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    }
+  }
+});
