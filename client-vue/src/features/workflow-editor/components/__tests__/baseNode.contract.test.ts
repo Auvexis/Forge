@@ -53,3 +53,15 @@ test('workflow canvas keeps generic handler quick add compatible during migratio
   assert.match(source, /payload\.quickAddMode === 'vector-config'/)
   assert.match(source, /payload\.handlerId/)
 })
+
+test('BaseAdvancedNode composes BaseNode and declares automatic organization', () => {
+  const source = read('BaseAdvancedNode.vue')
+
+  assert.match(source, /import BaseNode/)
+  assert.match(source, /autoOrganize/)
+  assert.match(source, /handlers/)
+  assert.match(source, /'236px'/)
+  assert.match(source, /'100px'/)
+  assert.match(source, /<slot name="icon-left"/)
+  assert.match(source, /data-auto-organize/)
+})
