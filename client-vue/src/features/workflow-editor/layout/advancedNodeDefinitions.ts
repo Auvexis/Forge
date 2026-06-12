@@ -1,6 +1,7 @@
 import { Position } from '@vue-flow/core'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
-import type { BaseNodeHandlerDefinition, NodeSide } from '../components/nodePresentation.types'
+import type { AllowedNodes, BaseNodeHandlerDefinition, NodeSide } from '../components/nodePresentation.types'
+import { getNodeDefinition } from '../catalog/nodeDefinitionRegistry'
 
 export const AI_AGENT_HANDLERS: BaseNodeHandlerDefinition[] = [
   { id: 'chatModel', label: 'Chat Model', type: 'target', position: Position.Bottom, style: 'diamond', required: true, quickAdd: 'agent-config', allowedNodes: ['capability:chat-model'] },
@@ -28,7 +29,12 @@ const ADVANCED_NODE_HANDLERS: Partial<Record<WorkflowNodeType, BaseNodeHandlerDe
 }
 
 export function getAdvancedNodeHandlers(nodeType: WorkflowNodeType | string | undefined): BaseNodeHandlerDefinition[] {
-  return nodeType ? ADVANCED_NODE_HANDLERS[nodeType as WorkflowNodeType] ?? [] : []
+  const catalogHandlers = getNodeDefinition(nodeType)?.handles.map((handler) => ({
+    ...handler,
+    position: handler.position === 'top' ? Position.Top : handler.position === 'right' ? Position.Right : handler.position === 'bottom' ? Position.Bottom : Position.Left,
+    allowedNodes: (handler.allowedNodes ?? handler.accepts?.map(({ capability }) => `capability:${capability}`) ?? []) as AllowedNodes,
+  }))
+  return catalogHandlers?.length ? catalogHandlers : nodeType ? ADVANCED_NODE_HANDLERS[nodeType as WorkflowNodeType] ?? [] : []
 }
 
 export function sideFromPosition(position: Position): NodeSide {

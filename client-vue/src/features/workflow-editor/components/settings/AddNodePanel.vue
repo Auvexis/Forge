@@ -143,7 +143,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowNodesApi } from '@/core/api/workflowNodes.api'
@@ -173,6 +173,7 @@ import {
   allowedNodeSelectorsPermitPreset,
   pluginAllowedNodeCapabilities,
 } from './allowedNodeSelectors'
+import { replaceNodeDefinitions } from '../../catalog/nodeDefinitionRegistry'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 
 const props = defineProps<{
@@ -196,6 +197,8 @@ const {
   loading: workflowNodeCatalogLoading,
   execute: loadWorkflowNodeCatalog,
 } = useApi(workflowNodesApi.getCatalog)
+
+watch(workflowNodeCatalog, (catalog) => replaceNodeDefinitions(catalog?.nodes ?? []), { immediate: true })
 
 onMounted(() => {
   loadPlugins()

@@ -4,6 +4,7 @@ import type { NodeProps } from '@vue-flow/core'
 import type { EmbeddingsNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import { CONFIGURATION_SOURCE_HANDLER } from '../../layout/advancedNodeDefinitions'
+import { usePluginNodePresentation } from '../../composables/usePluginNodePresentation'
 
 const props = defineProps<
   NodeProps<EmbeddingsNode> & {
@@ -14,6 +15,8 @@ const props = defineProps<
 
 const stepTitle = computed(() => props.data?.name || 'Embeddings')
 const subtitle = computed(() => props.data?.model || props.data?.pluginId || 'model')
+const pluginId = computed(() => props.data?.pluginId || '')
+const { pluginIcon, customBg, customBorder, customIconColor } = usePluginNodePresentation(pluginId, 'scan-text')
 </script>
 
 <template>
@@ -28,9 +31,9 @@ const subtitle = computed(() => props.data?.model || props.data?.pluginId || 'mo
     height="100px"
     :title="stepTitle"
     :subtitle="subtitle"
-    icon="scan-text"
-    color="#db2777"
-    bg="#fdf2f8"
-    border-color="#f9a8d4"
+    :icon="pluginIcon"
+    :color="customIconColor || '#db2777'"
+    :bg="customBg || '#fdf2f8'"
+    :border-color="customBorder || '#f9a8d4'"
   />
 </template>

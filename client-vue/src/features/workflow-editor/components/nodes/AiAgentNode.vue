@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import type { NodeProps } from '@vue-flow/core'
 import type { AiAgentNode } from '@/core/types/workflow.types'
 import BaseAdvancedNode from '../BaseAdvancedNode.vue'
-import { AI_AGENT_HANDLERS } from '../../layout/advancedNodeDefinitions'
+import { getAdvancedNodeHandlers } from '../../layout/advancedNodeDefinitions'
 
 const props = defineProps<
   NodeProps<AiAgentNode> & {
@@ -14,6 +14,7 @@ const props = defineProps<
 
 const displayTitle = computed(() => props.data?.agentDisplayName || props.data?.name || 'AI Agent')
 const displayAvatar = computed(() => props.data?.agentEmoji || '🤖')
+const handlers = computed(() => getAdvancedNodeHandlers('ai-agent'))
 </script>
 
 <template>
@@ -23,7 +24,7 @@ const displayAvatar = computed(() => props.data?.agentEmoji || '🤖')
     :status="props.status"
     :title="displayTitle"
     description="Tools Agent"
-    :handlers="AI_AGENT_HANDLERS"
+    :handlers="handlers"
     auto-organize
     has-target
     has-source

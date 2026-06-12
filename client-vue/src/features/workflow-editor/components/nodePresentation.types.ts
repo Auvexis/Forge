@@ -3,7 +3,7 @@ import type { Position } from '@vue-flow/core'
 export type NodeSide = 'top' | 'left' | 'bottom' | 'right'
 export type NodeRounding = 'sm' | 'md' | 'lg' | 'full'
 export type NodeBorderStyle = 'default' | 'dashed'
-export type NodeQuickAddMode = 'agent-config' | 'vector-config'
+export type NodeQuickAddMode = 'agent-config' | 'vector-config' | 'capability'
 export type NodeHandleStyle = 'circle' | 'diamond'
 
 export type AllowedNodeSelector =
@@ -23,5 +23,8 @@ export interface BaseNodeHandlerDefinition {
   required?: boolean
   quickAdd?: NodeQuickAddMode
   quickAddAfterConnected?: boolean
+  accepts?: Array<{ capability: string; providerId?: string; methodId?: string }>
+  cardinality?: 'one' | 'many'
+  connectionPolicy?: 'replace' | 'append'
   allowedNodes: AllowedNodes
 }

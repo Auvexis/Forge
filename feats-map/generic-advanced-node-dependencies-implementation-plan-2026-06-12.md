@@ -231,7 +231,7 @@ git add server/src/core/utility-nodes server/src/core/routes/workflow-node-catal
 git commit -m "feat: define workflow node dependency contracts"
 ```
 
-### Task 2: Drive frontend handles and provider presentation from the catalog
+### Task 2: Drive frontend handles and provider presentation from the catalog [COMPLETE]
 
 **Files:**
 - Create: `client-vue/src/features/workflow-editor/catalog/nodeDefinitionRegistry.ts`
@@ -248,7 +248,7 @@ git commit -m "feat: define workflow node dependency contracts"
 - Modify: `client-vue/src/features/workflow-editor/components/nodes/__tests__/retrievalNodes.contract.test.ts`
 - Modify: `client-vue/src/features/workflow-editor/components/settings/__tests__/allowedNodeSelectors.test.ts`
 
-- [ ] **Step 1: Write failing capability matching tests**
+- [x] **Step 1: Write failing capability matching tests**
 
 Cover capability matches, explicit restrictions, provider restrictions, global picker hiding, and Quick Add replacement:
 
@@ -261,7 +261,7 @@ assert.equal(nextConnectionAction(parserHandle, 1), "replace")
 assert.equal(nextConnectionAction(toolHandle, 3), "append")
 ```
 
-- [ ] **Step 2: Run the frontend tests and verify they fail**
+- [x] **Step 2: Run the frontend tests and verify they fail**
 
 Run:
 
@@ -272,7 +272,7 @@ node --test src/features/workflow-editor/catalog/__tests__/nodeCapabilityMatcher
 
 Expected: FAIL because the registry, matcher, and provider-presentation composable do not exist.
 
-- [ ] **Step 3: Implement the indexed definition registry**
+- [x] **Step 3: Implement the indexed definition registry**
 
 Expose a small stateful registry:
 
@@ -290,7 +290,7 @@ export function getNodeDefinition(type: string) {
 
 Initialize it when `workflowNodesApi.getCatalog()` resolves in the existing Add Node catalog-loading path.
 
-- [ ] **Step 4: Implement generic candidate matching**
+- [x] **Step 4: Implement generic candidate matching**
 
 `matchesNodeDefinition(handle, candidate)` must:
 
@@ -306,7 +306,7 @@ export function shouldShowQuickAdd(handle: CatalogHandle, connectionCount: numbe
 export function nextConnectionAction(handle: CatalogHandle, connectionCount: number): "append" | "replace" | "blocked"
 ```
 
-- [ ] **Step 5: Adapt API positions to Vue Flow positions**
+- [x] **Step 5: Adapt API positions to Vue Flow positions**
 
 Keep `advancedNodeDefinitions.ts` as a temporary adapter:
 
@@ -322,17 +322,17 @@ export function getAdvancedNodeHandlers(type: string): BaseNodeHandlerDefinition
 
 Remove the hardcoded `AI_AGENT_HANDLERS` and `VECTOR_STORE_HANDLERS` arrays after tests use catalog fixtures.
 
-- [ ] **Step 6: Extract and use provider presentation**
+- [x] **Step 6: Extract and use provider presentation**
 
 Move the plugin metadata loading currently in `AiModelNode.vue` into `usePluginNodePresentation(pluginIdRef)`. Return `icon`, `customBg`, `customBorder`, and `customIconColor`. Use it from both AI Model and Embeddings nodes.
 
 The Embeddings fallback remains `scan-text`, but a valid `pluginId` must display the plugin logo and style.
 
-- [ ] **Step 7: Update Add Node and Quick Add filtering**
+- [x] **Step 7: Update Add Node and Quick Add filtering**
 
 Use catalog capabilities for contextual candidates. Keep configuration-role nodes hidden in the global Add Node list and expose them only when a compatible handle opens Quick Add. Remove the old broad `agent-config` and `vector-config` branching after the capability path covers existing handles.
 
-- [ ] **Step 8: Run tests, type check, and build**
+- [x] **Step 8: Run tests, type check, and build**
 
 Run:
 
@@ -345,7 +345,7 @@ npm run build-only
 
 Expected: all commands PASS.
 
-- [ ] **Step 9: Commit Task 2**
+- [x] **Step 9: Commit Task 2**
 
 ```powershell
 git add client-vue/src/features/workflow-editor client-vue/src/core/types/workflow-node-catalog.types.ts

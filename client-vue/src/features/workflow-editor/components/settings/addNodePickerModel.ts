@@ -23,6 +23,7 @@ export interface AddNodePickerPreset {
   nodeType: WorkflowNodeType
   defaults?: Record<string, unknown>
   style?: WorkflowNodeStyle
+  role?: 'flow' | 'configuration'
 }
 
 export interface AddNodePickerCategoryItem {
@@ -154,11 +155,12 @@ export function catalogItemsToPickerPresets(items: readonly WorkflowNodeCatalogI
     icon: item.style.icon,
     categories: [item.category as PluginCategory],
     style: item.style,
+    role: item.role,
   }))
 }
 
 export function filterDefaultPickerPresets(presets: readonly AddNodePickerPreset[]): AddNodePickerPreset[] {
-  return presets.filter((preset) => !CONTEXTUAL_ONLY_NODE_TYPES.has(preset.nodeType))
+  return presets.filter((preset) => preset.role !== 'configuration' && !CONTEXTUAL_ONLY_NODE_TYPES.has(preset.nodeType))
 }
 
 const CATEGORY_META: Record<PluginCategory, { description: string; icon: string }> = {

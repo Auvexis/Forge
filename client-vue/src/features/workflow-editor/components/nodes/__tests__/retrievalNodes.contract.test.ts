@@ -82,8 +82,17 @@ test('retrieval node components render typed BaseNode shells', () => {
     assert.match(source, new RegExp(`NodeProps<${typeName}>`))
     assert.match(source, /BaseNode/)
     if (componentName === 'RetrieverNode') assert.match(source, /BaseHandle/)
-    assert.match(source, new RegExp(`icon="${icon}"`))
+    if (componentName === 'EmbeddingsNode') assert.match(source, /usePluginNodePresentation\(pluginId, 'scan-text'\)/)
+    else assert.match(source, new RegExp(`icon="${icon}"`))
   }
+})
+
+test('embedding models reuse plugin presentation instead of hardcoded catalog colors', () => {
+  const source = read('src/features/workflow-editor/components/nodes/EmbeddingsNode.vue')
+  assert.match(source, /usePluginNodePresentation/)
+  assert.match(source, /:icon="pluginIcon"/)
+  assert.match(source, /customBg/)
+  assert.doesNotMatch(source, /icon="scan-text"/)
 })
 
 test('retrieval node components use their catalog colors instead of generic node tokens', () => {
@@ -108,15 +117,15 @@ test('vector store exposes embedding and document configuration handles', () => 
   const quickAdd = read('src/features/workflow-editor/components/QuickAddButton.vue')
 
   assert.match(source, /BaseAdvancedNode/)
-  assert.match(source, /VECTOR_STORE_HANDLERS/)
+  assert.match(source, /getAdvancedNodeHandlers/)
+  assert.match(source, /getAdvancedNodeHandlers\('vector-store'\)/)
   assert.match(source, /auto-organize/)
   assert.match(definitions, /capability:embedding-provider/)
   assert.match(definitions, /node:embeddings/)
   assert.match(definitions, /node:text-dataset/)
   assert.match(definitions, /node:file-dataset/)
   assert.match(definitions, /node:database-dataset/)
-  assert.match(source, /resolvePluginIcon/)
-  assert.match(source, /ENDPOINTS\.PLUGIN_BY_ID/)
+  assert.match(source, /usePluginNodePresentation/)
   assert.match(source, /customBg/)
   assert.match(source, /customBorder/)
   assert.match(source, /customIconColor/)
