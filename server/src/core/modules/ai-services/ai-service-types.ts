@@ -1,4 +1,4 @@
-import type { AiMemoryNodeConfig, AiModelNodeConfig, AiToolNodeConfig } from "../agent-runtime/agent-types.ts";
+import type { AgentToolConfig, AiMemoryNodeConfig, AiModelNodeConfig } from "../agent-runtime/agent-types.ts";
 import type { VectorDistanceMetric } from "../../../shared/models/workflow-types.ts";
 
 export interface ChatModelRef {
@@ -25,5 +25,5 @@ export interface RetrievalResult { query: string; documents: RetrievedDocument[]
 export interface RetrieverRef { retrieve(query: string): Promise<RetrievalResult> }
 export interface OutputParserRef { parse(value: string): Promise<unknown> }
 export type MemoryRef = AiMemoryNodeConfig;
-export type AgentToolRef = AiToolNodeConfig;
+export type AgentToolRef = AgentToolConfig;
 export interface DocumentSourceRef { load(): Promise<any> }

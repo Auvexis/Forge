@@ -67,6 +67,19 @@ export interface AiToolNodeConfig {
   inputDefaults?: Record<string, any>;
 }
 
+export interface CallableAgentToolConfig {
+  name: string;
+  description: string;
+  instructions?: string;
+  inputSchema: Record<string, any>;
+  sideEffect: AgentToolSideEffect;
+  requiresApproval: boolean;
+  timeoutMs: number;
+  invoke(args: unknown): Promise<unknown>;
+}
+
+export type AgentToolConfig = AiToolNodeConfig | CallableAgentToolConfig;
+
 export interface ChatTriggerConfig {
   type: "chat";
   chatSlug: string;
@@ -128,7 +141,7 @@ export interface AgentRunInput {
   agent: AiAgentNodeConfig;
   model: AiModelNodeConfig;
   memory?: AiMemoryNodeConfig;
-  tools: AiToolNodeConfig[];
+  tools: AgentToolConfig[];
 }
 
 export interface AgentRunResult {

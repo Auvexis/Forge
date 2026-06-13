@@ -18,6 +18,36 @@ afterEach(() => {
 });
 
 describe("agent runner", () => {
+  it("passes callable tools to the graph without plugin resolution", async () => {
+    let receivedTools: Array<{ name: string; invoke(args: unknown): Promise<unknown> }> = [];
+    const runner = new AgentRunner({
+      modelRegistry: { async createChatModel() { return fakeModel("ok"); } },
+      toolRegistry: {
+        listAvailableTools: () => [],
+        resolveConfiguredTools: () => { throw new Error("plugin resolution should not run"); },
+      },
+      graphBuilder: (input) => {
+        receivedTools = input.tools as typeof receivedTools;
+        return { async invoke() { return { status: "success", output: "ok", toolCallCount: 0, iterationCount: 1 }; } };
+      },
+    });
+    const callable = {
+      name: "search_refund_policy",
+      description: "Search refund policies.",
+      sideEffect: "read" as const,
+      requiresApproval: false,
+      timeoutMs: 30000,
+      inputSchema: { type: "object", required: ["query"] },
+      invoke: async (args: unknown) => ({ args }),
+    };
+
+    await runner.run({ ...runInput(), tools: [callable] });
+
+    assert.equal(receivedTools.length, 1);
+    assert.equal(receivedTools[0]?.name, "search_refund_policy");
+    assert.deepEqual(await receivedTools[0]?.invoke({ query: "refund" }), { args: { query: "refund" } });
+  });
+
   it("validates run input before execution", async () => {
     let modelResolved = false;
     const runner = new AgentRunner({

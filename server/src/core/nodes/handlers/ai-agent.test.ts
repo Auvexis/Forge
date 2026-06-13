@@ -96,7 +96,7 @@ describe("AI workflow node handlers", () => {
     assert.equal("agentDescription" in runCall.agent, false);
     assert.equal(runCall.memory?.scope, "profile");
     assert.equal(runCall.tools.length, 1);
-    assert.equal(runCall.tools[0].methodId, "lookup");
+    assert.equal("methodId" in runCall.tools[0] ? runCall.tools[0].methodId : undefined, "lookup");
   });
 
   it("prefers plugin model identity over legacy provider on mixed AI model nodes", async () => {
@@ -563,8 +563,8 @@ describe("AI workflow node handlers", () => {
     assert.ok(received);
     const runCall = received as AgentRunInput;
     assert.equal(runCall.agent.prompt, "Help Andre using Programming from Night Class");
-    assert.equal(runCall.tools[0].descriptionOverride, "Send the answer for Andre");
-    assert.deepEqual(runCall.tools[0].inputDefaults, {
+    assert.equal("descriptionOverride" in runCall.tools[0] ? runCall.tools[0].descriptionOverride : undefined, "Send the answer for Andre");
+    assert.deepEqual("inputDefaults" in runCall.tools[0] ? runCall.tools[0].inputDefaults : undefined, {
       channelId: "channel-1",
       summary: "if-else",
     });
@@ -645,6 +645,36 @@ describe("AI workflow node handlers", () => {
         .execute(handlerInput("agent", workflow.nodes.agent, workflow, contextFixture())),
       /handle "chatModel" requires capability "chat-model"/i,
     );
+  });
+
+  it("passes callable AgentToolRef dependencies to the Agent runtime unchanged", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture();
+    const callableTool = {
+      name: "search_refund_policy",
+      description: "Search refund policies.",
+      sideEffect: "read" as const,
+      requiresApproval: false,
+      timeoutMs: 30000,
+      inputSchema: { type: "object", required: ["query"] },
+      invoke: async () => ({ answer: "ok" }),
+    };
+    let received: AgentRunInput | null = null;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      return { status: "success", output: "ok", toolCallCount: 0, iterationCount: 1 };
+    };
+    const input = handlerInput("agent", workflow.nodes.agent, workflow, contextFixture());
+    input.services.resolveConfigDependencies = async () => ({
+      getOne: <T>() => ({ providerId: "openai", configuration: workflow.nodes.model }) as T,
+      getOptional: () => undefined,
+      getMany: <T>() => [callableTool as T],
+    });
+
+    await registry.get("ai-agent").execute(input);
+
+    assert.ok(received);
+    assert.equal((received as AgentRunInput).tools[0], callableTool);
   });
 });
 

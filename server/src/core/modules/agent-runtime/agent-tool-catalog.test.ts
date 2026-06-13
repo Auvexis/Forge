@@ -38,4 +38,16 @@ describe("agent tool catalog", () => {
     ]);
     assert.doesNotMatch(JSON.stringify(catalog), /inputSchema|secretDefault|credential-like-value|methodId/);
   });
+
+  it("accepts callable tools without plugin identity", () => {
+    const catalog = buildAgentToolCatalog([{
+      name: "search_refund_policy",
+      description: "Search refund policies.",
+      sideEffect: "read",
+      inputSchema: { type: "object", required: ["query"] },
+      invoke: async () => ({ answer: "ok" }),
+    }]);
+
+    assert.deepEqual(catalog, [{ name: "search_refund_policy", description: "Search refund policies.", sideEffect: "read" }]);
+  });
 });

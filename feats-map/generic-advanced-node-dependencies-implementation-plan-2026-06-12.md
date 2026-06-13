@@ -893,7 +893,7 @@ Execute one Basic LLM Chain workflow and one nested Q&A workflow using mocked pr
 
 ## Round 5: Vector Store Tool And End-To-End Verification
 
-### Task 9: Implement Vector Store Tool as a reusable Agent Tool capability
+### Task 9: Implement Vector Store Tool as a reusable Agent Tool capability [COMPLETE]
 
 **Files:**
 - Create: `server/src/core/nodes/handlers/vector-store-tool.ts`
@@ -904,11 +904,11 @@ Execute one Basic LLM Chain workflow and one nested Q&A workflow using mocked pr
 - Modify: `server/src/core/modules/agent-runtime/agent-tool-catalog.test.ts`
 - Modify: `server/src/core/utility-nodes/sailor-core/index.ts`
 
-- [ ] **Step 1: Write failing tool capability tests**
+- [x] **Step 1: Write failing tool capability tests**
 
 Assert `vector-store-tool` resolves one Vector Store and one Chat Model and produces an `AgentToolRef` with the configured name/description.
 
-- [ ] **Step 2: Write failing invocation tests**
+- [x] **Step 2: Write failing invocation tests**
 
 Invoke the tool with `{ query: "refund policy" }`. Assert retrieval runs first, the connected Chat Model receives grounded context, and the result is:
 
@@ -920,7 +920,7 @@ Invoke the tool with `{ query: "refund policy" }`. Assert retrieval runs first, 
 }
 ```
 
-- [ ] **Step 3: Run tests and verify they fail**
+- [x] **Step 3: Run tests and verify they fail**
 
 ```powershell
 cd server
@@ -929,19 +929,19 @@ node --test src/core/nodes/handlers/vector-store-tool.test.ts src/core/modules/a
 
 Expected: FAIL because the tool adapter does not exist.
 
-- [ ] **Step 4: Implement Vector Store Tool adapter**
+- [x] **Step 4: Implement Vector Store Tool adapter**
 
 Resolve dependencies recursively. `invoke` must validate a non-empty query, call the vector store retrieval service using node limits, invoke the connected model with grounded instructions, and return answer/sources/metadata. Keep it read-only and provider-neutral.
 
-- [ ] **Step 5: Generalize Agent tool catalog input**
+- [x] **Step 5: Generalize Agent tool catalog input**
 
 Allow the Agent runtime to receive `AgentToolRef[]` from resolved dependencies alongside existing plugin tools. Adapt them into the existing runtime tool interface without checking for `vector-store-tool` by type.
 
-- [ ] **Step 6: Register handler and capability adapter**
+- [x] **Step 6: Register handler and capability adapter**
 
 The node's handler may return its static configuration for inspection, while the `agent-tool` capability adapter creates the callable reference consumed by AI Agent.
 
-- [ ] **Step 7: Run focused Agent integration tests**
+- [x] **Step 7: Run focused Agent integration tests**
 
 ```powershell
 cd server
@@ -951,7 +951,7 @@ npm run build
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit Task 9**
+- [x] **Step 8: Commit Task 9**
 
 ```powershell
 git add server/src/core/nodes/handlers/vector-store-tool.ts server/src/core/nodes/handlers/vector-store-tool.test.ts server/src/core/nodes/dependencies/core-capability-adapters.ts server/src/core/nodes/handlers/ai-agent.test.ts server/src/core/modules/agent-runtime/agent-tool-catalog.ts server/src/core/modules/agent-runtime/agent-tool-catalog.test.ts server/src/core/utility-nodes/sailor-core/index.ts

@@ -108,9 +108,7 @@ describe("Utility node pack contract", () => {
   it("keeps executable handlers aligned while planned advanced shells remain explicit", () => {
     const manifestTypes = Object.keys(sailorCoreUtilityNodePack.nodes).sort();
     const handlerTypes = sailorCoreUtilityNodes.map((node) => node.handler.type).sort();
-    const pendingHandlerTypes = [
-      "vector-store-tool",
-    ];
+    const pendingHandlerTypes: string[] = [];
 
     assert.deepEqual(handlerTypes, manifestTypes.filter((type) => !pendingHandlerTypes.includes(type)));
 

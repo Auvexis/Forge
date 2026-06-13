@@ -1,7 +1,8 @@
-import type { AiMemoryNode, AiModelNode, AiToolNode, EmbeddingsNode, StructuredJsonParserNode, VectorStoreNode, VectorStoreRetrieverNode } from "../../../shared/models/workflow-types.ts";
+import type { AiMemoryNode, AiModelNode, AiToolNode, EmbeddingsNode, StructuredJsonParserNode, VectorStoreNode, VectorStoreRetrieverNode, VectorStoreToolNode } from "../../../shared/models/workflow-types.ts";
 import { validateAiModelConfig } from "../../modules/agent-runtime/agent-validation.ts";
 import type { AiMemoryNodeConfig, AiToolNodeConfig } from "../../modules/agent-runtime/agent-types.ts";
-import type { ChatModelRef, DocumentSourceRef, EmbeddingModelRef, OutputParserRef, RetrieverRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
+import type { AgentToolRef, ChatModelRef, DocumentSourceRef, EmbeddingModelRef, OutputParserRef, RetrieverRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
+import { ChatModelExecutionService } from "../../modules/ai-services/chat-model-execution-service.ts";
 import { OutputParserExecutionService } from "../../modules/ai-services/output-parser-execution-service.ts";
 import { RetrieverExecutionService } from "../../modules/ai-services/retriever-execution-service.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
@@ -17,6 +18,36 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
   registry.register({ capability: "agent-tool", supports: (node) => node.type === "ai-tool", resolve: async (context, nodeId) => {
     const node = context.execution.workflow.nodes[nodeId] as AiToolNode;
     return { type: "ai-tool", name: node.name, pluginId: node.pluginId, methodId: node.methodId, descriptionOverride: node.descriptionOverride ? String(TemplateEngine.evaluate(node.descriptionOverride, context.execution.context, { escape: "prompt" })) : undefined, timeoutMs: node.timeoutMs, requiresApproval: node.requiresApproval, sideEffect: node.sideEffect, inputDefaults: node.inputDefaults ? TemplateEngine.evaluate(node.inputDefaults, context.execution.context) as Record<string, any> : undefined } satisfies AiToolNodeConfig;
+  } });
+  registry.register({ capability: "agent-tool", supports: (node) => node.type === "vector-store-tool", resolve: async (context, nodeId) => {
+    const node = context.execution.workflow.nodes[nodeId] as VectorStoreToolNode;
+    const dependencies = await context.resolveDependencies(nodeId);
+    const vectorStore = dependencies.getOne<VectorStoreRef>("vectorStore");
+    const model = dependencies.getOne<ChatModelRef>("model");
+    const executePluginMethod = context.execution.services.executePluginMethod;
+    if (!executePluginMethod) throw new Error("Vector Store Tool requires plugin execution services.");
+    const retriever = new RetrieverExecutionService(executePluginMethod);
+    return {
+      name: node.toolName,
+      description: node.description,
+      ...(node.instructions ? { instructions: node.instructions } : {}),
+      inputSchema: { type: "object", required: ["query"], properties: { query: { type: "string", minLength: 1 } } },
+      sideEffect: "read",
+      requiresApproval: false,
+      timeoutMs: 30000,
+      invoke: async (args: unknown) => {
+        const query = typeof args === "object" && args !== null && typeof (args as { query?: unknown }).query === "string"
+          ? (args as { query: string }).query.trim()
+          : "";
+        if (!query) throw new Error("Vector Store Tool requires a non-empty query.");
+        const result = await retriever.retrieve(vectorStore, { query, topK: node.topK, scoreThreshold: node.scoreThreshold });
+        const response = await new ChatModelExecutionService().invoke(model, { messages: [
+          { role: "system", content: ["Answer only from the supplied context.", node.instructions, `Context:\n${result.context}`].filter(Boolean).join("\n\n") },
+          { role: "user", content: query },
+        ] });
+        return { answer: extractModelText(response), sources: result.documents, metadata: { query, documentCount: result.documents.length } };
+      },
+    } satisfies AgentToolRef;
   } });
   registry.register({ capability: "embedding-model", supports: (node) => node.type === "embeddings", resolve: async (context, nodeId) => {
     const node = context.execution.workflow.nodes[nodeId] as EmbeddingsNode;
@@ -53,6 +84,12 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
     load: async () => context.execution.context.steps[nodeId]?.output ?? context.execution.services.executeNode({ nodeId, node: context.execution.workflow.nodes[nodeId], context: context.execution.context, workflow: context.execution.workflow, edges: context.execution.edges, executionId: context.execution.executionId }),
   } satisfies DocumentSourceRef) });
   return registry;
+}
+
+function extractModelText(result: unknown): string {
+  if (typeof result === "string") return result;
+  if (result && typeof result === "object" && typeof (result as { content?: unknown }).content === "string") return (result as { content: string }).content;
+  throw new Error("Vector Store Tool model returned no text content");
 }
 
 function toChatModelRef(node: AiModelNode): ChatModelRef {

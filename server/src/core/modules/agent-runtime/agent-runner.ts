@@ -19,6 +19,7 @@ import { sailorHomePaths } from "../../runtime/sailor-home.ts";
 import type {
   AgentRunInput,
   AgentRunResult,
+  AgentToolConfig,
   AiMemoryNodeConfig,
   AiToolNodeConfig,
 } from "./agent-types.ts";
@@ -122,9 +123,13 @@ export class AgentRunner {
     }, input);
 
     try {
-      const toolDefinitions = this.toolRegistry.resolveConfiguredTools(validated.tools);
+      const pluginTools = validated.tools.filter(isPluginToolConfig);
+      const toolDefinitions = pluginTools.length > 0
+        ? this.toolRegistry.resolveConfiguredTools(pluginTools)
+        : [];
+      const tools = this.createGraphTools(input, validated.tools, toolDefinitions);
       if (!this.graphBuilder && isToolCatalogQuestion(input.userMessage)) {
-        const output = formatConfiguredToolsAnswer(toolDefinitions);
+        const output = formatConfiguredToolsAnswer(tools);
         const result: AgentRunResult = {
           status: "success",
           output,
@@ -157,7 +162,6 @@ export class AgentRunner {
           })
         : undefined;
 
-      const tools = this.createGraphTools(input, validated.tools, toolDefinitions);
       const result = this.graphBuilder
         ? await this.runLegacyGraph({
             input,
@@ -254,28 +258,44 @@ export class AgentRunner {
 
   private createGraphTools(
     input: AgentRunInput,
-    configs: AiToolNodeConfig[],
+    configs: AgentToolConfig[],
     definitions: SailorAgentToolDefinition[],
   ): GraphTool[] {
-    return definitions.map((definition, index) => ({
+    let pluginIndex = 0;
+    return configs.map((config) => {
+      if (!isPluginToolConfig(config)) {
+        return {
+          name: config.name,
+          description: config.description,
+          ...(config.instructions ? { instructions: config.instructions } : {}),
+          sideEffect: config.sideEffect,
+          requiresApproval: config.requiresApproval,
+          inputSchema: config.inputSchema,
+          timeoutMs: config.timeoutMs,
+          invoke: config.invoke,
+        };
+      }
+      const definition = definitions[pluginIndex++];
+      if (!definition) throw new Error(`Agent tool definition was not resolved for ${config.name}`);
+      return {
       name: definition.name,
       description: describeConfiguredDefaults(
         definition.description,
-        configs[index]?.inputDefaults,
+        config.inputDefaults,
       ),
       ...(definition.instructions ? { instructions: definition.instructions } : {}),
       pluginId: definition.pluginId,
       pluginName: definition.pluginName ?? definition.pluginId,
       methodId: definition.methodId,
-      sideEffect: configs[index]?.sideEffect ?? definition.sideEffect,
-      requiresApproval: configs[index]?.requiresApproval ?? definition.requiresApproval,
-      inputSchema: schemaWithoutConfiguredDefaults(definition.inputSchema, configs[index]?.inputDefaults),
-      timeoutMs: configs[index]?.timeoutMs ?? definition.timeoutMs,
+      sideEffect: config.sideEffect ?? definition.sideEffect,
+      requiresApproval: config.requiresApproval ?? definition.requiresApproval,
+      inputSchema: schemaWithoutConfiguredDefaults(definition.inputSchema, config.inputDefaults),
+      timeoutMs: config.timeoutMs ?? definition.timeoutMs,
       selection: definition.selection,
       invoke: async (args: unknown) =>
         this.toolExecutor({
           definition,
-          configuredTool: configs[index],
+          configuredTool: config,
           args: normalizeToolArgs(args),
           approvalToken: input.approvalToken,
           approvalToolName: input.approvalToolName,
@@ -283,7 +303,8 @@ export class AgentRunner {
           workflowId: input.workflowId,
           nodeId: input.nodeId,
         }),
-    }));
+      };
+    });
   }
 
   private async runLegacyGraph(input: {
@@ -419,8 +440,20 @@ function validateRunInput(input: AgentRunInput): AgentRunInput {
     agent: validateAiAgentConfig(input.agent),
     model: validateAiModelConfig(input.model),
     memory: input.memory ? validateAiMemoryConfig(input.memory) : undefined,
-    tools: input.tools.map(validateAiToolConfig),
+    tools: input.tools.map(validateAgentToolConfig),
   };
+}
+
+function validateAgentToolConfig(tool: AgentToolConfig): AgentToolConfig {
+  if (isPluginToolConfig(tool)) return validateAiToolConfig(tool);
+  if (!tool.name?.trim() || !tool.description?.trim() || typeof tool.invoke !== "function") {
+    throw new AgentRuntimeError("Invalid callable agent tool", "AGENT_CONFIG_INVALID", "Invalid callable agent tool", 400);
+  }
+  return tool;
+}
+
+function isPluginToolConfig(tool: AgentToolConfig): tool is AiToolNodeConfig {
+  return "type" in tool && tool.type === "ai-tool";
 }
 
 function assertNonEmpty(field: string, value: string): void {
@@ -541,7 +574,7 @@ function isToolCatalogQuestion(message: string): boolean {
   return asksAboutTools && asksAccess;
 }
 
-function formatConfiguredToolsAnswer(tools: SailorAgentToolDefinition[]): string {
+function formatConfiguredToolsAnswer(tools: Array<Pick<GraphTool, "name" | "description" | "pluginName">>): string {
   if (!tools.length) return "Nao tenho ferramentas configuradas para este agente no momento.";
 
   const lines = tools.map((tool) => {
