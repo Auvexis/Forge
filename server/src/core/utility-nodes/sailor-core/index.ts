@@ -27,6 +27,8 @@ import { triggerNodeHandler } from "../../nodes/handlers/trigger.ts";
 import { waitFormNodeHandler } from "../../nodes/handlers/wait-form.ts";
 import { basicLlmChainNodeHandler } from "../../nodes/handlers/basic-llm-chain.ts";
 import { structuredJsonParserNodeHandler } from "../../nodes/handlers/output-parser.ts";
+import { questionAnswerChainNodeHandler } from "../../nodes/handlers/question-answer-chain.ts";
+import { vectorStoreRetrieverNodeHandler } from "../../nodes/handlers/vector-store-retriever.ts";
 import type { UtilityNodeManifestEntry } from "../utility-node-pack.types.ts";
 import { sailorCoreUtilityNodePack } from "./manifest.ts";
 
@@ -62,6 +64,8 @@ const handlers: NodeHandler[] = [
   retrieverNodeHandler,
   basicLlmChainNodeHandler,
   structuredJsonParserNodeHandler,
+  vectorStoreRetrieverNodeHandler,
+  questionAnswerChainNodeHandler,
 ];
 
 export const sailorCoreUtilityNodes: SailorCoreUtilityNode[] = handlers.map((handler) => {

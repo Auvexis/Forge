@@ -810,7 +810,7 @@ git add server/src/core/nodes/handlers/output-parser.ts server/src/core/nodes/ha
 git commit -m "feat: add structured parser and basic LLM chain"
 ```
 
-### Task 8: Implement Vector Store Retriever and Question and Answer Chain
+### Task 8: Implement Vector Store Retriever and Question and Answer Chain [COMPLETE]
 
 **Files:**
 - Create: `server/src/core/nodes/handlers/vector-store-retriever.ts`
@@ -821,11 +821,11 @@ git commit -m "feat: add structured parser and basic LLM chain"
 - Modify: `server/src/core/nodes/dependencies/core-capability-adapters.ts`
 - Modify: `server/src/core/utility-nodes/sailor-core/index.ts`
 
-- [ ] **Step 1: Write failing retriever tests**
+- [x] **Step 1: Write failing retriever tests**
 
 Assert `VectorStoreRetrieverNode` resolves one Vector Store, delegates query embedding/search, applies score threshold, limits context size, and returns normalized `RetrievalResult`.
 
-- [ ] **Step 2: Write failing Q&A tests**
+- [x] **Step 2: Write failing Q&A tests**
 
 Assert the chain:
 
@@ -839,7 +839,7 @@ assert.deepEqual(result.sources, retrieval.documents)
 assert.equal(result.metadata.retrieval.documentCount, 2)
 ```
 
-- [ ] **Step 3: Run tests and verify they fail**
+- [x] **Step 3: Run tests and verify they fail**
 
 ```powershell
 cd server
@@ -848,7 +848,7 @@ node --test src/core/nodes/handlers/vector-store-retriever.test.ts src/core/node
 
 Expected: FAIL because handlers and retriever service do not exist.
 
-- [ ] **Step 4: Implement retriever service and adapter**
+- [x] **Step 4: Implement retriever service and adapter**
 
 The `retriever` capability adapter resolves `vector-store-retriever`, recursively obtains its `vectorStore`, and returns:
 
@@ -864,11 +864,11 @@ The `retriever` capability adapter resolves `vector-store-retriever`, recursivel
 }
 ```
 
-- [ ] **Step 5: Implement Question and Answer Chain**
+- [x] **Step 5: Implement Question and Answer Chain**
 
 Use resolved `model` and `retriever`; do not inspect edges. The system prompt must instruct the model to answer only from supplied context and acknowledge missing evidence. Preserve all normalized source documents in the result.
 
-- [ ] **Step 6: Register handlers and run checks**
+- [x] **Step 6: Register handlers and run checks**
 
 ```powershell
 cd server
@@ -878,7 +878,7 @@ npm run build
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit Task 8**
+- [x] **Step 7: Commit Task 8**
 
 ```powershell
 git add server/src/core/nodes/handlers/vector-store-retriever.ts server/src/core/nodes/handlers/vector-store-retriever.test.ts server/src/core/nodes/handlers/question-answer-chain.ts server/src/core/nodes/handlers/question-answer-chain.test.ts server/src/core/modules/ai-services/retriever-execution-service.ts server/src/core/nodes/dependencies/core-capability-adapters.ts server/src/core/utility-nodes/sailor-core/index.ts

@@ -1,8 +1,9 @@
-import type { AiMemoryNode, AiModelNode, AiToolNode, EmbeddingsNode, StructuredJsonParserNode, VectorStoreNode } from "../../../shared/models/workflow-types.ts";
+import type { AiMemoryNode, AiModelNode, AiToolNode, EmbeddingsNode, StructuredJsonParserNode, VectorStoreNode, VectorStoreRetrieverNode } from "../../../shared/models/workflow-types.ts";
 import { validateAiModelConfig } from "../../modules/agent-runtime/agent-validation.ts";
 import type { AiMemoryNodeConfig, AiToolNodeConfig } from "../../modules/agent-runtime/agent-types.ts";
-import type { ChatModelRef, DocumentSourceRef, EmbeddingModelRef, OutputParserRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
+import type { ChatModelRef, DocumentSourceRef, EmbeddingModelRef, OutputParserRef, RetrieverRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
 import { OutputParserExecutionService } from "../../modules/ai-services/output-parser-execution-service.ts";
+import { RetrieverExecutionService } from "../../modules/ai-services/retriever-execution-service.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
 import { CapabilityAdapterRegistry } from "./capability-adapter-registry.ts";
 
@@ -25,6 +26,23 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
     const node = context.execution.workflow.nodes[nodeId] as StructuredJsonParserNode;
     const service = new OutputParserExecutionService(node.schema, node.strict);
     return { parse: (value: string) => service.parse(value) } satisfies OutputParserRef;
+  } });
+  registry.register({ capability: "retriever", supports: (node) => node.type === "vector-store-retriever", resolve: async (context, nodeId) => {
+    const node = context.execution.workflow.nodes[nodeId] as VectorStoreRetrieverNode;
+    const dependencies = await context.resolveDependencies(nodeId);
+    const vectorStore = dependencies.getOne<VectorStoreRef>("vectorStore");
+    const executePluginMethod = context.execution.services.executePluginMethod;
+    if (!executePluginMethod) throw new Error("Vector Store Retriever requires plugin execution services.");
+    const service = new RetrieverExecutionService(executePluginMethod);
+    return {
+      retrieve: (query: string) => service.retrieve(vectorStore, {
+        query,
+        topK: node.topK,
+        scoreThreshold: node.scoreThreshold,
+        filter: node.filter,
+        maxContextChars: node.maxContextChars,
+      }),
+    } satisfies RetrieverRef;
   } });
   registry.register({ capability: "vector-store", supports: (node) => node.type === "vector-store", resolve: async (context, nodeId) => {
     const node = context.execution.workflow.nodes[nodeId] as VectorStoreNode;
