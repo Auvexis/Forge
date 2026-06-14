@@ -83,7 +83,7 @@ function createNodeServices(
   context: WorkflowExecutionContext,
 ): NodeHandlerServices {
   const dependencyResolver = new ConfigDependencyResolver(createCoreCapabilityAdapterRegistry());
-  return {
+  const services: NodeHandlerServices = {
     resolveConfigDependencies: (nodeId) => dependencyResolver.resolveForNode({
       nodeId,
       node: workflow.nodes[nodeId],
@@ -91,7 +91,7 @@ function createNodeServices(
       workflow,
       edges: workflow.edges,
       executionId,
-      services: {} as NodeHandlerServices,
+      services,
     }, nodeId),
     executePluginMethod: PluginExecutor.execute,
     executeNode: dispatchNode,
@@ -106,6 +106,7 @@ function createNodeServices(
       emitNodeFailure(workflow.metadata.id, executionId, nodeId, error),
     emitWorkflowEvent: (event) => workflowEventBus.emitWorkflowEvent(event),
   };
+  return services;
 }
 
 export const WorkflowEngine = {

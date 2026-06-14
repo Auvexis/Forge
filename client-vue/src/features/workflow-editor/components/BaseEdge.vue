@@ -92,17 +92,27 @@ import { BaseEdge, EdgeLabelRenderer, useVueFlow } from '@vue-flow/core'
 import type { EdgeProps } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useExecutionStore } from '../stores/execution.store'
+import { useWorkflowStore } from '../stores/workflow.store'
 import { routedBezierPath } from '../composables/useEdgeRouting'
 import { useEventBus } from '@/shared/composables/useEventBus'
+import { getNodeDefinition } from '../catalog/nodeDefinitionRegistry'
 
 const props = defineProps<EdgeProps>()
 
 const { removeEdges, getNodes, getSelectedNodes, viewport } = useVueFlow()
 const executionStore = useExecutionStore()
-const CONFIGURATION_TARGET_HANDLES = new Set(['chatModel', 'memory', 'tool', 'embedding', 'document'])
-const isConfigurationEdge = computed(() =>
-  CONFIGURATION_TARGET_HANDLES.has(String(props.targetHandleId ?? props.data?.targetHandle ?? '')),
-)
+const workflowStore = useWorkflowStore()
+const isConfigurationEdge = computed(() => {
+  const workflowEdge = workflowStore.activeWorkflow?.edges.find((edge) => edge.id === props.id)
+  const workflowTargetNode = workflowStore.activeWorkflow?.nodes[props.target]
+  const targetNode = getNodes.value.find((node) => node.id === props.target)
+  const targetType = String(workflowTargetNode?.type ?? targetNode?.data?.type ?? targetNode?.type ?? '')
+  const targetHandle = String(workflowEdge?.targetHandle ?? props.targetHandleId ?? props.data?.targetHandle ?? '')
+  const handle = getNodeDefinition(targetType)?.handles.find((candidate) =>
+    candidate.type === 'target' && candidate.id === targetHandle,
+  )
+  return Boolean(handle?.accepts?.length)
+})
 
 const isMultiSelection = computed(() => getSelectedNodes.value.length >= 2)
 const toolbarScale = computed(() => {

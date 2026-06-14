@@ -49,20 +49,23 @@
                 />
               </div>
 
-              <AddNodePickerItem
-                v-for="item in categoryItems"
-                :key="item.category"
-                :label="item.label"
-                :description="item.description"
-                :icon="item.icon"
-                :count="item.count"
-                :active="activeCategory === item.category"
-                chevron
-                @mouseenter="hoverCategory(item.category)"
-                @focus="hoverCategory(item.category)"
-              />
-              <div v-if="categoryItems.length === 0" class="add-node-cascade__empty">
-                No categories found.
+              <div class="add-node-cascade__quick-section">
+                <div class="add-node-cascade__section-label">Apps</div>
+                <AddNodePickerItem
+                  v-for="item in categoryItems"
+                  :key="item.category"
+                  :label="item.label"
+                  :description="item.description"
+                  :icon="item.icon"
+                  :count="item.count"
+                  :active="activeCategory === item.category"
+                  chevron
+                  @mouseenter="hoverCategory(item.category)"
+                  @focus="hoverCategory(item.category)"
+                />
+                <div v-if="categoryItems.length === 0" class="add-node-cascade__empty">
+                  No categories found.
+                </div>
               </div>
             </template>
           </div>
@@ -93,7 +96,10 @@
             </div>
 
             <Transition name="add-node-methods">
-              <div v-if="methodSubmenuPlugin || vectorStoreProviderPickerOpen" class="add-node-cascade__methods">
+              <div
+                v-if="methodSubmenuPlugin || vectorStoreProviderPickerOpen"
+                class="add-node-cascade__methods"
+              >
                 <header class="add-node-cascade__header">
                   <BaseButton
                     icon-left="chevron-left"
@@ -101,7 +107,9 @@
                     size="icon"
                     @click="closeMethodSubmenu"
                   />
-                  <span>{{ vectorStoreProviderPickerOpen ? 'Vector Store' : methodSubmenuTitle }}</span>
+                  <span>{{
+                    vectorStoreProviderPickerOpen ? 'Vector Store' : methodSubmenuTitle
+                  }}</span>
                 </header>
                 <div class="add-node-cascade__scroller">
                   <template v-if="vectorStoreProviderPickerOpen">
@@ -113,7 +121,10 @@
                       :icon="pluginIcon(item.plugin)"
                       @click="addVectorStoreNode(item.plugin)"
                     />
-                    <div v-if="vectorStoreProviderItems.length === 0" class="add-node-cascade__empty">
+                    <div
+                      v-if="vectorStoreProviderItems.length === 0"
+                      class="add-node-cascade__empty"
+                    >
                       No vector store providers found.
                     </div>
                   </template>
@@ -124,9 +135,11 @@
                       :label="item.label"
                       :description="item.description"
                       icon="workflow"
-                      @click="isEmbeddingContext
-                        ? addEmbeddingNode(methodSubmenuPlugin, item.methodKey)
-                        : addPluginAction(methodSubmenuPlugin, item.methodKey, item.label)"
+                      @click="
+                        isEmbeddingContext
+                          ? addEmbeddingNode(methodSubmenuPlugin, item.methodKey)
+                          : addPluginAction(methodSubmenuPlugin, item.methodKey, item.label)
+                      "
                     />
                     <div v-if="methodSubmenuItems.length === 0" class="add-node-cascade__empty">
                       No actions found.
@@ -198,7 +211,9 @@ const {
   execute: loadWorkflowNodeCatalog,
 } = useApi(workflowNodesApi.getCatalog)
 
-watch(workflowNodeCatalog, (catalog) => replaceNodeDefinitions(catalog?.nodes ?? []), { immediate: true })
+watch(workflowNodeCatalog, (catalog) => replaceNodeDefinitions(catalog?.nodes ?? []), {
+  immediate: true,
+})
 
 onMounted(() => {
   loadPlugins()
@@ -218,7 +233,14 @@ const showQuickTrigger = computed(() => !isContextualPicker.value)
 const effectiveAllowedNodes = computed<AllowedNodes>(() => props.allowedNodes ?? '*')
 
 const AI_NODES: AddNodePickerPreset[] = [
-  { id: 'ai-agent', nodeType: 'ai-agent' as WorkflowNodeType, label: 'AI Agent', description: 'Run a governed agent with tools and memory', icon: 'bot', categories: ['AI'] },
+  {
+    id: 'ai-agent',
+    nodeType: 'ai-agent' as WorkflowNodeType,
+    label: 'AI Agent',
+    description: 'Run a governed agent with tools and memory',
+    icon: 'bot',
+    categories: ['AI'],
+  },
 ]
 
 const TRIGGER_PRESET: AddNodePickerPreset = {
@@ -228,12 +250,6 @@ const TRIGGER_PRESET: AddNodePickerPreset = {
   description: 'Add another workflow entry point',
   icon: 'zap',
   categories: ['Core'],
-  style: {
-    icon: 'zap',
-    iconColor: '#facc15',
-    bgColor: '#fef9c3',
-    borderColor: '#fde047',
-  },
 }
 
 const AGENT_MEMORY_PRESETS: AddNodePickerPreset[] = [
@@ -248,12 +264,18 @@ const AGENT_MEMORY_PRESETS: AddNodePickerPreset[] = [
   },
 ]
 
-const pickerPlugins = computed(() => (plugins.value ?? [])
-  .filter((plugin) => !isContextualPicker.value || allowedNodeSelectorsPermitPlugin(
-    effectiveAllowedNodes.value,
-    { id: plugin.id, capabilities: pluginAllowedNodeCapabilities(plugin) },
-  ))
-  .filter((plugin) => isContextualPicker.value || !isVectorStoreProvider(plugin)))
+const pickerPlugins = computed(() =>
+  (plugins.value ?? [])
+    .filter(
+      (plugin) =>
+        !isContextualPicker.value ||
+        allowedNodeSelectorsPermitPlugin(effectiveAllowedNodes.value, {
+          id: plugin.id,
+          capabilities: pluginAllowedNodeCapabilities(plugin),
+        }),
+    )
+    .filter((plugin) => isContextualPicker.value || !isVectorStoreProvider(plugin)),
+)
 
 const pickerPresets = computed(() => {
   const catalogPresets = catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? [])
@@ -263,10 +285,13 @@ const pickerPresets = computed(() => {
     return [...filterDefaultPickerPresets(catalogPresets), ...AI_NODES]
   }
 
-  const allowedPresets = allPresets.filter((preset) => allowedNodeSelectorsPermitPreset(
-    effectiveAllowedNodes.value,
-    { id: preset.id, nodeType: preset.nodeType, capabilities: preset.capabilities },
-  ))
+  const allowedPresets = allPresets.filter((preset) =>
+    allowedNodeSelectorsPermitPreset(effectiveAllowedNodes.value, {
+      id: preset.id,
+      nodeType: preset.nodeType,
+      capabilities: preset.capabilities,
+    }),
+  )
 
   if (isEmbeddingContext.value && pickerPlugins.value.length > 0) {
     return allowedPresets.filter((preset) => preset.nodeType !== 'embeddings')
@@ -277,10 +302,7 @@ const pickerPresets = computed(() => {
 
 const searchablePresets = computed(() => {
   if (!showQuickTrigger.value) return pickerPresets.value
-  return [
-    TRIGGER_PRESET,
-    ...pickerPresets.value.filter((preset) => preset.nodeType !== 'trigger'),
-  ]
+  return [TRIGGER_PRESET, ...pickerPresets.value.filter((preset) => preset.nodeType !== 'trigger')]
 })
 
 const normalizedSearch = computed(() => search.value.trim().toLowerCase())
@@ -307,18 +329,26 @@ const categoryItems = computed(() =>
 
 const activeCategory = computed(() => {
   const categories = categoryItems.value.map((item) => item.category)
-  if (hoveredCategory.value && categories.includes(hoveredCategory.value)) return hoveredCategory.value
+  if (hoveredCategory.value && categories.includes(hoveredCategory.value))
+    return hoveredCategory.value
   return null
 })
 
 const embeddingModelPresentation = (plugin: PluginSummary) =>
   buildEmbeddingModelItems({ plugins: [plugin] })[0]
 
-const decorateEmbeddingModelItem = (item: AddNodePickerSecondColumnItem): AddNodePickerSecondColumnItem => {
+const decorateEmbeddingModelItem = (
+  item: AddNodePickerSecondColumnItem,
+): AddNodePickerSecondColumnItem => {
   if (!isEmbeddingContext.value || item.kind !== 'plugin') return item
   const presentation = embeddingModelPresentation(item.plugin)
   return presentation
-    ? { ...item, label: presentation.label, description: presentation.description, icon: presentation.icon }
+    ? {
+        ...item,
+        label: presentation.label,
+        description: presentation.description,
+        icon: presentation.icon,
+      }
     : item
 }
 
@@ -362,14 +392,16 @@ const globalSearchItems = computed(() => {
 
   const presets = searchablePresets.value
     .filter((preset) => matchesFuzzyLetters(`${preset.label} ${preset.description}`, query))
-    .map((preset): AddNodePickerSecondColumnItem => ({
-      kind: 'preset',
-      id: `preset:${preset.id}`,
-      preset,
-      label: preset.label,
-      description: preset.description,
-      icon: preset.icon,
-    }))
+    .map(
+      (preset): AddNodePickerSecondColumnItem => ({
+        kind: 'preset',
+        id: `preset:${preset.id}`,
+        preset,
+        label: preset.label,
+        description: preset.description,
+        icon: preset.icon,
+      }),
+    )
 
   const plugins = pickerPlugins.value
     .filter((plugin) =>
@@ -378,14 +410,16 @@ const globalSearchItems = computed(() => {
         query,
       ),
     )
-    .map((plugin): AddNodePickerSecondColumnItem => ({
-      kind: 'plugin',
-      id: `plugin:${plugin.id}`,
-      plugin,
-      label: plugin.manifest.metadata.name,
-      description: plugin.manifest.metadata.description,
-      icon: plugin.manifest.metadata.icon || 'box',
-    }))
+    .map(
+      (plugin): AddNodePickerSecondColumnItem => ({
+        kind: 'plugin',
+        id: `plugin:${plugin.id}`,
+        plugin,
+        label: plugin.manifest.metadata.name,
+        description: plugin.manifest.metadata.description,
+        icon: plugin.manifest.metadata.icon || 'box',
+      }),
+    )
     .map(decorateEmbeddingModelItem)
 
   return [...presets, ...plugins]
@@ -472,8 +506,9 @@ const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
 }
 
 const addEmbeddingNode = (plugin: PluginSummary, methodKey: string) => {
-  const provider = buildEmbeddingProviderItems({ plugins: [plugin] })
-    .find((item) => item.methodKey === methodKey)
+  const provider = buildEmbeddingProviderItems({ plugins: [plugin] }).find(
+    (item) => item.methodKey === methodKey,
+  )
   if (!provider) return
 
   const properties = plugin.manifest.methods[provider.methodKey]?.parameters.properties ?? {}
@@ -699,15 +734,9 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   padding: var(--sailor-space-2);
 }
 
-.add-node-cascade__quick-section {
-  margin-bottom: var(--sailor-space-2);
-  padding-bottom: var(--sailor-space-2);
-  border-bottom: 1px solid var(--sailor-border);
-}
-
 .add-node-cascade__section-label {
   padding: var(--sailor-space-1) var(--sailor-space-2) var(--sailor-space-2);
-  color: var(--sailor-text-muted);
+  color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
   font-weight: 700;
   line-height: 1.2;

@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { ADVANCED_CHILD_SIZE, ADVANCED_LAYOUT, getAdvancedChildPosition } from '../advancedNodeLayout.ts'
+import {
+  ADVANCED_CHILD_SIZE,
+  ADVANCED_LAYOUT,
+  getAdvancedChildPosition,
+  getAdvancedParentBounds,
+} from '../advancedNodeLayout.ts'
 
 const parent = { x: 500, y: 200, width: 236, height: 100 }
 
@@ -40,4 +45,25 @@ test('top, left, and right handlers mirror the primary layout axis', () => {
   assert.deepEqual(top, { x: 568, y: 15 })
   assert.deepEqual(left, { x: 315, y: 200 })
   assert.deepEqual(right, { x: 821, y: 200 })
+})
+
+test('nested dependencies can reuse an arranged child as their parent without overlap', () => {
+  const child = getAdvancedChildPosition({
+    parent,
+    side: 'bottom',
+    handlerIndex: 0,
+    handlerCount: 1,
+    siblingIndex: 0,
+  })
+  const childBounds = getAdvancedParentBounds(child, { width: ADVANCED_CHILD_SIZE, height: ADVANCED_CHILD_SIZE })
+  const grandchild = getAdvancedChildPosition({
+    parent: childBounds,
+    side: 'bottom',
+    handlerIndex: 0,
+    handlerCount: 1,
+    siblingIndex: 0,
+  })
+
+  assert.equal(grandchild.x, child.x)
+  assert.equal(grandchild.y, child.y + ADVANCED_CHILD_SIZE + ADVANCED_LAYOUT.primaryGap)
 })

@@ -30,6 +30,9 @@ const { pluginIcon, customBg, customBorder, customIconColor } = usePluginNodePre
     :title="stepTitle"
     :description="subtitle"
     :handlers="handlers"
+    rounded="full"
+    width="250px"
+    height="75px"
     auto-organize
     has-target
     has-source

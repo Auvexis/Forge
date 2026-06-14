@@ -108,7 +108,7 @@ const props = withDefaults(defineProps<{
 
 .sailor-base-advanced-node__title,
 .sailor-base-advanced-node__description {
-  max-width: 128px;
+  max-width: 160px;
   overflow: hidden;
   line-height: 1.2;
   text-overflow: ellipsis;

@@ -15,6 +15,13 @@ export interface AdvancedParentBounds {
   height: number
 }
 
+export function getAdvancedParentBounds(
+  position: { x: number; y: number },
+  dimensions: { width: number; height: number },
+): AdvancedParentBounds {
+  return { ...position, ...dimensions }
+}
+
 export interface AdvancedChildPositionInput {
   parent: AdvancedParentBounds
   side: NodeSide

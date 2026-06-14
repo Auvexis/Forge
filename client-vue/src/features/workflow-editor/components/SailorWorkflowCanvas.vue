@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, onBeforeUnmount, nextTick } from 'vue'
+import { ref, watch, computed, onBeforeUnmount, onMounted, nextTick } from 'vue'
 import { VueFlow } from '@vue-flow/core'
 import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection, VueFlowStore } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
@@ -43,7 +43,7 @@ import NodeInspectorModal from './settings/NodeInspectorModal.vue'
 import AddNodePanel from './settings/AddNodePanel.vue'
 import type { WorkflowNodeType, WorkflowNode } from '@/core/types/workflow.types'
 import type { AllowedNodes, BaseNodeHandlerDefinition } from './nodePresentation.types'
-import { getAdvancedChildPosition } from '../layout/advancedNodeLayout'
+import { getAdvancedChildPosition, getAdvancedParentBounds } from '../layout/advancedNodeLayout'
 import { getAdvancedNodeHandlers, sideFromPosition } from '../layout/advancedNodeDefinitions'
 import { useEventBus } from '@/shared/composables/useEventBus'
 import { isCanvasSelecting } from '../composables/useCanvasSelecting'
@@ -53,12 +53,22 @@ import {
   duplicateWorkflowSelection,
 } from '../utils/workflowSelectionActions'
 import { shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
+import { useApi } from '@/shared/composables/useApi'
+import { workflowNodesApi } from '@/core/api/workflowNodes.api'
+import { replaceNodeDefinitions } from '../catalog/nodeDefinitionRegistry'
 
 // Stores
 const workflowStore = useWorkflowStore()
 const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
 const vueFlowStore = ref<VueFlowStore | null>(null)
+const { data: workflowNodeCatalog, execute: loadWorkflowNodeCatalog } = useApi(workflowNodesApi.getCatalog)
+
+watch(workflowNodeCatalog, (catalog) => replaceNodeDefinitions(catalog?.nodes ?? []), {
+  immediate: true,
+})
+
+onMounted(() => loadWorkflowNodeCatalog())
 
 // ── Props / emits (for v-model:show-logs from parent page) ──────────────────
 const props = defineProps<{
@@ -595,12 +605,10 @@ function getAdvancedConfigNodePosition(
   const renderedNode = vueFlowStore.value?.findNode(targetId)
 
   return getAdvancedChildPosition({
-    parent: {
-      x: targetNode.position.x,
-      y: targetNode.position.y,
+    parent: getAdvancedParentBounds(targetNode.position, {
       width: renderedNode?.dimensions?.width || 236,
       height: renderedNode?.dimensions?.height || 100,
-    },
+    }),
     side: sideFromPosition(handler.position),
     handlerIndex,
     handlerCount,
@@ -622,8 +630,10 @@ function applyNodePosition(nodeId: string, position: { x: number; y: number }) {
   workflowStore.updateNodeData(nodeId, { ui })
 }
 
-function arrangeAdvancedConfigNodes(targetId: string) {
+function arrangeAdvancedConfigNodes(targetId: string, visited = new Set<string>()) {
   if (!workflowStore.activeWorkflow) return
+  if (visited.has(targetId)) return
+  visited.add(targetId)
   const targetNode = (vueFlowNodes.value as any[]).find((node) => node.id === targetId)
   const handlers = getAdvancedNodeHandlers(targetNode?.data?.type ?? targetNode?.type)
 
@@ -639,6 +649,7 @@ function arrangeAdvancedConfigNodes(targetId: string) {
         handlers.length,
         siblingIndex,
       ))
+      arrangeAdvancedConfigNodes(edge.source, visited)
     })
   })
 }

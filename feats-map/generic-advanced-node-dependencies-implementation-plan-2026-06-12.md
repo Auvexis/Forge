@@ -968,7 +968,7 @@ git commit -m "feat: add vector store agent tool"
 - Modify: `client-vue/src/features/workflow-editor/layout/__tests__/advancedNodeLayout.test.ts`
 - Modify: `feats-map/generic-advanced-node-dependencies-implementation-plan-2026-06-12.md`
 
-- [ ] **Step 1: Write full workflow integration tests**
+- [x] **Step 1: Write full workflow integration tests**
 
 Cover these graphs:
 
@@ -989,11 +989,11 @@ Trigger -> AI Agent -> Set
 
 Assert configuration nodes never appear in `context.steps`, normal flow nodes do, and outputs preserve answer/sources/metadata.
 
-- [ ] **Step 2: Add extensibility contract test**
+- [x] **Step 2: Add extensibility contract test**
 
 Register a fixture node with a new type that provides `chat-model` and verify it automatically appears for every compatible handle and resolves through a fixture adapter without modifying AI Agent, Basic LLM Chain, Q&A Chain, or Vector Store Tool.
 
-- [ ] **Step 3: Add visual/behavior contract coverage**
+- [x] **Step 3: Add visual/behavior contract coverage**
 
 Assert:
 
@@ -1004,7 +1004,7 @@ Assert:
 - Persistent Quick Add remains visible for parser/tool/document handles.
 - No configuration nodes appear in the global Add Node panel.
 
-- [ ] **Step 4: Replace hardcoded edge classification in the frontend**
+- [x] **Step 4: Replace hardcoded edge classification in the frontend**
 
 In `BaseEdge.vue`, determine dashed configuration styling from the target node definition and `targetHandle`. Remove `CONFIGURATION_TARGET_HANDLES` after the catalog lookup passes tests.
 
@@ -1024,7 +1024,14 @@ npm run build-only
 
 Expected: all commands PASS.
 
-- [ ] **Step 6: Run browser verification**
+Status on 2026-06-13:
+- PASS: focused Task 10 server integration tests, server build, focused workflow editor contract tests, client type-check, and client build-only.
+- BLOCKED for full-suite completion by existing unrelated global failures outside this advanced-node work:
+  - Server: `page-security.test.ts`, `agent-chat-workflow.integration.test.ts`, `agent-panel.routes.test.ts`.
+  - Client: stale/missing PluginCreatorPage contracts, web page editor contracts, workflow chat panel contracts, global automation monitor/profile/plugin icon contracts, and extensionless ESM import failures such as `profile.store.contract.test.ts`.
+  - The agent chat failure was reproduced as `Agent model does not support structured plan generation`, not as a generic dependency resolver failure.
+
+- [x] **Step 6: Run browser verification**
 
 Start only the required local app processes, open the workflow editor with the Browser plugin, and verify desktop plus narrow viewport behavior for all three graphs. Inspect the browser console for errors and capture screenshots showing:
 
@@ -1034,16 +1041,18 @@ Start only the required local app processes, open the workflow editor with the B
 - Quick Add candidate filtering and persistence.
 - Auto-organized nested subnodes without overlap.
 
-- [ ] **Step 7: Mark plan tasks complete**
+- [x] **Step 7: Mark plan tasks complete**
 
 Change each completed checkbox in this file to `[x]` only after its verification command succeeds. Record any intentionally deferred acceptance criterion explicitly; do not mark the task complete while required work remains.
 
-- [ ] **Step 8: Commit Task 10**
+- [x] **Step 8: Commit Task 10**
 
 ```powershell
 git add server/src/core/modules/workflows/advanced-ai-workflows.integration.test.ts client-vue/src/features/workflow-editor client-vue/src/core/types feats-map/generic-advanced-node-dependencies-implementation-plan-2026-06-12.md
 git commit -m "test: verify generic advanced node workflows"
 ```
+
+Committed as `82d1bcd2` before this checklist line was marked.
 
 ### Round 5 checkpoint
 

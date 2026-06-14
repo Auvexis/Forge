@@ -164,10 +164,10 @@ test('advanced handler definitions declare shape and connection-aware quick add 
 test('vector configuration edges use the shared dashed routing and hide ordinary tools', () => {
   const source = read('src/features/workflow-editor/components/BaseEdge.vue')
 
-  assert.match(source, /CONFIGURATION_TARGET_HANDLES/)
+  assert.match(source, /getNodeDefinition/)
+  assert.match(source, /handle\?\.accepts\?\.length/)
+  assert.doesNotMatch(source, /CONFIGURATION_TARGET_HANDLES/)
   assert.match(source, /isConfigurationEdge/)
   assert.match(source, /configurationBezierPath/)
   assert.match(source, /v-if="!isConfigurationEdge"/)
-  assert.match(source, /'embedding'/)
-  assert.match(source, /'document'/)
 })

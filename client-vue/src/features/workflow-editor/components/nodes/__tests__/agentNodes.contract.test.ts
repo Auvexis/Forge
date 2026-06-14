@@ -134,12 +134,12 @@ test('ai tool node shows plugin and method as a circular top-output child', () =
 test('declared configuration edges use dashed presentation for Agent and Vector Store', () => {
   const source = read('src/features/workflow-editor/components/BaseEdge.vue')
 
-  assert.match(source, /CONFIGURATION_TARGET_HANDLES/)
-  for (const handle of ['chatModel', 'memory', 'tool', 'embedding', 'document']) {
-    assert.match(source, new RegExp(`'${handle}'`))
-  }
+  assert.match(source, /getNodeDefinition/)
+  assert.match(source, /targetHandle/)
+  assert.match(source, /handle\?\.accepts\?\.length/)
   assert.match(source, /strokeDasharray/)
   assert.match(source, /strokeLinecap/)
+  assert.doesNotMatch(source, /CONFIGURATION_TARGET_HANDLES/)
   assert.doesNotMatch(source, /AGENT_CONFIG_TARGET_HANDLES/)
   assert.doesNotMatch(source, /isAgentConfigEdge/)
 })
