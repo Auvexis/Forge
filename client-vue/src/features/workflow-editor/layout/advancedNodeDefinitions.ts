@@ -10,7 +10,7 @@ export const AI_AGENT_HANDLERS: BaseNodeHandlerDefinition[] = [
 ]
 
 export const VECTOR_STORE_HANDLERS: BaseNodeHandlerDefinition[] = [
-  { id: 'embedding', label: 'Embedding', type: 'target', position: Position.Bottom, style: 'diamond', required: true, quickAdd: 'vector-config', allowedNodes: ['capability:embedding-provider', 'node:embeddings'] },
+  { id: 'embedding', label: 'Embedding', type: 'target', position: Position.Bottom, style: 'diamond', required: true, quickAdd: 'vector-config', allowedNodes: ['capability:embedding-model'] },
   { id: 'document', label: 'Document', type: 'target', position: Position.Bottom, style: 'diamond', quickAdd: 'vector-config', quickAddAfterConnected: true, allowedNodes: ['node:text-dataset', 'node:file-dataset', 'node:database-dataset'] },
 ]
 

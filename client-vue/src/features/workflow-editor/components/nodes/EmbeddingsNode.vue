@@ -32,8 +32,8 @@ const { pluginIcon, customBg, customBorder, customIconColor } = usePluginNodePre
     :title="stepTitle"
     :subtitle="subtitle"
     :icon="pluginIcon"
-    :color="customIconColor || '#db2777'"
-    :bg="customBg || '#fdf2f8'"
-    :border-color="customBorder || '#f9a8d4'"
+    :color="customIconColor || 'var(--sailor-node-plugin-icon)'"
+    :bg="customBg || 'transparent'"
+    :border-color="customBorder || 'var(--sailor-node-border)'"
   />
 </template>

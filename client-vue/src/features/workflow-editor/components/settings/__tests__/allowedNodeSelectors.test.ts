@@ -145,6 +145,6 @@ test('plugin capabilities derive from manifests instead of plugin names', () => 
   assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'chat', chatModel: true })), ['chat-model'])
   assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'memory', memoryStore: true })), ['memory-store'])
   assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'tool', agentTool: true })), ['agent-tool'])
-  assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'embedding', embedding: true })), ['embedding-provider'])
+  assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'embedding', embedding: true })), ['embedding-model'])
   assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'vector', vectorStore: true })), ['vector-store-provider'])
 })

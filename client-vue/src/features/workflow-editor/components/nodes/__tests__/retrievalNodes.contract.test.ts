@@ -93,6 +93,9 @@ test('embedding models reuse plugin presentation instead of hardcoded catalog co
   assert.match(source, /:icon="pluginIcon"/)
   assert.match(source, /customBg/)
   assert.doesNotMatch(source, /icon="scan-text"/)
+  assert.match(source, /customBg \|\| 'transparent'/)
+  assert.match(source, /customBorder \|\| 'var\(--sailor-node-border\)'/)
+  assert.match(source, /customIconColor \|\| 'var\(--sailor-node-plugin-icon\)'/)
 })
 
 test('retrieval node components use their catalog colors instead of generic node tokens', () => {
@@ -100,7 +103,7 @@ test('retrieval node components use their catalog colors instead of generic node
     TextDatasetNode: ['#0f766e', '#f0fdfa', '#5eead4'],
     FileDatasetNode: ['#2563eb', '#eff6ff', '#93c5fd'],
     DatabaseDatasetNode: ['#7c3aed', '#f5f3ff', '#c4b5fd'],
-    EmbeddingsNode: ['#db2777', '#fdf2f8', '#f9a8d4'],
+    EmbeddingsNode: [],
     RetrieverNode: ['#65a30d', '#f7fee7', '#bef264'],
   }
 
@@ -120,8 +123,8 @@ test('vector store exposes embedding and document configuration handles', () => 
   assert.match(source, /getAdvancedNodeHandlers/)
   assert.match(source, /getAdvancedNodeHandlers\('vector-store'\)/)
   assert.match(source, /auto-organize/)
-  assert.match(definitions, /capability:embedding-provider/)
-  assert.match(definitions, /node:embeddings/)
+  assert.match(definitions, /capability:embedding-model/)
+  assert.doesNotMatch(definitions, /node:embeddings/)
   assert.match(definitions, /node:text-dataset/)
   assert.match(definitions, /node:file-dataset/)
   assert.match(definitions, /node:database-dataset/)

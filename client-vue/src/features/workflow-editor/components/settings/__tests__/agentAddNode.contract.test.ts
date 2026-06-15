@@ -114,6 +114,8 @@ test('vector store picker creates a provider-configured utility node instead of 
 test('embedding quick-add uses a vector config context separate from agent config', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
   const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const definitions = read('src/features/workflow-editor/layout/advancedNodeDefinitions.ts')
+  const selectors = read('src/features/workflow-editor/components/settings/allowedNodeSelectors.ts')
 
   assert.match(panel, /handlerId\?: string/)
   assert.match(panel, /buildEmbeddingProviderItems/)
@@ -125,6 +127,18 @@ test('embedding quick-add uses a vector config context separate from agent confi
   assert.match(panel, /onAddLogicNode\?\.\('embeddings'/)
   assert.match(canvas, /handlerId: string \| null/)
   assert.match(canvas, /:allowed-nodes="addNodePickerOverlay\.allowedNodes"/)
+  assert.match(definitions, /id: 'embedding'[\s\S]*capability:embedding-model/)
+  assert.doesNotMatch(definitions, /id: 'embedding'[\s\S]*node:embeddings/)
+  assert.match(canvas, /embedding: \['capability:embedding-model'\]/)
+  assert.doesNotMatch(canvas, /embedding: \[[^\]]*node:embeddings/)
+  assert.match(selectors, /capabilities\.push\('embedding-model'\)/)
+  assert.doesNotMatch(selectors, /capabilities\.push\('embedding-provider'\)/)
+})
+
+test('embedding quick-add never offers the generic embeddings preset', () => {
+  const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+
+  assert.match(panel, /if \(isEmbeddingContext\.value\) \{[\s\S]*preset\.nodeType !== 'embeddings'[\s\S]*\}/)
 })
 
 test('document quick-add exposes only dataset utility nodes', () => {

@@ -293,7 +293,7 @@ const pickerPresets = computed(() => {
     }),
   )
 
-  if (isEmbeddingContext.value && pickerPlugins.value.length > 0) {
+  if (isEmbeddingContext.value) {
     return allowedPresets.filter((preset) => preset.nodeType !== 'embeddings')
   }
 

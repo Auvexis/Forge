@@ -1,0 +1,6 @@
+- [x] Trace Quick Add embedding filtering
+- [x] Add regression coverage
+- [x] Fix embedding Quick Add items
+- [x] Fix embedding model visual style
+- [x] Run focused verification
+- [x] Commit changes

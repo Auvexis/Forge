@@ -43,7 +43,7 @@ export function pluginAllowedNodeCapabilities(plugin: PluginSummary): string[] {
     capabilities.push('agent-tool')
   }
   if (buildEmbeddingProviderItems({ plugins: [plugin] }).length > 0) {
-    capabilities.push('embedding-provider')
+    capabilities.push('embedding-model')
   }
   if (isVectorStoreProvider(plugin)) capabilities.push('vector-store-provider')
 

@@ -285,7 +285,7 @@ const DEFAULT_ALLOWED_NODES_BY_HANDLER: Record<string, AllowedNodes> = {
   chatModel: ['capability:chat-model'],
   memory: ['preset:sqlite-memory', 'capability:memory-store'],
   tool: ['capability:agent-tool'],
-  embedding: ['capability:embedding-provider', 'node:embeddings'],
+  embedding: ['capability:embedding-model'],
   document: ['node:text-dataset', 'node:file-dataset', 'node:database-dataset'],
 }
 type AddNodePickerAnchorRect = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'>
