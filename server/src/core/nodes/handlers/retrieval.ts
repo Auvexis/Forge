@@ -87,31 +87,37 @@ function jsonArrayToItems(
   });
 }
 
-export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-dataset", ({ node, nodeId }) => {
-  const files = node.files?.length
+export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-dataset", ({ node, nodeId, context }) => {
+  const configuredFiles = node.files?.length
     ? node.files
     : [node.filePath, node.fileUrl].filter((value): value is string => Boolean(value));
+  const files = configuredFiles.flatMap((file) => normalizeFileInputs(TemplateEngine.evaluate(file, context)));
+  const baseMetadata = normalizeMetadata(TemplateEngine.evaluate(node.metadata ?? {}, context));
   const items = files.map((file, index) => {
     if (typeof file === "string") {
       return {
         id: `${nodeId}:${index}`,
         text: file,
         metadata: {
-          ...(node.metadata ?? {}),
+          ...baseMetadata,
           source: file,
         },
         raw: file,
       };
     }
 
+    const filename = stringValue(file.filename ?? file.fileName ?? file.name);
+    const mimeType = stringValue(file.mimeType ?? file.mimetype ?? file.type);
+    const size = numberValue(file.size);
+
     return {
       id: `${nodeId}:${index}`,
-      text: decodeFileContent(file.content),
+      text: decodeFileContent(file.content ?? file.contentBase64 ?? file.data ?? file.buffer),
       metadata: {
-        ...(node.metadata ?? {}),
-        filename: file.filename,
-        ...(file.mimeType ? { mimeType: file.mimeType } : {}),
-        ...(file.size !== undefined ? { size: file.size } : {}),
+        ...baseMetadata,
+        ...(filename ? { filename } : {}),
+        ...(mimeType ? { mimeType } : {}),
+        ...(size !== undefined ? { size } : {}),
       },
       raw: file,
     };
@@ -130,9 +136,45 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
   errors: ["Invalid file dataset"],
 });
 
-function decodeFileContent(content: string): string {
+type RuntimeFileInput = string | Record<string, any>;
+
+function normalizeFileInputs(value: unknown): RuntimeFileInput[] {
+  if (Array.isArray(value)) return value.flatMap(normalizeFileInputs);
+  if (value === undefined || value === null || value === "") return [];
+  if (typeof value === "string") return [value];
+  if (typeof value === "object") return [value as Record<string, any>];
+  return [String(value)];
+}
+
+function normalizeMetadata(value: unknown): Record<string, any> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, any>
+    : {};
+}
+
+function stringValue(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function numberValue(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function decodeFileContent(content: unknown): string {
+  if (Buffer.isBuffer(content)) return content.toString("utf8");
+  if (content === undefined || content === null) return "";
+  if (typeof content !== "string") return String(content);
   const encoded = content.includes(",") ? content.slice(content.indexOf(",") + 1) : content;
-  return Buffer.from(encoded, "base64").toString("utf8");
+  return looksBase64(encoded)
+    ? Buffer.from(encoded, "base64").toString("utf8")
+    : content;
+}
+
+function looksBase64(value: string): boolean {
+  const normalized = value.trim();
+  return normalized.length > 0 &&
+    normalized.length % 4 === 0 &&
+    /^[A-Za-z0-9+/]+={0,2}$/.test(normalized);
 }
 
 export const databaseDatasetNodeHandler = createNodeHandler<DatabaseDatasetNode>("database-dataset", async ({ node, nodeId, services }) => {

@@ -68,6 +68,53 @@ function safeSerialize(value: unknown): string {
 
 // ──────────── Webhook signature validation ────────────
 
+async function parseTriggerPayload(req: FastifyRequest): Promise<Record<string, any>> {
+  const multipartReq = req as FastifyRequest & {
+    isMultipart?: () => boolean;
+    parts?: () => AsyncIterable<any>;
+  };
+
+  if (!multipartReq.isMultipart?.()) {
+    return (req.body as Record<string, any>) || {};
+  }
+
+  const payload: Record<string, any> = {};
+  for await (const part of multipartReq.parts?.() ?? []) {
+    if (part.type === "file") {
+      const current = payload[part.fieldname];
+      const file = {
+        content: await part.toBuffer(),
+        filename: part.filename,
+        mimeType: part.mimetype,
+      };
+      payload[part.fieldname] = current === undefined
+        ? file
+        : Array.isArray(current)
+          ? [...current, file]
+          : [current, file];
+    } else {
+      try {
+        payload[part.fieldname] = JSON.parse(part.value as string);
+      } catch {
+        payload[part.fieldname] = part.value;
+      }
+    }
+  }
+  return payload;
+}
+
+function extractTriggerNodeId(payload: Record<string, any>): string | undefined {
+  const triggerNodeId =
+    typeof payload.triggerNodeId === "string"
+      ? String(payload.triggerNodeId)
+      : typeof payload._triggerNodeId === "string"
+        ? String(payload._triggerNodeId)
+        : undefined;
+  delete payload.triggerNodeId;
+  delete payload._triggerNodeId;
+  return triggerNodeId;
+}
+
 function validateWebhookSignature(
   payload: string,
   secret: string,
@@ -933,12 +980,18 @@ export default async function workflowsRoutes(
 
   fastify.post("/workflows/:workflowId/dev-sessions", async (req, reply) => {
     const { workflowId } = req.params as { workflowId: string };
-    const body = (req.body as {
-      payload?: Record<string, any>;
-      triggerNodeId?: string;
-    } | null) ?? {};
 
     try {
+      const rawBody = await parseTriggerPayload(req);
+      const body = rawBody.payload && typeof rawBody.payload === "object" && !Array.isArray(rawBody.payload)
+        ? {
+            payload: rawBody.payload as Record<string, any>,
+            triggerNodeId: typeof rawBody.triggerNodeId === "string" ? rawBody.triggerNodeId : undefined,
+          }
+        : {
+            payload: rawBody,
+            triggerNodeId: extractTriggerNodeId(rawBody),
+          };
       const workflow = WorkflowRepository.getWorkflowById(workflowId);
       if (!workflow) {
         return sendResponse(reply, {
@@ -1002,7 +1055,10 @@ export default async function workflowsRoutes(
       sessionId: string;
       triggerNodeId: string;
     };
-    const body = (req.body as { payload?: Record<string, any> } | null) ?? {};
+    const rawBody = await parseTriggerPayload(req);
+    const body = rawBody.payload && typeof rawBody.payload === "object" && !Array.isArray(rawBody.payload)
+      ? { payload: rawBody.payload as Record<string, any> }
+      : { payload: rawBody };
     const session = devWorkflowSessionRuntime.manager.getSession(sessionId);
 
     if (!session) {

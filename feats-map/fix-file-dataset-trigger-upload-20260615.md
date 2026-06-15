@@ -1,0 +1,5 @@
+- [x] Trace file dataset trigger upload flow
+- [x] Add failing file expression tests
+- [x] Resolve trigger files in File Dataset
+- [x] Preserve files in dev-session payloads
+- [x] Verify and commit

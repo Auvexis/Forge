@@ -120,6 +120,49 @@ interface ServerExecutionLog {
   }
 }
 
+function payloadHasFiles(value: unknown): boolean {
+  if (value instanceof File) return true
+  if (Array.isArray(value)) return value.some(payloadHasFiles)
+  if (value && typeof value === 'object') {
+    return Object.values(value).some(payloadHasFiles)
+  }
+  return false
+}
+
+function appendPayloadValue(form: FormData, key: string, value: unknown): void {
+  if (value instanceof File) {
+    form.append(key, value, value.name)
+    return
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) appendPayloadValue(form, key, item)
+    return
+  }
+  if (value !== undefined && value !== null) {
+    form.append(key, typeof value === 'string' ? value : JSON.stringify(value))
+  }
+}
+
+function buildTriggerPayloadBody(
+  payload: Record<string, unknown> = {},
+  options: { nested?: boolean; triggerNodeId?: string } = {},
+): FormData | Record<string, unknown> {
+  if (!payloadHasFiles(payload)) {
+    return options.nested
+      ? { payload, ...(options.triggerNodeId ? { triggerNodeId: options.triggerNodeId } : {}) }
+      : payload
+  }
+
+  const form = new FormData()
+  for (const [key, value] of Object.entries(payload)) {
+    appendPayloadValue(form, key, value)
+  }
+  if (options.triggerNodeId) {
+    form.append('triggerNodeId', options.triggerNodeId)
+  }
+  return form
+}
+
 /** Maps a raw server execution log to the camelCase ExecutionLog type. */
 function mapExecutionLog(raw: ServerExecutionLog): ExecutionLog {
   return {
@@ -240,29 +283,7 @@ export const workflowsApi = {
       headers['x-sailor-execution-id'] = clientExecId
     }
 
-    // If the payload contains any File objects, send as multipart/form-data so
-    // the binary data is preserved. JSON.stringify() silently converts Files to
-    // `{}`, which causes "Invalid content type" errors in upload plugins.
-    const hasFiles = payload && Object.values(payload).some((v) => v instanceof File)
-
-    let body: FormData | Record<string, unknown>
-    if (hasFiles && payload) {
-      const form = new FormData()
-      for (const [key, value] of Object.entries(payload)) {
-        if (Array.isArray(value)) {
-          for (const item of value) {
-            form.append(key, String(item))
-          }
-        } else if (value instanceof File) {
-          form.append(key, value, value.name)
-        } else if (value !== undefined && value !== null) {
-          form.append(key, typeof value === 'string' ? value : JSON.stringify(value))
-        }
-      }
-      body = form
-    } else {
-      body = payload ?? {}
-    }
+    const body = buildTriggerPayloadBody(payload)
 
     const suffix = triggerNodeId ? `?triggerNodeId=${encodeURIComponent(triggerNodeId)}` : ''
     return apiRequest<{ executionId: string }>(`${ENDPOINTS.EXECUTE_WORKFLOW(id)}${suffix}`, {
@@ -275,10 +296,7 @@ export const workflowsApi = {
   createDevSession: (id: string, payload: Record<string, unknown> = {}, triggerNodeId?: string) => {
     return apiRequest<DevWorkflowSessionResponse>(ENDPOINTS.CREATE_DEV_SESSION(id), {
       method: 'POST',
-      body: {
-        payload,
-        triggerNodeId,
-      },
+      body: buildTriggerPayloadBody(payload, { nested: true, triggerNodeId }),
     })
   },
 
@@ -296,7 +314,7 @@ export const workflowsApi = {
       ENDPOINTS.EXECUTE_DEV_SESSION_TRIGGER(sessionId, triggerNodeId),
       {
         method: 'POST',
-        body: { payload },
+        body: buildTriggerPayloadBody(payload, { nested: true }),
       },
     ),
 
@@ -370,24 +388,7 @@ export const workflowsApi = {
     const headers: Record<string, string> = {}
     if (clientExecId) headers['x-sailor-execution-id'] = clientExecId
 
-    const hasFiles = Object.values(payload).some((value) => value instanceof File)
-    let body: Record<string, unknown> | FormData = payload
-
-    if (hasFiles) {
-      const form = new FormData()
-      for (const [key, value] of Object.entries(payload)) {
-        if (Array.isArray(value)) {
-          for (const item of value) {
-            form.append(key, String(item))
-          }
-        } else if (value instanceof File) {
-          form.append(key, value, value.name)
-        } else if (value !== undefined && value !== null) {
-          form.append(key, typeof value === 'string' ? value : JSON.stringify(value))
-        }
-      }
-      body = form
-    }
+    const body = buildTriggerPayloadBody(payload)
 
     return apiRequest<{ executionId: string }>(profileId
       ? ENDPOINTS.PROFILE_FORM_SUBMIT(profileId, formId)
@@ -400,24 +401,7 @@ export const workflowsApi = {
   },
 
   submitTemporaryForm: (formId: string, payload: Record<string, unknown>) => {
-    const hasFiles = Object.values(payload).some((value) => value instanceof File)
-    let body: Record<string, unknown> | FormData = payload
-
-    if (hasFiles) {
-      const form = new FormData()
-      for (const [key, value] of Object.entries(payload)) {
-        if (Array.isArray(value)) {
-          for (const item of value) {
-            form.append(key, String(item))
-          }
-        } else if (value instanceof File) {
-          form.append(key, value, value.name)
-        } else if (value !== undefined && value !== null) {
-          form.append(key, typeof value === 'string' ? value : JSON.stringify(value))
-        }
-      }
-      body = form
-    }
+    const body = buildTriggerPayloadBody(payload)
 
     return apiRequest<{ submitted: boolean }>(ENDPOINTS.TEMPORARY_FORM_SUBMIT(formId), {
       method: 'POST',

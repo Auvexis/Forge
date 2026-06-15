@@ -211,6 +211,103 @@ describe("retrieval utility node handlers", () => {
     assert.deepEqual(result.items.map((item: any) => item.id), ["files:0", "files:1"]);
   });
 
+  it("file dataset resolves trigger file expressions before indexing", async () => {
+    const handler = createUtilityNodeRegistry().get("file-dataset");
+    const csv = [
+      "id,nome,categoria_favorita",
+      "12,Mateus Fernandes,eletrônicos",
+      "20,Victor Hugo,eletrônicos",
+    ].join("\n");
+    const result = await handler.execute({
+      nodeId: "file-dataset_1",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: {
+        trigger: {
+          file: {
+            filename: "clientes.csv",
+            content: Buffer.from(csv).toString("base64"),
+            mimeType: "text/csv",
+            size: Buffer.byteLength(csv),
+          },
+        },
+        steps: {},
+        variables: {},
+      },
+      services: {} as any,
+      node: {
+        type: "file-dataset",
+        name: "Files",
+        files: ["{{ trigger.file }}"],
+        format: "auto",
+        metadata: { source: "{{ trigger.file.filename }}" },
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.equal(result.count, 1);
+    assert.equal(result.items[0].id, "file-dataset_1:0");
+    assert.equal(result.items[0].text, csv);
+    assert.notEqual(result.items[0].text, "{{ trigger.file }}");
+    assert.deepEqual(result.items[0].metadata, {
+      source: "clientes.csv",
+      filename: "clientes.csv",
+      mimeType: "text/csv",
+      size: Buffer.byteLength(csv),
+    });
+  });
+
+  it("file dataset expands trigger file array expressions", async () => {
+    const handler = createUtilityNodeRegistry().get("file-dataset");
+    const result = await handler.execute({
+      nodeId: "files",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: {
+        trigger: {
+          files: [
+            {
+              filename: "first.md",
+              content: Buffer.from("# First").toString("base64"),
+              mimeType: "text/markdown",
+            },
+            {
+              filename: "second.csv",
+              content: Buffer.from("id,nome\n1,Ana").toString("base64"),
+              mimeType: "text/csv",
+            },
+          ],
+        },
+        steps: {},
+        variables: {},
+      },
+      services: {} as any,
+      node: {
+        type: "file-dataset",
+        name: "Files",
+        files: ["{{ trigger.files }}"],
+        format: "auto",
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.equal(result.count, 2);
+    assert.deepEqual(result.items.map((item: any) => item.text), ["# First", "id,nome\n1,Ana"]);
+    assert.deepEqual(result.items.map((item: any) => item.metadata.filename), ["first.md", "second.csv"]);
+  });
+
   it("vector store indexes connected dataset documents with connected embedding config", async () => {
     const calls: Array<{ pluginId: string; methodId: string; params: Record<string, any> }> = [];
     const workflow = workflowFixture();
