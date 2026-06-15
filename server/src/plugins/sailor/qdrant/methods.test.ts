@@ -97,6 +97,24 @@ describe("qdrant vector store plugin", () => {
     });
   });
 
+  it("treats an existing collection as ensured", async () => {
+    const methods = createQdrantMethods(async () => errorResponse(409, {
+      status: { error: "Wrong input: Collection `docs` already exists!" },
+      time: 0.0001,
+    }));
+
+    const result = await methods.ensureCollection({
+      store: {
+        collectionName: "docs",
+        dimension: 3,
+        metric: "cosine",
+        config: { mode: "local", url: "http://localhost:6333" },
+      },
+    });
+
+    assert.deepEqual(result, { ok: true, collectionName: "docs" });
+  });
+
   it("upserts documents with Qdrant-compatible point ids", async () => {
     const calls: Array<{ url: string; init: RequestInit }> = [];
     const methods = createQdrantMethods(async (url, init) => {
@@ -161,6 +179,15 @@ function jsonResponse(body: unknown): Response {
   return {
     ok: true,
     status: 200,
+    text: async () => JSON.stringify(body),
+    json: async () => body,
+  } as Response;
+}
+
+function errorResponse(status: number, body: unknown): Response {
+  return {
+    ok: false,
+    status,
     text: async () => JSON.stringify(body),
     json: async () => body,
   } as Response;

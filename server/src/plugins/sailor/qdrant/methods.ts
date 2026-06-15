@@ -60,15 +60,19 @@ export function createQdrantMethods(fetchImpl: FetchLike = fetch) {
   return {
     async ensureCollection(params: VectorStoreEnsureCollectionInput, context?: PluginContext) {
       const config = normalizeQdrantConfig(params.store, context);
-      await qdrantRequest(fetchImpl, config, `/collections/${encodeURIComponent(config.collectionName)}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          vectors: {
-            size: params.store.dimension,
-            distance: toQdrantDistance(params.store.metric),
-          },
-        }),
-      });
+      try {
+        await qdrantRequest(fetchImpl, config, `/collections/${encodeURIComponent(config.collectionName)}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            vectors: {
+              size: params.store.dimension,
+              distance: toQdrantDistance(params.store.metric),
+            },
+          }),
+        });
+      } catch (error) {
+        if (!isQdrantCollectionAlreadyExistsError(error)) throw error;
+      }
 
       return { ok: true, collectionName: config.collectionName };
     },
@@ -190,6 +194,12 @@ function deterministicUuid(value: string): string {
     `${variant}${hex.slice(18, 20)}`,
     hex.slice(20, 32),
   ].join("-");
+}
+
+function isQdrantCollectionAlreadyExistsError(error: unknown): boolean {
+  return error instanceof Error
+    && error.message.includes("Qdrant request failed (409)")
+    && error.message.toLowerCase().includes("already exists");
 }
 
 async function qdrantRequest(
