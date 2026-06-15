@@ -5,7 +5,9 @@ import { createMigrationEngine } from "../../database/migration-engine.ts";
 import { resetAppDatabaseProvider, setAppDatabaseProvider } from "../app/app-repository.ts";
 import { AgentRuntimeService } from "../agent-runtime/agent-runtime-service.ts";
 import type { AgentRunInput } from "../agent-runtime/agent-types.ts";
+import { PluginExecutor } from "../plugins/executor.ts";
 import { WorkflowEngine } from "./executor.ts";
+import { workflowEventBus } from "./event-bus.ts";
 import {
   resetWorkflowDatabaseProvider,
   setWorkflowDatabaseProvider,
@@ -15,6 +17,7 @@ import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 
 describe("workflow executor AI config-node traversal", () => {
   const originalRunAgent = AgentRuntimeService.runAgent;
+  const originalPluginExecute = PluginExecutor.execute;
   let appDb: Database.Database | null = null;
   let workflowDb: Database.Database | null = null;
 
@@ -27,6 +30,7 @@ describe("workflow executor AI config-node traversal", () => {
 
   afterEach(() => {
     AgentRuntimeService.runAgent = originalRunAgent;
+    PluginExecutor.execute = originalPluginExecute;
     resetAppDatabaseProvider();
     resetWorkflowDatabaseProvider();
     appDb?.close();
@@ -184,6 +188,87 @@ describe("workflow executor AI config-node traversal", () => {
     assert.equal(result.status, "SUCCESS");
     assert.ok(result.context.steps.embeddings);
     assert.ok(result.context.steps.vector?.output);
+  });
+
+  it("emits execution events for vector store subnodes", async () => {
+    PluginExecutor.execute = async (_pluginId, methodId) => {
+      if (methodId === "createEmbeddings") return { vectors: [[0.1, 0.2, 0.3]] };
+      if (methodId === "upsertDocuments") return { upsertedCount: 1 };
+      return { ok: true };
+    };
+    const workflow = workflowFixture({
+      nodes: {
+        ...workflowFixture().nodes,
+        dataset: {
+          type: "text-dataset",
+          name: "Dataset",
+          text: "hello",
+          format: "plain-text",
+          chunking: {
+            enabled: false,
+            chunkSize: 1000,
+            chunkOverlap: 0,
+            contextualOverlapEnabled: false,
+          },
+        },
+        embeddings: {
+          type: "embeddings",
+          name: "Embeddings",
+          pluginId: "embedding-provider",
+          methodId: "createEmbeddings",
+          model: "embedding-model",
+          dimension: 3,
+          input: "",
+        },
+        vector: {
+          type: "vector-store",
+          name: "Vector Store",
+          pluginId: "vector-provider",
+          ensureCollectionMethodId: "ensureCollection",
+          upsertMethodId: "upsertDocuments",
+          queryMethodId: "querySimilar",
+          collectionName: "documents",
+          dimension: 3,
+          metric: "cosine",
+          config: {},
+          retrievalMode: "index",
+        },
+      },
+      edges: [
+        { id: "trigger-vector", source: "trigger", target: "vector" },
+        { id: "dataset-vector", source: "dataset", target: "vector", targetHandle: "document" },
+        { id: "embeddings-vector", source: "embeddings", target: "vector", targetHandle: "embedding" },
+      ],
+    });
+    WorkflowRepository.saveWorkflow(workflow);
+    const executionId = "exec_vector_subnode_events";
+    const events: string[] = [];
+    const unsubscribe = workflowEventBus.onExecution(executionId, (event) => {
+      if (event.type === "node:start" || event.type === "node:success") {
+        events.push(`${event.type}:${event.nodeId}`);
+      }
+    });
+
+    try {
+      const result = await WorkflowEngine.executeWorkflowFromTrigger(
+        workflow,
+        "trigger",
+        triggerPayload(),
+        executionId,
+      );
+
+      assert.equal(result.status, "SUCCESS");
+      assert.deepEqual(events, [
+        "node:start:vector",
+        "node:start:dataset",
+        "node:success:dataset",
+        "node:start:embeddings",
+        "node:success:embeddings",
+        "node:success:vector",
+      ]);
+    } finally {
+      unsubscribe();
+    }
   });
 
   it("does not classify arbitrary edges between configuration-role nodes as dependency cycles", async () => {

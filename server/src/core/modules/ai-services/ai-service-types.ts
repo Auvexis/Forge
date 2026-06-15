@@ -8,6 +8,7 @@ export interface ChatModelRef {
 }
 
 export interface EmbeddingModelRef {
+  nodeId?: string;
   providerId: string;
   methodId: string;
   configuration: Record<string, any>;
@@ -26,4 +27,4 @@ export interface RetrieverRef { retrieve(query: string): Promise<RetrievalResult
 export interface OutputParserRef { parse(value: string): Promise<unknown> }
 export type MemoryRef = AiMemoryNodeConfig;
 export type AgentToolRef = AgentToolConfig;
-export interface DocumentSourceRef { load(): Promise<any> }
+export interface DocumentSourceRef { nodeId?: string; load(): Promise<any> }

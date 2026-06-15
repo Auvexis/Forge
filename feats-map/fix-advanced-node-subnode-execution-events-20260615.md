@@ -1,0 +1,5 @@
+- [x] Trace subnode execution events
+- [x] Add vector store subnode event regression
+- [x] Emit dependency node events
+- [x] Verify server tests and build
+- [x] Commit fix

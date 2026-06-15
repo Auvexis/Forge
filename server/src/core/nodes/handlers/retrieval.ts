@@ -223,7 +223,20 @@ export const vectorStoreNodeHandler = createNodeHandler<VectorStoreNode>("vector
   const shouldQuery = mode !== "index" && Boolean(query);
   if (!shouldIndex && !shouldQuery) return baseOutput;
   if (!services.executePluginMethod) throw new Error("Vector Store requires plugin execution services.");
-  const embeddingService = new EmbeddingExecutionService(services.executePluginMethod);
+  const embeddingService = new EmbeddingExecutionService(async (pluginId, methodId, params) => {
+    if (!embedding.nodeId) return services.executePluginMethod!(pluginId, methodId, params);
+
+    const embeddingNode = workflow.nodes[embedding.nodeId];
+    services.emitNodeStart?.(embedding.nodeId);
+    try {
+      const result = await services.executePluginMethod!(pluginId, methodId, params);
+      services.emitNodeSuccess?.(embedding.nodeId, result, embeddingNode);
+      return result;
+    } catch (error) {
+      services.emitNodeFailure?.(embedding.nodeId, error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
+  });
   const vectorStoreService = new VectorStoreExecutionService(services.executePluginMethod, embeddingService);
   const output: Record<string, any> = { ...baseOutput };
   if (shouldIndex) {

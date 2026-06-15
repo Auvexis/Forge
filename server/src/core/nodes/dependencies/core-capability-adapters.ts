@@ -51,7 +51,7 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
   } });
   registry.register({ capability: "embedding-model", supports: (node) => node.type === "embeddings", resolve: async (context, nodeId) => {
     const node = context.execution.workflow.nodes[nodeId] as EmbeddingsNode;
-    return { providerId: node.pluginId, methodId: node.methodId, configuration: { model: node.model, dimension: node.dimension, batchSize: node.batchSize } } satisfies EmbeddingModelRef;
+    return { nodeId, providerId: node.pluginId, methodId: node.methodId, configuration: { model: node.model, dimension: node.dimension, batchSize: node.batchSize } } satisfies EmbeddingModelRef;
   } });
   registry.register({ capability: "output-parser", supports: (node) => node.type === "structured-json-parser", resolve: async (context, nodeId) => {
     const node = context.execution.workflow.nodes[nodeId] as StructuredJsonParserNode;
@@ -81,7 +81,22 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
     return { providerId: node.pluginId, methods: { ensureCollection: node.ensureCollectionMethodId, upsertDocuments: node.upsertMethodId, querySimilar: node.queryMethodId }, configuration: { collectionName: node.collectionName, dimension: node.dimension, metric: node.metric, config: node.config }, embedding: dependencies.getOne<EmbeddingModelRef>("embedding") } satisfies VectorStoreRef;
   } });
   for (const type of ["text-dataset", "file-dataset", "database-dataset"] as const) registry.register({ capability: "document-source", supports: (node) => node.type === type, resolve: async (context, nodeId) => ({
-    load: async () => context.execution.context.steps[nodeId]?.output ?? context.execution.services.executeNode({ nodeId, node: context.execution.workflow.nodes[nodeId], context: context.execution.context, workflow: context.execution.workflow, edges: context.execution.edges, executionId: context.execution.executionId }),
+    nodeId,
+    load: async () => {
+      const existing = context.execution.context.steps[nodeId]?.output;
+      if (existing !== undefined) return existing;
+
+      const node = context.execution.workflow.nodes[nodeId];
+      context.execution.services.emitNodeStart?.(nodeId);
+      try {
+        const result = await context.execution.services.executeNode({ nodeId, node, context: context.execution.context, workflow: context.execution.workflow, edges: context.execution.edges, executionId: context.execution.executionId });
+        context.execution.services.emitNodeSuccess?.(nodeId, result, node);
+        return result;
+      } catch (error) {
+        context.execution.services.emitNodeFailure?.(nodeId, error instanceof Error ? error : new Error(String(error)));
+        throw error;
+      }
+    },
   } satisfies DocumentSourceRef) });
   return registry;
 }
