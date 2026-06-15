@@ -69,7 +69,10 @@ describe("pinecone vector store plugin", () => {
         id: "text-dataset_1:0",
         text: "hello",
         vector: [0.1, 0.2, 0.3],
-        metadata: { source: "test" },
+        metadata: {
+          source: { filename: "test.csv" },
+          data: { nome: "Ana" },
+        },
       }],
     });
 
@@ -80,7 +83,12 @@ describe("pinecone vector store plugin", () => {
       vectors: [{
         id: "text-dataset_1:0",
         values: [0.1, 0.2, 0.3],
-        metadata: { source: "test", documentId: "text-dataset_1:0", text: "hello" },
+        metadata: {
+          "source.filename": "test.csv",
+          "data.nome": "Ana",
+          documentId: "text-dataset_1:0",
+          text: "hello",
+        },
       }],
     });
   });

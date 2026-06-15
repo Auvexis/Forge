@@ -1,0 +1,5 @@
+- [x] Trace provider metadata shape
+- [x] Add metadata structure tests
+- [x] Nest dataset source/data metadata
+- [x] Keep Pinecone metadata compatible
+- [x] Verify and commit

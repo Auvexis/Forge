@@ -74,7 +74,7 @@ export function createPineconeMethods(fetchImpl: FetchLike = fetch) {
             id: document.id,
             values: document.vector,
             metadata: {
-              ...document.metadata,
+              ...flattenMetadata(document.metadata),
               documentId: String(document.id),
               text: document.text,
             },
@@ -160,4 +160,30 @@ async function pineconeRequest(
   }
 
   return body;
+}
+
+function flattenMetadata(
+  value: Record<string, any> | undefined,
+  prefix = "",
+): Record<string, string | number | boolean | string[]> {
+  const result: Record<string, string | number | boolean | string[]> = {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) return result;
+
+  for (const [key, item] of Object.entries(value)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (item === undefined || item === null) continue;
+    if (typeof item === "string" || typeof item === "number" || typeof item === "boolean") {
+      result[path] = item;
+      continue;
+    }
+    if (Array.isArray(item) && item.every((entry) => typeof entry === "string")) {
+      result[path] = item;
+      continue;
+    }
+    if (typeof item === "object") {
+      Object.assign(result, flattenMetadata(item as Record<string, any>, path));
+    }
+  }
+
+  return result;
 }

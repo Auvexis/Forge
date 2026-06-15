@@ -92,16 +92,19 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     ? node.files
     : [node.filePath, node.fileUrl].filter((value): value is string => Boolean(value));
   const files = configuredFiles.flatMap((file) => normalizeFileInputs(TemplateEngine.evaluate(file, context)));
-  const baseMetadata = normalizeMetadata(TemplateEngine.evaluate(node.metadata ?? {}, context));
+  const customMetadata = normalizeMetadata(TemplateEngine.evaluate(node.metadata ?? {}, context));
   const items = files.flatMap((file, fileIndex) => {
     if (typeof file === "string") {
       return {
         id: `${nodeId}:${fileIndex}`,
         text: file,
-        metadata: {
-          ...baseMetadata,
-          source: file,
-        },
+        metadata: buildFileDatasetMetadata(
+          {
+            source: file,
+          },
+          {},
+          customMetadata,
+        ),
         raw: file,
       };
     }
@@ -109,8 +112,7 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     const filename = stringValue(file.filename ?? file.fileName ?? file.name);
     const mimeType = stringValue(file.mimeType ?? file.mimetype ?? file.type);
     const size = numberValue(file.size);
-    const fileMetadata = {
-      ...baseMetadata,
+    const sourceMetadata = {
       ...(filename ? { filename } : {}),
       ...(mimeType ? { mimeType } : {}),
       ...(size !== undefined ? { size } : {}),
@@ -119,13 +121,13 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     const format = resolveFileDatasetFormat(node.format, filename, mimeType);
 
     if (format === "csv") {
-      return csvToItems(text, `${nodeId}:${fileIndex}`, fileMetadata, file);
+      return csvToItems(text, `${nodeId}:${fileIndex}`, sourceMetadata, customMetadata);
     }
 
     return {
       id: `${nodeId}:${fileIndex}`,
       text,
-      metadata: fileMetadata,
+      metadata: buildFileDatasetMetadata(sourceMetadata, {}, customMetadata),
       raw: file,
     };
   });
@@ -159,6 +161,18 @@ function normalizeMetadata(value: unknown): Record<string, any> {
     : {};
 }
 
+function buildFileDatasetMetadata(
+  source: Record<string, any>,
+  data: Record<string, any>,
+  custom: Record<string, any>,
+): Record<string, any> {
+  return {
+    source,
+    ...(Object.keys(data).length > 0 ? { data } : {}),
+    ...(Object.keys(custom).length > 0 ? { custom } : {}),
+  };
+}
+
 function stringValue(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
@@ -188,8 +202,8 @@ function resolveFileDatasetFormat(
 function csvToItems(
   value: string,
   idPrefix: string,
-  baseMetadata: Record<string, any>,
-  raw: unknown,
+  sourceMetadata: Record<string, any>,
+  customMetadata: Record<string, any>,
 ): DatasetOutput["items"] {
   const rows = parseCsv(value.trim());
   if (rows.length === 0) return [];
@@ -204,11 +218,14 @@ function csvToItems(
           .map((header) => `${header}: ${record[header] ?? ""}`)
           .filter((line) => !line.endsWith(": "))
           .join("\n"),
-        metadata: {
-          ...baseMetadata,
-          ...record,
-          rowIndex: index,
-        },
+        metadata: buildFileDatasetMetadata(
+          {
+            ...sourceMetadata,
+            rowIndex: index,
+          },
+          record,
+          customMetadata,
+        ),
         raw: record,
       };
     });

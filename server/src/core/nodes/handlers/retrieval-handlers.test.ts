@@ -166,9 +166,11 @@ describe("retrieval utility node handlers", () => {
     assert.equal(result.count, 1);
     assert.equal(result.items[0].text, "hello from upload");
     assert.deepEqual(result.items[0].metadata, {
-      filename: "notes.txt",
-      mimeType: "text/plain",
-      size: 17,
+      source: {
+        filename: "notes.txt",
+        mimeType: "text/plain",
+        size: 17,
+      },
     });
   });
 
@@ -256,14 +258,20 @@ describe("retrieval utility node handlers", () => {
     assert.match(result.items[0].text, /nome: Mateus Fernandes/);
     assert.notEqual(result.items[0].text, "{{ trigger.file }}");
     assert.deepEqual(result.items[0].metadata, {
-      source: "clientes.csv",
-      filename: "clientes.csv",
-      mimeType: "text/csv",
-      size: Buffer.byteLength(csv),
-      id: "12",
-      nome: "Mateus Fernandes",
-      categoria_favorita: "eletrônicos",
-      rowIndex: 0,
+      source: {
+        filename: "clientes.csv",
+        mimeType: "text/csv",
+        size: Buffer.byteLength(csv),
+        rowIndex: 0,
+      },
+      data: {
+        id: "12",
+        nome: "Mateus Fernandes",
+        categoria_favorita: "eletrônicos",
+      },
+      custom: {
+        source: "clientes.csv",
+      },
     });
   });
 
@@ -309,7 +317,7 @@ describe("retrieval utility node handlers", () => {
 
     assert.equal(result.count, 2);
     assert.deepEqual(result.items.map((item: any) => item.text), ["# First", "id: 1\nnome: Ana"]);
-    assert.deepEqual(result.items.map((item: any) => item.metadata.filename), ["first.md", "second.csv"]);
+    assert.deepEqual(result.items.map((item: any) => item.metadata.source.filename), ["first.md", "second.csv"]);
   });
 
   it("file dataset parses CSV uploads into one dataset item per row", async () => {
@@ -352,8 +360,9 @@ describe("retrieval utility node handlers", () => {
       "file-dataset_1:0:1",
       "file-dataset_1:0:2",
     ]);
-    assert.equal(result.items[0].metadata.categoria_favorita, "eletrônicos");
-    assert.equal(result.items[2].metadata.observacoes, "Campo com vírgula, para testar parser.");
+    assert.equal(result.items[0].metadata.data.categoria_favorita, "eletrônicos");
+    assert.equal(result.items[0].metadata.source.rowIndex, 0);
+    assert.equal(result.items[2].metadata.data.observacoes, "Campo com vírgula, para testar parser.");
     assert.match(result.items[0].text, /nome: Mateus Fernandes/);
     assert.match(result.items[0].text, /categoria_favorita: eletrônicos/);
     assert.doesNotMatch(result.items[0].text, /Victor Hugo/);

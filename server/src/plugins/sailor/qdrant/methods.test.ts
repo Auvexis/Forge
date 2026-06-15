@@ -162,7 +162,10 @@ describe("qdrant vector store plugin", () => {
         id: "text-dataset_1:0",
         text: "hello",
         vector: [0.1, 0.2, 0.3],
-        metadata: { source: "test" },
+        metadata: {
+          source: { filename: "test.csv" },
+          data: { nome: "Ana" },
+        },
       }],
     });
 
@@ -170,7 +173,8 @@ describe("qdrant vector store plugin", () => {
     assert.equal(calls[0].url, "http://localhost:6333/collections/docs/points?wait=true");
     assert.match(body.points[0].id, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
     assert.deepEqual(body.points[0].payload, {
-      source: "test",
+      source: { filename: "test.csv" },
+      data: { nome: "Ana" },
       documentId: "text-dataset_1:0",
       text: "hello",
     });
