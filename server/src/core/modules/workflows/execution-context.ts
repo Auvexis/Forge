@@ -2,7 +2,9 @@ import { AppRepository } from "../app/app-repository.ts";
 import type { WorkflowExecutionContext } from "../../nodes/types.ts";
 import type { WorkflowItem, WorkflowVariable } from "../../../shared/models/workflow-types.ts";
 
-export function sanitizeContextForLogging(context: any): any {
+const MAX_LOG_ARRAY_ITEMS = 20;
+
+export function sanitizeContextForLogging(context: any, key?: string): any {
   if (context === null || context === undefined) return context;
 
   if (Buffer.isBuffer(context)) {
@@ -18,14 +20,29 @@ export function sanitizeContextForLogging(context: any): any {
   }
 
   if (Array.isArray(context)) {
-    return context.map(sanitizeContextForLogging);
+    if (key === "vector" && context.every((item) => typeof item === "number")) {
+      return {
+        preview: `<vector length: ${context.length}>`,
+        length: context.length,
+      };
+    }
+
+    const sanitized = context.slice(0, MAX_LOG_ARRAY_ITEMS).map((item) => sanitizeContextForLogging(item));
+    if (context.length > MAX_LOG_ARRAY_ITEMS) {
+      sanitized.push({
+        preview: "<array truncated>",
+        omitted: context.length - MAX_LOG_ARRAY_ITEMS,
+        total: context.length,
+      });
+    }
+    return sanitized;
   }
 
   if (typeof context === "object") {
     const sanitized: Record<string, any> = {};
     for (const [key, value] of Object.entries(context)) {
       if (key.startsWith("_") && typeof value === "object") continue;
-      sanitized[key] = sanitizeContextForLogging(value);
+      sanitized[key] = sanitizeContextForLogging(value, key);
     }
     return sanitized;
   }

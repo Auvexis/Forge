@@ -1,0 +1,4 @@
+- [x] Trace run lag payloads
+- [x] Add payload sanitization tests
+- [x] Trim heavy file/vector data from UI events
+- [x] Verify and commit
