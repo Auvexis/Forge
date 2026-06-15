@@ -97,12 +97,44 @@ describe("qdrant vector store plugin", () => {
     });
   });
 
+  it("upserts documents with Qdrant-compatible point ids", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const methods = createQdrantMethods(async (url, init) => {
+      calls.push({ url: String(url), init: init ?? {} });
+      return jsonResponse({ result: true });
+    });
+
+    await methods.upsertDocuments({
+      store: {
+        collectionName: "docs",
+        dimension: 3,
+        metric: "cosine",
+        config: { mode: "local", url: "http://localhost:6333" },
+      },
+      documents: [{
+        id: "text-dataset_1:0",
+        text: "hello",
+        vector: [0.1, 0.2, 0.3],
+        metadata: { source: "test" },
+      }],
+    });
+
+    const body = JSON.parse(String(calls[0].init.body));
+    assert.equal(calls[0].url, "http://localhost:6333/collections/docs/points?wait=true");
+    assert.match(body.points[0].id, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    assert.deepEqual(body.points[0].payload, {
+      source: "test",
+      documentId: "text-dataset_1:0",
+      text: "hello",
+    });
+  });
+
   it("queries similar vectors through the Qdrant search API", async () => {
     const methods = createQdrantMethods(async () => jsonResponse({
       result: [{
-        id: "doc-1",
+        id: "159ab48b-4675-4d53-9dde-c9def9e83fd8",
         score: 0.9,
-        payload: { text: "hello", source: "test" },
+        payload: { text: "hello", documentId: "text-dataset_1:0", source: "test" },
       }],
     }));
 
@@ -117,10 +149,10 @@ describe("qdrant vector store plugin", () => {
     });
 
     assert.deepEqual(result, [{
-      id: "doc-1",
+      id: "text-dataset_1:0",
       score: 0.9,
       text: "hello",
-      metadata: { source: "test" },
+      metadata: { documentId: "text-dataset_1:0", source: "test" },
     }]);
   });
 });

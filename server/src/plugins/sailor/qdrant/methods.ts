@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import type { PluginContext } from "@auvexis/sailor-sdk";
 import type {
   VectorSearchResult,
@@ -11,6 +13,8 @@ import type {
 
 type FetchLike = typeof fetch;
 type QdrantMode = "local" | "cloud" | "self-hosted";
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UNSIGNED_INTEGER_PATTERN = /^(0|[1-9]\d*)$/;
 
 interface QdrantConfig {
   mode: QdrantMode;
@@ -79,10 +83,11 @@ export function createQdrantMethods(fetchImpl: FetchLike = fetch) {
           method: "PUT",
           body: JSON.stringify({
             points: params.documents.map((document) => ({
-              id: document.id,
+              id: toQdrantPointId(document.id),
               vector: document.vector,
               payload: {
                 ...document.metadata,
+                documentId: String(document.id),
                 text: document.text,
               },
             })),
@@ -115,9 +120,12 @@ export function createQdrantMethods(fetchImpl: FetchLike = fetch) {
       return (Array.isArray(response.result) ? response.result : []).map((point: any) => {
         const payload = { ...(point.payload ?? {}) };
         const text = typeof payload.text === "string" ? payload.text : "";
+        const documentId = typeof payload.documentId === "string" && payload.documentId
+          ? payload.documentId
+          : String(point.id);
         delete payload.text;
         return {
-          id: String(point.id),
+          id: documentId,
           score: Number(point.score ?? 0),
           text,
           metadata: payload,
@@ -159,6 +167,29 @@ function normalizeTimeout(value: unknown): number {
   const parsed = Number(value ?? 30000);
   if (!Number.isFinite(parsed) || parsed < 1000) return 30000;
   return Math.trunc(parsed);
+}
+
+function toQdrantPointId(id: unknown): string | number {
+  if (typeof id === "number" && Number.isSafeInteger(id) && id >= 0) return id;
+
+  const value = String(id ?? "").trim();
+  if (UNSIGNED_INTEGER_PATTERN.test(value)) return Number(value);
+  if (UUID_PATTERN.test(value)) return value;
+
+  return deterministicUuid(value || "document");
+}
+
+function deterministicUuid(value: string): string {
+  const hex = createHash("sha256").update(value).digest("hex");
+  const variant = ((Number.parseInt(hex.slice(16, 18), 16) & 0x3f) | 0x80).toString(16).padStart(2, "0");
+
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    `4${hex.slice(13, 16)}`,
+    `${variant}${hex.slice(18, 20)}`,
+    hex.slice(20, 32),
+  ].join("-");
 }
 
 async function qdrantRequest(
