@@ -78,6 +78,7 @@ describe("qdrant vector store plugin", () => {
     const calls: Array<{ url: string; init: RequestInit }> = [];
     const methods = createQdrantMethods(async (url, init) => {
       calls.push({ url: String(url), init: init ?? {} });
+      if (init?.method === "GET") return errorResponse(404, { status: { error: "Not found" } });
       return jsonResponse({ result: true });
     });
 
@@ -92,16 +93,44 @@ describe("qdrant vector store plugin", () => {
 
     assert.equal(result.ok, true);
     assert.equal(calls[0].url, "http://localhost:6333/collections/docs");
-    assert.deepEqual(JSON.parse(String(calls[0].init.body)), {
+    assert.equal(calls[0].init.method, "GET");
+    assert.equal(calls[1].url, "http://localhost:6333/collections/docs");
+    assert.equal(calls[1].init.method, "PUT");
+    assert.deepEqual(JSON.parse(String(calls[1].init.body)), {
       vectors: { size: 3, distance: "Cosine" },
     });
   });
 
+  it("does not create collections that already exist", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const methods = createQdrantMethods(async (url, init) => {
+      calls.push({ url: String(url), init: init ?? {} });
+      return jsonResponse({ result: { status: "green" } });
+    });
+
+    const result = await methods.ensureCollection({
+      store: {
+        collectionName: "docs",
+        dimension: 3,
+        metric: "cosine",
+        config: { mode: "local", url: "http://localhost:6333" },
+      },
+    });
+
+    assert.deepEqual(result, { ok: true, collectionName: "docs" });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].url, "http://localhost:6333/collections/docs");
+    assert.equal(calls[0].init.method, "GET");
+  });
+
   it("treats an existing collection as ensured", async () => {
-    const methods = createQdrantMethods(async () => errorResponse(409, {
-      status: { error: "Wrong input: Collection `docs` already exists!" },
-      time: 0.0001,
-    }));
+    const methods = createQdrantMethods(async (_url, init) => {
+      if (init?.method === "GET") return errorResponse(404, { status: { error: "Not found" } });
+      return errorResponse(409, {
+        status: { error: "Wrong input: Collection docs already exists!" },
+        time: 0.0001,
+      });
+    });
 
     const result = await methods.ensureCollection({
       store: {

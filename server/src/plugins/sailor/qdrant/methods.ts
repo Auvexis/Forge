@@ -60,8 +60,17 @@ export function createQdrantMethods(fetchImpl: FetchLike = fetch) {
   return {
     async ensureCollection(params: VectorStoreEnsureCollectionInput, context?: PluginContext) {
       const config = normalizeQdrantConfig(params.store, context);
+      const collectionPath = `/collections/${encodeURIComponent(config.collectionName)}`;
+
       try {
-        await qdrantRequest(fetchImpl, config, `/collections/${encodeURIComponent(config.collectionName)}`, {
+        await qdrantRequest(fetchImpl, config, collectionPath, { method: "GET" });
+        return { ok: true, collectionName: config.collectionName };
+      } catch (error) {
+        if (!isQdrantCollectionNotFoundError(error)) throw error;
+      }
+
+      try {
+        await qdrantRequest(fetchImpl, config, collectionPath, {
           method: "PUT",
           body: JSON.stringify({
             vectors: {
@@ -200,6 +209,11 @@ function isQdrantCollectionAlreadyExistsError(error: unknown): boolean {
   return error instanceof Error
     && error.message.includes("Qdrant request failed (409)")
     && error.message.toLowerCase().includes("already exists");
+}
+
+function isQdrantCollectionNotFoundError(error: unknown): boolean {
+  return error instanceof Error
+    && error.message.includes("Qdrant request failed (404)");
 }
 
 async function qdrantRequest(
