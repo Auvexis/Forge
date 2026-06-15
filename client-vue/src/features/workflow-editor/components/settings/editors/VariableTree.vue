@@ -59,6 +59,12 @@ fetchPlugins()
 
 // ... (removed getVariableDisplayLabel)
 
+function toTreePreviewValue(value: unknown, fallbackType?: string): unknown {
+  if (Array.isArray(value)) return `<array length: ${value.length}>`
+  if (value && typeof value === 'object') return fallbackType || 'object'
+  return value
+}
+
 const allPaths = computed(() => {
   const paths: SchemaPath[] = []
   const workflowVariables = useWorkflowStore().activeWorkflow?.variables ?? []
@@ -352,11 +358,7 @@ const mockData = computed(() => {
       const part = parts[i] as string
       if (i === parts.length - 1) {
         if (p.value !== undefined) {
-          try {
-            current[part] = JSON.parse(JSON.stringify(p.value))
-          } catch {
-            current[part] = String(p.value)
-          }
+          current[part] = toTreePreviewValue(p.value, p.type)
         } else {
           current[part] = p.type || 'any'
         }

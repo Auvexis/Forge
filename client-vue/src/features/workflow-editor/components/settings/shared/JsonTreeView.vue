@@ -9,13 +9,15 @@ const props = defineProps<{
   isRoot?: boolean
   isLast?: boolean
   icons?: Record<string, string>
+  depth?: number
 }>()
 
 const isObject = computed(
   () => props.data !== null && typeof props.data === 'object' && !Array.isArray(props.data),
 )
 const isArray = computed(() => Array.isArray(props.data))
-const isExpanded = ref(true)
+const depth = computed(() => props.depth ?? 0)
+const isExpanded = ref(Boolean(props.isRoot))
 
 function toggle() {
   isExpanded.value = !isExpanded.value
@@ -112,6 +114,7 @@ const onDragStart = (event: DragEvent) => {
           :path="path ? `${path}.${String(key)}` : String(key)"
           :is-last="index === Object.keys(data).length - 1"
           :icons="icons"
+          :depth="depth + 1"
         />
       </template>
       <template v-if="isArray">
@@ -122,6 +125,7 @@ const onDragStart = (event: DragEvent) => {
           :path="path ? `${path}[${index}]` : `[${index}]`"
           :is-last="index === data.length - 1"
           :icons="icons"
+          :depth="depth + 1"
         />
       </template>
     </div>

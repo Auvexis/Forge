@@ -1,0 +1,5 @@
+- [x] Trace editor tree loading path
+- [x] Add lazy tree contract coverage
+- [x] Defer INPUT and OUTPUT tree mounting
+- [x] Keep large JSON trees collapsed after root
+- [x] Verify and commit

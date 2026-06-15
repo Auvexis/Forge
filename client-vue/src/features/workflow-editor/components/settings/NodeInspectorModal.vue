@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { type GraphNode } from '@vue-flow/core'
 import { useNodeInspectorStore } from '../../stores/node-inspector.store'
 import { useWorkflowStore } from '../../stores/workflow.store'
@@ -245,6 +245,44 @@ const nodeDisabled = computed(() => {
 })
 const activeTab = ref<'config' | 'settings'>('config')
 const localId = ref('')
+const inputTreeReady = ref(false)
+const outputTreeReady = ref(false)
+let inputTreeTimer: number | null = null
+let outputTreeTimer: number | null = null
+
+function clearLazyTreeTimers() {
+  if (inputTreeTimer !== null) {
+    window.clearTimeout(inputTreeTimer)
+    inputTreeTimer = null
+  }
+  if (outputTreeTimer !== null) {
+    window.clearTimeout(outputTreeTimer)
+    outputTreeTimer = null
+  }
+}
+
+function scheduleInspectorTrees() {
+  clearLazyTreeTimers()
+  inputTreeReady.value = false
+  outputTreeReady.value = false
+
+  if (!inspectorStore.isOpen) return
+
+  void nextTick(() => {
+    inputTreeTimer = window.setTimeout(() => {
+      inputTreeReady.value = true
+      inputTreeTimer = null
+
+      outputTreeTimer = window.setTimeout(() => {
+        outputTreeReady.value = true
+        outputTreeTimer = null
+      }, 16)
+    }, 16)
+  })
+}
+
+onBeforeUnmount(clearLazyTreeTimers)
+
 const retryPolicy = computed<RetryPolicy | undefined>(() => {
   return enrichedNode.value?.data?.retryPolicy as RetryPolicy | undefined
 })
@@ -261,9 +299,19 @@ watch(
     if (isOpen) {
       activeTab.value = 'config'
       localId.value = inspectorStore.activeNodeId || ''
+      scheduleInspectorTrees()
+    } else {
+      clearLazyTreeTimers()
+      inputTreeReady.value = false
+      outputTreeReady.value = false
     }
   },
   { immediate: true }
+)
+
+watch(
+  () => [inspectorStore.activeNodeId, executionState.value?.output, inspectorStore.lastTestOutput],
+  () => scheduleInspectorTrees(),
 )
 
 /**
@@ -468,11 +516,16 @@ const copyToClipboard = async (path: string) => {
             <template v-else>
               <div v-if="upstreamNodes.length > 0" class="p-4 flex-1">
                 <VariableTree
+                  v-if="inputTreeReady"
                   param-key="inspector"
                   :upstream-nodes="upstreamNodes"
                   :nodes="nodes"
                   @inject="(key, path) => copyToClipboard(path)"
                 />
+                <div v-else class="tree-loading-state">
+                  <LucideIcon name="loader-2" size="18" class="spin text-sailor-accent" />
+                  <span>Loading input preview...</span>
+                </div>
               </div>
               <div
                 v-else
@@ -668,7 +721,11 @@ const copyToClipboard = async (path: string) => {
             </div>
 
             <div v-else-if="displayOutput?.success" class="h-full flex-1">
-              <div class="h-full">
+              <div v-if="!outputTreeReady" class="tree-loading-state h-full">
+                <LucideIcon name="loader-2" size="18" class="spin text-sailor-accent" />
+                <span>Loading output preview...</span>
+              </div>
+              <div v-else class="h-full">
                 <JsonTreeView :data="displayOutput.data" :is-root="true" />
               </div>
             </div>
@@ -699,6 +756,16 @@ const copyToClipboard = async (path: string) => {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--sailor-space-3);
+}
+
+.tree-loading-state {
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sailor-space-2);
+  color: var(--sailor-text-muted);
+  font-size: 12px;
 }
 
 @media (max-width: 900px) {
