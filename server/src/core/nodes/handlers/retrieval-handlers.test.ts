@@ -251,15 +251,19 @@ describe("retrieval utility node handlers", () => {
       },
     });
 
-    assert.equal(result.count, 1);
-    assert.equal(result.items[0].id, "file-dataset_1:0");
-    assert.equal(result.items[0].text, csv);
+    assert.equal(result.count, 2);
+    assert.equal(result.items[0].id, "file-dataset_1:0:0");
+    assert.match(result.items[0].text, /nome: Mateus Fernandes/);
     assert.notEqual(result.items[0].text, "{{ trigger.file }}");
     assert.deepEqual(result.items[0].metadata, {
       source: "clientes.csv",
       filename: "clientes.csv",
       mimeType: "text/csv",
       size: Buffer.byteLength(csv),
+      id: "12",
+      nome: "Mateus Fernandes",
+      categoria_favorita: "eletrônicos",
+      rowIndex: 0,
     });
   });
 
@@ -304,8 +308,88 @@ describe("retrieval utility node handlers", () => {
     });
 
     assert.equal(result.count, 2);
-    assert.deepEqual(result.items.map((item: any) => item.text), ["# First", "id,nome\n1,Ana"]);
+    assert.deepEqual(result.items.map((item: any) => item.text), ["# First", "id: 1\nnome: Ana"]);
     assert.deepEqual(result.items.map((item: any) => item.metadata.filename), ["first.md", "second.csv"]);
+  });
+
+  it("file dataset parses CSV uploads into one dataset item per row", async () => {
+    const handler = createUtilityNodeRegistry().get("file-dataset");
+    const csv = [
+      "id,nome,categoria_favorita,observacoes",
+      "12,Mateus Fernandes,eletrônicos,Pagamento em análise.",
+      "20,Victor Hugo,eletrônicos,Possui cupom ativo.",
+      '25,Caio Pires,casa,"Campo com vírgula, para testar parser."',
+    ].join("\n");
+
+    const result = await handler.execute({
+      nodeId: "file-dataset_1",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {} as any,
+      node: {
+        type: "file-dataset",
+        name: "Files",
+        files: [{
+          filename: "clientes.csv",
+          content: Buffer.from(csv).toString("base64"),
+          mimeType: "text/csv",
+        }],
+        format: "auto",
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.equal(result.count, 3);
+    assert.deepEqual(result.items.map((item: any) => item.id), [
+      "file-dataset_1:0:0",
+      "file-dataset_1:0:1",
+      "file-dataset_1:0:2",
+    ]);
+    assert.equal(result.items[0].metadata.categoria_favorita, "eletrônicos");
+    assert.equal(result.items[2].metadata.observacoes, "Campo com vírgula, para testar parser.");
+    assert.match(result.items[0].text, /nome: Mateus Fernandes/);
+    assert.match(result.items[0].text, /categoria_favorita: eletrônicos/);
+    assert.doesNotMatch(result.items[0].text, /Victor Hugo/);
+  });
+
+  it("file dataset keeps explicit markdown uploads as a single document", async () => {
+    const handler = createUtilityNodeRegistry().get("file-dataset");
+    const markdown = "# Clientes\n\n- Mateus Fernandes: eletrônicos";
+
+    const result = await handler.execute({
+      nodeId: "file-dataset_1",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {} as any,
+      node: {
+        type: "file-dataset",
+        name: "Files",
+        files: [{
+          filename: "clientes.csv",
+          content: Buffer.from(markdown).toString("base64"),
+          mimeType: "text/csv",
+        }],
+        format: "markdown",
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.equal(result.count, 1);
+    assert.equal(result.items[0].text, markdown);
   });
 
   it("vector store indexes connected dataset documents with connected embedding config", async () => {

@@ -93,10 +93,10 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     : [node.filePath, node.fileUrl].filter((value): value is string => Boolean(value));
   const files = configuredFiles.flatMap((file) => normalizeFileInputs(TemplateEngine.evaluate(file, context)));
   const baseMetadata = normalizeMetadata(TemplateEngine.evaluate(node.metadata ?? {}, context));
-  const items = files.map((file, index) => {
+  const items = files.flatMap((file, fileIndex) => {
     if (typeof file === "string") {
       return {
-        id: `${nodeId}:${index}`,
+        id: `${nodeId}:${fileIndex}`,
         text: file,
         metadata: {
           ...baseMetadata,
@@ -109,16 +109,23 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     const filename = stringValue(file.filename ?? file.fileName ?? file.name);
     const mimeType = stringValue(file.mimeType ?? file.mimetype ?? file.type);
     const size = numberValue(file.size);
+    const fileMetadata = {
+      ...baseMetadata,
+      ...(filename ? { filename } : {}),
+      ...(mimeType ? { mimeType } : {}),
+      ...(size !== undefined ? { size } : {}),
+    };
+    const text = decodeFileContent(file.content ?? file.contentBase64 ?? file.data ?? file.buffer);
+    const format = resolveFileDatasetFormat(node.format, filename, mimeType);
+
+    if (format === "csv") {
+      return csvToItems(text, `${nodeId}:${fileIndex}`, fileMetadata, file);
+    }
 
     return {
-      id: `${nodeId}:${index}`,
-      text: decodeFileContent(file.content ?? file.contentBase64 ?? file.data ?? file.buffer),
-      metadata: {
-        ...baseMetadata,
-        ...(filename ? { filename } : {}),
-        ...(mimeType ? { mimeType } : {}),
-        ...(size !== undefined ? { size } : {}),
-      },
+      id: `${nodeId}:${fileIndex}`,
+      text,
+      metadata: fileMetadata,
       raw: file,
     };
   });
@@ -158,6 +165,96 @@ function stringValue(value: unknown): string | undefined {
 
 function numberValue(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function resolveFileDatasetFormat(
+  format: FileDatasetNode["format"],
+  filename?: string,
+  mimeType?: string,
+): FileDatasetNode["format"] {
+  if (format !== "auto") return format;
+  const lowerFilename = filename?.toLowerCase() ?? "";
+  const lowerMimeType = mimeType?.toLowerCase() ?? "";
+  if (lowerMimeType.includes("csv") || lowerFilename.endsWith(".csv")) return "csv";
+  if (lowerMimeType.includes("json") || lowerFilename.endsWith(".json")) return "json";
+  if (
+    lowerMimeType.includes("markdown") ||
+    lowerFilename.endsWith(".md") ||
+    lowerFilename.endsWith(".markdown")
+  ) return "markdown";
+  return "txt";
+}
+
+function csvToItems(
+  value: string,
+  idPrefix: string,
+  baseMetadata: Record<string, any>,
+  raw: unknown,
+): DatasetOutput["items"] {
+  const rows = parseCsv(value.trim());
+  if (rows.length === 0) return [];
+  const headers = rows[0].map((header) => header.trim());
+  return rows.slice(1)
+    .filter((row) => row.some((cell) => cell.trim().length > 0))
+    .map((row, index) => {
+      const record = Object.fromEntries(headers.map((header, cellIndex) => [header, row[cellIndex] ?? ""]));
+      return {
+        id: `${idPrefix}:${index}`,
+        text: headers
+          .map((header) => `${header}: ${record[header] ?? ""}`)
+          .filter((line) => !line.endsWith(": "))
+          .join("\n"),
+        metadata: {
+          ...baseMetadata,
+          ...record,
+          rowIndex: index,
+        },
+        raw: record,
+      };
+    });
+}
+
+function parseCsv(value: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let quoted = false;
+
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index];
+    const next = value[index + 1];
+
+    if (char === '"') {
+      if (quoted && next === '"') {
+        cell += '"';
+        index += 1;
+      } else {
+        quoted = !quoted;
+      }
+      continue;
+    }
+
+    if (char === "," && !quoted) {
+      row.push(cell);
+      cell = "";
+      continue;
+    }
+
+    if ((char === "\n" || char === "\r") && !quoted) {
+      if (char === "\r" && next === "\n") index += 1;
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+      continue;
+    }
+
+    cell += char;
+  }
+
+  row.push(cell);
+  if (row.length > 1 || row[0].length > 0) rows.push(row);
+  return rows;
 }
 
 function decodeFileContent(content: unknown): string {

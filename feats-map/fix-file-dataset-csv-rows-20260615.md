@@ -1,0 +1,4 @@
+- [x] Trace CSV dataset output
+- [x] Add failing CSV row tests
+- [x] Parse CSV files into row items
+- [x] Verify and commit
