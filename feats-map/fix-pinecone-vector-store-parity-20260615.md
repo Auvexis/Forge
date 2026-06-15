@@ -1,0 +1,5 @@
+- [x] Trace Pinecone vector flow
+- [x] Add Pinecone parity regressions
+- [x] Preserve original document ids
+- [x] Verify server tests and build
+- [x] Commit fix

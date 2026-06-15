@@ -66,7 +66,7 @@ describe("pinecone vector store plugin", () => {
         config: { mode: "local", localHost: "http://localhost:5080", namespace: "dev" },
       },
       documents: [{
-        id: "doc-1",
+        id: "text-dataset_1:0",
         text: "hello",
         vector: [0.1, 0.2, 0.3],
         metadata: { source: "test" },
@@ -78,9 +78,9 @@ describe("pinecone vector store plugin", () => {
     assert.deepEqual(JSON.parse(String(calls[0].init.body)), {
       namespace: "dev",
       vectors: [{
-        id: "doc-1",
+        id: "text-dataset_1:0",
         values: [0.1, 0.2, 0.3],
-        metadata: { source: "test", text: "hello" },
+        metadata: { source: "test", documentId: "text-dataset_1:0", text: "hello" },
       }],
     });
   });
@@ -88,9 +88,9 @@ describe("pinecone vector store plugin", () => {
   it("queries similar vectors through the Pinecone vector API", async () => {
     const methods = createPineconeMethods(async () => jsonResponse({
       matches: [{
-        id: "doc-1",
+        id: "pinecone-vector-id",
         score: 0.9,
-        metadata: { text: "hello", source: "test" },
+        metadata: { text: "hello", documentId: "text-dataset_1:0", source: "test" },
       }],
     }));
 
@@ -105,10 +105,10 @@ describe("pinecone vector store plugin", () => {
     });
 
     assert.deepEqual(result, [{
-      id: "doc-1",
+      id: "text-dataset_1:0",
       score: 0.9,
       text: "hello",
-      metadata: { source: "test" },
+      metadata: { documentId: "text-dataset_1:0", source: "test" },
     }]);
   });
 });

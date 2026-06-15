@@ -75,6 +75,7 @@ export function createPineconeMethods(fetchImpl: FetchLike = fetch) {
             values: document.vector,
             metadata: {
               ...document.metadata,
+              documentId: String(document.id),
               text: document.text,
             },
           })),
@@ -104,9 +105,12 @@ export function createPineconeMethods(fetchImpl: FetchLike = fetch) {
       return (Array.isArray(response.matches) ? response.matches : []).map((match: any) => {
         const metadata = { ...(match.metadata ?? {}) };
         const text = typeof metadata.text === "string" ? metadata.text : "";
+        const documentId = typeof metadata.documentId === "string" && metadata.documentId
+          ? metadata.documentId
+          : String(match.id);
         delete metadata.text;
         return {
-          id: String(match.id),
+          id: documentId,
           score: Number(match.score ?? 0),
           text,
           metadata,
