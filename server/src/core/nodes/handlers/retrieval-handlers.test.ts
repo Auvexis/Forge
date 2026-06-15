@@ -288,8 +288,8 @@ describe("retrieval utility node handlers", () => {
     });
 
     assert.deepEqual(calls.map((call) => `${call.pluginId}:${call.methodId}`), [
-      "embedding-provider:createEmbeddings",
       "vector-provider:ensureCollection",
+      "embedding-provider:createEmbeddings",
       "vector-provider:upsertDocuments",
     ]);
     const upsertedDocument = calls[2]?.params.documents[0] as Record<string, any>;

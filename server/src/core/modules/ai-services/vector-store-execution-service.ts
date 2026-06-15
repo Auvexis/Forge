@@ -32,10 +32,10 @@ export class VectorStoreExecutionService {
 
   async index(store: VectorStoreRef, items: any[]): Promise<{ indexedCount: number; documents: any[] }> {
     if (!store.methods.upsertDocuments) throw new Error("Vector Store does not define an upsert method.");
+    await this.executePluginMethod(store.providerId, store.methods.ensureCollection, { store: store.configuration });
     const vectors = await this.embeddings.embedMany(store.embedding, items.map((item) => String(item?.text ?? "")));
     if (vectors.length !== items.length) throw new Error(`Embedding provider returned ${vectors.length} vectors for ${items.length} documents.`);
     const documents = items.map((item, index) => ({ id: String(item?.id ?? index), text: String(item?.text ?? ""), vector: vectors[index], metadata: item?.metadata ?? {} }));
-    await this.executePluginMethod(store.providerId, store.methods.ensureCollection, { store: store.configuration });
     const result = await this.executePluginMethod(store.providerId, store.methods.upsertDocuments, { store: store.configuration, documents });
     return { indexedCount: Number(result?.upsertedCount ?? documents.length), documents };
   }

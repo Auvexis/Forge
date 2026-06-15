@@ -13,6 +13,7 @@ export class EmbeddingExecutionService {
     });
     const vectors = Array.isArray(result) ? result
       : Array.isArray(result?.vectors) ? result.vectors
+      : Array.isArray(result?.embeddings) ? result.embeddings
       : Array.isArray(result?.data) ? result.data.map((item: any) => item?.embedding ?? item?.vector)
       : [];
     return vectors.filter((value: unknown): value is number[] => Array.isArray(value));
