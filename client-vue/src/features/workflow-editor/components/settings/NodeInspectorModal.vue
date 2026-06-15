@@ -6,6 +6,7 @@ import { useWorkflowStore } from '../../stores/workflow.store'
 import { useExecutionStore } from '../../stores/execution.store'
 import type { NodeData } from './editors/types'
 import type { RetryPolicy, WorkflowNodeType } from '@/core/types/workflow.types'
+import type { Edge } from '@vue-flow/core'
 
 import { NODE_EDITOR_REGISTRY } from './editors'
 import JsonTreeView from './shared/JsonTreeView.vue'
@@ -23,6 +24,8 @@ import {
   buildEventListenerInputPreview,
   buildNodeTestExecutionContext,
 } from './nodeInspectorPreview'
+import { getInputContextNodes } from './nodeInputContext'
+import { getAdvancedNodeHandlers } from '../../layout/advancedNodeDefinitions'
 
 const inspectorStore = useNodeInspectorStore()
 const workflowStore = useWorkflowStore()
@@ -151,36 +154,27 @@ const nodes = computed((): GraphNode<NodeData>[] => {
 
 const edges = computed(() => workflowStore.activeWorkflow?.edges ?? [])
 
-const getUpstreamNodes = (
-  currentId: string,
-  visited = new Set<string>(),
-): GraphNode<NodeData>[] => {
-  if (visited.has(currentId)) return []
-  visited.add(currentId)
+const isConfigurationEdge = (edge: Edge): boolean => {
+  const target = nodes.value.find((node) => node.id === edge.target)
+  const targetHandle = edge.targetHandle
+  if (!target || !targetHandle) return false
 
-  const storeEdges = workflowStore.activeWorkflow?.edges ?? []
-  const directEdges = storeEdges.filter((e) => e.target === currentId)
-  let upstream: GraphNode<NodeData>[] = []
-
-  for (const edge of directEdges) {
-    const parentNode = nodes.value.find((n) => n.id === edge.source)
-    if (parentNode) {
-      upstream.push(parentNode)
-      upstream = upstream.concat(getUpstreamNodes(edge.source, visited))
-    }
-  }
-
-  const byId = new Map<string, GraphNode<NodeData>>()
-  for (const n of upstream) {
-    if (!byId.has(n.id)) byId.set(n.id, n)
-  }
-
-  return Array.from(byId.values())
+  return getAdvancedNodeHandlers(target.type).some(
+    (handler) =>
+      handler.type === 'target' &&
+      handler.id === targetHandle &&
+      Boolean(handler.accepts?.length),
+  )
 }
 
 const upstreamNodes = computed(() => {
   if (!inspectorStore.activeNode) return []
-  return getUpstreamNodes(inspectorStore.activeNode.id)
+  return getInputContextNodes({
+    currentId: inspectorStore.activeNode.id,
+    nodes: nodes.value,
+    edges: edges.value,
+    isConfigurationEdge,
+  })
 })
 
 const enrichedNode = computed(() => {
