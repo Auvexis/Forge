@@ -1,0 +1,4 @@
+- [x] Trace vector document metadata path
+- [x] Add embeddings metadata test
+- [x] Add embeddings metadata to indexed documents
+- [x] Verify and commit

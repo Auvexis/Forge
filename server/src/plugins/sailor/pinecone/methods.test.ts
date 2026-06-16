@@ -72,6 +72,7 @@ describe("pinecone vector store plugin", () => {
         metadata: {
           source: { filename: "test.csv" },
           data: { nome: "Ana" },
+          embeddings: [{ provider: "ollama", model: "nomic", dimension: 3 }],
         },
       }],
     });
@@ -86,6 +87,9 @@ describe("pinecone vector store plugin", () => {
         metadata: {
           "source.filename": "test.csv",
           "data.nome": "Ana",
+          "embeddings.0.provider": "ollama",
+          "embeddings.0.model": "nomic",
+          "embeddings.0.dimension": 3,
           documentId: "text-dataset_1:0",
           text: "hello",
         },
@@ -98,7 +102,14 @@ describe("pinecone vector store plugin", () => {
       matches: [{
         id: "pinecone-vector-id",
         score: 0.9,
-        metadata: { text: "hello", documentId: "text-dataset_1:0", source: "test" },
+        metadata: {
+          text: "hello",
+          documentId: "text-dataset_1:0",
+          source: "test",
+          "embeddings.0.provider": "ollama",
+          "embeddings.0.model": "nomic",
+          "embeddings.0.dimension": 3,
+        },
       }],
     }));
 
@@ -116,7 +127,11 @@ describe("pinecone vector store plugin", () => {
       id: "text-dataset_1:0",
       score: 0.9,
       text: "hello",
-      metadata: { documentId: "text-dataset_1:0", source: "test" },
+      metadata: {
+        documentId: "text-dataset_1:0",
+        source: "test",
+        embeddings: [{ provider: "ollama", model: "nomic", dimension: 3 }],
+      },
     }]);
   });
 });

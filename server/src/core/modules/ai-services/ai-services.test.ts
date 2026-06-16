@@ -33,12 +33,14 @@ describe("provider-neutral AI services", () => {
 
   it("ensures the vector collection before embedding documents for indexing", async () => {
     const calls: string[] = [];
+    let upsertedDocument: any;
     const embeddings = new EmbeddingExecutionService(async (_pluginId, methodId) => {
       calls.push(methodId);
       return { vectors: [[0.1, 0.2]] };
     });
-    const service = new VectorStoreExecutionService(async (_pluginId, methodId) => {
+    const service = new VectorStoreExecutionService(async (_pluginId, methodId, params) => {
       calls.push(methodId);
+      if (methodId === "upsert") upsertedDocument = params.documents[0];
       return methodId === "upsert" ? { upsertedCount: 1 } : { ok: true };
     }, embeddings);
 
@@ -50,5 +52,8 @@ describe("provider-neutral AI services", () => {
     }, [{ id: "doc-1", text: "hello", metadata: {} }]);
 
     assert.deepEqual(calls, ["ensure", "embed", "upsert"]);
+    assert.deepEqual(upsertedDocument.metadata.embeddings, [
+      { provider: "ollama", model: "nomic", dimension: 2 },
+    ]);
   });
 });

@@ -103,7 +103,7 @@ export function createPineconeMethods(fetchImpl: FetchLike = fetch) {
       });
 
       return (Array.isArray(response.matches) ? response.matches : []).map((match: any) => {
-        const metadata = { ...(match.metadata ?? {}) };
+        const metadata = unflattenMetadata({ ...(match.metadata ?? {}) });
         const text = typeof metadata.text === "string" ? metadata.text : "";
         const documentId = typeof metadata.documentId === "string" && metadata.documentId
           ? metadata.documentId
@@ -180,8 +180,43 @@ function flattenMetadata(
       result[path] = item;
       continue;
     }
+    if (Array.isArray(item)) {
+      for (const [index, entry] of item.entries()) {
+        if (entry && typeof entry === "object" && !Array.isArray(entry)) {
+          Object.assign(result, flattenMetadata(entry as Record<string, any>, `${path}.${index}`));
+        }
+      }
+      continue;
+    }
     if (typeof item === "object") {
       Object.assign(result, flattenMetadata(item as Record<string, any>, path));
+    }
+  }
+
+  return result;
+}
+
+function unflattenMetadata(value: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {};
+
+  for (const [path, item] of Object.entries(value)) {
+    const parts = path.split(".");
+    let current: any = result;
+
+    for (let index = 0; index < parts.length; index += 1) {
+      const part = parts[index]!;
+      const nextPart = parts[index + 1];
+      const isLast = index === parts.length - 1;
+
+      if (isLast) {
+        current[part] = item;
+        continue;
+      }
+
+      if (current[part] === undefined) {
+        current[part] = nextPart !== undefined && /^\d+$/.test(nextPart) ? [] : {};
+      }
+      current = current[part];
     }
   }
 
