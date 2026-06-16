@@ -561,6 +561,202 @@ describe("retrieval utility node handlers", () => {
     });
   });
 
+  it("document loader keeps a whole JSON file as one document when no path is selected", async () => {
+    const registry = createUtilityNodeRegistry();
+    const extracted = {
+      sourceType: "file",
+      items: [],
+      count: 0,
+      files: [{
+        id: "file-dataset_1:0",
+        format: "json",
+        source: { filename: "catalog.json", mimeType: "application/json" },
+        data: {
+          dataset: "catalog",
+          courses: [{ id: "course-1", title: "Node" }],
+          instructors: [{ id: "teacher-1", name: "Marina" }],
+        },
+        rawText: "",
+      }],
+    };
+
+    const result = await registry.get("document-loader").execute({
+      nodeId: "loader",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {
+        resolveConfigDependencies: async () => ({
+          getOne: () => ({ load: async () => extracted }),
+          getOptional: () => undefined,
+          getMany: () => [],
+        }),
+      } as any,
+      node: {
+        type: "document-loader",
+        name: "Default Data Loader",
+        dataType: "json",
+        dataMode: "all",
+        includeSourceMetadata: true,
+        includeRootFieldsAsContext: false,
+        metadataTemplate: {},
+      },
+    });
+
+    assert.equal(result.count, 1);
+    assert.equal(result.items[0].metadata.source.filename, "catalog.json");
+    assert.deepEqual(result.items[0].metadata.data, extracted.files[0].data);
+    assert.match(result.items[0].text, /dataset: catalog/);
+    assert.match(result.items[0].text, /courses: \[/);
+    assert.match(result.items[0].text, /instructors: \[/);
+  });
+
+  it("document loader requires a valid JSON path when loading specific data", async () => {
+    const registry = createUtilityNodeRegistry();
+    const extracted = {
+      sourceType: "file",
+      items: [],
+      count: 0,
+      files: [{
+        id: "file-dataset_1:0",
+        format: "json",
+        source: { filename: "catalog.json", mimeType: "application/json" },
+        data: { courses: [{ id: "course-1" }], instructors: [{ id: "teacher-1" }] },
+        rawText: "",
+      }],
+    };
+
+    await assert.rejects(() => registry.get("document-loader").execute({
+      nodeId: "loader",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {
+        resolveConfigDependencies: async () => ({
+          getOne: () => ({ load: async () => extracted }),
+          getOptional: () => undefined,
+          getMany: () => [],
+        }),
+      } as any,
+      node: {
+        type: "document-loader",
+        name: "Default Data Loader",
+        dataType: "json",
+        dataMode: "specific",
+        dataPath: "lessons",
+        includeSourceMetadata: true,
+        includeRootFieldsAsContext: false,
+        metadataTemplate: {},
+      },
+    }), /JSON path "lessons" was not found/);
+  });
+
+  it("document loader loads text and markdown files as one document per file", async () => {
+    const registry = createUtilityNodeRegistry();
+    const extracted = {
+      sourceType: "file",
+      items: [],
+      count: 0,
+      files: [
+        {
+          id: "file-dataset_1:0",
+          format: "txt",
+          source: { filename: "notes.txt", mimeType: "text/plain" },
+          data: "plain notes",
+          rawText: "plain notes",
+        },
+        {
+          id: "file-dataset_1:1",
+          format: "markdown",
+          source: { filename: "readme.md", mimeType: "text/markdown" },
+          data: "# Sailor\n\nMarkdown notes",
+          rawText: "# Sailor\n\nMarkdown notes",
+        },
+      ],
+    };
+
+    const result = await registry.get("document-loader").execute({
+      nodeId: "loader",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {
+        resolveConfigDependencies: async () => ({
+          getOne: () => ({ load: async () => extracted }),
+          getOptional: () => undefined,
+          getMany: () => [],
+        }),
+      } as any,
+      node: {
+        type: "document-loader",
+        name: "Default Data Loader",
+        dataType: "file",
+        dataMode: "all",
+        includeSourceMetadata: true,
+        includeRootFieldsAsContext: false,
+        metadataTemplate: {},
+      },
+    });
+
+    assert.equal(result.count, 2);
+    assert.deepEqual(result.items.map((item: any) => item.text), ["plain notes", "# Sailor\n\nMarkdown notes"]);
+    assert.deepEqual(result.items.map((item: any) => item.metadata.source.filename), ["notes.txt", "readme.md"]);
+  });
+
+  it("document loader chunks text documents when chunking is enabled", async () => {
+    const registry = createUtilityNodeRegistry();
+    const extracted = {
+      sourceType: "file",
+      items: [],
+      count: 0,
+      files: [{
+        id: "file-dataset_1:0",
+        format: "markdown",
+        source: { filename: "guide.md", mimeType: "text/markdown" },
+        data: "abcdefghi",
+        rawText: "abcdefghi",
+      }],
+    };
+
+    const result = await registry.get("document-loader").execute({
+      nodeId: "loader",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {
+        resolveConfigDependencies: async () => ({
+          getOne: () => ({ load: async () => extracted }),
+          getOptional: () => undefined,
+          getMany: () => [],
+        }),
+      } as any,
+      node: {
+        type: "document-loader",
+        name: "Default Data Loader",
+        dataType: "file",
+        dataMode: "all",
+        includeSourceMetadata: true,
+        includeRootFieldsAsContext: false,
+        metadataTemplate: {},
+        chunking: {
+          enabled: true,
+          chunkSize: 4,
+          chunkOverlap: 1,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.deepEqual(result.items.map((item: any) => item.text), ["abcd", "defg", "ghi"]);
+    assert.deepEqual(result.items.map((item: any) => item.id), ["loader:0:0", "loader:0:1", "loader:0:2"]);
+    assert.deepEqual(result.items[1].metadata.chunk, { index: 1, start: 3, end: 7 });
+    assert.equal(result.items[1].metadata.source.filename, "guide.md");
+  });
+
   it("vector store indexes connected dataset documents with connected embedding config", async () => {
     const calls: Array<{ pluginId: string; methodId: string; params: Record<string, any> }> = [];
     const workflow = workflowFixture();

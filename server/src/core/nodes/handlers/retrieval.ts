@@ -408,7 +408,8 @@ export const documentLoaderNodeHandler = createNodeHandler<DocumentLoaderNode>("
   const dataSource = dependencies.getOne<FileDataSourceRef>("data");
   const sourceOutput = await dataSource.load();
   const files = Array.isArray(sourceOutput?.files) ? sourceOutput.files as FileExtractItem[] : [];
-  const items = files.flatMap((file) => loadExtractedFileDocuments(file, node, nodeId));
+  const documents = files.flatMap((file) => loadExtractedFileDocuments(file, node, nodeId));
+  const items = applyDocumentChunking(documents, node);
 
   return {
     items,
@@ -454,8 +455,8 @@ function loadJsonDocuments(
   nodeId: string,
 ): DatasetOutput["items"] {
   const root = file.data;
-  const selected = node.dataMode === "specific" && node.dataPath
-    ? getByPath(root, node.dataPath)
+  const selected = node.dataMode === "specific"
+    ? getRequiredJsonPath(root, node.dataPath)
     : root;
   const values = Array.isArray(selected) ? selected : [selected];
   const rootContext = node.includeRootFieldsAsContext && root && typeof root === "object" && !Array.isArray(root)
@@ -481,6 +482,14 @@ function loadJsonDocuments(
   });
 }
 
+function getRequiredJsonPath(root: unknown, path: string | undefined): unknown {
+  const normalizedPath = path?.trim();
+  if (!normalizedPath) throw new Error("JSON path is required when loading specific data.");
+  const value = getByPath(root, normalizedPath);
+  if (value === undefined) throw new Error(`JSON path "${normalizedPath}" was not found.`);
+  return value;
+}
+
 function toDocumentItem(args: {
   nodeId: string;
   index: number;
@@ -500,6 +509,38 @@ function toDocumentItem(args: {
     },
     raw: args.value,
   };
+}
+
+function applyDocumentChunking(
+  items: DatasetOutput["items"],
+  node: DocumentLoaderNode,
+): DatasetOutput["items"] {
+  if (!node.chunking?.enabled) return items;
+  const chunkSize = Math.max(1, Math.floor(node.chunking.chunkSize || 1000));
+  const overlap = Math.max(0, Math.min(Math.floor(node.chunking.chunkOverlap || 0), chunkSize - 1));
+  return items.flatMap((item) => {
+    const text = String(item.text ?? "");
+    if (text.length <= chunkSize) return [item];
+    const chunks: DatasetOutput["items"] = [];
+    let start = 0;
+    let index = 0;
+    while (start < text.length) {
+      const end = Math.min(text.length, start + chunkSize);
+      chunks.push({
+        ...item,
+        id: `${item.id}:${index}`,
+        text: text.slice(start, end),
+        metadata: {
+          ...(item.metadata ?? {}),
+          chunk: { index, start, end },
+        },
+      });
+      if (end >= text.length) break;
+      start = end - overlap;
+      index += 1;
+    }
+    return chunks;
+  });
 }
 
 function templateDocumentText(template: string | undefined, data: Record<string, any>): string {

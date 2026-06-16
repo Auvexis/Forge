@@ -5,7 +5,7 @@
 - [x] Fase 1: separar File Dataset de Document Loader
 - [x] Fase 2: criar node Document Loader
 - [x] Fase 3: migrar Vector Store para aceitar Document Loader
-- [ ] Fase 4: alinhar JSON/CSV/TXT/Markdown ao comportamento n8n
+- [x] Fase 4: alinhar JSON/CSV/TXT/Markdown ao comportamento n8n
 - [ ] Fase 5: revisar UX dos Advanced Nodes do guia E2E
 - [ ] Fase 6: revisar filtros/metadata para Qdrant e Pinecone
 - [ ] Fase 7: atualizar testes E2E e negativos
@@ -82,19 +82,19 @@ File Dataset / Extract -> Document Loader -> Vector Store
 
 ## Fase 4: JSON/CSV/TXT/Markdown igual ao n8n
 
-- [ ] CSV: uma row por item extraído.
-- [ ] CSV: metadata com tipos corretos para filtros.
-- [ ] JSON: `whole file` mantém objeto inteiro.
-- [ ] JSON: `Load Specific Data` usa `dataPath`.
-- [ ] JSON: se `dataPath` aponta array, gera um documento por item.
-- [ ] JSON: campos raiz fora do array viram metadata/contexto opcional.
-- [ ] JSON: múltiplos arrays exigem escolha explícita.
-- [ ] TXT: um documento por arquivo.
-- [ ] Markdown: um documento por arquivo.
-- [ ] Markdown: respeitar chunking no loader, não no extractor.
-- [ ] Testar JSON com `courses`.
-- [ ] Testar JSON com múltiplos arrays.
-- [ ] Commit: `feat: align document loading formats with n8n`
+- [x] CSV: uma row por item extraído.
+- [x] CSV: metadata com tipos corretos para filtros.
+- [x] JSON: `whole file` mantém objeto inteiro.
+- [x] JSON: `Load Specific Data` usa `dataPath`.
+- [x] JSON: se `dataPath` aponta array, gera um documento por item.
+- [x] JSON: campos raiz fora do array viram metadata/contexto opcional.
+- [x] JSON: múltiplos arrays exigem escolha explícita.
+- [x] TXT: um documento por arquivo.
+- [x] Markdown: um documento por arquivo.
+- [x] Markdown: respeitar chunking no loader, não no extractor.
+- [x] Testar JSON com `courses`.
+- [x] Testar JSON com múltiplos arrays.
+- [x] Commit: `feat: align document loading formats with n8n`
 
 ## Fase 5: UX dos Advanced Nodes
 
