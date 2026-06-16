@@ -97,7 +97,7 @@ export function createPineconeMethods(fetchImpl: FetchLike = fetch) {
           namespace: config.namespace,
           vector: params.query.vector,
           topK: params.query.topK,
-          filter: params.query.filter,
+          filter: toPineconeFilter(params.query.filter),
           includeMetadata: true,
         }),
       });
@@ -137,6 +137,59 @@ export function createPineconeMethods(fetchImpl: FetchLike = fetch) {
   };
 }
 
+export function toPineconeFilter(filter: Record<string, any> | undefined): Record<string, any> | undefined {
+  if (!filter || Object.keys(filter).length === 0) return undefined;
+  if ("$and" in filter || "$or" in filter) return filter;
+
+  return Object.fromEntries(
+    Object.entries(filter)
+      .map(([key, value]) => [key, toPineconeFilterValue(value)])
+      .filter(([, value]) => value !== undefined),
+  );
+}
+
+function toPineconeFilterValue(value: unknown): unknown {
+  if (!isOperatorObject(value)) return { "$eq": value };
+
+  const converted = Object.fromEntries(
+    Object.entries(value)
+      .map(([operator, operand]) => [normalizePineconeOperator(operator), operand])
+      .filter(([operator]) => operator !== undefined),
+  );
+  return Object.keys(converted).length > 0 ? converted : undefined;
+}
+
+function normalizePineconeOperator(operator: string): string | undefined {
+  switch (operator) {
+    case "eq":
+    case "$eq":
+      return "$eq";
+    case "ne":
+    case "$ne":
+      return "$ne";
+    case "in":
+    case "$in":
+      return "$in";
+    case "nin":
+    case "$nin":
+      return "$nin";
+    case "gt":
+    case "$gt":
+      return "$gt";
+    case "gte":
+    case "$gte":
+      return "$gte";
+    case "lt":
+    case "$lt":
+      return "$lt";
+    case "lte":
+    case "$lte":
+      return "$lte";
+    default:
+      return undefined;
+  }
+}
+
 async function pineconeRequest(
   fetchImpl: FetchLike,
   config: PineconeConfig,
@@ -160,6 +213,13 @@ async function pineconeRequest(
   }
 
   return body;
+}
+
+function isOperatorObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.keys(value as Record<string, unknown>).some((key) => normalizePineconeOperator(key) !== undefined);
 }
 
 function flattenMetadata(

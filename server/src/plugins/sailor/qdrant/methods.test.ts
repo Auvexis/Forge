@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import plugin from "./index.ts";
-import { createQdrantMethods, normalizeQdrantConfig } from "./methods.ts";
+import { createQdrantMethods, normalizeQdrantConfig, toQdrantFilter } from "./methods.ts";
 
 describe("qdrant vector store plugin", () => {
   it("exports the generic vector store methods", () => {
@@ -205,6 +205,50 @@ describe("qdrant vector store plugin", () => {
       text: "hello",
       metadata: { documentId: "text-dataset_1:0", source: "test" },
     }]);
+  });
+
+  it("converts Sailor metadata filters to Qdrant nested payload filters", () => {
+    assert.deepEqual(toQdrantFilter({
+      "data.category": "moda",
+      "data.score": { "$gte": 600 },
+    }), {
+      must: [
+        { key: "data.category", match: { value: "moda" } },
+        { key: "data.score", range: { gte: 600 } },
+      ],
+    });
+  });
+
+  it("sends converted metadata filters when querying similar vectors", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const methods = createQdrantMethods(async (url, init) => {
+      calls.push({ url: String(url), init: init ?? {} });
+      return jsonResponse({ result: [] });
+    });
+
+    await methods.querySimilar({
+      store: {
+        collectionName: "docs",
+        dimension: 3,
+        metric: "cosine",
+        config: { mode: "local", url: "http://localhost:6333" },
+      },
+      query: {
+        vector: [0.1, 0.2, 0.3],
+        topK: 3,
+        filter: {
+          "data.category": "moda",
+          "data.score": { "$gte": 600 },
+        },
+      },
+    });
+
+    assert.deepEqual(JSON.parse(String(calls[0].init.body)).filter, {
+      must: [
+        { key: "data.category", match: { value: "moda" } },
+        { key: "data.score", range: { gte: 600 } },
+      ],
+    });
   });
 });
 

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import plugin from "./index.ts";
-import { createPineconeMethods, normalizePineconeConfig } from "./methods.ts";
+import { createPineconeMethods, normalizePineconeConfig, toPineconeFilter } from "./methods.ts";
 
 describe("pinecone vector store plugin", () => {
   it("exports the generic vector store methods", () => {
@@ -133,6 +133,46 @@ describe("pinecone vector store plugin", () => {
         embeddings: [{ provider: "ollama", model: "nomic", dimension: 3 }],
       },
     }]);
+  });
+
+  it("converts Sailor metadata filters to Pinecone flat metadata filters", () => {
+    assert.deepEqual(toPineconeFilter({
+      "data.category": "moda",
+      "data.score": { "$gte": 600 },
+    }), {
+      "data.category": { "$eq": "moda" },
+      "data.score": { "$gte": 600 },
+    });
+  });
+
+  it("sends converted metadata filters when querying similar vectors", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const methods = createPineconeMethods(async (url, init) => {
+      calls.push({ url: String(url), init: init ?? {} });
+      return jsonResponse({ matches: [] });
+    });
+
+    await methods.querySimilar({
+      store: {
+        collectionName: "docs",
+        dimension: 3,
+        metric: "cosine",
+        config: { mode: "local", localHost: "http://localhost:5080" },
+      },
+      query: {
+        vector: [0.1, 0.2, 0.3],
+        topK: 3,
+        filter: {
+          "data.category": "moda",
+          "data.score": { "$gte": 600 },
+        },
+      },
+    });
+
+    assert.deepEqual(JSON.parse(String(calls[0].init.body)).filter, {
+      "data.category": { "$eq": "moda" },
+      "data.score": { "$gte": 600 },
+    });
   });
 });
 

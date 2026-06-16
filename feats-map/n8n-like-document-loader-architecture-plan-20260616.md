@@ -7,7 +7,7 @@
 - [x] Fase 3: migrar Vector Store para aceitar Document Loader
 - [x] Fase 4: alinhar JSON/CSV/TXT/Markdown ao comportamento n8n
 - [x] Fase 5: revisar UX dos Advanced Nodes do guia E2E
-- [ ] Fase 6: revisar filtros/metadata para Qdrant e Pinecone
+- [x] Fase 6: revisar filtros/metadata para Qdrant e Pinecone
 - [ ] Fase 7: atualizar testes E2E e negativos
 - [ ] Fase 8: migração compatível dos workflows existentes
 
@@ -112,19 +112,19 @@ File Dataset / Extract -> Document Loader -> Vector Store
 
 ## Fase 6: Metadata e Filtros
 
-- [ ] Padronizar metadata:
+- [x] Padronizar metadata:
   - `source`
   - `data`
   - `context`
   - `embeddings`
-- [ ] Qdrant mantém metadata aninhada.
-- [ ] Pinecone achata metadata ao gravar.
-- [ ] Pinecone reconstrói metadata ao ler.
-- [ ] Adicionar helper para converter filtro Sailor para Qdrant.
-- [ ] Adicionar helper para converter filtro Sailor para Pinecone.
-- [ ] Testar `data.category = "moda"`.
-- [ ] Testar `data.score >= 600`.
-- [ ] Commit: `feat: normalize vector metadata filters`
+- [x] Qdrant mantém metadata aninhada.
+- [x] Pinecone achata metadata ao gravar.
+- [x] Pinecone reconstrói metadata ao ler.
+- [x] Adicionar helper para converter filtro Sailor para Qdrant.
+- [x] Adicionar helper para converter filtro Sailor para Pinecone.
+- [x] Testar `data.category = "moda"`.
+- [x] Testar `data.score >= 600`.
+- [x] Commit: `feat: normalize vector metadata filters`
 
 ## Fase 7: Testes E2E do Guia
 

@@ -124,7 +124,7 @@ export function createQdrantMethods(fetchImpl: FetchLike = fetch) {
           body: JSON.stringify({
             vector: params.query.vector,
             limit: params.query.topK,
-            filter: params.query.filter,
+            filter: toQdrantFilter(params.query.filter),
             with_payload: true,
           }),
         },
@@ -168,6 +168,61 @@ export function createQdrantMethods(fetchImpl: FetchLike = fetch) {
       });
     },
   };
+}
+
+export function toQdrantFilter(filter: Record<string, any> | undefined): Record<string, any> | undefined {
+  if (!filter || Object.keys(filter).length === 0) return undefined;
+  if ("must" in filter || "should" in filter || "must_not" in filter) return filter;
+
+  const must = Object.entries(filter).flatMap(([key, value]) => toQdrantConditions(key, value));
+  return must.length > 0 ? { must } : undefined;
+}
+
+function toQdrantConditions(key: string, value: unknown): Array<Record<string, any>> {
+  if (!isOperatorObject(value)) return [{ key, match: { value } }];
+
+  return Object.entries(value).flatMap<Record<string, any>>(([operator, operand]) => {
+    switch (operator) {
+      case "$eq":
+      case "eq":
+        return [{ key, match: { value: operand } }];
+      case "$ne":
+      case "ne":
+        return [{ key, match: { except: [operand] } }];
+      case "$in":
+      case "in":
+        return [{ key, match: { any: Array.isArray(operand) ? operand : [operand] } }];
+      case "$gt":
+      case "gt":
+        return [{ key, range: { gt: operand } }];
+      case "$gte":
+      case "gte":
+        return [{ key, range: { gte: operand } }];
+      case "$lt":
+      case "lt":
+        return [{ key, range: { lt: operand } }];
+      case "$lte":
+      case "lte":
+        return [{ key, range: { lte: operand } }];
+      default:
+        return [];
+    }
+  });
+}
+
+function isOperatorObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.keys(value as Record<string, unknown>).some((key) => key.startsWith("$") || [
+      "eq",
+      "ne",
+      "in",
+      "gt",
+      "gte",
+      "lt",
+      "lte",
+    ].includes(key));
 }
 
 function toQdrantDistance(metric: VectorStoreProviderConfig["metric"]): "Cosine" | "Dot" | "Euclid" {
