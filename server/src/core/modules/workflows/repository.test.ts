@@ -10,6 +10,7 @@ import {
   setWorkflowDatabaseProvider,
   setWorkflowGitSnapshotRepositoryDeleter,
   setWorkflowGitSnapshotWriter,
+  migrateWorkflow,
   WorkflowRepository,
 } from "./repository.ts";
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
@@ -143,6 +144,125 @@ describe("WorkflowRepository", () => {
     assert.equal(restored.metadata.name, "Old Version");
     assert.equal(WorkflowRepository.getWorkflowById("wf-current")?.metadata.name, "Old Version");
     assert.equal(snapshots.length, 0);
+    db.close();
+  });
+
+  it("migrates legacy File Dataset document edges through a Default Data Loader", () => {
+    const legacy = workflow("wf-loader-migration", "Loader Migration") as any;
+    legacy.nodes = {
+      files: {
+        type: "file-dataset",
+        name: "Files",
+        format: "auto",
+        files: [{ filename: "guide.md", content: "U2FpbG9y" }],
+        chunking: {
+          enabled: true,
+          chunkSize: 1200,
+          chunkOverlap: 200,
+          contextualOverlapEnabled: true,
+          maxPreviousContextChars: 300,
+        },
+        ui: { positionX: 100, positionY: 320 },
+      },
+      store: {
+        type: "vector-store",
+        name: "Store",
+        pluginId: "qdrant",
+        ensureCollectionMethodId: "ensure",
+        upsertMethodId: "upsert",
+        queryMethodId: "query",
+        collectionName: "docs",
+        dimension: 1536,
+        metric: "cosine",
+        config: {},
+        ui: { positionX: 500, positionY: 120 },
+      },
+    };
+    legacy.edges = [{ id: "files-store", source: "files", target: "store", targetHandle: "document" }];
+
+    const migrated = migrateWorkflow(legacy);
+    const loader = migrated.nodes.files_document_loader as any;
+
+    assert.equal(loader.type, "document-loader");
+    assert.equal(loader.name, "Default Data Loader");
+    assert.equal(loader.dataType, "file");
+    assert.equal(loader.dataMode, "all");
+    assert.deepEqual(loader.chunking, legacy.nodes.files.chunking);
+    assert.deepEqual(loader.ui, { positionX: 300, positionY: 220 });
+    assert.deepEqual(migrated.edges, [
+      { id: "files-store:data", source: "files", target: "files_document_loader", targetHandle: "data" },
+      { id: "files-store", source: "files_document_loader", target: "store", targetHandle: "document" },
+    ]);
+    assert.equal(migrated.metadata.migrationVersion, "document-loader-v1");
+    assert.deepEqual(migrated.metadata.migrationNotes, [
+      "Inserted Default Data Loader between legacy dataset document sources and Vector Store.",
+    ]);
+  });
+
+  it("does not duplicate Document Loader nodes when migration runs more than once", () => {
+    const legacy = workflow("wf-loader-idempotent", "Loader Migration") as any;
+    legacy.nodes = {
+      files: {
+        type: "file-dataset",
+        name: "Files",
+        format: "auto",
+        chunking: { enabled: false, chunkSize: 800, chunkOverlap: 0, contextualOverlapEnabled: false },
+      },
+      store: {
+        type: "vector-store",
+        name: "Store",
+        pluginId: "qdrant",
+        ensureCollectionMethodId: "ensure",
+        upsertMethodId: "upsert",
+        queryMethodId: "query",
+        collectionName: "docs",
+        dimension: 1536,
+        metric: "cosine",
+        config: {},
+      },
+    };
+    legacy.edges = [{ id: "files-store", source: "files", target: "store", targetHandle: "document" }];
+
+    const once = migrateWorkflow(legacy);
+    const twice = migrateWorkflow(once);
+
+    assert.equal(Object.values(twice.nodes).filter((node: any) => node.type === "document-loader").length, 1);
+    assert.deepEqual(twice.edges, once.edges);
+  });
+
+  it("persists migrated workflow definitions on save", async () => {
+    const db = await createWorkflowDb();
+    setWorkflowDatabaseProvider(() => db);
+    const legacy = workflow("wf-loader-save", "Loader Save") as any;
+    legacy.nodes = {
+      files: {
+        type: "file-dataset",
+        name: "Files",
+        format: "auto",
+        chunking: { enabled: false, chunkSize: 800, chunkOverlap: 0, contextualOverlapEnabled: false },
+      },
+      store: {
+        type: "vector-store",
+        name: "Store",
+        pluginId: "qdrant",
+        ensureCollectionMethodId: "ensure",
+        upsertMethodId: "upsert",
+        queryMethodId: "query",
+        collectionName: "docs",
+        dimension: 1536,
+        metric: "cosine",
+        config: {},
+      },
+    };
+    legacy.edges = [{ id: "files-store", source: "files", target: "store", targetHandle: "document" }];
+
+    const saved = WorkflowRepository.saveWorkflow(legacy);
+    const raw = db.prepare("SELECT definition FROM workflows WHERE id = ?").get("wf-loader-save") as { definition: string };
+    const stored = JSON.parse(raw.definition) as WorkflowItem;
+
+    assert.equal(saved.nodes.files_document_loader?.type, "document-loader");
+    assert.equal(stored.nodes.files_document_loader?.type, "document-loader");
+    assert.equal(stored.edges[0]?.target, "files_document_loader");
     db.close();
   });
 

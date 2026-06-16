@@ -9,7 +9,7 @@
 - [x] Fase 5: revisar UX dos Advanced Nodes do guia E2E
 - [x] Fase 6: revisar filtros/metadata para Qdrant e Pinecone
 - [x] Fase 7: atualizar testes E2E e negativos
-- [ ] Fase 8: migração compatível dos workflows existentes
+- [x] Fase 8: migração compatível dos workflows existentes
 
 ## Objetivo
 
@@ -144,13 +144,13 @@ File Dataset / Extract -> Document Loader -> Vector Store
 
 ## Fase 8: Migração
 
-- [ ] Detectar workflows antigos com Dataset direto no Vector Store.
-- [ ] Criar migração automática inserindo Document Loader entre eles.
-- [ ] Preservar posição visual do canvas.
-- [ ] Preservar edges dashed.
-- [ ] Preservar configurações de chunking.
-- [ ] Adicionar versão de workflow/migration note.
-- [ ] Commit: `feat: migrate vector document sources`
+- [x] Detectar workflows antigos com Dataset direto no Vector Store.
+- [x] Criar migração automática inserindo Document Loader entre eles.
+- [x] Preservar posição visual do canvas.
+- [x] Preservar edges dashed.
+- [x] Preservar configurações de chunking.
+- [x] Adicionar versão de workflow/migration note.
+- [x] Commit: `feat: migrate vector document sources`
 
 ## Arquivos Prováveis
 

@@ -708,6 +708,8 @@ export interface WorkflowMetadata {
   isDraft: boolean;
   public: boolean;
   autosaveEnabled?: boolean;
+  migrationVersion?: string;
+  migrationNotes?: string[];
   createdAt: string;
   updatedAt?: string;
   publishedAt?: string | null; // ISO timestamp of last intentional publish action; null when unpublished
