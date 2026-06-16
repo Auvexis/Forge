@@ -572,6 +572,8 @@ function applyDatasetChunking(
   if (!node.chunking?.enabled) return items;
   const chunkSize = Math.max(1, Math.floor(node.chunking.chunkSize || 1000));
   const overlap = Math.max(0, Math.min(Math.floor(node.chunking.chunkOverlap || 0), chunkSize - 1));
+  const contextualOverlapEnabled = node.chunking.contextualOverlapEnabled === true;
+  const maxPreviousContextChars = Math.max(0, Math.floor(node.chunking.maxPreviousContextChars ?? 300));
   return items.flatMap((item) => {
     const text = String(item.text ?? "");
     if (text.length <= chunkSize) return [item];
@@ -580,13 +582,29 @@ function applyDatasetChunking(
     let index = 0;
     while (start < text.length) {
       const end = Math.min(text.length, start + chunkSize);
+      const previousContextStart = contextualOverlapEnabled && maxPreviousContextChars > 0
+        ? Math.max(0, start - maxPreviousContextChars)
+        : start;
+      const previousContext = previousContextStart < start
+        ? {
+          text: text.slice(previousContextStart, start),
+          start: previousContextStart,
+          end: start,
+        }
+        : undefined;
+      const chunkText = text.slice(start, end);
       chunks.push({
         ...item,
         id: `${item.id}:${index}`,
-        text: text.slice(start, end),
+        text: previousContext ? `${previousContext.text}\n\n${chunkText}` : chunkText,
         metadata: {
           ...(item.metadata ?? {}),
-          chunk: { index, start, end },
+          chunk: {
+            index,
+            start,
+            end,
+            ...(previousContext ? { previousContext } : {}),
+          },
         },
       });
       if (end >= text.length) break;

@@ -91,6 +91,7 @@ File Dataset / Extract -> Document Loader -> Vector Store
 - [x] TXT: um documento por arquivo.
 - [x] Markdown: um documento por arquivo.
 - [x] Markdown: respeitar chunking no loader, não no extractor.
+- [x] Context overlap: chunks carregam contexto anterior limitado por `maxPreviousContextChars`.
 - [x] Testar JSON com `courses`.
 - [x] Testar JSON com múltiplos arrays.
 - [x] Commit: `feat: align document loading formats with n8n`

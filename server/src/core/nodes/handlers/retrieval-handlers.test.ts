@@ -114,6 +114,48 @@ describe("retrieval utility node handlers", () => {
     });
   });
 
+  it("text dataset carries previous chunk context when contextual overlap is enabled", async () => {
+    const result = await createUtilityNodeRegistry().get("text-dataset").execute({
+      nodeId: "dataset",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {} as any,
+      node: {
+        type: "text-dataset",
+        name: "Dataset",
+        text: "abcdefghijklmnopqrstuvwxyz",
+        format: "plain-text",
+        metadata: { source: "manual" },
+        chunking: {
+          enabled: true,
+          chunkSize: 10,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: true,
+          maxPreviousContextChars: 4,
+        },
+      },
+    });
+
+    assert.deepEqual(result.items.map((item: any) => item.text), [
+      "abcdefghij",
+      "ghij\n\nklmnopqrst",
+      "qrst\n\nuvwxyz",
+    ]);
+    assert.deepEqual(result.items[1].metadata.chunk, {
+      index: 1,
+      start: 10,
+      end: 20,
+      previousContext: { text: "ghij", start: 6, end: 10 },
+    });
+    assert.deepEqual(result.items[2].metadata.chunk.previousContext, {
+      text: "qrst",
+      start: 16,
+      end: 20,
+    });
+  });
+
   it("text dataset JSON array output can feed Split In Batches", async () => {
     const registry = createUtilityNodeRegistry();
     const workflow = workflowFixture();
