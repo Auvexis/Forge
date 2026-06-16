@@ -43,6 +43,27 @@ test('file dataset editor uses the dedicated multiple files input', () => {
   assert.doesNotMatch(source, /EditorField label="File URL"/)
 })
 
+test('document loader editor exposes data mode, type, and metadata template controls', () => {
+  const source = read('src/features/workflow-editor/components/settings/editors/DocumentLoaderEditor.vue')
+
+  for (const field of [
+    'dataType',
+    'dataMode',
+    'dataPath',
+    'textTemplate',
+    'metadataTemplate',
+    'includeSourceMetadata',
+  ]) {
+    assert.match(source, new RegExp(field))
+  }
+
+  assert.match(source, /Load All Input Data/)
+  assert.match(source, /Load Specific Data/)
+  assert.match(source, /Binary\/File/)
+  assert.match(source, /BaseCodeEditor/)
+  assert.match(source, /updateMetadataTemplate/)
+})
+
 test('vector store editor exposes Pinecone and Qdrant provider config sections', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/VectorStoreEditor.vue')
 

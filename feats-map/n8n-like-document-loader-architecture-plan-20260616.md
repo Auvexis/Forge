@@ -29,13 +29,12 @@ File Dataset / Extract -> Document Loader -> Vector Store
 ## Fase 1: Separar File Dataset de Document Loader
 
 - [x] Criar contrato `FileExtractOutput`.
-- [ ] `File Dataset` deixa de expor capability `document-source`.
-- [ ] `File Dataset` passa a expor capability `file-data-source`.
+- [x] `File Dataset` deixa de expor capability `document-source`.
+- [x] `File Dataset` passa a expor capability `file-data-source`.
 - [x] CSV retorna rows estruturadas.
 - [x] JSON retorna objeto/array estruturado.
 - [x] TXT/Markdown retornam texto bruto.
 - [x] Preservar `source.filename`, `mimeType`, `size`.
-- [ ] Manter compatibilidade temporária com workflows antigos.
 - [x] Testar `.csv`, `.json`, `.txt`, `.md`.
 - [x] Commit: `refactor: separate file dataset extraction`
 
@@ -48,23 +47,23 @@ File Dataset / Extract -> Document Loader -> Vector Store
 - [x] Adicionar editor Vue.
 - [x] Adicionar node visual.
 - [x] Capability: `document-source`.
-- [ ] Handles:
+- [x] Handles:
   - input `Data`
   - output config source
-- [ ] Modos iguais ao n8n:
+- [x] Modos iguais ao n8n:
   - `Load All Input Data`
   - `Load Specific Data`
-- [ ] Type of Data:
+- [x] Type of Data:
   - `JSON`
   - `Binary/File`
   - `Text`
-- [ ] Campos principais:
+- [x] Campos principais:
   - `dataMode`
   - `dataPath`
   - `textTemplate`
   - `metadataTemplate`
   - `includeSourceMetadata`
-- [ ] Testar criação global escondendo configurações contextuais quando necessário.
+- [x] Testar criação global escondendo configurações contextuais quando necessário.
 - [x] Commit: `feat: add document loader node`
 
 ## Fase 3: Migrar Vector Store
@@ -77,7 +76,7 @@ File Dataset / Extract -> Document Loader -> Vector Store
 - [x] Atualizar `ConfigDependencyResolver`.
 - [x] Atualizar `core-capability-adapters`.
 - [x] Testar indexação com Qdrant.
-- [ ] Testar indexação com Pinecone.
+- [x] Testar indexação com Pinecone.
 - [x] Commit: `refactor: route vector documents through loader`
 
 ## Fase 4: JSON/CSV/TXT/Markdown igual ao n8n

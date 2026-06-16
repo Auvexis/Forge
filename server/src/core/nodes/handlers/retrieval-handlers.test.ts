@@ -762,6 +762,117 @@ describe("retrieval utility node handlers", () => {
     assert.deepEqual(result.items.map((item: any) => item.metadata.source.filename), ["notes.txt", "readme.md"]);
   });
 
+  it("document loader applies custom metadata templates and can omit source metadata", async () => {
+    const registry = createUtilityNodeRegistry();
+    const extracted = {
+      sourceType: "file",
+      items: [],
+      count: 0,
+      files: [{
+        id: "file-dataset_1:0",
+        format: "json",
+        source: { filename: "catalog.json", mimeType: "application/json" },
+        data: {
+          courses: [{ id: "course-1", category: "moda", score: 655 }],
+        },
+        rawText: "",
+      }],
+    };
+
+    const result = await registry.get("document-loader").execute({
+      nodeId: "loader",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {
+        resolveConfigDependencies: async () => ({
+          getOne: () => ({ load: async () => extracted }),
+          getOptional: () => undefined,
+          getMany: () => [],
+        }),
+      } as any,
+      node: {
+        type: "document-loader",
+        name: "Default Data Loader",
+        dataType: "json",
+        dataMode: "specific",
+        dataPath: "courses",
+        includeSourceMetadata: false,
+        includeRootFieldsAsContext: false,
+        metadataTemplate: {
+          category: "{{ item.category }}",
+          score: "{{ item.score }}",
+          staticLabel: "course",
+        },
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.equal(result.count, 1);
+    assert.deepEqual(result.items[0].metadata, {
+      data: { id: "course-1", category: "moda", score: 655 },
+      custom: { category: "moda", score: "655", staticLabel: "course" },
+    });
+  });
+
+  it("document loader transforms generic dataset items when the data source has no files", async () => {
+    const registry = createUtilityNodeRegistry();
+    const extracted = {
+      sourceType: "text",
+      count: 1,
+      items: [{
+        id: "text-dataset_1:0",
+        text: "Sailor document loaders transform items.",
+        metadata: { source: "manual", topic: "docs" },
+        raw: { body: "Sailor document loaders transform items.", topic: "docs" },
+      }],
+    };
+
+    const result = await registry.get("document-loader").execute({
+      nodeId: "loader",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {
+        resolveConfigDependencies: async () => ({
+          getOne: () => ({ load: async () => extracted }),
+          getOptional: () => undefined,
+          getMany: () => [],
+        }),
+      } as any,
+      node: {
+        type: "document-loader",
+        name: "Default Data Loader",
+        dataType: "text",
+        dataMode: "all",
+        includeSourceMetadata: true,
+        includeRootFieldsAsContext: false,
+        metadataTemplate: { topic: "{{ item.topic }}" },
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.equal(result.count, 1);
+    assert.equal(result.items[0].text, "Sailor document loaders transform items.");
+    assert.deepEqual(result.items[0].metadata, {
+      source: { source: "manual", topic: "docs" },
+      data: { body: "Sailor document loaders transform items.", topic: "docs" },
+      custom: { topic: "docs" },
+    });
+  });
+
   it("document loader chunks text documents when chunking is enabled", async () => {
     const registry = createUtilityNodeRegistry();
     const extracted = {

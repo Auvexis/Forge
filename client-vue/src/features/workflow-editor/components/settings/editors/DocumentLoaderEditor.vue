@@ -41,6 +41,15 @@
       />
     </EditorField>
 
+    <EditorField label="Metadata Template">
+      <BaseCodeEditor
+        :model-value="metadataTemplateText"
+        language="json"
+        height="160px"
+        @update:model-value="updateMetadataTemplate"
+      />
+    </EditorField>
+
     <EditorField label="Source Metadata">
       <BaseSwitch
         :model-value="node.data.includeSourceMetadata !== false"
@@ -60,14 +69,26 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
+import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
 
-defineProps<NodeEditorProps>()
+const props = defineProps<NodeEditorProps>()
+
+const metadataTemplateText = computed(() => JSON.stringify(props.node.data.metadataTemplate ?? {}, null, 2))
+
+function updateMetadataTemplate(value: string) {
+  try {
+    props.updateNodeData({ metadataTemplate: JSON.parse(value || '{}') })
+  } catch {
+    // Keep the last valid template while the user is editing JSON.
+  }
+}
 
 const DATA_TYPES = [
   { value: 'json', label: 'JSON' },

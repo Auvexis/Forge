@@ -408,7 +408,9 @@ export const documentLoaderNodeHandler = createNodeHandler<DocumentLoaderNode>("
   const dataSource = dependencies.getOne<FileDataSourceRef>("data");
   const sourceOutput = await dataSource.load();
   const files = Array.isArray(sourceOutput?.files) ? sourceOutput.files as FileExtractItem[] : [];
-  const documents = files.flatMap((file) => loadExtractedFileDocuments(file, node, nodeId));
+  const documents = files.length > 0
+    ? files.flatMap((file) => loadExtractedFileDocuments(file, node, nodeId))
+    : loadDatasetItemDocuments(sourceOutput, node, nodeId);
   const items = applyDocumentChunking(documents, node);
 
   return {
@@ -424,6 +426,28 @@ export const documentLoaderNodeHandler = createNodeHandler<DocumentLoaderNode>("
   errors: ["Invalid document loader config", "Missing data source"],
 });
 
+function loadDatasetItemDocuments(
+  sourceOutput: DatasetOutput,
+  node: DocumentLoaderNode,
+  nodeId: string,
+): DatasetOutput["items"] {
+  const items = Array.isArray(sourceOutput?.items) ? sourceOutput.items : [];
+  return items.map((item, index) => {
+    const data = item.raw && typeof item.raw === "object" && !Array.isArray(item.raw)
+      ? item.raw as Record<string, any>
+      : { value: item.raw ?? item.text };
+    return toDocumentItem({
+      node,
+      nodeId,
+      index,
+      value: item.raw ?? item.text,
+      text: item.text,
+      source: item.metadata ?? {},
+      data,
+    });
+  });
+}
+
 function loadExtractedFileDocuments(
   file: FileExtractItem,
   node: DocumentLoaderNode,
@@ -431,6 +455,7 @@ function loadExtractedFileDocuments(
 ): DatasetOutput["items"] {
   if (file.format === "json") return loadJsonDocuments(file, node, nodeId);
   if (file.format === "csv") return (file.rows ?? []).map((row, index) => toDocumentItem({
+    node,
     nodeId,
     index,
     value: row,
@@ -440,6 +465,7 @@ function loadExtractedFileDocuments(
   }));
 
   return [toDocumentItem({
+    node,
     nodeId,
     index: 0,
     value: file.data ?? file.rawText,
@@ -471,6 +497,7 @@ function loadJsonDocuments(
       ? `${node.dataPath}${Array.isArray(selected) ? `[${index}]` : ""}`
       : undefined;
     return toDocumentItem({
+      node,
       nodeId,
       index,
       value,
@@ -491,6 +518,7 @@ function getRequiredJsonPath(root: unknown, path: string | undefined): unknown {
 }
 
 function toDocumentItem(args: {
+  node: DocumentLoaderNode;
   nodeId: string;
   index: number;
   value: unknown;
@@ -503,11 +531,29 @@ function toDocumentItem(args: {
     id: `${args.nodeId}:${args.index}`,
     text: args.text,
     metadata: {
-      source: args.source,
+      ...(args.node.includeSourceMetadata !== false && Object.keys(args.source).length > 0 ? { source: args.source } : {}),
       ...(Object.keys(args.data).length > 0 ? { data: args.data } : {}),
       ...(args.context && Object.keys(args.context).length > 0 ? { context: args.context } : {}),
+      ...metadataTemplate(args.node.metadataTemplate, args.data),
     },
     raw: args.value,
+  };
+}
+
+function metadataTemplate(
+  template: Record<string, any> | undefined,
+  data: Record<string, any>,
+): { custom?: Record<string, any> } {
+  if (!template || Object.keys(template).length === 0) return {};
+  return {
+    custom: Object.fromEntries(Object.entries(template).map(([key, value]) => [
+      key,
+      typeof value === "string"
+        ? value.replace(/\{\{\s*item\.([a-zA-Z0-9_.-]+)\s*\}\}/g, (_match, path: string) =>
+          formatDocumentValue(getByPath(data, path))
+        )
+        : value,
+    ])),
   };
 }
 
