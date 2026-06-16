@@ -287,7 +287,8 @@ const DEFAULT_ALLOWED_NODES_BY_HANDLER: Record<string, AllowedNodes> = {
   memory: ['preset:sqlite-memory', 'capability:memory-store'],
   tool: ['capability:agent-tool'],
   embedding: ['capability:embedding-model'],
-  document: ['node:text-dataset', 'node:file-dataset', 'node:database-dataset'],
+  document: ['node:document-loader', 'node:text-dataset', 'node:database-dataset'],
+  data: ['node:file-dataset', 'node:text-dataset', 'node:database-dataset'],
 }
 type AddNodePickerAnchorRect = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'>
 type AddNodePickerAnchor = { clientX?: number; clientY?: number; anchorRect?: AddNodePickerAnchorRect }

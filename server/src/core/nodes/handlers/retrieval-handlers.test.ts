@@ -527,12 +527,14 @@ describe("retrieval utility node handlers", () => {
       executionId: "exec-1",
       workflow: workflowFixture(),
       edges: [],
-      context: {
-        trigger: {},
-        steps: { "file-dataset_1": { output: extracted } },
-        variables: {},
-      },
-      services: {} as any,
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {
+        resolveConfigDependencies: async () => ({
+          getOne: () => ({ load: async () => extracted }),
+          getOptional: () => undefined,
+          getMany: () => [],
+        }),
+      } as any,
       node: {
         type: "document-loader",
         name: "Default Data Loader",
@@ -644,6 +646,101 @@ describe("retrieval utility node handlers", () => {
     assert.equal(upsertedDocument.text, "hello");
     assert.deepEqual(upsertedDocument.vector, [0.1, 0.2, 0.3]);
     assert.equal(result.indexedCount, 1);
+  });
+
+  it("vector store indexes documents loaded through a document loader", async () => {
+    const calls: Array<{ pluginId: string; methodId: string; params: Record<string, any> }> = [];
+    const workflow = workflowFixture();
+    const csv = ["id,nome,score", "5,Elisa Nunes,655"].join("\n");
+    workflow.nodes = {
+      file: {
+        type: "file-dataset",
+        name: "Extract From File",
+        files: [{ filename: "clientes.csv", content: Buffer.from(csv).toString("base64"), mimeType: "text/csv" }],
+        format: "auto",
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+      loader: {
+        type: "document-loader",
+        name: "Default Data Loader",
+        dataType: "file",
+        dataMode: "all",
+        includeSourceMetadata: true,
+        includeRootFieldsAsContext: false,
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+      embeddings: {
+        type: "embeddings",
+        name: "Embeddings",
+        pluginId: "embedding-provider",
+        methodId: "createEmbeddings",
+        model: "embedding-model",
+        dimension: 3,
+        input: "",
+      },
+      vector: {
+        type: "vector-store",
+        name: "Vector",
+        pluginId: "vector-provider",
+        ensureCollectionMethodId: "ensureCollection",
+        upsertMethodId: "upsertDocuments",
+        queryMethodId: "querySimilar",
+        collectionName: "documents",
+        dimension: 3,
+        metric: "cosine",
+        config: {},
+        retrievalMode: "index",
+      },
+    };
+    workflow.edges = [
+      { id: "file-loader", source: "file", target: "loader", targetHandle: "data" },
+      { id: "loader-vector", source: "loader", target: "vector", targetHandle: "document" },
+      { id: "embedding-vector", source: "embeddings", target: "vector", targetHandle: "embedding" },
+    ];
+
+    const result = await createUtilityNodeRegistry().get("vector-store").execute({
+      nodeId: "vector",
+      executionId: "exec-1",
+      workflow,
+      edges: workflow.edges,
+      context: { trigger: {}, variables: {}, steps: {} },
+      services: {
+        executeNode: async ({ nodeId, node, context, workflow, edges, executionId }: any) =>
+          createUtilityNodeRegistry().get(node.type).execute({
+            nodeId,
+            node,
+            context,
+            workflow,
+            edges,
+            executionId,
+            services: {
+              executeNode: async (nested: any) => createUtilityNodeRegistry().get(nested.node.type).execute({ ...nested, services: {} as any }),
+            } as any,
+          }),
+        executePluginMethod: async (pluginId: string, methodId: string, params: Record<string, any>) => {
+          calls.push({ pluginId, methodId, params });
+          if (pluginId === "embedding-provider") return { vectors: [[0.1, 0.2, 0.3]] };
+          if (methodId === "upsertDocuments") return { upsertedCount: 1 };
+          return { ok: true };
+        },
+      } as any,
+      node: workflow.nodes.vector,
+    });
+
+    const upsertedDocument = calls.find((call) => call.methodId === "upsertDocuments")?.params.documents[0];
+    assert.equal(result.indexedCount, 1);
+    assert.equal(upsertedDocument.text, "id: 5\nnome: Elisa Nunes\nscore: 655");
+    assert.deepEqual(upsertedDocument.metadata.data, { id: 5, nome: "Elisa Nunes", score: 655 });
   });
 
   it("vector store queries similar documents and returns agent-ready context", async () => {

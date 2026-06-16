@@ -262,7 +262,7 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       description: "Load TXT, Markdown, JSON, or CSV files as workflow data.",
       category: "Data transformation",
       role: "configuration",
-      capabilities: ["document-source"],
+      capabilities: ["file-data-source"],
       presentation: { base: "standard", rounded: "full" },
       handles: [{ id: "source", label: "", type: "source", position: "top", style: "diamond" }],
       style: {

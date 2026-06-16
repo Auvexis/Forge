@@ -1,7 +1,7 @@
 import type { AiMemoryNode, AiModelNode, AiToolNode, EmbeddingsNode, StructuredJsonParserNode, VectorStoreNode, VectorStoreRetrieverNode, VectorStoreToolNode } from "../../../shared/models/workflow-types.ts";
 import { validateAiModelConfig } from "../../modules/agent-runtime/agent-validation.ts";
 import type { AiMemoryNodeConfig, AiToolNodeConfig } from "../../modules/agent-runtime/agent-types.ts";
-import type { AgentToolRef, ChatModelRef, DocumentSourceRef, EmbeddingModelRef, OutputParserRef, RetrieverRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
+import type { AgentToolRef, ChatModelRef, DocumentSourceRef, EmbeddingModelRef, FileDataSourceRef, OutputParserRef, RetrieverRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
 import { ChatModelExecutionService } from "../../modules/ai-services/chat-model-execution-service.ts";
 import { OutputParserExecutionService } from "../../modules/ai-services/output-parser-execution-service.ts";
 import { RetrieverExecutionService } from "../../modules/ai-services/retriever-execution-service.ts";
@@ -80,7 +80,14 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
     const dependencies = await context.resolveDependencies(nodeId);
     return { providerId: node.pluginId, methods: { ensureCollection: node.ensureCollectionMethodId, upsertDocuments: node.upsertMethodId, querySimilar: node.queryMethodId }, configuration: { collectionName: node.collectionName, dimension: node.dimension, metric: node.metric, config: node.config }, embedding: dependencies.getOne<EmbeddingModelRef>("embedding") } satisfies VectorStoreRef;
   } });
-  for (const type of ["text-dataset", "file-dataset", "database-dataset"] as const) registry.register({ capability: "document-source", supports: (node) => node.type === type, resolve: async (context, nodeId) => ({
+  registry.register({ capability: "document-source", supports: (node) => node.type === "document-loader", resolve: async (context, nodeId) => createLazyNodeSource(context, nodeId) satisfies DocumentSourceRef });
+  for (const type of ["text-dataset", "database-dataset"] as const) registry.register({ capability: "document-source", supports: (node) => node.type === type, resolve: async (context, nodeId) => createLazyNodeSource(context, nodeId) satisfies DocumentSourceRef });
+  for (const type of ["file-dataset", "text-dataset", "database-dataset"] as const) registry.register({ capability: "file-data-source", supports: (node) => node.type === type, resolve: async (context, nodeId) => createLazyNodeSource(context, nodeId) satisfies FileDataSourceRef });
+  return registry;
+}
+
+function createLazyNodeSource(context: any, nodeId: string): { nodeId: string; load(): Promise<any> } {
+  return {
     nodeId,
     load: async () => {
       const existing = context.execution.context.steps[nodeId]?.output;
@@ -97,8 +104,7 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
         throw error;
       }
     },
-  } satisfies DocumentSourceRef) });
-  return registry;
+  };
 }
 
 function extractModelText(result: unknown): string {

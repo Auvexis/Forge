@@ -4,7 +4,7 @@
 - [x] Comparar fluxo atual com n8n Extract From File + Default Data Loader
 - [x] Fase 1: separar File Dataset de Document Loader
 - [x] Fase 2: criar node Document Loader
-- [ ] Fase 3: migrar Vector Store para aceitar Document Loader
+- [x] Fase 3: migrar Vector Store para aceitar Document Loader
 - [ ] Fase 4: alinhar JSON/CSV/TXT/Markdown ao comportamento n8n
 - [ ] Fase 5: revisar UX dos Advanced Nodes do guia E2E
 - [ ] Fase 6: revisar filtros/metadata para Qdrant e Pinecone
@@ -69,16 +69,16 @@ File Dataset / Extract -> Document Loader -> Vector Store
 
 ## Fase 3: Migrar Vector Store
 
-- [ ] Vector Store `Document` aceita `document-loader`.
-- [ ] Vector Store deixa de depender direto de `file-dataset` como documento final.
-- [ ] Quick Add do handle `Document` mostra `Document Loader` primeiro.
-- [ ] Permitir `Text Dataset` temporariamente por compatibilidade.
-- [ ] Erro claro quando Vector Store recebe File Dataset direto sem loader.
-- [ ] Atualizar `ConfigDependencyResolver`.
-- [ ] Atualizar `core-capability-adapters`.
-- [ ] Testar indexação com Qdrant.
+- [x] Vector Store `Document` aceita `document-loader`.
+- [x] Vector Store deixa de depender direto de `file-dataset` como documento final.
+- [x] Quick Add do handle `Document` mostra `Document Loader` primeiro.
+- [x] Permitir `Text Dataset` temporariamente por compatibilidade.
+- [x] Erro claro quando Vector Store recebe File Dataset direto sem loader.
+- [x] Atualizar `ConfigDependencyResolver`.
+- [x] Atualizar `core-capability-adapters`.
+- [x] Testar indexação com Qdrant.
 - [ ] Testar indexação com Pinecone.
-- [ ] Commit: `refactor: route vector documents through loader`
+- [x] Commit: `refactor: route vector documents through loader`
 
 ## Fase 4: JSON/CSV/TXT/Markdown igual ao n8n
 

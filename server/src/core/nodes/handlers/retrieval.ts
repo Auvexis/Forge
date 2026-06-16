@@ -11,7 +11,7 @@ import type {
 } from "../../../shared/models/workflow-types.ts";
 import { createNodeHandler } from "../handler.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
-import type { DocumentSourceRef, EmbeddingModelRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
+import type { DocumentSourceRef, EmbeddingModelRef, FileDataSourceRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
 import { EmbeddingExecutionService } from "../../modules/ai-services/embedding-execution-service.ts";
 import { VectorStoreExecutionService } from "../../modules/ai-services/vector-store-execution-service.ts";
 import { ConfigDependencyResolver } from "../dependencies/config-dependency-resolver.ts";
@@ -400,8 +400,13 @@ export const databaseDatasetNodeHandler = createNodeHandler<DatabaseDatasetNode>
   errors: ["Invalid database dataset"],
 });
 
-export const documentLoaderNodeHandler = createNodeHandler<DocumentLoaderNode>("document-loader", ({ node, nodeId, context }) => {
-  const sourceOutput = findFirstDataSourceOutput(context.steps);
+export const documentLoaderNodeHandler = createNodeHandler<DocumentLoaderNode>("document-loader", async (input) => {
+  const { node, nodeId, context, services } = input;
+  const dependencies = services.resolveConfigDependencies
+    ? await services.resolveConfigDependencies(nodeId)
+    : await new ConfigDependencyResolver(createCoreCapabilityAdapterRegistry()).resolveForNode(input, nodeId);
+  const dataSource = dependencies.getOne<FileDataSourceRef>("data");
+  const sourceOutput = await dataSource.load();
   const files = Array.isArray(sourceOutput?.files) ? sourceOutput.files as FileExtractItem[] : [];
   const items = files.flatMap((file) => loadExtractedFileDocuments(file, node, nodeId));
 
@@ -417,12 +422,6 @@ export const documentLoaderNodeHandler = createNodeHandler<DocumentLoaderNode>("
   outputs: [{ id: "default", label: "Documents" }],
   errors: ["Invalid document loader config", "Missing data source"],
 });
-
-function findFirstDataSourceOutput(steps: Record<string, any>): any {
-  return Object.values(steps).map((step) => step?.output).find((output) =>
-    output && typeof output === "object" && (Array.isArray(output.files) || Array.isArray(output.items))
-  );
-}
 
 function loadExtractedFileDocuments(
   file: FileExtractItem,

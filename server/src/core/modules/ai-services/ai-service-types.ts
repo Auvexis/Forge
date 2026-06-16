@@ -28,3 +28,4 @@ export interface OutputParserRef { parse(value: string): Promise<unknown> }
 export type MemoryRef = AiMemoryNodeConfig;
 export type AgentToolRef = AgentToolConfig;
 export interface DocumentSourceRef { nodeId?: string; load(): Promise<any> }
+export interface FileDataSourceRef { nodeId?: string; load(): Promise<any> }
