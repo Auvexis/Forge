@@ -2,7 +2,7 @@
 
 - [x] Auditar guia E2E de Vector Store/RAG
 - [x] Comparar fluxo atual com n8n Extract From File + Default Data Loader
-- [ ] Fase 1: separar File Dataset de Document Loader
+- [x] Fase 1: separar File Dataset de Document Loader
 - [ ] Fase 2: criar node Document Loader
 - [ ] Fase 3: migrar Vector Store para aceitar Document Loader
 - [ ] Fase 4: alinhar JSON/CSV/TXT/Markdown ao comportamento n8n
@@ -28,16 +28,16 @@ File Dataset / Extract -> Document Loader -> Vector Store
 
 ## Fase 1: Separar File Dataset de Document Loader
 
-- [ ] Criar contrato `FileExtractOutput`.
+- [x] Criar contrato `FileExtractOutput`.
 - [ ] `File Dataset` deixa de expor capability `document-source`.
 - [ ] `File Dataset` passa a expor capability `file-data-source`.
-- [ ] CSV retorna rows estruturadas.
-- [ ] JSON retorna objeto/array estruturado.
-- [ ] TXT/Markdown retornam texto bruto.
-- [ ] Preservar `source.filename`, `mimeType`, `size`.
+- [x] CSV retorna rows estruturadas.
+- [x] JSON retorna objeto/array estruturado.
+- [x] TXT/Markdown retornam texto bruto.
+- [x] Preservar `source.filename`, `mimeType`, `size`.
 - [ ] Manter compatibilidade temporária com workflows antigos.
-- [ ] Testar `.csv`, `.json`, `.txt`, `.md`.
-- [ ] Commit: `refactor: separate file dataset extraction`
+- [x] Testar `.csv`, `.json`, `.txt`, `.md`.
+- [x] Commit: `refactor: separate file dataset extraction`
 
 ## Fase 2: Criar Document Loader
 
@@ -184,3 +184,4 @@ File Dataset / Extract -> Document Loader -> Vector Store
 5. Quick Add.
 6. Migração.
 7. E2E completo.
+

@@ -2,6 +2,7 @@ import type {
   DatabaseDatasetNode,
   DatasetOutput,
   EmbeddingsNode,
+  FileExtractItem,
   FileDatasetNode,
   RetrieverNode,
   TextDatasetNode,
@@ -93,8 +94,16 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     : [node.filePath, node.fileUrl].filter((value): value is string => Boolean(value));
   const files = configuredFiles.flatMap((file) => normalizeFileInputs(TemplateEngine.evaluate(file, context)));
   const customMetadata = normalizeMetadata(TemplateEngine.evaluate(node.metadata ?? {}, context));
+  const extractedFiles: FileExtractItem[] = [];
   const items = files.flatMap((file, fileIndex) => {
     if (typeof file === "string") {
+      extractedFiles.push({
+        id: `${nodeId}:${fileIndex}`,
+        format: "txt",
+        source: { source: file },
+        rawText: file,
+        data: file,
+      });
       return {
         id: `${nodeId}:${fileIndex}`,
         text: file,
@@ -121,7 +130,20 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     const format = resolveFileDatasetFormat(node.format, filename, mimeType);
 
     if (format === "csv") {
+      extractedFiles.push(csvToExtractFile(text, `${nodeId}:${fileIndex}`, sourceMetadata));
       return csvToItems(text, `${nodeId}:${fileIndex}`, sourceMetadata, customMetadata);
+    }
+
+    if (format === "json") {
+      extractedFiles.push(jsonToExtractFile(text, `${nodeId}:${fileIndex}`, sourceMetadata));
+    } else {
+      extractedFiles.push({
+        id: `${nodeId}:${fileIndex}`,
+        format: format === "markdown" ? "markdown" : "txt",
+        source: sourceMetadata,
+        rawText: text,
+        data: text,
+      });
     }
 
     return {
@@ -136,6 +158,7 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     items,
     count: items.length,
     sourceType: "file",
+    files: extractedFiles,
   } satisfies DatasetOutput;
 }, {
   description: "Defines a file dataset source for downstream loading and chunking.",
@@ -199,6 +222,27 @@ function resolveFileDatasetFormat(
   return "txt";
 }
 
+function csvToExtractFile(
+  value: string,
+  id: string,
+  source: Record<string, any>,
+): FileExtractItem {
+  const rows = parseCsv(value.trim());
+  const headers = rows[0]?.map((header) => header.trim()) ?? [];
+  return {
+    id,
+    format: "csv",
+    source,
+    rows: rows.slice(1)
+      .filter((row) => row.some((cell) => cell.trim().length > 0))
+      .map((row) => Object.fromEntries(headers.map((header, cellIndex) => [
+        header,
+        coerceCsvMetadataValue(row[cellIndex] ?? ""),
+      ]))),
+    rawText: value,
+  };
+}
+
 function csvToItems(
   value: string,
   idPrefix: string,
@@ -232,6 +276,20 @@ function csvToItems(
         raw: record,
       };
     });
+}
+
+function jsonToExtractFile(
+  value: string,
+  id: string,
+  source: Record<string, any>,
+): FileExtractItem {
+  return {
+    id,
+    format: "json",
+    source,
+    data: JSON.parse(value),
+    rawText: value,
+  };
 }
 
 function coerceCsvMetadataValue(value: string): string | number | boolean {

@@ -61,10 +61,22 @@ export interface DatasetItem {
   raw?: any;
 }
 
+export type FileExtractFormat = "txt" | "markdown" | "json" | "csv";
+
+export interface FileExtractItem {
+  id: string;
+  format: FileExtractFormat;
+  source: Record<string, any>;
+  rawText: string;
+  rows?: Array<Record<string, any>>;
+  data?: unknown;
+}
+
 export interface DatasetOutput {
   items: DatasetItem[];
   count: number;
   sourceType: DatasetSourceType;
+  files?: FileExtractItem[];
 }
 
 export interface VectorDocument {

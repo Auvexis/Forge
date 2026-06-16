@@ -368,6 +368,59 @@ describe("retrieval utility node handlers", () => {
     assert.doesNotMatch(result.items[0].text, /Victor Hugo/);
   });
 
+  it("file dataset extracts CSV and JSON files as structured data", async () => {
+    const handler = createUtilityNodeRegistry().get("file-dataset");
+    const csv = ["id,nome,ativo", "5,Elisa Nunes,true"].join("\n");
+    const json = JSON.stringify({
+      dataset: "catalogo_cursos_online",
+      courses: [{ course_id: "CRS-1001", title: "APIs REST", duration_hours: 12 }],
+    });
+
+    const result = await handler.execute({
+      nodeId: "file-dataset_1",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {} as any,
+      node: {
+        type: "file-dataset",
+        name: "Files",
+        files: [
+          { filename: "clientes.csv", content: Buffer.from(csv).toString("base64"), mimeType: "text/csv" },
+          { filename: "cursos.json", content: Buffer.from(json).toString("base64"), mimeType: "application/json" },
+        ],
+        format: "auto",
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.equal(result.sourceType, "file");
+    assert.equal(result.files.length, 2);
+    assert.deepEqual(result.files[0], {
+      id: "file-dataset_1:0",
+      format: "csv",
+      source: { filename: "clientes.csv", mimeType: "text/csv" },
+      rows: [{ id: 5, nome: "Elisa Nunes", ativo: true }],
+      rawText: csv,
+    });
+    assert.deepEqual(result.files[1], {
+      id: "file-dataset_1:1",
+      format: "json",
+      source: { filename: "cursos.json", mimeType: "application/json" },
+      data: {
+        dataset: "catalogo_cursos_online",
+        courses: [{ course_id: "CRS-1001", title: "APIs REST", duration_hours: 12 }],
+      },
+      rawText: json,
+    });
+  });
+
   it("file dataset coerces CSV metadata values for filtering", async () => {
     const handler = createUtilityNodeRegistry().get("file-dataset");
     const csv = [
