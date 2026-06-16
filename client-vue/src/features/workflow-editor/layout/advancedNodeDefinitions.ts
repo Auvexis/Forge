@@ -14,6 +14,11 @@ export const VECTOR_STORE_HANDLERS: BaseNodeHandlerDefinition[] = [
   { id: 'document', label: 'Document', type: 'target', position: Position.Bottom, style: 'diamond', quickAdd: 'vector-config', quickAddAfterConnected: true, allowedNodes: ['node:document-loader', 'node:text-dataset', 'node:database-dataset'] },
 ]
 
+export const DOCUMENT_LOADER_HANDLERS: BaseNodeHandlerDefinition[] = [
+  { id: 'source', label: '', type: 'source', position: Position.Top, style: 'diamond', allowedNodes: [] },
+  { id: 'data', label: 'Data', type: 'target', position: Position.Bottom, style: 'diamond', required: true, quickAdd: 'vector-config', allowedNodes: ['node:file-dataset', 'node:text-dataset', 'node:database-dataset'] },
+]
+
 export const CONFIGURATION_SOURCE_HANDLER: BaseNodeHandlerDefinition = {
   id: 'source',
   label: '',
@@ -25,6 +30,7 @@ export const CONFIGURATION_SOURCE_HANDLER: BaseNodeHandlerDefinition = {
 
 const ADVANCED_NODE_HANDLERS: Partial<Record<WorkflowNodeType, BaseNodeHandlerDefinition[]>> = {
   'ai-agent': AI_AGENT_HANDLERS,
+  'document-loader': DOCUMENT_LOADER_HANDLERS,
   'vector-store': VECTOR_STORE_HANDLERS,
 }
 

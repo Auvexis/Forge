@@ -108,6 +108,8 @@ File Dataset / Extract -> Document Loader -> Vector Store
   - [x] `Document Loader` -> `Default Data Loader`.
 - [x] Garantir que múltiplos arquivos não travem editor.
 - [x] Garantir preview lazy para outputs grandes.
+- [x] Refinar editores com selects para formatos, metricas, metodos e plugins de database.
+- [x] Default Data Loader: icone, Data Path mais claro e Quick Add restrito a fontes de dados.
 - [x] Commit: `feat: improve document loader ux`
 
 ## Fase 6: Metadata e Filtros

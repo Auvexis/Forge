@@ -16,10 +16,10 @@
     </EditorField>
 
     <EditorField label="Format">
-      <BaseInput
+      <BaseSelect
         :model-value="(node.data.format as string) || 'txt'"
+        :options="FORMAT_OPTIONS"
         @update:model-value="updateNodeData({ format: ($event as string) || 'txt' })"
-        placeholder="txt, markdown, json, csv"
       />
     </EditorField>
 
@@ -75,9 +75,18 @@ import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import FileDatasetFilesInput from './FileDatasetFilesInput.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 
 const props = defineProps<NodeEditorProps>()
+
+const FORMAT_OPTIONS = [
+  { value: 'auto', label: 'Auto detect' },
+  { value: 'txt', label: 'Text' },
+  { value: 'markdown', label: 'Markdown' },
+  { value: 'json', label: 'JSON' },
+  { value: 'csv', label: 'CSV' },
+]
 
 const files = computed<FileDatasetFile[]>(() => {
   const configured = props.node.data.files as FileDatasetFile[] | undefined

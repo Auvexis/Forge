@@ -118,17 +118,21 @@ test('vector store exposes embedding and document configuration handles', () => 
   const source = read('src/features/workflow-editor/components/nodes/VectorStoreNode.vue')
   const definitions = read('src/features/workflow-editor/layout/advancedNodeDefinitions.ts')
   const quickAdd = read('src/features/workflow-editor/components/QuickAddButton.vue')
+  const vectorSection = definitions.slice(
+    definitions.indexOf('export const VECTOR_STORE_HANDLERS'),
+    definitions.indexOf('export const DOCUMENT_LOADER_HANDLERS'),
+  )
 
   assert.match(source, /BaseAdvancedNode/)
   assert.match(source, /getAdvancedNodeHandlers/)
   assert.match(source, /getAdvancedNodeHandlers\('vector-store'\)/)
   assert.match(source, /auto-organize/)
-  assert.match(definitions, /capability:embedding-model/)
-  assert.doesNotMatch(definitions, /node:embeddings/)
-  assert.match(definitions, /node:document-loader/)
-  assert.match(definitions, /node:text-dataset/)
-  assert.doesNotMatch(definitions, /id: 'document'[\s\S]*node:file-dataset/)
-  assert.match(definitions, /node:database-dataset/)
+  assert.match(vectorSection, /capability:embedding-model/)
+  assert.doesNotMatch(vectorSection, /node:embeddings/)
+  assert.match(vectorSection, /node:document-loader/)
+  assert.match(vectorSection, /node:text-dataset/)
+  assert.doesNotMatch(vectorSection, /node:file-dataset/)
+  assert.match(vectorSection, /node:database-dataset/)
   assert.match(source, /usePluginNodePresentation/)
   assert.match(source, /customBg/)
   assert.match(source, /customBorder/)
@@ -140,6 +144,18 @@ test('vector store exposes embedding and document configuration handles', () => 
   assert.match(quickAdd, /mode\?: 'source' \| NodeQuickAddMode/)
   assert.match(quickAdd, /quickAddMode: props\.mode/)
   assert.match(quickAdd, /allowedNodes: props\.allowedNodes/)
+})
+
+test('default data loader renders its catalog icon and only quick-adds data sources', () => {
+  const source = read('src/features/workflow-editor/components/nodes/DocumentLoaderNode.vue')
+  const definitions = read('src/features/workflow-editor/layout/advancedNodeDefinitions.ts')
+
+  assert.match(source, /<template #icon-left>/)
+  assert.match(source, /file-search/)
+  assert.match(definitions, /node:file-dataset/)
+  assert.match(definitions, /node:text-dataset/)
+  assert.match(definitions, /node:database-dataset/)
+  assert.doesNotMatch(definitions, /id: 'data'[\s\S]*node:document-loader/)
 })
 
 test('vector configuration children are circular and connect from the top', () => {

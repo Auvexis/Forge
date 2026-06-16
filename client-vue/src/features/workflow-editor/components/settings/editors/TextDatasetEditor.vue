@@ -9,10 +9,10 @@
     </EditorField>
 
     <EditorField label="Format">
-      <BaseInput
+      <BaseSelect
         :model-value="(node.data.format as string) || 'plain-text'"
+        :options="FORMAT_OPTIONS"
         @update:model-value="updateNodeData({ format: ($event as string) || 'plain-text' })"
-        placeholder="plain-text or json-array"
       />
     </EditorField>
 
@@ -76,10 +76,16 @@ import type { DatasetChunkingConfig } from '@/core/types/workflow.types'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
 
 const props = defineProps<NodeEditorProps>()
+
+const FORMAT_OPTIONS = [
+  { value: 'plain-text', label: 'Plain text' },
+  { value: 'json-array', label: 'JSON array' },
+]
 
 const defaultChunking: DatasetChunkingConfig = {
   enabled: false,

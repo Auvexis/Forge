@@ -25,6 +25,7 @@
     </EditorField>
 
     <EditorField label="Data Path">
+      <div class="editor-hint">Path inside the incoming data, for example <code>courses</code> or <code>payload.items</code>. Upload files in Extract From File.</div>
       <BaseInput
         :model-value="(node.data.dataPath as string) || ''"
         @update:model-value="updateNodeData({ dataPath: $event as string })"
@@ -48,6 +49,7 @@
         height="160px"
         @update:model-value="updateMetadataTemplate"
       />
+      <pre class="metadata-preview">{{ metadataTemplateText }}</pre>
     </EditorField>
 
     <EditorField label="Source Metadata">
@@ -101,3 +103,16 @@ const DATA_MODES = [
   { value: 'specific', label: 'Load Specific Data' },
 ]
 </script>
+
+<style scoped>
+.metadata-preview {
+  margin: var(--sailor-space-2) 0 0;
+  padding: var(--sailor-space-2);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-muted);
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-xs);
+  white-space: pre-wrap;
+}
+</style>

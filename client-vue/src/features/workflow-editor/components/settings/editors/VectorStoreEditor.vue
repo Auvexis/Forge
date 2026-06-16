@@ -8,14 +8,6 @@
       />
     </EditorField>
 
-    <EditorField label="Provider Plugin">
-      <BaseInput
-        :model-value="pluginId"
-        @update:model-value="updateProvider($event as string)"
-        placeholder="sailor-pinecone or sailor-qdrant"
-      />
-    </EditorField>
-
     <EditorField label="Collection">
       <div class="editor-hint">Collection or index name. Keep it stable to avoid duplicate vector data.</div>
       <BaseInput
@@ -36,10 +28,10 @@
     </EditorField>
 
     <EditorField label="Metric">
-      <BaseInput
+      <BaseSelect
         :model-value="(node.data.metric as string) || 'cosine'"
+        :options="METRIC_OPTIONS"
         @update:model-value="updateNodeData({ metric: ($event as string) || 'cosine' })"
-        placeholder="cosine, dot, euclidean"
       />
     </EditorField>
 
@@ -94,11 +86,43 @@
       />
     </EditorField>
 
-    <EditorField label="Methods">
-      <BaseInput
+    <EditorField label="Ensure Method">
+      <BaseSelect
+        :model-value="(node.data.ensureCollectionMethodId as string) || 'ensureCollection'"
+        :options="METHOD_OPTIONS"
+        @update:model-value="updateNodeData({ ensureCollectionMethodId: $event as string })"
+      />
+    </EditorField>
+
+    <EditorField label="Upsert Method">
+      <BaseSelect
         :model-value="(node.data.upsertMethodId as string) || ''"
+        :options="METHOD_OPTIONS"
         @update:model-value="updateNodeData({ upsertMethodId: $event as string })"
-        placeholder="upsert-documents"
+      />
+    </EditorField>
+
+    <EditorField label="Query Method">
+      <BaseSelect
+        :model-value="(node.data.queryMethodId as string) || 'querySimilar'"
+        :options="METHOD_OPTIONS"
+        @update:model-value="updateNodeData({ queryMethodId: $event as string })"
+      />
+    </EditorField>
+
+    <EditorField label="Delete Method">
+      <BaseSelect
+        :model-value="(node.data.deleteMethodId as string) || 'deleteDocuments'"
+        :options="METHOD_OPTIONS"
+        @update:model-value="updateNodeData({ deleteMethodId: $event as string })"
+      />
+    </EditorField>
+
+    <EditorField label="Describe Method">
+      <BaseSelect
+        :model-value="(node.data.describeMethodId as string) || 'describeCollection'"
+        :options="METHOD_OPTIONS"
+        @update:model-value="updateNodeData({ describeMethodId: $event as string })"
       />
     </EditorField>
 
@@ -272,6 +296,20 @@ const OUTPUT_MODES = [
   { value: 'items', label: 'Items' },
 ]
 
+const METRIC_OPTIONS = [
+  { value: 'cosine', label: 'Cosine' },
+  { value: 'dot', label: 'Dot product' },
+  { value: 'euclidean', label: 'Euclidean' },
+]
+
+const METHOD_OPTIONS = [
+  { value: 'ensureCollection', label: 'Ensure collection' },
+  { value: 'upsertDocuments', label: 'Upsert documents' },
+  { value: 'querySimilar', label: 'Query similar' },
+  { value: 'deleteDocuments', label: 'Delete documents' },
+  { value: 'describeCollection', label: 'Describe collection' },
+]
+
 onMounted(() => {
   void settingsStore.fetchCredential(pluginId.value)
 })
@@ -279,16 +317,6 @@ onMounted(() => {
 watch(pluginId, (nextPluginId) => {
   void settingsStore.fetchCredential(nextPluginId)
 })
-
-function updateProvider(nextPluginId: string) {
-  props.updateNodeData({
-    pluginId: nextPluginId,
-    config: {
-      ...config.value,
-      mode: config.value.mode ?? 'cloud',
-    },
-  })
-}
 
 function updateConfig(patch: Record<string, any>) {
   props.updateNodeData({ config: { ...config.value, ...patch } })

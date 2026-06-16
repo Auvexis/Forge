@@ -39,8 +39,19 @@ test('file dataset editor uses the dedicated multiple files input', () => {
 
   assert.match(source, /import FileDatasetFilesInput from '.\/FileDatasetFilesInput\.vue'/)
   assert.match(source, /<FileDatasetFilesInput/)
+  assert.match(source, /FORMAT_OPTIONS/)
+  assert.match(source, /BaseSelect/)
   assert.doesNotMatch(source, /EditorField label="File Path"/)
   assert.doesNotMatch(source, /EditorField label="File URL"/)
+})
+
+test('text dataset editor uses a format select with supported formats', () => {
+  const source = read('src/features/workflow-editor/components/settings/editors/TextDatasetEditor.vue')
+
+  assert.match(source, /FORMAT_OPTIONS/)
+  assert.match(source, /value: 'plain-text'/)
+  assert.match(source, /value: 'json-array'/)
+  assert.match(source, /BaseSelect/)
 })
 
 test('document loader editor exposes data mode, type, and metadata template controls', () => {
@@ -62,6 +73,8 @@ test('document loader editor exposes data mode, type, and metadata template cont
   assert.match(source, /Binary\/File/)
   assert.match(source, /BaseCodeEditor/)
   assert.match(source, /updateMetadataTemplate/)
+  assert.match(source, /Path inside the incoming data/)
+  assert.match(source, /metadata-preview/)
 })
 
 test('vector store editor exposes Pinecone and Qdrant provider config sections', () => {
@@ -71,6 +84,12 @@ test('vector store editor exposes Pinecone and Qdrant provider config sections',
     assert.match(source, new RegExp(field))
   }
 
+  assert.doesNotMatch(source, /label="Provider Plugin"/)
+  assert.match(source, /METRIC_OPTIONS/)
+  assert.match(source, /METHOD_OPTIONS/)
+  assert.match(source, /ensureCollectionMethodId/)
+  assert.match(source, /upsertMethodId/)
+  assert.match(source, /queryMethodId/)
   assert.match(source, /sailor-pinecone/)
   assert.match(source, /sailor-qdrant/)
   assert.match(source, /localHost/)
@@ -81,6 +100,20 @@ test('vector store editor exposes Pinecone and Qdrant provider config sections',
   assert.match(source, /preferGrpc/)
   assert.match(source, /tls/)
   assert.match(source, /timeoutMs/)
+})
+
+test('database dataset editor uses plugin and method selects with credential management', () => {
+  const source = read('src/features/workflow-editor/components/settings/editors/DatabaseDatasetEditor.vue')
+
+  assert.match(source, /pluginsApi\.getAll/)
+  assert.match(source, /databasePluginOptions/)
+  assert.match(source, /methodOptions/)
+  assert.match(source, /isDatabasePlugin/)
+  assert.match(source, /BaseSelect/)
+  assert.match(source, /Credential/)
+  assert.match(source, /openCredentialsFor/)
+  assert.match(source, /Manage Credentials/)
+  assert.doesNotMatch(source, /PluginMenuAuth/)
 })
 
 test('vector store editor owns retrieval query and output settings', () => {

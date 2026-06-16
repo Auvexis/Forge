@@ -298,7 +298,7 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       presentation: { base: "advanced", autoOrganize: true, rounded: "full" },
       handles: [
         { id: "source", label: "", type: "source", position: "top", style: "diamond" },
-        { id: "data", label: "Data", type: "target", position: "bottom", style: "diamond", required: true, accepts: [{ capability: "file-data-source" }, { capability: "document-source" }], cardinality: "one", connectionPolicy: "replace", quickAdd: "capability" },
+        { id: "data", label: "Data", type: "target", position: "bottom", style: "diamond", required: true, accepts: [{ capability: "file-data-source" }, { capability: "document-source" }], allowedNodes: ["node:file-dataset", "node:text-dataset", "node:database-dataset"], cardinality: "one", connectionPolicy: "replace", quickAdd: "capability" },
       ],
       style: {
         icon: "file-search",
