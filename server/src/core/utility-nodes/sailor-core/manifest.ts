@@ -258,8 +258,8 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
     },
     "file-dataset": {
       type: "file-dataset",
-      label: "File Dataset",
-      description: "Load TXT, Markdown, JSON, or CSV files as workflow data.",
+      label: "Extract From File",
+      description: "Extract TXT, Markdown, JSON, or CSV files as structured workflow data.",
       category: "Data transformation",
       role: "configuration",
       capabilities: ["file-data-source"],

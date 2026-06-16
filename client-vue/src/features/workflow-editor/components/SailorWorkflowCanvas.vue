@@ -539,7 +539,7 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   'ai-memory': 'AI Memory',
   'ai-tool': 'AI Tool',
   'text-dataset': 'Text Dataset',
-  'file-dataset': 'File Dataset',
+  'file-dataset': 'Extract From File',
   'database-dataset': 'Database Dataset',
   'document-loader': 'Default Data Loader',
   'embeddings': 'Embeddings',

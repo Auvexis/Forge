@@ -12,7 +12,7 @@ const props = defineProps<
   }
 >()
 
-const stepTitle = computed(() => props.data?.name || 'File Dataset')
+const stepTitle = computed(() => props.data?.name || 'Extract From File')
 const subtitle = computed(() => props.data?.format || 'txt')
 </script>
 

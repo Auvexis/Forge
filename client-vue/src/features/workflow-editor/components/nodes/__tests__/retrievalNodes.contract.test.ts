@@ -46,7 +46,7 @@ test('workflow canvas defines backend-valid defaults for retrieval nodes added f
 
   for (const [nodeType, defaultName] of [
     ['text-dataset', 'Text Dataset'],
-    ['file-dataset', 'File Dataset'],
+    ['file-dataset', 'Extract From File'],
     ['database-dataset', 'Database Dataset'],
     ['embeddings', 'Embeddings'],
     ['vector-store', 'Vector Store'],

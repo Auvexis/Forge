@@ -145,7 +145,7 @@ export const NODE_TYPE_META: Record<
     category: 'data',
   },
   'file-dataset': {
-    label: 'File Dataset',
+    label: 'Extract From File',
     color: 'var(--sailor-node-http-icon)',
     category: 'data',
   },

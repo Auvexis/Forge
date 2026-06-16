@@ -72,6 +72,7 @@ const CONTEXTUAL_ONLY_NODE_TYPES = new Set<WorkflowNodeType>([
   'ai-model',
   'ai-memory',
   'ai-tool',
+  'document-loader',
   'embeddings',
   'retriever',
 ])
@@ -247,12 +248,19 @@ export function buildPickerSecondColumnItems(options: {
   plugins: readonly PluginSummary[]
   presets: readonly AddNodePickerPreset[]
   search?: string
+  preferredNodeTypes?: readonly WorkflowNodeType[]
 }): AddNodePickerSecondColumnItem[] {
   if (!options.category) return []
 
-  const presets = options.presets
+  const preferredIndex = (preset: AddNodePickerPreset) => {
+    const index = options.preferredNodeTypes?.indexOf(preset.nodeType) ?? -1
+    return index === -1 ? Number.MAX_SAFE_INTEGER : index
+  }
+
+  const presets = [...options.presets]
     .filter((preset) => preset.categories.includes(options.category!))
     .filter((preset) => matchesSearch(options.search, preset.label, preset.description))
+    .sort((a, b) => preferredIndex(a) - preferredIndex(b))
     .map((preset): AddNodePickerSecondColumnItem => ({
       kind: 'preset',
       id: `preset:${preset.id}`,

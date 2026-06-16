@@ -6,7 +6,7 @@
 - [x] Fase 2: criar node Document Loader
 - [x] Fase 3: migrar Vector Store para aceitar Document Loader
 - [x] Fase 4: alinhar JSON/CSV/TXT/Markdown ao comportamento n8n
-- [ ] Fase 5: revisar UX dos Advanced Nodes do guia E2E
+- [x] Fase 5: revisar UX dos Advanced Nodes do guia E2E
 - [ ] Fase 6: revisar filtros/metadata para Qdrant e Pinecone
 - [ ] Fase 7: atualizar testes E2E e negativos
 - [ ] Fase 8: migração compatível dos workflows existentes
@@ -98,17 +98,17 @@ File Dataset / Extract -> Document Loader -> Vector Store
 
 ## Fase 5: UX dos Advanced Nodes
 
-- [ ] `File Dataset` deve parecer node de extração de dados.
-- [ ] `Document Loader` deve parecer subnode/configuração do Vector Store.
-- [ ] Quick Add `Vector Store / Document` cria `Document Loader`.
-- [ ] Quick Add do `Document Loader / Data` mostra File Dataset, Text Dataset e Database Dataset.
-- [ ] Evitar nodes de configuração no picker global.
-- [ ] Revisar labels:
-  - `File Dataset` -> `Extract From File` ou manter nome Sailor com subtítulo claro.
-  - `Document Loader` -> `Default Data Loader`.
-- [ ] Garantir que múltiplos arquivos não travem editor.
-- [ ] Garantir preview lazy para outputs grandes.
-- [ ] Commit: `feat: improve document loader ux`
+- [x] `File Dataset` deve parecer node de extração de dados.
+- [x] `Document Loader` deve parecer subnode/configuração do Vector Store.
+- [x] Quick Add `Vector Store / Document` cria `Document Loader`.
+- [x] Quick Add do `Document Loader / Data` mostra File Dataset, Text Dataset e Database Dataset.
+- [x] Evitar nodes de configuração no picker global.
+- [x] Revisar labels:
+  - [x] `File Dataset` -> `Extract From File` ou manter nome Sailor com subtítulo claro.
+  - [x] `Document Loader` -> `Default Data Loader`.
+- [x] Garantir que múltiplos arquivos não travem editor.
+- [x] Garantir preview lazy para outputs grandes.
+- [x] Commit: `feat: improve document loader ux`
 
 ## Fase 6: Metadata e Filtros
 

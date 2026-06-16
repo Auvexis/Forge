@@ -4,7 +4,7 @@
       <BaseInput
         :model-value="(node.data.name as string) || ''"
         @update:model-value="updateNodeData({ name: $event as string })"
-        placeholder="File Dataset"
+        placeholder="Extract From File"
       />
     </EditorField>
 

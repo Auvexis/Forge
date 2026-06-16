@@ -83,4 +83,11 @@ describe('execution bottom panel runtime detail view', () => {
     assert.match(source, /b\.startedAt - a\.startedAt/)
     assert.match(source, /v-for="run in sortedHistoryRuns"/)
   })
+
+  it('avoids eager rendering for large outputs', () => {
+    assert.match(source, /MAX_EAGER_OUTPUT_PREVIEW_BYTES/)
+    assert.match(source, /outputPreviewState/)
+    assert.match(source, /Preview skipped for large output/)
+    assert.match(source, /Show preview/)
+  })
 })

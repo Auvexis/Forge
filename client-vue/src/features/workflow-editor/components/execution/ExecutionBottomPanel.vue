@@ -81,7 +81,16 @@
                   <small>{{ item.nodeId || item.source || 'workflow' }}</small>
                 </div>
                 <pre v-if="item.error">{{ item.error }}</pre>
-                <pre v-else-if="eventBody(item)">{{ formatJson(eventBody(item)) }}</pre>
+                <template v-else-if="eventBody(item)">
+                  <div
+                    v-if="outputPreviewState(item).skipped && !forcedOutputPreviewIds.has(item.id)"
+                    class="ebp-output-preview-skipped"
+                  >
+                    <span>{{ outputPreviewState(item).summary }}</span>
+                    <button type="button" @click.stop="showOutputPreview(item.id)">Show preview</button>
+                  </div>
+                  <pre v-else>{{ formatJson(eventBody(item)) }}</pre>
+                </template>
                 <span v-else>No body data for this step.</span>
               </div>
             </Transition>
@@ -110,6 +119,9 @@ const historyLoading = ref(false)
 const historyRuns = ref<ExecutionLog[]>([])
 const selectedHistoryRunId = ref<string | null>(null)
 const expandedEventIds = ref(new Set<string>())
+const forcedOutputPreviewIds = ref(new Set<string>())
+const MAX_EAGER_OUTPUT_PREVIEW_BYTES = 80_000
+const MAX_EAGER_OUTPUT_ITEMS = 100
 
 type PanelEvent = ExecutionTimelineEvent & { workflowId?: string; body?: unknown }
 
@@ -231,6 +243,44 @@ function toggleEventDetails(id: string) {
   if (next.has(id)) next.delete(id)
   else next.add(id)
   expandedEventIds.value = next
+}
+
+function showOutputPreview(id: string) {
+  const next = new Set(forcedOutputPreviewIds.value)
+  next.add(id)
+  forcedOutputPreviewIds.value = next
+}
+
+function countPreviewItems(data: unknown): number | null {
+  if (Array.isArray(data)) return data.length
+  if (data && typeof data === 'object') {
+    const value = data as Record<string, unknown>
+    if (Array.isArray(value.items)) return value.items.length
+    if (Array.isArray(value.documents)) return value.documents.length
+    if (Array.isArray(value.rows)) return value.rows.length
+  }
+  return null
+}
+
+function outputPreviewState(item: PanelEvent): { skipped: boolean; summary: string } {
+  const body = eventBody(item)
+  const itemCount = countPreviewItems(body)
+  if (itemCount !== null && itemCount > MAX_EAGER_OUTPUT_ITEMS) {
+    return {
+      skipped: true,
+      summary: `Preview skipped for large output (${itemCount} items).`,
+    }
+  }
+
+  const serialized = formatJson(body)
+  if (serialized.length > MAX_EAGER_OUTPUT_PREVIEW_BYTES) {
+    return {
+      skipped: true,
+      summary: `Preview skipped for large output (${serialized.length.toLocaleString()} characters).`,
+    }
+  }
+
+  return { skipped: false, summary: '' }
 }
 
 function formatJson(data: unknown): string {
@@ -587,6 +637,29 @@ function formatJson(data: unknown): string {
 .ebp-event-detail span {
   color: var(--sailor-text-muted);
   font-size: var(--sailor-text-xs);
+}
+
+.ebp-output-preview-skipped {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sailor-space-3);
+}
+
+.ebp-output-preview-skipped button {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  color: var(--sailor-text-secondary);
+  background: var(--sailor-bg-surface);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.ebp-output-preview-skipped button:hover {
+  color: var(--sailor-text-primary);
+  background: var(--sailor-bg-surface-hover);
 }
 
 .ebp-event-detail-slide-enter-active,

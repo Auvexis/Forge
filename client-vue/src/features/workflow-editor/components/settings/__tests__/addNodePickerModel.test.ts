@@ -354,10 +354,45 @@ test('default picker hides contextual AI and vector configuration nodes', () => 
     { id: 'ai-memory', nodeType: 'ai-memory', label: 'AI Memory', description: '', icon: 'database', categories: ['AI'] },
     { id: 'ai-tool', nodeType: 'ai-tool', label: 'AI Tool', description: '', icon: 'wrench', categories: ['AI'] },
     { id: 'embeddings', nodeType: 'embeddings', label: 'Embeddings', description: '', icon: 'scan-text', categories: ['AI'] },
+    { id: 'document-loader', nodeType: 'document-loader', label: 'Default Data Loader', description: '', icon: 'file-search', categories: ['AI'] },
     { id: 'vector-store', nodeType: 'vector-store', label: 'Vector Store', description: '', icon: 'database', categories: ['AI'] },
     { id: 'retriever', nodeType: 'retriever', label: 'Retriever', description: '', icon: 'search', categories: ['AI'] },
   ]
   const visibleTypes = filterDefaultPickerPresets(presets).map((preset) => preset.nodeType)
 
   assert.deepEqual(visibleTypes, ['ai-agent', 'vector-store'])
+})
+
+test('document quick add presents the default loader before compatibility document sources', () => {
+  const presets: AddNodePickerPreset[] = [
+    { id: 'text-dataset', nodeType: 'text-dataset', label: 'Text Dataset', description: '', icon: 'text', categories: ['Data transformation'], capabilities: ['document-source'] },
+    { id: 'database-dataset', nodeType: 'database-dataset', label: 'Database Dataset', description: '', icon: 'table-2', categories: ['Data transformation'], capabilities: ['document-source'] },
+    { id: 'document-loader', nodeType: 'document-loader', label: 'Default Data Loader', description: '', icon: 'file-search', categories: ['AI'], capabilities: ['document-source'] },
+  ]
+
+  const items = buildPickerSecondColumnItems({
+    category: 'AI',
+    plugins: [],
+    presets,
+    preferredNodeTypes: ['document-loader', 'text-dataset', 'database-dataset'],
+  })
+
+  assert.deepEqual(items.map((item) => item.id), ['preset:document-loader'])
+})
+
+test('data quick add keeps extraction sources in the file data category', () => {
+  const presets: AddNodePickerPreset[] = [
+    { id: 'text-dataset', nodeType: 'text-dataset', label: 'Text Dataset', description: '', icon: 'text', categories: ['Data transformation'], capabilities: ['document-source'] },
+    { id: 'file-dataset', nodeType: 'file-dataset', label: 'Extract From File', description: 'Extract structured file data', icon: 'file-text', categories: ['Data transformation'], capabilities: ['file-data-source'] },
+    { id: 'database-dataset', nodeType: 'database-dataset', label: 'Database Dataset', description: '', icon: 'table-2', categories: ['Data transformation'], capabilities: ['document-source'] },
+  ]
+
+  const items = buildPickerSecondColumnItems({
+    category: 'Data transformation',
+    plugins: [],
+    presets,
+    preferredNodeTypes: ['file-dataset', 'text-dataset', 'database-dataset'],
+  })
+
+  assert.deepEqual(items.map((item) => item.id), ['preset:file-dataset', 'preset:text-dataset', 'preset:database-dataset'])
 })

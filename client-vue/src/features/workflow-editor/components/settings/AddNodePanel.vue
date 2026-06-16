@@ -231,6 +231,13 @@ const isAgentToolContext = computed(() => props.handlerId === 'tool')
 const isEmbeddingContext = computed(() => props.handlerId === 'embedding')
 const showQuickTrigger = computed(() => !isContextualPicker.value)
 const effectiveAllowedNodes = computed<AllowedNodes>(() => props.allowedNodes ?? '*')
+const preferredNodeTypes = computed(() =>
+  effectiveAllowedNodes.value === '*'
+    ? []
+    : effectiveAllowedNodes.value
+        .filter((selector) => selector.startsWith('node:'))
+        .map((selector) => selector.replace('node:', '') as WorkflowNodeType),
+)
 
 const AI_NODES: AddNodePickerPreset[] = [
   {
@@ -358,6 +365,7 @@ const secondColumnItems = computed(() =>
     plugins: pickerPlugins.value,
     presets: pickerPresets.value,
     search: search.value,
+    preferredNodeTypes: preferredNodeTypes.value,
   }).map(decorateEmbeddingModelItem),
 )
 
