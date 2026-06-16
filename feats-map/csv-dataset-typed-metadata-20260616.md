@@ -1,0 +1,4 @@
+- [x] Trace CSV metadata typing
+- [x] Add CSV type coercion test
+- [x] Coerce safe CSV scalar values
+- [x] Verify and commit

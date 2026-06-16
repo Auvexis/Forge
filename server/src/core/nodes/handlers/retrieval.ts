@@ -212,6 +212,9 @@ function csvToItems(
     .filter((row) => row.some((cell) => cell.trim().length > 0))
     .map((row, index) => {
       const record = Object.fromEntries(headers.map((header, cellIndex) => [header, row[cellIndex] ?? ""]));
+      const metadataRecord = Object.fromEntries(
+        Object.entries(record).map(([key, cell]) => [key, coerceCsvMetadataValue(cell)]),
+      );
       return {
         id: `${idPrefix}:${index}`,
         text: headers
@@ -223,12 +226,24 @@ function csvToItems(
             ...sourceMetadata,
             rowIndex: index,
           },
-          record,
+          metadataRecord,
           customMetadata,
         ),
         raw: record,
       };
     });
+}
+
+function coerceCsvMetadataValue(value: string): string | number | boolean {
+  const trimmed = value.trim();
+  if (trimmed === "") return value;
+  if (trimmed === "true") return true;
+  if (trimmed === "false") return false;
+  if (/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(trimmed)) {
+    const parsed = Number(trimmed);
+    if (Number.isSafeInteger(parsed) || !Number.isInteger(parsed)) return parsed;
+  }
+  return value;
 }
 
 function parseCsv(value: string): string[][] {

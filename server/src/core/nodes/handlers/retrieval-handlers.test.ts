@@ -265,7 +265,7 @@ describe("retrieval utility node handlers", () => {
         rowIndex: 0,
       },
       data: {
-        id: "12",
+        id: 12,
         nome: "Mateus Fernandes",
         categoria_favorita: "eletrônicos",
       },
@@ -366,6 +366,52 @@ describe("retrieval utility node handlers", () => {
     assert.match(result.items[0].text, /nome: Mateus Fernandes/);
     assert.match(result.items[0].text, /categoria_favorita: eletrônicos/);
     assert.doesNotMatch(result.items[0].text, /Victor Hugo/);
+  });
+
+  it("file dataset coerces CSV metadata values for filtering", async () => {
+    const handler = createUtilityNodeRegistry().get("file-dataset");
+    const csv = [
+      "id,nome,idade,ativo,score,saldo_brl,qtd_pedidos,ticket_medio,categoria_favorita",
+      "5,Elisa Nunes,32,true,655,1804.2,31,163.79,alimentos",
+    ].join("\n");
+
+    const result = await handler.execute({
+      nodeId: "file-dataset_1",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {} as any,
+      node: {
+        type: "file-dataset",
+        name: "Files",
+        files: [{
+          filename: "clientes.csv",
+          content: Buffer.from(csv).toString("base64"),
+          mimeType: "text/csv",
+        }],
+        format: "auto",
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.deepEqual(result.items[0].metadata.data, {
+      id: 5,
+      nome: "Elisa Nunes",
+      idade: 32,
+      ativo: true,
+      score: 655,
+      saldo_brl: 1804.2,
+      qtd_pedidos: 31,
+      ticket_medio: 163.79,
+      categoria_favorita: "alimentos",
+    });
+    assert.match(result.items[0].text, /score: 655/);
   });
 
   it("file dataset keeps explicit markdown uploads as a single document", async () => {
