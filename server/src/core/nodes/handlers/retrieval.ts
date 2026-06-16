@@ -21,10 +21,11 @@ export const textDatasetNodeHandler = createNodeHandler<TextDatasetNode>("text-d
   const items = node.format === "json-array"
     ? jsonArrayToItems(node.text, nodeId, node.metadata ?? {})
     : plainTextToItems(node.text, nodeId, node.metadata ?? {});
+  const chunkedItems = applyDatasetChunking(items, node);
 
   return {
-    items,
-    count: items.length,
+    items: chunkedItems,
+    count: chunkedItems.length,
     sourceType: "text",
   } satisfies DatasetOutput;
 }, {
@@ -560,6 +561,13 @@ function metadataTemplate(
 function applyDocumentChunking(
   items: DatasetOutput["items"],
   node: DocumentLoaderNode,
+): DatasetOutput["items"] {
+  return applyDatasetChunking(items, node);
+}
+
+function applyDatasetChunking(
+  items: DatasetOutput["items"],
+  node: Pick<TextDatasetNode | DocumentLoaderNode, "chunking">,
 ): DatasetOutput["items"] {
   if (!node.chunking?.enabled) return items;
   const chunkSize = Math.max(1, Math.floor(node.chunking.chunkSize || 1000));

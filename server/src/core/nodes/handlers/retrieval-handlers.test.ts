@@ -74,6 +74,46 @@ describe("retrieval utility node handlers", () => {
     });
   });
 
+  it("text dataset chunks plain text before vector indexing", async () => {
+    const result = await createUtilityNodeRegistry().get("text-dataset").execute({
+      nodeId: "dataset",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {} as any,
+      node: {
+        type: "text-dataset",
+        name: "Dataset",
+        text: "abcdefghijklmnopqrstuvwxyz",
+        format: "plain-text",
+        metadata: { source: "manual" },
+        chunking: {
+          enabled: true,
+          chunkSize: 10,
+          chunkOverlap: 2,
+          contextualOverlapEnabled: false,
+        },
+      },
+    });
+
+    assert.equal(result.count, 3);
+    assert.deepEqual(result.items.map((item: any) => item.id), [
+      "dataset:0:0",
+      "dataset:0:1",
+      "dataset:0:2",
+    ]);
+    assert.deepEqual(result.items.map((item: any) => item.text), [
+      "abcdefghij",
+      "ijklmnopqr",
+      "qrstuvwxyz",
+    ]);
+    assert.deepEqual(result.items[1].metadata, {
+      source: "manual",
+      chunk: { index: 1, start: 8, end: 18 },
+    });
+  });
+
   it("text dataset JSON array output can feed Split In Batches", async () => {
     const registry = createUtilityNodeRegistry();
     const workflow = workflowFixture();
