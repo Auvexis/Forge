@@ -26,6 +26,7 @@ import AiToolNode from './nodes/AiToolNode.vue'
 import TextDatasetNode from './nodes/TextDatasetNode.vue'
 import FileDatasetNode from './nodes/FileDatasetNode.vue'
 import DatabaseDatasetNode from './nodes/DatabaseDatasetNode.vue'
+import DocumentLoaderNode from './nodes/DocumentLoaderNode.vue'
 import EmbeddingsNode from './nodes/EmbeddingsNode.vue'
 import VectorStoreNode from './nodes/VectorStoreNode.vue'
 import RetrieverNode from './nodes/RetrieverNode.vue'
@@ -539,6 +540,7 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   'text-dataset': 'Text Dataset',
   'file-dataset': 'File Dataset',
   'database-dataset': 'Database Dataset',
+  'document-loader': 'Default Data Loader',
   'embeddings': 'Embeddings',
   'vector-store': 'Vector Store',
   'retriever': 'Retriever',
@@ -977,6 +979,15 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     defaultData.textColumns = ['body']
     defaultData.metadataColumns = ['id']
     defaultData.limit = 100
+    defaultData.chunking = createDefaultDatasetChunking()
+  } else if (type === 'document-loader') {
+    defaultData.dataType = 'json'
+    defaultData.dataMode = 'all'
+    defaultData.dataPath = ''
+    defaultData.textTemplate = ''
+    defaultData.metadataTemplate = {}
+    defaultData.includeSourceMetadata = true
+    defaultData.includeRootFieldsAsContext = true
     defaultData.chunking = createDefaultDatasetChunking()
   } else if (type === 'embeddings') {
     defaultData.pluginId = 'sailor-openai'
@@ -1658,6 +1669,11 @@ defineExpose({
       <!-- DATABASE DATASET Node -->
       <template #node-database-dataset="nodeProps">
         <DatabaseDatasetNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
+      </template>
+
+      <!-- DOCUMENT LOADER Node -->
+      <template #node-document-loader="nodeProps">
+        <DocumentLoaderNode v-bind="nodeProps" />
       </template>
 
       <!-- EMBEDDINGS Node -->

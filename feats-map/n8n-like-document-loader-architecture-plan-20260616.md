@@ -3,7 +3,7 @@
 - [x] Auditar guia E2E de Vector Store/RAG
 - [x] Comparar fluxo atual com n8n Extract From File + Default Data Loader
 - [x] Fase 1: separar File Dataset de Document Loader
-- [ ] Fase 2: criar node Document Loader
+- [x] Fase 2: criar node Document Loader
 - [ ] Fase 3: migrar Vector Store para aceitar Document Loader
 - [ ] Fase 4: alinhar JSON/CSV/TXT/Markdown ao comportamento n8n
 - [ ] Fase 5: revisar UX dos Advanced Nodes do guia E2E
@@ -41,13 +41,13 @@ File Dataset / Extract -> Document Loader -> Vector Store
 
 ## Fase 2: Criar Document Loader
 
-- [ ] Criar node `document-loader`.
-- [ ] Adicionar type em `workflow-types.ts`.
-- [ ] Adicionar manifest no `sailor-core`.
-- [ ] Adicionar handler backend.
-- [ ] Adicionar editor Vue.
-- [ ] Adicionar node visual.
-- [ ] Capability: `document-source`.
+- [x] Criar node `document-loader`.
+- [x] Adicionar type em `workflow-types.ts`.
+- [x] Adicionar manifest no `sailor-core`.
+- [x] Adicionar handler backend.
+- [x] Adicionar editor Vue.
+- [x] Adicionar node visual.
+- [x] Capability: `document-source`.
 - [ ] Handles:
   - input `Data`
   - output config source
@@ -65,7 +65,7 @@ File Dataset / Extract -> Document Loader -> Vector Store
   - `metadataTemplate`
   - `includeSourceMetadata`
 - [ ] Testar criação global escondendo configurações contextuais quando necessário.
-- [ ] Commit: `feat: add document loader node`
+- [x] Commit: `feat: add document loader node`
 
 ## Fase 3: Migrar Vector Store
 
@@ -184,4 +184,5 @@ File Dataset / Extract -> Document Loader -> Vector Store
 5. Quick Add.
 6. Migração.
 7. E2E completo.
+
 

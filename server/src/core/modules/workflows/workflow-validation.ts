@@ -25,6 +25,7 @@ export const VALID_NODE_TYPES = new Set([
   "text-dataset",
   "file-dataset",
   "database-dataset",
+  "document-loader",
   "embeddings",
   "vector-store",
   "retriever",
@@ -468,6 +469,17 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
         return `Database Dataset node "${nodeId}" must have textColumns`;
       }
       return validateChunkingConfig(node.chunking, `Database Dataset node "${nodeId}"`);
+    case "document-loader":
+      if (node.dataType !== "json" && node.dataType !== "file" && node.dataType !== "text") {
+        return `Document Loader node "${nodeId}" must have a valid dataType`;
+      }
+      if (node.dataMode !== "all" && node.dataMode !== "specific") {
+        return `Document Loader node "${nodeId}" must have a valid dataMode`;
+      }
+      if (node.dataMode === "specific" && (!node.dataPath || typeof node.dataPath !== "string")) {
+        return `Document Loader node "${nodeId}" must have dataPath for specific mode`;
+      }
+      return validateChunkingConfig(node.chunking, `Document Loader node "${nodeId}"`);
     case "embeddings":
       if (!node.pluginId || !node.methodId) {
         return `Embeddings node "${nodeId}" must have pluginId and methodId`;

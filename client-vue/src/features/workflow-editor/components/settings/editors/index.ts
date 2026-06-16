@@ -28,6 +28,7 @@ import AiToolEditor from './AiToolEditor.vue'
 import TextDatasetEditor from './TextDatasetEditor.vue'
 import FileDatasetEditor from './FileDatasetEditor.vue'
 import DatabaseDatasetEditor from './DatabaseDatasetEditor.vue'
+import DocumentLoaderEditor from './DocumentLoaderEditor.vue'
 import EmbeddingsEditor from './EmbeddingsEditor.vue'
 import VectorStoreEditor from './VectorStoreEditor.vue'
 import RetrieverEditor from './RetrieverEditor.vue'
@@ -60,6 +61,7 @@ export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', 
   'text-dataset': TextDatasetEditor,
   'file-dataset': FileDatasetEditor,
   'database-dataset': DatabaseDatasetEditor,
+  'document-loader': DocumentLoaderEditor,
   embeddings: EmbeddingsEditor,
   'vector-store': VectorStoreEditor,
   retriever: RetrieverEditor,

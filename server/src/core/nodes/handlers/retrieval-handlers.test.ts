@@ -500,6 +500,65 @@ describe("retrieval utility node handlers", () => {
     assert.equal(result.items[0].text, markdown);
   });
 
+  it("document loader loads a specific JSON array path into documents", async () => {
+    const registry = createUtilityNodeRegistry();
+    const extracted = {
+      sourceType: "file",
+      items: [],
+      count: 0,
+      files: [{
+        id: "file-dataset_1:0",
+        format: "json",
+        source: { filename: "cursos.json", mimeType: "application/json" },
+        data: {
+          dataset: "catalogo_cursos_online",
+          version: "1.0",
+          courses: [
+            { course_id: "CRS-1001", title: "APIs REST", duration_hours: 12, published: true },
+            { course_id: "CRS-1002", title: "Machine Learning", duration_hours: 26, published: true },
+          ],
+        },
+        rawText: "",
+      }],
+    };
+
+    const result = await registry.get("document-loader").execute({
+      nodeId: "loader",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: {
+        trigger: {},
+        steps: { "file-dataset_1": { output: extracted } },
+        variables: {},
+      },
+      services: {} as any,
+      node: {
+        type: "document-loader",
+        name: "Default Data Loader",
+        dataType: "json",
+        dataMode: "specific",
+        dataPath: "courses",
+        textTemplate: "course_id: {{ item.course_id }}\ntitle: {{ item.title }}\nduration_hours: {{ item.duration_hours }}",
+        includeSourceMetadata: true,
+        includeRootFieldsAsContext: true,
+        metadataTemplate: {},
+      },
+    });
+
+    assert.equal(result.count, 2);
+    assert.deepEqual(result.items[0], {
+      id: "loader:0",
+      text: "course_id: CRS-1001\ntitle: APIs REST\nduration_hours: 12",
+      metadata: {
+        source: { filename: "cursos.json", mimeType: "application/json", jsonPath: "courses[0]" },
+        data: { course_id: "CRS-1001", title: "APIs REST", duration_hours: 12, published: true },
+        context: { dataset: "catalogo_cursos_online", version: "1.0" },
+      },
+      raw: { course_id: "CRS-1001", title: "APIs REST", duration_hours: 12, published: true },
+    });
+  });
+
   it("vector store indexes connected dataset documents with connected embedding config", async () => {
     const calls: Array<{ pluginId: string; methodId: string; params: Record<string, any> }> = [];
     const workflow = workflowFixture();

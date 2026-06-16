@@ -288,6 +288,25 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
         borderColor: "#c4b5fd",
       },
     },
+    "document-loader": {
+      type: "document-loader",
+      label: "Default Data Loader",
+      description: "Transform extracted data into documents for vector stores.",
+      category: "AI",
+      role: "configuration",
+      capabilities: ["document-source"],
+      presentation: { base: "advanced", autoOrganize: true, rounded: "full" },
+      handles: [
+        { id: "source", label: "", type: "source", position: "top", style: "diamond" },
+        { id: "data", label: "Data", type: "target", position: "bottom", style: "diamond", required: true, accepts: [{ capability: "file-data-source" }, { capability: "document-source" }], cardinality: "one", connectionPolicy: "replace", quickAdd: "capability" },
+      ],
+      style: {
+        icon: "file-search",
+        iconColor: "#475569",
+        bgColor: "#f8fafc",
+        borderColor: "#cbd5e1",
+      },
+    },
     embeddings: {
       type: "embeddings",
       label: "Embeddings",

@@ -1,6 +1,7 @@
 import type {
   DatabaseDatasetNode,
   DatasetOutput,
+  DocumentLoaderNode,
   EmbeddingsNode,
   FileExtractItem,
   FileDatasetNode,
@@ -398,6 +399,131 @@ export const databaseDatasetNodeHandler = createNodeHandler<DatabaseDatasetNode>
   outputs: [{ id: "default", label: "Database Dataset" }],
   errors: ["Invalid database dataset"],
 });
+
+export const documentLoaderNodeHandler = createNodeHandler<DocumentLoaderNode>("document-loader", ({ node, nodeId, context }) => {
+  const sourceOutput = findFirstDataSourceOutput(context.steps);
+  const files = Array.isArray(sourceOutput?.files) ? sourceOutput.files as FileExtractItem[] : [];
+  const items = files.flatMap((file) => loadExtractedFileDocuments(file, node, nodeId));
+
+  return {
+    items,
+    count: items.length,
+    sourceType: "file",
+  } satisfies DatasetOutput;
+}, {
+  description: "Transforms extracted file data into vector-store documents.",
+  execution: "stateless",
+  sideEffects: ["none"],
+  outputs: [{ id: "default", label: "Documents" }],
+  errors: ["Invalid document loader config", "Missing data source"],
+});
+
+function findFirstDataSourceOutput(steps: Record<string, any>): any {
+  return Object.values(steps).map((step) => step?.output).find((output) =>
+    output && typeof output === "object" && (Array.isArray(output.files) || Array.isArray(output.items))
+  );
+}
+
+function loadExtractedFileDocuments(
+  file: FileExtractItem,
+  node: DocumentLoaderNode,
+  nodeId: string,
+): DatasetOutput["items"] {
+  if (file.format === "json") return loadJsonDocuments(file, node, nodeId);
+  if (file.format === "csv") return (file.rows ?? []).map((row, index) => toDocumentItem({
+    nodeId,
+    index,
+    value: row,
+    text: templateDocumentText(node.textTemplate, row),
+    source: { ...file.source, rowIndex: index },
+    data: row,
+  }));
+
+  return [toDocumentItem({
+    nodeId,
+    index: 0,
+    value: file.data ?? file.rawText,
+    text: String(file.rawText ?? ""),
+    source: file.source,
+    data: {},
+  })];
+}
+
+function loadJsonDocuments(
+  file: FileExtractItem,
+  node: DocumentLoaderNode,
+  nodeId: string,
+): DatasetOutput["items"] {
+  const root = file.data;
+  const selected = node.dataMode === "specific" && node.dataPath
+    ? getByPath(root, node.dataPath)
+    : root;
+  const values = Array.isArray(selected) ? selected : [selected];
+  const rootContext = node.includeRootFieldsAsContext && root && typeof root === "object" && !Array.isArray(root)
+    ? Object.fromEntries(Object.entries(root as Record<string, any>).filter(([, value]) => !Array.isArray(value) && (typeof value !== "object" || value === null)))
+    : undefined;
+
+  return values.map((value, index) => {
+    const data = value && typeof value === "object" && !Array.isArray(value)
+      ? value as Record<string, any>
+      : { value };
+    const path = node.dataPath
+      ? `${node.dataPath}${Array.isArray(selected) ? `[${index}]` : ""}`
+      : undefined;
+    return toDocumentItem({
+      nodeId,
+      index,
+      value,
+      text: templateDocumentText(node.textTemplate, data),
+      source: { ...file.source, ...(path ? { jsonPath: path } : {}) },
+      data,
+      context: rootContext,
+    });
+  });
+}
+
+function toDocumentItem(args: {
+  nodeId: string;
+  index: number;
+  value: unknown;
+  text: string;
+  source: Record<string, any>;
+  data: Record<string, any>;
+  context?: Record<string, any>;
+}): DatasetOutput["items"][number] {
+  return {
+    id: `${args.nodeId}:${args.index}`,
+    text: args.text,
+    metadata: {
+      source: args.source,
+      ...(Object.keys(args.data).length > 0 ? { data: args.data } : {}),
+      ...(args.context && Object.keys(args.context).length > 0 ? { context: args.context } : {}),
+    },
+    raw: args.value,
+  };
+}
+
+function templateDocumentText(template: string | undefined, data: Record<string, any>): string {
+  if (!template?.trim()) {
+    return Object.entries(data).map(([key, value]) => `${key}: ${formatDocumentValue(value)}`).join("\n");
+  }
+  return template.replace(/\{\{\s*item\.([a-zA-Z0-9_.-]+)\s*\}\}/g, (_match, path: string) =>
+    formatDocumentValue(getByPath(data, path))
+  );
+}
+
+function formatDocumentValue(value: unknown): string {
+  if (value === undefined || value === null) return "";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+
+function getByPath(value: unknown, path: string): unknown {
+  return path.split(".").filter(Boolean).reduce<unknown>((current, part) => {
+    if (current && typeof current === "object") return (current as Record<string, unknown>)[part];
+    return undefined;
+  }, value);
+}
 
 export const embeddingsNodeHandler = createNodeHandler<EmbeddingsNode>("embeddings", ({ node }) => ({
   pluginId: node.pluginId,

@@ -13,6 +13,7 @@ import { mergeNodeHandler } from "../../nodes/handlers/merge.ts";
 import { respondWebhookNodeHandler } from "../../nodes/handlers/respond-webhook.ts";
 import {
   databaseDatasetNodeHandler,
+  documentLoaderNodeHandler,
   embeddingsNodeHandler,
   fileDatasetNodeHandler,
   retrieverNodeHandler,
@@ -60,6 +61,7 @@ const handlers: NodeHandler[] = [
   textDatasetNodeHandler,
   fileDatasetNodeHandler,
   databaseDatasetNodeHandler,
+  documentLoaderNodeHandler,
   embeddingsNodeHandler,
   vectorStoreNodeHandler,
   retrieverNodeHandler,

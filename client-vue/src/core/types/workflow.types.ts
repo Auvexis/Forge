@@ -28,6 +28,7 @@ export type WorkflowNodeType =
   | 'text-dataset'
   | 'file-dataset'
   | 'database-dataset'
+  | 'document-loader'
   | 'embeddings'
   | 'vector-store'
   | 'retriever'
@@ -411,6 +412,18 @@ export interface DatabaseDatasetNode extends WorkflowNodeBase {
   chunking: DatasetChunkingConfig
 }
 
+export interface DocumentLoaderNode extends WorkflowNodeBase {
+  type: 'document-loader'
+  dataType: 'json' | 'file' | 'text'
+  dataMode: 'all' | 'specific'
+  dataPath?: string
+  textTemplate?: string
+  metadataTemplate?: Record<string, any>
+  includeSourceMetadata: boolean
+  includeRootFieldsAsContext?: boolean
+  chunking: DatasetChunkingConfig
+}
+
 export interface EmbeddingsNode extends WorkflowNodeBase {
   type: 'embeddings'
   pluginId: string
@@ -514,6 +527,7 @@ export type WorkflowNode =
   | TextDatasetNode
   | FileDatasetNode
   | DatabaseDatasetNode
+  | DocumentLoaderNode
   | EmbeddingsNode
   | VectorStoreNode
   | RetrieverNode
