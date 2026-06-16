@@ -219,6 +219,12 @@ describe("qdrant vector store plugin", () => {
     });
   });
 
+  it("rejects unsupported Sailor metadata filter operators", () => {
+    assert.throws(() => toQdrantFilter({
+      "data.score": { "$between": [600, 900] },
+    }), /Unsupported Sailor metadata filter operator "\$between"/);
+  });
+
   it("sends converted metadata filters when querying similar vectors", async () => {
     const calls: Array<{ url: string; init: RequestInit }> = [];
     const methods = createQdrantMethods(async (url, init) => {

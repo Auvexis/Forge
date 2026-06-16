@@ -205,7 +205,7 @@ function toQdrantConditions(key: string, value: unknown): Array<Record<string, a
       case "lte":
         return [{ key, range: { lte: operand } }];
       default:
-        return [];
+        throw new Error(`Unsupported Sailor metadata filter operator "${operator}"`);
     }
   });
 }

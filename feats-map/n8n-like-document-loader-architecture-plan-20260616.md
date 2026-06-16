@@ -8,7 +8,7 @@
 - [x] Fase 4: alinhar JSON/CSV/TXT/Markdown ao comportamento n8n
 - [x] Fase 5: revisar UX dos Advanced Nodes do guia E2E
 - [x] Fase 6: revisar filtros/metadata para Qdrant e Pinecone
-- [ ] Fase 7: atualizar testes E2E e negativos
+- [x] Fase 7: atualizar testes E2E e negativos
 - [ ] Fase 8: migração compatível dos workflows existentes
 
 ## Objetivo
@@ -128,19 +128,19 @@ File Dataset / Extract -> Document Loader -> Vector Store
 
 ## Fase 7: Testes E2E do Guia
 
-- [ ] Atualizar Teste 3 para `File Dataset -> Document Loader -> Vector Store`.
-- [ ] Atualizar JSON esperado para `Load Specific Data`.
-- [ ] Adicionar teste com múltiplos arrays JSON.
-- [ ] Adicionar teste com campos raiz preservados.
-- [ ] Adicionar teste de filtro exato por metadata.
-- [ ] Adicionar teste de range por metadata.
-- [ ] Revisar Testes 7-11 para usar Document Loader quando houver documentos.
-- [ ] Adicionar testes negativos:
+- [x] Atualizar Teste 3 para `File Dataset -> Document Loader -> Vector Store`.
+- [x] Atualizar JSON esperado para `Load Specific Data`.
+- [x] Adicionar teste com múltiplos arrays JSON.
+- [x] Adicionar teste com campos raiz preservados.
+- [x] Adicionar teste de filtro exato por metadata.
+- [x] Adicionar teste de range por metadata.
+- [x] Revisar Testes 7-11 para usar Document Loader quando houver documentos.
+- [x] Adicionar testes negativos:
   - File Dataset direto no Vector Store
   - JSON path inválido
   - JSON path não-array em modo array
   - metadata inválida
-- [ ] Commit: `test: update vector rag e2e for document loader`
+- [x] Commit: `test: update vector rag e2e for document loader`
 
 ## Fase 8: Migração
 

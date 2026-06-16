@@ -612,6 +612,62 @@ describe("retrieval utility node handlers", () => {
     assert.match(result.items[0].text, /instructors: \[/);
   });
 
+  it("document loader uses the selected JSON array path when a file has multiple arrays", async () => {
+    const registry = createUtilityNodeRegistry();
+    const extracted = {
+      sourceType: "file",
+      items: [],
+      count: 0,
+      files: [{
+        id: "file-dataset_1:0",
+        format: "json",
+        source: { filename: "catalog.json", mimeType: "application/json" },
+        data: {
+          dataset: "catalog",
+          version: "2026-06",
+          courses: [{ id: "course-1", title: "Node" }],
+          instructors: [
+            { id: "teacher-1", name: "Marina" },
+            { id: "teacher-2", name: "Ravi" },
+          ],
+        },
+        rawText: "",
+      }],
+    };
+
+    const result = await registry.get("document-loader").execute({
+      nodeId: "loader",
+      executionId: "exec-1",
+      workflow: workflowFixture(),
+      edges: [],
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {
+        resolveConfigDependencies: async () => ({
+          getOne: () => ({ load: async () => extracted }),
+          getOptional: () => undefined,
+          getMany: () => [],
+        }),
+      } as any,
+      node: {
+        type: "document-loader",
+        name: "Default Data Loader",
+        dataType: "json",
+        dataMode: "specific",
+        dataPath: "instructors",
+        textTemplate: "id: {{ item.id }}\nname: {{ item.name }}",
+        includeSourceMetadata: true,
+        includeRootFieldsAsContext: true,
+        metadataTemplate: {},
+      },
+    });
+
+    assert.equal(result.count, 2);
+    assert.deepEqual(result.items.map((item: any) => item.metadata.source.jsonPath), ["instructors[0]", "instructors[1]"]);
+    assert.deepEqual(result.items[0].metadata.context, { dataset: "catalog", version: "2026-06" });
+    assert.deepEqual(result.items.map((item: any) => item.metadata.data.id), ["teacher-1", "teacher-2"]);
+    assert.doesNotMatch(result.items[0].text, /course-1/);
+  });
+
   it("document loader requires a valid JSON path when loading specific data", async () => {
     const registry = createUtilityNodeRegistry();
     const extracted = {

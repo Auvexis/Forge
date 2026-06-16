@@ -151,11 +151,11 @@ export function toPineconeFilter(filter: Record<string, any> | undefined): Recor
 function toPineconeFilterValue(value: unknown): unknown {
   if (!isOperatorObject(value)) return { "$eq": value };
 
-  const converted = Object.fromEntries(
-    Object.entries(value)
-      .map(([operator, operand]) => [normalizePineconeOperator(operator), operand])
-      .filter(([operator]) => operator !== undefined),
-  );
+  const converted = Object.fromEntries(Object.entries(value).map(([operator, operand]) => {
+    const normalized = normalizePineconeOperator(operator);
+    if (!normalized) throw new Error(`Unsupported Sailor metadata filter operator "${operator}"`);
+    return [normalized, operand];
+  }));
   return Object.keys(converted).length > 0 ? converted : undefined;
 }
 
@@ -219,7 +219,7 @@ function isOperatorObject(value: unknown): value is Record<string, unknown> {
   return Boolean(value) &&
     typeof value === "object" &&
     !Array.isArray(value) &&
-    Object.keys(value as Record<string, unknown>).some((key) => normalizePineconeOperator(key) !== undefined);
+    Object.keys(value as Record<string, unknown>).some((key) => key.startsWith("$") || normalizePineconeOperator(key) !== undefined);
 }
 
 function flattenMetadata(

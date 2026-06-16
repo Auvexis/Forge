@@ -245,6 +245,41 @@ describe("workflow validation", () => {
     assert.equal(error, null);
   });
 
+  it("rejects File Dataset connected directly to Vector Store documents", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        files: {
+          type: "file-dataset",
+          name: "Extract From File",
+          files: [{ filename: "guide.md", content: "U2FpbG9y" }],
+          format: "auto",
+          chunking: {
+            enabled: false,
+            chunkSize: 800,
+            chunkOverlap: 120,
+            contextualOverlapEnabled: false,
+            maxPreviousContextChars: 0,
+          },
+        },
+        store: {
+          type: "vector-store",
+          name: "Vector Store",
+          pluginId: "vector-provider",
+          ensureCollectionMethodId: "ensureCollection",
+          upsertMethodId: "upsertDocuments",
+          queryMethodId: "querySimilar",
+          collectionName: "docs",
+          dimension: 1536,
+          metric: "cosine",
+          config: {},
+        },
+      },
+      edges: [{ id: "files-store", source: "files", target: "store", targetHandle: "document" }],
+    }));
+
+    assert.match(error ?? "", /handle "document" requires capability "document-source".*provides \[file-data-source\]/);
+  });
+
   it("accepts vector store retrieval settings while preserving legacy retriever workflows", () => {
     const error = validateWorkflowDefinition(baseWorkflow({
       nodes: {
