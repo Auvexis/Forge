@@ -54,15 +54,15 @@ test('text dataset editor uses a format select with supported formats', () => {
   assert.match(source, /BaseSelect/)
 })
 
-test('document loader editor exposes data mode, type, and chunking controls without custom metadata', () => {
-  const source = read('src/features/workflow-editor/components/settings/editors/DocumentLoaderEditor.vue')
+test('file dataset editor exposes JSON path and template controls without custom metadata', () => {
+  const source = read('src/features/workflow-editor/components/settings/editors/FileDatasetEditor.vue')
+  const registry = read('src/features/workflow-editor/components/settings/editors/index.ts')
 
   for (const field of [
-    'dataType',
-    'dataMode',
-    'dataPath',
+    'jsonMode',
+    'jsonPath',
     'textTemplate',
-    'includeSourceMetadata',
+    'includeRootFieldsAsContext',
     'chunking',
     'contextualOverlapEnabled',
   ]) {
@@ -71,11 +71,11 @@ test('document loader editor exposes data mode, type, and chunking controls with
 
   assert.match(source, /Load All Input Data/)
   assert.match(source, /Load Specific Data/)
-  assert.match(source, /Binary\/File/)
   assert.match(source, /BaseCodeEditor/)
-  assert.match(source, /useExecutionStore/)
-  assert.match(source, /buildDocumentLoaderTemplateSuggestion/)
-  assert.match(source, /Regenerate from Data Path/)
+  assert.match(source, /buildFileDatasetTemplateSuggestion/)
+  assert.match(source, /buildJsonArrayPathOptions/)
+  assert.match(source, /Regenerate from JSON/)
+  assert.match(source, /Detected JSON Arrays/)
   assert.doesNotMatch(source, /ExpressionTextarea/)
   assert.doesNotMatch(source, /metadataTemplate/)
   assert.doesNotMatch(source, /Metadata Template/)
@@ -83,7 +83,8 @@ test('document loader editor exposes data mode, type, and chunking controls with
   assert.doesNotMatch(source, /document-preview/)
   assert.doesNotMatch(source, /metadata-preview/)
   assert.doesNotMatch(source, /updateMetadataTemplate/)
-  assert.match(source, /Path inside the incoming data/)
+  assert.doesNotMatch(registry, /DocumentLoaderEditor/)
+  assert.doesNotMatch(registry, /'document-loader'/)
 })
 
 test('vector store editor exposes Pinecone and Qdrant provider config sections', () => {

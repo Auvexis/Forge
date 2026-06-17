@@ -72,7 +72,6 @@ const CONTEXTUAL_ONLY_NODE_TYPES = new Set<WorkflowNodeType>([
   'ai-model',
   'ai-memory',
   'ai-tool',
-  'document-loader',
   'embeddings',
   'retriever',
 ])

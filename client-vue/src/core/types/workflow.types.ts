@@ -28,7 +28,6 @@ export type WorkflowNodeType =
   | 'text-dataset'
   | 'file-dataset'
   | 'database-dataset'
-  | 'document-loader'
   | 'embeddings'
   | 'vector-store'
   | 'retriever'
@@ -397,6 +396,10 @@ export interface FileDatasetNode extends WorkflowNodeBase {
   filePath?: string
   fileUrl?: string
   format: 'txt' | 'markdown' | 'json' | 'csv' | 'auto'
+  jsonMode?: 'all' | 'specific'
+  jsonPath?: string
+  textTemplate?: string
+  includeRootFieldsAsContext?: boolean
   chunking: DatasetChunkingConfig
   metadata?: Record<string, any>
 }
@@ -409,17 +412,6 @@ export interface DatabaseDatasetNode extends WorkflowNodeBase {
   textColumns: string[]
   metadataColumns?: string[]
   limit?: number
-  chunking: DatasetChunkingConfig
-}
-
-export interface DocumentLoaderNode extends WorkflowNodeBase {
-  type: 'document-loader'
-  dataType: 'json' | 'file' | 'text'
-  dataMode: 'all' | 'specific'
-  dataPath?: string
-  textTemplate?: string
-  includeSourceMetadata: boolean
-  includeRootFieldsAsContext?: boolean
   chunking: DatasetChunkingConfig
 }
 
@@ -526,7 +518,6 @@ export type WorkflowNode =
   | TextDatasetNode
   | FileDatasetNode
   | DatabaseDatasetNode
-  | DocumentLoaderNode
   | EmbeddingsNode
   | VectorStoreNode
   | RetrieverNode

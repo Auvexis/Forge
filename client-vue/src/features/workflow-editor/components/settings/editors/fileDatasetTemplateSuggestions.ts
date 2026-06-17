@@ -1,6 +1,8 @@
+import type { FileDatasetFile } from '@/core/types/workflow.types'
+
 type JsonObject = Record<string, unknown>
 
-export interface DocumentLoaderTemplateSuggestion {
+export interface FileDatasetTemplateSuggestion {
   textTemplate: string
   sampleData: JsonObject
 }
@@ -10,14 +12,19 @@ interface TemplateField {
   value: unknown
 }
 
+export interface JsonArrayPathOption {
+  value: string
+  label: string
+}
+
 const MAX_TEMPLATE_FIELDS = 24
 const MAX_OBJECT_DEPTH = 3
 
-export function buildDocumentLoaderTemplateSuggestion(
-  output: unknown,
-  dataPath?: string,
-): DocumentLoaderTemplateSuggestion | null {
-  const sampleData = sampleDocumentDataFromOutput(output, dataPath)
+export function buildFileDatasetTemplateSuggestion(
+  files: readonly FileDatasetFile[],
+  jsonPath?: string,
+): FileDatasetTemplateSuggestion | null {
+  const sampleData = sampleDocumentDataFromFiles(files, jsonPath)
   if (!sampleData) return null
 
   const fields = flattenTemplateFields(sampleData).slice(0, MAX_TEMPLATE_FIELDS)
@@ -29,11 +36,26 @@ export function buildDocumentLoaderTemplateSuggestion(
   }
 }
 
-export function sampleDocumentDataFromOutput(output: unknown, dataPath?: string): JsonObject | null {
-  const source = findExtractedFileData(output)
+export function buildJsonArrayPathOptions(files: readonly FileDatasetFile[]): JsonArrayPathOption[] {
+  const paths = new Map<string, string>()
+
+  for (const file of files) {
+    const data = parseFileJson(file)
+    if (data === undefined) continue
+    collectArrayPaths(data).forEach((path) => {
+      if (!path) return
+      paths.set(path, path)
+    })
+  }
+
+  return [...paths.values()].map((path) => ({ value: path, label: path }))
+}
+
+export function sampleDocumentDataFromFiles(files: readonly FileDatasetFile[], jsonPath?: string): JsonObject | null {
+  const source = files.map(parseFileJson).find((value) => value !== undefined)
   if (source === undefined || source === null) return null
 
-  const selected = dataPath?.trim() ? getByPath(source, dataPath.trim()) : source
+  const selected = jsonPath?.trim() ? getByPath(source, jsonPath.trim()) : source
   const sample = Array.isArray(selected) ? selected[0] : selected
   if (sample === undefined || sample === null) return null
   if (Array.isArray(sample)) return { value: sample }
@@ -89,18 +111,57 @@ export function getByPath(value: unknown, path: string): unknown {
     }, value)
 }
 
-function findExtractedFileData(output: unknown): unknown {
-  if (!output || typeof output !== 'object') return undefined
-  const record = output as JsonObject
-  const firstFile = Array.isArray(record.files) ? record.files[0] : undefined
-  if (firstFile && typeof firstFile === 'object' && 'data' in firstFile) {
-    return (firstFile as JsonObject).data
+function collectArrayPaths(value: unknown): string[] {
+  const paths: string[] = []
+
+  function visit(current: unknown, path: string) {
+    if (Array.isArray(current)) {
+      if (current.some((entry) => entry && typeof entry === 'object' && !Array.isArray(entry))) {
+        paths.push(path)
+      }
+      current.slice(0, 1).forEach((entry) => visit(entry, path))
+      return
+    }
+    if (!current || typeof current !== 'object') return
+    for (const [key, child] of Object.entries(current)) {
+      visit(child, path ? `${path}.${key}` : key)
+    }
   }
-  const firstItem = Array.isArray(record.items) ? record.items[0] : undefined
-  if (firstItem && typeof firstItem === 'object' && 'raw' in firstItem) {
-    return (firstItem as JsonObject).raw
+
+  visit(value, '')
+  return paths
+}
+
+function parseFileJson(file: FileDatasetFile): unknown {
+  if (typeof file === 'string') {
+    return parseJsonText(file)
   }
-  return record
+  return parseJsonText(decodeFileContent(file.content))
+}
+
+function parseJsonText(value: string): unknown {
+  try {
+    return JSON.parse(value)
+  } catch {
+    return undefined
+  }
+}
+
+function decodeFileContent(content: string): string {
+  const encoded = content.includes(',') ? content.slice(content.indexOf(',') + 1) : content
+  if (!looksBase64(encoded)) return content
+  try {
+    return globalThis.atob(encoded)
+  } catch {
+    return content
+  }
+}
+
+function looksBase64(value: string): boolean {
+  const normalized = value.trim()
+  return normalized.length > 0 &&
+    normalized.length % 4 === 0 &&
+    /^[A-Za-z0-9+/]+={0,2}$/.test(normalized)
 }
 
 function isTemplateFriendlyValue(value: unknown): boolean {

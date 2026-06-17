@@ -27,7 +27,6 @@ export const VALID_NODE_TYPES = new Set<WorkflowNodeType>([
   'text-dataset',
   'file-dataset',
   'database-dataset',
-  'document-loader',
   'embeddings',
   'vector-store',
   'retriever',
@@ -153,11 +152,6 @@ export const NODE_TYPE_META: Record<
     label: 'Database Dataset',
     color: 'var(--sailor-node-plugin-icon)',
     category: 'data',
-  },
-  'document-loader': {
-    label: 'Default Data Loader',
-    color: '#475569',
-    category: 'ai',
   },
   embeddings: {
     label: 'Embeddings',

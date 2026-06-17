@@ -3,10 +3,10 @@
 - [x] Garantir `text-dataset` como document-source direto
 - [x] Garantir `database-dataset` como document-source direto
 - [x] Atualizar Vector Store para aceitar os 3 datasets
-- [ ] Remover UI do Default Data Loader
+- [x] Remover UI do Default Data Loader
 - [x] Remover migration antiga do loader
 - [x] Atualizar testes backend
-- [ ] Atualizar testes frontend
+- [x] Atualizar testes frontend
 - [ ] Atualizar guia E2E
 - [ ] Rodar verificacoes
 - [ ] Commitar

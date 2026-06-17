@@ -26,7 +26,6 @@ import AiToolNode from './nodes/AiToolNode.vue'
 import TextDatasetNode from './nodes/TextDatasetNode.vue'
 import FileDatasetNode from './nodes/FileDatasetNode.vue'
 import DatabaseDatasetNode from './nodes/DatabaseDatasetNode.vue'
-import DocumentLoaderNode from './nodes/DocumentLoaderNode.vue'
 import EmbeddingsNode from './nodes/EmbeddingsNode.vue'
 import VectorStoreNode from './nodes/VectorStoreNode.vue'
 import RetrieverNode from './nodes/RetrieverNode.vue'
@@ -287,7 +286,7 @@ const DEFAULT_ALLOWED_NODES_BY_HANDLER: Record<string, AllowedNodes> = {
   memory: ['preset:sqlite-memory', 'capability:memory-store'],
   tool: ['capability:agent-tool'],
   embedding: ['capability:embedding-model'],
-  document: ['node:document-loader', 'node:text-dataset', 'node:database-dataset'],
+  document: ['node:file-dataset', 'node:text-dataset', 'node:database-dataset'],
   data: ['node:file-dataset', 'node:text-dataset', 'node:database-dataset'],
 }
 type AddNodePickerAnchorRect = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'>
@@ -541,7 +540,6 @@ const NODE_DEFAULT_NAMES: Partial<Record<WorkflowNodeType, string>> = {
   'text-dataset': 'Text Dataset',
   'file-dataset': 'Extract From File',
   'database-dataset': 'Database Dataset',
-  'document-loader': 'Default Data Loader',
   'embeddings': 'Embeddings',
   'vector-store': 'Vector Store',
   'retriever': 'Retriever',
@@ -971,6 +969,10 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
   } else if (type === 'file-dataset') {
     defaultData.filePath = '/path/to/file.md'
     defaultData.format = 'markdown'
+    defaultData.jsonMode = 'all'
+    defaultData.jsonPath = ''
+    defaultData.textTemplate = ''
+    defaultData.includeRootFieldsAsContext = true
     defaultData.chunking = createDefaultDatasetChunking()
     defaultData.metadata = {}
   } else if (type === 'database-dataset') {
@@ -980,14 +982,6 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     defaultData.textColumns = ['body']
     defaultData.metadataColumns = ['id']
     defaultData.limit = 100
-    defaultData.chunking = createDefaultDatasetChunking()
-  } else if (type === 'document-loader') {
-    defaultData.dataType = 'json'
-    defaultData.dataMode = 'all'
-    defaultData.dataPath = ''
-    defaultData.textTemplate = ''
-    defaultData.includeSourceMetadata = true
-    defaultData.includeRootFieldsAsContext = true
     defaultData.chunking = createDefaultDatasetChunking()
   } else if (type === 'embeddings') {
     defaultData.pluginId = 'sailor-openai'
@@ -1669,11 +1663,6 @@ defineExpose({
       <!-- DATABASE DATASET Node -->
       <template #node-database-dataset="nodeProps">
         <DatabaseDatasetNode v-bind="nodeProps" :has-outgoing-connection="hasNodeOutgoingConnection(nodeProps.id)" />
-      </template>
-
-      <!-- DOCUMENT LOADER Node -->
-      <template #node-document-loader="nodeProps">
-        <DocumentLoaderNode v-bind="nodeProps" />
       </template>
 
       <!-- EMBEDDINGS Node -->
