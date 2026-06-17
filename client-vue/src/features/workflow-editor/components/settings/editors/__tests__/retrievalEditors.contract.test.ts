@@ -54,7 +54,7 @@ test('text dataset editor uses a format select with supported formats', () => {
   assert.match(source, /BaseSelect/)
 })
 
-test('document loader editor exposes data mode, type, and metadata template controls', () => {
+test('document loader editor exposes data mode, type, and chunking controls without custom metadata', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/DocumentLoaderEditor.vue')
 
   for (const field of [
@@ -62,8 +62,9 @@ test('document loader editor exposes data mode, type, and metadata template cont
     'dataMode',
     'dataPath',
     'textTemplate',
-    'metadataTemplate',
     'includeSourceMetadata',
+    'chunking',
+    'contextualOverlapEnabled',
   ]) {
     assert.match(source, new RegExp(field))
   }
@@ -76,10 +77,12 @@ test('document loader editor exposes data mode, type, and metadata template cont
   assert.match(source, /buildDocumentLoaderTemplateSuggestion/)
   assert.match(source, /Regenerate from Data Path/)
   assert.doesNotMatch(source, /ExpressionTextarea/)
+  assert.doesNotMatch(source, /metadataTemplate/)
+  assert.doesNotMatch(source, /Metadata Template/)
   assert.doesNotMatch(source, /Document Preview/)
   assert.doesNotMatch(source, /document-preview/)
   assert.doesNotMatch(source, /metadata-preview/)
-  assert.match(source, /updateMetadataTemplate/)
+  assert.doesNotMatch(source, /updateMetadataTemplate/)
   assert.match(source, /Path inside the incoming data/)
 })
 

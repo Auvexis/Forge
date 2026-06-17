@@ -96,7 +96,6 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     ? node.files
     : [node.filePath, node.fileUrl].filter((value): value is string => Boolean(value));
   const files = configuredFiles.flatMap((file) => normalizeFileInputs(TemplateEngine.evaluate(file, context)));
-  const customMetadata = normalizeMetadata(TemplateEngine.evaluate(node.metadata ?? {}, context));
   const extractedFiles: FileExtractItem[] = [];
   const items = files.flatMap((file, fileIndex) => {
     if (typeof file === "string") {
@@ -115,7 +114,6 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
             source: file,
           },
           {},
-          customMetadata,
         ),
         raw: file,
       };
@@ -134,7 +132,7 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
 
     if (format === "csv") {
       extractedFiles.push(csvToExtractFile(text, `${nodeId}:${fileIndex}`, sourceMetadata));
-      return csvToItems(text, `${nodeId}:${fileIndex}`, sourceMetadata, customMetadata);
+      return csvToItems(text, `${nodeId}:${fileIndex}`, sourceMetadata);
     }
 
     if (format === "json") {
@@ -152,7 +150,7 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     return {
       id: `${nodeId}:${fileIndex}`,
       text,
-      metadata: buildFileDatasetMetadata(sourceMetadata, {}, customMetadata),
+      metadata: buildFileDatasetMetadata(sourceMetadata, {}),
       raw: file,
     };
   });
@@ -181,21 +179,13 @@ function normalizeFileInputs(value: unknown): RuntimeFileInput[] {
   return [String(value)];
 }
 
-function normalizeMetadata(value: unknown): Record<string, any> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? value as Record<string, any>
-    : {};
-}
-
 function buildFileDatasetMetadata(
   source: Record<string, any>,
   data: Record<string, any>,
-  custom: Record<string, any>,
 ): Record<string, any> {
   return {
     source,
     ...(Object.keys(data).length > 0 ? { data } : {}),
-    ...(Object.keys(custom).length > 0 ? { custom } : {}),
   };
 }
 
@@ -250,7 +240,6 @@ function csvToItems(
   value: string,
   idPrefix: string,
   sourceMetadata: Record<string, any>,
-  customMetadata: Record<string, any>,
 ): DatasetOutput["items"] {
   const rows = parseCsv(value.trim());
   if (rows.length === 0) return [];
@@ -274,7 +263,6 @@ function csvToItems(
             rowIndex: index,
           },
           metadataRecord,
-          customMetadata,
         ),
         raw: record,
       };
@@ -536,26 +524,8 @@ function toDocumentItem(args: {
       ...(args.node.includeSourceMetadata !== false && Object.keys(args.source).length > 0 ? { source: args.source } : {}),
       ...(Object.keys(args.data).length > 0 ? { data: args.data } : {}),
       ...(args.context && Object.keys(args.context).length > 0 ? { context: args.context } : {}),
-      ...metadataTemplate(args.node.metadataTemplate, args.data),
     },
     raw: args.value,
-  };
-}
-
-function metadataTemplate(
-  template: Record<string, any> | undefined,
-  data: Record<string, any>,
-): { custom?: Record<string, any> } {
-  if (!template || Object.keys(template).length === 0) return {};
-  return {
-    custom: Object.fromEntries(Object.entries(template).map(([key, value]) => [
-      key,
-      typeof value === "string"
-        ? value.replace(/\{\{\s*item\.([a-zA-Z0-9_.-]+)\s*\}\}/g, (_match, path: string) =>
-          formatDocumentValue(getByPath(data, path))
-        )
-        : value,
-    ])),
   };
 }
 

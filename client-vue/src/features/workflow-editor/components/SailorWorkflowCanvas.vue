@@ -986,7 +986,6 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
     defaultData.dataMode = 'all'
     defaultData.dataPath = ''
     defaultData.textTemplate = ''
-    defaultData.metadataTemplate = {}
     defaultData.includeSourceMetadata = true
     defaultData.includeRootFieldsAsContext = true
     defaultData.chunking = createDefaultDatasetChunking()

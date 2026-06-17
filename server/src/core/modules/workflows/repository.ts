@@ -518,7 +518,6 @@ function createMigratedDocumentLoader(
     dataMode: "all",
     includeSourceMetadata: true,
     includeRootFieldsAsContext: true,
-    metadataTemplate: {},
     chunking: copyChunking((source as any).chunking),
     ui: inferDocumentLoaderPosition(source, target),
   };

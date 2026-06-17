@@ -351,9 +351,6 @@ describe("retrieval utility node handlers", () => {
         nome: "Mateus Fernandes",
         categoria_favorita: "eletrônicos",
       },
-      custom: {
-        source: "clientes.csv",
-      },
     });
   });
 
@@ -626,7 +623,6 @@ describe("retrieval utility node handlers", () => {
         textTemplate: "course_id: {{ item.course_id }}\ntitle: {{ item.title }}\nduration_hours: {{ item.duration_hours }}",
         includeSourceMetadata: true,
         includeRootFieldsAsContext: true,
-        metadataTemplate: {},
       },
     });
 
@@ -682,7 +678,6 @@ describe("retrieval utility node handlers", () => {
         dataMode: "all",
         includeSourceMetadata: true,
         includeRootFieldsAsContext: false,
-        metadataTemplate: {},
       },
     });
 
@@ -739,7 +734,6 @@ describe("retrieval utility node handlers", () => {
         textTemplate: "id: {{ item.id }}\nname: {{ item.name }}",
         includeSourceMetadata: true,
         includeRootFieldsAsContext: true,
-        metadataTemplate: {},
       },
     });
 
@@ -786,7 +780,6 @@ describe("retrieval utility node handlers", () => {
         dataPath: "lessons",
         includeSourceMetadata: true,
         includeRootFieldsAsContext: false,
-        metadataTemplate: {},
       },
     }), /JSON path "lessons" was not found/);
   });
@@ -835,7 +828,6 @@ describe("retrieval utility node handlers", () => {
         dataMode: "all",
         includeSourceMetadata: true,
         includeRootFieldsAsContext: false,
-        metadataTemplate: {},
       },
     });
 
@@ -844,7 +836,7 @@ describe("retrieval utility node handlers", () => {
     assert.deepEqual(result.items.map((item: any) => item.metadata.source.filename), ["notes.txt", "readme.md"]);
   });
 
-  it("document loader applies custom metadata templates and can omit source metadata", async () => {
+  it("document loader omits source metadata without adding custom metadata", async () => {
     const registry = createUtilityNodeRegistry();
     const extracted = {
       sourceType: "file",
@@ -882,11 +874,6 @@ describe("retrieval utility node handlers", () => {
         dataPath: "courses",
         includeSourceMetadata: false,
         includeRootFieldsAsContext: false,
-        metadataTemplate: {
-          category: "{{ item.category }}",
-          score: "{{ item.score }}",
-          staticLabel: "course",
-        },
         chunking: {
           enabled: false,
           chunkSize: 1000,
@@ -899,7 +886,6 @@ describe("retrieval utility node handlers", () => {
     assert.equal(result.count, 1);
     assert.deepEqual(result.items[0].metadata, {
       data: { id: "course-1", category: "moda", score: 655 },
-      custom: { category: "moda", score: "655", staticLabel: "course" },
     });
   });
 
@@ -936,7 +922,6 @@ describe("retrieval utility node handlers", () => {
         dataMode: "all",
         includeSourceMetadata: true,
         includeRootFieldsAsContext: false,
-        metadataTemplate: { topic: "{{ item.topic }}" },
         chunking: {
           enabled: false,
           chunkSize: 1000,
@@ -951,7 +936,6 @@ describe("retrieval utility node handlers", () => {
     assert.deepEqual(result.items[0].metadata, {
       source: { source: "manual", topic: "docs" },
       data: { body: "Sailor document loaders transform items.", topic: "docs" },
-      custom: { topic: "docs" },
     });
   });
 
@@ -990,7 +974,6 @@ describe("retrieval utility node handlers", () => {
         dataMode: "all",
         includeSourceMetadata: true,
         includeRootFieldsAsContext: false,
-        metadataTemplate: {},
         chunking: {
           enabled: true,
           chunkSize: 4,
@@ -1029,7 +1012,6 @@ describe("retrieval utility node handlers", () => {
         dataMode: "all",
         includeSourceMetadata: true,
         includeRootFieldsAsContext: false,
-        metadataTemplate: {},
         chunking: {
           enabled: false,
           chunkSize: 1000,

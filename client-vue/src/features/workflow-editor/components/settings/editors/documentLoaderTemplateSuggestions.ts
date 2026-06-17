@@ -2,7 +2,6 @@ type JsonObject = Record<string, unknown>
 
 export interface DocumentLoaderTemplateSuggestion {
   textTemplate: string
-  metadataTemplate: Record<string, string>
   sampleData: JsonObject
 }
 
@@ -12,7 +11,6 @@ interface TemplateField {
 }
 
 const MAX_TEMPLATE_FIELDS = 24
-const MAX_METADATA_FIELDS = 12
 const MAX_OBJECT_DEPTH = 3
 
 export function buildDocumentLoaderTemplateSuggestion(
@@ -25,16 +23,9 @@ export function buildDocumentLoaderTemplateSuggestion(
   const fields = flattenTemplateFields(sampleData).slice(0, MAX_TEMPLATE_FIELDS)
   if (fields.length === 0) return null
 
-  const metadataFields = fields
-    .filter((field) => isMetadataFriendlyValue(field.value))
-    .slice(0, MAX_METADATA_FIELDS)
-
   return {
     sampleData,
     textTemplate: fields.map((field) => `${field.path}: {{ item.${field.path} }}`).join('\n'),
-    metadataTemplate: Object.fromEntries(
-      metadataFields.map((field) => [field.path, `{{ item.${field.path} }}`]),
-    ),
   }
 }
 
@@ -82,18 +73,6 @@ export function renderTemplatePreview(template: string, item: JsonObject): strin
   })
 }
 
-export function renderMetadataTemplatePreview(
-  template: Record<string, unknown>,
-  item: JsonObject,
-): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(template).map(([key, value]) => [
-      key,
-      typeof value === 'string' ? renderTemplatePreview(value, item) : stringifyPreviewValue(value),
-    ]),
-  )
-}
-
 export function getByPath(value: unknown, path: string): unknown {
   return path
     .split('.')
@@ -128,10 +107,6 @@ function isTemplateFriendlyValue(value: unknown): boolean {
   if (value === null) return true
   if (['string', 'number', 'boolean'].includes(typeof value)) return true
   return Array.isArray(value) && value.every((entry) => entry === null || ['string', 'number', 'boolean'].includes(typeof entry))
-}
-
-function isMetadataFriendlyValue(value: unknown): boolean {
-  return value === null || ['string', 'number', 'boolean'].includes(typeof value)
 }
 
 function stringifyPreviewValue(value: unknown): string {

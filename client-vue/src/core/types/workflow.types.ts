@@ -418,7 +418,6 @@ export interface DocumentLoaderNode extends WorkflowNodeBase {
   dataMode: 'all' | 'specific'
   dataPath?: string
   textTemplate?: string
-  metadataTemplate?: Record<string, any>
   includeSourceMetadata: boolean
   includeRootFieldsAsContext?: boolean
   chunking: DatasetChunkingConfig

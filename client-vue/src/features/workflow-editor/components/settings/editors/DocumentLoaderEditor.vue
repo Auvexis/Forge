@@ -53,15 +53,6 @@
       </div>
     </EditorField>
 
-    <EditorField label="Metadata Template">
-      <BaseCodeEditor
-        :model-value="metadataTemplateText"
-        language="json"
-        height="160px"
-        @update:model-value="updateMetadataTemplate"
-      />
-    </EditorField>
-
     <EditorField label="Source Metadata">
       <BaseSwitch
         :model-value="node.data.includeSourceMetadata !== false"
@@ -141,7 +132,6 @@ import {
 const props = defineProps<NodeEditorProps>()
 const executionStore = useExecutionStore()
 
-const metadataTemplateText = computed(() => JSON.stringify(props.node.data.metadataTemplate ?? {}, null, 2))
 const dataPath = computed(() => (props.node.data.dataPath as string | undefined) || '')
 const defaultChunking: DatasetChunkingConfig = {
   enabled: false,
@@ -165,19 +155,12 @@ const upstreamOutput = computed(() => {
   return sourceId ? executionStore.nodeStatuses[sourceId]?.output : undefined
 })
 const templateSuggestion = computed(() => buildDocumentLoaderTemplateSuggestion(upstreamOutput.value, dataPath.value))
-const currentMetadataTemplate = computed(() => {
-  const raw = props.node.data.metadataTemplate
-  return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {}
-})
 
 watch(templateSuggestion, (suggestion) => {
   if (!suggestion) return
   const patch: Record<string, unknown> = {}
   if (!(props.node.data.textTemplate as string | undefined)?.trim()) {
     patch.textTemplate = suggestion.textTemplate
-  }
-  if (Object.keys(currentMetadataTemplate.value).length === 0) {
-    patch.metadataTemplate = suggestion.metadataTemplate
   }
   if (Object.keys(patch).length > 0) {
     props.updateNodeData(patch)
@@ -189,16 +172,7 @@ function regenerateTemplates() {
   if (!suggestion) return
   props.updateNodeData({
     textTemplate: suggestion.textTemplate,
-    metadataTemplate: suggestion.metadataTemplate,
   })
-}
-
-function updateMetadataTemplate(value: string) {
-  try {
-    props.updateNodeData({ metadataTemplate: JSON.parse(value || '{}') })
-  } catch {
-    // Keep the last valid template while the user is editing JSON.
-  }
 }
 
 function updateChunking(patch: Partial<DatasetChunkingConfig>) {
