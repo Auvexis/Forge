@@ -1,11 +1,11 @@
-- [ ] Remover `document-loader` dos contratos
-- [ ] Mover JSON/path/chunking para `file-dataset`
-- [ ] Garantir `text-dataset` como document-source direto
-- [ ] Garantir `database-dataset` como document-source direto
-- [ ] Atualizar Vector Store para aceitar os 3 datasets
+- [x] Remover `document-loader` dos contratos
+- [x] Mover JSON/path/chunking para `file-dataset`
+- [x] Garantir `text-dataset` como document-source direto
+- [x] Garantir `database-dataset` como document-source direto
+- [x] Atualizar Vector Store para aceitar os 3 datasets
 - [ ] Remover UI do Default Data Loader
-- [ ] Remover migration antiga do loader
-- [ ] Atualizar testes backend
+- [x] Remover migration antiga do loader
+- [x] Atualizar testes backend
 - [ ] Atualizar testes frontend
 - [ ] Atualizar guia E2E
 - [ ] Rodar verificacoes

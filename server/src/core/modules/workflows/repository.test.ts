@@ -147,7 +147,7 @@ describe("WorkflowRepository", () => {
     db.close();
   });
 
-  it("migrates legacy File Dataset document edges through a Default Data Loader", () => {
+  it("keeps direct File Dataset document edges during migration", () => {
     const legacy = workflow("wf-loader-migration", "Loader Migration") as any;
     legacy.nodes = {
       files: {
@@ -181,25 +181,16 @@ describe("WorkflowRepository", () => {
     legacy.edges = [{ id: "files-store", source: "files", target: "store", targetHandle: "document" }];
 
     const migrated = migrateWorkflow(legacy);
-    const loader = migrated.nodes.files_document_loader as any;
 
-    assert.equal(loader.type, "document-loader");
-    assert.equal(loader.name, "Default Data Loader");
-    assert.equal(loader.dataType, "file");
-    assert.equal(loader.dataMode, "all");
-    assert.deepEqual(loader.chunking, legacy.nodes.files.chunking);
-    assert.deepEqual(loader.ui, { positionX: 300, positionY: 220 });
+    assert.equal(migrated.nodes.files_document_loader, undefined);
     assert.deepEqual(migrated.edges, [
-      { id: "files-store:data", source: "files", target: "files_document_loader", targetHandle: "data" },
-      { id: "files-store", source: "files_document_loader", target: "store", targetHandle: "document" },
+      { id: "files-store", source: "files", target: "store", targetHandle: "document" },
     ]);
-    assert.equal(migrated.metadata.migrationVersion, "document-loader-v1");
-    assert.deepEqual(migrated.metadata.migrationNotes, [
-      "Inserted Default Data Loader between legacy dataset document sources and Vector Store.",
-    ]);
+    assert.equal(migrated.metadata.migrationVersion, undefined);
+    assert.equal(migrated.metadata.migrationNotes, undefined);
   });
 
-  it("does not duplicate Document Loader nodes when migration runs more than once", () => {
+  it("keeps direct dataset document edges stable when migration runs more than once", () => {
     const legacy = workflow("wf-loader-idempotent", "Loader Migration") as any;
     legacy.nodes = {
       files: {
@@ -226,11 +217,11 @@ describe("WorkflowRepository", () => {
     const once = migrateWorkflow(legacy);
     const twice = migrateWorkflow(once);
 
-    assert.equal(Object.values(twice.nodes).filter((node: any) => node.type === "document-loader").length, 1);
+    assert.equal(Object.values(twice.nodes).filter((node: any) => node.type === "document-loader").length, 0);
     assert.deepEqual(twice.edges, once.edges);
   });
 
-  it("persists migrated workflow definitions on save", async () => {
+  it("persists direct workflow definitions on save", async () => {
     const db = await createWorkflowDb();
     setWorkflowDatabaseProvider(() => db);
     const legacy = workflow("wf-loader-save", "Loader Save") as any;
@@ -260,9 +251,9 @@ describe("WorkflowRepository", () => {
     const raw = db.prepare("SELECT definition FROM workflows WHERE id = ?").get("wf-loader-save") as { definition: string };
     const stored = JSON.parse(raw.definition) as WorkflowItem;
 
-    assert.equal(saved.nodes.files_document_loader?.type, "document-loader");
-    assert.equal(stored.nodes.files_document_loader?.type, "document-loader");
-    assert.equal(stored.edges[0]?.target, "files_document_loader");
+    assert.equal(saved.nodes.files_document_loader, undefined);
+    assert.equal(stored.nodes.files_document_loader, undefined);
+    assert.deepEqual(stored.edges, [{ id: "files-store", source: "files", target: "store", targetHandle: "document" }]);
     db.close();
   });
 

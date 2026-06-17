@@ -7,7 +7,7 @@ import {
   type WorkflowGitSnapshotSummary,
   type WorkflowGitSnapshotStatus,
 } from "./workflow-git-snapshot-service.ts";
-import type { DatasetChunkingConfig, WorkflowEdge, WorkflowItem, WorkflowNode } from "../../../shared/models/workflow-types.ts";
+import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 import type Database from "better-sqlite3";
 
 type WorkflowDatabaseProvider = () => Database.Database;
@@ -446,124 +446,5 @@ export function migrateWorkflow(workflow: any): WorkflowItem {
   if (!workflow.variables) {
     workflow.variables = [];
   }
-  migrateLegacyVectorDocumentSources(workflow);
   return workflow as WorkflowItem;
-}
-
-const DOCUMENT_LOADER_MIGRATION_VERSION = "document-loader-v1";
-const DOCUMENT_LOADER_MIGRATION_NOTE = "Inserted Default Data Loader between legacy dataset document sources and Vector Store.";
-
-function migrateLegacyVectorDocumentSources(workflow: any): void {
-  if (!workflow?.nodes || !Array.isArray(workflow.edges)) return;
-
-  const nextEdges: WorkflowEdge[] = [];
-  let changed = false;
-
-  for (const edge of workflow.edges as WorkflowEdge[]) {
-    const source = workflow.nodes[edge.source] as WorkflowNode | undefined;
-    const target = workflow.nodes[edge.target] as WorkflowNode | undefined;
-    if (!isLegacyVectorDocumentEdge(edge, source, target)) {
-      nextEdges.push(edge);
-      continue;
-    }
-
-    const loaderId = uniqueNodeId(workflow.nodes, `${edge.source}_document_loader`);
-    workflow.nodes[loaderId] = createMigratedDocumentLoader(source!, target!);
-    nextEdges.push(withoutUndefined({
-      id: `${edge.id}:data`,
-      source: edge.source,
-      target: loaderId,
-      sourceHandle: edge.sourceHandle,
-      targetHandle: "data",
-      ...(edge.label ? { label: edge.label } : {}),
-    }));
-    nextEdges.push(withoutUndefined({
-      ...edge,
-      source: loaderId,
-      sourceHandle: undefined,
-      targetHandle: "document",
-    }));
-    changed = true;
-  }
-
-  if (!changed) return;
-
-  workflow.edges = nextEdges;
-  workflow.metadata.migrationVersion = DOCUMENT_LOADER_MIGRATION_VERSION;
-  const notes = Array.isArray(workflow.metadata.migrationNotes) ? workflow.metadata.migrationNotes : [];
-  workflow.metadata.migrationNotes = notes.includes(DOCUMENT_LOADER_MIGRATION_NOTE)
-    ? notes
-    : [...notes, DOCUMENT_LOADER_MIGRATION_NOTE];
-}
-
-function isLegacyVectorDocumentEdge(
-  edge: WorkflowEdge,
-  source: WorkflowNode | undefined,
-  target: WorkflowNode | undefined,
-): boolean {
-  if (!source || !target) return false;
-  if (source.type !== "file-dataset") return false;
-  if (target.type !== "vector-store") return false;
-  return !edge.targetHandle || edge.targetHandle === "document";
-}
-
-function createMigratedDocumentLoader(
-  source: WorkflowNode,
-  target: WorkflowNode,
-): WorkflowNode {
-  return {
-    type: "document-loader",
-    name: "Default Data Loader",
-    dataType: "file",
-    dataMode: "all",
-    includeSourceMetadata: true,
-    includeRootFieldsAsContext: true,
-    chunking: copyChunking((source as any).chunking),
-    ui: inferDocumentLoaderPosition(source, target),
-  };
-}
-
-function copyChunking(chunking: DatasetChunkingConfig | undefined): DatasetChunkingConfig {
-  return {
-    enabled: Boolean(chunking?.enabled),
-    chunkSize: Number(chunking?.chunkSize ?? 1000),
-    chunkOverlap: Number(chunking?.chunkOverlap ?? 0),
-    contextualOverlapEnabled: Boolean(chunking?.contextualOverlapEnabled),
-    maxPreviousContextChars: Number(chunking?.maxPreviousContextChars ?? 0),
-  };
-}
-
-function inferDocumentLoaderPosition(source: WorkflowNode, target: WorkflowNode): WorkflowNode["ui"] {
-  const sourceUi = source.ui;
-  const targetUi = target.ui;
-  if (sourceUi && targetUi) {
-    return {
-      positionX: Math.round((sourceUi.positionX + targetUi.positionX) / 2),
-      positionY: Math.round((sourceUi.positionY + targetUi.positionY) / 2),
-    };
-  }
-  if (targetUi) {
-    return {
-      positionX: targetUi.positionX,
-      positionY: targetUi.positionY + 180,
-    };
-  }
-  if (sourceUi) {
-    return {
-      positionX: sourceUi.positionX + 220,
-      positionY: sourceUi.positionY,
-    };
-  }
-  return undefined;
-}
-
-function uniqueNodeId(nodes: Record<string, WorkflowNode>, preferredId: string): string {
-  if (!nodes[preferredId]) return preferredId;
-  let index = 2;
-  while (nodes[`${preferredId}_${index}`]) index += 1;
-  return `${preferredId}_${index}`;
-}
-
-function withoutUndefined<T extends Record<string, unknown>>(value: T): T {
-  return Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined)) as T;
 }

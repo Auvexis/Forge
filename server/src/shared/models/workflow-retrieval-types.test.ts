@@ -38,6 +38,7 @@ describe("workflow retrieval node contracts", () => {
     assert.match(source, /"text-dataset"/);
     assert.match(source, /"file-dataset"/);
     assert.match(source, /"database-dataset"/);
+    assert.doesNotMatch(source, /"document-loader"/);
     assert.match(source, /"embeddings"/);
     assert.match(source, /"vector-store"/);
     assert.match(source, /"retriever"/);
@@ -47,6 +48,7 @@ describe("workflow retrieval node contracts", () => {
     assert.match(source, /export interface TextDatasetNode/);
     assert.match(source, /export interface FileDatasetNode/);
     assert.match(source, /export interface DatabaseDatasetNode/);
+    assert.doesNotMatch(source, /DocumentLoaderNode/);
     assert.match(source, /export interface EmbeddingsNode/);
     assert.match(source, /export interface VectorStoreNode/);
     assert.match(source, /export interface RetrieverNode/);

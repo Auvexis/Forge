@@ -80,8 +80,7 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
     const dependencies = await context.resolveDependencies(nodeId);
     return { providerId: node.pluginId, methods: { ensureCollection: node.ensureCollectionMethodId, upsertDocuments: node.upsertMethodId, querySimilar: node.queryMethodId }, configuration: { collectionName: node.collectionName, dimension: node.dimension, metric: node.metric, config: node.config }, embedding: dependencies.getOne<EmbeddingModelRef>("embedding") } satisfies VectorStoreRef;
   } });
-  registry.register({ capability: "document-source", supports: (node) => node.type === "document-loader", resolve: async (context, nodeId) => createLazyNodeSource(context, nodeId) satisfies DocumentSourceRef });
-  for (const type of ["text-dataset", "database-dataset"] as const) registry.register({ capability: "document-source", supports: (node) => node.type === type, resolve: async (context, nodeId) => createLazyNodeSource(context, nodeId) satisfies DocumentSourceRef });
+  for (const type of ["file-dataset", "text-dataset", "database-dataset"] as const) registry.register({ capability: "document-source", supports: (node) => node.type === type, resolve: async (context, nodeId) => createLazyNodeSource(context, nodeId) satisfies DocumentSourceRef });
   for (const type of ["file-dataset", "text-dataset", "database-dataset"] as const) registry.register({ capability: "file-data-source", supports: (node) => node.type === type, resolve: async (context, nodeId) => createLazyNodeSource(context, nodeId) satisfies FileDataSourceRef });
   return registry;
 }

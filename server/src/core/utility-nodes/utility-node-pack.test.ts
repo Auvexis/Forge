@@ -102,6 +102,8 @@ describe("Utility node pack contract", () => {
       },
     ]);
     assert.deepEqual(sailorCoreUtilityNodePack.nodes["vector-store"]?.capabilities, ["vector-store"]);
+    assert.deepEqual(sailorCoreUtilityNodePack.nodes["file-dataset"]?.capabilities, ["file-data-source", "document-source"]);
+    assert.equal((sailorCoreUtilityNodePack.nodes as Record<string, unknown>)["document-loader"], undefined);
     assert.deepEqual(sailorCoreUtilityNodePack.nodes.embeddings?.capabilities, ["embedding-model"]);
   });
 

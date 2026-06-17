@@ -25,7 +25,6 @@ export const VALID_NODE_TYPES = new Set([
   "text-dataset",
   "file-dataset",
   "database-dataset",
-  "document-loader",
   "embeddings",
   "vector-store",
   "retriever",
@@ -457,6 +456,12 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       if (!["txt", "markdown", "json", "csv", "auto"].includes(node.format)) {
         return `File Dataset node "${nodeId}" must have a supported format`;
       }
+      if (node.jsonMode !== undefined && node.jsonMode !== "all" && node.jsonMode !== "specific") {
+        return `File Dataset node "${nodeId}" must have jsonMode all or specific`;
+      }
+      if (node.jsonMode === "specific" && (!node.jsonPath || typeof node.jsonPath !== "string")) {
+        return `File Dataset node "${nodeId}" must have jsonPath for specific JSON mode`;
+      }
       return validateChunkingConfig(node.chunking, `File Dataset node "${nodeId}"`);
     case "database-dataset":
       if (!node.pluginId || !node.methodId) {
@@ -469,17 +474,6 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
         return `Database Dataset node "${nodeId}" must have textColumns`;
       }
       return validateChunkingConfig(node.chunking, `Database Dataset node "${nodeId}"`);
-    case "document-loader":
-      if (node.dataType !== "json" && node.dataType !== "file" && node.dataType !== "text") {
-        return `Document Loader node "${nodeId}" must have a valid dataType`;
-      }
-      if (node.dataMode !== "all" && node.dataMode !== "specific") {
-        return `Document Loader node "${nodeId}" must have a valid dataMode`;
-      }
-      if (node.dataMode === "specific" && (!node.dataPath || typeof node.dataPath !== "string")) {
-        return `Document Loader node "${nodeId}" must have dataPath for specific mode`;
-      }
-      return validateChunkingConfig(node.chunking, `Document Loader node "${nodeId}"`);
     case "embeddings":
       if (!node.pluginId || !node.methodId) {
         return `Embeddings node "${nodeId}" must have pluginId and methodId`;

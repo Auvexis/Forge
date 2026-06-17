@@ -1,8 +1,6 @@
 import type {
   DatabaseDatasetNode,
-  DatasetChunkingConfig,
   DatasetOutput,
-  DocumentLoaderNode,
   EmbeddingsNode,
   FileExtractItem,
   FileDatasetNode,
@@ -12,7 +10,7 @@ import type {
 } from "../../../shared/models/workflow-types.ts";
 import { createNodeHandler } from "../handler.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
-import type { DocumentSourceRef, EmbeddingModelRef, FileDataSourceRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
+import type { DocumentSourceRef, EmbeddingModelRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
 import { EmbeddingExecutionService } from "../../modules/ai-services/embedding-execution-service.ts";
 import { VectorStoreExecutionService } from "../../modules/ai-services/vector-store-execution-service.ts";
 import { ConfigDependencyResolver } from "../dependencies/config-dependency-resolver.ts";
@@ -136,7 +134,9 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     }
 
     if (format === "json") {
-      extractedFiles.push(jsonToExtractFile(text, `${nodeId}:${fileIndex}`, sourceMetadata));
+      const extracted = jsonToExtractFile(text, `${nodeId}:${fileIndex}`, sourceMetadata);
+      extractedFiles.push(extracted);
+      return jsonFileToItems(extracted, node, `${nodeId}:${fileIndex}`);
     } else {
       extractedFiles.push({
         id: `${nodeId}:${fileIndex}`,
@@ -155,9 +155,11 @@ export const fileDatasetNodeHandler = createNodeHandler<FileDatasetNode>("file-d
     };
   });
 
+  const chunkedItems = applyDatasetChunking(items, node);
+
   return {
-    items,
-    count: items.length,
+    items: chunkedItems,
+    count: chunkedItems.length,
     sourceType: "file",
     files: extractedFiles,
   } satisfies DatasetOutput;
@@ -381,7 +383,8 @@ export const databaseDatasetNodeHandler = createNodeHandler<DatabaseDatasetNode>
     raw: row,
   }));
 
-  return { items, count: items.length, sourceType: "database" } satisfies DatasetOutput;
+  const chunkedItems = applyDatasetChunking(items, node);
+  return { items: chunkedItems, count: chunkedItems.length, sourceType: "database" } satisfies DatasetOutput;
 }, {
   description: "Defines a database dataset source through a provider plugin.",
   execution: "stateless",
@@ -390,89 +393,15 @@ export const databaseDatasetNodeHandler = createNodeHandler<DatabaseDatasetNode>
   errors: ["Invalid database dataset"],
 });
 
-export const documentLoaderNodeHandler = createNodeHandler<DocumentLoaderNode>("document-loader", async (input) => {
-  const { node, nodeId, context, services, workflow, edges } = input;
-  const dependencies = services.resolveConfigDependencies
-    ? await services.resolveConfigDependencies(nodeId)
-    : await new ConfigDependencyResolver(createCoreCapabilityAdapterRegistry()).resolveForNode(input, nodeId);
-  const dataSource = dependencies.getOne<FileDataSourceRef>("data");
-  const sourceOutput = await dataSource.load();
-  const files = Array.isArray(sourceOutput?.files) ? sourceOutput.files as FileExtractItem[] : [];
-  const documents = files.length > 0
-    ? files.flatMap((file) => loadExtractedFileDocuments(file, node, nodeId))
-    : loadDatasetItemDocuments(sourceOutput, node, nodeId);
-  const items = applyDocumentChunking(documents, resolveDocumentLoaderChunking(node, workflow, edges, dataSource.nodeId, nodeId));
-
-  return {
-    items,
-    count: items.length,
-    sourceType: "file",
-  } satisfies DatasetOutput;
-}, {
-  description: "Transforms extracted file data into vector-store documents.",
-  execution: "stateless",
-  sideEffects: ["none"],
-  outputs: [{ id: "default", label: "Documents" }],
-  errors: ["Invalid document loader config", "Missing data source"],
-});
-
-function loadDatasetItemDocuments(
-  sourceOutput: DatasetOutput,
-  node: DocumentLoaderNode,
-  nodeId: string,
-): DatasetOutput["items"] {
-  const items = Array.isArray(sourceOutput?.items) ? sourceOutput.items : [];
-  return items.map((item, index) => {
-    const data = item.raw && typeof item.raw === "object" && !Array.isArray(item.raw)
-      ? item.raw as Record<string, any>
-      : { value: item.raw ?? item.text };
-    return toDocumentItem({
-      node,
-      nodeId,
-      index,
-      value: item.raw ?? item.text,
-      text: item.text,
-      source: item.metadata ?? {},
-      data,
-    });
-  });
-}
-
-function loadExtractedFileDocuments(
+function jsonFileToItems(
   file: FileExtractItem,
-  node: DocumentLoaderNode,
-  nodeId: string,
-): DatasetOutput["items"] {
-  if (file.format === "json") return loadJsonDocuments(file, node, nodeId);
-  if (file.format === "csv") return (file.rows ?? []).map((row, index) => toDocumentItem({
-    node,
-    nodeId,
-    index,
-    value: row,
-    text: templateDocumentText(node.textTemplate, row),
-    source: { ...file.source, rowIndex: index },
-    data: row,
-  }));
-
-  return [toDocumentItem({
-    node,
-    nodeId,
-    index: 0,
-    value: file.data ?? file.rawText,
-    text: String(file.rawText ?? ""),
-    source: file.source,
-    data: {},
-  })];
-}
-
-function loadJsonDocuments(
-  file: FileExtractItem,
-  node: DocumentLoaderNode,
-  nodeId: string,
+  node: FileDatasetNode,
+  idPrefix: string,
 ): DatasetOutput["items"] {
   const root = file.data;
-  const selected = node.dataMode === "specific"
-    ? getRequiredJsonPath(root, node.dataPath)
+  const jsonMode = node.jsonMode ?? "all";
+  const selected = jsonMode === "specific"
+    ? getRequiredJsonPath(root, node.jsonPath)
     : root;
   const values = Array.isArray(selected) ? selected : [selected];
   const rootContext = node.includeRootFieldsAsContext && root && typeof root === "object" && !Array.isArray(root)
@@ -483,12 +412,12 @@ function loadJsonDocuments(
     const data = value && typeof value === "object" && !Array.isArray(value)
       ? value as Record<string, any>
       : { value };
-    const path = node.dataPath
-      ? `${node.dataPath}${Array.isArray(selected) ? `[${index}]` : ""}`
+    const path = node.jsonPath
+      ? `${node.jsonPath}${Array.isArray(selected) ? `[${index}]` : ""}`
       : undefined;
     return toDocumentItem({
       node,
-      nodeId,
+      id: values.length === 1 && jsonMode === "all" ? idPrefix : `${idPrefix}:${index}`,
       index,
       value,
       text: templateDocumentText(node.textTemplate, data),
@@ -508,8 +437,8 @@ function getRequiredJsonPath(root: unknown, path: string | undefined): unknown {
 }
 
 function toDocumentItem(args: {
-  node: DocumentLoaderNode;
-  nodeId: string;
+  node: FileDatasetNode;
+  id: string;
   index: number;
   value: unknown;
   text: string;
@@ -518,10 +447,10 @@ function toDocumentItem(args: {
   context?: Record<string, any>;
 }): DatasetOutput["items"][number] {
   return {
-    id: `${args.nodeId}:${args.index}`,
+    id: args.id,
     text: args.text,
     metadata: {
-      ...(args.node.includeSourceMetadata !== false && Object.keys(args.source).length > 0 ? { source: args.source } : {}),
+      ...(Object.keys(args.source).length > 0 ? { source: args.source } : {}),
       ...(Object.keys(args.data).length > 0 ? { data: args.data } : {}),
       ...(args.context && Object.keys(args.context).length > 0 ? { context: args.context } : {}),
     },
@@ -529,32 +458,9 @@ function toDocumentItem(args: {
   };
 }
 
-function applyDocumentChunking(
-  items: DatasetOutput["items"],
-  node: Pick<DocumentLoaderNode, "chunking">,
-): DatasetOutput["items"] {
-  return applyDatasetChunking(items, node);
-}
-
-function resolveDocumentLoaderChunking(
-  node: DocumentLoaderNode,
-  workflow: { nodes: Record<string, any> },
-  edges: Array<{ source: string; target: string; targetHandle?: string }>,
-  dataSourceNodeId: string | undefined,
-  nodeId: string,
-): Pick<DocumentLoaderNode, "chunking"> {
-  if (node.chunking?.enabled) return node;
-  const sourceNodeId = dataSourceNodeId ?? edges.find((edge) =>
-    edge.target === nodeId && (!edge.targetHandle || edge.targetHandle === "data")
-  )?.source;
-  const sourceNode = sourceNodeId ? workflow.nodes[sourceNodeId] : undefined;
-  const sourceChunking = sourceNode?.type === "file-dataset" ? sourceNode.chunking as DatasetChunkingConfig | undefined : undefined;
-  return sourceChunking?.enabled ? { chunking: sourceChunking } : node;
-}
-
 function applyDatasetChunking(
   items: DatasetOutput["items"],
-  node: Pick<TextDatasetNode | DocumentLoaderNode, "chunking">,
+  node: Pick<TextDatasetNode | FileDatasetNode | DatabaseDatasetNode, "chunking">,
 ): DatasetOutput["items"] {
   if (!node.chunking?.enabled) return items;
   const chunkSize = Math.max(1, Math.floor(node.chunking.chunkSize || 1000));
