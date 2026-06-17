@@ -75,11 +75,12 @@ test('document loader editor exposes data mode, type, and metadata template cont
   assert.match(source, /useExecutionStore/)
   assert.match(source, /buildDocumentLoaderTemplateSuggestion/)
   assert.match(source, /Regenerate from Data Path/)
-  assert.match(source, /document-preview/)
   assert.doesNotMatch(source, /ExpressionTextarea/)
+  assert.doesNotMatch(source, /Document Preview/)
+  assert.doesNotMatch(source, /document-preview/)
+  assert.doesNotMatch(source, /metadata-preview/)
   assert.match(source, /updateMetadataTemplate/)
   assert.match(source, /Path inside the incoming data/)
-  assert.match(source, /metadata-preview/)
 })
 
 test('vector store editor exposes Pinecone and Qdrant provider config sections', () => {

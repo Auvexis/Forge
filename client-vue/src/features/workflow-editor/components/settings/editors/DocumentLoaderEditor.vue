@@ -60,12 +60,6 @@
         height="160px"
         @update:model-value="updateMetadataTemplate"
       />
-      <pre class="metadata-preview">{{ metadataTemplateText }}</pre>
-    </EditorField>
-
-    <EditorField v-if="documentPreviewText" label="Document Preview">
-      <pre class="document-preview">{{ documentPreviewText }}</pre>
-      <pre class="metadata-preview">{{ metadataPreviewText }}</pre>
     </EditorField>
 
     <EditorField label="Source Metadata">
@@ -98,8 +92,6 @@ import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import { useExecutionStore } from '../../../stores/execution.store'
 import {
   buildDocumentLoaderTemplateSuggestion,
-  renderMetadataTemplatePreview,
-  renderTemplatePreview,
 } from './documentLoaderTemplateSuggestions'
 
 const props = defineProps<NodeEditorProps>()
@@ -121,17 +113,6 @@ const templateSuggestion = computed(() => buildDocumentLoaderTemplateSuggestion(
 const currentMetadataTemplate = computed(() => {
   const raw = props.node.data.metadataTemplate
   return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {}
-})
-const documentPreviewText = computed(() => {
-  const suggestion = templateSuggestion.value
-  if (!suggestion) return ''
-  const template = (props.node.data.textTemplate as string) || suggestion.textTemplate
-  return renderTemplatePreview(template, suggestion.sampleData)
-})
-const metadataPreviewText = computed(() => {
-  const suggestion = templateSuggestion.value
-  if (!suggestion) return metadataTemplateText.value
-  return JSON.stringify(renderMetadataTemplatePreview(currentMetadataTemplate.value, suggestion.sampleData), null, 2)
 })
 
 watch(templateSuggestion, (suggestion) => {
@@ -182,17 +163,5 @@ const DATA_MODES = [
   display: flex;
   justify-content: flex-end;
   margin-top: var(--sailor-space-2);
-}
-
-.document-preview,
-.metadata-preview {
-  margin: var(--sailor-space-2) 0 0;
-  padding: var(--sailor-space-2);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-muted);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-  white-space: pre-wrap;
 }
 </style>
