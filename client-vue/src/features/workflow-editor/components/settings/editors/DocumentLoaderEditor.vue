@@ -34,12 +34,23 @@
     </EditorField>
 
     <EditorField label="Text Template">
-      <ExpressionTextarea
+      <BaseCodeEditor
         :model-value="(node.data.textTemplate as string) || ''"
+        language="plaintext"
+        height="220px"
         @update:model-value="updateNodeData({ textTemplate: $event })"
-        placeholder="title: {{ item.title }}"
-        spellcheck="false"
       />
+      <div class="template-actions">
+        <BaseButton
+          variant="outline"
+          size="sm"
+          icon-left="refresh-cw"
+          :disabled="!templateSuggestion"
+          @click="regenerateTemplates"
+        >
+          Regenerate from Data Path
+        </BaseButton>
+      </div>
     </EditorField>
 
     <EditorField label="Metadata Template">
@@ -50,6 +61,11 @@
         @update:model-value="updateMetadataTemplate"
       />
       <pre class="metadata-preview">{{ metadataTemplateText }}</pre>
+    </EditorField>
+
+    <EditorField v-if="documentPreviewText" label="Document Preview">
+      <pre class="document-preview">{{ documentPreviewText }}</pre>
+      <pre class="metadata-preview">{{ metadataPreviewText }}</pre>
     </EditorField>
 
     <EditorField label="Source Metadata">
@@ -71,18 +87,75 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
-import ExpressionTextarea from '../expressions/ExpressionTextarea.vue'
+import { useExecutionStore } from '../../../stores/execution.store'
+import {
+  buildDocumentLoaderTemplateSuggestion,
+  renderMetadataTemplatePreview,
+  renderTemplatePreview,
+} from './documentLoaderTemplateSuggestions'
 
 const props = defineProps<NodeEditorProps>()
+const executionStore = useExecutionStore()
 
 const metadataTemplateText = computed(() => JSON.stringify(props.node.data.metadataTemplate ?? {}, null, 2))
+const dataPath = computed(() => (props.node.data.dataPath as string | undefined) || '')
+const dataSourceNode = computed(() => {
+  const directDataSourceId = props.edges.find(
+    (edge) => edge.target === props.node.id && (!edge.targetHandle || edge.targetHandle === 'data'),
+  )?.source
+  return props.upstreamNodes.find((upNode) => upNode.id === directDataSourceId) ?? props.upstreamNodes.at(-1)
+})
+const upstreamOutput = computed(() => {
+  const sourceId = dataSourceNode.value?.id
+  return sourceId ? executionStore.nodeStatuses[sourceId]?.output : undefined
+})
+const templateSuggestion = computed(() => buildDocumentLoaderTemplateSuggestion(upstreamOutput.value, dataPath.value))
+const currentMetadataTemplate = computed(() => {
+  const raw = props.node.data.metadataTemplate
+  return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {}
+})
+const documentPreviewText = computed(() => {
+  const suggestion = templateSuggestion.value
+  if (!suggestion) return ''
+  const template = (props.node.data.textTemplate as string) || suggestion.textTemplate
+  return renderTemplatePreview(template, suggestion.sampleData)
+})
+const metadataPreviewText = computed(() => {
+  const suggestion = templateSuggestion.value
+  if (!suggestion) return metadataTemplateText.value
+  return JSON.stringify(renderMetadataTemplatePreview(currentMetadataTemplate.value, suggestion.sampleData), null, 2)
+})
+
+watch(templateSuggestion, (suggestion) => {
+  if (!suggestion) return
+  const patch: Record<string, unknown> = {}
+  if (!(props.node.data.textTemplate as string | undefined)?.trim()) {
+    patch.textTemplate = suggestion.textTemplate
+  }
+  if (Object.keys(currentMetadataTemplate.value).length === 0) {
+    patch.metadataTemplate = suggestion.metadataTemplate
+  }
+  if (Object.keys(patch).length > 0) {
+    props.updateNodeData(patch)
+  }
+}, { immediate: true })
+
+function regenerateTemplates() {
+  const suggestion = templateSuggestion.value
+  if (!suggestion) return
+  props.updateNodeData({
+    textTemplate: suggestion.textTemplate,
+    metadataTemplate: suggestion.metadataTemplate,
+  })
+}
 
 function updateMetadataTemplate(value: string) {
   try {
@@ -105,6 +178,13 @@ const DATA_MODES = [
 </script>
 
 <style scoped>
+.template-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--sailor-space-2);
+}
+
+.document-preview,
 .metadata-preview {
   margin: var(--sailor-space-2) 0 0;
   padding: var(--sailor-space-2);
