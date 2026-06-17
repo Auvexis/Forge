@@ -7,6 +7,6 @@
 - [x] Remover migration antiga do loader
 - [x] Atualizar testes backend
 - [x] Atualizar testes frontend
-- [ ] Atualizar guia E2E
-- [ ] Rodar verificacoes
-- [ ] Commitar
+- [x] Atualizar guia E2E
+- [x] Rodar verificacoes
+- [x] Commitar

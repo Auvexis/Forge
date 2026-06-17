@@ -11,7 +11,6 @@ Objetivo: validar de ponta a ponta a feature de Vector Store, datasets, embeddin
 - Nodes de dataset:
   - `Text Dataset`
   - `Extract From File`
-  - `Default Data Loader`
   - `Database Dataset`
 - Node `Vector Store` com providers:
   - `Qdrant`
@@ -132,11 +131,11 @@ Resultado esperado:
 
 Depois:
 
-1. Adicione um `Vector Store`. ✅
-2. Clique no Quick Add do handle `Embedding`. ✅
-3. Deve aparecer apenas Embedding Models compativeis. ✅
-4. Clique no Quick Add do handle `Document`. ✅
-5. Deve aparecer apenas Dataset nodes compativeis. ✅
+1. Adicione um `Vector Store`. 
+2. Clique no Quick Add do handle `Embedding`. 
+3. Deve aparecer apenas Embedding Models compativeis. 
+4. Clique no Quick Add do handle `Document`. 
+5. Deve aparecer apenas Dataset nodes compativeis. 
 
 ## 4. Teste 2 - Text Dataset para Vector Store ✅
 
@@ -189,7 +188,7 @@ Resultado esperado:
 - Edges para `Embedding` e `Document` aparecem dashed.
 - `Text Dataset` e `Embedding Model` aparecem como subnodes/configuracao, nao como fluxo principal comum.
 
-## 5. Teste 3 - Extract From File + Document Loader para Vector Store
+## 5. Teste 3 - Extract From File direto para Vector Store
 
 Objetivo: validar o novo input de multiplos arquivos.
 
@@ -197,36 +196,34 @@ Workflow:
 
 ```text
 Manual Trigger -> Vector Store
-Extract From File -> Default Data Loader / Data
-Default Data Loader -> Vector Store / Document
+Extract From File -> Vector Store / Document
 Embedding Model -> Vector Store / Embedding
 ```
 
 Configuracao:
 
 - `Extract From File`: use 2 ou 3 arquivos:
-  - `.md`
+  - `.md` ✅
   - `.txt`
-  - `.json`
+  - `.json` ✅
   - `.csv` ✅
 - Format: `auto` primeiro.
 - Depois repita com `markdown`.
-- `Default Data Loader`:
-  - Type of Data: `JSON` para `.json`.
-  - Mode: `Load Specific Data`.
-  - Data Path: `courses`.
+- Para `.json`:
+  - JSON Mode: `Load Specific Data`.
+  - JSON Path: `courses`.
   - Repetir com JSON que tenha `courses` e `instructors`; escolher explicitamente `courses`.
-  - Marcar preservacao dos campos raiz como contexto/metadata, se a opcao existir.
+  - Marcar preservacao dos campos raiz como contexto/metadata.
 
 Resultado esperado:
 
 - Multiplos arquivos aparecem corretamente no editor.
 - O node nao quebra visualmente.
-- O Document Loader transforma dados extraidos em documentos.
+- O Extract From File transforma dados extraidos em documentos.
 - `Load Specific Data` gera um documento por item do array `courses`.
-- JSON com multiplos arrays exige escolha explicita do `Data Path`.
+- JSON com multiplos arrays exige escolha explicita do `JSON Path`.
 - Campos raiz fora do array sao preservados como metadata/contexto quando a opcao estiver ligada.
-- O Vector Store recebe documentos/chunks vindos do Document Loader.
+- O Vector Store recebe documentos/chunks vindos do Extract From File.
 - Rodar duas vezes nao deve quebrar a collection.
 - O Quick Add do handle `Document` deve continuar aparecendo se `quickAddAfterConnected` estiver ativo.
 
@@ -471,8 +468,7 @@ Embedding Model -> Vector Store / Embedding
 Opcional, para indexar junto:
 
 ```text
-Text Dataset/Extract From File -> Default Data Loader / Data
-Default Data Loader -> Vector Store / Document
+Text Dataset/Extract From File -> Vector Store / Document
 ```
 
 Payload do `Manual Trigger`:
@@ -564,8 +560,7 @@ Workflow:
 
 ```text
 Manual Trigger -> Vector Store
-Database Dataset -> Default Data Loader / Data
-Default Data Loader -> Vector Store / Document
+Database Dataset -> Vector Store / Document
 Embedding Model -> Vector Store / Embedding
 ```
 
@@ -586,7 +581,7 @@ select id, title, body from docs limit 10;
 
 Resultado esperado:
 
-- Linhas do banco passam pelo Document Loader e viram documentos.
+- Linhas do banco viram documentos diretamente pelo Database Dataset.
 - Campo de texto correto e usado para embedding.
 - Metadata e preservada.
 - Vector Store indexa os documentos.
@@ -599,7 +594,7 @@ Resultado esperado:
 
 - Execucao deve bloquear com erro claro.
 
-### Extract From File direto no Vector Store
+### Extract From File direto no Vector Store sem Embedding
 
 Workflow invalido:
 
@@ -609,30 +604,30 @@ Extract From File -> Vector Store / Document
 
 Resultado esperado:
 
-- UI deve impedir ou backend deve rejeitar porque `Document` exige `Document Loader`.
+- UI deve impedir ou backend deve rejeitar porque `Embedding` e obrigatorio para indexacao.
 
-### Document Loader com JSON path invalido
+### Extract From File com JSON Path invalido
 
 Configuracao invalida:
 
-- Mode: `Load Specific Data`
-- Data Path: `lessons`
+- JSON Mode: `Load Specific Data`
+- JSON Path: `lessons`
 - Arquivo JSON contem apenas `courses` e `instructors`.
 
 Resultado esperado:
 
 - Erro claro dizendo que o JSON path nao foi encontrado.
 
-### Document Loader com JSON path nao-array em modo array
+### Extract From File com JSON Path vazio
 
 Configuracao invalida:
 
-- Mode: `Load Specific Data`
-- Data Path aponta para objeto simples, quando o modo exigir array.
+- JSON Mode: `Load Specific Data`
+- JSON Path vazio.
 
 Resultado esperado:
 
-- Erro claro dizendo que o path precisa apontar para array.
+- Erro claro dizendo que JSON Path e obrigatorio quando o modo especifico esta ligado.
 
 ### Metadata filter invalido
 
@@ -737,16 +732,10 @@ Validar:
 
 - `Embedding` deve mostrar apenas Embedding Models.
 - `Document` deve mostrar:
-  - `Default Data Loader`
-- `Document` deve continuar com Quick Add depois de um loader conectado.
-
-### Default Data Loader
-
-- `Data` deve mostrar:
   - `Extract From File`
   - `Text Dataset`
   - `Database Dataset`
-- `Data` deve continuar com Quick Add quando aplicavel.
+- `Document` deve continuar com Quick Add depois de uma fonte conectada.
 
 ### Basic LLM Chain
 
@@ -777,7 +766,7 @@ Validar:
 - Required handles bloqueiam execucao quando faltam dependencias.
 - Chat Model aceita apenas um e substitui corretamente.
 - Agent Tool aceita multiplos.
-- Vector Store Document aceita multiplos documentos via Default Data Loader.
+- Vector Store Document aceita multiplos documentos via `Extract From File`, `Text Dataset` e `Database Dataset`.
 - Vector Store query retorna docs/scores.
 - Question and Answer Chain retorna answer/context/sources.
 - Vector Store Tool funciona dentro do Agent.
@@ -788,7 +777,7 @@ Validar:
 1. Picker/Quick Add visual.
 2. Text Dataset + Embedding + Vector Store index.
 3. Vector Store query.
-4. Extract From File multi-file + Default Data Loader.
+4. Extract From File multi-file direto no Vector Store.
 5. Basic LLM Chain.
 6. Basic LLM Chain + JSON Parser.
 7. Vector Store Retriever.
