@@ -129,7 +129,7 @@ test('database dataset editor uses plugin and method selects with credential man
 test('vector store editor owns retrieval query and output settings', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/VectorStoreEditor.vue')
 
-  for (const field of ['query', 'topK', 'outputMode', 'maxContextChars', 'filter']) {
+  for (const field of ['query', 'topK', 'scoreThreshold', 'outputMode', 'maxContextChars', 'filter']) {
     assert.match(source, new RegExp(field))
   }
 })
@@ -192,6 +192,7 @@ test('retrieval editors show validation hints for vector config and search limit
   assert.match(embeddings, /Must match the vector store dimension/)
   assert.match(retriever, /Must be greater than 0/)
   assert.match(retriever, /Score threshold is optional/)
+  assert.match(vectorStore, /Score threshold is optional/)
 })
 
 test('embeddings and retriever editors expose retrieval controls', () => {

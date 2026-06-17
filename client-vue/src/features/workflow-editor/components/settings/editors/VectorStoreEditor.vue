@@ -61,6 +61,16 @@
       />
     </EditorField>
 
+    <EditorField label="Score Threshold">
+      <div class="editor-hint">Score threshold is optional. Use 0 to keep all returned matches.</div>
+      <BaseInput
+        type="number"
+        :model-value="String(node.data.scoreThreshold ?? 0)"
+        @update:model-value="updateNodeData({ scoreThreshold: Number($event) || 0 })"
+        placeholder="0"
+      />
+    </EditorField>
+
     <EditorField label="Output Mode">
       <BaseSelect
         :model-value="(node.data.outputMode as string) || 'context'"
