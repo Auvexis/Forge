@@ -77,11 +77,55 @@
         @update:model-value="updateNodeData({ includeRootFieldsAsContext: $event as boolean })"
       />
     </EditorField>
+
+    <EditorField label="Chunking">
+      <BaseSwitch
+        :model-value="chunking.enabled"
+        label="Split loaded documents into chunks"
+        @update:model-value="updateChunking({ enabled: $event as boolean })"
+      />
+    </EditorField>
+
+    <EditorField label="Chunk Size">
+      <BaseInput
+        type="number"
+        :model-value="String(chunking.chunkSize)"
+        @update:model-value="updateChunking({ chunkSize: Number($event) || 1000 })"
+        placeholder="1000"
+      />
+    </EditorField>
+
+    <EditorField label="Chunk Overlap">
+      <BaseInput
+        type="number"
+        :model-value="String(chunking.chunkOverlap)"
+        @update:model-value="updateChunking({ chunkOverlap: Number($event) || 0 })"
+        placeholder="120"
+      />
+    </EditorField>
+
+    <EditorField label="Context Overlap">
+      <BaseSwitch
+        :model-value="chunking.contextualOverlapEnabled"
+        label="Carry previous chunk context into the current chunk"
+        @update:model-value="updateChunking({ contextualOverlapEnabled: $event as boolean })"
+      />
+    </EditorField>
+
+    <EditorField label="Previous Context Chars">
+      <BaseInput
+        type="number"
+        :model-value="String(chunking.maxPreviousContextChars ?? '')"
+        @update:model-value="updateChunking({ maxPreviousContextChars: $event ? Number($event) : undefined })"
+        placeholder="300"
+      />
+    </EditorField>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, watch } from 'vue'
+import type { DatasetChunkingConfig } from '@/core/types/workflow.types'
 import type { NodeEditorProps } from './types'
 import EditorField from './EditorField.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
@@ -99,6 +143,17 @@ const executionStore = useExecutionStore()
 
 const metadataTemplateText = computed(() => JSON.stringify(props.node.data.metadataTemplate ?? {}, null, 2))
 const dataPath = computed(() => (props.node.data.dataPath as string | undefined) || '')
+const defaultChunking: DatasetChunkingConfig = {
+  enabled: false,
+  chunkSize: 1000,
+  chunkOverlap: 120,
+  contextualOverlapEnabled: false,
+  maxPreviousContextChars: 300,
+}
+const chunking = computed<DatasetChunkingConfig>(() => ({
+  ...defaultChunking,
+  ...((props.node.data.chunking as Partial<DatasetChunkingConfig> | undefined) ?? {}),
+}))
 const dataSourceNode = computed(() => {
   const directDataSourceId = props.edges.find(
     (edge) => edge.target === props.node.id && (!edge.targetHandle || edge.targetHandle === 'data'),
@@ -144,6 +199,10 @@ function updateMetadataTemplate(value: string) {
   } catch {
     // Keep the last valid template while the user is editing JSON.
   }
+}
+
+function updateChunking(patch: Partial<DatasetChunkingConfig>) {
+  props.updateNodeData({ chunking: { ...chunking.value, ...patch } })
 }
 
 const DATA_TYPES = [

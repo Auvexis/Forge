@@ -1006,6 +1006,73 @@ describe("retrieval utility node handlers", () => {
     assert.equal(result.items[1].metadata.source.filename, "guide.md");
   });
 
+  it("document loader preserves connected file extractor chunking for markdown uploads", async () => {
+    const registry = createUtilityNodeRegistry();
+    const workflow = workflowFixture();
+    workflow.nodes = {
+      file: {
+        type: "file-dataset",
+        name: "Extract From File",
+        files: [{ filename: "guide.md", content: Buffer.from("abcdefghi").toString("base64"), mimeType: "text/markdown" }],
+        format: "markdown",
+        chunking: {
+          enabled: true,
+          chunkSize: 4,
+          chunkOverlap: 1,
+          contextualOverlapEnabled: false,
+        },
+      },
+      loader: {
+        type: "document-loader",
+        name: "Default Data Loader",
+        dataType: "file",
+        dataMode: "all",
+        includeSourceMetadata: true,
+        includeRootFieldsAsContext: false,
+        metadataTemplate: {},
+        chunking: {
+          enabled: false,
+          chunkSize: 1000,
+          chunkOverlap: 0,
+          contextualOverlapEnabled: false,
+        },
+      },
+    };
+    workflow.edges = [{ id: "file-loader", source: "file", target: "loader", targetHandle: "data" }];
+    const extracted = {
+      sourceType: "file",
+      items: [],
+      count: 0,
+      files: [{
+        id: "file:0",
+        format: "markdown",
+        source: { filename: "guide.md", mimeType: "text/markdown" },
+        data: "abcdefghi",
+        rawText: "abcdefghi",
+      }],
+    };
+
+    const result = await registry.get("document-loader").execute({
+      nodeId: "loader",
+      executionId: "exec-1",
+      workflow,
+      edges: workflow.edges,
+      context: { trigger: {}, steps: {}, variables: {} },
+      services: {
+        resolveConfigDependencies: async () => ({
+          getOne: () => ({ nodeId: "file", load: async () => extracted }),
+          getOptional: () => undefined,
+          getMany: () => [],
+        }),
+      } as any,
+      node: workflow.nodes.loader,
+    });
+
+    assert.deepEqual(result.items.map((item: any) => item.text), ["abcd", "defg", "ghi"]);
+    assert.deepEqual(result.items.map((item: any) => item.id), ["loader:0:0", "loader:0:1", "loader:0:2"]);
+    assert.deepEqual(result.items[1].metadata.chunk, { index: 1, start: 3, end: 7 });
+  });
+
   it("vector store indexes connected dataset documents with connected embedding config", async () => {
     const calls: Array<{ pluginId: string; methodId: string; params: Record<string, any> }> = [];
     const workflow = workflowFixture();

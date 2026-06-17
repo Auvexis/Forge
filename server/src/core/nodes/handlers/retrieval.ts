@@ -1,5 +1,6 @@
 import type {
   DatabaseDatasetNode,
+  DatasetChunkingConfig,
   DatasetOutput,
   DocumentLoaderNode,
   EmbeddingsNode,
@@ -402,7 +403,7 @@ export const databaseDatasetNodeHandler = createNodeHandler<DatabaseDatasetNode>
 });
 
 export const documentLoaderNodeHandler = createNodeHandler<DocumentLoaderNode>("document-loader", async (input) => {
-  const { node, nodeId, context, services } = input;
+  const { node, nodeId, context, services, workflow, edges } = input;
   const dependencies = services.resolveConfigDependencies
     ? await services.resolveConfigDependencies(nodeId)
     : await new ConfigDependencyResolver(createCoreCapabilityAdapterRegistry()).resolveForNode(input, nodeId);
@@ -412,7 +413,7 @@ export const documentLoaderNodeHandler = createNodeHandler<DocumentLoaderNode>("
   const documents = files.length > 0
     ? files.flatMap((file) => loadExtractedFileDocuments(file, node, nodeId))
     : loadDatasetItemDocuments(sourceOutput, node, nodeId);
-  const items = applyDocumentChunking(documents, node);
+  const items = applyDocumentChunking(documents, resolveDocumentLoaderChunking(node, workflow, edges, dataSource.nodeId, nodeId));
 
   return {
     items,
@@ -560,9 +561,25 @@ function metadataTemplate(
 
 function applyDocumentChunking(
   items: DatasetOutput["items"],
-  node: DocumentLoaderNode,
+  node: Pick<DocumentLoaderNode, "chunking">,
 ): DatasetOutput["items"] {
   return applyDatasetChunking(items, node);
+}
+
+function resolveDocumentLoaderChunking(
+  node: DocumentLoaderNode,
+  workflow: { nodes: Record<string, any> },
+  edges: Array<{ source: string; target: string; targetHandle?: string }>,
+  dataSourceNodeId: string | undefined,
+  nodeId: string,
+): Pick<DocumentLoaderNode, "chunking"> {
+  if (node.chunking?.enabled) return node;
+  const sourceNodeId = dataSourceNodeId ?? edges.find((edge) =>
+    edge.target === nodeId && (!edge.targetHandle || edge.targetHandle === "data")
+  )?.source;
+  const sourceNode = sourceNodeId ? workflow.nodes[sourceNodeId] : undefined;
+  const sourceChunking = sourceNode?.type === "file-dataset" ? sourceNode.chunking as DatasetChunkingConfig | undefined : undefined;
+  return sourceChunking?.enabled ? { chunking: sourceChunking } : node;
 }
 
 function applyDatasetChunking(
