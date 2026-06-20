@@ -8,16 +8,16 @@
 - [x] Criar testes do snap-to-grid
 - [x] Criar testes do bypass de snap com Ctrl
 - [x] Criar testes do bypass de snap com Shift
-- [ ] Criar testes de intersecao da marquee selection
-- [ ] Criar testes dos ticks das rulers
-- [ ] Criar componente `BaseCanvas.vue`
-- [ ] Renderizar itens via slot sem importar componentes de feature
-- [ ] Aplicar posicionamento DOM por coordenadas do mundo
-- [ ] Emitir `update:viewport`
-- [ ] Emitir `update:selection`
-- [ ] Emitir `items-move`
-- [ ] Emitir `canvas-click`
-- [ ] Emitir `item-click`
+- [x] Criar testes de intersecao da marquee selection
+- [x] Criar testes dos ticks das rulers
+- [x] Criar componente `BaseCanvas.vue`
+- [x] Renderizar itens via slot sem importar componentes de feature
+- [x] Aplicar posicionamento DOM por coordenadas do mundo
+- [x] Emitir `update:viewport`
+- [x] Emitir `update:selection`
+- [x] Emitir `items-move`
+- [x] Emitir `canvas-click`
+- [x] Emitir `item-click`
 - [ ] Implementar pan com `Space + M1`
 - [ ] Implementar pan com botao do meio do mouse
 - [ ] Garantir que `M1` sem Space nao move a camera
