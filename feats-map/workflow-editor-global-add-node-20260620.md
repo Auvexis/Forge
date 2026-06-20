@@ -5,3 +5,9 @@
 - [x] Adicionar node no centro da câmera ao clicar
 - [x] Adicionar node na coordenada do drop no canvas
 - [x] Validar testes e build
+- [x] Mostrar plugins utility na seção Utilities
+- [x] Adicionar ícones nas seções Utilities e Integrations
+- [x] Indicar plugins com múltiplos métodos
+- [x] Abrir métodos em view com voltar e busca
+- [x] Animar expandir/colapsar seções
+- [x] Validar melhorias e commitar

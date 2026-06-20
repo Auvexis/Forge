@@ -272,12 +272,38 @@ test('global add node panel exposes only Utilities and Integrations sections', (
   assert.match(panel, /global-add-node-panel/)
   assert.match(panel, /Utilities/)
   assert.match(panel, /Integrations/)
+  assert.match(panel, /name="wrench"/)
+  assert.match(panel, /name="puzzle"/)
   assert.doesNotMatch(panel, />Actions</)
   assert.doesNotMatch(panel, />Storage</)
   assert.match(panel, /draggable="true"/)
   assert.match(panel, /@dragstart="handleDragStart/)
   assert.match(panel, /onAddLogicNodeAtCenter/)
   assert.match(panel, /onAddPluginNodeAtCenter/)
+})
+
+test('global add node panel groups utility plugins and opens multi-method plugins in a method view', () => {
+  const panel = read('src/features/workflow-editor/components/settings/GlobalAddNodePanel.vue')
+
+  assert.match(panel, /plugin\.manifest\.metadata\.utility === true/)
+  assert.match(panel, /utilityPluginItems/)
+  assert.match(panel, /integrationItems/)
+  assert.match(panel, /pluginActionItems\(plugin\)\.length > 1/)
+  assert.match(panel, /global-add-node-panel__method-count/)
+  assert.match(panel, /selectedPlugin/)
+  assert.match(panel, /methodSearch/)
+  assert.match(panel, /BaseButton/)
+  assert.match(panel, /closePluginMethodView/)
+  assert.match(panel, /filteredSelectedPluginActions/)
+  assert.doesNotMatch(panel, /expandedPluginId/)
+})
+
+test('global add node panel animates section expand and collapse', () => {
+  const panel = read('src/features/workflow-editor/components/settings/GlobalAddNodePanel.vue')
+
+  assert.match(panel, /<Transition name="global-add-node-section">/)
+  assert.match(panel, /\.global-add-node-section-enter-active/)
+  assert.match(panel, /\.global-add-node-section-leave-active/)
 })
 
 test('workflow canvas exposes center and drop coordinate add node actions', () => {

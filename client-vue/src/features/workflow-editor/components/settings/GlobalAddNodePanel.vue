@@ -1,121 +1,195 @@
 <template>
   <div class="global-add-node-panel">
-    <div class="global-add-node-panel__toolbar">
-      <BaseInput
-        ref="searchInput"
-        v-model="search"
-        icon-left="search"
-        placeholder="Search nodes..."
-      />
-    </div>
+    <Transition name="global-add-node-view" mode="out-in">
+      <div
+        v-if="selectedPlugin"
+        :key="selectedPlugin.id"
+        class="global-add-node-panel__method-view"
+      >
+        <header class="global-add-node-panel__method-header">
+          <BaseButton
+            icon-left="chevron-left"
+            variant="ghost"
+            size="icon"
+            @click="closePluginMethodView"
+          />
+          <BaseInput
+            ref="methodSearchInput"
+            v-model="methodSearch"
+            icon-left="search"
+            :placeholder="`Search ${selectedPlugin.manifest.metadata.name}...`"
+          />
+        </header>
 
-    <div v-if="isLoading" class="global-add-node-panel__loading">
-      <LucideIcon name="loader-2" :size="18" class="global-add-node-panel__spinner" />
-      <span>Loading nodes...</span>
-    </div>
+        <div class="global-add-node-panel__method-title">
+          <span class="global-add-node-panel__icon">
+            <LucideIcon :name="pluginIcon(selectedPlugin)" :size="15" />
+          </span>
+          <span>{{ selectedPlugin.manifest.metadata.name }}</span>
+        </div>
 
-    <div v-else class="global-add-node-panel__sections">
-      <section class="global-add-node-panel__section">
-        <button
-          class="global-add-node-panel__section-header"
-          type="button"
-          @click="utilitiesOpen = !utilitiesOpen"
-        >
-          <span>Utilities</span>
-          <LucideIcon :name="utilitiesOpen ? 'chevron-up' : 'chevron-down'" :size="14" />
-        </button>
-        <div v-if="utilitiesOpen" class="global-add-node-panel__grid">
+        <div class="global-add-node-panel__method-list">
           <button
-            v-for="item in utilityItems"
-            :key="item.id"
-            class="global-add-node-panel__item"
+            v-for="action in filteredSelectedPluginActions"
+            :key="action.id"
+            class="global-add-node-panel__method-item"
             type="button"
             draggable="true"
-            @click="props.onAddLogicNodeAtCenter?.(item.nodeType, item.defaults)"
+            @click="props.onAddPluginNodeAtCenter?.(selectedPlugin.id, action.methodKey, action.label)"
             @dragstart="handleDragStart($event, {
-              kind: 'logic',
-              nodeType: item.nodeType,
-              defaults: item.defaults,
+              kind: 'plugin',
+              pluginId: selectedPlugin.id,
+              action: action.methodKey,
+              actionName: action.label,
             })"
           >
-            <span
-              class="global-add-node-panel__icon"
-              :style="item.style ? {
-                '--node-icon-bg': item.style.bgColor,
-                '--node-icon-border': item.style.borderColor,
-                '--node-icon-color': item.style.iconColor,
-              } : undefined"
-            >
-              <LucideIcon :name="item.icon" :size="15" />
-            </span>
-            <span>{{ item.label }}</span>
+            <span>{{ action.label }}</span>
+            <small>{{ action.description }}</small>
           </button>
-          <div v-if="utilityItems.length === 0" class="global-add-node-panel__empty">
-            No utilities found.
+          <div v-if="filteredSelectedPluginActions.length === 0" class="global-add-node-panel__empty">
+            No methods found.
           </div>
         </div>
-      </section>
+      </div>
 
-      <section class="global-add-node-panel__section">
-        <button
-          class="global-add-node-panel__section-header"
-          type="button"
-          @click="integrationsOpen = !integrationsOpen"
-        >
-          <span>Integrations</span>
-          <LucideIcon :name="integrationsOpen ? 'chevron-up' : 'chevron-down'" :size="14" />
-        </button>
-        <div v-if="integrationsOpen" class="global-add-node-panel__grid">
-          <template v-for="plugin in integrationItems" :key="plugin.id">
-            <button
-              class="global-add-node-panel__item"
-              type="button"
-              :draggable="pluginActionItems(plugin).length === 1"
-              @click="selectPlugin(plugin)"
-              @dragstart="handlePluginDragStart($event, plugin)"
-            >
-              <span class="global-add-node-panel__icon">
-                <LucideIcon :name="pluginIcon(plugin)" :size="15" />
-              </span>
-              <span>{{ plugin.manifest.metadata.name }}</span>
-            </button>
-            <div
-              v-if="expandedPluginId === plugin.id && pluginActionItems(plugin).length > 1"
-              class="global-add-node-panel__actions"
-            >
-              <button
-                v-for="action in pluginActionItems(plugin)"
-                :key="action.id"
-                class="global-add-node-panel__action"
-                type="button"
-                draggable="true"
-                @click="props.onAddPluginNodeAtCenter?.(plugin.id, action.methodKey, action.label)"
-                @dragstart="handleDragStart($event, {
-                  kind: 'plugin',
-                  pluginId: plugin.id,
-                  action: action.methodKey,
-                  actionName: action.label,
-                })"
-              >
-                {{ action.label }}
-              </button>
-            </div>
-          </template>
-          <div v-if="integrationItems.length === 0" class="global-add-node-panel__empty">
-            No integrations found.
-          </div>
+      <div v-else key="sections" class="global-add-node-panel__browse-view">
+        <div class="global-add-node-panel__toolbar">
+          <BaseInput
+            ref="searchInput"
+            v-model="search"
+            icon-left="search"
+            placeholder="Search nodes..."
+          />
         </div>
-      </section>
-    </div>
+
+        <div v-if="isLoading" class="global-add-node-panel__loading">
+          <LucideIcon name="loader-2" :size="18" class="global-add-node-panel__spinner" />
+          <span>Loading nodes...</span>
+        </div>
+
+        <div v-else class="global-add-node-panel__sections">
+          <section class="global-add-node-panel__section">
+            <button
+              class="global-add-node-panel__section-header"
+              type="button"
+              @click="utilitiesOpen = !utilitiesOpen"
+            >
+              <span class="global-add-node-panel__section-label">
+                <LucideIcon name="wrench" :size="15" />
+                <span>Utilities</span>
+              </span>
+              <LucideIcon :name="utilitiesOpen ? 'chevron-up' : 'chevron-down'" :size="14" />
+            </button>
+            <Transition name="global-add-node-section">
+              <div v-if="utilitiesOpen" class="global-add-node-panel__grid">
+                <button
+                  v-for="item in utilityItems"
+                  :key="item.id"
+                  class="global-add-node-panel__item"
+                  type="button"
+                  draggable="true"
+                  @click="props.onAddLogicNodeAtCenter?.(item.nodeType, item.defaults)"
+                  @dragstart="handleDragStart($event, {
+                    kind: 'logic',
+                    nodeType: item.nodeType,
+                    defaults: item.defaults,
+                  })"
+                >
+                  <span
+                    class="global-add-node-panel__icon"
+                    :style="item.style ? {
+                      '--node-icon-bg': item.style.bgColor,
+                      '--node-icon-border': item.style.borderColor,
+                      '--node-icon-color': item.style.iconColor,
+                    } : undefined"
+                  >
+                    <LucideIcon :name="item.icon" :size="15" />
+                  </span>
+                  <span>{{ item.label }}</span>
+                </button>
+                <button
+                  v-for="plugin in utilityPluginItems"
+                  :key="plugin.id"
+                  class="global-add-node-panel__item"
+                  type="button"
+                  :draggable="pluginActionItems(plugin).length === 1"
+                  @click="selectPlugin(plugin)"
+                  @dragstart="handlePluginDragStart($event, plugin)"
+                >
+                  <span class="global-add-node-panel__icon">
+                    <LucideIcon :name="pluginIcon(plugin)" :size="15" />
+                  </span>
+                  <span>{{ plugin.manifest.metadata.name }}</span>
+                  <span
+                    v-if="pluginActionItems(plugin).length > 1"
+                    class="global-add-node-panel__method-count"
+                  >
+                    {{ pluginActionItems(plugin).length }}
+                  </span>
+                </button>
+                <div
+                  v-if="utilityItems.length === 0 && utilityPluginItems.length === 0"
+                  class="global-add-node-panel__empty"
+                >
+                  No utilities found.
+                </div>
+              </div>
+            </Transition>
+          </section>
+
+          <section class="global-add-node-panel__section">
+            <button
+              class="global-add-node-panel__section-header"
+              type="button"
+              @click="integrationsOpen = !integrationsOpen"
+            >
+              <span class="global-add-node-panel__section-label">
+                <LucideIcon name="puzzle" :size="15" />
+                <span>Integrations</span>
+              </span>
+              <LucideIcon :name="integrationsOpen ? 'chevron-up' : 'chevron-down'" :size="14" />
+            </button>
+            <Transition name="global-add-node-section">
+              <div v-if="integrationsOpen" class="global-add-node-panel__grid">
+                <button
+                  v-for="plugin in integrationItems"
+                  :key="plugin.id"
+                  class="global-add-node-panel__item"
+                  type="button"
+                  :draggable="pluginActionItems(plugin).length === 1"
+                  @click="selectPlugin(plugin)"
+                  @dragstart="handlePluginDragStart($event, plugin)"
+                >
+                  <span class="global-add-node-panel__icon">
+                    <LucideIcon :name="pluginIcon(plugin)" :size="15" />
+                  </span>
+                  <span>{{ plugin.manifest.metadata.name }}</span>
+                  <span
+                    v-if="pluginActionItems(plugin).length > 1"
+                    class="global-add-node-panel__method-count"
+                  >
+                    {{ pluginActionItems(plugin).length }}
+                  </span>
+                </button>
+                <div v-if="integrationItems.length === 0" class="global-add-node-panel__empty">
+                  No integrations found.
+                </div>
+              </div>
+            </Transition>
+          </section>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowNodesApi } from '@/core/api/workflowNodes.api'
 import type { PluginSummary } from '@/core/types/plugin.types'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { useApi } from '@/shared/composables/useApi'
 import { useTheme } from '@/shared/composables/useTheme'
@@ -149,10 +223,12 @@ const props = defineProps<{
 }>()
 
 const search = ref('')
+const methodSearch = ref('')
 const searchInput = ref<InstanceType<typeof BaseInput>>()
+const methodSearchInput = ref<InstanceType<typeof BaseInput>>()
 const utilitiesOpen = ref(true)
 const integrationsOpen = ref(true)
-const expandedPluginId = ref<string | null>(null)
+const selectedPlugin = ref<PluginSummary | null>(null)
 const { isDark } = useTheme()
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
 const {
@@ -173,9 +249,16 @@ onMounted(() => {
 
 const isLoading = computed(() => pluginsLoading.value || workflowNodeCatalogLoading.value)
 const normalizedSearch = computed(() => search.value.trim().toLowerCase())
+const normalizedMethodSearch = computed(() => methodSearch.value.trim().toLowerCase())
 
 const matchesSearch = (...values: Array<string | undefined>) => {
   const query = normalizedSearch.value
+  if (!query) return true
+  return values.some((value) => value?.toLowerCase().includes(query))
+}
+
+const matchesMethodSearch = (...values: Array<string | undefined>) => {
+  const query = normalizedMethodSearch.value
   if (!query) return true
   return values.some((value) => value?.toLowerCase().includes(query))
 }
@@ -185,9 +268,19 @@ const utilityItems = computed<AddNodePickerPreset[]>(() =>
     .filter((item) => matchesSearch(item.label, item.description)),
 )
 
+const pluginItems = computed(() => (plugins.value ?? []).filter((plugin) => !isVectorStoreProvider(plugin)))
+
+const utilityPluginItems = computed(() =>
+  pluginItems.value
+    .filter((plugin) => plugin.manifest.metadata.utility === true)
+    .filter((plugin) =>
+      matchesSearch(plugin.manifest.metadata.name, plugin.manifest.metadata.description),
+    ),
+)
+
 const integrationItems = computed(() =>
-  (plugins.value ?? [])
-    .filter((plugin) => !isVectorStoreProvider(plugin))
+  pluginItems.value
+    .filter((plugin) => plugin.manifest.metadata.utility !== true)
     .filter((plugin) =>
       matchesSearch(plugin.manifest.metadata.name, plugin.manifest.metadata.description),
     ),
@@ -197,6 +290,13 @@ const pluginIcon = (plugin: PluginSummary) =>
   resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
 
 const pluginActionItems = (plugin: PluginSummary) => buildPickerActionItems({ plugin, search: '' })
+
+const filteredSelectedPluginActions = computed(() => {
+  if (!selectedPlugin.value) return []
+  return pluginActionItems(selectedPlugin.value).filter((action) =>
+    matchesMethodSearch(action.label, action.description, action.methodKey),
+  )
+})
 
 const handleDragStart = (event: DragEvent, payload: GlobalAddNodeDragPayload) => {
   event.dataTransfer?.setData('application/x-sailor-add-node', JSON.stringify(payload))
@@ -223,13 +323,20 @@ const selectPlugin = (plugin: PluginSummary) => {
   if (actions.length === 1) {
     const action = actions[0]
     if (action) {
-      expandedPluginId.value = null
       props.onAddPluginNodeAtCenter?.(plugin.id, action.methodKey, action.label)
     }
     return
   }
 
-  expandedPluginId.value = expandedPluginId.value === plugin.id ? null : plugin.id
+  selectedPlugin.value = plugin
+  methodSearch.value = ''
+  void nextTick(() => methodSearchInput.value?.focus())
+}
+
+const closePluginMethodView = () => {
+  selectedPlugin.value = null
+  methodSearch.value = ''
+  void nextTick(() => searchInput.value?.focus())
 }
 </script>
 
@@ -243,10 +350,39 @@ const selectPlugin = (plugin: PluginSummary) => {
   color: var(--sailor-text-primary);
 }
 
-.global-add-node-panel__toolbar {
+.global-add-node-panel__browse-view,
+.global-add-node-panel__method-view {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.global-add-node-panel__toolbar,
+.global-add-node-panel__method-header {
   flex: 0 0 auto;
   padding: var(--sailor-space-3);
   border-bottom: 1px solid var(--sailor-border);
+}
+
+.global-add-node-panel__method-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+}
+
+.global-add-node-panel__method-header :deep(.base-input-wrapper) {
+  flex: 1;
+}
+
+.global-add-node-panel__method-title {
+  display: flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-3);
+  border-bottom: 1px solid var(--sailor-border);
+  font-size: var(--sailor-text-sm);
+  font-weight: 700;
 }
 
 .global-add-node-panel__loading,
@@ -264,7 +400,8 @@ const selectPlugin = (plugin: PluginSummary) => {
   animation: global-add-node-spin 1s linear infinite;
 }
 
-.global-add-node-panel__sections {
+.global-add-node-panel__sections,
+.global-add-node-panel__method-list {
   min-height: 0;
   overflow-y: auto;
   padding: var(--sailor-space-2) var(--sailor-space-3) var(--sailor-space-4);
@@ -289,15 +426,23 @@ const selectPlugin = (plugin: PluginSummary) => {
   cursor: pointer;
 }
 
+.global-add-node-panel__section-label {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--sailor-space-2);
+}
+
 .global-add-node-panel__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--sailor-space-2);
+  overflow: hidden;
   padding-bottom: var(--sailor-space-3);
 }
 
 .global-add-node-panel__item,
-.global-add-node-panel__action {
+.global-add-node-panel__method-item {
   display: flex;
   min-width: 0;
   align-items: center;
@@ -318,7 +463,7 @@ const selectPlugin = (plugin: PluginSummary) => {
 }
 
 .global-add-node-panel__item:hover,
-.global-add-node-panel__action:hover {
+.global-add-node-panel__method-item:hover {
   background: var(--sailor-button-ghost-hover);
 }
 
@@ -335,25 +480,82 @@ const selectPlugin = (plugin: PluginSummary) => {
   color: var(--node-icon-color, var(--sailor-text-muted));
 }
 
-.global-add-node-panel__item span:last-child,
-.global-add-node-panel__action {
+.global-add-node-panel__item > span:nth-child(2) {
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.global-add-node-panel__actions {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: var(--sailor-space-1);
-  padding: 0 0 var(--sailor-space-2) 36px;
+.global-add-node-panel__method-count {
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+  font-weight: 700;
 }
 
-.global-add-node-panel__action {
-  min-height: 30px;
-  padding: 0 var(--sailor-space-2);
-  color: var(--sailor-text-secondary);
+.global-add-node-panel__method-list {
+  display: grid;
+  align-content: start;
+  gap: var(--sailor-space-2);
+}
+
+.global-add-node-panel__method-item {
+  display: flex;
+  min-height: 54px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--sailor-space-2);
+}
+
+.global-add-node-panel__method-item span,
+.global-add-node-panel__method-item small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.global-add-node-panel__method-item small {
+  color: var(--sailor-text-muted);
   font-size: var(--sailor-text-xs);
+}
+
+.global-add-node-section-enter-active,
+.global-add-node-section-leave-active,
+.global-add-node-view-enter-active,
+.global-add-node-view-leave-active {
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    max-height 0.2s ease;
+}
+
+.global-add-node-section-enter-active,
+.global-add-node-section-leave-active {
+  max-height: 520px;
+}
+
+.global-add-node-section-enter-from,
+.global-add-node-section-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.global-add-node-view-enter-from,
+.global-add-node-view-leave-to {
+  opacity: 0;
+  transform: translateX(10px);
 }
 
 @keyframes global-add-node-spin {
