@@ -81,6 +81,16 @@ test('canvas refreshes handle measurements after Vue Flow initializes every node
   assert.match(canvas, /updateNodeInternals\(\)/)
 })
 
+test('canvas refreshes newly auto-connected nodes after they render', () => {
+  const canvas = read('SailorWorkflowCanvas.vue')
+
+  assert.match(canvas, /async function refreshAutoConnectedNodeInternals/)
+  assert.match(canvas, /await nextTick\(\)[\s\S]*updateNodeInternals\(/)
+  assert.match(canvas, /connectedNodeId \? \[nodeId, connectedNodeId\] : \[nodeId\]/)
+  assert.match(canvas, /autoConnectToSource\([\s\S]*refreshAutoConnectedNodeInternals\(id,/)
+  assert.match(canvas, /autoConnectToTarget\([\s\S]*refreshAutoConnectedNodeInternals\(id,/)
+})
+
 test('BaseNode refreshes only later changes to its handle geometry', () => {
   const source = read('BaseNode.vue')
 

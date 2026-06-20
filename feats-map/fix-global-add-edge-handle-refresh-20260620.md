@@ -1,0 +1,4 @@
+- [x] Reproduce global add auto-connect handle refresh gap
+- [x] Cover auto-connected node handle refresh contract
+- [x] Refresh node internals after automatic connections
+- [x] Verify workflow editor contracts

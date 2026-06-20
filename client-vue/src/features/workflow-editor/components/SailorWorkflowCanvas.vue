@@ -719,6 +719,13 @@ function alignNodeCenters(sourceId: string, targetId: string) {
   checkAndAlign()
 }
 
+async function refreshAutoConnectedNodeInternals(nodeId: string, connectedNodeId?: string | null) {
+  await nextTick()
+  vueFlowStore.value?.updateNodeInternals(
+    connectedNodeId ? [nodeId, connectedNodeId] : [nodeId],
+  )
+}
+
 function autoConnectToSource(sourceId: string, targetId: string, sourceHandle?: string | null) {
   if (!workflowStore.activeWorkflow) return
 
@@ -1110,9 +1117,11 @@ const addLogicNode = (
   } else if (backupTargetId) {
     autoConnectToTarget(id, backupTargetId, backupTargetHandle)
     alignNodeCenters(id, backupTargetId)
+    void refreshAutoConnectedNodeInternals(id, backupTargetId)
   } else if (backupSourceId && type !== 'trigger') {
     autoConnectToSource(backupSourceId, id, backupSourceHandle)
     alignNodeCenters(backupSourceId, id)
+    void refreshAutoConnectedNodeInternals(id, backupSourceId)
   }
 
   // Insert-between: splice new node into an existing edge
@@ -1172,9 +1181,11 @@ const addPluginNode = (
   if (backupTargetId) {
     autoConnectToTarget(id, backupTargetId, backupTargetHandle)
     alignNodeCenters(id, backupTargetId)
+    void refreshAutoConnectedNodeInternals(id, backupTargetId)
   } else if (backupSourceId) {
     autoConnectToSource(backupSourceId, id, backupSourceHandle)
     alignNodeCenters(backupSourceId, id)
+    void refreshAutoConnectedNodeInternals(id, backupSourceId)
   }
 
   // Insert-between: splice new node into an existing edge
