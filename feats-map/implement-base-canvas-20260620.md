@@ -38,16 +38,16 @@
 - [x] Renderizar ruler esquerda
 - [x] Sincronizar rulers com pan e zoom
 - [x] Garantir que rulers nao alteram items
-- [ ] Implementar evento generico de context menu
-- [ ] Diferenciar context menu no canvas vazio
-- [ ] Diferenciar context menu em item
-- [ ] Garantir que o BaseCanvas nao renderiza menu visual
-- [ ] Exportar API publica de `shared/base-canvas`
-- [ ] Criar testes de contrato do `BaseCanvas`
-- [ ] Testar que item generico nao exige tipo de feature
-- [ ] Testar drag emitindo `items-move`
-- [ ] Testar marquee emitindo selecao
-- [ ] Testar pan com Space sem iniciar marquee
+- [x] Implementar evento generico de context menu
+- [x] Diferenciar context menu no canvas vazio
+- [x] Diferenciar context menu em item
+- [x] Garantir que o BaseCanvas nao renderiza menu visual
+- [x] Exportar API publica de `shared/base-canvas`
+- [x] Criar testes de contrato do `BaseCanvas`
+- [x] Testar que item generico nao exige tipo de feature
+- [x] Testar drag emitindo `items-move`
+- [x] Testar marquee emitindo selecao
+- [x] Testar pan com Space sem iniciar marquee
 - [ ] Testar pan com botao do meio sem iniciar marquee
 - [ ] Testar context menu em canvas vazio
 - [ ] Testar context menu em item

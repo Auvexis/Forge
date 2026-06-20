@@ -5,6 +5,7 @@
     :style="canvasStyle"
     @pointerdown="startCanvasPointer"
     @click.self="handleCanvasClick"
+    @contextmenu="handleCanvasContextMenu"
   >
     <BaseCanvasRulers
       v-if="rulers"
@@ -21,6 +22,7 @@
         :style="itemStyle(item)"
         @click.stop="handleItemClick(item.id)"
         @pointerdown.stop="startItemDrag($event, item)"
+        @contextmenu.stop="handleItemContextMenu($event, item.id)"
       >
         <slot name="item" :item="item" :selected="selection.includes(item.id)" />
       </div>
@@ -37,6 +39,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type {
   BaseCanvasItem,
+  BaseCanvasContextMenuEvent,
   BaseCanvasItemsMoveEvent,
   BaseCanvasMarqueeBorderStyle,
   BaseCanvasPatternStyle,
@@ -47,6 +50,7 @@ import type {
 import BaseCanvasRulers from './BaseCanvasRulers.vue'
 import { itemToRect, rectFromPoints, rectsIntersect } from './geometry.ts'
 import { snapDeltaToGrid, shouldBypassSnap } from './snap.ts'
+import { screenToWorld } from './coordinates.ts'
 
 const props = withDefaults(defineProps<{
   items: BaseCanvasItem[]
@@ -62,6 +66,7 @@ const props = withDefaults(defineProps<{
   patternColor?: string
   patternStyle?: BaseCanvasPatternStyle
   rulers?: boolean
+  contextMenu?: boolean
 }>(), {
   snapToGrid: true,
   gridSize: 16,
@@ -73,6 +78,7 @@ const props = withDefaults(defineProps<{
   patternColor: 'rgba(255, 255, 255, 0.08)',
   patternStyle: 'dot',
   rulers: false,
+  contextMenu: true,
 })
 
 const emit = defineEmits<{
@@ -81,6 +87,7 @@ const emit = defineEmits<{
   'items-move': [event: BaseCanvasItemsMoveEvent]
   'canvas-click': [event: MouseEvent]
   'item-click': [itemId: string]
+  'context-menu': [event: BaseCanvasContextMenuEvent]
 }>()
 
 const activeDrag = ref<{
@@ -170,6 +177,28 @@ function handleCanvasClick(event: MouseEvent) {
 function handleItemClick(itemId: string) {
   emit('update:selection', [itemId])
   emit('item-click', itemId)
+}
+
+function handleCanvasContextMenu(event: MouseEvent) {
+  if (!props.contextMenu) return
+  event.preventDefault()
+  emit('context-menu', {
+    screen: { x: event.clientX, y: event.clientY },
+    world: screenToWorld({ x: event.clientX, y: event.clientY }, props.viewport),
+    target: { type: 'canvas' },
+    selection: props.selection,
+  })
+}
+
+function handleItemContextMenu(event: MouseEvent, itemId: string) {
+  if (!props.contextMenu) return
+  event.preventDefault()
+  emit('context-menu', {
+    screen: { x: event.clientX, y: event.clientY },
+    world: screenToWorld({ x: event.clientX, y: event.clientY }, props.viewport),
+    target: { type: 'item', itemId },
+    selection: props.selection,
+  })
 }
 
 function startCanvasPointer(event: PointerEvent) {

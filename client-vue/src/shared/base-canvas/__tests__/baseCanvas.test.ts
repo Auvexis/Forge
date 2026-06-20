@@ -112,6 +112,29 @@ describe('BaseCanvas component contract', () => {
     assert.match(ruler, /getRulerTicks/)
     assert.doesNotMatch(ruler, /items/)
   })
+
+  it('emits generic context menu events without rendering menu UI', () => {
+    const source = readBaseCanvas()
+
+    assert.match(source, /contextMenu\?: boolean/)
+    assert.match(source, /BaseCanvasContextMenuEvent/)
+    assert.match(source, /'context-menu': \[event: BaseCanvasContextMenuEvent\]/)
+    assert.match(source, /@contextmenu="handleCanvasContextMenu"/)
+    assert.match(source, /@contextmenu\.stop="handleItemContextMenu\(\$event, item\.id\)"/)
+    assert.match(source, /target: \{ type: 'canvas' \}/)
+    assert.match(source, /target: \{ type: 'item', itemId \}/)
+    assert.match(source, /screenToWorld/)
+    assert.doesNotMatch(source, /<ContextMenu|ContextMenuPanel|ContextMenuItem/)
+    assert.doesNotMatch(source, /menu item/i)
+  })
+
+  it('exposes a public Vue component entry without importing Vue SFCs from helper tests', () => {
+    const componentEntry = readBaseCanvasComponentEntry()
+    const helperEntry = readBaseCanvasHelperEntry()
+
+    assert.match(componentEntry, /export \{ default as BaseCanvas \} from '\.\/BaseCanvas\.vue'/)
+    assert.doesNotMatch(helperEntry, /BaseCanvas\.vue/)
+  })
 })
 
 function readBaseCanvas() {
@@ -120,4 +143,12 @@ function readBaseCanvas() {
 
 function readBaseCanvasRulers() {
   return readFileSync(fileURLToPath(new URL('../BaseCanvasRulers.vue', import.meta.url)), 'utf8')
+}
+
+function readBaseCanvasComponentEntry() {
+  return readFileSync(fileURLToPath(new URL('../components.ts', import.meta.url)), 'utf8')
+}
+
+function readBaseCanvasHelperEntry() {
+  return readFileSync(fileURLToPath(new URL('../index.ts', import.meta.url)), 'utf8')
 }
