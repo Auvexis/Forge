@@ -402,6 +402,7 @@ const onQuickAdd = (event: MouseEvent) => {
 .sailor-base-node__handlers.is-position-bottom {
   left: 0;
   width: 100%;
+  height: 0;
   grid-template-columns: repeat(var(--handler-count), minmax(0, 1fr));
 }
 
@@ -416,6 +417,7 @@ const onQuickAdd = (event: MouseEvent) => {
 .sailor-base-node__handlers.is-position-left,
 .sailor-base-node__handlers.is-position-right {
   top: 0;
+  width: 0;
   height: 100%;
   grid-template-rows: repeat(var(--handler-count), minmax(0, 1fr));
 }
@@ -431,7 +433,9 @@ const onQuickAdd = (event: MouseEvent) => {
 .sailor-base-node__handler {
   position: relative;
   display: flex;
-  min-width: 64px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
   flex-direction: column;
   align-items: center;
   color: var(--sailor-text-muted);
@@ -449,10 +453,25 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 .sailor-base-node__handler :deep(.sailor-base-handle) {
-  position: relative !important;
-  inset: auto !important;
-  margin: 0 auto;
+  position: absolute !important;
+  margin: 0;
   pointer-events: all;
+}
+
+.sailor-base-node__handlers.is-position-top .sailor-base-node__handler :deep(.sailor-base-handle),
+.sailor-base-node__handlers.is-position-bottom .sailor-base-node__handler :deep(.sailor-base-handle) {
+  top: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 50% !important;
+}
+
+.sailor-base-node__handlers.is-position-left .sailor-base-node__handler :deep(.sailor-base-handle),
+.sailor-base-node__handlers.is-position-right .sailor-base-node__handler :deep(.sailor-base-handle) {
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 0 !important;
 }
 
 .sailor-base-node__handler :deep(.qab-wrap--down) {
