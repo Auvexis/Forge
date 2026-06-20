@@ -29,3 +29,5 @@
 - [x] Evitar animação dupla no BaseAdvancedNode
 - [x] Mover animação de drop para o node interno
 - [x] Usar movementX/Y para vento do preview
+- [x] Inverter direção do vento
+- [x] Suavizar vento com requestAnimationFrame

@@ -282,13 +282,14 @@ const dragPreviewPoint = ref({ x: 0, y: 0 })
 const dragPreviewVelocity = ref({ x: 0, y: 0 })
 const dragPreviewScale = ref(0.72)
 const dragPreviewBodyOffset = ref({ x: 0, y: 0, rotate: 0 })
+let targetBodyOffset = { x: 0, y: 0, rotate: 0 }
 let lastDragPoint = { x: 0, y: 0, t: 0 }
 let activePointerPayload: GlobalAddNodeDragPayload | null = null
 let activePointerId: number | null = null
 let pointerDragStarted = false
 let pointerStartPoint = { x: 0, y: 0 }
 let suppressClickUntil = 0
-let windResetTimer: number | null = null
+let windAnimationFrame: number | null = null
 const { isDark } = useTheme()
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
 const {
@@ -368,11 +369,50 @@ const startDragPreview = (point: { x: number; y: number }, preview?: DragPreview
   dragPreviewPoint.value = point
   dragPreviewVelocity.value = { x: 0, y: 0 }
   dragPreviewBodyOffset.value = { x: 0, y: 0, rotate: 0 }
+  targetBodyOffset = { x: 0, y: 0, rotate: 0 }
   dragPreviewScale.value = 0.72
   lastDragPoint = { ...point, t: performance.now() }
   requestAnimationFrame(() => {
     dragPreviewScale.value = 1
   })
+  startWindAnimation()
+}
+
+const startWindAnimation = () => {
+  if (windAnimationFrame !== null) return
+  const tick = () => {
+    const current = dragPreviewBodyOffset.value
+    const next = {
+      x: current.x + (targetBodyOffset.x - current.x) * 0.22,
+      y: current.y + (targetBodyOffset.y - current.y) * 0.22,
+      rotate: current.rotate + (targetBodyOffset.rotate - current.rotate) * 0.22,
+    }
+    dragPreviewBodyOffset.value = next
+    targetBodyOffset = {
+      x: targetBodyOffset.x * 0.88,
+      y: targetBodyOffset.y * 0.88,
+      rotate: targetBodyOffset.rotate * 0.88,
+    }
+
+    if (
+      dragPreview.value &&
+      (Math.abs(next.x) > 0.05 ||
+        Math.abs(next.y) > 0.05 ||
+        Math.abs(next.rotate) > 0.05 ||
+        Math.abs(targetBodyOffset.x) > 0.05 ||
+        Math.abs(targetBodyOffset.y) > 0.05 ||
+        Math.abs(targetBodyOffset.rotate) > 0.05)
+    ) {
+      windAnimationFrame = requestAnimationFrame(tick)
+      return
+    }
+
+    dragPreviewBodyOffset.value = { x: 0, y: 0, rotate: 0 }
+    targetBodyOffset = { x: 0, y: 0, rotate: 0 }
+    windAnimationFrame = null
+  }
+
+  windAnimationFrame = requestAnimationFrame(tick)
 }
 
 const moveDragPreview = (
@@ -393,22 +433,18 @@ const moveDragPreview = (
   const forceY = movement.y || dy
   const lateralPull = Math.max(
     -58,
-    Math.min(58, -forceX * 6 - dragPreviewVelocity.value.x * 0.65),
+    Math.min(58, forceX * 6 + dragPreviewVelocity.value.x * 0.65),
   )
-  const verticalLift = -Math.min(
+  const verticalLift = Math.min(
     34,
     Math.abs(forceX) * 2.4 + Math.abs(forceY) * 0.7 + Math.abs(dragPreviewVelocity.value.x) * 0.3,
   )
-  dragPreviewBodyOffset.value = {
+  targetBodyOffset = {
     x: lateralPull,
     y: verticalLift,
-    rotate: Math.max(-24, Math.min(24, lateralPull * 0.42)),
+    rotate: Math.max(-24, Math.min(24, -lateralPull * 0.42)),
   }
-  if (windResetTimer) window.clearTimeout(windResetTimer)
-  windResetTimer = window.setTimeout(() => {
-    dragPreviewBodyOffset.value = { x: 0, y: 0, rotate: 0 }
-    windResetTimer = null
-  }, 90)
+  startWindAnimation()
   lastDragPoint = { ...point, t: now }
 }
 
@@ -428,8 +464,11 @@ const handleDragEnd = () => {
     dragPreview.value = null
     dragPreviewVelocity.value = { x: 0, y: 0 }
     dragPreviewBodyOffset.value = { x: 0, y: 0, rotate: 0 }
-    if (windResetTimer) window.clearTimeout(windResetTimer)
-    windResetTimer = null
+    targetBodyOffset = { x: 0, y: 0, rotate: 0 }
+    if (windAnimationFrame !== null) {
+      cancelAnimationFrame(windAnimationFrame)
+      windAnimationFrame = null
+    }
   }, 120)
 }
 
@@ -821,7 +860,6 @@ const closePluginMethodView = () => {
 }
 
 .global-add-node-drag-preview__body {
-  transition: transform 0.09s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 
