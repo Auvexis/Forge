@@ -1,8 +1,8 @@
-- [ ] Criar `client-vue/src/shared/base-canvas/`
-- [ ] Criar tipos publicos do BaseCanvas
-- [ ] Criar helpers de coordenadas world/screen
-- [ ] Criar helper de snap-to-grid
-- [ ] Criar helper de intersecao para marquee selection
+- [x] Criar `client-vue/src/shared/base-canvas/`
+- [x] Criar tipos publicos do BaseCanvas
+- [x] Criar helpers de coordenadas world/screen
+- [x] Criar helper de snap-to-grid
+- [x] Criar helper de intersecao para marquee selection
 - [ ] Criar helper de ticks para rulers
 - [ ] Criar testes dos helpers de coordenadas
 - [ ] Criar testes do snap-to-grid
