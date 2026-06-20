@@ -25,9 +25,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Developer",
       style: {
         icon: "code-2",
-        iconColor: "#60a5fa",
-        bgColor: "#eff6ff",
-        borderColor: "#93c5fd",
+        iconColor: "var(--sailor-node-codeblock-icon)",
+        bgColor: "var(--sailor-node-codeblock-bg)",
+        borderColor: "var(--sailor-node-codeblock-border)",
       },
     },
     http: {
@@ -37,9 +37,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Developer",
       style: {
         icon: "globe",
-        iconColor: "#8b5cf6",
-        bgColor: "#f5f3ff",
-        borderColor: "#c4b5fd",
+        iconColor: "var(--sailor-node-http-icon)",
+        bgColor: "var(--sailor-node-http-bg)",
+        borderColor: "var(--sailor-node-http-border)",
       },
     },
     if: {
@@ -49,9 +49,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Flow",
       style: {
         icon: "git-branch",
-        iconColor: "#f59e0b",
-        bgColor: "#fffbeb",
-        borderColor: "#fcd34d",
+        iconColor: "var(--sailor-node-if-icon)",
+        bgColor: "var(--sailor-node-if-bg)",
+        borderColor: "var(--sailor-node-if-border)",
       },
     },
     switch: {
@@ -61,9 +61,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Flow",
       style: {
         icon: "git-branch-plus",
-        iconColor: "#ec4899",
-        bgColor: "#fdf2f8",
-        borderColor: "#f9a8d4",
+        iconColor: "var(--sailor-node-switch-icon)",
+        bgColor: "var(--sailor-node-switch-bg)",
+        borderColor: "var(--sailor-node-switch-border)",
       },
     },
     loop: {
@@ -73,9 +73,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Flow",
       style: {
         icon: "repeat",
-        iconColor: "#34d399",
-        bgColor: "#ecfdf5",
-        borderColor: "#6ee7b7",
+        iconColor: "var(--sailor-node-loop-icon)",
+        bgColor: "var(--sailor-node-loop-bg)",
+        borderColor: "var(--sailor-node-loop-border)",
       },
     },
     merge: {
@@ -85,9 +85,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Flow",
       style: {
         icon: "merge",
-        iconColor: "#14b8a6",
-        bgColor: "#f0fdfa",
-        borderColor: "#5eead4",
+        iconColor: "var(--sailor-node-merge-icon)",
+        bgColor: "var(--sailor-node-merge-bg)",
+        borderColor: "var(--sailor-node-merge-border)",
       },
     },
     "split-in-batches": {
@@ -97,9 +97,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Data transformation",
       style: {
         icon: "layers",
-        iconColor: "#38bdf8",
-        bgColor: "#f0f9ff",
-        borderColor: "#7dd3fc",
+        iconColor: "var(--sailor-node-split-icon)",
+        bgColor: "var(--sailor-node-split-bg)",
+        borderColor: "var(--sailor-node-split-border)",
       },
     },
     set: {
@@ -109,9 +109,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Data transformation",
       style: {
         icon: "sliders-horizontal",
-        iconColor: "#a78bfa",
-        bgColor: "#f5f3ff",
-        borderColor: "#c4b5fd",
+        iconColor: "var(--sailor-node-set-icon)",
+        bgColor: "var(--sailor-node-set-bg)",
+        borderColor: "var(--sailor-node-set-border)",
       },
     },
     event: {
@@ -121,9 +121,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Core",
       style: {
         icon: "radio",
-        iconColor: "#f97316",
-        bgColor: "#fff7ed",
-        borderColor: "#fdba74",
+        iconColor: "var(--sailor-node-event-icon)",
+        bgColor: "var(--sailor-node-event-bg)",
+        borderColor: "var(--sailor-node-event-border)",
       },
     },
     "event-listener": {
@@ -133,9 +133,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Flow",
       style: {
         icon: "target",
-        iconColor: "#fb7185",
-        bgColor: "#fff1f2",
-        borderColor: "#fda4af",
+        iconColor: "var(--sailor-node-event-listener-icon)",
+        bgColor: "var(--sailor-node-event-listener-bg)",
+        borderColor: "var(--sailor-node-event-listener-border)",
       },
     },
     subworkflow: {
@@ -145,9 +145,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Flow",
       style: {
         icon: "layers-3",
-        iconColor: "#818cf8",
-        bgColor: "#eef2ff",
-        borderColor: "#a5b4fc",
+        iconColor: "var(--sailor-node-subworkflow-icon)",
+        bgColor: "var(--sailor-node-subworkflow-bg)",
+        borderColor: "var(--sailor-node-subworkflow-border)",
       },
     },
     "respond-webhook": {
@@ -157,9 +157,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Core",
       style: {
         icon: "send",
-        iconColor: "#2dd4bf",
-        bgColor: "#f0fdfa",
-        borderColor: "#5eead4",
+        iconColor: "var(--sailor-node-respond-webhook-icon)",
+        bgColor: "var(--sailor-node-respond-webhook-bg)",
+        borderColor: "var(--sailor-node-respond-webhook-border)",
       },
     },
     "wait-form": {
