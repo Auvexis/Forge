@@ -27,3 +27,5 @@
 - [x] Reforçar animação de vento no preview
 - [x] Adicionar pop-in compartilhado em BaseNode e BaseAdvancedNode
 - [x] Evitar animação dupla no BaseAdvancedNode
+- [x] Mover animação de drop para o node interno
+- [x] Usar movementX/Y para vento do preview

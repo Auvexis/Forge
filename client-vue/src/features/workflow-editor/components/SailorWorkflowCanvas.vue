@@ -1860,9 +1860,14 @@ defineExpose({
   height: 100%;
 }
 
-:deep(.sailor-node-drop-landing) {
-  animation: sailor-node-drop-landing 0.42s cubic-bezier(0.18, 0.9, 0.24, 1.18);
+:deep(.sailor-node-drop-landing .sailor-base-node),
+:deep(.sailor-node-drop-landing .sailor-base-advanced-node) {
+  animation: sailor-node-drop-landing 0.42s cubic-bezier(0.18, 0.9, 0.24, 1.18) both;
   transform-origin: center center;
+}
+
+:deep(.sailor-node-drop-landing .sailor-base-advanced-node .sailor-base-node) {
+  animation: none;
 }
 
 @keyframes sailor-node-drop-landing {

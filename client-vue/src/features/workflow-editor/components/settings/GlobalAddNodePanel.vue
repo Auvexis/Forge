@@ -375,7 +375,10 @@ const startDragPreview = (point: { x: number; y: number }, preview?: DragPreview
   })
 }
 
-const moveDragPreview = (point: { x: number; y: number }) => {
+const moveDragPreview = (
+  point: { x: number; y: number },
+  movement: { x: number; y: number } = { x: 0, y: 0 },
+) => {
   if (!dragPreview.value) return
   const now = performance.now()
   const dt = Math.max(now - lastDragPoint.t, 16)
@@ -386,12 +389,20 @@ const moveDragPreview = (point: { x: number; y: number }) => {
     x: Math.max(-36, Math.min(36, dx * 2.2 + (dx / dt) * 10)),
     y: Math.max(-18, Math.min(18, dy * 1.2 + (dy / dt) * 6)),
   }
-  const lateralPull = Math.max(-38, Math.min(38, -dx * 2.4 - dragPreviewVelocity.value.x * 0.45))
-  const verticalLift = -Math.min(28, Math.abs(dx) * 1.1 + Math.abs(dragPreviewVelocity.value.x) * 0.25)
+  const forceX = movement.x || dx
+  const forceY = movement.y || dy
+  const lateralPull = Math.max(
+    -58,
+    Math.min(58, -forceX * 6 - dragPreviewVelocity.value.x * 0.65),
+  )
+  const verticalLift = -Math.min(
+    34,
+    Math.abs(forceX) * 2.4 + Math.abs(forceY) * 0.7 + Math.abs(dragPreviewVelocity.value.x) * 0.3,
+  )
   dragPreviewBodyOffset.value = {
     x: lateralPull,
     y: verticalLift,
-    rotate: Math.max(-18, Math.min(18, lateralPull * 0.38)),
+    rotate: Math.max(-24, Math.min(24, lateralPull * 0.42)),
   }
   if (windResetTimer) window.clearTimeout(windResetTimer)
   windResetTimer = window.setTimeout(() => {
@@ -481,7 +492,7 @@ const handlePointerDragMove = (event: PointerEvent) => {
     pointerDragStarted = true
     startDragPreview(pointerStartPoint, activePointerPayload.preview)
   }
-  moveDragPreview(point)
+  moveDragPreview(point, { x: event.movementX, y: event.movementY })
 }
 
 const addPayloadAtPoint = (payload: GlobalAddNodeDragPayload, point: { x: number; y: number }) => {
@@ -810,7 +821,7 @@ const closePluginMethodView = () => {
 }
 
 .global-add-node-drag-preview__body {
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.09s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 
