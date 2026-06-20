@@ -99,7 +99,7 @@ import { getNodeDefinition } from '../catalog/nodeDefinitionRegistry'
 
 const props = defineProps<EdgeProps>()
 
-const { removeEdges, getNodes, getSelectedNodes, viewport } = useVueFlow()
+const { removeEdges, getNodes, getSelectedNodes, viewport, screenToFlowCoordinate } = useVueFlow()
 const executionStore = useExecutionStore()
 const workflowStore = useWorkflowStore()
 const isConfigurationEdge = computed(() => {
@@ -132,14 +132,61 @@ function configurationBezierPath(sx: number, sy: number, tx: number, ty: number)
   return [path, (sx + tx) / 2, (sy + ty) / 2]
 }
 
+function escapeSelectorValue(value: string): string {
+  return window.CSS?.escape?.(value) ?? value.replace(/["\\]/g, '\\$&')
+}
+
+function getVisualHandleCenter(
+  nodeId: string,
+  handleId: string | null | undefined,
+  fallback: { x: number; y: number },
+): { x: number; y: number } {
+  if (!handleId) return fallback
+
+  const escapedNodeId = escapeSelectorValue(nodeId)
+  const escapedHandleId = escapeSelectorValue(handleId)
+  const handle = document.querySelector(
+    [
+      `.vue-flow__handle[data-nodeid="${escapedNodeId}"][data-handleid="${escapedHandleId}"]`,
+      `.vue-flow__handle[data-nodeid="${escapedNodeId}"][data-handle-id="${escapedHandleId}"]`,
+      `.vue-flow__handle[data-node-id="${escapedNodeId}"][data-handleid="${escapedHandleId}"]`,
+      `.vue-flow__handle[data-node-id="${escapedNodeId}"][data-handle-id="${escapedHandleId}"]`,
+    ].join(', '),
+  )
+  const visual = handle?.querySelector('.sailor-base-handle__visual') ?? handle
+  const rect = visual?.getBoundingClientRect()
+  if (!rect) return fallback
+
+  return screenToFlowCoordinate({
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
+  })
+}
+
+const sourcePoint = computed(() =>
+  getVisualHandleCenter(
+    props.source,
+    props.sourceHandleId ?? props.data?.sourceHandle ?? 'source',
+    { x: props.sourceX, y: props.sourceY },
+  ),
+)
+
+const targetPoint = computed(() =>
+  getVisualHandleCenter(
+    props.target,
+    props.targetHandleId ?? props.data?.targetHandle ?? 'target',
+    { x: props.targetX, y: props.targetY },
+  ),
+)
+
 const pathData = computed(() => {
   if (isConfigurationEdge.value) {
-    return configurationBezierPath(props.sourceX, props.sourceY, props.targetX, props.targetY)
+    return configurationBezierPath(sourcePoint.value.x, sourcePoint.value.y, targetPoint.value.x, targetPoint.value.y)
   }
 
   const [path, lx, ly] = routedBezierPath(
-    props.sourceX, props.sourceY,
-    props.targetX, props.targetY,
+    sourcePoint.value.x, sourcePoint.value.y,
+    targetPoint.value.x, targetPoint.value.y,
     props.sourcePosition,
     props.targetPosition,
     getNodes.value,

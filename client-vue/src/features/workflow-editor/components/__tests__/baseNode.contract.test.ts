@@ -65,12 +65,24 @@ test('configured handles anchor their measured center on each node border', () =
   assert.match(source, /\.is-position-right \.sailor-base-node__handler :deep\(\.sailor-base-handle\)/)
 })
 
-test('BaseEdge routes directly through Vue Flow measured endpoints', () => {
+test('BaseEdge keeps Vue Flow measured endpoints as fallback anchors', () => {
   const source = read('BaseEdge.vue')
 
-  assert.match(source, /props\.sourceX, props\.sourceY/)
-  assert.match(source, /props\.targetX, props\.targetY/)
+  assert.match(source, /\{ x: props\.sourceX, y: props\.sourceY \}/)
+  assert.match(source, /\{ x: props\.targetX, y: props\.targetY \}/)
   assert.doesNotMatch(source, /props\.(?:source|target)[XY]\s*[+-]/)
+})
+
+test('BaseEdge prefers visual handle centers when available', () => {
+  const source = read('BaseEdge.vue')
+
+  assert.match(source, /function getVisualHandleCenter/)
+  assert.match(source, /screenToFlowCoordinate/)
+  assert.match(source, /\.sailor-base-handle__visual/)
+  assert.match(source, /const sourcePoint = computed/)
+  assert.match(source, /const targetPoint = computed/)
+  assert.match(source, /sourcePoint\.value\.x, sourcePoint\.value\.y/)
+  assert.match(source, /targetPoint\.value\.x, targetPoint\.value\.y/)
 })
 
 test('connection preview snaps to the hovered target handle center', () => {
