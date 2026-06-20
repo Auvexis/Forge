@@ -3,11 +3,11 @@
 - [x] Criar helpers de coordenadas world/screen
 - [x] Criar helper de snap-to-grid
 - [x] Criar helper de intersecao para marquee selection
-- [ ] Criar helper de ticks para rulers
-- [ ] Criar testes dos helpers de coordenadas
-- [ ] Criar testes do snap-to-grid
-- [ ] Criar testes do bypass de snap com Ctrl
-- [ ] Criar testes do bypass de snap com Shift
+- [x] Criar helper de ticks para rulers
+- [x] Criar testes dos helpers de coordenadas
+- [x] Criar testes do snap-to-grid
+- [x] Criar testes do bypass de snap com Ctrl
+- [x] Criar testes do bypass de snap com Shift
 - [ ] Criar testes de intersecao da marquee selection
 - [ ] Criar testes dos ticks das rulers
 - [ ] Criar componente `BaseCanvas.vue`
