@@ -7,6 +7,7 @@ import {
   SailorWorkflowCanvas,
 } from '@/features/workflow-editor'
 import WorkflowEditorChrome from '@/features/workflow-editor/components/ui/chrome/WorkflowEditorChrome.vue'
+import GlobalAddNodePanel from '@/features/workflow-editor/components/settings/GlobalAddNodePanel.vue'
 import WorkflowGitChangesWindow from '@/features/workflow-editor/components/ui/WorkflowGitChangesWindow.vue'
 import WorkflowGitModal from '@/features/workflow-editor/components/ui/WorkflowGitModal.vue'
 import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/WorkflowSettingsPanel.vue'
@@ -23,7 +24,7 @@ import { useCommandPaletteStore } from '@/features/command-palette/stores/comman
 import { PROFILE_SWITCH_REFRESH_EVENT } from '@/features/profiles/profileSwitchRefresh'
 import { computed, onMounted, onBeforeUnmount, watch, ref, markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import type { WorkflowItem } from '@/core/types/workflow.types'
+import type { WorkflowItem, WorkflowNodeType } from '@/core/types/workflow.types'
 import { listWorkflowChatTriggers } from '@/features/workflow-editor/utils/workflowRunTrigger'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
@@ -305,6 +306,24 @@ function openExecutionPanel() {
   })
 }
 
+function openGlobalAddNodePanel() {
+  appPanelStore.openPanel({
+    id: 'workflow-global-add-node-panel',
+    title: 'Add Node',
+    component: markRaw(GlobalAddNodePanel),
+    position: 'right',
+    width: 'md',
+    props: {
+      onAddLogicNodeAtCenter: (
+        type: WorkflowNodeType,
+        defaults?: Record<string, unknown>,
+      ) => canvasRef.value?.addLogicNodeAtViewportCenter(type, defaults),
+      onAddPluginNodeAtCenter: (pluginId: string, action: string, actionName: string) =>
+        canvasRef.value?.addPluginNodeAtViewportCenter(pluginId, action, actionName),
+    },
+  })
+}
+
 function openDevSessionChat(targetTriggerNodeId?: string) {
   if (targetTriggerNodeId) selectedChatTriggerNodeId.value = targetTriggerNodeId
   if (!canOpenDevChat.value || !activeWorkflowId.value) return
@@ -511,7 +530,7 @@ watch(
         @delete-selection="canvasRef?.deleteSelection()"
         @select-all="canvasRef?.selectAllNodes()"
         @clear-selection="canvasRef?.clearSelection()"
-        @add-node="canvasRef?.openAddNodePanel()"
+        @add-node="openGlobalAddNodePanel()"
         @run="canvasRef?.handleRun()"
         @stop="canvasRef?.handleStop()"
         @clean-execution="executionStore.resetNodeStatuses()"

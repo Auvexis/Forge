@@ -274,6 +274,23 @@ function getCenterPosition(): { x: number; y: number } {
   return vueFlowStore.value?.screenToFlowCoordinate(screenCenter) ?? screenCenter
 }
 
+function screenToFlowCoordinate(point: { x: number; y: number }): { x: number; y: number } {
+  return vueFlowStore.value?.screenToFlowCoordinate(point) ?? point
+}
+
+type GlobalAddNodeDragPayload =
+  | {
+      kind: 'logic'
+      nodeType: WorkflowNodeType
+      defaults?: Record<string, unknown>
+    }
+  | {
+      kind: 'plugin'
+      pluginId: string
+      action: string
+      actionName: string
+    }
+
 let quickAddSourceId: string | null = null
 let quickAddSourceHandle: string | null = null
 let quickAddTargetId: string | null = null
@@ -850,7 +867,11 @@ function createDefaultDatasetChunking() {
   }
 }
 
-const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, unknown> = {}) => {
+const addLogicNode = (
+  type: WorkflowNodeType,
+  providedDefaults: Record<string, unknown> = {},
+  explicitPosition?: { x: number; y: number },
+) => {
   if (!workflowStore.activeWorkflow) return
 
   const backupSourceId = quickAddSourceId
@@ -867,7 +888,7 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
   const id = generateNodeId(type)
   const advancedHandlerContext = getAdvancedHandlerContext(backupTargetId, backupTargetHandle)
   const isAdvancedConfigTarget = Boolean(backupTargetId && advancedHandlerContext)
-  let pos = getNewNodePosition(backupSourceId)
+  let pos = explicitPosition ?? getNewNodePosition(backupSourceId)
   if (backupTargetId && advancedHandlerContext) {
     pos = getAdvancedConfigNodePosition(
       backupTargetId,
@@ -1094,7 +1115,12 @@ const addLogicNode = (type: WorkflowNodeType, providedDefaults: Record<string, u
   closeAddNodePicker()
 }
 
-const addPluginNode = (pluginId: string, action: string, actionName: string) => {
+const addPluginNode = (
+  pluginId: string,
+  action: string,
+  actionName: string,
+  explicitPosition?: { x: number; y: number },
+) => {
   if (!workflowStore.activeWorkflow) return
 
   const backupSourceId = quickAddSourceId
@@ -1109,9 +1135,9 @@ const addPluginNode = (pluginId: string, action: string, actionName: string) => 
   quickAddAllowedNodes = '*'
 
   const id = generateNodeId(action)
-  const pos = backupTargetId
+  const pos = explicitPosition ?? (backupTargetId
     ? getIncomingNodePosition(backupTargetId)
-    : getNewNodePosition(backupSourceId)
+    : getNewNodePosition(backupSourceId))
 
   const newPluginNode: any = {
     type: 'plugin',
@@ -1156,6 +1182,55 @@ const addAgentToolNode = (pluginId: string, action: string, actionName: string) 
     pluginId,
     methodId: action,
   })
+}
+
+const addLogicNodeAtViewportCenter = (
+  type: WorkflowNodeType,
+  providedDefaults: Record<string, unknown> = {},
+) => {
+  addLogicNode(type, providedDefaults, getCenterPosition())
+}
+
+const addPluginNodeAtViewportCenter = (pluginId: string, action: string, actionName: string) => {
+  addPluginNode(pluginId, action, actionName, getCenterPosition())
+}
+
+const addLogicNodeAtScreenPoint = (
+  type: WorkflowNodeType,
+  point: { x: number; y: number },
+  providedDefaults: Record<string, unknown> = {},
+) => {
+  addLogicNode(type, providedDefaults, screenToFlowCoordinate(point))
+}
+
+const addPluginNodeAtScreenPoint = (
+  pluginId: string,
+  action: string,
+  actionName: string,
+  point: { x: number; y: number },
+) => {
+  addPluginNode(pluginId, action, actionName, screenToFlowCoordinate(point))
+}
+
+function handleGlobalAddNodeDrop(event: DragEvent) {
+  const raw = event.dataTransfer?.getData('application/x-sailor-add-node')
+  if (!raw) return
+
+  event.preventDefault()
+  const point = { x: event.clientX, y: event.clientY }
+
+  try {
+    const payload = JSON.parse(raw) as GlobalAddNodeDragPayload
+    if (payload.kind === 'logic') {
+      addLogicNodeAtScreenPoint(payload.nodeType, point, payload.defaults)
+      return
+    }
+    if (payload.kind === 'plugin') {
+      addPluginNodeAtScreenPoint(payload.pluginId, payload.action, payload.actionName, point)
+    }
+  } catch (error) {
+    console.error('Invalid add node drag payload', error)
+  }
 }
 
 const SNAP = 20
@@ -1414,6 +1489,10 @@ defineExpose({
   handleRun,
   handleStop,
   openAddNodePanel,
+  addLogicNodeAtViewportCenter,
+  addPluginNodeAtViewportCenter,
+  addLogicNodeAtScreenPoint,
+  addPluginNodeAtScreenPoint,
   selectAllNodes,
   clearSelection,
   duplicateSelection,
@@ -1427,7 +1506,11 @@ defineExpose({
 
 <template>
   <!-- O contêiner pai deve sempre ter uma altura/largura definida para o VueFlow renderizar -->
-  <div class="sailor-workflow-canvas sailor-fill">
+  <div
+    class="sailor-workflow-canvas sailor-fill"
+    @dragover.prevent
+    @drop="handleGlobalAddNodeDrop"
+  >
     <VueFlow
       :id="workflowStore.activeWorkflow?.metadata.id ?? 'default'"
       v-model:nodes="vueFlowNodes"

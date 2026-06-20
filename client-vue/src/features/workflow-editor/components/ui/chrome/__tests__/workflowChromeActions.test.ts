@@ -9,6 +9,10 @@ const chromeSource = readFileSync(
   fileURLToPath(new URL('../WorkflowEditorChrome.vue', import.meta.url)),
   'utf8',
 )
+const headerSource = readFileSync(
+  fileURLToPath(new URL('../WorkflowChromeHeader.vue', import.meta.url)),
+  'utf8',
+)
 const canvasSource = readFileSync(
   fileURLToPath(new URL('../../../SailorWorkflowCanvas.vue', import.meta.url)),
   'utf8',
@@ -78,5 +82,11 @@ describe('workflow chrome actions', () => {
     assert.match(chromeSource, /\(e: 'git-refresh-status'\): void/)
     assert.match(chromeSource, /\(e: 'git-copy-repo-path'\): void/)
     assert.match(chromeSource, /'git\.create-snapshot': \(\) => emit\('git-create-snapshot'\)/)
+  })
+
+  it('refreshes workflows whenever the workflow dropdown opens', () => {
+    assert.match(headerSource, /function handleWorkflowMenuOpen\(\)/)
+    assert.match(headerSource, /fetchWorkflows\(\)\.catch\(console\.error\)/)
+    assert.match(headerSource, /@open="handleWorkflowMenuOpen"/)
   })
 })

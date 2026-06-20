@@ -254,6 +254,43 @@ test('workflow canvas opens add node picker as cursor anchored canvas overlay', 
   assert.match(triggerNode, /anchorRect/)
 })
 
+test('workflow chrome add node opens a global right panel separate from the canvas picker', () => {
+  const page = read('src/app/pages/WorkflowEditorPage.vue')
+
+  assert.match(page, /GlobalAddNodePanel/)
+  assert.match(page, /useAppPanelStore/)
+  assert.match(page, /function openGlobalAddNodePanel\(\)/)
+  assert.match(page, /id: 'workflow-global-add-node-panel'/)
+  assert.match(page, /position: 'right'/)
+  assert.match(page, /@add-node="openGlobalAddNodePanel\(\)"/)
+  assert.doesNotMatch(page, /@add-node="canvasRef\?\.openAddNodePanel\(\)"/)
+})
+
+test('global add node panel exposes only Utilities and Integrations sections', () => {
+  const panel = read('src/features/workflow-editor/components/settings/GlobalAddNodePanel.vue')
+
+  assert.match(panel, /global-add-node-panel/)
+  assert.match(panel, /Utilities/)
+  assert.match(panel, /Integrations/)
+  assert.doesNotMatch(panel, />Actions</)
+  assert.doesNotMatch(panel, />Storage</)
+  assert.match(panel, /draggable="true"/)
+  assert.match(panel, /@dragstart="handleDragStart/)
+  assert.match(panel, /onAddLogicNodeAtCenter/)
+  assert.match(panel, /onAddPluginNodeAtCenter/)
+})
+
+test('workflow canvas exposes center and drop coordinate add node actions', () => {
+  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+
+  assert.match(canvas, /addLogicNodeAtViewportCenter/)
+  assert.match(canvas, /addPluginNodeAtViewportCenter/)
+  assert.match(canvas, /addLogicNodeAtScreenPoint/)
+  assert.match(canvas, /addPluginNodeAtScreenPoint/)
+  assert.match(canvas, /screenToFlowCoordinate/)
+  assert.match(canvas, /handleGlobalAddNodeDrop/)
+})
+
 test('add node panel supports focused global fuzzy search in the primary panel', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 

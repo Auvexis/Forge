@@ -1,0 +1,7 @@
+- [x] Rebuscar workflows ao abrir o dropdown do Chrome
+- [x] Criar contratos do painel global de Add Node
+- [x] Criar painel global com Utilities e Integrations
+- [x] Abrir painel global pelo Add Node do Chrome
+- [x] Adicionar node no centro da câmera ao clicar
+- [x] Adicionar node na coordenada do drop no canvas
+- [x] Validar testes e build

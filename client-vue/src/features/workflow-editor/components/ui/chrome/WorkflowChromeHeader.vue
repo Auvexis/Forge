@@ -71,6 +71,11 @@ function openWorkflowMenu() {
   workflowMenuRef.value?.open()
 }
 
+function handleWorkflowMenuOpen() {
+  isWorkflowMenuOpen.value = true
+  fetchWorkflows().catch(console.error)
+}
+
 function handleOpenWorkflow(workflow: WorkflowItem) {
   openWorkflow(workflow)
 }
@@ -108,7 +113,7 @@ defineExpose({ openWorkflowMenu })
         position="bottom-start"
         :offset="3"
         max-height="350px"
-        @open="isWorkflowMenuOpen = true"
+        @open="handleWorkflowMenuOpen"
         @close="isWorkflowMenuOpen = false"
       >
         <template #trigger>
