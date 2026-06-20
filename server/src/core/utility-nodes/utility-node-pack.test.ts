@@ -83,6 +83,31 @@ describe("Utility node pack contract", () => {
     }
   });
 
+  it("publishes the same style tokens used by legacy utility nodes on the canvas", () => {
+    const canvasStyleTokens = {
+      code: "codeblock",
+      http: "http",
+      if: "if",
+      switch: "switch",
+      loop: "loop",
+      merge: "merge",
+      "split-in-batches": "split",
+      set: "set",
+      event: "event",
+      "event-listener": "event-listener",
+      subworkflow: "subworkflow",
+      "respond-webhook": "respond-webhook",
+    } as const;
+
+    for (const [type, token] of Object.entries(canvasStyleTokens)) {
+      const style = sailorCoreUtilityNodePack.nodes[type as keyof typeof canvasStyleTokens]?.style;
+
+      assert.equal(style?.iconColor, `var(--sailor-node-${token}-icon)`, `${type} icon color`);
+      assert.equal(style?.bgColor, `var(--sailor-node-${token}-bg)`, `${type} background`);
+      assert.equal(style?.borderColor, `var(--sailor-node-${token}-border)`, `${type} border`);
+    }
+  });
+
   it("declares reusable capability handles for AI Agent and Vector Store", () => {
     assert.deepEqual(sailorCoreUtilityNodePack.nodes["ai-agent"]?.handles, [
       {
