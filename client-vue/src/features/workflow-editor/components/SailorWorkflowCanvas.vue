@@ -1113,6 +1113,7 @@ const addLogicNode = (
   }
 
   closeAddNodePicker()
+  return id
 }
 
 const addPluginNode = (
@@ -1174,6 +1175,7 @@ const addPluginNode = (
   }
 
   closeAddNodePicker()
+  return id
 }
 
 const addAgentToolNode = (pluginId: string, action: string, actionName: string) => {
@@ -1200,7 +1202,7 @@ const addLogicNodeAtScreenPoint = (
   point: { x: number; y: number },
   providedDefaults: Record<string, unknown> = {},
 ) => {
-  addLogicNode(type, providedDefaults, screenToFlowCoordinate(point))
+  return addLogicNode(type, providedDefaults, screenToFlowCoordinate(point))
 }
 
 const addPluginNodeAtScreenPoint = (
@@ -1209,7 +1211,31 @@ const addPluginNodeAtScreenPoint = (
   actionName: string,
   point: { x: number; y: number },
 ) => {
-  addPluginNode(pluginId, action, actionName, screenToFlowCoordinate(point))
+  return addPluginNode(pluginId, action, actionName, screenToFlowCoordinate(point))
+}
+
+function animateDroppedNode(nodeId: string | undefined) {
+  if (!nodeId) return
+  vueFlowNodes.value = vueFlowNodes.value.map((node) =>
+    node.id === nodeId
+      ? {
+          ...node,
+          class: [node.class, 'sailor-node-drop-landing'].filter(Boolean).join(' '),
+        }
+      : node,
+  )
+  window.setTimeout(() => {
+    vueFlowNodes.value = vueFlowNodes.value.map((node) =>
+      node.id === nodeId
+        ? {
+            ...node,
+            class: String(node.class ?? '')
+              .replace(/\bsailor-node-drop-landing\b/g, '')
+              .trim(),
+          }
+        : node,
+    )
+  }, 420)
 }
 
 function handleGlobalAddNodeDrop(event: DragEvent) {
@@ -1222,11 +1248,11 @@ function handleGlobalAddNodeDrop(event: DragEvent) {
   try {
     const payload = JSON.parse(raw) as GlobalAddNodeDragPayload
     if (payload.kind === 'logic') {
-      addLogicNodeAtScreenPoint(payload.nodeType, point, payload.defaults)
+      animateDroppedNode(addLogicNodeAtScreenPoint(payload.nodeType, point, payload.defaults))
       return
     }
     if (payload.kind === 'plugin') {
-      addPluginNodeAtScreenPoint(payload.pluginId, payload.action, payload.actionName, point)
+      animateDroppedNode(addPluginNodeAtScreenPoint(payload.pluginId, payload.action, payload.actionName, point))
     }
   } catch (error) {
     console.error('Invalid add node drag payload', error)
@@ -1835,6 +1861,28 @@ defineExpose({
 .sailor-workflow-canvas {
   width: 100%;
   height: 100%;
+}
+
+:deep(.sailor-node-drop-landing) {
+  animation: sailor-node-drop-landing 0.42s cubic-bezier(0.18, 0.9, 0.24, 1.18);
+  transform-origin: center center;
+}
+
+@keyframes sailor-node-drop-landing {
+  0% {
+    opacity: 0.7;
+    transform: translateY(-28px) scale(1.08);
+  }
+
+  62% {
+    opacity: 1;
+    transform: translateY(4px) scale(0.94);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .add-node-picker-overlay {

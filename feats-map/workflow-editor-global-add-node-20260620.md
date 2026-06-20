@@ -14,3 +14,7 @@
 - [x] Compactar lista de métodos com ícones
 - [x] Trocar contador de métodos por ícone +
 - [x] Validar ajuste visual e commitar
+- [x] Criar preview visual customizado para drag
+- [x] Animar força lateral durante drag
+- [x] Animar entrada e queda do node no canvas
+- [x] Commitar ajuste de drag visual

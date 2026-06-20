@@ -41,7 +41,13 @@
               pluginId: selectedPlugin.id,
               action: action.methodKey,
               actionName: action.label,
+              preview: {
+                icon: pluginIcon(selectedPlugin),
+                label: action.label,
+                subtitle: selectedPlugin.manifest.metadata.name,
+              },
             })"
+            @dragend="handleDragEnd"
           >
             <span class="global-add-node-panel__method-icon">
               <LucideIcon name="workflow" :size="15" />
@@ -98,7 +104,13 @@
                     kind: 'logic',
                     nodeType: item.nodeType,
                     defaults: item.defaults,
+                    preview: {
+                      icon: item.icon,
+                      label: item.label,
+                      subtitle: 'Utility',
+                    },
                   })"
+                  @dragend="handleDragEnd"
                 >
                   <span
                     class="global-add-node-panel__icon"
@@ -120,6 +132,7 @@
                   :draggable="pluginActionItems(plugin).length === 1"
                   @click="selectPlugin(plugin)"
                   @dragstart="handlePluginDragStart($event, plugin)"
+                  @dragend="handleDragEnd"
                 >
                   <span class="global-add-node-panel__icon">
                     <LucideIcon :name="pluginIcon(plugin)" :size="15" />
@@ -164,6 +177,7 @@
                   :draggable="pluginActionItems(plugin).length === 1"
                   @click="selectPlugin(plugin)"
                   @dragstart="handlePluginDragStart($event, plugin)"
+                  @dragend="handleDragEnd"
                 >
                   <span class="global-add-node-panel__icon">
                     <LucideIcon :name="pluginIcon(plugin)" :size="15" />
@@ -185,11 +199,27 @@
         </div>
       </div>
     </Transition>
+
+    <Teleport to="body">
+      <div
+        v-if="dragPreview"
+        class="global-add-node-drag-preview"
+        :style="dragPreviewStyle"
+      >
+        <div class="global-add-node-drag-preview__node">
+          <span class="global-add-node-drag-preview__icon">
+            <LucideIcon :name="dragPreview.icon" :size="28" />
+          </span>
+        </div>
+        <div class="global-add-node-drag-preview__label">{{ dragPreview.label }}</div>
+        <div class="global-add-node-drag-preview__subtitle">{{ dragPreview.subtitle }}</div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowNodesApi } from '@/core/api/workflowNodes.api'
 import type { PluginSummary } from '@/core/types/plugin.types'
@@ -214,13 +244,21 @@ type GlobalAddNodeDragPayload =
       kind: 'logic'
       nodeType: WorkflowNodeType
       defaults?: Record<string, unknown>
+      preview?: DragPreviewMeta
     }
   | {
       kind: 'plugin'
       pluginId: string
       action: string
       actionName: string
+      preview?: DragPreviewMeta
     }
+
+interface DragPreviewMeta {
+  icon: string
+  label: string
+  subtitle: string
+}
 
 const props = defineProps<{
   onAddLogicNodeAtCenter?: (type: WorkflowNodeType, defaults?: Record<string, unknown>) => void
@@ -234,6 +272,11 @@ const methodSearchInput = ref<InstanceType<typeof BaseInput>>()
 const utilitiesOpen = ref(true)
 const integrationsOpen = ref(true)
 const selectedPlugin = ref<PluginSummary | null>(null)
+const dragPreview = ref<DragPreviewMeta | null>(null)
+const dragPreviewPoint = ref({ x: 0, y: 0 })
+const dragPreviewVelocity = ref({ x: 0, y: 0 })
+const dragPreviewScale = ref(0.72)
+let lastDragPoint = { x: 0, y: 0, t: 0 }
 const { isDark } = useTheme()
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
 const {
@@ -250,6 +293,11 @@ onMounted(() => {
   loadPlugins()
   loadWorkflowNodeCatalog()
   searchInput.value?.focus()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('dragover', handleWindowDragOver)
+  window.removeEventListener('drop', handleDragEnd)
 })
 
 const isLoading = computed(() => pluginsLoading.value || workflowNodeCatalogLoading.value)
@@ -303,9 +351,67 @@ const filteredSelectedPluginActions = computed(() => {
   )
 })
 
+const setTransparentDragImage = (event: DragEvent) => {
+  const canvas = document.createElement('canvas')
+  canvas.width = 1
+  canvas.height = 1
+  event.dataTransfer?.setDragImage(canvas, 0, 0)
+}
+
+const startDragPreview = (event: DragEvent, preview?: DragPreviewMeta) => {
+  if (!preview) return
+  dragPreview.value = preview
+  dragPreviewPoint.value = { x: event.clientX, y: event.clientY }
+  dragPreviewVelocity.value = { x: 0, y: 0 }
+  dragPreviewScale.value = 0.72
+  lastDragPoint = { x: event.clientX, y: event.clientY, t: performance.now() }
+  window.addEventListener('dragover', handleWindowDragOver)
+  window.addEventListener('drop', handleDragEnd, { once: true })
+  requestAnimationFrame(() => {
+    dragPreviewScale.value = 1
+  })
+}
+
+const handleWindowDragOver = (event: DragEvent) => {
+  if (!dragPreview.value) return
+  const now = performance.now()
+  const dt = Math.max(now - lastDragPoint.t, 16)
+  const dx = event.clientX - lastDragPoint.x
+  const dy = event.clientY - lastDragPoint.y
+  dragPreviewPoint.value = { x: event.clientX, y: event.clientY }
+  dragPreviewVelocity.value = {
+    x: Math.max(-26, Math.min(26, (dx / dt) * 18)),
+    y: Math.max(-12, Math.min(12, (dy / dt) * 10)),
+  }
+  lastDragPoint = { x: event.clientX, y: event.clientY, t: now }
+}
+
+const handleDragEnd = () => {
+  dragPreviewScale.value = 0.82
+  window.removeEventListener('dragover', handleWindowDragOver)
+  window.setTimeout(() => {
+    dragPreview.value = null
+    dragPreviewVelocity.value = { x: 0, y: 0 }
+  }, 120)
+}
+
+const dragPreviewStyle = computed(() => {
+  const windPullX = -dragPreviewVelocity.value.x
+  const lift = Math.min(
+    18,
+    Math.abs(dragPreviewVelocity.value.x) * 0.45 + Math.abs(dragPreviewVelocity.value.y) * 0.2,
+  )
+  const rotate = Math.max(-10, Math.min(10, -dragPreviewVelocity.value.x * 0.32))
+  return {
+    transform: `translate3d(${dragPreviewPoint.value.x - 72 + windPullX}px, ${dragPreviewPoint.value.y - 78 - lift}px, 0) rotate(${rotate}deg) scale(${dragPreviewScale.value})`,
+  }
+})
+
 const handleDragStart = (event: DragEvent, payload: GlobalAddNodeDragPayload) => {
   event.dataTransfer?.setData('application/x-sailor-add-node', JSON.stringify(payload))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
+  setTransparentDragImage(event)
+  startDragPreview(event, payload.preview)
 }
 
 const handlePluginDragStart = (event: DragEvent, plugin: PluginSummary) => {
@@ -320,6 +426,11 @@ const handlePluginDragStart = (event: DragEvent, plugin: PluginSummary) => {
     pluginId: plugin.id,
     action: action.methodKey,
     actionName: action.label,
+    preview: {
+      icon: pluginIcon(plugin),
+      label: plugin.manifest.metadata.name,
+      subtitle: action.label,
+    },
   })
 }
 
@@ -582,5 +693,84 @@ const closePluginMethodView = () => {
   to {
     transform: rotate(360deg);
   }
+}
+</style>
+
+<style>
+.global-add-node-drag-preview {
+  position: fixed;
+  z-index: 10000;
+  width: 144px;
+  pointer-events: none;
+  text-align: center;
+  transform-origin: center 62px;
+  transition:
+    transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.12s ease;
+  will-change: transform;
+}
+
+.global-add-node-drag-preview__node {
+  position: relative;
+  display: flex;
+  width: 104px;
+  height: 104px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--sailor-space-2);
+  border: 2px solid var(--sailor-border);
+  border-radius: 22px;
+  background: var(--sailor-bg-elevated);
+  box-shadow: var(--sailor-shadow-lg);
+}
+
+.global-add-node-drag-preview__node::before,
+.global-add-node-drag-preview__node::after {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--sailor-border);
+  content: '';
+  transform: translateY(-50%);
+}
+
+.global-add-node-drag-preview__node::before {
+  left: -5px;
+}
+
+.global-add-node-drag-preview__node::after {
+  right: -5px;
+}
+
+.global-add-node-drag-preview__icon {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
+}
+
+.global-add-node-drag-preview__label {
+  overflow: hidden;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.global-add-node-drag-preview__subtitle {
+  overflow: hidden;
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
