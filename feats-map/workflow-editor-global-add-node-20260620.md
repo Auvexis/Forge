@@ -11,3 +11,6 @@
 - [x] Abrir métodos em view com voltar e busca
 - [x] Animar expandir/colapsar seções
 - [x] Validar melhorias e commitar
+- [x] Compactar lista de métodos com ícones
+- [x] Trocar contador de métodos por ícone +
+- [x] Validar ajuste visual e commitar

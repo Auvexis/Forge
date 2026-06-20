@@ -43,8 +43,13 @@
               actionName: action.label,
             })"
           >
-            <span>{{ action.label }}</span>
-            <small>{{ action.description }}</small>
+            <span class="global-add-node-panel__method-icon">
+              <LucideIcon name="workflow" :size="15" />
+            </span>
+            <span class="global-add-node-panel__method-body">
+              <span>{{ action.label }}</span>
+              <small>{{ action.description }}</small>
+            </span>
           </button>
           <div v-if="filteredSelectedPluginActions.length === 0" class="global-add-node-panel__empty">
             No methods found.
@@ -122,9 +127,9 @@
                   <span>{{ plugin.manifest.metadata.name }}</span>
                   <span
                     v-if="pluginActionItems(plugin).length > 1"
-                    class="global-add-node-panel__method-count"
+                    class="global-add-node-panel__method-more"
                   >
-                    {{ pluginActionItems(plugin).length }}
+                    <LucideIcon name="plus" :size="14" />
                   </span>
                 </button>
                 <div
@@ -166,9 +171,9 @@
                   <span>{{ plugin.manifest.metadata.name }}</span>
                   <span
                     v-if="pluginActionItems(plugin).length > 1"
-                    class="global-add-node-panel__method-count"
+                    class="global-add-node-panel__method-more"
                   >
-                    {{ pluginActionItems(plugin).length }}
+                    <LucideIcon name="plus" :size="14" />
                   </span>
                 </button>
                 <div v-if="integrationItems.length === 0" class="global-add-node-panel__empty">
@@ -488,38 +493,53 @@ const closePluginMethodView = () => {
   white-space: nowrap;
 }
 
-.global-add-node-panel__method-count {
+.global-add-node-panel__method-more {
   display: inline-flex;
-  min-width: 20px;
+  width: 20px;
   height: 20px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  background: var(--sailor-bg-surface);
   color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
-  font-weight: 700;
 }
 
 .global-add-node-panel__method-list {
   display: grid;
   align-content: start;
-  gap: var(--sailor-space-2);
+  gap: var(--sailor-space-1);
 }
 
 .global-add-node-panel__method-item {
   display: flex;
-  min-height: 54px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  padding: var(--sailor-space-2);
+  min-height: 42px;
+  flex-direction: row;
+  align-items: center;
+  padding: var(--sailor-space-1);
 }
 
-.global-add-node-panel__method-item span,
-.global-add-node-panel__method-item small {
-  max-width: 100%;
+.global-add-node-panel__method-icon {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-muted);
+}
+
+.global-add-node-panel__method-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.global-add-node-panel__method-body span,
+.global-add-node-panel__method-body small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
