@@ -91,8 +91,33 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /if \(item\.locked\) return/)
     assert.match(source, /rectsIntersect/)
   })
+
+  it('supports visual marquee, background pattern, and passive rulers', () => {
+    const source = readBaseCanvas()
+    const ruler = readBaseCanvasRulers()
+
+    assert.match(source, /marqueeBg\?: string/)
+    assert.match(source, /marqueeBorderStyle\?: BaseCanvasMarqueeBorderStyle/)
+    assert.match(source, /marqueeBorderColor\?: string/)
+    assert.match(source, /backgroundColor\?: string/)
+    assert.match(source, /patternColor\?: string/)
+    assert.match(source, /patternStyle\?: BaseCanvasPatternStyle/)
+    assert.match(source, /rulers\?: boolean/)
+    assert.match(source, /canvasStyle/)
+    assert.match(source, /patternStyleValue/)
+    assert.match(source, /BaseCanvasRulers/)
+    assert.match(source, /marqueeBorderCss/)
+    assert.match(ruler, /axis="x"/)
+    assert.match(ruler, /axis="y"/)
+    assert.match(ruler, /getRulerTicks/)
+    assert.doesNotMatch(ruler, /items/)
+  })
 })
 
 function readBaseCanvas() {
   return readFileSync(fileURLToPath(new URL('../BaseCanvas.vue', import.meta.url)), 'utf8')
+}
+
+function readBaseCanvasRulers() {
+  return readFileSync(fileURLToPath(new URL('../BaseCanvasRulers.vue', import.meta.url)), 'utf8')
 }

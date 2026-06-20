@@ -28,16 +28,16 @@
 - [x] Implementar marquee selection no espaco vazio
 - [x] Impedir marquee selection durante pan com Space
 - [x] Impedir marquee selection durante pan com botao do meio
-- [ ] Adicionar props visuais da marquee selection
-- [ ] Implementar pattern `dot`
-- [ ] Implementar pattern `square`
-- [ ] Implementar pattern `none`
-- [ ] Adicionar props de background e pattern
-- [ ] Criar componente de rulers passivas
-- [ ] Renderizar ruler superior
-- [ ] Renderizar ruler esquerda
-- [ ] Sincronizar rulers com pan e zoom
-- [ ] Garantir que rulers nao alteram items
+- [x] Adicionar props visuais da marquee selection
+- [x] Implementar pattern `dot`
+- [x] Implementar pattern `square`
+- [x] Implementar pattern `none`
+- [x] Adicionar props de background e pattern
+- [x] Criar componente de rulers passivas
+- [x] Renderizar ruler superior
+- [x] Renderizar ruler esquerda
+- [x] Sincronizar rulers com pan e zoom
+- [x] Garantir que rulers nao alteram items
 - [ ] Implementar evento generico de context menu
 - [ ] Diferenciar context menu no canvas vazio
 - [ ] Diferenciar context menu em item

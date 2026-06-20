@@ -1,9 +1,16 @@
 <template>
   <div
     class="base-canvas"
+    :class="`is-pattern-${patternStyle}`"
+    :style="canvasStyle"
     @pointerdown="startCanvasPointer"
     @click.self="handleCanvasClick"
   >
+    <BaseCanvasRulers
+      v-if="rulers"
+      :viewport="viewport"
+      :grid-size="gridSize"
+    />
     <div class="base-canvas__viewport" :style="viewportStyle">
       <div
         v-for="item in items"
@@ -31,10 +38,13 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type {
   BaseCanvasItem,
   BaseCanvasItemsMoveEvent,
+  BaseCanvasMarqueeBorderStyle,
+  BaseCanvasPatternStyle,
   BaseCanvasPoint,
   BaseCanvasRect,
   BaseCanvasViewport,
 } from './types.ts'
+import BaseCanvasRulers from './BaseCanvasRulers.vue'
 import { itemToRect, rectFromPoints, rectsIntersect } from './geometry.ts'
 import { snapDeltaToGrid, shouldBypassSnap } from './snap.ts'
 
@@ -45,10 +55,24 @@ const props = withDefaults(defineProps<{
   snapToGrid?: boolean
   gridSize?: number
   marqueeSelection?: boolean
+  marqueeBg?: string
+  marqueeBorderStyle?: BaseCanvasMarqueeBorderStyle
+  marqueeBorderColor?: string
+  backgroundColor?: string
+  patternColor?: string
+  patternStyle?: BaseCanvasPatternStyle
+  rulers?: boolean
 }>(), {
   snapToGrid: true,
   gridSize: 16,
   marqueeSelection: true,
+  marqueeBg: 'rgba(59, 130, 246, 0.12)',
+  marqueeBorderStyle: 'dashed',
+  marqueeBorderColor: 'rgba(96, 165, 250, 0.85)',
+  backgroundColor: '#0b0b0d',
+  patternColor: 'rgba(255, 255, 255, 0.08)',
+  patternStyle: 'dot',
+  rulers: false,
 })
 
 const emit = defineEmits<{
@@ -87,7 +111,34 @@ const marqueeStyle = computed(() => {
     top: `${marqueeRect.value.y}px`,
     width: `${marqueeRect.value.width}px`,
     height: `${marqueeRect.value.height}px`,
+    background: props.marqueeBg,
+    border: `1px ${marqueeBorderCss.value} ${props.marqueeBorderColor}`,
   }
+})
+
+const canvasStyle = computed(() => ({
+  backgroundColor: props.backgroundColor,
+  '--base-canvas-pattern-color': props.patternColor,
+  '--base-canvas-grid-size': `${props.gridSize}px`,
+  backgroundImage: patternStyleValue.value,
+  backgroundSize: props.patternStyle === 'none' ? undefined : `${props.gridSize}px ${props.gridSize}px`,
+}))
+
+const patternStyleValue = computed(() => {
+  if (props.patternStyle === 'none') return 'none'
+  if (props.patternStyle === 'square') {
+    return [
+      'linear-gradient(var(--base-canvas-pattern-color) 1px, transparent 1px)',
+      'linear-gradient(90deg, var(--base-canvas-pattern-color) 1px, transparent 1px)',
+    ].join(', ')
+  }
+  return 'radial-gradient(circle, var(--base-canvas-pattern-color) 1px, transparent 1px)'
+})
+
+const marqueeBorderCss = computed(() => {
+  if (props.marqueeBorderStyle === 'line') return 'solid'
+  if (props.marqueeBorderStyle === 'dot') return 'dotted'
+  return 'dashed'
 })
 
 onMounted(() => {
@@ -256,7 +307,5 @@ function handleKeyUp(event: KeyboardEvent) {
 .base-canvas__marquee {
   position: absolute;
   pointer-events: none;
-  border: 1px dashed rgba(96, 165, 250, 0.85);
-  background: rgba(59, 130, 246, 0.12);
 }
 </style>
