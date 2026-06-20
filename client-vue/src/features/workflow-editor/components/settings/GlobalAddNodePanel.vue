@@ -388,6 +388,9 @@ const removePointerDragListeners = () => {
   document.removeEventListener('pointermove', handlePointerDragMove, true)
   document.removeEventListener('pointerup', handlePointerDragEnd, true)
   document.removeEventListener('pointercancel', handlePointerDragCancel, true)
+  window.removeEventListener('pointermove', handlePointerDragMove, true)
+  window.removeEventListener('pointerup', handlePointerDragEnd, true)
+  window.removeEventListener('pointercancel', handlePointerDragCancel, true)
 }
 
 const handleDragEnd = () => {
@@ -413,14 +416,20 @@ const dragPreviewStyle = computed(() => {
 
 const handlePointerDragStart = (event: PointerEvent, payload: GlobalAddNodeDragPayload) => {
   if (event.button !== 0) return
+  const dragTarget = event.currentTarget as HTMLElement | null
+  dragTarget?.setPointerCapture?.(event.pointerId)
   activePointerPayload = payload
   activePointerId = event.pointerId
   pointerDragStarted = false
   pointerStartPoint = { x: event.clientX, y: event.clientY }
   lastDragPoint = { ...pointerStartPoint, t: performance.now() }
+  startDragPreview(pointerStartPoint, payload.preview)
   document.addEventListener('pointermove', handlePointerDragMove, true)
   document.addEventListener('pointerup', handlePointerDragEnd, true)
   document.addEventListener('pointercancel', handlePointerDragCancel, true)
+  window.addEventListener('pointermove', handlePointerDragMove, true)
+  window.addEventListener('pointerup', handlePointerDragEnd, true)
+  window.addEventListener('pointercancel', handlePointerDragCancel, true)
 }
 
 const handlePluginPointerDragStart = (event: PointerEvent, plugin: PluginSummary) => {
@@ -473,7 +482,12 @@ const handlePointerDragEnd = (event: PointerEvent) => {
   pointerDragStarted = false
   removePointerDragListeners()
 
-  if (wasDragging && payload) {
+  if (!wasDragging) {
+    handleDragEnd()
+    return
+  }
+
+  if (payload) {
     event.preventDefault()
     suppressClickUntil = Date.now() + 250
     const target = document.elementFromPoint(point.x, point.y)
@@ -762,7 +776,7 @@ const closePluginMethodView = () => {
 <style>
 .global-add-node-drag-preview {
   position: fixed;
-  z-index: 10000;
+  z-index: 2147483647;
   width: 144px;
   pointer-events: none;
   text-align: center;

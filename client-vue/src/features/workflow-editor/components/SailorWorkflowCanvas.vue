@@ -1220,25 +1220,18 @@ const addPluginNodeAtScreenPoint = (
 
 function animateDroppedNode(nodeId: string | undefined) {
   if (!nodeId) return
-  vueFlowNodes.value = vueFlowNodes.value.map((node) =>
-    node.id === nodeId
-      ? {
-          ...node,
-          class: [node.class, 'sailor-node-drop-landing'].filter(Boolean).join(' '),
-        }
-      : node,
-  )
+  const nodes = vueFlowNodes.value as Array<{ id: string; class?: unknown }>
+  const node = nodes.find((candidate) => candidate.id === nodeId)
+  if (node) {
+    node.class = `${String(node.class ?? '')} sailor-node-drop-landing`.trim()
+  }
   window.setTimeout(() => {
-    vueFlowNodes.value = vueFlowNodes.value.map((node) =>
-      node.id === nodeId
-        ? {
-            ...node,
-            class: String(node.class ?? '')
-              .replace(/\bsailor-node-drop-landing\b/g, '')
-              .trim(),
-          }
-        : node,
-    )
+    const node = nodes.find((candidate) => candidate.id === nodeId)
+    if (node) {
+      node.class = String(node.class ?? '')
+        .replace(/\bsailor-node-drop-landing\b/g, '')
+        .trim()
+    }
   }, 420)
 }
 

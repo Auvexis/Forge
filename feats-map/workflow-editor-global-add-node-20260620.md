@@ -20,3 +20,4 @@
 - [x] Commitar ajuste de drag visual
 - [x] Corrigir preview invisível no início do drag
 - [x] Trocar drag nativo por drag customizado visível
+- [x] Iniciar preview no pointerdown com capture
