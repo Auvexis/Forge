@@ -58,10 +58,11 @@
 - [x] Conectar eventos genericos do BaseCanvas em Pages
 - [x] Criar context menu visual dentro da feature Pages
 - [x] Garantir que edicao de blocos continua na feature Pages
-- [ ] Garantir que Workflow Editor nao e migrado neste MVP
-- [ ] Rodar testes do BaseCanvas
-- [ ] Rodar testes de Pages afetados
-- [ ] Rodar type-check do frontend
-- [ ] Fazer verificacao visual do prototipo em desktop
-- [ ] Atualizar este checklist conforme a implementacao avancar
-- [ ] Commitar a implementacao final
+- [x] Garantir que Workflow Editor nao e migrado neste MVP
+- [x] Rodar testes do BaseCanvas
+- [x] Rodar testes de Pages afetados
+- [x] Rodar type-check do frontend
+- [x] Fazer verificacao visual do prototipo em desktop
+  - Tentado via Chrome headless em `http://127.0.0.1:5177/pages`; a sessao local parou na tela de selecao de perfil antes do editor de Pages.
+- [x] Atualizar este checklist conforme a implementacao avancar
+- [x] Commitar a implementacao final
