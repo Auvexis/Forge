@@ -46,6 +46,33 @@ test('BaseNode maps all four sides to Vue Flow positions', () => {
   assert.match(source, /right: Position\.Right/)
 })
 
+test('BaseHandle keeps the measured edge anchor separate from its centered visual', () => {
+  const source = read('BaseHandle.vue')
+
+  assert.match(source, /class="sailor-base-handle__visual"/)
+  assert.match(source, /\.sailor-base-handle\s*\{[\s\S]*width: 0 !important;[\s\S]*height: 0 !important;/)
+  assert.match(source, /\.sailor-base-handle__visual\s*\{[\s\S]*position: absolute;[\s\S]*top: 50%;[\s\S]*left: 50%;[\s\S]*transform: translate\(-50%, -50%\);/)
+  assert.match(source, /\.is-variant-diamond \.sailor-base-handle__visual\s*\{[\s\S]*rotate\(45deg\)/)
+})
+
+test('configured handles anchor their measured center on each node border', () => {
+  const source = read('BaseNode.vue')
+
+  assert.doesNotMatch(source, /\.sailor-base-node__handler :deep\(\.sailor-base-handle\)\s*\{[\s\S]*position: relative !important;[\s\S]*inset: auto !important;/)
+  assert.match(source, /\.is-position-bottom \.sailor-base-node__handler :deep\(\.sailor-base-handle\)/)
+  assert.match(source, /\.is-position-top \.sailor-base-node__handler :deep\(\.sailor-base-handle\)/)
+  assert.match(source, /\.is-position-left \.sailor-base-node__handler :deep\(\.sailor-base-handle\)/)
+  assert.match(source, /\.is-position-right \.sailor-base-node__handler :deep\(\.sailor-base-handle\)/)
+})
+
+test('BaseEdge routes directly through Vue Flow measured endpoints', () => {
+  const source = read('BaseEdge.vue')
+
+  assert.match(source, /props\.sourceX, props\.sourceY/)
+  assert.match(source, /props\.targetX, props\.targetY/)
+  assert.doesNotMatch(source, /props\.(?:source|target)[XY]\s*[+-]/)
+})
+
 test('QuickAddButton emits generic handler metadata', () => {
   const source = read('QuickAddButton.vue')
 

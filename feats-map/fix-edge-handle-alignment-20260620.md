@@ -1,0 +1,4 @@
+- [x] Reproduce edge endpoint and handle center mismatch
+- [ ] Preserve Vue Flow handle measurement geometry
+- [ ] Align configured handles on every node side
+- [ ] Verify edge and handle contracts and types
