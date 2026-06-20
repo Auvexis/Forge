@@ -776,6 +776,8 @@ const closePluginMethodView = () => {
 <style>
 .global-add-node-drag-preview {
   position: fixed;
+  top: 0;
+  left: 0;
   z-index: 2147483647;
   width: 144px;
   pointer-events: none;
