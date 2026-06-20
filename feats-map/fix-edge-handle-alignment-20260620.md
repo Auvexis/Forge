@@ -2,4 +2,4 @@
 - [x] Preserve Vue Flow handle measurement geometry
 - [x] Align configured handles on every node side
 - [x] Refresh measurements after canvas initialization
-- [ ] Verify edge and handle contracts and types
+- [x] Verify edge and handle contracts and types
