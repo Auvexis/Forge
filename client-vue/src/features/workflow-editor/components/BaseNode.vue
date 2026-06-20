@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, nextTick } from 'vue'
+import { computed, ref, nextTick, watch } from 'vue'
 import { Position, useVueFlow } from '@vue-flow/core'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseHandle from './BaseHandle.vue'
@@ -55,7 +55,7 @@ const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
 const quickAddBus = useEventBus('node:quick-add')
 const toast = useToast()
-const { edges } = useVueFlow()
+const { edges, updateNodeInternals } = useVueFlow()
 
 const allEdges = computed(() => [
   ...edges.value,
@@ -79,6 +79,27 @@ const handlerSides = computed(() =>
     }))
     .filter((side) => side.handlers.length > 0),
 )
+const handleGeometrySignature = computed(() =>
+  JSON.stringify({
+    target: props.hasTarget ? effectiveInputPosition.value : null,
+    source: props.hasSource ? effectiveOutputPosition.value : null,
+    handlers: (props.handlers ?? []).map((handler) => [
+      handler.id,
+      handler.type,
+      handler.position,
+      handler.style ?? 'circle',
+    ]),
+  }),
+)
+
+const refreshHandleGeometry = async () => {
+  if (!props.id) return
+  await nextTick()
+  updateNodeInternals([props.id])
+}
+
+watch(handleGeometrySignature, refreshHandleGeometry, { flush: 'post' })
+
 const handlerAllowsQuickAdd = (handler: BaseNodeHandlerDefinition) =>
   !!handler.quickAdd && (handler.allowedNodes === '*' || handler.allowedNodes.length > 0)
 

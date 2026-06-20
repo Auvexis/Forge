@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onBeforeUnmount, onMounted, nextTick } from 'vue'
 import { VueFlow } from '@vue-flow/core'
-import type { Node, Edge, NodeMouseEvent, NodeDragEvent, Connection, VueFlowStore } from '@vue-flow/core'
+import type { Node, Edge, GraphNode, NodeMouseEvent, NodeDragEvent, Connection, VueFlowStore } from '@vue-flow/core'
 import { useWorkflowStore } from '../stores/workflow.store'
 import { useExecutionStore } from '../stores/execution.store'
 import TriggerNode from './nodes/TriggerNode.vue'
@@ -104,6 +104,17 @@ async function onVueFlowInit(instance: VueFlowStore) {
   vueFlowStore.value = instance
   await nextTick()
   instance.updateNodeInternals()
+}
+
+let initializedNodeSignature = ''
+
+async function onNodesInitialized(nodes: GraphNode[]) {
+  const signature = nodes.map((node) => node.id).sort().join('|')
+  if (!signature || signature === initializedNodeSignature) return
+
+  initializedNodeSignature = signature
+  await nextTick()
+  vueFlowStore.value?.updateNodeInternals()
 }
 
 function buildNodes() {
@@ -1551,6 +1562,7 @@ defineExpose({
       @connect="onConnect"
       @connect-end="onConnectEnd"
       @init="onVueFlowInit"
+      @nodes-initialized="onNodesInitialized"
       @edges-change="onEdgesChange"
       @nodes-change="onNodesChange"
       @selection-drag-start="isCanvasSelecting = true"

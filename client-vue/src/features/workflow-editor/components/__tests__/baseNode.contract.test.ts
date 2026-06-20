@@ -73,6 +73,23 @@ test('BaseEdge routes directly through Vue Flow measured endpoints', () => {
   assert.doesNotMatch(source, /props\.(?:source|target)[XY]\s*[+-]/)
 })
 
+test('canvas refreshes handle measurements after Vue Flow initializes every node', () => {
+  const canvas = read('SailorWorkflowCanvas.vue')
+
+  assert.match(canvas, /@nodes-initialized="onNodesInitialized"/)
+  assert.match(canvas, /async function onNodesInitialized/)
+  assert.match(canvas, /updateNodeInternals\(\)/)
+})
+
+test('BaseNode refreshes only later changes to its handle geometry', () => {
+  const source = read('BaseNode.vue')
+
+  assert.match(source, /const handleGeometrySignature = computed/)
+  assert.match(source, /watch\(handleGeometrySignature, refreshHandleGeometry/)
+  assert.doesNotMatch(source, /onMounted\(refreshHandleGeometry\)/)
+  assert.match(source, /updateNodeInternals\(\[props\.id\]\)/)
+})
+
 test('QuickAddButton emits generic handler metadata', () => {
   const source = read('QuickAddButton.vue')
 
