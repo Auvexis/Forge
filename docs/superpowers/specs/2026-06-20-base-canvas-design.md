@@ -58,9 +58,13 @@ The canvas receives permanent state from the feature and emits generic interacti
   v-model:viewport="viewport"
   :snap-to-grid="true"
   :grid-size="16"
+  :marquee-selection="true"
   background-color="#0b0b0d"
   pattern-color="rgba(255,255,255,0.08)"
   pattern-style="dot"
+  marquee-bg="rgba(59,130,246,0.12)"
+  marquee-border-style="dashed"
+  marquee-border-color="rgba(96,165,250,0.85)"
   :rulers="true"
   @items-move="applyItemMove"
   @canvas-click="handleCanvasClick"
@@ -106,6 +110,39 @@ BaseCanvas internal temporary state:
 - pan gesture state
 
 The base canvas emits final or incremental events. The feature updates the official data.
+
+## Camera And Pointer Controls
+
+Camera movement should follow the Figma-style interaction model.
+
+- Hold `Space` and drag with the primary mouse button to pan the viewport
+- Drag with the middle mouse button to pan the viewport
+- The primary mouse button without `Space` is reserved for item selection, item dragging, and marquee selection
+- Wheel gestures can zoom or scroll according to the final implementation plan, but they must not conflict with the primary selection model
+
+This keeps camera movement explicit and prevents accidental pans during selection or editing.
+
+## Marquee Selection
+
+Marquee selection is part of the MVP.
+
+MVP behavior:
+
+- Enabled by default
+- Starts with primary mouse drag on empty canvas space
+- Selects items whose bounds intersect the marquee rectangle
+- Does not start while panning with `Space`
+- Does not start while panning with the middle mouse button
+- Does not require the base canvas to know item meaning
+
+The base canvas supports simple marquee customization:
+
+- `marqueeSelection`
+- `marqueeBg`
+- `marqueeBorderStyle`: `line`, `dot`, or `dashed`
+- `marqueeBorderColor`
+
+The marquee rectangle is temporary internal state. The selected ids remain feature-controlled through `v-model:selection`.
 
 ## Snap And Movement
 
@@ -161,6 +198,7 @@ The prototype should prove:
 - Pages can render page surfaces as generic canvas items
 - Pages owns item data and selection
 - BaseCanvas handles pan, zoom, selection, movement, grid, pattern, and rulers
+- Pages can use marquee selection without moving camera accidentally
 - Pages-specific block editing remains in the Pages feature
 
 The prototype should not migrate Workflow Editor yet.
@@ -173,6 +211,9 @@ Add focused contract tests for:
 - item movement emits generic move events
 - snap rounds movement by grid size
 - Ctrl or Shift bypasses snap
+- primary mouse drag on empty space starts marquee selection
+- Space with primary mouse drag pans instead of starting marquee selection
+- middle mouse drag pans instead of starting marquee selection
 - viewport changes emit generic viewport updates
 - rulers derive ticks from viewport and zoom without mutating items
 
