@@ -1,3 +1,3 @@
 - [x] Reproduce utility manifest and canvas style mismatch
 - [x] Align utility manifest styles with canvas tokens
-- [ ] Verify server and frontend contracts
+- [x] Verify server and frontend contracts
