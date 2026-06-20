@@ -22,3 +22,6 @@
 - [x] Trocar drag nativo por drag customizado visível
 - [x] Iniciar preview no pointerdown com capture
 - [x] Fixar origem do preview no topo esquerdo da viewport
+- [x] Centralizar drop no cursor do preview
+- [x] Remover background e handlers do preview
+- [x] Reforçar animação de vento no preview

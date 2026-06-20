@@ -198,13 +198,15 @@
         class="global-add-node-drag-preview"
         :style="dragPreviewStyle"
       >
-        <div class="global-add-node-drag-preview__node">
-          <span class="global-add-node-drag-preview__icon">
-            <LucideIcon :name="dragPreview.icon" :size="28" />
-          </span>
+        <div class="global-add-node-drag-preview__body" :style="dragPreviewBodyStyle">
+          <div class="global-add-node-drag-preview__node">
+            <span class="global-add-node-drag-preview__icon">
+              <LucideIcon :name="dragPreview.icon" :size="28" />
+            </span>
+          </div>
+          <div class="global-add-node-drag-preview__label">{{ dragPreview.label }}</div>
+          <div class="global-add-node-drag-preview__subtitle">{{ dragPreview.subtitle }}</div>
         </div>
-        <div class="global-add-node-drag-preview__label">{{ dragPreview.label }}</div>
-        <div class="global-add-node-drag-preview__subtitle">{{ dragPreview.subtitle }}</div>
       </div>
     </Teleport>
   </div>
@@ -279,6 +281,7 @@ const dragPreview = ref<DragPreviewMeta | null>(null)
 const dragPreviewPoint = ref({ x: 0, y: 0 })
 const dragPreviewVelocity = ref({ x: 0, y: 0 })
 const dragPreviewScale = ref(0.72)
+const dragPreviewBodyOffset = ref({ x: 0, y: 0, rotate: 0 })
 let lastDragPoint = { x: 0, y: 0, t: 0 }
 let activePointerPayload: GlobalAddNodeDragPayload | null = null
 let activePointerId: number | null = null
@@ -363,6 +366,7 @@ const startDragPreview = (point: { x: number; y: number }, preview?: DragPreview
   dragPreview.value = preview
   dragPreviewPoint.value = point
   dragPreviewVelocity.value = { x: 0, y: 0 }
+  dragPreviewBodyOffset.value = { x: 0, y: 0, rotate: 0 }
   dragPreviewScale.value = 0.72
   lastDragPoint = { ...point, t: performance.now() }
   requestAnimationFrame(() => {
@@ -378,8 +382,13 @@ const moveDragPreview = (point: { x: number; y: number }) => {
   const dy = point.y - lastDragPoint.y
   dragPreviewPoint.value = point
   dragPreviewVelocity.value = {
-    x: Math.max(-26, Math.min(26, (dx / dt) * 18)),
-    y: Math.max(-12, Math.min(12, (dy / dt) * 10)),
+    x: Math.max(-44, Math.min(44, (dx / dt) * 42)),
+    y: Math.max(-18, Math.min(18, (dy / dt) * 16)),
+  }
+  dragPreviewBodyOffset.value = {
+    x: -dragPreviewVelocity.value.x,
+    y: -Math.min(24, Math.abs(dragPreviewVelocity.value.x) * 0.35 + Math.abs(dragPreviewVelocity.value.y) * 0.25),
+    rotate: Math.max(-14, Math.min(14, -dragPreviewVelocity.value.x * 0.28)),
   }
   lastDragPoint = { ...point, t: now }
 }
@@ -399,18 +408,19 @@ const handleDragEnd = () => {
   window.setTimeout(() => {
     dragPreview.value = null
     dragPreviewVelocity.value = { x: 0, y: 0 }
+    dragPreviewBodyOffset.value = { x: 0, y: 0, rotate: 0 }
   }, 120)
 }
 
 const dragPreviewStyle = computed(() => {
-  const windPullX = -dragPreviewVelocity.value.x
-  const lift = Math.min(
-    18,
-    Math.abs(dragPreviewVelocity.value.x) * 0.45 + Math.abs(dragPreviewVelocity.value.y) * 0.2,
-  )
-  const rotate = Math.max(-10, Math.min(10, -dragPreviewVelocity.value.x * 0.32))
   return {
-    transform: `translate3d(${dragPreviewPoint.value.x - 72 + windPullX}px, ${dragPreviewPoint.value.y - 78 - lift}px, 0) rotate(${rotate}deg) scale(${dragPreviewScale.value})`,
+    transform: `translate3d(${dragPreviewPoint.value.x - 72}px, ${dragPreviewPoint.value.y - 56}px, 0) scale(${dragPreviewScale.value})`,
+  }
+})
+
+const dragPreviewBodyStyle = computed(() => {
+  return {
+    transform: `translate3d(${dragPreviewBodyOffset.value.x}px, ${dragPreviewBodyOffset.value.y}px, 0) rotate(${dragPreviewBodyOffset.value.rotate}deg)`,
   }
 })
 
@@ -492,7 +502,7 @@ const handlePointerDragEnd = (event: PointerEvent) => {
     suppressClickUntil = Date.now() + 250
     const target = document.elementFromPoint(point.x, point.y)
     if (target?.closest('.sailor-workflow-canvas')) {
-      addPayloadAtPoint(payload, point)
+      addPayloadAtPoint(payload, { x: point.x - 52, y: point.y - 52 })
     }
     handleDragEnd()
   }
@@ -784,8 +794,13 @@ const closePluginMethodView = () => {
   text-align: center;
   transform-origin: center 62px;
   transition:
-    transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.04s linear,
     opacity 0.12s ease;
+  will-change: transform;
+}
+
+.global-add-node-drag-preview__body {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 
@@ -803,34 +818,12 @@ const closePluginMethodView = () => {
   box-shadow: var(--sailor-shadow-lg);
 }
 
-.global-add-node-drag-preview__node::before,
-.global-add-node-drag-preview__node::after {
-  position: absolute;
-  top: 50%;
-  width: 10px;
-  height: 28px;
-  border-radius: 999px;
-  background: var(--sailor-border);
-  content: '';
-  transform: translateY(-50%);
-}
-
-.global-add-node-drag-preview__node::before {
-  left: -5px;
-}
-
-.global-add-node-drag-preview__node::after {
-  right: -5px;
-}
-
 .global-add-node-drag-preview__icon {
   display: inline-flex;
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
-  background: var(--sailor-bg-surface);
   color: var(--sailor-text-primary);
 }
 
