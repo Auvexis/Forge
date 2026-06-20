@@ -1,6 +1,7 @@
 <template>
   <div
     class="base-canvas"
+    @pointerdown="startCanvasPointer"
     @click.self="handleCanvasClick"
   >
     <div class="base-canvas__viewport" :style="viewportStyle">
@@ -17,17 +18,24 @@
         <slot name="item" :item="item" :selected="selection.includes(item.id)" />
       </div>
     </div>
+    <div
+      v-if="marqueeRect"
+      class="base-canvas__marquee"
+      :style="marqueeStyle"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type {
   BaseCanvasItem,
   BaseCanvasItemsMoveEvent,
   BaseCanvasPoint,
+  BaseCanvasRect,
   BaseCanvasViewport,
 } from './types.ts'
+import { itemToRect, rectFromPoints, rectsIntersect } from './geometry.ts'
 import { snapDeltaToGrid, shouldBypassSnap } from './snap.ts'
 
 const props = withDefaults(defineProps<{
@@ -36,9 +44,11 @@ const props = withDefaults(defineProps<{
   viewport: BaseCanvasViewport
   snapToGrid?: boolean
   gridSize?: number
+  marqueeSelection?: boolean
 }>(), {
   snapToGrid: true,
   gridSize: 16,
+  marqueeSelection: true,
 })
 
 const emit = defineEmits<{
@@ -54,10 +64,44 @@ const activeDrag = ref<{
   start: BaseCanvasPoint
   pointerId: number
 } | null>(null)
+const activePan = ref<{
+  start: BaseCanvasPoint
+  viewport: BaseCanvasViewport
+  pointerId: number
+} | null>(null)
+const activeMarquee = ref<{
+  start: BaseCanvasPoint
+  pointerId: number
+} | null>(null)
+const marqueeRect = ref<BaseCanvasRect | null>(null)
+const isSpacePressed = ref(false)
 
 const viewportStyle = computed(() => ({
   transform: `translate(${props.viewport.x}px, ${props.viewport.y}px) scale(${props.viewport.zoom})`,
 }))
+
+const marqueeStyle = computed(() => {
+  if (!marqueeRect.value) return {}
+  return {
+    left: `${marqueeRect.value.x}px`,
+    top: `${marqueeRect.value.y}px`,
+    width: `${marqueeRect.value.width}px`,
+    height: `${marqueeRect.value.height}px`,
+  }
+})
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+  window.addEventListener('keyup', handleKeyUp)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('keyup', handleKeyUp)
+  stopItemDrag()
+  stopViewportPan()
+  stopMarqueeSelection()
+})
 
 function itemStyle(item: BaseCanvasItem) {
   return {
@@ -77,7 +121,42 @@ function handleItemClick(itemId: string) {
   emit('item-click', itemId)
 }
 
+function startCanvasPointer(event: PointerEvent) {
+  if (event.button === 1 || (event.button === 0 && isSpacePressed.value)) {
+    startViewportPan(event)
+    return
+  }
+  if (event.button !== 0) return
+  startMarqueeSelection(event)
+}
+
+function startViewportPan(event: PointerEvent) {
+  activePan.value = {
+    start: { x: event.clientX, y: event.clientY },
+    viewport: { ...props.viewport },
+    pointerId: event.pointerId,
+  }
+  window.addEventListener('pointermove', moveViewport)
+  window.addEventListener('pointerup', stopViewportPan, { once: true })
+}
+
+function moveViewport(event: PointerEvent) {
+  const pan = activePan.value
+  if (!pan || event.pointerId !== pan.pointerId) return
+  emit('update:viewport', {
+    ...pan.viewport,
+    x: pan.viewport.x + event.clientX - pan.start.x,
+    y: pan.viewport.y + event.clientY - pan.start.y,
+  })
+}
+
+function stopViewportPan() {
+  activePan.value = null
+  window.removeEventListener('pointermove', moveViewport)
+}
+
 function startItemDrag(event: PointerEvent, item: BaseCanvasItem) {
+  if (event.button !== 0) return
   if (item.locked) return
   activeDrag.value = {
     itemId: item.id,
@@ -105,6 +184,51 @@ function stopItemDrag() {
   activeDrag.value = null
   window.removeEventListener('pointermove', moveItem)
 }
+
+function startMarqueeSelection(event: PointerEvent) {
+  if (!props.marqueeSelection) return
+  activeMarquee.value = {
+    start: { x: event.clientX, y: event.clientY },
+    pointerId: event.pointerId,
+  }
+  marqueeRect.value = rectFromPoints(activeMarquee.value.start, activeMarquee.value.start)
+  window.addEventListener('pointermove', moveMarqueeSelection)
+  window.addEventListener('pointerup', stopMarqueeSelection, { once: true })
+}
+
+function moveMarqueeSelection(event: PointerEvent) {
+  const marquee = activeMarquee.value
+  if (!marquee || event.pointerId !== marquee.pointerId) return
+  const rect = rectFromPoints(marquee.start, { x: event.clientX, y: event.clientY })
+  marqueeRect.value = rect
+  const selected = props.items
+    .filter((item) => rectsIntersect(screenRectToWorld(rect), itemToRect(item)))
+    .map((item) => item.id)
+  emit('update:selection', selected)
+}
+
+function stopMarqueeSelection() {
+  activeMarquee.value = null
+  marqueeRect.value = null
+  window.removeEventListener('pointermove', moveMarqueeSelection)
+}
+
+function screenRectToWorld(rect: BaseCanvasRect): BaseCanvasRect {
+  return {
+    x: (rect.x - props.viewport.x) / props.viewport.zoom,
+    y: (rect.y - props.viewport.y) / props.viewport.zoom,
+    width: rect.width / props.viewport.zoom,
+    height: rect.height / props.viewport.zoom,
+  }
+}
+
+function handleKeyDown(event: KeyboardEvent) {
+  if (event.code === 'Space') isSpacePressed.value = true
+}
+
+function handleKeyUp(event: KeyboardEvent) {
+  if (event.code === 'Space') isSpacePressed.value = false
+}
 </script>
 
 <style scoped>
@@ -127,5 +251,12 @@ function stopItemDrag() {
   top: 0;
   left: 0;
   box-sizing: border-box;
+}
+
+.base-canvas__marquee {
+  position: absolute;
+  pointer-events: none;
+  border: 1px dashed rgba(96, 165, 250, 0.85);
+  background: rgba(59, 130, 246, 0.12);
 }
 </style>

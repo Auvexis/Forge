@@ -76,6 +76,21 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /data-base-canvas-item-id/)
     assert.match(source, /transform: `translate\(\$\{item\.x}px, \$\{item\.y}px\)`/)
   })
+
+  it('keeps pan, drag, and marquee gestures separated', () => {
+    const source = readBaseCanvas()
+
+    assert.match(source, /function startCanvasPointer/)
+    assert.match(source, /event\.button === 1/)
+    assert.match(source, /isSpacePressed\.value/)
+    assert.match(source, /startViewportPan/)
+    assert.match(source, /startMarqueeSelection/)
+    assert.match(source, /if \(event\.button !== 0\) return/)
+    assert.match(source, /emit\('update:viewport'/)
+    assert.match(source, /shouldBypassSnap\(event\)/)
+    assert.match(source, /if \(item\.locked\) return/)
+    assert.match(source, /rectsIntersect/)
+  })
 })
 
 function readBaseCanvas() {

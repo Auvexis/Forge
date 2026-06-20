@@ -18,16 +18,16 @@
 - [x] Emitir `items-move`
 - [x] Emitir `canvas-click`
 - [x] Emitir `item-click`
-- [ ] Implementar pan com `Space + M1`
-- [ ] Implementar pan com botao do meio do mouse
-- [ ] Garantir que `M1` sem Space nao move a camera
-- [ ] Implementar drag de item com snap padrao
-- [ ] Implementar movimento livre segurando Ctrl
-- [ ] Implementar movimento livre segurando Shift
-- [ ] Bloquear movimento de itens com `locked`
-- [ ] Implementar marquee selection no espaco vazio
-- [ ] Impedir marquee selection durante pan com Space
-- [ ] Impedir marquee selection durante pan com botao do meio
+- [x] Implementar pan com `Space + M1`
+- [x] Implementar pan com botao do meio do mouse
+- [x] Garantir que `M1` sem Space nao move a camera
+- [x] Implementar drag de item com snap padrao
+- [x] Implementar movimento livre segurando Ctrl
+- [x] Implementar movimento livre segurando Shift
+- [x] Bloquear movimento de itens com `locked`
+- [x] Implementar marquee selection no espaco vazio
+- [x] Impedir marquee selection durante pan com Space
+- [x] Impedir marquee selection durante pan com botao do meio
 - [ ] Adicionar props visuais da marquee selection
 - [ ] Implementar pattern `dot`
 - [ ] Implementar pattern `square`
