@@ -69,15 +69,57 @@ describe('page editor contract', () => {
 
     assert.match(source, /isSpacePanActive/)
     assert.match(source, /event\.button === 1/)
-    assert.match(source, /web-page-editor__plane/)
+    assert.match(source, /web-page-editor__base-canvas/)
     assert.match(renderer, /draggable="!readonly && activeTool === 'cursor'"/)
-    assert.match(css, /web-page-editor__plane/)
+    assert.match(css, /web-page-editor__base-canvas/)
     assert.match(css, /transform-origin:\s*top center/)
     assert.match(css, /min-width:\s*0/)
     assert.doesNotMatch(source, /FREE_CANVAS_WIDTH/)
     assert.doesNotMatch(source, /centerWorkspacePlane/)
     assert.doesNotMatch(source, /web-page-canvas-controls/)
     assert.doesNotMatch(css, /web-page-canvas-controls/)
+  })
+
+  it('uses shared BaseCanvas as the Pages prototype shell', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /import \{ BaseCanvas \} from '@\/shared\/base-canvas\/components\.ts'/)
+    assert.match(source, /import type \{ BaseCanvasContextMenuEvent, BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasViewport \}/)
+    assert.match(source, /const pageCanvasViewport = ref<BaseCanvasViewport>/)
+    assert.match(source, /const pageCanvasSelection = ref<string\[\]>/)
+    assert.match(source, /const pageCanvasItems = computed<BaseCanvasItem\[\]>/)
+    assert.match(source, /<BaseCanvas/)
+    assert.match(source, /#item="\{ item \}"/)
+    assert.match(source, /@context-menu="openPageCanvasContextMenu"/)
+    assert.match(source, /@items-move="handlePageCanvasItemsMove"/)
+  })
+
+  it('keeps Pages data and block editing outside BaseCanvas', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+    const baseCanvasOpenTag = source.match(/<BaseCanvas[\s\S]*?>/)?.[0] ?? ''
+
+    assert.match(source, /pageCanvasSelection/)
+    assert.match(source, /async function selectTreePage\(pageId: string\)/)
+    assert.match(source, /@click="selectTreePage\(item\.id\)"/)
+    assert.match(source, /<PageCanvas/)
+    assert.match(source, /@select="selectCanvasBlock\(item\.id, \$event\)"/)
+    assert.match(source, /@drop-block="handlePageDropBlock\(item\.id, \$event\)"/)
+    assert.match(source, /@inspect-block="handleInspectBlock\(item\.id, \$event\)"/)
+    assert.doesNotMatch(baseCanvasOpenTag, /blocks=/)
+  })
+
+  it('renders a Pages-owned context menu from generic canvas events', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /pageCanvasContextMenu/)
+    assert.match(source, /openPageCanvasContextMenu/)
+    assert.match(source, /closePageCanvasContextMenu/)
+    assert.match(source, /web-page-canvas-context-menu/)
+    assert.match(source, /Add page/)
+    assert.match(source, /Duplicate page/)
+    assert.match(source, /Delete page/)
+    assert.match(css, /web-page-canvas-context-menu/)
   })
 
   it('workspace centers the page by css instead of a wide horizontal plane', () => {

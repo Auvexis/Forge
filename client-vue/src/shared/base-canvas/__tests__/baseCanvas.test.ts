@@ -124,6 +124,7 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /target: \{ type: 'canvas' \}/)
     assert.match(source, /target: \{ type: 'item', itemId \}/)
     assert.match(source, /screenToWorld/)
+    assert.match(source, /event\.button === 1/)
     assert.doesNotMatch(source, /<ContextMenu|ContextMenuPanel|ContextMenuItem/)
     assert.doesNotMatch(source, /menu item/i)
   })

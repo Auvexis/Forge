@@ -59,11 +59,10 @@
         'web-page-editor__workspace--panning': isPanningWorkspace,
       }"
       @click.self="clearEditorSelection"
-      @pointerdown="startWorkspacePan"
+      @pointerdown.self="startWorkspacePan"
       @pointermove="panWorkspace"
       @pointerup="stopWorkspacePan"
       @pointerleave="stopWorkspacePan"
-      @contextmenu.prevent
     >
       <Transition name="web-page-code-editor">
         <SiteCodeCanvas
@@ -77,49 +76,88 @@
       </Transition>
 
       <template v-if="!activeCodeFile">
-        <div class="web-page-editor__plane" :style="workspacePlaneStyle">
-          <template v-for="page in pagesStore.pages" :key="page.id">
-            <div class="web-page-editor__page-chip">
-              <button
-                type="button"
-                class="web-page-editor__page-handle"
-                :class="{ 'web-page-editor__page-handle--active': page.id === pagesStore.activePage?.id }"
-                @click="selectTreePage(page.id)"
-              >
-                {{ page.title }}
-              </button>
-              <BaseButton
-                variant="ghost"
-                size="icon"
-                icon-left="trash-2"
-                title="Delete page"
-                @click.stop="deletePageFromBadge(page.id)"
+        <BaseCanvas
+          v-model:selection="pageCanvasSelection"
+          v-model:viewport="pageCanvasViewport"
+          class="web-page-editor__base-canvas"
+          :items="pageCanvasItems"
+          :rulers="true"
+          :snap-to-grid="false"
+          background-color="var(--sailor-bg-canvas)"
+          pattern-color="rgba(255,255,255,0.08)"
+          pattern-style="dot"
+          @items-move="handlePageCanvasItemsMove"
+          @context-menu="openPageCanvasContextMenu"
+        >
+          <template #item="{ item }">
+            <div class="web-page-editor__page-shell">
+              <div class="web-page-editor__page-chip">
+                <button
+                  type="button"
+                  class="web-page-editor__page-handle"
+                  :class="{ 'web-page-editor__page-handle--active': item.id === pagesStore.activePage?.id }"
+                  @click="selectTreePage(item.id)"
+                >
+                  {{ pageTitle(item.id) }}
+                </button>
+                <BaseButton
+                  variant="ghost"
+                  size="icon"
+                  icon-left="trash-2"
+                  title="Delete page"
+                  @click.stop="deletePageFromBadge(item.id)"
+                />
+              </div>
+              <PageCanvas
+                :blocks="pageBlocks(item.id)"
+                :body-styles="pageBodyStyles(item.id)"
+                :selected-block-id="item.id === pagesStore.activePage?.id ? editorStore.selectedBlockId : null"
+                :drop-intent="item.id === pagesStore.activePage?.id ? editorStore.dragIntent : null"
+                :deleting-block-ids="deletingBlockIds"
+                :readonly="item.id !== pagesStore.activePage?.id"
+                :active-tool="activeTool"
+                @select="selectCanvasBlock(item.id, $event)"
+                @select-body="selectCanvasBody(item.id)"
+                @drop-block="handlePageDropBlock(item.id, $event)"
+                @drop-root="handlePageDropRoot(item.id, $event)"
+                @drag-intent="setPageDragIntent(item.id, $event)"
+                @clear-drag-intent="clearPageDragIntent(item.id)"
+                @duplicate-block="duplicateBlockFromCanvas"
+                @delete-block="deleteBlockFromCanvas"
+                @inspect-block="handleInspectBlock(item.id, $event)"
               />
             </div>
-            <PageCanvas
-              :blocks="pageBlocks(page.id)"
-              :body-styles="pageBodyStyles(page.id)"
-              :selected-block-id="page.id === pagesStore.activePage?.id ? editorStore.selectedBlockId : null"
-              :drop-intent="page.id === pagesStore.activePage?.id ? editorStore.dragIntent : null"
-              :deleting-block-ids="deletingBlockIds"
-              :readonly="page.id !== pagesStore.activePage?.id"
-              :active-tool="activeTool"
-              @select="selectCanvasBlock(page.id, $event)"
-              @select-body="selectCanvasBody(page.id)"
-              @drop-block="handlePageDropBlock(page.id, $event)"
-              @drop-root="handlePageDropRoot(page.id, $event)"
-              @drag-intent="setPageDragIntent(page.id, $event)"
-              @clear-drag-intent="clearPageDragIntent(page.id)"
-              @duplicate-block="duplicateBlockFromCanvas"
-              @delete-block="deleteBlockFromCanvas"
-              @inspect-block="handleInspectBlock(page.id, $event)"
-            />
           </template>
-          <div class="web-page-editor__add-page">
-            <BaseButton variant="outline" icon-left="plus" @click="addPageBelowCanvas">
-              Add page
-            </BaseButton>
-          </div>
+        </BaseCanvas>
+        <div
+          v-if="pageCanvasContextMenu"
+          class="web-page-canvas-context-menu"
+          :style="{ left: `${pageCanvasContextMenu.screen.x}px`, top: `${pageCanvasContextMenu.screen.y}px` }"
+        >
+          <BaseButton variant="ghost" icon-left="plus" @click="addPageFromContextMenu">
+            Add page
+          </BaseButton>
+          <BaseButton
+            variant="ghost"
+            icon-left="copy"
+            :disabled="!pageCanvasContextMenuPageId"
+            @click="duplicatePageFromContextMenu"
+          >
+            Duplicate page
+          </BaseButton>
+          <BaseButton
+            variant="ghost"
+            icon-left="trash-2"
+            :disabled="!pageCanvasContextMenuPageId"
+            @click="deletePageFromContextMenu"
+          >
+            Delete page
+          </BaseButton>
+        </div>
+        <div class="web-page-editor__add-page">
+          <BaseButton variant="outline" icon-left="plus" @click="addPageBelowCanvas">
+            Add page
+          </BaseButton>
         </div>
       </template>
     </div>
@@ -185,6 +223,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import { BaseCanvas } from '@/shared/base-canvas/components.ts'
+import type { BaseCanvasContextMenuEvent, BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
 import { API_BASE_URL } from '@/core/constants/app.ts'
 import { ENDPOINTS } from '@/core/api/endpoints.ts'
 import { usePagesStore } from '../stores/pages.store.ts'
@@ -224,10 +264,29 @@ const workspaceRef = ref<HTMLElement | null>(null)
 const isPanningWorkspace = ref(false)
 const isSpacePanActive = ref(false)
 const panStart = ref({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0, pointerId: -1 })
+const pageCanvasViewport = ref<BaseCanvasViewport>({ x: 0, y: 88, zoom: 1 })
+const pageCanvasSelection = ref<string[]>([])
+const pageCanvasOffsets = ref<Record<string, { x: number; y: number }>>({})
+const pageCanvasContextMenu = ref<BaseCanvasContextMenuEvent | null>(null)
 const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
 )
 const workspacePlaneStyle = computed(() => ({}))
+const pageCanvasItems = computed<BaseCanvasItem[]>(() => pagesStore.pages.map((page, index) => {
+  const offset = pageCanvasOffsets.value[page.id] ?? { x: 0, y: 0 }
+  return {
+    id: page.id,
+    x: 120 + offset.x,
+    y: index * 1160 + offset.y,
+    width: 960,
+    height: 1080,
+    data: { kind: 'page' },
+  }
+}))
+const pageCanvasContextMenuPageId = computed(() => {
+  const target = pageCanvasContextMenu.value?.target
+  return target?.type === 'item' ? target.itemId : null
+})
 const activeCodeContent = computed(() => {
   if (!activeCodeFile.value) return ''
   if (activeCodeFile.value.path.startsWith('pages/')) return renderGeneratedHtml(activeCodeFile.value.path)
@@ -453,6 +512,10 @@ function pageBodyStyles(pageId: string): PageBlockStyles | undefined {
   return pagesStore.activePage?.id === pageId ? pagesStore.activePage.bodyStyles : pagesStore.pageDocument(pageId)?.bodyStyles
 }
 
+function pageTitle(pageId: string) {
+  return pagesStore.pages.find((page) => page.id === pageId)?.title ?? 'Untitled'
+}
+
 async function ensurePageActive(pageId: string) {
   if (pagesStore.activePage?.id !== pageId) await switchPage(pageId)
   await nextTick()
@@ -468,6 +531,52 @@ function selectCanvasBody(pageId: string) {
 
 function clearEditorSelection() {
   editorStore.clearSelection()
+  pageCanvasSelection.value = []
+  closePageCanvasContextMenu()
+}
+
+function handlePageCanvasItemsMove(event: BaseCanvasItemsMoveEvent) {
+  pageCanvasOffsets.value = event.itemIds.reduce((offsets, itemId) => {
+    const current = offsets[itemId] ?? { x: 0, y: 0 }
+    return {
+      ...offsets,
+      [itemId]: {
+        x: current.x + event.delta.x,
+        y: current.y + event.delta.y,
+      },
+    }
+  }, { ...pageCanvasOffsets.value })
+}
+
+function openPageCanvasContextMenu(event: BaseCanvasContextMenuEvent) {
+  pageCanvasContextMenu.value = event
+  if (event.target.type === 'item') {
+    pageCanvasSelection.value = [event.target.itemId]
+    void ensurePageActive(event.target.itemId).then(() => editorStore.selectPage())
+  }
+}
+
+function closePageCanvasContextMenu() {
+  pageCanvasContextMenu.value = null
+}
+
+async function addPageFromContextMenu() {
+  closePageCanvasContextMenu()
+  await addPageBelowCanvas()
+}
+
+async function duplicatePageFromContextMenu() {
+  const pageId = pageCanvasContextMenuPageId.value
+  closePageCanvasContextMenu()
+  if (!pageId) return
+  await duplicatePageFromTree(pageId)
+}
+
+async function deletePageFromContextMenu() {
+  const pageId = pageCanvasContextMenuPageId.value
+  closePageCanvasContextMenu()
+  if (!pageId) return
+  await deletePageFromTree(pageId)
 }
 
 function startWorkspacePan(event: PointerEvent) {

@@ -48,16 +48,16 @@
 - [x] Testar drag emitindo `items-move`
 - [x] Testar marquee emitindo selecao
 - [x] Testar pan com Space sem iniciar marquee
-- [ ] Testar pan com botao do meio sem iniciar marquee
-- [ ] Testar context menu em canvas vazio
-- [ ] Testar context menu em item
-- [ ] Integrar prototipo em Sailor Pages
-- [ ] Mapear paginas como itens genericos do BaseCanvas
-- [ ] Manter dados e selecao oficiais na feature Pages
-- [ ] Renderizar conteudo de Pages via slot do BaseCanvas
-- [ ] Conectar eventos genericos do BaseCanvas em Pages
-- [ ] Criar context menu visual dentro da feature Pages
-- [ ] Garantir que edicao de blocos continua na feature Pages
+- [x] Testar pan com botao do meio sem iniciar marquee
+- [x] Testar context menu em canvas vazio
+- [x] Testar context menu em item
+- [x] Integrar prototipo em Sailor Pages
+- [x] Mapear paginas como itens genericos do BaseCanvas
+- [x] Manter dados e selecao oficiais na feature Pages
+- [x] Renderizar conteudo de Pages via slot do BaseCanvas
+- [x] Conectar eventos genericos do BaseCanvas em Pages
+- [x] Criar context menu visual dentro da feature Pages
+- [x] Garantir que edicao de blocos continua na feature Pages
 - [ ] Garantir que Workflow Editor nao e migrado neste MVP
 - [ ] Rodar testes do BaseCanvas
 - [ ] Rodar testes de Pages afetados

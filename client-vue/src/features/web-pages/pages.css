@@ -325,11 +325,17 @@
 }
 
 .web-page-editor__workspace {
+  position: relative;
   min-height: 100%;
   margin: 0;
   padding: calc(40px + var(--sailor-space-8)) 0 var(--sailor-space-8);
   overflow: auto;
   transition: padding 180ms var(--sailor-ease-standard);
+}
+
+.web-page-editor__base-canvas {
+  width: 100%;
+  min-height: 1800px;
 }
 
 .web-page-editor__plane {
@@ -342,6 +348,11 @@
   padding: var(--sailor-space-8) 0 320px;
   transform-origin: top center;
   transition: transform 180ms var(--sailor-ease-standard);
+}
+
+.web-page-editor__page-shell {
+  display: grid;
+  align-content: start;
 }
 
 .web-page-editor__workspace--pan {
@@ -378,9 +389,31 @@
 }
 
 .web-page-editor__add-page {
+  position: absolute;
+  right: 0;
+  bottom: var(--sailor-space-8);
+  left: 0;
   display: flex;
   justify-content: center;
   padding: var(--sailor-space-4) 0;
+}
+
+.web-page-canvas-context-menu {
+  position: fixed;
+  z-index: 40;
+  display: grid;
+  min-width: 180px;
+  gap: var(--sailor-space-1);
+  padding: var(--sailor-space-1);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  box-shadow: var(--sailor-shadow-lg);
+}
+
+.web-page-canvas-context-menu .base-button {
+  justify-content: flex-start;
+  width: 100%;
 }
 
 .web-page-editor__page-handle {
