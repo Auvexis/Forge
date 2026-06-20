@@ -1,0 +1,67 @@
+- [ ] Criar `client-vue/src/shared/base-canvas/`
+- [ ] Criar tipos publicos do BaseCanvas
+- [ ] Criar helpers de coordenadas world/screen
+- [ ] Criar helper de snap-to-grid
+- [ ] Criar helper de intersecao para marquee selection
+- [ ] Criar helper de ticks para rulers
+- [ ] Criar testes dos helpers de coordenadas
+- [ ] Criar testes do snap-to-grid
+- [ ] Criar testes do bypass de snap com Ctrl
+- [ ] Criar testes do bypass de snap com Shift
+- [ ] Criar testes de intersecao da marquee selection
+- [ ] Criar testes dos ticks das rulers
+- [ ] Criar componente `BaseCanvas.vue`
+- [ ] Renderizar itens via slot sem importar componentes de feature
+- [ ] Aplicar posicionamento DOM por coordenadas do mundo
+- [ ] Emitir `update:viewport`
+- [ ] Emitir `update:selection`
+- [ ] Emitir `items-move`
+- [ ] Emitir `canvas-click`
+- [ ] Emitir `item-click`
+- [ ] Implementar pan com `Space + M1`
+- [ ] Implementar pan com botao do meio do mouse
+- [ ] Garantir que `M1` sem Space nao move a camera
+- [ ] Implementar drag de item com snap padrao
+- [ ] Implementar movimento livre segurando Ctrl
+- [ ] Implementar movimento livre segurando Shift
+- [ ] Bloquear movimento de itens com `locked`
+- [ ] Implementar marquee selection no espaco vazio
+- [ ] Impedir marquee selection durante pan com Space
+- [ ] Impedir marquee selection durante pan com botao do meio
+- [ ] Adicionar props visuais da marquee selection
+- [ ] Implementar pattern `dot`
+- [ ] Implementar pattern `square`
+- [ ] Implementar pattern `none`
+- [ ] Adicionar props de background e pattern
+- [ ] Criar componente de rulers passivas
+- [ ] Renderizar ruler superior
+- [ ] Renderizar ruler esquerda
+- [ ] Sincronizar rulers com pan e zoom
+- [ ] Garantir que rulers nao alteram items
+- [ ] Implementar evento generico de context menu
+- [ ] Diferenciar context menu no canvas vazio
+- [ ] Diferenciar context menu em item
+- [ ] Garantir que o BaseCanvas nao renderiza menu visual
+- [ ] Exportar API publica de `shared/base-canvas`
+- [ ] Criar testes de contrato do `BaseCanvas`
+- [ ] Testar que item generico nao exige tipo de feature
+- [ ] Testar drag emitindo `items-move`
+- [ ] Testar marquee emitindo selecao
+- [ ] Testar pan com Space sem iniciar marquee
+- [ ] Testar pan com botao do meio sem iniciar marquee
+- [ ] Testar context menu em canvas vazio
+- [ ] Testar context menu em item
+- [ ] Integrar prototipo em Sailor Pages
+- [ ] Mapear paginas como itens genericos do BaseCanvas
+- [ ] Manter dados e selecao oficiais na feature Pages
+- [ ] Renderizar conteudo de Pages via slot do BaseCanvas
+- [ ] Conectar eventos genericos do BaseCanvas em Pages
+- [ ] Criar context menu visual dentro da feature Pages
+- [ ] Garantir que edicao de blocos continua na feature Pages
+- [ ] Garantir que Workflow Editor nao e migrado neste MVP
+- [ ] Rodar testes do BaseCanvas
+- [ ] Rodar testes de Pages afetados
+- [ ] Rodar type-check do frontend
+- [ ] Fazer verificacao visual do prototipo em desktop
+- [ ] Atualizar este checklist conforme a implementacao avancar
+- [ ] Commitar a implementacao final
