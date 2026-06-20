@@ -35,7 +35,7 @@ defineProps<{
   label: string
   description: string
   icon: string
-  styleMeta?: WorkflowNodeStyle
+  styleMeta?: Partial<WorkflowNodeStyle>
   active?: boolean
   chevron?: boolean
   count?: number

@@ -29,7 +29,7 @@
                 :label="item.label"
                 :description="item.description"
                 :icon="item.kind === 'plugin' ? pluginIcon(item.plugin) : item.icon"
-                :style-meta="item.kind === 'plugin' ? undefined : item.preset.style"
+                :style-meta="item.kind === 'plugin' ? item.plugin.manifest.metadata.style : item.preset.style"
                 :chevron="item.kind === 'plugin' && pluginNeedsMethodSubmenu(item.plugin)"
                 @click="selectGlobalSearchItem(item)"
               />
@@ -85,7 +85,7 @@
                 :label="item.label"
                 :description="item.description"
                 :icon="item.kind === 'plugin' ? pluginIcon(item.plugin) : item.icon"
-                :style-meta="item.kind === 'plugin' ? undefined : item.preset.style"
+                :style-meta="item.kind === 'plugin' ? item.plugin.manifest.metadata.style : item.preset.style"
                 :active="methodSubmenuPlugin?.id === item.id.replace('plugin:', '')"
                 :chevron="item.kind === 'plugin' && pluginNeedsMethodSubmenu(item.plugin)"
                 @click="selectSecondColumnItem(item)"
@@ -119,6 +119,7 @@
                       :label="item.label"
                       :description="item.description"
                       :icon="pluginIcon(item.plugin)"
+                      :style-meta="item.plugin.manifest.metadata.style"
                       @click="addVectorStoreNode(item.plugin)"
                     />
                     <div

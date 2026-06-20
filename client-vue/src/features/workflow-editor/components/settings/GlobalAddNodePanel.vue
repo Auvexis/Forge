@@ -22,7 +22,7 @@
         </header>
 
         <div class="global-add-node-panel__method-title">
-          <span class="global-add-node-panel__icon">
+          <span class="global-add-node-panel__icon" :style="pluginStyle(selectedPlugin)">
             <LucideIcon :name="pluginIcon(selectedPlugin)" :size="15" />
           </span>
           <span>{{ selectedPlugin.manifest.metadata.name }}</span>
@@ -128,7 +128,7 @@
                   @click="selectPlugin(plugin)"
                   @pointerdown="handlePluginPointerDragStart($event, plugin)"
                 >
-                  <span class="global-add-node-panel__icon">
+                  <span class="global-add-node-panel__icon" :style="pluginStyle(plugin)">
                     <LucideIcon :name="pluginIcon(plugin)" :size="15" />
                   </span>
                   <span>{{ plugin.manifest.metadata.name }}</span>
@@ -171,7 +171,7 @@
                   @click="selectPlugin(plugin)"
                   @pointerdown="handlePluginPointerDragStart($event, plugin)"
                 >
-                  <span class="global-add-node-panel__icon">
+                  <span class="global-add-node-panel__icon" :style="pluginStyle(plugin)">
                     <LucideIcon :name="pluginIcon(plugin)" :size="15" />
                   </span>
                   <span>{{ plugin.manifest.metadata.name }}</span>
@@ -353,6 +353,12 @@ const integrationItems = computed(() =>
 
 const pluginIcon = (plugin: PluginSummary) =>
   resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
+
+const pluginStyle = (plugin: PluginSummary) => ({
+  '--node-icon-bg': plugin.manifest.metadata.style?.bgColor,
+  '--node-icon-border': plugin.manifest.metadata.style?.borderColor,
+  '--node-icon-color': plugin.manifest.metadata.style?.iconColor,
+})
 
 const pluginActionItems = (plugin: PluginSummary) => buildPickerActionItems({ plugin, search: '' })
 
