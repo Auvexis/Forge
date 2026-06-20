@@ -73,6 +73,20 @@ test('BaseEdge routes directly through Vue Flow measured endpoints', () => {
   assert.doesNotMatch(source, /props\.(?:source|target)[XY]\s*[+-]/)
 })
 
+test('connection preview snaps to the hovered target handle center', () => {
+  const canvas = read('SailorWorkflowCanvas.vue')
+  const preview = read('ConnectionPreviewLine.vue')
+
+  assert.match(canvas, /import ConnectionPreviewLine/)
+  assert.match(canvas, /#connection-line="connectionLineProps"/)
+  assert.match(canvas, /<ConnectionPreviewLine v-bind="connectionLineProps" \/>/)
+  assert.match(preview, /const targetPoint = computed/)
+  assert.match(preview, /props\.targetHandle && props\.targetNode/)
+  assert.match(preview, /getHandlePoint\(props\.targetNode, props\.targetHandle/)
+  assert.match(preview, /props\.targetX/)
+  assert.match(preview, /props\.targetY/)
+})
+
 test('canvas refreshes handle measurements after Vue Flow initializes every node', () => {
   const canvas = read('SailorWorkflowCanvas.vue')
 

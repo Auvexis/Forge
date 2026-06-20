@@ -35,6 +35,7 @@ import VectorStoreRetrieverNode from './nodes/VectorStoreRetrieverNode.vue'
 import QuestionAnswerChainNode from './nodes/QuestionAnswerChainNode.vue'
 import VectorStoreToolNode from './nodes/VectorStoreToolNode.vue'
 import BaseEdge from './BaseEdge.vue'
+import ConnectionPreviewLine from './ConnectionPreviewLine.vue'
 import NodeGroupSelectionBox from './NodeGroupSelectionBox.vue'
 import { Background } from '@vue-flow/background'
 
@@ -1695,6 +1696,10 @@ defineExpose({
       </button>
 
       <!-- Custom Edge (Contains trash toolbar etc) -->
+      <template #connection-line="connectionLineProps">
+        <ConnectionPreviewLine v-bind="connectionLineProps" />
+      </template>
+
       <template #edge-workflow-edge="edgeProps">
         <BaseEdge v-bind="edgeProps" />
       </template>
