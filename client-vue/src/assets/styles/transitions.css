@@ -66,6 +66,29 @@
   transform: scale(0.94);
 }
 
+/* ── Workflow Node Pop In ─────────────────────────────────── */
+.sailor-node-pop-in {
+  animation: sailor-node-pop-in var(--sailor-duration-slow) var(--sailor-ease-standard) both;
+  transform-origin: center center;
+}
+
+@keyframes sailor-node-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+
+  72% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* ── Toast ───────────────────────────────────────────────── */
 .toast-enter-active {
   transition:

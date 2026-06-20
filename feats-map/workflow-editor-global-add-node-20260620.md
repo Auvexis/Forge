@@ -25,3 +25,5 @@
 - [x] Centralizar drop no cursor do preview
 - [x] Remover background e handlers do preview
 - [x] Reforçar animação de vento no preview
+- [x] Adicionar pop-in compartilhado em BaseNode e BaseAdvancedNode
+- [x] Evitar animação dupla no BaseAdvancedNode

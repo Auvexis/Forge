@@ -151,7 +151,7 @@ const onQuickAdd = (event: MouseEvent) => {
 
 <template>
   <div 
-    class="sailor-base-node"
+    class="sailor-base-node sailor-node-pop-in"
     :class="[
       { 'is-selected': selected, 'is-disabled': isDisabled },
       statusClasses,

@@ -288,6 +288,7 @@ let activePointerId: number | null = null
 let pointerDragStarted = false
 let pointerStartPoint = { x: 0, y: 0 }
 let suppressClickUntil = 0
+let windResetTimer: number | null = null
 const { isDark } = useTheme()
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
 const {
@@ -382,14 +383,21 @@ const moveDragPreview = (point: { x: number; y: number }) => {
   const dy = point.y - lastDragPoint.y
   dragPreviewPoint.value = point
   dragPreviewVelocity.value = {
-    x: Math.max(-44, Math.min(44, (dx / dt) * 42)),
-    y: Math.max(-18, Math.min(18, (dy / dt) * 16)),
+    x: Math.max(-36, Math.min(36, dx * 2.2 + (dx / dt) * 10)),
+    y: Math.max(-18, Math.min(18, dy * 1.2 + (dy / dt) * 6)),
   }
+  const lateralPull = Math.max(-38, Math.min(38, -dx * 2.4 - dragPreviewVelocity.value.x * 0.45))
+  const verticalLift = -Math.min(28, Math.abs(dx) * 1.1 + Math.abs(dragPreviewVelocity.value.x) * 0.25)
   dragPreviewBodyOffset.value = {
-    x: -dragPreviewVelocity.value.x,
-    y: -Math.min(24, Math.abs(dragPreviewVelocity.value.x) * 0.35 + Math.abs(dragPreviewVelocity.value.y) * 0.25),
-    rotate: Math.max(-14, Math.min(14, -dragPreviewVelocity.value.x * 0.28)),
+    x: lateralPull,
+    y: verticalLift,
+    rotate: Math.max(-18, Math.min(18, lateralPull * 0.38)),
   }
+  if (windResetTimer) window.clearTimeout(windResetTimer)
+  windResetTimer = window.setTimeout(() => {
+    dragPreviewBodyOffset.value = { x: 0, y: 0, rotate: 0 }
+    windResetTimer = null
+  }, 90)
   lastDragPoint = { ...point, t: now }
 }
 
@@ -409,6 +417,8 @@ const handleDragEnd = () => {
     dragPreview.value = null
     dragPreviewVelocity.value = { x: 0, y: 0 }
     dragPreviewBodyOffset.value = { x: 0, y: 0, rotate: 0 }
+    if (windResetTimer) window.clearTimeout(windResetTimer)
+    windResetTimer = null
   }, 120)
 }
 

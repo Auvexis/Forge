@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<{
 
 <template>
   <div
-    class="sailor-base-advanced-node"
+    class="sailor-base-advanced-node sailor-node-pop-in"
     :data-auto-organize="props.autoOrganize ? 'true' : undefined"
   >
     <BaseNode
@@ -78,6 +78,10 @@ const props = withDefaults(defineProps<{
 <style scoped>
 .sailor-base-advanced-node {
   position: relative;
+}
+
+.sailor-base-advanced-node :deep(.sailor-base-node.sailor-node-pop-in) {
+  animation: none;
 }
 
 .sailor-base-advanced-node__content {
