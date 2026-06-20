@@ -1,5 +1,5 @@
 <template>
-  <div class="global-add-node-panel">
+  <div class="global-add-node-panel" @click.capture="preventClickAfterDrag">
     <Transition name="global-add-node-view" mode="out-in">
       <div
         v-if="selectedPlugin"
@@ -34,10 +34,8 @@
             :key="action.id"
             class="global-add-node-panel__method-item"
             type="button"
-            draggable="true"
-            @pointerdown="rememberDragOrigin"
             @click="props.onAddPluginNodeAtCenter?.(selectedPlugin.id, action.methodKey, action.label)"
-            @dragstart="handleDragStart($event, {
+            @pointerdown="handlePointerDragStart($event, {
               kind: 'plugin',
               pluginId: selectedPlugin.id,
               action: action.methodKey,
@@ -48,7 +46,6 @@
                 subtitle: selectedPlugin.manifest.metadata.name,
               },
             })"
-            @dragend="handleDragEnd"
           >
             <span class="global-add-node-panel__method-icon">
               <LucideIcon name="workflow" :size="15" />
@@ -99,10 +96,8 @@
                   :key="item.id"
                   class="global-add-node-panel__item"
                   type="button"
-                  draggable="true"
-                  @pointerdown="rememberDragOrigin"
                   @click="props.onAddLogicNodeAtCenter?.(item.nodeType, item.defaults)"
-                  @dragstart="handleDragStart($event, {
+                  @pointerdown="handlePointerDragStart($event, {
                     kind: 'logic',
                     nodeType: item.nodeType,
                     defaults: item.defaults,
@@ -112,7 +107,6 @@
                       subtitle: 'Utility',
                     },
                   })"
-                  @dragend="handleDragEnd"
                 >
                   <span
                     class="global-add-node-panel__icon"
@@ -131,11 +125,8 @@
                   :key="plugin.id"
                   class="global-add-node-panel__item"
                   type="button"
-                  :draggable="pluginActionItems(plugin).length === 1"
-                  @pointerdown="rememberDragOrigin"
                   @click="selectPlugin(plugin)"
-                  @dragstart="handlePluginDragStart($event, plugin)"
-                  @dragend="handleDragEnd"
+                  @pointerdown="handlePluginPointerDragStart($event, plugin)"
                 >
                   <span class="global-add-node-panel__icon">
                     <LucideIcon :name="pluginIcon(plugin)" :size="15" />
@@ -177,11 +168,8 @@
                   :key="plugin.id"
                   class="global-add-node-panel__item"
                   type="button"
-                  :draggable="pluginActionItems(plugin).length === 1"
-                  @pointerdown="rememberDragOrigin"
                   @click="selectPlugin(plugin)"
-                  @dragstart="handlePluginDragStart($event, plugin)"
-                  @dragend="handleDragEnd"
+                  @pointerdown="handlePluginPointerDragStart($event, plugin)"
                 >
                   <span class="global-add-node-panel__icon">
                     <LucideIcon :name="pluginIcon(plugin)" :size="15" />
@@ -267,6 +255,17 @@ interface DragPreviewMeta {
 const props = defineProps<{
   onAddLogicNodeAtCenter?: (type: WorkflowNodeType, defaults?: Record<string, unknown>) => void
   onAddPluginNodeAtCenter?: (pluginId: string, action: string, actionName: string) => void
+  onAddLogicNodeAtPoint?: (
+    type: WorkflowNodeType,
+    point: { x: number; y: number },
+    defaults?: Record<string, unknown>,
+  ) => void
+  onAddPluginNodeAtPoint?: (
+    pluginId: string,
+    action: string,
+    actionName: string,
+    point: { x: number; y: number },
+  ) => void
 }>()
 
 const search = ref('')
@@ -281,7 +280,11 @@ const dragPreviewPoint = ref({ x: 0, y: 0 })
 const dragPreviewVelocity = ref({ x: 0, y: 0 })
 const dragPreviewScale = ref(0.72)
 let lastDragPoint = { x: 0, y: 0, t: 0 }
-let dragOriginPoint = { x: 0, y: 0 }
+let activePointerPayload: GlobalAddNodeDragPayload | null = null
+let activePointerId: number | null = null
+let pointerDragStarted = false
+let pointerStartPoint = { x: 0, y: 0 }
+let suppressClickUntil = 0
 const { isDark } = useTheme()
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
 const {
@@ -301,7 +304,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  removeDragPreviewListeners()
+  removePointerDragListeners()
 })
 
 const isLoading = computed(() => pluginsLoading.value || workflowNodeCatalogLoading.value)
@@ -355,43 +358,20 @@ const filteredSelectedPluginActions = computed(() => {
   )
 })
 
-const setTransparentDragImage = (event: DragEvent) => {
-  const canvas = document.createElement('canvas')
-  canvas.width = 1
-  canvas.height = 1
-  event.dataTransfer?.setDragImage(canvas, 0, 0)
-}
-
-const eventPoint = (event: DragEvent) => {
-  if (event.clientX !== 0 || event.clientY !== 0) {
-    return { x: event.clientX, y: event.clientY }
-  }
-  return dragOriginPoint
-}
-
-const rememberDragOrigin = (event: PointerEvent) => {
-  dragOriginPoint = { x: event.clientX, y: event.clientY }
-}
-
-const startDragPreview = (event: DragEvent, preview?: DragPreviewMeta) => {
+const startDragPreview = (point: { x: number; y: number }, preview?: DragPreviewMeta) => {
   if (!preview) return
-  const point = eventPoint(event)
   dragPreview.value = preview
   dragPreviewPoint.value = point
   dragPreviewVelocity.value = { x: 0, y: 0 }
   dragPreviewScale.value = 0.72
   lastDragPoint = { ...point, t: performance.now() }
-  document.addEventListener('drag', handleDocumentDragMove, true)
-  document.addEventListener('dragover', handleDocumentDragMove, true)
-  document.addEventListener('drop', handleDragEnd, { once: true, capture: true })
   requestAnimationFrame(() => {
     dragPreviewScale.value = 1
   })
 }
 
-const handleDocumentDragMove = (event: DragEvent) => {
+const moveDragPreview = (point: { x: number; y: number }) => {
   if (!dragPreview.value) return
-  const point = eventPoint(event)
   const now = performance.now()
   const dt = Math.max(now - lastDragPoint.t, 16)
   const dx = point.x - lastDragPoint.x
@@ -404,15 +384,15 @@ const handleDocumentDragMove = (event: DragEvent) => {
   lastDragPoint = { ...point, t: now }
 }
 
-const removeDragPreviewListeners = () => {
-  document.removeEventListener('drag', handleDocumentDragMove, true)
-  document.removeEventListener('dragover', handleDocumentDragMove, true)
-  document.removeEventListener('drop', handleDragEnd, true)
+const removePointerDragListeners = () => {
+  document.removeEventListener('pointermove', handlePointerDragMove, true)
+  document.removeEventListener('pointerup', handlePointerDragEnd, true)
+  document.removeEventListener('pointercancel', handlePointerDragCancel, true)
 }
 
 const handleDragEnd = () => {
   dragPreviewScale.value = 0.82
-  removeDragPreviewListeners()
+  removePointerDragListeners()
   window.setTimeout(() => {
     dragPreview.value = null
     dragPreviewVelocity.value = { x: 0, y: 0 }
@@ -431,21 +411,25 @@ const dragPreviewStyle = computed(() => {
   }
 })
 
-const handleDragStart = (event: DragEvent, payload: GlobalAddNodeDragPayload) => {
-  event.dataTransfer?.setData('application/x-sailor-add-node', JSON.stringify(payload))
-  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
-  setTransparentDragImage(event)
-  startDragPreview(event, payload.preview)
+const handlePointerDragStart = (event: PointerEvent, payload: GlobalAddNodeDragPayload) => {
+  if (event.button !== 0) return
+  activePointerPayload = payload
+  activePointerId = event.pointerId
+  pointerDragStarted = false
+  pointerStartPoint = { x: event.clientX, y: event.clientY }
+  lastDragPoint = { ...pointerStartPoint, t: performance.now() }
+  document.addEventListener('pointermove', handlePointerDragMove, true)
+  document.addEventListener('pointerup', handlePointerDragEnd, true)
+  document.addEventListener('pointercancel', handlePointerDragCancel, true)
 }
 
-const handlePluginDragStart = (event: DragEvent, plugin: PluginSummary) => {
+const handlePluginPointerDragStart = (event: PointerEvent, plugin: PluginSummary) => {
   const action = pluginActionItems(plugin)[0]
   if (!action || pluginActionItems(plugin).length !== 1) {
-    event.preventDefault()
     return
   }
 
-  handleDragStart(event, {
+  handlePointerDragStart(event, {
     kind: 'plugin',
     pluginId: plugin.id,
     action: action.methodKey,
@@ -456,6 +440,61 @@ const handlePluginDragStart = (event: DragEvent, plugin: PluginSummary) => {
       subtitle: action.label,
     },
   })
+}
+
+const handlePointerDragMove = (event: PointerEvent) => {
+  if (activePointerId !== event.pointerId || !activePointerPayload) return
+  const point = { x: event.clientX, y: event.clientY }
+  const distance = Math.hypot(point.x - pointerStartPoint.x, point.y - pointerStartPoint.y)
+  if (!pointerDragStarted && distance < 4) return
+  event.preventDefault()
+  if (!pointerDragStarted) {
+    pointerDragStarted = true
+    startDragPreview(pointerStartPoint, activePointerPayload.preview)
+  }
+  moveDragPreview(point)
+}
+
+const addPayloadAtPoint = (payload: GlobalAddNodeDragPayload, point: { x: number; y: number }) => {
+  if (payload.kind === 'logic') {
+    props.onAddLogicNodeAtPoint?.(payload.nodeType, point, payload.defaults)
+    return
+  }
+  props.onAddPluginNodeAtPoint?.(payload.pluginId, payload.action, payload.actionName, point)
+}
+
+const handlePointerDragEnd = (event: PointerEvent) => {
+  if (activePointerId !== event.pointerId) return
+  const payload = activePointerPayload
+  const wasDragging = pointerDragStarted
+  const point = { x: event.clientX, y: event.clientY }
+  activePointerPayload = null
+  activePointerId = null
+  pointerDragStarted = false
+  removePointerDragListeners()
+
+  if (wasDragging && payload) {
+    event.preventDefault()
+    suppressClickUntil = Date.now() + 250
+    const target = document.elementFromPoint(point.x, point.y)
+    if (target?.closest('.sailor-workflow-canvas')) {
+      addPayloadAtPoint(payload, point)
+    }
+    handleDragEnd()
+  }
+}
+
+const handlePointerDragCancel = () => {
+  activePointerPayload = null
+  activePointerId = null
+  pointerDragStarted = false
+  handleDragEnd()
+}
+
+const preventClickAfterDrag = (event: MouseEvent) => {
+  if (Date.now() > suppressClickUntil) return
+  event.preventDefault()
+  event.stopPropagation()
 }
 
 const selectPlugin = (plugin: PluginSummary) => {

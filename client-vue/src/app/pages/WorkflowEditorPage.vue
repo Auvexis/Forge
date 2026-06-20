@@ -320,6 +320,17 @@ function openGlobalAddNodePanel() {
       ) => canvasRef.value?.addLogicNodeAtViewportCenter(type, defaults),
       onAddPluginNodeAtCenter: (pluginId: string, action: string, actionName: string) =>
         canvasRef.value?.addPluginNodeAtViewportCenter(pluginId, action, actionName),
+      onAddLogicNodeAtPoint: (
+        type: WorkflowNodeType,
+        point: { x: number; y: number },
+        defaults?: Record<string, unknown>,
+      ) => canvasRef.value?.addLogicNodeAtScreenPoint(type, point, defaults),
+      onAddPluginNodeAtPoint: (
+        pluginId: string,
+        action: string,
+        actionName: string,
+        point: { x: number; y: number },
+      ) => canvasRef.value?.addPluginNodeAtScreenPoint(pluginId, action, actionName, point),
     },
   })
 }

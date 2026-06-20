@@ -1202,7 +1202,9 @@ const addLogicNodeAtScreenPoint = (
   point: { x: number; y: number },
   providedDefaults: Record<string, unknown> = {},
 ) => {
-  return addLogicNode(type, providedDefaults, screenToFlowCoordinate(point))
+  const id = addLogicNode(type, providedDefaults, screenToFlowCoordinate(point))
+  animateDroppedNode(id)
+  return id
 }
 
 const addPluginNodeAtScreenPoint = (
@@ -1211,7 +1213,9 @@ const addPluginNodeAtScreenPoint = (
   actionName: string,
   point: { x: number; y: number },
 ) => {
-  return addPluginNode(pluginId, action, actionName, screenToFlowCoordinate(point))
+  const id = addPluginNode(pluginId, action, actionName, screenToFlowCoordinate(point))
+  animateDroppedNode(id)
+  return id
 }
 
 function animateDroppedNode(nodeId: string | undefined) {
@@ -1248,11 +1252,11 @@ function handleGlobalAddNodeDrop(event: DragEvent) {
   try {
     const payload = JSON.parse(raw) as GlobalAddNodeDragPayload
     if (payload.kind === 'logic') {
-      animateDroppedNode(addLogicNodeAtScreenPoint(payload.nodeType, point, payload.defaults))
+      addLogicNodeAtScreenPoint(payload.nodeType, point, payload.defaults)
       return
     }
     if (payload.kind === 'plugin') {
-      animateDroppedNode(addPluginNodeAtScreenPoint(payload.pluginId, payload.action, payload.actionName, point))
+      addPluginNodeAtScreenPoint(payload.pluginId, payload.action, payload.actionName, point)
     }
   } catch (error) {
     console.error('Invalid add node drag payload', error)
