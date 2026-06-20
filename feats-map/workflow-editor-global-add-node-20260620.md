@@ -18,3 +18,4 @@
 - [x] Animar força lateral durante drag
 - [x] Animar entrada e queda do node no canvas
 - [x] Commitar ajuste de drag visual
+- [x] Corrigir preview invisível no início do drag

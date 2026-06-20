@@ -35,6 +35,7 @@
             class="global-add-node-panel__method-item"
             type="button"
             draggable="true"
+            @pointerdown="rememberDragOrigin"
             @click="props.onAddPluginNodeAtCenter?.(selectedPlugin.id, action.methodKey, action.label)"
             @dragstart="handleDragStart($event, {
               kind: 'plugin',
@@ -99,6 +100,7 @@
                   class="global-add-node-panel__item"
                   type="button"
                   draggable="true"
+                  @pointerdown="rememberDragOrigin"
                   @click="props.onAddLogicNodeAtCenter?.(item.nodeType, item.defaults)"
                   @dragstart="handleDragStart($event, {
                     kind: 'logic',
@@ -130,6 +132,7 @@
                   class="global-add-node-panel__item"
                   type="button"
                   :draggable="pluginActionItems(plugin).length === 1"
+                  @pointerdown="rememberDragOrigin"
                   @click="selectPlugin(plugin)"
                   @dragstart="handlePluginDragStart($event, plugin)"
                   @dragend="handleDragEnd"
@@ -175,6 +178,7 @@
                   class="global-add-node-panel__item"
                   type="button"
                   :draggable="pluginActionItems(plugin).length === 1"
+                  @pointerdown="rememberDragOrigin"
                   @click="selectPlugin(plugin)"
                   @dragstart="handlePluginDragStart($event, plugin)"
                   @dragend="handleDragEnd"
@@ -277,6 +281,7 @@ const dragPreviewPoint = ref({ x: 0, y: 0 })
 const dragPreviewVelocity = ref({ x: 0, y: 0 })
 const dragPreviewScale = ref(0.72)
 let lastDragPoint = { x: 0, y: 0, t: 0 }
+let dragOriginPoint = { x: 0, y: 0 }
 const { isDark } = useTheme()
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
 const {
@@ -296,8 +301,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('dragover', handleWindowDragOver)
-  window.removeEventListener('drop', handleDragEnd)
+  removeDragPreviewListeners()
 })
 
 const isLoading = computed(() => pluginsLoading.value || workflowNodeCatalogLoading.value)
@@ -358,37 +362,57 @@ const setTransparentDragImage = (event: DragEvent) => {
   event.dataTransfer?.setDragImage(canvas, 0, 0)
 }
 
+const eventPoint = (event: DragEvent) => {
+  if (event.clientX !== 0 || event.clientY !== 0) {
+    return { x: event.clientX, y: event.clientY }
+  }
+  return dragOriginPoint
+}
+
+const rememberDragOrigin = (event: PointerEvent) => {
+  dragOriginPoint = { x: event.clientX, y: event.clientY }
+}
+
 const startDragPreview = (event: DragEvent, preview?: DragPreviewMeta) => {
   if (!preview) return
+  const point = eventPoint(event)
   dragPreview.value = preview
-  dragPreviewPoint.value = { x: event.clientX, y: event.clientY }
+  dragPreviewPoint.value = point
   dragPreviewVelocity.value = { x: 0, y: 0 }
   dragPreviewScale.value = 0.72
-  lastDragPoint = { x: event.clientX, y: event.clientY, t: performance.now() }
-  window.addEventListener('dragover', handleWindowDragOver)
-  window.addEventListener('drop', handleDragEnd, { once: true })
+  lastDragPoint = { ...point, t: performance.now() }
+  document.addEventListener('drag', handleDocumentDragMove, true)
+  document.addEventListener('dragover', handleDocumentDragMove, true)
+  document.addEventListener('drop', handleDragEnd, { once: true, capture: true })
   requestAnimationFrame(() => {
     dragPreviewScale.value = 1
   })
 }
 
-const handleWindowDragOver = (event: DragEvent) => {
+const handleDocumentDragMove = (event: DragEvent) => {
   if (!dragPreview.value) return
+  const point = eventPoint(event)
   const now = performance.now()
   const dt = Math.max(now - lastDragPoint.t, 16)
-  const dx = event.clientX - lastDragPoint.x
-  const dy = event.clientY - lastDragPoint.y
-  dragPreviewPoint.value = { x: event.clientX, y: event.clientY }
+  const dx = point.x - lastDragPoint.x
+  const dy = point.y - lastDragPoint.y
+  dragPreviewPoint.value = point
   dragPreviewVelocity.value = {
     x: Math.max(-26, Math.min(26, (dx / dt) * 18)),
     y: Math.max(-12, Math.min(12, (dy / dt) * 10)),
   }
-  lastDragPoint = { x: event.clientX, y: event.clientY, t: now }
+  lastDragPoint = { ...point, t: now }
+}
+
+const removeDragPreviewListeners = () => {
+  document.removeEventListener('drag', handleDocumentDragMove, true)
+  document.removeEventListener('dragover', handleDocumentDragMove, true)
+  document.removeEventListener('drop', handleDragEnd, true)
 }
 
 const handleDragEnd = () => {
   dragPreviewScale.value = 0.82
-  window.removeEventListener('dragover', handleWindowDragOver)
+  removeDragPreviewListeners()
   window.setTimeout(() => {
     dragPreview.value = null
     dragPreviewVelocity.value = { x: 0, y: 0 }
