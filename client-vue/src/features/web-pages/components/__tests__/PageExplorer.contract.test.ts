@@ -45,6 +45,20 @@ describe('page explorer contract', () => {
     assert.match(css, /var\(--sailor-border\)/)
   })
 
+  it('toolbox exposes Page with click and dedicated page drag behavior', () => {
+    const toolbox = read('src/features/web-pages/components/PageToolboxPanel.vue')
+    const explorer = read('src/features/web-pages/components/PageExplorerPanel.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(toolbox, /label: 'Page'/)
+    assert.match(toolbox, /application\/x-sailor-page/)
+    assert.match(toolbox, /emit\('add-page'\)/)
+    assert.match(explorer, /@add-page="\$emit\('add-page'\)"/)
+    assert.match(editor, /@add-page="addPageAtEnd"/)
+    assert.match(editor, /pageDropIndex/)
+    assert.match(editor, /createPageAt/)
+  })
+
   it('code tab opens site files on the canvas with BaseCodeEditor', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const files = read('src/features/web-pages/components/SiteFilesPanel.vue')

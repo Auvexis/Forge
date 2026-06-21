@@ -137,4 +137,23 @@ describe('pages store', () => {
     assert.equal(createdSiteId, 'site_docs')
     assert.equal(store.activePage?.siteId, 'site_docs')
   })
+
+  it('creates a page at the requested clamped list index', async () => {
+    const store = usePagesStore()
+    store.setApiClient({
+      ...api(),
+      listPages: async () => [
+        page({ id: 'page_a', title: 'A' }),
+        page({ id: 'page_b', title: 'B' }),
+      ],
+      createPage: async (payload) => page({ id: 'page_new', title: payload.title }),
+    })
+
+    await store.listPages()
+    const created = await store.createPageAt(1)
+
+    assert.equal(created.id, 'page_new')
+    assert.deepEqual(store.pages.map((item) => item.id), ['page_a', 'page_new', 'page_b'])
+    assert.equal(store.activePage?.id, 'page_new')
+  })
 })

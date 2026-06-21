@@ -27,6 +27,7 @@
           class="web-page-toolbox__item"
           draggable="true"
           :title="item.label"
+          @click="onItemClick(item)"
           @dragstart="onDragStart($event, item)"
           @dragend="handleDragEnd"
         >
@@ -67,7 +68,8 @@ interface ToolboxItem {
   id: string
   label: string
   icon: string
-  tag: PageBlockTag
+  kind: 'page' | 'block'
+  tag?: PageBlockTag
 }
 
 interface ToolboxSection {
@@ -93,67 +95,72 @@ let targetBodyOffset = { x: 0, y: 0, rotate: 0 }
 let lastDragPoint = { x: 0, y: 0, t: 0 }
 let windAnimationFrame: number | null = null
 
+const emit = defineEmits<{
+  'add-page': []
+}>()
+
 const sections: ToolboxSection[] = [
   {
     id: 'recent',
     label: 'Recently used',
     items: [
-      { id: 'text-input', label: 'Text Input', icon: 'text-cursor-input', tag: 'input' },
-      { id: 'heading', label: 'Heading', icon: 'heading', tag: 'text' },
-      { id: 'image', label: 'Image', icon: 'image', tag: 'image' },
-      { id: 'button', label: 'Button', icon: 'square-mouse-pointer', tag: 'button' },
+      { id: 'page', label: 'Page', icon: 'file-plus-2', kind: 'page' },
+      { id: 'text-input', label: 'Text Input', icon: 'text-cursor-input', kind: 'block', tag: 'input' },
+      { id: 'heading', label: 'Heading', icon: 'heading', kind: 'block', tag: 'text' },
+      { id: 'image', label: 'Image', icon: 'image', kind: 'block', tag: 'image' },
+      { id: 'button', label: 'Button', icon: 'square-mouse-pointer', kind: 'block', tag: 'button' },
     ],
   },
   {
     id: 'text',
     label: 'Text',
     items: [
-      { id: 'paragraph', label: 'Paragraph', icon: 'pilcrow', tag: 'text' },
-      { id: 'rich-text', label: 'Rich Text', icon: 'type', tag: 'text' },
-      { id: 'quote', label: 'Quote', icon: 'quote', tag: 'text' },
-      { id: 'link', label: 'Link', icon: 'link', tag: 'link' },
+      { id: 'paragraph', label: 'Paragraph', icon: 'pilcrow', kind: 'block', tag: 'text' },
+      { id: 'rich-text', label: 'Rich Text', icon: 'type', kind: 'block', tag: 'text' },
+      { id: 'quote', label: 'Quote', icon: 'quote', kind: 'block', tag: 'text' },
+      { id: 'link', label: 'Link', icon: 'link', kind: 'block', tag: 'link' },
     ],
   },
   {
     id: 'structure',
     label: 'Structure',
     items: [
-      { id: 'section', label: 'Section', icon: 'panel-top', tag: 'section' },
-      { id: 'container', label: 'Container', icon: 'square', tag: 'div' },
-      { id: 'quick-stack', label: 'Quick Stack', icon: 'layers-3', tag: 'div' },
-      { id: 'v-flex', label: 'V Flex', icon: 'rows-3', tag: 'div' },
-      { id: 'h-flex', label: 'H Flex', icon: 'columns-3', tag: 'div' },
-      { id: 'grid', label: 'Grid', icon: 'grid-2x2', tag: 'div' },
+      { id: 'section', label: 'Section', icon: 'panel-top', kind: 'block', tag: 'section' },
+      { id: 'container', label: 'Container', icon: 'square', kind: 'block', tag: 'div' },
+      { id: 'quick-stack', label: 'Quick Stack', icon: 'layers-3', kind: 'block', tag: 'div' },
+      { id: 'v-flex', label: 'V Flex', icon: 'rows-3', kind: 'block', tag: 'div' },
+      { id: 'h-flex', label: 'H Flex', icon: 'columns-3', kind: 'block', tag: 'div' },
+      { id: 'grid', label: 'Grid', icon: 'grid-2x2', kind: 'block', tag: 'div' },
     ],
   },
   {
     id: 'form',
     label: 'Form',
     items: [
-      { id: 'form', label: 'Form', icon: 'clipboard-list', tag: 'form' },
-      { id: 'email-input', label: 'Email Input', icon: 'mail', tag: 'input' },
-      { id: 'textarea', label: 'Textarea', icon: 'text', tag: 'input' },
-      { id: 'submit-button', label: 'Submit Button', icon: 'send', tag: 'button' },
+      { id: 'form', label: 'Form', icon: 'clipboard-list', kind: 'block', tag: 'form' },
+      { id: 'email-input', label: 'Email Input', icon: 'mail', kind: 'block', tag: 'input' },
+      { id: 'textarea', label: 'Textarea', icon: 'text', kind: 'block', tag: 'input' },
+      { id: 'submit-button', label: 'Submit Button', icon: 'send', kind: 'block', tag: 'button' },
     ],
   },
   {
     id: 'media',
     label: 'Media',
     items: [
-      { id: 'media-image', label: 'Image', icon: 'image', tag: 'image' },
-      { id: 'video', label: 'Video', icon: 'clapperboard', tag: 'div' },
-      { id: 'youtube', label: 'Youtube', icon: 'youtube', tag: 'div' },
-      { id: 'audio', label: 'Audio', icon: 'music', tag: 'div' },
+      { id: 'media-image', label: 'Image', icon: 'image', kind: 'block', tag: 'image' },
+      { id: 'video', label: 'Video', icon: 'clapperboard', kind: 'block', tag: 'div' },
+      { id: 'youtube', label: 'Youtube', icon: 'youtube', kind: 'block', tag: 'div' },
+      { id: 'audio', label: 'Audio', icon: 'music', kind: 'block', tag: 'div' },
     ],
   },
   {
     id: 'interactive',
     label: 'Interactive',
     items: [
-      { id: 'button-link', label: 'Button', icon: 'mouse-pointer-click', tag: 'button' },
-      { id: 'nav-link', label: 'Nav Link', icon: 'navigation', tag: 'link' },
-      { id: 'card', label: 'Card', icon: 'panel-top-open', tag: 'div' },
-      { id: 'divider', label: 'Divider', icon: 'minus', tag: 'div' },
+      { id: 'button-link', label: 'Button', icon: 'mouse-pointer-click', kind: 'block', tag: 'button' },
+      { id: 'nav-link', label: 'Nav Link', icon: 'navigation', kind: 'block', tag: 'link' },
+      { id: 'card', label: 'Card', icon: 'panel-top-open', kind: 'block', tag: 'div' },
+      { id: 'divider', label: 'Divider', icon: 'minus', kind: 'block', tag: 'div' },
     ],
   },
 ]
@@ -196,14 +203,19 @@ function toggleSection(sectionId: string) {
 }
 
 function onDragStart(event: DragEvent, item: ToolboxItem) {
-  event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ tag: item.tag, preset: item.id }))
+  if (item.kind === 'page') event.dataTransfer?.setData('application/x-sailor-page', JSON.stringify({ type: 'page' }))
+  else event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ tag: item.tag, preset: item.id }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
   setTransparentDragImage(event)
   startDragPreview({ x: event.clientX, y: event.clientY }, {
     icon: item.icon,
     label: item.label,
-    subtitle: 'HTML Element',
+    subtitle: item.kind === 'page' ? 'Page' : 'HTML Element',
   })
+}
+
+function onItemClick(item: ToolboxItem) {
+  if (item.kind === 'page') emit('add-page')
 }
 
 function setTransparentDragImage(event: DragEvent) {

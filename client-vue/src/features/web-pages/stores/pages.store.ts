@@ -117,6 +117,18 @@ export const usePagesStore = defineStore('web-pages', () => {
     return page
   }
 
+  async function createPageAt(index: number) {
+    const page = await createPage({ title: `Page ${pages.value.length + 1}`, blocks: [] })
+    const summary = pages.value.find((item) => item.id === page.id)
+    if (summary) {
+      const withoutNew = pages.value.filter((item) => item.id !== page.id)
+      withoutNew.splice(Math.max(0, Math.min(index, withoutNew.length)), 0, summary)
+      pages.value = withoutNew
+    }
+    setSavedPage(page)
+    return page
+  }
+
   async function duplicateActivePage() {
     if (!activePage.value) return null
     const source = activePage.value
@@ -252,6 +264,7 @@ export const usePagesStore = defineStore('web-pages', () => {
     loadPageDocuments,
     createPage,
     createPageAfterActive,
+    createPageAt,
     duplicateActivePage,
     openPage,
     switchPage,

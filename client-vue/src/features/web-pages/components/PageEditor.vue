@@ -28,7 +28,7 @@
         :blocks="editorStore.blocks"
         :selected-block-id="editorStore.selectedBlockId"
         :selected-block-ids="editorStore.selectedBlockIds"
-        @add-page="addPageBelowCanvas"
+        @add-page="addPageAtEnd"
         @select-page="selectTreePage"
         @select="editorStore.selectBlock"
         @delete-page="deletePageFromTree"
@@ -89,7 +89,20 @@
           @context-menu="openPageCanvasContextMenu"
         >
           <template #item="{ item }">
-            <div class="web-page-editor__page-shell">
+            <div
+              class="web-page-editor__page-shell"
+              :data-page-id="item.id"
+              @dragover="handlePageDragOver($event, item.id)"
+              @dragleave="clearPageDropIntent"
+              @drop="handlePageDrop($event)"
+            >
+              <span
+                v-if="pageDropIndex === pageIndex(item.id) || pageDropIndex === pageIndex(item.id) + 1"
+                class="web-page-editor__page-drop-indicator"
+                :class="pageDropIndex === pageIndex(item.id)
+                  ? 'web-page-editor__page-drop-indicator--before'
+                  : 'web-page-editor__page-drop-indicator--after'"
+              />
               <div class="web-page-editor__page-chip">
                 <button
                   type="button"
@@ -262,6 +275,7 @@ const pageCanvasViewport = ref<BaseCanvasViewport>({ x: 0, y: 88, zoom: 1 })
 const pageCanvasSelection = ref<string[]>([])
 const pageCanvasOffsets = ref<Record<string, { x: number; y: number }>>({})
 const pageCanvasContextMenu = ref<BaseCanvasContextMenuEvent | null>(null)
+const pageDropIndex = ref<number | null>(null)
 const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
 )
@@ -559,6 +573,38 @@ async function addPageFromContextMenu() {
   await addPageBelowCanvas()
 }
 
+function pageIndex(pageId: string) {
+  return pagesStore.pages.findIndex((page) => page.id === pageId)
+}
+
+function handlePageDragOver(event: DragEvent, pageId: string) {
+  if (!event.dataTransfer?.types.includes('application/x-sailor-page')) return
+  event.preventDefault()
+  event.stopPropagation()
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const index = pageIndex(pageId)
+  pageDropIndex.value = event.clientY < rect.top + rect.height / 2 ? index : index + 1
+  event.dataTransfer.dropEffect = 'copy'
+}
+
+function clearPageDropIntent(event?: DragEvent) {
+  const related = event?.relatedTarget
+  const currentTarget = event?.currentTarget as HTMLElement | null | undefined
+  if (related instanceof Node && currentTarget?.contains(related)) return
+  pageDropIndex.value = null
+}
+
+async function handlePageDrop(event: DragEvent) {
+  if (!event.dataTransfer?.types.includes('application/x-sailor-page') || pageDropIndex.value === null) return
+  event.preventDefault()
+  event.stopPropagation()
+  const index = pageDropIndex.value
+  pageDropIndex.value = null
+  if (pagesStore.isDirty) await savePage()
+  const page = await pagesStore.createPageAt(index)
+  await activateCreatedPage(page)
+}
+
 async function duplicatePageFromContextMenu() {
   const pageId = pageCanvasContextMenuPageId.value
   closePageCanvasContextMenu()
@@ -746,6 +792,16 @@ function handleInspectBlock(pageId: string, blockId: string) {
 async function addPageBelowCanvas() {
   if (pagesStore.isDirty) await savePage()
   const page = await pagesStore.createPageAfterActive()
+  await activateCreatedPage(page)
+}
+
+async function addPageAtEnd() {
+  if (pagesStore.isDirty) await savePage()
+  const page = await pagesStore.createPageAt(pagesStore.pages.length)
+  await activateCreatedPage(page)
+}
+
+async function activateCreatedPage(page: SailorPage) {
   await router.replace(`/pages/${page.id}`)
   editorPageId.value = page.id
   editorStore.setBlocks(page.blocks)

@@ -9,7 +9,7 @@
     </div>
 
     <div class="web-page-explorer__content">
-      <PageToolboxPanel v-if="activeTab === 'toolbox'" />
+      <PageToolboxPanel v-if="activeTab === 'toolbox'" @add-page="$emit('add-page')" />
 
       <BlockTreePanel
         v-else-if="activeTab === 'tree'"

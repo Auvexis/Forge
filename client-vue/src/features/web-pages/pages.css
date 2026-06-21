@@ -369,6 +369,25 @@
   color: var(--sailor-text-primary);
 }
 
+.web-page-editor__page-drop-indicator {
+  position: absolute;
+  right: -16px;
+  left: -16px;
+  z-index: 20;
+  height: 3px;
+  border-radius: var(--sailor-radius-full);
+  background: var(--web-page-drop-color);
+  pointer-events: none;
+}
+
+.web-page-editor__page-drop-indicator--before {
+  top: -22px;
+}
+
+.web-page-editor__page-drop-indicator--after {
+  bottom: -22px;
+}
+
 .web-page-canvas__body {
   position: relative;
   display: grid;
