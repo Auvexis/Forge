@@ -89,6 +89,8 @@ describe('page editor contract', () => {
     assert.match(source, /const pageCanvasSelection = ref<string\[\]>/)
     assert.match(source, /const pageCanvasItems = computed<BaseCanvasItem\[\]>/)
     assert.match(source, /<BaseCanvas/)
+    assert.match(source, /pattern-color="var\(--sailor-border\)"/)
+    assert.doesNotMatch(source, /pattern-color="var\(--sailor-border-muted\)"/)
     assert.match(source, /#item="\{ item \}"/)
     assert.match(source, /@context-menu="openPageCanvasContextMenu"/)
     assert.match(source, /@items-move="handlePageCanvasItemsMove"/)

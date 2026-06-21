@@ -84,7 +84,7 @@
           :rulers="true"
           :snap-to-grid="false"
           background-color="var(--sailor-bg-canvas)"
-          pattern-color="var(--sailor-border-muted)"
+          pattern-color="var(--sailor-border)"
           pattern-style="dot"
           :pattern-size="18"
           rulers-bg="var(--sailor-bg-canvas)"

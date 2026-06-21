@@ -1,0 +1,5 @@
+- [x] Reproduzir pattern invisivel em contrato
+- [x] Trocar Pages para token de pattern visivel
+- [x] Rodar contratos de BaseCanvas e Pages
+- [x] Rodar type-check
+- [x] Commitar ajuste
