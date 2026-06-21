@@ -72,7 +72,7 @@ describe('page drag prediction contract', () => {
 
   it('drag prediction exposes directional arrow indicators and a custom drag preview', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
-    const toolbar = read('src/features/web-pages/components/PageFloatingAddToolbar.vue')
+    const toolbar = read('src/features/web-pages/components/PageToolboxPanel.vue')
     const css = read('src/features/web-pages/pages.css')
 
     assert.match(renderer, /dropEdge/)

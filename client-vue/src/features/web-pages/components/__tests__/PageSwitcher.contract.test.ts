@@ -38,7 +38,7 @@ describe('page switcher contract', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const store = read('src/features/web-pages/stores/pages.store.ts')
 
-    assert.match(editor, /web-page-editor__add-page/)
+    assert.doesNotMatch(editor, /web-page-editor__add-page/)
     assert.match(editor, /web-page-editor__workspace/)
     assert.match(editor, /web-page-editor__page-handle/)
     assert.match(editor, /pageBlocks/)

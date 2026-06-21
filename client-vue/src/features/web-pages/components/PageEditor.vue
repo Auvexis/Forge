@@ -12,13 +12,6 @@
       :published-at="activePagePublishedAt"
       @command="handleChromeCommand"
     />
-    <PageFloatingAddToolbar
-      :model-value="activeTool"
-      :left-panel-open="isLeftPanelOpen"
-      :right-panel-open="isRightPanelOpen"
-      @update:model-value="activeTool = $event"
-    />
-
     <AppPanel
       :is-open="isLeftPanelOpen"
       title="Explorer"
@@ -161,11 +154,6 @@
             Delete page
           </BaseButton>
         </div>
-        <div class="web-page-editor__add-page">
-          <BaseButton variant="outline" icon-left="plus" @click="addPageBelowCanvas">
-            Add page
-          </BaseButton>
-        </div>
       </template>
     </div>
 
@@ -243,7 +231,6 @@ import type { PageBlock, PageBlockStyles, PageBlockTag, SailorPage, SiteFile } f
 import PageCanvas from './PageCanvas.vue'
 import PageExplorerPanel from './PageExplorerPanel.vue'
 import SiteCodeCanvas from './SiteCodeCanvas.vue'
-import PageFloatingAddToolbar from './PageFloatingAddToolbar.vue'
 import BlockContentPanel from './BlockContentPanel.vue'
 import BlockAdvancedPanel from './BlockAdvancedPanel.vue'
 import BlockStylePanel from './BlockStylePanel.vue'

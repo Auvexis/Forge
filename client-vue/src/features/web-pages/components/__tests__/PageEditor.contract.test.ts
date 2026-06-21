@@ -15,7 +15,8 @@ describe('page editor contract', () => {
     assert.match(source, /<PageCanvas/)
     assert.match(source, /title="Explorer"/)
     assert.match(source, /title="Inspector"/)
-    assert.match(source, /<PageFloatingAddToolbar/)
+    assert.doesNotMatch(source, /PageFloatingAddToolbar/)
+    assert.doesNotMatch(source, /web-page-editor__add-page/)
     assert.doesNotMatch(source, /<BlockLibrary/)
   })
 
@@ -200,18 +201,11 @@ describe('page editor contract', () => {
     assert.match(source, /duplicate/)
   })
 
-  it('canvas blocks expose ghost duplicate and delete actions', () => {
+  it('canvas blocks do not expose contextual toolbars', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
-    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
-    const editor = read('src/features/web-pages/components/PageEditor.vue')
 
-    assert.match(renderer, /BaseButton/)
-    assert.match(renderer, /variant="ghost"/)
-    assert.match(renderer, /duplicate-block/)
-    assert.match(renderer, /delete-block/)
-    assert.match(canvas, /@duplicate-block/)
-    assert.match(editor, /duplicateBlockFromCanvas/)
-    assert.match(editor, /deleteBlockFromCanvas/)
+    assert.doesNotMatch(renderer, /web-page-block-toolbar/)
+    assert.doesNotMatch(renderer, /BaseButton/)
   })
 
   it('new root blocks are selected automatically so inspector opens properties', () => {
