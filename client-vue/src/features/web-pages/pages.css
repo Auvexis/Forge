@@ -824,6 +824,67 @@
   white-space: nowrap;
 }
 
+.web-page-toolbox-drag-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;
+  width: 144px;
+  pointer-events: none;
+  text-align: center;
+  transform-origin: center 62px;
+  transition:
+    transform 0.04s linear,
+    opacity 0.12s ease;
+  will-change: transform;
+}
+
+.web-page-toolbox-drag-preview__body {
+  will-change: transform;
+}
+
+.web-page-toolbox-drag-preview__node {
+  position: relative;
+  display: flex;
+  width: 104px;
+  height: 104px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--sailor-space-2);
+  border: 2px solid var(--sailor-border);
+  border-radius: 22px;
+  background: var(--sailor-bg-elevated);
+  box-shadow: var(--sailor-shadow-lg);
+}
+
+.web-page-toolbox-drag-preview__icon {
+  display: inline-flex;
+  width: 56px;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  color: var(--sailor-text-primary);
+}
+
+.web-page-toolbox-drag-preview__label {
+  overflow: hidden;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-sm);
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.web-page-toolbox-drag-preview__subtitle {
+  overflow: hidden;
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .web-page-site-files {
   display: grid;
   gap: var(--sailor-space-2);

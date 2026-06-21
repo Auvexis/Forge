@@ -1,0 +1,4 @@
+- [x] Espelhar preview animado do GlobalAddNodePanel
+- [x] Manter payload nativo de drag and drop
+- [x] Rodar type-check
+- [x] Commitar ajuste

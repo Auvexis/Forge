@@ -28,6 +28,7 @@
           draggable="true"
           :title="item.label"
           @dragstart="onDragStart($event, item)"
+          @dragend="handleDragEnd"
         >
           <span class="web-page-toolbox__item-icon">
             <LucideIcon :name="item.icon" :size="72" :stroke-width="1.6" />
@@ -36,11 +37,29 @@
         </button>
       </div>
     </section>
+
+    <Teleport to="body">
+      <div
+        v-if="dragPreview"
+        class="web-page-toolbox-drag-preview"
+        :style="dragPreviewStyle"
+      >
+        <div class="web-page-toolbox-drag-preview__body" :style="dragPreviewBodyStyle">
+          <div class="web-page-toolbox-drag-preview__node">
+            <span class="web-page-toolbox-drag-preview__icon">
+              <LucideIcon :name="dragPreview.icon" :size="28" />
+            </span>
+          </div>
+          <div class="web-page-toolbox-drag-preview__label">{{ dragPreview.label }}</div>
+          <div class="web-page-toolbox-drag-preview__subtitle">{{ dragPreview.subtitle }}</div>
+        </div>
+      </div>
+    </Teleport>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlockTag } from '../types/page.types.ts'
 
@@ -57,8 +76,22 @@ interface ToolboxSection {
   items: ToolboxItem[]
 }
 
+interface DragPreviewMeta {
+  icon: string
+  label: string
+  subtitle: string
+}
+
 const query = ref('')
 const collapsedSections = ref<string[]>([])
+const dragPreview = ref<DragPreviewMeta | null>(null)
+const dragPreviewPoint = ref({ x: 0, y: 0 })
+const dragPreviewVelocity = ref({ x: 0, y: 0 })
+const dragPreviewScale = ref(0.72)
+const dragPreviewBodyOffset = ref({ x: 0, y: 0, rotate: 0 })
+let targetBodyOffset = { x: 0, y: 0, rotate: 0 }
+let lastDragPoint = { x: 0, y: 0, t: 0 }
+let windAnimationFrame: number | null = null
 
 const sections: ToolboxSection[] = [
   {
@@ -137,6 +170,25 @@ const visibleSections = computed(() => {
     .filter((section) => section.items.length > 0)
 })
 
+const dragPreviewStyle = computed(() => ({
+  transform: `translate3d(${dragPreviewPoint.value.x - 72}px, ${dragPreviewPoint.value.y - 56}px, 0) scale(${dragPreviewScale.value})`,
+}))
+
+const dragPreviewBodyStyle = computed(() => ({
+  transform: `translate3d(${dragPreviewBodyOffset.value.x}px, ${dragPreviewBodyOffset.value.y}px, 0) rotate(${dragPreviewBodyOffset.value.rotate}deg)`,
+}))
+
+onMounted(() => {
+  document.addEventListener('dragover', moveDragPreviewFromDragEvent, true)
+  document.addEventListener('drop', handleDragEnd, true)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('dragover', moveDragPreviewFromDragEvent, true)
+  document.removeEventListener('drop', handleDragEnd, true)
+  cancelWindAnimation()
+})
+
 function toggleSection(sectionId: string) {
   collapsedSections.value = collapsedSections.value.includes(sectionId)
     ? collapsedSections.value.filter((id) => id !== sectionId)
@@ -146,16 +198,120 @@ function toggleSection(sectionId: string) {
 function onDragStart(event: DragEvent, item: ToolboxItem) {
   event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ tag: item.tag, preset: item.id }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
-  setDragPreview(event, item.label)
+  setTransparentDragImage(event)
+  startDragPreview({ x: event.clientX, y: event.clientY }, {
+    icon: item.icon,
+    label: item.label,
+    subtitle: 'HTML Element',
+  })
 }
 
-function setDragPreview(event: DragEvent, label: string) {
+function setTransparentDragImage(event: DragEvent) {
   if (!event.dataTransfer) return
   const preview = document.createElement('div')
   preview.className = 'web-page-drag-preview'
-  preview.textContent = label
+  preview.style.opacity = '0'
   document.body.appendChild(preview)
-  event.dataTransfer.setDragImage(preview, 16, 16)
+  event.dataTransfer.setDragImage(preview, 0, 0)
   window.setTimeout(() => preview.remove(), 0)
+}
+
+function startDragPreview(point: { x: number; y: number }, preview: DragPreviewMeta) {
+  dragPreview.value = preview
+  dragPreviewPoint.value = point
+  dragPreviewVelocity.value = { x: 0, y: 0 }
+  dragPreviewBodyOffset.value = { x: 0, y: 0, rotate: 0 }
+  targetBodyOffset = { x: 0, y: 0, rotate: 0 }
+  dragPreviewScale.value = 0.72
+  lastDragPoint = { ...point, t: performance.now() }
+  requestAnimationFrame(() => {
+    dragPreviewScale.value = 1
+  })
+  startWindAnimation()
+}
+
+function moveDragPreviewFromDragEvent(event: DragEvent) {
+  if (!dragPreview.value || event.clientX === 0 || event.clientY === 0) return
+  moveDragPreview({ x: event.clientX, y: event.clientY })
+}
+
+function moveDragPreview(point: { x: number; y: number }) {
+  if (!dragPreview.value) return
+  const now = performance.now()
+  const dt = Math.max(now - lastDragPoint.t, 16)
+  const dx = point.x - lastDragPoint.x
+  const dy = point.y - lastDragPoint.y
+  dragPreviewPoint.value = point
+  dragPreviewVelocity.value = {
+    x: Math.max(-36, Math.min(36, dx * 2.2 + (dx / dt) * 10)),
+    y: Math.max(-18, Math.min(18, dy * 1.2 + (dy / dt) * 6)),
+  }
+  const lateralPull = Math.max(-58, Math.min(58, dx * 6 + dragPreviewVelocity.value.x * 0.65))
+  const verticalLift = Math.min(
+    34,
+    Math.abs(dx) * 2.4 + Math.abs(dy) * 0.7 + Math.abs(dragPreviewVelocity.value.x) * 0.3,
+  )
+  targetBodyOffset = {
+    x: lateralPull,
+    y: verticalLift,
+    rotate: Math.max(-24, Math.min(24, -lateralPull * 0.42)),
+  }
+  startWindAnimation()
+  lastDragPoint = { ...point, t: now }
+}
+
+function startWindAnimation() {
+  if (windAnimationFrame !== null) return
+  const tick = () => {
+    const current = dragPreviewBodyOffset.value
+    const next = {
+      x: current.x + (targetBodyOffset.x - current.x) * 0.22,
+      y: current.y + (targetBodyOffset.y - current.y) * 0.22,
+      rotate: current.rotate + (targetBodyOffset.rotate - current.rotate) * 0.22,
+    }
+    dragPreviewBodyOffset.value = next
+    targetBodyOffset = {
+      x: targetBodyOffset.x * 0.88,
+      y: targetBodyOffset.y * 0.88,
+      rotate: targetBodyOffset.rotate * 0.88,
+    }
+
+    if (
+      dragPreview.value &&
+      (Math.abs(next.x) > 0.05 ||
+        Math.abs(next.y) > 0.05 ||
+        Math.abs(next.rotate) > 0.05 ||
+        Math.abs(targetBodyOffset.x) > 0.05 ||
+        Math.abs(targetBodyOffset.y) > 0.05 ||
+        Math.abs(targetBodyOffset.rotate) > 0.05)
+    ) {
+      windAnimationFrame = requestAnimationFrame(tick)
+      return
+    }
+
+    dragPreviewBodyOffset.value = { x: 0, y: 0, rotate: 0 }
+    targetBodyOffset = { x: 0, y: 0, rotate: 0 }
+    windAnimationFrame = null
+  }
+
+  windAnimationFrame = requestAnimationFrame(tick)
+}
+
+function handleDragEnd() {
+  if (!dragPreview.value) return
+  dragPreviewScale.value = 0.82
+  window.setTimeout(() => {
+    dragPreview.value = null
+    dragPreviewVelocity.value = { x: 0, y: 0 }
+    dragPreviewBodyOffset.value = { x: 0, y: 0, rotate: 0 }
+    targetBodyOffset = { x: 0, y: 0, rotate: 0 }
+    cancelWindAnimation()
+  }, 120)
+}
+
+function cancelWindAnimation() {
+  if (windAnimationFrame === null) return
+  cancelAnimationFrame(windAnimationFrame)
+  windAnimationFrame = null
 }
 </script>
