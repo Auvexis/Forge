@@ -37,8 +37,8 @@ describe('page editor panels contract', () => {
     assert.match(chrome, /view\.right-panel/)
     assert.doesNotMatch(source, /web-page-editor__panel-toggle/)
     assert.doesNotMatch(styles, /web-page-editor__panel-toggle/)
-    assert.match(styles, /web-page-editor--left-collapsed/)
-    assert.match(styles, /web-page-editor--right-collapsed/)
+    assert.match(source, /web-page-editor--left-collapsed/)
+    assert.match(source, /web-page-editor--right-collapsed/)
   })
 
   it('top chrome toolbar uses app dropdown components and replaces bottom actions', () => {
@@ -55,11 +55,18 @@ describe('page editor panels contract', () => {
     assert.doesNotMatch(editor, /web-page-editor__actions/)
   })
 
-  it('toolbar and side panels are fixed to the editor viewport', () => {
+  it('toolbar participates in the editor layout while side panels stay fixed below it', () => {
     const styles = read('src/features/web-pages/pages.css')
+    const editorRule = styles.match(/\.web-page-editor\s*{[\s\S]*?}/)?.[0] ?? ''
+    const chromeRule = styles.match(/\.web-page-chrome\s*{[\s\S]*?}/)?.[0] ?? ''
+    const panelRule = styles.match(/\.web-page-editor \.app-panel\s*{[\s\S]*?}/)?.[0] ?? ''
 
-    assert.match(styles, /\.web-page-chrome \{[\s\S]*position: fixed/)
-    assert.match(styles, /\.web-page-editor \.app-panel \{[\s\S]*position: fixed/)
+    assert.match(editorRule, /display:\s*grid/)
+    assert.match(editorRule, /grid-template-rows:\s*40px minmax\(0,\s*1fr\)/)
+    assert.doesNotMatch(chromeRule, /position:\s*fixed/)
+    assert.match(chromeRule, /position:\s*relative/)
+    assert.match(panelRule, /position:\s*fixed/)
+    assert.match(panelRule, /top:\s*40px/)
   })
 
   it('page actions are wired to metadata, duplicate and delete flows', () => {

@@ -1,0 +1,6 @@
+- [x] Fazer topbar de Pages participar do layout
+- [x] Remover overlay fixed sobre o BaseCanvas
+- [x] Ajustar altura do workspace
+- [x] Rodar contratos de Pages
+- [x] Rodar type-check do frontend
+- [x] Commitar ajuste
