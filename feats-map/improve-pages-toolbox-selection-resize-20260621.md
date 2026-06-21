@@ -2,5 +2,5 @@
 
 - [x] Remove canvas toolbars and Add Page button
 - [x] Add Page click and positional drag to Toolbox
-- [ ] Add selection frame and resize handles
+- [x] Add selection frame and resize handles
 - [ ] Verify Pages tests and type check

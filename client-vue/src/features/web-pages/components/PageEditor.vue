@@ -137,6 +137,7 @@
                 @duplicate-block="duplicateBlockFromCanvas"
                 @delete-block="deleteBlockFromCanvas"
                 @inspect-block="handleInspectBlock(item.id, $event)"
+                @resize-block="resizeBlockFromCanvas(item.id, $event)"
               />
             </div>
           </template>
@@ -347,6 +348,11 @@ function patchSelectedOrSingleBlock(patch: Partial<PageBlock>) {
     return
   }
   if (editorStore.selectedBlock) editorStore.patchBlock(editorStore.selectedBlock.id, patch)
+}
+
+function resizeBlockFromCanvas(pageId: string, payload: { blockId: string; styles: PageBlockStyles | undefined }) {
+  if (pageId !== pagesStore.activePage?.id || !payload.styles) return
+  editorStore.patchBlock(payload.blockId, { styles: { ...editorStore.selectedBlock?.styles, ...payload.styles } })
 }
 
 function deleteCodeFile(path: string) {

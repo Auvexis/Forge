@@ -22,12 +22,13 @@
       />
     </span>
     <component
+      ref="blockElementRef"
       :is="renderTag"
       v-bind="blockAttributes"
       :id="block.elementId || undefined"
       class="web-page-block web-page-block-frame__inner"
       :class="blockClasses"
-      :style="block.styles"
+      :style="resolvedBlockStyles"
       :draggable="!readonly && activeTool === 'cursor'"
       tabindex="0"
       @click.stop="$emit('select', block.id)"
@@ -65,9 +66,22 @@
           @duplicate-block="$emit('duplicate-block', $event)"
           @delete-block="$emit('delete-block', $event)"
           @inspect-block="$emit('inspect-block', $event)"
+          @resize-block="$emit('resize-block', $event)"
         />
       </TransitionGroup>
     </component>
+    <template v-if="!readonly && selectedBlockId === block.id">
+      <button
+        v-for="corner in resizeCorners"
+        :key="corner"
+        type="button"
+        class="web-page-block-resize__handle"
+        :class="`web-page-block-resize__handle--${corner}`"
+        :aria-label="`Resize from ${corner}`"
+        @pointerdown.stop.prevent="startResize($event, corner)"
+      />
+      <span v-if="resizeLabel" class="web-page-block-resize__indicator">{{ resizeLabel }}</span>
+    </template>
   </div>
 </template>
 
@@ -77,6 +91,7 @@ import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { DropEdge } from '../stores/page-editor.store.ts'
 import { resolveBlockDropIntent } from '../utils/dropIntent.ts'
+import { calculateBlockResize, type ResizeCorner } from '../utils/blockResize.ts'
 
 const props = withDefaults(defineProps<{
   block: PageBlock
@@ -97,6 +112,7 @@ const emit = defineEmits<{
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
   'inspect-block': [blockId: string]
+  'resize-block': [payload: { blockId: string; styles: PageBlock['styles'] }]
 }>()
 
 const isContainer = computed(() =>
@@ -125,6 +141,19 @@ const blockClasses = computed(() => ({
 }))
 
 const blockAttributes = computed(() => sanitizeAttributes(props.block.attributes ?? {}))
+const blockElementRef = ref<HTMLElement | null>(null)
+const previewStyles = ref<PageBlock['styles'] | null>(null)
+const resizeLabel = ref('')
+const resizeCorners: ResizeCorner[] = ['north-west', 'north-east', 'south-west', 'south-east']
+const resolvedBlockStyles = computed(() => ({ ...props.block.styles, ...previewStyles.value }))
+let resizeState: {
+  corner: ResizeCorner
+  startX: number
+  startY: number
+  width: number
+  height: number
+  fontSize: number
+} | null = null
 const customCssRule = computed(() => {
   const css = props.block.customCss?.trim()
   if (!css) return ''
@@ -141,6 +170,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   customCssStyleEl.value?.remove()
   customCssStyleEl.value = null
+  stopResizeListeners()
 })
 
 watch(customCssRule, () => {
@@ -168,6 +198,51 @@ function updateCustomCssStyle() {
   }
 
   customCssStyleEl.value.textContent = customCssRule.value
+}
+
+function startResize(event: PointerEvent, corner: ResizeCorner) {
+  const element = blockElementRef.value
+  if (!element) return
+  const rect = element.getBoundingClientRect()
+  resizeState = {
+    corner,
+    startX: event.clientX,
+    startY: event.clientY,
+    width: rect.width,
+    height: rect.height,
+    fontSize: Number.parseFloat(getComputedStyle(element).fontSize) || 16,
+  }
+  window.addEventListener('pointermove', resizeFromPointer)
+  window.addEventListener('pointerup', finishResize, { once: true })
+}
+
+function resizeFromPointer(event: PointerEvent) {
+  if (!resizeState) return
+  const result = calculateBlockResize({
+    corner: resizeState.corner,
+    deltaX: event.clientX - resizeState.startX,
+    deltaY: event.clientY - resizeState.startY,
+    width: resizeState.width,
+    height: resizeState.height,
+    fontSize: resizeState.fontSize,
+    tag: props.block.tag,
+    freeAspectRatio: event.shiftKey,
+  })
+  previewStyles.value = result.styles
+  resizeLabel.value = result.label
+}
+
+function finishResize() {
+  if (previewStyles.value) emit('resize-block', { blockId: props.block.id, styles: previewStyles.value })
+  previewStyles.value = null
+  resizeLabel.value = ''
+  resizeState = null
+  stopResizeListeners()
+}
+
+function stopResizeListeners() {
+  window.removeEventListener('pointermove', resizeFromPointer)
+  window.removeEventListener('pointerup', finishResize)
 }
 
 function onDragStart(event: DragEvent) {

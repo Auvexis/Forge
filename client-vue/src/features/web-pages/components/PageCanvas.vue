@@ -38,6 +38,7 @@
           @duplicate-block="$emit('duplicate-block', $event)"
           @delete-block="$emit('delete-block', $event)"
           @inspect-block="$emit('inspect-block', $event)"
+          @resize-block="$emit('resize-block', $event)"
         />
       </TransitionGroup>
     </section>
@@ -71,6 +72,7 @@ const emit = defineEmits<{
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
   'inspect-block': [blockId: string]
+  'resize-block': [payload: { blockId: string; styles: PageBlock['styles'] }]
 }>()
 
 const resolvedBodyStyles = computed(() => ({

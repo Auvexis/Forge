@@ -53,21 +53,19 @@ describe('page drag prediction contract', () => {
     assert.doesNotMatch(source, /drop-shadow\(0 0/)
   })
 
-  it('selected element uses dashed animated accent outline', () => {
+  it('selected element uses a solid accent outline', () => {
     const source = read('src/features/web-pages/pages.css')
 
-    assert.match(source, /@keyframes web-page-selected-dash/)
-    assert.match(source, /web-page-block--selected[\s\S]*outline:\s*2px dashed var\(--web-page-selected-color\)/)
-    assert.match(source, /web-page-block--selected[\s\S]*animation:\s*web-page-selected-dash/)
+    assert.doesNotMatch(source, /@keyframes web-page-selected-dash/)
+    assert.match(source, /web-page-block--selected[\s\S]*outline:\s*1px solid var\(--web-page-selected-color\)/)
   })
 
-  it('focused canvas elements use dashed animated accent outline', () => {
+  it('focused canvas elements use a solid accent outline', () => {
     const source = read('src/features/web-pages/pages.css')
 
     assert.match(source, /web-page-block:focus/)
     assert.match(source, /web-page-block:focus-visible/)
-    assert.match(source, /web-page-block:focus[\s\S]*outline:\s*2px dashed var\(--web-page-selected-color\)/)
-    assert.match(source, /web-page-block:focus[\s\S]*animation:\s*web-page-selected-dash/)
+    assert.match(source, /web-page-block:focus[\s\S]*outline:\s*1px solid var\(--web-page-selected-color\)/)
   })
 
   it('drag prediction exposes directional arrow indicators and a custom drag preview', () => {

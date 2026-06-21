@@ -8,6 +8,21 @@ function read(relativePath: string) {
 }
 
 describe('page selection contract', () => {
+  it('selected blocks expose four corner resize handles and a live size indicator', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    for (const corner of ['north-west', 'north-east', 'south-west', 'south-east']) {
+      assert.match(renderer, new RegExp(corner))
+    }
+    assert.match(renderer, /web-page-block-resize__indicator/)
+    assert.match(renderer, /resize-block/)
+    assert.match(editor, /patchBlock/)
+    assert.match(css, /web-page-block-resize__handle/)
+    assert.match(css, /outline:\s*1px solid var\(--web-page-selected-color\)/)
+    assert.doesNotMatch(css, /@keyframes web-page-selected-dash/)
+  })
   it('canvas can select the body independently from blocks', () => {
     const source = read('src/features/web-pages/components/PageCanvas.vue')
 
