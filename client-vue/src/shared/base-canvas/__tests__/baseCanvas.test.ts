@@ -125,8 +125,21 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /target: \{ type: 'item', itemId \}/)
     assert.match(source, /screenToWorld/)
     assert.match(source, /event\.button === 1/)
+    assert.match(source, /@auxclick\.prevent/)
+    assert.match(source, /event\.preventDefault\(\)/)
     assert.doesNotMatch(source, /<ContextMenu|ContextMenuPanel|ContextMenuItem/)
     assert.doesNotMatch(source, /menu item/i)
+  })
+
+  it('normalizes pointer coordinates to the canvas before marquee and world math', () => {
+    const source = readBaseCanvas()
+
+    assert.match(source, /ref="canvasRef"/)
+    assert.match(source, /function clientPointToCanvasPoint\(point: BaseCanvasPoint\)/)
+    assert.match(source, /getBoundingClientRect\(\)/)
+    assert.match(source, /const current = clientPointToCanvasPoint\(\{ x: event\.clientX, y: event\.clientY \}\)/)
+    assert.match(source, /const rect = rectFromPoints\(marquee\.start, current\)/)
+    assert.match(source, /screenToWorld\(clientPointToCanvasPoint/)
   })
 
   it('exposes a public Vue component entry without importing Vue SFCs from helper tests', () => {

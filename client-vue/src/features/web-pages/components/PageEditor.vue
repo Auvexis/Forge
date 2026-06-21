@@ -86,6 +86,8 @@
           background-color="var(--sailor-bg-canvas)"
           pattern-color="rgba(255,255,255,0.08)"
           pattern-style="dot"
+          @canvas-click="closePageCanvasContextMenu"
+          @item-click="closePageCanvasContextMenu"
           @items-move="handlePageCanvasItemsMove"
           @context-menu="openPageCanvasContextMenu"
         >
@@ -133,6 +135,7 @@
           v-if="pageCanvasContextMenu"
           class="web-page-canvas-context-menu"
           :style="{ left: `${pageCanvasContextMenu.screen.x}px`, top: `${pageCanvasContextMenu.screen.y}px` }"
+          @click.stop
         >
           <BaseButton variant="ghost" icon-left="plus" @click="addPageFromContextMenu">
             Add page

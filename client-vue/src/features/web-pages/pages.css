@@ -139,7 +139,9 @@
   --web-page-selected-color: var(--sailor-accent-500);
   --web-page-tree-indent: 12px;
   position: relative;
+  height: 100vh;
   min-height: 100vh;
+  overflow: hidden;
   background: var(--sailor-bg-canvas);
 }
 
@@ -326,16 +328,20 @@
 
 .web-page-editor__workspace {
   position: relative;
-  min-height: 100%;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
   margin: 0;
   padding: calc(40px + var(--sailor-space-8)) 0 var(--sailor-space-8);
-  overflow: auto;
+  overflow: hidden;
   transition: padding 180ms var(--sailor-ease-standard);
 }
 
 .web-page-editor__base-canvas {
+  display: block;
   width: 100%;
-  min-height: 1800px;
+  min-width: 0;
+  height: 100%;
 }
 
 .web-page-editor__plane {

@@ -115,6 +115,9 @@ describe('page editor contract', () => {
     assert.match(source, /pageCanvasContextMenu/)
     assert.match(source, /openPageCanvasContextMenu/)
     assert.match(source, /closePageCanvasContextMenu/)
+    assert.match(source, /@canvas-click="closePageCanvasContextMenu"/)
+    assert.match(source, /@item-click="closePageCanvasContextMenu"/)
+    assert.match(source, /@click\.stop/)
     assert.match(source, /web-page-canvas-context-menu/)
     assert.match(source, /Add page/)
     assert.match(source, /Duplicate page/)
@@ -125,15 +128,18 @@ describe('page editor contract', () => {
   it('workspace centers the page by css instead of a wide horizontal plane', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
     const css = read('src/features/web-pages/pages.css')
+    const baseCanvasRule = css.match(/\.web-page-editor__base-canvas\s*{[\s\S]*?}/)?.[0] ?? ''
 
     assert.doesNotMatch(source, /FREE_CANVAS_WIDTH/)
     assert.doesNotMatch(source, /FREE_CANVAS_HEIGHT/)
     assert.doesNotMatch(source, /INITIAL_CANVAS_WIDTH/)
     assert.doesNotMatch(css, /--web-page-free-canvas-width/)
     assert.doesNotMatch(css, /min-width:\s*2400px/)
-    assert.match(css, /width:\s*100%/)
-    assert.match(css, /min-width:\s*0/)
-    assert.match(css, /min-height:\s*1800px/)
+    assert.match(css, /web-page-editor__workspace[\s\S]*overflow:\s*hidden/)
+    assert.match(baseCanvasRule, /width:\s*100%/)
+    assert.match(baseCanvasRule, /height:\s*100%/)
+    assert.match(baseCanvasRule, /min-width:\s*0/)
+    assert.doesNotMatch(baseCanvasRule, /min-height:\s*1800px/)
   })
 
   it('canvas x position is independent from side panel state', () => {

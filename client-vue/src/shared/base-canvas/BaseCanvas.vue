@@ -1,10 +1,12 @@
 <template>
   <div
+    ref="canvasRef"
     class="base-canvas"
     :class="`is-pattern-${patternStyle}`"
     :style="canvasStyle"
     @pointerdown="startCanvasPointer"
     @click.self="handleCanvasClick"
+    @auxclick.prevent
     @contextmenu="handleCanvasContextMenu"
   >
     <BaseCanvasRulers
@@ -106,6 +108,7 @@ const activeMarquee = ref<{
 } | null>(null)
 const marqueeRect = ref<BaseCanvasRect | null>(null)
 const isSpacePressed = ref(false)
+const canvasRef = ref<HTMLElement | null>(null)
 
 const viewportStyle = computed(() => ({
   transform: `translate(${props.viewport.x}px, ${props.viewport.y}px) scale(${props.viewport.zoom})`,
@@ -184,7 +187,7 @@ function handleCanvasContextMenu(event: MouseEvent) {
   event.preventDefault()
   emit('context-menu', {
     screen: { x: event.clientX, y: event.clientY },
-    world: screenToWorld({ x: event.clientX, y: event.clientY }, props.viewport),
+    world: screenToWorld(clientPointToCanvasPoint({ x: event.clientX, y: event.clientY }), props.viewport),
     target: { type: 'canvas' },
     selection: props.selection,
   })
@@ -195,7 +198,7 @@ function handleItemContextMenu(event: MouseEvent, itemId: string) {
   event.preventDefault()
   emit('context-menu', {
     screen: { x: event.clientX, y: event.clientY },
-    world: screenToWorld({ x: event.clientX, y: event.clientY }, props.viewport),
+    world: screenToWorld(clientPointToCanvasPoint({ x: event.clientX, y: event.clientY }), props.viewport),
     target: { type: 'item', itemId },
     selection: props.selection,
   })
@@ -211,6 +214,7 @@ function startCanvasPointer(event: PointerEvent) {
 }
 
 function startViewportPan(event: PointerEvent) {
+  event.preventDefault()
   activePan.value = {
     start: { x: event.clientX, y: event.clientY },
     viewport: { ...props.viewport },
@@ -267,8 +271,9 @@ function stopItemDrag() {
 
 function startMarqueeSelection(event: PointerEvent) {
   if (!props.marqueeSelection) return
+  const start = clientPointToCanvasPoint({ x: event.clientX, y: event.clientY })
   activeMarquee.value = {
-    start: { x: event.clientX, y: event.clientY },
+    start,
     pointerId: event.pointerId,
   }
   marqueeRect.value = rectFromPoints(activeMarquee.value.start, activeMarquee.value.start)
@@ -279,7 +284,8 @@ function startMarqueeSelection(event: PointerEvent) {
 function moveMarqueeSelection(event: PointerEvent) {
   const marquee = activeMarquee.value
   if (!marquee || event.pointerId !== marquee.pointerId) return
-  const rect = rectFromPoints(marquee.start, { x: event.clientX, y: event.clientY })
+  const current = clientPointToCanvasPoint({ x: event.clientX, y: event.clientY })
+  const rect = rectFromPoints(marquee.start, current)
   marqueeRect.value = rect
   const selected = props.items
     .filter((item) => rectsIntersect(screenRectToWorld(rect), itemToRect(item)))
@@ -299,6 +305,15 @@ function screenRectToWorld(rect: BaseCanvasRect): BaseCanvasRect {
     y: (rect.y - props.viewport.y) / props.viewport.zoom,
     width: rect.width / props.viewport.zoom,
     height: rect.height / props.viewport.zoom,
+  }
+}
+
+function clientPointToCanvasPoint(point: BaseCanvasPoint): BaseCanvasPoint {
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return point
+  return {
+    x: point.x - rect.left,
+    y: point.y - rect.top,
   }
 }
 
