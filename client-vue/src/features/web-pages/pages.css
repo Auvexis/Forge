@@ -718,7 +718,7 @@
 
 .web-page-toolbox {
   display: grid;
-  gap: var(--sailor-space-3);
+  gap: var(--sailor-space-2);
   align-content: start;
   padding: var(--sailor-space-2);
   color: var(--sailor-text-primary);
@@ -752,8 +752,8 @@
 
 .web-page-toolbox__section {
   display: grid;
-  gap: var(--sailor-space-3);
-  padding-bottom: var(--sailor-space-3);
+  gap: var(--sailor-space-2);
+  padding-bottom: var(--sailor-space-2);
   border-bottom: 1px solid var(--sailor-border-muted);
 }
 
@@ -764,10 +764,10 @@
 .web-page-toolbox__section-title {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: var(--sailor-space-1);
   width: max-content;
   color: var(--sailor-text-primary);
-  font-size: 25px;
+  font-size: 14px;
   font-weight: var(--sailor-font-semibold);
   text-align: left;
 }
@@ -775,8 +775,8 @@
 .web-page-toolbox__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--sailor-space-3);
-  padding: var(--sailor-space-2);
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-1);
 }
 
 .web-page-toolbox__item {
@@ -796,7 +796,7 @@
   display: grid;
   place-items: center;
   aspect-ratio: 1;
-  min-height: 96px;
+  min-height: 48px;
   border: 1px solid var(--sailor-border-muted);
   border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-elevated);
@@ -818,7 +818,7 @@
 .web-page-toolbox__item-label {
   min-width: 0;
   overflow: hidden;
-  font-size: 20px;
+  font-size: 10px;
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
