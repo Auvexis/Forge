@@ -17,12 +17,12 @@ describe('sailor pages fixes contracts', () => {
     assert.doesNotMatch(source, /Generated preview for/)
   })
 
-  it('block toolbar escapes overflow-hidden parents by teleporting to body', () => {
+  it('block selection no longer renders a contextual toolbar', () => {
     const source = read('src/features/web-pages/components/BlockRenderer.vue')
 
-    assert.match(source, /<Teleport to="body">/)
-    assert.match(source, /toolbarPosition/)
-    assert.match(source, /updateToolbarPosition/)
+    assert.doesNotMatch(source, /<Teleport to="body">/)
+    assert.doesNotMatch(source, /toolbarPosition/)
+    assert.doesNotMatch(source, /web-page-block-toolbar/)
   })
 
   it('tree supports same-type multi selection and inspector batch patching', () => {

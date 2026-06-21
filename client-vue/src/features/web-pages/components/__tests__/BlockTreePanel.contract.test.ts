@@ -80,7 +80,7 @@ describe('block tree panel contract', () => {
     assert.match(source, /togglePage/)
     assert.match(source, /isPageExpanded/)
     assert.match(source, /blocks\.length > 0/)
-    assert.match(editor, /@add-page="addPageBelowCanvas"/)
+    assert.match(editor, /@add-page="addPageAtEnd"/)
   })
 
   it('tree exposes page and block actions through dropdown menus', () => {
