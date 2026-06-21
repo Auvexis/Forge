@@ -1,27 +1,11 @@
 <template>
   <div class="web-page-explorer">
-    <div class="web-page-explorer__tabs" role="tablist">
-      <button
-        type="button"
-        :class="{ 'web-page-explorer__tab--active': activeTab === 'toolbox' }"
-        @click="activeTab = 'toolbox'"
-      >
-        ToolBox
-      </button>
-      <button
-        type="button"
-        :class="{ 'web-page-explorer__tab--active': activeTab === 'tree' }"
-        @click="activeTab = 'tree'"
-      >
-        Tree
-      </button>
-      <button
-        type="button"
-        :class="{ 'web-page-explorer__tab--active': activeTab === 'code' }"
-        @click="activeTab = 'code'"
-      >
-        Code
-      </button>
+    <div class="web-page-explorer__tabs">
+      <BaseSegmentedSelect
+        v-model="activeTab"
+        aria-label="Explorer view"
+        :options="explorerTabs"
+      />
     </div>
 
     <div class="web-page-explorer__content">
@@ -60,6 +44,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/components/base/BaseSegmentedSelect.vue'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { PageBlock, SailorPageSummary, SailorSite, SiteFile } from '../types/page.types.ts'
 import BlockTreePanel from './BlockTreePanel.vue'
@@ -91,5 +76,12 @@ defineEmits<{
   'delete-file': [path: string]
 }>()
 
-const activeTab = ref<'toolbox' | 'tree' | 'code'>('toolbox')
+type PageExplorerTab = 'toolbox' | 'tree' | 'code'
+
+const activeTab = ref<PageExplorerTab>('toolbox')
+const explorerTabs: BaseSegmentedSelectOption[] = [
+  { value: 'toolbox', label: 'ToolBox', icon: 'blocks' },
+  { value: 'tree', label: 'Tree', icon: 'list-tree' },
+  { value: 'code', label: 'Code', icon: 'code-2' },
+]
 </script>

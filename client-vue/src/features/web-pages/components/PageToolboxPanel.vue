@@ -30,7 +30,7 @@
           @dragstart="onDragStart($event, item)"
         >
           <span class="web-page-toolbox__item-icon">
-            <LucideIcon :name="item.icon" :size="24" :stroke-width="1.8" />
+            <LucideIcon :name="item.icon" :size="72" :stroke-width="1.6" />
           </span>
           <span class="web-page-toolbox__item-label">{{ item.label }}</span>
         </button>

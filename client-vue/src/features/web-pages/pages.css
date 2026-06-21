@@ -712,23 +712,8 @@
 }
 
 .web-page-explorer__tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--sailor-space-1);
   padding: var(--sailor-space-2);
   border-bottom: 1px solid var(--sailor-border);
-}
-
-.web-page-explorer__tabs button {
-  height: 28px;
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-}
-
-.web-page-explorer__tab--active {
-  background: var(--sailor-bg-muted);
-  color: var(--sailor-text-primary) !important;
 }
 
 .web-page-toolbox {
@@ -744,7 +729,7 @@
   grid-template-columns: 16px minmax(0, 1fr);
   align-items: center;
   gap: var(--sailor-space-2);
-  height: 32px;
+  height: 40px;
   padding: 0 var(--sailor-space-2);
   border: 1px solid var(--sailor-border-muted);
   border-radius: var(--sailor-radius-sm);
@@ -767,8 +752,8 @@
 
 .web-page-toolbox__section {
   display: grid;
-  gap: var(--sailor-space-2);
-  padding-bottom: var(--sailor-space-2);
+  gap: var(--sailor-space-3);
+  padding-bottom: var(--sailor-space-3);
   border-bottom: 1px solid var(--sailor-border-muted);
 }
 
@@ -782,7 +767,7 @@
   gap: 3px;
   width: max-content;
   color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-xs);
+  font-size: 25px;
   font-weight: var(--sailor-font-semibold);
   text-align: left;
 }
@@ -790,12 +775,13 @@
 .web-page-toolbox__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--sailor-space-2);
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-2);
 }
 
 .web-page-toolbox__item {
   display: grid;
-  gap: 5px;
+  gap: var(--sailor-space-2);
   min-width: 0;
   color: var(--sailor-text-secondary);
   text-align: center;
@@ -810,7 +796,7 @@
   display: grid;
   place-items: center;
   aspect-ratio: 1;
-  min-height: 48px;
+  min-height: 96px;
   border: 1px solid var(--sailor-border-muted);
   border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-elevated);
@@ -832,7 +818,7 @@
 .web-page-toolbox__item-label {
   min-width: 0;
   overflow: hidden;
-  font-size: 10px;
+  font-size: 20px;
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
