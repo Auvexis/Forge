@@ -1,0 +1,8 @@
+- [x] Adicionar contratos para rulers e pattern size
+- [x] Reproduzir bug do drag acumulado
+- [x] Implementar props de rulers e pattern size
+- [x] Corrigir delta incremental do drag
+- [x] Aplicar tokens em Pages
+- [x] Rodar testes do BaseCanvas e Pages
+- [x] Rodar type-check
+- [x] Commitar ajuste

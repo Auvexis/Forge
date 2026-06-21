@@ -9,6 +9,7 @@ import {
   screenToWorld,
   shouldBypassSnap,
   snapPointToGrid,
+  getIncrementalDragDelta,
   worldToScreen,
 } from '../index.ts'
 import { readFileSync } from 'node:fs'
@@ -36,6 +37,34 @@ describe('base canvas snap helpers', () => {
 
   it('bypasses snap when Shift is pressed', () => {
     assert.equal(shouldBypassSnap({ ctrlKey: false, shiftKey: true }), true)
+  })
+})
+
+describe('base canvas drag helpers', () => {
+  it('emits incremental drag deltas instead of replaying the total distance', () => {
+    const first = getIncrementalDragDelta({
+      start: { x: 10, y: 10 },
+      previous: { x: 10, y: 10 },
+      current: { x: 42, y: 26 },
+      zoom: 2,
+      gridSize: 16,
+      snapToGrid: false,
+      bypassSnap: false,
+    })
+    const second = getIncrementalDragDelta({
+      start: { x: 10, y: 10 },
+      previous: { x: 42, y: 26 },
+      current: { x: 58, y: 42 },
+      zoom: 2,
+      gridSize: 16,
+      snapToGrid: false,
+      bypassSnap: false,
+    })
+
+    assert.deepEqual(first.delta, { x: 16, y: 8 })
+    assert.deepEqual(first.nextPrevious, { x: 42, y: 26 })
+    assert.deepEqual(second.delta, { x: 8, y: 8 })
+    assert.deepEqual(second.nextPrevious, { x: 58, y: 42 })
   })
 })
 
@@ -102,7 +131,11 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /backgroundColor\?: string/)
     assert.match(source, /patternColor\?: string/)
     assert.match(source, /patternStyle\?: BaseCanvasPatternStyle/)
+    assert.match(source, /patternSize\?: number/)
     assert.match(source, /rulers\?: boolean/)
+    assert.match(source, /rulersBg\?: string/)
+    assert.match(source, /rulersText\?: string/)
+    assert.match(source, /rulersLines\?: string/)
     assert.match(source, /canvasStyle/)
     assert.match(source, /patternStyleValue/)
     assert.match(source, /patternPositionValue/)
@@ -111,8 +144,13 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /marqueeBorderCss/)
     assert.match(ruler, /axis="x"/)
     assert.match(ruler, /axis="y"/)
+    assert.match(ruler, /backgroundColor: props\.rulersBg/)
+    assert.match(ruler, /context\.fillStyle = resolveCanvasColor\(canvas, props\.rulersBg\)/)
+    assert.match(ruler, /context\.fillRect\(0, 0, width, height\)/)
+    assert.match(ruler, /context\.strokeStyle = resolveCanvasColor\(canvas, props\.rulersLines\)/)
+    assert.match(ruler, /context\.fillStyle = resolveCanvasColor\(canvas, props\.rulersText\)/)
+    assert.match(ruler, /getComputedStyle/)
     assert.match(ruler, /getRulerTicks/)
-    assert.doesNotMatch(ruler, /fillRect\(0, 0, width, height\)/)
     assert.doesNotMatch(ruler, /rgba\(17, 17, 17,/)
     assert.doesNotMatch(ruler, /items/)
   })
@@ -131,7 +169,7 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /backgroundPosition: patternPositionValue\.value/)
     assert.match(source, /backgroundSize: patternSizeValue\.value/)
     assert.match(source, /`\$\{props\.viewport\.x\}px \$\{props\.viewport\.y\}px`/)
-    assert.match(source, /props\.gridSize \* props\.viewport\.zoom/)
+    assert.match(source, /props\.patternSize \* props\.viewport\.zoom/)
   })
 
   it('emits generic context menu events without rendering menu UI', () => {

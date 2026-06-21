@@ -1,5 +1,5 @@
 <template>
-  <div class="base-canvas-rulers" aria-hidden="true">
+  <div class="base-canvas-rulers" :style="rulersStyle" aria-hidden="true">
     <canvas
       ref="topCanvasRef"
       class="base-canvas-rulers__top"
@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { BaseCanvasViewport } from './types.ts'
 import { getRulerTicks } from './rulers.ts'
 
@@ -22,13 +22,24 @@ const props = withDefaults(defineProps<{
   viewport: BaseCanvasViewport
   gridSize?: number
   rulerSize?: number
+  rulersBg?: string
+  rulersText?: string
+  rulersLines?: string
 }>(), {
   gridSize: 16,
   rulerSize: 24,
+  rulersBg: 'var(--sailor-bg-canvas)',
+  rulersText: 'rgba(255, 255, 255, 0.54)',
+  rulersLines: 'rgba(255, 255, 255, 0.2)',
 })
 
 const topCanvasRef = ref<HTMLCanvasElement | null>(null)
 const leftCanvasRef = ref<HTMLCanvasElement | null>(null)
+const rulersStyle = computed(() => ({
+  backgroundColor: props.rulersBg,
+  '--base-canvas-rulers-text': props.rulersText,
+  '--base-canvas-rulers-lines': props.rulersLines,
+}))
 
 onMounted(() => {
   window.addEventListener('resize', drawRulers)
@@ -40,7 +51,16 @@ onBeforeUnmount(() => {
 })
 
 watch(
-  () => [props.viewport.x, props.viewport.y, props.viewport.zoom, props.gridSize, props.rulerSize],
+  () => [
+    props.viewport.x,
+    props.viewport.y,
+    props.viewport.zoom,
+    props.gridSize,
+    props.rulerSize,
+    props.rulersBg,
+    props.rulersText,
+    props.rulersLines,
+  ],
   () => drawRulers(),
 )
 
@@ -59,9 +79,10 @@ function drawAxis(canvas: HTMLCanvasElement | null, axis: 'x' | 'y') {
 
   const context = canvas.getContext('2d')
   if (!context) return
-  context.clearRect(0, 0, width, height)
-  context.strokeStyle = 'rgba(255, 255, 255, 0.2)'
-  context.fillStyle = 'rgba(255, 255, 255, 0.54)'
+  context.fillStyle = resolveCanvasColor(canvas, props.rulersBg)
+  context.fillRect(0, 0, width, height)
+  context.strokeStyle = resolveCanvasColor(canvas, props.rulersLines)
+  context.fillStyle = resolveCanvasColor(canvas, props.rulersText)
   context.font = '10px sans-serif'
 
   const length = axis === 'x' ? width : height
@@ -78,6 +99,15 @@ function drawAxis(canvas: HTMLCanvasElement | null, axis: 'x' | 'y') {
     }
     context.stroke()
   }
+}
+
+function resolveCanvasColor(canvas: HTMLCanvasElement, color: string) {
+  const match = color.match(/^var\((--[^),\s]+)(?:,\s*([^)]+))?\)$/)
+  if (!match) return color
+  const variableName = match[1]
+  if (!variableName) return color
+  const fallback = match[2]?.trim() ?? color
+  return getComputedStyle(canvas.parentElement ?? canvas).getPropertyValue(variableName).trim() || fallback
 }
 </script>
 

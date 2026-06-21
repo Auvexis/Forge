@@ -14,6 +14,9 @@
       v-if="rulers"
       :viewport="viewport"
       :grid-size="gridSize"
+      :rulers-bg="rulersBg"
+      :rulers-text="rulersText"
+      :rulers-lines="rulersLines"
     />
     <div class="base-canvas__viewport" :style="viewportStyle">
       <div
@@ -51,8 +54,9 @@ import type {
   BaseCanvasViewport,
 } from './types.ts'
 import BaseCanvasRulers from './BaseCanvasRulers.vue'
+import { getIncrementalDragDelta } from './drag.ts'
 import { itemToRect, rectFromPoints, rectsIntersect } from './geometry.ts'
-import { snapDeltaToGrid, shouldBypassSnap } from './snap.ts'
+import { shouldBypassSnap } from './snap.ts'
 import { screenToWorld } from './coordinates.ts'
 
 const props = withDefaults(defineProps<{
@@ -68,7 +72,11 @@ const props = withDefaults(defineProps<{
   backgroundColor?: string
   patternColor?: string
   patternStyle?: BaseCanvasPatternStyle
+  patternSize?: number
   rulers?: boolean
+  rulersBg?: string
+  rulersText?: string
+  rulersLines?: string
   contextMenu?: boolean
   minZoom?: number
   maxZoom?: number
@@ -83,7 +91,11 @@ const props = withDefaults(defineProps<{
   backgroundColor: '#0b0b0d',
   patternColor: 'rgba(255, 255, 255, 0.08)',
   patternStyle: 'dot',
+  patternSize: 16,
   rulers: false,
+  rulersBg: 'var(--sailor-bg-canvas)',
+  rulersText: 'rgba(255, 255, 255, 0.54)',
+  rulersLines: 'rgba(255, 255, 255, 0.2)',
   contextMenu: true,
   minZoom: 0.2,
   maxZoom: 3,
@@ -102,6 +114,7 @@ const emit = defineEmits<{
 const activeDrag = ref<{
   itemId: string
   start: BaseCanvasPoint
+  previous: BaseCanvasPoint
   pointerId: number
 } | null>(null)
 const activePan = ref<{
@@ -157,7 +170,7 @@ const patternPositionValue = computed(() => `${props.viewport.x}px ${props.viewp
 
 const patternSizeValue = computed(() => {
   if (props.patternStyle === 'none') return undefined
-  const size = Math.max(1, props.gridSize * props.viewport.zoom)
+  const size = Math.max(1, props.patternSize * props.viewport.zoom)
   return `${size}px ${size}px`
 })
 
@@ -274,6 +287,7 @@ function startItemDrag(event: PointerEvent, item: BaseCanvasItem) {
   activeDrag.value = {
     itemId: item.id,
     start: { x: event.clientX, y: event.clientY },
+    previous: { x: event.clientX, y: event.clientY },
     pointerId: event.pointerId,
   }
   window.addEventListener('pointermove', moveItem)
@@ -283,13 +297,16 @@ function startItemDrag(event: PointerEvent, item: BaseCanvasItem) {
 function moveItem(event: PointerEvent) {
   const drag = activeDrag.value
   if (!drag || event.pointerId !== drag.pointerId) return
-  const rawDelta = {
-    x: (event.clientX - drag.start.x) / props.viewport.zoom,
-    y: (event.clientY - drag.start.y) / props.viewport.zoom,
-  }
-  const delta = props.snapToGrid && !shouldBypassSnap(event)
-    ? snapDeltaToGrid(rawDelta, props.gridSize)
-    : rawDelta
+  const { delta, nextPrevious } = getIncrementalDragDelta({
+    start: drag.start,
+    previous: drag.previous,
+    current: { x: event.clientX, y: event.clientY },
+    zoom: props.viewport.zoom,
+    gridSize: props.gridSize,
+    snapToGrid: props.snapToGrid,
+    bypassSnap: shouldBypassSnap(event),
+  })
+  drag.previous = nextPrevious
   emit('items-move', { itemIds: [drag.itemId], delta })
 }
 
