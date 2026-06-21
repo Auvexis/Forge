@@ -3,6 +3,13 @@
     <div class="web-page-explorer__tabs" role="tablist">
       <button
         type="button"
+        :class="{ 'web-page-explorer__tab--active': activeTab === 'toolbox' }"
+        @click="activeTab = 'toolbox'"
+      >
+        ToolBox
+      </button>
+      <button
+        type="button"
         :class="{ 'web-page-explorer__tab--active': activeTab === 'tree' }"
         @click="activeTab = 'tree'"
       >
@@ -18,8 +25,10 @@
     </div>
 
     <div class="web-page-explorer__content">
+      <PageToolboxPanel v-if="activeTab === 'toolbox'" />
+
       <BlockTreePanel
-        v-if="activeTab === 'tree'"
+        v-else-if="activeTab === 'tree'"
         :pages="pages"
         :active-page-id="activePageId"
         :blocks="blocks"
@@ -54,6 +63,7 @@ import { ref } from 'vue'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { PageBlock, SailorPageSummary, SailorSite, SiteFile } from '../types/page.types.ts'
 import BlockTreePanel from './BlockTreePanel.vue'
+import PageToolboxPanel from './PageToolboxPanel.vue'
 import SiteFilesPanel from './SiteFilesPanel.vue'
 
 defineProps<{
@@ -81,5 +91,5 @@ defineEmits<{
   'delete-file': [path: string]
 }>()
 
-const activeTab = ref<'tree' | 'code'>('tree')
+const activeTab = ref<'toolbox' | 'tree' | 'code'>('toolbox')
 </script>

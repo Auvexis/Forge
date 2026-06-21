@@ -8,16 +8,41 @@ function read(relativePath: string) {
 }
 
 describe('page explorer contract', () => {
-  it('left panel is renamed Explorer and renders Tree and Code tabs', () => {
+  it('left panel is renamed Explorer and renders ToolBox, Tree and Code tabs', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const explorer = read('src/features/web-pages/components/PageExplorerPanel.vue')
 
     assert.match(editor, /title="Explorer"/)
     assert.match(editor, /<PageExplorerPanel/)
+    assert.match(explorer, /ToolBox/)
     assert.match(explorer, /Tree/)
     assert.match(explorer, /Code/)
+    assert.match(explorer, /PageToolboxPanel/)
     assert.match(explorer, /BlockTreePanel/)
     assert.match(explorer, /SiteFilesPanel/)
+  })
+
+  it('toolbox exposes grouped html element presets with lucide icons and drag payloads', () => {
+    const toolbox = read('src/features/web-pages/components/PageToolboxPanel.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(toolbox, /LucideIcon/)
+    assert.match(toolbox, /Search elements/)
+    for (const section of ['Recently used', 'Text', 'Structure', 'Form', 'Media', 'Interactive']) {
+      assert.match(toolbox, new RegExp(section))
+    }
+    for (const label of ['Text Input', 'Heading', 'Paragraph', 'Rich Text', 'Section', 'Container', 'Quick Stack', 'V Flex', 'H Flex', 'Grid', 'Image', 'Video', 'Youtube', 'Audio', 'Button', 'Link']) {
+      assert.match(toolbox, new RegExp(label))
+    }
+    assert.doesNotMatch(toolbox, /Calendar/)
+    assert.doesNotMatch(toolbox, /Diagram/)
+    assert.doesNotMatch(toolbox, /List Items/)
+    assert.match(toolbox, /application\/x-sailor-page-block/)
+    assert.match(toolbox, /setDragImage/)
+    assert.match(css, /web-page-toolbox/)
+    assert.match(css, /web-page-toolbox__item-icon/)
+    assert.match(css, /var\(--sailor-bg-surface\)/)
+    assert.match(css, /var\(--sailor-border\)/)
   })
 
   it('code tab opens site files on the canvas with BaseCodeEditor', () => {
