@@ -129,13 +129,15 @@ describe('page editor contract', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
     const css = read('src/features/web-pages/pages.css')
     const baseCanvasRule = css.match(/\.web-page-editor__base-canvas\s*{[\s\S]*?}/)?.[0] ?? ''
+    const workspaceRule = css.match(/\.web-page-editor__workspace\s*{[\s\S]*?}/)?.[0] ?? ''
 
     assert.doesNotMatch(source, /FREE_CANVAS_WIDTH/)
     assert.doesNotMatch(source, /FREE_CANVAS_HEIGHT/)
     assert.doesNotMatch(source, /INITIAL_CANVAS_WIDTH/)
     assert.doesNotMatch(css, /--web-page-free-canvas-width/)
     assert.doesNotMatch(css, /min-width:\s*2400px/)
-    assert.match(css, /web-page-editor__workspace[\s\S]*overflow:\s*hidden/)
+    assert.match(workspaceRule, /overflow:\s*hidden/)
+    assert.match(workspaceRule, /padding:\s*0/)
     assert.match(baseCanvasRule, /width:\s*100%/)
     assert.match(baseCanvasRule, /height:\s*100%/)
     assert.match(baseCanvasRule, /min-width:\s*0/)
@@ -145,11 +147,12 @@ describe('page editor contract', () => {
   it('canvas x position is independent from side panel state', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
     const css = read('src/features/web-pages/pages.css')
+    const workspaceRule = css.match(/\.web-page-editor__workspace\s*{[\s\S]*?}/)?.[0] ?? ''
 
     assert.doesNotMatch(css, /web-page-editor--left-collapsed \.web-page-editor__workspace/)
     assert.doesNotMatch(css, /web-page-editor--right-collapsed \.web-page-editor__workspace/)
-    assert.match(css, /web-page-editor__workspace[\s\S]*margin:\s*0/)
-    assert.match(css, /web-page-editor__workspace[\s\S]*padding:\s*calc\(40px \+ var\(--sailor-space-8\)\) 0 var\(--sailor-space-8\)/)
+    assert.match(workspaceRule, /margin:\s*0/)
+    assert.match(workspaceRule, /padding:\s*0/)
     assert.match(source, /positionInitialCanvas/)
   })
 

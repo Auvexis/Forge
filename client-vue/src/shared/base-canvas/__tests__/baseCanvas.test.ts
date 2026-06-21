@@ -105,12 +105,33 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /rulers\?: boolean/)
     assert.match(source, /canvasStyle/)
     assert.match(source, /patternStyleValue/)
+    assert.match(source, /patternPositionValue/)
+    assert.match(source, /patternSizeValue/)
     assert.match(source, /BaseCanvasRulers/)
     assert.match(source, /marqueeBorderCss/)
     assert.match(ruler, /axis="x"/)
     assert.match(ruler, /axis="y"/)
     assert.match(ruler, /getRulerTicks/)
+    assert.doesNotMatch(ruler, /fillRect\(0, 0, width, height\)/)
+    assert.doesNotMatch(ruler, /rgba\(17, 17, 17,/)
     assert.doesNotMatch(ruler, /items/)
+  })
+
+  it('zooms with the mouse wheel around the cursor and keeps the pattern attached to the viewport', () => {
+    const source = readBaseCanvas()
+
+    assert.match(source, /@wheel\.prevent="handleWheelZoom"/)
+    assert.match(source, /zoomSensitivity\?: number/)
+    assert.match(source, /minZoom\?: number/)
+    assert.match(source, /maxZoom\?: number/)
+    assert.match(source, /function handleWheelZoom\(event: WheelEvent\)/)
+    assert.match(source, /const nextZoom = clampZoom/)
+    assert.match(source, /const worldBeforeZoom = screenToWorld\(canvasPoint, props\.viewport\)/)
+    assert.match(source, /zoom: nextZoom/)
+    assert.match(source, /backgroundPosition: patternPositionValue\.value/)
+    assert.match(source, /backgroundSize: patternSizeValue\.value/)
+    assert.match(source, /`\$\{props\.viewport\.x\}px \$\{props\.viewport\.y\}px`/)
+    assert.match(source, /props\.gridSize \* props\.viewport\.zoom/)
   })
 
   it('emits generic context menu events without rendering menu UI', () => {

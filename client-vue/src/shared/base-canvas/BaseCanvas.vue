@@ -5,6 +5,7 @@
     :class="`is-pattern-${patternStyle}`"
     :style="canvasStyle"
     @pointerdown="startCanvasPointer"
+    @wheel.prevent="handleWheelZoom"
     @click.self="handleCanvasClick"
     @auxclick.prevent
     @contextmenu="handleCanvasContextMenu"
@@ -69,6 +70,9 @@ const props = withDefaults(defineProps<{
   patternStyle?: BaseCanvasPatternStyle
   rulers?: boolean
   contextMenu?: boolean
+  minZoom?: number
+  maxZoom?: number
+  zoomSensitivity?: number
 }>(), {
   snapToGrid: true,
   gridSize: 16,
@@ -81,6 +85,9 @@ const props = withDefaults(defineProps<{
   patternStyle: 'dot',
   rulers: false,
   contextMenu: true,
+  minZoom: 0.2,
+  maxZoom: 3,
+  zoomSensitivity: 0.0015,
 })
 
 const emit = defineEmits<{
@@ -131,7 +138,8 @@ const canvasStyle = computed(() => ({
   '--base-canvas-pattern-color': props.patternColor,
   '--base-canvas-grid-size': `${props.gridSize}px`,
   backgroundImage: patternStyleValue.value,
-  backgroundSize: props.patternStyle === 'none' ? undefined : `${props.gridSize}px ${props.gridSize}px`,
+  backgroundPosition: patternPositionValue.value,
+  backgroundSize: patternSizeValue.value,
 }))
 
 const patternStyleValue = computed(() => {
@@ -143,6 +151,14 @@ const patternStyleValue = computed(() => {
     ].join(', ')
   }
   return 'radial-gradient(circle, var(--base-canvas-pattern-color) 1px, transparent 1px)'
+})
+
+const patternPositionValue = computed(() => `${props.viewport.x}px ${props.viewport.y}px`)
+
+const patternSizeValue = computed(() => {
+  if (props.patternStyle === 'none') return undefined
+  const size = Math.max(1, props.gridSize * props.viewport.zoom)
+  return `${size}px ${size}px`
 })
 
 const marqueeBorderCss = computed(() => {
@@ -239,6 +255,19 @@ function stopViewportPan() {
   window.removeEventListener('pointermove', moveViewport)
 }
 
+function handleWheelZoom(event: WheelEvent) {
+  const canvasPoint = clientPointToCanvasPoint({ x: event.clientX, y: event.clientY })
+  const worldBeforeZoom = screenToWorld(canvasPoint, props.viewport)
+  const zoomFactor = Math.exp(-event.deltaY * props.zoomSensitivity)
+  const nextZoom = clampZoom(props.viewport.zoom * zoomFactor)
+  emit('update:viewport', {
+    ...props.viewport,
+    x: canvasPoint.x - worldBeforeZoom.x * nextZoom,
+    y: canvasPoint.y - worldBeforeZoom.y * nextZoom,
+    zoom: nextZoom,
+  })
+}
+
 function startItemDrag(event: PointerEvent, item: BaseCanvasItem) {
   if (event.button !== 0) return
   if (item.locked) return
@@ -315,6 +344,10 @@ function clientPointToCanvasPoint(point: BaseCanvasPoint): BaseCanvasPoint {
     x: point.x - rect.left,
     y: point.y - rect.top,
   }
+}
+
+function clampZoom(zoom: number) {
+  return Math.min(props.maxZoom, Math.max(props.minZoom, zoom))
 }
 
 function handleKeyDown(event: KeyboardEvent) {

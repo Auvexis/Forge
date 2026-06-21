@@ -1,0 +1,8 @@
+- [x] Remover padding Y do workspace de Pages
+- [x] Deixar rulers sem fundo translucido
+- [x] Implementar zoom por wheel no BaseCanvas
+- [x] Sincronizar pattern com pan e zoom
+- [x] Rodar testes do BaseCanvas
+- [x] Rodar testes de Pages afetados
+- [x] Rodar type-check do frontend
+- [x] Commitar ajustes

@@ -60,8 +60,6 @@ function drawAxis(canvas: HTMLCanvasElement | null, axis: 'x' | 'y') {
   const context = canvas.getContext('2d')
   if (!context) return
   context.clearRect(0, 0, width, height)
-  context.fillStyle = 'rgba(17, 17, 17, 0.86)'
-  context.fillRect(0, 0, width, height)
   context.strokeStyle = 'rgba(255, 255, 255, 0.2)'
   context.fillStyle = 'rgba(255, 255, 255, 0.54)'
   context.font = '10px sans-serif'
