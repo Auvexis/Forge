@@ -144,7 +144,7 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /marqueeBorderCss/)
     assert.match(ruler, /axis="x"/)
     assert.match(ruler, /axis="y"/)
-    assert.match(ruler, /backgroundColor: props\.rulersBg/)
+    assert.doesNotMatch(ruler, /backgroundColor: props\.rulersBg/)
     assert.match(ruler, /context\.fillStyle = resolveCanvasColor\(canvas, props\.rulersBg\)/)
     assert.match(ruler, /context\.fillRect\(0, 0, width, height\)/)
     assert.match(ruler, /context\.strokeStyle = resolveCanvasColor\(canvas, props\.rulersLines\)/)

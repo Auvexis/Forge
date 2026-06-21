@@ -36,7 +36,6 @@ const props = withDefaults(defineProps<{
 const topCanvasRef = ref<HTMLCanvasElement | null>(null)
 const leftCanvasRef = ref<HTMLCanvasElement | null>(null)
 const rulersStyle = computed(() => ({
-  backgroundColor: props.rulersBg,
   '--base-canvas-rulers-text': props.rulersText,
   '--base-canvas-rulers-lines': props.rulersLines,
 }))

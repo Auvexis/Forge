@@ -1,0 +1,6 @@
+- [x] Reproduzir rulers cobrindo o pattern
+- [x] Remover fundo do container das rulers
+- [x] Manter fundo apenas nos canvases das rulers
+- [x] Rodar contratos do BaseCanvas e Pages
+- [x] Rodar type-check
+- [x] Commitar ajuste
