@@ -59,6 +59,14 @@ describe('page explorer contract', () => {
     assert.match(editor, /createPageAt/)
   })
 
+  it('captures Page drops before nested block drop handlers stop propagation', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(editor, /@dragover\.capture="handlePageDragOver"/)
+    assert.match(editor, /@drop\.capture="handlePageDrop"/)
+    assert.match(editor, /closestPageDropIndex/)
+  })
+
   it('code tab opens site files on the canvas with BaseCodeEditor', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const files = read('src/features/web-pages/components/SiteFilesPanel.vue')

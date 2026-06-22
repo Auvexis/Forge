@@ -87,14 +87,14 @@
           @item-click="closePageCanvasContextMenu"
           @items-move="handlePageCanvasItemsMove"
           @context-menu="openPageCanvasContextMenu"
+          @dragover.capture="handlePageDragOver"
+          @dragleave.capture="clearPageDropIntent"
+          @drop.capture="handlePageDrop"
         >
           <template #item="{ item }">
             <div
               class="web-page-editor__page-shell"
               :data-page-id="item.id"
-              @dragover="handlePageDragOver($event, item.id)"
-              @dragleave="clearPageDropIntent"
-              @drop="handlePageDrop($event)"
             >
               <span
                 v-if="pageDropIndex === pageIndex(item.id) || pageDropIndex === pageIndex(item.id) + 1"
@@ -583,14 +583,13 @@ function pageIndex(pageId: string) {
   return pagesStore.pages.findIndex((page) => page.id === pageId)
 }
 
-function handlePageDragOver(event: DragEvent, pageId: string) {
-  if (!event.dataTransfer?.types.includes('application/x-sailor-page')) return
+function handlePageDragOver(event: DragEvent) {
+  const dataTransfer = event.dataTransfer
+  if (!dataTransfer || !isPageDrag(event)) return
   event.preventDefault()
   event.stopPropagation()
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const index = pageIndex(pageId)
-  pageDropIndex.value = event.clientY < rect.top + rect.height / 2 ? index : index + 1
-  event.dataTransfer.dropEffect = 'copy'
+  pageDropIndex.value = closestPageDropIndex(event)
+  dataTransfer.dropEffect = 'copy'
 }
 
 function clearPageDropIntent(event?: DragEvent) {
@@ -601,14 +600,31 @@ function clearPageDropIntent(event?: DragEvent) {
 }
 
 async function handlePageDrop(event: DragEvent) {
-  if (!event.dataTransfer?.types.includes('application/x-sailor-page') || pageDropIndex.value === null) return
+  if (!isPageDrag(event)) return
   event.preventDefault()
   event.stopPropagation()
-  const index = pageDropIndex.value
+  const index = pageDropIndex.value ?? closestPageDropIndex(event)
   pageDropIndex.value = null
   if (pagesStore.isDirty) await savePage()
   const page = await pagesStore.createPageAt(index)
   await activateCreatedPage(page)
+}
+
+function isPageDrag(event: DragEvent) {
+  return Array.from(event.dataTransfer?.types ?? []).includes('application/x-sailor-page')
+}
+
+function closestPageDropIndex(event: DragEvent) {
+  const canvas = event.currentTarget as HTMLElement | null
+  const shells = Array.from(canvas?.querySelectorAll<HTMLElement>('[data-page-id]') ?? [])
+    .map((shell) => ({
+      index: pageIndex(shell.dataset.pageId ?? ''),
+      middle: shell.getBoundingClientRect().top + shell.getBoundingClientRect().height / 2,
+    }))
+    .filter((item) => item.index >= 0)
+    .sort((left, right) => left.index - right.index)
+  const next = shells.find((item) => event.clientY < item.middle)
+  return next?.index ?? pagesStore.pages.length
 }
 
 async function duplicatePageFromContextMenu() {
