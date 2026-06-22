@@ -136,7 +136,7 @@
 
 .web-page-editor {
   --web-page-drop-color: var(--sailor-border-strong);
-  --web-page-selected-color: var(--sailor-accent-500);
+  --web-page-selected-color: #3b82f6;
   --web-page-tree-indent: 12px;
   position: relative;
   display: grid;
@@ -484,13 +484,61 @@
 .web-page-block-resize__handle {
   position: absolute;
   z-index: 12;
-  width: 9px;
-  height: 9px;
+  width: 11px;
+  height: 11px;
   padding: 0;
-  border: 1px solid var(--web-page-selected-color);
-  border-radius: 1px;
-  background: var(--sailor-bg-surface);
+  border: 2px solid var(--web-page-selected-color);
+  border-radius: 2px;
+  background: #ffffff;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--sailor-bg-surface) 72%, transparent);
+}
+
+.web-page-block-selection__id,
+.web-page-block-selection__actions {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  z-index: 14;
+  border: 1px solid color-mix(in srgb, var(--web-page-selected-color) 78%, #ffffff);
+  border-radius: 4px;
+  background: var(--web-page-selected-color);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--web-page-selected-color) 24%, transparent);
+  color: #ffffff;
+}
+
+.web-page-block-selection__id {
+  left: -4px;
+  min-width: 36px;
+  padding: 3px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  cursor: text;
+}
+
+.web-page-block-selection__id-input {
+  width: 120px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+}
+
+.web-page-block-selection__actions {
+  right: -4px;
+  display: flex;
+  padding: 1px;
+}
+
+.web-page-block-selection__actions .base-button {
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  color: #ffffff;
+}
+
+.web-page-block-selection__actions .base-button:hover {
+  background: color-mix(in srgb, #ffffff 18%, transparent);
 }
 
 .web-page-block-resize__handle--north-west {

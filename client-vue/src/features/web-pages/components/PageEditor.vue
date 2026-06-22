@@ -138,6 +138,7 @@
                 @delete-block="deleteBlockFromCanvas"
                 @inspect-block="handleInspectBlock(item.id, $event)"
                 @resize-block="resizeBlockFromCanvas(item.id, $event)"
+                @rename-block="renameBlockFromCanvas(item.id, $event)"
               />
             </div>
           </template>
@@ -353,6 +354,11 @@ function patchSelectedOrSingleBlock(patch: Partial<PageBlock>) {
 function resizeBlockFromCanvas(pageId: string, payload: { blockId: string; styles: PageBlockStyles | undefined }) {
   if (pageId !== pagesStore.activePage?.id || !payload.styles) return
   editorStore.patchBlock(payload.blockId, { styles: { ...editorStore.selectedBlock?.styles, ...payload.styles } })
+}
+
+function renameBlockFromCanvas(pageId: string, payload: { blockId: string; nextId: string }) {
+  if (pageId !== pagesStore.activePage?.id) return
+  editorStore.renameBlockId(payload.blockId, payload.nextId)
 }
 
 function deleteCodeFile(path: string) {

@@ -23,6 +23,22 @@ describe('page selection contract', () => {
     assert.match(css, /outline:\s*1px solid var\(--web-page-selected-color\)/)
     assert.doesNotMatch(css, /@keyframes web-page-selected-dash/)
   })
+
+  it('selected blocks expose editable id and duplicate delete controls', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(renderer, /web-page-block-selection__id/)
+    assert.match(renderer, /editingBlockId/)
+    assert.match(renderer, /rename-block/)
+    assert.match(renderer, /icon-left="copy"/)
+    assert.match(renderer, /icon-left="trash-2"/)
+    assert.match(renderer, /@pointerdown\.stop/)
+    assert.match(editor, /editorStore\.renameBlockId/)
+    assert.match(css, /--web-page-selected-color:\s*#3b82f6/)
+    assert.match(css, /web-page-block-selection__actions/)
+  })
   it('canvas can select the body independently from blocks', () => {
     const source = read('src/features/web-pages/components/PageCanvas.vue')
 

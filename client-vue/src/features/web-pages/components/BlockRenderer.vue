@@ -67,10 +67,40 @@
           @delete-block="$emit('delete-block', $event)"
           @inspect-block="$emit('inspect-block', $event)"
           @resize-block="$emit('resize-block', $event)"
+          @rename-block="$emit('rename-block', $event)"
         />
       </TransitionGroup>
     </component>
     <template v-if="!readonly && selectedBlockId === block.id">
+      <div class="web-page-block-selection__id" @pointerdown.stop @click.stop @dblclick.stop="startBlockIdEdit">
+        <input
+          v-if="editingBlockId"
+          ref="blockIdInputRef"
+          v-model="draftBlockId"
+          class="web-page-block-selection__id-input"
+          aria-label="Element ID"
+          @keydown.enter.prevent="commitBlockIdEdit"
+          @keydown.esc.prevent="cancelBlockIdEdit"
+          @blur="commitBlockIdEdit"
+        />
+        <span v-else>{{ block.id }}</span>
+      </div>
+      <div class="web-page-block-selection__actions" @pointerdown.stop @click.stop>
+        <BaseButton
+          variant="ghost"
+          size="icon"
+          icon-left="copy"
+          title="Duplicate element"
+          @click="$emit('duplicate-block', block.id)"
+        />
+        <BaseButton
+          variant="ghost"
+          size="icon"
+          icon-left="trash-2"
+          title="Delete element"
+          @click="$emit('delete-block', block.id)"
+        />
+      </div>
       <button
         v-for="corner in resizeCorners"
         :key="corner"
@@ -86,7 +116,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { DropEdge } from '../stores/page-editor.store.ts'
@@ -113,6 +144,7 @@ const emit = defineEmits<{
   'delete-block': [blockId: string]
   'inspect-block': [blockId: string]
   'resize-block': [payload: { blockId: string; styles: PageBlock['styles'] }]
+  'rename-block': [payload: { blockId: string; nextId: string }]
 }>()
 
 const isContainer = computed(() =>
@@ -144,6 +176,9 @@ const blockAttributes = computed(() => sanitizeAttributes(props.block.attributes
 const blockElementRef = ref<HTMLElement | null>(null)
 const previewStyles = ref<PageBlock['styles'] | null>(null)
 const resizeLabel = ref('')
+const editingBlockId = ref(false)
+const draftBlockId = ref('')
+const blockIdInputRef = ref<HTMLInputElement | null>(null)
 const resizeCorners: ResizeCorner[] = ['north-west', 'north-east', 'south-west', 'south-east']
 const resolvedBlockStyles = computed(() => ({ ...props.block.styles, ...previewStyles.value }))
 let resizeState: {
@@ -198,6 +233,24 @@ function updateCustomCssStyle() {
   }
 
   customCssStyleEl.value.textContent = customCssRule.value
+}
+
+function startBlockIdEdit() {
+  editingBlockId.value = true
+  draftBlockId.value = props.block.id
+  void nextTick(() => blockIdInputRef.value?.select())
+}
+
+function cancelBlockIdEdit() {
+  editingBlockId.value = false
+  draftBlockId.value = ''
+}
+
+function commitBlockIdEdit() {
+  if (!editingBlockId.value) return
+  const nextId = draftBlockId.value.trim().replace(/\s+/g, '_')
+  if (nextId && nextId !== props.block.id) emit('rename-block', { blockId: props.block.id, nextId })
+  cancelBlockIdEdit()
 }
 
 function startResize(event: PointerEvent, corner: ResizeCorner) {
