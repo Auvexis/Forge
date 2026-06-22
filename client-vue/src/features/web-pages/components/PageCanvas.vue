@@ -6,6 +6,7 @@
       'web-page-canvas--active-tool-delete': props.activeTool === 'delete',
       'web-page-canvas--active-tool-pan': props.activeTool === 'pan',
     }"
+    @pointerdown.stop
   >
     <section
       class="web-page-canvas__body"

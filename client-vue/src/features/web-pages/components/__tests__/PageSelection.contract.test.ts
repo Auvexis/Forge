@@ -17,6 +17,8 @@ describe('page selection contract', () => {
       assert.match(renderer, new RegExp(corner))
     }
     assert.match(renderer, /web-page-block-resize__indicator/)
+    assert.match(renderer, /selectionFrameStyle/)
+    assert.match(renderer, /getBoundingClientRect/)
     assert.match(renderer, /resize-block/)
     assert.match(editor, /patchBlock/)
     assert.match(css, /web-page-block-resize__handle/)
@@ -59,6 +61,7 @@ describe('page selection contract', () => {
 
     assert.match(source, /select-body/)
     assert.match(source, /@click\.self/)
+    assert.match(source, /@pointerdown\.stop/)
   })
 
   it('editor store tracks page, body, block and empty selection targets', () => {

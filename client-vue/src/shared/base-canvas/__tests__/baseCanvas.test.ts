@@ -119,6 +119,9 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /shouldBypassSnap\(event\)/)
     assert.match(source, /if \(item\.locked\) return/)
     assert.match(source, /rectsIntersect/)
+    assert.match(source, /pointercancel/)
+    assert.match(source, /stopActiveGestures/)
+    assert.match(source, /window\.addEventListener\('blur', stopActiveGestures\)/)
   })
 
   it('supports visual marquee, background pattern, and passive rulers', () => {

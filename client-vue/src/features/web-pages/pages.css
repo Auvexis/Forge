@@ -475,6 +475,12 @@
   outline-offset: 3px;
 }
 
+.web-page-block-selection {
+  position: absolute;
+  z-index: 12;
+  pointer-events: none;
+}
+
 .web-page-block:focus,
 .web-page-block:focus-visible {
   outline: 1px solid var(--web-page-selected-color);
@@ -488,7 +494,7 @@
 
 .web-page-block-resize__handle {
   position: absolute;
-  z-index: 12;
+  z-index: 1;
   width: 11px;
   height: 11px;
   padding: 0;
@@ -496,18 +502,20 @@
   border-radius: 2px;
   background: #ffffff;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--sailor-bg-surface) 72%, transparent);
+  pointer-events: auto;
 }
 
 .web-page-block-selection__id,
 .web-page-block-selection__actions {
   position: absolute;
   bottom: calc(100% + 7px);
-  z-index: 14;
+  z-index: 2;
   border: 1px solid color-mix(in srgb, var(--web-page-selected-color) 78%, #ffffff);
   border-radius: 4px;
   background: var(--web-page-selected-color);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--web-page-selected-color) 24%, transparent);
   color: #ffffff;
+  pointer-events: auto;
 }
 
 .web-page-block-selection__id {
@@ -574,11 +582,12 @@
   position: absolute;
   right: 0;
   bottom: -30px;
-  z-index: 13;
+  z-index: 2;
   padding: 3px 6px;
   border-radius: var(--sailor-radius-sm);
   background: var(--sailor-text-primary);
   color: var(--sailor-bg-surface);
+  pointer-events: none;
   font-size: var(--sailor-text-xs);
   line-height: 1.2;
   pointer-events: none;

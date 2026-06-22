@@ -183,14 +183,14 @@ const marqueeBorderCss = computed(() => {
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
   window.addEventListener('keyup', handleKeyUp)
+  window.addEventListener('blur', stopActiveGestures)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeyDown)
   window.removeEventListener('keyup', handleKeyUp)
-  stopItemDrag()
-  stopViewportPan()
-  stopMarqueeSelection()
+  window.removeEventListener('blur', stopActiveGestures)
+  stopActiveGestures()
 })
 
 function itemStyle(item: BaseCanvasItem) {
@@ -251,6 +251,7 @@ function startViewportPan(event: PointerEvent) {
   }
   window.addEventListener('pointermove', moveViewport)
   window.addEventListener('pointerup', stopViewportPan, { once: true })
+  window.addEventListener('pointercancel', stopViewportPan, { once: true })
 }
 
 function moveViewport(event: PointerEvent) {
@@ -266,6 +267,7 @@ function moveViewport(event: PointerEvent) {
 function stopViewportPan() {
   activePan.value = null
   window.removeEventListener('pointermove', moveViewport)
+  window.removeEventListener('pointercancel', stopViewportPan)
 }
 
 function handleWheelZoom(event: WheelEvent) {
@@ -292,6 +294,7 @@ function startItemDrag(event: PointerEvent, item: BaseCanvasItem) {
   }
   window.addEventListener('pointermove', moveItem)
   window.addEventListener('pointerup', stopItemDrag, { once: true })
+  window.addEventListener('pointercancel', stopItemDrag, { once: true })
 }
 
 function moveItem(event: PointerEvent) {
@@ -313,6 +316,7 @@ function moveItem(event: PointerEvent) {
 function stopItemDrag() {
   activeDrag.value = null
   window.removeEventListener('pointermove', moveItem)
+  window.removeEventListener('pointercancel', stopItemDrag)
 }
 
 function startMarqueeSelection(event: PointerEvent) {
@@ -325,6 +329,7 @@ function startMarqueeSelection(event: PointerEvent) {
   marqueeRect.value = rectFromPoints(activeMarquee.value.start, activeMarquee.value.start)
   window.addEventListener('pointermove', moveMarqueeSelection)
   window.addEventListener('pointerup', stopMarqueeSelection, { once: true })
+  window.addEventListener('pointercancel', stopMarqueeSelection, { once: true })
 }
 
 function moveMarqueeSelection(event: PointerEvent) {
@@ -343,6 +348,13 @@ function stopMarqueeSelection() {
   activeMarquee.value = null
   marqueeRect.value = null
   window.removeEventListener('pointermove', moveMarqueeSelection)
+  window.removeEventListener('pointercancel', stopMarqueeSelection)
+}
+
+function stopActiveGestures() {
+  stopItemDrag()
+  stopViewportPan()
+  stopMarqueeSelection()
 }
 
 function screenRectToWorld(rect: BaseCanvasRect): BaseCanvasRect {

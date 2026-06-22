@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="frameElementRef"
     class="web-page-block-frame"
     :class="{
       'web-page-block-frame--selected': selectedBlockId === block.id,
@@ -75,7 +76,11 @@
         />
       </TransitionGroup>
     </component>
-    <template v-if="!readonly && selectedBlockId === block.id">
+    <div
+      v-if="!readonly && selectedBlockId === block.id"
+      class="web-page-block-selection"
+      :style="selectionFrameStyle"
+    >
       <div class="web-page-block-selection__id" @pointerdown.stop @click.stop @dblclick.stop="startBlockIdEdit">
         <input
           v-if="editingBlockId"
@@ -115,7 +120,7 @@
         @pointerdown.stop.prevent="startResize($event, corner)"
       />
       <span v-if="resizeLabel" class="web-page-block-resize__indicator">{{ resizeLabel }}</span>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -178,9 +183,11 @@ const blockClasses = computed(() => ({
 }))
 
 const blockAttributes = computed(() => sanitizeAttributes(props.block.attributes ?? {}))
+const frameElementRef = ref<HTMLElement | null>(null)
 const blockElementRef = ref<HTMLElement | null>(null)
 const previewStyles = ref<PageBlock['styles'] | null>(null)
 const resizeLabel = ref('')
+const selectionFrameStyle = ref<Record<string, string>>({})
 const editingBlockId = ref(false)
 const draftBlockId = ref('')
 const blockIdInputRef = ref<HTMLInputElement | null>(null)
@@ -208,12 +215,15 @@ const lastDragIntentKey = ref('')
 
 onMounted(() => {
   updateCustomCssStyle()
+  updateSelectionFrame()
+  window.addEventListener('resize', updateSelectionFrame)
 })
 
 onBeforeUnmount(() => {
   customCssStyleEl.value?.remove()
   customCssStyleEl.value = null
   stopResizeListeners()
+  window.removeEventListener('resize', updateSelectionFrame)
 })
 
 watch(customCssRule, () => {
@@ -226,6 +236,30 @@ watch(
     if (!dropIntent) lastDragIntentKey.value = ''
   },
 )
+
+watch(
+  () => [props.selectedBlockId, props.block.styles, previewStyles.value],
+  () => void nextTick(updateSelectionFrame),
+  { deep: true },
+)
+
+function updateSelectionFrame() {
+  if (props.selectedBlockId !== props.block.id) {
+    selectionFrameStyle.value = {}
+    return
+  }
+  const frame = frameElementRef.value
+  const element = blockElementRef.value
+  if (!frame || !element) return
+  const frameRect = frame.getBoundingClientRect()
+  const elementRect = element.getBoundingClientRect()
+  selectionFrameStyle.value = {
+    left: `${elementRect.left - frameRect.left}px`,
+    top: `${elementRect.top - frameRect.top}px`,
+    width: `${elementRect.width}px`,
+    height: `${elementRect.height}px`,
+  }
+}
 
 function updateCustomCssStyle() {
   if (!customCssRule.value) {
@@ -324,8 +358,10 @@ function startResize(event: PointerEvent, corner: ResizeCorner) {
     height: rect.height,
     fontSize: Number.parseFloat(getComputedStyle(element).fontSize) || 16,
   }
+  updateSelectionFrame()
   window.addEventListener('pointermove', resizeFromPointer)
   window.addEventListener('pointerup', finishResize, { once: true })
+  window.addEventListener('pointercancel', finishResize, { once: true })
 }
 
 function resizeFromPointer(event: PointerEvent) {
@@ -342,6 +378,7 @@ function resizeFromPointer(event: PointerEvent) {
   })
   previewStyles.value = result.styles
   resizeLabel.value = result.label
+  void nextTick(updateSelectionFrame)
 }
 
 function finishResize() {
@@ -350,11 +387,13 @@ function finishResize() {
   resizeLabel.value = ''
   resizeState = null
   stopResizeListeners()
+  void nextTick(updateSelectionFrame)
 }
 
 function stopResizeListeners() {
   window.removeEventListener('pointermove', resizeFromPointer)
   window.removeEventListener('pointerup', finishResize)
+  window.removeEventListener('pointercancel', finishResize)
 }
 
 function onDragStart(event: DragEvent) {
