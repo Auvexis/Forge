@@ -57,7 +57,7 @@ export const useSitesStore = defineStore('web-sites', () => {
 
   function setActiveSite(site: SailorSite | null) {
     activeSite.value = site ? clone(site) : null
-    savedSnapshot.value ??= activeSite.value ? snapshot(activeSite.value) : null
+    savedSnapshot.value = activeSite.value ? snapshot(activeSite.value) : null
   }
 
   async function listSites() {

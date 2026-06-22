@@ -139,6 +139,25 @@ describe('sites store', () => {
     assert.equal(store.activeSite?.files.some((file) => file.path === 'assets/logo.png'), true)
   })
 
+  it('replaces active site files when switching projects', () => {
+    const store = useSitesStore()
+    const first = site({
+      id: 'site_a',
+      files: [
+        ...site().files,
+        { path: 'assets/a.png', kind: 'asset', url: '/sites/site_a/assets/a.png', updatedAt: '2026-05-24T01:00:00.000Z' },
+      ],
+    })
+    const second = site({ id: 'site_b', name: 'Clean Site', slug: 'clean-site' })
+
+    store.setActiveSite(first)
+    store.setActiveSite(second)
+
+    assert.equal(store.activeSite?.id, 'site_b')
+    assert.equal(store.activeSite?.files.some((file) => file.path === 'assets/a.png'), false)
+    assert.equal(store.isDirty, false)
+  })
+
   it('exports and imports site projects', async () => {
     const store = useSitesStore()
     store.setApiClient(api())

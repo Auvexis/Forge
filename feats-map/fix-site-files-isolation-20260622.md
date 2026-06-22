@@ -1,0 +1,4 @@
+- [x] Reproduzir troca de projeto no store
+- [x] Corrigir reset de active site
+- [x] Verificar testes e type-check
+- [x] Commitar correção
