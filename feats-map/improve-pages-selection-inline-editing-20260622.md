@@ -2,4 +2,4 @@
 
 - [x] Improve selection frame and controls
 - [x] Add inline text editing
-- [ ] Verify Pages tests and type check
+- [x] Verify Pages tests and type check

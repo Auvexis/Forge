@@ -19,7 +19,7 @@ describe('block library contract', () => {
   it('blocks support direct drag-and-drop placement', () => {
     const source = read('src/features/web-pages/components/BlockRenderer.vue')
 
-    assert.match(source, /:draggable="!readonly && activeTool === 'cursor'"/)
+    assert.match(source, /:draggable="!readonly && activeTool === 'cursor' && !isInlineEditing"/)
     assert.match(source, /@dragstart/)
     assert.match(source, /@drop/)
     assert.match(source, /before/)

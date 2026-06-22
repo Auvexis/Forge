@@ -71,7 +71,7 @@ describe('page editor contract', () => {
     assert.match(source, /isSpacePanActive/)
     assert.match(source, /event\.button === 1/)
     assert.match(source, /web-page-editor__base-canvas/)
-    assert.match(renderer, /draggable="!readonly && activeTool === 'cursor'"/)
+    assert.match(renderer, /draggable="!readonly && activeTool === 'cursor' && !isInlineEditing"/)
     assert.match(css, /web-page-editor__base-canvas/)
     assert.match(css, /transform-origin:\s*top center/)
     assert.match(css, /min-width:\s*0/)
@@ -205,7 +205,7 @@ describe('page editor contract', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
 
     assert.doesNotMatch(renderer, /web-page-block-toolbar/)
-    assert.doesNotMatch(renderer, /BaseButton/)
+    assert.match(renderer, /web-page-block-selection__actions/)
   })
 
   it('new root blocks are selected automatically so inspector opens properties', () => {
