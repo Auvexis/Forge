@@ -40,6 +40,7 @@
           @inspect-block="$emit('inspect-block', $event)"
           @resize-block="$emit('resize-block', $event)"
           @rename-block="$emit('rename-block', $event)"
+          @patch-block="$emit('patch-block', $event)"
         />
       </TransitionGroup>
     </section>
@@ -75,6 +76,7 @@ const emit = defineEmits<{
   'inspect-block': [blockId: string]
   'resize-block': [payload: { blockId: string; styles: PageBlock['styles'] }]
   'rename-block': [payload: { blockId: string; nextId: string }]
+  'patch-block': [payload: { blockId: string; patch: Partial<PageBlock> }]
 }>()
 
 const resolvedBodyStyles = computed(() => ({

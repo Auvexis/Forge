@@ -481,6 +481,11 @@
   outline-offset: 3px;
 }
 
+.web-page-block[contenteditable="true"] {
+  cursor: text !important;
+  user-select: text;
+}
+
 .web-page-block-resize__handle {
   position: absolute;
   z-index: 12;

@@ -39,6 +39,21 @@ describe('page selection contract', () => {
     assert.match(css, /--web-page-selected-color:\s*#3b82f6/)
     assert.match(css, /web-page-block-selection__actions/)
   })
+
+  it('double click edits text button and link content directly on canvas', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(renderer, /inlineEditableTags/)
+    assert.match(renderer, /\['text', 'button', 'link'\]/)
+    assert.match(renderer, /:contenteditable="isInlineEditing/)
+    assert.match(renderer, /handleBlockDoubleClick/)
+    assert.match(renderer, /commitInlineEdit/)
+    assert.match(renderer, /cancelInlineEdit/)
+    assert.match(renderer, /!isInlineEditing/)
+    assert.match(renderer, /patch-block/)
+    assert.match(editor, /editorStore\.patchBlock/)
+  })
   it('canvas can select the body independently from blocks', () => {
     const source = read('src/features/web-pages/components/PageCanvas.vue')
 

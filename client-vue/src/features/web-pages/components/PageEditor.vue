@@ -139,6 +139,7 @@
                 @inspect-block="handleInspectBlock(item.id, $event)"
                 @resize-block="resizeBlockFromCanvas(item.id, $event)"
                 @rename-block="renameBlockFromCanvas(item.id, $event)"
+                @patch-block="patchBlockFromCanvas(item.id, $event)"
               />
             </div>
           </template>
@@ -359,6 +360,11 @@ function resizeBlockFromCanvas(pageId: string, payload: { blockId: string; style
 function renameBlockFromCanvas(pageId: string, payload: { blockId: string; nextId: string }) {
   if (pageId !== pagesStore.activePage?.id) return
   editorStore.renameBlockId(payload.blockId, payload.nextId)
+}
+
+function patchBlockFromCanvas(pageId: string, payload: { blockId: string; patch: Partial<PageBlock> }) {
+  if (pageId !== pagesStore.activePage?.id) return
+  editorStore.patchBlock(payload.blockId, payload.patch)
 }
 
 function deleteCodeFile(path: string) {

@@ -29,11 +29,14 @@
       class="web-page-block web-page-block-frame__inner"
       :class="blockClasses"
       :style="resolvedBlockStyles"
-      :draggable="!readonly && activeTool === 'cursor'"
+      :draggable="!readonly && activeTool === 'cursor' && !isInlineEditing"
+      :contenteditable="isInlineEditing ? 'true' : undefined"
       tabindex="0"
       @click.stop="$emit('select', block.id)"
-      @dblclick.stop="$emit('inspect-block', block.id)"
+      @dblclick.stop="handleBlockDoubleClick"
       @focus="$emit('select', block.id)"
+      @keydown="handleInlineEditKeydown"
+      @blur="commitInlineEdit"
       @dragstart.stop="onDragStart"
       @dragover.prevent.stop="onDragOver"
       @drop.prevent.stop="onDrop"
@@ -68,6 +71,7 @@
           @inspect-block="$emit('inspect-block', $event)"
           @resize-block="$emit('resize-block', $event)"
           @rename-block="$emit('rename-block', $event)"
+          @patch-block="$emit('patch-block', $event)"
         />
       </TransitionGroup>
     </component>
@@ -145,6 +149,7 @@ const emit = defineEmits<{
   'inspect-block': [blockId: string]
   'resize-block': [payload: { blockId: string; styles: PageBlock['styles'] }]
   'rename-block': [payload: { blockId: string; nextId: string }]
+  'patch-block': [payload: { blockId: string; patch: Partial<PageBlock> }]
 }>()
 
 const isContainer = computed(() =>
@@ -179,6 +184,9 @@ const resizeLabel = ref('')
 const editingBlockId = ref(false)
 const draftBlockId = ref('')
 const blockIdInputRef = ref<HTMLInputElement | null>(null)
+const isInlineEditing = ref(false)
+const originalInlineText = ref('')
+const inlineEditableTags: PageBlockTag[] = ['text', 'button', 'link']
 const resizeCorners: ResizeCorner[] = ['north-west', 'north-east', 'south-west', 'south-east']
 const resolvedBlockStyles = computed(() => ({ ...props.block.styles, ...previewStyles.value }))
 let resizeState: {
@@ -251,6 +259,57 @@ function commitBlockIdEdit() {
   const nextId = draftBlockId.value.trim().replace(/\s+/g, '_')
   if (nextId && nextId !== props.block.id) emit('rename-block', { blockId: props.block.id, nextId })
   cancelBlockIdEdit()
+}
+
+function handleBlockDoubleClick() {
+  if (!inlineEditableTags.includes(props.block.tag)) {
+    emit('inspect-block', props.block.id)
+    return
+  }
+  originalInlineText.value = String(props.block.props?.text ?? '')
+  isInlineEditing.value = true
+  void nextTick(() => {
+    const element = blockElementRef.value
+    if (!element) return
+    element.focus()
+    const selection = window.getSelection()
+    const range = document.createRange()
+    range.selectNodeContents(element)
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+  })
+}
+
+function handleInlineEditKeydown(event: KeyboardEvent) {
+  if (!isInlineEditing.value) return
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    cancelInlineEdit()
+    return
+  }
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    commitInlineEdit()
+  }
+}
+
+function commitInlineEdit() {
+  if (!isInlineEditing.value) return
+  const text = blockElementRef.value?.innerText.replace(/\r\n/g, '\n') ?? originalInlineText.value
+  isInlineEditing.value = false
+  if (text !== originalInlineText.value) {
+    emit('patch-block', {
+      blockId: props.block.id,
+      patch: { props: { ...props.block.props, text } },
+    })
+  }
+}
+
+function cancelInlineEdit() {
+  if (!isInlineEditing.value) return
+  isInlineEditing.value = false
+  if (blockElementRef.value) blockElementRef.value.innerText = originalInlineText.value
+  blockElementRef.value?.blur()
 }
 
 function startResize(event: PointerEvent, corner: ResizeCorner) {
