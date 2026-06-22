@@ -251,13 +251,11 @@ function updateSelectionFrame() {
   const frame = frameElementRef.value
   const element = blockElementRef.value
   if (!frame || !element) return
-  const frameRect = frame.getBoundingClientRect()
-  const elementRect = element.getBoundingClientRect()
   selectionFrameStyle.value = {
-    left: `${elementRect.left - frameRect.left}px`,
-    top: `${elementRect.top - frameRect.top}px`,
-    width: `${elementRect.width}px`,
-    height: `${elementRect.height}px`,
+    left: `${element.offsetLeft}px`,
+    top: `${element.offsetTop}px`,
+    width: `${element.offsetWidth}px`,
+    height: `${element.offsetHeight}px`,
   }
 }
 

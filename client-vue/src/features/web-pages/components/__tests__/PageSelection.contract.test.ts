@@ -18,7 +18,8 @@ describe('page selection contract', () => {
     }
     assert.match(renderer, /web-page-block-resize__indicator/)
     assert.match(renderer, /selectionFrameStyle/)
-    assert.match(renderer, /getBoundingClientRect/)
+    assert.match(renderer, /offsetWidth/)
+    assert.match(renderer, /offsetHeight/)
     assert.match(renderer, /resize-block/)
     assert.match(editor, /patchBlock/)
     assert.match(css, /web-page-block-resize__handle/)
