@@ -70,6 +70,21 @@ export class SiteProjectArchiveService {
     };
   }
 
+  exportSiteZip(profileId: string, siteId: string): Buffer {
+    const archive = this.exportSite(profileId, siteId);
+    const files = [
+      {
+        path: "sailor-project.json",
+        content: Buffer.from(JSON.stringify(archive, null, 2), "utf8"),
+      },
+      ...archive.assets.map((asset) => ({
+        path: asset.path,
+        content: Buffer.from(asset.base64, "base64"),
+      })),
+    ];
+    return createZip(files);
+  }
+
   importSite(profileId: string, archive: SiteProjectArchive): SailorSite {
     this.validateArchive(archive);
     const now = new Date().toISOString();
@@ -156,6 +171,92 @@ export class SiteProjectArchiveService {
     }
     return candidate;
   }
+}
+
+function createZip(files: Array<{ path: string; content: Buffer }>): Buffer {
+  const localParts: Buffer[] = [];
+  const centralParts: Buffer[] = [];
+  let offset = 0;
+
+  for (const file of files) {
+    const name = Buffer.from(file.path.replaceAll("\\", "/"), "utf8");
+    const crc = crc32(file.content);
+    const local = Buffer.concat([
+      u32(0x04034b50),
+      u16(20),
+      u16(0),
+      u16(0),
+      u16(0),
+      u16(0),
+      u32(crc),
+      u32(file.content.length),
+      u32(file.content.length),
+      u16(name.length),
+      u16(0),
+      name,
+      file.content,
+    ]);
+    const central = Buffer.concat([
+      u32(0x02014b50),
+      u16(20),
+      u16(20),
+      u16(0),
+      u16(0),
+      u16(0),
+      u16(0),
+      u32(crc),
+      u32(file.content.length),
+      u32(file.content.length),
+      u16(name.length),
+      u16(0),
+      u16(0),
+      u16(0),
+      u16(0),
+      u32(0),
+      u32(offset),
+      name,
+    ]);
+    localParts.push(local);
+    centralParts.push(central);
+    offset += local.length;
+  }
+
+  const central = Buffer.concat(centralParts);
+  const end = Buffer.concat([
+    u32(0x06054b50),
+    u16(0),
+    u16(0),
+    u16(files.length),
+    u16(files.length),
+    u32(central.length),
+    u32(offset),
+    u16(0),
+  ]);
+
+  return Buffer.concat([...localParts, central, end]);
+}
+
+function u16(value: number): Buffer {
+  const buffer = Buffer.allocUnsafe(2);
+  buffer.writeUInt16LE(value);
+  return buffer;
+}
+
+function u32(value: number): Buffer {
+  const buffer = Buffer.allocUnsafe(4);
+  buffer.writeUInt32LE(value >>> 0);
+  return buffer;
+}
+
+function crc32(buffer: Buffer): number {
+  let crc = 0xffffffff;
+  for (const byte of buffer) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
 function createSiteId(): string {

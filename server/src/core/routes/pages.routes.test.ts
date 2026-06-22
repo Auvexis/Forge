@@ -247,12 +247,22 @@ describe("pages routes", () => {
 
     const exportResponse = await app.inject({ method: "GET", url: `/sites/${site.id}/export` });
     assert.equal(exportResponse.statusCode, 200);
-    assert.equal(exportResponse.json().manifest.site.name, "Exportable");
+    assert.match(exportResponse.headers["content-type"] as string, /application\/zip/);
+    assert.match(exportResponse.headers["content-disposition"] as string, /Exportable|exportable/);
+    assert.equal(exportResponse.rawPayload.subarray(0, 2).toString("utf8"), "PK");
 
     const importResponse = await app.inject({
       method: "POST",
       url: "/sites/import",
-      payload: exportResponse.json(),
+      payload: {
+        manifest: {
+          schemaVersion: 1,
+          site: { name: "Exportable", slug: "exportable", homePageId: null },
+        },
+        pages: [],
+        files: [],
+        assets: [],
+      },
     });
     assert.equal(importResponse.statusCode, 201);
     assert.equal(importResponse.json().data.profileId, "profile_a");

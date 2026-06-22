@@ -79,7 +79,7 @@ export const pagesApi = {
   exportSiteProject: async (siteId: string) => {
     const response = await fetch(`${API_BASE_URL}${ENDPOINTS.SITE_EXPORT(siteId)}`)
     if (!response.ok) throw new Error(`Failed to export site project: ${response.status}`)
-    return response.json() as Promise<SiteProjectArchive>
+    return response.blob()
   },
 
   importSiteProject: (archive: SiteProjectArchive) =>

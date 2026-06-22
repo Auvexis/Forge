@@ -68,8 +68,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [blockId: string]
   'select-body': []
-  'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string }]
-  'drop-root': [payload: { tag?: PageBlockTag; draggedId?: string }]
+  'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; preset?: string; draggedId?: string }]
+  'drop-root': [payload: { tag?: PageBlockTag; preset?: string; draggedId?: string }]
   'drag-intent': [payload: { targetId: string | 'root'; position: InsertPosition; dropEdge?: DropEdge }]
   'clear-drag-intent': []
   'duplicate-block': [blockId: string]
@@ -125,10 +125,10 @@ function onRootDragOver(event: DragEvent) {
   emit('drag-intent', { targetId: 'root', position: 'after' })
 }
 
-function readDragPayload(event: DragEvent): { tag?: PageBlockTag; draggedId?: string } | null {
+function readDragPayload(event: DragEvent): { tag?: PageBlockTag; preset?: string; draggedId?: string } | null {
   const raw = event.dataTransfer?.getData('application/x-sailor-page-block')
   if (!raw) return null
-  const parsed = JSON.parse(raw) as { tag?: PageBlockTag; blockId?: string }
-  return { tag: parsed.tag, draggedId: parsed.blockId }
+  const parsed = JSON.parse(raw) as { tag?: PageBlockTag; preset?: string; blockId?: string }
+  return { tag: parsed.tag, preset: parsed.preset, draggedId: parsed.blockId }
 }
 </script>

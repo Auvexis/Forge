@@ -524,16 +524,16 @@ watch(
   { immediate: true },
 )
 
-function handleDropBlock(payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string }) {
+function handleDropBlock(payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; preset?: string; draggedId?: string }) {
   if (payload.draggedId) editorStore.moveBlock(payload.draggedId, payload.targetId, payload.position)
-  else if (payload.tag) editorStore.insertBlock(payload.targetId, payload.position, createBlock(payload.tag))
+  else if (payload.tag) editorStore.insertBlock(payload.targetId, payload.position, createBlock(payload.tag, undefined, payload.preset))
 }
 
-function handleDropRoot(payload: { tag?: PageBlockTag; draggedId?: string }) {
+function handleDropRoot(payload: { tag?: PageBlockTag; preset?: string; draggedId?: string }) {
   if (payload.draggedId && editorStore.blocks.length > 0) {
     editorStore.moveBlock(payload.draggedId, editorStore.blocks[editorStore.blocks.length - 1]!.id, 'after')
   } else if (payload.tag) {
-    editorStore.appendBlock(createBlock(payload.tag))
+    editorStore.appendBlock(createBlock(payload.tag, undefined, payload.preset))
   }
 }
 
@@ -941,9 +941,9 @@ function openLivePage() {
 
 async function exportActiveProject() {
   await saveProjectBeforeExport()
-  const archive = await sitesStore.exportActiveSiteProject()
-  if (!archive) return
-  downloadJsonFile(`${sitesStore.activeSite?.slug ?? 'site'}-project.sailor.json`, archive)
+  const zip = await sitesStore.exportActiveSiteProject()
+  if (!zip) return
+  downloadBlobFile(`${sitesStore.activeSite?.slug ?? 'site'}.sailor-site.zip`, zip)
 }
 
 async function saveProjectBeforeExport() {
@@ -951,8 +951,7 @@ async function saveProjectBeforeExport() {
   if (sitesStore.isDirty) await sitesStore.saveActiveSite()
 }
 
-function downloadJsonFile(fileName: string, value: unknown) {
-  const blob = new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' })
+function downloadBlobFile(fileName: string, blob: Blob) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url

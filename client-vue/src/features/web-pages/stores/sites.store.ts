@@ -20,7 +20,7 @@ export interface SitesApiClient {
   updateSiteFile: (siteId: string, payload: UpdateSiteFilePayload) => Promise<SailorSite>
   deleteSiteFile: (siteId: string, payload: DeleteSiteFilePayload) => Promise<SailorSite>
   uploadSiteAsset: (siteId: string, file: File) => Promise<SiteAssetUploadResponse>
-  exportSiteProject: (siteId: string) => Promise<SiteProjectArchive>
+  exportSiteProject: (siteId: string) => Promise<Blob>
   importSiteProject: (archive: SiteProjectArchive) => Promise<SailorSite>
 }
 

@@ -213,7 +213,7 @@ describe('page editor contract', () => {
     const store = read('src/features/web-pages/stores/page-editor.store.ts')
 
     assert.match(store, /appendBlock/)
-    assert.match(editor, /editorStore\.appendBlock\(createBlock\(payload\.tag\)\)/)
+    assert.match(editor, /editorStore\.appendBlock\(createBlock\(payload\.tag,\s*undefined,\s*payload\.preset\)\)/)
   })
 
   it('double clicking a canvas block opens the inspector for that block', () => {

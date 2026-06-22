@@ -145,7 +145,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   select: [blockId: string]
-  'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string }]
+  'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; preset?: string; draggedId?: string }]
   'drag-intent': [payload: { targetId: string; position: InsertPosition; dropEdge?: DropEdge }]
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
@@ -437,11 +437,11 @@ function emitDragIntent(intent: { position: InsertPosition; dropEdge?: DropEdge 
   emit('drag-intent', { targetId: props.block.id, ...intent })
 }
 
-function readDragPayload(event: DragEvent): { tag?: PageBlockTag; draggedId?: string } | null {
+function readDragPayload(event: DragEvent): { tag?: PageBlockTag; preset?: string; draggedId?: string } | null {
   const raw = event.dataTransfer?.getData('application/x-sailor-page-block')
   if (!raw) return null
-  const parsed = JSON.parse(raw) as { tag?: PageBlockTag; blockId?: string }
-  return { tag: parsed.tag, draggedId: parsed.blockId }
+  const parsed = JSON.parse(raw) as { tag?: PageBlockTag; preset?: string; blockId?: string }
+  return { tag: parsed.tag, preset: parsed.preset, draggedId: parsed.blockId }
 }
 
 function setDragPreview(event: DragEvent, label: string) {

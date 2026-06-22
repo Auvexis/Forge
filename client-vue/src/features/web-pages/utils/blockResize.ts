@@ -27,7 +27,7 @@ export function calculateBlockResize(input: BlockResizeInput): BlockResizeResult
   let width = clamp(Math.round(input.width + widthDelta), 40, 4000)
   let height = clamp(Math.round(input.height + heightDelta), 24, 4000)
 
-  if (input.tag === 'image' && !input.freeAspectRatio) {
+  if (input.tag !== 'text' && !input.freeAspectRatio) {
     const ratio = input.width / Math.max(input.height, 1)
     if (Math.abs(widthDelta) >= Math.abs(heightDelta)) height = Math.max(32, Math.round(width / ratio))
     else width = Math.max(32, Math.round(height * ratio))

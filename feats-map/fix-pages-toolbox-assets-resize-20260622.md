@@ -1,0 +1,7 @@
+- [x] Corrigir action None do Button
+- [x] Corrigir presets da Toolbox
+- [x] Corrigir resize proporcional
+- [x] Corrigir assets/export por projeto
+- [x] Corrigir upload e tamanho default de Image
+- [x] Verificar testes e type-check
+- [x] Commitar correção

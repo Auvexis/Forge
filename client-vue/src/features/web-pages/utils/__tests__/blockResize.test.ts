@@ -4,7 +4,7 @@ import { describe, it } from 'node:test'
 import { calculateBlockResize } from '../blockResize.ts'
 
 describe('block resize', () => {
-  it('resizes freely from a corner using signed axes', () => {
+  it('preserves aspect ratio from a corner using signed axes by default', () => {
     const result = calculateBlockResize({
       corner: 'north-west',
       deltaX: 30,
@@ -16,18 +16,18 @@ describe('block resize', () => {
       freeAspectRatio: false,
     })
 
-    assert.deepEqual(result.styles, { width: '170px', height: '80px' })
-    assert.deepEqual(result.anchorOffset, { x: 30, y: 20 })
+    assert.deepEqual(result.styles, { width: '170px', height: '85px' })
+    assert.deepEqual(result.anchorOffset, { x: 30, y: 15 })
   })
 
-  it('preserves image aspect ratio unless free resizing is requested', () => {
+  it('resizes freely only when free resizing is requested', () => {
     const locked = calculateBlockResize({
       corner: 'south-east', deltaX: 80, deltaY: 10, width: 160, height: 90,
-      fontSize: 16, tag: 'image', freeAspectRatio: false,
+      fontSize: 16, tag: 'div', freeAspectRatio: false,
     })
     const free = calculateBlockResize({
       corner: 'south-east', deltaX: 80, deltaY: 10, width: 160, height: 90,
-      fontSize: 16, tag: 'image', freeAspectRatio: true,
+      fontSize: 16, tag: 'div', freeAspectRatio: true,
     })
 
     assert.deepEqual(locked.styles, { width: '240px', height: '135px' })
@@ -54,7 +54,7 @@ describe('block resize', () => {
       fontSize: 10, tag: 'text', freeAspectRatio: false,
     })
 
-    assert.deepEqual(box.styles, { width: '40px', height: '24px' })
+    assert.deepEqual(box.styles, { width: '40px', height: '32px' })
     assert.deepEqual(text.styles, { width: '40px', fontSize: '8px' })
   })
 })

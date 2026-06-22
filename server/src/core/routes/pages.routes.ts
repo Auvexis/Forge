@@ -255,11 +255,14 @@ export default async function pagesRoutes(
   fastify.get("/sites/:siteId/export", async (req, reply) => {
     const { siteId } = req.params as { siteId: string };
     try {
-      const archive = new SiteProjectArchiveService({ assetStorageRoot }).exportSite(getProfileId(), siteId);
+      const archiveService = new SiteProjectArchiveService({ assetStorageRoot });
+      const archive = archiveService.exportSite(getProfileId(), siteId);
+      const zip = archiveService.exportSiteZip(getProfileId(), siteId);
       return reply
         .code(200)
-        .header("content-disposition", `attachment; filename="${archive.manifest.site.slug}.sailor-site.json"`)
-        .send(archive);
+        .type("application/zip")
+        .header("content-disposition", `attachment; filename="${archive.manifest.site.slug}.sailor-site.zip"`)
+        .send(zip);
     } catch (error) {
       return sendResponse(reply, routeError(error, "Site not found", "Failed to export site"));
     }

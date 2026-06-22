@@ -65,12 +65,7 @@ function api(): SitesApiClient {
       current = { ...current, files: [...current.files, asset] }
       return { site: current, asset }
     },
-    exportSiteProject: async () => ({
-      manifest: { schemaVersion: 1, site: { name: current.name, slug: current.slug, homePageId: current.homePageId } },
-      pages: [],
-      files: current.files,
-      assets: [],
-    }),
+    exportSiteProject: async () => new Blob(['PK']),
     importSiteProject: async (archive) => {
       current = site({ id: 'site_imported', name: archive.manifest.site.name, slug: archive.manifest.site.slug })
       return current
@@ -149,10 +144,16 @@ describe('sites store', () => {
     store.setApiClient(api())
     store.setActiveSite(site())
 
-    const archive = await store.exportActiveSiteProject()
-    const imported = await store.importSiteProject(archive!)
+    const archive = {
+      manifest: { schemaVersion: 1 as const, site: { name: 'Marketing Site', slug: 'marketing-site', homePageId: null } },
+      pages: [],
+      files: [],
+      assets: [],
+    }
+    const exported = await store.exportActiveSiteProject()
+    const imported = await store.importSiteProject(archive)
 
-    assert.equal(archive?.manifest.site.name, 'Marketing Site')
+    assert.equal(await exported?.text(), 'PK')
     assert.equal(imported?.id, 'site_imported')
     assert.equal(store.activeSite?.id, 'site_imported')
   })

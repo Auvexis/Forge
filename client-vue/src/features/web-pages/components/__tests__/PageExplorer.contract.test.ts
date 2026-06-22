@@ -38,11 +38,28 @@ describe('page explorer contract', () => {
     assert.doesNotMatch(toolbox, /Diagram/)
     assert.doesNotMatch(toolbox, /List Items/)
     assert.match(toolbox, /application\/x-sailor-page-block/)
+    assert.match(toolbox, /preset: item\.id/)
     assert.match(toolbox, /setDragImage/)
     assert.match(css, /web-page-toolbox/)
     assert.match(css, /web-page-toolbox__item-icon/)
     assert.match(css, /var\(--sailor-bg-surface\)/)
     assert.match(css, /var\(--sailor-border\)/)
+  })
+
+  it('toolbox presets are preserved when blocks are dropped into the editor', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const create = read('src/features/web-pages/utils/createBlock.ts')
+
+    assert.match(editor, /createBlock\(payload\.tag,\s*undefined,\s*payload\.preset\)/)
+    assert.match(canvas, /preset\?: string/)
+    assert.match(renderer, /preset\?: string/)
+    assert.match(create, /createBlock\(tag: PageBlockTag,\s*id\?: string,\s*preset\?: string\)/)
+    assert.match(create, /id: id \?\? createBlockId\(tag,\s*preset\)/)
+    assert.match(create, /if \(preset === 'heading'\)/)
+    assert.match(create, /if \(preset === 'email-input'\)/)
+    assert.match(create, /if \(preset === 'media-image'\)/)
   })
 
   it('toolbox builds Recently used from the last 6 used items', () => {

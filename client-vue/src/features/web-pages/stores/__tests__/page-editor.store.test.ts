@@ -74,6 +74,22 @@ describe('page editor store', () => {
     assert.equal(store.selectedBlock?.props?.label, 'Hero')
   })
 
+  it('clears block actions when patching action to undefined', () => {
+    const store = usePageEditorStore()
+    store.setBlocks([
+      {
+        id: 'button_1',
+        tag: 'button',
+        children: [],
+        action: { id: 'action_1', type: 'openUrl', url: '/home', target: '_blank' },
+      },
+    ])
+
+    store.patchBlock('button_1', { action: undefined })
+
+    assert.equal(store.blocks[0]?.action, undefined)
+  })
+
   it('renames selected block ids and rejects duplicates', () => {
     const store = usePageEditorStore()
     store.setBlocks([

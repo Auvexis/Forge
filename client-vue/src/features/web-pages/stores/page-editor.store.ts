@@ -183,7 +183,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
       if (patch.className !== undefined) match.className = patch.className
       if (patch.customCss !== undefined) match.customCss = patch.customCss
       if (patch.customJs !== undefined) match.customJs = patch.customJs
-      if (patch.action !== undefined) match.action = patch.action
+      if ('action' in patch) match.action = patch.action
       if (patch.children) match.children = patch.children
     })
   }
