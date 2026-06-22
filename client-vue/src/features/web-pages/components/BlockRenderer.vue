@@ -203,6 +203,7 @@ let resizeState: {
   width: number
   height: number
   fontSize: number
+  scale: number
 } | null = null
 const customCssRule = computed(() => {
   const css = props.block.customCss?.trim()
@@ -352,9 +353,10 @@ function startResize(event: PointerEvent, corner: ResizeCorner) {
     corner,
     startX: event.clientX,
     startY: event.clientY,
-    width: rect.width,
-    height: rect.height,
+    width: element.offsetWidth,
+    height: element.offsetHeight,
     fontSize: Number.parseFloat(getComputedStyle(element).fontSize) || 16,
+    scale: rect.width / Math.max(element.offsetWidth, 1),
   }
   updateSelectionFrame()
   window.addEventListener('pointermove', resizeFromPointer)
@@ -366,8 +368,8 @@ function resizeFromPointer(event: PointerEvent) {
   if (!resizeState) return
   const result = calculateBlockResize({
     corner: resizeState.corner,
-    deltaX: event.clientX - resizeState.startX,
-    deltaY: event.clientY - resizeState.startY,
+    deltaX: (event.clientX - resizeState.startX) / resizeState.scale,
+    deltaY: (event.clientY - resizeState.startY) / resizeState.scale,
     width: resizeState.width,
     height: resizeState.height,
     fontSize: resizeState.fontSize,

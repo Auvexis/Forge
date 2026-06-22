@@ -20,6 +20,8 @@ describe('page selection contract', () => {
     assert.match(renderer, /selectionFrameStyle/)
     assert.match(renderer, /offsetWidth/)
     assert.match(renderer, /offsetHeight/)
+    assert.match(renderer, /scale: rect\.width \/ Math\.max\(element\.offsetWidth, 1\)/)
+    assert.match(renderer, /\(event\.clientX - resizeState\.startX\) \/ resizeState\.scale/)
     assert.match(renderer, /resize-block/)
     assert.match(editor, /patchBlock/)
     assert.match(css, /web-page-block-resize__handle/)
