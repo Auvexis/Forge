@@ -1,0 +1,4 @@
+- [x] Move fixed recent items to existing sections
+- [x] Track 6 most recent toolbox items
+- [x] Verify focused frontend tests
+- [x] Commit fix

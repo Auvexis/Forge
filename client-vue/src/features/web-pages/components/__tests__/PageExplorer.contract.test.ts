@@ -45,6 +45,28 @@ describe('page explorer contract', () => {
     assert.match(css, /var\(--sailor-border\)/)
   })
 
+  it('toolbox builds Recently used from the last 6 used items', () => {
+    const toolbox = read('src/features/web-pages/components/PageToolboxPanel.vue')
+
+    assert.match(toolbox, /RECENT_ITEMS_LIMIT = 6/)
+    assert.match(toolbox, /RECENT_ITEMS_STORAGE_KEY/)
+    assert.match(toolbox, /recentItemIds/)
+    assert.match(toolbox, /rememberItem\(item\)/)
+    assert.match(toolbox, /loadRecentItems/)
+    assert.match(toolbox, /id: 'recent'[\s\S]*items: recentItemIds\.value/)
+    assert.doesNotMatch(toolbox, /id: 'recent'[\s\S]{0,160}items:\s*\[[\s\S]{0,160}\{ id: 'page'/)
+  })
+
+  it('toolbox keeps common presets in existing non-recent sections', () => {
+    const toolbox = read('src/features/web-pages/components/PageToolboxPanel.vue')
+
+    assert.match(toolbox, /id: 'text'[\s\S]*\{ id: 'heading', label: 'Heading'/)
+    assert.match(toolbox, /id: 'structure'[\s\S]*\{ id: 'page', label: 'Page'/)
+    assert.match(toolbox, /id: 'form'[\s\S]*\{ id: 'text-input', label: 'Text Input'/)
+    assert.match(toolbox, /id: 'media'[\s\S]*\{ id: 'media-image', label: 'Image'/)
+    assert.match(toolbox, /id: 'interactive'[\s\S]*\{ id: 'button', label: 'Button'/)
+  })
+
   it('toolbox exposes Page with click and dedicated page drag behavior', () => {
     const toolbox = read('src/features/web-pages/components/PageToolboxPanel.vue')
     const explorer = read('src/features/web-pages/components/PageExplorerPanel.vue')

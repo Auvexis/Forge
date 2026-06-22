@@ -91,30 +91,23 @@ const dragPreviewPoint = ref({ x: 0, y: 0 })
 const dragPreviewVelocity = ref({ x: 0, y: 0 })
 const dragPreviewScale = ref(0.72)
 const dragPreviewBodyOffset = ref({ x: 0, y: 0, rotate: 0 })
+const recentItemIds = ref<string[]>([])
 let targetBodyOffset = { x: 0, y: 0, rotate: 0 }
 let lastDragPoint = { x: 0, y: 0, t: 0 }
 let windAnimationFrame: number | null = null
+const RECENT_ITEMS_LIMIT = 6
+const RECENT_ITEMS_STORAGE_KEY = 'sailor.pages.toolbox.recent-items'
 
 const emit = defineEmits<{
   'add-page': []
 }>()
 
-const sections: ToolboxSection[] = [
-  {
-    id: 'recent',
-    label: 'Recently used',
-    items: [
-      { id: 'page', label: 'Page', icon: 'file-plus-2', kind: 'page' },
-      { id: 'text-input', label: 'Text Input', icon: 'text-cursor-input', kind: 'block', tag: 'input' },
-      { id: 'heading', label: 'Heading', icon: 'heading', kind: 'block', tag: 'text' },
-      { id: 'image', label: 'Image', icon: 'image', kind: 'block', tag: 'image' },
-      { id: 'button', label: 'Button', icon: 'square-mouse-pointer', kind: 'block', tag: 'button' },
-    ],
-  },
+const toolboxSections: ToolboxSection[] = [
   {
     id: 'text',
     label: 'Text',
     items: [
+      { id: 'heading', label: 'Heading', icon: 'heading', kind: 'block', tag: 'text' },
       { id: 'paragraph', label: 'Paragraph', icon: 'pilcrow', kind: 'block', tag: 'text' },
       { id: 'rich-text', label: 'Rich Text', icon: 'type', kind: 'block', tag: 'text' },
       { id: 'quote', label: 'Quote', icon: 'quote', kind: 'block', tag: 'text' },
@@ -125,6 +118,7 @@ const sections: ToolboxSection[] = [
     id: 'structure',
     label: 'Structure',
     items: [
+      { id: 'page', label: 'Page', icon: 'file-plus-2', kind: 'page' },
       { id: 'section', label: 'Section', icon: 'panel-top', kind: 'block', tag: 'section' },
       { id: 'container', label: 'Container', icon: 'square', kind: 'block', tag: 'div' },
       { id: 'quick-stack', label: 'Quick Stack', icon: 'layers-3', kind: 'block', tag: 'div' },
@@ -138,6 +132,7 @@ const sections: ToolboxSection[] = [
     label: 'Form',
     items: [
       { id: 'form', label: 'Form', icon: 'clipboard-list', kind: 'block', tag: 'form' },
+      { id: 'text-input', label: 'Text Input', icon: 'text-cursor-input', kind: 'block', tag: 'input' },
       { id: 'email-input', label: 'Email Input', icon: 'mail', kind: 'block', tag: 'input' },
       { id: 'textarea', label: 'Textarea', icon: 'text', kind: 'block', tag: 'input' },
       { id: 'submit-button', label: 'Submit Button', icon: 'send', kind: 'block', tag: 'button' },
@@ -157,7 +152,7 @@ const sections: ToolboxSection[] = [
     id: 'interactive',
     label: 'Interactive',
     items: [
-      { id: 'button-link', label: 'Button', icon: 'mouse-pointer-click', kind: 'block', tag: 'button' },
+      { id: 'button', label: 'Button', icon: 'mouse-pointer-click', kind: 'block', tag: 'button' },
       { id: 'nav-link', label: 'Nav Link', icon: 'navigation', kind: 'block', tag: 'link' },
       { id: 'card', label: 'Card', icon: 'panel-top-open', kind: 'block', tag: 'div' },
       { id: 'divider', label: 'Divider', icon: 'minus', kind: 'block', tag: 'div' },
@@ -165,11 +160,26 @@ const sections: ToolboxSection[] = [
   },
 ]
 
+const toolboxItemsById = computed(() => new Map(
+  toolboxSections.flatMap((section) => section.items.map((item) => [item.id, item] as const)),
+))
+
+const sections = computed<ToolboxSection[]>(() => [
+  {
+    id: 'recent',
+    label: 'Recently used',
+    items: recentItemIds.value
+      .map((id) => toolboxItemsById.value.get(id))
+      .filter((item): item is ToolboxItem => Boolean(item)),
+  },
+  ...toolboxSections,
+])
+
 const visibleSections = computed(() => {
   const term = query.value.trim().toLowerCase()
-  if (!term) return sections
+  if (!term) return sections.value
 
-  return sections
+  return sections.value
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => item.label.toLowerCase().includes(term)),
@@ -186,6 +196,7 @@ const dragPreviewBodyStyle = computed(() => ({
 }))
 
 onMounted(() => {
+  loadRecentItems()
   document.addEventListener('dragover', moveDragPreviewFromDragEvent, true)
   document.addEventListener('drop', handleDragEnd, true)
 })
@@ -203,6 +214,7 @@ function toggleSection(sectionId: string) {
 }
 
 function onDragStart(event: DragEvent, item: ToolboxItem) {
+  rememberItem(item)
   if (item.kind === 'page') event.dataTransfer?.setData('application/x-sailor-page', JSON.stringify({ type: 'page' }))
   else event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ tag: item.tag, preset: item.id }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
@@ -215,7 +227,29 @@ function onDragStart(event: DragEvent, item: ToolboxItem) {
 }
 
 function onItemClick(item: ToolboxItem) {
+  rememberItem(item)
   if (item.kind === 'page') emit('add-page')
+}
+
+function rememberItem(item: ToolboxItem) {
+  recentItemIds.value = [item.id, ...recentItemIds.value.filter((id) => id !== item.id)]
+    .filter((id) => toolboxItemsById.value.has(id))
+    .slice(0, RECENT_ITEMS_LIMIT)
+  localStorage.setItem(RECENT_ITEMS_STORAGE_KEY, JSON.stringify(recentItemIds.value))
+}
+
+function loadRecentItems() {
+  const raw = localStorage.getItem(RECENT_ITEMS_STORAGE_KEY)
+  if (!raw) return
+  try {
+    const ids = JSON.parse(raw)
+    if (!Array.isArray(ids)) return
+    recentItemIds.value = ids
+      .filter((id): id is string => typeof id === 'string' && toolboxItemsById.value.has(id))
+      .slice(0, RECENT_ITEMS_LIMIT)
+  } catch {
+    recentItemIds.value = []
+  }
 }
 
 function setTransparentDragImage(event: DragEvent) {
