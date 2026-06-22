@@ -5,23 +5,23 @@
       <h5>Layout</h5>
       <label class="web-page-style-row">
         <span>Display</span>
-        <BaseSelect :model-value="String(block.styles?.display ?? 'block')" :options="layoutOptions" @update:model-value="setStyle('display', String($event))" />
+        <BaseSegmentedSelect :model-value="String(block.styles?.display ?? 'block')" :options="layoutOptions" @update:model-value="setStyle('display', String($event))" />
       </label>
       <label class="web-page-style-row">
         <span>Direction</span>
-        <BaseSelect :model-value="String(block.styles?.flexDirection ?? 'row')" :options="directionOptions" @update:model-value="setStyle('flexDirection', String($event))" />
+        <BaseSegmentedSelect :model-value="String(block.styles?.flexDirection ?? 'row')" :options="directionOptions" @update:model-value="setStyle('flexDirection', String($event))" />
       </label>
       <label class="web-page-style-row">
         <span>Align</span>
-        <BaseSelect :model-value="String(block.styles?.alignItems ?? 'stretch')" :options="alignOptions" @update:model-value="setStyle('alignItems', String($event))" />
+        <BaseSegmentedSelect :model-value="String(block.styles?.alignItems ?? 'stretch')" :options="alignOptions" @update:model-value="setStyle('alignItems', String($event))" />
       </label>
       <label class="web-page-style-row">
         <span>Justify</span>
-        <BaseSelect :model-value="String(block.styles?.justifyContent ?? 'flex-start')" :options="justifyOptions" @update:model-value="setStyle('justifyContent', String($event))" />
+        <BaseSegmentedSelect :model-value="String(block.styles?.justifyContent ?? 'flex-start')" :options="justifyOptions" @update:model-value="setStyle('justifyContent', String($event))" />
       </label>
       <label class="web-page-style-row">
         <span>Overflow</span>
-        <BaseSelect :model-value="String(block.styles?.overflow ?? '')" :options="overflowOptions" @update:model-value="setStyle('overflow', String($event))" />
+        <BaseSegmentedSelect :model-value="String(block.styles?.overflow ?? '')" :options="overflowOptions" @update:model-value="setStyle('overflow', String($event))" />
       </label>
       <label class="web-page-style-row">
         <span>Gap</span>
@@ -81,7 +81,7 @@
       </label>
       <label class="web-page-style-row">
         <span>Font Weight</span>
-        <BaseSelect :model-value="String(block.styles?.fontWeight ?? '')" :options="fontWeightOptions" @update:model-value="setStyle('fontWeight', String($event))" />
+        <BaseSegmentedSelect :model-value="String(block.styles?.fontWeight ?? '')" :options="fontWeightOptions" @update:model-value="setStyle('fontWeight', String($event))" />
       </label>
       <label class="web-page-style-row">
         <span>Line Height</span>
@@ -89,11 +89,11 @@
       </label>
       <label class="web-page-style-row">
         <span>Text Align</span>
-        <BaseSelect :model-value="String(block.styles?.textAlign ?? '')" :options="textAlignOptions" @update:model-value="setStyle('textAlign', String($event))" />
+        <BaseSegmentedSelect :model-value="String(block.styles?.textAlign ?? '')" :options="textAlignOptions" @update:model-value="setStyle('textAlign', String($event))" />
       </label>
       <label class="web-page-style-row">
         <span>Transform</span>
-        <BaseSelect :model-value="String(block.styles?.textTransform ?? '')" :options="textTransformOptions" @update:model-value="setStyle('textTransform', String($event))" />
+        <BaseSegmentedSelect :model-value="String(block.styles?.textTransform ?? '')" :options="textTransformOptions" @update:model-value="setStyle('textTransform', String($event))" />
       </label>
       <label class="web-page-style-row">
         <span>Letter Spacing</span>
@@ -113,7 +113,7 @@
       </label>
       <label class="web-page-style-row">
         <span>Size</span>
-        <BaseSelect :model-value="String(block.styles?.backgroundSize ?? '')" :options="backgroundSizeOptions" @update:model-value="setStyle('backgroundSize', String($event))" />
+        <BaseSegmentedSelect :model-value="String(block.styles?.backgroundSize ?? '')" :options="backgroundSizeOptions" @update:model-value="setStyle('backgroundSize', String($event))" />
       </label>
       <label class="web-page-style-row">
         <span>Position</span>
@@ -121,7 +121,7 @@
       </label>
       <label class="web-page-style-row">
         <span>Object Fit</span>
-        <BaseSelect :model-value="String(block.styles?.objectFit ?? '')" :options="objectFitOptions" @update:model-value="setStyle('objectFit', String($event))" />
+        <BaseSegmentedSelect :model-value="String(block.styles?.objectFit ?? '')" :options="objectFitOptions" @update:model-value="setStyle('objectFit', String($event))" />
       </label>
       <label class="web-page-style-row">
         <span>Object Position</span>
@@ -141,7 +141,7 @@
       </label>
       <label class="web-page-style-row">
         <span>Style</span>
-        <BaseSelect :model-value="String(block.styles?.borderStyle ?? '')" :options="borderStyleOptions" @update:model-value="setStyle('borderStyle', String($event))" />
+        <BaseSegmentedSelect :model-value="String(block.styles?.borderStyle ?? '')" :options="borderStyleOptions" @update:model-value="setStyle('borderStyle', String($event))" />
       </label>
       <label class="web-page-style-row">
         <span>Color</span>
@@ -166,7 +166,7 @@
 <script setup lang="ts">
 import BaseColorPicker from '@/shared/components/base/BaseColorPicker.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import BaseSegmentedSelect from '@/shared/components/base/BaseSegmentedSelect.vue'
 import type { PageBlock } from '../types/page.types.ts'
 import { sanitizeStyles } from '../utils/styleAllowlist.ts'
 
@@ -175,78 +175,78 @@ const props = withDefaults(defineProps<{ block: PageBlock; title?: string }>(), 
 })
 const emit = defineEmits<{ patch: [patch: Partial<PageBlock>] }>()
 const layoutOptions = [
-  { label: 'Block', value: 'block' },
-  { label: 'Flex', value: 'flex' },
-  { label: 'Grid', value: 'grid' },
-  { label: 'Inline Block', value: 'inline-block' },
-  { label: 'Inline Flex', value: 'inline-flex' },
+  { label: '', title: 'Block', value: 'block', icon: 'square' },
+  { label: '', title: 'Flex', value: 'flex', icon: 'rows-3' },
+  { label: '', title: 'Grid', value: 'grid', icon: 'grid-2x2' },
+  { label: '', title: 'Inline Block', value: 'inline-block', icon: 'box' },
+  { label: '', title: 'Inline Flex', value: 'inline-flex', icon: 'columns-3' },
 ]
 const directionOptions = [
-  { label: 'Row', value: 'row' },
-  { label: 'Column', value: 'column' },
-  { label: 'Row Reverse', value: 'row-reverse' },
-  { label: 'Column Reverse', value: 'column-reverse' },
+  { label: '', title: 'Row', value: 'row', icon: 'arrow-right' },
+  { label: '', title: 'Column', value: 'column', icon: 'arrow-down' },
+  { label: '', title: 'Row Reverse', value: 'row-reverse', icon: 'arrow-left' },
+  { label: '', title: 'Column Reverse', value: 'column-reverse', icon: 'arrow-up' },
 ]
 const alignOptions = [
-  { label: 'Stretch', value: 'stretch' },
-  { label: 'Start', value: 'flex-start' },
-  { label: 'Center', value: 'center' },
-  { label: 'End', value: 'flex-end' },
+  { label: '', title: 'Stretch', value: 'stretch', icon: 'move-horizontal' },
+  { label: '', title: 'Start', value: 'flex-start', icon: 'align-start-horizontal' },
+  { label: '', title: 'Center', value: 'center', icon: 'align-center-horizontal' },
+  { label: '', title: 'End', value: 'flex-end', icon: 'align-end-horizontal' },
 ]
 const justifyOptions = [
-  { label: 'Start', value: 'flex-start' },
-  { label: 'Center', value: 'center' },
-  { label: 'End', value: 'flex-end' },
-  { label: 'Between', value: 'space-between' },
-  { label: 'Around', value: 'space-around' },
+  { label: '', title: 'Start', value: 'flex-start', icon: 'align-start-vertical' },
+  { label: '', title: 'Center', value: 'center', icon: 'align-center-vertical' },
+  { label: '', title: 'End', value: 'flex-end', icon: 'align-end-vertical' },
+  { label: '', title: 'Between', value: 'space-between', icon: 'between-horizontal-start' },
+  { label: '', title: 'Around', value: 'space-around', icon: 'between-horizontal-end' },
 ]
 const fontWeightOptions = [
-  { label: 'Default', value: '' },
-  { label: 'Regular', value: '400' },
-  { label: 'Medium', value: '500' },
-  { label: 'Semi Bold', value: '600' },
-  { label: 'Bold', value: '700' },
+  { label: '', title: 'Default', value: '', icon: 'circle-slash' },
+  { label: '', title: 'Regular', value: '400', icon: 'type' },
+  { label: '', title: 'Medium', value: '500', icon: 'baseline' },
+  { label: '', title: 'Semi Bold', value: '600', icon: 'bold' },
+  { label: '', title: 'Bold', value: '700', icon: 'bold' },
 ]
 const textAlignOptions = [
-  { label: 'Default', value: '' },
-  { label: 'Left', value: 'left' },
-  { label: 'Center', value: 'center' },
-  { label: 'Right', value: 'right' },
-  { label: 'Justify', value: 'justify' },
+  { label: '', title: 'Default', value: '', icon: 'circle-slash' },
+  { label: '', title: 'Left', value: 'left', icon: 'align-left' },
+  { label: '', title: 'Center', value: 'center', icon: 'align-center' },
+  { label: '', title: 'Right', value: 'right', icon: 'align-right' },
+  { label: '', title: 'Justify', value: 'justify', icon: 'align-justify' },
 ]
 const overflowOptions = [
-  { label: 'Default', value: '' },
-  { label: 'Visible', value: 'visible' },
-  { label: 'Hidden', value: 'hidden' },
-  { label: 'Auto', value: 'auto' },
-  { label: 'Scroll', value: 'scroll' },
+  { label: '', title: 'Default', value: '', icon: 'circle-slash' },
+  { label: '', title: 'Visible', value: 'visible', icon: 'eye' },
+  { label: '', title: 'Hidden', value: 'hidden', icon: 'eye-off' },
+  { label: '', title: 'Auto', value: 'auto', icon: 'wand-sparkles' },
+  { label: '', title: 'Scroll', value: 'scroll', icon: 'scroll' },
 ]
 const textTransformOptions = [
-  { label: 'Default', value: '' },
-  { label: 'None', value: 'none' },
-  { label: 'Uppercase', value: 'uppercase' },
-  { label: 'Lowercase', value: 'lowercase' },
-  { label: 'Capitalize', value: 'capitalize' },
+  { label: '', title: 'Default', value: '', icon: 'circle-slash' },
+  { label: '', title: 'None', value: 'none', icon: 'type' },
+  { label: '', title: 'Uppercase', value: 'uppercase', icon: 'case-upper' },
+  { label: '', title: 'Lowercase', value: 'lowercase', icon: 'case-lower' },
+  { label: '', title: 'Capitalize', value: 'capitalize', icon: 'case-sensitive' },
 ]
 const backgroundSizeOptions = [
-  { label: 'Default', value: '' },
-  { label: 'Auto', value: 'auto' },
-  { label: 'Cover', value: 'cover' },
-  { label: 'Contain', value: 'contain' },
+  { label: '', title: 'Default', value: '', icon: 'circle-slash' },
+  { label: '', title: 'Auto', value: 'auto', icon: 'wand-sparkles' },
+  { label: '', title: 'Cover', value: 'cover', icon: 'scan' },
+  { label: '', title: 'Contain', value: 'contain', icon: 'minimize' },
 ]
 const objectFitOptions = [
-  { label: 'Default', value: '' },
-  { label: 'Fill', value: 'fill' },
-  { label: 'Cover', value: 'cover' },
-  { label: 'Contain', value: 'contain' },
-  { label: 'Scale Down', value: 'scale-down' },
+  { label: '', title: 'Default', value: '', icon: 'circle-slash' },
+  { label: '', title: 'Fill', value: 'fill', icon: 'maximize' },
+  { label: '', title: 'Cover', value: 'cover', icon: 'scan' },
+  { label: '', title: 'Contain', value: 'contain', icon: 'minimize' },
+  { label: '', title: 'Scale Down', value: 'scale-down', icon: 'shrink' },
 ]
 const borderStyleOptions = [
-  { label: 'Default', value: '' },
-  { label: 'Solid', value: 'solid' },
-  { label: 'Dashed', value: 'dashed' },
-  { label: 'Dotted', value: 'dotted' },
-  { label: 'None', value: 'none' },
+  { label: '', title: 'Default', value: '', icon: 'circle-slash' },
+  { label: '', title: 'Solid', value: 'solid', icon: 'minus' },
+  { label: '', title: 'Dashed', value: 'dashed', icon: 'ellipsis' },
+  { label: '', title: 'Dotted', value: 'dotted', icon: 'more-horizontal' },
+  { label: '', title: 'None', value: 'none', icon: 'x' },
 ]
 
 function setStyle(key: string, value: string | boolean) {

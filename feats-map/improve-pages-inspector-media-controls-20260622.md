@@ -1,0 +1,6 @@
+- [x] Add failing inspector and media rendering tests
+- [x] Implement special element inspector fields
+- [x] Render image audio video youtube correctly
+- [x] Replace inspector BaseSelect controls with icon segmented controls
+- [x] Verify focused frontend and server tests
+- [x] Commit fix

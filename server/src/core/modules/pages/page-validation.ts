@@ -25,6 +25,9 @@ const ALLOWED_TAGS = new Set<PageBlockTag>([
   "input",
   "text",
   "image",
+  "audio",
+  "video",
+  "youtube",
   "link",
 ]);
 
@@ -40,6 +43,9 @@ const ALLOWED_PROPS: Record<PageBlockTag, Set<string>> = {
   input: new Set(["name", "type", "label", "placeholder", "required", "value"]),
   text: new Set(["text"]),
   image: new Set(["src", "alt", "title"]),
+  audio: new Set(["src", "controls", "autoplay", "loop", "muted"]),
+  video: new Set(["src", "poster", "controls", "autoplay", "loop", "muted"]),
+  youtube: new Set(["url", "videoId", "title", "autoplay"]),
   link: new Set(["href", "text", "target", "title"]),
 };
 
@@ -215,6 +221,14 @@ function normalizeProps(
     return { success: false, error: "Image URL must use http, https, or a root-relative path." };
   }
 
+  if ((tag === "audio" || tag === "video") && typeof normalized.src === "string" && !isSafeMediaUrl(normalized.src)) {
+    return { success: false, error: "Media URL must use http, https, or a root-relative path." };
+  }
+
+  if (tag === "video" && typeof normalized.poster === "string" && normalized.poster && !isSafeMediaUrl(normalized.poster)) {
+    return { success: false, error: "Media poster URL must use http, https, or a root-relative path." };
+  }
+
   if (tag === "link" && typeof normalized.href === "string" && !isSafeLinkUrl(normalized.href)) {
     return { success: false, error: "Link URL contains unsafe JavaScript or unsupported protocol." };
   }
@@ -280,6 +294,10 @@ function containsDangerousText(value: string): boolean {
 }
 
 function isSafeImageUrl(url: string): boolean {
+  return isUrlWithProtocol(url, new Set(["http:", "https:"])) || url.startsWith("/");
+}
+
+function isSafeMediaUrl(url: string): boolean {
   return isUrlWithProtocol(url, new Set(["http:", "https:"])) || url.startsWith("/");
 }
 

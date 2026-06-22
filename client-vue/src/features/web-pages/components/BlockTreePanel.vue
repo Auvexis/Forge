@@ -257,6 +257,9 @@ function dropPosition(event: DragEvent, block: PageBlock): InsertPosition {
 
 function iconFor(block: PageBlock): string {
   if (block.tag === 'image') return 'image'
+  if (block.tag === 'audio') return 'music'
+  if (block.tag === 'video') return 'clapperboard'
+  if (block.tag === 'youtube') return 'youtube'
   if (block.tag === 'form') return 'clipboard-list'
   if (block.tag === 'button') return 'square-mouse-pointer'
   if (block.tag === 'input') return 'text-cursor-input'

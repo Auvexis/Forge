@@ -7,7 +7,7 @@
       class="base-segmented-select__option"
       :class="{ 'base-segmented-select__option--active': option.value === modelValue }"
       :aria-selected="option.value === modelValue"
-      :title="option.label"
+      :title="option.title ?? option.label"
       role="tab"
       @click="$emit('update:modelValue', option.value)"
     >
@@ -23,6 +23,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 export interface BaseSegmentedSelectOption {
   value: string
   label?: string
+  title?: string
   icon?: string
 }
 

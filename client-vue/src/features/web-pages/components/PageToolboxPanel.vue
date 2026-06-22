@@ -143,9 +143,9 @@ const toolboxSections: ToolboxSection[] = [
     label: 'Media',
     items: [
       { id: 'media-image', label: 'Image', icon: 'image', kind: 'block', tag: 'image' },
-      { id: 'video', label: 'Video', icon: 'clapperboard', kind: 'block', tag: 'div' },
-      { id: 'youtube', label: 'Youtube', icon: 'youtube', kind: 'block', tag: 'div' },
-      { id: 'audio', label: 'Audio', icon: 'music', kind: 'block', tag: 'div' },
+      { id: 'video', label: 'Video', icon: 'clapperboard', kind: 'block', tag: 'video' },
+      { id: 'youtube', label: 'Youtube', icon: 'youtube', kind: 'block', tag: 'youtube' },
+      { id: 'audio', label: 'Audio', icon: 'music', kind: 'block', tag: 'audio' },
     ],
   },
   {

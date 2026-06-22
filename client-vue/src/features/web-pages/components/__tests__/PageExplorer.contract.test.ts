@@ -64,6 +64,9 @@ describe('page explorer contract', () => {
     assert.match(toolbox, /id: 'structure'[\s\S]*\{ id: 'page', label: 'Page'/)
     assert.match(toolbox, /id: 'form'[\s\S]*\{ id: 'text-input', label: 'Text Input'/)
     assert.match(toolbox, /id: 'media'[\s\S]*\{ id: 'media-image', label: 'Image'/)
+    assert.match(toolbox, /id: 'media'[\s\S]*\{ id: 'video', label: 'Video'[\s\S]*tag: 'video'/)
+    assert.match(toolbox, /id: 'media'[\s\S]*\{ id: 'youtube', label: 'Youtube'[\s\S]*tag: 'youtube'/)
+    assert.match(toolbox, /id: 'media'[\s\S]*\{ id: 'audio', label: 'Audio'[\s\S]*tag: 'audio'/)
     assert.match(toolbox, /id: 'interactive'[\s\S]*\{ id: 'button', label: 'Button'/)
   })
 

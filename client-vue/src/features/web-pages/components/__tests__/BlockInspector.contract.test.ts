@@ -16,15 +16,49 @@ describe('block inspector contract', () => {
     assert.match(source, /link/)
   })
 
+  it('content panel exposes common and special element fields', () => {
+    const source = read('src/features/web-pages/components/BlockContentPanel.vue')
+
+    assert.match(source, />Content</)
+    assert.match(source, /buttonTypeOptions/)
+    assert.match(source, /inputTypeOptions/)
+    assert.match(source, /targetOptions/)
+    assert.match(source, /mediaBooleanOptions/)
+    assert.match(source, /block\.tag === 'button'[\s\S]*type/)
+    assert.match(source, /block\.tag === 'input'[\s\S]*placeholder/)
+    assert.match(source, /block\.tag === 'audio'[\s\S]*Audio URL/)
+    assert.match(source, /block\.tag === 'video'[\s\S]*Poster URL/)
+    assert.match(source, /block\.tag === 'youtube'[\s\S]*Youtube URL/)
+  })
+
+  it('inspector selects use icon-only segmented controls instead of BaseSelect', () => {
+    const content = read('src/features/web-pages/components/BlockContentPanel.vue')
+    const style = read('src/features/web-pages/components/BlockStylePanel.vue')
+    const action = read('src/features/web-pages/components/BlockActionPanel.vue')
+
+    assert.match(content, /BaseSegmentedSelect/)
+    assert.match(style, /BaseSegmentedSelect/)
+    assert.match(action, /BaseSegmentedSelect/)
+    assert.doesNotMatch(content, /BaseSelect/)
+    assert.doesNotMatch(style, /BaseSelect/)
+    assert.doesNotMatch(action, /BaseSelect/)
+    assert.match(content, /label: ''/)
+    assert.match(style, /label: ''/)
+    assert.match(action, /label: ''/)
+  })
+
   it('image block content supports uploading a site asset', () => {
     const panel = read('src/features/web-pages/components/BlockContentPanel.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
 
     assert.match(panel, /upload-image/)
     assert.match(panel, /type="file"/)
     assert.match(panel, /Upload image/)
     assert.match(editor, /uploadImageForSelectedBlock/)
     assert.match(editor, /sitesStore\.uploadAsset/)
+    assert.match(renderer, /props\.block\.tag === 'image'\) return 'img'/)
+    assert.match(renderer, /props\.src/)
   })
 
   it('style panel uses controls for allowlisted properties', () => {
@@ -41,6 +75,7 @@ describe('block inspector contract', () => {
     assert.match(source, /fontSize/)
     assert.match(source, /backgroundColor/)
     assert.match(source, /BaseColorPicker/)
+    assert.match(source, /BaseSegmentedSelect/)
     assert.match(source, /sanitizeStyles/)
     assert.match(renderer, /:style="resolvedBlockStyles"/)
     assert.match(renderer, /\.\.\.props\.block\.styles/)
@@ -120,6 +155,7 @@ describe('block inspector contract', () => {
     assert.match(source, /submitForm/)
     assert.match(source, /triggerWorkflow/)
     assert.match(source, /openUrl/)
+    assert.match(source, /BaseSegmentedSelect/)
   })
 
   it('image and link inputs validate URL input', () => {

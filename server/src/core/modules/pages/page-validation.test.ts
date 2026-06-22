@@ -161,6 +161,27 @@ describe("page validation", () => {
     assert.match(result.error ?? "", /image/i);
   });
 
+  it("accepts media blocks and rejects unsafe media URLs", () => {
+    const accepted = validatePageInput(
+      validPage({
+        blocks: [
+          { id: "block_audio", tag: "audio", props: { src: "/audio.mp3", controls: true, loop: true }, children: [] },
+          { id: "block_video", tag: "video", props: { src: "https://cdn.example.com/video.mp4", poster: "/poster.jpg", muted: true }, children: [] },
+          { id: "block_youtube", tag: "youtube", props: { videoId: "dQw4w9WgXcQ", title: "Demo" }, children: [] },
+        ],
+      }),
+    );
+    const rejected = validatePageInput(
+      validPage({
+        blocks: [{ id: "block_audio", tag: "audio", props: { src: "javascript:alert(1)" }, children: [] }],
+      }),
+    );
+
+    assert.equal(accepted.success, true);
+    assert.equal(rejected.success, false);
+    assert.match(rejected.error ?? "", /media|javascript/i);
+  });
+
   it("rejects action types outside submitForm, triggerWorkflow, openUrl", () => {
     const result = validatePageInput(
       validPage({

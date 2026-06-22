@@ -29,6 +29,9 @@ const blockTags: PageBlockTag[] = [
   'input',
   'text',
   'image',
+  'audio',
+  'video',
+  'youtube',
   'link',
 ]
 

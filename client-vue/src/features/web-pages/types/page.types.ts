@@ -8,6 +8,9 @@ export type PageBlockTag =
   | 'input'
   | 'text'
   | 'image'
+  | 'audio'
+  | 'video'
+  | 'youtube'
   | 'link'
 
 export type PageBlockAction =

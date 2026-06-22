@@ -15,6 +15,9 @@ function defaultProps(tag: PageBlockTag): PageBlock['props'] {
   if (tag === 'button') return { text: 'Button', type: 'button' }
   if (tag === 'link') return { text: 'Link', href: '#' }
   if (tag === 'image') return { src: '', alt: '' }
+  if (tag === 'audio') return { src: '', controls: true }
+  if (tag === 'video') return { src: '', poster: '', controls: true }
+  if (tag === 'youtube') return { url: '', videoId: '', title: 'Youtube video' }
   if (tag === 'input') return { name: 'field', type: 'text', label: 'Field' }
   if (tag === 'form') return { name: 'form' }
   return {}

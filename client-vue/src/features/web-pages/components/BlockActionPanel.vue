@@ -1,9 +1,9 @@
 <template>
   <div class="web-page-inspector">
-    <BaseSelect
+    <BaseSegmentedSelect
       :model-value="block.action?.type ?? ''"
-      label="Action"
       :options="actionOptions"
+      aria-label="Action"
       @update:model-value="setActionType(String($event))"
     />
     <BaseInput
@@ -31,7 +31,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import BaseSegmentedSelect from '@/shared/components/base/BaseSegmentedSelect.vue'
 import type { PageBlock, PageBlockAction } from '../types/page.types.ts'
 
 const props = defineProps<{ block: PageBlock }>()
@@ -39,10 +39,10 @@ const emit = defineEmits<{ patch: [patch: Partial<PageBlock>] }>()
 const urlError = ref('')
 
 const actionOptions = [
-  { label: 'None', value: '' },
-  { label: 'Submit form', value: 'submitForm' },
-  { label: 'Trigger workflow', value: 'triggerWorkflow' },
-  { label: 'Open URL', value: 'openUrl' },
+  { label: '', title: 'None', value: '', icon: 'circle-slash' },
+  { label: '', title: 'Submit form', value: 'submitForm', icon: 'send' },
+  { label: '', title: 'Trigger workflow', value: 'triggerWorkflow', icon: 'workflow' },
+  { label: '', title: 'Open URL', value: 'openUrl', icon: 'external-link' },
 ]
 
 function setActionType(type: string) {

@@ -242,6 +242,19 @@ describe("page renderer", () => {
     assert.match(html, /src="\/sites\/site_default_profile_a\/assets\/logo.png"/);
   });
 
+  it("renders media blocks with safe source attributes", () => {
+    const html = renderPageBody([
+      { id: "audio_1", tag: "audio", props: { src: "/media/intro.mp3", controls: true, autoplay: false }, children: [] },
+      { id: "video_1", tag: "video", props: { src: "https://cdn.example.com/demo.mp4", poster: "/poster.jpg", controls: true }, children: [] },
+      { id: "youtube_1", tag: "youtube", props: { videoId: "dQw4w9WgXcQ", title: "Demo" }, children: [] },
+    ]);
+
+    assert.match(html, /<audio[^>]*src="\/media\/intro.mp3"[^>]*controls/);
+    assert.match(html, /<video[^>]*src="https:\/\/cdn.example.com\/demo.mp4"[^>]*poster="\/poster.jpg"[^>]*controls/);
+    assert.match(html, /<iframe[^>]*src="https:\/\/www.youtube.com\/embed\/dQw4w9WgXcQ"/);
+    assert.match(html, /allowfullscreen/);
+  });
+
   it("defaults published body margin to zero and keeps explicit zero padding", () => {
     const html = renderPublishedPage(
       publishedPage({

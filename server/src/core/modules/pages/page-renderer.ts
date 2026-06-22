@@ -15,6 +15,9 @@ const RENDER_TAGS: Record<PageBlockTag, string> = {
   input: "input",
   text: "span",
   image: "img",
+  audio: "audio",
+  video: "video",
+  youtube: "iframe",
   link: "a",
 };
 
@@ -28,6 +31,9 @@ const PROP_ALLOWLIST: Record<PageBlockTag, Set<string>> = {
   input: new Set(["name", "type", "placeholder", "required", "value"]),
   text: new Set([]),
   image: new Set(["src", "alt", "title"]),
+  audio: new Set(["src", "controls", "autoplay", "loop", "muted"]),
+  video: new Set(["src", "poster", "controls", "autoplay", "loop", "muted"]),
+  youtube: new Set(["url", "videoId", "title", "autoplay"]),
   link: new Set(["href", "target", "title"]),
 };
 
@@ -123,6 +129,10 @@ function renderBlock(block: PageBlock, options: RenderOptions): string {
     return `<img${attrs}>`;
   }
 
+  if (block.tag === "audio" || block.tag === "video" || block.tag === "youtube") {
+    return `<${tag}${attrs}></${tag}>`;
+  }
+
   const text = getBlockText(block);
   return `<${tag}${attrs}>${text}${children}</${tag}>`;
 }
@@ -141,13 +151,26 @@ function renderAttributes(block: PageBlock, options: RenderOptions): string {
       continue;
     }
 
+    if (block.tag === "youtube" && (key === "url" || key === "videoId")) continue;
+
     const attrName = propToAttributeName(key);
     const attrValue = key === "src" ? resolveImageSrc(String(value), options.site) : String(value);
-    if ((key === "href" && !isSafeLinkUrl(attrValue)) || (key === "src" && !isSafeImageUrl(attrValue))) {
+    if (
+      (key === "href" && !isSafeLinkUrl(attrValue)) ||
+      (key === "src" && !isSafeMediaUrl(attrValue)) ||
+      (key === "poster" && attrValue && !isSafeMediaUrl(attrValue))
+    ) {
       continue;
     }
 
     attrs[attrName] = attrValue;
+  }
+
+  if (block.tag === "youtube") {
+    const src = youtubeEmbedSrc(block.props ?? {});
+    if (src) attrs.src = src;
+    attrs.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    attrs.allowfullscreen = "true";
   }
 
   if (block.props?.ariaLabel) {
@@ -354,7 +377,7 @@ function isSafeAttributeName(name: string): boolean {
   return /^(data-[a-z0-9_.:-]+|aria-[a-z0-9_.:-]+|role|title|name|placeholder|target|rel)$/i.test(name);
 }
 
-function isSafeImageUrl(url: string): boolean {
+function isSafeMediaUrl(url: string): boolean {
   return url.startsWith("/") || isUrlWithProtocol(url, new Set(["http:", "https:"]));
 }
 
@@ -372,4 +395,16 @@ function isUrlWithProtocol(url: string, protocols: Set<string>): boolean {
   } catch {
     return false;
   }
+}
+
+function youtubeEmbedSrc(props: PageBlockProps): string {
+  const videoId = String(props.videoId ?? "").trim() || youtubeIdFromUrl(String(props.url ?? ""));
+  if (!/^[a-zA-Z0-9_-]{6,}$/.test(videoId)) return "";
+  const query = props.autoplay === true ? "?autoplay=1" : "";
+  return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}${query}`;
+}
+
+function youtubeIdFromUrl(value: string): string {
+  const match = value.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/);
+  return match?.[1] ?? "";
 }

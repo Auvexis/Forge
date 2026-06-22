@@ -408,7 +408,7 @@ function escapeHtml(value: string) {
 }
 
 function renderGeneratedBlockHtml(block: PageBlock): string {
-  const tag = block.tag === 'text' ? 'span' : block.tag === 'image' ? 'img' : block.tag
+  const tag = block.tag === 'text' ? 'span' : block.tag === 'image' ? 'img' : block.tag === 'youtube' ? 'iframe' : block.tag
   const className = ['sailor-page-block', blockClass(block.id), block.className].filter(Boolean).join(' ')
   const attrs = [
     `class="${escapeHtml(className)}"`,
@@ -416,9 +416,22 @@ function renderGeneratedBlockHtml(block: PageBlock): string {
     ...Object.entries(block.attributes ?? {}).map(([key, value]) => `${key}="${escapeHtml(String(value))}"`),
   ].filter(Boolean).join(' ')
   if (block.tag === 'image') return `<img ${attrs} src="${escapeHtml(String(block.props?.src ?? ''))}" alt="${escapeHtml(String(block.props?.alt ?? ''))}">`
+  if (block.tag === 'audio') return `<audio ${attrs} src="${escapeHtml(String(block.props?.src ?? ''))}"${block.props?.controls !== false ? ' controls' : ''}></audio>`
+  if (block.tag === 'video') return `<video ${attrs} src="${escapeHtml(String(block.props?.src ?? ''))}" poster="${escapeHtml(String(block.props?.poster ?? ''))}"${block.props?.controls !== false ? ' controls' : ''}></video>`
+  if (block.tag === 'youtube') return `<iframe ${attrs} src="${escapeHtml(youtubeEmbedSrc(block.props))}" title="${escapeHtml(String(block.props?.title ?? 'Youtube video'))}" allowfullscreen></iframe>`
   if (block.tag === 'input') return `<input ${attrs} name="${escapeHtml(String(block.props?.name ?? ''))}" placeholder="${escapeHtml(String(block.props?.placeholder ?? ''))}">`
   const text = ['text', 'button', 'link'].includes(block.tag) ? escapeHtml(String(block.props?.text ?? '')) : ''
   return `<${tag} ${attrs}>${text}${(block.children ?? []).map(renderGeneratedBlockHtml).join('')}</${tag}>`
+}
+
+function youtubeEmbedSrc(props: PageBlock['props']) {
+  const videoId = String(props?.videoId ?? '').trim() || youtubeIdFromUrl(String(props?.url ?? ''))
+  return videoId ? `https://www.youtube.com/embed/${encodeURIComponent(videoId)}` : ''
+}
+
+function youtubeIdFromUrl(value: string) {
+  const match = value.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/)
+  return match?.[1] ?? ''
 }
 
 function renderGeneratedPageCss(blocks: PageBlock[]): string {

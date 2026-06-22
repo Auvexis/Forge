@@ -162,7 +162,8 @@ const isContainer = computed(() =>
 )
 const renderTag = computed(() => {
   if (props.block.tag === 'text') return 'span'
-  if (props.block.tag === 'image') return 'div'
+  if (props.block.tag === 'image') return 'img'
+  if (props.block.tag === 'youtube') return 'iframe'
   if (props.block.tag === 'link') return 'a'
   return props.block.tag
 })
@@ -182,7 +183,10 @@ const blockClasses = computed(() => ({
   'web-page-block--drop-inside': props.dropIntent?.targetId === props.block.id && props.dropIntent.position === 'inside',
 }))
 
-const blockAttributes = computed(() => sanitizeAttributes(props.block.attributes ?? {}))
+const blockAttributes = computed(() => ({
+  ...sanitizeAttributes(props.block.attributes ?? {}),
+  ...renderPropAttributes(props.block),
+}))
 const frameElementRef = ref<HTMLElement | null>(null)
 const blockElementRef = ref<HTMLElement | null>(null)
 const previewStyles = ref<PageBlock['styles'] | null>(null)
@@ -466,5 +470,79 @@ function sanitizeAttributes(attributes: Record<string, string | number | boolean
 
 function isSafeAttributeName(name: string) {
   return /^(data-[a-z0-9_.:-]+|aria-[a-z0-9_.:-]+|role|title|name|placeholder|target|rel)$/i.test(name)
+}
+
+function renderPropAttributes(block: PageBlock): Record<string, string | number | boolean> {
+  const props = block.props ?? {}
+  if (block.tag === 'image') {
+    return {
+      src: safeMediaUrl(String(props.src ?? '')),
+      alt: String(props.alt ?? ''),
+      title: String(props.title ?? ''),
+    }
+  }
+  if (block.tag === 'audio' || block.tag === 'video') {
+    return {
+      src: safeMediaUrl(String(props.src ?? '')),
+      controls: props.controls !== false,
+      autoplay: Boolean(props.autoplay),
+      loop: Boolean(props.loop),
+      muted: Boolean(props.muted),
+      ...(block.tag === 'video' ? { poster: safeMediaUrl(String(props.poster ?? '')) } : {}),
+    }
+  }
+  if (block.tag === 'youtube') {
+    return {
+      src: youtubeEmbedSrc(props),
+      title: String(props.title ?? 'Youtube video'),
+      allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
+      allowfullscreen: true,
+    }
+  }
+  if (block.tag === 'input') {
+    return {
+      name: String(props.name ?? ''),
+      type: String(props.type ?? 'text'),
+      placeholder: String(props.placeholder ?? ''),
+      required: Boolean(props.required),
+      disabled: Boolean(props.disabled),
+      value: String(props.value ?? ''),
+    }
+  }
+  if (block.tag === 'link') {
+    return {
+      href: safeLinkUrl(String(props.href ?? '#')),
+      target: String(props.target ?? ''),
+    }
+  }
+  if (block.tag === 'button') {
+    return {
+      type: String(props.type ?? 'button'),
+      name: String(props.name ?? ''),
+      value: String(props.value ?? ''),
+      disabled: Boolean(props.disabled),
+    }
+  }
+  return {}
+}
+
+function safeMediaUrl(value: string): string {
+  if (!value) return ''
+  return value.startsWith('/') || /^(https?:)/.test(value) ? value : ''
+}
+
+function safeLinkUrl(value: string): string {
+  if (!value) return ''
+  return value.startsWith('/') || value.startsWith('#') || /^(https?:|mailto:|tel:)/.test(value) ? value : ''
+}
+
+function youtubeEmbedSrc(props: PageBlock['props']): string {
+  const videoId = String(props?.videoId ?? '').trim() || youtubeIdFromUrl(String(props?.url ?? ''))
+  return videoId ? `https://www.youtube.com/embed/${encodeURIComponent(videoId)}` : ''
+}
+
+function youtubeIdFromUrl(value: string): string {
+  const match = value.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/)
+  return match?.[1] ?? ''
 }
 </script>
