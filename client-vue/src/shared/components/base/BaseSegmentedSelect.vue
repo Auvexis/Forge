@@ -75,13 +75,17 @@ defineEmits<{
 }
 
 .base-segmented-select__option:hover {
-  background: var(--sailor-button-ghost-hover);
   color: var(--sailor-text-primary);
 }
 
 .base-segmented-select__option--active {
-  background: var(--sailor-bg-muted);
+  background: var(--sailor-button-ghost-active);
+  box-shadow: inset 0 0 0 1px var(--sailor-border-strong);
   color: var(--sailor-text-primary);
+}
+
+.base-segmented-select__option--active:hover {
+  background: var(--sailor-button-ghost-active);
 }
 
 .base-segmented-select__label {
