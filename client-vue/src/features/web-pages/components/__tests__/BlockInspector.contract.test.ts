@@ -25,6 +25,8 @@ describe('block inspector contract', () => {
     assert.match(source, /targetOptions/)
     assert.match(source, /mediaBooleanOptions/)
     assert.match(source, /block\.tag === 'button'[\s\S]*type/)
+    assert.match(source, /block\.tag === 'button'[\s\S]*Action/)
+    assert.match(source, /block\.tag === 'button'[\s\S]*submitForm/)
     assert.match(source, /block\.tag === 'input'[\s\S]*placeholder/)
     assert.match(source, /block\.tag === 'audio'[\s\S]*Audio URL/)
     assert.match(source, /block\.tag === 'video'[\s\S]*Poster URL/)
@@ -34,17 +36,13 @@ describe('block inspector contract', () => {
   it('inspector selects use icon-only segmented controls instead of BaseSelect', () => {
     const content = read('src/features/web-pages/components/BlockContentPanel.vue')
     const style = read('src/features/web-pages/components/BlockStylePanel.vue')
-    const action = read('src/features/web-pages/components/BlockActionPanel.vue')
 
     assert.match(content, /BaseSegmentedSelect/)
     assert.match(style, /BaseSegmentedSelect/)
-    assert.match(action, /BaseSegmentedSelect/)
     assert.doesNotMatch(content, /BaseSelect/)
     assert.doesNotMatch(style, /BaseSelect/)
-    assert.doesNotMatch(action, /BaseSelect/)
     assert.match(content, /label: ''/)
     assert.match(style, /label: ''/)
-    assert.match(action, /label: ''/)
   })
 
   it('image block content supports uploading a site asset', () => {
@@ -59,6 +57,8 @@ describe('block inspector contract', () => {
     assert.match(editor, /sitesStore\.uploadAsset/)
     assert.match(renderer, /props\.block\.tag === 'image'\) return 'img'/)
     assert.match(renderer, /props\.src/)
+    assert.match(renderer, /API_BASE_URL/)
+    assert.match(renderer, /resolveMediaUrl/)
   })
 
   it('style panel uses controls for allowlisted properties', () => {
@@ -150,18 +150,20 @@ describe('block inspector contract', () => {
     assert.doesNotMatch(renderer, /<style\s+v-if/)
   })
 
-  it('action panel supports form submit, workflow trigger, open URL actions', () => {
-    const source = read('src/features/web-pages/components/BlockActionPanel.vue')
+  it('button content panel supports form submit, workflow trigger, open URL actions', () => {
+    const source = read('src/features/web-pages/components/BlockContentPanel.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
     assert.match(source, /submitForm/)
     assert.match(source, /triggerWorkflow/)
     assert.match(source, /openUrl/)
     assert.match(source, /BaseSegmentedSelect/)
+    assert.doesNotMatch(editor, /<BlockActionPanel/)
+    assert.doesNotMatch(editor, /import BlockActionPanel/)
   })
 
   it('image and link inputs validate URL input', () => {
     const content = read('src/features/web-pages/components/BlockContentPanel.vue')
-    const action = read('src/features/web-pages/components/BlockActionPanel.vue')
     assert.match(content, /isSafeUrl/)
-    assert.match(action, /isSafeUrl/)
   })
 })

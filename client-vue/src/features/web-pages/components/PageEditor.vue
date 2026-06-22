@@ -211,10 +211,6 @@
           :block="editorStore.selectedBlock"
           @patch="patchSelectedOrSingleBlock"
         />
-        <BlockActionPanel
-          :block="editorStore.selectedBlock"
-          @patch="patchSelectedOrSingleBlock"
-        />
       </template>
       <p v-if="editorStore.selectedTarget.type === 'none'" class="web-page-editor__empty">Select a page, body, or block.</p>
     </AppPanel>
@@ -250,7 +246,6 @@ import SiteCodeCanvas from './SiteCodeCanvas.vue'
 import BlockContentPanel from './BlockContentPanel.vue'
 import BlockAdvancedPanel from './BlockAdvancedPanel.vue'
 import BlockStylePanel from './BlockStylePanel.vue'
-import BlockActionPanel from './BlockActionPanel.vue'
 import FormImportPanel from './FormImportPanel.vue'
 import PageMetadataPanel from './PageMetadataPanel.vue'
 import PageSwitcherModal from './PageSwitcherModal.vue'
@@ -415,9 +410,9 @@ function renderGeneratedBlockHtml(block: PageBlock): string {
     block.elementId ? `id="${escapeHtml(block.elementId)}"` : '',
     ...Object.entries(block.attributes ?? {}).map(([key, value]) => `${key}="${escapeHtml(String(value))}"`),
   ].filter(Boolean).join(' ')
-  if (block.tag === 'image') return `<img ${attrs} src="${escapeHtml(String(block.props?.src ?? ''))}" alt="${escapeHtml(String(block.props?.alt ?? ''))}">`
-  if (block.tag === 'audio') return `<audio ${attrs} src="${escapeHtml(String(block.props?.src ?? ''))}"${block.props?.controls !== false ? ' controls' : ''}></audio>`
-  if (block.tag === 'video') return `<video ${attrs} src="${escapeHtml(String(block.props?.src ?? ''))}" poster="${escapeHtml(String(block.props?.poster ?? ''))}"${block.props?.controls !== false ? ' controls' : ''}></video>`
+  if (block.tag === 'image') return `<img ${attrs} src="${escapeHtml(resolveGeneratedMediaUrl(String(block.props?.src ?? '')))}" alt="${escapeHtml(String(block.props?.alt ?? ''))}">`
+  if (block.tag === 'audio') return `<audio ${attrs} src="${escapeHtml(resolveGeneratedMediaUrl(String(block.props?.src ?? '')))}"${block.props?.controls !== false ? ' controls' : ''}></audio>`
+  if (block.tag === 'video') return `<video ${attrs} src="${escapeHtml(resolveGeneratedMediaUrl(String(block.props?.src ?? '')))}" poster="${escapeHtml(resolveGeneratedMediaUrl(String(block.props?.poster ?? '')))}"${block.props?.controls !== false ? ' controls' : ''}></video>`
   if (block.tag === 'youtube') return `<iframe ${attrs} src="${escapeHtml(youtubeEmbedSrc(block.props))}" title="${escapeHtml(String(block.props?.title ?? 'Youtube video'))}" allowfullscreen></iframe>`
   if (block.tag === 'input') return `<input ${attrs} name="${escapeHtml(String(block.props?.name ?? ''))}" placeholder="${escapeHtml(String(block.props?.placeholder ?? ''))}">`
   const text = ['text', 'button', 'link'].includes(block.tag) ? escapeHtml(String(block.props?.text ?? '')) : ''
@@ -432,6 +427,11 @@ function youtubeEmbedSrc(props: PageBlock['props']) {
 function youtubeIdFromUrl(value: string) {
   const match = value.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{6,})/)
   return match?.[1] ?? ''
+}
+
+function resolveGeneratedMediaUrl(value: string) {
+  if (value.startsWith('/sites/')) return `${API_BASE_URL}${value}`
+  return value
 }
 
 function renderGeneratedPageCss(blocks: PageBlock[]): string {

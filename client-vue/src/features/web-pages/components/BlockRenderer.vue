@@ -45,13 +45,10 @@
       <template v-if="block.tag === 'text' || block.tag === 'button' || block.tag === 'link'">
         {{ block.props?.text ?? block.tag }}
       </template>
-      <template v-else-if="block.tag === 'image'">
-        <span>{{ block.props?.alt || 'Image' }}</span>
-      </template>
       <template v-else-if="block.tag === 'input'">
         <span>{{ block.props?.label || block.props?.name || 'Input' }}</span>
       </template>
-      <template v-else-if="(block.children ?? []).length === 0">
+      <template v-else-if="!mediaOnlyTags.includes(block.tag) && (block.children ?? []).length === 0">
         <span class="web-page-block__placeholder">{{ block.props?.label ?? block.tag }}</span>
       </template>
       <TransitionGroup name="web-page-block">
@@ -127,6 +124,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import { API_BASE_URL } from '@/core/constants/app.ts'
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { DropEdge } from '../stores/page-editor.store.ts'
@@ -198,6 +196,7 @@ const blockIdInputRef = ref<HTMLInputElement | null>(null)
 const isInlineEditing = ref(false)
 const originalInlineText = ref('')
 const inlineEditableTags: PageBlockTag[] = ['text', 'button', 'link']
+const mediaOnlyTags: PageBlockTag[] = ['image', 'audio', 'video', 'youtube']
 const resizeCorners: ResizeCorner[] = ['north-west', 'north-east', 'south-west', 'south-east']
 const resolvedBlockStyles = computed(() => ({ ...props.block.styles, ...previewStyles.value }))
 let resizeState: {
@@ -476,19 +475,19 @@ function renderPropAttributes(block: PageBlock): Record<string, string | number 
   const props = block.props ?? {}
   if (block.tag === 'image') {
     return {
-      src: safeMediaUrl(String(props.src ?? '')),
+      src: resolveMediaUrl(String(props.src ?? '')),
       alt: String(props.alt ?? ''),
       title: String(props.title ?? ''),
     }
   }
   if (block.tag === 'audio' || block.tag === 'video') {
     return {
-      src: safeMediaUrl(String(props.src ?? '')),
+      src: resolveMediaUrl(String(props.src ?? '')),
       controls: props.controls !== false,
       autoplay: Boolean(props.autoplay),
       loop: Boolean(props.loop),
       muted: Boolean(props.muted),
-      ...(block.tag === 'video' ? { poster: safeMediaUrl(String(props.poster ?? '')) } : {}),
+      ...(block.tag === 'video' ? { poster: resolveMediaUrl(String(props.poster ?? '')) } : {}),
     }
   }
   if (block.tag === 'youtube') {
@@ -526,9 +525,11 @@ function renderPropAttributes(block: PageBlock): Record<string, string | number 
   return {}
 }
 
-function safeMediaUrl(value: string): string {
+function resolveMediaUrl(value: string): string {
   if (!value) return ''
-  return value.startsWith('/') || /^(https?:)/.test(value) ? value : ''
+  if (/^(https?:)/.test(value)) return value
+  if (value.startsWith('/sites/')) return `${API_BASE_URL}${value}`
+  return value.startsWith('/') ? value : ''
 }
 
 function safeLinkUrl(value: string): string {

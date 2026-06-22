@@ -13,6 +13,35 @@
     <section v-if="block.tag === 'button'" class="web-page-style-section">
       <h5>Button</h5>
       <label class="web-page-style-row">
+        <span>Action</span>
+        <BaseSegmentedSelect
+          :model-value="block.action?.type ?? ''"
+          :options="buttonActionOptions"
+          aria-label="Button action"
+          :icon-size="15"
+          @update:model-value="setActionType(String($event))"
+        />
+      </label>
+      <BaseInput
+        v-if="block.action?.type === 'submitForm'"
+        :model-value="block.action.formId"
+        label="Form ID"
+        @update:model-value="patchAction({ formId: String($event) })"
+      />
+      <BaseInput
+        v-if="block.action?.type === 'triggerWorkflow'"
+        :model-value="block.action.workflowId"
+        label="Workflow ID"
+        @update:model-value="patchAction({ workflowId: String($event) })"
+      />
+      <BaseInput
+        v-if="block.action?.type === 'openUrl'"
+        :model-value="block.action.url"
+        label="URL"
+        :error="urlError"
+        @update:model-value="setOpenUrl(String($event))"
+      />
+      <label class="web-page-style-row">
         <span>Type</span>
         <BaseSegmentedSelect
           :model-value="String(block.props?.type ?? 'button')"
@@ -162,7 +191,7 @@ import { computed, defineComponent, h, ref } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/components/base/BaseSegmentedSelect.vue'
-import type { PageBlock } from '../types/page.types.ts'
+import type { PageBlock, PageBlockAction } from '../types/page.types.ts'
 
 const props = defineProps<{ block: PageBlock }>()
 const emit = defineEmits<{
@@ -177,6 +206,12 @@ const buttonTypeOptions: BaseSegmentedSelectOption[] = [
   { value: 'button', label: '', title: 'Button', icon: 'square-mouse-pointer' },
   { value: 'submit', label: '', title: 'Submit', icon: 'send' },
   { value: 'reset', label: '', title: 'Reset', icon: 'rotate-ccw' },
+]
+const buttonActionOptions: BaseSegmentedSelectOption[] = [
+  { value: '', label: '', title: 'None', icon: 'circle-slash' },
+  { value: 'submitForm', label: '', title: 'Submit form', icon: 'send' },
+  { value: 'triggerWorkflow', label: '', title: 'Trigger workflow', icon: 'workflow' },
+  { value: 'openUrl', label: '', title: 'Open URL', icon: 'external-link' },
 ]
 const inputTypeOptions: BaseSegmentedSelectOption[] = [
   { value: 'text', label: '', title: 'Text', icon: 'type' },
@@ -228,6 +263,27 @@ function setBooleanProp(key: string, value: string) {
   setProp(key, value === 'true')
 }
 
+function setActionType(type: string) {
+  if (type === 'submitForm') emit('patch', { action: { id: createActionId(), type, formId: '' } })
+  else if (type === 'triggerWorkflow') emit('patch', { action: { id: createActionId(), type, workflowId: '' } })
+  else if (type === 'openUrl') emit('patch', { action: { id: createActionId(), type, url: '', target: '_blank' } })
+  else emit('patch', { action: undefined })
+}
+
+function patchAction(payload: Record<string, string>) {
+  if (!props.block.action) return
+  emit('patch', { action: { ...props.block.action, ...payload } as PageBlockAction })
+}
+
+function setOpenUrl(value: string) {
+  if (value && !isSafeUrl(value, 'link')) {
+    urlError.value = 'Invalid URL'
+    return
+  }
+  urlError.value = ''
+  patchAction({ url: value })
+}
+
 function setUrlProp(key: string, value: string, kind: 'link' | 'media') {
   if (value && !isSafeUrl(value, kind)) {
     urlError.value = 'Invalid URL'
@@ -246,5 +302,9 @@ function uploadAsset(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (file) emit('upload-image', file)
   if (assetInput.value) assetInput.value.value = ''
+}
+
+function createActionId(): string {
+  return `action_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 }
 </script>

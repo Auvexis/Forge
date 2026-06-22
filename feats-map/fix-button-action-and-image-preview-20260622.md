@@ -1,0 +1,4 @@
+- [x] Mover action para Button no Inspector
+- [x] Corrigir render de imagem no canvas
+- [x] Verificar testes e type-check
+- [x] Commitar correção
