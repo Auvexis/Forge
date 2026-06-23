@@ -122,10 +122,22 @@
         :key="corner"
         type="button"
         class="web-page-block-resize__handle"
-        :class="`web-page-block-resize__handle--${corner}`"
+        :class="[
+          `web-page-block-resize__handle--${corner}`,
+          { 'web-page-block-resize__handle--active': activeResizeCorner === corner },
+        ]"
         :aria-label="`Resize from ${corner}`"
         @pointerdown.stop.prevent="startResize($event, corner)"
       />
+      <span
+        v-for="distance in selectionDistanceLabels"
+        :key="distance.side"
+        class="web-page-block-selection__distance"
+        :class="`web-page-block-selection__distance--${distance.side}`"
+        :style="distanceLabelStyle(distance)"
+      >
+        {{ distance.label }}
+      </span>
       <span
         v-for="guide in activeResizeGuides"
         :key="`${guide.axis}:${guide.position}`"
@@ -208,6 +220,7 @@ const frameElementRef = ref<HTMLElement | null>(null)
 const blockElementRef = ref<HTMLElement | null>(null)
 const previewStyles = ref<PageBlock['styles'] | null>(null)
 const activeResizeGuides = ref<Array<{ axis: 'x' | 'y'; position: number }>>([])
+const activeResizeCorner = ref<ResizeCorner | null>(null)
 const resizeLabel = ref('')
 const isFreeResizeActive = ref(false)
 const selectionFrameStyle = ref<Record<string, string>>({})
@@ -226,6 +239,21 @@ const selectionSizeLabel = computed(() => {
   const height = Number.parseFloat(selectionFrameStyle.value.height ?? '')
   if (!Number.isFinite(width) || !Number.isFinite(height)) return '0 x 0'
   return `${Math.round(width)} x ${Math.round(height)}`
+})
+const selectionDistanceLabels = computed(() => {
+  const frame = selectionRect()
+  const parent = frameElementRef.value?.parentElement
+  if (!frame || !parent) return []
+  return [
+    { side: 'top', value: frame.top },
+    { side: 'right', value: parent.clientWidth - frame.left - frame.width },
+    { side: 'bottom', value: parent.clientHeight - frame.top - frame.height },
+    { side: 'left', value: frame.left },
+  ].map((distance) => ({
+    ...distance,
+    value: Math.max(0, Math.round(distance.value)),
+    label: `${Math.max(0, Math.round(distance.value))}px`,
+  }))
 })
 let resizeState: {
   corner: ResizeCorner
@@ -383,6 +411,7 @@ function startResize(event: PointerEvent, corner: ResizeCorner) {
   if (!element) return
   const rect = element.getBoundingClientRect()
   const bounds = resizeBounds(element)
+  activeResizeCorner.value = corner
   resizeState = {
     corner,
     startX: event.clientX,
@@ -428,6 +457,7 @@ function finishResize() {
   activeResizeGuides.value = []
   resizeLabel.value = ''
   isFreeResizeActive.value = false
+  activeResizeCorner.value = null
   resizeState = null
   stopResizeListeners()
   void nextTick(updateSelectionFrame)
@@ -504,6 +534,22 @@ function resizeGuideStyle(guide: { axis: 'x' | 'y'; position: number }) {
 function resizeLabelFor(styles: PageBlock['styles'] | undefined, fallback: string) {
   if (!styles?.width || !styles.height) return fallback
   return `${styles.width} x ${styles.height}`
+}
+
+function selectionRect() {
+  const left = sizeValue(selectionFrameStyle.value.left)
+  const top = sizeValue(selectionFrameStyle.value.top)
+  const width = sizeValue(selectionFrameStyle.value.width)
+  const height = sizeValue(selectionFrameStyle.value.height)
+  if (left == null || top == null || width == null || height == null) return null
+  return { left, top, width, height }
+}
+
+function distanceLabelStyle(distance: { side: string; value: number }) {
+  if (distance.side === 'top') return { top: `${-Math.max(28, distance.value / 2)}px` }
+  if (distance.side === 'right') return { right: `${-Math.max(46, distance.value / 2)}px` }
+  if (distance.side === 'bottom') return { bottom: `${-Math.max(28, distance.value / 2)}px` }
+  return { left: `${-Math.max(46, distance.value / 2)}px` }
 }
 
 function stopResizeListeners() {

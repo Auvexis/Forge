@@ -60,6 +60,19 @@ describe('page selection contract', () => {
     assert.match(css, /web-page-block-selection__ratio/)
   })
 
+  it('selected blocks expose page-edge distance measurements and active resize handle state', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(renderer, /selectionDistanceLabels/)
+    assert.match(renderer, /web-page-block-selection__distance/)
+    assert.match(renderer, /activeResizeCorner/)
+    assert.match(renderer, /web-page-block-resize__handle--active/)
+    assert.match(renderer, /distanceLabelStyle/)
+    assert.match(css, /web-page-block-selection__distance/)
+    assert.match(css, /web-page-block-resize__handle--active/)
+  })
+
   it('double click edits text button and link content directly on canvas', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
